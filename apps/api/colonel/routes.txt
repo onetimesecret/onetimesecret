@@ -165,6 +165,15 @@ GET    /billing/catalog                   ColonelAPI::Logic::Colonel::GetBilling
 # paginated + bounded — never a full Organization.instances scan. Read-only.
 GET    /billing/stripe-organizations      ColonelAPI::Logic::Colonel::ListStripeOrganizations response=json auth=sessionauth role=colonel scope=internal
 
-# Observability: audit trail reader + daily activity trends (both read-only)
+# Observability: audit trail reader + export + daily activity trends (all read-only)
+# The literal /audit/export MUST precede /audit only for readability — they are
+# distinct literals, not a pattern overlap.
+#
+# The export deliberately declares NO response= type (i.e. Otto's 'default'):
+# its body is text/csv or application/x-ndjson, and every other response type
+# would re-encode it as JSON. `Klass.method` is the route form Otto documents
+# for handlers that need direct response access; precedent in this repo is
+# `GET /ask Internal::ACME::AskHandler.call`. See ExportColonelAuditEvents.
+GET    /audit/export                      ColonelAPI::Logic::Colonel::ExportColonelAuditEvents.render auth=sessionauth role=colonel scope=internal
 GET    /audit                             ColonelAPI::Logic::Colonel::ListColonelAuditEvents response=json auth=sessionauth role=colonel scope=internal
 GET    /trends                            ColonelAPI::Logic::Colonel::GetTrends response=json auth=sessionauth role=colonel scope=internal

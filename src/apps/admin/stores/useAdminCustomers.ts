@@ -9,6 +9,7 @@ import {
   usePaginatedFetch,
   type PageMeta,
 } from '@/apps/admin/composables/usePaginatedFetch';
+import { reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
 import {
   colonelUserMutationResponseSchema,
   colonelUsersResponseSchema,
@@ -90,13 +91,23 @@ async function requestVerification(
   parseMutationAck(response.data);
 }
 
-/** DELETE one account, carrying the confirmation token the server requires. */
+/**
+ * DELETE one account, carrying the confirmation token the server requires
+ * (#4326) and, when the operator gave one, the reason (#4338). A DELETE, so the
+ * reason rides the QUERY STRING; a blank one contributes nothing at all, leaving
+ * the request byte-identical to its pre-#4338 shape.
+ */
 async function requestPurge(
   $api: AxiosInstance,
   userId: string,
-  confirm: string
+  confirm: string,
+  reason?: string
 ): Promise<void> {
-  const response = await $api.delete(userUrl(userId), { headers: confirmHeaders(confirm) });
+  const [reasonConfig] = reasonQueryArgs(reason);
+  const response = await $api.delete(userUrl(userId), {
+    headers: confirmHeaders(confirm),
+    ...reasonConfig,
+  });
   parseMutationAck(response.data);
 }
 
@@ -190,10 +201,12 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
    * @param userId the customer's public id (extid, 'ur…').
    * @param confirm the account identifier (email, extid when it has none) the
    *   server requires in X-OTS-Confirm (#4326).
+   * @param reason OPTIONAL operator-supplied why (#4338) — query string, since
+   *   this is a DELETE. Omitted entirely when blank.
    * @throws the network/HTTP error, for `useAdminMutation` to classify.
    */
-  async function purge(userId: string, confirm: string): Promise<void> {
-    await requestPurge($api, userId, confirm);
+  async function purge(userId: string, confirm: string, reason?: string): Promise<void> {
+    await requestPurge($api, userId, confirm, reason);
     customers.value = customers.value.filter((row) => row.user_id !== userId);
   }
 

@@ -4,6 +4,7 @@
 
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
 require 'onetime/operations/sessions/store'
 
 module Auth
@@ -14,9 +15,12 @@ module Auth
       # The ONE implementation of the suspension verb. The colonel
       # `SuspendUser` / `UnsuspendUser` Logic classes are thin adapters over
       # it. This is a MUTATING admin op, so it records exactly one
-      # ColonelAuditEvent per successful change (epic #20 CONTRACT 4 / #21). An
-      # idempotent no-op (already in the target state) mutates nothing and is
-      # therefore not audited.
+      # ColonelAuditEvent per successful change (epic #20 CONTRACT 4 / #21).
+      # An idempotent no-op (already in the target state) mutates nothing but
+      # is STILL audited, under the same verb with `outcome: 'no_change'`
+      # (#4337): the operator deliberately attempted a suspension, and that
+      # attempt is the fact a reviewer needs — whether the account was already
+      # in that state is the outcome, not the question.
       #
       # ## Reversible by design (unlike purge)
       #
@@ -45,6 +49,7 @@ module Auth
       class SetSuspension
         include Onetime::LoggerMethods
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
 
         AUDIT_VERB_SUSPEND   = 'customer.suspend'
         AUDIT_VERB_UNSUSPEND = 'customer.unsuspend'
@@ -71,16 +76,18 @@ module Auth
         # @param suspended [Boolean] target state
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity
         #   (colonel extid/email, or a CLI sentinel). Never an internal objid.
-        # @param reason [String, nil] optional operator-supplied reason (stored
-        #   on the customer and in the audit detail; cleared on unsuspend)
+        # @param reason [String, nil] OPTIONAL operator-supplied why. Stored on
+        #   the customer (cleared on unsuspend) AND in the audit detail — this
+        #   op predates #4338 and is the precedent the other destructive verbs
+        #   now follow; sanitization moved to {Onetime::AuditReason}, which owns
+        #   the 255-char bound and the optional-now / required-later rollout.
         # @param dbclient [Object, nil] Redis-like client for the session sweep;
         #   defaults to Familia.dbclient.
         def initialize(customer:, suspended:, actor:, reason: nil, dbclient: nil)
           @customer  = customer
           @suspended = suspended ? true : false
           @actor     = actor
-          reason     = reason.to_s.strip
-          @reason    = reason.empty? ? nil : reason
+          @reason    = normalize_reason(reason)
           @dbclient  = dbclient
         end
 
@@ -92,6 +99,7 @@ module Auth
           end
 
           if @customer.suspended? == @suspended
+            record_no_change_event
             return Result.new(
               status: :no_change,
               customer: @customer,
@@ -120,12 +128,18 @@ module Auth
           sessions_revoked = @suspended ? revoke_sessions : 0
 
           # One audit event per successful mutation, emitted from the op layer.
+          #
+          # FAIL-CLOSED (#4333): suspension revokes the customer's sessions and
+          # locks them out of their account; the customer row keeps only the
+          # current flag, so an unrecorded suspend/unsuspend is an access change
+          # nobody can attribute. The :no_change path returns before this.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: @suspended ? AUDIT_VERB_SUSPEND : AUDIT_VERB_UNSUSPEND,
             target: @customer.extid,
             result: :success,
             detail: audit_detail(sessions_revoked),
+            fail_closed: true,
           )
 
           # debug level (not info): the audit event is the durable record (see
@@ -143,10 +157,45 @@ module Auth
 
         private
 
+        # On SUSPEND the reason key is present unconditionally (including as
+        # nil), because it predates #4338 and the existing wire/spec shape
+        # depends on it. On UNSUSPEND — a release, whose own why is worth just
+        # as much — it follows the #4338 rule instead: present only when the
+        # operator gave one.
         def audit_detail(sessions_revoked)
-          return { sessions_revoked: sessions_revoked } unless @suspended
+          return with_reason(sessions_revoked: sessions_revoked) unless @suspended
 
           { reason: @reason, sessions_revoked: sessions_revoked }
+        end
+
+        # A no-change attempt (#4337) — the OPERATOR trail, not the observation
+        # trail.
+        #
+        # Nothing changed, but something was ATTEMPTED: an operator asked to
+        # suspend (or release) a specific account. That is a deliberate
+        # trust & safety action, and "someone tried to suspend this customer
+        # last Tuesday" is exactly the fact a reviewer needs — the outcome
+        # being "already there" does not make the attempt uninteresting. It
+        # also distinguishes a genuine no-op from a suspension whose audit
+        # write failed.
+        #
+        # Same verb and target as the applied event, with `outcome: 'no_change'`
+        # marking it. NOT fail-closed: nothing was destroyed or revoked, so
+        # there is no untraceable-destruction case for it to surface, and
+        # turning an idempotent no-op into a 500 would be a regression.
+        #
+        # The operator's `reason` (#4338) rides here too: the attempt has a why
+        # even when the account was already in the target state, and the
+        # customer row records nothing on this path for a reviewer to fall back
+        # on.
+        def record_no_change_event
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: @suspended ? AUDIT_VERB_SUSPEND : AUDIT_VERB_UNSUSPEND,
+            target: @customer.extid,
+            result: :success,
+            detail: with_reason(outcome: 'no_change', suspended: @suspended),
+          )
         end
 
         # Delete every readable session belonging to this customer. Bounded by

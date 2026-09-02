@@ -62,12 +62,19 @@ module Onetime
         type: :boolean,
         default: false,
         desc: 'Show the removal plan without mutating (wins over --apply)'
+      # OPTIONAL operator-supplied why (#4338), recorded in the audit detail
+      # of the event this command's op writes. Same flag, same wording and same
+      # blank-means-absent handling as every other destructive CLI verb.
+      option :reason,
+        type: :string,
+        default: nil,
+        desc: 'Operator-supplied reason (recorded in the admin audit trail)'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
-      def call(domain:, apply: false, dry_run: false, json: false, **)
+      def call(domain:, apply: false, dry_run: false, reason: nil, json: false, **)
         boot_application!
 
         target = resolve_domain(domain, json: json)
@@ -78,11 +85,11 @@ module Onetime
 
         result =
           if dry_run
-            run_op(target, dry_run: true, json: json)
+            run_op(target, dry_run: true, reason: reason, json: json)
           elsif apply
-            run_op(target, dry_run: false, json: json)
+            run_op(target, dry_run: false, reason: reason, json: json)
           else
-            confirm_and_apply(target, json: json)
+            confirm_and_apply(target, reason: reason, json: json)
           end
 
         return if result.nil? # operator declined at the prompt
@@ -95,11 +102,12 @@ module Onetime
 
       private
 
-      def run_op(target, dry_run:, json:)
+      def run_op(target, dry_run:, reason:, json:)
         Onetime::Operations::Domains::Remove.new(
           domain: target,
           actor: Customers::Shared::CLI_ACTOR,
           dry_run: dry_run,
+          reason: reason,
         ).call
       rescue StandardError => ex
         # A blown-up APPLY has already been audited (result: :failure) by the op's
@@ -108,8 +116,8 @@ module Onetime
       end
 
       # Two op calls: plan, then apply. Only for the interactive path.
-      def confirm_and_apply(target, json:)
-        plan = run_op(target, dry_run: true, json: json)
+      def confirm_and_apply(target, reason:, json:)
+        plan = run_op(target, dry_run: true, reason: reason, json: json)
 
         print_plan(plan)
         print "Permanently remove #{plan.display_domain}? [y/N] "
@@ -119,7 +127,7 @@ module Onetime
           return nil
         end
 
-        run_op(target, dry_run: false, json: json)
+        run_op(target, dry_run: false, reason: reason, json: json)
       end
 
       def print_plan(plan)

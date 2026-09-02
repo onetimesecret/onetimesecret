@@ -39,6 +39,9 @@ function auditRow(overrides: Record<string, unknown> = {}) {
     result: 'success',
     detail: { from: 'customer', to: 'admin' },
     created: 1700000000,
+    // Stream discriminator (#4335): which of the model's three capped trails
+    // this row came from. Required by colonelAuditEventSchema.
+    trail: 'events',
     ...overrides,
   };
 }
@@ -325,5 +328,53 @@ describe('ColonelAuditLog (flight-recorder playback — observability lane)', ()
 
     expect(mockApi.post).not.toHaveBeenCalled();
     expect(mockApi.delete).not.toHaveBeenCalled();
+  });
+
+  // The export is a download link, not a fetch: the server streams CSV/NDJSON
+  // with a Content-Disposition header. What the screen owes the operator is a
+  // link whose filters match the table they are reading.
+  describe('export links', () => {
+    it('links to the export endpoint in both serialisations', async () => {
+      mockApi.get.mockResolvedValue({ data: auditPayload() });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="audit-export-csv"]').attributes('href')).toBe(
+        '/api/colonel/audit/export?format=csv'
+      );
+      expect(wrapper.find('[data-testid="audit-export-ndjson"]').attributes('href')).toBe(
+        '/api/colonel/audit/export?format=ndjson'
+      );
+    });
+
+    it('carries the APPLIED filters, not the half-typed actor box', async () => {
+      mockApi.get.mockResolvedValue({ data: auditPayload() });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      // Typed but not submitted: the table has not moved, so neither has the link.
+      await wrapper.find('[data-testid="audit-actor-input"]').setValue('colonel@example.com');
+      expect(wrapper.find('[data-testid="audit-export-csv"]').attributes('href')).toBe(
+        '/api/colonel/audit/export?format=csv'
+      );
+
+      await wrapper.find('[data-testid="audit-actor-form"]').trigger('submit');
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="audit-export-csv"]').attributes('href')).toBe(
+        '/api/colonel/audit/export?format=csv&actor=colonel%40example.com'
+      );
+    });
+
+    it('does not fetch anything of its own', async () => {
+      mockApi.get.mockResolvedValue({ data: auditPayload() });
+      wrapper = mountView(pinia);
+      await flushPromises();
+      const callsAfterMount = mockApi.get.mock.calls.length;
+
+      await wrapper.find('[data-testid="audit-export-csv"]').trigger('click');
+
+      expect(mockApi.get.mock.calls.length).toBe(callsAfterMount);
+    });
   });
 });

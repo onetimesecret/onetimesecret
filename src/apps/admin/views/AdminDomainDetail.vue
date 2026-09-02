@@ -302,7 +302,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
-  } = useAdminDestructiveMutation(async () => {
+  } = useAdminDestructiveMutation(async (reason?: string) => {
     switch (activeAction.value) {
       case 'verify':
         verifyResult.value = await store.verify(publicId.value);
@@ -330,7 +330,12 @@
         // drift) means the server only PREVIEWED — reporting success would
         // toast "removed", drop the cached row and navigate away while the
         // domain still exists.
-        const removeAck = await store.remove(publicId.value, false, applyConfirmToken());
+        const removeAck = await store.remove(
+          publicId.value,
+          false,
+          applyConfirmToken(),
+          reason
+        );
         if (!removeAck || removeAck.dry_run !== false) {
           throw new Error(t('web.admin.domains.actions.remove.notApplied'));
         }
@@ -365,6 +370,7 @@
         confirmToken: undefined as string | undefined,
         variant: 'default' as const,
         confirmText: undefined as string | undefined,
+        requestReason: false,
       };
     }
 
@@ -382,6 +388,9 @@
       confirmToken: isDanger ? publicId.value : undefined,
       variant: isDanger ? ('danger' as const) : ('default' as const),
       confirmText: t(`${root}.button`),
+      // Only REMOVE destroys (#4338). Repair and transfer rewrite ownership
+      // state and are recoverable; verify writes nothing.
+      requestReason: action === 'remove',
     };
   });
 
@@ -408,11 +417,11 @@
     );
   }
 
-  async function onConfirm(): Promise<void> {
+  async function onConfirm(reason?: string): Promise<void> {
     const action = activeAction.value;
     if (!action) return;
 
-    const ok = await runMutation();
+    const ok = await runMutation(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
     dialogOpen.value = false;
@@ -1147,6 +1156,7 @@
       :confirm-token="dialogConfig.confirmToken"
       :variant="dialogConfig.variant"
       :confirm-text="dialogConfig.confirmText"
+      :request-reason="dialogConfig.requestReason"
       :loading="mutationLoading"
       :error="mutationError"
       @confirm="onConfirm"

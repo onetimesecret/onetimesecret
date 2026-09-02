@@ -6,6 +6,7 @@ require 'onetime/operations/sessions/store'
 require 'onetime/session/sidecar'
 require 'onetime/models/session_metadata'
 require 'onetime/models/colonel_audit_event'
+require 'onetime/audit_reason'
 
 module Onetime
   module Operations
@@ -86,6 +87,8 @@ module Onetime
       # contract: a missing customer degrades to a zero-count revoke rather than
       # raising (callers wrap it in ErrorHandler.safe_execute regardless).
       class RevokeAllForCustomerExceptCurrent
+        include Onetime::AuditReason
+
         # Audit verb for the ADMIN caller only (see +actor:+). Deliberately the
         # same verb {RevokeAllForCustomer} writes: to an operator reading the
         # trail this is the same action, distinguished by `except_current` in
@@ -127,10 +130,16 @@ module Onetime
         #   that IS an admin action, so it passes an actor and one
         #   {Onetime::ColonelAuditEvent} is written — by the op, never by the
         #   adapter (CONTRACT 4).
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the admin audit detail. Meaningful only alongside
+        #   `actor:` — self-service callers pass neither and no event is
+        #   written. Blank is treated as absent; see {Onetime::AuditReason}.
         # @param dbclient [Object, nil] Redis-like client; defaults to Familia.dbclient.
         def initialize(custid:, except_session_id: nil, scan_untracked: true,
-                       honor_credential_watermark: false, actor: nil, dbclient: nil)
+                       honor_credential_watermark: false, actor: nil, reason: nil,
+                       dbclient: nil)
           @actor                      = actor
+          @reason                     = normalize_reason(reason)
           @custid                     = custid
           # Normalize to a string so the `sid == @except_session_id` guards are
           # type-stable; nil becomes '' which no real sid ever equals → revoke ALL.
@@ -196,7 +205,7 @@ module Onetime
             verb: AUDIT_VERB,
             target: @custid,
             result: :success,
-            detail: detail.merge(except_current: true),
+            detail: with_reason(detail.merge(except_current: true)),
           )
         rescue StandardError => ex
           OT.le "[Sessions::RevokeAllForCustomerExceptCurrent] audit failed: #{ex.class}: #{ex.message}"

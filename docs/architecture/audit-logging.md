@@ -10,7 +10,7 @@ operator-facing log exists outside the entitlement entirely.
 |---|---|---|---|---|
 | Secret Activity (#3633/#3635/#3637) | **Secret Activity** | what happened to a secret, and who acted | Valkey/Redis sorted set, capped (10,000 newest per org) | Shipped |
 | Security Events (#2799) | **Security Events** | who did what to the account/org (login, MFA, SSO config) | SQL (`account_authentication_audit_logs`), TTL-based | Backend table live (Rodauth); product surface unstarted |
-| Operator audit log | — (colonel-only) | what operators did in the admin console | `ColonelAuditEvent` (Familia) | Shipped, colonel app only |
+| Operator audit log | — (colonel-only) | what operators did in the admin console, and which sensitive things they looked at | `ColonelAuditEvent` (Familia; three capped sub-streams) | Shipped, colonel app only |
 
 Do not conflate them. Per ADR-021, "audit log" in the strict, actor-attributed
 compliance sense is Security Events; Secret Activity began as access/usage
@@ -243,6 +243,398 @@ operator actions in the admin console and is rendered only by the colonel app
 `audit_logs` entitlement and outside ADR-021's two-stream model — it answers
 "what did *our operators* do," not "what happened in a customer's org."
 Mentioned here only to prevent the name collision.
+
+### Three sub-streams, three budgets (#4335)
+
+The operator log is one stream in ADR-021's sense — one prefix, one console,
+one export — stored as **three separately-capped sorted sets**. The split is a
+storage control, not a product distinction, and the read path merges them back
+into one chronological feed tagged with a `trail` field.
+
+| Sub-stream | Written by | Holds | Retention |
+|---|---|---|---|
+| `events` | `record` | operator MUTATIONS | newest 10,000, no TTL |
+| `security_events` | `record_security` | events an **unauthenticated** caller can cause — rate-limiter cap-hits, failed colonel sign-ins (#4339) | newest 1,000, 7 days |
+| `access_events` | `record_access` | authenticated **observations** — curated sensitive reads and dry-run previews | newest 5,000, 30 days |
+
+One invariant explains all three (the **write-frequency invariant** on the
+model): a count-capped set with no TTL makes any high-volume writer an
+eviction primitive against everything else in the same set. Rather than argue
+per writer about rate limits, each class of writer gets its own budget, so no
+volume of anonymous telemetry and no amount of console browsing can evict a
+single purge or role change.
+
+`access_events` is the newest and the reason CONTRACT 4 changed — see below.
+Its retention sits deliberately between the other two: longer than anonymous
+telemetry because an observation is an *attributed operator action* and "who
+was looking at this account last week" is a real question; still bounded,
+because an observation leaves no other mark to correlate against and a
+permanent record of everything an operator ever looked at is itself
+surveillance data worth ageing out.
+
+### CONTRACT 4, restated (#4335)
+
+The contract used to read *"audit is for mutations; reads never audit."* It now
+reads:
+
+> **Reads never write the OPERATOR trail. Curated sensitive reads write their
+> own budgeted stream.**
+
+What changed and why: the original phrasing protected `events` from
+read-volume, and that protection is intact — no read has ever written there and
+none does now. But it also meant the console could disclose a customer's email,
+decrypt their live session, or export a year of usage with no record of who
+looked, which is the gap #4335 closed. The two goals were never actually in
+tension; they only looked that way while there was one collection.
+
+**Curation principle** — an observation is recorded when it *exposes customer
+material* or is a *bulk extraction*. Roughly 25 colonel read endpoints stay
+unaudited and should: the site banner, the billing catalog, feature flags,
+config read-outs and system status disclose nothing about a customer. The test
+is the material, not the HTTP verb.
+
+Recorded today:
+
+| Verb | Surface | Why |
+|---|---|---|
+| `secret.receipt_view` | `GetSecretReceipt` | returns the owner's full email |
+| `customer.diagnostics_view` | `GetAccountDiagnostics` | auth-log tail + sessions + lockout state for one person |
+| `session.inspect` | `GetSessionDetail` | decrypts one live session (email, IP, UA, org) |
+| `session.list_for_customer` | `ListCustomerSessions` | where one named person is signed in |
+| `session.list` | `ListSessions` | every row carries email/IP/UA; `search` is a free-text index over addresses |
+| `audit.list` / `audit.export` | list + export endpoints, `ots audit list` | reading the flight recorder is itself an operator action |
+| `usage.export` | `ExportUsage` | up to 365 days, SCANs 10k secrets + every customer record |
+
+Two notes on the edges. `POST /organizations/:org_id/investigate`
+(`organization.investigate`, #4336) records to the **operator** trail rather
+than here: it does not merely read local state, it issues an authenticated
+outbound call to Stripe about a named customer, which is an action with an
+effect outside this system. And a **dry-run preview** (#4337) is an observation
+by the same test — it mutates nothing but enumerates exactly what a destructive
+run would touch — so previews land here with `result: 'preview'`.
+
+`record_access` is fail-open always, with no `fail_closed` keyword. Its writers
+mutated nothing, so there is no destroyed-with-no-trail outcome for failing
+closed to surface; all it could do is take the console down over a broken audit
+write while an operator is trying to read something.
+
+### Attempts, not just effects (#4337)
+
+Two families of operator action changed nothing and therefore recorded
+nothing. Both now record — and they go to **different trails**, which is the
+distinction worth holding on to.
+
+**Dry-run previews → the observation trail.** A preview mutates nothing, but it
+enumerates exactly what a destructive run would touch: the message count a
+purge would delete, the members and domains an org delete would take with it,
+the addresses a replay would re-fire. That is reconnaissance, and several of
+these ops default to `dry_run: true`, so the preview is the step an operator
+always takes first — the one that used to leave no trace at all. Each records
+one event with the op's **own verb and target** (so a preview and the apply
+that followed read as one sequence when filtered by verb), `result: 'preview'`,
+and `dry_run: true` in the detail. Volume lands on the budgeted stream by
+design, never on the operator trail.
+
+Covered: `org/reconcile`, `org/delete`, `org/transfer_ownership`,
+`org/entitlement_override`, `memberships/entitlement_override`, `dlq/purge`,
+`dlq/replay`, `domains/remove`, `domains/transfer`, `domains/repair`,
+`domains/ensure_domain_configs`, `email/send_test`,
+`email/sync_provider_feedback`, `customers/change_email`,
+`customers/reconcile_role_index` (the last gated on a known actor, since its
+report-only path is also reachable with `actor: nil` — ADR-023: never
+fabricate an actor).
+
+**No-change attempts → the operator trail.** Suspending an already-suspended
+account, setting a role to the role it already holds, re-applying the current
+plan: these ops used to return `:no_change` and skip the audit write under an
+"only audit an actual change" rule. That rule was reading the trail as a log of
+*effects*; it is a log of *what operators did*. Reaching for `colonel` on an
+account that already holds it is the same reach for the same privilege, and a
+trail that goes quiet for it can show nothing while an operator repeatedly
+probes a privileged account. These record under the op's normal verb with
+`detail: { outcome: 'no_change', ... }` — **not** `fail_closed`, since nothing
+was destroyed or revoked.
+
+Covered: `customers/set_suspension`, `customers/set_role`,
+`customers/set_plan`, `customers/set_verification`, `memberships/set_role`,
+`org/set_plan`, `customers/change_email`, `org/entitlement_override`,
+`memberships/entitlement_override`, `memberships/add` (a repeat-add records
+the role the member currently holds), `dlq/purge`, and `dlq/replay` (a live
+purge or replay of an already-empty queue — the operator fired the verb;
+whether a consumer emptied the queue first must not decide whether the trail
+shows the attempt).
+
+The second wave (`change_email`, the two `entitlement_override`s) surfaces its
+`:no_change` status to the operator rather than silently skipping, and those
+three — plus `dlq/replay`, whose `:empty` check precedes its dry-run branch —
+can discover a no-change during a dry run. The two-trail split resolves that
+interplay: a no-change discovered by a **live** call is a mutation attempt and
+lands on the operator trail as above; one discovered by a **dry run** stays on
+the observation trail as a preview (with `outcome: 'no_change'` added to the
+preview detail), because previews never write operator-trail rows and
+`dry_run: true` is most of these ops' default.
+`customers/change_email` is the arguable member — asking to change an address
+to itself carries less intent — but it is also the highest-value verb in the
+trail, and a `:no_change` answer confirms the account currently holds the
+requested address, so a repeated same-address probe is exactly the pattern the
+trail must not go quiet on.
+
+An op that *refuses* on no-change rather than skipping was already audited (the
+refusal path) and is unchanged. `email/ingest_feedback`'s all-rejected-batch
+path also stays unaudited on purpose: a batch that accepts nothing is an honest
+pipeline outcome, not an operator reaching for a named target.
+
+### What the security-telemetry stream holds (#4339)
+
+`security_events` started as the home for rate-limiter cap-hits — the three
+throttles that an unauthenticated caller can drive
+(`auth.reset_request_throttled` and its `create_account` / `conceal_secret`
+peers). It now also holds **failed colonel sign-ins**.
+
+| Verb | Emitted by | Trail |
+|---|---|---|
+| `colonel.signin` | `SyncSession` (full) / `AuthenticateSession` (simple) | `events` |
+| `colonel.signin_failed` | `after_login_failure` hook (full) / `AuthenticateSession` failure funnel (simple) | `security_events` |
+
+A successful colonel sign-in has been audited since the trail gained a signal
+for operator *presence*. A failed one recorded nothing, and both emitters said
+why: the operator trail is capped by count with no TTL, so an event an
+unauthenticated caller can trigger is a log-eviction primitive against it. That
+argument was correct and is why the success write stays a `record` into
+`events` — but it stopped being an argument for recording *nothing* once the
+store grew a second budget. So the highest-signal security event the trail
+could hold, somebody working through passwords against a real admin account,
+was the one event it did not hold.
+
+Four properties are worth knowing:
+
+- **Only real colonel accounts.** Nothing is recorded unless the attempted
+  identity resolves to a Customer holding the colonel role. An event per
+  submitted address would let anyone mint rows for strings they invented; the
+  curated signal is "an actual admin account is being targeted."
+- **The target is the obscured email**, as with every other event on this
+  stream — never the raw address, never an extid (nobody has proven they are
+  that account) and never an internal objid. Events ship to the external
+  `ColonelAudit` sink at write time, so the payload has to be safe to leave the
+  process. `detail` carries only `auth_mode` (`simple`/`full`) and a coarse
+  `failure_reason` (`invalid_credentials` — Rodauth's login-failure hook cannot
+  tell "no such account" from "wrong password", and the case where simple mode
+  could tell records nothing anyway). No client IP: this event is for
+  *detection*, and the origin is in the auth log line each site already writes.
+- **No throttle of its own.** Budget separation is the control (the
+  write-frequency invariant above): a flood here evicts only other anonymous
+  telemetry, and the login rate limiter already gates the surrounding path.
+  At most one event per failed attempt.
+- **Two verbs, not a parent and a child.** `colonel.signin_failed` is
+  deliberately *not* spelled `colonel.signin.failed`: the reader's verb filter
+  matches exactly or as a dotted category prefix, so the dotted spelling would
+  silently widen the existing `colonel.signin` filter from "who signed in" to
+  "who tried". As siblings each is separately filterable and `colonel` still
+  rolls both up — which matters more than usual here, since the two live in
+  different collections with different retention.
+
+The shared guard lives in `Onetime::ColonelSigninFailure` (the
+`Onetime::AuditReason` shape: one small module under `lib/onetime/` owning one
+cross-cutting audit concern), so the two auth modes cannot drift on the lookup,
+the role gate, the obscured target or the fail-open rescue. It never raises: a
+sign-in failure must fail the same way, at the same speed, whether or not the
+audit write worked.
+
+Out of scope: the Rodauth SQL audit log
+(`account_authentication_audit_logs`) is a separate stream with its own writer
+and is untouched.
+
+### Write-failure posture (#4333)
+
+`ColonelAuditEvent.record` is best-effort by default: a failed audit write is
+logged and swallowed, because it must not break the operation that called it.
+DESTRUCTIVE verbs opt out with `fail_closed: true` and raise
+`Onetime::AuditWriteFailure` instead — customer purge, organization delete,
+customer/membership role change, session delete/revoke/revoke-all, account
+suspend/unsuspend, secret delete, DLQ purge, custom-domain remove, membership
+remove. What they share: the action destroys or revokes the very records that
+would otherwise evidence it.
+
+Be precise about the guarantee. Almost every call site records *after* its
+mutation, so failing closed does **not** roll anything back and does not
+prevent the destruction — it refuses to report success. The operator gets a
+hard failure naming the verb and target rather than a green response over an
+empty trail. Prevention would require recording before mutating; nothing does
+today.
+
+Every fail-closed call site also sits inside an `Onetime::AuditedFailure`
+wrapper, which records a `result: :failure` event for whatever the op raises.
+That wrapper is verb-preserving for every exception class **except this one**.
+An escaping `AuditWriteFailure` is recorded under its own verb,
+`audit.write_failure` (`Onetime::AuditedFailure::AUDIT_WRITE_FAILURE_VERB` —
+one emitter, so the constant lives on the module), at the **original target**,
+with the original verb in the detail as `failed_verb`:
+
+```
+verb: audit.write_failure   target: ur_abc   result: failure
+detail: { failed_verb: 'customer.purge', error: '…', message: '…' }
+```
+
+Recording it under `customer.purge` instead would be actively wrong rather
+than merely unhelpful. The follow-up write is fail-open and runs a moment
+later, so a transient datastore blip typically lets it *succeed* — and the
+only stored event for a purge that really did destroy the account would be an
+affirmative `customer.purge / result: failure`. Anyone reconciling "did this
+account get deleted?" would get a wrong answer instead of a visible gap. Read
+the `audit.write_failure` pair as "the trail is missing an event for X", never
+as "X failed". Same shape for `organization.delete`, `customer.set_role`,
+`customer.suspend`, `session.revoke_all`, `secret.delete`, `queue.dlq.purge`,
+`domain.remove` and `membership.remove`.
+
+`audit` is a new leading category rather than a dotted child of the failing
+verb on purpose: the reader matches a verb exactly or as a dotted prefix, so
+`customer.purge.write_failure` would fold these straight back under the
+`customer.purge` filter. The console needs no change to show them —
+`VERB_CATEGORIES` in `ColonelAuditLog.vue` is a superset-tolerant convenience
+menu, not an allowlist, so an uncategorised verb still lists under "All".
+
+`record_security` is fail-open always and has no opt-out keyword: its writers
+are reachable by unauthenticated callers, and an abort-on-write-failure mode
+there would be an abort primitive over whatever path emitted the telemetry.
+Refusal records inside otherwise fail-closed ops (`Memberships::Remove`,
+`Memberships::SetRole`) also stay fail-open — a refusal mutated nothing.
+
+### Durability: the sink is the record, Valkey is the cache (#4334)
+
+Every event goes to two places, **in this order**:
+
+1. **The sink** — a structured log line on the dedicated `ColonelAudit`
+   SemanticLogger category, emitted *before* the datastore write. Message
+   `colonel.audit`, payload = the stored event plus `trail`
+   (`events` / `security_events`). This is the durability story: it leaves the
+   process immediately and nothing in the codebase can retract it.
+2. **The cache** — the capped sorted sets. Recent, filterable, bounded; what
+   the console, the export endpoint and the CLI query. Not an archive, and
+   never sized to be one.
+
+The ordering is the guarantee: a Valkey outage, an eviction or a trim cannot
+lose the record. The two are independent in both directions — a sink failure is
+caught and logged and never costs the Redis write or the caller; a datastore
+failure never un-emits the sink line (which is what makes the fail-closed
+posture above survivable: the operator is told the trail is broken, and the
+event is still in the log stream).
+
+By default the sink rides the console appender (stdout in server modes, stderr
+under the CLI). An **optional syslog appender**, filtered to the `ColonelAudit`
+category and **default off**, ships it separately — `audit.syslog` in
+`etc/defaults/logging.defaults.yaml`, `LOG_AUDIT_SYSLOG=true` to enable, with
+`LOG_AUDIT_SYSLOG_URL` / `_LEVEL` / `_FACILITY`. A local `syslog://` URL needs
+no third-party gem; a remote `tcp://` / `udp://` URL needs `syslog_protocol`
+(and `net_tcp_client` for TCP), which are not bundled — the appender is then
+skipped with one boot warning and the stream still reaches stdout.
+
+The sink's level is pinned in code (`SINK_LEVEL`), not read from the logging
+config: the durability story must not go quiet because the application default
+level was raised. Turning it off is a routing decision at the collector.
+
+### Reading and exporting (#4334)
+
+Three readers, one projection — `Onetime::ColonelAuditReader` (`lib/`, so the
+CLI reaches it without an app autoloader) owns the merge of all three trails,
+the `actor` / `verb` filter semantics, and the **field allowlist**
+(`id, actor, verb, target, result, detail, created, trail`):
+
+| Surface | Entry point | Body |
+|---|---|---|
+| Console list | `GET /api/colonel/audit` | JSON page + pagination |
+| Console export | `GET /api/colonel/audit/export?format=csv\|ndjson` | `text/csv` / `application/x-ndjson` attachment |
+| Shell | `bin/ots audit list [--limit] [--actor] [--verb] [--format text\|json\|csv\|ndjson]` | terminal table or a serialisation |
+
+The export route is the one colonel route that is not `response=json`: Otto's
+Logic-class handler never sees the Rack response and its JSON handler always
+re-encodes the body, so the download uses the `Klass.method` route form
+(precedent: `GET /ask Internal::ACME::AskHandler.call`). Because the body is not
+JSON it has **no Zod schema** — documented in
+`src/schemas/api/internal/responses/colonel-audit.ts`; the fields it serialises
+are the same allowlist `colonelAuditEventSchema` already types. All three
+surfaces mutate nothing and write nothing to the operator trail; each records
+one observation of its own (CONTRACT 4, above).
+
+`trail` was added to the allowlist by #4335 and is **appended**, so every
+incumbent CSV column keeps its index. It exists because retention now differs
+per sub-stream: without it a reader cannot tell whether a missing old row was
+evicted by a count cap, expired by an age bound, or never written. The value is
+derived at merge time from which collection a row came from — nothing is stored
+on the member and no historical event needs backfilling — and it uses the same
+names the sink has tagged its lines with since #4334, so a line in the log
+stream and a row in the console are finally the same record.
+
+**CSV cells are guarded against formula injection.** The trail carries operator
+free text — the #4338 `reason`, the session-console search term, an identifier
+that resolved to nothing — and a CSV export is a file somebody opens in Excel
+or Sheets, where a cell beginning `=`, `+`, `-`, `@` (or a tab/CR the importer
+strips before looking) is *executed* rather than displayed. `ColonelAuditReader`
+therefore prefixes such a cell with an apostrophe, the standard "this is text"
+marker, as the last step of CSV serialisation. It applies to the finished cell
+string, so the JSON-encoded `detail` is covered too. Nothing stored changes,
+and **NDJSON is untouched**: it has no formula problem, and adding a character
+would corrupt the lossless serialisation its consumers parse.
+
+### Retention narrows only via the constants (#4334)
+
+`trim!`, `trim_security!` and `trim_access!` are public and used to take their
+arguments at face value, so `trim!(0)` was a one-call wipe of the operator
+trail — a destructive primitive on the audit API. All now **clamp in the
+widening direction**: a cap below the trail's `MAX_*` constant is raised to it,
+and a positive `max_age` below the trail's retention constant is raised to it
+(a non-positive `max_age` still disables the age pass, which keeps *more*).
+Narrowing retention is a change to the constants — a code change under review.
+
+Stated honestly: this bounds the audit API, not the Familia collection behind
+it. `ColonelAuditEvent.events.clear` still exists and is what test setup and
+deliberate operator surgery use; no application code calls it, and the sink
+above is untouched by anything done to Valkey.
+
+### The operator's reason — optional now, required later (#4338)
+
+The trail recorded *what* an operator did and to whom, and never *why*.
+"`ur_colonel` purged `ur_alice`" cannot be told apart from a GDPR erasure, a
+mistake, or an insider clearing their tracks without leaving the system to find
+the ticket. Every destructive verb now takes an **optional** `reason:` and puts
+it in its audit `detail`.
+
+`Onetime::AuditReason` (`lib/onetime/audit_reason.rb`) is the one place the
+rules live, so twelve ops cannot drift:
+
+- **Blank is absent.** Stripped; an empty or whitespace-only reason is `nil`,
+  never `""` — an empty string in the trail reads as "they gave a reason" when
+  they did not.
+- **Absent means unchanged.** With no reason the `detail` hash is
+  byte-for-byte its pre-#4338 self; there is no `reason: nil` key. That is what
+  lets this ship without touching a single incumbent expectation.
+- **`MAX_LENGTH` is 255**, one under `MAX_DETAIL_VALUE_LENGTH`, so a reason that
+  passes validation is never silently clipped on the way into storage.
+  `reason` is deliberately *not* matched by `SENSITIVE_KEY_PATTERN`.
+
+It rides **inside `detail`**, not as a new top-level field: `ColonelAuditReader`'s
+allowlist, the `colonelAuditEventSchema` Zod shape and the CSV header are one
+linked contract, and `detail` is already rendered and exported as stored (the
+CSV formula guard above is a spreadsheet-safety prefix on the cell, not an edit
+to the value).
+
+Surfaces: the console's `AdminConfirmDialog` grows an optional textarea
+(`requestReason`) whose value is emitted with `confirm`; every destructive
+colonel adapter reads it through one
+`ColonelAPI::Logic::Base#operator_reason_param` (POST → body, DELETE → query
+string, because DELETE bodies are not reliably parsed across this stack); and
+the CLI peers take `--reason`.
+
+It also rides the **no-change** events (#4337) and the **preview**
+observations — an attempted-but-no-op action and a reconnaissance preview each
+have a why. The one exception is the membership refusal events, whose `detail`
+key `reason` already means the refusal *status* and predates this change: one
+key cannot mean two things, and a refusal mutated nothing, so what a reviewer
+needs there is why the *system* said no.
+
+**Optional is this step, not the destination.** Nothing rejects a call that
+omits a reason yet; the flip to required happens once every surface is
+confirmed to be sending one, and it happens in `AuditReason` plus the adapters'
+validation, not in each op.
 
 ## Cross-cutting rules
 

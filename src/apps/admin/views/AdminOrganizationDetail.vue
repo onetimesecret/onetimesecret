@@ -14,6 +14,7 @@
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { confirmHeaders, orgConfirmToken } from '@/apps/admin/utils/confirmHeader';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
+  import { reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
   import type { InvestigateOrganizationResult } from '@/schemas/api/internal/responses/colonel';
   import {
     colonelAvailablePlansResponseSchema,
@@ -775,15 +776,20 @@
     error: deleteError,
     run: runDeleteMutation,
     reset: resetDelete,
-  } = useAdminDestructiveMutation(async () => {
+  } = useAdminDestructiveMutation(async (reason?: string) => {
     // The server refuses these on the apply path too (4xx). Checking here means
     // the operator reads the reason instead of a generic request failure.
     if (deleteBlockedReason.value) throw new Error(deleteBlockedReason.value);
 
     // The preview above is EXEMPT (it writes nothing); only the apply carries
-    // the organization's name in X-OTS-Confirm (#4326).
+    // the organization's name in X-OTS-Confirm (#4326) — and, beside it, the
+    // OPTIONAL operator reason (#4338) on the query string with the flags. Only
+    // the APPLY sends the reason: the preview re-runs on every override toggle,
+    // and the dialog collecting the reason is not open yet.
+    const [reasonConfig] = reasonQueryArgs(reason);
     const response = await $api.delete(deleteUrl(false), {
       headers: confirmHeaders(orgToken.value),
+      ...reasonConfig,
     });
     const parsed = gracefulParse(
       colonelDeleteOrganizationResponseSchema,
@@ -826,8 +832,8 @@
     runDeletePreview();
   });
 
-  async function onDeleteConfirm(): Promise<void> {
-    const ok = await runDeleteMutation();
+  async function onDeleteConfirm(reason?: string): Promise<void> {
+    const ok = await runDeleteMutation(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
     deleteDialogOpen.value = false;
@@ -1839,6 +1845,7 @@
       :confirm-token="record?.extid"
       variant="danger"
       :confirm-text="t('web.admin.organizations.detail.delete.button')"
+      request-reason
       :loading="deleteLoading || deletePreviewLoading"
       :error="deleteError || deletePreviewError"
       @confirm="onDeleteConfirm"

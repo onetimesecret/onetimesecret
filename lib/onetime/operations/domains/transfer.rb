@@ -111,7 +111,13 @@ module Onetime
             return build(:mismatch, original_from_id, original_from_nm)
           end
 
-          return build(:planned, original_from_id, original_from_nm) if @dry_run
+          # A preview moves nothing, so it writes nothing to the OPERATOR
+          # trail — but it names a customer's domain and the org it would move
+          # to, so it is recorded as an OBSERVATION (#4337).
+          if @dry_run
+            record_preview_event(original_from_id)
+            return build(:planned, original_from_id, original_from_nm)
+          end
 
           # Remove from the old organization's collection, if there is one.
           current_org&.remove_domain(@domain.domainid)
@@ -159,6 +165,24 @@ module Onetime
         end
 
         private
+
+        # One OBSERVATION per preview (#4337), on the budgeted access trail.
+        # Same verb and target as the applied event so a preview and the
+        # transfer that followed read as one sequence; `result: 'preview'` and
+        # `dry_run: true` tell them apart.
+        def record_preview_event(from_id)
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @domain.extid,
+            result: 'preview',
+            detail: {
+              dry_run: true,
+              from_org_id: from_id.to_s,
+              to_org_id: @to_org.org_id.to_s,
+            },
+          )
+        end
 
         # Same verb/target/actor as the success event. Best-effort: never break
         # the op.

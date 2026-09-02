@@ -109,8 +109,9 @@ module Auth
         #   a report-only dry run (the safe default — this rewrites index sets
         #   that `role list`, `colonel_count` and `find_first_colonel` read).
         # @param actor [String, #extid, #email, nil] acting admin's PUBLIC
-        #   identity (colonel extid, or the CLI sentinel). Only consulted on an
-        #   applied run; a dry run records no audit event.
+        #   identity (colonel extid, or the CLI sentinel). An applied run
+        #   records to the operator trail; a dry run records one `preview`
+        #   observation (#4337). Both are skipped when the actor is unknown.
         def initialize(apply: false, actor: nil)
           @apply = apply
           @actor = actor
@@ -125,6 +126,7 @@ module Auth
           buckets             = bucket_report(expected, actual, additions, removals)
 
           if additions.empty? && removals.empty?
+            record_preview_event(:clean, scanned, additions, removals) unless @apply
             return Result.new(
               status: :clean,
               scanned: scanned,
@@ -137,6 +139,7 @@ module Auth
           end
 
           unless @apply
+            record_preview_event(:drift, scanned, additions, removals)
             return Result.new(
               status: :drift,
               scanned: scanned,
@@ -166,7 +169,9 @@ module Auth
           )
         rescue StandardError => ex
           # Same gate as Doctor: a failed dry run is a failed READ and must not
-          # write an audit event (CONTRACT 4: viewing never writes). A failed
+          # write a FAILURE event — nothing was attempted, so there is no
+          # attempt to record (the successful-preview observation above is a
+          # different thing, and it is on a different trail). A failed
           # APPLIED run may have left part of the diff written — each applied
           # SADD/SREM is individually correct, but the attempt belongs in the
           # trail. Once the diff is fully written, though, a failure in the
@@ -338,6 +343,36 @@ module Auth
               removals: removals.size,
               skipped: skipped.size,
               roles: (additions + removals + skipped).map { |entry| entry[:role] }.uniq.sort,
+            },
+          )
+        end
+
+        # One OBSERVATION per dry run (#4337), on the budgeted access trail.
+        #
+        # A report-only run walks EVERY live customer's role and reports the
+        # index drift — a whole-install read, and the safe default this op
+        # ships with, so it was the path that left no trace at all.
+        #
+        # Gated on a known actor, like {audit_repair}: this op is reachable
+        # from tooling that passes `actor: nil` (the doctor path), and an
+        # observation attributed to nobody is noise rather than accountability
+        # (ADR-023 — never fabricate an actor). Counts only, for the same
+        # reason the applied event carries counts: an objid list would bloat a
+        # capped set.
+        def record_preview_event(status, scanned, additions, removals)
+          return if @actor.nil?
+
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: 'customer:role_index',
+            result: 'preview',
+            detail: {
+              dry_run: true,
+              status: status.to_s,
+              scanned: scanned,
+              additions: additions.size,
+              removals: removals.size,
             },
           )
         end

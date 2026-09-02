@@ -66,8 +66,17 @@ File.foreach(@routes_file) do |raw|
   parts  = line.split(/\s+/)
   method = parts[0]
   path   = parts[1]
-  logic  = parts[2]
+  target = parts[2]
   next unless %w[GET POST PUT PATCH DELETE].include?(method)
+
+  # Otto accepts three target forms: a bare Logic class (`Logic::Class`), a
+  # class method (`Klass.action`) and an instance method (`Klass#action`). The
+  # audit export uses the class-method form because its body is a CSV/NDJSON
+  # download, which no Otto response handler can produce. Layer 2 asserts on the
+  # CLASS either way, so split the entry point off before constantizing — a bare
+  # `Klass.action` string is not a resolvable constant, and treating it as one
+  # would report a correctly-guarded class as "not loaded".
+  logic = target.split(/[.#]/).first
 
   @routes << { method: method, path: path, logic: logic, attrs: parts[3..] || [], line: line }
 end

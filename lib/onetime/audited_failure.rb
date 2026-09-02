@@ -73,7 +73,34 @@ module Onetime
   # An op may call another audited op. The exception instance is tagged the
   # first time a failure is recorded for it, so an outer wrapper re-raising the
   # same exception does not write a second event. The innermost audited frame —
-  # the one closest to the actual failure — owns the record.
+  # the one closest to the actual failure — owns the record. That holds for the
+  # swapped verb below too: the tag goes on the exception, not on the verb, so
+  # an inner frame that recorded `audit.write_failure` still suppresses the
+  # outer frame rather than letting it re-report the same raise under the outer
+  # op's verb.
+  #
+  # ## ONE exception class is special-cased: Onetime::AuditWriteFailure
+  #
+  # Everything else here is verb-preserving — the failure event carries the
+  # byte-identical verb the success path would have written. There is exactly
+  # one exception, and it exists because the general rule produces an
+  # affirmatively WRONG record for it.
+  #
+  # The 12 fail-closed call sites (#4333) all sit inside a wrapper: they record
+  # AFTER mutating, with `fail_closed: true`, and a failed write raises
+  # {Onetime::AuditWriteFailure} out of the op. Recording that raise under the
+  # op's own verb would say `customer.purge / result: :failure` — for a purge
+  # that DESTROYED THE ACCOUNT and then could not write its receipt. Worse, the
+  # follow-up write is fail-open and lands on a later tick, so a transient
+  # datastore blip typically lets it SUCCEED: the only stored event for the
+  # action would be an affirmative claim that it failed. Anyone reconciling
+  # "did this account get deleted?" gets a wrong answer, not a missing one.
+  #
+  # So an AuditWriteFailure is recorded under {AUDIT_WRITE_FAILURE_VERB}
+  # instead, at the ORIGINAL target, with the original verb in the detail as
+  # `failed_verb`. The record then says what is true — "the trail is missing an
+  # event for customer.purge on ur_abc" — and does not claim an outcome for the
+  # action itself.
   #
   # ## Best-effort, like the model it writes to
   #
@@ -89,6 +116,29 @@ module Onetime
     # Fallback when verb/target/actor cannot be resolved at failure time (e.g.
     # the op raised before assigning the ivar the lambda reads).
     UNKNOWN = 'unknown'
+
+    # Verb for the one special-cased exception class (see the class docs): the
+    # wrapped op raised because its OWN audit write failed, so this event
+    # reports a HOLE IN THE TRAIL, not an outcome for the operation.
+    #
+    # The constant lives here, not on {Onetime::ColonelAuditEvent}, per the
+    # repo's verb-ownership rule (see ColonelAuditEvent::VERB_COLONEL_SIGNIN):
+    # a verb is single-sourced on the model only when it has SEVERAL emitters
+    # that share nothing else. This one has exactly one emitter — this module —
+    # so it belongs to this module.
+    #
+    # A NEW leading category, deliberately, rather than a dotted child of the
+    # verb that failed. {Onetime::ColonelAuditReader} matches a verb exactly or
+    # as a dotted PREFIX, so spelling it `customer.purge.write_failure` would
+    # fold these back under the `customer.purge` filter and re-create at read
+    # time exactly the confusion the swap removes. Under `audit.*` they are
+    # separately filterable, and `audit` rolls up any future sibling.
+    #
+    # The admin console needs no change to show it: VERB_CATEGORIES in
+    # ColonelAuditLog.vue is a superset-tolerant convenience menu, not an
+    # allowlist, so an uncategorised verb still lists under "All" and the
+    # server validates nothing against that list.
+    AUDIT_WRITE_FAILURE_VERB = 'audit.write_failure'
 
     class << self
       def included(base)
@@ -138,6 +188,14 @@ module Onetime
 
         error.instance_variable_set(RECORDED_FLAG, true)
 
+        verb, target, extra = write_failure_context(error, verb: verb, target: target, extra: extra)
+
+        # NEVER `fail_closed:` here, on either path. This write is the fail-open
+        # half of the contract by design, and for the swapped verb it is also
+        # the recursion guard: opting the report of a failed write into the
+        # raising path would hand this same wrapper a second AuditWriteFailure
+        # to chase (the RECORDED_FLAG on the FIRST error would not stop it — a
+        # fresh raise is a fresh, untagged instance).
         Onetime::ColonelAuditEvent.record(
           actor: actor,
           verb: verb,
@@ -149,6 +207,43 @@ module Onetime
         # Never let failure-auditing bookkeeping mask the original error.
         OT.le('[AuditedFailure] record failed', exception: ex, verb: verb.to_s)
         nil
+      end
+
+      # Is this the wrapped op reporting that its OWN audit write failed?
+      # Resolved lazily by `defined?` for the same reason
+      # {authorization_rejection?} is: no load-order dependency on the error
+      # classes from this file.
+      #
+      # @param error [Exception]
+      # @return [Boolean]
+      def audit_write_failure?(error)
+        return false unless defined?(Onetime::AuditWriteFailure)
+
+        error.is_a?(Onetime::AuditWriteFailure)
+      end
+
+      # Apply the one exception-class special case (see the class docs): an
+      # {Onetime::AuditWriteFailure} is recorded under
+      # {AUDIT_WRITE_FAILURE_VERB} rather than under the op's own verb.
+      #
+      # The error carries the verb and target of the write that failed, which
+      # is the more precise pair: an op can fail-closed on a write whose verb
+      # is not the wrapper's own (a nested audited call), and the event should
+      # name the trail entry that is actually missing. Both fall back to the
+      # wrapper's resolved values when the error carries a blank one, so this
+      # can never downgrade a good target to an empty string.
+      #
+      # `failed_verb`, NOT `reason` — since #4338 `reason` in an audit detail
+      # means operator-supplied justification, and this is machine context.
+      #
+      # @return [Array(String, String, Hash, nil)] verb, target, extra
+      def write_failure_context(error, verb:, target:, extra:)
+        return [verb, target, extra] unless audit_write_failure?(error)
+
+        failed_verb   = error.verb.to_s.empty? ? verb : error.verb.to_s
+        failed_target = error.target.to_s.empty? ? target : error.target.to_s
+
+        [AUDIT_WRITE_FAILURE_VERB, failed_target, (extra || {}).merge(failed_verb: failed_verb)]
       end
 
       # Error class + message, plus whatever context the op declared. The
@@ -205,7 +300,10 @@ module Onetime
       #   Operations, `:process` for colonel Logic classes).
       # @param verb [String, Symbol, Proc] audit verb, or a lambda evaluated
       #   against the instance when the verb depends on state (e.g. suspend vs
-      #   unsuspend). MUST match the verb the success path records.
+      #   unsuspend). MUST match the verb the success path records — with the
+      #   one exception the module owns rather than the call site: an
+      #   {Onetime::AuditWriteFailure} is recorded under
+      #   {AUDIT_WRITE_FAILURE_VERB} instead (see the class docs).
       # @param target [String, Symbol, Proc] PUBLIC id of the affected resource
       #   (extid / shortid / queue name). Never an internal objid.
       # @param actor [String, Proc] acting colonel's PUBLIC identity. Defaults

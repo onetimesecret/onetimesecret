@@ -7,6 +7,7 @@
   import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
+  import { reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
   import {
     colonelSecretDeleteResponseSchema,
     colonelSecretReceiptResponseSchema,
@@ -251,7 +252,7 @@
     error: deleteError,
     run: runDelete,
     reset: resetDelete,
-  } = useAdminDestructiveMutation(async () => {
+  } = useAdminDestructiveMutation(async (reason?: string) => {
     const secretId = receiptRecord.value?.secret_id;
     if (!secretId) throw new Error('No secret loaded');
     // X-OTS-Confirm carries the RECEIPT shortid, not the secret shortid (#4326):
@@ -259,9 +260,12 @@
     // 8 chars, so confirming with it would be derivable from the URL and no second
     // factor at all. DeleteSecret expects the receipt shortid, which the read-out
     // exposes as details.metadata.shortid — see deleteToken below.
+    // DELETE -> the operator's reason rides the query string beside it (see
+    // operatorReason.ts); a blank one adds nothing.
+    const [reasonConfig] = reasonQueryArgs(reason);
     const response = await $api.delete(
       `/api/colonel/secrets/${encodeURIComponent(secretId)}`,
-      { headers: confirmHeaders(deleteToken.value) }
+      { headers: confirmHeaders(deleteToken.value), ...reasonConfig }
     );
     // A 2xx means the secret was deleted server-side regardless of ack shape; the
     // parse keeps the contract a live tripwire without failing the action.
@@ -287,8 +291,8 @@
     deleteDialogOpen.value = true;
   }
 
-  async function onDeleteConfirm(): Promise<void> {
-    const ok = await runDelete();
+  async function onDeleteConfirm(reason?: string): Promise<void> {
+    const ok = await runDelete(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
     deleteDialogOpen.value = false;
@@ -588,6 +592,7 @@
       :confirm-token="deleteToken"
       variant="danger"
       :confirm-text="t('web.admin.secrets.actions.delete.button')"
+      request-reason
       :loading="deleteLoading"
       :error="deleteError"
       @confirm="onDeleteConfirm"

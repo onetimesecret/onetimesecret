@@ -9,6 +9,7 @@
   import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import { accountConfirmToken, confirmHeaders } from '@/apps/admin/utils/confirmHeader';
+  import { reasonBody, reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
   import type {
     ColonelUserDetailReceipt,
     ColonelUserDetailSecret,
@@ -111,14 +112,24 @@
   async function callMutation(
     method: 'post' | 'delete',
     path: string,
-    body?: unknown,
-    headers?: Record<string, string>
+    opts: {
+      body?: unknown;
+      /** DELETE-only operator reason (#4338); a POST merges it into `body`. */
+      reason?: string;
+      /** The #4326 confirmation token's header, when the verb is gated. */
+      headers?: Record<string, string>;
+    } = {}
   ): Promise<void> {
-    const config = headers ? { headers } : undefined;
+    // POST -> body, DELETE -> query string (see operatorReason.ts). The
+    // confirmation token rides the HEADER either way, so the two compose.
+    const headerConfig = opts.headers ? { headers: opts.headers } : undefined;
+    const [reasonConfig] = reasonQueryArgs(opts.reason);
+    // With no reason the call keeps its exact pre-#4338 shape.
+    const deleteConfig = reasonConfig ? { ...headerConfig, ...reasonConfig } : headerConfig;
     const response =
       method === 'delete'
-        ? await $api.delete(path, config)
-        : await $api.post(path, body ?? {}, config);
+        ? await $api.delete(path, deleteConfig)
+        : await $api.post(path, opts.body ?? {}, headerConfig);
     gracefulParse(colonelUserMutationResponseSchema, response.data, 'ColonelUserMutationResponse');
   }
 
@@ -127,7 +138,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
-  } = useAdminDestructiveMutation(async () => {
+  } = useAdminDestructiveMutation(async (reason?: string) => {
     // Every DANGER action is gated server-side (#4326) on the SAME token the
     // dialog asks the operator to retype. A missing one is a bug, not a
     // fallback: sending no header is a 403 the operator cannot act on.
@@ -136,25 +147,32 @@
 
     switch (activeAction.value) {
       case 'setRole':
-        return callMutation('post', `${userUrl()}/role`, { role: pendingRole.value }, headers);
+        return callMutation('post', `${userUrl()}/role`, {
+          body: { role: pendingRole.value, ...reasonBody(reason) },
+          headers,
+        });
       case 'verify':
         return callMutation('post', `${userUrl()}/verify`);
       case 'unverify':
-        return callMutation('post', `${userUrl()}/unverify`, {}, headers);
+        return callMutation('post', `${userUrl()}/unverify`, { headers });
       case 'suspend':
-        return callMutation(
-          'post',
-          `${userUrl()}/suspend`,
-          suspendReason.value.trim() ? { reason: suspendReason.value.trim() } : {},
-          headers
-        );
+        // Suspend keeps its own on-page reason field (it predates #4338 and is
+        // also stored on the customer row, not only in the trail), so the
+        // dialog does not ask a second time — see REASON_ACTIONS.
+        return callMutation('post', `${userUrl()}/suspend`, {
+          body: reasonBody(suspendReason.value),
+          headers,
+        });
       case 'unsuspend':
-        return callMutation('post', `${userUrl()}/unsuspend`);
+        // A RELEASE has no on-page field, and unsuspending CLEARS the row's
+        // who/when/why stamps — so the audit event is the only place its why
+        // can live. Hence the dialog asks here.
+        return callMutation('post', `${userUrl()}/unsuspend`, { body: reasonBody(reason) });
       case 'purge':
         // Last line of the fail-closed gate: no typed token, no DELETE — even
         // if the dialog were somehow reached with a blank one.
         if (purgeBlocked.value) throw new Error(purgeBlockedReason.value);
-        return callMutation('delete', userUrl(), undefined, headers);
+        return callMutation('delete', userUrl(), { reason, headers });
       default:
         throw new Error('No active action');
     }
@@ -182,6 +200,16 @@
    * behind a one-click confirm.
    */
   const DANGER_ACTIONS: readonly ActionKey[] = ['purge', 'suspend', 'setRole', 'unverify'];
+
+  /**
+   * Actions whose confirm dialog collects an OPTIONAL operator reason (#4338).
+   *
+   * `suspend` is deliberately ABSENT: it already has its own reason input on
+   * the page (it is stored on the customer row as well as in the trail), and
+   * two reason fields in one flow is worse than one. Verify/unverify are
+   * reversible bookkeeping with nothing to explain.
+   */
+  const REASON_ACTIONS: readonly ActionKey[] = ['purge', 'setRole', 'unsuspend'];
 
   /**
    * The exact string the operator must retype, AND the token sent in
@@ -279,6 +307,7 @@
       confirmToken: undefined,
       variant: 'default' as const,
       confirmText: undefined,
+      requestReason: false,
     };
     if (!action) return blank;
 
@@ -295,6 +324,7 @@
       confirmToken: confirmTokenFor(action),
       variant: isDanger ? ('danger' as const) : ('default' as const),
       confirmText: isDanger ? t(`web.admin.customers.actions.${key}.button`) : undefined,
+      requestReason: REASON_ACTIONS.includes(action),
     };
   });
 
@@ -337,11 +367,11 @@
     requestAction('setRole');
   }
 
-  async function onConfirm(): Promise<void> {
+  async function onConfirm(reason?: string): Promise<void> {
     const key = activeAction.value;
     if (!key) return;
 
-    const ok = await runMutation();
+    const ok = await runMutation(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
     dialogOpen.value = false;
@@ -976,6 +1006,7 @@
       :confirm-token="dialogConfig.confirmToken"
       :variant="dialogConfig.variant"
       :confirm-text="dialogConfig.confirmText"
+      :request-reason="dialogConfig.requestReason"
       :loading="mutationLoading"
       :error="mutationError"
       @confirm="onConfirm"

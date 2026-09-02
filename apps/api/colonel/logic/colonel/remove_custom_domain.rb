@@ -33,6 +33,10 @@ module ColonelAPI
           raise_form_error('Domain ID is required', field: :extid) if extid.to_s.empty?
 
           @dry_run = params.key?('dry_run') ? truthy?(params['dry_run']) : true
+          # OPTIONAL operator-supplied why (#4338) — query string, alongside
+          # dry_run and for the same reason. See
+          # ColonelAPI::Logic::Base#operator_reason_param.
+          @reason  = operator_reason_param
         end
 
         def raise_concerns
@@ -60,6 +64,7 @@ module ColonelAPI
             domain: custom_domain,
             actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
             dry_run: dry_run,
+            reason: @reason,
           ).call
 
           # Log from result (snapshotted pre-destroy!) — on the applied path

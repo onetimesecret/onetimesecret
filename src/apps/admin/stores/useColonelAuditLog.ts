@@ -21,6 +21,9 @@ export interface ColonelAuditFilters {
   verb?: string;
 }
 
+/** Serialisations `GET /api/colonel/audit/export` can return. */
+export type ColonelAuditExportFormat = 'csv' | 'ndjson';
+
 /**
  * Per-resource admin store for the audit log (observability lane, CONTRACT 3).
  *
@@ -28,7 +31,10 @@ export interface ColonelAuditFilters {
  * NEW `GET /api/colonel/audit` endpoint — the read side of the ColonelAuditEvent
  * flight recorder every mutating admin op writes into. The endpoint supports
  * server-side `actor` / `verb` filters; the view drives them through
- * {@link fetchPage}. Reading the log never writes an audit event (CONTRACT 4).
+ * {@link fetchPage}. Reading the log mutates nothing and never writes to the
+ * OPERATOR trail; since #4335 the server records one observation per read on
+ * the separate, budgeted `access_events` trail (CONTRACT 4). Rows carry a
+ * `trail` discriminator naming which of the three they came from.
  * ZERO import edge into `src/apps/colonel/*` or `colonelInfoStore`.
  */
 export const useColonelAuditLog = defineStore('colonelAuditLog', () => {
@@ -80,6 +86,27 @@ export const useColonelAuditLog = defineStore('colonelAuditLog', () => {
     }
   }
 
+  /**
+   * URL for a full download of the trail under the given filters.
+   *
+   * NOT fetched through {@link pager} or any schema: the endpoint answers with
+   * `text/csv` / `application/x-ndjson` plus a `Content-Disposition` attachment
+   * header, so it is navigated to, not parsed. There is deliberately no Zod
+   * shape for a non-JSON body (see the note in
+   * `@/schemas/api/internal/responses/colonel-audit`); the FIELDS it serialises
+   * are the same allowlist `colonelAuditEventSchema` types, enforced
+   * server-side by one shared reader.
+   *
+   * The export covers the whole retained trail under the current filters, not
+   * the current page — pagination is a screen concern, an export is not.
+   */
+  function exportUrl(format: ColonelAuditExportFormat, filters?: ColonelAuditFilters): string {
+    const query = new URLSearchParams({ format });
+    if (filters?.actor) query.set('actor', filters.actor);
+    if (filters?.verb) query.set('verb', filters.verb);
+    return `/api/colonel/audit/export?${query.toString()}`;
+  }
+
   /** Explicit manual reset — setup stores have no built-in $reset. */
   function $reset(): void {
     events.value = [];
@@ -99,6 +126,7 @@ export const useColonelAuditLog = defineStore('colonelAuditLog', () => {
     perPage: pager.perPage,
     // Actions
     fetchPage,
+    exportUrl,
     $reset,
   };
 });

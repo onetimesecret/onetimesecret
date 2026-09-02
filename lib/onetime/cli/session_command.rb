@@ -336,15 +336,22 @@ module Onetime
 
       argument :session_id, type: :string, required: false, desc: 'Session ID'
 
+      # OPTIONAL operator-supplied why (#4338), recorded in the audit detail
+      # of the event this command's op writes. Same flag, same wording and same
+      # blank-means-absent handling as every other destructive CLI verb.
+      option :reason,
+        type: :string,
+        default: nil,
+        desc: 'Operator-supplied reason (recorded in the admin audit trail)'
       option :force,
         type: :boolean,
         default: false,
         desc: 'Skip confirmation prompt'
 
-      def call(session_id: nil, force: false, **)
+      def call(session_id: nil, reason: nil, force: false, **)
         unless session_id
           puts 'Error: Session ID required'
-          puts 'Usage: ots session delete <session-id> [--force]'
+          puts 'Usage: ots session delete <session-id> [--reason TEXT] [--force]'
           return
         end
         boot_application!
@@ -381,6 +388,7 @@ module Onetime
         Onetime::Operations::Sessions::Delete.new(
           session_id: session_id,
           actor: CLI_ACTOR,
+          reason: reason,
         ).call
         puts '✓ Session deleted'
       end

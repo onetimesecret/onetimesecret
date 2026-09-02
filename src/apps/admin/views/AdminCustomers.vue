@@ -255,7 +255,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
-  } = useAdminDestructiveMutation(async () => {
+  } = useAdminDestructiveMutation(async (reason?: string) => {
     const target = actionTarget.value;
     const action = activeAction.value;
     if (!target || !action) throw new Error('No customer selected');
@@ -263,10 +263,11 @@
     if (action === 'purge') {
       // Last line of the fail-closed gate: no token, no DELETE — even if the
       // dialog were somehow reached with a blank one. The same token the
-      // operator retyped is what rides in X-OTS-Confirm (#4326).
+      // operator retyped is what rides in X-OTS-Confirm (#4326); the reason
+      // they typed beside it (#4338) rides the query string.
       const token = purgeTokenFor(target);
       if (!token) throw new Error(purgeBlockedReason.value);
-      await store.purge(target.user_id, token);
+      await store.purge(target.user_id, token, reason);
       return;
     }
     // The store patches the row in place on a 2xx; re-point the drawer at the
@@ -301,6 +302,7 @@
         confirmToken: undefined,
         variant: 'default' as const,
         confirmText: undefined,
+        requestReason: false,
       };
     }
     return {
@@ -313,6 +315,10 @@
       confirmToken: action === 'purge' ? (purgeTokenFor(actionTarget.value) ?? undefined) : undefined,
       variant: action === 'purge' ? ('danger' as const) : ('default' as const),
       confirmText: t(`web.admin.customers.actions.${action}.button`),
+      // Only PURGE asks for a why (#4338): it is the destructive verb here, and
+      // the account it names will not exist to be inspected afterwards.
+      // Verify/unverify are reversible bookkeeping and stay one-click.
+      requestReason: action === 'purge',
     };
   });
 
@@ -358,11 +364,11 @@
     }
   }
 
-  async function onConfirm(): Promise<void> {
+  async function onConfirm(reason?: string): Promise<void> {
     const action = activeAction.value;
     if (!action) return;
 
-    const ok = await runMutation();
+    const ok = await runMutation(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
     dialogOpen.value = false;
@@ -739,6 +745,7 @@
       :confirm-token="dialogConfig.confirmToken"
       :variant="dialogConfig.variant"
       :confirm-text="dialogConfig.confirmText"
+      :request-reason="dialogConfig.requestReason"
       :loading="mutationLoading"
       :error="mutationError"
       @confirm="onConfirm"

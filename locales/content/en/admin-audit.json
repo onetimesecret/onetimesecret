@@ -134,5 +134,17 @@
   "web.admin.audit.result.failure": {
     "text": "Failure",
     "content_hash": "7031edbc"
+  },
+  "web.admin.audit.export.csv": {
+    "text": "Export CSV",
+    "content_hash": "91f71c14"
+  },
+  "web.admin.audit.export.ndjson": {
+    "text": "Export NDJSON",
+    "content_hash": "3ee2c07c"
+  },
+  "web.admin.audit.export.hint": {
+    "text": "Exports cover the whole retained trail under the current filters, not just this page. Retention is capped — longer history lives in the audit log sink.",
+    "content_hash": "163e8ad0"
   }
 }
