@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/onetimesecret/rodauth-oauth.git
-  revision: 6e91089d5ee598a5ee6e78a5992d9e778ba7ccad
-  ref: 6e91089d5ee598a5ee6e78a5992d9e778ba7ccad
+  revision: b0e7ceb0c26eb43226faa089bfd0a05bdddb8b1d
+  ref: b0e7ceb0c26eb43226faa089bfd0a05bdddb8b1d
   specs:
-    rodauth-oauth (1.6.5)
+    rodauth-oauth (1.6.6.ots1)
       base64
       rodauth (~> 2.28)
 

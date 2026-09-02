@@ -35,13 +35,25 @@ gem 'rodauth', '~> 2.0'
 # mismatch (discovery URLs, issuer, and per-endpoint CSRF exemptions losing the
 # `/auth` mount point) at the gem level — see onetimesecret/onetimesecret#3465
 # and apps/web/auth/docs/rodauth-prefix-mismatch.md. Pinned to an immutable SHA
-# (not the mutable `claude/gifted-volta-4tpzai` branch) so `bundle update` can't
-# silently drift this security-critical gem. Bump the ref when the fork advances;
-# drop the fork once the change is upstreamed to os85/rodauth-oauth.
+# (not a mutable branch) so `bundle update` can't silently drift this
+# security-critical gem. Bump the ref when the fork advances; drop the fork once
+# the change is upstreamed to os85/rodauth-oauth.
+#
+# The fork is at 1.6.6.ots1: upstream 1.6.6 merged on top of the mount-prefix
+# change (onetimesecret/rodauth-oauth#16). Two upstream decisions the app has
+# to account for, see doc/release_notes/1_6_6_ots1.md in the fork:
+#   - `oauth_pkce_allow_plain_method` defaults to true upstream (the fork used
+#     to default it to false); features/oauth.rb sets it to false explicitly.
+#   - the plain OAuth `POST /register` no longer returns
+#     `registration_client_uri`; only the OIDC variant does. Neither dynamic
+#     client registration feature is enabled here.
+# The version constraint stays `~> 1.6`: Gem::Version treats the `.ots1`
+# suffix as a prerelease of 1.6.6, which `~> 1.6` admits but `~> 1.6.6` would
+# not.
 gem 'rodauth-oauth',
   '~> 1.6',
   git: 'https://github.com/onetimesecret/rodauth-oauth.git',
-  ref: '6e91089d5ee598a5ee6e78a5992d9e778ba7ccad'
+  ref: 'b0e7ceb0c26eb43226faa089bfd0a05bdddb8b1d'
 gem 'rodauth-omniauth', '~> 0.4'
 gem 'rodauth-tools', '~> 0.4.0'
 
