@@ -192,5 +192,19 @@ RSpec.describe ColonelAPI::Logic::Colonel::ImpersonateUser do
         expect { logic.process }.to raise_error(OT::FormError, message)
       end
     end
+
+    # Fail-closed start record: the op unwinds the overlay and raises. The
+    # adapter must NOT map this to a 422 like a refusal — the operator needs
+    # the hard failure — and must never reach success_data.
+    it 'propagates AuditWriteFailure untouched, never a :started result' do
+      failure = Onetime::AuditWriteFailure.new(verb: 'customer.impersonate.start', target: 'ur_target')
+      allow(op).to receive(:call).and_raise(failure)
+
+      logic = logic_for
+      logic.raise_concerns
+
+      expect { logic.process }.to raise_error { |raised| expect(raised).to equal(failure) }
+      expect(logic.result).to be_nil
+    end
   end
 end

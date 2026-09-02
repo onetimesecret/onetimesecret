@@ -123,6 +123,13 @@ RSpec.describe Auth::Operations::Customers::Impersonate do
       expect { op.call }.to raise_error(Onetime::AuditWriteFailure, /customer\.impersonate\.start/)
     end
 
+    # The SAME instance, not a re-wrapped one: the audit_failures wrapper tags
+    # what it has recorded on the exception object, so a fresh raise would
+    # defeat that.
+    it 're-raises the original exception instance' do
+      expect { op.call }.to raise_error { |raised| expect(raised).to equal(write_failure) }
+    end
+
     it 'rolls the marker back so the session is not impersonating' do
       expect { op.call }.to raise_error(Onetime::AuditWriteFailure)
 
