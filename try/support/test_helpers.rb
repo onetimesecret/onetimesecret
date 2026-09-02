@@ -27,20 +27,14 @@ ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..')).freeze
 # session:* scans), which is the "a different file fails each run" flake.
 #
 # So: when no runner provided a usable index, derive one here from this
-# checkout's own path — same 1..65535 space as the runner, 0 staying "the
-# shared legacy DB" (used in CI, whose services are job-exclusive). The key
-# string 'try||<root>' has the runner's <lane>|<overlays>|<root> shape so the
-# owner marker below and the runner's preflight can read each other's claims.
-db = ENV['LANES_DATASTORE_DB'].to_s
-unless db.match?(/\A\d+\z/) && db.to_i <= 65_535
-  checkout = File.expand_path(File.join(__dir__, '..', '..'))
-  isolation_key = "try||#{checkout}"
-  db = if ENV['CI']
-         '0'
-       else
-         require 'zlib'
-         (1 + (Zlib.crc32(isolation_key) % 65_535)).to_s
-       end
+# checkout's own path. The resolution lives in datastore_db.rb, shared with
+# `pnpm run test:database:clean` so the documented cleanup targets the same
+# database raw runs actually write.
+require_relative 'datastore_db'
+db = TryoutsDatastoreDB.provided
+unless db
+  isolation_key = TryoutsDatastoreDB.isolation_key
+  db = TryoutsDatastoreDB.index
   ENV['LANES_DATASTORE_DB'] = db
 
   # Claim the index with the runner's own owner marker (_lanes:owner inside
