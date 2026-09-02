@@ -4,9 +4,10 @@
 
 # Unit tests for Auth::Operations::Customers::Impersonate — the START half.
 #
-# Covers: the session marker it writes, the single start audit event, the
-# ADR-023 missing-actor refusal, and the five precondition guards. The session
-# is a plain Hash, so nothing here touches the datastore.
+# Covers: the session marker it writes, the single start audit event (written
+# fail-closed, and rolled back when the write fails), the ADR-023
+# missing-actor refusal, and the five precondition guards. The session is a
+# plain Hash, so nothing here touches the datastore.
 #
 # Run: tests/lanes/run unit --only apps/web/auth/spec/operations/customers/impersonate_spec.rb
 
@@ -96,7 +97,77 @@ RSpec.describe Auth::Operations::Customers::Impersonate do
           impersonation_id: result.impersonation_id,
           expires_at: now + Onetime::SessionImpersonation::TTL,
         },
+        # A live overlay with no start event is the unattributable privileged
+        # action the audit pair exists to rule out, so the write is fail-closed.
+        fail_closed: true,
       )
+    end
+  end
+
+  # The start record is fail-closed (#4333), and — unlike the destructive
+  # members of that family — this op can unwind: the only mutation is the
+  # session key. A failed start write must leave NO live impersonation, NO
+  # orphan stop event, and must surface as the raise (never :started).
+  describe 'audit write failure' do
+    let(:write_failure) do
+      Onetime::AuditWriteFailure.new(verb: 'customer.impersonate.start', target: 'ur_target')
+    end
+
+    before do
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
+        .with(hash_including(verb: 'customer.impersonate.start'))
+        .and_raise(write_failure)
+    end
+
+    it 'propagates Onetime::AuditWriteFailure instead of returning :started' do
+      expect { op.call }.to raise_error(Onetime::AuditWriteFailure, /customer\.impersonate\.start/)
+    end
+
+    it 'rolls the marker back so the session is not impersonating' do
+      expect { op.call }.to raise_error(Onetime::AuditWriteFailure)
+
+      expect(session[Onetime::SessionImpersonation::SESSION_KEY]).to be_nil
+      expect(Onetime::SessionImpersonation.active(session)).to be_nil
+      expect(Onetime::SessionImpersonation.context).to be_nil
+    end
+
+    # clear!, not stop!: a stop event for an impersonation that never took
+    # effect (and has no start event) would be an orphan in the trail.
+    it 'does not record a stop event for the impersonation that never started' do
+      expect { op.call }.to raise_error(Onetime::AuditWriteFailure)
+
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        .with(hash_including(verb: 'customer.impersonate.stop'))
+    end
+
+    # The audit_failures wrapper sees the SAME exception instance and records
+    # it under audit.write_failure with the missing verb in the detail — not
+    # as a failed impersonate, which would be a wrong claim about the outcome.
+    it 'records the missing trail under audit.write_failure, not as a failed start' do
+      expect { op.call }.to raise_error(Onetime::AuditWriteFailure)
+
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        .with(hash_including(verb: 'customer.impersonate.start', result: :failure))
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        actor: 'ur_operator',
+        verb: 'audit.write_failure',
+        target: 'ur_target',
+        result: :failure,
+        detail: hash_including(
+          failed_verb: 'customer.impersonate.start',
+          error: 'Onetime::AuditWriteFailure',
+        ),
+      )
+    end
+
+    it 'leaves the session free to start again once the write works' do
+      expect { op.call }.to raise_error(Onetime::AuditWriteFailure)
+
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
+        .with(hash_including(verb: 'customer.impersonate.start'))
+        .and_return({})
+
+      expect(op.call.status).to eq(:started)
     end
   end
 

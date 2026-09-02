@@ -86,9 +86,11 @@ module Onetime
   # one exception, and it exists because the general rule produces an
   # affirmatively WRONG record for it.
   #
-  # The 12 fail-closed call sites (#4333) all sit inside a wrapper: they record
+  # Every fail-closed call site (#4333) sits inside a wrapper: they record
   # AFTER mutating, with `fail_closed: true`, and a failed write raises
-  # {Onetime::AuditWriteFailure} out of the op. Recording that raise under the
+  # {Onetime::AuditWriteFailure} out of the op (Customers::Impersonate alone
+  # unwinds its session-only mutation first; the rest cannot). Recording that
+  # raise under the
   # op's own verb would say `customer.purge / result: :failure` — for a purge
   # that DESTROYED THE ACCOUNT and then could not write its receipt. Worse, the
   # follow-up write is fail-open and lands on a later tick, so a transient

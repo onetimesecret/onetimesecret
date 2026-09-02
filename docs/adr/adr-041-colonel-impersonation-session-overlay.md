@@ -186,6 +186,15 @@ path that certainly ends an impersonation would be the one that never records
 it. Existing failure auditing on the start operation stays, so refused attempts
 are also recorded.
 
+The start event is written fail-closed (`fail_closed: true`, the #4333
+family), and because the start operation's only mutation is a session key it
+can do what the destructive fail-closed ops cannot: on a failed write it
+removes the marker (`SessionImpersonation.clear!`, deliberately not `stop!`,
+which would record an orphan stop) and re-raises, so the overlay ends before
+the operator sees success. A live impersonation with no start record therefore
+cannot exist; the failed write itself lands in the trail as
+`audit.write_failure` with `failed_verb: customer.impersonate.start`.
+
 Starting an impersonation clears the session's entitlement-preview state
 through `Onetime::EntitlementPreview.clear_session!(session)` — extracted so
 the start operation and `SetEntitlementPreview#clear_test_mode` share one clear

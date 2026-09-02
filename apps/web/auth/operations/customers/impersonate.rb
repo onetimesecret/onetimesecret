@@ -47,6 +47,18 @@ module Auth
       # already-impersonating session ({AlreadyImpersonating}) must be stopped
       # first: silently replacing the marker would leave the first
       # impersonation with no stop event.
+      #
+      # ## The start record is fail-closed, and a failed write unwinds the start
+      #
+      # The overlay's whole safety story is the audit pair, so the start event
+      # is written with `fail_closed: true` (the #4333 family). Unlike the
+      # destructive members of that family this op CAN roll back: the only
+      # mutation is a session key. On {Onetime::AuditWriteFailure} the marker
+      # is removed with {Onetime::SessionImpersonation.clear!} and the same
+      # exception is re-raised, so an impersonation that has no start event
+      # never takes effect and the operator never sees :started for it. The
+      # {audit_failures} wrapper then records the raise under
+      # `audit.write_failure` with `failed_verb` in the detail.
       class Impersonate
         include Onetime::LoggerMethods
         include Onetime::AuditedFailure
@@ -123,7 +135,22 @@ module Auth
             reason: @reason,
           )
 
-          record_start(marker)
+          # Marker first, then the record: the audit detail needs the id and
+          # expiry that start! generates. The rescue below is what makes that
+          # ordering safe.
+          begin
+            record_start(marker)
+          rescue Onetime::AuditWriteFailure
+            # The start event could not be written, so the impersonation must
+            # not exist. `clear!`, NOT `stop!`: stop! would record a
+            # `customer.impersonate.stop` for an impersonation that never took
+            # effect and has no start event — an orphan stop is worse than no
+            # pair at all. Bare `raise` re-raises the SAME instance so the
+            # audit_failures wrapper's RECORDED_FLAG and audit.write_failure
+            # handling apply to it unchanged.
+            Onetime::SessionImpersonation.clear!(@session)
+            raise
+          end
 
           Result.new(
             status: :started,
@@ -151,6 +178,9 @@ module Auth
           raise AlreadyImpersonating, 'This session is already impersonating a customer.'
         end
 
+        # FAIL-CLOSED (#4333): a live overlay with no start event is exactly
+        # the unattributable privileged action the audit pair exists to rule
+        # out. #call rolls the marker back on the raise.
         def record_start(marker)
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
@@ -162,6 +192,7 @@ module Auth
               impersonation_id: marker['id'],
               expires_at: marker['expires_at'],
             },
+            fail_closed: true,
           )
 
           auth_logger.info(

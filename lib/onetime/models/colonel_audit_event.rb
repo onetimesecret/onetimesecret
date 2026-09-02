@@ -108,7 +108,10 @@ module Onetime
   # and target, which is the signal that this action needs to be reconstructed
   # from the sink or from the acting operator, rather than a green response and
   # an empty trail. Any op that wants prevention has to record BEFORE it
-  # mutates; none does today.
+  # mutates or be able to unwind; one does today — Customers::Impersonate,
+  # whose only mutation is a session key, rolls the marker back on
+  # {Onetime::AuditWriteFailure} so a start with no start event never takes
+  # effect. The destructive ops cannot, and do not.
   #
   # WHAT THE ESCAPING RAISE THEN WRITES. Every fail-closed call site is also
   # inside an {Onetime::AuditedFailure} wrapper, which records a

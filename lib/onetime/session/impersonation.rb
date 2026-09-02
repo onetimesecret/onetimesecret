@@ -158,7 +158,10 @@ module Onetime
     # Remove the marker and the request context WITHOUT auditing.
     #
     # Only for callers that are tearing the session down anyway (logout,
-    # session destroy) or that have already recorded their own event.
+    # session destroy), that have already recorded their own event, or that
+    # are UNWINDING a start whose fail-closed start event could not be written
+    # (Auth::Operations::Customers::Impersonate) — there a stop! would record
+    # an orphan stop for an impersonation that never took effect.
     #
     # @param session [#[], nil] Rack session
     # @return [nil]
