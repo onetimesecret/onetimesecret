@@ -21,7 +21,7 @@ name: CI
 # Composite Actions:
 # - setup-ruby-test-env: Ruby environment, artifacts, config, secrets
 # - setup-node-env: Node.js, pnpm, caching
-# - run-test-lane: Lane execution + failure-tail PR comments + job summary
+# - run-test-lane: Lane execution + result artifacts + job summary
 #
 # Path Filtering:
 # - Ruby-only changes skip TypeScript jobs
@@ -376,11 +376,8 @@ jobs:
       needs.changes.outputs.ruby == 'true' &&
       (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
       (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped')
-    # pull-requests: write lets run-test-lane post failure tails as PR
-    # comments. contents: read inherited from workflow-level permissions.
     permissions:
       contents: read
-      pull-requests: write
       # Required to upload coverage data to GitHub Code Quality.
       code-quality: write
 
@@ -540,9 +537,6 @@ jobs:
       (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
       (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') &&
       !contains(needs.*.result, 'cancelled')
-    permissions: &perms-pr-comment
-      contents: read
-      pull-requests: write
 
     steps:
       - *checkout-step
@@ -577,7 +571,6 @@ jobs:
     runs-on: *runs-on
     needs: [changes, ruby-lint, build-assets]
     if: *if-ruby-integration
-    permissions: *perms-pr-comment
 
     steps:
       - *checkout-step
@@ -616,7 +609,6 @@ jobs:
     runs-on: *runs-on
     needs: [changes, ruby-lint, build-assets]
     if: *if-ruby-integration
-    permissions: *perms-pr-comment
 
     # Auth-mode, database engine, and endpoints live in the lane env files
     # (tests/lanes/<lane>/env); billing rows are the same lanes with the
@@ -696,7 +688,6 @@ jobs:
     runs-on: *runs-on
     needs: [changes, ruby-lint, build-assets]
     if: *if-ruby-integration
-    permissions: *perms-pr-comment
 
     steps:
       - *checkout-step
