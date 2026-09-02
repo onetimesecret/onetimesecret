@@ -28,6 +28,12 @@ module ColonelAPI
       # response therefore carries the `redirect` the console must follow — a
       # HARD navigation out of the admin bundle, not a router push.
       #
+      # ## Confirmation gate
+      #
+      # Listed in ColonelAPI::DestructiveActions::TIER2: the operator retypes
+      # the account email and the console sends it as X-OTS-Confirm. See the
+      # guard call in raise_concerns for why tier 2 rather than tier 1.
+      #
       # ## Reason is mandatory
       #
       # Not for the UI's benefit: the audit event is the durable record of WHY
@@ -78,6 +84,20 @@ module ColonelAPI
           raise_form_error('Cannot impersonate an anonymous user', field: :user_id) if user.anonymous?
           raise_form_error('Cannot impersonate a colonel account', field: :user_id) if user.role?('colonel')
           raise_form_error('Cannot impersonate a suspended account', field: :user_id) if user.suspended?
+
+          # TIER 2 (#4326): grants a privilege (the console presents as the
+          # customer) but is reversible and bounded — the overlay is session-
+          # scoped, expires on its own, and stop is one click — so confirmation
+          # without a step-up window. The token is the account EMAIL (extid only
+          # when it has none), the same value the console dialog asks the
+          # operator to retype; the URL carries the extid, so a scraped-id
+          # replay must also know an identifier the URL never had.
+          guard_destructive_action!(
+            tier: :sensitive,
+            confirm_with: account_confirm_token(user),
+            confirm_subject: 'the account email address (or its external id when it has none)',
+            field: :user_id,
+          )
         end
 
         def process

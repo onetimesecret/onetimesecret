@@ -128,7 +128,11 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
     JSON.parse(last_response.body)
   end
 
-  def start_impersonation(reason: 'ticket #4242')
+  # Tier-2 destructive action (#4326): the console retypes the target's email
+  # and sends it as X-OTS-Confirm. Every start here carries it unless a test
+  # is about its absence.
+  def start_impersonation(reason: 'ticket #4242', confirm: target.email)
+    header 'X-OTS-Confirm', confirm unless confirm.nil?
     post_json("/api/colonel/users/#{target.extid}/impersonate", reason: reason)
   end
 
@@ -256,6 +260,13 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
   end
 
   describe 'refusals at the start endpoint' do
+    it 'refuses to start without the confirmation header and writes no marker' do
+      start_impersonation(confirm: nil)
+
+      expect(last_response.status).to eq(403), last_response.body
+      expect(bootstrap['impersonation']).to be_nil
+    end
+
     it 'requires a reason' do
       post_json("/api/colonel/users/#{target.extid}/impersonate", reason: '  ')
 

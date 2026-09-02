@@ -169,6 +169,16 @@ to a network the customer surface is not served on. Authorization is the
 principal's: colonel, verified, and a marker active; anything else gets 404
 rather than disclosing the endpoint to ordinary sessions.
 
+### Start is a tier-2 destructive action {#tier-2}
+
+`ImpersonateUser` is listed in `ColonelAPI::DestructiveActions::TIER2` (#4326):
+the operator retypes the target's email and the console sends it as
+`X-OTS-Confirm`, and the endpoint refuses without it. Tier 2 rather than tier 1
+because the action grants a privilege but is reversible and bounded — the
+overlay is session-scoped, expires on its own, and stop is one request — so it
+takes confirmation without a step-up window or the tight destructive budget.
+Re-tier if the overlay ever gains a write capability.
+
 ### Both ends are audited, and the reason is mandatory {#audited-both-ends}
 
 Start emits `customer.impersonate.start` (actor: colonel extid, target:

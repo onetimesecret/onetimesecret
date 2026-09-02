@@ -30,10 +30,15 @@ RSpec.describe ColonelAPI::Logic::Colonel::ImpersonateUser do
 
   let(:session) { {} }
 
-  let(:strategy_result) do
+  # `confirm_token` is where the colonel session auth strategy puts the
+  # X-OTS-Confirm header (#4326). The default is the target's email — the
+  # value the console dialog asks the operator to retype.
+  def strategy_result_for(confirm_token)
     double('StrategyResult', session: session, user: colonel,
-      auth_method: 'sessionauth', metadata: {}, verified?: true)
+      auth_method: 'sessionauth', metadata: { confirm_token: confirm_token }, verified?: true)
   end
+
+  let(:strategy_result) { strategy_result_for('alice@example.com') }
 
   let(:op_result) do
     Auth::Operations::Customers::Impersonate::Result.new(
@@ -61,6 +66,41 @@ RSpec.describe ColonelAPI::Logic::Colonel::ImpersonateUser do
       strategy_result,
       { 'user_id' => 'ur_target', 'reason' => 'ticket #123' }.merge(params),
     )
+  end
+
+  describe 'confirmation (#4326)' do
+    let(:expected_confirm_token) { 'alice@example.com' }
+
+    def confirmed_logic_for(confirm_token)
+      described_class.new(
+        strategy_result_for(confirm_token),
+        { 'user_id' => 'ur_target', 'reason' => 'ticket #123' },
+      )
+    end
+
+    it_behaves_like 'a confirmed colonel action'
+
+    it 'does not accept the extid the URL already carried' do
+      expect { confirmed_logic_for('ur_target').raise_concerns }
+        .to raise_error(Onetime::ConfirmationRequired)
+    end
+
+    it 'falls back to the extid for an account with no email address' do
+      allow(target).to receive(:email).and_return('')
+      expect { confirmed_logic_for('ur_target').raise_concerns }.not_to raise_error
+    end
+
+    # Tier 2, not tier 1: confirmation only, no step-up window.
+    it 'does not require an elevation window' do
+      logic = confirmed_logic_for(expected_confirm_token)
+      allow(logic).to receive(:require_elevation!).and_raise('elevation must not be consulted')
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+
+    it 'starts nothing when the confirmation is refused' do
+      expect { confirmed_logic_for(nil).raise_concerns }.to raise_error(Onetime::ConfirmationRequired)
+      expect(Auth::Operations::Customers::Impersonate).not_to have_received(:new)
+    end
   end
 
   describe 'the happy path' do
