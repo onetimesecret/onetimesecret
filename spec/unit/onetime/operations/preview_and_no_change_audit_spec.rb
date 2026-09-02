@@ -26,6 +26,8 @@ require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/dlq/purge'
 require 'onetime/operations/dlq/replay'
 require 'onetime/operations/email/send_test'
+require 'onetime/operations/memberships/add'
+require 'onetime/operations/org/entitlement_override'
 require 'auth/operations/customers/set_plan'
 require 'auth/operations/customers/set_role'
 require 'auth/operations/customers/set_suspension'
@@ -219,6 +221,160 @@ RSpec.describe 'preview and no-change auditing' do
 
         expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           hash_including(verb: described_class::AUDIT_VERB_UNSUSPEND),
+        )
+      end
+    end
+
+    describe Onetime::Operations::Memberships::Add do
+      let(:org) { double('Organization', objid: 'org-obj-1', extid: 'on_org_ext') }
+      let(:customer) { double('Customer', objid: 'cust-obj-1', extid: 'ur_member') }
+
+      # The detail carries the role the member CURRENTLY holds, not the one
+      # requested — a repeat-add of 'member' against an 'admin' membership is
+      # a fact worth seeing verbatim in the trail.
+      it 'records a repeat-add under the normal verb, carrying the current role' do
+        allow(org).to receive(:member?).with(customer).and_return(true)
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with('org-obj-1', 'cust-obj-1')
+          .and_return(double('OrganizationMembership', role: 'admin'))
+
+        result = described_class.new(org: org, customer: customer, role: 'member', actor: actor).call
+
+        expect(result.status).to eq(:no_change)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          actor: actor,
+          verb: described_class::AUDIT_VERB,
+          target: 'ur_member',
+          result: :success,
+          detail: { outcome: 'no_change', role: 'admin', org_id: 'on_org_ext' },
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access)
+      end
+    end
+
+    # The destructive-verb member of the family: a LIVE purge that found the
+    # queue already empty is still a firing of the purge verb — raced by a
+    # consumer, or double-fired — and the second wave (#4337) records it
+    # rather than letting the trail depend on broker timing.
+    describe Onetime::Operations::Dlq::Purge do
+      let(:channel) { double('Channel', close: true, open?: false) }
+      let(:connection) { double('Connection', create_channel: channel) }
+
+      before do
+        allow(Onetime::Operations::Dlq::Store).to receive(:queue_handle)
+          .and_return(double('Queue', message_count: 0))
+      end
+
+      it 'records a live purge of an already-empty queue as a no-change attempt' do
+        result = described_class.new(
+          connection: connection, queue: 'dlq.email.message', actor: actor, dry_run: false,
+        ).call
+
+        expect(result.status).to eq(:empty)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          actor: actor,
+          verb: described_class::AUDIT_VERB,
+          target: 'dlq.email.message',
+          result: :success,
+          detail: { outcome: 'no_change', purged: 0 },
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access)
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # The interplay: ops whose no-change check sits BEFORE their dry-run branch
+  # ---------------------------------------------------------------------------
+  # `org/entitlement_override`, `memberships/entitlement_override` and
+  # `customers/change_email` can discover a no-change during a dry run, and
+  # `dlq/replay` checks for an empty queue before its dry-run branch. The
+  # two-trail split resolves it by intent: a live call is a mutation attempt
+  # (operator trail), a dry-run call is a preview that found nothing to do
+  # (observation trail, outcome marked). Asserted here once at the mechanism
+  # level; each op's own spec pins its exact detail shape.
+  describe 'no-change discovered during a dry run' do
+    describe Onetime::Operations::Org::EntitlementOverride do
+      let(:org) do
+        double(
+          'Organization',
+          extid: 'on_org_ext',
+          billing_enabled?: true,
+          entitlements_grants: double('GrantsSet', to_a: ['custom_branding']),
+          entitlements_revokes: double('RevokesSet', to_a: []),
+          entitlements_plan: double('PlanSet', to_a: []),
+          materialized_entitlements: double('MaterializedSet', to_a: ['custom_branding']),
+        )
+      end
+
+      def run(dry_run:)
+        described_class.new(
+          org: org, action: 'grant', actor: actor,
+          entitlement: 'custom_branding', dry_run: dry_run,
+        ).call
+      end
+
+      it 'stays on the observation trail as a preview when discovered dry' do
+        result = run(dry_run: true)
+
+        expect(result.status).to eq(:no_change)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+          hash_including(result: 'preview', detail: hash_including(outcome: 'no_change')),
+        )
+      end
+
+      it 'lands on the operator trail when the same call is live' do
+        result = run(dry_run: false)
+
+        expect(result.status).to eq(:no_change)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          hash_including(result: :success, detail: hash_including(outcome: 'no_change')),
+        )
+      end
+    end
+
+    describe Onetime::Operations::Dlq::Replay do
+      let(:channel) { double('Channel', close: true, open?: false) }
+      let(:connection) { double('Connection', create_channel: channel) }
+
+      before do
+        allow(Onetime::Operations::Dlq::Store).to receive(:queue_handle)
+          .and_return(double('Queue', message_count: 0))
+      end
+
+      def run(dry_run:)
+        described_class.new(
+          connection: connection, queue: 'dlq.webhooks.payload', actor: actor, dry_run: dry_run,
+        ).call
+      end
+
+      it 'records a LIVE replay of an already-empty queue as a no-change attempt' do
+        result = run(dry_run: false)
+
+        expect(result.status).to eq(:empty)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          actor: actor,
+          verb: described_class::AUDIT_VERB,
+          target: 'dlq.webhooks.payload',
+          result: :success,
+          detail: { outcome: 'no_change', replayed: 0, failed: 0 },
+        )
+      end
+
+      it 'keeps a DRY-RUN of an empty queue on the observation trail' do
+        result = run(dry_run: true)
+
+        expect(result.status).to eq(:empty)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+          actor: actor,
+          verb: described_class::AUDIT_VERB,
+          target: 'dlq.webhooks.payload',
+          result: 'preview',
+          detail: { dry_run: true, would_replay: 0, available: 0, outcome: 'no_change' },
         )
       end
     end

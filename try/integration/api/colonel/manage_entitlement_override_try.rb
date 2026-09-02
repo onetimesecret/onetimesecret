@@ -283,6 +283,24 @@ post "/api/colonel/organizations/#{@org.extid}/entitlements/grant",
 ]
 #=> [1, 'organization.entitlement.grant', true, true, 'success', { 'entitlement' => 'audit_probe_two' }]
 
+## Repeating the same grant is a :no_change (D15) — the console runs live
+## (dry_run: false), so the ATTEMPT still records one event under the same
+## verb, marked outcome: no_change (#4337)
+@before_count = Onetime::ColonelAuditEvent.count
+post "/api/colonel/organizations/#{@org.extid}/entitlements/grant",
+  { entitlement: 'audit_probe_two' }.to_json,
+  { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+@evt          = Onetime::ColonelAuditEvent.recent(1).first
+[
+  last_response.status,
+  Onetime::ColonelAuditEvent.count - @before_count,
+  @evt['verb'],
+  @evt['target'] == @org.extid,
+  @evt['result'],
+  @evt['detail'],
+]
+#=> [200, 1, 'organization.entitlement.grant', true, 'success', { 'outcome' => 'no_change', 'entitlement' => 'audit_probe_two' }]
+
 ## Clear records an audit event with the clear verb and an empty detail
 delete "/api/colonel/organizations/#{@org.extid}/entitlements/overrides",
   {},

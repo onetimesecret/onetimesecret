@@ -242,6 +242,30 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
         )
       end
     end
+
+    describe Onetime::Operations::Dlq::Purge do
+      let(:channel)    { double('Channel', close: true, open?: false) }
+      let(:connection) { double('Connection', create_channel: channel) }
+
+      it 'records the reason on a live purge of an already-empty queue' do
+        allow(Onetime::Operations::Dlq::Store).to receive(:queue_handle)
+          .and_return(double('Queue', message_count: 0))
+
+        result = described_class.new(
+          connection: connection, queue: 'dlq.email.message', actor: actor,
+          dry_run: false, reason: 'clearing poison batch',
+        ).call
+
+        expect(result.status).to eq(:empty)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          actor: actor,
+          verb: 'queue.dlq.purge',
+          target: 'dlq.email.message',
+          result: :success,
+          detail: { outcome: 'no_change', purged: 0, reason: 'clearing poison batch' },
+        )
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------

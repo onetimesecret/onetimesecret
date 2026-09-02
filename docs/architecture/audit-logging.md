@@ -357,10 +357,32 @@ was destroyed or revoked.
 
 Covered: `customers/set_suspension`, `customers/set_role`,
 `customers/set_plan`, `customers/set_verification`, `memberships/set_role`,
-`org/set_plan`.
+`org/set_plan`, `customers/change_email`, `org/entitlement_override`,
+`memberships/entitlement_override`, `memberships/add` (a repeat-add records
+the role the member currently holds), `dlq/purge`, and `dlq/replay` (a live
+purge or replay of an already-empty queue — the operator fired the verb;
+whether a consumer emptied the queue first must not decide whether the trail
+shows the attempt).
+
+The second wave (`change_email`, the two `entitlement_override`s) surfaces its
+`:no_change` status to the operator rather than silently skipping, and those
+three — plus `dlq/replay`, whose `:empty` check precedes its dry-run branch —
+can discover a no-change during a dry run. The two-trail split resolves that
+interplay: a no-change discovered by a **live** call is a mutation attempt and
+lands on the operator trail as above; one discovered by a **dry run** stays on
+the observation trail as a preview (with `outcome: 'no_change'` added to the
+preview detail), because previews never write operator-trail rows and
+`dry_run: true` is most of these ops' default.
+`customers/change_email` is the arguable member — asking to change an address
+to itself carries less intent — but it is also the highest-value verb in the
+trail, and a `:no_change` answer confirms the account currently holds the
+requested address, so a repeated same-address probe is exactly the pattern the
+trail must not go quiet on.
 
 An op that *refuses* on no-change rather than skipping was already audited (the
-refusal path) and is unchanged.
+refusal path) and is unchanged. `email/ingest_feedback`'s all-rejected-batch
+path also stays unaudited on purpose: a batch that accepts nothing is an honest
+pipeline outcome, not an operator reaching for a named target.
 
 ### What the security-telemetry stream holds (#4339)
 

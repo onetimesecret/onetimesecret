@@ -26,8 +26,11 @@ module Onetime
       #
       # A purge that removes ≥ 1 message records EXACTLY ONE
       # {Onetime::ColonelAuditEvent} — verb `queue.dlq.purge`, target the DLQ name,
-      # detail the purged count. Purging an already-empty queue mutates nothing and
-      # records NO event (the "only audit an actual change" rule).
+      # detail the purged count. Purging an already-empty queue mutates nothing
+      # but is STILL recorded, under the same verb with `outcome: 'no_change'`
+      # (#4337): the operator got past the typed-confirmation gate and fired the
+      # destructive verb, and whether the queue happened to be empty when it
+      # landed must not decide whether the trail shows the attempt.
       #
       # ## Dry run
       #
@@ -50,9 +53,9 @@ module Onetime
         # Irreversible verb over a broker connection, so a raise mid-purge (or a
         # broker error before it) is exactly what the trail must show. Records
         # one `result: :failure` and re-raises. `dry_run` is in the detail
-        # because the success event is applied-path-only (a dry-run or empty
-        # queue records nothing), so without it a failure has no readable
-        # counterpart.
+        # because a dry run never reaches the operator-trail write (its preview
+        # is an observation), so without it a blown-up preview would be
+        # indistinguishable from a blown-up live purge.
         audit_failures :call,
           verb: AUDIT_VERB,
           target: -> { @queue },
@@ -98,7 +101,10 @@ module Onetime
             return Result.new(status: :dry_run, queue: @queue, count: count, purged: 0)
           end
 
-          return Result.new(status: :empty, queue: @queue, count: 0, purged: 0) if count.zero?
+          if count.zero?
+            record_no_change_event
+            return Result.new(status: :empty, queue: @queue, count: 0, purged: 0)
+          end
 
           queue.purge
 
@@ -139,6 +145,23 @@ module Onetime
             target: @queue,
             result: 'preview',
             detail: with_reason(dry_run: true, count: count),
+          )
+        end
+
+        # A no-change attempt (#4337) — the OPERATOR trail, not the observation
+        # trail. The dry-run path returned before this, so an empty purge is a
+        # LIVE firing of the destructive verb that found nothing to destroy —
+        # raced by a consumer, or double-fired. Same verb and target as the
+        # applied event, `outcome: 'no_change'` marking it. NOT fail-closed: no
+        # message was destroyed, so there is no irrecoverable fact for a hard
+        # failure to protect.
+        def record_no_change_event
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @queue,
+            result: :success,
+            detail: with_reason(outcome: 'no_change', purged: 0),
           )
         end
       end
