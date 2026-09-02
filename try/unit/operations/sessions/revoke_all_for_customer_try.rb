@@ -15,7 +15,10 @@
 # - a DIFFERENT customer's session is untouched (identity match is exact)
 # - untracked_deleted counts the blob the sidecar index did not know about
 # - every sidecar destroyed + Customer#active_sessions cleared
-# - EXACTLY ONE ColonelAuditEvent (verb 'session.revoke_all') with the kill counts
+# - EXACTLY ONE ColonelAuditEvent (verb 'session.revoke_all') with the kill counts;
+#   target is the customer's EXTID however the route addressed them, falling back
+#   to the raw route param only for an unresolvable customer
+#   (docs/architecture/audit-logging.md "Session verbs")
 # - rodauth_rows_deleted is 0 here (simple/test mode: no auth DB)
 # - IDEMPOTENT: a second call returns revoked:true with zero counts
 #
@@ -168,15 +171,30 @@ AE.count
 
 # ---- idempotent second revoke-all -------------------------------------
 
-## a second revoke-all still returns revoked:true, now with zero kill counts
+## a second revoke-all still returns revoked:true, now with zero kill counts —
+## routed by EMAIL this time, to prove the audit target normalizes to the extid
 AE.events.clear
-@res2 = RAFC.new(custid: @extid, actor: @actor).call
+@res2 = RAFC.new(custid: @cust.email, actor: @actor).call
 [@res2.revoked, @res2.blobs_deleted, @res2.untracked_deleted]
 #=> [true, 0, 0]
 
-## it STILL audits — the colonel took an intentional action
-AE.count
-#=> 1
+## it STILL audits — the colonel took an intentional action — and the target is
+## the customer's resolved extid, not the email the route used
+[AE.count, AE.recent(1).first['target']]
+#=> [1, "#{@extid}"]
+
+# ---- unresolvable customer: audit falls back to the route param ---------
+
+## a custid that resolves to NO customer still completes (zero counts) and audits
+AE.events.clear
+@ghost = "ghost_#{@nonce}@example.com"
+RAFC.new(custid: @ghost, actor: @actor).call.revoked
+#=> true
+
+## with no customer to resolve, the target is the route param as given —
+## nothing better exists to record
+[AE.count, AE.recent(1).first['target']]
+#=> [1, "#{@ghost}"]
 
 # Cleanup
 @tracked.each { |sid| SM.load(sid)&.destroy!; DB.del("session:#{sid}") }

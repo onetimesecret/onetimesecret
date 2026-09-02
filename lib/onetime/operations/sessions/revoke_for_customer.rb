@@ -24,9 +24,10 @@ module Onetime
       # SAME primitive the global {Delete} op uses ({Store.find_key} → `del`).
       #
       # This op deliberately does NOT delegate to {Delete}: that op writes its own
-      # audit event (`verb: 'session.delete'`, `target: <session_id>`). Composing
-      # it here would double-audit with a different target. We reuse only Store —
-      # the key logic — and write exactly ONE customer-scoped audit event.
+      # audit event (`verb: 'session.delete'`). Composing it here would
+      # double-audit the same session under two verbs. We reuse only Store — the
+      # key logic — and write exactly ONE audit event, carrying the customer
+      # scope in its detail.
       #
       # ## Idempotent tidy
       #
@@ -49,7 +50,13 @@ module Onetime
         # (`result: :failure`) and the error re-raised unchanged. Composition is
         # not a concern here — this op deliberately does not delegate to
         # {Delete} (see above), so only one audited frame can fire.
-        audit_failures :call, verb: AUDIT_VERB, target: -> { @custid }
+        #
+        # target is the session HANDLE, matching the success record below (see
+        # docs/architecture/audit-logging.md, "Session verbs"): per-session
+        # verbs always target the handle so their events correlate.
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { Onetime::SessionMetadata.handle_for(@session_id) }
 
         # @!attribute revoked [r] Boolean always true on a completed call (idempotent)
         # @!attribute blob_deleted [r] Boolean whether a live session blob existed + was deleted
@@ -100,8 +107,15 @@ module Onetime
             OT.ld("[RevokeForCustomer] no customer for #{@custid}; index prune skipped")
           end
 
-          # One customer-scoped audit event per revoke. session_id is a public
-          # identifier; never put session contents into detail.
+          # One audit event per revoke. This is a per-session verb, so target is
+          # the non-reversible SessionMetadata.handle_for handle — the same value
+          # `session.delete` records and the colonel console renders (F-01,
+          # #4330) — never the raw sid: the sid IS the bearer cookie, and the
+          # operator trail is count-capped with no TTL, so a recorded sid would
+          # persist a replayable credential. The handle also lets an operator
+          # correlate this event with other per-session events on the same
+          # session. Customer scope lives in `detail.custid` (the route param as
+          # the operator gave it). Never put session contents into detail.
           #
           # Ownership note: this is a colonel-only takeover-mitigation tool, so the
           # delete is NOT gated on the sidecar (best-effort, possibly stale) — an
@@ -109,14 +123,14 @@ module Onetime
           # DIFFERENT owner than the route customer we surface `session_user_id` in
           # detail so the revoke is not silently mis-attributed. The true owner's
           # stale index member self-heals via ListForCustomer's blob-liveness prune.
-          detail = { session_id: @session_id, blob_deleted: blob_deleted }
+          detail = { custid: @custid, blob_deleted: blob_deleted }
           if session_user_id && customer && session_user_id != customer.extid
             detail[:session_user_id] = session_user_id
           end
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
-            target: @custid,
+            target: Onetime::SessionMetadata.handle_for(@session_id),
             result: :success,
             detail: detail,
           )

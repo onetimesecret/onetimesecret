@@ -21,7 +21,8 @@
 #   handle; the live blob is GONE, the sidecar is destroyed, and the sid is ZREM'd
 # - the response NEVER carries the raw sid
 # - EXACTLY ONE ColonelAuditEvent per revoke (verb 'session.revoke', target = the
-#   target extid, actor = the acting colonel's extid)
+#   session HANDLE — never the raw sid or the customer; the custid rides in
+#   detail — actor = the acting colonel's extid)
 # - a stale handle (session already revoked / no longer in the active set) is a 404
 #
 # Run: try --agent try/integration/api/colonel/revoke_customer_session_try.rb
@@ -155,13 +156,15 @@ Store.find_key(DB, @sid)
 [SM.load(@sid).nil?, @target.active_sessions.member?(@sid)]
 #=> [true, false]
 
-## EXACTLY ONE audit event: verb session.revoke, target the extid, actor the colonel
-[AE.count, AE.recent(1).first['verb'], AE.recent(1).first['target'], AE.recent(1).first['actor']]
-#=> [1, "session.revoke", "#{@extid}", "#{@colonel.extid}"]
+## EXACTLY ONE audit event: verb session.revoke, target the session handle
+## (the custid rides in detail), actor the colonel
+[AE.count, AE.recent(1).first['verb'], AE.recent(1).first['target'], AE.recent(1).first['detail']['custid'], AE.recent(1).first['actor']]
+#=> [1, "session.revoke", SM.handle_for(@sid), "#{@extid}", "#{@colonel.extid}"]
 
-## the audit detail carries the session id and no secret material
-AE.recent(1).first['detail']['session_id']
-#=> "#{@sid}"
+## the audit detail never carries the raw sid (it is the bearer cookie);
+## blob_deleted records that a live blob was killed
+[AE.recent(1).first['detail'].key?('session_id'), AE.recent(1).first['detail']['blob_deleted']]
+#=> [false, true]
 
 # --- Stale handle: the resolved session is gone --------------------------
 
