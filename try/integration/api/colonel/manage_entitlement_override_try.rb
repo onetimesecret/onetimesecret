@@ -307,7 +307,7 @@ post "/api/colonel/organizations/#{@org.extid}/entitlements/grant",
 @before_count = Onetime::ColonelAuditEvent.count
 post "/api/colonel/organizations/#{@org.extid}/entitlements/grant",
   { entitlement: 'audit_probe_two' }.to_json,
-  { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+  @colonel_json_headers
 @evt          = Onetime::ColonelAuditEvent.recent(1).first
 [
   last_response.status,
