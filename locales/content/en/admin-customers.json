@@ -319,13 +319,17 @@
     "text": "Apply",
     "content_hash": "31e392d1"
   },
+  "web.admin.customers.actions.role.button": {
+    "text": "Change role",
+    "content_hash": "a43a8d8c"
+  },
   "web.admin.customers.actions.role.confirmTitle": {
     "text": "Change role?",
     "content_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Change {email} to the {role} role.",
-    "content_hash": "9ba063c6"
+    "text": "Changes {email} to the {role} role. The colonel role grants full administrative access to every account, secret and organization on this install. Type the account email address below to confirm.",
+    "content_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Role updated.",
@@ -440,8 +444,8 @@
     "content_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Mark {email} as not verified.",
-    "content_hash": "592ffd27"
+    "text": "Marks {email} as not verified. An unverified account cannot hold the colonel, admin or staff role, so this also strips any elevated role it has. Type the account email address below to confirm.",
+    "content_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Customer unverified.",
@@ -702,5 +706,25 @@
   "web.admin.customers.detail.diagnostics.auditLog.unavailable": {
     "text": "Authentication log could not be read: {reason}",
     "content_hash": "ab18af57"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "You cannot demote your own colonel account. Ask another colonel to do it, or run `bin/ots customers role demote`.",
+    "content_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "You cannot demote the last remaining colonel — the install would have no administrator. Promote and verify another account first.",
+    "content_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "You cannot unverify your own account: a verified email is required to hold the colonel role.",
+    "content_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "You cannot unverify the last remaining colonel — an unverified account cannot hold the colonel role. Promote and verify another account first.",
+    "content_hash": "fc404616"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "This signs you out of every other device and browser, including sessions not shown in this list. The session you are working in right now is kept.",
+    "content_hash": "ae350040"
   }
 }

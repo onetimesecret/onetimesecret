@@ -7,9 +7,16 @@
 // session endpoints (there was no old colonel session screen — CLI-only until
 // now):
 //
-//   - ListSessions     → GET    /api/colonel/sessions             (list + search)
-//   - GetSessionDetail → GET    /api/colonel/sessions/:session_id (detail drawer)
-//   - DeleteSession    → DELETE /api/colonel/sessions/:session_id (guarded revoke)
+//   - ListSessions     → GET    /api/colonel/sessions                 (list + search)
+//   - GetSessionDetail → GET    /api/colonel/sessions/:session_handle (detail drawer)
+//   - DeleteSession    → DELETE /api/colonel/sessions/:session_handle (guarded revoke)
+//
+// Sessions are identified by session_handle, a non-reversible digest of the raw
+// session id (#4330 / finding F-01) — the same identifier the per-customer panel
+// already used. The raw sid IS the `onetime.session` cookie and the Redis blob
+// key name, so neither it nor `key` may appear on the wire; both were removed
+// from these shapes, which makes any backend regression that re-adds one a
+// parse failure here rather than a credential rendered in the console.
 //
 // Shapes verified against the live logic classes
 // (apps/api/colonel/logic/colonel/{list_sessions,get_session_detail,delete_session}.rb),
@@ -19,6 +26,7 @@
 
 import { createApiResponseSchema } from '@/schemas/api/base';
 import { paginationSchema } from './colonel';
+import { sessionHandleSchema } from './session-handle';
 import { z } from 'zod';
 
 // ============================================================================
@@ -26,8 +34,9 @@ import { z } from 'zod';
 // ============================================================================
 
 /**
- * A single session summary row (ListSessions `details.sessions[]`). `session_id`
- * is the bare id used for routing + revoke; `key` is the resolved Redis key.
+ * A single session summary row (ListSessions `details.sessions[]`).
+ * `session_handle` is the non-reversible identifier used for routing, inspect
+ * and revoke (#4330); the raw session id and its Redis key never cross the API.
  * Identity fields are nullable (anonymous / pre-auth sessions carry no email or
  * external id). `created_at` is `authenticated_at` as a Unix-second number.
  *
@@ -39,8 +48,7 @@ import { z } from 'zod';
  * dropping the whole session list.
  */
 export const colonelSessionSchema = z.object({
-  session_id: z.string(),
-  key: z.string(),
+  session_handle: sessionHandleSchema,
   authenticated: z.boolean(),
   email: z.string().nullable(),
   external_id: z.string().nullable(),
@@ -64,11 +72,23 @@ export const colonelSessionScanSchema = z.object({
   scan_capped: z.boolean(),
 });
 
-/** Sessions list response details: rows + pagination + keyspace scan meta. */
+/**
+ * Sessions list response details: rows + pagination + keyspace scan meta, plus
+ * the acting colonel's OWN session handle.
+ *
+ * `current_session_handle` (#4328) lets the console badge and disable the
+ * operator's own row: revoking it would sign them out mid-incident, and the
+ * server refuses it with a 422 regardless — this only spares them the round
+ * trip. It is a HANDLE, never the sid, so the response still carries nothing
+ * replayable. Null when the request session cannot be identified, and
+ * `.optional()` so a response from a backend predating #4328 still parses
+ * instead of dropping the whole session list mid-deploy.
+ */
 export const colonelSessionsDetailsSchema = z.object({
   sessions: z.array(colonelSessionSchema),
   pagination: paginationSchema,
   scan: colonelSessionScanSchema,
+  current_session_handle: sessionHandleSchema.nullable().optional(),
 });
 
 // ============================================================================
@@ -83,8 +103,7 @@ export const colonelSessionsDetailsSchema = z.object({
  * string or number depending on the auth backend.
  */
 export const colonelSessionDetailRecordSchema = z.object({
-  session_id: z.string(),
-  key: z.string(),
+  session_handle: sessionHandleSchema,
   ttl: z.number().nullable(),
   authenticated: z.boolean(),
   email: z.string().nullable(),
@@ -111,15 +130,20 @@ export const colonelSessionDetailRecordSchema = z.object({
  */
 export const colonelSessionDetailDetailsSchema = z.object({
   data: z.record(z.string(), z.unknown()),
+  // True when the bounded keyspace scan that resolved the handle hit its cap:
+  // a 404 then means "not among the keys sampled", not "does not exist".
+  // Optional so a response from a backend predating #4330's two-stage
+  // resolution still parses.
+  scan_capped: z.boolean().optional(),
 });
 
 // ============================================================================
 // DeleteSession — guarded revoke ack
 // ============================================================================
 
-/** DeleteSession `record`: the revoked session's id + a deleted flag. */
+/** DeleteSession `record`: the revoked session's handle + a deleted flag. */
 export const colonelSessionDeleteRecordSchema = z.object({
-  session_id: z.string(),
+  session_handle: sessionHandleSchema,
   deleted: z.boolean(),
 });
 
@@ -151,13 +175,13 @@ export const colonelSessionsResponseSchema = createApiResponseSchema(
   colonelSessionsDetailsSchema
 );
 
-// GET /api/colonel/sessions/:session_id → GetSessionDetail
+// GET /api/colonel/sessions/:session_handle → GetSessionDetail
 export const colonelSessionDetailResponseSchema = createApiResponseSchema(
   colonelSessionDetailRecordSchema,
   colonelSessionDetailDetailsSchema
 );
 
-// DELETE /api/colonel/sessions/:session_id → DeleteSession
+// DELETE /api/colonel/sessions/:session_handle → DeleteSession
 export const colonelSessionDeleteResponseSchema = createApiResponseSchema(
   colonelSessionDeleteRecordSchema,
   colonelSessionDeleteDetailsSchema

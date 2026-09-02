@@ -78,12 +78,6 @@ module ColonelAPI
             },
           }
         end
-
-        private
-
-        def truthy?(value)
-          %w[true 1 yes on].include?(value.to_s.strip.downcase)
-        end
       end
     end
   end

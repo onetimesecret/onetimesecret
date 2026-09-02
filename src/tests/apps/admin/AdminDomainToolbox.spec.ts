@@ -65,6 +65,14 @@ const i18n = createTestI18n();
 
 const ORPHAN_URL = '/api/colonel/domains/orphaned';
 const EXTID = 'cd_ext_1';
+/**
+ * The hostname the server gates the applying toolbox verbs on (#4326). The
+ * toolbox is driven by extid alone, so it carries the hostname off the
+ * PREVIEW's record — which is why the apply is only reachable behind a preview.
+ */
+const CONFIRM_HEADERS = {
+  headers: { 'X-OTS-Confirm': encodeURIComponent('orphan.example.com') },
+};
 
 function orphanedPayload(rows = [orphanRow()]) {
   return {
@@ -238,9 +246,11 @@ describe('AdminDomainToolbox (orphaned + probe + repair + transfer — ticket #4
       await flushPromises();
 
       // Apply POST carries dry_run:false.
-      expect(mockApi.post).toHaveBeenLastCalledWith(`/api/colonel/domains/${EXTID}/repair`, {
-        dry_run: false,
-      });
+      expect(mockApi.post).toHaveBeenLastCalledWith(
+        `/api/colonel/domains/${EXTID}/repair`,
+        { dry_run: false },
+        CONFIRM_HEADERS
+      );
       expect(showMock).toHaveBeenCalledWith('web.admin.domaintoolbox.repair.success', 'success');
     });
 
@@ -303,10 +313,11 @@ describe('AdminDomainToolbox (orphaned + probe + repair + transfer — ticket #4
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.post).toHaveBeenLastCalledWith(`/api/colonel/domains/${EXTID}/transfer`, {
-        dry_run: false,
-        to_org: 'on_dest',
-      });
+      expect(mockApi.post).toHaveBeenLastCalledWith(
+        `/api/colonel/domains/${EXTID}/transfer`,
+        { dry_run: false, to_org: 'on_dest' },
+        CONFIRM_HEADERS
+      );
       expect(showMock).toHaveBeenCalledWith('web.admin.domaintoolbox.transfer.success', 'success');
     });
   });

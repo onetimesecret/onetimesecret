@@ -115,16 +115,16 @@ module ColonelAPI
           @customer = resolve_customer(@member_id)
           raise_not_found('Member not found') unless @customer
 
-          # Validate entitlement name is known (optional, but helps catch typos)
-          return if @action == 'clear'
-          return if Onetime::Operations::Memberships::EntitlementOverride.known_entitlement?(@entitlement)
+          # TIER 2 (#4326), ALL arms. The URL carries the member's extid; the
+          # confirmation is their EMAIL.
+          guard_destructive_action!(
+            tier: :sensitive,
+            confirm_with: account_confirm_token(@customer),
+            confirm_subject: "the member's email address",
+            field: :member_id,
+          )
 
-          # Warn but don't block - allows granting future entitlements. Only
-          # grant/revoke reach here (clear returned above), so the verb is a
-          # two-way pick; @org is resolved by now, so log its extid rather than
-          # the raw request param.
-          verb = @action == 'grant' ? 'Granting' : 'Revoking'
-          OT.info "[colonel] #{verb} unknown entitlement '#{@entitlement}' for member #{@customer.extid} in org #{@org.extid}"
+          warn_unknown_entitlement
         end
 
         def process
@@ -158,6 +158,19 @@ module ColonelAPI
         end
 
         private
+
+        # Warn but don't block — allows granting future entitlements. Only
+        # grant/revoke reach the log line (clear returns first), so the verb is a
+        # two-way pick; @org is resolved by now, so log its extid rather than the
+        # raw request param. Advisory, not a guard: it runs after the
+        # confirmation gate.
+        def warn_unknown_entitlement
+          return if @action == 'clear'
+          return if Onetime::Operations::Memberships::EntitlementOverride.known_entitlement?(@entitlement)
+
+          verb = @action == 'grant' ? 'Granting' : 'Revoking'
+          OT.info "[colonel] #{verb} unknown entitlement '#{@entitlement}' for member #{@customer.extid} in org #{@org.extid}"
+        end
 
         # :invalid_action / :missing_entitlement are a defensive backstop —
         # process_params already rejects both ahead of the call. :not_found is

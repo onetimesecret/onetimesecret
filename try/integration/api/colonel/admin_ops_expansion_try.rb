@@ -104,6 +104,17 @@ def colonel_get_headers
   { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
 end
 
+# Server-side destructive-action confirmation (#4326): AddMembership is TIER 2
+# (privilege-granting — it hands an account access to the org's data), so it
+# requires the organization's NAME, percent-encoded, in X-OTS-Confirm.
+#
+# Rack::Utils.escape (form encoding, space -> '+') is one of the encodings the
+# server's form decoder accepts (auth_strategies.rb #4326); '%20' and a raw space
+# work too.
+def confirming_org_headers(org)
+  colonel_headers.merge('HTTP_X_OTS_CONFIRM' => Rack::Utils.escape(org.display_name))
+end
+
 # ----------------------------------------------------------------
 # AddMembership by EMAIL (the sanitize_identifier bug)
 # ----------------------------------------------------------------
@@ -111,7 +122,7 @@ end
 ## An email survives sanitization and resolves to the account (200, not 404)
 @before_audit = Onetime::ColonelAuditEvent.count
 post "/api/colonel/organizations/#{@org.extid}/members",
-  { 'customer' => @joiner_email, 'role' => 'admin' }, colonel_headers
+  { 'customer' => @joiner_email, 'role' => 'admin' }, confirming_org_headers(@org)
 @add_resp = JSON.parse(last_response.body)
 [last_response.status, @add_resp['record']['status'], @add_resp['record']['role']]
 #=> [200, "success", "admin"]
@@ -133,7 +144,7 @@ Onetime::Organization.find_by_extid(@org.extid).member?(Onetime::Customer.find_b
 ## Add is strictly additive: a repeat by email is :no_change, still audited (#4337)
 @before_audit2 = Onetime::ColonelAuditEvent.count
 post "/api/colonel/organizations/#{@org.extid}/members",
-  { 'customer' => @joiner_email, 'role' => 'member' }, colonel_headers
+  { 'customer' => @joiner_email, 'role' => 'member' }, confirming_org_headers(@org)
 @again = JSON.parse(last_response.body)
 [last_response.status, @again['record']['status'], @again['record']['role'],
  Onetime::ColonelAuditEvent.count - @before_audit2]

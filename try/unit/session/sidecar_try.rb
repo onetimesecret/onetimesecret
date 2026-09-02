@@ -403,6 +403,64 @@ SC.write(@sid, 'awaiting_mfa', true, codec: @codec)
 DB.ttl(@key_mfa).positive? && DB.ttl(@key_mfa) <= 30
 #=> true
 
+# ---- elevated_until: the colonel step-up window (#4327) ------------------
+
+## the field is registered, so purge/cleanup can enumerate it and the write
+## gate admits it
+SC::FIELDS.key?('elevated_until')
+#=> true
+
+## it satisfies the admission rule's externalize policy: encrypted (it is a
+## capability bound to a sid), merged on read, and converged to ABSENT rather
+## than parked when it goes falsy
+SC::FIELDS['elevated_until'].values_at(:encrypted, :merge_on_read, :externalize, :absent_when_falsy)
+#=> [true, true, true, true]
+
+## its TTL is a backstop above the default 600s window, so the sidecar itself
+## can never drop a live elevation mid-window (the stored exp is the authority)
+SC::FIELDS['elevated_until'][:ttl] > 600
+#=> true
+
+## the value is an OBJECT, not a bare epoch, and it round-trips through the
+## encrypted envelope with its keys and types intact
+DB.set(@blob_key, 'x', ex: 86_400)
+@elev = { 'extid' => 'ur_colonel', 'exp' => Familia.now.to_i + 600 }
+SC.write(@sid, 'elevated_until', @elev, codec: @codec)
+SC.read(@sid, 'elevated_until', codec: @codec)
+#=> @elev
+
+## the key lives outside the session: namespace, so the *session* scans
+## (colonel listings, revoke-all sweeps) never see it as a phantom blob
+SC.key_for(@sid, 'elevated_until').include?('session')
+#=> false
+
+## its TTL is clamped under the blob's, like every other sidecar field
+[DB.ttl("sidecar:#{@sid}:elevated_until").positive?,
+ DB.ttl("sidecar:#{@sid}:elevated_until") <= SC::FIELDS['elevated_until'][:ttl]]
+#=> [true, true]
+
+## commit externalizes it out of the blob hash
+SC.commit(@sid, { 'account_id' => 7, 'elevated_until' => @elev }, codec: @codec)
+#=> { 'account_id' => 7 }
+
+## ...and merge overlays it back on the next read
+SC.merge(@sid, { 'account_id' => 7 }, codec: @codec)[:data]['elevated_until']
+#=> @elev
+
+## dropping elevation (sess.delete) converges the field to ABSENT — the
+## sidecar key is DELETED, not refreshed with an empty object forever
+SC.commit(@sid, { 'account_id' => 7 }, merged: ['elevated_until'], codec: @codec)
+DB.exists("sidecar:#{@sid}:elevated_until")
+#=> 0
+
+## an elevation record forged under a DIFFERENT sid reads as absent: the
+## codec's sid/field binding is the other half of the identity binding the
+## logic layer applies (extid vs the current customer)
+SC.write(@sid, 'elevated_until', @elev, codec: @codec)
+DB.set("sidecar:#{@sid2}:elevated_until", DB.get("sidecar:#{@sid}:elevated_until"))
+SC.read(@sid2, 'elevated_until', codec: @codec)
+#=> nil
+
 # Cleanup
 DB.del(@blob_key)
 SC.purge(@sid)

@@ -65,6 +65,9 @@
 #  14. Boot logging is once per process, not once per mounted app
 #  15. Full-precision CIDR matching via env['otto.ip_match']: a /32 admits its
 #      own client and denies neighbors that share its masked form
+#  16. Route-requirement ANNOTATION (#4332): the verdict + mode env keys, the
+#      allocation-free maybe_admin_surface? prefilter that puts them on the
+#      both-gates-inactive path, and the advisory boot line
 
 require_relative '../../support/test_helpers'
 
@@ -88,7 +91,7 @@ require_relative '../../../lib/onetime/middleware/admin_network_isolation'
 class TestAdminNetworkIsolation < Onetime::Middleware::AdminNetworkIsolation
   public :admin_surface?, :colonel_shell?, :colonel_api?, :request_path, :allowed?,
     :host_gate_active?, :network_gate_active?, :route_requirement_met?, :host_allowed?,
-    :normalize_host, :detected_host
+    :normalize_host, :detected_host, :route_requirement_mode, :maybe_admin_surface?
 
   def allowed_hosts
     @allowed_hosts
@@ -1286,12 +1289,14 @@ status_for(@both, 'tenant.example.com', client_ip: '203.0.113.9')
 status_for(@both, 'tenant.example.com', path_info: '/dashboard', client_ip: '203.0.113.9')
 #=> 200
 
-## both gates inactive - strict no-op on /colonel
+## both gates inactive - no denial on /colonel
+## (#4332 added the verdict-key annotation to this path; it still denies
+## nothing, which is what these three cases have always been about)
 @none = build_mw(hosts: [], cidrs: [], site_host: '127.0.0.1:3000')
 [@none.host_gate_active?, @none.network_gate_active?, status_for(@none, 'anything.example.test')]
 #=> [false, false, 200]
 
-## both gates inactive - strict no-op on /api/colonel with no detected host
+## both gates inactive - no denial on /api/colonel with no detected host
 status_for(@none, nil, script_name: '/api/colonel', path_info: '/info')
 #=> 200
 
@@ -1603,13 +1608,124 @@ build_mw(cidrs: ['', '   ']).network_gate_active?
 #=> false
 
 # =================================================================
+# ROUTE-REQUIREMENT ANNOTATION (#4332)
+# =================================================================
+# `network=admin_if_configured` on the 15 destructive colonel routes reads TWO
+# env keys this middleware writes: the boolean verdict (pre-existing) and the
+# tri-state MODE. Absence of the mode key means the middleware never ran, and
+# Application::NetworkRequirements treats that as a denial — so the keys have to
+# be written even on the both-gates-inactive path, which used to return before
+# touching env at all.
+#
+# The env key the annotation reads.
+@mode_key = Onetime::Middleware::AdminNetworkIsolation::ROUTE_REQUIREMENT_MODE_ENV_KEY
+@met_key  = Onetime::Middleware::AdminNetworkIsolation::ROUTE_REQUIREMENT_ENV_KEY
+
+# Run one request and hand back the two verdict keys it left behind.
+def verdict_keys(mw, script_name: '', path_info: '/colonel', detected_host: nil, client_ip: '203.0.113.9')
+  env = admin_env(script_name: script_name, path_info: path_info,
+                  client_ip: client_ip, detected_host: detected_host)
+  mw.call(env)
+  [env[Onetime::Middleware::AdminNetworkIsolation::ROUTE_REQUIREMENT_ENV_KEY],
+   env[Onetime::Middleware::AdminNetworkIsolation::ROUTE_REQUIREMENT_MODE_ENV_KEY]]
+end
+
+## posture E (explicit hosts + a parseable CIDR) is the ONLY enforced one
+build_mw(hosts: ['admin.example.com'], cidrs: ['10.0.0.0/8']).route_requirement_mode
+#=> :enforced
+
+## posture A - neither knob set: advisory
+build_mw(hosts: [], cidrs: [], site_host: '127.0.0.1:3000').route_requirement_mode
+#=> :advisory
+
+## posture B - canonical anchor only: advisory (the fallback is not explicit)
+build_mw(hosts: [], cidrs: ['10.0.0.0/8'], site_host: 'admin.example.com').route_requirement_mode
+#=> :advisory
+
+## posture C - hosts only: advisory
+build_mw(hosts: ['admin.example.com'], cidrs: []).route_requirement_mode
+#=> :advisory
+
+## posture D - explicit wildcard plus CIDRs: advisory (the wildcard is inactive)
+build_mw(hosts: ['*'], cidrs: ['10.0.0.0/8']).route_requirement_mode
+#=> :advisory
+
+## the mode always agrees with route_requirement_met?
+@modes = [build_mw(hosts: ['admin.example.com'], cidrs: ['10.0.0.0/8']),
+          build_mw(hosts: ['admin.example.com'], cidrs: [])]
+@modes.map { |mw| [mw.route_requirement_met?, mw.route_requirement_mode] }
+#=> [[true, :enforced], [false, :advisory]]
+
+## both gates inactive - an admin request now carries BOTH keys
+@stock = build_mw(hosts: [], cidrs: [], site_host: '127.0.0.1:3000')
+verdict_keys(@stock)
+#=> [false, :advisory]
+
+## both gates inactive - the mounted API surface carries them too
+verdict_keys(@stock, script_name: '/api/colonel', path_info: '/info')
+#=> [false, :advisory]
+
+## both gates inactive - a NON-admin path is still untouched (no keys at all)
+@non_admin_env = admin_env(script_name: '', path_info: '/dashboard', client_ip: '203.0.113.9')
+@stock.call(@non_admin_env)
+[@non_admin_env.key?(@met_key), @non_admin_env.key?(@mode_key)]
+#=> [false, false]
+
+## an admitted request in posture E carries the enforced mode
+@enforced = build_mw(hosts: ['admin.example.com'], cidrs: ['10.0.0.0/8'])
+verdict_keys(@enforced, script_name: '/api/colonel', path_info: '/info',
+                        detected_host: 'admin.example.com', client_ip: '10.0.0.5')
+#=> [true, :enforced]
+
+## a DENIED request writes nothing - the 404 short-circuits before the annotation
+@denied_env = admin_env(script_name: '/api/colonel', path_info: '/info',
+                        client_ip: '203.0.113.9', detected_host: 'admin.example.com')
+[@enforced.call(@denied_env).first, @denied_env.key?(@met_key), @denied_env.key?(@mode_key)]
+#=> [404, false, false]
+
+# The prefilter that keeps the no-op fast path allocation-free. It is
+# deliberately over-broad (#annotate_route_requirement re-checks exactly), so
+# these cases pin what it must never MISS, not what it may wave through.
+
+## a mounted colonel API app is recognized by SCRIPT_NAME alone
+@stock.maybe_admin_surface?('SCRIPT_NAME' => '/api/colonel', 'PATH_INFO' => '/info')
+#=> true
+
+## a mounted colonel SHELL app likewise
+@stock.maybe_admin_surface?('SCRIPT_NAME' => '/colonel', 'PATH_INFO' => '/settings')
+#=> true
+
+## an unmounted /colonel path is recognized by PATH_INFO
+@stock.maybe_admin_surface?('SCRIPT_NAME' => '', 'PATH_INFO' => '/colonel')
+#=> true
+
+## a DIFFERENT mounted app is not, whatever its PATH_INFO says
+@stock.maybe_admin_surface?('SCRIPT_NAME' => '/api/secret', 'PATH_INFO' => '/colonel')
+#=> false
+
+## nor is an ordinary tenant path
+@stock.maybe_admin_surface?('SCRIPT_NAME' => '', 'PATH_INFO' => '/dashboard')
+#=> false
+
+## a nil PATH_INFO does not raise
+@stock.maybe_admin_surface?('SCRIPT_NAME' => nil, 'PATH_INFO' => nil)
+#=> false
+
+# =================================================================
 # BOOT LOGGING — once per process, not once per mounted app
 # =================================================================
 # MiddlewareStack.configure runs for each of the 13 registered applications, all
 # from one config. Without a ledger every boot prints 13 identical posture lines
 # and 13 copies of each WARN, which reads like 13 separate misconfigurations.
+#
+# COUNTS INCLUDE THE #4332 ADVISORY LINE. Every posture below except a fully
+# configured one emits it alongside the posture line, so each expectation here
+# is one higher than it was before that change. It is deduped by the same
+# ledger, on a payload that carries the two gate states — which is why a
+# different HOST list collapses onto the same advisory line while a different
+# GATE POSTURE would not.
 
-## an identical posture built twice announces once
+## an identical posture built twice announces once (posture + advisory)
 @log_counts = begin
   Onetime::Middleware::AdminNetworkIsolation.reset_boot_announcements!
   build_mw(hosts: ['admin.example.com'])
@@ -1617,12 +1733,13 @@ build_mw(cidrs: ['', '   ']).network_gate_active?
   12.times { build_mw(hosts: ['admin.example.com']) }
   [first, Onetime::Middleware::AdminNetworkIsolation.boot_announcement_count]
 end
-#=> [1, 1]
+#=> [2, 2]
 
 ## a DIFFERENT posture still announces - dedupe is per posture, not a mute
+## (only the posture line is new: the advisory payload is gate state, not hosts)
 build_mw(hosts: ['other.example.com'])
 Onetime::Middleware::AdminNetworkIsolation.boot_announcement_count
-#=> 2
+#=> 3
 
 ## the wildcard WARN and the posture line are separate announcements
 @wild_counts = begin
@@ -1630,7 +1747,7 @@ Onetime::Middleware::AdminNetworkIsolation.boot_announcement_count
   build_mw(hosts: ['*'])
   Onetime::Middleware::AdminNetworkIsolation.boot_announcement_count
 end
-#=> 2
+#=> 3
 
 ## the `*`-with-siblings case adds the ignored-siblings WARN
 @sibling_counts = begin
@@ -1638,7 +1755,62 @@ end
   build_mw(hosts: ['*', 'admin.example.com'])
   Onetime::Middleware::AdminNetworkIsolation.boot_announcement_count
 end
-#=> 3
+#=> 4
+
+# The advisory line itself. It is the ONLY thing that tells an operator whether
+# the annotation on the 15 destructive routes is doing anything, so its level
+# carries meaning: a stock install configured nothing and is not misconfigured
+# (INFO), while a half-configured one believes a restriction is in force that
+# is not (WARN).
+
+# Build one instance against a recording logger and return its boot lines.
+def boot_lines(**opts)
+  Onetime::Middleware::AdminNetworkIsolation.reset_boot_announcements!
+  recorder = TestAdminNetworkIsolation::LogRecorder.new
+  real     = Onetime.method(:get_logger)
+  Onetime.define_singleton_method(:get_logger) do |name|
+    name == 'AdminNetworkIsolation' ? recorder : real.call(name)
+  end
+  build_mw(**opts)
+  recorder.entries
+ensure
+  Onetime.define_singleton_method(:get_logger, real)
+end
+
+## a stock install is told, at INFO - not nagged
+@stock_lines = boot_lines(hosts: [], cidrs: [], site_host: '127.0.0.1:3000')
+  .select { |entry| entry.message.include?('advisory') }
+[@stock_lines.size, @stock_lines.first.level]
+#=> [1, :info]
+
+## hosts without CIDRs is half-configured, and WARNs
+@half_lines = boot_lines(hosts: ['admin.example.com'], cidrs: [])
+  .select { |entry| entry.message.include?('ADVISORY') }
+[@half_lines.size, @half_lines.first.level]
+#=> [1, :warn]
+
+## CIDRs without an explicit host list is the other half, and WARNs too
+@half_cidr_lines = boot_lines(hosts: [], cidrs: ['10.0.0.0/8'], site_host: 'admin.example.com')
+  .select { |entry| entry.message.include?('ADVISORY') }
+[@half_cidr_lines.size, @half_cidr_lines.first.level]
+#=> [1, :warn]
+
+## the advisory line names the remedy
+@half_lines.first.payload[:consequence].include?('set BOTH ADMIN_ALLOWED_HOSTS')
+#=> true
+
+## a fully configured install gets NO advisory line
+boot_lines(hosts: ['admin.example.com'], cidrs: ['10.0.0.0/8'])
+  .count { |entry| entry.message.downcase.include?('advisory') }
+#=> 0
+
+## the advisory line goes through log_once - 13 mounts, one line
+@advisory_once = begin
+  Onetime::Middleware::AdminNetworkIsolation.reset_boot_announcements!
+  13.times { build_mw(hosts: ['admin.example.com'], cidrs: []) }
+  Onetime::Middleware::AdminNetworkIsolation.boot_announcement_count
+end
+#=> 2
 
 # Restore every global this file mutated: both admin lists, site.host, the
 # features.domains block, and the DetectHost result field. `rake try:unit` runs

@@ -172,7 +172,9 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
       expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'session.delete',
-        target: 'abc',
+        # The non-reversible #4330 handle, never the raw sid — the sid IS the
+        # bearer cookie and this event ships to the external sink.
+        target: Onetime::SessionMetadata.handle_for('abc'),
         result: :success,
         detail: { reason: 'stolen laptop' },
         fail_closed: true,

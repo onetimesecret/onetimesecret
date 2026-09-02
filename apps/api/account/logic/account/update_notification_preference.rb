@@ -9,18 +9,39 @@ module AccountAPI::Logic
     # Supports updating notification-related boolean fields like:
     # - notify_on_reveal: Notify when a secret is revealed
     #
-    # Future notification types can be added by extending VALID_FIELDS.
+    # Future notification types can be added by extending FIELDS.
+    #
+    # ## Explicit dispatch, never reflection
+    #
+    # The request's `field` param only ever SELECTS an entry in FIELDS; it is
+    # never turned into a method name. The earlier `cust.send(field)` was
+    # allowlist-gated and safe, but the allowlist and the reflection were two
+    # things that had to agree, and a scanner cannot see the gate (CodeQL
+    # rb/code-injection). One table now holds both the allowlist and the
+    # accessors, so an unknown or hostile name reaches nothing on the customer.
     #
     class UpdateNotificationPreference < UpdateAccountField
-      # Notification preference fields that can be updated
-      VALID_FIELDS = %w[notify_on_reveal].freeze
+      # How to read and write one preference on a customer.
+      Accessor = Data.define(:read, :write)
+
+      # Every updatable preference, keyed by its wire name. Adding a
+      # notification type is one entry here.
+      FIELDS = {
+        'notify_on_reveal' => Accessor.new(
+          read: ->(cust) { cust.notify_on_reveal },
+          write: ->(cust, value) { cust.notify_on_reveal = value },
+        ),
+      }.freeze
+
+      # Notification preference fields that can be updated (wire names).
+      VALID_FIELDS = FIELDS.keys.freeze
 
       attr_reader :preference_field, :preference_value, :old_value
 
       def process_params
         @preference_field = params['field'].to_s
         @preference_value = params['value'].to_s == 'true'
-        @old_value        = cust.send(preference_field) if valid_field?
+        @old_value        = FIELDS.fetch(preference_field).read.call(cust) if valid_field?
       end
 
       def raise_concerns
@@ -48,7 +69,7 @@ module AccountAPI::Logic
       end
 
       def valid_field?
-        VALID_FIELDS.include?(preference_field)
+        FIELDS.key?(preference_field)
       end
 
       def valid_update?
@@ -58,7 +79,7 @@ module AccountAPI::Logic
       def perform_update
         raise_form_error 'Invalid field' unless valid_field?
 
-        cust.send("#{preference_field}=", preference_value.to_s)
+        FIELDS.fetch(preference_field).write.call(cust, preference_value.to_s)
         cust.save
       end
 

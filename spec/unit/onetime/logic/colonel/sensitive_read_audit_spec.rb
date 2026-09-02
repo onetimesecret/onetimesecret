@@ -196,12 +196,20 @@ RSpec.describe 'colonel sensitive-read auditing' do
       )
     end
 
+    # The route takes the opaque #4330 handle, resolved back to the sid
+    # server-side; resolution is stubbed at the Store boundary because this
+    # spec owns the audit shape, not the two-stage lookup.
     def run_read
+      allow(Onetime::Operations::Sessions::Store).to receive(:resolve_handle)
+        .and_return([raw_sid, false])
       allow(Onetime::Operations::Sessions::Inspect).to receive(:new).and_return(
         double('Inspect', call: inspection),
       )
 
-      logic = described_class.new(strategy_result, { 'session_id' => raw_sid })
+      logic = described_class.new(
+        strategy_result,
+        { 'session_handle' => Onetime::SessionMetadata.handle_for(raw_sid) },
+      )
       logic.process_params
       logic.raise_concerns
       logic.process

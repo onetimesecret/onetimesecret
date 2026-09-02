@@ -85,6 +85,24 @@ def last_response;  @test.last_response;  end
   'email'         => @regular.email,
 }
 
+# Server-side destructive-action confirmation (#4326): this endpoint is TIER 2 on
+# ALL arms (grant is privilege-granting, clear is irreversible), so every one of
+# them requires the organization's NAME — percent-encoded — in X-OTS-Confirm.
+# The 404-for-unknown-org case below deliberately sends NO header: shape and
+# existence are checked before the gate, so it must still answer 404.
+#
+# Rack::Utils.escape (form encoding, space -> '+') is one of the encodings the
+# server's form decoder accepts (auth_strategies.rb #4326); '%20' and a raw space
+# work too.
+@confirm_header = { 'HTTP_X_OTS_CONFIRM' => Rack::Utils.escape(@org.display_name) }
+@colonel_json_headers = {
+  'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json',
+  'HTTP_ACCEPT' => 'application/json',
+}.merge(@confirm_header)
+@colonel_plain_headers = {
+  'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json',
+}.merge(@confirm_header)
+
 # ----------------------------------------------------------------
 # Authorization
 # ----------------------------------------------------------------
@@ -111,7 +129,7 @@ last_response.status
 ## Colonel gets 404 when org does not exist
 post "/api/colonel/organizations/nonexistent_org_#{@timestamp}/entitlements/grant",
   { entitlement: 'custom_domains' }.to_json,
-  { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+  @colonel_json_headers.reject { |k, _| k == 'HTTP_X_OTS_CONFIRM' }
 [last_response.status, JSON.parse(last_response.body).key?('error')]
 #=> [404, true]
 
@@ -122,7 +140,7 @@ post "/api/colonel/organizations/nonexistent_org_#{@timestamp}/entitlements/gran
 ## Grant: returns 200 with expected structure
 post "/api/colonel/organizations/#{@org.objid}/entitlements/grant",
   { entitlement: 'custom_domains' }.to_json,
-  { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+  @colonel_json_headers
 resp = JSON.parse(last_response.body)
 [
   last_response.status,
@@ -152,7 +170,7 @@ resp['record']['effective_entitlements'].include?('custom_domains')
 ## Grant: unknown entitlement succeeds (intentional, for future entitlements)
 post "/api/colonel/organizations/#{@org.objid}/entitlements/grant",
   { entitlement: 'future_feature_xyz' }.to_json,
-  { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+  @colonel_json_headers
 resp = JSON.parse(last_response.body)
 [last_response.status, resp['record']['action']]
 #=> [200, 'granted']
@@ -164,7 +182,7 @@ resp = JSON.parse(last_response.body)
 ## Revoke: returns 200 with action='revoked'
 post "/api/colonel/organizations/#{@org.objid}/entitlements/revoke",
   { entitlement: 'api_access' }.to_json,
-  { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+  @colonel_json_headers
 resp = JSON.parse(last_response.body)
 [last_response.status, resp['record']['action']]
 #=> [200, 'revoked']
@@ -187,7 +205,7 @@ resp['record']['effective_entitlements'].include?('api_access')
 ## Grant after revoke: removes from revokes and adds to grants (reciprocal)
 post "/api/colonel/organizations/#{@org.objid}/entitlements/grant",
   { entitlement: 'api_access' }.to_json,
-  { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+  @colonel_json_headers
 resp = JSON.parse(last_response.body)
 [resp['record']['revokes'].include?('api_access'), resp['record']['grants'].include?('api_access')]
 #=> [false, true]
@@ -199,14 +217,14 @@ resp = JSON.parse(last_response.body)
 ## Grant without entitlement param returns 422 (FormError)
 post "/api/colonel/organizations/#{@org.objid}/entitlements/grant",
   {}.to_json,
-  { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+  @colonel_json_headers
 last_response.status
 #=> 422
 
 ## Revoke without entitlement param returns 422 (FormError)
 post "/api/colonel/organizations/#{@org.objid}/entitlements/revoke",
   {}.to_json,
-  { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+  @colonel_json_headers
 last_response.status
 #=> 422
 
@@ -217,7 +235,7 @@ last_response.status
 ## Clear: returns 200 with action='cleared'
 delete "/api/colonel/organizations/#{@org.objid}/entitlements/overrides",
   {},
-  { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
+  @colonel_plain_headers
 resp = JSON.parse(last_response.body)
 [last_response.status, resp['record']['action']]
 #=> [200, 'cleared']
@@ -263,7 +281,7 @@ last_response.status
 ## Grant via the org's PUBLIC extid resolves the org and returns 200 (extid-first)
 post "/api/colonel/organizations/#{@org.extid}/entitlements/grant",
   { entitlement: 'audit_probe_one' }.to_json,
-  { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+  @colonel_json_headers
 [last_response.status, JSON.parse(last_response.body)['record']['action']]
 #=> [200, 'granted']
 
@@ -271,7 +289,7 @@ post "/api/colonel/organizations/#{@org.extid}/entitlements/grant",
 @before_count = Onetime::ColonelAuditEvent.count
 post "/api/colonel/organizations/#{@org.extid}/entitlements/grant",
   { entitlement: 'audit_probe_two' }.to_json,
-  { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+  @colonel_json_headers
 @evt = Onetime::ColonelAuditEvent.recent(1).first
 [
   Onetime::ColonelAuditEvent.count - @before_count,
@@ -304,7 +322,7 @@ post "/api/colonel/organizations/#{@org.extid}/entitlements/grant",
 ## Clear records an audit event with the clear verb and an empty detail
 delete "/api/colonel/organizations/#{@org.extid}/entitlements/overrides",
   {},
-  { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
+  @colonel_plain_headers
 @evt = Onetime::ColonelAuditEvent.recent(1).first
 [last_response.status, @evt['verb'], @evt['target'] == @org.extid, @evt['detail']]
 #=> [200, 'organization.entitlement.clear', true, {}]

@@ -10,7 +10,9 @@
   import EntitlementPicker from '@/apps/admin/components/organizations/EntitlementPicker.vue';
   import type { AddMembershipRequest } from '@/apps/admin/components/organizations/membershipSchemas';
   import { colonelAddMembershipResponseSchema } from '@/apps/admin/components/organizations/membershipSchemas';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
+  import { confirmHeaders, orgConfirmToken } from '@/apps/admin/utils/confirmHeader';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import { reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
   import type { InvestigateOrganizationResult } from '@/schemas/api/internal/responses/colonel';
@@ -89,6 +91,14 @@
   });
 
   const record = computed(() => orgData.value?.record ?? null);
+
+  /**
+   * The identifier the server gates every org-scoped destructive verb on
+   * (#4326): the organization's NAME, its public id when it has none. Mirrors
+   * `ColonelAPI::Logic::DestructiveAction#org_confirm_token`; the two must agree
+   * or the call 403s.
+   */
+  const orgToken = computed(() => orgConfirmToken(record.value) ?? props.id);
   const details = computed(() => orgData.value?.details ?? null);
   const entitlements = computed(() => details.value?.entitlements ?? null);
 
@@ -333,8 +343,12 @@
     const base = `${orgUrl()}/entitlements`;
     const response =
       action === 'clear'
-        ? await $api.delete(`${base}/overrides`)
-        : await $api.post(`${base}/${action}`, { entitlement: pendingEntitlement.value });
+        ? await $api.delete(`${base}/overrides`, { headers: confirmHeaders(orgToken.value) })
+        : await $api.post(
+            `${base}/${action}`,
+            { entitlement: pendingEntitlement.value },
+            { headers: confirmHeaders(orgToken.value) }
+          );
 
     // Tripwire only: a 2xx means the mutation succeeded regardless of ack shape;
     // the panel is driven by the refreshed detail GET, not this ack.
@@ -762,15 +776,21 @@
     error: deleteError,
     run: runDeleteMutation,
     reset: resetDelete,
-  } = useAdminMutation(async (reason?: string) => {
+  } = useAdminDestructiveMutation(async (reason?: string) => {
     // The server refuses these on the apply path too (4xx). Checking here means
     // the operator reads the reason instead of a generic request failure.
     if (deleteBlockedReason.value) throw new Error(deleteBlockedReason.value);
 
-    // The OPTIONAL operator reason (#4338) joins the flags on the query string.
-    // Only the APPLY sends it: the preview above re-runs on every override
-    // toggle, and the dialog collecting the reason is not open yet.
-    const response = await $api.delete(deleteUrl(false), ...reasonQueryArgs(reason));
+    // The preview above is EXEMPT (it writes nothing); only the apply carries
+    // the organization's name in X-OTS-Confirm (#4326) — and, beside it, the
+    // OPTIONAL operator reason (#4338) on the query string with the flags. Only
+    // the APPLY sends the reason: the preview re-runs on every override toggle,
+    // and the dialog collecting the reason is not open yet.
+    const [reasonConfig] = reasonQueryArgs(reason);
+    const response = await $api.delete(deleteUrl(false), {
+      headers: confirmHeaders(orgToken.value),
+      ...reasonConfig,
+    });
     const parsed = gracefulParse(
       colonelDeleteOrganizationResponseSchema,
       response.data,
@@ -881,13 +901,18 @@
 
     let response;
     try {
-      response = await $api.post(`${orgUrl()}/members`, {
-        // Always the EXTID, never an email address: the colonel adapter runs
-        // `customer` through an identifier sanitizer, and the account picker
-        // already resolved the address to a public id.
-        customer: target.customer,
-        role: target.role,
-      });
+      response = await $api.post(
+        `${orgUrl()}/members`,
+        {
+          // Always the EXTID, never an email address: the colonel adapter runs
+          // `customer` through an identifier sanitizer, and the account picker
+          // already resolved the address to a public id.
+          customer: target.customer,
+          role: target.role,
+        },
+        // Privilege-granting, so gated server-side on the org's name (#4326).
+        { headers: confirmHeaders(orgToken.value) }
+      );
     } catch (err) {
       throw new Error(addMemberFailureMessage(err));
     }

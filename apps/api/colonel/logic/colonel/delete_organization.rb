@@ -97,6 +97,19 @@ module ColonelAPI
 
           @org = resolve_org(@org_id)
           raise_not_found('Organization not found') unless @org&.exists?
+
+          # PREVIEW EXEMPTION (#4326): the preview IS the plan the operator
+          # confirms against, and it writes nothing. dry_run defaults to TRUE.
+          return if dry_run
+
+          # TIER 1. The URL carries the org id; the confirmation is its NAME.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: org_confirm_token(org),
+            confirm_subject: "the organization's name",
+            field: :org_id,
+          )
+          charge_destructive_budget!
         end
 
         def process
@@ -209,10 +222,6 @@ module ColonelAPI
           return '' if result.domains.empty?
 
           ": #{result.domains.join(', ')}"
-        end
-
-        def truthy?(value)
-          %w[true 1 yes on].include?(value.to_s.strip.downcase)
         end
       end
     end

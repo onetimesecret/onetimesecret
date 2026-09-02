@@ -557,8 +557,13 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       it 'still resets verification, through the same wrapper :success uses' do
         result = op.call
 
+        # enforce_interlocks: false — a credential-provenance reset, not an
+        # administrative unverify (#4328). It must never be refused by the
+        # last-colonel interlock: leaving a colonel "verified" against an
+        # address nobody proved is worse than the lockout that guard prevents.
         expect(Auth::Operations::Customers::SetVerification).to have_received(:new).with(
-          customer: customer, verified: false, actor: 'cli', verified_by: nil, db: db
+          customer: customer, verified: false, actor: 'cli', verified_by: nil,
+          enforce_interlocks: false, db: db
         )
         expect(verifier).to have_received(:call)
         expect(result.verification_reset).to be true
@@ -770,8 +775,11 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     it 'resets verification through SetVerification when require_verification is true' do
       op.call
 
+      # See the note on the :partial example: this reset is a provenance reset,
+      # so it opts out of #4328's administrative unverify interlocks.
       expect(Auth::Operations::Customers::SetVerification).to have_received(:new).with(
-        customer: customer, verified: false, actor: 'cli', verified_by: nil, db: db
+        customer: customer, verified: false, actor: 'cli', verified_by: nil,
+        enforce_interlocks: false, db: db
       )
     end
 

@@ -37,10 +37,16 @@ RSpec.describe 'colonel destructive verbs accept an operator reason (#4338)' do
     )
   end
 
+  # Both verbs are TIER 1 destructive (#4326): raise_concerns demands the
+  # target's confirmation token via the X-OTS-Confirm header before process
+  # ever runs. The reason rides BESIDE that token, never instead of it. The
+  # target doubles stub no :email, so account_confirm_token falls back to the
+  # extid — 'ur_target' is the expected token for both describes below.
   let(:strategy_result) do
     double(
       'StrategyResult',
-      session: {}, user: colonel, metadata: { ip: '127.0.0.1' }, auth_method: 'sessionauth',
+      session: {}, user: colonel, auth_method: 'sessionauth',
+      metadata: { ip: '127.0.0.1', confirm_token: 'ur_target' },
     )
   end
 
@@ -79,6 +85,7 @@ RSpec.describe 'colonel destructive verbs accept an operator reason (#4338)' do
         customer: target,
         role: 'admin',
         actor: 'ur_colonel_public',
+        actor_objid: 'cust-obj-1',
         reason: 'promoted per ticket 88',
       )
     end
@@ -117,8 +124,10 @@ RSpec.describe 'colonel destructive verbs accept an operator reason (#4338)' do
   # -- DELETE verb: the reason arrives on the query string ---------------------
   describe ColonelAPI::Logic::Colonel::PurgeUser do
     let(:target) do
+      # role feeds the last-colonel interlock in raise_concerns; a plain
+      # customer short-circuits it.
       double('Customer', extid: 'ur_target', objid: 'obj-t', custid: 'cust-t',
-                         anonymous?: false, exists?: true)
+                         anonymous?: false, exists?: true, role: 'customer')
     end
     let(:op) do
       instance_double(

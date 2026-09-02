@@ -1,8 +1,10 @@
 // src/apps/admin/stores/useAdminCustomerSessions.ts
 
+import type { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
+import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
 import { reasonBodyArgs, reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
 import { useApi } from '@/shared/composables/useApi';
 import {
@@ -26,8 +28,14 @@ import { gracefulParse } from '@/utils/schemaValidation';
  * can appear because none exists on the model.
  *
  *   - fetchForCustomer(userId) → GET    /api/colonel/users/:user_id/sessions
- *   - revoke(userId, sessionHandle) → DELETE /api/colonel/users/:user_id/sessions/:session_handle
- *   - revokeAll(userId) → POST /api/colonel/users/:user_id/sessions/revoke-all
+ *   - revoke(userId, handle, confirm, reason?) → DELETE …/sessions/:session_handle
+ *   - revokeAll(userId, confirm, reason?) → POST …/sessions/revoke-all
+ *
+ * Both revoke verbs are TIER 1 destructive (#4326): the server refuses them
+ * unless the request carries the account identifier (email, public id when it
+ * has none) in X-OTS-Confirm. The trailing `reason` is the OPTIONAL operator
+ * WHY (#4338) — orthogonal to the confirmation, and absent by default, so an
+ * action taken without one is the request it always was.
  *
  * Sessions are identified by session_handle, a non-reversible digest of the raw
  * session id (finding F-01) — the raw sid (a live cookie value) never reaches
@@ -60,6 +68,57 @@ function parseSessionsResponse(data: unknown) {
     data,
     'ColonelCustomerSessionsResponse'
   );
+}
+
+/**
+ * DELETE one session. The account identifier rides X-OTS-Confirm (#4326) — the
+ * server refuses this verb without it — and the optional operator reason (#4338)
+ * rides the QUERY STRING beside it, because DELETE bodies are not reliably
+ * parsed across this stack. The ack is schema-checked as a live tripwire; drift
+ * never fails the action, because a 2xx means it already happened server-side.
+ */
+async function requestRevoke(
+  $api: AxiosInstance,
+  userId: string,
+  sessionHandle: string,
+  confirm: string,
+  reason?: string
+): Promise<void> {
+  // Absent reason contributes NOTHING to the config — the request is then
+  // byte-identical to the pre-#4338 one.
+  const [reasonConfig] = reasonQueryArgs(reason);
+  const response = await $api.delete(
+    `${sessionsUrl(userId)}/${encodeURIComponent(sessionHandle)}`,
+    { headers: confirmHeaders(confirm), ...reasonConfig }
+  );
+  gracefulParse(
+    colonelCustomerSessionRevokeResponseSchema,
+    response.data,
+    'ColonelCustomerSessionRevokeResponse'
+  );
+}
+
+/**
+ * POST the bulk revoke; ack drift degrades to the zero-count fallback. This one
+ * has a body, so the optional reason (#4338) rides it; with no reason the body
+ * stays `undefined` exactly as before.
+ */
+async function requestRevokeAll(
+  $api: AxiosInstance,
+  userId: string,
+  confirm: string,
+  reason?: string
+): Promise<RevokeAllRecord> {
+  const [body] = reasonBodyArgs(reason);
+  const response = await $api.post(`${sessionsUrl(userId)}/revoke-all`, body, {
+    headers: confirmHeaders(confirm),
+  });
+  const result = gracefulParse(
+    colonelCustomerSessionRevokeAllResponseSchema,
+    response.data,
+    'ColonelCustomerSessionRevokeAllResponse'
+  );
+  return result.ok ? result.data.record : EMPTY_REVOKE_ALL;
 }
 
 export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () => {
@@ -120,18 +179,19 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
    * Revoke one of the customer's sessions (logs that user out mid-flight, so the
    * view gates it behind a confirm dialog). Drops the row ONLY after a 2xx — the
    * drop is sequenced after the awaited DELETE, so a failure throws before it and
-   * the row stays. The ack is schema-checked as a live tripwire (never fails the
-   * action on drift). Throws the network/HTTP error for useAdminMutation to catch.
+   * the row stays. Throws the network/HTTP error for useAdminMutation to catch.
+   *
+   * @param confirm the account identifier the server gates the verb on (#4326).
+   * @param reason the OPTIONAL operator why (#4338), recorded in the trail.
    */
-  async function revoke(userId: string, sessionHandle: string, reason?: string): Promise<void> {
-    const url = `${sessionsUrl(userId)}/${encodeURIComponent(sessionHandle)}`;
-    const response = await $api.delete(url, ...reasonQueryArgs(reason));
-    gracefulParse(
-      colonelCustomerSessionRevokeResponseSchema,
-      response.data,
-      'ColonelCustomerSessionRevokeResponse'
-    );
-    sessions.value = sessions.value.filter((s) => s.session_handle !== sessionHandle);
+  async function revoke(
+    userId: string,
+    handle: string,
+    confirm: string,
+    reason?: string
+  ): Promise<void> {
+    await requestRevoke($api, userId, handle, confirm, reason);
+    sessions.value = sessions.value.filter((s) => s.session_handle !== handle);
   }
 
   /**
@@ -139,13 +199,14 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
    * counts. `reason` is the OPTIONAL operator why (#4338) — offboarding and
    * account-takeover response read identically in the trail without it.
    */
-  async function revokeAll(userId: string, reason?: string): Promise<RevokeAllRecord> {
-    const url = `${sessionsUrl(userId)}/revoke-all`;
-    const response = await $api.post(url, ...reasonBodyArgs(reason));
-    const schema = colonelCustomerSessionRevokeAllResponseSchema;
-    const result = gracefulParse(schema, response.data, 'ColonelCustomerSessionRevokeAllResponse');
+  async function revokeAll(
+    userId: string,
+    confirm: string,
+    reason?: string
+  ): Promise<RevokeAllRecord> {
+    const record = await requestRevokeAll($api, userId, confirm, reason);
     sessions.value = []; // every session is gone regardless of ack shape
-    return result.ok ? result.data.record : EMPTY_REVOKE_ALL;
+    return record;
   }
 
   /** Explicit manual reset — setup stores have no built-in $reset. */

@@ -92,6 +92,26 @@ site:
     # create_account_rate_limiter.rb.
     create_account_rate_limit:
       enabled: false
+  admin:
+    # Disabled under test so the colonel spec + tryout suites (which hit many
+    # destructive endpoints from one process, as one actor) are not gated; the
+    # #4327 elevation specs enable it in-process. See
+    # apps/api/colonel/logic/colonel/elevation.rb.
+    #
+    # The SHIPPED defaults are asserted separately by
+    # spec/unit/onetime/config/admin_defaults_spec.rb — do not let this file
+    # become the only posture under test.
+    elevation:
+      enabled: false
+    rate_limit:
+      enabled: false
+    # Disabled under test so a long-running suite cannot cut its own colonel
+    # session off mid-run (the idle bound reads a sidecar the suite rarely
+    # writes, and the absolute bound would bite any fixture that back-dates
+    # authenticated_at); the #4331 lifetime specs enable it in-process. See
+    # lib/onetime/application/auth_strategies/admin_session_lifetime.rb.
+    session:
+      enabled: false
 
 features:
   regions:

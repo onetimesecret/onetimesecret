@@ -6,8 +6,9 @@
   import { AdminConfirmDialog, DataTable, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
-  import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
+  import { accountConfirmToken, confirmHeaders } from '@/apps/admin/utils/confirmHeader';
   import { reasonBody, reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
   import type {
     ColonelUserDetailReceipt,
@@ -19,6 +20,7 @@
   } from '@/schemas/api/internal/responses/colonel';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useApi } from '@/shared/composables/useApi';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { gracefulParse } from '@/utils/schemaValidation';
@@ -52,6 +54,7 @@
   const router = useRouter();
   const $api = useApi();
   const notifications = useNotificationsStore();
+  const bootstrapStore = useBootstrapStore();
 
   const publicId = computed(() => props.id);
   const userUrl = (): string => `/api/colonel/users/${encodeURIComponent(publicId.value)}`;
@@ -109,13 +112,24 @@
   async function callMutation(
     method: 'post' | 'delete',
     path: string,
-    opts: { body?: unknown; reason?: string } = {}
+    opts: {
+      body?: unknown;
+      /** DELETE-only operator reason (#4338); a POST merges it into `body`. */
+      reason?: string;
+      /** The #4326 confirmation token's header, when the verb is gated. */
+      headers?: Record<string, string>;
+    } = {}
   ): Promise<void> {
-    // POST -> body, DELETE -> query string (see operatorReason.ts).
+    // POST -> body, DELETE -> query string (see operatorReason.ts). The
+    // confirmation token rides the HEADER either way, so the two compose.
+    const headerConfig = opts.headers ? { headers: opts.headers } : undefined;
+    const [reasonConfig] = reasonQueryArgs(opts.reason);
+    // With no reason the call keeps its exact pre-#4338 shape.
+    const deleteConfig = reasonConfig ? { ...headerConfig, ...reasonConfig } : headerConfig;
     const response =
       method === 'delete'
-        ? await $api.delete(path, ...reasonQueryArgs(opts.reason))
-        : await $api.post(path, opts.body ?? {});
+        ? await $api.delete(path, deleteConfig)
+        : await $api.post(path, opts.body ?? {}, headerConfig);
     gracefulParse(colonelUserMutationResponseSchema, response.data, 'ColonelUserMutationResponse');
   }
 
@@ -124,22 +138,30 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
-  } = useAdminMutation(async (reason?: string) => {
+  } = useAdminDestructiveMutation(async (reason?: string) => {
+    // Every DANGER action is gated server-side (#4326) on the SAME token the
+    // dialog asks the operator to retype. A missing one is a bug, not a
+    // fallback: sending no header is a 403 the operator cannot act on.
+    const confirm = confirmTokenFor(activeAction.value ?? 'verify');
+    const headers = confirm ? confirmHeaders(confirm) : undefined;
+
     switch (activeAction.value) {
       case 'setRole':
         return callMutation('post', `${userUrl()}/role`, {
           body: { role: pendingRole.value, ...reasonBody(reason) },
+          headers,
         });
       case 'verify':
         return callMutation('post', `${userUrl()}/verify`);
       case 'unverify':
-        return callMutation('post', `${userUrl()}/unverify`);
+        return callMutation('post', `${userUrl()}/unverify`, { headers });
       case 'suspend':
         // Suspend keeps its own on-page reason field (it predates #4338 and is
         // also stored on the customer row, not only in the trail), so the
         // dialog does not ask a second time — see REASON_ACTIONS.
         return callMutation('post', `${userUrl()}/suspend`, {
           body: reasonBody(suspendReason.value),
+          headers,
         });
       case 'unsuspend':
         // A RELEASE has no on-page field, and unsuspending CLEARS the row's
@@ -150,7 +172,7 @@
         // Last line of the fail-closed gate: no typed token, no DELETE — even
         // if the dialog were somehow reached with a blank one.
         if (purgeBlocked.value) throw new Error(purgeBlockedReason.value);
-        return callMutation('delete', userUrl(), { reason });
+        return callMutation('delete', userUrl(), { reason, headers });
       default:
         throw new Error('No active action');
     }
@@ -169,8 +191,15 @@
     purge: 'purge',
   };
 
-  /** Destructive actions gate confirm behind a typed-confirmation token. */
-  const DANGER_ACTIONS: readonly ActionKey[] = ['purge', 'suspend'];
+  /**
+   * Destructive actions gate confirm behind a typed-confirmation token.
+   *
+   * `setRole` and `unverify` joined this list with #4326. Promotion to colonel
+   * is privilege-granting, and unverifying an account STRIPS colonel
+   * eligibility (system roles require a verified email) — neither belongs
+   * behind a one-click confirm.
+   */
+  const DANGER_ACTIONS: readonly ActionKey[] = ['purge', 'suspend', 'setRole', 'unverify'];
 
   /**
    * Actions whose confirm dialog collects an OPTIONAL operator reason (#4338).
@@ -183,25 +212,84 @@
   const REASON_ACTIONS: readonly ActionKey[] = ['purge', 'setRole', 'unsuspend'];
 
   /**
-   * The exact string the operator must retype, or undefined for a one-click
-   * confirm. PURGE is irreversible, so it asks for the account's EMAIL — the
-   * identifier the operator can check against the ticket they are working,
-   * rather than an id they just copied off this page. Suspend is reversible and
-   * keeps the public id.
+   * The exact string the operator must retype, AND the token sent in
+   * X-OTS-Confirm — one value, so the gate cannot ask for one thing while
+   * accepting another.
    *
-   * FAILS CLOSED: a record with a blank email yields undefined, and purge is
-   * then UNAVAILABLE (disabled button + a stated reason) rather than silently
-   * dropping AdminConfirmDialog into one-click simple-confirm mode — or asking
-   * for the email while accepting some substitute identifier.
+   * It is the account's EMAIL (its public id only when the account has none),
+   * mirroring the server's `account_confirm_token` for all four danger actions.
+   * That is the identifier an operator can check against the ticket they are
+   * working, rather than an id they just copied off this page — and it is not
+   * the id the URL already carries.
+   *
+   * FAILS CLOSED: an unloaded record yields undefined, and the action is then
+   * UNAVAILABLE rather than silently dropping AdminConfirmDialog into one-click
+   * simple-confirm mode.
    */
   function confirmTokenFor(action: ActionKey): string | undefined {
     if (!DANGER_ACTIONS.includes(action)) return undefined;
-    if (action !== 'purge') return publicId.value;
-    return record.value?.email?.trim() || undefined;
+    return accountConfirmToken(record.value);
   }
 
-  /** True when purge must be unavailable: no email to type as confirmation. */
+  /** True when purge must be unavailable: no token to type as confirmation. */
   const purgeBlocked = computed(() => !confirmTokenFor('purge'));
+
+  /**
+   * Is the record on screen the acting colonel's own account? (#4328)
+   *
+   * Compared on the PUBLIC id the bootstrap payload already carries. This is
+   * defence in depth, exactly like {@link purgeBlocked} — the server refuses
+   * self-demotion, self-unverify and self-revoke with a 422 whatever the
+   * browser does; disabling here just keeps the operator from typing a
+   * confirmation token for an action that cannot succeed.
+   */
+  const isSelf = computed(
+    () => !!record.value?.extid && record.value.extid === bootstrapStore.cust?.extid
+  );
+
+  /**
+   * A DEMOTION of your own account: the one role change the server refuses.
+   * Raising your own role is not a lockout risk and stays available.
+   */
+  const selfDemoteBlocked = computed(
+    () => isSelf.value && !!pendingRole.value && pendingRole.value !== 'colonel'
+  );
+
+  /** Unverifying yourself strips your own colonel eligibility — also refused. */
+  const selfUnverifyBlocked = computed(() => isSelf.value);
+
+  /** Why the role apply button is disabled, when it is for this reason. */
+  const selfDemoteReason = computed(() =>
+    t('web.admin.customers.actions.role.selfDemote')
+  );
+
+  /**
+   * Advisory (not a gate): demoting or unverifying SOMEONE ELSE'S colonel
+   * account can still be refused server-side when they are the last remaining
+   * one. The console cannot know the roster — that answer is deliberately not
+   * exposed, because it would be an oracle — so this warns rather than blocks.
+   */
+  const demotingAnotherColonel = computed(
+    () =>
+      !isSelf.value &&
+      record.value?.role === 'colonel' &&
+      !!pendingRole.value &&
+      pendingRole.value !== 'colonel'
+  );
+
+  const unverifyingAnotherColonel = computed(
+    () => !isSelf.value && record.value?.role === 'colonel' && !!record.value?.verified
+  );
+
+  /**
+   * The token the session-revoke verbs are gated on (#4326) — the same account
+   * identifier, resolved here because the sessions section only knows the
+   * route's public id. Falls back to that id, which is what the server resolves
+   * an account with no email to.
+   */
+  const sessionsConfirmToken = computed(
+    () => accountConfirmToken(record.value) ?? publicId.value
+  );
 
   /** Why purge is unavailable — rendered beside the disabled button. */
   const purgeBlockedReason = computed(() =>
@@ -264,6 +352,8 @@
     // Fail closed: never open a danger dialog whose typed token is blank —
     // AdminConfirmDialog runs an empty token as a one-click simple confirm.
     if (DANGER_ACTIONS.includes(key) && !confirmTokenFor(key)) return;
+    // ...nor one the server's self-target interlocks will refuse (#4328).
+    if (key === 'unverify' && selfUnverifyBlocked.value) return;
     activeAction.value = key;
     resetMutation();
     dialogOpen.value = true;
@@ -272,6 +362,8 @@
   function requestSetRole(): void {
     // No-op guard: ignore if the role is unchanged (nothing to confirm).
     if (!pendingRole.value || pendingRole.value === record.value?.role) return;
+    // Fail closed on the interlocks the server enforces (#4328).
+    if (selfDemoteBlocked.value) return;
     requestAction('setRole');
   }
 
@@ -611,12 +703,29 @@
                 <button
                   type="button"
                   data-testid="role-apply"
-                  :disabled="pendingRole === record.role"
+                  :disabled="pendingRole === record.role || selfDemoteBlocked"
+                  :aria-describedby="selfDemoteBlocked ? 'self-demote-reason' : undefined"
                   class="inline-flex shrink-0 items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
                   @click="requestSetRole">
                   {{ t('web.admin.customers.actions.role.apply') }}
                 </button>
               </div>
+              <!-- Client-side mirror of the server interlock (#4328): a colonel
+                   cannot demote their own account. Stated, not just disabled —
+                   a dead button with no explanation reads as a bug. -->
+              <p
+                v-if="selfDemoteBlocked"
+                id="self-demote-reason"
+                class="mt-2 text-xs text-amber-700 dark:text-amber-400"
+                data-testid="self-demote-reason">
+                {{ selfDemoteReason }}
+              </p>
+              <p
+                v-else-if="demotingAnotherColonel"
+                class="mt-2 text-xs text-amber-700 dark:text-amber-400"
+                data-testid="last-colonel-warning">
+                {{ t('web.admin.customers.actions.role.lastColonel') }}
+              </p>
             </div>
 
             <!-- Verify / unverify -->
@@ -632,18 +741,36 @@
                 size="4" />
               {{ t('web.admin.customers.actions.verify.button') }}
             </button>
-            <button
-              v-else
-              type="button"
-              data-testid="unverify-button"
-              class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
-              @click="requestAction('unverify')">
-              <OIcon
-                collection="heroicons"
-                name="x-circle"
-                size="4" />
-              {{ t('web.admin.customers.actions.unverify.button') }}
-            </button>
+            <div v-else>
+              <button
+                type="button"
+                data-testid="unverify-button"
+                :disabled="selfUnverifyBlocked"
+                :aria-describedby="selfUnverifyBlocked ? 'self-unverify-reason' : undefined"
+                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+                @click="requestAction('unverify')">
+                <OIcon
+                  collection="heroicons"
+                  name="x-circle"
+                  size="4" />
+                {{ t('web.admin.customers.actions.unverify.button') }}
+              </button>
+              <!-- Verification is a prerequisite for the colonel role, so
+                   unverifying yourself is a self-demotion (#4328). -->
+              <p
+                v-if="selfUnverifyBlocked"
+                id="self-unverify-reason"
+                class="mt-2 text-xs text-amber-700 dark:text-amber-400"
+                data-testid="self-unverify-reason">
+                {{ t('web.admin.customers.actions.unverify.selfUnverify') }}
+              </p>
+              <p
+                v-else-if="unverifyingAnotherColonel"
+                class="mt-2 text-xs text-amber-700 dark:text-amber-400"
+                data-testid="unverify-last-colonel-warning">
+                {{ t('web.admin.customers.actions.unverify.lastColonel') }}
+              </p>
+            </div>
 
             <!-- Suspend / unsuspend (reversible trust & safety pause).
                  Colonel accounts cannot be suspended (privilege guard); the
@@ -861,7 +988,10 @@
 
       <!-- Active sessions (SIDECAR view — SessionMetadata safe_dump, no token/
            payload can appear). Guarded per-row revoke logs the user out. -->
-      <AdminCustomerSessionsSection :user-id="publicId" />
+      <AdminCustomerSessionsSection
+        :user-id="publicId"
+        :confirm-token="sessionsConfirmToken"
+        :is-self="isSelf" />
 
       <!-- Account auth diagnostics (READ-ONLY) — why can't this user log in /
            sign up. Same read-out as `bin/ots customers diagnose`. -->

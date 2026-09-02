@@ -8,8 +8,10 @@ module Onetime
   module Operations
     module Sessions
       # Inspect a single session — the SINGLE implementation of the session-inspect
-      # verb (epic #40 / D3). The colonel endpoint (`GET /api/colonel/sessions/:id`)
-      # and the `bin/ots session inspect` CLI are thin adapters over it.
+      # verb (epic #40 / D3). The colonel endpoint
+      # (`GET /api/colonel/sessions/:session_handle`, which resolves the handle to
+      # this sid server-side) and the `bin/ots session inspect` CLI are thin
+      # adapters over it.
       #
       # READ-ONLY: records NO {Onetime::ColonelAuditEvent} (CONTRACT 4).
       #

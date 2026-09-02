@@ -78,5 +78,13 @@
   "web.admin.kit.revealEmail.copy": {
     "text": "Copy email address",
     "content_hash": "61b94846"
+  },
+  "web.admin.errors.rateLimited": {
+    "text": "You can try again in about {minutes} minutes.",
+    "content_hash": "27f2d054"
+  },
+  "web.admin.errors.rateLimitedRecovery": {
+    "text": "If you must act sooner, clear the limiter with POST /api/colonel/ratelimit/reset for your own account, or run `bin/ots ratelimit keys <kind> <extid>`.",
+    "content_hash": "b77e1388"
   }
 }

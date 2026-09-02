@@ -83,6 +83,14 @@ def colonel_headers
   { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
 end
 
+# Server-side destructive-action confirmation (#4326): revoking sessions is
+# TIER 1, so it requires the account's email — percent-encoded — in
+# X-OTS-Confirm. The URL carries the extid (and, for the single revoke, an
+# opaque handle); the token is deliberately a different identifier.
+def confirming_headers
+  colonel_headers.merge('HTTP_X_OTS_CONFIRM' => Rack::Utils.escape(@target.email))
+end
+
 # Two tracked blobs + one untracked (pre-sidecar) blob for the target.
 @tracked = ["intracs_a_#{@nonce}", "intracs_b_#{@nonce}"]
 @tracked.each do |sid|
@@ -120,7 +128,7 @@ post URL, {}, { 'HTTP_ACCEPT' => 'application/json' }
 
 ## POST by the colonel returns 200 with revoked=true and a kill count of 3
 AE.events.clear
-post URL, {}, colonel_headers
+post URL, {}, confirming_headers
 @resp = JSON.parse(last_response.body)
 [last_response.status, @resp['record']['revoked'], @resp['record']['blobs_deleted'], @resp['record']['untracked_deleted']]
 #=> [200, true, 3, 1]

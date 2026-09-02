@@ -44,6 +44,17 @@ module ColonelAPI
           raise_not_found('Domain not found') unless custom_domain
 
           raise_not_found('Unknown config kind') unless Onetime::CustomDomain::ConfigRegistry.kind?(kind)
+
+          # TIER 1 (#4326). The composed token names BOTH halves of what is being
+          # destroyed; the URL carries the extid, not the hostname. Both halves
+          # are non-blank by the two guards above.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: "#{custom_domain.display_domain}:#{kind}",
+            confirm_subject: 'the domain name and config kind joined by a colon',
+            field: :kind,
+          )
+          charge_destructive_budget!
         end
 
         def process

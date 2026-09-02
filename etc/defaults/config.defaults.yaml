@@ -720,6 +720,153 @@ site:
   # below are INDEPENDENT: a request must pass every gate that is active, and
   # neither replaces the other.
   admin:
+    # Step-up (sudo) re-authentication for destructive colonel actions (#4327).
+    #
+    # THREAT: a leaked colonel session cookie is otherwise unbounded destructive
+    # capability — purge, role change, session revoke, org delete all execute on
+    # a bare authenticated request. A short elevation window means a stolen
+    # cookie alone cannot destroy anything; the attacker also needs the password.
+    #
+    # RESIDUAL RISK, stated plainly: elevation is bound to the SESSION and the
+    # acting identity, not to a value the cookie lacks. While a window is live, a
+    # stolen cookie is exactly as capable as it was before this feature. What the
+    # window buys is that the capability is time-bounded, operator-initiated and
+    # audited, instead of standing. Binding it to a nonce the cookie does not
+    # carry is the follow-up.
+    #
+    # SIZING: window 600s is long enough for a multi-step triage session and
+    # short enough that an idle console is not a standing capability.
+    #
+    # reauth_grace: seconds after sign-in during which a PASSWORD-LESS (SSO-only)
+    # colonel may elevate with factor=recent_auth and no credential. DEFAULT 0 =
+    # OFF. It is available only to accounts that cannot satisfy the password
+    # factor: handing it to password holders would make step-up a no-op for the
+    # first N seconds after every sign-in, which is exactly the condition this
+    # feature exists to remove. Raise it ONLY for an SSO-only operator fleet, and
+    # understand that you are trading step-up for "signed in recently" for those
+    # accounts. MFA as a step-up factor is not implemented yet.
+    #
+    # In FULL auth mode the password factor cannot be probed from the logic layer
+    # (the Rodauth password-hash table is only reachable inside a Rodauth
+    # instance), so every full-mode account is treated as password-holding and
+    # recent_auth is unavailable there. A full-mode SSO-only fleet sets
+    # enabled:false instead. See docs/operations/colonel-admin-guide.md.
+    #
+    # DISABLING: enabled:false restores pre-#4327 behaviour (confirmation still
+    # applies). An SSO-only (password-less) colonel fleet cannot run tier-1 verbs
+    # at all unless configured, and WHICH knob works depends on the auth mode:
+    #   - SIMPLE mode: set reauth_grace > 0 (recent_auth elevation) OR
+    #     enabled:false.
+    #   - FULL mode: only enabled:false works. recent_auth is never offered in
+    #     full mode (see the reauth_grace note above — the password factor cannot
+    #     be probed there, so every account is treated as password-holding), so
+    #     reauth_grace has NO effect for a full-mode SSO-only fleet.
+    elevation:
+      enabled: <%= ENV['COLONEL_ELEVATION_ENABLED'] != 'false' %>
+      window: <%= ENV['COLONEL_ELEVATION_WINDOW'] || 600 %>
+      reauth_grace: <%= ENV['COLONEL_ELEVATION_REAUTH_GRACE'] || 0 %>
+
+    # Rate limits for the colonel API surface (#4327 ships the elevation bucket;
+    # #4329 adds the mutation / destructive / handle-resolve buckets). Keyed on
+    # the acting colonel's extid — the same value the audit trail carries as
+    # `actor` — never on a session id.
+    #
+    # THREAT: nothing covered /api/colonel/* before #4329. A scripted compromise
+    # of a colonel session could purge at wire speed and, because the operator
+    # audit trail trims at a 10 000-event count cap with NO TTL, evict the
+    # evidence of its own actions while doing it. Every bucket below is sized so
+    # that cap stays unreachable inside one lockout window.
+    #
+    # The parent `enabled` flag short-circuits every bucket, which is how the
+    # test suites (many endpoints, one process, one actor) opt out wholesale.
+    #
+    # A locked-out operator clears their own bucket with
+    # `POST /api/colonel/ratelimit/reset` (kind=colonel_elevation /
+    # colonel_destructive / colonel_handle_resolve — a TIER 2 verb that needs no
+    # elevation), or with the valkey-cli commands
+    # `bin/ots ratelimit keys <kind> <extid>` prints. The reset is itself a
+    # mutation, so a `colonel_mutation` lockout is the one the CLI path must
+    # clear.
+    #
+    # SIZING — every bucket is per ACCOUNT (extid), not per session: a session
+    # bucket bounds one cookie, and anyone with a second way in gets a fresh
+    # budget.
+    #
+    #   mutation        120 / 300s  every mutating colonel verb, charged from the
+    #                               base logic constructor. Far above any human
+    #                               operator's rate and above a bulk console
+    #                               session, so it only trips on scripted abuse.
+    #   destructive      10 / 300s  TIER 1 verbs (purge, role change, revoke,
+    #                               delete, DLQ purge), 900s lockout. Charged
+    #                               LAST — after elevation, confirmation and the
+    #                               per-verb interlocks all pass — so a rejected
+    #                               attempt costs nothing and an attacker cannot
+    #                               burn the real operator's budget with cheap
+    #                               403s. 10 REAL incident-response actions per
+    #                               five minutes; bulk work belongs on the CLI.
+    #   handle_resolve   60 / 300s  the two session reads that resolve an opaque
+    #                               handle (#4330) and may fall back to a bounded
+    #                               10 000-key SCAN plus as many HMACs. Every
+    #                               OTHER colonel read is deliberately unlimited
+    #                               — the console fetches them, and a limiter
+    #                               there would break the dashboard.
+    rate_limit:
+      enabled: <%= ENV['COLONEL_RATE_LIMIT_ENABLED'] != 'false' %>
+      elevation:
+        enabled: <%= ENV['COLONEL_ELEVATION_RATE_LIMIT_ENABLED'] != 'false' %>
+        max_attempts: <%= ENV['COLONEL_ELEVATION_MAX_ATTEMPTS'] || 5 %>
+        window: <%= ENV['COLONEL_ELEVATION_RATE_WINDOW'] || 900 %>
+        lockout: <%= ENV['COLONEL_ELEVATION_LOCKOUT'] || 900 %>
+      mutation:
+        enabled: <%= ENV['COLONEL_MUTATION_RATE_LIMIT_ENABLED'] != 'false' %>
+        max_attempts: <%= ENV['COLONEL_MUTATION_MAX_ATTEMPTS'] || 120 %>
+        window: <%= ENV['COLONEL_MUTATION_RATE_WINDOW'] || 300 %>
+        lockout: <%= ENV['COLONEL_MUTATION_LOCKOUT'] || 300 %>
+      destructive:
+        enabled: <%= ENV['COLONEL_DESTRUCTIVE_RATE_LIMIT_ENABLED'] != 'false' %>
+        max_attempts: <%= ENV['COLONEL_DESTRUCTIVE_MAX_ATTEMPTS'] || 10 %>
+        window: <%= ENV['COLONEL_DESTRUCTIVE_RATE_WINDOW'] || 300 %>
+        lockout: <%= ENV['COLONEL_DESTRUCTIVE_LOCKOUT'] || 900 %>
+      handle_resolve:
+        enabled: <%= ENV['COLONEL_HANDLE_RESOLVE_RATE_LIMIT_ENABLED'] != 'false' %>
+        max_attempts: <%= ENV['COLONEL_HANDLE_RESOLVE_MAX_ATTEMPTS'] || 60 %>
+        window: <%= ENV['COLONEL_HANDLE_RESOLVE_RATE_WINDOW'] || 300 %>
+        lockout: <%= ENV['COLONEL_HANDLE_RESOLVE_LOCKOUT'] || 300 %>
+
+    # Session bounds for the ADMIN API SURFACE (/api/colonel) only (#4331).
+    #
+    # SCOPE: these do NOT shorten the session cookie, and they do NOT gate the
+    # /colonel SPA shell. One onetime.session serves the admin console, the
+    # tenant app and the auth app, and site.session.expire_after (24h rolling)
+    # still governs the object. These bounds gate admin API ACCESS, so a colonel
+    # who is also a customer keeps their normal session on the rest of the site,
+    # and a stale admin tab loads the shell and shows an expired banner instead
+    # of a bare 401 on an HTML navigation. Splitting the admin surface onto its
+    # own cookie is the fuller fix.
+    #
+    # THREAT: the general session policy is 24h ROLLING with no absolute cap, so
+    # a colonel session left open in a tab is a standing administrative
+    # capability for as long as anything touches it. AdminNetworkIsolation
+    # compensates at the network layer but is a no-op by default on self-hosted
+    # installs.
+    #
+    # idle_timeout: seconds of inactivity before /api/colonel stops
+    #   authenticating. Sourced from the SessionMetadata sidecar, which is
+    #   best-effort: when no sidecar exists the idle bound is SKIPPED, never
+    #   failed. Two caveats worth knowing before you rely on it. (a) It only
+    #   bites because the admin console makes no periodic requests — adding any
+    #   polling to the admin SPA silently disables this bound. (b) The sidecar is
+    #   a SITE-WIDE activity clock, so touching a tenant route also keeps the
+    #   admin window open; absolute_timeout is the bound nothing can slide.
+    # absolute_timeout: seconds since sign-in, regardless of activity. Sourced
+    #   from session['authenticated_at'], which both auth modes stamp and only a
+    #   password change re-stamps.
+    # Set either to 0 to disable that bound. enabled:false disables both.
+    session:
+      enabled: <%= ENV['ADMIN_SESSION_LIFETIME_ENABLED'] != 'false' %>
+      idle_timeout: <%= ENV['ADMIN_SESSION_IDLE_TIMEOUT'] || 3600 %>
+      absolute_timeout: <%= ENV['ADMIN_SESSION_ABSOLUTE_TIMEOUT'] || 43200 %>
+
     # Which HOSTNAMES serve the Colonel admin surfaces (/colonel shell and
     # /api/colonel API). A request whose validated detected host is not on this
     # list receives the same 404 as the CIDR gate below.
