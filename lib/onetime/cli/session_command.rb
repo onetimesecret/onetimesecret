@@ -231,18 +231,26 @@ module Onetime
 
         # Route through the extracted list op (single implementation, bounded
         # scan). `--limit` maps to one page; the op caps a page at its MAX_PER_PAGE.
-        result = Onetime::Operations::Sessions::List.new(page: 1, per_page: limit.to_i).call
+        #
+        # reveal_session_id: the local operator shell is the ONE consumer that
+        # opts in (#4330) — `inspect` and `delete` take a raw sid, so a listing
+        # without one would be useless here. The handle is printed alongside so a
+        # CLI row can be correlated with an admin-console row.
+        result = Onetime::Operations::Sessions::List.new(
+          page: 1, per_page: limit.to_i, reveal_session_id: true,
+        ).call
 
         if result.sessions.empty?
           puts 'No sessions found'
           return
         end
 
-        puts format('%-40s %-25s %-15s', 'Session ID', 'Authenticated As', 'Created')
+        puts format('%-40s %-34s %-25s %-15s', 'Session ID', 'Handle', 'Authenticated As', 'Created')
         puts '-' * 80
 
         result.sessions.each do |session|
           session_id  = session[:session_id]
+          handle      = session[:session_handle] || '<n/a>'
           email       = session[:email] || 'anonymous'
           external_id = session[:external_id] || '<n/a>'
           auth        = session[:authenticated] ? '✓' : '✗'
@@ -255,7 +263,13 @@ module Onetime
           end
 
           display_email = OT::Utils.obscure_email(email)
-          puts format('%-40s %-25s %s', session_id[0..39], "#{auth} #{display_email} #{external_id}", time_str)
+          puts format(
+            '%-40s %-34s %-25s %s',
+            session_id[0..39],
+            handle,
+            "#{auth} #{display_email} #{external_id}",
+            time_str,
+          )
         end
       end
     end
@@ -280,10 +294,13 @@ module Onetime
         puts '-' * 80
 
         # Route through the extracted list op with a search filter (single
-        # implementation, bounded scan).
+        # implementation, bounded scan). reveal_session_id: the operator shell is
+        # the one opted-in consumer of the raw sid (#4330) — the printed id is
+        # what `inspect` / `delete` take next.
         result = Onetime::Operations::Sessions::List.new(
           search: search_term,
           per_page: Onetime::Operations::Sessions::List::MAX_PER_PAGE,
+          reveal_session_id: true,
         ).call
 
         if result.sessions.empty?
@@ -296,6 +313,7 @@ module Onetime
 
         result.sessions.each do |session|
           puts "Session: #{session[:session_id]}"
+          puts "  Handle: #{session[:session_handle]}"
           puts "  Email: #{session[:email]}"
           puts "  External ID: #{session[:external_id]}"
           puts "  Authenticated: #{session[:authenticated]}"

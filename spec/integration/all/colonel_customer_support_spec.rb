@@ -23,12 +23,15 @@ RSpec.describe 'Colonel customer support features', type: :integration do
   # Build the StrategyResult double Logic::Base expects (mirrors
   # entitlement_preview_spec.rb). The colonel is a REAL verified customer so
   # verify_one_of_roles!(colonel: true) exercises the actual policy.
-  def strategy_result_for(user, session: {})
+  # `confirm_token` is where the colonel session auth strategy puts the
+  # percent-decoded X-OTS-Confirm header (#4326) — never params. The gated verbs
+  # exercised below refuse without it.
+  def strategy_result_for(user, session: {}, confirm_token: nil)
     double(
       'StrategyResult',
       session: session,
       user: user,
-      metadata: { ip: '127.0.0.1' },
+      metadata: { ip: '127.0.0.1', confirm_token: confirm_token },
       auth_method: 'sessionauth',
     )
   end
@@ -384,8 +387,10 @@ RSpec.describe 'Colonel customer support features', type: :integration do
   describe 'SuspendUser / UnsuspendUser' do
     let(:target) { create_customer(email: "target-#{SecureRandom.hex(4)}@example.com") }
 
-    def run_logic(klass, params)
-      logic = klass.new(strategy_result_for(colonel), params)
+    # SUSPEND is confirmation-gated (#4326) on the account email; UNSUSPEND is
+    # the restorative arm and ignores the token.
+    def run_logic(klass, params, confirm: target.email)
+      logic = klass.new(strategy_result_for(colonel, confirm_token: confirm), params)
       logic.raise_concerns
       logic.process
     end
@@ -450,8 +455,17 @@ RSpec.describe 'Colonel customer support features', type: :integration do
       )
       audit_before = Onetime::ColonelAuditEvent.count
 
-      logic = ColonelAPI::Logic::Colonel::SuspendUser.new(
+      # The privilege guard is an INTERLOCK, so it runs AFTER the confirmation
+      # gate (§0.2): a caller who has not named the target correctly must not
+      # learn from a 422 that the account holds the colonel role.
+      unconfirmed = ColonelAPI::Logic::Colonel::SuspendUser.new(
         strategy_result_for(colonel), { 'user_id' => other_colonel.extid },
+      )
+      expect { unconfirmed.raise_concerns }.to raise_error(Onetime::ConfirmationRequired)
+
+      logic = ColonelAPI::Logic::Colonel::SuspendUser.new(
+        strategy_result_for(colonel, confirm_token: other_colonel.email),
+        { 'user_id' => other_colonel.extid },
       )
       expect { logic.raise_concerns }.to raise_error(OT::FormError, /cannot be suspended/i)
 

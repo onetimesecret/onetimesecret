@@ -104,6 +104,13 @@ Auth::Operations::Customers::Purge.prepend(@purge_status_stub)
 @colonel_headers = { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 @colonel_get_headers = { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
 
+# Server-side destructive-action confirmation (#4326): role change, unverify and
+# purge require the target's email — percent-encoded — in X-OTS-Confirm. The URL
+# carries the extid, so the token is deliberately a different identifier.
+def confirming(email, headers)
+  headers.merge('HTTP_X_OTS_CONFIRM' => Rack::Utils.escape(email))
+end
+
 # ---- Sanity: the extid is NOT the objid --------------------------------
 
 ## An extid and an objid are distinct identifiers (guards against a future
@@ -126,7 +133,7 @@ get "/api/colonel/users/#{@detail_extid}", {}, @colonel_get_headers
 # ---- Role change by extid -----------------------------------------------
 
 ## POST /users/:extid/role resolves by extid and applies the change (200)
-post "/api/colonel/users/#{@role_extid}/role", { role: 'admin' }.to_json, @colonel_headers
+post "/api/colonel/users/#{@role_extid}/role", { role: 'admin' }.to_json, confirming(@role_target.email, @colonel_headers)
 @role_resp = JSON.parse(last_response.body)
 [last_response.status, @role_resp['record']['new_role'], @role_resp['record']['old_role']]
 #=> [200, "admin", "customer"]
@@ -143,14 +150,14 @@ post "/api/colonel/users/#{@verify_extid}/verify", {}.to_json, @colonel_headers
 #=> [200, true]
 
 ## POST /users/:extid/unverify resolves by extid and clears verified (200)
-post "/api/colonel/users/#{@verify_extid}/unverify", {}.to_json, @colonel_headers
+post "/api/colonel/users/#{@verify_extid}/unverify", {}.to_json, confirming(@verify_target.email, @colonel_headers)
 [last_response.status, Onetime::Customer.load(@verify_objid).verified?]
 #=> [200, false]
 
 # ---- Purge by extid -----------------------------------------------------
 
 ## DELETE /users/:extid resolves by extid, destroys the record (200)
-delete "/api/colonel/users/#{@purge_extid}", {}, @colonel_get_headers
+delete "/api/colonel/users/#{@purge_extid}", {}, confirming(@purge_target.email, @colonel_get_headers)
 @purge_resp = JSON.parse(last_response.body)
 [last_response.status, @purge_resp['record']['deleted'], Onetime::Customer.load(@purge_objid).nil?]
 #=> [200, true, true]
@@ -174,7 +181,7 @@ delete "/api/colonel/users/#{@purge_extid}", {}, @colonel_get_headers
 ## DELETE surfaces the operation's :not_found status instead of a phantom success
 begin
   Thread.current[:tryouts_forced_purge_status] = :not_found
-  delete "/api/colonel/users/#{@status_extid}", {}, @colonel_get_headers
+  delete "/api/colonel/users/#{@status_extid}", {}, confirming(@status_target.email, @colonel_get_headers)
 ensure
   Thread.current[:tryouts_forced_purge_status] = nil
 end
@@ -187,7 +194,7 @@ end
 ## DELETE fails loudly (422) on an unrecognised purge status
 begin
   Thread.current[:tryouts_forced_purge_status] = :quarantined
-  delete "/api/colonel/users/#{@status_extid}", {}, @colonel_get_headers
+  delete "/api/colonel/users/#{@status_extid}", {}, confirming(@status_target.email, @colonel_get_headers)
 ensure
   Thread.current[:tryouts_forced_purge_status] = nil
 end
@@ -201,7 +208,7 @@ Thread.current[:tryouts_forced_purge_status]
 # ---- Self-purge guard ---------------------------------------------------
 
 ## DELETE of the acting colonel's own extid is refused (422), account survives
-delete "/api/colonel/users/#{@colonel.extid}", {}, @colonel_get_headers
+delete "/api/colonel/users/#{@colonel.extid}", {}, confirming(@colonel.email, @colonel_get_headers)
 [last_response.status, Onetime::Customer.load(@colonel.objid).nil?]
 #=> [422, false]
 

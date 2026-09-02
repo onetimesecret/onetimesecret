@@ -4,8 +4,9 @@
 
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { AdminConfirmDialog, JsonViewer } from '@/apps/admin/components/kit';
-  import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
+  import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
   import {
     colonelSecretDeleteResponseSchema,
     colonelSecretReceiptResponseSchema,
@@ -250,11 +251,17 @@
     error: deleteError,
     run: runDelete,
     reset: resetDelete,
-  } = useAdminMutation(async () => {
+  } = useAdminDestructiveMutation(async () => {
     const secretId = receiptRecord.value?.secret_id;
     if (!secretId) throw new Error('No secret loaded');
+    // X-OTS-Confirm carries the RECEIPT shortid, not the secret shortid (#4326):
+    // the route is keyed by the secret objid and secret.shortid is just its first
+    // 8 chars, so confirming with it would be derivable from the URL and no second
+    // factor at all. DeleteSecret expects the receipt shortid, which the read-out
+    // exposes as details.metadata.shortid — see deleteToken below.
     const response = await $api.delete(
-      `/api/colonel/secrets/${encodeURIComponent(secretId)}`
+      `/api/colonel/secrets/${encodeURIComponent(secretId)}`,
+      { headers: confirmHeaders(deleteToken.value) }
     );
     // A 2xx means the secret was deleted server-side regardless of ack shape; the
     // parse keeps the contract a live tripwire without failing the action.
@@ -265,8 +272,15 @@
     );
   });
 
-  /** The exact string the operator must retype to enable the delete. */
-  const deleteToken = computed(() => receiptRecord.value?.shortid ?? '');
+  /**
+   * The exact string the operator must retype to enable the delete: the RECEIPT
+   * shortid (#4326), shown in the receipt-metadata read-out. NOT the secret
+   * shortid (`receiptRecord.shortid`) — that is `secret_id[0,8]`, derivable from
+   * the URL, and the server rejects it. Empty when the secret has no receipt, in
+   * which case DeleteSecret fails closed server-side and the secret must be
+   * removed with the CLI.
+   */
+  const deleteToken = computed(() => receiptDetails.value?.metadata?.shortid ?? '');
 
   function requestDelete(): void {
     resetDelete();

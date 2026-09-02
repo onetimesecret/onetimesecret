@@ -43,13 +43,42 @@ module ColonelAPI
         HTTP_APX_INCOMING_HOST
       ].freeze
 
+      # Destructive-action confirmation token (#4326). Carried as a REQUEST HEADER,
+      # never a query parameter: the tokens are frequently PII (a target's email,
+      # an org display name) and a query string is logged verbatim by every default
+      # access-log format, lands in browser history, and can leak via Referer.
+      CONFIRM_HEADER = 'HTTP_X_OTS_CONFIRM'
+
+      # DoS ceiling on the ENCODED header, not a token-length limit: the real cap
+      # is MAX_CONFIRM_LENGTH (characters, post-decode) in the logic layer. It is
+      # measured on the encoded bytes, which percent-encoding expands up to 12 per
+      # 4-byte codepoint, so a max-length (255-char) token can approach 3 KB
+      # encoded. An over-long header is REJECTED, never truncated: slicing the
+      # encoded bytes would sever a %XX escape or a multibyte character and turn a
+      # valid token — e.g. a 100-char CJK org display_name, ~900 bytes encoded —
+      # into a permanent 403. 4 KB clears the largest legitimate token with room
+      # to spare while still bounding the decode.
+      MAX_CONFIRM_BYTES = 4096
+
       protected
 
       # Capture a fixed, non-sensitive subset only for the diagnostic route.
       # Its `network=admin` requirement makes both admin allowlists mandatory;
       # no request headers are added to ordinary Colonel strategy metadata.
+      #
+      # The confirmation token and the request method are the TWO exceptions:
+      # both are merged on EVERY colonel request, before the diagnostic branch's
+      # early exit, because they are how the logic layer receives them (logic
+      # classes never see the Rack env). The method is what lets
+      # ColonelAPI::Logic::Base tell a mutation from a read and charge the broad
+      # colonel:mutation bucket accordingly (#4329) — neither value is a request
+      # header echo, and neither is sensitive.
       def build_metadata(env, additional = {})
-        metadata = super
+        colonel_context = {
+          confirm_token: confirm_token_from(env),
+          request_method: env['REQUEST_METHOD'],
+        }
+        metadata        = super(env, additional.merge(colonel_context))
         return metadata unless Otto::Utils.normalize_path(env['PATH_INFO']) == PROXY_DEBUG_HEADERS_PATH
 
         metadata.merge(
@@ -70,6 +99,31 @@ module ColonelAPI
         keys.to_h do |key|
           [key.delete_prefix('HTTP_').tr('_', '-').downcase, env[key]]
         end
+      end
+
+      # Percent-decoded so a non-ASCII token (org display names) survives the
+      # ISO-8859-1 header charset both sides agree on. An absent, empty, oversized
+      # or undecodable header is "no token" — never a crash, never a partial match.
+      #
+      # FORM decoding (Rack::Utils.unescape), which accepts the widest range of
+      # correct encodings for a token that routinely contains SPACES (org
+      # display_names): the console's encodeURIComponent ('%20'), a raw space, AND
+      # form-encoding ('+') from curl / Rack::Utils.escape / a Ruby client. A
+      # component decoder that kept '+' literal would 403 every form-encoded
+      # space — i.e. most DeleteOrganization / AddMembership / entitlement calls
+      # from a non-browser client. The one cost is that a raw, UNENCODED literal
+      # '+' decodes to a space; clients that mean a literal '+' encode it '%2B'
+      # (encodeURIComponent and every form encoder both do), which round-trips.
+      # Oversized headers are rejected whole (see MAX_CONFIRM_BYTES) rather than
+      # sliced, so a legitimate multibyte token is never severed mid-escape.
+      def confirm_token_from(env)
+        raw = env[CONFIRM_HEADER].to_s
+        return nil if raw.empty?
+        return nil if raw.bytesize > MAX_CONFIRM_BYTES
+
+        Rack::Utils.unescape(raw, Encoding::UTF_8)
+      rescue StandardError
+        nil
       end
     end
 

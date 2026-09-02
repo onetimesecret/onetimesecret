@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'current_session'
 require 'onetime/operations/sessions/list_sessions'
 
 module ColonelAPI
@@ -15,11 +16,22 @@ module ColonelAPI
       # the HTTP concerns (param coercion + role gate); the op owns the bounded
       # scan, the optional search filter, and pagination.
       #
+      # Rows identify a session by `session_handle` only: this adapter does NOT
+      # pass `reveal_session_id`, so the op strips the raw sid and its Redis key
+      # before they can reach the wire (#4330). The search term matches identity
+      # fields or a handle prefix, so the console's search box still works over
+      # what it now displays.
+      #
       # Read-only: no ColonelAuditEvent (CONTRACT 4 — audit is for mutations).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class ListSessions < ColonelAPI::Logic::Base
+        # Same mixin the per-customer panel uses, so the global console can badge
+        # and disable the acting colonel's own row against the SAME definition
+        # the DeleteSession interlock refuses on (#4328).
+        include CurrentSession
+
         SCHEMAS = { response: 'colonelSessions' }.freeze
 
         attr_reader :sessions, :pagination_meta
@@ -69,6 +81,11 @@ module ColonelAPI
               sessions: sessions,
               pagination: pagination_meta,
               scan: @scan_meta,
+              # The acting colonel's own row, as a HANDLE (never the sid). The
+              # console disables its revoke button; the server refuses it too
+              # (DeleteSession, #4328) — this only spares the operator the 422.
+              # nil when the session can't be identified.
+              current_session_handle: current_session_handle,
             },
           }
         end

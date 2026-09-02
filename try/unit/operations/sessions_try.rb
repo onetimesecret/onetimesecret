@@ -14,6 +14,14 @@
 # - Delete: removes the key, returns :deleted, records EXACTLY ONE audit event
 #   (verb session.delete, actor = PUBLIC id, target = session id)
 # - Delete not-found: revoking a non-existent session is a no-op (:not_found, NO audit)
+# - Store: opaque session handles (#4330) — summarize emits one, resolve_handle
+#   round-trips it back to a sid (owner-hinted first, bounded scan second), and
+#   matches_search? matches a handle prefix
+#
+# The List cases below pass `reveal_session_id: true` wherever they assert on
+# `:session_id` / `:key`: those identifiers are the bearer cookie value and are
+# stripped by default (#4330). The default, HTTP-facing shape is covered in
+# try/unit/operations/sessions/list_sessions_handles_try.rb.
 #
 # Run: try --agent try/unit/operations/sessions_try.rb
 
@@ -83,7 +91,7 @@ DB.set(@sidecar_key, 'sidecar-envelope-bytes')
 
 ## List returns a Result whose sessions include the seeded pair
 ## (with the non-string session:* key planted — see the regression note above)
-@list = Onetime::Operations::Sessions::List.new(page: 1, per_page: 50).call
+@list = Onetime::Operations::Sessions::List.new(page: 1, per_page: 50, reveal_session_id: true).call
 ids   = @list.sessions.map { |s| s[:session_id] }
 [ids.include?(@sid_a), ids.include?(@sid_b)]
 #=> [true, true]
@@ -154,7 +162,7 @@ DB.hset(Onetime::SessionMetadata.dbkey(@sid_b), 'geo_country', '"**"')
 DB.set("session:#{@sid_c}", JSON.generate(
   @data_a.merge('external_id' => "ext_c2_#{@nonce}", 'email' => "cyn+#{@nonce}@example.com"),
 ))
-@geo_map = Onetime::Operations::Sessions::List.new(page: 1, per_page: 50).call
+@geo_map = Onetime::Operations::Sessions::List.new(page: 1, per_page: 50, reveal_session_id: true).call
   .sessions.to_h { |s| [s[:session_id], s[:geo_country]] }
 [@geo_map[@sid_a], @geo_map[@sid_b], @geo_map.key?(@sid_c), @geo_map[@sid_c]]
 #=> ["US", nil, true, nil]
@@ -166,7 +174,7 @@ Onetime::SessionMetadata.define_singleton_method(:load_multi) do |*_args|
   raise IOError, 'pipeline blew up'
 end
 begin
-  @fb_map = Onetime::Operations::Sessions::List.new(page: 1, per_page: 50).call
+  @fb_map = Onetime::Operations::Sessions::List.new(page: 1, per_page: 50, reveal_session_id: true).call
     .sessions.to_h { |s| [s[:session_id], s[:geo_country]] }
 ensure
   Onetime::SessionMetadata.singleton_class.remove_method(:load_multi)
@@ -180,7 +188,7 @@ DB.del("session:#{@sid_c}")
 # ---- List: search filter ----------------------------------------------
 
 ## a search term matches only the session whose identity contains it
-@found = Onetime::Operations::Sessions::List.new(search: "alice+#{@nonce}").call
+@found = Onetime::Operations::Sessions::List.new(search: "alice+#{@nonce}", reveal_session_id: true).call
 @found.sessions.map { |s| s[:session_id] }
 #=> ["#{@sid_a}"]
 
@@ -223,7 +231,7 @@ Onetime::Operations::Sessions::Store.identified?({ 'csrf' => 'abc123' })
 @anon_sid = "trysess_anon_#{@nonce}"
 @anon_key = "session:#{@anon_sid}"
 DB.set(@anon_key, @codec.encode({ 'csrf' => "tok_#{@nonce}" }))
-@flt = Onetime::Operations::Sessions::List.new(page: 1, per_page: 50).call
+@flt = Onetime::Operations::Sessions::List.new(page: 1, per_page: 50, reveal_session_id: true).call
 # hidden from the rows, present in the anonymous tally
 [@flt.sessions.map { |s| s[:session_id] }.include?(@anon_sid), @flt.anonymous_count >= 1]
 #=> [false, true]
@@ -272,10 +280,16 @@ DB.exists(@key_a)
 AE.count
 #=> 1
 
-## the audit event is the delete verb, targeting the session id, actored by the PUBLIC id
+## the audit event is the delete verb, targeting the session HANDLE (never the
+## bearer sid — the trail is count-capped with no TTL, #4330), actored by the
+## PUBLIC id
 @ev = AE.recent(1).first
 [@ev['verb'], @ev['target'], @ev['actor']]
-#=> ["session.delete", "#{@sid_a}", "ur1colonelpub"]
+#=> ["session.delete", Onetime::SessionMetadata.handle_for(@sid_a), "ur1colonelpub"]
+
+## the recorded target is a 32-hex handle and is NOT the raw session id
+[@ev['target'].match?(/\A[0-9a-f]{32}\z/), @ev['target'] == @sid_a]
+#=> [true, false]
 
 ## the audit actor is never an internal objid
 @ev['actor'].include?('objid')
@@ -307,6 +321,89 @@ DB.set("sidecar:#{@hex_sid}:domain_context", 'y')
 [@delres.status, DB.exists(@hex_key),
  DB.exists("sidecar:#{@hex_sid}:awaiting_mfa", "sidecar:#{@hex_sid}:domain_context")]
 #=> [:deleted, 0, 0]
+
+# ---- Store: opaque session handles (#4330) ----------------------------
+
+## summarize emits a 32-hex handle for the session it summarizes — the ONLY
+## identifier that is safe to serialize (the sid is the bearer cookie)
+@h_sid    = SecureRandom.hex(32)
+@h_key    = "session:#{@h_sid}"
+@h_data   = { 'authenticated' => true, 'email' => "hank+#{@nonce}@example.com",
+              'external_id' => "ext_h_#{@nonce}" }
+@h_summary = Onetime::Operations::Sessions::Store.summarize(@h_sid, @h_key, @h_data)
+[@h_summary[:session_handle] == Onetime::SessionMetadata.handle_for(@h_sid),
+ @h_summary[:session_handle].match?(/\A[0-9a-f]{32}\z/)]
+#=> [true, true]
+
+## resolve_handle round-trips a handle back to its sid through the bounded scan
+## (no owner hint), reporting an uncapped scan
+DB.set(@h_key, JSON.generate(@h_data))
+Onetime::Operations::Sessions::Store.resolve_handle(DB, @h_summary[:session_handle])
+#=> [@h_sid, false]
+
+## the handle is case-insensitive on the way in (operators paste)
+Onetime::Operations::Sessions::Store.resolve_handle(DB, @h_summary[:session_handle].upcase).first
+#=> @h_sid
+
+## a malformed handle never touches the datastore: it fails the shape guard and
+## answers [nil, false] — which is why the API can 404 it exactly like an
+## unknown handle, with no oracle for a scanner
+Onetime::Operations::Sessions::Store.resolve_handle(DB, 'not-a-handle')
+#=> [nil, false]
+
+## a well-formed but unknown handle answers [nil, capped] — the truncation flag
+## rides along so a caller can say "not sampled" instead of "does not exist"
+Onetime::Operations::Sessions::Store.resolve_handle(DB, 'f' * 32)
+#=> [nil, false]
+
+## the OWNER-HINTED stage never scans the keyspace: with the customer's own
+## active_sessions holding the sid, resolution succeeds even while scan_keys is
+## stubbed to explode (proving stage 2 was not reached)
+@hint_cust = Onetime::Customer.create!(email: "handle_#{@nonce}@example.com")
+@hint_cust.verified = 'true'
+@hint_cust.save
+@hint_sid = SecureRandom.hex(32)
+@hint_cust.active_sessions.add(@hint_sid, Familia.now.to_i)
+@hint_handle = Onetime::SessionMetadata.handle_for(@hint_sid)
+Store = Onetime::Operations::Sessions::Store unless defined?(Store)
+Store.singleton_class.alias_method(:__real_scan_keys, :scan_keys)
+Store.define_singleton_method(:scan_keys) { |*_args, **_kw| raise 'scan must not run' }
+begin
+  @hinted = Store.resolve_handle(DB, @hint_handle, owner_hint: @hint_cust.extid)
+ensure
+  Store.singleton_class.remove_method(:scan_keys)
+  Store.singleton_class.alias_method(:scan_keys, :__real_scan_keys)
+  Store.singleton_class.remove_method(:__real_scan_keys)
+end
+@hinted
+#=> [@hint_sid, false]
+
+## a WRONG owner hint is not authorization — it only picks a cheaper search
+## space, so resolution falls through to the bounded scan and still finds it
+Onetime::Operations::Sessions::Store.resolve_handle(
+  DB, @h_summary[:session_handle], owner_hint: @hint_cust.extid,
+).first
+#=> @h_sid
+
+## matches_search? matches a handle PREFIX when the sid is supplied (the console
+## renders a truncated handle, so a prefix is what an operator can copy)
+[Onetime::Operations::Sessions::Store.matches_search?(
+   @h_data, @h_summary[:session_handle][0, 8], session_id: @h_sid),
+ Onetime::Operations::Sessions::Store.matches_search?(
+   @h_data, @h_summary[:session_handle], session_id: @h_sid)]
+#=> [true, true]
+
+## a handle-shaped needle that is not THIS session's handle does not match
+Onetime::Operations::Sessions::Store.matches_search?(
+  @h_data, 'deadbeef', session_id: @h_sid,
+)
+#=> false
+
+## identity search is unchanged, with or without the sid keyword (the CLI
+## caller still passes none)
+[Onetime::Operations::Sessions::Store.matches_search?(@h_data, "hank+#{@nonce}"),
+ Onetime::Operations::Sessions::Store.matches_search?(@h_data, "ext_h_#{@nonce}", session_id: @h_sid)]
+#=> [true, true]
 
 # ---- Store.extract_id: recover the bare sid from every key shape (#3858) ----
 
@@ -340,4 +437,7 @@ DB.del(@hex_key)
 # as the revoke_* tryouts' teardowns).
 DB.del("sidecar:#{@hex_sid}:awaiting_mfa")
 DB.del("sidecar:#{@hex_sid}:domain_context")
+DB.del(@h_key)
+@hint_cust.active_sessions.clear
+@hint_cust.destroy!
 AE.events.clear

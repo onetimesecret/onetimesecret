@@ -16,6 +16,8 @@ vi.mock('@/shared/composables/useApi', () => ({
 import { useAdminCustomerSessions } from '@/apps/admin/stores/useAdminCustomerSessions';
 
 const USER_ID = 'ur_abc123';
+/** The account identifier both revoke verbs are gated on server-side (#4326). */
+const CONFIRM = 'owner@example.com';
 
 function sessionRow(overrides: Record<string, unknown> = {}) {
   return {
@@ -174,10 +176,13 @@ describe('useAdminCustomerSessions', () => {
     await store.fetchForCustomer(USER_ID);
     expect(store.sessions).toHaveLength(2);
 
-    await store.revoke(USER_ID, 'a15e5510000000000000000000000001');
+    await store.revoke(USER_ID, 'a15e5510000000000000000000000001', CONFIRM);
 
+    // The account identifier rides X-OTS-Confirm (#4326), never the URL — the
+    // token is normally an email address.
     expect(mockApi.delete).toHaveBeenCalledWith(
-      '/api/colonel/users/ur_abc123/sessions/a15e5510000000000000000000000001'
+      '/api/colonel/users/ur_abc123/sessions/a15e5510000000000000000000000001',
+      { headers: { 'X-OTS-Confirm': encodeURIComponent(CONFIRM) } }
     );
     expect(store.sessions).toHaveLength(1);
     expect(store.sessions.map((s) => s.session_handle)).toEqual(['a15e5510000000000000000000000002']);
@@ -189,7 +194,9 @@ describe('useAdminCustomerSessions', () => {
     const store = useAdminCustomerSessions();
     await store.fetchForCustomer(USER_ID);
 
-    await expect(store.revoke(USER_ID, 'a15e5510000000000000000000000001')).rejects.toThrow('403');
+    await expect(
+      store.revoke(USER_ID, 'a15e5510000000000000000000000001', CONFIRM)
+    ).rejects.toThrow('403');
     expect(store.sessions).toHaveLength(2);
   });
 
@@ -200,11 +207,13 @@ describe('useAdminCustomerSessions', () => {
     await store.fetchForCustomer(USER_ID);
     expect(store.sessions).toHaveLength(2);
 
-    const record = await store.revokeAll(USER_ID);
+    const record = await store.revokeAll(USER_ID, CONFIRM);
 
     // Wrong path 404s in prod but passes a naive mock — assert it. POST, not DELETE.
     expect(mockApi.post).toHaveBeenCalledWith(
-      '/api/colonel/users/ur_abc123/sessions/revoke-all'
+      '/api/colonel/users/ur_abc123/sessions/revoke-all',
+      undefined,
+      { headers: { 'X-OTS-Confirm': encodeURIComponent(CONFIRM) } }
     );
     expect(store.sessions).toEqual([]);
     expect(record.blobs_deleted).toBe(3);
@@ -217,7 +226,7 @@ describe('useAdminCustomerSessions', () => {
     const store = useAdminCustomerSessions();
     await store.fetchForCustomer(USER_ID);
 
-    const record = await store.revokeAll(USER_ID);
+    const record = await store.revokeAll(USER_ID, CONFIRM);
 
     expect(store.sessions).toEqual([]);
     // Drift degrades to the zero-count fallback rather than throwing.
@@ -236,7 +245,7 @@ describe('useAdminCustomerSessions', () => {
     const store = useAdminCustomerSessions();
     await store.fetchForCustomer(USER_ID);
 
-    await expect(store.revokeAll(USER_ID)).rejects.toThrow('403');
+    await expect(store.revokeAll(USER_ID, CONFIRM)).rejects.toThrow('403');
     expect(store.sessions).toHaveLength(2);
   });
 

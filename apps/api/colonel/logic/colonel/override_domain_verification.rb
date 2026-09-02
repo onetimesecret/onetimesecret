@@ -54,6 +54,16 @@ module ColonelAPI
 
           @custom_domain = resolve_custom_domain(extid)
           raise_not_found('Domain not found') unless custom_domain
+
+          # TIER 2 (#4326): this bypasses DNS proof of ownership. No preview arm
+          # exists on this surface. The URL carries the extid; the confirmation
+          # is the hostname.
+          guard_destructive_action!(
+            tier: :sensitive,
+            confirm_with: custom_domain.display_domain,
+            confirm_subject: 'the domain name',
+            field: :extid,
+          )
         end
 
         def process
