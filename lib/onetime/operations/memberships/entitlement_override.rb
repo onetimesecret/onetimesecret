@@ -183,8 +183,16 @@ module Onetime
           revokes = membership.entitlements_revokes.to_a
 
           # D15: grant/revoke short-circuit when already in the requested state.
-          # `clear` never does — it always applies and always audits.
+          # `clear` never does — it always applies and always audits. The
+          # short-circuit still records (#4337), split by intent exactly as the
+          # org op does: live -> operator trail (outcome: 'no_change'),
+          # dry run -> preview observation.
           if no_change?(grants, revokes)
+            if @dry_run
+              record_preview_event(outcome: 'no_change')
+            else
+              record_no_change_event
+            end
             return build(
               :no_change,
               effective: membership.materialized_entitlements.to_a,
@@ -248,18 +256,38 @@ module Onetime
         # sequence; `result: 'preview'` and `dry_run: true` tell them apart.
         # The projected entitlement SETS stay out — plan output, not audit
         # content (the same reason the applied event omits the cleared set).
-        def record_preview_event
+        # `outcome` is set (to 'no_change') when the preview short-circuited
+        # on D15.
+        def record_preview_event(outcome: nil)
+          detail           = {
+            dry_run: true,
+            org_id: @org.extid,
+            action: @action,
+            entitlement: @entitlement,
+          }
+          detail[:outcome] = outcome if outcome
+
           Onetime::ColonelAuditEvent.record_access(
             actor: @actor,
             verb: audit_verb,
             target: @customer.extid,
             result: 'preview',
-            detail: {
-              dry_run: true,
-              org_id: @org.extid,
-              action: @action,
-              entitlement: @entitlement,
-            },
+            detail: detail,
+          )
+        end
+
+        # A LIVE no-change attempt (#4337) — the OPERATOR trail, mirroring the
+        # org op. Same verb and target as the applied event; detail keeps the
+        # applied event's shape (org_id completes the membership identity, the
+        # verb carries the action) plus the `outcome: 'no_change'` marker. NOT
+        # fail-closed: nothing moved.
+        def record_no_change_event
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: audit_verb,
+            target: @customer.extid,
+            result: :success,
+            detail: { outcome: 'no_change', org_id: @org.extid, entitlement: @entitlement },
           )
         end
 

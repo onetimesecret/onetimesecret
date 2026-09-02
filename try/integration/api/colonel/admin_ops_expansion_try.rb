@@ -13,8 +13,9 @@
 # - The email-identifier bug: sanitize_identifier stripped '@' and '.', so every
 #   documented "email or extid" colonel identifier resolved to nothing. The
 #   membership + user surfaces now accept an email.
-# - AddMembership stays additive (:no_change on a repeat) and still audits
-#   exactly one membership.add event for a real add.
+# - AddMembership stays additive (:no_change on a repeat) and audits exactly
+#   one membership.add event for a real add, plus one outcome: 'no_change'
+#   event under the same verb for a repeat attempt (#4337).
 # - ListCustomDomains' new server-side filters narrow total_count BEFORE
 #   pagination, and an unfiltered call is unchanged.
 # - The Stripe roster is index-backed: it finds an org by its Stripe customer
@@ -140,14 +141,19 @@ Onetime::Organization.find_by_extid(@org.extid).member?(Onetime::Customer.find_b
 [@after_audit - @before_audit, @latest['verb'], @latest['actor']]
 #=> [1, "membership.add", @colonel.extid]
 
-## Add is strictly additive: a repeat by email is :no_change and audits nothing
+## Add is strictly additive: a repeat by email is :no_change, still audited (#4337)
 @before_audit2 = Onetime::ColonelAuditEvent.count
 post "/api/colonel/organizations/#{@org.extid}/members",
   { 'customer' => @joiner_email, 'role' => 'member' }, confirming_org_headers(@org)
 @again = JSON.parse(last_response.body)
 [last_response.status, @again['record']['status'], @again['record']['role'],
  Onetime::ColonelAuditEvent.count - @before_audit2]
-#=> [200, "no_change", "admin", 0]
+#=> [200, "no_change", "admin", 1]
+
+## The repeat lands under the same verb, marked outcome: no_change, with the CURRENT role
+@noop_event = Onetime::ColonelAuditEvent.recent(1, 0).first
+[@noop_event['verb'], @noop_event['result'], @noop_event['detail']]
+#=> ["membership.add", "success", { "outcome" => "no_change", "role" => "admin", "org_id" => @org.extid }]
 
 ## An unknown email is a clean 404, not a 500
 post "/api/colonel/organizations/#{@org.extid}/members",

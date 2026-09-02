@@ -195,9 +195,13 @@ module Auth
 
         # @!attribute status [r]
         #   @return [Symbol] one of:
-        #     :planned       — dry run; nothing mutated, nothing audited
+        #     :planned       — dry run; nothing mutated, recorded as one
+        #                      observation (#4337)
         #     :success       — both authoritative stores hold the new address
-        #     :no_change     — normalized new address equals the current one
+        #     :no_change     — normalized new address equals the current one;
+        #                      recorded (#4337): on the operator trail with
+        #                      outcome: 'no_change' when live, as a preview
+        #                      observation on a dry run
         #     :not_found     — no usable customer (nil / anonymous / no email)
         #     :invalid_email — new address failed format validation
         #     :email_taken   — another account holds the address (Redis, SQL, or
@@ -272,7 +276,11 @@ module Auth
 
           old_email = @customer.email.to_s
           return failure(:invalid_email) unless Onetime::Utils::EmailFormat.valid_format?(@new_email)
-          return terminal(:no_change, old_email) if OT::Utils.normalize_email(old_email) == @new_email
+
+          if OT::Utils.normalize_email(old_email) == @new_email
+            record_no_change_event(old_email)
+            return terminal(:no_change, old_email)
+          end
 
           taken = collision_status
           return terminal(taken, old_email) if taken
@@ -928,6 +936,49 @@ module Auth
           )
         rescue StandardError => ex
           auth_logger.error '[customer.change_email] preview audit failed', exception: ex
+        end
+
+        # A no-change attempt (#4337). This op is the highest-value
+        # account-takeover primitive an operator has, so verb-filter
+        # completeness matters MOST here: asking to change an address to
+        # itself carries less intent than the other no-change verbs, but a
+        # `:no_change` answer also CONFIRMS the account currently holds the
+        # requested address — which makes a repeated same-address probe
+        # exactly the pattern the trail must not go quiet on. Split by intent
+        # like the entitlement ops: a LIVE call is a mutation attempt
+        # (operator trail, `outcome: 'no_change'`, carrying the D41
+        # reason/ticket provenance like record_audit does); a dry-run call
+        # (the default) stays a preview observation. Obscured addresses only,
+        # as in every other event this op writes. NOT fail-closed: nothing
+        # moved.
+        def record_no_change_event(old_email)
+          detail = {
+            outcome: 'no_change',
+            from: OT::Utils.obscure_email(old_email.to_s),
+            to: OT::Utils.obscure_email(@new_email.to_s),
+          }
+
+          if @dry_run
+            Onetime::ColonelAuditEvent.record_access(
+              actor: @actor,
+              verb: AUDIT_VERB,
+              target: failure_target,
+              result: 'preview',
+              detail: detail.merge(dry_run: true),
+            )
+            return
+          end
+
+          detail[:reason] = @reason.to_s unless @reason.to_s.strip.empty?
+          detail[:ticket] = @ticket.to_s unless @ticket.to_s.strip.empty?
+
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: failure_target,
+            result: :success,
+            detail: detail,
+          )
         end
 
         # Same verb/target/actor as the success event; obscured addresses only,
