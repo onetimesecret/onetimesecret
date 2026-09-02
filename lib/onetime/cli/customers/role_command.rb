@@ -120,12 +120,19 @@ module Onetime
           end
         end
 
-        Auth::Operations::Customers::SetRole.new(
+        result = Auth::Operations::Customers::SetRole.new(
           customer: customer,
           role: target_role,
           actor: Customers::Shared::CLI_ACTOR,
           reason: reason,
         ).call
+
+        # `promote --role admin` on a colonel is a DEMOTION in effect, so it can
+        # hit the last-colonel interlock too. Same handling as demote.
+        unless result.status == :success
+          puts refusal_message(result.status, obscured)
+          exit 1
+        end
 
         puts "#{obscured}: #{old_role} -> #{target_role}"
         OT.info "[role-change] #{customer.objid} promoted: #{old_role} -> #{target_role}"
@@ -152,15 +159,39 @@ module Onetime
           end
         end
 
-        Auth::Operations::Customers::SetRole.new(
+        result = Auth::Operations::Customers::SetRole.new(
           customer: customer,
           role: 'customer',
           actor: Customers::Shared::CLI_ACTOR,
           reason: reason,
         ).call
 
+        # The op refuses demoting the last remaining colonel (#4328) — the same
+        # interlock the colonel endpoint answers with a 422. The CLI is the
+        # DOCUMENTED recovery path out of that state, so it has to say what
+        # happened and exit non-zero rather than print a change it did not make.
+        # :self_demotion is unreachable here (no acting customer), so it is not
+        # branched on; the else arm would catch it if that ever changed.
+        unless result.status == :success
+          puts refusal_message(result.status, obscured)
+          exit 1
+        end
+
         puts "#{obscured}: #{old_role} -> customer"
         OT.info "[role-change] #{customer.objid} demoted: #{old_role} -> customer"
+      end
+
+      # @param status [Symbol] a non-:success SetRole::Result status
+      # @param obscured [String] the log-safe form of the target's address
+      # @return [String]
+      def refusal_message(status, obscured)
+        case status
+        when :last_colonel
+          "Error: refusing to demote #{obscured}: they are the last remaining verified colonel. " \
+          'Promote and verify another account first (bin/ots customers role promote EMAIL).'
+        else
+          "Error: role change did not complete for #{obscured} (#{status})"
+        end
       end
 
       def list_customers_by_role(target_role)

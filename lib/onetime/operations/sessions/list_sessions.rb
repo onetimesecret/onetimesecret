@@ -25,7 +25,10 @@ module Onetime
       class List
         # @!attribute sessions [r] Array<Hash> one page of {Store.summarize} rows,
         #   each decorated with `:geo_country` from the metadata sidecar
-        #   (see {#attach_geo_country}); nil when no sidecar record survives
+        #   (see {#attach_geo_country}); nil when no sidecar record survives.
+        #   Rows identify a session by `:session_handle`; the internal
+        #   `:session_id` / `:key` are present ONLY when the caller passed
+        #   `reveal_session_id: true` (#4330)
         # @!attribute total_count [r] Integer identity sessions matched (pre-pagination)
         # @!attribute scanned [r] Integer session keys examined this scan
         # @!attribute anonymous_count [r] Integer scanned keys with no actor identity (filtered out)
@@ -49,13 +52,22 @@ module Onetime
 
         # @param page [Integer] 1-based page (clamped to >= 1).
         # @param per_page [Integer] page size (clamped to 1..MAX_PER_PAGE).
-        # @param search [String, nil] optional free-text identity filter.
+        # @param search [String, nil] optional free-text identity filter (identity
+        #   fields, or a session-handle prefix).
         # @param dbclient [Object, nil] Redis-like client; defaults to Familia.dbclient.
-        def initialize(page: 1, per_page: DEFAULT_PER_PAGE, search: nil, dbclient: nil)
-          @page     = page.to_i < 1 ? 1 : page.to_i
-          @per_page = clamp_per_page(per_page)
-          @search   = search.to_s.empty? ? nil : search.to_s
-          @dbclient = dbclient
+        # @param reveal_session_id [Boolean] include the INTERNAL `:session_id` and
+        #   `:key` on each row. Defaults FALSE — fail-closed (#4330): the raw sid is
+        #   byte-identical to the `onetime.session` cookie, so only the local
+        #   `bin/ots session` CLI — whose whole purpose is to hand the operator an
+        #   id for `inspect`/`delete` — opts in. Every HTTP consumer gets
+        #   `session_handle` only.
+        def initialize(page: 1, per_page: DEFAULT_PER_PAGE, search: nil, dbclient: nil,
+                       reveal_session_id: false)
+          @page              = page.to_i < 1 ? 1 : page.to_i
+          @per_page          = clamp_per_page(per_page)
+          @search            = search.to_s.empty? ? nil : search.to_s
+          @dbclient          = dbclient
+          @reveal_session_id = reveal_session_id
         end
 
         # @return [Result]
@@ -71,14 +83,21 @@ module Onetime
           # counted so the operator sees the true keyspace shape rather than a
           # list that looks empty for no reason.
           identified, anonymous = rows.partition { |row| Store.identified?(row[:__data]) }
-          identified.select! { |row| Store.matches_search?(row[:__data], @search) } if @search
+          if @search
+            identified.select! do |row|
+              Store.matches_search?(row[:__data], @search, session_id: row[:session_id])
+            end
+          end
           identified.sort_by! { |row| [-(row[:created_at] || 0), row[:session_id].to_s] }
           identified.each { |row| row.delete(:__data) }
 
           total_count = identified.size
           total_pages = @per_page.zero? ? 0 : (total_count.to_f / @per_page).ceil
           start_idx   = (@page - 1) * @per_page
+          # The geo join keys on :session_id, so the internal identifiers are
+          # stripped only after it — and only when the caller did not opt in.
           page_rows   = attach_geo_country(identified[start_idx, @per_page] || [])
+          page_rows   = strip_internal_identifiers(page_rows) unless @reveal_session_id
 
           Result.new(
             sessions: page_rows,
@@ -93,6 +112,17 @@ module Onetime
         end
 
         private
+
+        # Drop the bearer-shaped identifiers from the rows that leave this op
+        # (#4330). `:session_id` IS the `onetime.session` cookie value and `:key`
+        # embeds it; `:session_handle` — a non-reversible keyed digest — is the
+        # identifier every consumer routes on instead.
+        def strip_internal_identifiers(rows)
+          rows.each do |row|
+            row.delete(:session_id)
+            row.delete(:key)
+          end
+        end
 
         # Bounded scan → decode → summarize. The parsed session data rides along
         # under `:__data` so the identity partition and the search predicate can

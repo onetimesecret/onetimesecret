@@ -95,6 +95,21 @@ RSpec.describe 'Admin Interface', type: :integration do
     { receipt: receipt, secret: secret }
   end
 
+  # The server-side confirmation token DELETE /api/colonel/secrets/:secret_id now
+  # requires (#4326). It is the RECEIPT shortid — deliberately NOT the secret
+  # shortid, which is only :secret_id[0,8] and so derivable from the URL. Mirror
+  # DeleteSecret#confirmation_token: prefer the secret's stored receipt_shortid,
+  # fall back to the receipt object, so the header matches whichever the record
+  # carries.
+  #
+  # Elevation, the colonel rate limiter and the admin session-lifetime bound are
+  # all disabled in spec/config.test.yaml, so confirmation is the one server-side
+  # guard this HTTP path exercises; the colonel unit specs cover the rest.
+  def delete_secret_confirm_token(pair)
+    token = pair[:secret].receipt_shortid.to_s.strip
+    token.empty? ? pair[:receipt].shortid.to_s : token
+  end
+
   describe 'Authentication & Authorization' do
     context 'when not authenticated' do
       it 'returns 401 for colonel endpoints' do
@@ -219,6 +234,7 @@ RSpec.describe 'Admin Interface', type: :integration do
 
       it 'deletes the secret' do
         header 'X-CSRF-Token', admin_csrf_token
+        header 'X-OTS-Confirm', delete_secret_confirm_token(secret_pair)
         delete "/api/colonel/secrets/#{secret_pair[:secret].objid}"
         expect(last_response.status).to eq(200)
 
@@ -230,6 +246,7 @@ RSpec.describe 'Admin Interface', type: :integration do
         secret_id = secret_pair[:secret].objid
 
         header 'X-CSRF-Token', admin_csrf_token
+        header 'X-OTS-Confirm', delete_secret_confirm_token(secret_pair)
         delete "/api/colonel/secrets/#{secret_id}"
 
         # Verify secret is gone
@@ -242,6 +259,7 @@ RSpec.describe 'Admin Interface', type: :integration do
         receipt_id = secret_pair[:receipt].objid
 
         header 'X-CSRF-Token', admin_csrf_token
+        header 'X-OTS-Confirm', delete_secret_confirm_token(secret_pair)
         delete "/api/colonel/secrets/#{secret_id}"
 
         # Verify metadata is also gone
@@ -488,6 +506,7 @@ RSpec.describe 'Admin Interface', type: :integration do
 
       # Delete through admin panel
       header 'X-CSRF-Token', admin_csrf_token
+      header 'X-OTS-Confirm', delete_secret_confirm_token(secret_pair)
       delete "/api/colonel/secrets/#{secret_id}"
       expect(last_response.status).to eq(200)
 

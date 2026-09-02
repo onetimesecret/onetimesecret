@@ -1158,7 +1158,153 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
   end
 
   # ===========================================================================
-  # 11. The boot posture line reports the trusted-proxy mode ACTUALLY IN FORCE
+  # 11. Route-level network requirements — the two tokens (#4332)
+  # ===========================================================================
+  #
+  # Two tokens ride on this middleware's verdict, and their behaviours diverge
+  # in exactly the postures below:
+  #
+  #   `network=admin`               — strict, one route (GET /system/proxy-headers).
+  #                                   404 unless BOTH allowlists are configured.
+  #   `network=admin_if_configured` — the 15 tier-1 destructive routes. Enforced
+  #                                   where isolation is configured, advisory
+  #                                   where it is not, so annotating them cannot
+  #                                   brick a stock self-hosted install.
+  #
+  # "Reachable" is asserted as a 403 `elevation_required` rather than a 200:
+  # DELETE /users/:id is a tier-1 verb, so a guard refusal FROM THE LOGIC LAYER
+  # proves the request got all the way past the network gate, the router and the
+  # role check. A 404 would be the gate; a bare 403 `Forbidden` with no
+  # error_code would be the role check. `elevation_required` specifically (not
+  # `confirmation_required`) because elevation runs first in the guard order
+  # (design §0.2), and because configure_admin! REPLACES site.admin wholesale —
+  # which drops spec/config.test.yaml's `elevation.enabled: false` and leaves
+  # the shipped default, i.e. enabled, in force for these examples.
+  describe 'route-level network requirements (#4332)' do
+    # A tier-1 route with a real target, so its refusal comes from the guard and
+    # not from a not-found. `purge` is the canonical destructive verb.
+    def destructive_path
+      "/api/colonel/users/#{regular.extid}"
+    end
+
+    # The stack hands the CSRF token back on any colonel GET. It has to be
+    # fetched from the same vantage as the DELETE, or the CIDR gate denies the
+    # fetch and the DELETE fails for the wrong reason.
+    def csrf_token_from(host, rack_env)
+      header 'Host', host
+      header 'Accept', 'application/json'
+      header 'Content-Type', nil
+      header 'Content-Length', nil
+      header 'X-CSRF-Token', nil
+      get '/api/colonel/info', {}, rack_env
+      last_response.headers['X-CSRF-Token']
+    end
+
+    # DELETE the target, carrying CSRF but deliberately NO X-OTS-Confirm.
+    def attempt_destructive(host, rack_env = {})
+      token = csrf_token_from(host, rack_env)
+      header 'Host', host
+      header 'Accept', 'application/json'
+      header 'X-CSRF-Token', token
+      delete destructive_path, {}, rack_env
+      last_response
+    end
+
+    def get_strict_route(host, rack_env = {})
+      header 'Host', host
+      header 'Accept', 'application/json'
+      get '/api/colonel/system/proxy-headers', {}, rack_env
+      last_response
+    end
+
+    # Posture A: neither allowlist configured, and no routable hostname to
+    # anchor on — the stock single-container install, where the host gate
+    # self-disables and the CIDR gate was never opt-ed into.
+    context 'in posture A (stock self-hosted: neither allowlist configured)' do
+      before do
+        configure_admin!(allowed_hosts: [], allowed_cidrs: [], site_host: '127.0.0.1:3000',
+                         default_domain: nil)
+      end
+
+      it 'leaves a destructive route reachable — the annotation is advisory' do
+        # The whole reason `network=admin_if_configured` exists. With the strict
+        # token these fifteen routes would 404 for an authenticated colonel on
+        # localhost, with nothing in the response to diagnose it.
+        signed_in_as(colonel)
+        response = attempt_destructive('localhost')
+
+        expect(response.status).to eq(403), "expected the guard, got #{response.status}: #{response.body}"
+        expect(json_body['error_code']).to eq('elevation_required')
+      end
+
+      it 'still 404s the strict network=admin route' do
+        # Unchanged behaviour, and the control that says the verdict keys really
+        # are being read: same posture, same request shape, different token.
+        signed_in_as(colonel)
+
+        expect(get_strict_route('localhost').status).to eq(404)
+      end
+    end
+
+    context 'in posture B (canonical anchor only — no explicit ADMIN_ALLOWED_HOSTS)' do
+      before { configure_admin!(default_domain: 'example.com', site_host: 'example.com') }
+
+      it 'leaves a destructive route reachable: the anchor fallback is not an explicit choice' do
+        signed_in_as(colonel)
+        response = attempt_destructive('example.com')
+
+        expect(response.status).to eq(403), "expected the guard, got #{response.status}: #{response.body}"
+        expect(json_body['error_code']).to eq('elevation_required')
+      end
+
+      it 'still 404s the strict network=admin route' do
+        signed_in_as(colonel)
+
+        expect(get_strict_route('example.com').status).to eq(404)
+      end
+    end
+
+    context 'in posture E (both allowlists configured — enforced)' do
+      let(:inside)  { { 'REMOTE_ADDR' => '203.0.113.9' } }
+      let(:outside) { { 'REMOTE_ADDR' => '198.51.100.4' } }
+
+      before do
+        configure_admin!(
+          allowed_hosts: ['admin.example.com'],
+          allowed_cidrs: ['203.0.113.9/32'],
+          default_domain: 'example.com',
+          site_host: 'example.com',
+        )
+      end
+
+      it 'serves a destructive route from an allowed host and CIDR' do
+        signed_in_as(colonel)
+        response = attempt_destructive('admin.example.com', inside)
+
+        expect(response.status).to eq(403), "expected the guard, got #{response.status}: #{response.body}"
+        expect(json_body['error_code']).to eq('elevation_required')
+      end
+
+      it '404s the same route from outside the CIDR' do
+        signed_in_as(colonel)
+        response = attempt_destructive('admin.example.com', outside)
+
+        expect(response.status).to eq(404)
+        expect(response.body).to eq('{"error":"Not Found"}')
+      end
+
+      it 'serves the strict network=admin route too, from the same vantage' do
+        # Posture E is the only one that satisfies the strict token, which is
+        # what made it unusable on the console's own routes.
+        signed_in_as(colonel)
+
+        expect(get_strict_route('admin.example.com', inside).status).to eq(200)
+      end
+    end
+  end
+
+  # ===========================================================================
+  # 12. The boot posture line reports the trusted-proxy mode ACTUALLY IN FORCE
   # ===========================================================================
   #
   # #4087. `trusted_proxy` rides on the posture line because it qualifies the

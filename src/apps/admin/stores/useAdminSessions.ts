@@ -37,6 +37,12 @@ export const useAdminSessions = defineStore('adminSessions', () => {
    * capped — so a short list never silently reads as "few sessions."
    */
   const scan = ref<ColonelSessionScan | null>(null);
+  /**
+   * The acting colonel's OWN session, as the non-bearer handle (#4328). The
+   * view badges that row and disables its revoke; the server refuses it too.
+   * Null when the server cannot identify the request session.
+   */
+  const currentSessionHandle = ref<string | null>(null);
 
   const pager = usePaginatedFetch<ColonelSessionsResponse, ColonelSession>({
     url: '/api/colonel/sessions',
@@ -46,6 +52,7 @@ export const useAdminSessions = defineStore('adminSessions', () => {
     // so it is the natural place to keep `scan` in lockstep with the page.
     select: (data) => {
       scan.value = data.details?.scan ?? null;
+      currentSessionHandle.value = data.details?.current_session_handle ?? null;
       return {
         items: data.details?.sessions ?? [],
         pagination: data.details?.pagination ?? null,
@@ -78,6 +85,7 @@ export const useAdminSessions = defineStore('adminSessions', () => {
         sessions.value = [];
         pagination.value = null;
         scan.value = null;
+        currentSessionHandle.value = null;
       }
       return result;
     } catch (err) {
@@ -85,6 +93,7 @@ export const useAdminSessions = defineStore('adminSessions', () => {
       sessions.value = [];
       pagination.value = null;
       scan.value = null;
+      currentSessionHandle.value = null;
       throw err;
     }
   }
@@ -94,6 +103,7 @@ export const useAdminSessions = defineStore('adminSessions', () => {
     sessions.value = [];
     pagination.value = null;
     scan.value = null;
+    currentSessionHandle.value = null;
     pager.reset();
   }
 
@@ -102,6 +112,7 @@ export const useAdminSessions = defineStore('adminSessions', () => {
     sessions,
     pagination,
     scan,
+    currentSessionHandle,
     // Fetch state (owned by the shared composable)
     loading: pager.loading,
     error: pager.error,

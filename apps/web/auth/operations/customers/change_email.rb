@@ -684,6 +684,11 @@ module Auth
               verified: false,
               actor: @actor,
               verified_by: nil,
+              # A credential-provenance reset, not an administrative unverify:
+              # the address changed and is now unproven. #4328's last-colonel
+              # interlock must not refuse it — leaving a colonel "verified"
+              # against an address nobody controls is worse than the lockout.
+              enforce_interlocks: false,
               db: @db,
             ).call
             return :reset if result == :success

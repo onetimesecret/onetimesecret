@@ -16,6 +16,8 @@ vi.mock('@/shared/composables/useApi', () => ({
 import { useAdminCustomerSessions } from '@/apps/admin/stores/useAdminCustomerSessions';
 
 const USER_ID = 'ur_abc123';
+/** The account identifier both revoke verbs are gated on server-side (#4326). */
+const CONFIRM = 'owner@example.com';
 
 function sessionRow(overrides: Record<string, unknown> = {}) {
   return {
@@ -174,10 +176,13 @@ describe('useAdminCustomerSessions', () => {
     await store.fetchForCustomer(USER_ID);
     expect(store.sessions).toHaveLength(2);
 
-    await store.revoke(USER_ID, 'a15e5510000000000000000000000001');
+    await store.revoke(USER_ID, 'a15e5510000000000000000000000001', CONFIRM);
 
+    // The account identifier rides X-OTS-Confirm (#4326), never the URL — the
+    // token is normally an email address.
     expect(mockApi.delete).toHaveBeenCalledWith(
-      '/api/colonel/users/ur_abc123/sessions/a15e5510000000000000000000000001'
+      '/api/colonel/users/ur_abc123/sessions/a15e5510000000000000000000000001',
+      { headers: { 'X-OTS-Confirm': encodeURIComponent(CONFIRM) } }
     );
     expect(store.sessions).toHaveLength(1);
     expect(store.sessions.map((s) => s.session_handle)).toEqual(['a15e5510000000000000000000000002']);
@@ -185,18 +190,22 @@ describe('useAdminCustomerSessions', () => {
 
   // #4338 — the operator's WHY, on the two shapes it takes. A revoke DELETEs,
   // so the reason rides the QUERY STRING; revoke-all POSTs, so it rides the
-  // BODY. Both endpoints read `params['reason']` server-side either way.
+  // BODY. Both endpoints read `params['reason']` server-side either way, and
+  // the reason travels BESIDE the #4326 confirm header, never instead of it.
   it('revoke sends the operator reason on the query string', async () => {
     mockApi.get.mockResolvedValue({ data: sessionsPayload() });
     mockApi.delete.mockResolvedValue({ data: revokePayload('a15e5510000000000000000000000001') });
     const store = useAdminCustomerSessions();
     await store.fetchForCustomer(USER_ID);
 
-    await store.revoke(USER_ID, 'a15e5510000000000000000000000001', 'suspected takeover');
+    await store.revoke(USER_ID, 'a15e5510000000000000000000000001', CONFIRM, 'suspected takeover');
 
     expect(mockApi.delete).toHaveBeenCalledWith(
       '/api/colonel/users/ur_abc123/sessions/a15e5510000000000000000000000001',
-      { params: { reason: 'suspected takeover' } }
+      {
+        headers: { 'X-OTS-Confirm': encodeURIComponent(CONFIRM) },
+        params: { reason: 'suspected takeover' },
+      }
     );
   });
 
@@ -206,30 +215,37 @@ describe('useAdminCustomerSessions', () => {
     const store = useAdminCustomerSessions();
     await store.fetchForCustomer(USER_ID);
 
-    await store.revokeAll(USER_ID, '  offboarding: ticket 4412  ');
+    await store.revokeAll(USER_ID, CONFIRM, '  offboarding: ticket 4412  ');
 
     expect(mockApi.post).toHaveBeenCalledWith(
       '/api/colonel/users/ur_abc123/sessions/revoke-all',
-      { reason: 'offboarding: ticket 4412' }
+      { reason: 'offboarding: ticket 4412' },
+      { headers: { 'X-OTS-Confirm': encodeURIComponent(CONFIRM) } }
     );
   });
 
-  // OPTIONAL rollout: no reason must leave the request exactly as it was, so an
-  // action taken without one records the same audit detail it always did.
-  it('adds no argument at all when the reason is blank', async () => {
+  // OPTIONAL rollout: no reason must leave the request exactly as it was
+  // before #4338 — the #4326 confirm header and nothing else — so an action
+  // taken without one records the same audit detail it always did.
+  it('adds nothing beyond the confirm header when the reason is blank', async () => {
     mockApi.get.mockResolvedValue({ data: sessionsPayload() });
     mockApi.delete.mockResolvedValue({ data: revokePayload('a15e5510000000000000000000000001') });
     mockApi.post.mockResolvedValue({ data: revokeAllPayload() });
     const store = useAdminCustomerSessions();
     await store.fetchForCustomer(USER_ID);
 
-    await store.revoke(USER_ID, 'a15e5510000000000000000000000001', '   ');
-    await store.revokeAll(USER_ID, undefined);
+    await store.revoke(USER_ID, 'a15e5510000000000000000000000001', CONFIRM, '   ');
+    await store.revokeAll(USER_ID, CONFIRM);
 
     expect(mockApi.delete).toHaveBeenCalledWith(
-      '/api/colonel/users/ur_abc123/sessions/a15e5510000000000000000000000001'
+      '/api/colonel/users/ur_abc123/sessions/a15e5510000000000000000000000001',
+      { headers: { 'X-OTS-Confirm': encodeURIComponent(CONFIRM) } }
     );
-    expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/users/ur_abc123/sessions/revoke-all');
+    expect(mockApi.post).toHaveBeenCalledWith(
+      '/api/colonel/users/ur_abc123/sessions/revoke-all',
+      undefined,
+      { headers: { 'X-OTS-Confirm': encodeURIComponent(CONFIRM) } }
+    );
   });
 
   it('keeps the row when revoke rejects', async () => {
@@ -238,7 +254,9 @@ describe('useAdminCustomerSessions', () => {
     const store = useAdminCustomerSessions();
     await store.fetchForCustomer(USER_ID);
 
-    await expect(store.revoke(USER_ID, 'a15e5510000000000000000000000001')).rejects.toThrow('403');
+    await expect(
+      store.revoke(USER_ID, 'a15e5510000000000000000000000001', CONFIRM)
+    ).rejects.toThrow('403');
     expect(store.sessions).toHaveLength(2);
   });
 
@@ -249,11 +267,13 @@ describe('useAdminCustomerSessions', () => {
     await store.fetchForCustomer(USER_ID);
     expect(store.sessions).toHaveLength(2);
 
-    const record = await store.revokeAll(USER_ID);
+    const record = await store.revokeAll(USER_ID, CONFIRM);
 
     // Wrong path 404s in prod but passes a naive mock — assert it. POST, not DELETE.
     expect(mockApi.post).toHaveBeenCalledWith(
-      '/api/colonel/users/ur_abc123/sessions/revoke-all'
+      '/api/colonel/users/ur_abc123/sessions/revoke-all',
+      undefined,
+      { headers: { 'X-OTS-Confirm': encodeURIComponent(CONFIRM) } }
     );
     expect(store.sessions).toEqual([]);
     expect(record.blobs_deleted).toBe(3);
@@ -266,7 +286,7 @@ describe('useAdminCustomerSessions', () => {
     const store = useAdminCustomerSessions();
     await store.fetchForCustomer(USER_ID);
 
-    const record = await store.revokeAll(USER_ID);
+    const record = await store.revokeAll(USER_ID, CONFIRM);
 
     expect(store.sessions).toEqual([]);
     // Drift degrades to the zero-count fallback rather than throwing.
@@ -285,7 +305,7 @@ describe('useAdminCustomerSessions', () => {
     const store = useAdminCustomerSessions();
     await store.fetchForCustomer(USER_ID);
 
-    await expect(store.revokeAll(USER_ID)).rejects.toThrow('403');
+    await expect(store.revokeAll(USER_ID, CONFIRM)).rejects.toThrow('403');
     expect(store.sessions).toHaveLength(2);
   });
 

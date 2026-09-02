@@ -68,6 +68,11 @@ import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
 const PUBLIC_ID = 'on_abc123';
+/**
+ * The organization NAME the server gates every org-scoped destructive verb on
+ * (#4326) — an identifier the URL (an org id) does not carry.
+ */
+const CONFIRM_HEADERS = { headers: { 'X-OTS-Confirm': encodeURIComponent('Acme') } };
 
 function detailPayload(overrides: Record<string, unknown> = {}) {
   return {
@@ -410,7 +415,8 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
 
     expect(mockApi.post).toHaveBeenCalledWith(
       `/api/colonel/organizations/${PUBLIC_ID}/entitlements/grant`,
-      { entitlement: 'api_access' }
+      { entitlement: 'api_access' },
+      CONFIRM_HEADERS
     );
     expect(showMock).toHaveBeenCalledTimes(1);
     expect(showMock.mock.calls[0][1]).toBe('success');
@@ -574,7 +580,8 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
 
     expect(mockApi.post).toHaveBeenCalledWith(
       `/api/colonel/organizations/${PUBLIC_ID}/entitlements/grant`,
-      { entitlement: 'ships_next_release' }
+      { entitlement: 'ships_next_release' },
+      CONFIRM_HEADERS
     );
   });
 
@@ -598,7 +605,8 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
     await flushPromises();
 
     expect(mockApi.delete).toHaveBeenCalledWith(
-      `/api/colonel/organizations/${PUBLIC_ID}/entitlements/overrides`
+      `/api/colonel/organizations/${PUBLIC_ID}/entitlements/overrides`,
+      CONFIRM_HEADERS
     );
     expect(wrapper.find('[data-testid="org-entitlement-select"]').exists()).toBe(true);
   });

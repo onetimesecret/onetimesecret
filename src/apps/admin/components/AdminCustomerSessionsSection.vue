@@ -4,7 +4,7 @@
 
   import { AdminConfirmDialog, DataTable } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
-  import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useAdminCustomerSessions } from '@/apps/admin/stores/useAdminCustomerSessions';
   import type { AdminCustomerSession } from '@/schemas/api/internal/responses/colonel-customer-sessions';
   import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -27,6 +27,21 @@
   const props = defineProps<{
     /** The customer's public id (extid, 'ur…'), forwarded from the detail view. */
     userId: string;
+    /**
+     * The account identifier the server gates both revoke verbs on (#4326) —
+     * the customer's email, its public id when it has none. Resolved by the
+     * detail view, which is the only surface here that holds the record.
+     */
+    confirmToken: string;
+    /**
+     * True when this customer IS the acting colonel (#4328). Revoke-all is then
+     * a CONTAINMENT action rather than an offboarding one: the server routes it
+     * to the except-current op and keeps the session the operator is working
+     * in, so the confirm copy has to say so instead of promising a full logout.
+     * Per-row self-revoke is refused server-side and already disabled here by
+     * `currentSessionHandle`.
+     */
+    isSelf?: boolean;
   }>();
 
   const { t } = useI18n();
@@ -92,11 +107,11 @@
     error: revokeError,
     run: runRevoke,
     reset: resetRevoke,
-  } = useAdminMutation(async (reason?: string) => {
+  } = useAdminDestructiveMutation(async (reason?: string) => {
     if (!revokeTarget.value) throw new Error('No session selected');
     // The store optimistically drops the row on a 2xx; a failure throws before
     // the drop, so useAdminMutation captures it and the row stays for retry.
-    await store.revoke(props.userId, revokeTarget.value, reason);
+    await store.revoke(props.userId, revokeTarget.value, props.confirmToken, reason);
   });
 
   function requestRevoke(sessionHandle: string): void {
@@ -132,12 +147,23 @@
     error: revokeAllError,
     run: runRevokeAll,
     reset: resetRevokeAll,
-  } = useAdminMutation(async (reason?: string) => {
+  } = useAdminDestructiveMutation(async (reason?: string) => {
     // run() only returns a boolean, so stash the server's counts for the toast.
-    const record = await store.revokeAll(props.userId, reason);
+    const record = await store.revokeAll(props.userId, props.confirmToken, reason);
     lastRevokedCount.value = record.blobs_deleted;
     lastScanCapped.value = record.scan_capped;
   });
+
+  /**
+   * Confirm copy for revoke-all. On the acting colonel's OWN account the server
+   * keeps this session (it routes to the except-current op, #4328), so promising
+   * a full logout would be a lie the operator acts on during an incident.
+   */
+  const revokeAllDescription = computed(() =>
+    props.isSelf
+      ? t('web.admin.customers.detail.sessions.revokeAll.selfDescription')
+      : t('web.admin.customers.detail.sessions.revokeAll.confirmDescription')
+  );
 
   function requestRevokeAll(): void {
     resetRevokeAll();
@@ -287,7 +313,7 @@
     <AdminConfirmDialog
       v-model:open="revokeAllDialogOpen"
       :title="t('web.admin.customers.detail.sessions.revokeAll.confirmTitle')"
-      :description="t('web.admin.customers.detail.sessions.revokeAll.confirmDescription')"
+      :description="revokeAllDescription"
       variant="danger"
       :confirm-token="props.userId"
       :confirm-text="t('web.admin.customers.detail.sessions.revokeAll.button')"

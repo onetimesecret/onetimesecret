@@ -1,5 +1,6 @@
 // src/apps/admin/stores/useAdminCustomers.ts
 
+import type { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import type { z } from 'zod';
 import { ref } from 'vue';
@@ -14,6 +15,7 @@ import {
   colonelUsersResponseSchema,
 } from '@/schemas/api/internal/responses/colonel';
 import type { ColonelUser } from '@/schemas/api/internal/responses/colonel';
+import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
 import { useApi } from '@/shared/composables/useApi';
 import { gracefulParse } from '@/utils/schemaValidation';
 
@@ -72,6 +74,43 @@ function replaceRow(
  * `src/shared/stores/colonelInfoStore.ts` (enforced by an architecture test),
  * so it never drags the retiring legacy tree into the admin bundle.
  */
+/**
+ * POST verify/unverify. UNVERIFY is gated server-side (#4326): it strips colonel
+ * eligibility, so it must carry the account identifier in X-OTS-Confirm. VERIFY
+ * is the restorative arm and sends nothing.
+ */
+async function requestVerification(
+  $api: AxiosInstance,
+  userId: string,
+  verified: boolean,
+  confirm?: string
+): Promise<void> {
+  const verb = verified ? 'verify' : 'unverify';
+  const config = verified || !confirm ? undefined : { headers: confirmHeaders(confirm) };
+  const response = await $api.post(`${userUrl(userId)}/${verb}`, {}, config);
+  parseMutationAck(response.data);
+}
+
+/**
+ * DELETE one account, carrying the confirmation token the server requires
+ * (#4326) and, when the operator gave one, the reason (#4338). A DELETE, so the
+ * reason rides the QUERY STRING; a blank one contributes nothing at all, leaving
+ * the request byte-identical to its pre-#4338 shape.
+ */
+async function requestPurge(
+  $api: AxiosInstance,
+  userId: string,
+  confirm: string,
+  reason?: string
+): Promise<void> {
+  const [reasonConfig] = reasonQueryArgs(reason);
+  const response = await $api.delete(userUrl(userId), {
+    headers: confirmHeaders(confirm),
+    ...reasonConfig,
+  });
+  parseMutationAck(response.data);
+}
+
 export const useAdminCustomers = defineStore('adminCustomers', () => {
   /** Rows for the current page only (one server page — never accumulated). */
   const customers = ref<ColonelUser[]>([]);
@@ -135,16 +174,17 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
    *
    * @param userId the customer's public id (extid, 'ur…' — `row.user_id`).
    * @param verified the target state.
+   * @param confirm the account identifier for X-OTS-Confirm; required by the
+   *   server on the UNVERIFY arm only (#4326).
    * @returns the patched row, or null when it is not on the current page.
    * @throws the network/HTTP error, for `useAdminMutation` to classify.
    */
   async function setVerification(
     userId: string,
-    verified: boolean
+    verified: boolean,
+    confirm?: string
   ): Promise<ColonelUser | null> {
-    const verb = verified ? 'verify' : 'unverify';
-    const response = await $api.post(`${userUrl(userId)}/${verb}`, {});
-    parseMutationAck(response.data);
+    await requestVerification($api, userId, verified, confirm);
     const patched = replaceRow(customers.value, userId, { verified });
     customers.value = patched.rows;
     return patched.updated;
@@ -159,13 +199,14 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
    * refetch the page afterwards (totals/pagination move server-side).
    *
    * @param userId the customer's public id (extid, 'ur…').
+   * @param confirm the account identifier (email, extid when it has none) the
+   *   server requires in X-OTS-Confirm (#4326).
    * @param reason OPTIONAL operator-supplied why (#4338) — query string, since
    *   this is a DELETE. Omitted entirely when blank.
    * @throws the network/HTTP error, for `useAdminMutation` to classify.
    */
-  async function purge(userId: string, reason?: string): Promise<void> {
-    const response = await $api.delete(userUrl(userId), ...reasonQueryArgs(reason));
-    parseMutationAck(response.data);
+  async function purge(userId: string, confirm: string, reason?: string): Promise<void> {
+    await requestPurge($api, userId, confirm, reason);
     customers.value = customers.value.filter((row) => row.user_id !== userId);
   }
 

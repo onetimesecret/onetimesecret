@@ -58,6 +58,16 @@ module ColonelAPI
             )
           end
 
+          # TIER 2 (#4326): the mutating twin of DeleteDomainConfig — it can
+          # overwrite the same record with attacker-chosen values. Same composed
+          # token, so an operator learns one rule for both verbs.
+          guard_destructive_action!(
+            tier: :sensitive,
+            confirm_with: "#{custom_domain.display_domain}:#{kind}",
+            confirm_subject: 'the domain name and config kind joined by a colon',
+            field: :kind,
+          )
+
           @attrs = validated_attrs
         end
 

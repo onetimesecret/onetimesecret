@@ -15,6 +15,9 @@ vi.mock('@/shared/composables/useApi', () => ({
 
 import { useAdminSessions } from '@/apps/admin/stores/useAdminSessions';
 
+/** Opaque 32-hex session handle — the only session identifier on the wire (#4330). */
+const HANDLE = '0123456789abcdef0123456789abcdef';
+
 function sessionsPayload() {
   return {
     shrimp: '',
@@ -22,8 +25,7 @@ function sessionsPayload() {
     details: {
       sessions: [
         {
-          session_id: 'sid_1',
-          key: 'session:sid_1',
+          session_handle: HANDLE,
           authenticated: true,
           email: 'alice@example.com',
           external_id: 'ext_1',
@@ -36,6 +38,8 @@ function sessionsPayload() {
       pagination: { page: 1, per_page: 50, total_count: 1, total_pages: 1 },
       // Keyspace scan meta (list_sessions.rb success_data.details.scan).
       scan: { scanned: 64, anonymous_count: 63, scan_capped: false },
+      // The acting colonel's own row (#4328).
+      current_session_handle: HANDLE,
     },
   };
 }
@@ -63,8 +67,22 @@ describe('useAdminSessions', () => {
       params: { page: 1, per_page: 50 },
     });
     expect(store.sessions).toHaveLength(1);
-    expect(store.sessions[0].session_id).toBe('sid_1');
+    expect(store.sessions[0].session_handle).toBe(HANDLE);
     expect(store.pagination?.total_count).toBe(1);
+    expect(store.currentSessionHandle).toBe(HANDLE);
+  });
+
+  it('clears currentSessionHandle when the listing omits it (deploy skew)', async () => {
+    const payload = sessionsPayload() as unknown as {
+      details: { current_session_handle?: string };
+    };
+    delete payload.details.current_session_handle;
+    mockApi.get.mockResolvedValue({ data: payload });
+    const store = useAdminSessions();
+
+    await store.fetchPage(1);
+
+    expect(store.currentSessionHandle).toBeNull();
   });
 
   it('passes the search term through as a server query param', async () => {
@@ -85,6 +103,7 @@ describe('useAdminSessions', () => {
     await expect(store.fetchPage(1)).rejects.toThrow('Network Error');
     expect(store.sessions).toEqual([]);
     expect(store.pagination).toBeNull();
+    expect(store.currentSessionHandle).toBeNull();
   });
 
   it('$reset restores initial state', async () => {
@@ -97,6 +116,7 @@ describe('useAdminSessions', () => {
 
     expect(store.sessions).toEqual([]);
     expect(store.pagination).toBeNull();
+    expect(store.currentSessionHandle).toBeNull();
     expect(store.page).toBe(1);
   });
 });

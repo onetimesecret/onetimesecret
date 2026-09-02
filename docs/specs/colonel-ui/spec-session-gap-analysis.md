@@ -106,6 +106,17 @@ the sidecar; accept the plain sid only as _input_ to revoke. `SessionMetadata`
 already exists as the natural home for a display id. Audit rows should carry the
 hashed form (see 5.7).
 
+**Resolved for the global console (#4330).** `Sessions::List` now emits
+`SessionMetadata.handle_for(sid)` and strips `session_id`/`key` unless the caller
+passes `reveal_session_id: true` (only `bin/ots session` does).
+`GET`/`DELETE /api/colonel/sessions/:session_handle` take the handle and resolve
+it server-side via `Sessions::Store.resolve_handle` — owner-hinted first, bounded
+scan second — and `Sessions::Delete` records the handle as its audit target. The
+console renders a truncated handle and gates revoke on the session owner's email.
+Still open here: the raw sid inside `RevokeForCustomer`'s audit **detail** (its
+`target` is the customer), and the "session_id is a public identifier" comment at
+`revoke_for_customer.rb:103`.
+
 ---
 
 ## 2. Termination
@@ -128,6 +139,28 @@ hashed form (see 5.7).
 | 2.14 | Auto-revoke on account deletion                    | `PurgeUser` → `DeleteCustomer` destroys the customer and its sub-keys; **no session sweep** (`delete_customer.rb:81–87`)                                                                                                                                                                                               | Sessions go inert on the next request (`[CUSTOMER_NOT_FOUND]`, `base_session_auth_strategy.rb:52`), so the anti-requirement is honoured _behaviourally_, by fail-closed lookup rather than by revocation. But blobs, sidecars, and the `active_sessions` ZSET survive to TTL, so the console keeps listing sessions for a deleted account. Call `RevokeAllForCustomer` before destroy | P1       |
 | 2.15 | CLI revoke path                                    | `bin/ots session` = `inspect` / `list` / `search` / `delete` / `clean`. `delete` is one sid at a time                                                                                                                                                                                                                  | **No per-user revoke-all in the CLI.** The documented break-glass ("when the web UI is unreachable") is per-sid, or `bin/ots customers suspend` as a side effect. Add `bin/ots session revoke-all --user` over the existing op                                                                                                                                                        | P1       |
 | 2.16 | `session clean` does nothing                       | Its only `del` branch is `ttl == 0` (`session_command.rb:381–393`), which Redis never reports — expired keys are already gone                                                                                                                                                                                          | Dead command that reports "Expired sessions removed: 0" and looks like it worked. Delete it or repurpose it to prune orphaned sidecars and stale index members                                                                                                                                                                                                                        | P2       |
+
+**Resolved for the self-revoke case (#4328).** A colonel could revoke their own
+live session from either console with no warning — the same class of mistake
+`PurgeUser`'s self-target guard already covered for accounts. Both
+`DeleteSession` and `RevokeCustomerSession` now refuse it (422, "use sign-out
+instead"), comparing opaque HANDLES so the bearer sid never enters the
+comparison path, and `ListSessions` publishes `details.current_session_handle`
+so the global console can disable that row the way the per-customer panel
+already did.
+
+`POST /users/:id/sessions/revoke-all` against your **own** account is
+deliberately NOT refused: it is the first containment step for a leaked colonel
+cookie, and refusing it would remove the operator's only in-console remedy for
+the compromise they are containing. It routes to
+`RevokeAllForCustomerExceptCurrent` instead, which keeps the session the request
+arrived on. That op now takes an optional `actor:`, so the colonel-driven call
+still writes the one `session.revoke_all` audit event the trail is owed while
+the self-service credential-change callers stay out of the admin trail (they
+pass none). Revoke-all against an unknown identifier is now a 404 rather than a
+success with zero counts.
+
+Still open here: 2.3, 2.4, 2.5, 2.11, 2.14, 2.15, 2.16.
 
 ### 2.5 detail — the remember-me cascade, and why it is latent
 
@@ -169,6 +202,55 @@ exists. Do not ship the wiring alone.
 | 3.12 | Per-role and per-tenant policy overrides                         | None                                                                                                                                                                                                                                  | Absent                                                                                                                                                                                                                                                                                                                                                         | P2 KNOWN |
 | 3.13 | Admin sessions strictly shorter than user sessions               | Same single `onetime.session` cookie, same `expire_after`, for colonel and tenant alike                                                                                                                                               | Absent                                                                                                                                                                                                                                                                                                                                                         | P1       |
 | 3.14 | Admin session must not share a cookie with the tenant-facing app | It does — one cookie name, one store, one TTL                                                                                                                                                                                         | Compensating control exists (`AdminNetworkIsolation` middleware). Not a substitute: a stolen tenant-app session cookie from a colonel's browser is a colonel session                                                                                                                                                                                           | P1       |
+
+**Resolved for the colonel API (#4327): 3.3, and 1.11 with it.** A step-up window
+now exists. `sess['elevated_until']` is a registered session sidecar field holding
+`{extid, exp}` — identity-bound, so a cookie that outlives an identity change
+cannot carry a window across it, and both login paths delete it outright.
+`ColonelAPI::Logic::DestructiveAction#require_elevation!` refuses every TIER 1
+verb outside a live window with 403 `elevation_required`;
+`GET|POST|DELETE /api/colonel/elevation` reads, mints and drops one, and the
+console renders the state (1.11) from that read plus a client-side countdown.
+
+Two factors ship: `password` re-verification (dual-mode), and a `recent_auth`
+grace that is OFF by default and, when enabled, offered only to accounts that
+cannot satisfy the password factor. MFA as a step-up factor is not implemented.
+
+Still open here, and deliberately: **3.11**, session-id rotation ON elevation. The
+window is minted on the existing sid rather than a rotated one, so during a live
+window a stolen cookie is exactly as capable as before — the window bounds and
+audits the capability rather than binding it to the credential. Binding it to a
+value the cookie does not carry (an elevation nonce echoed as a request header,
+or a sid rotation at grant time) is the follow-up.
+
+**Bounded for the admin API surface (#4331): 3.1, 3.2, 3.13.** `/api/colonel*`
+now additionally requires a colonel session to satisfy a **1h idle** and a **12h
+absolute** bound
+(`lib/onetime/application/auth_strategies/admin_session_lifetime.rb`, checked in
+`BaseSessionAuthStrategy` after the credential watermark and before
+`additional_checks`; 401 `[ADMIN_SESSION_EXPIRED] …`). Both are configurable
+under `site.admin.session.*`, and `0` disables either.
+
+The bound is on the **surface, not the session object**, which is what the detail
+below argues for but stops short of: expiring the blob would shorten both bounds
+for every user of the site and log a colonel out of the tenant app, and on a
+self-hosted install the colonel is often the only customer. The `/colonel` SPA
+shell is deliberately NOT gated either — the expired-session banner lives inside
+the SPA, so the shell loads, its first API call 401s, and the banner explains.
+
+Two properties the idle bound rests on, both worth knowing before scoring it:
+
+- It reads the **best-effort** `SessionMetadata#last_activity_at` and SKIPS
+  itself when no record exists; a lapsed 30-day sidecar must not log anyone out.
+- That field is a **site-wide** activity clock, so tenant traffic keeps the admin
+  window open. A request the bound REFUSES no longer stamps it (the strategy
+  flags the env and `TrackMetadata` honours the flag), so an expired window stays
+  expired; but a per-surface idle clock needs the separate admin session 3.14
+  asks for.
+
+Still open here, and deliberately: **3.14** — the cookie is still shared, with
+`AdminNetworkIsolation` and now these bounds as compensating controls rather than
+a substitute. Also unchanged: 3.4, 3.5, 3.7, 3.8, 3.9, 3.10, 3.12.
 
 ### 3.1/3.2 detail — two policy engines, neither covering the request path
 

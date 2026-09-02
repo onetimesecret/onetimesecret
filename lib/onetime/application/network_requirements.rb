@@ -11,16 +11,39 @@ module Onetime
   module Application
     # Enforces declarative network requirements from Otto route options.
     #
-    # `network=admin` is stricter than the general Colonel posture: the route is
-    # absent unless both ADMIN_ALLOWED_HOSTS and ADMIN_ALLOWED_CIDRS were
-    # explicitly configured and their gates admitted the request.
+    # Two strengths, both fail-closed when the verdict AdminNetworkIsolation
+    # writes is absent entirely:
+    #
+    #   `network=admin` — the route is absent unless both ADMIN_ALLOWED_HOSTS
+    #     and ADMIN_ALLOWED_CIDRS were explicitly configured and their gates
+    #     admitted the request. Stricter than the general Colonel posture, and
+    #     with no opt-out: a stock install cannot satisfy it.
+    #
+    #   `network=admin_if_configured` (#4332) — the same requirement, enforced
+    #     only where the operator actually configured admin isolation. This is
+    #     what makes the annotation usable on the destructive colonel routes:
+    #     the strict token would 404 all fifteen of them for an authenticated
+    #     colonel on localhost, in every posture except a fully configured one.
     module NetworkRequirements
       extend self
 
-      ADMIN = 'admin'
+      ADMIN               = 'admin'
+      ADMIN_IF_CONFIGURED = 'admin_if_configured'
 
       STRATEGIES = {
         ADMIN => ->(env) {
+          env[Onetime::Middleware::AdminNetworkIsolation::ROUTE_REQUIREMENT_ENV_KEY] == true
+        },
+        # Enforce the route requirement only where the operator configured admin
+        # isolation. An ABSENT mode key — the middleware missing from the stack,
+        # or the route moved outside the /colonel* prefixes it annotates — is
+        # NOT advisory: it falls through to the strict read and denies. That
+        # fail-closed-on-regression property is what this annotation is really
+        # worth on a route the surface-wide gates already cover.
+        ADMIN_IF_CONFIGURED => ->(env) {
+          mode = env[Onetime::Middleware::AdminNetworkIsolation::ROUTE_REQUIREMENT_MODE_ENV_KEY]
+          next true if mode == :advisory
+
           env[Onetime::Middleware::AdminNetworkIsolation::ROUTE_REQUIREMENT_ENV_KEY] == true
         },
       }.freeze

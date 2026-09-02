@@ -75,11 +75,15 @@ RSpec.describe 'Customers Command', type: :cli do
   # state-change lives in
   # apps/web/auth/spec/operations/set_customer_verification_spec.rb.
   # These specs cover only the CLI translation layer.
+  # `role` / `verified?` are read by the #4328 unverify interlocks; a plain
+  # customer short-circuits both without touching the role index.
   let(:target_customer) do
     double('Customer',
       email: 'target@example.com',
       objid: 'cust_target',
       extid: 'cust_ext_target',
+      role: 'customer',
+      verified?: true,
       anonymous?: false,
     )
   end

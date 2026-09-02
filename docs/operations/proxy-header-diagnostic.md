@@ -16,6 +16,16 @@ For this route, `network=admin` requires explicit, enforceable values for both
 does not admit the request, the endpoint returns `404`. The canonical-host
 fallback used by ordinary Colonel routes does not satisfy this requirement.
 
+`network=admin` is the **strict** of two tokens. Since #4332 there is also
+`network=admin_if_configured`, carried by the 15 destructive colonel routes,
+which enforces the same requirement only where the operator configured admin
+isolation and otherwise falls through — a stock self-hosted install cannot
+satisfy the strict token, and taking those routes away is not an option. This
+route keeps the strict token deliberately: it is a read-only diagnostic that is
+*supposed* to be absent unless both allowlists are set, which also makes it the
+cheapest probe for which mode a deployment is in. See
+[admin-network-isolation.md](admin-network-isolation.md#route-level-network-requirements).
+
 `AdminNetworkIsolation` evaluates the host and CIDR gates before the Otto route
 and its controller run. The endpoint returns only a fixed allowlist of
 proxy-related fields; it does not dump arbitrary request headers.
