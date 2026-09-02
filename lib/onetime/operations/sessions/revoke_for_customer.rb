@@ -55,10 +55,13 @@ module Onetime
         #
         # target is the session HANDLE, matching the success record below (see
         # docs/architecture/audit-logging.md, "Session verbs"): per-session
-        # verbs always target the handle so their events correlate.
+        # verbs always target the handle so their events correlate. The
+        # customer scope rides in detail.custid on failures too — the raw
+        # route param, the one value guaranteed resolvable mid-raise.
         audit_failures :call,
           verb: AUDIT_VERB,
-          target: -> { Onetime::SessionMetadata.handle_for(@session_id) }
+          target: -> { Onetime::SessionMetadata.handle_for(@session_id) },
+          detail: -> { { custid: @custid } }
 
         # @!attribute revoked [r] Boolean always true on a completed call (idempotent)
         # @!attribute blob_deleted [r] Boolean whether a live session blob existed + was deleted
@@ -130,11 +133,11 @@ module Onetime
           # DIFFERENT owner than the route customer we surface `session_user_id` in
           # detail so the revoke is not silently mis-attributed. The true owner's
           # stale index member self-heals via ListForCustomer's blob-liveness prune.
-          detail = with_reason(session_id: @session_id, blob_deleted: blob_deleted)
+          detail = with_reason(custid: @custid, blob_deleted: blob_deleted)
           if session_user_id && customer && session_user_id != customer.extid
             detail[:session_user_id] = session_user_id
           end
-          
+
           # FAIL-CLOSED (#4333): the revoked session is deleted, not marked, so
           # the trail is the only evidence the operator did this.
           Onetime::ColonelAuditEvent.record(
