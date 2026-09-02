@@ -805,6 +805,26 @@ export const colonelCheckoutLinkDetailsSchema = z.object({
   region: z.string(),
 });
 
+/**
+ * Ack for POST /api/colonel/users/:user_id/impersonate.
+ *
+ * NOT a {@link colonelUserMutationRecordSchema} ack: starting an impersonation
+ * hands back the marker the SESSION now carries, plus the path the console
+ * must leave for. `expires_at` is epoch SECONDS (the same unit as the bootstrap
+ * `impersonation` block) and is a server-fixed lifetime — there is no
+ * caller-supplied TTL to echo.
+ *
+ * `redirect` is server-supplied and therefore validated at the point of use
+ * (see hardNavigate / isValidInternalPath) rather than trusted as a URL here.
+ */
+export const colonelImpersonateRecordSchema = z.object({
+  impersonation_id: z.string(),
+  target_extid: z.string(),
+  target_email: z.string(),
+  expires_at: z.number(),
+  redirect: z.string().nullish(),
+});
+
 export type ColonelUserDetailRecord = z.infer<typeof colonelUserDetailRecordSchema>;
 export type ColonelUserDetailSecret = z.infer<typeof colonelUserDetailSecretSchema>;
 export type ColonelUserDetailReceipt = z.infer<typeof colonelUserDetailReceiptSchema>;
@@ -912,6 +932,9 @@ export const colonelUserDetailResponseSchema = createApiResponseSchema(
   colonelUserDetailRecordSchema,
   colonelUserDetailsSchema
 );
+export const colonelImpersonateResponseSchema = createApiResponseSchema(
+  colonelImpersonateRecordSchema
+);
 export const colonelUserMutationResponseSchema = createApiResponseSchema(
   colonelUserMutationRecordSchema,
   colonelUserMutationDetailsSchema
@@ -941,3 +964,5 @@ export type ColonelUserMutationResponse = z.infer<typeof colonelUserMutationResp
 export type ColonelCheckoutLinkRecord = z.infer<typeof colonelCheckoutLinkRecordSchema>;
 export type ColonelCheckoutLinkDetails = z.infer<typeof colonelCheckoutLinkDetailsSchema>;
 export type ColonelCheckoutLinkResponse = z.infer<typeof colonelCheckoutLinkResponseSchema>;
+export type ColonelImpersonateRecord = z.infer<typeof colonelImpersonateRecordSchema>;
+export type ColonelImpersonateResponse = z.infer<typeof colonelImpersonateResponseSchema>;

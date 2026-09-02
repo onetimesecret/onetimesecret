@@ -113,6 +113,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Onetime::Middleware::SessionSkip',
       'Onetime::Middleware::IdentityResolution',
       'Onetime::Middleware::EntitlementPreviewContext',
+      'Onetime::Middleware::ImpersonationContext',
       'Otto::Locale::Middleware',
       'Middleware::I18nLocale',
       'Onetime::Middleware::DomainStrategy',

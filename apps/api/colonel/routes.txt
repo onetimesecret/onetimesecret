@@ -52,6 +52,7 @@ POST   /users/:user_id/verify             ColonelAPI::Logic::Colonel::VerifyUser
 POST   /users/:user_id/unverify           ColonelAPI::Logic::Colonel::UnverifyUser response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/suspend            ColonelAPI::Logic::Colonel::SuspendUser response=json auth=sessionauth role=colonel scope=internal
 POST   /users/:user_id/unsuspend          ColonelAPI::Logic::Colonel::UnsuspendUser response=json auth=sessionauth role=colonel scope=internal
+POST   /users/:user_id/impersonate        ColonelAPI::Logic::Colonel::ImpersonateUser response=json auth=sessionauth role=colonel scope=internal
 DELETE /users/:user_id                    ColonelAPI::Logic::Colonel::PurgeUser response=json auth=sessionauth role=colonel network=admin_if_configured scope=internal
 
 # System Monitoring

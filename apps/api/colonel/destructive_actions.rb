@@ -32,6 +32,7 @@ module ColonelAPI
       RepairDomain OverrideDomainVerification UpsertDomainConfig
       ManageEntitlementOverride AddMembership ManageMembershipEntitlementOverride
       ReplayDlq ResetRateLimit
+      ImpersonateUser
     ].freeze
 
     # Reviewed 2026-09-01 for epic #4323 and deliberately un-gated. One reason

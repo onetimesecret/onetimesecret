@@ -299,6 +299,34 @@
     "text": "You are testing with {planName} entitlements (temporary session override).",
     "content_hash": "1a8aecf1"
   },
+  "web.impersonation.banner.label": {
+    "text": "Impersonation active",
+    "content_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Viewing as {email}",
+    "content_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Read-only: changes are blocked while impersonating.",
+    "content_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Ends in {time}",
+    "content_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Stop impersonating",
+    "content_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Stopping…",
+    "content_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Could not stop impersonating. Try again.",
+    "content_hash": "5aa72353"
+  },
   "web.colonel.organizations.title": {
     "text": "Organizations",
     "content_hash": "2730183d"

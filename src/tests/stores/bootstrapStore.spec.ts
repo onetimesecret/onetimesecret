@@ -381,6 +381,46 @@ describe('bootstrapStore', () => {
       expect(store.entitlement_preview_planid).toBe('test-plan-id');
       expect(store.entitlement_preview_plan_name).toBe('Test Plan');
     });
+
+    it('exposes the impersonation marker and the isImpersonating getter', () => {
+      expect(store.impersonation).toBeNull();
+      expect(store.isImpersonating).toBe(false);
+
+      store.update({
+        impersonation: {
+          impersonation_id: 'imp_9f2c1a',
+          impersonator_extid: 'ur_colonel',
+          target_extid: 'ur_bob',
+          target_email: 'bob@example.com',
+          started_at: 1756700000,
+          expires_at: 1756701800,
+        },
+      });
+
+      expect(store.impersonation?.target_email).toBe('bob@example.com');
+      expect(store.isImpersonating).toBe(true);
+    });
+
+    it('CLEARS the marker on an explicit null (a stop or expiry must hide the banner)', () => {
+      store.update({
+        impersonation: {
+          impersonation_id: 'imp_9f2c1a',
+          impersonator_extid: 'ur_colonel',
+          target_extid: 'ur_bob',
+          target_email: 'bob@example.com',
+          started_at: 1756700000,
+          expires_at: 1756701800,
+        },
+      });
+
+      // null is DEFINED, so filterDefined keeps it and the merge overwrites.
+      // (An omitted key would leave the stale marker on screen — which is why
+      // the serializer emits the field unconditionally.)
+      store.update({ impersonation: null });
+
+      expect(store.impersonation).toBeNull();
+      expect(store.isImpersonating).toBe(false);
+    });
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -563,6 +603,24 @@ describe('bootstrapStore', () => {
 
       expect(store.stripe_customer).toBeUndefined();
       expect(store.stripe_subscriptions).toBeUndefined();
+    });
+
+    it('resets the impersonation marker to null', () => {
+      store.update({
+        impersonation: {
+          impersonation_id: 'imp_9f2c1a',
+          impersonator_extid: 'ur_colonel',
+          target_extid: 'ur_bob',
+          target_email: 'bob@example.com',
+          started_at: 1756700000,
+          expires_at: 1756701800,
+        },
+      });
+
+      store.$reset();
+
+      expect(store.impersonation).toBeNull();
+      expect(store.isImpersonating).toBe(false);
     });
 
     it('resets entitlement test mode to defaults', () => {

@@ -443,7 +443,13 @@ RSpec.describe 'DomainStrategy classification contract' do
   # start withdrawing :canonical too, and canonical sign-in would go dark with
   # everything else.
   describe 'operator classifications under a datastore failure' do
+    # The rescue logs the blip at error level. Capturing it on a mock pins the
+    # log contract (plain host names, never inspected PublicSuffix objects)
+    # and keeps the expected error line out of the spec run's output.
+    let(:http_logger) { instance_double(SemanticLogger::Logger, error: nil) }
+
     before do
+      allow(Onetime).to receive(:http_logger).and_return(http_logger)
       allow(Onetime::CustomDomain)
         .to receive(:from_display_domain)
         .and_raise(Redis::BaseError, 'datastore unavailable')
@@ -453,6 +459,8 @@ RSpec.describe 'DomainStrategy classification contract' do
       strategy = Onetime::Middleware::DomainStrategy::Chooserator
                  .choose_strategy('example.com', ['example.com'])
       expect(strategy).to eq(:canonical)
+      # The exact arm answers before the datastore read, so nothing is logged.
+      expect(http_logger).not_to have_received(:error)
     end
 
     # NOT :subdomain — the sweeps run AFTER known_custom_domain? and the
@@ -464,6 +472,14 @@ RSpec.describe 'DomainStrategy classification contract' do
       strategy = Onetime::Middleware::DomainStrategy::Chooserator
                  .choose_strategy('api.example.com', ['example.com'])
       expect(strategy).to be_nil
+      expect(http_logger).to have_received(:error).with(
+        'Unhandled error in domain strategy',
+        hash_including(
+          exception: kind_of(Redis::BaseError),
+          request_domain: 'api.example.com',
+          canonical_domains: ['example.com'],
+        ),
+      )
     end
 
     it 'classifies a real custom domain nil (→ :invalid), never :subdomain' do
@@ -471,6 +487,10 @@ RSpec.describe 'DomainStrategy classification contract' do
                  .choose_strategy('tenant.example.com', ['other.example.org'])
       expect(strategy).to be_nil,
         'the rescue must abort the chain, not fall through into the subdomain sweep'
+      expect(http_logger).to have_received(:error).with(
+        'Unhandled error in domain strategy',
+        hash_including(request_domain: 'tenant.example.com', canonical_domains: ['other.example.org']),
+      )
     end
   end
 end

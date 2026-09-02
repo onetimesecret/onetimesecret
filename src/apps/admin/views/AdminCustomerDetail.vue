@@ -15,6 +15,7 @@
     ColonelUserDetailSecret,
   } from '@/schemas/api/internal/responses/colonel';
   import {
+    colonelImpersonateResponseSchema,
     colonelUserDetailResponseSchema,
     colonelUserMutationResponseSchema,
   } from '@/schemas/api/internal/responses/colonel';
@@ -23,6 +24,7 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { formatDisplayDateTime } from '@/utils/format';
+  import { hardNavigate } from '@/utils/navigation';
   import { gracefulParse } from '@/utils/schemaValidation';
   import { computed, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -39,9 +41,9 @@
    *   detail owns plan, Stripe, and subscription information. Loading, empty,
    *   not-found and error states are all handled explicitly.
    * - Guarded actions (CONTRACT 3 / D4): set-role, verify, unverify and
-   *   unsuspend go through a simple confirm; PURGE and SUSPEND require typed
-   *   confirmation (retype the public id) via {@link AdminConfirmDialog} in
-   *   danger mode. Suspension is the reversible trust & safety pause (no data
+   *   unsuspend go through a simple confirm; PURGE, SUSPEND and IMPERSONATE
+   *   require typed confirmation (retype the public id — purge asks for the
+   *   email) via {@link AdminConfirmDialog} in danger mode. Suspension is the reversible trust & safety pause (no data
    *   destroyed — unlike purge); colonel accounts cannot be suspended. Audit
    *   is emitted server-side; nothing here logs it.
    */
@@ -83,7 +85,14 @@
 
   // ---- Guarded actions ------------------------------------------------------
 
-  type ActionKey = 'setRole' | 'verify' | 'unverify' | 'suspend' | 'unsuspend' | 'purge';
+  type ActionKey =
+    | 'setRole'
+    | 'verify'
+    | 'unverify'
+    | 'suspend'
+    | 'unsuspend'
+    | 'impersonate'
+    | 'purge';
 
   /** Assignable roles, mirrored from the backend SetRole::VALID_ROLES. */
   const ROLE_OPTIONS = ['colonel', 'admin', 'staff', 'customer'] as const;
@@ -93,6 +102,13 @@
   const pendingRole = ref('');
   /** Optional operator-supplied suspension reason (sent with the suspend POST). */
   const suspendReason = ref('');
+  /** REQUIRED operator reason for impersonation (the API 422s without one). */
+  const impersonateReason = ref('');
+  /**
+   * Where the server says the console must go once impersonation starts,
+   * captured from the ack and consumed by the hard navigation in onConfirm.
+   */
+  const impersonateRedirect = ref<string | null>(null);
 
   // Keep the role selector in sync with the loaded record.
   watch(
@@ -133,6 +149,30 @@
     gracefulParse(colonelUserMutationResponseSchema, response.data, 'ColonelUserMutationResponse');
   }
 
+  /**
+   * Start an impersonation and remember where the console must go next.
+   *
+   * Extracted from the mutation switch rather than inlined because its ack is
+   * not the shared mutation ack: it carries the new marker plus a redirect.
+   * A 2xx means the session ALREADY carries the marker, so a schema mismatch
+   * must NOT fail the action — it degrades to a null redirect and hardNavigate
+   * falls back to the app root.
+   */
+  async function startImpersonation(): Promise<void> {
+    // Last line of the fail-closed gate: the reason is required by the API and
+    // the button is disabled without one, but never POST without it.
+    const reason = impersonateReason.value.trim();
+    if (!impersonateAvailable.value || !reason) throw new Error(impersonateBlockedReason.value);
+
+    const response = await $api.post(`${userUrl()}/impersonate`, { reason });
+    const parsed = gracefulParse(
+      colonelImpersonateResponseSchema,
+      response.data,
+      'ColonelImpersonateResponse'
+    );
+    impersonateRedirect.value = parsed.ok ? (parsed.data.record.redirect ?? null) : null;
+  }
+
   const {
     loading: mutationLoading,
     error: mutationError,
@@ -168,6 +208,8 @@
         // who/when/why stamps — so the audit event is the only place its why
         // can live. Hence the dialog asks here.
         return callMutation('post', `${userUrl()}/unsuspend`, { body: reasonBody(reason) });
+      case 'impersonate':
+        return startImpersonation();
       case 'purge':
         // Last line of the fail-closed gate: no typed token, no DELETE — even
         // if the dialog were somehow reached with a blank one.
@@ -188,6 +230,7 @@
     unverify: 'unverify',
     suspend: 'suspend',
     unsuspend: 'unsuspend',
+    impersonate: 'impersonate',
     purge: 'purge',
   };
 
@@ -199,7 +242,13 @@
    * eligibility (system roles require a verified email) — neither belongs
    * behind a one-click confirm.
    */
-  const DANGER_ACTIONS: readonly ActionKey[] = ['purge', 'suspend', 'setRole', 'unverify'];
+  const DANGER_ACTIONS: readonly ActionKey[] = [
+    'purge',
+    'suspend',
+    'setRole',
+    'unverify',
+    'impersonate',
+  ];
 
   /**
    * Actions whose confirm dialog collects an OPTIONAL operator reason (#4338).
@@ -299,6 +348,39 @@
     )
   );
 
+  /**
+   * True when this account can be impersonated.
+   *
+   * Mirrors the operation's own guards (PrivilegedTarget / AnonymousTarget /
+   * SuspendedTarget) so the operator is told BEFORE the POST rather than by a
+   * 422. The server remains the authority — this is a UI affordance, not the
+   * enforcement point.
+   *
+   * The anonymous customer is identified by the sentinel id 'anon' (the same
+   * value AdminSecrets treats as an anonymous owner); a record with no email
+   * or no public id is treated as anonymous too, because those are the fields
+   * the impersonated session would have to present.
+   */
+  const impersonateAvailable = computed(() => {
+    const r = record.value;
+    if (!r) return false;
+    if (r.role === 'colonel') return false;
+    if (r.suspended) return false;
+    const extid = r.extid?.trim();
+    const email = r.email?.trim();
+    if (!extid || extid === 'anon') return false;
+    if (!email || email === 'anon') return false;
+    return true;
+  });
+
+  /** Why impersonation is unavailable — rendered beside the disabled button. */
+  const impersonateBlockedReason = computed(() =>
+    t(
+      'web.admin.customers.actions.impersonate.unavailable',
+      'Impersonation is unavailable for colonel, anonymous, and suspended accounts.'
+    )
+  );
+
   const dialogConfig = computed(() => {
     const action = activeAction.value;
     const blank = {
@@ -345,6 +427,7 @@
     unverify: 'web.admin.customers.actions.unverify.success',
     suspend: 'web.admin.customers.actions.suspend.success',
     unsuspend: 'web.admin.customers.actions.unsuspend.success',
+    impersonate: 'web.admin.customers.actions.impersonate.success',
     purge: 'web.admin.customers.actions.purge.success',
   };
 
@@ -357,6 +440,17 @@
     activeAction.value = key;
     resetMutation();
     dialogOpen.value = true;
+  }
+
+  /**
+   * Open the impersonation confirm. Refuses when the target is ineligible or
+   * the reason is blank — the two conditions the button is disabled on,
+   * re-checked here so a keyboard/DOM path cannot open a dialog whose confirm
+   * would fail server-side.
+   */
+  function requestImpersonate(): void {
+    if (!impersonateAvailable.value || !impersonateReason.value.trim()) return;
+    requestAction('impersonate');
   }
 
   function requestSetRole(): void {
@@ -376,6 +470,16 @@
 
     dialogOpen.value = false;
     notifications.show(t(successMessageKey[key]), 'success');
+
+    if (key === 'impersonate') {
+      // HARD navigation, not router.push: the session now presents as the
+      // target, the console is a separate bundle, and /colonel* is blocked
+      // outright while a marker is active — an in-SPA push would land on a
+      // 403. The document load also re-reads the bootstrap, which is what
+      // raises the ImpersonationBanner.
+      hardNavigate(impersonateRedirect.value, '/');
+      return;
+    }
 
     if (key === 'purge') {
       // The record no longer exists — return to the list.
@@ -820,6 +924,54 @@
                   size="4" />
                 {{ t('web.admin.customers.actions.unsuspend.button') }}
               </button>
+            </div>
+
+            <!-- Impersonate (time-boxed, READ-ONLY support session). Amber,
+                 not red: nothing is destroyed, but the operator leaves the
+                 console and continues as this customer, so it is set apart
+                 from the reversible actions above. Reason is REQUIRED — it is
+                 what the audit entry carries — and the button stays disabled
+                 (with a stated reason) for colonel, anonymous and suspended
+                 targets, which the API refuses anyway. -->
+            <div class="space-y-3 border-t border-gray-200 pt-4 dark:border-gray-800">
+              <div>
+                <label
+                  for="impersonate-reason-input"
+                  class="block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                  {{ t('web.admin.customers.actions.impersonate.reasonLabel') }}
+                </label>
+                <input
+                  id="impersonate-reason-input"
+                  v-model="impersonateReason"
+                  type="text"
+                  maxlength="500"
+                  required
+                  aria-required="true"
+                  :disabled="!impersonateAvailable"
+                  data-testid="impersonate-reason"
+                  :placeholder="t('web.admin.customers.actions.impersonate.reasonPlaceholder')"
+                  class="mt-2 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:placeholder:text-gray-500" />
+              </div>
+              <button
+                type="button"
+                data-testid="impersonate-button"
+                :disabled="!impersonateAvailable || !impersonateReason.trim()"
+                :aria-describedby="!impersonateAvailable ? 'impersonate-blocked-reason' : undefined"
+                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-amber-400 px-3 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-900/30"
+                @click="requestImpersonate">
+                <OIcon
+                  collection="heroicons"
+                  name="eye"
+                  size="4" />
+                {{ t('web.admin.customers.actions.impersonate.button') }}
+              </button>
+              <p
+                v-if="!impersonateAvailable"
+                id="impersonate-blocked-reason"
+                class="text-xs text-amber-700 dark:text-amber-400"
+                data-testid="impersonate-blocked-reason">
+                {{ impersonateBlockedReason }}
+              </p>
             </div>
 
             <!-- Purge (destructive, typed-confirm). Disabled with a stated
