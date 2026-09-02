@@ -211,8 +211,9 @@ listed_fqdns('org_id' => @org_a.extid, 'per_page' => 100).sort ==
 @fake_org_objid = "fakeorg-#{@timestamp}"
 @fake_ids       = (1..1_005).map { |i| "fakedom-#{@timestamp}-#{i}" }
 @fake_ids.each { |id| Onetime::CustomDomain.owners.put(id, @fake_org_objid) }
-@logic = ColonelAPI::Logic::Colonel::ListCustomDomains.allocate
-@scan_ids, @scan_capped = @logic.send(:scan_owners_index, @fake_org_objid)
+# scan_owners_index moved to the shared op the colonel Logic now delegates to.
+@list_op = Onetime::Operations::Domains::List.allocate
+@scan_ids, @scan_capped = @list_op.send(:scan_owners_index, @fake_org_objid)
 @fake_ids.each { |id| Onetime::CustomDomain.owners.remove(id) }
 [@scan_ids.size, @scan_capped]
 #=> [1000, true]
