@@ -1,4 +1,11 @@
 # Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
-# (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
-bundle exec rake try:integration:simple
-bundle exec rake spec:integration:simple
+# (bash -euo pipefail). Legs are collected, not chained: every leg runs even
+# when an earlier one fails, then the lane exits non-zero naming the red legs —
+# a red tryouts leg must not silently skip the rspec leg (see unit/tasks).
+failed=()
+bundle exec rake try:integration:simple || failed+=(try:integration:simple)
+bundle exec rake spec:integration:simple || failed+=(spec:integration:simple)
+if (( ${#failed[@]} > 0 )); then
+  echo "[lane:simple] FAILED leg(s): ${failed[*]} — every leg ran; each leg's results are above" >&2
+  exit 1
+fi

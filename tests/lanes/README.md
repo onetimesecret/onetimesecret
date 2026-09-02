@@ -62,6 +62,11 @@ Start every service named for a lane. This includes RabbitMQ for `api` and
 `smoke`, whose lane environment still declares its endpoint. `selftest` is the
 only service-free exception.
 
+A lane with several legs (`unit`, `simple`, `migrations-pg`) runs every leg
+even when an earlier one fails, then exits non-zero naming the red legs; the
+same holds for the three rspec legs inside `rake spec:fast`. A red leg never
+silently skips the ones after it.
+
 Use `--overlay billing` only with full-mode lanes. Billing requires
 `AUTHENTICATION_MODE=full`; other lanes reject the overlay.
 

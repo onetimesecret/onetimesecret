@@ -135,6 +135,10 @@ APPS_FAST_EXCLUDE = [
 # retag the billing specs or drop these flags.
 APPS_FAST_TAG_FILTERS = '--tag ~postgres_database --tag ~integration'
 
+# The legs `spec:fast` runs, in order. See the task itself for why they are
+# collected rather than chained as prerequisites.
+FAST_LEGS = %w[spec:root_fast spec:apps_fast spec:apps_config_ru].freeze
+
 namespace :spec do
   # The `spec:fast` invocations. Their patterns are documented at
   # ROOT_FAST_PATTERN above; `rake spec:verify_selection` proves they select
@@ -393,8 +397,38 @@ namespace :spec do
   # Two rspec processes, not thirteen. `rake spec:verify_selection` asserts the
   # pair selects exactly the files the thirteen selected; run it after any edit
   # to ROOT_FAST_PATTERN / APPS_FAST_PATTERN / APPS_FAST_EXCLUDE.
+  #
+  # Deliberately NOT a prerequisite chain (`task fast: [...]`): rake stops a
+  # prerequisite chain at its first failure — RSpec::Core::RakeTask exits the
+  # process on a red leg — so any root_fast failure used to skip apps_fast and
+  # apps_config_ru entirely: all 11 apps/*/*/spec trees, ~5,200 examples, with
+  # nothing in the output saying so. Two environment-dependent examples
+  # (spec/unit/lanes/isolation_key_spec.rb wherever Docker is absent) were
+  # enough to hide app-spec drift behind a red-but-partial run. Every leg runs;
+  # a red one is recorded, summarized per leg, and fails the task at the end.
   desc 'Run all non-integration specs (unit, cli, lib, apps)'
-  task fast: [:root_fast, :apps_fast, :apps_config_ru]
+  task :fast do
+    failures = {}
+    FAST_LEGS.each do |leg|
+      Rake::Task[leg].invoke
+    rescue SystemExit => ex
+      # RSpec's rake task calls `exit` rather than raising, and SystemExit is
+      # not a StandardError — a bare rescue here would let the first red leg
+      # take the whole chain down again.
+      failures[leg] = "exit #{ex.status}"
+    rescue StandardError => ex
+      failures[leg] = ex.message
+    end
+
+    puts
+    puts "spec:fast leg summary (#{FAST_LEGS.size - failures.size}/#{FAST_LEGS.size} ok):"
+    FAST_LEGS.each do |leg|
+      puts format('  %-20s %s', leg, failures.key?(leg) ? "FAILED (#{failures[leg]})" : 'ok')
+    end
+    unless failures.empty?
+      abort "spec:fast: #{failures.size} of #{FAST_LEGS.size} legs failed: #{failures.keys.join(', ')}"
+    end
+  end
 
   desc 'Run the complete test suite'
   task all: ['spec:fast', 'spec:integration:all']

@@ -1,4 +1,16 @@
 # Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
-# (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
-bundle exec rake spec:integration:migrations:postgres
-bundle exec rake spec:integration:migrations:verify_dual_url
+# (bash -euo pipefail). Legs are collected, not chained: every leg runs even
+# when an earlier one fails, then the lane exits non-zero naming the red legs —
+# a red spec leg must not silently skip the dual-URL check (see unit/tasks).
+#
+# Caveat: when the postgres leg is red, verify_dual_url still runs — against
+# whatever schema state that leg left behind, possibly half-migrated. A second
+# red leg here can be derivative of the first rather than an independent
+# failure; read the postgres leg's output first.
+failed=()
+bundle exec rake spec:integration:migrations:postgres || failed+=(spec:integration:migrations:postgres)
+bundle exec rake spec:integration:migrations:verify_dual_url || failed+=(spec:integration:migrations:verify_dual_url)
+if (( ${#failed[@]} > 0 )); then
+  echo "[lane:migrations-pg] FAILED leg(s): ${failed[*]} — every leg ran; each leg's results are above" >&2
+  exit 1
+fi
