@@ -168,7 +168,7 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', :sqlite_database, type: :integration 
       expect(body['grant_types_supported']).to match_array(%w[authorization_code refresh_token])
     end
 
-    it 'advertises S256 via the oauth-authorization-server metadata endpoint' do
+    it 'advertises only S256 via the oauth-authorization-server metadata endpoint' do
       # oidc.rb#openid_configuration_body filters response keys through
       # VALID_METADATA_KEYS, which excludes code_challenge_methods_supported.
       # The OAuth 2.0 metadata endpoint (RFC 8414) keeps it.
@@ -176,9 +176,10 @@ RSpec.describe 'OAuth/OIDC IdP endpoints', :sqlite_database, type: :integration 
       get '/auth/.well-known/oauth-authorization-server'
       oauth_meta = JSON.parse(last_response.body)
 
-      # The gem assigns a single value, not an array — assert via String#include?
-      # which works whether the value is a String or an Array.
-      expect(oauth_meta['code_challenge_methods_supported']).to include('S256')
+      # rodauth-oauth 1.6.6 advertises "plain" alongside S256 unless
+      # oauth_pkce_allow_plain_method is false (features/oauth.rb). Pin the
+      # exact list so a gem bump that flips that default is caught here.
+      expect(oauth_meta['code_challenge_methods_supported']).to match_array(%w[S256])
     end
 
     it 'advertises RS256 in id_token_signing_alg_values_supported' do

@@ -3,7 +3,7 @@
 Runbook for upstreaming the `Rack::URLMap` mount-prefix fix (issue #3465) from our
 fork to the gem maintainer once we're ready to drop the fork.
 
-- **Fork:** `onetimesecret/rodauth-oauth` (GitHub) · branch `claude/rodauth-oauth-urlmap-prefix-gczunl` · PR onetimesecret/rodauth-oauth#13
+- **Fork:** `onetimesecret/rodauth-oauth` (GitHub) · branch `claude/rodauth-oauth-urlmap-prefix-gczunl` · PR onetimesecret/rodauth-oauth#13. The fork has since merged upstream 1.6.6 and is versioned `1.6.6.ots1` (onetimesecret/rodauth-oauth#16); upstream 1.6.6 does **not** include the mount-prefix change, so this runbook still applies.
 - **Upstream:** `os85/rodauth-oauth` (GitLab, maintainer: Tiago Cardoso / honeyryderchuck), default branch `master`
 - **Status:** not yet submitted upstream. This is a third-party project; submit only with explicit sign-off from the OTS maintainer who owns the `onetimesecret/rodauth-oauth` fork (currently @delano).
 
@@ -27,10 +27,10 @@ Include the gem change only:
 
 - `lib/rodauth/oauth.rb` — the `auth_server_route` `*_path`/`*_url` regeneration
 - `lib/rodauth/features/oauth_base.rb` — `oauth_mount_prefix`, `authorization_server_url`, docs
-- `lib/rodauth/features/oauth_dynamic_client_registration.rb`, `oidc_dynamic_client_registration.rb` — `registration_client_uri` prepends the prefix
+- `lib/rodauth/features/oidc_dynamic_client_registration.rb` — `registration_client_uri` prepends the prefix (upstream 1.6.6 dropped `registration_client_uri` from the plain OAuth `/register` response, so `oauth_dynamic_client_registration.rb` no longer carries this)
 - `lib/rodauth/features/oauth_application_management.rb`, `oauth_grant_management.rb` — helpers prepend the prefix
-- `test/oauth/mount_prefix_test.rb`, plus the `*_with_mount_prefix` cases in `test/oauth/metadata_test.rb` and `test/oidc/metadata_test.rb`
-- `doc/release_notes/1_6_5.md` (renumber to upstream's next version), `doc/oauth_base.rdoc`
+- `test/oauth/mount_prefix_test.rb`, the `*_with_mount_prefix` cases in `test/oauth/metadata_test.rb` and `test/oidc/metadata_test.rb`, and `test_oidc_client_registration_client_uri_honors_mount_prefix` in `test/oidc/dynamic_client_registration_test.rb`
+- the `oauth_mount_prefix` sections of `doc/release_notes/1_6_6_ots1.md` (renumber to upstream's next version), `doc/oauth_base.rdoc`
 - `doc/mount_prefix_fix.svg` — optional: the prose description above is self-contained, so include it only if the maintainer finds the diagram useful for review
 
 Exclude / adjust:

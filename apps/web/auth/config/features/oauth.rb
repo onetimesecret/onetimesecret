@@ -120,6 +120,16 @@ module Auth::Config::Features
       # (omniauth.rb sets `pkce: true`), so this rejects no working client.
       auth.oauth_require_pkce true
 
+      # rodauth-oauth 1.6.6 added `oauth_pkce_allow_plain_method` and defaults
+      # it to true for backwards compatibility (our fork used to default it to
+      # false). Left at the gem default, /authorize accepts
+      # code_challenge_method=plain and the grant insert then trips migration
+      # 011's CHECK constraint, turning a bad client request into a 500 instead
+      # of an `invalid_request` redirect. Setting it explicitly keeps the
+      # S256-only posture at the request layer and drops "plain" from
+      # code_challenge_methods_supported in discovery metadata.
+      auth.oauth_pkce_allow_plain_method false
+
       # ─── URI schemes ───────────────────────────────────────────────────
       # Production defaults to https-only: an http:// redirect is interceptable,
       # letting an attacker steal the authorization code before PKCE verification,
