@@ -15,6 +15,7 @@
 
 require 'onetime/logic/base'
 require 'onetime/application/authorization_policies'
+require 'onetime/audit_reason'
 require 'onetime/security/colonel_rate_limiter'
 
 require_relative '../destructive_actions'
@@ -47,6 +48,7 @@ module ColonelAPI
     # apply path only.
     class Base < Onetime::Logic::Base
       include Onetime::Application::AuthorizationPolicies
+      include Onetime::AuditReason
       # Elevation first: DestructiveAction#require_elevation! is written against
       # this module's window arithmetic (#4327).
       include ColonelAPI::Logic::Colonel::Elevation
@@ -95,6 +97,35 @@ module ColonelAPI
         return unless mutating_colonel_request?
 
         enforce_colonel_mutation_limit!(cust.extid)
+      end
+
+      # The OPTIONAL operator-supplied `reason` on a destructive verb (#4338),
+      # read off the request and handed to the op as its `reason:` kwarg.
+      #
+      # ONE reader for every destructive colonel adapter, so the param name,
+      # the sanitizer and the bound cannot drift between twelve endpoints. Two
+      # passes on purpose: `sanitize_plain_text` strips HTML/entities and
+      # normalizes whitespace (this is free operator text that lands in an
+      # operator-facing console), and `normalize_reason` applies the audit
+      # rule — blank means ABSENT, never `reason: ""`.
+      #
+      # The bound is {Onetime::AuditReason::MAX_LENGTH}, one under the audit
+      # model's per-value truncation, so a reason accepted here is never
+      # silently clipped in the trail.
+      #
+      # DELETE endpoints read this from the QUERY STRING; request bodies are
+      # not reliably parsed across this stack (see DeleteOrganization's note).
+      # `params` merges both, so this reader is the same on either verb.
+      #
+      # OPTIONAL for now (#4338 rolls out in two steps). When the flip to
+      # REQUIRED happens, it happens here plus {Onetime::AuditReason} — not in
+      # each adapter.
+      #
+      # @return [String, nil]
+      def operator_reason_param
+        normalize_reason(
+          sanitize_plain_text(params['reason'], max_length: Onetime::AuditReason::MAX_LENGTH),
+        )
       end
 
       # Transform v2 response data to Colonel API format

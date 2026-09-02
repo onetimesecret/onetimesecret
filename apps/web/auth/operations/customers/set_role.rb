@@ -4,6 +4,7 @@
 
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
 require 'onetime/operations/customers/role_support'
 
 module Auth
@@ -14,8 +15,11 @@ module Auth
       # The ONE implementation of the role-change verb. The colonel `SetUserRole`
       # Logic class and the CLI `customers role promote/demote` command are thin
       # adapters over it. This is a MUTATING admin op, so it records exactly one
-      # ColonelAuditEvent per successful change (epic #20 CONTRACT 4 / #21). An
-      # idempotent no-op change mutates nothing and is therefore not audited.
+      # ColonelAuditEvent per successful change (epic #20 CONTRACT 4 / #21).
+      # An idempotent no-op mutates nothing but is STILL audited, under the
+      # same verb with `outcome: 'no_change'` (#4337): reaching for a role on
+      # an account that already holds it is the same reach, and the trail
+      # should not go quiet for it.
       #
       # `VALID_ROLES` is the single source of truth for assignable roles; the CLI
       # and colonel adapters both reference it rather than keeping their own copy.
@@ -35,6 +39,7 @@ module Auth
       class SetRole
         include Onetime::LoggerMethods
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
         include Onetime::Operations::Customers::RoleSupport
 
         AUDIT_VERB = 'customer.set_role'
@@ -78,11 +83,18 @@ module Auth
         #   the self-demotion comparison only (purge_user.rb compares the same
         #   way; the AUDIT actor stays the public id above). nil for the CLI,
         #   which has no acting customer and nothing to self-demote.
-        def initialize(customer:, role:, actor:, actor_objid: nil)
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the audit detail of BOTH the applied event and the
+        #   no-change one (never the refusal events, whose `reason` key names
+        #   the refusal cause). Blank is treated as absent and the detail keeps
+        #   its pre-#4338 shape; see {Onetime::AuditReason}, which also owns the
+        #   255-char bound and the optional-now / required-later rollout.
+        def initialize(customer:, role:, actor:, actor_objid: nil, reason: nil)
           @customer    = customer
           @role        = role.to_s
           @actor       = actor
           @actor_objid = actor_objid
+          @reason      = normalize_reason(reason)
         end
 
         # @return [Result]
@@ -119,12 +131,18 @@ module Auth
           end
 
           # One audit event per successful mutation, emitted from the op layer.
+          #
+          # FAIL-CLOSED (#4333): the customer row records only the role it now
+          # holds, never who granted it or what it was before, so this event is
+          # the only evidence a privilege grant happened. An unwritable event
+          # raises Onetime::AuditWriteFailure rather than reporting :success.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,
             result: :success,
-            detail: { from: @from, to: @role },
+            detail: with_reason(from: @from, to: @role),
+            fail_closed: true,
           )
 
           # debug level (not info): the audit event is the durable record, and an
@@ -167,16 +185,19 @@ module Auth
           active_colonels.empty?
         end
 
-        # Single exit point for every status, so the refusal audit cannot be
-        # forgotten at an early return (Memberships::Remove#build).
+        # Single exit point for every status, so neither the refusal audit nor
+        # the no-change audit can be forgotten at an early return
+        # (Memberships::Remove#build).
         def build(status)
           record_refusal(status) if REFUSAL_STATUSES.include?(status)
+          record_no_change_event if status == :no_change
 
           Result.new(status: status, customer: @customer, from: @from, to: @role)
         end
 
         # Same verb/target/actor as the success event. Best-effort: never break
-        # the op.
+        # the op. Note `reason` here is the REFUSAL CAUSE — the operator's
+        # #4338 reason never rides on refusal events, so the key cannot collide.
         def record_refusal(status)
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
@@ -187,6 +208,32 @@ module Auth
           )
         rescue StandardError => ex
           OT.le "[Customers::SetRole] refusal audit failed: #{ex.class}: #{ex.message}"
+        end
+
+        # A no-change attempt (#4337) — the OPERATOR trail, not the observation
+        # trail.
+        #
+        # Role assignment is the highest-value verb in this trail, and an
+        # attempt to set `colonel` on an account that already holds it is not
+        # less interesting than one that changes it — it is the same reach for
+        # the same privilege. Silently dropping it meant the trail could show
+        # nothing while an operator repeatedly probed a privileged account.
+        #
+        # Same verb and target as the applied event, with `outcome: 'no_change'`
+        # marking it. NOT fail-closed: no privilege moved, so there is no
+        # untraceable grant for a hard failure to surface.
+        #
+        # The operator's `reason` (#4338) rides here too: an attempted-but-no-op
+        # action still has a why, and a probe at a privileged account is exactly
+        # the row a reviewer wants the operator's own words on.
+        def record_no_change_event
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @customer.extid,
+            result: :success,
+            detail: with_reason(outcome: 'no_change', from: @from, to: @role),
+          )
         end
 
         # Loggable, non-secret actor label (mirrors the audit actor normalization).

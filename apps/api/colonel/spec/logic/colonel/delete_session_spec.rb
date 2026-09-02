@@ -159,7 +159,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSession do
       logic.process
 
       expect(Onetime::Operations::Sessions::Delete).to have_received(:new)
-        .with(session_id: session_id, actor: 'ur_colonel')
+        .with(session_id: session_id, actor: 'ur_colonel', reason: nil)
     end
 
     it 'passes the optional owner hint through to the resolver' do

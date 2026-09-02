@@ -131,6 +131,7 @@ function mutationAck() {
 
 const dialogInput = (w: VueWrapper) => w.find('#admin-confirm-input');
 const dialogSubmit = (w: VueWrapper) => w.find('[data-testid="admin-confirm-submit"]');
+const dialogReason = (w: VueWrapper) => w.find('[data-testid="admin-confirm-reason"]');
 const drawer = (w: VueWrapper) => w.find('[data-testid="customers-drawer"]');
 
 describe('AdminCustomers — drawer operator actions', () => {
@@ -302,6 +303,58 @@ describe('AdminCustomers — drawer operator actions', () => {
       });
       // Stays on the list — the drawer never navigated anywhere.
       expect(pushMock).not.toHaveBeenCalled();
+    });
+
+    // #4338 — the adapter-level half: what the operator types in the dialog has
+    // to reach the endpoint, or the trail still cannot say why. This is a DELETE,
+    // so the reason rides the QUERY STRING (DELETE bodies are not reliably
+    // parsed across this stack), BESIDE the #4326 confirm header — never
+    // instead of it.
+    it('sends the operator reason on the query string when one is given', async () => {
+      await openDrawer();
+      mockApi.delete.mockResolvedValue({ data: mutationAck() });
+      mockApi.get.mockResolvedValue({ data: emptyPayload() });
+
+      await wrapper.find('[data-testid="drawer-purge-button"]').trigger('click');
+      expect(dialogReason(wrapper).exists()).toBe(true);
+      await dialogReason(wrapper).setValue('  GDPR erasure request #123  ');
+      await dialogInput(wrapper).setValue(EMAIL);
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.delete).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}`, {
+        headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) },
+        params: { reason: 'GDPR erasure request #123' },
+      });
+    });
+
+    // The OPTIONAL half: no reason must leave the request BYTE-IDENTICAL to the
+    // pre-#4338 one — the #4326 confirm header and nothing else, not
+    // `reason=''` — so the audit detail keeps its old shape. (The "DELETEs,
+    // toasts…" case above asserts the same headers-only call.)
+    it('adds nothing to the request when the reason is left blank', async () => {
+      await openDrawer();
+      mockApi.delete.mockResolvedValue({ data: mutationAck() });
+      mockApi.get.mockResolvedValue({ data: emptyPayload() });
+
+      await wrapper.find('[data-testid="drawer-purge-button"]').trigger('click');
+      await dialogReason(wrapper).setValue('   ');
+      await dialogInput(wrapper).setValue(EMAIL);
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.delete).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}`, {
+        headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) },
+      });
+    });
+
+    // Reversible bookkeeping asks for no explanation — only the destructive
+    // verb on this screen does.
+    it('does NOT show the reason field for verify/unverify', async () => {
+      await openDrawer();
+      await wrapper.find('[data-testid="drawer-verify-button"]').trigger('click');
+      await flushPromises();
+      expect(dialogReason(wrapper).exists()).toBe(false);
     });
 
     it('does NOT delete when submitted without a matching token', async () => {

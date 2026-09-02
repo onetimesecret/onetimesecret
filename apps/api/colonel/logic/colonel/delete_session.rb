@@ -35,7 +35,7 @@ module ColonelAPI
         include AccountIdentifier
         include CurrentSession
 
-        attr_reader :session_handle, :session_id, :result
+        attr_reader :session_handle, :session_id, :reason, :result
 
         def process_params
           @session_handle = sanitize_identifier(params['session_handle']).to_s.downcase
@@ -44,6 +44,9 @@ module ColonelAPI
           # bounded scan. sanitize_account_identifier, not sanitize_identifier:
           # the latter strips `@` and `.` out of an email hint.
           @owner_hint     = sanitize_account_identifier(params['user_id'])
+          # OPTIONAL operator-supplied why (#4338) — query string, since this is
+          # a DELETE. See ColonelAPI::Logic::Base#operator_reason_param.
+          @reason         = operator_reason_param
           raise_form_error('Session handle is required', field: :session_handle) if session_handle.empty?
         end
 
@@ -99,6 +102,7 @@ module ColonelAPI
           @result = Onetime::Operations::Sessions::Delete.new(
             session_id: session_id,
             actor: cust.extid,
+            reason: reason,
           ).call
 
           success_data

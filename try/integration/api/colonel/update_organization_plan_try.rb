@@ -223,9 +223,15 @@ change_plan(@org.extid, 'free_v1')
 JSON.parse(last_response.body)['details']['changed']
 #=> false
 
-## The no-op recorded NO additional audit event (nothing mutated)
+## The no-op DOES record an audit event now (#4337): nothing mutated, but an
+## operator deliberately moved this org onto a plan and that attempt belongs in
+## the trail — marked outcome: no_change rather than dropped.
 audit_count_for(@org.extid)
-#=> 1
+#=> 2
+
+## …under the same verb, marked as a no-change attempt
+Onetime::ColonelAuditEvent.recent(1).first['detail']
+#=> { "outcome" => "no_change", "from" => "free_v1", "to" => "free_v1" }
 
 # ----------------------------------------------------------------
 # Resolution by objid

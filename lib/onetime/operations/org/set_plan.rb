@@ -64,8 +64,11 @@ module Onetime
       # ## Exactly-once audit (CONTRACT 4)
       #
       # One {Onetime::ColonelAuditEvent} per successful change, emitted from
-      # HERE (adapters MUST NOT audit). An idempotent no-op change mutates
-      # nothing and is not audited. A raise partway records `result: :failure`
+      # HERE (adapters MUST NOT audit). An idempotent no-op mutates nothing but
+      # records one too (#4337), under the same verb with
+      # `outcome: 'no_change'`: moving a paying org onto a plan is a billing
+      # action, and the attempt should not vanish from the trail because the
+      # org was already on that plan. A raise partway records `result: :failure`
       # via audit_failures and re-raises.
       class SetPlan
         include Onetime::AuditedFailure
@@ -107,6 +110,7 @@ module Onetime
         def call
           from = @org.planid.to_s
           if from == @planid
+            record_no_change_event(from)
             return Result.new(
               status: :no_change,
               org: @org,
@@ -141,6 +145,21 @@ module Onetime
         end
 
         private
+
+        # A no-change attempt (#4337) — the OPERATOR trail, not the observation
+        # trail. Same verb and target as the applied event, with
+        # `outcome: 'no_change'` marking it. `materialization` is omitted
+        # rather than sent as nil: no engine ran, so there is no status to
+        # report. NOT fail-closed — nothing moved.
+        def record_no_change_event(from)
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @org.extid,
+            result: :success,
+            detail: { outcome: 'no_change', from: from, to: @planid },
+          )
+        end
 
         # Re-materialize entitlements from the new plan. DEGRADABLE: the
         # planid write has already committed and is the operator's primary

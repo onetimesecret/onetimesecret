@@ -26,16 +26,23 @@ module Onetime
       #
       # A replay that PROCESSES at least one message (replayed or failed) records
       # EXACTLY ONE {Onetime::ColonelAuditEvent} — verb `queue.dlq.replay`, target the
-      # DLQ name, detail the replayed/failed counts. A replay of an empty queue, or
-      # one that processed nothing, mutates nothing and records NO event (the "only
-      # audit an actual change" rule shared with Sessions::Delete).
+      # DLQ name, detail the replayed/failed counts. A LIVE replay of an empty
+      # queue mutates nothing but is STILL recorded, under the same verb with
+      # `outcome: 'no_change'` (#4337): the operator fired the replay verb, and
+      # whether a consumer (or an earlier replay) emptied the queue first must
+      # not decide whether the trail shows the attempt. A `:noop` run (queue
+      # non-empty but the loop processed nothing) still records no event.
       #
       # ## Dry run
       #
       # Replay can re-trigger side effects (emails, webhooks). `dry_run: true`
-      # reports how many messages WOULD be replayed WITHOUT republishing or acking
-      # anything — nothing is mutated and NO audit event is recorded — so a caller
-      # can preview the blast radius before an explicit live replay (epic #42 note).
+      # reports how many messages WOULD be replayed WITHOUT republishing or
+      # acking anything — so a caller can preview the blast radius before an
+      # explicit live replay (epic #42 note). It writes nothing to the OPERATOR
+      # trail, but since #4337 it records one OBSERVATION (`result: 'preview'`)
+      # on the budgeted access trail: measuring what a replay would re-fire is
+      # reconnaissance. A dry run that finds the queue empty stays an
+      # observation too, with `outcome: 'no_change'` added to the preview detail.
       #
       # Stateless, single `#call`, returns an immutable {Result}.
       class Replay
@@ -71,7 +78,8 @@ module Onetime
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity
         #   (colonel extid/email, or a CLI sentinel). Never an internal objid.
         # @param count [Integer, nil] max messages to replay (nil = all available).
-        # @param dry_run [Boolean] preview only — mutate nothing, audit nothing.
+        # @param dry_run [Boolean] preview only — mutates nothing; records one
+        #   preview observation on the access trail (#4337), never the operator trail.
         def initialize(connection:, queue:, actor:, count: nil, dry_run: false)
           @connection = connection
           @queue      = queue
@@ -87,12 +95,27 @@ module Onetime
 
           available = queue.message_count
           if available.zero?
+            # An empty queue mutates nothing, but the attempt still records
+            # (#4337), split by intent — this check sits BEFORE the dry-run
+            # branch, so both arms land here. A LIVE firing is a mutation
+            # attempt (operator trail, outcome: 'no_change'); a dry run stays
+            # an observation, with the same marker in the preview detail.
+            if @dry_run
+              record_preview_event(0, 0, outcome: 'no_change')
+            else
+              record_no_change_event
+            end
             return empty_result
           end
 
           to_replay = @count ? [@count, available].min : available
 
+          # A dry run re-triggers nothing, so it writes nothing to the OPERATOR
+          # trail — but it measures exactly what a replay would re-fire
+          # (emails, webhooks), which is reconnaissance worth recording as an
+          # OBSERVATION (#4337).
           if @dry_run
+            record_preview_event(to_replay, available)
             return Result.new(
               status: :dry_run,
               queue: @queue,
@@ -133,6 +156,44 @@ module Onetime
         end
 
         private
+
+        # One OBSERVATION per dry run (#4337), on the budgeted access trail.
+        # Same verb and target as the applied event so a preview and the replay
+        # that followed read as one sequence; `result: 'preview'` and
+        # `dry_run: true` distinguish them. Never message contents — only the
+        # counts the preview exists to produce. `outcome` is set (to
+        # 'no_change') when the preview found the queue already empty.
+        def record_preview_event(would_replay, available, outcome: nil)
+          detail           = { dry_run: true, would_replay: would_replay, available: available }
+          detail[:outcome] = outcome if outcome
+
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @queue,
+            result: 'preview',
+            detail: detail,
+          )
+        end
+
+        # A no-change attempt (#4337) — the OPERATOR trail, not the observation
+        # trail. Only the LIVE arm of the empty branch reaches this (the
+        # dry-run arm records a preview observation instead), so an empty
+        # replay is a live firing of the replay verb that found nothing to
+        # re-enqueue — raced by a consumer, or double-fired after an earlier
+        # replay or purge. Same verb and target as the applied event, detail
+        # mirroring its shape with `outcome: 'no_change'` marking it. NOT
+        # fail-closed: nothing was republished or acked, so there is no
+        # irrecoverable fact for a hard failure to protect.
+        def record_no_change_event
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @queue,
+            result: :success,
+            detail: { outcome: 'no_change', replayed: 0, failed: 0 },
+          )
+        end
 
         def empty_result
           Result.new(status: :empty, queue: @queue, replayed: 0, failed: 0, errors: [], would_replay: 0)

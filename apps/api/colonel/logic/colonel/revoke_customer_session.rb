@@ -43,11 +43,14 @@ module ColonelAPI
       class RevokeCustomerSession < ColonelAPI::Logic::Base
         include CurrentSession
 
-        attr_reader :user_id, :session_handle, :session_id, :customer, :result
+        attr_reader :user_id, :session_handle, :session_id, :customer, :reason, :result
 
         def process_params
           @user_id        = sanitize_identifier(params['user_id'])
           @session_handle = sanitize_identifier(params['session_handle'])
+          # OPTIONAL operator-supplied why (#4338) — query string, since this is
+          # a DELETE. See ColonelAPI::Logic::Base#operator_reason_param.
+          @reason         = operator_reason_param
           raise_form_error('User ID is required', field: :user_id) if user_id.to_s.empty?
           raise_form_error('Session handle is required', field: :session_handle) if session_handle.to_s.empty?
         end
@@ -91,6 +94,7 @@ module ColonelAPI
             custid: user_id,
             session_id: session_id,
             actor: cust.extid,
+            reason: reason,
           ).call
 
           success_data

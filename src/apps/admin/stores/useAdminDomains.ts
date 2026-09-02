@@ -4,6 +4,7 @@ import {
   usePaginatedFetch,
   type PageMeta,
 } from '@/apps/admin/composables/usePaginatedFetch';
+import { reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
 import { createApiResponseSchema } from '@/schemas/api/base';
 import type { ColonelCustomDomain } from '@/schemas/api/internal/responses/colonel';
 import { colonelCustomDomainsResponseSchema } from '@/schemas/api/internal/responses/colonel';
@@ -311,13 +312,19 @@ async function transferDomain(
 async function removeDomain(
   $api: AxiosInstance,
   extid: string,
-  dryRun: boolean,
-  confirm?: string
+  opts: { dryRun: boolean; confirm?: string; reason?: string }
 ): Promise<ColonelDomainRemoveDetails | null> {
-  const response = await $api.delete(
-    `${domainPath(extid)}?dry_run=${dryRun}`,
-    headersFor(confirm)
-  );
+  // `reason` (#4338) joins dry_run on the query string, for the same reason.
+  // The op carries it onto BOTH the preview observation and the applied event.
+  // The confirmation token (#4326) rides the HEADER beside it — a dry-run
+  // preview is exempt server-side and sends none, hence the optional merge.
+  const [reasonConfig] = reasonQueryArgs(opts.reason);
+  const headerConfig = headersFor(opts.confirm);
+  // With no reason the call keeps its exact pre-#4338 shape: a dry-run preview
+  // is exempt from the confirmation and sends `undefined`, an apply sends the
+  // header alone.
+  const config = reasonConfig ? { ...headerConfig, ...reasonConfig } : headerConfig;
+  const response = await $api.delete(`${domainPath(extid)}?dry_run=${opts.dryRun}`, config);
   const parsed = gracefulParse(
     colonelDomainRemoveResponseSchema,
     response.data,
@@ -435,8 +442,8 @@ function bindOperations($api: AxiosInstance) {
       repairDomain($api, extid, options),
     transfer: (extid: string, options: DomainTransferOptions) =>
       transferDomain($api, extid, options),
-    remove: (extid: string, dryRun: boolean, confirm?: string) =>
-      removeDomain($api, extid, dryRun, confirm),
+    remove: (extid: string, dryRun: boolean, confirm?: string, reason?: string) =>
+      removeDomain($api, extid, { dryRun, confirm, reason }),
     fetchConfigs: (extid: string) => fetchDomainConfigs($api, extid),
     upsertConfig: (
       extid: string,

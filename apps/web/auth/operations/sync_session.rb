@@ -137,12 +137,19 @@ module Auth
       # while operators are in the console daily. Session establishment is the
       # one honest signal of operator PRESENCE, as opposed to operator writes.
       #
-      # ## Success only
+      # ## Success only — here
       #
-      # A failed login never reaches this op. That is deliberate and must stay
-      # that way: the audit set is capped by COUNT with no TTL, so an event an
-      # unauthenticated caller can trigger is a log-eviction primitive — enough
-      # failed logins would flush the real destructive-action trail.
+      # A failed login never reaches this op, and must not: the operator trail
+      # is capped by COUNT with no TTL, so an event an unauthenticated caller
+      # can trigger would be a log-eviction primitive against it — enough failed
+      # logins would flush the real destructive-action trail. That argument is
+      # about `events`, and it is why THIS write stays a `.record`.
+      #
+      # It is no longer a reason for failures to record NOTHING (#4339). They
+      # are audited at the Rodauth login-failure hook instead
+      # (Auth::Config::Hooks::Login → Onetime::ColonelSigninFailure), into the
+      # separate `security_events` collection, where a flood can only ever
+      # evict other anonymous telemetry.
       #
       # ## Exactly once per login
       #

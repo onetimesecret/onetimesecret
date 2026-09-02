@@ -135,6 +135,13 @@ gem 'psych', '~> 5.2.3'
 gem 'rdoc'
 gem 'reline'
 gem 'stringio', '~> 3.1.6'
+# Needed by the OPTIONAL audit syslog appender (#4334,
+# etc/defaults/logging.defaults.yaml `audit.syslog`). Declared here for the same
+# reason as its neighbours: `syslog` became a BUNDLED gem in Ruby 3.4, so
+# Bundler blocks `require 'syslog'` unless the Gemfile names it — the appender
+# would raise LoadError the moment an operator enabled it. No third-party code:
+# this ships with Ruby.
+gem 'syslog'
 
 # ====================================
 # Background Job Processing

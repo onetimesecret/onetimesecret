@@ -125,7 +125,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::RevokeCustomerSession do
       logic.process
 
       expect(Onetime::Operations::Sessions::RevokeForCustomer).to have_received(:new)
-        .with(custid: 'ur_owner', session_id: target_sid, actor: 'ur_colonel')
+        .with(custid: 'ur_owner', session_id: target_sid, actor: 'ur_colonel', reason: nil)
     end
 
     it '404s before the gate when the handle names none of the customer sessions' do

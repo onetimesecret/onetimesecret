@@ -50,13 +50,16 @@ module ColonelAPI
 
         SELF_TARGET_MESSAGE = 'Revoked all of your other sessions; this one was kept.'
 
-        attr_reader :user_id, :user, :result
+        attr_reader :user_id, :user, :reason, :result
 
         def process_params
           # sanitize_account_identifier (NOT sanitize_identifier) — the latter
           # strips '@' and '.', which silently destroys an email identifier.
           # See AccountIdentifier.
           @user_id = sanitize_account_identifier(params['user_id'])
+          # OPTIONAL operator-supplied why (#4338). See
+          # ColonelAPI::Logic::Base#operator_reason_param.
+          @reason  = operator_reason_param
           raise_form_error('User ID is required', field: :user_id) if user_id.to_s.empty?
         end
 
@@ -133,6 +136,7 @@ module ColonelAPI
           Onetime::Operations::Sessions::RevokeAllForCustomer.new(
             custid: user_id,
             actor: cust.extid, # acting colonel's PUBLIC id, never an objid
+            reason: reason,    # optional operator-supplied why (#4338)
           ).call
         end
 
@@ -147,6 +151,7 @@ module ColonelAPI
             custid: user_id,
             except_session_id: current_session_id,
             actor: cust.extid, # acting colonel's PUBLIC id, never an objid
+            reason: reason,    # optional operator-supplied why (#4338)
           ).call
         end
       end

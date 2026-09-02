@@ -6,6 +6,7 @@
 require 'auth/operations/delete_customer'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
 
 module Auth
   module Operations
@@ -26,6 +27,7 @@ module Auth
       # does not flood the capped audit set with thousands of events.
       class Purge
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
 
         AUDIT_VERB = 'customer.purge'
 
@@ -43,9 +45,15 @@ module Auth
         #   non-anonymous)
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity.
         #   Never an internal objid.
-        def initialize(customer:, actor:)
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the audit detail. Blank is treated as absent and the
+        #   detail keeps its pre-#4338 shape; see {Onetime::AuditReason},
+        #   which also owns the 255-char bound and the optional-now /
+        #   required-later rollout.
+        def initialize(customer:, actor:, reason: nil)
           @customer = customer
           @actor    = actor
+          @reason   = normalize_reason(reason)
         end
 
         # @return [Result]
@@ -58,13 +66,22 @@ module Auth
           return Result.new(status: :not_found, extid: extid, custid: custid) unless deleted
 
           # One audit event per successful mutation. obscure_email is non-secret;
-          # never put secret content / tokens / passphrases into detail.
+          # never put secret content / tokens / passphrases into detail. The
+          # operator's `reason` (#4338) rides in the same hash when supplied —
+          # this is the verb where WHY matters most, since the account it
+          # names no longer exists to be inspected.
+          #
+          # FAIL-CLOSED (#4333): the account is already gone by the time this
+          # runs, so an unwritable event cannot be recovered from anywhere else.
+          # Raising Onetime::AuditWriteFailure reports the purge as failed
+          # rather than returning a clean :success for an action with no trail.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: extid,
             result: :success,
-            detail: { email: obscure(@customer) },
+            detail: with_reason(email: obscure(@customer)),
+            fail_closed: true,
           )
 
           Result.new(status: :success, extid: extid, custid: custid)

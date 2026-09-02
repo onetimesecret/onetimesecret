@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/colonel_audit_event'
+
 require_relative '../base'
 
 module ColonelAPI
@@ -13,8 +15,25 @@ module ColonelAPI
       #   breakdowns of secrets created and users registered, totals,
       #   secrets grouped by state, and daily averages. Date range defaults
       #   to the last 30 days and cannot exceed 365 days. Requires colonel role.
+      #
+      # ## Audited as an OBSERVATION (#4335)
+      #
+      # Mutates nothing, so it writes nothing to the OPERATOR trail. It is on
+      # the curated list under the BULK EXTRACTION half of the principle rather
+      # than the customer-material half: the output is aggregate counts, but
+      # producing them SCANs up to 10,000 secrets and loads every customer
+      # record in the install, over a window of up to a year. That is the
+      # heaviest read the console can ask for and the closest thing it has to a
+      # whole-install data pull, so who ran it and over what window is worth
+      # keeping.
       class ExportUsage < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'usageExport' }.freeze
+
+        AUDIT_VERB = 'usage.export'
+
+        # Fixed target: a date-ranged aggregate has no single subject. The
+        # window itself is the interesting part and rides in `detail`.
+        AUDIT_TARGET = 'usage'
 
         using Familia::Refinements::TimeLiterals
 
@@ -69,7 +88,28 @@ module ColonelAPI
             avg_users_per_day: customers_in_range.size.to_f / ((end_date - start_date) / 86_400.0),
           }
 
+          record_access_event
+
           success_data
+        end
+
+        # The WINDOW is what identifies this extraction — a 365-day pull and a
+        # default 30-day one are different acts. Counts say how much came out.
+        # Both are already aggregates; nothing per-customer enters the trail.
+        def record_access_event
+          Onetime::ColonelAuditEvent.record_access(
+            actor: cust&.extid,
+            verb: AUDIT_VERB,
+            target: AUDIT_TARGET,
+            result: :success,
+            detail: {
+              start_date: start_date,
+              end_date: end_date,
+              days: ((end_date - start_date) / 86_400.0).ceil,
+              secrets: usage_data[:total_secrets],
+              new_users: usage_data[:total_new_users],
+            },
+          )
         end
 
         def success_data

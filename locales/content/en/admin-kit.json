@@ -55,6 +55,18 @@
     "text": "The entered text must match exactly to continue.",
     "content_hash": "f0cc7389"
   },
+  "web.admin.kit.confirmDialog.reasonLabel": {
+    "text": "Reason (optional)",
+    "content_hash": "0f7d4664"
+  },
+  "web.admin.kit.confirmDialog.reasonPlaceholder": {
+    "text": "Why are you doing this?",
+    "content_hash": "ef83fe82"
+  },
+  "web.admin.kit.confirmDialog.reasonHint": {
+    "text": "Recorded in the admin audit log alongside this action.",
+    "content_hash": "23779076"
+  },
   "web.admin.kit.revealEmail.reveal": {
     "text": "Reveal email address",
     "content_hash": "f6272277"

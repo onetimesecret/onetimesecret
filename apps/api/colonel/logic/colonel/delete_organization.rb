@@ -76,13 +76,18 @@ module ColonelAPI
       class DeleteOrganization < ColonelAPI::Logic::Base
         include MembershipResolvers
 
-        attr_reader :org, :dry_run, :force_default, :force_subscription, :result
+        attr_reader :org, :dry_run, :force_default, :force_subscription, :reason, :result
 
         def process_params
           @org_id             = sanitize_identifier(params['org_id'])
           @dry_run            = params.key?('dry_run') ? truthy?(params['dry_run']) : true
           @force_default      = truthy?(params['force_default'])
           @force_subscription = truthy?(params['force_subscription'])
+          # OPTIONAL operator-supplied why (#4338) — query string, alongside the
+          # flags above and for the same reason. See
+          # ColonelAPI::Logic::Base#operator_reason_param. Operator surface
+          # only: the customer-facing DeleteOrganization adapter sends none.
+          @reason             = operator_reason_param
         end
 
         def raise_concerns
@@ -117,6 +122,8 @@ module ColonelAPI
             # The former members' mail says who did this; on the console that is
             # the acting colonel, not the org's own owner.
             deleted_by: cust.email,
+            # Audit trail only — never reaches the members' notification.
+            reason: reason,
           ).call
 
           # Log from the result: on the applied path destroy! empties the org's

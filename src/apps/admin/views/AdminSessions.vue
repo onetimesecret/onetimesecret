@@ -16,6 +16,7 @@
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
   import { useAdminSessions } from '@/apps/admin/stores/useAdminSessions';
+  import { reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
   import type { ColonelSession } from '@/schemas/api/internal/responses/colonel-sessions';
   import {
     colonelSessionDetailResponseSchema,
@@ -320,7 +321,7 @@
     error: revokeError,
     run: runRevoke,
     reset: resetRevoke,
-  } = useAdminDestructiveMutation(async () => {
+  } = useAdminDestructiveMutation(async (reason?: string) => {
     const handle = revokeTarget.value;
     if (!handle) throw new Error('No session selected');
     const owner = encodeURIComponent(revokeOwner.value);
@@ -328,9 +329,13 @@
     // in X-OTS-Confirm (#4326). It rides a HEADER, never the query string: the
     // token is usually an email address, and `?user_id=` is only an owner HINT
     // for the handle lookup.
+    // The operator's reason (#4338) DOES ride the query string (DELETE bodies
+    // are not reliably parsed); axios appends `params` to the `?user_id=` this
+    // URL already carries.
+    const [reasonConfig] = reasonQueryArgs(reason);
     const response = await $api.delete(
       `/api/colonel/sessions/${encodeURIComponent(handle)}?user_id=${owner}`,
-      { headers: confirmHeaders(revokeToken.value) }
+      { headers: confirmHeaders(revokeToken.value), ...reasonConfig }
     );
     // A 2xx means the session was revoked server-side regardless of ack shape;
     // the parse keeps the contract a live tripwire without failing the action.
@@ -352,9 +357,9 @@
     revokeDialogOpen.value = true;
   }
 
-  async function onRevokeConfirm(): Promise<void> {
+  async function onRevokeConfirm(reason?: string): Promise<void> {
     const revokedHandle = revokeTarget.value;
-    const ok = await runRevoke();
+    const ok = await runRevoke(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
     revokeDialogOpen.value = false;
@@ -673,6 +678,7 @@
       :confirm-token="revokeToken"
       variant="danger"
       :confirm-text="t('web.admin.sessions.revoke.button')"
+      request-reason
       :loading="revokeLoading"
       :error="revokeError"
       @confirm="onRevokeConfirm"

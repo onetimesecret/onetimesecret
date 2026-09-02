@@ -113,8 +113,14 @@ module Onetime
         def call
           diagnostic = self.class.build(to: @to)
 
-          # Dry-run: preview only. Nothing is dispatched and nothing is audited.
-          return Result.new(status: :dry_run, diagnostic: diagnostic) if @dry_run
+          # Dry-run: preview only. Nothing is dispatched, so nothing reaches
+          # the OPERATOR trail — but the operator did name a recipient address
+          # and resolve the live mail configuration against it, so it is
+          # recorded as an OBSERVATION (#4337).
+          if @dry_run
+            record_preview_event(diagnostic)
+            return Result.new(status: :dry_run, diagnostic: diagnostic)
+          end
 
           status = @enqueue ? enqueue!(diagnostic) : deliver!(diagnostic)
 
@@ -133,6 +139,20 @@ module Onetime
         end
 
         private
+
+        # One OBSERVATION per dry run (#4337), on the budgeted access trail.
+        # Same verb and target as the sent event; `result: 'preview'` and
+        # `dry_run: true` distinguish them. Provider and mode only — never the
+        # message content, exactly as on the applied path.
+        def record_preview_event(diagnostic)
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @to,
+            result: 'preview',
+            detail: { dry_run: true, provider: diagnostic.provider, enqueue: @enqueue },
+          )
+        end
 
         # Direct delivery via the configured backend. Raises on failure (caller's
         # rescue owns the FAILED output). Mirrors the pre-extraction CLI call.

@@ -30,7 +30,7 @@ module ColonelAPI
       class SetUserRole < ColonelAPI::Logic::Base
         include AccountIdentifier
 
-        attr_reader :user_id, :user, :new_role, :old_role, :change_status
+        attr_reader :user_id, :user, :new_role, :reason, :old_role, :change_status
 
         def process_params
           # sanitize_account_identifier (NOT sanitize_identifier) — the latter
@@ -39,6 +39,9 @@ module ColonelAPI
           # operator pasted. See AccountIdentifier.
           @user_id  = sanitize_account_identifier(params['user_id'])
           @new_role = sanitize_plain_text(params['role'])
+          # OPTIONAL operator-supplied why (#4338). See
+          # ColonelAPI::Logic::Base#operator_reason_param.
+          @reason   = operator_reason_param
 
           raise_form_error('User ID is required', field: :user_id) if user_id.to_s.empty?
           raise_form_error('Role is required', field: :role) if new_role.to_s.empty?
@@ -86,6 +89,7 @@ module ColonelAPI
             role: new_role,
             actor: cust.extid,       # acting colonel's PUBLIC id (never an objid)
             actor_objid: cust.objid, # INTERNAL id, for the self-demotion check only
+            reason: reason,          # optional operator-supplied why (#4338)
           ).call
           @change_status = result.status
 

@@ -107,11 +107,11 @@
     error: revokeError,
     run: runRevoke,
     reset: resetRevoke,
-  } = useAdminDestructiveMutation(async () => {
+  } = useAdminDestructiveMutation(async (reason?: string) => {
     if (!revokeTarget.value) throw new Error('No session selected');
     // The store optimistically drops the row on a 2xx; a failure throws before
     // the drop, so useAdminMutation captures it and the row stays for retry.
-    await store.revoke(props.userId, revokeTarget.value, props.confirmToken);
+    await store.revoke(props.userId, revokeTarget.value, props.confirmToken, reason);
   });
 
   function requestRevoke(sessionHandle: string): void {
@@ -120,8 +120,8 @@
     revokeDialogOpen.value = true;
   }
 
-  async function onRevokeConfirm(): Promise<void> {
-    const ok = await runRevoke();
+  async function onRevokeConfirm(reason?: string): Promise<void> {
+    const ok = await runRevoke(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
     revokeDialogOpen.value = false;
     revokeTarget.value = '';
@@ -147,9 +147,9 @@
     error: revokeAllError,
     run: runRevokeAll,
     reset: resetRevokeAll,
-  } = useAdminDestructiveMutation(async () => {
+  } = useAdminDestructiveMutation(async (reason?: string) => {
     // run() only returns a boolean, so stash the server's counts for the toast.
-    const record = await store.revokeAll(props.userId, props.confirmToken);
+    const record = await store.revokeAll(props.userId, props.confirmToken, reason);
     lastRevokedCount.value = record.blobs_deleted;
     lastScanCapped.value = record.scan_capped;
   });
@@ -170,8 +170,8 @@
     revokeAllDialogOpen.value = true;
   }
 
-  async function onRevokeAllConfirm(): Promise<void> {
-    const ok = await runRevokeAll();
+  async function onRevokeAllConfirm(reason?: string): Promise<void> {
+    const ok = await runRevokeAll(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
     revokeAllDialogOpen.value = false;
     // Tracked sessions are always killed; a capped sweep may leave a pre-sidecar
@@ -303,6 +303,7 @@
       :description="t('web.admin.customers.detail.sessions.revoke.confirmDescription')"
       variant="danger"
       :confirm-text="t('web.admin.customers.detail.sessions.revoke.button')"
+      request-reason
       :loading="revokeLoading"
       :error="revokeError"
       @confirm="onRevokeConfirm"
@@ -316,6 +317,7 @@
       variant="danger"
       :confirm-token="props.userId"
       :confirm-text="t('web.admin.customers.detail.sessions.revokeAll.button')"
+      request-reason
       :loading="revokeAllLoading"
       :error="revokeAllError"
       @confirm="onRevokeAllConfirm"

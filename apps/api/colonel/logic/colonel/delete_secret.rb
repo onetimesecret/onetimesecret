@@ -46,8 +46,15 @@ module ColonelAPI
 
         attr_reader :secret_id, :secret, :receipt, :deleted_secret, :deleted_receipt
 
+        # `reason` (#4338) is OPTIONAL and rides the QUERY STRING, because this
+        # is a DELETE and request bodies are not reliably parsed across this
+        # stack (the same reason DeleteOrganization / RemoveCustomDomain read
+        # their flags from the query). This route audits INLINE rather than
+        # through an op, so `@reason` feeds {#with_reason} in #process directly
+        # instead of an op kwarg.
         def process_params
           @secret_id = sanitize_identifier(params['secret_id'])
+          @reason    = operator_reason_param
           raise_form_error('Secret ID is required', field: :secret_id) if secret_id.to_s.empty?
         end
 
@@ -137,15 +144,21 @@ module ColonelAPI
           # @deleted_secret: that hash carries internal ids for the response
           # body, and internal ids must not enter the audit trail. Never any
           # secret content — state and shortid only.
+          #
+          # FAIL-CLOSED (#4333): the secret and its receipt are destroyed, so
+          # an operator deleting someone's secret leaves no other trace. An
+          # unwritable event raises Onetime::AuditWriteFailure, which surfaces
+          # as a 500 rather than a 200 for an unrecorded destroy.
           Onetime::ColonelAuditEvent.record(
             actor: cust&.extid,
             verb: AUDIT_VERB,
             target: @audit_target,
             result: :success,
-            detail: {
+            detail: with_reason(
               state: @audit_state,
               receipt_shortid: deleted_receipt&.fetch(:shortid, nil),
-            },
+            ),
+            fail_closed: true,
           )
 
           success_data

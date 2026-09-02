@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/colonel_audit_event'
+
 require_relative '../base'
 require_relative 'account_identifier'
 
@@ -19,12 +21,24 @@ module ColonelAPI
       #   rate limiter — plus a derived findings list a support agent can act
       #   on directly. Thin adapter over Auth::Operations::Customers::Diagnose
       #   (the single implementation, shared with `bin/ots customers
-      #   diagnose`). Mutates nothing, records no audit event. Requires
-      #   colonel role.
+      #   diagnose`). Mutates nothing. Requires colonel role.
+      #
+      # ## Audited as an OBSERVATION (#4335)
+      #
+      # Mutates nothing, so it writes nothing to the OPERATOR trail. It is on
+      # the curated list because of the BUNDLE it returns: the authentication
+      # audit-log tail, the account's active sessions, lockout and login-failure
+      # state, and verification/reset key status for one named person — the
+      # single richest read-out about an individual customer the console has.
+      #
+      # `detail` records the shape of the answer (was an account found, how many
+      # findings), never the sections themselves.
       class GetAccountDiagnostics < ColonelAPI::Logic::Base
         include AccountIdentifier
 
         SCHEMAS = { response: 'colonelAccountDiagnostics' }.freeze
+
+        AUDIT_VERB = 'customer.diagnostics_view'
 
         attr_reader :user_id, :user, :result
 
@@ -57,7 +71,50 @@ module ColonelAPI
             audit_log_limit: audit_log_limit,
           ).call
 
+          record_access_event
+
           success_data
+        end
+
+        # Target prefers the resolved extid so the trail carries a stable public
+        # id rather than whatever the operator typed; it falls back to the
+        # identifier only when nothing resolved, which is itself the answer
+        # ("no such account"). `sanitize_account_identifier` already bounds that
+        # string's length, so raw operator input cannot write an unbounded
+        # target. Detail is the SHAPE of the diagnosis — never its sections,
+        # which carry addresses, session data and the auth-log tail.
+        def record_access_event
+          Onetime::ColonelAuditEvent.record_access(
+            actor: cust&.extid,
+            verb: AUDIT_VERB,
+            target: audit_target,
+            result: :success,
+            detail: {
+              found: result.found?,
+              findings: result.findings&.size || 0,
+              # Says the target is the typed identifier rather than a resolved
+              # extid, so a masked address in the trail reads as "what was
+              # searched for" instead of an id nobody can look up.
+              resolved: !user.nil?,
+              audit_log_limit: audit_log_limit,
+            },
+          )
+        end
+
+        # The resolved extid, or the OBSCURED identifier when nothing resolved.
+        #
+        # This endpoint's identifier is EMAIL-TOLERANT by design (see
+        # {AccountIdentifier} — plain sanitize_identifier would strip the `@`),
+        # so the unresolved fallback is usually a full address an operator
+        # typed. Storing it verbatim would put a raw address in the trail AND
+        # ship it on the `ColonelAudit` sink, which every other
+        # address-handling emitter avoids (Onetime::ColonelSigninFailure, the
+        # change_email events). OT::Utils.obscure_email is the same helper they
+        # use and it is a text-level mask: an address becomes `us***@e***.com`,
+        # while an extid or objid that simply did not resolve carries no address
+        # to match and passes through verbatim.
+        def audit_target
+          user&.extid || OT::Utils.obscure_email(user_id)
         end
 
         # Overrides success_data WITHOUT super (same as GetBrandDiagnostics):

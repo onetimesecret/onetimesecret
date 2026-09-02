@@ -530,6 +530,8 @@ GEM
       faraday-follow_redirects
     syntax_tree (6.3.0)
       prettier_print (>= 1.2.0)
+    syslog (0.4.0)
+      logger
     thor (1.5.0)
     tilt (2.8.0)
     timecop (0.9.11)
@@ -681,6 +683,7 @@ DEPENDENCIES
   stringio (~> 3.1.6)
   stripe (~> 18.4)
   syntax_tree
+  syslog
   tilt
   timecop (~> 0.9)
   truemail (~> 3.3)

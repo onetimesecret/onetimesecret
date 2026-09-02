@@ -5,6 +5,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
 import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
+import { reasonBodyArgs, reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
 import { useApi } from '@/shared/composables/useApi';
 import {
   colonelCustomerSessionsResponseSchema,
@@ -13,7 +14,7 @@ import {
 } from '@/schemas/api/internal/responses/colonel-customer-sessions';
 import type {
   AdminCustomerSession,
-  ColonelCustomerSessionRevokeAllRecord,
+  ColonelCustomerSessionRevokeAllRecord as RevokeAllRecord,
 } from '@/schemas/api/internal/responses/colonel-customer-sessions';
 import { gracefulParse } from '@/utils/schemaValidation';
 
@@ -27,12 +28,14 @@ import { gracefulParse } from '@/utils/schemaValidation';
  * can appear because none exists on the model.
  *
  *   - fetchForCustomer(userId) → GET    /api/colonel/users/:user_id/sessions
- *   - revoke(userId, handle, confirm) → DELETE …/sessions/:session_handle
- *   - revokeAll(userId, confirm) → POST …/sessions/revoke-all
+ *   - revoke(userId, handle, confirm, reason?) → DELETE …/sessions/:session_handle
+ *   - revokeAll(userId, confirm, reason?) → POST …/sessions/revoke-all
  *
  * Both revoke verbs are TIER 1 destructive (#4326): the server refuses them
  * unless the request carries the account identifier (email, public id when it
- * has none) in X-OTS-Confirm.
+ * has none) in X-OTS-Confirm. The trailing `reason` is the OPTIONAL operator
+ * WHY (#4338) — orthogonal to the confirmation, and absent by default, so an
+ * action taken without one is the request it always was.
  *
  * Sessions are identified by session_handle, a non-reversible digest of the raw
  * session id (finding F-01) — the raw sid (a live cookie value) never reaches
@@ -45,7 +48,7 @@ import { gracefulParse } from '@/utils/schemaValidation';
  */
 
 /** Zero-count fallback when the revoke-all ack drifts from its schema. */
-const EMPTY_REVOKE_ALL: ColonelCustomerSessionRevokeAllRecord = {
+const EMPTY_REVOKE_ALL: RevokeAllRecord = {
   revoked: true,
   blobs_deleted: 0,
   untracked_deleted: 0,
@@ -69,19 +72,24 @@ function parseSessionsResponse(data: unknown) {
 
 /**
  * DELETE one session. The account identifier rides X-OTS-Confirm (#4326) — the
- * server refuses this verb without it. The ack is schema-checked as a live
- * tripwire; drift never fails the action, because a 2xx means it already
- * happened server-side.
+ * server refuses this verb without it — and the optional operator reason (#4338)
+ * rides the QUERY STRING beside it, because DELETE bodies are not reliably
+ * parsed across this stack. The ack is schema-checked as a live tripwire; drift
+ * never fails the action, because a 2xx means it already happened server-side.
  */
 async function requestRevoke(
   $api: AxiosInstance,
   userId: string,
   sessionHandle: string,
-  confirm: string
+  confirm: string,
+  reason?: string
 ): Promise<void> {
+  // Absent reason contributes NOTHING to the config — the request is then
+  // byte-identical to the pre-#4338 one.
+  const [reasonConfig] = reasonQueryArgs(reason);
   const response = await $api.delete(
     `${sessionsUrl(userId)}/${encodeURIComponent(sessionHandle)}`,
-    { headers: confirmHeaders(confirm) }
+    { headers: confirmHeaders(confirm), ...reasonConfig }
   );
   gracefulParse(
     colonelCustomerSessionRevokeResponseSchema,
@@ -90,13 +98,19 @@ async function requestRevoke(
   );
 }
 
-/** POST the bulk revoke; ack drift degrades to the zero-count fallback. */
+/**
+ * POST the bulk revoke; ack drift degrades to the zero-count fallback. This one
+ * has a body, so the optional reason (#4338) rides it; with no reason the body
+ * stays `undefined` exactly as before.
+ */
 async function requestRevokeAll(
   $api: AxiosInstance,
   userId: string,
-  confirm: string
-): Promise<ColonelCustomerSessionRevokeAllRecord> {
-  const response = await $api.post(`${sessionsUrl(userId)}/revoke-all`, undefined, {
+  confirm: string,
+  reason?: string
+): Promise<RevokeAllRecord> {
+  const [body] = reasonBodyArgs(reason);
+  const response = await $api.post(`${sessionsUrl(userId)}/revoke-all`, body, {
     headers: confirmHeaders(confirm),
   });
   const result = gracefulParse(
@@ -166,18 +180,31 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
    * view gates it behind a confirm dialog). Drops the row ONLY after a 2xx — the
    * drop is sequenced after the awaited DELETE, so a failure throws before it and
    * the row stays. Throws the network/HTTP error for useAdminMutation to catch.
+   *
+   * @param confirm the account identifier the server gates the verb on (#4326).
+   * @param reason the OPTIONAL operator why (#4338), recorded in the trail.
    */
-  async function revoke(userId: string, handle: string, confirm: string): Promise<void> {
-    await requestRevoke($api, userId, handle, confirm);
+  async function revoke(
+    userId: string,
+    handle: string,
+    confirm: string,
+    reason?: string
+  ): Promise<void> {
+    await requestRevoke($api, userId, handle, confirm, reason);
     sessions.value = sessions.value.filter((s) => s.session_handle !== handle);
   }
 
-  /** Revoke ALL sessions (offboarding/takeover); clears the list, returns kill counts. */
+  /**
+   * Revoke ALL sessions (offboarding/takeover); clears the list, returns kill
+   * counts. `reason` is the OPTIONAL operator why (#4338) — offboarding and
+   * account-takeover response read identically in the trail without it.
+   */
   async function revokeAll(
     userId: string,
-    confirm: string
-  ): Promise<ColonelCustomerSessionRevokeAllRecord> {
-    const record = await requestRevokeAll($api, userId, confirm);
+    confirm: string,
+    reason?: string
+  ): Promise<RevokeAllRecord> {
+    const record = await requestRevokeAll($api, userId, confirm, reason);
     sessions.value = []; // every session is gone regardless of ack shape
     return record;
   }
