@@ -6,9 +6,9 @@
 # Version: 1.0.0
 # Repository: onetimesecret/onetimesecret
 #
-# Runs one test lane (tests/lanes/<lane>) and layers the CI-only concerns on
-# top: failure-tail PR comments and job summaries. The lane owns environment
-# and task list (what runs in which environment); this action owns reporting.
+# Runs one test lane (tests/lanes/<lane>) and layers CI-only result artifacts
+# and job summaries on top. The lane owns environment and task list (what runs
+# in which environment); this action owns reporting.
 # That split is rule 4 in tests/lanes/README.md.
 #
 # The workflow owns service lifecycle (docker compose -f compose.test.yml),
@@ -27,8 +27,8 @@
 
 name: Run Test Lane
 description: |
-  Runs a test lane via tests/lanes/run with CI reporting layered on top:
-  failure tails posted to the PR and a job summary.
+  Runs a test lane via tests/lanes/run with CI result artifacts and a job
+  summary.
 
 inputs:
   lane:
@@ -59,7 +59,6 @@ runs:
         detached: true
 
     - name: Run lane
-      id: lane
       shell: bash
       env:
         LANE: ${{ inputs.lane }}
@@ -67,9 +66,6 @@ runs:
         RESULTS_FILE: ${{ inputs.results-file }}
         # CI owns service lifecycle; never let the runner start compose.
         LANES_NO_AUTOSTART: '1'
-      # Pipe through tee so the runner's live log still streams while we keep
-      # a copy on disk for the failure-comment step. PIPESTATUS[0] preserves
-      # the lane's exit code.
       run: |
         mkdir -p tmp
         if [ -n "$RESULTS_FILE" ]; then
@@ -79,8 +75,7 @@ runs:
         if [ -n "$OVERLAY" ]; then
           args+=(--overlay "$OVERLAY")
         fi
-        "${args[@]}" 2>&1 | tee tmp/lane.log
-        exit ${PIPESTATUS[0]}
+        "${args[@]}"
 
     # The lane writes RSpec's JSON to tmp/ but nothing collected it, so the
     # T5 aggregate job had nothing to aggregate (its unified report read
@@ -116,54 +111,6 @@ runs:
         # A lane that dies before RSpec runs has no JSON to upload, and that
         # is already reported as the lane step's failure.
         if-no-files-found: ignore
-
-    - name: Post failure tail to PR
-      # Only on PR events that actually failed. Skips push/manual runs to keep
-      # comment churn off main. Caller workflow must grant pull-requests: write.
-      if: failure() && steps.lane.outcome == 'failure' && github.event_name == 'pull_request'
-      shell: bash
-      env:
-        GH_TOKEN: ${{ github.token }}
-        PR_NUMBER: ${{ github.event.pull_request.number }}
-        REPO: ${{ github.repository }}
-        JOB_NAME: ${{ github.job }}
-        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
-        LANE: ${{ inputs.lane }}
-        OVERLAY: ${{ inputs.overlay }}
-      run: |
-        if [ ! -f tmp/lane.log ]; then
-          echo "No captured log to post; skipping PR comment."
-          exit 0
-        fi
-
-        # 300 lines is enough for one tryouts/rspec failure with stack trace
-        # but stays well under GitHub's 65k-char comment limit.
-        tail -n 300 tmp/lane.log > /tmp/tail.log
-
-        lane_label="$LANE"
-        if [ -n "$OVERLAY" ]; then
-          lane_label="${LANE} --overlay ${OVERLAY}"
-        fi
-
-        body_file=$(mktemp)
-        {
-          echo "### CI failure: ${JOB_NAME} (lane: \`${lane_label}\`)"
-          echo ""
-          echo "[Run log](${RUN_URL})"
-          echo ""
-          echo "<details><summary>Last 300 lines of output</summary>"
-          echo ""
-          echo '```'
-          cat /tmp/tail.log
-          echo '```'
-          echo "</details>"
-          echo ""
-          echo "<sub>Posted by run-test-lane action so unauthenticated reviewers (humans + agents) can read the failure without log-viewer access.</sub>"
-        } > "$body_file"
-
-        gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" \
-          -f body="$(cat "$body_file")" >/dev/null
-        echo "Posted failure tail to PR #${PR_NUMBER}"
 
     - name: Generate job summary
       if: always()
