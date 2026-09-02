@@ -19,7 +19,7 @@ Companion artifacts:
 | DPA claim | Verdict | Evidence |
 |---|---|---|
 | "XChaCha20-Poly1305 ... (with AES-256-GCM as an available alternative)" | **Inverted today; true after this branch ships.** Production has no rbnacl, so *every* envelope is AES-256-GCM; XChaCha20 is not merely non-default, it is unavailable. This branch adds `rbnacl` + libsodium, after which new writes are XChaCha20-Poly1305 and AES-256-GCM remains the read-compatible alternative. | `Gemfile` (rbnacl absent pre-branch); familia `registry.rb` (priority 100 vs 50) |
-| "Key Derivation: ... BLAKE2b" | **False for all existing data; true only for XChaCha20 envelopes.** The AES-256-GCM path derives with **HKDF-SHA256** (RFC 5869), not BLAKE2b. BLAKE2b keyed derivation applies only to XChaCha20 envelopes, which don't exist yet. Existing AES data keeps HKDF-SHA256-derived keys forever (until re-encrypted). | familia `aes_gcm_provider.rb#derive_key` (HKDF-SHA256); `xchacha20_poly1305_provider.rb#derive_key` (BLAKE2b); proof phase 2 recomputes both independently |
+| "Key Derivation: ... BLAKE2b" | **True as of the upgrade (2026-07); was false at audit time.** The AES-256-GCM path derives with **HKDF-SHA256** (RFC 5869), not BLAKE2b; BLAKE2b keyed derivation applies only to XChaCha20 envelopes. At audit time every envelope was AES, so the clause was inverted. Post-upgrade all live Secret Content is XChaCha20/BLAKE2b (Secret TTL caps at 30 days, so convergence completed within a month of deploy), and the DPA clause has since been reworded to cover both derivations. | familia `aes_gcm_provider.rb#derive_key` (HKDF-SHA256); `xchacha20_poly1305_provider.rb#derive_key` (BLAKE2b); proof phase 2 recomputes both independently |
 | "(i) a system-level secret not stored alongside encrypted data" | **True.** Master keys derive from `site.secret` (config/ENV): v1 = SHA-256(secret), v2 = HKDF(secret, info='familia-enc'). Keys live in process config, never in Redis/Valkey. | `lib/onetime/initializers/configure_familia.rb:65-72`, `lib/onetime/key_derivation.rb` |
 | "(ii) a context string incorporating the object class and unique identifier" | **True.** KDF context is exactly `"Onetime::Secret:ciphertext:<objid>"` (class, field name, identifier — stronger than claimed: the field name is also bound). | familia `encrypted_field_type.rb#build_context` |
 | "Nonce: Randomly generated per encryption operation" | **True.** OS CSPRNG per operation (OpenSSL 12-byte for GCM, libsodium 24-byte for XChaCha). Proof: 500 encryptions → 500 distinct nonces. Note GCM's 96-bit random-nonce collision bound is a non-issue here because keys are per-record (each derived key encrypts ~1 value). | providers' `generate_nonce`; proof phase 2 §5 |
@@ -49,17 +49,16 @@ actual bytes) in `examples/encryption_upgrade_proof/`.
 
 Severity is for our deployment context, not abstract.
 
-**F1 (high, compliance): the DPA overstates BLAKE2b.** All existing Secret
-Content is AES-256-GCM with HKDF-SHA256 derivation. Options: (a) reword the
-clause — e.g. "keys are derived from a system-level secret and a
-class/identifier context string using BLAKE2b (XChaCha20-Poly1305) or
-HKDF-SHA256 (AES-256-GCM)"; (b) rely on Secret TTLs: every Secret expires
-(≤30 days cap) or is destroyed on reveal/burn, so within one max-TTL window
-after enabling libsodium the claim becomes true for all *Secret Content*
-organically. Note (b) does not cover `MailerConfig#api_key` /
-`SsoConfig#client_id/client_secret`, which never expire — but those are not
-"Secret Content" under this clause. If they're covered elsewhere,
-re-encrypt them post-upgrade (`re_encrypt_fields!` + save).
+**F1 (resolved, compliance): the DPA overstated BLAKE2b.** At audit time all
+existing Secret Content was AES-256-GCM with HKDF-SHA256 derivation, while
+the clause named BLAKE2b unconditionally. Closed on both sides: the DPA
+clause was reworded separately to cover both derivations, and Secret
+Content converged organically to XChaCha20-Poly1305 within one max-TTL
+window (30 days) of the upgrade deploy. The audit noted
+`MailerConfig#api_key` / `SsoConfig#client_id/client_secret` as
+non-expiring exceptions; those fields were not yet in production at the
+time of the upgrade, so there is no pre-upgrade AES data in them and no
+re-encryption is owed.
 
 **F2 (high, operational): the upgrade is a one-way door, twice.**
 (a) Once any XChaCha20 envelope exists, every reader needs libsodium;
@@ -98,16 +97,18 @@ only the submitter's own content is affected. Fix direction (familia):
 distinguish the DB-hydration path from user assignment instead of
 duck-typing (e.g. an explicit `from_storage` wrap), or at minimum
 authenticate rehydrated envelopes against the record context before
-accepting them. Pinned as a documented-hazard check in the proof suite.
+accepting them. Pinned as a documented-hazard check in the proof suite. Filed upstream as
+delano/familia#405.
 
 **F5 (medium, correctness): legacy v1 `value`/`value_encryption` fields.**
 The v0.24.5 migration carried pre-Familia encrypted payloads into plain
 deprecated fields with no decryption path in the current codebase, and
 familia logs deserialization failures of legacy unquoted strings at ERROR
 level *including the full raw value* — so migrated records can spray legacy
-ciphertext into application logs on every load. Decide: drop the fields, or
-add a migration that re-encrypts them into `ciphertext`, and gate familia's
-raw-value error logging (filed upstream, F10).
+ciphertext into application logs on every load. Resolved by dropping the fields from the live model
+(`lib/onetime/models/secret/features/migration_fields.rb`): Secret Content
+has a hard TTL cap, so no data written under that scheme survived. The
+familia-side raw-value error logging is still open (F10, delano/familia#407).
 
 **F6 (medium, fixed here): stale security-contract comment.**
 `Receipt.spawn_pair` documented the share domain as an AAD input; it never
@@ -144,13 +145,15 @@ derived key (v1 is a bare unsalted SHA-256 of it). Recommend a minimum
 length check at boot and documenting 32+ random bytes. (Generated installs
 already use `SecureRandom.hex(64)`.)
 
-**F10 (upstream, familia): logging hygiene.** (a) `EncryptedData.valid?`
+**F10 (upstream, familia): logging hygiene** (filed as delano/familia#406
+and #407)**.** (a) `EncryptedData.valid?`
 debug-logs the fully parsed candidate value — i.e. *plaintext being
 assigned*, whenever the plaintext parses as a JSON hash — under
 `FAMILIA_DEBUG=1`; (b) `deserialize_value` failure logs the complete raw
 stored value at ERROR, ungated (see F5). Both should truncate/redact.
 
-**F11 (upstream, familia): envelope `encoding` is unauthenticated.** The
+**F11 (upstream, familia): envelope `encoding` is unauthenticated** (filed
+as delano/familia#408)**.** The
 only envelope field whose tampering has a silent effect: decrypt succeeds
 and the plaintext gets an attacker-chosen encoding tag (or an invalid name
 becomes a per-record decrypt DoS). Requires DB write access (who could
@@ -161,7 +164,10 @@ AAD in a future envelope_version 3. Related nits filed with it:
 `encrypted_fields_status` checks a nonexistent `concealed?` predicate and
 mis-reports live fields; the `algorithm:` per-field option documented in
 `encryption.rb`'s comment is not implemented (and one try file asserts the
-ignored behavior).
+ignored behavior). Those three side-nits have since been resolved upstream
+(`current_provider` removed; `concealed?` now exists on `ConcealedString`;
+per-field `algorithm:` implemented in delano/familia#334) — only the
+unauthenticated `encoding` itself remains open.
 
 **F12 (low, deployment): disk persistence of envelopes.** Shipped compose
 runs Valkey with `appendonly yes` on a persistent volume, no `requirepass`;
@@ -192,9 +198,8 @@ familia encrypted fields eventually.
    secrets created since the deploy unreadable (clean errors). Rolling the
    familia gem back below 2.11 additionally requires the hkdf_salt pin from
    this branch to have been active for any AES writes (it is).
-5. **Long-lived credentials** (`MailerConfig`, `SsoConfig`): optionally
-   re-encrypt after the deploy (`re_encrypt_fields!` + save per record) to
-   move them to XChaCha20; otherwise they stay AES-256-GCM indefinitely
-   (still compliant as the "available alternative").
+5. ~~**Long-lived credentials** (`MailerConfig`, `SsoConfig`): re-encrypt
+   after the deploy.~~ Not applicable — these fields were not in
+   production at upgrade time, so they hold no pre-upgrade AES envelopes.
 6. **Secret Content converges by itself**: max TTL is 30 days, so ≤30 days
    after deploy, all live Secret ciphertext is XChaCha20-Poly1305.
