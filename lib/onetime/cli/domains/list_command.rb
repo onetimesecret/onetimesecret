@@ -26,6 +26,7 @@
 # op is unambiguous at load time; registration is identical either way.
 
 require 'json'
+
 require 'onetime/operations/domains/list'
 require_relative 'shared'
 
