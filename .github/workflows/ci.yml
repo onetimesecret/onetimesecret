@@ -41,9 +41,14 @@ name: CI
 #   so divergence from base can cause unexpected behavior if branches conflict.
 # - workflow_dispatch: checks out the branch/tag selected in the UI (github.ref).
 #   No merge commit — runs against the exact branch tip.
-# - push (not used here): checks out the pushed commit (github.sha), no merge.
+# - push: checks out the pushed commit (github.sha), no merge.
 
 on:
+  # Establishes the default-branch coverage baseline that GitHub Code Quality
+  # compares against to show PR-relevant Ruby and TypeScript file coverage.
+  push:
+    branches:
+      - main
   # Runs on synthetic merge commit (PR branch merged into base). If your branch
   # diverges from main, CI tests the merged result — not your branch in isolation.
   pull_request:
@@ -467,6 +472,8 @@ jobs:
       (needs.typescript-lint.result == 'success' || needs.typescript-lint.result == 'skipped')
     permissions:
       contents: read
+      # Lets the coverage action associate a push with an open PR when needed.
+      pull-requests: read
       # Required to upload coverage data to GitHub Code Quality.
       code-quality: write
     steps:
