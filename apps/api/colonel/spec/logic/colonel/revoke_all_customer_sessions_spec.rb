@@ -167,9 +167,29 @@ RSpec.describe ColonelAPI::Logic::Colonel::RevokeAllCustomerSessions do
 
       expect(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
         .to have_received(:new).with(hash_including(
-          custid: 'ur_colonel', except_session_id: 'a' * 64, actor: 'ur_colonel',
+          customer: self_target, except_session_id: 'a' * 64, actor: 'ur_colonel',
         ))
       expect(Onetime::Operations::Sessions::RevokeAllForCustomer).not_to have_received(:new)
+    end
+
+    # Same construction rule as the offboarding path below: raise_concerns
+    # resolved (and the operator confirmed) THIS record, so the op gets the
+    # record — never a `custid:` it would re-resolve through the extid index,
+    # where a miss (#4205/#4217 drift) degrades to a silent zero-count revoke
+    # that leaves the leaked colonel's other sessions live. Live-datastore
+    # proof of that gap:
+    # try/unit/operations/sessions/revoke_all_for_customer_except_current_try.rb
+    it 'hands the except-current op the resolved record, never a re-resolvable extid' do
+      logic = self_logic
+      logic.raise_concerns
+      logic.process
+
+      expect(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
+        .to have_received(:new).once
+      expect(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
+        .to have_received(:new).with(hash_including(customer: self_target))
+      expect(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
+        .not_to have_received(:new).with(hash_including(:custid))
     end
 
     it 'tells the operator their current session was kept' do

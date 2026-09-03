@@ -29,8 +29,9 @@ module Auth
       private
 
       # Resolve the customer the same way the password hooks and
-      # RevokeAllForCustomerExceptCurrent do: external_id first, falling back to
-      # the account email (Customer.load_by_extid_or_email handles both).
+      # RevokeAllForCustomerExceptCurrent's `custid:` path do: external_id first,
+      # falling back to the account email (Customer.load_by_extid_or_email
+      # handles both).
       # external_id is nullable in the accounts schema, so a bare extid-only
       # lookup would silently skip the watermark stamp for those accounts — and
       # the async sweep (#3810) would then run unguarded and kill the

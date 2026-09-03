@@ -444,6 +444,10 @@ module Onetime
 
           require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
 
+          # `custid:` is a genuine id-only entry point here: this method is the
+          # publish API and receives the same identifier string the message
+          # payload carries, so the inline fallback resolves exactly as the
+          # worker it stands in for would.
           result = Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent.new(
             custid: custid,
             except_session_id: except_session_id,
