@@ -10,7 +10,10 @@
 #   ots session list [--limit N]
 #   ots session search <email-or-custid>
 #   ots session delete <session-id> [--force]
-#   ots sessions revoke-all <customer> [--force]
+#   ots session revoke-all <customer> [--force]
+#
+# `sessions` is an alias of `session`, so every subcommand also resolves under
+# the plural spelling the break-glass runbook uses (`ots sessions revoke-all`).
 #
 
 require 'json'
@@ -153,14 +156,14 @@ module Onetime
         puts 'Session Inspector'
         puts '=' * 80
         puts
-        puts 'Usage: ots session <subcommand> [options]'
+        puts 'Usage: ots session <subcommand> [options]   (alias: ots sessions ...)'
         puts
         puts 'Available subcommands:'
         puts '  inspect <session-id>              Show detailed session information'
         puts '  list [--limit N]                  List active sessions'
         puts '  search <email-or-custid>          Find sessions for a user'
         puts '  delete <session-id> [--force]     Delete a session'
-        puts '  revoke-all <customer> [--force]    Revoke every session for a customer'
+        puts '  revoke-all <customer> [--force]   Revoke every session for a customer'
         puts
       end
     end
@@ -416,19 +419,18 @@ module Onetime
         desc: 'Skip confirmation prompt'
 
       def call(customer: nil, reason: nil, force: false, **)
+        # Both error paths exit non-zero: a scripted `--force` run with a typo'd
+        # identifier must not read as a successful revoke. Only the interactive
+        # "Cancelled" below returns 0, matching SessionDeleteCommand.
         if customer.to_s.strip.empty?
-          puts 'Error: Customer required'
-          puts 'Usage: ots sessions revoke-all <customer> [--reason TEXT] [--force]'
-          return
+          puts 'Usage: ots session revoke-all <customer> [--reason TEXT] [--force]'
+          error_exit('Customer required')
         end
 
         boot_application!
 
         target = Onetime::Customer.load_by_extid_or_email(customer) || Onetime::Customer.load(customer)
-        unless target&.exists?
-          puts "Error: Customer not found: #{customer}"
-          return
-        end
+        error_exit("Customer not found: #{customer}") unless target&.exists?
 
         unless force
           print "Revoke every session for #{target.obscure_email} (#{target.extid})? (y/N): "
@@ -439,8 +441,10 @@ module Onetime
           end
         end
 
+        # The record just resolved (and confirmed above) is what gets revoked —
+        # never a re-resolution of its extid (see the op's class docs).
         result = Onetime::Operations::Sessions::RevokeAllForCustomer.new(
-          custid: target.extid,
+          customer: target,
           actor: CLI_ACTOR,
           reason: reason,
         ).call
@@ -448,17 +452,28 @@ module Onetime
         puts "Revoked #{result.blobs_deleted} session(s) for #{target.extid}"
         puts 'Warning: untracked-session scan reached its safety cap' if result.scan_capped
       end
+
+      private
+
+      # Same per-command shape as lib/onetime/cli/customers/*_command.rb (minus
+      # their --json branch, which this verb does not offer).
+      def error_exit(message)
+        puts "Error: #{message}"
+        exit 1
+      end
     end
 
-    # Register session commands. The revoke-all command also uses the plural path
-    # named by the break-glass runbook; the established singular path remains valid.
-    register 'session', SessionCommand
-    register 'sessions', SessionCommand
+    # Register session commands. `sessions` (the plural the break-glass runbook
+    # names) is an ALIAS of the `session` node, same pattern as customers_command.rb:
+    # dry-cli attaches aliases to the node itself, so every subcommand resolves
+    # under both spellings. A second `register 'sessions', ...` would instead
+    # create a separate node holding only what is registered beneath it, so
+    # `ots sessions list` fell through to the banner.
+    register 'session', SessionCommand, aliases: ['sessions']
     register 'session inspect', SessionInspectCommand
     register 'session list', SessionListCommand
     register 'session search', SessionSearchCommand
     register 'session delete', SessionDeleteCommand
     register 'session revoke-all', SessionRevokeAllCommand
-    register 'sessions revoke-all', SessionRevokeAllCommand
   end
 end

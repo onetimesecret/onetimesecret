@@ -209,13 +209,13 @@ RSpec.describe ColonelAPI::Logic::Colonel::RevokeAllCustomerSessions do
   end
 
   describe 'the happy path still works' do
-    it 'hands the op the custid and the acting colonel extid' do
+    it 'hands the op the resolved customer record and the acting colonel extid' do
       logic = logic_for
       logic.raise_concerns
       data = logic.process
 
       expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new)
-        .with(hash_including(custid: 'ur_target', actor: 'ur_colonel'))
+        .with(hash_including(customer: target, actor: 'ur_colonel'))
       expect(data[:record][:blobs_deleted]).to eq(2)
     end
 
