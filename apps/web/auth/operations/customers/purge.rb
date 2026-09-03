@@ -4,6 +4,7 @@
 
 # Reuses (does not rewrite) the incumbent delete primitive.
 require 'auth/operations/delete_customer'
+require 'onetime/operations/sessions/revoke_all_for_customer'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
@@ -11,13 +12,13 @@ require 'onetime/audit_reason'
 module Auth
   module Operations
     module Customers
-      # ADMIN purge of a single customer: destroy the record and record it in the
-      # admin audit trail.
+      # ADMIN purge of a single customer: revoke its sessions, destroy the record,
+      # and record both mutations in the admin audit trail.
       #
-      # Reuses Auth::Operations::DeleteCustomer (the single delete primitive) and
-      # layers on exactly one ColonelAuditEvent per successful destroy (epic #20
-      # CONTRACT 4 / #21). This is the colonel single-customer delete verb
-      # (DELETE /api/colonel/users/:user_id).
+      # Session revocation runs before Auth::Operations::DeleteCustomer (the single
+      # delete primitive). Each mutation owns its audit event: session.revoke_all
+      # for containment, then customer.purge after destruction. This is the colonel
+      # single-customer delete verb (DELETE /api/colonel/users/:user_id).
       #
       # Scope note: this destroys the customer unconditionally — a colonel deleting
       # a specific account is an explicit, audited decision. The bulk
@@ -61,6 +62,12 @@ module Auth
           # Capture identity BEFORE destroy — the record is gone afterward.
           extid  = @customer.extid
           custid = @customer.custid
+
+          Onetime::Operations::Sessions::RevokeAllForCustomer.new(
+            custid: extid,
+            actor: @actor,
+            reason: @reason,
+          ).call
 
           deleted = Auth::Operations::DeleteCustomer.new(customer: @customer).call
           return Result.new(status: :not_found, extid: extid, custid: custid) unless deleted

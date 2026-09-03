@@ -22,9 +22,11 @@ RSpec.describe Auth::Operations::Customers::Purge do
     double('Customer', extid: 'ur_p', custid: 'cust_p', obscure_email: 'p***@e***.com')
   end
   let(:deleter) { instance_double(Auth::Operations::DeleteCustomer) }
+  let(:revoker) { instance_double(Onetime::Operations::Sessions::RevokeAllForCustomer, call: nil) }
 
   before do
     allow(Onetime::ColonelAuditEvent).to receive(:record)
+    allow(Onetime::Operations::Sessions::RevokeAllForCustomer).to receive(:new).and_return(revoker)
     allow(Auth::Operations::DeleteCustomer).to receive(:new).and_return(deleter)
   end
 
@@ -35,6 +37,9 @@ RSpec.describe Auth::Operations::Customers::Purge do
 
     expect(result.status).to eq(:success)
     expect(result.extid).to eq('ur_p')
+    expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).with(
+      custid: 'ur_p', actor: 'ur_col', reason: nil,
+    )
     expect(Auth::Operations::DeleteCustomer).to have_received(:new).with(customer: customer)
     expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       actor: 'ur_col',
@@ -45,6 +50,17 @@ RSpec.describe Auth::Operations::Customers::Purge do
       # #4333: the account is destroyed before this line runs, so an
       # unwritable event cannot be recovered from anywhere else.
       fail_closed: true,
+    )
+  end
+
+  it 'revokes sessions before destroying the customer' do
+    expect(revoker).to receive(:call).ordered
+    expect(deleter).to receive(:call).ordered.and_return(true)
+
+    described_class.new(customer: customer, actor: 'ur_col', reason: 'takeover').call
+
+    expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).with(
+      custid: 'ur_p', actor: 'ur_col', reason: 'takeover',
     )
   end
 

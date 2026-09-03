@@ -168,11 +168,18 @@ AE.events.clear
 
 # ---- Purge (mutation + audit, reuse DeleteCustomer) -------------------
 
-## Purge destroys the customer, returns :success, and audits once at the extid
+## Purge revokes sessions before destroy and audits both mutations at the extid
 AE.events.clear
 @pr = Auth::Operations::Customers::Purge.new(customer: @purge_cust, actor: 'ur_colonel_pub').call
-[@pr.status, Onetime::Customer.load(@purge_cust.objid).nil?, AE.count, AE.recent(1).first['verb'], AE.recent(1).first['target']]
-#=> [:success, true, 1, "customer.purge", @purge_extid]
+@pr_events = AE.recent(2)
+[
+  @pr.status,
+  Onetime::Customer.load(@purge_cust.objid).nil?,
+  AE.count,
+  @pr_events.map { |event| event['verb'] },
+  @pr_events.map { |event| event['target'] },
+]
+#=> [:success, true, 2, ["customer.purge", "session.revoke_all"], [@purge_extid, @purge_extid]]
 
 # ---- Doctor -----------------------------------------------------------
 
