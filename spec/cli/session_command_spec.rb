@@ -30,7 +30,8 @@ RSpec.describe 'Session Command', type: :cli do
       expect(output[:stdout]).to include('list')
       expect(output[:stdout]).to include('search')
       expect(output[:stdout]).to include('delete')
-      expect(output[:stdout]).to include('clean')
+      expect(output[:stdout]).to include('revoke-all')
+      expect(output[:stdout]).not_to include('clean')
     end
   end
 
@@ -137,14 +138,75 @@ RSpec.describe 'Session Command', type: :cli do
     end
   end
 
-  describe 'clean subcommand' do
-    it 'removes expired sessions' do
-      allow(redis).to receive(:scan_each).and_return(['session:1', 'session:2'].each)
-      allow(redis).to receive(:ttl).and_return(3600, -1)
+  describe 'revoke-all subcommand' do
+    let(:customer) do
+      instance_double(
+        Onetime::Customer,
+        exists?: true,
+        extid: 'ur_target',
+        obscure_email: 't***@e***.com',
+      )
+    end
+    let(:result) do
+      Onetime::Operations::Sessions::RevokeAllForCustomer::Result.new(
+        revoked: true,
+        blobs_deleted: 3,
+        untracked_deleted: 1,
+        rodauth_rows_deleted: 1,
+        scan_capped: false,
+      )
+    end
+    let(:operation) do
+      instance_double(Onetime::Operations::Sessions::RevokeAllForCustomer, call: result)
+    end
 
-      output = run_cli_command_quietly('session', 'clean')
-      expect(output[:stdout]).to include('Cleaning expired sessions')
-      expect(output[:stdout]).to include('Summary')
+    before do
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(customer)
+      allow(Onetime::Customer).to receive(:load).and_return(nil)
+      allow(Onetime::Operations::Sessions::RevokeAllForCustomer).to receive(:new).and_return(operation)
+    end
+
+    it 'requires a customer identifier' do
+      output = run_cli_command_quietly('sessions', 'revoke-all')
+
+      expect(output[:stdout]).to include('Error: Customer required')
+      expect(Onetime::Operations::Sessions::RevokeAllForCustomer).not_to have_received(:new)
+    end
+
+    it 'refuses an unknown customer instead of reporting a zero-count success' do
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(nil)
+
+      output = run_cli_command_quietly('sessions', 'revoke-all', 'missing', '--force')
+
+      expect(output[:stdout]).to include('Error: Customer not found: missing')
+      expect(Onetime::Operations::Sessions::RevokeAllForCustomer).not_to have_received(:new)
+    end
+
+    it 'invokes the audited operation through the plural break-glass path' do
+      output = run_cli_command_quietly(
+        'sessions', 'revoke-all', 'target@example.com', '--reason', 'takeover', '--force'
+      )
+
+      expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).with(
+        custid: 'ur_target', actor: 'cli', reason: 'takeover',
+      )
+      expect(output[:stdout]).to include('Revoked 3 session(s) for ur_target')
+    end
+
+    it 'keeps the established singular namespace available' do
+      output = run_cli_command_quietly('session', 'revoke-all', 'ur_target', '--force')
+
+      expect(output[:stdout]).to include('Revoked 3 session(s) for ur_target')
+    end
+
+    it 'prompts before revoking unless forced' do
+      allow($stdin).to receive(:gets).and_return("n\n")
+
+      output = run_cli_command_quietly('sessions', 'revoke-all', 'ur_target')
+
+      expect(output[:stdout]).to include('Revoke every session')
+      expect(output[:stdout]).to include('Cancelled')
+      expect(Onetime::Operations::Sessions::RevokeAllForCustomer).not_to have_received(:new)
     end
   end
 end

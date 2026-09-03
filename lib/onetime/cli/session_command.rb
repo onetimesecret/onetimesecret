@@ -10,6 +10,7 @@
 #   ots session list [--limit N]
 #   ots session search <email-or-custid>
 #   ots session delete <session-id> [--force]
+#   ots sessions revoke-all <customer> [--force]
 #
 
 require 'json'
@@ -23,6 +24,7 @@ require 'onetime/operations/sessions/store'
 require 'onetime/operations/sessions/list_sessions'
 require 'onetime/operations/sessions/inspect_session'
 require 'onetime/operations/sessions/delete_session'
+require 'onetime/operations/sessions/revoke_all_for_customer'
 
 module Onetime
   module CLI
@@ -158,7 +160,7 @@ module Onetime
         puts '  list [--limit N]                  List active sessions'
         puts '  search <email-or-custid>          Find sessions for a user'
         puts '  delete <session-id> [--force]     Delete a session'
-        puts '  clean                              Remove expired sessions'
+        puts '  revoke-all <customer> [--force]    Revoke every session for a customer'
         puts
       end
     end
@@ -394,46 +396,69 @@ module Onetime
       end
     end
 
-    # Clean expired sessions command
-    class SessionCleanCommand < Command
-      desc 'Remove expired sessions'
+    # Revoke every session belonging to one customer.
+    class SessionRevokeAllCommand < Command
+      desc 'Revoke every session for a customer'
 
-      def call(**)
+      CLI_ACTOR = 'cli'
+
+      argument :customer,
+        type: :string,
+        required: false,
+        desc: 'Customer email, external ID, or object ID'
+      option :reason,
+        type: :string,
+        default: nil,
+        desc: 'Operator-supplied reason (recorded in the admin audit trail)'
+      option :force,
+        type: :boolean,
+        default: false,
+        desc: 'Skip confirmation prompt'
+
+      def call(customer: nil, reason: nil, force: false, **)
+        if customer.to_s.strip.empty?
+          puts 'Error: Customer required'
+          puts 'Usage: ots sessions revoke-all <customer> [--reason TEXT] [--force]'
+          return
+        end
+
         boot_application!
 
-        puts 'Cleaning expired sessions...'
-        dbclient     = Familia.dbclient
-        session_keys = dbclient.scan_each(match: '*session*').to_a
-        expired      = 0
-        active       = 0
+        target = Onetime::Customer.load_by_extid_or_email(customer) || Onetime::Customer.load(customer)
+        unless target&.exists?
+          puts "Error: Customer not found: #{customer}"
+          return
+        end
 
-        session_keys.each do |key|
-          ttl = dbclient.ttl(key)
-          if ttl == -2 # Key doesn't exist
-            next
-          elsif ttl == -1 # Key exists but has no expiry
-            active += 1
-          elsif ttl > 0 # Key has TTL
-            active += 1
-          else
-            # Shouldn't happen, but clean it anyway
-            dbclient.del(key)
-            expired += 1
+        unless force
+          print "Revoke every session for #{target.obscure_email} (#{target.extid})? (y/N): "
+          response = $stdin.gets&.chomp
+          unless response&.downcase == 'y'
+            puts 'Cancelled'
+            return
           end
         end
 
-        puts 'Summary:'
-        puts "  Active sessions: #{active}"
-        puts "  Expired sessions removed: #{expired}"
+        result = Onetime::Operations::Sessions::RevokeAllForCustomer.new(
+          custid: target.extid,
+          actor: CLI_ACTOR,
+          reason: reason,
+        ).call
+
+        puts "Revoked #{result.blobs_deleted} session(s) for #{target.extid}"
+        puts 'Warning: untracked-session scan reached its safety cap' if result.scan_capped
       end
     end
 
-    # Register session commands
+    # Register session commands. The revoke-all command also uses the plural path
+    # named by the break-glass runbook; the established singular path remains valid.
     register 'session', SessionCommand
+    register 'sessions', SessionCommand
     register 'session inspect', SessionInspectCommand
     register 'session list', SessionListCommand
     register 'session search', SessionSearchCommand
     register 'session delete', SessionDeleteCommand
-    register 'session clean', SessionCleanCommand
+    register 'session revoke-all', SessionRevokeAllCommand
+    register 'sessions revoke-all', SessionRevokeAllCommand
   end
 end
