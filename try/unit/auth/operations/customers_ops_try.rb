@@ -12,7 +12,9 @@
 # - SetRole: success + EXACTLY ONE audit event, idempotent no_change (no audit),
 #   invalid role rejected
 # - SetVerification: success audits once, no_change does not audit
-# - Purge: destroys + audits once; audit target is the (pre-destroy) extid
+# - Purge: destroys + audits once; audit target is the (pre-destroy) extid;
+#   a customer whose extid_lookup entry has DRIFTED still gets its live session
+#   revoked (the op is handed the record, not an extid to re-resolve)
 # - Doctor: healthy customer clean, integrity issue detected, repair audits
 #
 # Run: try --agent try/unit/auth/operations/customers_ops_try.rb
@@ -22,6 +24,8 @@ require_relative '../../../support/test_helpers'
 OT.boot! :test
 
 require 'web/auth/operations/customers'
+require 'securerandom'
+require 'onetime/operations/sessions/track_metadata'
 
 AE = Onetime::ColonelAuditEvent
 
@@ -46,6 +50,24 @@ end
 
 @purge_cust  = mk('purge', @stamp)
 @purge_extid = @purge_cust.extid
+
+# EXTID-INDEX DRIFT purge regression (the gap that motivated `customer:` on
+# RevokeAllForCustomer, #4205/#4217): a customer with one live TRACKED session
+# whose extid_lookup entry is MISSING. Seeded BEFORE the entry is dropped
+# because TrackMetadata resolves the owner via find_by_extid.
+@purge_drift       = mk('purgedrift', @stamp)
+@purge_drift_extid = @purge_drift.extid
+@purge_drift_sid   = SecureRandom.hex(32)
+Onetime::Operations::Sessions::TrackMetadata.new(
+  session_id: @purge_drift_sid,
+  session_data: { 'authenticated' => true, 'external_id' => @purge_drift_extid,
+                  'ip_address' => '203.0.113.7', 'user_agent' => 'UA' },
+).call
+Familia.dbclient.set(
+  "session:#{@purge_drift_sid}",
+  Onetime::SessionCodec.from_config.encode({ 'authenticated' => true, 'external_id' => @purge_drift_extid }),
+)
+Onetime::Customer.extid_lookup.remove_field(@purge_drift_extid)
 
 @doc_healthy = mk('doc', @stamp)
 
@@ -168,11 +190,40 @@ AE.events.clear
 
 # ---- Purge (mutation + audit, reuse DeleteCustomer) -------------------
 
-## Purge destroys the customer, returns :success, and audits once at the extid
+## Purge revokes sessions before destroy and audits both mutations at the extid
 AE.events.clear
 @pr = Auth::Operations::Customers::Purge.new(customer: @purge_cust, actor: 'ur_colonel_pub').call
-[@pr.status, Onetime::Customer.load(@purge_cust.objid).nil?, AE.count, AE.recent(1).first['verb'], AE.recent(1).first['target']]
-#=> [:success, true, 1, "customer.purge", @purge_extid]
+@pr_events = AE.recent(2)
+[
+  @pr.status,
+  Onetime::Customer.load(@purge_cust.objid).nil?,
+  AE.count,
+  @pr_events.map { |event| event['verb'] },
+  @pr_events.map { |event| event['target'] },
+]
+#=> [:success, true, 2, ["customer.purge", "session.revoke_all"], [@purge_extid, @purge_extid]]
+
+## Purge of a customer whose extid index entry has DRIFTED still revokes the
+## live session: Purge hands the op the record it holds, so the blob is gone,
+## the customer is destroyed, and session.revoke_all records blobs_deleted 1
+## at the extid. (With `custid: extid` the re-resolution misses, the revoke
+## degrades to 0 and the destroy leaves the blob live behind a deleted customer.)
+AE.events.clear
+@pd_pre = [
+  Onetime::Customer.load_by_extid_or_email(@purge_drift_extid).nil?,                       # drift is real
+  Onetime::Operations::Sessions::Store.find_key(Familia.dbclient, @purge_drift_sid).nil?, # blob is live
+]
+@pd        = Auth::Operations::Customers::Purge.new(customer: @purge_drift, actor: 'ur_colonel_pub').call
+@pd_revoke = AE.recent(2).find { |event| event['verb'] == 'session.revoke_all' }
+[
+  @pd_pre,
+  @pd.status,
+  Onetime::Customer.load(@purge_drift.objid).nil?,
+  Onetime::Operations::Sessions::Store.find_key(Familia.dbclient, @purge_drift_sid).nil?,
+  @pd_revoke['target'],
+  @pd_revoke['detail']['blobs_deleted'],
+]
+#=> [[true, false], :success, true, true, @purge_drift_extid, 1]
 
 # ---- Doctor -----------------------------------------------------------
 
@@ -200,6 +251,8 @@ AE.count
 
 # Cleanup
 AE.events.clear
-[@list_customers, @show_cust, @role_cust, @ver_cust, @doc_healthy, @doc_bad, @doc_repair].flatten.each do |c|
+Familia.dbclient.del("session:#{@purge_drift_sid}")
+Onetime::SessionMetadata.load(@purge_drift_sid)&.destroy! rescue nil
+[@list_customers, @show_cust, @role_cust, @ver_cust, @doc_healthy, @doc_bad, @doc_repair, @purge_drift].flatten.each do |c|
   c.destroy! rescue nil
 end

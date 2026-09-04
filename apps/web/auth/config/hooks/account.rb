@@ -729,6 +729,8 @@ module Auth::Config::Hooks
             # scan_untracked: false keeps the bounded keyspace SCAN out of Rodauth's
             # open reset transaction; the guaranteed tracked kill still revokes every
             # post-sidecar session (see RevokeAllForCustomerExceptCurrent docs).
+            # `custid:` is a genuine id-only entry point: this hook holds a Rodauth
+            # account row (external_id/email), never a Customer record.
             result = Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent.new(
               custid: custid,
               scan_untracked: false,
@@ -935,6 +937,8 @@ module Auth::Config::Hooks
             # scan_untracked: false keeps the bounded keyspace SCAN out of Rodauth's
             # open change transaction; the guaranteed tracked kill still revokes every
             # OTHER post-sidecar session (see RevokeAllForCustomerExceptCurrent docs).
+            # `custid:` is a genuine id-only entry point: this hook holds a Rodauth
+            # account row (external_id/email), never a Customer record.
             result = Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent.new(
               custid: custid,
               except_session_id: current_sid,

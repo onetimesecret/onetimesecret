@@ -30,6 +30,12 @@
 #   rejection); stale blobs and blobs with no authenticated_at stamp still die; a
 #   nil watermark degrades to the unguarded revoke; flag off (default) ignores the
 #   watermark entirely
+# - EXTID-INDEX DRIFT (#4205/#4217, the credential-change gap): a customer whose
+#   extid_lookup entry is missing cannot be resolved by `custid:` (silent
+#   zero-count degrade, no audit event), but a caller holding the record passes
+#   it as `customer:` and the op kills every OTHER blob WITHOUT consulting the
+#   index while still preserving the current session; exactly one of
+#   custid:/customer: is required (ArgumentError otherwise)
 #
 # Run: try --agent try/unit/operations/sessions/revoke_all_for_customer_except_current_try.rb
 
@@ -98,6 +104,41 @@ DB.set("sidecar:#{@untracked}:domain_context", 'sidecar-envelope')
 @other_sid = "tryxc_other_#{@nonce}"
 DB.set("session:#{@other_sid}", @codec.encode({ 'authenticated' => true,
                                                'external_id' => @other.extid, 'email' => @other.email }))
+
+# Acting colonel for the DRIFT block at the bottom — the only section of this
+# file that names an actor, because an actor is what makes the op write the one
+# admin ColonelAuditEvent whose target/detail that regression pins. Every other
+# section stays self-service (no actor, no event), as the M-2 hooks call it.
+@actor = "ur1colonelpub_#{@nonce}" # a PUBLIC id (extid-shaped), never an objid
+
+# EXTID-INDEX DRIFT fixture (#4205/#4217): a customer whose `extid_lookup` entry
+# is MISSING while the record and its sessions are live. Two TRACKED sids (one
+# of them the session to KEEP) plus one UNTRACKED blob, all keyed on the drift
+# customer's extid so none of the @cust sweeps above can touch them. Seeded
+# BEFORE the index entry is dropped because TrackMetadata itself resolves the
+# owner via find_by_extid.
+@drift = Onetime::Customer.create!(email: "driftxc_#{@nonce}@example.com")
+@drift.verified = 'true'
+@drift.save
+@drift_extid = @drift.extid
+
+@drift_current = SecureRandom.hex(32)
+@drift_other   = SecureRandom.hex(32)
+[@drift_current, @drift_other].each do |sid|
+  Onetime::Operations::Sessions::TrackMetadata.new(
+    session_id: sid,
+    session_data: { 'authenticated' => true, 'external_id' => @drift_extid,
+                    'ip_address' => '203.0.113.9', 'user_agent' => 'UA' },
+  ).call
+  DB.set("session:#{sid}", @codec.encode({ 'authenticated' => true,
+                                           'external_id' => @drift_extid, 'email' => @drift.email }))
+end
+@drift_untracked = SecureRandom.hex(32)
+DB.set("session:#{@drift_untracked}", @codec.encode({ 'authenticated' => true,
+                                                      'external_id' => @drift_extid, 'email' => @drift.email }))
+
+# The drift itself: the index no longer knows this extid.
+Onetime::Customer.extid_lookup.remove_field(@drift_extid)
 
 # ---- pre-conditions ---------------------------------------------------
 
@@ -297,10 +338,95 @@ DB.set("session:#{@wm_after}", @codec.encode({ 'authenticated' => true, 'externa
 [@res8.blobs_deleted, Store.find_key(DB, @wm_at).nil?, Store.find_key(DB, @wm_after).nil?]
 #=> [1, true, false]
 
+# ---- extid-index drift: `customer:` must not depend on the index ---------
+# The credential-change callers (CredentialChangeSessionRevocation, the colonel
+# self-target path) HOLD the customer record. Re-resolving its extid through
+# the index is not guaranteed to agree with the record in hand — the index has
+# drifted before (#4205/#4217) — and a miss takes the nil-customer branch: a
+# `blobs_deleted: 0` success with every pre-change session still live. So the
+# op takes `customer:` and uses it as given.
+
+## the drift is REAL: by extid (and by objid-load of the extid) the customer
+## resolves to nothing, yet the record and ALL THREE of its session blobs are live
+[
+  Onetime::Customer.load_by_extid_or_email(@drift_extid).nil?,
+  Onetime::Customer.load(@drift_extid).nil?,
+  @drift.exists?,
+  Store.find_key(DB, @drift_current).nil?,
+  Store.find_key(DB, @drift_other).nil?,
+  Store.find_key(DB, @drift_untracked).nil?,
+]
+#=> [true, true, true, false, false, false]
+
+## addressed by `custid:` (the pre-fix caller shape) the revoke DEGRADES: zero
+## counts, every blob survives, and — worse than the sibling op — NO audit
+## event at all, since the nil-customer branch returns before the admin write.
+## This is the gap; it is pinned so the `customer:` block below is proven
+## non-vacuous against the same fixture.
+AE.events.clear
+@drift_by_id = RXC.new(custid: @drift_extid, except_session_id: @drift_current, actor: @actor).call
+[
+  @drift_by_id.blobs_deleted,
+  AE.count,
+  Store.find_key(DB, @drift_other).nil?,
+  Store.find_key(DB, @drift_untracked).nil?,
+]
+#=> [0, 0, false, false]
+
+## handed the record as `customer:` plus the current sid, the same revoke kills
+## the OTHER tracked blob and the untracked blob (2 = 1 tracked + 1 untracked),
+## never the current one, without ever consulting the index
+AE.events.clear
+@drift_res = RXC.new(customer: @drift, except_session_id: @drift_current, actor: @actor).call
+[@drift_res.revoked, @drift_res.blobs_deleted, @drift_res.untracked_deleted, @drift_res.scan_capped]
+#=> [true, 2, 1, false]
+
+## post-state: the current session keeps its blob, sidecar and index entry (the
+## ONLY entry left); the other two blobs are gone and the revoked sid lost its sidecar
+[
+  Store.find_key(DB, @drift_current).nil?,
+  SM.load(@drift_current).nil?,
+  Store.find_key(DB, @drift_other),
+  Store.find_key(DB, @drift_untracked),
+  SM.load(@drift_other).nil?,
+  @drift.active_sessions.revrange(0, -1),
+]
+#=> [false, false, nil, nil, true, ["#{@drift_current}"]]
+
+## exactly ONE session.revoke_all event, target the record's extid, detail
+## flagged except_current and carrying blobs_deleted > 0
+@drift_ev = AE.recent(1).first
+[AE.count, @drift_ev['verb'], @drift_ev['target'],
+ @drift_ev['detail']['except_current'], @drift_ev['detail']['blobs_deleted'] > 0]
+#=> [1, "session.revoke_all", "#{@drift_extid}", true, true]
+
+## the op used the record AS GIVEN: the index was not repopulated as a side effect
+Onetime::Customer.load_by_extid_or_email(@drift_extid).nil?
+#=> true
+
+## neither kwarg is rejected: exactly one of custid:/customer: is required
+begin
+  RXC.new(except_session_id: @drift_current)
+rescue ArgumentError => e
+  e.class
+end
+#=> ArgumentError
+
+## both kwargs is rejected too (no silent precedence between the two)
+begin
+  RXC.new(custid: @drift_extid, customer: @drift, except_session_id: @drift_current)
+rescue ArgumentError => e
+  e.class
+end
+#=> ArgumentError
+
 # Cleanup
 [@current, @revoked, @untracked, @other_sid, @st_tracked, @st_untracked,
  @wm_fresh, @wm_stale, @wm_ufresh, @wm_unstamp, @off_fresh,
  @wm_at, @wm_after].each { |sid| SM.load(sid)&.destroy!; DB.del("session:#{sid}") }
+[@drift_current, @drift_other, @drift_untracked].each { |sid| SM.load(sid)&.destroy!; DB.del("session:#{sid}") }
+@drift.active_sessions.clear
+@drift.destroy!
 DB.del("sidecar:#{@current}:awaiting_mfa")
 DB.del("sidecar:#{@revoked}:awaiting_mfa")
 DB.del("sidecar:#{@untracked}:domain_context")
