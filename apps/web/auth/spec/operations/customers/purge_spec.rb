@@ -9,7 +9,10 @@
 # without auditing when nothing was deleted, and — since #4333 — writes that
 # audit event FAIL-CLOSED: an unwritable event surfaces as a raised
 # Onetime::AuditWriteFailure instead of a clean :success for a purge with no
-# trail.
+# trail. Also pins the kwarg shape handed to RevokeAllForCustomer: the resolved
+# `customer:` record, never a `custid:` the op would re-resolve through the
+# extid index (#4205/#4217 drift) — the live-datastore proof of that gap is in
+# try/unit/auth/operations/customers_ops_try.rb.
 #
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/customers/purge_spec.rb
 
@@ -38,7 +41,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
     expect(result.status).to eq(:success)
     expect(result.extid).to eq('ur_p')
     expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).with(
-      custid: 'ur_p', actor: 'ur_col', reason: nil,
+      customer: customer, actor: 'ur_col', reason: nil,
     )
     expect(Auth::Operations::DeleteCustomer).to have_received(:new).with(customer: customer)
     expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
@@ -60,8 +63,29 @@ RSpec.describe Auth::Operations::Customers::Purge do
     described_class.new(customer: customer, actor: 'ur_col', reason: 'takeover').call
 
     expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).with(
-      custid: 'ur_p', actor: 'ur_col', reason: 'takeover',
+      customer: customer, actor: 'ur_col', reason: 'takeover',
     )
+  end
+
+  # The reason the op takes `customer:` at all: a revoke keyed by extid
+  # re-resolves through the extid index, and a miss there degrades to a silent
+  # zero-count revoke followed by a destroy that leaves live blobs behind a
+  # deleted customer. Purge holds the record, so it hands over the record —
+  # and does not itself go back to the index for it.
+  it 'hands the resolved record to the revoke op, never a re-resolvable extid' do
+    allow(deleter).to receive(:call).and_return(true)
+    allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+    allow(Onetime::Customer).to receive(:find_by_extid)
+
+    described_class.new(customer: customer, actor: 'ur_col').call
+
+    expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).once
+    expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new)
+      .with(hash_including(customer: customer))
+    expect(Onetime::Operations::Sessions::RevokeAllForCustomer).not_to have_received(:new)
+      .with(hash_including(:custid))
+    expect(Onetime::Customer).not_to have_received(:load_by_extid_or_email)
+    expect(Onetime::Customer).not_to have_received(:find_by_extid)
   end
 
   it 'returns :not_found and does not audit when nothing was deleted' do

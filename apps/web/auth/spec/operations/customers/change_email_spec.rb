@@ -514,7 +514,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
         result = op.call
 
         expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).with(
-          custid: 'ur_c', actor: 'cli'
+          customer: customer, actor: 'cli'
         )
         expect(revoker).to have_received(:call)
         expect(result.sessions_revoked).to be true
@@ -761,7 +761,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       op.call
 
       expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).with(
-        custid: 'ur_c', actor: 'cli'
+        customer: customer, actor: 'cli'
       )
     end
 

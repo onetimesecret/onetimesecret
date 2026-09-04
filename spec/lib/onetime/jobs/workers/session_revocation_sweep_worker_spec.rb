@@ -140,6 +140,12 @@ RSpec.describe Onetime::Jobs::Workers::SessionRevocationSweepWorker, type: :inte
 
   describe '#work_with_params' do
     context 'happy path' do
+      # `custid:` — NOT `customer:` — is correct here and this is the one
+      # caller where it stays: the worker holds nothing but the queue
+      # payload's id (the record was resolved in another process, seconds
+      # earlier), so it is an id-only entry point by construction. Callers
+      # that hold the record must pass `customer:` instead; see the
+      # construction rule on RevokeAllForCustomerExceptCurrent#initialize.
       it 'delegates to the operation with the full sweep and watermark enabled, then acks' do
         worker.work_with_params(message, delivery_info, metadata)
 
@@ -150,6 +156,8 @@ RSpec.describe Onetime::Jobs::Workers::SessionRevocationSweepWorker, type: :inte
             scan_untracked: true,
             honor_credential_watermark: true,
           )
+        expect(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
+          .not_to have_received(:new).with(hash_including(:customer))
         expect(operation).to have_received(:call)
         expect(worker.acked?).to be true
       end

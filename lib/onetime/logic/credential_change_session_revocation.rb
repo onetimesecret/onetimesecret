@@ -97,9 +97,13 @@ module Onetime
       # the encrypted Redis blobs are the app's real auth gate
       # (BaseSessionAuthStrategy), so they must die now, not only when the
       # async sweep lands.
+      #
+      # `customer:` not `custid: customer.extid` — the op must act on the record
+      # we hold, not on whatever the extid index resolves to (drift, #4205/#4217,
+      # would silently zero-count the revoke and leave pre-change blobs live).
       def revoke_session_blobs_inline(customer, except_session_id)
         result = Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent.new(
-          custid: customer.extid,
+          customer: customer,
           except_session_id: except_session_id,
           scan_untracked: false,
         ).call

@@ -132,9 +132,14 @@ module ColonelAPI
 
         # The offboarding primitive: kills EVERY session and writes the
         # ColonelAuditEvent (CONTRACT 4 — the op owns the trail).
+        #
+        # `customer: user`, not `custid: user_id`: raise_concerns already
+        # resolved (and the operator already confirmed) THIS record, so the op
+        # must act on it rather than re-resolve the route param through the
+        # extid index (drift, #4205/#4217, would silently zero-count the revoke).
         def revoke_all
           Onetime::Operations::Sessions::RevokeAllForCustomer.new(
-            custid: user_id,
+            customer: user,
             actor: cust.extid, # acting colonel's PUBLIC id, never an objid
             reason: reason,    # optional operator-supplied why (#4338)
           ).call
@@ -146,9 +151,12 @@ module ColonelAPI
         # op's doc block). Naming an `actor` is what makes it write the one
         # ColonelAuditEvent this admin action owes the trail; the self-service
         # callers pass none and stay out of it.
+        #
+        # `customer: user`, not `custid: user_id` — same reason as #revoke_all:
+        # act on the record raise_concerns resolved and the operator confirmed.
         def revoke_all_except_current
           Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent.new(
-            custid: user_id,
+            customer: user,
             except_session_id: current_session_id,
             actor: cust.extid, # acting colonel's PUBLIC id, never an objid
             reason: reason,    # optional operator-supplied why (#4338)

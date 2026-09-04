@@ -9,11 +9,12 @@ import { ref } from 'vue';
 
 /**
  * Type definition for SystemSettingsStore.
+ *
+ * Read-only: the colonel config write path was removed, so this store only
+ * holds the fetched `details` (no `record`, no write/initialized flags).
  */
 export type SystemSettingsStore = {
   // State
-  _initialized: boolean;
-  record: {} | null; // response is empty object
   details: SystemSettingsDetails;
 
   // Actions
@@ -26,9 +27,7 @@ export const useSystemSettingsStore = defineStore('systemSettings', () => {
   const $api = useApi();
 
   // State
-  const record = ref<{} | null>(null);
   const details = ref<SystemSettingsDetails | null>(null);
-  const _initialized = ref(false);
 
   /**
    * Fetch system settings from the API
@@ -54,7 +53,6 @@ export const useSystemSettingsStore = defineStore('systemSettings', () => {
   }
 
   function dispose() {
-    record.value = null;
     details.value = null;
   }
 
@@ -62,15 +60,12 @@ export const useSystemSettingsStore = defineStore('systemSettings', () => {
    * Reset store state to initial values
    */
   function $reset() {
-    record.value = null;
     details.value = null;
-    _initialized.value = false;
   }
 
   // Expose store interface
   return {
     // State
-    record,
     details,
 
     // Actions

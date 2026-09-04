@@ -83,6 +83,8 @@ module Onetime
 
             log_debug "Sweeping sessions: #{custid} (metadata: #{message_metadata})"
 
+            # `custid:` is a genuine id-only entry point: the payload carries an
+            # identifier, never a record, so resolution happens in the op.
             result = Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent.new(
               custid: custid,
               except_session_id: data[:except_session_id],
