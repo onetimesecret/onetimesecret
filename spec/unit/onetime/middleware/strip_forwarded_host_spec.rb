@@ -4,7 +4,6 @@
 
 require 'spec_helper'
 require 'onetime/middleware/strip_forwarded_host'
-require 'onetime/initializers/configure_rack'
 
 # Unit tests for StripForwardedHost (finding G-01, defense in depth).
 #
@@ -86,11 +85,11 @@ RSpec.describe Onetime::Middleware::StripForwardedHost do
     end
   end
 
-  # Rack's forwarded_priority is process-global class state. It is pinned to
-  # [:x_forwarded] by Onetime::Initializers::ConfigureRack at boot, so whether
-  # Rack reads the surviving Forwarded `proto` depends on whether a boot ran
-  # earlier in this process. Each example sets the priority it is asserting
-  # against so the outcome does not depend on spec ordering.
+  # Rack's forwarded_priority is process-global class state. otto 2.10 pins
+  # it to [:x_forwarded] whenever MiddlewareStack.ip_privacy_security_config
+  # (or any bare Otto.new) has run in this process, so whether Rack reads the
+  # surviving Forwarded `proto` depends on spec ordering. Each example sets
+  # the priority it is asserting against.
   describe 'post-strip Rack resolution' do
     around do |example|
       original = Rack::Request.forwarded_priority
@@ -120,8 +119,8 @@ RSpec.describe Onetime::Middleware::StripForwardedHost do
       expect(Rack::Request.new(call_with(env)).scheme).to eq('https')
     end
 
-    it 'does not read the surviving Forwarded proto once ConfigureRack pins the priority' do
-      Rack::Request.forwarded_priority = Onetime::Initializers::ConfigureRack::FORWARDED_PRIORITY.dup
+    it 'does not read the surviving Forwarded proto once otto pins the priority to X-Forwarded-*' do
+      Rack::Request.forwarded_priority = [:x_forwarded]
       expect(Rack::Request.new(call_with(env)).scheme).to eq('http')
     end
   end
