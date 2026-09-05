@@ -89,8 +89,12 @@ module Onetime
         env.delete(X_FORWARDED_HOST)
 
         if (raw = env[FORWARDED])
-          stripped                                               = self.class.without_host_params(raw)
-          stripped.nil? ? env.delete(FORWARDED) : env[FORWARDED] = stripped
+          stripped = self.class.without_host_params(raw)
+          if stripped.nil?
+            env.delete(FORWARDED)
+          else
+            env[FORWARDED] = stripped
+          end
         end
 
         @app.call(env)
