@@ -40,14 +40,16 @@ module Onetime
     # `:forwarded` priority and falls through to `X-Forwarded-Host` — which
     # this middleware has already deleted.
     #
-    # Since Onetime::Initializers::ConfigureRack pins
-    # `Rack::Request.forwarded_priority = [:x_forwarded]`, Rack no longer
-    # consults `Forwarded` for ANY of host/for/port/proto, so the surgical
-    # preservation above is moot for Rack itself. It is kept because other
-    # readers still consume the raw header from the env — Otto's IP privacy
-    # middleware in depth mode with `trusted_proxy.header: Forwarded`, and
-    # its redacted fingerprint — and because the priority is process-global
-    # state a future require could reset; the env-level strip holds either way.
+    # Since otto 2.10 pins `Rack::Request.forwarded_priority` to the family
+    # chosen in MiddlewareStack.ip_privacy_security_config ([:x_forwarded]
+    # unless depth mode names `Forwarded`), Rack does not consult `Forwarded`
+    # for host/for/port/proto in the default deployment, so the surgical
+    # preservation above is moot for Rack itself there. It is kept because
+    # depth mode with `trusted_proxy.header: Forwarded` still reads the raw
+    # header (Otto's IP resolution and Rack's proto), and because otto's own
+    # carrier stripping only runs once proxy trust is configured and the peer
+    # fails it — this middleware holds for the unconfigured default and for
+    # trusted peers alike.
     #
     # ## Ordering — AFTER DetectHost AND AdminNetworkIsolation, before
     # ## anything reads request.host

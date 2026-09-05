@@ -1,0 +1,29 @@
+.. A new scriv changelog fragment.
+
+Security
+--------
+
+- Upgraded otto to 2.10. With ``site.network.trusted_proxy.enabled: true``,
+  otto now deletes every forwarded authority carrier (``Forwarded``,
+  ``X-Forwarded-Host``, ``X-Forwarded-Proto``, ``X-Forwarded-Scheme``,
+  ``X-Forwarded-SSL``, ``X-Forwarded-Port``) from a request whose connecting
+  peer is not a trusted proxy, before Rack resolves the request's host,
+  scheme or port. A direct client can no longer influence ``request.host`` or
+  ``request.scheme`` on a proxied deployment.
+
+Changed
+-------
+
+- ``site.network.trusted_proxy.header: Forwarded`` (or ``Both``) now requires
+  ``mode: depth`` and fails the boot in filter mode with a message naming the
+  keys. Filter mode never read RFC 7239 ``Forwarded`` for client IPs; the
+  setting was silently ignored there before.
+
+- In filter mode, a reverse proxy whose address is outside the private ranges
+  and ``site.network.trusted_proxy.cidrs`` is now an untrusted peer for
+  scheme detection as well as for client IP: its ``X-Forwarded-Proto`` is
+  dropped, the scheme falls back to the socket, and secure cookies are not
+  written. Add the proxy's range to ``cidrs`` (or use depth mode).
+
+- ``rack-parser`` is declared directly in the Gemfile; it stopped being an
+  otto runtime dependency in 2.10.

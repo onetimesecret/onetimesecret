@@ -76,6 +76,11 @@ module Onetime
       # set (operator-configured site.network.trusted_proxy.cidrs are appended).
       # Kept at module scope so it stays lexically visible to the singleton
       # methods in `class << self` below.
+      # otto's default forwarding family (Otto::Security::Config::DEFAULT_TRUSTED_PROXY_HEADER).
+      # Pinned on every path through .ip_privacy_security_config so Rack never
+      # reads RFC 7239 Forwarded unless depth mode names it.
+      DEFAULT_TRUSTED_PROXY_HEADER = 'X-Forwarded-For'
+
       PRIVATE_PROXY_RANGES = /
         \A(?:
           10\.|
@@ -212,10 +217,21 @@ module Onetime
         # (default), RFC 7239 'Forwarded', or 'Both' — wired straight through to
         # Otto::Security::Config#trusted_proxy_header (otto#150). The setter
         # validates the value and raises on a typo, so a bad header fails the
-        # boot loudly rather than silently resolving from the wrong source. In
-        # filter/CIDR-walk mode otto reads the X-Forwarded-For family only and
-        # ignores this setting — matching the original ClientIpHelpers, where
-        # `header` was likewise a depth-mode-only concept.
+        # boot loudly rather than silently resolving from the wrong source.
+        #
+        # Since otto 2.10 the header also pins Rack::Request.forwarded_priority
+        # process-wide (otto#252): 'X-Forwarded-For' => [:x_forwarded],
+        # 'Forwarded' => [:forwarded], 'Both' => both. That keeps Rack's
+        # host/port/proto resolution on the same family otto resolves client
+        # IPs from, so a client-supplied RFC 7239 `Forwarded` header (which
+        # Caddy passes through unmanaged) cannot outrank the proxy-managed
+        # X-Forwarded-* family in request.host. The header is therefore set on
+        # EVERY path through this method, including trust disabled, where it is
+        # forced to the X-Forwarded-For default. Filter/CIDR-walk mode reads
+        # the X-Forwarded-For family only, so otto 2.10 rejects 'Forwarded' or
+        # 'Both' there at configuration time; the check below reports that
+        # against the site.network.trusted_proxy keys before otto's own
+        # message would.
         #
         # Always returns a config (never nil): when no proxy is declared it
         # carries mask_private_ips with an empty trust list, so private/localhost
@@ -257,8 +273,18 @@ module Onetime
 
           # No declared reverse proxy means no hop to trust: leave the proxy list
           # empty so the middleware resolves the client from REMOTE_ADDR (and
-          # still masks it per the flag above).
-          return config unless trusted_proxy_enabled?
+          # still masks it per the flag above). The forwarding family is still
+          # pinned: with no trust configured otto leaves the forwarded carriers
+          # in the env for Rack to read, and Rack's own default prefers RFC
+          # 7239 `Forwarded` over X-Forwarded-*. Forcing the X-Forwarded-For
+          # family here (ignoring any stale `header` value, which the config
+          # documents as inert while `enabled` is false) means request.host
+          # can only ever resolve from Host: or the proxy-managed
+          # X-Forwarded-Host, and StripForwardedHost deletes the latter.
+          unless trusted_proxy_enabled?
+            config.trusted_proxy_header = DEFAULT_TRUSTED_PROXY_HEADER
+            return config
+          end
 
           tp = OT.conf.dig('site', 'network', 'trusted_proxy') || {}
 
@@ -269,15 +295,25 @@ module Onetime
           mode = trusted_proxy_mode
 
           header = tp['header'].to_s.strip
-          header = 'X-Forwarded-For' if header.empty?
+          header = DEFAULT_TRUSTED_PROXY_HEADER if header.empty?
+
+          # otto 2.10 raises on this combination too, but names its own
+          # setters; report it against the keys the operator actually edits.
+          if mode != 'depth' && !header.casecmp?(DEFAULT_TRUSTED_PROXY_HEADER)
+            raise ArgumentError,
+              "[MiddlewareStack] site.network.trusted_proxy.header #{header.inspect} " \
+              'requires mode=depth: filter mode resolves client IPs from the ' \
+              'X-Forwarded-For family only and never reads RFC 7239 Forwarded. ' \
+              "Set trusted_proxy.mode to 'depth' or remove the header setting."
+          end
 
           # Read here rather than in the filter branch: depth mode needs it to
           # tell the operator their setting is inert (below).
           geo_header = OT.conf.dig('site', 'network', 'geo', 'header').to_s.strip
 
-          # Which forwarded header depth mode counts hops from (otto#150). otto
-          # honors this in depth mode only and reads the X-Forwarded-For family
-          # in CIDR-walk; the setter canonicalizes and raises on an unrecognized
+          # Which forwarded header depth mode counts hops from (otto#150), and
+          # since otto 2.10 which family Rack::Request.forwarded_priority is
+          # pinned to; the setter canonicalizes and raises on an unrecognized
           # value, so a typo fails the boot rather than silently mis-resolving.
           config.trusted_proxy_header = header
 
@@ -577,10 +613,13 @@ module Onetime
           # WebAuthn origin, any gem) sees the edge's real Host authority —
           # never a host the client forged. Nothing between DetectHost and
           # here reads request.host directly. Complemented at the Rack layer
-          # by Onetime::Initializers::ConfigureRack, which pins
-          # Rack::Request.forwarded_priority to [:x_forwarded] so a raw
-          # `Forwarded` header (which Caddy passes through unmanaged) can never
-          # outrank the proxy-managed X-Forwarded-* family in request.host.
+          # by otto 2.10, which pins Rack::Request.forwarded_priority to the
+          # family set in .ip_privacy_security_config ([:x_forwarded] unless
+          # depth mode names RFC 7239 Forwarded) so a raw `Forwarded` header
+          # (which Caddy passes through unmanaged) can never outrank the
+          # proxy-managed X-Forwarded-* family in request.host, and by otto's
+          # IPPrivacyMiddleware, which deletes every forwarded authority
+          # carrier from an untrusted peer once proxy trust is configured.
           builder.use Onetime::Middleware::StripForwardedHost
 
           # Adds env['HTTP_X_REQUEST_ID']
