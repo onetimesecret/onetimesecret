@@ -4,6 +4,7 @@
 
 require 'spec_helper'
 require 'onetime/middleware/strip_forwarded_host'
+require 'onetime/initializers/configure_rack'
 
 # Unit tests for StripForwardedHost (finding G-01, defense in depth).
 #
@@ -85,17 +86,43 @@ RSpec.describe Onetime::Middleware::StripForwardedHost do
     end
   end
 
+  # Rack's forwarded_priority is process-global class state. It is pinned to
+  # [:x_forwarded] by Onetime::Initializers::ConfigureRack at boot, so whether
+  # Rack reads the surviving Forwarded `proto` depends on whether a boot ran
+  # earlier in this process. Each example sets the priority it is asserting
+  # against so the outcome does not depend on spec ordering.
   describe 'post-strip Rack resolution' do
-    it 'resolves host from Host: and scheme from the surviving Forwarded proto' do
-      env = Rack::MockRequest.env_for(
+    around do |example|
+      original = Rack::Request.forwarded_priority
+      example.run
+    ensure
+      Rack::Request.forwarded_priority = original
+    end
+
+    let(:env) do
+      Rack::MockRequest.env_for(
         'http://onetime.test/',
         'HTTP_X_FORWARDED_HOST' => 'evil.example.com',
         'HTTP_FORWARDED' => 'for=192.0.2.60;proto=https;host=evil.example.com',
       )
-      request = Rack::Request.new(call_with(env))
+    end
 
-      expect(request.host).to eq('onetime.test')
-      expect(request.scheme).to eq('https')
+    it 'resolves host from Host: regardless of forwarded_priority' do
+      Rack::Request.forwarded_priority = [:forwarded, :x_forwarded]
+      expect(Rack::Request.new(call_with(env)).host).to eq('onetime.test')
+    end
+
+    it 'leaves the surviving Forwarded proto readable under the Rack default priority' do
+      # The surgical strip exists so env-level readers (Otto's depth-mode
+      # Forwarded IP resolution, the redacted fingerprint) and any process
+      # running Rack's default priority still see proto/for.
+      Rack::Request.forwarded_priority = [:forwarded, :x_forwarded]
+      expect(Rack::Request.new(call_with(env)).scheme).to eq('https')
+    end
+
+    it 'does not read the surviving Forwarded proto once ConfigureRack pins the priority' do
+      Rack::Request.forwarded_priority = Onetime::Initializers::ConfigureRack::FORWARDED_PRIORITY.dup
+      expect(Rack::Request.new(call_with(env)).scheme).to eq('http')
     end
   end
 end
