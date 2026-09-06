@@ -29,6 +29,11 @@ require 'onetime/operations/sessions/inspect_session'
 require 'onetime/operations/sessions/delete_session'
 require 'onetime/operations/sessions/revoke_all_for_customer'
 
+# Customers::Shared must exist before `include Customers::Shared` below (same
+# explicit require as customers/purge_one_command.rb, so this file cannot be
+# loaded in a broken order).
+require_relative 'customers/shared'
+
 module Onetime
   module CLI
     # Shared helpers for session commands.
@@ -401,14 +406,20 @@ module Onetime
 
     # Revoke every session belonging to one customer.
     class SessionRevokeAllCommand < Command
-      desc 'Revoke every session for a customer'
+      # Customers::Shared#resolve_customer is the one resolver every
+      # customer-targeting CLI verb uses: it strips, normalizes the email
+      # (NFC + case-fold, matching the unique index) and accepts a numeric
+      # Rodauth account id. Resolving from the RAW argument here made a
+      # mixed-case or padded address report "Customer not found" and revoke
+      # nothing.
+      include Customers::Shared
 
-      CLI_ACTOR = 'cli'
+      desc 'Revoke every session for a customer'
 
       argument :customer,
         type: :string,
         required: false,
-        desc: 'Customer email, external ID, or object ID'
+        desc: 'Customer email, external ID, Rodauth account ID, or object ID'
       option :reason,
         type: :string,
         default: nil,
@@ -429,7 +440,8 @@ module Onetime
 
         boot_application!
 
-        target = Onetime::Customer.load_by_extid_or_email(customer) || Onetime::Customer.load(customer)
+        # objid fallback kept for parity with the op's own resolution.
+        target = resolve_customer(customer) || Onetime::Customer.load(customer.to_s.strip)
         error_exit("Customer not found: #{customer}") unless target&.exists?
 
         unless force
@@ -445,7 +457,7 @@ module Onetime
         # never a re-resolution of its extid (see the op's class docs).
         result = Onetime::Operations::Sessions::RevokeAllForCustomer.new(
           customer: target,
-          actor: CLI_ACTOR,
+          actor: Customers::Shared::CLI_ACTOR,
           reason: reason,
         ).call
 

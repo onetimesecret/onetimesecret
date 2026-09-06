@@ -204,6 +204,22 @@ RSpec.describe 'Session Command', type: :cli do
       expect(last_exit_code).to eq(0)
     end
 
+    # The email unique index is keyed on the NORMALIZED address (strip + NFC +
+    # case-fold). Resolving from the raw argument made a mixed-case or padded
+    # address report "Customer not found" and revoke nothing; the command now
+    # goes through Customers::Shared#resolve_customer like every other
+    # customer-targeting verb.
+    it 'resolves a mixed-case, padded email through the normalized lookup' do
+      output = run_cli_command_quietly('sessions', 'revoke-all', '  Target@Example.COM  ', '--force')
+
+      expect(Onetime::Customer).to have_received(:load_by_extid_or_email).with('target@example.com')
+      expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).with(
+        customer: customer, actor: 'cli', reason: nil,
+      )
+      expect(output[:stdout]).to include('Revoked 3 session(s) for ur_target')
+      expect(last_exit_code).to eq(0)
+    end
+
     it 'keeps the established singular namespace available' do
       output = run_cli_command_quietly('session', 'revoke-all', 'ur_target', '--force')
 
