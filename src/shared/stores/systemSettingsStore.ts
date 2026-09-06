@@ -1,6 +1,7 @@
 // src/shared/stores/systemSettingsStore.ts
 
 import { responseSchemas } from '@/schemas/api/internal/responses';
+import type { SystemSettingsResponse } from '@/schemas/api/internal/responses/colonel';
 import type { SystemSettingsDetails } from '@/schemas/contracts/config';
 import { useApi } from '@/shared/composables/useApi';
 import { gracefulParse } from '@/utils/schemaValidation';
@@ -15,10 +16,10 @@ import { ref } from 'vue';
  */
 export type SystemSettingsStore = {
   // State
-  details: SystemSettingsDetails;
+  details: SystemSettingsDetails | null;
 
   // Actions
-  fetch: () => Promise<SystemSettingsDetails>;
+  fetch: () => Promise<SystemSettingsResponse>;
   dispose: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
@@ -33,7 +34,7 @@ export const useSystemSettingsStore = defineStore('systemSettings', () => {
    * Fetch system settings from the API
    * @returns Validated configuration object
    */
-  async function fetch() {
+  async function fetch(): Promise<SystemSettingsResponse> {
     const response = await $api.get('/api/colonel/config');
 
     // Admin config schemas may lag behind server changes, so validation
