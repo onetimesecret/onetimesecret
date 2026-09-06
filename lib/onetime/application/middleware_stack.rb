@@ -576,7 +576,11 @@ module Onetime
           # LATER reader of Rack::Request#host (Rodauth's base_url, the
           # WebAuthn origin, any gem) sees the edge's real Host authority —
           # never a host the client forged. Nothing between DetectHost and
-          # here reads request.host directly.
+          # here reads request.host directly. Complemented at the Rack layer
+          # by Onetime::Initializers::ConfigureRack, which pins
+          # Rack::Request.forwarded_priority to [:x_forwarded] so a raw
+          # `Forwarded` header (which Caddy passes through unmanaged) can never
+          # outrank the proxy-managed X-Forwarded-* family in request.host.
           builder.use Onetime::Middleware::StripForwardedHost
 
           # Adds env['HTTP_X_REQUEST_ID']
