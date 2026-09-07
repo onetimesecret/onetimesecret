@@ -978,15 +978,33 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
         expect(last_response.status).to eq(404)
       end
 
-      # `Forwarded` is not a proxy-managed host header. DetectHost ignores its
-      # host= parameter and AdminNetworkIsolation derives its presence set from
-      # DetectHost::FORWARDED_HEADERS, so it must not turn an ordinary Host
-      # request into a provenance refusal.
-      it 'treats a Forwarded-only request as an ordinary Host request' do
+      # `Forwarded` is not a proxy-managed host header: DetectHost ignores its
+      # host= parameter (#4121), so it is absent from the presence set the gate
+      # derives from DetectHost::FORWARDED_HEADERS. The gate still judges it by
+      # VALUE (rule d): an edge that rewrote Host to the canonical origin and
+      # carried the tenant host only in Forwarded must not have the admin
+      # console served on every tenant-domain request just because Host is on
+      # the allowlist.
+      it 'refuses a Forwarded host= that disagrees with Host from an untrusted peer' do
         expect(Onetime::Middleware::AdminNetworkIsolation::FORWARDED_HOST_ENV_KEYS).not_to include('HTTP_FORWARDED')
 
         signed_in_as(colonel)
         get_api('example.com', heuristic_peer.merge('HTTP_FORWARDED' => 'host=tenant.example.com'))
+
+        expect(last_response.status).to eq(404)
+      end
+
+      it 'admits a Forwarded host= that agrees with Host from an untrusted peer' do
+        signed_in_as(colonel)
+        get_api('example.com', heuristic_peer.merge('HTTP_FORWARDED' => 'for=203.0.113.9;host="example.com:443"'))
+
+        expect(last_response.status).to eq(200)
+        expect(json_body).to have_key('details')
+      end
+
+      it 'admits a disagreeing Forwarded host= from a peer otto vouched for (control)' do
+        signed_in_as(colonel)
+        get_api('example.com', trusted_peer.merge('HTTP_FORWARDED' => 'host=tenant.example.com'))
 
         expect(last_response.status).to eq(200)
         expect(json_body).to have_key('details')

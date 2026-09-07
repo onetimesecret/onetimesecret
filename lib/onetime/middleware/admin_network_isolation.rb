@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'otto/utils'
+require 'rack/utils'
 
 require_relative '../../middleware/detect_host'
 require_relative '../utils/admin_host_allowlist'
@@ -121,6 +122,17 @@ module Onetime
     #   c. one is present but the detected host EQUALS the host the Host header
     #      alone would have produced — the forwarded header did not change the
     #      answer, so there is nothing to distrust.
+    #
+    # And, checked before (b): an RFC 7239 `Forwarded` header whose first
+    # host= parameter names a host OTHER than the one `Host` alone produces is
+    # denied from an untrusted peer (d). DetectHost ignores that parameter
+    # outright (#4121), so the detected host is the Host-derived one and rules
+    # (b)/(c) would wave it through — but the topology that sends it is the
+    # same one (a)-(c) exist for: an edge that rewrote `Host` to the origin's
+    # own (canonical, allowlisted) name and carried the public host only in
+    # `Forwarded`. Admitting on `Host` there would serve the admin console on
+    # every tenant-domain request. A `Forwarded` that agrees with `Host`, or
+    # carries no readable host=, changed nothing and is not a claim.
     #
     # Otherwise the request is DENIED. It is not silently downgraded to the
     # HTTP_HOST-derived host: in the topology this defends (Approximated-style
@@ -284,6 +296,12 @@ module Onetime
       FORWARDED_HOST_ENV_KEYS = Rack::DetectHost::FORWARDED_HEADERS.map do |header|
         "HTTP_#{header.tr('-', '_').upcase}"
       end.freeze
+
+      # RFC 7239 Forwarded. Deliberately NOT in the list above: DetectHost does
+      # not read its host= parameter (#4121), so it never produces a detected
+      # host and presence alone proves nothing. It is judged by VALUE instead
+      # — see rule (d) in the class doc and #rfc7239_host_disagrees?.
+      RFC7239_FORWARDED_ENV_KEY = 'HTTP_FORWARDED'
 
       # Path used when the request path cannot be normalized at all. Fails
       # CLOSED: an unparseable path is judged as an admin surface, so a
@@ -500,7 +518,8 @@ module Onetime
               host: host,
               path: full_path,
               method: env['REQUEST_METHOD'],
-              note: 'a forwarded host header changed the detected host, but the peer is not a configured ' \
+              note: 'a forwarded host header changed the detected host (or RFC 7239 Forwarded named a ' \
+                    'different host than Host), but the peer is not a configured ' \
                     'trusted proxy. Set site.network.trusted_proxy with explicit proxy CIDRs — filter mode ' \
                     'with none listed trusts every private peer — or ADMIN_ALLOWED_HOSTS=* to turn the gate off',
             }
@@ -578,6 +597,14 @@ module Onetime
         # detected) instead of blaming a proxy the operator may not have.
         return true if host.nil? || host.empty?
 
+        host_from_host_header = host_header_host(env)
+
+        # (d) RFC 7239 Forwarded names a host other than what the Host header
+        # alone produced. DetectHost ignored it, so `host` is the Host-derived
+        # one and (b)/(c) below would admit — on exactly the Host-rewriting
+        # topology (a)-(c) refuse to fall back to Host for. See the class doc.
+        return false if rfc7239_host_disagrees?(env, host_from_host_header)
+
         # (b) Nothing that could have overridden the Host header is present.
         return true unless forwarded_host_header?(env)
 
@@ -585,13 +612,40 @@ module Onetime
         # detected host is what the Host header alone would have produced.
         # Both sides go through DetectHost's OWN extraction before ours, so
         # this compares what DetectHost compared.
-        host == host_header_host(env)
+        host == host_from_host_header
       end
 
       # Whether the request carries any host header DetectHost would honor from
-      # a trusted peer. Presence only — the VALUE is never read here.
+      # a trusted peer. Presence only — the VALUE is never read here. (RFC 7239
+      # Forwarded is the one header judged by value; see #rfc7239_host_disagrees?.)
       def forwarded_host_header?(env)
         FORWARDED_HOST_ENV_KEYS.any? { |key| env.key?(key) }
+      end
+
+      # Whether an RFC 7239 Forwarded header claims a host OTHER than the one
+      # the Host header alone produced. The first host= parameter is read, the
+      # same first-value convention DetectHost applies to X-Forwarded-Host, and
+      # normalized identically to the detected host. Rack::Utils.forwarded_values
+      # bounds parameter and escape counts and returns an empty hash for
+      # malformed input, so a Forwarded with no readable host= is no claim at
+      # all — nothing overrode Host, and there is nothing to distrust.
+      #
+      # @param env [Hash] the Rack env
+      # @param host_from_host_header [String, nil] see #host_header_host
+      # @return [Boolean]
+      def rfc7239_host_disagrees?(env, host_from_host_header)
+        raw = env[RFC7239_FORWARDED_ENV_KEY]
+        return false if raw.nil?
+
+        claimed = case Rack::Utils.forwarded_values(raw)
+                  in { host: [first, *] }
+                    normalize_host(Rack::DetectHost.normalize_host(first))
+                  else
+                    nil
+                  end
+        return false if claimed.nil? || claimed.empty?
+
+        claimed != host_from_host_header
       end
 
       # The host the `Host:` header alone would have produced, normalized
