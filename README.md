@@ -26,7 +26,7 @@ docker run -p 3000:3000 -d \
   -e SECRET="$(cat .ots_secret)" \
   -e HOST=localhost:3000 \
   -e SSL=false \
-  onetimesecret/onetimesecret:v0.26.10
+  onetimesecret/onetimesecret:v0.26.11
 ```
 
 Open <http://localhost:3000>, then create an admin ("colonel") account — it
