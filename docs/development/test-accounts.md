@@ -21,9 +21,12 @@ bin/ots apitoken test@example.com --create
 #   API Token: k3j8f...
 #   Authorization: Basic dGVzdEBleGFtcGxlLmNvbTprM2o4Zi4uLg==
 #
-#   curl -u 'test@example.com:k3j8f...' https://localhost:3000/api/account
-#   curl -H 'Authorization: Basic dGVzdEBleGFtcGxlLmNvbTprM2o4Zi4uLg==' https://localhost:3000/api/account
+#   curl -u 'test@example.com:k3j8f...' http://localhost:7143/api/account
+#   curl -H 'Authorization: Basic dGVzdEBleGFtcGxlLmNvbTprM2o4Zi4uLg==' http://localhost:7143/api/account
 ```
+
+The URLs above use `bin/dev`'s default port (`7143`). If you start it with
+`--port` or `PORT`, use that port instead.
 
 ## API Token Management
 

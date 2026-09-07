@@ -77,13 +77,18 @@ pnpm run podman:image:metadata:latest  # inspect OCI labels
 ### 6. Docker Compose stacks
 
 ```bash
-# Simple: app + Redis
+# Simple: app + Valkey
 docker compose -f docker/compose/docker-compose.simple.yml up
 
-# Full: app + Redis + Mailpit
+# Full: Caddy + app + Valkey + RabbitMQ + workers + scheduler
 docker compose -f docker/compose/docker-compose.full.yml up
 
-# Root docker-compose.yml (default)
+# Email testing: simple stack + Mailpit
+docker compose \
+  -f docker/compose/docker-compose.simple.yml \
+  -f docker/compose/docker-compose.mailpit.yml up
+
+# Root docker-compose.yml (default: simple)
 docker compose up
 ```
 
@@ -95,12 +100,13 @@ docker compose up
 
 ```bash
 gh workflow run build-and-publish-oci-images.yml \
-  --ref fix/2651-version-arg \
+  --ref <branch> \
   --field version_tag=0.0.1-test \
   --field registry_target=custom \
   --field platforms=linux/amd64
 ```
 
+- Replace `<branch>` with the branch to build.
 - `registry_target=custom` avoids publishing to public registries
 - The pre-build audit step prints the resolved bake config
 - The post-build audit step pulls the image via podman and checks the version
@@ -112,7 +118,9 @@ The `check-oci-image` job in `ci.yml` builds with `ALLOW_DEV_VERSION=true` (no r
 1. `generate-test-secrets` action creates ephemeral crypto secrets
 2. `test-docker-container` composite action starts the container, waits for health, tests endpoints, and cleans up
 
-Triggers automatically on PRs that touch Dockerfile, docker/, or frontend code.
+On pull requests to `main`, it runs when changed paths match the CI `oci` or
+`frontend` filters, including `Dockerfile*`, `docker/**`, `src/**`, and
+`public/**`.
 
 ### 9. Debug workflow (interactive)
 
