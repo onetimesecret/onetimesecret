@@ -321,6 +321,22 @@ export function isPasswordOnlyMode(): boolean {
 }
 
 /**
+ * Whether the password form is offered at all in this context.
+ *
+ * A single-method restriction other than 'password' withholds the password
+ * form entirely (see AuthMethodSelector's restrictedMethod, which passes
+ * password-enabled=false for 'email_auth' / 'webauthn' and renders SSO-only
+ * for 'sso'). Callers that want to preselect the password tab as a contextual
+ * default must check this first: a 'password' default handed to a branch with
+ * no password tab resolves to whatever tab happens to be first, which is a
+ * silent, arbitrary choice rather than the intended one.
+ */
+export function isPasswordSignInOffered(): boolean {
+  const restrictTo = getRestrictTo();
+  return restrictTo === null || restrictTo === 'password';
+}
+
+/**
  * Checks if email-auth-only (magic links) mode is active.
  * When true, only the email link form is shown on the login page.
  */

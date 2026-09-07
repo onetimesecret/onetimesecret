@@ -70,7 +70,7 @@ const SID = 'sid_auth_1';
 const COUNTRY_HEADER = 'web.admin.sessions.columns.country';
 const UNKNOWN = 'web.admin.sessions.detail.unknown';
 
-function sessionsPayload(rows = [sessionRow()]) {
+function sessionsPayload(rows: Record<string, unknown>[] = [sessionRow()]) {
   return {
     shrimp: '',
     record: {},

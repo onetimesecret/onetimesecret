@@ -23,7 +23,6 @@ export const schemaDefaults: BootstrapPayload = bootstrapSchema.parse({});
  * Customer fixture for authenticated states.
  */
 export const mockCustomer: CustomerCanonical = {
-  identifier: 'cust_ext_123',
   objid: 'cust_obj_123',
   extid: 'cust_ext_123',
   email: 'test@example.com',
@@ -126,7 +125,8 @@ export const baseBootstrap: BootstrapPayload = {
   // Explicitly include optional fields for test key enumeration
   // These are undefined but need to be present for Object.keys() in tests
   customer_since: undefined,
-  development: undefined,
+  // `development` is non-optional (schema default) and already provided by
+  // schemaDefaults; do not override it with undefined.
   organization: undefined,
   entitlement_preview_planid: undefined,
   entitlement_preview_plan_name: undefined,

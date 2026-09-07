@@ -143,6 +143,70 @@
     "text": "Unknown",
     "content_hash": "b764cdc0"
   },
+  "web.admin.system.backups.title": {
+    "text": "Backup Status",
+    "content_hash": "6100b034"
+  },
+  "web.admin.system.backups.description": {
+    "text": "Latest backup events and last successful run from this host.",
+    "content_hash": "19070c41"
+  },
+  "web.admin.system.backups.loadError": {
+    "text": "Could not load backup status.",
+    "content_hash": "9b83029b"
+  },
+  "web.admin.system.backups.notConfigured": {
+    "text": "Not configured here",
+    "content_hash": "d287939f"
+  },
+  "web.admin.system.backups.latest": {
+    "text": "Latest event",
+    "content_hash": "cd7ad68a"
+  },
+  "web.admin.system.backups.lastOk": {
+    "text": "Last successful run",
+    "content_hash": "81120703"
+  },
+  "web.admin.system.backups.artifact": {
+    "text": "Artifact",
+    "content_hash": "e06171a1"
+  },
+  "web.admin.system.backups.unknownUnit": {
+    "text": "Unknown unit",
+    "content_hash": "d120e025"
+  },
+  "web.admin.system.backups.unknownError": {
+    "text": "No error detail",
+    "content_hash": "b2c696e7"
+  },
+  "web.admin.system.backups.destination": {
+    "text": "Destination",
+    "content_hash": "293d404a"
+  },
+  "web.admin.system.backups.shippedOf": {
+    "text": "Shipped {shipped} of {candidates}",
+    "content_hash": "406119a9"
+  },
+  "web.admin.system.backups.freshness.notConfigured": {
+    "text": "Not configured",
+    "content_hash": "dd1841d2"
+  },
+  "web.admin.system.backups.freshness.notMonitored": {
+    "text": "Not monitored",
+    "content_hash": "0f0d1855"
+  },
+  "web.admin.system.backups.freshness.fresh": {
+    "text": "Fresh",
+    "content_hash": "f810b668"
+  },
+  "web.admin.system.backups.freshness.stale": {
+    "text": "Stale — alarm",
+    "content_hash": "c7a9733a"
+  },
+  "web.admin.system.backups.freshness.alarm": {
+    "text": "Alarm",
+    "content_hash": "f3b67957"
+  },
   "web.admin.system.redis.title": {
     "text": "Redis INFO",
     "content_hash": "e762bd3c"

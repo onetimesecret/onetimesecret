@@ -23,8 +23,10 @@ import AxiosMockAdapter from 'axios-mock-adapter';
  */
 const createTestStore = () => defineStore('secrets', () => {
     // Internal reactive state - initialize with empty objects to avoid null reference errors
-    const record = ref({});
-    const details = ref({});
+    // Typed as `any` because this mock store deliberately holds heterogeneous shapes
+    // ({}, secret record fixtures, null on clear) across the test lifecycle.
+    const record = ref<any>({});
+    const details = ref<any>({});
 
     // Mock implementations
     const fetch = vi.fn().mockImplementation(async (id) => {
@@ -102,8 +104,8 @@ describe('secretStore', () => {
   let api;
   let app;
   let appInstance;
-  let store;
-  let useSecretStore;
+  let useSecretStore: ReturnType<typeof createTestStore>;
+  let store: ReturnType<ReturnType<typeof createTestStore>>;
 
   beforeEach(async () => {
     // Setup bootstrap state with modern fixture (minimal state for this test)
@@ -245,19 +247,19 @@ describe('secretStore', () => {
         // Mock implementation for this specific test group
         store.fetch = vi.fn().mockImplementation(async (id) => {
           if (id === 'owner-true') {
-            record.value = mockSecretResponse.record;
-            details.value = { ...mockSecretResponse.details, is_owner: true };
+            store.record.value = mockSecretResponse.record;
+            store.details.value = { ...mockSecretResponse.details, is_owner: true };
           } else if (id === 'owner-false') {
-            record.value = mockSecretResponse.record;
-            details.value = { ...mockSecretResponse.details, is_owner: false };
+            store.record.value = mockSecretResponse.record;
+            store.details.value = { ...mockSecretResponse.details, is_owner: false };
           } else if (id === 'owner-undefined') {
-            record.value = mockSecretResponse.record;
-            details.value = { ...mockSecretResponse.details, is_owner: undefined };
+            store.record.value = mockSecretResponse.record;
+            store.details.value = { ...mockSecretResponse.details, is_owner: undefined };
           } else {
-            record.value = mockSecretResponse.record;
-            details.value = mockSecretResponse.details;
+            store.record.value = mockSecretResponse.record;
+            store.details.value = mockSecretResponse.details;
           }
-          return { record: record.value, details: details.value };
+          return { record: store.record.value, details: store.details.value };
         });
       });
 

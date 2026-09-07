@@ -38,7 +38,7 @@ module Onetime
   # means an attacker who mints a challenge (by completing an SSO round-trip that
   # asserts a victim's email) gets ONE password guess per full IdP round-trip, not
   # an unbounded 5-minute oracle. Mirrors the shipped delete-on-consume patterns:
-  # Customer#pending_plan_intent (Auth::Config::Hooks::Billing.extract_pending_plan_intent)
+  # Customer#consume_pending_plan_intent! (the #4306 billing-handoff consume)
   # and OrganizationMembership#accept! (one-shot token_lookup consume).
   #
   # ## Not the security boundary

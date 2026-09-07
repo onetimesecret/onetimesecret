@@ -9,13 +9,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
 
 describe('Language Store', () => {
-  let axiosMock: AxiosMockAdapter | null;
+  // Non-null: setupTestPinia() enables the axios mock by default, so every
+  // test in this suite has a live adapter.
+  let axiosMock: AxiosMockAdapter;
   let bootstrapStore: ReturnType<typeof useBootstrapStore>;
 
   beforeEach(async () => {
     // Setup testing environment with all needed components
     const setup = await setupTestPinia();
-    axiosMock = setup.axiosMock;
+    axiosMock = setup.axiosMock!;
 
     vi.useFakeTimers();
 
@@ -296,6 +298,34 @@ describe('Language Store', () => {
     it('should reject unsupported locale', async () => {
       // 'ja' not in supportedLocales
       await expect(store.updateLanguage('ja')).rejects.toThrow('Unsupported locale: ja');
+    });
+
+    // #4284: tags longer than xx-XX are valid BCP 47 and must fall back to
+    // the primary language instead of failing schema validation.
+    it('should exact-match multi-hyphen tags against supported locales (zh-Hant-TW -> zh_Hant_TW)', () => {
+      // All hyphens must normalize for comparison, not just the first one.
+      store.supportedLocales = ['en', 'zh_Hant_TW'];
+      store.setCurrentLocale('zh-Hant-TW');
+      expect(store.currentLocale).toBe('zh_Hant_TW');
+    });
+
+    it('should fall back to primary language for script subtags (it-Latn-IT -> it_IT)', () => {
+      store.setCurrentLocale('it-Latn-IT');
+      expect(store.currentLocale).toBe('it_IT');
+    });
+
+    it('should fall back to primary language for variant subtags (en-US-POSIX -> en)', () => {
+      store.setCurrentLocale('en-US-POSIX');
+      expect(store.currentLocale).toBe('en');
+    });
+
+    it('should initialize with default locale when deviceLocale is garbage', () => {
+      vi.spyOn(sessionStorage, 'getItem').mockReturnValue(null);
+
+      const freshStore = useLanguageStore();
+      freshStore.$reset();
+      const result = freshStore.init({ deviceLocale: '!!not-a-locale!!' });
+      expect(result).toBe('en');
     });
   });
 

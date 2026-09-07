@@ -64,7 +64,7 @@ vi.mock('@/shared/composables/useIncomingConfig', () => ({
 const mockDomainState = {
   domain: ref({ display_domain: 'example.com', extid: 'dm-ext-123' }),
   isLoading: ref(false),
-  error: ref(null),
+  error: ref<{ message: string } | null>(null),
   initialize: mockInitializeDomain,
 };
 

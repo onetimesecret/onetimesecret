@@ -51,7 +51,11 @@ import type { ReceiptState } from '@/schemas/shapes/v2/receipt';
 /**
  * Asserts that two dates are equal by timestamp.
  */
-function expectDatesEqual(actual: Date | null, expected: Date | null, fieldName: string) {
+function expectDatesEqual(
+  actual: Date | null | undefined,
+  expected: Date | null,
+  fieldName: string
+) {
   if (expected === null) {
     expect(actual, `${fieldName} should be null`).toBeNull();
   } else {
@@ -96,8 +100,9 @@ describe('V2 Receipt Round-Trip', () => {
       expectDatesEqual(parsed.shared, canonical.shared, 'shared');
 
       // Booleans
-      expect(parsed.is_viewed).toBe(canonical.is_viewed);
-      expect(parsed.is_received).toBe(canonical.is_received);
+      // V2 wire keeps the deprecated aliases, derived from the canonical fields.
+      expect(parsed.is_viewed).toBe(canonical.is_previewed);
+      expect(parsed.is_received).toBe(canonical.is_revealed);
       expect(parsed.is_burned).toBe(canonical.is_burned);
 
       // Numbers
@@ -121,7 +126,7 @@ describe('V2 Receipt Round-Trip', () => {
     it('preserves null timestamps', () => {
       const canonical = createCanonicalReceiptBase({
         shared: null,
-        received: null,
+        revealed: null,
         burned: null,
       });
       const wire = createV2WireReceiptBase(canonical);
@@ -134,7 +139,7 @@ describe('V2 Receipt Round-Trip', () => {
 
     it('preserves boolean false values', () => {
       const canonical = createCanonicalReceiptBase({
-        is_viewed: false,
+        is_previewed: false,
         is_burned: false,
         is_expired: false,
       });
@@ -148,7 +153,7 @@ describe('V2 Receipt Round-Trip', () => {
 
     it('preserves boolean true values', () => {
       const canonical = createCanonicalReceiptBase({
-        is_viewed: true,
+        is_previewed: true,
         is_burned: true,
         is_expired: true,
       });
@@ -376,7 +381,8 @@ describe('Deprecated Field Aliasing', () => {
 
       // Both should be set to the same value for backward compatibility
       expectDatesEqual(parsed.revealed, canonical.revealed, 'revealed');
-      expectDatesEqual(parsed.received, canonical.received, 'received');
+      // V2 keeps `received` as a deprecated alias of the canonical `revealed`.
+      expectDatesEqual(parsed.received, canonical.revealed, 'received');
       // They should be equal timestamps
       expect(parsed.revealed?.getTime()).toBe(parsed.received?.getTime());
     });
@@ -388,7 +394,8 @@ describe('Deprecated Field Aliasing', () => {
 
       // Both should be set to the same value for backward compatibility
       expectDatesEqual(parsed.previewed, canonical.previewed, 'previewed');
-      expectDatesEqual(parsed.viewed, canonical.viewed, 'viewed');
+      // V2 keeps `viewed` as a deprecated alias of the canonical `previewed`.
+      expectDatesEqual(parsed.viewed, canonical.previewed, 'viewed');
       // They should be equal timestamps
       expect(parsed.previewed?.getTime()).toBe(parsed.viewed?.getTime());
     });
@@ -822,8 +829,9 @@ describe('Edge Cases', () => {
       const wire = createV3WireReceiptBase(canonical);
       const parsed = v3ReceiptBaseSchema.parse(wire);
 
-      // These should remain undefined/absent
-      expect(parsed.custid).toBeUndefined();
+      // These should remain undefined/absent. V3 drops `custid` from the wire,
+      // so `memo` stands in as the second optional field to check here.
+      expect(parsed.memo).toBeUndefined();
       expect(parsed.owner_id).toBeUndefined();
     });
 

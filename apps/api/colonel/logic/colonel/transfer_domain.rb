@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'domain_resolver'
 require 'onetime/operations/domains/transfer'
 
 module ColonelAPI
@@ -24,6 +25,8 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class TransferDomain < ColonelAPI::Logic::Base
+        include DomainResolver
+
         attr_reader :extid,
           :to_org_id,
           :from_org_id,
@@ -47,7 +50,7 @@ module ColonelAPI
         def raise_concerns
           verify_one_of_roles!(colonel: true)
 
-          @custom_domain = Onetime::CustomDomain.find_by_extid(extid)
+          @custom_domain = resolve_custom_domain(extid)
           raise_not_found('Domain not found') unless custom_domain
 
           @to_org = resolve_org(to_org_id)

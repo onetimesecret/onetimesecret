@@ -117,7 +117,14 @@ RSpec.describe V1::Controllers::Index, type: :request do
 
     before do
       allow(V1::Logic::Secrets::ConcealSecret).to receive(:new)
-        .with(session, customer, request.params, 'en')
+        .with(
+          session,
+          customer,
+          request.params,
+          'en',
+          domain_strategy: nil,
+          display_domain: nil,
+        )
         .and_return(logic)
       allow(logic).to receive(:domain_strategy=)
       allow(logic).to receive(:display_domain=)
@@ -193,7 +200,14 @@ RSpec.describe V1::Controllers::Index, type: :request do
 
     before do
       allow(V1::Logic::Secrets::ConcealSecret).to receive(:new)
-        .with(session, customer, request.params, 'en')
+        .with(
+          session,
+          customer,
+          request.params,
+          'en',
+          domain_strategy: nil,
+          display_domain: nil,
+        )
         .and_return(logic)
       allow(logic).to receive(:domain_strategy=)
       allow(logic).to receive(:display_domain=)
@@ -243,7 +257,14 @@ RSpec.describe V1::Controllers::Index, type: :request do
 
     before do
       allow(V1::Logic::Secrets::GenerateSecret).to receive(:new)
-        .with(session, customer, request.params, 'en')
+        .with(
+          session,
+          customer,
+          request.params,
+          'en',
+          domain_strategy: nil,
+          display_domain: nil,
+        )
         .and_return(logic)
       allow(logic).to receive(:domain_strategy=)
       allow(logic).to receive(:display_domain=)

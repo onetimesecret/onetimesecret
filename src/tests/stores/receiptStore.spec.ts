@@ -148,7 +148,7 @@ describe('receiptStore', () => {
       store.record = record;
       store.details = details;
 
-      axiosMock
+      axiosMock!
         .onPost(`/api/v3/receipt/${testKey}/burn`, {
           passphrase,
           continue: true,

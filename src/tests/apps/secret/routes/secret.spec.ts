@@ -19,19 +19,19 @@ describe('Secret Routes', () => {
   describe('secretIdentifier validation', () => {
     it('should allow valid secret keys', () => {
       const guard = secretRoute?.beforeEnter;
-      if (!guard) throw new Error('beforeEnter guard not defined');
+      if (typeof guard !== 'function') throw new Error('beforeEnter guard not defined');
 
       const mockRoute = {
         params: { secretIdentifier: 'abc123' },
       };
 
-      const result = guard(mockRoute as any);
+      const result = guard.call(undefined, mockRoute as any, undefined as any, undefined as any);
       expect(result).toBeUndefined(); // guard allows navigation to proceed
     });
 
     it('should redirect to Not Found for invalid secret keys', () => {
       const guard = secretRoute?.beforeEnter;
-      if (!guard) throw new Error('beforeEnter guard not defined');
+      if (typeof guard !== 'function') throw new Error('beforeEnter guard not defined');
 
       const invalidKeys = ['abc 123', 'abc@123', '', 'abc/123'];
 
@@ -40,7 +40,7 @@ describe('Secret Routes', () => {
           params: { secretIdentifier: key },
         };
 
-        const result = guard(mockRoute as any);
+        const result = guard.call(undefined, mockRoute as any, undefined as any, undefined as any);
         expect(result).toEqual({ name: 'NotFound' });
       });
     });

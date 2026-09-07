@@ -1,0 +1,601 @@
+{
+  "_readme": {
+    "purpose": "Language-neutral accept/reject contract for the internal-redirect validator (issue #4305). Two implementations of ONE security ruleset read this file, so a rule relaxed on one side fails a test instead of silently producing an open redirect or a silently-dropped journey.",
+    "validators": [
+      {
+        "language": "ruby",
+        "source": "lib/onetime/utils/redirect_paths.rb",
+        "entrypoint": "Onetime::Utils::RedirectPaths#safe_internal_path?"
+      },
+      {
+        "language": "typescript",
+        "source": "src/utils/redirect.ts",
+        "entrypoint": "isValidInternalPath"
+      }
+    ],
+    "consumers": [
+      "spec/unit/onetime/utils/redirect_paths_spec.rb",
+      "src/tests/utils/redirect.spec.ts"
+    ],
+    "scope": "STRING inputs only. Type-level cases are not portable across languages and stay in the per-language specs: Ruby keeps nil/Integer/Array/Hash and the force-encoded invalid-UTF-8 String; TypeScript keeps undefined/null/number/object/array. Everything expressible as a JSON string — control characters included, via \\u escapes — belongs HERE.",
+    "how_to_read_a_case": {
+      "id": "stable, unique slug; both suites put it in the test name so a failure names the case",
+      "group": "the reason this case exists. Both suites nest their generated examples under it, so the test output reads as a taxonomy of the ruleset rather than a flat list of strings.",
+      "input": "the exact string handed to the validator",
+      "expected": "the boolean BOTH validators must return",
+      "note": "optional; present whenever the verdict is not obvious from the input alone"
+    },
+    "how_to_add_a_case": [
+      "Append an object to `cases` with a stable, unique `id` and an existing (or new) `group`.",
+      "Add a `note` whenever the verdict is not obvious from the input alone.",
+      "Run BOTH suites: `bundle exec rspec spec/unit/onetime/utils/redirect_paths_spec.rb` and `pnpm vitest run src/tests/utils/redirect.spec.ts`. A case that passes on one side and fails on the other is a real parity bug — fix the lagging validator, do not delete the case."
+    ],
+    "when_in_doubt": "This is a security validator. If the correct verdict for a new case is unclear, the answer is `false`."
+  },
+  "cases": [
+    {
+      "id": "root",
+      "group": "well-formed internal paths",
+      "input": "/",
+      "expected": true,
+      "note": "The bare root path. Second character is absent, so the //-check must not fault on it."
+    },
+    {
+      "id": "plain-path",
+      "group": "well-formed internal paths",
+      "input": "/account",
+      "expected": true
+    },
+    {
+      "id": "plain-path-dashboard",
+      "group": "well-formed internal paths",
+      "input": "/dashboard",
+      "expected": true
+    },
+    {
+      "id": "nested-path",
+      "group": "well-formed internal paths",
+      "input": "/account/settings/security",
+      "expected": true,
+      "note": "Acceptance criterion from issue #4305."
+    },
+    {
+      "id": "secret-path",
+      "group": "well-formed internal paths",
+      "input": "/secret/abc123",
+      "expected": true
+    },
+    {
+      "id": "users-profile",
+      "group": "well-formed internal paths",
+      "input": "/users/123/profile",
+      "expected": true
+    },
+    {
+      "id": "hyphenated-path",
+      "group": "well-formed internal paths",
+      "input": "/path-with-hyphens",
+      "expected": true
+    },
+    {
+      "id": "underscored-path",
+      "group": "well-formed internal paths",
+      "input": "/path_with_underscores",
+      "expected": true
+    },
+    {
+      "id": "query-string",
+      "group": "query strings and fragments, carried verbatim",
+      "input": "/secret/abc?view=raw",
+      "expected": true
+    },
+    {
+      "id": "fragment",
+      "group": "query strings and fragments, carried verbatim",
+      "input": "/secret/abc#content",
+      "expected": true
+    },
+    {
+      "id": "query-and-fragment",
+      "group": "query strings and fragments, carried verbatim",
+      "input": "/secret/abc?view=raw#content",
+      "expected": true,
+      "note": "Acceptance criterion from issue #4305: query and fragment survive verbatim."
+    },
+    {
+      "id": "query-with-encoded-space-and-fragment",
+      "group": "query strings and fragments, carried verbatim",
+      "input": "/search?q=a%20b&sort=desc#results",
+      "expected": true
+    },
+    {
+      "id": "encoded-space",
+      "group": "percent-encoded escapes that decode to something harmless",
+      "input": "/a%20b",
+      "expected": true
+    },
+    {
+      "id": "encoded-spaces",
+      "group": "percent-encoded escapes that decode to something harmless",
+      "input": "/path%20with%20spaces",
+      "expected": true
+    },
+    {
+      "id": "encoded-utf8-cafe",
+      "group": "percent-encoded escapes that decode to something harmless",
+      "input": "/caf%C3%A9",
+      "expected": true,
+      "note": "Multi-byte UTF-8 split across escapes must decode cleanly."
+    },
+    {
+      "id": "encoded-utf8-checkmark",
+      "group": "percent-encoded escapes that decode to something harmless",
+      "input": "/%E2%9C%93",
+      "expected": true,
+      "note": "Three-byte UTF-8 (U+2713)."
+    },
+    {
+      "id": "encoded-slash-in-query-value",
+      "group": "percent-encoded escapes that decode to something harmless",
+      "input": "/signin?redirect=%2Fdashboard",
+      "expected": true,
+      "note": "A single encoded slash inside a query VALUE decodes to /signin?redirect=/dashboard — still one path, no // prefix, no .. segment."
+    },
+    {
+      "id": "dotdot-substring-filename",
+      "group": "a `..` substring that is not its own segment",
+      "input": "/files/a..b",
+      "expected": true,
+      "note": "Traversal is a SEGMENT, not a substring."
+    },
+    {
+      "id": "dotdot-substring-report",
+      "group": "a `..` substring that is not its own segment",
+      "input": "/files/report..v2",
+      "expected": true
+    },
+    {
+      "id": "dotdot-substring-leading",
+      "group": "a `..` substring that is not its own segment",
+      "input": "/reports/..data",
+      "expected": true
+    },
+    {
+      "id": "dotdot-substring-mid-path",
+      "group": "a `..` substring that is not its own segment",
+      "input": "/a/b..c/d",
+      "expected": true
+    },
+    {
+      "id": "dotdot-in-query-value",
+      "group": "a `..` substring that is not its own segment",
+      "input": "/search?q=a..b",
+      "expected": true
+    },
+    {
+      "id": "bare-dotdot-in-query",
+      "group": "a `..` substring that is not its own segment",
+      "input": "/search?q=..",
+      "expected": true,
+      "note": "Not slash-delimited on either side, so it is not a segment. Both validators split the WHOLE string on \"/\" without carving the query off first."
+    },
+    {
+      "id": "empty-string",
+      "group": "input not anchored at a single leading slash",
+      "input": "",
+      "expected": false
+    },
+    {
+      "id": "relative-path",
+      "group": "input not anchored at a single leading slash",
+      "input": "account/settings",
+      "expected": false
+    },
+    {
+      "id": "relative-bare-word",
+      "group": "input not anchored at a single leading slash",
+      "input": "dashboard",
+      "expected": false
+    },
+    {
+      "id": "relative-traversal",
+      "group": "input not anchored at a single leading slash",
+      "input": "../dashboard",
+      "expected": false
+    },
+    {
+      "id": "leading-space",
+      "group": "input not anchored at a single leading slash",
+      "input": " /account",
+      "expected": false,
+      "note": "A leading space means the value does not start with \"/\" — no trimming, no coercion."
+    },
+    {
+      "id": "leading-spaces",
+      "group": "input not anchored at a single leading slash",
+      "input": "   /dashboard",
+      "expected": false
+    },
+    {
+      "id": "absolute-https",
+      "group": "absolute and protocol-relative references",
+      "input": "https://attacker.example",
+      "expected": false,
+      "note": "Acceptance criterion from issue #4305."
+    },
+    {
+      "id": "absolute-http-with-path",
+      "group": "absolute and protocol-relative references",
+      "input": "http://attacker.example/path",
+      "expected": false
+    },
+    {
+      "id": "absolute-https-uppercase-scheme",
+      "group": "absolute and protocol-relative references",
+      "input": "HTTPS://attacker.example",
+      "expected": false,
+      "note": "Scheme casing is irrelevant; the leading-slash anchor rejects it first."
+    },
+    {
+      "id": "absolute-evil-with-path",
+      "group": "absolute and protocol-relative references",
+      "input": "https://evil.example/dashboard",
+      "expected": false
+    },
+    {
+      "id": "absolute-same-host",
+      "group": "absolute and protocol-relative references",
+      "input": "https://example.com/dashboard",
+      "expected": false,
+      "note": "Same-origin absolute URLs are rejected too: this validator yields PATHS, and an origin is not its concern."
+    },
+    {
+      "id": "javascript-scheme",
+      "group": "absolute and protocol-relative references",
+      "input": "javascript:alert(1)",
+      "expected": false
+    },
+    {
+      "id": "javascript-protocol-relative",
+      "group": "absolute and protocol-relative references",
+      "input": "javascript://example.com",
+      "expected": false
+    },
+    {
+      "id": "data-uri",
+      "group": "absolute and protocol-relative references",
+      "input": "data:text/html,<script>alert(1)</script>",
+      "expected": false
+    },
+    {
+      "id": "protocol-relative",
+      "group": "absolute and protocol-relative references",
+      "input": "//evil.example",
+      "expected": false,
+      "note": "Acceptance criterion from issue #4305."
+    },
+    {
+      "id": "protocol-relative-with-path",
+      "group": "absolute and protocol-relative references",
+      "input": "//evil.example/path",
+      "expected": false
+    },
+    {
+      "id": "backslash-authority",
+      "group": "backslash variants (browsers normalize \"\\\" to \"/\")",
+      "input": "/\\evil.example",
+      "expected": false,
+      "note": "Acceptance criterion from issue #4305: normalizes to the protocol-relative //evil.example."
+    },
+    {
+      "id": "backslash-double-authority",
+      "group": "backslash variants (browsers normalize \"\\\" to \"/\")",
+      "input": "/\\\\evil.example",
+      "expected": false
+    },
+    {
+      "id": "backslash-slash-authority",
+      "group": "backslash variants (browsers normalize \"\\\" to \"/\")",
+      "input": "/\\/evil.example",
+      "expected": false
+    },
+    {
+      "id": "backslash-mid-path",
+      "group": "backslash variants (browsers normalize \"\\\" to \"/\")",
+      "input": "/a\\b",
+      "expected": false,
+      "note": "No backslash anywhere, not just at position 1."
+    },
+    {
+      "id": "backslash-traversal",
+      "group": "backslash variants (browsers normalize \"\\\" to \"/\")",
+      "input": "/account\\..\\etc",
+      "expected": false
+    },
+    {
+      "id": "backslash-in-query-value",
+      "group": "backslash variants (browsers normalize \"\\\" to \"/\")",
+      "input": "/dashboard?next=\\\\evil.example",
+      "expected": false
+    },
+    {
+      "id": "embedded-scheme-in-query",
+      "group": "an embedded \"://\" anywhere in the raw value",
+      "input": "/redirect?to=https://evil.example",
+      "expected": false,
+      "note": "\"://\" is rejected on the RAW value, wherever it appears."
+    },
+    {
+      "id": "embedded-scheme-bare",
+      "group": "an embedded \"://\" anywhere in the raw value",
+      "input": "/a://b",
+      "expected": false
+    },
+    {
+      "id": "encoded-traversal-lowercase",
+      "group": "structure smuggled through percent-encoding",
+      "input": "/%2e%2e/admin",
+      "expected": false,
+      "note": "Acceptance criterion from issue #4305."
+    },
+    {
+      "id": "encoded-traversal-uppercase",
+      "group": "structure smuggled through percent-encoding",
+      "input": "/%2E%2E%2Fadmin",
+      "expected": false
+    },
+    {
+      "id": "encoded-traversal-config",
+      "group": "structure smuggled through percent-encoding",
+      "input": "/%2e%2e/config",
+      "expected": false
+    },
+    {
+      "id": "encoded-traversal-mid-path",
+      "group": "structure smuggled through percent-encoding",
+      "input": "/a/%2E%2E/b",
+      "expected": false
+    },
+    {
+      "id": "encoded-protocol-relative",
+      "group": "structure smuggled through percent-encoding",
+      "input": "/%2fevil.example",
+      "expected": false,
+      "note": "Decodes to //evil.example."
+    },
+    {
+      "id": "encoded-double-slash-uppercase",
+      "group": "structure smuggled through percent-encoding",
+      "input": "/%2F%2Fevil.example",
+      "expected": false
+    },
+    {
+      "id": "encoded-double-slash-lowercase",
+      "group": "structure smuggled through percent-encoding",
+      "input": "/%2f%2fevil.example",
+      "expected": false
+    },
+    {
+      "id": "encoded-backslash",
+      "group": "structure smuggled through percent-encoding",
+      "input": "/%5Cevil.example",
+      "expected": false,
+      "note": "Decodes to /\\evil.example."
+    },
+    {
+      "id": "traversal-plain",
+      "group": "traversal segments, raw or reached through query/fragment",
+      "input": "/a/../b",
+      "expected": false
+    },
+    {
+      "id": "traversal-trailing",
+      "group": "traversal segments, raw or reached through query/fragment",
+      "input": "/a/..",
+      "expected": false
+    },
+    {
+      "id": "traversal-bare",
+      "group": "traversal segments, raw or reached through query/fragment",
+      "input": "/..",
+      "expected": false
+    },
+    {
+      "id": "traversal-etc-passwd",
+      "group": "traversal segments, raw or reached through query/fragment",
+      "input": "/../../etc/passwd",
+      "expected": false
+    },
+    {
+      "id": "traversal-dashboard-trailing",
+      "group": "traversal segments, raw or reached through query/fragment",
+      "input": "/dashboard/..",
+      "expected": false
+    },
+    {
+      "id": "traversal-via-query",
+      "group": "traversal segments, raw or reached through query/fragment",
+      "input": "/a?next=/../b",
+      "expected": false,
+      "note": "The whole string is split on \"/\", query included, so a traversal reachable through the query is rejected."
+    },
+    {
+      "id": "traversal-via-fragment",
+      "group": "traversal segments, raw or reached through query/fragment",
+      "input": "/a#/..",
+      "expected": false
+    },
+    {
+      "id": "traversal-encoded-via-query",
+      "group": "traversal segments, raw or reached through query/fragment",
+      "input": "/a?next=%2F..%2Fb",
+      "expected": false
+    },
+    {
+      "id": "raw-newline",
+      "group": "raw control characters (header and request splitting)",
+      "input": "/account\nSet-Cookie: a=b",
+      "expected": false,
+      "note": "Response splitting / log injection."
+    },
+    {
+      "id": "raw-newlines",
+      "group": "raw control characters (header and request splitting)",
+      "input": "/path\nwith\nnewlines",
+      "expected": false
+    },
+    {
+      "id": "raw-crlf",
+      "group": "raw control characters (header and request splitting)",
+      "input": "/account\r\n",
+      "expected": false
+    },
+    {
+      "id": "raw-carriage-returns",
+      "group": "raw control characters (header and request splitting)",
+      "input": "/path\rwith\rreturns",
+      "expected": false
+    },
+    {
+      "id": "raw-tab",
+      "group": "raw control characters (header and request splitting)",
+      "input": "/acc\tount",
+      "expected": false
+    },
+    {
+      "id": "raw-tab-trailing-word",
+      "group": "raw control characters (header and request splitting)",
+      "input": "/tab\there",
+      "expected": false
+    },
+    {
+      "id": "raw-nul",
+      "group": "raw control characters (header and request splitting)",
+      "input": "/account\u0000",
+      "expected": false
+    },
+    {
+      "id": "raw-nuls",
+      "group": "raw control characters (header and request splitting)",
+      "input": "/path\u0000with\u0000nulls",
+      "expected": false
+    },
+    {
+      "id": "raw-unit-separator",
+      "group": "raw control characters (header and request splitting)",
+      "input": "/path\u001funit-separator",
+      "expected": false,
+      "note": "The whole C0 range is rejected, not just CR/LF/NUL."
+    },
+    {
+      "id": "raw-del",
+      "group": "raw control characters (header and request splitting)",
+      "input": "/account\u007f",
+      "expected": false
+    },
+    {
+      "id": "raw-del-word",
+      "group": "raw control characters (header and request splitting)",
+      "input": "/path\u007fdel",
+      "expected": false
+    },
+    {
+      "id": "encoded-crlf-lowercase",
+      "group": "control characters smuggled in as percent-encoding",
+      "input": "/account%0d%0aSet-Cookie:a=b",
+      "expected": false,
+      "note": "Control characters are re-checked AFTER one decode layer."
+    },
+    {
+      "id": "encoded-crlf-uppercase",
+      "group": "control characters smuggled in as percent-encoding",
+      "input": "/%0D%0ASet-Cookie:%20x=y",
+      "expected": false
+    },
+    {
+      "id": "encoded-nul",
+      "group": "control characters smuggled in as percent-encoding",
+      "input": "/%00",
+      "expected": false
+    },
+    {
+      "id": "encoded-del",
+      "group": "control characters smuggled in as percent-encoding",
+      "input": "/%7F",
+      "expected": false
+    },
+    {
+      "id": "malformed-escape-non-hex",
+      "group": "malformed percent-encoding (decoding fails, so reject)",
+      "input": "/x%zz",
+      "expected": false,
+      "note": "Decoding fails; reject rather than guess at intent."
+    },
+    {
+      "id": "malformed-escape-bare-percent",
+      "group": "malformed percent-encoding (decoding fails, so reject)",
+      "input": "/x%",
+      "expected": false
+    },
+    {
+      "id": "malformed-escape-truncated",
+      "group": "malformed percent-encoding (decoding fails, so reject)",
+      "input": "/x%2",
+      "expected": false
+    },
+    {
+      "id": "malformed-escape-percent-only",
+      "group": "malformed percent-encoding (decoding fails, so reject)",
+      "input": "/%",
+      "expected": false
+    },
+    {
+      "id": "malformed-escape-non-hex-root",
+      "group": "malformed percent-encoding (decoding fails, so reject)",
+      "input": "/%zz",
+      "expected": false
+    },
+    {
+      "id": "malformed-escape-truncated-utf8",
+      "group": "malformed percent-encoding (decoding fails, so reject)",
+      "input": "/%E0%A4%A",
+      "expected": false,
+      "note": "Last escape is one hex digit short."
+    },
+    {
+      "id": "decodes-to-invalid-utf8",
+      "group": "malformed percent-encoding (decoding fails, so reject)",
+      "input": "/%FF%FE",
+      "expected": false,
+      "note": "Well-formed escapes that decode to bytes which are not valid UTF-8."
+    },
+    {
+      "id": "length-at-cap",
+      "group": "length limits",
+      "input": "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "expected": true,
+      "note": "Exactly MAX_PATH_LENGTH (2048) characters."
+    },
+    {
+      "id": "length-over-cap",
+      "group": "length limits",
+      "input": "/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "expected": false,
+      "note": "One character past MAX_PATH_LENGTH (2048)."
+    },
+    {
+      "id": "astral-length-at-cap",
+      "group": "length limits",
+      "input": "/😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "expected": true,
+      "note": "Exactly MAX_PATH_LENGTH (2048) CODE POINTS, but 4095 UTF-16 units. Pins the unit the cap is measured in: Ruby String#length counts code points natively; the TypeScript validator must count code points too, or it rejects a value the server stored and silently breaks the journey."
+    },
+    {
+      "id": "astral-length-over-cap",
+      "group": "length limits",
+      "input": "/😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+      "expected": false,
+      "note": "One code point past MAX_PATH_LENGTH (2048)."
+    }
+  ]
+}

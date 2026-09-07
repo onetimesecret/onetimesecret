@@ -133,6 +133,13 @@ module Onetime
             # frontend's scrubEventMessages in enableDiagnostics.ts.
             Onetime::Initializers::SetupDiagnostics.scrub_event_messages(event)
 
+            # Scrub the grouping fingerprint. Sentry serializes it verbatim and
+            # no other pass reaches it, so a call site that fingerprints on a
+            # request path (see V1::ControllerHelpers#endpoint_template) would
+            # ship a secret/receipt key in the clear. Belt to that braces: the
+            # call site should never hand us one, and if it does, this catches it.
+            Onetime::Initializers::SetupDiagnostics.scrub_event_fingerprint(event)
+
             # Return the event if it passes validation
             event
           end
@@ -294,11 +301,15 @@ module Onetime
 
           # Scrub sensitive data from URLs in Sentry events
           #
-          # Handles four URL locations:
+          # Handles five URL locations:
           # 1. event.request.url - Standard Sentry request data
           # 2. event.contexts['request']['url'] - Custom context set by error middleware
-          # 3. event.transaction - Set from raw PATH_INFO by Sentry::Rack::CaptureExceptions
-          # 4. event.request.headers['Referer'] - Referer carries the previous URL,
+          # 3. event.contexts['request'][:path] - Same context, query-less path
+          #    (Onetime::ErrorHandler.safe_request_context); on /secret/<id>
+          #    the path alone is the credential. Symbol- and string-keyed
+          #    producers both exist — see #scrub_request_context
+          # 4. event.transaction - Set from raw PATH_INFO by Sentry::Rack::CaptureExceptions
+          # 5. event.request.headers['Referer'] - Referer carries the previous URL,
           #    which can embed a secret identifier (e.g. /secret/<id>)
           #
           # @param event [Sentry::Event] The event to scrub
@@ -327,17 +338,8 @@ module Onetime
               end
             end
 
-            # Scrub custom request context URL (set via scope.set_context in error middleware)
-            if event.contexts.is_a?(Hash) &&
-               event.contexts['request'].is_a?(Hash) &&
-               event.contexts['request']['url']
-              original_url = event.contexts['request']['url']
-              scrubbed_url = scrub_url(original_url)
-              if scrubbed_url != original_url
-                event.contexts['request']['url'] = scrubbed_url
-                OT.ld '[sentry] Scrubbed contexts.request.url'
-              end
-            end
+            # Scrub the custom request context set via scope.set_context.
+            scrub_request_context(event.contexts)
 
             # Scrub URL-bearing request headers (Referer). The Referer carries
             # the previous page URL, which on OTS can embed a secret identifier
@@ -361,6 +363,47 @@ module Onetime
             end
             redact_url_bearing_headers(event.request&.headers)
             event
+          end
+
+          # Scrub the 'request' context a caller attached with
+          # scope.set_context('request', ...).
+          #
+          # KEY TYPES ARE NOT NORMALIZED anywhere in this path.
+          # Sentry::Scope#set_context merges the caller's Hash verbatim, and
+          # before_send runs on the live event, so whatever the producer wrote
+          # is what is here. The producers disagree:
+          # Onetime::ErrorHandler.safe_request_context returns SYMBOL keys
+          # (:path, :method, :ip) under the STRING outer key 'request', and
+          # apps/web/core/controllers/welcome.rb hand-builds the same shape.
+          # A string-only reader therefore matched nothing in production. Both
+          # spellings are checked on both levels rather than picking one,
+          # because the producers are free to change independently.
+          #
+          # :path is the one that matters. safe_request_context deliberately
+          # drops the query string and keeps the bare path — and on
+          # /secret/<id> or /receipt/<id> that path IS the bearer credential,
+          # so it is the last unscrubbed copy of it in the payload.
+          #
+          # @param contexts [Hash, nil] event.contexts
+          # @return [void]
+          def scrub_request_context(contexts)
+            return unless contexts.is_a?(Hash)
+
+            request_ctx = contexts['request'] || contexts[:request]
+            return unless request_ctx.is_a?(Hash)
+
+            %w[url path].each do |name|
+              [name, name.to_sym].each do |key|
+                original = request_ctx[key]
+                next unless original.is_a?(String)
+
+                scrubbed = scrub_url(original)
+                next if scrubbed == original
+
+                request_ctx[key] = scrubbed
+                OT.ld "[sentry] Scrubbed contexts.request.#{key}"
+              end
+            end
           end
 
           # Scrub URL-bearing request headers (e.g. Referer) in place through
@@ -482,6 +525,42 @@ module Onetime
             '[SCRUBBING_FAILED]'
           end
 
+          # Scrub the grouping fingerprint.
+          #
+          # `event.fingerprint` is an Array of Strings the SDK serializes
+          # verbatim: no other before_send pass touches it, and neither do
+          # tags. A fingerprint component built from a request path therefore
+          # reaches Sentry unredacted — on OTS that path can be the 62-char
+          # bearer identifier that reads a secret or burns a receipt.
+          #
+          # Components are run through scrub_text (paths, named query params,
+          # emails, exact-length identifiers). Static components ('v1-form-
+          # error', an endpoint TEMPLATE like '/secret/:key', Sentry's
+          # '{{ default }}' token) contain none of those patterns and pass
+          # through byte-identical, so grouping is unchanged for every
+          # well-behaved call site.
+          #
+          # @param event [Sentry::Event] The event to scrub
+          # @return [Sentry::Event] The scrubbed event
+          def scrub_event_fingerprint(event)
+            return event unless event.respond_to?(:fingerprint)
+
+            fingerprint = event.fingerprint
+            return event unless fingerprint.is_a?(Array) && !fingerprint.empty?
+
+            scrubbed = fingerprint.map do |component|
+              component.is_a?(String) ? scrub_text(component) : component
+            end
+            return event if scrubbed == fingerprint
+
+            event.fingerprint = scrubbed
+            OT.ld '[sentry] Scrubbed fingerprint'
+            event
+          rescue StandardError => ex
+            OT.ld "[sentry] Fingerprint scrubbing failed: #{ex.class}"
+            event
+          end
+
           # Scrub sensitive data from free text (exception messages,
           # capture_message strings, span descriptions).
           #
@@ -576,10 +655,36 @@ module Onetime
 
           # Pattern for auth token and shortcode paths - these have variable-length
           # tokens that should always be scrubbed regardless of length.
+          #
+          # `invite` is here rather than in IDENTIFIER_PATH_PATTERN because an
+          # invitation token is SecureRandom.urlsafe_base64(32) -- 43 mixed-case
+          # characters that may include `-` and `_`, so it matches neither the
+          # lowercase-base36 shape that pattern requires nor the 62/31-char
+          # shapes IDENTIFIER_TEXT_PATTERN catches. It is a bearer credential:
+          # a valid invite_token is accepted as proof of email ownership.
+          #
+          # NOTE this pattern is applied to the WHOLE url string, not just the
+          # path, and `[^/?#]+` stops at `?` and `#`. That is what redacts an
+          # invite token riding inside a query value -- `/check-email?redirect=
+          # /invite/<token>`, which is exactly what the signup flow produces
+          # (#4305) -- and not only one sitting in the path.
+          # `confirm` is matched as a BARE segment, not as the full
+          # `/account/email/confirm/`. The frontend twin has always matched the
+          # bare form, so pinning the backend to one prefix meant a
+          # confirmation token under any other prefix was scrubbed in the
+          # browser and passed through on the server. The bare arm subsumes the
+          # old prefixed one -- `/account/email/confirm/<tok>` still renders as
+          # `/account/email/confirm/[REDACTED]`, because only the matched
+          # `/confirm/` segment is rewritten.
+          #
+          # The (?!:) guard keeps parameterized route names intact:
+          # `/secret/:secretKey` is the NAME of a transaction group, not an
+          # instance of one, and redacting a template that contains no data is
+          # pure signal loss. Mirrors the same guard in
+          # src/plugins/core/diagnostics/scrubbers.ts SENSITIVE_PATH_PATTERN.
           AUTH_TOKEN_PATH_PATTERN = %r{
-            (/(?:forgot|l)/)[^/?#]+                    |  # Password reset, shortcodes
-            (/auth/reset-password/)[^/?#]+            |  # Auth reset password
-            (/account/email/confirm/)[^/?#]+             # Email confirmation token
+            (/(?:confirm|forgot|invite|l)/)(?!:)[^/?#]+ |  # Email confirmation, password reset, invitations, shortcodes
+            (/auth/reset-password/)(?!:)[^/?#]+            # Auth reset password
           }x
 
           # Pattern for colonel admin paths - multi-segment scrubbing
@@ -655,8 +760,7 @@ module Onetime
             # Scrub auth token paths (always scrub regardless of length)
             result = result.gsub(AUTH_TOKEN_PATH_PATTERN) do
               prefix = ::Regexp.last_match(1) ||
-                       ::Regexp.last_match(2) ||
-                       ::Regexp.last_match(3)
+                       ::Regexp.last_match(2)
               "#{prefix}[REDACTED]"
             end
 

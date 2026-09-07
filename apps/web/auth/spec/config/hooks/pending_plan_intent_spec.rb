@@ -15,8 +15,17 @@
 #   2. User clicks "Sign Up" -> redirected to /auth/create-account?product=X&interval=Y
 #   3. after_create_account: Captures intent to Customer.pending_plan_intent (24h TTL)
 #   4. User receives verification email, clicks link
-#   5. after_verify_account: Surfaces intent, sets session redirect to checkout
-#   6. Intent is cleared (single-use) to prevent replay
+#   5. after_verify_account: Surfaces intent (a PEEK), sets session redirect to checkout
+#   6. Intent is consumed once the authenticated handoff succeeds — the client
+#      entering the billing plans flow (Customer#consume_pending_plan_intent!,
+#      called by the billing subscription_status endpoint, #4306). Until then
+#      repeated logins may re-surface it, bounded by the 24h TTL.
+#
+#   NOTE: the lifecycle sims below predate #4306 and model their own
+#   clear-on-surface state machine; they exercise copies, not the production
+#   peek/consume code. The production contract is covered in
+#   integration/full/pending_plan_intent_flow_spec.rb and
+#   integration/full/mfa_billing_redirect_intent_spec.rb.
 #
 # RUN:
 #   source .env.test && pnpm run test:rspec apps/web/auth/spec/config/hooks/pending_plan_intent_spec.rb
@@ -160,7 +169,7 @@ RSpec.describe 'Pending plan intent hooks (issue #3126)' do
       end
 
       # Success: set redirect and return surfaced info
-      session['plan_checkout_redirect'] = "/billing/plans/#{product}/#{interval}"
+      session['plan_checkout_redirect'] = "/billing/plans?#{URI.encode_www_form(product: product, interval: interval)}"
 
       {
         surfaced: true,
@@ -196,12 +205,12 @@ RSpec.describe 'Pending plan intent hooks (issue #3126)' do
 
       it 'sets session redirect URL' do
         surface_plan_intent(pending_intent: intent, session: session, plan_valid: true)
-        expect(session['plan_checkout_redirect']).to eq('/billing/plans/identity_plus_v1/monthly')
+        expect(session['plan_checkout_redirect']).to eq('/billing/plans?product=identity_plus_v1&interval=monthly')
       end
 
       it 'returns redirect URL in result' do
         result = surface_plan_intent(pending_intent: intent, session: session, plan_valid: true)
-        expect(result[:redirect_url]).to eq('/billing/plans/identity_plus_v1/monthly')
+        expect(result[:redirect_url]).to eq('/billing/plans?product=identity_plus_v1&interval=monthly')
       end
     end
 
@@ -304,7 +313,7 @@ RSpec.describe 'Pending plan intent hooks (issue #3126)' do
       first_result = if pending_intent.to_s.strip != '' && plan_valid
                        begin
                          intent = JSON.parse(pending_intent)
-                         session['plan_checkout_redirect'] = "/billing/plans/#{intent['product']}/#{intent['interval']}"
+                         session['plan_checkout_redirect'] = "/billing/plans?#{URI.encode_www_form(product: intent['product'], interval: intent['interval'])}"
                          pending_intent = nil # Single-use: clear after surfacing
                          { surfaced: true }
                        rescue JSON::ParserError
@@ -336,7 +345,7 @@ RSpec.describe 'Pending plan intent hooks (issue #3126)' do
       intent = { product: 'identity_plus_v1', interval: 'monthly' }.to_json
       result = simulate_intent_lifecycle(initial_intent: intent, plan_valid: true)
 
-      expect(result[:session]['plan_checkout_redirect']).to eq('/billing/plans/identity_plus_v1/monthly')
+      expect(result[:session]['plan_checkout_redirect']).to eq('/billing/plans?product=identity_plus_v1&interval=monthly')
     end
 
     it 'second attempt returns already_consumed reason' do
@@ -454,26 +463,31 @@ RSpec.describe 'Pending plan intent hooks (issue #3126)' do
   # JSON Response Format (for frontend compatibility)
   # ==========================================================================
 
+  # The URL the hook builds must be a route the SPA actually has. The router
+  # declares /billing, /billing/plans and /billing/:extid/plans
+  # (src/apps/workspace/routes/billing.ts) and PlanSelector.vue reads
+  # route.query.product / route.query.interval — so the shape is
+  # /billing/plans?product=X&interval=Y. The three-segment
+  # /billing/plans/:product/:interval this used to assert matches no route at
+  # all (#4305).
   describe 'checkout redirect URL format' do
+    def checkout_path(product, interval)
+      "/billing/plans?#{URI.encode_www_form(product: product, interval: interval)}"
+    end
+
     it 'constructs correct URL for identity_plus monthly' do
-      product = 'identity_plus_v1'
-      interval = 'monthly'
-      url = "/billing/plans/#{product}/#{interval}"
-      expect(url).to eq('/billing/plans/identity_plus_v1/monthly')
+      expect(checkout_path('identity_plus_v1', 'monthly'))
+        .to eq('/billing/plans?product=identity_plus_v1&interval=monthly')
     end
 
     it 'constructs correct URL for team_plus yearly' do
-      product = 'team_plus_v1'
-      interval = 'yearly'
-      url = "/billing/plans/#{product}/#{interval}"
-      expect(url).to eq('/billing/plans/team_plus_v1/yearly')
+      expect(checkout_path('team_plus_v1', 'yearly'))
+        .to eq('/billing/plans?product=team_plus_v1&interval=yearly')
     end
 
     it 'URL-encodes special characters in product name' do
-      product = 'plan with spaces'
-      interval = 'monthly'
-      url = "/billing/plans/#{URI.encode_www_form_component(product)}/#{interval}"
-      expect(url).to eq('/billing/plans/plan+with+spaces/monthly')
+      expect(checkout_path('plan with spaces', 'monthly'))
+        .to eq('/billing/plans?product=plan+with+spaces&interval=monthly')
     end
   end
 

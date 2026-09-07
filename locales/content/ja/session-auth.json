@@ -436,13 +436,17 @@
     "text": "メールを確認してください",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "確認リンクの送信先：",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "メールアドレスに確認リンクを送信しました。",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "このアドレスに確認リンクを送信しました。メールを開いてリンクをクリックし、アカウントを有効化してください。",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "メール内のリンクをクリックして、アカウントを有効化してください。",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "見つかりませんか？迷惑メールフォルダを確認してください。",

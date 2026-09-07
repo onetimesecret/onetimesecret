@@ -1,14 +1,14 @@
 // vite.config.ts
 
-import Vue from '@vitejs/plugin-vue';
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
+import tailwindcss from '@tailwindcss/vite';
+import Vue from '@vitejs/plugin-vue';
 import { execSync } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import process from 'process';
 import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig, type PluginOption } from 'vite';
-import tailwindcss from '@tailwindcss/vite';
 
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 import { DEBUG } from './src/utils/debug';
@@ -271,8 +271,8 @@ export default defineConfig(({ command: _command }) => ({
     manifest: isAdminBuild ? '.vite/manifest-admin.json' : true,
     rolldownOptions: {
       input: isAdminBuild
-        ? { admin: 'src/admin.ts' } // isolated Colonel admin console
-        : { main: 'src/main.ts' }, // customer bundle
+        ? { admin: 'admin.ts' } // isolated Colonel admin console
+        : { main: 'main.ts' }, // customer bundle
       output: {
         // Enforce single chunk output (replaces deprecated inlineDynamicImports)
         codeSplitting: false,

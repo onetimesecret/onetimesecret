@@ -83,13 +83,16 @@ function domainRow(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function domainsPayload(row: Record<string, unknown> = {}) {
+function domainsPayload(
+  row: Record<string, unknown> = {},
+  pagination: Record<string, unknown> = {}
+) {
   return {
     shrimp: '',
     record: {},
     details: {
       domains: [domainRow(row)],
-      pagination: { page: 1, per_page: 50, total_count: 1, total_pages: 1 },
+      pagination: { page: 1, per_page: 50, total_count: 1, total_pages: 1, ...pagination },
     },
   };
 }
@@ -145,6 +148,22 @@ describe('AdminDomains (card grid + verify — ticket #31)', () => {
     expect(grid.exists()).toBe(true);
     expect(grid.text()).toContain('secrets.example.com');
     expect(wrapper.find('[data-testid="domain-row-cd_abc123"]').exists()).toBe(true);
+    // An uncapped response renders no caveat.
+    expect(wrapper.find('[data-testid="domains-capped-caveat"]').exists()).toBe(false);
+  });
+
+  it('renders the capped caveat when a bounded scan stopped early', async () => {
+    // Server contract: `pagination.capped` means total_count is a FLOOR (the
+    // search HSCAN hit its match/round limits, or a status-only filter
+    // exceeded the newest-first window) — the count must not read as the
+    // population.
+    mockApi.get.mockResolvedValue({
+      data: domainsPayload({}, { total_count: 1000, total_pages: 20, capped: true }),
+    });
+    wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="domains-capped-caveat"]').exists()).toBe(true);
   });
 
   it('fetches immediately when the search button is clicked (debounce cancelled)', async () => {

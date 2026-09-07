@@ -1,8 +1,8 @@
 // src/tests/fixtures/receipt.fixture.ts
 
-import { ReceiptState } from '@/schemas/shapes/v2/receipt';
-import { Secret, SecretState } from '@/schemas/shapes/v2/secret';
-import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v2/receipt';
+import { ReceiptState, SecretState } from '@/schemas/contracts';
+import type { Secret } from '@/schemas/shapes/v3/secret';
+import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v3/receipt';
 
 // =============================================================================
 // NEW TERMINOLOGY FIXTURES (previewed/revealed)
@@ -505,7 +505,7 @@ export const mockBurnedSecretRecord: Secret | null = null;
 export const mockReceivedSecretRecord: Secret = {
   key: 'secret-received-key-123',
   shortid: 'secret-received-abc123',
-  state: SecretState.RECEIVED,
+  state: SecretState.REVEALED, // V3 canonical (replaces deprecated RECEIVED)
   identifier: 'testkey123',
   created: new Date(1735142814 * 1000),
   updated: new Date(1735204014 * 1000),
@@ -514,12 +514,14 @@ export const mockReceivedSecretRecord: Secret = {
   secret_value: 'received test secret',
   secret_ttl: 86400,
   lifespan: 86400,
+  is_previewed: true,
+  is_revealed: true,
 };
 
 export const mockOrphanedSecretRecord: Secret = {
   key: 'secret-orphaned-key-123',
   shortid: 'secret-orphaned-abc123',
-  state: SecretState.VIEWED,
+  state: SecretState.PREVIEWED, // V3 canonical (replaces deprecated VIEWED)
   identifier: 'testkey123',
   created: new Date(1735142814 * 1000),
   updated: new Date(1735204014 * 1000),
@@ -528,12 +530,14 @@ export const mockOrphanedSecretRecord: Secret = {
   secret_value: 'orphaned test secret',
   secret_ttl: 0,
   lifespan: 0,
+  is_previewed: true,
+  is_revealed: false,
 };
 
 export const mockReceivedSecretRecord1: Secret = {
   key: 'secret-received-1',
   shortid: 'sec-rcv1',
-  state: SecretState.RECEIVED,
+  state: SecretState.REVEALED, // V3 canonical (replaces deprecated RECEIVED)
   identifier: 'testkey123',
   created: new Date(1735142814 * 1000),
   updated: new Date(1735204014 * 1000),
@@ -542,12 +546,14 @@ export const mockReceivedSecretRecord1: Secret = {
   secret_value: 'received-test-secret-1',
   secret_ttl: 3600,
   lifespan: 3600,
+  is_previewed: true,
+  is_revealed: true,
 };
 
 export const mockReceivedSecretRecord2: Secret = {
   key: 'secret-received-2',
   shortid: 'sec-rcv2',
-  state: SecretState.RECEIVED,
+  state: SecretState.REVEALED, // V3 canonical (replaces deprecated RECEIVED)
   identifier: 'testkey123',
   created: new Date(1735142814 * 1000),
   updated: new Date(1735204014 * 1000),
@@ -556,6 +562,8 @@ export const mockReceivedSecretRecord2: Secret = {
   secret_value: 'received-test-secret-2',
   secret_ttl: 7200,
   lifespan: 7200,
+  is_previewed: true,
+  is_revealed: true,
 };
 
 export const mockNotReceivedSecretRecord1: Secret = {
@@ -570,6 +578,8 @@ export const mockNotReceivedSecretRecord1: Secret = {
   secret_value: 'not-received-test-secret-1',
   secret_ttl: 1800,
   lifespan: 1800,
+  is_previewed: false,
+  is_revealed: false,
 };
 
 // V3 wire-format mock response (for mocking API calls)

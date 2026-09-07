@@ -176,8 +176,30 @@ export function isAuthError(
   return 'error' in response;
 }
 
+/**
+ * POST /auth/verify-account success body: the account is now verified but NOT
+ * signed in — the user still has to authenticate. It returns an optional
+ * internal redirect target, the `redirect` the backend VALIDATED and stored at
+ * signup, so the destination survives the signup → email → verify → signin
+ * journey (the verification link is opened from a mail client, frequently in a
+ * different browser, so the original query string is long gone).
+ *
+ * The SPA validates it with isValidInternalPath and falls back to the
+ * ?redirect query param, then a plain /signin — same contract as link-sso
+ * above; a server-supplied path is never trusted blindly.
+ *
+ * The server resolves precedence (plan intent > redirect > default) and sends
+ * ONE destination: a valid plan intent arrives here as the checkout path
+ * (/billing/plans?product=…&interval=…), else the stored signup redirect.
+ * ABSENT when nothing was stored or the stored value failed re-validation.
+ */
+const verifyAccountSuccessSchema = z.object({
+  success: z.string(),
+  redirect: z.string().optional(),
+});
+
 // Verify account response
-export const verifyAccountResponseSchema = authResponseSchema;
+export const verifyAccountResponseSchema = z.union([verifyAccountSuccessSchema, authErrorSchema]);
 export type VerifyAccountResponse = z.infer<typeof verifyAccountResponseSchema>;
 
 // Change password response
@@ -487,9 +509,26 @@ export type OtpEnableResponse = z.infer<typeof otpEnableResponseSchema>;
 export const otpToggleResponseSchema = authResponseSchema;
 export type OtpToggleResponse = z.infer<typeof otpToggleResponseSchema>;
 
-// OTP verification response
-export const otpVerifyResponseSchema = authResponseSchema;
+// OTP verification response (two-factor completion: /auth/otp-auth and
+// /auth/recovery-auth).
+//
+// #4306: for MFA-gated logins the backend replays the signup plan intent on
+// the COMPLETION response, not the primary-factor login response — so this
+// body may carry the same optional billing_redirect shape as login /
+// create-account (authSuccessWithBillingSchema). Union order matters: the
+// billing-capable success variant must precede authErrorSchema so Zod never
+// strips billing_redirect from a success body.
+export const otpVerifyResponseSchema = z.union([
+  authSuccessWithBillingSchema, // { success, billing_redirect? }
+  authErrorSchema,
+]);
 export type OtpVerifyResponse = z.infer<typeof otpVerifyResponseSchema>;
+/**
+ * The success variant of a two-factor completion body. Structurally a member
+ * of the LoginResponse union, so it can be handed straight to
+ * usePostAuthRedirect.navigateAfterAuth().
+ */
+export type OtpVerifySuccess = z.infer<typeof authSuccessWithBillingSchema>;
 
 // Recovery code schema
 export const recoveryCodeSchema = z.object({

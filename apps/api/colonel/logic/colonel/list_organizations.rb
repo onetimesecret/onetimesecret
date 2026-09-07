@@ -83,6 +83,11 @@ module ColonelAPI
           @page               = (params['page'] || 1).to_i
           @per_page           = (params['per_page'] || 50).to_i
           @per_page           = 100 if @per_page > 100 # Max 100 per page
+          # Lower clamp: per_page=0 turns the cache-refresh ZREVRANGE window
+          # into revrange(0, -1) (the whole set) and then divides by zero
+          # computing total_pages; a negative value corrupts the window the
+          # same way. Mirrors ListCustomDomains / Customers::List.
+          @per_page           = 50 if @per_page < 1
           @page               = 1 if @page < 1
           @status_filter      = params['status']      # subscription_status filter
           @sync_status_filter = params['sync_status'] # synced, potentially_stale, unknown

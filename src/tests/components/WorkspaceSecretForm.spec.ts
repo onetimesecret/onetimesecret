@@ -466,7 +466,7 @@ describe('WorkspaceSecretForm Logic', () => {
     });
 
     it('falls back to 604800 when secret_options is null', () => {
-      const secretOptions = null;
+      const secretOptions = null as { default_ttl?: number } | null;
       const defaultTtl = secretOptions?.default_ttl ?? 604800;
 
       expect(defaultTtl).toBe(604800);

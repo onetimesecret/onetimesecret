@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'domain_resolver'
 require 'onetime/operations/domains/probe'
 
 module ColonelAPI
@@ -23,6 +24,8 @@ module ColonelAPI
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role. The
       # colonel resolves ANY domain by its public extid with no ownership check.
       class ProbeDomain < ColonelAPI::Logic::Base
+        include DomainResolver
+
         # Clamp the operator-supplied timeout so a probe can't hang the request
         # path indefinitely; matches the CLI default of 10s.
         MAX_TIMEOUT     = 30
@@ -42,7 +45,7 @@ module ColonelAPI
         def raise_concerns
           verify_one_of_roles!(colonel: true)
 
-          @custom_domain = Onetime::CustomDomain.find_by_extid(extid)
+          @custom_domain = resolve_custom_domain(extid)
           raise_not_found('Domain not found') unless custom_domain
         end
 

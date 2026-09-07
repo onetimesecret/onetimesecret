@@ -419,6 +419,18 @@
         @submit="onSearchSubmit" />
     </div>
 
+    <!-- The server's index scan is bounded: when it caps (search hit its
+         match/round limits, or the role filter exceeded its scan window),
+         total_count is a FLOOR. Say so rather than letting the count and
+         pager read as the population (mirrors StripeOrganizationsSection). -->
+    <div
+      v-if="pagination?.capped"
+      class="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200"
+      role="status"
+      data-testid="customers-capped-caveat">
+      {{ t('web.admin.customers.list.capped') }}
+    </div>
+
     <!-- Table -->
     <div
       class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">

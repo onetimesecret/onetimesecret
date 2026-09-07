@@ -502,7 +502,7 @@ jobs:
           label: code-coverage/vitest
 
       - name: Run type checking tests
-        continue-on-error: true
+        continue-on-error: false
         run: pnpm type-check:tests
 
   # ============================================================================

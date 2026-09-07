@@ -94,10 +94,12 @@ detail lives in [`docs/operations/upgrading-v0-26-5.md`](../operations/upgrading
   to compensate for the old miscount, restore the real value. (#4024)
 - **Org-trail geolocation is opt-in and stays off.** `SECRET_ACTIVITY_GEO_COUNTRY_ENABLED`
   defaults to `false` pending the legal review in ADR-021. (#3989)
-- **Anonymous secrets created through the V1 API are now capped at the configured
-  anonymous TTL** (default 7 days). They previously fell through to the global
-  ceiling — 30 days — so an anonymous V1 client asking for a longer expiry now gets
-  7 days instead. The V2 path already behaved this way. (#4172)
+- **Anonymous secrets created through the V1 API on canonical hosts are now capped
+  at the configured anonymous TTL** (default 7 days). They previously fell through
+  to the global ceiling — 30 days — so a canonical-host guest asking for a longer
+  expiry now gets 7 days instead. Custom-domain guests remain governed by the
+  domain owner organization's lifetime policy. The V2 path already behaved this
+  way. (#4172)
 - **Custom-domain `HttpOrigin` 403s are fixed.** If you added a proxy rule or a
   middleware workaround for those, you can remove it. The middleware stack is now
   assembled from a registry with per-app profiles, and the auth app's members are

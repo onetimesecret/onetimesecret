@@ -19,7 +19,7 @@ const findRoute = (name: string) =>
 const runGuard = (name: string, params: Record<string, string>) => {
   const guard = findRoute(name)?.beforeEnter;
   if (typeof guard !== 'function') throw new Error(`no beforeEnter on ${name}`);
-  return guard({ params } as never, {} as never, (() => {}) as never);
+  return guard.call(undefined, { params } as never, {} as never, (() => {}) as never);
 };
 
 describe('Dashboard Routes', () => {

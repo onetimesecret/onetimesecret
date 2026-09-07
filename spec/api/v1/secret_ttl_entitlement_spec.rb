@@ -54,7 +54,7 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
   # no strategy_result and V1::Logic::Base doesn't include
   # OrganizationContext. We stub `auth_org` so the gate's
   # `respond_to?(:auth_org)` branch is taken.
-  def create_logic(logic_class, params:, org:, customer: nil)
+  def create_logic(logic_class, params:, org:, customer: nil, domain_strategy: nil, display_domain: nil)
     customer ||= mock_customer(anonymous: org.nil?)
     session = mock_session
 
@@ -67,6 +67,8 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
     logic.instance_variable_set(:@params, params)
     logic.instance_variable_set(:@locale, nil)
     logic.instance_variable_set(:@processed_params, {})
+    logic.domain_strategy = domain_strategy
+    logic.display_domain  = display_domain
     # V1::Logic::Base doesn't define auth_org, so verify_partial_doubles
     # rejects an rspec stub. Define a real singleton method instead so the
     # gate's respond_to?(:auth_org) branch is taken.
@@ -169,11 +171,11 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
     end
   end
 
-  # Anonymous TTL ceiling tests (#4172)
+  # Guest TTL ceiling tests (#4172)
   #
-  # V1 now applies the configured anonymous ceiling (default 7 days) to
-  # unauthenticated callers, matching V2's anonymous_max_ttl behavior.
-  # Previously V1 allowed anonymous users the full V1_MAX_TTL (30 days).
+  # Canonical-host guests use the configured anonymous ceiling (7 days by
+  # default). Custom-domain guests use the domain owner organization's plan
+  # lifetime, matching the request-boundary policy shared with V2/V3.
   shared_examples 'V1 anonymous TTL ceiling' do |logic_class_proc|
     let(:logic_class) { logic_class_proc.call }
     let(:anonymous_ceiling) { Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl }
@@ -204,6 +206,54 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
         logic = create_logic(logic_class, params: conceal_params(one_hour), org: nil)
         expect { logic.process_params }.not_to raise_error
         expect(logic.ttl).to eq(one_hour)
+      end
+    end
+
+    context 'custom-domain guest' do
+      let(:display_domain) { 'secrets.example.com' }
+      let(:domain) { instance_double(Onetime::CustomDomain, org_id: 'org-custom') }
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .with(display_domain).and_return(domain)
+      end
+
+      it 'uses the domain owner 14-day lifetime instead of the canonical ceiling' do
+        owner = mock_organization(
+          planid: 'free_v1',
+          entitlements: %w[create_secrets api_access],
+          secret_lifetime: 1_209_600,
+        )
+        allow(Onetime::Organization).to receive(:load).with('org-custom').and_return(owner)
+        logic = logic_class.new(
+          mock_session,
+          nil,
+          conceal_params(2_592_000),
+          nil,
+          domain_strategy: :custom,
+          display_domain: display_domain,
+        )
+
+        expect(logic.ttl).to eq(1_209_600)
+      end
+
+      it 'uses the domain owner 30-day extended lifetime instead of the canonical ceiling' do
+        owner = mock_organization(
+          planid: 'identity_plus_v1',
+          entitlements: %w[create_secrets api_access extended_default_expiration],
+          secret_lifetime: 2_592_000,
+        )
+        allow(Onetime::Organization).to receive(:load).with('org-custom').and_return(owner)
+        logic = logic_class.new(
+          mock_session,
+          nil,
+          conceal_params(2_592_000),
+          nil,
+          domain_strategy: :custom,
+          display_domain: display_domain,
+        )
+
+        expect(logic.ttl).to eq(2_592_000)
       end
     end
 
