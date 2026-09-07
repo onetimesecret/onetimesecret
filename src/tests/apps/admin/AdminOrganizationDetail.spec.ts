@@ -221,6 +221,39 @@ function reconcileAck(
   };
 }
 
+function plansPayload() {
+  return {
+    plans: [
+      { planid: 'identity_plus_v1', name: 'Identity Plus', display_order: 1 },
+      { planid: 'team_plus_v1', name: 'Team Plus', display_order: 2 },
+    ],
+    source: 'stripe',
+  };
+}
+
+function planChangeAck(warning: string | null = null, details: Record<string, unknown> = {}) {
+  return {
+    shrimp: '',
+    record: {
+      org_id: 'org1',
+      extid: PUBLIC_ID,
+      display_name: 'Acme',
+      old_planid: 'identity_plus_v1',
+      new_planid: 'team_plus_v1',
+      updated: 1700007200,
+    },
+    details: {
+      changed: true,
+      materialization: 'materialized',
+      memberships: { success: 3, failed: 0, total: 3, failed_ids: [] },
+      entitlements_ok: true,
+      message: 'Organization plan updated successfully',
+      warning,
+      ...details,
+    },
+  };
+}
+
 function investigateAck() {
   return {
     shrimp: '',
@@ -381,8 +414,139 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
     );
     expect(showMock).toHaveBeenCalledTimes(1);
     expect(showMock.mock.calls[0][1]).toBe('success');
-    // The panel is driven by a refreshed GET, not the ack: two GETs total.
-    expect(mockApi.get).toHaveBeenCalledTimes(2);
+    // The panel is driven by a refreshed GET, not the ack: three GETs total
+    // (mount-time detail + available-plans catalog, then the refresh).
+    expect(mockApi.get).toHaveBeenCalledTimes(3);
+  });
+
+  it('changes the plan through the billing-section selector and confirm dialog', async () => {
+    mockApi.get.mockImplementation((url: string) => {
+      if (url === '/api/colonel/available-plans') {
+        return Promise.resolve({ data: plansPayload() });
+      }
+      return Promise.resolve({ data: detailPayload() });
+    });
+    mockApi.post.mockResolvedValue({ data: planChangeAck() });
+    wrapper = mountView();
+    await flushPromises();
+
+    // The selector renders the catalog and tracks the record's current plan.
+    const select = wrapper.find('[data-testid="plan-select"]');
+    expect(select.exists()).toBe(true);
+    expect((select.element as HTMLSelectElement).value).toBe('identity_plus_v1');
+    // Apply is a no-op while the selection matches the record.
+    expect(wrapper.find('[data-testid="plan-apply"]').attributes('disabled')).toBeDefined();
+    // The catalog also feeds the checkout modal (previously mounted with []).
+    expect(wrapper.findComponent(AdminCheckoutLinkModal).props('plans')).toHaveLength(2);
+
+    await select.setValue('team_plus_v1');
+    await wrapper.find('[data-testid="plan-apply"]').trigger('click');
+    await flushPromises();
+
+    // Reversible change: plain confirm, no typed-confirmation token.
+    expect(dialogSubmit(wrapper).attributes('disabled')).toBeUndefined();
+    await dialogSubmit(wrapper).trigger('submit');
+    await flushPromises();
+
+    expect(mockApi.post).toHaveBeenCalledWith(`/api/colonel/organizations/${PUBLIC_ID}/plan`, {
+      planid: 'team_plus_v1',
+    });
+    expect(showMock.mock.calls[0][1]).toBe('success');
+    // Refreshed after the mutation: detail + plans on mount, then the refresh.
+    expect(mockApi.get).toHaveBeenCalledTimes(3);
+  });
+
+  it('surfaces the server Stripe-overwrite warning after a plan change', async () => {
+    mockApi.get.mockImplementation((url: string) => {
+      if (url === '/api/colonel/available-plans') {
+        return Promise.resolve({ data: plansPayload() });
+      }
+      return Promise.resolve({ data: detailPayload() });
+    });
+    mockApi.post.mockResolvedValue({
+      data: planChangeAck('Live Stripe subscription may overwrite this change.'),
+    });
+    wrapper = mountView();
+    await flushPromises();
+
+    await wrapper.find('[data-testid="plan-select"]').setValue('team_plus_v1');
+    await wrapper.find('[data-testid="plan-apply"]').trigger('click');
+    await flushPromises();
+    await dialogSubmit(wrapper).trigger('submit');
+    await flushPromises();
+
+    // Success toast first, then the server's own warning text as info.
+    expect(showMock).toHaveBeenCalledTimes(2);
+    expect(showMock.mock.calls[1][0]).toContain('Stripe');
+    expect(showMock.mock.calls[1][1]).toBe('info');
+  });
+
+  it('surfaces a failed entitlement re-materialization as an error, not success', async () => {
+    mockApi.get.mockImplementation((url: string) => {
+      if (url === '/api/colonel/available-plans') {
+        return Promise.resolve({ data: plansPayload() });
+      }
+      return Promise.resolve({ data: detailPayload() });
+    });
+    // Planid wrote, but the entitlement engine did not run: the org keeps the
+    // OLD plan's entitlements. The server flags it via entitlements_ok:false
+    // and its qualified message must render as an error toast — never the
+    // unqualified success toast.
+    mockApi.post.mockResolvedValue({
+      data: planChangeAck(null, {
+        materialization: 'materialization_failed',
+        memberships: null,
+        entitlements_ok: false,
+        message:
+          'Organization plan was saved, but entitlement re-materialization failed — ' +
+          'run reconcile on this organization.',
+      }),
+    });
+    wrapper = mountView();
+    await flushPromises();
+
+    await wrapper.find('[data-testid="plan-select"]').setValue('team_plus_v1');
+    await wrapper.find('[data-testid="plan-apply"]').trigger('click');
+    await flushPromises();
+    await dialogSubmit(wrapper).trigger('submit');
+    await flushPromises();
+
+    expect(showMock).toHaveBeenCalledTimes(1);
+    expect(showMock.mock.calls[0][0]).toContain('re-materialization failed');
+    expect(showMock.mock.calls[0][1]).toBe('error');
+  });
+
+  it('surfaces a partial membership cascade as an error, not success', async () => {
+    mockApi.get.mockImplementation((url: string) => {
+      if (url === '/api/colonel/available-plans') {
+        return Promise.resolve({ data: plansPayload() });
+      }
+      return Promise.resolve({ data: detailPayload() });
+    });
+    // Org entitlements materialized but 2 of 5 membership writes failed:
+    // those members keep the previous plan's entitlements, so this is not an
+    // unqualified success either.
+    mockApi.post.mockResolvedValue({
+      data: planChangeAck(null, {
+        memberships: { success: 3, failed: 2, total: 5, failed_ids: ['m1', 'm2'] },
+        entitlements_ok: false,
+        message:
+          'Organization plan updated, but 2 of 5 membership(s) failed to re-materialize ' +
+          "and keep the previous plan's entitlements. Run reconcile on this organization.",
+      }),
+    });
+    wrapper = mountView();
+    await flushPromises();
+
+    await wrapper.find('[data-testid="plan-select"]').setValue('team_plus_v1');
+    await wrapper.find('[data-testid="plan-apply"]').trigger('click');
+    await flushPromises();
+    await dialogSubmit(wrapper).trigger('submit');
+    await flushPromises();
+
+    expect(showMock).toHaveBeenCalledTimes(1);
+    expect(showMock.mock.calls[0][0]).toContain('2 of 5');
+    expect(showMock.mock.calls[0][1]).toBe('error');
   });
 
   it('keeps the out-of-catalog path (CLI parity): warns, then still grants', async () => {
@@ -480,8 +644,8 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
     // memberships: null (did not cascade) renders no cascade line.
     expect(wrapper.find('[data-testid="reconcile-memberships"]').exists()).toBe(false);
     expect(showMock.mock.calls[0][1]).toBe('success');
-    // Refreshed after the mutation.
-    expect(mockApi.get).toHaveBeenCalledTimes(2);
+    // Refreshed after the mutation (plus the mount-time available-plans GET).
+    expect(mockApi.get).toHaveBeenCalledTimes(3);
   });
 
   // #3907 item 3: the applied statuses carry no reason string, so this line

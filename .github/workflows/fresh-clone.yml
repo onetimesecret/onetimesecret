@@ -14,8 +14,8 @@
 #
 # Deliberate design choices:
 #   - Toolchain comes from the pinned version FILES (.ruby-version = 3.4.10,
-#     .node-version = 22), NOT hardcoded versions — this lane exists to prove
-#     the *documented* floors work (the Node-22 gate fix is the whole point of
+#     .node-version = 24), NOT hardcoded versions — this lane exists to prove
+#     the *documented* floors work (the Node-24 gate is the whole point of
 #     the onboarding branch; the reusable setup-node-env action defaults to 25
 #     and force-installs deps, so it is intentionally NOT used here).
 #   - No config-seeding composite actions and no Valkey service container:

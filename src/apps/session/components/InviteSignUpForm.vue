@@ -11,10 +11,12 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue';
+import LegalLink from '@/shared/components/common/LegalLink.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import SsoButton from '@/apps/session/components/SsoButton.vue';
 import { useInviteAuth } from '@/apps/session/composables/useInviteAuth';
 import { useMagicLink } from '@/shared/composables/useMagicLink';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { AuthMethod } from '@/schemas/api/invite/responses/show-invite';
 import { ref, computed } from 'vue';
 
@@ -53,7 +55,14 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const bootstrapStore = useBootstrapStore();
 const { signupForInvite, isLoading, error, fieldErrors, clearErrors } = useInviteAuth();
+
+// Legal URLs from site.legal (#4278). When a URL is unset, LegalLink
+// renders the document name as plain text — the consent sentence still
+// reads correctly, and the agreement still binds.
+const termsUrl = computed(() => bootstrapStore.legalUrls.terms_url);
+const privacyUrl = computed(() => bootstrapStore.legalUrls.privacy_url);
 const {
   requestMagicLink,
   sent: magicLinkSent,
@@ -496,23 +505,23 @@ const handleSubmit = async () => {
                 for="invite-terms-agreement"
                 class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
                 {{ t('web.auth.terms.agree_prefix') }}
-                <router-link
-                  to="/info/terms"
+                <LegalLink
+                  :url="termsUrl"
                   target="_blank"
                   class="font-medium text-brand-600 hover:text-brand-500
                          dark:text-brand-500 dark:hover:text-brand-400"
                   data-testid="invite-signup-terms-link">
                   {{ t('web.layout.terms_of_service') }}
-                </router-link>
+                </LegalLink>
                 {{ t('web.COMMON.and') }}
-                <router-link
-                  to="/info/privacy"
+                <LegalLink
+                  :url="privacyUrl"
                   target="_blank"
                   class="font-medium text-brand-600 hover:text-brand-500
                          dark:text-brand-500 dark:hover:text-brand-400"
                   data-testid="invite-signup-privacy-link">
                   {{ t('web.layout.privacy_policy') }}
-                </router-link>
+                </LegalLink>
               </label>
             </div>
 
@@ -887,23 +896,23 @@ aria-hidden="true" />
             for="invite-terms-agreement-single"
             class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
             {{ t('web.auth.terms.agree_prefix') }}
-            <router-link
-              to="/info/terms"
+            <LegalLink
+              :url="termsUrl"
               target="_blank"
               class="font-medium text-brand-600 hover:text-brand-500
                      dark:text-brand-500 dark:hover:text-brand-400"
               data-testid="invite-signup-terms-link">
               {{ t('web.layout.terms_of_service') }}
-            </router-link>
+            </LegalLink>
             {{ t('web.COMMON.and') }}
-            <router-link
-              to="/info/privacy"
+            <LegalLink
+              :url="privacyUrl"
               target="_blank"
               class="font-medium text-brand-600 hover:text-brand-500
                      dark:text-brand-500 dark:hover:text-brand-400"
               data-testid="invite-signup-privacy-link">
               {{ t('web.layout.privacy_policy') }}
-            </router-link>
+            </LegalLink>
           </label>
         </div>
 

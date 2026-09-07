@@ -60,10 +60,9 @@ rescue StandardError => ex
 end
 #=> 'Onetime::Unauthorized'
 
-## V2: anonymous_max_ttl applies the configured ceiling when billing is disabled
-# Diverges from V1's resolve_ttl_limit, which fails open to the config max: the
-# ceiling is about anonymous callers, not about whether the deployment sells
-# plans. Stock config leaves ttl_max_anonymous unset -> 7-day default.
+## V2: canonical guest policy applies the configured ceiling when billing is disabled
+# Stock config leaves ttl_max_anonymous unset -> 7-day canonical-host default.
+# Custom-domain guests resolve through the domain owner organization instead.
 billing = Onetime::BillingConfig.instance
 class << billing
   def enabled?
@@ -97,9 +96,9 @@ ensure
 end
 #=> 172_800
 
-## V2: a self-hosted operator can RAISE the anonymous ceiling above 7 days
-# The whole point of the config key: with billing disabled there is no free tier
-# to invert against, so the operator's value stands.
+## V2: a self-hosted operator can RAISE the canonical guest ceiling above 7 days
+# With billing disabled there is no free tier to invert against, so the
+# operator's canonical-host value stands.
 billing = Onetime::BillingConfig.instance
 class << billing
   def enabled?
@@ -170,9 +169,8 @@ ensure
 end
 #==> _ == Onetime::Models::Features::WithEntitlements::MAX_TTL
 
-## V2: anonymous_max_ttl uses the configured ceiling when billing is enabled
-# Stock: ceiling 7d, free-tier limit unset -> DEFAULT_FREE_TTL (14d). The lower
-# of the two wins.
+## V2: canonical guest policy uses the configured ceiling when billing is enabled
+# Stock: canonical ceiling 7d, free-tier limit 14d. The lower of the two wins.
 billing = Onetime::BillingConfig.instance
 class << billing
   def enabled?

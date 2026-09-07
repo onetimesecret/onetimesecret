@@ -19,6 +19,7 @@ import {
   sessionConfigSchema,
   siteAdminSchema,
   siteAuthenticationSchema,
+  siteLegalSchema,
   siteSchema,
   siteSecretOptionsSchema,
 } from '@/schemas/contracts/config/section/site';
@@ -33,6 +34,7 @@ export {
   sessionConfigSchema,
   siteAdminSchema,
   siteAuthenticationSchema,
+  siteLegalSchema,
   siteSchema,
   siteSecretOptionsSchema,
 };

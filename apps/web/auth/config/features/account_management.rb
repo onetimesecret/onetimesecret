@@ -20,11 +20,29 @@ module Auth::Config::Features
         # This prevents verify_account from requiring password fields
         auth.verify_account_set_password? false
 
-        # Redirect after email verification (issue #3126)
-        # If user had selected a plan before signup, redirect to checkout.
-        # Otherwise, redirect to account page.
+        # Redirect after email verification.
+        #
+        # Precedence (issue #4305): a valid paid-plan intent (#3126) wins, then
+        # the `?redirect=` the user started signup with, then /account.
+        #
+        # DOES NOT APPLY TO JSON/SPA CLIENTS. Rodauth's json feature overrides
+        # `redirect(_)` to discard its argument and return the JSON body
+        # instead (rodauth-2.45.0 features/json.rb:205-208), and
+        # verify_account_response calls `redirect verify_account_redirect`
+        # (rodauth.rb:254) — so this block still RUNS (Ruby evaluates the
+        # argument, which is why the session keys are consumed either way) but
+        # its return value is thrown away. The SPA gets its destination from
+        # json_response[:redirect], set in the after_verify_account hook. Kept
+        # here for the non-JSON form-post path, which is a real 302.
         auth.verify_account_redirect do
-          session.delete('plan_checkout_redirect') || '/account'
+          # Consume BOTH keys before picking: chaining the deletes with `||`
+          # short-circuits, leaving the losing key in the session to resurface
+          # on a later verification in the same session. Single-use means
+          # single-use for both.
+          checkout_path = session.delete('plan_checkout_redirect')
+          auth_path     = session.delete('auth_redirect')
+
+          checkout_path || auth_path || '/account'
         end
 
         # Suppress verification email only for valid invite signups.

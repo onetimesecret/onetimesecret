@@ -279,8 +279,9 @@ describe('AdminOrganizationDetail — add an existing account to the organizatio
     wrapper = mountView();
     await flushPromises();
 
-    // The modal is inert until opened: only the org detail GET has fired.
-    expect(mockApi.get).toHaveBeenCalledTimes(1);
+    // The modal is inert until opened: only the mount-time GETs have fired
+    // (org detail + the available-plans catalog for the plan selector).
+    expect(mockApi.get).toHaveBeenCalledTimes(2);
 
     await search(wrapper, 'newperson@acme.test');
 

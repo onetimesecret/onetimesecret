@@ -4,6 +4,7 @@
   import ResendVerificationForm from '@/apps/session/components/ResendVerificationForm.vue';
   import { useAuth } from '@/shared/composables/useAuth';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { isValidInternalPath } from '@/utils/redirect';
   import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute } from 'vue-router';
@@ -23,6 +24,33 @@
   const verificationKey = ref<string>('');
   const verificationComplete = ref(false);
   const verificationSuccess = ref(false);
+
+  /**
+   * The return destination the user is mid-journey to, if this URL still
+   * carries one. Rodauth's verification link only guarantees `key`, so on the
+   * happy path the authoritative source is the redirect the BACKEND validated
+   * and stored at signup, replayed in the verify-account response and applied
+   * by useAuth.verifyAccount (which reads this same route as its fallback).
+   *
+   * This copy exists for the FAILURE screens: an expired or already-used key
+   * never reaches that response, and the escape links below are the only way
+   * out — sending the user to a bare /signin there would drop the destination
+   * on the floor after they successfully recover. Re-validated locally because
+   * a query param is user-controlled.
+   */
+  const redirectPath = computed(() => {
+    const redirect = route.query.redirect;
+    if (typeof redirect !== 'string') return null;
+    return isValidInternalPath(redirect) ? redirect : null;
+  });
+
+  /** Appends the validated redirect to an escape link when one is in flight. */
+  function linkWith(path: string): string | { path: string; query: { redirect: string } } {
+    return redirectPath.value ? { path, query: { redirect: redirectPath.value } } : path;
+  }
+
+  const signinLink = computed(() => linkWith('/signin'));
+  const signupLink = computed(() => linkWith('/signup'));
 
   // Computed property to determine if key is missing
   const isMissingKey = computed(() => !verificationKey.value && !isLoading.value);
@@ -219,13 +247,15 @@
           <div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <router-link
               v-if="signinEnabled"
-              to="/signin"
+              :to="signinLink"
+              data-testid="verify-signin-link"
               class="inline-flex justify-center rounded-md bg-brand-600 px-4 py-2 font-brand text-lg  text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
               {{ t('web.login.button_sign_in') }}
             </router-link>
             <router-link
               v-if="signupEnabled"
-              to="/signup"
+              :to="signupLink"
+              data-testid="verify-signup-link"
               class="inline-flex justify-center rounded-md bg-white px-4 py-2 font-brand text-lg  text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:hover:bg-gray-700">
               {{ t('web.auth.verify.create_new_account') }}
             </router-link>
@@ -277,7 +307,8 @@
         <div class="space-y-2 text-center">
           <div v-if="signinEnabled">
             <router-link
-              to="/signin"
+              :to="signinLink"
+              data-testid="verify-missing-key-signin-link"
               class="font-brand font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
               {{ t('web.login.button_sign_in') }}
             </router-link>

@@ -156,6 +156,45 @@ describe('createErrorBoundary', () => {
         expect.any(Object)
       );
     });
+
+    it('does not call captureException for human-interest errors (#4286)', () => {
+      // Mirrors useAsyncHandler.logTechnicalError's existing gate: an error
+      // already shown to the user via notify is an expected outcome, not a
+      // defect, regardless of which handler caught it.
+      mockIsOfHumanInterest.mockReturnValue(true);
+      mockClassifyError.mockReturnValue({
+        message: 'Secret not found',
+        type: 'human',
+        severity: 'warning',
+      });
+
+      const plugin = createErrorBoundary();
+      plugin.install(mockApp);
+
+      mockApp.config.errorHandler?.(
+        new Error('Request failed with status code 404'),
+        null,
+        'setup function'
+      );
+
+      expect(mockCaptureException).not.toHaveBeenCalled();
+    });
+
+    it('still calls captureException for technical errors when diagnostics is enabled', () => {
+      mockIsOfHumanInterest.mockReturnValue(false);
+      mockClassifyError.mockReturnValue({
+        message: 'Internal error',
+        type: 'technical',
+        severity: 'error',
+      });
+
+      const plugin = createErrorBoundary();
+      plugin.install(mockApp);
+
+      mockApp.config.errorHandler?.(new Error('boom'), null, 'setup function');
+
+      expect(mockCaptureException).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('context tags', () => {

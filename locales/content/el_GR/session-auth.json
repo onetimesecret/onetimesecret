@@ -436,13 +436,17 @@
     "text": "Ελέγξτε το email σας",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "Στείλαμε έναν σύνδεσμο επαλήθευσης στη διεύθυνση:",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "Στείλαμε έναν σύνδεσμο επαλήθευσης στη διεύθυνση email σας.",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "Στείλαμε έναν σύνδεσμο επαλήθευσης σε αυτήν τη διεύθυνση — ανοίξτε το email και κάντε κλικ στον σύνδεσμο για να ενεργοποιήσετε τον λογαριασμό σας.",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "Κάντε κλικ στον σύνδεσμο του email για να ενεργοποιήσετε τον λογαριασμό σας.",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "Δεν μπορείτε να το βρείτε; Ελέγξτε τον φάκελο ανεπιθύμητης αλληλογραφίας.",

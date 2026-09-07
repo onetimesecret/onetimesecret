@@ -87,9 +87,10 @@ describe('usePrivacyOptions', () => {
     vi.clearAllMocks();
   });
 
-  describe('lifetimeOptions — anonymous caller', () => {
-    // WEEK is the hard cap the server publishes on a stock install.
-    it('drops options above the anonymous ceiling the server would clamp to', () => {
+  describe('lifetimeOptions — guest caller', () => {
+    // This canonical-host payload publishes the stock one-week guest ceiling;
+    // a custom-host payload may publish its owner organization's 14/30-day limit.
+    it('drops options above the guest ceiling the server would clamp to', () => {
       setupStore({ ttl_max_anonymous: WEEK });
 
       expect(values()).toEqual([MINUTE, HOUR, DAY, WEEK]);

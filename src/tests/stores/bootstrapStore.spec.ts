@@ -822,6 +822,37 @@ describe('bootstrapStore', () => {
         expect(store.footerLinksConfig).toBeUndefined();
       });
     });
+
+    describe('legalUrls', () => {
+      it('returns configured legal URLs from site.legal (#4278)', () => {
+        store.update({
+          legal: {
+            terms_url: 'https://example.com/terms',
+            privacy_url: '/privacy',
+            dpa_url: 'https://example.com/dpa',
+            cookie_url: null,
+            aup_url: null,
+            security_url: null,
+          },
+        });
+
+        expect(store.legalUrls.terms_url).toBe('https://example.com/terms');
+        expect(store.legalUrls.privacy_url).toBe('/privacy');
+        expect(store.legalUrls.dpa_url).toBe('https://example.com/dpa');
+        expect(store.legalUrls.cookie_url).toBeNull();
+      });
+
+      it('defaults every URL to null when the payload omits the block', () => {
+        expect(store.legalUrls).toEqual({
+          terms_url: null,
+          privacy_url: null,
+          dpa_url: null,
+          cookie_url: null,
+          aup_url: null,
+          security_url: null,
+        });
+      });
+    });
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1191,6 +1222,25 @@ describe('bootstrapStore', () => {
 
       // Server config fields persist
       expect(store.diagnostics).toEqual(diagnosticsConfig);
+    });
+
+    it('preserves legal URLs through resetForLogout', () => {
+      store.update({
+        legal: {
+          terms_url: 'https://example.com/terms',
+          privacy_url: 'https://example.com/privacy',
+          dpa_url: null,
+          cookie_url: null,
+          aup_url: null,
+          security_url: null,
+        },
+      });
+
+      store.resetForLogout();
+
+      // Server config fields persist
+      expect(store.legalUrls.terms_url).toBe('https://example.com/terms');
+      expect(store.legalUrls.privacy_url).toBe('https://example.com/privacy');
     });
 
     it('preserves all server config fields together through resetForLogout', () => {

@@ -13,10 +13,10 @@
 // file-level max-classes-per-file rule is disabled here.
 /* eslint-disable max-classes-per-file */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ErrorEvent, TransactionEvent } from '@sentry/core';
-import type { Router, RouteLocationNormalizedLoaded } from 'vue-router';
 import type { RouteMeta } from '@/types/router';
+import type { ErrorEvent, TransactionEvent } from '@sentry/core';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { RouteLocationNormalizedLoaded, Router } from 'vue-router';
 
 // ---------------------------------------------------------------------------
 // Mocks - must use vi.hoisted() for variables used in vi.mock factories
@@ -157,17 +157,20 @@ function getBeforeSend(): (event: ErrorEvent) => ErrorEvent | null {
  * Sets up createDiagnostics with a specific router configuration.
  * Must be called in each test that needs a specific route setup.
  */
-function setupWithRouter(routerConfig: {
-  params: Record<string, string | string[]>;
-  meta: Partial<RouteMeta>;
-  resolve?: (path: string) => unknown;
-  path?: string;
-}): void {
+function setupWithRouter(
+  routerConfig: {
+    params: Record<string, string | string[]>;
+    meta: Partial<RouteMeta>;
+    resolve?: (path: string) => unknown;
+    path?: string;
+  },
+  config = baseConfig
+): void {
   resetCapturedOptions();
   const mockRouter = createMockRouter(routerConfig);
   createDiagnostics({
     host: TEST_HOST,
-    config: baseConfig,
+    config,
     router: mockRouter,
   });
 }
@@ -243,10 +246,7 @@ describe('beforeSend handler', () => {
 
       const event: ErrorEvent = {
         exception: {
-          values: [
-            { value: 'Error for user@example.com' },
-            { value: 'At path /private/xyz789' },
-          ],
+          values: [{ value: 'Error for user@example.com' }, { value: 'At path /private/xyz789' }],
         },
       };
 
@@ -269,6 +269,131 @@ describe('beforeSend handler', () => {
       const result = handler(event) as ErrorEvent;
 
       expect(result.message).toBe('User [EMAIL_REDACTED] logged out');
+    });
+  });
+
+  describe('stack frame scrubbing', () => {
+    // Code injected at document scope (webviews, extensions, Firefox iOS
+    // reader mode) gets frames attributed to the PAGE URL — on a secret link
+    // that is the secret path itself. Observed live in FRONTEND-155/154/184:
+    // request.url arrived redacted while frame filenames carried the raw key.
+    const id62 = 'abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz';
+
+    it('scrubs secret paths from frame filename and abs_path', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        exception: {
+          values: [
+            {
+              value: 'boom',
+              stacktrace: {
+                frames: [
+                  {
+                    filename: `/secret/${id62}`,
+                    abs_path: `https://eu.onetimesecret.com/secret/${id62}`,
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      const frame = result.exception?.values?.[0].stacktrace?.frames?.[0];
+      expect(frame?.filename).toBe('/secret/[REDACTED]');
+      expect(frame?.abs_path).toBe('https://eu.onetimesecret.com/secret/[REDACTED]');
+    });
+
+    it('scrubs frames in every exception of a chained error', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        exception: {
+          values: [
+            {
+              value: 'outer error',
+              stacktrace: { frames: [{ filename: '/dist/assets/main.js' }] },
+            },
+            {
+              value: 'root cause',
+              stacktrace: {
+                frames: [{ filename: `/secret/${id62}`, abs_path: `/secret/${id62}` }],
+              },
+            },
+          ],
+        },
+      };
+
+      const result = handler(event) as ErrorEvent;
+      const frame = result.exception?.values?.[1].stacktrace?.frames?.[0];
+
+      expect(frame?.filename).toBe('/secret/[REDACTED]');
+      expect(frame?.abs_path).toBe('/secret/[REDACTED]');
+    });
+
+    it('leaves first-party bundle frames untouched (sourcemap resolution)', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const bundleUrl = 'https://eu.onetimesecret.com/dist/assets/main.BbCc7LVY.js';
+      const event: ErrorEvent = {
+        exception: {
+          values: [
+            {
+              value: 'boom',
+              stacktrace: {
+                frames: [{ filename: '/dist/assets/main.BbCc7LVY.js', abs_path: bundleUrl }],
+              },
+            },
+          ],
+        },
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      const frame = result.exception?.values?.[0].stacktrace?.frames?.[0];
+      expect(frame?.filename).toBe('/dist/assets/main.BbCc7LVY.js');
+      expect(frame?.abs_path).toBe(bundleUrl);
+    });
+
+    it('tolerates exceptions without stacktraces', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        exception: { values: [{ value: 'no stack' }] },
+      };
+
+      expect(() => handler(event)).not.toThrow();
+    });
+  });
+
+  describe('third-party noise filter wiring (#4287)', () => {
+    it('keeps ignoreErrors, denyUrls and allowUrls authoritative over backend config', () => {
+      const configWithFilterFields = {
+        ...baseConfig,
+        sentry: {
+          ...baseConfig.sentry,
+          ignoreErrors: ['backend filter'],
+          denyUrls: [/backend-filter/],
+          allowUrls: [/backend-filter/],
+        },
+      };
+
+      setupWithRouter({ params: {}, meta: {} }, configWithFilterFields);
+      const options = getCapturedClientOptions();
+
+      expect(options?.ignoreErrors).toEqual(
+        expect.arrayContaining(['Java object is gone', 'zaloJSV2'])
+      );
+      expect(options?.ignoreErrors).not.toContain('backend filter');
+      expect(options?.denyUrls).not.toEqual([/backend-filter/]);
+      expect(options?.allowUrls).not.toEqual([/backend-filter/]);
     });
   });
 

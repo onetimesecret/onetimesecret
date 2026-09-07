@@ -1,9 +1,9 @@
 // src/plugins/core/globalErrorBoundary.ts
 
-import { AsyncHandlerOptions } from '@/shared/composables/useAsyncHandler';
-import { classifyError, errorGuards } from '@/schemas/errors';
+import { classifyError, errorGuards, type ApplicationError } from '@/schemas/errors';
 import { captureException, isDiagnosticsEnabled } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
+import { AsyncHandlerOptions } from '@/shared/composables/useAsyncHandler';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { VueComponentLike } from '@/types/ui/vue-internals';
 import type { App, Plugin } from 'vue';
@@ -26,6 +26,71 @@ export function getComponentName(instance: unknown): string {
   // Script setup: $.type.name or $.type.__name (Vue 3 internal component type)
   // Guard i.$ for edge cases (SSR hydration errors, corrupted instances)
   return i.$options?.name || i.$?.type?.name || i.$?.type?.__name || 'unknown';
+}
+
+/**
+ * Optional jurisdiction/planid/role tags read from the bootstrap store,
+ * omitting any that are not currently available.
+ */
+function optionalBootstrapTags(
+  bootstrap: ReturnType<typeof useBootstrapStore>
+): Record<string, unknown> {
+  const tags: Record<string, unknown> = {};
+
+  if (bootstrap.regions?.current_jurisdiction) {
+    tags.jurisdiction = bootstrap.regions.current_jurisdiction;
+  }
+  if (bootstrap.organization?.planid) {
+    tags.planid = bootstrap.organization.planid;
+  }
+  if (bootstrap.cust?.role) {
+    tags.role = bootstrap.cust.role;
+  }
+
+  return tags;
+}
+
+interface ReportToSentryArgs {
+  normalizedError: Error;
+  classifiedError: ApplicationError;
+  instance: unknown;
+  info: string;
+}
+
+/**
+ * Sends a classified error to Sentry via the diagnostics service, unless it
+ * is human-facing — already shown to the user via `notify` in the caller, so
+ * it is an expected outcome, not a defect. This is the same rule
+ * useAsyncHandler.logTechnicalError applies; this handler is the OTHER place
+ * an error can reach captureException, and it must apply it too (#4286).
+ */
+function reportToSentry({
+  normalizedError,
+  classifiedError,
+  instance,
+  info,
+}: ReportToSentryArgs): void {
+  if (!isDiagnosticsEnabled()) {
+    console.debug('[GlobalErrorBoundary] Sentry not initialized');
+    return;
+  }
+  if (errorGuards.isOfHumanInterest(classifiedError)) {
+    console.debug('[GlobalErrorBoundary] Skipping Sentry capture for human-facing error');
+    return;
+  }
+
+  console.debug('[GlobalErrorBoundary] Sending to Sentry');
+
+  // Note: useBootstrapStore() is safe here because Pinia is installed before this plugin
+  const context: Record<string, unknown> = {
+    componentName: getComponentName(instance),
+    componentInfo: info,
+    errorType: classifiedError.type,
+    errorSeverity: classifiedError.severity,
+    ...optionalBootstrapTags(useBootstrapStore()),
+  };
+
+  captureException(normalizedError, context);
 }
 
 /**
@@ -65,39 +130,7 @@ export function createErrorBoundary(options: ErrorBoundaryOptions = {}): Plugin 
           options.notify(classifiedError.message, classifiedError.severity);
         }
 
-        // Send to Sentry via diagnostics service
-        if (isDiagnosticsEnabled()) {
-          console.debug('[GlobalErrorBoundary] Sending to Sentry');
-
-          // Extract searchable tags from bootstrap store
-          // Note: useBootstrapStore() is safe here because Pinia is installed before this plugin
-          const bootstrap = useBootstrapStore();
-          const context: Record<string, unknown> = {
-            componentName: getComponentName(instance),
-            componentInfo: info,
-            errorType: classifiedError.type,
-            errorSeverity: classifiedError.severity,
-          };
-
-          // Add jurisdiction if regions are configured (optional field)
-          if (bootstrap.regions?.current_jurisdiction) {
-            context.jurisdiction = bootstrap.regions.current_jurisdiction;
-          }
-
-          // Add planid from organization if present (organization is optional)
-          if (bootstrap.organization?.planid) {
-            context.planid = bootstrap.organization.planid;
-          }
-
-          // Add role from customer if present (cust is nullable)
-          if (bootstrap.cust?.role) {
-            context.role = bootstrap.cust.role;
-          }
-
-          captureException(normalizedError, context);
-        } else {
-          console.debug('[GlobalErrorBoundary] Sentry not initialized');
-        }
+        reportToSentry({ normalizedError, classifiedError, instance, info });
 
         if (options.debug) {
           loggingService.debug('[ErrorContext]', { instance, info });

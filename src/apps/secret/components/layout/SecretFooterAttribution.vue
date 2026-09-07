@@ -2,12 +2,20 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import LegalLink from '@/shared/components/common/LegalLink.vue';
   import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { storeToRefs } from 'pinia';
+  import { computed } from 'vue';
 
 const { t } = useI18n();
-const { brand_product_name } = storeToRefs(useBootstrapStore());
+const bootstrapStore = useBootstrapStore();
+const { brand_product_name } = storeToRefs(bootstrapStore);
+
+// Legal URLs from site.legal (#4278). An unset URL removes the whole
+// affordance (separator dot included) — never a dead link.
+const termsUrl = computed(() => bootstrapStore.legalUrls.terms_url);
+const privacyUrl = computed(() => bootstrapStore.legalUrls.privacy_url);
 
   defineProps<{
     siteHost: string;
@@ -34,26 +42,30 @@ const { brand_product_name } = storeToRefs(useBootstrapStore());
       </a>
 
       <template v-if="showTerms">
-        <span
-          aria-hidden="true"
-          class="text-gray-400 dark:text-gray-600"
-          role="presentation">&middot;</span>
-        <router-link
-          to="/info/terms"
-          class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
-          :aria-label="t('web.layout.view_terms_of_service')">
-          {{ t('web.footer.terms') }}
-        </router-link>
-        <span
-          aria-hidden="true"
-          class="text-gray-400 dark:text-gray-600"
-          role="presentation">&middot;</span>
-        <router-link
-          to="/info/privacy"
-          class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
-          :aria-label="t('web.layout.view_privacy_policy')">
-          {{ t('web.footer.privacy') }}
-        </router-link>
+        <template v-if="termsUrl">
+          <span
+            aria-hidden="true"
+            class="text-gray-400 dark:text-gray-600"
+            role="presentation">&middot;</span>
+          <LegalLink
+            :url="termsUrl"
+            class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
+            :aria-label="t('web.layout.view_terms_of_service')">
+            {{ t('web.footer.terms') }}
+          </LegalLink>
+        </template>
+        <template v-if="privacyUrl">
+          <span
+            aria-hidden="true"
+            class="text-gray-400 dark:text-gray-600"
+            role="presentation">&middot;</span>
+          <LegalLink
+            :url="privacyUrl"
+            class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
+            :aria-label="t('web.layout.view_privacy_policy')">
+            {{ t('web.footer.privacy') }}
+          </LegalLink>
+        </template>
       </template>
     </nav>
 

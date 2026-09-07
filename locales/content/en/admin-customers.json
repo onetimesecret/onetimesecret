@@ -27,6 +27,10 @@
     "text": "No customers match this search",
     "content_hash": "ea7e7012"
   },
+  "web.admin.customers.list.capped": {
+    "text": "Results are capped: the count shown is a floor, not the total. Narrow the search or filter to see everything.",
+    "content_hash": "27537844"
+  },
   "web.admin.customers.roles.colonel": {
     "text": "Colonel",
     "content_hash": "02577777"

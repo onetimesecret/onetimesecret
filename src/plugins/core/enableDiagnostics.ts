@@ -31,14 +31,15 @@ import {
 import * as SentryVue from '@sentry/vue';
 import type { App, Plugin } from 'vue';
 import type { Router, RouteMeta as VueRouteMeta } from 'vue-router';
-import { applyGroupingRules } from './diagnostics/grouping';
-import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 import {
   applyActorContext,
   resolveDiagnosticsRef,
   sanitizeEventUser,
   type ActorContextScope,
 } from './diagnostics/actorContext';
+import { isExpectedTransportOutcome } from './diagnostics/expectedOutcomes';
+import { applyGroupingRules } from './diagnostics/grouping';
+import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 // Re-export scrubbing utilities from dependency-free module for backward compatibility
 export {
   EMAIL_PATTERN,
@@ -49,6 +50,78 @@ export {
 } from './diagnostics/scrubbers';
 
 export const SENTRY_KEY = Symbol('sentry');
+
+/**
+ * Message fingerprints of errors thrown by code that is not ours: browser
+ * extensions, in-app webviews, and email-client link scanners. Secret links
+ * are opened from email and chat clients, so this traffic share is unusually
+ * high here (#4287). Consumed by eventFiltersIntegration via `ignoreErrors`
+ * (matched as substring for strings, test for regexes, against the exception
+ * message). Sentry's own default ignore list stays active alongside these.
+ *
+ * Revisit quarterly — the list will need additions as clients change.
+ *
+ * @internal Exported for testing
+ */
+export const THIRD_PARTY_IGNORE_ERRORS: (string | RegExp)[] = [
+  // Firefox iOS reader-mode script injected at document scope
+  /__firefox__/,
+  // Microsoft Outlook SafeLinks scanning webview; the Id varies per event
+  /Object Not Found Matching Id:\d+/,
+  // Android WebView torn down mid-postMessage (Instagram/Meta in-app browser)
+  'Java object is gone',
+  // Zalo in-app browser injection ("zaloJSV2 is not defined" and
+  // "Can't find variable: zaloJSV2")
+  'zaloJSV2',
+  // iOS webview whose host app never answered the bridge call (DuckDuckGo etc.)
+  'WKWebView API client did not respond to this postMessage',
+  // Chrome extension messaging its unloaded background counterpart
+  'Could not establish connection. Receiving end does not exist',
+  // Extensions redefining built-ins (e.g. Symbol.hasInstance); wording varies
+  // by browser, so match the invariant middle
+  /redefine non-configurable property/,
+  // In-app browsers whose injected bridge object never loaded. Observed on
+  // secret-link views as `xbrowser`/`swbrowser is not defined`; the prefix
+  // identifies the host app, so the list grows one app at a time rather than
+  // matching a bare `browser is not defined` that would also swallow our own.
+  'xbrowser is not defined',
+  'swbrowser is not defined',
+];
+
+/**
+ * Frame URLs of third-party code, matched against the topmost stack frame.
+ * Consumed by eventFiltersIntegration via `denyUrls`.
+ *
+ * @internal Exported for testing
+ */
+export const THIRD_PARTY_DENY_URLS: RegExp[] = [
+  /^chrome-extension:\/\//,
+  /^moz-extension:\/\//,
+  /^safari-(web-)?extension:\/\//,
+  // Safari masks extension-injected frame URLs behind this scheme
+  /^webkit-masked-url:\/\//,
+  // Meta in-app browser performance instrumentation
+  /^iabjs:\/\//,
+];
+
+/**
+ * Only report errors whose topmost frame is our own bundle. Every first-party
+ * script is served under /dist/ (production: /dist/assets/*.js via the Vite
+ * manifest, dev: /dist/main.ts — see apps/web/core/views/helpers/
+ * vite_manifest.rb), on canonical and custom domains alike, so this is a
+ * path match rather than an origin match.
+ *
+ * Injected webview/extension code frequently executes at document scope, so
+ * its frames are attributed to the page URL itself (observed: Firefox iOS
+ * reader mode frames at /secret/<key>). Those never match /dist/ and get
+ * dropped. Trade-off, accepted in #4287: errors from the inline theme
+ * bootstrap script in index.rue are attributed to the page URL too and would
+ * be dropped — that script is small and stable. Events with no frame URL at
+ * all (e.g. many unhandled rejections) are NOT dropped by allowUrls.
+ *
+ * @internal Exported for testing
+ */
+export const FIRST_PARTY_ALLOW_URLS: RegExp[] = [/\/dist\//];
 
 // Import functions for local use (patterns are re-exported above for external consumers)
 import {
@@ -332,6 +405,33 @@ function scrubEventMessages(event: ErrorEvent): ErrorEvent {
 }
 
 /**
+ * Scrubs stack-frame locations through the URL pattern net.
+ *
+ * Code injected by extensions/webviews at document scope gets its frames
+ * attributed to the page URL itself — which on a secret link IS the secret
+ * path. Observed live (FRONTEND-155/154/184): events arrived with
+ * `request.url` correctly `[REDACTED]` while the frame filename carried the
+ * raw `/secret/<62-char-key>` verbatim. Our own bundle frames
+ * (/dist/assets/*.js) contain no sensitive segments and pass through
+ * unchanged, so server-side sourcemap resolution is unaffected.
+ *
+ * Runs in beforeSend, i.e. AFTER eventFiltersIntegration's allow/deny
+ * checks — scrubbing here cannot cause a first-party event to be dropped.
+ */
+function scrubStackFrameUrls(event: ErrorEvent): void {
+  for (const exception of event.exception?.values ?? []) {
+    for (const frame of exception.stacktrace?.frames ?? []) {
+      if (frame.filename) {
+        frame.filename = scrubUrlWithPatterns(frame.filename);
+      }
+      if (frame.abs_path) {
+        frame.abs_path = scrubUrlWithPatterns(frame.abs_path);
+      }
+    }
+  }
+}
+
+/**
  * Creates a Sentry beforeSend handler that scrubs sensitive data from events.
  * Handles both URL scrubbing (route-param based) and message scrubbing (regex-based).
  *
@@ -339,12 +439,24 @@ function scrubEventMessages(event: ErrorEvent): ErrorEvent {
  */
 function createBeforeSendHandler(router: Router) {
   return (event: ErrorEvent, hint?: EventHint): ErrorEvent | null | Promise<ErrorEvent | null> => {
+    // #4286: expected transport outcomes (already-consumed secrets,
+    // cancelled requests, client connectivity) are the product working, not
+    // a defect. Drop first — no point scrubbing or fingerprinting an event
+    // that is about to be discarded.
+    if (isExpectedTransportOutcome(hint)) {
+      return null;
+    }
+
     if ('secret' in event && event.secret) {
       delete event.secret;
     }
 
     // Scrub exception messages and standalone messages (regex-based)
     scrubEventMessages(event);
+
+    // Scrub stack-frame filenames/paths (page-URL-attributed frames can carry
+    // the secret path)
+    scrubStackFrameUrls(event);
 
     // Collect route-param values for the current route (opt-out-governed).
     const sortedValues = collectCurrentRouteValues(router);
@@ -486,6 +598,47 @@ function applyDeploymentTags(scopes: Array<Pick<Scope, 'setTag'>>, host: string)
   }
 }
 
+/** Every character with meaning inside a regex, so a literal stays literal. */
+const REGEXP_METACHARACTERS = /[.*+?^${}()|[\]\\]/g;
+
+/**
+ * Escapes a string for safe interpolation into a `RegExp` source.
+ *
+ * Escaping only `.` — as this did previously — is not enough. `host` comes
+ * from `display_domain`, which on a custom-domain deployment originates in a
+ * value the customer registered. Any other metacharacter reaching the pattern
+ * either breaks construction or, worse, widens the match.
+ */
+function escapeRegExp(value: string): string {
+  return value.replace(REGEXP_METACHARACTERS, '\\$&');
+}
+
+/**
+ * Builds the `tracePropagationTargets` pattern for the app's own host:
+ * the host itself or any subdomain of it, over http/https, with an optional
+ * port, and either nothing or a path after it.
+ *
+ * This pattern is a security boundary, not a convenience. Every URL it
+ * matches gets the outbound `sentry-trace` and `baggage` headers attached, so
+ * a pattern that matches more than intended leaks trace context — and the
+ * request correlation it carries — to third-party origins. Two consequences:
+ *
+ *   1. The host is fully escaped (see escapeRegExp), never just dot-escaped.
+ *   2. Both ends are anchored with literal `^` and `$` at the top level of
+ *      the pattern, with the optional path inside `(/.*)?` rather than the
+ *      end anchor being buried in a `(/|$)` alternation. An unanchored tail
+ *      would match `https://evil.test/?x=https://ourhost.example/`, and an
+ *      anchor reachable through only one branch of a group is invisible to
+ *      static analysis (CodeQL js/regex/missing-regexp-anchor) even when it
+ *      does hold.
+ *
+ * The leading `([a-z0-9-]+\.)*` matches subdomain labels only — it cannot
+ * cross a `/`, `@`, or `:`, so it does not admit a userinfo or path prefix.
+ */
+function buildHostPropagationPattern(host: string): RegExp {
+  return new RegExp(`^https?://([a-z0-9-]+\\.)*${escapeRegExp(host)}(:\\d+)?(/.*)?$`, 'i');
+}
+
 interface EnableDiagnosticsOptions {
   // Display domain. This is the domain the user is interacting with, not
   // the Sentry domain. Same meaning as `display_domain`.
@@ -580,16 +733,22 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     stackParser: defaultStackParser,
     // tracesSampleRate: Keep low default since YAML doesn't define it and traces are high-volume
     tracesSampleRate: config.sentry.tracesSampleRate ?? 0.01,
+    // Sentry's default normalizeDepth of 3 truncates nested extras to
+    // "[Array]"/"[Object]". That has now hidden the payload of a schema
+    // validation failure twice: gracefulParse attaches `issues[].path`/
+    // `.code`/`.message` as extras, and at depth 3 the issue objects were
+    // unreadable, so diagnosing #4298 (and the colonel-org schema failure
+    // before it) meant inferring the rejected field's value instead of
+    // reading it. Depth 6 covers extra → issues[] → issue → path[] with room
+    // to spare. Bounded cost: extras are already small and scrubbed.
+    normalizeDepth: 6,
     // Note: Sentry 10+ requires sendDefaultPii: true for IP address collection
     // sendDefaultPii: false, // Default is false
     tracePropagationTargets: [
       /^localhost(:\d+)?$/, // Matches localhost with optional port
-      // Add host domain regex only if host is provided.
-      // Properly anchored: requires host to be at the end of the domain portion,
-      // either at end of string or followed by / or :port
-      ...(host
-        ? [new RegExp(`^https?://([a-z0-9-]+\\.)*${host.replaceAll('.', '\\.')}(:\\d+)?(/|$)`, 'i')]
-        : []),
+      // Add the host pattern only if a host is provided. See
+      // buildHostPropagationPattern for why it is shaped the way it is.
+      ...(host ? [buildHostPropagationPattern(host)] : []),
     ],
 
     // Only the integrations listed here will be used
@@ -608,6 +767,14 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     // Scrub sensitive URLs from breadcrumbs at capture time
     beforeBreadcrumb: createBeforeBreadcrumbHandler(router),
     ...config.sentry, // includes dsn, environment, etc.
+
+    // Third-party noise filtering (#4287), consumed by eventFiltersIntegration.
+    // Secret links are opened from email/chat clients, so extension and
+    // in-app-webview errors are an outsized share of events here. Keep these
+    // authoritative if the backend Sentry schema later grows matching fields.
+    ignoreErrors: THIRD_PARTY_IGNORE_ERRORS,
+    denyUrls: THIRD_PARTY_DENY_URLS,
+    allowUrls: FIRST_PARTY_ALLOW_URLS,
 
     // Build-time release takes precedence over backend config.
     // This ensures frontend errors match the sourcemaps uploaded during this build,

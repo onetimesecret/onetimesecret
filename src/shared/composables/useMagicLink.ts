@@ -4,9 +4,9 @@ import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
 
 import { useApi } from '@/shared/composables/useApi';
+import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
 
 import { extractError } from './helpers/magicLinkHelpers';
 
@@ -23,9 +23,9 @@ function isError(response: MagicLinkResponse): response is MagicLinkErrorRespons
 export function useMagicLink() {
   const $api = useApi();
   const { t } = useI18n();
-  const router = useRouter();
   const authStore = useAuthStore();
   const csrfStore = useCsrfStore();
+  const { navigateAfterAuth } = usePostAuthRedirect();
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const fieldError = ref<[string, string] | null>(null);
@@ -90,7 +90,11 @@ export function useMagicLink() {
         return false;
       }
       await authStore.setAuthenticated(true);
-      await router.push('/');
+      // A magic link is a PRIMARY factor: the session is live, so honour the
+      // same destination precedence as a password login (billing intent >
+      // validated ?redirect > '/') instead of dumping the user on the
+      // dashboard and losing whatever they were trying to reach.
+      await navigateAfterAuth();
       return true;
     } catch (err: unknown) {
       const [errMsg, fieldErr] = extractError(err, t, 'web.auth.magicLink.loginFailed');

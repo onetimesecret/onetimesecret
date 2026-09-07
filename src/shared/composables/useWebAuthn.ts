@@ -1,9 +1,12 @@
 // src/shared/composables/useWebAuthn.ts
 
 import {
+  otpVerifyResponseSchema,
   webauthnCredentialsResponseSchema,
+  type OtpVerifySuccess,
   type WebAuthnCredential,
 } from '@/schemas/api/auth/responses/auth';
+import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import type {
@@ -16,7 +19,6 @@ import { startAuthentication, startRegistration } from '@simplewebauthn/browser'
 import type { AxiosInstance } from 'axios';
 import { inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
 
 // Response types
 type WebAuthnSuccessResponse = { success: string };
@@ -50,10 +52,10 @@ function isError(response: WebAuthnResponse): response is WebAuthnErrorResponse 
 /* eslint-disable max-lines-per-function */
 export function useWebAuthn() {
   const $api = inject('api') as AxiosInstance;
-  const router = useRouter();
   const { t } = useI18n();
   const authStore = useAuthStore();
   const csrfStore = useCsrfStore();
+  const { navigateAfterAuth } = usePostAuthRedirect();
 
   const isLoading = ref(false);
   const error = ref<string | null>(null);
@@ -62,6 +64,14 @@ export function useWebAuthn() {
       window.PublicKeyCredential !== undefined &&
       typeof window.PublicKeyCredential === 'function'
   );
+  /**
+   * Body of the last successful webauthn SECOND-FACTOR completion. Mirrors
+   * useMfa's `verifyResponse`: the backend replays billing_redirect on the
+   * two-factor completion (#4306), and MfaChallenge.vue hands this to
+   * usePostAuthRedirect.navigateAfterAuth(). Null until a ceremony succeeds,
+   * and reset at the start of every attempt.
+   */
+  const mfaVerifyResponse = ref<OtpVerifySuccess | null>(null);
 
   /**
    * Clears error state
@@ -260,9 +270,13 @@ export function useWebAuthn() {
         return false;
       }
 
-      // Success - update auth state and navigate
+      // Success - update auth state and navigate. This route is the PASSWORDLESS
+      // first factor (webauthn-login), so the session is complete here; apply
+      // the same destination precedence as a password login (billing intent >
+      // validated ?redirect > '/'). The MFA route below deliberately does not —
+      // MfaChallenge.vue owns the redirect once the second factor lands.
       await authStore.setAuthenticated(true);
-      await router.push('/');
+      await navigateAfterAuth();
       return true;
     } catch (err: unknown) {
       handleWebAuthnError(err, 'web.auth.webauthn.authFailed');
@@ -276,6 +290,11 @@ export function useWebAuthn() {
    * MFA authentication using a WebAuthn credential
    * Uses the webauthn_auth route (requires prior session/partial auth)
    *
+   * The completion body is kept in `mfaVerifyResponse` — it may carry the
+   * replayed billing_redirect (#4306), which MfaChallenge.vue feeds into
+   * navigateAfterAuth(). Without it this factor would fall back to the route
+   * query, which the MFA hop is not guaranteed to still carry.
+   *
    * @returns true if MFA verification successful
    */
   async function verifyWebAuthnMfa(): Promise<boolean> {
@@ -285,6 +304,8 @@ export function useWebAuthn() {
     }
 
     clearError();
+    // Reset first so a stale intent can never leak into a later completion.
+    mfaVerifyResponse.value = null;
     isLoading.value = true;
 
     try {
@@ -319,6 +340,15 @@ export function useWebAuthn() {
       if (isError(verifyData)) {
         error.value = verifyData.error;
         return false;
+      }
+
+      // Keep the completion body for the post-auth redirect. Parsed with the
+      // shared two-factor schema so this factor and the OTP/recovery factors
+      // agree on the shape; an unexpected body simply leaves the ref null
+      // rather than failing an otherwise successful ceremony.
+      const completion = otpVerifyResponseSchema.safeParse(verifyData);
+      if (completion.success && 'success' in completion.data) {
+        mfaVerifyResponse.value = completion.data;
       }
 
       return true;
@@ -398,6 +428,7 @@ export function useWebAuthn() {
     supported,
     isLoading,
     error,
+    mfaVerifyResponse, // Completion body of the last webauthn second factor
 
     // Actions
     registerWebAuthn,

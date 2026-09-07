@@ -67,10 +67,29 @@ module Auth
       #   both minting a workspace (see
       #   Billing::CheckoutTargetResolver.adopt_claimed_workspace). Ignored
       #   when blank, which is every non-billing caller.
-      def initialize(customer:, require_verification: false, stripe_customer_id: nil)
-        @customer             = customer
-        @require_verification = require_verification
-        @stripe_customer_id   = stripe_customer_id
+      # @param claim_pending_federation [Boolean] When false, decline to claim a
+      #   PendingFederatedSubscription: create the workspace and leave the
+      #   pending record intact.
+      #
+      #   Only the checkout-completion surfaces pass false. They arrive holding
+      #   a paid LOCAL subscription that they apply to this workspace moments
+      #   later, so claiming here would consume the customer's cross-region
+      #   record — destroying the only copy of it — to deliver a benefit they
+      #   are about to receive anyway, and would leave the org marked federated
+      #   for a subscription it actually owns (#4212).
+      #
+      #   Distinct from require_verification, which DEFERS the claim to
+      #   after_verify_account. This flag declines it outright, because a
+      #   checkout completion has no later re-claim to defer to. The pending
+      #   record survives for the surface that can resolve it properly: the
+      #   next federated subscription webhook, which reads the plan from
+      #   subscription metadata.
+      def initialize(customer:, require_verification: false, stripe_customer_id: nil,
+                     claim_pending_federation: true)
+        @customer                 = customer
+        @require_verification     = require_verification
+        @stripe_customer_id       = stripe_customer_id
+        @claim_pending_federation = claim_pending_federation
       end
 
       # Executes the workspace creation operation
@@ -260,6 +279,17 @@ module Auth
       # @return [Boolean] True if pending subscription was applied
       #
       def apply_pending_federation!(org)
+        # Creation-policy gate: this caller creates workspaces but does not
+        # deliver federated benefits (see #initialize). Checked before the
+        # verification gate because it is not a deferral — there is no second
+        # chance to re-claim from, and none is wanted. Returning here leaves
+        # the PendingFederatedSubscription untouched, which is the whole point.
+        unless @claim_pending_federation
+          auth_logger.info '[create-default-workspace] Federated subscription claim declined by caller',
+            { org: org.extid }
+          return false
+        end
+
         # Verification gate: on the standard signup path the email is not yet
         # verified at account-creation time. Defer the claim (leaving the
         # PendingFederatedSubscription intact) until the user verifies; the

@@ -436,13 +436,17 @@
     "text": "이메일을 확인하세요",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "인증 링크를 보낸 주소:",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "귀하의 이메일 주소로 인증 링크를 보냈습니다.",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "이 주소로 인증 링크를 보냈습니다 — 이메일을 열고 링크를 클릭하여 계정을 활성화하세요.",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "이메일의 링크를 클릭하여 계정을 활성화하세요.",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "찾을 수 없나요? 스팸 폴더를 확인하세요.",

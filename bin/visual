@@ -157,6 +157,13 @@ VISUAL_ENV=(
   FOOTER_LINKS=true
   TERMS_URL=https://onetimesecret.com/terms
   PRIVACY_URL=https://onetimesecret.com/privacy
+  # The remaining site.legal URLs (#4278) stay pinned-blank: their footer
+  # entries are dropped when unset, and an ambient dev export must not grow
+  # the Legals column (and every full-footer page) past baseline.
+  DPA_URL=
+  COOKIE_URL=
+  AUP_URL=
+  SECURITY_URL=
   DOCS_URL=https://docs.onetimesecret.com/
   STATUS_URL=https://status.onetimesecret.com/
   ABOUT_URL=https://onetimesecret.com/about

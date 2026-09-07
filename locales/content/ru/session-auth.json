@@ -436,13 +436,17 @@
     "text": "Проверьте электронную почту",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "Мы отправили ссылку для подтверждения на адрес:",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "Мы отправили ссылку для подтверждения на Ваш адрес электронной почты.",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "Мы отправили ссылку для подтверждения на этот адрес — откройте письмо и нажмите на ссылку, чтобы активировать аккаунт.",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "Нажмите на ссылку в письме, чтобы активировать аккаунт.",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "Не можете найти? Проверьте папку со спамом.",
