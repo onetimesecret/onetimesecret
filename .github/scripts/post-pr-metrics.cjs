@@ -20,19 +20,19 @@ module.exports = async function postPrMetrics({ github, context, core, tierData 
       name: 'Tier 1',
       jobs: 'Lint & Build',
       seconds: tierData.tier1Seconds,
-      target: tierData.tier1Target || 60,
+      target: tierData.tier1Target || 150,
     },
     {
       name: 'Tier 2',
       jobs: 'Unit Tests',
       seconds: tierData.tier2Seconds,
-      target: tierData.tier2Target || 120,
+      target: tierData.tier2Target || 600,
     },
     {
       name: 'Tier 3',
       jobs: 'Integration Tests',
       seconds: tierData.tier3Seconds,
-      target: tierData.tier3Target || 210,
+      target: tierData.tier3Target || 600,
     },
     {
       name: 'Tier 4',

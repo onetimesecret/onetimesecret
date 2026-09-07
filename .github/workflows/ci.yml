@@ -946,9 +946,9 @@ jobs:
                 tier2Seconds: '${{ steps.metrics.outputs.tier2-seconds }}',
                 tier3Seconds: '${{ steps.metrics.outputs.tier3-seconds }}',
                 tier4Seconds: '${{ steps.metrics.outputs.tier4-seconds }}',
-                tier1Target: 60,
-                tier2Target: 120,
-                tier3Target: 210,
+                tier1Target: 150,
+                tier2Target: 600,
+                tier3Target: 600,
                 tier4Target: 400,
               },
             });

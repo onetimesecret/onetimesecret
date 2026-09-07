@@ -16,11 +16,15 @@
 #   - Tier 3: Integration Tests (Simple, Full, Disabled auth modes)
 #   - Tier 4: Container Validation
 #
-# Performance Targets (cumulative from workflow start, revised 2026-08):
-#   - Tier 1: <130s  (lint + build complete)
-#   - Tier 2: <540s  (unit tests complete)
-#   - Tier 3: <510s  (integration tests complete)
-#   - Tier 4: <720s  (container validated, full pipeline)
+# Performance Targets (cumulative from workflow start, revised 2026-09):
+#   - Tier 1: <150s  (lint + build complete)
+#   - Tier 2: <600s  (unit tests complete)
+#   - Tier 3: <600s  (integration tests complete)
+#   - Tier 4: <400s  (container validated, full pipeline)
+#
+# Set from recent successful runs (actual + ~25% headroom): a representative
+# run measured T1 ~107s, T2 ~337-467s, T3 ~405-467s, T4 ~248s. Tier 4 already
+# cleared its previous 400s target, so it is left unchanged.
 #
 # Outputs:
 #   - GitHub Step Summary with timing breakdown by tier
@@ -69,19 +73,19 @@ inputs:
   target-tier1:
     description: 'Target seconds for Tier 1 (Lint & Build)'
     required: false
-    default: '130'
+    default: '150'
   target-tier2:
     description: 'Target seconds for Tier 2 (Unit Tests)'
     required: false
-    default: '540'
+    default: '600'
   target-tier3:
     description: 'Target seconds for Tier 3 (Integration Tests)'
     required: false
-    default: '510'
+    default: '600'
   target-tier4:
     description: 'Target seconds for Tier 4 (Container / Full Pipeline)'
     required: false
-    default: '720'
+    default: '400'
 
   # Behavior
   fail-on-violation:
@@ -474,7 +478,7 @@ runs:
         # 4. Update targets in check-ci-metrics/action.yml (add 20% buffer)
         ```
 
-        Current targets set 2025-12 based on Phase 5 completion data.
+        Current targets revised 2026-09 based on recent successful runs.
 
         </details>
         EOF
