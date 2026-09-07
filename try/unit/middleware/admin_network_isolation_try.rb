@@ -1405,8 +1405,8 @@ status_for(@encoded, 'tenant.example.com', path_info: '/%63olonels')
 # HOST PROVENANCE — a forwarded host from an untrusted peer (#4024)
 # =================================================================
 # With site.network.trusted_proxy unset (the shipped default) Rack::DetectHost
-# honors X-Forwarded-Host / Apx-Incoming-Host / X-Original-Host / Forwarded from
-# ANY peer on a private or loopback address — i.e. from every containerised
+# honors X-Forwarded-Host / Apx-Incoming-Host / X-Original-Host from ANY peer
+# on a private or loopback address — i.e. from every containerised
 # reverse-proxy install. The admin gate declines to rely on that: a detected
 # host that a forwarded header produced is accepted only when
 # env['otto.via_trusted_proxy'] is true, otherwise it must AGREE with the host
@@ -1455,10 +1455,24 @@ status_with(@fwd, 'admin.example.com', { 'HTTP_X_ORIGINAL_HOST' => 'admin.exampl
             http_host: 'secrets.tenant.test')
 #=> 404
 
-## and the RFC 7239 Forwarded header
-status_with(@fwd, 'admin.example.com', { 'HTTP_FORWARDED' => 'host=admin.example.com' },
+## the RFC 7239 Forwarded header is NOT a host source: DetectHost ignores its
+## host parameter outright (#4121), so the gate does not count it as provenance.
+## The detected host is what `Host:` alone produced, and it is judged on the
+## allowlist as usual — the Forwarded value never enters the decision.
+status_with(@fwd, 'secrets.tenant.test', { 'HTTP_FORWARDED' => 'host=admin.example.com' },
             http_host: 'secrets.tenant.test')
 #=> 404
+
+## ...and a Forwarded header naming some other host cannot evict a request the
+## `Host:` header legitimately placed on the allowlist
+status_with(@fwd, 'admin.example.com', { 'HTTP_FORWARDED' => 'host=secrets.tenant.test' },
+            http_host: 'admin.example.com')
+#=> 200
+
+## Forwarded is absent from the provenance key list that X-Forwarded-Host,
+## Apx-Incoming-Host and X-Original-Host populate
+Onetime::Middleware::AdminNetworkIsolation::FORWARDED_HOST_ENV_KEYS.sort
+#=> ['HTTP_APX_INCOMING_HOST', 'HTTP_X_FORWARDED_HOST', 'HTTP_X_ORIGINAL_HOST']
 
 ## the API surface is judged identically
 status_with(@fwd, 'admin.example.com', { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com' },
