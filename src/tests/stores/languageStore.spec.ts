@@ -9,13 +9,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
 
 describe('Language Store', () => {
-  let axiosMock: AxiosMockAdapter | null;
+  // Non-null: setupTestPinia() enables the axios mock by default, so every
+  // test in this suite has a live adapter.
+  let axiosMock: AxiosMockAdapter;
   let bootstrapStore: ReturnType<typeof useBootstrapStore>;
 
   beforeEach(async () => {
     // Setup testing environment with all needed components
     const setup = await setupTestPinia();
-    axiosMock = setup.axiosMock;
+    axiosMock = setup.axiosMock!;
 
     vi.useFakeTimers();
 

@@ -1,6 +1,6 @@
 // src/tests/stores/authStore.spec.ts
 
-import { Customer } from '@/schemas/shapes/v2';
+import type { CustomerCanonical } from '@/schemas/contracts/customer';
 import { AUTH_CHECK_CONFIG, useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { createApi } from '@/api';
@@ -19,25 +19,16 @@ vi.mock('@/services/diagnostics.service', async (importOriginal) => ({
   setDiagnosticsActorContext: vi.fn(),
 }));
 
-// Create a mock Customer object that matches the actual Customer type
-const mockCustomer: Customer = {
-  identifier: 'cust-1',
-  custid: '1',
+// Create a mock Customer object that matches the canonical Customer type
+// (identifier/custid and the stripe_* fields no longer exist on the canonical
+// shape; derive from the shared fixture and override the fields this suite
+// cares about).
+const mockCustomer: CustomerCanonical = {
+  ...fixtureCustomer,
   role: 'customer',
   verified: true,
-  secrets_burned: 0,
-  secrets_shared: 0,
-  emails_sent: 0,
-  last_login: null,
-  feature_flags: {},
-  updated: new Date(Math.floor(Date.now() / 1000) * 1000),
-  created: new Date(Math.floor(Date.now() / 1000) * 1000),
-  secrets_created: 0,
   active: true,
   locale: 'en-US',
-  stripe_checkout_email: 'john@example.com',
-  stripe_subscription_id: 'sub_123456',
-  stripe_customer_id: 'cus_123456',
 };
 
 describe('authStore', () => {
@@ -413,7 +404,7 @@ describe('authStore', () => {
 
     it('does not sync store authenticated to window state', () => {
       expect(store.isAuthenticated).toBe(true);
-      expect(window.authenticated).toBeUndefined();
+      expect((window as unknown as { authenticated?: unknown }).authenticated).toBeUndefined();
     });
 
     it('initializes correctly from window state', () => {
@@ -565,7 +556,9 @@ describe('authStore', () => {
         // Get the delay from the last setTimeout call
         const lastCall = setTimeoutSpy.mock.calls[setTimeoutSpy.mock.calls.length - 1];
         if (lastCall) {
-          delays.push(lastCall[1] as number);
+          // setSystemTime's typed signature is a 1-tuple, so index 1 is out of
+          // bounds for the compiler; read it through a loose cast.
+          delays.push((lastCall as unknown[])[1] as number);
         }
         vi.clearAllTimers(); // Clear timer before next iteration
       }

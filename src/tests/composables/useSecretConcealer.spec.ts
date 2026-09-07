@@ -44,7 +44,9 @@ describe('useSecretConcealer', () => {
         generate: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
         setApiMode: vi.fn(),
       };
-      vi.mocked(useSecretStore).mockReturnValue(store);
+      vi.mocked(useSecretStore).mockReturnValue(
+        store as unknown as ReturnType<typeof useSecretStore>
+      );
     });
 
     it('initializes with empty state', () => {
@@ -70,7 +72,9 @@ describe('useSecretConcealer', () => {
         generate: vi.fn().mockResolvedValue(mockResponse),
         setApiMode: vi.fn(),
       };
-      vi.mocked(useSecretStore).mockReturnValue(store);
+      vi.mocked(useSecretStore).mockReturnValue(
+        store as unknown as ReturnType<typeof useSecretStore>
+      );
     });
 
     it.skip('handles successful secret sharing', async () => {
@@ -100,7 +104,9 @@ describe('useSecretConcealer', () => {
         generate: vi.fn().mockRejectedValue(new Error('Validation failed')),
         setApiMode: vi.fn(),
       };
-      vi.mocked(useSecretStore).mockReturnValue(store);
+      vi.mocked(useSecretStore).mockReturnValue(
+        store as unknown as ReturnType<typeof useSecretStore>
+      );
 
       const { submit, isSubmitting } = useSecretConcealer();
 
@@ -118,7 +124,9 @@ describe('useSecretConcealer', () => {
         generate: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
         setApiMode: vi.fn(),
       };
-      vi.mocked(useSecretStore).mockReturnValue(store);
+      vi.mocked(useSecretStore).mockReturnValue(
+        store as unknown as ReturnType<typeof useSecretStore>
+      );
     });
 
     it('can submit in generate mode', async () => {
@@ -143,7 +151,9 @@ describe('useSecretConcealer', () => {
         generate: vi.fn(),
         setApiMode: vi.fn(),
       };
-      vi.mocked(useSecretStore).mockReturnValue(store);
+      vi.mocked(useSecretStore).mockReturnValue(
+        store as unknown as ReturnType<typeof useSecretStore>
+      );
 
       const { form, operations, submit } = useSecretConcealer();
       operations.updateField('recipient', 'not-an-email');
@@ -165,7 +175,9 @@ describe('useSecretConcealer', () => {
         generate: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
         setApiMode: mockSetApiMode,
       };
-      vi.mocked(useSecretStore).mockReturnValue(store);
+      vi.mocked(useSecretStore).mockReturnValue(
+        store as unknown as ReturnType<typeof useSecretStore>
+      );
     });
 
     describe('default behavior (usePublicApi not specified)', () => {
@@ -188,7 +200,8 @@ describe('useSecretConcealer', () => {
       });
 
       it('uses public mode when authentication state is null', async () => {
-        mockAuthStore.isAuthenticated = null;
+        // Deliberately exercise the null (indeterminate) auth state.
+        mockAuthStore.isAuthenticated = null as unknown as boolean;
         const { submit } = useSecretConcealer();
 
         await submit('conceal');

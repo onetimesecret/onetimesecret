@@ -42,7 +42,7 @@ describe('colonelCheckoutLinkResponseSchema (CreateCheckoutLink)', () => {
       'https://checkout.stripe.com/c/pay/cs_test_a1b2c3'
     );
     expect(result.data.record.expires_at).toBe(1783464864);
-    expect(result.data.details.region).toBe('eu');
+    expect(result.data.details?.region).toBe('eu');
   });
 
   it('rejects a 2xx ack missing the checkout_url (the deliverable)', () => {
@@ -64,7 +64,7 @@ describe('colonelCheckoutLinkResponseSchema (CreateCheckoutLink)', () => {
     const result = colonelCheckoutLinkResponseSchema.safeParse(payload);
     expect(result.success).toBe(true);
     if (!result.success) return;
-    expect(result.data.details.region).toBe('global');
+    expect(result.data.details?.region).toBe('global');
   });
 
   // The backend must never send null here (BillingConfig#region is nil when

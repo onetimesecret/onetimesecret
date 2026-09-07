@@ -1,6 +1,6 @@
 // src/tests/fixtures/domains.fixture.ts
 
-import type { CustomDomain } from '@/schemas/shapes/v2';
+import type { CustomDomain } from '@/schemas/shapes/v3';
 
 const BASE_DOMAIN = {
   domainid: '',
@@ -11,6 +11,7 @@ const BASE_DOMAIN = {
   is_apex: false,
   verified: false,
   resolving: false,
+  status: 'pending',
 } as const;
 
 const BRAND_DOMAIN1 = {
@@ -86,6 +87,7 @@ export const mockDomains: Record<string, CustomDomain> = {
     updated: new Date(1704067200 * 1000),
     verified: true,
     resolving: true,
+    status: 'active',
     is_apex: true,
     brand: { ...BRAND_DOMAIN1 },
     vhost: {},

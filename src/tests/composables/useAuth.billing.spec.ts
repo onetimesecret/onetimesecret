@@ -226,7 +226,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
 
     it('should not redirect when billing_enabled is undefined', async () => {
       // Set billing_enabled to undefined via bootstrapStore
-      bootstrapStore.billing_enabled = undefined;
+      // Canonical type is boolean; test deliberately exercises the undefined case.
+      bootstrapStore.billing_enabled = undefined as unknown as boolean;
       disableBillingOnRefetch(undefined);
 
       setRouteQuery({ product: 'identity', interval: 'month' });

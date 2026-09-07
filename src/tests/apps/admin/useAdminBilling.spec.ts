@@ -40,7 +40,7 @@ function orgRow(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function payload(rows = [orgRow()]) {
+function payload(rows: Record<string, unknown>[] = [orgRow()]) {
   return {
     shrimp: '',
     record: {},

@@ -5,7 +5,9 @@ import { ref, computed, nextTick } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import type { BrandSettingsCanonical as BrandSettings } from '@/schemas/contracts/custom-domain';
+// Match the shape the composable consumes (button_text_light / passphrase_required
+// / notify_enabled are required in the v3 shape).
+import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
 
 // Mock formatDuration
 const mockFormatDuration = vi.fn((seconds: number) => {
@@ -46,7 +48,12 @@ describe('useWorkspacePrivacyDefaults', () => {
     const bootstrapStore = useBootstrapStore();
     bootstrapStore.secret_options = {
       default_ttl: config.default_ttl ?? 604800,
-      passphrase: { required: config.passphrase_required ?? false },
+      passphrase: {
+        required: config.passphrase_required ?? false,
+        minimum_length: 0,
+        maximum_length: 128,
+        enforce_complexity: false,
+      },
       ttl_options: [60, 3600, 86400, 604800, 1209600, 2592000],
     };
 
@@ -65,7 +72,7 @@ describe('useWorkspacePrivacyDefaults', () => {
 
   function createOptions(
     overrides: Partial<{
-      brandSettings: BrandSettings;
+      brandSettings: Partial<BrandSettings>;
       isCanonical: boolean;
       isLoading: boolean;
     }> = {}
@@ -337,6 +344,7 @@ describe('useWorkspacePrivacyDefaults', () => {
     it('updates when brand settings change', async () => {
       const brandSettings = ref<BrandSettings>({
         default_ttl: undefined,
+        button_text_light: false,
         passphrase_required: false,
         notify_enabled: false,
       });
@@ -362,7 +370,12 @@ describe('useWorkspacePrivacyDefaults', () => {
       const isCanonicalRef = ref(false);
 
       const { privacyDefaults } = useWorkspacePrivacyDefaults({
-        brandSettings: ref({ default_ttl: 3600 }),
+        brandSettings: ref<BrandSettings>({
+          default_ttl: 3600,
+          button_text_light: false,
+          passphrase_required: false,
+          notify_enabled: false,
+        }),
         isCanonical: computed(() => isCanonicalRef.value),
       });
 

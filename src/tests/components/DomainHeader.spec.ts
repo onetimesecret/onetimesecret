@@ -44,6 +44,7 @@ vi.mock('vue-i18n', () => ({
 
 describe('DomainHeader', () => {
   const createMockDomain = (overrides: Partial<CustomDomain> = {}): CustomDomain => ({
+    domainid: 'domainid-123',
     extid: 'domain-123',
     custid: 'cust-456',
     display_domain: 'example.com',
@@ -53,12 +54,18 @@ describe('DomainHeader', () => {
     tld: 'com',
     sld: 'example',
     is_apex: true,
-    created: 1700000000,
-    updated: 1700000000,
+    txt_validation_host: '_onetime-challenge.example.com',
+    txt_validation_value: 'abc123',
+    status: 'active',
+    verified: true,
+    resolving: true,
+    created: new Date(1700000000 * 1000),
+    updated: new Date(1700000000 * 1000),
     vhost: {
       status: 'ACTIVE',
-      last_monitored_unix: 123,
+      last_monitored_unix: new Date(123 * 1000),
     },
+    brand: null,
     vhost_fetch_failed_at: null,
     ...overrides,
   });

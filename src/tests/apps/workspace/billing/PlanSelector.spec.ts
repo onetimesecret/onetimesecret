@@ -83,6 +83,7 @@ function deduplicatePlans(
 // Test fixtures
 const createMockPlan = (overrides: Partial<BillingPlan> = {}): BillingPlan => ({
   id: 'plan_test_123',
+  stripe_price_id: null,
   name: 'Test Plan',
   tier: 'single_team',
   interval: 'month',

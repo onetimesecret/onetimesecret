@@ -45,6 +45,7 @@ describe('OrganizationCard', () => {
     contact_email: null,
     is_default: false,
     planid: 'free',
+    active_subscription: false,
     created: new Date(),
     updated: new Date(),
     ...overrides,

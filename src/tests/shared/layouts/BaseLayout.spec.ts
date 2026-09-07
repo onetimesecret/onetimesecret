@@ -1,6 +1,6 @@
 // src/tests/shared/layouts/BaseLayout.spec.ts
 
-import { mount, VueWrapper } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { h, defineComponent, ref } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
@@ -46,7 +46,7 @@ const i18n = createTestI18n();
  * - Provides named slots for header, main, footer, and status areas
  */
 describe('BaseLayout', () => {
-  let wrapper: VueWrapper;
+  let wrapper: ReturnType<typeof mountComponent>;
 
   // BaseLayout component stub representing the expected interface
   const BaseLayoutStub = defineComponent({

@@ -68,7 +68,7 @@ function sessionRowWithoutCountry(overrides: Record<string, unknown> = {}) {
 }
 
 function sessionsPayload(
-  rows = [sessionRow(), sessionRow({ session_id: 'sid_2' })],
+  rows: Record<string, unknown>[] = [sessionRow(), sessionRow({ session_id: 'sid_2' })],
   currentSessionId: string | null = null
 ) {
   return {

@@ -27,7 +27,6 @@ import type { receiptBaseSchema, receiptSchema, receiptDetailsSchema } from '@/s
 import type { receiptBaseSchema as v3ReceiptBaseSchema, receiptSchema as v3ReceiptSchema, receiptDetailsSchema as v3ReceiptDetailsSchema, receiptListSchema as v3ReceiptListSchema } from '@/schemas/shapes/v3/receipt';
 import type { secretResponsesSchema, secretSchema, secretDetailsSchema } from '@/schemas/shapes/v2/secret';
 import type { secretBaseSchema as v3SecretBaseSchema, secretSchema as v3SecretSchema, secretDetailsSchema as v3SecretDetailsSchema } from '@/schemas/shapes/v3/secret';
-import type { feedbackSchema, feedbackDetailsSchema } from '@/schemas/shapes/v2/feedback';
 import type { feedbackSchema as v3FeedbackSchema, feedbackDetailsSchema as v3FeedbackDetailsSchema } from '@/schemas/shapes/v3/feedback';
 import type { customerSchema } from '@/schemas/shapes/v2/customer';
 import type { CustomerCanonical } from '@/schemas/contracts';
@@ -55,8 +54,15 @@ export type V3WireSecret = z.input<typeof v3SecretSchema>;
 export type V3WireSecretDetails = z.input<typeof v3SecretDetailsSchema>;
 
 // Feedback wire format types
-export type V2WireFeedback = z.input<typeof feedbackSchema>;
-export type V2WireFeedbackDetails = z.input<typeof feedbackDetailsSchema>;
+// V2 has no dedicated feedback shape schema; the V2 wire format encodes stamp as
+// an ISO string and received as a "true"/"false" string.
+export type V2WireFeedback = {
+  msg: string;
+  stamp: string;
+};
+export type V2WireFeedbackDetails = {
+  received?: string;
+};
 
 export type V3WireFeedback = z.input<typeof v3FeedbackSchema>;
 export type V3WireFeedbackDetails = z.input<typeof v3FeedbackDetailsSchema>;
@@ -148,8 +154,10 @@ export function toV2WireReceiptBase(canonical: ReceiptBaseCanonical): V2WireRece
     created: dateToEpochSeconds(canonical.created)!,
     updated: dateToEpochSeconds(canonical.updated)!,
     shared: dateToISOString(canonical.shared),
-    received: dateToISOString(canonical.received),
-    viewed: dateToISOString(canonical.viewed),
+    // Deprecated V2 timestamp aliases derived from canonical fields:
+    //   received -> revealed, viewed -> previewed
+    received: dateToISOString(canonical.revealed),
+    viewed: dateToISOString(canonical.previewed),
     previewed: dateToISOString(canonical.previewed),
     revealed: dateToISOString(canonical.revealed),
     burned: dateToISOString(canonical.burned),
@@ -169,8 +177,10 @@ export function toV2WireReceiptBase(canonical: ReceiptBaseCanonical): V2WireRece
 
     // Boolean status flags: string
     has_passphrase: canonical.has_passphrase,
-    is_viewed: booleanToString(canonical.is_viewed),
-    is_received: booleanToString(canonical.is_received),
+    // Deprecated V2 boolean aliases derived from canonical fields:
+    //   is_viewed -> is_previewed, is_received -> is_revealed
+    is_viewed: booleanToString(canonical.is_previewed),
+    is_received: booleanToString(canonical.is_revealed),
     is_previewed: canonical.is_previewed !== undefined ? booleanToString(canonical.is_previewed) : undefined,
     is_revealed: canonical.is_revealed !== undefined ? booleanToString(canonical.is_revealed) : undefined,
     is_burned: booleanToString(canonical.is_burned),
@@ -214,7 +224,7 @@ export function toV2WireReceiptDetails(canonical: ReceiptDetailsCanonical): V2Wi
     no_cache: booleanToString(canonical.no_cache),
     // secret_realttl is NOT transformed in V2 schema — keeps native number
     secret_realttl: canonical.secret_realttl,
-    view_count: canonical.view_count !== null ? numberToString(canonical.view_count) : null,
+    view_count: canonical.view_count != null ? numberToString(canonical.view_count) : canonical.view_count,
     has_passphrase: canonical.has_passphrase !== null ? booleanToString(canonical.has_passphrase) : null,
     can_decrypt: canonical.can_decrypt !== null ? booleanToString(canonical.can_decrypt) : null,
     secret_value: canonical.secret_value,
@@ -259,8 +269,7 @@ export function toV3WireReceiptBase(canonical: ReceiptBaseCanonical): V3WireRece
     created: dateToEpochSeconds(canonical.created)!,
     updated: dateToEpochSeconds(canonical.updated)!,
     shared: dateToEpochSeconds(canonical.shared),
-    received: dateToEpochSeconds(canonical.received),
-    viewed: dateToEpochSeconds(canonical.viewed),
+    // V3 is the clean API — no deprecated received/viewed aliases.
     previewed: dateToEpochSeconds(canonical.previewed),
     revealed: dateToEpochSeconds(canonical.revealed),
     burned: dateToEpochSeconds(canonical.burned),
@@ -280,8 +289,7 @@ export function toV3WireReceiptBase(canonical: ReceiptBaseCanonical): V3WireRece
 
     // Boolean status flags: native booleans
     has_passphrase: canonical.has_passphrase,
-    is_viewed: canonical.is_viewed,
-    is_received: canonical.is_received,
+    // V3 is the clean API — no deprecated is_viewed/is_received aliases.
     is_previewed: canonical.is_previewed,
     is_revealed: canonical.is_revealed,
     is_burned: canonical.is_burned,
@@ -319,12 +327,12 @@ export function toV3WireReceipt(canonical: ReceiptCanonical): V3WireReceipt {
  * Converts canonical receipt list record to V3 wire format.
  * Extends base with show_recipients field required for list display.
  */
-export function toV3WireReceiptListRecord(canonical: ReceiptListCanonical): V3WireReceiptListRecord {
+export function toV3WireReceiptListRecord(canonical: ReceiptListCanonical): V3WireReceiptList {
   const base = toV3WireReceiptBase(canonical);
   return {
     ...base,
     show_recipients: canonical.show_recipients,
-  } as V3WireReceiptListRecord;
+  } as V3WireReceiptList;
 }
 
 /**
@@ -685,12 +693,11 @@ import type { OrganizationCanonical } from '@/schemas/contracts';
  *   - nullable strings: null preserved
  */
 export type V2WireOrganization = {
-  identifier: string;
   objid: string;
   extid: string;
   display_name: string;
   description: string | null;
-  owner_id: string;
+  owner_id: string | null | undefined;
   contact_email: string | null;
   is_default: string;
   planid: string;
@@ -707,12 +714,11 @@ export type V2WireOrganization = {
  *   - nullable strings: null preserved
  */
 export type V3WireOrganization = {
-  identifier: string;
   objid: string;
   extid: string;
   display_name: string;
   description: string | null;
-  owner_id: string;
+  owner_id: string | null | undefined;
   contact_email: string | null;
   is_default: boolean;
   planid: string;
@@ -735,7 +741,6 @@ export function toV2WireOrganization(
   canonical: OrganizationCanonical
 ): V2WireOrganization {
   return {
-    identifier: canonical.identifier,
     objid: canonical.objid,
     extid: canonical.extid,
     display_name: canonical.display_name,
@@ -749,9 +754,9 @@ export function toV2WireOrganization(
     // Plan
     planid: canonical.planid,
 
-    // Timestamps: strings (Unix epoch seconds as string)
-    created: numberToString(dateToEpochSeconds(canonical.created)!),
-    updated: numberToString(dateToEpochSeconds(canonical.updated)!),
+    // Timestamps: strings (canonical already carries Unix epoch seconds)
+    created: numberToString(canonical.created),
+    updated: numberToString(canonical.updated),
   };
 }
 
@@ -770,7 +775,6 @@ export function toV3WireOrganization(
   canonical: OrganizationCanonical
 ): V3WireOrganization {
   return {
-    identifier: canonical.identifier,
     objid: canonical.objid,
     extid: canonical.extid,
     display_name: canonical.display_name,
@@ -784,9 +788,9 @@ export function toV3WireOrganization(
     // Plan
     planid: canonical.planid,
 
-    // Timestamps: numbers
-    created: dateToEpochSeconds(canonical.created)!,
-    updated: dateToEpochSeconds(canonical.updated)!,
+    // Timestamps: numbers (canonical already carries Unix epoch seconds)
+    created: canonical.created,
+    updated: canonical.updated,
   };
 }
 
@@ -941,7 +945,8 @@ export type V2WireVHost = {
   is_resolving?: string;
   status_message?: string;
   created_at?: string;
-  last_monitored_unix?: string;
+  // V2 schema uses fromNumber.secondsToDate — wire value is a number, not a string.
+  last_monitored_unix?: number;
   ssl_active_from?: string | null;
   ssl_active_until?: string | null;
 };

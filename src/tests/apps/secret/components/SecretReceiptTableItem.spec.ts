@@ -3,6 +3,7 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ComponentPublicInstance } from 'vue';
+import type { ReceiptList } from '@/schemas/shapes/v3/receipt';
 
 // Mock vue-i18n
 vi.mock('vue-i18n', () => ({
@@ -56,7 +57,7 @@ const OIconStub = {
   props: ['collection', 'name', 'size', 'class'],
 };
 
-function createMockReceipt(overrides = {}) {
+function createMockReceipt(overrides: Partial<ReceiptList> = {}): ReceiptList {
   return {
     identifier: 'test-receipt-id',
     shortid: 'rcpt123',
@@ -89,7 +90,7 @@ function createMockReceipt(overrides = {}) {
 }
 
 describe('SecretReceiptTableItem', () => {
-  let SecretReceiptTableItem: ReturnType<typeof import('@/apps/secret/components/SecretReceiptTableItem.vue')>['default'];
+  let SecretReceiptTableItem: typeof import('@/apps/secret/components/SecretReceiptTableItem.vue')['default'];
 
   beforeEach(async () => {
     vi.resetModules();

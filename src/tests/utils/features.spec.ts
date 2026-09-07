@@ -1374,11 +1374,33 @@ describe('features utility', () => {
 
   describe('isFullAuthModeOf', () => {
     it('returns true when authentication mode is full', () => {
-      expect(isFullAuthModeOf({ authentication: { mode: 'full' } })).toBe(true);
+      expect(
+        isFullAuthModeOf({
+          authentication: {
+            enabled: true,
+            signup: true,
+            signin: true,
+            autoverify: false,
+            required: false,
+            mode: 'full',
+          },
+        })
+      ).toBe(true);
     });
 
     it('returns false when authentication mode is simple', () => {
-      expect(isFullAuthModeOf({ authentication: { mode: 'simple' } })).toBe(false);
+      expect(
+        isFullAuthModeOf({
+          authentication: {
+            enabled: true,
+            signup: true,
+            signin: true,
+            autoverify: false,
+            required: false,
+            mode: 'simple',
+          },
+        })
+      ).toBe(false);
     });
 
     it('returns false when authentication is undefined', () => {
@@ -1547,7 +1569,6 @@ describe('features utility', () => {
     const originalWindow = globalThis.window;
 
     beforeEach(() => {
-      // @ts-expect-error - intentionally setting to undefined for SSR simulation
       delete (globalThis as Record<string, unknown>).window;
     });
 

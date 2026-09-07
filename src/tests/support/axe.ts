@@ -15,9 +15,23 @@
 //
 
 import { axe } from 'vitest-axe';
-import { toHaveNoViolations } from 'vitest-axe/matchers';
+// `vitest-axe/matchers` re-exports everything with `export type *`, so the value
+// `toHaveNoViolations` is only reachable via the dist entry.
+import { toHaveNoViolations } from 'vitest-axe/dist/matchers';
 import { expect } from 'vitest';
 import type { VueWrapper } from '@vue/test-utils';
+
+// Vitest 4's `Assertion` extends the `Matchers` interface; augment it so the
+// manually-wired `toHaveNoViolations()` matcher type-checks. (vitest-axe's own
+// extend-expect ships a stale `Vi.Assertion` augmentation that no longer applies.)
+declare module 'vitest' {
+  interface Assertion<T = any> {
+    toHaveNoViolations(): T;
+  }
+  interface AsymmetricMatchersContaining {
+    toHaveNoViolations(): void;
+  }
+}
 
 // Register the custom matcher once for the whole test process. Any spec that
 // imports from this module gets `expect(...).toHaveNoViolations()` wired up.

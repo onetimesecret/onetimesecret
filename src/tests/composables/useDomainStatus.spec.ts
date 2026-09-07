@@ -20,25 +20,53 @@ vi.mock('vue-i18n', () => ({
 }));
 
 describe('useDomainStatus', () => {
-  const createMockDomain = (overrides: Partial<CustomDomain> = {}): CustomDomain => ({
-    extid: 'domain-123',
-    custid: 'cust-456',
-    display_domain: 'example.com',
-    base_domain: 'example.com',
-    subdomain: '',
-    trd: '',
-    tld: 'com',
-    sld: 'example',
-    is_apex: true,
-    created: 1700000000,
-    updated: 1700000000,
-    vhost: {
+  // Test inputs use wire-shaped values (unix numbers, null "never monitored");
+  // the canonical CustomDomain uses Date and drops null for last_monitored_unix,
+  // so overrides are accepted in the wire shape and normalized here.
+  type VhostOverride = {
+    status?: string;
+    last_monitored_unix?: number | Date | null;
+  };
+  type DomainOverrides = Partial<Omit<CustomDomain, 'created' | 'updated' | 'vhost'>> & {
+    created?: number | Date;
+    updated?: number | Date;
+    vhost?: VhostOverride | null;
+  };
+
+  const toDate = (v: number | Date): Date => (v instanceof Date ? v : new Date(v));
+  const normalizeVhost = (v: VhostOverride | null | undefined) => {
+    if (v === null) return null;
+    const src = v ?? { status: 'PENDING', last_monitored_unix: null };
+    const { last_monitored_unix, ...rest } = src;
+    return {
       status: 'PENDING',
-      last_monitored_unix: null,
-    },
-    vhost_fetch_failed_at: null,
-    ...overrides,
-  });
+      ...rest,
+      // null ("never monitored") maps to undefined; canonical has no null here.
+      ...(last_monitored_unix == null
+        ? {}
+        : { last_monitored_unix: toDate(last_monitored_unix) }),
+    };
+  };
+
+  const createMockDomain = (overrides: DomainOverrides = {}): CustomDomain => {
+    const { created, updated, vhost, ...rest } = overrides;
+    return {
+      extid: 'domain-123',
+      custid: 'cust-456',
+      display_domain: 'example.com',
+      base_domain: 'example.com',
+      subdomain: '',
+      trd: '',
+      tld: 'com',
+      sld: 'example',
+      is_apex: true,
+      created: toDate(created ?? 1700000000),
+      updated: toDate(updated ?? 1700000000),
+      vhost: normalizeVhost(vhost),
+      vhost_fetch_failed_at: null,
+      ...rest,
+    } as CustomDomain;
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();

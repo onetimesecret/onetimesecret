@@ -18,13 +18,15 @@ if (typeof process !== 'undefined') {
   });
 }
 
-(window as BootstrapPayload).__BOOTSTRAP_ME__ = {
+// Only the locale-related fields are needed for the i18n setup under test; cast
+// the partial to the full payload type that window.__BOOTSTRAP_ME__ expects.
+window.__BOOTSTRAP_ME__ = {
   supported_locales: ['en', 'fr_CA', 'de_AT'],
   fallback_locale: 'en',
   default_locale: 'en',
   locale: 'en',
   authenticated: false,
-};
+} as BootstrapPayload;
 
 // Mock __SENTRY_RELEASE__ global that Vite defines at build time
 // This value is replaced by the actual git commit hash during production builds

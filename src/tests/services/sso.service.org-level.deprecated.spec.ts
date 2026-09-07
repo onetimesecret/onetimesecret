@@ -32,7 +32,25 @@ vi.mock('@/api', () => ({
 }));
 
 // Import after mocking
-import { SsoService } from '@/services/sso.service';
+import { SsoService as RealSsoService } from '@/services/sso.service';
+
+// The org-level methods exercised below were removed in #2786 (SSO moved to
+// per-domain scope), so they no longer exist on the current SsoService type.
+// This file is a skipped historical reference; route calls through a type that
+// documents the old surface so the reference still type-checks.
+interface DeprecatedSsoService {
+  getConfig(orgExtId: string): Promise<{ record: unknown }>;
+  putConfig(orgExtId: string, payload: unknown): Promise<unknown>;
+  patchConfig(orgExtId: string, payload: unknown): Promise<unknown>;
+  saveConfig(orgExtId: string, payload: unknown): Promise<unknown>;
+  deleteConfig(orgExtId: string): Promise<unknown>;
+  testConnection(
+    orgExtId: string,
+    payload: unknown
+  ): Promise<{ success: boolean; provider_type?: string; details: Record<string, unknown> }>;
+}
+
+const SsoService = RealSsoService as unknown as DeprecatedSsoService;
 
 describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
   beforeEach(() => {

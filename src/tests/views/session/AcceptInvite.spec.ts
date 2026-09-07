@@ -177,13 +177,6 @@ describe('AcceptInvite', () => {
       // Must be authenticated to see direct Accept/Decline buttons
       authStore.$patch({
         isAuthenticated: true,
-        cust: {
-          custid: 'cust-123',
-          email: 'invitee@example.com',
-          verified: true,
-          created: new Date(),
-          updated: new Date(),
-        },
       });
 
       const axiosMock = getGlobalAxiosMock();
@@ -256,7 +249,7 @@ describe('AcceptInvite', () => {
     it('shows signup form by default when user is not authenticated', async () => {
       // The show endpoint deliberately carries no account_exists signal (AZ7),
       // so unauthenticated users always start in the signup flow.
-      authStore.$patch({ cust: null });
+      authStore.$patch({ isAuthenticated: false });
       const axiosMock = getGlobalAxiosMock();
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
         record: mockInvitation,
@@ -269,7 +262,7 @@ describe('AcceptInvite', () => {
     });
 
     it('switches to sign-in notice after signup reports signup unavailable', async () => {
-      authStore.$patch({ cust: null });
+      authStore.$patch({ isAuthenticated: false });
       const axiosMock = getGlobalAxiosMock();
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
         record: mockInvitation,
@@ -296,7 +289,7 @@ describe('AcceptInvite', () => {
    */
   describe('Host sign-in restriction (ADR-034#invite-signup-is-gated)', () => {
     beforeEach(() => {
-      authStore.$patch({ isAuthenticated: false, cust: null });
+      authStore.$patch({ isAuthenticated: false });
     });
 
     const replyWith = (record: Record<string, unknown>, token = 'test-token-123') => {
@@ -536,13 +529,6 @@ describe('AcceptInvite', () => {
         // they return here, they join.
         authStore.$patch({
           isAuthenticated: true,
-          cust: {
-            custid: 'cust-123',
-            email: 'invitee@example.com',
-            verified: true,
-            created: new Date(),
-            updated: new Date(),
-          },
         });
         replyWith({
           ...mockInvitation,
@@ -591,13 +577,6 @@ describe('AcceptInvite', () => {
     beforeEach(() => {
       authStore.$patch({
         isAuthenticated: true,
-        cust: {
-          custid: 'cust-123',
-          email: 'invitee@example.com',
-          verified: true,
-          created: new Date(),
-          updated: new Date(),
-        },
       });
     });
 
@@ -645,13 +624,6 @@ describe('AcceptInvite', () => {
     beforeEach(() => {
       authStore.$patch({
         isAuthenticated: true,
-        cust: {
-          custid: 'cust-123',
-          email: 'invitee@example.com',
-          verified: true,
-          created: new Date(),
-          updated: new Date(),
-        },
       });
     });
 
@@ -700,13 +672,6 @@ describe('AcceptInvite', () => {
       // Authenticated user sees "Invitation Details" header in direct_accept state
       authStore.$patch({
         isAuthenticated: true,
-        cust: {
-          custid: 'cust-123',
-          email: 'invitee@example.com',
-          verified: true,
-          created: new Date(),
-          updated: new Date(),
-        },
       });
 
       const axiosMock = getGlobalAxiosMock();
@@ -738,13 +703,6 @@ describe('AcceptInvite', () => {
       // Use authenticated user to see direct Accept/Decline buttons (type="button")
       authStore.$patch({
         isAuthenticated: true,
-        cust: {
-          custid: 'cust-123',
-          email: 'invitee@example.com',
-          verified: true,
-          created: new Date(),
-          updated: new Date(),
-        },
       });
 
       const axiosMock = getGlobalAxiosMock();

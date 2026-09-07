@@ -14,6 +14,7 @@ import {
   standaloneBootstrap,
   baseBootstrap,
   mockCustomer,
+  schemaDefaults,
 } from '@/tests/fixtures/bootstrap.fixture';
 import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 
@@ -260,10 +261,7 @@ describe('bootstrapStore', () => {
       store.update({
         locale: 'es',
         i18n_enabled: true,
-        supported_locales: [
-          { code: 'en', name: 'English', enabled: true },
-          { code: 'es', name: 'Spanish', enabled: true },
-        ],
+        supported_locales: ['en', 'es'],
         fallback_locale: 'en',
       });
 
@@ -320,6 +318,7 @@ describe('bootstrapStore', () => {
     it('updates UI configuration', () => {
       const newUi = {
         enabled: true,
+        show_version: false,
         header: {
           enabled: true,
           // #3612: header carries only layout knobs (href/show_name/prominent);
@@ -359,7 +358,13 @@ describe('bootstrapStore', () => {
 
     it('updates organization data', () => {
       store.update({
-        organization: { planid: 'pro-plan' },
+        organization: {
+          objid: 'org_obj_1',
+          extid: 'org_ext_1',
+          display_name: 'Test Org',
+          is_default: true,
+          planid: 'pro-plan',
+        },
       });
 
       expect(store.organization?.planid).toBe('pro-plan');
@@ -528,14 +533,14 @@ describe('bootstrapStore', () => {
 
     it('resets all server config fields to defaults (unlike resetForLogout)', () => {
       store.update({
-        authentication: { enabled: false, signup: false },
-        ui: { enabled: false },
-        features: { markdown: true },
+        authentication: { ...schemaDefaults.authentication, enabled: false, signup: false },
+        ui: { ...schemaDefaults.ui, enabled: false },
+        features: { ...schemaDefaults.features, markdown: true },
         regions: {
           identifier: 'EU',
           enabled: true,
           current_jurisdiction: 'EU',
-          jurisdictions: [{ identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true }],
+          jurisdictions: [{ identifier: 'EU', display_name_i18n_key: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true }],
         },
       });
 
@@ -571,7 +576,15 @@ describe('bootstrapStore', () => {
     });
 
     it('resets organization data to defaults', () => {
-      store.update({ organization: { planid: 'pro' } });
+      store.update({
+        organization: {
+          objid: 'org_obj_1',
+          extid: 'org_ext_1',
+          display_name: 'Test Org',
+          is_default: true,
+          planid: 'pro',
+        },
+      });
 
       store.$reset();
 
@@ -623,8 +636,8 @@ describe('bootstrapStore', () => {
 
     it('preserves regions configuration through reset (server config)', () => {
       const jurisdictions = [
-        { identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true },
-        { identifier: 'US', display_name: 'United States', domain: 'us.example.com', icon: { collection: 'flags', name: 'us' }, enabled: true },
+        { identifier: 'EU', display_name_i18n_key: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true },
+        { identifier: 'US', display_name_i18n_key: 'United States', domain: 'us.example.com', icon: { collection: 'flags', name: 'us' }, enabled: true },
       ];
       store.update({
         regions: {
@@ -683,6 +696,7 @@ describe('bootstrapStore', () => {
       store.update({
         ui: {
           enabled: false,
+          show_version: false,
           header: { enabled: false },
           footer_links: { enabled: true, groups: [] },
         },
@@ -698,7 +712,7 @@ describe('bootstrapStore', () => {
 
     it('preserves features configuration through reset (server config)', () => {
       store.update({
-        features: { markdown: false },
+        features: { ...schemaDefaults.features, markdown: false },
       });
 
       store.resetForLogout();
@@ -763,6 +777,7 @@ describe('bootstrapStore', () => {
         store.update({
           ui: {
             enabled: true,
+            show_version: false,
             header: {
               enabled: true,
               logo: { href: '/dashboard', show_name: true, prominent: false },
@@ -780,6 +795,7 @@ describe('bootstrapStore', () => {
         store.update({
           ui: {
             enabled: true,
+            show_version: false,
           },
         });
 
@@ -792,6 +808,7 @@ describe('bootstrapStore', () => {
         store.update({
           ui: {
             enabled: true,
+            show_version: false,
             footer_links: {
               enabled: true,
               groups: [
@@ -816,6 +833,7 @@ describe('bootstrapStore', () => {
         store.update({
           ui: {
             enabled: true,
+            show_version: false,
           },
         });
 
@@ -882,6 +900,7 @@ describe('bootstrapStore', () => {
       store.update({
         ui: {
           enabled: true,
+          show_version: false,
           header: { enabled: true },
         },
       });
@@ -966,6 +985,7 @@ describe('bootstrapStore', () => {
 
       const complexUi = {
         enabled: true,
+        show_version: false,
         header: {
           enabled: true,
           logo: { href: '/home', show_name: true, prominent: true },
@@ -1197,6 +1217,7 @@ describe('bootstrapStore', () => {
     it('preserves features configuration through resetForLogout', () => {
       store.update({
         features: {
+          ...schemaDefaults.features,
           markdown: false,
         },
       });
@@ -1209,11 +1230,12 @@ describe('bootstrapStore', () => {
 
     it('preserves diagnostics configuration through resetForLogout', () => {
       const diagnosticsConfig = {
-        enabled: true,
-        domains: true,
-        regions: true,
-        entitlements: true,
-        locales: true,
+        sentry: {
+          dsn: 'https://test@sentry.io/123',
+          enabled: true,
+          logErrors: true,
+          trackComponents: true,
+        },
       };
 
       store.update({ diagnostics: diagnosticsConfig });
@@ -1252,14 +1274,14 @@ describe('bootstrapStore', () => {
         trackComponents: true,
       };
       store.update({
-        authentication: { enabled: false, signup: false, signin: true },
-        ui: { enabled: false, header: { enabled: false } },
-        features: { markdown: false },
+        authentication: { ...schemaDefaults.authentication, enabled: false, signup: false, signin: true },
+        ui: { ...schemaDefaults.ui, enabled: false, header: { enabled: false } },
+        features: { ...schemaDefaults.features, markdown: false },
         regions: {
           identifier: 'EU',
           enabled: true,
           current_jurisdiction: 'EU',
-          jurisdictions: [{ identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true }],
+          jurisdictions: [{ identifier: 'EU', display_name_i18n_key: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true }],
         },
         secret_options: { default_ttl: 7200, ttl_options: [300, 600] },
         diagnostics: { sentry: sentryConfig },
@@ -1285,8 +1307,8 @@ describe('bootstrapStore', () => {
         cust: mockCustomer,
         stripe_customer: { id: 'cus_123' } as any,
         // Server config
-        authentication: { enabled: false },
-        features: { markdown: false },
+        authentication: { ...schemaDefaults.authentication, enabled: false },
+        features: { ...schemaDefaults.features, markdown: false },
       });
 
       store.resetForLogout();
@@ -1394,7 +1416,7 @@ describe('bootstrapStore', () => {
     it('updates messages array', () => {
       const messages = [
         { type: 'info' as const, content: 'Welcome message' },
-        { type: 'warning' as const, content: 'Maintenance soon' },
+        { type: 'error' as const, content: 'Maintenance soon' },
       ];
 
       store.update({ messages });
@@ -1498,6 +1520,7 @@ describe('bootstrapStore', () => {
     it('updates deeply nested UI header navigation', () => {
       const uiWithNavigation = {
         enabled: true,
+        show_version: false,
         header: {
           enabled: true,
           logo: { href: '/', show_name: true, prominent: false },
@@ -1514,14 +1537,17 @@ describe('bootstrapStore', () => {
       store.update({ ui: uiWithNavigation });
 
       expect(store.ui.header?.navigation?.enabled).toBe(true);
-      expect(store.ui.header?.navigation?.links).toHaveLength(2);
+      // headerNavigationSchema exposes only `enabled`; the store keeps the
+      // extra `links` this test injects, so read it through a cast to assert it
+      // survived the update() patch.
+      expect((store.ui.header?.navigation as { links?: unknown[] })?.links).toHaveLength(2);
     });
 
     it('updates deeply nested regions configuration', () => {
       const jurisdictions = [
-        { identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true },
-        { identifier: 'US', display_name: 'United States', domain: 'us.example.com', icon: { collection: 'flags', name: 'us' }, enabled: true },
-        { identifier: 'CA', display_name: 'Canada', domain: 'ca.example.com', icon: { collection: 'flags', name: 'ca' }, enabled: true },
+        { identifier: 'EU', display_name_i18n_key: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true },
+        { identifier: 'US', display_name_i18n_key: 'United States', domain: 'us.example.com', icon: { collection: 'flags', name: 'us' }, enabled: true },
+        { identifier: 'CA', display_name_i18n_key: 'Canada', domain: 'ca.example.com', icon: { collection: 'flags', name: 'ca' }, enabled: true },
       ];
       const regionsConfig = {
         identifier: 'EU',
@@ -1542,6 +1568,7 @@ describe('bootstrapStore', () => {
       store.update({
         ui: {
           enabled: true,
+          show_version: false,
           header: { enabled: true },
           footer_links: { enabled: true, groups: [] },
         },
@@ -1551,6 +1578,7 @@ describe('bootstrapStore', () => {
       store.update({
         ui: {
           enabled: false,
+          show_version: false,
         },
       });
 

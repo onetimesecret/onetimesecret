@@ -63,7 +63,7 @@ vi.mock('@/services/logging.service', () => ({
 // Import after mocks
 // ---------------------------------------------------------------------------
 import { createErrorBoundary } from '@/plugins/core/globalErrorBoundary';
-import type { App } from 'vue';
+import type { App, ComponentPublicInstance } from 'vue';
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -113,7 +113,7 @@ describe('createErrorBoundary', () => {
   describe('plugin installation', () => {
     it('installs error handler on app.config', () => {
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       expect(mockApp.config.errorHandler).toBeInstanceOf(Function);
     });
@@ -122,10 +122,10 @@ describe('createErrorBoundary', () => {
   describe('error handler Sentry capture', () => {
     it('calls captureException when diagnostics is enabled', () => {
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       const error = new Error('Test error');
-      const instance = { $options: { name: 'TestComponent' } };
+      const instance = { $options: { name: 'TestComponent' } } as unknown as ComponentPublicInstance;
 
       mockApp.config.errorHandler?.(error, instance, 'setup function');
 
@@ -137,7 +137,7 @@ describe('createErrorBoundary', () => {
       mockIsDiagnosticsEnabled.mockReturnValue(false);
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       const error = new Error('Test error');
       mockApp.config.errorHandler?.(error, null, 'setup function');
@@ -147,7 +147,7 @@ describe('createErrorBoundary', () => {
 
     it('normalizes non-Error throwables to Error instances', () => {
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       mockApp.config.errorHandler?.('string error', null, 'setup function');
 
@@ -169,7 +169,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       mockApp.config.errorHandler?.(
         new Error('Request failed with status code 404'),
@@ -189,7 +189,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       mockApp.config.errorHandler?.(new Error('boom'), null, 'setup function');
 
@@ -200,9 +200,9 @@ describe('createErrorBoundary', () => {
   describe('context tags', () => {
     it('passes componentName from getComponentName()', () => {
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
-      const instance = { $options: { name: 'SecretForm' } };
+      const instance = { $options: { name: 'SecretForm' } } as unknown as ComponentPublicInstance;
       mockApp.config.errorHandler?.(new Error('test'), instance, 'mounted hook');
 
       expect(mockCaptureException).toHaveBeenCalledWith(
@@ -215,7 +215,7 @@ describe('createErrorBoundary', () => {
 
     it('passes componentInfo from Vue error info', () => {
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'mounted hook');
 
@@ -235,7 +235,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -255,7 +255,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -275,7 +275,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -295,7 +295,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -311,7 +311,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -331,7 +331,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -347,7 +347,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -367,7 +367,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -388,9 +388,9 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
-      const instance = { $options: { name: 'CreateSecret' } };
+      const instance = { $options: { name: 'CreateSecret' } } as unknown as ComponentPublicInstance;
       mockApp.config.errorHandler?.(new Error('test'), instance, 'render function');
 
       expect(mockCaptureException).toHaveBeenCalledWith(
@@ -417,7 +417,7 @@ describe('createErrorBoundary', () => {
 
     it('does not explicitly pass service tag (scope-level tag from enableDiagnostics)', () => {
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -439,7 +439,7 @@ describe('createErrorBoundary', () => {
 
       const mockNotify = vi.fn();
       const plugin = createErrorBoundary({ notify: mockNotify });
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -456,7 +456,7 @@ describe('createErrorBoundary', () => {
 
       const mockNotify = vi.fn();
       const plugin = createErrorBoundary({ notify: mockNotify });
-      plugin.install(mockApp);
+      plugin.install!(mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
