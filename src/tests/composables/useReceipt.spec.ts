@@ -49,7 +49,7 @@ const mockRouter: Router = getRouter();
 
 vi.mocked(useRouter).mockReturnValue(mockRouter);
 vi.mocked(useAuthStore).mockReturnValue(authStoreMock as ReturnType<typeof useAuthStore>);
-vi.mocked(useReceiptStore).mockReturnValue(storeMock as ReturnType<typeof useReceiptStore>);
+vi.mocked(useReceiptStore).mockReturnValue(storeMock as unknown as ReturnType<typeof useReceiptStore>);
 vi.mocked(useNotificationsStore).mockReturnValue(
   notificationsMock as ReturnType<typeof useNotificationsStore>
 );
@@ -73,7 +73,7 @@ describe('useReceipt', () => {
     };
 
     beforeEach(() => {
-      vi.mocked(useReceiptStore).mockReturnValue(store as ReturnType<typeof useReceiptStore>);
+      vi.mocked(useReceiptStore).mockReturnValue(store as unknown as ReturnType<typeof useReceiptStore>);
     });
 
     it('should initialize with empty state', () => {
@@ -134,10 +134,11 @@ describe('useReceipt', () => {
       back: vi.fn(),
       forward: vi.fn(),
       go: vi.fn(),
-    } satisfies Partial<Router>;
+      // Cast at the mockReturnValue call site; currentRoute is a plain ref here.
+    };
 
     beforeEach(() => {
-      vi.mocked(useRouter).mockReturnValue(routerMock);
+      vi.mocked(useRouter).mockReturnValue(routerMock as unknown as Router);
       const storeMock = {
         burn: vi.fn().mockResolvedValue(undefined),
         canBurn: ref(true),
@@ -148,7 +149,7 @@ describe('useReceipt', () => {
         setApiMode: vi.fn(),
         $reset: vi.fn(),
       };
-      vi.mocked(useReceiptStore).mockReturnValue(storeMock as ReturnType<typeof useReceiptStore>);
+      vi.mocked(useReceiptStore).mockReturnValue(storeMock as unknown as ReturnType<typeof useReceiptStore>);
     });
 
     it('should redirect after burn with correct params', async () => {
@@ -189,14 +190,14 @@ describe('useReceipt', () => {
         store.details.value = mockReceiptDetails;
         return;
       }),
-      record: ref(null),
-      details: ref(null),
+      record: ref<typeof mockReceiptRecord | null>(null),
+      details: ref<typeof mockReceiptDetails | null>(null),
       isLoading: ref(false),
       setApiMode: vi.fn(),
     };
 
     beforeEach(() => {
-      vi.mocked(useReceiptStore).mockReturnValue(store);
+      vi.mocked(useReceiptStore).mockReturnValue(store as unknown as ReturnType<typeof useReceiptStore>);
       store.record.value = null;
       store.details.value = null;
       store.isLoading.value = false;
@@ -220,7 +221,7 @@ describe('useReceipt', () => {
       const networkError = new Error('Network error');
       store.fetch.mockRejectedValueOnce(networkError);
       const notifications = { show: vi.fn() };
-      vi.mocked(useNotificationsStore).mockReturnValue(notifications);
+      vi.mocked(useNotificationsStore).mockReturnValue(notifications as unknown as ReturnType<typeof useNotificationsStore>);
 
       // Execute
       const { fetch, isLoading, error } = useReceipt('test-key');
@@ -250,7 +251,7 @@ describe('useReceipt', () => {
 
       store.fetch.mockRejectedValueOnce(notFoundError);
       const notifications = { show: vi.fn() };
-      vi.mocked(useNotificationsStore).mockReturnValue(notifications);
+      vi.mocked(useNotificationsStore).mockReturnValue(notifications as unknown as ReturnType<typeof useNotificationsStore>);
 
       // Execute
       const { fetch, isLoading, error } = useReceipt('test-key');
@@ -288,8 +289,8 @@ describe('useReceipt', () => {
         push: vi.fn().mockResolvedValue(undefined), // Router push returns a promise
       } as unknown as Router;
 
-      vi.mocked(useReceiptStore).mockReturnValue(store);
-      vi.mocked(useNotificationsStore).mockReturnValue(notifications);
+      vi.mocked(useReceiptStore).mockReturnValue(store as unknown as ReturnType<typeof useReceiptStore>);
+      vi.mocked(useNotificationsStore).mockReturnValue(notifications as unknown as ReturnType<typeof useNotificationsStore>);
       vi.mocked(useRouter).mockReturnValue(mockRouter);
 
       const { burn, passphrase } = useReceipt('test-key');
@@ -321,9 +322,9 @@ describe('useReceipt', () => {
       const notifications = { show: vi.fn() };
       const router = { push: vi.fn() };
 
-      vi.mocked(useReceiptStore).mockReturnValue(store);
-      vi.mocked(useNotificationsStore).mockReturnValue(notifications);
-      vi.mocked(useRouter).mockReturnValue(router);
+      vi.mocked(useReceiptStore).mockReturnValue(store as unknown as ReturnType<typeof useReceiptStore>);
+      vi.mocked(useNotificationsStore).mockReturnValue(notifications as unknown as ReturnType<typeof useNotificationsStore>);
+      vi.mocked(useRouter).mockReturnValue(router as unknown as Router);
 
       // Execute
       const { burn, error } = useReceipt('test-key');
@@ -352,7 +353,7 @@ describe('useReceipt', () => {
     };
 
     beforeEach(() => {
-      vi.mocked(useReceiptStore).mockReturnValue(store as ReturnType<typeof useReceiptStore>);
+      vi.mocked(useReceiptStore).mockReturnValue(store as unknown as ReturnType<typeof useReceiptStore>);
       store.setApiMode.mockClear();
     });
 

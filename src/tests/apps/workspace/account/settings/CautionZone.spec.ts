@@ -78,7 +78,10 @@ describe('CautionZone', () => {
     });
 
     const store = useBootstrapStore(pinia);
-    store.$patch({ cust: custValue });
+    // custValue intentionally models runtime shapes the Customer schema's type
+    // does not permit (null objid for anonymous users, empty-string edge cases)
+    // to exercise the component's `cust?.objid` guard.
+    store.$patch({ cust: custValue } as unknown as Parameters<typeof store.$patch>[0]);
 
     return mount(CautionZone, {
       global: {

@@ -64,7 +64,15 @@ describe('FeedbackModalForm', () => {
 
   const mountComponent = (
     storeState: {
-      cust?: typeof authenticatedCustomer | typeof anonymousCustomer | null;
+      cust?:
+        | {
+            objid: string | null;
+            extid: string | null;
+            email: string | null;
+            role: string;
+            verified: boolean;
+          }
+        | null;
     } = {}
   ) => {
     const pinia = createTestingPinia({

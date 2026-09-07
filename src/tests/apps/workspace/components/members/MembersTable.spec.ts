@@ -2,6 +2,7 @@
 
 import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
 import type { OrganizationMember, OrganizationRole } from '@/types/organization';
+import { lenientExtIdSchema } from '@/types/identifiers';
 import { createTestI18n } from '@tests/setup';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -85,7 +86,7 @@ vi.mock('@vueuse/core', () => ({
 
 // Test data factory
 const createMember = (overrides: Partial<OrganizationMember> = {}): OrganizationMember => ({
-  extid: 'mem_abc123',
+  extid: lenientExtIdSchema.parse('mem_abc123'),
   email: 'member@example.com',
   role: 'member' as OrganizationRole,
   joined_at: 1704067200, // 2024-01-01
@@ -99,9 +100,9 @@ describe('MembersTable', () => {
 
   const defaultProps = {
     members: [
-      createMember({ extid: 'mem_owner', email: 'owner@example.com', role: 'owner', is_owner: true }),
-      createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' }),
-      createMember({ extid: 'mem_member', email: 'member@example.com', role: 'member' }),
+      createMember({ extid: lenientExtIdSchema.parse('mem_owner'), email: 'owner@example.com', role: 'owner', is_owner: true }),
+      createMember({ extid: lenientExtIdSchema.parse('mem_admin'), email: 'admin@example.com', role: 'admin' }),
+      createMember({ extid: lenientExtIdSchema.parse('mem_member'), email: 'member@example.com', role: 'member' }),
     ],
     orgExtid: 'on1abc123',
     isLoading: false,
@@ -337,11 +338,11 @@ describe('MembersTable', () => {
 
     it('emits member-updated when role is changed', async () => {
       mockCanChangeRole.mockReturnValue(true);
-      const updatedMember = createMember({ extid: 'mem_admin', role: 'member' });
+      const updatedMember = createMember({ extid: lenientExtIdSchema.parse('mem_admin'), role: 'member' });
       mockUpdateMemberRole.mockResolvedValue(updatedMember);
 
       mountComponent({
-        members: [createMember({ extid: 'mem_admin', role: 'admin' })],
+        members: [createMember({ extid: lenientExtIdSchema.parse('mem_admin'), role: 'admin' })],
       });
 
       const selector = wrapper.find('[data-testid="role-selector"]');
@@ -360,7 +361,7 @@ describe('MembersTable', () => {
       mockCanChangeRole.mockReturnValue(true);
 
       mountComponent({
-        members: [createMember({ extid: 'mem_admin', role: 'admin' })],
+        members: [createMember({ extid: lenientExtIdSchema.parse('mem_admin'), role: 'admin' })],
       });
 
       const selector = wrapper.find('[data-testid="role-selector"]');
@@ -446,7 +447,7 @@ describe('MembersTable', () => {
       mockReveal.mockResolvedValue({ isCanceled: true }); // User cancels
 
       mountComponent({
-        members: [createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' })],
+        members: [createMember({ extid: lenientExtIdSchema.parse('mem_admin'), email: 'admin@example.com', role: 'admin' })],
       });
 
       const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
@@ -469,7 +470,7 @@ describe('MembersTable', () => {
       });
 
       mountComponent({
-        members: [createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' })],
+        members: [createMember({ extid: lenientExtIdSchema.parse('mem_admin'), email: 'admin@example.com', role: 'admin' })],
       });
 
       const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
@@ -498,7 +499,7 @@ describe('MembersTable', () => {
       mockReveal.mockResolvedValue({ isCanceled: false }); // User confirms
 
       mountComponent({
-        members: [createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' })],
+        members: [createMember({ extid: lenientExtIdSchema.parse('mem_admin'), email: 'admin@example.com', role: 'admin' })],
       });
 
       const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
@@ -518,7 +519,7 @@ describe('MembersTable', () => {
       mockReveal.mockResolvedValue({ isCanceled: true }); // User cancels
 
       mountComponent({
-        members: [createMember({ extid: 'mem_admin', email: 'admin@example.com', role: 'admin' })],
+        members: [createMember({ extid: lenientExtIdSchema.parse('mem_admin'), email: 'admin@example.com', role: 'admin' })],
       });
 
       const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
@@ -537,7 +538,7 @@ describe('MembersTable', () => {
       mockReveal.mockResolvedValue({ isCanceled: false });
 
       mountComponent({
-        members: [createMember({ extid: 'mem_admin', role: 'admin' })],
+        members: [createMember({ extid: lenientExtIdSchema.parse('mem_admin'), role: 'admin' })],
       });
 
       const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');
@@ -563,7 +564,7 @@ describe('MembersTable', () => {
       });
 
       mountComponent({
-        members: [createMember({ extid: 'mem_admin', role: 'admin' })],
+        members: [createMember({ extid: lenientExtIdSchema.parse('mem_admin'), role: 'admin' })],
       });
 
       const removeButton = wrapper.find('button[aria-label="web.organizations.members.remove_member_title"]');

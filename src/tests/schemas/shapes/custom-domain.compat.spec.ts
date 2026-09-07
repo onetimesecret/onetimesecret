@@ -645,10 +645,10 @@ describe.skip('V3 CustomDomain Default Values', () => {
   });
 
   it('applies pending status default when missing', () => {
+    // V3 wire never carries `status`; the schema supplies the default.
     const wire = createV3WireCustomDomain(createCanonicalCustomDomain());
-    const { status, ...wireWithoutStatus } = wire;
 
-    const parsed = v3CustomDomainSchema.parse(wireWithoutStatus);
+    const parsed = v3CustomDomainSchema.parse(wire);
 
     expect(parsed.status).toBe('pending');
   });

@@ -174,7 +174,6 @@ function setup(opts: SetupOptions = {}) {
     domainStrategy: opts.domainStrategy ?? 'canonical',
     displayDomain: opts.displayDomain ?? 'onetimesecret.com',
     primaryColor: opts.primaryColor ?? '#dc4a22',
-    logoUri: opts.logoUri ?? null,
     siteHost: opts.siteHost ?? 'onetimesecret.com',
     brand:
       opts.brandDescription === undefined

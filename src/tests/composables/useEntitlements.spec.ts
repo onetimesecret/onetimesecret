@@ -6,7 +6,23 @@ import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { Organization } from '@/types/organization';
-import { createMockOrganization, mockOrganizations } from '../fixtures/billing.fixture';
+import {
+  createMockOrganization as createWireOrganization,
+  mockOrganizations as wireMockOrganizations,
+} from '../fixtures/billing.fixture';
+
+// billing.fixture emits the contracts wire shape (created: number, no
+// active_subscription); useEntitlements consumes the shapes Organization
+// (created: Date, active_subscription). The composable only reads
+// entitlements/planid/limits, so bridge the harness type mismatch here rather
+// than at every call site.
+const createMockOrganization = (
+  overrides?: Parameters<typeof createWireOrganization>[0]
+): Organization => createWireOrganization(overrides) as unknown as Organization;
+const mockOrganizations = wireMockOrganizations as unknown as Record<
+  keyof typeof wireMockOrganizations,
+  Organization
+>;
 
 const { mockGet } = vi.hoisted(() => ({
   mockGet: vi.fn(),

@@ -13,6 +13,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { reactive } from 'vue';
+import type { ScopesAvailable } from '@/types/router';
 
 // Mock router
 const mockPush = vi.fn();
@@ -41,7 +42,7 @@ vi.mock('vue-router', () => ({
 // Mock organization store
 const mockOrganizationStore = {
   organizations: [],
-  currentOrganization: null,
+  currentOrganization: null as { extid?: string; objid?: string } | null,
   hasOrganizations: true,
   setCurrentOrganization: vi.fn(),
   fetchOrganizations: vi.fn(),
@@ -442,7 +443,7 @@ describe('ScopeSwitcher Navigation', () => {
 
     it('org settings page has correct scope config for org switching', () => {
       // Simulating /org/:extid route config
-      const orgSettingsConfig = {
+      const orgSettingsConfig: ScopesAvailable = {
         organization: 'show' as const,
         domain: 'hide' as const,
         onOrgSwitch: 'same',
@@ -454,7 +455,7 @@ describe('ScopeSwitcher Navigation', () => {
 
     it('dashboard page has no navigation config (backwards compatible)', () => {
       // Simulating /dashboard route config using SCOPE_PRESETS.showBoth
-      const dashboardConfig = {
+      const dashboardConfig: ScopesAvailable = {
         organization: 'show' as const,
         domain: 'show' as const,
       };

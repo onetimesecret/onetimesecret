@@ -135,6 +135,9 @@ function createMockRouter(): Router {
 const baseConfig = {
   sentry: {
     dsn: 'https://key@sentry.io/123',
+    enabled: true,
+    logErrors: true,
+    trackComponents: true,
     environment: 'test',
     release: '1.0.0',
   },
@@ -415,7 +418,7 @@ describe('createDiagnostics jurisdiction tagging', () => {
       unmount: originalUnmount,
     } as unknown as import('vue').App;
 
-    plugin.install(app);
+    plugin.install!(app);
 
     expect(unregisterAfterEach).not.toHaveBeenCalled();
 

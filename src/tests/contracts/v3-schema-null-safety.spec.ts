@@ -542,8 +542,10 @@ describe('V3 schema null-safety audit', () => {
     /** Resolve a `record.<field>` schema from a V3 response schema. */
     function recordFieldSchema(responseSchema: AnySchema, field: string): AnySchema {
       const root = unwrapSchema(responseSchema) as z.ZodObject<z.ZodRawShape>;
-      const record = unwrapSchema(root.shape.record) as z.ZodObject<z.ZodRawShape>;
-      return record.shape[field];
+      const rootShape = root.shape as Record<string, AnySchema>;
+      const record = unwrapSchema(rootShape.record) as z.ZodObject<z.ZodRawShape>;
+      const recordShape = record.shape as Record<string, AnySchema>;
+      return recordShape[field];
     }
 
     it.each(['secret_ttl', 'lifespan'])(

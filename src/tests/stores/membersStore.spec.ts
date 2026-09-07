@@ -1,6 +1,7 @@
 // src/tests/stores/membersStore.spec.ts
 
 import { useMembersStore } from '@/shared/stores/membersStore';
+import { lenientExtIdSchema } from '@/schemas/utils/identifiers';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -11,7 +12,7 @@ import { setupTestPinia } from '../setup';
 // Note: Schema requires 'extid' (external identifier), not 'id'
 const mockMembers = [
   {
-    extid: 'member-1',
+    extid: lenientExtIdSchema.parse('member-1'),
     email: 'owner@example.com',
     role: 'owner' as const,
     joined_at: 1704067200, // Unix timestamp
@@ -19,7 +20,7 @@ const mockMembers = [
     is_current_user: true,
   },
   {
-    extid: 'member-2',
+    extid: lenientExtIdSchema.parse('member-2'),
     email: 'admin@example.com',
     role: 'admin' as const,
     joined_at: 1704153600,
@@ -27,7 +28,7 @@ const mockMembers = [
     is_current_user: false,
   },
   {
-    extid: 'member-3',
+    extid: lenientExtIdSchema.parse('member-3'),
     email: 'member@example.com',
     role: 'member' as const,
     joined_at: 1704240000,

@@ -58,8 +58,6 @@ describe('V2 Wire → V3 Schema (Forward Compatibility)', () => {
       // Even when nullable timestamps are null, V2 still sends booleans/numbers as strings
       const canonical = createCanonicalReceiptBase({
         shared: null,
-        received: null,
-        viewed: null,
         previewed: null,
         revealed: null,
         burned: null,
@@ -91,7 +89,7 @@ describe('V2 Wire → V3 Schema (Forward Compatibility)', () => {
 
     it('FAILS: V3 boolean fields reject V2 string booleans', () => {
       const canonical = createCanonicalReceiptBase({
-        is_viewed: true,
+        is_previewed: true,
         is_burned: true,
       });
       const v2Wire = createV2WireReceiptBase(canonical);
@@ -176,12 +174,12 @@ describe('V3 Wire → V2 Schema (Backward Compatibility)', () => {
     it('SUCCEEDS: V2 transforms.fromString.boolean handles native booleans', () => {
       // V2's parseBoolean function handles both strings AND booleans
       const canonical = createCanonicalReceiptBase({
-        is_viewed: true,
+        is_previewed: true,
         is_burned: false,
       });
       const v3Wire = createV3WireReceiptBase(canonical);
 
-      expect(typeof v3Wire.is_viewed).toBe('boolean');
+      expect(typeof v3Wire.is_previewed).toBe('boolean');
       expect(typeof v3Wire.is_burned).toBe('boolean');
 
       const result = v2ReceiptBaseSchema.safeParse(v3Wire);
@@ -267,7 +265,7 @@ describe('Edge Case Compatibility', () => {
     it('V2 and V3 both handle null timestamps identically', () => {
       const canonical = createCanonicalReceiptBase({
         shared: null,
-        received: null,
+        revealed: null,
       });
 
       const v2Wire = createV2WireReceiptBase(canonical);
@@ -288,7 +286,8 @@ describe('Edge Case Compatibility', () => {
       const v3Wire = createV3WireReceiptBase(canonical);
 
       expect(v2Wire.custid).toBeUndefined();
-      expect(v3Wire.custid).toBeUndefined();
+      // V3 drops `custid` from the wire entirely; `memo` is the optional field to check here.
+      expect(v3Wire.memo).toBeUndefined();
     });
   });
 

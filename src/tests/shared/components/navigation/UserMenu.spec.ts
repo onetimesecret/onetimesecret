@@ -1,6 +1,7 @@
 // src/tests/shared/components/navigation/UserMenu.spec.ts
 
 import UserMenu from '@/shared/components/navigation/UserMenu.vue';
+import type { Customer } from '@/schemas/shapes/v3';
 import { createTestingPinia } from '@pinia/testing';
 import { createTestI18n } from '@tests/setup';
 import { mount, VueWrapper } from '@vue/test-utils';
@@ -167,11 +168,24 @@ const i18n = createTestI18n();
 describe('UserMenu', () => {
   let wrapper: VueWrapper;
 
-  const mockCustomer = {
-    custid: '123',
+  const mockCustomer: Customer = {
     email: 'test@example.com',
     extid: 'ext_123',
     objid: 'obj_123',
+    role: 'customer',
+    verified: true,
+    active: true,
+    contributor: false,
+    secrets_created: 0,
+    secrets_burned: 0,
+    secrets_shared: 0,
+    emails_sent: 0,
+    last_login: new Date('2024-01-15T09:00:00.000Z'),
+    locale: 'en',
+    notify_on_reveal: false,
+    feature_flags: {},
+    created: new Date('2024-01-15T10:00:00.000Z'),
+    updated: new Date('2024-01-15T10:00:00.000Z'),
   };
 
   beforeEach(() => {

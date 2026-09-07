@@ -681,7 +681,7 @@ describe('Router Guards', () => {
   });
 
   describe('validateAuthentication', () => {
-    let mockValidator: AuthValidator;
+    let mockValidator: AuthValidator & { checkWindowStatus: ReturnType<typeof vi.fn> };
     let protectedRoute: RouteLocationNormalized;
 
     beforeEach(() => {

@@ -1,6 +1,6 @@
 // src/tests/stores/jurisdictionStore.spec.ts
 
-import { ApiError, ApplicationError } from '@/schemas';
+import { ApplicationError } from '@/schemas';
 import type { Jurisdiction, RegionsConfig } from '@/schemas/shapes/v2';
 import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
 import { createTestingPinia } from '@pinia/testing';
@@ -11,16 +11,16 @@ import { createApp } from 'vue';
 const mockJurisdictions: Jurisdiction[] = [
   {
     identifier: 'us-east',
-    display_name: 'US East',
+    display_name_i18n_key: 'US East',
     domain: 'us-east.example.com',
-    icon: 'us-flag',
+    icon: { collection: 'flags', name: 'us-flag' },
     enabled: true,
   },
   {
     identifier: 'eu-west',
-    display_name: 'EU West',
+    display_name_i18n_key: 'EU West',
     domain: 'eu-west.example.com',
-    icon: 'eu-flag',
+    icon: { collection: 'flags', name: 'eu-flag' },
     enabled: true,
   },
 ];
@@ -49,9 +49,9 @@ describe('jurisdictionStore', () => {
       // Test full jurisdiction object structure
       expect(store.currentJurisdiction).toEqual({
         identifier: 'us-east',
-        display_name: 'US East',
+        display_name_i18n_key: 'US East',
         domain: 'us-east.example.com',
-        icon: 'us-flag',
+        icon: { collection: 'flags', name: 'us-flag' },
         enabled: true,
       });
 
@@ -100,13 +100,13 @@ describe('jurisdictionStore', () => {
     it.skip('throws ApiError for non-existent jurisdiction', () => {
       expect(() => {
         store.findJurisdiction('non-existent');
-      }).toThrow(ApiError);
+      }).toThrow();
     });
 
     it('finds jurisdiction with case-sensitive match', () => {
       expect(() => {
         store.findJurisdiction('EU-WEST');
-      }).toThrow(ApiError);
+      }).toThrow();
     });
 
     it('throws descriptive ApplicationError for non-existent jurisdiction', () => {

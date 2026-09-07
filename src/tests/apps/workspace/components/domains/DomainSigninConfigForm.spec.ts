@@ -119,11 +119,20 @@ const i18n = createI18n({
   messages: { en: realEn },
 });
 
+// The generated bundle's inferred message schema is enormous; typing the
+// translate fns through a narrow signature avoids vue-i18n's deep overload
+// instantiation (TS2589) without changing runtime behavior.
+const i18nGlobal = i18n.global as unknown as {
+  t(key: string): string;
+  t(key: string, params: Record<string, string>): string;
+};
+const translate = i18nGlobal.t.bind(i18nGlobal);
+
 /** Resolve a key against the real bundle. */
-const t = (key: string) => i18n.global.t(key);
+const t = (key: string) => translate(key);
 
 /** Resolve a key with named interpolation, as the component does. */
-const tp = (key: string, params: Record<string, string>) => i18n.global.t(key, params);
+const tp = (key: string, params: Record<string, string>) => translate(key, params);
 
 /**
  * Copy the component renders, sourced from the bundle — never hand-typed here.

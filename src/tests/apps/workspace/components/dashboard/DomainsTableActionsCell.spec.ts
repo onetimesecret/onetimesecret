@@ -70,6 +70,8 @@ const mockDomain = {
   sld: 'example',
   is_apex: false,
   verified: false,
+  resolving: false,
+  status: 'pending',
   txt_validation_host: '_challenge.test',
   txt_validation_value: 'verify123',
   vhost: null,

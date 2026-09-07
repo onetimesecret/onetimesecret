@@ -20,7 +20,7 @@ import { flushPromises } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { CustomDomainEmailConfig } from '@/schemas/shapes/domains/email-config';
-import enWorkspaceDomains from '@locales/content/en/workspace-domains.json';
+import enWorkspaceDomains from '../../../locales/content/en/workspace-domains.json';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mock Setup

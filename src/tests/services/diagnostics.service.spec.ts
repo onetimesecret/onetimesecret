@@ -20,11 +20,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // ---------------------------------------------------------------------------
 // Mock Scope class that tracks method calls and supports clone()
 // ---------------------------------------------------------------------------
+interface MockScope {
+  _extras: Record<string, unknown>;
+  _tags: Record<string, string>;
+  setExtras: ReturnType<typeof vi.fn>;
+  setTag: ReturnType<typeof vi.fn>;
+  clone: ReturnType<typeof vi.fn>;
+  captureException: ReturnType<typeof vi.fn>;
+  captureMessage: ReturnType<typeof vi.fn>;
+}
+
 function createMockScope() {
-  const scope: Record<string, ReturnType<typeof vi.fn>> & {
-    _extras: Record<string, unknown>;
-    _tags: Record<string, string>;
-  } = {
+  const scope: MockScope = {
     _extras: {},
     _tags: {},
     setExtras: vi.fn(function (this: typeof scope, extras: Record<string, unknown>) {

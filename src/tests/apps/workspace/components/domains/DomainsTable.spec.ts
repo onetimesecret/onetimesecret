@@ -3,6 +3,7 @@
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi } from 'vitest';
 import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
+import type { CustomDomain } from '@/schemas/shapes/v3/custom-domain';
 
 // Mock vue-i18n
 vi.mock('vue-i18n', () => ({
@@ -100,7 +101,7 @@ const baseDomain = {
 function mountTable(domains: object[]) {
   return mount(DomainsTable, {
     props: {
-      domains,
+      domains: domains as CustomDomain[],
       isLoading: false,
       orgid: 'org_ext_123',
     },
