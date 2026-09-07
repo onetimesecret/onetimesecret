@@ -30,8 +30,18 @@ Before switching modes:
 
 ### 1. Configure Database Connection
 
-See etc/auth.yaml
+Set the top-level `mode` and `full.database_url` keys in `etc/auth.yaml`:
 
+```yaml
+# etc/auth.yaml
+mode: full
+full:
+  database_url: "sqlite://data/auth.db"
+```
+
+Use `full.database_url_migrations` as well when using a separate migration
+role with PostgreSQL. Session settings belong under `site.session` in
+`etc/config.yaml`, not in `etc/auth.yaml`.
 
 ### 2. Database Migrations (Automatic)
 
@@ -53,16 +63,21 @@ psql -U postgres -h localhost -f apps/web/auth/migrations/schemas/postgres/initi
 ```
 
 This creates:
-- Database `onetime_auth`
-- Role `onetime_migrator` (elevated privileges for migrations)
-- Role `onetime_user` (restricted privileges for runtime)
+- Database `onetime_authdb`
+- Role `ots_migrator` (elevated privileges for migrations)
+- Role `ots_user` (restricted privileges for runtime)
 
-Then configure environment variables:
+The initializer contains literal `CHANGE_ME_*` password placeholders; it does
+not read passwords from environment variables. Replace them with strong,
+unique values before running it, keep those values out of version control, and
+URL-encode them when they contain URL-reserved characters.
+
+Then configure environment variables with the same values:
 
 ```bash
 export AUTHENTICATION_MODE=full
-export AUTH_DATABASE_URL=postgresql://onetime_user:pass@localhost/onetime_auth
-export AUTH_DATABASE_URL_MIGRATIONS=postgresql://onetime_migrator:pass@localhost/onetime_auth
+export AUTH_DATABASE_URL='postgresql://ots_user:<application-password>@localhost/onetime_authdb'
+export AUTH_DATABASE_URL_MIGRATIONS='postgresql://ots_migrator:<migration-password>@localhost/onetime_authdb'
 ```
 
 **SQLite:** No pre-setup needed. Database file created automatically.
@@ -72,24 +87,36 @@ export AUTH_DATABASE_URL_MIGRATIONS=postgresql://onetime_migrator:pass@localhost
 If you prefer to run migrations manually before boot:
 
 ```bash
-sequel -m apps/web/auth/migrations $AUTH_DATABASE_URL_MIGRATIONS
+bundle exec sequel -m apps/web/auth/migrations "$AUTH_DATABASE_URL_MIGRATIONS"
 ```
-
-To disable automatic migrations: `export SKIP_AUTH_MIGRATIONS=true`
 
 ### 3. Sync Existing Customer Accounts
 
-Migrate customer records from Redis to the SQL database:
+Migrate customer records from Redis to the SQL database.
+
+The command requires the Familia v1→v2 data migration to be complete:
+customers must be in Redis DB 0 with the `Customer.instances` index populated.
+It does not migrate legacy customer data in DB 6/7/8. For a legacy installation,
+run the data migration before continuing:
+
+```bash
+cd migrations/2026-01-28
+bundle exec ruby jobs/pipeline.rb  # Transform data
+bundle exec ruby jobs/06_load.rb   # Load customers into Redis DB 0
+```
+
+Then confirm the sync command reports one or more discovered customers before
+running it with `--run`:
 
 ```bash
 # Preview what will be migrated (dry-run mode)
-AUTHENTICATION_MODE=full bin/ots sync-auth-accounts
+AUTHENTICATION_MODE=full bin/ots customers sync-auth-accounts
 
 # Execute the synchronization
-AUTHENTICATION_MODE=full bin/ots sync-auth-accounts --run
+AUTHENTICATION_MODE=full bin/ots customers sync-auth-accounts --run
 
 # Verbose output for detailed progress
-AUTHENTICATION_MODE=full bin/ots sync-auth-accounts --run -v
+AUTHENTICATION_MODE=full bin/ots customers sync-auth-accounts --run -v
 ```
 
 **What the sync command does:**
@@ -133,8 +160,8 @@ sqlite3 data/auth.db "SELECT COUNT(*) FROM accounts;"
 sqlite3 data/auth.db "SELECT id, email, external_id, status_id FROM accounts LIMIT 5;"
 
 # For PostgreSQL
-psql -U user -d onetime_auth -c "SELECT COUNT(*) FROM accounts;"
-psql -U user -d onetime_auth -c "SELECT id, email, external_id, status_id FROM accounts LIMIT 5;"
+psql "$AUTH_DATABASE_URL" -c "SELECT COUNT(*) FROM accounts;"
+psql "$AUTH_DATABASE_URL" -c "SELECT id, email, external_id, status_id FROM accounts LIMIT 5;"
 ```
 
 Verify external_id linking:
@@ -150,12 +177,10 @@ sqlite3 data/auth.db "SELECT COUNT(*) FROM accounts WHERE external_id IS NULL;"
 Update your configuration:
 
 ```yaml
-# etc/config.yaml
-authentication:
-  mode: full
-  database_url: sqlite://data/auth.db
-  session:
-    expire_after: 86400  # 24 hours
+# etc/auth.yaml
+mode: full
+full:
+  database_url: "sqlite://data/auth.db"
 ```
 
 Or via environment:
@@ -166,12 +191,11 @@ export AUTHENTICATION_MODE=full
 
 ### 6. Restart Application
 
-```bash
-# Stop current process
-pkill -f puma
+Restart the service through its normal process manager. For a local Puma
+process, stop the existing process, then run:
 
-# Start with full mode
-AUTHENTICATION_MODE=full bundle exec puma -C config/puma.rb
+```bash
+RACK_ENV=development AUTHENTICATION_MODE=full PORT=3000 bundle exec puma -C etc/puma.rb
 ```
 
 ### 7. Verify Authentication Works
@@ -186,7 +210,7 @@ Test the authentication flow:
 Check Auth routes are mounted:
 
 ```bash
-curl -I http://localhost:7143/auth/login
+curl -I http://localhost:3000/auth/login
 # Should return 200 or redirect, not 404
 ```
 
@@ -217,7 +241,7 @@ Restart the application after enabling new features.
 If issues occur, revert to simple mode:
 
 1. Stop the application
-2. Change config: `authentication.mode: simple`
+2. Change `mode` to `simple` in `etc/auth.yaml`
 3. Restart application
 4. Customer data remains in Redis (unchanged)
 
@@ -232,9 +256,9 @@ If issues occur, revert to simple mode:
 
 ### Database Connection Errors
 
-**Cause:** `DATABASE_URL` not configured or database doesn't exist
+**Cause:** `AUTH_DATABASE_URL` not configured or database doesn't exist
 **Solution:**
-- Verify database URL in config or environment
+- Verify `full.database_url` in `etc/auth.yaml` or `AUTH_DATABASE_URL` in the environment
 - Create database if it doesn't exist
 - Check database permissions
 
@@ -244,7 +268,7 @@ If issues occur, revert to simple mode:
 **Solution:**
 ```bash
 # Re-run sync to fix links
-AUTHENTICATION_MODE=full bin/ots sync-auth-accounts --run
+AUTHENTICATION_MODE=full bin/ots customers sync-auth-accounts --run
 
 # Check specific account
 sqlite3 data/auth.db "SELECT * FROM accounts WHERE email='user@example.com';"
@@ -274,7 +298,7 @@ Safe to run sync command multiple times:
 
 ```bash
 # Adds any new customers created since last sync
-AUTHENTICATION_MODE=full bin/ots sync-auth-accounts --run
+AUTHENTICATION_MODE=full bin/ots customers sync-auth-accounts --run
 ```
 
 ### Checking Sync Status
