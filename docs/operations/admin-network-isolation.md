@@ -476,10 +476,11 @@ forwarded host from an untrusted peer`.
 
 RFC 7239 `Forwarded` is handled separately, because it is **not a host
 source**: `Rack::DetectHost` never reads its `host=` parameter, so a request
-carrying only `Forwarded` resolves on `Host` alone. The gate still reads the
-first `host=` value and, from a peer that is not a configured trusted proxy,
-refuses the request when it names a host **other** than the one `Host` alone
-produced — the same 404 and the same log line as above. A `Forwarded` that
+carrying only `Forwarded` resolves on `Host` alone. `DetectHost` still
+records the first `host=` value beside the detected host, and the gate, from
+a peer that is not a configured trusted proxy, refuses the request when that
+value names a host **other** than the one `Host` alone produced — the same
+404 and the same log line as above. A `Forwarded` that
 agrees with `Host`, or carries no `host=`, changes nothing and is admitted as
 an ordinary `Host` request.
 

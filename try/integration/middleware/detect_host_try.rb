@@ -94,6 +94,22 @@ env = {
 env['rack.detected_host']
 #=> 'fallback.example.com'
 
+## ...but OBSERVES the host= it ignored, published beside the result for the
+## admin-surface provenance rule (rule d in AdminNetworkIsolation)
+env['rack.detected_host.rfc7239_host']
+#=> 'forwarded.example.com'
+
+## The observation is published regardless of peer trust — trust is the
+## provenance rule's decision, not DetectHost's
+env = {
+  'REMOTE_ADDR' => '203.0.113.9',
+  'HTTP_FORWARDED' => 'host=forwarded.example.com',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+[env['rack.detected_host'], env['rack.detected_host.rfc7239_host']]
+#=> ['fallback.example.com', 'forwarded.example.com']
+
 ## Ignores quoted RFC 7239 host parameters, even from a trusted proxy
 env = {
   'REMOTE_ADDR' => '192.168.1.1',
@@ -103,6 +119,50 @@ env = {
 @middleware.call(env)
 env['rack.detected_host']
 #=> 'fallback.example.com'
+
+## ...and the observation is normalized like any forwarded host: unquoted,
+## port stripped, lowercased
+env['rack.detected_host.rfc7239_host']
+#=> 'forwarded.example.com'
+
+## Only the FIRST host= is observed, the same first-value convention as
+## X-Forwarded-Host
+env = {
+  'HTTP_FORWARDED' => 'host=first.example.com, host=second.example.com',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host.rfc7239_host']
+#=> 'first.example.com'
+
+## No observation without a host= parameter
+env = { 'HTTP_FORWARDED' => 'for=203.0.113.7;proto=https', 'HTTP_HOST' => 'fallback.example.com' }
+@middleware.call(env)
+env.key?('rack.detected_host.rfc7239_host')
+#=> false
+
+## No observation when Rack's parser rejects the value as malformed
+env = { 'HTTP_FORWARDED' => 'host=;;;=garbage', 'HTTP_HOST' => 'fallback.example.com' }
+@middleware.call(env)
+env.key?('rack.detected_host.rfc7239_host')
+#=> false
+
+## No observation for a host= no forwarded header would have been accepted
+## for either: an IP literal or localhost
+env = { 'HTTP_FORWARDED' => 'host=127.0.0.1', 'HTTP_HOST' => 'fallback.example.com' }
+@middleware.call(env)
+env.key?('rack.detected_host.rfc7239_host')
+#=> false
+
+## No observation without a Forwarded header at all
+env = { 'HTTP_HOST' => 'fallback.example.com' }
+@middleware.call(env)
+env.key?('rack.detected_host.rfc7239_host')
+#=> false
+
+## The observation key is a sidecar of the configurable result field
+Rack::DetectHost.rfc7239_host_field_name
+#=> 'rack.detected_host.rfc7239_host'
 
 ## Ignores Forwarded host parameters in every element
 env = {
