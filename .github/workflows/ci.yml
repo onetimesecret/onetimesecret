@@ -946,9 +946,11 @@ jobs:
                 tier2Seconds: '${{ steps.metrics.outputs.tier2-seconds }}',
                 tier3Seconds: '${{ steps.metrics.outputs.tier3-seconds }}',
                 tier4Seconds: '${{ steps.metrics.outputs.tier4-seconds }}',
-                tier1Target: 150,
-                tier2Target: 600,
-                tier3Target: 600,
-                tier4Target: 400,
+                // Targets come from the check-ci-metrics action (single source
+                // of truth) so this comment matches the step-summary table.
+                tier1Target: '${{ steps.metrics.outputs.tier1-target }}',
+                tier2Target: '${{ steps.metrics.outputs.tier2-target }}',
+                tier3Target: '${{ steps.metrics.outputs.tier3-target }}',
+                tier4Target: '${{ steps.metrics.outputs.tier4-target }}',
               },
             });

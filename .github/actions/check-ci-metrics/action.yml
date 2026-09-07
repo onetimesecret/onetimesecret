@@ -113,6 +113,22 @@ outputs:
   status:
     description: 'Overall status: pass, incomplete, warning, fail, or unknown'
     value: ${{ steps.evaluate.outputs.status }}
+  # Echo the targets this action evaluated against, so downstream consumers
+  # (e.g. the PR-comment step in ci.yml) render the same numbers as the step
+  # summary instead of hardcoding a second, drift-prone copy. This action's
+  # inputs are the single source of truth for tier targets.
+  tier1-target:
+    description: 'Target seconds for Tier 1 used in this evaluation'
+    value: ${{ inputs.target-tier1 }}
+  tier2-target:
+    description: 'Target seconds for Tier 2 used in this evaluation'
+    value: ${{ inputs.target-tier2 }}
+  tier3-target:
+    description: 'Target seconds for Tier 3 used in this evaluation'
+    value: ${{ inputs.target-tier3 }}
+  tier4-target:
+    description: 'Target seconds for Tier 4 used in this evaluation'
+    value: ${{ inputs.target-tier4 }}
 
 runs:
   using: composite

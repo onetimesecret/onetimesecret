@@ -15,30 +15,40 @@
  * @param {Object} options.tierData - Tier timing data with seconds and targets
  */
 module.exports = async function postPrMetrics({ github, context, core, tierData }) {
+  // Targets are supplied by the check-ci-metrics action (single source of
+  // truth) and arrive as strings via the Actions expression syntax. Coerce to
+  // numbers so the arithmetic below adds instead of concatenating; the literal
+  // fallback covers a missing/blank value and must stay in sync with the
+  // action's input defaults.
+  function targetSeconds(value, fallback) {
+    const n = parseInt(value, 10);
+    return isNaN(n) ? fallback : n;
+  }
+
   const tiers = [
     {
       name: 'Tier 1',
       jobs: 'Lint & Build',
       seconds: tierData.tier1Seconds,
-      target: tierData.tier1Target || 150,
+      target: targetSeconds(tierData.tier1Target, 150),
     },
     {
       name: 'Tier 2',
       jobs: 'Unit Tests',
       seconds: tierData.tier2Seconds,
-      target: tierData.tier2Target || 600,
+      target: targetSeconds(tierData.tier2Target, 600),
     },
     {
       name: 'Tier 3',
       jobs: 'Integration Tests',
       seconds: tierData.tier3Seconds,
-      target: tierData.tier3Target || 600,
+      target: targetSeconds(tierData.tier3Target, 600),
     },
     {
       name: 'Tier 4',
       jobs: 'Container Validation',
       seconds: tierData.tier4Seconds,
-      target: tierData.tier4Target || 400,
+      target: targetSeconds(tierData.tier4Target, 400),
     },
   ];
 
