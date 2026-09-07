@@ -36,8 +36,8 @@ everywhere, and says so at boot. See [When the allowlist cannot be
 enforced](#when-the-allowlist-cannot-be-enforced).
 
 If the app runs behind a reverse proxy that forwards the public hostname in a
-header (`X-Forwarded-Host`, `Apx-Incoming-Host`, `X-Original-Host`,
-`Forwarded`) rather than rewriting `Host`, you **must** configure
+header (`X-Forwarded-Host`, `Apx-Incoming-Host`, `X-Original-Host`) rather than
+rewriting `Host`, you **must** configure
 `site.network.trusted_proxy` **with the proxy's own address ranges in
 `cidrs`** — otherwise the admin gate refuses the forwarded host and both
 surfaces 404. Filter mode with no explicit CIDRs trusts every private-network
@@ -417,7 +417,7 @@ same way the rest of the stack does:
   masking](#cidr-precision-and-privacy-masking).
 - The **host** gate matches the host `Rack::DetectHost` validated, and applies
   one extra check of its own: a forwarded host header (`X-Forwarded-Host`,
-  `Apx-Incoming-Host`, `X-Original-Host`, `Forwarded`) is accepted **only** when
+  `Apx-Incoming-Host`, `X-Original-Host`) is accepted **only** when
   `env['otto.via_trusted_proxy']` is true — i.e. `site.network.trusted_proxy` is
   configured and this peer passed it. Otherwise the forwarded host must agree
   with the `Host` header, or the request is refused. See [Forwarded hosts and
@@ -473,6 +473,26 @@ only when one of these holds:
 
 Anything else is a 404 on both surfaces, logged as `Admin surface access denied:
 forwarded host from an untrusted peer`.
+
+RFC 7239 `Forwarded` is handled separately, because it is **not a host
+source**: `Rack::DetectHost` never reads its `host=` parameter, so a request
+carrying only `Forwarded` resolves on `Host` alone. `DetectHost` still
+records the first `host=` value beside the detected host, and the gate, from
+a peer that is not a configured trusted proxy, refuses the request when that
+value names a host **other** than the one `Host` alone produced — the same
+404 and the same log line as above. A `Forwarded` that
+agrees with `Host`, or carries no `host=`, changes nothing and is admitted as
+an ordinary `Host` request.
+
+An edge that rewrites `Host` to the origin's own name and carries the public
+hostname only in `Forwarded` is therefore outside the supported contract on
+two counts, not one. Custom-domain routing is lost, and so is
+`onetime.display_domain`: `HttpOriginOptions` stops matching the site's own
+origin, so every state-changing request from that custom domain is rejected
+with a 403 (most visibly SSO sign-in, which has no authenticity-token
+fallback; see the `MIDDLEWARE_HTTP_ORIGIN` block in `.env.reference`). Fix
+the edge: preserve `Host`, or send `X-Forwarded-Host` and configure
+`site.network.trusted_proxy`.
 
 Without this, on any install with `trusted_proxy` unset, a request to a tenant
 custom domain carrying `X-Forwarded-Host: <your canonical host>` would reach the

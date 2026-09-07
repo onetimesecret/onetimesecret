@@ -1405,8 +1405,8 @@ status_for(@encoded, 'tenant.example.com', path_info: '/%63olonels')
 # HOST PROVENANCE — a forwarded host from an untrusted peer (#4024)
 # =================================================================
 # With site.network.trusted_proxy unset (the shipped default) Rack::DetectHost
-# honors X-Forwarded-Host / Apx-Incoming-Host / X-Original-Host / Forwarded from
-# ANY peer on a private or loopback address — i.e. from every containerised
+# honors X-Forwarded-Host / Apx-Incoming-Host / X-Original-Host from ANY peer
+# on a private or loopback address — i.e. from every containerised
 # reverse-proxy install. The admin gate declines to rely on that: a detected
 # host that a forwarded header produced is accepted only when
 # env['otto.via_trusted_proxy'] is true, otherwise it must AGREE with the host
@@ -1455,10 +1455,62 @@ status_with(@fwd, 'admin.example.com', { 'HTTP_X_ORIGINAL_HOST' => 'admin.exampl
             http_host: 'secrets.tenant.test')
 #=> 404
 
-## and the RFC 7239 Forwarded header
-status_with(@fwd, 'admin.example.com', { 'HTTP_FORWARDED' => 'host=admin.example.com' },
+## the RFC 7239 Forwarded header is NOT a host source: DetectHost never
+## selects its host parameter (#4121), so the detected host is what `Host:`
+## alone produced. DetectHost OBSERVES the first host= and publishes it at
+## env[Rack::DetectHost.rfc7239_host_field_name]; the gate judges that VALUE
+## (rule d), never the raw header. A published host that names something
+## OTHER than Host, from an untrusted peer, is the Host-rewriting topology the
+## provenance rule refuses to fall back to Host for — DENIED even though the
+## Host-derived detected host IS on the allowlist.
+@rfc7239 = Rack::DetectHost.rfc7239_host_field_name
+status_with(@fwd, 'admin.example.com', { @rfc7239 => 'secrets.tenant.test' },
+            http_host: 'admin.example.com')
+#=> 404
+
+## the same request from a peer otto vouched for is SERVED (control)
+status_with(@fwd, 'admin.example.com',
+            { @rfc7239 => 'secrets.tenant.test', 'otto.via_trusted_proxy' => true },
+            http_host: 'admin.example.com')
+#=> 200
+
+## an observed host that AGREES with Host changed nothing — served
+status_with(@fwd, 'admin.example.com', { @rfc7239 => 'admin.example.com' },
+            http_host: 'admin.example.com')
+#=> 200
+
+## the comparison is normalized the same way as the detected host
+status_with(@fwd, 'admin.example.com', { @rfc7239 => 'Admin.Example.COM.' },
+            http_host: 'admin.example.com')
+#=> 200
+
+## the raw header is never read here: a Forwarded that DetectHost did not
+## observe (no published field) is no claim at all
+status_with(@fwd, 'admin.example.com', { 'HTTP_FORWARDED' => 'host=secrets.tenant.test' },
+            http_host: 'admin.example.com')
+#=> 200
+
+## an observed host naming an allowlisted host cannot ADMIT a request whose
+## Host is not on the allowlist either — DetectHost never selected it, so the
+## detected host is the tenant one and the allowlist refuses it as usual
+status_with(@fwd, 'secrets.tenant.test', { @rfc7239 => 'admin.example.com' },
             http_host: 'secrets.tenant.test')
 #=> 404
+
+## the Forwarded denial is the provenance WARN, not the allowlist one
+denial_warns(@fwd, 'admin.example.com', { @rfc7239 => 'secrets.tenant.test' },
+             http_host: 'admin.example.com')
+#=> [404, ['Admin surface access denied: forwarded host from an untrusted peer']]
+
+## Forwarded is absent from the PRESENCE key list that X-Forwarded-Host,
+## Apx-Incoming-Host and X-Original-Host populate — it is judged by value, and
+## the presence list stays derived from DetectHost's contract
+Onetime::Middleware::AdminNetworkIsolation::FORWARDED_HOST_ENV_KEYS.sort
+#=> ['HTTP_APX_INCOMING_HOST', 'HTTP_X_FORWARDED_HOST', 'HTTP_X_ORIGINAL_HOST']
+
+## the observation rides as a sidecar of DetectHost's result field
+Rack::DetectHost.rfc7239_host_field_name
+#=> 'rack.detected_host.rfc7239_host'
 
 ## the API surface is judged identically
 status_with(@fwd, 'admin.example.com', { 'HTTP_X_FORWARDED_HOST' => 'admin.example.com' },
