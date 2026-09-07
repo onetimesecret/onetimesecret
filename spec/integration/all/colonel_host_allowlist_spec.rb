@@ -978,11 +978,18 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
         expect(last_response.status).to eq(404)
       end
 
-      it 'ignores an RFC 7239 Forwarded host from an untrusted REMOTE_ADDR' do
-        signed_in_as(colonel)
-        get_api('tenant.example.com', untrusted_peer.merge('HTTP_FORWARDED' => 'host=example.com'))
+      # `Forwarded` is not a proxy-managed host header. DetectHost ignores its
+      # host= parameter and AdminNetworkIsolation derives its presence set from
+      # DetectHost::FORWARDED_HEADERS, so it must not turn an ordinary Host
+      # request into a provenance refusal.
+      it 'treats a Forwarded-only request as an ordinary Host request' do
+        expect(Onetime::Middleware::AdminNetworkIsolation::FORWARDED_HOST_ENV_KEYS).not_to include('HTTP_FORWARDED')
 
-        expect(last_response.status).to eq(404)
+        signed_in_as(colonel)
+        get_api('example.com', heuristic_peer.merge('HTTP_FORWARDED' => 'host=tenant.example.com'))
+
+        expect(last_response.status).to eq(200)
+        expect(json_body).to have_key('details')
       end
 
       it 'ignores a forwarded header even when it names an allowlisted host and the shell is asked for' do

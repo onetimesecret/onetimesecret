@@ -36,10 +36,10 @@ module Rack
   # 1. `X-Forwarded-Host` - Commonly used by proxies and load balancers.
   # 2. `Apx-Incoming-Host` - Approximated.app custom-domain ingress.
   # 3. `X-Original-Host` - Used by various proxy services.
-  # 4. `Forwarded` - RFC 7239 standard; the first `host=` parameter is
-  #    extracted (via `Rack::Utils.forwarded_values`), with quoted values
-  #    and ports handled per the RFC.
-  # 5. `Host` - Default HTTP host header.
+  # 4. `Host` - Default HTTP host header.
+  #
+  # RFC 7239 `Forwarded` is deliberately excluded. Its `host=` parameter is
+  # not part of this application's proxy-managed host-header contract.
   #
   # It also includes validation to filter out invalid or local hosts (e.g.,
   # `localhost`, `127.0.0.1`) and IP addresses, ensuring only legitimate
@@ -70,8 +70,8 @@ module Rack
   # ### Security Considerations
   #
   # **Trusted Proxy Validation**: This middleware only trusts forwarded host
-  # headers (X-Forwarded-Host, X-Original-Host, Apx-Incoming-Host, Forwarded)
-  # when the request arrived via a trusted reverse proxy. The otto trust key
+  # headers (X-Forwarded-Host, X-Original-Host, Apx-Incoming-Host) when the
+  # request arrived via a trusted reverse proxy. The otto trust key
   # is TRI-STATE (otto#228) and, when present, authoritative in BOTH
   # directions:
   #
@@ -124,13 +124,14 @@ module Rack
       # is why the IIS originals (X-Original-URL, X-Rewrite-URL) and
       # X-Forwarded-Server (names the proxy itself) are absent — add a
       # header only together with proxy-config guidance that sanitizes it.
-      # Scheme-only headers (X-Forwarded-Proto, CF-Visitor, ...) don't
-      # belong here either: this middleware detects hosts, not schemes.
+      # RFC 7239 Forwarded is deliberately excluded: no proxy deployment
+      # contract manages its host= parameter. Scheme-only headers
+      # (X-Forwarded-Proto, CF-Visitor, ...) don't belong here either: this
+      # middleware detects hosts, not schemes.
       FORWARDED_HEADERS = [
         'X-Forwarded-Host',   # Common proxy header (AWS ALB, nginx)
         'Apx-Incoming-Host',  # Approximated-specific (approximated.app custom-domain ingress); like all forwarded headers, only honored behind trusted infra
         'X-Original-Host',    # Various proxy services
-        'Forwarded',          # RFC 7239 standard (host parameter)
       ].freeze
 
       # List of HTTP headers that might contain the host, in order of precedence.

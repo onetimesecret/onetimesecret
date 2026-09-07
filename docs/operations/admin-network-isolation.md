@@ -36,8 +36,8 @@ everywhere, and says so at boot. See [When the allowlist cannot be
 enforced](#when-the-allowlist-cannot-be-enforced).
 
 If the app runs behind a reverse proxy that forwards the public hostname in a
-header (`X-Forwarded-Host`, `Apx-Incoming-Host`, `X-Original-Host`,
-`Forwarded`) rather than rewriting `Host`, you **must** configure
+header (`X-Forwarded-Host`, `Apx-Incoming-Host`, `X-Original-Host`) rather than
+rewriting `Host`, you **must** configure
 `site.network.trusted_proxy` **with the proxy's own address ranges in
 `cidrs`** — otherwise the admin gate refuses the forwarded host and both
 surfaces 404. Filter mode with no explicit CIDRs trusts every private-network
@@ -417,7 +417,7 @@ same way the rest of the stack does:
   masking](#cidr-precision-and-privacy-masking).
 - The **host** gate matches the host `Rack::DetectHost` validated, and applies
   one extra check of its own: a forwarded host header (`X-Forwarded-Host`,
-  `Apx-Incoming-Host`, `X-Original-Host`, `Forwarded`) is accepted **only** when
+  `Apx-Incoming-Host`, `X-Original-Host`) is accepted **only** when
   `env['otto.via_trusted_proxy']` is true — i.e. `site.network.trusted_proxy` is
   configured and this peer passed it. Otherwise the forwarded host must agree
   with the `Host` header, or the request is refused. See [Forwarded hosts and
