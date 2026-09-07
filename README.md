@@ -13,7 +13,7 @@ recipient ever sees the contents.
 
 ```bash
 # 1. Start Redis
-docker run -p 6379:6379 -d redis:bookworm
+docker run -p 6379:6379 -d redis:trixie
 
 # 2. Generate and store a persistent secret key — back this up safely
 openssl rand -hex 32 > .ots_secret && chmod 600 .ots_secret
@@ -26,7 +26,7 @@ docker run -p 3000:3000 -d \
   -e SECRET="$(cat .ots_secret)" \
   -e HOST=localhost:3000 \
   -e SSL=false \
-  onetimesecret/onetimesecret:v0.26.9
+  onetimesecret/onetimesecret:v0.26.10
 ```
 
 Open <http://localhost:3000>, then create an admin ("colonel") account — it
