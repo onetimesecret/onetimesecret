@@ -1,15 +1,22 @@
 # Backend i18n
 
-Localize user-facing strings in Ruby API code using `I18n.t` with keys from source locale files.
+Localize Ruby API errors with an `error_key` from the source locale files. The
+HTTP error handler resolves that key for the request locale; API logic should
+not call `I18n.t` itself.
 
 ## Quick Start
 
 ```ruby
-# Instead of hardcoded strings:
-raise_form_error('Email is required', field: :email)
+# Instead of a string-only error:
+raise_form_error('Is that a valid email address?', field: :login)
 
-# Use I18n:
-raise_form_error(I18n.t('api.invitations.errors.email_required'), field: :email)
+# Use a valid full key. The string remains an optional English fallback.
+raise_form_error(
+  'Is that a valid email address?',
+  error_key: 'api.account.errors.invalid_email',
+  field: :login,
+  error_type: :invalid,
+)
 ```
 
 ## Locale File Structure
@@ -40,9 +47,8 @@ These compile to `generated/locales/{locale}.json` at build time.
 API errors follow: `api.{feature}.errors.{error_name}`
 
 ```json
-"api.invitations.errors.email_required": {
-  "text": "Email is required",
-  "content_hash": "a1b2c3d4"
+"api.account.errors.invalid_email": {
+  "text": "Is that a valid email address?"
 }
 ```
 
@@ -50,9 +56,9 @@ The `content_hash` is for translation tooling (change detection).
 
 ## Adding New Strings
 
-1. Add to the appropriate source file in `locales/content/en/`
+1. Add a full `api.*` key to the appropriate source file in `locales/content/en/`
 2. Run locale generation: `pnpm run locales:generate`
-3. Use `I18n.t('your.key')` in Ruby code
+3. Pass that key as `error_key:` when raising the API error
 
 ## Fallback Behavior
 
@@ -66,10 +72,21 @@ Configured in `lib/onetime/initializers/setup_i18n.rb`:
 
 ```ruby
 # API logic classes
-raise_form_error(I18n.t('api.invitations.errors.already_member'), field: :email)
+raise_form_error(
+  'Domain ID required',
+  error_key: 'api.domains.errors.domain_id_required',
+  field: :domain_id,
+  error_type: :missing,
+)
 
 # With interpolation
-I18n.t('api.quota.limit_reached', count: limit, current: current)
+raise_form_error(
+  "Invalid secrets_mode: #{@secrets_mode}",
+  error_key: 'api.domains.errors.homepage_secrets_mode_invalid',
+  args: { secrets_mode: @secrets_mode },
+  field: :secrets_mode,
+  error_type: :invalid,
+)
 
 # Email jobs (pass locale from inviter/recipient)
 Onetime::Jobs::Publisher.enqueue_email(

@@ -13,6 +13,8 @@ Background on the two modes and how strategies resolve lives in
   mode unlocks.
 - [per-install-sso.md](./per-install-sso.md) — Configuring SSO for an entire
   install (no organization to join).
+- [adding-sso-providers.md](./adding-sso-providers.md) — Adding a provider to
+  the shared SSO provider registry.
 - [per-domain-sso.md](./per-domain-sso.md) — Configuring SSO scoped to a custom
   domain, including the organization-join flow.
 - [webauthn-credential-types.md](./webauthn-credential-types.md) — Supported

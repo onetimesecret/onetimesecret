@@ -1,18 +1,29 @@
 # Encryption at Rest: DPA Compliance Audit & XChaCha20-Poly1305 Upgrade
 
-*Audit date: 2026-07-02. Scope: the DPA clause "Encryption of Secret
-Content" vs. the onetimesecret codebase (familia 2.10.1 in production,
-2.11.x pending) and the familia encryption library.*
+*Historical audit record. Audit date: 2026-07-02. Scope: the DPA clause
+"Encryption of Secret Content" versus the onetimesecret codebase (familia
+2.10.1 in production, 2.11.x pending) and the familia encryption library at
+that time.*
 
-Companion artifacts:
+The current repository uses Familia 2.12. Current operator guidance belongs in
+`docs/runbooks/secret-rotation.md` and
+`lib/onetime/initializers/configure_familia.rb`, not in this historical
+upgrade record.
 
-- `examples/encryption_upgrade_proof/` in the familia repo — a four-phase
+Companion artifacts (external evidence):
+
+- `examples/encryption_upgrade_proof/` in the Familia repository — a four-phase
   executable proof that envelopes written by the released 2.10.1 gem
-  (production today) remain decryptable through the gem upgrade and the
+  (production at audit time) remain decryptable through the gem upgrade and the
   libsodium enablement, and that new writes automatically become
   XChaCha20-Poly1305.
-- `try/features/encryption/algorithm_upgrade_try.rb` in the familia repo —
+- `try/features/encryption/algorithm_upgrade_try.rb` in the Familia repository —
   in-suite regression coverage for the same contract.
+
+Those artifacts are not included in this repository, and this historical audit
+does not record an upstream URL or revision. They therefore cannot reproduce
+the audit from this checkout; treat them as external historical evidence until
+permanent, version-pinned upstream references are added.
 
 ## 1. Claim-by-claim verification
 
@@ -76,15 +87,19 @@ nodes against the same datastore longer than necessary. (Regions are
 independent — each region's rollout stands alone, and the same rule
 holds for a self-hosted install.)
 
-**F3 (high, latent): domain-separation inputs were implicit.** We never set
-`encryption_personalization` (XChaCha BLAKE2b) or `encryption_hkdf_salt`
-(AES HKDF), inheriting library defaults. The personalization has **no
-rotation/history mechanism** — changing it bricks every XChaCha envelope
-(proof phase 2 §9). Fixed in this branch: both are now pinned explicitly in
-`configure_familia.rb` (`'FamilialMatters'` / `'FamiliaEncryption'`), with
-comments marking the personalization as permanent. Improvement filed for
-familia: add `encryption_personalization_history` analogous to the salt
-history, and/or record a personalization identifier in the envelope.
+**F3 (high, historical): domain-separation inputs were implicit.** At audit
+time, we never set `encryption_personalization` (XChaCha BLAKE2b) or
+`encryption_hkdf_salt` (AES HKDF), inheriting library defaults. Familia before
+2.12 had no personalization rotation/history mechanism, so changing it would
+have bricked XChaCha envelopes (proof phase 2 §9). The audited branch pinned
+both values explicitly in `configure_familia.rb` (`'FamilialMatters'` /
+`'FamiliaEncryption'`).
+
+**Current state:** Familia 2.12 adds `encryption_personalization_history` for
+read-side rotation, and the current initializer also configures
+`encryption_hkdf_salt_history`. Operators planning a rotation must follow
+`docs/runbooks/secret-rotation.md`; this finding is not current operational
+advice.
 
 **F4 (medium, security): envelope-lookalike plaintext is stored verbatim.**
 A user-supplied secret whose content is valid envelope JSON (correct five
@@ -182,9 +197,13 @@ inline in `confirm_email_change.rb`. Outside this DPA clause's scope, but
 two copies of bespoke crypto is drift risk; consolidate or migrate to
 familia encrypted fields eventually.
 
-## 4. Upgrade runbook (this branch)
+## 4. Historical upgrade runbook (audited branch)
 
-1. **Ships in this branch**: `rbnacl` gem (top-level — `BUNDLE_WITHOUT`
+This is the 2026-07 deployment record, not the current rotation procedure. For
+current installations, use `docs/runbooks/secret-rotation.md` and the active
+Familia configuration as the source of truth.
+
+1. **Shipped in the audited branch**: `rbnacl` gem (top-level — `BUNDLE_WITHOUT`
    excludes `optional`!), `libsodium23` in both runtime image stages,
    explicit `encryption_personalization`/`encryption_hkdf_salt` pins,
    corrected spawn_pair contract comment.

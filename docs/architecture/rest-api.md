@@ -1,28 +1,32 @@
-# Onetime Secret - API Documentation
+# Onetime Secret API
 
-The authoritative API documentation is published at [api.onetimesecret.com](https://api.onetimesecret.com).
+The authoritative endpoint reference is published at [api.onetimesecret.com](https://api.onetimesecret.com). This README explains version selection, authentication, and response-field compatibility for API users and contributors.
 
-## API Versions
+## Choose an API version
 
-Onetime Secret provides three versions of its API:
+| Version | Status | Use it when |
+| ------- | ------ | ----------- |
+| **v1** | Frozen legacy API. It accepts form-encoded requests and returns JSON. | You must maintain an existing v1 integration. Do not use it for a new integration. |
+| **v2** | Stable, JSON-based API. | You are building a new production integration. |
+| **v3** | Alpha. It uses native JSON types and powers the web UI, but its external contract may change without deprecation. | You are evaluating pre-release behavior, not building an external production integration. |
 
-* **v1**: The original API for creating and viewing secrets. Requests are form-encoded and responses are JSON. This version receives limited support mainly to keep parity with new fields but in general does not receive new features (new or renamed fields are added but existing fields are not removed or renamed). For new integrations, we recommend using v2 or v3.
-* **v2**: A modern, fully JSON REST API. All field values are returned as strings which can be both a blessing because it eliminates guesswork about field types but also a curse because it requires more parsing on the client side. This version has been superseded by v3 but is still maintained for backward compatibility.
-* **v3**: Our most recent API version, used by the UI (Vue-based frontend). The API is substantially similar to v2 but field values are returned as JSON primitive types (strings, numbers, booleans, arrays, objects). This version is the most actively developed and receives all new features and updates.
+V2 serializes some stored values as strings, while v3 returns native JSON values where its contract defines them. Parse every field according to the selected version's endpoint reference; do not assume all v2 values are strings.
 
-## Authentication
+## Authentication and public access
 
-The REST API uses HTTP Basic auth. The **username is the account email or the customer external ID** (`ur…` prefix); the **password is the API token** (generated on the Account > API settings page or via `bin/ots apitoken`).
+Authentication is defined per endpoint. V1 and v2 protected endpoints use HTTP Basic authentication. The **username is the account email or customer external ID** (`ur…` prefix); the **password is the API token**. Generate a token in **Account > API settings**, or on a self-hosted instance with `bundle exec bin/ots apitoken user@example.com`.
 
-The username is **not** the organization ID (`on…` prefix) and **not** the UUIDv7 `owner_id` that appears in API responses — neither resolves to a customer.
+The username is **not** the organization ID (`on…` prefix) or the UUIDv7 `owner_id` returned in API responses. Neither identifies a customer for Basic authentication.
 
 ```bash
 curl -u 'user@example.com:APITOKEN' https://us.onetimesecret.com/api/v2/receipt/recent
 ```
 
+The standard v3 secret and receipt paths require a browser session. Some routes in every version allow anonymous access, including the versioned guest routes. Check the endpoint reference before choosing an authentication method.
+
 ## Response Field Notes
 
-These conventions apply to secret and receipt responses. Field value *types* differ by version (see [API Versions](#api-versions)); the field *meanings* below are the same across versions unless noted.
+These conventions apply to secret and receipt responses. Field value *types* differ by version (see [Choose an API version](#choose-an-api-version)); the field *meanings* below are the same across versions unless noted.
 
 ### `custid` is deprecated — read `owner_id`
 
@@ -70,14 +74,21 @@ The `ttl` submitted when creating a secret is a request, not a guarantee. An out
 * A value below the configured minimum is raised to that minimum.
 * Authenticated callers are governed separately. A free-tier request above 14 days is *rejected* with an entitlement error rather than clamped, so the caller gets an explicit upgrade path instead of a shortened secret.
 
-## OpenAPI Definitions
+## Generate OpenAPI definitions
 
-Generated OpenAPI definitions are available at:
-- `generated/openapi/openapi.v1.json`
-- `generated/openapi/openapi.v2.json`
-- `generated/openapi/openapi.v3.json`
+OpenAPI definitions are generated build artifacts in `generated/openapi/`; they are not committed to the repository. Generate the non-frozen definitions with:
 
-Run `pnpm run openapi:generate` to regenerate from source schemas.
+```bash
+pnpm run openapi:generate
+```
+
+This writes the v2 and v3 definitions. V1 is frozen and is generated only when explicitly requested:
+
+```bash
+pnpm run openapi:generate -- --force
+```
+
+The generator also produces an internal-only definition. Do not publish it. For generator options and output details, see [OpenAPI generation](../../scripts/openapi/README.md).
 
 ---
 

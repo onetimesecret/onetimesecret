@@ -1,30 +1,32 @@
 # Audit Logging
 
 How Onetime Secret records, retains, and presents accountability data. This
-document uses the terminology settled in ADR-021: **"audit log" is only the
-feature/entitlement label** (`audit_logs`); the underlying data is two distinct
-event streams with different sources, actor semantics, and retention. A third,
-operator-facing log exists outside the entitlement entirely.
+document uses the terminology proposed by ADR-021, which is currently
+**Proposed**: **"audit log" is only the feature/entitlement label**
+(`audit_logs`); the underlying data is two distinct event streams with different
+sources, actor semantics, and retention. A third, operator-facing log exists
+outside the entitlement entirely.
 
 | Stream | User-facing name | Answers | Store / retention | Status |
 |---|---|---|---|---|
-| Secret Activity (#3633/#3635/#3637) | **Secret Activity** | what happened to a secret, and who acted | Valkey/Redis sorted set, capped (10,000 newest per org) | Shipped |
+| Secret Activity (#3633/#3635/#3637) | **Secret Activity** | what happened to a secret, and who acted | Valkey/Redis sorted set, configurable cap (default 10,000 newest per org) | Shipped |
 | Security Events (#2799) | **Security Events** | who did what to the account/org (login, MFA, SSO config) | SQL (`account_authentication_audit_logs`), TTL-based | Backend table live (Rodauth); product surface unstarted |
 | Operator audit log | — (colonel-only) | what operators did in the admin console, and which sensitive things they looked at | `ColonelAuditEvent` (Familia; three capped sub-streams) | Shipped, colonel app only |
 
-Do not conflate them. Per ADR-021, "audit log" in the strict, actor-attributed
-compliance sense is Security Events; Secret Activity began as access/usage
-telemetry and has since gained full actor attribution (see below) — but the two
-remain separate stores with separate retention, deliberately (ADR-021
-Decision 2: correlation happens at the presentation layer, never by merging
-backends).
+Do not conflate them. ADR-021 proposes that "audit log" in the strict,
+actor-attributed compliance sense means Security Events; Secret Activity began
+as access/usage telemetry and has since gained full actor attribution (see
+below). The implementation keeps the two in separate stores with separate
+retention; correlation happens at the presentation layer, not by merging
+backends.
 
-Code identifiers follow the stream names (#3977; authoritative table in ADR-021
-Decision 5): Secret Activity uses the `SecretActivity` prefix, the operator log
-uses `ColonelAudit*`, the `SecurityEvent` prefix is reserved for #2799, and the
-per-domain config loggers are `ConfigChangeLogger` / `ChangeLogger` (log lines
-only, not a stream). The `audit_logs` entitlement label and Rodauth's
-`account_authentication_audit_logs` table are intentionally unchanged.
+Code identifiers follow the stream names (#3977; ADR-021 Decision 5 proposes
+the naming table): Secret Activity uses the `SecretActivity` prefix, the
+operator log uses `ColonelAudit*`, the `SecurityEvent` prefix is reserved for
+#2799, and the per-domain config loggers are `ConfigChangeLogger` /
+`ChangeLogger` (log lines only, not a stream). The `audit_logs` entitlement
+label and Rodauth's `account_authentication_audit_logs` table are intentionally
+unchanged.
 
 ## Secret Activity
 
@@ -61,7 +63,8 @@ thread them down; the model layer validates and appends.
                                                  │  record_secret_activity_event        │
                                                  │  sorted set `secret_activity_events` │
                                                  │  (score = epoch s, member =          │
-                                                 │   event hash; cap 10,000)            │
+                                                 │   event hash; configurable cap,       │
+                                                 │   default 10,000)                     │
                                                  └──────────────────────────────────────┘
 ```
 
@@ -192,16 +195,19 @@ Two caps, one TTL rule:
   the org trail, so one hammered link (scanner, monitor) cannot evict every
   other receipt's history. Lifecycle transitions bypass the guard. The
   timeline key's TTL is clamped to its receipt's remaining TTL.
-- **Org trail**: newest 10,000 events (`SECRET_ACTIVITY_MAX_EVENTS`), no TTL
-  (organizations are permanent records). `receipt_viewed` is additionally
-  bounded to once per receipt by an atomic claim (`claim_once!`), since the
-  receipt page is not covered by the timeline saturation guard.
+- **Org trail**: newest events up to the configured cap (default 10,000;
+  `SECRET_ACTIVITY_MAX_EVENTS`, minimum 100), no TTL (organizations are
+  permanent records). Lowering the cap removes each organization's oldest events
+  on its next write. `receipt_viewed` is additionally bounded to once per receipt
+  by an atomic claim (`claim_once!`), since the receipt page is not covered by
+  the timeline saturation guard.
 - Append is best-effort everywhere: the trail never drives behavior, and a
   failed append must never break a state transition or read path.
 
-Per ADR-021 Decision 3, the cap (not a TTL) is the retention story: Secret
-Activity is not marketed as a long-horizon forensic archive. A durable export
-consuming the same fan-out point is the designated path if that changes.
+The current implementation uses a cap, not a TTL, for Secret Activity
+retention. ADR-021 proposes that Secret Activity not be marketed as a
+long-horizon forensic archive. A durable export consuming the same fan-out point
+is the designated path if that changes.
 
 ### Presentation
 
@@ -529,7 +535,8 @@ Refusal records inside otherwise fail-closed ops (`Memberships::Remove`,
 
 ### Durability: the sink is the record, Valkey is the cache (#4334)
 
-Every event goes to two places, **in this order**:
+After an event is successfully built, the write path attempts two destinations
+**in this order**:
 
 1. **The sink** — a structured log line on the dedicated `ColonelAudit`
    SemanticLogger category, emitted *before* the datastore write. Message
@@ -540,12 +547,12 @@ Every event goes to two places, **in this order**:
    the console, the export endpoint and the CLI query. Not an archive, and
    never sized to be one.
 
-The ordering is the guarantee: a Valkey outage, an eviction or a trim cannot
-lose the record. The two are independent in both directions — a sink failure is
-caught and logged and never costs the Redis write or the caller; a datastore
-failure never un-emits the sink line (which is what makes the fail-closed
-posture above survivable: the operator is told the trail is broken, and the
-event is still in the log stream).
+For a successfully built event, a Valkey outage, eviction, or trim cannot lose
+an already-emitted sink record. The destinations are independent in both
+directions: a sink failure is caught and logged and never costs the Redis write
+or the caller; a datastore failure never un-emits the sink line. An event-build
+failure happens before sink emission, so it leaves neither destination; the
+audit-write failure is then the diagnostic signal.
 
 By default the sink rides the console appender (stdout in server modes, stderr
 under the CLI). An **optional syslog appender**, filtered to the `ColonelAudit`
@@ -700,10 +707,10 @@ validation, not in each op.
 
 ## References
 
-- ADR-019 — At-most-once secret reveal (CAS claims the audit emit rides on)
-- ADR-021 — Audit log terminology & event-stream scoping
-- ADR-022 — Secret Activity network-capture privacy stance
-- ADR-023 — Audit actor attribution accuracy (never fabricate an actor)
+- [ADR-019](../adr/adr-019-at-most-once-secret-reveal.md) — At-most-once secret reveal (CAS claims the audit emit rides on)
+- [ADR-021](../adr/adr-021-audit-log-terminology-and-stream-scoping.md) — Audit log terminology & event-stream scoping (Proposed)
+- [ADR-022](../adr/adr-022-secret-activity-network-capture-privacy.md) — Secret Activity network-capture privacy stance
+- [ADR-023](../adr/adr-023-audit-actor-attribution-accuracy.md) — Audit actor attribution accuracy (never fabricate an actor)
 - Issues: #2799 (Security Events), #3633/#3635/#3637 (Secret Activity),
   #3639 (lifecycle actor), #3640 (network context)
 - Full-objid decision record:

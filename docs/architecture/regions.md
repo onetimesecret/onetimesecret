@@ -17,29 +17,27 @@ Regions enable multi-jurisdiction deployments where each geographic instance run
 
 ## Configuration
 
-Two environment variables control the feature:
+Three environment variables control the feature:
 
-| Variable         | Purpose                                      |
-| ---------------- | -------------------------------------------- |
-| `REGIONS_ENABLED`| Set to `true` to activate region features    |
-| `JURISDICTION`   | Current instance's identifier (e.g., `EU`)   |
+| Variable | Purpose |
+| --- | --- |
+| `REGIONS_ENABLED` | Set to `true` to activate region features. |
+| `JURISDICTION` | Current instance's identifier (for example, `EU`). |
+| `JURISDICTIONS` | Comma-separated region destinations as `ID:domain` pairs. |
 
-The jurisdictions list lives in `config.yaml`:
+Configure each deployment with its own current jurisdiction and the shared destination list:
 
-```yaml
-features:
-  regions:
-    enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
-    current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>
-    jurisdictions:
-      - identifier: EU
-        display_name: European Union
-        domain: eu.onetimesecret.com
-        icon:
-          collection: fa6-solid
-          name: earth-europe
-      # Additional regions...
+```bash
+REGIONS_ENABLED=true
+JURISDICTION=EU
+JURISDICTIONS=EU:eu.onetimesecret.com,CA:ca.onetimesecret.com
 ```
+
+`features.regions.jurisdictions` is derived from `JURISDICTIONS` at configuration load time. A structured YAML array at that path is deprecated and emits a deprecation warning.
+
+### Region names and icons
+
+The region selector resolves a name from the locale key `web.regions.jurisdictions.<identifier>.name`. The `display_name` field from the former structured YAML format is not sent to the frontend. Add the corresponding locale entry for a custom identifier; otherwise the selector can show the unresolved key. Icons are optional and fall back to the frontend's identifier-to-icon mapping.
 
 When disabled, no region UI surfaces appear and billing operates globally.
 

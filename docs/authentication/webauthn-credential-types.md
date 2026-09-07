@@ -36,6 +36,11 @@ residentKey: 'required'
 
 ## Current Configuration
 
+WebAuthn is loaded only in full auth mode when
+`AUTH_WEBAUTHN_ENABLED=true`. The `AUTH_WEBAUTHN_AUTOFILL` and
+`AUTH_WEBAUTHN_VERIFY_ACCOUNT` settings are sub-feature flags; neither enables
+WebAuthn on its own.
+
 `apps/web/auth/config/features/webauthn.rb` uses Rodauth's default
 `webauthn_authenticator_selection`:
 
@@ -64,7 +69,8 @@ The login route (`webauthn_login`) calls `account_from_login(login_param_value)`
 ## Switching to Discoverable Credentials
 
 The supported path is Rodauth's `webauthn_autofill` feature
-(`AUTH_WEBAUTHN_AUTOFILL=true`, see `.env.reference`), which merges
+(`AUTH_WEBAUTHN_ENABLED=true` and `AUTH_WEBAUTHN_AUTOFILL=true`; see
+`.env.reference`), which merges
 `residentKey: 'required'` / `requireResidentKey: true` onto the default
 selection hash (`super.merge`) and serves the conditional-UI autofill JS.
 

@@ -3,39 +3,18 @@
 Security
 --------
 
-- Upgraded otto to 2.10. With ``site.network.trusted_proxy.enabled: true``,
-  otto now deletes every forwarded authority carrier (``Forwarded``,
-  ``X-Forwarded-Host``, ``X-Forwarded-Proto``, ``X-Forwarded-Scheme``,
-  ``X-Forwarded-SSL``, ``X-Forwarded-Port``) from a request whose connecting
-  peer is not a trusted proxy, before Rack resolves the request's host,
-  scheme or port. A direct client can no longer influence ``request.host`` or
-  ``request.scheme`` on a proxied deployment.
+- With ``site.network.trusted_proxy.enabled: true``, upgraded otto now removes
+  forwarded authority headers supplied by an untrusted peer before Rack resolves
+  the request host, scheme, or port. Configure trusted proxy CIDRs narrowly
+  (#4378).
 
 Changed
 -------
 
-- ``site.network.trusted_proxy.header: Forwarded`` (or ``Both``) now requires
-  ``mode: depth`` and fails the boot in filter mode with a message naming the
-  keys. Filter mode never read RFC 7239 ``Forwarded`` for client IPs; the
-  setting was silently ignored there before.
+- With trusted-proxy protection enabled, ``header: Forwarded`` or ``Both`` now
+  requires ``mode: depth`` and fails boot in filter mode instead of being
+  ignored (#4378).
 
-- In filter mode, a reverse proxy whose address is outside the private ranges
-  and ``site.network.trusted_proxy.cidrs`` is now an untrusted peer for
-  scheme detection as well as for client IP: its ``X-Forwarded-Proto`` is
-  dropped, the scheme falls back to the socket, and secure cookies are not
-  written. Add the proxy's range to ``cidrs`` (or use depth mode).
-
-- The forwarded-host stripping middleware now deletes the RFC 7239
-  ``Forwarded`` header outright instead of editing its ``host=`` parameters
-  out, so no quoting trick can smuggle a host past the strip. The scheme Rack
-  resolved from the header under the pinned forwarding family is carried into
-  ``rack.url_scheme`` first, so a depth-mode ``Forwarded``-only proxy keeps
-  its TLS scheme. The carry only ever upgrades: a ``Forwarded: proto=http``
-  cannot downgrade a request already established as https (TLS at the
-  origin, or ``site.network.assume_https``). The names of the deleted
-  headers are left in ``env['onetime.stripped_forwarded_headers']`` so the
-  dropped-secure-cookie warning and the colonel ``/system/proxy-headers``
-  report still show whether the edge sent them.
-
-- ``rack-parser`` is declared directly in the Gemfile; it stopped being an
-  otto runtime dependency in 2.10.
+- In filter mode, ``X-Forwarded-Proto`` from a proxy outside the configured
+  trusted CIDRs is ignored. Add the proxy's address range to ``cidrs`` to retain
+  forwarded TLS scheme detection (#4378).

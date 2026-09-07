@@ -32,6 +32,7 @@ Create realm, client, and user via admin console at `http://localhost:8080/admin
 ## Environment Configuration
 
 ```bash
+export AUTHENTICATION_MODE=full
 export AUTH_SSO_ENABLED=true
 export OIDC_ISSUER=http://localhost:8080           # Zitadel/Keycloak base URL
 export OIDC_CLIENT_ID=<from-idp>
@@ -45,9 +46,9 @@ For Keycloak, issuer is `http://localhost:8080/realms/<realm-name>`.
 ## Verification
 
 ```bash
-# Feature flag exposed
-curl -s http://localhost:3000/bootstrap/me | jq '.features.omniauth'
-# Should return: true
+# SSO configuration exposed to the sign-in page
+curl -s http://localhost:3000/bootstrap/me | jq '.features.sso'
+# Should show enabled: true and a non-empty providers array
 
 # OIDC discovery endpoint reachable
 curl -s $OIDC_ISSUER/.well-known/openid-configuration | jq '.authorization_endpoint'
@@ -57,12 +58,14 @@ curl -s $OIDC_ISSUER/.well-known/openid-configuration | jq '.authorization_endpo
 
 | Scenario | Expected |
 |----------|----------|
-| SSO button visibility | Appears on `/signin` when `AUTH_SSO_ENABLED=true` |
+| SSO button visibility | Appears on `/signin` when SSO is enabled and bootstrap returns at least one configured provider |
+| No configured provider | No platform SSO button is rendered; the provider strategy is not registered unless per-domain SSO is enabled |
 | New user login | Account created, redirected to dashboard |
 | Existing user login | Logged in via linked identity |
-| Domain restriction | Redirected to `/signin?auth_error=sso_failed` |
+| Domain restriction | Redirected to `/signin?auth_error=domain_not_allowed`; the UI does not disclose allowed domains |
 | OAuth state mismatch | OmniAuth rejects callback (CSRF protection) |
-| IdP denies access | Redirected to `/signin?auth_error=sso_failed` |
+| IdP denies access | Redirected to `/signin?auth_error=sso_cancelled` |
+| Other IdP failure | Redirected to `/signin?auth_error=sso_failed` |
 
 ## Automated Tests
 
@@ -95,10 +98,14 @@ tests/lanes/run full-sqlite
 - [ ] SSO button does NOT appear on the signin page
 - [ ] POST to `/auth/sso/{provider}` returns 404
 
-### Feature flag enabled, no IdP configured
+### Feature flag enabled, no platform IdP configured
 
-- [ ] SSO button appears on the signin page
-- [ ] Clicking the SSO button shows a configuration error
+- [ ] SSO button does NOT appear on the signin page
+- [ ] The bootstrap response has an empty `features.sso.providers` array
+- [ ] The platform provider route is not registered
+
+Per-domain SSO is the exception: with `ORGS_SSO_ENABLED=true`, the routes are
+registered with placeholder credentials and receive each domain's credentials at request time.
 
 ### Fully configured (feature flag + IdP credentials)
 
@@ -106,11 +113,12 @@ tests/lanes/run full-sqlite
 - [ ] Successful authentication at the IdP creates a new account
 - [ ] After authentication, user is redirected to the dashboard
 - [ ] Session is properly authenticated (user can access protected pages)
+- [ ] Cancelling or denying access at the IdP returns to `/signin?auth_error=sso_cancelled`
 
 ### Domain restrictions (`ALLOWED_SIGNUP_DOMAIN`)
 
 - [ ] User with an allowed email domain can create an account via SSO
-- [ ] User with a disallowed email domain gets a 403 with a generic error message (no domain leak)
+- [ ] User with a disallowed email domain returns to `/signin?auth_error=domain_not_allowed` without listing allowed domains
 - [ ] Logs contain an `omniauth_domain_rejected` event for the rejected attempt
 
 ### Multi-provider

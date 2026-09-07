@@ -11,7 +11,7 @@ labels: familia-v2, multi-tenant, custom-domains
 
 CustomDomain uses Familia v2 participations for multi-tenant organization ownership. Organizations own domains (not individual customers), enabling:
 
-- Team members access organization domains via their memberships
+- Organization members access organization domains via their memberships
 - Efficient org-scoped queries with proper indexing
 - Bidirectional relationships with auto-generated APIs
 
@@ -29,13 +29,11 @@ Direct customer ownership via `custid` field with manual relationship management
 
 ```mermaid
 graph LR
-    Customer -->|participates_in| Organization
-    Team -->|participates_in| Organization
+    Customer -->|membership| Organization
     CustomDomain -->|participates_in| Organization
 
     subgraph "Organization Resources"
         Organization -->|members| Customer
-        Organization -->|teams| Team
         Organization -->|domains| CustomDomain
     end
 ```
@@ -106,21 +104,24 @@ Wrapper methods `add_domain` and `remove_domain` provide enforcement logic and a
 
 ## Access Patterns
 
-### Customer → Organization → Domains
+### Customer → Organizations → Domains
+
+`Customer` is identified by its internal `objid`; use the email index for an email lookup. A customer can belong to more than one organization, so do not use `organization_instances.first` when the task is to list every accessible domain.
 
 ```ruby
-customer = Customer.load(email)
-org = customer.organization_instances.first
-domains = org&.list_domains
+customer = Customer.find_by_email(email)
+domains = customer ? customer.organization_instances.to_a.flat_map(&:list_domains).uniq : []
 ```
 
-### Team Member → Organization → Domains
+### Organization Member → Selected Organization → Domains
+
+When a request targets one organization, resolve that organization explicitly and authorize the active membership before listing its domains.
 
 ```ruby
-customer = Customer.load(email)
-team = customer.team_instances.first
-org = team&.organization_instances&.first
-domains = org&.list_domains
+customer = Customer.find_by_email(email)
+org = Organization.find_by_extid(org_extid)
+membership = customer && org && OrganizationMembership.find_by_org_customer(org.objid, customer.objid)
+domains = membership&.active? ? org.list_domains : []
 ```
 
 ### Reverse Lookup (Domain → Organization)

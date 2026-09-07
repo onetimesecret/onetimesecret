@@ -1,16 +1,20 @@
 # Email Validation
 
-## Flow
+## API input flow
 
-All email inputs follow the same path:
+Account API, invitation, secret-recipient, and incoming-configuration inputs follow this path:
 
 ```
 sanitize_email(input) → valid_email?(email) [Truemail.validate]
 ```
 
-Sanitization strips HTML, prevents header injection (`\r\n`), lowercases. Validation calls Truemail with the configured validation type (regex, mx, or smtp).
+Sanitization strips HTML, prevents header injection (`\r\n`), and lowercases. Validation calls Truemail with the configured validation type (regex, mx, or smtp).
 
-## Signup vs Recipient vs Incoming
+### Identity-provider email flow
+
+OmniAuth normalizes the identity-provider email claim, then uses `SignupValidation.structurally_valid_email?` and the signup-domain policy. It does not call `sanitize_email` or Truemail. This avoids turning an authentication callback into a DNS or SMTP validation operation.
+
+## API signup vs recipient vs incoming
 
 |                  | Signup                            | Recipient                 | Incoming (config)         | Incoming (create)         |
 | ---------------- | --------------------------------- | ------------------------- | ------------------------- | ------------------------- |
@@ -27,11 +31,11 @@ Incoming has two phases: config-time (admin adds recipients, full validation) an
 
 | Context | Method |
 | ------- | ------ |
-| Signup, invitation, share boundaries | `Logic::Base#valid_email?` (full Truemail) |
+| API signup, invitation, and secret-recipient boundaries | `Logic::Base#valid_email?` (full Truemail) |
 | Corruption guards in booted contexts | `Truemail.validate(email, with: :regex).result.valid?` |
 | Model-layer or pre-boot code | `EmailFormat::BASIC_FORMAT` regex |
 
-**Full Truemail** (`valid_email?`) for user-input boundaries -- validates format, MX records, optionally SMTP depending on config.
+**Full Truemail** (`valid_email?`) for the API user-input boundaries above -- validates format, MX records, optionally SMTP depending on config.
 
 **Truemail `:regex` mode** for corruption guards -- format-only, no DNS, fast enough to run on every request. Use when the email was already validated at config time.
 
@@ -48,6 +52,7 @@ CLI commands boot the application, so they use Truemail. Unless subclassed from 
 - `V2::Logic::Secrets::BaseSecretAction#validate_recipient` -- recipient validation
 - `DomainsAPI::Logic::IncomingConfig::PutIncomingConfig` -- incoming recipient config (full Truemail)
 - `Incoming::Logic::CreateIncomingSecret#raise_concerns` -- incoming secret creation (`:regex` corruption guard)
+- `Auth::Config::Hooks::OmniAuth` -- identity-provider claim normalization, structural validation, and signup-domain policy
 
 ## Configuration
 
