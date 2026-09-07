@@ -98,7 +98,7 @@ module Onetime
     # ## make, and cannot make for us)
     #
     # DetectHost honors a forwarded host header (X-Forwarded-Host,
-    # Apx-Incoming-Host, X-Original-Host, Forwarded) when EITHER the operator
+    # Apx-Incoming-Host, X-Original-Host) when EITHER the operator
     # configured proxy trust and this peer passed it (otto writes
     # env['otto.via_trusted_proxy'] = true) OR — with no proxy trust configured
     # at all, the SHIPPED DEFAULT — a legacy heuristic: any peer whose

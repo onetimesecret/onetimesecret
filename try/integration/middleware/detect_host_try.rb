@@ -8,7 +8,7 @@
 # and IP addresses.
 #
 # We're testing:
-# 1. Header precedence (X-Forwarded-Host, X-Original-Host, Forwarded, Host)
+# 1. Header precedence (X-Forwarded-Host, Apx-Incoming-Host, X-Original-Host, Host)
 # 2. Host validation (reject localhost, IPs)
 # 3. Port stripping
 # 4. Multiple host handling
@@ -84,7 +84,7 @@ env = { 'REMOTE_ADDR' => '192.168.1.1', 'HTTP_X_FORWARDED_HOST' => 'first.com, s
 env['rack.detected_host']
 #=> 'first.com'
 
-## Extracts host from the first RFC 7239 Forwarded element
+## Ignores RFC 7239 Forwarded host parameters, even from a trusted proxy
 env = {
   'REMOTE_ADDR' => '192.168.1.1',
   'HTTP_FORWARDED' => 'for=203.0.113.7;host=forwarded.example.com;proto=https',
@@ -92,9 +92,9 @@ env = {
 }
 @middleware.call(env)
 env['rack.detected_host']
-#=> 'forwarded.example.com'
+#=> 'fallback.example.com'
 
-## Handles a quoted RFC 7239 host value and strips its port
+## Ignores quoted RFC 7239 host parameters, even from a trusted proxy
 env = {
   'REMOTE_ADDR' => '192.168.1.1',
   'HTTP_FORWARDED' => 'for=203.0.113.7;host="Forwarded.Example.COM:8443";proto=https',
@@ -102,9 +102,9 @@ env = {
 }
 @middleware.call(env)
 env['rack.detected_host']
-#=> 'forwarded.example.com'
+#=> 'fallback.example.com'
 
-## Honors only the first Forwarded element, without splitting on quoted commas
+## Ignores Forwarded host parameters in every element
 env = {
   'REMOTE_ADDR' => '192.168.1.1',
   'HTTP_FORWARDED' => 'for="client,alias";host=first.example.com, for=203.0.113.8;host=second.example.com',
@@ -112,11 +112,9 @@ env = {
 }
 @middleware.call(env)
 env['rack.detected_host']
-#=> 'first.example.com'
+#=> 'fallback.example.com'
 
-## Uses the earliest host parameter when the first element lacks one,
-## mirroring Rack::Utils.forwarded_values and the X-Forwarded-Host
-## first-value convention
+## Ignores a later Forwarded host parameter when the first element lacks one
 env = {
   'REMOTE_ADDR' => '192.168.1.1',
   'HTTP_FORWARDED' => 'for=203.0.113.7;proto=https, for=203.0.113.8;host=second.example.com',
@@ -124,9 +122,9 @@ env = {
 }
 @middleware.call(env)
 env['rack.detected_host']
-#=> 'second.example.com'
+#=> 'fallback.example.com'
 
-## Falls back when no Forwarded element carries a host parameter
+## Ignores Forwarded when no element carries a host parameter
 env = {
   'REMOTE_ADDR' => '192.168.1.1',
   'HTTP_FORWARDED' => 'for=203.0.113.7;proto=https, for=203.0.113.8;proto=https',
@@ -136,7 +134,7 @@ env = {
 env['rack.detected_host']
 #=> 'fallback.example.com'
 
-## A non-RFC bare hostname in Forwarded is not a host parameter; falls back
+## Ignores a non-RFC bare hostname in Forwarded and falls back
 env = {
   'REMOTE_ADDR' => '192.168.1.1',
   'HTTP_FORWARDED' => 'legacy.example.com',
@@ -146,7 +144,7 @@ env = {
 env['rack.detected_host']
 #=> 'fallback.example.com'
 
-## A bracketed IPv6 Forwarded host is rejected (domain names required)
+## Ignores a bracketed IPv6 Forwarded host and falls back
 env = {
   'REMOTE_ADDR' => '192.168.1.1',
   'HTTP_FORWARDED' => 'for=203.0.113.7;host="[2001:db8::1]:8443"',
@@ -189,7 +187,7 @@ env = {
 env['rack.detected_host']
 #=> 'fallback.example.com'
 
-## A malformed quoted Forwarded value fails closed and falls back to Host
+## Ignores a malformed quoted Forwarded value and falls back to Host
 env = {
   'REMOTE_ADDR' => '192.168.1.1',
   'HTTP_FORWARDED' => 'for=203.0.113.7;host="unterminated.example.com',

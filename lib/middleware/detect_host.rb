@@ -4,7 +4,6 @@
 
 require 'ipaddr'
 require 'otto/env_keys'
-require 'rack/utils'
 require_relative 'logging'
 
 module Rack
@@ -244,7 +243,7 @@ module Rack
       # Try headers in order of precedence
       headers_to_check.each do |header|
         header_key = "HTTP_#{header.tr('-', '_').upcase}"
-        host       = self.class.normalize_host(env[header_key], forwarded: header == 'Forwarded')
+        host       = self.class.normalize_host(env[header_key])
         next if host.nil?
 
         if self.class.valid_domain_name?(host)
@@ -317,45 +316,15 @@ module Rack
       # Extracts and normalizes the host from a header value.
       #
       # @param value_unsafe [String, nil] Raw header value from the request
-      # @param forwarded [Boolean] Whether the value uses RFC 7239 Forwarded syntax
       # @return [String, nil] Normalized host without port number, or nil if empty
       #
-      # This method:
-      # - Takes the first host if multiple are provided (comma-separated)
-      # - Extracts the first host parameter from RFC 7239 Forwarded values
-      # - Delegates to DomainParser for port stripping and normalization
-      # - Returns nil for empty values
-      def normalize_host(value_unsafe, forwarded: false)
-        first_host = if forwarded
-          forwarded_host(value_unsafe)
-        else
-          # Handle comma-separated hosts (e.g., X-Forwarded-Host header)
-          value_unsafe.to_s.split(',').first.to_s
-        end
+      # Takes the first host if multiple are provided (comma-separated), then
+      # delegates port stripping and normalization to DomainParser.
+      def normalize_host(value_unsafe)
+        first_host = value_unsafe.to_s.split(',').first.to_s
 
-        # Delegate core normalization to DomainParser
         Onetime::Utils::DomainParser.extract_hostname(first_host)
       end
-
-      # Extracts the first host parameter from an RFC 7239 Forwarded value.
-      #
-      # Parsing is delegated to Rack::Utils.forwarded_values, which handles
-      # quoted strings and escape sequences, bounds parameter and escape
-      # counts against denial of service, and fails closed (nil) on
-      # malformed input or unknown parameter names — letting the next header
-      # in the precedence list be considered. Element boundaries are
-      # flattened: the earliest host parameter anywhere in the header wins,
-      # mirroring the first-value convention used for X-Forwarded-Host.
-      def forwarded_host(value_unsafe)
-        case Rack::Utils.forwarded_values(value_unsafe)
-        in { host: [first_host, *] }
-          first_host
-        else
-          nil
-        end
-      end
-
-      private :forwarded_host
 
       # Determines if a string is a valid host for use in this application.
       #
