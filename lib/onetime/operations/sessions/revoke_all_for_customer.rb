@@ -66,6 +66,9 @@ module Onetime
       # that leaves the account half-revoked.
       #
       # Stateless, single `#call`, returns an immutable {Result}.
+      #
+      # Construction rule: pass `customer:` whenever you hold the record;
+      # `custid:` is for id-only entry points (see #initialize for why).
       class RevokeAllForCustomer
         include Onetime::AuditedFailure
         include Onetime::AuditReason
@@ -82,6 +85,8 @@ module Onetime
         # record prefers: this lambda runs mid-raise, where re-resolving the
         # customer could itself fail (the raise may BE the datastore), and the
         # unresolved param is still an honest record of what the operator acted on.
+        # (For a pre-resolved `customer:` it is that record's extid, captured at
+        # construction — see #initialize — so no lookup happens here either.)
         audit_failures :call, verb: AUDIT_VERB, target: -> { @custid }
 
         # Session-data identity fields matched against the target's extid.
@@ -99,7 +104,21 @@ module Onetime
         #   unaffected; they never touch the scan)
         Result = Data.define(:revoked, :blobs_deleted, :untracked_deleted, :rodauth_rows_deleted, :scan_capped)
 
-        # @param custid [String] the target customer (route param; extid/email/objid).
+        # Exactly one of `custid:` / `customer:` must be given.
+        #
+        # @param custid [String, nil] the target customer AS ADDRESSED (route
+        #   param / CLI arg; extid, email, or objid). Resolved in #load_customer
+        #   via extid → email → objid; an unresolvable value degrades to a
+        #   zero-count revoke (see class docs, section 3).
+        # @param customer [Onetime::Customer, nil] the target ALREADY RESOLVED.
+        #   Callers that hold the record (Auth::Operations::Customers::Purge)
+        #   must pass it rather than its extid: a re-resolution by extid is not
+        #   guaranteed to agree with the record in hand — the extid index has
+        #   drifted before (#4205, #4217) — and a miss would silently take the
+        #   nil-customer branches, write a `blobs_deleted: 0` success, and let a
+        #   following destroy leave live blobs/sidecars/`active_sessions` behind
+        #   a deleted customer. The record is used as given; only `exists?` is
+        #   still checked.
         # @param actor [String, #extid] acting colonel's PUBLIC identity (extid).
         # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
         #   recorded in the audit detail. Offboarding and account-takeover
@@ -108,8 +127,21 @@ module Onetime
         #   {Onetime::AuditReason} for the bound and the optional-now /
         #   required-later rollout.
         # @param dbclient [Object, nil] Redis-like client; defaults to Familia.dbclient.
-        def initialize(custid:, actor:, reason: nil, dbclient: nil)
-          @custid   = custid
+        def initialize(actor:, custid: nil, customer: nil, reason: nil, dbclient: nil)
+          # Same shape as Operations::VerifyDomain's domain:/domains: guard.
+          if custid.nil? && customer.nil?
+            raise ArgumentError, 'Must provide either custid: or customer:'
+          end
+          if custid && customer
+            raise ArgumentError, 'Cannot provide both custid: and customer:'
+          end
+
+          @customer = customer
+          # @custid is read by the audit_failures target lambda and by the
+          # success-event target fallback in #call; for a pre-resolved customer
+          # its extid IS the addressed identity, so capture it now rather than
+          # touching the record again mid-raise.
+          @custid   = custid || customer.extid
           @actor    = actor
           @reason   = normalize_reason(reason)
           @dbclient = dbclient
@@ -283,10 +315,14 @@ module Onetime
           Auth::Database.connection
         end
 
-        # Same resolution as ListForCustomer / RevokeForCustomer: extid → email →
-        # objid. nil is tolerated — a missing customer yields a zero-count revoke.
+        # A pre-resolved `customer:` is used as given — NEVER re-resolved (see
+        # #initialize for why an extid-index miss here would be silent and
+        # destructive). Otherwise the same resolution as ListForCustomer /
+        # RevokeForCustomer: extid → email → objid. nil is tolerated either way
+        # — a missing customer yields a zero-count revoke.
         def load_customer
-          customer = Onetime::Customer.load_by_extid_or_email(@custid) ||
+          customer = @customer ||
+                     Onetime::Customer.load_by_extid_or_email(@custid) ||
                      Onetime::Customer.load(@custid)
           return nil unless customer&.exists?
 

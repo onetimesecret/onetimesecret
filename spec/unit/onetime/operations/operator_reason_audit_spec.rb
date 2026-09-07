@@ -117,7 +117,9 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
 
     before do
       deleter = instance_double(Auth::Operations::DeleteCustomer, call: true)
+      revoker = instance_double(Onetime::Operations::Sessions::RevokeAllForCustomer, call: nil)
       allow(Auth::Operations::DeleteCustomer).to receive(:new).and_return(deleter)
+      allow(Onetime::Operations::Sessions::RevokeAllForCustomer).to receive(:new).and_return(revoker)
     end
 
     it 'records the reason in the purge detail' do

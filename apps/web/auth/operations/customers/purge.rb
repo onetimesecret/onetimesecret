@@ -4,6 +4,7 @@
 
 # Reuses (does not rewrite) the incumbent delete primitive.
 require 'auth/operations/delete_customer'
+require 'onetime/operations/sessions/revoke_all_for_customer'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
@@ -11,13 +12,20 @@ require 'onetime/audit_reason'
 module Auth
   module Operations
     module Customers
-      # ADMIN purge of a single customer: destroy the record and record it in the
-      # admin audit trail.
+      # ADMIN purge of a single customer: revoke its sessions, destroy the record,
+      # and record both mutations in the admin audit trail.
       #
-      # Reuses Auth::Operations::DeleteCustomer (the single delete primitive) and
-      # layers on exactly one ColonelAuditEvent per successful destroy (epic #20
-      # CONTRACT 4 / #21). This is the colonel single-customer delete verb
-      # (DELETE /api/colonel/users/:user_id).
+      # Session revocation runs before Auth::Operations::DeleteCustomer (the single
+      # delete primitive). Each mutation owns its audit event: session.revoke_all
+      # for containment, then customer.purge after destruction. This is the colonel
+      # single-customer delete verb (DELETE /api/colonel/users/:user_id).
+      #
+      # The revoke is handed the SAME resolved record this op holds, never its
+      # extid: callers (PurgeUser logic, `customers purge-one`) may have resolved
+      # by email or objid, and the extid index is not guaranteed to agree with
+      # the record in hand (#4205, #4217 drift). A re-resolution miss would
+      # degrade to a silent zero-count revoke followed by a destroy that leaves
+      # live blobs/sidecars behind a deleted customer.
       #
       # Scope note: this destroys the customer unconditionally — a colonel deleting
       # a specific account is an explicit, audited decision. The bulk
@@ -42,7 +50,8 @@ module Auth
         Result = Data.define(:status, :extid, :custid)
 
         # @param customer [Onetime::Customer] target (caller ensures non-nil,
-        #   non-anonymous)
+        #   non-anonymous). Passed through as-is to the session revoke — see the
+        #   class docs for why it is never re-resolved by extid.
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity.
         #   Never an internal objid.
         # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
@@ -61,6 +70,14 @@ module Auth
           # Capture identity BEFORE destroy — the record is gone afterward.
           extid  = @customer.extid
           custid = @customer.custid
+
+          # `customer:` not `custid: extid` — the op must act on the record we
+          # hold, not on whatever the extid index resolves to (class docs).
+          Onetime::Operations::Sessions::RevokeAllForCustomer.new(
+            customer: @customer,
+            actor: @actor,
+            reason: @reason,
+          ).call
 
           deleted = Auth::Operations::DeleteCustomer.new(customer: @customer).call
           return Result.new(status: :not_found, extid: extid, custid: custid) unless deleted
@@ -89,8 +106,11 @@ module Auth
 
         private
 
-        # obscure_email raises for anonymous; the caller guards non-anonymous, but
-        # stay defensive so a purge never fails on audit-detail formatting.
+        # Customer#obscure_email does not raise on its own inputs: anonymous
+        # returns a literal placeholder and OT::Utils.obscure_email yields nil for
+        # a nil email. The rescue is kept as a belt-and-braces guard against
+        # unexpected data (a malformed record mid-purge, a stub without the
+        # method) — audit-detail formatting must never be why a purge fails.
         def obscure(customer)
           customer.obscure_email
         rescue StandardError

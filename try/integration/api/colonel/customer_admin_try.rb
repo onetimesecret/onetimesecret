@@ -134,12 +134,14 @@ post "/api/colonel/users/#{@verify_target.objid}/unverify", {}.to_json, confirmi
 
 # ---- Purge success + audit --------------------------------------------
 
-## Purge (DELETE) returns 200, destroys the user, audits once
+## Purge (DELETE) returns 200, destroys the user, audits the revoke then the purge
+# Two mutations, two events: sessions are revoked for containment before
+# DeleteCustomer runs, and each owns its own audit event (Customers::Purge).
 AE.events.clear
 delete "/api/colonel/users/#{@purge_target.objid}", {}, confirming(@purge_target, { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json', 'HTTP_X_CSRF_TOKEN' => tryouts_csrf_token(@colonel_session) })
 @purge_resp = JSON.parse(last_response.body)
-[last_response.status, @purge_resp['record']['deleted'], Onetime::Customer.load(@purge_target_objid).nil?, AE.count, AE.recent(1).first['verb']]
-#=> [200, true, true, 1, "customer.purge"]
+[last_response.status, @purge_resp['record']['deleted'], Onetime::Customer.load(@purge_target_objid).nil?, AE.count, AE.recent(2).map { |event| event['verb'] }.sort]
+#=> [200, true, true, 2, ["customer.purge", "session.revoke_all"]]
 
 # ---- Teardown ---------------------------------------------------------
 AE.events.clear

@@ -648,8 +648,12 @@ module Auth
         def revoke_sessions
           return false unless @revoke_sessions
 
+          # `customer:` not `custid: @customer.extid` — we hold the record, so
+          # the op must act on it rather than on whatever the extid index
+          # resolves to (index drift, #4205/#4217, would otherwise degrade this
+          # to a silent zero-count revoke).
           Onetime::Operations::Sessions::RevokeAllForCustomer.new(
-            custid: @customer.extid,
+            customer: @customer,
             actor: @actor,
           ).call
           true
