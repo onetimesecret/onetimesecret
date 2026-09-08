@@ -30,6 +30,7 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 
 import AdminCustomerSessionsSection from '@/apps/admin/components/AdminCustomerSessionsSection.vue';
 import SessionAuthorityNotice from '@/apps/admin/components/SessionAuthorityNotice.vue';
+import type { SessionAuthority } from '@/schemas/api/internal/responses/colonel-sessions';
 import {
   colonelCustomerSessionsResponseSchema,
   type AdminCustomerSession,
@@ -304,8 +305,10 @@ describe('SessionAuthorityNotice — surface-aware copy', () => {
     rodauth_admin_url: null,
   };
 
-  const mountNotice = (props: Record<string, unknown>) =>
-    mount(SessionAuthorityNotice, { props, global: { plugins: [i18n] } });
+  const mountNotice = (props: {
+    authority: SessionAuthority | null | undefined;
+    context?: 'console' | 'customer';
+  }) => mount(SessionAuthorityNotice, { props, global: { plugins: [i18n] } });
 
   it('uses the plain per-row description on the default (console) surface', () => {
     // The global console only offers single-revoke (self-expiring row), so the
