@@ -756,6 +756,7 @@
     "content_hash": "ae350040"
   },
   "web.admin.customers.detail.rodauthAdmin.open": {
-    "text": "Open in Rodauth Admin"
+    "text": "Open in Rodauth Admin",
+    "content_hash": "467173c8"
   }
 }
