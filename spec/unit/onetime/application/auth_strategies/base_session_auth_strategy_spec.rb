@@ -92,12 +92,43 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     end
   end
 
+  context 'when the active-session gate reports the Rodauth row is gone' do
+    # Full-mode revocation (Onetime::ActiveSessionGate): AFTER the watermark,
+    # BEFORE the admin bound and additional_checks. The gate is consulted with
+    # the env so its verdict is memoized for the rest of the request.
+    before do
+      allow(Onetime::ActiveSessionGate).to receive(:revoked?).and_return(true)
+    end
+
+    it 'fails with the [SESSION_REVOKED] marker' do
+      result = strategy.authenticate(env, 'authenticated')
+
+      expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      expect(result.failure_reason).to match(/\A\[SESSION_REVOKED\]/)
+    end
+
+    it 'consults the gate with the Rack env (shared per-request memo)' do
+      strategy.authenticate(env, 'authenticated')
+
+      expect(Onetime::ActiveSessionGate).to have_received(:revoked?).with(session, env: env)
+    end
+
+    it 'never reaches the admin bound or additional_checks' do
+      expect(strategy).not_to receive(:admin_session_expiry_reason)
+
+      strategy.authenticate(env, 'authenticated')
+
+      expect(strategy.additional_checks_ran).to be_nil
+    end
+  end
+
   context 'when the credential watermark already rejects the session' do
     # AFTER the watermark: a session that predates a password change is stale for
     # every surface, and that is the more fundamental refusal. The admin bound
     # must not run at all, so it cannot mask it with a different message.
-    it 'reports the stale-credential failure and never consults the bound' do
+    it 'reports the stale-credential failure and never consults the gate or the bound' do
       allow(strategy).to receive(:session_predates_credential_change?).and_return(true)
+      expect(Onetime::ActiveSessionGate).not_to receive(:revoked?)
       expect(strategy).not_to receive(:admin_session_expiry_reason)
 
       result = strategy.authenticate(env, 'authenticated')

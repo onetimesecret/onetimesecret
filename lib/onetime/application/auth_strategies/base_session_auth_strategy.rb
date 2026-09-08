@@ -70,6 +70,18 @@ module Onetime
             return failure('[SESSION_STALE_CREDENTIALS] Session predates last credential change')
           end
 
+          # Full-mode active-session enforcement (Onetime::ActiveSessionGate):
+          # a session whose Rodauth account_active_session_keys row has been
+          # removed — by the user from another device, or by an operator in
+          # Rodauth Admin — is refused here, on its next request. Until this
+          # check existed the row was consulted only by the sessions page, so
+          # revoking it ended nothing. AFTER the watermark (the more fundamental
+          # refusal) and BEFORE the admin bound and additional_checks. Reads
+          # the authdb, never the session; the verdict is memoized in env.
+          if Onetime::ActiveSessionGate.revoked?(session, env: env)
+            return failure('[SESSION_REVOKED] Active session has been revoked; sign in again')
+          end
+
           # Admin-surface session bounds (#4331). Runs here because this is the
           # one per-request chokepoint that already has the loaded customer
           # (hence cust.role) and the raw session. Deliberately AFTER the

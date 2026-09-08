@@ -50,6 +50,44 @@ RSpec.describe 'Active Sessions Management', type: :integration do
       login!(email: test_email)
     end
 
+    # Onetime::ActiveSessionGate: the account_active_session_keys row is now
+    # load-bearing for EVERY authenticated request, not just the sessions
+    # page. Deleting it — a user revoking another device, or an operator in
+    # Rodauth Admin — refuses the session on its next request. Before the gate
+    # the Redis blob kept answering `authenticated` until it expired.
+    describe 'per-request enforcement of the active-session row' do
+      def account_rows
+        test_db[:account_active_session_keys].where(account_id: @account[:id])
+      end
+
+      it 'serves an authenticated API request while the row exists' do
+        expect(account_rows.count).to be >= 1
+
+        get '/api/account/'
+        expect(last_response.status).to eq(200), last_response.body
+      end
+
+      it 'refuses the same request once the row has been removed' do
+        get '/api/account/'
+        expect(last_response.status).to eq(200), last_response.body
+
+        account_rows.delete
+
+        get '/api/account/'
+        expect(last_response.status).to eq(401)
+      end
+
+      it 'keeps refreshing last_use so the inactivity sweep sees activity' do
+        stale = Time.now - (Onetime::ActiveSessionGate::TOUCH_INTERVAL + 60)
+        account_rows.update(last_use: stale)
+
+        get '/api/account/'
+        expect(last_response.status).to eq(200), last_response.body
+
+        expect(Time.now - account_rows.first[:last_use]).to be < 5
+      end
+    end
+
     describe 'GET /auth/account' do
       before { get_json '/auth/account' }
 

@@ -22,6 +22,7 @@
 #   has_role?(:colonel) # Fast - checks session only
 #   current_customer    # Slow - loads from Redis (use sparingly)
 
+require_relative '../session/active_session_gate'
 require_relative '../session/impersonation'
 
 module Onetime
@@ -30,7 +31,8 @@ module Onetime
       def authenticated?
         session['authenticated'] == true &&
           !session['external_id'].to_s.empty? &&
-          session_auth_enforced?
+          session_auth_enforced? &&
+          !active_session_revoked?
       end
 
       # Check user role without loading Customer (uses session data)
@@ -51,6 +53,7 @@ module Onetime
       def authenticate!(customer)
         # Clear any existing session data
         session.clear
+        forget_active_session_verdict
 
         # Regenerate session ID to prevent fixation (Rack::Session pattern)
         request.session_options[:renew] = true if request.respond_to?(:session_options)
@@ -79,10 +82,32 @@ module Onetime
         )
 
         session.clear
+        forget_active_session_verdict
         OT.info "[logout] Session #{session_id} destroyed" if session_id
       end
 
       private
+
+      # Full-mode active-session enforcement (Onetime::ActiveSessionGate): the
+      # controller-side twin of the check in BaseSessionAuthStrategy, so a
+      # page render and an API call answer the same way once the session's
+      # Rodauth row is gone. Memoized per request through the Rack env when
+      # there is one (the strategy shares the memo), else per helper instance,
+      # so the many `authenticated?` calls in one request cost one SELECT.
+      def active_session_revoked?
+        return @active_session_revoked unless @active_session_revoked.nil?
+
+        @active_session_revoked = Onetime::ActiveSessionGate.revoked?(session, env: rack_env_for_impersonation)
+      end
+
+      # The session identity just changed inside this request (login or
+      # logout): a verdict reached for the previous identity must not outlive
+      # it, in this helper or in the shared env memo.
+      def forget_active_session_verdict
+        @active_session_revoked = nil
+        env                     = rack_env_for_impersonation
+        env&.delete(Onetime::ActiveSessionGate::ENV_KEY)
+      end
 
       def load_current_customer
         return nil unless authenticated?
