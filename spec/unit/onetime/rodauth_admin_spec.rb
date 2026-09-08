@@ -42,8 +42,8 @@ RSpec.describe Onetime::RodauthAdmin do
 
     context 'with a value that is not an absolute http(s) URL' do
       before do
-        # The warn-once memo persists on the module across examples.
-        described_class.instance_variable_set(:@warned_invalid_url, nil)
+        # The warn memo persists on the module across examples.
+        described_class.instance_variable_set(:@warned_invalid_urls, nil)
         allow(OT).to receive(:le)
       end
 
@@ -62,10 +62,18 @@ RSpec.describe Onetime::RodauthAdmin do
         expect(described_class.base_url).to be_nil
       end
 
-      it 'warns once, naming the misconfiguration' do
+      it 'warns once per distinct value, naming the misconfiguration' do
         stub_config('admin.example.com:9292')
         expect(OT).to receive(:le).once.with(/RODAUTH_ADMIN_URL is not an absolute/)
         described_class.base_url
+        described_class.base_url
+      end
+
+      it 're-warns when a config reload swaps in a different invalid value' do
+        expect(OT).to receive(:le).twice.with(/RODAUTH_ADMIN_URL is not an absolute/)
+        stub_config('admin.example.com:9292')
+        described_class.base_url
+        stub_config('ftp://elsewhere.example.com')
         described_class.base_url
       end
     end

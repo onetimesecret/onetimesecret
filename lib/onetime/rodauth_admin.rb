@@ -89,12 +89,14 @@ module Onetime
       false
     end
 
-    # Warn once per process so a misconfiguration is named without spamming the
-    # log on every per-request link build.
+    # Warn once per distinct value so a misconfiguration is named without
+    # spamming the log on every per-request link build. Keyed on the raw value
+    # rather than a bare flag so a runtime config reload to a different invalid
+    # value re-warns instead of staying silent behind the first one.
     def warn_invalid_url(raw)
-      return if @warned_invalid_url
+      return if @warned_invalid_urls&.include?(raw)
 
-      @warned_invalid_url = true
+      (@warned_invalid_urls ||= []) << raw
       OT.le(
         '[RodauthAdmin] RODAUTH_ADMIN_URL is not an absolute http(s) URL; ' \
         "ignoring it (links render as plain text): #{raw.inspect}",
