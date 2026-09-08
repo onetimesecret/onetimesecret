@@ -50,26 +50,13 @@ module Onetime
         @current_customer ||= load_current_customer
       end
 
-      def authenticate!(customer)
-        # Clear any existing session data
-        session.clear
-        forget_active_session_verdict
-
-        # Regenerate session ID to prevent fixation (Rack::Session pattern)
-        request.session_options[:renew] = true if request.respond_to?(:session_options)
-
-        # Set authentication data
-        session['external_id']      = customer.extid
-        session['email']            = customer.email
-        session['role']             = customer.role  # Store role for permission checks
-        session['authenticated']    = true
-        session['authenticated_at'] = Familia.now.to_i
-        session['ip_address']       = request.ip
-        session['user_agent']       = request.user_agent
-
-        # NOTE: CSRF tokens are managed by Rack::Protection::AuthenticityToken middleware
-        # The token is generated on first access via AuthenticityToken.token(session)
-      end
+      # There is deliberately no `authenticate!(customer)` here. Every path that
+      # marks a Rack session authenticated must also mint its active-session
+      # row and join key (Onetime::ActiveSessionGate), which only a Rodauth
+      # login-session does; the simple-mode controller writes its own session
+      # and the invite flow runs a real login_session. A helper that set
+      # `authenticated` without the join key would mint a session the gate
+      # exempts from revocation forever.
 
       def logout!
         session_id = session.id&.private_id if session.respond_to?(:id)
