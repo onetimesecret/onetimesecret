@@ -38,14 +38,18 @@ module Onetime
   # active-session row. Revoking it therefore ended nothing: the Rack session
   # kept answering `authenticated` until it expired on its own. The gate makes
   # the row load-bearing: a Rack session whose row is gone is refused on its
-  # next request, by both the Otto auth strategies and the controller-side
-  # SessionHelpers.
+  # next request at all three places a full-mode request is authenticated:
+  # the Otto auth strategies (BaseSessionAuthStrategy), the controller-side
+  # SessionHelpers, and the Roda auth router ahead of every `/auth/*` route,
+  # Rodauth's own included.
   #
   # ## The join
   #
   # One indexed SELECT on the table's primary key per authenticated request,
   # `(session['account_id'], session['active_session_id_hmac'])`, memoized in
-  # the Rack env so the strategy and the helpers never both pay for it.
+  # the Rack env so the strategy and the helpers never both pay for it. The
+  # same SELECT asks the database whether `last_use` is due a refresh (see
+  # below), so the steady state stays read-only.
   #
   # ## Failure posture: closed
   #
@@ -63,14 +67,24 @@ module Onetime
   #
   # - **Rack sessions without a join key.** One signed in before the stamp
   #   existed, or with the active_sessions feature off, cannot be joined to a
-  #   row and is left alone rather than mass-logged-out on deploy. Enforcement
-  #   starts at its next login.
+  #   row and is left alone rather than mass-logged-out on deploy. This
+  #   exemption covers only sessions that already exist: since the stamp
+  #   became load-bearing, a login whose stamp fails is refused outright
+  #   (apps/web/auth/config/features/active_sessions.rb), so no new Rack
+  #   session can be minted without a join key. The unstamped population
+  #   ages out within Rodauth's session_lifetime_deadline.
   # - **Inactivity / lifetime deadlines.** Rodauth applies those on the
   #   sessions page. This module only touches the row's `last_use`, throttled
   #   to once per {TOUCH_INTERVAL}, so that page's inactivity sweep sees real
   #   activity instead of the login timestamp — now that the sweep's
   #   revocations actually end Rack sessions, a stale `last_use` would sign
-  #   out an active user.
+  #   out an active user. Both the throttle decision and the refreshed value
+  #   are computed by the database against its own CURRENT_TIMESTAMP, the
+  #   clock Rodauth wrote the column with. `last_use` is a naive timestamp;
+  #   comparing it with Ruby's Time.now would silently break on any host
+  #   whose process TZ differs from the database session's, in one direction
+  #   never refreshing (the sweep then signs out an active user) and in the
+  #   other refreshing on every request.
   module ActiveSessionGate
     extend self
 
@@ -120,13 +134,14 @@ module Onetime
       db = ::Auth::Database.connection
       return unavailable('no auth database connection') if db.nil?
 
-      account_id = session['account_id']
-      hmac       = session['active_session_id_hmac']
-
-      row = db[TABLE].where(account_id: account_id, session_id: hmac).select(:last_use).first
+      row_ds = db[TABLE].where(
+        account_id: session['account_id'],
+        session_id: session['active_session_id_hmac'],
+      )
+      row    = row_ds.select(Sequel.as(touch_due_expression, :touch_due)).first
       return :revoked if row.nil?
 
-      touch(db, account_id, hmac, row[:last_use])
+      touch(row_ds) if row[:touch_due].to_i == 1
       :active
     rescue StandardError => ex
       unavailable("#{ex.class}: #{ex.message}")
@@ -143,16 +158,29 @@ module Onetime
       defined?(::Auth::Database) ? true : false
     end
 
-    # Best-effort, throttled `last_use` refresh on the active-session row. Its
-    # own rescue: a failed write must not turn a verified-active verdict into
-    # an outage verdict.
-    def touch(db, account_id, hmac, last_use)
-      now = Time.now
-      return if last_use && (now - last_use) < TOUCH_INTERVAL
+    # `1` when the row's `last_use` (NOT NULL in the schema) is older than
+    # {TOUCH_INTERVAL}, else `0`. Evaluated by the database against its own CURRENT_TIMESTAMP,
+    # never against Ruby's clock, and as an integer CASE rather than a bare
+    # boolean because SQLite returns booleans as integers and Sequel only
+    # typecasts declared boolean columns. `Sequel.date_sub` comes from the
+    # date_arithmetic extension, which Auth::Database loads on the authdb
+    # connection (Rodauth's active_sessions feature needs it too).
+    def touch_due_expression
+      stale = Sequel[:last_use] < Sequel.date_sub(Sequel::CURRENT_TIMESTAMP, seconds: TOUCH_INTERVAL)
+      Sequel.case({ stale => 1 }, 0)
+    end
 
-      db[TABLE].where(account_id: account_id, session_id: hmac).update(last_use: now)
+    # Best-effort `last_use` refresh on the active-session row, in the
+    # database's clock. Its own rescue: a failed write must not turn a
+    # verified-active verdict into an outage verdict. Logged at warn, not
+    # debug: the row's `last_use` is what Rodauth's inactivity sweep reads,
+    # so a write that keeps failing ends in a live session being revoked a
+    # day later, and that logout must be traceable to its cause.
+    def touch(row_ds)
+      row_ds.update(last_use: Sequel::CURRENT_TIMESTAMP)
     rescue StandardError => ex
-      OT.ld "[active_session_gate] last_use touch on active-session row failed: #{ex.class}: #{ex.message}"
+      OT.lw '[active_session_gate] last_use refresh on active-session row failed; ' \
+            "if this persists the inactivity sweep will revoke a live session: #{ex.class}: #{ex.message}"
     end
 
     def unavailable(reason)

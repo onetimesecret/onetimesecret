@@ -21,6 +21,9 @@ require 'onetime/session/active_session_gate'
 RSpec.describe Onetime::ActiveSessionGate do
   let(:db) do
     Sequel.sqlite.tap do |sqlite|
+      # Auth::Database loads the same extension on the authdb connection; the
+      # gate's throttle predicate (Sequel.date_sub) needs it.
+      sqlite.extension :date_arithmetic
       sqlite.create_table(:account_active_session_keys) do
         Integer :account_id
         String :session_id
@@ -43,6 +46,7 @@ RSpec.describe Onetime::ActiveSessionGate do
     allow(Auth::Database).to receive(:connection).and_return(db)
     allow(Onetime.auth_config).to receive_messages(full_enabled?: true, active_sessions_enabled?: true)
     allow(OT).to receive(:le)
+    allow(OT).to receive(:lw)
     allow(OT).to receive(:ld)
   end
 
@@ -163,14 +167,63 @@ RSpec.describe Onetime::ActiveSessionGate do
       expect(db[:account_active_session_keys].first[:last_use].to_i).to eq(recent.to_i)
     end
 
-    it 'never turns a failed touch into a non-active verdict' do
-      insert_row(last_use: Time.now - (described_class::TOUCH_INTERVAL + 60))
-      dataset = instance_double(Sequel::Dataset)
-      allow(db).to receive(:[]).with(described_class::TABLE).and_return(dataset)
-      allow(dataset).to receive_messages(where: dataset, select: dataset, first: { last_use: Time.now - 1000 })
-      allow(dataset).to receive(:update).and_raise(Sequel::DatabaseError, 'read-only replica')
+    # The throttle and the refreshed value both live in the database's clock,
+    # the one Rodauth wrote `last_use` with. Ruby's Time.now is not consulted:
+    # a process whose TZ differs from the database session's would otherwise
+    # either never refresh (west of the DB: the inactivity sweep then signs
+    # out an active user) or refresh on every request (east of it). The two
+    # examples below skew Ruby's clock by five hours each way; the DB's
+    # verdict must not move.
+    context 'when the process clock is skewed from the database clock' do
+      let(:real_now) { Time.now }
+      let(:skew) { 5 * 3600 }
 
-      expect(described_class.verdict(session)).to eq(:active)
+      def last_use_in_db
+        db[:account_active_session_keys].first[:last_use]
+      end
+
+      it 'still refreshes a stale row when Ruby thinks it is five hours EARLIER than the DB' do
+        stale = real_now - (described_class::TOUCH_INTERVAL + 60)
+        insert_row(last_use: stale)
+        allow(Time).to receive(:now).and_return(real_now - skew)
+
+        described_class.verdict(session)
+
+        expect(real_now - last_use_in_db).to be < 5
+      end
+
+      it 'still leaves a fresh row alone when Ruby thinks it is five hours LATER than the DB' do
+        recent = real_now - 30
+        insert_row(last_use: recent)
+        allow(Time).to receive(:now).and_return(real_now + skew)
+
+        described_class.verdict(session)
+
+        expect(last_use_in_db.to_i).to eq(recent.to_i)
+      end
+    end
+
+    context 'when the refresh write fails' do
+      let(:dataset) { instance_double(Sequel::Dataset) }
+
+      before do
+        insert_row(last_use: Time.now - (described_class::TOUCH_INTERVAL + 60))
+        allow(db).to receive(:[]).with(described_class::TABLE).and_return(dataset)
+        allow(dataset).to receive_messages(where: dataset, select: dataset, first: { touch_due: 1 })
+        allow(dataset).to receive(:update).and_raise(Sequel::DatabaseError, 'read-only replica')
+      end
+
+      it 'never turns a failed touch into a non-active verdict' do
+        expect(described_class.verdict(session)).to eq(:active)
+      end
+
+      # Warn, not debug: the row's last_use feeds Rodauth's inactivity sweep,
+      # so a refresh that keeps failing ends in a live session being revoked.
+      it 'warns, naming the consequence, so the eventual sign-out is traceable' do
+        described_class.verdict(session)
+
+        expect(OT).to have_received(:lw).with(/inactivity sweep.*read-only replica/)
+      end
     end
   end
 end
