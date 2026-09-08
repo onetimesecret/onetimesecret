@@ -8,18 +8,24 @@ import { ref } from 'vue';
 import {
   usePaginatedFetch,
   type PageMeta,
+  type PageResult,
 } from '@/apps/admin/composables/usePaginatedFetch';
 import { reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
 import {
   colonelUserMutationResponseSchema,
   colonelUsersResponseSchema,
 } from '@/schemas/api/internal/responses/colonel';
-import type { ColonelUser } from '@/schemas/api/internal/responses/colonel';
+import type { ColonelOrphanedAccount, ColonelUser } from '@/schemas/api/internal/responses/colonel';
 import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
 import { useApi } from '@/shared/composables/useApi';
 import { gracefulParse } from '@/utils/schemaValidation';
 
 type ColonelUsersResponse = z.infer<typeof colonelUsersResponseSchema>;
+
+/** One page of customers plus the address search's orphaned-account sidecar. */
+interface CustomersPageResult extends PageResult<ColonelUser> {
+  orphanedAccounts: ColonelOrphanedAccount[];
+}
 
 /** Single-customer colonel URL, keyed by the row's public id (extid, 'ur…'). */
 function userUrl(userId: string): string {
@@ -115,16 +121,31 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
   /** Rows for the current page only (one server page — never accumulated). */
   const customers = ref<ColonelUser[]>([]);
   const pagination = ref<PageMeta | null>(null);
+  /**
+   * Auth-database accounts rows the address search matched that have NO
+   * customer record (full auth mode only). Rides the same response as the
+   * page, so it is set and cleared in lockstep with `customers`: an orphan
+   * is a per-search fact, never something to carry across a re-read.
+   */
+  const orphanedAccounts = ref<ColonelOrphanedAccount[]>([]);
 
   const $api = useApi();
 
-  const pager = usePaginatedFetch<ColonelUsersResponse, ColonelUser>({
+  /** Replace the page state wholesale; `null` empties it (mismatch, failure, reset). */
+  function applyPage(result: CustomersPageResult | null): void {
+    customers.value = result?.items ?? [];
+    pagination.value = result?.pagination ?? null;
+    orphanedAccounts.value = result?.orphanedAccounts ?? [];
+  }
+
+  const pager = usePaginatedFetch<ColonelUsersResponse, ColonelUser, CustomersPageResult>({
     url: '/api/colonel/users',
     schema: colonelUsersResponseSchema,
     context: 'ColonelUsersResponse',
     select: (data) => ({
       items: data.details?.users ?? [],
       pagination: data.details?.pagination ?? null,
+      orphanedAccounts: data.details?.orphaned_accounts ?? [],
     }),
   });
 
@@ -141,24 +162,18 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
     targetPage: number = pager.page.value,
     roleFilter?: string,
     search?: string
-  ): Promise<{ items: ColonelUser[]; pagination: PageMeta | null } | null> {
+  ): Promise<CustomersPageResult | null> {
     try {
       // Empty/undefined params are dropped by the pager, so both filters can be
       // passed unconditionally.
       const result = await pager.fetchPage(targetPage, { role: roleFilter, search });
-      if (result) {
-        customers.value = result.items;
-        pagination.value = result.pagination;
-      } else {
-        // Schema mismatch: degrade to empty; pager.validationError names the schema.
-        customers.value = [];
-        pagination.value = null;
-      }
+      // A null result is a schema mismatch: degrade to empty; pager.validationError
+      // names the schema.
+      applyPage(result);
       return result;
     } catch (err) {
       // Network/HTTP failure: clear stale rows and rethrow for the view to handle.
-      customers.value = [];
-      pagination.value = null;
+      applyPage(null);
       throw err;
     }
   }
@@ -212,8 +227,7 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
 
   /** Explicit manual reset — setup stores have no built-in $reset. */
   function $reset(): void {
-    customers.value = [];
-    pagination.value = null;
+    applyPage(null);
     pager.reset();
   }
 
@@ -221,6 +235,7 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
     // State
     customers,
     pagination,
+    orphanedAccounts,
     // Fetch state (owned by the shared composable)
     loading: pager.loading,
     error: pager.error,

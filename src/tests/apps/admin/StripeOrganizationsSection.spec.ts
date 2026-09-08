@@ -147,59 +147,64 @@ describe('StripeOrganizationsSection (billing → Stripe customers roster)', () 
     expect(copy.attributes('data-text')).toBe('cus_ACME001');
   });
 
-  it('debounces the search box into a single filtered fetch', async () => {
-    vi.useFakeTimers();
-    try {
-      mockApi.get.mockResolvedValue({ data: listPayload() });
-      wrapper = mountSection();
-      await flushPromises();
-      const before = mockApi.get.mock.calls.length;
+  it('never fetches on typing alone — search is submit-only', async () => {
+    mockApi.get.mockResolvedValue({ data: listPayload() });
+    wrapper = mountSection();
+    await flushPromises();
+    const before = mockApi.get.mock.calls.length;
 
-      await wrapper
-        .find('[data-testid="billing-stripe-orgs-filterbar"] input[type="search"]')
-        .setValue('cus_ACME');
-      expect(mockApi.get.mock.calls.length).toBe(before);
+    const input = wrapper.find(
+      '[data-testid="billing-stripe-orgs-filterbar"] input[type="search"]'
+    );
+    await input.setValue('cus');
+    await input.setValue('cus_ACME');
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    await flushPromises();
 
-      vi.advanceTimersByTime(300);
-      await flushPromises();
-
-      expect(mockApi.get.mock.calls.length).toBe(before + 1);
-      expect(mockApi.get).toHaveBeenLastCalledWith(LIST_URL, {
-        params: { page: 1, per_page: 50, search: 'cus_ACME' },
-      });
-    } finally {
-      vi.runOnlyPendingTimers();
-      vi.useRealTimers();
-    }
+    expect(mockApi.get.mock.calls.length).toBe(before);
   });
 
-  it('issues exactly one fetch when clearing the search (no debounce double-fetch)', async () => {
-    vi.useFakeTimers();
-    try {
-      mockApi.get.mockResolvedValue({ data: listPayload() });
-      wrapper = mountSection();
-      await flushPromises();
+  it('fetches once with the term on submit (Enter)', async () => {
+    mockApi.get.mockResolvedValue({ data: listPayload() });
+    wrapper = mountSection();
+    await flushPromises();
+    const before = mockApi.get.mock.calls.length;
 
-      await wrapper
-        .find('[data-testid="billing-stripe-orgs-filterbar"] input[type="search"]')
-        .setValue('cus_ACME');
-      vi.advanceTimersByTime(300);
-      await flushPromises();
+    const input = wrapper.find(
+      '[data-testid="billing-stripe-orgs-filterbar"] input[type="search"]'
+    );
+    await input.setValue('cus_ACME');
+    await input.trigger('keydown', { key: 'Enter' });
+    await flushPromises();
 
-      const before = mockApi.get.mock.calls.length;
+    expect(mockApi.get.mock.calls.length).toBe(before + 1);
+    expect(mockApi.get).toHaveBeenLastCalledWith(LIST_URL, {
+      params: { page: 1, per_page: 50, search: 'cus_ACME' },
+    });
+  });
 
-      wrapper.findComponent(FilterBar).vm.$emit('clear');
-      vi.advanceTimersByTime(300);
-      await flushPromises();
+  it('issues exactly one fetch when clearing an applied search', async () => {
+    mockApi.get.mockResolvedValue({ data: listPayload() });
+    wrapper = mountSection();
+    await flushPromises();
 
-      expect(mockApi.get.mock.calls.length).toBe(before + 1);
-      expect(mockApi.get).toHaveBeenLastCalledWith(LIST_URL, {
-        params: { page: 1, per_page: 50 },
-      });
-    } finally {
-      vi.runOnlyPendingTimers();
-      vi.useRealTimers();
-    }
+    const input = wrapper.find(
+      '[data-testid="billing-stripe-orgs-filterbar"] input[type="search"]'
+    );
+    await input.setValue('cus_ACME');
+    await input.trigger('keydown', { key: 'Enter' });
+    await flushPromises();
+
+    const before = mockApi.get.mock.calls.length;
+
+    wrapper.findComponent(FilterBar).vm.$emit('clear');
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    await flushPromises();
+
+    expect(mockApi.get.mock.calls.length).toBe(before + 1);
+    expect(mockApi.get).toHaveBeenLastCalledWith(LIST_URL, {
+      params: { page: 1, per_page: 50 },
+    });
   });
 
   it('surfaces the bounded-scan caveat so the count is not read as exact', async () => {

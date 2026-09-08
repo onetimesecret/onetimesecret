@@ -3,13 +3,14 @@
 <script setup lang="ts">
   import { AdminModal } from '@/apps/admin/components/kit';
   import { usePaginatedFetch } from '@/apps/admin/composables/usePaginatedFetch';
+  import { useRefocusAfterBusy } from '@/apps/admin/composables/useRefocusAfterBusy';
   import type {
     ColonelOrganization,
     ColonelOrganizationsResponse,
   } from '@/schemas/api/internal/responses/colonel';
   import { colonelOrganizationsResponseSchema } from '@/schemas/api/internal/responses/colonel';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { onBeforeUnmount, ref, watch } from 'vue';
+  import { ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   /**
@@ -51,6 +52,10 @@
   });
   const { loading, error, validationError } = pager;
 
+  // The input is disabled while a search runs; give focus back afterwards.
+  const searchInput = ref<HTMLInputElement | null>(null);
+  useRefocusAfterBusy(searchInput, loading);
+
   async function runSearch(): Promise<void> {
     const q = term.value.trim();
     if (q === '') {
@@ -68,18 +73,14 @@
     }
   }
 
-  // Debounce keystrokes so we don't fire a scan per character.
-  let debounceId: ReturnType<typeof setTimeout> | null = null;
-  watch(term, () => {
-    if (debounceId) clearTimeout(debounceId);
-    debounceId = setTimeout(runSearch, 300);
-  });
-  onBeforeUnmount(() => {
-    if (debounceId) clearTimeout(debounceId);
-  });
-
+  /**
+   * Search runs ONLY on explicit submit (Enter in the field). Typing never
+   * fetches: each search is a bounded index scan on the server, and the
+   * per-keystroke debounce this replaced fired a burst of them. One at a
+   * time — a submit while a search is in flight is dropped.
+   */
   function onSubmit(): void {
-    if (debounceId) clearTimeout(debounceId);
+    if (loading.value) return;
     runSearch();
   }
 
@@ -116,7 +117,8 @@
         {{ t('web.admin.domains.orgPicker.searchLabel') }}
       </label>
       <div class="relative">
-        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+        <span
+          class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
           <OIcon
             collection="heroicons"
             name="magnifying-glass"
@@ -124,6 +126,7 @@
         </span>
         <input
           id="org-search"
+          ref="searchInput"
           v-model="term"
           type="text"
           autocomplete="off"
@@ -132,7 +135,9 @@
           spellcheck="false"
           data-testid="org-search-input"
           :placeholder="t('web.admin.domains.orgPicker.searchPlaceholder')"
-          class="w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 font-mono text-sm text-gray-900 placeholder:font-sans placeholder:text-gray-400 focus:border-brand-500 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+          :disabled="loading"
+          :aria-busy="loading"
+          class="w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 font-mono text-sm text-gray-900 placeholder:font-sans placeholder:text-gray-400 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
       </div>
       <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">
         {{ t('web.admin.domains.orgPicker.searchHint') }}

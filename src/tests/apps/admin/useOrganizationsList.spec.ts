@@ -13,7 +13,6 @@ vi.mock('@/shared/composables/useApi', () => ({
 }));
 
 import { useOrganizationsList } from '@/apps/admin/composables/useOrganizationsList';
-import type { ColonelOrganizationsCache } from '@/schemas/api/internal/responses/colonel';
 
 /** A minimal row satisfying every required colonelOrganizationSchema field. */
 function orgRow(orgId: string) {
@@ -40,14 +39,16 @@ function orgRow(orgId: string) {
   };
 }
 
-/** Full wire envelope for one list page. `cache` is only present when given —
- *  an omitted block models a payload predating the roster-cache feature. */
-function listPayload(options: {
-  orgIds?: string[];
-  page?: number;
-  perPage?: number;
-  cache?: ColonelOrganizationsCache;
-} = {}) {
+/** Full wire envelope for one list page. `cache` models the block an OLDER
+ *  server still sends; the composable must tolerate and ignore it. */
+function listPayload(
+  options: {
+    orgIds?: string[];
+    page?: number;
+    perPage?: number;
+    cache?: Record<string, unknown>;
+  } = {}
+) {
   const { orgIds = ['org1'], page = 1, perPage = 50, cache } = options;
   return {
     record: {},
@@ -86,31 +87,30 @@ describe('useOrganizationsList', () => {
   });
 
   describe('happy path', () => {
-    it('maps organizations, pagination and cacheMeta from details', async () => {
-      const cache = { cached: true, generated_at: 1700000100, ttl: 90 };
-      mockApi.get.mockResolvedValue({ data: listPayload({ orgIds: ['org1', 'org2'], cache }) });
+    it('maps organizations and pagination from details', async () => {
+      mockApi.get.mockResolvedValue({ data: listPayload({ orgIds: ['org1', 'org2'] }) });
       const list = useOrganizationsList();
 
       await list.fetchPage(1);
 
       expect(committedOrgIds(list)).toEqual(['org1', 'org2']);
       expect(list.pagination.value).toMatchObject({ page: 1, per_page: 50, total_count: 2 });
-      expect(list.cacheMeta.value).toEqual(cache);
       expect(list.error.value).toBeNull();
       expect(list.validationError.value).toBeNull();
     });
 
-    it('cacheMeta is null when the payload predates the cache block', async () => {
-      mockApi.get.mockResolvedValue({ data: listPayload() });
+    it('tolerates the legacy cache block an older server still sends', async () => {
+      const cache = { cached: true, generated_at: 1700000100, ttl: 90 };
+      mockApi.get.mockResolvedValue({ data: listPayload({ cache }) });
       const list = useOrganizationsList();
 
       await list.fetchPage(1);
 
       expect(committedOrgIds(list)).toEqual(['org1']);
-      expect(list.cacheMeta.value).toBeNull();
+      expect(list.validationError.value).toBeNull();
     });
 
-    it('forwards server-side filters and sends refresh=1 only when bypassing', async () => {
+    it('forwards server-side filters, dropping empty ones, and never a cache-bypass param', async () => {
       mockApi.get.mockResolvedValue({ data: listPayload() });
       const list = useOrganizationsList();
 
@@ -119,9 +119,9 @@ describe('useOrganizationsList', () => {
         params: { page: 2, per_page: 50, status: 'active' },
       });
 
-      await list.fetchPage(1, { search: 'acme' }, { refresh: true });
+      await list.fetchPage(1, { search: 'acme' });
       expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/organizations', {
-        params: { page: 1, per_page: 50, search: 'acme', refresh: '1' },
+        params: { page: 1, per_page: 50, search: 'acme' },
       });
     });
   });
@@ -135,16 +135,14 @@ describe('useOrganizationsList', () => {
 
       expect(list.organizations.value).toEqual([]);
       expect(list.pagination.value).toBeNull();
-      expect(list.cacheMeta.value).toBeNull();
       expect(list.validationError.value).toBe('ColonelOrganizationsResponse');
       expect(list.error.value).toBeNull();
     });
 
     it('network/HTTP failure is swallowed; error drives the banner, state empties', async () => {
-      const cache = { cached: true, generated_at: 1700000100, ttl: 90 };
       const list = useOrganizationsList();
 
-      mockApi.get.mockResolvedValueOnce({ data: listPayload({ cache }) });
+      mockApi.get.mockResolvedValueOnce({ data: listPayload() });
       await list.fetchPage(1);
       expect(committedOrgIds(list)).toEqual(['org1']);
 
@@ -154,7 +152,6 @@ describe('useOrganizationsList', () => {
 
       expect(list.organizations.value).toEqual([]);
       expect(list.pagination.value).toBeNull();
-      expect(list.cacheMeta.value).toBeNull();
       expect(list.error.value).toBe(httpError);
     });
   });
@@ -171,22 +168,17 @@ describe('useOrganizationsList', () => {
       const first = list.fetchPage(1, { search: 'acme' });
       const second = list.fetchPage(1, { search: 'zeta' });
 
-      const freshCache = { cached: true, generated_at: 1700000200, ttl: 90 };
-      fast.resolve({ data: listPayload({ orgIds: ['zeta1'], cache: freshCache }) });
+      fast.resolve({ data: listPayload({ orgIds: ['zeta1'] }) });
       await second;
       expect(committedOrgIds(list)).toEqual(['zeta1']);
 
-      // The obsolete search now settles — with a DIFFERENT roster, pagination
-      // and cache block. None of it may reach the committed state.
-      const staleCache = { cached: false, generated_at: 1700000000, ttl: 90 };
-      slow.resolve({
-        data: listPayload({ orgIds: ['acme1', 'acme2'], page: 7, cache: staleCache }),
-      });
+      // The obsolete search now settles — with a DIFFERENT roster and
+      // pagination. None of it may reach the committed state.
+      slow.resolve({ data: listPayload({ orgIds: ['acme1', 'acme2'], page: 7 }) });
       await first;
 
       expect(committedOrgIds(list)).toEqual(['zeta1']);
       expect(list.pagination.value).toMatchObject({ page: 1, total_count: 1 });
-      expect(list.cacheMeta.value).toEqual(freshCache);
       expect(list.page.value).toBe(1);
     });
 
