@@ -7,7 +7,8 @@
 # Covers the headline behavior: index-backed pagination (ZREVRANGE over
 # Customer.instances, loading only the page — NOT load-all-then-slice),
 # per_page clamping, index-backed role filtering, and the bounded email
-# search (cursor HSCAN over the email_index with an escaped glob).
+# search (cursor HSCAN over the email_index with an escaped, case-insensitive
+# glob, plus the exact normalized-email lookup for address-shaped terms).
 #
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/customers/list_spec.rb
 
@@ -119,13 +120,14 @@ RSpec.describe Auth::Operations::Customers::List do
     before do
       allow(Onetime::Customer).to receive(:email_index).and_return(email_index)
       allow(Onetime::Customer).to receive(:dbclient).and_return(dbclient)
-      # The exact extid/objid lookups run on every search; default them to
-      # misses so the email-substring tests isolate the HSCAN path.
+      # The exact email/extid/objid lookups run on every search; default them
+      # to misses so the email-substring tests isolate the HSCAN path.
+      allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
       allow(Onetime::Customer).to receive(:find_by_extid).and_return(nil)
       allow(Onetime::Customer).to receive(:find_by_identifier).and_return(nil)
     end
 
-    it 'cursor-HSCANs the email index with an escaped, lowercased glob' do
+    it 'cursor-HSCANs the email index with an escaped, case-insensitive glob' do
       captured = nil
       allow(dbclient).to receive(:hscan) do |dbkey, cursor, **opts|
         captured = [dbkey, cursor, opts]
@@ -139,13 +141,34 @@ RSpec.describe Auth::Operations::Customers::List do
       result = described_class.new(search: 'Ali[c]e*').call
 
       expect(captured[0]).to eq('customer:email_index')
-      # Lowercased AND glob metacharacters escaped — user input is always a
-      # literal substring, never pattern syntax.
-      expect(captured[2][:match]).to eq('*ali\\[c\\]e\\**')
+      # Every ASCII letter widened to a [aA] class (Redis MATCH is
+      # case-sensitive and the index keys are not guaranteed lowercase) AND
+      # glob metacharacters escaped — user input is always a literal
+      # substring, never pattern syntax.
+      expect(captured[2][:match]).to eq('*[aA][lL][iI]\\[[cC]\\][eE]\\**')
       expect(result.customers).to eq([cust])
       expect(result.total_count).to eq(1)
       # Cursor exhausted under the cap → total_count is exact, not capped.
       expect(result.capped).to be(false)
+    end
+
+    it 'never lowercases the term into the glob (mixed-case index keys must match)' do
+      captured = nil
+      allow(dbclient).to receive(:hscan) do |_dbkey, _cursor, **opts|
+        captured = opts
+        ['0', [['Bob@Example.com', 'oid-bob']]]
+      end
+      cust = double('cust', role: 'customer', created: 100, objid: 'oid-bob')
+      allow(Onetime::Customer).to receive(:load_multi).with(['oid-bob']).and_return([cust])
+
+      result = described_class.new(search: 'BOB@example').call
+
+      # The pattern is the same whichever case the operator typed: a legacy
+      # `Bob@Example.com` key matches `bob@example`, `BOB@EXAMPLE` and
+      # `Bob@Example` alike.
+      expect(captured[:match]).to eq('*[bB][oO][bB]@[eE][xX][aA][mM][pP][lL][eE]*')
+      expect(captured[:match]).to eq("*#{OT::Utils.glob_case_insensitive('bob@example')}*")
+      expect(result.customers).to eq([cust])
     end
 
     it 'caps collected matches at SEARCH_MATCH_LIMIT' do
@@ -218,6 +241,54 @@ RSpec.describe Auth::Operations::Customers::List do
       expect(Onetime::Customer).not_to receive(:email_index)
 
       described_class.new(search: '   ').call
+    end
+
+    describe 'exact normalized-email lookup' do
+      before do
+        # No email substring hits — isolate the exact-lookup path.
+        allow(dbclient).to receive(:hscan).and_return(['0', []])
+        allow(Onetime::Customer).to receive(:load_multi).with([]).and_return([])
+      end
+
+      it 'adds the find_by_email hit for the NORMALIZED address' do
+        cust = double('cust', role: 'customer', created: 100, objid: 'oid-mail')
+        # The lookup is a raw HGET on the index, so it must be keyed exactly
+        # as Customer.create! writes it: NFC, case-folded, stripped.
+        allow(Onetime::Customer).to receive(:find_by_email).with('bob@example.com').and_return(cust)
+
+        result = described_class.new(search: '  Bob@Example.COM ').call
+
+        expect(Onetime::Customer).to have_received(:find_by_email).with('bob@example.com')
+        expect(result.customers).to eq([cust])
+        expect(result.total_count).to eq(1)
+      end
+
+      it 'dedupes the exact-email hit against the scan matches by objid' do
+        cust = double('cust', role: 'customer', created: 100, objid: 'oid-dup')
+        allow(dbclient).to receive(:hscan).and_return(['0', [['bob@example.com', 'oid-dup']]])
+        allow(Onetime::Customer).to receive(:load_multi).with(['oid-dup']).and_return([cust])
+        allow(Onetime::Customer).to receive(:find_by_email).with('bob@example.com').and_return(cust)
+
+        result = described_class.new(search: 'bob@example.com').call
+
+        expect(result.customers).to eq([cust])
+        expect(result.total_count).to eq(1)
+      end
+
+      it 'skips find_by_email for a term without an @ (extid / objid / bare substring)' do
+        described_class.new(search: 'bob').call
+        described_class.new(search: 'ur1234s').call
+
+        expect(Onetime::Customer).not_to have_received(:find_by_email)
+      end
+
+      it 'rescues a find_by_email raise to a miss rather than failing the search' do
+        allow(Onetime::Customer).to receive(:find_by_email).and_raise(StandardError, 'bad key')
+
+        result = described_class.new(search: 'x@y').call
+
+        expect(result.customers).to eq([])
+      end
     end
 
     describe 'exact identifier lookups (extid / objid)' do

@@ -54,28 +54,46 @@ module Auth
       # ### Search (bounded email HSCAN + exact identifier lookups)
       #
       # "Look up the account that just emailed you" is the #1 admin action, so
-      # the op supports a free-text `search` term. It resolves three ways and
+      # the op supports a free-text `search` term. It resolves four ways and
       # merges the results (deduped by objid):
       #
       # 1. Email substring — a bounded cursor HSCAN over the
-      #    `customer:email_index` hash (email -> objid, emails stored lowercase)
-      #    with a server-side `*term*` glob — the same scan-with-match mechanism
-      #    the sessions listing uses, but against the index instead of the
-      #    keyspace. It never enumerates customer objects. Bounded twice
-      #    (CONTRACT 8 / #2211): matches are capped at SEARCH_MATCH_LIMIT and the
-      #    scan stops after SEARCH_SCAN_ROUNDS round-trips, so a no-match search
-      #    over a huge customer base can never turn one request into an unbounded
+      #    `customer:email_index` hash (email -> objid) with a server-side
+      #    `*term*` glob — the same scan-with-match mechanism the sessions
+      #    listing uses, but against the index instead of the keyspace. It
+      #    never enumerates customer objects. Bounded twice (CONTRACT 8 /
+      #    #2211): matches are capped at SEARCH_MATCH_LIMIT and the scan stops
+      #    after SEARCH_SCAN_ROUNDS round-trips, so a no-match search over a
+      #    huge customer base can never turn one request into an unbounded
       #    walk. The glob term is escaped, so user input cannot inject pattern
       #    syntax.
-      # 2. External id (extid, `ur…s`) — an exact `find_by_extid` on the
+      #
+      #    The glob is CASE-INSENSITIVE (every ASCII letter widened to a `[aA]`
+      #    class via OT::Utils.glob_case_insensitive). Redis MATCH is
+      #    case-sensitive and the index keys are NOT guaranteed lowercase: only
+      #    Customer.create! normalizes the address, so migrated legacy
+      #    customers and pre-normalization writers left keys like
+      #    `Bob@Example.com` in place (the customers doctor downcases both
+      #    sides when comparing, which is the admission). Lowercasing the term
+      #    and matching it literally, as this used to, missed every one of
+      #    those customers even on their exact address.
+      # 2. Exact email — when the term contains `@`, a `find_by_email` on the
+      #    NORMALIZED (NFC, case-folded, stripped) term. This is a raw HGET on
+      #    the same index, so it only hits when the stored key is the
+      #    normalized form; it exists so a pasted address resolves in O(1)
+      #    even when the substring scan is capped or exhausts its round budget
+      #    before reaching that key. Mixed-case keys are the scan's job, not
+      #    this arm's.
+      # 3. External id (extid, `ur…s`) — an exact `find_by_extid` on the
       #    extid_lookup unique index.
-      # 3. Internal id (objid, the UUID primary key) — an exact
+      # 4. Internal id (objid, the UUID primary key) — an exact
       #    `find_by_identifier`.
       #
-      # The two identifier lookups are O(1) unique-index gets, never scans, so
+      # The three exact lookups are O(1) unique-index gets, never scans, so
       # they add no enumeration cost and are attempted on every search — a
-      # support agent can paste an extid or objid straight into the box and the
-      # non-matching lookups simply return nothing (a garbage term is rescued).
+      # support agent can paste an address, extid or objid straight into the
+      # box and the non-matching lookups simply return nothing (a garbage term
+      # is rescued).
       # Search composes with the role filter (applied in Ruby on the already
       # -bounded matches) and is paginated in memory like the filtered path.
       class List
@@ -243,7 +261,9 @@ module Auth
         end
 
         # Non-blocking cursor HSCAN of the email_index hash (email -> objid),
-        # matching `*term*` server-side against the lowercased stored emails.
+        # matching `*term*` server-side, case-insensitively: the stored keys
+        # are not guaranteed lowercase (see the class docs), and MATCH has no
+        # case-fold flag, so the letters are widened to `[aA]` classes.
         # Doubly bounded: stops at SEARCH_MATCH_LIMIT collected matches AND at
         # SEARCH_SCAN_ROUNDS round-trips (see the constants above).
         #
@@ -256,7 +276,7 @@ module Auth
         def scan_email_index_matches(term)
           dbkey    = Onetime::Customer.email_index.dbkey
           dbclient = Onetime::Customer.dbclient
-          pattern  = "*#{glob_escape(term.downcase)}*"
+          pattern  = "*#{OT::Utils.glob_case_insensitive(term)}*"
           objids   = []
           cursor   = '0'
           rounds   = 0
@@ -275,10 +295,10 @@ module Auth
           [objids.first(SEARCH_MATCH_LIMIT), capped]
         end
 
-        # Append the exact extid / objid lookups for the search term to the
-        # already-loaded email matches, skipping any customer already present
-        # (deduped by objid). Both lookups are O(1) unique-index gets — never a
-        # scan — so they cost nothing when they miss. A malformed term (e.g. a
+        # Append the exact email / extid / objid lookups for the search term to
+        # the already-loaded email matches, skipping any customer already
+        # present (deduped by objid). All lookups are O(1) unique-index gets —
+        # never a scan — so they cost nothing when they miss. A malformed term (e.g. a
         # value the identifier index rejects) is rescued to nil rather than
         # failing the whole search.
         def merge_identifier_matches(matches)
@@ -292,13 +312,25 @@ module Auth
           end
         end
 
-        # Exact-match customer lookups by external id (extid) and internal id
-        # (objid). Returns a (possibly empty) array of Onetime::Customer.
+        # Exact-match customer lookups by normalized email, external id (extid)
+        # and internal id (objid). Returns a (possibly empty) array of
+        # Onetime::Customer.
+        #
+        # The email arm only runs for a term that looks like an address (`@`),
+        # and it is a raw HGET on the email_index, so it hits only when the
+        # stored key is the normalized form (what Customer.create! writes).
+        # A mixed-case key from a pre-normalization writer is found by the
+        # case-insensitive scan, not here; this arm guarantees the O(1) hit
+        # for the common case even when the scan is capped or runs out of
+        # rounds before reaching that key.
         def identifier_lookups(term)
-          [
-            safe_lookup { Onetime::Customer.find_by_extid(term) },
-            safe_lookup { Onetime::Customer.find_by_identifier(term) },
-          ].compact
+          lookups = []
+          if term.include?('@')
+            lookups << safe_lookup { Onetime::Customer.find_by_email(OT::Utils.normalize_email(term)) }
+          end
+          lookups << safe_lookup { Onetime::Customer.find_by_extid(term) }
+          lookups << safe_lookup { Onetime::Customer.find_by_identifier(term) }
+          lookups.compact
         end
 
         # A unique-index lookup on a free-text term can raise on input the index
@@ -308,12 +340,6 @@ module Auth
           yield
         rescue StandardError
           nil
-        end
-
-        # Escape Redis glob metacharacters so a user-supplied term is always a
-        # literal substring match, never pattern syntax.
-        def glob_escape(term)
-          term.gsub(/[*?\[\]\\]/) { |char| "\\#{char}" }
         end
 
         # Non-blocking cursor SSCAN of a role_index set, collecting member objids.
