@@ -77,12 +77,18 @@ function usersPayload(
     role?: string | null;
     suspended?: boolean;
     capped?: boolean;
+    /**
+     * Orphaned auth-database rows for the searched address. `undefined` (the
+     * default) OMITS the field, mirroring a server that predates it.
+     */
+    orphaned_accounts?: Array<Record<string, unknown>>;
   } = {}
 ) {
   return {
     shrimp: '',
     record: {},
     details: {
+      ...(overrides.orphaned_accounts ? { orphaned_accounts: overrides.orphaned_accounts } : {}),
       users: [
         {
           user_id: 'ur_alice',
@@ -381,6 +387,80 @@ describe('AdminCustomers (list view — ticket #22)', () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="customers-capped-caveat"]').exists()).toBe(false);
+  });
+
+  it('renders one orphaned-account row per entry when the auth database has an unmapped account', async () => {
+    mockApi.get.mockResolvedValue({
+      data: usersPayload({
+        orphaned_accounts: [
+          {
+            email: 'Bob@Example.com',
+            account_id: 42,
+            external_id: null,
+            status: 'verified',
+            created_at: 1700000000,
+          },
+          {
+            email: 'bob@example.com',
+            account_id: 43,
+            external_id: 'ur_bob',
+            status: 'closed',
+            created_at: null,
+          },
+        ],
+      }),
+    });
+    wrapper = mountView();
+    await flushPromises();
+
+    const notice = wrapper.find('[data-testid="customers-orphaned-accounts"]');
+    expect(notice.exists()).toBe(true);
+    expect(notice.attributes('role')).toBe('status');
+    expect(notice.text()).toContain('web.admin.customers.list.orphanedAccounts.title');
+
+    const rows = notice.findAll('[data-testid="customers-orphaned-account"]');
+    expect(rows).toHaveLength(2);
+    // Nothing is obscured here: the operator typed this address to find it.
+    expect(rows[0].text()).toContain('Bob@Example.com');
+    // The status pill falls back to the raw value when the key is unknown (the
+    // role cell's idiom), so under the key-echoing test i18n it reads as the value.
+    expect(rows[0].find('[data-testid="customers-orphaned-account-status"]').text()).toBe(
+      'verified'
+    );
+    expect(rows[1].find('[data-testid="customers-orphaned-account-status"]').text()).toBe('closed');
+    expect(rows[0].text()).toContain('web.admin.customers.list.orphanedAccounts.accountId');
+
+    // Each address links to the account diagnostics for that identifier: the
+    // detail route, keyed by the EMAIL (the orphan has no extid to route by).
+    const links = notice.findAllComponents(RouterLinkStub);
+    expect(links).toHaveLength(2);
+    expect(links[0].props('to')).toEqual({
+      name: 'AdminCustomerDetail',
+      params: { id: 'Bob@Example.com' },
+    });
+    expect(links[1].props('to')).toEqual({
+      name: 'AdminCustomerDetail',
+      params: { id: 'bob@example.com' },
+    });
+  });
+
+  it('does not render the orphaned-accounts notice when the array is empty', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload({ orphaned_accounts: [] }) });
+    wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="customers-orphaned-accounts"]').exists()).toBe(false);
+  });
+
+  it('does not render the orphaned-accounts notice when the server omits the field', async () => {
+    // Older servers never emit `orphaned_accounts`; the schema defaults it to []
+    // so the page must still parse and render the table.
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="customers-orphaned-accounts"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="customers-table"]').exists()).toBe(true);
   });
 
   it('shows the error banner + retry on a network failure', async () => {

@@ -43,11 +43,18 @@
    * follow-up): manual VERIFY/UNVERIFY (simple confirm — reversible) and PURGE
    * (danger, typed-confirmation on the account's email). Both run through the
    * store + `useAdminMutation` + notifications idiom; audit is server-side.
+   *
+   * An address search can also come back with `orphaned_accounts`: auth-database
+   * rows (full auth mode) that match the address exactly but map to NO customer
+   * record, so the table has nothing to show for a person who can nonetheless
+   * sign in. Those are surfaced in a notice above the table, each linked to the
+   * account diagnostics for that address, so "no customers match" never reads
+   * as "this person does not exist".
    */
   const { t } = useI18n();
 
   const store = useAdminCustomers();
-  const { customers, pagination, loading, error } = storeToRefs(store);
+  const { customers, pagination, orphanedAccounts, loading, error } = storeToRefs(store);
   const notifications = useNotificationsStore();
 
   /** Assignable roles, mirrored from the backend SetRole::VALID_ROLES. */
@@ -442,6 +449,53 @@
       role="status"
       data-testid="customers-capped-caveat">
       {{ t('web.admin.customers.list.capped') }}
+    </div>
+
+    <!-- Orphaned auth-database accounts for the searched address (full auth
+         mode): the person exists and can sign in, but no customer record maps
+         to their accounts row, so the table below is blind to them. Each entry
+         links to the account diagnostics for that address: the detail route
+         resolves its :id as extid OR email, and the diagnostics endpoint is the
+         one read-out that answers for an orphan. The address is shown in full
+         on purpose: the operator typed this exact string into the search box,
+         so obscuring it here would hide nothing that is not already on screen. -->
+    <div
+      v-if="orphanedAccounts.length > 0"
+      class="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200"
+      role="status"
+      data-testid="customers-orphaned-accounts">
+      <p class="font-medium">{{ t('web.admin.customers.list.orphanedAccounts.title') }}</p>
+      <p class="mt-1 text-xs">{{ t('web.admin.customers.list.orphanedAccounts.hint') }}</p>
+      <ul class="mt-2 space-y-1">
+        <li
+          v-for="account in orphanedAccounts"
+          :key="account.account_id"
+          class="flex flex-wrap items-center gap-x-3 gap-y-1"
+          data-testid="customers-orphaned-account">
+          <router-link
+            :to="{ name: 'AdminCustomerDetail', params: { id: account.email } }"
+            :title="t('web.admin.customers.list.orphanedAccounts.diagnose')"
+            class="font-medium underline decoration-amber-400 underline-offset-2 hover:decoration-amber-700 focus:ring-2 focus:ring-amber-500 focus:outline-none dark:decoration-amber-600 dark:hover:decoration-amber-300"
+            data-testid="customers-orphaned-account-link">
+            {{ account.email }}
+          </router-link>
+          <span
+            class="inline-flex rounded bg-amber-100 px-2 py-0.5 font-brand text-[11px] font-semibold tracking-wide uppercase dark:bg-amber-900/40"
+            data-testid="customers-orphaned-account-status">
+            {{
+              t(
+                `web.admin.customers.list.orphanedAccounts.status.${account.status}`,
+                account.status
+              )
+            }}
+          </span>
+          <span class="font-mono text-xs tabular-nums">
+            {{
+              t('web.admin.customers.list.orphanedAccounts.accountId', { id: account.account_id })
+            }}
+          </span>
+        </li>
+      </ul>
     </div>
 
     <!-- Table -->

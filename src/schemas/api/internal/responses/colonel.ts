@@ -80,11 +80,29 @@ export const paginationSchema = z.object({
 });
 
 /**
+ * An auth-database accounts row that maps to NO customer record (full auth
+ * mode only). Reported by the users list for an address-shaped search so the
+ * operator sees the person exists (and can log in) even though the customer
+ * index has nothing for them. Timestamps stay numeric: the entry is rendered
+ * inline in a notice, never sorted or compared.
+ */
+export const colonelOrphanedAccountSchema = z.object({
+  email: z.string(),
+  account_id: z.number(),
+  external_id: z.string().nullable(),
+  status: z.enum(['unverified', 'verified', 'closed', 'unknown']),
+  created_at: z.number().nullable(),
+});
+
+/**
  * Users list response details
  */
 export const colonelUsersDetailsSchema = z.object({
   users: z.array(colonelUserSchema),
   pagination: paginationSchema,
+  // Absent on servers that predate the orphan lookup, and only populated for
+  // address-shaped searches, so default to empty rather than failing the parse.
+  orphaned_accounts: z.array(colonelOrphanedAccountSchema).optional().default([]),
 });
 
 /**
@@ -388,6 +406,7 @@ export type ColonelInfoDetails = z.infer<typeof colonelInfoDetailsSchema>;
 export type RecentCustomer = z.infer<typeof recentCustomerSchema>;
 export type ColonelUser = z.infer<typeof colonelUserSchema>;
 export type ColonelUsersDetails = z.infer<typeof colonelUsersDetailsSchema>;
+export type ColonelOrphanedAccount = z.infer<typeof colonelOrphanedAccountSchema>;
 export type Pagination = z.infer<typeof paginationSchema>;
 export type ColonelSecret = z.infer<typeof colonelSecretSchema>;
 export type ColonelSecretsDetails = z.infer<typeof colonelSecretsDetailsSchema>;

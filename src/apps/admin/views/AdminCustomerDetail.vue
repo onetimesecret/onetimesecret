@@ -308,9 +308,7 @@
   const selfUnverifyBlocked = computed(() => isSelf.value);
 
   /** Why the role apply button is disabled, when it is for this reason. */
-  const selfDemoteReason = computed(() =>
-    t('web.admin.customers.actions.role.selfDemote')
-  );
+  const selfDemoteReason = computed(() => t('web.admin.customers.actions.role.selfDemote'));
 
   /**
    * Advisory (not a gate): demoting or unverifying SOMEONE ELSE'S colonel
@@ -336,9 +334,7 @@
    * route's public id. Falls back to that id, which is what the server resolves
    * an account with no email to.
    */
-  const sessionsConfirmToken = computed(
-    () => accountConfirmToken(record.value) ?? publicId.value
-  );
+  const sessionsConfirmToken = computed(() => accountConfirmToken(record.value) ?? publicId.value);
 
   /** Why purge is unavailable — rendered beside the disabled button. */
   const purgeBlockedReason = computed(() =>
@@ -636,6 +632,16 @@
         @click="goBack">
         {{ t('web.admin.customers.detail.backToList') }}
       </button>
+
+      <!-- "No customer record" is itself a diagnosis, not the end of the road:
+           the identifier may still name an orphaned auth-database accounts row
+           (the customers list links such rows here by email), and the
+           diagnostics endpoint answers for an orphan by email, extid and
+           Rodauth id. Mounting the read-out under the not-found panel is what
+           makes that link worth following. -->
+      <div class="mt-8 text-left">
+        <AdminAccountDiagnosticsSection :user-id="publicId" />
+      </div>
     </div>
 
     <!-- Load error (network/HTTP non-404, or contract mismatch) -->
