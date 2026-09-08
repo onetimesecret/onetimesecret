@@ -724,6 +724,23 @@
           {{ t('web.admin.customers.suspended.badge') }}
         </span>
         <span class="font-mono text-xs text-gray-400 dark:text-gray-500">{{ record.extid }}</span>
+        <!-- Outbound deep link to this customer's Rodauth account in the
+             standalone admin (read-only external_id join). The server sends
+             null unless full auth mode AND RODAUTH_ADMIN_URL are set, and then
+             the public id above is all there is. Nothing is fetched from it. -->
+        <a
+          v-if="details.rodauth_admin_account_url"
+          :href="details.rodauth_admin_account_url"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
+          data-testid="rodauth-admin-link">
+          {{ t('web.admin.customers.detail.rodauthAdmin.open') }}
+          <OIcon
+            collection="heroicons"
+            name="arrow-top-right-on-square"
+            size="3" />
+        </a>
       </div>
 
       <!-- Stat tiles -->

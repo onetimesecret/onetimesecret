@@ -16,6 +16,7 @@ import type {
   AdminCustomerSession,
   ColonelCustomerSessionRevokeAllRecord as RevokeAllRecord,
 } from '@/schemas/api/internal/responses/colonel-customer-sessions';
+import type { SessionAuthority } from '@/schemas/api/internal/responses/colonel-sessions';
 import { gracefulParse } from '@/utils/schemaValidation';
 
 /**
@@ -121,6 +122,10 @@ async function requestRevokeAll(
   return result.ok ? result.data.record : EMPTY_REVOKE_ALL;
 }
 
+// One store, one endpoint: the listing's per-fetch bookkeeping (rows, own-row
+// handle, session-authority signal) plus the two guarded revoke verbs is the
+// whole surface, and splitting it would only scatter the reset paths.
+// eslint-disable-next-line max-lines-per-function
 export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () => {
   /** The customer's active session rows (whole list — never paginated). */
   const sessions = ref<AdminCustomerSession[]>([]);
@@ -130,6 +135,8 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
    * the row matching). Null when unidentifiable or before/after a failed fetch.
    */
   const currentSessionHandle = ref<string | null>(null);
+  /** Session-authority signal for the running auth mode (null until a listing carries it). */
+  const sessionAuthority = ref<SessionAuthority | null>(null);
   /** True while a request is in flight. */
   const loading = ref(false);
   /** The last thrown network/HTTP error, or null. */
@@ -146,13 +153,12 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
    * @returns the session rows, or null on a schema mismatch (see validationError).
    * @throws the underlying network/HTTP error (rows are cleared first).
    */
-  async function fetchForCustomer(
-    userId: string
-  ): Promise<AdminCustomerSession[] | null> {
+  async function fetchForCustomer(userId: string): Promise<AdminCustomerSession[] | null> {
     loading.value = true;
     error.value = null;
     validationError.value = null;
     currentSessionHandle.value = null; // reset up-front; only a 2xx re-populates it
+    sessionAuthority.value = null;
     try {
       const response = await $api.get(sessionsUrl(userId));
       const result = parseSessionsResponse(response.data);
@@ -164,6 +170,7 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
       }
       sessions.value = result.data.details?.sessions ?? [];
       currentSessionHandle.value = result.data.details?.current_session_handle ?? null;
+      sessionAuthority.value = result.data.details?.session_authority ?? null;
       return sessions.value;
     } catch (err) {
       // Network/HTTP failure: clear stale rows and rethrow for the view to handle.
@@ -213,6 +220,7 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
   function $reset(): void {
     sessions.value = [];
     currentSessionHandle.value = null;
+    sessionAuthority.value = null;
     loading.value = false;
     error.value = null;
     validationError.value = null;
@@ -222,6 +230,7 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
     // State
     sessions,
     currentSessionHandle,
+    sessionAuthority,
     loading,
     error,
     validationError,

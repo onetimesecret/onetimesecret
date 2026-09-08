@@ -786,5 +786,9 @@
   "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
     "text": "This signs you out of every other device and browser, including sessions not shown in this list. The session you are working in right now is kept.",
     "content_hash": "ae350040"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Open in Rodauth Admin",
+    "content_hash": "467173c8"
   }
 }

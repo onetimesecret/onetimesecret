@@ -135,6 +135,14 @@ get URL, {}, colonel_headers
 [@d.key?('current_session_handle'), @chandle.is_a?(String), @chandle.match?(/\A[a-f0-9]{32}\z/) ? true : false]
 #=> [true, true, true]
 
+## details carries the session-store authority signal (rodauth-admin CHARTER §4
+## seam 2): this panel reads the Familia sidecar, which is only authoritative in
+## simple auth mode. The test lane runs simple mode, so it is authoritative and
+## no outbound admin link is offered (nil unless full mode AND RODAUTH_ADMIN_URL).
+@authority = @d['session_authority']
+[@authority['mode'], @authority['authoritative'], @authority['rodauth_admin_url']]
+#=> ['simple', true, nil]
+
 ## each row is the safe_dump allow-list shape: user_id == target extid
 @row = @d['sessions'].first
 [@row['user_id'], @row['ip_address'], @row['user_agent']]

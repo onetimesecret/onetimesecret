@@ -49,6 +49,8 @@ export const recentCustomerSchema = z.object({
 export const colonelUserSchema = z.object({
   user_id: z.string(),
   extid: z.string(),
+  /** Outbound Rodauth Admin link (null unless full auth mode + RODAUTH_ADMIN_URL). */
+  rodauth_admin_account_url: z.string().nullable().optional(),
   email: z.string(),
   role: z.string(),
   verified: z.boolean(),
@@ -731,6 +733,13 @@ export const colonelUserDetailsSchema = z.object({
   organizations: z.array(colonelUserDetailOrganizationSchema),
   billing: colonelUserBillingSchema.optional(),
   stats: colonelUserDetailStatsSchema,
+  /**
+   * Outbound deep link to this customer's account in the standalone Rodauth
+   * Admin (the read-only `accounts.external_id == extid` join). Null when
+   * RODAUTH_ADMIN_URL is unset or auth mode is not full, in which case the
+   * page shows the public id as plain text; optional for deploy skew.
+   */
+  rodauth_admin_account_url: z.string().nullable().optional(),
 });
 
 /**

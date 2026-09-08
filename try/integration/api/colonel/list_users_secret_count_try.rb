@@ -88,6 +88,13 @@ resp = JSON.parse(last_response.body)
 [last_response.status, resp['details']['users'].is_a?(Array)]
 #=> [200, true]
 
+## every row carries the outbound Rodauth Admin link slot (rodauth-admin
+## CHARTER §4 seam 1); nil here because the lane runs simple auth mode with no
+## RODAUTH_ADMIN_URL, so the console renders the public id as plain text
+[resp['details']['users'].all? { |u| u.key?('rodauth_admin_account_url') },
+ resp['details']['users'].map { |u| u['rodauth_admin_account_url'] }.uniq]
+#=> [true, [nil]]
+
 ## the colonel's own row exposes secrets_count as an Integer (shape unchanged)
 get '/api/colonel/users', { 'role' => 'colonel', 'per_page' => 100 }, { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
 @row = colonel_row(last_response.body, @colonel.extid)
