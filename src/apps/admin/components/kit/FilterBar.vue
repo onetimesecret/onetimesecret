@@ -1,8 +1,9 @@
 <!-- src/apps/admin/components/kit/FilterBar.vue -->
 
 <script setup lang="ts">
+  import { useRefocusAfterBusy } from '@/apps/admin/composables/useRefocusAfterBusy';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { computed } from 'vue';
+  import { computed, ref, toRef } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   import type { FilterConfig } from './types';
@@ -29,6 +30,8 @@
    * hammering Enter cannot queue a burst either. The input itself is disabled
    * while `busy` too: the term cannot change mid-flight, so the results that
    * land can never sit under a different visible query than the one searched.
+   * Focus is handed back to the input once `busy` clears (disabling drops it),
+   * so a keyboard-driven refine never costs a click.
    */
   const props = withDefaults(
     defineProps<{
@@ -80,6 +83,9 @@
 
   const { t } = useI18n();
 
+  const searchInput = ref<HTMLInputElement | null>(null);
+  useRefocusAfterBusy(searchInput, toRef(props, 'busy'));
+
   const resolvedSearchPlaceholder = computed(
     () => props.searchPlaceholder ?? t('web.admin.kit.filterBar.searchPlaceholder')
   );
@@ -128,6 +134,7 @@
           </span>
           <input
             id="kit-filter-search"
+            ref="searchInput"
             type="search"
             :value="search"
             :placeholder="resolvedSearchPlaceholder"

@@ -9,6 +9,7 @@
     type MembershipRole,
   } from '@/apps/admin/components/organizations/membershipSchemas';
   import { usePaginatedFetch } from '@/apps/admin/composables/usePaginatedFetch';
+  import { useRefocusAfterBusy } from '@/apps/admin/composables/useRefocusAfterBusy';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import type {
     ColonelUser,
@@ -109,6 +110,10 @@
     error: searchError,
     validationError: searchValidationError,
   } = pager;
+
+  // The input is disabled while a search runs; give focus back afterwards.
+  const searchInput = ref<HTMLInputElement | null>(null);
+  useRefocusAfterBusy(searchInput, searchLoading);
 
   async function runSearch(): Promise<void> {
     const q = term.value.trim();
@@ -275,6 +280,7 @@
         </span>
         <input
           id="add-member-search"
+          ref="searchInput"
           v-model="term"
           type="search"
           autocomplete="off"

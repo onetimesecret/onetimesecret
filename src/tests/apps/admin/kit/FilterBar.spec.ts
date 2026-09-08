@@ -2,6 +2,7 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { nextTick } from 'vue';
 
 import FilterBar from '@/apps/admin/components/kit/FilterBar.vue';
 import type { FilterConfig } from '@/apps/admin/components/kit/types';
@@ -162,6 +163,38 @@ describe('FilterBar (config-driven filters)', () => {
     expect(wrapper.find('#kit-filter-search').attributes('disabled')).toBeUndefined();
     await wrapper.find('#kit-filter-search').trigger('keydown', { key: 'Enter' });
     expect(wrapper.emitted('submit')!.length).toBe(1);
+  });
+
+  it('returns focus to the search box after a busy cycle that disabled it', async () => {
+    wrapper = mount(FilterBar, {
+      attachTo: document.body,
+      slots: { default: '<button class="bespoke">Extra</button>' },
+      global: { plugins: [i18n] },
+    });
+    const input = wrapper.find('#kit-filter-search').element as HTMLInputElement;
+    input.focus();
+    expect(document.activeElement).toBe(input);
+
+    // Disabling a focused element drops focus in a real browser; the DOM
+    // shim does not model that, so move focus off the input explicitly.
+    await wrapper.setProps({ busy: true });
+    (wrapper.find('.bespoke').element as HTMLButtonElement).focus();
+    expect(document.activeElement).not.toBe(input);
+
+    await wrapper.setProps({ busy: false });
+    await nextTick();
+    expect(document.activeElement).toBe(input);
+  });
+
+  it('does not steal focus after busy when the search box was not focused', async () => {
+    wrapper = mount(FilterBar, { attachTo: document.body, global: { plugins: [i18n] } });
+    const input = wrapper.find('#kit-filter-search').element as HTMLInputElement;
+    expect(document.activeElement).not.toBe(input);
+
+    await wrapper.setProps({ busy: true });
+    await wrapper.setProps({ busy: false });
+    await nextTick();
+    expect(document.activeElement).not.toBe(input);
   });
 
   it('hides the search submit button when showSearch is false', () => {
