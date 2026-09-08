@@ -134,14 +134,23 @@ module Onetime
         customer
       end
 
-      # The Rack env, when this helper is mixed into something that has a
-      # request (controllers do; bare unit harnesses may not). Only used to
-      # share the per-request impersonation target memo — nil just means one
-      # extra Customer load, never a different answer.
+      # The Rack env of the current request, or nil outside one (controllers
+      # have a request; bare unit harnesses may not, and nil only costs a memo,
+      # never a different answer). The core and
+      # billing controllers expose the request as `req`; the API controllers
+      # and the auth strategies as `request`. Both are tried so the
+      # per-request memos (impersonation, active-session verdict) are shared
+      # with the strategy on every surface, not only the ones spelling it
+      # `request`.
       def rack_env_for_impersonation
-        return nil unless respond_to?(:request) && request.respond_to?(:env)
+        rack_request = if respond_to?(:request)
+                         request
+                       elsif respond_to?(:req)
+                         req
+                       end
+        return nil unless rack_request.respond_to?(:env)
 
-        request.env
+        rack_request.env
       rescue StandardError
         nil
       end

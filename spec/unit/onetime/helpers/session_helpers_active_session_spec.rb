@@ -30,6 +30,20 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     end
   end
 
+  # A host spelling the request `req`, as the core and billing controllers do.
+  let(:req_helper_class) do
+    Class.new do
+      include Onetime::Helpers::SessionHelpers
+
+      attr_reader :session, :req
+
+      def initialize(session, req)
+        @session = session
+        @req     = req
+      end
+    end
+  end
+
   let(:session) { { 'authenticated' => true, 'external_id' => 'ur_abc' } }
   let(:gate) { Onetime::ActiveSessionGate }
 
@@ -63,6 +77,20 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     allow(gate).to receive(:revoked?).and_return(false)
 
     helper_class.new(session, request).authenticated?
+
+    expect(gate).to have_received(:revoked?).with(session, env: env)
+  end
+
+  # The core and billing controllers expose the request as `req`, not
+  # `request`. They must share the same env memo, or every authenticated? call
+  # on those surfaces would pay for a second active-session SELECT the
+  # strategy already made.
+  it 'finds the Rack env through `req` on controllers that do not expose `request`' do
+    env = {}
+    req = instance_double(Rack::Request, env: env)
+    allow(gate).to receive(:revoked?).and_return(false)
+
+    req_helper_class.new(session, req).authenticated?
 
     expect(gate).to have_received(:revoked?).with(session, env: env)
   end
