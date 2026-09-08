@@ -15,7 +15,7 @@ import AxiosMockAdapter from 'axios-mock-adapter';
 import type { PiniaPluginContext } from 'pinia';
 import { PiniaPlugin, setActivePinia } from 'pinia';
 import { vi } from 'vitest';
-import type { ComponentPublicInstance } from 'vue';
+import type { App, ComponentPublicInstance } from 'vue';
 import { createApp, h } from 'vue';
 import { createI18n } from 'vue-i18n';
 import { createSharedApiInstance } from './setup-stores';
@@ -49,18 +49,36 @@ globalThis.Response = {
 } as unknown as typeof Response;
 
 /**
+ * Minimal shape the test suite consumes from the pass-through i18n: a Vue
+ * plugin (every consumer installs it) plus a string-keyed `global.t`.
+ *
+ * Declared explicitly, and the instance cast to it, so tests can call
+ * `i18n.global.t('some.literal.key')` directly. Left as the natural
+ * `createI18n` return type, `global.t` carries the project-wide
+ * `DefineLocaleMessage` augmentation (see generated/types/i18n-keys.d.ts):
+ * resolving a literal key against that ~9000-entry schema from test code trips
+ * TypeScript's instantiation-depth limit (TS2589). Inside components `t` comes
+ * from `useI18n()` and stays cheap; the raw `global.t` overload set is the one
+ * that explodes, so we loosen it here at the shared factory.
+ */
+export type TestI18n = {
+  install: (app: App, ...options: unknown[]) => void;
+  global: { t: (key: string) => string };
+};
+
+/**
  * Creates pass-through i18n instance for tests (ADR-014).
  * Keys render as-is; no translations applied.
  */
-export function createTestI18n() {
+export function createTestI18n(): TestI18n {
   return createI18n({
     legacy: false,
     locale: 'en',
     missingWarn: false,
     fallbackWarn: false,
     missing: (_, key) => key,
-    messages: { en: {} },
-  });
+    messages: { en: {} as never },
+  }) as unknown as TestI18n;
 }
 
 export function createVueWrapper() {
