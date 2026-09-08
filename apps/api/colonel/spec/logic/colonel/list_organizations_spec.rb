@@ -10,9 +10,11 @@ require 'colonel/logic'
 # the sorted set cardinality, so pagination spans the full population. When
 # filters/search are active the candidate set is BOUNDED — the newest-first
 # instances window plus, for search, the exact-id lookups and the two index
-# HSCANs — then filtered/sorted/paginated in memory, with `capped` reporting
-# whenever a bound stopped short of the population. The full-fleet load and
-# the roster cache are gone (they pinned production on every search).
+# HSCANs, tiered so an email-shaped term the indexes answer never reads the
+# window — then filtered/sorted/paginated in memory, with `capped` reporting
+# whenever a bound that actually ran stopped short of the population. The
+# full-fleet load and the roster cache are gone (they pinned production on
+# every search).
 RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
   let(:colonel) do
     instance_double(
@@ -319,9 +321,32 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
       expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org1])
     end
 
+    it 'scans the contact_email index and the window for a plain term, never the customer index' do
+      logic = logic_for('search' => 'acme')
+      logic.raise_concerns
+      logic.process
+
+      expect(org_dbclient).to have_received(:hscan)
+      expect(instances_double).to have_received(:revrange).with(0, window_limit - 1)
+      expect(cust_dbclient).not_to have_received(:hscan)
+    end
+
+    it 'still reads the window for a plain term the contact_email index answered (display_name has no index)' do
+      allow(org_dbclient).to receive(:hscan).and_return(['0', [['contact@gamma.test', 'org3']]])
+
+      logic = logic_for('search' => 'gamma')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(instances_double).to have_received(:revrange).with(0, window_limit - 1)
+      expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org3])
+    end
+
     it 'resolves an exact extid through the unique index and skips every scan' do
       allow(Onetime::Organization).to receive(:find_by_extid).with('on_org3').and_return(org3)
-      allow(org3).to receive(:exists?).and_return(true)
+      # The unique-index load already existence-checked; a recheck on another
+      # pooled connection could false-negative and drop the hit.
+      expect(org3).not_to receive(:exists?)
 
       logic = logic_for('search' => 'on_org3')
       logic.raise_concerns
@@ -356,13 +381,52 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
 
     it 'includes contact_email index hits that match' do
       allow(org_dbclient).to receive(:hscan).and_return(['0', [['contact@gamma.test', 'org3']]])
-      allow(instances_double).to receive(:revrange).and_return([])
 
       logic = logic_for('search' => 'contact@gamma')
       logic.raise_concerns
       data  = logic.process
 
       expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org3])
+    end
+
+    it 'settles an email-shaped term on the index hit without reading the window' do
+      allow(org_dbclient).to receive(:hscan).and_return(['0', [['contact@gamma.test', 'org3']]])
+      allow(instances_double).to receive(:size).and_return(window_limit + 1)
+
+      logic = logic_for('search' => 'contact@gamma')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org3])
+      expect(instances_double).not_to have_received(:revrange)
+      # The window was never read, so a population larger than it is not a cap.
+      expect(data[:details][:pagination][:capped]).to be(false)
+    end
+
+    it 'falls back to the window for an email-shaped term neither index answers' do
+      allow(instances_double).to receive(:size).and_return(window_limit + 1)
+
+      logic = logic_for('search' => 'billing@acme')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(org_dbclient).to have_received(:hscan)
+      expect(cust_dbclient).to have_received(:hscan)
+      expect(instances_double).to have_received(:revrange).with(0, window_limit - 1)
+      # billing_email is matched in Ruby within the window only.
+      expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org1])
+      expect(data[:details][:pagination][:capped]).to be(true)
+    end
+
+    it 'reports an index-settled email search as capped when the index scan itself stopped short' do
+      allow(org_dbclient).to receive(:hscan).and_return(['7', [['contact@gamma.test', 'org3']]])
+
+      logic = logic_for('search' => 'contact@gamma')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(instances_double).not_to have_received(:revrange)
+      expect(data[:details][:pagination][:capped]).to be(true)
     end
 
     it 'matches organizations OWNED by a customer whose email matches' do
@@ -376,6 +440,8 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
 
       # org1 is a membership, not an ownership (owner_id cust1) — excluded.
       expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org3])
+      # The owner index answered, so the window is never read.
+      expect(instances_double).not_to have_received(:revrange)
     end
 
     it 'caps the owner-email resolution and reports it' do
@@ -386,7 +452,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
         []
       end
 
-      logic = logic_for('search' => 'x.test')
+      logic = logic_for('search' => '@x.test')
       logic.raise_concerns
       data  = logic.process
 

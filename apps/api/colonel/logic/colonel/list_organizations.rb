@@ -32,28 +32,34 @@ module ColonelAPI
       #   `Organization.instances` + a load_multi of just that page. The set is
       #   scored by save time, so the order is most-recently-modified-first.
       #   total_count is the set cardinality.
-      # - SEARCH: the union of
-      #     * exact objid / extid lookups (O(1)),
-      #     * a bounded cursor HSCAN over `contact_email_index` with a
-      #       server-side case-insensitive `*term*` glob (SEARCH_MATCH_LIMIT
-      #       matches / SEARCH_SCAN_ROUNDS round-trips, same shape as the users
-      #       and domains lists),
-      #     * a bounded HSCAN over `Customer.email_index` for OWNER emails,
-      #       resolving at most OWNER_MATCH_LIMIT matched customers to the orgs
-      #       they own, and
-      #     * the newest FILTER_WINDOW_LIMIT organizations off the instances
-      #       set, matched in Ruby on display_name / billing_email (there is no
-      #       index for either).
+      # - SEARCH: tiered, narrowest source first, stopping at the first tier
+      #   that answers (see {#filtered_candidates}):
+      #     1. exact objid / extid lookups (O(1)) — a hit IS the answer;
+      #     2. a bounded cursor HSCAN over `contact_email_index` with a
+      #        server-side case-insensitive `*term*` glob (SEARCH_MATCH_LIMIT
+      #        matches / SEARCH_SCAN_ROUNDS round-trips, same shape as the
+      #        users and domains lists);
+      #     3. for an EMAIL-SHAPED term only, a bounded HSCAN over
+      #        `Customer.email_index` for OWNER emails, resolving at most
+      #        OWNER_MATCH_LIMIT matched customers to the orgs they own. An
+      #        email-shaped term that either index answers stops here;
+      #     4. the newest FILTER_WINDOW_LIMIT organizations off the instances
+      #        set, matched in Ruby on display_name / billing_email (there is
+      #        no index for either). Every plain term reads it; an email-shaped
+      #        term reads it only when neither index answered.
       # - STATUS / SYNC-STATUS only: the same newest-first window, filtered in
       #   Ruby (no per-status index exists).
       #
-      # Whenever a scan or the window stops short of the population, the
-      # response sets `pagination.capped` so the UI can say the count is a
-      # floor (mirrors the users and domains lists). The residual filters
-      # compose in Ruby on the bounded candidate set, BEFORE pagination, so
-      # total_count reflects the filtered set. Row hydration (owner email, the
-      # two counts, sync status) runs only for the returned page, with the
-      # owners batch-loaded.
+      # Whenever a scan or the window that was ACTUALLY CONSULTED stops short
+      # of the population, the response sets `pagination.capped` so the UI can
+      # say the count is a floor (mirrors the users and domains lists). A
+      # source the tiering skipped never raises it: an email search the index
+      # settled is capped only if that index scan itself stopped early, not
+      # because the fleet is larger than a window it never read. The residual
+      # filters compose in Ruby on the bounded candidate set, BEFORE
+      # pagination, so total_count reflects the filtered set. Row hydration
+      # (owner email, the two counts, sync status) runs only for the returned
+      # page, with the owners batch-loaded.
       #
       # There is no roster cache any more: the bounded reads are one pipelined
       # load each, and the cache's size cap meant it never engaged where it
@@ -146,18 +152,60 @@ module ColonelAPI
           !status_filter.empty? || !sync_status_filter.empty? || !search_term.empty?
         end
 
-        # The bounded candidate set for a filtered request. Search adds the
-        # index-backed lookups on top of the window every filtered read uses.
-        # An exact objid / extid hit IS the answer: the two O(1) lookups settle
-        # it without touching either index or the window.
+        # The bounded candidate set for a filtered request, from the narrowest
+        # source that can answer. Each tier is skipped once an earlier one has:
+        #
+        # 1. Exact objid / extid — two O(1) unique-index reads. A hit IS the
+        #    answer; neither index nor the window is touched.
+        # 2. The contact_email index HSCAN — MATCH-filtered server-side, so
+        #    only hits cross the wire. Every search runs it.
+        # 3. The owner-email walk over Customer.email_index — only for an
+        #    EMAIL-SHAPED term. The default workspace is created with the
+        #    owner's address as its contact_email, so for a plain term
+        #    ("acme") tier 2 already covers the owner's own address; the walk
+        #    only adds value when an operator pastes an address and wants the
+        #    owner's OTHER organizations (contact_email pointing elsewhere).
+        #    An email-shaped term that tier 2 or 3 answered stops here: an
+        #    address does not match a display_name, and billing_email is the
+        #    contact or owner address in the common case, so an index hit
+        #    settles it without hydrating FILTER_WINDOW_LIMIT rows.
+        # 4. The newest-first window — the ONLY source for display_name and
+        #    billing_email (neither is indexed). Every plain term reads it; an
+        #    email-shaped term reads it only when neither index answered, so a
+        #    billing-only address (or an address typed with a typo the index
+        #    glob still matches) is still found within the window.
+        #
+        # `capped` is raised only by a tier that actually ran, so an
+        # index-resolved email search reports a floor only when the index scan
+        # itself stopped short.
         def filtered_candidates
           return window_candidates if search_term.empty?
 
           exact = identifier_lookups
           return exact unless exact.empty?
 
+          sources = [contact_email_candidates]
+
+          if email_shaped_term?
+            sources << owner_email_candidates
+            indexed = merge_candidates(sources)
+            return indexed unless indexed.empty?
+          end
+
+          sources << window_candidates
+          merge_candidates(sources)
+        end
+
+        # An address-looking term. The indexes hold addresses, so this is the
+        # term shape they can settle on their own.
+        def email_shaped_term?
+          search_term.include?('@')
+        end
+
+        # Union, first-seen wins, in source order.
+        def merge_candidates(sources)
           candidates = {}
-          [contact_email_candidates, owner_email_candidates, window_candidates].each do |found|
+          sources.each do |found|
             found.each { |org| candidates[org.objid] ||= org }
           end
           candidates.values
