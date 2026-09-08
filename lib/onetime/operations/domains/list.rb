@@ -212,11 +212,17 @@ module Onetime
           end
         end
 
+        # Exact extid / domain_id hits — O(1) unique-index reads. Both lookups
+        # existence-check as they load (Familia `load`/`find_by_extid` run with
+        # `check_exists: true` and return nil for a missing record), so
+        # `.compact` alone yields only rows that exist; a second `exists?` per
+        # hit was one more EXISTS round-trip confirming what the load already
+        # had (same shape as the organizations list's identifier_lookups).
         def identifier_lookups(term)
           [
             safe_lookup { Onetime::CustomDomain.find_by_extid(term) },
             safe_lookup { Onetime::CustomDomain.load(term) },
-          ].compact.select(&:exists?)
+          ].compact
         end
 
         def safe_lookup
@@ -232,8 +238,11 @@ module Onetime
         # The org's own domains participation set unioned with the org's entries
         # in the `owners` class hashkey. Accepts the org extid or the objid.
         def org_candidates
+          # resolve_org loads with check_exists, so a non-nil org exists; an
+          # `exists?` recheck here would run Familia's inherited check on a
+          # possibly-different pooled connection and could false-negative.
           org = resolve_org(@org_filter)
-          return [] unless org&.exists?
+          return [] unless org
 
           candidates = org.list_domains
           merge_unlisted_owned(candidates, org)
