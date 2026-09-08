@@ -144,7 +144,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
 
       result = strategy.authenticate(env, 'authenticated')
 
-      expect(result.failure_reason).to match(/SESSION_STALE_CREDENTIALS/)
+      expect(result.failure_reason).to include('SESSION_STALE_CREDENTIALS')
       expect(env).not_to have_key(lifetime::EXPIRED_ENV_KEY)
     end
   end

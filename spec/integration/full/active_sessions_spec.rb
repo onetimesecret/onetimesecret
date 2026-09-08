@@ -25,6 +25,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
     unless last_response.status == 200
       raise "Login failed for #{email}: #{last_response.status} - #{last_response.body}"
     end
+
     true
   end
 

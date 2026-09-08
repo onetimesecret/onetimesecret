@@ -167,9 +167,7 @@ RSpec.describe Onetime::ActiveSessionGate do
       insert_row(last_use: Time.now - (described_class::TOUCH_INTERVAL + 60))
       dataset = instance_double(Sequel::Dataset)
       allow(db).to receive(:[]).with(described_class::TABLE).and_return(dataset)
-      allow(dataset).to receive(:where).and_return(dataset)
-      allow(dataset).to receive(:select).and_return(dataset)
-      allow(dataset).to receive(:first).and_return({ last_use: Time.now - 1000 })
+      allow(dataset).to receive_messages(where: dataset, select: dataset, first: { last_use: Time.now - 1000 })
       allow(dataset).to receive(:update).and_raise(Sequel::DatabaseError, 'read-only replica')
 
       expect(described_class.verdict(session)).to eq(:active)
