@@ -28,7 +28,7 @@
   import { formatDisplayDateTime } from '@/utils/format';
   import { gracefulParse } from '@/utils/schemaValidation';
   import { storeToRefs } from 'pinia';
-  import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   /**
@@ -134,23 +134,14 @@
     }
   }
 
-  // Debounce search input so we issue one request per pause, not per keystroke.
-  let searchTimer: ReturnType<typeof setTimeout> | null = null;
-  watch(searchTerm, (value) => {
-    if (searchTimer) clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => {
-      activeSearch.value = value.trim();
-      fetchPage(1);
-    }, 300);
-  });
-  onBeforeUnmount(() => {
-    if (searchTimer) clearTimeout(searchTimer);
-  });
-
-  /** Submit search on explicit user action (Enter key or search button). */
+  /**
+   * Submit search on explicit user action ONLY (Enter key or search button).
+   * Typing never fetches: there is no watcher on `searchTerm`. Every list read
+   * is a bounded keyspace scan plus a decrypt per session on the server, so
+   * one request at a time — a submit while a page is loading is dropped.
+   */
   function onSearchSubmit(): void {
-    // Cancel the pending debounce so it doesn't re-fire for the same term.
-    if (searchTimer) clearTimeout(searchTimer);
+    if (loading.value) return; // In-flight guard
     const trimmed = searchTerm.value.trim();
     if (trimmed === activeSearch.value) return; // No-op guard
     activeSearch.value = trimmed;
@@ -158,9 +149,12 @@
   }
 
   function onClear(): void {
+    const hadSearch = activeSearch.value !== '';
     searchTerm.value = '';
     activeSearch.value = '';
-    fetchPage(1);
+    // Only re-read when a search was actually applied; clearing a term that
+    // was never submitted has nothing to refresh.
+    if (hadSearch) fetchPage(1);
   }
 
   function onPageChange(targetPage: number): void {
@@ -445,6 +439,7 @@
         v-model:search="searchTerm"
         :search-placeholder="t('web.admin.sessions.search.placeholder')"
         :has-active-filters="hasActiveFilters"
+        :busy="loading"
         testid="sessions-filterbar"
         @clear="onClear"
         @submit="onSearchSubmit" />

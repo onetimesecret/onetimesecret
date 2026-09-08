@@ -632,6 +632,16 @@
         @click="goBack">
         {{ t('web.admin.customers.detail.backToList') }}
       </button>
+
+      <!-- "No customer record" is itself a diagnosis, not the end of the road:
+           the identifier may still name an orphaned auth-database accounts row
+           (the customers list links such rows here by email), and the
+           diagnostics endpoint answers for an orphan by email, extid and
+           Rodauth id. Mounting the read-out under the not-found panel is what
+           makes that link worth following. -->
+      <div class="mt-8 text-left">
+        <AdminAccountDiagnosticsSection :user-id="publicId" />
+      </div>
     </div>
 
     <!-- Load error (network/HTTP non-404, or contract mismatch) -->

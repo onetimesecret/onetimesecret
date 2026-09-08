@@ -82,11 +82,29 @@ export const paginationSchema = z.object({
 });
 
 /**
+ * An auth-database accounts row that maps to NO customer record (full auth
+ * mode only). Reported by the users list for an address-shaped search so the
+ * operator sees the person exists (and can log in) even though the customer
+ * index has nothing for them. Timestamps stay numeric: the entry is rendered
+ * inline in a notice, never sorted or compared.
+ */
+export const colonelOrphanedAccountSchema = z.object({
+  email: z.string(),
+  account_id: z.number(),
+  external_id: z.string().nullable(),
+  status: z.enum(['unverified', 'verified', 'closed', 'unknown']),
+  created_at: z.number().nullable(),
+});
+
+/**
  * Users list response details
  */
 export const colonelUsersDetailsSchema = z.object({
   users: z.array(colonelUserSchema),
   pagination: paginationSchema,
+  // Absent on servers that predate the orphan lookup, and only populated for
+  // address-shaped searches, so default to empty rather than failing the parse.
+  orphaned_accounts: z.array(colonelOrphanedAccountSchema).optional().default([]),
 });
 
 /**
@@ -390,6 +408,7 @@ export type ColonelInfoDetails = z.infer<typeof colonelInfoDetailsSchema>;
 export type RecentCustomer = z.infer<typeof recentCustomerSchema>;
 export type ColonelUser = z.infer<typeof colonelUserSchema>;
 export type ColonelUsersDetails = z.infer<typeof colonelUsersDetailsSchema>;
+export type ColonelOrphanedAccount = z.infer<typeof colonelOrphanedAccountSchema>;
 export type Pagination = z.infer<typeof paginationSchema>;
 export type ColonelSecret = z.infer<typeof colonelSecretSchema>;
 export type ColonelSecretsDetails = z.infer<typeof colonelSecretsDetailsSchema>;
@@ -466,39 +485,21 @@ export const colonelOrganizationsFiltersSchema = z.object({
 });
 
 /**
- * Roster-cache state for the organizations list.
- *
- * The endpoint caches the PRE-FILTER roster (every org, post-`build_org_data`,
- * before filtering/sorting/paging) for a short TTL, so one entry serves every
- * filter/page/search combination. This block reports whether THIS response was
- * served from that entry and when the roster was built, which is what the view
- * renders as "updated <n> ago" next to its refresh control.
- *
- * `generated_at` is a unix SECOND (integer) and tracks the build, not the
- * serve, so it holds steady across cache hits. Optional because a payload
- * predating this block (an in-flight deploy, a replayed fixture) must not fail
- * validation and blank the whole table.
- */
-export const colonelOrganizationsCacheSchema = z.object({
-  cached: z.boolean(),
-  generated_at: z.number(),
-  ttl: z.number(),
-});
-
-/**
  * Organizations list response details
  */
 export const colonelOrganizationsDetailsSchema = z.object({
   organizations: z.array(colonelOrganizationSchema),
   pagination: paginationSchema,
   filters: colonelOrganizationsFiltersSchema,
-  cache: colonelOrganizationsCacheSchema.optional(),
+  // The endpoint's candidate set is bounded (index scans + a newest-first
+  // window); `pagination.capped` reports when it stopped short. There is no
+  // roster cache and therefore no cache block any more; an older server that
+  // still sends one is tolerated by the non-strict parse.
 });
 
 export type ColonelOrganization = z.infer<typeof colonelOrganizationSchema>;
 export type ColonelOrganizationsDetails = z.infer<typeof colonelOrganizationsDetailsSchema>;
 export type ColonelOrganizationsFilters = z.infer<typeof colonelOrganizationsFiltersSchema>;
-export type ColonelOrganizationsCache = z.infer<typeof colonelOrganizationsCacheSchema>;
 
 /**
  * Organization billing investigation - local state

@@ -129,9 +129,12 @@ module Onetime
         # run before it is stripped for output. The shared codec decrypts each
         # value (see {Store#load_data}); without it every row would be the opaque
         # `_raw` fallback and nothing would classify as identified.
+        #
+        # The blobs are read in batches ({Store.load_data_multi}: one MGET per
+        # LOAD_BATCH keys) rather than one GET per key — at the MAX_SCAN cap
+        # that is ~20 round-trips instead of 10,000 for every list request.
         def collect(db, keys, codec)
-          keys.filter_map do |key|
-            data = Store.load_data(db, key, codec: codec)
+          Store.load_data_multi(db, keys, codec: codec).filter_map do |key, data|
             next nil unless data
 
             Store.summarize(Store.extract_id(key), key, data).merge(__data: data)

@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require 'auth/account_statuses'
+require 'auth/database'
+
 module Auth
   module Operations
     module Customers
@@ -54,30 +57,88 @@ module Auth
       # ### Search (bounded email HSCAN + exact identifier lookups)
       #
       # "Look up the account that just emailed you" is the #1 admin action, so
-      # the op supports a free-text `search` term. It resolves three ways and
+      # the op supports a free-text `search` term. It resolves four ways and
       # merges the results (deduped by objid):
       #
       # 1. Email substring — a bounded cursor HSCAN over the
-      #    `customer:email_index` hash (email -> objid, emails stored lowercase)
-      #    with a server-side `*term*` glob — the same scan-with-match mechanism
-      #    the sessions listing uses, but against the index instead of the
-      #    keyspace. It never enumerates customer objects. Bounded twice
-      #    (CONTRACT 8 / #2211): matches are capped at SEARCH_MATCH_LIMIT and the
-      #    scan stops after SEARCH_SCAN_ROUNDS round-trips, so a no-match search
-      #    over a huge customer base can never turn one request into an unbounded
+      #    `customer:email_index` hash (email -> objid) with a server-side
+      #    `*term*` glob — the same scan-with-match mechanism the sessions
+      #    listing uses, but against the index instead of the keyspace. It
+      #    never enumerates customer objects. Bounded twice (CONTRACT 8 /
+      #    #2211): matches are capped at SEARCH_MATCH_LIMIT and the scan stops
+      #    after SEARCH_SCAN_ROUNDS round-trips, so a no-match search over a
+      #    huge customer base can never turn one request into an unbounded
       #    walk. The glob term is escaped, so user input cannot inject pattern
       #    syntax.
-      # 2. External id (extid, `ur…s`) — an exact `find_by_extid` on the
+      #
+      #    The glob is CASE-INSENSITIVE (every ASCII letter widened to a `[aA]`
+      #    class via OT::Utils.glob_case_insensitive). Redis MATCH is
+      #    case-sensitive and the index keys are NOT guaranteed lowercase: only
+      #    Customer.create! normalizes the address, so migrated legacy
+      #    customers and pre-normalization writers left keys like
+      #    `Bob@Example.com` in place (the customers doctor downcases both
+      #    sides when comparing, which is the admission). Lowercasing the term
+      #    and matching it literally, as this used to, missed every one of
+      #    those customers even on their exact address.
+      # 2. Exact email — when the term contains `@`, a `find_by_email` on the
+      #    NORMALIZED (NFC, case-folded, stripped) term. This is a raw HGET on
+      #    the same index, so it only hits when the stored key is the
+      #    normalized form; it exists so a pasted address resolves in O(1)
+      #    even when the substring scan is capped or exhausts its round budget
+      #    before reaching that key. Mixed-case keys are the scan's job, not
+      #    this arm's.
+      # 3. External id (extid, `ur…s`) — an exact `find_by_extid` on the
       #    extid_lookup unique index.
-      # 3. Internal id (objid, the UUID primary key) — an exact
+      # 4. Internal id (objid, the UUID primary key) — an exact
       #    `find_by_identifier`.
       #
-      # The two identifier lookups are O(1) unique-index gets, never scans, so
+      # The three exact lookups are O(1) unique-index gets, never scans, so
       # they add no enumeration cost and are attempted on every search — a
-      # support agent can paste an extid or objid straight into the box and the
-      # non-matching lookups simply return nothing (a garbage term is rescued).
+      # support agent can paste an address, extid or objid straight into the
+      # box and the non-matching lookups simply return nothing (a garbage term
+      # is rescued).
       # Search composes with the role filter (applied in Ruby on the already
       # -bounded matches) and is paginated in memory like the filtered path.
+      #
+      # #### Authdb fallback (address-shaped terms only)
+      #
+      # Every arm above reads the Redis email index, and the index is not the
+      # source of truth for "can this person log in": in full auth mode that
+      # is the Rodauth `accounts` row (PG, citext email). Two states make a
+      # real account invisible to a Redis-only search: the index entry
+      # DRIFTED (a half-completed email change, a legacy key that was never
+      # rewritten, a lost HSET) so no scan or HGET reaches the customer; or
+      # the accounts row has no Customer at all (an ORPHAN, the state
+      # `customers diagnose` and `customers doctor` exist to name). In both
+      # the person can log in, or is failing to, while search says "no such
+      # account, check the other regions".
+      #
+      # So when the term contains `@` the op also asks the authdb for that
+      # ONE row: an exact `accounts.email = normalized term` match restricted
+      # to the LIVE statuses. Exact only, one indexed query, never a LIKE
+      # scan: the accounts table is the whole customer base and this list
+      # is on the request path. The status restriction is what makes the
+      # query indexed at all: the only index on accounts.email is PARTIAL
+      # (`where status_id in (1, 2)`, 001_initial.rb), so a query without a
+      # live-status predicate cannot use it and every miss (a typo, an
+      # unknown address, a closed-only account) would walk the whole table
+      # per submit. Diagnose#find_account keeps its any-status second arm
+      # because it is a single explicit deep read; the list does not, and a
+      # closed row is a Diagnose concern. The two states the fallback exists
+      # for are both live by definition: a person who can (or is failing to)
+      # log in has a live row. If the row links (via `external_id`) to a
+      # customer the Redis arms missed, that customer is appended and the
+      # drift is logged by extid; if it links to nothing, the row is
+      # reported in `orphaned_accounts` (never counted in `total_count`,
+      # which counts customers only) so the admin surface can show the
+      # orphan instead of an empty page.
+      #
+      # `Auth::Database.connection` is nil in simple auth mode (there is no
+      # accounts table) and the fallback is skipped silently. In full mode
+      # the connection is LAZY: an unreachable database surfaces as the first
+      # query raising, never as a nil connection, so the query is rescued and
+      # logged (exception class only) and the Redis results stand on their
+      # own. The list must never 500 because the authdb is down.
       class List
         # Immutable result. `customers` is a page of loaded Onetime::Customer
         # objects; the adapters format them for their respective surfaces (the
@@ -90,7 +151,24 @@ module Auth
           :total_pages,   # Integer — ceil(total_count / per_page), 1 when :all
           :role,          # String, nil — the applied role filter (nil = none)
           :capped,        # Boolean — scan hit its cap; total_count understates
-        )
+          :orphaned_accounts, # Array<Hash> — authdb rows with no customer (search only)
+        ) do
+          # Only the address-shaped search path produces orphans; every other
+          # path (and every older caller building a Result by hand) gets [].
+          def initialize(orphaned_accounts: [], **members)
+            super
+          end
+        end
+
+        # Wire names for accounts.status_id, keyed on the seed ids the
+        # account_statuses table pins (Auth::AccountStatuses). Anything else
+        # is 'unknown' rather than a raise: a status this code has not heard
+        # of must not blank the search.
+        ORPHAN_STATUS_NAMES = {
+          Auth::AccountStatuses::UNVERIFIED => 'unverified',
+          Auth::AccountStatuses::VERIFIED => 'verified',
+          Auth::AccountStatuses::CLOSED => 'closed',
+        }.freeze
 
         DEFAULT_PER_PAGE = 50
         MAX_PER_PAGE     = 100
@@ -99,6 +177,13 @@ module Auth
         # (mirrors the maintenance jobs' SCAN_COUNT). Bounds work per Redis
         # round-trip; it is a hint, not a hard page size.
         SCAN_COUNT = 100
+
+        # Per-round-trip COUNT hint for the email-index cursor HSCAN. Much larger
+        # than SCAN_COUNT on purpose: MATCH filters server-side and each HSCAN
+        # call is sub-millisecond, so the cost of a search is dominated by
+        # round-trips, not by entries examined. At 1k per call a 200k-address
+        # index is covered in ~200 round-trips instead of ~2,000.
+        SEARCH_SCAN_COUNT = 1_000
 
         # Request-path cap on how many role_index members the filtered path loads
         # into Ruby. Bounds the degenerate `role=customer` case (that set grows
@@ -114,8 +199,8 @@ module Auth
         # not a pagination problem.
         SEARCH_MATCH_LIMIT = 1_000
 
-        # Cap on HSCAN round-trips for one search. With SCAN_COUNT=100 per
-        # round-trip this bounds the index walk at ~100k entries examined even
+        # Cap on HSCAN round-trips for one search. With SEARCH_SCAN_COUNT=1000
+        # per round-trip this bounds the index walk at ~1M entries examined even
         # when the term matches nothing (HSCAN's MATCH filters server-side, so
         # a no-match term would otherwise walk the entire index).
         SEARCH_SCAN_ROUNDS = 1_000
@@ -218,6 +303,11 @@ module Auth
           email_ids, capped = scan_email_index_matches(@search)
           matches           = load(email_ids)
           merge_identifier_matches(matches)
+          # Orphans are NOT customers: they carry no role, so the role filter
+          # below does not apply to them, and they never count in total_count.
+          # A customer the authdb recovers IS appended to matches first, so it
+          # is role-filtered and ordered like every other match.
+          orphaned_accounts = merge_authdb_account(matches)
           matches.select! { |cust| cust.role.to_s == @role } if @role
           # Same within-page ordering as the filtered path (created descending);
           # the email index is a hash, so there is no index-native order here.
@@ -232,11 +322,13 @@ module Auth
             matches[start_idx..end_idx] || []
           end
 
-          build_result(page, total_count, capped: capped)
+          build_result(page, total_count, capped: capped, orphaned_accounts: orphaned_accounts)
         end
 
         # Non-blocking cursor HSCAN of the email_index hash (email -> objid),
-        # matching `*term*` server-side against the lowercased stored emails.
+        # matching `*term*` server-side, case-insensitively: the stored keys
+        # are not guaranteed lowercase (see the class docs), and MATCH has no
+        # case-fold flag, so the letters are widened to `[aA]` classes.
         # Doubly bounded: stops at SEARCH_MATCH_LIMIT collected matches AND at
         # SEARCH_SCAN_ROUNDS round-trips (see the constants above).
         #
@@ -249,13 +341,13 @@ module Auth
         def scan_email_index_matches(term)
           dbkey    = Onetime::Customer.email_index.dbkey
           dbclient = Onetime::Customer.dbclient
-          pattern  = "*#{glob_escape(term.downcase)}*"
+          pattern  = "*#{OT::Utils.glob_case_insensitive(term)}*"
           objids   = []
           cursor   = '0'
           rounds   = 0
 
           loop do
-            cursor, entries = dbclient.hscan(dbkey, cursor, match: pattern, count: SCAN_COUNT)
+            cursor, entries = dbclient.hscan(dbkey, cursor, match: pattern, count: SEARCH_SCAN_COUNT)
             entries.each { |_email, objid| objids << objid }
             rounds         += 1
 
@@ -268,10 +360,10 @@ module Auth
           [objids.first(SEARCH_MATCH_LIMIT), capped]
         end
 
-        # Append the exact extid / objid lookups for the search term to the
-        # already-loaded email matches, skipping any customer already present
-        # (deduped by objid). Both lookups are O(1) unique-index gets — never a
-        # scan — so they cost nothing when they miss. A malformed term (e.g. a
+        # Append the exact email / extid / objid lookups for the search term to
+        # the already-loaded email matches, skipping any customer already
+        # present (deduped by objid). All lookups are O(1) unique-index gets —
+        # never a scan — so they cost nothing when they miss. A malformed term (e.g. a
         # value the identifier index rejects) is rescued to nil rather than
         # failing the whole search.
         def merge_identifier_matches(matches)
@@ -285,13 +377,25 @@ module Auth
           end
         end
 
-        # Exact-match customer lookups by external id (extid) and internal id
-        # (objid). Returns a (possibly empty) array of Onetime::Customer.
+        # Exact-match customer lookups by normalized email, external id (extid)
+        # and internal id (objid). Returns a (possibly empty) array of
+        # Onetime::Customer.
+        #
+        # The email arm only runs for a term that looks like an address (`@`),
+        # and it is a raw HGET on the email_index, so it hits only when the
+        # stored key is the normalized form (what Customer.create! writes).
+        # A mixed-case key from a pre-normalization writer is found by the
+        # case-insensitive scan, not here; this arm guarantees the O(1) hit
+        # for the common case even when the scan is capped or runs out of
+        # rounds before reaching that key.
         def identifier_lookups(term)
-          [
-            safe_lookup { Onetime::Customer.find_by_extid(term) },
-            safe_lookup { Onetime::Customer.find_by_identifier(term) },
-          ].compact
+          lookups = []
+          if term.include?('@')
+            lookups << safe_lookup { Onetime::Customer.find_by_email(OT::Utils.normalize_email(term)) }
+          end
+          lookups << safe_lookup { Onetime::Customer.find_by_extid(term) }
+          lookups << safe_lookup { Onetime::Customer.find_by_identifier(term) }
+          lookups.compact
         end
 
         # A unique-index lookup on a free-text term can raise on input the index
@@ -303,10 +407,74 @@ module Auth
           nil
         end
 
-        # Escape Redis glob metacharacters so a user-supplied term is always a
-        # literal substring match, never pattern syntax.
-        def glob_escape(term)
-          term.gsub(/[*?\[\]\\]/) { |char| "\\#{char}" }
+        # Authdb fallback for an address-shaped term (see the class docs). Asks
+        # the Rodauth accounts table for the ONE row whose email equals the
+        # normalized term. A row that links to a customer the Redis arms
+        # missed is appended to `matches` (index drift, logged by extid so
+        # operators can see it); a row that links to no customer is returned
+        # as an orphaned_accounts entry.
+        #
+        # @return [Array<Hash>] zero or one orphaned account entries
+        def merge_authdb_account(matches)
+          return [] unless @search.include?('@')
+
+          # nil in simple auth mode: no accounts table, nothing to consult.
+          db = Auth::Database.connection
+          return [] if db.nil?
+
+          row = find_auth_account_row(db, OT::Utils.normalize_email(@search))
+          return [] if row.nil?
+
+          customer = linked_customer(row)
+          if customer
+            unless matches.any? { |cust| cust.objid == customer.objid }
+              OT.lw "[Customers::List] authdb recovered customer #{customer.extid} " \
+                    'that the email index did not resolve (index drift)'
+              matches << customer
+            end
+            return []
+          end
+
+          [orphaned_account_entry(row)]
+        rescue StandardError => ex
+          # The connection is lazy, so an unreachable authdb raises HERE on the
+          # first query rather than returning nil above. The Redis results are
+          # still a valid answer; the fallback is best-effort. No address in
+          # the log line.
+          OT.le "[Customers::List] authdb fallback skipped: #{ex.class}"
+          []
+        end
+
+        # Live statuses ONLY, unlike Diagnose#find_account's second any-status
+        # arm: the unique index on accounts.email is PARTIAL (live statuses
+        # only), so this predicate is the difference between an index probe
+        # and a full accounts scan on every miss. The partial unique index
+        # also guarantees at most one live row per address, so `.first` is
+        # deterministic without an ORDER BY.
+        def find_auth_account_row(db, email)
+          db[:accounts]
+            .where(email: email, status_id: Auth::AccountStatuses::LIVE)
+            .first
+        end
+
+        # The accounts row links to its customer by extid (external_id). A nil
+        # link or an extid that resolves to nothing is the orphan case.
+        def linked_customer(row)
+          extid = row[:external_id].to_s
+          return nil if extid.empty?
+
+          safe_lookup { Onetime::Customer.find_by_extid(extid) }
+        end
+
+        def orphaned_account_entry(row)
+          created_at = row[:created_at]
+          {
+            email: row[:email].to_s,
+            account_id: row[:id],
+            external_id: row[:external_id],
+            status: ORPHAN_STATUS_NAMES.fetch(row[:status_id], 'unknown'),
+            created_at: created_at.respond_to?(:to_time) ? created_at.to_time.to_i : nil,
+          }
         end
 
         # Non-blocking cursor SSCAN of a role_index set, collecting member objids.
@@ -332,7 +500,7 @@ module Auth
           Onetime::Customer.load_multi(objids).compact
         end
 
-        def build_result(customers, total_count, capped: false)
+        def build_result(customers, total_count, capped: false, orphaned_accounts: [])
           total_pages = if @all || @per_page.zero?
             total_count.positive? ? 1 : 0
           else
@@ -347,6 +515,7 @@ module Auth
             total_pages: total_pages,
             role: @role,
             capped: capped,
+            orphaned_accounts: orphaned_accounts,
           )
         end
       end

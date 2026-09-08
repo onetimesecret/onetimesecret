@@ -48,12 +48,21 @@ export interface PageResult<TItem> {
  * - `schema`  the wrapped Zod response schema (createApiResponseSchema output)
  * - `context` a label handed to gracefulParse and surfaced as `validationError`
  * - `select`  maps the validated response onto the shared `{ items, pagination }`
+ *
+ * `TResult` lets a resource's `select` carry per-response sidecar facts beyond
+ * the frozen `{ items, pagination }` pair (the customers list's orphaned
+ * auth-database accounts, for example) without the composable ever reading
+ * them: it defaults to the bare page result, so existing callers are unchanged.
  */
-export interface PaginatedFetchConfig<TResponse, TItem> {
+export interface PaginatedFetchConfig<
+  TResponse,
+  TItem,
+  TResult extends PageResult<TItem> = PageResult<TItem>,
+> {
   url: string;
   schema: ZodType<TResponse>;
   context: string;
-  select: (data: TResponse) => PageResult<TItem>;
+  select: (data: TResponse) => TResult;
   /** Initial/reset page size. Defaults to {@link DEFAULT_PER_PAGE}. */
   perPage?: number;
 }
@@ -61,7 +70,7 @@ export interface PaginatedFetchConfig<TResponse, TItem> {
 /** Query params passed alongside page/per_page (filters, or a future cursor). */
 export type FetchParams = Record<string, string | number | boolean | undefined | null>;
 
-export interface UsePaginatedFetch<TItem> {
+export interface UsePaginatedFetch<TItem, TResult extends PageResult<TItem> = PageResult<TItem>> {
   /** True while a request is in flight. Owned here so stores never track it. */
   loading: Ref<boolean>;
   /** The last thrown network/HTTP error, or null. Set only on a real failure. */
@@ -77,7 +86,7 @@ export interface UsePaginatedFetch<TItem> {
   page: Ref<number>;
   /** Current page size. Reconciled to the server's echoed per_page on success. */
   perPage: Ref<number>;
-  fetchPage: (targetPage?: number, params?: FetchParams) => Promise<PageResult<TItem> | null>;
+  fetchPage: (targetPage?: number, params?: FetchParams) => Promise<TResult | null>;
   reset: () => void;
 }
 
@@ -102,9 +111,11 @@ export const DEFAULT_PER_PAGE = 50;
  * for a `cursor` param later (per #20's index-backed endpoints) touches only
  * the param builder and the caller's `params` — not the store or view.
  */
-export function usePaginatedFetch<TResponse, TItem>(
-  config: PaginatedFetchConfig<TResponse, TItem>
-): UsePaginatedFetch<TItem> {
+export function usePaginatedFetch<
+  TResponse,
+  TItem,
+  TResult extends PageResult<TItem> = PageResult<TItem>,
+>(config: PaginatedFetchConfig<TResponse, TItem, TResult>): UsePaginatedFetch<TItem, TResult> {
   const $api = useApi();
   const defaultPerPage = config.perPage ?? DEFAULT_PER_PAGE;
 
@@ -146,7 +157,7 @@ export function usePaginatedFetch<TResponse, TItem>(
   async function fetchPage(
     targetPage: number = page.value,
     params?: FetchParams
-  ): Promise<PageResult<TItem> | null> {
+  ): Promise<TResult | null> {
     const requestId = ++requestSeq;
     loading.value = true;
     error.value = null;

@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminDomains.vue -->
 
 <script setup lang="ts">
-
   import AddDomainForOrgModal from '@/apps/admin/components/AddDomainForOrgModal.vue';
   import AdminDomainDnsDetails from '@/apps/admin/components/AdminDomainDnsDetails.vue';
   import AdminOrgSelectorModal from '@/apps/admin/components/AdminOrgSelectorModal.vue';
@@ -18,7 +17,10 @@
   import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
-  import type { ColonelCustomDomain, ColonelOrganization } from '@/schemas/api/internal/responses/colonel';
+  import type {
+    ColonelCustomDomain,
+    ColonelOrganization,
+  } from '@/schemas/api/internal/responses/colonel';
   import type {
     ColonelDomainCluster,
     ColonelDomainDetailRecord,
@@ -35,7 +37,7 @@
   import { formatDisplayDateTime } from '@/utils/format';
   import { gracefulParse } from '@/utils/schemaValidation';
   import { storeToRefs } from 'pinia';
-  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   /**
@@ -49,9 +51,11 @@
    * mutating verbs (probe / repair / transfer / remove).
    *
    * Filters are SERVER-SIDE (`search` + `status` on GET /api/colonel/domains,
-   * applied before pagination) with the same 300 ms debounce and no-op guard
-   * AdminCustomers uses. `search` matches display_domain / base_domain plus an
-   * exact extid / domain_id — NOT the organization name.
+   * applied before pagination). `search` runs ONLY on explicit submit (Enter or
+   * the search button), never on keystrokes, with the same no-op and in-flight
+   * guards AdminCustomers uses: every search is a real index scan on the
+   * server. `search` matches display_domain / base_domain plus an exact extid /
+   * domain_id — NOT the organization name.
    *
    * One deliberate difference from the customers list: VERIFY stays on the row.
    * It is the one high-frequency, low-risk domain verb, so keeping it inline
@@ -101,9 +105,7 @@
     },
   ]);
 
-  const hasActiveFilters = computed(
-    () => searchTerm.value !== '' || stateFilter.value !== ''
-  );
+  const hasActiveFilters = computed(() => searchTerm.value !== '' || stateFilter.value !== '');
 
   /** Fetch one server page with the active filters. Errors surface via the store. */
   async function fetchPage(targetPage = 1): Promise<void> {
@@ -118,27 +120,13 @@
     }
   }
 
-  // Debounce search input so we issue one request per pause, not per keystroke
-  // (the fixed AdminCustomers wiring, including the no-op guard).
-  let searchTimer: ReturnType<typeof setTimeout> | null = null;
-  watch(searchTerm, (value) => {
-    if (searchTimer) clearTimeout(searchTimer);
-    // Skip no-op changes (e.g. the programmatic reset in onClear(), which
-    // already issues its own fetch) so clearing doesn't double-fetch.
-    if (value.trim() === activeSearch.value) return;
-    searchTimer = setTimeout(() => {
-      activeSearch.value = value.trim();
-      fetchPage(1);
-    }, 300);
-  });
-  onBeforeUnmount(() => {
-    if (searchTimer) clearTimeout(searchTimer);
-  });
-
-  /** Submit search on explicit user action (Enter key or search button). */
+  /**
+   * Submit search on explicit user action ONLY (Enter key or search button).
+   * Typing never fetches: there is no watcher on `searchTerm`. One request at
+   * a time — a submit while a page is loading is dropped, not queued.
+   */
   function onSearchSubmit(): void {
-    // Cancel the pending debounce so it doesn't re-fire for the same term.
-    if (searchTimer) clearTimeout(searchTimer);
+    if (loading.value) return; // In-flight guard
     const trimmed = searchTerm.value.trim();
     if (trimmed === activeSearch.value) return; // No-op guard
     activeSearch.value = trimmed;
@@ -153,9 +141,7 @@
   }
 
   function onClear(): void {
-    // Cancel any in-flight debounce so the reset below doesn't fire a second,
-    // late request on top of this one.
-    if (searchTimer) clearTimeout(searchTimer);
+    // Reset every filter, then re-read page 1 once.
     searchTerm.value = '';
     activeSearch.value = '';
     stateFilter.value = '';
@@ -393,9 +379,7 @@
       {
         key: 'updated',
         label: t('web.admin.domains.fields.updated'),
-        value: d.updated
-          ? formatDisplayDateTime(d.updated)
-          : t('web.admin.domains.detail.never'),
+        value: d.updated ? formatDisplayDateTime(d.updated) : t('web.admin.domains.detail.never'),
         mono: false,
       },
     ];
@@ -439,15 +423,13 @@
     orgDomainsLoading.value = true;
     orgDomainsError.value = false;
     try {
-      const res = await $api.get(
-        `/api/colonel/organizations/${encodeURIComponent(org.extid)}`
-      );
+      const res = await $api.get(`/api/colonel/organizations/${encodeURIComponent(org.extid)}`);
       const parsed = gracefulParse(
         colonelOrganizationDetailResponseSchema,
         res.data,
         'ColonelOrganizationDetailResponse'
       );
-      orgDomains.value = parsed.ok ? parsed.data.details?.domains ?? [] : [];
+      orgDomains.value = parsed.ok ? (parsed.data.details?.domains ?? []) : [];
     } catch {
       orgDomainsError.value = true;
       orgDomains.value = [];
@@ -537,10 +519,7 @@
     if (!ok) return; // error stays in the modal for retry.
 
     addDomainOpen.value = false;
-    notifications.show(
-      t('web.admin.domains.addDomain.created', { domain }),
-      'success'
-    );
+    notifications.show(t('web.admin.domains.addDomain.created', { domain }), 'success');
     await loadOrgDomains();
     // Reveal the freshly created domain's DNS records.
     const extid = createdExtid.value;
@@ -579,7 +558,8 @@
   <div class="mx-auto max-w-6xl">
     <!-- Page header. The heavy bottom rule is the page's horizontal rule; the
          working-record panel sits between it and the list below. -->
-    <header class="mb-6 flex flex-wrap items-end justify-between gap-4 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+    <header
+      class="mb-6 flex flex-wrap items-end justify-between gap-4 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
       <div>
         <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           {{ t('web.colonel.customDomains.title') }}
@@ -671,8 +651,12 @@
                 target="_blank"
                 rel="noopener noreferrer"
                 :data-testid="`panel-domain-open-${domain.extid}`"
-                :aria-label="t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })"
-                :title="t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })"
+                :aria-label="
+                  t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })
+                "
+                :title="
+                  t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })
+                "
                 class="shrink-0 rounded text-gray-400 hover:text-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-400">
                 <OIcon
                   collection="heroicons"
@@ -717,7 +701,11 @@
                   collection="heroicons"
                   :name="panelVerifyingExtid === domain.extid ? 'arrow-path' : 'shield-check'"
                   size="4"
-                  :class="panelVerifyingExtid === domain.extid ? 'animate-spin motion-reduce:animate-none' : ''" />
+                  :class="
+                    panelVerifyingExtid === domain.extid
+                      ? 'animate-spin motion-reduce:animate-none'
+                      : ''
+                  " />
                 {{ t('web.admin.domains.verify.button') }}
               </button>
             </div>
@@ -780,6 +768,7 @@
         :filters="filters"
         :search-placeholder="t('web.admin.domains.list.searchPlaceholder')"
         :has-active-filters="hasActiveFilters"
+        :busy="loading"
         testid="domains-filterbar"
         @filter-change="onFilterChange"
         @clear="onClear"
@@ -939,7 +928,9 @@
               target="_blank"
               rel="noopener noreferrer"
               :data-testid="`domain-open-${row.extid}`"
-              :aria-label="t('web.admin.domains.attach.openExternal', { domain: row.display_domain })"
+              :aria-label="
+                t('web.admin.domains.attach.openExternal', { domain: row.display_domain })
+              "
               :title="t('web.admin.domains.attach.openExternal', { domain: row.display_domain })"
               class="rounded p-1.5 text-gray-400 hover:text-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-400"
               @click.stop>
@@ -958,7 +949,9 @@
                 collection="heroicons"
                 :name="verifyingExtid === row.extid ? 'arrow-path' : 'shield-check'"
                 size="4"
-                :class="verifyingExtid === row.extid ? 'animate-spin motion-reduce:animate-none' : ''" />
+                :class="
+                  verifyingExtid === row.extid ? 'animate-spin motion-reduce:animate-none' : ''
+                " />
               {{ t('web.admin.domains.verify.button') }}
             </button>
             <router-link
@@ -1002,7 +995,12 @@
           <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <StatCard
               :label="t('web.admin.domains.columns.state')"
-              :value="t(`web.colonel.customDomains.status.${selectedDomain.verification_state}`, selectedDomain.verification_state)"
+              :value="
+                t(
+                  `web.colonel.customDomains.status.${selectedDomain.verification_state}`,
+                  selectedDomain.verification_state
+                )
+              "
               icon="shield-check"
               testid="domain-stat-state" />
             <StatCard

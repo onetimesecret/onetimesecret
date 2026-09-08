@@ -23,7 +23,15 @@ module ColonelAPI
       class ListUsers < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'colonelUsers' }.freeze
 
-        attr_reader :users, :total_count, :page, :per_page, :total_pages, :role_filter, :search, :capped
+        attr_reader :users,
+          :total_count,
+          :page,
+          :per_page,
+          :total_pages,
+          :role_filter,
+          :search,
+          :capped,
+          :orphaned_accounts
 
         def process_params
           @page        = (params['page'] || 1).to_i
@@ -57,9 +65,15 @@ module ColonelAPI
             search: search,
           ).call
 
-          @total_count = result.total_count
-          @total_pages = result.total_pages
-          @capped      = result.capped
+          @total_count       = result.total_count
+          @total_pages       = result.total_pages
+          @capped            = result.capped
+          # Authdb rows an address-shaped search found with no customer record
+          # behind them (full auth mode only; [] otherwise). Not users, not
+          # counted in the pagination: the admin table renders them as a
+          # separate "no customer record" notice so an orphan is visible
+          # instead of an empty page. See Customers::List "Authdb fallback".
+          @orphaned_accounts = result.orphaned_accounts
 
           # Format user data (anonymous customers are dropped from the list, as
           # before; total_count above still counts them, matching prior behavior).
@@ -145,6 +159,9 @@ module ColonelAPI
             record: {},
             details: {
               users: users,
+              # Always present, [] when none, so the client schema is stable
+              # across auth modes.
+              orphaned_accounts: orphaned_accounts,
               pagination: {
                 page: page,
                 per_page: per_page,

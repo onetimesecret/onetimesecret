@@ -27,6 +27,15 @@
   /** The logged-in colonel admin's email (compliance awareness). */
   const currentUserEmail = computed(() => bootstrapStore.cust?.email ?? '');
 
+  /**
+   * The running app version, pinned in the rail foot so an operator can read
+   * it without leaving the console for a workspace page. The console is an
+   * authenticated, colonel-only surface, so the anonymous-fingerprinting
+   * concern that gates the customer footers' version string does not apply.
+   */
+  const appVersion = computed(() => bootstrapStore.ot_version ?? '');
+  const appVersionLong = computed(() => bootstrapStore.ot_version_long || appVersion.value);
+
   // Sync the reactive flag with the class the inline head script already
   // applied before mount, so the toggle button reflects the real state.
   onMounted(initializeTheme);
@@ -104,7 +113,9 @@
         </span>
         <!-- Default lock-up; hidden on hover. -->
         <span class="flex flex-col leading-none group-hover:hidden">
-          <span class="font-brand text-lg font-bold tracking-tight">{{ t('web.colonel.admin') }}</span>
+          <span class="font-brand text-lg font-bold tracking-tight">{{
+            t('web.colonel.admin')
+          }}</span>
           <span
             class="mt-1 font-brand text-[10px] font-semibold tracking-[0.2em] text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.colonel.nav.consoleTag') }}
@@ -162,20 +173,35 @@
         </template>
       </nav>
 
-      <!-- Escape hatch, pinned to the rail foot outside the scrolling <nav> so
-           long band lists can never push it out of reach. Full navigation (not a
-           router-link): the console is an isolated bundle. Neutral copy — no
-           product name — to respect the tenant's applied branding. -->
-      <a
-        href="/"
-        class="flex shrink-0 items-center gap-1.5 border-t border-gray-200 px-5 py-3 text-xs font-medium text-gray-500 transition-colors hover:text-gray-700 dark:border-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
-        data-testid="admin-back-to-site">
-        <OIcon
-          collection="heroicons"
-          name="arrow-left"
-          size="4" />
-        {{ t('web.colonel.backToSite') }}
-      </a>
+      <!-- Rail foot, pinned outside the scrolling <nav> so long band lists can
+           never push it out of reach. -->
+      <div class="shrink-0 border-t border-gray-200 dark:border-gray-800">
+        <!-- Escape hatch. Full navigation (not a router-link): the console is
+             an isolated bundle. Neutral copy — no product name — to respect the
+             tenant's applied branding. -->
+        <a
+          href="/"
+          class="flex items-center gap-1.5 px-5 py-3 text-xs font-medium text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          data-testid="admin-back-to-site">
+          <OIcon
+            collection="heroicons"
+            name="arrow-left"
+            size="4" />
+          {{ t('web.colonel.backToSite') }}
+        </a>
+        <!-- Running app version, linked to its release notes. -->
+        <a
+          v-if="appVersion"
+          :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${appVersion}`"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="block px-5 pb-3 font-mono text-[11px] text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+          :title="t('web.COMMON.version')"
+          :aria-label="t('web.layout.release_notes')"
+          data-testid="admin-app-version">
+          v{{ appVersionLong }}
+        </a>
+      </div>
     </aside>
 
     <!-- Main column -->
