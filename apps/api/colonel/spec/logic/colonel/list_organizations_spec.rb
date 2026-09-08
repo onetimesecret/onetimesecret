@@ -152,6 +152,8 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
     allow(Onetime::Organization).to receive(:load).and_return(nil)
     allow(Onetime::Organization).to receive(:contact_email_index)
       .and_return(double('OrgEmailIndex', dbkey: 'organization:contact_email_index'))
+    allow(Onetime::Organization).to receive(:stripe_subscription_id_index)
+      .and_return(double('OrgSubIndex', dbkey: 'organization:stripe_subscription_id_index'))
     allow(Onetime::Organization).to receive(:dbclient).and_return(org_dbclient)
     allow(org_dbclient).to receive(:hscan).and_return(['0', []])
     allow(Onetime::Customer).to receive(:email_index)
@@ -270,6 +272,59 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
       expect(instances_double).to have_received(:revrange).with(0, window_limit - 1)
       expect(instances_double).not_to have_received(:to_a)
       expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org2])
+    end
+
+    it 'unions every subscription-linked org with the window for a filter-only read' do
+      # org3 is NOT in the newest window (revrange -> org2, org1) but holds a
+      # subscription, so the index walk must surface it for the sync filter.
+      allow(org_dbclient).to receive(:hscan) do |dbkey, _cursor, **opts|
+        expect(dbkey).to eq('organization:stripe_subscription_id_index')
+        expect(opts).not_to have_key(:match)
+        expect(opts[:count]).to eq(described_class::SCAN_COUNT)
+        ['0', [['sub_3', 'org3']]]
+      end
+      allow(Billing::BillingService).to receive(:compute_sync_status) do |org|
+        org.objid == 'org3' ? 'potentially_stale' : 'synced'
+      end
+
+      logic = logic_for('sync_status' => 'potentially_stale')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(instances_double).to have_received(:revrange).with(0, window_limit - 1)
+      expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org3])
+      expect(data[:details][:pagination][:capped]).to be(false)
+    end
+
+    it 'de-duplicates an org present in both the subscription index and the window' do
+      allow(org_dbclient).to receive(:hscan).and_return(['0', [['sub_1', 'org1']]])
+
+      logic = logic_for('status' => 'active')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org1])
+      expect(data[:details][:pagination][:total_count]).to eq(1)
+    end
+
+    it 'reports capped when the subscription index walk stops at its limit' do
+      entries = (1..(described_class::BILLING_INDEX_LIMIT + 1)).map { |i| ["sub_#{i}", "o#{i}"] }
+      allow(org_dbclient).to receive(:hscan).and_return(['0', entries])
+
+      logic = logic_for('status' => 'active')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(data[:details][:pagination][:capped]).to be(true)
+    end
+
+    it 'does not walk the subscription index when a search term is present' do
+      logic = logic_for('search' => 'acme', 'status' => 'active')
+      logic.raise_concerns
+      logic.process
+
+      expect(org_dbclient).not_to have_received(:hscan)
+        .with('organization:stripe_subscription_id_index', anything, anything)
     end
 
     it 'is not capped when the population fits the window' do

@@ -428,8 +428,8 @@
     "content_hash": "0e916101"
   },
   "web.colonel.organizations.capped": {
-    "text": "Results are capped: the count shown is a floor, not the total. Search by an exact ID or email, or narrow the filters, to see everything.",
-    "content_hash": "fffadc89"
+    "text": "Results are capped: the count shown is a floor, not the total. Filters cover every subscription-linked organization plus the most recently updated ones; search by an exact ID or email to reach any other.",
+    "content_hash": "0743238d"
   },
   "web.colonel.organizations.columns.billing": {
     "text": "Billing",

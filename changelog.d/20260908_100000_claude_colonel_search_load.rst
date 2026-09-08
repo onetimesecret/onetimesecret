@@ -10,7 +10,13 @@ Fixed
   when a bound stopped short. On a production-sized fleet the old path, and
   its size-capped roster cache that never engaged there, pinned the web
   workers for 30-60 seconds per search and was the cause of the repeated
-  outages triggered from the console.
+  outages triggered from the console. The search is tiered: an exact ID
+  answers alone, an email-shaped term is settled by the contact and owner
+  email indexes without reading the window, and only a plain term (a display
+  name) pays for the window. Status and sync-status filters read every
+  subscription-linked organization off the subscription index in addition to
+  the window, so a stale-plan organization that has not been written recently
+  still shows up. ``capped`` is raised only by a bound that actually ran.
 
 - Every search box in the admin console (customers, domains, organizations,
   sessions, Stripe customers, the organization picker and the add-member

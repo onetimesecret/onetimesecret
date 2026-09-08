@@ -47,8 +47,15 @@ module ColonelAPI
       #        set, matched in Ruby on display_name / billing_email (there is
       #        no index for either). Every plain term reads it; an email-shaped
       #        term reads it only when neither index answered.
-      # - STATUS / SYNC-STATUS only: the same newest-first window, filtered in
-      #   Ruby (no per-status index exists).
+      # - STATUS / SYNC-STATUS only: the newest-first window UNIONED with every
+      #   subscription-linked organization off `stripe_subscription_id_index`
+      #   (bounded by BILLING_INDEX_LIMIT), filtered in Ruby. There is no
+      #   per-status index, but subscription_status and the informative sync
+      #   states live on organizations that hold a Stripe subscription — and a
+      #   planid that drifted because nothing wrote the record sits at the OLD
+      #   end of the save-time-scored instances set, exactly where a
+      #   newest-first window cannot reach. The index is only the subscribed
+      #   orgs, so the walk is a handful of round-trips.
       #
       # Whenever a scan or the window that was ACTUALLY CONSULTED stops short
       # of the population, the response sets `pagination.capped` so the UI can
@@ -88,6 +95,12 @@ module ColonelAPI
         # status / sync-status filters and the display_name / billing_email
         # search read (same size as the domains list's status window).
         FILTER_WINDOW_LIMIT = 5_000
+
+        # Cap on subscription-linked organizations a filter-only read collects
+        # from `stripe_subscription_id_index`. The walk is un-MATCHed (every
+        # pair crosses the wire), so it stops on this many ids rather than on
+        # SEARCH_SCAN_ROUNDS: at most (limit + SCAN_COUNT) pairs per request.
+        BILLING_INDEX_LIMIT = 5_000
 
         attr_reader :organizations,
           :total_count,
@@ -179,7 +192,7 @@ module ColonelAPI
         # index-resolved email search reports a floor only when the index scan
         # itself stopped short.
         def filtered_candidates
-          return window_candidates if search_term.empty?
+          return filter_only_candidates if search_term.empty?
 
           exact = identifier_lookups
           return exact unless exact.empty?
@@ -209,6 +222,34 @@ module ColonelAPI
             found.each { |org| candidates[org.objid] ||= org }
           end
           candidates.values
+        end
+
+        # Status / sync-status without a term: every subscription-linked
+        # organization plus the newest window. `subscription_status` is only
+        # ever set on an organization that has (or had) a Stripe subscription,
+        # and both informative sync states — synced-on-a-paid-plan and
+        # potentially_stale — need billing data, so the subscription index is
+        # the population those filters are about. The window still covers the
+        # rest (free orgs for `synced` / `unknown`, and a paid planid set
+        # without any subscription), and still raises `capped` when it stops
+        # short, because nothing certifies completeness for those.
+        def filter_only_candidates
+          merge_candidates([subscription_linked_candidates, window_candidates])
+        end
+
+        # Every organization in `stripe_subscription_id_index` (subscription id
+        # -> objid), up to BILLING_INDEX_LIMIT. Un-MATCHed walk: the index only
+        # holds subscribed organizations, so it is small where the fleet is
+        # large.
+        def subscription_linked_candidates
+          objids, scan_capped = scan_hash_index(
+            Onetime::Organization.stripe_subscription_id_index.dbkey,
+            Onetime::Organization.dbclient,
+            nil,
+            limit: BILLING_INDEX_LIMIT,
+          )
+          @capped           ||= scan_capped
+          load(objids)
         end
 
         # Newest FILTER_WINDOW_LIMIT organizations by save time. Sets `capped`
@@ -268,16 +309,19 @@ module ColonelAPI
         end
 
         # Non-blocking cursor HSCAN of a `field -> objid` index hash, matching
-        # `*term*` server-side. Doubly bounded by `limit` matches and
-        # SEARCH_SCAN_ROUNDS round-trips. Returns [objids, capped].
+        # `*term*` server-side (or walking every entry when `term` is nil).
+        # Doubly bounded by `limit` matches and SEARCH_SCAN_ROUNDS round-trips.
+        # Returns [objids, capped].
         def scan_hash_index(dbkey, dbclient, term, limit: SEARCH_MATCH_LIMIT)
-          pattern = "*#{glob_case_insensitive(term)}*"
-          objids  = []
-          cursor  = '0'
-          rounds  = 0
+          options         = { count: SCAN_COUNT }
+          options[:match] = "*#{glob_case_insensitive(term)}*" if term
+
+          objids = []
+          cursor = '0'
+          rounds = 0
 
           loop do
-            cursor, entries = dbclient.hscan(dbkey, cursor, match: pattern, count: SCAN_COUNT)
+            cursor, entries = dbclient.hscan(dbkey, cursor, **options)
             entries.each { |_field, objid| objids << objid.to_s }
             rounds         += 1
 
