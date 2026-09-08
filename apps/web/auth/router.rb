@@ -125,6 +125,45 @@ module Auth
       Auth::ErrorTranslator::NOT_FOUND_BODY
     end
 
+    # Rodauth routes that need no login: the ones a browser reaches to
+    # present a credential (password, passkey, magic link, SSO) or to start
+    # or finish an account-lifecycle flow (sign-up, verification, password
+    # reset, unlock). Rodauth marks none of its routes as login-required in
+    # any introspectable way; the login-required ones call require_login /
+    # require_account in their before_*_route hooks, so this list is kept by
+    # hand. Route names, not paths: each is read off the Rodauth instance so
+    # a renamed route follows, and one whose feature is not enabled has no
+    # `<name>_route` reader and is skipped. The OmniAuth routes are matched
+    # on their prefix because their provider segment is per-install (and,
+    # for tenant SSO, per-request).
+    ANONYMOUS_RODAUTH_ROUTES = [
+      :login,
+      :webauthn_login,
+      :webauthn_autofill_js,
+      :email_auth,
+      :email_auth_request,
+      :create_account,
+      :verify_account,
+      :verify_account_resend,
+      :reset_password,
+      :reset_password_request,
+      :unlock_account,
+      :unlock_account_request,
+    ].freeze
+
+    # Whether `path` (request.path_info, relative to the /auth mount) is one
+    # Rodauth serves without a login. Read by the active-session gate's
+    # :revoked branch in the route block below.
+    def anonymous_rodauth_route?(path)
+      named = ANONYMOUS_RODAUTH_ROUTES.any? do |name|
+        reader = :"#{name}_route"
+        rodauth.respond_to?(reader) && path == "/#{rodauth.public_send(reader)}"
+      end
+      return true if named
+
+      rodauth.respond_to?(:omniauth_prefix) && path.start_with?("#{rodauth.omniauth_prefix}/")
+    end
+
     # Main routing logic
     route do |r|
       # Debug logging for development
@@ -187,16 +226,20 @@ module Auth
         # the around_rodauth rescue in config/overrides/error_handling.rb)
         # and what Rodauth's own check_active_session does. Clearing the Rack
         # session turns the request anonymous; the memo goes with it, since
-        # the identity it was reached for is gone. Two routes are then
-        # answered differently from the rest. Login continues, so that a
-        # stale cookie can sign in again without first bouncing off its own
-        # revoked session. Logout is answered here with success, as the
-        # orphan rescue does: the Rack session is already destroyed, which
-        # is all the user asked for, and Rodauth's logout must not run on
-        # it (its global-logout branch dereferences the account, and a
-        # revoked browser must not be able to revoke anyone else's rows
-        # through it anyway). Everything else answers 401 with the
-        # session_expired key the SPA already translates.
+        # the identity it was reached for is gone. Two kinds of route are
+        # then answered differently from the rest. The routes Rodauth serves
+        # without a login (#anonymous_rodauth_route?) continue as the
+        # anonymous request they now are, so that a stale cookie can present
+        # a credential without first bouncing off its own revoked session:
+        # a 401 there would self-heal on retry, but an OmniAuth callback has
+        # no retry, its authorization code being spent on the first attempt.
+        # Logout is answered here with success, as the orphan rescue does:
+        # the Rack session is already destroyed, which is all the user asked
+        # for, and Rodauth's logout must not run on it (its global-logout
+        # branch dereferences the account, and a revoked browser must not be
+        # able to revoke anyone else's rows through it anyway). Everything
+        # else answers 401 with the session_expired key the SPA already
+        # translates.
         Auth::Logging.log_auth_event(
           :active_session_revoked,
           level: :info,
@@ -206,12 +249,11 @@ module Auth
         rodauth.clear_session
         env.delete(Onetime::ActiveSessionGate::ENV_KEY)
 
-        case r.path_info
-        when "/#{rodauth.login_route}"
-          nil
-        when "/#{rodauth.logout_route}"
+        if r.path_info == "/#{rodauth.logout_route}"
           next { success: true, message: 'web.auth.logout.success' }
-        else
+        end
+
+        unless anonymous_rodauth_route?(r.path_info)
           response.status = 401
           next { error: 'web.auth.security.session_expired', success: false }
         end

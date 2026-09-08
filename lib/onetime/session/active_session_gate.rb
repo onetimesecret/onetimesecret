@@ -48,8 +48,26 @@ module Onetime
   # One indexed SELECT on the table's primary key per authenticated request,
   # `(session['account_id'], session['active_session_id_hmac'])`, memoized in
   # the Rack env so the strategy and the helpers never both pay for it. The
-  # same SELECT asks the database whether `last_use` is due a refresh (see
-  # below), so the steady state stays read-only.
+  # same SELECT asks the database whether the row is past either deadline
+  # and whether `last_use` is due a refresh (both below), so the steady state
+  # stays read-only.
+  #
+  # ## Deadlines
+  #
+  # Rodauth's two session deadlines are enforced here, in the same SELECT:
+  # a row whose `last_use` is older than {INACTIVITY_DEADLINE} or whose
+  # `created_at` is older than {LIFETIME_DEADLINE} is removed, as Rodauth's
+  # own sweep (`remove_inactive_sessions`) would remove it, and the Rack
+  # session is refused as :revoked. They cannot live anywhere else: the gate
+  # keeps `last_use` fresh on every request (below), so a deadline checked
+  # only on the sessions page would find every row active, and Rodauth's
+  # `check_active_session` has no call site on this surface. The two values
+  # are owned by this module and fed to Rodauth's configuration from here
+  # (apps/web/auth/config/features/active_sessions.rb), so the gate and the
+  # sessions page's sweep can never disagree about when a row is dead.
+  #
+  # An expired row is refused before `last_use` is touched, so it is never
+  # revived by the request that finds it.
   #
   # ## Failure posture: closed
   #
@@ -73,18 +91,18 @@ module Onetime
   #   (apps/web/auth/config/features/active_sessions.rb), so no new Rack
   #   session can be minted without a join key. The unstamped population
   #   ages out within Rodauth's session_lifetime_deadline.
-  # - **Inactivity / lifetime deadlines.** Rodauth applies those on the
-  #   sessions page. This module only touches the row's `last_use`, throttled
-  #   to once per {TOUCH_INTERVAL}, so that page's inactivity sweep sees real
-  #   activity instead of the login timestamp — now that the sweep's
-  #   revocations actually end Rack sessions, a stale `last_use` would sign
-  #   out an active user. Both the throttle decision and the refreshed value
-  #   are computed by the database against its own CURRENT_TIMESTAMP, the
-  #   clock Rodauth wrote the column with. `last_use` is a naive timestamp;
-  #   comparing it with Ruby's Time.now would silently break on any host
-  #   whose process TZ differs from the database session's, in one direction
-  #   never refreshing (the sweep then signs out an active user) and in the
-  #   other refreshing on every request.
+  #
+  # ## The `last_use` refresh
+  #
+  # The row's `last_use` is what the inactivity deadline reads, so the gate
+  # refreshes it, throttled to once per {TOUCH_INTERVAL}, and an active user
+  # is never signed out for inactivity. The deadline decisions, the throttle
+  # decision and the refreshed value are all computed by the database
+  # against its own CURRENT_TIMESTAMP, the clock Rodauth wrote the columns
+  # with. They are naive timestamps; comparing them with Ruby's Time.now
+  # would silently break on any host whose process TZ differs from the
+  # database session's, in one direction expiring live sessions and never
+  # refreshing, in the other never expiring and refreshing on every request.
   module ActiveSessionGate
     extend self
 
@@ -93,6 +111,12 @@ module Onetime
 
     # Minimum seconds between `last_use` writes for one active-session row.
     TOUCH_INTERVAL = 300
+
+    # Rodauth's session deadlines, in seconds. Owned here and fed to Rodauth
+    # (`session_inactivity_deadline`, `session_lifetime_deadline`) so this
+    # gate and the sessions page's sweep apply the same two values.
+    INACTIVITY_DEADLINE = 86_400    # 24 hours since `last_use`
+    LIFETIME_DEADLINE   = 2_592_000 # 30 days since `created_at`
 
     TABLE = :account_active_session_keys
 
@@ -138,8 +162,14 @@ module Onetime
         account_id: session['account_id'],
         session_id: session['active_session_id_hmac'],
       )
-      row    = row_ds.select(Sequel.as(touch_due_expression, :touch_due)).first
+      row    = row_ds.select(
+        Sequel.as(past_expression(:last_use, INACTIVITY_DEADLINE), :inactive),
+        Sequel.as(past_expression(:created_at, LIFETIME_DEADLINE), :outlived),
+        Sequel.as(past_expression(:last_use, TOUCH_INTERVAL), :touch_due),
+      ).first
       return :revoked if row.nil?
+      return expire(row_ds, 'inactivity') if row[:inactive].to_i == 1
+      return expire(row_ds, 'lifetime') if row[:outlived].to_i == 1
 
       touch(row_ds) if row[:touch_due].to_i == 1
       :active
@@ -158,16 +188,32 @@ module Onetime
       defined?(::Auth::Database) ? true : false
     end
 
-    # `1` when the row's `last_use` (NOT NULL in the schema) is older than
-    # {TOUCH_INTERVAL}, else `0`. Evaluated by the database against its own CURRENT_TIMESTAMP,
-    # never against Ruby's clock, and as an integer CASE rather than a bare
-    # boolean because SQLite returns booleans as integers and Sequel only
-    # typecasts declared boolean columns. `Sequel.date_sub` comes from the
+    # `1` when the row's timestamp `column` (`last_use` and `created_at` are
+    # both NOT NULL in the schema) is more than `seconds` old, else `0`.
+    # Evaluated by the database against its own CURRENT_TIMESTAMP, never
+    # against Ruby's clock, and as an integer CASE rather than a bare boolean
+    # because SQLite returns booleans as integers and Sequel only typecasts
+    # declared boolean columns. `Sequel.date_sub` comes from the
     # date_arithmetic extension, which Auth::Database loads on the authdb
     # connection (Rodauth's active_sessions feature needs it too).
-    def touch_due_expression
-      stale = Sequel[:last_use] < Sequel.date_sub(Sequel::CURRENT_TIMESTAMP, seconds: TOUCH_INTERVAL)
-      Sequel.case({ stale => 1 }, 0)
+    def past_expression(column, seconds)
+      past = Sequel[column] < Sequel.date_sub(Sequel::CURRENT_TIMESTAMP, seconds: seconds)
+      Sequel.case({ past => 1 }, 0)
+    end
+
+    # The row is past the named deadline: remove it, as Rodauth's sweep
+    # would, and refuse the Rack session. Removal is best effort, with its
+    # own rescue: the SELECT has already decided, and a row this delete
+    # cannot reach is collected by the sessions page's sweep instead.
+    # Logged at info because the user sees a sign-out with no action of
+    # their own behind it, and support needs to be able to name the deadline.
+    def expire(row_ds, deadline)
+      OT.info "[active_session_gate] active-session row past its #{deadline} deadline; removed, Rack session refused"
+      row_ds.delete
+      :revoked
+    rescue StandardError => ex
+      OT.lw "[active_session_gate] expired active-session row could not be removed; the sessions-page sweep will collect it: #{ex.class}: #{ex.message}"
+      :revoked
     end
 
     # Best-effort `last_use` refresh on the active-session row, in the

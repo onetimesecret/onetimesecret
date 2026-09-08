@@ -98,6 +98,30 @@ RSpec.describe 'Active Sessions Management', type: :integration do
 
         expect(Time.now - account_rows.first[:last_use]).to be < 5
       end
+
+      # Rodauth's deadlines are decided in the gate's SELECT (see the gate's
+      # module doc): the same request that would have refreshed last_use
+      # refuses the Rack session and removes the row instead.
+      it 'refuses the Rack session once its row is past the inactivity deadline, and removes the row' do
+        account_rows.update(last_use: Time.now - (Onetime::ActiveSessionGate::INACTIVITY_DEADLINE + 60))
+
+        get '/api/account/'
+        expect(last_response.status).to eq(401)
+        expect(account_rows.count).to eq(0)
+      end
+
+      it 'refuses the Rack session once its row is past the lifetime deadline, however active' do
+        account_rows.update(created_at: Time.now - (Onetime::ActiveSessionGate::LIFETIME_DEADLINE + 60), last_use: Time.now)
+
+        get '/api/account/'
+        expect(last_response.status).to eq(401)
+        expect(account_rows.count).to eq(0)
+      end
+
+      it 'applies the same two deadlines Rodauth itself is configured with' do
+        deadlines = Auth::Config.internal_request_eval { [session_inactivity_deadline, session_lifetime_deadline] }
+        expect(deadlines).to eq([Onetime::ActiveSessionGate::INACTIVITY_DEADLINE, Onetime::ActiveSessionGate::LIFETIME_DEADLINE])
+      end
     end
 
     # The /auth surface authenticates on rodauth.logged_in?, which reads only
@@ -179,6 +203,59 @@ RSpec.describe 'Active Sessions Management', type: :integration do
 
         get '/api/account/'
         expect(last_response.status).to eq(200), last_response.body
+      end
+
+      # Login is not the only route a stale cookie presents a credential
+      # on. Every route Rodauth serves without a login continues as the
+      # anonymous request the destroyed session leaves behind, instead of a
+      # 401 that only self-heals on retry; an OmniAuth callback has no retry.
+      describe 'other routes Rodauth serves without a login' do
+        let(:new_email) { "revoked-signup-#{SecureRandom.hex(8)}@example.com" }
+
+        # A plain sign-up does not auto-login (only an invite signup does), so
+        # the proof is the account, not a new row.
+        it 'lets the revoked Rack session sign up a new account' do
+          account_rows.delete
+
+          post_json '/auth/create-account',
+            {
+              login: new_email,
+              'login-confirm': new_email,
+              password: test_password,
+              'password-confirm': test_password,
+            }
+          expect(last_response.status).to eq(200), last_response.body
+          expect(test_db[:accounts].where(email: new_email).count).to eq(1)
+        end
+
+        it 'lets the revoked Rack session request a password reset' do
+          account_rows.delete
+
+          post_json '/auth/reset-password-request', { login: test_email }
+          expect(last_response.status).to eq(200), last_response.body
+        end
+
+        it 'does not refuse the SSO request and callback routes as session_expired' do
+          account_rows.delete
+
+          get '/auth/sso/oidc'
+          expect(last_response.status).not_to eq(401)
+
+          # The request above destroyed the Rack session; mint a fresh one
+          # and revoke it so the callback is also reached while :revoked.
+          login!(email: test_email)
+          account_rows.delete
+          get '/auth/sso/oidc/callback'
+          expect(last_response.status).not_to eq(401)
+        end
+
+        it 'still refuses a login-required route (the exemption is by route, not blanket)' do
+          account_rows.delete
+
+          get_json '/auth/account'
+          expect(last_response.status).to eq(401)
+          expect(json_response['error']).to eq('web.auth.security.session_expired')
+        end
       end
 
       # Answered by the router itself, not Rodauth: the Rack session is already

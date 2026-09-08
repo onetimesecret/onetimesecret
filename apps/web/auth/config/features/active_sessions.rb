@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/session/active_session_gate'
+
 module Auth::Config::Features
   # Active sessions feature: track and manage user sessions across devices.
   # Allows users to view where they're logged in and revoke sessions.
@@ -12,13 +14,14 @@ module Auth::Config::Features
     def self.configure(auth)
       auth.enable :active_sessions
 
-      # Session lifetime settings
-      #
-      # Enables updating last_use timestamp on each request where
-      # currently_active_session? is checked.
-      #
-      auth.session_inactivity_deadline 86_400   # 24 hours - sessions inactive for this long are removed
-      auth.session_lifetime_deadline 2_592_000  # 30 days - max session lifetime
+      # Session deadlines. Rodauth applies them in its sessions-page sweep
+      # (remove_inactive_sessions) and refreshes last_use wherever
+      # currently_active_session? runs; Onetime::ActiveSessionGate applies the
+      # same two values on every authenticated request, which is where the
+      # deadlines actually end a session. The gate owns the numbers so the
+      # two can never drift apart.
+      auth.session_inactivity_deadline Onetime::ActiveSessionGate::INACTIVITY_DEADLINE
+      auth.session_lifetime_deadline Onetime::ActiveSessionGate::LIFETIME_DEADLINE
 
       # Stamp the Rodauth-side JOIN KEY into the app session.
       #
