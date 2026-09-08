@@ -34,6 +34,41 @@ RSpec.describe Onetime::RodauthAdmin do
       stub_config('http://127.0.0.1:9292///')
       expect(described_class.base_url).to eq('http://127.0.0.1:9292')
     end
+
+    it 'accepts https' do
+      stub_config('https://admin.example.com')
+      expect(described_class.base_url).to eq('https://admin.example.com')
+    end
+
+    context 'with a value that is not an absolute http(s) URL' do
+      before do
+        # The warn-once memo persists on the module across examples.
+        described_class.instance_variable_set(:@warned_invalid_url, nil)
+        allow(OT).to receive(:le)
+      end
+
+      it 'treats a schemeless host:port value as unset (dead-link trap)' do
+        stub_config('admin.example.com:9292')
+        expect(described_class.base_url).to be_nil
+      end
+
+      it 'rejects a non-http scheme' do
+        stub_config('ftp://admin.example.com')
+        expect(described_class.base_url).to be_nil
+      end
+
+      it 'rejects an unparseable value' do
+        stub_config('http://[bad')
+        expect(described_class.base_url).to be_nil
+      end
+
+      it 'warns once, naming the misconfiguration' do
+        stub_config('admin.example.com:9292')
+        expect(OT).to receive(:le).once.with(/RODAUTH_ADMIN_URL is not an absolute/)
+        described_class.base_url
+        described_class.base_url
+      end
+    end
   end
 
   describe '.console_url' do

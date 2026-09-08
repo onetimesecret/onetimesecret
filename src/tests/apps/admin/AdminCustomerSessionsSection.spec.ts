@@ -29,6 +29,7 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 }));
 
 import AdminCustomerSessionsSection from '@/apps/admin/components/AdminCustomerSessionsSection.vue';
+import SessionAuthorityNotice from '@/apps/admin/components/SessionAuthorityNotice.vue';
 import {
   colonelCustomerSessionsResponseSchema,
   type AdminCustomerSession,
@@ -272,6 +273,54 @@ describe('AdminCustomerSessionsSection — session authority notice', () => {
     );
     // The table still renders beneath the notice — the rows are real, just not the whole truth.
     expect(wrapper.find('[data-testid="sessions-section-table"]').exists()).toBe(true);
+  });
+
+  it('uses the revoke-all-aware copy: revoke-all DOES end the Rodauth sessions', async () => {
+    // Regression for PR #4390 review: the shared notice's "revoking a session
+    // here does not end a Rodauth session" is true for per-row revoke but false
+    // for the Revoke all button on this panel, which purges the account's
+    // account_active_session_keys. The customer surface must say so.
+    const payload = sessionsPayload() as unknown as { details: Record<string, unknown> };
+    payload.details.session_authority = {
+      mode: 'full',
+      authoritative: false,
+      rodauth_admin_url: 'http://127.0.0.1:9292',
+    };
+    mockApi.get.mockResolvedValue({ data: payload });
+    wrapper = mountSection();
+    await flushPromises();
+
+    // The test i18n echoes keys, so assert on the key the customer surface
+    // selects: the revoke-all-aware variant, not the plain per-row description.
+    const notice = wrapper.find('[data-testid="session-authority-notice"]');
+    expect(notice.text()).toContain('web.admin.sessions.authority.descriptionRevokeAll');
+  });
+});
+
+describe('SessionAuthorityNotice — surface-aware copy', () => {
+  const authority = {
+    mode: 'full' as const,
+    authoritative: false,
+    rodauth_admin_url: null,
+  };
+
+  const mountNotice = (props: Record<string, unknown>) =>
+    mount(SessionAuthorityNotice, { props, global: { plugins: [i18n] } });
+
+  it('uses the plain per-row description on the default (console) surface', () => {
+    // The global console only offers single-revoke (self-expiring row), so the
+    // default context must NOT claim revoke-all semantics.
+    const wrapper = mountNotice({ authority });
+    const text = wrapper.find('[data-testid="session-authority-notice"]').text();
+    expect(text).toContain('web.admin.sessions.authority.description');
+    expect(text).not.toContain('descriptionRevokeAll');
+  });
+
+  it('uses the revoke-all-aware description on the customer surface', () => {
+    const wrapper = mountNotice({ authority, context: 'customer' });
+    expect(wrapper.find('[data-testid="session-authority-notice"]').text()).toContain(
+      'web.admin.sessions.authority.descriptionRevokeAll'
+    );
   });
 });
 

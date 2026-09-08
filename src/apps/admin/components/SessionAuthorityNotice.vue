@@ -23,14 +23,30 @@
    * predating the signal sends no block at all (deploy skew must not add a
    * scary banner to a simple-mode console).
    */
-  const props = defineProps<{
-    authority: SessionAuthority | null | undefined;
-  }>();
+  const props = withDefaults(
+    defineProps<{
+      authority: SessionAuthority | null | undefined;
+      /**
+       * Which surface renders the notice. On the per-customer panel a Revoke
+       * all button DOES clear the account's Rodauth session index, so that
+       * surface needs copy that distinguishes single-revoke from revoke-all;
+       * the global console (default) only offers single-revoke, whose row
+       * self-expires.
+       */
+      context?: 'console' | 'customer';
+    }>(),
+    { context: 'console' }
+  );
 
   const { t } = useI18n();
 
   const visible = computed(() => !!props.authority && !props.authority.authoritative);
   const adminUrl = computed(() => props.authority?.rodauth_admin_url ?? null);
+  const descriptionKey = computed(() =>
+    props.context === 'customer'
+      ? 'web.admin.sessions.authority.descriptionRevokeAll'
+      : 'web.admin.sessions.authority.description'
+  );
 </script>
 
 <template>
@@ -49,7 +65,7 @@
         {{ t('web.admin.sessions.authority.title') }}
       </p>
       <p class="text-amber-800 dark:text-amber-200">
-        {{ t('web.admin.sessions.authority.description') }}
+        {{ t(descriptionKey) }}
       </p>
       <a
         v-if="adminUrl"

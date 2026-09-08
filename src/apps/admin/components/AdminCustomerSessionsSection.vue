@@ -237,7 +237,9 @@
     <div
       v-if="sessionAuthority && !sessionAuthority.authoritative"
       class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-      <SessionAuthorityNotice :authority="sessionAuthority" />
+      <SessionAuthorityNotice
+        :authority="sessionAuthority"
+        context="customer" />
     </div>
 
     <!-- Load error (network/HTTP or contract mismatch). -->

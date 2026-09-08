@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'erb'
+require 'uri'
 
 module Onetime
   # Outbound links to the standalone Rodauth Admin instance
@@ -22,15 +23,27 @@ module Onetime
   module RodauthAdmin
     extend self
 
-    # Configured base URL with any trailing slash removed, or nil when unset or
-    # blank. Mode-agnostic: this is the raw setting.
+    # Configured base URL with any trailing slash removed, or nil when unset,
+    # blank, or not an absolute http(s) URL. Mode-agnostic: this is the raw
+    # setting, minus validation.
+    #
+    # A schemeless or malformed value (e.g. `admin.example.com:9292`) would
+    # otherwise be emitted verbatim into operator-facing hrefs, where the
+    # browser parses it as an unknown scheme and every deep link is silently
+    # dead. Rejecting it here treats the misconfiguration as unset — callers
+    # render plain text instead of a broken link — and warns once so the cause
+    # is named rather than invisible.
     #
     # @return [String, nil]
     def base_url
       raw = OT.conf&.dig('site', 'admin', 'rodauth_admin_url').to_s.strip
       return nil if raw.empty?
 
-      raw.sub(%r{/+\z}, '')
+      normalized = raw.sub(%r{/+\z}, '')
+      return normalized if absolute_http_url?(normalized)
+
+      warn_invalid_url(raw)
+      nil
     end
 
     # True when a link can be rendered: full auth mode AND a configured URL.
@@ -61,6 +74,31 @@ module Onetime
       return nil if base.nil? || value.empty?
 
       "#{base}/account?q=#{ERB::Util.url_encode(value)}"
+    end
+
+    private
+
+    # An absolute http(s) URL with a host: the only shape safe to emit as an
+    # href. URI.parse classifies http/https as URI::HTTP (URI::HTTPS is a
+    # subclass); anything else — a schemeless value, a foreign scheme, or an
+    # unparseable string — is rejected.
+    def absolute_http_url?(value)
+      uri = URI.parse(value)
+      uri.is_a?(URI::HTTP) && !uri.host.to_s.empty?
+    rescue URI::InvalidURIError
+      false
+    end
+
+    # Warn once per process so a misconfiguration is named without spamming the
+    # log on every per-request link build.
+    def warn_invalid_url(raw)
+      return if @warned_invalid_url
+
+      @warned_invalid_url = true
+      OT.le(
+        '[RodauthAdmin] RODAUTH_ADMIN_URL is not an absolute http(s) URL; ' \
+        "ignoring it (links render as plain text): #{raw.inspect}",
+      )
     end
   end
 end
