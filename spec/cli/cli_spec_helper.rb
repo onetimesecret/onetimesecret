@@ -73,6 +73,11 @@ module CLISpecHelper
   def mock_redis_client
     double('Redis').tap do |redis|
       allow(Familia).to receive(:dbclient).and_return(redis)
+      # The list/search path reads session blobs with MGET
+      # (Operations::Sessions::Store#load_data_multi). Mirror real Redis
+      # semantics so any test that stubs #get transparently drives the
+      # batched read: MGET is GET applied to each key, in order.
+      allow(redis).to receive(:mget) { |*keys| keys.map { |key| redis.get(key) } }
     end
   end
 

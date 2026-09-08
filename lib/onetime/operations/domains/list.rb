@@ -42,10 +42,17 @@ module Onetime
   module Operations
     module Domains
       class List
-        # Per-round-trip COUNT hint for the index cursor HSCANs. MATCH filters
-        # server-side and each call is sub-millisecond, so a search's cost is
-        # its round-trips: 1k per call covers the index in a few calls.
+        # Per-round-trip COUNT hint for the MATCH-filtered index cursor HSCANs.
+        # MATCH filters server-side, so only hits cross the wire and a search's
+        # cost is its round-trips: 1k per call covers the index in a few calls.
         SCAN_COUNT = 1_000
+
+        # COUNT hint for the un-MATCHed owners walk ({scan_owners_index}), which
+        # transfers EVERY field/value pair into Ruby to compare there. Kept at
+        # 100 so the per-request ceiling (COUNT × SEARCH_SCAN_ROUNDS) stays at
+        # ~100k pairs rather than the ~1M a 1k COUNT would allow — the large
+        # SCAN_COUNT above is safe only because MATCH bounds what it returns.
+        OWNERS_SCAN_COUNT = 100
 
         # Cap on how many display_domain_index MATCHES one search collects.
         SEARCH_MATCH_LIMIT = 1_000
@@ -255,7 +262,7 @@ module Onetime
           rounds   = 0
 
           loop do
-            cursor, entries = dbclient.hscan(dbkey, cursor, count: SCAN_COUNT)
+            cursor, entries = dbclient.hscan(dbkey, cursor, count: OWNERS_SCAN_COUNT)
             entries.each { |domain_id, owner| owned << domain_id if wanted.include?(owner) }
             rounds         += 1
 

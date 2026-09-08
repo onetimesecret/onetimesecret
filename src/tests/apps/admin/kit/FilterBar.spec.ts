@@ -148,11 +148,18 @@ describe('FilterBar (config-driven filters)', () => {
     expect(submitBtn!.attributes('disabled')).toBeDefined();
     expect(submitBtn!.attributes('aria-busy')).toBe('true');
 
-    await wrapper.find('#kit-filter-search').trigger('keydown', { key: 'Enter' });
+    // The input is disabled too, so the term cannot change mid-flight and the
+    // landing results can never sit under a different visible query.
+    const input = wrapper.find('#kit-filter-search');
+    expect(input.attributes('disabled')).toBeDefined();
+    expect(input.attributes('aria-busy')).toBe('true');
+
+    await input.trigger('keydown', { key: 'Enter' });
     await submitBtn!.trigger('click');
     expect(wrapper.emitted('submit')).toBeFalsy();
 
     await wrapper.setProps({ busy: false });
+    expect(wrapper.find('#kit-filter-search').attributes('disabled')).toBeUndefined();
     await wrapper.find('#kit-filter-search').trigger('keydown', { key: 'Enter' });
     expect(wrapper.emitted('submit')!.length).toBe(1);
   });

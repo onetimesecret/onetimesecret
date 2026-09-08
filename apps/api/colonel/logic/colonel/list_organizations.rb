@@ -172,12 +172,17 @@ module ColonelAPI
           load(window_ids)
         end
 
-        # Exact objid / extid hits — O(1) unique-index reads.
+        # Exact objid / extid hits — O(1) unique-index reads. Both lookups
+        # existence-check as they load (Familia `load`/`find_by_extid` run with
+        # `check_exists: true` and return nil for a missing record), so
+        # `.compact` alone yields only rows that exist. A second `exists?` here
+        # would recheck on a possibly-different pooled connection and could
+        # false-negative, dropping an organization the load just confirmed.
         def identifier_lookups
           [
             safe_lookup { Onetime::Organization.find_by_extid(search_term) },
             safe_lookup { Onetime::Organization.load(search_term) },
-          ].compact.select { |org| safe_lookup { org.exists? } }
+          ].compact
         end
 
         # Organizations whose contact_email contains the term. The index stores

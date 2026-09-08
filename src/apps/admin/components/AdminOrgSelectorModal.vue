@@ -129,7 +129,9 @@
           spellcheck="false"
           data-testid="org-search-input"
           :placeholder="t('web.admin.domains.orgPicker.searchPlaceholder')"
-          class="w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 font-mono text-sm text-gray-900 placeholder:font-sans placeholder:text-gray-400 focus:border-brand-500 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+          :disabled="loading"
+          :aria-busy="loading"
+          class="w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 font-mono text-sm text-gray-900 placeholder:font-sans placeholder:text-gray-400 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
       </div>
       <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">
         {{ t('web.admin.domains.orgPicker.searchHint') }}

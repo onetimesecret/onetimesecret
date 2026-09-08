@@ -136,7 +136,12 @@
    */
   function onSearchSubmit(): void {
     if (searchLoading.value) return;
-    if (term.value.trim() === activeTerm.value) return;
+    // Skip a no-op repeat of a term already showing results — UNLESS the last
+    // attempt errored. A transient failure (network blip, 5xx, contract
+    // mismatch) leaves `activeTerm` set, so without this a same-term Enter
+    // would be a permanent no-op and the operator could never retry.
+    const hadError = Boolean(searchError.value || searchValidationError.value);
+    if (!hadError && term.value.trim() === activeTerm.value) return;
     runSearch();
   }
 
@@ -278,7 +283,9 @@
           spellcheck="false"
           data-testid="add-member-search"
           :placeholder="t('web.admin.organizations.addMember.searchPlaceholder')"
-          class="w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+          :disabled="searchLoading"
+          :aria-busy="searchLoading"
+          class="w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
       </div>
       <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">
         {{ t('web.admin.organizations.addMember.searchHint') }}

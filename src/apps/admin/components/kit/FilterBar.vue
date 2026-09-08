@@ -26,7 +26,9 @@
    * on the server, and the earlier per-keystroke debounce turned one operator
    * typing an address into a burst of concurrent scans. While the owner has a
    * request in flight (`busy`), the bar refuses to emit another `submit`, so
-   * hammering Enter cannot queue a burst either.
+   * hammering Enter cannot queue a burst either. The input itself is disabled
+   * while `busy` too: the term cannot change mid-flight, so the results that
+   * land can never sit under a different visible query than the one searched.
    */
   const props = withDefaults(
     defineProps<{
@@ -129,7 +131,9 @@
             type="search"
             :value="search"
             :placeholder="resolvedSearchPlaceholder"
-            class="block w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
+            :disabled="busy"
+            :aria-busy="busy"
+            class="block w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
             @input="onSearchInput"
             @keydown="onSearchKeydown" />
         </div>
