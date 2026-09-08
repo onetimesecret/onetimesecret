@@ -176,7 +176,7 @@ All hooks (`account_from_omniauth`, `before_omniauth_create_account`, etc.) are 
 
 An email claim may **locate** an account; only a **demonstrated credential** may **bind** an identity to it. Email is metadata, not an identity join key.
 
-Concretely: an SSO login is identified by the `(provider, issuer, uid)` key recorded in `account_identities`; `issuer` is `''` for OAuth2-only rows, while legacy rows begin with that sentinel until a platform callback lazily upgrades them. When that key is already linked, the user is signed into the linked account. When it is *not* linked but the IdP-supplied email happens to match an existing account, the default behavior is to **refuse email-only auto-linking** — because anyone who controls the IdP can mint a token bearing any victim's email address. Auto-linking on email alone would let such a token take over the matching account. On the platform surface, the user can instead prove an existing password or control of the account's on-file mailbox. Tenant callbacks, and platform cases where those proof paths cannot proceed, receive the H-3 refusal: `omniauth_link_refused_existing_account` (level `warn`), a redirect to `/signin?auth_error=account_exists_link_required`, and a flash telling them to sign in with their existing method.
+Concretely: an SSO login is identified by the `(provider, issuer, uid)` key recorded in `account_identities`; `issuer` is `''` for OAuth2-only rows, while legacy rows begin with that sentinel until a platform callback lazily upgrades them. When that key is already linked, the user is signed into the linked account. When it is *not* linked but the IdP-supplied email happens to match an existing account, the default behavior is to **refuse email-only auto-linking** — because anyone who controls the IdP can mint a token bearing any victim's email address. Auto-linking on email alone would let such a token take over the matching account. On the platform surface, the user can instead prove an existing password or control of the account's on-file mailbox. Tenant callbacks, and platform cases where those proof paths cannot proceed, receive the H-3 refusal: `omniauth_link_refused_existing_account` (level `warn`, carrying `surface: platform|tenant`) and a redirect. The platform redirect is `/signin?auth_error=account_exists_link_required`, telling the user to sign in with their existing method and then link. The tenant redirect is `/signin?auth_error=tenant_sso_link_unavailable`: linking is platform-only until #3849, so there is no self-service path and the copy names an org-owner invite or support instead.
 
 This is the correct default for a multi-tenant platform. It is *not* what a self-hosted single-tenant operator wants when they control both the app and the IdP — for them, email is a trustworthy join key, and the refusal locks legitimate users out. The trusted-IdP flag is the sanctioned, opt-in exception.
 
@@ -203,7 +203,7 @@ IdP round-trip → callback → account_from_omniauth
     ▼
 Consume the intent (atomic GETDEL)
     ├─ matches the current session account → bind (provider, issuer, uid) to it, re-affirm session
-    ├─ tenant callback on a platform session → refuse (identity_connect_conflict)
+    ├─ tenant callback on a platform session → refuse (identity_connect_wrong_domain)
     ├─ session account no longer open       → refuse (identity_connect_conflict)
     └─ absent / expired / other account     → fall through to the email branches (never bind)
     │
@@ -245,7 +245,7 @@ That ordering is the point: matching a connect to an email-*located* account wou
 
 | Condition | Outcome | Audit event |
 |-----------|---------|-------------|
-| Tenant callback (`validated_omniauth_domain_id` set) on a platform session | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `tenant_surface` |
+| Tenant callback (`validated_omniauth_domain_id` set) on a platform session | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `tenant_surface` |
 | Session account gone or no longer open (e.g. closed mid-session) | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `session_account_missing` |
 | Logged in, but no valid intent (second tab, shared browser, intent for a different account) | **No bind** — falls through to the email branches exactly as an unauthenticated caller would | `omniauth_connect_intent_absent` (level `info`) |
 | Bind succeeds | `(provider, issuer, uid)` row written for the session account; session re-affirmed | `omniauth_identity_connected` (level `warn`) |
@@ -281,7 +281,7 @@ This path needs no operator configuration. It is on by default and is the platfo
 
 1. `account_from_omniauth` looks up the located account's password hash directly (it cannot use `has_password?`, which reads the *session* account and there is no session yet on this path).
 2. **Account has a password →** it mints a single-use `Onetime::SsoLinkChallenge` in Redis — a short-lived (5 min) token snapshotting `(provider, resolved_issuer, uid, normalized email, account id)` — logs `omniauth_link_challenge_issued` (level `warn`), and redirects the browser to the SPA interstitial at `/link-sso/{token}`.
-3. **Account has no password (SSO-only) →** on the platform surface, it continues to [Mailbox-proof linking](#mailbox-proof-linking-passwordless-accounts); tenant callbacks retain the H-3 refusal (`omniauth_link_refused_existing_account`, redirect to `/signin?auth_error=account_exists_link_required`) because there is no local credential to challenge.
+3. **Account has no password (SSO-only) →** on the platform surface, it continues to [Mailbox-proof linking](#mailbox-proof-linking-passwordless-accounts); tenant callbacks retain the H-3 refusal (`omniauth_link_refused_existing_account`, redirect to `/signin?auth_error=tenant_sso_link_unavailable`) because there is no local credential to challenge.
 
 **The interstitial endpoints** (`apps/web/auth/routes/link_sso.rb`):
 

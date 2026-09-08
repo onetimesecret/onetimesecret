@@ -698,7 +698,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         post '/auth/sso/oidc/callback'
 
         expect(last_response.status).to eq(302)
-        expect(last_response.location.to_s).to include('/signin?auth_error=identity_connect_conflict'),
+        expect(last_response.location.to_s).to include('/signin?auth_error=identity_connect_wrong_domain'),
           "Tenant callback must refuse the bind. Location: #{last_response.location.inspect}"
 
         expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0),

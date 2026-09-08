@@ -30,7 +30,7 @@
 #           identity row created, :omniauth_link_refused_existing_account fires.
 #   3. TENANT path (session[:validated_omniauth_domain_id] present) + trust ON
 #        -> STILL refuses; the trust flag must never affect the multi-tenant
-#           surface. Redirect to account_exists_link_required, no row created.
+#           surface. Redirect to tenant_sso_link_unavailable, no row created.
 #
 # HOW IT DIFFERS FROM omniauth_spec.rb: that file asserts the *decision* in
 # isolation (pure logic); this file asserts the *effects* end-to-end through
@@ -286,7 +286,7 @@ RSpec.describe 'OmniAuth trusted-provider email linking (#3836 Phase 1)', type: 
 
         expect(last_response.status).to eq(302),
           "Expected refusal redirect, got #{last_response.status}: #{last_response.body}"
-        expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
+        expect(last_response.location.to_s).to include('/signin?auth_error=tenant_sso_link_unavailable'),
           "Tenant surface must refuse regardless of trust flag. Location: #{last_response.location.inspect}"
 
         # No auto-link on the tenant surface.
