@@ -41,6 +41,48 @@ RSpec.describe 'Active Sessions Management', type: :integration do
     end
   end
 
+  # The gate's premise is that every full-mode login runs through Rodauth's
+  # login_session, which stamps the join key
+  # (apps/web/auth/config/features/active_sessions.rb). But
+  # Core::Controllers::Authentication also answers POST /auth/login
+  # (apps/web/core/routes.txt, the simple-mode sign-in) and writes
+  # `authenticated` with neither account_id nor join key: a Rack session the
+  # gate would exempt from revocation forever. What keeps it off the /auth
+  # surface in full mode is mount order alone: Auth::Application at /auth is
+  # mounted ahead of Core::Application at /, so URLMap never hands /auth/*
+  # to core. Pin that at the mount table and on the wire, so a registry
+  # change cannot quietly hand full-mode logins to the controller that mints
+  # unrevocable sessions.
+  describe 'the /auth surface is Rodauth in full mode' do
+    let(:test_email) { "auth-surface-#{SecureRandom.hex(8)}@example.com" }
+
+    def session_blob(sid)
+      db    = Familia.dbclient
+      dbkey = Onetime::Operations::Sessions::Store.find_key(db, sid)
+      codec = Onetime::SessionCodec.from_config
+      Onetime::Operations::Sessions::Store.load_data(db, dbkey, codec: codec)
+    end
+
+    it 'mounts Auth::Application at /auth ahead of Core::Application at /' do
+      mappings = Onetime::Application::Registry.mount_mappings
+      expect(mappings['/auth']).to eq(Auth::Application)
+      expect(mappings['/']).to eq(Core::Application)
+    end
+
+    it 'mints a login session carrying account_id and the join key, the shape only login_session writes' do
+      account = create_verified_account(db: test_db, email: test_email, password: test_password)
+      login!(email: test_email)
+
+      blob = session_blob(rack_mock_session.cookie_jar['onetime.session'])
+      expect(blob['account_id']).to eq(account[:id])
+      expect(blob['active_session_id_hmac']).to be_a(String)
+      expect(blob['active_session_id_hmac']).not_to be_empty
+
+      row_key = test_db[:account_active_session_keys].where(account_id: account[:id]).get(:session_id)
+      expect(row_key).to eq(blob['active_session_id_hmac'])
+    end
+  end
+
   describe 'with authenticated session' do
     let(:test_email) { "sessions-test-#{SecureRandom.hex(8)}@example.com" }
 
