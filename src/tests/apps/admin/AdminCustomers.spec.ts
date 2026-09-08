@@ -274,6 +274,33 @@ describe('AdminCustomers (list view — ticket #22)', () => {
     expect(wrapper.find('[data-testid="suspended-badge"]').exists()).toBe(false);
   });
 
+  it('shows a Rodauth Admin link in the drawer only when the server built one', async () => {
+    const withLink = usersPayload() as unknown as {
+      details: { users: Record<string, unknown>[] };
+    };
+    withLink.details.users[0].rodauth_admin_account_url =
+      'http://127.0.0.1:9292/account?q=ur_alice';
+    mockApi.get.mockResolvedValue({ data: withLink });
+    wrapper = mountView();
+    await flushPromises();
+    await wrapper.find('[data-testid="customers-table"] tbody tr').trigger('click');
+    await flushPromises();
+
+    const link = wrapper.find('[data-testid="customer-rodauth-admin-link"]');
+    expect(link.exists()).toBe(true);
+    expect(link.attributes('href')).toBe('http://127.0.0.1:9292/account?q=ur_alice');
+    expect(link.attributes('target')).toBe('_blank');
+    wrapper.unmount();
+
+    // Null (unset URL or simple mode) or absent (older backend): plain drawer.
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    wrapper = mountView();
+    await flushPromises();
+    await wrapper.find('[data-testid="customers-table"] tbody tr').trigger('click');
+    await flushPromises();
+    expect(wrapper.find('[data-testid="customer-rodauth-admin-link"]').exists()).toBe(false);
+  });
+
   it('opens the detail drawer on row click, with a full-page escalation link', async () => {
     mockApi.get.mockResolvedValue({ data: usersPayload() });
     wrapper = mountView();

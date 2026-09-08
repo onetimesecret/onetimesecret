@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminCustomers.vue -->
 
 <script setup lang="ts">
-
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import {
     AdminConfirmDialog,
@@ -312,7 +311,8 @@
       // A blank email yields null here, but `requestAction` refuses to open the
       // dialog in that state, so this can never become a one-click confirm.
       // Verify/unverify are reversible, so they degrade to a one-click confirm.
-      confirmToken: action === 'purge' ? (purgeTokenFor(actionTarget.value) ?? undefined) : undefined,
+      confirmToken:
+        action === 'purge' ? (purgeTokenFor(actionTarget.value) ?? undefined) : undefined,
       variant: action === 'purge' ? ('danger' as const) : ('default' as const),
       confirmText: t(`web.admin.customers.actions.${action}.button`),
       // Only PURGE asks for a why (#4338): it is the destructive verb here, and
@@ -515,7 +515,9 @@
           <span
             v-else
             class="text-gray-400 dark:text-gray-600"
-            :aria-label="t('web.admin.customers.detail.no')">—</span>
+            :aria-label="t('web.admin.customers.detail.no')"
+            >—</span
+          >
         </template>
 
         <template #cell-plan="{ row }">
@@ -534,7 +536,9 @@
 
         <template #cell-lastLogin="{ row }">
           <span class="text-gray-500 tabular-nums dark:text-gray-400">{{
-            row.last_login ? formatDisplayDateTime(row.last_login) : t('web.admin.customers.detail.never')
+            row.last_login
+              ? formatDisplayDateTime(row.last_login)
+              : t('web.admin.customers.detail.never')
           }}</span>
         </template>
 
@@ -617,7 +621,9 @@
           <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <StatCard
               :label="t('web.admin.customers.columns.role')"
-              :value="t(`web.admin.customers.roles.${selectedCustomer.role}`, selectedCustomer.role)"
+              :value="
+                t(`web.admin.customers.roles.${selectedCustomer.role}`, selectedCustomer.role)
+              "
               icon="shield-check"
               testid="customer-stat-role" />
             <StatCard
@@ -676,6 +682,21 @@
               name="arrow-top-right-on-square"
               size="4" />
           </router-link>
+          <!-- Outbound hand-over to the matching Rodauth account; the server
+               sends null unless full auth mode + RODAUTH_ADMIN_URL are set. -->
+          <a
+            v-if="selectedCustomer.rodauth_admin_account_url"
+            :href="selectedCustomer.rodauth_admin_account_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="ml-3 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
+            data-testid="customer-rodauth-admin-link">
+            {{ t('web.admin.customers.detail.rodauthAdmin.open') }}
+            <OIcon
+              collection="heroicons"
+              name="arrow-top-right-on-square"
+              size="3" />
+          </a>
         </section>
       </div>
 

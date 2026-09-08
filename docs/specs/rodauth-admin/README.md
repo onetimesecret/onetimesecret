@@ -19,7 +19,7 @@ no cross-service API call; the admin is only ever *linked to*.
 
 | Seam | Where |
 |---|---|
-| Outbound deep link from the colonel customer page to the matching Rodauth account, keyed by `accounts.external_id == Customer.extid` | `lib/onetime/rodauth_admin.rb`, surfaced by `Auth::Operations::Customers::Show` and `GET /api/colonel/users/:extid` (`details.rodauth_admin_account_url`) |
+| Outbound deep links to the matching Rodauth account, keyed by `accounts.external_id == Customer.extid`: the customer detail page, the customers list drawer, and every row and drawer of the sessions console | `lib/onetime/rodauth_admin.rb`; `rodauth_admin_account_url` on `GET /api/colonel/users` rows, `GET /api/colonel/users/:extid` details, `GET /api/colonel/sessions` rows and `GET /api/colonel/sessions/:handle` record; also on `Auth::Operations::Customers::Show` for the CLI |
 | The sessions console and per-customer sessions panel say they are **not** the session authority in `full` mode and link out | `ColonelAPI::Logic::Colonel::SessionAuthority` (`details.session_authority` on both listings), `SessionAuthorityNotice.vue` |
 | The dev-only stats stub `apps/web/auth/routes/admin.rb` | Deleted |
 

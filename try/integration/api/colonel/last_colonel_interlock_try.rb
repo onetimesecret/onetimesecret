@@ -158,6 +158,11 @@ get '/api/colonel/sessions', {}, colonel_headers
 [@authority['mode'], @authority['authoritative'], @authority['rodauth_admin_url']]
 #=> ['simple', true, nil]
 
+## ...and every row carries its own outbound link slot (nil for the same reason)
+[body['details']['sessions'].all? { |s| s.key?('rodauth_admin_account_url') },
+ body['details']['sessions'].map { |s| s['rodauth_admin_account_url'] }.uniq]
+#=> [true, [nil]]
+
 ## Revoking that row is refused — sign out instead of self-revoking
 delete "/api/colonel/sessions/#{@own_handle}", {}, confirming(@colonel)
 [last_response.status, body['field']]

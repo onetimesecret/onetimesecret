@@ -57,6 +57,8 @@ export const colonelSessionSchema = z.object({
   user_agent: z.string().nullable(),
   created_at: z.number().nullable(),
   geo_country: z.string().nullable().optional(),
+  /** Outbound Rodauth Admin link for the row's owner (null unless full mode + URL set). */
+  rodauth_admin_account_url: z.string().nullable().optional(),
 });
 
 /**
@@ -126,6 +128,8 @@ export const colonelSessionDetailRecordSchema = z.object({
   authenticated: z.boolean(),
   email: z.string().nullable(),
   external_id: z.string().nullable(),
+  /** Outbound Rodauth Admin link for the session's owner (null unless full mode + URL set). */
+  rodauth_admin_account_url: z.string().nullable().optional(),
   account_id: z.union([z.string(), z.number()]).nullable(),
   role: z.string().nullable(),
   locale: z.string().nullable(),

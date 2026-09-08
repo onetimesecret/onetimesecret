@@ -226,5 +226,8 @@
   },
   "web.admin.sessions.authority.notConfigured": {
     "text": "Set RODAUTH_ADMIN_URL to link to Rodauth Admin from here."
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Open in Rodauth Admin"
   }
 }

@@ -3,10 +3,11 @@ Added
 
 - ``RODAUTH_ADMIN_URL`` (config ``site.admin.rodauth_admin_url``): the base URL
   of the standalone Rodauth Admin instance. Optional and credential-free. When
-  set in ``full`` authentication mode, the colonel customer page links to the
-  matching Rodauth account, and the sessions console and per-customer sessions
-  panel link to it as the session authority. Nothing is ever requested from
-  it; unset renders plain text.
+  set in ``full`` authentication mode, the colonel customer page, the customers
+  list drawer, and each row of the sessions console link to the matching
+  Rodauth account, and the sessions console and per-customer sessions panel
+  link to it as the session authority. Nothing is ever requested from it;
+  unset renders plain text.
 
 Changed
 -------

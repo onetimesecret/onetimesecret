@@ -487,9 +487,28 @@
         </template>
 
         <template #cell-external_id="{ row }">
-          <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{
-            row.external_id || '—'
-          }}</span>
+          <!-- Per-row hand-over to Rodauth Admin: a link only when the server
+               built one (full mode + RODAUTH_ADMIN_URL), plain text otherwise. -->
+          <a
+            v-if="row.rodauth_admin_account_url"
+            :href="row.rodauth_admin_account_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1 font-mono text-xs text-brand-600 hover:underline dark:text-brand-400"
+            :title="t('web.admin.sessions.rodauthAdmin.open')"
+            :data-testid="`session-rodauth-admin-${row.session_handle}`"
+            @click.stop>
+            {{ row.external_id }}
+            <OIcon
+              collection="heroicons"
+              name="arrow-top-right-on-square"
+              size="3" />
+          </a>
+          <span
+            v-else
+            class="font-mono text-xs text-gray-500 dark:text-gray-400"
+            >{{ row.external_id || '—' }}</span
+          >
         </template>
 
         <template #cell-ip_address="{ row }">
@@ -661,6 +680,19 @@
               </dd>
             </div>
           </dl>
+          <a
+            v-if="detailRecord?.rodauth_admin_account_url"
+            :href="detailRecord.rodauth_admin_account_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
+            data-testid="session-drawer-rodauth-admin">
+            {{ t('web.admin.sessions.rodauthAdmin.open') }}
+            <OIcon
+              collection="heroicons"
+              name="arrow-top-right-on-square"
+              size="3" />
+          </a>
         </section>
 
         <!-- Raw inspector -->

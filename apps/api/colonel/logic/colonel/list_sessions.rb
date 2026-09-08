@@ -79,7 +79,12 @@ module ColonelAPI
             search: @search,
           ).call
 
-          @sessions        = result.sessions
+          # Each row gets its own outbound Rodauth Admin link (nil unless full
+          # mode AND RODAUTH_ADMIN_URL), so the console can hand over
+          # per-session, not only per-console via session_authority.
+          @sessions        = result.sessions.map do |row|
+            row.merge(rodauth_admin_account_url: Onetime::RodauthAdmin.account_url(row[:external_id]))
+          end
           @pagination_meta = {
             page: result.page,
             per_page: result.per_page,

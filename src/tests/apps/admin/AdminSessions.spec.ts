@@ -260,6 +260,59 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     });
   });
 
+  // ---- Per-row Rodauth Admin link (rodauth-admin CHARTER §4 seam 1) --------
+
+  describe('per-row Rodauth Admin link', () => {
+    const ROW_LINK = 'http://127.0.0.1:9292/account?q=ext_1';
+
+    it('renders the external id as a new-tab link when the server built one', async () => {
+      mockApi.get.mockResolvedValue({
+        data: sessionsPayload([sessionRow({ rodauth_admin_account_url: ROW_LINK })]),
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      const link = wrapper.find(`[data-testid="session-rodauth-admin-${HANDLE}"]`);
+      expect(link.exists()).toBe(true);
+      expect(link.attributes('href')).toBe(ROW_LINK);
+      expect(link.attributes('target')).toBe('_blank');
+      expect(link.attributes('rel')).toContain('noopener');
+      expect(link.text()).toContain(OWNER);
+    });
+
+    it('renders plain text when the link is null or absent', async () => {
+      mockApi.get.mockResolvedValue({
+        data: sessionsPayload([
+          sessionRow({ rodauth_admin_account_url: null }),
+          sessionRow({ session_handle: 'a15e5510000000000000000000000009' }),
+        ]),
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      expect(wrapper.findAll('[data-testid^="session-rodauth-admin-"]')).toHaveLength(0);
+      expect(wrapper.find('[data-testid="sessions-table"]').text()).toContain(OWNER);
+    });
+
+    it('shows the link in the drawer when the detail record carries one', async () => {
+      mockApi.get.mockImplementation((url: string) => {
+        if (url === LIST_URL) return Promise.resolve({ data: sessionsPayload() });
+        const payload = detailPayload() as unknown as { record: Record<string, unknown> };
+        payload.record.rodauth_admin_account_url = ROW_LINK;
+        return Promise.resolve({ data: payload });
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      await wrapper.find('[data-testid="sessions-table"] tbody tr').trigger('click');
+      await flushPromises();
+
+      const link = wrapper.find('[data-testid="session-drawer-rodauth-admin"]');
+      expect(link.exists()).toBe(true);
+      expect(link.attributes('href')).toBe(ROW_LINK);
+    });
+  });
+
   // ---- List -----------------------------------------------------------------
 
   it('fetches the sessions page on mount and renders a row per session', async () => {

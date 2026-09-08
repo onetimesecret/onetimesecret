@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/rodauth_admin'
+
 require_relative '../base'
 require 'auth/operations/customers/list'
 
@@ -67,6 +69,10 @@ module ColonelAPI
             {
               user_id: cust.user_id,
               extid: cust.extid,
+              # Outbound deep link to the matching Rodauth account in the
+              # standalone admin (Onetime::RodauthAdmin); nil unless full auth
+              # mode AND RODAUTH_ADMIN_URL are set.
+              rodauth_admin_account_url: Onetime::RodauthAdmin.account_url(cust.extid),
               # FULL address (colonel-only, scope=internal). The admin table
               # obscures it client-side and reveals on interaction — RevealEmail.vue.
               email: cust.email,

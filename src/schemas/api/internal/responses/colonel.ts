@@ -49,6 +49,8 @@ export const recentCustomerSchema = z.object({
 export const colonelUserSchema = z.object({
   user_id: z.string(),
   extid: z.string(),
+  /** Outbound Rodauth Admin link (null unless full auth mode + RODAUTH_ADMIN_URL). */
+  rodauth_admin_account_url: z.string().nullable().optional(),
   email: z.string(),
   role: z.string(),
   verified: z.boolean(),
