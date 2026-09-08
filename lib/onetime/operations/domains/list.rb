@@ -178,11 +178,16 @@ module Onetime
         end
 
         # Non-blocking cursor HSCAN of the display_domain_index hash, matching
-        # `*term*` server-side against the lowercased stored domains.
+        # `*term*` server-side. Display domains are stored lowercase, so the
+        # case-insensitive glob is defensive here rather than load-bearing:
+        # it keeps this scan on the same shared helper as the customer and
+        # organization searches, whose indexes DO carry mixed-case keys, so
+        # a future writer that skips normalization cannot silently make a
+        # domain unsearchable.
         def scan_display_domain_index(term)
           dbkey    = Onetime::CustomDomain.display_domain_index.dbkey
           dbclient = Onetime::CustomDomain.dbclient
-          pattern  = "*#{glob_escape(term.downcase)}*"
+          pattern  = "*#{OT::Utils.glob_case_insensitive(term)}*"
           objids   = []
           cursor   = '0'
           rounds   = 0
@@ -229,10 +234,6 @@ module Onetime
           yield
         rescue StandardError
           nil
-        end
-
-        def glob_escape(term)
-          term.gsub(/[*?\[\]\\]/) { |char| "\\#{char}" }
         end
 
         # The org's own domains participation set unioned with the org's entries

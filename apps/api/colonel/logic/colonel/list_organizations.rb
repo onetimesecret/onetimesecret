@@ -314,7 +314,7 @@ module ColonelAPI
         # Returns [objids, capped].
         def scan_hash_index(dbkey, dbclient, term, limit: SEARCH_MATCH_LIMIT)
           options         = { count: SCAN_COUNT }
-          options[:match] = "*#{glob_case_insensitive(term)}*" if term
+          options[:match] = "*#{OT::Utils.glob_case_insensitive(term)}*" if term
 
           objids = []
           cursor = '0'
@@ -332,20 +332,6 @@ module ColonelAPI
 
           capped = cursor != '0' || objids.size > limit
           [objids.first(limit).uniq, capped]
-        end
-
-        # Escape glob metacharacters, then widen every letter to a `[aA]`
-        # class so the server-side MATCH is case-insensitive.
-        def glob_case_insensitive(term)
-          term.each_char.map do |char|
-            if char.match?(/[*?\[\]\\]/)
-              "\\#{char}"
-            elsif char.match?(/[a-zA-Z]/)
-              "[#{char.downcase}#{char.upcase}]"
-            else
-              char
-            end
-          end.join
         end
 
         def safe_lookup
