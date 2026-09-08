@@ -164,6 +164,40 @@ module Auth
       rodauth.respond_to?(:omniauth_prefix) && path.start_with?("#{rodauth.omniauth_prefix}/")
     end
 
+    # How the gate's :revoked branch answers `path`: the logout is answered
+    # here, a route Rodauth serves without a login continues as anonymous,
+    # everything else is refused.
+    def revoked_outcome(path)
+      return :logout_answered if path == "/#{rodauth.logout_route}"
+      return :continued_anonymous if anonymous_rodauth_route?(path)
+
+      :refused
+    end
+
+    # The Rack-session keys OmniAuth parks during the request phase of an
+    # SSO flow and consumes in the callback (omniauth-oauth2 and
+    # omniauth_openid_connect). Clearing the Rack session between the two
+    # phases drops them, and the callback then fails state verification.
+    OMNIAUTH_FLOW_KEYS = ['omniauth.state', 'omniauth.nonce', 'omniauth.pkce.verifier', 'omniauth.params'].freeze
+
+    # What the current Rack session is carrying mid-flow, for the gate's
+    # log lines: the OmniAuth keys above (in the session blob, dropped by
+    # clear_session) and the sidecar hand-off fields bound to its sid
+    # (sso_connect_intent, link_sso_pending_bind, awaiting_mfa: NOT dropped
+    # by clear_session, since it never reaches the store's delete path, so
+    # they sit orphaned until their TTL). Both lists empty is the common
+    # case. Read-only and best effort: a sidecar probe failure reads as
+    # nothing in flight rather than disturbing the refusal.
+    def inflight_session_state
+      omniauth_keys  = OMNIAUTH_FLOW_KEYS.reject { |key| session[key].nil? }
+      sidecar_fields = begin
+        Onetime::SessionSidecar.inflight_fields(session.id&.public_id)
+      rescue StandardError
+        []
+      end
+      { omniauth_keys: omniauth_keys, sidecar_fields: sidecar_fields }
+    end
+
     # Main routing logic
     route do |r|
       # Debug logging for development
@@ -240,20 +274,50 @@ module Auth
         # able to revoke anyone else's rows through it anyway). Everything
         # else answers 401 with the session_expired key the SPA already
         # translates.
+        #
+        # Logged before the clear, with the outcome and whatever the Rack
+        # session was carrying mid-flow. The one case the exemption cannot
+        # save gets its own warn line: a row revoked between an SSO flow's
+        # request phase and its callback. The callback is exempt and runs,
+        # but the clear has dropped the OmniAuth state the callback verifies
+        # against, so it fails and the provider's one-time authorization code
+        # is spent. The user is signed out, which is what the revocation
+        # asked for, and restarts the flow after signing in. Support sees an
+        # SSO failure at the same moment as a revocation; this line is what
+        # ties the two together. The sidecar hand-off fields survive the
+        # clear (it never reaches the store's delete path) and expire on
+        # their own TTL; they are named here so the stranded hand-off is not
+        # silent, as the store's own tripwire would have made it on a logout.
+        outcome  = revoked_outcome(r.path_info)
+        inflight = inflight_session_state
         Auth::Logging.log_auth_event(
           :active_session_revoked,
           level: :info,
           path: r.path_info,
           account_id: session['account_id'],
+          outcome: outcome,
+          **inflight,
         )
+        if inflight.values.any?(&:any?)
+          Auth::Logging.log_auth_event(
+            :active_session_revoked_mid_flow,
+            level: :warn,
+            path: r.path_info,
+            account_id: session['account_id'],
+            outcome: outcome,
+            **inflight,
+            consequence: 'OmniAuth keys are dropped with the Rack session, so an in-flight SSO callback ' \
+                         'fails state verification and its authorization code is spent; sidecar hand-off ' \
+                         'fields are left to expire on their TTL. The user signs in again and restarts the flow.',
+          )
+        end
         rodauth.clear_session
         env.delete(Onetime::ActiveSessionGate::ENV_KEY)
 
-        if r.path_info == "/#{rodauth.logout_route}"
+        case outcome
+        when :logout_answered
           next { success: true, message: 'web.auth.logout.success' }
-        end
-
-        unless anonymous_rodauth_route?(r.path_info)
+        when :refused
           response.status = 401
           next { error: 'web.auth.security.session_expired', success: false }
         end
@@ -263,8 +327,19 @@ module Auth
         # [SESSION_UNVERIFIED] refusal. Logout is the one exception: signing
         # out grants nothing, so the Rack session is destroyed and the logout
         # answered here (Rodauth's would need the same unreachable authdb);
-        # its active-session row waits for the sweep.
-        if r.path_info == "/#{rodauth.logout_route}"
+        # its active-session row waits for the sweep. The gate has already
+        # logged the outage at error; this line adds the request the outage
+        # refused and how, so the refusals are countable per account and
+        # route while it lasts.
+        logout = r.path_info == "/#{rodauth.logout_route}"
+        Auth::Logging.log_auth_event(
+          :active_session_unverified,
+          level: :warn,
+          path: r.path_info,
+          account_id: session['account_id'],
+          outcome: logout ? :logout_answered : :refused,
+        )
+        if logout
           rodauth.clear_session
           env.delete(Onetime::ActiveSessionGate::ENV_KEY)
           next { success: true, message: 'web.auth.logout.success' }

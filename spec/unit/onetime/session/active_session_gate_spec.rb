@@ -65,8 +65,9 @@ RSpec.describe Onetime::ActiveSessionGate do
       expect(described_class.verdict(session)).to eq(:active)
     end
 
-    it 'is :revoked once the active-session row has been revoked' do
+    it 'is :revoked once the active-session row has been revoked, naming the join in the log' do
       expect(described_class.verdict(session)).to eq(:revoked)
+      expect(OT).to have_received(:info).with(/no active-session row.*account_id=42 join_key=aaaaaaaaaaaa…/)
     end
 
     it 'joins on BOTH halves of the key: another account holding the same digest does not count' do
@@ -300,7 +301,7 @@ RSpec.describe Onetime::ActiveSessionGate do
       it 'warns, naming the consequence, so the eventual sign-out is traceable' do
         described_class.verdict(session)
 
-        expect(OT).to have_received(:lw).with(/inactivity sweep.*read-only replica/)
+        expect(OT).to have_received(:lw).with(/inactivity deadline will end a live session.*account_id=42.*read-only replica/)
       end
     end
   end

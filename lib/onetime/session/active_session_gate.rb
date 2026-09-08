@@ -156,7 +156,7 @@ module Onetime
       return :skipped unless applicable?(session)
 
       db = ::Auth::Database.connection
-      return unavailable('no auth database connection') if db.nil?
+      return unavailable(session, 'no auth database connection') if db.nil?
 
       row_ds = db[TABLE].where(
         account_id: session['account_id'],
@@ -167,14 +167,14 @@ module Onetime
         Sequel.as(past_expression(:created_at, LIFETIME_DEADLINE), :outlived),
         Sequel.as(past_expression(:last_use, TOUCH_INTERVAL), :touch_due),
       ).first
-      return :revoked if row.nil?
-      return expire(row_ds, 'inactivity') if row[:inactive].to_i == 1
-      return expire(row_ds, 'lifetime') if row[:outlived].to_i == 1
+      return revoked(session) if row.nil?
+      return expire(row_ds, session, 'inactivity') if row[:inactive].to_i == 1
+      return expire(row_ds, session, 'lifetime') if row[:outlived].to_i == 1
 
-      touch(row_ds) if row[:touch_due].to_i == 1
+      touch(row_ds, session) if row[:touch_due].to_i == 1
       :active
     rescue StandardError => ex
-      unavailable("#{ex.class}: #{ex.message}")
+      unavailable(session, "#{ex.class}: #{ex.message}")
     end
 
     # Full mode with the feature on, a Rack session carrying both halves of
@@ -207,13 +207,33 @@ module Onetime
     # cannot reach is collected by the sessions page's sweep instead.
     # Logged at info because the user sees a sign-out with no action of
     # their own behind it, and support needs to be able to name the deadline.
-    def expire(row_ds, deadline)
-      OT.info "[active_session_gate] active-session row past its #{deadline} deadline; removed, Rack session refused"
+    def expire(row_ds, session, deadline)
+      OT.info "[active_session_gate] active-session row past its #{deadline} deadline; removed, Rack session refused #{who(session)}"
       row_ds.delete
       :revoked
     rescue StandardError => ex
-      OT.lw "[active_session_gate] expired active-session row could not be removed; the sessions-page sweep will collect it: #{ex.class}: #{ex.message}"
+      OT.lw '[active_session_gate] expired active-session row could not be removed; the sessions-page sweep ' \
+            "will collect it #{who(session)}: #{ex.class}: #{ex.message}"
       :revoked
+    end
+
+    # The row is gone: revoked from the sessions page, by "sign out
+    # everywhere", by an operator, or by the sweep. Every caller refuses on
+    # this; the line here is the one place the refusal is tied to the row
+    # rather than to a route, and it names the account for the operator who
+    # just revoked it.
+    def revoked(session)
+      OT.info "[active_session_gate] no active-session row for the Rack session; refused #{who(session)}"
+      :revoked
+    end
+
+    # The join, for log lines. The join key is a digest of a random token,
+    # not a credential and not the Rack sid, and is what the sessions page,
+    # "sign out everywhere" and Rodauth Admin key their rows on, so it is
+    # what an operator can match a refusal against. Truncated all the same;
+    # a prefix is enough to match on.
+    def who(session)
+      "(account_id=#{session['account_id']} join_key=#{session['active_session_id_hmac'].to_s[0, 12]}…)"
     end
 
     # Best-effort `last_use` refresh on the active-session row, in the
@@ -222,15 +242,16 @@ module Onetime
     # debug: the row's `last_use` is what Rodauth's inactivity sweep reads,
     # so a write that keeps failing ends in a live session being revoked a
     # day later, and that logout must be traceable to its cause.
-    def touch(row_ds)
+    def touch(row_ds, session)
       row_ds.update(last_use: Sequel::CURRENT_TIMESTAMP)
     rescue StandardError => ex
-      OT.lw '[active_session_gate] last_use refresh on active-session row failed; ' \
-            "if this persists the inactivity sweep will revoke a live session: #{ex.class}: #{ex.message}"
+      OT.lw '[active_session_gate] last_use refresh on active-session row failed; if this persists the ' \
+            "inactivity deadline will end a live session #{who(session)}: #{ex.class}: #{ex.message}"
     end
 
-    def unavailable(reason)
-      OT.le "[active_session_gate] authdb unreachable, active-session row unchecked, Rack session refused (fail closed): #{reason}"
+    def unavailable(session, reason)
+      OT.le '[active_session_gate] authdb unreachable, active-session row unchecked, Rack session refused ' \
+            "(fail closed) #{who(session)}: #{reason}"
       :unavailable
     end
   end

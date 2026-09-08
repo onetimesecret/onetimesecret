@@ -258,6 +258,93 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         end
       end
 
+      # Every branch of the gate on this surface leaves a line an operator
+      # can match a user report against: which route, how it was answered,
+      # and what the Rack session was carrying mid-flow when it was cleared.
+      describe 'what the gate logs' do
+        before { allow(Auth::Logging).to receive(:log_auth_event).and_call_original }
+
+        def current_cookie_sid
+          rack_mock_session.cookie_jar['onetime.session']
+        end
+
+        # Rewrite the live session blob through the same Store + Codec the
+        # session admin verbs use, so the router reads the key back exactly
+        # as OmniAuth's request phase would have left it.
+        def stash_in_session_blob(key, value)
+          db        = Familia.dbclient
+          dbkey     = Onetime::Operations::Sessions::Store.find_key(db, current_cookie_sid)
+          codec     = Onetime::SessionCodec.from_config
+          data      = Onetime::Operations::Sessions::Store.load_data(db, dbkey, codec: codec)
+          data[key] = value
+          db.set(dbkey, codec.encode(data), keepttl: true)
+        end
+
+        it 'names the outcome of a refused route, with nothing in flight' do
+          account_rows.delete
+
+          get_json '/auth/account'
+
+          expect(Auth::Logging).to have_received(:log_auth_event).with(
+            :active_session_revoked,
+            hash_including(path: '/account', outcome: :refused, omniauth_keys: [], sidecar_fields: []),
+          )
+          expect(Auth::Logging).not_to have_received(:log_auth_event).with(:active_session_revoked_mid_flow, any_args)
+        end
+
+        it 'names the outcome of a route that continues anonymously' do
+          account_rows.delete
+
+          post_json '/auth/reset-password-request', { login: test_email }
+
+          expect(Auth::Logging).to have_received(:log_auth_event).with(
+            :active_session_revoked,
+            hash_including(path: '/reset-password-request', outcome: :continued_anonymous),
+          )
+        end
+
+        # The case the exemption cannot save: revoked between an SSO flow's
+        # request phase and its callback. The callback runs, but the clear
+        # drops the OmniAuth state it verifies against and orphans the
+        # sidecar hand-off. The warn line names both so the SSO failure the
+        # user then sees can be tied to the revocation.
+        it 'warns, naming the dropped OmniAuth keys and orphaned sidecar fields, when revoked mid-SSO' do
+          stash_in_session_blob('omniauth.state', 'abc123')
+          Onetime::SessionSidecar.write(current_cookie_sid, 'sso_connect_intent', @account[:id])
+          account_rows.delete
+
+          get '/auth/sso/oidc/callback'
+          expect(last_response.status).not_to eq(401)
+
+          expect(Auth::Logging).to have_received(:log_auth_event).with(
+            :active_session_revoked_mid_flow,
+            hash_including(
+              path: '/sso/oidc/callback',
+              outcome: :continued_anonymous,
+              omniauth_keys: ['omniauth.state'],
+              sidecar_fields: ['sso_connect_intent'],
+              consequence: /authorization code is spent/,
+            ),
+          )
+        end
+
+        it 'logs each request an authdb outage refuses, and the logout it answers' do
+          allow(Auth::Database).to receive(:connection).and_raise(Sequel::DatabaseConnectionError, 'down')
+
+          get_json '/auth/account'
+          expect(Auth::Logging).to have_received(:log_auth_event).with(
+            :active_session_unverified,
+            hash_including(path: '/account', outcome: :refused, account_id: @account[:id]),
+          )
+
+          post_json '/auth/logout', {}
+          expect(Auth::Logging).to have_received(:log_auth_event).with(
+            :active_session_unverified,
+            hash_including(path: '/logout', outcome: :logout_answered),
+          )
+        end
+      end
+
       # Answered by the router itself, not Rodauth: the Rack session is already
       # destroyed, and a revoked browser's global logout must not touch the
       # account's other rows.
