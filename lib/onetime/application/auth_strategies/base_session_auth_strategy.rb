@@ -70,28 +70,13 @@ module Onetime
             return failure('[SESSION_STALE_CREDENTIALS] Session predates last credential change')
           end
 
-          # Full-mode active-session enforcement (Onetime::ActiveSessionGate,
-          # terms defined there): a Rack session whose active-session row has
-          # been revoked — by the user from another device, or by an operator
-          # in Rodauth Admin — is refused here, on its next request. Until this
-          # check existed the row was consulted only by the sessions page, so
-          # revoking it ended nothing. AFTER the watermark (the more fundamental
-          # refusal) and BEFORE the admin bound and additional_checks. Reads
-          # the authdb, never writes the Rack session; the verdict is memoized
-          # in env. Fails CLOSED: a Rack session whose row the authdb cannot
-          # check is refused too, under its own marker so the logs read as an
-          # outage, not as a revocation.
-          case Onetime::ActiveSessionGate.verdict(session, env: env)
-          when :revoked
-            return failure('[SESSION_REVOKED] Active-session row revoked; sign in again')
-          when :unavailable
-            return failure('[SESSION_UNVERIFIED] Active-session row could not be checked; try again')
-          end
-
           # Admin-surface session bounds (#4331). Runs here because this is the
           # one per-request chokepoint that already has the loaded customer
           # (hence cust.role) and the raw session. Deliberately AFTER the
-          # watermark and BEFORE additional_checks.
+          # watermark and BEFORE the active-session gate and additional_checks:
+          # the gate refreshes the active-session row's `last_use`, and an
+          # admin session this bound has already declared expired must not
+          # register as activity on that row either.
           #
           # The session is NOT mutated: an auth strategy runs on read paths and
           # must stay side-effect-free, and clearing `authenticated` here would
@@ -105,6 +90,24 @@ module Onetime
             return failure(
               "[ADMIN_SESSION_EXPIRED] Admin session #{reason} timeout exceeded; sign in again",
             )
+          end
+
+          # Full-mode active-session enforcement (Onetime::ActiveSessionGate,
+          # terms defined there): a Rack session whose active-session row has
+          # been revoked — by the user from another device, or by an operator
+          # in Rodauth Admin — is refused here, on its next request. Until this
+          # check existed the row was consulted only by the sessions page, so
+          # revoking it ended nothing. AFTER the watermark and the admin bound
+          # (both refuse without touching the authdb) and BEFORE
+          # additional_checks. Reads the authdb, never writes the Rack session;
+          # the verdict is memoized in env. Fails CLOSED: a Rack session whose
+          # row the authdb cannot check is refused too, under its own marker so
+          # the logs read as an outage, not as a revocation.
+          case Onetime::ActiveSessionGate.verdict(session, env: env)
+          when :revoked
+            return failure('[SESSION_REVOKED] Active-session row revoked; sign in again')
+          when :unavailable
+            return failure('[SESSION_UNVERIFIED] Active-session row could not be checked; try again')
           end
 
           # Colonel impersonation overlay. THE authoritative resolution: this

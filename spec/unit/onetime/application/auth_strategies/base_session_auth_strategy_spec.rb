@@ -90,13 +90,26 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
 
       expect(strategy.additional_checks_ran).to be_nil
     end
+
+    # The bound also runs BEFORE the active-session gate: the gate refreshes
+    # the active-session row's last_use, and a request this bound refuses is
+    # not activity — on the sidecar (EXPIRED_ENV_KEY) or on the row.
+    it 'never consults the active-session gate, so the refused request does not touch the row' do
+      allow(Onetime::ActiveSessionGate).to receive(:verdict)
+
+      strategy.authenticate(env, 'authenticated')
+
+      expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
+    end
   end
 
   context 'when the gate reports the active-session row has been revoked' do
-    # Full-mode revocation (Onetime::ActiveSessionGate): AFTER the watermark,
-    # BEFORE the admin bound and additional_checks. The gate is consulted with
-    # the env so its verdict is memoized for the rest of the request.
+    # Full-mode revocation (Onetime::ActiveSessionGate): AFTER the watermark
+    # and the admin bound (both refuse without an authdb round trip), BEFORE
+    # additional_checks. The gate is consulted with the env so its verdict is
+    # memoized for the rest of the request.
     before do
+      allow(strategy).to receive(:admin_session_expiry_reason).and_return(nil)
       allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
     end
 
@@ -124,11 +137,10 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
       expect(result.failure_reason).to match(/\A\[SESSION_UNVERIFIED\]/)
     end
 
-    it 'never reaches the admin bound or additional_checks' do
-      expect(strategy).not_to receive(:admin_session_expiry_reason)
-
+    it 'runs after the admin bound and never reaches additional_checks' do
       strategy.authenticate(env, 'authenticated')
 
+      expect(strategy).to have_received(:admin_session_expiry_reason)
       expect(strategy.additional_checks_ran).to be_nil
     end
   end
