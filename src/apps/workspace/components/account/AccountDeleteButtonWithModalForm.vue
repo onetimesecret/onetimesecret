@@ -24,6 +24,8 @@
   // simple-auth login flow. Rodauth owns the session used on this screen,
   // and closeAccount posts to its /auth/close-account route instead.
   const submitDeleteAccount = async () => {
+    if (!deletePassword.value || isDeleting.value) return;
+
     await closeAccount(deletePassword.value);
   };
 

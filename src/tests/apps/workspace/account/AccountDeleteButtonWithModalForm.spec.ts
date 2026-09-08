@@ -11,11 +11,12 @@ const { mockCloseAccount, mockClearErrors } = vi.hoisted(() => ({
   mockCloseAccount: vi.fn(),
   mockClearErrors: vi.fn(),
 }));
+const mockIsLoading = ref(false);
 
 vi.mock('@/shared/composables/useAuth', () => ({
   useAuth: () => ({
     closeAccount: mockCloseAccount,
-    isLoading: ref(false),
+    isLoading: mockIsLoading,
     error: ref(null),
     clearErrors: mockClearErrors,
   }),
@@ -31,6 +32,7 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 describe('AccountDeleteButtonWithModalForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockIsLoading.value = false;
     mockCloseAccount.mockResolvedValue(true);
   });
 
@@ -50,6 +52,38 @@ describe('AccountDeleteButtonWithModalForm', () => {
 
     expect(mockCloseAccount).toHaveBeenCalledOnce();
     expect(mockCloseAccount).toHaveBeenCalledWith('current-password');
+  });
+
+  it('does not submit an empty password', async () => {
+    const wrapper = mount(AccountDeleteButtonWithModalForm, {
+      props: { cust: mockCustomer },
+      global: {
+        plugins: [createTestI18n()],
+        stubs: { RouterLink: true },
+      },
+    });
+
+    await wrapper.get('[data-testid="account-delete-open-btn"]').trigger('click');
+    await wrapper.get('form').trigger('submit');
+
+    expect(mockCloseAccount).not.toHaveBeenCalled();
+  });
+
+  it('does not submit while a deletion is in progress', async () => {
+    const wrapper = mount(AccountDeleteButtonWithModalForm, {
+      props: { cust: mockCustomer },
+      global: {
+        plugins: [createTestI18n()],
+        stubs: { RouterLink: true },
+      },
+    });
+
+    await wrapper.get('[data-testid="account-delete-open-btn"]').trigger('click');
+    await wrapper.get('[data-testid="account-delete-password-input"]').setValue('current-password');
+    mockIsLoading.value = true;
+    await wrapper.get('form').trigger('submit');
+
+    expect(mockCloseAccount).not.toHaveBeenCalled();
   });
 
   it('clears authentication errors before opening and after closing the modal', async () => {
