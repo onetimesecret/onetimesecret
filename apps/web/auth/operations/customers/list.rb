@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require 'auth/account_statuses'
+require 'auth/database'
+
 module Auth
   module Operations
     module Customers
@@ -96,6 +99,46 @@ module Auth
       # is rescued).
       # Search composes with the role filter (applied in Ruby on the already
       # -bounded matches) and is paginated in memory like the filtered path.
+      #
+      # #### Authdb fallback (address-shaped terms only)
+      #
+      # Every arm above reads the Redis email index, and the index is not the
+      # source of truth for "can this person log in": in full auth mode that
+      # is the Rodauth `accounts` row (PG, citext email). Two states make a
+      # real account invisible to a Redis-only search: the index entry
+      # DRIFTED (a half-completed email change, a legacy key that was never
+      # rewritten, a lost HSET) so no scan or HGET reaches the customer; or
+      # the accounts row has no Customer at all (an ORPHAN, the state
+      # `customers diagnose` and `customers doctor` exist to name). In both
+      # the person can log in, or is failing to, while search says "no such
+      # account, check the other regions".
+      #
+      # So when the term contains `@` the op also asks the authdb for that
+      # ONE row: an exact `accounts.email = normalized term` match restricted
+      # to the LIVE statuses. Exact only, one indexed query, never a LIKE
+      # scan: the accounts table is the whole customer base and this list
+      # is on the request path. The status restriction is what makes the
+      # query indexed at all: the only index on accounts.email is PARTIAL
+      # (`where status_id in (1, 2)`, 001_initial.rb), so a query without a
+      # live-status predicate cannot use it and every miss (a typo, an
+      # unknown address, a closed-only account) would walk the whole table
+      # per submit. Diagnose#find_account keeps its any-status second arm
+      # because it is a single explicit deep read; the list does not, and a
+      # closed row is a Diagnose concern. The two states the fallback exists
+      # for are both live by definition: a person who can (or is failing to)
+      # log in has a live row. If the row links (via `external_id`) to a
+      # customer the Redis arms missed, that customer is appended and the
+      # drift is logged by extid; if it links to nothing, the row is
+      # reported in `orphaned_accounts` (never counted in `total_count`,
+      # which counts customers only) so the admin surface can show the
+      # orphan instead of an empty page.
+      #
+      # `Auth::Database.connection` is nil in simple auth mode (there is no
+      # accounts table) and the fallback is skipped silently. In full mode
+      # the connection is LAZY: an unreachable database surfaces as the first
+      # query raising, never as a nil connection, so the query is rescued and
+      # logged (exception class only) and the Redis results stand on their
+      # own. The list must never 500 because the authdb is down.
       class List
         # Immutable result. `customers` is a page of loaded Onetime::Customer
         # objects; the adapters format them for their respective surfaces (the
@@ -108,7 +151,24 @@ module Auth
           :total_pages,   # Integer — ceil(total_count / per_page), 1 when :all
           :role,          # String, nil — the applied role filter (nil = none)
           :capped,        # Boolean — scan hit its cap; total_count understates
-        )
+          :orphaned_accounts, # Array<Hash> — authdb rows with no customer (search only)
+        ) do
+          # Only the address-shaped search path produces orphans; every other
+          # path (and every older caller building a Result by hand) gets [].
+          def initialize(orphaned_accounts: [], **members)
+            super
+          end
+        end
+
+        # Wire names for accounts.status_id, keyed on the seed ids the
+        # account_statuses table pins (Auth::AccountStatuses). Anything else
+        # is 'unknown' rather than a raise: a status this code has not heard
+        # of must not blank the search.
+        ORPHAN_STATUS_NAMES = {
+          Auth::AccountStatuses::UNVERIFIED => 'unverified',
+          Auth::AccountStatuses::VERIFIED => 'verified',
+          Auth::AccountStatuses::CLOSED => 'closed',
+        }.freeze
 
         DEFAULT_PER_PAGE = 50
         MAX_PER_PAGE     = 100
@@ -243,6 +303,11 @@ module Auth
           email_ids, capped = scan_email_index_matches(@search)
           matches           = load(email_ids)
           merge_identifier_matches(matches)
+          # Orphans are NOT customers: they carry no role, so the role filter
+          # below does not apply to them, and they never count in total_count.
+          # A customer the authdb recovers IS appended to matches first, so it
+          # is role-filtered and ordered like every other match.
+          orphaned_accounts = merge_authdb_account(matches)
           matches.select! { |cust| cust.role.to_s == @role } if @role
           # Same within-page ordering as the filtered path (created descending);
           # the email index is a hash, so there is no index-native order here.
@@ -257,7 +322,7 @@ module Auth
             matches[start_idx..end_idx] || []
           end
 
-          build_result(page, total_count, capped: capped)
+          build_result(page, total_count, capped: capped, orphaned_accounts: orphaned_accounts)
         end
 
         # Non-blocking cursor HSCAN of the email_index hash (email -> objid),
@@ -342,6 +407,76 @@ module Auth
           nil
         end
 
+        # Authdb fallback for an address-shaped term (see the class docs). Asks
+        # the Rodauth accounts table for the ONE row whose email equals the
+        # normalized term. A row that links to a customer the Redis arms
+        # missed is appended to `matches` (index drift, logged by extid so
+        # operators can see it); a row that links to no customer is returned
+        # as an orphaned_accounts entry.
+        #
+        # @return [Array<Hash>] zero or one orphaned account entries
+        def merge_authdb_account(matches)
+          return [] unless @search.include?('@')
+
+          # nil in simple auth mode: no accounts table, nothing to consult.
+          db = Auth::Database.connection
+          return [] if db.nil?
+
+          row = find_auth_account_row(db, OT::Utils.normalize_email(@search))
+          return [] if row.nil?
+
+          customer = linked_customer(row)
+          if customer
+            unless matches.any? { |cust| cust.objid == customer.objid }
+              OT.lw "[Customers::List] authdb recovered customer #{customer.extid} " \
+                    'that the email index did not resolve (index drift)'
+              matches << customer
+            end
+            return []
+          end
+
+          [orphaned_account_entry(row)]
+        rescue StandardError => ex
+          # The connection is lazy, so an unreachable authdb raises HERE on the
+          # first query rather than returning nil above. The Redis results are
+          # still a valid answer; the fallback is best-effort. No address in
+          # the log line.
+          OT.le "[Customers::List] authdb fallback skipped: #{ex.class}"
+          []
+        end
+
+        # Live statuses ONLY, unlike Diagnose#find_account's second any-status
+        # arm: the unique index on accounts.email is PARTIAL (live statuses
+        # only), so this predicate is the difference between an index probe
+        # and a full accounts scan on every miss. The partial unique index
+        # also guarantees at most one live row per address, so `.first` is
+        # deterministic without an ORDER BY.
+        def find_auth_account_row(db, email)
+          db[:accounts]
+            .where(email: email, status_id: Auth::AccountStatuses::LIVE)
+            .first
+        end
+
+        # The accounts row links to its customer by extid (external_id). A nil
+        # link or an extid that resolves to nothing is the orphan case.
+        def linked_customer(row)
+          extid = row[:external_id].to_s
+          return nil if extid.empty?
+
+          safe_lookup { Onetime::Customer.find_by_extid(extid) }
+        end
+
+        def orphaned_account_entry(row)
+          created_at = row[:created_at]
+          {
+            email: row[:email].to_s,
+            account_id: row[:id],
+            external_id: row[:external_id],
+            status: ORPHAN_STATUS_NAMES.fetch(row[:status_id], 'unknown'),
+            created_at: created_at.respond_to?(:to_time) ? created_at.to_time.to_i : nil,
+          }
+        end
+
         # Non-blocking cursor SSCAN of a role_index set, collecting member objids.
         # Bounded per round-trip by SCAN_COUNT and, when `limit` is set (the
         # request path), capped at `limit` total members — so the catch-all
@@ -365,7 +500,7 @@ module Auth
           Onetime::Customer.load_multi(objids).compact
         end
 
-        def build_result(customers, total_count, capped: false)
+        def build_result(customers, total_count, capped: false, orphaned_accounts: [])
           total_pages = if @all || @per_page.zero?
             total_count.positive? ? 1 : 0
           else
@@ -380,6 +515,7 @@ module Auth
             total_pages: total_pages,
             role: @role,
             capped: capped,
+            orphaned_accounts: orphaned_accounts,
           )
         end
       end
