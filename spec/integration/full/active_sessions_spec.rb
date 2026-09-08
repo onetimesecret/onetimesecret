@@ -305,12 +305,18 @@ RSpec.describe 'Active Sessions Management', type: :integration do
 
         # The case the exemption cannot save: revoked between an SSO flow's
         # request phase and its callback. The callback runs, but the clear
-        # drops the OmniAuth state it verifies against and orphans the
+        # drops the OmniAuth state it verifies against and strands the
         # sidecar hand-off. The warn line names both so the SSO failure the
-        # user then sees can be tied to the revocation.
-        it 'warns, naming the dropped OmniAuth keys and orphaned sidecar fields, when revoked mid-SSO' do
+        # user then sees can be tied to the revocation, and the stranded
+        # stash is purged with the clear: Rodauth's clear_session keeps the
+        # sid and never reaches the store's delete path, so without the
+        # router's own purge the explicit-use stash would outlive the
+        # sign-out until its TTL.
+        it 'warns, naming the dropped OmniAuth keys and stranded sidecar fields, and purges them, when revoked mid-SSO' do
+          sid = current_cookie_sid
           stash_in_session_blob('omniauth.state', 'abc123')
-          Onetime::SessionSidecar.write(current_cookie_sid, 'sso_connect_intent', @account[:id])
+          Onetime::SessionSidecar.write(sid, 'sso_connect_intent', @account[:id])
+          expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(true)
           account_rows.delete
 
           get '/auth/sso/oidc/callback'
@@ -326,6 +332,18 @@ RSpec.describe 'Active Sessions Management', type: :integration do
               consequence: /authorization code is spent/,
             ),
           )
+          expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(false)
+        end
+
+        it 'purges the sidecar hand-off stash when a refused route signs the session out' do
+          sid = current_cookie_sid
+          Onetime::SessionSidecar.write(sid, 'link_sso_pending_bind', { 'account_id' => @account[:id].to_s })
+          account_rows.delete
+
+          get_json '/auth/account'
+          expect(last_response.status).to eq(401)
+
+          expect(Onetime::SessionSidecar.exists?(sid, 'link_sso_pending_bind')).to be(false)
         end
 
         it 'logs each request an authdb outage refuses, and the logout it answers' do

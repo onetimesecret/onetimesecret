@@ -183,11 +183,10 @@ module Auth
     # What the current Rack session is carrying mid-flow, for the gate's
     # log lines: the OmniAuth keys above (in the session blob, dropped by
     # clear_session) and the sidecar hand-off fields bound to its sid
-    # (sso_connect_intent, link_sso_pending_bind, awaiting_mfa: NOT dropped
-    # by clear_session, since it never reaches the store's delete path, so
-    # they sit orphaned until their TTL). Both lists empty is the common
-    # case. Read-only and best effort: a sidecar probe failure reads as
-    # nothing in flight rather than disturbing the refusal.
+    # holding a live truthy value (sso_connect_intent, link_sso_pending_bind,
+    # awaiting_mfa), which #clear_gated_session purges. Both lists empty is
+    # the common case. Read-only and best effort: a sidecar probe failure
+    # reads as nothing in flight rather than disturbing the refusal.
     def inflight_session_state
       omniauth_keys  = OMNIAUTH_FLOW_KEYS.reject { |key| session[key].nil? }
       sidecar_fields = begin
@@ -196,6 +195,42 @@ module Auth
         []
       end
       { omniauth_keys: omniauth_keys, sidecar_fields: sidecar_fields }
+    end
+
+    # Sign the gated request out: clear the Rack session, drop the gate's
+    # per-request memo, and purge the sidecar keys bound to the sid.
+    #
+    # Rodauth's clear_session is `session.clear` on a Rack session: it
+    # empties the hash under the SAME sid and never reaches the store's
+    # delete path (Onetime::Session#delete_session), which is where the
+    # registry purge and its in-flight tripwire live. The store's commit at
+    # the end of this request DELs the merge_on_read fields it overlaid
+    # (awaiting_mfa, elevated_until, domain_context) because they are now
+    # absent from the hash, but the explicit-use hand-off stashes
+    # (sso_connect_intent, link_sso_pending_bind) are never touched by
+    # commit and would sit under the surviving sid until their TTL. Their
+    # consumers are account-bound and the cleared session has no account,
+    # so they could not be consumed; the purge is hygiene, the same the
+    # store gives a destroyed session, so a revocation leaves nothing behind.
+    # Best effort: a purge failure is logged and the sign-out stands, the
+    # orphans being TTL-bounded (five to fifteen minutes).
+    def clear_gated_session
+      sid = session.id&.public_id
+      rodauth.clear_session
+      env.delete(Onetime::ActiveSessionGate::ENV_KEY)
+
+      begin
+        Onetime::SessionSidecar.purge(sid)
+      rescue StandardError => ex
+        Auth::Logging.log_auth_event(
+          :active_session_sidecar_purge_failed,
+          level: :error,
+          path: request.path_info,
+          error_class: ex.class.name,
+          error: ex.message,
+          consequence: 'Sidecar hand-off keys for the cleared sid are left to expire on their TTL.',
+        )
+      end
     end
 
     # Main routing logic
@@ -284,10 +319,10 @@ module Auth
         # is spent. The user is signed out, which is what the revocation
         # asked for, and restarts the flow after signing in. Support sees an
         # SSO failure at the same moment as a revocation; this line is what
-        # ties the two together. The sidecar hand-off fields survive the
-        # clear (it never reaches the store's delete path) and expire on
-        # their own TTL; they are named here so the stranded hand-off is not
-        # silent, as the store's own tripwire would have made it on a logout.
+        # ties the two together. The sidecar hand-off fields are purged with
+        # the clear (#clear_gated_session); they are named here first so the
+        # stranded hand-off is not silent, the same warning the store's own
+        # tripwire gives a logout.
         outcome  = revoked_outcome(r.path_info)
         inflight = inflight_session_state
         Auth::Logging.log_auth_event(
@@ -308,11 +343,10 @@ module Auth
             **inflight,
             consequence: 'OmniAuth keys are dropped with the Rack session, so an in-flight SSO callback ' \
                          'fails state verification and its authorization code is spent; sidecar hand-off ' \
-                         'fields are left to expire on their TTL. The user signs in again and restarts the flow.',
+                         'fields are purged with the session. The user signs in again and restarts the flow.',
           )
         end
-        rodauth.clear_session
-        env.delete(Onetime::ActiveSessionGate::ENV_KEY)
+        clear_gated_session
 
         case outcome
         when :logout_answered
@@ -340,8 +374,7 @@ module Auth
           outcome: logout ? :logout_answered : :refused,
         )
         if logout
-          rodauth.clear_session
-          env.delete(Onetime::ActiveSessionGate::ENV_KEY)
+          clear_gated_session
           next { success: true, message: 'web.auth.logout.success' }
         end
 
