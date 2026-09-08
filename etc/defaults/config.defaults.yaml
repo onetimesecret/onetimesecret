@@ -973,6 +973,16 @@ site:
     # Example: ["100.64.0.0/10", "10.0.0.0/8"]
     allowed_cidrs: <%= ENV['ADMIN_ALLOWED_CIDRS']&.split(',')&.map(&:strip) || [] %>
 
+    # Base URL of the standalone Rodauth Admin instance (onetimesecret/
+    # rodauth-admin), the tool that administers the SQL-backed accounts in
+    # full auth mode. Optional, no credential, and nothing is ever requested
+    # from it: the colonel console only renders OUTBOUND links to it (the
+    # customer page deep-links to the matching account by extid; the sessions
+    # console links to it when it is not the session authority). Unset means
+    # those links render as plain text. Mirrors COLONEL_CONSOLE_URL on the
+    # admin side. Example: http://127.0.0.1:9292 (reached over an SSH tunnel).
+    rodauth_admin_url: <%= ENV['RODAUTH_ADMIN_URL']&.to_json %>
+
   # Brand pack selection (#3739, v2 #3774). A brand pack is the single unit of
   # branding: a directory of root-served assets (favicon.ico, icon-*.png,
   # site.webmanifest, etc.) plus an optional brand.yaml identity manifest

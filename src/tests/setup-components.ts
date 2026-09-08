@@ -26,7 +26,7 @@ const i18n = createI18n({
         submit: 'Submit',
         cancel: 'Cancel',
       },
-    },
+    } as never,
   },
 });
 

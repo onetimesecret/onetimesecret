@@ -6,6 +6,7 @@ require 'onetime/models/colonel_audit_event'
 
 require_relative '../base'
 require_relative 'current_session'
+require_relative 'session_authority'
 require 'onetime/models/session_metadata'
 require 'onetime/operations/sessions/list_for_customer'
 
@@ -43,6 +44,7 @@ module ColonelAPI
         # cookie value, not even the acting colonel's own. Shared with the
         # self-revoke interlocks so badge and gate cannot disagree (#4328).
         include CurrentSession
+        include SessionAuthority
 
         SCHEMAS = { response: 'colonelCustomerSessions' }.freeze
 
@@ -93,6 +95,10 @@ module ColonelAPI
             # so the acting colonel's own row is matched by handle, not raw sid.
             details: result.safe_dump.merge(
               current_session_handle: current_session_handle,
+              # Same non-authoritative signal the global console carries
+              # (SessionAuthority): in full mode this panel reads the sidecar,
+              # not the Rodauth session table.
+              session_authority: session_authority,
             ),
           }
         end

@@ -4,6 +4,7 @@
 
 require 'onetime/models/colonel_audit_event'
 require 'onetime/models/session_metadata'
+require 'onetime/rodauth_admin'
 
 require_relative '../base'
 require_relative 'account_identifier'
@@ -127,6 +128,11 @@ module ColonelAPI
               authenticated: data['authenticated'] ? true : false,
               email: data['email'],
               external_id: data['external_id'] || data['account_external_id'],
+              # Outbound Rodauth Admin link for the drawer (nil unless full
+              # mode AND RODAUTH_ADMIN_URL, or when the session has no owner).
+              rodauth_admin_account_url: Onetime::RodauthAdmin.account_url(
+                data['external_id'] || data['account_external_id'],
+              ),
               account_id: data['account_id'],
               role: data['role'],
               locale: data['locale'],

@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/rodauth_admin'
+
 require_relative '../base'
 require_relative 'account_identifier'
 
@@ -431,6 +433,11 @@ module ColonelAPI
               },
               organizations: organizations,
               billing: billing,
+              # Outbound deep link to this customer's Rodauth account in the
+              # standalone admin (read-only use of the external_id join, see
+              # Onetime::RodauthAdmin). null when RODAUTH_ADMIN_URL is unset or
+              # auth mode is not full — the page then shows the extid as text.
+              rodauth_admin_account_url: Onetime::RodauthAdmin.account_url(user.extid),
               # Counters are Familia::Counter objects (familia 2.8); coerce
               # to Integer before serialization so JSON's Enumerable path
               # doesn't try to .each over an opaque Counter.

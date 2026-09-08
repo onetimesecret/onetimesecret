@@ -77,12 +77,18 @@ function usersPayload(
     role?: string | null;
     suspended?: boolean;
     capped?: boolean;
+    /**
+     * Orphaned auth-database rows for the searched address. `undefined` (the
+     * default) OMITS the field, mirroring a server that predates it.
+     */
+    orphaned_accounts?: Array<Record<string, unknown>>;
   } = {}
 ) {
   return {
     shrimp: '',
     record: {},
     details: {
+      ...(overrides.orphaned_accounts ? { orphaned_accounts: overrides.orphaned_accounts } : {}),
       users: [
         {
           user_id: 'ur_alice',
@@ -165,99 +171,98 @@ describe('AdminCustomers (list view — ticket #22)', () => {
     });
   });
 
-  it('debounces the email search box into a single filtered fetch', async () => {
-    vi.useFakeTimers();
-    try {
-      mockApi.get.mockResolvedValue({ data: usersPayload() });
-      wrapper = mountView();
-      await flushPromises();
-      const before = mockApi.get.mock.calls.length;
+  it('never fetches on typing alone — search is submit-only', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    wrapper = mountView();
+    await flushPromises();
+    const before = mockApi.get.mock.calls.length;
 
-      await wrapper
-        .find('[data-testid="customers-filterbar"] input[type="search"]')
-        .setValue('alice');
-      // Debounced — no request yet.
-      expect(mockApi.get.mock.calls.length).toBe(before);
+    const input = wrapper.find('[data-testid="customers-filterbar"] input[type="search"]');
+    await input.setValue('a');
+    await input.setValue('al');
+    await input.setValue('alice');
+    // Give any (incorrectly) scheduled timer a chance to fire.
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    await flushPromises();
 
-      vi.advanceTimersByTime(300);
-      await flushPromises();
-
-      expect(mockApi.get.mock.calls.length).toBe(before + 1);
-      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/users', {
-        params: { page: 1, per_page: 50, search: 'alice' },
-      });
-    } finally {
-      vi.runOnlyPendingTimers();
-      vi.useRealTimers();
-    }
+    expect(mockApi.get.mock.calls.length).toBe(before);
   });
 
-  it('fetches immediately when the search button is clicked (debounce cancelled)', async () => {
-    vi.useFakeTimers();
-    try {
-      mockApi.get.mockResolvedValue({ data: usersPayload() });
-      wrapper = mountView();
-      await flushPromises();
+  it('fetches once with the term when the search button is clicked', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    wrapper = mountView();
+    await flushPromises();
 
-      await wrapper
-        .find('[data-testid="customers-filterbar"] input[type="search"]')
-        .setValue('alice');
-      const before = mockApi.get.mock.calls.length;
+    await wrapper
+      .find('[data-testid="customers-filterbar"] input[type="search"]')
+      .setValue('alice');
+    const before = mockApi.get.mock.calls.length;
 
-      const submitBtn = wrapper
-        .findAll('[data-testid="customers-filterbar"] button')
-        .find((b) => b.text().includes('searchSubmit'));
-      await submitBtn!.trigger('click');
-      await flushPromises();
+    const submitBtn = wrapper
+      .findAll('[data-testid="customers-filterbar"] button')
+      .find((b) => b.text().includes('searchSubmit'));
+    await submitBtn!.trigger('click');
+    await flushPromises();
 
-      // Immediate fetch with the term…
-      expect(mockApi.get.mock.calls.length).toBe(before + 1);
-      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/users', {
-        params: { page: 1, per_page: 50, search: 'alice' },
-      });
-
-      // …and the pending debounce was cancelled — no second, late request.
-      vi.advanceTimersByTime(300);
-      await flushPromises();
-      expect(mockApi.get.mock.calls.length).toBe(before + 1);
-    } finally {
-      vi.runOnlyPendingTimers();
-      vi.useRealTimers();
-    }
+    expect(mockApi.get.mock.calls.length).toBe(before + 1);
+    expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/users', {
+      params: { page: 1, per_page: 50, search: 'alice' },
+    });
   });
 
-  it('issues exactly one fetch when clearing filters (no debounce double-fetch)', async () => {
-    vi.useFakeTimers();
-    try {
-      mockApi.get.mockResolvedValue({ data: usersPayload() });
-      wrapper = mountView();
-      await flushPromises();
+  it('drops a submit while a request is still in flight (no burst)', async () => {
+    let release!: (value: { data: unknown }) => void;
+    mockApi.get.mockResolvedValueOnce({ data: usersPayload() });
+    wrapper = mountView();
+    await flushPromises();
 
-      // Establish an active search so the clear affordance has something to reset.
-      await wrapper
-        .find('[data-testid="customers-filterbar"] input[type="search"]')
-        .setValue('alice');
-      vi.advanceTimersByTime(300);
-      await flushPromises();
+    mockApi.get.mockImplementationOnce(() => new Promise((resolve) => (release = resolve)));
+    const input = wrapper.find('[data-testid="customers-filterbar"] input[type="search"]');
+    await input.setValue('alice');
+    await input.trigger('keydown', { key: 'Enter' });
+    const before = mockApi.get.mock.calls.length;
 
-      const before = mockApi.get.mock.calls.length;
+    // Hammer Enter and the button while the first search is pending.
+    await input.setValue('alice2');
+    await input.trigger('keydown', { key: 'Enter' });
+    await input.trigger('keydown', { key: 'Enter' });
+    const submitBtn = wrapper
+      .findAll('[data-testid="customers-filterbar"] button')
+      .find((b) => b.text().includes('searchSubmit'));
+    expect(submitBtn!.attributes('disabled')).toBeDefined();
+    await submitBtn!.trigger('click');
+    await flushPromises();
+    expect(mockApi.get.mock.calls.length).toBe(before);
 
-      // Clear the filter bar (emits the 'clear' event AdminCustomers handles).
-      wrapper.findComponent(FilterBar).vm.$emit('clear');
-      // Let any (incorrectly) scheduled debounce fire.
-      vi.advanceTimersByTime(300);
-      await flushPromises();
+    release({ data: usersPayload() });
+    await flushPromises();
+    expect(submitBtn!.attributes('disabled')).toBeUndefined();
+  });
 
-      // Exactly one fetch — the immediate fetchPage(1) from onClear(). The
-      // programmatic searchTerm reset must NOT schedule a second late request.
-      expect(mockApi.get.mock.calls.length).toBe(before + 1);
-      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/users', {
-        params: { page: 1, per_page: 50 },
-      });
-    } finally {
-      vi.runOnlyPendingTimers();
-      vi.useRealTimers();
-    }
+  it('issues exactly one fetch when clearing filters', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    wrapper = mountView();
+    await flushPromises();
+
+    // Establish an active search so the clear affordance has something to reset.
+    const input = wrapper.find('[data-testid="customers-filterbar"] input[type="search"]');
+    await input.setValue('alice');
+    await input.trigger('keydown', { key: 'Enter' });
+    await flushPromises();
+
+    const before = mockApi.get.mock.calls.length;
+
+    // Clear the filter bar (emits the 'clear' event AdminCustomers handles).
+    wrapper.findComponent(FilterBar).vm.$emit('clear');
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    await flushPromises();
+
+    // Exactly one fetch — the fetchPage(1) from onClear(). The programmatic
+    // searchTerm reset must NOT trigger a second request.
+    expect(mockApi.get.mock.calls.length).toBe(before + 1);
+    expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/users', {
+      params: { page: 1, per_page: 50 },
+    });
   });
 
   it('shows a SUSPENDED badge on suspended rows only', async () => {
@@ -272,6 +277,33 @@ describe('AdminCustomers (list view — ticket #22)', () => {
     wrapper = mountView();
     await flushPromises();
     expect(wrapper.find('[data-testid="suspended-badge"]').exists()).toBe(false);
+  });
+
+  it('shows a Rodauth Admin link in the drawer only when the server built one', async () => {
+    const withLink = usersPayload() as unknown as {
+      details: { users: Record<string, unknown>[] };
+    };
+    withLink.details.users[0].rodauth_admin_account_url =
+      'http://127.0.0.1:9292/account?q=ur_alice';
+    mockApi.get.mockResolvedValue({ data: withLink });
+    wrapper = mountView();
+    await flushPromises();
+    await wrapper.find('[data-testid="customers-table"] tbody tr').trigger('click');
+    await flushPromises();
+
+    const link = wrapper.find('[data-testid="customer-rodauth-admin-link"]');
+    expect(link.exists()).toBe(true);
+    expect(link.attributes('href')).toBe('http://127.0.0.1:9292/account?q=ur_alice');
+    expect(link.attributes('target')).toBe('_blank');
+    wrapper.unmount();
+
+    // Null (unset URL or simple mode) or absent (older backend): plain drawer.
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    wrapper = mountView();
+    await flushPromises();
+    await wrapper.find('[data-testid="customers-table"] tbody tr').trigger('click');
+    await flushPromises();
+    expect(wrapper.find('[data-testid="customer-rodauth-admin-link"]').exists()).toBe(false);
   });
 
   it('opens the detail drawer on row click, with a full-page escalation link', async () => {
@@ -382,6 +414,80 @@ describe('AdminCustomers (list view — ticket #22)', () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="customers-capped-caveat"]').exists()).toBe(false);
+  });
+
+  it('renders one orphaned-account row per entry when the auth database has an unmapped account', async () => {
+    mockApi.get.mockResolvedValue({
+      data: usersPayload({
+        orphaned_accounts: [
+          {
+            email: 'Bob@Example.com',
+            account_id: 42,
+            external_id: null,
+            status: 'verified',
+            created_at: 1700000000,
+          },
+          {
+            email: 'bob@example.com',
+            account_id: 43,
+            external_id: 'ur_bob',
+            status: 'closed',
+            created_at: null,
+          },
+        ],
+      }),
+    });
+    wrapper = mountView();
+    await flushPromises();
+
+    const notice = wrapper.find('[data-testid="customers-orphaned-accounts"]');
+    expect(notice.exists()).toBe(true);
+    expect(notice.attributes('role')).toBe('status');
+    expect(notice.text()).toContain('web.admin.customers.list.orphanedAccounts.title');
+
+    const rows = notice.findAll('[data-testid="customers-orphaned-account"]');
+    expect(rows).toHaveLength(2);
+    // Nothing is obscured here: the operator typed this address to find it.
+    expect(rows[0].text()).toContain('Bob@Example.com');
+    // The status pill falls back to the raw value when the key is unknown (the
+    // role cell's idiom), so under the key-echoing test i18n it reads as the value.
+    expect(rows[0].find('[data-testid="customers-orphaned-account-status"]').text()).toBe(
+      'verified'
+    );
+    expect(rows[1].find('[data-testid="customers-orphaned-account-status"]').text()).toBe('closed');
+    expect(rows[0].text()).toContain('web.admin.customers.list.orphanedAccounts.accountId');
+
+    // Each address links to the account diagnostics for that identifier: the
+    // detail route, keyed by the EMAIL (the orphan has no extid to route by).
+    const links = notice.findAllComponents(RouterLinkStub);
+    expect(links).toHaveLength(2);
+    expect(links[0].props('to')).toEqual({
+      name: 'AdminCustomerDetail',
+      params: { id: 'Bob@Example.com' },
+    });
+    expect(links[1].props('to')).toEqual({
+      name: 'AdminCustomerDetail',
+      params: { id: 'bob@example.com' },
+    });
+  });
+
+  it('does not render the orphaned-accounts notice when the array is empty', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload({ orphaned_accounts: [] }) });
+    wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="customers-orphaned-accounts"]').exists()).toBe(false);
+  });
+
+  it('does not render the orphaned-accounts notice when the server omits the field', async () => {
+    // Older servers never emit `orphaned_accounts`; the schema defaults it to []
+    // so the page must still parse and render the table.
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="customers-orphaned-accounts"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="customers-table"]').exists()).toBe(true);
   });
 
   it('shows the error banner + retry on a network failure', async () => {

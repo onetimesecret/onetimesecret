@@ -351,7 +351,7 @@ describe('ConnectedIdentities', () => {
       fallbackWarn: false,
       missing: (_: unknown, key: string) => key,
       messages: {
-        en: { web: { auth: { connections: { connect_action: 'Connect {provider}' } } } },
+        en: { web: { auth: { connections: { connect_action: 'Connect {provider}' } } } } as never,
       },
     });
 

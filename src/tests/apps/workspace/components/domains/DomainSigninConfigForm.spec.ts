@@ -34,7 +34,7 @@ import { resolve } from 'path';
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import { createI18n } from 'vue-i18n';
+import { createRealI18n } from '@tests/setup';
 import { ref } from 'vue';
 import DomainSigninConfigForm from '@/apps/workspace/components/domains/DomainSigninConfigForm.vue';
 import type {
@@ -113,37 +113,18 @@ const realEn = JSON.parse(
   readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')
 );
 
-// `as never` on the messages value (same escape hatch as
-// admin-message-compile.spec.ts): the generated i18n-keys augmentation types
-// DefineLocaleMessage to the full app key schema, and Composer['t'] derives
-// its key-path union by recursing through whatever schema this instance's
-// `messages` resolves to. realEn's static type is JSON.parse's `any`, and
-// recursing an `any` through that path-building conditional never bottoms
-// out (TS2589 "excessively deep and possibly infinite"). `never` short-
-// circuits the recursion instead, leaving t() typed against the global
-// augmented key schema (still real key-checked) while accepting the actual
-// parsed bundle at runtime, unchanged.
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: { en: realEn as never },
-});
-
-// Calling `i18n.global.t` directly still forces TS to materialize the same
-// exploding Composer['t'] overload set (the `as never` above only changes
-// what's *in* the schema, not that resolving `.global.t`'s type walks it).
-// Reading `.global` through an `unknown` cast first, into the minimal shape
-// actually used below, sidesteps that resolution entirely — `i18n` itself is
-// untouched and still mounts as a real i18n plugin.
-const i18nGlobal = i18n as unknown as {
-  global: { t: (key: string, params?: Record<string, string>) => string };
-};
+// createRealI18n installs the real bundle and returns the loosened shape that
+// isolates the TS2589 escapes (see @tests/setup): resolving literal keys
+// against the ~9000-entry DefineLocaleMessage schema no longer materializes the
+// exploding Composer['t'] overload set. The instance mounts as a real i18n
+// plugin (see `global.plugins` below) and its `global.t` is called directly.
+const i18n = createRealI18n({ en: realEn });
 
 /** Resolve a key against the real bundle. */
-const t = (key: string) => i18nGlobal.global.t(key);
+const t = (key: string) => i18n.global.t(key);
 
 /** Resolve a key with named interpolation, as the component does. */
-const tp = (key: string, params: Record<string, string>) => i18nGlobal.global.t(key, params);
+const tp = (key: string, params: Record<string, string>) => i18n.global.t(key, params);
 
 /**
  * Copy the component renders, sourced from the bundle — never hand-typed here.
