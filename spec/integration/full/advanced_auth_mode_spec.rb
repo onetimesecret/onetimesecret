@@ -127,12 +127,14 @@ RSpec.describe 'Full Authentication Mode', type: :integration do
       end
     end
 
-    describe 'GET /auth/admin/stats' do
+    describe 'GET /auth/admin/stats (retired dev stub)' do
+      # The dev-only stats stub was deleted once the standalone Rodauth Admin
+      # superseded it (rodauth-admin CHARTER §4, seam 3). The path must fall
+      # through to the router's JSON 404 in every environment.
       before { get '/auth/admin/stats' }
 
-      it 'responds with success, auth required, or not implemented' do
-        # 404 is acceptable if the admin endpoint hasn't been implemented yet
-        expect([200, 401, 403, 404]).to include(last_response.status)
+      it 'is not routed' do
+        expect(last_response.status).to eq(404)
       end
 
       it 'returns JSON response' do
@@ -311,7 +313,7 @@ RSpec.describe 'Full Authentication Mode', type: :integration do
     end
 
     it 'handles database operations gracefully' do
-      get '/auth/admin/stats'
+      get '/auth/health'
 
       # Should not crash even if database is not available
       expect(last_response).not_to be_nil
