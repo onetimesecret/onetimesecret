@@ -33,10 +33,18 @@ module Onetime
   #   `active_session_id_hmac` (signed in before the stamp existed, or with the
   #   active_sessions feature off) cannot be joined and is left alone rather
   #   than mass-logged-out on deploy. Enforcement starts at its next login.
-  # - **An unreachable authdb.** The check FAILS OPEN with an error log: a
-  #   database blip must not sign out every full-mode user at once, and logins
-  #   already fail during one. Revocation is delayed by the outage, not lost —
-  #   the row is still gone when the database returns.
+
+  # ## Failure posture: closed
+  #
+  # A session that cannot be verified is refused. The row is the revocation
+  # authority in full mode, so an unreachable authdb means the question "is
+  # this session still valid" has no answer, and an unanswered question is not
+  # a yes. Logins already need the same database, so the site is degraded
+  # either way; what failing closed adds is that a revoked session never
+  # outlives the outage. The verdict stays distinguishable (:unavailable, not
+  # :revoked) so the refusal is logged and reported as an outage, not as a
+  # revocation, and the Redis session is left intact for when the database
+  # returns.
   # - **Inactivity / lifetime deadlines.** Rodauth applies those on the
   #   sessions page. This module only touches `last_use`, throttled to once per
   #   {TOUCH_INTERVAL}, so that page's inactivity sweep sees real activity
@@ -53,15 +61,19 @@ module Onetime
 
     TABLE = :account_active_session_keys
 
-    # True when the session's Rodauth active-session row has been removed.
-    # Every other outcome — not full mode, no stamp to join on, row present,
-    # authdb unreachable — is false.
+    # Verdicts on which the session must be refused: the row is gone, or the
+    # store that would say so cannot be reached (fail closed).
+    REFUSED = [:revoked, :unavailable].freeze
+
+    # True when the session must not be honoured: its Rodauth active-session
+    # row has been removed, or could not be checked. False when the row is
+    # present or the gate does not apply (not full mode, no stamp to join on).
     #
     # @param session [Hash, #[], nil] the Rack session (string keys)
     # @param env [Hash, nil] the Rack env, for the per-request memo
     # @return [Boolean]
     def revoked?(session, env: nil)
-      verdict(session, env: env) == :revoked
+      REFUSED.include?(verdict(session, env: env))
     end
 
     # The full verdict, for callers and tests that need to tell the
@@ -119,7 +131,7 @@ module Onetime
     end
 
     def unavailable(reason)
-      OT.le "[active_session_gate] authdb unavailable, session not verified (fail open): #{reason}"
+      OT.le "[active_session_gate] authdb unavailable, session refused (fail closed): #{reason}"
       :unavailable
     end
   end

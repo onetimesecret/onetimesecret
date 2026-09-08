@@ -77,6 +77,16 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         expect(last_response.status).to eq(401)
       end
 
+      it 'refuses the session, rather than trusting the blob, when the authdb cannot answer' do
+        get '/api/account/'
+        expect(last_response.status).to eq(200), last_response.body
+
+        allow(Auth::Database).to receive(:connection).and_raise(Sequel::DatabaseConnectionError, 'down')
+
+        get '/api/account/'
+        expect(last_response.status).to eq(401)
+      end
+
       it 'keeps refreshing last_use so the inactivity sweep sees activity' do
         stale = Time.now - (Onetime::ActiveSessionGate::TOUCH_INTERVAL + 60)
         account_rows.update(last_use: stale)

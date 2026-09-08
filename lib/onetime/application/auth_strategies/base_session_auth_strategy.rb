@@ -78,8 +78,13 @@ module Onetime
           # revoking it ended nothing. AFTER the watermark (the more fundamental
           # refusal) and BEFORE the admin bound and additional_checks. Reads
           # the authdb, never the session; the verdict is memoized in env.
-          if Onetime::ActiveSessionGate.revoked?(session, env: env)
+          # Fails CLOSED: a session the authdb cannot vouch for is refused
+          # too, under its own marker so the logs read as an outage.
+          case Onetime::ActiveSessionGate.verdict(session, env: env)
+          when :revoked
             return failure('[SESSION_REVOKED] Active session has been revoked; sign in again')
+          when :unavailable
+            return failure('[SESSION_UNVERIFIED] Active session could not be verified; try again')
           end
 
           # Admin-surface session bounds (#4331). Runs here because this is the

@@ -97,7 +97,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     # BEFORE the admin bound and additional_checks. The gate is consulted with
     # the env so its verdict is memoized for the rest of the request.
     before do
-      allow(Onetime::ActiveSessionGate).to receive(:revoked?).and_return(true)
+      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
     end
 
     it 'fails with the [SESSION_REVOKED] marker' do
@@ -110,7 +110,18 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     it 'consults the gate with the Rack env (shared per-request memo)' do
       strategy.authenticate(env, 'authenticated')
 
-      expect(Onetime::ActiveSessionGate).to have_received(:revoked?).with(session, env: env)
+      expect(Onetime::ActiveSessionGate).to have_received(:verdict).with(session, env: env)
+    end
+
+    # Fail closed, but under its own marker: an outage must read as an outage
+    # in the logs, never as a revocation the operator did not perform.
+    it 'refuses an unverifiable session with the [SESSION_UNVERIFIED] marker' do
+      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:unavailable)
+
+      result = strategy.authenticate(env, 'authenticated')
+
+      expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      expect(result.failure_reason).to match(/\A\[SESSION_UNVERIFIED\]/)
     end
 
     it 'never reaches the admin bound or additional_checks' do
@@ -128,7 +139,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     # must not run at all, so it cannot mask it with a different message.
     it 'reports the stale-credential failure and never consults the gate or the bound' do
       allow(strategy).to receive(:session_predates_credential_change?).and_return(true)
-      expect(Onetime::ActiveSessionGate).not_to receive(:revoked?)
+      expect(Onetime::ActiveSessionGate).not_to receive(:verdict)
       expect(strategy).not_to receive(:admin_session_expiry_reason)
 
       result = strategy.authenticate(env, 'authenticated')

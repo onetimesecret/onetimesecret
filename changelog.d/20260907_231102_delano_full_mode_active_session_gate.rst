@@ -7,5 +7,6 @@ Security
   by "sign out everywhere", or by an operator in Rodauth Admin refuses the
   session on its next request instead of letting it run until the cookie
   expired. Sessions signed in before this release carry no join key and are
-  enforced from their next sign-in. The check fails open with an error log
-  if the authentication database is unreachable.
+  enforced from their next sign-in. The check fails closed: while the
+  authentication database is unreachable, sessions are refused with an
+  error log rather than trusted unverified.

@@ -89,7 +89,7 @@ RSpec.describe Onetime::ActiveSessionGate do
       allow(Auth::Database).to receive(:connection).and_return(nil)
 
       expect(described_class.verdict(session)).to eq(:unavailable)
-      expect(OT).to have_received(:le).with(/fail open/)
+      expect(OT).to have_received(:le).with(/fail closed/)
     end
 
     it 'is :unavailable, with an error log, when the query raises' do
@@ -101,13 +101,22 @@ RSpec.describe Onetime::ActiveSessionGate do
   end
 
   describe '.revoked?' do
-    it 'is true only for the :revoked verdict' do
+    it 'is true when the row is gone' do
       expect(described_class.revoked?(session)).to be(true)
+    end
 
+    it 'is false while the row exists' do
       insert_row
       expect(described_class.revoked?(session)).to be(false)
+    end
 
+    it 'is true when the authdb cannot be reached (fail closed)' do
       allow(Auth::Database).to receive(:connection).and_return(nil)
+      expect(described_class.revoked?(session)).to be(true)
+    end
+
+    it 'is false when the gate does not apply' do
+      session.delete('active_session_id_hmac')
       expect(described_class.revoked?(session)).to be(false)
     end
   end
