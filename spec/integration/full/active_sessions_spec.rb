@@ -332,4 +332,76 @@ RSpec.describe 'Active Sessions Management', type: :integration do
       end
     end
   end
+
+  # #4391 — invite-signup auto-login must go through a real Rodauth
+  # login-session so its Rack session is gate-enforced like a browser login's.
+  #
+  # The invite endpoint (apps/api/invite/logic/invites/signup_and_accept.rb)
+  # creates the account via Rodauth's internal_request, which runs no login
+  # path — so before this fix nothing stamped the active_session_id_hmac join
+  # key or INSERTed the account_active_session_keys row, and every invite
+  # session was exempt from the gate (:skipped) forever. SignupAndAccept#setup_session
+  # now calls #establish_active_session, exercised here against the real authdb:
+  # it must INSERT the row, stamp the join key, and produce a session the gate
+  # rules :active — and :revoked once the row is deleted, proving the exemption
+  # is closed. (The setup_session merge/wiring is unit-covered in
+  # apps/api/invite/spec/logic/invites/signup_and_accept_spec.rb; this proves the
+  # Rodauth mechanics the fix depends on and the gate transition end to end.)
+  describe 'invite-signup auto-login is gate-enforced (#4391)' do
+    require 'invite/logic'
+
+    let(:invite_email) { "invite-gate-#{SecureRandom.hex(8)}@example.com" }
+
+    # #establish_active_session reads no instance state (only its account_id
+    # argument and Auth::Config), so allocate + send drives the production
+    # method with zero duplication and no drift risk.
+    def establish(account_id)
+      InviteAPI::Logic::Invites::SignupAndAccept.allocate
+        .send(:establish_active_session, account_id)
+    end
+
+    def gate_session(rodauth_session)
+      # setup_session stringifies keys onto the Rack session before it is
+      # persisted; mirror that so the gate sees what a real request would.
+      rodauth_session.each_with_object({}) { |(k, v), h| h[k.to_s] = v }
+    end
+
+    it 'INSERTs the active-session row and stamps the join key through login_session' do
+      account = create_verified_account(db: test_db, email: invite_email)
+
+      rows = test_db[:account_active_session_keys].where(account_id: account[:id])
+      expect(rows.count).to eq(0)
+
+      rodauth_session = establish(account[:id])
+
+      expect(rows.count).to eq(1)
+      expect(rodauth_session['account_id']).to eq(account[:id])
+      expect(rodauth_session['active_session_id_hmac']).to be_a(String)
+      expect(rodauth_session['active_session_id_hmac']).not_to be_empty
+      # The stamp is HMAC(raw active_session_id) and equals the row's session_id.
+      expect(rows.get(:session_id)).to eq(rodauth_session['active_session_id_hmac'])
+    end
+
+    it 'produces a session the gate rules :active, then :revoked once the row is deleted' do
+      account = create_verified_account(db: test_db, email: invite_email)
+      session = gate_session(establish(account[:id]))
+
+      expect(Onetime::ActiveSessionGate.verdict(session)).to eq(:active)
+
+      test_db[:account_active_session_keys].where(account_id: account[:id]).delete
+
+      expect(Onetime::ActiveSessionGate.verdict(session)).to eq(:revoked)
+    end
+
+    # The bug: an invite session without a join key is exempt forever. Prove the
+    # fix does not leave that hole — the produced session carries the join key,
+    # so it is NOT the :skipped verdict the pre-fix hand-written session got.
+    it 'is no longer exempt from the gate (join key present, not :skipped)' do
+      account = create_verified_account(db: test_db, email: invite_email)
+      session = gate_session(establish(account[:id]))
+
+      expect(session['active_session_id_hmac']).not_to be_nil
+      expect(Onetime::ActiveSessionGate.verdict(session)).not_to eq(:skipped)
+    end
+  end
 end

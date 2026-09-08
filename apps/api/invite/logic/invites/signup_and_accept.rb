@@ -368,15 +368,48 @@ module InviteAPI::Logic
       # Manually populates session fields since we don't have direct access to the
       # Rack request object from the logic layer. This mirrors what SyncSession does.
       #
+      # LOAD-BEARING (Onetime::ActiveSessionGate, #4391). The account is created
+      # via Rodauth's internal_request (create_rodauth_account), which never runs
+      # a login path, so nothing stamps the active-session JOIN KEY into the Rack
+      # session and nothing INSERTs the account_active_session_keys row. In full
+      # mode the gate joins every authenticated request to that row on
+      # (account_id, active_session_id_hmac); a Rack session with account_id but
+      # NO join key is exempt (verdict :skipped) forever — invisible to the
+      # sessions page, "sign out everywhere" and Rodauth Admin, minted fresh on
+      # every invite acceptance. That exemption is exactly the invariant the gate
+      # relies on the login path to uphold ("no new Rack session without a join
+      # key"), and hand-writing the auth fields here breaks it.
+      #
+      # establish_active_session below closes the gap by running a REAL Rodauth
+      # login-session (so update_session stamps the join key and add_active_session
+      # INSERTs the row) and handing back the resulting Rodauth session hash to
+      # merge in.
       def setup_session(account_id, _account)
+        # Auth state produced by a real Rodauth login-session: account_id, the
+        # raw active-session id, the active_session_id_hmac join key and
+        # authenticated_by. Merged below (keys stringified) so this session is
+        # gate-enforced and byte-identical to a browser login's persisted form.
+        rodauth_session = establish_active_session(account_id)
+
         # Populate session with authentication state
         sess['authenticated']    = true
         sess['authenticated_at'] = Familia.now.to_i
-        sess['account_id']       = account_id
         sess['external_id']      = @customer.extid
         sess['email']            = @customer.email
         sess['role']             = @customer.role
         sess['locale']           = @customer.locale || 'en'
+
+        # Carry the Rodauth-produced auth keys onto the Rack session. Keys are
+        # stringified because Rodauth's internal-request session hash uses its
+        # native key types — the configured session_key is the string
+        # 'account_id', but the active_sessions/base defaults (active_session_id,
+        # authenticated_by) are SYMBOLS here, since the Roda sessions plugin
+        # (which would set sessions_convert_symbols) is not loaded on the auth
+        # router. The Onetime Rack session persists via JSON (string keys only),
+        # so stringifying now makes the at-rest blob identical to a browser
+        # login's and keeps 'account_id'/'active_session_id_hmac' where the gate
+        # and the Otto strategies read them.
+        rodauth_session.each { |key, value| sess[key.to_s] = value }
 
         # Track request metadata from strategy_result
         client_ip          = @strategy_result&.metadata&.dig(:ip) ||
@@ -399,6 +432,50 @@ module InviteAPI::Logic
           account_id: account_id,
           organization_id: @invitation.organization.extid,
         )
+      end
+
+      # Run a real Rodauth login-session for the just-created account and return
+      # the resulting Rodauth session hash.
+      #
+      # WHY internal_request_eval AND login_session. This is an Otto logic class
+      # with no Roda/Rodauth scope, so we cannot call login_session on a live
+      # request instance. Rodauth's internal_request seam gives us a real Rodauth
+      # instance whose `session` is a plain, mergeable hash; internal_request_eval
+      # (registered by the base feature) runs an arbitrary block inside it. We do
+      # NOT use the `login`/create_account internal requests: `login` needs the
+      # password re-verified and would re-run login callbacks, and create_account
+      # already ran. login_session is the exact seam Rodauth's own autologins
+      # (create_account, reset_password, verify_account) use to mint a session
+      # for an account that is already known-good.
+      #
+      # WHAT THE BLOCK DOES, in order:
+      #   1. account_from_session loads @account. internal_request(account_id:)
+      #      pre-seeds session[session_key]=account_id, but base #update_session
+      #      calls clear_session first (wiping that seed) and then reads
+      #      account_session_value (== @account's id) to rewrite it — so @account
+      #      must be loaded BEFORE login_session or account_session_value resolves
+      #      to nil. The invite account is auto-verified by the after_create_account
+      #      hook, so it passes account_session_status_filter.
+      #   2. login_session('password') runs the SAME update_session chain a browser
+      #      login does: base clears+sets account_id; active_sessions#add_active_session
+      #      INSERTs the account_active_session_keys row and sets the raw
+      #      session_id key; the app override
+      #      (apps/web/auth/config/features/active_sessions.rb) then stamps
+      #      session['active_session_id_hmac']. It also sets authenticated_by.
+      #   3. The block returns the mutated session hash for setup_session to merge.
+      #
+      # The INSERT is not wrapped in a transaction here (internal_request_eval has
+      # no around_rodauth transaction), so it commits immediately on the same
+      # Auth::Database connection the gate reads — no rollback to lose it. `db`
+      # resolves to Auth::Database.connection via the base.rb `auth.db {}` block,
+      # and stamp_active_session_join_key / active_session_join_key are inherited
+      # by the internal-request subclass from the auth_class_eval on Auth::Config.
+      def establish_active_session(account_id)
+        Auth::Config.internal_request_eval(account_id: account_id) do
+          account_from_session
+          login_session('password')
+          session
+        end
       end
     end
   end
