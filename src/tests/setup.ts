@@ -63,7 +63,7 @@ globalThis.Response = {
  */
 export type TestI18n = {
   install: (app: App, ...options: unknown[]) => void;
-  global: { t: (key: string) => string };
+  global: { t: (key: string, params?: Record<string, string>) => string };
 };
 
 /**
@@ -78,6 +78,30 @@ export function createTestI18n(): TestI18n {
     fallbackWarn: false,
     missing: (_, key) => key,
     messages: { en: {} as never },
+  }) as unknown as TestI18n;
+}
+
+/**
+ * Like {@link createTestI18n}, but installs real message bundles so a spec can
+ * assert on the copy the component actually ships (missing/stale keys still
+ * render as the raw key path, so wiring assertions catch them). Returns the
+ * same loosened {@link TestI18n} shape — usable both as a mount plugin and for
+ * direct `i18n.global.t('literal.key')` calls.
+ *
+ * Two TS2589 escapes, both isolated here so consumers don't re-derive them:
+ *   - `messages` is typed `unknown`: a `JSON.parse` bundle is `any`, and the
+ *     generated `DefineLocaleMessage` augmentation builds `Composer['t']`'s
+ *     key-path union by recursing whatever schema `messages` resolves to;
+ *     recursing `any` never bottoms out ("excessively deep"). `never` at the
+ *     boundary short-circuits it while accepting the real bundle at runtime.
+ *   - the loosened return type means reading `.global.t` never materializes the
+ *     exploding augmented overload set either.
+ */
+export function createRealI18n(messages: Record<string, unknown>): TestI18n {
+  return createI18n({
+    legacy: false,
+    locale: 'en',
+    messages: messages as never,
   }) as unknown as TestI18n;
 }
 
