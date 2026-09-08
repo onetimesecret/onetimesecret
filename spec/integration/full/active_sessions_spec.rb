@@ -10,6 +10,16 @@
 # (see spec/support/full_mode_suite_database.rb). The :full_auth_mode tag
 # triggers automatic setup of an in-memory SQLite database shared across
 # all tagged specs in the suite.
+#
+# LANE: spec:integration:full (lib/tasks/spec.rake). Run it as
+#
+#   bundle exec rake spec:integration:full
+#
+# The lane starts the process with ORGS_SSO_ENABLED=true, which registers
+# the /auth/sso/* routes the SSO examples below drive. Those examples are
+# tagged `lane_env:` so a bare `bundle exec rspec` of this file, which is
+# not a lane, fails them with a message naming the lane instead of a 401
+# that reads like a gate bug (spec/support/helpers/lane_env_helpers.rb).
 
 require 'spec_helper'
 
@@ -277,7 +287,11 @@ RSpec.describe 'Active Sessions Management', type: :integration do
           expect(last_response.status).to eq(200), last_response.body
         end
 
-        it 'does not refuse the SSO request and callback routes as session_expired' do
+        # The SSO routes exist only when the full lane's ORGS_SSO_ENABLED=true
+        # registered them; without it they 404 and the gate never sees them,
+        # so the tag fails the example loudly instead of testing nothing.
+        it 'does not refuse the SSO request and callback routes as session_expired',
+          lane_env: { 'ORGS_SSO_ENABLED' => 'true' } do
           account_rows.delete
 
           get '/auth/sso/oidc'
@@ -354,7 +368,8 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         # sid and never reaches the store's delete path, so without the
         # router's own purge the explicit-use stash would outlive the
         # sign-out until its TTL.
-        it 'warns, naming the dropped OmniAuth keys and stranded sidecar fields, and purges them, when revoked mid-SSO' do
+        it 'warns, naming the dropped OmniAuth keys and stranded sidecar fields, and purges them, when revoked mid-SSO',
+          lane_env: { 'ORGS_SSO_ENABLED' => 'true' } do
           sid = current_cookie_sid
           stash_in_session_blob('omniauth.state', 'abc123')
           Onetime::SessionSidecar.write(sid, 'sso_connect_intent', @account[:id])

@@ -233,6 +233,18 @@ RSpec.configure do |config|
   #
   # The Rake tasks run mode-specific tests + all/ tests together, matching
   # production deployment where only one auth mode exists per instance.
+  #
+  # LANE ENVIRONMENT CONTRACT
+  # Each Rake task is a lane: it starts one process with a fixed environment
+  # (the env hash in lib/tasks/spec.rake), and a spec may rely on exactly
+  # that and nothing else. The full lane, for example, also sets
+  # AUTH_DATABASE_URL=sqlite::memory: and ORGS_SSO_ENABLED=true. A bare
+  # `bundle exec rspec <file>` is NOT a lane: it inherits whatever the shell
+  # exports, so a spec that needs a lane-provided setting fails there in a
+  # way that looks like a product bug. Tag such examples with
+  # `lane_env: { 'NAME' => 'value' }` so they fail naming the lane instead
+  # (spec/support/helpers/lane_env_helpers.rb). Never fix a lane-dependent
+  # spec by stubbing the setting: that tests a process no lane starts.
   # ==========================================================================
 
   # Auto-derive auth mode tags from directory structure.
