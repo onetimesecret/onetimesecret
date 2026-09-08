@@ -84,7 +84,10 @@ function sessionRowWithoutCountry(
 }
 
 function sessionsPayload(
-  rows: AdminCustomerSession[] = [sessionRow(), sessionRow({ session_handle: 'a15e5510000000000000000000000002' })],
+  rows: AdminCustomerSession[] = [
+    sessionRow(),
+    sessionRow({ session_handle: 'a15e5510000000000000000000000002' }),
+  ],
   currentSessionHandle: string | null = null
 ) {
   return {
@@ -131,7 +134,9 @@ describe('AdminCustomerSessionsSection — current-session badge', () => {
   afterEach(() => wrapper?.unmount());
 
   it('badges the matching row and withholds its revoke button', async () => {
-    mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, 'a15e5510000000000000000000000001') });
+    mockApi.get.mockResolvedValue({
+      data: sessionsPayload(undefined, 'a15e5510000000000000000000000001'),
+    });
     wrapper = mountSection();
     await flushPromises();
 
@@ -147,7 +152,9 @@ describe('AdminCustomerSessionsSection — current-session badge', () => {
   });
 
   it('renders the revoke button (and no badge) on non-matching rows', async () => {
-    mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, 'a15e5510000000000000000000000001') });
+    mockApi.get.mockResolvedValue({
+      data: sessionsPayload(undefined, 'a15e5510000000000000000000000001'),
+    });
     wrapper = mountSection();
     await flushPromises();
 
@@ -232,6 +239,42 @@ describe('adminCustomerSessionSchema — geo_country', () => {
   });
 });
 
+describe('AdminCustomerSessionsSection — session authority notice', () => {
+  let wrapper: VueWrapper;
+
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
+  });
+  afterEach(() => wrapper?.unmount());
+
+  it('shows nothing in simple mode or when the block is absent', async () => {
+    mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+    wrapper = mountSection();
+    await flushPromises();
+    expect(wrapper.find('[data-testid="session-authority-notice"]').exists()).toBe(false);
+  });
+
+  it('says the sidecar is non-authoritative in full mode and links to Rodauth Admin', async () => {
+    const payload = sessionsPayload() as unknown as { details: Record<string, unknown> };
+    payload.details.session_authority = {
+      mode: 'full',
+      authoritative: false,
+      rodauth_admin_url: 'http://127.0.0.1:9292',
+    };
+    mockApi.get.mockResolvedValue({ data: payload });
+    wrapper = mountSection();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="session-authority-notice"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="session-authority-link"]').attributes('href')).toBe(
+      'http://127.0.0.1:9292'
+    );
+    // The table still renders beneath the notice — the rows are real, just not the whole truth.
+    expect(wrapper.find('[data-testid="sessions-section-table"]').exists()).toBe(true);
+  });
+});
+
 describe('AdminCustomerSessionsSection — country column', () => {
   let wrapper: VueWrapper;
 
@@ -268,9 +311,20 @@ describe('AdminCustomerSessionsSection — country column', () => {
 
   it('never leaks an IP into the country cell — only a 2-letter code or Unknown', async () => {
     const rows = [
-      sessionRow({ session_handle: 'a15e551000000000000000000000c0de', ip_address: '203.0.113.7', geo_country: 'DE' }),
-      sessionRow({ session_handle: 'a15e55100000000000000000000000aa', ip_address: '192.0.2.44', geo_country: null }),
-      sessionRowWithoutCountry({ session_handle: 'a15e55100000000000000000000000ab', ip_address: '2001:db8::1' }),
+      sessionRow({
+        session_handle: 'a15e551000000000000000000000c0de',
+        ip_address: '203.0.113.7',
+        geo_country: 'DE',
+      }),
+      sessionRow({
+        session_handle: 'a15e55100000000000000000000000aa',
+        ip_address: '192.0.2.44',
+        geo_country: null,
+      }),
+      sessionRowWithoutCountry({
+        session_handle: 'a15e55100000000000000000000000ab',
+        ip_address: '2001:db8::1',
+      }),
     ];
     mockApi.get.mockResolvedValue({ data: sessionsPayload(rows) });
     wrapper = mountSection();

@@ -151,6 +151,13 @@ get '/api/colonel/sessions', {}, colonel_headers
 @own_handle.is_a?(String) && !@own_handle.empty?
 #=> true
 
+## ...and says whether it is the session authority (rodauth-admin CHARTER §4
+## seam 2). The test lane runs simple auth mode, where the Redis store IS the
+## authority, so no outbound Rodauth Admin link is offered.
+@authority = body['details']['session_authority']
+[@authority['mode'], @authority['authoritative'], @authority['rodauth_admin_url']]
+#=> ['simple', true, nil]
+
 ## Revoking that row is refused — sign out instead of self-revoking
 delete "/api/colonel/sessions/#{@own_handle}", {}, confirming(@colonel)
 [last_response.status, body['field']]

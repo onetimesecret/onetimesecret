@@ -1,8 +1,8 @@
 <!-- src/apps/admin/views/AdminSessions.vue -->
 
 <script setup lang="ts">
-
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
+  import SessionAuthorityNotice from '@/apps/admin/components/SessionAuthorityNotice.vue';
   import {
     AdminConfirmDialog,
     DataTable,
@@ -60,7 +60,7 @@
   const notifications = useNotificationsStore();
 
   const store = useAdminSessions();
-  const { sessions, pagination, scan, currentSessionHandle, loading, error } =
+  const { sessions, pagination, scan, currentSessionHandle, sessionAuthority, loading, error } =
     storeToRefs(store);
 
   /**
@@ -70,9 +70,7 @@
    * HANDLE — the raw session id never reaches this console.
    */
   function isCurrentSession(sessionHandle: string): boolean {
-    return (
-      currentSessionHandle.value !== null && sessionHandle === currentSessionHandle.value
-    );
+    return currentSessionHandle.value !== null && sessionHandle === currentSessionHandle.value;
   }
 
   // ---- List + search --------------------------------------------------------
@@ -222,8 +220,7 @@
   /** A non-404 network/HTTP failure, or a Zod contract mismatch. */
   const detailLoadFailed = computed(
     () =>
-      (detailError.value !== null && !detailNotFound.value) ||
-      detailValidationError.value !== null
+      (detailError.value !== null && !detailNotFound.value) || detailValidationError.value !== null
   );
 
   function openDetail(row: ColonelSession): void {
@@ -271,13 +268,33 @@
         value: yesNo(r.authenticated),
       },
       { key: 'email', label: t('web.admin.sessions.fields.email'), value: none(r.email) },
-      { key: 'externalId', label: t('web.admin.sessions.fields.externalId'), value: none(r.external_id) },
-      { key: 'accountId', label: t('web.admin.sessions.fields.accountId'), value: none(r.account_id) },
+      {
+        key: 'externalId',
+        label: t('web.admin.sessions.fields.externalId'),
+        value: none(r.external_id),
+      },
+      {
+        key: 'accountId',
+        label: t('web.admin.sessions.fields.accountId'),
+        value: none(r.account_id),
+      },
       { key: 'role', label: t('web.admin.sessions.fields.role'), value: none(r.role) },
       { key: 'locale', label: t('web.admin.sessions.fields.locale'), value: none(r.locale) },
-      { key: 'ipAddress', label: t('web.admin.sessions.fields.ipAddress'), value: none(r.ip_address) },
-      { key: 'userAgent', label: t('web.admin.sessions.fields.userAgent'), value: none(r.user_agent) },
-      { key: 'orgContext', label: t('web.admin.sessions.fields.orgContext'), value: none(r.org_context) },
+      {
+        key: 'ipAddress',
+        label: t('web.admin.sessions.fields.ipAddress'),
+        value: none(r.ip_address),
+      },
+      {
+        key: 'userAgent',
+        label: t('web.admin.sessions.fields.userAgent'),
+        value: none(r.user_agent),
+      },
+      {
+        key: 'orgContext',
+        label: t('web.admin.sessions.fields.orgContext'),
+        value: none(r.org_context),
+      },
       {
         key: 'authenticatedAt',
         label: t('web.admin.sessions.fields.authenticatedAt'),
@@ -393,6 +410,14 @@
       </p>
     </header>
 
+    <!-- Full auth mode: this store is NOT the session authority. Say so and
+         hand over to Rodauth Admin rather than growing SQL awareness here. -->
+    <div
+      v-if="sessionAuthority && !sessionAuthority.authoritative"
+      class="mb-4">
+      <SessionAuthorityNotice :authority="sessionAuthority" />
+    </div>
+
     <!-- Network/HTTP error banner (validation mismatches degrade to empty). -->
     <div
       v-if="error"
@@ -462,15 +487,21 @@
         </template>
 
         <template #cell-external_id="{ row }">
-          <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ row.external_id || '—' }}</span>
+          <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{
+            row.external_id || '—'
+          }}</span>
         </template>
 
         <template #cell-ip_address="{ row }">
-          <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ row.ip_address || '—' }}</span>
+          <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{
+            row.ip_address || '—'
+          }}</span>
         </template>
 
         <template #cell-geo_country="{ row }">
-          <span class="text-sm text-gray-700 dark:text-gray-300">{{ countryLabel(row.geo_country) }}</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300">{{
+            countryLabel(row.geo_country)
+          }}</span>
         </template>
 
         <template #cell-created_at="{ row }">
@@ -531,7 +562,9 @@
       v-model:open="drawerOpen"
       :title="
         selectedSession
-          ? t('web.admin.sessions.drawer.title', { id: selectedSession.session_handle.slice(0, 12) })
+          ? t('web.admin.sessions.drawer.title', {
+              id: selectedSession.session_handle.slice(0, 12),
+            })
           : ''
       "
       :subtitle="selectedSession ? emailLabel(selectedSession.email) : undefined"
@@ -608,7 +641,8 @@
         data-testid="session-drawer-content">
         <!-- Session record -->
         <section>
-          <h3 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h3
+            class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.sessions.sections.session') }}
           </h3>
           <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -631,7 +665,8 @@
 
         <!-- Raw inspector -->
         <section>
-          <h3 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h3
+            class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.sessions.sections.raw') }}
           </h3>
           <!-- Credential keys (csrf) are stripped SERVER-SIDE before this

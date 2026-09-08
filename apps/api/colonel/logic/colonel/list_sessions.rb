@@ -6,6 +6,7 @@ require 'onetime/models/colonel_audit_event'
 
 require_relative '../base'
 require_relative 'current_session'
+require_relative 'session_authority'
 require 'onetime/operations/sessions/list_sessions'
 
 module ColonelAPI
@@ -50,6 +51,7 @@ module ColonelAPI
         # and disable the acting colonel's own row against the SAME definition
         # the DeleteSession interlock refuses on (#4328).
         include CurrentSession
+        include SessionAuthority
 
         SCHEMAS = { response: 'colonelSessions' }.freeze
 
@@ -131,6 +133,10 @@ module ColonelAPI
               # (DeleteSession, #4328) — this only spares the operator the 422.
               # nil when the session can't be identified.
               current_session_handle: current_session_handle,
+              # Whether the store this console reads is the session authority
+              # for the running auth mode (SessionAuthority). In full mode it
+              # is not, and the console says so.
+              session_authority: session_authority,
             },
           }
         end

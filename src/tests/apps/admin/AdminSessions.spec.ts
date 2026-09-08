@@ -196,6 +196,70 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     wrapper?.unmount();
   });
 
+  // ---- Session authority notice (rodauth-admin CHARTER §4 seam 2) ----------
+
+  describe('session authority notice', () => {
+    function payloadWithAuthority(authority: Record<string, unknown> | undefined) {
+      const payload = sessionsPayload() as unknown as { details: Record<string, unknown> };
+      if (authority) payload.details.session_authority = authority;
+      return payload;
+    }
+
+    it('renders nothing when the store is authoritative (simple mode)', async () => {
+      mockApi.get.mockResolvedValue({
+        data: payloadWithAuthority({
+          mode: 'simple',
+          authoritative: true,
+          rodauth_admin_url: null,
+        }),
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="session-authority-notice"]').exists()).toBe(false);
+    });
+
+    it('renders nothing when the backend sends no block (deploy skew)', async () => {
+      mockApi.get.mockResolvedValue({ data: payloadWithAuthority(undefined) });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="session-authority-notice"]').exists()).toBe(false);
+    });
+
+    it('says it is non-authoritative in full mode and links out when configured', async () => {
+      mockApi.get.mockResolvedValue({
+        data: payloadWithAuthority({
+          mode: 'full',
+          authoritative: false,
+          rodauth_admin_url: 'http://127.0.0.1:9292',
+        }),
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="session-authority-notice"]').exists()).toBe(true);
+      const link = wrapper.find('[data-testid="session-authority-link"]');
+      expect(link.exists()).toBe(true);
+      expect(link.attributes('href')).toBe('http://127.0.0.1:9292');
+      expect(link.attributes('target')).toBe('_blank');
+      expect(link.attributes('rel')).toContain('noopener');
+      expect(wrapper.find('[data-testid="session-authority-unlinked"]').exists()).toBe(false);
+    });
+
+    it('renders the notice without a link when RODAUTH_ADMIN_URL is unset', async () => {
+      mockApi.get.mockResolvedValue({
+        data: payloadWithAuthority({ mode: 'full', authoritative: false, rodauth_admin_url: null }),
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="session-authority-notice"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="session-authority-link"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="session-authority-unlinked"]').exists()).toBe(true);
+    });
+  });
+
   // ---- List -----------------------------------------------------------------
 
   it('fetches the sessions page on mount and renders a row per session', async () => {
@@ -468,9 +532,7 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     it('disables the revoke button on the row matching current_session_handle', async () => {
       await mountWithCurrent(HANDLE);
 
-      expect(
-        wrapper.find(`[data-testid="revoke-${HANDLE}"]`).attributes('disabled')
-      ).toBeDefined();
+      expect(wrapper.find(`[data-testid="revoke-${HANDLE}"]`).attributes('disabled')).toBeDefined();
       expect(wrapper.find(`[data-testid="revoke-${HANDLE}"]`).attributes('title')).toBe(
         'web.admin.sessions.revoke.ownSession'
       );

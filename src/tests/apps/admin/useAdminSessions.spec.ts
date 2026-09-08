@@ -72,6 +72,36 @@ describe('useAdminSessions', () => {
     expect(store.currentSessionHandle).toBe(HANDLE);
   });
 
+  it('exposes details.session_authority for the non-authoritative notice', async () => {
+    const payload = sessionsPayload() as unknown as {
+      details: Record<string, unknown>;
+    };
+    payload.details.session_authority = {
+      mode: 'full',
+      authoritative: false,
+      rodauth_admin_url: 'http://127.0.0.1:9292',
+    };
+    mockApi.get.mockResolvedValue({ data: payload });
+    const store = useAdminSessions();
+
+    await store.fetchPage(1);
+
+    expect(store.sessionAuthority).toEqual({
+      mode: 'full',
+      authoritative: false,
+      rodauth_admin_url: 'http://127.0.0.1:9292',
+    });
+  });
+
+  it('leaves sessionAuthority null when the listing omits it (deploy skew)', async () => {
+    mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+    const store = useAdminSessions();
+
+    await store.fetchPage(1);
+
+    expect(store.sessionAuthority).toBeNull();
+  });
+
   it('clears currentSessionHandle when the listing omits it (deploy skew)', async () => {
     const payload = sessionsPayload() as unknown as {
       details: { current_session_handle?: string };

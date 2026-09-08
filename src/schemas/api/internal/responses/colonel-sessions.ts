@@ -73,6 +73,21 @@ export const colonelSessionScanSchema = z.object({
 });
 
 /**
+ * Whether the store a session view reads is the session AUTHORITY for the
+ * running auth mode (server-side `SessionAuthority`). Both colonel session
+ * views read the Redis session store — authoritative in simple mode only. In
+ * full mode the Rodauth accounts database is the authority and this console
+ * does not read it (rodauth-admin CHARTER §4, seam 2): the view says so and
+ * links out. `rodauth_admin_url` is the outbound link, null unless full mode
+ * AND RODAUTH_ADMIN_URL is configured — nothing is ever requested from it.
+ */
+export const sessionAuthoritySchema = z.object({
+  mode: z.enum(['simple', 'full']),
+  authoritative: z.boolean(),
+  rodauth_admin_url: z.string().nullable(),
+});
+
+/**
  * Sessions list response details: rows + pagination + keyspace scan meta, plus
  * the acting colonel's OWN session handle.
  *
@@ -89,6 +104,9 @@ export const colonelSessionsDetailsSchema = z.object({
   pagination: paginationSchema,
   scan: colonelSessionScanSchema,
   current_session_handle: sessionHandleSchema.nullable().optional(),
+  // `.optional()` for the same deploy-skew reason as current_session_handle: a
+  // backend predating the signal must not drop the whole list.
+  session_authority: sessionAuthoritySchema.optional(),
 });
 
 // ============================================================================
@@ -158,6 +176,7 @@ export const colonelSessionDeleteDetailsSchema = z.object({
 
 export type ColonelSession = z.infer<typeof colonelSessionSchema>;
 export type ColonelSessionScan = z.infer<typeof colonelSessionScanSchema>;
+export type SessionAuthority = z.infer<typeof sessionAuthoritySchema>;
 export type ColonelSessionDetailRecord = z.infer<typeof colonelSessionDetailRecordSchema>;
 export type ColonelSessionDetailDetails = z.infer<typeof colonelSessionDetailDetailsSchema>;
 export type ColonelSessionDeleteRecord = z.infer<typeof colonelSessionDeleteRecordSchema>;
