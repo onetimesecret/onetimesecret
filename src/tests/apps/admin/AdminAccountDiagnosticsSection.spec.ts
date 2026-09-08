@@ -68,7 +68,7 @@ const i18n = createI18n({
           },
         },
       },
-    },
+    } as never,
   },
 });
 
