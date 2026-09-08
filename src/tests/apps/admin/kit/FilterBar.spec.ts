@@ -132,6 +132,31 @@ describe('FilterBar (config-driven filters)', () => {
     expect(wrapper.emitted('submit')!.length).toBe(1);
   });
 
+  it('never emits submit on input alone (typing must not trigger a search)', async () => {
+    wrapper = mountBar();
+    const search = wrapper.find('#kit-filter-search');
+    await search.setValue('a');
+    await search.setValue('al');
+    await search.setValue('ali');
+    expect(wrapper.emitted('update:search')!.length).toBe(3);
+    expect(wrapper.emitted('submit')).toBeFalsy();
+  });
+
+  it('disables the search button and swallows Enter while busy', async () => {
+    wrapper = mountBar({ busy: true });
+    const submitBtn = wrapper.findAll('button').find((b) => b.text().includes('searchSubmit'));
+    expect(submitBtn!.attributes('disabled')).toBeDefined();
+    expect(submitBtn!.attributes('aria-busy')).toBe('true');
+
+    await wrapper.find('#kit-filter-search').trigger('keydown', { key: 'Enter' });
+    await submitBtn!.trigger('click');
+    expect(wrapper.emitted('submit')).toBeFalsy();
+
+    await wrapper.setProps({ busy: false });
+    await wrapper.find('#kit-filter-search').trigger('keydown', { key: 'Enter' });
+    expect(wrapper.emitted('submit')!.length).toBe(1);
+  });
+
   it('hides the search submit button when showSearch is false', () => {
     wrapper = mountBar({ showSearch: false });
     const submitBtn = wrapper.findAll('button').find((b) => b.text().includes('searchSubmit'));

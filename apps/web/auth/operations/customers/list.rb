@@ -100,6 +100,13 @@ module Auth
         # round-trip; it is a hint, not a hard page size.
         SCAN_COUNT = 100
 
+        # Per-round-trip COUNT hint for the email-index cursor HSCAN. Much larger
+        # than SCAN_COUNT on purpose: MATCH filters server-side and each HSCAN
+        # call is sub-millisecond, so the cost of a search is dominated by
+        # round-trips, not by entries examined. At 1k per call a 200k-address
+        # index is covered in ~200 round-trips instead of ~2,000.
+        SEARCH_SCAN_COUNT = 1_000
+
         # Request-path cap on how many role_index members the filtered path loads
         # into Ruby. Bounds the degenerate `role=customer` case (that set grows
         # with the whole customer base) so a single request can never enumerate
@@ -114,8 +121,8 @@ module Auth
         # not a pagination problem.
         SEARCH_MATCH_LIMIT = 1_000
 
-        # Cap on HSCAN round-trips for one search. With SCAN_COUNT=100 per
-        # round-trip this bounds the index walk at ~100k entries examined even
+        # Cap on HSCAN round-trips for one search. With SEARCH_SCAN_COUNT=1000
+        # per round-trip this bounds the index walk at ~1M entries examined even
         # when the term matches nothing (HSCAN's MATCH filters server-side, so
         # a no-match term would otherwise walk the entire index).
         SEARCH_SCAN_ROUNDS = 1_000
@@ -255,7 +262,7 @@ module Auth
           rounds   = 0
 
           loop do
-            cursor, entries = dbclient.hscan(dbkey, cursor, match: pattern, count: SCAN_COUNT)
+            cursor, entries = dbclient.hscan(dbkey, cursor, match: pattern, count: SEARCH_SCAN_COUNT)
             entries.each { |_email, objid| objids << objid }
             rounds         += 1
 

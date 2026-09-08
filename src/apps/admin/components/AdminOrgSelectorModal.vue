@@ -9,7 +9,7 @@
   } from '@/schemas/api/internal/responses/colonel';
   import { colonelOrganizationsResponseSchema } from '@/schemas/api/internal/responses/colonel';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { onBeforeUnmount, ref, watch } from 'vue';
+  import { ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   /**
@@ -68,18 +68,14 @@
     }
   }
 
-  // Debounce keystrokes so we don't fire a scan per character.
-  let debounceId: ReturnType<typeof setTimeout> | null = null;
-  watch(term, () => {
-    if (debounceId) clearTimeout(debounceId);
-    debounceId = setTimeout(runSearch, 300);
-  });
-  onBeforeUnmount(() => {
-    if (debounceId) clearTimeout(debounceId);
-  });
-
+  /**
+   * Search runs ONLY on explicit submit (Enter in the field). Typing never
+   * fetches: each search is a bounded index scan on the server, and the
+   * per-keystroke debounce this replaced fired a burst of them. One at a
+   * time — a submit while a search is in flight is dropped.
+   */
   function onSubmit(): void {
-    if (debounceId) clearTimeout(debounceId);
+    if (loading.value) return;
     runSearch();
   }
 
@@ -116,7 +112,8 @@
         {{ t('web.admin.domains.orgPicker.searchLabel') }}
       </label>
       <div class="relative">
-        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+        <span
+          class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
           <OIcon
             collection="heroicons"
             name="magnifying-glass"

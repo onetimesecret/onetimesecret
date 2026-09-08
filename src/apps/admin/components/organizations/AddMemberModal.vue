@@ -22,7 +22,7 @@
   import type { ColonelOrganizationDetailMember } from '@/schemas/api/internal/responses/colonel-organizations';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { formatDisplayDateTime } from '@/utils/format';
-  import { computed, onBeforeUnmount, ref, watch } from 'vue';
+  import { computed, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   /**
@@ -128,20 +128,15 @@
     }
   }
 
-  // One request per pause, not per keystroke. The no-op guard keeps the
-  // programmatic reset below from firing a second, pointless search.
-  let debounceId: ReturnType<typeof setTimeout> | null = null;
-  watch(term, (value) => {
-    if (debounceId) clearTimeout(debounceId);
-    if (value.trim() === activeTerm.value) return;
-    debounceId = setTimeout(runSearch, 300);
-  });
-  onBeforeUnmount(() => {
-    if (debounceId) clearTimeout(debounceId);
-  });
-
+  /**
+   * Search runs ONLY on explicit submit (Enter / the search button). Typing
+   * never fetches: each search is a bounded scan of the email index on the
+   * server, and the per-keystroke debounce this replaced fired a burst of
+   * them. One at a time, and never twice for the same term.
+   */
   function onSearchSubmit(): void {
-    if (debounceId) clearTimeout(debounceId);
+    if (searchLoading.value) return;
+    if (term.value.trim() === activeTerm.value) return;
     runSearch();
   }
 
@@ -231,7 +226,6 @@
     () => props.open,
     (isOpen) => {
       if (!isOpen) return;
-      if (debounceId) clearTimeout(debounceId);
       term.value = '';
       activeTerm.value = '';
       results.value = [];

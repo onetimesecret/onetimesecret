@@ -165,99 +165,98 @@ describe('AdminCustomers (list view — ticket #22)', () => {
     });
   });
 
-  it('debounces the email search box into a single filtered fetch', async () => {
-    vi.useFakeTimers();
-    try {
-      mockApi.get.mockResolvedValue({ data: usersPayload() });
-      wrapper = mountView();
-      await flushPromises();
-      const before = mockApi.get.mock.calls.length;
+  it('never fetches on typing alone — search is submit-only', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    wrapper = mountView();
+    await flushPromises();
+    const before = mockApi.get.mock.calls.length;
 
-      await wrapper
-        .find('[data-testid="customers-filterbar"] input[type="search"]')
-        .setValue('alice');
-      // Debounced — no request yet.
-      expect(mockApi.get.mock.calls.length).toBe(before);
+    const input = wrapper.find('[data-testid="customers-filterbar"] input[type="search"]');
+    await input.setValue('a');
+    await input.setValue('al');
+    await input.setValue('alice');
+    // Give any (incorrectly) scheduled timer a chance to fire.
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    await flushPromises();
 
-      vi.advanceTimersByTime(300);
-      await flushPromises();
-
-      expect(mockApi.get.mock.calls.length).toBe(before + 1);
-      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/users', {
-        params: { page: 1, per_page: 50, search: 'alice' },
-      });
-    } finally {
-      vi.runOnlyPendingTimers();
-      vi.useRealTimers();
-    }
+    expect(mockApi.get.mock.calls.length).toBe(before);
   });
 
-  it('fetches immediately when the search button is clicked (debounce cancelled)', async () => {
-    vi.useFakeTimers();
-    try {
-      mockApi.get.mockResolvedValue({ data: usersPayload() });
-      wrapper = mountView();
-      await flushPromises();
+  it('fetches once with the term when the search button is clicked', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    wrapper = mountView();
+    await flushPromises();
 
-      await wrapper
-        .find('[data-testid="customers-filterbar"] input[type="search"]')
-        .setValue('alice');
-      const before = mockApi.get.mock.calls.length;
+    await wrapper
+      .find('[data-testid="customers-filterbar"] input[type="search"]')
+      .setValue('alice');
+    const before = mockApi.get.mock.calls.length;
 
-      const submitBtn = wrapper
-        .findAll('[data-testid="customers-filterbar"] button')
-        .find((b) => b.text().includes('searchSubmit'));
-      await submitBtn!.trigger('click');
-      await flushPromises();
+    const submitBtn = wrapper
+      .findAll('[data-testid="customers-filterbar"] button')
+      .find((b) => b.text().includes('searchSubmit'));
+    await submitBtn!.trigger('click');
+    await flushPromises();
 
-      // Immediate fetch with the term…
-      expect(mockApi.get.mock.calls.length).toBe(before + 1);
-      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/users', {
-        params: { page: 1, per_page: 50, search: 'alice' },
-      });
-
-      // …and the pending debounce was cancelled — no second, late request.
-      vi.advanceTimersByTime(300);
-      await flushPromises();
-      expect(mockApi.get.mock.calls.length).toBe(before + 1);
-    } finally {
-      vi.runOnlyPendingTimers();
-      vi.useRealTimers();
-    }
+    expect(mockApi.get.mock.calls.length).toBe(before + 1);
+    expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/users', {
+      params: { page: 1, per_page: 50, search: 'alice' },
+    });
   });
 
-  it('issues exactly one fetch when clearing filters (no debounce double-fetch)', async () => {
-    vi.useFakeTimers();
-    try {
-      mockApi.get.mockResolvedValue({ data: usersPayload() });
-      wrapper = mountView();
-      await flushPromises();
+  it('drops a submit while a request is still in flight (no burst)', async () => {
+    let release!: (value: { data: unknown }) => void;
+    mockApi.get.mockResolvedValueOnce({ data: usersPayload() });
+    wrapper = mountView();
+    await flushPromises();
 
-      // Establish an active search so the clear affordance has something to reset.
-      await wrapper
-        .find('[data-testid="customers-filterbar"] input[type="search"]')
-        .setValue('alice');
-      vi.advanceTimersByTime(300);
-      await flushPromises();
+    mockApi.get.mockImplementationOnce(() => new Promise((resolve) => (release = resolve)));
+    const input = wrapper.find('[data-testid="customers-filterbar"] input[type="search"]');
+    await input.setValue('alice');
+    await input.trigger('keydown', { key: 'Enter' });
+    const before = mockApi.get.mock.calls.length;
 
-      const before = mockApi.get.mock.calls.length;
+    // Hammer Enter and the button while the first search is pending.
+    await input.setValue('alice2');
+    await input.trigger('keydown', { key: 'Enter' });
+    await input.trigger('keydown', { key: 'Enter' });
+    const submitBtn = wrapper
+      .findAll('[data-testid="customers-filterbar"] button')
+      .find((b) => b.text().includes('searchSubmit'));
+    expect(submitBtn!.attributes('disabled')).toBeDefined();
+    await submitBtn!.trigger('click');
+    await flushPromises();
+    expect(mockApi.get.mock.calls.length).toBe(before);
 
-      // Clear the filter bar (emits the 'clear' event AdminCustomers handles).
-      wrapper.findComponent(FilterBar).vm.$emit('clear');
-      // Let any (incorrectly) scheduled debounce fire.
-      vi.advanceTimersByTime(300);
-      await flushPromises();
+    release({ data: usersPayload() });
+    await flushPromises();
+    expect(submitBtn!.attributes('disabled')).toBeUndefined();
+  });
 
-      // Exactly one fetch — the immediate fetchPage(1) from onClear(). The
-      // programmatic searchTerm reset must NOT schedule a second late request.
-      expect(mockApi.get.mock.calls.length).toBe(before + 1);
-      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/users', {
-        params: { page: 1, per_page: 50 },
-      });
-    } finally {
-      vi.runOnlyPendingTimers();
-      vi.useRealTimers();
-    }
+  it('issues exactly one fetch when clearing filters', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload() });
+    wrapper = mountView();
+    await flushPromises();
+
+    // Establish an active search so the clear affordance has something to reset.
+    const input = wrapper.find('[data-testid="customers-filterbar"] input[type="search"]');
+    await input.setValue('alice');
+    await input.trigger('keydown', { key: 'Enter' });
+    await flushPromises();
+
+    const before = mockApi.get.mock.calls.length;
+
+    // Clear the filter bar (emits the 'clear' event AdminCustomers handles).
+    wrapper.findComponent(FilterBar).vm.$emit('clear');
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    await flushPromises();
+
+    // Exactly one fetch — the fetchPage(1) from onClear(). The programmatic
+    // searchTerm reset must NOT trigger a second request.
+    expect(mockApi.get.mock.calls.length).toBe(before + 1);
+    expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/users', {
+      params: { page: 1, per_page: 50 },
+    });
   });
 
   it('shows a SUSPENDED badge on suspended rows only', async () => {

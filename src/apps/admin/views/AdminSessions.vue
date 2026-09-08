@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminSessions.vue -->
 
 <script setup lang="ts">
-
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import {
     AdminConfirmDialog,
@@ -28,7 +27,7 @@
   import { formatDisplayDateTime } from '@/utils/format';
   import { gracefulParse } from '@/utils/schemaValidation';
   import { storeToRefs } from 'pinia';
-  import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   /**
@@ -60,8 +59,7 @@
   const notifications = useNotificationsStore();
 
   const store = useAdminSessions();
-  const { sessions, pagination, scan, currentSessionHandle, loading, error } =
-    storeToRefs(store);
+  const { sessions, pagination, scan, currentSessionHandle, loading, error } = storeToRefs(store);
 
   /**
    * The acting colonel's OWN row (#4328). Revoking it signs the operator out
@@ -70,9 +68,7 @@
    * HANDLE — the raw session id never reaches this console.
    */
   function isCurrentSession(sessionHandle: string): boolean {
-    return (
-      currentSessionHandle.value !== null && sessionHandle === currentSessionHandle.value
-    );
+    return currentSessionHandle.value !== null && sessionHandle === currentSessionHandle.value;
   }
 
   // ---- List + search --------------------------------------------------------
@@ -136,23 +132,14 @@
     }
   }
 
-  // Debounce search input so we issue one request per pause, not per keystroke.
-  let searchTimer: ReturnType<typeof setTimeout> | null = null;
-  watch(searchTerm, (value) => {
-    if (searchTimer) clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => {
-      activeSearch.value = value.trim();
-      fetchPage(1);
-    }, 300);
-  });
-  onBeforeUnmount(() => {
-    if (searchTimer) clearTimeout(searchTimer);
-  });
-
-  /** Submit search on explicit user action (Enter key or search button). */
+  /**
+   * Submit search on explicit user action ONLY (Enter key or search button).
+   * Typing never fetches: there is no watcher on `searchTerm`. Every list read
+   * is a bounded keyspace scan plus a decrypt per session on the server, so
+   * one request at a time — a submit while a page is loading is dropped.
+   */
   function onSearchSubmit(): void {
-    // Cancel the pending debounce so it doesn't re-fire for the same term.
-    if (searchTimer) clearTimeout(searchTimer);
+    if (loading.value) return; // In-flight guard
     const trimmed = searchTerm.value.trim();
     if (trimmed === activeSearch.value) return; // No-op guard
     activeSearch.value = trimmed;
@@ -160,9 +147,12 @@
   }
 
   function onClear(): void {
+    const hadSearch = activeSearch.value !== '';
     searchTerm.value = '';
     activeSearch.value = '';
-    fetchPage(1);
+    // Only re-read when a search was actually applied; clearing a term that
+    // was never submitted has nothing to refresh.
+    if (hadSearch) fetchPage(1);
   }
 
   function onPageChange(targetPage: number): void {
@@ -222,8 +212,7 @@
   /** A non-404 network/HTTP failure, or a Zod contract mismatch. */
   const detailLoadFailed = computed(
     () =>
-      (detailError.value !== null && !detailNotFound.value) ||
-      detailValidationError.value !== null
+      (detailError.value !== null && !detailNotFound.value) || detailValidationError.value !== null
   );
 
   function openDetail(row: ColonelSession): void {
@@ -271,13 +260,33 @@
         value: yesNo(r.authenticated),
       },
       { key: 'email', label: t('web.admin.sessions.fields.email'), value: none(r.email) },
-      { key: 'externalId', label: t('web.admin.sessions.fields.externalId'), value: none(r.external_id) },
-      { key: 'accountId', label: t('web.admin.sessions.fields.accountId'), value: none(r.account_id) },
+      {
+        key: 'externalId',
+        label: t('web.admin.sessions.fields.externalId'),
+        value: none(r.external_id),
+      },
+      {
+        key: 'accountId',
+        label: t('web.admin.sessions.fields.accountId'),
+        value: none(r.account_id),
+      },
       { key: 'role', label: t('web.admin.sessions.fields.role'), value: none(r.role) },
       { key: 'locale', label: t('web.admin.sessions.fields.locale'), value: none(r.locale) },
-      { key: 'ipAddress', label: t('web.admin.sessions.fields.ipAddress'), value: none(r.ip_address) },
-      { key: 'userAgent', label: t('web.admin.sessions.fields.userAgent'), value: none(r.user_agent) },
-      { key: 'orgContext', label: t('web.admin.sessions.fields.orgContext'), value: none(r.org_context) },
+      {
+        key: 'ipAddress',
+        label: t('web.admin.sessions.fields.ipAddress'),
+        value: none(r.ip_address),
+      },
+      {
+        key: 'userAgent',
+        label: t('web.admin.sessions.fields.userAgent'),
+        value: none(r.user_agent),
+      },
+      {
+        key: 'orgContext',
+        label: t('web.admin.sessions.fields.orgContext'),
+        value: none(r.org_context),
+      },
       {
         key: 'authenticatedAt',
         label: t('web.admin.sessions.fields.authenticatedAt'),
@@ -420,6 +429,7 @@
         v-model:search="searchTerm"
         :search-placeholder="t('web.admin.sessions.search.placeholder')"
         :has-active-filters="hasActiveFilters"
+        :busy="loading"
         testid="sessions-filterbar"
         @clear="onClear"
         @submit="onSearchSubmit" />
@@ -462,15 +472,21 @@
         </template>
 
         <template #cell-external_id="{ row }">
-          <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ row.external_id || '—' }}</span>
+          <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{
+            row.external_id || '—'
+          }}</span>
         </template>
 
         <template #cell-ip_address="{ row }">
-          <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ row.ip_address || '—' }}</span>
+          <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{
+            row.ip_address || '—'
+          }}</span>
         </template>
 
         <template #cell-geo_country="{ row }">
-          <span class="text-sm text-gray-700 dark:text-gray-300">{{ countryLabel(row.geo_country) }}</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300">{{
+            countryLabel(row.geo_country)
+          }}</span>
         </template>
 
         <template #cell-created_at="{ row }">
@@ -531,7 +547,9 @@
       v-model:open="drawerOpen"
       :title="
         selectedSession
-          ? t('web.admin.sessions.drawer.title', { id: selectedSession.session_handle.slice(0, 12) })
+          ? t('web.admin.sessions.drawer.title', {
+              id: selectedSession.session_handle.slice(0, 12),
+            })
           : ''
       "
       :subtitle="selectedSession ? emailLabel(selectedSession.email) : undefined"
@@ -608,7 +626,8 @@
         data-testid="session-drawer-content">
         <!-- Session record -->
         <section>
-          <h3 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h3
+            class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.sessions.sections.session') }}
           </h3>
           <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -631,7 +650,8 @@
 
         <!-- Raw inspector -->
         <section>
-          <h3 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h3
+            class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.sessions.sections.raw') }}
           </h3>
           <!-- Credential keys (csrf) are stripped SERVER-SIDE before this

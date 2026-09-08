@@ -6,10 +6,13 @@ require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require 'colonel/logic'
 
 # Coverage for the split roster paths: when no filters are active only the
-# requested page's org ids are loaded via revrange (fast, no cache) while
-# total_count comes from the sorted set cardinality, so pagination spans the
-# full population. When filters/search are active, the full roster is loaded
-# (and cached), then filtered/sorted/paginated in memory.
+# requested page's org ids are loaded via revrange while total_count comes from
+# the sorted set cardinality, so pagination spans the full population. When
+# filters/search are active the candidate set is BOUNDED — the newest-first
+# instances window plus, for search, the exact-id lookups and the two index
+# HSCANs — then filtered/sorted/paginated in memory, with `capped` reporting
+# whenever a bound stopped short of the population. The full-fleet load and
+# the roster cache are gone (they pinned production on every search).
 RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
   let(:colonel) do
     instance_double(
@@ -40,7 +43,6 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
       display_name: 'Acme Corp',
       contact_email: 'contact@acme.test',
       owner_id: 'cust1',
-      owner: instance_double(Onetime::Customer, email: 'owner@acme.test'),
       member_count: 3,
       domain_count: 1,
       is_default: 'false',
@@ -63,7 +65,6 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
       display_name: 'Beta Inc',
       contact_email: 'contact@beta.test',
       owner_id: 'cust2',
-      owner: instance_double(Onetime::Customer, email: 'owner@beta.test'),
       member_count: 1,
       domain_count: 0,
       is_default: 'true',
@@ -86,7 +87,6 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
       display_name: 'Gamma LLC',
       contact_email: 'contact@gamma.test',
       owner_id: 'cust3',
-      owner: instance_double(Onetime::Customer, email: 'owner@gamma.test'),
       member_count: 2,
       domain_count: 0,
       is_default: 'false',
@@ -103,6 +103,14 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
 
   let(:orgs_by_id) { { 'org1' => org1, 'org2' => org2, 'org3' => org3 } }
 
+  let(:owners_by_id) do
+    {
+      'cust1' => instance_double(Onetime::Customer, objid: 'cust1', email: 'owner@acme.test'),
+      'cust2' => instance_double(Onetime::Customer, objid: 'cust2', email: 'owner@beta.test'),
+      'cust3' => instance_double(Onetime::Customer, objid: 'cust3', email: 'owner@gamma.test'),
+    }
+  end
+
   let(:instances_double) do
     instance_double('Familia::SortedSet').tap do |ss|
       allow(ss).to receive(:to_a).and_return(%w[org1 org2])
@@ -110,6 +118,12 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
       allow(ss).to receive(:size).and_return(2)
     end
   end
+
+  # The two `field -> objid` index hashes the search path HSCANs. Default to
+  # empty scans so the window-only tests isolate the instances read.
+  let(:org_dbclient)  { double('OrgRedis') }
+  let(:cust_dbclient) { double('CustRedis') }
+  let(:window_limit)  { described_class::FILTER_WINDOW_LIMIT }
 
   def logic_for(params = {})
     described_class.new(strategy_result, params)
@@ -126,15 +140,25 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
     allow(Onetime::Organization).to receive(:load_multi) do |ids|
       ids.map { |id| orgs_by_id[id] }
     end
+    allow(Onetime::Customer).to receive(:load_multi) do |ids|
+      ids.map { |id| owners_by_id[id] }
+    end
+
+    # Search-path collaborators: exact-id lookups miss and both index scans
+    # come back empty unless a test says otherwise.
+    allow(Onetime::Organization).to receive(:find_by_extid).and_return(nil)
+    allow(Onetime::Organization).to receive(:load).and_return(nil)
+    allow(Onetime::Organization).to receive(:contact_email_index)
+      .and_return(double('OrgEmailIndex', dbkey: 'organization:contact_email_index'))
+    allow(Onetime::Organization).to receive(:dbclient).and_return(org_dbclient)
+    allow(org_dbclient).to receive(:hscan).and_return(['0', []])
+    allow(Onetime::Customer).to receive(:email_index)
+      .and_return(double('CustEmailIndex', dbkey: 'customer:email_index'))
+    allow(Onetime::Customer).to receive(:dbclient).and_return(cust_dbclient)
+    allow(cust_dbclient).to receive(:hscan).and_return(['0', []])
 
     allow(Billing::BillingService).to receive(:compute_sync_status).and_return('unknown')
     allow(Billing::BillingService).to receive(:compute_sync_status_reason).and_return(nil)
-
-    # Stub cache reads/writes
-    allow(Familia).to receive(:now).and_return(Time.at(1700010000))
-    allow(Familia).to receive(:dbclient).and_return(
-      instance_double('Redis', get: nil, setex: true),
-    )
   end
 
   describe 'paged behavior (no filters active)' do
@@ -163,26 +187,35 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
 
       logic = logic_for({})
       logic.raise_concerns
-      data = logic.process
+      data  = logic.process
 
       pagination = data[:details][:pagination]
       expect(pagination[:total_count]).to eq(120)
       expect(pagination[:total_pages]).to eq(3) # ceil(120 / 50.0)
     end
 
-    it 'skips the cache entirely for the default unfiltered load' do
+    it 'is never capped: the page is exact and total_count is the cardinality' do
       logic = logic_for({})
       logic.raise_concerns
-      data = logic.process
+      data  = logic.process
 
-      # No cache hit (never consulted), no cache write
-      expect(data[:details][:cache][:cached]).to be(false)
+      expect(data[:details][:pagination][:capped]).to be(false)
+    end
+
+    it 'batch-loads the page owners instead of one load per row' do
+      logic = logic_for({})
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(Onetime::Customer).to have_received(:load_multi).once.with(%w[cust2 cust1])
+      emails = data[:details][:organizations].map { |o| o[:owner_email] }
+      expect(emails).to eq(%w[owner@beta.test owner@acme.test])
     end
 
     it 'returns rows in revrange order (most recently modified first)' do
       logic = logic_for({})
       logic.raise_concerns
-      data = logic.process
+      data  = logic.process
 
       orgs = data[:details][:organizations]
       expect(orgs.map { |o| o[:extid] }).to eq(%w[on_org2 on_org1])
@@ -213,64 +246,182 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
   end
 
   describe 'filtered behavior (filters active)' do
-    it 'loads the full roster via to_a when status_filter is present' do
+    it 'reads the newest-first window, never the whole set, when status_filter is present' do
       logic = logic_for('status' => 'active')
       logic.raise_concerns
-      logic.process
+      data  = logic.process
 
-      expect(instances_double).to have_received(:to_a)
-      expect(instances_double).not_to have_received(:revrange)
+      expect(instances_double).to have_received(:revrange).with(0, window_limit - 1)
+      expect(instances_double).not_to have_received(:to_a)
+      expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org1])
     end
 
-    it 'loads the full roster via to_a when sync_status_filter is present' do
+    it 'reads the window when sync_status_filter is present and filters on the computed status' do
+      allow(Billing::BillingService).to receive(:compute_sync_status) do |org|
+        org.objid == 'org2' ? 'potentially_stale' : 'synced'
+      end
+
       logic = logic_for('sync_status' => 'potentially_stale')
       logic.raise_concerns
-      logic.process
+      data  = logic.process
 
-      expect(instances_double).to have_received(:to_a)
+      expect(instances_double).to have_received(:revrange).with(0, window_limit - 1)
+      expect(instances_double).not_to have_received(:to_a)
+      expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org2])
     end
 
-    it 'loads the full roster via to_a when search_term is present' do
+    it 'is not capped when the population fits the window' do
+      logic = logic_for('status' => 'active')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(data[:details][:pagination][:capped]).to be(false)
+    end
+
+    it 'reports capped when the population is larger than the window' do
+      allow(instances_double).to receive(:size).and_return(window_limit + 1)
+
+      logic = logic_for('status' => 'active')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(data[:details][:pagination][:capped]).to be(true)
+    end
+
+    it 'never consults a roster cache' do
+      expect(Familia).not_to receive(:dbclient)
+
+      logic = logic_for('status' => 'active')
+      logic.raise_concerns
+      logic.process
+    end
+
+    it 'sorts filtered rows created-descending and counts only the matches' do
+      allow(instances_double).to receive(:revrange).and_return(%w[org1 org3 org2])
+      allow(instances_double).to receive(:size).and_return(3)
+
+      logic = logic_for('sync_status' => 'unknown')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org3 on_org2 on_org1])
+      expect(data[:details][:pagination][:total_count]).to eq(3)
+    end
+  end
+
+  describe 'search' do
+    it 'matches display_name within the window (case-insensitive)' do
+      logic = logic_for('search' => 'ACME')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(instances_double).to have_received(:revrange).with(0, window_limit - 1)
+      expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org1])
+    end
+
+    it 'resolves an exact extid through the unique index and skips every scan' do
+      allow(Onetime::Organization).to receive(:find_by_extid).with('on_org3').and_return(org3)
+      allow(org3).to receive(:exists?).and_return(true)
+
+      logic = logic_for('search' => 'on_org3')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org3])
+      expect(data[:details][:pagination][:capped]).to be(false)
+      expect(instances_double).not_to have_received(:revrange)
+      expect(org_dbclient).not_to have_received(:hscan)
+      expect(cust_dbclient).not_to have_received(:hscan)
+    end
+
+    it 'HSCANs the contact_email index with an escaped, case-insensitive glob' do
+      captured = nil
+      allow(org_dbclient).to receive(:hscan) do |dbkey, cursor, **opts|
+        captured = [dbkey, cursor, opts]
+        ['0', [['contact@gamma.test', 'org3']]]
+      end
+      allow(instances_double).to receive(:revrange).and_return([])
+
+      logic = logic_for('search' => 'Gam[m]a')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(captured[0]).to eq('organization:contact_email_index')
+      expect(captured[1]).to eq('0')
+      expect(captured[2][:match]).to eq('*[gG][aA][mM]\\[[mM]\\][aA]*')
+      expect(captured[2][:count]).to eq(described_class::SCAN_COUNT)
+      # The index candidate still has to pass the Ruby-side predicate.
+      expect(data[:details][:organizations].map { |o| o[:extid] }).to eq([])
+    end
+
+    it 'includes contact_email index hits that match' do
+      allow(org_dbclient).to receive(:hscan).and_return(['0', [['contact@gamma.test', 'org3']]])
+      allow(instances_double).to receive(:revrange).and_return([])
+
+      logic = logic_for('search' => 'contact@gamma')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org3])
+    end
+
+    it 'matches organizations OWNED by a customer whose email matches' do
+      allow(cust_dbclient).to receive(:hscan).and_return(['0', [['owner@gamma.test', 'cust3']]])
+      allow(owners_by_id['cust3']).to receive(:organization_instances).and_return([org3, org1])
+      allow(instances_double).to receive(:revrange).and_return([])
+
+      logic = logic_for('search' => 'owner@gamma')
+      logic.raise_concerns
+      data  = logic.process
+
+      # org1 is a membership, not an ownership (owner_id cust1) — excluded.
+      expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org3])
+    end
+
+    it 'caps the owner-email resolution and reports it' do
+      entries = (1..(described_class::OWNER_MATCH_LIMIT + 1)).map { |i| ["u#{i}@x.test", "c#{i}"] }
+      allow(cust_dbclient).to receive(:hscan).and_return(['0', entries])
+      allow(Onetime::Customer).to receive(:load_multi) do |ids|
+        expect(ids.size).to eq(described_class::OWNER_MATCH_LIMIT)
+        []
+      end
+
+      logic = logic_for('search' => 'x.test')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(data[:details][:pagination][:capped]).to be(true)
+    end
+
+    it 'stops a contact_email scan at the round cap and reports it' do
+      allow(org_dbclient).to receive(:hscan).and_return(['7', []])
+      allow(instances_double).to receive(:revrange).and_return([])
+
+      logic = logic_for('search' => 'nobody')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(org_dbclient).to have_received(:hscan).exactly(described_class::SEARCH_SCAN_ROUNDS).times
+      expect(data[:details][:pagination][:capped]).to be(true)
+    end
+
+    it 'composes search with the status filter' do
+      logic = logic_for('search' => 'test', 'status' => 'active')
+      logic.raise_concerns
+      data  = logic.process
+
+      expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org1])
+    end
+
+    it 'de-duplicates an org found by more than one path' do
+      allow(org_dbclient).to receive(:hscan).and_return(['0', [['contact@acme.test', 'org1']]])
+
       logic = logic_for('search' => 'acme')
       logic.raise_concerns
-      logic.process
+      data  = logic.process
 
-      expect(instances_double).to have_received(:to_a)
-    end
-
-    it 'writes to the cache after a filtered load' do
-      db = instance_double('Redis', get: nil, setex: true)
-      allow(Familia).to receive(:dbclient).and_return(db)
-
-      logic = logic_for('status' => 'active')
-      logic.raise_concerns
-      logic.process
-
-      expect(db).to have_received(:setex).with(
-        described_class::CACHE_KEY,
-        described_class::CACHE_TTL,
-        kind_of(String),
-      )
-    end
-
-    it 'reads from the cache on subsequent filtered requests' do
-      cached_payload = {
-        generated_at: 1700005000,
-        organizations: [
-          { org_id: 'org1', extid: 'on_org1', created: 1700000000 },
-        ],
-      }.to_json
-
-      db = instance_double('Redis', get: cached_payload, setex: true)
-      allow(Familia).to receive(:dbclient).and_return(db)
-
-      logic = logic_for('status' => 'active')
-      logic.raise_concerns
-      data = logic.process
-
-      expect(data[:details][:cache][:cached]).to be(true)
-      expect(data[:details][:cache][:generated_at]).to eq(1_700_005_000)
-      expect(instances_double).not_to have_received(:to_a)
+      expect(data[:details][:organizations].map { |o| o[:extid] }).to eq(%w[on_org1])
+      expect(data[:details][:pagination][:total_count]).to eq(1)
     end
   end
 
@@ -315,36 +466,27 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
     end
   end
 
-  describe 'refresh bypass' do
-    it 'skips the cache read when refresh param is truthy' do
-      cached_payload = {
-        generated_at: 1700005000,
-        organizations: [{ org_id: 'cached', extid: 'on_cached', created: 1700000000 }],
-      }.to_json
-
-      db = instance_double('Redis', get: cached_payload, setex: true)
-      allow(Familia).to receive(:dbclient).and_return(db)
-
+  describe 'legacy refresh param' do
+    it 'is accepted and ignored (there is no cache to bypass)' do
       logic = logic_for('status' => 'active', 'refresh' => 'true')
       logic.raise_concerns
-      data = logic.process
+      data  = logic.process
 
-      # Should have loaded fresh data, not used the cache
-      expect(instances_double).to have_received(:to_a)
-      expect(data[:details][:cache][:cached]).to be(false)
+      expect(instances_double).to have_received(:revrange).with(0, window_limit - 1)
+      expect(data[:details]).not_to have_key(:cache)
     end
   end
 
   describe 'response envelope' do
-    it 'includes pagination, filters, and cache state' do
+    it 'includes pagination (with capped) and the filter echo, and no cache block' do
       logic = logic_for({})
       logic.raise_concerns
-      data = logic.process
+      data  = logic.process
 
-      expect(data[:details]).to include(:organizations, :pagination, :filters, :cache)
-      expect(data[:details][:pagination]).to include(:page, :per_page, :total_count, :total_pages)
+      expect(data[:details]).to include(:organizations, :pagination, :filters)
+      expect(data[:details]).not_to have_key(:cache)
+      expect(data[:details][:pagination]).to include(:page, :per_page, :total_count, :total_pages, :capped)
       expect(data[:details][:filters]).to include(:status, :sync_status, :search)
-      expect(data[:details][:cache]).to include(:cached, :generated_at, :ttl)
     end
   end
 end

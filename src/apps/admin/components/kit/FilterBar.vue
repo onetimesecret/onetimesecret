@@ -16,9 +16,17 @@
    * on native semantics (see #11 notes) — and the bar is fully controlled: the
    * owner holds every value and updates it from the `filter-change` event.
    *
-   * An optional debounced-free search box (`v-model:search`) and a "clear"
-   * affordance round out the bar. Extra bespoke controls can be dropped into the
-   * default slot; a trailing actions slot hosts view-level buttons.
+   * An optional search box (`v-model:search`) and a "clear" affordance round
+   * out the bar. Extra bespoke controls can be dropped into the default slot; a
+   * trailing actions slot hosts view-level buttons.
+   *
+   * The search box NEVER fetches on its own. Typing only updates the bound
+   * text; the owner runs the search when the bar emits `submit` (Enter or the
+   * search button). Every admin list search is a bounded-but-real index scan
+   * on the server, and the earlier per-keystroke debounce turned one operator
+   * typing an address into a burst of concurrent scans. While the owner has a
+   * request in flight (`busy`), the bar refuses to emit another `submit`, so
+   * hammering Enter cannot queue a burst either.
    */
   const props = withDefaults(
     defineProps<{
@@ -39,6 +47,11 @@
       hasActiveFilters?: boolean;
       /** Test id applied to the bar root. */
       testid?: string;
+      /**
+       * A search request is in flight. Disables the search button and
+       * suppresses Enter so at most one search runs at a time.
+       */
+      busy?: boolean;
     }>(),
     {
       filters: () => [],
@@ -48,6 +61,7 @@
       showClear: true,
       hasActiveFilters: false,
       testid: undefined,
+      busy: false,
     }
   );
 
@@ -74,8 +88,13 @@
 
   function onSearchKeydown(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
-      emit('submit');
+      event.preventDefault();
+      if (!props.busy) emit('submit');
     }
+  }
+
+  function onSearchClick(): void {
+    if (!props.busy) emit('submit');
   }
 
   function onFilterChange(config: FilterConfig, event: Event): void {
@@ -116,8 +135,10 @@
         </div>
         <button
           type="button"
-          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-          @click="emit('submit')">
+          :disabled="busy"
+          :aria-busy="busy"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          @click="onSearchClick">
           <OIcon
             collection="heroicons"
             name="magnifying-glass"

@@ -42,8 +42,10 @@ module Onetime
   module Operations
     module Domains
       class List
-        # Per-round-trip COUNT hint for the display_domain_index cursor HSCAN.
-        SCAN_COUNT = 100
+        # Per-round-trip COUNT hint for the index cursor HSCANs. MATCH filters
+        # server-side and each call is sub-millisecond, so a search's cost is
+        # its round-trips: 1k per call covers the index in a few calls.
+        SCAN_COUNT = 1_000
 
         # Cap on how many display_domain_index MATCHES one search collects.
         SEARCH_MATCH_LIMIT = 1_000

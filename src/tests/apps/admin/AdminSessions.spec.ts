@@ -235,26 +235,23 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     expect(wrapper.html()).not.toContain(RAW_SID);
   });
 
-  it('debounces the search box into a single filtered fetch', async () => {
+  it('never fetches on typing alone — search is submit-only', async () => {
     mockApi.get.mockResolvedValue({ data: sessionsPayload() });
     wrapper = mountView(pinia);
     await flushPromises();
     const before = listGetCount();
 
-    await wrapper.find('[data-testid="sessions-filterbar"] input').setValue('alice');
-    // Debounced — no request yet.
-    expect(listGetCount()).toBe(before);
-
-    vi.advanceTimersByTime(300);
+    const input = wrapper.find('[data-testid="sessions-filterbar"] input');
+    await input.setValue('a');
+    await input.setValue('ali');
+    await input.setValue('alice');
+    vi.advanceTimersByTime(1000);
     await flushPromises();
 
-    expect(listGetCount()).toBe(before + 1);
-    expect(mockApi.get).toHaveBeenLastCalledWith(LIST_URL, {
-      params: { page: 1, per_page: 50, search: 'alice' },
-    });
+    expect(listGetCount()).toBe(before);
   });
 
-  it('fetches immediately when the search button is clicked (debounce cancelled)', async () => {
+  it('fetches once with the term when the search button is clicked', async () => {
     mockApi.get.mockResolvedValue({ data: sessionsPayload() });
     wrapper = mountView(pinia);
     await flushPromises();
@@ -268,14 +265,14 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     await submitBtn!.trigger('click');
     await flushPromises();
 
-    // Immediate fetch with the term…
     expect(listGetCount()).toBe(before + 1);
     expect(mockApi.get).toHaveBeenLastCalledWith(LIST_URL, {
       params: { page: 1, per_page: 50, search: 'alice' },
     });
 
-    // …and the pending debounce was cancelled — no second, late request.
-    vi.advanceTimersByTime(300);
+    // Nothing else fires later, and the same term is a no-op.
+    vi.advanceTimersByTime(1000);
+    await submitBtn!.trigger('click');
     await flushPromises();
     expect(listGetCount()).toBe(before + 1);
   });
@@ -468,9 +465,7 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     it('disables the revoke button on the row matching current_session_handle', async () => {
       await mountWithCurrent(HANDLE);
 
-      expect(
-        wrapper.find(`[data-testid="revoke-${HANDLE}"]`).attributes('disabled')
-      ).toBeDefined();
+      expect(wrapper.find(`[data-testid="revoke-${HANDLE}"]`).attributes('disabled')).toBeDefined();
       expect(wrapper.find(`[data-testid="revoke-${HANDLE}"]`).attributes('title')).toBe(
         'web.admin.sessions.revoke.ownSession'
       );

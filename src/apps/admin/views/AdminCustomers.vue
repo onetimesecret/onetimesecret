@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminCustomers.vue -->
 
 <script setup lang="ts">
-
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import {
     AdminConfirmDialog,
@@ -20,7 +19,7 @@
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
-  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   /**
@@ -30,10 +29,13 @@
    * Pure consumer of the Slice-1 kit + `useAdminCustomers` store (CONTRACT 1):
    * DataTable + FilterBar + KitPagination over `usePaginatedFetch`. One server
    * page per request — never load-all-then-slice. Two server-side filters:
-   * `role` and a debounced `search` (the list endpoint resolves it via a
-   * bounded scan of the email index PLUS exact extid/objid lookups — wired
-   * exactly like the sessions screen's search, so a support agent can paste an
-   * address or an id). Columns are non-sortable on purpose: the endpoint returns a
+   * `role` and `search` (the list endpoint resolves it via a bounded scan of
+   * the email index PLUS exact extid/objid lookups — wired exactly like the
+   * sessions screen's search, so a support agent can paste an address or an
+   * id). `search` runs ONLY on explicit submit (Enter or the search button),
+   * never on keystrokes, and never while a request is already in flight: each
+   * search is a real index scan, and a per-keystroke burst of them is what
+   * used to pin the production workers. Columns are non-sortable on purpose: the endpoint returns a
    * FIXED most-recently-modified ordering (epic #20 CONTRACT 6), so there is no
    * server `sort` param to drive a controlled re-fetch.
    *
@@ -94,27 +96,13 @@
     }
   }
 
-  // Debounce search input so we issue one request per pause, not per keystroke
-  // (same 300 ms wiring as AdminSessions).
-  let searchTimer: ReturnType<typeof setTimeout> | null = null;
-  watch(searchTerm, (value) => {
-    if (searchTimer) clearTimeout(searchTimer);
-    // Skip no-op changes (e.g. the programmatic reset in onClear(), which
-    // already issues its own fetch) so clearing doesn't double-fetch.
-    if (value.trim() === activeSearch.value) return;
-    searchTimer = setTimeout(() => {
-      activeSearch.value = value.trim();
-      fetchPage(1);
-    }, 300);
-  });
-  onBeforeUnmount(() => {
-    if (searchTimer) clearTimeout(searchTimer);
-  });
-
-  /** Submit search on explicit user action (Enter key or search button). */
+  /**
+   * Submit search on explicit user action ONLY (Enter key or search button).
+   * Typing never fetches: there is no watcher on `searchTerm`. One request at
+   * a time — a submit while a page is loading is dropped, not queued.
+   */
   function onSearchSubmit(): void {
-    // Cancel the pending debounce so it doesn't re-fire for the same term.
-    if (searchTimer) clearTimeout(searchTimer);
+    if (loading.value) return; // In-flight guard
     const trimmed = searchTerm.value.trim();
     if (trimmed === activeSearch.value) return; // No-op guard
     activeSearch.value = trimmed;
@@ -129,9 +117,7 @@
   }
 
   function onClear(): void {
-    // Cancel any in-flight debounce so the reset below doesn't fire a second,
-    // late request on top of this one.
-    if (searchTimer) clearTimeout(searchTimer);
+    // Reset every filter, then re-read page 1 once.
     roleFilter.value = '';
     searchTerm.value = '';
     activeSearch.value = '';
@@ -312,7 +298,8 @@
       // A blank email yields null here, but `requestAction` refuses to open the
       // dialog in that state, so this can never become a one-click confirm.
       // Verify/unverify are reversible, so they degrade to a one-click confirm.
-      confirmToken: action === 'purge' ? (purgeTokenFor(actionTarget.value) ?? undefined) : undefined,
+      confirmToken:
+        action === 'purge' ? (purgeTokenFor(actionTarget.value) ?? undefined) : undefined,
       variant: action === 'purge' ? ('danger' as const) : ('default' as const),
       confirmText: t(`web.admin.customers.actions.${action}.button`),
       // Only PURGE asks for a why (#4338): it is the destructive verb here, and
@@ -438,6 +425,7 @@
         :filters="filters"
         :search-placeholder="t('web.admin.customers.list.searchPlaceholder')"
         :has-active-filters="hasActiveFilters"
+        :busy="loading"
         testid="customers-filterbar"
         @filter-change="onFilterChange"
         @clear="onClear"
@@ -515,7 +503,9 @@
           <span
             v-else
             class="text-gray-400 dark:text-gray-600"
-            :aria-label="t('web.admin.customers.detail.no')">—</span>
+            :aria-label="t('web.admin.customers.detail.no')"
+            >—</span
+          >
         </template>
 
         <template #cell-plan="{ row }">
@@ -534,7 +524,9 @@
 
         <template #cell-lastLogin="{ row }">
           <span class="text-gray-500 tabular-nums dark:text-gray-400">{{
-            row.last_login ? formatDisplayDateTime(row.last_login) : t('web.admin.customers.detail.never')
+            row.last_login
+              ? formatDisplayDateTime(row.last_login)
+              : t('web.admin.customers.detail.never')
           }}</span>
         </template>
 
@@ -617,7 +609,9 @@
           <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <StatCard
               :label="t('web.admin.customers.columns.role')"
-              :value="t(`web.admin.customers.roles.${selectedCustomer.role}`, selectedCustomer.role)"
+              :value="
+                t(`web.admin.customers.roles.${selectedCustomer.role}`, selectedCustomer.role)
+              "
               icon="shield-check"
               testid="customer-stat-role" />
             <StatCard
