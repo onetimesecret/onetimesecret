@@ -23,6 +23,7 @@
 
 import { createApiResponseSchema } from '@/schemas/api/base';
 import { sessionHandleSchema } from './session-handle';
+import { sessionAuthoritySchema } from './colonel-sessions';
 import { z } from 'zod';
 
 // The handle definition moved to ./session-handle when #4330 gave the GLOBAL
@@ -79,6 +80,9 @@ export const colonelCustomerSessionsDetailsSchema = z.object({
   sessions: z.array(adminCustomerSessionSchema),
   count: z.number(),
   current_session_handle: sessionHandleSchema.nullable().optional(),
+  // Same non-authoritative signal the global console carries; optional for
+  // deploy skew (see colonel-sessions.ts).
+  session_authority: sessionAuthoritySchema.optional(),
 });
 
 // ============================================================================
@@ -155,9 +159,7 @@ export const colonelCustomerSessionRevokeAllResponseSchema = createApiResponseSc
   colonelCustomerSessionRevokeAllDetailsSchema
 );
 
-export type ColonelCustomerSessionsResponse = z.infer<
-  typeof colonelCustomerSessionsResponseSchema
->;
+export type ColonelCustomerSessionsResponse = z.infer<typeof colonelCustomerSessionsResponseSchema>;
 export type ColonelCustomerSessionRevokeResponse = z.infer<
   typeof colonelCustomerSessionRevokeResponseSchema
 >;

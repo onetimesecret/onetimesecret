@@ -130,6 +130,13 @@ get "/api/colonel/users/#{@detail_extid}", {}, @colonel_get_headers
 [@detail_resp['details']['secrets']['count'], @detail_resp['details']['receipts'].is_a?(Hash)]
 #=> [0, true]
 
+## The detail payload carries the outbound Rodauth Admin deep link slot (the
+## read-only external_id join, rodauth-admin CHARTER §4 seam 1). It is present
+## but null here: the test lane runs simple auth mode and sets no
+## RODAUTH_ADMIN_URL, so the page renders the extid as plain text.
+[@detail_resp['details'].key?('rodauth_admin_account_url'), @detail_resp['details']['rodauth_admin_account_url']]
+#=> [true, nil]
+
 # ---- Role change by extid -----------------------------------------------
 
 ## POST /users/:extid/role resolves by extid and applies the change (200)

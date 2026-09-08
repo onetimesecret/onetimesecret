@@ -724,6 +724,21 @@
               name="arrow-top-right-on-square"
               size="4" />
           </router-link>
+          <!-- Outbound hand-over to the matching Rodauth account; the server
+               sends null unless full auth mode + RODAUTH_ADMIN_URL are set. -->
+          <a
+            v-if="selectedCustomer.rodauth_admin_account_url"
+            :href="selectedCustomer.rodauth_admin_account_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="ml-3 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
+            data-testid="customer-rodauth-admin-link">
+            {{ t('web.admin.customers.detail.rodauthAdmin.open') }}
+            <OIcon
+              collection="heroicons"
+              name="arrow-top-right-on-square"
+              size="3" />
+          </a>
         </section>
       </div>
 

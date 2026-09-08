@@ -4,14 +4,12 @@ import { defineStore } from 'pinia';
 import type { z } from 'zod';
 import { ref } from 'vue';
 
-import {
-  usePaginatedFetch,
-  type PageMeta,
-} from '@/apps/admin/composables/usePaginatedFetch';
+import { usePaginatedFetch, type PageMeta } from '@/apps/admin/composables/usePaginatedFetch';
 import { colonelSessionsResponseSchema } from '@/schemas/api/internal/responses/colonel-sessions';
 import type {
   ColonelSession,
   ColonelSessionScan,
+  SessionAuthority,
 } from '@/schemas/api/internal/responses/colonel-sessions';
 
 type ColonelSessionsResponse = z.infer<typeof colonelSessionsResponseSchema>;
@@ -43,6 +41,8 @@ export const useAdminSessions = defineStore('adminSessions', () => {
    * Null when the server cannot identify the request session.
    */
   const currentSessionHandle = ref<string | null>(null);
+  /** Session-authority signal for the running auth mode (null until a listing carries it). */
+  const sessionAuthority = ref<SessionAuthority | null>(null);
 
   const pager = usePaginatedFetch<ColonelSessionsResponse, ColonelSession>({
     url: '/api/colonel/sessions',
@@ -53,6 +53,7 @@ export const useAdminSessions = defineStore('adminSessions', () => {
     select: (data) => {
       scan.value = data.details?.scan ?? null;
       currentSessionHandle.value = data.details?.current_session_handle ?? null;
+      sessionAuthority.value = data.details?.session_authority ?? null;
       return {
         items: data.details?.sessions ?? [],
         pagination: data.details?.pagination ?? null,
@@ -73,10 +74,7 @@ export const useAdminSessions = defineStore('adminSessions', () => {
     search?: string
   ): Promise<{ items: ColonelSession[]; pagination: PageMeta | null } | null> {
     try {
-      const result = await pager.fetchPage(
-        targetPage,
-        search ? { search } : undefined
-      );
+      const result = await pager.fetchPage(targetPage, search ? { search } : undefined);
       if (result) {
         sessions.value = result.items;
         pagination.value = result.pagination;
@@ -86,6 +84,7 @@ export const useAdminSessions = defineStore('adminSessions', () => {
         pagination.value = null;
         scan.value = null;
         currentSessionHandle.value = null;
+        sessionAuthority.value = null;
       }
       return result;
     } catch (err) {
@@ -94,6 +93,7 @@ export const useAdminSessions = defineStore('adminSessions', () => {
       pagination.value = null;
       scan.value = null;
       currentSessionHandle.value = null;
+      sessionAuthority.value = null;
       throw err;
     }
   }
@@ -104,6 +104,7 @@ export const useAdminSessions = defineStore('adminSessions', () => {
     pagination.value = null;
     scan.value = null;
     currentSessionHandle.value = null;
+    sessionAuthority.value = null;
     pager.reset();
   }
 
@@ -113,6 +114,7 @@ export const useAdminSessions = defineStore('adminSessions', () => {
     pagination,
     scan,
     currentSessionHandle,
+    sessionAuthority,
     // Fetch state (owned by the shared composable)
     loading: pager.loading,
     error: pager.error,

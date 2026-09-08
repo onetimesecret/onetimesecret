@@ -21,7 +21,6 @@ require_relative 'routes/webauthn_credentials'
 require_relative 'routes/link_sso'
 require_relative 'routes/sso_link_confirm'
 require_relative 'routes/mfa'
-require_relative 'routes/admin'
 require_relative 'routes/health'
 
 module Auth
@@ -49,7 +48,6 @@ module Auth
     include Auth::Routes::WebauthnCredentials
     include Auth::Routes::LinkSso
     include Auth::Routes::SsoLinkConfirm
-    include Auth::Routes::Admin
 
     plugin :json, parser: true  # Parse incoming JSON request bodies
     plugin :halt
@@ -196,8 +194,6 @@ module Auth
 
       # SSO mailbox-proof linking for passwordless accounts (#3840 Phase 4)
       handle_sso_link_confirm_routes(r)
-
-      handle_admin_routes(r)
 
       handle_health_routes(r)
 
