@@ -24,7 +24,7 @@ RSpec.describe Auth::Operations::Customers::Show do
   end
 
   it 'resolves by extid/email via load_by_extid_or_email' do
-    customer = double('Customer', exists?: true)
+    customer = double('Customer', exists?: true, extid: 'ur_x')
     allow(customer).to receive(:respond_to?).with(:organization_instances).and_return(false)
     allow(Onetime::Customer).to receive(:load_by_extid_or_email).with('ur_x').and_return(customer)
 
@@ -34,10 +34,39 @@ RSpec.describe Auth::Operations::Customers::Show do
     expect(result.customer).to eq(customer)
   end
 
+  describe 'rodauth_admin_url (outbound deep link, read-only external_id join)' do
+    let(:customer) do
+      cust = double('Customer', exists?: true, extid: 'ur_x')
+      allow(cust).to receive(:respond_to?).with(:organization_instances).and_return(false)
+      cust
+    end
+
+    it 'is nil when nothing resolves' do
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(nil)
+      allow(Onetime::Customer).to receive(:load).and_return(nil)
+
+      expect(described_class.new(identifier: 'nobody').call.rodauth_admin_url).to be_nil
+    end
+
+    it 'is nil when the admin URL is not configured or auth mode is not full' do
+      allow(Onetime::RodauthAdmin).to receive(:account_url).with('ur_x').and_return(nil)
+
+      expect(described_class.new(customer: customer).call.rodauth_admin_url).to be_nil
+    end
+
+    it 'carries the account deep link keyed by extid when linkable' do
+      allow(Onetime::RodauthAdmin).to receive(:account_url).with('ur_x')
+        .and_return('http://127.0.0.1:9292/account?q=ur_x')
+
+      expect(described_class.new(customer: customer).call.rodauth_admin_url)
+        .to eq('http://127.0.0.1:9292/account?q=ur_x')
+    end
+  end
+
   it 'summarizes organizations for a resolved customer' do
     org = double('org', objid: 'oid', extid: 'or_x', display_name: 'Acme')
     org_set = double('org_set', to_a: [org])
-    customer = double('Customer', exists?: true, organization_instances: org_set)
+    customer = double('Customer', exists?: true, extid: 'ur_x', organization_instances: org_set)
 
     result = described_class.new(customer: customer).call
 
