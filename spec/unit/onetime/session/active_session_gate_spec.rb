@@ -5,6 +5,10 @@
 # Unit tests for Onetime::ActiveSessionGate — per-request enforcement of
 # Rodauth's account_active_session_keys table in full auth mode.
 #
+# Terms (Rack session, active-session row, join key, revoke, refuse) are
+# defined in the gate's module doc. `session` below is the Rack session; the
+# rows inserted into the table are active-session rows.
+#
 # The table is real (in-memory SQLite with the production column shape) so
 # the join, the touch throttle and the revoked/active split are exercised
 # against SQL, not doubles. Mode, feature flag and connection are stubbed at
@@ -47,12 +51,12 @@ RSpec.describe Onetime::ActiveSessionGate do
   end
 
   describe '.verdict' do
-    it 'is :active while the row exists' do
+    it 'is :active while the active-session row exists' do
       insert_row
       expect(described_class.verdict(session)).to eq(:active)
     end
 
-    it 'is :revoked once the row is gone' do
+    it 'is :revoked once the active-session row has been revoked' do
       expect(described_class.verdict(session)).to eq(:revoked)
     end
 
@@ -61,7 +65,7 @@ RSpec.describe Onetime::ActiveSessionGate do
       expect(described_class.verdict(session)).to eq(:revoked)
     end
 
-    it 'is :skipped outside full mode, even with a stamped session' do
+    it 'is :skipped outside full mode, even for a Rack session with a join key' do
       allow(Onetime.auth_config).to receive(:full_enabled?).and_return(false)
       expect(described_class.verdict(session)).to eq(:skipped)
     end
@@ -71,28 +75,28 @@ RSpec.describe Onetime::ActiveSessionGate do
       expect(described_class.verdict(session)).to eq(:skipped)
     end
 
-    it 'is :skipped for a session that carries no join key (pre-stamp login) — never a mass logout' do
+    it 'is :skipped for a Rack session that carries no join key (pre-stamp login) — never a mass logout' do
       session.delete('active_session_id_hmac')
       expect(described_class.verdict(session)).to eq(:skipped)
     end
 
-    it 'is :skipped for a session with no account id' do
+    it 'is :skipped for a Rack session with no account id' do
       session.delete('account_id')
       expect(described_class.verdict(session)).to eq(:skipped)
     end
 
-    it 'is :skipped for a nil session' do
+    it 'is :skipped for a nil Rack session' do
       expect(described_class.verdict(nil)).to eq(:skipped)
     end
 
-    it 'is :unavailable, with an error log, when there is no connection' do
+    it 'is :unavailable, with an error log, when the authdb has no connection' do
       allow(Auth::Database).to receive(:connection).and_return(nil)
 
       expect(described_class.verdict(session)).to eq(:unavailable)
       expect(OT).to have_received(:le).with(/fail closed/)
     end
 
-    it 'is :unavailable, with an error log, when the query raises' do
+    it 'is :unavailable, with an error log, when the active-session row query raises' do
       allow(Auth::Database).to receive(:connection).and_raise(Sequel::DatabaseConnectionError, 'down')
 
       expect(described_class.verdict(session)).to eq(:unavailable)
@@ -101,21 +105,21 @@ RSpec.describe Onetime::ActiveSessionGate do
   end
 
   describe '.revoked?' do
-    it 'is true when the row is gone' do
+    it 'is true once the active-session row has been revoked' do
       expect(described_class.revoked?(session)).to be(true)
     end
 
-    it 'is false while the row exists' do
+    it 'is false while the active-session row exists' do
       insert_row
       expect(described_class.revoked?(session)).to be(false)
     end
 
-    it 'is true when the authdb cannot be reached (fail closed)' do
+    it 'is true when the active-session row cannot be checked (fail closed)' do
       allow(Auth::Database).to receive(:connection).and_return(nil)
       expect(described_class.revoked?(session)).to be(true)
     end
 
-    it 'is false when the gate does not apply' do
+    it 'is false when the gate does not apply (no join key)' do
       session.delete('active_session_id_hmac')
       expect(described_class.revoked?(session)).to be(false)
     end

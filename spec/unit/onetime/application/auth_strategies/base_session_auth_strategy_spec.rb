@@ -92,7 +92,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     end
   end
 
-  context 'when the active-session gate reports the Rodauth row is gone' do
+  context 'when the gate reports the active-session row has been revoked' do
     # Full-mode revocation (Onetime::ActiveSessionGate): AFTER the watermark,
     # BEFORE the admin bound and additional_checks. The gate is consulted with
     # the env so its verdict is memoized for the rest of the request.
@@ -115,7 +115,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
 
     # Fail closed, but under its own marker: an outage must read as an outage
     # in the logs, never as a revocation the operator did not perform.
-    it 'refuses an unverifiable session with the [SESSION_UNVERIFIED] marker' do
+    it 'refuses a Rack session whose active-session row cannot be checked, with the [SESSION_UNVERIFIED] marker' do
       allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:unavailable)
 
       result = strategy.authenticate(env, 'authenticated')

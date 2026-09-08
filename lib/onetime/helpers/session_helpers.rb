@@ -88,12 +88,13 @@ module Onetime
 
       private
 
-      # Full-mode active-session enforcement (Onetime::ActiveSessionGate): the
-      # controller-side twin of the check in BaseSessionAuthStrategy, so a
-      # page render and an API call answer the same way once the session's
-      # Rodauth row is gone. Memoized per request through the Rack env when
-      # there is one (the strategy shares the memo), else per helper instance,
-      # so the many `authenticated?` calls in one request cost one SELECT.
+      # Full-mode active-session enforcement (Onetime::ActiveSessionGate, terms
+      # defined there): the controller-side twin of the check in
+      # BaseSessionAuthStrategy, so a page render and an API call answer the
+      # same way once the Rack session's active-session row is revoked or
+      # cannot be checked. Memoized per request through the Rack env when there
+      # is one (the strategy shares the memo), else per helper instance, so
+      # the many `authenticated?` calls in one request cost one SELECT.
       def active_session_revoked?
         return @active_session_revoked unless @active_session_revoked.nil?
 

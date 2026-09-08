@@ -3,8 +3,10 @@
 # frozen_string_literal: true
 
 # The controller-side half of full-mode active-session enforcement: once the
-# session's Rodauth row is gone, SessionHelpers#authenticated? answers false
-# the same way BaseSessionAuthStrategy refuses the request. The gate's own
+# Rack session's active-session row is revoked (or cannot be checked),
+# SessionHelpers#authenticated? answers false the same way
+# BaseSessionAuthStrategy refuses the request. Terms are defined in the
+# gate's module doc. The gate's own
 # decision table is spec/unit/onetime/session/active_session_gate_spec.rb;
 # what is pinned here is the wiring — the memo, and that login/logout forget
 # a verdict reached for the previous identity.
@@ -36,12 +38,12 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     allow(OT).to receive(:info)
   end
 
-  it 'stays authenticated while the gate says the row is present' do
+  it 'stays authenticated while the gate says the active-session row is present' do
     allow(gate).to receive(:revoked?).and_return(false)
     expect(helper.authenticated?).to be(true)
   end
 
-  it 'is no longer authenticated once the gate says the row is gone' do
+  it 'is no longer authenticated once the gate says the active-session row is gone' do
     allow(gate).to receive(:revoked?).and_return(true)
     expect(helper.authenticated?).to be(false)
   end

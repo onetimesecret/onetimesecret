@@ -50,24 +50,25 @@ RSpec.describe 'Active Sessions Management', type: :integration do
       login!(email: test_email)
     end
 
-    # Onetime::ActiveSessionGate: the account_active_session_keys row is now
-    # load-bearing for EVERY authenticated request, not just the sessions
-    # page. Deleting it — a user revoking another device, or an operator in
-    # Rodauth Admin — refuses the session on its next request. Before the gate
-    # the Redis blob kept answering `authenticated` until it expired.
+    # Onetime::ActiveSessionGate (terms defined there): the active-session
+    # row in account_active_session_keys is now load-bearing for EVERY
+    # authenticated request, not just the sessions page. Revoking it — a user
+    # from another device, or an operator in Rodauth Admin — refuses the Rack
+    # session on its next request. Before the gate the Rack session kept
+    # answering `authenticated` until it expired.
     describe 'per-request enforcement of the active-session row' do
       def account_rows
         test_db[:account_active_session_keys].where(account_id: @account[:id])
       end
 
-      it 'serves an authenticated API request while the row exists' do
+      it 'serves an authenticated API request while the active-session row exists' do
         expect(account_rows.count).to be >= 1
 
         get '/api/account/'
         expect(last_response.status).to eq(200), last_response.body
       end
 
-      it 'refuses the same request once the row has been removed' do
+      it 'refuses the same Rack session once its active-session row has been revoked' do
         get '/api/account/'
         expect(last_response.status).to eq(200), last_response.body
 
@@ -77,7 +78,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         expect(last_response.status).to eq(401)
       end
 
-      it 'refuses the session, rather than trusting the blob, when the authdb cannot answer' do
+      it 'refuses the Rack session when its active-session row cannot be checked (authdb down, fail closed)' do
         get '/api/account/'
         expect(last_response.status).to eq(200), last_response.body
 
@@ -87,7 +88,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         expect(last_response.status).to eq(401)
       end
 
-      it 'keeps refreshing last_use so the inactivity sweep sees activity' do
+      it 'keeps refreshing the active-session row last_use so the inactivity sweep sees activity' do
         stale = Time.now - (Onetime::ActiveSessionGate::TOUCH_INTERVAL + 60)
         account_rows.update(last_use: stale)
 
@@ -140,7 +141,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         expect(session).to include('id', 'created_at', 'last_activity_at')
       end
 
-      # Regression guard: the Rodauth row is joined to the SessionMetadata
+      # Regression guard: the active-session row is joined to the SessionMetadata
       # sidecar on the sidecar's stored active_session_id_hmac. When that join
       # breaks, created_at/last_activity_at silently fall back to the Rodauth
       # row and hide the failure, but ip_address has no fallback and goes nil —

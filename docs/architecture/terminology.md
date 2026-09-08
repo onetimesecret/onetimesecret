@@ -21,3 +21,17 @@
 **Rollout invariants are datastore-scoped, not fleet-scoped.** Statements about code-version coupling through shared data (e.g. "deploy X everywhere before Y writes the new format") must be scoped to the datastore/region, not the fleet. Prefer the datastore-scoped phrasing — "no process may write the new format until every process reading that datastore is upgraded" — because it is also correct for self-hosters.
 
 See [regions.md](./regions.md) for region/jurisdiction configuration, ADR-008 for federation, and ADR-030 for the fleet sense.
+
+## Session Terminology
+
+In `full` authentication mode a signed-in browser is backed by two records in two stores. Older code and prose call both "the session"; use these names instead. `lib/onetime/session/active_session_gate.rb` is the reference implementation of the distinction.
+
+| Term | Meaning |
+| ---- | ------- |
+| **Rack session** | The per-request HTTP session at `env['rack.session']`, bound to the `onetime.session` cookie and stored by `Onetime::Session` as an encrypted blob at `session:<sid>` in Redis. Carries `authenticated`, `external_id`, `account_id` and the join key. Read by every per-request gate and by Rodauth alike. Say "session blob" only when the Redis storage primitive itself is the subject (the `del` behind `Operations::Sessions::Store`). |
+| **active-session row** | A row in Rodauth's `account_active_session_keys` table in the authdb, primary key `(account_id, session_id)`, written by Rodauth's `active_sessions` feature at login. The account's sessions page, "sign out everywhere", Rodauth's inactivity/lifetime sweep and Rodauth Admin operate on these rows. Exists only in full mode. |
+| **join key** | `active_session_id_hmac`: the HMAC of Rodauth's `active_session_id`, stamped into the Rack session at login by `apps/web/auth/config/features/active_sessions.rb`. Equal to the row's `session_id` column, the only form Rodauth persists. A Rack session without one (pre-stamp login, feature off) cannot be joined to a row and is skipped by the gate. |
+| **revoke** | Remove an active-session row. Rodauth's verb. Since `Onetime::ActiveSessionGate`, revoking refuses the joined Rack session on its next request. Exception: the colonel console's per-customer "revoke" (`Operations::Sessions::RevokeForCustomer`) predates this distinction and is a destroy. |
+| **destroy** | Delete a Rack session's blob from Redis. Logout does this; so do the colonel session operations. Ends the session regardless of the authdb. |
+| **refuse** | Answer a request with 401 (Otto auth strategies) or `authenticated? == false` (`SessionHelpers`) while leaving the Rack session in Redis. The only thing `Onetime::ActiveSessionGate` does. A refused Rack session is replaced by the next login, or honoured again if it was refused only because its row could not be checked. |
+| **gate verdict** | `:active` (row present), `:revoked` (row gone), `:unavailable` (authdb could not answer; refused, fail closed), `:skipped` (gate does not apply: not full mode, feature off, no join key). |

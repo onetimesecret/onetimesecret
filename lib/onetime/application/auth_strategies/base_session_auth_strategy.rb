@@ -70,21 +70,22 @@ module Onetime
             return failure('[SESSION_STALE_CREDENTIALS] Session predates last credential change')
           end
 
-          # Full-mode active-session enforcement (Onetime::ActiveSessionGate):
-          # a session whose Rodauth account_active_session_keys row has been
-          # removed — by the user from another device, or by an operator in
-          # Rodauth Admin — is refused here, on its next request. Until this
+          # Full-mode active-session enforcement (Onetime::ActiveSessionGate,
+          # terms defined there): a Rack session whose active-session row has
+          # been revoked — by the user from another device, or by an operator
+          # in Rodauth Admin — is refused here, on its next request. Until this
           # check existed the row was consulted only by the sessions page, so
           # revoking it ended nothing. AFTER the watermark (the more fundamental
           # refusal) and BEFORE the admin bound and additional_checks. Reads
-          # the authdb, never the session; the verdict is memoized in env.
-          # Fails CLOSED: a session the authdb cannot vouch for is refused
-          # too, under its own marker so the logs read as an outage.
+          # the authdb, never writes the Rack session; the verdict is memoized
+          # in env. Fails CLOSED: a Rack session whose row the authdb cannot
+          # check is refused too, under its own marker so the logs read as an
+          # outage, not as a revocation.
           case Onetime::ActiveSessionGate.verdict(session, env: env)
           when :revoked
-            return failure('[SESSION_REVOKED] Active session has been revoked; sign in again')
+            return failure('[SESSION_REVOKED] Active-session row revoked; sign in again')
           when :unavailable
-            return failure('[SESSION_UNVERIFIED] Active session could not be verified; try again')
+            return failure('[SESSION_UNVERIFIED] Active-session row could not be checked; try again')
           end
 
           # Admin-surface session bounds (#4331). Runs here because this is the
