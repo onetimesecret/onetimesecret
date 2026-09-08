@@ -46,27 +46,46 @@ module Auth::Config::Features
       # directly and never fire after_login.
       #
       # The RAW token is deliberately NOT carried: the sidecar is not encrypted at
-      # rest, and Rodauth itself persists only the digest. Best-effort by design —
-      # a failure here must never break a login; the only cost of a missing stamp
-      # is a session row without browser/network detail.
+      # rest, and Rodauth itself persists only the digest.
+      #
+      # LOAD-BEARING: Onetime::ActiveSessionGate joins every authenticated
+      # request to its active-session row on this stamp, and a Rack session
+      # without one is exempt from revocation (it cannot be joined). The stamp
+      # therefore cannot be best-effort: a login whose stamp fails would mint a
+      # Rack session that no revocation could ever end. So a failed stamp
+      # refuses the login instead: the Rack session is cleared (Rodauth's
+      # `super` has already marked it authenticated) and the error propagates,
+      # loudly, to the router's error handler; Rodauth's login transaction
+      # rolls the freshly inserted active-session row back with it. The only
+      # Rack sessions without a stamp are the ones minted before it existed.
       #
       # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
       auth.auth_class_eval do
         def update_session
           super
+          stamp_active_session_join_key
+        end
 
-          begin
-            token = session[session_id_session_key]
-            # String key matches the app-session convention (SyncSession,
-            # 'auth_method'); read back by Sessions::TrackMetadata.
-            session['active_session_id_hmac'] = token ? compute_hmac(token) : nil
-          rescue StandardError => ex
-            # Error level, not debug: this rescue is the only thing standing
-            # between a broken stamp and a silently detail-less sessions list.
-            # The previous join defect went unnoticed precisely because nothing
-            # was noisy when the two sides stopped agreeing.
-            OT.le "[active_sessions] join-key stamp failed: #{ex.class}: #{ex.message}"
-          end
+        def stamp_active_session_join_key
+          # String key matches the app-session convention (SyncSession,
+          # 'auth_method'); read back by Sessions::TrackMetadata and joined on
+          # by Onetime::ActiveSessionGate.
+          session['active_session_id_hmac'] = active_session_join_key
+        rescue StandardError => ex
+          OT.le '[active_sessions] join-key stamp failed; login refused and Rack session cleared: ' \
+                "#{ex.class}: #{ex.message}"
+          clear_session
+          raise
+        end
+
+        # HMAC(active_session_id), the form Rodauth persists. Its own method so
+        # the refusal above can be exercised without stubbing compute_hmac,
+        # which Rodauth's add_active_session also calls.
+        def active_session_join_key
+          token = session[session_id_session_key]
+          raise "no #{session_id_session_key} in the Rack session after update_session" if token.nil?
+
+          compute_hmac(token)
         end
       end
       # rubocop:enable Lint/NestedMethodDefinition

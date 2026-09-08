@@ -171,6 +171,67 @@ module Auth
         end
       end
 
+      # Full-mode active-session enforcement for the /auth surface
+      # (Onetime::ActiveSessionGate, terms defined there). The routes below,
+      # Rodauth's own included, authenticate on `rodauth.logged_in?`, which
+      # reads only the Rack session; without this check a Rack session whose
+      # active-session row had been revoked could still read the account,
+      # unlink identities, remove passkeys and revoke every OTHER row while
+      # being refused everywhere else. Ahead of r.rodauth so that Rodauth's
+      # login-required routes (change-password, webauthn-remove, ...) are
+      # covered too. Anonymous requests are :skipped at no cost.
+      case Onetime::ActiveSessionGate.verdict(session, env: env)
+      when :revoked
+        # Destroy, then refuse: the same handling this surface already gives
+        # an orphaned session (Auth::Routes::Account#require_valid_account,
+        # the around_rodauth rescue in config/overrides/error_handling.rb)
+        # and what Rodauth's own check_active_session does. Clearing the Rack
+        # session turns the request anonymous; the memo goes with it, since
+        # the identity it was reached for is gone. Two routes are then
+        # answered differently from the rest. Login continues, so that a
+        # stale cookie can sign in again without first bouncing off its own
+        # revoked session. Logout is answered here with success, as the
+        # orphan rescue does: the Rack session is already destroyed, which
+        # is all the user asked for, and Rodauth's logout must not run on
+        # it (its global-logout branch dereferences the account, and a
+        # revoked browser must not be able to revoke anyone else's rows
+        # through it anyway). Everything else answers 401 with the
+        # session_expired key the SPA already translates.
+        Auth::Logging.log_auth_event(
+          :active_session_revoked,
+          level: :info,
+          path: r.path_info,
+          account_id: session['account_id'],
+        )
+        rodauth.clear_session
+        env.delete(Onetime::ActiveSessionGate::ENV_KEY)
+
+        case r.path_info
+        when "/#{rodauth.login_route}"
+          nil
+        when "/#{rodauth.logout_route}"
+          next { success: true, message: 'web.auth.logout.success' }
+        else
+          response.status = 401
+          next { error: 'web.auth.security.session_expired', success: false }
+        end
+      when :unavailable
+        # Fail closed, but keep the Rack session: it is honoured again once
+        # the authdb answers. Same posture and status as the Otto strategies'
+        # [SESSION_UNVERIFIED] refusal. Logout is the one exception: signing
+        # out grants nothing, so the Rack session is destroyed and the logout
+        # answered here (Rodauth's would need the same unreachable authdb);
+        # its active-session row waits for the sweep.
+        if r.path_info == "/#{rodauth.logout_route}"
+          rodauth.clear_session
+          env.delete(Onetime::ActiveSessionGate::ENV_KEY)
+          next { success: true, message: 'web.auth.logout.success' }
+        end
+
+        response.status = 401
+        next { error: 'Session could not be verified; try again', error_type: 'SessionUnverified' }
+      end
+
       # All Rodauth routes (login, logout, create-account, reset-password, etc.)
       # Rodauth handles all /auth/* routes when full mode is enabled
       r.rodauth
