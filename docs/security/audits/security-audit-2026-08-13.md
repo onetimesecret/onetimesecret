@@ -4,6 +4,8 @@
 - **Method:** Automated single-agent audit, delta-focused against the 2026-08-06 audit. Reviewed the 448 commits landed since 2026-08-06 (HEAD `ae4a00a0`), concentrating on the largest new attack surfaces in the window: the WebAuthn/passkey feature (#4130), the shared SSRF egress guard (`Onetime::Http::Guard`) and its consumers, the SMTP2GO mail provider (#4141/#4145), the `trusted_proxy.mode` single-accessor work (#4087), the admin host/network isolation gates (#4062/#4127/#4131), the domain `restrict_to` work (ADR-024 amendments), the Stripe currency-migration/refund path (#4025/#4043/#4048), and the link-domains pool at secret creation (#4063). Every finding below was verified by reading current source, not inferred from commit messages.
 - **Out of scope by instruction:** dependency/CVE triage (handled by Renovate + Dependabot). No tickets filed.
 
+> **Historical record.** This report records the 2026-08-13 audit baseline. The [active security risk register](../active-risk-register.md) is the canonical status of actionable findings.
+
 ---
 
 ## Bottom line

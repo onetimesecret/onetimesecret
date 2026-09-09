@@ -3,7 +3,9 @@
 - **Repo:** onetimesecret/onetimesecret
 - **Baseline:** `999967a` (the risk-register revalidation baseline `949d948` is an ancestor; the only later changes are documentation)
 - **Method:** Targeted follow-up of the unresolved items in the 2026-08-14 application-security risk register and the findings/explicit residuals from the 2026-08-13 security audit. Current source was read for the cross-audit items. `AUTHENTICATION_MODE=simple bundle exec rspec spec/unit/onetime/utils/strings_spec.rb spec/unit/onetime/initializers/setup_rabbitmq_spec.rb` passed: 192 examples, 0 failures.
-- **Scope limit:** This is a disposition audit, not a fresh broad source or dependency audit. It preserves the 2026-08-14 ratings without re-ranking them; it is the current tracker for the findings carried forward from that historical register.
+- **Scope limit:** This is a disposition audit, not a fresh broad source or dependency audit. It preserves the 2026-08-14 ratings without re-ranking them.
+
+> **Historical record.** This report records the 2026-09-09 review. The [active security risk register](../active-risk-register.md) is the canonical status of every actionable finding.
 
 ---
 
@@ -11,7 +13,7 @@
 
 The 2026-08-13 **High** RabbitMQ TLS finding is resolved. `RABBITMQ_VERIFY_PEER` now uses strict boolean parsing: valid case- and whitespace-insensitive truthy/falsey tokens work as expected, unset defaults to peer verification, and an unrecognized token raises rather than disabling verification.
 
-The 2026-08-13 **Low** MFA-incomplete-session and SMTP2GO error-body findings remain open. The 18 unresolved findings from the 2026-08-14 register are carried forward below, making this document their active tracker. Its M-1 residual also remains directly supported by current source.
+The 2026-08-13 **Low** MFA-incomplete-session and SMTP2GO error-body findings remained open at this baseline. The 18 unresolved findings from the 2026-08-14 register and these two audit findings were migrated to the [active security risk register](../active-risk-register.md). Its M-1 residual also remained directly supported by current source.
 
 No new finding is filed by this targeted review.
 
@@ -94,43 +96,19 @@ rejection. M-1 therefore remains open as rated in the risk register.
 
 ---
 
-## Carried-forward risks from the 2026-08-14 register
+## Current disposition
 
-This is the active tracker for every finding that was unresolved at `949d948`. The original
-ratings and priorities are retained without re-assessment. `git diff --name-status
-949d948..999967a` contains only `CHANGELOG.rst` and the risk-register document itself, so no
-post-revalidation implementation change supports closing any of them.
-
-| ID | Outstanding risk | Original priority / risk | Required disposition |
-|---|---|---|---|
-| M-1 | Explicitly unverified IdP claims can still enable JIT creation or trusted platform email linking; verify-disabled federation remains a concrete residual. | P2 / High | Open; product/security policy decision and enforcement. |
-| M-2 | Magic links can retain the Rodauth 24-hour deadline and be reused across resends instead of using the configured 15 minutes. | P2 / Medium-High | Open; enable `set_deadline_values?`. |
-| M-11 | `sqlite3` 2.9.5 use-after-free (`GHSA-mwm8-39rw-8826`). | P2 / Medium | Open; update the lockfile. |
-| M-3 | `email-login-request` and direct `verify-account-resend` account enumeration. | P3 / Medium | Open; remove the response oracle. |
-| M-4 | No source/IP limit on `email-login-request`, enabling mailbox bombing and repeated enumeration. | P3 / Medium | Open; apply a source/IP limiter before account lookup. |
-| M-8 | CSP nonce in the bootstrap payload weakens nonce-only CSP once an HTML-injection primitive exists. | P3 / Medium | Open; remove the client-visible nonce from the bootstrap path. |
-| M-12 | Production image fetches `yq` without digest or signature verification. | P3 / Medium | Open; mirror the verified `s6` installation pattern. |
-| M-10 | Guest receipt and secret capability identifiers in tab-scoped `sessionStorage` widen the XSS blast radius. | P3 / Medium | Open; reduce capability persistence. |
-| M-9 | Vendored DNS widget injects remote HTML; an XSS remains conditional on a CSP/nonce bypass. | P3 / Medium | Open; remove or safely sanitize remote HTML injection. |
-| L-7 | Redis TLS is not enforced or asserted at boot. | P3 / Medium | Open; require or assert `rediss://` for remote Redis. |
-| — | `Rack::Protection::CookieTossing` is off; sibling-subdomain cookie control can survive simple-mode login. | P3 / Medium | Open; configure the application session key and renew the ID on login. |
-| L-9 | Debug HTTP capture can log a raw session cookie; raw emails remain at other log sites. | P4 / Low / conditional Medium | Open; remove or redact credential and email values at every sink. |
-| L-5 | `brace-expansion` overrides remain below `GHSA-rgw5-rvv9-x895` floors. | P4 / Low | Open; raise the pinned versions and correct the rationale. |
-| L-1 | `RemoveMember` bypasses the entitlement layer and does not confirm the actor is active. | P4 / Low | Open; use the shared authorization checks. |
-| M-6 | A domain-scoped member with `audit_logs` can read sibling-domain receipt metadata. | P4 / Low | Open; enforce domain scope on the listing. |
-| L-2 | `authorize_domain_incoming!` lacks a domain-scope check while `manage_org` is owner-only. | P4 / Informational | Open; add scope enforcement before the role model changes. |
-| L-3 | The `secret` field accepts an object and persists Ruby `.to_s` rather than enforcing the string schema. | P4 / Low | Open; enforce the request type. |
-| L-8 | In simple mode, reset-password can burn an arbitrary secret when its identifier is known. | P4 / Low | Open; restrict lookup/burn to reset-password secrets. |
-
-The [August 14 register](2026-08-14-appsec-review/risk-register.md) is now a historical
-assessment and points here for each carried-forward item.
+At this baseline, the unresolved August 14 risks and the two open August 13 findings were
+migrated to the [active security risk register](../active-risk-register.md). The register retains
+the original ratings and stable source references; this report remains the historical evidence for
+this review.
 
 ---
 
 ## Rational follow-up updates
 
-1. **No additional risk-register move is needed.** The August 14 register is historical and
-   links to this active tracker for every carried-forward finding.
+1. **Current status is maintained in the active register.** The August 14 register and this audit
+   are historical records and link there for every carried-forward finding.
 2. **When the MFA and SMTP2GO findings are fixed, add focused regression coverage before
    recording closure:** a first-factor-only session must be rejected by every account/session
    route except `mfa-status`; client-originated SMTP2GO response text containing an address
