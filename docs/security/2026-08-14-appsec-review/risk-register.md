@@ -4,6 +4,10 @@
 
 **Revalidated:** 2026-09-09 · **Current baseline:** `onetimesecret` @ `949d948` (v0.26.12)
 
+**Historical status (2026-09-09):** This register has no active action items. Findings are either
+resolved or retired below, or **carried forward** to the [2026-09-09 security audit](../security-audit-2026-09-09.md),
+which is the current tracker for the unresolved items.
+
 **Exploitability** — how hard is it to actually do?
 `Trivial` (unauthenticated, single request) · `Easy` (needs a low-privilege account or a session) ·
 `Moderate` (needs a specific configuration or a chained precondition) · `Hard` (needs privileged
@@ -47,7 +51,9 @@ No open Priority 1 risks remain at the revalidation baseline. H-1, H-2, and H-3 
 
 ---
 
-## Priority 2 — fix this cycle
+## Carried forward — original Priority 2
+
+**Current tracker:** [2026-09-09 security audit](../security-audit-2026-09-09.md#carried-forward-risks-from-the-2026-08-14-register)
 
 | # | ID | Finding | Exploitability | Impact | Risk | Effort |
 |---|---|---|---|---|---|---|
@@ -57,7 +63,9 @@ No open Priority 1 risks remain at the revalidation baseline. H-1, H-2, and H-3 
 
 ---
 
-## Priority 3 — schedule
+## Carried forward — original Priority 3
+
+**Current tracker:** [2026-09-09 security audit](../security-audit-2026-09-09.md#carried-forward-risks-from-the-2026-08-14-register)
 
 | # | ID | Finding | Exploitability | Impact | Risk | Effort |
 |---|---|---|---|---|---|---|
@@ -72,7 +80,9 @@ No open Priority 1 risks remain at the revalidation baseline. H-1, H-2, and H-3 
 
 ---
 
-## Priority 4 — hygiene backlog
+## Carried forward — original Priority 4
+
+**Current tracker:** [2026-09-09 security audit](../security-audit-2026-09-09.md#carried-forward-risks-from-the-2026-08-14-register)
 
 | # | ID | Finding | Risk |
 |---|---|---|---|
