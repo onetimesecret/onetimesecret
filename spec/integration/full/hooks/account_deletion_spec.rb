@@ -231,6 +231,10 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         # Should succeed (200) or redirect (302)
         expect([200, 302]).to include(last_response.status),
           "Expected 200/302 but got #{last_response.status}: #{last_response.body[0..200]}"
+        closed_account = find_account_by_email(test_email)
+        expect(closed_account[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
+        expect(test_db[:account_password_hashes].where(id: closed_account[:id]).first).to be_nil
+        expect(find_customer_by_email(test_email)).to be_nil
       end
 
       it 'rejects incorrect password at close-account endpoint' do

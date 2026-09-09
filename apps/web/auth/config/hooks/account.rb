@@ -7,6 +7,7 @@
 # explicitly (mirroring the colonel logic classes) so the constant is loaded when
 # these hooks fire, rather than relying on ambient load order.
 require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
+require 'auth/operations/delete_account'
 
 module Auth::Config::Hooks
   module Account
@@ -1081,9 +1082,7 @@ module Auth::Config::Hooks
           email: account[:email],
         )
 
-        Onetime::ErrorHandler.safe_execute('delete_customer', account_id: account_id, external_id: account[:external_id]) do
-          Auth::Operations::DeleteCustomer.new(account: account).call
-        end
+        Auth::Operations::DeleteAccount.new(account: account, db: db).call
       end
     end
     # rubocop:enable Metrics/PerceivedComplexity, Metrics/MethodLength
