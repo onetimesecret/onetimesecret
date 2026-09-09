@@ -6,6 +6,11 @@
 # Creates or loads a Customer record and links it to a Rodauth account.
 # This operation is typically called after account creation.
 #
+# Log tag `[create-customer]` is kept as a stable operational identifier
+# (correlates current and historical activity; renaming this class must not
+# silently invalidate saved searches, dashboards, alerts, or runbooks). It
+# intentionally does not track the class name.
+#
 
 module Auth
   module Operations

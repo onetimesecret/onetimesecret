@@ -13,6 +13,11 @@
 # It performs no audit itself — auditing is an admin-context concern layered on
 # top by Customers::Purge, so the plain account-closure path stays audit-free.
 #
+# Log tag `[delete-customer]` is kept as a stable operational identifier
+# (correlates current and historical activity; renaming this class must not
+# silently invalidate saved searches, dashboards, alerts, or runbooks). It
+# intentionally does not track the class name.
+#
 
 module Auth
   module Operations

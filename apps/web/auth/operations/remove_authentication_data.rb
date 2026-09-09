@@ -6,6 +6,12 @@
 # Closes and deletes an auth account and all related data from the auth
 # database (PostgreSQL/SQLite).
 #
+# Log tag `[close-account]` is kept as a stable operational identifier
+# (correlates current and historical activity; renaming this class must not
+# silently invalidate saved searches, dashboards, alerts, or runbooks). It
+# continues to align with the public `/auth/close-account` flow rather than
+# tracking the class name.
+#
 # This operation handles the complete cleanup of a user account from the
 # auth database (PostgreSQL/SQLite), including all related tables with
 # foreign key relationships to the accounts table.
