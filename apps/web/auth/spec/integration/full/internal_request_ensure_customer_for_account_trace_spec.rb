@@ -1,4 +1,4 @@
-# apps/web/auth/spec/integration/full/internal_request_createcustomer_trace_spec.rb
+# apps/web/auth/spec/integration/full/internal_request_ensure_customer_for_account_trace_spec.rb
 #
 # frozen_string_literal: true
 
