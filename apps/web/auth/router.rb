@@ -195,40 +195,22 @@ module Auth
       { omniauth_keys: omniauth_keys, sidecar_fields: sidecar_fields }
     end
 
-    # Sign the gated request out: clear the Rack session, drop the gate's
-    # per-request memo, and purge the sidecar keys bound to the sid.
+    # Sign the gated request out: destroy the session and drop the gate's
+    # per-request memo.
     #
-    # Rodauth's clear_session is `session.clear` on a Rack session: it
-    # empties the hash under the SAME sid and never reaches the store's
-    # delete path (Onetime::Session#delete_session), which is where the
-    # registry purge and its in-flight tripwire live. The store's commit at
-    # the end of this request DELs the merge_on_read fields it overlaid
-    # (awaiting_mfa, elevated_until, domain_context) because they are now
-    # absent from the hash, but the explicit-use hand-off stashes
-    # (sso_connect_intent, link_sso_pending_bind) are never touched by
-    # commit and would sit under the surviving sid until their TTL. Their
-    # consumers are account-bound and the cleared session has no account,
-    # so they could not be consumed; the purge is hygiene, the same the
-    # store gives a destroyed session, so a revocation leaves nothing behind.
-    # Best effort: a purge failure is logged and the sign-out stands, the
-    # orphans being TTL-bounded (five to fifteen minutes).
+    # This codebase overrides Rodauth's clear_session to `session.destroy`
+    # (see Auth::Config::Base), so rodauth.clear_session routes through the
+    # store's delete path (Onetime::Session#delete_session). That path
+    # already DELs the session blob, purges the sid's sidecar registry keys
+    # (SessionSidecar.purge — including the explicit-use hand-off stashes
+    # sso_connect_intent / link_sso_pending_bind), and runs the in-flight
+    # tripwire that warns if a session is destroyed while a hand-off field
+    # still holds a live value. A purge failure there is logged and the
+    # sign-out stands, orphans being TTL-bounded. No separate purge is
+    # needed here — the destroy leaves nothing behind.
     def clear_gated_session
-      sid = session.id&.public_id
       rodauth.clear_session
       env.delete(Onetime::ActiveSessionGate::ENV_KEY)
-
-      begin
-        Onetime::SessionSidecar.purge(sid)
-      rescue StandardError => ex
-        Auth::Logging.log_auth_event(
-          :active_session_sidecar_purge_failed,
-          level: :error,
-          path: request.path_info,
-          error_class: ex.class.name,
-          error: ex.message,
-          consequence: 'Sidecar hand-off keys for the cleared sid are left to expire on their TTL.',
-        )
-      end
     end
 
     # Main routing logic

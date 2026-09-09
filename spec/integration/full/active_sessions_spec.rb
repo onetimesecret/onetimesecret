@@ -364,10 +364,11 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         # drops the OmniAuth state it verifies against and strands the
         # sidecar hand-off. The warn line names both so the SSO failure the
         # user then sees can be tied to the revocation, and the stranded
-        # stash is purged with the clear: Rodauth's clear_session keeps the
-        # sid and never reaches the store's delete path, so without the
-        # router's own purge the explicit-use stash would outlive the
-        # sign-out until its TTL.
+        # stash is purged with the clear: this codebase overrides
+        # clear_session to session.destroy, which routes through the store's
+        # delete path (Onetime::Session#delete_session) and purges the sid's
+        # sidecar registry keys — including the explicit-use stash — so it
+        # does not outlive the sign-out.
         it 'warns, naming the dropped OmniAuth keys and stranded sidecar fields, and purges them, when revoked mid-SSO',
           lane_env: { 'ORGS_SSO_ENABLED' => 'true' } do
           sid = current_cookie_sid
