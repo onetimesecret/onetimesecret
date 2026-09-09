@@ -184,7 +184,7 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
     end
   end
 
-  describe 'Auth::Operations::DeleteAccount' do
+  describe 'Auth::Operations::TeardownAccount' do
     before do
       response = create_account(email: test_email, password: valid_password)
       unless [200, 201].include?(response.status)
@@ -196,7 +196,7 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
       customer = find_customer_by_email(test_email)
       account  = find_account_by_email(test_email)
 
-      result = Auth::Operations::DeleteAccount.new(customer: customer).call
+      result = Auth::Operations::TeardownAccount.new(customer: customer).call
 
       closed_account = find_account_by_email(test_email)
       expect(result.status).to eq(:success)

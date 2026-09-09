@@ -4,7 +4,7 @@
 
 # Unit tests for Auth::Operations::Customers::Purge.
 #
-# Covers: it reuses DeleteAccount, returns :success + audits once on a
+# Covers: it reuses TeardownAccount, returns :success + audits once on a
 # successful destroy (target = pre-destroy extid), returns :not_found
 # without auditing when nothing was deleted, and — since #4333 — writes that
 # audit event FAIL-CLOSED: an unwritable event surfaces as a raised
@@ -24,20 +24,20 @@ RSpec.describe Auth::Operations::Customers::Purge do
   let(:customer) do
     double('Customer', extid: 'ur_p', custid: 'cust_p', obscure_email: 'p***@e***.com')
   end
-  let(:deletion_result) { instance_double(Auth::Operations::DeleteAccount::Result, status: :success) }
-  let(:deleter) { instance_double(Auth::Operations::DeleteAccount, call: deletion_result) }
+  let(:deletion_result) { instance_double(Auth::Operations::TeardownAccount::Result, status: :success) }
+  let(:deleter) { instance_double(Auth::Operations::TeardownAccount, call: deletion_result) }
 
   before do
     allow(Onetime::ColonelAuditEvent).to receive(:record)
-    allow(Auth::Operations::DeleteAccount).to receive(:new).and_return(deleter)
+    allow(Auth::Operations::TeardownAccount).to receive(:new).and_return(deleter)
   end
 
-  it 'destroys via DeleteAccount, returns :success, and audits once at the extid' do
+  it 'destroys via TeardownAccount, returns :success, and audits once at the extid' do
     result = described_class.new(customer: customer, actor: 'ur_col').call
 
     expect(result.status).to eq(:success)
     expect(result.extid).to eq('ur_p')
-    expect(Auth::Operations::DeleteAccount).to have_received(:new).with(
+    expect(Auth::Operations::TeardownAccount).to have_received(:new).with(
       customer: customer, actor: 'ur_col', reason: nil,
     )
     expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
@@ -55,7 +55,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
   it 'passes the administrative context to the unified deletion operation' do
     described_class.new(customer: customer, actor: 'ur_col', reason: 'takeover').call
 
-    expect(Auth::Operations::DeleteAccount).to have_received(:new).with(
+    expect(Auth::Operations::TeardownAccount).to have_received(:new).with(
       customer: customer, actor: 'ur_col', reason: 'takeover',
     )
   end
@@ -65,12 +65,12 @@ RSpec.describe Auth::Operations::Customers::Purge do
   # zero-count revoke followed by a destroy that leaves live blobs behind a
   # deleted customer. Purge holds the record, so it hands over the record —
   # and does not itself go back to the index for it.
-  it 'hands the resolved record to DeleteAccount without re-resolving it' do
+  it 'hands the resolved record to TeardownAccount without re-resolving it' do
     allow(Onetime::Customer).to receive(:find_by_extid)
 
     described_class.new(customer: customer, actor: 'ur_col').call
 
-    expect(Auth::Operations::DeleteAccount).to have_received(:new)
+    expect(Auth::Operations::TeardownAccount).to have_received(:new)
       .with(hash_including(customer: customer))
     expect(Onetime::Customer).not_to have_received(:find_by_extid)
   end

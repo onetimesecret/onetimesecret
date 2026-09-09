@@ -710,7 +710,7 @@ module Auth::Config::Hooks
         # Verified state for the JIT-provisioned Customer (#3973)
         # ────────────────────────────────────────────────────────────────
         #
-        # CreateCustomer defaults to verified: false because that is the
+        # EnsureCustomerForAccount defaults to verified: false because that is the
         # PASSWORD signup shape — Rodauth's after_verify_account flips the flag
         # when the emailed link is followed. A JIT SSO account never traverses
         # that flow, so the Customer mirror stayed unverified forever while its
@@ -757,7 +757,7 @@ module Auth::Config::Hooks
           account_id: account_id,
           provider: omniauth_provider,
         ) do
-          Auth::Operations::CreateCustomer.new(
+          Auth::Operations::EnsureCustomerForAccount.new(
             account_id: account_id,
             account: account,
             db: db,

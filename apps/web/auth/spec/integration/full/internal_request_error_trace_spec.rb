@@ -6,7 +6,7 @@
 
 require_relative '../../spec_helper'
 
-RSpec.describe 'Trace: CreateCustomer error', type: :integration do
+RSpec.describe 'Trace: EnsureCustomerForAccount error', type: :integration do
   before(:all) do
     require 'onetime'
     require 'onetime/application/registry'

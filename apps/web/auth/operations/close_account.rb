@@ -124,7 +124,7 @@ module Auth
         account_id = account[:id]
         email      = account[:email]
 
-        # Direct callers retain the standalone session sweep. DeleteAccount uses
+        # Direct callers retain the standalone session sweep. TeardownAccount uses
         # the shared session operation before invoking this SQL-only phase.
         deleted_sessions = @revoke_sessions ? delete_redis_sessions(@extid) : 0
 

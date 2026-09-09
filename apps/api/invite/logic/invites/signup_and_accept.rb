@@ -137,7 +137,7 @@ module InviteAPI::Logic
         account_id = create_rodauth_account
 
         # Refetch the account; external_id is populated by the hook's
-        # CreateCustomer linking step.
+        # EnsureCustomerForAccount linking step.
         account   = Auth::Database.connection[:accounts].where(id: account_id).first
         @customer = Onetime::Customer.find_by_extid(account[:external_id]) if account[:external_id]
 

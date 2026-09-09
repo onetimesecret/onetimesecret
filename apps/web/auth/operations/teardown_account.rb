@@ -1,9 +1,9 @@
-# apps/web/auth/operations/delete_account.rb
+# apps/web/auth/operations/teardown_account.rb
 #
 # frozen_string_literal: true
 
 require 'auth/operations/close_account'
-require 'auth/operations/delete_customer'
+require 'auth/operations/delete_customer_record'
 require 'onetime/operations/sessions/revoke_all_for_customer'
 require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
 
@@ -21,7 +21,7 @@ module Auth
     # Colonel auditing remains in Customers::Purge. Supplying actor selects the
     # audited administrative session-revocation operation; self-service callers do
     # not write to the Colonel audit trail.
-    class DeleteAccount
+    class TeardownAccount
       Result = Data.define(:status, :extid, :custid, :account_id)
 
       def initialize(customer: nil, account: nil, actor: nil, reason: nil, db: nil)
@@ -48,7 +48,7 @@ module Auth
 
         revoke_sessions(customer)
         account_id = close_auth_account(extid)
-        deleted    = Auth::Operations::DeleteCustomer.new(customer: customer).call
+        deleted    = Auth::Operations::DeleteCustomerRecord.new(customer: customer).call
 
         status = deleted ? :success : :not_found
         Result.new(status: status, extid: extid, custid: custid, account_id: account_id)

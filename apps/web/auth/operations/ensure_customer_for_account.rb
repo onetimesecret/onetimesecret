@@ -1,4 +1,4 @@
-# apps/web/auth/operations/create_customer.rb
+# apps/web/auth/operations/ensure_customer_for_account.rb
 #
 # frozen_string_literal: true
 
@@ -9,7 +9,7 @@
 
 module Auth
   module Operations
-    class CreateCustomer
+    class EnsureCustomerForAccount
       include Onetime::LoggerMethods
 
       # @param account_id [Integer] The ID of the Rodauth account

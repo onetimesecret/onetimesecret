@@ -1,20 +1,20 @@
-# apps/web/auth/spec/operations/delete_account_spec.rb
+# apps/web/auth/spec/operations/teardown_account_spec.rb
 #
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'auth/operations/delete_account'
+require 'auth/operations/teardown_account'
 
-RSpec.describe Auth::Operations::DeleteAccount do
+RSpec.describe Auth::Operations::TeardownAccount do
   let(:customer) { double('Customer', extid: 'ur_target', custid: 'target@example.com') }
-  let(:customer_deleter) { instance_double(Auth::Operations::DeleteCustomer, call: true) }
+  let(:customer_deleter) { instance_double(Auth::Operations::DeleteCustomerRecord, call: true) }
   let(:admin_revoker) { instance_double(Onetime::Operations::Sessions::RevokeAllForCustomer, call: nil) }
   let(:self_revoker) do
     instance_double(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent, call: nil)
   end
 
   before do
-    allow(Auth::Operations::DeleteCustomer).to receive(:new).and_return(customer_deleter)
+    allow(Auth::Operations::DeleteCustomerRecord).to receive(:new).and_return(customer_deleter)
     allow(Onetime::Operations::Sessions::RevokeAllForCustomer).to receive(:new).and_return(admin_revoker)
     allow(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
       .to receive(:new).and_return(self_revoker)
@@ -80,7 +80,7 @@ RSpec.describe Auth::Operations::DeleteAccount do
       revoke_sessions: false,
       retain_account: true,
     )
-    expect(Auth::Operations::DeleteCustomer).to have_received(:new).with(customer: customer)
+    expect(Auth::Operations::DeleteCustomerRecord).to have_received(:new).with(customer: customer)
   end
 
   it 'scrubs SQL credentials when the account has no resolvable Redis customer' do

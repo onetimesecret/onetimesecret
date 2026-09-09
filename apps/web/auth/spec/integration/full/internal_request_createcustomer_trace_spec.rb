@@ -2,11 +2,11 @@
 #
 # frozen_string_literal: true
 
-# Trace: What does CreateCustomer actually return?
+# Trace: What does EnsureCustomerForAccount actually return?
 
 require_relative '../../spec_helper'
 
-RSpec.describe 'Trace: CreateCustomer return value', type: :integration do
+RSpec.describe 'Trace: EnsureCustomerForAccount return value', type: :integration do
   before(:all) do
     require 'onetime'
     require 'onetime/application/registry'
@@ -25,14 +25,14 @@ RSpec.describe 'Trace: CreateCustomer return value', type: :integration do
     Onetime::Customer.find_by_email(test_email)&.destroy! rescue nil
   end
 
-  it 'traces CreateCustomer return value during internal_request' do
+  it 'traces EnsureCustomerForAccount return value during internal_request' do
     create_customer_calls = []
 
-    # Wrap CreateCustomer#call
-    original_call = Auth::Operations::CreateCustomer.instance_method(:call)
+    # Wrap EnsureCustomerForAccount#call
+    original_call = Auth::Operations::EnsureCustomerForAccount.instance_method(:call)
 
-    Auth::Operations::CreateCustomer.define_method(:call) do
-      puts "[TRACE] CreateCustomer#call starting"
+    Auth::Operations::EnsureCustomerForAccount.define_method(:call) do
+      puts "[TRACE] EnsureCustomerForAccount#call starting"
       puts "[TRACE]   account_id: #{@account_id}"
       puts "[TRACE]   account: #{@account.inspect}"
       puts "[TRACE]   db: #{@db.class}"
@@ -40,7 +40,7 @@ RSpec.describe 'Trace: CreateCustomer return value', type: :integration do
 
       result = original_call.bind(self).call
 
-      puts "[TRACE] CreateCustomer#call returned: #{result.inspect}"
+      puts "[TRACE] EnsureCustomerForAccount#call returned: #{result.inspect}"
       puts "[TRACE]   result.class: #{result.class}"
       puts "[TRACE]   result.is_a?(Onetime::Customer): #{result.is_a?(Onetime::Customer)}"
 
@@ -62,7 +62,7 @@ RSpec.describe 'Trace: CreateCustomer return value', type: :integration do
       )
       puts "internal_request result: #{result.inspect}"
 
-      puts "\n=== CreateCustomer calls ==="
+      puts "\n=== EnsureCustomerForAccount calls ==="
       create_customer_calls.each_with_index do |call, i|
         puts "Call #{i + 1}:"
         puts "  account_id: #{call[:account_id]}"
@@ -79,7 +79,7 @@ RSpec.describe 'Trace: CreateCustomer return value', type: :integration do
       puts "Customer: #{customer.inspect}"
     ensure
       # Restore original method
-      Auth::Operations::CreateCustomer.define_method(:call, original_call)
+      Auth::Operations::EnsureCustomerForAccount.define_method(:call, original_call)
     end
 
     expect(create_customer_calls).not_to be_empty

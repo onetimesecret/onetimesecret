@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'auth/operations/delete_account'
+require 'auth/operations/teardown_account'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
@@ -10,10 +10,10 @@ require 'onetime/audit_reason'
 module Auth
   module Operations
     module Customers
-      # ADMIN purge of a single account through Auth::Operations::DeleteAccount,
+      # ADMIN purge of a single account through Auth::Operations::TeardownAccount,
       # then record the customer mutation in the admin audit trail.
       #
-      # DeleteAccount owns the ordered cross-store teardown. Its administrative
+      # TeardownAccount owns the ordered cross-store teardown. Its administrative
       # session revoke records session.revoke_all; this wrapper records
       # customer.purge after deletion. This is the colonel single-customer delete
       # verb (DELETE /api/colonel/users/:user_id).
@@ -28,7 +28,7 @@ module Auth
       # Scope note: this destroys the customer unconditionally — a colonel deleting
       # a specific account is an explicit, audited decision. The bulk
       # `bin/ots customers purge` inactivity sweep keeps its own billing-protection
-      # heuristics and OT.info trail and deletes via the bare DeleteCustomer
+      # heuristics and OT.info trail and deletes via the bare DeleteCustomerRecord
       # primitive (it is a maintenance sweep, not per-record admin actions), so it
       # does not flood the capped audit set with thousands of events.
       class Purge
@@ -38,7 +38,7 @@ module Auth
         AUDIT_VERB = 'customer.purge'
 
         # The most destructive customer verb there is: a purge that raises
-        # partway (DeleteAccount blowing up mid-teardown) can leave the account
+        # partway (TeardownAccount blowing up mid-teardown) can leave the account
         # in an indeterminate state, and the success-path record below never
         # runs. Records one `result: :failure` and re-raises.
         audit_failures :call, verb: AUDIT_VERB, target: -> { @customer&.extid }
@@ -69,7 +69,7 @@ module Auth
           extid  = @customer.extid
           custid = @customer.custid
 
-          deletion = Auth::Operations::DeleteAccount.new(
+          deletion = Auth::Operations::TeardownAccount.new(
             customer: @customer,
             actor: @actor,
             reason: @reason,

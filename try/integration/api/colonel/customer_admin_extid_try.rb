@@ -77,7 +77,7 @@ def last_response; @test.last_response; end
 
 # Purge::Result carries a CLOSED status contract (:success | :not_found), but
 # through the HTTP adapter the op is always handed a resolved, existing
-# customer, so DeleteCustomer never returns false and :not_found is
+# customer, so DeleteCustomerRecord never returns false and :not_found is
 # unreachable end-to-end. Force the status at that seam — the adapter's
 # contract boundary — so the cases below exercise PurgeUser#handle_result_status
 # rather than the earlier `raise_concerns` existence guard.

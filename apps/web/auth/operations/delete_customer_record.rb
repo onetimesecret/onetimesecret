@@ -1,4 +1,4 @@
-# apps/web/auth/operations/delete_customer.rb
+# apps/web/auth/operations/delete_customer_record.rb
 #
 # frozen_string_literal: true
 
@@ -16,7 +16,7 @@
 
 module Auth
   module Operations
-    class DeleteCustomer
+    class DeleteCustomerRecord
       # Redis sub-keys that make up a customer, for the raw-key delete path used
       # when purging directly against a foreign Redis (e.g. a pre-migration db via
       # `--redis-url`) where Familia models and their indexes are not available.

@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/logic/sso_only_gating'
-require 'auth/operations/delete_account'
+require 'auth/operations/teardown_account'
 
 module AccountAPI::Logic
   module Account
@@ -11,7 +11,7 @@ module AccountAPI::Logic
     # auth mode. Core's simple login writes the `authenticated` session marker
     # required by this route. The full-auth Settings UI uses Rodauth's
     # /auth/close-account route. Both endpoints delegate permanent teardown to
-    # Auth::Operations::DeleteAccount.
+    # Auth::Operations::TeardownAccount.
     class DestroyAccount < AccountAPI::Logic::Base
       include Onetime::LoggerMethods
       include Onetime::Logic::SsoOnlyGating
@@ -58,7 +58,7 @@ module AccountAPI::Logic
           # Debug mode simulates the action without modifying either account
           # store.
         else
-          result = Auth::Operations::DeleteAccount.new(customer: cust).call
+          result = Auth::Operations::TeardownAccount.new(customer: cust).call
           unless result.status == :success
             raise_form_error 'Unable to delete account.', error_type: 'system_error'
           end
