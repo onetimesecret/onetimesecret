@@ -117,12 +117,12 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
 
     before do
       # Purge delegates to TeardownAccount. Pin simple-auth mode so the teardown
-      # stays on the two leaves stubbed here and never reaches CloseAccount's
+      # stays on the two leaves stubbed here and never reaches RemoveAuthenticationData's
       # Auth::Database connection — the audit detail under test is mode-agnostic.
       allow(Onetime.auth_config).to receive(:full_enabled?).and_return(false)
-      deleter = instance_double(Auth::Operations::DeleteCustomerRecord, call: true)
+      deleter = instance_double(Auth::Operations::DestroyCustomerRecord, call: true)
       revoker = instance_double(Onetime::Operations::Sessions::RevokeAllForCustomer, call: nil)
-      allow(Auth::Operations::DeleteCustomerRecord).to receive(:new).and_return(deleter)
+      allow(Auth::Operations::DestroyCustomerRecord).to receive(:new).and_return(deleter)
       allow(Onetime::Operations::Sessions::RevokeAllForCustomer).to receive(:new).and_return(revoker)
     end
 

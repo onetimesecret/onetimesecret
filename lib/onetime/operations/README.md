@@ -92,7 +92,7 @@ to call them:
 
 | Home | What lives here | Namespace | Examples |
 |------|-----------------|-----------|----------|
-| **App-scoped** `apps/web/<app>/operations/` | Ops owned by a bounded domain (auth, billing, domains). The domain's models, database, and invariants live in that app. | `Auth::Operations::*`, `Billing::Operations::*` | `Auth::Operations::EnsureCustomerForAccount`, `Auth::Operations::SetCustomerVerification`, `Auth::Operations::DeleteCustomerRecord`, `Auth::Operations::Customers::*` |
+| **App-scoped** `apps/web/<app>/operations/` | Ops owned by a bounded domain (auth, billing, domains). The domain's models, database, and invariants live in that app. | `Auth::Operations::*`, `Billing::Operations::*` | `Auth::Operations::EnsureCustomerForAccount`, `Auth::Operations::SetCustomerVerification`, `Auth::Operations::DestroyCustomerRecord`, `Auth::Operations::Customers::*` |
 | **Central** `lib/onetime/operations/` | Genuinely cross-cutting ops with no single domain owner. | `Onetime::Operations::*` | `Onetime::Operations::DispatchNotification` |
 
 **App-scoped is the incumbent home and the default.** `apps/web/auth/operations/`
@@ -100,7 +100,7 @@ already owns the customer/account domain (create, close, verify, delete). New
 customer-admin verbs extracted for the colonel admin API + CLI therefore stay in
 the auth app under `apps/web/auth/operations/customers/` (`Auth::Operations::Customers::{List, Show, SetRole, SetVerification, Purge, Doctor}`),
 alongside — and reusing — the incumbent `SetCustomerVerification` and
-`DeleteCustomerRecord`. They are the *single implementation* of each verb; the colonel
+`DestroyCustomerRecord`. They are the *single implementation* of each verb; the colonel
 Logic classes (`apps/api/colonel/logic/colonel/*`) and the `bin/ots customers *`
 CLI commands are thin adapters over them.
 

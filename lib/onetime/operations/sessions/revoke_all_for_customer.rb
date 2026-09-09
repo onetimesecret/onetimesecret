@@ -51,7 +51,7 @@ module Onetime
       # routes locked IMMEDIATELY, so this op deletes the account's rows directly
       # via Sequel — the ops layer has no bound Rodauth instance, so it cannot call
       # `rodauth.remove_all_active_sessions_for`; it does the same DELETE that
-      # Auth::Operations::CloseAccount does. Guarded on the auth DB being present
+      # Auth::Operations::RemoveAuthenticationData does. Guarded on the auth DB being present
       # (nil in simple mode → skipped).
       #
       # ## 3. One audit event with counts
@@ -281,7 +281,7 @@ module Onetime
         # LOGGED distinctly (OT.le below), so a prod failure is visible and not
         # silently indistinguishable from "no rows".
         #
-        # Column names verified against Auth::Operations::CloseAccount and
+        # Column names verified against Auth::Operations::RemoveAuthenticationData and
         # Auth::Routes::ActiveSessions: `accounts.external_id`, `accounts.id`, and
         # `account_active_session_keys.account_id`. This path is full-mode-only, so
         # it is covered by inspection, not the (simple-mode) tryout suite.

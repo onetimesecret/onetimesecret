@@ -12,7 +12,7 @@
 #
 # NOT the same command as `bin/ots customers purge`: that one is a BULK
 # inactivity sweep (`--older-than 3y`) which deliberately uses the bare
-# DeleteCustomerRecord primitive and writes NO audit events, because a sweep would
+# DestroyCustomerRecord primitive and writes NO audit events, because a sweep would
 # flood the 10k-capped audit set. Use this command for single, deliberate,
 # accountable deletions.
 #

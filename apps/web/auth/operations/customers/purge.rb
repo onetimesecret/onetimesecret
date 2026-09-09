@@ -28,7 +28,7 @@ module Auth
       # Scope note: this destroys the customer unconditionally — a colonel deleting
       # a specific account is an explicit, audited decision. The bulk
       # `bin/ots customers purge` inactivity sweep keeps its own billing-protection
-      # heuristics and OT.info trail and deletes via the bare DeleteCustomerRecord
+      # heuristics and OT.info trail and deletes via the bare DestroyCustomerRecord
       # primitive (it is a maintenance sweep, not per-record admin actions), so it
       # does not flood the capped audit set with thousands of events.
       class Purge

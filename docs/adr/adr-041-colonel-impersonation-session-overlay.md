@@ -253,7 +253,7 @@ limit, and the escalation path remains asking the customer.
 Start and stop events are paired only for ends that happen in-process:
 operator stop, expiry, logout, and the resolver's fall-through reasons. A
 session destroyed from outside takes the marker with it and records no stop —
-the colonel's session revoked from the sessions UI, `CloseAccount`, or the
+the colonel's session revoked from the sessions UI, `RemoveAuthenticationData`, or the
 session blob simply expiring in Redis. The trail then shows a start with no
 end. This is a known limitation, not a silent one: the start event and the
 session's absence together bound the window, so the reader can still say when

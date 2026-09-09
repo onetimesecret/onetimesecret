@@ -7,18 +7,18 @@ require 'auth/operations/teardown_account'
 
 RSpec.describe Auth::Operations::TeardownAccount do
   let(:customer) { double('Customer', extid: 'ur_target', custid: 'target@example.com') }
-  let(:customer_deleter) { instance_double(Auth::Operations::DeleteCustomerRecord, call: true) }
+  let(:customer_deleter) { instance_double(Auth::Operations::DestroyCustomerRecord, call: true) }
   let(:admin_revoker) { instance_double(Onetime::Operations::Sessions::RevokeAllForCustomer, call: nil) }
   let(:self_revoker) do
     instance_double(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent, call: nil)
   end
 
   before do
-    allow(Auth::Operations::DeleteCustomerRecord).to receive(:new).and_return(customer_deleter)
+    allow(Auth::Operations::DestroyCustomerRecord).to receive(:new).and_return(customer_deleter)
     allow(Onetime::Operations::Sessions::RevokeAllForCustomer).to receive(:new).and_return(admin_revoker)
     allow(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
       .to receive(:new).and_return(self_revoker)
-    allow(Auth::Operations::CloseAccount).to receive(:call)
+    allow(Auth::Operations::RemoveAuthenticationData).to receive(:call)
       .and_return(success: true, account_id: 42)
   end
 
@@ -34,14 +34,14 @@ RSpec.describe Auth::Operations::TeardownAccount do
     expect(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
       .to have_received(:new).with(customer: customer, except_session_id: nil)
     expect(Onetime::Operations::Sessions::RevokeAllForCustomer).not_to have_received(:new)
-    expect(Auth::Operations::CloseAccount).not_to have_received(:call)
+    expect(Auth::Operations::RemoveAuthenticationData).not_to have_received(:call)
   end
 
   it 'revokes sessions, closes SQL credentials, then deletes Redis state for an admin purge' do
     allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
 
     expect(admin_revoker).to receive(:call).ordered
-    expect(Auth::Operations::CloseAccount).to receive(:call)
+    expect(Auth::Operations::RemoveAuthenticationData).to receive(:call)
       .with(
         extid: 'ur_target',
         db: nil,
@@ -73,14 +73,14 @@ RSpec.describe Auth::Operations::TeardownAccount do
 
     expect(result.status).to eq(:success)
     expect(result.account_id).to eq(42)
-    expect(Auth::Operations::CloseAccount).to have_received(:call).with(
+    expect(Auth::Operations::RemoveAuthenticationData).to have_received(:call).with(
       extid: 'ur_target',
       db: db,
       allow_missing: true,
       revoke_sessions: false,
       retain_account: true,
     )
-    expect(Auth::Operations::DeleteCustomerRecord).to have_received(:new).with(customer: customer)
+    expect(Auth::Operations::DestroyCustomerRecord).to have_received(:new).with(customer: customer)
   end
 
   it 'scrubs SQL credentials when the account has no resolvable Redis customer' do
@@ -93,7 +93,7 @@ RSpec.describe Auth::Operations::TeardownAccount do
     result = described_class.new(account: account, db: db).call
 
     expect(result.status).to eq(:success)
-    expect(Auth::Operations::CloseAccount).to have_received(:call).with(
+    expect(Auth::Operations::RemoveAuthenticationData).to have_received(:call).with(
       extid: 'ur_missing',
       db: db,
       allow_missing: true,
@@ -105,7 +105,7 @@ RSpec.describe Auth::Operations::TeardownAccount do
 
   it 'does not delete Redis state when closing SQL credentials fails' do
     allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
-    allow(Auth::Operations::CloseAccount).to receive(:call)
+    allow(Auth::Operations::RemoveAuthenticationData).to receive(:call)
       .and_return(success: false, error: 'database unavailable')
 
     expect { described_class.new(customer: customer).call }

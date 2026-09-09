@@ -95,7 +95,7 @@ that moves one such record, or `— none —` where none exists.
 | Identity index | `unique_index :email → email_index` (`customer.rb:172`). `create!` normalizes (`customer.rb:346`); only `email_exists?` reads raw (`customer.rb:394`) | freed on `destroy!` | src and dst emails always differ (unique); src's is freed at purge |
 | Role index | `multi_index :role → role_index` (`customer/features/role_index.rb:27`) | `Customers::ReconcileRoleIndex` | either side `colonel` → refuse `:colonel` (R7) |
 | Account fields | `planid`, `signup_domain_id`, `provisioning_origin`, `locale`, `notify_on_reveal`, `last_login` (`customer.rb:187-212`) | `— none —` | dst wins; provenance untouched (R6) |
-| Full-auth `accounts` row | Postgres `accounts` row, `external_id = customer.extid`; `citext` email with partial unique `where status_id in (1,2)` (`auth/migrations/001_initial.rb:26,32`) | `— none —`; `Customers::Purge` → `DeleteCustomerRecord` is Redis-only (`delete_customer_record.rb:85`, `cli/customers/purge_command.rb:212`) | src row left open → next login autocreates a fresh Customer + default workspace (`auth/config/base.rb:54`, `hooks/account.rb:198`) and the duplicate is BACK. Must be closed (`status_id` 3) |
+| Full-auth `accounts` row | Postgres `accounts` row, `external_id = customer.extid`; `citext` email with partial unique `where status_id in (1,2)` (`auth/migrations/001_initial.rb:26,32`) | `— none —`; `Customers::Purge` → `DestroyCustomerRecord` is Redis-only (`destroy_customer_record.rb:85`, `cli/customers/purge_command.rb:212`) | src row left open → next login autocreates a fresh Customer + default workspace (`auth/config/base.rb:54`, `hooks/account.rb:198`) and the duplicate is BACK. Must be closed (`status_id` 3) |
 | Full-auth SSO identities | `account_identities` (provider, issuer, uid → account_id) | `— none —` (`BindSsoIdentity` binds one; nothing re-points) | THE root-case move: every src identity row → dst's `account_id`. An identity left on src resurrects the duplicate on its next SSO login |
 | Full-auth credentials | `account_password_hashes`, `account_previous_password_hashes` | `— none —` | src's password is DROPPED (dst keeps its own); the user logs in with dst's password or via a re-pointed identity |
 | Full-auth MFA | `account_webauthn_keys`, `account_webauthn_user_ids` (1:1 per account, `001_initial.rb:164-167`), `account_otp_keys`, `account_recovery_codes`, `account_sms_codes` | `— none —` | `webauthn_user_ids` cannot move (one per account); src's MFA is DROPPED, dst's stands |
@@ -332,8 +332,8 @@ and the receipt read identically.
    than none (dst lists what it cannot own; counters drift). Needs a bulk
    re-point helper that rewrites the back-pointer AND moves the zset member,
    plus a doctor check for stragglers.
-2. **`Customers::Purge` is Redis-only.** `DeleteCustomerRecord` calls
-   `customer.destroy!` and nothing else (`delete_customer_record.rb:85`); the CLI
+2. **`Customers::Purge` is Redis-only.** `DestroyCustomerRecord` calls
+   `customer.destroy!` and nothing else (`destroy_customer_record.rb:85`); the CLI
    prints "clean up orphaned SQL accounts separately"
    (`purge_command.rb:212`). Composed as-is at the end of a merge, it leaves
    src's `accounts` row open, and `external_identity_check_columns :autocreate`

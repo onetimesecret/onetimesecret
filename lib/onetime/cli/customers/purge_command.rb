@@ -33,12 +33,12 @@
 #   bin/ots customers purge --older-than 3y --purge      # Execute
 #   bin/ots customers purge --older-than 5y --refresh    # Force rescan
 
-# Deletion is delegated to the shared Auth::Operations::DeleteCustomerRecord primitive
+# Deletion is delegated to the shared Auth::Operations::DestroyCustomerRecord primitive
 # (single implementation): the local path destroys via the model, the remote
-# `--redis-url` path uses DeleteCustomerRecord.delete_customer_keys (folded from this
+# `--redis-url` path uses DestroyCustomerRecord.delete_customer_keys (folded from this
 # command's former private copy). The CLI runs outside the auth autoloader, so
 # require it explicitly.
-require 'auth/operations/delete_customer_record'
+require 'auth/operations/destroy_customer_record'
 
 # Customers::Shared must exist before `include Customers::Shared` below.
 # Required here (not only from the lib/onetime/cli.rb manifest) so this file
@@ -269,14 +269,14 @@ module Onetime
             begin
               if @using_remote
                 # Direct key deletion on remote source (no model, no indexes to clean)
-                Auth::Operations::DeleteCustomerRecord.delete_customer_keys(source_redis, objid)
+                Auth::Operations::DestroyCustomerRecord.delete_customer_keys(source_redis, objid)
               else
                 cust = record[:_model]
                 unless cust
                   skipped += 1
                   next
                 end
-                Auth::Operations::DeleteCustomerRecord.new(customer: cust).call
+                Auth::Operations::DestroyCustomerRecord.new(customer: cust).call
               end
 
               destroyed_ids << objid

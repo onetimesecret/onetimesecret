@@ -136,7 +136,7 @@ post "/api/colonel/users/#{@verify_target.objid}/unverify", {}.to_json, confirmi
 
 ## Purge (DELETE) returns 200, destroys the user, audits the revoke then the purge
 # Two mutations, two events: sessions are revoked for containment before
-# DeleteCustomerRecord runs, and each owns its own audit event (Customers::Purge).
+# DestroyCustomerRecord runs, and each owns its own audit event (Customers::Purge).
 AE.events.clear
 delete "/api/colonel/users/#{@purge_target.objid}", {}, confirming(@purge_target, { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json', 'HTTP_X_CSRF_TOKEN' => tryouts_csrf_token(@colonel_session) })
 @purge_resp = JSON.parse(last_response.body)

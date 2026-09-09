@@ -1,4 +1,4 @@
-# apps/web/auth/operations/close_account.rb
+# apps/web/auth/operations/remove_authentication_data.rb
 #
 # frozen_string_literal: true
 
@@ -47,7 +47,7 @@
 # the customer's external ID to ensure complete session cleanup.
 #
 # Usage:
-#   result = Auth::Operations::CloseAccount.new(extid: customer.extid).call
+#   result = Auth::Operations::RemoveAuthenticationData.new(extid: customer.extid).call
 #   if result[:success]
 #     # Proceed with Redis cleanup
 #   else
@@ -62,7 +62,7 @@ require 'onetime/session/sidecar'
 
 module Auth
   module Operations
-    class CloseAccount
+    class RemoveAuthenticationData
       # Tables with foreign keys referencing accounts.id
       # Order matters: delete from dependent tables first
       DEPENDENT_TABLES = [

@@ -2,8 +2,8 @@
 #
 # frozen_string_literal: true
 
-require 'auth/operations/close_account'
-require 'auth/operations/delete_customer_record'
+require 'auth/operations/remove_authentication_data'
+require 'auth/operations/destroy_customer_record'
 require 'onetime/operations/sessions/revoke_all_for_customer'
 require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
 
@@ -48,7 +48,7 @@ module Auth
 
         revoke_sessions(customer)
         account_id = close_auth_account(extid)
-        deleted    = Auth::Operations::DeleteCustomerRecord.new(customer: customer).call
+        deleted    = Auth::Operations::DestroyCustomerRecord.new(customer: customer).call
 
         status = deleted ? :success : :not_found
         Result.new(status: status, extid: extid, custid: custid, account_id: account_id)
@@ -86,7 +86,7 @@ module Auth
       def close_auth_account(extid)
         return nil unless full_auth_mode?
 
-        result = Auth::Operations::CloseAccount.call(
+        result = Auth::Operations::RemoveAuthenticationData.call(
           extid: extid,
           db: @db,
           allow_missing: true,
