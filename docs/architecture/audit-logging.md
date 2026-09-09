@@ -472,6 +472,15 @@ Every op that records a preview or a no-change attempt composes the module —
 envelope inline any more, so `result:` and `dry_run:` rest on construction
 rather than on review attention.
 
+Folding in `email/sync_provider_feedback` CHANGED one row's shape, the only
+payload change in the consolidation. Its preview detail never carried
+`dry_run: true` — the applied and preview paths share one `sync_detail`
+builder, and the two were told apart by `sync_status_stamped`, an inverted
+proxy for the marker. Composing the envelope adds the real marker, which is
+the point: `dry_run:` is now merged by construction on every observation row
+without exception. Its unit spec asserts the key explicitly, since
+`hash_including` would not notice it leaving again.
+
 Two of the nine preview-only emitters folded in last carry a target their
 call path threads as an argument rather than holding in an ivar
 (`domains/remove` takes the plan, `org/reconcile` the org extid). Their

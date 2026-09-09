@@ -197,6 +197,14 @@ module Onetime
         # (#4337). Same verb and target either way, so a preview and the sync
         # that followed read as one sequence.
         #
+        # The preview detail also carries `dry_run: true`, merged in by the
+        # shared envelope. It did NOT before #4366: this op was the one preview
+        # emitter whose row lacked the marker, leaving `sync_status_stamped`
+        # (shared with the applied path, and an INVERTED proxy) as the only way
+        # to tell a preview's detail from an applied one. The addition is the
+        # point of composing the envelope — the marker is now structural rather
+        # than something this method has to remember.
+        #
         # NOT fail-closed: a sync destroys nothing (it only ever ADDS
         # suppressions), so per the model's fail-closed contract this stays in
         # the additive family and must not trade a working sync for a hard

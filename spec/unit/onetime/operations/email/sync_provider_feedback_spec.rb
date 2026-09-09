@@ -224,6 +224,10 @@ RSpec.describe Onetime::Operations::Email::SyncProviderFeedback do
     # OPERATOR trail — but it still walks a third party's suppression list on
     # the operator's behalf, so it lands on the budgeted observation trail with
     # the same verb and target the real run uses.
+    #
+    # `dry_run: true` is asserted explicitly because #4366 ADDED it: this op's
+    # preview row carried no marker of its own, and `hash_including` would let
+    # the shared envelope's marker come and go unnoticed.
     it 'records a dry run as a PREVIEW observation, never on the operator trail' do
       allow(Onetime::ColonelAuditEvent).to receive(:record_access)
       allow(fetcher).to receive(:fetch).and_return(records)
@@ -236,7 +240,9 @@ RSpec.describe Onetime::Operations::Email::SyncProviderFeedback do
         verb: described_class::AUDIT_VERB,
         target: described_class::AUDIT_TARGET,
         result: 'preview',
-        detail: hash_including(fetched: 2, accepted: 0, sync_status_stamped: false),
+        detail: hash_including(
+          dry_run: true, fetched: 2, accepted: 0, sync_status_stamped: false,
+        ),
       )
     end
 
