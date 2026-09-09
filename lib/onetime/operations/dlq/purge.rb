@@ -6,6 +6,7 @@ require 'onetime/operations/dlq/store'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
+require 'onetime/operations/audit_attempt'
 
 module Onetime
   module Operations
@@ -46,6 +47,7 @@ module Onetime
       class Purge
         include Onetime::AuditedFailure
         include Onetime::AuditReason
+        include Onetime::Operations::AuditAttempt
 
         # Audit verb recorded for every purge that removes ≥ 1 message.
         AUDIT_VERB = 'queue.dlq.purge'
@@ -131,6 +133,11 @@ module Onetime
 
         private
 
+        # The #4337 envelope's target hook: the DLQ name, for the preview, the
+        # no-change attempt and the applied event alike. `audit_verb` defaults
+        # to AUDIT_VERB and `audit_actor` to @actor.
+        def audit_target = @queue
+
         # One OBSERVATION per dry run (#4337), on the budgeted access trail.
         # Same verb and target as the applied event, so a preview and the purge
         # that followed it read as one sequence; `result: 'preview'` and
@@ -139,13 +146,7 @@ module Onetime
         # (#4338) carries onto the preview too when one was given, so the two
         # rows still read as one sequence once the console starts sending it.
         def record_preview_event(count)
-          Onetime::ColonelAuditEvent.record_access(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @queue,
-            result: 'preview',
-            detail: with_reason(dry_run: true, count: count),
-          )
+          record_preview_observation(with_reason(count: count))
         end
 
         # A no-change attempt (#4337) — the OPERATOR trail, not the observation
@@ -156,13 +157,7 @@ module Onetime
         # message was destroyed, so there is no irrecoverable fact for a hard
         # failure to protect.
         def record_no_change_event
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @queue,
-            result: :success,
-            detail: with_reason(outcome: 'no_change', purged: 0),
-          )
+          record_no_change_attempt(with_reason(purged: 0))
         end
       end
     end

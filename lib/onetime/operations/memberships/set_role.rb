@@ -7,6 +7,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
+require 'onetime/operations/audit_attempt'
 require_relative 'support'
 
 module Onetime
@@ -51,6 +52,7 @@ module Onetime
         include Memberships::Support
         include Onetime::AuditedFailure
         include Onetime::AuditReason
+        include Onetime::Operations::AuditAttempt
 
         AUDIT_VERB = 'membership.set_role'
 
@@ -140,6 +142,11 @@ module Onetime
 
         private
 
+        # The #4337 envelope's target hook: the customer's public extid, the same
+        # target the applied event carries. `audit_verb` defaults to AUDIT_VERB
+        # and `audit_actor` to @actor.
+        def audit_target = @customer.extid
+
         # A no-change attempt (#4337) — the OPERATOR trail, not the observation
         # trail. Same verb, target and detail keys as the applied event, with
         # `outcome: 'no_change'` marking it, so a filter on
@@ -149,13 +156,7 @@ module Onetime
         # operator's `reason` (#4338) rides here too — an attempted-but-no-op
         # reach for `owner` still has a why.
         def record_no_change_event(from)
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @customer.extid,
-            result: :success,
-            detail: with_reason(outcome: 'no_change', from: from, to: @new_role, org_id: @org.extid),
-          )
+          record_no_change_attempt(with_reason(from: from, to: @new_role, org_id: @org.extid))
         end
 
         # Single exit point for every non-success status, so the refusal audit

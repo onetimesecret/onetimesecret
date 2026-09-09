@@ -5,6 +5,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
+require 'onetime/operations/audit_attempt'
 require 'onetime/operations/sessions/store'
 
 module Auth
@@ -50,6 +51,7 @@ module Auth
         include Onetime::LoggerMethods
         include Onetime::AuditedFailure
         include Onetime::AuditReason
+        include Onetime::Operations::AuditAttempt
 
         AUDIT_VERB_SUSPEND   = 'customer.suspend'
         AUDIT_VERB_UNSUSPEND = 'customer.unsuspend'
@@ -157,6 +159,17 @@ module Auth
 
         private
 
+        # The #4337 envelope's verb hook. This op has no single AUDIT_VERB: the
+        # verb names the DIRECTION (suspend vs unsuspend), so the envelope's
+        # verb is direction-dependent rather than one constant. The applied
+        # event and the audit_failures declaration pick the same pair by hand.
+        def audit_verb = @suspended ? AUDIT_VERB_SUSPEND : AUDIT_VERB_UNSUSPEND
+
+        # The #4337 envelope's target hook: the customer's PUBLIC extid, the
+        # same target the applied event carries. `audit_actor` defaults to
+        # @actor.
+        def audit_target = @customer.extid
+
         # On SUSPEND the reason key is present unconditionally (including as
         # nil), because it predates #4338 and the existing wire/spec shape
         # depends on it. On UNSUSPEND — a release, whose own why is worth just
@@ -189,13 +202,7 @@ module Auth
         # customer row records nothing on this path for a reviewer to fall back
         # on.
         def record_no_change_event
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: @suspended ? AUDIT_VERB_SUSPEND : AUDIT_VERB_UNSUSPEND,
-            target: @customer.extid,
-            result: :success,
-            detail: with_reason(outcome: 'no_change', suspended: @suspended),
-          )
+          record_no_change_attempt(with_reason(suspended: @suspended))
         end
 
         # Delete every readable session belonging to this customer. Bounded by

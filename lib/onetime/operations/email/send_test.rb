@@ -12,6 +12,7 @@ require 'socket'
 require 'onetime/mail'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 
 module Onetime
   module Operations
@@ -43,6 +44,7 @@ module Onetime
       # behave exactly as before.
       class SendTest
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         # Audit verb recorded for every successful real send.
         AUDIT_VERB = 'email.test_send'
@@ -140,18 +142,17 @@ module Onetime
 
         private
 
+        # The #4337 envelope's target hook: the recipient address, the same
+        # target the sent event carries. `audit_verb` defaults to AUDIT_VERB and
+        # `audit_actor` to @actor.
+        def audit_target = @to
+
         # One OBSERVATION per dry run (#4337), on the budgeted access trail.
         # Same verb and target as the sent event; `result: 'preview'` and
         # `dry_run: true` distinguish them. Provider and mode only — never the
         # message content, exactly as on the applied path.
         def record_preview_event(diagnostic)
-          Onetime::ColonelAuditEvent.record_access(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @to,
-            result: 'preview',
-            detail: { dry_run: true, provider: diagnostic.provider, enqueue: @enqueue },
-          )
+          record_preview_observation({ provider: diagnostic.provider, enqueue: @enqueue })
         end
 
         # Direct delivery via the configured backend. Raises on failure (caller's
