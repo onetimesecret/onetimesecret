@@ -395,8 +395,19 @@ call_private_method(@sidecar_session, :delete_session, MockRequestWithEnv.new, @
 [DB.exists("session:#{@sc_sid}"), DB.exists("sidecar:#{@sc_sid}:domain_context")]
 #=> [0, 0]
 
+## delete_session purges orphaned sidecar keys even when the blob is ALREADY
+## gone — the purge is unconditional, not gated on the blob still existing (the
+## pre-#4391 router-level behavior). Seed a sidecar for a fresh sid with NO
+## blob, then delete_session must still DEL it.
+@orphan_sid = SecureRandom.hex(32) # 64 hex chars — satisfies SessionSidecar::SID_FORMAT
+Onetime::SessionSidecar.write(@orphan_sid, 'domain_context', { 'host' => 'x' }, codec: @try_codec)
+before = DB.exists("sidecar:#{@orphan_sid}:domain_context")
+call_private_method(@sidecar_session, :delete_session, MockRequestWithEnv.new, @orphan_sid, {})
+[before, DB.exists("session:#{@orphan_sid}"), DB.exists("sidecar:#{@orphan_sid}:domain_context")]
+#=> [1, 0, 0]
+
 # Cleanup: sidecar fixtures (the TTL clamp would reap them anyway)
-[@sc_sid, @sw_sid, @bm_sid].compact.each do |sid|
+[@sc_sid, @sw_sid, @bm_sid, @orphan_sid].compact.each do |sid|
   DB.del("session:#{sid}")
   Onetime::SessionSidecar.purge(sid)
 end
