@@ -38,6 +38,18 @@ Changed
   authority (they read the Redis session store; Rodauth's session table is
   authoritative) instead of presenting a partial list as complete.
 
+- In ``full`` authentication mode, authenticated requests now require the
+  authentication database. During an authdb outage, existing browser sessions
+  are refused rather than continuing from Redis alone; they work again once
+  the authdb recovers.
+
+- Tenant SSO refusals now use distinct error codes for an existing-account
+  link that is unavailable on that domain and for a connection started on the
+  wrong domain.
+
+- Audit events produced by operations with ``dry_run: true`` now use the same
+  envelope as applied operations.
+
 Removed
 -------
 
@@ -78,6 +90,12 @@ Fixed
   roughly 10,000 round-trips to about 20. The customers and domains searches
   scan their indexes 1,000 entries per round-trip instead of 100.
 
+- Account deletion from Account Settings now completes through the same
+  teardown path used by other account-deletion entry points.
+
+- Customer search now matches email addresses case-insensitively, including
+  legacy mixed-case email-index entries.
+
 Security
 --------
 
@@ -90,18 +108,21 @@ Security
   removed from the account's sessions page, by "sign out everywhere", or by
   an operator in Rodauth Admin causes the Rack session to be refused on its
   next request, instead of running until the cookie expired. Rack sessions
-  signed in before this release carry no join key and are enforced from their
-  next sign-in. The check fails closed: while the authentication database is
-  unreachable, a Rack session whose row cannot be checked is refused with an
-  error log rather than trusted unchecked. The Rack session itself is left in
-  place and is honoured again once the database returns. A login whose join
-  key cannot be stamped is refused rather than minting a session that no
-  revocation could reach.
+  created before v0.26.5 carry no join key and are enforced from their next
+  sign-in; sessions created by v0.26.5 through v0.26.11 are checked
+  immediately after deployment. The check fails closed: while the
+  authentication database is unreachable, a Rack session whose row cannot be
+  checked is refused with an error log rather than trusted unchecked. The Rack
+  session itself is left in place and is honoured again once the database
+  returns. A login whose join key cannot be stamped is refused rather than
+  minting a session that no revocation could reach.
 - The session deadlines configured for ``full`` mode are now enforced on
   every request: a session inactive for 24 hours, or older than 30 days,
   is signed out on its next request and its active-session row removed.
   Before this the deadlines were applied only when the account's sessions
-  page was opened.
+  page was opened. Deployments upgrading from v0.26.5 through v0.26.11 should
+  expect most existing signed-in users to sign in again on their next request:
+  ``last_use`` generally still holds the original login time.
 - Accepting an invitation now signs the new account in through the same
   path as a browser login, so the session it creates can be seen and revoked
   like any other. Previously it was invisible to the sessions page and to
