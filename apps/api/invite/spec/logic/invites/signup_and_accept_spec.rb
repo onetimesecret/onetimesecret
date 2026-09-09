@@ -654,6 +654,17 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
         )
         logic.process
       end
+
+      it 'emits the operator security event (:invite_signup_active_session_FAILED at error level)' do
+        # The structured event is the machine-readable half of the fail-loud
+        # signal (dashboards/alerts key on it, not the freeform log line). Assert
+        # it explicitly so the security signal can't silently regress.
+        expect(Auth::Logging).to receive(:log_auth_event).with(
+          :invite_signup_active_session_FAILED,
+          hash_including(level: :error, account_id: 123, external_id: 'ext-new-123')
+        )
+        logic.process
+      end
     end
 
     context 'when Rodauth reports the login is already taken (create race, #3856)' do
