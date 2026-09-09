@@ -333,6 +333,20 @@ RUN set -eux && \
     # coreutils install(1) for every command run in this stage.
     /usr/bin/install -d -o appuser -g appuser data
 
+# Bake bash completion for `ots`. The command tree is walked from the live
+# Dry::CLI registry (see lib/onetime/cli/completion_command.rb) and emitted as
+# a static script — the completer never invokes ots, so Tab is instant and
+# never boots the app. Sourced from /etc/bash.bashrc so an interactive
+# `docker exec -it <container> bash` gets completion without the
+# bash-completion framework (absent from the slim base image). Non-fatal:
+# completion is an operator convenience, not a runtime dependency.
+RUN set -eux && \
+    mkdir -p /etc/bash_completion.d && \
+    { bin/ots completion bash > /etc/bash_completion.d/ots && \
+      printf '\n[ -f /etc/bash_completion.d/ots ] && . /etc/bash_completion.d/ots\n' \
+        >> /etc/bash.bashrc; } || \
+    echo 'warning: ots bash completion generation skipped'
+
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
@@ -445,6 +459,20 @@ RUN set -eux && \
     # and bin/install (the operator front door for baremetal setup) shadows
     # coreutils install(1) for every command run in this stage.
     /usr/bin/install -d -o appuser -g appuser data
+
+# Bake bash completion for `ots`. The command tree is walked from the live
+# Dry::CLI registry (see lib/onetime/cli/completion_command.rb) and emitted as
+# a static script — the completer never invokes ots, so Tab is instant and
+# never boots the app. Sourced from /etc/bash.bashrc so an interactive
+# `docker exec -it <container> bash` gets completion without the
+# bash-completion framework (absent from the slim base image). Non-fatal:
+# completion is an operator convenience, not a runtime dependency.
+RUN set -eux && \
+    mkdir -p /etc/bash_completion.d && \
+    { bin/ots completion bash > /etc/bash_completion.d/ots && \
+      printf '\n[ -f /etc/bash_completion.d/ots ] && . /etc/bash_completion.d/ots\n' \
+        >> /etc/bash.bashrc; } || \
+    echo 'warning: ots bash completion generation skipped'
 
 EXPOSE 3000
 
