@@ -2,9 +2,7 @@
 #
 # frozen_string_literal: true
 
-# Reuses (does not rewrite) the incumbent delete primitive.
-require 'auth/operations/delete_customer'
-require 'onetime/operations/sessions/revoke_all_for_customer'
+require 'auth/operations/delete_account'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
@@ -12,13 +10,13 @@ require 'onetime/audit_reason'
 module Auth
   module Operations
     module Customers
-      # ADMIN purge of a single customer: revoke its sessions, destroy the record,
-      # and record both mutations in the admin audit trail.
+      # ADMIN purge of a single account through Auth::Operations::DeleteAccount,
+      # then record the customer mutation in the admin audit trail.
       #
-      # Session revocation runs before Auth::Operations::DeleteCustomer (the single
-      # delete primitive). Each mutation owns its audit event: session.revoke_all
-      # for containment, then customer.purge after destruction. This is the colonel
-      # single-customer delete verb (DELETE /api/colonel/users/:user_id).
+      # DeleteAccount owns the ordered cross-store teardown. Its administrative
+      # session revoke records session.revoke_all; this wrapper records
+      # customer.purge after deletion. This is the colonel single-customer delete
+      # verb (DELETE /api/colonel/users/:user_id).
       #
       # The revoke is handed the SAME resolved record this op holds, never its
       # extid: callers (PurgeUser logic, `customers purge-one`) may have resolved
@@ -40,7 +38,7 @@ module Auth
         AUDIT_VERB = 'customer.purge'
 
         # The most destructive customer verb there is: a purge that raises
-        # partway (DeleteCustomer blowing up mid-teardown) can leave the account
+        # partway (DeleteAccount blowing up mid-teardown) can leave the account
         # in an indeterminate state, and the success-path record below never
         # runs. Records one `result: :failure` and re-raises.
         audit_failures :call, verb: AUDIT_VERB, target: -> { @customer&.extid }
@@ -71,16 +69,14 @@ module Auth
           extid  = @customer.extid
           custid = @customer.custid
 
-          # `customer:` not `custid: extid` — the op must act on the record we
-          # hold, not on whatever the extid index resolves to (class docs).
-          Onetime::Operations::Sessions::RevokeAllForCustomer.new(
+          deletion = Auth::Operations::DeleteAccount.new(
             customer: @customer,
             actor: @actor,
             reason: @reason,
           ).call
-
-          deleted = Auth::Operations::DeleteCustomer.new(customer: @customer).call
-          return Result.new(status: :not_found, extid: extid, custid: custid) unless deleted
+          unless deletion.status == :success
+            return Result.new(status: :not_found, extid: extid, custid: custid)
+          end
 
           # One audit event per successful mutation. obscure_email is non-secret;
           # never put secret content / tokens / passphrases into detail. The
