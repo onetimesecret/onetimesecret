@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-# CloseAccount Operation Test Suite
+# RemoveAuthenticationData Operation Test Suite
 #
 # Tests the deletion of auth accounts and all related data from the auth
 # database. This operation is used when a user deletes their account.
@@ -33,7 +33,7 @@ OT.boot! :test, false
 
 # Require auth database before using Auth::Database
 require 'auth/database'
-require_relative '../../operations/close_account'
+require_relative '../../operations/remove_authentication_data'
 
 # NOTE: Auth::Database.connection returns a LazyConnection proxy that is
 # truthy even when no database can be reached — it only answers "is this full
@@ -95,42 +95,42 @@ if @db
   end
 end
 
-## CloseAccount requires extid parameter
+## RemoveAuthenticationData requires extid parameter
 skip_without_db(false) do
-  result = Auth::Operations::CloseAccount.new(extid: nil).call
+  result = Auth::Operations::RemoveAuthenticationData.new(extid: nil).call
   result[:success]
 end
 #=> false
 
-## CloseAccount returns error for missing extid
+## RemoveAuthenticationData returns error for missing extid
 skip_without_db('External ID is required') do
-  result = Auth::Operations::CloseAccount.new(extid: '').call
+  result = Auth::Operations::RemoveAuthenticationData.new(extid: '').call
   result[:error]
 end
 #=> 'External ID is required'
 
-## CloseAccount returns error for non-existent account
+## RemoveAuthenticationData returns error for non-existent account
 skip_without_db(false) do
-  result = Auth::Operations::CloseAccount.new(extid: 'nonexistent_extid').call
+  result = Auth::Operations::RemoveAuthenticationData.new(extid: 'nonexistent_extid').call
   result[:success]
 end
 #=> false
 
-## CloseAccount returns error message for non-existent account
+## RemoveAuthenticationData returns error message for non-existent account
 skip_without_db(true) do
-  result = Auth::Operations::CloseAccount.new(extid: 'nonexistent_extid').call
+  result = Auth::Operations::RemoveAuthenticationData.new(extid: 'nonexistent_extid').call
   result[:error].include?('No auth account found')
 end
 #=> true
 
-## CloseAccount successfully deletes account by extid
+## RemoveAuthenticationData successfully deletes account by extid
 skip_without_db(true) do
-  @delete_result = Auth::Operations::CloseAccount.new(extid: @test_extid).call
+  @delete_result = Auth::Operations::RemoveAuthenticationData.new(extid: @test_extid).call
   @delete_result[:success]
 end
 #=> true
 
-## CloseAccount returns account_id on success
+## RemoveAuthenticationData returns account_id on success
 skip_without_db(@account_id) do
   @delete_result[:account_id]
 end
@@ -154,9 +154,9 @@ skip_without_db(0) do
 end
 #=> 0
 
-## CloseAccount class method works as convenience
+## RemoveAuthenticationData class method works as convenience
 skip_without_db(false) do
-  result = Auth::Operations::CloseAccount.call(extid: 'another_nonexistent')
+  result = Auth::Operations::RemoveAuthenticationData.call(extid: 'another_nonexistent')
   result[:success]
 end
 #=> false
@@ -178,7 +178,7 @@ end
 @ca_mfa        = "sidecar:#{@ca_sid}:awaiting_mfa"
 @ca_other_sid  = SecureRandom.hex(32)
 @ca_other_blob = "session:#{@ca_other_sid}"
-@ca_op         = Auth::Operations::CloseAccount.new(extid: @ca_extid, db: :redis_only)
+@ca_op         = Auth::Operations::RemoveAuthenticationData.new(extid: @ca_extid, db: :redis_only)
 @ca_db.set(@ca_blob, @ca_codec.encode({ 'external_id' => @ca_extid, 'authenticated' => true }), ex: 3600)
 Onetime::SessionSidecar.write(@ca_sid, 'awaiting_mfa', true, codec: @ca_codec)
 @ca_db.set(@ca_other_blob, @ca_codec.encode({ 'external_id' => 'someone_else', 'authenticated' => true }), ex: 3600)

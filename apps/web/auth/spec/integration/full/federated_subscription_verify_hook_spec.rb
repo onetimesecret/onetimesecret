@@ -30,7 +30,7 @@
 # WHAT IS AND ISN'T EXERCISED
 # ---------------------------
 # EXERCISED end-to-end through Rodauth internal_request:
-#   - after_create_account -> CreateCustomer -> CreateDefaultWorkspace with the
+#   - after_create_account -> EnsureCustomerForAccount -> CreateDefaultWorkspace with the
 #     require_verification value account.rb computes from the config predicate.
 #   - The Deliverable-1 residual: when verify_account is disabled, the immediate
 #     unverified claim happens AND emits the loud security-audit log.

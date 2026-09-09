@@ -10,7 +10,7 @@
 # and Organization records for new SSO users.
 #
 # Operations tested:
-#   - Auth::Operations::CreateCustomer
+#   - Auth::Operations::EnsureCustomerForAccount
 #   - Auth::Operations::CreateDefaultWorkspace
 #
 # REQUIREMENTS:
@@ -29,7 +29,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
   before(:all) do
     require 'onetime' unless defined?(Onetime)
     Onetime.boot! :test unless Onetime.ready?
-    require_relative '../../../operations/create_customer'
+    require_relative '../../../operations/ensure_customer_for_account'
     require_relative '../../../operations/create_default_workspace'
   end
 
@@ -61,7 +61,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
 
   # Helper to create a test account in the database.
   #
-  # Status is UNVERIFIED, and that is correct for these examples: CreateCustomer
+  # Status is UNVERIFIED, and that is correct for these examples: EnsureCustomerForAccount
   # never reads the account's status — it takes the caller's `verified:`
   # argument, which defaults to false (the password-signup shape, where
   # after_verify_account flips the Customer later). An account fresh out of
@@ -79,7 +79,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
     { id: account_id, email: email }
   end
 
-  describe 'CreateCustomer operation' do
+  describe 'EnsureCustomerForAccount operation' do
     it 'creates a Customer in Redis with correct attributes' do
       email = unique_test_email('create-customer')
       account = create_test_account(email: email)
@@ -88,7 +88,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       expect(Onetime::Customer.exists?(email)).to be false
 
       # Call the operation
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account
       )
@@ -108,7 +108,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       email = unique_test_email('link-extid')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account
       )
@@ -128,7 +128,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       account = create_test_account(email: email)
 
       # First call creates the customer
-      operation1 = Auth::Operations::CreateCustomer.new(
+      operation1 = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account
       )
@@ -141,7 +141,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       expect(found.custid).to eq(customer1.custid)
     end
 
-    # Regression guard for the immutability rule documented on CreateCustomer:
+    # Regression guard for the immutability rule documented on EnsureCustomerForAccount:
     # signup_domain_id and provisioning_origin are set only when the customer
     # is first created and must not be rewritten on subsequent SSO logins.
     # Before PR #3237 the omniauth callback overwrote signup_domain_id after
@@ -155,7 +155,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       different_domain_id = "domain-different-#{SecureRandom.hex(4)}"
 
       # First call: customer is created with the original signup_domain_id
-      customer1 = Auth::Operations::CreateCustomer.new(
+      customer1 = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         signup_domain_id: original_domain_id,
@@ -165,7 +165,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
 
       # Second call: same email, different signup_domain_id (simulates a
       # subsequent SSO login arriving via a different custom domain).
-      customer2 = Auth::Operations::CreateCustomer.new(
+      customer2 = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         signup_domain_id: different_domain_id,
@@ -185,7 +185,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       account = create_test_account(email: email)
 
       # First call seeds the customer as an SSO JIT signup.
-      customer1 = Auth::Operations::CreateCustomer.new(
+      customer1 = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         provisioning_origin: 'sso_jit',
@@ -194,7 +194,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       expect(customer1.provisioning_origin).to eq('sso_jit')
 
       # A later call must not relabel the provisioning origin.
-      customer2 = Auth::Operations::CreateCustomer.new(
+      customer2 = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         provisioning_origin: 'canonical_signup',
@@ -211,7 +211,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       email = unique_test_email('default-role')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account
       )
@@ -227,7 +227,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       email = unique_test_email('verified-false')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account
       )
@@ -251,7 +251,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
         email = unique_test_email('verified-threaded')
         account = create_test_account(email: email, status_id: AuthTestConstants::STATUS_VERIFIED)
 
-        customer = Auth::Operations::CreateCustomer.new(
+        customer = Auth::Operations::EnsureCustomerForAccount.new(
           account_id: account[:id],
           account: account,
           provisioning_origin: 'sso_jit',
@@ -276,7 +276,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
         email = unique_test_email('verified-default')
         account = create_test_account(email: email)
 
-        customer = Auth::Operations::CreateCustomer.new(
+        customer = Auth::Operations::EnsureCustomerForAccount.new(
           account_id: account[:id],
           account: account,
           provisioning_origin: 'canonical_signup',
@@ -298,7 +298,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
         email = unique_test_email('verified-by-orphan')
         account = create_test_account(email: email)
 
-        customer = Auth::Operations::CreateCustomer.new(
+        customer = Auth::Operations::EnsureCustomerForAccount.new(
           account_id: account[:id],
           account: account,
           verified: false,
@@ -317,14 +317,14 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
         email = unique_test_email('verified-existing')
         account = create_test_account(email: email)
 
-        customer1 = Auth::Operations::CreateCustomer.new(
+        customer1 = Auth::Operations::EnsureCustomerForAccount.new(
           account_id: account[:id],
           account: account,
         ).call
         created_customers << customer1
         expect(customer1.verified?).to be false
 
-        customer2 = Auth::Operations::CreateCustomer.new(
+        customer2 = Auth::Operations::EnsureCustomerForAccount.new(
           account_id: account[:id],
           account: account,
           verified: true,
@@ -418,12 +418,12 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
   end
 
   describe 'full account creation flow' do
-    it 'CreateCustomer followed by CreateDefaultWorkspace creates linked records' do
+    it 'EnsureCustomerForAccount followed by CreateDefaultWorkspace creates linked records' do
       email = unique_test_email('full-flow')
       account = create_test_account(email: email)
 
       # Step 1: Create Customer
-      customer_op = Auth::Operations::CreateCustomer.new(
+      customer_op = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account
       )

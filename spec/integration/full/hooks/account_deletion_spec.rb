@@ -62,7 +62,7 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
     false
   end
 
-  describe 'Auth::Operations::CloseAccount' do
+  describe 'Auth::Operations::RemoveAuthenticationData' do
     context 'with valid extid' do
       before do
         # Create account via HTTP to set up both auth DB and Redis Customer
@@ -77,7 +77,7 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         account = find_account_by_email(test_email)
         expect(account).not_to be_nil
 
-        result = Auth::Operations::CloseAccount.call(extid: customer.extid)
+        result = Auth::Operations::RemoveAuthenticationData.call(extid: customer.extid)
 
         expect(result[:success]).to be true
         expect(find_account_by_email(test_email)).to be_nil
@@ -91,7 +91,7 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         password_hash = test_db[:account_password_hashes].where(id: account[:id]).first
         expect(password_hash).not_to be_nil
 
-        Auth::Operations::CloseAccount.call(extid: customer.extid)
+        Auth::Operations::RemoveAuthenticationData.call(extid: customer.extid)
 
         # Password hash should be deleted
         expect(test_db[:account_password_hashes].where(id: account[:id]).first).to be_nil
@@ -101,7 +101,7 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         customer = find_customer_by_email(test_email)
         account = find_account_by_email(test_email)
 
-        result = Auth::Operations::CloseAccount.call(extid: customer.extid)
+        result = Auth::Operations::RemoveAuthenticationData.call(extid: customer.extid)
 
         expect(result[:success]).to be true
         expect(result[:account_id]).to eq(account[:id])
@@ -110,24 +110,33 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
 
     context 'with invalid extid' do
       it 'returns error for nil extid' do
-        result = Auth::Operations::CloseAccount.call(extid: nil)
+        result = Auth::Operations::RemoveAuthenticationData.call(extid: nil)
 
         expect(result[:success]).to be false
         expect(result[:error]).to include('External ID is required')
       end
 
       it 'returns error for empty extid' do
-        result = Auth::Operations::CloseAccount.call(extid: '')
+        result = Auth::Operations::RemoveAuthenticationData.call(extid: '')
 
         expect(result[:success]).to be false
         expect(result[:error]).to include('External ID is required')
       end
 
       it 'returns error for non-existent account' do
-        result = Auth::Operations::CloseAccount.call(extid: 'nonexistent-extid-12345')
+        result = Auth::Operations::RemoveAuthenticationData.call(extid: 'nonexistent-extid-12345')
 
         expect(result[:success]).to be false
         expect(result[:error]).to include('No auth account found')
+      end
+
+      it 'treats a missing account as success when retrying unified deletion' do
+        result = Auth::Operations::RemoveAuthenticationData.call(
+          extid: 'nonexistent-extid-12345',
+          allow_missing: true,
+        )
+
+        expect(result).to eq(success: true, account_id: nil)
       end
     end
 
@@ -149,7 +158,7 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         # Check if we have active sessions (may not always be created)
         session_count = test_db[:account_active_session_keys].where(account_id: account[:id]).count
 
-        Auth::Operations::CloseAccount.call(extid: customer.extid)
+        Auth::Operations::RemoveAuthenticationData.call(extid: customer.extid)
 
         # Sessions should be deleted
         remaining = test_db[:account_active_session_keys].where(account_id: account[:id]).count
@@ -167,11 +176,33 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         failures = test_db[:account_login_failures].where(id: account[:id]).first
         expect(failures).not_to be_nil if failures
 
-        Auth::Operations::CloseAccount.call(extid: customer.extid)
+        Auth::Operations::RemoveAuthenticationData.call(extid: customer.extid)
 
         # Failure records should be deleted
         expect(test_db[:account_login_failures].where(id: account[:id]).first).to be_nil
       end
+    end
+  end
+
+  describe 'Auth::Operations::TeardownAccount' do
+    before do
+      response = create_account(email: test_email, password: valid_password)
+      unless [200, 201].include?(response.status)
+        skip "Account creation returned #{response.status}: #{response.body[0..500]}"
+      end
+    end
+
+    it 'closes the Rodauth account, removes credentials, and deletes the Redis customer' do
+      customer = find_customer_by_email(test_email)
+      account  = find_account_by_email(test_email)
+
+      result = Auth::Operations::TeardownAccount.new(customer: customer).call
+
+      closed_account = find_account_by_email(test_email)
+      expect(result.status).to eq(:success)
+      expect(closed_account[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
+      expect(test_db[:account_password_hashes].where(id: account[:id]).first).to be_nil
+      expect(find_customer_by_email(test_email)).to be_nil
     end
   end
 
@@ -200,6 +231,10 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         # Should succeed (200) or redirect (302)
         expect([200, 302]).to include(last_response.status),
           "Expected 200/302 but got #{last_response.status}: #{last_response.body[0..200]}"
+        closed_account = find_account_by_email(test_email)
+        expect(closed_account[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
+        expect(test_db[:account_password_hashes].where(id: closed_account[:id]).first).to be_nil
+        expect(find_customer_by_email(test_email)).to be_nil
       end
 
       it 'rejects incorrect password at close-account endpoint' do

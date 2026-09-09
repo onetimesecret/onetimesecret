@@ -1,4 +1,4 @@
-# apps/web/auth/operations/delete_customer.rb
+# apps/web/auth/operations/destroy_customer_record.rb
 #
 # frozen_string_literal: true
 
@@ -13,10 +13,15 @@
 # It performs no audit itself — auditing is an admin-context concern layered on
 # top by Customers::Purge, so the plain account-closure path stays audit-free.
 #
+# Log tag `[delete-customer]` is kept as a stable operational identifier
+# (correlates current and historical activity; renaming this class must not
+# silently invalidate saved searches, dashboards, alerts, or runbooks). It
+# intentionally does not track the class name.
+#
 
 module Auth
   module Operations
-    class DeleteCustomer
+    class DestroyCustomerRecord
       # Redis sub-keys that make up a customer, for the raw-key delete path used
       # when purging directly against a foreign Redis (e.g. a pre-migration db via
       # `--redis-url`) where Familia models and their indexes are not available.

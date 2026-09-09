@@ -3,14 +3,15 @@
 # frozen_string_literal: true
 
 require 'onetime/logic/sso_only_gating'
+require 'auth/operations/teardown_account'
 
 module AccountAPI::Logic
   module Account
     # Session-authenticated deletion endpoint retained for simple (Redis-only)
     # auth mode. Core's simple login writes the `authenticated` session marker
     # required by this route. The full-auth Settings UI uses Rodauth's
-    # /auth/close-account route; this operation still performs full-mode cleanup
-    # when called by a sessionauth client.
+    # /auth/close-account route. Both endpoints delegate permanent teardown to
+    # Auth::Operations::TeardownAccount.
     class DestroyAccount < AccountAPI::Logic::Base
       include Onetime::LoggerMethods
       include Onetime::Logic::SsoOnlyGating
@@ -54,28 +55,14 @@ module AccountAPI::Logic
           cust.destroy_requested # not saved
           auth_logger.debug '[destroy-account] Simulated account destruction', extid: cust.extid, role: cust.role, session: session_sid
 
-          # Since we intentionally don't call Customer#destroy_requested!
-          # when running in debug mode (to simulate the destruction but
-          # not actually modify the customer record), the tryouts that
-          # checked the state of the customer record after destroying
-          # will fail (e.g. they expect the passphrase to be removed).
+          # Debug mode simulates the action without modifying either account
+          # store.
         else
-          # In full auth mode, delete from auth database FIRST.
-          # This ensures that if the PostgreSQL deletion fails, we don't leave
-          # the system in an inconsistent state with a "deleted" Redis record
-          # but an active auth account.
-          if Onetime.auth_config.full_enabled?
-            result = delete_auth_account(cust)
-            unless result[:success]
-              raise_form_error "Unable to delete account: #{result[:error]}", error_type: 'system_error'
-            end
+          result = Auth::Operations::TeardownAccount.new(customer: cust).call
+          unless result.status == :success
+            raise_form_error 'Unable to delete account.', error_type: 'system_error'
           end
 
-          # Now mark the customer record as deleted in Redis
-          cust.destroy_requested!
-
-          # Log the event immediately after saving the change to
-          # to minimize the chance of the event not being logged.
           OT.info "[destroy-account] Account destroyed. #{cust.objid} #{cust.role} #{session_sid}"
         end
 
@@ -126,18 +113,6 @@ module AccountAPI::Logic
       rescue StandardError => ex
         auth_logger.error '[destroy-account] Password verification error', exception: ex
         false
-      end
-
-      # Delete account and all related data from auth database in full mode.
-      # Uses Auth::Operations::CloseAccount which handles all dependent tables
-      # within a transaction.
-      #
-      # @param customer [Onetime::Customer]
-      # @return [Hash] Result with :success and optionally :error
-      def delete_auth_account(customer)
-        return { success: false, error: 'Customer extid is required' } unless customer&.extid
-
-        Auth::Operations::CloseAccount.call(extid: customer.extid)
       end
     end
   end
