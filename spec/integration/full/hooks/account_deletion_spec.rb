@@ -184,6 +184,28 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
     end
   end
 
+  describe 'Auth::Operations::DeleteAccount' do
+    before do
+      response = create_account(email: test_email, password: valid_password)
+      unless [200, 201].include?(response.status)
+        skip "Account creation returned #{response.status}: #{response.body[0..500]}"
+      end
+    end
+
+    it 'closes the Rodauth account, removes credentials, and deletes the Redis customer' do
+      customer = find_customer_by_email(test_email)
+      account  = find_account_by_email(test_email)
+
+      result = Auth::Operations::DeleteAccount.new(customer: customer).call
+
+      closed_account = find_account_by_email(test_email)
+      expect(result.status).to eq(:success)
+      expect(closed_account[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
+      expect(test_db[:account_password_hashes].where(id: account[:id]).first).to be_nil
+      expect(find_customer_by_email(test_email)).to be_nil
+    end
+  end
+
   describe 'DestroyAccount logic (full auth mode)' do
     # Note: Direct logic tests for DestroyAccount require MockStrategyResult
     # which is only available in Tryouts. The HTTP-level tests above cover
