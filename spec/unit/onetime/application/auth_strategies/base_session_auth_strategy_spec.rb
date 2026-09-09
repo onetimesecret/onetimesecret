@@ -90,19 +90,73 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
 
       expect(strategy.additional_checks_ran).to be_nil
     end
+
+    # The bound also runs BEFORE the active-session gate: the gate refreshes
+    # the active-session row's last_use, and a request this bound refuses is
+    # not activity — on the sidecar (EXPIRED_ENV_KEY) or on the row.
+    it 'never consults the active-session gate, so the refused request does not touch the row' do
+      allow(Onetime::ActiveSessionGate).to receive(:verdict)
+
+      strategy.authenticate(env, 'authenticated')
+
+      expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
+    end
+  end
+
+  context 'when the gate reports the active-session row has been revoked' do
+    # Full-mode revocation (Onetime::ActiveSessionGate): AFTER the watermark
+    # and the admin bound (both refuse without an authdb round trip), BEFORE
+    # additional_checks. The gate is consulted with the env so its verdict is
+    # memoized for the rest of the request.
+    before do
+      allow(strategy).to receive(:admin_session_expiry_reason).and_return(nil)
+      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
+    end
+
+    it 'fails with the [SESSION_REVOKED] marker' do
+      result = strategy.authenticate(env, 'authenticated')
+
+      expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      expect(result.failure_reason).to match(/\A\[SESSION_REVOKED\]/)
+    end
+
+    it 'consults the gate with the Rack env (shared per-request memo)' do
+      strategy.authenticate(env, 'authenticated')
+
+      expect(Onetime::ActiveSessionGate).to have_received(:verdict).with(session, env: env)
+    end
+
+    # Fail closed, but under its own marker: an outage must read as an outage
+    # in the logs, never as a revocation the operator did not perform.
+    it 'refuses a Rack session whose active-session row cannot be checked, with the [SESSION_UNVERIFIED] marker' do
+      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:unavailable)
+
+      result = strategy.authenticate(env, 'authenticated')
+
+      expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+      expect(result.failure_reason).to match(/\A\[SESSION_UNVERIFIED\]/)
+    end
+
+    it 'runs after the admin bound and never reaches additional_checks' do
+      strategy.authenticate(env, 'authenticated')
+
+      expect(strategy).to have_received(:admin_session_expiry_reason)
+      expect(strategy.additional_checks_ran).to be_nil
+    end
   end
 
   context 'when the credential watermark already rejects the session' do
     # AFTER the watermark: a session that predates a password change is stale for
     # every surface, and that is the more fundamental refusal. The admin bound
     # must not run at all, so it cannot mask it with a different message.
-    it 'reports the stale-credential failure and never consults the bound' do
+    it 'reports the stale-credential failure and never consults the gate or the bound' do
       allow(strategy).to receive(:session_predates_credential_change?).and_return(true)
+      expect(Onetime::ActiveSessionGate).not_to receive(:verdict)
       expect(strategy).not_to receive(:admin_session_expiry_reason)
 
       result = strategy.authenticate(env, 'authenticated')
 
-      expect(result.failure_reason).to match(/SESSION_STALE_CREDENTIALS/)
+      expect(result.failure_reason).to include('SESSION_STALE_CREDENTIALS')
       expect(env).not_to have_key(lifetime::EXPIRED_ENV_KEY)
     end
   end
