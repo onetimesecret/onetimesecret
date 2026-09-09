@@ -23,20 +23,29 @@
 
 # Every op in the cohort is required here, not just the ones with behavioural
 # examples below: the membership assertions at the bottom walk the whole list,
-# and loading all 13 is itself the check that the shared envelope resolves from
+# and loading all 22 is itself the check that the shared envelope resolves from
 # `lib/` and from `apps/web/auth/` alike.
 require 'spec_helper'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/audit_attempt'
 require 'onetime/operations/dlq/purge'
 require 'onetime/operations/dlq/replay'
+require 'onetime/operations/domains/ensure_domain_configs'
+require 'onetime/operations/domains/remove'
+require 'onetime/operations/domains/repair'
+require 'onetime/operations/domains/transfer'
 require 'onetime/operations/email/send_test'
+require 'onetime/operations/email/sync_provider_feedback'
 require 'onetime/operations/memberships/add'
 require 'onetime/operations/memberships/entitlement_override'
 require 'onetime/operations/memberships/set_role'
+require 'onetime/operations/org/delete'
 require 'onetime/operations/org/entitlement_override'
+require 'onetime/operations/org/reconcile'
 require 'onetime/operations/org/set_plan'
+require 'onetime/operations/org/transfer_ownership'
 require 'auth/operations/customers/change_email'
+require 'auth/operations/customers/reconcile_role_index'
 require 'auth/operations/customers/set_plan'
 require 'auth/operations/customers/set_role'
 require 'auth/operations/customers/set_suspension'
@@ -758,18 +767,27 @@ RSpec.describe 'preview and no-change auditing' do
     let(:cohort) do
       [
         Auth::Operations::Customers::ChangeEmail,
+        Auth::Operations::Customers::ReconcileRoleIndex,
         Auth::Operations::Customers::SetPlan,
         Auth::Operations::Customers::SetRole,
         Auth::Operations::Customers::SetSuspension,
         Auth::Operations::Customers::SetVerification,
         Onetime::Operations::Dlq::Purge,
         Onetime::Operations::Dlq::Replay,
+        Onetime::Operations::Domains::EnsureDomainConfigs,
+        Onetime::Operations::Domains::Remove,
+        Onetime::Operations::Domains::Repair,
+        Onetime::Operations::Domains::Transfer,
         Onetime::Operations::Email::SendTest,
+        Onetime::Operations::Email::SyncProviderFeedback,
         Onetime::Operations::Memberships::Add,
         Onetime::Operations::Memberships::EntitlementOverride,
         Onetime::Operations::Memberships::SetRole,
+        Onetime::Operations::Org::Delete,
         Onetime::Operations::Org::EntitlementOverride,
+        Onetime::Operations::Org::Reconcile,
         Onetime::Operations::Org::SetPlan,
+        Onetime::Operations::Org::TransferOwnership,
       ]
     end
 
@@ -780,8 +798,8 @@ RSpec.describe 'preview and no-change auditing' do
     end
 
     # The module has no default target, so every op owes one. Checked
-    # structurally rather than by calling it, since building 13 ops here would
-    # duplicate 13 specs' worth of fixtures to learn nothing extra.
+    # structurally rather than by calling it, since building 22 ops here would
+    # duplicate 22 specs' worth of fixtures to learn nothing extra.
     it 'supplies the target hook in every op, since the module has no default' do
       missing = cohort.reject do |op|
         (op.private_instance_methods(false) + op.instance_methods(false)).include?(:audit_target)
@@ -801,7 +819,7 @@ RSpec.describe 'preview and no-change auditing' do
 
       expect(missing).to be_empty
 
-      # And the other ten must carry the constant the default hook reads.
+      # And the other nineteen must carry the constant the default hook reads.
       constant_verb = (cohort - computed).reject { |op| op.const_defined?(:AUDIT_VERB, false) }
 
       expect(constant_verb).to be_empty

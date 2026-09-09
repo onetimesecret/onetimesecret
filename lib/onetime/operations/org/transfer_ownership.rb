@@ -7,6 +7,7 @@
 # membership op explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 require_relative '../memberships/set_role'
 
 module Onetime
@@ -103,6 +104,7 @@ module Onetime
       # memberships/set_role.rb:64).
       class TransferOwnership
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         # Full-noun subject, matching the rest of the admin trail
         # (`organization.create`, `organization.reconcile`).
@@ -364,20 +366,18 @@ module Onetime
         # than the demotion list — the list is plan output for the operator,
         # not audit content.
         def record_preview_event(planned)
-          Onetime::ColonelAuditEvent.record_access(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @org.extid,
-            result: 'preview',
-            detail: {
-              dry_run: true,
-              from: @from_owner_id,
-              to: @new_owner.extid,
-              demoted_to: @demote_to,
-              demoted_count: planned.size,
-            },
+          record_preview_observation(
+            from: @from_owner_id,
+            to: @new_owner.extid,
+            demoted_to: @demote_to,
+            demoted_count: planned.size,
           )
         end
+
+        # The #4337 envelope's target hook: the org's public id, same as the
+        # applied event's. `audit_verb` defaults to AUDIT_VERB, `audit_actor`
+        # to @actor.
+        def audit_target = @org.extid
 
         # Single exit point for every non-applied status, so the refusal audit
         # cannot be forgotten at an early return.

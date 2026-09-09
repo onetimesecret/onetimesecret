@@ -8,6 +8,7 @@
 # operations home. Dependencies are required at the call site.
 require 'onetime/operations/email/ingest_feedback'
 require 'onetime/models/colonel_audit_event'
+require 'onetime/operations/audit_attempt'
 require 'onetime/models/email_suppression'
 require 'onetime/mail/provider_registry'
 require 'onetime/mail/feedback/ses'
@@ -73,6 +74,8 @@ module Onetime
       # on the budgeted access trail instead (#4337) — a preview still walks a
       # third party's suppression list on the operator's behalf.
       class SyncProviderFeedback
+        include Onetime::Operations::AuditAttempt
+
         # Providers with a pollable feedback API (a fetcher under
         # Onetime::Mail::Feedback). Other transports (SMTP, sendgrid, logger,
         # disabled) have no pull API and are rejected.
@@ -128,6 +131,11 @@ module Onetime
         end
 
         private
+
+        # The #4337 envelope's target hook: the fixed suppression-list sentinel,
+        # the same target the operator-trail half of #record_sync_event uses.
+        # `audit_verb` defaults to AUDIT_VERB, `audit_actor` to @actor.
+        def audit_target = AUDIT_TARGET
 
         # The pull/ingest work. Split from {#call} so the audit write has ONE
         # place to sit: the three exits below (dry run, empty list, ingested
@@ -194,15 +202,7 @@ module Onetime
         # the additive family and must not trade a working sync for a hard
         # failure. The observation half is fail-open by construction.
         def record_sync_event(result)
-          if result.dry_run
-            return Onetime::ColonelAuditEvent.record_access(
-              actor: @actor,
-              verb: AUDIT_VERB,
-              target: AUDIT_TARGET,
-              result: 'preview',
-              detail: sync_detail(result),
-            )
-          end
+          return record_preview_observation(sync_detail(result)) if result.dry_run
 
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
