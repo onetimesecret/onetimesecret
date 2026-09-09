@@ -36,7 +36,8 @@
 #   - account_recovery_codes (MFA recovery codes)
 #   - account_sms_codes (SMS MFA)
 #   - account_previous_password_hashes (password history)
-#   - accounts (main account record)
+#   - account_identities (SSO identities)
+#   - accounts (main account record, unless retained closed)
 #
 # Note: account_authentication_audit_logs are deleted along with the account
 # since they have a foreign key constraint. For compliance requirements,
@@ -54,6 +55,7 @@
 #   end
 #
 
+require 'auth/account_statuses'
 require 'onetime/operations/sessions/store'
 require 'onetime/session/codec'
 require 'onetime/session/sidecar'
@@ -85,13 +87,28 @@ module Auth
         :account_recovery_codes,
         :account_sms_codes,
         :account_previous_password_hashes,
+        :account_identities,
       ].freeze
 
       # @param extid [String] The customer's external ID
       # @param db [Sequel::Database] Optional database connection (for testing)
-      def initialize(extid:, db: nil)
-        @extid = extid
-        @db    = db || Auth::Database.connection
+      # @param allow_missing [Boolean] Treat an already-absent account as success.
+      #   Account deletion uses this for safe retries after a partial cross-store
+      #   teardown; direct callers retain the strict default.
+      # @param revoke_sessions [Boolean] Run the legacy standalone session sweep.
+      #   Unified account deletion supplies false because its session operation
+      #   has already completed.
+      # @param retain_account [Boolean] Retain the Rodauth identity as a closed
+      #   status-3 row and preserve its authentication audit history while removing
+      #   credentials and related auth data. Unified deletion uses this mode so it
+      #   can run safely from Rodauth's after_close_account transaction.
+      def initialize(extid:, db: nil, allow_missing: false, revoke_sessions: true,
+                     retain_account: false)
+        @extid           = extid
+        @db              = db || Auth::Database.connection
+        @allow_missing   = allow_missing
+        @revoke_sessions = revoke_sessions
+        @retain_account  = retain_account
       end
 
       # Executes the account closure operation
@@ -101,13 +118,15 @@ module Auth
         return error_result('External ID is required') if @extid.to_s.empty?
 
         account = find_account
+        return { success: true, account_id: nil } if account.nil? && @allow_missing
         return error_result("No auth account found for extid: #{@extid}") unless account
 
         account_id = account[:id]
         email      = account[:email]
 
-        # Delete all Redis sessions for this user first
-        deleted_sessions = delete_redis_sessions(@extid)
+        # Direct callers retain the standalone session sweep. DeleteAccount uses
+        # the shared session operation before invoking this SQL-only phase.
+        deleted_sessions = @revoke_sessions ? delete_redis_sessions(@extid) : 0
 
         # Delete from auth database
         delete_account_data(account_id)
@@ -146,8 +165,14 @@ module Auth
       # @param account_id [Integer] The account's primary key
       def delete_account_data(account_id)
         @db.transaction do
-          # Delete from all dependent tables first
-          DEPENDENT_TABLES.each do |table|
+          # Closed rows retain their authentication audit history. Hard deletion
+          # must remove it first to satisfy its foreign key.
+          tables = if @retain_account
+                     DEPENDENT_TABLES - [:account_authentication_audit_logs]
+                   else
+                     DEPENDENT_TABLES
+                   end
+          tables.each do |table|
             next unless @db.table_exists?(table)
 
             # Most tables use :id as FK, but some use :account_id
@@ -159,8 +184,12 @@ module Auth
             end
           end
 
-          # Finally delete the account record itself
-          @db[:accounts].where(id: account_id).delete
+          if @retain_account
+            @db[:accounts].where(id: account_id).update(status_id: Auth::AccountStatuses::CLOSED)
+          else
+            # Finally delete the account record itself
+            @db[:accounts].where(id: account_id).delete
+          end
         end
       end
 
@@ -174,6 +203,7 @@ module Auth
           :account_webauthn_keys,
           :account_previous_password_hashes,
           :account_authentication_audit_logs,
+          :account_identities,
         ].include?(table)
       end
 

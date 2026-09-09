@@ -129,6 +129,15 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         expect(result[:success]).to be false
         expect(result[:error]).to include('No auth account found')
       end
+
+      it 'treats a missing account as success when retrying unified deletion' do
+        result = Auth::Operations::CloseAccount.call(
+          extid: 'nonexistent-extid-12345',
+          allow_missing: true,
+        )
+
+        expect(result).to eq(success: true, account_id: nil)
+      end
     end
 
     context 'with related auth data' do
