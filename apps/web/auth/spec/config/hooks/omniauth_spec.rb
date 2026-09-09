@@ -252,6 +252,11 @@ RSpec.describe 'OmniAuth hooks' do
         if existing
           return { interstitial: true, redirect: '/link-sso/<token>' } if has_password && platform_surface
 
+          # The two surfaces refuse with DIFFERENT codes: the platform copy points
+          # at Connected Identities (self-service), which is a dead end on the
+          # tenant surface where linking is deferred to #3849.
+          return { refused: true, redirect: '/signin?auth_error=tenant_sso_link_unavailable' } unless platform_surface
+
           return { refused: true, redirect: '/signin?auth_error=account_exists_link_required' }
         end
 
@@ -371,7 +376,7 @@ RSpec.describe 'OmniAuth hooks' do
         it 'keeps the H-3 refusal — the interstitial is platform-only' do
           result = account_from_omniauth('user@example.com', has_password: true, tenant_domain_id: 'domain-123')
           expect(result).to include(refused: true)
-          expect(result[:redirect]).to eq('/signin?auth_error=account_exists_link_required')
+          expect(result[:redirect]).to eq('/signin?auth_error=tenant_sso_link_unavailable')
           expect(result).not_to include(:interstitial)
         end
 
@@ -494,7 +499,10 @@ RSpec.describe 'OmniAuth hooks' do
         return { linked: true, account: existing }
       end
 
-      return { refused: true, redirect: '/signin?auth_error=account_exists_link_required' } if existing
+      if existing
+        return { refused: true, redirect: '/signin?auth_error=tenant_sso_link_unavailable' } if tenant_domain_id
+        return { refused: true, redirect: '/signin?auth_error=account_exists_link_required' }
+      end
 
       nil
     end
@@ -518,7 +526,7 @@ RSpec.describe 'OmniAuth hooks' do
           'user@example.com', trust_flag: true, tenant_domain_id: 'dom_abc123'
         )
         expect(result).to include(refused: true)
-        expect(result[:redirect]).to eq('/signin?auth_error=account_exists_link_required')
+        expect(result[:redirect]).to eq('/signin?auth_error=tenant_sso_link_unavailable')
         expect(result).not_to include(:linked)
       end
     end

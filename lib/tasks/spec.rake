@@ -38,6 +38,19 @@
 # trigger/constraint behaviors. CI runs both; local development defaults to
 # SQLite for speed.
 #
+# Lane environment contract
+# -------------------------
+# Each task below is a LANE: one process started with the env hash the task
+# builds, and nothing more. A spec under a lane's directory may rely on every
+# setting in that hash (the full lane's ORGS_SSO_ENABLED=true registers the
+# /auth/sso/* routes, for instance) and must not rely on anything outside it.
+# The lane, not the developer's shell, is the environment of record; a bare
+# `bundle exec rspec` run is not a lane. Specs that need a lane-provided
+# setting tag themselves `lane_env:` (spec/support/helpers/lane_env_helpers.rb)
+# so that running them outside the lane fails naming the lane. When a lane's
+# env hash changes, that helper's LANES table and the spec_helper header are
+# the two places that describe it to spec authors.
+#
 # Environment Variables:
 #   RSPEC_OUTPUT_FILE - Path to JSON results file (e.g., tmp/rspec_results.json)
 #                       When set, adds JSON formatter output for CI reporting

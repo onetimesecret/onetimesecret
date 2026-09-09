@@ -604,7 +604,7 @@ RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integrat
           post '/auth/sso/oidc/callback'
 
           expect(last_response.status).to eq(302)
-          expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
+          expect(last_response.location.to_s).to include('/signin?auth_error=tenant_sso_link_unavailable'),
             "Tenant callback for a passwordless account must keep the H-3 refusal. Location: #{last_response.location.inspect}"
           expect(last_response.location.to_s).not_to include('link_verification_sent')
 

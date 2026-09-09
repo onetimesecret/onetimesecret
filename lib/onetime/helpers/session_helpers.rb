@@ -22,6 +22,7 @@
 #   has_role?(:colonel) # Fast - checks session only
 #   current_customer    # Slow - loads from Redis (use sparingly)
 
+require_relative '../session/active_session_gate'
 require_relative '../session/impersonation'
 
 module Onetime
@@ -30,7 +31,8 @@ module Onetime
       def authenticated?
         session['authenticated'] == true &&
           !session['external_id'].to_s.empty? &&
-          session_auth_enforced?
+          session_auth_enforced? &&
+          !active_session_revoked?
       end
 
       # Check user role without loading Customer (uses session data)
@@ -48,25 +50,13 @@ module Onetime
         @current_customer ||= load_current_customer
       end
 
-      def authenticate!(customer)
-        # Clear any existing session data
-        session.clear
-
-        # Regenerate session ID to prevent fixation (Rack::Session pattern)
-        request.session_options[:renew] = true if request.respond_to?(:session_options)
-
-        # Set authentication data
-        session['external_id']      = customer.extid
-        session['email']            = customer.email
-        session['role']             = customer.role  # Store role for permission checks
-        session['authenticated']    = true
-        session['authenticated_at'] = Familia.now.to_i
-        session['ip_address']       = request.ip
-        session['user_agent']       = request.user_agent
-
-        # NOTE: CSRF tokens are managed by Rack::Protection::AuthenticityToken middleware
-        # The token is generated on first access via AuthenticityToken.token(session)
-      end
+      # There is deliberately no `authenticate!(customer)` here. Every path that
+      # marks a Rack session authenticated must also mint its active-session
+      # row and join key (Onetime::ActiveSessionGate), which only a Rodauth
+      # login-session does; the simple-mode controller writes its own session
+      # and the invite flow runs a real login_session. A helper that set
+      # `authenticated` without the join key would mint a session the gate
+      # exempts from revocation forever.
 
       def logout!
         session_id = session.id&.private_id if session.respond_to?(:id)
@@ -79,10 +69,33 @@ module Onetime
         )
 
         session.clear
+        forget_active_session_verdict
         OT.info "[logout] Session #{session_id} destroyed" if session_id
       end
 
       private
+
+      # Full-mode active-session enforcement (Onetime::ActiveSessionGate, terms
+      # defined there): the controller-side twin of the check in
+      # BaseSessionAuthStrategy, so a page render and an API call answer the
+      # same way once the Rack session's active-session row is revoked or
+      # cannot be checked. Memoized per request through the Rack env when there
+      # is one (the strategy shares the memo), else per helper instance, so
+      # the many `authenticated?` calls in one request cost one SELECT.
+      def active_session_revoked?
+        return @active_session_revoked unless @active_session_revoked.nil?
+
+        @active_session_revoked = Onetime::ActiveSessionGate.revoked?(session, env: rack_env_for_impersonation)
+      end
+
+      # The session identity just changed inside this request (login or
+      # logout): a verdict reached for the previous identity must not outlive
+      # it, in this helper or in the shared env memo.
+      def forget_active_session_verdict
+        @active_session_revoked = nil
+        env                     = rack_env_for_impersonation
+        env&.delete(Onetime::ActiveSessionGate::ENV_KEY)
+      end
 
       def load_current_customer
         return nil unless authenticated?
@@ -108,14 +121,23 @@ module Onetime
         customer
       end
 
-      # The Rack env, when this helper is mixed into something that has a
-      # request (controllers do; bare unit harnesses may not). Only used to
-      # share the per-request impersonation target memo — nil just means one
-      # extra Customer load, never a different answer.
+      # The Rack env of the current request, or nil outside one (controllers
+      # have a request; bare unit harnesses may not, and nil only costs a memo,
+      # never a different answer). The core and
+      # billing controllers expose the request as `req`; the API controllers
+      # and the auth strategies as `request`. Both are tried so the
+      # per-request memos (impersonation, active-session verdict) are shared
+      # with the strategy on every surface, not only the ones spelling it
+      # `request`.
       def rack_env_for_impersonation
-        return nil unless respond_to?(:request) && request.respond_to?(:env)
+        rack_request = if respond_to?(:request)
+                         request
+                       elsif respond_to?(:req)
+                         req
+                       end
+        return nil unless rack_request.respond_to?(:env)
 
-        request.env
+        rack_request.env
       rescue StandardError
         nil
       end
