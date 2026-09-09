@@ -610,6 +610,52 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
       end
     end
 
+    # P1 STRAND FIX. establish_active_session runs AFTER create_rodauth_account
+    # has committed the account + customer, and the invitation is deliberately
+    # left pending. If that step raises and the error propagates, signup fails
+    # post-commit: on retry the email exists in authdb + Redis, so raise_concerns
+    # short-circuits to raise_signup_unavailable and the invitee is permanently
+    # stranded. The fix contains the failure in setup_session: log loudly and
+    # degrade to a gate-exempt session so the account is NOT stranded and POST
+    # /accept can still proceed against the session this endpoint established.
+    context 'when establish_active_session fails after the account is committed (P1 strand fix)' do
+      before do
+        allow(Auth::Config).to receive(:internal_request_eval)
+          .and_raise(StandardError.new('authdb connection reset'))
+        logic.raise_concerns
+      end
+
+      it 'does not strand the invitee: signup still completes successfully' do
+        result = logic.process
+        expect(result[:record][:auto_login]).to be true
+        expect(result[:record][:invitation_status]).to eq(invitation.status)
+      end
+
+      it 'establishes a working (authenticated) session so POST /accept can proceed' do
+        logic.process
+        expect(session['authenticated']).to be true
+        expect(session['external_id']).to eq('ext-new-123')
+        expect(session['account_id']).to eq(123)
+      end
+
+      it 'degrades to a gate-exempt session with no active-session join key' do
+        logic.process
+        # No join key means ActiveSessionGate#applicable? returns false
+        # (verdict :skipped) rather than refusing the request — the pre-#4391
+        # shape, self-healing on the invitee's next real login.
+        expect(session).not_to have_key('active_session_id_hmac')
+        expect(session).not_to have_key('active_session_id')
+      end
+
+      it 'logs the failure loudly on the auth logger (fail-loud, not swallowed)' do
+        expect(auth_logger_double).to receive(:error).with(
+          /Active-session establishment failed/,
+          hash_including(account_id: 123)
+        )
+        logic.process
+      end
+    end
+
     context 'when Rodauth reports the login is already taken (create race, #3856)' do
       # An account created between the raise_concerns pre-check and Rodauth's
       # insert surfaces as an InternalRequestError with a "already an account

@@ -384,12 +384,39 @@ module InviteAPI::Logic
       # login-session (so update_session stamps the join key and add_active_session
       # INSERTs the row) and handing back the resulting Rodauth session hash to
       # merge in.
-      def setup_session(account_id, _account)
+      def setup_session(account_id, account)
         # Auth state produced by a real Rodauth login-session: account_id, the
         # raw active-session id, the active_session_id_hmac join key and
         # authenticated_by. Merged below (keys stringified) so this session is
         # gate-enforced and byte-identical to a browser login's persisted form.
-        rodauth_session = establish_active_session(account_id)
+        #
+        # FAIL-SAFE (P1 strand fix). establish_active_session runs AFTER
+        # create_rodauth_account has already COMMITTED the account + customer,
+        # and this endpoint deliberately leaves the invitation pending (the
+        # frontend POSTs /accept next). If it raises and we let it propagate,
+        # signup fails post-commit: the email now exists in authdb + Redis, so a
+        # retry short-circuits through raise_concerns' email_exists_in_authdb? /
+        # Customer.email_exists? guard to raise_signup_unavailable and the
+        # invitee is PERMANENTLY STRANDED — they can never complete signup
+        # without manual repair. That guard is a security control (it blocks
+        # auto-login into pre-existing accounts, #3856) and must NOT be weakened,
+        # so instead we contain the failure here: log LOUDLY and degrade to a
+        # hand-written session with account_id but no join key. That is the
+        # pre-#4391 shape the gate still exempts (ActiveSessionGate#applicable?
+        # returns false without a join key, verdict :skipped), so the invitee
+        # gets a working session, POST /accept proceeds, and a proper gated
+        # session (with the join key + active-session row) is minted on their
+        # next real login. The degraded session is gate-exempt rather than
+        # gate-enforced: a bounded, loudly-logged, self-healing regression to the
+        # prior behavior — strictly better than a permanent strand, and it opens
+        # no account-takeover or password-oracle surface.
+        rodauth_session =
+          begin
+            establish_active_session(account_id)
+          rescue StandardError => ex
+            log_active_session_failure(account_id, account, ex)
+            nil
+          end
 
         # Populate session with authentication state
         sess['authenticated']    = true
@@ -399,17 +426,25 @@ module InviteAPI::Logic
         sess['role']             = @customer.role
         sess['locale']           = @customer.locale || 'en'
 
-        # Carry the Rodauth-produced auth keys onto the Rack session. Keys are
-        # stringified because Rodauth's internal-request session hash uses its
-        # native key types — the configured session_key is the string
-        # 'account_id', but the active_sessions/base defaults (active_session_id,
-        # authenticated_by) are SYMBOLS here, since the Roda sessions plugin
-        # (which would set sessions_convert_symbols) is not loaded on the auth
-        # router. The Onetime Rack session persists via JSON (string keys only),
-        # so stringifying now makes the at-rest blob identical to a browser
-        # login's and keeps 'account_id'/'active_session_id_hmac' where the gate
-        # and the Otto strategies read them.
-        rodauth_session.each { |key, value| sess[key.to_s] = value }
+        if rodauth_session
+          # Carry the Rodauth-produced auth keys onto the Rack session. Keys are
+          # stringified because Rodauth's internal-request session hash uses its
+          # native key types — the configured session_key is the string
+          # 'account_id', but the active_sessions/base defaults (active_session_id,
+          # authenticated_by) are SYMBOLS here, since the Roda sessions plugin
+          # (which would set sessions_convert_symbols) is not loaded on the auth
+          # router. The Onetime Rack session persists via JSON (string keys only),
+          # so stringifying now makes the at-rest blob identical to a browser
+          # login's and keeps 'account_id'/'active_session_id_hmac' where the gate
+          # and the Otto strategies read them.
+          rodauth_session.each { |key, value| sess[key.to_s] = value }
+        else
+          # Degraded (gate-exempt) fallback: no join key is available, but still
+          # record account_id so the session matches the historical invite
+          # autologin shape and downstream readers (the Otto session strategies,
+          # POST /accept) have the account identifier they expect.
+          sess['account_id'] = account_id
+        end
 
         # Track request metadata from strategy_result
         client_ip          = @strategy_result&.metadata&.dig(:ip) ||
@@ -432,6 +467,42 @@ module InviteAPI::Logic
           account_id: account_id,
           organization_id: @invitation.organization.extid,
         )
+      end
+
+      # Loudly record a post-commit auto-login failure (P1 strand fix). Called
+      # when establish_active_session raises AFTER create_rodauth_account has
+      # already committed the account + customer. The signup is NOT failed (that
+      # would strand the invitee — see setup_session); the invitee proceeds with
+      # a gate-exempt session. This event is the operator's signal that a
+      # just-created invite account is temporarily missing its active-session
+      # row / join key and will only become gate-enforced on its next login.
+      def log_active_session_failure(account_id, account, ex)
+        external_id = account && account[:external_id]
+
+        auth_logger.error 'Active-session establishment failed after invite signup; degrading to a gate-exempt session',
+          exception: ex,
+          account_id: account_id,
+          external_id: external_id,
+          token_prefix: @token[0..7]
+
+        Auth::Logging.log_auth_event(
+          :invite_signup_active_session_FAILED,
+          level: :error,
+          account_id: account_id,
+          external_id: external_id,
+          error: ex.message,
+          security_warning: 'active-session row/join key not established after account commit; invitee ' \
+                            'auto-logged-in with a gate-exempt session to avoid a permanent strand — the join ' \
+                            'key is stamped on their next login',
+        )
+
+        return unless defined?(Sentry) && Sentry.initialized?
+
+        Sentry.capture_exception(ex) do |scope|
+          scope.set_level(:error)
+          scope.set_tags(component: 'invite.signup_autologin', finding: 'P1-strand')
+          scope.set_context('invite_signup', { account_id: account_id })
+        end
       end
 
       # Run a real Rodauth login-session for the just-created account and return
