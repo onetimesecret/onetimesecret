@@ -28,18 +28,25 @@ of finding — a security control that exists in the UI, the API, and the docs, 
 
 ---
 
+## Resolved since this assessment
+
+| ID | Finding | Resolution |
+|---|---|---|
+| M-14 | "Remove session" reports success but the session keeps working; no absolute session lifetime | Resolved in v0.26.12: full-mode authenticated requests verify the active-session row, and configured inactivity and absolute deadlines are enforced on every request. |
+| M-13 | `claude-code-action@beta` mutable ref holds `CLAUDE_CODE_OAUTH_TOKEN` + `id-token: write` | Resolved: both Claude Code workflows pin `anthropics/claude-code-action` to commit `28f83620103c48a57093dcc2837eec89e036bb9f`. |
+
+---
+
 ## Priority 2 — fix this cycle
 
 | # | ID | Finding | Exploitability | Impact | Risk | Effort |
 |---|---|---|---|---|---|---|
-| 4 | M-14 | "Remove session" reports success but the session keeps working; no absolute session lifetime | Hard (needs an already-compromised session) | High | **High** | Medium |
 | 5 | M-1 | `email_verified` never checked; nOAuth-class takeover if a trust flag + `ENTRA_TENANT_ID=common` are set | Moderate (config-dependent) | Severe | **High** | Small |
 | 6 | M-7 | Unauthenticated Redis exhaustion — no rate limit on secret creation | **Trivial** | Moderate (full outage) | **High** | Small — add a limiter to the existing registry |
 | 7 | M-5 | Stripe invoice PDFs / hosted bearer URLs exposed to any org member | Easy | High | **High** | Trivial |
 | 8 | M-2 | Magic links live 24h instead of the configured 15 min, and one token is reused across resends | Moderate (needs link interception) | High | **Medium-High** | Trivial — `set_deadline_values? true` |
 | 9 | M-6 | Domain-scoped SSO member reads a sibling domain's receipts (chains into H-1) | Easy | High | **Medium-High** | Trivial |
 | 10 | M-11 | `sqlite3` 2.9.5 use-after-free (GHSA-mwm8-39rw-8826) | Hard | Moderate | **Medium** | Trivial — lockfile bump only |
-| 11 | M-13 | `claude-code-action@beta` mutable ref holds `CLAUDE_CODE_OAUTH_TOKEN` + `id-token: write` | Hard (needs upstream compromise) | Severe | **Medium** | Trivial — SHA-pin |
 
 ---
 
