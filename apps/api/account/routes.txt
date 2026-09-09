@@ -9,6 +9,9 @@
 # Domain operations live in Domains API at /api/domains/*.
 
 # Account Management
+# This endpoint remains the simple-auth account deletion path. It requires the
+# Core login marker `session['authenticated'] == true`; the full-auth Settings
+# UI uses Rodauth's /auth/close-account route instead.
 POST   /destroy                             AccountAPI::Logic::Account::DestroyAccount response=json auth=sessionauth
 POST   /change-password                     AccountAPI::Logic::Account::UpdatePassword response=json auth=sessionauth
 POST   /update-domain-context               AccountAPI::Logic::Account::UpdateDomainContext response=json auth=sessionauth

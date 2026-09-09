@@ -6,6 +6,11 @@ require 'onetime/logic/sso_only_gating'
 
 module AccountAPI::Logic
   module Account
+    # Session-authenticated deletion endpoint retained for simple (Redis-only)
+    # auth mode. Core's simple login writes the `authenticated` session marker
+    # required by this route. The full-auth Settings UI uses Rodauth's
+    # /auth/close-account route; this operation still performs full-mode cleanup
+    # when called by a sessionauth client.
     class DestroyAccount < AccountAPI::Logic::Base
       include Onetime::LoggerMethods
       include Onetime::Logic::SsoOnlyGating
