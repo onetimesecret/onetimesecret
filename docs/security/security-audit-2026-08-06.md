@@ -23,6 +23,8 @@ Commit `d847cce` ("refactor(billing): centralize Stripe checkout session paramet
 
 **Update 2026-08-07:** Partly overtaken by the #4013 work — `STRIPE_AUTOMATIC_TAX` is now documented (`93abc98c`) and boot validation covers the `STRIPE_AUTOMATIC_TAX`/`BILLING_ENABLED` combination. Issue #4025 tracks the related currency-migration no-tax defect. Still open: confirming the production env var, and the boot-time log of the resolved tax policy.
 
+**Update 2026-09-09:** Boot-time log of the resolved tax policy — **closed**. `StripeSetup#execute` (`apps/web/billing/initializers/stripe_setup.rb`) now emits `Onetime.billing_logger.info 'Stripe automatic tax policy', { enabled:, source: }` where it already touched `automatic_tax?` for validation, parallel to the `skip_paths` boot-log. This surfaces the silent-disable-by-omission case (an unset var → `enabled: false`) that validation alone did not catch; covered by `apps/web/billing/spec/initializers/stripe_setup_spec.rb`. Separately, `automatic_tax?` now routes through `Onetime::Utils::Strings.strict_bool!` (ADR-037), so a malformed token (e.g. `STRIPE_AUTOMATIC_TAX=yes`) raises `Onetime::ConfigError` instead of silently disabling tax. Still open: confirming the production env var — now self-evident from a prod boot log line (`enabled: true`).
+
 ---
 
 ## Self-corrected within the window (verified fixed, not re-flagged)
