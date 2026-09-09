@@ -460,22 +460,35 @@ against nil). `audit_verb` is overridden where the verb is direction- or
 action-dependent: `customers/set_suspension` (suspend vs unsuspend) and both
 `entitlement_override` ops, whose verb is computed from `@action`.
 
-Converted: `customers/change_email`, `customers/set_role`,
-`customers/set_plan`, `customers/set_suspension`,
-`customers/set_verification`, `dlq/purge`, `dlq/replay`, `email/send_test`,
+Every op that records a preview or a no-change attempt composes the module —
+`customers/change_email`, `customers/reconcile_role_index`,
+`customers/set_role`, `customers/set_plan`, `customers/set_suspension`,
+`customers/set_verification`, `dlq/purge`, `dlq/replay`,
+`domains/ensure_domain_configs`, `domains/remove`, `domains/repair`,
+`domains/transfer`, `email/send_test`, `email/sync_provider_feedback`,
 `memberships/add`, `memberships/set_role`,
-`memberships/entitlement_override`, `org/set_plan`,
-`org/entitlement_override`.
+`memberships/entitlement_override`, `org/delete`, `org/entitlement_override`,
+`org/reconcile`, `org/set_plan`, `org/transfer_ownership`. Nothing builds the
+envelope inline any more, so `result:` and `dry_run:` rest on construction
+rather than on review attention.
 
-**Still hand-rolled.** Nine pre-#4337 preview-only emitters still build the
-envelope inline, deliberately deferred to a follow-up: they carry arity-heavy
-signatures and their own rescue/logging conventions, so folding them in is
-more than a mechanical change. `domains/remove`, `domains/transfer`,
-`domains/repair`, `domains/ensure_domain_configs`, `org/delete`,
-`org/reconcile`, `org/transfer_ownership`, `email/sync_provider_feedback`,
-and `customers/reconcile_role_index`. Until they adopt the mixin their
-`result:` and `dry_run:` markers rest on review attention rather than on
-construction.
+Folding in `email/sync_provider_feedback` CHANGED one row's shape, the only
+payload change in the consolidation. Its preview detail never carried
+`dry_run: true` — the applied and preview paths share one `sync_detail`
+builder, and the two were told apart by `sync_status_stamped`, an inverted
+proxy for the marker. Composing the envelope adds the real marker, which is
+the point: `dry_run:` is now merged by construction on every observation row
+without exception. Its unit spec asserts the key explicitly, since
+`hash_including` would not notice it leaving again.
+
+Two of the nine preview-only emitters folded in last carry a target their
+call path threads as an argument rather than holding in an ivar
+(`domains/remove` takes the plan, `org/reconcile` the org extid). Their
+`audit_target` reads the ivar the op's own failure audit already reads —
+`@domain.extid` and `@org.extid`, identical values at emit time, since both
+dry-run paths return before the mutation that could move them — and the
+threaded argument is underscored rather than dropped, so the emitters keep
+signatures parallel to their applied-event siblings.
 
 ### What the security-telemetry stream holds (#4339)
 

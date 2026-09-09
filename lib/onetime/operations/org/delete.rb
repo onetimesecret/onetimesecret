@@ -8,6 +8,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
+require 'onetime/operations/audit_attempt'
 # The member notification is enqueued from here, and the CLI reaches this file
 # without the app's job wiring loaded (precedent:
 # lib/onetime/logic/credential_change_session_revocation.rb).
@@ -133,6 +134,7 @@ module Onetime
       class Delete
         include Onetime::AuditedFailure
         include Onetime::AuditReason
+        include Onetime::Operations::AuditAttempt
 
         # Full-noun subject, matching the rest of the admin trail
         # (`organization.create`, `organization.reconcile`).
@@ -554,13 +556,8 @@ module Onetime
         # the two read the same way; member emails stay out of both (they are
         # operator-facing plan output, not audit content).
         def record_preview_event
-          Onetime::ColonelAuditEvent.record_access(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @extid,
-            result: 'preview',
-            detail: with_reason(
-              dry_run: true,
+          record_preview_observation(
+            with_reason(
               display_name: @display_name.to_s,
               planid: @planid,
               members: @members.size,
@@ -569,6 +566,11 @@ module Onetime
             ),
           )
         end
+
+        # The #4337 envelope's target hook: the org's public id, same as the
+        # applied event's. `audit_verb` defaults to AUDIT_VERB, `audit_actor`
+        # to @actor.
+        def audit_target = @extid
 
         def build(status)
           Result.new(

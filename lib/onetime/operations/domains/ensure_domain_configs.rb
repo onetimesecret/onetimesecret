@@ -7,6 +7,7 @@
 # so require the audit model explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 require 'onetime/models/custom_domain/config_registry'
 
 module Onetime
@@ -35,6 +36,7 @@ module Onetime
       # EXACTLY ONE {Onetime::ColonelAuditEvent} — none when nothing was created.
       class EnsureDomainConfigs
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         # Audit verb recorded when an applied run created at least one record.
         AUDIT_VERB = 'domain.configs_ensure'
@@ -128,23 +130,21 @@ module Onetime
 
         private
 
+        # The #4337 envelope's target hook: the domain's public id, same as the
+        # applied event's. `audit_verb` defaults to AUDIT_VERB, `audit_actor`
+        # to @actor.
+        def audit_target = @domain.extid
+
         # One OBSERVATION per dry run (#4337), on the budgeted access trail.
         # Same verb and target as the applied event; `result: 'preview'` and
         # `dry_run: true` distinguish them. Counts rather than the applied
         # event's `created` list, because on a preview that list is what WOULD
         # be created — a projection, not a fact.
         def record_preview_event(created, existing, skipped)
-          Onetime::ColonelAuditEvent.record_access(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @domain.extid,
-            result: 'preview',
-            detail: {
-              dry_run: true,
-              would_create: created.size,
-              existing: existing.size,
-              skipped: skipped.size,
-            },
+          record_preview_observation(
+            would_create: created.size,
+            existing: existing.size,
+            skipped: skipped.size,
           )
         end
 
