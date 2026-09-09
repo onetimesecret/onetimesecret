@@ -4,6 +4,7 @@
 
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 
 module Auth
   module Operations
@@ -27,6 +28,7 @@ module Auth
       class SetPlan
         include Onetime::LoggerMethods
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         AUDIT_VERB = 'customer.set_plan'
 
@@ -84,18 +86,17 @@ module Auth
 
         private
 
+        # The #4337 envelope's target hook: the customer's PUBLIC extid, the
+        # same target the applied event carries. `audit_verb` defaults to
+        # AUDIT_VERB and `audit_actor` to @actor.
+        def audit_target = @customer.extid
+
         # A no-change attempt (#4337) — the OPERATOR trail, not the observation
         # trail. Same verb and target as the applied event, with
         # `outcome: 'no_change'` marking it. NOT fail-closed: nothing moved, so
         # there is nothing untraceable for a hard failure to surface.
         def record_no_change_event(from)
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @customer.extid,
-            result: :success,
-            detail: { outcome: 'no_change', from: from, to: @planid },
-          )
+          record_no_change_attempt({ from: from, to: @planid })
         end
 
         # Loggable, non-secret actor label (mirrors the audit actor normalization).

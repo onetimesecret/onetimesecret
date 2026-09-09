@@ -6,6 +6,7 @@
 # autoloaders — require the audit model explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 
 module Onetime
   module Operations
@@ -90,6 +91,7 @@ module Onetime
       #   is shape-compatible.
       class EntitlementOverride
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         ACTIONS = %w[grant revoke clear].freeze
 
@@ -273,6 +275,11 @@ module Onetime
 
         private
 
+        # The #4337 envelope's target hook: the org's extid, the key every row
+        # on this op has always carried — preview, no-change attempt and
+        # applied event alike. This class's own `audit_verb` supplies the verb.
+        def audit_target = @org.extid
+
         # "organization.entitlement.<action>" — BYTE-IDENTICAL to the
         # pre-extraction value for a valid action (the existing trail and the
         # colonel tryout gate match those exact strings). An INVALID action falls
@@ -291,16 +298,10 @@ module Onetime
         # same reason the applied event's detail is {} for clear). `outcome`
         # is set (to 'no_change') when the preview short-circuited on D15.
         def record_preview_event(outcome: nil)
-          detail           = { dry_run: true, action: @action, entitlement: @entitlement }
+          detail           = { action: @action, entitlement: @entitlement }
           detail[:outcome] = outcome if outcome
 
-          Onetime::ColonelAuditEvent.record_access(
-            actor: @actor,
-            verb: audit_verb,
-            target: @org.extid,
-            result: 'preview',
-            detail: detail,
-          )
+          record_preview_observation(detail)
         end
 
         # A LIVE no-change attempt (#4337) — the OPERATOR trail. Re-granting an
@@ -311,13 +312,7 @@ module Onetime
         # carries the action) plus the `outcome: 'no_change'` marker. NOT
         # fail-closed: nothing moved.
         def record_no_change_event
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: audit_verb,
-            target: @org.extid,
-            result: :success,
-            detail: { outcome: 'no_change', entitlement: @entitlement },
-          )
+          record_no_change_attempt({ entitlement: @entitlement })
         end
 
         # Same verb/target/actor as the success event. Best-effort: never break
