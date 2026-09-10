@@ -8,12 +8,13 @@
   import type { AccountInfo } from '@/types/auth';
   import {
     hasPasswordOf,
+    isActiveSessionsEnabledOf,
     isMfaEnabledOf,
     isPasswordAuthPermittedOf,
     isSsoEnabledOf,
     isWebAuthnEnabledOf,
   } from '@/utils/features';
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
@@ -21,7 +22,7 @@
 
   // Feature toggles — derived from the reactive bootstrap store so they reflect
   // post-login state without re-mounting (e.g. after checkWindowStatus refresh).
-  const showSessionsCard = ref(false);
+  const activeSessionsEnabled = computed(() => isActiveSessionsEnabledOf(bootstrapStore));
   const mfaFeatureEnabled = computed(() => isMfaEnabledOf(bootstrapStore));
   const webAuthnEnabled = computed(() => isWebAuthnEnabledOf(bootstrapStore));
   const ssoEnabled = computed(() => isSsoEnabledOf(bootstrapStore));
@@ -195,7 +196,7 @@
       cards.push(buildConnectionsCard());
     }
 
-    if (showSessionsCard.value) {
+    if (activeSessionsEnabled.value) {
       cards.push(buildSessionsCard(accountInfo.value));
     }
 

@@ -10,6 +10,7 @@ vi.mock('@/utils/features', () => ({
   isSsoOnlyMode: vi.fn(() => false),
   isWebAuthnEnabled: vi.fn(() => false),
   isSsoEnabled: vi.fn(() => false),
+  isActiveSessionsEnabled: vi.fn(() => false),
   hasPassword: vi.fn(() => false),
   isOwnerOrAdmin: vi.fn(() => false),
 }));
@@ -39,6 +40,9 @@ function makeFeatures(overrides: Partial<NavigationFeatures> = {}): NavigationFe
     isOwnerOrAdmin: false,
     isWebAuthnEnabled: false,
     isSsoEnabled: false,
+    // Default ON: sessions is a baseline tab in the persona matrix below; the
+    // dedicated flag-off test flips it.
+    isActiveSessionsEnabled: true,
     ...overrides,
   };
 }
@@ -167,13 +171,21 @@ describe('settings-navigation config', () => {
     });
 
     it('sessions child visible regardless of hasPassword', () => {
-      const sections = getSettingsNavigationSections(t, makeFeatures({ hasPassword: false }));
-      const securityItem = sections.flatMap((s) => s.items).find((i) => i.id === 'security');
-      const sessionsChild = securityItem?.children?.find((c) => c.id === 'sessions');
+      // sessions is not password-dependent: SSO-only accounts still manage devices.
+      expect(getVisibleChildIds(makeFeatures({ hasPassword: false }), 'security')).toContain('sessions');
+      expect(getVisibleChildIds(makeFeatures({ hasPassword: true }), 'security')).toContain('sessions');
+    });
 
-      // sessions has no visible callback -- always visible when parent is visible
-      expect(sessionsChild).toBeDefined();
-      expect(sessionsChild?.visible).toBeUndefined();
+    it('sessions child visible only when active sessions feature is enabled', () => {
+      // Mirrors the /account/settings/security/sessions route guard: with
+      // AUTH_ACTIVE_SESSIONS_ENABLED off the link would dead-end at /account.
+      expect(
+        getVisibleChildIds(makeFeatures({ isActiveSessionsEnabled: false }), 'security')
+      ).not.toContain('sessions');
+
+      expect(
+        getVisibleChildIds(makeFeatures({ isActiveSessionsEnabled: true }), 'security')
+      ).toContain('sessions');
     });
 
     it('passkeys child visible only when WebAuthn is enabled', () => {

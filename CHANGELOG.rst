@@ -12,7 +12,7 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
 .. _changelog-0.26.12:
 
-0.26.12 — 2026-09-09
+0.26.12 — 2026-09-10
 ====================
 
 Added
@@ -50,6 +50,9 @@ Changed
 - Audit events produced by operations with ``dry_run: true`` now use the same
   envelope as applied operations.
 
+- The active-session inactivity deadline is temporarily extended from 24 to 72
+  hours.
+
 Removed
 -------
 
@@ -63,75 +66,40 @@ Removed
 Fixed
 -----
 
-- Searching or filtering the admin console's Organizations list no longer
-  loads every organization (and every owner) on each request. The endpoint
-  now answers from the exact-ID and email indexes plus a bounded newest-first
-  window, hydrates only the returned page, and reports ``pagination.capped``
-  when a bound stopped short. On a production-sized fleet the old path, and
-  its size-capped roster cache that never engaged there, pinned the web
-  workers for 30-60 seconds per search and was the cause of the repeated
-  outages triggered from the console. The search is tiered: an exact ID
-  answers alone, an email-shaped term is settled by the contact and owner
-  email indexes without reading the window, and only a plain term (a display
-  name) pays for the window. Status and sync-status filters read every
-  subscription-linked organization off the subscription index in addition to
-  the window, so a stale-plan organization that has not been written recently
-  still shows up. ``capped`` is raised only by a bound that actually ran.
+- Admin Organization searches and filters no longer load every organization
+  and owner. ``pagination.capped`` indicates that a bounded result may be
+  incomplete.
 
-- Every search box in the admin console (customers, domains, organizations,
-  sessions, Stripe customers, the organization picker and the add-member
-  dialog) now searches only when submitted (Enter or the search button).
-  Typing no longer fires a request per pause, and a submit while a search is
-  in flight is dropped rather than queued, so one operator can no longer
-  generate a burst of concurrent index scans.
+- Admin console searches now run only when submitted, rather than while an
+  operator types.
 
-- The admin sessions list reads session blobs in batches (one ``MGET`` per
-  500 keys) instead of one ``GET`` per key, cutting a full-cap list from
-  roughly 10,000 round-trips to about 20. The customers and domains searches
-  scan their indexes 1,000 entries per round-trip instead of 100.
+- Improved admin sessions, customer, and domain search performance.
 
-- Account deletion from Account Settings now completes through the same
-  teardown path used by other account-deletion entry points.
+- Account deletion from Account Settings now completes reliably.
 
 - Customer search now matches email addresses case-insensitively, including
-  legacy mixed-case email-index entries.
+  legacy mixed-case index entries.
+
+- The Active Sessions card and ``/account/settings/security/sessions`` are
+  available when ``AUTH_ACTIVE_SESSIONS_ENABLED`` is set.
 
 Security
 --------
 
-- In ``full`` authentication mode, revoking an active session now ends it.
-  A signed-in browser holds two records: the Rack session (the cookie-bound
-  session stored in Redis) and an active-session row in Rodauth's
-  ``account_active_session_keys`` table. Every authenticated request, on the
-  API, the web controllers and the ``/auth`` surface alike, now checks that
-  the Rack session's active-session row still exists. A row
-  removed from the account's sessions page, by "sign out everywhere", or by
-  an operator in Rodauth Admin causes the Rack session to be refused on its
-  next request, instead of running until the cookie expired. Rack sessions
-  created before v0.26.5 carry no join key and are enforced from their next
-  sign-in; sessions created by v0.26.5 through v0.26.11 are checked
-  immediately after deployment. The check fails closed: while the
-  authentication database is unreachable, a Rack session whose row cannot be
-  checked is refused with an error log rather than trusted unchecked. The Rack
-  session itself is left in place and is honoured again once the database
-  returns. A login whose join key cannot be stamped is refused rather than
-  minting a session that no revocation could reach.
-- The session deadlines configured for ``full`` mode are now enforced on
-  every request: a session inactive for 24 hours, or older than 30 days,
-  is signed out on its next request and its active-session row removed.
-  Before this the deadlines were applied only when the account's sessions
-  page was opened. Deployments upgrading from v0.26.5 through v0.26.11 should
-  expect most existing signed-in users to sign in again on their next request:
-  ``last_use`` generally still holds the original login time.
-- Accepting an invitation now signs the new account in through the same
-  path as a browser login, so the session it creates can be seen and revoked
-  like any other. Previously it was invisible to the sessions page and to
-  "sign out everywhere".
-- A browser whose session was revoked can still present a credential on
-  its first request: sign-up, password reset, magic link, passkey and SSO
-  routes proceed as signed-out requests instead of answering 401 once. For
-  SSO this matters, since the callback's authorization code is spent on the
-  first attempt.
+- In ``full`` authentication mode, revoking an active session or signing out
+  everywhere now blocks the affected browser on its next request.
+
+- Session deadlines in ``full`` mode are now enforced on every request:
+  sessions inactive for 72 hours or older than 30 days require sign-in again.
+
+- Accounts created by accepting an invitation now have a visible, revocable
+  active session.
+
+- After a revoked session, sign-up and sign-in flows, including SSO, proceed
+  as signed-out requests.
+
+- Router fallback ``404`` and ``500`` responses no longer return stale
+  response headers.
 
 .. _changelog-0.26.11:
 

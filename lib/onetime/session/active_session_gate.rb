@@ -115,7 +115,7 @@ module Onetime
     # Rodauth's session deadlines, in seconds. Owned here and fed to Rodauth
     # (`session_inactivity_deadline`, `session_lifetime_deadline`) so this
     # gate and the sessions page's sweep apply the same two values.
-    INACTIVITY_DEADLINE = 86_400    # 24 hours since `last_use`
+    INACTIVITY_DEADLINE = 86_400*3  # 72 hours since `last_use`
     LIFETIME_DEADLINE   = 2_592_000 # 30 days since `created_at`
 
     TABLE = :account_active_session_keys
