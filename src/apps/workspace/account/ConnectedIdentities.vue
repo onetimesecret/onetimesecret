@@ -6,6 +6,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
   import { useConnectedIdentities } from '@/shared/composables/useConnectedIdentities';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useCsrfStore } from '@/shared/stores/csrfStore';
   import { submitSsoLogin } from '@/shared/utils/sso';
   // Two label helpers on purpose: linked rows name the provider canonically
@@ -14,6 +15,7 @@
   import {
     configuredProviderLabel,
     getSsoProviders,
+    isActiveSessionsEnabledOf,
     providerLabel,
     type SsoProvider,
   } from '@/utils/features';
@@ -23,6 +25,11 @@
 
   const { t } = useI18n();
   const csrfStore = useCsrfStore();
+  const bootstrapStore = useBootstrapStore();
+
+  // Sessions link is gated on AUTH_ACTIVE_SESSIONS_ENABLED; the route guard
+  // bounces to /account when off, so don't offer a dead-end link.
+  const activeSessionsEnabled = computed(() => isActiveSessionsEnabledOf(bootstrapStore));
   const { identities, isLoading, error, errorCode, fetchIdentities, removeIdentity, clearError } =
     useConnectedIdentities();
 
@@ -287,6 +294,7 @@
           <div class="space-y-2">
             <!-- prettier-ignore-attribute class -->
             <router-link
+              v-if="activeSessionsEnabled"
               to="/account/settings/security/sessions"
               class="
                 flex items-center gap-3 text-sm text-gray-700 hover:text-brand-600

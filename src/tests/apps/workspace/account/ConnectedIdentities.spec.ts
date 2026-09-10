@@ -81,9 +81,12 @@ vi.mock('@/shared/composables/useConnectedIdentities', () => ({
 // them (built-in map vs. operator display_name) is exercised, not stubbed away.
 import type { SsoProvider } from '@/utils/features';
 const mockGetSsoProviders = vi.fn<() => SsoProvider[]>(() => []);
+// Sessions "related settings" link is gated on AUTH_ACTIVE_SESSIONS_ENABLED.
+const mockActiveSessionsEnabled = ref(false);
 vi.mock('@/utils/features', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/utils/features')>()),
   getSsoProviders: () => mockGetSsoProviders(),
+  isActiveSessionsEnabledOf: () => mockActiveSessionsEnabled.value,
 }));
 
 // SSO connect initiates a form POST (navigates away); assert the call, not nav.
@@ -139,6 +142,7 @@ describe('ConnectedIdentities', () => {
     mockState.removeIdentity.mockResolvedValue(true);
     // clearAllMocks keeps implementations, so reset the provider list explicitly.
     mockGetSsoProviders.mockReturnValue([]);
+    mockActiveSessionsEnabled.value = false;
   });
 
   afterEach(() => {
@@ -394,6 +398,27 @@ describe('ConnectedIdentities', () => {
       expect(wrapper.find('[data-testid="connections-connect-oidc"]').text()).toContain(
         'Connect OpenID Connect'
       );
+    });
+  });
+
+  describe('Related settings', () => {
+    // The component does not import RouterLink, so <router-link> renders as a
+    // bare custom element here; assert on its `to` attribute.
+    const hasLinkTo = (path: string) => wrapper.find(`[to="${path}"]`).exists();
+    const SESSIONS_PATH = '/account/settings/security/sessions';
+
+    it('links to Sessions when the active sessions feature is enabled', () => {
+      mockActiveSessionsEnabled.value = true;
+      wrapper = mountComponent();
+      expect(hasLinkTo(SESSIONS_PATH)).toBe(true);
+    });
+
+    it('omits the Sessions link when the feature is disabled (route guard would dead-end)', () => {
+      mockActiveSessionsEnabled.value = false;
+      wrapper = mountComponent();
+      expect(hasLinkTo(SESSIONS_PATH)).toBe(false);
+      // Sibling passkeys link is unaffected.
+      expect(hasLinkTo('/account/settings/security/passkeys')).toBe(true);
     });
   });
 
