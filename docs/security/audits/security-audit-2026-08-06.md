@@ -3,6 +3,8 @@
 - **Repo:** onetimesecret/onetimesecret
 - **Method:** Automated single-agent audit, delta-focused against the 2026-07-30 audit. Reviewed the 194 commits landed since 2026-07-31 23:59:59 (HEAD `110f9b5`), with focus on the anonymous-endpoint session-skip work (#3997/#4003), the audit-log/secret-activity terminology rename and retention-cap work (#3977/#3985/#3990), IP/proxy documentation changes, the domains-config serializer boundary (#3998), the Familia 2.12 dependency bump, and billing/Stripe code. Every finding below was verified by reading current source, not inferred from commit messages.
 
+> **Historical record.** This report records the 2026-08-06 audit baseline. The [active security risk register](../active-risk-register.md) is the canonical status of actionable findings.
+
 ---
 
 ## Bottom line
@@ -22,6 +24,10 @@ Commit `d847cce` ("refactor(billing): centralize Stripe checkout session paramet
 **Recommendation:** Confirm the hosted onetimesecret.com production environment has `STRIPE_AUTOMATIC_TAX=true` set; if not, tax collection has been silently disabled since `d847cce` landed. Consider a boot-time log line (parallel to the `skip_paths` boot-log precedent in `boot.rb:235`) surfacing the resolved tax policy so a misconfiguration is visible.
 
 **Update 2026-08-07:** Partly overtaken by the #4013 work — `STRIPE_AUTOMATIC_TAX` is now documented (`93abc98c`) and boot validation covers the `STRIPE_AUTOMATIC_TAX`/`BILLING_ENABLED` combination. Issue #4025 tracks the related currency-migration no-tax defect. Still open: confirming the production env var, and the boot-time log of the resolved tax policy.
+
+**Update 2026-09-09:** Boot-time log of the resolved tax policy — **closed**. `StripeSetup#execute` (`apps/web/billing/initializers/stripe_setup.rb`) now emits `Onetime.billing_logger.info 'Stripe automatic tax policy', { enabled:, source: }` where it already touched `automatic_tax?` for validation, parallel to the `skip_paths` boot-log. This surfaces the silent-disable-by-omission case (an unset var → `enabled: false`) that validation alone did not catch; covered by `apps/web/billing/spec/initializers/stripe_setup_spec.rb`. Separately, `automatic_tax?` now routes through `Onetime::Utils::Strings.strict_bool!` (ADR-037), so a malformed token (e.g. `STRIPE_AUTOMATIC_TAX=yes`) raises `Onetime::ConfigError` instead of silently disabling tax. Still open: confirming the production env var — now self-evident from a prod boot log line (`enabled: true`).
+
+**Update 2026-09-09 (b):** Production env var **confirmed** — `STRIPE_AUTOMATIC_TAX` has been set on hosted onetimesecret.com continuously since the switch first became available, so no self-serve checkout window ever ran with tax silently disabled. Finding #1 is now **fully closed**: no revenue/compliance gap occurred, the invalid-token silent-disable is hardened (`strict_bool!` + boot validation), and the resolved policy is logged at boot.
 
 ---
 

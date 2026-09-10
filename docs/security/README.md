@@ -2,10 +2,30 @@
 
 ---
 
-# Security Assessments
+# Security Documentation
 
-We keep dated security self-assessments here. These are typically coming from our weekly automated Claude Code routine. We keep the details local and then publish a record of the findings in a dated file or directory.
+This directory separates the current security work queue from the historical evidence that created
+it. Start with the [active security risk register](active-risk-register.md) for every actionable
+item.
 
-## Process
+## Public records
 
-There is no specific structure in terms of how each dated directory is laid out. We reference the findings for individual fixes either directly or via a GitHub issue like any other change.
+- [Active security risk register](active-risk-register.md) — canonical status of work that remains actionable.
+- [Resolution log](records/resolution-log.md) — verified closures.
+- [Accepted-risk exceptions](records/accepted-risk-exceptions.md) — explicit, time-bounded acceptance decisions.
+- [Security documentation standard](security-documentation-standard.md) — status vocabulary, lifecycle, and public/private boundary.
+- [Security audits](audits/) — dated, historical audit reports.
+- [Historical risk registers](risk-registers/) — dated assessment prioritization.
+
+## Private assessment evidence
+
+`assessments/` is intentionally Git-ignored. It may contain raw scanner output, proofs of concept,
+environment detail, and working notes. Do not link public records to that material. Publish the
+necessary finding summary, status, and verification evidence through the public records above.
+
+## Maintaining the record
+
+Publish new evidence in a dated audit, then add or update the corresponding stable entry in the
+active register. When a fix is verified, append a closure record. See the
+[security documentation standard](security-documentation-standard.md) for the required fields and
+status transitions.

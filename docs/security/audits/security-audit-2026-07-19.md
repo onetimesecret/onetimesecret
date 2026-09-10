@@ -4,7 +4,7 @@
 - **Method:** Automated multi-agent audit (fan-out finders per dimension → adversarial refute panel per candidate → synthesis), plus manual empirical verification of the contested HIGH findings.
 - **Dimensions:** security, correctness, tests, dead code, deps.
 
-> **Historical reference.** This report reflects the codebase and remediation state as of 2026-07-19. It covers one automated audit pass; it is not a comprehensive statement of the application's security posture, and other reviews are tracked separately.
+> **Historical record.** This report reflects the codebase and remediation state as of 2026-07-19. It covers one automated audit pass; it is not a comprehensive statement of the application's security posture. The [active security risk register](../active-risk-register.md) is the canonical status of actionable findings.
 
 Note on provenance: the workflow's own synthesis reported "3 high (session fixation via URL-param SID, two untested MFA security controls)". That headline is not reliable — the synthesis over-trusted a split verification panel. The findings below reflect manual verification of the decisive cases against the actual code.
 
