@@ -14,6 +14,7 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { debugLog } from '@/utils/debug';
 import {
   hasPasswordOf,
+  isActiveSessionsEnabledOf,
   isFullAuthModeOf,
   isOwnerOrAdminOf,
   isSsoEnabledOf,
@@ -42,6 +43,7 @@ const tabItems = computed(() => {
     isOwnerOrAdmin: isOwnerOrAdminOf(bootstrapStore),
     isWebAuthnEnabled: isWebAuthnEnabledOf(bootstrapStore),
     isSsoEnabled: isSsoEnabledOf(bootstrapStore),
+    isActiveSessionsEnabled: isActiveSessionsEnabledOf(bootstrapStore),
   };
   const sections = getSettingsNavigationSections(t, features);
   const allItems = sections.flatMap((section) => section.items);
