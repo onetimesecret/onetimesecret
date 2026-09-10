@@ -38,6 +38,7 @@ vi.mock('@/apps/workspace/layouts/SettingsLayout.vue', () => ({
 // Mock feature flags
 const mockMfaEnabled = ref(true);
 const mockWebAuthnEnabled = ref(true);
+const mockActiveSessionsEnabled = ref(false);
 const mockHasPassword = ref(true);
 const mockSsoEnabled = ref(false);
 const mockPasswordAuthPermitted = ref(true);
@@ -50,6 +51,9 @@ vi.mock('@/utils/features', () => ({
   // exercising the same MFA/WebAuthn on/off matrix.
   isMfaEnabledOf: () => mockMfaEnabled.value,
   isWebAuthnEnabledOf: () => mockWebAuthnEnabled.value,
+  // Sessions card is gated on AUTH_ACTIVE_SESSIONS_ENABLED. Default OFF so
+  // the pre-existing card matrix is unchanged; the dedicated block flips it on.
+  isActiveSessionsEnabledOf: () => mockActiveSessionsEnabled.value,
   hasPasswordOf: () => mockHasPassword.value,
   // Connected identities (#3840) card is gated on SSO enablement. Default OFF
   // so the pre-existing card matrix is unchanged; the dedicated block below
@@ -108,6 +112,7 @@ describe('SecurityOverview', () => {
     // Reset mocks
     mockMfaEnabled.value = true;
     mockWebAuthnEnabled.value = true;
+    mockActiveSessionsEnabled.value = false;
     mockHasPassword.value = true;
     mockSsoEnabled.value = false;
     mockPasswordAuthPermitted.value = true;
@@ -482,6 +487,32 @@ describe('SecurityOverview', () => {
 
       expect(findCardByIcon('key-solid')).toBeDefined();
       expect(findCardByIcon('document-text-solid')).toBeDefined();
+    });
+  });
+
+  describe('Sessions Card (Active Sessions Feature Flag)', () => {
+    it('shows sessions card when active sessions is enabled', () => {
+      mockActiveSessionsEnabled.value = true;
+      wrapper = mountComponent();
+
+      expect(findCardByIcon('computer-desktop-solid')).toBeDefined();
+    });
+
+    it('hides sessions card when active sessions is disabled', () => {
+      mockActiveSessionsEnabled.value = false;
+      wrapper = mountComponent();
+
+      expect(findCardByIcon('computer-desktop-solid')).toBeUndefined();
+    });
+
+    it('links sessions card to the active sessions route', () => {
+      mockActiveSessionsEnabled.value = true;
+      wrapper = mountComponent();
+
+      const link = wrapper
+        .findAll('a')
+        .find((a) => a.attributes('href') === '/account/settings/security/sessions');
+      expect(link).toBeDefined();
     });
   });
 

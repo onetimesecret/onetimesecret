@@ -2,7 +2,13 @@
 
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import { SCOPE_PRESETS } from '@/types/router';
-import { hasPassword, isFullAuthMode, isOwnerOrAdmin, isPasswordAuthPermitted } from '@/utils/features';
+import {
+  hasPassword,
+  isActiveSessionsEnabled,
+  isFullAuthMode,
+  isOwnerOrAdmin,
+  isPasswordAuthPermitted,
+} from '@/utils/features';
 import type { RouteRecordRaw } from 'vue-router';
 
 /**
@@ -62,6 +68,17 @@ function checkSetPasswordAccess() {
  */
 function checkSecurityAccess() {
   if (!isFullAuthMode()) {
+    return { name: 'Account' };
+  }
+  return true;
+}
+
+/**
+ * Route guard for the Active Sessions page: full auth mode AND the
+ * active_sessions feature flag (AUTH_ACTIVE_SESSIONS_ENABLED).
+ */
+function checkActiveSessionsAccess() {
+  if (!isFullAuthMode() || !isActiveSessionsEnabled()) {
     return { name: 'Account' };
   }
   return true;
@@ -283,7 +300,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/settings/security/sessions',
     name: 'Active Sessions',
-    beforeEnter: checkSecurityAccess,
+    beforeEnter: checkActiveSessionsAccess,
     component: () => import('@/apps/workspace/account/ActiveSessions.vue'),
     meta: {
       title: 'web.TITLES.active_sessions',

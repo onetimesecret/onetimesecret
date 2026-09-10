@@ -359,6 +359,7 @@ export const featuresSchema = z.object({
   password_requirements: z.boolean().optional(),
   email_auth: z.boolean().optional(),
   webauthn: z.boolean().optional(),
+  active_sessions: z.boolean().optional(),
   sso: z.union([z.boolean(), ssoConfigSchema]).optional(),
   // Legacy scalar projection retained for existing consumers.
   restrict_to: restrictToSchema.nullable().optional(),
