@@ -3,6 +3,8 @@
 - **Repo:** onetimesecret/onetimesecret
 - **Method:** Automated single-agent audit, delta-focused against the 2026-07-30 audit. Reviewed the 194 commits landed since 2026-07-31 23:59:59 (HEAD `110f9b5`), with focus on the anonymous-endpoint session-skip work (#3997/#4003), the audit-log/secret-activity terminology rename and retention-cap work (#3977/#3985/#3990), IP/proxy documentation changes, the domains-config serializer boundary (#3998), the Familia 2.12 dependency bump, and billing/Stripe code. Every finding below was verified by reading current source, not inferred from commit messages.
 
+> **Historical record.** This report records the 2026-08-06 audit baseline. The [active security risk register](../active-risk-register.md) is the canonical status of actionable findings.
+
 ---
 
 ## Bottom line

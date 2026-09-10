@@ -4,6 +4,8 @@
 **Scope:** Full application security audit across 6 repositories
 **Method:** Static analysis and code review (no runtime testing)
 
+> **Historical record.** This report records the 2026-07-06 audit baseline. The [active security risk register](../active-risk-register.md) is the canonical status of actionable findings.
+
 ## Repositories Audited
 
 | Repository                     | Commit    |

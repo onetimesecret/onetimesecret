@@ -5,8 +5,8 @@
 **Revalidated:** 2026-09-09 · **Current baseline:** `onetimesecret` @ `949d948` (v0.26.12)
 
 **Historical status (2026-09-09):** This register has no active action items. Findings are either
-resolved or retired below, or **carried forward** to the [2026-09-09 security audit](../security-audit-2026-09-09.md),
-which is the current tracker for the unresolved items.
+resolved or retired below, or **carried forward** to the [active security risk register](../active-risk-register.md),
+which is the canonical tracker for unresolved items.
 
 **Exploitability** — how hard is it to actually do?
 `Trivial` (unauthenticated, single request) · `Easy` (needs a low-privilege account or a session) ·
@@ -53,7 +53,7 @@ No open Priority 1 risks remain at the revalidation baseline. H-1, H-2, and H-3 
 
 ## Carried forward — original Priority 2
 
-**Current tracker:** [2026-09-09 security audit](../security-audit-2026-09-09.md#carried-forward-risks-from-the-2026-08-14-register)
+**Current tracker:** [active security risk register](../active-risk-register.md)
 
 | # | ID | Finding | Exploitability | Impact | Risk | Effort |
 |---|---|---|---|---|---|---|
@@ -65,7 +65,7 @@ No open Priority 1 risks remain at the revalidation baseline. H-1, H-2, and H-3 
 
 ## Carried forward — original Priority 3
 
-**Current tracker:** [2026-09-09 security audit](../security-audit-2026-09-09.md#carried-forward-risks-from-the-2026-08-14-register)
+**Current tracker:** [active security risk register](../active-risk-register.md)
 
 | # | ID | Finding | Exploitability | Impact | Risk | Effort |
 |---|---|---|---|---|---|---|
@@ -82,7 +82,7 @@ No open Priority 1 risks remain at the revalidation baseline. H-1, H-2, and H-3 
 
 ## Carried forward — original Priority 4
 
-**Current tracker:** [2026-09-09 security audit](../security-audit-2026-09-09.md#carried-forward-risks-from-the-2026-08-14-register)
+**Current tracker:** [active security risk register](../active-risk-register.md)
 
 | # | ID | Finding | Risk |
 |---|---|---|---|
@@ -100,8 +100,8 @@ No open Priority 1 risks remain at the revalidation baseline. H-1, H-2, and H-3 
 
 Four claims that read as Critical from source alone were empirically refuted against the running
 application and are **not** risks: predictable session IDs, missing `HttpOnly`, session id accepted
-from request params, and missing cookie `Path`. See `findings.md` §5 for the verification output.
-They are recorded there specifically so a future review does not re-open them.
+from request params, and missing cookie `Path`. The supporting assessment evidence is private;
+they are recorded here so a future review does not re-open them.
 
 The core product invariant — burn-after-reading — was tested under concurrency and **holds**
 (1 of 10 simultaneous reveals returned plaintext). Passphrase brute-force protection **holds**,
