@@ -86,6 +86,9 @@ module Onetime
 
           _ots_complete() {
             local cur cword words i w path prefix line rest candidates
+            # Pin IFS so the path join and the COMPREPLY split are deterministic
+            # regardless of the caller's IFS.
+            local IFS=$' \\t\\n'
             cur="${COMP_WORDS[COMP_CWORD]}"
             words=("${COMP_WORDS[@]}")
             cword=$COMP_CWORD

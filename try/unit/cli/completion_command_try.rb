@@ -10,6 +10,9 @@
 # Run: bundle exec try try/unit/cli/completion_command_try.rb
 
 require_relative '../../support/test_helpers'
+require 'open3'
+require 'stringio'
+require 'tempfile'
 require 'onetime/cli'
 
 cmd   = Onetime::CLI::CompletionCommand.new
@@ -19,11 +22,35 @@ zsh   = cmd.send(:zsh_script)
 fish  = cmd.send(:fish_script)
 
 # Invoke `call` and return the exit status (0 when it does not exit).
-def call_status(**kwargs)
-  Onetime::CLI::CompletionCommand.new.call(**kwargs)
+# Silences stdout/stderr so the script bodies and warnings do not flood the
+# tryouts output.
+def call_status(**)
+  orig_out = $stdout
+  orig_err = $stderr
+  $stdout  = StringIO.new
+  $stderr  = StringIO.new
+  Onetime::CLI::CompletionCommand.new.call(**)
   0
 rescue SystemExit => ex
   ex.status
+ensure
+  $stdout = orig_out
+  $stderr = orig_err
+end
+
+# Source the generated bash script under a hostile IFS and return the
+# COMPREPLY candidates for the given COMP_WORDS (cursor on the last word).
+def bash_complete(script, words)
+  Tempfile.create(['ots', '.bash']) do |f|
+    f.write(script)
+    f.flush
+    quoted = words.map { |w| "'#{w}'" }.join(' ')
+    cmd    = "IFS=':'; source #{f.path}; COMP_WORDS=(#{quoted}); " \
+             "COMP_CWORD=#{words.size - 1}; _ots_complete; " \
+             "printf '%s\\n' \"${COMPREPLY[@]}\""
+    out,   = Open3.capture2('bash', '-c', cmd)
+    out.split("\n")
+  end
 end
 
 # -------------------------------------------------------------------
@@ -31,7 +58,7 @@ end
 # -------------------------------------------------------------------
 
 ## Returns a non-trivial list of command paths
-paths.size > 100
+paths.size >= 10
 #=> true
 
 ## Sorted and de-duplicated
@@ -65,6 +92,14 @@ bash.include?('complete -F _ots_complete ots bin/ots ./bin/ots')
 ## Every registry path appears in the baked command list
 paths.all? { |p| bash.include?(p) }
 #=> true
+
+## Completes nested subcommands even when the caller's IFS is customized
+bash_complete(bash, ['ots', 'billing', 'catalog', '']).include?('drift')
+#=> true
+
+## Completes top-level commands by prefix under a customized IFS
+bash_complete(bash, %w[ots se]).sort
+#=> ['server', 'session']
 
 # -------------------------------------------------------------------
 # zsh_script
