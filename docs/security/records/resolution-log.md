@@ -12,9 +12,9 @@ the original evidence; each entry here identifies the fix and the baseline used 
 - **Source:** [2026-08-13 security audit](../audits/security-audit-2026-08-13.md)
 - **Resolution:** `4b27b3c0dc` routes the setting through
   `Onetime::Utils::Strings.strict_bool!` with a default of `true`.
-- **Verification:** `AUTHENTICATION_MODE=simple bundle exec rspec
-  spec/unit/onetime/utils/strings_spec.rb spec/unit/onetime/initializers/setup_rabbitmq_spec.rb`
-  completed with 192 examples and 0 failures.
+- **Verification:** `tests/lanes/run simple --only spec/unit/onetime/utils/strings_spec.rb
+  --only spec/unit/onetime/initializers/setup_rabbitmq_spec.rb` completed with 192 examples and
+  0 failures.
 - **Closure baseline:** `999967a` on 2026-09-09.
 
 ### OBS-2026-08-13-RESTRICT-TO — Resolved
