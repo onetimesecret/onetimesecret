@@ -64,7 +64,7 @@ function checkSetPasswordAccess() {
 
 /**
  * Route guard for security routes accessible to all authenticated
- * users (Security Overview, Active Sessions).
+ * users (Security Overview, Passkeys, Connected Identities).
  */
 function checkSecurityAccess() {
   if (!isFullAuthMode()) {
@@ -74,11 +74,17 @@ function checkSecurityAccess() {
 }
 
 /**
- * Route guard for the Active Sessions page: full auth mode AND the
- * active_sessions feature flag (AUTH_ACTIVE_SESSIONS_ENABLED).
+ * Route guard for the Active Sessions page: everything checkSecurityAccess
+ * requires AND the active_sessions feature flag
+ * (AUTH_ACTIVE_SESSIONS_ENABLED). Delegates so the auth-mode rule lives in
+ * one place.
  */
 function checkActiveSessionsAccess() {
-  if (!isFullAuthMode() || !isActiveSessionsEnabled()) {
+  const securityAccess = checkSecurityAccess();
+  if (securityAccess !== true) {
+    return securityAccess;
+  }
+  if (!isActiveSessionsEnabled()) {
     return { name: 'Account' };
   }
   return true;
