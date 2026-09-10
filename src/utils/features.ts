@@ -114,6 +114,23 @@ export function isWebAuthnEnabled(): boolean {
 }
 
 /**
+ * Pure predicate: active sessions (view + revoke per-device sessions) enabled
+ * in the given state. Mirrors AUTH_ACTIVE_SESSIONS_ENABLED on the backend.
+ */
+export function isActiveSessionsEnabledOf(state: { features?: Features }): boolean {
+  return state.features?.active_sessions === true;
+}
+
+/**
+ * Checks if the active sessions feature is enabled
+ */
+export function isActiveSessionsEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  return isActiveSessionsEnabledOf({ features: getBootstrapValue('features') });
+}
+
+/**
  * Checks if account lockout (after failed login attempts) is enabled
  */
 export function isLockoutEnabled(): boolean {

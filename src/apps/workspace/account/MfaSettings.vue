@@ -7,12 +7,19 @@
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useAccount } from '@/shared/composables/useAccount';
   import { useMfa } from '@/shared/composables/useMfa';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { isActiveSessionsEnabledOf } from '@/utils/features';
   import { formatDisplayDateTime } from '@/utils/format';
-  import { onMounted, ref } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
 
   const { t } = useI18n();
   const { mfaStatus, isLoading, error, fetchMfaStatus, disableMfa, clearError } = useMfa();
   const { fetchAccountInfo } = useAccount();
+  const bootstrapStore = useBootstrapStore();
+
+  // Sessions link is gated on AUTH_ACTIVE_SESSIONS_ENABLED; the route guard
+  // bounces to /account when off, so don't offer a dead-end link.
+  const activeSessionsEnabled = computed(() => isActiveSessionsEnabledOf(bootstrapStore));
 
   const showSetupWizard = ref(false);
   const showDisableConfirm = ref(false);
@@ -229,6 +236,7 @@
               <span>{{ t('web.auth.recovery_codes.link_title') }}</span>
             </router-link>
             <router-link
+              v-if="activeSessionsEnabled"
               to="/account/settings/security/sessions"
               class="flex items-center gap-3 text-sm text-gray-700 hover:text-brand-600 dark:text-gray-300 dark:hover:text-brand-400">
               <OIcon
