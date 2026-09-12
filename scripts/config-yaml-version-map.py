@@ -715,8 +715,10 @@ def main():
     parser.add_argument(
         "--root",
         default=None,
-        help="read the YAML files from this directory instead of the repo "
-        "(git history still comes from the repo)",
+        help="read the YAML file CONTENTS from this directory instead of the "
+        "repo. Which files are read, and all git history, still come from the "
+        "repo: a defaults file that exists only under --root has no history "
+        "here to date it from, so it is not discovered and gets no rows",
     )
     args = parser.parse_args()
 

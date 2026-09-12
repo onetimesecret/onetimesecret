@@ -66,7 +66,18 @@ MARKER_RE='[[:blank:]]+# Since (v[0-9]+\.[0-9]+\.[0-9]+|unreleased)[[:blank:]]*$
 # below counts the fragment and the real marker as two, and rejects a line
 # whose marker is perfectly good. A near-miss marker always has a blank before
 # its hash, so demanding one loses no typo this is here to catch.
-MARKER_LOOSE_RE='[[:blank:]]#[[:blank:]]*[Ss][Ii][Nn][Cc][Ee]([[:blank:]]|$)'
+#
+# The trailing class is [^A-Za-z0-9_], not [[:blank:]], because the annotator
+# spells this boundary as Python's \b and the two have to agree — the contract
+# document requires it of near-miss hunters. They diverged on exactly
+# "# Since" + punctuation: a hand-written "# Since: v0.24.0" was invisible
+# here and visible there. That is not cosmetic. A marker is hand-written
+# whenever the contract says to (site.session.secure, and a valueless key
+# under Known limits), so a stray colon shipped a line making two
+# contradictory version claims past every rule below, which is the shape the
+# one-marker rule exists to stop. [^A-Za-z0-9_] is exactly \b's boundary, so
+# "# Sincerely" and "#since2020" stay out.
+MARKER_LOOSE_RE='[[:blank:]]#[[:blank:]]*[Ss][Ii][Nn][Cc][Ee]([^A-Za-z0-9_]|$)'
 
 # Key-declaration lines — the only place a marker is allowed to live.
 ENV_DECL_RE='^#?[A-Z][A-Z0-9_]+='
