@@ -241,39 +241,60 @@ may be inferred from the IdP's email claim.
    callback's domain. Neither proves that the existing account session belongs
    to that tenant surface.
 
-   **Decision (2026-09-12).** This control is the standard pair of a host-bound
-   session and a fresh authentication before a credential change; no new
-   session model is needed. Both halves are established requirements, not
-   project preference:
+   **Decision (2026-09-12).** The standards establish requirements for
+   authenticated linking and re-authentication, but they do not prescribe this
+   host-local session design:
 
-   - NIST SP 800-63B section 6.1.2.1 (binding an additional authenticator):
-     "Before adding the new authenticator, the CSP SHALL first require the
-     subscriber to authenticate at the AAL (or a higher AAL) at which the new
-     authenticator will be used."
-   - OWASP ASVS 4.0.3 requirement 3.7.1: "Verify the application ensures a
-     full, valid login session or requires re-authentication or secondary
-     verification before allowing any sensitive transactions or account
-     modifications."
-   - RFC 6265 section 4.1.2.3: "If the server omits the Domain attribute, the
-     user agent will return the cookie only to the origin server."
+   - [NIST SP 800-63C-4 section 3.8.1, Account Linking](https://pages.nist.gov/800-63-4/sp800-63c/Federation/#account-linking)
+     requires an authenticated session with the subscriber account for every
+     linking function. It recommends authentication with an existing
+     federated identifier before linking a new one.
+   - [OWASP ASVS 5.0.0 requirement 7.5.1](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v75-defenses-against-session-abuse)
+     requires full re-authentication before changing sensitive account
+     attributes that affect authentication. OTS treats adding a tenant-issued
+     login identity as such a change.
+   - RFC 6265 section 4.1.2.3 specifies the delivery scope of a cookie without
+     a `Domain` attribute. It does not require an application to record a
+     tenant marker or authenticate on a particular host.
+
+   OTS chooses the following additional controls to prevent a platform session
+   from acquiring a tenant-controlled login method:
 
    - *Host-bound session.* The session cookie carries no `Domain` attribute
-     (`lib/onetime/application/middleware_stack.rb`), so per RFC 6265 the
-     browser already scopes it to the host that set it. The application must make that
-     property its own: at login, record the establishing surface in the
-     session (the validated custom-domain ID for a tenant login, `nil` for the
-     canonical host), and treat a request whose resolved display domain does
-     not match that record as unauthenticated. The connect gate then requires
-     the recorded surface to equal the callback's validated domain ID.
-   - *Recent re-authentication.* Adding a login method is the 800-63B
-     "additional authenticator" case and an ASVS 3.7.1 account modification.
-     Before the tenant Connect SSO intent is created, the account holder must
-     have authenticated on that host with an existing account credential
-     (password, WebAuthn, or email auth) within a short window. Rodauth's
-     `password_grace_period` and `confirm_password` features are the
-     conventional primitives; neither is enabled today. A session restored by
-     the `remember` feature does not satisfy the check. The platform connect
-     path should adopt the same requirement.
+     (`lib/onetime/application/middleware_stack.rb`), so the browser returns it
+     only to the host that set it. OTS must additionally record the
+     establishing surface at login (the validated custom-domain ID for a
+     tenant login, `nil` for the canonical host), treat a request whose
+     resolved display domain does not match that record as unauthenticated,
+     and require the recorded surface to equal the callback's validated domain
+     ID. This marker and its enforcement are OTS controls, not RFC 6265
+     requirements.
+   - *Recent re-authentication.* Before creating the tenant Connect SSO intent,
+     require full re-authentication with an existing local account credential
+     within a short window. It must complete every MFA factor required by the
+     account's normal local sign-in policy. A password can satisfy this only
+     where that policy does not require another factor. A WebAuthn assertion
+     can satisfy it only when its credential is usable from the tenant host and
+     meets that policy's user-verification and MFA requirements. Rodauth's
+     `password_grace_period` and `confirm_password` features are conventional
+     primitives; neither is enabled today. A session restored by the `remember`
+     feature does not satisfy the check. The platform Connect path should adopt
+     the same requirement.
+
+   Email authentication is not an equivalent option for this requirement.
+   [NIST SP 800-63B-4 section 3.1.3.1](https://pages.nist.gov/800-63-4/sp800-63b/authenticators/#out-of-band-authenticators)
+   prohibits email for out-of-band authentication. OTS must not use an email
+   link to satisfy this re-authentication gate; any future email-based
+   exception would be an explicit OTS policy exception, not NIST AAL
+   conformance.
+
+   WebAuthn credentials are scoped to an RP ID. A passkey registered for the
+   platform RP ID cannot ordinarily be used from an unrelated tenant host, and
+   a request for the tenant RP ID does not match that platform credential.
+   Offer a password or a credential registered for the tenant surface as the
+   fallback. Cross-domain passkey use requires an explicitly designed and
+   supported [WebAuthn related-origins arrangement](https://www.w3.org/TR/webauthn-3/#sctn-related-origins), including a shared RP ID and its
+   `.well-known/webauthn` configuration; it is not automatic.
 
    The re-authentication is performed with the account's existing credential,
    never with the tenant IdP, so a tenant administrator cannot satisfy it by
@@ -337,19 +358,24 @@ Every refusal after step 3 occurs after the intent has already been consumed;
 none of them may re-arm or preserve it.
 
 The server-side gates are necessary but not the only change. The Connected
-Identities panel (`src/apps/workspace/account/ConnectedIdentities.vue`) hides
-a provider whenever any existing identity's `provider` equals the provider's
-OmniAuth `route_name`, on the assumption that one route maps to one issuer.
-That holds on the platform surface but not on a tenant surface, where the
-tenant `oidc` provider resolves to a different issuer than a platform `oidc`
-identity. **Decision (2026-09-12):** identities are keyed on
-`(provider, issuer, uid)` because OpenID Connect Core 1.0 section 5.7 states
-that "the only guaranteed unique identifier for a given End-User is the
-combination of the iss Claim and the sub Claim". The panel therefore hides a
-provider only when an existing identity has both the same `route_name` and
-the same issuer as the provider resolved for the current surface. The `GET /auth/identities` payload already
-returns `issuer` per row. Without this change the tenant connect button is
-absent for exactly the accounts this flow targets.
+Identities panel (`src/apps/workspace/account/ConnectedIdentities.vue`) currently
+hides a provider whenever any existing identity's `provider` equals the
+provider's OmniAuth `route_name`. It must not infer that a tenant identity is
+already linked from either a matching route name or a matching issuer. A
+platform and tenant can use the same issuer with different OIDC clients; with
+[OpenID Connect pairwise subject identifiers](https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes), the issuer provides a different `sub` value to each client.
+
+**Decision (2026-09-12):** identities are keyed on `(provider, issuer, uid)`.
+OpenID Connect Core 1.0 section 5.7 states that "the only guaranteed unique
+identifier for a given End-User is the combination of the iss Claim and the
+sub Claim." The panel cannot know the callback's `uid`, so it must keep
+Connect available whenever equivalence is not already established. At the
+callback, after the tenant, session, membership, and intent gates, resolve the
+returned full `(provider, issuer, uid)` tuple: accept an existing tuple for the
+session account as already connected, bind an unclaimed tuple to that account,
+and refuse a tuple owned by another account. The `GET /auth/identities` payload
+may display `issuer`, but it cannot safely drive this pre-callback
+suppression.
 
 The membership must exist before the bind. A successful tenant assertion must
 not create the membership that is then used to authorize attaching that same
@@ -429,17 +455,19 @@ operation changes the row.
 A fresh tenant connect receives an issuer-specific identity from the validated
 callback and binds it to a session-selected account, so it does not have the
 same legacy-row ambiguity. **Decision (2026-09-12):** `signup_domain_id` is
-not a requirement for new tenant connections. Under NIST SP 800-63B section
-6.1.2.1 the authority to bind an additional authenticator is the subscriber's
-authentication, and the identity being bound is unique per OpenID Connect
-Core section 5.7 by issuer and subject; neither standard conditions the bind
-on where the account was created. Authority here therefore comes from the
-account holder's authenticated, recently re-authenticated session plus the
-domain-scoped membership; where the account originally signed up is
-irrelevant to either, and requiring it would refuse legitimate cases such
-as an employee whose platform account predates the tenant, with no security
-gain. The provenance check stays specific to the backfill operation and cannot
-replace either of the two required controls above.
+not a requirement for new tenant connections. [NIST SP 800-63C-4 section
+3.8.1](https://pages.nist.gov/800-63-4/sp800-63c/Federation/#account-linking)
+requires an authenticated session with the subscriber account for linking and
+recommends authentication using an existing federated identifier. The identity
+being bound is unique per OpenID Connect Core section 5.7 by issuer and
+subject; neither standard conditions the bind on where the account was
+created. Authority here therefore comes from the account holder's
+authenticated, recently re-authenticated session plus the domain-scoped
+membership; where the account originally signed up is irrelevant to either,
+and requiring it would refuse legitimate cases such as an employee whose
+platform account predates the tenant, with no security gain. The provenance
+check stays specific to the backfill operation and cannot replace either of
+the two required controls above.
 
 Until #3849 implements both controls and their failure cases,
 `apps/web/auth/config/hooks/omniauth.rb` deliberately refuses tenant connects.
