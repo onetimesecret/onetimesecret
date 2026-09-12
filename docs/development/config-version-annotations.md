@@ -84,7 +84,7 @@ Order matters — resolve, commit, then tag, so the tagged tree already says
 | `annotate-config-versions.py` | Applies markers. Idempotent; refuses to re-date an existing marker without `--force`. |
 | `resolve-unreleased-versions.sh` | Rewrites `unreleased` to the version being cut. |
 | `check-config-versions.sh` | CI ratchet: new keys need a marker, shipped markers are frozen. |
-| `generate-env-docs.py` | Generates the docs-site page from `.env.reference`. |
+| `generate-env-docs.py` | Generates the docs-site page from `.env.reference`. Its `--check` guard runs from the **docs** repo (`env-reference-drift.yml`, on docs PRs and nightly), not from this repo's CI — see the script header for why the dependency points that way. |
 
 ## How versions were derived
 

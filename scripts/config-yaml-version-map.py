@@ -28,7 +28,7 @@ does almost no git work:
     2. YAML keys with no ENV read at all (`expire_after: 86400`). These get a
        key-line pickaxe modelled on the same method: a definition-site regex
        with word boundaries, then the earliest STABLE tag (vX.Y.Z, no suffix)
-       that contains the introducing commit and is `--merged HEAD`.
+       that contains the introducing commit.
 
 Rules that decide whether a key gets a row at all
 (docs/development/config-version-annotations.md, "Policy"):
@@ -176,19 +176,40 @@ class Git:
         return self.run("rev-parse", "--is-shallow-repository").strip() == "true"
 
     def stable_tags(self):
-        """Stable releases reachable from HEAD, oldest first (archaeology §2)."""
-        out = self.run("tag", "--merged", "HEAD", "--sort=creatordate")
-        return [t for t in out.splitlines() if STABLE_TAG_RE.match(t)]
+        """Every stable release, oldest first, in SEMANTIC VERSION order.
+
+        The same tag set and the same ordering as
+        scripts/config-version-archaeology.sh, for the same two reasons its
+        header gives — this used to differ from it on both counts, and a
+        verifier that disagrees with the tool it verifies is worthless:
+
+          - NOT filtered by `--merged HEAD`. 17 of this repo's 94 stable tags
+            are not ancestors of HEAD (release branches tagged without a merge
+            back). A tag that contains the key shipped the key, merged back or
+            not. Dropping those 17 hides real releases from verify_row(), so
+            it compares against the wrong predecessor and rejects rows whose
+            version is a genuine first release.
+          - NOT ordered by `creatordate`. Creation order is not version order:
+            v0.19.0 was tagged before v0.18.4 and v0.18.5. verify_row() reads
+            `stable[position - 1]` as "the release before this one", which is
+            a statement about versions, not about dates.
+        """
+        out = self.run("tag")
+        tags = [t for t in out.splitlines() if STABLE_TAG_RE.match(t)]
+        return sorted(tags, key=version_sort_key)
 
     def first_stable_tag_containing(self, commit):
-        """Earliest stable tag containing the commit, or None (= unreleased)."""
-        out = self.run(
-            "tag", "--contains", commit, "--merged", "HEAD", "--sort=creatordate"
-        )
-        for tag in out.splitlines():
-            if STABLE_TAG_RE.match(tag):
-                return tag
-        return None
+        """Lowest-versioned stable tag containing the commit, or None.
+
+        Same tag set and ordering as stable_tags(), and for the same reasons:
+        `--merged HEAD` would skip a release-branch tag that shipped the
+        commit first, dating the key to whichever later release merged it
+        back, and `--sort=creatordate` would answer with the tag cut earliest
+        rather than the version released earliest.
+        """
+        out = self.run("tag", "--contains", commit)
+        tags = [t for t in out.splitlines() if STABLE_TAG_RE.match(t)]
+        return min(tags, key=version_sort_key) if tags else None
 
     def rename_ancestry(self, path):
         """Every historical path of `path`, so a pickaxe sees pre-rename history.
@@ -488,7 +509,7 @@ def yaml_key_first_release(git, leaf, paths):
       1. earliest commit whose diff to this file (and its pre-rename names)
          adds a definition site for the key — `\\bleaf:`, word-bounded so
          `ttl:` is not found inside `default_ttl:`;
-      2. earliest stable tag containing that commit, reachable from HEAD.
+      2. earliest stable tag containing that commit, by version.
     """
     regex = r"\b" + ere_escape(leaf) + r":"
     commit = git.first_commit_matching(regex, paths)
@@ -553,7 +574,7 @@ def verify_row(index, stable, record, version):
         return True, None
 
     if version not in stable:
-        return False, f"{version} is not a stable tag reachable from HEAD"
+        return False, f"{version} is not a stable release tag"
 
     at = index.paths_at(relpath, version)
     if at is None:
@@ -602,7 +623,7 @@ def main():
 
     stable = git.stable_tags()
     if not stable:
-        log("FAIL: no stable release tags reachable from HEAD. Run: git fetch --tags")
+        log("FAIL: no stable release tags found. Run: git fetch --tags")
         return 1
     log(f"info: {len(stable)} stable tags, {stable[0]} .. {stable[-1]}")
 

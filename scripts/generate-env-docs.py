@@ -75,6 +75,22 @@ the hand-written v0.24 section, so it demands an explicit flag and lists the
 headings it is about to remove: relocate any prose worth keeping to above the
 BEGIN sentinel first, then run it. Every later run needs no flag.
 
+WHERE --check RUNS: not in this repo, deliberately. The guard is
+.github/workflows/env-reference-drift.yml in onetimesecret/docs.onetimesecret.com,
+which checks out this repo at `main` and runs THIS script from there — one
+implementation, no copy of the generator in the docs site.
+
+It cannot live on this side. The page lives in another repo, so a PR that adds
+a variable to .env.reference cannot update it in the same commit; an app-side
+--check would therefore fail every variable-adding PR, blocking it on a docs PR
+that cannot merge first. Reading .env.reference from `main` inverts the
+dependency: the app PR merges, and the docs check stays red until the page is
+regenerated. That ordering is spelled out in the docs workflow's header.
+
+Drift is still bounded when no docs PR is open: that workflow runs nightly
+(cron `17 6 * * *`) as well as on pull_request, so a variable added here is
+caught within a day without anyone remembering to look.
+
 Exit codes: 0 success / in sync, 1 drift or error.
 """
 
