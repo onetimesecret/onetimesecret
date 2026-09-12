@@ -930,8 +930,10 @@ def run(
     env_versions
         Archaeology TSV for env vars.
     root
-        Read the YAML files from this directory instead of the repo. Git
-        history still comes from the repo.
+        Read the YAML file CONTENTS from this directory instead of the repo.
+        Which files are read, and all git history, still come from the repo: a
+        defaults file that exists only under --root has no history here to date
+        it from, so it is not discovered and gets no rows.
     """
     try:
         return _generate(env_versions=env_versions, root=root)

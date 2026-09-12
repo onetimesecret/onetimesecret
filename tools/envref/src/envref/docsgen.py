@@ -230,19 +230,16 @@ def fenced(body_lines):
     return ["```bash", *body_lines, "```"]
 
 
-def clean_preamble(lines):
-    """Drop the parts of .env.reference's header that are not documentation.
+def header_paragraphs(lines):
+    """Split .env.reference's header into paragraphs.
 
-    Two paragraphs earn their place on the page: the [derived]/[independent]/
-    [federation] legend, and the pointer to .env.example. Two do not — the file
-    naming itself, which means nothing once the content is a web page, and its
-    restatement of the `# Since` convention, which this script has already
-    emitted as prose immediately above. Reproducing either makes the page open
-    by explaining a file the reader is not looking at.
+    Paragraphs here are separated by bare `#` lines, not blank ones —
+    splitting on blanks alone sees the entire header as one paragraph.
+
+    Factored out because two callers need the same split, and this file is
+    part of a family whose recurring defect is the same rule spelled twice.
     """
-    # Paragraphs in this header are separated by bare `#` lines, not blank
-    # ones — splitting on blanks alone sees the entire header as one paragraph
-    # and discards the legend along with the part being removed.
+
     def is_separator(line):
         return not line.strip() or line.strip() == "#"
 
@@ -256,6 +253,40 @@ def clean_preamble(lines):
             current.append(line)
     if current:
         paragraphs.append(current)
+    return paragraphs
+
+
+def marker_legend(lines):
+    """The `# Since` legend, lifted from .env.reference rather than restated.
+
+    This used to be hardcoded here, in prose that said the same thing as
+    `.env.reference`'s header paragraph in different words — including the
+    `docker --env-file` warning. Two authorings of one explanation drift, and
+    this one drifted invisibly: `clean_preamble` drops the source paragraph
+    before the page is assembled, so `--check` compared two copies of the
+    hardcoded text and could never see the source change underneath it.
+
+    Lifting it makes `.env.reference` the single source for its own
+    conventions, which is the property this whole family of tools exists to
+    hold. Returns None when the header has no such paragraph.
+    """
+    for para in header_paragraphs(lines):
+        if "# Since" in "\n".join(para):
+            return [re.sub(r"^#[ \t]?", "", line).rstrip() for line in para]
+    return None
+
+
+def clean_preamble(lines):
+    """Drop the parts of .env.reference's header that are not documentation.
+
+    Two paragraphs earn their place on the page: the [derived]/[independent]/
+    [federation] legend, and the pointer to .env.example. Two do not — the file
+    naming itself, which means nothing once the content is a web page, and its
+    restatement of the `# Since` convention, which `marker_legend` has already
+    emitted as prose immediately above. Reproducing either makes the page open
+    by explaining a file the reader is not looking at.
+    """
+    paragraphs = header_paragraphs(lines)
 
     kept = []
     for para in paragraphs:
@@ -290,17 +321,15 @@ def build_generated_block(env_text):
 
     # Applied per line, exactly as §1 specifies the recognizer.
     if any(SINCE_MARKER_RE.search(line) for line in env_text.split("\n")):
-        out += [
-            "A trailing `# Since vX.Y.Z` comment marks the release a variable first",
-            "shipped in. A variable with no such comment predates v0.24.0.",
-            "`# Since unreleased` means it is merged but not yet in a tagged release.",
-            "",
-            "The marker describes the variable; it is not part of the value. Remove it",
-            "when copying a line into an env file — `docker run --env-file` and",
-            "`docker compose --env-file` do not strip a trailing comment, so the marker",
-            "would end up inside the value.",
-            "",
-        ]
+        legend = marker_legend(preamble)
+        if legend is None:
+            die(
+                f"{ENV_REFERENCE.name} carries `# Since` markers but its header has no\n"
+                "      paragraph explaining them, so the page would show markers it never\n"
+                "      defines. Add one to the header — this script renders that paragraph\n"
+                "      rather than keeping a second copy of it."
+            )
+        out += [*legend, ""]
 
     preamble = clean_preamble(preamble)
     if preamble:

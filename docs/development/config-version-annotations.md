@@ -40,6 +40,17 @@ a perfectly well-formed line look like it carries two markers, and the
 one-marker rule rejects it. A real near-miss always has a blank before its hash,
 so requiring one costs no detection.
 
+Both ends of the near-miss recognizer are load-bearing, and the two spellings
+must agree at both. They once diverged at the trailing end — the shell used
+`([[:blank:]]|$)` and the annotator used Python's `\b` — so `# Since:` was a
+near-miss to one tool and invisible to the other. Since a marker is
+hand-written wherever this document says to write one, a stray colon shipped
+`secure: true  # Since: v0.24.0  # Since v0.26.0` past every rule in the
+ratchet: two contradictory version claims on one line, which is exactly what
+the one-marker rule exists to stop. The boundary is `[^A-Za-z0-9_]` on both
+sides now, which is what `\b` means, and still excludes `# Sincerely` and
+`#since2020`.
+
 ## Policy
 
 **Baseline v0.24.0.** Only keys first released in v0.24.0 or later are
