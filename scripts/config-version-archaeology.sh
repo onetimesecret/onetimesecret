@@ -106,9 +106,26 @@ SCAN_RE="(ENV(\[|\.fetch\()['\"][A-Z][A-Z0-9_]+['\"]|(process|import\.meta)\.env
 
 # Emit the set of keys consumed by one tree.
 keys_in_tree() {
-  git grep -h -I -E -o "$SCAN_RE" "$1" -- "${PATHSPEC[@]}" 2>/dev/null \
-    | grep -oE '[A-Z][A-Z0-9_]+' \
-    | grep -vxE 'ENV|PATH' \
+  local out status=0
+
+  # `git grep` exits 1 when a tree simply contains no match, which is a real
+  # answer. Anything above that is a failure — an unknown revision, an
+  # unusable pathspec — and the empty output it produces is indistinguishable
+  # from "this release consumes no keys". That is the worst possible shape for
+  # this scan: an empty set at one tag ends EVERY key's unbroken run there and
+  # dates them all to the tag after it. So a failure aborts rather than
+  # answers. (This was the last place in the family reading a failed git
+  # command as data; the Python half was fixed in ff13acaea.)
+  out=$(git grep -h -I -E -o "$SCAN_RE" "$1" -- "${PATHSPEC[@]}" 2>"$WORK/grep.err") || status=$?
+  if (( status > 1 )); then
+    echo "FAIL: git grep failed at $1 (exit $status) — refusing to treat that as an empty tree." >&2
+    sed 's/^/      /' "$WORK/grep.err" >&2
+    exit 1
+  fi
+
+  printf '%s\n' "$out" \
+    | { grep -oE '[A-Z][A-Z0-9_]+' || true; } \
+    | { grep -vxE 'ENV|PATH' || true; } \
     | sort -u
 }
 
