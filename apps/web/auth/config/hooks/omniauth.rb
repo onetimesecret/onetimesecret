@@ -767,12 +767,18 @@ module Auth::Config::Hooks
         # because with verify_account disabled every ordinary password account
         # is VERIFIED too. Records that already drifted are handled by
         # `bin/ots customers doctor --repair` (:sso_customer_unverified).
+        #
+        # The veto (gate 3) is also PERSISTED on the Customer as
+        # sso_email_unverified. The doctor has no auth hash to consult, so
+        # without the marker its :sso_customer_unverified repair would later
+        # "heal" an IdP-vetoed record to verified — undoing the veto. With it,
+        # the doctor reports the record for manual verification instead.
         account_status = db[:accounts].where(id: account_id).get(:status_id)
-        sso_verified   = account_status == Auth::AccountStatuses::VERIFIED &&
-                         !Auth::Config::Hooks::OmniAuth.idp_asserts_unverified_email?(
-                           info: omniauth_info,
-                           extra: omniauth_extra,
-                         )
+        idp_vetoed     = Auth::Config::Hooks::OmniAuth.idp_asserts_unverified_email?(
+          info: omniauth_info,
+          extra: omniauth_extra,
+        )
+        sso_verified   = account_status == Auth::AccountStatuses::VERIFIED && !idp_vetoed
 
         # Create Customer record (same as regular signup)
         customer = Onetime::ErrorHandler.safe_execute(
@@ -788,6 +794,7 @@ module Auth::Config::Hooks
             signup_domain_id: signup_domain_id,
             verified: sso_verified,
             verified_by: sso_verified ? 'sso' : nil,
+            sso_email_unverified: idp_vetoed,
           ).call
         end
 
@@ -914,12 +921,22 @@ module Auth::Config::Hooks
     # id_token). Both may be a plain Hash or an OmniAuth::AuthHash, and may be
     # string- or symbol-keyed, so every read goes through fetch_claim.
     #
+    # FAIL CLOSED: a source whose `[]` raises is not "no claim" — it is a claim
+    # we could not read, and an explicit email_verified: false may be hiding
+    # behind the error. Swallowing it (the original blanket rescue) silently
+    # dropped the veto and minted a verified Customer. So a read error is
+    # logged at WARN and reported as a veto: the Customer is created
+    # unverified and an operator can verify it by hand. Only the reads are
+    # guarded; ordinary Hash access never raises, so a StandardError here is
+    # always a misbehaving auth hash, never a bug in the comparison below.
+    #
     # @param info [Hash, OmniAuth::AuthHash, nil] omniauth_info
     # @param extra [Hash, OmniAuth::AuthHash, nil] omniauth_extra
-    # @return [Boolean] true only on an explicit false-y assertion
+    # @return [Boolean] true on an explicit false-y assertion, or when the
+    #   claim could not be read at all
     def self.idp_asserts_unverified_email?(info:, extra:)
-      claim = fetch_claim(info, 'email_verified')
-      claim = fetch_claim(fetch_claim(extra, 'raw_info'), 'email_verified') if claim.nil?
+      claim = read_email_verified_claim(info, extra)
+      return true if claim.equal?(UNREADABLE_CLAIM)
       return false if claim.nil?
 
       # Some providers stringify the claim ("false"); false and "false" are the
@@ -927,8 +944,34 @@ module Auth::Config::Hooks
       claim.to_s.strip.downcase == 'false'
     end
 
-    # Key-shape-tolerant single-key read. Returns nil for a missing key, an
-    # unindexable source, or any error — never raises into a callback.
+    # Sentinel returned by read_email_verified_claim when the auth hash raised
+    # mid-read; distinct from nil (claim absent) so the caller can fail closed.
+    UNREADABLE_CLAIM = Object.new.freeze
+
+    # Reads email_verified from info, falling back to extra.raw_info. Returns
+    # nil when neither source carries the claim, or UNREADABLE_CLAIM (after a
+    # WARN log) when a source raised while being read.
+    #
+    # @return [Object, nil] the raw claim, nil, or UNREADABLE_CLAIM
+    def self.read_email_verified_claim(info, extra)
+      value = fetch_claim(info, 'email_verified')
+      value = fetch_claim(fetch_claim(extra, 'raw_info'), 'email_verified') if value.nil?
+      value
+    rescue StandardError => ex
+      Auth::Logging.log_auth_event(
+        :omniauth_email_verified_claim_unreadable,
+        level: :warn,
+        error_class: ex.class.name,
+        error_message: ex.message,
+        info_class: info.class.name,
+        extra_class: extra.class.name,
+      )
+      UNREADABLE_CLAIM
+    end
+
+    # Key-shape-tolerant single-key read. Returns nil for a missing key or an
+    # unindexable source. Deliberately does NOT rescue: a source whose `[]`
+    # raises must surface to idp_asserts_unverified_email?, which fails closed.
     #
     # @param source [#[], nil]
     # @param key [String] string key; the symbol form is tried as a fallback
@@ -939,8 +982,6 @@ module Auth::Config::Hooks
       value = source[key]
       value = source[key.to_sym] if value.nil?
       value
-    rescue StandardError
-      nil
     end
 
     # Does the located account have a password the Phase 3 interstitial can

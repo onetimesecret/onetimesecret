@@ -65,7 +65,41 @@ module Onetime
     # - domain_signup:    Self-signup on a custom domain (CustomDomain context)
     # - invite:           Accepted an organization invitation
     # - sso_jit:          Just-in-time provisioning via OmniAuth/SSO
-    PROVISIONING_ORIGINS = %w[canonical_signup domain_signup invite sso_jit].freeze
+    # - login_recovery:   Recreated at login by Auth::Operations::SyncSession
+    #                     because a Rodauth account existed with no Customer
+    #                     record (the original record was lost or never
+    #                     written). Verification provenance on such a record
+    #                     is DERIVED from persisted auth state, not observed.
+    PROVISIONING_ORIGINS = %w[canonical_signup domain_signup invite sso_jit login_recovery].freeze
+
+    # Every verified_by provenance tag the codebase writes. verified_by is
+    # nil/empty when unverified. Enforced by Auth::Operations::SetCustomerVerification
+    # and Auth::Operations::EnsureCustomerForAccount (ArgumentError on an
+    # unknown tag) and audited by Auth::Operations::Customers::Doctor.
+    #
+    #   email          - secret reveal by owner (apps/api/v2/logic/secrets/
+    #                    {show,reveal}_secret.rb), Rodauth verify_account
+    #                    (apps/web/auth/config/hooks/account.rb) and the
+    #                    login-recovery path when verify_account is enabled
+    #   stripe_payment - payment-initiated signup (apps/web/billing/logic/welcome.rb)
+    #   autoverify     - autoverify-mode account creation
+    #                    (apps/api/account/logic/account/create_account.rb)
+    #                    and the login-recovery path when verify_account is off
+    #   sso            - OmniAuth JIT provisioning (apps/web/auth/config/hooks/
+    #                    omniauth.rb), the doctor's :sso_customer_unverified
+    #                    repair, and the login-recovery path for accounts
+    #                    holding an account_identities row
+    #   invite_token   - invitation acceptance (apps/web/auth/operations/
+    #                    accept_invitation.rb, config/hooks/account.rb)
+    #   cli_provision  - CLI customer/apitoken commands (lib/onetime/cli/)
+    #   colonel_admin  - colonel admin verification (apps/api/colonel/logic/
+    #                    colonel/set_user_verification.rb)
+    #   legacy         - backfilled by the doctor's verified_by repair
+    # Keep this list in sync when adding a new provenance writer.
+    VERIFIED_BY_VALUES = %w[
+      email stripe_payment autoverify sso
+      invite_token cli_provision colonel_admin legacy
+    ].freeze
 
     require_relative 'customer/features'
 

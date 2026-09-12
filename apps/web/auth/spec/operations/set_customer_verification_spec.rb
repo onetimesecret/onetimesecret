@@ -90,6 +90,53 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
   end
 
+  # The verified_by vocabulary is defined once, on the model
+  # (Onetime::Customer::VERIFIED_BY_VALUES), and refused HERE — in the
+  # initializer, before any store is touched — so an unknown tag can never
+  # reach Redis or SQL through this op.
+  describe 'verified_by vocabulary' do
+    it 'raises ArgumentError for an unknown tag with verified: true, before any write' do
+      expect do
+        described_class.new(
+          customer: customer,
+          verified: true,
+          verified_by: 'made_up',
+          db: db,
+        )
+      end.to raise_error(ArgumentError, /made_up/)
+
+      expect(customer).not_to have_received(:save)
+      expect(db).not_to have_received(:transaction)
+    end
+
+    it 'accepts every documented tag' do
+      Onetime::Customer::VERIFIED_BY_VALUES.each do |tag|
+        expect do
+          described_class.new(customer: customer, verified: true, verified_by: tag, db: db)
+        end.not_to raise_error
+      end
+    end
+
+    it 'aliases the doctor constant to the same list' do
+      require 'auth/operations/customers/doctor'
+
+      expect(Auth::Operations::Customers::Doctor::VALID_VERIFIED_BY)
+        .to equal(Onetime::Customer::VERIFIED_BY_VALUES)
+    end
+
+    it 'does not police verified_by when clearing verification' do
+      expect do
+        described_class.new(customer: customer, verified: false, verified_by: 'made_up', db: db)
+      end.not_to raise_error
+    end
+
+    it 'allows nil provenance on verify (the pre-tag record shape the doctor backfills)' do
+      expect do
+        described_class.new(customer: customer, verified: true, verified_by: nil, db: db)
+      end.not_to raise_error
+    end
+  end
+
   describe 'simple auth mode' do
     it 'verifies: sets fields and saves to Redis, no SQL' do
       op = described_class.new(

@@ -37,17 +37,25 @@ module Auth
       #   same "don't rewrite history" rule as provisioning_origin, and it keeps
       #   this operation from silently upgrading an existing unverified record.
       # @param verified_by [String, nil] Provenance tag stored alongside
-      #   `verified` (see Auth::Operations::Customers::Doctor::VALID_VERIFIED_BY).
-      #   Only meaningful when verified: true.
+      #   `verified`, one of Onetime::Customer::VERIFIED_BY_VALUES. Only
+      #   meaningful when verified: true. An unknown tag with verified: true
+      #   raises ArgumentError here, before any lookup or write.
+      # @param sso_email_unverified [Boolean] The SSO/JIT caller passes true
+      #   ONLY when the IdP explicitly asserted email_verified: false, so the
+      #   Customer records WHY it was left unverified and the customers doctor
+      #   never auto-"repairs" that veto away. Ignored for existing customers
+      #   (same "don't rewrite history" rule as provisioning_origin).
       def initialize(account_id:, account:, db: nil, provisioning_origin: nil, signup_domain_id: nil,
-                     verified: false, verified_by: nil)
-        @account_id          = account_id
-        @account             = account
-        @db                  = db || Auth::Database.connection
-        @provisioning_origin = provisioning_origin
-        @signup_domain_id    = signup_domain_id
-        @verified            = verified ? true : false
-        @verified_by         = @verified ? verified_by : nil
+                     verified: false, verified_by: nil, sso_email_unverified: false)
+        @account_id           = account_id
+        @account              = account
+        @db                   = db || Auth::Database.connection
+        @provisioning_origin  = provisioning_origin
+        @signup_domain_id     = signup_domain_id
+        @verified             = verified ? true : false
+        @verified_by          = @verified ? verified_by : nil
+        Onetime::Customer.assert_known_verified_by!(@verified_by) if @verified
+        @sso_email_unverified = sso_email_unverified ? true : false
       end
 
       # Executes the customer creation/loading operation
@@ -87,6 +95,7 @@ module Auth
             # established verification (see the `verified:` param docs).
             verified: @verified,
             verified_by: @verified_by,
+            sso_email_unverified: @sso_email_unverified,
             provisioning_origin: @provisioning_origin,
             signup_domain_id: @signup_domain_id,
           )
@@ -94,7 +103,8 @@ module Auth
           auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: customer, " \
                            "origin: #{@provisioning_origin || 'unknown'}, " \
                            "signup_domain_id: #{@signup_domain_id || 'none'}, " \
-                           "verified: #{@verified}, verified_by: #{@verified_by || 'none'})"
+                           "verified: #{@verified}, verified_by: #{@verified_by || 'none'}, " \
+                           "sso_email_unverified: #{@sso_email_unverified})"
         end
 
         customer

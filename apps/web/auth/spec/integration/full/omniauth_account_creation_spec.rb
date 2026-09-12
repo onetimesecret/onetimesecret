@@ -310,6 +310,27 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
         expect(customer.verified_by.to_s).to eq('')
       end
 
+      # verified_by is an enforced vocabulary (Onetime::Customer::VERIFIED_BY_VALUES).
+      # An unknown tag is refused in the initializer, before the email index
+      # is consulted or anything is written, so no half-provenanced record
+      # can be created through this operation.
+      it 'refuses an unknown verified_by tag before creating anything' do
+        email = unique_test_email('verified-by-unknown')
+        account = create_test_account(email: email, status_id: AuthTestConstants::STATUS_VERIFIED)
+
+        expect do
+          Auth::Operations::EnsureCustomerForAccount.new(
+            account_id: account[:id],
+            account: account,
+            verified: true,
+            verified_by: 'made_up',
+          )
+        end.to raise_error(ArgumentError, /made_up/)
+
+        expect(Onetime::Customer.email_exists?(email)).to be false
+        expect(Auth::Database.connection[:accounts].where(id: account[:id]).get(:external_id)).to be_nil
+      end
+
       # Same "don't rewrite history" rule as provisioning_origin and
       # signup_domain_id: the existing-customer branch is a no-op, so this
       # operation can never upgrade an already-unverified record.

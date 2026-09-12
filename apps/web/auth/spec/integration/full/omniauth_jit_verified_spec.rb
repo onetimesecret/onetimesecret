@@ -138,6 +138,8 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
         expect(customer.verified?).to be(true),
           'SSO JIT-provisioned customer must be verified — has_system_role? gates on it'
         expect(customer.verified_by.to_s).to eq('sso')
+        expect(customer.sso_email_unverified?).to be(false),
+          'No veto was asserted, so the doctor marker must not be set'
       ensure
         teardown_mock_auth
       end
@@ -188,11 +190,17 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
   #
   # Absence of the claim is NOT a veto (most enterprise IdPs never emit it), but
   # an IdP that actively says the address is unverified is taken at its word.
+  #
+  # The veto is also PERSISTED as Customer#sso_email_unverified: the customers
+  # doctor has no auth hash, and without the marker its :sso_customer_unverified
+  # repair would later mirror the (always-Verified) accounts row onto this
+  # record — undoing the veto. With it, the doctor reports the record for
+  # manual verification instead.
 
   describe 'an IdP asserting email_verified: false' do
     before { enable_platform_fallback }
 
-    it 'provisions the customer unverified' do
+    it 'provisions the customer unverified and sets the sso_email_unverified marker' do
       email = jit_email('jit-unverified-claim')
       uid   = "sub-#{SecureRandom.hex(8)}"
 
@@ -218,6 +226,8 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
         expect(customer.verified?).to be(false),
           'An explicit email_verified: false assertion must veto the verified stamp'
         expect(customer.verified_by.to_s).to eq('')
+        expect(customer.sso_email_unverified?).to be(true),
+          'The veto must be persisted so `customers doctor --repair` does not undo it'
       ensure
         teardown_mock_auth
       end
@@ -261,6 +271,42 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
       expect(
         veto?.call(info: { 'email_verified' => true }, extra: { 'raw_info' => { 'email_verified' => false } }),
       ).to be false
+    end
+
+    # No auth hash at all is the ordinary "claim absent" case, not an error:
+    # both sources are simply unindexable, and absence is never a veto.
+    it 'does not veto on nil info and nil extra' do
+      expect(veto?.call(info: nil, extra: nil)).to be false
+    end
+
+    # FAIL CLOSED. A source whose `[]` raises may be hiding an explicit
+    # email_verified: false; the old blanket rescue in fetch_claim turned
+    # that into "no claim" and minted a verified Customer. The read error is
+    # logged at WARN and treated as a veto — the Customer is created
+    # unverified and an operator verifies it by hand.
+    it 'vetoes (and warns) when reading the claim raises' do
+      raising_info = Object.new
+      def raising_info.[](*)
+        raise ArgumentError, 'misbehaving auth hash'
+      end
+
+      expect(Auth::Logging).to receive(:log_auth_event).with(
+        :omniauth_email_verified_claim_unreadable,
+        hash_including(level: :warn, error_class: 'ArgumentError', error_message: 'misbehaving auth hash'),
+      )
+
+      expect(veto?.call(info: raising_info, extra: nil)).to be true
+    end
+
+    it 'vetoes when reading extra.raw_info raises even though info is silent' do
+      raising_extra = Object.new
+      def raising_extra.[](*)
+        raise RuntimeError, 'boom'
+      end
+
+      allow(Auth::Logging).to receive(:log_auth_event)
+
+      expect(veto?.call(info: { 'name' => 'No Claim' }, extra: raising_extra)).to be true
     end
   end
 end

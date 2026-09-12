@@ -16,6 +16,9 @@
 #     The repair copies a fact the auth store holds; it never decides one.
 #   * The repair writes REDIS ONLY (rodauth_already_synced: true) and PRESERVES
 #     an existing verified_by rather than relabelling it 'sso'.
+#   * The IdP's veto is HONOURED — a record whose sso_email_unverified marker
+#     is set (the JIT hook saw an explicit email_verified: false) is reported
+#     at :medium as not repairable, and --repair never touches it.
 #
 # Follows doctor_email_drift_spec.rb: the check is private and is exercised
 # directly, so a failure names this check rather than dragging in the nine
@@ -33,6 +36,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
 
   let(:verified)            { false }
   let(:verified_by)         { nil }
+  let(:idp_vetoed)          { false }
   let(:provisioning_origin) { 'sso_jit' }
   let(:account_status)      { Auth::AccountStatuses::VERIFIED }
   let(:account_row)         { { id: 42, email: 'sso@example.com', status_id: account_status } }
@@ -47,6 +51,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       organization_instances: [],
       verified?: verified,
       verified_by: verified_by,
+      sso_email_unverified?: idp_vetoed,
       provisioning_origin: provisioning_origin,
     )
   end
@@ -180,6 +185,70 @@ RSpec.describe Auth::Operations::Customers::Doctor do
 
       expect { run(repair: true) }.not_to raise_error
       expect(repaired).to be_empty
+    end
+  end
+
+  # The JIT hook leaves a Customer unverified ON PURPOSE when the IdP asserts
+  # email_verified: false, and persists that as sso_email_unverified. The
+  # accounts row is still Verified (rodauth-omniauth opens every SSO account
+  # that way), so without the marker this check would read the record as
+  # drift and --repair would undo the veto.
+  describe 'when the IdP vetoed the verified stamp at JIT (marker set)' do
+    let(:idp_vetoed) { true }
+
+    it 'reports a medium, non-repairable issue naming the IdP assertion' do
+      run
+
+      expect(issues.size).to eq(1)
+      expect(issues.first).to include(
+        check: :sso_customer_unverified,
+        severity: :medium,
+        reason: :idp_asserted_unverified,
+        repairable: false,
+      )
+      expect(issues.first[:message]).to include('IdP asserted')
+      expect(issues.first[:repair_action]).to include('Manual decision required')
+      expect(issues.first[:repair_action]).to include('bin/ots customers verify')
+    end
+
+    it 'does not repair even under repair: true' do
+      run(repair: true)
+
+      expect(verification_calls).to be_empty
+      expect(repaired).to be_empty
+      expect(issues.size).to eq(1)
+      expect(issues.first[:repairable]).to be false
+    end
+
+    context 'when the customer is already verified (operator verified by hand)' do
+      let(:verified) { true }
+
+      it 'reports nothing' do
+        run
+        expect(issues).to be_empty
+      end
+    end
+  end
+
+  # Records that predate the marker (nil) and ordinary drifted records read
+  # as not vetoed, so the auto-repair path is unchanged for them.
+  describe 'when the marker is absent' do
+    let(:idp_vetoed) { false }
+
+    it 'keeps the high, repairable drift issue' do
+      run
+
+      expect(issues.size).to eq(1)
+      expect(issues.first[:severity]).to eq(:high)
+      expect(issues.first[:repairable]).to be true
+      expect(issues.first).not_to have_key(:reason)
+    end
+
+    it 'still auto-repairs under repair: true' do
+      run(repair: true)
+
+      expect(verification_calls.size).to eq(1)
+      expect(repaired.size).to eq(1)
     end
   end
 

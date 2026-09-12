@@ -73,10 +73,9 @@ module Auth
         #                    colonel/set_user_verification.rb)
         #   legacy         - backfilled by this doctor's verified_by repair
         # Keep this list in sync when adding a new provenance writer.
-        VALID_VERIFIED_BY = %w[
-          email stripe_payment autoverify sso
-          invite_token cli_provision colonel_admin legacy
-        ].freeze
+        # Canonical list lives on the model (single source, enforced at the
+        # write sites); kept here as an alias for existing callers and specs.
+        VALID_VERIFIED_BY = Onetime::Customer::VERIFIED_BY_VALUES
 
         # Counter fields to check
         COUNTER_FIELDS = [:secrets_created, :secrets_burned, :secrets_shared, :emails_sent].freeze
@@ -716,6 +715,16 @@ module Auth
         # An existing verified_by is PRESERVED — a customer who was
         # email-verified or stripe-verified keeps that provenance, and only a
         # record with no provenance at all is stamped 'sso'.
+        #
+        # THE VETO IS HONOURED. The JIT hook leaves the Customer unverified on
+        # purpose when the IdP explicitly asserted email_verified: false, and
+        # stamps sso_email_unverified so that decision survives without the
+        # auth hash this doctor never sees. Such a record is NOT drift: the
+        # accounts row is Verified only because rodauth-omniauth opens every
+        # SSO account that way, while the IdP said the address is not. It is
+        # reported (so it does not silently linger) but never auto-repaired,
+        # even under --repair; an operator who has confirmed the address
+        # verifies it by hand (colonel admin, or `bin/ots customers verify`).
         def check_sso_customer_unverified(issues, repaired)
           return if @customer.verified?
           return unless @customer.provisioning_origin.to_s == 'sso_jit'
@@ -723,6 +732,20 @@ module Auth
           account = auth_account
           return if account.nil?
           return unless account[:status_id] == Auth::AccountStatuses::VERIFIED
+
+          if @customer.sso_email_unverified?
+            issues << {
+              check: :sso_customer_unverified,
+              severity: :medium,
+              message: 'SSO-provisioned customer is unverified because the IdP asserted the email ' \
+                       'address was unverified at sign-in (auth account is Verified; not auto-repaired)',
+              reason: :idp_asserted_unverified,
+              repairable: false,
+              repair_action: 'Manual decision required: confirm the address with the IdP, then verify ' \
+                             'via colonel admin or `bin/ots customers verify EMAIL`',
+            }
+            return
+          end
 
           existing_provenance = @customer.verified_by.to_s
           provenance          = existing_provenance.empty? ? 'sso' : existing_provenance

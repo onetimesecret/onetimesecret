@@ -54,8 +54,9 @@ module Auth
       # @param customer    [Onetime::Customer] target (caller ensures non-nil,
       #                    non-anonymous)
       # @param verified    [Boolean] target state
-      # @param verified_by [String, nil] provenance tag ('cli_provision',
-      #                    'colonel_admin', 'email', etc.); nil when clearing
+      # @param verified_by [String, nil] provenance tag, one of
+      #                    Onetime::Customer::VERIFIED_BY_VALUES; nil when
+      #                    clearing
       # @param rodauth_already_synced [Boolean] when true, skip the SQL
       #                    update — caller guarantees Rodauth-side
       #                    status is already correct (e.g., we're
@@ -63,7 +64,12 @@ module Auth
       # @param db          [Sequel::Database, nil] injectable for tests and
       #                    callers with an existing connection; defaults to
       #                    Auth::Database.connection at call time
+      # @raise [ArgumentError] verified: true with a verified_by tag outside
+      #   Onetime::Customer::VERIFIED_BY_VALUES — refused before any write,
+      #   so an unknown tag can never reach either store
       def initialize(customer:, verified:, verified_by:, rodauth_already_synced: false, db: nil)
+        Onetime::Customer.assert_known_verified_by!(verified_by) if verified
+
         @customer                = customer
         @verified                = verified
         @verified_by             = verified_by
