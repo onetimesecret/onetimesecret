@@ -226,15 +226,34 @@ extract_yaml_sites() {
         } else {
           j = i + 1
           while (j <= n && !content[j]) j++
-          if (j <= n && indent[j] > ind) {
+          annot = 1                       # nothing nested: nil-valued leaf
+          if (j <= n) {
             nrest = substr(raw[j], indent[j] + 1)
-            # Nested sequence entries mean this key HOLDS a list. That is a
-            # leaf: no list item can carry the marker, so the key must.
-            # Nested mapping keys mean it is a parent, and the children carry
-            # their own markers (spec §4).
-            annot = (nrest ~ /^-([ \t]|$)/) ? 1 : 0
-          } else {
-            annot = 1                     # nothing nested: nil-valued leaf
+            isseq = (nrest ~ /^-([ \t]|$)/)
+            if (indent[j] > ind && !isseq) {
+              # Nested mapping keys: a parent. The children carry their own
+              # markers (spec §4).
+              annot = 0
+            } else if (isseq && indent[j] >= ind) {
+              # The key HOLDS a list. A list of plain scalars (ignore_paths:)
+              # is a value — no list item can carry a marker, so the key must.
+              # A list of MAPPINGS is a nesting of keys, which
+              # config-yaml-version-map.py classifies as a parent and emits no
+              # row for, so demanding a marker there asks for one the annotator
+              # will never write: site.interface.ui.footer_links.groups,
+              # site.interface.ui.workspace_links.links and auth simple are
+              # exactly that shape. The `>= ind` is deliberate — a sequence may
+              # sit at the indentation of the key that holds it.
+              seqi = indent[j]
+              for (m = j; m <= n; m++) {
+                if (!content[m]) continue
+                if (indent[m] < seqi) break
+                mrest = substr(raw[m], indent[m] + 1)
+                if (indent[m] == seqi && mrest !~ /^-([ \t]|$)/) break
+                if (mrest ~ /^-[ \t]*[A-Za-z_][A-Za-z0-9_.-]*:([ \t]|$)/) { annot = 0; break }
+                if (indent[m] > seqi && mrest ~ /^[A-Za-z_][A-Za-z0-9_.-]*:([ \t]|$)/) { annot = 0; break }
+              }
+            }
           }
         }
 

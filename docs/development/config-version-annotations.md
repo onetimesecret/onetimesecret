@@ -149,6 +149,17 @@ that reason before this was added.
   rule 4 requires every line declaring one YAML path to carry the same marker,
   so a branch added to that block without the marker fails the PR. The marker
   still has to be copied by hand; forgetting is now caught.
+- **A key whose only children are commented out is classified inconsistently.**
+  `auth.defaults.yaml`'s `simple:` has two commented child keys and no live
+  ones. `check-config-versions.sh` cannot see comments at all, so it reads the
+  key as a nil-valued leaf and would want a marker; `config-yaml-version-map.py`
+  sees the commented children and calls it a parent, so it emits no row. The
+  spec settles neither reading — "commented-out lines declare nothing" says
+  they are not children, while the key plainly introduces a section. It is the
+  only key in the three files of that shape, and it is not new, so nothing
+  fails today. A *new* key written that way would fail the ratchet asking for a
+  marker the annotator will not generate; give it a live child, or a marker by
+  hand.
 - **The ratchet needs the base branch fetched.** CI sets
   `CONFIG_VERSION_REQUIRE_BASE=1` so a missing base fails loudly rather than
   silently degrading to a syntax-only check. Locally it prints a NOTE.
