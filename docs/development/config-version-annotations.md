@@ -163,11 +163,11 @@ that reason before this was added.
 - **Three tools walk the YAML independently, and nothing asserts they agree.**
   `check-config-versions.sh` (awk), `annotate-config-versions.py` and
   `config-yaml-version-map.py` each re-implement the walk, and a divergence
-  shows up not as a crash but as a wrong shipped version. Two are known: the
-  commented-children case above, and ERB control lines — the map generator
-  skips `<% if %>` before its open-sequence check, so a sequence survives it,
-  while the other two let it end the sequence. Neither produces a wrong marker
-  in the current files. Reviewers have proposed, more than once, a cross-check
+  shows up not as a crash but as a wrong shipped version. The ERB divergence
+  found in review is now closed — all three skip `<% if %>`/`<% end %>` before
+  their sequence bookkeeping, so a control line at the sequence indentation no
+  longer ends the sequence for two walks out of three. The commented-children
+  case above remains. Reviewers have proposed, more than once, a cross-check
   asserting the three emit identical `(path, is_site)` sets for the three
   target files; that is the cheap pin, and a shared walker is the real fix.
   Neither is done. If you add a fourth shape to `etc/defaults/`, check it

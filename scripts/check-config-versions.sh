@@ -173,6 +173,20 @@ extract_yaml_sites() {
         line = raw[i]; ind = indent[i]
         rest = substr(line, ind + 1)
 
+        # An ERB control line (<% if %>, <% elsif %>, <% end %>) is not YAML
+        # structure: it declares nothing, and it must not close an open
+        # sequence. config-yaml-version-map.py skips these before its own
+        # sequence tracking, and without the same skip here the two walks
+        # disagree whenever a control line sits at the sequence indentation —
+        # config.defaults.yaml already writes one, at column 8 among the
+        # workspace_links entries. Wrapping a FIELD of an entry rather than a
+        # whole entry then ends the sequence for this walk only, and the field
+        # is reported as an addressable key: a new-key failure demanding a
+        # marker that no other tool in this family will ever generate, on a
+        # path the policy says is not an annotation site at all. <%= is an
+        # output tag, part of a value, so it is left alone.
+        if (rest ~ /^<%[^=]/) continue
+
         # Inside a skipped subtree (sequence entry contents, block scalar
         # bodies)? Both open one column deeper than the line that starts them,
         # so a sibling at the same indentation as the opener is never

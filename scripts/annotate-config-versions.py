@@ -94,6 +94,11 @@ YAML_KEY_RE = re.compile(
     r"^(?P<indent> *)(?P<key>[A-Za-z0-9_][A-Za-z0-9_.\-]*) *:(?P<rest>[ \t].*|)$"
 )
 YAML_SEQ_RE = re.compile(r"^(?P<indent> *)-(?:[ \t].*|)$")
+
+# ERB control lines declare no key and are not YAML structure, so they must
+# not close an open sequence. Deliberately the same pattern as
+# config-yaml-version-map.py: `<%=` is an output tag, part of a value.
+ERB_CONTROL_RE = re.compile(r"^ *<%[^=]")
 YAML_BLOCK_SCALAR_RE = re.compile(r"^[|>][+\-]?[0-9]*[ \t]*(#.*)?$")
 
 
@@ -229,6 +234,13 @@ def yaml_path_index(bodies):
 
         indent = len(body) - len(body.lstrip(" "))
         seq = YAML_SEQ_RE.match(body)
+
+        # Before any sequence bookkeeping: a control line at the sequence
+        # indentation would otherwise end the sequence here while the map
+        # generator stays inside it, and this walk would start addressing an
+        # entry field as a dotted path the map will never emit a row for.
+        if ERB_CONTROL_RE.match(body):
+            continue
 
         if seq_indent is not None:
             if indent > seq_indent or (indent == seq_indent and seq):
