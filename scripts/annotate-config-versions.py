@@ -90,8 +90,14 @@ LOOSE_SINCE_RE = re.compile(r"[ \t]#[ \t]*Since\b", re.IGNORECASE)
 
 # YAML shapes. Indentation is spaces only — YAML forbids tabs there, so a
 # tab-indented line simply never resolves to a path (and is reported as such).
+# Between a key and its colon, though, a tab is legal separation space, and
+# Psych — the parser that actually loads these files — accepts `key<TAB>:`.
+# So the separator is [ \t]*, matching the awk walk in check-config-versions.sh.
+# Spaces-only here made such a key invisible to this walk while the ratchet
+# still demanded a marker for it, and re-parented its children onto the
+# preceding sibling, which would date them from the wrong env var.
 YAML_KEY_RE = re.compile(
-    r"^(?P<indent> *)(?P<key>[A-Za-z0-9_][A-Za-z0-9_.\-]*) *:(?P<rest>[ \t].*|)$"
+    r"^(?P<indent> *)(?P<key>[A-Za-z0-9_][A-Za-z0-9_.\-]*)[ \t]*:(?P<rest>[ \t].*|)$"
 )
 YAML_SEQ_RE = re.compile(r"^(?P<indent> *)-(?:[ \t].*|)$")
 
@@ -513,12 +519,24 @@ def main(argv=None):
         # leaves a half-applied tree to unpick by hand, and the half that
         # landed is indistinguishable from a deliberate edit. All or nothing,
         # per file.
-        blocked = bool(pending and problems and not (args.dry_run or args.check))
+        # --check is exempt: it answers "is a marker missing or wrong here",
+        # which is true whether or not the write would be blocked. --dry-run is
+        # not exempt — it previews the write, so it has to preview the skip.
+        # Exempting it printed a diff of changes the real run then refused to
+        # make, and counted the file under "would change N file(s)".
+        blocked = bool(pending and problems and not args.check)
         if pending and not blocked:
             changed_files += 1
 
         if args.dry_run:
-            sys.stdout.writelines(unified(relpath, original, new))
+            if blocked:
+                print(
+                    f"SKIP: {relpath} — {len(problems)} unresolved site(s), so "
+                    f"none of its {pending} pending change(s) would be written",
+                    file=sys.stderr,
+                )
+            else:
+                sys.stdout.writelines(unified(relpath, original, new))
         elif args.check:
             if pending and not args.quiet:
                 print(f"FAIL: {relpath} — {pending} site(s) missing or wrong")

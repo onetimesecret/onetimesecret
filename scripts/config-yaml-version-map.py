@@ -129,9 +129,11 @@ TARGET_FILES = sorted(
 # --- YAML shapes -----------------------------------------------------------
 # Deliberately identical to the annotator's: the dotted path this script emits
 # has to be the one the annotator resolves, so both walk the file the same way.
-# Indentation is spaces only — YAML forbids tabs there.
+# Indentation is spaces only — YAML forbids tabs there. A tab between the key
+# and its colon is legal separation space and Psych accepts it, so the
+# separator is [ \t]* here too; the annotator records what spaces-only cost.
 YAML_KEY_RE = re.compile(
-    r"^(?P<indent> *)(?P<key>[A-Za-z0-9_][A-Za-z0-9_.\-]*) *:(?P<rest>[ \t].*|)$"
+    r"^(?P<indent> *)(?P<key>[A-Za-z0-9_][A-Za-z0-9_.\-]*)[ \t]*:(?P<rest>[ \t].*|)$"
 )
 YAML_SEQ_RE = re.compile(r"^(?P<indent> *)-(?:[ \t](?P<item>.*)|)$")
 YAML_BLOCK_SCALAR_RE = re.compile(r"^[|>][+\-]?[0-9]*[ \t]*(#.*)?$")

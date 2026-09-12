@@ -206,8 +206,15 @@ that reason before this was added.
   shows up not as a crash but as a wrong shipped version. The ERB divergence
   found in review is now closed — all three skip `<% if %>`/`<% end %>` before
   their sequence bookkeeping, so a control line at the sequence indentation no
-  longer ends the sequence for two walks out of three. The valueless-key
-  disagreement above remains, as does the site-set breadth mismatch.
+  longer ends the sequence for two walks out of three. So is the key/colon
+  separator: a tab between a key and its `:` is legal separation space and
+  Psych accepts it, but the two Python walks matched spaces only — so
+  `key<TAB>:` was a site to the ratchet, invisible to the map, and re-parented
+  its children onto the preceding sibling, which would have dated them from
+  that sibling's env var. All three now accept `[ \t]*` there; indentation
+  stays spaces-only in all three, because YAML really does forbid tabs there.
+  The valueless-key disagreement above remains, as does the site-set breadth
+  mismatch.
   Reviewers have proposed, more than once, a cross-check asserting the three
   emit identical `(path, is_site)` sets for the three target files; that is
   the cheap pin, and a shared walker is the real fix.
