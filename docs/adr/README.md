@@ -1,71 +1,97 @@
+# docs/adr/README.md
+
+---
+
 ## Architecture Decision Records (ADRs)
 
-Documents that capture important architectural decisions along with their context and consequences. They're a best practice for technical documentation in open-source projects.
+An ADR records an architectural decision, the context that led to it, and its
+consequences. Use this guide when creating or updating records in this
+directory.
 
-**Lifecycle:**
-- Proposed: Under discussion
-- Accepted: Decision ratified by the team (implementation may follow; track rollout in Implementation Notes)
-- Deprecated: No longer relevant but kept for history
-- Superseded: Replaced by a newer ADR (reference the new one)
+## Create an ADR
 
-The `status` in an ADR's frontmatter and its `Status` section must agree.
+1. Confirm that the decision warrants a record. See [When to Write an ADR](#when-to-write-an-adr).
+2. Copy [`adr-000.md`](adr-000.md), the directory template.
+3. Assign the next sequential identifier and name the file `adr-NNN-kebab-slug.md`.
+4. Complete the required `Status`, `Date`, `Context`, and `Decision` sections.
+5. Keep the `status` value in the frontmatter and the `Status` section aligned.
 
-### Keys to Success
+### Status lifecycle
 
-- **Be courteous**: ADRs should be readable in 2-3 minutes, so focus on why. The decision itself is less important than the reasoning.
-- **Avoid formulaic sections**: Don't force content into rigid templates. If your core argument is complete in Context and Decision, stop there. Skip sections that merely reorganize the same points.
-- **Combine related content**: Merge rationale directly into the Decision section. Trade-offs are optional—include them only when they add genuine insight about the decision's actual exchange.
-- **Make trade-offs complete**: Be terse elsewhere, but name the real costs, lost flexibility, and conditional risks in Trade-offs. Future readers need these details to judge whether the decision still holds or should be superseded.
-- **Immutable**: Once accepted, don't edit the decision; that's like re-writing history. Use Implementation Notes or create another ADR to supersede.
-- **Numbered sequentially**: Makes referencing easy (`ADR-001`, `ADR-002`, etc.)
-- **One decision per ADR**: Don't bundle multiple choices together
+- **Proposed:** under discussion.
+- **Accepted:** ratified by the team. Implementation may follow; record rollout in Implementation Notes.
+- **Deprecated:** no longer relevant, but retained as history.
+- **Superseded:** replaced by a newer ADR. Link to the replacement record.
 
-### Splitting vs. Combining Decisions
+## Write a useful record
 
-This expands the "One decision per ADR" key above: when two choices show up together, default to **separate ADRs — one decision per record**. Four reasons:
+Keep ADRs concise enough to read in a few minutes. Explain why the decision
+was made, not only what was chosen.
 
-1. **One decision per record (atomicity).** The founding convention — Nygard's original format, `adr-tools`, MADR, the adr.github.io community, and AWS/Google/Microsoft's ADR guidance — is one architecturally-significant decision per file. The unit is "things that stand or fall together." Two choices that can be evaluated independently don't.
-2. **Different owners and review triggers.** A naming/structure decision and, say, a privacy/legal decision have different reviewers. Bundling forces a lawyer to wade through structural debates, and an engineer to wade through legal nuance.
-3. **Different lifecycles + immutability.** Quality ADR sets treat accepted records as immutable and **supersede rather than edit**. The volatile decision is usually the one most likely to change; if it's welded to a stable decision, revising one paragraph means superseding the whole record. Split, and you supersede just the part that moved.
-4. **Precise traceability.** A 1:1 decision↔ADR mapping keeps `git blame` and PR references clean: code that implements a decision links to *that* ADR, not to a grab-bag.
+- **Context** states the problem, constraints, and factors that require a decision.
+- **Decision** states the choice and its core rationale. Keep the rationale here rather than repeating it in another section.
+- Use optional sections only when they add information that does not fit in Context or Decision.
+- Number records sequentially so that code, issues, and pull requests can refer to a stable identifier such as `ADR-001`.
 
-**What mature ADR sets do:** sequentially numbered, immutable, short, single-topic records with a consistent template and a *liberal* "Related / References" section that cross-links siblings (Kubernetes KEPs, Arachne, AWS Prescriptive Guidance all do this). Cross-linking is how you get the "these belong together" benefit without a monolith. Keep the status lifecycle explicit (Proposed → Accepted → Superseded) and date every amendment.
+### Trade-offs
 
-**Don't over-split, either.** If a decision is a single sentence with no trade-offs, a code comment at the call site suffices — it doesn't need a record. A choice earns its own ADR when it has real trade-offs, a regulatory or cross-cutting dimension, or a test/contract obligation attached to it.
+Use `Trade-offs` for the inherent exchange: what the project gives up to obtain
+a benefit, and the risks that make the choice conditional. Name concrete costs,
+lost flexibility, and situational risks that a future reader needs to decide
+whether the ADR should be superseded.
 
-### Trade-offs Section
+Do not use this section to restate the decision, list routine implementation
+work, or separate generic positives and negatives.
 
-Use Trade-offs for the inherent exchange in a decision: what the project gives
-up to obtain a benefit, plus the risks that make the exchange conditional. Do
-not use it to restate the decision, list routine implementation obligations, or
-organize generic positives and negatives. Include it only when it adds insight
-that does not belong in Context or Decision.
+### Related
 
-### Related Section
-
-Use Related to cross-link ADRs and other durable documents that help a reader
-understand this decision. Omit it when there are no useful links; do not use it
+Use `Related` to link ADRs and other durable documents that help readers
+understand the decision. Omit it when there are no useful links. Do not use it
 for transient implementation discussions or change-tracking metadata.
 
-### Implementation Notes Section
+### Implementation Notes
 
-Optional addenda for clarifications and execution details. Use it for:
+`Implementation Notes` is a mutable addendum for details that do not change
+the decision. Use it for:
 
-- **Clarifications**: Technical details or edge cases discovered during implementation
-- **Rollout timelines**: When the decision will be implemented relative to when it was accepted
-- **Migration notes**: How to transition from the old state to the new one
+- clarifications or edge cases found during implementation;
+- rollout timing; and
+- migration guidance.
 
-This section is mutable. Each note should be dated and titled.
+Give every note a date and title.
 
-### When to Write ADRs
+## Keep decisions focused
 
-Write ADRs for decisions that:
-- Are expensive to reverse or constrain future options
-- Affect multiple teams or components
-- Establish patterns for others
-- Resolve technical debates
+Write one decision per ADR. Split choices that can be evaluated, approved, or
+superseded independently. Keep choices together only when they stand or fall
+together and share a lifecycle.
 
-Don't write ADRs for:
-- Trivial or easily reversible
-- Implementation details within a single component
-- Non-contentious or standard practice decisions
+Separate ADRs make ownership and review clearer, let each decision change
+without replacing an unrelated one, and give implementation work a precise
+record to reference. Link related ADRs through `Related` rather than combining
+them into one record.
+
+Do not over-split. A one-sentence choice with no meaningful trade-off usually
+belongs in a code comment at the call site, not an ADR.
+
+## Preserve accepted decisions
+
+After acceptance, do not rewrite the decision or its rationale. Record
+clarifications and execution details in dated Implementation Notes. When the
+decision itself changes, create a new ADR, mark the earlier one as
+Superseded, and cross-link the records.
+
+## When to Write an ADR
+
+Write an ADR for a decision that:
+
+- is expensive to reverse or constrains future options;
+- affects multiple teams or components;
+- establishes a pattern for later work; or
+- resolves a technical debate.
+
+Do not write an ADR for a decision that is:
+
+- trivial or easy to reverse;
+- an implementation detail within one component; or
+- non-contentious standard practice.
