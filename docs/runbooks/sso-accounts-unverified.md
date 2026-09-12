@@ -50,6 +50,12 @@ record with none is stamped `sso`. One `ColonelAuditEvent` per repaired customer
 
 ## What the doctor will not catch
 
+- **IdP asserted the address was unverified.** When the identity provider sent
+  `email_verified: false` at sign-in (or the claim could not be read), the JIT
+  hook leaves the customer unverified on purpose and stamps
+  `sso_email_unverified`. The doctor reports such a record at MEDIUM but never
+  auto-repairs it, even with `--repair`. Confirm the address with the IdP, then
+  verify by hand via the colonel admin page or `bin/ots customers verify`.
 - **Simple auth mode, or auth database unreachable.** The check is skipped
   silently and the customer reports healthy. If a full-mode sweep is quieter
   than expected, confirm the auth DB is up (`diagnose` reports
