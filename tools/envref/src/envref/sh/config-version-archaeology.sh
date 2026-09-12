@@ -40,8 +40,8 @@
 # as introduced at the graft point. The script refuses to run on one.
 #
 # Usage:
-#   scripts/config-version-archaeology.sh                  # all keys in .env.reference
-#   scripts/config-version-archaeology.sh KEY [KEY...]     # specific keys
+#   bin/envref archaeology                  # all keys in .env.reference
+#   bin/envref archaeology KEY [KEY...]     # specific keys
 #
 # Output: TSV on stdout, progress on stderr.
 #   key <TAB> first_release <TAB> evidence
@@ -52,7 +52,17 @@
 #
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# bin/envref finds the checkout once and exports ENVREF_REPO_ROOT, so this
+# script, its two siblings and the Python modules all agree by construction
+# instead of by four more copies of the same walk. The fallback keeps a direct
+# `bash .../<script>.sh` working: every subcommand here reads git history, so
+# requiring a real checkout costs nothing it did not already need.
+REPO_ROOT="${ENVREF_REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || true)}"
+if [[ -z "$REPO_ROOT" || ! -d "$REPO_ROOT/etc/defaults" ]]; then
+  echo "FAIL: cannot locate the onetimesecret checkout." >&2
+  echo "      Run this through bin/envref, or set ENVREF_REPO_ROOT." >&2
+  exit 2
+fi
 cd "$REPO_ROOT"
 
 if [[ "$(git rev-parse --is-shallow-repository)" == "true" ]]; then

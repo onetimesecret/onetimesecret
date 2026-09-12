@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+#
+# bin/envref — the entry point for the config-version annotation tooling.
+#
+# ADR-042: this shim finds the repository root, starts tools/envref/ through
+# its managed runtime, and passes arguments through. It holds no business
+# logic and parses nothing; `envref --help` lists the subcommands.
+#
+# There is deliberately no "run it with bare python3 instead" fallback. A shim
+# that bypasses its managed environment is the drift ADR-042 exists to prevent:
+# it would run against whatever cyclopts happened to be importable, which is
+# how a tool starts behaving differently in CI than on a laptop.
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export ENVREF_REPO_ROOT="$REPO_ROOT"
+
+if ! command -v uv > /dev/null 2>&1; then
+  cat >&2 <<'MSG'
+FAIL: envref starts through uv, which is not on PATH.
+
+      Install it:  curl -LsSf https://astral.sh/uv/install.sh | sh
+      Or see:      https://docs.astral.sh/uv/getting-started/installation/
+
+      uv resolves tools/envref/uv.lock, so everyone runs the same versions.
+MSG
+  exit 2
+fi
+
+exec uv run --project "$REPO_ROOT/tools/envref" --quiet envref "$@"

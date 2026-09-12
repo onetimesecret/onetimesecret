@@ -1,9 +1,16 @@
 # .github/workflows/drift-guards.yml
 #
-# Cheap (grep/sed-only, seconds) drift guards that must run on every PR
-# (install-onboarding C9). They also run inside validate-config.yml, but that
-# workflow is workflow_dispatch-only — these four checks are the ratchets that
-# keep manifests honest, so they get an always-on lane:
+# Drift guards that must run on every PR (install-onboarding C9). They also run
+# inside validate-config.yml, but that workflow is workflow_dispatch-only —
+# these four checks are the ratchets that keep manifests honest, so they get an
+# always-on lane.
+#
+# Three of them are still grep/sed-only and cost seconds. The fourth now starts
+# through bin/envref, which ADR-042 makes the supported entry point for that
+# tooling, so this job sets up Python and uv. Its implementation is unchanged
+# bash and awk; the added cost is the one-time environment setup, ~100ms per
+# invocation once warm. Calling the package-private script path directly would
+# save that and reintroduce exactly the by-path coupling ADR-042 removed.
 #
 #   check-version-pins.sh    Docker image tags + devcontainer toolchain match
 #                            .ruby-version/.node-version (VER series, C8 note)
@@ -13,14 +20,16 @@
 #                            in that workflow's header comment, or explicitly
 #                            ignored (CI secrets are a separate surface from
 #                            .env.reference — see scripts/check-ci-secrets.sh)
-#   check-config-versions.sh every new key in .env.reference and
+#   bin/envref check         every new key in .env.reference and
 #                            etc/defaults/*.yaml carries a "# Since" marker,
 #                            and markers already on the PR's base branch are
-#                            unchanged
+#                            unchanged (tools/envref/, ADR-042)
 #
 # No path filter: check-env-reference.sh scans ENV reads across lib/, apps/,
-# etc/ — nearly any code change can introduce a new variable, and the whole
-# job costs seconds.
+# etc/ — nearly any code change can introduce a new variable, and the checks
+# themselves still cost seconds. The Python and uv setup above is the bulk of
+# the job's wall-clock now; it is the price of one entry point, not of the
+# checks.
 ---
 name: Drift guards
 
@@ -40,11 +49,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
-          # check-config-versions.sh compares against the merge-base with the
-          # PR's base branch. The default shallow checkout has neither the base
+          # `bin/envref check` compares against the merge-base with the PR's
+          # base branch. The default shallow checkout has neither the base
           # branch nor enough history to find a merge-base, and the guard would
           # quietly fall back to syntax-only checking.
           fetch-depth: 0
+
+      # envref is a Python package (ADR-042). uv is installed through pip
+      # rather than a new pinned action so this workflow gains no supply-chain
+      # surface it did not already have: actions/setup-python is the same SHA
+      # the rest of this repo's Python jobs use, and uv itself is version
+      # pinned. uv then resolves tools/envref/uv.lock, so CI and a laptop run
+      # the same dependency versions.
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+
+      - name: Install uv
+        run: python -m pip install --disable-pip-version-check 'uv==0.8.17'
 
       - name: Assert Docker/devcontainer tags match version pin files
         run: bash scripts/check-version-pins.sh
@@ -55,10 +78,18 @@ jobs:
       - name: Assert workflow headers document every consumed CI secret
         run: bash scripts/check-ci-secrets.sh
 
+      # Run here rather than in a path-filtered job of its own: this suite
+      # pins the marker recognizer against the contract document and asserts
+      # the two YAML walks agree, which is what the next step relies on. A
+      # path filter would skip it exactly when an unrelated change breaks the
+      # contract, and it costs milliseconds in an environment already built.
+      - name: Run the envref test suite
+        run: uv run --project tools/envref python -m unittest discover -s tools/envref/tests
+
       - name: Assert config keys carry immutable "# Since" version markers
         env:
           # Refuse to pass on a missing base ref rather than degrading to a
           # syntax-only check: a ratchet that silently stops ratcheting is
           # worse than one that fails loudly.
           CONFIG_VERSION_REQUIRE_BASE: '1'
-        run: bash scripts/check-config-versions.sh
+        run: ./bin/envref check

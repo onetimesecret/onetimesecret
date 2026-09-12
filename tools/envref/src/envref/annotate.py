@@ -61,11 +61,11 @@ one exception is the annotated line itself, whose trailing whitespace (if any)
 is dropped so the marker gets its contractual two spaces.
 
 Usage:
-  scripts/annotate-config-versions.py MAP.tsv              # apply
-  scripts/annotate-config-versions.py --check MAP.tsv      # CI: verify only
-  scripts/annotate-config-versions.py --dry-run MAP.tsv    # show the diff
-  scripts/annotate-config-versions.py --force MAP.tsv      # re-date markers
-  scripts/annotate-config-versions.py --root DIR MAP.tsv   # annotate a copy
+  bin/envref annotate MAP.tsv              # apply
+  bin/envref annotate --check MAP.tsv      # CI: verify only
+  bin/envref annotate --dry-run MAP.tsv    # show the diff
+  bin/envref annotate --force MAP.tsv      # re-date markers
+  bin/envref annotate --root DIR MAP.tsv   # annotate a copy
 
 Exit codes:
   0  everything the map asks for is in place (or was just applied)
@@ -73,11 +73,14 @@ Exit codes:
   2  bad input: unusable map, unreadable/missing target, bad flag combination
 """
 
-import argparse
 import difflib
 import re
 import sys
 from pathlib import Path
+from types import SimpleNamespace
+
+from . import UsageError
+from .paths import RootNotFound, repo_root
 
 # --- The frozen marker grammar (spec §1). Nothing else may parse markers. ---
 MARKER_RE = re.compile(r"[ \t]+# Since (v[0-9]+\.[0-9]+\.[0-9]+|unreleased)[ \t]*$")
@@ -447,42 +450,48 @@ def unified(relpath, original, new):
 # --- main ----------------------------------------------------------------
 
 
-def main(argv=None):
-    parser = argparse.ArgumentParser(
-        description="Inject 'Since vX.Y.Z' markers into config files from a version map.",
-        epilog="Exit 0 = in place, 1 = drift, 2 = bad input.",
+def run(
+    map_path: str,
+    *,
+    check: bool = False,
+    dry_run: bool = False,
+    force: bool = False,
+    root: str | None = None,
+    quiet: bool = False,
+) -> int:
+    """Inject "Since vX.Y.Z" markers into config files from a version map.
+
+    Exit 0 = in place, 1 = drift, 2 = bad input.
+
+    Parameters
+    ----------
+    map_path
+        Version map to apply (spec S4 TSV).
+    check
+        Verify only: exit 1 listing anything missing or wrong, change nothing.
+    dry_run
+        Print the unified diff instead of applying it.
+    force
+        Resolve an "unreleased" marker to the map version (release step only).
+    root
+        Root the map's paths are relative to. Defaults to the checkout found by
+        bin/envref.
+    quiet
+        Suppress per-file PASS lines.
+    """
+    args = SimpleNamespace(
+        map=map_path, check=check, dry_run=dry_run, force=force, root=root, quiet=quiet
     )
-    parser.add_argument("map", metavar="MAP.tsv", help="version map (spec §4 TSV)")
-    parser.add_argument(
-        "--check",
-        action="store_true",
-        help="verify only: exit 1 listing anything missing or wrong, change nothing",
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="print the unified diff instead of applying it"
-    )
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        help="resolve an 'unreleased' marker to the map version (release step only)",
-    )
-    parser.add_argument(
-        "--root",
-        default=None,
-        metavar="DIR",
-        help="root the map's paths are relative to (default: this script's repo)",
-    )
-    parser.add_argument("-q", "--quiet", action="store_true", help="suppress per-file PASS lines")
-    args = parser.parse_args(argv)
 
     if args.check and args.dry_run:
-        parser.error("--check and --dry-run are both read-only; pick one")
+        raise UsageError("--check and --dry-run are both read-only; pick one")
     if args.check and args.force:
-        parser.error("--force has no meaning with --check")
+        raise UsageError("--force has no meaning with --check")
 
-    root = Path(args.root).resolve() if args.root else Path(__file__).resolve().parent.parent
-    if not root.is_dir():
-        print(f"FAIL: root {root} is not a directory", file=sys.stderr)
+    try:
+        root = repo_root(args.root)
+    except RootNotFound as exc:
+        print(f"FAIL: {exc}", file=sys.stderr)
         return 2
 
     try:
@@ -585,7 +594,3 @@ def main(argv=None):
         f"({verb} {changed_files} file(s))"
     )
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

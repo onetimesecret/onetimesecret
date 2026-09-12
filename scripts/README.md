@@ -24,27 +24,16 @@ Utility and operational scripts for Onetime Secret.
 ## Config version annotations
 
 `.env.reference` and `etc/defaults/*.yaml` carry inline `# Since vX.Y.Z`
-markers on each setting's own line.
-[`docs/development/config-version-annotations.md`](../docs/development/config-version-annotations.md)
-is the contract: the marker grammar, the v0.24.0 baseline, and the
-immutability rule live there, and every script below breaks if it drifts from
-what that document says.
+markers on each setting's own line. The tooling that writes and enforces them
+is not here: ADR-042 makes it a tool package, `tools/envref/`, reached through
+`bin/envref`.
 
-- `check-config-versions.sh` - the ratchet, run by `drift-guards.yml` and
-  `validate-config.yml`. New keys need a marker, shipped markers are frozen.
-- `resolve-unreleased-versions.sh` - rewrites `Since unreleased` to the version
-  being cut. Run it before tagging, not after.
-- `config-version-archaeology.sh` - derives first-release versions by scanning
-  the release-tag trees. Backfill and audit only; not a build step.
-- `config-yaml-version-map.py` - resolves YAML settings to versions, inheriting
-  from the env var each one reads.
-- `annotate-config-versions.py` - applies markers from that map. Idempotent,
-  and refuses to re-date an existing marker.
-- `generate-env-docs.py` - generates the docs-site environment-variables page
-  from `.env.reference`. Its `--check` guard runs from the docs repo.
+```bash
+bin/envref --help          # the subcommands
+bin/envref check           # the CI ratchet, also run by drift-guards.yml
+bin/envref resolve v0.26.4 # release step: unreleased -> a real version
+```
 
-[ADR-042](../docs/adr/adr-042-repository-tooling-packages.md) names
-`tools/envref/` behind `bin/envref` as where this tooling belongs. These six
-predate that decision by five weeks and are stdlib-only; moving them is a
-separate behaviour-preserving change, which is the migration shape the ADR
-itself asks for.
+See [`docs/development/config-version-annotations.md`](../docs/development/config-version-annotations.md)
+for the marker contract and
+[`tools/envref/README.md`](../tools/envref/README.md) for the package.

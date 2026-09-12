@@ -68,7 +68,7 @@ and a guess becomes a wrong number that the ratchet then freezes permanently.
 NEW_ENV_VAR=default  # Since unreleased
 ```
 
-`scripts/check-config-versions.sh` fails the PR if you forget.
+`bin/envref check` fails the PR if you forget.
 
 A new key carrying a *released* version instead is a NOTE, not a failure. It is
 usually wrong — a key cannot have shipped in a version that predates it — but
@@ -82,7 +82,7 @@ guard reports the keys and lets a human judge.
 Before tagging, resolve the placeholders:
 
 ```bash
-scripts/resolve-unreleased-versions.sh v0.26.4
+bin/envref resolve v0.26.4
 git add -u && git commit -m "chore(release): resolve Since annotations to v0.26.4"
 git tag v0.26.4
 ```
@@ -92,25 +92,34 @@ Order matters — resolve, commit, then tag, so the tagged tree already says
 
 ## The tools
 
-| Script | Role |
+| Command | Role |
 | --- | --- |
-| `config-version-archaeology.sh` | Derives first-release versions from git history. One-time backfill and audit; not a build step. |
-| `config-yaml-version-map.py` | Resolves YAML settings, inheriting the version of the env var each one reads. |
-| `annotate-config-versions.py` | Applies markers. Idempotent; refuses to re-date an existing marker, and `--force` widens that only to `unreleased` -> a release. |
-| `resolve-unreleased-versions.sh` | Rewrites `unreleased` to the version being cut. |
-| `check-config-versions.sh` | CI ratchet: new keys need a marker, shipped markers are frozen, markers are well-formed, the lines declaring one YAML path agree, and an env key is marked on its active declaration rather than only on a commented twin. |
-| `generate-env-docs.py` | Generates the docs-site page from `.env.reference`. Its `--check` guard runs from the **docs** repo (`env-reference-drift.yml`, on docs PRs and nightly), not from this repo's CI — see the script header for why the dependency points that way. |
+| `bin/envref archaeology` | Derives first-release versions from git history. One-time backfill and audit; not a build step. |
+| `bin/envref map` | Resolves YAML settings, inheriting the version of the env var each one reads. |
+| `bin/envref annotate` | Applies markers. Idempotent; refuses to re-date an existing marker, and `--force` widens that only to `unreleased` -> a release. |
+| `bin/envref resolve` | Rewrites `unreleased` to the version being cut. |
+| `bin/envref check` | CI ratchet: new keys need a marker, shipped markers are frozen, markers are well-formed, the lines declaring one YAML path agree, and an env key is marked on its active declaration rather than only on a commented twin. |
+| `bin/envref docs` | Generates the docs-site page from `.env.reference`. Its `--check` guard runs from the **docs** repo (`env-reference-drift.yml`, on docs PRs and nightly), not from this repo's CI — see the module header for why the dependency points that way. |
 
-[ADR-042](../adr/adr-042-repository-tooling-packages.md) names `tools/envref/`
-behind `bin/envref` as where application-coupled tooling of this size belongs,
-with `envref` owning the reference's release annotation format. These six
-scripts predate that decision by five weeks, are stdlib-only, and are wired
-into CI by path. Bringing them under `bin/envref` is a behaviour-preserving
-migration the ADR asks to be taken one domain at a time; it is not done. Two
-questions have to be answered when it is: whether the marker keeps this
-document's `# Since vX.Y.Z` spelling or takes the ADR's `As of x.y.z`, and
-where the `etc/defaults/*.yaml` half lives, since ADR-042 scopes `envref` to
-`.env.reference` and most of the machinery here is the YAML resolver.
+These are one package, `tools/envref/`, and `bin/envref` is the only supported
+way to run any of them — [ADR-042](../adr/adr-042-repository-tooling-packages.md).
+The implementations live in `tools/envref/src/envref/`: three Python modules,
+and three shell scripts under `sh/` that are unchanged from when they lived in
+`scripts/`. Porting 950 lines of verified awk to Python would have been a
+rewrite rather than a migration, and a tool package is allowed to be polyglot
+behind one entry point.
+
+`bin/envref` starts the package through uv, which resolves
+`tools/envref/uv.lock`, so CI and a laptop run the same versions. There is
+deliberately no bare-`python3` fallback: a shim that bypasses its managed
+environment is the drift ADR-042 exists to prevent.
+
+Two things ADR-042 asks for are interpreted rather than implemented literally,
+and both are flagged in `tools/envref/README.md`: the annotation format keeps
+this document's `# Since vX.Y.Z` spelling rather than the ADR's `As of x.y.z`,
+and `envref` here covers `etc/defaults/*.yaml` as well as `.env.reference`,
+because the YAML resolver is the larger half of the tooling and the ADR gives
+it no other home.
 
 ## How versions were derived
 
@@ -138,7 +147,7 @@ To re-derive or audit:
 
 ```bash
 git fetch --unshallow && git fetch --tags   # a shallow clone reports nonsense
-scripts/config-version-archaeology.sh SOME_KEY
+bin/envref archaeology SOME_KEY
 ```
 
 Where inheritance and the pickaxe cannot prove an answer, the YAML path is
@@ -149,6 +158,8 @@ rather than withhold one. 75 settings in `etc/defaults/` were bare for exactly
 that reason before this was added.
 
 ## Known limits
+
+File names below are relative to `tools/envref/src/envref/`.
 
 - **Markers not yet on the base branch are not frozen.** Immutability protects
   what the base branch carries; unmerged work stays editable, which is the
@@ -167,15 +178,15 @@ that reason before this was added.
   tool derived, so it was checked by hand against the release trees:
   `secure:` is absent at v0.23.5 and v0.23.6 and present from v0.24.0, and a
   tree scan of the dotted path agrees. The map cannot verify them — they are
-  not in it — but `check-config-versions.sh` does, by a different route: its
+  not in it — but `sh/check-config-versions.sh` does, by a different route: its
   rule 4 requires every line declaring one YAML path to carry the same marker,
   so a branch added to that block without the marker fails the PR. The marker
   still has to be copied by hand; forgetting is now caught.
 - **A valueless key with nothing nested under it is classified
-  inconsistently.** `check-config-versions.sh` sets `annot = 1` whenever its
+  inconsistently.** `sh/check-config-versions.sh` sets `annot = 1` whenever its
   lookahead finds nothing nested below the key, and *nothing nested* is reached
   by more shapes than commented children: a sibling at the same indentation and
-  a dedent both land there too. `config-yaml-version-map.py` disagrees on all
+  a dedent both land there too. `versionmap.py` disagrees on all
   of them — `KeyRecord.is_leaf` returns false for any valueless key with no
   sequence under it — so it emits no row and the annotator never writes a
   marker. The ratchet then asks for a marker no tool in this family will
@@ -199,8 +210,8 @@ that reason before this was added.
   sees. So the guard is left erring loud. If you hit it, give the key a live
   child, or write the marker by hand.
 - **"Declaration line" is spelled at two breadths, and rule 2 uses the
-  narrower one.** `YAML_DECL_RE` — in `check-config-versions.sh` and copied
-  into `resolve-unreleased-versions.sh` — accepts a sequence-entry line through
+  narrower one.** `YAML_DECL_RE` — in `sh/check-config-versions.sh` and copied
+  into `sh/resolve-unreleased-versions.sh` — accepts a sequence-entry line through
   its optional `(- )?`. So rule 3 will validate a marker written on
   `- text: Feedback`, and the release resolver will rewrite an `unreleased`
   there into a concrete version. But `extract_yaml_sites` drops sequence
@@ -212,8 +223,8 @@ that reason before this was added.
   walkers below. The cross-check proposed there should also assert that the
   resolver's target set equals the ratchet's site set.
 - **Three tools walk the YAML independently, and nothing asserts they agree.**
-  `check-config-versions.sh` (awk), `annotate-config-versions.py` and
-  `config-yaml-version-map.py` each re-implement the walk, and a divergence
+  `sh/check-config-versions.sh` (awk), `annotate.py` and
+  `versionmap.py` each re-implement the walk, and a divergence
   shows up not as a crash but as a wrong shipped version. The ERB divergence
   found in review is now closed — all three skip `<% if %>`/`<% end %>` before
   their sequence bookkeeping, so a control line at the sequence indentation no
@@ -226,11 +237,20 @@ that reason before this was added.
   stays spaces-only in all three, because YAML really does forbid tabs there.
   The valueless-key disagreement above remains, as does the site-set breadth
   mismatch.
-  Reviewers have proposed, more than once, a cross-check asserting the three
-  emit identical `(path, is_site)` sets for the three target files; that is
-  the cheap pin, and a shared walker is the real fix.
-  Neither is done. If you add a fourth shape to `etc/defaults/`, check it
-  against all three by hand.
+
+  The cross-check reviewers asked for twice now exists for two of the three:
+  `tools/envref/tests/test_yaml_walkers.py` asserts that `annotate.py` and
+  `versionmap.py` resolve identical dotted-path sets for every file in
+  `etc/defaults/`, and pins the ERB and key/colon cases above as regressions.
+  It became possible only when ADR-042 made them two modules of one package —
+  as separate top-level scripts they could not import each other, which is
+  why the pin went unwritten for so long.
+
+  The awk walk in `sh/check-config-versions.sh` is still unpinned: it has no
+  entry point that emits its site list, and adding one means editing a
+  reviewed script. A shared walker remains the real fix. Until then, if you
+  add a fourth shape to `etc/defaults/`, the test covers two walks and you
+  should check the third by hand.
 - **The ratchet needs the base branch fetched.** CI sets
   `CONFIG_VERSION_REQUIRE_BASE=1` so a missing base fails loudly rather than
   silently degrading to a syntax-only check. Locally it prints a NOTE.
