@@ -243,17 +243,30 @@ may be inferred from the IdP's email claim.
 
    **Decision (2026-09-12).** This control is the standard pair of a host-bound
    session and a fresh authentication before a credential change; no new
-   session model is needed.
+   session model is needed. Both halves are established requirements, not
+   project preference:
+
+   - NIST SP 800-63B section 6.1.2.1 (binding an additional authenticator):
+     "Before adding the new authenticator, the CSP SHALL first require the
+     subscriber to authenticate at the AAL (or a higher AAL) at which the new
+     authenticator will be used."
+   - OWASP ASVS 4.0.3 requirement 3.7.1: "Verify the application ensures a
+     full, valid login session or requires re-authentication or secondary
+     verification before allowing any sensitive transactions or account
+     modifications."
+   - RFC 6265 section 4.1.2.3: "If the server omits the Domain attribute, the
+     user agent will return the cookie only to the origin server."
 
    - *Host-bound session.* The session cookie carries no `Domain` attribute
-     (`lib/onetime/application/middleware_stack.rb`), so the browser already
-     scopes it to the host that set it. The application must make that
+     (`lib/onetime/application/middleware_stack.rb`), so per RFC 6265 the
+     browser already scopes it to the host that set it. The application must make that
      property its own: at login, record the establishing surface in the
      session (the validated custom-domain ID for a tenant login, `nil` for the
      canonical host), and treat a request whose resolved display domain does
      not match that record as unauthenticated. The connect gate then requires
      the recorded surface to equal the callback's validated domain ID.
-   - *Recent re-authentication.* Adding a login method is a credential change.
+   - *Recent re-authentication.* Adding a login method is the 800-63B
+     "additional authenticator" case and an ASVS 3.7.1 account modification.
      Before the tenant Connect SSO intent is created, the account holder must
      have authenticated on that host with an existing account credential
      (password, WebAuthn, or email auth) within a short window. Rodauth's
@@ -330,9 +343,11 @@ OmniAuth `route_name`, on the assumption that one route maps to one issuer.
 That holds on the platform surface but not on a tenant surface, where the
 tenant `oidc` provider resolves to a different issuer than a platform `oidc`
 identity. **Decision (2026-09-12):** identities are keyed on
-`(provider, issuer, uid)`, so the panel hides a provider only when an existing
-identity has both the same `route_name` and the same issuer as the provider
-resolved for the current surface. The `GET /auth/identities` payload already
+`(provider, issuer, uid)` because OpenID Connect Core 1.0 section 5.7 states
+that "the only guaranteed unique identifier for a given End-User is the
+combination of the iss Claim and the sub Claim". The panel therefore hides a
+provider only when an existing identity has both the same `route_name` and
+the same issuer as the provider resolved for the current surface. The `GET /auth/identities` payload already
 returns `issuer` per row. Without this change the tenant connect button is
 absent for exactly the accounts this flow targets.
 
@@ -414,10 +429,14 @@ operation changes the row.
 A fresh tenant connect receives an issuer-specific identity from the validated
 callback and binds it to a session-selected account, so it does not have the
 same legacy-row ambiguity. **Decision (2026-09-12):** `signup_domain_id` is
-not a requirement for new tenant connections. Authority to add a credential
-comes from the account holder's authenticated, recently re-authenticated
-session plus the domain-scoped membership; where the account originally signed
-up is irrelevant to either, and requiring it would refuse legitimate cases such
+not a requirement for new tenant connections. Under NIST SP 800-63B section
+6.1.2.1 the authority to bind an additional authenticator is the subscriber's
+authentication, and the identity being bound is unique per OpenID Connect
+Core section 5.7 by issuer and subject; neither standard conditions the bind
+on where the account was created. Authority here therefore comes from the
+account holder's authenticated, recently re-authenticated session plus the
+domain-scoped membership; where the account originally signed up is
+irrelevant to either, and requiring it would refuse legitimate cases such
 as an employee whose platform account predates the tenant, with no security
 gain. The provenance check stays specific to the backfill operation and cannot
 replace either of the two required controls above.
