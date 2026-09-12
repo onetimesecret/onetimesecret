@@ -191,21 +191,29 @@ following:
 
 OAuth `state` binds the callback to the browser's SSO initiation. The connect
 intent separately proves that the initiation was a **connect** operation for
-that specific account. The callback consumes the intent with an atomic
-`GETDEL`, compares it with the current session account ID, and loads the target
-account from the session rather than from the IdP-provided email.
+that specific account. The callback consumes the intent atomically (`GETDEL`,
+or GET+DEL in one transaction on older clients), compares it with the current
+session account ID, and loads the target account from the session rather than
+from the IdP-provided email.
 
 Tenant callbacks are refused instead:
 
 | Situation | Result |
 |-----------|--------|
-| Authenticated connect attempt on a tenant callback | `identity_connect_wrong_domain` |
+| Authenticated session with a valid connect intent, tenant callback | `identity_connect_wrong_domain` |
 | Unlinked tenant identity whose asserted email matches an existing account | `tenant_sso_link_unavailable` |
 
+The refused connect attempt has already consumed its `sso_connect_intent`. A
+logged-in tenant callback without a valid intent is logged
+`omniauth_connect_intent_absent` and takes the unauthenticated email branches
+instead, so it ends in JIT creation (still subject to
+`before_omniauth_create_account`) or the second row.
+
 The second message does not direct the user to Connected Identities because
-that path also refuses tenant callbacks. Until tenant linking is implemented,
-the account must first receive eligible tenant access through an accepted and
-active organization membership, or the user must contact support.
+that path also refuses tenant callbacks. Today no membership state changes
+either refusal; the user-facing copy points to an organization-owner invite or
+support. An accepted, active membership is the precondition the future tenant
+Connect SSO flow will require (below); it does not by itself link the identity.
 
 #### Requirements for authenticated tenant linking (#3849)
 
@@ -237,30 +245,84 @@ The second control prevents a platform session that happens to receive a valid
 tenant callback from gaining a tenant-issued credential. Callback-domain
 validation remains required, but it cannot substitute for session scoping.
 
-A future tenant Connect SSO flow must therefore fail closed in this order:
+A future tenant Connect SSO flow must therefore fail closed in this order. The
+phases match the platform connect path: the request phase
+(`omniauth_request_validation_phase` in `hooks/omniauth.rb`), then the
+callback route hook (`before_omniauth_callback_route`, owned by
+`hooks/omniauth_tenant.rb`), then `account_from_omniauth` in
+`hooks/omniauth.rb`.
 
-1. Require an authenticated, open account loaded from the session, never from
-   the SSO email claim.
-2. Require an explicit tenant Connect SSO initiation. `connect=1` must create
-   the existing short-lived, account-bound `sso_connect_intent`; an ordinary
-   SSO sign-in must not enter the connect path.
-3. Validate that the callback corresponds to the custom domain that initiated
-   it, enforce the tenant SSO policy, and retain that exact validated domain ID.
-4. Verify that the authenticated session is scoped to that same tenant surface.
-5. Load the validated `CustomDomain`, its owning organization, the session
-   account's `Customer`, and the customer's membership in that organization.
-6. Require both an active membership and
+1. **Request phase.** Require an explicit tenant Connect SSO initiation.
+   `connect=1` on an authenticated session writes the existing short-lived,
+   account-bound `sso_connect_intent`; any non-connect initiation deletes a
+   dangling one. An ordinary SSO sign-in must not enter the connect path.
+2. **Callback route hook** (`before_omniauth_callback_route`). Validate that
+   the callback corresponds to the custom domain that initiated it, enforce
+   the tenant SSO policy, and stamp `session[:validated_omniauth_domain_id]`.
+   This runs before account resolution.
+3. **Consume the intent first.** In `account_from_omniauth`, consume the
+   intent once (atomic `GETDEL`) and compare it with the current session
+   account ID, **before every gate below**. Only a present, matching intent
+   enters steps 4 to 9; an absent, expired, or mismatched intent is not a
+   connect at all and takes the existing non-connect path (logged
+   `omniauth_connect_intent_absent`), exactly as on the platform surface.
+   This is the order the platform path already uses: every refusal,
+   including the tenant refusal, burns the nonce, so a rejected tenant
+   connect can never leave an intent live for a later callback within its
+   TTL.
+4. Require an authenticated, open account loaded from the session
+   (`_account_from_session`), never from the SSO email claim.
+5. Verify that the authenticated session is scoped to that same tenant surface.
+6. Load the validated `CustomDomain`
+   (`CustomDomain.find_by_identifier(domain_id)`), its owning organization
+   (`custom_domain.primary_organization`), the session account's `Customer`
+   (`Customer.find_by_extid(account[:external_id])`), and the membership
+   (`OrganizationMembership.find_by_org_customer(organization.objid,
+   customer.objid)`). These are the lookups `hooks/login.rb`,
+   `Auth::Operations::JoinDomainOrganization` and
+   `Auth::Operations::BackfillTenantIssuer` already perform between them; do
+   not introduce a parallel lookup keyed on `org_id` or `custid`. Any nil in
+   that chain is a refusal; `can_access_domain?` already returns false for a
+   nil domain.
+7. Require both an active membership and
    `membership.can_access_domain?(custom_domain)`.
-7. Consume the connect intent once, require it to match the current session
-   account ID, and bind the new `(provider, issuer, uid)` identity only to that
-   account. Do not use the returned email to select the account.
-8. Log the successful connection. On any failed check, refuse without falling
-   back to email matching, a password interstitial, mailbox proof, or automatic
+8. Bind the new `(provider, issuer, uid)` identity only to the session account
+   and log the successful connection. Do not use the returned email to select
+   the account.
+9. On any failed check in steps 4 to 7, refuse without falling back to
+   email matching, a password interstitial, mailbox proof, or automatic
    `JoinDomainOrganization` membership creation.
+
+Every refusal after step 3 occurs after the intent has already been consumed;
+none of them may re-arm or preserve it.
+
+The server-side gates are necessary but not the only change. The Connected
+Identities panel (`src/apps/workspace/account/ConnectedIdentities.vue`) hides
+a provider whenever any existing identity's `provider` equals the provider's
+OmniAuth `route_name`, on the assumption that one route maps to one issuer.
+That holds on the platform surface but not on a tenant surface, where the
+tenant `oidc` provider resolves to a different issuer than a platform `oidc`
+identity. #3849 must make that dedup issuer-aware (the `GET /auth/identities`
+payload already returns `issuer` per row) or the tenant connect button will be
+absent for exactly the accounts this flow targets.
 
 The membership must exist before the bind. A successful tenant assertion must
 not create the membership that is then used to authorize attaching that same
 assertion as an account credential.
+
+The login completing a successful tenant connect still runs the `after_login`
+hook, which consumes `session[:validated_omniauth_domain_id]` and calls
+`Auth::Operations::JoinDomainOrganization` for any tenant login
+(`hooks/login.rb`). That operation checks only `organization.member?(customer)`,
+not `can_access_domain?`, so on this path it returns `already_member` without
+creating anything. It is not a substitute for the gate and must not be cited
+as a reason to remove it: the gate runs before the bind, the join runs after
+the login, and only the former authorizes the credential. Note that the
+`already_member` path still runs `adopt_domain_default_org`, which repoints
+`default_org_id` to the domain organization and archives a personal workspace,
+so a tenant connect on a pre-existing platform account may carry that side
+effect when the account still owns an unarchived personal default workspace
+and its `default_org_id` is either empty or points at that workspace.
 
 #### Why the domain scope matters
 
@@ -282,11 +344,28 @@ AND
 allowed to access the exact domain whose SSO issuer returned the identity
 ```
 
-`Auth::Operations::JoinDomainOrganization` produces this scope model: tenant
-SSO memberships are domain-scoped by default, while `grant_org_scope` creates
-an organization-scoped membership. `OrganizationMembership#can_access_domain?`
-evaluates both forms. `Auth::Operations::BackfillTenantIssuer` uses that method
-as an authorization gate before changing an identity row.
+`Auth::Operations::JoinDomainOrganization` produces this scope model for SSO
+joins but does not enforce it. A first tenant SSO login creates a membership
+scoped to that domain, unless the domain's `grant_org_scope` setting is on, in
+which case the membership is organization-scoped. Its existing-member
+short-circuit is `organization.member?(customer)`, the check the Acme example
+calls incorrect, so a member scoped to a sibling domain is neither re-scoped
+nor checked on a later SSO login through another domain of the same
+organization.
+
+Memberships created by an organization owner's invitation carry no
+`domain_scope_id` and are therefore organization-scoped: an invited account
+passes `can_access_domain?` for every custom domain the organization owns. An
+SSO join that finds a pending invitation for the same email activates that
+invitation and inherits its organization scope rather than the domain scope.
+The domain-scoped case in the Acme example arises from SSO joins, not from
+invitations.
+
+`OrganizationMembership#can_access_domain?` evaluates both forms and is
+already the enforcement primitive for domain resource access (the domains API,
+`OrganizationLoader`). On the identity side, only
+`Auth::Operations::BackfillTenantIssuer` currently uses it as an authorization
+gate before changing an identity row; the SSO join path does not.
 
 #### Why issuer backfill has an additional provenance gate
 

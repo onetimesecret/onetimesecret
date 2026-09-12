@@ -269,7 +269,7 @@ Refusing rather than falling back matters in the first row: a tenant admin contr
 
 #### Platform-only
 
-The panel connects identities on the **platform** surface only. Authenticated linking on a tenant (custom-domain) surface needs org-membership verification before a tenant-issuer identity may be bound to an account, and is a deliberate follow-up (#3849).
+The panel connects identities on the **platform** surface only. Authenticated linking on a tenant (custom-domain) surface is a deliberate follow-up (#3849) and requires two independent controls before a tenant-issuer identity may be bound to an account: an active organization membership that authorizes the exact custom domain (`OrganizationMembership#can_access_domain?`: organization-scoped, or scoped to that domain), and an authenticated session that is itself scoped to that tenant surface. Callback-domain validation (`session[:validated_omniauth_domain_id]`) is not a substitute for either. See [Requirements for authenticated tenant linking](per-domain-sso.md#requirements-for-authenticated-tenant-linking-3849).
 
 ### Sign-in interstitial (password-challenge linking)
 
