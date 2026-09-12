@@ -286,6 +286,11 @@ def build_generated_block(env_text):
             "shipped in. A variable with no such comment predates v0.24.0.",
             "`# Since unreleased` means it is merged but not yet in a tagged release.",
             "",
+            "The marker describes the variable; it is not part of the value. Remove it",
+            "when copying a line into an env file — `docker run --env-file` and",
+            "`docker compose --env-file` do not strip a trailing comment, so the marker",
+            "would end up inside the value.",
+            "",
         ]
 
     preamble = clean_preamble(preamble)
