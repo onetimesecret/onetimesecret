@@ -21,7 +21,7 @@ import os
 import subprocess
 import sys
 
-from cyclopts import App
+from cyclopts import App, CycloptsError
 
 from . import UsageError
 from . import annotate as _annotate
@@ -104,10 +104,22 @@ app.command(_docsgen.run, name="docs")
 
 
 def main(argv: list[str] | None = None) -> int:
+    # exit_on_error=False so a parse error raises instead of exiting 1 on its
+    # own. 1 is "drift" to every caller in this family, and CI runs
+    # `bin/envref check`: left alone, a typo in a workflow flag would be
+    # reported as config version drift rather than as a bad invocation, in the
+    # one guard whose value is that its failures mean what they say.
     try:
-        return app(argv)
+        return app(argv, exit_on_error=False)
     except UsageError as exc:
-        # argparse's parser.error exited 2; the documented contract says 2 is
-        # "bad input", and CI distinguishes it from 1 ("drift"), so it stays 2.
+        # Raised from inside a command body, so nothing has reported it yet.
+        # argparse's parser.error exited 2, and the contract says 2 is
+        # "bad input", so it stays 2.
         print(f"FAIL: {exc}", file=sys.stderr)
+        return 2
+    except CycloptsError:
+        # A parse error: an unknown option, a missing required argument, an
+        # unknown subcommand. Cyclopts has already rendered it in its own
+        # error panel, so saying it again would just double the message —
+        # only the exit code needs correcting.
         return 2

@@ -6,10 +6,13 @@ callers in CI and in another repository. These tests fail on a rename, which
 is the point — a rename should be a deliberate edit here too.
 """
 
+import contextlib
+import io
 import unittest
 from unittest import mock
 
 from envref import annotate, docsgen, versionmap
+from envref import cli
 from envref.cli import app
 from envref.paths import RootNotFound, sh_script
 
@@ -65,6 +68,36 @@ class CommandSurfaceTest(unittest.TestCase):
                     else:
                         result = module.run("/nonexistent/map.tsv")
                 self.assertEqual(result, expected)
+
+    def test_a_malformed_invocation_is_bad_input_not_drift(self):
+        """Exit 2, not 1, when the command line itself is wrong.
+
+        Caught in review. Cyclopts handles parse errors before main sees them
+        and exits 1 by default, and 1 is "drift" to every caller in this
+        family. CI runs `bin/envref check`, so a typo in a workflow flag would
+        have been reported as config version drift — a wrong answer from the
+        one guard whose whole value is that its failures mean what they say.
+        """
+        cases = (
+            (["resolve"], "required argument missing"),
+            (["check", "--nonsense"], "unknown option"),
+            (["annotate"], "required argument missing"),
+            (["nosuchcommand"], "unknown subcommand"),
+        )
+        for argv, why in cases:
+            with self.subTest(case=why):
+                buf = io.StringIO()
+                # Cyclopts renders its own error panel; this is about the code.
+                with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+                    result = cli.main(argv)
+                self.assertEqual(result, 2, f"{why} reported as drift")
+
+    def test_help_still_succeeds(self):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+            with self.assertRaises(SystemExit) as caught:
+                cli.main(["--help"])
+        self.assertEqual(caught.exception.code, 0)
 
     def test_help_text_exists_for_every_subcommand(self):
         """A subcommand with no help is undiscoverable through the one door."""
