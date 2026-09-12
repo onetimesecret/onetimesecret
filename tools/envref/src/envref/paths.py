@@ -23,8 +23,11 @@ import os
 import subprocess
 from pathlib import Path
 
-# src/envref/paths.py -> src/envref -> src -> envref -> tools -> repo root
-_PARENTS_TO_ROOT = 5
+# Indexes into Path(__file__).parents, where [0] is already this file's own
+# directory — counting hops from the file instead gives 5 and lands on the
+# repo's parent, which is the bug this constant shipped with:
+#   [0] src/envref  [1] src  [2] tools/envref  [3] tools  [4] repo root
+_PARENTS_TO_ROOT = 4
 
 
 class RootNotFound(RuntimeError):

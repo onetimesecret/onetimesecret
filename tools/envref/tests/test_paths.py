@@ -11,7 +11,9 @@ import os
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest import mock
 
+from envref import paths
 from envref.paths import RootNotFound, repo_root, sh_script
 
 
@@ -73,6 +75,41 @@ class EnvironmentRootTest(unittest.TestCase):
             resolved = repo_root()
             self.assertNotEqual(resolved, empty.resolve())
             self.assertTrue((resolved / ".env.reference").is_file())
+
+
+class PackageLocationFallbackTest(unittest.TestCase):
+    """The third tier, with the first two taken away.
+
+    Caught in review as an off-by-one: the constant counted hops from this
+    file rather than indexing `parents`, so it named the repo's parent. Every
+    test and every real invocation had either ENVREF_REPO_ROOT or a git
+    checkout to answer first, so the tier that was broken was the only one
+    nothing exercised. It is exercised now.
+    """
+
+    def setUp(self):
+        self.saved = os.environ.pop("ENVREF_REPO_ROOT", None)
+
+    def tearDown(self):
+        if self.saved is not None:
+            os.environ["ENVREF_REPO_ROOT"] = self.saved
+
+    def test_resolves_from_the_package_location_alone(self):
+        with mock.patch.object(paths, "_from_git", return_value=None):
+            resolved = paths.repo_root()
+        self.assertTrue((resolved / ".env.reference").is_file())
+        self.assertTrue((resolved / "etc" / "defaults").is_dir())
+
+    def test_the_constant_indexes_parents_rather_than_counting_hops(self):
+        """Pin the arithmetic directly, not just its effect.
+
+        The fallback test above would also pass if the constant were wrong and
+        some ancestor happened to look like a checkout. This asserts the index
+        lands on the directory that owns this package.
+        """
+        root = Path(paths.__file__).resolve().parents[paths._PARENTS_TO_ROOT]
+        self.assertTrue((root / "tools" / "envref" / "pyproject.toml").is_file())
+        self.assertTrue((root / "bin" / "envref").is_file())
 
 
 class BundledScriptTest(unittest.TestCase):
