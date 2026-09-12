@@ -101,6 +101,17 @@ Order matters — resolve, commit, then tag, so the tagged tree already says
 | `check-config-versions.sh` | CI ratchet: new keys need a marker, shipped markers are frozen, markers are well-formed, the lines declaring one YAML path agree, and an env key is marked on its active declaration rather than only on a commented twin. |
 | `generate-env-docs.py` | Generates the docs-site page from `.env.reference`. Its `--check` guard runs from the **docs** repo (`env-reference-drift.yml`, on docs PRs and nightly), not from this repo's CI — see the script header for why the dependency points that way. |
 
+[ADR-042](../adr/adr-042-repository-tooling-packages.md) names `tools/envref/`
+behind `bin/envref` as where application-coupled tooling of this size belongs,
+with `envref` owning the reference's release annotation format. These six
+scripts predate that decision by five weeks, are stdlib-only, and are wired
+into CI by path. Bringing them under `bin/envref` is a behaviour-preserving
+migration the ADR asks to be taken one domain at a time; it is not done. Two
+questions have to be answered when it is: whether the marker keeps this
+document's `# Since vX.Y.Z` spelling or takes the ADR's `As of x.y.z`, and
+where the `etc/defaults/*.yaml` half lives, since ADR-042 scopes `envref` to
+`.env.reference` and most of the machinery here is the YAML resolver.
+
 ## How versions were derived
 
 By scanning the tree of every stable release tag and taking the earliest release
