@@ -20,7 +20,7 @@ site:
   #   warn    - log loudly on mismatch, keep booting (default)
   #   enforce - refuse to boot on mismatch
   #   off     - skip the check (escape hatch for multi-tenant datastores)
-  secret_verifier_mode: <%= ENV['SECRET_VERIFIER_MODE'] || 'warn' %>
+  secret_verifier_mode: <%= ENV['SECRET_VERIFIER_MODE'] || 'warn' %>  # Since v0.26.0
   # Legal & policy URLs (first-class config, #4278)
   #
   # Single authority for every surface that links a legal document: the
@@ -38,10 +38,10 @@ site:
   legal:
     terms_url: <%= (v = ENV['TERMS_URL'].to_s).empty? ? nil : v.to_json %>
     privacy_url: <%= (v = ENV['PRIVACY_URL'].to_s).empty? ? nil : v.to_json %>
-    dpa_url: <%= (v = ENV['DPA_URL'].to_s).empty? ? nil : v.to_json %>
-    cookie_url: <%= (v = ENV['COOKIE_URL'].to_s).empty? ? nil : v.to_json %>
-    aup_url: <%= (v = ENV['AUP_URL'].to_s).empty? ? nil : v.to_json %>
-    security_url: <%= (v = ENV['SECURITY_URL'].to_s).empty? ? nil : v.to_json %>
+    dpa_url: <%= (v = ENV['DPA_URL'].to_s).empty? ? nil : v.to_json %>  # Since v0.26.8
+    cookie_url: <%= (v = ENV['COOKIE_URL'].to_s).empty? ? nil : v.to_json %>  # Since v0.26.8
+    aup_url: <%= (v = ENV['AUP_URL'].to_s).empty? ? nil : v.to_json %>  # Since v0.26.8
+    security_url: <%= (v = ENV['SECURITY_URL'].to_s).empty? ? nil : v.to_json %>  # Since v0.26.8
   # API and UI Configuration
   interface:
     ui:
@@ -289,7 +289,7 @@ site:
       maximum_length: <%= ENV['SECRET_MAX_LENGTH'] || 10000 %>  # Since v0.26.0
     # How long (in seconds) a generated password remains visible on the
     # receipt page after creation. Set to 0 to disable receipt-page display.
-    generated_value_display_ttl: <%= ENV['GENERATED_VALUE_DISPLAY_TTL'] || 60 %>
+    generated_value_display_ttl: <%= ENV['GENERATED_VALUE_DISPLAY_TTL'] || 60 %>  # Since v0.24.0
     # Rate limiting for ANONYMOUS secret creation (finding F-02). The
     # secret-creation path had no limiter on the modern API surface, leaving
     # unauthenticated, unthrottled creation: one Receipt + one Secret per request
@@ -305,18 +305,18 @@ site:
     # Enabled by default (protective); set SECRET_CREATE_RATE_LIMIT_ENABLED=false
     # to opt out. See lib/onetime/security/conceal_secret_rate_limiter.rb.
     create_rate_limit:
-      enabled: <%= ENV['SECRET_CREATE_RATE_LIMIT_ENABLED'] != 'false' %>
+      enabled: <%= ENV['SECRET_CREATE_RATE_LIMIT_ENABLED'] != 'false' %>  # Since v0.26.11
       # Anonymous creations permitted per window from a single masked client IP.
       # The bucket is a whole /24 (office, campus NAT), and behind an
       # unconfigured reverse proxy it is the entire deployment — so this is
       # deliberately loose (10x the signup/reset caps) because secret creation is
       # the core product action. Raise it for dense-NAT populations; a too-tight
       # value here is an outage of secret creation for a whole neighborhood.
-      max_per_ip: <%= ENV['SECRET_CREATE_RATE_LIMIT_MAX_PER_IP'] || 500 %>
+      max_per_ip: <%= ENV['SECRET_CREATE_RATE_LIMIT_MAX_PER_IP'] || 500 %>  # Since v0.26.11
       # Counting window in seconds (1 hour).
-      window: <%= ENV['SECRET_CREATE_RATE_LIMIT_WINDOW'] || 3600 %>
+      window: <%= ENV['SECRET_CREATE_RATE_LIMIT_WINDOW'] || 3600 %>  # Since v0.26.11
       # Lockout duration in seconds once the cap is hit (1 hour).
-      lockout: <%= ENV['SECRET_CREATE_RATE_LIMIT_LOCKOUT'] || 3600 %>
+      lockout: <%= ENV['SECRET_CREATE_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since v0.26.11
     # Settings for password generation (when users click "Generate Password")
     password_generation:
       # Default length for generated passwords
@@ -465,11 +465,11 @@ site:
     # production. Anything not on the list (including staging, empty, and
     # typos) leaves the key absent and lets the runtime fallback decide.
     <% if %w[true false].include?(ENV['SESSION_COOKIE_SECURE'].to_s) %>
-    secure: <%= ENV['SESSION_COOKIE_SECURE'] %>
+    secure: <%= ENV['SESSION_COOKIE_SECURE'] %>  # Since v0.24.0
     <% elsif ENV['SSL'] == 'true' %>
-    secure: true
+    secure: true  # Since v0.24.0
     <% elsif ENV['SSL'] == 'false' && %w[dev development test testing].include?(ENV['RACK_ENV'].to_s.downcase) %>
-    secure: false
+    secure: false  # Since v0.24.0
     <% end %>
     # SameSite cookie attribute (strict|lax|none)
     # Required for Stripe/OAuth redirects - 'strict' blocks cookies on cross-site GET navigations
@@ -663,7 +663,7 @@ site:
       # Forwarded: with `mode: filter`, any value here other than
       # X-Forwarded-For FAILS THE BOOT with a message naming both keys.
       # Leave it at the default (or unset) unless mode is depth.
-      header: <%= ENV['TRUSTED_PROXY_HEADER'] || 'X-Forwarded-For' %>
+      header: <%= ENV['TRUSTED_PROXY_HEADER'] || 'X-Forwarded-For' %>  # Since v0.25.5
 
       # Filter mode only: Additional CIDR ranges to trust as proxies
       # beyond RFC1918 defaults. Use when your CDN or proxy has public IPs.
@@ -768,9 +768,9 @@ site:
     #     be probed there, so every account is treated as password-holding), so
     #     reauth_grace has NO effect for a full-mode SSO-only fleet.
     elevation:
-      enabled: <%= ENV['COLONEL_ELEVATION_ENABLED'] != 'false' %>
-      window: <%= ENV['COLONEL_ELEVATION_WINDOW'] || 600 %>
-      reauth_grace: <%= ENV['COLONEL_ELEVATION_REAUTH_GRACE'] || 0 %>
+      enabled: <%= ENV['COLONEL_ELEVATION_ENABLED'] != 'false' %>  # Since v0.26.11
+      window: <%= ENV['COLONEL_ELEVATION_WINDOW'] || 600 %>  # Since v0.26.11
+      reauth_grace: <%= ENV['COLONEL_ELEVATION_REAUTH_GRACE'] || 0 %>  # Since v0.26.11
 
     # Rate limits for the colonel API surface (#4327 ships the elevation bucket;
     # #4329 adds the mutation / destructive / handle-resolve buckets). Keyed on
@@ -817,27 +817,27 @@ site:
     #                               — the console fetches them, and a limiter
     #                               there would break the dashboard.
     rate_limit:
-      enabled: <%= ENV['COLONEL_RATE_LIMIT_ENABLED'] != 'false' %>
+      enabled: <%= ENV['COLONEL_RATE_LIMIT_ENABLED'] != 'false' %>  # Since v0.26.11
       elevation:
-        enabled: <%= ENV['COLONEL_ELEVATION_RATE_LIMIT_ENABLED'] != 'false' %>
-        max_attempts: <%= ENV['COLONEL_ELEVATION_MAX_ATTEMPTS'] || 5 %>
-        window: <%= ENV['COLONEL_ELEVATION_RATE_WINDOW'] || 900 %>
-        lockout: <%= ENV['COLONEL_ELEVATION_LOCKOUT'] || 900 %>
+        enabled: <%= ENV['COLONEL_ELEVATION_RATE_LIMIT_ENABLED'] != 'false' %>  # Since v0.26.11
+        max_attempts: <%= ENV['COLONEL_ELEVATION_MAX_ATTEMPTS'] || 5 %>  # Since v0.26.11
+        window: <%= ENV['COLONEL_ELEVATION_RATE_WINDOW'] || 900 %>  # Since v0.26.11
+        lockout: <%= ENV['COLONEL_ELEVATION_LOCKOUT'] || 900 %>  # Since v0.26.11
       mutation:
-        enabled: <%= ENV['COLONEL_MUTATION_RATE_LIMIT_ENABLED'] != 'false' %>
-        max_attempts: <%= ENV['COLONEL_MUTATION_MAX_ATTEMPTS'] || 120 %>
-        window: <%= ENV['COLONEL_MUTATION_RATE_WINDOW'] || 300 %>
-        lockout: <%= ENV['COLONEL_MUTATION_LOCKOUT'] || 300 %>
+        enabled: <%= ENV['COLONEL_MUTATION_RATE_LIMIT_ENABLED'] != 'false' %>  # Since v0.26.11
+        max_attempts: <%= ENV['COLONEL_MUTATION_MAX_ATTEMPTS'] || 120 %>  # Since v0.26.11
+        window: <%= ENV['COLONEL_MUTATION_RATE_WINDOW'] || 300 %>  # Since v0.26.11
+        lockout: <%= ENV['COLONEL_MUTATION_LOCKOUT'] || 300 %>  # Since v0.26.11
       destructive:
-        enabled: <%= ENV['COLONEL_DESTRUCTIVE_RATE_LIMIT_ENABLED'] != 'false' %>
-        max_attempts: <%= ENV['COLONEL_DESTRUCTIVE_MAX_ATTEMPTS'] || 10 %>
-        window: <%= ENV['COLONEL_DESTRUCTIVE_RATE_WINDOW'] || 300 %>
-        lockout: <%= ENV['COLONEL_DESTRUCTIVE_LOCKOUT'] || 900 %>
+        enabled: <%= ENV['COLONEL_DESTRUCTIVE_RATE_LIMIT_ENABLED'] != 'false' %>  # Since v0.26.11
+        max_attempts: <%= ENV['COLONEL_DESTRUCTIVE_MAX_ATTEMPTS'] || 10 %>  # Since v0.26.11
+        window: <%= ENV['COLONEL_DESTRUCTIVE_RATE_WINDOW'] || 300 %>  # Since v0.26.11
+        lockout: <%= ENV['COLONEL_DESTRUCTIVE_LOCKOUT'] || 900 %>  # Since v0.26.11
       handle_resolve:
-        enabled: <%= ENV['COLONEL_HANDLE_RESOLVE_RATE_LIMIT_ENABLED'] != 'false' %>
-        max_attempts: <%= ENV['COLONEL_HANDLE_RESOLVE_MAX_ATTEMPTS'] || 60 %>
-        window: <%= ENV['COLONEL_HANDLE_RESOLVE_RATE_WINDOW'] || 300 %>
-        lockout: <%= ENV['COLONEL_HANDLE_RESOLVE_LOCKOUT'] || 300 %>
+        enabled: <%= ENV['COLONEL_HANDLE_RESOLVE_RATE_LIMIT_ENABLED'] != 'false' %>  # Since v0.26.11
+        max_attempts: <%= ENV['COLONEL_HANDLE_RESOLVE_MAX_ATTEMPTS'] || 60 %>  # Since v0.26.11
+        window: <%= ENV['COLONEL_HANDLE_RESOLVE_RATE_WINDOW'] || 300 %>  # Since v0.26.11
+        lockout: <%= ENV['COLONEL_HANDLE_RESOLVE_LOCKOUT'] || 300 %>  # Since v0.26.11
 
     # Session bounds for the ADMIN API SURFACE (/api/colonel) only (#4331).
     #
@@ -869,9 +869,9 @@ site:
     #   password change re-stamps.
     # Set either to 0 to disable that bound. enabled:false disables both.
     session:
-      enabled: <%= ENV['ADMIN_SESSION_LIFETIME_ENABLED'] != 'false' %>
-      idle_timeout: <%= ENV['ADMIN_SESSION_IDLE_TIMEOUT'] || 3600 %>
-      absolute_timeout: <%= ENV['ADMIN_SESSION_ABSOLUTE_TIMEOUT'] || 43200 %>
+      enabled: <%= ENV['ADMIN_SESSION_LIFETIME_ENABLED'] != 'false' %>  # Since v0.26.11
+      idle_timeout: <%= ENV['ADMIN_SESSION_IDLE_TIMEOUT'] || 3600 %>  # Since v0.26.11
+      absolute_timeout: <%= ENV['ADMIN_SESSION_ABSOLUTE_TIMEOUT'] || 43200 %>  # Since v0.26.11
 
     # Which HOSTNAMES serve the Colonel admin surfaces (/colonel shell and
     # /api/colonel API). A request whose validated detected host is not on this
@@ -984,7 +984,7 @@ site:
     # console links to it when it is not the session authority). Unset means
     # those links render as plain text. Mirrors COLONEL_CONSOLE_URL on the
     # admin side. Example: http://127.0.0.1:9292 (reached over an SSH tunnel).
-    rodauth_admin_url: <%= ENV['RODAUTH_ADMIN_URL']&.to_json %>
+    rodauth_admin_url: <%= ENV['RODAUTH_ADMIN_URL']&.to_json %>  # Since v0.26.12
 
   # Brand pack selection (#3739, v2 #3774). A brand pack is the single unit of
   # branding: a directory of root-served assets (favicon.ico, icon-*.png,

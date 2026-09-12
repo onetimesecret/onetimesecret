@@ -101,7 +101,7 @@ loggers:
 audit:
   syslog:
     # LOG_AUDIT_SYSLOG=true to enable.
-    enabled: <%= ENV['LOG_AUDIT_SYSLOG'] == 'true' %>
+    enabled: <%= ENV['LOG_AUDIT_SYSLOG'] == 'true' %>  # Since v0.26.11
     # protocol://host:port — 'syslog://localhost' writes to the LOCAL syslog
     # daemon and needs nothing extra. 'tcp://loghost:514' / 'udp://loghost:514'
     # ship to a REMOTE syslog server, which SemanticLogger implements with the
@@ -109,13 +109,13 @@ audit:
     # neither is bundled here, so a remote URL needs them added to the Gemfile.
     # Without them the appender is skipped with one warning at boot and the
     # audit stream still reaches stdout — it is never silently dropped.
-    url: <%= ENV['LOG_AUDIT_SYSLOG_URL'] || 'syslog://localhost' %>
+    url: <%= ENV['LOG_AUDIT_SYSLOG_URL'] || 'syslog://localhost' %>  # Since v0.26.11
     # Appender-level floor. Leave at info: the sink emits at info.
-    level: <%= ENV['LOG_AUDIT_SYSLOG_LEVEL'] || 'info' %>
+    level: <%= ENV['LOG_AUDIT_SYSLOG_LEVEL'] || 'info' %>  # Since v0.26.11
     # Syslog facility name (local0..local7, user, daemon, …). Operators
     # usually give the audit stream its own facility so rsyslog/journald can
     # route it to a dedicated file or forwarder.
-    facility: <%= ENV['LOG_AUDIT_SYSLOG_FACILITY'] || 'local0' %>
+    facility: <%= ENV['LOG_AUDIT_SYSLOG_FACILITY'] || 'local0' %>  # Since v0.26.11
 
 # HTTP request logging configuration
 http:

@@ -124,6 +124,15 @@ scripts/config-version-archaeology.sh SOME_KEY
   sequence entry has no stable dotted path (two sibling `- name:` entries
   collide), so those subtrees are skipped. A new setting added inside an
   existing list entry passes unannotated.
+- **A key emitted by several mutually exclusive ERB branches is hand-marked.**
+  `site.session.secure` is written by three `<% if %>/<% elsif %>` branches,
+  so its dotted path resolves to three lines and the map generator refuses to
+  guess which one declares it (`dotted path is not unique in the file`). All
+  three carry `# Since v0.24.0` — the release the *setting* first shipped in,
+  not the release each branch was added — because a bare line would read as
+  "predates v0.24.0", which is false. These markers are outside the map, so
+  `--check` does not verify them; a future branch added to that block needs
+  the marker copied by hand.
 - **The ratchet needs the base branch fetched.** CI sets
   `CONFIG_VERSION_REQUIRE_BASE=1` so a missing base fails loudly rather than
   silently degrading to a syntax-only check. Locally it prints a NOTE.
