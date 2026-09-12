@@ -234,12 +234,37 @@ may be inferred from the IdP's email claim.
    membership scoped to another domain in the same organization must fail.
 
 2. **Tenant-surface-scoped session authority.** The authenticated session must
-   itself be established or explicitly authorized for the same tenant surface.
-   The current application has no tenant-scoped session concept. In particular,
-   `logged_in?` plus `session[:validated_omniauth_domain_id]` is insufficient:
-   the first proves that some account is signed in, while the second validates
-   the SSO callback's domain. Neither proves that the existing account session
-   belongs to that tenant surface.
+   itself be established on the same tenant surface, and the account holder
+   must have re-authenticated there recently. `logged_in?` plus
+   `session[:validated_omniauth_domain_id]` is insufficient: the first proves
+   that some account is signed in, while the second validates the SSO
+   callback's domain. Neither proves that the existing account session belongs
+   to that tenant surface.
+
+   **Decision (2026-09-12).** This control is the standard pair of a host-bound
+   session and a fresh authentication before a credential change; no new
+   session model is needed.
+
+   - *Host-bound session.* The session cookie carries no `Domain` attribute
+     (`lib/onetime/application/middleware_stack.rb`), so the browser already
+     scopes it to the host that set it. The application must make that
+     property its own: at login, record the establishing surface in the
+     session (the validated custom-domain ID for a tenant login, `nil` for the
+     canonical host), and treat a request whose resolved display domain does
+     not match that record as unauthenticated. The connect gate then requires
+     the recorded surface to equal the callback's validated domain ID.
+   - *Recent re-authentication.* Adding a login method is a credential change.
+     Before the tenant Connect SSO intent is created, the account holder must
+     have authenticated on that host with an existing account credential
+     (password, WebAuthn, or email auth) within a short window. Rodauth's
+     `password_grace_period` and `confirm_password` features are the
+     conventional primitives; neither is enabled today. A session restored by
+     the `remember` feature does not satisfy the check. The platform connect
+     path should adopt the same requirement.
+
+   The re-authentication is performed with the account's existing credential,
+   never with the tenant IdP, so a tenant administrator cannot satisfy it by
+   minting an assertion.
 
 The second control prevents a platform session that happens to receive a valid
 tenant callback from gaining a tenant-issued credential. Callback-domain
@@ -272,7 +297,9 @@ callback route hook (`before_omniauth_callback_route`, owned by
    TTL.
 4. Require an authenticated, open account loaded from the session
    (`_account_from_session`), never from the SSO email claim.
-5. Verify that the authenticated session is scoped to that same tenant surface.
+5. Verify that the authenticated session is scoped to that same tenant
+   surface: the surface recorded at login equals the validated domain ID, and
+   a recent re-authentication on that host is on record.
 6. Load the validated `CustomDomain`
    (`CustomDomain.find_by_identifier(domain_id)`), its owning organization
    (`custom_domain.primary_organization`), the session account's `Customer`
@@ -302,8 +329,11 @@ a provider whenever any existing identity's `provider` equals the provider's
 OmniAuth `route_name`, on the assumption that one route maps to one issuer.
 That holds on the platform surface but not on a tenant surface, where the
 tenant `oidc` provider resolves to a different issuer than a platform `oidc`
-identity. #3849 must make that dedup issuer-aware (the `GET /auth/identities`
-payload already returns `issuer` per row) or the tenant connect button will be
+identity. **Decision (2026-09-12):** identities are keyed on
+`(provider, issuer, uid)`, so the panel hides a provider only when an existing
+identity has both the same `route_name` and the same issuer as the provider
+resolved for the current surface. The `GET /auth/identities` payload already
+returns `issuer` per row. Without this change the tenant connect button is
 absent for exactly the accounts this flow targets.
 
 The membership must exist before the bind. A successful tenant assertion must
@@ -383,12 +413,14 @@ operation changes the row.
 
 A fresh tenant connect receives an issuer-specific identity from the validated
 callback and binds it to a session-selected account, so it does not have the
-same legacy-row ambiguity. The current #3849 acceptance criteria require
-verified domain membership and a tenant-surface-scoped session; they do not yet
-make `signup_domain_id` a requirement for new connections. That must remain an
-explicit product-policy decision rather than being inherited automatically
-from the backfill operation. It also cannot replace either of the two required
-controls above.
+same legacy-row ambiguity. **Decision (2026-09-12):** `signup_domain_id` is
+not a requirement for new tenant connections. Authority to add a credential
+comes from the account holder's authenticated, recently re-authenticated
+session plus the domain-scoped membership; where the account originally signed
+up is irrelevant to either, and requiring it would refuse legitimate cases such
+as an employee whose platform account predates the tenant, with no security
+gain. The provenance check stays specific to the backfill operation and cannot
+replace either of the two required controls above.
 
 Until #3849 implements both controls and their failure cases,
 `apps/web/auth/config/hooks/omniauth.rb` deliberately refuses tenant connects.
