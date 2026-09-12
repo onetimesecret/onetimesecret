@@ -616,6 +616,10 @@ curl https://your-issuer/.well-known/openid-configuration
 
 Check logs for errors in `after_omniauth_create_account`. Ensure Redis/Valkey is accessible for Customer creation.
 
+### SSO user's colonel/admin role has no effect
+
+Customers provisioned via SSO before v0.26.5 were left unverified in Redis, and system roles require `verified?`. See [runbooks/sso-accounts-unverified.md](../runbooks/sso-accounts-unverified.md) for the `bin/ots customers doctor --all --repair` procedure. (#3973)
+
 ### CSRF error on callback
 
 If you see `encoded token is not a string`: the CSRF bypass for SSO routes is misconfigured. Check that `lib/onetime/middleware/security.rb` skips `/auth/sso/*` and that the `omniauth_request_validation_phase` hook is empty in `hooks/omniauth.rb`.
