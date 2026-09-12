@@ -294,9 +294,26 @@ check_file() {
   # right, so `...  # Since v1.2.3  # Since v1.2.4` satisfies it via the last
   # marker and would otherwise sail through — while the two tools that read
   # markers disagree about which version the line means.
+  #
+  # Counted with MARKER_LOOSE_RE, not by splitting on the literal `# Since`.
+  # A literal split is case-sensitive, which left the two halves of this rule
+  # with complementary blind spots that intersect on one real line shape:
+  #
+  #     #NEW_KEY=1  # since unreleased  # Since unreleased
+  #
+  # The malformed check above drops that line because the TRAILING marker
+  # satisfies the right-anchored recognizer; a literal split finds only one
+  # `# Since` and never fires either. Both tools that read markers would then
+  # disagree with the file, and resolve-unreleased-versions.sh would rewrite
+  # only the trailing one at release — publishing a line that makes two
+  # contradictory version claims. Reusing MARKER_LOOSE_RE also keeps this from
+  # becoming yet another hand-spelled copy of the recognizer.
   { grep -nE "$decl_re" "$path" || true; } \
-    | awk -F'# Since' -v file="$path" 'NF > 2 {
-        split($0, f, ":"); printf "%s|%s|%s\n", file, f[1], substr($0, length(f[1]) + 2)
+    | awk -v file="$path" -v loose="$MARKER_LOOSE_RE" '{
+        probe = $0
+        if (gsub(loose, "&", probe) > 1) {
+          split($0, f, ":"); printf "%s|%s|%s\n", file, f[1], substr($0, length(f[1]) + 2)
+        }
       }' >> "$tmp/fail_malformed"
 
   # --- Rule 4: every line that declares one YAML path agrees on its marker.
@@ -437,6 +454,12 @@ if [[ -s "$tmp/fail_new" ]]; then
     echo "Use the literal word 'unreleased', not a version number: the release"
     echo "process rewrites it to the version actually being cut. The marker goes on"
     echo "the key's own line, never on a preceding comment line."
+    echo ""
+    echo "If you MOVED or renamed one of these keys rather than adding it, copy its"
+    echo "existing marker across instead. A key is 'new' here whenever its name or"
+    echo "its dotted path is not on the base branch, so renaming a parent makes"
+    echo "every child below it look new — and 'unreleased' on a setting that"
+    echo "shipped three releases ago is frozen by rule 2 at the next release."
   } >&2
   failed=1
 fi
