@@ -2,7 +2,7 @@
 #
 # Cheap (grep/sed-only, seconds) drift guards that must run on every PR
 # (install-onboarding C9). They also run inside validate-config.yml, but that
-# workflow is workflow_dispatch-only — these two checks are the ratchets that
+# workflow is workflow_dispatch-only — these four checks are the ratchets that
 # keep manifests honest, so they get an always-on lane:
 #
 #   check-version-pins.sh    Docker image tags + devcontainer toolchain match
@@ -13,6 +13,10 @@
 #                            in that workflow's header comment, or explicitly
 #                            ignored (CI secrets are a separate surface from
 #                            .env.reference — see scripts/check-ci-secrets.sh)
+#   check-config-versions.sh every new key in .env.reference and
+#                            etc/defaults/*.yaml carries a "# Since" marker,
+#                            and markers already on the PR's base branch are
+#                            unchanged
 #
 # No path filter: check-env-reference.sh scans ENV reads across lib/, apps/,
 # etc/ — nearly any code change can introduce a new variable, and the whole
@@ -29,12 +33,18 @@ permissions:
 
 jobs:
   drift-guards:
-    name: version pins + env reference
+    name: version pins + env reference + CI secrets + config versions
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - name: Checkout repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          # check-config-versions.sh compares against the merge-base with the
+          # PR's base branch. The default shallow checkout has neither the base
+          # branch nor enough history to find a merge-base, and the guard would
+          # quietly fall back to syntax-only checking.
+          fetch-depth: 0
 
       - name: Assert Docker/devcontainer tags match version pin files
         run: bash scripts/check-version-pins.sh
@@ -44,3 +54,11 @@ jobs:
 
       - name: Assert workflow headers document every consumed CI secret
         run: bash scripts/check-ci-secrets.sh
+
+      - name: Assert config keys carry immutable "# Since" version markers
+        env:
+          # Refuse to pass on a missing base ref rather than degrading to a
+          # syntax-only check: a ratchet that silently stops ratcheting is
+          # worse than one that fails loudly.
+          CONFIG_VERSION_REQUIRE_BASE: '1'
+        run: bash scripts/check-config-versions.sh
