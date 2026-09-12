@@ -84,7 +84,7 @@ jobs:
       # path filter would skip it exactly when an unrelated change breaks the
       # contract, and it costs milliseconds in an environment already built.
       - name: Run the envref test suite
-        run: uv run --project tools/envref python -m unittest discover -s tools/envref/tests
+        run: uv run --locked --project tools/envref python -m unittest discover -s tools/envref/tests
 
       - name: Assert config keys carry immutable "# Since" version markers
         env:

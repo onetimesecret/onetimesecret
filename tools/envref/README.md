@@ -24,10 +24,17 @@ bin/envref resolve v0.26.4             # release step, before tagging
 ```
 
 `bin/envref` is the only supported entry point (ADR-042). It finds the
-checkout, exports `ENVREF_REPO_ROOT`, and starts this package through uv,
-which resolves `uv.lock` — so CI and a laptop run the same versions. There is
-no bare-`python3` fallback on purpose: a shim that bypasses its managed
+checkout, exports `ENVREF_REPO_ROOT`, and starts this package through
+`uv run --locked` — so CI and a laptop run the same versions. The `--locked`
+is what makes that a guarantee rather than a habit: plain `uv run` silently
+re-resolves and rewrites `uv.lock` when `pyproject.toml` has moved on, so a
+dependency edit without a re-lock would quietly change what everyone runs.
+With it, that divergence is an error naming the fix. There is no
+bare-`python3` fallback on purpose either: a shim that bypasses its managed
 environment is the drift ADR-042 exists to prevent.
+
+If `bin/envref` fails with "The lockfile at `uv.lock` needs to be updated",
+run `uv lock --project tools/envref` and commit the result.
 
 ## Layout
 
@@ -58,7 +65,7 @@ is allowed to be polyglot behind one entry point.
 ## Tests
 
 ```bash
-uv run --project tools/envref python -m unittest discover -s tools/envref/tests
+uv run --locked --project tools/envref python -m unittest discover -s tools/envref/tests
 ```
 
 They run on every PR inside `drift-guards.yml`, in the environment that job

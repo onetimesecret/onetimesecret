@@ -940,3 +940,11 @@ def run(
         # markers for the sites that survived and report success.
         log(f"FAIL: {exc}")
         return 1
+    except RootNotFound as exc:
+        # _generate resolves the checkout before doing any work, so this is
+        # reachable and was previously a traceback — the one command on the
+        # surface that answered a missing checkout differently from the rest.
+        # 1, not 2: this module documents 1 as "unusable input", alongside a
+        # shallow clone and a missing env-versions.tsv.
+        log(f"FAIL: {exc}")
+        return 1

@@ -109,10 +109,13 @@ and three shell scripts under `sh/` that are unchanged from when they lived in
 rewrite rather than a migration, and a tool package is allowed to be polyglot
 behind one entry point.
 
-`bin/envref` starts the package through uv, which resolves
-`tools/envref/uv.lock`, so CI and a laptop run the same versions. There is
-deliberately no bare-`python3` fallback: a shim that bypasses its managed
-environment is the drift ADR-042 exists to prevent.
+`bin/envref` starts the package with `uv run --locked`, which resolves
+`tools/envref/uv.lock`, so CI and a laptop run the same versions. The
+`--locked` is load-bearing: plain `uv run` silently re-resolves and rewrites
+the lockfile when `pyproject.toml` has moved on, which would make that
+sentence true only until someone edited a dependency without re-locking.
+There is deliberately no bare-`python3` fallback either: a shim that bypasses
+its managed environment is the drift ADR-042 exists to prevent.
 
 Two things ADR-042 asks for are interpreted rather than implemented literally,
 and both are flagged in `tools/envref/README.md`: the annotation format keeps

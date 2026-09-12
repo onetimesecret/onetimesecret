@@ -28,4 +28,8 @@ MSG
   exit 2
 fi
 
-exec uv run --project "$REPO_ROOT/tools/envref" --quiet envref "$@"
+# --locked, not plain `uv run`: without it uv silently re-resolves and
+# rewrites uv.lock when pyproject.toml has moved on, so the "everyone runs the
+# same versions" claim above would hold only until someone edited a dependency
+# and forgot to re-lock. With it, that divergence is an error naming the fix.
+exec uv run --locked --project "$REPO_ROOT/tools/envref" --quiet envref "$@"
