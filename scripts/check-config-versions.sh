@@ -57,7 +57,16 @@ MARKER_RE='[[:blank:]]+# Since (v[0-9]+\.[0-9]+\.[0-9]+|unreleased)[[:blank:]]*$
 # "Someone tried to write a marker": a trailing comment that opens with
 # since/Since. Anything matching this but not MARKER_RE is a typo, not prose —
 # real English comments read "# kept since v1", never "#Since ...".
-MARKER_LOOSE_RE='#[[:blank:]]*[Ss][Ii][Nn][Cc][Ee]([[:blank:]]|$)'
+#
+# The leading blank is required, exactly as MARKER_RE requires it and exactly
+# as LOOSE_SINCE_RE in annotate-config-versions.py requires it. Without it the
+# hash does not have to open a comment at all, so a value containing #since —
+# a URL fragment is the shape that occurs — reads as a marker attempt. That
+# costs a false positive on a WELL-FORMED line: the one-marker-per-line rule
+# below counts the fragment and the real marker as two, and rejects a line
+# whose marker is perfectly good. A near-miss marker always has a blank before
+# its hash, so demanding one loses no typo this is here to catch.
+MARKER_LOOSE_RE='[[:blank:]]#[[:blank:]]*[Ss][Ii][Nn][Cc][Ee]([[:blank:]]|$)'
 
 # Key-declaration lines — the only place a marker is allowed to live.
 ENV_DECL_RE='^#?[A-Z][A-Z0-9_]+='

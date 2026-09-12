@@ -32,6 +32,14 @@ The recognizer — the only pattern any tool may use:
 
 One marker per line, and no text after it.
 
+The leading blank is part of the recognizer, not decoration, and the tools that
+hunt for a *near-miss* marker — a typo worth reporting rather than silently
+ignoring — must require it too. Without it a `#` sitting inside a value reads as
+an attempt at a marker: a URL fragment such as `.../changelog#since` then makes
+a perfectly well-formed line look like it carries two markers, and the
+one-marker rule rejects it. A real near-miss always has a blank before its hash,
+so requiring one costs no detection.
+
 ## Policy
 
 **Baseline v0.24.0.** Only keys first released in v0.24.0 or later are
