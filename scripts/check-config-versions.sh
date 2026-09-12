@@ -77,6 +77,7 @@ trap 'rm -rf "$tmp"' EXIT
 : > "$tmp/fail_changed"    # <file>|<key>|<base_version>|<worktree_marker>
 : > "$tmp/fail_malformed"  # <file>|<lineno>|<line>
 : > "$tmp/fail_disagree"   # <file>|<path>|<version_a>|<version_b>
+: > "$tmp/fail_hidden"     # <file>|<key>|<lineno of the bare active line>
 : > "$tmp/note_versioned"  # <file>|<key>|<version>
 
 sites_total=0
@@ -321,6 +322,29 @@ check_file() {
       }' "$head" >> "$tmp/fail_disagree"
   fi
 
+  # --- Rule 5: an env key whose marker sits only on its commented twin.
+  # The active, uncommented line is the declaration site — annotate-config-
+  # versions.py resolves a key with several matches to exactly that line. A
+  # marker on the commented DEVELOPMENT ONLY override instead leaves the real
+  # declaration reading as "predates v0.24.0", and rule 2 cannot see the move:
+  # it matches key/version PAIRS anywhere in the file, so deleting the marker
+  # from line 1910 and appending it to line 2312 keeps the pair present and
+  # passes. Rule 4 closes this for YAML by requiring the declarations to agree;
+  # env files cannot use that rule, because a bare commented twin is their
+  # normal state. This is the env-shaped half of the same hole.
+  if [[ "$kind" == "env" ]]; then
+    { grep -vE ' - [01]$' "$head" || true; } | cut -d' ' -f1 | sort -u > "$tmp/env.marked"
+    { grep -nE '^[A-Z][A-Z0-9_]+=' "$path" || true; } \
+      | { grep -vE "$MARKER_RE" || true; } \
+      | sed -E 's#^([0-9]+):([A-Z][A-Z0-9_]*)=.*$#\2 \1#' | sort -u > "$tmp/env.activebare"
+    cut -d' ' -f1 "$tmp/env.activebare" | sort -u > "$tmp/env.activebare.keys"
+    comm -12 "$tmp/env.marked" "$tmp/env.activebare.keys" > "$tmp/env.hidden"
+    if [[ -s "$tmp/env.hidden" ]]; then
+      join "$tmp/env.hidden" "$tmp/env.activebare" \
+        | sed -E "s#^([^ ]+) (.*)\$#${path}|\1|\2#" >> "$tmp/fail_hidden"
+    fi
+  fi
+
   [[ -n "$BASE_REF" ]] || return 0
 
   if git show "$BASE_REF:$path" > "$tmp/base.file" 2>/dev/null; then
@@ -476,6 +500,22 @@ if [[ -s "$tmp/fail_disagree" ]]; then
     echo "carry the same marker. A bare line among them is not a missing marker, it is"
     echo "a different claim: it reads as 'predates v0.24.0'. Copy the marker onto the"
     echo "branch that lacks it."
+  } >&2
+  failed=1
+fi
+
+if [[ -s "$tmp/fail_hidden" ]]; then
+  if [[ $failed -eq 1 ]]; then echo "" >&2; fi
+  {
+    echo "FAIL: $(wc -l < "$tmp/fail_hidden" | tr -d ' ') key(s) marked only on a commented declaration:"
+    while IFS='|' read -r f k ln; do
+      echo "  $f:$ln:  $k is marked elsewhere, but this active declaration is bare"
+    done < "$tmp/fail_hidden"
+    echo ""
+    echo "The uncommented line is the declaration site — it is what a reader sees and"
+    echo "what the annotator marks. A marker on the commented DEVELOPMENT ONLY twin"
+    echo "instead leaves the real declaration claiming it predates v0.24.0. Move the"
+    echo "marker back onto the active line."
   } >&2
   failed=1
 fi

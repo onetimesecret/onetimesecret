@@ -90,7 +90,7 @@ Order matters — resolve, commit, then tag, so the tagged tree already says
 | `config-yaml-version-map.py` | Resolves YAML settings, inheriting the version of the env var each one reads. |
 | `annotate-config-versions.py` | Applies markers. Idempotent; refuses to re-date an existing marker, and `--force` widens that only to `unreleased` -> a release. |
 | `resolve-unreleased-versions.sh` | Rewrites `unreleased` to the version being cut. |
-| `check-config-versions.sh` | CI ratchet: new keys need a marker, shipped markers are frozen, markers are well-formed, and the lines declaring one YAML path agree. |
+| `check-config-versions.sh` | CI ratchet: new keys need a marker, shipped markers are frozen, markers are well-formed, the lines declaring one YAML path agree, and an env key is marked on its active declaration rather than only on a commented twin. |
 | `generate-env-docs.py` | Generates the docs-site page from `.env.reference`. Its `--check` guard runs from the **docs** repo (`env-reference-drift.yml`, on docs PRs and nightly), not from this repo's CI — see the script header for why the dependency points that way. |
 
 ## How versions were derived

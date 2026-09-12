@@ -53,12 +53,18 @@ if git rev-parse -q --verify "refs/tags/$VERSION" >/dev/null 2>&1; then
   exit 1
 fi
 
-TARGETS=(
-  .env.reference
-  etc/defaults/config.defaults.yaml
-  etc/defaults/auth.defaults.yaml
-  etc/defaults/logging.defaults.yaml
-)
+# Discovered, not listed — the same glob scripts/check-config-versions.sh uses.
+# A hardcoded list silently diverges the moment a defaults file is added: the
+# ratchet would see the new file, treat every key in it as new and require
+# `# Since unreleased` on each, and then this script would skip the file at
+# release time and still report PASS. The tag would ship a whole config file
+# claiming "arrives in the next release", and nothing would ever correct it —
+# rule 2 freezes concrete versions only, so `unreleased` stays invisible to the
+# guard in every release after that one too.
+TARGETS=(.env.reference)
+for y in etc/defaults/*.yaml; do
+  if [[ -f "$y" ]]; then TARGETS+=("$y"); fi
+done
 
 # `[ \t]` inside a bracket expression is the three characters space,
 # backslash and `t` — not a tab. The §1 recognizer accepts a tab before the

@@ -496,7 +496,13 @@ def main(argv=None):
         rewritten += stats["rewritten"]
 
         pending = stats["added"] + stats["rewritten"]
-        if pending:
+        # A file that produced a CONFLICT is left untouched entirely. Writing
+        # the sites that did resolve while exiting 1 for the ones that did not
+        # leaves a half-applied tree to unpick by hand, and the half that
+        # landed is indistinguishable from a deliberate edit. All or nothing,
+        # per file.
+        blocked = bool(pending and problems and not (args.dry_run or args.check))
+        if pending and not blocked:
             changed_files += 1
 
         if args.dry_run:
@@ -504,6 +510,12 @@ def main(argv=None):
         elif args.check:
             if pending and not args.quiet:
                 print(f"FAIL: {relpath} — {pending} site(s) missing or wrong")
+        elif blocked:
+            print(
+                f"SKIP: {relpath} — {len(problems)} unresolved site(s), "
+                f"so none of its {pending} pending change(s) were written",
+                file=sys.stderr,
+            )
         elif pending:
             (root / relpath).write_bytes(join_lines(new, crs).encode("utf-8"))
             if not args.quiet:
