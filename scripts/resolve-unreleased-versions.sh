@@ -73,6 +73,19 @@ done
 # unrewritten: it would ship as `unreleased` forever.
 UNRESOLVED_RE='[[:blank:]]+# Since unreleased[[:blank:]]*$'
 
+# Declaration lines only — the same set scripts/check-config-versions.sh
+# polices. Rule 3 there inspects declaration lines deliberately, so that the
+# header blocks explaining this convention (which must quote an example marker
+# to explain it) do not trip it. Applying the rewrite to every line instead
+# gives the release step a wider reach than the guard that watches it: a
+# comment line ending in the marker form gets rewritten, counted in the total
+# this script prints, and passed by its own re-grep. logging.defaults.yaml is
+# one edit away from having such a line — its legend row survives only because
+# of the description column after the marker — and the result would be a
+# legend that explains the convention with a concrete version in it.
+ENV_DECL_RE='^#?[A-Z][A-Z0-9_]+='
+YAML_DECL_RE='^[[:space:]]*(- )?[A-Za-z0-9_][A-Za-z0-9_.-]*[[:blank:]]*:([[:space:]]|$)'
+
 scratch=$(mktemp)
 trap 'rm -f "$scratch"' EXIT
 
@@ -80,7 +93,12 @@ total=0
 for f in "${TARGETS[@]}"; do
   [[ -f "$f" ]] || { echo "FAIL: $f not found" >&2; exit 1; }
 
-  n=$(grep -cE "$UNRESOLVED_RE" "$f" || true)
+  case "$f" in
+    *.yaml|*.yml) decl_re="$YAML_DECL_RE" ;;
+    *)            decl_re="$ENV_DECL_RE" ;;
+  esac
+
+  n=$({ grep -E "$decl_re" "$f" || true; } | { grep -cE "$UNRESOLVED_RE" || true; })
   if [[ "$n" -gt 0 ]]; then
     # Anchored to end-of-line so prose that happens to contain the phrase is
     # untouched; only a real trailing marker is rewritten.
@@ -94,10 +112,10 @@ for f in "${TARGETS[@]}"; do
     # file mode. The result is then re-checked rather than trusted: the count
     # above was taken BEFORE the rewrite, so on its own it would report success
     # for a substitution that did nothing.
-    sed -E "s/([[:blank:]]+# Since )unreleased([[:blank:]]*)\$/\1${VERSION}\2/" "$f" > "$scratch"
+    sed -E "/$decl_re/ s/([[:blank:]]+# Since )unreleased([[:blank:]]*)\$/\1${VERSION}\2/" "$f" > "$scratch"
     cat "$scratch" > "$f"
 
-    left=$(grep -cE "$UNRESOLVED_RE" "$f" || true)
+    left=$({ grep -E "$decl_re" "$f" || true; } | { grep -cE "$UNRESOLVED_RE" || true; })
     if [[ "$left" -ne 0 ]]; then
       echo "FAIL: $f still carries $left 'unreleased' marker(s) after the rewrite" >&2
       exit 1

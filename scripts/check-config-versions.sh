@@ -246,8 +246,17 @@ extract_yaml_sites() {
         if (val != "") {
           annot = 1                       # inline scalar/ERB value
         } else {
+          # Skip ERB here too, not only in the main walk above: a control line
+          # is neither the first child of this key nor its first list item.
+          # Reading it as either misclassifies the key, in both directions. A
+          # control line at the key indentation before a sequence leaves the
+          # key a leaf that the map generator calls a parent, so rule 1 demands
+          # a marker nothing will write. One indented under a list of scalars
+          # makes the key a parent that the map generator calls a leaf, so rule
+          # 1 never asks and the key ships bare — which is the positive claim
+          # that it predates v0.24.0.
           j = i + 1
-          while (j <= n && !content[j]) j++
+          while (j <= n && (!content[j] || substr(raw[j], indent[j] + 1) ~ /^<%[^=]/)) j++
           annot = 1                       # nothing nested: nil-valued leaf
           if (j <= n) {
             nrest = substr(raw[j], indent[j] + 1)
@@ -269,11 +278,15 @@ extract_yaml_sites() {
               seqi = indent[j]
               for (m = j; m <= n; m++) {
                 if (!content[m]) continue
-                if (indent[m] < seqi) break
                 mrest = substr(raw[m], indent[m] + 1)
+                # Before the indentation tests: a control line at seqi is not an
+                # entry, so it would end this scan before it reaches the entry
+                # that decides whether the key holds a list of mappings.
+                if (mrest ~ /^<%[^=]/) continue
+                if (indent[m] < seqi) break
                 if (indent[m] == seqi && mrest !~ /^-([ \t]|$)/) break
-                if (mrest ~ /^-[ \t]*[A-Za-z_][A-Za-z0-9_.-]*:([ \t]|$)/) { annot = 0; break }
-                if (indent[m] > seqi && mrest ~ /^[A-Za-z_][A-Za-z0-9_.-]*:([ \t]|$)/) { annot = 0; break }
+                if (mrest ~ /^-[ \t]*[A-Za-z0-9_][A-Za-z0-9_.-]*[ \t]*:([ \t]|$)/) { annot = 0; break }
+                if (indent[m] > seqi && mrest ~ /^[A-Za-z0-9_][A-Za-z0-9_.-]*[ \t]*:([ \t]|$)/) { annot = 0; break }
               }
             }
           }
@@ -482,8 +495,12 @@ check_file() {
 
 for target in "${TARGETS[@]}"; do
   case "$target" in
-    *.yaml) check_file "$target" yaml ;;
-    *)      check_file "$target" env  ;;
+    # Both extensions, matching the TARGETS glob above. Widening one without
+    # the other routed a .yml defaults file to the ENV extractor, which matches
+    # no YAML line — so it yielded zero sites, every rule passed vacuously, and
+    # the summary still counted it as a file checked.
+    *.yaml|*.yml) check_file "$target" yaml ;;
+    *)            check_file "$target" env  ;;
   esac
 done
 

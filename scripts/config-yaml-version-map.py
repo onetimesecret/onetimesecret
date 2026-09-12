@@ -64,6 +64,17 @@ before it. A row that fails is dropped with its evidence on stderr, never
 silently re-dated: the frozen §4 rule still decides the version, this only
 refuses to write one it can disprove.
 
+Which method actually decides a version, since the order above no longer says
+it: every version emitted is now the release-tree scan's answer. verify_row
+requires equality with the scan, and the rescue pass covers every candidate
+that has no row, whatever the reason it was skipped — so inheritance and the
+key-line pickaxe no longer influence any emitted value. They decide only which
+rows reach that answer cheaply, and a disagreement between a cheap path and
+the scan shows up on stderr as a disproof rather than in the output. Read that
+as: the scan is the method, the cheap paths are an optimisation that the scan
+checks. The inversion is deliberate, but it means a bug in either cheap path
+is invisible in the map, so do not assume they are exercised by its output.
+
 This is a ONE-TIME BACKFILL tool, like the archaeology script. Once the marker
 is in the file, the comment is the source of truth and this script is only
 used to re-derive/audit it. It is idempotent and read-only: it writes nothing
