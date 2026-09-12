@@ -656,6 +656,18 @@ def first_release_by_tree_scan(index, stable, relpath, path):
     Returns a version, UNRELEASED (at HEAD but in no tag), or None (declared
     by the oldest tag scanned, so it predates the annotation baseline).
 
+    A gap has two possible causes and this rule treats them the same, on
+    purpose. One is removal and reintroduction. The other appeared when
+    5ce8914ef stopped filtering the tag set by `--merged HEAD`: a maintenance
+    release cut from an older point can lack a key that a higher-numbered
+    release already shipped. Either way somebody running the release in the
+    gap does not have the setting, so the first release of the unbroken run is
+    the honest answer — dating it earlier would promise availability to
+    exactly the person who lacks it. Worth knowing which case you are looking
+    at when a version surprises you, though: all 17 non-ancestor tags sit
+    below the v0.24.0 baseline today, so no marker is affected yet, but the
+    first maintenance tag cut above the baseline will make this visible.
+
     This is strictly better than both cheap paths — it asks the tagged tree
     rather than inferring from an env var or a pickaxe — and it is only used
     as the fallback because it is the expensive one. Cost is bounded by

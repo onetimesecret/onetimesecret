@@ -144,7 +144,10 @@ that reason before this was added.
   guess which one declares it (`dotted path is not unique in the file`). All
   three carry `# Since v0.24.0` — the release the *setting* first shipped in,
   not the release each branch was added — because a bare line would read as
-  "predates v0.24.0", which is false. The map cannot verify them — they are
+  "predates v0.24.0", which is false. It is the one marker in the backfill no
+  tool derived, so it was checked by hand against the release trees:
+  `secure:` is absent at v0.23.5 and v0.23.6 and present from v0.24.0, and a
+  tree scan of the dotted path agrees. The map cannot verify them — they are
   not in it — but `check-config-versions.sh` does, by a different route: its
   rule 4 requires every line declaring one YAML path to carry the same marker,
   so a branch added to that block without the marker fails the PR. The marker
