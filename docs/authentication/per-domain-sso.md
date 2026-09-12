@@ -140,9 +140,181 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 | 4 | `CustomDomain::SsoConfig.find_by_domain_id(domain_id)` | SSO credentials |
 | 5 | `domain_config.to_omniauth_options` | OmniAuth strategy injection |
 
-**Security:** Tenant context (domain_id) stored in session during request phase, validated on callback to prevent cross-tenant redirect attacks.
+### Tenant callback validation
 
-**Identity linking is platform-only.** The three linking paths documented for platform SSO — the authenticated [Connected Identities panel](per-install-sso.md#connected-identities-authenticated-linking-from-account-settings), the [sign-in interstitial](per-install-sso.md#sign-in-interstitial-password-challenge-linking), and [mailbox-proof linking](per-install-sso.md#mailbox-proof-linking-passwordless-accounts) — are **not** offered on a tenant callback, and the trusted-IdP email-linking flag has no effect here. Each of those paths is gated on `session[:validated_omniauth_domain_id]` being `nil`, which a tenant callback always sets. A tenant admin controls their own IdP's assertions, so a tenant-issuer identity must not be bound to an account located by email (or to whatever account happens to hold the current platform session). Tenant SSO keeps the refusal: an unlinked identity whose email matches an existing account is refused with `tenant_sso_link_unavailable` — a code distinct from the platform surface's `account_exists_link_required`, because the platform copy points at Connected Identities and that panel refuses on this surface too, so it would be a dead end. The tenant copy instead names the ways forward that exist today: an org owner invites the SSO identity, or the user contacts support. The authenticated connect flow refuses here as `identity_connect_wrong_domain` (again distinct, so the copy does not blame an expired session). Authenticated tenant-surface linking requires org-membership verification first and is tracked in #3849.
+During the request phase, `omniauth_setup` stores the initiating custom-domain ID
+and public host in the session. At the start of the callback, the tenant hook:
+
+1. consumes the pending tenant context;
+2. resolves the custom domain from the callback's public host;
+3. requires its identifier to equal the initiating domain ID;
+4. enforces the tenant SSO email-domain policy; and
+5. stores the validated domain ID in
+   `session[:validated_omniauth_domain_id]` for downstream hooks.
+
+A mismatch returns `403 tenant_mismatch`. Missing or unreadable tenant
+configuration and malformed or disallowed asserted email addresses also fail
+closed. An empty SSO email-domain allowlist is the configured allow-all case.
+
+This validation proves that the SSO transaction was initiated and completed for
+the same custom domain. It does **not** prove that an existing authenticated
+account session was established for, or is authorized to act on, that tenant
+surface.
+
+### Identity linking and surface isolation
+
+Identity linking is currently platform-only. The three platform linking paths
+are not offered on tenant callbacks:
+
+- the authenticated [Connected Identities panel](per-install-sso.md#connected-identities-authenticated-linking-from-account-settings);
+- the [password interstitial](per-install-sso.md#sign-in-interstitial-password-challenge-linking); and
+- [mailbox-proof linking](per-install-sso.md#mailbox-proof-linking-passwordless-accounts).
+
+The trusted-IdP email-linking flag also has no effect on tenant callbacks. These
+paths require `session[:validated_omniauth_domain_id]` to be `nil`; a validated
+tenant callback sets it to the custom-domain ID.
+
+A tenant administrator controls the tenant's IdP configuration and, in
+practice, the identity assertions returned by that IdP. OTS therefore cannot
+use a tenant assertion, including its email claim, as sufficient authority to
+attach a tenant-issued identity to an arbitrary existing platform account.
+Once attached, that identity becomes a credential for the account.
+
+The platform connect path has a different trust boundary. The platform
+operator controls the provider configuration, and a bind requires all of the
+following:
+
+1. an authenticated account session;
+2. an explicit `connect=1` initiation that creates a short-lived, single-use,
+   server-side `sso_connect_intent` containing the session account ID; and
+3. a callback classified as platform-originated.
+
+OAuth `state` binds the callback to the browser's SSO initiation. The connect
+intent separately proves that the initiation was a **connect** operation for
+that specific account. The callback consumes the intent with an atomic
+`GETDEL`, compares it with the current session account ID, and loads the target
+account from the session rather than from the IdP-provided email.
+
+Tenant callbacks are refused instead:
+
+| Situation | Result |
+|-----------|--------|
+| Authenticated connect attempt on a tenant callback | `identity_connect_wrong_domain` |
+| Unlinked tenant identity whose asserted email matches an existing account | `tenant_sso_link_unavailable` |
+
+The second message does not direct the user to Connected Identities because
+that path also refuses tenant callbacks. Until tenant linking is implemented,
+the account must first receive eligible tenant access through an accepted and
+active organization membership, or the user must contact support.
+
+#### Requirements for authenticated tenant linking (#3849)
+
+Removing the tenant refusal requires two independent controls. Neither control
+may be inferred from the IdP's email claim.
+
+1. **Domain-scoped membership authorization.** The session account's
+   `Customer` must have an active `OrganizationMembership` in the organization
+   that owns the validated custom domain, and that membership must authorize
+   the exact domain:
+
+   ```ruby
+   membership&.active? && membership.can_access_domain?(custom_domain)
+   ```
+
+   `can_access_domain?` permits either an organization-scoped membership or a
+   membership whose `domain_scope_id` equals the custom domain's `objid`. A
+   membership scoped to another domain in the same organization must fail.
+
+2. **Tenant-surface-scoped session authority.** The authenticated session must
+   itself be established or explicitly authorized for the same tenant surface.
+   The current application has no tenant-scoped session concept. In particular,
+   `logged_in?` plus `session[:validated_omniauth_domain_id]` is insufficient:
+   the first proves that some account is signed in, while the second validates
+   the SSO callback's domain. Neither proves that the existing account session
+   belongs to that tenant surface.
+
+The second control prevents a platform session that happens to receive a valid
+tenant callback from gaining a tenant-issued credential. Callback-domain
+validation remains required, but it cannot substitute for session scoping.
+
+A future tenant Connect SSO flow must therefore fail closed in this order:
+
+1. Require an authenticated, open account loaded from the session, never from
+   the SSO email claim.
+2. Require an explicit tenant Connect SSO initiation. `connect=1` must create
+   the existing short-lived, account-bound `sso_connect_intent`; an ordinary
+   SSO sign-in must not enter the connect path.
+3. Validate that the callback corresponds to the custom domain that initiated
+   it, enforce the tenant SSO policy, and retain that exact validated domain ID.
+4. Verify that the authenticated session is scoped to that same tenant surface.
+5. Load the validated `CustomDomain`, its owning organization, the session
+   account's `Customer`, and the customer's membership in that organization.
+6. Require both an active membership and
+   `membership.can_access_domain?(custom_domain)`.
+7. Consume the connect intent once, require it to match the current session
+   account ID, and bind the new `(provider, issuer, uid)` identity only to that
+   account. Do not use the returned email to select the account.
+8. Log the successful connection. On any failed check, refuse without falling
+   back to email matching, a password interstitial, mailbox proof, or automatic
+   `JoinDomainOrganization` membership creation.
+
+The membership must exist before the bind. A successful tenant assertion must
+not create the membership that is then used to authorize attaching that same
+assertion as an account credential.
+
+#### Why the domain scope matters
+
+One organization can own multiple custom domains with different SSO issuers:
+
+```text
+Organization Acme
+├── secrets.acme.example  → issuer A
+└── internal.acme.example → issuer B
+```
+
+A user can be authorized only for `secrets.acme.example`. A check such as
+`organization.member?(customer)` would incorrectly admit that user on
+`internal.acme.example`. The required authorization is:
+
+```text
+active member of Acme
+AND
+allowed to access the exact domain whose SSO issuer returned the identity
+```
+
+`Auth::Operations::JoinDomainOrganization` produces this scope model: tenant
+SSO memberships are domain-scoped by default, while `grant_org_scope` creates
+an organization-scoped membership. `OrganizationMembership#can_access_domain?`
+evaluates both forms. `Auth::Operations::BackfillTenantIssuer` uses that method
+as an authorization gate before changing an identity row.
+
+#### Why issuer backfill has an additional provenance gate
+
+`Auth::Operations::BackfillTenantIssuer` also requires:
+
+```ruby
+customer.signup_domain_id.to_s == custom_domain.identifier.to_s
+```
+
+That operation rewrites a legacy identity whose issuer is the empty-string
+sentinel. Membership alone cannot establish whether such an ambiguous row came
+from the tenant IdP, the platform IdP, or another tenant using the same provider
+route. The signup-domain check supplies additional provenance before the
+operation changes the row.
+
+A fresh tenant connect receives an issuer-specific identity from the validated
+callback and binds it to a session-selected account, so it does not have the
+same legacy-row ambiguity. The current #3849 acceptance criteria require
+verified domain membership and a tenant-surface-scoped session; they do not yet
+make `signup_domain_id` a requirement for new connections. That must remain an
+explicit product-policy decision rather than being inherited automatically
+from the backfill operation. It also cannot replace either of the two required
+controls above.
+
+Until #3849 implements both controls and their failure cases,
+`apps/web/auth/config/hooks/omniauth.rb` deliberately refuses tenant connects.
+Removing only the current surface guard would allow a tenant-controlled IdP to
+become a login method for an account outside the tenant authorization boundary.
 
 ## OIDC for sovereign Microsoft Entra tenants
 
@@ -320,6 +492,7 @@ When billing is enabled, the organization must have the `manage_sso` entitlement
 ## See Also
 
 - [SSO Configuration Guide](per-install-sso.md) - platform-level SSO setup and provider configuration
+- [Issue #3849](https://github.com/onetimesecret/onetimesecret/issues/3849) - authenticated tenant-surface identity linking requirements and status
 - [OmniAuth Tenant Resolution](../../apps/web/auth/config/hooks/omniauth_tenant.rb) - runtime credential injection
 - [CustomDomain::SsoConfig Model](../../lib/onetime/models/custom_domain/sso_config.rb) - per-domain SSO storage
 - [Billing Catalog Management](../../apps/web/billing/docs/catalog-api-design.md)
