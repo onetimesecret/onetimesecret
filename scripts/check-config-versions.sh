@@ -76,6 +76,7 @@ trap 'rm -rf "$tmp"' EXIT
 : > "$tmp/fail_new"        # <file>|<key>
 : > "$tmp/fail_changed"    # <file>|<key>|<base_version>|<worktree_marker>
 : > "$tmp/fail_malformed"  # <file>|<lineno>|<line>
+: > "$tmp/fail_disagree"   # <file>|<path>|<version_a>|<version_b>
 : > "$tmp/note_versioned"  # <file>|<key>|<version>
 
 sites_total=0
@@ -165,20 +166,37 @@ extract_yaml_sites() {
         match(l, /^ */); indent[i] = RLENGTH
       }
 
-      depth = 0; skip = -1
+      depth = 0; skip = -1; seqind = -1
       for (i = 1; i <= n; i++) {
         if (!content[i]) continue
         line = raw[i]; ind = indent[i]
         rest = substr(line, ind + 1)
 
-        # Inside a skipped subtree (sequence entries, block scalar bodies)?
+        # Inside a skipped subtree (sequence entry contents, block scalar
+        # bodies)? Both open one column deeper than the line that starts them,
+        # so a sibling at the same indentation as the opener is never
+        # swallowed here.
         if (skip >= 0 && ind >= skip) continue
         skip = -1
+
+        # Still inside the sequence that seqind opened? YAML lets a sequence
+        # sit at the indentation of its parent key — config.defaults.yaml
+        # writes "links:" and its "- text: ..." entries both at column 8 — so
+        # dedent alone cannot mark where a sequence ends: the first line at
+        # that indentation which is NOT an entry ends it. Skipping everything
+        # at "ind >= entry indent", as this did, also swallowed the sibling
+        # KEY that follows such a sequence. That key then vanished from the
+        # site list: Rule 1 could not require a marker on it, and Rule 2 could
+        # not protect the marker it had.
+        if (seqind >= 0) {
+          if (ind == seqind && rest ~ /^-([ \t]|$)/) { skip = seqind + 1; continue }
+          seqind = -1
+        }
 
         # A sequence entry has no stable dotted path — two sibling "- name:"
         # entries would collide and make the immutability check lie. List
         # content is data, not a config key, so drop the whole subtree.
-        if (rest ~ /^-([ \t]|$)/) { skip = ind; continue }
+        if (rest ~ /^-([ \t]|$)/) { seqind = ind; skip = ind + 1; continue }
 
         if (rest !~ /^[A-Za-z_][A-Za-z0-9_.-]*:([ \t]|$)/) continue
         key = rest; sub(/:.*$/, "", key)
@@ -260,6 +278,29 @@ check_file() {
     | awk -F'# Since' -v file="$path" 'NF > 2 {
         split($0, f, ":"); printf "%s|%s|%s\n", file, f[1], substr($0, length(f[1]) + 2)
       }' >> "$tmp/fail_malformed"
+
+  # --- Rule 4: every line that declares one YAML path agrees on its marker.
+  # A dotted path written by several mutually exclusive ERB branches resolves
+  # to several declaration lines — site.session.secure has three. Rule 2 is
+  # blind to that: it asks whether a key/version PAIR still exists somewhere
+  # in the file, so stripping the marker from one branch leaves the other two
+  # answering for it and the ratchet passes, while a line that shipped in
+  # v0.24.0 silently starts claiming it predates the baseline. Comparing the
+  # branches against each other is the only thing that catches it, and it
+  # needs no base ref. Env files are excluded on purpose: .env.reference
+  # declares five keys twice by design (an active default up top, a commented
+  # dev override in the DEVELOPMENT ONLY block) and only the active line is
+  # the declaration site, so a bare twin there is the intended state.
+  if [[ "$kind" == "yaml" ]]; then
+    awk -v file="$path" '
+      $3 == 1 {
+        if (!($1 in seen)) { seen[$1] = $2; next }
+        if (seen[$1] != $2 && !($1 in done)) {
+          done[$1] = 1
+          printf "%s|%s|%s|%s\n", file, $1, seen[$1], $2
+        }
+      }' "$head" >> "$tmp/fail_disagree"
+  fi
 
   [[ -n "$BASE_REF" ]] || return 0
 
@@ -386,6 +427,25 @@ if [[ -s "$tmp/fail_malformed" ]]; then
     echo "No other text may follow. '# since v1.2.3', '#Since v1.2.3', '# Since 1.2.3'"
     echo "and '# Since v1.2' are all rejected: every tool in this family matches one"
     echo "regex, and a near-miss marker is invisible to all of them."
+  } >&2
+  failed=1
+fi
+
+if [[ -s "$tmp/fail_disagree" ]]; then
+  if [[ $failed -eq 1 ]]; then echo "" >&2; fi
+  {
+    echo "FAIL: $(wc -l < "$tmp/fail_disagree" | tr -d ' ') YAML path(s) whose declaration lines disagree:"
+    while IFS='|' read -r f k a b; do
+      echo "  $f:  $k"
+      if [[ "$a" == "-" ]]; then echo "      one line says: (no marker)"; else echo "      one line says: # Since $a"; fi
+      if [[ "$b" == "-" ]]; then echo "      another says:  (no marker)"; else echo "      another says:  # Since $b"; fi
+    done < "$tmp/fail_disagree"
+    echo ""
+    echo "One setting has one first release. When mutually exclusive ERB branches each"
+    echo "write the same key, every one of those lines IS that setting, so they all"
+    echo "carry the same marker. A bare line among them is not a missing marker, it is"
+    echo "a different claim: it reads as 'predates v0.24.0'. Copy the marker onto the"
+    echo "branch that lacks it."
   } >&2
   failed=1
 fi

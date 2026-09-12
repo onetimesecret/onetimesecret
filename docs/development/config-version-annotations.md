@@ -62,6 +62,13 @@ NEW_ENV_VAR=default  # Since unreleased
 
 `scripts/check-config-versions.sh` fails the PR if you forget.
 
+A new key carrying a *released* version instead is a NOTE, not a failure. It is
+usually wrong — a key cannot have shipped in a version that predates it — but
+not always: merging `main` into a long-lived branch brings in keys that are new
+relative to the branch base and did genuinely ship, and the backfill itself is
+one large instance of that. Failing on it would block those merges, so the
+guard reports the keys and lets a human judge.
+
 ## Cutting a release
 
 Before tagging, resolve the placeholders:
@@ -81,9 +88,9 @@ Order matters — resolve, commit, then tag, so the tagged tree already says
 | --- | --- |
 | `config-version-archaeology.sh` | Derives first-release versions from git history. One-time backfill and audit; not a build step. |
 | `config-yaml-version-map.py` | Resolves YAML settings, inheriting the version of the env var each one reads. |
-| `annotate-config-versions.py` | Applies markers. Idempotent; refuses to re-date an existing marker without `--force`. |
+| `annotate-config-versions.py` | Applies markers. Idempotent; refuses to re-date an existing marker, and `--force` widens that only to `unreleased` -> a release. |
 | `resolve-unreleased-versions.sh` | Rewrites `unreleased` to the version being cut. |
-| `check-config-versions.sh` | CI ratchet: new keys need a marker, shipped markers are frozen. |
+| `check-config-versions.sh` | CI ratchet: new keys need a marker, shipped markers are frozen, markers are well-formed, and the lines declaring one YAML path agree. |
 | `generate-env-docs.py` | Generates the docs-site page from `.env.reference`. Its `--check` guard runs from the **docs** repo (`env-reference-drift.yml`, on docs PRs and nightly), not from this repo's CI — see the script header for why the dependency points that way. |
 
 ## How versions were derived
@@ -130,9 +137,11 @@ scripts/config-version-archaeology.sh SOME_KEY
   guess which one declares it (`dotted path is not unique in the file`). All
   three carry `# Since v0.24.0` — the release the *setting* first shipped in,
   not the release each branch was added — because a bare line would read as
-  "predates v0.24.0", which is false. These markers are outside the map, so
-  `--check` does not verify them; a future branch added to that block needs
-  the marker copied by hand.
+  "predates v0.24.0", which is false. The map cannot verify them — they are
+  not in it — but `check-config-versions.sh` does, by a different route: its
+  rule 4 requires every line declaring one YAML path to carry the same marker,
+  so a branch added to that block without the marker fails the PR. The marker
+  still has to be copied by hand; forgetting is now caught.
 - **The ratchet needs the base branch fetched.** CI sets
   `CONFIG_VERSION_REQUIRE_BASE=1` so a missing base fails loudly rather than
   silently degrading to a syntax-only check. Locally it prints a NOTE.

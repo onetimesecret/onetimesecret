@@ -82,6 +82,7 @@ from pathlib import Path
 # --- The frozen marker grammar (spec §1). Nothing else may parse markers. ---
 MARKER_RE = re.compile(r"[ \t]+# Since (v[0-9]+\.[0-9]+\.[0-9]+|unreleased)[ \t]*$")
 VERSION_RE = re.compile(r"^(v[0-9]+\.[0-9]+\.[0-9]+|unreleased)$")
+UNRELEASED = "unreleased"
 
 # Catches a near-miss marker (`# Since v0.24`, `#Since v1.2.3`, trailing prose)
 # so we report it instead of appending a second marker beside it.
@@ -110,6 +111,19 @@ def existing_marker(body):
 
 
 def has_malformed_marker(body):
+    """True when the line carries something that tries to be a marker but is not one.
+
+    Two well-formed markers on one line count as malformed, per the spec rule
+    "One marker per line, and no text after it". MARKER_RE is anchored only on
+    the right, so `KEY=x  # Since v0.24.0  # Since v0.25.0` satisfies it via
+    the LAST marker: existing_marker() would report v0.25.0, with_marker()
+    would strip only that one and leave v0.24.0 behind, and a reader has no
+    way to tell which version the line claims. check-config-versions.sh
+    rejects the same shape, so accepting it here would let the annotator pass
+    --check on a line that CI fails.
+    """
+    if len(LOOSE_SINCE_RE.findall(body)) > 1:
+        return True
     return LOOSE_SINCE_RE.search(body) is not None and not MARKER_RE.search(body)
 
 
@@ -371,6 +385,25 @@ def process_file(root, relpath, entries, force):
                     )
                 )
                 continue
+            if present != UNRELEASED:
+                # --force is scoped to the ONE sanctioned transition. Letting it
+                # rewrite a concrete marker would mean a stale map could silently
+                # re-date a version that has already shipped — the exact edit the
+                # whole immutability rule exists to prevent — and it would do so
+                # without the CONFLICT above ever being seen.
+                problems.append(
+                    (
+                        relpath,
+                        key,
+                        map_lineno,
+                        f"CONFLICT: line {idx + 1} says 'Since {present}', map says "
+                        f"'{version}'. --force resolves 'unreleased' to the version "
+                        f"being cut; it does not re-date a shipped marker. If "
+                        f"'{present}' is wrong AND has not shipped, delete that "
+                        f"marker by hand, then run without --force.",
+                    )
+                )
+                continue
             bodies[idx] = with_marker(body, version)
             stats["rewritten"] += 1
             continue
@@ -413,7 +446,7 @@ def main(argv=None):
     parser.add_argument(
         "--force",
         action="store_true",
-        help="rewrite a marker whose version disagrees with the map (release step only)",
+        help="resolve an 'unreleased' marker to the map version (release step only)",
     )
     parser.add_argument(
         "--root",

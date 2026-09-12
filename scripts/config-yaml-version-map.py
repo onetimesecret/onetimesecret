@@ -158,11 +158,25 @@ def passes_baseline(version):
 # --- git -------------------------------------------------------------------
 
 
+class GitFailed(RuntimeError):
+    """A git command this script depends on did not succeed."""
+
+
 class Git:
     def __init__(self, repo_root):
         self.root = repo_root
 
     def run(self, *args):
+        """stdout of a git command that MUST succeed.
+
+        Every caller here reads absence as meaning something specific — no
+        such commit, no such tag, key not present at that release — so a git
+        command that fails and returns "" does not produce no answer, it
+        produces a wrong one, and the wrong one gets frozen into a marker by
+        the §5 ratchet. `blob_at` is the one place a missing object is
+        expected, and it probes with `cat-file -e` first rather than reading
+        a failure as an answer.
+        """
         proc = subprocess.run(
             ["git", *args],
             cwd=self.root,
@@ -170,10 +184,24 @@ class Git:
             text=True,
             check=False,
         )
+        if proc.returncode != 0:
+            raise GitFailed(
+                f"git {' '.join(args)} exited {proc.returncode}: "
+                f"{proc.stderr.strip() or '(no stderr)'}"
+            )
         return proc.stdout
 
     def is_shallow(self):
-        return self.run("rev-parse", "--is-shallow-repository").strip() == "true"
+        proc = subprocess.run(
+            ["git", "rev-parse", "--is-shallow-repository"],
+            cwd=self.root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        # Not self.run(): this is the pre-flight check that reports an unusable
+        # repository, so it answers rather than raising.
+        return proc.returncode != 0 or proc.stdout.strip() == "true"
 
     def stable_tags(self):
         """Every stable release, oldest first, in SEMANTIC VERSION order.
@@ -304,8 +332,7 @@ def resolve_via_archaeology_script(repo_root, keys):
     """
     script = repo_root / "scripts" / "config-version-archaeology.sh"
     if not script.is_file():
-        log(f"WARN: {script} not found; {len(keys)} env var(s) unresolved")
-        return {}
+        raise GitFailed(f"{script} not found, so {len(keys)} env var(s) cannot be resolved")
 
     proc = subprocess.run(
         ["bash", str(script), *sorted(keys)],
@@ -317,7 +344,15 @@ def resolve_via_archaeology_script(repo_root, keys):
     for line in proc.stderr.splitlines():
         log(f"  [archaeology] {line}")
     if proc.returncode != 0:
-        log(f"WARN: archaeology script exited {proc.returncode}; results may be partial")
+        # Partial archaeology output is the dangerous kind of wrong: the keys it
+        # did not reach look exactly like keys that have no answer, so they are
+        # skipped, the map is emitted short, and the annotator writes markers
+        # for a subset while reporting success. The common cause is a shallow
+        # clone, which this container re-creates between sessions.
+        raise GitFailed(
+            f"scripts/config-version-archaeology.sh exited {proc.returncode} — "
+            f"its output is partial and a short map would annotate only some sites"
+        )
 
     table = {}
     for raw in proc.stdout.splitlines():
@@ -679,7 +714,11 @@ def main():
             f"delegating to scripts/config-version-archaeology.sh: "
             f"{' '.join(sorted(missing_env))}"
         )
-        env_versions.update(resolve_via_archaeology_script(repo_root, missing_env))
+        try:
+            env_versions.update(resolve_via_archaeology_script(repo_root, missing_env))
+        except GitFailed as exc:
+            log(f"FAIL: {exc}")
+            return 1
 
     # Historical names of each file, needed both by the key-line pickaxe and by
     # the tag-by-tag proof, so resolve them once for every target.
@@ -784,4 +823,10 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except GitFailed as exc:
+        # A half-finished map is worse than none: the annotator would write
+        # markers for the sites that survived and report success.
+        log(f"FAIL: {exc}")
+        sys.exit(1)
