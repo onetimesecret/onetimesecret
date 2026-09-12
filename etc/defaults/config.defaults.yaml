@@ -36,8 +36,8 @@ site:
   # blank env assignment (TERMS_URL=) resolves to nil rather than pinning an
   # explicit empty value.
   legal:
-    terms_url: <%= (v = ENV['TERMS_URL'].to_s).empty? ? nil : v.to_json %>
-    privacy_url: <%= (v = ENV['PRIVACY_URL'].to_s).empty? ? nil : v.to_json %>
+    terms_url: <%= (v = ENV['TERMS_URL'].to_s).empty? ? nil : v.to_json %>  # Since v0.26.8
+    privacy_url: <%= (v = ENV['PRIVACY_URL'].to_s).empty? ? nil : v.to_json %>  # Since v0.26.8
     dpa_url: <%= (v = ENV['DPA_URL'].to_s).empty? ? nil : v.to_json %>  # Since v0.26.8
     cookie_url: <%= (v = ENV['COOKIE_URL'].to_s).empty? ? nil : v.to_json %>  # Since v0.26.8
     aup_url: <%= (v = ENV['AUP_URL'].to_s).empty? ? nil : v.to_json %>  # Since v0.26.8
@@ -140,14 +140,14 @@ site:
         # operator URL with YAML-significant characters must survive parsing.
         logo:
           # Where the logo lockup links to. Unset uses '/'.
-          href: <%= (v = ENV['LOGO_LINK'].to_s).empty? ? nil : v.to_json %>
+          href: <%= (v = ENV['LOGO_LINK'].to_s).empty? ? nil : v.to_json %>  # Since v0.26.0
           # Show the product name as a text mark next to the logo icon.
           # Unset (default): shown, unless a custom brand logo is configured
           # (custom logos usually embed their own wordmark). Set true/false
           # to force either way. The product name itself comes from
           # BRAND_PRODUCT_NAME and remains active in page titles, MFA labels,
           # and emails regardless of this knob.
-          show_name: <%= (v = ENV['LOGO_SHOW_NAME'].to_s).empty? ? nil : v != 'false' %>
+          show_name: <%= (v = ENV['LOGO_SHOW_NAME'].to_s).empty? ? nil : v != 'false' %>  # Since v0.26.0
           # Render the logo at a larger size in the authenticated header.
           # Useful for rasterized brand assets (e.g. BRAND_LOGO_URL=/img/brand.png)
           # that need more visual presence alongside the org/domain switchers.
@@ -155,7 +155,7 @@ site:
           # switchers fit on the same row. When true, custom logos render at
           # 80px in authenticated views. Unauthenticated views (branded
           # homepage / disabled page) always render the logo prominently.
-          prominent: <%= (v = ENV['LOGO_PROMINENT'].to_s).empty? ? nil : v == 'true' %>
+          prominent: <%= (v = ENV['LOGO_PROMINENT'].to_s).empty? ? nil : v == 'true' %>  # Since v0.26.0
         # Navigation configuration
         navigation:
           # Enable/disable header navigation entirely
@@ -268,7 +268,7 @@ site:
     # WithEntitlements.configured_anonymous_max_ttl, never from the env var.
     # Organization.free_tier_limits does read ENV['TTL_MAX_ANONYMOUS'] directly
     # for its secret_lifetime fallback, and does not honour the alias.
-    ttl_max_anonymous: <%= ENV['TTL_MAX_ANONYMOUS'] || ENV['PLAN_TTL_ANONYMOUS'] || nil %>
+    ttl_max_anonymous: <%= ENV['TTL_MAX_ANONYMOUS'] || ENV['PLAN_TTL_ANONYMOUS'] || nil %>  # Since v0.26.3
     # Settings for the passphrase field that protects access to secrets
     passphrase:
       # Require users to enter a passphrase when creating secrets
@@ -563,7 +563,7 @@ site:
     # script/style assets. Backend views add it automatically.
     #
     csp:
-      enabled: <%= ENV['CSP_ENABLED'] != 'false' %>
+      enabled: <%= ENV['CSP_ENABLED'] != 'false' %>  # Since v0.24.0
 
   # Network Configuration
   # Settings for proxy trust, client IP resolution, and network-level behavior.
@@ -1049,8 +1049,8 @@ brand:
 
 features:
   regions:
-    enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>
-    current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>
+    enabled: <%= ENV['REGIONS_ENABLED'] == 'true' || false %>  # Since v0.24.0
+    current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>  # Since v0.24.0
     # Available jurisdictions for regional deployment
     #
     # Environment Variable Format:
@@ -1116,14 +1116,14 @@ features:
       - <%= ENV['INCOMING_RECIPIENT_3']&.split(',') %>
       - <%= ENV['INCOMING_RECIPIENT_4']&.split(',') %>
   domains:
-    enabled: <%= ENV['DOMAINS_ENABLED'] == 'true' || false %>
+    enabled: <%= ENV['DOMAINS_ENABLED'] == 'true' || false %>  # Since v0.24.0
     # When true, secret creation rejects an unverified custom share_domain
     # with a form error. When false (default), creation is allowed regardless
     # of the domain's verification status. Canonical domains are unaffected.
     require_verified: <%= ENV['DOMAINS_REQUIRE_VERIFIED'] == 'true' || false %>  # Since v0.25.2
     # The default domain used for link URLs. When not set or empty,
     # site.host is used.
-    default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
+    default: <%= ENV['DEFAULT_DOMAIN'] || nil %>  # Since v0.24.0
 
     # LINK_DOMAINS — comma-separated hosts offered in the link-domain
     # picker. For installs whose canonical host is an internal platform
@@ -1166,7 +1166,7 @@ features:
 
     # Approximated proxy configuration (required for 'approximated' strategy)
     approximated:
-      api_key: <%= ENV['APPROXIMATED_API_KEY'] || nil %>
+      api_key: <%= ENV['APPROXIMATED_API_KEY'] || nil %>  # Since v0.24.0
       proxy_ip: <%= ENV['APPROXIMATED_PROXY_IP'] || nil %>  # Since v0.24.0
       proxy_host: <%= ENV['APPROXIMATED_PROXY_HOST'] || nil %>  # Since v0.24.0
       proxy_name: <%= ENV['APPROXIMATED_PROXY_NAME'] || nil %>  # Since v0.24.0
@@ -1290,8 +1290,8 @@ emailer:
   sender_provider: <%= ENV['CUSTOM_MAIL_PROVIDER'] || nil %>  # Since v0.25.8
   region: <%= ENV['EMAILER_REGION'] || 'smtp' %>
   from: <%= ENV['FROM_EMAIL'] || ENV['FROM'] || 'CHANGEME@example.com' %>
-  from_name: <%= ENV['FROM_NAME'] || 'Support' %>
-  reply_to: <%= ENV['REPLYTO_EMAIL'] || ENV['FROM_EMAIL'] || nil %>
+  from_name: <%= ENV['FROM_NAME'] || 'Support' %>  # Since v0.24.0
+  reply_to: <%= ENV['REPLYTO_EMAIL'] || ENV['FROM_EMAIL'] || nil %>  # Since v0.24.0
   host: <%= ENV['SMTP_HOST'] || 'smtp.provider.com' %>
   port: <%= ENV['SMTP_PORT'] || 587 %>
   user: <%= ENV['SMTP_USERNAME'] %>
@@ -1327,7 +1327,7 @@ email_providers:
     # For data-residency, use a regional endpoint such as ca-central-1 (Canada)
     # or ap-southeast-2 (Sydney). Confirm SES is available in the region.
     # Override via CUSTOM_MAIL_SES_REGION env var
-    region: <%= ENV['CUSTOM_MAIL_SES_REGION'] || 'us-east-1' %>
+    region: <%= ENV['CUSTOM_MAIL_SES_REGION'] || 'us-east-1' %>  # Since v0.25.0
     # AWS credentials for the SES provisioning API client, kept independent of
     # the SMTP/transactional mailer credentials. build_provider_config('ses')
     # otherwise resolves the key pair from emailer.user/pass (i.e.
@@ -1337,24 +1337,24 @@ email_providers:
     # the emailer-derived values. Leave unset only when SES is also the delivery
     # backend (EMAILER_MODE=ses) and the emailer already carries the AWS keys.
     # Override via CUSTOM_MAIL_SES_ACCESS_KEY_ID / CUSTOM_MAIL_SES_SECRET_ACCESS_KEY
-    access_key_id: <%= ENV['CUSTOM_MAIL_SES_ACCESS_KEY_ID'] || ENV['AWS_ACCESS_KEY_ID'] %>
-    secret_access_key: <%= ENV['CUSTOM_MAIL_SES_SECRET_ACCESS_KEY'] || ENV['AWS_SECRET_ACCESS_KEY'] %>
+    access_key_id: <%= ENV['CUSTOM_MAIL_SES_ACCESS_KEY_ID'] || ENV['AWS_ACCESS_KEY_ID'] %>  # Since v0.25.9
+    secret_access_key: <%= ENV['CUSTOM_MAIL_SES_SECRET_ACCESS_KEY'] || ENV['AWS_SECRET_ACCESS_KEY'] %>  # Since v0.25.9
     # Number of DKIM selectors (SES uses 3 by default)
     dkim_selector_count: 3  # Since v0.25.0
     # SPF include domain
-    spf_include: amazonses.com
+    spf_include: amazonses.com  # Since v0.25.0
 
   # SendGrid configuration
   sendgrid:
     # Branding subdomain prefix (appears in CNAME records)
     # Override via CUSTOM_MAIL_SENDGRID_SUBDOMAIN env var
-    subdomain: <%= ENV['CUSTOM_MAIL_SENDGRID_SUBDOMAIN'] || 'em' %>
+    subdomain: <%= ENV['CUSTOM_MAIL_SENDGRID_SUBDOMAIN'] || 'em' %>  # Since v0.25.0
     # DKIM selector names
-    dkim_selectors:
+    dkim_selectors:  # Since v0.25.0
       - s1
       - s2
     # SPF include domain
-    spf_include: sendgrid.net
+    spf_include: sendgrid.net  # Since v0.25.0
 
   # Lettermint configuration
   #
@@ -1368,24 +1368,24 @@ email_providers:
     # Project token for Lettermint Sending API (email delivery)
     # Required when emailer.mode is 'lettermint'
     # Override via LETTERMINT_API_TOKEN env var
-    api_token: <%= ENV['LETTERMINT_API_TOKEN'] %>
+    api_token: <%= ENV['LETTERMINT_API_TOKEN'] %>  # Since v0.25.0
     # Team token for Lettermint Team API (domain provisioning)
     # Required for custom mail sender domain management
     # Override via LETTERMINT_TEAM_TOKEN env var
     team_token: <%= ENV['LETTERMINT_TEAM_TOKEN'] %>  # Since v0.25.0
     # API base URL (for enterprise/on-premise deployments)
     # Override via LETTERMINT_BASE_URL env var
-    api_base_url: <%= ENV['LETTERMINT_BASE_URL'] || 'https://api.lettermint.co/v1' %>
+    api_base_url: <%= ENV['LETTERMINT_BASE_URL'] || 'https://api.lettermint.co/v1' %>  # Since v0.25.0
     # DKIM selector names returned by Lettermint domain provisioning
-    dkim_selectors:
+    dkim_selectors:  # Since v0.26.5
       - lm1
       - lm2
     # SPF CNAME subdomain prefix (e.g., 'lm-bounces' creates lm-bounces.yourdomain.com)
     # Override via CUSTOM_MAIL_LETTERMINT_SPF_CNAME_PREFIX env var
-    spf_cname_prefix: <%= ENV['CUSTOM_MAIL_LETTERMINT_SPF_CNAME_PREFIX'] || 'lm-bounces' %>
+    spf_cname_prefix: <%= ENV['CUSTOM_MAIL_LETTERMINT_SPF_CNAME_PREFIX'] || 'lm-bounces' %>  # Since v0.25.0
     # SPF CNAME target domain (Lettermint maintains SPF at this target)
     # Override via CUSTOM_MAIL_LETTERMINT_SPF_CNAME_TARGET env var
-    spf_cname_target: <%= ENV['CUSTOM_MAIL_LETTERMINT_SPF_CNAME_TARGET'] || 'bounces.lmta.net' %>
+    spf_cname_target: <%= ENV['CUSTOM_MAIL_LETTERMINT_SPF_CNAME_TARGET'] || 'bounces.lmta.net' %>  # Since v0.25.0
 
   # SMTP2GO configuration
   #
@@ -1535,7 +1535,7 @@ jobs:
   # The cache has a 12-hour TTL, so 6-hour refresh provides redundancy.
   # Skips gracefully if no Stripe API key is configured (standalone mode).
   plan_cache_refresh:
-    enabled: true
+    enabled: true  # Since v0.26.0
 
   # Catalog Retry Job
   # Retries webhook events that were blocked by the Stripe circuit breaker.
@@ -1544,14 +1544,14 @@ jobs:
   # processes those queued events once the circuit breaker closes.
   # Runs every 2 minutes when enabled; skips if circuit is still open.
   catalog_retry:
-    enabled: true
+    enabled: true  # Since v0.26.0
 
   # DLQ Email Consumer Job
   # Processes failed email messages from the dead-letter queue.
   # Runs on a schedule to inspect DLQ messages and re-publish recoverable
   # failures or log permanent failures for investigation.
   dlq_consumer:
-    enabled: true
+    enabled: true  # Since v0.26.0
 
   # Domain refresh job
   # Periodically refreshes cached vhost/resolving status for custom domains
@@ -1559,21 +1559,21 @@ jobs:
   # visiting the verify page. See issue #3080.
   # Skips gracefully when no custom domains are registered.
   domain_refresh:
-    enabled: true
+    enabled: true  # Since v0.25.2
     # How often to refresh (rufus-scheduler interval)
-    check_interval: '30m'
+    check_interval: '30m'  # Since v0.25.2
     # Maximum domains processed per run (rate limiting)
-    batch_size: 200
+    batch_size: 200  # Since v0.25.2
     # Seconds between Approximated API calls within a run
-    rate_limit: 0.5
+    rate_limit: 0.5  # Since v0.25.2
 
   # Expiration warning emails
   # Send email notifications before secrets expire to warn recipients
   expiration_warnings:
     # Enable/disable expiration warning emails
-    enabled: false
+    enabled: false  # Since v0.24.0
     # How often to scan for expiring secrets (rufus-scheduler interval)
-    check_interval: '1h'
+    check_interval: '1h'  # Since v0.24.0
     # Send warning N hours before secret expires
     warning_hours: 24  # Since v0.24.0
     # Only warn for secrets with TTL greater than this (hours)
@@ -1581,7 +1581,7 @@ jobs:
     min_ttl_hours: 48  # Since v0.24.0
     # Maximum warnings to process per job run (rate limiting)
     # Prevents queue overflow; remaining secrets processed in next run
-    batch_size: 100
+    batch_size: 100  # Since v0.24.0
 
   # Auto-fetch custom-domain favicon from the live domain
   # Discovers and downloads a favicon for verified custom domains under an
@@ -1589,7 +1589,7 @@ jobs:
   # HTTPS-only; user-uploaded icons are never overwritten.
   favicon_fetch:
     # Feature flag — default ON (see #3780)
-    enabled: true
+    enabled: true  # Since v0.26.0
     # Seconds per HTTP fetch (connect + read)
     timeout: 5  # Since v0.26.0
     # Response size ceiling in bytes (100 KB), streamed-enforced
@@ -1610,11 +1610,11 @@ jobs:
   # Requires BOTH this flag AND favicon_fetch.enabled (the worker must consume).
   favicon_backfill:
     # Feature flag — default OFF
-    enabled: false
+    enabled: false  # Since v0.26.0
     # Scan schedule (cron); nightly at 03:00 by default
-    cron: '0 3 * * *'
+    cron: '0 3 * * *'  # Since v0.26.0
     # Domains loaded+scanned per page while paginating the full set
-    batch_size: 500
+    batch_size: 500  # Since v0.26.0
     # Stop retrying a domain after this many terminal non-success attempts
     max_attempts: 6  # Since v0.26.0
     # Backoff base in days (doubles each attempt: 1, 2, 4, 8, ...)
@@ -1628,46 +1628,46 @@ jobs:
   # reviewing audit reports over multiple cycles.
   maintenance:
     # Master toggle — disables all maintenance jobs when false
-    enabled: false
+    enabled: false  # Since v0.24.0
 
     # Phase 1: Remove phantom members from sorted sets (hourly)
     phantom_cleanup:
-      enabled: false
-      interval: '1h'
-      batch_size: 500
-      auto_repair: false
+      enabled: false  # Since v0.24.0
+      interval: '1h'  # Since v0.24.0
+      batch_size: 500  # Since v0.24.0
+      auto_repair: false  # Since v0.24.0
 
     # Phase 2: Read-only data consistency audit (every 6h)
     data_audit:
-      enabled: false
-      interval: '6h'
+      enabled: false  # Since v0.24.0
+      interval: '6h'  # Since v0.24.0
       sample_size: 100  # Since v0.24.0
 
     # Phase 3: GC stale participation sorted set members (daily 5 AM)
     participation_gc:
-      enabled: false
-      cron: '0 5 * * *'
-      batch_size: 500
-      auto_repair: false
+      enabled: false  # Since v0.24.0
+      cron: '0 5 * * *'  # Since v0.24.0
+      batch_size: 500  # Since v0.24.0
+      auto_repair: false  # Since v0.24.0
 
     # Phase 4: Reconcile unique indexes (daily 4 AM)
     index_rebuild:
-      enabled: false
-      cron: '0 4 * * *'
-      auto_repair: false
+      enabled: false  # Since v0.24.0
+      cron: '0 4 * * *'  # Since v0.24.0
+      auto_repair: false  # Since v0.24.0
 
     # Phase 5: Rebuild instances sorted sets (weekly Sunday 3 AM)
     instances_rebuild:
-      enabled: false
-      cron: '0 3 * * 0'
-      auto_repair: false
+      enabled: false  # Since v0.24.0
+      cron: '0 3 * * 0'  # Since v0.24.0
+      auto_repair: false  # Since v0.24.0
 
     # Familia model housekeeping chores (nightly 2 AM)
     # Iterates models that declare `feature :housekeeping` and runs every
     # registered chore. Disable when no chores are active.
     housekeeping:
-      enabled: false
-      cron: '0 2 * * *'
+      enabled: false  # Since v0.25.3
+      cron: '0 2 * * *'  # Since v0.25.3
 
     # Nightly entitlement re-materialization (issue #4203)
     # Converges org entitlement snapshots with their plan definitions by
@@ -1677,8 +1677,8 @@ jobs:
     # gracefully when no Stripe API key is configured (standalone mode).
     # Requires BOTH jobs.maintenance.enabled and this flag.
     entitlement_materialize:
-      enabled: false
-      cron: '0 3 * * *'
+      enabled: false  # Since v0.26.5
+      cron: '0 3 * * *'  # Since v0.26.5
 
 internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
@@ -1883,7 +1883,7 @@ development:
   # - When decrypting, CipherErrors with the real secret will cause
   #   automatic retry with nil secret
   #
-  allow_nil_global_secret: <%= ENV['ALLOW_NIL_GLOBAL_SECRET'] == 'true' || false %>
+  allow_nil_global_secret: <%= ENV['ALLOW_NIL_GLOBAL_SECRET'] == 'true' || false %>  # Since v0.24.0
   # DEVELOPMENT TOOL: Auto-provisioning Basic Auth for testing
   #
   # Enables the devbasicauth strategy which auto-creates ephemeral test users.
@@ -1934,4 +1934,4 @@ compatibility:
 # rebuilt console became the sole admin frontend
 # (docs/specs/colonel-ui/50-cutover-hardening.md). Kept as an extension point
 # for future flags.
-experimental: {}
+experimental: {}  # Since v0.26.0

@@ -46,8 +46,12 @@ Rules that decide whether a key gets a row at all
     get no row.
   - When a value reads more than one env var, the OLDEST wins: the key existed
     as soon as its first input did.
-  - Anything that cannot be answered confidently is dropped with a reason on
-    stderr. Silence is correct here; a wrong version is worse than none.
+  - Anything the cheap paths cannot answer confidently falls back to a
+    release-tree scan of the dotted path itself (first_release_by_tree_scan),
+    with the reason for the fallback on stderr. Dropping it instead would not
+    be silence: a line with no marker is the positive claim "predates
+    v0.24.0", so a dropped row publishes a different answer rather than none.
+    Only a path the oldest scanned release already declared gets no row.
 
 Every proposed row is then PROVED against the release tags before it is
 emitted (see verify_row). Inheritance and the key-line pickaxe are both
@@ -627,6 +631,38 @@ def verify_row(index, stable, record, version):
     return True, None
 
 
+def first_release_by_tree_scan(index, stable, relpath, path):
+    """The release a dotted path first shipped in, read from the release trees.
+
+    The archaeology method (scripts/config-version-archaeology.sh, "METHOD"),
+    asked of a dotted YAML path instead of an env var name: the answer is the
+    earliest tag that begins an UNBROKEN run of releases declaring the path
+    through to HEAD. A gap ends the run, so a setting that was removed and
+    later reintroduced dates from the reintroduction — which is the thing a
+    self-hoster needs to know.
+
+    Returns a version, UNRELEASED (at HEAD but in no tag), or None (declared
+    by the oldest tag scanned, so it predates the annotation baseline).
+
+    This is strictly better than both cheap paths — it asks the tagged tree
+    rather than inferring from an env var or a pickaxe — and it is only used
+    as the fallback because it is the expensive one. Cost is bounded by
+    (tags x files) blobs, not by keys: TagIndex caches per (file, tag), and
+    the proof pass has already read most of them.
+    """
+    run_start = None
+    for tag in reversed(stable):
+        at = index.paths_at(relpath, tag)
+        if at is None or path not in at:
+            break
+        run_start = tag
+    if run_start is None:
+        return UNRELEASED
+    if run_start == stable[0]:
+        return None
+    return run_start
+
+
 # --- main ------------------------------------------------------------------
 
 
@@ -798,6 +834,32 @@ def main():
             skipped.append((record, f"{version} disproved by the tags: {reason} ({why})"))
     rows = proved
     log(f"info: {len(rows)} row(s) proved against the tags, {len(disproved)} disproved")
+
+    # --- rescue: a dropped row is not silence, it is a claim --------------
+    # "Silence is correct here" above is only true where absence means nothing.
+    # It does not: the file headers and the contract both define a line with no
+    # marker as the positive statement "this predates v0.24.0". So dropping a
+    # row does not withhold an answer, it publishes a different one — and for
+    # email_providers.ses.region, which shipped in v0.25.7, that answer is
+    # false. Every candidate still without a row is therefore asked directly,
+    # by release-tree scan. Nothing here can re-date an existing row: a proved
+    # row is a two-point sample of this very scan, so the two agree by
+    # construction, and only candidates with NO row reach this loop.
+    have = set(record for record, _, _ in rows)
+    rescued = []
+    for record in candidates:
+        if record in have:
+            continue
+        version = first_release_by_tree_scan(index, stable, record.relpath, record.path)
+        if version is None or not passes_baseline(version):
+            continue  # genuinely predates the baseline: a bare line is correct
+        rescued.append((record, version, "tree scan"))
+    if rescued:
+        log(f"info: {len(rescued)} row(s) rescued by tree scan that would have shipped bare")
+        for record, version, _ in sorted(rescued, key=lambda r: (r[0].relpath, r[0].lineno)):
+            log(f"  rescued: {record.relpath}:{record.lineno} {record.path} = {version}")
+        rows = rows + rescued
+        rows.sort(key=lambda r: (TARGET_FILES.index(r[0].relpath), r[0].lineno))
 
     for record, reason in sorted(skipped, key=lambda s: (s[0].relpath, s[0].lineno)):
         log(f"  skip: {record.relpath}:{record.lineno} {record.path} — {reason}")

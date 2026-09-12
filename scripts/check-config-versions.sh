@@ -316,8 +316,19 @@ check_file() {
   new_total=$(( new_total + $(wc -l < "$tmp/new.keys" | tr -d ' ') ))
 
   # --- Rule 1: a new key with a value and no marker.
+  # "Unmarked" means NO declaration of the key carries a marker, not "some
+  # declaration does not". .env.reference documents several vars twice on
+  # purpose — an active default in the variable's own section plus a commented
+  # override in the DEVELOPMENT ONLY block (DEFAULT_LOG_LEVEL, LOG_HTTP_CAPTURE
+  # and three others) — and annotate-config-versions.py deliberately resolves
+  # such a key to its ONE active declaration. Failing because the commented
+  # twin is bare would demand a marker that no tool in this family will ever
+  # write, on a key that is already correctly marked. For YAML, where several
+  # declarations of one path must agree, rule 4 keeps that strict.
   { grep -E ' - 1$' "$head" || true; } | cut -d' ' -f1 | sort -u > "$tmp/unmarked.keys"
-  comm -12 "$tmp/new.keys" "$tmp/unmarked.keys" | sed "s#^#${path}|#" >> "$tmp/fail_new"
+  { grep -vE ' - [01]$' "$head" || true; } | cut -d' ' -f1 | sort -u > "$tmp/marked.keys"
+  comm -23 "$tmp/unmarked.keys" "$tmp/marked.keys" > "$tmp/bare.keys"
+  comm -12 "$tmp/new.keys" "$tmp/bare.keys" | sed "s#^#${path}|#" >> "$tmp/fail_new"
 
   # Advisory: a new key should say `unreleased`, not a released version — it
   # cannot have shipped in a version that predates its own existence.

@@ -78,7 +78,7 @@ full:
     remember_me: <%= ENV['AUTH_REMEMBER_ME_ENABLED'] != 'false' %>  # Since v0.24.0
 
     # Email verification: require email verification on signup (default: ON, OFF in test)
-    verify_account: <%= ENV['AUTH_VERIFY_ACCOUNT_ENABLED'] != 'false' && ENV['RACK_ENV'] != 'test' %>
+    verify_account: <%= ENV['AUTH_VERIFY_ACCOUNT_ENABLED'] != 'false' && ENV['RACK_ENV'] != 'test' %>  # Since v0.24.0
 
     # MFA: TOTP codes and recovery codes (default: OFF)
     mfa: <%= ENV['AUTH_MFA_ENABLED'] == 'true' %>  # Since v0.24.0
@@ -106,7 +106,7 @@ full:
     #   Entra ID: ENTRA_TENANT_ID, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET
     #   Google: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
     #   GitHub: GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
-    sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
+    sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>  # Since v0.24.5
 
   # ──────────────────────────────────────────────────────────────────────
   # Restrict login page to a single authentication method
@@ -135,7 +135,7 @@ full:
   # (ADR-034#conflicting-auth-only-env-flags-are-a-boot-error, #4139). Do not
   # "fix" that by making this line pick a winner.
   # ──────────────────────────────────────────────────────────────────────
-  restrict_to: <%= [ENV['AUTH_PASSWORD_ONLY'] == 'true' && 'password', ENV['AUTH_EMAIL_AUTH_ONLY'] == 'true' && 'email_auth', ENV['AUTH_WEBAUTHN_ONLY'] == 'true' && 'webauthn', ENV['AUTH_SSO_ONLY'] == 'true' && 'sso'].select { |v| v }.then { |f| f.length == 1 && f.first || nil } %>
+  restrict_to: <%= [ENV['AUTH_PASSWORD_ONLY'] == 'true' && 'password', ENV['AUTH_EMAIL_AUTH_ONLY'] == 'true' && 'email_auth', ENV['AUTH_WEBAUTHN_ONLY'] == 'true' && 'webauthn', ENV['AUTH_SSO_ONLY'] == 'true' && 'sso'].select { |v| v }.then { |f| f.length == 1 && f.first || nil } %>  # Since v0.25.0
 
   # SSO configuration section
   #
@@ -147,7 +147,7 @@ full:
     # DEPRECATED: Each provider now carries its own display name via
     # OIDC_DISPLAY_NAME, ENTRA_DISPLAY_NAME, GOOGLE_DISPLAY_NAME, etc.
     # Retained for backward compatibility with single-provider OIDC setups.
-    sso_display_name: <%= ENV.fetch('SSO_DISPLAY_NAME', '') %>
+    sso_display_name: <%= ENV.fetch('SSO_DISPLAY_NAME', '') %>  # Since v0.24.5
 
     # Multi-tenant SSO fallback policy
     #

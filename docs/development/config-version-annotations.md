@@ -122,6 +122,13 @@ git fetch --unshallow && git fetch --tags   # a shallow clone reports nonsense
 scripts/config-version-archaeology.sh SOME_KEY
 ```
 
+Where inheritance and the pickaxe cannot prove an answer, the YAML path is
+dated by the same release-tree scan, asked of the dotted path directly. This
+matters because a bare line is not "no answer" — it states that the setting
+predates v0.24.0 — so dropping an uncertain row would publish a false claim
+rather than withhold one. 75 settings in `etc/defaults/` were bare for exactly
+that reason before this was added.
+
 ## Known limits
 
 - **Markers not yet on the base branch are not frozen.** Immutability protects

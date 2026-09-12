@@ -60,15 +60,43 @@ TARGETS=(
   etc/defaults/logging.defaults.yaml
 )
 
+# `[ \t]` inside a bracket expression is the three characters space,
+# backslash and `t` — not a tab. The §1 recognizer accepts a tab before the
+# `#`, and check-config-versions.sh matches it with [[:blank:]], so writing
+# the class by hand here would leave a tab-form marker uncounted AND
+# unrewritten: it would ship as `unreleased` forever.
+UNRESOLVED_RE='[[:blank:]]+# Since unreleased[[:blank:]]*$'
+
+scratch=$(mktemp)
+trap 'rm -f "$scratch"' EXIT
+
 total=0
 for f in "${TARGETS[@]}"; do
   [[ -f "$f" ]] || { echo "FAIL: $f not found" >&2; exit 1; }
 
-  n=$(grep -cE '[ \t]+# Since unreleased[ \t]*$' "$f" || true)
+  n=$(grep -cE "$UNRESOLVED_RE" "$f" || true)
   if [[ "$n" -gt 0 ]]; then
     # Anchored to end-of-line so prose that happens to contain the phrase is
     # untouched; only a real trailing marker is rewritten.
-    sed -i -E "s/([ \t]+# Since )unreleased([ \t]*)\$/\1${VERSION}\2/" "$f"
+    #
+    # NOT `sed -i`: the GNU form (`sed -i -E`) and the BSD form (`sed -i '' -E`)
+    # are mutually incompatible. Under BSD sed — macOS is a supported host, see
+    # the bash 3.2 parity gate in CI — `-E` is taken as the backup SUFFIX, the
+    # script is then compiled as a BRE where `(` and `+` are literals, nothing
+    # matches, and a stray `.env.reference-E` is left behind. Redirect plus
+    # `cat` back over the original behaves identically everywhere and keeps the
+    # file mode. The result is then re-checked rather than trusted: the count
+    # above was taken BEFORE the rewrite, so on its own it would report success
+    # for a substitution that did nothing.
+    sed -E "s/([[:blank:]]+# Since )unreleased([[:blank:]]*)\$/\1${VERSION}\2/" "$f" > "$scratch"
+    cat "$scratch" > "$f"
+
+    left=$(grep -cE "$UNRESOLVED_RE" "$f" || true)
+    if [[ "$left" -ne 0 ]]; then
+      echo "FAIL: $f still carries $left 'unreleased' marker(s) after the rewrite" >&2
+      exit 1
+    fi
+
     echo "  $f: $n marker(s) -> $VERSION"
     total=$((total + n))
   fi
