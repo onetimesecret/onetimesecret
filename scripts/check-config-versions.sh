@@ -61,7 +61,12 @@ MARKER_LOOSE_RE='#[[:blank:]]*[Ss][Ii][Nn][Cc][Ee]([[:blank:]]|$)'
 
 # Key-declaration lines — the only place a marker is allowed to live.
 ENV_DECL_RE='^#?[A-Z][A-Z0-9_]+='
-YAML_DECL_RE='^[[:space:]]*(- )?[A-Za-z_][A-Za-z0-9_.-]*:([[:space:]]|$)'
+# Deliberately the same shape as the two Python walks: a leading digit is a
+# valid YAML key (`2fa:`) and a space before the colon is valid too. A narrower
+# pattern here does not merely skip such a line, it drops the stack frame, so
+# every child re-parents onto the grandparent and the guard records a dotted
+# path no other tool in this family uses.
+YAML_DECL_RE='^[[:space:]]*(- )?[A-Za-z0-9_][A-Za-z0-9_.-]*[[:blank:]]*:([[:space:]]|$)'
 
 [[ -f .env.reference ]] || { echo "FAIL: .env.reference not found" >&2; exit 1; }
 
@@ -215,8 +220,8 @@ extract_yaml_sites() {
         # content is data, not a config key, so drop the whole subtree.
         if (rest ~ /^-([ \t]|$)/) { seqind = ind; skip = ind + 1; continue }
 
-        if (rest !~ /^[A-Za-z_][A-Za-z0-9_.-]*:([ \t]|$)/) continue
-        key = rest; sub(/:.*$/, "", key)
+        if (rest !~ /^[A-Za-z0-9_][A-Za-z0-9_.-]*[ \t]*:([ \t]|$)/) continue
+        key = rest; sub(/[ \t]*:.*$/, "", key)
 
         while (depth > 0 && sind[depth] >= ind) depth--
         depth++; stack[depth] = key; sind[depth] = ind
@@ -232,7 +237,7 @@ extract_yaml_sites() {
         }
 
         val = rest
-        sub(/^[A-Za-z_][A-Za-z0-9_.-]*:/, "", val)
+        sub(/^[A-Za-z0-9_][A-Za-z0-9_.-]*[ \t]*:/, "", val)
         sub(/[ \t]+# Since (v[0-9]+\.[0-9]+\.[0-9]+|unreleased)[ \t]*$/, "", val)
         sub(/^[ \t]+/, "", val); sub(/[ \t]+$/, "", val)
         rawval = val
@@ -417,6 +422,22 @@ check_file() {
       | sed -E "s#^([^ ]+) (.*)\$#${path}|\1|\2#" >> "$tmp/note_versioned"
   fi
 
+  # Rule 2 below asks whether a base key/version pair survives ANYWHERE in the
+  # file. For a key declared twice that can be satisfied from the commented
+  # twin, so re-dating the active line and parking the original marker on the
+  # twin passes it — and rule 5 does not catch that either, because it only
+  # fires when the active line is BARE. The active line is the declaration a
+  # reader sees and the one the annotator maintains, so for any key that has
+  # one, it is the line that must still carry the base version.
+  if [[ "$kind" == "env" ]]; then
+    { grep -E '^[A-Z][A-Z0-9_]+=' "$path" || true; } \
+      | { grep -E "$MARKER_RE" || true; } \
+      | sed -E 's@^([A-Z][A-Z0-9_]*)=.*[[:blank:]]# Since ([^[:blank:]]+)[[:blank:]]*$@\1 \2@' \
+      | sort -u > "$tmp/env.activepairs"
+    { grep -E '^[A-Z][A-Z0-9_]+=' "$path" || true; } \
+      | sed -E 's@=.*@@' | sort -u > "$tmp/env.activekeys"
+  fi
+
   # --- Rule 2: a concrete version the base ref carries must still be carried
   # by that same key. `unreleased` is excluded from the base side on purpose —
   # resolving it at release time is the sanctioned transition.
@@ -424,6 +445,19 @@ check_file() {
     | cut -d' ' -f1,2 | sort -u > "$tmp/base.pairs"
   { grep -vE ' - [01]$' "$head" || true; } | cut -d' ' -f1,2 | sort -u > "$tmp/head.pairs"
   comm -23 "$tmp/base.pairs" "$tmp/head.pairs" > "$tmp/lost.pairs"
+
+  # The env half of the same rule, keyed on the active declaration rather than
+  # on the file as a whole. Reported through the same channel: a marker that
+  # moved off the active line IS a changed marker, whatever else the file says.
+  if [[ "$kind" == "env" ]]; then
+    join "$tmp/env.activekeys" "$tmp/base.pairs" | sort -u > "$tmp/env.basepairs"
+    comm -23 "$tmp/env.basepairs" "$tmp/env.activepairs" > "$tmp/env.moved"
+    if [[ -s "$tmp/env.moved" ]]; then
+      join -a1 -e '(no marker)' -o '0,1.2,2.2' "$tmp/env.moved" "$tmp/env.activepairs" \
+        | sed -E "s@^([^ ]+) ([^ ]+) (.*)\$@${path}|\1|\2|\3@" >> "$tmp/fail_changed"
+    fi
+  fi
+
   [[ -s "$tmp/lost.pairs" ]] || return 0
 
   # A key that no longer exists took its marker with it — that is allowed.
