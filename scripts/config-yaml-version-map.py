@@ -565,11 +565,21 @@ def yaml_key_first_release(git, leaf, paths):
 
     Same shape as the env-var method in config-version-archaeology.sh:
       1. earliest commit whose diff to this file (and its pre-rename names)
-         adds a definition site for the key — `\\bleaf:`, word-bounded so
-         `ttl:` is not found inside `default_ttl:`;
+         adds a definition site for the key, word-bounded so `ttl:` is not
+         found inside `default_ttl:`;
       2. earliest stable tag containing that commit, by version.
+
+    The boundary is spelled `(^|[^A-Za-z0-9_])` rather than `\\b`. git compiles
+    a -G pattern with regcomp(REG_EXTENDED), where `\\b` is a GNU extension: on
+    a BSD regcomp — macOS, which this repo supports and gates for elsewhere —
+    `\\bttl:` degrades to the literal `bttl:`, which matches nothing. Every
+    pickaxe would then return "no commit adds a definition site" and every key
+    would route to the rescue pass. The map would be identical, because
+    verify_row proves every row against the tree scan regardless, so the
+    failure would be invisible in the output and visible only as provenance.
+    That is precisely the unobservability this file's header warns about.
     """
-    regex = r"\b" + ere_escape(leaf) + r":"
+    regex = r"(^|[^A-Za-z0-9_])" + ere_escape(leaf) + r":"
     commit = git.first_commit_matching(regex, paths)
     if not commit:
         return None, "no commit adds a definition site"
