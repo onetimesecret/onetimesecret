@@ -160,6 +160,18 @@ that reason before this was added.
   fails today. A *new* key written that way would fail the ratchet asking for a
   marker the annotator will not generate; give it a live child, or a marker by
   hand.
+- **Three tools walk the YAML independently, and nothing asserts they agree.**
+  `check-config-versions.sh` (awk), `annotate-config-versions.py` and
+  `config-yaml-version-map.py` each re-implement the walk, and a divergence
+  shows up not as a crash but as a wrong shipped version. Two are known: the
+  commented-children case above, and ERB control lines — the map generator
+  skips `<% if %>` before its open-sequence check, so a sequence survives it,
+  while the other two let it end the sequence. Neither produces a wrong marker
+  in the current files. Reviewers have proposed, more than once, a cross-check
+  asserting the three emit identical `(path, is_site)` sets for the three
+  target files; that is the cheap pin, and a shared walker is the real fix.
+  Neither is done. If you add a fourth shape to `etc/defaults/`, check it
+  against all three by hand.
 - **The ratchet needs the base branch fetched.** CI sets
   `CONFIG_VERSION_REQUIRE_BASE=1` so a missing base fails loudly rather than
   silently degrading to a syntax-only check. Locally it prints a NOTE.
