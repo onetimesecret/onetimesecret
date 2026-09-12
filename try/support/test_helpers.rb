@@ -13,14 +13,73 @@
 ENV['RACK_ENV'] = 'test'
 ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..')).freeze
 
-# Set test database URL BEFORE config loads - use port 2163 to avoid conflicts
-# with development Redis. This must be set before config.test.yaml is loaded via
-# ERB since it checks ENV['VALKEY_URL'] || ENV['REDIS_URL'] || default.
+# ── Per-worktree datastore isolation (#4168), mirrored for raw invocations ──
 #
-# IMPORTANT: Override both VALKEY_URL and REDIS_URL to prevent production values
-# from .env file or CI environment leaking into tests.
-ENV['VALKEY_URL'] = 'valkey://127.0.0.1:2163/0'
-ENV['REDIS_URL'] = 'redis://127.0.0.1:2163/0'
+# The app under test connects to what spec/config.test.yaml derives: a literal
+# 127.0.0.1:2163 with the DB index taken from LANES_DATASTORE_DB (VALKEY_URL /
+# REDIS_URL are not consulted there; #2128 centralized the URL in config).
+# Under tests/lanes/run the index is derived per lane+worktree and exported, so
+# concurrent runs never share keys. A raw `bundle exec try` had no index and
+# collapsed onto the shared DB 0 — along with every other raw run in every
+# worktree and every interactive rspec run (which FLUSHDBs after each
+# integration example). Any concurrent writer there breaks the exact-count
+# assertions tryouts make on globally-keyed state (colonel_audit_event:events,
+# session:* scans), which is the "a different file fails each run" flake.
+#
+# So: when no runner provided a usable index, derive one here from this
+# checkout's own path. The resolution lives in datastore_db.rb, shared with
+# `pnpm run test:database:clean` so the documented cleanup targets the same
+# database raw runs actually write.
+require_relative 'datastore_db'
+db = TryoutsDatastoreDB.provided
+unless db
+  isolation_key = TryoutsDatastoreDB.isolation_key
+  db = TryoutsDatastoreDB.index
+  ENV['LANES_DATASTORE_DB'] = db
+
+  # Claim the index with the runner's own owner marker (_lanes:owner inside
+  # the selected DB) so a checksum collision between this derivation and some
+  # lane run's — different inputs, same 65535-slot space — aborts loudly
+  # instead of silently sharing, the same choice the runner's preflight makes.
+  # Staleness = the owner's root (field 3) no longer exists on disk. Skipped
+  # when the runner supplied the index: the runner already ran this check.
+  # Best-effort: any connection/protocol failure lets the run proceed (boot
+  # reports an unreachable datastore on its own).
+  if db != '0'
+    begin
+      require 'redis'
+      marker = Redis.new(url: "redis://127.0.0.1:2163/#{db}",
+                         connect_timeout: 1, timeout: 1)
+      marker.set('_lanes:owner', isolation_key, nx: true)
+      owner = marker.get('_lanes:owner')
+      if owner && owner != isolation_key
+        owner_root = owner.split('|', 3)[2].to_s
+        if File.directory?(owner_root)
+          abort "error: valkey DB #{db} is in use by another live run: #{owner}\n" \
+                "  this run: #{isolation_key}\n" \
+                'hint: pin a free index by exporting LANES_DATASTORE_DB'
+        end
+        marker.set('_lanes:owner', isolation_key)
+        owner = marker.get('_lanes:owner')
+        if owner != isolation_key
+          abort "error: valkey DB #{db} was claimed mid-takeover by: #{owner}"
+        end
+      end
+      marker.close
+    rescue StandardError
+      nil
+    end
+  end
+end
+
+# Point the env URLs at the SAME database the config will derive, so anything
+# reading the env directly (BillingTestHelpers.ensure_familia_configured!,
+# zset_indexer_try) agrees with Familia.uri — previously these pinned /0 while
+# a lane-run process connected to /<derived>. Overriding unconditionally keeps
+# the original guarantee: production/dev values from .env file or CI can never
+# leak into tests.
+ENV['VALKEY_URL'] = "valkey://127.0.0.1:2163/#{db}"
+ENV['REDIS_URL'] = "redis://127.0.0.1:2163/#{db}"
 
 project_root = ENV['ONETIME_HOME']
 app_root = File.join(project_root, '/apps').freeze

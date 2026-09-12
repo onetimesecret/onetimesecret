@@ -340,6 +340,8 @@ describe('useSsoConfig', () => {
         issuer: '',
         allowed_domains: [],
         enabled: true,
+        enforce_sso_only: false,
+        grant_org_scope: false,
       };
 
       await composable.saveConfig();
@@ -372,6 +374,8 @@ describe('useSsoConfig', () => {
         issuer: '',
         allowed_domains: [],
         enabled: true,
+        enforce_sso_only: false,
+        grant_org_scope: false,
       };
 
       await composable.saveConfig();
@@ -395,6 +399,8 @@ describe('useSsoConfig', () => {
         issuer: '',
         allowed_domains: [],
         enabled: true,
+        enforce_sso_only: false,
+        grant_org_scope: false,
       };
 
       expect(composable.hasUnsavedChanges.value).toBe(true);
@@ -418,6 +424,8 @@ describe('useSsoConfig', () => {
         issuer: '',
         allowed_domains: [],
         enabled: true,
+        enforce_sso_only: false,
+        grant_org_scope: false,
       };
 
       await composable.saveConfig();
@@ -449,6 +457,8 @@ describe('useSsoConfig', () => {
         issuer: '',
         allowed_domains: [],
         enabled: true,
+        enforce_sso_only: false,
+        grant_org_scope: false,
       };
 
       // Should not throw
@@ -479,6 +489,8 @@ describe('useSsoConfig', () => {
         issuer: '',
         allowed_domains: [],
         enabled: true,
+        enforce_sso_only: false,
+        grant_org_scope: false,
       };
 
       const savePromise = composable.saveConfig();
@@ -934,6 +946,8 @@ describe('useSsoConfig', () => {
         issuer: 'https://changed.example.com',
         allowed_domains: ['changed.com'],
         enabled: false,
+        enforce_sso_only: false,
+        grant_org_scope: false,
       };
 
       expect(composable.hasUnsavedChanges.value).toBe(true);

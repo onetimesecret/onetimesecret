@@ -31,11 +31,24 @@ vi.mock('@vueuse/core', () => ({
 
 const i18n = createTestI18n();
 
+// Minimal customer shape the component actually reads (cust?.objid, cust?.email)
+// via storeToRefs(bootstrapStore). Deliberately looser than the production
+// CustomerCanonical contract (@/schemas/contracts/customer) so the "Edge Cases"
+// fixtures below (e.g. objid present but email null) can be expressed without
+// widening the real cust contract to permit a nullable email.
+type TestCustomer = {
+  objid: string | null;
+  extid: string | null;
+  email: string | null;
+  role: string;
+  verified: boolean;
+};
+
 describe('FeedbackModalForm', () => {
   let wrapper: VueWrapper;
 
   // Authenticated customer with objid present
-  const authenticatedCustomer = {
+  const authenticatedCustomer: TestCustomer = {
     objid: 'cust_obj_123',
     extid: 'cust_ext_123',
     email: 'test@example.com',
@@ -44,7 +57,7 @@ describe('FeedbackModalForm', () => {
   };
 
   // Edge case: object with null fields (defensive test, backend now sends null)
-  const anonymousCustomer = {
+  const anonymousCustomer: TestCustomer = {
     objid: null,
     extid: null,
     email: null,
@@ -64,7 +77,7 @@ describe('FeedbackModalForm', () => {
 
   const mountComponent = (
     storeState: {
-      cust?: typeof authenticatedCustomer | typeof anonymousCustomer | null;
+      cust?: TestCustomer | null;
     } = {}
   ) => {
     const pinia = createTestingPinia({

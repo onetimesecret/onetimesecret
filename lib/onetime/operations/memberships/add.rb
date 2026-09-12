@@ -6,6 +6,7 @@
 # autoloaders — require the audit model explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 
 module Onetime
   module Operations
@@ -38,7 +39,9 @@ module Onetime
       # {SetRole} op's job; folding a demote/promote into "add" would let an add
       # silently demote the last owner. The Result carries the member's CURRENT
       # role so the adapter can point the operator at set-role. A real add records
-      # EXACTLY ONE {Onetime::ColonelAuditEvent}; a `:no_change` audits nothing.
+      # EXACTLY ONE {Onetime::ColonelAuditEvent}. A repeat-add attempt is STILL
+      # recorded under the same verb with `outcome: 'no_change'` (#4337) — the
+      # mutation is skipped, the attempt is not.
       #
       # ## Refusals audit too
       #
@@ -50,6 +53,7 @@ module Onetime
       # state.
       class Add
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         AUDIT_VERB = 'membership.add'
 
@@ -97,7 +101,9 @@ module Onetime
               OT.le '[Memberships::Add] active membership has blank role ' \
                     "org=#{@org.extid} member=#{@customer.extid}"
             end
-            return build(:no_change, current_role.empty? ? @role : current_role)
+            role         = current_role.empty? ? @role : current_role
+            record_no_change_event(role)
+            return build(:no_change, role)
           end
 
           membership = Onetime::OrganizationMembership.ensure_membership(@org, @customer, role: @role)
@@ -122,6 +128,11 @@ module Onetime
 
         private
 
+        # The #4337 envelope's target hook: the customer's public extid, the same
+        # target the applied event carries. `audit_verb` defaults to AUDIT_VERB
+        # and `audit_actor` to @actor.
+        def audit_target = @customer.extid
+
         # Single exit point for every non-success status, so the refusal audit
         # cannot be forgotten at an early return.
         def build(status, role)
@@ -133,6 +144,17 @@ module Onetime
             customer_id: @customer.extid,
             role: role,
           )
+        end
+
+        # A LIVE no-change attempt (#4337) — the OPERATOR trail. Adding a
+        # customer who is already a member mutates nothing, but it is the same
+        # reach as a real add, and the trail should not go quiet for it. Same
+        # verb and target as the applied event; detail mirrors its shape (the
+        # member's CURRENT role — the one the Result echoes — plus org_id) with
+        # the `outcome: 'no_change'` marker. NOT fail-closed: nothing moved.
+        # No local rescue — `record` is best-effort and swallows its own errors.
+        def record_no_change_event(role)
+          record_no_change_attempt({ role: role, org_id: @org.extid })
         end
 
         # Same verb/target/actor as the success event. Best-effort: never break

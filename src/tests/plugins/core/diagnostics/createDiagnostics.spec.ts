@@ -8,6 +8,7 @@
 /* eslint-disable max-classes-per-file */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { App, Plugin } from 'vue';
 import type { Router } from 'vue-router';
 
 // ---------------------------------------------------------------------------
@@ -28,6 +29,7 @@ const {
   mockGetBootstrapValue,
   MockBrowserClient,
   MockScope,
+  getCapturedClientOptions,
 } = vi.hoisted(() => {
   const mockSetTag = vi.fn();
   // The user-context boundary writes setUser on the isolated scope.
@@ -46,7 +48,14 @@ const {
   }));
   const mockGetBootstrapValue = vi.fn();
 
+  // Captured so tests can assert on the options createDiagnostics assembles
+  // (tracePropagationTargets, beforeSend, …) without a real Sentry client.
+  let capturedClientOptions: Record<string, unknown> | null = null;
+
   class MockBrowserClient {
+    constructor(options: Record<string, unknown>) {
+      capturedClientOptions = options;
+    }
     init = mockClientInit;
     close = mockClientClose;
   }
@@ -73,6 +82,7 @@ const {
     mockGetBootstrapValue,
     MockBrowserClient,
     MockScope,
+    getCapturedClientOptions: () => capturedClientOptions,
   };
 });
 
@@ -123,9 +133,24 @@ function createMockRouter(): Router {
   } as unknown as Router;
 }
 
+/**
+ * `createDiagnostics()` is typed to return Vue's `Plugin` union
+ * (`ObjectPlugin | FunctionPlugin`), under which `.install` types as possibly
+ * undefined because the callable `FunctionPlugin` variant makes it optional.
+ * The production implementation always returns an object plugin
+ * (`{ install(app) { ... } }`), so this narrows to the shape it actually
+ * produces instead of asserting `!` at the call site.
+ */
+function installPlugin(plugin: Plugin, app: App): void {
+  (plugin as { install: (app: App) => void }).install(app);
+}
+
 const baseConfig = {
   sentry: {
     dsn: 'https://key@sentry.io/123',
+    enabled: true,
+    logErrors: true,
+    trackComponents: true,
     environment: 'test',
     release: '1.0.0',
   },
@@ -404,9 +429,9 @@ describe('createDiagnostics jurisdiction tagging', () => {
     const app = {
       provide: vi.fn(),
       unmount: originalUnmount,
-    } as unknown as import('vue').App;
+    } as unknown as App;
 
-    plugin.install(app);
+    installPlugin(plugin, app);
 
     expect(unregisterAfterEach).not.toHaveBeenCalled();
 
@@ -538,5 +563,107 @@ describe('createDiagnostics user context', () => {
 
     expect(mockSetUser).toHaveBeenCalledWith(null);
     expect(mockCurrentScopeSetUser).toHaveBeenCalledWith(null);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// tracePropagationTargets
+//
+// This pattern decides which outbound requests carry the `sentry-trace` and
+// `baggage` headers, which makes it a security boundary rather than a
+// convenience: anything it matches receives our trace context. The negative
+// cases below are the ones that matter — an over-broad pattern fails open and
+// leaks silently, with nothing in any log to notice.
+// ---------------------------------------------------------------------------
+
+describe('createDiagnostics tracePropagationTargets', () => {
+  const originalConsoleDebug = console.debug;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    console.debug = vi.fn();
+    mockGetBootstrapValue.mockReturnValue(null);
+  });
+
+  afterEach(() => {
+    console.debug = originalConsoleDebug;
+  });
+
+  /** The host-derived pattern, as createDiagnostics hands it to Sentry. */
+  function hostPattern(host: string): RegExp {
+    createDiagnostics({ host, config: baseConfig, router: createMockRouter() });
+
+    const options = getCapturedClientOptions();
+    if (!options) throw new Error('BrowserClient constructor was never called');
+
+    const targets = options.tracePropagationTargets as Array<string | RegExp>;
+    const pattern = targets.find(
+      (target): target is RegExp => target instanceof RegExp && target.source.includes('https?')
+    );
+    if (!pattern) throw new Error('no host pattern in tracePropagationTargets');
+    return pattern;
+  }
+
+  it.each([
+    'https://example.com',
+    'https://example.com/',
+    'https://example.com/api/v3/secret',
+    'https://example.com:8443/api/v3/secret',
+    'https://eu.example.com/api/v3/secret',
+    'http://example.com',
+  ])('propagates trace headers to %s', (url) => {
+    expect(hostPattern(TEST_HOST).test(url)).toBe(true);
+  });
+
+  it.each([
+    // The dot must stay literal; an unescaped `.` matches any character.
+    'https://exampleXcom/api',
+    // Suffix attack: our host must not be a prefix of someone else's domain.
+    'https://example.com.evil.test/api',
+    // Prefix attack: our host must not be a suffix of someone else's domain.
+    'https://notexample.com/api',
+    // Unanchored-start attacks — our host appearing inside another URL.
+    'https://evil.test/?next=https://example.com/',
+    'https://evil.test/https://example.com',
+    // Userinfo smuggling: the real host here is evil.test.
+    'https://example.com@evil.test/api',
+    // Non-HTTP schemes.
+    'ftp://example.com/api',
+  ])('does NOT propagate trace headers to %s', (url) => {
+    expect(hostPattern(TEST_HOST).test(url)).toBe(false);
+  });
+
+  it('escapes every regex metacharacter in the host, not just dots', () => {
+    // `host` is `display_domain`, which on a custom-domain deployment comes
+    // from a value the customer registered. Left unescaped, `+` turns the
+    // preceding character into a quantifier and widens the match; `(` breaks
+    // construction outright.
+    const pattern = hostPattern('a+b(c).example.com');
+
+    expect(pattern.test('https://a+b(c).example.com/api')).toBe(true);
+    expect(pattern.test('https://aab(c).example.com/api')).toBe(false);
+    expect(pattern.test('https://abbbbc.example.com/api')).toBe(false);
+  });
+
+  it('anchors both ends at the top level of the pattern', () => {
+    // Not a style preference. An end anchor reachable through only one branch
+    // of a group still holds at runtime but is invisible to static analysis
+    // (CodeQL js/regex/missing-regexp-anchor), so the guarantee cannot be
+    // verified by anything but a human reading it.
+    const { source } = hostPattern(TEST_HOST);
+
+    expect(source.startsWith('^')).toBe(true);
+    expect(source.endsWith('$')).toBe(true);
+  });
+
+  it('omits the host pattern entirely when no host is given', () => {
+    const targets = (() => {
+      createDiagnostics({ host: '', config: baseConfig, router: createMockRouter() });
+      const options = getCapturedClientOptions();
+      if (!options) throw new Error('BrowserClient constructor was never called');
+      return options.tracePropagationTargets as Array<string | RegExp>;
+    })();
+
+    expect(targets.every((t) => t instanceof RegExp && !t.source.includes('https?'))).toBe(true);
   });
 });

@@ -12,6 +12,8 @@ require 'familia'
 require_relative 'logger_methods'
 require_relative 'session/codec'
 require_relative 'session/sidecar'
+require_relative 'session/impersonation'
+require_relative 'session/active_session_gate'
 require_relative 'operations/sessions/track_metadata'
 
 module Onetime
@@ -78,6 +80,12 @@ module Onetime
     unless defined?(SECURE_COOKIE_WARN_INTERVAL)
       SECURE_COOKIE_WARN_INTERVAL = 300 # ~5 minutes
     end
+
+    # Env key Onetime::Middleware::StripForwardedHost leaves the names of the
+    # forwarded carriers it deleted in (see #scheme_evidence). A literal
+    # rather than the middleware's constant so this file does not load it;
+    # the colonel auth_strategies spec asserts the two agree.
+    STRIPPED_FORWARDED_HEADERS = 'onetime.stripped_forwarded_headers' unless defined?(STRIPPED_FORWARDED_HEADERS)
 
     # Class-level, process-wide guard for the throttled warning below. Holds the
     # monotonic timestamp (Process::CLOCK_MONOTONIC) of the last emission, nil
@@ -167,59 +175,60 @@ module Onetime
             deleted: result,
             operation: 'delete',
           }
-
-        # The sid's per-value sidecar keys die with the blob (exact O(registry)
-        # DEL, no SCAN). Own rescue: purge is best-effort hygiene — a failure
-        # must not disturb the delete flow, and any orphans it leaves are
-        # TTL-bounded by the sidecar clamp (they can never outlive the blob's
-        # would-have-been lifetime).
-        begin
-          # Tripwire for the sid-stability assumption the short-TTL hand-off
-          # fields ride on (awaiting_mfa, the SSO connect/bind stashes): a
-          # session destroyed while one of them still holds a live truthy
-          # value takes an uncompleted hand-off with it. Today that means the
-          # user abandoned the flow and re-keyed (restarted login, logged out
-          # mid-MFA) — expected, rare, and worth a line. If a future auth
-          # refactor re-keys sessions MID-flow, this warning is what surfaces
-          # the silently-stranded hand-off: the consume sides cannot log a
-          # miss (absence is their overwhelmingly common case). This is a
-          # request-path (middleware) tripwire only — the admin/colonel revoke
-          # operations destroy sessions deliberately, where killing in-flight
-          # state is the point, not a signal. Probe failure degrades to "no
-          # warning" and must never block the purge.
-          doomed = begin
-            Onetime::SessionSidecar.inflight_fields(sid_string, dbclient: @dbclient, codec: @codec)
-          rescue StandardError
-            []
-          end
-
-          Onetime::SessionSidecar.purge(sid_string, dbclient: @dbclient)
-
-          unless doomed.empty?
-            session_logger.warn 'Session destroyed with in-flight sidecar state',
-              {
-                session_id: sid_string,
-                fields: doomed,
-                operation: 'delete',
-              }
-          end
-        rescue StandardError => ex
-          session_logger.error 'Sidecar purge failed (orphans are TTL-bounded)',
-            {
-              session_id: sid_string,
-              error: ex.message,
-              error_class: ex.class.name,
-              operation: 'delete',
-            }
-        end
-
       else
         session_logger.trace 'No session found to delete',
           {
             session_id: sid_string,
             operation: 'delete',
           }
+      end
 
+      # Purge the sid's per-value sidecar keys UNCONDITIONALLY — not gated on the
+      # blob still existing (exact O(registry) DEL, no SCAN). The old router-level
+      # purge was unconditional; keeping it so destroys orphaned sidecar keys even
+      # when the blob is already gone (a prior partial delete, a TTL-expired blob
+      # whose longer-clamped sidecars linger). Own rescue: purge is best-effort
+      # hygiene — a failure must not disturb the delete flow, and any orphans it
+      # leaves are TTL-bounded by the sidecar clamp (they can never outlive the
+      # blob's would-have-been lifetime).
+      begin
+        # Tripwire for the sid-stability assumption the short-TTL hand-off
+        # fields ride on (awaiting_mfa, the SSO connect/bind stashes): a
+        # session destroyed while one of them still holds a live truthy
+        # value takes an uncompleted hand-off with it. Today that means the
+        # user abandoned the flow and re-keyed (restarted login, logged out
+        # mid-MFA) — expected, rare, and worth a line. If a future auth
+        # refactor re-keys sessions MID-flow, this warning is what surfaces
+        # the silently-stranded hand-off: the consume sides cannot log a
+        # miss (absence is their overwhelmingly common case). This is a
+        # request-path (middleware) tripwire only — the admin/colonel revoke
+        # operations destroy sessions deliberately, where killing in-flight
+        # state is the point, not a signal. Probe failure degrades to "no
+        # warning" and must never block the purge.
+        doomed = begin
+          Onetime::SessionSidecar.inflight_fields(sid_string, dbclient: @dbclient, codec: @codec)
+        rescue StandardError
+          []
+        end
+
+        Onetime::SessionSidecar.purge(sid_string, dbclient: @dbclient)
+
+        unless doomed.empty?
+          session_logger.warn 'Session destroyed with in-flight sidecar state',
+            {
+              session_id: sid_string,
+              fields: doomed,
+              operation: 'delete',
+            }
+        end
+      rescue StandardError => ex
+        session_logger.error 'Sidecar purge failed (orphans are TTL-bounded)',
+          {
+            session_id: sid_string,
+            error: ex.message,
+            error_class: ex.class.name,
+            operation: 'delete',
+          }
       end
 
       new_sid = generate_sid
@@ -283,15 +292,31 @@ module Onetime
     # HTTPS=off (Rack only treats 'on' as ssl, so `https: "off"` is the honest
     # evidence). HTTP_FORWARDED (RFC 7239) can carry the forwarded client IP in
     # its `for=` parameter, so it stays presence-only to keep PII out of the log.
+    #
+    # Onetime::Middleware::StripForwardedHost is mounted ABOVE this session
+    # middleware and deletes HTTP_FORWARDED outright, leaving the names of
+    # what it removed in env['onetime.stripped_forwarded_headers']. Presence
+    # is read from both, or the `forwarded:` field would be permanently
+    # false — for exactly the "edge speaks only Forwarded" topology it exists
+    # to diagnose.
     def scheme_evidence(request)
       env = request.env
       {
         rack_url_scheme: env['rack.url_scheme'],
         x_forwarded_proto: env['HTTP_X_FORWARDED_PROTO'],
-        forwarded: env.key?('HTTP_FORWARDED'),
+        forwarded: forwarded_header_received?(env),
         x_forwarded_ssl: env['HTTP_X_FORWARDED_SSL'],
         https: env['HTTPS'],
       }
+    end
+
+    # Presence of RFC 7239 `Forwarded` on the request as the edge sent it,
+    # whether it is still in the env or StripForwardedHost already deleted
+    # it (and recorded the deletion by name). See #scheme_evidence.
+    def forwarded_header_received?(env)
+      return true if env.key?('HTTP_FORWARDED')
+
+      Array(env[STRIPPED_FORWARDED_HEADERS]).include?('HTTP_FORWARDED')
     end
 
     # Validates session ID format
@@ -302,7 +327,14 @@ module Onetime
     #
     # This is just format validation - doesn't check if session exists in Redis
     def valid_session_id?(sid)
-      return false if sid.to_s.empty?
+      sid = sid.to_s
+      return false if sid.empty?
+
+      # A cookie value is client-controlled bytes, not a String the app made.
+      # `match?` RAISES ArgumentError on invalid UTF-8 (BACKEND-B5: a request
+      # carrying a binary session cookie 500s here before any handler runs),
+      # and an unmatchable byte sequence is by definition not a valid sid.
+      return false unless sid.valid_encoding?
       return false unless sid.match?(/\A[a-f0-9]{64,}\z/)
 
       # Additional security checks could go here

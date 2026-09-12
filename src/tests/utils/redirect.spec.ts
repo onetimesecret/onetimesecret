@@ -2,187 +2,176 @@
 
 import {
   isAllowedCheckoutUrl,
+  isValidInternalPath,
+  MAX_REDIRECT_LENGTH,
   setAllowedCheckoutHost,
-  validateRedirect,
 } from '@/utils/redirect';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-describe('validateRedirect', () => {
-  beforeEach(() => {
-    // Reset window.location for each test
-    Object.defineProperty(window, 'location', {
-      value: { hostname: 'example.com' },
-      writable: true,
-    });
+/**
+ * isValidInternalPath is the ONLY redirect validator now — the former
+ * validateRedirect / validatePathString / validateUrl trio was dead code for
+ * the `?redirect=` param (nothing but this file referenced it) and permitted
+ * things this ruleset must reject: control characters, absolute same-host URLs,
+ * and protocol-relative input.
+ *
+ * The identical ruleset is implemented in Ruby on the backend (signup stores a
+ * validated redirect, verify-account replays it). Parity is ENFORCED rather
+ * than requested: tests/fixtures/redirect_path_cases.json is a single
+ * accept/reject table read by this suite AND by
+ * spec/unit/onetime/utils/redirect_paths_spec.rb. A rule relaxed on one side
+ * only turns one of the two suites red.
+ *
+ * What stays hand-written here: the cases JSON cannot express — non-string
+ * input (undefined/null/number/object/array). The Ruby suite carries its own
+ * equivalents (nil/Integer/Array/Hash, plus an invalidly-encoded String).
+ */
+
+interface RedirectCase {
+  id: string;
+  group: string;
+  input: string;
+  expected: boolean;
+  note?: string;
+}
+
+// Vitest's root is the repo root, so the fixture resolves the same way the
+// email-redaction corpus does (src/tests/plugins/core/diagnostics/…). A wrong
+// path throws HERE, naming it, rather than yielding an empty case list.
+const FIXTURE_PATH = resolve(process.cwd(), 'tests/fixtures/redirect_path_cases.json');
+const REDIRECT_CASES = (
+  JSON.parse(readFileSync(FIXTURE_PATH, 'utf8')) as { cases: RedirectCase[] }
+).cases;
+
+/** Fixture groups, in first-seen order — the taxonomy the tests nest under. */
+const GROUPS = [...new Set(REDIRECT_CASES.map((c) => c.group))];
+
+/**
+ * Cases whose removal OR alteration must turn this suite RED. Erosion is the
+ * one failure mode a fixture-driven suite cannot self-detect: delete every case
+ * and it passes vacuously — and pinning bare ids is not enough, because editing
+ * a pinned case's input (retargeting `protocol-relative` at some harmless path
+ * and flipping `expected`) would keep both suites green while removing the
+ * rejection from coverage. So the acceptance criteria named in #4305 are pinned
+ * as full (id, input, expected) triples.
+ */
+const PINNED_CASES: Record<string, [string, boolean]> = {
+  'nested-path': ['/account/settings/security', true],
+  'query-and-fragment': ['/secret/abc?view=raw#content', true],
+  'absolute-https': ['https://attacker.example', false],
+  'protocol-relative': ['//evil.example', false],
+  'backslash-authority': ['/\\evil.example', false],
+  'encoded-traversal-lowercase': ['/%2e%2e/admin', false],
+};
+
+/**
+ * The length boundaries are pinned too, but their ~2KB inputs are asserted by
+ * construction (exact code-point length against MAX_REDIRECT_LENGTH, plus
+ * expected) in the boundary test below rather than pasted here.
+ */
+const PINNED_LENGTH_CASE_IDS = [
+  'length-at-cap',
+  'length-over-cap',
+  'astral-length-at-cap',
+  'astral-length-over-cap',
+];
+
+describe('the shared parity fixture', () => {
+  it('carries cases', () => {
+    expect(Array.isArray(REDIRECT_CASES)).toBe(true);
+    expect(REDIRECT_CASES.length).toBeGreaterThan(0);
   });
 
-  // Named routes
-  it('should validate allowed named routes', () => {
-    expect(validateRedirect({ name: 'Home' })).toBe(true);
-    expect(validateRedirect({ name: 'Dashboard' })).toBe(true);
-    expect(validateRedirect({ name: 'Profile' })).toBe(true);
+  it('still carries the pinned #4305 cases, unaltered', () => {
+    const byId = new Map(REDIRECT_CASES.map((c) => [c.id, c]));
+
+    for (const [id, [input, expected]] of Object.entries(PINNED_CASES)) {
+      const kase = byId.get(id);
+      expect(kase, `pinned case ${id} is missing from the fixture`).toBeDefined();
+      expect(
+        [kase?.input, kase?.expected],
+        `pinned case ${id} was altered (its input/expected no longer match #4305)`
+      ).toEqual([input, expected]);
+    }
+
+    for (const id of PINNED_LENGTH_CASE_IDS) {
+      expect(byId.has(id), `pinned case ${id} is missing from the fixture`).toBe(true);
+    }
   });
 
-  it('should reject invalid named routes', () => {
-    expect(validateRedirect({ name: 'Invalid' })).toBe(false);
-    expect(validateRedirect({ name: '' })).toBe(false);
+  it('uses unique ids', () => {
+    const ids = REDIRECT_CASES.map((c) => c.id);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 
-  // Path-based routes
-  it('should validate valid path-based routes', () => {
-    expect(validateRedirect({ path: '/dashboard' })).toBe(true);
-    expect(validateRedirect({ path: '/users/profile' })).toBe(true);
+  it('gives every case a group', () => {
+    // The group is what turns the generated tests back into a readable
+    // taxonomy; a case without one would be silently unfiled.
+    const ungrouped = REDIRECT_CASES.filter((c) => !c.group);
+    expect(ungrouped.map((c) => c.id)).toEqual([]);
   });
 
-  it('should reject invalid path-based routes', () => {
-    expect(validateRedirect({ path: '../dashboard' })).toBe(false);
-    expect(validateRedirect({ path: 'dashboard' })).toBe(false);
-  });
+  it('pins the length boundaries at MAX_REDIRECT_LENGTH', () => {
+    // The cap is defined in Unicode CODE POINTS — the unit Ruby's
+    // String#length measures natively — so measure the same way here:
+    // [...input] iterates code points, while input.length counts UTF-16 units
+    // and double-counts the astral cases (4095/4097 units). Those cases exist
+    // precisely to pin that distinction: a validator measuring UTF-16 units
+    // rejects at-cap input the server-side validator stores.
+    const boundaries: Record<string, [number, boolean]> = {
+      'length-at-cap': [0, true],
+      'length-over-cap': [1, false],
+      'astral-length-at-cap': [0, true],
+      'astral-length-over-cap': [1, false],
+    };
 
-  // String paths
-  it('should validate valid string paths', () => {
-    expect(validateRedirect('/dashboard')).toBe(true);
-    expect(validateRedirect('/users/profile')).toBe(true);
-  });
-
-  it('should reject invalid string paths', () => {
-    expect(validateRedirect('../dashboard')).toBe(false);
-    expect(validateRedirect('dashboard')).toBe(false);
-  });
-
-  // URLs
-  it('should validate URLs with matching hostname', () => {
-    // Mock window.location
-    Object.defineProperty(window, 'location', {
-      value: { hostname: 'example.com' },
-      writable: true,
-    });
-
-    expect(validateRedirect('https://example.com/dashboard')).toBe(true);
-    expect(validateRedirect('http://example.com/profile')).toBe(true);
-  });
-
-  it('should reject URLs with different hostname', () => {
-    Object.defineProperty(window, 'location', {
-      value: { hostname: 'example.com' },
-      writable: true,
-    });
-
-    expect(validateRedirect('https://malicious.com/dashboard')).toBe(false);
-  });
-
-  // Edge cases
-  it('should handle edge cases', () => {
-    expect(validateRedirect('')).toBe(false);
-    expect(validateRedirect(null as any)).toBe(false);
-    expect(validateRedirect(undefined as any)).toBe(false);
-    expect(validateRedirect({} as any)).toBe(false);
-  });
-
-  // Named Routes
-  describe('named routes', () => {
-    it('should validate allowed named routes', () => {
-      expect(validateRedirect({ name: 'Home' })).toBe(true);
-      expect(validateRedirect({ name: 'Dashboard' })).toBe(true);
-      expect(validateRedirect({ name: 'Profile' })).toBe(true);
-    });
-
-    it('should reject malformed named routes', () => {
-      expect(validateRedirect({ name: '' })).toBe(false);
-      expect(validateRedirect({ name: '   ' })).toBe(false);
-      expect(validateRedirect({ name: '\n' })).toBe(false);
-      expect(validateRedirect({ name: '<script>' })).toBe(false);
-      expect(validateRedirect({ name: 'javascript:alert(1)' })).toBe(false);
-    });
-  });
-
-  // Path-based Routes
-  describe('path-based routes', () => {
-    it('should validate safe paths', () => {
-      expect(validateRedirect({ path: '/dashboard' })).toBe(true);
-      expect(validateRedirect({ path: '/users/123/profile' })).toBe(true);
-      expect(validateRedirect({ path: '/path-with-hyphens' })).toBe(true);
-      expect(validateRedirect({ path: '/path_with_underscores' })).toBe(true);
-    });
-
-    it('should reject path traversal attempts', () => {
-      expect(validateRedirect({ path: '../api/secrets' })).toBe(false);
-      expect(validateRedirect({ path: '..\\api\\secrets' })).toBe(false);
-      expect(validateRedirect({ path: '/../../etc/passwd' })).toBe(false);
-      expect(validateRedirect({ path: '/%2e%2e/config' })).toBe(false);
-    });
-
-    it('should reject paths with suspicious patterns', () => {
-      expect(validateRedirect({ path: '//evil.com' })).toBe(false);
-      expect(validateRedirect({ path: '\\/evil.com' })).toBe(false);
-      expect(validateRedirect({ path: '/javascript:alert(1)' })).toBe(false);
-      expect(validateRedirect({ path: '/data:text/html,<script>' })).toBe(false);
-    });
-  });
-
-  // URL Validation
-  describe('urls', () => {
-    it('should validate same-origin URLs', () => {
-      expect(validateRedirect('https://example.com/dashboard')).toBe(true);
-      expect(validateRedirect('https://example.com:443/profile')).toBe(true);
-      expect(validateRedirect('//example.com/dashboard')).toBe(true);
-    });
-
-    it('should reject different-origin URLs', () => {
-      expect(validateRedirect('https://evil.com/dashboard')).toBe(false);
-      expect(validateRedirect('http://example.com.attacker.com')).toBe(false);
-      expect(validateRedirect('https://examplecom/profile')).toBe(false);
-      expect(validateRedirect('https://example.com.evil.com')).toBe(false);
-    });
-
-    it('should reject URLs with suspicious protocols', () => {
-      expect(validateRedirect('javascript://example.com')).toBe(false);
-      expect(validateRedirect('data://example.com')).toBe(false);
-      expect(validateRedirect('vbscript://example.com')).toBe(false);
-      expect(validateRedirect('file://example.com')).toBe(false);
-    });
-  });
-
-  // Special Characters and Encoding
-  describe('special characters and encoding', () => {
-    it('should handle URL-encoded characters', () => {
-      expect(validateRedirect('/path%20with%20spaces')).toBe(true);
-      // URL-encoded slashes are valid as they'll be handled by the router
-      expect(validateRedirect('/path%2Fwith%2Fencoded-slashes')).toBe(true);
-      // These are basic path validation tests, character sanitization happens elsewhere
-      expect(validateRedirect('/%0D%0A')).toBe(true);
-      expect(validateRedirect('/%00')).toBe(true);
-    });
-
-    it('should validate path structure regardless of special characters', () => {
-      // Focus on path structure rather than character validation
-      expect(validateRedirect('/path\x00with\x00nulls')).toBe(true);
-      expect(validateRedirect('/path\nwith\nnewlines')).toBe(true);
-      expect(validateRedirect('/path\rwith\rreturns')).toBe(true);
-      expect(validateRedirect('/path<with>tags')).toBe(true);
-    });
-  });
-
-  // Edge Cases and Malformed Input
-  describe('edge cases', () => {
-    it('should handle empty or invalid input', () => {
-      expect(validateRedirect('')).toBe(false);
-      expect(validateRedirect('   ')).toBe(false);
-      expect(validateRedirect(null as any)).toBe(false);
-      expect(validateRedirect(undefined as any)).toBe(false);
-      expect(validateRedirect({} as any)).toBe(false);
-      expect(validateRedirect([] as any)).toBe(false);
-      expect(validateRedirect(123 as any)).toBe(false);
-    });
-
-    it('should handle mixed route properties according to vue-router types', () => {
-      // Vue Router allows multiple properties in route objects
-      expect(validateRedirect({ name: 'Home', path: '/dashboard' })).toBe(true);
-      expect(validateRedirect({ name: 'Profile', url: 'https://example.com' })).toBe(
-        true
+    for (const [id, [overBy, expected]] of Object.entries(boundaries)) {
+      const kase = REDIRECT_CASES.find((c) => c.id === id);
+      expect([...(kase?.input ?? '')].length, `${id} length drifted`).toBe(
+        MAX_REDIRECT_LENGTH + overBy
       );
-      // Invalid properties should still fail
-      expect(validateRedirect({ path: '/profile', query: '<script>' })).toBe(true);
+      expect(kase?.expected, `${id} expectation flipped`).toBe(expected);
+    }
+  });
+});
+
+describe('isValidInternalPath', () => {
+  // One test per fixture case, named by the case id so a failure names the
+  // offending input and the Ruby half can be checked against the same name.
+  // Nested under the case's `group` so the output still reads as a taxonomy of
+  // the ruleset — the same reading the hand-written describes gave, now sourced
+  // from the fixture instead of restated in two languages.
+  for (const group of GROUPS) {
+    describe(`with ${group}`, () => {
+      for (const kase of REDIRECT_CASES.filter((c) => c.group === group)) {
+        const verb = kase.expected ? 'accepts' : 'rejects';
+        // The length-boundary inputs are ~2KB; summarize rather than paste.
+        const shown =
+          kase.input.length > 64
+            ? `${kase.input.length} characters`
+            : JSON.stringify(kase.input);
+
+        it(`${verb} ${kase.id} (${shown})`, () => {
+          expect(isValidInternalPath(kase.input)).toBe(kase.expected);
+        });
+      }
+    });
+  }
+
+  // TypeScript-only: not expressible as a JSON string. The Ruby suite carries
+  // nil/Integer/Array/Hash on its side.
+  describe('with non-string input (not expressible in the shared fixture)', () => {
+    it('rejects undefined and null', () => {
+      expect(isValidInternalPath(undefined)).toBe(false);
+      expect(isValidInternalPath(null)).toBe(false);
+    });
+
+    it('rejects numbers, objects, and arrays', () => {
+      expect(isValidInternalPath(123 as unknown as string)).toBe(false);
+      expect(isValidInternalPath({} as unknown as string)).toBe(false);
+      expect(isValidInternalPath([] as unknown as string)).toBe(false);
     });
   });
 });

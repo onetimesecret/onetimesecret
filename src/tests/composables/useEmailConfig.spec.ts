@@ -20,7 +20,11 @@ import { flushPromises } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { CustomDomainEmailConfig } from '@/schemas/shapes/domains/email-config';
-import enWorkspaceDomains from '@locales/content/en/workspace-domains.json';
+// Relative path (not the `@locales` alias): the alias is wired for vitest's
+// runtime resolver (vitest.config.ts) but has no matching tsconfig "paths"
+// entry, so vue-tsc can't resolve it. Matches the precedent in
+// src/tests/i18n/security-messages.spec.ts.
+import enWorkspaceDomains from '../../../locales/content/en/workspace-domains.json';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mock Setup

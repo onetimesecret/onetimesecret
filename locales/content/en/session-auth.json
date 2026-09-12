@@ -138,10 +138,20 @@
     "context": "Shown on signin page when SSO refuses to auto-link: an account with the callback email exists but is not linked to this provider. Phase 2 (#3840) is live — the authenticated Connected Identities panel (/account/settings/security/connections) now lets a signed-in user link the provider, so the copy points there.",
     "content_hash": "7fbbb7e7"
   },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "This domain's single sign-on can't be attached to an existing account yet. Ask an owner of your organization to invite this SSO identity, or contact support.",
+    "context": "Shown on /signin when SSO sign-in on a TENANT (custom-domain) surface finds an existing account with the callback email. Identity linking is platform-only by design (a tenant admin controls their IdP's assertions), so unlike account_exists_link_required there is NO Connected Identities self-service path — do not point the user there. Authenticated tenant-surface linking is deferred to #3849.",
+    "content_hash": "4c480913"
+  },
   "web.login.errors.identity_connect_conflict": {
-    "text": "This identity couldn't be connected. The connection may have been started on the wrong domain, or your session expired. Please sign in again, then connect it from your account settings.",
-    "context": "Shown on /signin when an authenticated SSO connect is refused for surface isolation (tenant callback on a platform session) or an expired session (#3840 Phase 2)",
-    "content_hash": "4238bbf2"
+    "text": "This identity couldn't be connected because your session expired. Please sign in again, then connect it from your account settings.",
+    "context": "Shown on /signin when an authenticated SSO connect is refused because the session's account is no longer usable (#3840 Phase 2). The tenant-surface refusal has its own code, identity_connect_wrong_domain - do not merge them.",
+    "content_hash": "b8af3ce3"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "This identity couldn't be connected. Connecting an identity has to be started from the main site, not from your organization's domain.",
+    "context": "Shown on /signin when an authenticated SSO connect is refused for surface isolation (tenant callback on a platform session). This is a deliberate, permanent refusal, not a session problem - the copy must NOT suggest signing in again and retrying, which would loop through the same refusal. Deferred fix: #3849.",
+    "content_hash": "7cb9c899"
   },
   "web.login.errors.org_join_failed": {
     "text": "We couldn't finish adding you to your organization. Please contact your administrator.",
@@ -291,14 +301,19 @@
     "text": "Check your email",
     "content_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "We sent a verification link to",
+    "context": "Label directly above the emailed address on the post-signup check-email page. Reads as one sentence with the address that follows, so it takes no final punctuation.",
+    "content_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "We sent a verification link to your email address.",
     "content_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "We sent a verification link to this address — open the email and click the link to activate your account.",
-    "context": "Tooltip/aria-label on the help icon beside the emailed address on the post-signup check-email page. Carries the 'what was sent / what to do next' detail so the screen stays a single clear instruction.",
-    "content_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "Click the link in the email to activate your account.",
+    "context": "The next step, shown directly below the emailed address on the post-signup check-email page.",
+    "content_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "Can't find it? Check your spam folder.",

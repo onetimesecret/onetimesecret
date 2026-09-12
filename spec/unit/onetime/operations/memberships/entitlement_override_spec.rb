@@ -85,6 +85,7 @@ RSpec.describe Onetime::Operations::Memberships::EntitlementOverride do
 
   before do
     allow(Onetime::ColonelAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record_access)
     allow(Onetime::OrganizationMembership)
       .to receive(:find_by_org_customer).with('org-obj-1', 'cust-obj-1').and_return(membership)
   end
@@ -204,9 +205,10 @@ RSpec.describe Onetime::Operations::Memberships::EntitlementOverride do
   end
 
   # D15. The asymmetry is the decision, not an oversight — assert BOTH halves so
-  # a later "tidy-up" into symmetry fails here first.
+  # a later "tidy-up" into symmetry fails here first. Since #4337 a no-change
+  # still RECORDS: the mutation is skipped, the attempt is not.
   describe 'no-change semantics (D15)' do
-    it 'returns :no_change for a grant that is already granted — no mutation, no audit' do
+    it 'returns :no_change for a grant that is already granted — no mutation, attempt audited (#4337)' do
       grant_members << 'custom_branding'
       reconcile!
 
@@ -214,11 +216,17 @@ RSpec.describe Onetime::Operations::Memberships::EntitlementOverride do
 
       expect(result.status).to eq(:no_change)
       expect(membership).not_to have_received(:grant_entitlement)
-      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'membership.entitlement.grant',
+        target: 'ur_member',
+        result: :success,
+        detail: { outcome: 'no_change', org_id: 'on_org_ext', entitlement: 'custom_branding' },
+      )
       expect(result.grants).to eq(['custom_branding'])
     end
 
-    it 'returns :no_change for a revoke that is already revoked — no mutation, no audit' do
+    it 'returns :no_change for a revoke that is already revoked — no mutation, attempt audited (#4337)' do
       revoke_members << 'api_access'
       reconcile!
 
@@ -226,7 +234,34 @@ RSpec.describe Onetime::Operations::Memberships::EntitlementOverride do
 
       expect(result.status).to eq(:no_change)
       expect(membership).not_to have_received(:revoke_entitlement)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          verb: 'membership.entitlement.revoke',
+          detail: { outcome: 'no_change', org_id: 'on_org_ext', entitlement: 'api_access' },
+        ),
+      )
+    end
+
+    # The live no-change above is a mutation ATTEMPT; the same discovery during
+    # a dry run is a preview, and previews never touch the operator trail.
+    it 'keeps a DRY-RUN no-change on the observation trail as a preview' do
+      grant_members << 'custom_branding'
+      reconcile!
+
+      result = run('grant', entitlement: 'custom_branding', dry_run: true)
+
+      expect(result.status).to eq(:no_change)
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+        actor: actor,
+        verb: 'membership.entitlement.grant',
+        target: 'ur_member',
+        result: 'preview',
+        detail: {
+          dry_run: true, org_id: 'on_org_ext', action: 'grant',
+          entitlement: 'custom_branding', outcome: 'no_change'
+        },
+      )
     end
 
     it 'still APPLIES a grant when the name also sits in revokes (not a no-change)' do

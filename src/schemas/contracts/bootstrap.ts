@@ -81,6 +81,25 @@ export const footerLinksConfigSchema = z.object({
 });
 
 /**
+ * Legal & policy URLs from `site.legal` (#4278) — first-class config, one
+ * value per document, shared by every consumer: the signup consent links,
+ * the branded reveal footer, and the footer "legal" link group (which the
+ * backend resolves from the same block).
+ *
+ * Each field is null when not configured. Consumers render no link at all
+ * for a null URL — never a placeholder, never a dead anchor. Absolute URLs
+ * open in a new tab; relative paths resolve in-app via router-link.
+ */
+export const legalLinksSchema = z.object({
+  terms_url: z.string().nullable().default(null),
+  privacy_url: z.string().nullable().default(null),
+  dpa_url: z.string().nullable().default(null),
+  cookie_url: z.string().nullable().default(null),
+  aup_url: z.string().nullable().default(null),
+  security_url: z.string().nullable().default(null),
+});
+
+/**
  * Masthead layout knobs (presentation only). Brand identity — the logo
  * asset, its alt text, and the product name — comes from the flat
  * `brand_*` bootstrap fields (the `brand:` config block), not the header
@@ -340,6 +359,7 @@ export const featuresSchema = z.object({
   password_requirements: z.boolean().optional(),
   email_auth: z.boolean().optional(),
   webauthn: z.boolean().optional(),
+  active_sessions: z.boolean().optional(),
   sso: z.union([z.boolean(), ssoConfigSchema]).optional(),
   // Legacy scalar projection retained for existing consumers.
   restrict_to: restrictToSchema.nullable().optional(),
@@ -403,14 +423,14 @@ export const secretOptionsSchema = z.object({
     .array(z.number().int().positive().min(60).max(31536000))
     .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
   /**
-   * TTL ceiling the server silently applies to anonymous (guest) secrets, in
-   * seconds. A hard product cap (7 days) that holds on every deployment,
-   * billing enabled or not; TTL_MAX_ANONYMOUS can raise or lower it. Absent
-   * only on a payload predating this field — treat that as "no ceiling".
+   * Effective TTL ceiling for a guest creating on the current request host.
+   * Canonical hosts use TTL_MAX_ANONYMOUS (7 days by default); custom hosts use
+   * the domain owner organization's plan lifetime (normally 14 or 30 days).
+   * The legacy field name describes authentication state, not policy scope.
+   * Absent only on a payload predating this field — treat that as "no ceiling".
    *
-   * @sync apps/web/core/views/serializers/config_serializer.rb — anonymous_ttl_ceiling
-   * @sync apps/api/v2/logic/secrets/base_secret_action.rb — anonymous_max_ttl
-   * @sync lib/onetime/models/features/with_entitlements.rb — ANONYMOUS_MAX_TTL
+   * @sync apps/web/core/views/serializers/config_serializer.rb — build_secret_options
+   * @sync lib/onetime/secret_lifetime_policy.rb — SecretLifetimePolicy.guest_ceiling
    */
   ttl_max_anonymous: z.number().int().positive().nullish(),
   passphrase: passphraseSchema.optional(),
@@ -503,6 +523,42 @@ export const organizationSchema = z
 export const domainStrategySchema = z.enum(['canonical', 'subdomain', 'custom', 'invalid']);
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// IMPERSONATION (colonel support session overlay)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * The active impersonation marker, mirroring the Ruby session overlay
+ * (`Onetime::SessionImpersonation`) as re-read per request by the context
+ * middleware — NOT a client-side derivation.
+ *
+ * Present (non-null) ONLY while a colonel is presenting as another customer.
+ * `cust`/`custid`/`email` in the same payload already describe the TARGET, so
+ * this block is what tells the UI that the identity it is rendering is
+ * borrowed, who borrowed it, and when the loan ends.
+ *
+ * Timestamps are Unix epoch SECONDS (integers), matching the Ruby marker;
+ * consumers multiply by 1000 before constructing a Date.
+ *
+ * Absence is the safe state: a payload without the block renders as an
+ * ordinary session, which is exactly what the server serves once the marker
+ * is stopped or has expired.
+ */
+export const impersonationSchema = z.object({
+  /** Non-secret correlation id shared with the audit trail (e.g. "imp_…"). */
+  impersonation_id: z.string(),
+  /** The colonel's extid — the principal the session reverts to on stop. */
+  impersonator_extid: z.string(),
+  /** The impersonated customer's extid. */
+  target_extid: z.string(),
+  /** Display-only address for the banner. */
+  target_email: z.string(),
+  /** Epoch seconds the overlay began. */
+  started_at: z.number(),
+  /** Epoch seconds the overlay lapses server-side, with or without a stop. */
+  expires_at: z.number(),
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // EXPORTED TYPES (derived from sub-schemas defined in this file)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -511,6 +567,7 @@ export type Message = z.infer<typeof messageSchema>;
 export type FooterLink = z.infer<typeof footerLinkSchema>;
 export type FooterGroup = z.infer<typeof footerGroupSchema>;
 export type FooterLinksConfig = z.infer<typeof footerLinksConfigSchema>;
+export type LegalLinks = z.infer<typeof legalLinksSchema>;
 export type WorkspaceLinksConfig = z.infer<typeof workspaceLinksConfigSchema>;
 export type HeaderLogo = z.infer<typeof headerLogoSchema>;
 export type HeaderNavigation = z.infer<typeof headerNavigationSchema>;
@@ -527,6 +584,7 @@ export type Features = z.infer<typeof featuresSchema>;
 export type DevelopmentConfig = z.infer<typeof developmentConfigSchema>;
 export type Organization = z.infer<typeof organizationSchema>;
 export type DomainStrategy = z.infer<typeof domainStrategySchema>;
+export type ImpersonationState = z.infer<typeof impersonationSchema>;
 
 // Re-export types from contracts
 export type { RegionsConfig } from '@/schemas/contracts/config/section/jurisdiction';
@@ -695,6 +753,10 @@ export const bootstrapSchema = z.object({
   support_host: z.string().default(''),
   checkout_host: z.string().default(''),
   ui: uiInterfaceSchema.default(uiInterfaceSchema.parse({})),
+  // First-class legal/policy URLs (site.legal, #4278). Always emitted by
+  // ConfigSerializer ({} on a bare config), so `.default()` keeps the type
+  // non-optional; the inner parse({}) fills each field's null default.
+  legal: legalLinksSchema.default(legalLinksSchema.parse({})),
   available_jurisdictions: z.array(z.string()).default([]),
 
   // Frontend rendering config for the disabled-homepage view. All knobs
@@ -746,6 +808,13 @@ export const bootstrapSchema = z.object({
   email: z.string().default(''),
   // customer_since: formatted date string (e.g., "Mar 21, 2026") from Ruby epochdom()
   customer_since: z.string().optional(),
+
+  // Active impersonation overlay, or null. `.nullable().default(null)` rather
+  // than `.optional()`: the serializer emits the key on every response (null
+  // when inactive), and a always-present key is what lets a stop or an expiry
+  // CLEAR the banner — bootstrapStore.update() filters undefined out of the
+  // merge, so an omitted key would leave a stale marker on screen.
+  impersonation: impersonationSchema.nullable().default(null),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // DomainSerializer fields

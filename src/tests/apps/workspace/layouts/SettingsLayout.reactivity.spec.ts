@@ -82,7 +82,7 @@ describe('SettingsLayout — reactive tab visibility', () => {
 
   it('shows Security section in full-auth mode even without a password', async () => {
     mounted = await mountLayout({
-      authentication: { mode: 'full' },
+      authentication: { ...authenticatedBootstrap.authentication, mode: 'full' },
       features: { mfa: true, webauthn: true, sso: { enabled: true }, restrict_to: null } as never,
       has_password: false,
     });
@@ -95,7 +95,7 @@ describe('SettingsLayout — reactive tab visibility', () => {
 
   it('hides Security section when auth mode is not full', async () => {
     mounted = await mountLayout({
-      authentication: { mode: 'simple' },
+      authentication: { ...authenticatedBootstrap.authentication, mode: 'simple' },
       features: { mfa: true, webauthn: true, sso: { enabled: true }, restrict_to: null } as never,
       has_password: false,
     });
@@ -107,14 +107,16 @@ describe('SettingsLayout — reactive tab visibility', () => {
 
   it('reacts to auth mode change without re-mounting', async () => {
     mounted = await mountLayout({
-      authentication: { mode: 'simple' },
+      authentication: { ...authenticatedBootstrap.authentication, mode: 'simple' },
       features: { mfa: true, webauthn: true, sso: { enabled: true }, restrict_to: null } as never,
       has_password: false,
     });
 
     expect(visibleTabIds(mounted.wrapper)).not.toContain('/account/settings/security');
 
-    mounted.store.update({ authentication: { mode: 'full' } });
+    mounted.store.update({
+      authentication: { ...authenticatedBootstrap.authentication, mode: 'full' },
+    });
     await nextTick();
 
     expect(visibleTabIds(mounted.wrapper)).toContain('/account/settings/security');

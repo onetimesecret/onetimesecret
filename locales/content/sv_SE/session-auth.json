@@ -436,13 +436,17 @@
     "text": "Kontrollera din e-post",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "Vi skickade en verifieringslänk till",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "Vi skickade en verifieringslänk till din e-postadress.",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "Vi skickade en verifieringslänk till den här adressen – öppna e-postmeddelandet och klicka på länken för att aktivera ditt konto.",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "Klicka på länken i e-postmeddelandet för att aktivera ditt konto.",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "Kan du inte hitta den? Kolla din skräppostmapp.",

@@ -6,20 +6,25 @@
   import { AdminConfirmDialog, DataTable, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
-  import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
+  import { accountConfirmToken, confirmHeaders } from '@/apps/admin/utils/confirmHeader';
+  import { reasonBody, reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
   import type {
     ColonelUserDetailReceipt,
     ColonelUserDetailSecret,
   } from '@/schemas/api/internal/responses/colonel';
   import {
+    colonelImpersonateResponseSchema,
     colonelUserDetailResponseSchema,
     colonelUserMutationResponseSchema,
   } from '@/schemas/api/internal/responses/colonel';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useApi } from '@/shared/composables/useApi';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { formatDisplayDateTime } from '@/utils/format';
+  import { hardNavigate } from '@/utils/navigation';
   import { gracefulParse } from '@/utils/schemaValidation';
   import { computed, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -36,9 +41,9 @@
    *   detail owns plan, Stripe, and subscription information. Loading, empty,
    *   not-found and error states are all handled explicitly.
    * - Guarded actions (CONTRACT 3 / D4): set-role, verify, unverify and
-   *   unsuspend go through a simple confirm; PURGE and SUSPEND require typed
-   *   confirmation (retype the public id) via {@link AdminConfirmDialog} in
-   *   danger mode. Suspension is the reversible trust & safety pause (no data
+   *   unsuspend go through a simple confirm; PURGE, SUSPEND and IMPERSONATE
+   *   require typed confirmation (retype the public id — purge asks for the
+   *   email) via {@link AdminConfirmDialog} in danger mode. Suspension is the reversible trust & safety pause (no data
    *   destroyed — unlike purge); colonel accounts cannot be suspended. Audit
    *   is emitted server-side; nothing here logs it.
    */
@@ -51,6 +56,7 @@
   const router = useRouter();
   const $api = useApi();
   const notifications = useNotificationsStore();
+  const bootstrapStore = useBootstrapStore();
 
   const publicId = computed(() => props.id);
   const userUrl = (): string => `/api/colonel/users/${encodeURIComponent(publicId.value)}`;
@@ -79,7 +85,14 @@
 
   // ---- Guarded actions ------------------------------------------------------
 
-  type ActionKey = 'setRole' | 'verify' | 'unverify' | 'suspend' | 'unsuspend' | 'purge';
+  type ActionKey =
+    | 'setRole'
+    | 'verify'
+    | 'unverify'
+    | 'suspend'
+    | 'unsuspend'
+    | 'impersonate'
+    | 'purge';
 
   /** Assignable roles, mirrored from the backend SetRole::VALID_ROLES. */
   const ROLE_OPTIONS = ['colonel', 'admin', 'staff', 'customer'] as const;
@@ -89,6 +102,13 @@
   const pendingRole = ref('');
   /** Optional operator-supplied suspension reason (sent with the suspend POST). */
   const suspendReason = ref('');
+  /** REQUIRED operator reason for impersonation (the API 422s without one). */
+  const impersonateReason = ref('');
+  /**
+   * Where the server says the console must go once impersonation starts,
+   * captured from the ack and consumed by the hard navigation in onConfirm.
+   */
+  const impersonateRedirect = ref<string | null>(null);
 
   // Keep the role selector in sync with the loaded record.
   watch(
@@ -108,11 +128,49 @@
   async function callMutation(
     method: 'post' | 'delete',
     path: string,
-    body?: unknown
+    opts: {
+      body?: unknown;
+      /** DELETE-only operator reason (#4338); a POST merges it into `body`. */
+      reason?: string;
+      /** The #4326 confirmation token's header, when the verb is gated. */
+      headers?: Record<string, string>;
+    } = {}
   ): Promise<void> {
+    // POST -> body, DELETE -> query string (see operatorReason.ts). The
+    // confirmation token rides the HEADER either way, so the two compose.
+    const headerConfig = opts.headers ? { headers: opts.headers } : undefined;
+    const [reasonConfig] = reasonQueryArgs(opts.reason);
+    // With no reason the call keeps its exact pre-#4338 shape.
+    const deleteConfig = reasonConfig ? { ...headerConfig, ...reasonConfig } : headerConfig;
     const response =
-      method === 'delete' ? await $api.delete(path) : await $api.post(path, body ?? {});
+      method === 'delete'
+        ? await $api.delete(path, deleteConfig)
+        : await $api.post(path, opts.body ?? {}, headerConfig);
     gracefulParse(colonelUserMutationResponseSchema, response.data, 'ColonelUserMutationResponse');
+  }
+
+  /**
+   * Start an impersonation and remember where the console must go next.
+   *
+   * Extracted from the mutation switch rather than inlined because its ack is
+   * not the shared mutation ack: it carries the new marker plus a redirect.
+   * A 2xx means the session ALREADY carries the marker, so a schema mismatch
+   * must NOT fail the action — it degrades to a null redirect and hardNavigate
+   * falls back to the app root.
+   */
+  async function startImpersonation(): Promise<void> {
+    // Last line of the fail-closed gate: the reason is required by the API and
+    // the button is disabled without one, but never POST without it.
+    const reason = impersonateReason.value.trim();
+    if (!impersonateAvailable.value || !reason) throw new Error(impersonateBlockedReason.value);
+
+    const response = await $api.post(`${userUrl()}/impersonate`, { reason });
+    const parsed = gracefulParse(
+      colonelImpersonateResponseSchema,
+      response.data,
+      'ColonelImpersonateResponse'
+    );
+    impersonateRedirect.value = parsed.ok ? (parsed.data.record.redirect ?? null) : null;
   }
 
   const {
@@ -120,27 +178,43 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
-  } = useAdminMutation(async () => {
+  } = useAdminDestructiveMutation(async (reason?: string) => {
+    // Every DANGER action is gated server-side (#4326) on the SAME token the
+    // dialog asks the operator to retype. A missing one is a bug, not a
+    // fallback: sending no header is a 403 the operator cannot act on.
+    const confirm = confirmTokenFor(activeAction.value ?? 'verify');
+    const headers = confirm ? confirmHeaders(confirm) : undefined;
+
     switch (activeAction.value) {
       case 'setRole':
-        return callMutation('post', `${userUrl()}/role`, { role: pendingRole.value });
+        return callMutation('post', `${userUrl()}/role`, {
+          body: { role: pendingRole.value, ...reasonBody(reason) },
+          headers,
+        });
       case 'verify':
         return callMutation('post', `${userUrl()}/verify`);
       case 'unverify':
-        return callMutation('post', `${userUrl()}/unverify`);
+        return callMutation('post', `${userUrl()}/unverify`, { headers });
       case 'suspend':
-        return callMutation(
-          'post',
-          `${userUrl()}/suspend`,
-          suspendReason.value.trim() ? { reason: suspendReason.value.trim() } : {}
-        );
+        // Suspend keeps its own on-page reason field (it predates #4338 and is
+        // also stored on the customer row, not only in the trail), so the
+        // dialog does not ask a second time — see REASON_ACTIONS.
+        return callMutation('post', `${userUrl()}/suspend`, {
+          body: reasonBody(suspendReason.value),
+          headers,
+        });
       case 'unsuspend':
-        return callMutation('post', `${userUrl()}/unsuspend`);
+        // A RELEASE has no on-page field, and unsuspending CLEARS the row's
+        // who/when/why stamps — so the audit event is the only place its why
+        // can live. Hence the dialog asks here.
+        return callMutation('post', `${userUrl()}/unsuspend`, { body: reasonBody(reason) });
+      case 'impersonate':
+        return startImpersonation();
       case 'purge':
         // Last line of the fail-closed gate: no typed token, no DELETE — even
         // if the dialog were somehow reached with a blank one.
         if (purgeBlocked.value) throw new Error(purgeBlockedReason.value);
-        return callMutation('delete', userUrl());
+        return callMutation('delete', userUrl(), { reason, headers });
       default:
         throw new Error('No active action');
     }
@@ -156,38 +230,150 @@
     unverify: 'unverify',
     suspend: 'suspend',
     unsuspend: 'unsuspend',
+    impersonate: 'impersonate',
     purge: 'purge',
   };
 
-  /** Destructive actions gate confirm behind a typed-confirmation token. */
-  const DANGER_ACTIONS: readonly ActionKey[] = ['purge', 'suspend'];
+  /**
+   * Destructive actions gate confirm behind a typed-confirmation token.
+   *
+   * `setRole` and `unverify` joined this list with #4326. Promotion to colonel
+   * is privilege-granting, and unverifying an account STRIPS colonel
+   * eligibility (system roles require a verified email) — neither belongs
+   * behind a one-click confirm.
+   */
+  const DANGER_ACTIONS: readonly ActionKey[] = [
+    'purge',
+    'suspend',
+    'setRole',
+    'unverify',
+    'impersonate',
+  ];
 
   /**
-   * The exact string the operator must retype, or undefined for a one-click
-   * confirm. PURGE is irreversible, so it asks for the account's EMAIL — the
-   * identifier the operator can check against the ticket they are working,
-   * rather than an id they just copied off this page. Suspend is reversible and
-   * keeps the public id.
+   * Actions whose confirm dialog collects an OPTIONAL operator reason (#4338).
    *
-   * FAILS CLOSED: a record with a blank email yields undefined, and purge is
-   * then UNAVAILABLE (disabled button + a stated reason) rather than silently
-   * dropping AdminConfirmDialog into one-click simple-confirm mode — or asking
-   * for the email while accepting some substitute identifier.
+   * `suspend` is deliberately ABSENT: it already has its own reason input on
+   * the page (it is stored on the customer row as well as in the trail), and
+   * two reason fields in one flow is worse than one. Verify/unverify are
+   * reversible bookkeeping with nothing to explain.
+   */
+  const REASON_ACTIONS: readonly ActionKey[] = ['purge', 'setRole', 'unsuspend'];
+
+  /**
+   * The exact string the operator must retype, AND the token sent in
+   * X-OTS-Confirm — one value, so the gate cannot ask for one thing while
+   * accepting another.
+   *
+   * It is the account's EMAIL (its public id only when the account has none),
+   * mirroring the server's `account_confirm_token` for all four danger actions.
+   * That is the identifier an operator can check against the ticket they are
+   * working, rather than an id they just copied off this page — and it is not
+   * the id the URL already carries.
+   *
+   * FAILS CLOSED: an unloaded record yields undefined, and the action is then
+   * UNAVAILABLE rather than silently dropping AdminConfirmDialog into one-click
+   * simple-confirm mode.
    */
   function confirmTokenFor(action: ActionKey): string | undefined {
     if (!DANGER_ACTIONS.includes(action)) return undefined;
-    if (action !== 'purge') return publicId.value;
-    return record.value?.email?.trim() || undefined;
+    return accountConfirmToken(record.value);
   }
 
-  /** True when purge must be unavailable: no email to type as confirmation. */
+  /** True when purge must be unavailable: no token to type as confirmation. */
   const purgeBlocked = computed(() => !confirmTokenFor('purge'));
+
+  /**
+   * Is the record on screen the acting colonel's own account? (#4328)
+   *
+   * Compared on the PUBLIC id the bootstrap payload already carries. This is
+   * defence in depth, exactly like {@link purgeBlocked} — the server refuses
+   * self-demotion, self-unverify and self-revoke with a 422 whatever the
+   * browser does; disabling here just keeps the operator from typing a
+   * confirmation token for an action that cannot succeed.
+   */
+  const isSelf = computed(
+    () => !!record.value?.extid && record.value.extid === bootstrapStore.cust?.extid
+  );
+
+  /**
+   * A DEMOTION of your own account: the one role change the server refuses.
+   * Raising your own role is not a lockout risk and stays available.
+   */
+  const selfDemoteBlocked = computed(
+    () => isSelf.value && !!pendingRole.value && pendingRole.value !== 'colonel'
+  );
+
+  /** Unverifying yourself strips your own colonel eligibility — also refused. */
+  const selfUnverifyBlocked = computed(() => isSelf.value);
+
+  /** Why the role apply button is disabled, when it is for this reason. */
+  const selfDemoteReason = computed(() => t('web.admin.customers.actions.role.selfDemote'));
+
+  /**
+   * Advisory (not a gate): demoting or unverifying SOMEONE ELSE'S colonel
+   * account can still be refused server-side when they are the last remaining
+   * one. The console cannot know the roster — that answer is deliberately not
+   * exposed, because it would be an oracle — so this warns rather than blocks.
+   */
+  const demotingAnotherColonel = computed(
+    () =>
+      !isSelf.value &&
+      record.value?.role === 'colonel' &&
+      !!pendingRole.value &&
+      pendingRole.value !== 'colonel'
+  );
+
+  const unverifyingAnotherColonel = computed(
+    () => !isSelf.value && record.value?.role === 'colonel' && !!record.value?.verified
+  );
+
+  /**
+   * The token the session-revoke verbs are gated on (#4326) — the same account
+   * identifier, resolved here because the sessions section only knows the
+   * route's public id. Falls back to that id, which is what the server resolves
+   * an account with no email to.
+   */
+  const sessionsConfirmToken = computed(() => accountConfirmToken(record.value) ?? publicId.value);
 
   /** Why purge is unavailable — rendered beside the disabled button. */
   const purgeBlockedReason = computed(() =>
     t(
       'web.admin.customers.actions.purge.unavailable',
       'Purge is unavailable: this account has no email address to retype as confirmation.'
+    )
+  );
+
+  /**
+   * True when this account can be impersonated.
+   *
+   * Mirrors the operation's own guards (PrivilegedTarget / AnonymousTarget /
+   * SuspendedTarget) so the operator is told BEFORE the POST rather than by a
+   * 422. The server remains the authority — this is a UI affordance, not the
+   * enforcement point.
+   *
+   * The anonymous customer is identified by the sentinel id 'anon' (the same
+   * value AdminSecrets treats as an anonymous owner); a record with no email
+   * or no public id is treated as anonymous too, because those are the fields
+   * the impersonated session would have to present.
+   */
+  const impersonateAvailable = computed(() => {
+    const r = record.value;
+    if (!r) return false;
+    if (r.role === 'colonel') return false;
+    if (r.suspended) return false;
+    const extid = r.extid?.trim();
+    const email = r.email?.trim();
+    if (!extid || extid === 'anon') return false;
+    if (!email || email === 'anon') return false;
+    return true;
+  });
+
+  /** Why impersonation is unavailable — rendered beside the disabled button. */
+  const impersonateBlockedReason = computed(() =>
+    t(
+      'web.admin.customers.actions.impersonate.unavailable',
+      'Impersonation is unavailable for colonel, anonymous, and suspended accounts.'
     )
   );
 
@@ -199,6 +385,7 @@
       confirmToken: undefined,
       variant: 'default' as const,
       confirmText: undefined,
+      requestReason: false,
     };
     if (!action) return blank;
 
@@ -215,6 +402,7 @@
       confirmToken: confirmTokenFor(action),
       variant: isDanger ? ('danger' as const) : ('default' as const),
       confirmText: isDanger ? t(`web.admin.customers.actions.${key}.button`) : undefined,
+      requestReason: REASON_ACTIONS.includes(action),
     };
   });
 
@@ -235,6 +423,7 @@
     unverify: 'web.admin.customers.actions.unverify.success',
     suspend: 'web.admin.customers.actions.suspend.success',
     unsuspend: 'web.admin.customers.actions.unsuspend.success',
+    impersonate: 'web.admin.customers.actions.impersonate.success',
     purge: 'web.admin.customers.actions.purge.success',
   };
 
@@ -242,26 +431,51 @@
     // Fail closed: never open a danger dialog whose typed token is blank —
     // AdminConfirmDialog runs an empty token as a one-click simple confirm.
     if (DANGER_ACTIONS.includes(key) && !confirmTokenFor(key)) return;
+    // ...nor one the server's self-target interlocks will refuse (#4328).
+    if (key === 'unverify' && selfUnverifyBlocked.value) return;
     activeAction.value = key;
     resetMutation();
     dialogOpen.value = true;
   }
 
+  /**
+   * Open the impersonation confirm. Refuses when the target is ineligible or
+   * the reason is blank — the two conditions the button is disabled on,
+   * re-checked here so a keyboard/DOM path cannot open a dialog whose confirm
+   * would fail server-side.
+   */
+  function requestImpersonate(): void {
+    if (!impersonateAvailable.value || !impersonateReason.value.trim()) return;
+    requestAction('impersonate');
+  }
+
   function requestSetRole(): void {
     // No-op guard: ignore if the role is unchanged (nothing to confirm).
     if (!pendingRole.value || pendingRole.value === record.value?.role) return;
+    // Fail closed on the interlocks the server enforces (#4328).
+    if (selfDemoteBlocked.value) return;
     requestAction('setRole');
   }
 
-  async function onConfirm(): Promise<void> {
+  async function onConfirm(reason?: string): Promise<void> {
     const key = activeAction.value;
     if (!key) return;
 
-    const ok = await runMutation();
+    const ok = await runMutation(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
     dialogOpen.value = false;
     notifications.show(t(successMessageKey[key]), 'success');
+
+    if (key === 'impersonate') {
+      // HARD navigation, not router.push: the session now presents as the
+      // target, the console is a separate bundle, and /colonel* is blocked
+      // outright while a marker is active — an in-SPA push would land on a
+      // 403. The document load also re-reads the bootstrap, which is what
+      // raises the ImpersonationBanner.
+      hardNavigate(impersonateRedirect.value, '/');
+      return;
+    }
 
     if (key === 'purge') {
       // The record no longer exists — return to the list.
@@ -418,6 +632,16 @@
         @click="goBack">
         {{ t('web.admin.customers.detail.backToList') }}
       </button>
+
+      <!-- "No customer record" is itself a diagnosis, not the end of the road:
+           the identifier may still name an orphaned auth-database accounts row
+           (the customers list links such rows here by email), and the
+           diagnostics endpoint answers for an orphan by email, extid and
+           Rodauth id. Mounting the read-out under the not-found panel is what
+           makes that link worth following. -->
+      <div class="mt-8 text-left">
+        <AdminAccountDiagnosticsSection :user-id="publicId" />
+      </div>
     </div>
 
     <!-- Load error (network/HTTP non-404, or contract mismatch) -->
@@ -500,6 +724,23 @@
           {{ t('web.admin.customers.suspended.badge') }}
         </span>
         <span class="font-mono text-xs text-gray-400 dark:text-gray-500">{{ record.extid }}</span>
+        <!-- Outbound deep link to this customer's Rodauth account in the
+             standalone admin (read-only external_id join). The server sends
+             null unless full auth mode AND RODAUTH_ADMIN_URL are set, and then
+             the public id above is all there is. Nothing is fetched from it. -->
+        <a
+          v-if="details.rodauth_admin_account_url"
+          :href="details.rodauth_admin_account_url"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
+          data-testid="rodauth-admin-link">
+          {{ t('web.admin.customers.detail.rodauthAdmin.open') }}
+          <OIcon
+            collection="heroicons"
+            name="arrow-top-right-on-square"
+            size="3" />
+        </a>
       </div>
 
       <!-- Stat tiles -->
@@ -589,12 +830,29 @@
                 <button
                   type="button"
                   data-testid="role-apply"
-                  :disabled="pendingRole === record.role"
+                  :disabled="pendingRole === record.role || selfDemoteBlocked"
+                  :aria-describedby="selfDemoteBlocked ? 'self-demote-reason' : undefined"
                   class="inline-flex shrink-0 items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
                   @click="requestSetRole">
                   {{ t('web.admin.customers.actions.role.apply') }}
                 </button>
               </div>
+              <!-- Client-side mirror of the server interlock (#4328): a colonel
+                   cannot demote their own account. Stated, not just disabled —
+                   a dead button with no explanation reads as a bug. -->
+              <p
+                v-if="selfDemoteBlocked"
+                id="self-demote-reason"
+                class="mt-2 text-xs text-amber-700 dark:text-amber-400"
+                data-testid="self-demote-reason">
+                {{ selfDemoteReason }}
+              </p>
+              <p
+                v-else-if="demotingAnotherColonel"
+                class="mt-2 text-xs text-amber-700 dark:text-amber-400"
+                data-testid="last-colonel-warning">
+                {{ t('web.admin.customers.actions.role.lastColonel') }}
+              </p>
             </div>
 
             <!-- Verify / unverify -->
@@ -610,18 +868,36 @@
                 size="4" />
               {{ t('web.admin.customers.actions.verify.button') }}
             </button>
-            <button
-              v-else
-              type="button"
-              data-testid="unverify-button"
-              class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
-              @click="requestAction('unverify')">
-              <OIcon
-                collection="heroicons"
-                name="x-circle"
-                size="4" />
-              {{ t('web.admin.customers.actions.unverify.button') }}
-            </button>
+            <div v-else>
+              <button
+                type="button"
+                data-testid="unverify-button"
+                :disabled="selfUnverifyBlocked"
+                :aria-describedby="selfUnverifyBlocked ? 'self-unverify-reason' : undefined"
+                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+                @click="requestAction('unverify')">
+                <OIcon
+                  collection="heroicons"
+                  name="x-circle"
+                  size="4" />
+                {{ t('web.admin.customers.actions.unverify.button') }}
+              </button>
+              <!-- Verification is a prerequisite for the colonel role, so
+                   unverifying yourself is a self-demotion (#4328). -->
+              <p
+                v-if="selfUnverifyBlocked"
+                id="self-unverify-reason"
+                class="mt-2 text-xs text-amber-700 dark:text-amber-400"
+                data-testid="self-unverify-reason">
+                {{ t('web.admin.customers.actions.unverify.selfUnverify') }}
+              </p>
+              <p
+                v-else-if="unverifyingAnotherColonel"
+                class="mt-2 text-xs text-amber-700 dark:text-amber-400"
+                data-testid="unverify-last-colonel-warning">
+                {{ t('web.admin.customers.actions.unverify.lastColonel') }}
+              </p>
+            </div>
 
             <!-- Suspend / unsuspend (reversible trust & safety pause).
                  Colonel accounts cannot be suspended (privilege guard); the
@@ -671,6 +947,54 @@
                   size="4" />
                 {{ t('web.admin.customers.actions.unsuspend.button') }}
               </button>
+            </div>
+
+            <!-- Impersonate (time-boxed, READ-ONLY support session). Amber,
+                 not red: nothing is destroyed, but the operator leaves the
+                 console and continues as this customer, so it is set apart
+                 from the reversible actions above. Reason is REQUIRED — it is
+                 what the audit entry carries — and the button stays disabled
+                 (with a stated reason) for colonel, anonymous and suspended
+                 targets, which the API refuses anyway. -->
+            <div class="space-y-3 border-t border-gray-200 pt-4 dark:border-gray-800">
+              <div>
+                <label
+                  for="impersonate-reason-input"
+                  class="block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                  {{ t('web.admin.customers.actions.impersonate.reasonLabel') }}
+                </label>
+                <input
+                  id="impersonate-reason-input"
+                  v-model="impersonateReason"
+                  type="text"
+                  maxlength="500"
+                  required
+                  aria-required="true"
+                  :disabled="!impersonateAvailable"
+                  data-testid="impersonate-reason"
+                  :placeholder="t('web.admin.customers.actions.impersonate.reasonPlaceholder')"
+                  class="mt-2 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:placeholder:text-gray-500" />
+              </div>
+              <button
+                type="button"
+                data-testid="impersonate-button"
+                :disabled="!impersonateAvailable || !impersonateReason.trim()"
+                :aria-describedby="!impersonateAvailable ? 'impersonate-blocked-reason' : undefined"
+                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-amber-400 px-3 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-900/30"
+                @click="requestImpersonate">
+                <OIcon
+                  collection="heroicons"
+                  name="eye"
+                  size="4" />
+                {{ t('web.admin.customers.actions.impersonate.button') }}
+              </button>
+              <p
+                v-if="!impersonateAvailable"
+                id="impersonate-blocked-reason"
+                class="text-xs text-amber-700 dark:text-amber-400"
+                data-testid="impersonate-blocked-reason">
+                {{ impersonateBlockedReason }}
+              </p>
             </div>
 
             <!-- Purge (destructive, typed-confirm). Disabled with a stated
@@ -839,7 +1163,10 @@
 
       <!-- Active sessions (SIDECAR view — SessionMetadata safe_dump, no token/
            payload can appear). Guarded per-row revoke logs the user out. -->
-      <AdminCustomerSessionsSection :user-id="publicId" />
+      <AdminCustomerSessionsSection
+        :user-id="publicId"
+        :confirm-token="sessionsConfirmToken"
+        :is-self="isSelf" />
 
       <!-- Account auth diagnostics (READ-ONLY) — why can't this user log in /
            sign up. Same read-out as `bin/ots customers diagnose`. -->
@@ -854,6 +1181,7 @@
       :confirm-token="dialogConfig.confirmToken"
       :variant="dialogConfig.variant"
       :confirm-text="dialogConfig.confirmText"
+      :request-reason="dialogConfig.requestReason"
       :loading="mutationLoading"
       :error="mutationError"
       @confirm="onConfirm"

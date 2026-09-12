@@ -51,9 +51,18 @@ import type { ReceiptState } from '@/schemas/shapes/v2/receipt';
 /**
  * Asserts that two dates are equal by timestamp.
  */
-function expectDatesEqual(actual: Date | null, expected: Date | null, fieldName: string) {
-  if (expected === null) {
-    expect(actual, `${fieldName} should be null`).toBeNull();
+function expectDatesEqual(
+  actual: Date | null | undefined,
+  expected: Date | null | undefined,
+  fieldName: string
+) {
+  if (expected == null) {
+    // V2's deprecated timestamp aliases (received/viewed/shared, etc.) are
+    // declared with `.optional()` on top of the nullable transform, so the
+    // parsed type is `Date | null | undefined` even though every fixture in
+    // this file always sends an explicit `null` on the wire — undefined is
+    // never actually produced at runtime, just permitted by the type.
+    expect(actual == null, `${fieldName} should be null/undefined, got ${actual}`).toBe(true);
   } else {
     expect(actual, `${fieldName} should be a Date`).toBeInstanceOf(Date);
     expect(actual!.getTime(), `${fieldName} timestamp mismatch`).toBe(expected.getTime());
@@ -95,9 +104,10 @@ describe('V2 Receipt Round-Trip', () => {
       expectDatesEqual(parsed.updated, canonical.updated, 'updated');
       expectDatesEqual(parsed.shared, canonical.shared, 'shared');
 
-      // Booleans
-      expect(parsed.is_viewed).toBe(canonical.is_viewed);
-      expect(parsed.is_received).toBe(canonical.is_received);
+      // Booleans (parsed.is_viewed/is_received are V2's deprecated aliases,
+      // mirrored from the canonical is_previewed/is_revealed fields)
+      expect(parsed.is_viewed).toBe(canonical.is_previewed);
+      expect(parsed.is_received).toBe(canonical.is_revealed);
       expect(parsed.is_burned).toBe(canonical.is_burned);
 
       // Numbers
@@ -121,7 +131,7 @@ describe('V2 Receipt Round-Trip', () => {
     it('preserves null timestamps', () => {
       const canonical = createCanonicalReceiptBase({
         shared: null,
-        received: null,
+        revealed: null,
         burned: null,
       });
       const wire = createV2WireReceiptBase(canonical);
@@ -134,7 +144,7 @@ describe('V2 Receipt Round-Trip', () => {
 
     it('preserves boolean false values', () => {
       const canonical = createCanonicalReceiptBase({
-        is_viewed: false,
+        is_previewed: false,
         is_burned: false,
         is_expired: false,
       });
@@ -148,7 +158,7 @@ describe('V2 Receipt Round-Trip', () => {
 
     it('preserves boolean true values', () => {
       const canonical = createCanonicalReceiptBase({
-        is_viewed: true,
+        is_previewed: true,
         is_burned: true,
         is_expired: true,
       });
@@ -376,7 +386,7 @@ describe('Deprecated Field Aliasing', () => {
 
       // Both should be set to the same value for backward compatibility
       expectDatesEqual(parsed.revealed, canonical.revealed, 'revealed');
-      expectDatesEqual(parsed.received, canonical.received, 'received');
+      expectDatesEqual(parsed.received, canonical.revealed, 'received');
       // They should be equal timestamps
       expect(parsed.revealed?.getTime()).toBe(parsed.received?.getTime());
     });
@@ -388,7 +398,7 @@ describe('Deprecated Field Aliasing', () => {
 
       // Both should be set to the same value for backward compatibility
       expectDatesEqual(parsed.previewed, canonical.previewed, 'previewed');
-      expectDatesEqual(parsed.viewed, canonical.viewed, 'viewed');
+      expectDatesEqual(parsed.viewed, canonical.previewed, 'viewed');
       // They should be equal timestamps
       expect(parsed.previewed?.getTime()).toBe(parsed.viewed?.getTime());
     });
@@ -445,11 +455,13 @@ describe('Deprecated Field Aliasing', () => {
       ['is_revealed', 'is_received', false],
       ['is_previewed', 'is_viewed', true],
       ['is_previewed', 'is_viewed', false],
-    ])('%s and %s should both be %s', (newField, oldField, value) => {
-      const overrides =
-        newField === 'is_revealed'
-          ? { is_revealed: value, is_received: value }
-          : { is_previewed: value, is_viewed: value };
+    ] as const)('%s and %s should both be %s', (newField, oldField, value) => {
+      // Only the canonical field is settable — is_received/is_viewed are V2
+      // wire-only aliases mirrored from is_revealed/is_previewed, not real
+      // ReceiptCanonical properties (see contracts/receipt.ts).
+      const overrides = newField === 'is_revealed'
+        ? { is_revealed: value }
+        : { is_previewed: value };
       const canonical = createCanonicalReceipt(overrides);
       const wire = createV2WireReceipt(canonical);
       const parsed = receiptSchema.parse(wire);
@@ -822,8 +834,11 @@ describe('Edge Cases', () => {
       const wire = createV3WireReceiptBase(canonical);
       const parsed = v3ReceiptBaseSchema.parse(wire);
 
-      // These should remain undefined/absent
-      expect(parsed.custid).toBeUndefined();
+      // custid is dropped from the V3 schema entirely (2026-07-29 API audit,
+      // item 5) rather than merely optional, so it's absent from the parsed
+      // object altogether — not just undefined. owner_id is the canonical
+      // creator identifier and remains a genuinely optional field.
+      expect('custid' in parsed).toBe(false);
       expect(parsed.owner_id).toBeUndefined();
     });
 

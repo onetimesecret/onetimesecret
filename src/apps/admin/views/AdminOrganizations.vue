@@ -8,7 +8,7 @@
   import type { ColonelOrganization } from '@/schemas/api/internal/responses/colonel';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { getPlanLabel } from '@/types/billing';
-  import { formatDisplayDateTime, formatRelativeTime } from '@/utils/format';
+  import { formatDisplayDateTime } from '@/utils/format';
   import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
@@ -45,28 +45,25 @@
   const { t } = useI18n();
   const router = useRouter();
 
-  const { organizations, pagination, cacheMeta, loading, error, perPage, fetchPage } =
-    useOrganizationsList();
+  const { organizations, pagination, loading, error, perPage, fetchPage } = useOrganizationsList();
 
   // ---- Filters --------------------------------------------------------------
 
   const SYNC_STATUS_OPTIONS = ['potentially_stale', 'unknown', 'synced'] as const;
   const SUBSCRIPTION_OPTIONS = ['active', 'trialing', 'past_due', 'canceled'] as const;
 
-  // `search` is SERVER-SIDE and was implemented end-to-end all along — the
-  // endpoint's #matches_search? does an exact match on objid/extid plus a
-  // case-insensitive substring across the contact/owner/billing addresses — but
-  // the bar was mounted with `:show-search="false"`, so the only way to find one
-  // org was to page through the whole fleet. Same 300 ms debounce + no-op guard
-  // wiring as AdminDomains/AdminCustomers.
+  // `search` is SERVER-SIDE: an exact objid/extid match, a bounded scan of the
+  // contact-email and owner-email indexes, and a display_name / billing-email
+  // substring over the newest-first window. It runs ONLY on explicit submit
+  // (Enter or the search button) — never on keystrokes, never while a page is
+  // already loading — with the same no-op guard as AdminDomains/AdminCustomers.
   const searchTerm = ref('');
   const activeSearch = ref('');
   const statusFilter = ref('');
   const syncStatusFilter = ref('');
 
   const hasActiveFilters = computed(
-    () =>
-      searchTerm.value !== '' || statusFilter.value !== '' || syncStatusFilter.value !== ''
+    () => searchTerm.value !== '' || statusFilter.value !== '' || syncStatusFilter.value !== ''
   );
 
   const SYNC_FILTER_LABELS: Record<string, string> = {
@@ -168,44 +165,32 @@
     () => organizations.value.filter((o) => o.sync_status === 'unknown').length
   );
 
-  // ---- Roster-cache read-out ------------------------------------------------
-
-  /**
-   * "Updated <n> ago", sourced from the server's `details.cache.generated_at`
-   * (the unix second the ROSTER was built, not when this response was served),
-   * so it keeps counting up across cache hits and resets on a refresh.
-   */
-  const updatedAgo = computed(() => {
-    const generatedAt = cacheMeta.value?.generated_at;
-    if (!generatedAt) return '';
-    return formatRelativeTime(new Date(generatedAt * 1000));
-  });
-
   // ---- List fetching --------------------------------------------------------
 
-  function load(targetPage = 1, options: { refresh?: boolean } = {}): Promise<void> {
-    return fetchPage(
-      targetPage,
-      {
-        search: activeSearch.value || undefined,
-        status: statusFilter.value || undefined,
-        sync_status: syncStatusFilter.value || undefined,
-      },
-      options
-    );
+  function load(targetPage = 1): Promise<void> {
+    return fetchPage(targetPage, {
+      search: activeSearch.value || undefined,
+      status: statusFilter.value || undefined,
+      sync_status: syncStatusFilter.value || undefined,
+    });
   }
 
-  /** Submit search on explicit user action (Enter key or button click). */
+  /**
+   * Submit search on explicit user action ONLY (Enter key or button click).
+   * Typing never fetches: there is no watcher on `searchTerm`. One request at
+   * a time — a submit while a page is loading is dropped, not queued.
+   */
   function onSearchSubmit(): void {
+    if (loading.value) return; // In-flight guard
     const trimmed = searchTerm.value.trim();
     if (trimmed === activeSearch.value) return; // No-op guard
     activeSearch.value = trimmed;
     load(1);
   }
 
-  /** Header control: bypass the server's roster cache and rebuild it. */
+  /** Header control: re-read the current page (there is no server cache). */
   function onRefresh(): void {
-    load(pagination.value?.page ?? 1, { refresh: true });
+    load(pagination.value?.page ?? 1);
   }
 
   function onFilterChange(key: string, value: string): void {
@@ -265,12 +250,6 @@
             size="4" />
           {{ t('web.colonel.organizations.refresh') }}
         </button>
-        <span
-          v-if="updatedAgo"
-          class="text-xs text-gray-500 dark:text-gray-400"
-          data-testid="organizations-updated-ago">
-          {{ t('web.colonel.organizations.updatedAgo', { ago: updatedAgo }) }}
-        </span>
       </div>
     </header>
 
@@ -325,10 +304,23 @@
         :filters="filters"
         :search-placeholder="t('web.colonel.organizations.filters.searchPlaceholder')"
         :has-active-filters="hasActiveFilters"
+        :busy="loading"
         testid="organizations-filterbar"
         @filter-change="onFilterChange"
         @clear="onClear"
         @submit="onSearchSubmit" />
+    </div>
+
+    <!-- The server's candidate set is bounded: when a search scan or the
+         newest-first filter window stopped short of the population, total_count
+         is a FLOOR. Say so rather than letting the count and pager read as the
+         population (mirrors AdminCustomers / AdminDomains). -->
+    <div
+      v-if="pagination?.capped"
+      class="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200"
+      role="status"
+      data-testid="organizations-capped-caveat">
+      {{ t('web.colonel.organizations.capped') }}
     </div>
 
     <!-- Table -->

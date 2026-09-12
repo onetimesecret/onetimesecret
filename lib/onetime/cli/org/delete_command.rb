@@ -88,17 +88,25 @@ module Onetime
         type: :boolean,
         default: false,
         desc: 'Delete even with an active subscription (never cancels Stripe)'
+      # OPTIONAL operator-supplied why (#4338), recorded in the audit detail
+      # of the event this command's op writes. Same flag, same wording and same
+      # blank-means-absent handling as every other destructive CLI verb.
+      option :reason,
+        type: :string,
+        default: nil,
+        desc: 'Operator-supplied reason (recorded in the admin audit trail)'
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output as JSON'
 
       def call(org:, yes: false, dry_run: false, force_default: false,
-               force_subscription: false, json: false, **)
+               force_subscription: false, reason: nil, json: false, **)
         boot_application!
 
         organization = resolve_org(org, json: json)
         @force       = { force_default: force_default, force_subscription: force_subscription }
+        @reason      = reason
 
         # Never destroy production state from a scripted invocation that did not
         # say so. --dry-run is exempt: it writes nothing by construction.
@@ -132,6 +140,7 @@ module Onetime
           # records the shared CLI sentinel.
           actor: Customers::Shared::CLI_ACTOR,
           dry_run: dry_run,
+          reason: @reason,
           **@force,
         ).call
       end

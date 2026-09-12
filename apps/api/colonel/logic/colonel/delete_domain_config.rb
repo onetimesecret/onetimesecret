@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'domain_resolver'
 require 'onetime/operations/domains/delete_domain_config'
 
 module ColonelAPI
@@ -23,6 +24,8 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class DeleteDomainConfig < ColonelAPI::Logic::Base
+        include DomainResolver
+
         SCHEMAS = { response: 'colonelDomainConfigDelete' }.freeze
 
         attr_reader :extid, :kind, :custom_domain, :result
@@ -37,10 +40,21 @@ module ColonelAPI
 
           raise_form_error('Domain ID is required', field: :extid) if extid.to_s.empty?
 
-          @custom_domain = Onetime::CustomDomain.find_by_extid(extid)
+          @custom_domain = resolve_custom_domain(extid)
           raise_not_found('Domain not found') unless custom_domain
 
           raise_not_found('Unknown config kind') unless Onetime::CustomDomain::ConfigRegistry.kind?(kind)
+
+          # TIER 1 (#4326). The composed token names BOTH halves of what is being
+          # destroyed; the URL carries the extid, not the hostname. Both halves
+          # are non-blank by the two guards above.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: "#{custom_domain.display_domain}:#{kind}",
+            confirm_subject: 'the domain name and config kind joined by a colon',
+            field: :kind,
+          )
+          charge_destructive_budget!
         end
 
         def process

@@ -66,6 +66,17 @@ module ColonelAPI
 
           @new_owner = resolve_customer(@new_owner_id)
           raise_not_found('Customer not found') unless @new_owner
+
+          # TIER 1 (#4326). `dry_run` is pinned false on this surface, so there
+          # is no preview arm to exempt. The URL carries the org id; the
+          # confirmation is the organization's NAME.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: org_confirm_token(org),
+            confirm_subject: "the organization's name",
+            field: :org_id,
+          )
+          charge_destructive_budget!
         end
 
         def process

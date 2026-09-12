@@ -9,8 +9,10 @@
     KitPagination,
   } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useAdminDomainToolbox } from '@/apps/admin/stores/useAdminDomainToolbox';
+  import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
   import { colonelDomainVerifyResponseSchema } from '@/schemas/api/internal/responses/colonel-domains';
   import type { ColonelOrphanedDomain } from '@/schemas/api/internal/responses/colonel-domaintoolbox';
   import type {
@@ -165,6 +167,13 @@
   const repairOrgId = ref('');
   const repairPlan = ref<ColonelDomainRepairDetails | null>(null);
   const repairDialogOpen = ref(false);
+  /**
+   * The domain's HOSTNAME, captured off the preview's `record` — the toolbox is
+   * driven by extid alone, and the server requires the hostname in
+   * X-OTS-Confirm on the apply (#4326). The apply button only exists behind a
+   * `planned` preview, so this is always populated by the time it is read.
+   */
+  const repairDomainName = ref('');
 
   /** Build the repair request body; org_id only when supplied. */
   function repairBody(dryRun: boolean): Record<string, unknown> {
@@ -190,7 +199,10 @@
       response.data,
       'ColonelDomainRepairResponse'
     );
-    if (parsed.ok) repairPlan.value = parsed.data.details ?? null;
+    if (parsed.ok) {
+      repairPlan.value = parsed.data.details ?? null;
+      repairDomainName.value = parsed.data.record.display_domain;
+    }
   });
 
   const {
@@ -201,7 +213,8 @@
   } = useAdminMutation(async (extid: string) => {
     const response = await $api.post(
       `/api/colonel/domains/${encodeURIComponent(extid)}/repair`,
-      repairBody(false)
+      repairBody(false),
+      { headers: confirmHeaders(repairDomainName.value) }
     );
     gracefulParse(
       colonelDomainRepairResponseSchema,
@@ -258,6 +271,8 @@
   const transferFromOrg = ref('');
   const transferPlan = ref<ColonelDomainTransferDetails | null>(null);
   const transferDialogOpen = ref(false);
+  /** As {@link repairDomainName}: the hostname X-OTS-Confirm needs on the apply. */
+  const transferDomainName = ref('');
 
   function transferBody(dryRun: boolean): Record<string, unknown> {
     const body: Record<string, unknown> = {
@@ -285,7 +300,10 @@
       response.data,
       'ColonelDomainTransferResponse'
     );
-    if (parsed.ok) transferPlan.value = parsed.data.details ?? null;
+    if (parsed.ok) {
+      transferPlan.value = parsed.data.details ?? null;
+      transferDomainName.value = parsed.data.record.display_domain;
+    }
   });
 
   const {
@@ -293,10 +311,11 @@
     error: transferApplyError,
     run: runTransferApply,
     reset: resetTransferApply,
-  } = useAdminMutation(async (extid: string) => {
+  } = useAdminDestructiveMutation(async (extid: string) => {
     const response = await $api.post(
       `/api/colonel/domains/${encodeURIComponent(extid)}/transfer`,
-      transferBody(false)
+      transferBody(false),
+      { headers: confirmHeaders(transferDomainName.value) }
     );
     gracefulParse(
       colonelDomainTransferResponseSchema,

@@ -663,6 +663,31 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(last_response.status).to eq(403)
     end
 
+    it 'requires owner permissions (not just member)' do
+      # Regression (F-03): invoice URLs (invoice_pdf / hosted_invoice_url) are
+      # bearer links to billing documents. A non-owner member must not be able
+      # to fetch them; only owners may, matching the checkout/change-plan/
+      # migrate-currency/cancel/reactivate sibling endpoints.
+      organization.stripe_customer_id = 'cus_test_invoices_owner_only'
+      organization.save
+
+      member_customer = Onetime::Customer.create!(email: deterministic_email('member-invoice'))
+      created_customers << member_customer
+      member_customer.save
+
+      organization.add_members_instance(member_customer)
+
+      env 'rack.session', {
+        'authenticated' => true,
+        'external_id' => member_customer.extid,
+      }
+
+      get "/billing/api/org/#{organization.extid}/invoices"
+
+      expect(last_response.status).to eq(403)
+      expect(last_response.body).to include('Owner access required')
+    end
+
     it 'requires authentication' do
       env 'rack.session', {}
 
@@ -755,6 +780,53 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       get "/billing/api/org/#{organization.extid}/subscription"
 
       expect(last_response.status).to eq(401)
+    end
+
+    # This endpoint is the deferred-consumption chokepoint for the signup/login
+    # plan intent (issue #4306): the auth hooks only PEEK at
+    # customer.pending_plan_intent when they surface billing_redirect, and the
+    # intent is deleted here — the plans-page mount is the single authenticated
+    # handoff target (PlanSelector.vue is this endpoint's only caller).
+    describe 'pending plan intent consumption (issue #4306)' do
+      let(:intent_json) do
+        { product: 'identity_plus_v1', interval: 'monthly' }.to_json
+      end
+
+      it 'consumes the authenticated customer\'s pending_plan_intent at plans-flow entry' do
+        customer.pending_plan_intent = intent_json
+        expect(customer.pending_plan_intent.value).to eq(intent_json)
+
+        get "/billing/api/org/#{organization.extid}/subscription"
+
+        expect(last_response.status).to eq(200)
+        expect(customer.pending_plan_intent.value.to_s).to eq('')
+      end
+
+      it 'is an idempotent no-op when no intent is stored' do
+        get "/billing/api/org/#{organization.extid}/subscription"
+
+        expect(last_response.status).to eq(200)
+        expect(customer.pending_plan_intent.value.to_s).to eq('')
+      end
+
+      it 'does not consume the requester\'s intent when org access is denied (403)' do
+        # load_organization raises before the consumption call, so a probe
+        # against someone else's org cannot burn the prober's own intent.
+        other_customer = Onetime::Customer.create!(email: deterministic_email('intent-403'))
+        created_customers << other_customer
+        other_customer.save
+        other_customer.pending_plan_intent = intent_json
+
+        env 'rack.session', {
+          'authenticated' => true,
+          'external_id' => other_customer.extid,
+        }
+
+        get "/billing/api/org/#{organization.extid}/subscription"
+
+        expect(last_response.status).to eq(403)
+        expect(other_customer.pending_plan_intent.value).to eq(intent_json)
+      end
     end
   end
 

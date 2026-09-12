@@ -189,6 +189,36 @@ module Onetime
       # Redis-writing attacker from replaying one session's pending bind under
       # another sid.
       'link_sso_pending_bind' => { ttl: 900, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: true },
+      # #4327: the colonel step-up (sudo) window. Value is an object
+      #   { "extid" => <acting colonel's public id>, "exp" => <unix seconds> }
+      # NOT a bare epoch: one onetime.session cookie can outlive an identity
+      # change (simple-mode login does not clear or renew the session; full-mode
+      # :renew carries the hash to a new sid), so a bare epoch would let identity
+      # B inherit identity A's live elevation. ColonelAPI::Logic::Colonel::
+      # Elevation#elevated? compares the stored extid against the CURRENT cust
+      # and ignores a mismatch — the codec's sid/field binding closes the other
+      # half (replay under a different sid).
+      #
+      # Absence is the safe state (admission rule): a miss means not elevated,
+      # and every tier-1 colonel verb refuses. Externalized so the capability
+      # carries its own short TTL instead of riding the 24h blob — the stored
+      # exp is AUTHORITATIVE and the TTL is only a backstop, because commit
+      # re-externalizes (and so re-stamps the TTL) on every write. The TTL sits
+      # well above the default 600s window so the sidecar itself can never drop
+      # a live elevation mid-window. absent_when_falsy converges a dropped
+      # elevation to absent instead of parking an empty object refreshed on
+      # every commit. Encrypted: it is a capability bound to a sid.
+      #
+      # No destroy_warn: elevation is not an in-flight hand-off — destroying an
+      # elevated session simply ends the window, which is the safe direction.
+      'elevated_until' => {
+        ttl: 1_800,
+        encrypted: true,
+        merge_on_read: true,
+        externalize: true,
+        absent_when_falsy: true,
+        destroy_warn: false,
+      },
     }.freeze
 
     # Deterministic key derivation — no stored key names needed, which is what

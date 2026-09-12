@@ -16,17 +16,6 @@ on:
     # PR still triggers (paths-ignore skips only when every file matches).
     paths-ignore:
       - 'locales/content/**'
-  workflow_dispatch:
-    inputs:
-      model:
-        description: "Claude model for this run (overrides the CLAUDE_MODEL repo variable)"
-        type: choice
-        required: false
-        default: claude-sonnet-4-6
-        options:
-          - claude-sonnet-4-6
-          - claude-opus-4-6
-          - claude-haiku-4-5-20251001
 
 jobs:
   claude-review:
@@ -75,17 +64,19 @@ jobs:
       # be related. Re-run after comment activity settles.
       - name: Run Claude Code Review
         id: claude-review
-        uses: anthropics/claude-code-action@beta
+        uses: anthropics/claude-code-action@28f83620103c48a57093dcc2837eec89e036bb9f # beta (v0.0.63)
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-          # Primary model precedence: the workflow_dispatch "model" input (manual
-          # runs) -> the CLAUDE_MODEL repo variable -> this built-in default. The
-          # action's frozen default (claude-sonnet-4-20250514) is retired and
-          # 404s. Fall back to Haiku on overload. The fallback default MUST differ
-          # from the primary default: the action errors with "Fallback model
-          # cannot be the same as the main model" when they resolve to the same id.
-          model: "${{ inputs.model || vars.CLAUDE_MODEL || 'claude-sonnet-4-6' }}"
+          # Model selection. The action's own default (claude-sonnet-4-20250514)
+          # is retired and 404s before the run starts, so this must always
+          # resolve to something live. Set the ANTHROPIC_MODEL repo variable to
+          # change models without a PR; the literal is the floor, so an unset or
+          # cleared variable stays harmless (an empty value would hand the action
+          # back its own retired default). Spelled out rather than passed as the
+          # 'opus' alias: this ref bundles Claude Code 1.0.88, which resolves
+          # aliases against its own build-time table, itself naming retired ids.
+          model: "${{ vars.ANTHROPIC_MODEL || 'claude-opus-5' }}"
           fallback_model: "${{ vars.CLAUDE_FALLBACK_MODEL || 'claude-haiku-4-5-20251001' }}"
 
           # Direct prompt for automated review (no @claude mention needed)
@@ -115,19 +106,8 @@ jobs:
           # Optional: Use sticky comments to make Claude reuse the same comment on subsequent pushes to the same PR
           use_sticky_comment: true
 
-          # Optional: Different prompts for different authors
-          # direct_prompt: |
-          #   ${{ github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR' &&
-          #   'Welcome! Please review this PR from a first-time contributor. Be encouraging and provide detailed explanations for any suggestions.' ||
-          #   'Please provide a thorough code review focusing on our coding standards and best practices.' }}
-
           # Optional: Add specific tools for running tests or linting
-          # allowed_tools: "Bash(npm run test),Bash(npm run lint),Bash(npm run typecheck)"
-
-          # Optional: Skip review for certain conditions
-          # if: |
-          #   !contains(github.event.pull_request.title, '[skip-review]') &&
-          #   !contains(github.event.pull_request.title, '[WIP]')
+          # allowed_tools: "Bash(pnpm run test),Bash(pnpm run lint)"
 
       - name: Remove claude-review label
         # Remove label whether success or failure - prevents getting stuck

@@ -11,6 +11,14 @@ module ColonelAPI
   end
 end
 
+# Step-up (sudo) window for tier-1 verbs (#4327). The shared mixin is already
+# loaded by base.rb (DestructiveAction#require_elevation! is written against
+# it); listed here so the manifest names every colonel-namespaced file.
+require_relative 'colonel/elevation'
+require_relative 'colonel/get_elevation_status'
+require_relative 'colonel/elevate_session'
+require_relative 'colonel/drop_elevation'
+
 # System info and stats
 require_relative 'colonel/get_colonel_info'
 require_relative 'colonel/get_colonel_stats'
@@ -28,6 +36,9 @@ require_relative 'colonel/delete_secret'
 # Shared identifier handling (email-tolerant account lookup)
 require_relative 'colonel/account_identifier'
 
+# Shared identity of the acting colonel's OWN session (self-target interlocks)
+require_relative 'colonel/current_session'
+
 # User management
 require_relative 'colonel/list_users'
 require_relative 'colonel/get_user_details'
@@ -39,18 +50,15 @@ require_relative 'colonel/set_user_role'
 require_relative 'colonel/set_user_verification'
 require_relative 'colonel/set_user_suspension'
 require_relative 'colonel/change_user_email'
+require_relative 'colonel/impersonate_user'
 require_relative 'colonel/purge_user'
 
 # System monitoring
 require_relative 'colonel/get_proxy_headers_debug'
 require_relative 'colonel/get_database_metrics'
+require_relative 'colonel/get_backup_status'
 require_relative 'colonel/get_brand_diagnostics'
 require_relative 'colonel/get_redis_metrics'
-
-# IP banning
-require_relative 'colonel/list_banned_ips'
-require_relative 'colonel/ban_ip'
-require_relative 'colonel/unban_ip'
 
 # Custom domains
 require_relative 'colonel/list_custom_domains'
@@ -65,6 +73,7 @@ require_relative 'colonel/list_organizations'
 require_relative 'colonel/get_organization_detail'
 require_relative 'colonel/investigate_organization'
 require_relative 'colonel/reconcile_organization'
+require_relative 'colonel/update_organization_plan'
 require_relative 'colonel/transfer_organization_ownership'
 require_relative 'colonel/delete_organization'
 require_relative 'colonel/manage_entitlement_override'
@@ -141,6 +150,7 @@ require_relative 'colonel/list_email_messages'
 require_relative 'colonel/get_billing_catalog'
 require_relative 'colonel/list_stripe_organizations'
 
-# Observability: audit trail reader + daily activity trends
+# Observability: audit trail reader + export + daily activity trends
 require_relative 'colonel/list_colonel_audit_events'
+require_relative 'colonel/export_colonel_audit_events'
 require_relative 'colonel/get_trends'

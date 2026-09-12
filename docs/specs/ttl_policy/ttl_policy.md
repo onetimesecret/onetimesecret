@@ -15,10 +15,24 @@ multiple places and two languages:
 |---|---|---|---|
 | `MAX_TTL` (365d) | `WithEntitlements` | everyone | absolute software-safety bound |
 | Plan `secret_lifetime` | org `limit_for` via `process_ttl` | authenticated w/ org | billing limit |
-| Anonymous ceiling (7d default, `TTL_MAX_ANONYMOUS`) | `configured_anonymous_max_ttl` + `anonymous_max_ttl` | anonymous | product policy, operator-tunable |
+| Canonical guest ceiling (7d default, `TTL_MAX_ANONYMOUS`) | `configured_anonymous_max_ttl` + `SecretLifetimePolicy` | unauthenticated creation on canonical hosts | platform product policy, operator-tunable |
+| Custom-domain guest ceiling (normally 14/30d) | domain owner org `limit_for` via `SecretLifetimePolicy` | unauthenticated creation on custom hosts | accountable tenant plan policy |
 | Free-tier gate (14d, `DEFAULT_FREE_TTL`) | `process_ttl` entitlement gate | authenticated w/ org, billing on | loud 403 w/ upgrade path |
 | `ttl_options` min/max | config via `process_ttl` | varies by branch | UI inventory doubling as bounds |
 | Frontend safety cap | `usePrivacyOptions.ts` | browser UI | duplicate of backend policy |
+
+### Request-boundary invariant
+
+Authentication state alone does not determine guest TTL policy. A guest on a
+canonical host is unaccountable traffic consuming the platform's own storage,
+so `TTL_MAX_ANONYMOUS` applies. A guest on a custom host consumes storage owned
+by the domain's organization, so that organization's plan lifetime applies
+(normally 14 days or 30 days). The custom-domain branch must not be folded into
+the canonical 7-day branch during security hardening.
+
+If custom-domain ownership or plan state cannot be resolved, policy falls back
+to the narrower canonical guest ceiling; resolution failure must never widen a
+TTL.
 
 Two structural problems:
 
@@ -52,9 +66,10 @@ module Onetime
       end
     end
 
-    # @param organization [Organization, nil] resolved org context, if any
-    # @param anonymous    [Boolean] unauthenticated caller
-    def self.resolve(organization: nil, anonymous: false)
+    # @param organization [Organization, nil] authenticated org context, if any
+    # @param guest_organization [Organization, nil] custom-domain owner for a guest
+    # @param anonymous [Boolean] unauthenticated caller
+    def self.resolve(organization: nil, guest_organization: nil, anonymous: false)
       opts        = OT.conf.dig('site', 'secret_options') || {}
       ttl_options = Array(opts['ttl_options'])
 
@@ -67,8 +82,11 @@ module Onetime
         terms[:plan_limit] = limit if limit.positive?
       end
 
-      if anonymous
-        terms[:anonymous_ceiling] = Entitlements.configured_anonymous_max_ttl
+      if anonymous && guest_organization
+        limit = guest_organization.limit_for('secret_lifetime')
+        terms[:custom_domain_plan_limit] = limit if limit.positive?
+      elsif anonymous
+        terms[:canonical_guest_ceiling] = Entitlements.configured_anonymous_max_ttl
         free_tier = billing_free_tier_lifetime
         terms[:free_tier] = free_tier if free_tier&.positive?
       end
@@ -133,7 +151,9 @@ minimum, it ships the answer:
 
 ```ruby
 policy = Onetime::TtlPolicy.resolve(
-  organization: current_organization, anonymous: !authenticated?,
+  organization: current_organization,
+  guest_organization: custom_domain_owner_organization,
+  anonymous: !authenticated?,
 )
 secret_options.merge(
   'ttl_ceiling' => policy.ceiling,
@@ -183,12 +203,15 @@ account-level IAM policies can allow, and the effective permission is the
 intersection. AWS's implementation is over-engineered for our needs, but
 the principle is sound. Mapped to Onetime Secret:
 
-- **Install/platform-level container**: the deployment's outer boundary and
-  its default policy — `MAX_TTL`, the anonymous ceiling, operator config.
-  Nothing inside may exceed it.
-- **Organization-level policies**: plan limits and entitlements, evaluated
-  inside the platform boundary. An org policy can only narrow, never widen,
-  what the platform container allows.
+- **Install/platform-level container**: the deployment's absolute software
+  boundary (`MAX_TTL`) and configured option inventory.
+- **Canonical guest boundary**: unaccountable platform traffic, constrained by
+  `TTL_MAX_ANONYMOUS` (7 days by default).
+- **Custom-domain guest boundary**: accountable tenant traffic, constrained by
+  the domain owner organization's plan (normally 14/30 days), not by the
+  canonical guest ceiling.
+- **Authenticated organization boundary**: plan limits and entitlements for the
+  signed-in caller's organization.
 
 `TtlPolicy.resolve` is the degenerate two-level case of this (platform
 terms ∩ org terms, take the minimum). Naming and structuring it as
@@ -197,10 +220,9 @@ policies without inventing a new mental model per limit.
 
 ## Deliberately out of scope
 
-- **V1** keeps its frozen `V1_MIN_TTL`/`V1_MAX_TTL` (60s / 30 days).
-  Routing V1 through the resolver would change documented legacy responses,
-  which a frozen API version must not do. A pointer comment in V1 prevents
-  future "helpful" unification.
+- **V1** keeps its frozen `V1_MIN_TTL`/`V1_MAX_TTL` (60s / 30 days) and
+  silent-clamp response contract. It shares only the canonical-vs-custom guest
+  boundary resolver so host policy cannot differ across API versions.
 - **The entitlement gate's `raise`** stays in the action — it needs
   `require_entitlement!` and request context. Only its threshold number
   comes from the resolution.
@@ -237,6 +259,8 @@ separate review:
   prototyped a configurable `TTL_CEILING` knob instead; review concluded it
   added a sixth layer rather than addressing the layering, which motivated
   this spec.
-- 2026-07-29 API audit, item 4: anonymous ceiling derived from plan state
-  vanished when billing was disabled; fixed with
-  `configured_anonymous_max_ttl` — the pattern this design generalizes.
+- 2026-07-29 API audit, item 4: the canonical anonymous ceiling derived from
+  plan state vanished when billing was disabled; fixed with
+  `configured_anonymous_max_ttl`. The subsequent fix incorrectly generalized
+  that canonical-host rule to branded custom-domain guests; the
+  request-boundary invariant above records the intended distinction.

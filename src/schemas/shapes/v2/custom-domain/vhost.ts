@@ -46,7 +46,13 @@ export const vhostSchema = z
 
     // Optional string fields
     dns_pointed_at: z.string().optional(),
-    keep_host: z.string().nullable(),
+    // Third-party passthrough: the vhost blob is Approximated's response
+    // stored verbatim, and their API documents keep_host as a BOOLEAN
+    // (approximated_client.rb sends `keep_host: true|false|nil`). Declaring it
+    // string-only rejected the whole CustomDomainListResponse on every
+    // dashboard load for any domain that carries the flag (FRONTEND-18E/197).
+    // Accept both readings — this field is not ours to normalize.
+    keep_host: z.union([z.string(), z.boolean()]).nullable(),
     last_monitored_humanized: z.string().optional(),
     status_message: z.string().optional(),
     user_message: z.string().optional(),

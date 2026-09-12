@@ -102,6 +102,10 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
   before do
     allow(Onetime::ColonelAuditEvent).to receive(:record)
+    # The OBSERVATION trail (#4335), which the dry-run preview writes to
+    # (#4337). Stubbed alongside `record` so the two can be asserted apart —
+    # the whole point of the split is that a preview never reaches `record`.
+    allow(Onetime::ColonelAuditEvent).to receive(:record_access)
     allow(OT).to receive(:info)
     allow(Onetime::Customer).to receive(:email_index).and_return(email_index)
     allow(Onetime::Organization).to receive(:contact_email_index).and_return(contact_email_index)
@@ -228,12 +232,41 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       expect(result.dry_run).to be true
     end
 
-    it 'mutates nothing and audits nothing' do
+    # #4337: a preview mutates nothing, so it stays off the OPERATOR trail —
+    # but it resolves and reports a customer's current address and the orgs a
+    # change would reindex, so it records one OBSERVATION on the budgeted
+    # access trail instead. Both halves are asserted: "nothing on `record`"
+    # alone would still pass if the preview event vanished.
+    it 'mutates nothing and stays off the operator trail' do
       op(dry_run: true).call
 
       expect(trace).to be_empty
       expect(customer).not_to have_received(:save)
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+    end
+
+    it 'records ONE preview observation, with the addresses OBSCURED' do
+      allow(customer).to receive(:organization_instances).and_return([double('org'), double('org')])
+
+      op(dry_run: true).call
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+        actor: 'cli',
+        verb: 'customer.change_email',
+        target: 'ur_c',
+        result: 'preview',
+        detail: hash_including(dry_run: true, orgs: 2),
+      )
+    end
+
+    # The op obscures addresses on every event it writes; the preview is not an
+    # exception just because it changed nothing.
+    it 'never puts a full address in the preview detail' do
+      op(dry_run: true).call
+
+      detail = nil
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_access) { |**kwargs| detail = kwargs[:detail] }
+      expect(detail.values_at(:from, :to)).not_to include(old_email, new_email)
     end
 
     it 'reports how many orgs WOULD be re-indexed' do
@@ -275,12 +308,42 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       )
     end
 
-    it 'returns :no_change when the normalized address matches the current one' do
+    # #4337: nothing moves, but the attempt is recorded — this is the
+    # highest-value verb in the trail, and a :no_change answer confirms the
+    # account currently holds the requested address, so a repeated
+    # same-address probe must not read as silence. Obscured addresses, like
+    # every other event this op writes; NOT fail_closed.
+    it 'returns :no_change when the normalized address matches the current one, and audits the attempt' do
       result = op(new_email: '  OLD@Example.com ').call
 
       expect(result.status).to eq(:no_change)
       expect(customer).not_to have_received(:save)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        actor: 'cli',
+        verb: 'customer.change_email',
+        target: 'ur_c',
+        result: :success,
+        detail: {
+          outcome: 'no_change',
+          from: OT::Utils.obscure_email(old_email),
+          to: OT::Utils.obscure_email('old@example.com'),
+        },
+      )
+    end
+
+    # A no-change discovered during a DRY RUN is a preview, and previews live
+    # on the observation trail (#4337) — the operator trail stays untouched.
+    it 'keeps a dry-run no-change on the observation trail as a preview' do
+      op(new_email: 'OLD@Example.com', dry_run: true).call
+
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+        actor: 'cli',
+        verb: 'customer.change_email',
+        target: 'ur_c',
+        result: 'preview',
+        detail: hash_including(outcome: 'no_change', dry_run: true),
+      )
     end
   end
 
@@ -451,7 +514,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
         result = op.call
 
         expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).with(
-          custid: 'ur_c', actor: 'cli'
+          customer: customer, actor: 'cli'
         )
         expect(revoker).to have_received(:call)
         expect(result.sessions_revoked).to be true
@@ -494,8 +557,13 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       it 'still resets verification, through the same wrapper :success uses' do
         result = op.call
 
+        # enforce_interlocks: false — a credential-provenance reset, not an
+        # administrative unverify (#4328). It must never be refused by the
+        # last-colonel interlock: leaving a colonel "verified" against an
+        # address nobody proved is worse than the lockout that guard prevents.
         expect(Auth::Operations::Customers::SetVerification).to have_received(:new).with(
-          customer: customer, verified: false, actor: 'cli', verified_by: nil, db: db
+          customer: customer, verified: false, actor: 'cli', verified_by: nil,
+          enforce_interlocks: false, db: db
         )
         expect(verifier).to have_received(:call)
         expect(result.verification_reset).to be true
@@ -693,7 +761,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       op.call
 
       expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).with(
-        custid: 'ur_c', actor: 'cli'
+        customer: customer, actor: 'cli'
       )
     end
 
@@ -707,8 +775,11 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     it 'resets verification through SetVerification when require_verification is true' do
       op.call
 
+      # See the note on the :partial example: this reset is a provenance reset,
+      # so it opts out of #4328's administrative unverify interlocks.
       expect(Auth::Operations::Customers::SetVerification).to have_received(:new).with(
-        customer: customer, verified: false, actor: 'cli', verified_by: nil, db: db
+        customer: customer, verified: false, actor: 'cli', verified_by: nil,
+        enforce_interlocks: false, db: db
       )
     end
 

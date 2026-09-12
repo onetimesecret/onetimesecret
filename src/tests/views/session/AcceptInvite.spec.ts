@@ -3,6 +3,8 @@
 import InviteSignUpForm from '@/apps/session/components/InviteSignUpForm.vue';
 import AcceptInvite from '@/apps/session/views/AcceptInvite.vue';
 import { useAuthStore } from '@/shared/stores/authStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { mockCustomer } from '@tests/fixtures/bootstrap.fixture';
 import { createTestI18n } from '@tests/setup';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
@@ -44,6 +46,7 @@ const i18n = createTestI18n();
 describe('AcceptInvite', () => {
   let pinia: ReturnType<typeof createPinia>;
   let authStore: ReturnType<typeof useAuthStore>;
+  let bootstrapStore: ReturnType<typeof useBootstrapStore>;
   let router: ReturnType<typeof createRouter>;
 
   const mockInvitation = {
@@ -95,6 +98,7 @@ describe('AcceptInvite', () => {
     pinia = createPinia();
     setActivePinia(pinia);
     authStore = useAuthStore();
+    bootstrapStore = useBootstrapStore();
 
     // Reset axios mock
     const axiosMock = getGlobalAxiosMock();
@@ -175,15 +179,14 @@ describe('AcceptInvite', () => {
 
     it('shows accept and decline buttons for authenticated user with pending invitation', async () => {
       // Must be authenticated to see direct Accept/Decline buttons
-      authStore.$patch({
-        isAuthenticated: true,
-        cust: {
-          custid: 'cust-123',
-          email: 'invitee@example.com',
-          verified: true,
-          created: new Date(),
-          updated: new Date(),
-        },
+      // isAuthenticated lives on authStore; the customer record and current
+      // email live on bootstrapStore (see authStore.ts's CUSTOMER OBJECT
+      // STATE notes) — emailMismatch in AcceptInvite.vue reads
+      // bootstrapStore.email, not authStore, so both must be set here.
+      authStore.$patch({ isAuthenticated: true });
+      bootstrapStore.$patch({
+        email: 'invitee@example.com',
+        cust: { ...mockCustomer, email: 'invitee@example.com' },
       });
 
       const axiosMock = getGlobalAxiosMock();
@@ -256,7 +259,10 @@ describe('AcceptInvite', () => {
     it('shows signup form by default when user is not authenticated', async () => {
       // The show endpoint deliberately carries no account_exists signal (AZ7),
       // so unauthenticated users always start in the signup flow.
-      authStore.$patch({ cust: null });
+      // cust lives on bootstrapStore, not authStore (see CUSTOMER OBJECT
+      // STATE notes in authStore.ts) — it already defaults to null, this is
+      // an explicit reset in case an earlier test in this file left it set.
+      bootstrapStore.$patch({ cust: null });
       const axiosMock = getGlobalAxiosMock();
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
         record: mockInvitation,
@@ -269,7 +275,10 @@ describe('AcceptInvite', () => {
     });
 
     it('switches to sign-in notice after signup reports signup unavailable', async () => {
-      authStore.$patch({ cust: null });
+      // cust lives on bootstrapStore, not authStore (see CUSTOMER OBJECT
+      // STATE notes in authStore.ts) — it already defaults to null, this is
+      // an explicit reset in case an earlier test in this file left it set.
+      bootstrapStore.$patch({ cust: null });
       const axiosMock = getGlobalAxiosMock();
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
         record: mockInvitation,
@@ -296,7 +305,8 @@ describe('AcceptInvite', () => {
    */
   describe('Host sign-in restriction (ADR-034#invite-signup-is-gated)', () => {
     beforeEach(() => {
-      authStore.$patch({ isAuthenticated: false, cust: null });
+      authStore.$patch({ isAuthenticated: false });
+      bootstrapStore.$patch({ cust: null });
     });
 
     const replyWith = (record: Record<string, unknown>, token = 'test-token-123') => {
@@ -534,15 +544,10 @@ describe('AcceptInvite', () => {
         // the restriction is spent once a session exists. This is what lets
         // the ADR-034#invite-signup-is-gated flow terminate: SSO signs them in,
         // they return here, they join.
-        authStore.$patch({
-          isAuthenticated: true,
-          cust: {
-            custid: 'cust-123',
-            email: 'invitee@example.com',
-            verified: true,
-            created: new Date(),
-            updated: new Date(),
-          },
+        authStore.$patch({ isAuthenticated: true });
+        bootstrapStore.$patch({
+          email: 'invitee@example.com',
+          cust: { ...mockCustomer, email: 'invitee@example.com' },
         });
         replyWith({
           ...mockInvitation,
@@ -589,15 +594,14 @@ describe('AcceptInvite', () => {
 
   describe('Authenticated User - Accept Flow', () => {
     beforeEach(() => {
-      authStore.$patch({
-        isAuthenticated: true,
-        cust: {
-          custid: 'cust-123',
-          email: 'invitee@example.com',
-          verified: true,
-          created: new Date(),
-          updated: new Date(),
-        },
+      // isAuthenticated lives on authStore; the customer record and current
+      // email live on bootstrapStore (see authStore.ts's CUSTOMER OBJECT
+      // STATE notes) — emailMismatch in AcceptInvite.vue reads
+      // bootstrapStore.email, not authStore, so both must be set here.
+      authStore.$patch({ isAuthenticated: true });
+      bootstrapStore.$patch({
+        email: 'invitee@example.com',
+        cust: { ...mockCustomer, email: 'invitee@example.com' },
       });
     });
 
@@ -643,15 +647,14 @@ describe('AcceptInvite', () => {
 
   describe('Authenticated User - Decline Flow', () => {
     beforeEach(() => {
-      authStore.$patch({
-        isAuthenticated: true,
-        cust: {
-          custid: 'cust-123',
-          email: 'invitee@example.com',
-          verified: true,
-          created: new Date(),
-          updated: new Date(),
-        },
+      // isAuthenticated lives on authStore; the customer record and current
+      // email live on bootstrapStore (see authStore.ts's CUSTOMER OBJECT
+      // STATE notes) — emailMismatch in AcceptInvite.vue reads
+      // bootstrapStore.email, not authStore, so both must be set here.
+      authStore.$patch({ isAuthenticated: true });
+      bootstrapStore.$patch({
+        email: 'invitee@example.com',
+        cust: { ...mockCustomer, email: 'invitee@example.com' },
       });
     });
 
@@ -698,15 +701,14 @@ describe('AcceptInvite', () => {
   describe('UI Layout', () => {
     it('renders invitation header correctly for authenticated user', async () => {
       // Authenticated user sees "Invitation Details" header in direct_accept state
-      authStore.$patch({
-        isAuthenticated: true,
-        cust: {
-          custid: 'cust-123',
-          email: 'invitee@example.com',
-          verified: true,
-          created: new Date(),
-          updated: new Date(),
-        },
+      // isAuthenticated lives on authStore; the customer record and current
+      // email live on bootstrapStore (see authStore.ts's CUSTOMER OBJECT
+      // STATE notes) — emailMismatch in AcceptInvite.vue reads
+      // bootstrapStore.email, not authStore, so both must be set here.
+      authStore.$patch({ isAuthenticated: true });
+      bootstrapStore.$patch({
+        email: 'invitee@example.com',
+        cust: { ...mockCustomer, email: 'invitee@example.com' },
       });
 
       const axiosMock = getGlobalAxiosMock();
@@ -736,15 +738,14 @@ describe('AcceptInvite', () => {
   describe('Accessibility', () => {
     it('has accessible buttons with type attributes', async () => {
       // Use authenticated user to see direct Accept/Decline buttons (type="button")
-      authStore.$patch({
-        isAuthenticated: true,
-        cust: {
-          custid: 'cust-123',
-          email: 'invitee@example.com',
-          verified: true,
-          created: new Date(),
-          updated: new Date(),
-        },
+      // isAuthenticated lives on authStore; the customer record and current
+      // email live on bootstrapStore (see authStore.ts's CUSTOMER OBJECT
+      // STATE notes) — emailMismatch in AcceptInvite.vue reads
+      // bootstrapStore.email, not authStore, so both must be set here.
+      authStore.$patch({ isAuthenticated: true });
+      bootstrapStore.$patch({
+        email: 'invitee@example.com',
+        cust: { ...mockCustomer, email: 'invitee@example.com' },
       });
 
       const axiosMock = getGlobalAxiosMock();

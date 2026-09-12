@@ -373,26 +373,36 @@ module Onetime
           default: false,
           aliases: ['f'],
           desc: 'Skip confirmation prompt'
+        # OPTIONAL operator-supplied why (#4338), recorded in the audit
+        # detail of the event the op writes. Same flag and wording as every
+        # other destructive CLI verb.
+        option :reason,
+          type: :string,
+          default: nil,
+          desc: 'Operator-supplied reason (recorded in the admin audit trail)'
         option :format,
           type: :string,
           default: 'text',
           desc: 'Output format: text or json'
 
-        def call(queue:, force: false, format: 'text', **)
+        def call(queue:, reason: nil, force: false, format: 'text', **)
           boot_application!
 
           dlq_name = resolve_dlq_name(queue)
-          purge_queue(dlq_name, force, format)
+          purge_queue(dlq_name, force, format, reason)
         end
 
         private
 
-        def purge_queue(dlq_name, force, format)
+        def purge_queue(dlq_name, force, format, reason = nil)
           with_rabbitmq_connection do |conn|
-            # Dry-run first to get the in-scope count for the confirmation prompt
-            # WITHOUT mutating anything (no audit event is recorded on a dry-run).
+            # Dry-run first to get the in-scope count for the confirmation
+            # prompt WITHOUT mutating anything. It is not silent: since #4337
+            # the dry run records one OBSERVATION (`result: 'preview'`) on the
+            # budgeted access trail — the operator trail still sees nothing
+            # until the live purge below.
             count = Onetime::Operations::Dlq::Purge.new(
-              connection: conn, queue: dlq_name, actor: CLI_ACTOR, dry_run: true,
+              connection: conn, queue: dlq_name, actor: CLI_ACTOR, dry_run: true, reason: reason,
             ).call.count
 
             if count == 0
@@ -413,7 +423,7 @@ module Onetime
             # Live purge — the single audited implementation records exactly one
             # ColonelAuditEvent for the (non-empty) purge.
             result = Onetime::Operations::Dlq::Purge.new(
-              connection: conn, queue: dlq_name, actor: CLI_ACTOR,
+              connection: conn, queue: dlq_name, actor: CLI_ACTOR, reason: reason,
             ).call
 
             if format == 'json'

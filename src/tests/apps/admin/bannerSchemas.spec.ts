@@ -67,7 +67,7 @@ describe('colonelBannerSetResponseSchema (SetBanner ack)', () => {
     const result = colonelBannerSetResponseSchema.safeParse(payload);
     expect(result.success).toBe(true);
     if (!result.success) return;
-    expect(result.data.details.message).toBe('Broadcast banner published');
+    expect(result.data.details?.message).toBe('Broadcast banner published');
   });
 
   it('rejects a set ack missing details.message', () => {

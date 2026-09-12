@@ -233,6 +233,18 @@ RSpec.configure do |config|
   #
   # The Rake tasks run mode-specific tests + all/ tests together, matching
   # production deployment where only one auth mode exists per instance.
+  #
+  # LANE ENVIRONMENT CONTRACT
+  # Each Rake task is a lane: it starts one process with a fixed environment
+  # (the env hash in lib/tasks/spec.rake), and a spec may rely on exactly
+  # that and nothing else. The full lane, for example, also sets
+  # AUTH_DATABASE_URL=sqlite::memory: and ORGS_SSO_ENABLED=true. A bare
+  # `bundle exec rspec <file>` is NOT a lane: it inherits whatever the shell
+  # exports, so a spec that needs a lane-provided setting fails there in a
+  # way that looks like a product bug. Tag such examples with
+  # `lane_env: { 'NAME' => 'value' }` so they fail naming the lane instead
+  # (spec/support/helpers/lane_env_helpers.rb). Never fix a lane-dependent
+  # spec by stubbing the setting: that tests a process no lane starts.
   # ==========================================================================
 
   # Auto-derive auth mode tags from directory structure.
@@ -307,6 +319,23 @@ RSpec.configure do |config|
         warn e.backtrace.join("\n") if ENV['ONETIME_DEBUG']
       end
     end
+  end
+
+  # otto 2.10 pins Rack::Request.forwarded_priority from
+  # Otto::Security::Config#trusted_proxy_header and holds every config that
+  # named a family in a process-global registry; a later config naming a
+  # different family raises. Production names one family per process. A spec
+  # process builds a fresh config per example (MiddlewareStack
+  # .ip_privacy_security_config, Otto.new), and examples covering depth mode
+  # with header Forwarded/Both would otherwise fail or pass by run order.
+  # Reset per example, the same way AdminNetworkIsolation's ledger is above.
+  # The reset clears otto's registry AND restores Rack::Request
+  # .forwarded_priority to the value otto captured at load
+  # (otto/security/config.rb, DEFAULT_RACK_FORWARDED_PRIORITY), so examples
+  # that assign the priority directly do not leak `[:forwarded]` into later
+  # spec files either.
+  config.after do
+    Otto::Security::Config.reset_rack_forwarding_family_for_testing! if defined?(Otto::Security::Config)
   end
 
   config.after(:each) do

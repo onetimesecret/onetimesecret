@@ -67,6 +67,13 @@ module Onetime
       def call(list: false, show: nil, customer: nil, subscription: nil, owner: nil, plan: nil, check: false, verbose: false, limit: 50, **)
         boot_application!
 
+        # A negative --limit reaches Array#take, which raises on a negative
+        # size; a zero limit is a silently empty listing. Reject both here.
+        if limit.to_i < 1
+          puts 'Error: --limit must be a positive integer'
+          exit 1
+        end
+
         if show
           show_organization_by_extid(show)
         elsif customer

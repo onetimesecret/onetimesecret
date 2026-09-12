@@ -6,6 +6,7 @@
 #
 # Usage:
 #   bin/ots customers unsuspend user@example.com        # confirm, then unsuspend
+#   bin/ots customers unsuspend user@example.com --reason "appeal upheld"
 #   bin/ots customers unsuspend ur1234567890abcdef --yes  # skip confirmation
 #   bin/ots customers unsuspend 123 --json              # machine output
 #
@@ -35,6 +36,14 @@ module Onetime
         required: true,
         desc: 'Email, extid, or Rodauth account ID of the customer'
 
+      # OPTIONAL operator-supplied why (#4338). The suspend peer has carried
+      # one since before this issue; a RELEASE deserves the same explanation —
+      # the customer row's who/when/why stamps are CLEARED on unsuspend, so
+      # the audit event is the only place the reason can live.
+      option :reason,
+        type: :string,
+        default: nil,
+        desc: 'Operator-supplied reason (recorded in the admin audit trail)'
       option :yes,
         type: :boolean,
         default: false,
@@ -45,7 +54,7 @@ module Onetime
         default: false,
         desc: 'Output as JSON'
 
-      def call(identifier:, yes: false, json: false, **)
+      def call(identifier:, reason: nil, yes: false, json: false, **)
         boot_application!
 
         customer = resolve_target(identifier, json: json)
@@ -56,7 +65,8 @@ module Onetime
             error_exit('Refusing to unsuspend without --yes in --json mode', json: true)
           end
 
-          print "Unsuspend #{obscured}? [y/N] "
+          note     = reason.to_s.strip.empty? ? '' : " (reason: #{reason})"
+          print "Unsuspend #{obscured}#{note}? [y/N] "
           response = $stdin.gets&.strip&.downcase
           unless response == 'y'
             puts 'Aborted.'
@@ -68,6 +78,7 @@ module Onetime
           customer: customer,
           suspended: false,
           actor: Customers::Shared::CLI_ACTOR,
+          reason: reason,
         ).call
 
         OT.info "[cli-customers-unsuspend] #{obscured} status=#{result.status}"

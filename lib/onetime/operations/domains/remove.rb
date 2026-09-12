@@ -6,6 +6,8 @@
 # Loaded at the call site (colonel logic + CLI), so require deps explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
+require 'onetime/operations/audit_attempt'
 require 'onetime/domain_validation/strategy'
 require 'onetime/operations/delete_sender_domain'
 
@@ -42,6 +44,8 @@ module Onetime
       # survivor + confirm its display_domain still == fqdn before re-pointing).
       class Remove
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
+        include Onetime::Operations::AuditAttempt
 
         AUDIT_VERB = 'domain.remove'
 
@@ -74,10 +78,16 @@ module Onetime
         # @param actor [String, #extid] acting principal's PUBLIC id (colonel extid
         #   or the 'cli' sentinel) — never an objid.
         # @param dry_run [Boolean] preview only when true (default).
-        def initialize(domain:, actor:, dry_run: true)
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the audit detail of the removal AND of the preview that
+        #   preceded it. Blank is treated as absent and both details keep their
+        #   pre-#4338 shape; see {Onetime::AuditReason} for the bound and the
+        #   optional-now / required-later rollout.
+        def initialize(domain:, actor:, dry_run: true, reason: nil)
           @domain  = domain
           @actor   = actor
           @dry_run = dry_run
+          @reason  = normalize_reason(reason)
         end
 
         # @return [Result]
@@ -104,8 +114,15 @@ module Onetime
             reasserts_survivor: reasserts,
           )
 
-          # --- DRY RUN: preview only, mutate nothing, audit nothing ---
-          return plan if @dry_run
+          # --- DRY RUN: preview only, mutate nothing ---
+          # Nothing reaches the OPERATOR trail, but a preview of a destructive
+          # verb is reconnaissance — it names the domain, its org, and whether
+          # removal would hand the index back to a survivor. Recorded as an
+          # OBSERVATION (#4337).
+          if @dry_run
+            record_preview_event(plan, org_id, reasserts)
+            return plan
+          end
 
           # --- APPLY: teardown mirrors RemoveDomain#process (NO org.remove_domain) ---
           delete_vhost(@domain)
@@ -138,18 +155,43 @@ module Onetime
           end
 
           # --- EXACTLY ONE audit event, applied path only ---
+          #
+          # FAIL-CLOSED (#4333): a close peer of the named destructive verbs —
+          # destroy! has committed and the vhost is gone, so an unrecorded
+          # removal is indistinguishable from a domain that was never added.
+          # The dry-run path returns above, recording only a preview
+          # observation on the access trail (#4337), never this operator event.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: plan.extid,
             result: :success,
-            detail: { org_id: org_id.to_s, reasserted: reasserts },
+            detail: with_reason(org_id: org_id.to_s, reasserted: reasserts),
+            fail_closed: true,
           )
 
           plan.with(status: :removed)
         end
 
         private
+
+        # The #4337 envelope's target hook: the domain's public id, read the
+        # same lazy way the failure audit above reads it. Identical to the
+        # `plan.extid` this emitter used to pass — the plan copies it from
+        # @domain, and the dry-run path returns before the destroy. The plan
+        # itself is still threaded in so the emitter's signature stays parallel
+        # to the applied-event call site's.
+        def audit_target = @domain.extid
+
+        # One OBSERVATION per preview (#4337), on the budgeted access trail —
+        # never the operator trail, which stays a record of domains that were
+        # actually removed. Same verb and target as the applied event so a
+        # preview lines up with the removal that followed it; `result: 'preview'`
+        # is what tells them apart, and the detail mirrors the applied event's —
+        # including the operator's `reason` (#4338) when one was given.
+        def record_preview_event(_plan, org_id, reasserts)
+          record_preview_observation(with_reason(org_id: org_id.to_s, reasserted: reasserts))
+        end
 
         # Mirrors RemoveDomain#delete_vhost: no-op for non-Approximated strategies,
         # swallows provider/transport errors so removal proceeds regardless.

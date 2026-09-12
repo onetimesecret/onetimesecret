@@ -1,17 +1,23 @@
 // src/tests/stores/membersStore.spec.ts
 
 import { useMembersStore } from '@/shared/stores/membersStore';
+import { lenientExtIdSchema } from '@/types/identifiers';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { setupTestPinia } from '../setup';
+
+// Branded-ID helper: OrganizationMember.extid is the lenientExtIdSchema output
+// type, not a plain string — parsing through the real schema (rather than
+// asserting) mints a properly-typed ExtId from a raw test literal.
+const extid = (raw: string) => lenientExtIdSchema.parse(raw);
 
 // Mock member data matching the organizationMemberSchema
 // Fields match backend response from apps/api/organizations/logic/members/list_members.rb
 // Note: Schema requires 'extid' (external identifier), not 'id'
 const mockMembers = [
   {
-    extid: 'member-1',
+    extid: extid('member-1'),
     email: 'owner@example.com',
     role: 'owner' as const,
     joined_at: 1704067200, // Unix timestamp
@@ -19,7 +25,7 @@ const mockMembers = [
     is_current_user: true,
   },
   {
-    extid: 'member-2',
+    extid: extid('member-2'),
     email: 'admin@example.com',
     role: 'admin' as const,
     joined_at: 1704153600,
@@ -27,7 +33,7 @@ const mockMembers = [
     is_current_user: false,
   },
   {
-    extid: 'member-3',
+    extid: extid('member-3'),
     email: 'member@example.com',
     role: 'member' as const,
     joined_at: 1704240000,

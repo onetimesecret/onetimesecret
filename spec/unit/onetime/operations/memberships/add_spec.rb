@@ -5,9 +5,10 @@
 # Unit tests for Onetime::Operations::Memberships::Add (#3731).
 #
 # Covers: fresh add (+ exactly one audit, via ensure_membership), already-member
-# idempotent :no_change (no audit, role untouched), invalid role, and role
-# convergence when ensure_membership activates a pending invitation whose stored
-# role differs from the operator's request.
+# idempotent :no_change (role untouched, attempt STILL audited with
+# outcome: 'no_change' — #4337), invalid role, and role convergence when
+# ensure_membership activates a pending invitation whose stored role differs
+# from the operator's request.
 #
 # Run: pnpm run test:rspec spec/unit/onetime/operations/memberships/add_spec.rb
 
@@ -26,7 +27,10 @@ RSpec.describe Onetime::Operations::Memberships::Add do
     double('Customer', objid: 'cust-obj-1', extid: 'ur_member')
   end
 
-  before { allow(Onetime::ColonelAuditEvent).to receive(:record) }
+  before do
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record_access)
+  end
 
   context 'when the customer is not yet a member (fresh add)' do
     let(:membership) { double('OrganizationMembership', role: 'member') }
@@ -102,12 +106,23 @@ RSpec.describe Onetime::Operations::Memberships::Add do
       expect(result.role).to eq('admin') # current role, NOT the requested 'member'
     end
 
-    it 'records NO audit event and does not call ensure_membership' do
+    # The mutation is skipped, the attempt is not (#4337). Same verb and target
+    # as the applied event; detail mirrors its shape (the member's CURRENT
+    # role, org_id) plus the outcome marker. The op has no dry_run, so the
+    # record is unconditional — and it never touches the observation trail.
+    it 'records ONE outcome: no_change attempt and does not call ensure_membership (#4337)' do
       allow(Onetime::OrganizationMembership).to receive(:ensure_membership)
 
       described_class.new(org: org, customer: customer, role: 'member', actor: actor).call
 
-      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'membership.add',
+        target: 'ur_member',
+        result: :success,
+        detail: { outcome: 'no_change', role: 'admin', org_id: 'on_org_ext' },
+      )
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access)
       expect(Onetime::OrganizationMembership).not_to have_received(:ensure_membership)
     end
   end
@@ -176,6 +191,10 @@ RSpec.describe Onetime::Operations::Memberships::Add do
       expect(result.status).to eq(:no_change)
       expect(result.role).to eq('member') # fallback: blank current role
       expect(OT).to have_received(:le).with(/active membership has blank role/)
+      # The no-change record (#4337) carries the same fallback the Result does.
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        hash_including(detail: { outcome: 'no_change', role: 'member', org_id: 'on_org_ext' }),
+      )
     end
   end
 end

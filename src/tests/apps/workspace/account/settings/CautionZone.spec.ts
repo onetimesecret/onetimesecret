@@ -5,7 +5,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { nextTick } from 'vue';
 import CautionZone from '@/apps/workspace/account/settings/CautionZone.vue';
+import type { CustomerCanonical } from '@/schemas/contracts/customer';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { mockCustomer } from '@tests/fixtures/bootstrap.fixture';
 import { createTestI18n } from '@tests/setup';
 
 // Mock vue-router
@@ -71,13 +73,30 @@ describe('CautionZone', () => {
     }
   });
 
-  const mountComponent = (custValue: { objid: string | null; extid: string } | null = null) => {
+  const mountComponent = (
+    custOverrides: { objid: string | null; extid: string } | null = null
+  ) => {
     const pinia = createTestingPinia({
       createSpy: vi.fn,
       stubActions: false,
     });
 
     const store = useBootstrapStore(pinia);
+    // The real cust record (CustomerCanonical) requires many more fields than
+    // objid/extid, so build a full valid record from the shared fixture and
+    // only vary what each scenario below cares about. `objid` is typed as a
+    // non-nullable string in the schema; the "anonymous user" scenarios still
+    // exercise the component's `cust?.objid` falsy-check defensively with a
+    // null value, which the cast below allows while keeping the field's
+    // declared type intact everywhere else.
+    const custValue: CustomerCanonical | null =
+      custOverrides === null
+        ? null
+        : {
+            ...mockCustomer,
+            extid: custOverrides.extid,
+            objid: custOverrides.objid as unknown as string,
+          };
     store.$patch({ cust: custValue });
 
     return mount(CautionZone, {

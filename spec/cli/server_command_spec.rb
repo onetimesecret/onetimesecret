@@ -152,12 +152,25 @@ RSpec.describe 'Server Command', type: :cli do
       run_cli_command_quietly('server', 'config/puma.rb')
     end
 
-    it 'rejects config file with command-line options' do
+    # The guard logs at error level before exiting. Capturing that on a mock
+    # asserts the operator-facing message names the offending flag, and keeps
+    # the expected error line out of the spec run's output.
+    let(:logger_mock) { instance_double(SemanticLogger::Logger) }
+
+    def expect_config_file_conflict(*args, flag:)
+      allow(Onetime).to receive(:app_logger).and_return(logger_mock)
+      expect(logger_mock).to receive(:error)
+        .with(/Cannot specify both a config file and command-line options: #{Regexp.escape(flag)}/)
+
       expect {
-        run_cli_command('server', 'config/puma.rb', '--port', '8080')
+        run_cli_command('server', 'config/puma.rb', *args)
       }.to raise_error(SystemExit) do |error|
         expect(error.status).to eq(1)
       end
+    end
+
+    it 'rejects config file with command-line options' do
+      expect_config_file_conflict('--port', '8080', flag: '--port')
     end
 
     # Previously escaped the guard entirely. `--threads`/`--bind` are declared
@@ -166,19 +179,11 @@ RSpec.describe 'Server Command', type: :cli do
     # only because dry-cli handed those back as Strings that could never equal
     # their Integer defaults.
     it 'rejects config file with a non-default --threads' do
-      expect {
-        run_cli_command('server', 'config/puma.rb', '--threads', '4:8')
-      }.to raise_error(SystemExit) do |error|
-        expect(error.status).to eq(1)
-      end
+      expect_config_file_conflict('--threads', '4:8', flag: '--threads')
     end
 
     it 'rejects config file with a non-default --bind' do
-      expect {
-        run_cli_command('server', 'config/puma.rb', '--bind', '0.0.0.0')
-      }.to raise_error(SystemExit) do |error|
-        expect(error.status).to eq(1)
-      end
+      expect_config_file_conflict('--bind', '0.0.0.0', flag: '--bind')
     end
 
     # The guard compares values, not presence: dry-cli merges declared defaults

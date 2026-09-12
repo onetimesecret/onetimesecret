@@ -14,6 +14,8 @@
 #   surface through safe_dump. The model declares no such field, and Familia's
 #   allow-list is positive, so the guarantee is structural — asserted here as an
 #   exact key-set equality plus an explicit absence sweep of sensitive names.
+# - F-01 regression: the raw bearer sid (== live cookie / Redis blob key) is NEVER
+#   in safe_dump; the colonel view gets #session_handle, a non-reversible digest.
 #
 # Run: try --agent try/unit/models/session_metadata_try.rb
 
@@ -34,8 +36,10 @@ SM.load(@sid)&.destroy!
 
 # The exact positive allow-list declared on the model. Kept as the source of
 # truth for the equality assertion below; sensitive fields are absent BY DESIGN.
+# session_handle (a non-reversible digest) stands in for the raw bearer sid,
+# which is deliberately NOT exposed (F-01).
 ALLOWED = %i[
-  session_id user_id org_id created_at last_activity_at
+  session_handle user_id org_id created_at last_activity_at
   ip_address user_agent auth_method mfa_used geo_country
 ].freeze
 
@@ -67,6 +71,20 @@ ALLOWED = %i[
 ## the allow-list carries the metadata we set (ip/ua copied AS-IS, adaptation #3)
 [@dump[:user_id], @dump[:ip_address], @dump[:user_agent]]
 #=> ["ur_#{@nonce}", "203.0.113.0", "Chrome on macOS"]
+
+## F-01: the raw bearer sid is NOT emitted; the colonel view gets a handle instead
+[@dump.key?(:session_id), @dump.key?(:session_handle)]
+#=> [false, true]
+
+## the handle is the non-reversible digest of the sid (32 hex chars), not the sid
+@handle = SM.load(@sid).safe_dump[:session_handle]
+[@handle == SM.handle_for(@sid), @handle == @sid, @handle.length]
+#=> [true, false, 32]
+
+## F-01: the raw sid (== live cookie value / `session:<sid>` blob key) appears
+## NOWHERE in the serialized payload — no value carries it as a substring either
+@dump.values.map(&:to_s).any? { |v| v.include?(@sid) }
+#=> false
 
 ## SECURITY: no token / email / payload / secret / account_id key can leak
 @sensitive = %i[token email payload secret secret_value account_id password
@@ -111,6 +129,24 @@ DB.hset(SM.dbkey(@sid), 'geo_country', '"**"')
 @blank.geo_country = '  '
 @blank.geo_country
 #=> nil
+
+# ---- session_handle: non-reversible identifier (F-01) -----------------
+
+## handle_for is deterministic and non-empty for a real sid
+[SM.handle_for(@sid) == SM.handle_for(@sid), SM.handle_for(@sid).to_s.empty?]
+#=> [true, false]
+
+## handle_for returns nil for a blank/absent sid — no handle for "no session"
+[SM.handle_for(nil), SM.handle_for('')]
+#=> [nil, nil]
+
+## distinct sids get distinct handles (so a handle names exactly one session)
+SM.handle_for("#{@sid}_a") == SM.handle_for("#{@sid}_b")
+#=> false
+
+## the handle is not reversible to (and never equals) the sid it stands for
+SM.handle_for(@sid) == @sid
+#=> false
 
 # ---- expiration feature present ---------------------------------------
 

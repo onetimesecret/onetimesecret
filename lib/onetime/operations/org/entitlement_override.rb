@@ -6,6 +6,7 @@
 # autoloaders — require the audit model explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 
 module Onetime
   module Operations
@@ -41,7 +42,11 @@ module Onetime
       #
       # `grant` and `revoke` are idempotent and cheaply detectable: if the
       # entitlement is already in the target set and absent from the opposite
-      # set, the op returns `:no_change` and mutates/audits NOTHING.
+      # set, the op returns `:no_change` and mutates NOTHING. Since #4337 the
+      # attempt is still recorded: a LIVE no-change lands on the OPERATOR trail
+      # under the same verb with `outcome: 'no_change'`, and a dry-run
+      # no-change stays on the OBSERVATION trail as a preview (previews never
+      # touch the operator trail, and `dry_run` defaults to true here).
       #
       # `clear` ALWAYS applies and ALWAYS audits, even when both sets are already
       # empty. It is not a cheap check (the sets are the state, and "already
@@ -86,6 +91,7 @@ module Onetime
       #   is shape-compatible.
       class EntitlementOverride
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         ACTIONS = %w[grant revoke clear].freeze
 
@@ -211,8 +217,18 @@ module Onetime
           revokes = @org.entitlements_revokes.to_a
 
           # D15: grant/revoke short-circuit when already in the requested state.
-          # `clear` never does — it always applies and always audits.
+          # `clear` never does — it always applies and always audits. The
+          # short-circuit still records (#4337), split by intent: a live call
+          # is a mutation ATTEMPT (operator trail, outcome: 'no_change'), while
+          # a dry-run call is a preview that found nothing to do — it stays an
+          # observation, exactly like the :planned path below, so the default
+          # preview-first workflow never writes operator-trail rows.
           if no_change?(grants, revokes)
+            if @dry_run
+              record_preview_event(outcome: 'no_change')
+            else
+              record_no_change_event
+            end
             return build(
               :no_change,
               effective: @org.materialized_entitlements.to_a,
@@ -223,6 +239,10 @@ module Onetime
 
           if @dry_run
             projected_grants, projected_revokes = project(grants, revokes)
+            # Mutates nothing, so nothing reaches the OPERATOR trail — but a
+            # preview shows what an override would do to a paying org's
+            # entitlements, so it is recorded as an OBSERVATION (#4337).
+            record_preview_event
             return build(
               :planned,
               effective: project_effective(projected_grants, projected_revokes),
@@ -255,6 +275,11 @@ module Onetime
 
         private
 
+        # The #4337 envelope's target hook: the org's extid, the key every row
+        # on this op has always carried — preview, no-change attempt and
+        # applied event alike. This class's own `audit_verb` supplies the verb.
+        def audit_target = @org.extid
+
         # "organization.entitlement.<action>" — BYTE-IDENTICAL to the
         # pre-extraction value for a valid action (the existing trail and the
         # colonel tryout gate match those exact strings). An INVALID action falls
@@ -263,6 +288,31 @@ module Onetime
         # :invalid_action refusal has no success-path verb to match.
         def audit_verb
           ACTIONS.include?(@action) ? "#{AUDIT_VERB_PREFIX}.#{@action}" : AUDIT_VERB_PREFIX
+        end
+
+        # One OBSERVATION per preview (#4337), on the budgeted access trail.
+        # Same verb and target as the applied event, so a preview and the
+        # override that followed read as one sequence; `result: 'preview'`
+        # tells them apart. The projected entitlement SETS stay out — they are
+        # plan output for the operator, and `clear`'s set is unbounded (the
+        # same reason the applied event's detail is {} for clear). `outcome`
+        # is set (to 'no_change') when the preview short-circuited on D15.
+        def record_preview_event(outcome: nil)
+          detail           = { action: @action, entitlement: @entitlement }
+          detail[:outcome] = outcome if outcome
+
+          record_preview_observation(detail)
+        end
+
+        # A LIVE no-change attempt (#4337) — the OPERATOR trail. Re-granting an
+        # entitlement an org already holds is the same reach as the grant that
+        # changed it, and a trail that goes quiet for it can show nothing while
+        # an operator repeatedly probes an org. Same verb and target as the
+        # applied event; detail keeps the applied event's shape (the verb
+        # carries the action) plus the `outcome: 'no_change'` marker. NOT
+        # fail-closed: nothing moved.
+        def record_no_change_event
+          record_no_change_attempt({ entitlement: @entitlement })
         end
 
         # Same verb/target/actor as the success event. Best-effort: never break

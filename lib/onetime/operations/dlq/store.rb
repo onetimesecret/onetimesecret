@@ -12,9 +12,9 @@ module Onetime
     # Central (cross-cutting) admin verbs — see decision D3 in
     # lib/onetime/operations/README.md. A dead-letter queue is a piece of the
     # RabbitMQ messaging fabric with no single domain owner (billing, email,
-    # domains and webhooks all dead-letter into it), so — like the Slice-4
-    # {Onetime::Operations::BanIP} / `UnbanIP` and the epic #40 session verbs —
-    # these live in the central operations home rather than an app-scoped one.
+    # domains and webhooks all dead-letter into it), so — like the epic #40
+    # session verbs — these live in the central operations home rather than an
+    # app-scoped one.
     #
     # Before this extraction the DLQ list / show / replay / purge capability lived
     # ONLY on `bin/ots queue dlq …` (`lib/onetime/cli/queue/dlq_command.rb`): an

@@ -22,6 +22,9 @@
 #   postgres   2154   (canonical 5432)
 #   rabbitmq   2156   (canonical 5672)
 #   rabbitmq   12156  (canonical 15672; management HTTP API)
+#   mailpit    2125/12125 — see compose.e2e.yml (e2e-only; kept out of this
+#              file so bin/setup's port probe and the lanes' bare `up` never
+#              depend on it)
 #
 # Dev services keep canonical ports, so a leaked dev config can never reach
 # a test service and a test run can never reach dev data. If a URL in the

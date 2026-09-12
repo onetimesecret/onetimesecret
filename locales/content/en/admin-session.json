@@ -1,0 +1,10 @@
+{
+  "web.admin.session.expired": {
+    "text": "Your admin session has expired. Sign in again to continue.",
+    "content_hash": "e970de7c"
+  },
+  "web.admin.session.signIn": {
+    "text": "Sign in",
+    "content_hash": "bfd402b2"
+  }
+}

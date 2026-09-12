@@ -14,7 +14,7 @@
 # 2. after_create_account captures intent to Customer.pending_plan_intent
 # 3. User verifies email (simulated by calling verify_account endpoint)
 # 4. after_verify_account surfaces intent -> sets session redirect
-# 5. verify_account_redirect reads session -> redirects to /billing/plans/X/Y
+# 5. verify_account_redirect reads session -> redirects to /billing/plans?product=X&interval=Y
 #
 # REQUIREMENTS:
 # - Valkey running on port 2163: pnpm run test:database:start
@@ -123,7 +123,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       }.to_json
 
       # Create customer and set intent (simulating hook behavior)
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -146,7 +146,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       email = unique_test_email('no-product')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -170,7 +170,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       email = unique_test_email('no-interval')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -199,7 +199,10 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
     let(:session) { {} }
 
     # Uses the production extract_pending_plan_intent method to ensure tests
-    # match actual behavior (including clearing via delete!).
+    # match actual behavior. Since #4306 that method is a PEEK: surfacing never
+    # deletes the intent — consumption happens at the billing plans-flow entry
+    # (Customer#consume_pending_plan_intent!, called by the billing
+    # subscription_status endpoint).
     def surface_plan_intent(customer:, session:, plan_valid: true)
       pending_intent = customer.pending_plan_intent&.value
 
@@ -221,7 +224,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       end
 
       # Set session redirect
-      session['plan_checkout_redirect'] = "/billing/plans/#{product}/#{interval}"
+      session['plan_checkout_redirect'] = "/billing/plans?#{URI.encode_www_form(product: product, interval: interval)}"
 
       { surfaced: true, product: product, interval: interval }
     end
@@ -230,7 +233,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       email = unique_test_email('surface')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -246,14 +249,14 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       result = surface_plan_intent(customer: customer, session: session)
 
       expect(result[:surfaced]).to be true
-      expect(session['plan_checkout_redirect']).to eq('/billing/plans/identity_plus_v1/monthly')
+      expect(session['plan_checkout_redirect']).to eq('/billing/plans?product=identity_plus_v1&interval=monthly')
     end
 
-    it 'clears intent after surfacing (single-use)' do
-      email = unique_test_email('single-use')
+    it 'keeps the intent after surfacing (peek) so an interrupted handoff can retry' do
+      email = unique_test_email('peek-retry')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -269,21 +272,27 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       first_result = surface_plan_intent(customer: customer, session: session)
       expect(first_result[:surfaced]).to be true
 
-      # Intent should be cleared
-      expect(customer.pending_plan_intent.value.to_s).to eq('')
+      # Intent survives: surfacing is a peek (#4306)
+      expect(customer.pending_plan_intent.value).to eq(intent)
 
-      # Second surfacing should fail
+      # Second surfacing re-surfaces the same intent (retry-on-failure)
       second_session = {}
       second_result = surface_plan_intent(customer: customer, session: second_session)
-      expect(second_result[:surfaced]).to be false
-      expect(second_result[:reason]).to eq(:no_intent)
+      expect(second_result[:surfaced]).to be true
+      expect(second_session['plan_checkout_redirect']).to eq('/billing/plans?product=team_plus_v1&interval=yearly')
+
+      # Consumption is the handoff: after it, surfacing finds nothing
+      expect(customer.consume_pending_plan_intent!).to be true
+      third_result = surface_plan_intent(customer: customer, session: {})
+      expect(third_result[:surfaced]).to be false
+      expect(third_result[:reason]).to eq(:no_intent)
     end
 
     it 'does not set redirect when no intent exists' do
       email = unique_test_email('no-intent')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -304,7 +313,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       email = unique_test_email('corrupted')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -324,11 +333,11 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       expect(customer.pending_plan_intent.value).to eq(corrupted_value)
     end
 
-    it 'clears intent after parse even when plan no longer exists' do
+    it 'does not delete the intent when the plan no longer exists (peek)' do
       email = unique_test_email('discontinued')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -344,8 +353,11 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
 
       expect(result[:surfaced]).to be false
       expect(result[:reason]).to eq(:plan_not_found)
-      # Production clears intent after successful JSON parse (before validation)
-      expect(customer.pending_plan_intent.value.to_s).to eq('')
+      # extract_pending_plan_intent is a pure peek (#4306). (The
+      # after_verify_account hook in account.rb DOES explicitly delete a
+      # plan-not-found intent — that branch is its own decision, not this
+      # module method's.)
+      expect(customer.pending_plan_intent.value).to eq(intent)
     end
   end
 
@@ -359,11 +371,11 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
     end
 
     it 'returns checkout URL when intent was surfaced' do
-      session = { 'plan_checkout_redirect' => '/billing/plans/identity_plus_v1/monthly' }
+      session = { 'plan_checkout_redirect' => '/billing/plans?product=identity_plus_v1&interval=monthly' }
 
       redirect = verify_account_redirect(session)
 
-      expect(redirect).to eq('/billing/plans/identity_plus_v1/monthly')
+      expect(redirect).to eq('/billing/plans?product=identity_plus_v1&interval=monthly')
       expect(session).not_to have_key('plan_checkout_redirect')
     end
 
@@ -376,12 +388,12 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
     end
 
     it 'clears session key after reading (single-use)' do
-      session = { 'plan_checkout_redirect' => '/billing/plans/team_plus_v1/yearly' }
+      session = { 'plan_checkout_redirect' => '/billing/plans?product=team_plus_v1&interval=yearly' }
 
       first_redirect = verify_account_redirect(session)
       second_redirect = verify_account_redirect(session)
 
-      expect(first_redirect).to eq('/billing/plans/team_plus_v1/yearly')
+      expect(first_redirect).to eq('/billing/plans?product=team_plus_v1&interval=yearly')
       expect(second_redirect).to eq('/account') # Key was deleted
     end
   end
@@ -408,25 +420,25 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
     it 'constructs correct URL for identity_plus monthly' do
       product = 'identity_plus_v1'
       interval = 'monthly'
-      url = "/billing/plans/#{product}/#{interval}"
+      url = "/billing/plans?#{URI.encode_www_form(product: product, interval: interval)}"
 
-      expect(url).to eq('/billing/plans/identity_plus_v1/monthly')
+      expect(url).to eq('/billing/plans?product=identity_plus_v1&interval=monthly')
     end
 
     it 'constructs correct URL for team_plus yearly' do
       product = 'team_plus_v1'
       interval = 'yearly'
-      url = "/billing/plans/#{product}/#{interval}"
+      url = "/billing/plans?#{URI.encode_www_form(product: product, interval: interval)}"
 
-      expect(url).to eq('/billing/plans/team_plus_v1/yearly')
+      expect(url).to eq('/billing/plans?product=team_plus_v1&interval=yearly')
     end
 
     it 'handles special characters in product name' do
       product = 'plan-with-dashes_v1'
       interval = 'monthly'
-      url = "/billing/plans/#{product}/#{interval}"
+      url = "/billing/plans?#{URI.encode_www_form(product: product, interval: interval)}"
 
-      expect(url).to eq('/billing/plans/plan-with-dashes_v1/monthly')
+      expect(url).to eq('/billing/plans?product=plan-with-dashes_v1&interval=monthly')
     end
   end
 
@@ -478,7 +490,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       account = create_test_account(email: email)
 
       # Step 1: Create customer (simulating signup)
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -512,11 +524,11 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       expect(json_response[:billing_redirect][:valid]).to be true
     end
 
-    it 'clears pending_plan_intent after successful cross-session login' do
-      email = unique_test_email('clear-intent')
+    it 'keeps pending_plan_intent across logins until the billing handoff consumes it (#4306)' do
+      email = unique_test_email('peek-until-handoff')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -528,7 +540,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       intent = { product: 'team_plus_v1', interval: 'yearly' }.to_json
       customer.pending_plan_intent = intent
 
-      # Fresh login
+      # Fresh login: surfaces billing_redirect but does NOT consume
       fresh_session = {}
       json_response = {}
       add_billing_redirect_to_response(
@@ -537,26 +549,36 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
         customer: customer
       )
 
-      # Intent should be cleared
-      expect(customer.pending_plan_intent.value.to_s).to eq('')
+      expect(json_response).to have_key(:billing_redirect)
+      expect(customer.pending_plan_intent.value).to eq(intent)
 
-      # Second login should not have billing_redirect
-      second_session = {}
+      # Second login before the handoff re-surfaces the same billing_redirect
       second_response = {}
       add_billing_redirect_to_response(
-        session: second_session,
+        session: {},
         json_response: second_response,
         customer: customer
       )
+      expect(second_response).to have_key(:billing_redirect)
 
-      expect(second_response).not_to have_key(:billing_redirect)
+      # The handoff (authenticated client entering the billing plans flow)
+      # consumes the intent; after that no login carries billing_redirect.
+      expect(customer.consume_pending_plan_intent!).to be true
+
+      third_response = {}
+      add_billing_redirect_to_response(
+        session: {},
+        json_response: third_response,
+        customer: customer
+      )
+      expect(third_response).not_to have_key(:billing_redirect)
     end
 
     it 'session keys take precedence over pending_plan_intent' do
       email = unique_test_email('session-precedence')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -669,7 +691,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       account = create_account_with_password(email: email)
 
       # Create customer with pending_plan_intent
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -706,16 +728,17 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
         expect(last_response.status).to eq(302)
       end
 
-      # Verify intent was cleared (single-use)
-      customer.pending_plan_intent.reload! if customer.pending_plan_intent.respond_to?(:reload!)
-      expect(customer.pending_plan_intent.value.to_s).to eq('')
+      # Verify the intent SURVIVED the login response (peek, #4306): the
+      # client may crash before reaching the plans page, so consumption is
+      # deferred to the billing handoff.
+      expect(customer.pending_plan_intent.value.to_s).to eq(intent)
     end
 
-    it 'clears pending_plan_intent after first successful login' do
-      email = unique_test_email('http-clear')
+    it 'keeps pending_plan_intent across logins and stops surfacing it once consumed' do
+      email = unique_test_email('http-peek-consume')
       account = create_account_with_password(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -723,19 +746,29 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       customer = operation.call
       created_customers << customer
 
-      customer.pending_plan_intent = { product: 'team_plus_v1', interval: 'yearly' }.to_json
+      intent = { product: 'team_plus_v1', interval: 'yearly' }.to_json
+      customer.pending_plan_intent = intent
 
-      # First login
+      # First login: surfaces but does not consume
       csrf_login(email)
 
       expect(last_response.status).to be_between(200, 302)
+      expect(customer.pending_plan_intent.value.to_s).to eq(intent)
 
-      # Intent should be cleared
-      customer.pending_plan_intent.reload! if customer.pending_plan_intent.respond_to?(:reload!)
-      expect(customer.pending_plan_intent.value.to_s).to eq('')
+      # Second login before the handoff re-surfaces billing_redirect
+      clear_cookies
+      csrf_login(email)
 
-      # Second login should not have billing_redirect
-      # (need to logout first or use different session)
+      if last_response.content_type&.include?('application/json')
+        response_body = JSON.parse(last_response.body)
+        expect(response_body).to have_key('billing_redirect')
+      end
+
+      # Consume at the handoff (production chokepoint: the billing
+      # subscription_status endpoint calls this for the authenticated
+      # customer); a later login carries no billing_redirect.
+      expect(customer.consume_pending_plan_intent!).to be true
+
       clear_cookies
       csrf_login(email)
 
@@ -743,6 +776,104 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
         response_body = JSON.parse(last_response.body)
         expect(response_body).not_to have_key('billing_redirect')
       end
+    end
+  end
+
+  # ==========================================================================
+  # Pending auth redirect (issue #4305)
+  # ==========================================================================
+  #
+  # Sibling mechanism to pending_plan_intent above, same reason for existing:
+  # the verification email link is routinely opened in a FRESH browser
+  # session, so the `?redirect=` the user started signup with cannot ride
+  # along in the session. It is persisted on the Customer and surfaced from
+  # after_verify_account.
+  #
+  # These exercise the REAL Redis round trip and the REAL validator; the
+  # response-shaping half (json_response[:redirect]) needs a live Rodauth
+  # instance and is covered in
+  # apps/web/auth/spec/config/hooks/pending_auth_redirect_spec.rb.
+
+  describe 'pending_auth_redirect persistence' do
+    def new_customer_for(email)
+      account = create_test_account(email: email)
+      customer = Auth::Operations::EnsureCustomerForAccount.new(
+        account_id: account[:id],
+        account: account,
+        db: Auth::Database.connection
+      ).call
+      created_customers << customer
+      customer
+    end
+
+    it 'declares the field on the model' do
+      expect(Onetime::Customer.new).to respond_to(:pending_auth_redirect)
+    end
+
+    it 'round-trips an internal path verbatim, query string and fragment included' do
+      customer = new_customer_for(unique_test_email('redirect-roundtrip'))
+      path     = '/secret/abc?view=raw#content'
+
+      customer.pending_auth_redirect = path
+
+      reloaded = Onetime::Customer.find_by_extid(customer.extid)
+      expect(reloaded.pending_auth_redirect.value).to eq(path)
+    end
+
+    it 'survives a completely fresh Customer load (fresh-browser-session case)' do
+      customer = new_customer_for(unique_test_email('redirect-fresh'))
+      customer.pending_auth_redirect = '/account/settings/security'
+
+      # No session, no cookie: the only thing carrying the destination is the
+      # Customer record, which is the entire point of the field.
+      fresh = Onetime::Customer.find_by_extid(customer.extid)
+      expect(fresh.pending_auth_redirect.value).to eq('/account/settings/security')
+    end
+
+    it 'is empty for a signup that carried no redirect' do
+      customer = new_customer_for(unique_test_email('redirect-absent'))
+
+      expect(customer.pending_auth_redirect.value.to_s).to eq('')
+    end
+
+    it 'is single-use: deleted on consume' do
+      customer = new_customer_for(unique_test_email('redirect-single-use'))
+      customer.pending_auth_redirect = '/account'
+
+      stored = customer.pending_auth_redirect.value
+      customer.pending_auth_redirect.delete!
+
+      expect(stored).to eq('/account')
+      expect(customer.pending_auth_redirect.value.to_s).to eq('')
+
+      fresh = Onetime::Customer.find_by_extid(customer.extid)
+      expect(fresh.pending_auth_redirect.value.to_s).to eq('')
+    end
+
+    it 'only ever stores values the production validator accepts' do
+      # The capture branch gates on this exact call, so a hostile value never
+      # reaches Redis in the first place.
+      hostile = ['https://attacker.example', '//evil.example', '/\\evil.example', '/%2e%2e/admin']
+      hostile.each do |value|
+        expect(OT::Utils.safe_internal_path?(value)).to be(false), "expected #{value.inspect} to be rejected"
+      end
+
+      expect(OT::Utils.safe_internal_path?('/secret/abc?view=raw#content')).to be true
+    end
+
+    it 'is independent of pending_plan_intent' do
+      customer = new_customer_for(unique_test_email('redirect-independent'))
+
+      customer.pending_plan_intent   = { product: 'identity_plus_v1', interval: 'monthly' }.to_json
+      customer.pending_auth_redirect = '/account/settings/security'
+
+      # Consuming one must not disturb the other: precedence is resolved in
+      # the hook, not by one field clobbering the other's storage.
+      customer.pending_plan_intent.delete!
+
+      fresh = Onetime::Customer.find_by_extid(customer.extid)
+      expect(fresh.pending_plan_intent.value.to_s).to eq('')
+      expect(fresh.pending_auth_redirect.value).to eq('/account/settings/security')
     end
   end
 end

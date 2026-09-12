@@ -2,7 +2,12 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/colonel_audit_event'
+
 require_relative '../base'
+require_relative 'current_session'
+require_relative 'session_authority'
+require 'onetime/models/session_metadata'
 require 'onetime/operations/sessions/list_for_customer'
 
 module ColonelAPI
@@ -16,9 +21,15 @@ module ColonelAPI
       # this reads Customer#active_sessions and resolves each sid to a lightweight
       # {Onetime::SessionMetadata} record — no scan, no decrypt, no blob read.
       #
-      # Read-only: no ColonelAuditEvent (CONTRACT 4 — audit is for mutations). The
-      # op self-heals its index (prunes stale sids), but that is not a session
-      # mutation and is not audited.
+      # ## Audited as an OBSERVATION (#4335)
+      #
+      # Mutates nothing, so it writes nothing to the OPERATOR trail. It is on
+      # the curated list because it answers a question about ONE NAMED PERSON —
+      # where and when they are currently signed in. The safe_dump allowlist
+      # keeps the ROWS clean (no token, no payload, no email), which is a
+      # different guarantee from "nobody needs to know who asked". The op also
+      # self-heals its index (prunes stale sids); that is not a session mutation
+      # and is still not audited as one.
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
@@ -27,7 +38,17 @@ module ColonelAPI
       # boundary: rows carry NO token, NO decrypted payload, NO email/secret
       # material — the frontend physically cannot render one.
       class ListCustomerSessions < ColonelAPI::Logic::Base
+        # The acting colonel's own session identity, as the non-bearer HANDLE the
+        # sidecar rows expose — so the UI can badge the colonel's own row and
+        # disable its self-revoke WITHOUT the response ever carrying a replayable
+        # cookie value, not even the acting colonel's own. Shared with the
+        # self-revoke interlocks so badge and gate cannot disagree (#4328).
+        include CurrentSession
+        include SessionAuthority
+
         SCHEMAS = { response: 'colonelCustomerSessions' }.freeze
+
+        AUDIT_VERB = 'session.list_for_customer'
 
         attr_reader :user_id, :result
 
@@ -45,7 +66,24 @@ module ColonelAPI
             custid: user_id,
           ).call
 
+          record_access_event
+
           success_data
+        end
+
+        # The target is the customer whose sessions were listed — the subject of
+        # the observation. Detail is a count, never the rows: session handles
+        # are non-bearer but they are still per-session identifiers, and the
+        # trail does not need them to answer "who looked at whose sessions".
+        # `user_id` is already length-bounded by sanitize_identifier.
+        def record_access_event
+          Onetime::ColonelAuditEvent.record_access(
+            actor: cust&.extid,
+            verb: AUDIT_VERB,
+            target: user_id,
+            result: :success,
+            detail: { sessions: result.count },
+          )
         end
 
         def success_data
@@ -53,24 +91,16 @@ module ColonelAPI
             record: {},
             # safe_dump is the HTTP boundary (ADR-040): serialize it, never the
             # Result's #to_h (which exposes internal Entry objects + join keys).
+            # Rows now identify a session by its non-bearer session_handle (F-01),
+            # so the acting colonel's own row is matched by handle, not raw sid.
             details: result.safe_dump.merge(
-              current_session_id: current_session_id,
+              current_session_handle: current_session_handle,
+              # Same non-authoritative signal the global console carries
+              # (SessionAuthority): in full mode this panel reads the sidecar,
+              # not the Rodauth session table.
+              session_authority: session_authority,
             ),
           }
-        end
-
-        private
-
-        # The acting colonel's OWN request session id, as the plain sid string the
-        # sidecar rows are keyed by (safe_session_id yields a Rack SessionId object;
-        # #public_id is the cookie value == SessionMetadata#session_id). Returned so
-        # the UI can badge the colonel's own row and disable its (no-op) self-revoke.
-        # nil when the session can't be identified (e.g. Hash session in JSON auth).
-        def current_session_id
-          sid = safe_session_id
-          return nil if sid.nil?
-
-          sid.respond_to?(:public_id) ? sid.public_id : sid.to_s
         end
       end
     end

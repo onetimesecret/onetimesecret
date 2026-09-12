@@ -10,6 +10,443 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.26.12:
+
+0.26.12 — 2026-09-10
+====================
+
+Added
+-----
+
+- ``RODAUTH_ADMIN_URL`` (config ``site.admin.rodauth_admin_url``): the base URL
+  of the standalone Rodauth Admin instance. Optional and credential-free. When
+  set in ``full`` authentication mode, the colonel customer page, the customers
+  list drawer, and each row of the sessions console link to the matching
+  Rodauth account, and the sessions console and per-customer sessions panel
+  link to it as the session authority. Nothing is ever requested from it;
+  unset renders plain text.
+
+- The admin console shows the running app version (linked to its release
+  notes) in the sidebar foot, so operators no longer have to leave the console
+  for a workspace page to check it.
+
+Changed
+-------
+
+- In ``full`` authentication mode the colonel sessions console and the
+  per-customer sessions panel now state that they are not the session
+  authority (they read the Redis session store; Rodauth's session table is
+  authoritative) instead of presenting a partial list as complete.
+
+- In ``full`` authentication mode, authenticated requests now require the
+  authentication database. During an authdb outage, existing browser sessions
+  are refused rather than continuing from Redis alone; they work again once
+  the authdb recovers.
+
+- Tenant SSO refusals now use distinct error codes for an existing-account
+  link that is unavailable on that domain and for a connection started on the
+  wrong domain.
+
+- Audit events produced by operations with ``dry_run: true`` now use the same
+  envelope as applied operations.
+
+- The active-session inactivity deadline is temporarily extended from 24 to 72
+  hours.
+
+Removed
+-------
+
+- The development-only ``GET /auth/admin/stats`` stub. Its numbers are served
+  by the standalone Rodauth Admin behind real authentication.
+
+- The Organizations list's server-side roster cache and its ``refresh=1``
+  bypass. The parameter is still accepted and ignored; the ``details.cache``
+  block is no longer sent.
+
+Fixed
+-----
+
+- Admin Organization searches and filters no longer load every organization
+  and owner. ``pagination.capped`` indicates that a bounded result may be
+  incomplete.
+
+- Admin console searches now run only when submitted, rather than while an
+  operator types.
+
+- Improved admin sessions, customer, and domain search performance.
+
+- Account deletion from Account Settings now completes reliably.
+
+- Customer search now matches email addresses case-insensitively, including
+  legacy mixed-case index entries.
+
+- The Active Sessions card and ``/account/settings/security/sessions`` are
+  available when ``AUTH_ACTIVE_SESSIONS_ENABLED`` is set.
+
+Security
+--------
+
+- In ``full`` authentication mode, revoking an active session or signing out
+  everywhere now blocks the affected browser on its next request.
+
+- Session deadlines in ``full`` mode are now enforced on every request:
+  sessions inactive for 72 hours or older than 30 days require sign-in again.
+
+- Accounts created by accepting an invitation now have a visible, revocable
+  active session.
+
+- After a revoked session, sign-up and sign-in flows, including SSO, proceed
+  as signed-out requests.
+
+- Router fallback ``404`` and ``500`` responses no longer return stale
+  response headers.
+
+.. _changelog-0.26.11:
+
+0.26.11 — 2026-09-06
+====================
+
+Added
+-----
+
+- Colonel now provides a confirmed, reason-required **Impersonate** action on
+  the customer detail page. It creates a 30-minute, read-only customer view
+  with a persistent banner and a **Stop impersonating** control.
+
+- Impersonation blocks actions that could change data or create customer-facing
+  artifacts, including secret, account, billing, and Colonel operations.
+
+- Impersonation starts and normal in-process ends, including expiry, are
+  recorded in the operator audit trail.
+
+- Operator audit events are now emitted to the dedicated ``ColonelAudit`` log
+  category before storage. Route this category to persistent log collection when
+  retention beyond the console's configured caps is required (#4334).
+
+- Added optional syslog delivery for the audit category. Set
+  ``LOG_AUDIT_SYSLOG=true`` and configure ``LOG_AUDIT_SYSLOG_URL`` to enable it
+  (#4334).
+
+- The Colonel Audit Log can now export its retained, filtered results as CSV or
+  NDJSON. ``ots audit list`` provides the same formats for shell workflows
+  (#4334).
+
+- Destructive operator actions now accept an optional **reason** for the
+  operator audit trail, through the Colonel console, API, and supported CLI
+  commands (#4338).
+
+- Added ``ots sessions revoke-all <customer>`` for incident response. It
+  revokes tracked customer sessions and Rodauth active-session records, and
+  performs a capped best-effort sweep for legacy untracked sessions. A warning
+  is shown if that sweep reaches its safety cap (#4354).
+
+Changed
+-------
+
+- Reasons remain optional. Blank values are omitted; nonblank values are trimmed
+  and stored up to 255 characters. Audit-log readers and exports can view the
+  stored text (#4338).
+
+- Failed Colonel sign-ins use a separate 7-day telemetry stream, so attempt
+  volume cannot evict destructive-action records from the operator trail
+  (#4339).
+
+- With trusted-proxy protection enabled, ``header: Forwarded`` or ``Both`` now
+  requires ``mode: depth`` and fails boot in filter mode instead of being
+  ignored (#4378).
+
+- In filter mode, ``X-Forwarded-Proto`` from a proxy outside the configured
+  trusted CIDRs is ignored. Add the proxy's address range to ``cidrs`` to retain
+  forwarded TLS scheme detection (#4378).
+
+- Customer purge now revokes tracked sessions and Rodauth active-session
+  records first, with a capped best-effort sweep for legacy untracked sessions
+  (#4352).
+
+Removed
+-------
+
+- Removed the ineffective ``ots session clean`` command. Use
+  ``ots sessions revoke-all`` or ``ots session delete`` instead (#4354).
+
+- Removed the nonfunctional Colonel configuration editor write controls. The
+  console configuration view is read-only (#4355).
+
+Fixed
+-----
+
+- Simple-mode ``Login failed`` events now identify the attempted account rather
+  than the account associated with the request session (#4361).
+
+Security
+--------
+
+- Destructive operator actions now report an audit-write failure instead of a
+  successful response when their audit event cannot be stored (#4333).
+  Because most actions write their audit event after the mutation, operators
+  must reconcile the target after such a failure; it may have completed.
+
+- Audit retention trimming can no longer empty the operator trail through the
+  audit API (#4334).
+
+- Failed sign-ins against existing Colonel accounts are now recorded as
+  ``colonel.signin_failed`` in both authentication modes. The audit event uses
+  an obscured account email and coarse failure details (#4339).
+
+- Simple-mode sign-in now authenticates only the account named in the login
+  field, including on requests that already carry a session.
+
+- Rack now uses the proxy-configured forwarding header family when resolving
+  request authority and scheme, preventing an unmanaged RFC 7239
+  ``Forwarded`` header from overriding proxy-managed ``X-Forwarded-*`` values
+  (#4377).
+
+- Deployments whose edge sends only ``Forwarded`` must also send
+  ``X-Forwarded-*`` headers for TLS scheme detection (#4377).
+
+- With ``site.network.trusted_proxy.enabled: true``, upgraded otto now removes
+  forwarded authority headers supplied by an untrusted peer before Rack resolves
+  the request host, scheme, or port. Configure trusted proxy CIDRs narrowly
+  (#4378).
+
+- RFC 7239 ``Forwarded: host=`` is no longer used to determine the application
+  host. Deployments that depend on it must rewrite ``Host`` or provide
+  ``X-Forwarded-Host``, ``Apx-Incoming-Host``, or ``X-Original-Host`` through a
+  configured trusted proxy (#4121).
+
+AI Assistance
+-------------
+
+- AI assistance was used to design the session overlay and its request-path
+  restrictions, implement the console action, banner, and audit events, and
+  write the accompanying tests.
+
+.. _changelog-0.26.10:
+
+0.26.10 — 2026-08-30
+====================
+
+Changed
+-------
+
+- v1 API form errors now group by endpoint and are reported at warning level.
+
+- Errors from in-app browsers whose injected bridge did not load are ignored.
+
+Fixed
+-----
+
+- Verified signups now retain a validated ``?redirect=`` destination across
+  email confirmation, including when the confirmation link opens in another
+  browser. A valid pending paid-plan selection still takes precedence (#4305).
+
+- Paid-plan selections made before signup now reach the web-app checkout
+  handoff instead of being consumed during email verification (#4305).
+
+- Passkey sign-in now applies the same post-authentication destination rules as
+  password sign-in: a valid pending plan selection, then a validated
+  ``?redirect=`` destination (#4305).
+
+- Frontend diagnostics now apply configured filtering and grouping to manually
+  captured errors.
+
+- Password confirmation flows no longer record a login or run login-session
+  side effects.
+
+- Invalid UTF-8 session-cookie values are rejected instead of causing a server
+  error.
+
+- Custom-domain lists accept proxy ``vhost.keep_host`` values provided as
+  booleans.
+
+- Paid-plan selections made before signup now survive MFA and are consumed only
+  after the signed-in user reaches the billing plans flow. A failed handoff can
+  be retried during its 24-hour window (#4306).
+
+- ``/billing`` and ``/billing/plans`` now preserve plan-selector query
+  parameters when resolving to organization-scoped billing pages (#4306).
+
+Security
+--------
+
+- Redirect destinations now accept internal paths only, preventing malformed
+  or external targets from crossing the authentication boundary (#4305).
+
+- Authentication logs and diagnostic payloads no longer include redirect-borne
+  invitation or email-confirmation credentials (#4305).
+
+- Diagnostic reports no longer include secret or receipt identifiers in event
+  grouping keys or request-context paths.
+
+AI Assistance
+-------------
+
+- AI assistance was used to trace the redirect drop points across the
+  signup, verification, and passwordless sign-in flows, implement the
+  server-side persistence with parity validators, and build the
+  end-to-end browser coverage.
+
+.. _changelog-0.26.9:
+
+0.26.9 — 2026-08-26
+====================
+
+Changed
+-------
+
+- Frontend Sentry events now serialize nested extras to depth 6
+  (``normalizeDepth``), so schema-validation failures report their
+  ``issues[]`` payload instead of ``"[Array]"``.
+
+Fixed
+-----
+
+- The API Key settings page no longer breaks for accounts promoted to
+  ``admin`` or ``staff`` via ``bin/ots customers role`` (#4298). The
+  frontend role enum now mirrors the backend's assignable roles (enforced
+  by a contract test against ``SetRole::VALID_ROLES``), and an unknown or
+  missing ``role`` degrades to ``customer`` instead of failing the whole
+  account record parse.
+
+AI Assistance
+-------------
+
+- AI assistance was used to trace the Sentry signatures to the role
+  vocabulary mismatch, sync the enums, and add the drift-guard contract
+  test.
+
+.. _changelog-0.26.8:
+
+0.26.8 — 2026-08-26
+====================
+
+Added
+-----
+
+- Legal document URLs are now first-class ``site.legal`` configuration
+  (#4281). Set ``TERMS_URL`` and ``PRIVACY_URL`` (and optionally ``DPA_URL``,
+  ``COOKIE_URL``, ``AUP_URL``, ``SECURITY_URL``), or configure ``site.legal``
+  directly, to render Terms, Privacy Policy, and related documents as links.
+  All default to unset: when a URL is unset, the signup/invite consent
+  sentence renders the document name as plain text, the branded reveal footer
+  drops the link, and the entry is absent from the public footer's legal
+  group. These settings are independent of ``footer_links`` — existing Terms
+  and Privacy links configured there with explicit ``url:`` values continue to
+  work unchanged, and an operator-supplied footer URL takes precedence over
+  the default footer configuration.
+
+Removed
+-------
+
+- Stripe Payment Link provisioning has been retired. The ``/welcome`` endpoint
+  that handled Payment Link redirects now logs the attempt and redirects to
+  the homepage; the webhook handler skips Payment Link subscriptions (they
+  never carried the ``customer_extid`` metadata the webhook requires). The
+  ``bin/ots billing payment-links`` CLI command has been removed entirely.
+  Existing Payment Link subscriptions continue to bill normally in Stripe;
+  they simply no longer trigger automatic workspace creation. Customers who
+  paid via a legacy Payment Link and were not provisioned should contact
+  support. Use the Stripe Dashboard to audit or archive any remaining Payment
+  Links. (#4212)
+
+Fixed
+-----
+
+- Guest-created secrets on branded custom domains now use the domain owner
+  organization's lifetime limit (normally 14 or 30 days). The 7-day anonymous
+  default remains specific to guest creation on canonical hosts. (#4279)
+
+- Malformed ``multipart/form-data`` requests now receive a ``400 Bad
+  Request`` with an explanatory JSON message instead of failing deep in the
+  middleware stack (#4283). Previously an empty or truncated multipart body
+  raised a 500 from the first middleware that read request params, and a
+  multipart Content-Type without a boundary parameter silently produced no
+  form fields — surfacing on ``POST /share`` as a misleading "You did not
+  provide anything to share". Well-formed multipart requests are unaffected;
+  their body is now parsed once, up front, and memoized for the rest of the
+  request.
+
+- The frontend locale schema now accepts any well-formed BCP 47 language
+  tag (#4284). Previously it capped tags at 5 characters with an
+  ``xx``/``xx-XX`` regex, rejecting legitimate values browsers actually
+  send — ``en-US-POSIX``, ``zh-Hant-TW``, ``es-419`` — and capturing a
+  Sentry error for each. Validation is now delegated to
+  ``Intl.getCanonicalLocales`` with a 35-character bound, and a
+  malformed visitor locale degrades silently to the supported-locale
+  matching and the default locale instead of being reported as an
+  application error.
+
+Documentation
+-------------
+
+- Documented the canonical-host and custom-domain guest TTL boundaries in the
+  API and TTL-policy references.
+
+AI Assistance
+-------------
+
+- AI assistance was used to trace the Sentry error signatures to their root
+  causes (the custom-domain guest TTL regression, the middleware-level
+  multipart parse, and the locale schema length cap), implement the fixes,
+  and add regression coverage.
+
+.. _changelog-0.26.7:
+
+0.26.7 — 2026-08-23
+====================
+
+Added
+-----
+
+- Added integer and float field declarations for Familia models, normalizing
+  numeric inputs and legacy scalar values. (#4248)
+
+- Authenticated browser sessions and selected backend error captures now
+  carry a pseudonymous actor reference, so operators can correlate an
+  issue with the accounts it affects. The backend derives the 16-hex
+  ``actor_ref`` from the customer external identifier (extid), publishes
+  it to the frontend in the ``diagnostics_ref`` bootstrap payload, and
+  attaches it to supported backend captures. No direct identifiers, such
+  as email addresses or customer IDs, are sent; however, the reference
+  must still be handled as potentially personal data. Anonymous sessions
+  and installs without a usable keying secret send no user context, and
+  the frontend clears the reference on logout. Existing actor and
+  organization references re-key on the deploy that ships this change, so
+  a correlation discontinuity of up to the Sentry retention window is
+  expected rather than a defect.
+
+Changed
+-------
+
+- Custom-domain favicon backoff counters now use native numeric storage.
+  (#4248)
+
+Fixed
+-----
+
+- Selected frontend Sentry issues use explicit grouping instead of
+  minified bundle stack frames. Schema validation errors with a schema
+  name group by that name. Axios-shaped request errors with ``config.url``
+  group by method, the path normalized by the existing URL scrubbers, and
+  an HTTP status or coarse ``aborted``/``network`` outcome; other errors
+  retain Sentry's default grouping.
+
+Security
+--------
+
+- Passphrase verification on the v2 secret show, reveal, and burn endpoints
+  now runs only when ``continue=true``. A metadata-only request
+  (``continue`` absent or ``false``) no longer evaluates the supplied
+  passphrase, so it cannot be used to test guesses without consuming the
+  secret, and it no longer records or clears rate-limit state.
+  ``details.correct_passphrase`` has been removed from the v2 secret
+  responses; clients should use ``details.show_secret``, which is true only
+  when the passphrase was correct and the reveal was committed. The v2
+  reveal and burn endpoints now return the same status for a right or wrong
+  passphrase when ``continue=false``. The v1 logic classes carry the same
+  change for parity; the v1 API was not exposed, since its controller
+  always commits (``continue=true``) and never returned the verdict.
+
 .. _changelog-0.26.6:
 
 0.26.6 — 2026-08-20

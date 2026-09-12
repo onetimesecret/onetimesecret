@@ -436,13 +436,17 @@
     "text": "Controleer je e-mail",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "We hebben een verificatielink gestuurd naar",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "We hebben een verificatielink naar je e-mailadres gestuurd.",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "We hebben een verificatielink naar dit adres gestuurd — open de e-mail en klik op de link om je account te activeren.",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "Klik op de link in de e-mail om je account te activeren.",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "Kun je het niet vinden? Controleer je spammap.",

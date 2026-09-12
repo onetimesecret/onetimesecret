@@ -14,6 +14,8 @@ import { createTestingPinia } from '@pinia/testing';
 import { ref } from 'vue';
 import { createTestI18n } from '@tests/setup';
 import DomainIncoming from '@/apps/workspace/domains/DomainIncoming.vue';
+import type { ApplicationError } from '@/schemas/errors';
+import { wrapError } from '@/schemas/errors';
 import {
   emptyFormState,
   singleRecipientFormState,
@@ -64,7 +66,7 @@ vi.mock('@/shared/composables/useIncomingConfig', () => ({
 const mockDomainState = {
   domain: ref({ display_domain: 'example.com', extid: 'dm-ext-123' }),
   isLoading: ref(false),
-  error: ref(null),
+  error: ref<ApplicationError | null>(null),
   initialize: mockInitializeDomain,
 };
 
@@ -257,7 +259,7 @@ describe('DomainIncoming', () => {
     });
 
     it('PG-LOAD-004: shows error state on domain API failure', async () => {
-      mockDomainState.error.value = { message: 'Domain not found' };
+      mockDomainState.error.value = wrapError('Domain not found', 'technical', 'error', null);
 
       wrapper = mountComponent();
       await flushPromises();

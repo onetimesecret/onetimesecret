@@ -97,12 +97,18 @@ module ColonelAPI
           @org = load_organization
           raise_not_found('Organization not found') unless @org&.exists?
 
-          # Validate entitlement name is known (optional, but helps catch typos)
-          return if @action == 'clear'
-          return if Onetime::Operations::Org::EntitlementOverride.known_entitlement?(@entitlement)
+          # TIER 2 (#4326), ALL arms: grant is privilege-granting and clear is
+          # irreversible, so a per-arm split would buy nothing but a place to
+          # make a mistake. The URL carries the org id; the confirmation is its
+          # NAME.
+          guard_destructive_action!(
+            tier: :sensitive,
+            confirm_with: org_confirm_token(@org),
+            confirm_subject: "the organization's name",
+            field: :org_id,
+          )
 
-          # Warn but don't block - allows granting future entitlements
-          OT.info "[colonel] Granting unknown entitlement '#{@entitlement}' to org #{@org_id}"
+          warn_unknown_entitlement
         end
 
         def process
@@ -135,6 +141,16 @@ module ColonelAPI
         end
 
         private
+
+        # Warn but don't block — allows granting future entitlements. Validation
+        # of the entitlement NAME is advisory (it helps catch typos); it is not a
+        # guard, so it deliberately runs after the confirmation gate.
+        def warn_unknown_entitlement
+          return if @action == 'clear'
+          return if Onetime::Operations::Org::EntitlementOverride.known_entitlement?(@entitlement)
+
+          OT.info "[colonel] Granting unknown entitlement '#{@entitlement}' to org #{@org_id}"
+        end
 
         # Statuses the op returns for input it refused. process_params already
         # rejects both ahead of the call, so these are a defensive backstop that

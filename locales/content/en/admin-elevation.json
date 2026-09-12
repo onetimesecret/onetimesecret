@@ -1,0 +1,46 @@
+{
+  "web.admin.elevation.banner.active": {
+    "text": "Elevated access active — {remaining} remaining",
+    "content_hash": "3e446719"
+  },
+  "web.admin.elevation.banner.activeRecentAuth": {
+    "text": "Elevated WITHOUT a password (recent sign-in) — {remaining} remaining",
+    "content_hash": "6bc7f4ca"
+  },
+  "web.admin.elevation.banner.drop": {
+    "text": "Drop elevation",
+    "content_hash": "b4960d01"
+  },
+  "web.admin.elevation.prompt.title": {
+    "text": "Confirm it's you",
+    "content_hash": "6176eec2"
+  },
+  "web.admin.elevation.prompt.description": {
+    "text": "This action is destructive. Re-enter your password to unlock destructive actions for the next {minutes} minutes.",
+    "content_hash": "2e85bbdd"
+  },
+  "web.admin.elevation.prompt.confirm": {
+    "text": "Unlock",
+    "content_hash": "4ac709aa"
+  },
+  "web.admin.elevation.prompt.confirmItsYou": {
+    "text": "Confirm it's me",
+    "content_hash": "f718279a"
+  },
+  "web.admin.elevation.prompt.confirmItsYouDescription": {
+    "text": "Your account has no password. Confirm to unlock destructive actions for the next {minutes} minutes.",
+    "content_hash": "d8d63a3a"
+  },
+  "web.admin.elevation.errors.noPassword": {
+    "text": "This account has no password, so it cannot complete step-up authentication.",
+    "content_hash": "ba0d40e8"
+  },
+  "web.admin.elevation.errors.noGrace": {
+    "text": "Ask an administrator to set COLONEL_ELEVATION_REAUTH_GRACE, or to disable step-up with COLONEL_ELEVATION_ENABLED=false.",
+    "content_hash": "ac501a95"
+  },
+  "web.admin.elevation.errors.failed": {
+    "text": "Step-up authentication failed. Destructive actions stay locked.",
+    "content_hash": "f17909ec"
+  }
+}

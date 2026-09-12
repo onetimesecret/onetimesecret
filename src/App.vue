@@ -4,16 +4,19 @@
   import { useI18n } from 'vue-i18n';
   import { iconLibraryComponents } from '@/shared/components/icons/sprites';
   import CriticalSprites from '@/shared/components/icons/sprites/CriticalSprites.vue';
+  import ImpersonationBanner from '@/shared/components/ui/ImpersonationBanner.vue';
   import { NotificationHost } from '@/shared/components/ui/notifications';
   import RouteErrorBoundary from '@/shared/components/errors/RouteErrorBoundary.vue';
   import QuietLayout from '@/shared/layouts/MinimalLayout.vue';
   import { useBrandTheme } from '@/shared/composables/useBrandTheme';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, ref, onMounted, watchEffect, type Component, markRaw } from 'vue';
   import { useRoute } from 'vue-router';
 
   const { locale } = useI18n();
   const route = useRoute();
+  const bootstrapStore = useBootstrapStore();
 
   useBrandTheme();
 
@@ -122,6 +125,13 @@
  */
 -->
 <template>
+  <!-- Impersonation notice. Mounted HERE, outside the layout, because it must
+       appear on every route of both bundles: AdminLayout does not compose
+       BaseLayout, so a layout-level mount (the PreviewModeBanner pattern) would
+       miss whole surfaces. Gated on the server-derived bootstrap block, so it
+       is absent for every ordinary session. -->
+  <ImpersonationBanner v-if="bootstrapStore.impersonation" />
+
   <!-- Dynamic layout selection based on route.meta.layout -->
   <component
     :is="layout"

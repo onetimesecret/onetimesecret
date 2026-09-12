@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'domain_resolver'
 require 'onetime/operations/domains/remove'
 
 module ColonelAPI
@@ -23,6 +24,8 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class RemoveCustomDomain < ColonelAPI::Logic::Base
+        include DomainResolver
+
         attr_reader :extid, :dry_run, :custom_domain, :result
 
         def process_params
@@ -30,13 +33,30 @@ module ColonelAPI
           raise_form_error('Domain ID is required', field: :extid) if extid.to_s.empty?
 
           @dry_run = params.key?('dry_run') ? truthy?(params['dry_run']) : true
+          # OPTIONAL operator-supplied why (#4338) — query string, alongside
+          # dry_run and for the same reason. See
+          # ColonelAPI::Logic::Base#operator_reason_param.
+          @reason  = operator_reason_param
         end
 
         def raise_concerns
           verify_one_of_roles!(colonel: true)
 
-          @custom_domain = Onetime::CustomDomain.find_by_extid(extid)
+          @custom_domain = resolve_custom_domain(extid)
           raise_not_found('Domain not found') unless custom_domain
+
+          # PREVIEW EXEMPTION (#4326): a dry run writes nothing. dry_run
+          # defaults to TRUE here, so only an explicit apply is gated.
+          return if dry_run
+
+          # TIER 1. The URL carries the extid; the confirmation is the hostname.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: custom_domain.display_domain,
+            confirm_subject: 'the domain name',
+            field: :extid,
+          )
+          charge_destructive_budget!
         end
 
         def process
@@ -44,6 +64,7 @@ module ColonelAPI
             domain: custom_domain,
             actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
             dry_run: dry_run,
+            reason: @reason,
           ).call
 
           # Log from result (snapshotted pre-destroy!) — on the applied path
@@ -72,12 +93,6 @@ module ColonelAPI
               reasserts_survivor: result.reasserts_survivor,
             },
           }
-        end
-
-        private
-
-        def truthy?(value)
-          %w[true 1 yes on].include?(value.to_s.strip.downcase)
         end
       end
     end

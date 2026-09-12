@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'domain_resolver'
 require 'onetime/operations/domains/transfer'
 
 module ColonelAPI
@@ -24,6 +25,8 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class TransferDomain < ColonelAPI::Logic::Base
+        include DomainResolver
+
         attr_reader :extid,
           :to_org_id,
           :from_org_id,
@@ -47,17 +50,31 @@ module ColonelAPI
         def raise_concerns
           verify_one_of_roles!(colonel: true)
 
-          @custom_domain = Onetime::CustomDomain.find_by_extid(extid)
+          @custom_domain = resolve_custom_domain(extid)
           raise_not_found('Domain not found') unless custom_domain
 
           @to_org = resolve_org(to_org_id)
           raise_form_error('Destination organization not found', field: :to_org) unless to_org
 
           # Optional explicit source org (ownership assertion).
-          return if from_org_id.to_s.empty?
+          unless from_org_id.to_s.empty?
+            @from_org = resolve_org(from_org_id)
+            raise_form_error('Source organization not found', field: :from_org) unless from_org
+          end
 
-          @from_org = resolve_org(from_org_id)
-          raise_form_error('Source organization not found', field: :from_org) unless from_org
+          # PREVIEW EXEMPTION (#4326): a dry run writes nothing. dry_run
+          # defaults to TRUE here, so only an explicit apply is gated.
+          return if dry_run
+
+          # TIER 1. The URL carries the extid; the confirmation is the domain's
+          # hostname.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: custom_domain.display_domain,
+            confirm_subject: 'the domain name',
+            field: :extid,
+          )
+          charge_destructive_budget!
         end
 
         def process
@@ -108,10 +125,6 @@ module ColonelAPI
         def resolve_org(identifier)
           Onetime::Organization.load(identifier) ||
             Onetime::Organization.find_by_extid(identifier)
-        end
-
-        def truthy?(value)
-          %w[true 1 yes on].include?(value.to_s.strip.downcase)
         end
       end
     end

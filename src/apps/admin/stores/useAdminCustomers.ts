@@ -1,5 +1,6 @@
 // src/apps/admin/stores/useAdminCustomers.ts
 
+import type { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import type { z } from 'zod';
 import { ref } from 'vue';
@@ -7,16 +8,24 @@ import { ref } from 'vue';
 import {
   usePaginatedFetch,
   type PageMeta,
+  type PageResult,
 } from '@/apps/admin/composables/usePaginatedFetch';
+import { reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
 import {
   colonelUserMutationResponseSchema,
   colonelUsersResponseSchema,
 } from '@/schemas/api/internal/responses/colonel';
-import type { ColonelUser } from '@/schemas/api/internal/responses/colonel';
+import type { ColonelOrphanedAccount, ColonelUser } from '@/schemas/api/internal/responses/colonel';
+import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
 import { useApi } from '@/shared/composables/useApi';
 import { gracefulParse } from '@/utils/schemaValidation';
 
 type ColonelUsersResponse = z.infer<typeof colonelUsersResponseSchema>;
+
+/** One page of customers plus the address search's orphaned-account sidecar. */
+interface CustomersPageResult extends PageResult<ColonelUser> {
+  orphanedAccounts: ColonelOrphanedAccount[];
+}
 
 /** Single-customer colonel URL, keyed by the row's public id (extid, 'ur…'). */
 function userUrl(userId: string): string {
@@ -71,20 +80,72 @@ function replaceRow(
  * `src/shared/stores/colonelInfoStore.ts` (enforced by an architecture test),
  * so it never drags the retiring legacy tree into the admin bundle.
  */
+/**
+ * POST verify/unverify. UNVERIFY is gated server-side (#4326): it strips colonel
+ * eligibility, so it must carry the account identifier in X-OTS-Confirm. VERIFY
+ * is the restorative arm and sends nothing.
+ */
+async function requestVerification(
+  $api: AxiosInstance,
+  userId: string,
+  verified: boolean,
+  confirm?: string
+): Promise<void> {
+  const verb = verified ? 'verify' : 'unverify';
+  const config = verified || !confirm ? undefined : { headers: confirmHeaders(confirm) };
+  const response = await $api.post(`${userUrl(userId)}/${verb}`, {}, config);
+  parseMutationAck(response.data);
+}
+
+/**
+ * DELETE one account, carrying the confirmation token the server requires
+ * (#4326) and, when the operator gave one, the reason (#4338). A DELETE, so the
+ * reason rides the QUERY STRING; a blank one contributes nothing at all, leaving
+ * the request byte-identical to its pre-#4338 shape.
+ */
+async function requestPurge(
+  $api: AxiosInstance,
+  userId: string,
+  confirm: string,
+  reason?: string
+): Promise<void> {
+  const [reasonConfig] = reasonQueryArgs(reason);
+  const response = await $api.delete(userUrl(userId), {
+    headers: confirmHeaders(confirm),
+    ...reasonConfig,
+  });
+  parseMutationAck(response.data);
+}
+
 export const useAdminCustomers = defineStore('adminCustomers', () => {
   /** Rows for the current page only (one server page — never accumulated). */
   const customers = ref<ColonelUser[]>([]);
   const pagination = ref<PageMeta | null>(null);
+  /**
+   * Auth-database accounts rows the address search matched that have NO
+   * customer record (full auth mode only). Rides the same response as the
+   * page, so it is set and cleared in lockstep with `customers`: an orphan
+   * is a per-search fact, never something to carry across a re-read.
+   */
+  const orphanedAccounts = ref<ColonelOrphanedAccount[]>([]);
 
   const $api = useApi();
 
-  const pager = usePaginatedFetch<ColonelUsersResponse, ColonelUser>({
+  /** Replace the page state wholesale; `null` empties it (mismatch, failure, reset). */
+  function applyPage(result: CustomersPageResult | null): void {
+    customers.value = result?.items ?? [];
+    pagination.value = result?.pagination ?? null;
+    orphanedAccounts.value = result?.orphanedAccounts ?? [];
+  }
+
+  const pager = usePaginatedFetch<ColonelUsersResponse, ColonelUser, CustomersPageResult>({
     url: '/api/colonel/users',
     schema: colonelUsersResponseSchema,
     context: 'ColonelUsersResponse',
     select: (data) => ({
       items: data.details?.users ?? [],
       pagination: data.details?.pagination ?? null,
+      orphanedAccounts: data.details?.orphaned_accounts ?? [],
     }),
   });
 
@@ -101,24 +162,18 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
     targetPage: number = pager.page.value,
     roleFilter?: string,
     search?: string
-  ): Promise<{ items: ColonelUser[]; pagination: PageMeta | null } | null> {
+  ): Promise<CustomersPageResult | null> {
     try {
       // Empty/undefined params are dropped by the pager, so both filters can be
       // passed unconditionally.
       const result = await pager.fetchPage(targetPage, { role: roleFilter, search });
-      if (result) {
-        customers.value = result.items;
-        pagination.value = result.pagination;
-      } else {
-        // Schema mismatch: degrade to empty; pager.validationError names the schema.
-        customers.value = [];
-        pagination.value = null;
-      }
+      // A null result is a schema mismatch: degrade to empty; pager.validationError
+      // names the schema.
+      applyPage(result);
       return result;
     } catch (err) {
       // Network/HTTP failure: clear stale rows and rethrow for the view to handle.
-      customers.value = [];
-      pagination.value = null;
+      applyPage(null);
       throw err;
     }
   }
@@ -134,16 +189,17 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
    *
    * @param userId the customer's public id (extid, 'ur…' — `row.user_id`).
    * @param verified the target state.
+   * @param confirm the account identifier for X-OTS-Confirm; required by the
+   *   server on the UNVERIFY arm only (#4326).
    * @returns the patched row, or null when it is not on the current page.
    * @throws the network/HTTP error, for `useAdminMutation` to classify.
    */
   async function setVerification(
     userId: string,
-    verified: boolean
+    verified: boolean,
+    confirm?: string
   ): Promise<ColonelUser | null> {
-    const verb = verified ? 'verify' : 'unverify';
-    const response = await $api.post(`${userUrl(userId)}/${verb}`, {});
-    parseMutationAck(response.data);
+    await requestVerification($api, userId, verified, confirm);
     const patched = replaceRow(customers.value, userId, { verified });
     customers.value = patched.rows;
     return patched.updated;
@@ -158,18 +214,20 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
    * refetch the page afterwards (totals/pagination move server-side).
    *
    * @param userId the customer's public id (extid, 'ur…').
+   * @param confirm the account identifier (email, extid when it has none) the
+   *   server requires in X-OTS-Confirm (#4326).
+   * @param reason OPTIONAL operator-supplied why (#4338) — query string, since
+   *   this is a DELETE. Omitted entirely when blank.
    * @throws the network/HTTP error, for `useAdminMutation` to classify.
    */
-  async function purge(userId: string): Promise<void> {
-    const response = await $api.delete(userUrl(userId));
-    parseMutationAck(response.data);
+  async function purge(userId: string, confirm: string, reason?: string): Promise<void> {
+    await requestPurge($api, userId, confirm, reason);
     customers.value = customers.value.filter((row) => row.user_id !== userId);
   }
 
   /** Explicit manual reset — setup stores have no built-in $reset. */
   function $reset(): void {
-    customers.value = [];
-    pagination.value = null;
+    applyPage(null);
     pager.reset();
   }
 
@@ -177,6 +235,7 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
     // State
     customers,
     pagination,
+    orphanedAccounts,
     // Fetch state (owned by the shared composable)
     loading: pager.loading,
     error: pager.error,

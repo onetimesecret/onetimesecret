@@ -7,6 +7,7 @@
 # so require the audit model explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 require 'onetime/models/custom_domain/config_registry'
 
 module Onetime
@@ -35,6 +36,7 @@ module Onetime
       # EXACTLY ONE {Onetime::ColonelAuditEvent} — none when nothing was created.
       class EnsureDomainConfigs
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         # Audit verb recorded when an applied run created at least one record.
         AUDIT_VERB = 'domain.configs_ensure'
@@ -86,7 +88,9 @@ module Onetime
             end
 
             if @dry_run
-              # Plan only — no mutation, no audit.
+              # Plan only — no mutation, and nothing on the OPERATOR trail.
+              # The run's single OBSERVATION is recorded once below, not per
+              # slug.
               created << slug
               next
             end
@@ -103,6 +107,9 @@ module Onetime
           end
 
           if @dry_run
+            # ONE observation per run (#4337), not one per slug — a preview is
+            # a single operator action however many configs it enumerates.
+            record_preview_event(created, existing, skipped)
             return Result.new(status: :planned, dry_run: true, created: created, existing: existing, skipped: skipped)
           end
 
@@ -122,6 +129,24 @@ module Onetime
         end
 
         private
+
+        # The #4337 envelope's target hook: the domain's public id, same as the
+        # applied event's. `audit_verb` defaults to AUDIT_VERB, `audit_actor`
+        # to @actor.
+        def audit_target = @domain.extid
+
+        # One OBSERVATION per dry run (#4337), on the budgeted access trail.
+        # Same verb and target as the applied event; `result: 'preview'` and
+        # `dry_run: true` distinguish them. Counts rather than the applied
+        # event's `created` list, because on a preview that list is what WOULD
+        # be created — a projection, not a fact.
+        def record_preview_event(created, existing, skipped)
+          record_preview_observation(
+            would_create: created.size,
+            existing: existing.size,
+            skipped: skipped.size,
+          )
+        end
 
         # Race-safe creation with model defaults (everything disabled).
         # HomepageConfig/ApiConfig provide WATCH-backed find_or_create_for_domain;

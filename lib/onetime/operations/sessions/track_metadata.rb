@@ -4,6 +4,7 @@
 
 require_relative '../../models/session_metadata'
 require_relative '../../application/organization_loader'
+require_relative '../../application/auth_strategies/admin_session_lifetime'
 
 module Onetime
   module Operations
@@ -63,6 +64,15 @@ module Onetime
           # in session_data (adaptation #3), so both are copied AS-IS.
           return nil unless @session_data['authenticated'] && extid && !@session_id.to_s.empty?
 
+          # A REFUSED request is not activity (#4331). The admin-surface session
+          # bounds read last_activity_at from this very record, so stamping it
+          # here for a request the auth strategy just rejected would slide the
+          # idle window forward and let the next request through — the bound
+          # would only ever cost an attacker one 401. The strategy sets the flag;
+          # this is the only reader. Note it suppresses the whole upsert, the
+          # active_sessions score included, for exactly that one request.
+          return nil if admin_session_expired?
+
           customer = Onetime::Customer.find_by_extid(extid)
           return nil if customer.nil?
 
@@ -109,6 +119,16 @@ module Onetime
         end
 
         private
+
+        # True when this request was refused by the #4331 admin-surface session
+        # bounds. See the call site in #call for why it suppresses the upsert.
+        def admin_session_expired?
+          return false unless @env.respond_to?(:[])
+
+          !@env[Onetime::Application::AuthStrategies::AdminSessionLifetime::EXPIRED_ENV_KEY].nil?
+        rescue StandardError
+          false
+        end
 
         # org_id = the objid of the session's ACTIVE ORGANIZATION.
         #

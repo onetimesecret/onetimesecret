@@ -8,6 +8,11 @@ RSpec.describe Onetime::Application::MiddlewareStack do
   describe '.ip_privacy_security_config' do
     subject(:config) { described_class.ip_privacy_security_config }
 
+    # otto 2.10 pins Rack::Request.forwarded_priority from the header set here
+    # and registers the config process-wide; spec_helper resets that registry
+    # after every example so the Forwarded/Both examples below cannot conflict
+    # with the X-Forwarded-For ones.
+
     def stub_conf(trusted_proxy, geo = {})
       allow(OT).to receive(:conf).and_return(
         'site' => { 'network' => { 'trusted_proxy' => trusted_proxy, 'geo' => geo } },
@@ -33,11 +38,39 @@ RSpec.describe Onetime::Application::MiddlewareStack do
     context 'when trusted_proxy is disabled' do
       before { stub_conf('enabled' => false) }
 
+      let(:client_forwarded_env) do
+        Rack::MockRequest.env_for(
+          'http://onetime.test/',
+          'HTTP_FORWARDED' => 'host=evil.example.com;proto=https',
+        )
+      end
+
       it 'still masks private/localhost IPs while trusting no proxy hop' do
         aggregate_failures do
           expect(config).to be_a(Otto::Security::Config)
           expect(config.ip_privacy_config.mask_private_ips).to be(true)
           expect(config.trusted_proxy?('10.0.0.1')).to be(false)
+        end
+      end
+
+      it 'pins Rack to the X-Forwarded-* family so a client Forwarded header cannot set request.host' do
+        Rack::Request.forwarded_priority = [:forwarded, :x_forwarded]
+
+        config
+        request = Rack::Request.new(client_forwarded_env)
+        aggregate_failures do
+          expect(config.trusted_proxy_header).to eq('X-Forwarded-For')
+          expect(Rack::Request.forwarded_priority).to eq([:x_forwarded])
+          expect(request.host).to eq('onetime.test')
+          expect(request.scheme).to eq('http')
+        end
+      end
+
+      it 'ignores a stale Forwarded header setting: it is documented as inert while disabled' do
+        stub_conf('enabled' => false, 'mode' => 'depth', 'depth' => 1, 'header' => 'Forwarded')
+        aggregate_failures do
+          expect(config.trusted_proxy_header).to eq('X-Forwarded-For')
+          expect(Rack::Request.forwarded_priority).to eq([:x_forwarded])
         end
       end
     end
@@ -277,6 +310,33 @@ RSpec.describe Onetime::Application::MiddlewareStack do
       it 'wires RFC 7239 Forwarded through to otto in depth mode' do
         stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 1, 'header' => 'Forwarded')
         expect(config.trusted_proxy_header).to eq('Forwarded')
+      end
+
+      it 'pins Rack to the family depth mode names (otto 2.10)' do
+        stub_conf('enabled' => true, 'mode' => 'depth', 'depth' => 1, 'header' => 'Forwarded')
+        config
+        expect(Rack::Request.forwarded_priority).to eq([:forwarded])
+      end
+
+      it 'pins Rack to X-Forwarded-* in filter mode' do
+        stub_conf('enabled' => true, 'mode' => 'filter')
+        config
+        expect(Rack::Request.forwarded_priority).to eq([:x_forwarded])
+      end
+
+      it 'rejects Forwarded in filter mode against the operator-facing config keys' do
+        stub_conf('enabled' => true, 'mode' => 'filter', 'header' => 'forwarded')
+        expect { config }.to raise_error(ArgumentError, /trusted_proxy\.header.*requires mode=depth/)
+      end
+
+      it 'names the misspelled mode the operator wrote, not just the fallback' do
+        stub_conf('enabled' => true, 'mode' => 'dept', 'header' => 'Forwarded')
+        expect { config }.to raise_error(ArgumentError, /"dept" is not a recognized value/)
+      end
+
+      it 'rejects Both in filter mode' do
+        stub_conf('enabled' => true, 'mode' => 'filter', 'header' => 'Both')
+        expect { config }.to raise_error(ArgumentError, /requires mode=depth/)
       end
 
       it 'wires Both through to otto in depth mode' do

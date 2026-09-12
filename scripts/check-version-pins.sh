@@ -93,7 +93,7 @@ else
 fi
 
 if [[ -f "$dc_json" ]]; then
-  # e.g. "ghcr.io/devcontainers/features/node:1": { "version": "22" }
+  # e.g. "ghcr.io/devcontainers/features/node:1": { "version": "24" }
   dc_node="$(grep -A1 'features/node' "$dc_json" | grep -Eo '"version"[[:space:]]*:[[:space:]]*"[0-9]+"' | grep -Eo '[0-9]+' | head -n1)"
   [[ -n "$dc_node" ]] || fail "node feature version not found in $dc_json"
   if [[ "$dc_node" == "$node_major" ]]; then

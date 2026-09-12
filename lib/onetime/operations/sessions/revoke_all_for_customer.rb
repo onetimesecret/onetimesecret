@@ -7,6 +7,7 @@ require 'onetime/session/sidecar'
 require 'onetime/models/session_metadata'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
 
 module Onetime
   module Operations
@@ -50,20 +51,27 @@ module Onetime
       # routes locked IMMEDIATELY, so this op deletes the account's rows directly
       # via Sequel — the ops layer has no bound Rodauth instance, so it cannot call
       # `rodauth.remove_all_active_sessions_for`; it does the same DELETE that
-      # Auth::Operations::CloseAccount does. Guarded on the auth DB being present
+      # Auth::Operations::RemoveAuthenticationData does. Guarded on the auth DB being present
       # (nil in simple mode → skipped).
       #
       # ## 3. One audit event with counts
       #
-      # Exactly one {Onetime::ColonelAuditEvent} (`verb: session.revoke_all`, target =
-      # the customer), detail carrying the kill counts so the operator (and the
-      # trail) sees how total the revoke actually was. Best-effort throughout: a
+      # Exactly one {Onetime::ColonelAuditEvent} (`verb: session.revoke_all`).
+      # This verb genuinely acts on a CUSTOMER, not one session, so target is the
+      # customer's extid — the route param only when it resolves to no customer
+      # (see docs/architecture/audit-logging.md, "Session verbs") — with detail
+      # carrying the kill counts so the operator (and the trail) sees how total
+      # the revoke actually was. Best-effort throughout: a
       # missing customer or a down auth DB degrades to zero-counts, never a raise
       # that leaves the account half-revoked.
       #
       # Stateless, single `#call`, returns an immutable {Result}.
+      #
+      # Construction rule: pass `customer:` whenever you hold the record;
+      # `custid:` is for id-only entry points (see #initialize for why).
       class RevokeAllForCustomer
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
 
         # Audit verb recorded for every customer-scoped revoke-all.
         AUDIT_VERB = 'session.revoke_all'
@@ -72,6 +80,13 @@ module Onetime
         # see: some sessions killed, then a raise. Records one `result: :failure`
         # and re-raises. Like {RevokeForCustomer} this op does not delegate to
         # {Delete}, so there is no nested audited frame to dedupe against.
+        #
+        # target here is the RAW route param, not the resolved extid the success
+        # record prefers: this lambda runs mid-raise, where re-resolving the
+        # customer could itself fail (the raise may BE the datastore), and the
+        # unresolved param is still an honest record of what the operator acted on.
+        # (For a pre-resolved `customer:` it is that record's extid, captured at
+        # construction — see #initialize — so no lookup happens here either.)
         audit_failures :call, verb: AUDIT_VERB, target: -> { @custid }
 
         # Session-data identity fields matched against the target's extid.
@@ -89,12 +104,46 @@ module Onetime
         #   unaffected; they never touch the scan)
         Result = Data.define(:revoked, :blobs_deleted, :untracked_deleted, :rodauth_rows_deleted, :scan_capped)
 
-        # @param custid [String] the target customer (route param; extid/email/objid).
+        # Exactly one of `custid:` / `customer:` must be given.
+        #
+        # @param custid [String, nil] the target customer AS ADDRESSED (route
+        #   param / CLI arg; extid, email, or objid). Resolved in #load_customer
+        #   via extid → email → objid; an unresolvable value degrades to a
+        #   zero-count revoke (see class docs, section 3).
+        # @param customer [Onetime::Customer, nil] the target ALREADY RESOLVED.
+        #   Callers that hold the record (Auth::Operations::Customers::Purge)
+        #   must pass it rather than its extid: a re-resolution by extid is not
+        #   guaranteed to agree with the record in hand — the extid index has
+        #   drifted before (#4205, #4217) — and a miss would silently take the
+        #   nil-customer branches, write a `blobs_deleted: 0` success, and let a
+        #   following destroy leave live blobs/sidecars/`active_sessions` behind
+        #   a deleted customer. The record is used as given; only `exists?` is
+        #   still checked.
         # @param actor [String, #extid] acting colonel's PUBLIC identity (extid).
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the audit detail. Offboarding and account-takeover
+        #   response look identical in the trail without it. Blank is treated as
+        #   absent and the detail keeps its pre-#4338 shape; see
+        #   {Onetime::AuditReason} for the bound and the optional-now /
+        #   required-later rollout.
         # @param dbclient [Object, nil] Redis-like client; defaults to Familia.dbclient.
-        def initialize(custid:, actor:, dbclient: nil)
-          @custid   = custid
+        def initialize(actor:, custid: nil, customer: nil, reason: nil, dbclient: nil)
+          # Same shape as Operations::VerifyDomain's domain:/domains: guard.
+          if custid.nil? && customer.nil?
+            raise ArgumentError, 'Must provide either custid: or customer:'
+          end
+          if custid && customer
+            raise ArgumentError, 'Cannot provide both custid: and customer:'
+          end
+
+          @customer = customer
+          # @custid is read by the audit_failures target lambda and by the
+          # success-event target fallback in #call; for a pre-resolved customer
+          # its extid IS the addressed identity, so capture it now rather than
+          # touching the record again mid-raise.
+          @custid   = custid || customer.extid
           @actor    = actor
+          @reason   = normalize_reason(reason)
           @dbclient = dbclient
         end
 
@@ -119,17 +168,30 @@ module Onetime
 
           blobs_deleted = tracked_deleted + untracked_deleted
 
+          # Per-customer verb: target is the customer's extid so every audit
+          # event about one customer carries one identifier, however the route
+          # addressed them (extid, email, or objid). Only an unresolvable
+          # customer (this op degrades to a zero-count revoke rather than
+          # raising) falls back to the route param as given.
+          target = customer&.extid.to_s
+          target = @custid if target.empty?
+
+          # FAIL-CLOSED (#4333): a bulk revoke deletes the very blobs and rows
+          # that would otherwise evidence it, so this event is the whole record
+          # of an offboarding/takeover action. An unwritable event raises
+          # Onetime::AuditWriteFailure instead of returning a clean Result.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
-            target: @custid,
+            target: target,
             result: :success,
-            detail: {
+            detail: with_reason(
               blobs_deleted: blobs_deleted,
               untracked_deleted: untracked_deleted,
               rodauth_rows_deleted: rodauth_rows_deleted,
               scan_capped: scan_capped,
-            },
+            ),
+            fail_closed: true,
           )
 
           Result.new(
@@ -219,7 +281,7 @@ module Onetime
         # LOGGED distinctly (OT.le below), so a prod failure is visible and not
         # silently indistinguishable from "no rows".
         #
-        # Column names verified against Auth::Operations::CloseAccount and
+        # Column names verified against Auth::Operations::RemoveAuthenticationData and
         # Auth::Routes::ActiveSessions: `accounts.external_id`, `accounts.id`, and
         # `account_active_session_keys.account_id`. This path is full-mode-only, so
         # it is covered by inspection, not the (simple-mode) tryout suite.
@@ -253,10 +315,14 @@ module Onetime
           Auth::Database.connection
         end
 
-        # Same resolution as ListForCustomer / RevokeForCustomer: extid → email →
-        # objid. nil is tolerated — a missing customer yields a zero-count revoke.
+        # A pre-resolved `customer:` is used as given — NEVER re-resolved (see
+        # #initialize for why an extid-index miss here would be silent and
+        # destructive). Otherwise the same resolution as ListForCustomer /
+        # RevokeForCustomer: extid → email → objid. nil is tolerated either way
+        # — a missing customer yields a zero-count revoke.
         def load_customer
-          customer = Onetime::Customer.load_by_extid_or_email(@custid) ||
+          customer = @customer ||
+                     Onetime::Customer.load_by_extid_or_email(@custid) ||
                      Onetime::Customer.load(@custid)
           return nil unless customer&.exists?
 

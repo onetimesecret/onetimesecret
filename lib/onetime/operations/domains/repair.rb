@@ -6,9 +6,10 @@
 # lib/onetime/operations/README.md. Lives alongside the incumbent domain ops in
 # lib/onetime/operations, under the Domains:: namespace. Loaded at the call site
 # (colonel logic + CLI), so require the audit model explicitly, mirroring
-# AdminVerifyDomain / BanIP.
+# AdminVerifyDomain.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 
 module Onetime
   module Operations
@@ -28,11 +29,12 @@ module Onetime
       # ## Dry-run + exactly-once audit (CONTRACT 4)
       #
       # `dry_run: true` (the safe default) computes the plan — the issues found and
-      # what would change — and mutates NOTHING and audits NOTHING. `dry_run: false`
+      # what would change — mutates NOTHING, and records one preview observation on
+      # the access trail (#4337), never the operator trail. `dry_run: false`
       # applies the repairs and records EXACTLY ONE {Onetime::ColonelAuditEvent} per
       # successful mutation. A run that finds no issues (`:no_issues`) or is blocked
-      # mutates nothing and records no audit event (the "only audit an actual
-      # change" rule).
+      # mutates nothing and records no operator-trail audit event (the "only audit
+      # an actual change" rule).
       #
       # ## Behavioural parity note (latent CLI bug fixed)
       #
@@ -45,6 +47,7 @@ module Onetime
       # intended, correct behaviour. See wiringInstructions / blockers.
       class Repair
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         # Audit verb recorded for every applied repair.
         AUDIT_VERB = 'domain.repair'
@@ -121,7 +124,15 @@ module Onetime
 
           return blocked if blocked
           return result_for(:no_issues, issues, []) if issues.empty?
-          return result_for(:planned, issues, []) if @dry_run
+
+          # A preview repairs nothing, so nothing reaches the OPERATOR trail —
+          # but it enumerates a customer domain's defects, and `dry_run`
+          # defaults to TRUE here, so this is the path an operator takes first.
+          # Recorded as an OBSERVATION (#4337).
+          if @dry_run
+            record_preview_event(issues)
+            return result_for(:planned, issues, [])
+          end
 
           # Apply every repair, collecting the human-readable result of each.
           repairs_applied = repairs.map(&:call)
@@ -142,6 +153,22 @@ module Onetime
         end
 
         private
+
+        # The #4337 envelope's target hook: the domain's public id, same as the
+        # applied event's. `audit_verb` defaults to AUDIT_VERB, `audit_actor`
+        # to @actor.
+        def audit_target = @domain.extid
+
+        # One OBSERVATION per preview (#4337), on the budgeted access trail.
+        # Same verb, target and `issues` detail as the applied event, so a
+        # preview and the repair that followed read as one sequence;
+        # `result: 'preview'` is what tells them apart.
+        def record_preview_event(issues)
+          record_preview_observation(
+            issues: issues,
+            org_id: @domain.org_id.to_s,
+          )
+        end
 
         # Compute [issues<Array<String>>, repairs<Array<#call>>, blocked<Result|nil>].
         # A repair is a lambda returning its human-readable result string when applied.

@@ -9,6 +9,7 @@
 # Structure:
 #   auth_strategies/
 #     helpers.rb                      - Shared helper methods
+#     admin_session_lifetime.rb       - Admin-surface idle/absolute bounds (#4331)
 #     no_auth_strategy.rb             - Public access (auth=noauth)
 #     base_session_auth_strategy.rb   - Abstract base for session auth
 #     session_auth_strategy.rb        - Authenticated sessions (auth=sessionauth)
@@ -23,6 +24,7 @@
 
 require_relative 'organization_loader'
 require_relative 'auth_strategies/helpers'
+require_relative 'auth_strategies/admin_session_lifetime'
 require_relative 'auth_strategies/no_auth_strategy'
 require_relative 'auth_strategies/base_session_auth_strategy'
 require_relative 'auth_strategies/session_auth_strategy'

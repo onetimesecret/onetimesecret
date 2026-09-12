@@ -30,11 +30,16 @@ export interface RoundTripHarness<TCanonical, TV2Wire, TV3Wire> {
   /** Converts canonical to V3 wire format */
   toV3Wire: (canonical: TCanonical) => TV3Wire;
 
-  /** V2 Zod schema for parsing V2 wire data */
-  v2Schema: z.ZodType<TCanonical, z.ZodTypeDef, TV2Wire>;
+  /**
+   * V2 Zod schema for parsing V2 wire data.
+   *
+   * Zod v4 dropped the middle `Def` type parameter that v3's `ZodType` used —
+   * the generic signature is now `ZodType<Output, Input>`.
+   */
+  v2Schema: z.ZodType<TCanonical, TV2Wire>;
 
   /** V3 Zod schema for parsing V3 wire data */
-  v3Schema: z.ZodType<TCanonical, z.ZodTypeDef, TV3Wire>;
+  v3Schema: z.ZodType<TCanonical, TV3Wire>;
 
   /**
    * Compares two canonical objects for equality.

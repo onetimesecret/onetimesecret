@@ -12,11 +12,17 @@
 // would obscure the mock-to-test-pairing for no structural benefit, so the
 // file-level max-classes-per-file rule is disabled here.
 /* eslint-disable max-classes-per-file */
+//
+// Every `ErrorEvent` fixture below carries `type: undefined` even though
+// nothing reads it: @sentry/core types `ErrorEvent` as `Event & { type:
+// undefined }` (required, not optional) so it can be structurally
+// discriminated from `TransactionEvent` (`type: 'transaction'`). Omitting the
+// key fails the type check with "Property 'type' is missing".
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ErrorEvent, TransactionEvent } from '@sentry/core';
-import type { Router, RouteLocationNormalizedLoaded } from 'vue-router';
 import type { RouteMeta } from '@/types/router';
+import type { ErrorEvent, TransactionEvent } from '@sentry/core';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { RouteLocationNormalizedLoaded, Router } from 'vue-router';
 
 // ---------------------------------------------------------------------------
 // Mocks - must use vi.hoisted() for variables used in vi.mock factories
@@ -107,6 +113,9 @@ import { createDiagnostics } from '@/plugins/core/enableDiagnostics';
 const baseConfig = {
   sentry: {
     dsn: 'https://key@sentry.io/123',
+    enabled: true,
+    logErrors: true,
+    trackComponents: true,
     environment: 'test',
     release: '1.0.0',
   },
@@ -157,17 +166,20 @@ function getBeforeSend(): (event: ErrorEvent) => ErrorEvent | null {
  * Sets up createDiagnostics with a specific router configuration.
  * Must be called in each test that needs a specific route setup.
  */
-function setupWithRouter(routerConfig: {
-  params: Record<string, string | string[]>;
-  meta: Partial<RouteMeta>;
-  resolve?: (path: string) => unknown;
-  path?: string;
-}): void {
+function setupWithRouter(
+  routerConfig: {
+    params: Record<string, string | string[]>;
+    meta: Partial<RouteMeta>;
+    resolve?: (path: string) => unknown;
+    path?: string;
+  },
+  config = baseConfig
+): void {
   resetCapturedOptions();
   const mockRouter = createMockRouter(routerConfig);
   createDiagnostics({
     host: TEST_HOST,
-    config: baseConfig,
+    config,
     router: mockRouter,
   });
 }
@@ -196,6 +208,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: [{ value: 'Failed for user@example.com' }],
         },
@@ -212,6 +225,7 @@ describe('beforeSend handler', () => {
 
       const handler = getBeforeSend();
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: [{ value: `Error processing ${id62}` }],
         },
@@ -227,6 +241,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: [{ value: 'Not found: /secret/abc123' }],
         },
@@ -242,11 +257,9 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
-          values: [
-            { value: 'Error for user@example.com' },
-            { value: 'At path /private/xyz789' },
-          ],
+          values: [{ value: 'Error for user@example.com' }, { value: 'At path /private/xyz789' }],
         },
       };
 
@@ -263,12 +276,142 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         message: 'User user@example.com logged out',
       };
 
       const result = handler(event) as ErrorEvent;
 
       expect(result.message).toBe('User [EMAIL_REDACTED] logged out');
+    });
+  });
+
+  describe('stack frame scrubbing', () => {
+    // Code injected at document scope (webviews, extensions, Firefox iOS
+    // reader mode) gets frames attributed to the PAGE URL — on a secret link
+    // that is the secret path itself. Observed live in FRONTEND-155/154/184:
+    // request.url arrived redacted while frame filenames carried the raw key.
+    const id62 = 'abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz';
+
+    it('scrubs secret paths from frame filename and abs_path', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
+        exception: {
+          values: [
+            {
+              value: 'boom',
+              stacktrace: {
+                frames: [
+                  {
+                    filename: `/secret/${id62}`,
+                    abs_path: `https://eu.onetimesecret.com/secret/${id62}`,
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      const frame = result.exception?.values?.[0].stacktrace?.frames?.[0];
+      expect(frame?.filename).toBe('/secret/[REDACTED]');
+      expect(frame?.abs_path).toBe('https://eu.onetimesecret.com/secret/[REDACTED]');
+    });
+
+    it('scrubs frames in every exception of a chained error', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
+        exception: {
+          values: [
+            {
+              value: 'outer error',
+              stacktrace: { frames: [{ filename: '/dist/assets/main.js' }] },
+            },
+            {
+              value: 'root cause',
+              stacktrace: {
+                frames: [{ filename: `/secret/${id62}`, abs_path: `/secret/${id62}` }],
+              },
+            },
+          ],
+        },
+      };
+
+      const result = handler(event) as ErrorEvent;
+      const frame = result.exception?.values?.[1].stacktrace?.frames?.[0];
+
+      expect(frame?.filename).toBe('/secret/[REDACTED]');
+      expect(frame?.abs_path).toBe('/secret/[REDACTED]');
+    });
+
+    it('leaves first-party bundle frames untouched (sourcemap resolution)', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const bundleUrl = 'https://eu.onetimesecret.com/dist/assets/main.BbCc7LVY.js';
+      const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
+        exception: {
+          values: [
+            {
+              value: 'boom',
+              stacktrace: {
+                frames: [{ filename: '/dist/assets/main.BbCc7LVY.js', abs_path: bundleUrl }],
+              },
+            },
+          ],
+        },
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      const frame = result.exception?.values?.[0].stacktrace?.frames?.[0];
+      expect(frame?.filename).toBe('/dist/assets/main.BbCc7LVY.js');
+      expect(frame?.abs_path).toBe(bundleUrl);
+    });
+
+    it('tolerates exceptions without stacktraces', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
+        exception: { values: [{ value: 'no stack' }] },
+      };
+
+      expect(() => handler(event)).not.toThrow();
+    });
+  });
+
+  describe('third-party noise filter wiring (#4287)', () => {
+    it('keeps ignoreErrors, denyUrls and allowUrls authoritative over backend config', () => {
+      const configWithFilterFields = {
+        ...baseConfig,
+        sentry: {
+          ...baseConfig.sentry,
+          ignoreErrors: ['backend filter'],
+          denyUrls: [/backend-filter/],
+          allowUrls: [/backend-filter/],
+        },
+      };
+
+      setupWithRouter({ params: {}, meta: {} }, configWithFilterFields);
+      const options = getCapturedClientOptions();
+
+      expect(options?.ignoreErrors).toEqual(
+        expect.arrayContaining(['Java object is gone', 'zaloJSV2'])
+      );
+      expect(options?.ignoreErrors).not.toContain('backend filter');
+      expect(options?.denyUrls).not.toEqual([/backend-filter/]);
+      expect(options?.allowUrls).not.toEqual([/backend-filter/]);
     });
   });
 
@@ -281,6 +424,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         request: {
           url: 'https://example.com/secret/abc123/view',
         },
@@ -299,6 +443,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         transaction: 'https://example.com/private/xyz789',
       };
 
@@ -315,6 +460,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         breadcrumbs: [
           {
             category: 'navigation',
@@ -346,6 +492,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         request: {
           url: 'https://example.com/colonel/admin123',
         },
@@ -365,6 +512,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: [{ value: 'Error for user@example.com' }],
         },
@@ -389,6 +537,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         request: {
           url: 'https://example.com/user/john/token/secret123',
         },
@@ -407,6 +556,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         request: {
           url: 'https://example.com/about',
         },
@@ -428,6 +578,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         request: { url: 'https://example.com/check-email?email=user@example.com' },
       };
 
@@ -441,6 +592,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         request: { url: 'https://example.com/pricing?email=user@example.com' },
         transaction: '/pricing?email=user@example.com',
       };
@@ -456,6 +608,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         request: { url: 'https://example.com/check-email?product=identity&interval=month' },
       };
 
@@ -476,6 +629,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         request: {
           headers: { Referer: 'https://example.com/secret/abc123def456' },
         },
@@ -491,6 +645,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         request: {
           headers: { referer: 'https://example.com/reveal?token=abc123' },
         },
@@ -509,6 +664,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         request: {
           headers: { Referer: 'https://example.com/page/abc123' },
         },
@@ -527,6 +683,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent & { secret?: string } = {
+        type: undefined, // see file-header note on ErrorEvent.type
         secret: 'should-be-removed',
         message: 'Test event',
       };
@@ -546,6 +703,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: undefined,
         },
@@ -564,6 +722,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: [{ type: 'Error' }],
         },
@@ -582,6 +741,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
+        type: undefined, // see file-header note on ErrorEvent.type
         breadcrumbs: [
           {
             category: 'console',

@@ -7,6 +7,7 @@
   import DomainProbeResult from '@/apps/admin/components/domains/DomainProbeResult.vue';
   import DomainStateBadge from '@/apps/admin/components/domains/DomainStateBadge.vue';
   import { AdminConfirmDialog, StatCard } from '@/apps/admin/components/kit';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
@@ -277,6 +278,16 @@
    */
   const removeApplicable = computed(() => removePlan.value?.status === 'planned');
 
+  /**
+   * The identifier the server gates every applying domain verb on (#4326): the
+   * domain's HOSTNAME, not the extid the URL already carries. The record is
+   * loaded before any apply button exists, so the fallback is only reachable if
+   * the read failed — in which case the call 403s and says what to send.
+   */
+  function applyConfirmToken(): string {
+    return record.value?.display_domain ?? publicId.value;
+  }
+
   // ---- The single guarded-action dialog --------------------------------------
 
   type ActionKey = 'verify' | 'repair' | 'transfer' | 'remove';
@@ -291,7 +302,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
-  } = useAdminMutation(async () => {
+  } = useAdminDestructiveMutation(async (reason?: string) => {
     switch (activeAction.value) {
       case 'verify':
         verifyResult.value = await store.verify(publicId.value);
@@ -300,6 +311,7 @@
         await store.repair(publicId.value, {
           orgId: repairOrgId.value.trim() || undefined,
           dryRun: false,
+          confirm: applyConfirmToken(),
         });
         return;
       case 'transfer':
@@ -307,6 +319,7 @@
           toOrg: transferToOrg.value.trim(),
           fromOrg: transferFromOrg.value.trim() || undefined,
           dryRun: false,
+          confirm: applyConfirmToken(),
         });
         return;
       case 'remove': {
@@ -317,7 +330,12 @@
         // drift) means the server only PREVIEWED — reporting success would
         // toast "removed", drop the cached row and navigate away while the
         // domain still exists.
-        const removeAck = await store.remove(publicId.value, false);
+        const removeAck = await store.remove(
+          publicId.value,
+          false,
+          applyConfirmToken(),
+          reason
+        );
         if (!removeAck || removeAck.dry_run !== false) {
           throw new Error(t('web.admin.domains.actions.remove.notApplied'));
         }
@@ -352,6 +370,7 @@
         confirmToken: undefined as string | undefined,
         variant: 'default' as const,
         confirmText: undefined as string | undefined,
+        requestReason: false,
       };
     }
 
@@ -369,6 +388,9 @@
       confirmToken: isDanger ? publicId.value : undefined,
       variant: isDanger ? ('danger' as const) : ('default' as const),
       confirmText: t(`${root}.button`),
+      // Only REMOVE destroys (#4338). Repair and transfer rewrite ownership
+      // state and are recoverable; verify writes nothing.
+      requestReason: action === 'remove',
     };
   });
 
@@ -395,11 +417,11 @@
     );
   }
 
-  async function onConfirm(): Promise<void> {
+  async function onConfirm(reason?: string): Promise<void> {
     const action = activeAction.value;
     if (!action) return;
 
-    const ok = await runMutation();
+    const ok = await runMutation(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
     dialogOpen.value = false;
@@ -461,7 +483,7 @@
       return;
     }
 
-    await store.override(publicId.value, options);
+    await store.override(publicId.value, { ...options, confirm: applyConfirmToken() });
   });
 
   function openOverride(): void {
@@ -1134,6 +1156,7 @@
       :confirm-token="dialogConfig.confirmToken"
       :variant="dialogConfig.variant"
       :confirm-text="dialogConfig.confirmText"
+      :request-reason="dialogConfig.requestReason"
       :loading="mutationLoading"
       :error="mutationError"
       @confirm="onConfirm"

@@ -70,28 +70,31 @@ track(@cust, @sid_new, @extid, @ts + 100)
 
 # ---- list newest-first via safe_dump ----------------------------------
 
-## resolves by extid and returns both sessions, newest (highest score) first
+## resolves by extid and returns both sessions, newest (highest score) first.
+## Rows are identified by session_handle (non-bearer digest), not the raw sid (F-01).
 @res = LFC.new(custid: @extid).call
-[@res.count, @res.sessions.map { |s| s[:session_id] }]
-#=> [2, ["#{@sid_new}", "#{@sid_old}"]]
+[@res.count, @res.sessions.map { |s| s[:session_handle] }]
+#=> [2, [SM.handle_for(@sid_new), SM.handle_for(@sid_old)]]
 
-## each row is the safe_dump allow-list shape (metadata only, no blob fields)
+## each row is the safe_dump allow-list shape (metadata only, no blob fields) and
+## carries NO raw session_id — only its non-reversible session_handle (F-01)
 @row = @res.sessions.first
-[@row[:user_id], @row.key?(:email), @row.key?(:token)]
-#=> ["#{@extid}", false, false]
+[@row[:user_id], @row.key?(:session_id), @row.key?(:session_handle), @row.key?(:email), @row.key?(:token)]
+#=> ["#{@extid}", false, true, false, false]
 
 ## geo_country is never Otto's '**' sentinel: a legacy sidecar that stored it
 ## verbatim emits nil through safe_dump (the SessionMetadata reader is the
 ## normalization chokepoint), while a real code passes through untouched
 DB.hset(SM.dbkey(@sid_new), 'geo_country', '"**"')
 DB.hset(SM.dbkey(@sid_old), 'geo_country', '"NZ"')
-@geo_rows = LFC.new(custid: @extid).call.sessions.to_h { |s| [s[:session_id], s[:geo_country]] }
-[@geo_rows[@sid_new], @geo_rows[@sid_old]]
+@geo_rows = LFC.new(custid: @extid).call.sessions.to_h { |s| [s[:session_handle], s[:geo_country]] }
+[@geo_rows[SM.handle_for(@sid_new)], @geo_rows[SM.handle_for(@sid_old)]]
 #=> [nil, "NZ"]
 
-## internal join keys accompany safe rows without a second sidecar read
-@res.entries.to_h { |e| [e.session[:session_id], e.active_session_id_hmac] }
-#=> {"#{@sid_new}" => "hmac_#{@sid_new}", "#{@sid_old}" => "hmac_#{@sid_old}"}
+## internal join keys accompany safe rows without a second sidecar read (the
+## public row is keyed by its handle; the hmac stays an internal join value)
+@res.entries.to_h { |e| [e.session[:session_handle], e.active_session_id_hmac] }
+#=> {SM.handle_for(@sid_new) => "hmac_#{@sid_new}", SM.handle_for(@sid_old) => "hmac_#{@sid_old}"}
 
 ## safe_dump is the public boundary: the row carries NO internal join key
 @entry = @res.entries.first
@@ -128,8 +131,8 @@ ensure
   SM.singleton_class.alias_method(:load_multi, :__lfc_real_load_multi)
   SM.singleton_class.remove_method(:__lfc_real_load_multi)
 end
-@batch_fallback.sessions.map { |s| s[:session_id] }
-#=> ["#{@sid_new}", "#{@sid_old}"]
+@batch_fallback.sessions.map { |s| s[:session_handle] }
+#=> [SM.handle_for(@sid_new), SM.handle_for(@sid_old)]
 
 ## an unreadable sidecar (batch fails, then that row's fallback load fails too)
 ## skips only that row and leaves its index member intact
@@ -154,8 +157,8 @@ ensure
   SM.singleton_class.alias_method(:load, :__list_for_customer_real_load)
   SM.singleton_class.remove_method(:__list_for_customer_real_load)
 end
-[@degraded.count, @degraded.sessions.map { |s| s[:session_id] }, @cust.active_sessions.member?(@sid_old)]
-#=> [1, ["#{@sid_new}"], true]
+[@degraded.count, @degraded.sessions.map { |s| s[:session_handle] }, @cust.active_sessions.member?(@sid_old)]
+#=> [1, [SM.handle_for(@sid_new)], true]
 
 # ---- self-heal: stale index member is pruned (sidecar gone) -----------
 
@@ -164,8 +167,8 @@ SM.load(@sid_old)&.destroy!            # drop the sidecar, leave the index membe
 @before = @cust.active_sessions.member?(@sid_old)
 @res2   = LFC.new(custid: @extid).call
 @after  = @cust.active_sessions.member?(@sid_old)
-[@before, @res2.count, @res2.sessions.map { |s| s[:session_id] }, @after]
-#=> [true, 1, ["#{@sid_new}"], false]
+[@before, @res2.count, @res2.sessions.map { |s| s[:session_handle] }, @after]
+#=> [true, 1, [SM.handle_for(@sid_new)], false]
 
 ## a transient self-heal write failure skips its stale row without hiding readable sessions
 @write_failure_sid = "trylist_write_failure_#{@nonce}"
@@ -185,8 +188,8 @@ ensure
   @active_sessions_class.alias_method(:remove, :__list_for_customer_real_remove)
   @active_sessions_class.remove_method(:__list_for_customer_real_remove)
 end
-[@write_failure_result.count, @write_failure_result.sessions.map { |s| s[:session_id] }, @cust.active_sessions.member?(@write_failure_sid)]
-#=> [1, ["#{@sid_new}"], true]
+[@write_failure_result.count, @write_failure_result.sessions.map { |s| s[:session_handle] }, @cust.active_sessions.member?(@write_failure_sid)]
+#=> [1, [SM.handle_for(@sid_new)], true]
 
 # ---- blob-liveness reconcile: dead session pruned (blob gone) ----------
 

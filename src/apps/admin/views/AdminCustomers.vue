@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminCustomers.vue -->
 
 <script setup lang="ts">
-
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import {
     AdminConfirmDialog,
@@ -12,14 +11,15 @@
     StatCard,
   } from '@/apps/admin/components/kit';
   import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
-  import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useAdminCustomers } from '@/apps/admin/stores/useAdminCustomers';
+  import { accountConfirmToken } from '@/apps/admin/utils/confirmHeader';
   import type { ColonelUser } from '@/schemas/api/internal/responses/colonel';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { storeToRefs } from 'pinia';
-  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   /**
@@ -29,10 +29,13 @@
    * Pure consumer of the Slice-1 kit + `useAdminCustomers` store (CONTRACT 1):
    * DataTable + FilterBar + KitPagination over `usePaginatedFetch`. One server
    * page per request — never load-all-then-slice. Two server-side filters:
-   * `role` and a debounced `search` (the list endpoint resolves it via a
-   * bounded scan of the email index PLUS exact extid/objid lookups — wired
-   * exactly like the sessions screen's search, so a support agent can paste an
-   * address or an id). Columns are non-sortable on purpose: the endpoint returns a
+   * `role` and `search` (the list endpoint resolves it via a bounded scan of
+   * the email index PLUS exact extid/objid lookups — wired exactly like the
+   * sessions screen's search, so a support agent can paste an address or an
+   * id). `search` runs ONLY on explicit submit (Enter or the search button),
+   * never on keystrokes, and never while a request is already in flight: each
+   * search is a real index scan, and a per-keystroke burst of them is what
+   * used to pin the production workers. Columns are non-sortable on purpose: the endpoint returns a
    * FIXED most-recently-modified ordering (epic #20 CONTRACT 6), so there is no
    * server `sort` param to drive a controlled re-fetch.
    *
@@ -40,11 +43,18 @@
    * follow-up): manual VERIFY/UNVERIFY (simple confirm — reversible) and PURGE
    * (danger, typed-confirmation on the account's email). Both run through the
    * store + `useAdminMutation` + notifications idiom; audit is server-side.
+   *
+   * An address search can also come back with `orphaned_accounts`: auth-database
+   * rows (full auth mode) that match the address exactly but map to NO customer
+   * record, so the table has nothing to show for a person who can nonetheless
+   * sign in. Those are surfaced in a notice above the table, each linked to the
+   * account diagnostics for that address, so "no customers match" never reads
+   * as "this person does not exist".
    */
   const { t } = useI18n();
 
   const store = useAdminCustomers();
-  const { customers, pagination, loading, error } = storeToRefs(store);
+  const { customers, pagination, orphanedAccounts, loading, error } = storeToRefs(store);
   const notifications = useNotificationsStore();
 
   /** Assignable roles, mirrored from the backend SetRole::VALID_ROLES. */
@@ -93,27 +103,13 @@
     }
   }
 
-  // Debounce search input so we issue one request per pause, not per keystroke
-  // (same 300 ms wiring as AdminSessions).
-  let searchTimer: ReturnType<typeof setTimeout> | null = null;
-  watch(searchTerm, (value) => {
-    if (searchTimer) clearTimeout(searchTimer);
-    // Skip no-op changes (e.g. the programmatic reset in onClear(), which
-    // already issues its own fetch) so clearing doesn't double-fetch.
-    if (value.trim() === activeSearch.value) return;
-    searchTimer = setTimeout(() => {
-      activeSearch.value = value.trim();
-      fetchPage(1);
-    }, 300);
-  });
-  onBeforeUnmount(() => {
-    if (searchTimer) clearTimeout(searchTimer);
-  });
-
-  /** Submit search on explicit user action (Enter key or search button). */
+  /**
+   * Submit search on explicit user action ONLY (Enter key or search button).
+   * Typing never fetches: there is no watcher on `searchTerm`. One request at
+   * a time — a submit while a page is loading is dropped, not queued.
+   */
   function onSearchSubmit(): void {
-    // Cancel the pending debounce so it doesn't re-fire for the same term.
-    if (searchTimer) clearTimeout(searchTimer);
+    if (loading.value) return; // In-flight guard
     const trimmed = searchTerm.value.trim();
     if (trimmed === activeSearch.value) return; // No-op guard
     activeSearch.value = trimmed;
@@ -128,9 +124,7 @@
   }
 
   function onClear(): void {
-    // Cancel any in-flight debounce so the reset below doesn't fire a second,
-    // late request on top of this one.
-    if (searchTimer) clearTimeout(searchTimer);
+    // Reset every filter, then re-read page 1 once.
     roleFilter.value = '';
     searchTerm.value = '';
     activeSearch.value = '';
@@ -228,6 +222,16 @@
     return email ? email : null;
   }
 
+  /**
+   * The identifier the SERVER gates a row-scoped verb on (#4326): the email,
+   * its public id when the account has none. `purgeTokenFor` stays stricter —
+   * an emailless account has no purge confirmation an operator can meaningfully
+   * check against a ticket, so purge stays unavailable there.
+   */
+  function confirmTokenFor(row: ColonelUser): string | undefined {
+    return accountConfirmToken({ email: row.email, extid: row.extid });
+  }
+
   /** True when the drawer's row has no token to confirm a purge against. */
   const purgeBlocked = computed(() => purgeTokenFor(selectedCustomer.value) === null);
 
@@ -244,21 +248,30 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
-  } = useAdminMutation(async () => {
+  } = useAdminDestructiveMutation(async (reason?: string) => {
     const target = actionTarget.value;
     const action = activeAction.value;
     if (!target || !action) throw new Error('No customer selected');
 
     if (action === 'purge') {
       // Last line of the fail-closed gate: no token, no DELETE — even if the
-      // dialog were somehow reached with a blank one.
-      if (!purgeTokenFor(target)) throw new Error(purgeBlockedReason.value);
-      await store.purge(target.user_id);
+      // dialog were somehow reached with a blank one. The same token the
+      // operator retyped is what rides in X-OTS-Confirm (#4326); the reason
+      // they typed beside it (#4338) rides the query string.
+      const token = purgeTokenFor(target);
+      if (!token) throw new Error(purgeBlockedReason.value);
+      await store.purge(target.user_id, token, reason);
       return;
     }
     // The store patches the row in place on a 2xx; re-point the drawer at the
-    // new object so the verification state flips with no page reload.
-    const updated = await store.setVerification(target.user_id, action === 'verify');
+    // new object so the verification state flips with no page reload. Unverify
+    // is gated server-side and carries the same account identifier; verify is
+    // the restorative arm and carries nothing.
+    const updated = await store.setVerification(
+      target.user_id,
+      action === 'verify',
+      confirmTokenFor(target)
+    );
     if (!updated) return;
     actionTarget.value = updated;
     if (selectedCustomer.value?.user_id === updated.user_id) {
@@ -282,6 +295,7 @@
         confirmToken: undefined,
         variant: 'default' as const,
         confirmText: undefined,
+        requestReason: false,
       };
     }
     return {
@@ -291,9 +305,14 @@
       // A blank email yields null here, but `requestAction` refuses to open the
       // dialog in that state, so this can never become a one-click confirm.
       // Verify/unverify are reversible, so they degrade to a one-click confirm.
-      confirmToken: action === 'purge' ? (purgeTokenFor(actionTarget.value) ?? undefined) : undefined,
+      confirmToken:
+        action === 'purge' ? (purgeTokenFor(actionTarget.value) ?? undefined) : undefined,
       variant: action === 'purge' ? ('danger' as const) : ('default' as const),
       confirmText: t(`web.admin.customers.actions.${action}.button`),
+      // Only PURGE asks for a why (#4338): it is the destructive verb here, and
+      // the account it names will not exist to be inspected afterwards.
+      // Verify/unverify are reversible bookkeeping and stay one-click.
+      requestReason: action === 'purge',
     };
   });
 
@@ -339,11 +358,11 @@
     }
   }
 
-  async function onConfirm(): Promise<void> {
+  async function onConfirm(reason?: string): Promise<void> {
     const action = activeAction.value;
     if (!action) return;
 
-    const ok = await runMutation();
+    const ok = await runMutation(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
     dialogOpen.value = false;
@@ -413,10 +432,70 @@
         :filters="filters"
         :search-placeholder="t('web.admin.customers.list.searchPlaceholder')"
         :has-active-filters="hasActiveFilters"
+        :busy="loading"
         testid="customers-filterbar"
         @filter-change="onFilterChange"
         @clear="onClear"
         @submit="onSearchSubmit" />
+    </div>
+
+    <!-- The server's index scan is bounded: when it caps (search hit its
+         match/round limits, or the role filter exceeded its scan window),
+         total_count is a FLOOR. Say so rather than letting the count and
+         pager read as the population (mirrors StripeOrganizationsSection). -->
+    <div
+      v-if="pagination?.capped"
+      class="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200"
+      role="status"
+      data-testid="customers-capped-caveat">
+      {{ t('web.admin.customers.list.capped') }}
+    </div>
+
+    <!-- Orphaned auth-database accounts for the searched address (full auth
+         mode): the person exists and can sign in, but no customer record maps
+         to their accounts row, so the table below is blind to them. Each entry
+         links to the account diagnostics for that address: the detail route
+         resolves its :id as extid OR email, and the diagnostics endpoint is the
+         one read-out that answers for an orphan. The address is shown in full
+         on purpose: the operator typed this exact string into the search box,
+         so obscuring it here would hide nothing that is not already on screen. -->
+    <div
+      v-if="orphanedAccounts.length > 0"
+      class="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200"
+      role="status"
+      data-testid="customers-orphaned-accounts">
+      <p class="font-medium">{{ t('web.admin.customers.list.orphanedAccounts.title') }}</p>
+      <p class="mt-1 text-xs">{{ t('web.admin.customers.list.orphanedAccounts.hint') }}</p>
+      <ul class="mt-2 space-y-1">
+        <li
+          v-for="account in orphanedAccounts"
+          :key="account.account_id"
+          class="flex flex-wrap items-center gap-x-3 gap-y-1"
+          data-testid="customers-orphaned-account">
+          <router-link
+            :to="{ name: 'AdminCustomerDetail', params: { id: account.email } }"
+            :title="t('web.admin.customers.list.orphanedAccounts.diagnose')"
+            class="font-medium underline decoration-amber-400 underline-offset-2 hover:decoration-amber-700 focus:ring-2 focus:ring-amber-500 focus:outline-none dark:decoration-amber-600 dark:hover:decoration-amber-300"
+            data-testid="customers-orphaned-account-link">
+            {{ account.email }}
+          </router-link>
+          <span
+            class="inline-flex rounded bg-amber-100 px-2 py-0.5 font-brand text-[11px] font-semibold tracking-wide uppercase dark:bg-amber-900/40"
+            data-testid="customers-orphaned-account-status">
+            {{
+              t(
+                `web.admin.customers.list.orphanedAccounts.status.${account.status}`,
+                account.status
+              )
+            }}
+          </span>
+          <span class="font-mono text-xs tabular-nums">
+            {{
+              t('web.admin.customers.list.orphanedAccounts.accountId', { id: account.account_id })
+            }}
+          </span>
+        </li>
+      </ul>
     </div>
 
     <!-- Table -->
@@ -478,7 +557,9 @@
           <span
             v-else
             class="text-gray-400 dark:text-gray-600"
-            :aria-label="t('web.admin.customers.detail.no')">—</span>
+            :aria-label="t('web.admin.customers.detail.no')"
+            >—</span
+          >
         </template>
 
         <template #cell-plan="{ row }">
@@ -497,7 +578,9 @@
 
         <template #cell-lastLogin="{ row }">
           <span class="text-gray-500 tabular-nums dark:text-gray-400">{{
-            row.last_login ? formatDisplayDateTime(row.last_login) : t('web.admin.customers.detail.never')
+            row.last_login
+              ? formatDisplayDateTime(row.last_login)
+              : t('web.admin.customers.detail.never')
           }}</span>
         </template>
 
@@ -580,7 +663,9 @@
           <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <StatCard
               :label="t('web.admin.customers.columns.role')"
-              :value="t(`web.admin.customers.roles.${selectedCustomer.role}`, selectedCustomer.role)"
+              :value="
+                t(`web.admin.customers.roles.${selectedCustomer.role}`, selectedCustomer.role)
+              "
               icon="shield-check"
               testid="customer-stat-role" />
             <StatCard
@@ -639,6 +724,21 @@
               name="arrow-top-right-on-square"
               size="4" />
           </router-link>
+          <!-- Outbound hand-over to the matching Rodauth account; the server
+               sends null unless full auth mode + RODAUTH_ADMIN_URL are set. -->
+          <a
+            v-if="selectedCustomer.rodauth_admin_account_url"
+            :href="selectedCustomer.rodauth_admin_account_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="ml-3 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
+            data-testid="customer-rodauth-admin-link">
+            {{ t('web.admin.customers.detail.rodauthAdmin.open') }}
+            <OIcon
+              collection="heroicons"
+              name="arrow-top-right-on-square"
+              size="3" />
+          </a>
         </section>
       </div>
 
@@ -708,6 +808,7 @@
       :confirm-token="dialogConfig.confirmToken"
       :variant="dialogConfig.variant"
       :confirm-text="dialogConfig.confirmText"
+      :request-reason="dialogConfig.requestReason"
       :loading="mutationLoading"
       :error="mutationError"
       @confirm="onConfirm"

@@ -409,7 +409,7 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
   end
 
   # NOTE: The historical "#process" describe block tested an obsolete contract
-  # where this logic class directly invoked Auth::Operations::CreateCustomer /
+  # where this logic class directly invoked Auth::Operations::EnsureCustomerForAccount /
   # CreateDefaultWorkspace / AcceptInvitation. The current source (#3221)
   # delegates Customer/workspace creation to Rodauth's after_create_account
   # hook (apps/web/auth/config/hooks/account.rb) and reserves invitation
@@ -516,6 +516,21 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
       # invitation stays pending. We model that here.
       allow(Auth::Config).to receive(:create_account).and_return(nil)
 
+      # setup_session now establishes a real Rodauth login-session via
+      # internal_request_eval (#4391) so the active_session_id_hmac join key is
+      # stamped and the account_active_session_keys row is inserted. That path
+      # needs the authdb and a booted auth app, neither of which this unit spec
+      # has, so stub the seam and return a representative Rodauth session hash.
+      # Keys mirror the real thing: session_key ('account_id') is a string, the
+      # active_sessions/base defaults are symbols (no Roda sessions plugin on the
+      # auth router). setup_session stringifies them on merge.
+      allow(Auth::Config).to receive(:internal_request_eval).and_return(
+        'account_id' => 123,
+        :active_session_id => 'raw-active-session-id',
+        'active_session_id_hmac' => 'stamped-join-key',
+        :authenticated_by => ['password']
+      )
+
       allow(Auth::Database).to receive(:connection).and_return(double(:[] => accounts_ds))
 
       allow(Onetime::Customer).to receive(:find_by_extid)
@@ -573,10 +588,80 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
         expect(session['account_id']).to eq(123)
       end
 
+      # #4391 — the auto-login session must carry the active_session_id_hmac
+      # join key (stringified) so Onetime::ActiveSessionGate can join it to the
+      # account_active_session_keys row instead of exempting it forever. The
+      # symbol-keyed Rodauth defaults are stringified so the persisted (JSON)
+      # blob matches a browser login's.
+      it 'stamps the active-session join key through a real Rodauth login-session' do
+        logic.process
+        expect(Auth::Config).to have_received(:internal_request_eval).with(account_id: 123)
+        expect(session['active_session_id_hmac']).to eq('stamped-join-key')
+        expect(session['active_session_id']).to eq('raw-active-session-id')
+        expect(session['authenticated_by']).to eq(['password'])
+      end
+
       it 'logs the pending-accept signup event on the auth logger' do
         expect(auth_logger_double).to receive(:info).with(
           'User signed up; invitation pending explicit accept',
           hash_including(event: 'invite.signup_pending_accept', result: :success)
+        )
+        logic.process
+      end
+    end
+
+    # P1 STRAND FIX. establish_active_session runs AFTER create_rodauth_account
+    # has committed the account + customer, and the invitation is deliberately
+    # left pending. If that step raises and the error propagates, signup fails
+    # post-commit: on retry the email exists in authdb + Redis, so raise_concerns
+    # short-circuits to raise_signup_unavailable and the invitee is permanently
+    # stranded. The fix contains the failure in setup_session: log loudly and
+    # degrade to a gate-exempt session so the account is NOT stranded and POST
+    # /accept can still proceed against the session this endpoint established.
+    context 'when establish_active_session fails after the account is committed (P1 strand fix)' do
+      before do
+        allow(Auth::Config).to receive(:internal_request_eval)
+          .and_raise(StandardError.new('authdb connection reset'))
+        logic.raise_concerns
+      end
+
+      it 'does not strand the invitee: signup still completes successfully' do
+        result = logic.process
+        expect(result[:record][:auto_login]).to be true
+        expect(result[:record][:invitation_status]).to eq(invitation.status)
+      end
+
+      it 'establishes a working (authenticated) session so POST /accept can proceed' do
+        logic.process
+        expect(session['authenticated']).to be true
+        expect(session['external_id']).to eq('ext-new-123')
+        expect(session['account_id']).to eq(123)
+      end
+
+      it 'degrades to a gate-exempt session with no active-session join key' do
+        logic.process
+        # No join key means ActiveSessionGate#applicable? returns false
+        # (verdict :skipped) rather than refusing the request — the pre-#4391
+        # shape, self-healing on the invitee's next real login.
+        expect(session).not_to have_key('active_session_id_hmac')
+        expect(session).not_to have_key('active_session_id')
+      end
+
+      it 'logs the failure loudly on the auth logger (fail-loud, not swallowed)' do
+        expect(auth_logger_double).to receive(:error).with(
+          /Active-session establishment failed/,
+          hash_including(account_id: 123)
+        )
+        logic.process
+      end
+
+      it 'emits the operator security event (:invite_signup_active_session_FAILED at error level)' do
+        # The structured event is the machine-readable half of the fail-loud
+        # signal (dashboards/alerts key on it, not the freeform log line). Assert
+        # it explicitly so the security signal can't silently regress.
+        expect(Auth::Logging).to receive(:log_auth_event).with(
+          :invite_signup_active_session_FAILED,
+          hash_including(level: :error, account_id: 123, external_id: 'ext-new-123')
         )
         logic.process
       end

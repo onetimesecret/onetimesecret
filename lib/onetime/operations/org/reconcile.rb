@@ -14,6 +14,7 @@
 require 'stripe'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 require_relative '../../../../apps/web/billing/operations/apply_subscription_to_org'
 
 module Onetime
@@ -149,6 +150,7 @@ module Onetime
       # applied paths where it RAISED, which the logs cover.
       class Reconcile
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         # Audit verb recorded for every applied reconcile. BYTE-IDENTICAL to the
         # pre-extraction value — the existing trail and the colonel tryout gate
@@ -235,8 +237,14 @@ module Onetime
           outcome = dispatch(mode)
 
           # A dry run wrote nothing and attempted nothing: no reload, no
-          # snapshot, no audit event.
-          return build(outcome[:status], org_extid, mode, before, nil, outcome[:reason]) if @dry_run
+          # snapshot, no OPERATOR event. It is recorded as an OBSERVATION
+          # (#4337) — a preview enumerates what an apply would rewrite, and
+          # `dry_run` defaults to TRUE here, so this is the path an operator
+          # normally takes first.
+          if @dry_run
+            record_preview_event(org_extid, mode, outcome[:status], before, outcome[:reason])
+            return build(outcome[:status], org_extid, mode, before, nil, outcome[:reason])
+          end
 
           # A Stripe failure also wrote nothing, so there is no after-snapshot —
           # but the operator DID attempt the mutation and Stripe refused it, so
@@ -486,6 +494,30 @@ module Onetime
             result: OK_STATUSES.include?(status) ? :success : :failure,
             detail: detail,
           )
+        end
+
+        # The #4337 envelope's target hook, read the same lazy way the failure
+        # audit above reads it. Identical to the `org_extid` the call path
+        # threads through the emitters — that local is `@org.extid` captured at
+        # entry, and the dry-run branch returns before the post-apply reload.
+        # `record_audit_event` still needs the threaded value (it is not on the
+        # envelope), so both emitters keep parallel signatures and this one
+        # underscores the argument it no longer reads.
+        def audit_target = @org.extid
+
+        # One OBSERVATION per dry run (#4337), on the budgeted access trail —
+        # never the operator trail, which stays a record of things that
+        # actually happened. Same verb and target as the applied event so a
+        # reader can line a preview up against the apply that followed it;
+        # `result: 'preview'` and `dry_run: true` are what tell them apart.
+        #
+        # No after-snapshot: nothing was written, and a projected one would be
+        # a re-derivation that can disagree with an apply (see Result#after).
+        def record_preview_event(_org_extid, mode, status, before, reason = nil)
+          detail          = { mode: mode, status: status.to_s, before: before }
+          detail[:reason] = reason.to_s unless reason.to_s.empty?
+
+          record_preview_observation(detail)
         end
 
         def build(status, org_extid, mode, before, after, reason, memberships: nil)

@@ -273,7 +273,11 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.delete).toHaveBeenCalledWith('/api/colonel/users/ur_alice');
+      // The typed token is also what rides X-OTS-Confirm (#4326), and the URL
+      // stays free of the address.
+      expect(mockApi.delete).toHaveBeenCalledWith('/api/colonel/users/ur_alice', {
+        headers: { 'X-OTS-Confirm': encodeURIComponent(PURGE_TOKEN) },
+      });
       expect(showMock).toHaveBeenCalledWith('web.admin.customers.actions.purge.success', 'success');
       expect(pushMock).toHaveBeenCalledWith({ name: 'AdminCustomers' });
     });
@@ -320,7 +324,12 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/users/ur_alice/verify', {});
+      // Verify is the restorative arm: un-gated, so no confirmation header.
+      expect(mockApi.post).toHaveBeenCalledWith(
+        '/api/colonel/users/ur_alice/verify',
+        {},
+        undefined
+      );
       expect(showMock).toHaveBeenCalledWith(
         'web.admin.customers.actions.verify.success',
         'success'
@@ -330,7 +339,10 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       expect(pushMock).not.toHaveBeenCalled();
     });
 
-    it('shows unverify for a verified customer and calls the unverify endpoint', async () => {
+    // Unverify joined DANGER_ACTIONS with #4326: it STRIPS colonel eligibility
+    // (system roles require a verified email), so it is typed-confirmation
+    // gated here and confirmation-gated on the server.
+    it('gates unverify on the retyped email and sends it in the header', async () => {
       mockApi.get.mockResolvedValue({ data: detailPayload({ verified: true }) });
       mockApi.post.mockResolvedValue({ data: mutationAck() });
       wrapper = mountView();
@@ -338,10 +350,20 @@ describe('AdminCustomerDetail (ticket #22)', () => {
 
       expect(wrapper.find('[data-testid="verify-button"]').exists()).toBe(false);
       await wrapper.find('[data-testid="unverify-button"]').trigger('click');
+      await flushPromises();
+
+      expect(dialogInput(wrapper).exists()).toBe(true);
+      expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
+
+      await dialogInput(wrapper).setValue(PURGE_TOKEN);
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/users/ur_alice/unverify', {});
+      expect(mockApi.post).toHaveBeenCalledWith(
+        '/api/colonel/users/ur_alice/unverify',
+        {},
+        { headers: { 'X-OTS-Confirm': encodeURIComponent(PURGE_TOKEN) } }
+      );
     });
   });
 
@@ -364,7 +386,7 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       await flushPromises();
     });
 
-    it('requires retyping the public id, then POSTs suspend with the reason', async () => {
+    it('requires retyping the account email, then POSTs suspend with the reason', async () => {
       mockApi.post.mockResolvedValue({ data: mutationAck() });
 
       await wrapper.find('[data-testid="suspend-reason"]').setValue('abuse report');
@@ -375,15 +397,22 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       expect(dialogInput(wrapper).exists()).toBe(true);
       expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
 
+      // #4326 moved every danger token to the account email, so the four gated
+      // verbs ask for (and send) one identifier, not two.
       await dialogInput(wrapper).setValue(PUBLIC_ID);
+      expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
+
+      await dialogInput(wrapper).setValue(PURGE_TOKEN);
       expect(dialogSubmit(wrapper).attributes('disabled')).toBeUndefined();
 
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/users/ur_alice/suspend', {
-        reason: 'abuse report',
-      });
+      expect(mockApi.post).toHaveBeenCalledWith(
+        '/api/colonel/users/ur_alice/suspend',
+        { reason: 'abuse report' },
+        { headers: { 'X-OTS-Confirm': encodeURIComponent(PURGE_TOKEN) } }
+      );
       expect(showMock).toHaveBeenCalledWith(
         'web.admin.customers.actions.suspend.success',
         'success'
@@ -396,11 +425,15 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       mockApi.post.mockResolvedValue({ data: mutationAck() });
 
       await wrapper.find('[data-testid="suspend-button"]').trigger('click');
-      await dialogInput(wrapper).setValue(PUBLIC_ID);
+      await dialogInput(wrapper).setValue(PURGE_TOKEN);
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/users/ur_alice/suspend', {});
+      expect(mockApi.post).toHaveBeenCalledWith(
+        '/api/colonel/users/ur_alice/suspend',
+        {},
+        { headers: { 'X-OTS-Confirm': encodeURIComponent(PURGE_TOKEN) } }
+      );
     });
 
     it('does NOT suspend when submitted without a matching token', async () => {
@@ -436,7 +469,12 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/users/ur_alice/unsuspend', {});
+      // Unsuspend is the restorative arm: un-gated, so no confirmation header.
+      expect(mockApi.post).toHaveBeenCalledWith(
+        '/api/colonel/users/ur_alice/unsuspend',
+        {},
+        undefined
+      );
       expect(showMock).toHaveBeenCalledWith(
         'web.admin.customers.actions.unsuspend.success',
         'success'
@@ -463,7 +501,9 @@ describe('AdminCustomerDetail (ticket #22)', () => {
     });
   });
 
-  describe('change role — simple confirm', () => {
+  // setRole joined DANGER_ACTIONS with #4326: promoting an account to colonel
+  // was a plain one-click confirm.
+  describe('change role — typed-confirmation gate', () => {
     it('is disabled until a different role is chosen, then posts the role change', async () => {
       mockApi.get.mockResolvedValue({ data: detailPayload({ role: 'customer' }) });
       mockApi.post.mockResolvedValue({ data: mutationAck() });
@@ -477,12 +517,20 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       expect(wrapper.find('[data-testid="role-apply"]').attributes('disabled')).toBeUndefined();
 
       await wrapper.find('[data-testid="role-apply"]').trigger('click');
+      await flushPromises();
+
+      expect(dialogInput(wrapper).exists()).toBe(true);
+      expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
+
+      await dialogInput(wrapper).setValue(PURGE_TOKEN);
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/users/ur_alice/role', {
-        role: 'admin',
-      });
+      expect(mockApi.post).toHaveBeenCalledWith(
+        '/api/colonel/users/ur_alice/role',
+        { role: 'admin' },
+        { headers: { 'X-OTS-Confirm': encodeURIComponent(PURGE_TOKEN) } }
+      );
       expect(showMock).toHaveBeenCalledWith('web.admin.customers.actions.role.success', 'success');
     });
   });

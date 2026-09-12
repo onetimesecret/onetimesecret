@@ -13,7 +13,8 @@
 # SCOPE:
 #   These are pure unit tests that call the extract_pending_plan_intent module
 #   method directly with mock objects. They verify the method's logic in
-#   isolation: JSON parsing, field extraction, clearing via delete!, and
+#   isolation: JSON parsing, field extraction, peek semantics (NO delete —
+#   consumption happens at the billing plans-flow handoff, issue #4306), and
 #   error handling.
 #
 #   For true HTTP integration tests that exercise the full Rodauth login stack
@@ -85,10 +86,10 @@ RSpec.describe Auth::Config::Hooks::Billing do
         expect(interval).to eq('monthly')
       end
 
-      it 'clears pending_plan_intent via delete! (single-use)' do
+      it 'does NOT delete pending_plan_intent (peek — consumed at the billing handoff, #4306)' do
         described_class.extract_pending_plan_intent(customer)
 
-        expect(customer.pending_plan_intent.value).to be_nil
+        expect(customer.pending_plan_intent.value).to eq(intent_json)
       end
     end
 

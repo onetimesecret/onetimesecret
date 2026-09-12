@@ -20,7 +20,28 @@ site:
   #   warn    - log loudly on mismatch, keep booting (default)
   #   enforce - refuse to boot on mismatch
   #   off     - skip the check (escape hatch for multi-tenant datastores)
-  secret_verifier_mode: <%= ENV['SECRET_VERIFIER_MODE'] || 'warn' %>  # Since v0.26.0
+  secret_verifier_mode: <%= ENV['SECRET_VERIFIER_MODE'] || 'warn' %>
+  # Legal & policy URLs (first-class config, #4278)
+  #
+  # Single authority for every surface that links a legal document: the
+  # signup consent sentence and the branded reveal footer read terms_url and
+  # privacy_url from the bootstrap payload, and the "legal" footer link group
+  # below resolves all six from here (normalize_legal in lib/onetime/config.rb)
+  # rather than reading these env vars a second time.
+  #
+  # All six default to unset. A URL that is unset or blank renders nothing —
+  # no placeholder, no dead link. Absolute URLs (https://...) open in a new
+  # tab; relative paths (e.g. /terms) resolve in-app. Values are JSON-quoted
+  # so operator URLs with YAML-significant characters survive parsing, and a
+  # blank env assignment (TERMS_URL=) resolves to nil rather than pinning an
+  # explicit empty value.
+  legal:
+    terms_url: <%= (v = ENV['TERMS_URL'].to_s).empty? ? nil : v.to_json %>
+    privacy_url: <%= (v = ENV['PRIVACY_URL'].to_s).empty? ? nil : v.to_json %>
+    dpa_url: <%= (v = ENV['DPA_URL'].to_s).empty? ? nil : v.to_json %>
+    cookie_url: <%= (v = ENV['COOKIE_URL'].to_s).empty? ? nil : v.to_json %>
+    aup_url: <%= (v = ENV['AUP_URL'].to_s).empty? ? nil : v.to_json %>
+    security_url: <%= (v = ENV['SECURITY_URL'].to_s).empty? ? nil : v.to_json %>
   # API and UI Configuration
   interface:
     ui:
@@ -146,17 +167,26 @@ site:
         enabled: <%= ENV['FOOTER_LINKS'] == 'true' %>
         # Organized groups of links
         groups:
+          # The "legal" group is a projection of site.legal above: each link's
+          # URL resolves from there (normalize_legal in lib/onetime/config.rb),
+          # and an entry whose URL is unset is dropped from the payload — no
+          # placeholder, no dead link. Set the URLs via TERMS_URL, PRIVACY_URL,
+          # DPA_URL, COOKIE_URL, AUP_URL, SECURITY_URL (or site.legal directly).
           - name: legal
             i18n_key: web.footer.legals
             links:
               - text: Terms of Service
                 i18n_key: web.layout.terms_of_service
-                # Replace with your own terms URL or use relative path like /terms
-                url: <%= ENV['TERMS_URL']  %>
               - text: Privacy Policy
                 i18n_key: web.layout.privacy_policy
-                # Replace with your own privacy URL or use relative path like /privacy
-                url: <%= ENV['PRIVACY_URL']  %>
+              - text: Data Processing Agreement
+                i18n_key: web.footer.dpa
+              - text: Cookie Policy
+                i18n_key: web.footer.cookie_policy
+              - text: Acceptable Use Policy
+                i18n_key: web.footer.acceptable_use
+              - text: Security
+                i18n_key: web.footer.security
           - name: resources
             i18n_key: web.footer.resources
             links:
@@ -259,7 +289,34 @@ site:
       maximum_length: <%= ENV['SECRET_MAX_LENGTH'] || 10000 %>  # Since v0.26.0
     # How long (in seconds) a generated password remains visible on the
     # receipt page after creation. Set to 0 to disable receipt-page display.
-    generated_value_display_ttl: <%= ENV['GENERATED_VALUE_DISPLAY_TTL'] || 60 %>  # Since v0.24.0
+    generated_value_display_ttl: <%= ENV['GENERATED_VALUE_DISPLAY_TTL'] || 60 %>
+    # Rate limiting for ANONYMOUS secret creation (finding F-02). The
+    # secret-creation path had no limiter on the modern API surface, leaving
+    # unauthenticated, unthrottled creation: one Receipt + one Secret per request
+    # (each carrying anonymous-lifetime TTL). A single anonymous client sustained
+    # ~113 req/s at ~18 KiB/secret — ~1 GiB of Redis in ~8.6 minutes — and since
+    # Redis also holds sessions that is a full-outage DoS. Throttles per masked
+    # client IP BEFORE the Receipt.spawn_pair write, on every creation entry: the
+    # shared V2::Logic::Secrets::BaseSecretAction#raise_concerns (covers V2/V3
+    # conceal and generate) and the V1 controller (share/generate/create).
+    # Charged only to guests — authenticated callers are accountable and are the
+    # legitimate high-volume creators. Single tier by necessity: an anonymous
+    # conceal holds no account-derived identifier to key on.
+    # Enabled by default (protective); set SECRET_CREATE_RATE_LIMIT_ENABLED=false
+    # to opt out. See lib/onetime/security/conceal_secret_rate_limiter.rb.
+    create_rate_limit:
+      enabled: <%= ENV['SECRET_CREATE_RATE_LIMIT_ENABLED'] != 'false' %>
+      # Anonymous creations permitted per window from a single masked client IP.
+      # The bucket is a whole /24 (office, campus NAT), and behind an
+      # unconfigured reverse proxy it is the entire deployment — so this is
+      # deliberately loose (10x the signup/reset caps) because secret creation is
+      # the core product action. Raise it for dense-NAT populations; a too-tight
+      # value here is an outage of secret creation for a whole neighborhood.
+      max_per_ip: <%= ENV['SECRET_CREATE_RATE_LIMIT_MAX_PER_IP'] || 500 %>
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['SECRET_CREATE_RATE_LIMIT_WINDOW'] || 3600 %>
+      # Lockout duration in seconds once the cap is hit (1 hour).
+      lockout: <%= ENV['SECRET_CREATE_RATE_LIMIT_LOCKOUT'] || 3600 %>
     # Settings for password generation (when users click "Generate Password")
     password_generation:
       # Default length for generated passwords
@@ -378,12 +435,41 @@ site:
     # Cookie name
     key: 'onetime.session'  # Since v0.24.0
     # Require HTTPS for cookies (recommended: true in production)
-    # OMIT the key entirely when SSL env is not 'true' so boot.rb's ssl_enabled?
+    # OMIT the key entirely when SSL env is unset so boot.rb's ssl_enabled?
     # fallback can default this to true in production / when site.ssl is on.
     # (Emitting `null` here fails schema validation — the contract is
     # boolean-or-absent, not boolean-or-null; see site.ts `secure`.)
-    <% if ENV['SSL'] == 'true' %>
-    secure: true  # Since v0.24.0
+    # SSL=false emits secure: false ONLY outside production. There it declares
+    # a plain-HTTP dev deployment, where writing a Secure cookie (which Session
+    # then refuses over http) would silently break every session and every
+    # session-backed CSRF check. In PRODUCTION, SSL=false must NOT switch off
+    # Secure: the key is left absent so boot.rb's ssl_enabled? fallback forces
+    # secure: true (fail closed). Production deployments that inherit SSL=false
+    # from the quick-start almost always terminate TLS at an edge proxy, so a
+    # non-Secure session cookie there is a downgrade bug, not a valid config.
+    # A TLS-proxied deployment normally sets SSL=true anyway (it needs https://
+    # links), so it is unaffected either way.
+    #
+    # SESSION_COOKIE_SECURE is the explicit, always-wins override, for the rare
+    # deployment (and the e2e test harness) that genuinely serves plain HTTP in
+    # production mode. Unlike SSL=false — which quick-start configs ship by
+    # default and which therefore must not silently downgrade the cookie — this
+    # variable names exactly what it does and is never set by accident.
+    #
+    # The dev/test check ALLOWLISTS the values Onetime.env normalizes to a
+    # non-production environment (lib/onetime/class_methods.rb) rather than
+    # testing != 'production': the runtime maps 'prod' to production and treats
+    # empty/unknown values as production ("default to production when
+    # uncertain"), so a negative test here would emit secure: false for
+    # RACK_ENV=prod or RACK_ENV='' — deployments the app itself runs as
+    # production. Anything not on the list (including staging, empty, and
+    # typos) leaves the key absent and lets the runtime fallback decide.
+    <% if %w[true false].include?(ENV['SESSION_COOKIE_SECURE'].to_s) %>
+    secure: <%= ENV['SESSION_COOKIE_SECURE'] %>
+    <% elsif ENV['SSL'] == 'true' %>
+    secure: true
+    <% elsif ENV['SSL'] == 'false' && %w[dev development test testing].include?(ENV['RACK_ENV'].to_s.downcase) %>
+    secure: false
     <% end %>
     # SameSite cookie attribute (strict|lax|none)
     # Required for Stripe/OAuth redirects - 'strict' blocks cookies on cross-site GET navigations
@@ -498,8 +584,8 @@ site:
     # - Each proxy appends its own IP to the forwarding header
     #
     trusted_proxy:
-      # Turns proxy-aware IP resolution on. The mode, cidrs, and depth
-      # settings below do nothing while this is false.
+      # Turns proxy-aware IP resolution on. The mode, header, cidrs, and
+      # depth settings below do nothing while this is false.
       #
       # When false, forwarded headers are ignored and the client IP is
       # REMOTE_ADDR — the address that opened the connection. That is right
@@ -521,9 +607,9 @@ site:
       #   the client IP. The trusted set is the RFC1918/loopback/link-local
       #   private ranges (always trusted in this mode) plus every range in
       #   `cidrs` below. Works for most k8s/cloud deployments where the proxy
-      #   tier has enumerable internal addresses. Note: filter mode ignores
-      #   `header` below and reads the X-Forwarded-For family (X-Forwarded-For,
-      #   X-Real-IP, X-Client-IP).
+      #   tier has enumerable internal addresses. Note: filter mode reads the
+      #   X-Forwarded-For family only (X-Forwarded-For, X-Real-IP, X-Client-IP)
+      #   and REJECTS any other `header` value below at boot.
       #
       #   SECURITY — read before enabling: the edge proxy MUST OVERWRITE
       #   X-Forwarded-For with the real peer address so the resolved client IP
@@ -572,9 +658,12 @@ site:
       # hops to count. (Vendor GEO headers such as CF-IPCountry are a separate
       # concern with its own resolution path; this setting does not affect
       # them.) If the edge only sets one of those, have it write the chain
-      # into X-Forwarded-For. Filter mode ignores this setting and reads the
-      # X-Forwarded-For family (X-Forwarded-For, X-Real-IP, X-Client-IP).
-      header: <%= ENV['TRUSTED_PROXY_HEADER'] || 'X-Forwarded-For' %>  # Since v0.25.5
+      # into X-Forwarded-For. Filter mode reads the X-Forwarded-For family
+      # only (X-Forwarded-For, X-Real-IP, X-Client-IP) and never RFC 7239
+      # Forwarded: with `mode: filter`, any value here other than
+      # X-Forwarded-For FAILS THE BOOT with a message naming both keys.
+      # Leave it at the default (or unset) unless mode is depth.
+      header: <%= ENV['TRUSTED_PROXY_HEADER'] || 'X-Forwarded-For' %>
 
       # Filter mode only: Additional CIDR ranges to trust as proxies
       # beyond RFC1918 defaults. Use when your CDN or proxy has public IPs.
@@ -637,6 +726,153 @@ site:
   # below are INDEPENDENT: a request must pass every gate that is active, and
   # neither replaces the other.
   admin:
+    # Step-up (sudo) re-authentication for destructive colonel actions (#4327).
+    #
+    # THREAT: a leaked colonel session cookie is otherwise unbounded destructive
+    # capability — purge, role change, session revoke, org delete all execute on
+    # a bare authenticated request. A short elevation window means a stolen
+    # cookie alone cannot destroy anything; the attacker also needs the password.
+    #
+    # RESIDUAL RISK, stated plainly: elevation is bound to the SESSION and the
+    # acting identity, not to a value the cookie lacks. While a window is live, a
+    # stolen cookie is exactly as capable as it was before this feature. What the
+    # window buys is that the capability is time-bounded, operator-initiated and
+    # audited, instead of standing. Binding it to a nonce the cookie does not
+    # carry is the follow-up.
+    #
+    # SIZING: window 600s is long enough for a multi-step triage session and
+    # short enough that an idle console is not a standing capability.
+    #
+    # reauth_grace: seconds after sign-in during which a PASSWORD-LESS (SSO-only)
+    # colonel may elevate with factor=recent_auth and no credential. DEFAULT 0 =
+    # OFF. It is available only to accounts that cannot satisfy the password
+    # factor: handing it to password holders would make step-up a no-op for the
+    # first N seconds after every sign-in, which is exactly the condition this
+    # feature exists to remove. Raise it ONLY for an SSO-only operator fleet, and
+    # understand that you are trading step-up for "signed in recently" for those
+    # accounts. MFA as a step-up factor is not implemented yet.
+    #
+    # In FULL auth mode the password factor cannot be probed from the logic layer
+    # (the Rodauth password-hash table is only reachable inside a Rodauth
+    # instance), so every full-mode account is treated as password-holding and
+    # recent_auth is unavailable there. A full-mode SSO-only fleet sets
+    # enabled:false instead. See docs/operations/colonel-admin-guide.md.
+    #
+    # DISABLING: enabled:false restores pre-#4327 behaviour (confirmation still
+    # applies). An SSO-only (password-less) colonel fleet cannot run tier-1 verbs
+    # at all unless configured, and WHICH knob works depends on the auth mode:
+    #   - SIMPLE mode: set reauth_grace > 0 (recent_auth elevation) OR
+    #     enabled:false.
+    #   - FULL mode: only enabled:false works. recent_auth is never offered in
+    #     full mode (see the reauth_grace note above — the password factor cannot
+    #     be probed there, so every account is treated as password-holding), so
+    #     reauth_grace has NO effect for a full-mode SSO-only fleet.
+    elevation:
+      enabled: <%= ENV['COLONEL_ELEVATION_ENABLED'] != 'false' %>
+      window: <%= ENV['COLONEL_ELEVATION_WINDOW'] || 600 %>
+      reauth_grace: <%= ENV['COLONEL_ELEVATION_REAUTH_GRACE'] || 0 %>
+
+    # Rate limits for the colonel API surface (#4327 ships the elevation bucket;
+    # #4329 adds the mutation / destructive / handle-resolve buckets). Keyed on
+    # the acting colonel's extid — the same value the audit trail carries as
+    # `actor` — never on a session id.
+    #
+    # THREAT: nothing covered /api/colonel/* before #4329. A scripted compromise
+    # of a colonel session could purge at wire speed and, because the operator
+    # audit trail trims at a 10 000-event count cap with NO TTL, evict the
+    # evidence of its own actions while doing it. Every bucket below is sized so
+    # that cap stays unreachable inside one lockout window.
+    #
+    # The parent `enabled` flag short-circuits every bucket, which is how the
+    # test suites (many endpoints, one process, one actor) opt out wholesale.
+    #
+    # A locked-out operator clears their own bucket with
+    # `POST /api/colonel/ratelimit/reset` (kind=colonel_elevation /
+    # colonel_destructive / colonel_handle_resolve — a TIER 2 verb that needs no
+    # elevation), or with the valkey-cli commands
+    # `bin/ots ratelimit keys <kind> <extid>` prints. The reset is itself a
+    # mutation, so a `colonel_mutation` lockout is the one the CLI path must
+    # clear.
+    #
+    # SIZING — every bucket is per ACCOUNT (extid), not per session: a session
+    # bucket bounds one cookie, and anyone with a second way in gets a fresh
+    # budget.
+    #
+    #   mutation        120 / 300s  every mutating colonel verb, charged from the
+    #                               base logic constructor. Far above any human
+    #                               operator's rate and above a bulk console
+    #                               session, so it only trips on scripted abuse.
+    #   destructive      10 / 300s  TIER 1 verbs (purge, role change, revoke,
+    #                               delete, DLQ purge), 900s lockout. Charged
+    #                               LAST — after elevation, confirmation and the
+    #                               per-verb interlocks all pass — so a rejected
+    #                               attempt costs nothing and an attacker cannot
+    #                               burn the real operator's budget with cheap
+    #                               403s. 10 REAL incident-response actions per
+    #                               five minutes; bulk work belongs on the CLI.
+    #   handle_resolve   60 / 300s  the two session reads that resolve an opaque
+    #                               handle (#4330) and may fall back to a bounded
+    #                               10 000-key SCAN plus as many HMACs. Every
+    #                               OTHER colonel read is deliberately unlimited
+    #                               — the console fetches them, and a limiter
+    #                               there would break the dashboard.
+    rate_limit:
+      enabled: <%= ENV['COLONEL_RATE_LIMIT_ENABLED'] != 'false' %>
+      elevation:
+        enabled: <%= ENV['COLONEL_ELEVATION_RATE_LIMIT_ENABLED'] != 'false' %>
+        max_attempts: <%= ENV['COLONEL_ELEVATION_MAX_ATTEMPTS'] || 5 %>
+        window: <%= ENV['COLONEL_ELEVATION_RATE_WINDOW'] || 900 %>
+        lockout: <%= ENV['COLONEL_ELEVATION_LOCKOUT'] || 900 %>
+      mutation:
+        enabled: <%= ENV['COLONEL_MUTATION_RATE_LIMIT_ENABLED'] != 'false' %>
+        max_attempts: <%= ENV['COLONEL_MUTATION_MAX_ATTEMPTS'] || 120 %>
+        window: <%= ENV['COLONEL_MUTATION_RATE_WINDOW'] || 300 %>
+        lockout: <%= ENV['COLONEL_MUTATION_LOCKOUT'] || 300 %>
+      destructive:
+        enabled: <%= ENV['COLONEL_DESTRUCTIVE_RATE_LIMIT_ENABLED'] != 'false' %>
+        max_attempts: <%= ENV['COLONEL_DESTRUCTIVE_MAX_ATTEMPTS'] || 10 %>
+        window: <%= ENV['COLONEL_DESTRUCTIVE_RATE_WINDOW'] || 300 %>
+        lockout: <%= ENV['COLONEL_DESTRUCTIVE_LOCKOUT'] || 900 %>
+      handle_resolve:
+        enabled: <%= ENV['COLONEL_HANDLE_RESOLVE_RATE_LIMIT_ENABLED'] != 'false' %>
+        max_attempts: <%= ENV['COLONEL_HANDLE_RESOLVE_MAX_ATTEMPTS'] || 60 %>
+        window: <%= ENV['COLONEL_HANDLE_RESOLVE_RATE_WINDOW'] || 300 %>
+        lockout: <%= ENV['COLONEL_HANDLE_RESOLVE_LOCKOUT'] || 300 %>
+
+    # Session bounds for the ADMIN API SURFACE (/api/colonel) only (#4331).
+    #
+    # SCOPE: these do NOT shorten the session cookie, and they do NOT gate the
+    # /colonel SPA shell. One onetime.session serves the admin console, the
+    # tenant app and the auth app, and site.session.expire_after (24h rolling)
+    # still governs the object. These bounds gate admin API ACCESS, so a colonel
+    # who is also a customer keeps their normal session on the rest of the site,
+    # and a stale admin tab loads the shell and shows an expired banner instead
+    # of a bare 401 on an HTML navigation. Splitting the admin surface onto its
+    # own cookie is the fuller fix.
+    #
+    # THREAT: the general session policy is 24h ROLLING with no absolute cap, so
+    # a colonel session left open in a tab is a standing administrative
+    # capability for as long as anything touches it. AdminNetworkIsolation
+    # compensates at the network layer but is a no-op by default on self-hosted
+    # installs.
+    #
+    # idle_timeout: seconds of inactivity before /api/colonel stops
+    #   authenticating. Sourced from the SessionMetadata sidecar, which is
+    #   best-effort: when no sidecar exists the idle bound is SKIPPED, never
+    #   failed. Two caveats worth knowing before you rely on it. (a) It only
+    #   bites because the admin console makes no periodic requests — adding any
+    #   polling to the admin SPA silently disables this bound. (b) The sidecar is
+    #   a SITE-WIDE activity clock, so touching a tenant route also keeps the
+    #   admin window open; absolute_timeout is the bound nothing can slide.
+    # absolute_timeout: seconds since sign-in, regardless of activity. Sourced
+    #   from session['authenticated_at'], which both auth modes stamp and only a
+    #   password change re-stamps.
+    # Set either to 0 to disable that bound. enabled:false disables both.
+    session:
+      enabled: <%= ENV['ADMIN_SESSION_LIFETIME_ENABLED'] != 'false' %>
+      idle_timeout: <%= ENV['ADMIN_SESSION_IDLE_TIMEOUT'] || 3600 %>
+      absolute_timeout: <%= ENV['ADMIN_SESSION_ABSOLUTE_TIMEOUT'] || 43200 %>
+
     # Which HOSTNAMES serve the Colonel admin surfaces (/colonel shell and
     # /api/colonel API). A request whose validated detected host is not on this
     # list receives the same 404 as the CIDR gate below.
@@ -680,7 +916,7 @@ site:
     # Set "*" to turn the gate off on purpose.
     #
     # A forwarded host header (X-Forwarded-Host, Apx-Incoming-Host,
-    # X-Original-Host, Forwarded) only counts toward this gate when
+    # X-Original-Host) only counts toward this gate when
     # site.network.trusted_proxy is configured AND the peer passed it. Behind a
     # proxy that forwards the public hostname instead of rewriting Host, set
     # trusted_proxy or both admin surfaces 404 (see
@@ -739,6 +975,16 @@ site:
     #
     # Example: ["100.64.0.0/10", "10.0.0.0/8"]
     allowed_cidrs: <%= ENV['ADMIN_ALLOWED_CIDRS']&.split(',')&.map(&:strip) || [] %>  # Since v0.26.0
+
+    # Base URL of the standalone Rodauth Admin instance (onetimesecret/
+    # rodauth-admin), the tool that administers the SQL-backed accounts in
+    # full auth mode. Optional, no credential, and nothing is ever requested
+    # from it: the colonel console only renders OUTBOUND links to it (the
+    # customer page deep-links to the matching account by extid; the sessions
+    # console links to it when it is not the session authority). Unset means
+    # those links render as plain text. Mirrors COLONEL_CONSOLE_URL on the
+    # admin side. Example: http://127.0.0.1:9292 (reached over an SSH tunnel).
+    rodauth_admin_url: <%= ENV['RODAUTH_ADMIN_URL']&.to_json %>
 
   # Brand pack selection (#3739, v2 #3774). A brand pack is the single unit of
   # branding: a directory of root-served assets (favicon.ico, icon-*.png,

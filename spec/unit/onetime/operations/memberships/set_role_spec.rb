@@ -69,17 +69,32 @@ RSpec.describe Onetime::Operations::Memberships::SetRole do
         target: 'ur_member',
         result: :success,
         detail: { from: 'member', to: 'admin', org_id: 'on_org_ext' },
+        # #4333: a role change is only evidenced by the trail, so the write is
+        # fail-closed — an unwritable event raises instead of reporting success.
+        fail_closed: true,
       )
     end
 
-    it 'is a :no_change (no change_role!, no audit) when already at the target role' do
+    # #4337: a no-change mutates nothing but is still a deliberate reach for a
+    # privileged role, so it records under the SAME verb, marked
+    # `outcome: 'no_change'` — and NOT fail-closed, since nothing moved.
+    it 'is a :no_change (no change_role!) but still audits the attempt when already at the target role' do
       allow(membership).to receive(:role).and_return('admin')
 
       result = described_class.new(org: org, customer: customer, new_role: 'admin', actor: actor).call
 
       expect(result.status).to eq(:no_change)
       expect(membership).not_to have_received(:change_role!)
-      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'membership.set_role',
+        target: 'ur_member',
+        result: :success,
+        detail: { outcome: 'no_change', from: 'admin', to: 'admin', org_id: 'on_org_ext' },
+      )
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record).with(
+        hash_including(fail_closed: true),
+      )
     end
 
     # A refusal is an ATTEMPTED privileged mutation, so it lands in the trail

@@ -49,6 +49,8 @@ export const recentCustomerSchema = z.object({
 export const colonelUserSchema = z.object({
   user_id: z.string(),
   extid: z.string(),
+  /** Outbound Rodauth Admin link (null unless full auth mode + RODAUTH_ADMIN_URL). */
+  rodauth_admin_account_url: z.string().nullable().optional(),
   email: z.string(),
   role: z.string(),
   verified: z.boolean(),
@@ -80,11 +82,29 @@ export const paginationSchema = z.object({
 });
 
 /**
+ * An auth-database accounts row that maps to NO customer record (full auth
+ * mode only). Reported by the users list for an address-shaped search so the
+ * operator sees the person exists (and can log in) even though the customer
+ * index has nothing for them. Timestamps stay numeric: the entry is rendered
+ * inline in a notice, never sorted or compared.
+ */
+export const colonelOrphanedAccountSchema = z.object({
+  email: z.string(),
+  account_id: z.number(),
+  external_id: z.string().nullable(),
+  status: z.enum(['unverified', 'verified', 'closed', 'unknown']),
+  created_at: z.number().nullable(),
+});
+
+/**
  * Users list response details
  */
 export const colonelUsersDetailsSchema = z.object({
   users: z.array(colonelUserSchema),
   pagination: paginationSchema,
+  // Absent on servers that predate the orphan lookup, and only populated for
+  // address-shaped searches, so default to empty rather than failing the parse.
+  orphaned_accounts: z.array(colonelOrphanedAccountSchema).optional().default([]),
 });
 
 /**
@@ -156,6 +176,45 @@ export const databaseMetricsDetailsSchema = z.object({
 });
 
 /**
+ * One ots-backup status hash, normalized at the API boundary. Invalid external
+ * values become null; empty strings retain their contract meaning of "not
+ * applicable". Timestamps stay numeric so the System screen can compare them
+ * against the response's server-side `timestamp` without a client clock skew.
+ */
+export const backupStatusRecordSchema = z.object({
+  event: z.enum(['start', 'ok', 'fail']).nullable(),
+  ts: z.number().int().nonnegative().nullable(),
+  host: z.string().nullable(),
+  unit: z.string().nullable(),
+  job: z.enum(['pg', 'valkey', 'prune', 'ship']).nullable(),
+  file: z.string().nullable(),
+  bytes: z.string().nullable(),
+  sha256: z.string().nullable(),
+  mode: z.enum(['report', 'delete', '']).nullable(),
+  removed: z.string().nullable(),
+  candidates: z.string().nullable(),
+  shipped: z.string().nullable(),
+  remote: z.string().nullable(),
+  duration_secs: z.string().nullable(),
+  error: z.string().nullable(),
+  version: z.string().nullable(),
+  scheduled: z.enum(['enabled', 'disabled', 'unknown']).nullable(),
+});
+
+/** GET /api/colonel/system/backups — fixed known jobs, read-only status. */
+export const backupStatusDetailsSchema = z.object({
+  timestamp: z.number().int().nonnegative(),
+  jobs: z.array(
+    z.object({
+      job: z.enum(['pg', 'valkey', 'prune', 'ship']),
+      configured: z.boolean(),
+      latest: backupStatusRecordSchema.nullable(),
+      last_ok: backupStatusRecordSchema.nullable(),
+    })
+  ),
+});
+
+/**
  * Brand-pack diagnostics response details (#3822).
  *
  * Read-only diagnostic for the running instance's brand-pack resolution, so ops
@@ -223,26 +282,6 @@ export const brandDiagnosticsDetailsSchema = z.object({
 export const redisMetricsDetailsSchema = z.object({
   redis_info: z.record(z.string(), z.string()),
   timestamp: transforms.fromNumber.toDate,
-});
-
-/**
- * Banned IP record
- */
-export const bannedIPSchema = z.object({
-  id: z.string(),
-  ip_address: z.string(),
-  reason: z.string().nullable(),
-  banned_by: z.string().nullable(),
-  banned_at: z.number(),
-});
-
-/**
- * Banned IPs list response details
- */
-export const bannedIPsDetailsSchema = z.object({
-  current_ip: z.string().default('unknown'),
-  banned_ips: z.array(bannedIPSchema),
-  total_count: z.number(),
 });
 
 /**
@@ -369,13 +408,12 @@ export type ColonelInfoDetails = z.infer<typeof colonelInfoDetailsSchema>;
 export type RecentCustomer = z.infer<typeof recentCustomerSchema>;
 export type ColonelUser = z.infer<typeof colonelUserSchema>;
 export type ColonelUsersDetails = z.infer<typeof colonelUsersDetailsSchema>;
+export type ColonelOrphanedAccount = z.infer<typeof colonelOrphanedAccountSchema>;
 export type Pagination = z.infer<typeof paginationSchema>;
 export type ColonelSecret = z.infer<typeof colonelSecretSchema>;
 export type ColonelSecretsDetails = z.infer<typeof colonelSecretsDetailsSchema>;
 export type DatabaseMetricsDetails = z.infer<typeof databaseMetricsDetailsSchema>;
 export type RedisMetricsDetails = z.infer<typeof redisMetricsDetailsSchema>;
-export type BannedIP = z.infer<typeof bannedIPSchema>;
-export type BannedIPsDetails = z.infer<typeof bannedIPsDetailsSchema>;
 export type UsageExportDetails = z.infer<typeof usageExportDetailsSchema>;
 export type ColonelCustomDomain = z.infer<typeof colonelCustomDomainSchema>;
 export type ColonelCustomDomainsDetails = z.infer<typeof colonelCustomDomainsDetailsSchema>;
@@ -447,39 +485,21 @@ export const colonelOrganizationsFiltersSchema = z.object({
 });
 
 /**
- * Roster-cache state for the organizations list.
- *
- * The endpoint caches the PRE-FILTER roster (every org, post-`build_org_data`,
- * before filtering/sorting/paging) for a short TTL, so one entry serves every
- * filter/page/search combination. This block reports whether THIS response was
- * served from that entry and when the roster was built, which is what the view
- * renders as "updated <n> ago" next to its refresh control.
- *
- * `generated_at` is a unix SECOND (integer) and tracks the build, not the
- * serve, so it holds steady across cache hits. Optional because a payload
- * predating this block (an in-flight deploy, a replayed fixture) must not fail
- * validation and blank the whole table.
- */
-export const colonelOrganizationsCacheSchema = z.object({
-  cached: z.boolean(),
-  generated_at: z.number(),
-  ttl: z.number(),
-});
-
-/**
  * Organizations list response details
  */
 export const colonelOrganizationsDetailsSchema = z.object({
   organizations: z.array(colonelOrganizationSchema),
   pagination: paginationSchema,
   filters: colonelOrganizationsFiltersSchema,
-  cache: colonelOrganizationsCacheSchema.optional(),
+  // The endpoint's candidate set is bounded (index scans + a newest-first
+  // window); `pagination.capped` reports when it stopped short. There is no
+  // roster cache and therefore no cache block any more; an older server that
+  // still sends one is tolerated by the non-strict parse.
 });
 
 export type ColonelOrganization = z.infer<typeof colonelOrganizationSchema>;
 export type ColonelOrganizationsDetails = z.infer<typeof colonelOrganizationsDetailsSchema>;
 export type ColonelOrganizationsFilters = z.infer<typeof colonelOrganizationsFiltersSchema>;
-export type ColonelOrganizationsCache = z.infer<typeof colonelOrganizationsCacheSchema>;
 
 /**
  * Organization billing investigation - local state
@@ -713,6 +733,13 @@ export const colonelUserDetailsSchema = z.object({
   organizations: z.array(colonelUserDetailOrganizationSchema),
   billing: colonelUserBillingSchema.optional(),
   stats: colonelUserDetailStatsSchema,
+  /**
+   * Outbound deep link to this customer's account in the standalone Rodauth
+   * Admin (the read-only `accounts.external_id == extid` join). Null when
+   * RODAUTH_ADMIN_URL is unset or auth mode is not full, in which case the
+   * page shows the public id as plain text; optional for deploy skew.
+   */
+  rodauth_admin_account_url: z.string().nullable().optional(),
 });
 
 /**
@@ -788,6 +815,26 @@ export const colonelCheckoutLinkDetailsSchema = z.object({
   region: z.string(),
 });
 
+/**
+ * Ack for POST /api/colonel/users/:user_id/impersonate.
+ *
+ * NOT a {@link colonelUserMutationRecordSchema} ack: starting an impersonation
+ * hands back the marker the SESSION now carries, plus the path the console
+ * must leave for. `expires_at` is epoch SECONDS (the same unit as the bootstrap
+ * `impersonation` block) and is a server-fixed lifetime — there is no
+ * caller-supplied TTL to echo.
+ *
+ * `redirect` is server-supplied and therefore validated at the point of use
+ * (see hardNavigate / isValidInternalPath) rather than trusted as a URL here.
+ */
+export const colonelImpersonateRecordSchema = z.object({
+  impersonation_id: z.string(),
+  target_extid: z.string(),
+  target_email: z.string(),
+  expires_at: z.number(),
+  redirect: z.string().nullish(),
+});
+
 export type ColonelUserDetailRecord = z.infer<typeof colonelUserDetailRecordSchema>;
 export type ColonelUserDetailSecret = z.infer<typeof colonelUserDetailSecretSchema>;
 export type ColonelUserDetailReceipt = z.infer<typeof colonelUserDetailReceiptSchema>;
@@ -826,9 +873,7 @@ export const colonelAvailablePlansResponseSchema = z.object({
 });
 
 export type ColonelAvailablePlan = z.infer<typeof colonelAvailablePlanSchema>;
-export type ColonelAvailablePlansResponse = z.infer<
-  typeof colonelAvailablePlansResponseSchema
->;
+export type ColonelAvailablePlansResponse = z.infer<typeof colonelAvailablePlansResponseSchema>;
 
 // ============================================================================
 // Wrapped response envelopes ({ record, details } across the API envelope).
@@ -866,6 +911,10 @@ export const databaseMetricsResponseSchema = createApiResponseSchema(
   z.object({}),
   databaseMetricsDetailsSchema
 );
+export const backupStatusResponseSchema = createApiResponseSchema(
+  z.object({}),
+  backupStatusDetailsSchema
+);
 export const brandDiagnosticsResponseSchema = createApiResponseSchema(
   z.object({}),
   brandDiagnosticsDetailsSchema
@@ -873,10 +922,6 @@ export const brandDiagnosticsResponseSchema = createApiResponseSchema(
 export const redisMetricsResponseSchema = createApiResponseSchema(
   z.object({}),
   redisMetricsDetailsSchema
-);
-export const bannedIPsResponseSchema = createApiResponseSchema(
-  z.object({}),
-  bannedIPsDetailsSchema
 );
 export const usageExportResponseSchema = createApiResponseSchema(
   z.object({}),
@@ -897,6 +942,9 @@ export const colonelUserDetailResponseSchema = createApiResponseSchema(
   colonelUserDetailRecordSchema,
   colonelUserDetailsSchema
 );
+export const colonelImpersonateResponseSchema = createApiResponseSchema(
+  colonelImpersonateRecordSchema
+);
 export const colonelUserMutationResponseSchema = createApiResponseSchema(
   colonelUserMutationRecordSchema,
   colonelUserMutationDetailsSchema
@@ -914,9 +962,10 @@ export type CustomDomainsResponse = z.infer<typeof colonelCustomDomainsResponseS
 export type ColonelOrganizationsResponse = z.infer<typeof colonelOrganizationsResponseSchema>;
 export type InvestigateOrganizationResponse = z.infer<typeof investigateOrganizationResponseSchema>;
 export type DatabaseMetricsResponse = z.infer<typeof databaseMetricsResponseSchema>;
+export type BackupStatusRecord = z.infer<typeof backupStatusRecordSchema>;
+export type BackupStatusResponse = z.infer<typeof backupStatusResponseSchema>;
 export type BrandDiagnosticsResponse = z.infer<typeof brandDiagnosticsResponseSchema>;
 export type RedisMetricsResponse = z.infer<typeof redisMetricsResponseSchema>;
-export type BannedIPsResponse = z.infer<typeof bannedIPsResponseSchema>;
 export type UsageExportResponse = z.infer<typeof usageExportResponseSchema>;
 export type QueueMetricsResponse = z.infer<typeof queueMetricsResponseSchema>;
 export type SystemSettingsResponse = z.infer<typeof systemSettingsResponseSchema>;
@@ -925,3 +974,5 @@ export type ColonelUserMutationResponse = z.infer<typeof colonelUserMutationResp
 export type ColonelCheckoutLinkRecord = z.infer<typeof colonelCheckoutLinkRecordSchema>;
 export type ColonelCheckoutLinkDetails = z.infer<typeof colonelCheckoutLinkDetailsSchema>;
 export type ColonelCheckoutLinkResponse = z.infer<typeof colonelCheckoutLinkResponseSchema>;
+export type ColonelImpersonateRecord = z.infer<typeof colonelImpersonateRecordSchema>;
+export type ColonelImpersonateResponse = z.infer<typeof colonelImpersonateResponseSchema>;

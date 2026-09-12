@@ -436,13 +436,17 @@
     "text": "Überprüfen Sie Ihre E-Mails",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "Bestätigungslink gesendet an:",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "Wir haben einen Bestätigungslink an Ihre E-Mail-Adresse gesendet.",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "Wir haben einen Bestätigungslink an diese Adresse gesendet — öffnen Sie die E-Mail und klicken Sie auf den Link, um Ihr Konto zu aktivieren.",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "Klicken Sie auf den Link in der E-Mail, um Ihr Konto zu aktivieren.",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "Nicht zu finden? Überprüfen Sie Ihren Spam-Ordner.",

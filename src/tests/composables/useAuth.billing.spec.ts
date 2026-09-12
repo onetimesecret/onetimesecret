@@ -190,9 +190,25 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
   });
 
   describe('handleBillingRedirect - Billing Disabled', () => {
+    /**
+     * login() ends in authStore.setAuthenticated(true), which refetches
+     * /bootstrap/me and overwrites the store from that body. Seeding the store
+     * alone is therefore NOT enough to disable billing — the beforeEach mock
+     * (billing_enabled: true) wins, and these tests would assert nothing.
+     * Re-mock the endpoint so the disabled state survives the refetch.
+     */
+    const disableBillingOnRefetch = (value: boolean | undefined) => {
+      axiosMock.onGet('/bootstrap/me').reply(200, {
+        authenticated: true,
+        ...(value === undefined ? {} : { billing_enabled: value }),
+        shrimp: 'new-shrimp-token',
+      });
+    };
+
     it('should not redirect when billing is disabled globally', async () => {
       // Set billing_enabled to false via bootstrapStore
       bootstrapStore.billing_enabled = false;
+      disableBillingOnRefetch(false);
 
       setRouteQuery({ product: 'identity', interval: 'month' });
 
@@ -209,8 +225,12 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
     });
 
     it('should not redirect when billing_enabled is undefined', async () => {
-      // Set billing_enabled to undefined via bootstrapStore
-      bootstrapStore.billing_enabled = undefined;
+      // Set billing_enabled to undefined via bootstrapStore. $patch (not direct
+      // assignment) because the state type's billing_enabled is a non-optional
+      // boolean (schema default(false)) — $patch's _DeepPartial widens it to
+      // accept undefined for this "field absent from response" scenario.
+      bootstrapStore.$patch({ billing_enabled: undefined });
+      disableBillingOnRefetch(undefined);
 
       setRouteQuery({ product: 'identity', interval: 'month' });
 
@@ -243,8 +263,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       const org = createMockOrganization(); // Default is free plan (no paid subscription)
       axiosMock.onGet('/api/organizations').reply(200, { records: [org], count: 1 });
       await login('test@example.com', 'password123');
-      const expectedPath = `/billing/${org.extid}/plans?product=identity&interval=month`;
-      expect(router.push).toHaveBeenCalledWith(expectedPath);
+      const expected = { path: `/billing/${org.extid}/plans`, query: { product: 'identity', interval: 'month' } };
+      expect(router.push).toHaveBeenCalledWith(expected);
     */
 
     it.todo('should use the default organization for billing redirect');
@@ -255,8 +275,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       const orgs = { records: [otherOrg, defaultOrg], count: 2 };
       axiosMock.onGet('/api/organizations').reply(200, orgs);
       await login('test@example.com', 'password123');
-      const expectedPath = `/billing/on_default/plans?product=unlimited&interval=year`;
-      expect(router.push).toHaveBeenCalledWith(expectedPath);
+      const expected = { path: '/billing/on_default/plans', query: { product: 'unlimited', interval: 'year' } };
+      expect(router.push).toHaveBeenCalledWith(expected);
     */
   });
 
@@ -282,7 +302,10 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       expect(router.push).toHaveBeenCalledWith('/');
     });
 
-    it('should redirect to dashboard when organizations fetch fails', async () => {
+    it('should keep the plan intent when the organizations fetch fails', async () => {
+      // #4306: a TRANSIENT org-resolution failure no longer discards the
+      // selection. The extid-less plans route's guard retries resolution and
+      // forwards the query, so the user still reaches checkout.
       setRouteQuery({ product: 'identity', interval: 'month' });
 
       const { login } = useAuth();
@@ -298,19 +321,20 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
 
       await login('test@example.com', 'password123');
 
-      // Should fall back to dashboard due to graceful degradation
-      expect(router.push).toHaveBeenCalledWith('/');
+      expect(router.push).toHaveBeenCalledWith({
+        path: '/billing/plans',
+        query: { product: 'identity', interval: 'month' },
+      });
     });
   });
 
   describe('handleBillingRedirect - MFA Flow', () => {
-    // TODO: Test for MFA flow integration with billing redirect.
-    // The test documents that when MFA is required, the user should be
-    // redirected to /mfa-verify instead of billing. Billing redirect
-    // should only happen after MFA verification succeeds.
+    // When MFA is required the user goes to /mfa-verify instead of billing —
+    // the billing redirect only happens after the second factor succeeds
+    // (MfaChallenge → navigateAfterAuth). #4306: the plan-intent query pair is
+    // forwarded so the completion path keeps its fallback tier.
 
-    it.todo('should not attempt billing redirect when MFA is required');
-    /* Expected behavior:
+    it('should not attempt billing redirect when MFA is required', async () => {
       setRouteQuery({ product: 'identity', interval: 'month' });
       const { login } = useAuth();
       axiosMock.onPost('/auth/login').reply(200, {
@@ -319,17 +343,53 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
         mfa_auth_url: '/auth/otp-auth',
         mfa_methods: ['totp'],
       });
+
       await login('test@example.com', 'password123');
-      expect(router.push).toHaveBeenCalledWith('/mfa-verify');
+
+      expect(router.push).toHaveBeenCalledWith({
+        path: '/mfa-verify',
+        query: { product: 'identity', interval: 'month' },
+      });
       expect(axiosMock.history.get.filter((r) => r.url === '/api/organizations')).toHaveLength(0);
-    */
+    });
+
+    it('forwards ?redirect alongside the plan intent to /mfa-verify', async () => {
+      setRouteQuery({ product: 'identity', interval: 'month', redirect: '/dashboard' });
+      const { login } = useAuth();
+      axiosMock.onPost('/auth/login').reply(200, {
+        success: 'MFA verification required',
+        mfa_required: true,
+      });
+
+      await login('test@example.com', 'password123');
+
+      expect(router.push).toHaveBeenCalledWith({
+        path: '/mfa-verify',
+        query: { product: 'identity', interval: 'month', redirect: '/dashboard' },
+      });
+    });
+
+    it('pushes a bare /mfa-verify when there is nothing to forward', async () => {
+      const { login } = useAuth();
+      axiosMock.onPost('/auth/login').reply(200, {
+        success: 'MFA verification required',
+        mfa_required: true,
+      });
+
+      await login('test@example.com', 'password123');
+
+      expect(router.push).toHaveBeenCalledWith({ path: '/mfa-verify', query: undefined });
+    });
   });
 
   describe('handleBillingRedirect - Error Handling', () => {
     it('should gracefully handle router push errors', async () => {
       setRouteQuery({ product: 'identity', interval: 'month' });
 
-      // Mock router.push to throw an error on billing routes only
+      // Mock router.push to throw an error on billing routes only.
+      // NOTE: this implementation LEAKS — afterEach's clearAllMocks() clears
+      // recorded calls, not implementations — so any later test that expects
+      // a billing push must reinstate a passthrough first (see below).
       (router.push as Mock).mockImplementation(async (path: string | object) => {
         const pathStr = typeof path === 'string' ? path : (path as { path?: string }).path || '';
         if (pathStr.includes('/billing/')) {
@@ -357,6 +417,10 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
     });
 
     it('should handle network errors during organization fetch gracefully', async () => {
+      // Undo the throwing implementation the previous test installed on the
+      // shared router spy; this test asserts on the push that FOLLOWS the
+      // failure, so navigation itself must succeed here.
+      (router.push as Mock).mockImplementation(async () => Promise.resolve());
       setRouteQuery({ product: 'identity', interval: 'month' });
 
       const { login } = useAuth();
@@ -371,9 +435,13 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       // Should not throw
       const result = await login('test@example.com', 'password123');
 
-      // Login should succeed, but redirect to dashboard
+      // Login succeeds and the intent survives the failure (#4306) — the
+      // extid-less plans route's guard retries org resolution.
       expect(result).toBe(true);
-      expect(router.push).toHaveBeenCalledWith('/');
+      expect(router.push).toHaveBeenCalledWith({
+        path: '/billing/plans',
+        query: { product: 'identity', interval: 'month' },
+      });
     });
   });
 
@@ -417,8 +485,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       const result = await login('test@example.com', 'password123');
       expect(result).toBe(true);
       expect(isLoading.value).toBe(false);
-      const expectedPath = `/billing/${org.extid}/plans?product=identity&interval=month`;
-      expect(router.push).toHaveBeenCalledWith(expectedPath);
+      const expected = { path: `/billing/${org.extid}/plans`, query: { product: 'identity', interval: 'month' } };
+      expect(router.push).toHaveBeenCalledWith(expected);
     */
   });
 });
@@ -528,9 +596,10 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
     await login('test@example.com', 'password123');
 
     // Should redirect to billing plans for checkout
-    expect(router.push).toHaveBeenCalledWith(
-      `/billing/${org.extid}/plans?product=identity&interval=month`
-    );
+    expect(router.push).toHaveBeenCalledWith({
+      path: `/billing/${org.extid}/plans`,
+      query: { product: 'identity', interval: 'month' },
+    });
   });
 });
 
@@ -632,9 +701,10 @@ describe('useAuth - Subscription Status Checks', () => {
     await login('test@example.com', 'password123');
 
     // Should redirect to plan change flow
-    expect(router.push).toHaveBeenCalledWith(
-      `/billing/${org.extid}/plans?product=unlimited&interval=month&change=true`
-    );
+    expect(router.push).toHaveBeenCalledWith({
+      path: `/billing/${org.extid}/plans`,
+      query: { product: 'unlimited', interval: 'month', change: 'true' },
+    });
   });
 
   it.skip('should redirect to plan change flow when on free plan upgrading to paid', async () => {
@@ -659,9 +729,10 @@ describe('useAuth - Subscription Status Checks', () => {
     await login('test@example.com', 'password123');
 
     // Should redirect to plans with change=true (free is treated as existing plan)
-    expect(router.push).toHaveBeenCalledWith(
-      `/billing/${org.extid}/plans?product=identity&interval=month&change=true`
-    );
+    expect(router.push).toHaveBeenCalledWith({
+      path: `/billing/${org.extid}/plans`,
+      query: { product: 'identity', interval: 'month', change: 'true' },
+    });
   });
 });
 

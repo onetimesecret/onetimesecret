@@ -10,13 +10,16 @@
 #
 # @see Onetime::Application::AuthStrategies
 
+require_relative '../../session/impersonation'
 require_relative 'helpers'
+require_relative 'admin_session_lifetime'
 
 module Onetime
   module Application
     module AuthStrategies
       class BaseSessionAuthStrategy < Otto::Security::AuthStrategy
         include Helpers
+        include AdminSessionLifetime
         include Onetime::Application::OrganizationLoader
 
         @auth_method_name = nil
@@ -66,6 +69,58 @@ module Onetime
           if session_predates_credential_change?(session, cust)
             return failure('[SESSION_STALE_CREDENTIALS] Session predates last credential change')
           end
+
+          # Admin-surface session bounds (#4331). Runs here because this is the
+          # one per-request chokepoint that already has the loaded customer
+          # (hence cust.role) and the raw session. Deliberately AFTER the
+          # watermark and BEFORE the active-session gate and additional_checks:
+          # the gate refreshes the active-session row's `last_use`, and an
+          # admin session this bound has already declared expired must not
+          # register as activity on that row either.
+          #
+          # The session is NOT mutated: an auth strategy runs on read paths and
+          # must stay side-effect-free, and clearing `authenticated` here would
+          # risk a write on a request that should not commit one. Failing is
+          # sufficient — the SPA sees the 401 and routes to sign-in, which
+          # replaces the session. The env flag is not a session write; it tells
+          # TrackMetadata that a REFUSED request is not activity, so the request
+          # we are rejecting cannot slide the idle window forward on its way out.
+          if (reason = admin_session_expiry_reason(session, cust, env))
+            env[AdminSessionLifetime::EXPIRED_ENV_KEY] = reason.to_s
+            return failure(
+              "[ADMIN_SESSION_EXPIRED] Admin session #{reason} timeout exceeded; sign in again",
+            )
+          end
+
+          # Full-mode active-session enforcement (Onetime::ActiveSessionGate,
+          # terms defined there): a Rack session whose active-session row has
+          # been revoked — by the user from another device, or by an operator
+          # in Rodauth Admin — is refused here, on its next request. Until this
+          # check existed the row was consulted only by the sessions page, so
+          # revoking it ended nothing. AFTER the watermark and the admin bound
+          # (both refuse without touching the authdb) and BEFORE
+          # additional_checks. Reads the authdb, never writes the Rack session;
+          # the verdict is memoized in env. Fails CLOSED: a Rack session whose
+          # row the authdb cannot check is refused too, under its own marker so
+          # the logs read as an outage, not as a revocation.
+          case Onetime::ActiveSessionGate.verdict(session, env: env)
+          when :revoked
+            return failure('[SESSION_REVOKED] Active-session row revoked; sign in again')
+          when :unavailable
+            return failure('[SESSION_UNVERIFIED] Active-session row could not be checked; try again')
+          end
+
+          # Colonel impersonation overlay. THE authoritative resolution: this
+          # strategy_result.user is what Onetime::Logic::Base#cust returns and
+          # what additional_metadata builds user_roles from, so from here down
+          # the request IS the target customer — including the role checks
+          # that make /api/colonel 403 while impersonating.
+          #
+          # Deliberately AFTER the suspension and credential-watermark checks
+          # above: those judge the PRINCIPAL (the operator), and a suspended or
+          # credential-revoked colonel must lose the whole session, not just
+          # the overlay.
+          cust, = Onetime::SessionImpersonation.resolve(session, cust, env: env)
 
           # Perform additional checks (role, permissions, etc.)
           check_result = additional_checks(cust, env)

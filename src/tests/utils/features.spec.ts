@@ -11,6 +11,7 @@ import {
   isPasswordOnlyMode,
   isEmailAuthOnlyMode,
   isWebAuthnOnlyMode,
+  isPasswordSignInOffered,
   getRestrictTo,
   hasPasswordlessMethods,
   getAuthFeatures,
@@ -35,6 +36,7 @@ import {
   configuredProviderLabel,
   getSsoProviders,
 } from '@/utils/features';
+import { authenticationSettingsSchema } from '@/schemas/contracts/bootstrap';
 import { _resetForTesting } from '@/services/bootstrap.service';
 
 // Mock the bootstrap service
@@ -550,6 +552,31 @@ describe('features utility', () => {
     it('returns false when features is undefined', () => {
       getBootstrapValueMock.mockReturnValue(undefined);
       expect(isWebAuthnOnlyMode()).toBe(false);
+    });
+  });
+
+  describe('isPasswordSignInOffered', () => {
+    it('returns true when no restriction is active', () => {
+      getBootstrapValueMock.mockReturnValue({});
+      expect(isPasswordSignInOffered()).toBe(true);
+    });
+
+    it('returns true when restrict_to is "password"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'password' });
+      expect(isPasswordSignInOffered()).toBe(true);
+    });
+
+    it.each(['email_auth', 'webauthn', 'sso'])(
+      'returns false when restrict_to is "%s"',
+      (restrictTo) => {
+        getBootstrapValueMock.mockReturnValue({ restrict_to: restrictTo });
+        expect(isPasswordSignInOffered()).toBe(false);
+      }
+    );
+
+    it('returns true when features is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+      expect(isPasswordSignInOffered()).toBe(true);
     });
   });
 
@@ -1348,11 +1375,21 @@ describe('features utility', () => {
 
   describe('isFullAuthModeOf', () => {
     it('returns true when authentication mode is full', () => {
-      expect(isFullAuthModeOf({ authentication: { mode: 'full' } })).toBe(true);
+      // isFullAuthModeOf only reads .mode, but its state param requires a full
+      // AuthenticationSettings object — derive one from the schema (rather
+      // than hand-rolling the enabled/signup/signin/etc. defaults) so this
+      // stays in sync with the real contract.
+      expect(
+        isFullAuthModeOf({ authentication: authenticationSettingsSchema.parse({ mode: 'full' }) })
+      ).toBe(true);
     });
 
     it('returns false when authentication mode is simple', () => {
-      expect(isFullAuthModeOf({ authentication: { mode: 'simple' } })).toBe(false);
+      expect(
+        isFullAuthModeOf({
+          authentication: authenticationSettingsSchema.parse({ mode: 'simple' }),
+        })
+      ).toBe(false);
     });
 
     it('returns false when authentication is undefined', () => {
@@ -1521,7 +1558,9 @@ describe('features utility', () => {
     const originalWindow = globalThis.window;
 
     beforeEach(() => {
-      // @ts-expect-error - intentionally setting to undefined for SSR simulation
+      // Cast through Record<string, unknown> (rather than @ts-expect-error) to
+      // simulate SSR: deleting via an index signature doesn't need suppression,
+      // unlike `delete globalThis.window` against the DOM lib's typed property.
       delete (globalThis as Record<string, unknown>).window;
     });
 

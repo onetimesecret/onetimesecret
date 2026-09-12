@@ -2,6 +2,12 @@
 #
 # frozen_string_literal: true
 
+# The shared emit-if-colonel guard behind the colonel.signin_failed security
+# event (#4339), used by after_login_failure below. Required explicitly
+# (mirroring account.rb) so the constant is loaded when the hook fires rather
+# than relying on ambient load order.
+require 'onetime/colonel_signin_failure'
+
 module Auth::Config::Hooks
   module Login
     # Pick the completion ROUTE (no mount prefix) for an MFA-required JSON
@@ -76,6 +82,31 @@ module Auth::Config::Hooks
       # 3. Either prepare session for MFA flow OR sync full session
       #
       auth.after_login do
+        # INTERNAL REQUESTS ARE NOT LOGINS. `Auth::Config.valid_login_and_password?`
+        # (account destroy, change email, change password, /auth/link-sso) is a
+        # Rodauth internal request: it runs the real login route to check a
+        # password, then throws the result away. It has no web session — Rodauth
+        # hands the internal instance a bare Hash — and no user-visible sign-in
+        # happened, so every side effect below is wrong for it:
+        #   - `session.id` raises NoMethodError on a Hash (BACKEND-B0/B1/B3/B4,
+        #     one Sentry issue per confirmation endpoint);
+        #   - a password CONFIRMATION was logging `login_success` into the auth
+        #     audit stream and could fire the new-sign-in security alert;
+        #   - SyncSession and the deferred SSO bind would act on a session that
+        #     is discarded microseconds later.
+        # The real logins that need this hook are real requests: /auth/link-sso
+        # verifies with the internal request but establishes the session with its
+        # own `rodauth.login('password')` on the actual route.
+        #
+        # The include_all argument is MANDATORY, not stylistic:
+        # internal_request? is private on the Rodauth instance (base.rb
+        # defines it after its `private`, and the internal-request subclass
+        # overrides it the same way), so the one-argument respond_to? returns
+        # false and the guard would silently never fire. The respond_to? is
+        # house style — it is defined on Rodauth::Base, so it is always there
+        # regardless of which features are enabled.
+        next if respond_to?(:internal_request?, true) && internal_request?
+
         correlation_id = session[:auth_correlation_id]
 
         Auth::Logging.log_auth_event(
@@ -371,7 +402,20 @@ module Auth::Config::Hooks
         # Billing.configure defines add_billing_redirect_to_response via auth_class_eval,
         # so the method is only available when billing is enabled. Check respond_to?
         # to avoid NoMethodError when billing is disabled (self-hosted).
-        if json_request? && respond_to?(:add_billing_redirect_to_response)
+        #
+        # Only when this login is COMPLETE (no second factor pending) — the same
+        # condition that picked branch 3a/3b above. The SPA never reads
+        # billing_redirect off the mfa_required response, so surfacing it there
+        # would be dead weight on a body the client discards; an MFA-gated login
+        # defers to after_two_factor_authentication (two_factor.rb), which emits
+        # it on the completion body the challenge view actually reads (#4306).
+        #
+        # add_billing_redirect_to_response only PEEKS at the intent — nothing is
+        # deleted here or in the two-factor hook. Consumption happens later, at
+        # the authenticated billing handoff (Onetime::Customer#consume_pending_plan_intent!,
+        # called by Billing::Controllers::BillingController#subscription_status),
+        # so a client that never completes the handoff can retry on a later login.
+        if json_request? && !mfa_decision&.requires_mfa? && respond_to?(:add_billing_redirect_to_response)
           add_billing_redirect_to_response
         end
       end
@@ -380,7 +424,13 @@ module Auth::Config::Hooks
       # Hook: After Login Failure
       #
       # This hook is triggered after a login attempt fails. Rodauth handles
-      # rate limiting via the lockout feature, so we just log the failure.
+      # rate limiting via the lockout feature, so we log the failure — and,
+      # when the account that was tried is a COLONEL, also record one
+      # `colonel.signin_failed` security event (#4339). See the note above that
+      # emit for why an audit write belongs on a failure path at all.
+      #
+      # SCOPE: the Rodauth SQL audit log (account_authentication_audit_logs) is
+      # a separate stream with its own writer and is untouched here.
       #
       auth.after_login_failure do
         email          = param_or_nil('login') || param_or_nil('email')
@@ -421,6 +471,25 @@ module Auth::Config::Hooks
             correlation_id: correlation_id,
           )
         end
+
+        # The queryable counterpart of that log line, for the one case worth
+        # querying: a failed attempt against an account that actually holds the
+        # colonel role (#4339). Emitted ONCE per failed attempt, outside the
+        # branch above, because both branches are the same event — Rodauth's
+        # login_failure cannot tell "no such account" from "wrong password", so
+        # there is one coarse failure_reason and nothing to vary here.
+        #
+        # Only `login` is on hand at this point (Rodauth has no account for a
+        # failed attempt), so the helper resolves it; it records nothing unless
+        # that resolves to a real colonel Customer, and it never raises — which
+        # is why this is not wrapped in ErrorHandler.safe_execute like the
+        # best-effort side effects in after_login.
+        #
+        # No throttle: the event lands in `security_events`, whose budget is
+        # trimmed independently of the operator trail, so a flood evicts only
+        # other anonymous telemetry. Budget separation is the control here —
+        # see the WRITE-FREQUENCY INVARIANT on Onetime::ColonelAuditEvent.
+        Onetime::ColonelSigninFailure.record(auth_mode: 'full', login: email)
       end
     end
   end

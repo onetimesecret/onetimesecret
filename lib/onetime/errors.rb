@@ -90,6 +90,47 @@ module Onetime
     end
   end
 
+  # A DESTRUCTIVE admin operation could not write its audit event (#4333).
+  #
+  # {Onetime::ColonelAuditEvent.record} is fail-open by default — a broken
+  # audit write must never break the operation that called it. Destructive
+  # verbs (purge, delete, role change, revoke, suspend) opt out of that with
+  # `fail_closed: true`, and this is what they raise: the operator is told the
+  # action has no trail instead of being told it succeeded.
+  #
+  # NOT a Forbidden/Unauthorized subclass, deliberately. Those two families are
+  # what {Onetime::AuditedFailure.authorization_rejection?} drops on the floor
+  # (an authorization rejection must never be able to write into the
+  # count-capped operator trail); an audit-write failure is the opposite — it is
+  # exactly the event an operator needs to see, and classing it as a rejection
+  # would silently suppress the follow-up failure record.
+  #
+  # That follow-up record is SPECIAL-CASED on this class:
+  # {Onetime::AuditedFailure} writes it under
+  # {Onetime::AuditedFailure::AUDIT_WRITE_FAILURE_VERB} rather than the failing
+  # op's verb, so it reads as "the trail is missing an event for X" instead of
+  # claiming X failed. The `verb` and `target` below are what it carries over —
+  # they are the identity of the MISSING event, not of this exception.
+  #
+  # No `register_error_handler` entry, also deliberately: this is a backend
+  # infrastructure failure, not a request-shaped error, so it lands on the
+  # generic 500 path with the datastore/network errors it is caused by (Ruby
+  # sets `cause` to the underlying exception). The message carries verb/target
+  # — both PUBLIC identifiers by the model's own contract — and never the
+  # event's `detail`, which is the field that can hold operator-supplied text.
+  class AuditWriteFailure < Problem
+    attr_reader :verb, :target
+
+    def initialize(verb:, target:, message: nil)
+      @verb   = verb.to_s
+      @target = target.to_s
+
+      message ||= "Audit write failed for #{@verb} on #{@target}; " \
+                  'the action is not recorded in the operator trail'
+      super(message)
+    end
+  end
+
   # An authentication gate could not READ the policy for the request host
   # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference /
   # #degradation-is-fail-closed,
@@ -361,6 +402,102 @@ module Onetime
         max_attempts: max_attempts,
         error_key: error_key,
       }.compact
+    end
+  end
+
+  # Raised when a destructive colonel verb was invoked without the matching
+  # server-side confirmation token (#4326). A Forbidden subclass deliberately:
+  # AuditedFailure.authorization_rejection? drops the whole Forbidden family, so a
+  # compromised colonel session cannot mint audit events by hammering a destructive
+  # route (the operator trail is count-capped with NO TTL).
+  class ConfirmationRequired < Forbidden
+    ERROR_CODE = 'confirmation_required'
+
+    attr_reader :field
+
+    def initialize(message = 'Confirmation required', field: nil, error_key: nil, args: {})
+      super(message, error_key: error_key, args: args)
+      @field = field
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'ConfirmationRequired',
+        error_code: ERROR_CODE,
+        field: field,
+        error_key: error_key,
+      }.compact
+    end
+  end
+
+  # Raised when a TIER 1 colonel verb is invoked outside a live step-up window
+  # (#4327). Forbidden subclass for the same audit-exclusion reason as
+  # {ConfirmationRequired}: whoever holds the cookie can drive this rejection on
+  # demand, and the operator trail is count-capped with no TTL.
+  #
+  # `window` is the configured elevation lifetime in seconds, so the console can
+  # tell the operator how long a fresh window will last before they re-enter a
+  # credential.
+  class ElevationRequired < Forbidden
+    ERROR_CODE = 'elevation_required'
+
+    attr_reader :window
+
+    def initialize(message = 'Step-up authentication required', window: nil, error_key: nil, args: {})
+      super(message, error_key: error_key, args: args)
+      @window = window
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'ElevationRequired',
+        error_code: ERROR_CODE,
+        window: window,
+        error_key: error_key,
+      }.compact
+    end
+  end
+
+  # Raised when a step-up ATTEMPT itself fails (#4327) — a wrong password, or a
+  # factor this account cannot satisfy. Distinct from {ElevationRequired}, which
+  # says "you never elevated": this one says "the elevation you just tried did
+  # not work", and the console renders the server's remediation message.
+  class ElevationFailed < Forbidden
+    ERROR_CODE = 'elevation_failed'
+
+    attr_reader :factor
+
+    def initialize(message = 'Step-up authentication failed', factor: nil, error_key: nil, args: {})
+      super(message, error_key: error_key, args: args)
+      @factor = factor
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'ElevationFailed',
+        error_code: ERROR_CODE,
+        factor: factor,
+        error_key: error_key,
+      }.compact
+    end
+  end
+
+  # A destructive-action guard was called with no expected token — a programming
+  # error in the calling logic class, never a caller-triggerable condition. 500,
+  # never a silent admit. Distinct from a bare Onetime::Problem because Otto
+  # resolves error handlers by EXACT class name and Problem is not registered.
+  class GuardMisconfigured < Problem
+    ERROR_CODE = 'guard_misconfigured'
+
+    def to_h
+      {
+        error: 'Internal configuration error',
+        error_type: 'GuardMisconfigured',
+        error_code: ERROR_CODE,
+      }
     end
   end
 end

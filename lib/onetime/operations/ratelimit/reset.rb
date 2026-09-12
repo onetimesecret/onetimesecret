@@ -24,8 +24,8 @@ module Onetime
       # :not_set`, NO audit event. That is NOT a refusal: the colonel adapter
       # returns 200 with `cleared: false` and "No active rate-limit state to
       # reset", i.e. it is not an operator-visible failure (contrast
-      # {Onetime::Operations::UnbanIP}, whose `:not_found` IS a 404 and IS
-      # recorded). Bounded to the registry's fixed key set (CONTRACT 6).
+      # {Onetime::Operations::Email::RemoveSuppression}, whose `:not_found` IS a
+      # 404 and IS recorded). Bounded to the registry's fixed key set (CONTRACT 6).
       class Reset
         include Onetime::AuditedFailure
 

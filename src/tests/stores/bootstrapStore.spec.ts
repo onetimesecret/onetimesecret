@@ -14,6 +14,7 @@ import {
   standaloneBootstrap,
   baseBootstrap,
   mockCustomer,
+  schemaDefaults,
 } from '@/tests/fixtures/bootstrap.fixture';
 import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 
@@ -260,10 +261,9 @@ describe('bootstrapStore', () => {
       store.update({
         locale: 'es',
         i18n_enabled: true,
-        supported_locales: [
-          { code: 'en', name: 'English', enabled: true },
-          { code: 'es', name: 'Spanish', enabled: true },
-        ],
+        // Production shape: BootstrapPayload.supported_locales is a flat
+        // array of locale codes (z.array(z.string())), not LocaleInfo objects.
+        supported_locales: ['en', 'es'],
         fallback_locale: 'en',
       });
 
@@ -319,6 +319,7 @@ describe('bootstrapStore', () => {
 
     it('updates UI configuration', () => {
       const newUi = {
+        ...schemaDefaults.ui,
         enabled: true,
         header: {
           enabled: true,
@@ -359,7 +360,13 @@ describe('bootstrapStore', () => {
 
     it('updates organization data', () => {
       store.update({
-        organization: { planid: 'pro-plan' },
+        organization: {
+          objid: 'org_obj_1',
+          extid: 'org_ext_1',
+          display_name: 'Acme Inc',
+          is_default: true,
+          planid: 'pro-plan',
+        },
       });
 
       expect(store.organization?.planid).toBe('pro-plan');
@@ -373,6 +380,46 @@ describe('bootstrapStore', () => {
 
       expect(store.entitlement_preview_planid).toBe('test-plan-id');
       expect(store.entitlement_preview_plan_name).toBe('Test Plan');
+    });
+
+    it('exposes the impersonation marker and the isImpersonating getter', () => {
+      expect(store.impersonation).toBeNull();
+      expect(store.isImpersonating).toBe(false);
+
+      store.update({
+        impersonation: {
+          impersonation_id: 'imp_9f2c1a',
+          impersonator_extid: 'ur_colonel',
+          target_extid: 'ur_bob',
+          target_email: 'bob@example.com',
+          started_at: 1756700000,
+          expires_at: 1756701800,
+        },
+      });
+
+      expect(store.impersonation?.target_email).toBe('bob@example.com');
+      expect(store.isImpersonating).toBe(true);
+    });
+
+    it('CLEARS the marker on an explicit null (a stop or expiry must hide the banner)', () => {
+      store.update({
+        impersonation: {
+          impersonation_id: 'imp_9f2c1a',
+          impersonator_extid: 'ur_colonel',
+          target_extid: 'ur_bob',
+          target_email: 'bob@example.com',
+          started_at: 1756700000,
+          expires_at: 1756701800,
+        },
+      });
+
+      // null is DEFINED, so filterDefined keeps it and the merge overwrites.
+      // (An omitted key would leave the stale marker on screen — which is why
+      // the serializer emits the field unconditionally.)
+      store.update({ impersonation: null });
+
+      expect(store.impersonation).toBeNull();
+      expect(store.isImpersonating).toBe(false);
     });
   });
 
@@ -528,14 +575,14 @@ describe('bootstrapStore', () => {
 
     it('resets all server config fields to defaults (unlike resetForLogout)', () => {
       store.update({
-        authentication: { enabled: false, signup: false },
-        ui: { enabled: false },
-        features: { markdown: true },
+        authentication: { ...schemaDefaults.authentication, enabled: false, signup: false },
+        ui: { ...schemaDefaults.ui, enabled: false },
+        features: { ...schemaDefaults.features, markdown: true },
         regions: {
           identifier: 'EU',
           enabled: true,
           current_jurisdiction: 'EU',
-          jurisdictions: [{ identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true }],
+          jurisdictions: [{ identifier: 'EU', display_name_i18n_key: 'web.regions.eu', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true }],
         },
       });
 
@@ -558,6 +605,24 @@ describe('bootstrapStore', () => {
       expect(store.stripe_subscriptions).toBeUndefined();
     });
 
+    it('resets the impersonation marker to null', () => {
+      store.update({
+        impersonation: {
+          impersonation_id: 'imp_9f2c1a',
+          impersonator_extid: 'ur_colonel',
+          target_extid: 'ur_bob',
+          target_email: 'bob@example.com',
+          started_at: 1756700000,
+          expires_at: 1756701800,
+        },
+      });
+
+      store.$reset();
+
+      expect(store.impersonation).toBeNull();
+      expect(store.isImpersonating).toBe(false);
+    });
+
     it('resets entitlement test mode to defaults', () => {
       store.update({
         entitlement_preview_planid: 'test-plan',
@@ -571,7 +636,15 @@ describe('bootstrapStore', () => {
     });
 
     it('resets organization data to defaults', () => {
-      store.update({ organization: { planid: 'pro' } });
+      store.update({
+        organization: {
+          objid: 'org_obj_2',
+          extid: 'org_ext_2',
+          display_name: 'Acme Inc',
+          is_default: true,
+          planid: 'pro',
+        },
+      });
 
       store.$reset();
 
@@ -623,8 +696,8 @@ describe('bootstrapStore', () => {
 
     it('preserves regions configuration through reset (server config)', () => {
       const jurisdictions = [
-        { identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true },
-        { identifier: 'US', display_name: 'United States', domain: 'us.example.com', icon: { collection: 'flags', name: 'us' }, enabled: true },
+        { identifier: 'EU', display_name_i18n_key: 'web.regions.eu', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true },
+        { identifier: 'US', display_name_i18n_key: 'web.regions.us', domain: 'us.example.com', icon: { collection: 'flags', name: 'us' }, enabled: true },
       ];
       store.update({
         regions: {
@@ -682,6 +755,7 @@ describe('bootstrapStore', () => {
     it('preserves UI configuration through reset (server config)', () => {
       store.update({
         ui: {
+          ...schemaDefaults.ui,
           enabled: false,
           header: { enabled: false },
           footer_links: { enabled: true, groups: [] },
@@ -698,7 +772,7 @@ describe('bootstrapStore', () => {
 
     it('preserves features configuration through reset (server config)', () => {
       store.update({
-        features: { markdown: false },
+        features: { ...schemaDefaults.features, markdown: false },
       });
 
       store.resetForLogout();
@@ -762,6 +836,7 @@ describe('bootstrapStore', () => {
       it('returns header configuration from UI (logo layout knobs pass through)', () => {
         store.update({
           ui: {
+            ...schemaDefaults.ui,
             enabled: true,
             header: {
               enabled: true,
@@ -779,6 +854,7 @@ describe('bootstrapStore', () => {
       it('returns undefined when header not configured', () => {
         store.update({
           ui: {
+            ...schemaDefaults.ui,
             enabled: true,
           },
         });
@@ -791,6 +867,7 @@ describe('bootstrapStore', () => {
       it('returns footer links configuration from UI', () => {
         store.update({
           ui: {
+            ...schemaDefaults.ui,
             enabled: true,
             footer_links: {
               enabled: true,
@@ -815,11 +892,43 @@ describe('bootstrapStore', () => {
       it('returns undefined when footer links not configured', () => {
         store.update({
           ui: {
+            ...schemaDefaults.ui,
             enabled: true,
           },
         });
 
         expect(store.footerLinksConfig).toBeUndefined();
+      });
+    });
+
+    describe('legalUrls', () => {
+      it('returns configured legal URLs from site.legal (#4278)', () => {
+        store.update({
+          legal: {
+            terms_url: 'https://example.com/terms',
+            privacy_url: '/privacy',
+            dpa_url: 'https://example.com/dpa',
+            cookie_url: null,
+            aup_url: null,
+            security_url: null,
+          },
+        });
+
+        expect(store.legalUrls.terms_url).toBe('https://example.com/terms');
+        expect(store.legalUrls.privacy_url).toBe('/privacy');
+        expect(store.legalUrls.dpa_url).toBe('https://example.com/dpa');
+        expect(store.legalUrls.cookie_url).toBeNull();
+      });
+
+      it('defaults every URL to null when the payload omits the block', () => {
+        expect(store.legalUrls).toEqual({
+          terms_url: null,
+          privacy_url: null,
+          dpa_url: null,
+          cookie_url: null,
+          aup_url: null,
+          security_url: null,
+        });
       });
     });
   });
@@ -850,6 +959,7 @@ describe('bootstrapStore', () => {
       // Update UI
       store.update({
         ui: {
+          ...schemaDefaults.ui,
           enabled: true,
           header: { enabled: true },
         },
@@ -934,6 +1044,7 @@ describe('bootstrapStore', () => {
       store.init();
 
       const complexUi = {
+        ...schemaDefaults.ui,
         enabled: true,
         header: {
           enabled: true,
@@ -1166,6 +1277,7 @@ describe('bootstrapStore', () => {
     it('preserves features configuration through resetForLogout', () => {
       store.update({
         features: {
+          ...schemaDefaults.features,
           markdown: false,
         },
       });
@@ -1177,12 +1289,16 @@ describe('bootstrapStore', () => {
     });
 
     it('preserves diagnostics configuration through resetForLogout', () => {
+      // Production shape: DiagnosticsConfig is `{ sentry: SentryConfig } | null`
+      // (see bootstrap.ts sentryConfigSchema/diagnosticsSchema), not a flat
+      // set of feature-area booleans.
       const diagnosticsConfig = {
-        enabled: true,
-        domains: true,
-        regions: true,
-        entitlements: true,
-        locales: true,
+        sentry: {
+          dsn: 'https://test@sentry.io/123',
+          enabled: true,
+          logErrors: true,
+          trackComponents: true,
+        },
       };
 
       store.update({ diagnostics: diagnosticsConfig });
@@ -1191,6 +1307,25 @@ describe('bootstrapStore', () => {
 
       // Server config fields persist
       expect(store.diagnostics).toEqual(diagnosticsConfig);
+    });
+
+    it('preserves legal URLs through resetForLogout', () => {
+      store.update({
+        legal: {
+          terms_url: 'https://example.com/terms',
+          privacy_url: 'https://example.com/privacy',
+          dpa_url: null,
+          cookie_url: null,
+          aup_url: null,
+          security_url: null,
+        },
+      });
+
+      store.resetForLogout();
+
+      // Server config fields persist
+      expect(store.legalUrls.terms_url).toBe('https://example.com/terms');
+      expect(store.legalUrls.privacy_url).toBe('https://example.com/privacy');
     });
 
     it('preserves all server config fields together through resetForLogout', () => {
@@ -1202,14 +1337,14 @@ describe('bootstrapStore', () => {
         trackComponents: true,
       };
       store.update({
-        authentication: { enabled: false, signup: false, signin: true },
-        ui: { enabled: false, header: { enabled: false } },
-        features: { markdown: false },
+        authentication: { ...schemaDefaults.authentication, enabled: false, signup: false, signin: true },
+        ui: { ...schemaDefaults.ui, enabled: false, header: { enabled: false } },
+        features: { ...schemaDefaults.features, markdown: false },
         regions: {
           identifier: 'EU',
           enabled: true,
           current_jurisdiction: 'EU',
-          jurisdictions: [{ identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true }],
+          jurisdictions: [{ identifier: 'EU', display_name_i18n_key: 'web.regions.eu', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true }],
         },
         secret_options: { default_ttl: 7200, ttl_options: [300, 600] },
         diagnostics: { sentry: sentryConfig },
@@ -1235,8 +1370,8 @@ describe('bootstrapStore', () => {
         cust: mockCustomer,
         stripe_customer: { id: 'cus_123' } as any,
         // Server config
-        authentication: { enabled: false },
-        features: { markdown: false },
+        authentication: { ...schemaDefaults.authentication, enabled: false },
+        features: { ...schemaDefaults.features, markdown: false },
       });
 
       store.resetForLogout();
@@ -1342,9 +1477,11 @@ describe('bootstrapStore', () => {
     });
 
     it('updates messages array', () => {
+      // Production shape: messageSchema.type is 'success' | 'error' | 'info'
+      // (bootstrap.ts) — there is no 'warning' variant.
       const messages = [
         { type: 'info' as const, content: 'Welcome message' },
-        { type: 'warning' as const, content: 'Maintenance soon' },
+        { type: 'error' as const, content: 'Maintenance soon' },
       ];
 
       store.update({ messages });
@@ -1446,17 +1583,18 @@ describe('bootstrapStore', () => {
     });
 
     it('updates deeply nested UI header navigation', () => {
+      // Production shape: headerNavigationSchema (bootstrap.ts) is just
+      // `{ enabled: boolean }` — navigation has no `links` array. Deep-nested
+      // link arrays are covered separately by footer_links.groups[].links
+      // (see 'preserves complex nested objects on update' above).
       const uiWithNavigation = {
+        ...schemaDefaults.ui,
         enabled: true,
         header: {
           enabled: true,
           logo: { href: '/', show_name: true, prominent: false },
           navigation: {
             enabled: true,
-            links: [
-              { text: 'Home', url: '/' },
-              { text: 'About', url: '/about', external: false },
-            ],
           },
         },
       };
@@ -1464,14 +1602,13 @@ describe('bootstrapStore', () => {
       store.update({ ui: uiWithNavigation });
 
       expect(store.ui.header?.navigation?.enabled).toBe(true);
-      expect(store.ui.header?.navigation?.links).toHaveLength(2);
     });
 
     it('updates deeply nested regions configuration', () => {
       const jurisdictions = [
-        { identifier: 'EU', display_name: 'Europe', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true },
-        { identifier: 'US', display_name: 'United States', domain: 'us.example.com', icon: { collection: 'flags', name: 'us' }, enabled: true },
-        { identifier: 'CA', display_name: 'Canada', domain: 'ca.example.com', icon: { collection: 'flags', name: 'ca' }, enabled: true },
+        { identifier: 'EU', display_name_i18n_key: 'web.regions.eu', domain: 'eu.example.com', icon: { collection: 'flags', name: 'eu' }, enabled: true },
+        { identifier: 'US', display_name_i18n_key: 'web.regions.us', domain: 'us.example.com', icon: { collection: 'flags', name: 'us' }, enabled: true },
+        { identifier: 'CA', display_name_i18n_key: 'web.regions.ca', domain: 'ca.example.com', icon: { collection: 'flags', name: 'ca' }, enabled: true },
       ];
       const regionsConfig = {
         identifier: 'EU',
@@ -1491,6 +1628,7 @@ describe('bootstrapStore', () => {
       // First update with full UI
       store.update({
         ui: {
+          ...schemaDefaults.ui,
           enabled: true,
           header: { enabled: true },
           footer_links: { enabled: true, groups: [] },
@@ -1500,6 +1638,7 @@ describe('bootstrapStore', () => {
       // Second update with partial UI replaces the whole object
       store.update({
         ui: {
+          ...schemaDefaults.ui,
           enabled: false,
         },
       });

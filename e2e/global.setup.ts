@@ -58,8 +58,24 @@ setup('register and authenticate test user', async ({ page }) => {
   await page.getByTestId('signup-terms-checkbox').check();
   await page.getByTestId('signup-submit').click();
 
-  // On success the SPA navigates to /signin (useAuth.signup()).
-  await page.waitForURL(/\/signin/);
+  // On success the SPA navigates to /check-email — NOT /signin. It changed in
+  // 16c9012c42 (2026-07-03): the sign-in form is unusable until an account is
+  // verified, so signup now lands on a "check your email" confirmation page.
+  // This step waited on /signin for weeks afterwards and timed out every run,
+  // which took the whole `full` / `full-billing` dependency chain down with it.
+  //
+  // Confirming /check-email first is what keeps that from happening silently
+  // again: if signup starts landing somewhere else, THIS line fails and names
+  // the page, instead of the failure surfacing as an unexplained timeout on
+  // the sign-in form below.
+  await page.waitForURL(/\/check-email/);
+  await expect(page.getByTestId('check-email-view')).toBeVisible();
+
+  // With AUTH_AUTOVERIFY=true (a documented requirement of this setup project,
+  // set by .github/workflows/e2e.yml) the account is already verified, so
+  // there is no email round-trip to wait on — go straight to the sign-in form.
+  await page.goto('/signin');
+  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // ---------------------------------------------------------------------
   // Sign in. Default deployments (no passwordless methods) render

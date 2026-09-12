@@ -10,7 +10,7 @@
 // - customerCanonical defines field names and output types
 // - This V2 shape applies string transforms for Redis wire format
 
-import { customerCanonical, customerRoleSchema } from '@/schemas/contracts';
+import { customerCanonical, customerRoleResilientSchema } from '@/schemas/contracts';
 import { transforms } from '@/schemas/transforms';
 import { withFeatureFlags } from '@/schemas/utils/feature_flags';
 import { z } from 'zod';
@@ -108,8 +108,9 @@ export const customerSchema = withFeatureFlags(
       ...v2BooleanOverrides,
       ...v2CounterOverrides,
 
-      // Role uses shared schema (no transform needed)
-      role: customerRoleSchema,
+      // Role uses shared schema (no transform needed). Resilient: unknown
+      // values degrade to 'customer' instead of failing the record parse (#4298).
+      role: customerRoleResilientSchema,
     })
     .strict()
 );

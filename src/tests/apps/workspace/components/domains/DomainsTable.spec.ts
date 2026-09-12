@@ -3,6 +3,8 @@
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi } from 'vitest';
 import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
+import type { CustomDomain } from '@/schemas/shapes/v3/custom-domain';
+import type { HomepageConfigCanonical } from '@/schemas/contracts';
 
 // Mock vue-i18n
 vi.mock('vue-i18n', () => ({
@@ -91,13 +93,40 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
   default: { name: 'OIcon', template: '<span />', props: ['collection', 'name', 'class'] },
 }));
 
-const baseDomain = {
-  extid: 'dm-test-extid',
-  display_domain: 'test.example.com',
-  verified: true,
+const baseHomepageConfig: HomepageConfigCanonical = {
+  domain_id: 'dom_123',
+  enabled: false,
+  secrets_mode: 'create',
+  signup_enabled: false,
+  signin_enabled: false,
+  disabled_homepage_variant: null,
+  created_at: null,
+  updated_at: null,
 };
 
-function mountTable(domains: object[]) {
+const baseDomain: CustomDomain = {
+  domainid: 'dom_123',
+  extid: 'dm-test-extid',
+  custid: 'cust_123',
+  display_domain: 'test.example.com',
+  base_domain: 'example.com',
+  subdomain: 'test',
+  trd: 'test',
+  tld: 'com',
+  sld: 'example',
+  is_apex: false,
+  txt_validation_host: '_challenge.test',
+  txt_validation_value: 'verify123',
+  status: 'pending',
+  verified: true,
+  resolving: false,
+  vhost: null,
+  brand: null,
+  created: new Date('2024-01-01'),
+  updated: new Date('2024-01-01'),
+};
+
+function mountTable(domains: CustomDomain[]) {
   return mount(DomainsTable, {
     props: {
       domains,
@@ -110,7 +139,10 @@ function mountTable(domains: object[]) {
 describe('DomainsTable - homepage incoming badge', () => {
   it('shows the badge when the homepage is enabled in incoming mode', () => {
     const wrapper = mountTable([
-      { ...baseDomain, homepage_config: { enabled: true, secrets_mode: 'incoming' } },
+      {
+        ...baseDomain,
+        homepage_config: { ...baseHomepageConfig, enabled: true, secrets_mode: 'incoming' },
+      },
     ]);
     expect(wrapper.find('[data-testid="homepage-incoming-badge"]').exists()).toBe(true);
   });
@@ -120,14 +152,20 @@ describe('DomainsTable - homepage incoming badge', () => {
     // domain can carry secrets_mode='incoming' with enabled=false. The badge
     // must not render for what is effectively a private homepage.
     const wrapper = mountTable([
-      { ...baseDomain, homepage_config: { enabled: false, secrets_mode: 'incoming' } },
+      {
+        ...baseDomain,
+        homepage_config: { ...baseHomepageConfig, enabled: false, secrets_mode: 'incoming' },
+      },
     ]);
     expect(wrapper.find('[data-testid="homepage-incoming-badge"]').exists()).toBe(false);
   });
 
   it('hides the badge when the homepage is enabled in create mode', () => {
     const wrapper = mountTable([
-      { ...baseDomain, homepage_config: { enabled: true, secrets_mode: 'create' } },
+      {
+        ...baseDomain,
+        homepage_config: { ...baseHomepageConfig, enabled: true, secrets_mode: 'create' },
+      },
     ]);
     expect(wrapper.find('[data-testid="homepage-incoming-badge"]').exists()).toBe(false);
   });

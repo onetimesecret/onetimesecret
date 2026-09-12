@@ -8,7 +8,17 @@ SSO configuration is bound to individual custom domains, not organizations. This
 
 ## Prerequisites
 
-The SSO tab visibility is controlled by the `manage_sso` entitlement. The following conditions must be met for the tab to appear.
+The SSO tab is controlled by the `manage_sso` entitlement and organization SSO
+feature flag. Enable organizations and per-domain SSO, then restart the auth
+application so its provider routes are registered:
+
+```bash
+export ENABLE_ORGS=true
+export ORGS_SSO_ENABLED=true
+```
+
+The organization must also have the `manage_sso` entitlement. The following
+configuration keeps that entitlement current.
 
 ## Configuration Layers
 
@@ -39,12 +49,18 @@ plans:
       - custom_branding
 ```
 
-### 2. Stripe Product Metadata
+### 2. Publish and Materialize the Catalog
 
-After updating `billing.yaml`, push to Stripe:
+After updating `billing.yaml`, use the combined catalog sync. It pushes the
+catalog to Stripe, refreshes the Redis plan cache, and materializes the updated
+entitlements on organizations:
 
 ```bash
-bin/ots billing catalog push
+# Preview the complete sync
+bin/ots billing catalog sync --dry-run
+
+# Push, pull, and materialize
+bin/ots billing catalog sync
 ```
 
 The Stripe Product metadata should contain:
@@ -53,28 +69,21 @@ The Stripe Product metadata should contain:
 entitlements: "create_secrets,view_receipt,api_access,custom_domains,manage_sso,custom_branding"
 ```
 
-### 3. Redis Plan Cache
-
-Sync from Stripe to Redis:
-
-```bash
-bin/ots billing catalog pull
-```
-
-Verify the entitlement is cached:
+For an existing organization, verify the effective entitlement with the
+supported diagnostic rather than inspecting a cache key directly:
 
 ```bash
-redis-cli SISMEMBER 'billing_plan:identity_plus_v1:entitlements' 'manage_sso'
-# Returns 1 if present, 0 if missing
+bin/ots billing diagnose --org <organization-extid> --entitlement manage_sso
 ```
 
-### 4. Organization Assignment
+### 3. Organization Assignment
 
-The organization must be subscribed to a plan that includes `manage_sso`. The entitlements are computed dynamically at runtime:
+The organization must be subscribed to a plan that includes `manage_sso`.
+Catalog sync materializes the plan's effective entitlements on the organization:
 
 ```ruby
 # Backend: lib/onetime/models/features/with_entitlements.rb
-org.entitlements  # Returns plan entitlements from Redis cache
+org.entitlements  # Returns effective entitlements
 org.can?('manage_sso')  # Returns true/false
 ```
 
@@ -85,13 +94,13 @@ org.can?('manage_sso')  # Returns true/false
 ```
 billing.yaml
     │
-    ▼ bin/ots billing catalog push
-Stripe Product Metadata
+    ▼ bin/ots billing catalog sync
+Stripe Product Metadata → Redis Plan Cache
     │
-    ▼ bin/ots billing catalog pull
-Redis Plan Cache (billing_plan:<plan_id>:entitlements)
+    ▼ materialize entitlements
+Organization Entitlements
     │
-    ▼ org.entitlements (via Billing::Plan.load)
+    ▼ org.entitlements
 Organization API Response
     │
     ▼ can(ENTITLEMENTS.MANAGE_SSO)
@@ -133,7 +142,7 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 
 **Security:** Tenant context (domain_id) stored in session during request phase, validated on callback to prevent cross-tenant redirect attacks.
 
-**Identity linking is platform-only.** The three linking paths documented for platform SSO — the authenticated [Connected Identities panel](per-install-sso.md#connected-identities-authenticated-linking-from-account-settings), the [sign-in interstitial](per-install-sso.md#sign-in-interstitial-password-challenge-linking), and [mailbox-proof linking](per-install-sso.md#mailbox-proof-linking-passwordless-accounts) — are **not** offered on a tenant callback, and the trusted-IdP email-linking flag has no effect here. Each of those paths is gated on `session[:validated_omniauth_domain_id]` being `nil`, which a tenant callback always sets. A tenant admin controls their own IdP's assertions, so a tenant-issuer identity must not be bound to an account located by email (or to whatever account happens to hold the current platform session). Tenant SSO keeps the refusal: an unlinked identity whose email matches an existing account is refused with `account_exists_link_required`. Authenticated tenant-surface linking requires org-membership verification first and is tracked in #3849.
+**Identity linking is platform-only.** The three linking paths documented for platform SSO — the authenticated [Connected Identities panel](per-install-sso.md#connected-identities-authenticated-linking-from-account-settings), the [sign-in interstitial](per-install-sso.md#sign-in-interstitial-password-challenge-linking), and [mailbox-proof linking](per-install-sso.md#mailbox-proof-linking-passwordless-accounts) — are **not** offered on a tenant callback, and the trusted-IdP email-linking flag has no effect here. Each of those paths is gated on `session[:validated_omniauth_domain_id]` being `nil`, which a tenant callback always sets. A tenant admin controls their own IdP's assertions, so a tenant-issuer identity must not be bound to an account located by email (or to whatever account happens to hold the current platform session). Tenant SSO keeps the refusal: an unlinked identity whose email matches an existing account is refused with `tenant_sso_link_unavailable` — a code distinct from the platform surface's `account_exists_link_required`, because the platform copy points at Connected Identities and that panel refuses on this surface too, so it would be a dead end. The tenant copy instead names the ways forward that exist today: an org owner invites the SSO identity, or the user contacts support. The authenticated connect flow refuses here as `identity_connect_wrong_domain` (again distinct, so the copy does not blame an expired session). Authenticated tenant-surface linking requires org-membership verification first and is tracked in #3849.
 
 ## OIDC for sovereign Microsoft Entra tenants
 
@@ -187,32 +196,24 @@ previously configured tenant that was pointed at the wrong cloud.
 
 ### SSO Tab Not Appearing
 
-1. **Check billing mode**:
+1. **Check the organization feature flags**:
    ```bash
-   # If billing disabled, SSO should appear automatically
-   echo $BILLING_ENABLED
+   echo "$ENABLE_ORGS"
+   echo "$ORGS_SSO_ENABLED"
    ```
+   Both values must be `true`.
 
-2. **Verify Redis cache**:
+2. **Publish and materialize the catalog** after any entitlement change:
    ```bash
-   redis-cli SMEMBERS 'billing_plan:<plan_id>:entitlements'
+   bin/ots billing catalog sync
    ```
 
-3. **Check Stripe metadata**:
+3. **Verify the organization's effective entitlement**:
    ```bash
-   bin/ots billing catalog pull --dry-run
+   bin/ots billing diagnose --org <organization-extid> --entitlement manage_sso
    ```
 
-4. **Verify organization's plan**:
-   ```ruby
-   # In console
-   org = Organization.load(extid)
-   org.planid
-   org.entitlements
-   org.can?('manage_sso')
-   ```
-
-5. **Check frontend debug logs** (if enabled):
+4. **Check frontend debug logs** (if enabled):
    ```
    [OrganizationSettings] SSO visibility: ...
    [useEntitlements] can(): { entitlement: "manage_sso", ... }
@@ -222,8 +223,8 @@ previously configured tenant that was pointed at the wrong cloud.
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| SSO tab missing | `manage_sso` not in plan entitlements | Add to billing.yaml, push, pull |
-| Entitlement in YAML but not Redis | Push/pull not run | Run `bin/ots billing catalog push && pull` |
+| SSO tab missing | `ORGS_SSO_ENABLED` is not `true` | Enable `ORGS_SSO_ENABLED=true` and restart the auth application |
+| SSO tab missing | `manage_sso` is not materialized for the organization | Add it to `billing.yaml`, then run `bin/ots billing catalog sync` |
 | Mismatch between YAML key and plan | Root uses `sso`, plan uses `manage_sso` | Use consistent naming (`manage_sso`) |
 | SSO configured but login fails | No custom domain with SSO config | Add custom domain and configure SSO |
 | Platform SSO used instead of domain SSO | Accessing via canonical domain | Use domain's custom URL |
@@ -310,7 +311,7 @@ install-level providers.
 
 ### Billing Disabled (Standalone Mode)
 
-When billing is disabled (`BILLING_ENABLED=false`), all entitlements are granted automatically via `STANDALONE_ENTITLEMENTS`. The SSO tab appears for all organizations without additional configuration.
+When billing is disabled (`BILLING_ENABLED=false`), `STANDALONE_ENTITLEMENTS` grants `manage_sso` to every organization. `ENABLE_ORGS=true` and `ORGS_SSO_ENABLED=true` are still required for the organization UI and SSO configuration tab.
 
 ### Billing Enabled
 

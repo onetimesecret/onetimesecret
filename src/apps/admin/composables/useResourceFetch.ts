@@ -6,6 +6,8 @@ import { ref, type Ref } from 'vue';
 import { useApi } from '@/shared/composables/useApi';
 import { gracefulParse } from '@/utils/schemaValidation';
 
+import { noteAdminSessionExpiry } from '../utils/adminSessionExpiry';
+
 /** Query params for a single-resource GET (filters, expansions, …). */
 export type ResourceFetchParams = Record<string, string | number | boolean | undefined | null>;
 
@@ -109,6 +111,9 @@ export function useResourceFetch<TResponse>(
       data.value = result.data;
       return result.data;
     } catch (err) {
+      // An expired admin window (#4331) ends the console session; the banner
+      // reads the shared flag while this view still renders its own error.
+      noteAdminSessionExpiry(err);
       notFound.value = httpStatusOf(err) === 404;
       error.value = err instanceof Error ? err : new Error(String(err));
       data.value = null;

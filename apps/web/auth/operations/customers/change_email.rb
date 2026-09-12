@@ -6,6 +6,8 @@
 # autoloader), so every dependency is required explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
+require 'onetime/operations/audit_attempt'
 require 'onetime/jobs/publisher'
 require 'onetime/operations/sessions/revoke_all_for_customer'
 require 'auth/account_statuses'
@@ -145,6 +147,8 @@ module Auth
       class ChangeEmail
         include Onetime::LoggerMethods
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
+        include Onetime::Operations::AuditAttempt
 
         AUDIT_VERB = 'customer.change_email'
 
@@ -195,9 +199,13 @@ module Auth
 
         # @!attribute status [r]
         #   @return [Symbol] one of:
-        #     :planned       — dry run; nothing mutated, nothing audited
+        #     :planned       — dry run; nothing mutated, recorded as one
+        #                      observation (#4337)
         #     :success       — both authoritative stores hold the new address
-        #     :no_change     — normalized new address equals the current one
+        #     :no_change     — normalized new address equals the current one;
+        #                      recorded (#4337): on the operator trail with
+        #                      outcome: 'no_change' when live, as a preview
+        #                      observation on a dry run
         #     :not_found     — no usable customer (nil / anonymous / no email)
         #     :invalid_email — new address failed format validation
         #     :email_taken   — another account holds the address (Redis, SQL, or
@@ -259,8 +267,15 @@ module Auth
           @require_verification       = require_verification
           @revoke_sessions            = revoke_sessions
           @notify                     = notify
-          @reason                     = reason
-          @ticket                     = ticket
+          # NORMALIZED, not stored raw (#4338). {Onetime::AuditReason::MAX_LENGTH}
+          # is 255 precisely so a provenance string is never silently clipped by
+          # the audit model's 256-char per-value bound: what the operator typed
+          # is what a reviewer reads. The colonel HTTP adapter sanitizes on the
+          # way in, but `bin/ots customers change-email --reason` passes its flag
+          # straight through, and this is the highest-value verb in the trail —
+          # the one place a truncated reason costs the most.
+          @reason                     = normalize_reason(reason)
+          @ticket                     = normalize_reason(ticket)
           @allow_closed_account_reuse = allow_closed_account_reuse
           @db                         = db
           @warnings                   = []
@@ -272,7 +287,11 @@ module Auth
 
           old_email = @customer.email.to_s
           return failure(:invalid_email) unless Onetime::Utils::EmailFormat.valid_format?(@new_email)
-          return terminal(:no_change, old_email) if OT::Utils.normalize_email(old_email) == @new_email
+
+          if OT::Utils.normalize_email(old_email) == @new_email
+            record_no_change_event(old_email)
+            return terminal(:no_change, old_email)
+          end
 
           taken = collision_status
           return terminal(taken, old_email) if taken
@@ -281,8 +300,14 @@ module Auth
           # OLD address) so a dry run and an apply surface the same list.
           preflight_warnings
 
-          # DRY RUN: preview only. Mutate nothing, audit nothing.
-          return terminal(:planned, old_email, orgs: organizations.size) if @dry_run
+          # DRY RUN: preview only. Mutates nothing, so nothing reaches the
+          # OPERATOR trail — but it resolves and reports a customer's current
+          # address and the orgs a change would reindex, so it is recorded as
+          # an OBSERVATION (#4337).
+          if @dry_run
+            record_preview_event(old_email, organizations.size)
+            return terminal(:planned, old_email, orgs: organizations.size)
+          end
 
           # --- 1. SQL FIRST (transactional). On failure Redis is untouched. ---
           begin
@@ -634,8 +659,12 @@ module Auth
         def revoke_sessions
           return false unless @revoke_sessions
 
+          # `customer:` not `custid: @customer.extid` — we hold the record, so
+          # the op must act on it rather than on whatever the extid index
+          # resolves to (index drift, #4205/#4217, would otherwise degrade this
+          # to a silent zero-count revoke).
           Onetime::Operations::Sessions::RevokeAllForCustomer.new(
-            custid: @customer.extid,
+            customer: @customer,
             actor: @actor,
           ).call
           true
@@ -678,6 +707,11 @@ module Auth
               verified: false,
               actor: @actor,
               verified_by: nil,
+              # A credential-provenance reset, not an administrative unverify:
+              # the address changed and is now unproven. #4328's last-colonel
+              # interlock must not refuse it — leaving a colonel "verified"
+              # against an address nobody controls is worse than the lockout.
+              enforce_interlocks: false,
               db: @db,
             ).call
             return :reset if result == :success
@@ -898,6 +932,74 @@ module Auth
           extid.empty? ? Onetime::AuditedFailure::UNKNOWN : extid
         end
 
+        # The #4337 envelope's target hook, and `failure_target` rather than a
+        # bare `@customer.extid` because that is what both emitters already
+        # used: it degrades to the UNKNOWN sentinel instead of an empty string.
+        # The `usable_customer?` guard means an extid is present by the time
+        # either fires, so the two agree in practice; the sentinel is the
+        # defensive floor, not a path anything relies on. `record_audit` keeps
+        # `@customer.extid` directly — by then the swap has landed. `audit_verb`
+        # defaults to AUDIT_VERB and `audit_actor` to @actor.
+        def audit_target = failure_target
+
+        # D41 operator provenance, for the events that carry it: the reason (via
+        # {Onetime::AuditReason#with_reason}) plus the support ticket. Both are
+        # OMITTED when absent, so a detail hash without them is byte-for-byte
+        # what it was before D41 existed — a `reason: nil` key would change every
+        # existing event's shape to record nothing. Both were normalized in the
+        # constructor, so neither can arrive blank-but-present or over-length.
+        def with_provenance(detail)
+          detail = with_reason(detail)
+          return detail if @ticket.nil?
+
+          detail.merge(ticket: @ticket)
+        end
+
+        # One OBSERVATION per preview (#4337), on the budgeted access trail.
+        # Same verb and target as the applied event, and — like every other
+        # event this op writes — OBSCURED addresses only; `result: 'preview'`
+        # and `dry_run: true` distinguish it from the apply that may follow.
+        def record_preview_event(old_email, org_count)
+          record_preview_observation(
+            from: OT::Utils.obscure_email(old_email.to_s),
+            to: OT::Utils.obscure_email(@new_email.to_s),
+            orgs: org_count,
+          )
+        rescue StandardError => ex
+          auth_logger.error '[customer.change_email] preview audit failed', exception: ex
+        end
+
+        # A no-change attempt (#4337). This op is the highest-value
+        # account-takeover primitive an operator has, so verb-filter
+        # completeness matters MOST here: asking to change an address to
+        # itself carries less intent than the other no-change verbs, but a
+        # `:no_change` answer also CONFIRMS the account currently holds the
+        # requested address — which makes a repeated same-address probe
+        # exactly the pattern the trail must not go quiet on. Split by intent
+        # like the entitlement ops: a LIVE call is a mutation attempt
+        # (operator trail, `outcome: 'no_change'`, carrying the D41
+        # reason/ticket provenance like record_audit does); a dry-run call
+        # (the default) stays a preview observation. Obscured addresses only,
+        # as in every other event this op writes. NOT fail-closed: nothing
+        # moved.
+        def record_no_change_event(old_email)
+          detail = {
+            from: OT::Utils.obscure_email(old_email.to_s),
+            to: OT::Utils.obscure_email(@new_email.to_s),
+          }
+
+          # The dry-run half keeps BOTH markers: `dry_run: true` from the
+          # envelope says it was a preview, `outcome: 'no_change'` says the
+          # preview found nothing to do. It is the one preview in the cohort
+          # that carries the no-change marker onto the observation trail.
+          if @dry_run
+            record_preview_observation(detail.merge(outcome: 'no_change'))
+            return
+          end
+
+          record_no_change_attempt(with_provenance(detail))
+        end
+
         # Same verb/target/actor as the success event; obscured addresses only,
         # exactly like record_audit. Best-effort: never break the op.
         def record_refusal(status, old_email)
@@ -1062,8 +1164,7 @@ module Auth
           # D41: optional operator provenance — this is the highest-value
           # account-takeover primitive an operator has, and without these the
           # trail records only actor='cli'.
-          detail[:reason] = @reason.to_s unless @reason.to_s.strip.empty?
-          detail[:ticket] = @ticket.to_s unless @ticket.to_s.strip.empty?
+          detail          = with_provenance(detail)
 
           Onetime::ColonelAuditEvent.record(
             actor: @actor,

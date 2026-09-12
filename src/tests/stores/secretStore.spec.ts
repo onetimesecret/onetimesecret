@@ -113,7 +113,7 @@ describe('secretStore', () => {
       it('conceal() uses /api/v3/secret/conceal in authenticated mode', async () => {
         axiosMock?.onPost('/api/v3/secret/conceal').reply(200, mockConcealResponse);
 
-        await store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal' });
+        await store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal', share_domain: '' });
 
         expect(axiosMock?.history.post.length).toBe(1);
         expect(axiosMock?.history.post[0].url).toBe('/api/v3/secret/conceal');
@@ -123,7 +123,7 @@ describe('secretStore', () => {
         store.setApiMode('public');
         axiosMock?.onPost('/api/v3/guest/secret/conceal').reply(200, mockConcealResponse);
 
-        await store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal' });
+        await store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal', share_domain: '' });
 
         expect(axiosMock?.history.post.length).toBe(1);
         expect(axiosMock?.history.post[0].url).toBe('/api/v3/guest/secret/conceal');
@@ -132,7 +132,7 @@ describe('secretStore', () => {
       it('generate() uses /api/v3/secret/generate in authenticated mode', async () => {
         axiosMock?.onPost('/api/v3/secret/generate').reply(200, mockConcealResponse);
 
-        await store.generate({ ttl: 3600, kind: 'generate' });
+        await store.generate({ ttl: 3600, kind: 'generate', share_domain: '' });
 
         expect(axiosMock?.history.post.length).toBe(1);
         expect(axiosMock?.history.post[0].url).toBe('/api/v3/secret/generate');
@@ -142,7 +142,7 @@ describe('secretStore', () => {
         store.setApiMode('public');
         axiosMock?.onPost('/api/v3/guest/secret/generate').reply(200, mockConcealResponse);
 
-        await store.generate({ ttl: 3600, kind: 'generate' });
+        await store.generate({ ttl: 3600, kind: 'generate', share_domain: '' });
 
         expect(axiosMock?.history.post.length).toBe(1);
         expect(axiosMock?.history.post[0].url).toBe('/api/v3/guest/secret/generate');
@@ -494,7 +494,7 @@ describe('secretStore', () => {
         axiosMock?.onPost('/api/v3/guest/secret/conceal').reply(403, guestRoutesDisabledResponse);
 
         await expect(
-          store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal' })
+          store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal', share_domain: '' })
         ).rejects.toThrow();
       });
 
@@ -502,7 +502,9 @@ describe('secretStore', () => {
         store.setApiMode('public');
         axiosMock?.onPost('/api/v3/guest/secret/generate').reply(403, guestRoutesDisabledResponse);
 
-        await expect(store.generate({ ttl: 3600, kind: 'generate' })).rejects.toThrow();
+        await expect(
+          store.generate({ ttl: 3600, kind: 'generate', share_domain: '' })
+        ).rejects.toThrow();
       });
 
       it('fetch() rejects with 403 when guest routes globally disabled', async () => {
@@ -529,7 +531,7 @@ describe('secretStore', () => {
         const initialDetails = store.details;
 
         await expect(
-          store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal' })
+          store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal', share_domain: '' })
         ).rejects.toThrow();
 
         expect(store.record).toBe(initialRecord);
@@ -547,7 +549,7 @@ describe('secretStore', () => {
         });
 
         await expect(
-          store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal' })
+          store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal', share_domain: '' })
         ).rejects.toThrow();
       });
 
@@ -559,7 +561,9 @@ describe('secretStore', () => {
           code: 'GUEST_GENERATE_DISABLED',
         });
 
-        await expect(store.generate({ ttl: 3600, kind: 'generate' })).rejects.toThrow();
+        await expect(
+          store.generate({ ttl: 3600, kind: 'generate', share_domain: '' })
+        ).rejects.toThrow();
       });
 
       it('reveal() rejects with GUEST_REVEAL_DISABLED code', async () => {
@@ -600,7 +604,12 @@ describe('secretStore', () => {
 
         axiosMock?.onPost('/api/v3/secret/conceal').reply(200, mockConcealResponse);
 
-        const result = await store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal' });
+        const result = await store.conceal({
+          secret: 'test',
+          ttl: 3600,
+          kind: 'conceal',
+          share_domain: '',
+        });
 
         expect(result).toBeDefined();
         expect(axiosMock?.history.post[0].url).toBe('/api/v3/secret/conceal');

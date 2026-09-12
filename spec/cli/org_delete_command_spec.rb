@@ -180,6 +180,36 @@ RSpec.describe 'Org Delete Command', type: :cli do
       expect(op_calls.map { |args| args[:force_subscription] }).to eq([true, true])
     end
 
+    # #4338 — the shell peer of the console's reason field. Same flag name,
+    # same wording and same blank-means-absent rule on every destructive CLI
+    # verb; the op turns it into `detail[:reason]`.
+    it 'threads --reason through to the op' do
+      run_cli_command_quietly(
+        'org', 'delete', 'on_org_ext', '--yes', '--reason', 'closing dormant workspace',
+      )
+
+      expect(op_calls.last).to include(reason: 'closing dormant workspace')
+    end
+
+    # OPTIONAL rollout: omitting it must reach the op as nil, so the op's own
+    # normalization keeps the audit detail byte-identical to its pre-#4338 shape.
+    it 'passes reason: nil when the flag is omitted' do
+      run_cli_command_quietly('org', 'delete', 'on_org_ext', '--yes')
+
+      expect(op_calls.last).to include(reason: nil)
+    end
+
+    # The plan pass and the apply pass must agree, exactly as they do on the
+    # force flags — the op records the reason on BOTH the preview observation
+    # and the applied event.
+    it 'uses the same reason on the plan pass as on the apply' do
+      allow($stdin).to receive(:gets).and_return("y\n")
+
+      run_cli_command_quietly('org', 'delete', 'on_org_ext', '--reason', 'support req 22')
+
+      expect(op_calls.map { |args| args[:reason] }).to eq(['support req 22', 'support req 22'])
+    end
+
     it 'never audits from the adapter (the op owns the single event)' do
       allow(Onetime::ColonelAuditEvent).to receive(:record)
 

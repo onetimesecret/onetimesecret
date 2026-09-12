@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/logic/base'
+require 'onetime/colonel_signin_failure'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/security/login_rate_limiter'
 
@@ -42,10 +43,31 @@ module Core::Logic
 
         potential = Onetime::Customer.find_by_email(potential_email_address)
 
-        return unless potential
+        # Held for the failure funnel in raise_concerns (#4339), which needs to
+        # know whether the ATTEMPTED address belongs to a colonel and cannot
+        # ask @cust — that is deliberately nil on every failure. Reusing the
+        # lookup already made here keeps the failed-sign-in audit check free of
+        # a second round trip on the path an attacker drives. nil is a
+        # MEANINGFUL value: "looked, no such account", which records nothing.
+        @potential_customer = potential
 
-        passwd_matches = potential.passphrase?(@passwd)
-        @cust          = potential if passwd_matches
+        # AUTHENTICATION IS AGAINST THE ATTEMPTED IDENTITY ONLY. Base#initialize
+        # seeds @cust with strategy_result.user — whoever the request's session
+        # already resolved to, which need not be the account the `login` param
+        # names. Left standing on a mismatch, that seed handed the submitted
+        # password a SECOND identity to try: a request carrying customer C's
+        # session that submitted `login=X` with C's password sailed through
+        # success? re-authenticated as C, the login param silently ignored —
+        # and skipped the failure funnel, so the attempt against X was never
+        # counted or audited. Full mode has no such fallback: Rodauth resolves
+        # the account from the submitted `login` and verifies the password
+        # against that account alone (its default already_logged_in is a no-op
+        # and this app never configures it). So @cust is unconditionally
+        # overwritten here — the attempted account when its passphrase matches,
+        # nil otherwise — which makes raise_concerns the single failure funnel
+        # for EVERY rejected credential, carried session or not.
+        passwd_matches = potential ? potential.passphrase?(@passwd) : false
+        @cust          = passwd_matches ? potential : nil
         @objid         = @cust.objid if @cust
 
         migrate_password_hash_if_needed(potential, @passwd) if passwd_matches
@@ -85,11 +107,17 @@ module Core::Logic
 
         return unless @cust.nil?
 
-        # @cust is nil for BOTH unknown-email and wrong-password (only set when
-        # the passphrase matches), so this is the single failure funnel. Count
-        # the failed attempt before raising the (deliberately non-enumerating)
-        # error.
+        # @cust is nil for unknown-email, wrong-password, AND a carried-session
+        # request whose password matched nobody — process_params overwrites the
+        # strategy_result.user seed unconditionally — so this is the single
+        # failure funnel. Count the failed attempt before raising the
+        # (deliberately non-enumerating) error.
         record_failed_login_attempt!(login_rate_limit_email, login_rate_limit_ip)
+
+        # #4339: and audit it, when the address that was tried is a real
+        # colonel account. Ordered before the raise for the same reason the
+        # attempt count is — raise_form_error never returns.
+        record_colonel_signin_failure(@potential_customer)
 
         # cust stays nil - error raised before we need it
         raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
@@ -97,14 +125,32 @@ module Core::Logic
 
       def process
         unless success?
+          # Defense-in-depth recheck, not the production failure funnel:
+          # process_params pins @cust to the attempted account or nil, and
+          # raise_concerns raises on nil, so reaching here with success? false
+          # means the state process_params verified went stale between
+          # construction and now (e.g. a concurrent password change). The two
+          # rejection sites stay mutually exclusive per attempt (raise_concerns
+          # runs first and raises), which keeps the at-most-one-event property.
+          #
+          # Attribution — log line and audit event alike — is the ATTEMPTED
+          # identity from the `login` param, never strategy_result.user:
+          # exactly what full mode's after_login_failure logs (the submitted
+          # `login`) and what the funnel above records. The event answers
+          # "which admin account is being tried"; a carried-session identity
+          # here would be a false brute-force signal about an account nobody
+          # was working on. nil (unknown address) records nothing, per the
+          # helper's contract.
           auth_logger.warn 'Login failed',
             {
-              email: cust.obscure_email,
-              role: cust.role,
+              email: @potential_customer&.obscure_email,
+              role: @potential_customer&.role,
               session_id: safe_session_id,
               ip: @strategy_result.metadata[:ip],
               reason: :invalid_credentials,
             }
+
+          record_colonel_signin_failure(@potential_customer)
 
           raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
         end
@@ -206,7 +252,17 @@ module Core::Logic
 
       def success?
         # Least-capability auth: a session authenticates only when the supplied
-        # passphrase matches the target customer's own passphrase.
+        # passphrase matches the ATTEMPTED customer's own passphrase. @cust is
+        # the account process_params resolved from the `login` param, or nil —
+        # never strategy_result.user (process_params overwrites the seed), so
+        # the identity this recheck verifies is the identity the session will
+        # be established as. The equal? guard makes that invariant local: if
+        # bookkeeping ever drifts and @cust is not the very object the login
+        # param resolved to, this fails closed rather than vouch for a
+        # different account — the shape of the original defect (#4361 fixed
+        # its audit-attribution half; this fixed the authentication half),
+        # where the carried session identity got a second chance at the
+        # password.
         #
         # A colonel-passphrase-as-any-customer branch is deliberately absent: any
         # such implicit impersonation would mint an authenticated-as-arbitrary
@@ -214,7 +270,10 @@ module Core::Logic
         # impersonation need ever arises it must be an explicit operation gated by
         # both authz layers (Otto role=colonel + verify_one_of_roles!(colonel:true))
         # that writes an audit event on every use — never a clause here.
-        !cust&.anonymous? && cust.passphrase?(@passwd)
+        return false if cust.nil? || cust.anonymous?
+        return false unless cust.equal?(@potential_customer)
+
+        cust.passphrase?(@passwd)
       end
 
       private
@@ -238,10 +297,16 @@ module Core::Logic
       # it — once per login, not once per request (the session is authenticated
       # from here on and never re-enters this class).
       #
-      # Failed logins deliberately record NOTHING: the audit set is capped by
-      # COUNT with no TTL, so an event an unauthenticated caller can trigger is
-      # a log-eviction primitive — enough failed logins would flush the real
-      # destructive-action trail.
+      # Failures are recorded ELSEWHERE, not nowhere (#4339). This comment used
+      # to say a failed login recorded nothing, on the grounds that the audit
+      # set is capped by COUNT with no TTL, so an event an unauthenticated
+      # caller can trigger is a log-eviction primitive — enough failed logins
+      # would flush the real destructive-action trail. That is still true of
+      # THIS write, which is why it stays a `.record` into `events`. It stopped
+      # being a reason to record nothing at all once the store grew a separate
+      # anonymous-telemetry budget: see #record_colonel_signin_failure, which
+      # writes a failed attempt against a colonel account to `security_events`,
+      # where a flood can only ever evict other anonymous telemetry.
       def record_colonel_signin
         return unless cust && cust.role.to_s == 'colonel'
 
@@ -259,6 +324,32 @@ module Core::Logic
         # Best-effort: a login must never fail because its audit event could not
         # be assembled.
         OT.le('[colonel.signin] audit record failed', exception: ex)
+      end
+
+      # Record the SIMPLE-auth-mode half of colonel.signin_failed (#4339). Full
+      # mode's counterpart is the Rodauth after_login_failure hook in
+      # Auth::Config::Hooks::Login; the guard, the obscured target and the
+      # event shape are shared by Onetime::ColonelSigninFailure so the two
+      # modes cannot drift.
+      #
+      # `customer` is ALWAYS @potential_customer — the account
+      # process_params resolved from the submitted `login` param, nil when the
+      # address matched nothing. BOTH rejection branches pass it, so simple
+      # mode attributes to the attempted identity exactly as full mode does
+      # (the Rodauth hook hands the helper the submitted `login:`). @cust would
+      # name the same object today — process_params pins it to the attempted
+      # account or nil — but attribution must not ride on that bookkeeping, so
+      # the parameter stays explicit. No `login:` is passed and no second
+      # lookup happens. The helper never raises and never writes for a
+      # non-colonel, which is why there is no rescue and no role check here.
+      #
+      # No throttle: the event lands in `security_events`, whose budget is
+      # trimmed independently of the operator trail. Budget separation IS the
+      # control — see the WRITE-FREQUENCY INVARIANT on
+      # Onetime::ColonelAuditEvent — so this needs no bound of its own beyond
+      # the login rate limiter that already gates the surrounding path.
+      def record_colonel_signin_failure(customer)
+        Onetime::ColonelSigninFailure.record(auth_mode: 'simple', customer: customer)
       end
 
       # Rate-limit subject halves passed separately to the two-tier

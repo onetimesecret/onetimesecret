@@ -46,8 +46,15 @@ module ColonelAPI
 
         attr_reader :secret_id, :secret, :receipt, :deleted_secret, :deleted_receipt
 
+        # `reason` (#4338) is OPTIONAL and rides the QUERY STRING, because this
+        # is a DELETE and request bodies are not reliably parsed across this
+        # stack (the same reason DeleteOrganization / RemoveCustomDomain read
+        # their flags from the query). This route audits INLINE rather than
+        # through an op, so `@reason` feeds {#with_reason} in #process directly
+        # instead of an op kwarg.
         def process_params
           @secret_id = sanitize_identifier(params['secret_id'])
+          @reason    = operator_reason_param
           raise_form_error('Secret ID is required', field: :secret_id) if secret_id.to_s.empty?
         end
 
@@ -63,10 +70,55 @@ module ColonelAPI
           @audit_target = secret.shortid
           @audit_state  = secret.state.to_s
 
-          # Load associated receipt
+          # Load associated receipt (also the source of the confirmation token
+          # below).
           if secret.receipt_identifier
             @receipt = Onetime::Receipt.load(secret.receipt_identifier)
           end
+
+          # TIER 1 (#4326). The confirmation token is the RECEIPT shortid — an
+          # identifier the URL does NOT carry. The route is keyed by :secret_id
+          # (the secret objid), and secret.shortid is just secret_id[0,8], so
+          # confirming with it would be no second factor at all: a scraped-URL
+          # replay derives it for free. The receipt has its own objid, so its
+          # shortid is independent of :secret_id and forces the replay to know a
+          # second identifier (design §1.1). `@audit_target` stays secret.shortid
+          # for the audit record only — the two are deliberately not conflated.
+          # LAZY token (a lambda, not confirmation_token itself): its receiptless
+          # fail-closed raise must run AFTER require_elevation!, or an unelevated
+          # caller gets a 500 GuardMisconfigured where the guard-order contract
+          # promises 403 ElevationRequired first (no confirmation oracle).
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: -> { confirmation_token },
+            confirm_subject: 'the receipt shortid',
+            field: :secret_id,
+          )
+          charge_destructive_budget!
+        end
+
+        # The confirmation token for this destroy: the RECEIPT shortid (#4326).
+        # Independent of :secret_id by construction — the receipt has its own
+        # objid, so its shortid is not derivable from the URL. Prefer the stored
+        # `receipt_shortid` field; fall back to the loaded receipt's shortid
+        # (the field is not populated on legacy pairs, but the receipt is).
+        #
+        # FAIL-CLOSED when neither yields a shortid: a secret with no resolvable
+        # receipt has no non-URL identifier to confirm against. Rather than fall
+        # back to the URL-derivable secret shortid — which would silently defeat
+        # #4326 — we refuse (GuardMisconfigured, 500) and the operator removes it
+        # with the CLI. Preferring refusal over a weak token is the safe
+        # direction for a TIER 1 destroy; over-refusing a receiptless secret is
+        # acceptable, admitting a replayable one is not.
+        def confirmation_token
+          token = secret.receipt_shortid.to_s.strip
+          token = receipt.shortid.to_s if token.empty? && receipt&.exists?
+          return token unless token.empty?
+
+          OT.le "[DeleteSecret] no receipt shortid for secret #{@audit_target}; refusing confirmation (#4326)"
+          raise Onetime::GuardMisconfigured,
+            'Cannot confirm secret deletion: this secret has no receipt to derive an ' \
+            'independent confirmation token from. Remove it with the CLI instead.'
         end
 
         def process
@@ -92,15 +144,21 @@ module ColonelAPI
           # @deleted_secret: that hash carries internal ids for the response
           # body, and internal ids must not enter the audit trail. Never any
           # secret content — state and shortid only.
+          #
+          # FAIL-CLOSED (#4333): the secret and its receipt are destroyed, so
+          # an operator deleting someone's secret leaves no other trace. An
+          # unwritable event raises Onetime::AuditWriteFailure, which surfaces
+          # as a 500 rather than a 200 for an unrecorded destroy.
           Onetime::ColonelAuditEvent.record(
             actor: cust&.extid,
             verb: AUDIT_VERB,
             target: @audit_target,
             result: :success,
-            detail: {
+            detail: with_reason(
               state: @audit_state,
               receipt_shortid: deleted_receipt&.fetch(:shortid, nil),
-            },
+            ),
+            fail_closed: true,
           )
 
           success_data

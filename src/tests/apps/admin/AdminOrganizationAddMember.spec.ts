@@ -77,6 +77,11 @@ const i18n = createTestI18n();
 const ORG_EXTID = 'on_abc123';
 const ORG_URL = `/api/colonel/organizations/${ORG_EXTID}`;
 const MEMBERS_URL = `${ORG_URL}/members`;
+/**
+ * Adding a member is privilege-granting, so the server gates it on the
+ * organization's NAME in X-OTS-Confirm (#4326).
+ */
+const CONFIRM_HEADERS = { headers: { 'X-OTS-Confirm': encodeURIComponent('Acme') } };
 const USERS_URL = '/api/colonel/users';
 
 /** Existing owner already on the roster. */
@@ -266,11 +271,12 @@ describe('AdminOrganizationDetail — add an existing account to the organizatio
       global: { plugins: [pinia, i18n] },
     });
 
-  /** Open the modal, search for `term`, and let the debounce + request settle. */
+  /** Open the modal, type `term`, submit the search form, and let the request settle. */
   async function search(w: VueWrapper, term: string): Promise<void> {
     await w.find('[data-testid="org-add-member-button"]').trigger('click');
-    await w.find('[data-testid="add-member-search"]').setValue(term);
-    vi.advanceTimersByTime(300);
+    const input = w.find('[data-testid="add-member-search"]');
+    await input.setValue(term);
+    input.element.closest('form')!.dispatchEvent(new Event('submit'));
     await flushPromises();
   }
 
@@ -279,8 +285,9 @@ describe('AdminOrganizationDetail — add an existing account to the organizatio
     wrapper = mountView();
     await flushPromises();
 
-    // The modal is inert until opened: only the org detail GET has fired.
-    expect(mockApi.get).toHaveBeenCalledTimes(1);
+    // The modal is inert until opened: only the mount-time GETs have fired
+    // (org detail + the available-plans catalog for the plan selector).
+    expect(mockApi.get).toHaveBeenCalledTimes(2);
 
     await search(wrapper, 'newperson@acme.test');
 
@@ -296,7 +303,7 @@ describe('AdminOrganizationDetail — add an existing account to the organizatio
     expect(results.text()).toContain(CANDIDATE_EXTID);
   });
 
-  it('debounces the search so it issues one request per pause, not per keystroke', async () => {
+  it('never searches on typing alone — the request goes out on submit only', async () => {
     routeGets();
     wrapper = mountView();
     await flushPromises();
@@ -306,11 +313,18 @@ describe('AdminOrganizationDetail — add an existing account to the organizatio
     await input.setValue('new');
     await input.setValue('newper');
     await input.setValue('newperson@acme.test');
-    vi.advanceTimersByTime(300);
+    vi.advanceTimersByTime(1000);
     await flushPromises();
 
-    const userSearches = mockApi.get.mock.calls.filter(([url]) => url === USERS_URL);
-    expect(userSearches).toHaveLength(1);
+    expect(mockApi.get.mock.calls.filter(([url]) => url === USERS_URL)).toHaveLength(0);
+
+    input.element.closest('form')!.dispatchEvent(new Event('submit'));
+    await flushPromises();
+    // Re-submitting the same term is a no-op.
+    input.element.closest('form')!.dispatchEvent(new Event('submit'));
+    await flushPromises();
+
+    expect(mockApi.get.mock.calls.filter(([url]) => url === USERS_URL)).toHaveLength(1);
   });
 
   it('shows an explicit not-found state when no account matches', async () => {
@@ -369,10 +383,11 @@ describe('AdminOrganizationDetail — add an existing account to the organizatio
     await flushPromises();
 
     // Never an email address: the colonel adapter resolves the public id.
-    expect(mockApi.post).toHaveBeenCalledWith(MEMBERS_URL, {
-      customer: CANDIDATE_EXTID,
-      role: 'admin',
-    });
+    expect(mockApi.post).toHaveBeenCalledWith(
+      MEMBERS_URL,
+      { customer: CANDIDATE_EXTID, role: 'admin' },
+      CONFIRM_HEADERS
+    );
     expect(showMock).toHaveBeenCalledTimes(1);
     expect(showMock.mock.calls[0][0]).toBe('web.admin.organizations.addMember.success');
     expect(showMock.mock.calls[0][1]).toBe('success');
@@ -528,10 +543,11 @@ describe('AdminOrganizationDetail — add an existing account to the organizatio
 
     await wrapper.find('[data-testid="add-member-submit"]').trigger('click');
     await flushPromises();
-    expect(mockApi.post).toHaveBeenCalledWith(MEMBERS_URL, {
-      customer: CANDIDATE_EXTID,
-      role: 'member',
-    });
+    expect(mockApi.post).toHaveBeenCalledWith(
+      MEMBERS_URL,
+      { customer: CANDIDATE_EXTID, role: 'member' },
+      CONFIRM_HEADERS
+    );
   });
 
   it('renders a retryable banner when the account search itself fails', async () => {

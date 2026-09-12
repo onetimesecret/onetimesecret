@@ -4,6 +4,7 @@
 
 require 'onetime/domain_validation/features'
 require_relative '../base'
+require_relative 'domain_resolver'
 
 module ColonelAPI
   module Logic
@@ -11,7 +12,8 @@ module ColonelAPI
       # Get Custom Domain detail (Colonel)
       #
       # @api Full read-out for a single custom domain, resolved globally by its
-      #   PUBLIC id (extid). Backs the admin DNS-details panel and the refresh
+      #   PUBLIC id (extid) or internal objid (domain_id) — see DomainResolver.
+      #   Backs the admin DNS-details panel and the refresh
       #   after a colonel re-verify. Same response shape as CreateCustomDomain:
       #   { record: safe_dump (+ DNS fields), details: { cluster } }.
       #   Requires the colonel role.
@@ -25,6 +27,8 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class GetCustomDomain < ColonelAPI::Logic::Base
+        include DomainResolver
+
         attr_reader :extid, :custom_domain
 
         def process_params
@@ -36,7 +40,7 @@ module ColonelAPI
 
           raise_form_error('Domain ID is required', field: :extid) if extid.to_s.empty?
 
-          @custom_domain = Onetime::CustomDomain.find_by_extid(extid)
+          @custom_domain = resolve_custom_domain(extid)
           raise_not_found('Domain not found') unless custom_domain
         end
 

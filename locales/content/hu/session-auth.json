@@ -436,13 +436,17 @@
     "text": "Ellenőrizze az e-mailjeit",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "Ellenőrző hivatkozást küldtünk erre a címre:",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "Ellenőrző hivatkozást küldtünk az e-mail-címére.",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "Ellenőrző hivatkozást küldtünk erre a címre — nyissa meg az e-mailt, és kattintson a hivatkozásra a fiókja aktiválásához.",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "Kattintson az e-mailben lévő hivatkozásra a fiókja aktiválásához.",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "Nem találja? Ellenőrizze a spam mappáját.",

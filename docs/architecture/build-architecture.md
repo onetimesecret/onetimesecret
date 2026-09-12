@@ -6,7 +6,7 @@ The build workflow produces multiple OCI image variants from a single codebase, 
 
 ```
 docker/
-  base.dockerfile          Shared: Ruby 3.4 + Node 22 + build tools + yq + appuser (UID 1001)
+  base.dockerfile          Shared: Ruby 3.4 + Node 24 + build tools + yq + appuser (UID 1001)
   bake.hcl                 Orchestration: targets, tag function, registry routing
   entrypoints/             App-specific startup logic
   s6/services/             S6 process supervision definitions
@@ -15,8 +15,8 @@ docker/
     caddy.dockerfile       TLS proxy
 
 Dockerfile                 App stages only: dependencies → build → final-s6 / final
-.oci-build.json            Gitolite build server config (base + variant declarations)
-build-and-deploy.py        Post-receive hook (reads .oci-build.json, drives podman build)
+`.oci-build.json            Repo-side Gitolite build contract (base + variant declarations)
+`build-and-deploy.py`      External Gitolite post-receive hook (not in this repository)
 ```
 
 ## Build Graph
@@ -49,7 +49,7 @@ base.dockerfile          Dockerfile                    lite.dockerfile
 
 ```
 .github/workflows/build-and-publish-oci-images.yml
-  → docker/bake-action@v6
+  → docker/bake-action@v7
     → reads docker/bake.hcl
       → resolves target DAG (base → main/s6, main → lite)
       → pushes to GHCR + DockerHub (or custom registry)
@@ -60,6 +60,11 @@ Single job replaced three parallel jobs. The old composite action (`.github/acti
 Tag logic is computed in a shell step as `EXTRA_TAGS` (comma-separated), passed as an env var. The `tags()` HCL function distributes them across registries. User-controlled inputs use `env:` variables in `run:` blocks, never inline `${{ }}` (injection-safe).
 
 ### Path 2: Gitolite Build Server (Podman)
+
+`build-and-deploy.py` is deployment infrastructure and is not tracked in this
+repository. This document records the contract it consumes from
+`.oci-build.json`; operators changing hook behavior must use their build
+server's deployment source and configuration.
 
 ```
 git push build main
@@ -177,9 +182,11 @@ repo onetimesecret
 
 When present, these override the corresponding `.oci-build.json` fields. When absent, `.oci-build.json` values are used as-is.
 
-### build-and-deploy.py changes
+### External `build-and-deploy.py` integration
 
-The hook needs a helper to read gitolite options from the bare repo's git config:
+The following helper is a contract for the external Gitolite hook, not code
+that can be edited or run from this repository. The hook reads gitolite options
+from the bare repo's git config:
 
 ```python
 def _gitolite_option(repo: Repo, key: str) -> str | None:
@@ -247,7 +254,8 @@ REGISTRY_MODE="custom" CUSTOM_REGISTRY="registry.example.com" \
 
 ```bash
 # Docker Bake (CI path)
-docker buildx bake -f docker/bake.hcl --print          # all targets resolve without error
+docker buildx bake -f docker/bake.hcl --print ci        # CI targets resolve without error
+docker buildx bake -f docker/bake.hcl --print all       # every declared target resolves without error
 docker buildx bake -f docker/bake.hcl main              # main image builds successfully
 docker run --rm <image>:<tag> ruby --version             # Ruby present in final image
 
@@ -296,7 +304,10 @@ Local builds default to your machine's native architecture. Add `--platform` whe
 - Quick verification that the build succeeds
 - Your deployment target matches your dev machine
 
-The CI/CD pipeline and post-receive hook always specify `linux/amd64` for consistent production builds.
+GitHub Actions defaults to `linux/amd64,linux/arm64`; manual dispatch can select
+either architecture or override the default. The checked-in Gitolite contract
+currently declares `linux/amd64` in `.oci-build.json`; its external hook may
+apply deployment-specific platform policy.
 
 ## Decisions
 

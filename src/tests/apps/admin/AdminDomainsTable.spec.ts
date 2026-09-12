@@ -162,26 +162,26 @@ describe('AdminDomains — table, filters and drawer', () => {
     );
   });
 
-  it('debounces the search box into a single filtered request', async () => {
-    vi.useFakeTimers();
-    try {
-      wrapper = mountView();
-      await flushPromises();
-      expect(mockApi.get).toHaveBeenCalledTimes(1);
+  it('searches only on submit: typing issues no request, Enter issues one', async () => {
+    wrapper = mountView();
+    await flushPromises();
+    expect(mockApi.get).toHaveBeenCalledTimes(1);
 
-      await searchInput(wrapper).setValue('glo');
-      await searchInput(wrapper).setValue('globex');
-      vi.advanceTimersByTime(300);
-      await flushPromises();
+    await searchInput(wrapper).setValue('glo');
+    await searchInput(wrapper).setValue('globex');
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    await flushPromises();
+    // Nothing fired for the keystrokes — no debounce, no auto-search.
+    expect(mockApi.get).toHaveBeenCalledTimes(1);
 
-      // One request for the pause, not one per keystroke, and page 1.
-      expect(mockApi.get).toHaveBeenCalledTimes(2);
-      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/domains', {
-        params: { page: 1, per_page: 50, search: 'globex' },
-      });
-    } finally {
-      vi.useRealTimers();
-    }
+    await searchInput(wrapper).trigger('keydown', { key: 'Enter' });
+    await flushPromises();
+
+    // One request for the submit, and page 1.
+    expect(mockApi.get).toHaveBeenCalledTimes(2);
+    expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/domains', {
+      params: { page: 1, per_page: 50, search: 'globex' },
+    });
   });
 
   it('sends the state filter as the server `status` param', async () => {
@@ -253,7 +253,9 @@ describe('AdminDomains — table, filters and drawer', () => {
     // The drawer renders from the row already in hand — no second fetch.
     expect(mockApi.get).toHaveBeenCalledTimes(1);
 
-    const fullPage = wrapper.findComponent('[data-testid="domain-open-full-page"]');
+    const fullPage = wrapper.findComponent<typeof RouterLinkStub>(
+      '[data-testid="domain-open-full-page"]'
+    );
     expect(fullPage.exists()).toBe(true);
     expect(fullPage.props('to')).toEqual({
       name: 'AdminDomainDetail',

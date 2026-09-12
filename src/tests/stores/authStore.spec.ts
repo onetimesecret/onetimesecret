@@ -21,8 +21,9 @@ vi.mock('@/services/diagnostics.service', async (importOriginal) => ({
 
 // Create a mock Customer object that matches the actual Customer type
 const mockCustomer: Customer = {
-  identifier: 'cust-1',
-  custid: '1',
+  objid: 'cust-1',
+  extid: 'cust-ext-1',
+  email: 'john@example.com',
   role: 'customer',
   verified: true,
   secrets_burned: 0,
@@ -35,9 +36,7 @@ const mockCustomer: Customer = {
   secrets_created: 0,
   active: true,
   locale: 'en-US',
-  stripe_checkout_email: 'john@example.com',
-  stripe_subscription_id: 'sub_123456',
-  stripe_customer_id: 'cus_123456',
+  notify_on_reveal: false,
 };
 
 describe('authStore', () => {
@@ -413,7 +412,9 @@ describe('authStore', () => {
 
     it('does not sync store authenticated to window state', () => {
       expect(store.isAuthenticated).toBe(true);
-      expect(window.authenticated).toBeUndefined();
+      // `authenticated` is deliberately NOT part of the Window interface — this
+      // asserts the legacy global-sync anti-pattern hasn't crept back in.
+      expect((window as unknown as Record<string, unknown>).authenticated).toBeUndefined();
     });
 
     it('initializes correctly from window state', () => {
@@ -550,24 +551,33 @@ describe('authStore', () => {
       vi.useRealTimers();
     });
 
-    it('applies jitter within configured bounds', () => {
-      vi.useFakeTimers();
+    it('applies jitter within configured bounds', async () => {
       store.$patch({ isAuthenticated: true });
 
       const samples = 100;
       const delays: number[] = [];
 
-      // Spy on setTimeout to capture the actual delays
-      const setTimeoutSpy = vi.spyOn(vi, 'setSystemTime');
+      // Capture each scheduled delay by wrapping the global setTimeout by
+      // hand rather than vi.spyOn(globalThis, 'setTimeout'): in this
+      // environment vi.spyOn's restore does not fully undo the wrap, leaving
+      // globalThis.setTimeout broken for every later test in the file (they
+      // then hang on setupTestPinia's own use of it). A plain save/restore of
+      // the reference sidesteps that. Real timers throughout: each loop
+      // iteration is superseded by $scheduleNextCheck()'s own leading
+      // $stopAuthCheck() call, so no scheduled callback ever actually runs,
+      // and the last one is cancelled explicitly below.
+      const originalSetTimeout = globalThis.setTimeout;
+      globalThis.setTimeout = ((handler: TimerHandler, delay?: number, ...args: unknown[]) => {
+        delays.push(delay ?? 0);
+        return originalSetTimeout(handler, delay, ...args);
+      }) as typeof globalThis.setTimeout;
 
-      for (let i = 0; i < samples; i++) {
-        store.$scheduleNextCheck();
-        // Get the delay from the last setTimeout call
-        const lastCall = setTimeoutSpy.mock.calls[setTimeoutSpy.mock.calls.length - 1];
-        if (lastCall) {
-          delays.push(lastCall[1] as number);
+      try {
+        for (let i = 0; i < samples; i++) {
+          store.$scheduleNextCheck();
         }
-        vi.clearAllTimers(); // Clear timer before next iteration
+      } finally {
+        globalThis.setTimeout = originalSetTimeout;
       }
 
       const minExpected = AUTH_CHECK_CONFIG.INTERVAL - AUTH_CHECK_CONFIG.JITTER; // 810_000
@@ -578,8 +588,8 @@ describe('authStore', () => {
         expect(delay).toBeLessThanOrEqual(maxExpected);
       });
 
-      vi.useRealTimers();
-      setTimeoutSpy.mockRestore();
+      // Cancel the real timer left pending by the final loop iteration.
+      await store.$stopAuthCheck();
     });
 
     it('stops existing auth check before scheduling a new one', () => {
@@ -699,7 +709,8 @@ describe('authStore', () => {
       bootstrapStore.update({
         authenticated: true,
         had_valid_session: true,
-        cust: mockCustomer,
+        cust: fixtureCustomer,
+        email: fixtureCustomer.email,
       });
 
       store.init();

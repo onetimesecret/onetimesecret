@@ -97,6 +97,16 @@ def colonel_headers
   { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
 end
 
+# Server-side destructive-action confirmation (#4326): the config upsert (TIER 2)
+# and delete (TIER 1) verbs require "<display_domain>:<kind>", percent-encoded,
+# in X-OTS-Confirm — the URL carries only the extid. `ensure` is TIER 3
+# (idempotent backfill of missing rows) and needs nothing.
+def confirming_config(domain, kind)
+  colonel_headers.merge(
+    'HTTP_X_OTS_CONFIRM' => Rack::Utils.escape("#{domain.display_domain}:#{kind}"),
+  )
+end
+
 # ----------------------------------------------------------------
 # Authorization — GET /domains/:extid/configs
 # ----------------------------------------------------------------
@@ -204,7 +214,7 @@ post "/api/colonel/domains/#{@extid}/configs/ensure", { 'dry_run' => 'false' }, 
 ## PUT signin: partial update returns real JSON booleans and outcome=updated
 @before_audit = Onetime::ColonelAuditEvent.count
 put "/api/colonel/domains/#{@extid}/configs/signin",
-  { 'enabled' => 'true', 'signin_enabled' => 'true' }, colonel_headers
+  { 'enabled' => 'true', 'signin_enabled' => 'true' }, confirming_config(@domain, 'signin')
 @resp = JSON.parse(last_response.body)
 d = @resp['details']
 [last_response.status, d['kind'], d['outcome'],
@@ -226,7 +236,7 @@ cfg = Onetime::CustomDomain::SigninConfig.find_by_domain_id(@domain.identifier)
 
 ## PUT signin on the SECOND domain (no ensure ran there): outcome=created
 @before_audit = Onetime::ColonelAuditEvent.count
-put "/api/colonel/domains/#{@extid2}/configs/signin", { 'enabled' => 'true' }, colonel_headers
+put "/api/colonel/domains/#{@extid2}/configs/signin", { 'enabled' => 'true' }, confirming_config(@domain2, 'signin')
 @resp = JSON.parse(last_response.body)
 [last_response.status, @resp['details']['outcome'], @resp['details']['config']['enabled'],
  Onetime::ColonelAuditEvent.count - @before_audit]
@@ -246,14 +256,14 @@ put "/api/colonel/domains/#{@extid2}/configs/signin", { 'enabled' => 'true' }, c
 
 ## PUT signin with an invalid restrict_to enum -> 422 at the adapter, no audit
 @before_audit = Onetime::ColonelAuditEvent.count
-put "/api/colonel/domains/#{@extid}/configs/signin", { 'restrict_to' => 'bogus' }, colonel_headers
+put "/api/colonel/domains/#{@extid}/configs/signin", { 'restrict_to' => 'bogus' }, confirming_config(@domain, 'signin')
 [last_response.status, Onetime::ColonelAuditEvent.count - @before_audit]
 #=> [422, 0]
 
 ## PUT signup with an invalid allowed_signup_domains entry -> 422 from the model setter
 @before_audit = Onetime::ColonelAuditEvent.count
 put "/api/colonel/domains/#{@extid}/configs/signup",
-  { 'allowed_signup_domains' => ['not_a_domain'] }, colonel_headers
+  { 'allowed_signup_domains' => ['not_a_domain'] }, confirming_config(@domain, 'signup')
 [last_response.status, Onetime::ColonelAuditEvent.count - @before_audit]
 #=> [422, 1]
 
@@ -265,7 +275,7 @@ put "/api/colonel/domains/#{@extid}/configs/signup",
 
 ## PUT signup with a VALID allowlist round-trips the array
 put "/api/colonel/domains/#{@extid}/configs/signup",
-  { 'validation_strategy' => 'domain_allowlist', 'allowed_signup_domains' => ['corp.example.com'] }, colonel_headers
+  { 'validation_strategy' => 'domain_allowlist', 'allowed_signup_domains' => ['corp.example.com'] }, confirming_config(@domain, 'signup')
 @resp = JSON.parse(last_response.body)
 [last_response.status, @resp['details']['config']['validation_strategy'], @resp['details']['config']['allowed_signup_domains']]
 #=> [200, 'domain_allowlist', ['corp.example.com']]
@@ -339,7 +349,7 @@ mailer = @resp['details']['configs']['mailer']
 
 ## DELETE signin: 200 with deleted:true and ONE domain.config_delete audit event
 @before_audit = Onetime::ColonelAuditEvent.count
-delete "/api/colonel/domains/#{@extid}/configs/signin", {}, colonel_headers
+delete "/api/colonel/domains/#{@extid}/configs/signin", {}, confirming_config(@domain, 'signin')
 @resp = JSON.parse(last_response.body)
 @latest = Onetime::ColonelAuditEvent.recent(1, 0).first
 [last_response.status, @resp['details']['kind'], @resp['details']['deleted'],
@@ -348,7 +358,7 @@ delete "/api/colonel/domains/#{@extid}/configs/signin", {}, colonel_headers
 
 ## DELETE signin again: the record is gone -> 404 and ONE result: :failure event
 @before_audit = Onetime::ColonelAuditEvent.count
-delete "/api/colonel/domains/#{@extid}/configs/signin", {}, colonel_headers
+delete "/api/colonel/domains/#{@extid}/configs/signin", {}, confirming_config(@domain, 'signin')
 [last_response.status, Onetime::ColonelAuditEvent.count - @before_audit,
  Onetime::CustomDomain::SigninConfig.exists_for_domain?(@domain.identifier)]
 #=> [404, 1, false]
@@ -360,7 +370,7 @@ delete "/api/colonel/domains/#{@extid}/configs/signin", {}, colonel_headers
 #=> ["domain.config_delete", @extid, "failure", 'not_found', 'signin']
 
 ## DELETE sso: the credential kinds are deletable (recovery posture)
-delete "/api/colonel/domains/#{@extid}/configs/sso", {}, colonel_headers
+delete "/api/colonel/domains/#{@extid}/configs/sso", {}, confirming_config(@domain, 'sso')
 @resp = JSON.parse(last_response.body)
 [last_response.status, @resp['details']['deleted'],
  Onetime::CustomDomain::SsoConfig.exists_for_domain?(@domain.identifier)]

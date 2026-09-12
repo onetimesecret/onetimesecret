@@ -131,6 +131,7 @@ function mutationAck() {
 
 const dialogInput = (w: VueWrapper) => w.find('#admin-confirm-input');
 const dialogSubmit = (w: VueWrapper) => w.find('[data-testid="admin-confirm-submit"]');
+const dialogReason = (w: VueWrapper) => w.find('[data-testid="admin-confirm-reason"]');
 const drawer = (w: VueWrapper) => w.find('[data-testid="customers-drawer"]');
 
 describe('AdminCustomers — drawer operator actions', () => {
@@ -194,7 +195,12 @@ describe('AdminCustomers — drawer operator actions', () => {
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.post).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}/verify`, {});
+      // Verify is the restorative arm: un-gated, so no confirmation header.
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `/api/colonel/users/${PUBLIC_ID}/verify`,
+        {},
+        undefined
+      );
       expect(showMock).toHaveBeenCalledWith(
         'web.admin.customers.actions.verify.success',
         'success'
@@ -220,7 +226,13 @@ describe('AdminCustomers — drawer operator actions', () => {
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.post).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}/unverify`, {});
+      // Unverify strips colonel eligibility, so the server gates it on the
+      // account identifier (#4326) and the drawer sends it.
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `/api/colonel/users/${PUBLIC_ID}/unverify`,
+        {},
+        { headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) } }
+      );
       expect(drawer(wrapper).find('[data-testid="customer-drawer-verification"]').text()).toContain(
         'web.admin.customers.verification.unverified'
       );
@@ -277,7 +289,11 @@ describe('AdminCustomers — drawer operator actions', () => {
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.delete).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}`);
+      // The typed email is also what rides X-OTS-Confirm (#4326); the URL is
+      // left free of the address.
+      expect(mockApi.delete).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}`, {
+        headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) },
+      });
       expect(showMock).toHaveBeenCalledWith('web.admin.customers.actions.purge.success', 'success');
       expect(drawer(wrapper).exists()).toBe(false);
       // The list is re-read (totals/pagination move server-side).
@@ -287,6 +303,58 @@ describe('AdminCustomers — drawer operator actions', () => {
       });
       // Stays on the list — the drawer never navigated anywhere.
       expect(pushMock).not.toHaveBeenCalled();
+    });
+
+    // #4338 — the adapter-level half: what the operator types in the dialog has
+    // to reach the endpoint, or the trail still cannot say why. This is a DELETE,
+    // so the reason rides the QUERY STRING (DELETE bodies are not reliably
+    // parsed across this stack), BESIDE the #4326 confirm header — never
+    // instead of it.
+    it('sends the operator reason on the query string when one is given', async () => {
+      await openDrawer();
+      mockApi.delete.mockResolvedValue({ data: mutationAck() });
+      mockApi.get.mockResolvedValue({ data: emptyPayload() });
+
+      await wrapper.find('[data-testid="drawer-purge-button"]').trigger('click');
+      expect(dialogReason(wrapper).exists()).toBe(true);
+      await dialogReason(wrapper).setValue('  GDPR erasure request #123  ');
+      await dialogInput(wrapper).setValue(EMAIL);
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.delete).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}`, {
+        headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) },
+        params: { reason: 'GDPR erasure request #123' },
+      });
+    });
+
+    // The OPTIONAL half: no reason must leave the request BYTE-IDENTICAL to the
+    // pre-#4338 one — the #4326 confirm header and nothing else, not
+    // `reason=''` — so the audit detail keeps its old shape. (The "DELETEs,
+    // toasts…" case above asserts the same headers-only call.)
+    it('adds nothing to the request when the reason is left blank', async () => {
+      await openDrawer();
+      mockApi.delete.mockResolvedValue({ data: mutationAck() });
+      mockApi.get.mockResolvedValue({ data: emptyPayload() });
+
+      await wrapper.find('[data-testid="drawer-purge-button"]').trigger('click');
+      await dialogReason(wrapper).setValue('   ');
+      await dialogInput(wrapper).setValue(EMAIL);
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.delete).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}`, {
+        headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) },
+      });
+    });
+
+    // Reversible bookkeeping asks for no explanation — only the destructive
+    // verb on this screen does.
+    it('does NOT show the reason field for verify/unverify', async () => {
+      await openDrawer();
+      await wrapper.find('[data-testid="drawer-verify-button"]').trigger('click');
+      await flushPromises();
+      expect(dialogReason(wrapper).exists()).toBe(false);
     });
 
     it('does NOT delete when submitted without a matching token', async () => {
@@ -338,9 +406,14 @@ describe('useAdminCustomers — operator mutations', () => {
     const store = await seeded({ verified: false });
     mockApi.post.mockResolvedValue({ data: mutationAck() });
 
-    const updated = await store.setVerification(PUBLIC_ID, true);
+    const updated = await store.setVerification(PUBLIC_ID, true, EMAIL);
 
-    expect(mockApi.post).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}/verify`, {});
+    // The verify arm is un-gated, so the token is dropped rather than sent.
+    expect(mockApi.post).toHaveBeenCalledWith(
+      `/api/colonel/users/${PUBLIC_ID}/verify`,
+      {},
+      undefined
+    );
     expect(updated?.verified).toBe(true);
     expect(store.customers[0].verified).toBe(true);
   });
@@ -357,9 +430,11 @@ describe('useAdminCustomers — operator mutations', () => {
     const store = await seeded();
     mockApi.delete.mockResolvedValue({ data: mutationAck() });
 
-    await store.purge(PUBLIC_ID);
+    await store.purge(PUBLIC_ID, EMAIL);
 
-    expect(mockApi.delete).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}`);
+    expect(mockApi.delete).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}`, {
+      headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) },
+    });
     expect(store.customers).toHaveLength(0);
   });
 
@@ -367,7 +442,7 @@ describe('useAdminCustomers — operator mutations', () => {
     const store = await seeded();
     mockApi.delete.mockRejectedValue(axiosError(422, { error: 'nope' }));
 
-    await expect(store.purge(PUBLIC_ID)).rejects.toBeTruthy();
+    await expect(store.purge(PUBLIC_ID, EMAIL)).rejects.toBeTruthy();
     expect(store.customers).toHaveLength(1);
   });
 
@@ -375,10 +450,11 @@ describe('useAdminCustomers — operator mutations', () => {
     const store = await seeded();
     mockApi.delete.mockResolvedValue({ data: mutationAck() });
 
-    await store.purge('ur alice/../colonel');
+    await store.purge('ur alice/../colonel', EMAIL);
 
     expect(mockApi.delete).toHaveBeenCalledWith(
-      '/api/colonel/users/ur%20alice%2F..%2Fcolonel'
+      '/api/colonel/users/ur%20alice%2F..%2Fcolonel',
+      { headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) } }
     );
   });
 });

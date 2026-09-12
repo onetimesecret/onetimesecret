@@ -5,6 +5,7 @@
 require_relative '../base'
 require_relative 'account_identifier'
 require 'auth/operations/customers/purge'
+require 'onetime/operations/customers/role_support'
 
 module ColonelAPI
   module Logic
@@ -12,7 +13,7 @@ module ColonelAPI
       # Purge (permanently delete) a single user.
       #
       # Thin adapter over Auth::Operations::Customers::Purge (which reuses
-      # Auth::Operations::DeleteCustomer and records the ColonelAuditEvent). This
+      # Auth::Operations::DestroyCustomerRecord and records the ColonelAuditEvent). This
       # class only handles HTTP concerns.
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
@@ -20,13 +21,16 @@ module ColonelAPI
       class PurgeUser < ColonelAPI::Logic::Base
         include AccountIdentifier
 
-        attr_reader :user_id, :user, :purged_extid, :purged_objid, :result
+        attr_reader :user_id, :user, :purged_extid, :purged_objid, :reason, :result
 
         def process_params
           # sanitize_account_identifier (NOT sanitize_identifier) — the latter
           # strips '@' and '.', which silently destroyed the documented email
           # arm below. See AccountIdentifier.
           @user_id = sanitize_account_identifier(params['user_id'])
+          # OPTIONAL operator-supplied why (#4338) — query string, since this is
+          # a DELETE. See ColonelAPI::Logic::Base#operator_reason_param.
+          @reason  = operator_reason_param
           raise_form_error('User ID is required', field: :user_id) if user_id.to_s.empty?
         end
 
@@ -41,7 +45,43 @@ module ColonelAPI
           raise_not_found('User not found') unless user&.exists?
 
           raise_form_error('Cannot purge anonymous user', field: :user_id) if user.anonymous?
+
+          # TIER 1 (#4326). The URL carries the extid; the confirmation is the
+          # account's EMAIL (its extid only when it has none), so a scraped-id
+          # replay must also know an identifier the URL never carried.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: account_confirm_token(user),
+            confirm_subject: 'the account email address (or its external id when it has none)',
+            field: :user_id,
+          )
+
+          # INTERLOCK — after proof (guard order §0.2): a 422 here would
+          # otherwise tell a caller who has proven nothing whether the named
+          # account is their own.
           raise_form_error('Cannot purge your own account', field: :user_id) if user.objid == cust.objid
+
+          # INTERLOCK (#4328): purging the last active colonel deletes the last
+          # administrator — a HARDER lockout than demote/unverify (the account is
+          # gone, not merely stripped) and, being irreversible, one this op cannot
+          # post-write roll back the way SetRole/SetVerification do. Refuse it at
+          # the pre-check. An UNVERIFIED colonel-role target is not an active
+          # colonel (last_colonel_by_verification? requires verified?), so purging
+          # it cannot empty the roster and is allowed. The residual concurrent
+          # double-purge (two colonels purging each other past this non-atomic
+          # check) cannot be undone here — a purged account cannot be recreated —
+          # and is the one gap purge's irreversibility leaves that the reversible
+          # verbs close with a post-write rollback.
+          if Onetime::Operations::Customers::RoleSupport.last_colonel_by_verification?(user)
+            raise_form_error(
+              'Refusing to purge the last active colonel: it would leave the install ' \
+              'with no administrator (recoverable only from the CLI). Promote and ' \
+              'verify another colonel first.',
+              field: :user_id,
+            )
+          end
+
+          charge_destructive_budget!
         end
 
         def process
@@ -52,6 +92,7 @@ module ColonelAPI
           @result = Auth::Operations::Customers::Purge.new(
             customer: user,
             actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
+            reason: reason,
           ).call
 
           handle_result_status
@@ -79,7 +120,7 @@ module ColonelAPI
         # Purge::Result#status is a CLOSED contract (purge.rb): :success or
         # :not_found, nothing else.
         #
-        # :not_found means DeleteCustomer found nothing to destroy — the record
+        # :not_found means DestroyCustomerRecord found nothing to destroy — the record
         # vanished between raise_concerns and the destroy — and in that case the
         # op records NO ColonelAuditEvent. Reporting `deleted: true` would invent
         # both a deletion and an audit trail. The CLI peer (`bin/ots customers

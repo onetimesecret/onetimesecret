@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/secret_lifetime_policy'
+
 module V1::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
@@ -153,7 +155,7 @@ module V1::Logic
         # TTL ceiling dispatch — mirrors V2's three-way structure (#4172).
         #
         # 1. auth_org present (V1 specs that inject one): plan limit
-        # 2. anonymous caller: configured anonymous ceiling (default 7 days)
+        # 2. guest caller: request-host policy (canonical 7d default; custom 14/30d)
         # 3. authenticated without OrganizationContext: resolve via billing/org lookup
         #
         # Before #4172 the anonymous case fell through to resolve_ttl_limit,
@@ -439,35 +441,15 @@ module V1::Logic
         config_max
       end
 
-      # Anonymous TTL ceiling (#4172), mirroring V2's anonymous_max_ttl.
-      #
-      # Lowest of up to three ceilings:
-      #   1. configured_anonymous_max_ttl (default 7 days, env TTL_MAX_ANONYMOUS)
-      #   2. config_max (V1_MAX_TTL, so a global cap still wins)
-      #   3. free-tier secret_lifetime limit (only when billing is enabled)
-      #
-      # @param config_max [Integer] V1_MAX_TTL fallback
-      # @return [Integer] Maximum TTL in seconds for anonymous callers
+      # V1 keeps its frozen 30-day outer bound, but shares the request-boundary
+      # distinction with V2/V3: canonical guests use TTL_MAX_ANONYMOUS, while a
+      # guest on a custom host uses the domain owner's organization plan.
       def anonymous_max_ttl(config_max)
-        ceilings = [
-          Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl,
-          config_max,
-        ]
-
-        billing_enabled = begin
-          Onetime::BillingConfig.instance.enabled?
-        rescue StandardError => ex
-          OT.ld "[anonymous_max_ttl] BillingConfig unavailable (#{ex.class}: #{ex.message}); " \
-                "anonymous TTL ceiling falls back to #{ceilings.min}"
-          false
-        end
-
-        if billing_enabled
-          free_tier_max = Onetime::Organization.free_tier_limits['secret_lifetime.max'].to_i
-          ceilings << free_tier_max if free_tier_max.positive?
-        end
-
-        ceilings.min
+        Onetime::SecretLifetimePolicy.guest_ceiling(
+          config_max: config_max,
+          domain_strategy: domain_strategy,
+          display_domain: display_domain,
+        )
       end
 
       # Creates the receipt/secret pair using the modern Metadata.spawn_pair API.

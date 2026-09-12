@@ -72,6 +72,10 @@ vi.mock('@headlessui/vue', () => ({
 }));
 
 import AdminCustomerDetail from '@/apps/admin/views/AdminCustomerDetail.vue';
+import {
+  __resetColonelElevationState,
+  useColonelElevation,
+} from '@/apps/admin/composables/useColonelElevation';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
@@ -135,7 +139,12 @@ const dialogSubmit = (w: VueWrapper) => w.find('[data-testid="admin-confirm-subm
 describe('AdminCustomerDetail — purge gate (typed email) + verification state', () => {
   let wrapper: VueWrapper;
 
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // The step-up window is module-level singleton state (#4327); reset it so
+    // one example's elevation cannot satisfy the next one's gate.
+    __resetColonelElevationState();
+  });
   afterEach(() => wrapper?.unmount());
 
   async function mountLoaded(overrides: { verified?: boolean } = {}): Promise<void> {
@@ -172,7 +181,11 @@ describe('AdminCustomerDetail — purge gate (typed email) + verification state'
     await wrapper.find('form').trigger('submit');
     await flushPromises();
 
-    expect(mockApi.delete).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}`);
+    // The typed email is also what the server is gated on (#4326) — sent as a
+    // HEADER, so the address never enters the URL, a log, or browser history.
+    expect(mockApi.delete).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}`, {
+      headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) },
+    });
     expect(showMock).toHaveBeenCalledWith('web.admin.customers.actions.purge.success', 'success');
     expect(pushMock).toHaveBeenCalledWith({ name: 'AdminCustomers' });
   });
@@ -193,18 +206,30 @@ describe('AdminCustomerDetail — purge gate (typed email) + verification state'
     expect(showMock).not.toHaveBeenCalled();
   });
 
-  it('leaves SUSPEND on the public-id token (only purge moved to the email)', async () => {
+  // #4326 moved SUSPEND onto the same email token: the server gates all four
+  // danger verbs on the account identifier, and a dialog that asked for the
+  // public id while sending the email would be two gates disagreeing.
+  it('puts SUSPEND on the email token too, not the public id', async () => {
     await mountLoaded();
     mockApi.post.mockResolvedValue({ data: mutationAck() });
 
     await wrapper.find('[data-testid="suspend-button"]').trigger('click');
     await flushPromises();
 
-    await dialogInput(wrapper).setValue(EMAIL);
+    await dialogInput(wrapper).setValue(PUBLIC_ID);
     expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
 
-    await dialogInput(wrapper).setValue(PUBLIC_ID);
+    await dialogInput(wrapper).setValue(EMAIL);
     expect(dialogSubmit(wrapper).attributes('disabled')).toBeUndefined();
+
+    await wrapper.find('form').trigger('submit');
+    await flushPromises();
+
+    expect(mockApi.post).toHaveBeenCalledWith(
+      `/api/colonel/users/${PUBLIC_ID}/suspend`,
+      {},
+      { headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) } }
+    );
   });
 
   it('states the verification badge both ways and offers only the matching verb', async () => {
@@ -237,9 +262,148 @@ describe('AdminCustomerDetail — purge gate (typed email) + verification state'
     await wrapper.find('form').trigger('submit');
     await flushPromises();
 
-    expect(mockApi.post).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}/verify`, {});
+    // Verify is the restorative arm: un-gated, so no confirmation header.
+    expect(mockApi.post).toHaveBeenCalledWith(
+      `/api/colonel/users/${PUBLIC_ID}/verify`,
+      {},
+      undefined
+    );
     expect(pushMock).not.toHaveBeenCalled();
     expect(wrapper.find('[data-testid="verified-badge"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="unverify-button"]').exists()).toBe(true);
+  });
+
+  // ---- Step-up (sudo) window (#4327) ---------------------------------------
+  //
+  // The loop is: attempt -> 403 elevation_required -> prompt -> the operator
+  // acts -> retry ONCE. The retry must never fire without that gesture; an
+  // automatic elevate-and-retry would put a colonel session alone back in
+  // charge of a destructive verb, which is what this issue exists to stop.
+  describe('a 403 elevation_required opens the sudo prompt', () => {
+    async function submitPurge(): Promise<void> {
+      await wrapper.find('[data-testid="purge-button"]').trigger('click');
+      await dialogInput(wrapper).setValue(EMAIL);
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+    }
+
+    it('opens the prompt and does NOT retry until the operator acts', async () => {
+      await mountLoaded();
+      mockApi.delete.mockRejectedValue(
+        axiosError(403, { error: 'Step-up authentication required', error_code: 'elevation_required' })
+      );
+
+      await submitPurge();
+
+      const elevation = useColonelElevation();
+      expect(elevation.promptOpen.value).toBe(true);
+      // One attempt so far. The retry is still waiting on the operator.
+      expect(mockApi.delete).toHaveBeenCalledTimes(1);
+      expect(pushMock).not.toHaveBeenCalled();
+
+      // The operator elevates; the prompt resolves and the verb is retried once.
+      mockApi.delete.mockResolvedValue({ data: mutationAck() });
+      elevation.resolvePrompt(true);
+      await flushPromises();
+
+      expect(mockApi.delete).toHaveBeenCalledTimes(2);
+      expect(showMock).toHaveBeenCalledWith('web.admin.customers.actions.purge.success', 'success');
+    });
+
+    it('surfaces the original error and retries nothing when the operator cancels', async () => {
+      await mountLoaded();
+      mockApi.delete.mockRejectedValue(
+        axiosError(403, { error: 'Step-up authentication required', error_code: 'elevation_required' })
+      );
+
+      await submitPurge();
+
+      const elevation = useColonelElevation();
+      elevation.resolvePrompt(false);
+      await flushPromises();
+
+      expect(mockApi.delete).toHaveBeenCalledTimes(1);
+      expect(wrapper.find('[data-testid="admin-confirm-dialog"]').text()).toContain(
+        'Step-up authentication required'
+      );
+      expect(pushMock).not.toHaveBeenCalled();
+      expect(showMock).not.toHaveBeenCalled();
+    });
+
+    it('leaves a confirmation_required failure alone — no sudo prompt for that', async () => {
+      await mountLoaded();
+      mockApi.delete.mockRejectedValue(
+        axiosError(403, { error: 'Confirmation required', error_code: 'confirmation_required' })
+      );
+
+      await submitPurge();
+
+      expect(useColonelElevation().promptOpen.value).toBe(false);
+      expect(mockApi.delete).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // ---- Rate limiting (#4329) ------------------------------------------------
+  //
+  // The 429 reaches the dialog with no frontend change (the classifier renders
+  // any 4xx `error` string verbatim); what the composable adds is the wait and
+  // the recovery path, neither of which the server message can carry on its own.
+  describe('a 429 from the colonel limiter', () => {
+    async function submitPurge(): Promise<void> {
+      await wrapper.find('[data-testid="purge-button"]').trigger('click');
+      await dialogInput(wrapper).setValue(EMAIL);
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+    }
+
+    const throttled = (retryAfter?: number) =>
+      axiosError(429, {
+        error: 'Too many destructive admin actions. This is a safety limit; try again shortly.',
+        error_type: 'LimitExceeded',
+        max_attempts: 10,
+        ...(retryAfter === undefined ? {} : { retry_after: retryAfter }),
+      });
+
+    it('keeps the server message and adds the wait plus the recovery hint', async () => {
+      await mountLoaded();
+      mockApi.delete.mockRejectedValue(throttled(900));
+
+      await submitPurge();
+
+      const dialog = wrapper.find('[data-testid="admin-confirm-dialog"]').text();
+      expect(dialog).toContain('Too many destructive admin actions');
+      expect(dialog).toContain('web.admin.errors.rateLimited');
+      expect(dialog).toContain('web.admin.errors.rateLimitedRecovery');
+      // Nothing happened but the refusal: no toast, no navigation, no retry.
+      expect(mockApi.delete).toHaveBeenCalledTimes(1);
+      expect(pushMock).not.toHaveBeenCalled();
+      expect(showMock).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the server message alone when there is no retry_after', async () => {
+      await mountLoaded();
+      mockApi.delete.mockRejectedValue(throttled());
+
+      await submitPurge();
+
+      const dialog = wrapper.find('[data-testid="admin-confirm-dialog"]').text();
+      expect(dialog).toContain('Too many destructive admin actions');
+      // …rateLimitedRecovery still appears (the operator can always clear it),
+      // so the negative match has to exclude the wait key specifically.
+      expect(dialog).not.toMatch(/rateLimited(?!Recovery)/);
+    });
+
+    // A 429 is not an authorization failure: prompting for a password would
+    // teach operators to re-authenticate at a throttle, and the retry would be
+    // refused anyway.
+    it('never opens the sudo prompt and never retries', async () => {
+      await mountLoaded();
+      mockApi.delete.mockRejectedValue(throttled(60));
+
+      await submitPurge();
+
+      expect(useColonelElevation().promptOpen.value).toBe(false);
+      expect(mockApi.delete).toHaveBeenCalledTimes(1);
+    });
   });
 });

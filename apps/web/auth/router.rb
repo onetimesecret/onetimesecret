@@ -21,7 +21,6 @@ require_relative 'routes/webauthn_credentials'
 require_relative 'routes/link_sso'
 require_relative 'routes/sso_link_confirm'
 require_relative 'routes/mfa'
-require_relative 'routes/admin'
 require_relative 'routes/health'
 
 module Auth
@@ -49,7 +48,6 @@ module Auth
     include Auth::Routes::WebauthnCredentials
     include Auth::Routes::LinkSso
     include Auth::Routes::SsoLinkConfirm
-    include Auth::Routes::Admin
 
     plugin :json, parser: true  # Parse incoming JSON request bodies
     plugin :halt
@@ -125,6 +123,96 @@ module Auth
       Auth::ErrorTranslator::NOT_FOUND_BODY
     end
 
+    # Rodauth routes that need no login: the ones a browser reaches to
+    # present a credential (password, passkey, magic link, SSO) or to start
+    # or finish an account-lifecycle flow (sign-up, verification, password
+    # reset, unlock). Rodauth marks none of its routes as login-required in
+    # any introspectable way; the login-required ones call require_login /
+    # require_account in their before_*_route hooks, so this list is kept by
+    # hand. Route names, not paths: each is read off the Rodauth instance so
+    # a renamed route follows, and one whose feature is not enabled has no
+    # `<name>_route` reader and is skipped. The OmniAuth routes are matched
+    # on their prefix because their provider segment is per-install (and,
+    # for tenant SSO, per-request).
+    ANONYMOUS_RODAUTH_ROUTES = [
+      :login,
+      :webauthn_login,
+      :webauthn_autofill_js,
+      :email_auth,
+      :email_auth_request,
+      :create_account,
+      :verify_account,
+      :verify_account_resend,
+      :reset_password,
+      :reset_password_request,
+      :unlock_account,
+      :unlock_account_request,
+    ].freeze
+
+    # Whether `path` (request.path_info, relative to the /auth mount) is one
+    # Rodauth serves without a login. Read by the active-session gate's
+    # :revoked branch in the route block below.
+    def anonymous_rodauth_route?(path)
+      named = ANONYMOUS_RODAUTH_ROUTES.any? do |name|
+        reader = :"#{name}_route"
+        rodauth.respond_to?(reader) && path == "/#{rodauth.public_send(reader)}"
+      end
+      return true if named
+
+      rodauth.respond_to?(:omniauth_prefix) && path.start_with?("#{rodauth.omniauth_prefix}/")
+    end
+
+    # How the gate's :revoked branch answers `path`: the logout is answered
+    # here, a route Rodauth serves without a login continues as anonymous,
+    # everything else is refused.
+    def revoked_outcome(path)
+      return :logout_answered if path == "/#{rodauth.logout_route}"
+      return :continued_anonymous if anonymous_rodauth_route?(path)
+
+      :refused
+    end
+
+    # The Rack-session keys OmniAuth parks during the request phase of an
+    # SSO flow and consumes in the callback (omniauth-oauth2 and
+    # omniauth_openid_connect). Clearing the Rack session between the two
+    # phases drops them, and the callback then fails state verification.
+    OMNIAUTH_FLOW_KEYS = ['omniauth.state', 'omniauth.nonce', 'omniauth.pkce.verifier', 'omniauth.params'].freeze
+
+    # What the current Rack session is carrying mid-flow, for the gate's
+    # log lines: the OmniAuth keys above (in the session blob, dropped by
+    # clear_session) and the sidecar hand-off fields bound to its sid
+    # holding a live truthy value (sso_connect_intent, link_sso_pending_bind,
+    # awaiting_mfa), which #clear_gated_session purges. Both lists empty is
+    # the common case. Read-only and best effort: a sidecar probe failure
+    # reads as nothing in flight rather than disturbing the refusal.
+    def inflight_session_state
+      omniauth_keys  = OMNIAUTH_FLOW_KEYS.reject { |key| session[key].nil? }
+      sidecar_fields = begin
+        Onetime::SessionSidecar.inflight_fields(session.id&.public_id)
+      rescue StandardError
+        []
+      end
+      { omniauth_keys: omniauth_keys, sidecar_fields: sidecar_fields }
+    end
+
+    # Sign the gated request out: destroy the session and drop the gate's
+    # per-request memo.
+    #
+    # This codebase overrides Rodauth's clear_session to `session.destroy`
+    # (see Auth::Config::Base), so rodauth.clear_session routes through the
+    # store's delete path (Onetime::Session#delete_session). That path
+    # already DELs the session blob, purges the sid's sidecar registry keys
+    # (SessionSidecar.purge — including the explicit-use hand-off stashes
+    # sso_connect_intent / link_sso_pending_bind), and runs the in-flight
+    # tripwire that warns if a session is destroyed while a hand-off field
+    # still holds a live value. A purge failure there is logged and the
+    # sign-out stands, orphans being TTL-bounded. No separate purge is
+    # needed here — the destroy leaves nothing behind.
+    def clear_gated_session
+      rodauth.clear_session
+      env.delete(Onetime::ActiveSessionGate::ENV_KEY)
+    end
+
     # Main routing logic
     route do |r|
       # Debug logging for development
@@ -171,6 +259,109 @@ module Auth
         end
       end
 
+      # Full-mode active-session enforcement for the /auth surface
+      # (Onetime::ActiveSessionGate, terms defined there). The routes below,
+      # Rodauth's own included, authenticate on `rodauth.logged_in?`, which
+      # reads only the Rack session; without this check a Rack session whose
+      # active-session row had been revoked could still read the account,
+      # unlink identities, remove passkeys and revoke every OTHER row while
+      # being refused everywhere else. Ahead of r.rodauth so that Rodauth's
+      # login-required routes (change-password, webauthn-remove, ...) are
+      # covered too. Anonymous requests are :skipped at no cost.
+      case Onetime::ActiveSessionGate.verdict(session, env: env)
+      when :revoked
+        # Destroy, then refuse: the same handling this surface already gives
+        # an orphaned session (Auth::Routes::Account#require_valid_account,
+        # the around_rodauth rescue in config/overrides/error_handling.rb)
+        # and what Rodauth's own check_active_session does. Clearing the Rack
+        # session turns the request anonymous; the memo goes with it, since
+        # the identity it was reached for is gone. Two kinds of route are
+        # then answered differently from the rest. The routes Rodauth serves
+        # without a login (#anonymous_rodauth_route?) continue as the
+        # anonymous request they now are, so that a stale cookie can present
+        # a credential without first bouncing off its own revoked session:
+        # a 401 there would self-heal on retry, but an OmniAuth callback has
+        # no retry, its authorization code being spent on the first attempt.
+        # Logout is answered here with success, as the orphan rescue does:
+        # the Rack session is already destroyed, which is all the user asked
+        # for, and Rodauth's logout must not run on it (its global-logout
+        # branch dereferences the account, and a revoked browser must not be
+        # able to revoke anyone else's rows through it anyway). Everything
+        # else answers 401 with the session_expired key the SPA already
+        # translates.
+        #
+        # Logged before the clear, with the outcome and whatever the Rack
+        # session was carrying mid-flow. The one case the exemption cannot
+        # save gets its own warn line: a row revoked between an SSO flow's
+        # request phase and its callback. The callback is exempt and runs,
+        # but the clear has dropped the OmniAuth state the callback verifies
+        # against, so it fails and the provider's one-time authorization code
+        # is spent. The user is signed out, which is what the revocation
+        # asked for, and restarts the flow after signing in. Support sees an
+        # SSO failure at the same moment as a revocation; this line is what
+        # ties the two together. The sidecar hand-off fields are purged with
+        # the clear (#clear_gated_session); they are named here first so the
+        # stranded hand-off is not silent, the same warning the store's own
+        # tripwire gives a logout.
+        outcome  = revoked_outcome(r.path_info)
+        inflight = inflight_session_state
+        Auth::Logging.log_auth_event(
+          :active_session_revoked,
+          level: :info,
+          path: r.path_info,
+          account_id: session['account_id'],
+          outcome: outcome,
+          **inflight,
+        )
+        if inflight.values.any?(&:any?)
+          Auth::Logging.log_auth_event(
+            :active_session_revoked_mid_flow,
+            level: :warn,
+            path: r.path_info,
+            account_id: session['account_id'],
+            outcome: outcome,
+            **inflight,
+            consequence: 'OmniAuth keys are dropped with the Rack session, so an in-flight SSO callback ' \
+                         'fails state verification and its authorization code is spent; sidecar hand-off ' \
+                         'fields are purged with the session. The user signs in again and restarts the flow.',
+          )
+        end
+        clear_gated_session
+
+        case outcome
+        when :logout_answered
+          next { success: true, message: 'web.auth.logout.success' }
+        when :refused
+          response.status = 401
+          next { error: 'web.auth.security.session_expired', success: false }
+        end
+      when :unavailable
+        # Fail closed, but keep the Rack session: it is honoured again once
+        # the authdb answers. Same posture and status as the Otto strategies'
+        # [SESSION_UNVERIFIED] refusal. Logout is the one exception: signing
+        # out grants nothing, so the Rack session is destroyed and the logout
+        # answered here (Rodauth's would need the same unreachable authdb);
+        # its active-session row waits for the sweep. The gate has already
+        # logged the outage at error; this line adds the request the outage
+        # refused and how, so the refusals are countable per account and
+        # route while it lasts.
+        logout = r.path_info == "/#{rodauth.logout_route}"
+        Auth::Logging.log_auth_event(
+          :active_session_unverified,
+          level: :warn,
+          path: r.path_info,
+          account_id: session['account_id'],
+          outcome: logout ? :logout_answered : :refused,
+        )
+        if logout
+          clear_gated_session
+          next { success: true, message: 'web.auth.logout.success' }
+        end
+
+        response.status = 401
+        next { error: 'Session could not be verified; try again', error_type: 'SessionUnverified' }
+      end
+
       # All Rodauth routes (login, logout, create-account, reset-password, etc.)
       # Rodauth handles all /auth/* routes when full mode is enabled
       r.rodauth
@@ -196,8 +387,6 @@ module Auth
 
       # SSO mailbox-proof linking for passwordless accounts (#3840 Phase 4)
       handle_sso_link_confirm_routes(r)
-
-      handle_admin_routes(r)
 
       handle_health_routes(r)
 

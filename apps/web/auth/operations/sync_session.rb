@@ -137,12 +137,19 @@ module Auth
       # while operators are in the console daily. Session establishment is the
       # one honest signal of operator PRESENCE, as opposed to operator writes.
       #
-      # ## Success only
+      # ## Success only — here
       #
-      # A failed login never reaches this op. That is deliberate and must stay
-      # that way: the audit set is capped by COUNT with no TTL, so an event an
-      # unauthenticated caller can trigger is a log-eviction primitive — enough
-      # failed logins would flush the real destructive-action trail.
+      # A failed login never reaches this op, and must not: the operator trail
+      # is capped by COUNT with no TTL, so an event an unauthenticated caller
+      # can trigger would be a log-eviction primitive against it — enough failed
+      # logins would flush the real destructive-action trail. That argument is
+      # about `events`, and it is why THIS write stays a `.record`.
+      #
+      # It is no longer a reason for failures to record NOTHING (#4339). They
+      # are audited at the Rodauth login-failure hook instead
+      # (Auth::Config::Hooks::Login → Onetime::ColonelSigninFailure), into the
+      # separate `security_events` collection, where a flood can only ever
+      # evict other anonymous telemetry.
       #
       # ## Exactly once per login
       #
@@ -296,6 +303,13 @@ module Auth
         # Clear MFA waiting flag - user has completed full authentication
         @session.delete(:awaiting_mfa)
         @session.delete('awaiting_mfa')
+
+        # #4327: an identity change must always land UNELEVATED. Rodauth's
+        # :renew carries the session hash to a new sid (hooks/account.rb after a
+        # password change), so a colonel step-up window could otherwise survive
+        # a rotation — or an identity change — on the same browser. Elevation is
+        # also identity-bound on read; this is the second of two closures.
+        @session.delete('elevated_until')
       end
 
       # Stamps the customer's last_login timestamp on full session sync.

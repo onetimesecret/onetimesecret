@@ -46,9 +46,6 @@ require_relative 'stripe_mock_factory'
 # Load shared RSpec contexts for billing tests
 Dir[File.join(__dir__, 'shared_contexts', '*.rb')].sort.each { |f| require f }
 
-# Load BannedIP model needed by IPBan middleware
-require_relative '../../../../api/colonel/models/banned_ip'
-
 # Load billing models (includes WebhookSyncFlag needed by webhook handlers)
 require_relative '../../models'
 

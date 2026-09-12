@@ -123,9 +123,13 @@ module Auth::Config::Hooks
               provider: provider,
               reason: 'tenant_surface',
             )
+            # Distinct code from the session-expired case below: this is a
+            # deliberate, permanent refusal (identity linking is platform-only
+            # until #3849), so the copy must not suggest retrying after a fresh
+            # sign-in — that would loop the user through the same refusal.
             set_redirect_error_flash 'This identity could not be connected. The connection ' \
                                      'was started on the wrong domain.'
-            redirect '/signin?auth_error=identity_connect_conflict'
+            redirect '/signin?auth_error=identity_connect_wrong_domain'
           end
 
           # Load the authenticated account by SESSION id (never by email).
@@ -480,20 +484,39 @@ module Auth::Config::Hooks
           # or the account's Customer did not resolve so no redeemable link could
           # be minted) → UNCHANGED H-3 refusal.
           #
-          # RECOVERY (Phase 2, shipped): a password-first user who hits this
-          # refusal self-resolves by signing in with their password, then
-          # connecting the IdP from account settings (Connected Identities) —
-          # the authenticated connect branch at the top of this hook binds it.
-          # The flash below points them at that path.
+          # The two surfaces dead-end for DIFFERENT reasons and get different
+          # codes, because only one of them has a self-service way out:
+          #
+          # - PLATFORM: recovery exists (Phase 2, shipped). Sign in with the
+          #   existing method, then connect the IdP from account settings
+          #   (Connected Identities) — the authenticated connect branch at the
+          #   top of this hook binds it.
+          #
+          # - TENANT: no recovery, by design. Identity linking is platform-only
+          #   because a tenant admin controls their IdP's assertions, so a
+          #   tenant-issuer identity must never be bound to an account located
+          #   by email (or to whatever platform session happens to be active).
+          #   Connected Identities cannot help here — the connect flow refuses
+          #   on this surface too — so pointing the user at it is a dead end.
+          #   Authenticated tenant-surface linking is deferred to #3849; until
+          #   it ships the way forward is an org-owner invite of the SSO
+          #   identity, or support.
           Auth::Logging.log_auth_event(
             :omniauth_link_refused_existing_account,
             level: :warn,
             email: OT::Utils.obscure_email(normalized_email),
             provider: provider,
+            surface: platform_surface ? 'platform' : 'tenant',
           )
-          set_redirect_error_flash 'An account with this email already exists. ' \
-                                   'Sign in with your existing method, then link SSO from account settings.'
-          redirect '/signin?auth_error=account_exists_link_required'
+          if platform_surface
+            set_redirect_error_flash 'An account with this email already exists. ' \
+                                     'Sign in with your existing method, then link SSO from account settings.'
+            redirect '/signin?auth_error=account_exists_link_required'
+          end
+
+          set_redirect_error_flash "This domain's SSO cannot be attached to an existing account yet. " \
+                                   'Ask an organization owner to invite this SSO identity, or contact support.'
+          redirect '/signin?auth_error=tenant_sso_link_unavailable'
         end
 
         # Genuinely new email → allow JIT create (subject to the domain checks
@@ -710,7 +733,7 @@ module Auth::Config::Hooks
         # Verified state for the JIT-provisioned Customer (#3973)
         # ────────────────────────────────────────────────────────────────
         #
-        # CreateCustomer defaults to verified: false because that is the
+        # EnsureCustomerForAccount defaults to verified: false because that is the
         # PASSWORD signup shape — Rodauth's after_verify_account flips the flag
         # when the emailed link is followed. A JIT SSO account never traverses
         # that flow, so the Customer mirror stayed unverified forever while its
@@ -757,7 +780,7 @@ module Auth::Config::Hooks
           account_id: account_id,
           provider: omniauth_provider,
         ) do
-          Auth::Operations::CreateCustomer.new(
+          Auth::Operations::EnsureCustomerForAccount.new(
             account_id: account_id,
             account: account,
             db: db,

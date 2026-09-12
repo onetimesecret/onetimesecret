@@ -229,7 +229,7 @@ AE.events.clear
 ## a no-op clear records NO audit event (nothing mutated, nothing REFUSED)
 # The colonel adapter deliberately returns 200 with cleared:false for :not_set
 # ("not surfaced as an error", so a benign TTL race is not a failure), which is
-# why this stays unaudited while UnbanIP's 404 :not_found does not.
+# why this stays unaudited while a 404 :not_found refusal does not.
 AE.count
 #=> 0
 

@@ -76,15 +76,16 @@ RSpec.describe Core::Views::BaseView do
       )
     end
 
-    # ttl_max_anonymous is not config: ConfigSerializer appends the hard
-    # anonymous TTL cap (WithEntitlements::ANONYMOUS_MAX_TTL) so the duration
-    # dropdown can filter out durations the server would clamp. Emitted on
-    # every deployment, billing enabled or not.
-    it 'includes secret options plus the anonymous TTL ceiling' do
+    # ttl_max_anonymous is not raw config: ConfigSerializer appends the
+    # request-host guest ceiling so the duration dropdown matches enforcement.
+    # This canonical-host fixture receives the configured 7-day default; custom
+    # hosts receive the domain owner organization's plan lifetime.
+    it 'includes secret options plus the guest TTL ceiling' do
       expect(subject.serialized_data['secret_options']).to eq({
         'default_ttl' => 86_400,
         'ttl_options' => [3600, 86_400],
-        'ttl_max_anonymous' => Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL,
+        # Effective ceiling also includes ttl_options.max (one day here).
+        'ttl_max_anonymous' => 86_400,
       },
                                                              )
     end

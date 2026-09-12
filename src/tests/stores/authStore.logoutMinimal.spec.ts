@@ -109,11 +109,11 @@ describe('authStore.logoutMinimal', () => {
   });
 
   it('does NOT reset bootstrapStore reactive state (domain_branding preserved)', async () => {
-    expect(bootstrapStore.domain_branding.primary_color).toBe('#ff6600');
+    expect(bootstrapStore.domain_branding?.primary_color).toBe('#ff6600');
 
     await store.logoutMinimal();
 
-    expect(bootstrapStore.domain_branding.primary_color).toBe('#ff6600');
+    expect(bootstrapStore.domain_branding?.primary_color).toBe('#ff6600');
   });
 
   it('does NOT reset bootstrapStore reactive state (display_domain preserved)', async () => {

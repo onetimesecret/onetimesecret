@@ -4,6 +4,7 @@
 
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 
 module Auth
   module Operations
@@ -14,8 +15,11 @@ module Auth
       # Logic class is a thin adapter over it (no CLI adapter today, but the verb
       # lives here so any future one shares the single implementation). This is a
       # MUTATING admin op, so it records exactly one ColonelAuditEvent per successful
-      # change (epic #20 CONTRACT 4 / #21). An idempotent no-op change mutates
-      # nothing and is therefore not audited.
+      # change (epic #20 CONTRACT 4 / #21). An idempotent no-op mutates nothing
+      # but is STILL audited, under the same verb with `outcome: 'no_change'`
+      # (#4337): setting a customer's plan is a billing action, and "an
+      # operator moved this account to plan X on Tuesday" should not vanish
+      # from the trail because the account was already on X.
       #
       # Catalog validation (does `planid` exist in the billing catalog?) is the
       # adapter's job for good UX; this op treats the planid as already-validated
@@ -24,6 +28,7 @@ module Auth
       class SetPlan
         include Onetime::LoggerMethods
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         AUDIT_VERB = 'customer.set_plan'
 
@@ -55,7 +60,10 @@ module Auth
         # @return [Result]
         def call
           from = @customer.planid.to_s
-          return Result.new(status: :no_change, customer: @customer, from: from, to: @planid) if from == @planid
+          if from == @planid
+            record_no_change_event(from)
+            return Result.new(status: :no_change, customer: @customer, from: from, to: @planid)
+          end
 
           @customer.planid = @planid
           @customer.save
@@ -77,6 +85,19 @@ module Auth
         end
 
         private
+
+        # The #4337 envelope's target hook: the customer's PUBLIC extid, the
+        # same target the applied event carries. `audit_verb` defaults to
+        # AUDIT_VERB and `audit_actor` to @actor.
+        def audit_target = @customer.extid
+
+        # A no-change attempt (#4337) — the OPERATOR trail, not the observation
+        # trail. Same verb and target as the applied event, with
+        # `outcome: 'no_change'` marking it. NOT fail-closed: nothing moved, so
+        # there is nothing untraceable for a hard failure to surface.
+        def record_no_change_event(from)
+          record_no_change_attempt({ from: from, to: @planid })
+        end
 
         # Loggable, non-secret actor label (mirrors the audit actor normalization).
         def actor_label

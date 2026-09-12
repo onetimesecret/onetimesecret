@@ -9,7 +9,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import CopyButton from '@/shared/components/ui/CopyButton.vue';
   import { storeToRefs } from 'pinia';
-  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   /**
@@ -19,8 +19,9 @@
    * Backed by the index the Organization model already declares
    * (`organization:stripe_customer_id_index`), so this is a bounded, paged read
    * rather than a scan of every organization: one server page per request via
-   * {@link useAdminBilling}, with a debounced server-side `search` over the
-   * Stripe customer id.
+   * {@link useAdminBilling}, with a server-side `search` over the Stripe
+   * customer id that runs ONLY on explicit submit (Enter or the search
+   * button), never on keystrokes, and never while a page is already loading.
    *
    * Stripe ids live ONLY on Organization (Customer#stripe_customer_id is a
    * deprecated, unindexed field), so a "customer with a Stripe id" is reached
@@ -60,29 +61,24 @@
     }
   }
 
-  // Debounce so we issue one request per pause, not per keystroke. The no-op
-  // guard keeps the programmatic reset in onClear() from double-fetching
-  // (the AdminCustomers form of this watcher — the fixed one).
-  let searchTimer: ReturnType<typeof setTimeout> | null = null;
-  watch(searchTerm, (value) => {
-    if (searchTimer) clearTimeout(searchTimer);
-    if (value.trim() === activeSearch.value) return;
-    searchTimer = setTimeout(() => {
-      activeSearch.value = value.trim();
-      fetchPage(1);
-    }, 300);
-  });
-  onBeforeUnmount(() => {
-    if (searchTimer) clearTimeout(searchTimer);
-  });
+  /**
+   * Submit search on explicit user action ONLY (Enter key or search button).
+   * Typing never fetches: there is no watcher on `searchTerm`.
+   */
+  function onSearchSubmit(): void {
+    if (loading.value) return; // In-flight guard
+    const trimmed = searchTerm.value.trim();
+    if (trimmed === activeSearch.value) return; // No-op guard
+    activeSearch.value = trimmed;
+    fetchPage(1);
+  }
 
   function onClear(): void {
-    // Cancel any in-flight debounce so the reset below doesn't fire a second,
-    // late request on top of this one.
-    if (searchTimer) clearTimeout(searchTimer);
+    const hadSearch = activeSearch.value !== '';
     searchTerm.value = '';
     activeSearch.value = '';
-    fetchPage(1);
+    // Only re-read when a search was actually applied.
+    if (hadSearch) fetchPage(1);
   }
 
   function onPageChange(targetPage: number): void {
@@ -184,8 +180,10 @@
           v-model:search="searchTerm"
           :search-placeholder="t('web.admin.billing.stripeOrgs.searchPlaceholder')"
           :has-active-filters="hasActiveFilters"
+          :busy="loading"
           testid="billing-stripe-orgs-filterbar"
-          @clear="onClear" />
+          @clear="onClear"
+          @submit="onSearchSubmit" />
       </div>
 
       <div

@@ -63,7 +63,7 @@ vi.mock('@/services/logging.service', () => ({
 // Import after mocks
 // ---------------------------------------------------------------------------
 import { createErrorBoundary } from '@/plugins/core/globalErrorBoundary';
-import type { App } from 'vue';
+import type { App, ComponentPublicInstance, Plugin } from 'vue';
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -79,6 +79,18 @@ function createMockApp(): App {
     mount: vi.fn(),
     unmount: vi.fn(),
   } as unknown as App;
+}
+
+/**
+ * `createErrorBoundary()` is typed to return Vue's `Plugin` union
+ * (`ObjectPlugin | FunctionPlugin`), under which `.install` types as possibly
+ * undefined because the callable `FunctionPlugin` variant makes it optional.
+ * The production implementation always returns an object plugin
+ * (`{ install(app) { ... } }`), so this narrows to the shape it actually
+ * produces instead of asserting `!` at every call site.
+ */
+function installErrorBoundary(plugin: Plugin, app: App): void {
+  (plugin as { install: (app: App) => void }).install(app);
 }
 
 // ---------------------------------------------------------------------------
@@ -113,7 +125,7 @@ describe('createErrorBoundary', () => {
   describe('plugin installation', () => {
     it('installs error handler on app.config', () => {
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       expect(mockApp.config.errorHandler).toBeInstanceOf(Function);
     });
@@ -122,10 +134,14 @@ describe('createErrorBoundary', () => {
   describe('error handler Sentry capture', () => {
     it('calls captureException when diagnostics is enabled', () => {
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       const error = new Error('Test error');
-      const instance = { $options: { name: 'TestComponent' } };
+      // Partial fixture: only $options.name is read (getComponentName), but
+      // the errorHandler's real signature expects a full ComponentPublicInstance.
+      const instance = {
+        $options: { name: 'TestComponent' },
+      } as unknown as ComponentPublicInstance;
 
       mockApp.config.errorHandler?.(error, instance, 'setup function');
 
@@ -137,7 +153,7 @@ describe('createErrorBoundary', () => {
       mockIsDiagnosticsEnabled.mockReturnValue(false);
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       const error = new Error('Test error');
       mockApp.config.errorHandler?.(error, null, 'setup function');
@@ -147,7 +163,7 @@ describe('createErrorBoundary', () => {
 
     it('normalizes non-Error throwables to Error instances', () => {
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       mockApp.config.errorHandler?.('string error', null, 'setup function');
 
@@ -156,14 +172,57 @@ describe('createErrorBoundary', () => {
         expect.any(Object)
       );
     });
+
+    it('does not call captureException for human-interest errors (#4286)', () => {
+      // Mirrors useAsyncHandler.logTechnicalError's existing gate: an error
+      // already shown to the user via notify is an expected outcome, not a
+      // defect, regardless of which handler caught it.
+      mockIsOfHumanInterest.mockReturnValue(true);
+      mockClassifyError.mockReturnValue({
+        message: 'Secret not found',
+        type: 'human',
+        severity: 'warning',
+      });
+
+      const plugin = createErrorBoundary();
+      installErrorBoundary(plugin, mockApp);
+
+      mockApp.config.errorHandler?.(
+        new Error('Request failed with status code 404'),
+        null,
+        'setup function'
+      );
+
+      expect(mockCaptureException).not.toHaveBeenCalled();
+    });
+
+    it('still calls captureException for technical errors when diagnostics is enabled', () => {
+      mockIsOfHumanInterest.mockReturnValue(false);
+      mockClassifyError.mockReturnValue({
+        message: 'Internal error',
+        type: 'technical',
+        severity: 'error',
+      });
+
+      const plugin = createErrorBoundary();
+      installErrorBoundary(plugin, mockApp);
+
+      mockApp.config.errorHandler?.(new Error('boom'), null, 'setup function');
+
+      expect(mockCaptureException).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('context tags', () => {
     it('passes componentName from getComponentName()', () => {
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
-      const instance = { $options: { name: 'SecretForm' } };
+      // Partial fixture: only $options.name is read (getComponentName), but
+      // the errorHandler's real signature expects a full ComponentPublicInstance.
+      const instance = {
+        $options: { name: 'SecretForm' },
+      } as unknown as ComponentPublicInstance;
       mockApp.config.errorHandler?.(new Error('test'), instance, 'mounted hook');
 
       expect(mockCaptureException).toHaveBeenCalledWith(
@@ -176,7 +235,7 @@ describe('createErrorBoundary', () => {
 
     it('passes componentInfo from Vue error info', () => {
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'mounted hook');
 
@@ -196,7 +255,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -216,7 +275,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -236,7 +295,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -256,7 +315,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -272,7 +331,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -292,7 +351,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -308,7 +367,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -328,7 +387,7 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -349,9 +408,13 @@ describe('createErrorBoundary', () => {
       });
 
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
-      const instance = { $options: { name: 'CreateSecret' } };
+      // Partial fixture: only $options.name is read (getComponentName), but
+      // the errorHandler's real signature expects a full ComponentPublicInstance.
+      const instance = {
+        $options: { name: 'CreateSecret' },
+      } as unknown as ComponentPublicInstance;
       mockApp.config.errorHandler?.(new Error('test'), instance, 'render function');
 
       expect(mockCaptureException).toHaveBeenCalledWith(
@@ -378,7 +441,7 @@ describe('createErrorBoundary', () => {
 
     it('does not explicitly pass service tag (scope-level tag from enableDiagnostics)', () => {
       const plugin = createErrorBoundary();
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -400,7 +463,7 @@ describe('createErrorBoundary', () => {
 
       const mockNotify = vi.fn();
       const plugin = createErrorBoundary({ notify: mockNotify });
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 
@@ -417,7 +480,7 @@ describe('createErrorBoundary', () => {
 
       const mockNotify = vi.fn();
       const plugin = createErrorBoundary({ notify: mockNotify });
-      plugin.install(mockApp);
+      installErrorBoundary(plugin, mockApp);
 
       mockApp.config.errorHandler?.(new Error('test'), null, 'setup');
 

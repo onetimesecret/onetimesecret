@@ -5,18 +5,25 @@
 # Integration tests for the colonel per-customer session REVOKE endpoint
 # (spec docs/specs/colonel-ui/40-sessions-metadata-sidecar.md):
 #
-#   DELETE /api/colonel/users/:user_id/sessions/:session_id
+#   DELETE /api/colonel/users/:user_id/sessions/:session_handle
 #
 # The HTTP boundary over {Onetime::Operations::Sessions::RevokeForCustomer}. In
 # this codebase a session dies by deleting the encrypted `session:<sid>` blob
 # (adaptation #1), NOT by removing a Rodauth index row — so the blob is minted for
-# real and the invalidation is genuine, not mocked. Covers:
+# real and the invalidation is genuine, not mocked.
+#
+# F-01: the endpoint accepts the non-bearer session_handle (a digest of the sid),
+# NOT the raw sid — the raw sid is the live cookie / blob key and never leaves the
+# server. The adapter resolves the handle back to a sid by matching it over the
+# target customer's own active_sessions set. Covers:
 # - 403 for non-colonel, 401 for anonymous (dual-gate)
-# - a successful DELETE returns record.revoked=true; the live blob is GONE, the
-#   sidecar is destroyed, and the sid is ZREM'd from Customer#active_sessions
+# - a successful DELETE (by handle) returns record.revoked=true + echoes the
+#   handle; the live blob is GONE, the sidecar is destroyed, and the sid is ZREM'd
+# - the response NEVER carries the raw sid
 # - EXACTLY ONE ColonelAuditEvent per revoke (verb 'session.revoke', target = the
-#   target extid, actor = the acting colonel's extid)
-# - IDEMPOTENT: a second DELETE still returns revoked=true
+#   session HANDLE — never the raw sid or the customer; the custid rides in
+#   detail — actor = the acting colonel's extid)
+# - a stale handle (session already revoked / no longer in the active set) is a 404
 #
 # Run: try --agent try/integration/api/colonel/revoke_customer_session_try.rb
 
@@ -78,6 +85,14 @@ def colonel_headers
   { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
 end
 
+# Server-side destructive-action confirmation (#4326): revoking sessions is
+# TIER 1, so it requires the account's email — percent-encoded — in
+# X-OTS-Confirm. The URL carries the extid (and, for the single revoke, an
+# opaque handle); the token is deliberately a different identifier.
+def confirming_headers
+  colonel_headers.merge('HTTP_X_OTS_CONFIRM' => Rack::Utils.escape(@target.email))
+end
+
 @sid = "intrcs_#{@nonce}"
 @key = "session:#{@sid}"
 
@@ -99,7 +114,9 @@ SM.load(@sid)&.destroy!
 DB.del(@key)
 seed_session(@target, @sid)
 
-URL = "/api/colonel/users/#{@extid}/sessions/#{@sid}"
+# The endpoint is keyed by the non-bearer handle (F-01), not the raw sid.
+@handle = SM.handle_for(@sid)
+URL = "/api/colonel/users/#{@extid}/sessions/#{@handle}"
 
 # --- Authorization -------------------------------------------------------
 
@@ -120,12 +137,16 @@ delete URL, {}, { 'HTTP_ACCEPT' => 'application/json' }
 [Store.find_key(DB, @sid), SM.load(@sid).nil?, @target.active_sessions.member?(@sid)]
 #=> [@key, false, true]
 
-## DELETE by the colonel returns 200 with record.revoked=true and the sid echoed
+## DELETE by the colonel returns 200 with record.revoked=true and the HANDLE echoed
 AE.events.clear
-delete URL, {}, colonel_headers
+delete URL, {}, confirming_headers
 @resp = JSON.parse(last_response.body)
-[last_response.status, @resp['record']['revoked'], @resp['record']['session_id'], @resp['details']['message']]
-#=> [200, true, "#{@sid}", 'Session revoked successfully']
+[last_response.status, @resp['record']['revoked'], @resp['record']['session_handle'], @resp['details']['message']]
+#=> [200, true, "#{@handle}", 'Session revoked successfully']
+
+## F-01: the response body NEVER carries the raw sid (== live cookie / blob key)
+last_response.body.include?(@sid)
+#=> false
 
 ## the live `session:<sid>` blob is GONE (this is what logs the user out)
 Store.find_key(DB, @sid)
@@ -135,22 +156,24 @@ Store.find_key(DB, @sid)
 [SM.load(@sid).nil?, @target.active_sessions.member?(@sid)]
 #=> [true, false]
 
-## EXACTLY ONE audit event: verb session.revoke, target the extid, actor the colonel
-[AE.count, AE.recent(1).first['verb'], AE.recent(1).first['target'], AE.recent(1).first['actor']]
-#=> [1, "session.revoke", "#{@extid}", "#{@colonel.extid}"]
+## EXACTLY ONE audit event: verb session.revoke, target the session handle
+## (the custid rides in detail), actor the colonel
+[AE.count, AE.recent(1).first['verb'], AE.recent(1).first['target'], AE.recent(1).first['detail']['custid'], AE.recent(1).first['actor']]
+#=> [1, "session.revoke", SM.handle_for(@sid), "#{@extid}", "#{@colonel.extid}"]
 
-## the audit detail carries the session id and no secret material
-AE.recent(1).first['detail']['session_id']
-#=> "#{@sid}"
+## the audit detail never carries the raw sid (it is the bearer cookie);
+## blob_deleted records that a live blob was killed
+[AE.recent(1).first['detail'].key?('session_id'), AE.recent(1).first['detail']['blob_deleted']]
+#=> [false, true]
 
-# --- Idempotent second revoke --------------------------------------------
+# --- Stale handle: the resolved session is gone --------------------------
 
-## a second DELETE still returns revoked=true (already-gone session tidied again)
+## a second DELETE with the now-stale handle 404s — the first revoke ZREM'd the
+## sid from the active set, so the handle resolves to no session to revoke
 AE.events.clear
-delete URL, {}, colonel_headers
-@resp2 = JSON.parse(last_response.body)
-[last_response.status, @resp2['record']['revoked']]
-#=> [200, true]
+delete URL, {}, confirming_headers
+last_response.status
+#=> 404
 
 # --- Teardown ------------------------------------------------------------
 SM.load(@sid)&.destroy!

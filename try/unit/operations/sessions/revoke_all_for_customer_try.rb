@@ -15,9 +15,17 @@
 # - a DIFFERENT customer's session is untouched (identity match is exact)
 # - untracked_deleted counts the blob the sidecar index did not know about
 # - every sidecar destroyed + Customer#active_sessions cleared
-# - EXACTLY ONE ColonelAuditEvent (verb 'session.revoke_all') with the kill counts
+# - EXACTLY ONE ColonelAuditEvent (verb 'session.revoke_all') with the kill counts;
+#   target is the customer's EXTID however the route addressed them, falling back
+#   to the raw route param only for an unresolvable customer
+#   (docs/architecture/audit-logging.md "Session verbs")
 # - rodauth_rows_deleted is 0 here (simple/test mode: no auth DB)
 # - IDEMPOTENT: a second call returns revoked:true with zero counts
+# - EXTID-INDEX DRIFT (#4205/#4217, the purge gap): a customer whose extid_lookup
+#   entry is missing cannot be resolved by `custid:` (zero-count degrade), but a
+#   caller holding the record passes it as `customer:` and the op kills every
+#   blob WITHOUT consulting the index; exactly one of custid:/customer: is
+#   required (ArgumentError otherwise)
 #
 # Run: try --agent try/unit/operations/sessions/revoke_all_for_customer_try.rb
 
@@ -90,6 +98,29 @@ DB.set("session:#{@mislabeled}", @codec.encode({ 'authenticated' => true,
 @other_sid = "tryall_other_#{@nonce}"
 DB.set("session:#{@other_sid}", @codec.encode({ 'authenticated' => true,
                                                'external_id' => @other.extid, 'email' => @other.email }))
+
+# EXTID-INDEX DRIFT fixture: a customer whose `extid_lookup` entry is MISSING
+# while the record and its sessions are live. Seeded BEFORE the index entry is
+# dropped because TrackMetadata itself resolves the owner via find_by_extid.
+@drift = Onetime::Customer.create!(email: "drift_#{@nonce}@example.com")
+@drift.verified = 'true'
+@drift.save
+@drift_extid = @drift.extid
+
+@drift_tracked = SecureRandom.hex(32)
+Onetime::Operations::Sessions::TrackMetadata.new(
+  session_id: @drift_tracked,
+  session_data: { 'authenticated' => true, 'external_id' => @drift_extid,
+                  'ip_address' => '203.0.113.9', 'user_agent' => 'UA' },
+).call
+DB.set("session:#{@drift_tracked}", @codec.encode({ 'authenticated' => true,
+                                                    'external_id' => @drift_extid, 'email' => @drift.email }))
+@drift_untracked = SecureRandom.hex(32)
+DB.set("session:#{@drift_untracked}", @codec.encode({ 'authenticated' => true,
+                                                      'external_id' => @drift_extid, 'email' => @drift.email }))
+
+# The drift itself: the index no longer knows this extid.
+Onetime::Customer.extid_lookup.remove_field(@drift_extid)
 
 # ---- pre-conditions ---------------------------------------------------
 
@@ -168,18 +199,107 @@ AE.count
 
 # ---- idempotent second revoke-all -------------------------------------
 
-## a second revoke-all still returns revoked:true, now with zero kill counts
+## a second revoke-all still returns revoked:true, now with zero kill counts —
+## routed by EMAIL this time, to prove the audit target normalizes to the extid
 AE.events.clear
-@res2 = RAFC.new(custid: @extid, actor: @actor).call
+@res2 = RAFC.new(custid: @cust.email, actor: @actor).call
 [@res2.revoked, @res2.blobs_deleted, @res2.untracked_deleted]
 #=> [true, 0, 0]
 
-## it STILL audits — the colonel took an intentional action
-AE.count
-#=> 1
+## it STILL audits — the colonel took an intentional action — and the target is
+## the customer's resolved extid, not the email the route used
+[AE.count, AE.recent(1).first['target']]
+#=> [1, "#{@extid}"]
+
+# ---- unresolvable customer: audit falls back to the route param ---------
+
+## a custid that resolves to NO customer still completes (zero counts) and audits
+AE.events.clear
+@ghost = "ghost_#{@nonce}@example.com"
+RAFC.new(custid: @ghost, actor: @actor).call.revoked
+#=> true
+
+## with no customer to resolve, the target is the route param as given —
+## nothing better exists to record
+[AE.count, AE.recent(1).first['target']]
+#=> [1, "#{@ghost}"]
+
+# ---- extid-index drift: `customer:` must not depend on the index ---------
+
+## the drift is REAL: by extid (and by objid-load of the extid) the customer
+## resolves to nothing, yet the record and BOTH of its session blobs are live
+[
+  Onetime::Customer.load_by_extid_or_email(@drift_extid).nil?,
+  Onetime::Customer.load(@drift_extid).nil?,
+  @drift.exists?,
+  Store.find_key(DB, @drift_tracked).nil?,
+  Store.find_key(DB, @drift_untracked).nil?,
+]
+#=> [true, true, true, false, false]
+
+## addressed by `custid:` (the pre-fix Purge shape) the revoke DEGRADES: zero
+## counts and both blobs survive, while the trail still reads like a normal
+## revoke (target is the extid either way). This is the gap; it is pinned here
+## so the `customer:` block below is proven non-vacuous.
+AE.events.clear
+@res_by_id = RAFC.new(custid: @drift_extid, actor: @actor).call
+[
+  @res_by_id.blobs_deleted,
+  AE.recent(1).first['target'],
+  Store.find_key(DB, @drift_tracked).nil?,
+  Store.find_key(DB, @drift_untracked).nil?,
+]
+#=> [0, "#{@drift_extid}", false, false]
+
+## handed the record as `customer:`, the same revoke kills BOTH blobs
+## (1 tracked + 1 untracked) without ever consulting the index
+AE.events.clear
+@res_drift = RAFC.new(customer: @drift, actor: @actor).call
+[@res_drift.revoked, @res_drift.blobs_deleted, @res_drift.untracked_deleted]
+#=> [true, 2, 1]
+
+## both blobs are gone, the sidecar is destroyed and the index cleared
+[
+  Store.find_key(DB, @drift_tracked),
+  Store.find_key(DB, @drift_untracked),
+  SM.load(@drift_tracked).nil?,
+  @drift.active_sessions.revrange(0, -1),
+]
+#=> [nil, nil, true, []]
+
+## exactly ONE session.revoke_all event, target the record's extid, detail
+## carrying blobs_deleted > 0
+@drift_ev = AE.recent(1).first
+[AE.count, @drift_ev['verb'], @drift_ev['target'], @drift_ev['detail']['blobs_deleted'] > 0]
+#=> [1, "session.revoke_all", "#{@drift_extid}", true]
+
+## the op used the record AS GIVEN: the index was not repopulated as a side effect
+Onetime::Customer.load_by_extid_or_email(@drift_extid).nil?
+#=> true
+
+## neither kwarg is rejected: exactly one of custid:/customer: is required
+begin
+  RAFC.new(actor: @actor)
+rescue ArgumentError => e
+  e.class
+end
+#=> ArgumentError
+
+## both kwargs is rejected too (no silent precedence between the two)
+begin
+  RAFC.new(custid: @drift_extid, customer: @drift, actor: @actor)
+rescue ArgumentError => e
+  e.class
+end
+#=> ArgumentError
 
 # Cleanup
 @tracked.each { |sid| SM.load(sid)&.destroy!; DB.del("session:#{sid}") }
+SM.load(@drift_tracked)&.destroy!
+DB.del("session:#{@drift_tracked}")
+DB.del("session:#{@drift_untracked}")
+@drift.active_sessions.clear
+@drift.destroy!
 DB.del("session:#{@untracked}")
 DB.del("session:#{@mislabeled}")
 DB.del("session:#{@other_sid}")

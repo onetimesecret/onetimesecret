@@ -25,6 +25,17 @@ module Onetime
     # - `env['identity.authenticated']` - Boolean authentication status
     # - `env['identity.metadata']` - Additional metadata about the identity
     #
+    # ### NOT the authorization identity, and NOT impersonation-aware
+    #
+    # This is a convenience cache for read paths, not the identity that
+    # authorizes a request. The authoritative resolution — including the
+    # colonel-impersonation overlay (Onetime::SessionImpersonation.resolve) —
+    # happens in the auth strategies, which is what populates
+    # `strategy_result.user` and therefore `Onetime::Logic::Base#cust`.
+    # `env['identity.resolved']` deliberately stays the PRINCIPAL during an
+    # impersonation. Anything that makes an authorization or ownership decision
+    # must read the strategy result, never this.
+    #
     # ### Performance Optimization
     #
     # **IMPORTANT**: To prevent duplicate customer lookups per request, downstream

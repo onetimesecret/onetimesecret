@@ -28,6 +28,26 @@
    *   { open, title, description, confirmToken, variant, loading, error }
    * The optional `confirmText` / `cancelText` / `initialFocus` props are purely
    * presentational conveniences and default sensibly.
+   *
+   * ## The optional operator REASON (#4338)
+   *
+   * `requestReason` adds a free-text textarea whose value is emitted with the
+   * `confirm` event, so the caller can put it in the request body / query and
+   * the server-side operation can record it in the audit trail's `detail`. The
+   * trail records WHAT an operator did but never WHY; this is the only place a
+   * why can be collected at the moment of the action.
+   *
+   * OPTIONAL BY DESIGN, in both senses. The prop defaults to FALSE, so every
+   * incumbent call site is untouched and still emits `confirm` with no payload.
+   * And where it IS enabled the field never gates the confirm button — an empty
+   * reason is emitted as `undefined`, never `''`, because a blank string in the
+   * trail reads as "they gave a reason" when they did not. Requiring a reason
+   * is a later step of the same rollout (#4338), and it belongs on this prop
+   * plus the server-side validation, not in each view.
+   *
+   * `maxlength` matches the backend's Onetime::AuditReason::MAX_LENGTH (255),
+   * one under the audit model's per-value truncation — so what an operator can
+   * type here is exactly what a reviewer will read back.
    */
   interface Props {
     /** Whether the dialog is shown (use with `v-model:open`). */
@@ -53,6 +73,15 @@
     cancelText?: string;
     /** Which control receives focus when the dialog opens. */
     initialFocus?: 'input' | 'cancel';
+    /**
+     * Show the OPTIONAL operator-reason textarea (#4338) and emit its value
+     * with `confirm`. Never gates the confirm button — see the header note.
+     */
+    requestReason?: boolean;
+    /** Reason field label (translated). Defaults to the shared kit string. */
+    reasonLabel?: string;
+    /** Reason field placeholder (translated). Defaults to the shared string. */
+    reasonPlaceholder?: string;
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -64,17 +93,29 @@
     confirmText: undefined,
     cancelText: undefined,
     initialFocus: 'input',
+    requestReason: false,
+    reasonLabel: undefined,
+    reasonPlaceholder: undefined,
   });
 
   const emit = defineEmits<{
     'update:open': [value: boolean];
-    confirm: [];
+    /**
+     * The operator's reason (#4338) when `requestReason` is on and they typed
+     * one. Absent otherwise — including when the field is shown and left blank
+     * — so a caller can pass it straight through without re-checking.
+     */
+    confirm: [reason?: string];
     cancel: [];
   }>();
+
+  /** Longest reason accepted — mirrors Onetime::AuditReason::MAX_LENGTH. */
+  const REASON_MAX_LENGTH = 255;
 
   const { t } = useI18n();
 
   const typed = ref('');
+  const reason = ref('');
   const inputEl = ref<HTMLInputElement | null>(null);
   const cancelEl = ref<HTMLButtonElement | null>(null);
 
@@ -102,6 +143,13 @@
     () => requiresTyped.value && typed.value.length > 0 && !tokenMatches.value
   );
 
+  const resolvedReasonLabel = computed(
+    () => props.reasonLabel ?? t('web.admin.kit.confirmDialog.reasonLabel')
+  );
+  const resolvedReasonPlaceholder = computed(
+    () => props.reasonPlaceholder ?? t('web.admin.kit.confirmDialog.reasonPlaceholder')
+  );
+
   const resolvedConfirmText = computed(
     () => props.confirmText ?? t('web.COMMON.word_confirm')
   );
@@ -123,7 +171,14 @@
 
   function handleSubmit(): void {
     if (confirmDisabled.value) return;
-    emit('confirm');
+    // No payload AT ALL outside reason mode, so every incumbent call site sees
+    // the exact `confirm` event it saw before #4338. In reason mode a blank
+    // field is ABSENT, never '' — see the header note.
+    if (!props.requestReason) {
+      emit('confirm');
+      return;
+    }
+    emit('confirm', reason.value.trim() || undefined);
   }
 
   function handleCancel(): void {
@@ -137,6 +192,7 @@
     (isOpen) => {
       if (!isOpen) {
         typed.value = '';
+        reason.value = '';
         return;
       }
       nextTick(() => {
@@ -261,6 +317,32 @@
                     id="admin-confirm-hint"
                     class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
                     {{ t('web.admin.kit.confirmDialog.mismatchHint') }}
+                  </p>
+                </div>
+
+                <!-- OPTIONAL operator reason (#4338). Never gates confirm:
+                     an empty field submits as `undefined`, so the trail
+                     records "no reason given" rather than an empty one. -->
+                <div
+                  v-if="requestReason"
+                  class="mt-4">
+                  <label
+                    for="admin-confirm-reason"
+                    class="block text-sm text-gray-600 dark:text-gray-400">
+                    {{ resolvedReasonLabel }}
+                  </label>
+                  <textarea
+                    id="admin-confirm-reason"
+                    v-model="reason"
+                    rows="2"
+                    :maxlength="REASON_MAX_LENGTH"
+                    autocomplete="off"
+                    :disabled="loading"
+                    data-testid="admin-confirm-reason"
+                    :placeholder="resolvedReasonPlaceholder"
+                    class="mt-2 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-base placeholder:text-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-brand-400 dark:focus:ring-brand-400"></textarea>
+                  <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                    {{ t('web.admin.kit.confirmDialog.reasonHint') }}
                   </p>
                 </div>
 

@@ -436,13 +436,17 @@
     "text": "Tjek din e-mail",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "Vi har sendt et bekræftelseslink til",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "Vi har sendt et bekræftelseslink til din e-mailadresse.",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "Vi har sendt et bekræftelseslink til denne adresse — åbn e-mailen, og klik på linket for at aktivere din konto.",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "Klik på linket i e-mailen for at aktivere din konto.",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "Kan du ikke finde det? Tjek din spammappe.",

@@ -38,6 +38,19 @@
 # trigger/constraint behaviors. CI runs both; local development defaults to
 # SQLite for speed.
 #
+# Lane environment contract
+# -------------------------
+# Each task below is a LANE: one process started with the env hash the task
+# builds, and nothing more. A spec under a lane's directory may rely on every
+# setting in that hash (the full lane's ORGS_SSO_ENABLED=true registers the
+# /auth/sso/* routes, for instance) and must not rely on anything outside it.
+# The lane, not the developer's shell, is the environment of record; a bare
+# `bundle exec rspec` run is not a lane. Specs that need a lane-provided
+# setting tag themselves `lane_env:` (spec/support/helpers/lane_env_helpers.rb)
+# so that running them outside the lane fails naming the lane. When a lane's
+# env hash changes, that helper's LANES table and the spec_helper header are
+# the two places that describe it to spec authors.
+#
 # Environment Variables:
 #   RSPEC_OUTPUT_FILE - Path to JSON results file (e.g., tmp/rspec_results.json)
 #                       When set, adds JSON formatter output for CI reporting
@@ -134,6 +147,10 @@ APPS_FAST_EXCLUDE = [
 # diff, so the follow-up is to decide the membership explicitly and then either
 # retag the billing specs or drop these flags.
 APPS_FAST_TAG_FILTERS = '--tag ~postgres_database --tag ~integration'
+
+# The legs `spec:fast` runs, in order. See the task itself for why they are
+# collected rather than chained as prerequisites.
+FAST_LEGS = %w[spec:root_fast spec:apps_fast spec:apps_config_ru].freeze
 
 namespace :spec do
   # The `spec:fast` invocations. Their patterns are documented at
@@ -393,8 +410,38 @@ namespace :spec do
   # Two rspec processes, not thirteen. `rake spec:verify_selection` asserts the
   # pair selects exactly the files the thirteen selected; run it after any edit
   # to ROOT_FAST_PATTERN / APPS_FAST_PATTERN / APPS_FAST_EXCLUDE.
+  #
+  # Deliberately NOT a prerequisite chain (`task fast: [...]`): rake stops a
+  # prerequisite chain at its first failure — RSpec::Core::RakeTask exits the
+  # process on a red leg — so any root_fast failure used to skip apps_fast and
+  # apps_config_ru entirely: all 11 apps/*/*/spec trees, ~5,200 examples, with
+  # nothing in the output saying so. Two environment-dependent examples
+  # (spec/unit/lanes/isolation_key_spec.rb wherever Docker is absent) were
+  # enough to hide app-spec drift behind a red-but-partial run. Every leg runs;
+  # a red one is recorded, summarized per leg, and fails the task at the end.
   desc 'Run all non-integration specs (unit, cli, lib, apps)'
-  task fast: [:root_fast, :apps_fast, :apps_config_ru]
+  task :fast do
+    failures = {}
+    FAST_LEGS.each do |leg|
+      Rake::Task[leg].invoke
+    rescue SystemExit => ex
+      # RSpec's rake task calls `exit` rather than raising, and SystemExit is
+      # not a StandardError — a bare rescue here would let the first red leg
+      # take the whole chain down again.
+      failures[leg] = "exit #{ex.status}"
+    rescue StandardError => ex
+      failures[leg] = ex.message
+    end
+
+    puts
+    puts "spec:fast leg summary (#{FAST_LEGS.size - failures.size}/#{FAST_LEGS.size} ok):"
+    FAST_LEGS.each do |leg|
+      puts format('  %-20s %s', leg, failures.key?(leg) ? "FAILED (#{failures[leg]})" : 'ok')
+    end
+    unless failures.empty?
+      abort "spec:fast: #{failures.size} of #{FAST_LEGS.size} legs failed: #{failures.keys.join(', ')}"
+    end
+  end
 
   desc 'Run the complete test suite'
   task all: ['spec:fast', 'spec:integration:all']

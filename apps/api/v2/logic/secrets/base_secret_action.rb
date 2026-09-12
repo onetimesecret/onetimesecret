@@ -2,12 +2,16 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/secret_lifetime_policy'
+require 'onetime/security/conceal_secret_rate_limiter'
+
 module V2::Logic
   module Secrets
     using Familia::Refinements::TimeLiterals
 
     class BaseSecretAction < V2::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Security::ConcealSecretRateLimiter
 
       attr_reader :passphrase,
         :secret_value,
@@ -39,6 +43,17 @@ module V2::Logic
       end
 
       def raise_concerns
+        # Throughput cap on anonymous secret creation (finding F-02). Charged
+        # ONLY to guests — an authenticated caller is accountable through their
+        # Customer record and plan limits and is the legitimate high-volume
+        # creator — and enforced ahead of the Receipt.spawn_pair write in
+        # #process, so a throttled flood reaches no datastore growth. Keyed on
+        # the edge-masked client IP the auth strategy resolved. Raises
+        # Onetime::LimitExceeded, rendered as the ADR-013 429 (otto_hooks.rb).
+        # The V1 controller enforces the same limiter over the same subject; keep
+        # them in lockstep. See Onetime::Security::ConcealSecretRateLimiter.
+        enforce_conceal_secret_rate_limit!(conceal_secret_client_ip) if anonymous_user?
+
         require_entitlement!('api_access')
         raise_form_error 'Unknown type of secret' if kind.nil?
 
@@ -151,64 +166,20 @@ module V2::Logic
         Onetime::Models::Features::WithEntitlements::DEFAULT_FREE_TTL
       end
 
-      # Anonymous TTL ceiling (2026-07-29 API audit, item 4).
+      # Guest TTL is request-boundary policy, not an authentication-only rule.
+      # Canonical-host guests use TTL_MAX_ANONYMOUS (7 days by default).
+      # Custom-host guests use the owning organization's plan lifetime (normally
+      # 14 or 30 days), because tenant-owned storage is an accountable boundary.
       #
-      # Lowest of up to three ceilings:
-      #
-      #   1. The configured anonymous ceiling
-      #      (site.secret_options.ttl_max_anonymous, env TTL_MAX_ANONYMOUS,
-      #      default 7 days). Read on every deployment, billing or not — that
-      #      is the fix for the original audit finding, where the ceiling was
-      #      derived from plan state and so vanished with billing disabled.
-      #      Operators may raise it: a self-hosted install on a private network
-      #      does not share the hosted service's anonymous-abuse threat model.
-      #   2. config ttl_options.max, so an operator who caps durations globally
-      #      still wins over a larger anonymous setting.
-      #   3. the free-tier secret_lifetime limit, consulted ONLY when billing is
-      #      enabled and only when positive. This is what preserves the audit's
-      #      invariant (anonymous grant <= authenticated free-tier grant) where
-      #      that invariant means something. With billing disabled there are no
-      #      plans and no free tier, so there is no tier to invert against and
-      #      the term is correctly absent rather than fail-open.
-      #
-      # This is a silent clamp, not a loud 403/422. The anonymous web UI does
-      # not depend on that leniency — usePrivacyOptions.ts derives a ttlCeiling
-      # from the secret_options.ttl_max_anonymous bootstrap key and filters
-      # over-ceiling durations out of the dropdown, so the browser flow never
-      # asks for more than it can have. The clamp remains for non-browser API
-      # callers (curl, SDKs, integrations), which can still POST an
-      # over-ceiling ttl and today get a shortened secret rather than an
-      # error. Turning that into a loud rejection is a v3 contract decision;
-      # V2's clamp is deliberately unchanged.
-      #
-      # @param config_max [Integer] ttl_options.max fallback from config
-      # @return [Integer] Maximum TTL in seconds for anonymous callers
-      # The rescue below only skips the free-tier term; the configured ceiling
-      # still applies. BillingConfig.instance is a Singleton whose initialize
-      # parses billing.yaml — so the only way here is a config/boot fault, not a
-      # transient datastore blip. Log the exception class so an unreachable or
-      # malformed billing config is distinguishable from billing genuinely being
-      # disabled, which is otherwise the same silent code path.
+      # Keep this delegation and ConfigSerializer on the same resolver. Treating
+      # every unauthenticated request as canonical silently shortens branded
+      # custom-domain secrets and makes the UI hide valid plan durations.
       def anonymous_max_ttl(config_max)
-        ceilings = [
-          Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl,
-          config_max,
-        ]
-
-        billing_enabled = begin
-          Onetime::BillingConfig.instance.enabled?
-        rescue StandardError => ex
-          OT.le "[anonymous_max_ttl] BillingConfig unavailable (#{ex.class}: #{ex.message}); " \
-                "anonymous TTL ceiling falls back to #{ceilings.min}"
-          false
-        end
-
-        if billing_enabled
-          free_tier_max = Onetime::Organization.free_tier_limits['secret_lifetime.max'].to_i
-          ceilings << free_tier_max if free_tier_max.positive?
-        end
-
-        ceilings.min
+        Onetime::SecretLifetimePolicy.guest_ceiling(
+          config_max: config_max,
+          domain_strategy: domain_strategy,
+          display_domain: display_domain,
+        )
       end
 
       def process_secret
@@ -440,6 +411,19 @@ module V2::Logic
       end
 
       private
+
+      # Edge-masked client IP for the creation limiter, read from the same
+      # StrategyResult metadata the passphrase limiter uses in these files
+      # (burn/reveal/show_secret#passphrase_client_ip). Guarded with respond_to?
+      # because a direct/spec construction may build the logic without a
+      # strategy_result; AuthStrategies::Helpers#client_ip sources it from
+      # env['otto.client_ip'], so the key is trusted-proxy-resolved and not
+      # header-spoofable. nil skips the limiter (see conceal_secret_ip_keys).
+      def conceal_secret_client_ip
+        return unless respond_to?(:strategy_result)
+
+        strategy_result&.metadata&.[](:ip)
+      end
 
       def create_secret_pair
         @receipt, @secret = Onetime::Receipt.spawn_pair(

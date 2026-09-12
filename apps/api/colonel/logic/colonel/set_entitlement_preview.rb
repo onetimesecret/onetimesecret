@@ -188,15 +188,12 @@ module ColonelAPI
           redis.del(session_grants_key(session_id))
           redis.del(session_revokes_key(session_id))
 
-          # Clear session markers
-          sess.delete(:entitlement_preview_grants_key)
-          sess.delete(:entitlement_preview_revokes_key)
-          sess.delete(:entitlement_preview_planid) # Legacy, for transition
-
-          # Mirror into the request's Fiber-local: the middleware stashed the
-          # pre-flip context before this handler ran, so without this the
-          # response would serialize from stale preview state (ADR-020).
-          Onetime::EntitlementPreview.clear
+          # Session markers + the request's Fiber-local. The Fiber-local matters
+          # because the middleware stashed the pre-flip context before this
+          # handler ran, so without clearing it the response would serialize
+          # from stale preview state (ADR-020). Shared with every other caller
+          # that ends a preview (e.g. impersonation start).
+          Onetime::EntitlementPreview.clear_session!(sess)
 
           {
             status: 'cleared',

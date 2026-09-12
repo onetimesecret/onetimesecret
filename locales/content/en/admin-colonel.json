@@ -299,6 +299,34 @@
     "text": "You are testing with {planName} entitlements (temporary session override).",
     "content_hash": "1a8aecf1"
   },
+  "web.impersonation.banner.label": {
+    "text": "Impersonation active",
+    "content_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Viewing as {email}",
+    "content_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Read-only: changes are blocked while impersonating.",
+    "content_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Ends in {time}",
+    "content_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Stop impersonating",
+    "content_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Stopping…",
+    "content_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Could not stop impersonating. Try again.",
+    "content_hash": "5aa72353"
+  },
   "web.colonel.organizations.title": {
     "text": "Organizations",
     "content_hash": "2730183d"
@@ -399,9 +427,9 @@
     "text": "Refresh",
     "content_hash": "0e916101"
   },
-  "web.colonel.organizations.updatedAgo": {
-    "text": "Updated {ago}",
-    "content_hash": "cda30b9c"
+  "web.colonel.organizations.capped": {
+    "text": "Results are capped: the count shown is a floor, not the total. Filters cover every subscription-linked organization plus the most recently updated ones; search by an exact ID or email to reach any other.",
+    "content_hash": "0743238d"
   },
   "web.colonel.organizations.columns.billing": {
     "text": "Billing",
@@ -603,90 +631,6 @@
     "text": "Viewed",
     "content_hash": "1b28d178"
   },
-  "web.colonel.bannedIps.title": {
-    "text": "Banned IPs",
-    "content_hash": "0ece5643"
-  },
-  "web.colonel.bannedIps.description": {
-    "text": "Manage IP ban list",
-    "content_hash": "dd0d2614"
-  },
-  "web.colonel.bannedIps.columns.ipAddress": {
-    "text": "IP Address",
-    "content_hash": "3c3de0c9"
-  },
-  "web.colonel.bannedIps.columns.reason": {
-    "text": "Reason",
-    "content_hash": "f81ab834"
-  },
-  "web.colonel.bannedIps.columns.bannedAt": {
-    "text": "Banned At",
-    "content_hash": "dfbd120e"
-  },
-  "web.colonel.bannedIps.columns.bannedBy": {
-    "text": "Banned By",
-    "content_hash": "9f47db0e"
-  },
-  "web.colonel.bannedIps.empty": {
-    "text": "No banned IPs",
-    "content_hash": "bd101143"
-  },
-  "web.colonel.bannedIps.form.title": {
-    "text": "Ban IP Address",
-    "content_hash": "3f5b3dfa"
-  },
-  "web.colonel.bannedIps.form.ipLabel": {
-    "text": "IP Address",
-    "content_hash": "3c3de0c9"
-  },
-  "web.colonel.bannedIps.form.reasonLabel": {
-    "text": "Reason",
-    "content_hash": "f81ab834"
-  },
-  "web.colonel.bannedIps.form.reasonPlaceholder": {
-    "text": "Optional reason",
-    "content_hash": "956688a5"
-  },
-  "web.colonel.bannedIps.actions.ban": {
-    "text": "Ban IP",
-    "content_hash": "f91a5285"
-  },
-  "web.colonel.bannedIps.actions.quickBan": {
-    "text": "Quick Ban",
-    "content_hash": "c32d0943"
-  },
-  "web.colonel.bannedIps.actions.unban": {
-    "text": "Unban",
-    "content_hash": "25fb5989"
-  },
-  "web.colonel.bannedIps.actions.cancel": {
-    "text": "Cancel",
-    "content_hash": "19766ed6"
-  },
-  "web.colonel.bannedIps.currentIp": {
-    "text": "Your Current IP Address",
-    "content_hash": "72f9fefe"
-  },
-  "web.colonel.bannedIps.confirmUnban": {
-    "text": "Unban {ip}?",
-    "content_hash": "ff009b1c"
-  },
-  "web.colonel.bannedIps.success.banned": {
-    "text": "IP address {ip} has been banned",
-    "content_hash": "b6f861d5"
-  },
-  "web.colonel.bannedIps.success.unbanned": {
-    "text": "IP address {ip} has been unbanned",
-    "content_hash": "dbe93550"
-  },
-  "web.colonel.bannedIps.error.banFailed": {
-    "text": "Failed to ban IP address",
-    "content_hash": "24e94d9b"
-  },
-  "web.colonel.bannedIps.error.unbanFailed": {
-    "text": "Failed to unban IP address",
-    "content_hash": "66bbac9a"
-  },
   "web.colonel.usageExport.title": {
     "text": "Usage Export",
     "content_hash": "10a0cb94"
@@ -806,10 +750,6 @@
   "web.colonel.titles.authdb": {
     "text": "Auth Database",
     "content_hash": "c683c9a6"
-  },
-  "web.colonel.titles.bannedIps": {
-    "text": "Banned IPs",
-    "content_hash": "0ece5643"
   },
   "web.colonel.titles.usage": {
     "text": "Usage Export",

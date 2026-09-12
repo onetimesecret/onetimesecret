@@ -23,6 +23,11 @@ export const AUTHENTICATION_SERIALIZER_FIELDS = [
   'customer_since',
   'entitlement_preview_planid',
   'entitlement_preview_plan_name',
+  // Active impersonation overlay (colonel support session), null when
+  // inactive. Emitted unconditionally by authentication_serializer.rb from the
+  // per-request Fiber-local context, so the banner can never disagree with the
+  // session actually being served.
+  'impersonation',
 ] as const;
 
 // ============================================================================
@@ -53,6 +58,8 @@ export const CONFIG_SERIALIZER_FIELDS = [
   'frontend_development',
   'frontend_host',
   'homepage_mode',
+  // First-class legal/policy URLs from site.legal (#4278)
+  'legal',
   'billing_enabled',
   'regions',
   'regions_enabled',

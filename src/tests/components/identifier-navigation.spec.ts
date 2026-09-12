@@ -29,6 +29,7 @@ const mockOrganization: Organization = {
   contact_email: null,
   is_default: false,
   planid: 'free',
+  active_subscription: false,
   created: new Date('2024-01-01'),
   updated: new Date('2024-01-01'),
 };
@@ -44,6 +45,7 @@ const mockOrganizations: Organization[] = [
     contact_email: null,
     is_default: true,
     planid: 'free',
+    active_subscription: false,
     created: new Date('2024-02-01'),
     updated: new Date('2024-02-01'),
   },

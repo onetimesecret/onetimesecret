@@ -23,12 +23,15 @@ RSpec.describe 'Colonel customer support features', type: :integration do
   # Build the StrategyResult double Logic::Base expects (mirrors
   # entitlement_preview_spec.rb). The colonel is a REAL verified customer so
   # verify_one_of_roles!(colonel: true) exercises the actual policy.
-  def strategy_result_for(user, session: {})
+  # `confirm_token` is where the colonel session auth strategy puts the
+  # percent-decoded X-OTS-Confirm header (#4326) — never params. The gated verbs
+  # exercised below refuse without it.
+  def strategy_result_for(user, session: {}, confirm_token: nil)
     double(
       'StrategyResult',
       session: session,
       user: user,
-      metadata: { ip: '127.0.0.1' },
+      metadata: { ip: '127.0.0.1', confirm_token: confirm_token },
       auth_method: 'sessionauth',
     )
   end
@@ -384,8 +387,10 @@ RSpec.describe 'Colonel customer support features', type: :integration do
   describe 'SuspendUser / UnsuspendUser' do
     let(:target) { create_customer(email: "target-#{SecureRandom.hex(4)}@example.com") }
 
-    def run_logic(klass, params)
-      logic = klass.new(strategy_result_for(colonel), params)
+    # SUSPEND is confirmation-gated (#4326) on the account email; UNSUSPEND is
+    # the restorative arm and ignores the token.
+    def run_logic(klass, params, confirm: target.email)
+      logic = klass.new(strategy_result_for(colonel, confirm_token: confirm), params)
       logic.raise_concerns
       logic.process
     end
@@ -450,8 +455,17 @@ RSpec.describe 'Colonel customer support features', type: :integration do
       )
       audit_before = Onetime::ColonelAuditEvent.count
 
-      logic = ColonelAPI::Logic::Colonel::SuspendUser.new(
+      # The privilege guard is an INTERLOCK, so it runs AFTER the confirmation
+      # gate (§0.2): a caller who has not named the target correctly must not
+      # learn from a 422 that the account holds the colonel role.
+      unconfirmed = ColonelAPI::Logic::Colonel::SuspendUser.new(
         strategy_result_for(colonel), { 'user_id' => other_colonel.extid },
+      )
+      expect { unconfirmed.raise_concerns }.to raise_error(Onetime::ConfirmationRequired)
+
+      logic = ColonelAPI::Logic::Colonel::SuspendUser.new(
+        strategy_result_for(colonel, confirm_token: other_colonel.email),
+        { 'user_id' => other_colonel.extid },
       )
       expect { logic.raise_concerns }.to raise_error(OT::FormError, /cannot be suspended/i)
 
@@ -468,14 +482,26 @@ RSpec.describe 'Colonel customer support features', type: :integration do
       expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden)
     end
 
-    it 'is idempotent: re-suspending audits nothing and reports changed=false' do
+    # #4337: idempotent in EFFECT, not in the trail. Re-suspending mutates
+    # nothing and still reports changed=false, but the operator deliberately
+    # reached for the suspend button on a named account and that attempt is
+    # recorded — under the same verb, marked `outcome: 'no_change'`, so a
+    # reviewer sees every attempt rather than only the ones that moved.
+    it 'is idempotent in effect but still audits the attempt, reporting changed=false' do
       run_logic(ColonelAPI::Logic::Colonel::SuspendUser, { 'user_id' => target.extid })
       audit_before = Onetime::ColonelAuditEvent.count
 
       data = run_logic(ColonelAPI::Logic::Colonel::SuspendUser, { 'user_id' => target.extid })
 
       expect(data[:details][:changed]).to be(false)
-      expect(Onetime::ColonelAuditEvent.count).to eq(audit_before)
+      expect(Onetime::ColonelAuditEvent.count).to eq(audit_before + 1)
+
+      event = Onetime::ColonelAuditEvent.recent(1).first
+      expect(event['verb']).to eq('customer.suspend')
+      expect(event['target']).to eq(target.extid)
+      expect(event['detail']).to include('outcome' => 'no_change')
+      # Nothing was destroyed or revoked, so the no-change write is fail-open.
+      expect(Onetime::Customer.load(target.objid).suspended?).to be(true)
     end
   end
 

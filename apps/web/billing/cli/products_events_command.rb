@@ -22,6 +22,14 @@ module Onetime
       def call(product_id:, limit: 20, type: nil, **)
         boot_application!
 
+        # A negative --limit reaches Array#first, which raises on a negative
+        # size; a zero limit is a silently empty listing. Reject both before
+        # spending a Stripe round trip.
+        if limit.to_i < 1
+          puts 'Error: --limit must be a positive integer'
+          exit 1
+        end
+
         return unless stripe_configured?
 
         # Verify product exists

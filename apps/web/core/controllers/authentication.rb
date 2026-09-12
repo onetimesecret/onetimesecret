@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/session/impersonation'
+
 require_relative 'base'
 
 module Core
@@ -59,6 +61,15 @@ module Core
             ip: req.ip,
           }
 
+        # Close any impersonation FIRST, so it is stopped and AUDITED rather
+        # than silently discarded with the session. GET /logout is a safe
+        # method and therefore reachable while impersonating; without this the
+        # trail would hold a start with no end.
+        Onetime::SessionImpersonation.stop!(
+          session,
+          ended_by: Onetime::SessionImpersonation::ENDED_BY_LOGOUT,
+        )
+
         # Clear all session data
         session.clear
 
@@ -112,8 +123,20 @@ module Core
           session['external_id']      = cust_after.extid
           session['email']            = cust_after.email
           session['role']             = cust_after.role
+          # This is the `sessionauth` marker required by session-only Account
+          # API routes, including /api/account/destroy. It is the authenticated
+          # session contract for Core's simple-auth login flow.
           session['authenticated']    = true
           session['authenticated_at'] = Familia.now.to_i
+
+          # #4327: an identity change must always land UNELEVATED. This path
+          # deliberately does not clear or renew the session (compare
+          # lib/onetime/helpers/session_helpers.rb, the other authenticate path,
+          # which does both), so without this the colonel step-up window minted
+          # by the previous occupant of this cookie would be inherited by the
+          # account signing in. Elevation is also identity-bound on read, so this
+          # is the second of two independent closures.
+          session.delete('elevated_until')
 
           auth_logger.info 'Session synchronized after authentication',
             {

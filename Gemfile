@@ -27,7 +27,14 @@ source 'https://rubygems.org/'
 # 2.9 floor: request-scoped CSP directive extras via
 # env['otto.csp.extra_directives'] (delano/otto#243), consumed by
 # Onetime::Middleware::TenantCspExtras (#4173).
-gem 'otto', '~> 2.9'
+# 2.10 floor: forwarded-authority hardening (delano/otto#252, #259).
+# IPPrivacyMiddleware strips Forwarded / X-Forwarded-{Host,Proto,Scheme,SSL,Port}
+# from untrusted peers, and Otto::Security::Config#trusted_proxy_header= pins
+# Rack::Request.forwarded_priority process-wide — the app sets the header
+# unconditionally in MiddlewareStack.ip_privacy_security_config so Rack never
+# reads RFC 7239 Forwarded for host/port/proto. rack-parser stopped being an
+# otto runtime dependency in 2.10; it is declared below.
+gem 'otto', '~> 2.10'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
@@ -48,6 +55,8 @@ gem 'omniauth_openid_connect', '~> 0.8'
 gem 'puma', '>= 6.0', '< 8.0'
 gem 'rack', '>= 3.2.6', '< 4.0'
 gem 'rack-contrib', '~> 2.5.0'
+# Mounted directly in MiddlewareStack (JSON/form body parsing); was transitive via otto < 2.10.
+gem 'rack-parser', '~> 0.7'
 gem 'rack-protection', '~> 4.1'
 gem 'rack-proxy', '~> 0.7'
 gem 'rack-session', '~> 2.1.2'
@@ -135,6 +144,13 @@ gem 'psych', '~> 5.2.3'
 gem 'rdoc'
 gem 'reline'
 gem 'stringio', '~> 3.1.6'
+# Needed by the OPTIONAL audit syslog appender (#4334,
+# etc/defaults/logging.defaults.yaml `audit.syslog`). Declared here for the same
+# reason as its neighbours: `syslog` became a BUNDLED gem in Ruby 3.4, so
+# Bundler blocks `require 'syslog'` unless the Gemfile names it — the appender
+# would raise LoadError the moment an operator enabled it. No third-party code:
+# this ships with Ruby.
+gem 'syslog'
 
 # ====================================
 # Background Job Processing

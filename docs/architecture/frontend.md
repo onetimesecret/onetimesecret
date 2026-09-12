@@ -3,15 +3,18 @@ labels: frontend, vue3, pinia, architecture
 ---
 # Frontend Architecture
 
-**Last Updated:** 2026-01-11
+**Last Updated:** 2026-09-06
 **Framework:** Vue 3.5 (Composition API)
 **State Management:** Pinia 3
-**Build Tool:** Vite 5.4
-**Language:** TypeScript 5.6
+**Build Tool:** Vite 8.2
+**Language:** TypeScript 5.9
 
 ## Overview
 
-The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeScript. State management uses Pinia stores, and data flows from Ruby backendwindow stateVue components.
+The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with
+TypeScript. State management uses Pinia stores. Data flows from the Ruby backend
+through a one-time bootstrap snapshot, then through Pinia stores to Vue
+components.
 
 ## Architecture Pattern: Backend-to-Frontend Bridge
 
@@ -24,30 +27,29 @@ The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeSc
 2. Vue App Initialization
    Location: src/main.ts, src/plugins/core/appInitializer.ts
    Order:
-   - Diagnostics (if enabled)
-   - Error boundary
-   - Pinia (state management)
-   - API client (Axios)
-   - i18n
-   - Router
+   - Consume the bootstrap global into an internal snapshot
+   - Create the router, Pinia instance, and Axios API client
+   - Install diagnostics when enabled
+   - Configure Pinia auto-init and provide the API client
+   - Install Pinia, the global error handler, i18n, and the router
 
 3. Store Initialization
    Location: src/plugins/pinia/autoInitPlugin.ts
-   - Pinia auto-init plugin calls store.init() if available
-   - Stores read from bootstrapStore
-   - bootstrapStore reads from window.__BOOTSTRAP_ME__
+   - Pinia auto-init calls store.init() when a store is created
+   - bootstrapStore hydrates from the internal bootstrap snapshot
+   - After initialization, stores must not read window.__BOOTSTRAP_ME__
 
 4. Component Access
    Location: src/apps/**/components/**/*.vue, src/shared/components/**/*.vue
-   - Components use bootstrapStore via storeToRefs()
-   - Components use Pinia stores
-   - Both sources read from window.__BOOTSTRAP_ME__
+   - Components use bootstrapStore via storeToRefs() when they need reactive data
+   - Components use other Pinia stores for feature state
+   - Components do not read the bootstrap global directly
 
-5. State Refresh (every 15 minutes)
+5. State Refresh (eligible authenticated sessions, about every 15 minutes)
    Location: src/shared/stores/authStore.ts
-   - checkWindowStatus() fetches /bootstrap/me endpoint
-   - Updates entire window.__BOOTSTRAP_ME__
-   - Components using computed() react automatically
+   - checkWindowStatus() fetches /bootstrap/me
+   - Updates bootstrapStore and the internal bootstrap snapshot
+   - Components using computed() or storeToRefs() react automatically
 ```
 
 ## Bootstrap State Bridge
@@ -60,7 +62,7 @@ The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeSc
 **Frontend Access:**
 - **Pre-Pinia Service:** `src/services/bootstrap.service.ts` (for i18n, appInitializer)
 - **Pinia Store:** `src/shared/stores/bootstrapStore.ts` (reactive, single source of truth)
-- **Type Definition:** `src/types/declarations/bootstrap.d.ts`
+- **Contract and types:** `src/schemas/contracts/bootstrap`
 
 **Example:**
 ```typescript
@@ -85,7 +87,9 @@ const { authenticated, cust, ui } = storeToRefs(bootstrapStore);
 - **Triggers:**
   - Automatic: `authStore.checkWindowStatus()` timer
   - Manual: After login via `useAuth.login()`
-- **Updates:** Entire `window.__BOOTSTRAP_ME__` including customer data, config, CSRF token
+- **Updates:** `bootstrapStore` and the internal bootstrap snapshot, including
+  customer data, config, and CSRF token. The original window global is consumed
+  once and replaced with a marker; do not read or mutate it after initialization.
 
 ## State Management (Pinia)
 
@@ -121,7 +125,7 @@ export const useExampleStore = defineStore('example', () => {
   function init(options?: StoreOptions) {
     if (_initialized.value) return;
 
-    // Read from window state via bootstrapStore
+    // Read from the reactive bootstrap store
     const { cust } = storeToRefs(bootstrapStore);
     data.value = cust.value?.property ?? '';
 
@@ -331,29 +335,31 @@ const message = t('web.COMMON.verification_sent');
 
 ## Error Handling
 
-**Global Error Boundary:**
+**Global error handler:**
 - **Location:** `src/plugins/core/globalErrorBoundary.ts`
-- Catches unhandled errors
-- Logs to console in development
-- Shows user-friendly error messages
+- Classifies, logs, and reports errors that reach Vue's global handler
+- Only shows a notification when configured with a `notify` callback; the normal
+  app initializer does not currently provide one
 
-**Async Error Handler:**
+**Route render boundary:**
+- **Location:** `src/shared/components/errors/RouteErrorBoundary.vue`
+- Wraps the active route and renders reload/home recovery actions for synchronous
+  setup or render failures
+
+**Async error handler:**
 - **Location:** `src/shared/composables/useAsyncHandler.ts`
-- Wraps async operations
-- Provides loading/error states
-- Integrates with notifications store
+- Wraps async operations, provides loading callbacks, classifies errors, and
+  returns `undefined` on failure
 
 **Pattern:**
 ```typescript
-const { execute, isLoading, error } = useAsyncHandler();
-
-const result = await execute(async () => {
-  return await $api.post('/endpoint', data);
+const { wrap } = useAsyncHandler({
+  setLoading: (loading) => (isLoading.value = loading),
+  onError: (error) => (formError.value = error.message),
 });
 
-if (error.value) {
-  notificationsStore.show(error.value.message, 'error');
-}
+const result = await wrap(() => $api.post('/endpoint', data));
+if (!result) return;
 ```
 
 ## Styling
@@ -411,17 +417,17 @@ pnpm run preview
 ## Testing
 
 **Unit Tests:**
-- **Framework:** Vitest 2.1.8
-- **Location:** `src/**/__tests__/*.spec.ts`
+- **Framework:** Vitest 4.1
+- **Location:** `src/tests/**/*.spec.ts` and colocated `src/**/*.spec.ts`
 - **Pattern:** Component testing with Vue Test Utils
 
 **E2E Tests:**
 - **Framework:** Playwright
-- **Location:** `tests/e2e/*.spec.ts`
+- **Location:** `e2e/**/*.spec.ts`
 - **Commands:**
   ```bash
-  pnpm run playwright
-  PLAYWRIGHT_BASE_URL=https://dev.onetime.dev pnpm exec playwright test
+  pnpm test:playwright
+  PLAYWRIGHT_BASE_URL=https://dev.onetime.dev pnpm test:playwright
   ```
 
 ## Key Patterns
@@ -486,5 +492,5 @@ export function useFeature() {
 - **Vite Documentation:** https://vitejs.dev/
 - **TypeScript Documentation:** https://www.typescriptlang.org/
 - **Tailwind CSS:** https://tailwindcss.com/
-- **Backend Architecture:** `docs/architecture/authentication.md`
+- **Authentication Architecture:** `docs/architecture/authentication-strategies.md`
 - **Store Patterns:** `src/shared/stores/README.md`

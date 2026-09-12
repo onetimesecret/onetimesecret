@@ -13,7 +13,7 @@ module Onetime
     # AdminNetworkIsolation - host and network isolation for the Colonel admin
     # surfaces (`/colonel` shell + `/api/colonel` API).
     #
-    # A sibling of IPBan and HealthAccessControl in the universal middleware
+    # A sibling of HealthAccessControl in the universal middleware
     # stack (see Onetime::Application::MiddlewareStack.configure). It gives the
     # deployment a config-selectable posture WITHOUT forking the code, across
     # TWO INDEPENDENT FACTORS. Neither replaces the other, and a request must
@@ -37,11 +37,28 @@ module Onetime
     #      rule as the host gate: a list an operator wrote is never silently
     #      disabled.
     #
-    # Routes may additionally declare `network=admin`. Those routes require
-    # BOTH allowlists to be explicitly configured and active; after both gates
-    # admit the request this middleware records that verdict in Rack env for the
-    # Otto route wrapper. This leaves ordinary Colonel routes on the existing
-    # opt-in CIDR posture while sensitive routes can require the stronger one.
+    # Routes may additionally declare a network requirement, in one of two
+    # strengths (Onetime::Application::NetworkRequirements):
+    #
+    #   `network=admin` — strict. The route requires BOTH allowlists to be
+    #      explicitly configured and active; after both gates admit the request
+    #      this middleware records that verdict in Rack env for the Otto route
+    #      wrapper. Anything less is a 404.
+    #
+    #   `network=admin_if_configured` (#4332) — enforced only where the operator
+    #      actually configured admin isolation, advisory otherwise. This is what
+    #      the 15 tier-1 destructive colonel routes carry: annotating them with
+    #      the strict token would 404 every destructive verb on a stock
+    #      self-hosted install, where neither allowlist is set.
+    #
+    # Those two are told apart by the MODE key beside the verdict key — see
+    # ROUTE_REQUIREMENT_MODE_ENV_KEY. Both keys are written for every
+    # admin-surface request this middleware sees, including one it lets through
+    # with both gates inactive; their ABSENCE means the middleware never ran,
+    # which both strategies treat as a denial.
+    #
+    # This leaves ordinary Colonel routes on the existing opt-in CIDR posture
+    # while sensitive routes can require the stronger one.
     #
     # A request that fails EITHER active gate gets a 404 on `/colonel` and
     # `/api/colonel` — indistinguishable-from-absent, NOT a 403, so the admin
@@ -51,8 +68,9 @@ module Onetime
     # true) in each logic class), which still enforce beneath for any request
     # that does pass.
     #
-    # When BOTH gates are inactive the middleware is a strict NO-OP, exactly as
-    # before #4062.
+    # When BOTH gates are inactive the middleware still serves every request
+    # unchanged, exactly as before #4062; the only thing it does on that path is
+    # stamp the two verdict keys on an admin-surface request (#4332).
     #
     # ## Host resolution
     #
@@ -80,7 +98,7 @@ module Onetime
     # ## make, and cannot make for us)
     #
     # DetectHost honors a forwarded host header (X-Forwarded-Host,
-    # Apx-Incoming-Host, X-Original-Host, Forwarded) when EITHER the operator
+    # Apx-Incoming-Host, X-Original-Host) when EITHER the operator
     # configured proxy trust and this peer passed it (otto writes
     # env['otto.via_trusted_proxy'] = true) OR — with no proxy trust configured
     # at all, the SHIPPED DEFAULT — a legacy heuristic: any peer whose
@@ -103,6 +121,20 @@ module Onetime
     #   c. one is present but the detected host EQUALS the host the Host header
     #      alone would have produced — the forwarded header did not change the
     #      answer, so there is nothing to distrust.
+    #
+    # And, checked before (b): an RFC 7239 `Forwarded` header whose first
+    # host= parameter names a host OTHER than the one `Host` alone produces is
+    # denied from an untrusted peer (d). DetectHost never SELECTS that
+    # parameter (#4121), so the detected host is the Host-derived one and
+    # rules (b)/(c) would wave it through — but the topology that sends it is
+    # the same one (a)-(c) exist for: an edge that rewrote `Host` to the
+    # origin's own (canonical, allowlisted) name and carried the public host
+    # only in `Forwarded`. Admitting on `Host` there would serve the admin
+    # console on every tenant-domain request. DetectHost OBSERVES the value
+    # and publishes it at env[Rack::DetectHost.rfc7239_host_field_name]; this
+    # gate reads that, never the raw header. A `Forwarded` that agrees with
+    # `Host`, or carries no readable host=, changed nothing and is not a
+    # claim.
     #
     # Otherwise the request is DENIED. It is not silently downgraded to the
     # HTTP_HOST-derived host: in the topology this defends (Approximated-style
@@ -164,7 +196,7 @@ module Onetime
     # /32–/128 precision without the unmasked address ever landing in env, a
     # log, or this middleware; it resolves via the same
     # Otto::Utils.resolve_client_ip the auth strategies use, so the network
-    # gate still agrees with ban checks, sessions, and audit attribution on WHO
+    # gate still agrees with sessions and audit attribution on WHO
     # the client is. A request that never passed the otto mount has no closure;
     # membership then falls back to comparing the resolved IP itself, and that
     # same mount is what writes env['otto.client_ip'], so with it absent
@@ -243,6 +275,15 @@ module Onetime
       # cannot supply Rack env keys over HTTP.
       ROUTE_REQUIREMENT_ENV_KEY = 'onetime.admin_network_requirement_met'
 
+      # Tri-state companion to ROUTE_REQUIREMENT_ENV_KEY (#4332). :enforced when
+      # the operator has fully configured admin isolation (explicit enforceable
+      # hosts AND at least one parseable CIDR); :advisory otherwise.
+      # `network=admin_if_configured` falls through on :advisory so annotating
+      # destructive routes cannot brick a stock self-hosted install. ABSENT
+      # means the middleware never ran for this request — the strategy treats
+      # that as a denial, not as advisory.
+      ROUTE_REQUIREMENT_MODE_ENV_KEY = 'onetime.admin_network_requirement_mode'
+
       # @see Onetime::Middleware::ADMIN_NOT_FOUND_HTML
       NOT_FOUND_HTML = ADMIN_NOT_FOUND_HTML
 
@@ -257,6 +298,12 @@ module Onetime
       FORWARDED_HOST_ENV_KEYS = Rack::DetectHost::FORWARDED_HEADERS.map do |header|
         "HTTP_#{header.tr('-', '_').upcase}"
       end.freeze
+
+      # RFC 7239 Forwarded is deliberately NOT in that list: DetectHost never
+      # selects its host= parameter (#4121), so presence alone proves nothing.
+      # It is judged by VALUE — the one DetectHost observed and published at
+      # env[Rack::DetectHost.rfc7239_host_field_name] — see rule (d) in the
+      # class doc and #rfc7239_host_disagrees?.
 
       # Path used when the request path cannot be normalized at all. Fails
       # CLOSED: an unparseable path is judged as an admin surface, so a
@@ -337,12 +384,23 @@ module Onetime
 
       def call(env)
         # Cheapest discriminator first, and it is this one: with both gates
-        # inactive — the pre-#4062 self-hosted default — the middleware is a
-        # strict NO-OP that allocates nothing, and the two app-layer auth
-        # layers are the sole gate. Reconstructing the path first would put a
-        # String allocation on every request of every mounted app to answer a
-        # question two already-computed booleans settle.
-        return @app.call(env) unless host_gate_active? || network_gate_active?
+        # inactive — the pre-#4062 self-hosted default — this middleware denies
+        # nothing and the two app-layer auth layers are the sole gate.
+        # Reconstructing the path first would put a String allocation on every
+        # request of every mounted app to answer a question two already-computed
+        # booleans settle.
+        #
+        # #4332 added ONE thing to that path: the verdict keys are still needed
+        # on admin paths, so `network=admin_if_configured` can distinguish
+        # "advisory" from "the middleware never ran". It is reached through an
+        # allocation-free prefilter (#maybe_admin_surface? reads two strings Rack
+        # already built), so the exact — allocating — check runs only for the
+        # handful of requests that could be admin ones. Every other request
+        # keeps the original no-op fast path.
+        unless host_gate_active? || network_gate_active?
+          annotate_route_requirement(env) if maybe_admin_surface?(env)
+          return @app.call(env)
+        end
 
         full_path = request_path(env)
         return @app.call(env) unless admin_surface?(full_path)
@@ -353,11 +411,49 @@ module Onetime
         return not_found_response(full_path) if host_denied?(env, full_path)
         return not_found_response(full_path) if network_denied?(env, full_path)
 
-        env[ROUTE_REQUIREMENT_ENV_KEY] = route_requirement_met?
+        annotate_route_requirement(env, full_path)
         @app.call(env)
       end
 
       private
+
+      # Record this request's route-requirement verdict for the Otto wrappers.
+      #
+      # Both keys move together — a reader that saw one without the other could
+      # not tell "advisory" from "middleware absent" — and both are written ONLY
+      # on an admin surface, which is the only place the verdict means anything.
+      #
+      # @param env [Hash] the Rack env, mutated in place
+      # @param full_path [String] the normalized path, when the caller has one
+      # @return [void]
+      def annotate_route_requirement(env, full_path = request_path(env))
+        return unless admin_surface?(full_path)
+
+        env[ROUTE_REQUIREMENT_ENV_KEY]      = route_requirement_met?
+        env[ROUTE_REQUIREMENT_MODE_ENV_KEY] = route_requirement_mode
+      end
+
+      # "Could this request possibly be for an admin surface?" — a deliberately
+      # over-broad prefilter that allocates nothing, so it can sit on the
+      # both-gates-inactive fast path that runs for every request of all ~13
+      # mounted apps. #annotate_route_requirement re-checks exactly (and with
+      # normalization) before writing anything.
+      #
+      # SCRIPT_NAME is the mount prefix for a mounted app and PATH_INFO the
+      # remainder, so both are checked rather than concatenated: the colonel API
+      # arrives as SCRIPT_NAME=/api/colonel + PATH_INFO=/info, and the shell as
+      # SCRIPT_NAME='' + PATH_INFO=/colonel.
+      def maybe_admin_surface?(env)
+        script = env['SCRIPT_NAME']
+        return true if script && (script.start_with?('/colonel', '/api/colonel'))
+
+        # A non-empty SCRIPT_NAME that is not an admin mount cannot become one
+        # by appending PATH_INFO.
+        return false unless script.nil? || script.empty?
+
+        path = env['PATH_INFO']
+        !path.nil? && (path.start_with?('/colonel', '/api/colonel'))
+      end
 
       # --- gates ---------------------------------------------------------
 
@@ -375,6 +471,30 @@ module Onetime
       # count as network isolation.
       def route_requirement_met?
         @host_gate_explicit && host_gate_active? && network_gate_active?
+      end
+
+      # Whether a route-level admin requirement is ENFORCEABLE in this posture
+      # (#4332). Process-constant, like #route_requirement_met? itself: it is
+      # the same construction-time decision, read as a tri-state so a route can
+      # opt into "enforce only where the operator configured this".
+      #
+      # :advisory is not a weaker verdict, it is a different question — "is the
+      # operator running admin isolation at all?" — which is why the strict
+      # `network=admin` token never consults it.
+      def route_requirement_mode
+        route_requirement_met? ? :enforced : :advisory
+      end
+
+      # Half-configured: the operator set one of the two knobs in a way that
+      # cannot enforce, which is the posture most likely to be believed working.
+      # Both halves are read the way #route_requirement_met? reads them —
+      # a wildcard host list is explicit but inactive, and therefore not
+      # configured for this purpose.
+      def admin_isolation_half_configured?
+        host_half    = @host_gate_explicit && host_gate_active?
+        network_half = network_gate_active?
+
+        host_half ^ network_half
       end
 
       # Host gate. Fails closed twice over: an active gate with an unresolvable
@@ -400,7 +520,8 @@ module Onetime
               host: host,
               path: full_path,
               method: env['REQUEST_METHOD'],
-              note: 'a forwarded host header changed the detected host, but the peer is not a configured ' \
+              note: 'a forwarded host header changed the detected host (or RFC 7239 Forwarded named a ' \
+                    'different host than Host), but the peer is not a configured ' \
                     'trusted proxy. Set site.network.trusted_proxy with explicit proxy CIDRs — filter mode ' \
                     'with none listed trusts every private peer — or ADMIN_ALLOWED_HOSTS=* to turn the gate off',
             }
@@ -478,6 +599,14 @@ module Onetime
         # detected) instead of blaming a proxy the operator may not have.
         return true if host.nil? || host.empty?
 
+        host_from_host_header = host_header_host(env)
+
+        # (d) RFC 7239 Forwarded names a host other than what the Host header
+        # alone produced. DetectHost ignored it, so `host` is the Host-derived
+        # one and (b)/(c) below would admit — on exactly the Host-rewriting
+        # topology (a)-(c) refuse to fall back to Host for. See the class doc.
+        return false if rfc7239_host_disagrees?(env, host_from_host_header)
+
         # (b) Nothing that could have overridden the Host header is present.
         return true unless forwarded_host_header?(env)
 
@@ -485,13 +614,31 @@ module Onetime
         # detected host is what the Host header alone would have produced.
         # Both sides go through DetectHost's OWN extraction before ours, so
         # this compares what DetectHost compared.
-        host == host_header_host(env)
+        host == host_from_host_header
       end
 
       # Whether the request carries any host header DetectHost would honor from
-      # a trusted peer. Presence only — the VALUE is never read here.
+      # a trusted peer. Presence only — the VALUE is never read here. (RFC 7239
+      # Forwarded is the one header judged by value; see #rfc7239_host_disagrees?.)
       def forwarded_host_header?(env)
         FORWARDED_HOST_ENV_KEYS.any? { |key| env.key?(key) }
+      end
+
+      # Whether RFC 7239 Forwarded asserted a host OTHER than the one the Host
+      # header alone produced. The assertion is DetectHost's observation
+      # (Rack::DetectHost.rfc7239_host: first host= parameter, parsed, then
+      # normalized and validated like any forwarded host), read from the env
+      # key it publishes — the raw header is never parsed here. Absent means
+      # no readable, valid host= — nothing overrode Host, nothing to distrust.
+      #
+      # @param env [Hash] the Rack env
+      # @param host_from_host_header [String, nil] see #host_header_host
+      # @return [Boolean]
+      def rfc7239_host_disagrees?(env, host_from_host_header)
+        claimed = normalize_host(env[Rack::DetectHost.rfc7239_host_field_name])
+        return false if claimed.nil? || claimed.empty?
+
+        claimed != host_from_host_header
       end
 
       # The host the `Host:` header alone would have produced, normalized
@@ -972,6 +1119,38 @@ module Onetime
 
         log_once(:posture, posture) do
           @logger.info 'Admin surface isolation posture', posture
+        end
+
+        log_route_requirement_mode
+      end
+
+      # The one line that tells an operator whether the `network=admin_if_configured`
+      # annotation on the 15 destructive colonel routes is doing anything (#4332).
+      #
+      # Level is the whole point. A stock self-hosted install configured neither
+      # allowlist and is not misconfigured — nagging it at WARN would train
+      # operators to ignore this line. A HALF-configured install is different:
+      # someone set one of the two knobs, so they believe a restriction is in
+      # force, and it is not. Through log_once for the usual reason — this
+      # middleware is constructed once per mounted app.
+      def log_route_requirement_mode
+        return if route_requirement_mode == :enforced
+
+        payload = {
+          mode: :advisory,
+          host_gate_explicit: @host_gate_explicit,
+          host_gate: host_gate_active?,
+          network_gate: network_gate_active?,
+          consequence: 'routes marked network=admin_if_configured are NOT network-gated; ' \
+                       'set BOTH ADMIN_ALLOWED_HOSTS (no wildcard) and ADMIN_ALLOWED_CIDRS to enforce',
+        }
+
+        log_once(:admin_route_requirement_advisory, payload) do
+          if admin_isolation_half_configured?
+            @logger.warn 'Admin route network requirement is ADVISORY: admin isolation is half-configured', payload
+          else
+            @logger.info 'Admin route network requirement is advisory (admin isolation is not configured)', payload
+          end
         end
       end
 

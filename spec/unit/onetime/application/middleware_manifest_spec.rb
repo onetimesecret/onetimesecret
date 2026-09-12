@@ -20,6 +20,13 @@ require 'spec_helper'
 #      in the class body, read back via `.resolved_middleware`, which walks
 #      the ancestor chain), plus each class's declared middleware profile.
 #
+# Not snapshotted here: the one unconditional mount Base#build_rack_app adds
+# itself, Onetime::Middleware::IsolateResponseHeaders, innermost directly
+# around the router (per-request copy of the response headers, so the
+# session commit cannot write into Otto's shared static fallback triples).
+# It is app-independent and config-independent; its behaviour is covered by
+# spec/integration/all/router_fallback_response_headers_spec.rb.
+#
 # ============================================================================
 # PROMINENT BLIND-SPOT WARNING
 # ============================================================================
@@ -96,19 +103,24 @@ RSpec.describe 'Middleware manifest (characterization)' do
     UNIVERSAL_MIDDLEWARE_BASE = [
       'Onetime::Middleware::AssumeHttps',
       'Otto::Security::Middleware::IPPrivacyMiddleware',
-      'Onetime::Middleware::IPBan',
       'Onetime::Middleware::HealthAccessControl',
       'Rack::ContentLength',
       'Onetime::Middleware::StartupReadiness',
       'Rack::DetectHost',
+      # StripForwardedHost must stay BELOW AdminNetworkIsolation: the admin
+      # gate's forwarded-host provenance rule keys on the PRESENCE of the raw
+      # headers, so stripping earlier would blind it to spoofed hosts.
       'Onetime::Middleware::AdminNetworkIsolation',
+      'Onetime::Middleware::StripForwardedHost',
       'Rack::RequestId',
       'Onetime::Middleware::NormalizeContentType',
+      'Onetime::Middleware::ValidateMultipart',
       'Rack::Parser',
       'Onetime::Session',
       'Onetime::Middleware::SessionSkip',
       'Onetime::Middleware::IdentityResolution',
       'Onetime::Middleware::EntitlementPreviewContext',
+      'Onetime::Middleware::ImpersonationContext',
       'Otto::Locale::Middleware',
       'Middleware::I18nLocale',
       'Onetime::Middleware::DomainStrategy',

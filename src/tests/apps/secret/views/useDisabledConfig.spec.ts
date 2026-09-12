@@ -34,7 +34,6 @@ interface SetupOptions {
   displayDomain?: string;
   brandDescription?: string | null;
   primaryColor?: string;
-  logoUri?: string | null;
   /** Brand font_family as saved in the raw domain_branding hash. Omitted =
    *  key absent (operator never chose a font). */
   fontFamily?: FontFamily;
@@ -174,7 +173,9 @@ function setup(opts: SetupOptions = {}) {
     domainStrategy: opts.domainStrategy ?? 'canonical',
     displayDomain: opts.displayDomain ?? 'onetimesecret.com',
     primaryColor: opts.primaryColor ?? '#dc4a22',
-    logoUri: opts.logoUri ?? null,
+    // logoUri is NOT set here: identityStore.logoUri is a computed derived
+    // from bootstrapStore.domain_logo, not writable state, so it can't be
+    // $patch'd — it's driven above via `tenantLogo` -> bootstrap.domain_logo.
     siteHost: opts.siteHost ?? 'onetimesecret.com',
     brand:
       opts.brandDescription === undefined

@@ -34,7 +34,7 @@ import { resolve } from 'path';
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import { createI18n } from 'vue-i18n';
+import { createRealI18n } from '@tests/setup';
 import { ref } from 'vue';
 import DomainSigninConfigForm from '@/apps/workspace/components/domains/DomainSigninConfigForm.vue';
 import type {
@@ -113,11 +113,12 @@ const realEn = JSON.parse(
   readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')
 );
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: { en: realEn },
-});
+// createRealI18n installs the real bundle and returns the loosened shape that
+// isolates the TS2589 escapes (see @tests/setup): resolving literal keys
+// against the ~9000-entry DefineLocaleMessage schema no longer materializes the
+// exploding Composer['t'] overload set. The instance mounts as a real i18n
+// plugin (see `global.plugins` below) and its `global.t` is called directly.
+const i18n = createRealI18n({ en: realEn });
 
 /** Resolve a key against the real bundle. */
 const t = (key: string) => i18n.global.t(key);

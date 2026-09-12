@@ -36,8 +36,8 @@ everywhere, and says so at boot. See [When the allowlist cannot be
 enforced](#when-the-allowlist-cannot-be-enforced).
 
 If the app runs behind a reverse proxy that forwards the public hostname in a
-header (`X-Forwarded-Host`, `Apx-Incoming-Host`, `X-Original-Host`,
-`Forwarded`) rather than rewriting `Host`, you **must** configure
+header (`X-Forwarded-Host`, `Apx-Incoming-Host`, `X-Original-Host`) rather than
+rewriting `Host`, you **must** configure
 `site.network.trusted_proxy` **with the proxy's own address ranges in
 `cidrs`** — otherwise the admin gate refuses the forwarded host and both
 surfaces 404. Filter mode with no explicit CIDRs trusts every private-network
@@ -74,7 +74,7 @@ a **404** — not a 403 — on both surfaces, so the admin console is
 *indistinguishable from absent* to an unauthorized host or network and does not
 advertise its existence. Both are enforced by the `AdminNetworkIsolation` Rack
 middleware (`lib/onetime/middleware/admin_network_isolation.rb`), a sibling of
-the existing `IPBan` and `HealthAccessControl` middleware.
+the existing `HealthAccessControl` middleware.
 
 Isolation is a **config posture, not a code fork**: the exact same app-layer
 enforcement runs in every posture. Flipping either allowlist on or off never
@@ -82,19 +82,106 @@ changes the auth behavior beneath it.
 
 ### Route-level network requirements
 
-Otto routes can declare `network=admin` when an endpoint must not inherit the
-network gate's opt-in default. Such a route returns `404` unless all of these are
-true:
+Individual routes can require more than the surface-wide posture above. There
+are **two tokens**, and the difference between them is what happens on an
+install that has not configured admin isolation at all.
 
-1. `ADMIN_ALLOWED_HOSTS` explicitly names an enforceable admin hostname.
-2. `ADMIN_ALLOWED_CIDRS` contains at least one parseable range.
-3. The request passes both allowlists.
+| Token | Routes carrying it | Where isolation is **fully configured** | Everywhere else |
+|---|---|---|---|
+| `network=admin` | 1 — `GET /api/colonel/system/proxy-headers` | enforced | **404, always** |
+| `network=admin_if_configured` | 15 — the tier-1 destructive verbs (#4332) | enforced | falls through; the surface-wide gates and the app-layer controls apply |
 
-The canonical-host fallback does not satisfy an explicit route requirement, and
-`ADMIN_ALLOWED_HOSTS=*` disables the host gate, so it does not satisfy one
-either. Routes without `network=admin` retain the general Colonel behavior
-described above. The proxy-header diagnostic is the first route using this
-requirement; see [Proxy header diagnostic](proxy-header-diagnostic.md).
+"Fully configured" means all of:
+
+1. `ADMIN_ALLOWED_HOSTS` explicitly names an enforceable admin hostname
+   (the canonical-host **fallback** does not count — it is not a choice you
+   made — and `ADMIN_ALLOWED_HOSTS=*` turns the host gate off, so it does not
+   count either);
+2. `ADMIN_ALLOWED_CIDRS` contains at least one parseable range;
+3. the request itself passes both allowlists.
+
+Only a posture where **both** hold satisfies a route requirement:
+
+| Posture | `ADMIN_ALLOWED_HOSTS` | `ADMIN_ALLOWED_CIDRS` | Route requirement | Boot line |
+|---|---|---|---|---|
+| A | unset, no routable anchor (stock self-hosted) | unset | advisory | INFO |
+| B | unset — served by the canonical anchor fallback | unset | advisory | INFO |
+| C | set to a real hostname | unset | advisory | **WARN** |
+| D | `*` (host gate off) | set | advisory | **WARN** |
+| — | unset — canonical anchor fallback | set | advisory | **WARN** |
+| E | set to a real hostname | set | **enforced** | none |
+
+The WARN rows are the ones worth an operator's attention: exactly one of the two
+halves is configured, so the posture looks restricted and enforces no route
+requirement. Note that neither the anchor fallback nor `*` counts as the host
+half — the first is not a choice you made, the second turns the gate off.
+
+**Why the destructive routes do not use the strict token.** `network=admin` has
+no fall-through and no opt-out. Annotating the fifteen destructive colonel
+verbs with it would return `404` — to an authenticated colonel, from localhost,
+with no diagnosis beyond a server WARN — on every install in postures A–D, which
+is every install that has not deliberately configured both allowlists. That is a
+breaking change dressed as hardening, so the destructive routes carry
+`network=admin_if_configured` instead.
+
+**What the annotation is worth in posture A.** Honestly: not much on the request
+path, since a request that reaches the route has already passed whatever
+surface-wide gates are active. Its value is (i) it **fails closed** if
+`AdminNetworkIsolation` ever leaves the middleware stack or a route moves
+outside the `/colonel*` prefixes — the requirement is denied when the
+middleware's verdict is missing entirely, not treated as advisory; (ii) it is a
+one-variable hard enforcement option for operators who want it; and (iii) it is
+a machine-readable, testable statement of which routes are destructive, checked
+in CI against `apps/api/colonel/destructive_actions.rb`.
+
+**Which routes carry it.** Exactly the fifteen tier-1 verbs — the irreversible,
+credential-revoking or privilege-granting ones:
+
+| Method | Path (under `/api/colonel`) |
+|---|---|
+| `DELETE` | `/secrets/:secret_id` |
+| `POST` | `/users/:user_id/email` |
+| `POST` | `/users/:user_id/role` |
+| `DELETE` | `/users/:user_id` |
+| `POST` | `/users/:user_id/sessions/revoke-all` |
+| `DELETE` | `/users/:user_id/sessions/:session_handle` |
+| `DELETE` | `/sessions/:session_handle` |
+| `POST` | `/domains/:extid/transfer` |
+| `DELETE` | `/domains/:extid/configs/:kind` |
+| `DELETE` | `/domains/:extid` |
+| `POST` | `/organizations/:org_id/transfer-ownership` |
+| `POST` | `/organizations/:org_id/members/:member_id/role` |
+| `DELETE` | `/organizations/:org_id/members/:member_id` |
+| `DELETE` | `/organizations/:org_id` |
+| `POST` | `/queues/dlq/:queue/purge` |
+
+**Which routes deliberately do not.** The twelve tier-2 routes — unverify,
+suspend, domain repair/override, domain-config upsert, the entitlement-override
+verbs, membership add, DLQ replay, rate-limit reset — are reversible. A network
+requirement is the one control in this area that fails as a **silent 404**, so it
+covers the irreversible set only; widening it trades a real bricking risk for
+little. The tier-2 verbs still require server-side confirmation, and the tier-1
+verbs still require confirmation *and* step-up re-authentication regardless of
+posture (see
+[colonel-admin-guide.md](colonel-admin-guide.md#destructive-actions-what-the-server-now-requires)).
+The tier lists themselves live in `apps/api/colonel/destructive_actions.rb`, and
+a spec fails if a route is annotated that is not tier 1, or a tier-1 route is not
+annotated.
+
+**Two seams worth knowing**, both deliberate and both unchanged by #4332:
+
+- A route-requirement denial is a `404`, not a `403`, and carries no reason. It
+  is indistinguishable from "this endpoint does not exist" — including from an
+  authenticated colonel on the wrong network.
+- That denial body (`{"error":"Not Found"}`) is **not** byte-identical to the
+  colonel router's own not-found body
+  (`{"error":"Not Found","error_type":"NotFound"}`), so a network-gated route is
+  distinguishable from an undefined one by a caller who looks. Closing that seam
+  is not worth a change to the shared error shape.
+
+Which mode is in force is announced once at boot — see [The boot
+log](#the-boot-log). The proxy-header diagnostic is the one route on the strict
+token; see [Proxy header diagnostic](proxy-header-diagnostic.md).
 
 ## Host allowlist (`site.admin.allowed_hosts`)
 
@@ -224,6 +311,34 @@ Partial failures change nothing: as long as **one** entry is enforceable, the
 rest are dropped with a WARN (`Ignoring unusable entries in
 site.admin.allowed_hosts`) and the survivors are enforced.
 
+## The default posture is open — what the allowlists do and do not do
+
+Before the details: **with both allowlists unset — the shipped default — the
+Colonel surfaces are reachable from any network, on any hostname the app serves
+that the host gate's anchor fallback admits.** Nothing on this page is enforcing
+anything on a stock install beyond that fallback.
+
+What is left holding the door in that posture:
+
+- `role=colonel` at the Otto router, on every `/api/colonel` route;
+- `verify_one_of_roles!(colonel: true)` (plus `cust.verified?`) in every colonel
+  logic class;
+- and, since epic #4323: server-side confirmation on 25 verbs, a step-up (sudo)
+  window on the 15 destructive ones, four rate-limit buckets on
+  `/api/colonel/*`, and a shorter idle/absolute session bound on the admin API.
+  See [colonel-admin-guide.md](colonel-admin-guide.md).
+
+That is a deliberate default, not an oversight: a single-container self-hosted
+install cannot require a VPN, and a fail-closed network default would 404
+`/colonel` on every one of them. But it is **a posture to change deliberately,
+not a hardened baseline**. If operators reach your console over a VPN, an office
+range or a bastion, set both allowlists — that is also what promotes the fifteen
+destructive routes from an advisory network requirement to an enforced one (see
+[Route-level network requirements](#route-level-network-requirements)).
+
+Setting only one of the two gives you neither promotion **and** logs a boot WARN
+saying so.
+
 ## Network allowlist (`site.admin.allowed_cidrs`)
 
 ### Default: no-op (self-hosted single-container)
@@ -232,7 +347,9 @@ When `site.admin.allowed_cidrs` is **unset or empty**, the network gate is a
 strict **no-op** — the surfaces stay reachable from any IP and the auth layers
 (plus the host gate above) are the remaining gates. This is the intended default
 for self-hosted single-container installs, which cannot require a VPN. No new
-configuration is required to keep this factor as it was.
+configuration is required to keep this factor as it was — read
+[the section above](#the-default-posture-is-open--what-the-allowlists-do-and-do-not-do)
+for what that leaves in place.
 
 ### Cloud enablement (private CIDRs)
 
@@ -300,7 +417,7 @@ same way the rest of the stack does:
   masking](#cidr-precision-and-privacy-masking).
 - The **host** gate matches the host `Rack::DetectHost` validated, and applies
   one extra check of its own: a forwarded host header (`X-Forwarded-Host`,
-  `Apx-Incoming-Host`, `X-Original-Host`, `Forwarded`) is accepted **only** when
+  `Apx-Incoming-Host`, `X-Original-Host`) is accepted **only** when
   `env['otto.via_trusted_proxy']` is true — i.e. `site.network.trusted_proxy` is
   configured and this peer passed it. Otherwise the forwarded host must agree
   with the `Host` header, or the request is refused. See [Forwarded hosts and
@@ -356,6 +473,26 @@ only when one of these holds:
 
 Anything else is a 404 on both surfaces, logged as `Admin surface access denied:
 forwarded host from an untrusted peer`.
+
+RFC 7239 `Forwarded` is handled separately, because it is **not a host
+source**: `Rack::DetectHost` never reads its `host=` parameter, so a request
+carrying only `Forwarded` resolves on `Host` alone. `DetectHost` still
+records the first `host=` value beside the detected host, and the gate, from
+a peer that is not a configured trusted proxy, refuses the request when that
+value names a host **other** than the one `Host` alone produced — the same
+404 and the same log line as above. A `Forwarded` that
+agrees with `Host`, or carries no `host=`, changes nothing and is admitted as
+an ordinary `Host` request.
+
+An edge that rewrites `Host` to the origin's own name and carries the public
+hostname only in `Forwarded` is therefore outside the supported contract on
+two counts, not one. Custom-domain routing is lost, and so is
+`onetime.display_domain`: `HttpOriginOptions` stops matching the site's own
+origin, so every state-changing request from that custom domain is rejected
+with a 403 (most visibly SSO sign-in, which has no authenticity-token
+fallback; see the `MIDDLEWARE_HTTP_ORIGIN` block in `.env.reference`). Fix
+the edge: preserve `Host`, or send `X-Forwarded-Host` and configure
+`site.network.trusted_proxy`.
 
 Without this, on any install with `trusted_proxy` unset, a request to a tenant
 custom domain carrying `X-Forwarded-Host: <your canonical host>` would reach the
@@ -512,6 +649,14 @@ app-layer auth layers fully in force underneath.
   vouched for, never from the private-address heuristic.
 - A percent-encoded admin path (`/%63olonel`, `/colonel%2Fsettings`) returns the
   same 404 as `/colonel` on a denied host or from a denied IP.
+- With **both** allowlists set (posture E): `GET /api/colonel/system/proxy-headers`
+  returns something other than 404 from an allowed host and IP, and the boot log
+  carries **no** advisory line. In every other posture that route is a 404 and
+  the advisory line names the posture — that route is the cheapest probe for
+  which mode you are in.
+- The fifteen destructive routes behave the same in every posture *except* that
+  in posture E they are additionally subject to the two allowlists. They are
+  never taken away by the annotation alone.
 
 ### The boot log
 
@@ -552,6 +697,8 @@ Also emitted at boot, each only in its own case:
 
 | Message | Level | Means |
 |---|---|---|
+| `Admin route network requirement is advisory (admin isolation is not configured)` | INFO | neither half is configured, so `network=admin_if_configured` falls through. Not a misconfiguration |
+| `Admin route network requirement is ADVISORY: admin isolation is half-configured` | WARN | exactly one half is configured — see the posture table under [Route-level network requirements](#route-level-network-requirements). The payload carries both gate states and the fix |
 | ``Admin host allowlist DISABLED by `*` `` | WARN | `ADMIN_ALLOWED_HOSTS` contains `*` — host gate off |
 | ``Ignoring every other entry in site.admin.allowed_hosts: `*` disables the host gate`` | WARN | `*` was listed beside other entries; those entries do nothing |
 | `Ignoring unusable entries in site.admin.allowed_hosts` | WARN | some entries dropped; each named with its reason |

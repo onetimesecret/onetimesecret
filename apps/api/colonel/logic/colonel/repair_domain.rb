@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'domain_resolver'
 require 'onetime/operations/domains/repair'
 
 module ColonelAPI
@@ -24,6 +25,8 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class RepairDomain < ColonelAPI::Logic::Base
+        include DomainResolver
+
         attr_reader :extid, :org_id, :dry_run, :custom_domain, :target_org, :result
 
         def process_params
@@ -38,16 +41,29 @@ module ColonelAPI
         def raise_concerns
           verify_one_of_roles!(colonel: true)
 
-          @custom_domain = Onetime::CustomDomain.find_by_extid(extid)
+          @custom_domain = resolve_custom_domain(extid)
           raise_not_found('Domain not found') unless custom_domain
 
           # Resolve the optional target org for the ORPHANED case (by objid or extid).
           # The op ignores it when the domain already has an org_id.
-          return if org_id.to_s.empty?
+          unless org_id.to_s.empty?
+            @target_org = Onetime::Organization.load(org_id) ||
+                          Onetime::Organization.find_by_extid(org_id)
+            raise_form_error('Organization not found', field: :org_id) unless target_org
+          end
 
-          @target_org = Onetime::Organization.load(org_id) ||
-                        Onetime::Organization.find_by_extid(org_id)
-          raise_form_error('Organization not found', field: :org_id) unless target_org
+          # PREVIEW EXEMPTION (#4326): a dry run mutates and audits nothing.
+          # dry_run defaults to TRUE here.
+          return if dry_run
+
+          # TIER 2: repair rewrites ownership state. The URL carries the extid;
+          # the confirmation is the hostname.
+          guard_destructive_action!(
+            tier: :sensitive,
+            confirm_with: custom_domain.display_domain,
+            confirm_subject: 'the domain name',
+            field: :extid,
+          )
         end
 
         def process
@@ -78,12 +94,6 @@ module ColonelAPI
               repairs_applied: result.repairs_applied,
             },
           }
-        end
-
-        private
-
-        def truthy?(value)
-          %w[true 1 yes on].include?(value.to_s.strip.downcase)
         end
       end
     end

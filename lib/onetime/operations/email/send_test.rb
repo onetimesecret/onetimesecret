@@ -5,13 +5,14 @@
 # Central (cross-cutting) admin operation — see decision D3 in
 # lib/onetime/operations/README.md. Email delivery diagnostics have no single
 # domain owner (the mailer is site-wide infrastructure), so — like
-# {Onetime::Operations::BanIP} and {Onetime::Operations::Banner} — this lives in
+# {Onetime::Operations::Banner} — this lives in
 # the central operations home. Loaded at the call site (colonel logic + the
 # `bin/ots email test` CLI), so require the audit dependency explicitly.
 require 'socket'
 require 'onetime/mail'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 
 module Onetime
   module Operations
@@ -43,6 +44,7 @@ module Onetime
       # behave exactly as before.
       class SendTest
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         # Audit verb recorded for every successful real send.
         AUDIT_VERB = 'email.test_send'
@@ -113,8 +115,14 @@ module Onetime
         def call
           diagnostic = self.class.build(to: @to)
 
-          # Dry-run: preview only. Nothing is dispatched and nothing is audited.
-          return Result.new(status: :dry_run, diagnostic: diagnostic) if @dry_run
+          # Dry-run: preview only. Nothing is dispatched, so nothing reaches
+          # the OPERATOR trail — but the operator did name a recipient address
+          # and resolve the live mail configuration against it, so it is
+          # recorded as an OBSERVATION (#4337).
+          if @dry_run
+            record_preview_event(diagnostic)
+            return Result.new(status: :dry_run, diagnostic: diagnostic)
+          end
 
           status = @enqueue ? enqueue!(diagnostic) : deliver!(diagnostic)
 
@@ -133,6 +141,19 @@ module Onetime
         end
 
         private
+
+        # The #4337 envelope's target hook: the recipient address, the same
+        # target the sent event carries. `audit_verb` defaults to AUDIT_VERB and
+        # `audit_actor` to @actor.
+        def audit_target = @to
+
+        # One OBSERVATION per dry run (#4337), on the budgeted access trail.
+        # Same verb and target as the sent event; `result: 'preview'` and
+        # `dry_run: true` distinguish them. Provider and mode only — never the
+        # message content, exactly as on the applied path.
+        def record_preview_event(diagnostic)
+          record_preview_observation({ provider: diagnostic.provider, enqueue: @enqueue })
+        end
 
         # Direct delivery via the configured backend. Raises on failure (caller's
         # rescue owns the FAILED output). Mirrors the pre-extraction CLI call.

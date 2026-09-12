@@ -21,7 +21,7 @@ name: CI
 # Composite Actions:
 # - setup-ruby-test-env: Ruby environment, artifacts, config, secrets
 # - setup-node-env: Node.js, pnpm, caching
-# - run-test-lane: Lane execution + failure-tail PR comments + job summary
+# - run-test-lane: Lane execution + result artifacts + job summary
 #
 # Path Filtering:
 # - Ruby-only changes skip TypeScript jobs
@@ -41,9 +41,14 @@ name: CI
 #   so divergence from base can cause unexpected behavior if branches conflict.
 # - workflow_dispatch: checks out the branch/tag selected in the UI (github.ref).
 #   No merge commit — runs against the exact branch tip.
-# - push (not used here): checks out the pushed commit (github.sha), no merge.
+# - push: checks out the pushed commit (github.sha), no merge.
 
 on:
+  # Establishes the default-branch coverage baseline that GitHub Code Quality
+  # compares against to show PR-relevant Ruby and TypeScript file coverage.
+  push:
+    branches:
+      - main
   # Runs on synthetic merge commit (PR branch merged into base). If your branch
   # diverges from main, CI tests the merged result — not your branch in isolation.
   pull_request:
@@ -83,6 +88,12 @@ jobs:
     name: T0 · Detect Changes
     runs-on: &runs-on ubuntu-24.04
     timeout-minutes: 2
+    permissions:
+      contents: read
+      # dorny/paths-filter lists changed files via the pulls API on
+      # pull_request events; without this it fails before any filter runs and
+      # every downstream job is skipped or blocked.
+      pull-requests: read
     outputs:
       ruby: ${{ steps.compute.outputs.ruby }}
       typescript: ${{ steps.compute.outputs.typescript }}
@@ -371,11 +382,8 @@ jobs:
       needs.changes.outputs.ruby == 'true' &&
       (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
       (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped')
-    # pull-requests: write lets run-test-lane post failure tails as PR
-    # comments. contents: read inherited from workflow-level permissions.
     permissions:
       contents: read
-      pull-requests: write
       # Required to upload coverage data to GitHub Code Quality.
       code-quality: write
 
@@ -467,6 +475,8 @@ jobs:
       (needs.typescript-lint.result == 'success' || needs.typescript-lint.result == 'skipped')
     permissions:
       contents: read
+      # Lets the coverage action associate a push with an open PR when needed.
+      pull-requests: read
       # Required to upload coverage data to GitHub Code Quality.
       code-quality: write
     steps:
@@ -502,7 +512,7 @@ jobs:
           label: code-coverage/vitest
 
       - name: Run type checking tests
-        continue-on-error: true
+        continue-on-error: false
         run: pnpm type-check:tests
 
   # ============================================================================
@@ -533,9 +543,6 @@ jobs:
       (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
       (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') &&
       !contains(needs.*.result, 'cancelled')
-    permissions: &perms-pr-comment
-      contents: read
-      pull-requests: write
 
     steps:
       - *checkout-step
@@ -570,7 +577,6 @@ jobs:
     runs-on: *runs-on
     needs: [changes, ruby-lint, build-assets]
     if: *if-ruby-integration
-    permissions: *perms-pr-comment
 
     steps:
       - *checkout-step
@@ -609,7 +615,6 @@ jobs:
     runs-on: *runs-on
     needs: [changes, ruby-lint, build-assets]
     if: *if-ruby-integration
-    permissions: *perms-pr-comment
 
     # Auth-mode, database engine, and endpoints live in the lane env files
     # (tests/lanes/<lane>/env); billing rows are the same lanes with the
@@ -689,7 +694,6 @@ jobs:
     runs-on: *runs-on
     needs: [changes, ruby-lint, build-assets]
     if: *if-ruby-integration
-    permissions: *perms-pr-comment
 
     steps:
       - *checkout-step
@@ -948,9 +952,11 @@ jobs:
                 tier2Seconds: '${{ steps.metrics.outputs.tier2-seconds }}',
                 tier3Seconds: '${{ steps.metrics.outputs.tier3-seconds }}',
                 tier4Seconds: '${{ steps.metrics.outputs.tier4-seconds }}',
-                tier1Target: 60,
-                tier2Target: 120,
-                tier3Target: 210,
-                tier4Target: 400,
+                // Targets come from the check-ci-metrics action (single source
+                // of truth) so this comment matches the step-summary table.
+                tier1Target: '${{ steps.metrics.outputs.tier1-target }}',
+                tier2Target: '${{ steps.metrics.outputs.tier2-target }}',
+                tier3Target: '${{ steps.metrics.outputs.tier3-target }}',
+                tier4Target: '${{ steps.metrics.outputs.tier4-target }}',
               },
             });

@@ -5,7 +5,8 @@
 # Unit tests for Auth::Operations::Customers::SetPlan.
 #
 # Covers: successful change (+ exactly one audit event), idempotent no_change
-# (no save, no audit), and a raising save (Onetime::AuditedFailure records
+# (no save, but STILL one audit event since #4337), and a raising save
+# (Onetime::AuditedFailure records
 # result: :failure and re-raises). Catalog validation is the adapter's job, so
 # this op accepts any planid — there is no invalid-plan rejection here.
 #
@@ -44,14 +45,33 @@ RSpec.describe Auth::Operations::Customers::SetPlan do
     )
   end
 
-  it 'is a no_change (no save, no audit) when already on the target plan' do
+  # #4337: idempotent in EFFECT, not in the trail. Setting a customer's plan is
+  # a billing action, and "an operator moved this account to pro_v1 on Tuesday"
+  # should not vanish because the account was already on pro_v1.
+  it 'is a no_change (no save) but still records the attempt when already on the target plan' do
     allow(customer).to receive(:planid).and_return('pro_v1')
 
     result = described_class.new(customer: customer, planid: 'pro_v1', actor: 'x').call
 
     expect(result.status).to eq(:no_change)
     expect(customer).not_to have_received(:save)
-    expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+      actor: 'x',
+      verb: 'customer.set_plan',
+      target: 'ur_test',
+      result: :success,
+      detail: { outcome: 'no_change', from: 'pro_v1', to: 'pro_v1' },
+    )
+  end
+
+  # A plan change is not in the destructive family, so neither event fails
+  # closed — this pins that the no-change path did not acquire one either.
+  it 'does not fail closed on a no_change' do
+    allow(customer).to receive(:planid).and_return('pro_v1')
+
+    described_class.new(customer: customer, planid: 'pro_v1', actor: 'x').call
+
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).with(hash_excluding(:fail_closed))
   end
 
   # The Onetime::AuditedFailure mechanism. `save` runs BEFORE the success-path

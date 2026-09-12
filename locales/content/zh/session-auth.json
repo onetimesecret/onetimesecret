@@ -436,13 +436,17 @@
     "text": "查收您的邮箱",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "验证链接已发送至：",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "我们已向您的邮箱地址发送了一个验证链接。",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "我们已向此地址发送了一个验证链接——请打开邮件并点击链接以激活您的账户。",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "请点击邮件中的链接以激活您的账户。",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "找不到？请检查您的垃圾邮件文件夹。",

@@ -27,6 +27,42 @@
     "text": "No customers match this search",
     "content_hash": "ea7e7012"
   },
+  "web.admin.customers.list.capped": {
+    "text": "Results are capped: the count shown is a floor, not the total. Narrow the search or filter to see everything.",
+    "content_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Auth database account with no customer record",
+    "content_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "The auth database holds an account for this address, but no customer record maps to it. The person can still sign in; the customer index has nothing for them. Open the address for diagnostics.",
+    "content_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Open account diagnostics",
+    "content_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Account #{id}",
+    "content_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Unverified",
+    "content_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Verified",
+    "content_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Closed",
+    "content_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Unknown",
+    "content_hash": "b764cdc0"
+  },
   "web.admin.customers.roles.colonel": {
     "text": "Colonel",
     "content_hash": "02577777"
@@ -315,13 +351,17 @@
     "text": "Apply",
     "content_hash": "31e392d1"
   },
+  "web.admin.customers.actions.role.button": {
+    "text": "Change role",
+    "content_hash": "a43a8d8c"
+  },
   "web.admin.customers.actions.role.confirmTitle": {
     "text": "Change role?",
     "content_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Change {email} to the {role} role.",
-    "content_hash": "9ba063c6"
+    "text": "Changes {email} to the {role} role. The colonel role grants full administrative access to every account, secret and organization on this install. Type the account email address below to confirm.",
+    "content_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Role updated.",
@@ -436,8 +476,8 @@
     "content_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Mark {email} as not verified.",
-    "content_hash": "592ffd27"
+    "text": "Marks {email} as not verified. An unverified account cannot hold the colonel, admin or staff role, so this also strips any elevated role it has. Type the account email address below to confirm.",
+    "content_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Customer unverified.",
@@ -482,6 +522,34 @@
   "web.admin.customers.actions.unsuspend.success": {
     "text": "Account unsuspended.",
     "content_hash": "c5b4377f"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Impersonate customer",
+    "content_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Start impersonation?",
+    "content_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Opens a time-boxed, read-only session as {email}. Every page shows a banner until you stop, changes are blocked, and the session is recorded in the audit log with your reason.",
+    "content_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Reason (required)",
+    "content_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Why is this session needed? Include the ticket reference.",
+    "content_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Impersonation started.",
+    "content_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Impersonation is unavailable for colonel, anonymous, and suspended accounts.",
+    "content_hash": "fb6578b2"
   },
   "web.admin.customers.actions.purge.button": {
     "text": "Purge customer",
@@ -698,5 +766,29 @@
   "web.admin.customers.detail.diagnostics.auditLog.unavailable": {
     "text": "Authentication log could not be read: {reason}",
     "content_hash": "ab18af57"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "You cannot demote your own colonel account. Ask another colonel to do it, or run `bin/ots customers role demote`.",
+    "content_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "You cannot demote the last remaining colonel — the install would have no administrator. Promote and verify another account first.",
+    "content_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "You cannot unverify your own account: a verified email is required to hold the colonel role.",
+    "content_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "You cannot unverify the last remaining colonel — an unverified account cannot hold the colonel role. Promote and verify another account first.",
+    "content_hash": "fc404616"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "This signs you out of every other device and browser, including sessions not shown in this list. The session you are working in right now is kept.",
+    "content_hash": "ae350040"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Open in Rodauth Admin",
+    "content_hash": "467173c8"
   }
 }
