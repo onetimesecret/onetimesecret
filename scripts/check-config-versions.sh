@@ -65,8 +65,10 @@ YAML_DECL_RE='^[[:space:]]*(- )?[A-Za-z_][A-Za-z0-9_.-]*:([[:space:]]|$)'
 
 [[ -f .env.reference ]] || { echo "FAIL: .env.reference not found" >&2; exit 1; }
 
+# Both extensions: annotate-config-versions.py treats .yml as YAML, so a
+# defaults file named that way would be annotatable but never frozen here.
 TARGETS=(.env.reference)
-for y in etc/defaults/*.yaml; do
+for y in etc/defaults/*.yaml etc/defaults/*.yml; do
   if [[ -f "$y" ]]; then TARGETS+=("$y"); fi
 done
 

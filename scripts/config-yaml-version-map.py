@@ -103,11 +103,17 @@ from pathlib import Path
 BASELINE = (0, 24, 0)
 UNRELEASED = "unreleased"
 
-TARGET_FILES = [
-    "etc/defaults/config.defaults.yaml",
-    "etc/defaults/auth.defaults.yaml",
-    "etc/defaults/logging.defaults.yaml",
-]
+# Discovered, not listed. check-config-versions.sh and
+# resolve-unreleased-versions.sh both glob this directory, so a hardcoded list
+# here would be the last copy left to drift: a fourth defaults file would be
+# demanded markers by the ratchet and get no rows from this generator. Both
+# extensions, because annotate-config-versions.py treats .yml as YAML too.
+_DEFAULTS_DIR = Path(__file__).resolve().parent.parent / "etc" / "defaults"
+TARGET_FILES = sorted(
+    f"etc/defaults/{path.name}"
+    for pattern in ("*.yaml", "*.yml")
+    for path in (_DEFAULTS_DIR.glob(pattern) if _DEFAULTS_DIR.is_dir() else ())
+)
 
 # --- YAML shapes -----------------------------------------------------------
 # Deliberately identical to the annotator's: the dotted path this script emits
@@ -594,41 +600,47 @@ class TagIndex:
 def verify_row(index, stable, record, version):
     """(True, None) if `version` is provably this path's first release.
 
-    Two halves, both required:
-      - the path IS declared in the file shipped at `version`;
-      - the path is NOT declared at the stable tag immediately before it.
-    UNRELEASED is the same test against the newest stable tag: nothing yet.
+    Proved by the unbroken-run scan — the same method
+    first_release_by_tree_scan uses, and the one
+    scripts/config-version-archaeology.sh settled on.
+
+    This was a two-point test: declared at `version`, absent at the stable tag
+    immediately before it. That proves the path FIRST APPEARED at `version`
+    and nothing more, which is failure mode 4 in the archaeology header — the
+    one that dated STRIPE_WEBHOOK_SIGNING_SECRET to an abandoned first
+    attempt. A path declared at V, absent from V+1 .. V+k and declared again
+    through HEAD satisfies both points, and `# Since V` then tells a
+    self-hoster running V+1 that they have a setting they do not have. The
+    pickaxe path reaches that state by construction: yaml_key_first_release
+    takes the EARLIEST commit that ever adds the leaf, which is the abandoned
+    attempt itself.
 
     A failure means the proposed version is off in one direction or the other
     — usually a key that inherited its version from an env var that shipped
-    earlier than the YAML key that reads it. The row is dropped, not adjusted.
+    earlier than the YAML key that reads it. The row is dropped, not adjusted;
+    the rescue pass in main() then asks this same scan for the real answer.
     """
     relpath, path = record.relpath, record.path
 
-    if version == UNRELEASED:
-        latest = stable[-1]
-        shipped = index.paths_at(relpath, latest)
-        if shipped is not None and path in shipped:
-            return False, f"claimed unreleased but already shipped in {latest}"
-        return True, None
-
-    if version not in stable:
+    if version != UNRELEASED and version not in stable:
         return False, f"{version} is not a stable release tag"
 
-    at = index.paths_at(relpath, version)
-    if at is None:
-        return False, f"the file does not exist at {version}"
-    if path not in at:
-        return False, f"not declared in the file shipped at {version} — first release is later"
-
-    position = stable.index(version)
-    if position == 0:
+    actual = first_release_by_tree_scan(index, stable, relpath, path)
+    if actual == version:
         return True, None
-    previous = stable[position - 1]
-    before = index.paths_at(relpath, previous)
-    if before is not None and path in before:
-        return False, f"already declared at {previous} — first release is earlier"
-    return True, None
+
+    if actual is None:
+        return False, "declared by the oldest release scanned — first release is earlier"
+    if version == UNRELEASED:
+        return False, f"claimed unreleased but shipped without a gap from {actual}"
+    if actual == UNRELEASED:
+        return False, f"claimed {version} but it is in no release yet"
+    if version_sort_key(actual) < version_sort_key(version):
+        return False, f"declared without a gap from {actual} — first release is earlier"
+    return False, (
+        f"not declared without a gap until {actual} — first release is later, "
+        f"or it was removed and reintroduced"
+    )
 
 
 def first_release_by_tree_scan(index, stable, relpath, path):
@@ -842,9 +854,11 @@ def main():
     # row does not withhold an answer, it publishes a different one — and for
     # email_providers.ses.region, which shipped in v0.25.7, that answer is
     # false. Every candidate still without a row is therefore asked directly,
-    # by release-tree scan. Nothing here can re-date an existing row: a proved
-    # row is a two-point sample of this very scan, so the two agree by
-    # construction, and only candidates with NO row reach this loop.
+    # by release-tree scan. Nothing here can re-date an existing row: verify_row
+    # now proves a row with this same scan, so a proved row already equals what
+    # this loop would compute, and only candidates with NO row reach it. That
+    # was NOT true while verify_row was a two-point test — it could prove V for
+    # a path this scan dates to V+k+1 — which is why it no longer is one.
     have = set(record for record, _, _ in rows)
     rescued = []
     for record in candidates:

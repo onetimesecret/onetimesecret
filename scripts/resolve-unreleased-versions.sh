@@ -62,7 +62,7 @@ fi
 # rule 2 freezes concrete versions only, so `unreleased` stays invisible to the
 # guard in every release after that one too.
 TARGETS=(.env.reference)
-for y in etc/defaults/*.yaml; do
+for y in etc/defaults/*.yaml etc/defaults/*.yml; do
   if [[ -f "$y" ]]; then TARGETS+=("$y"); fi
 done
 
