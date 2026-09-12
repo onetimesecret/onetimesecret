@@ -160,27 +160,57 @@ that reason before this was added.
   rule 4 requires every line declaring one YAML path to carry the same marker,
   so a branch added to that block without the marker fails the PR. The marker
   still has to be copied by hand; forgetting is now caught.
-- **A key whose only children are commented out is classified inconsistently.**
-  `auth.defaults.yaml`'s `simple:` has two commented child keys and no live
-  ones. `check-config-versions.sh` cannot see comments at all, so it reads the
-  key as a nil-valued leaf and would want a marker; `config-yaml-version-map.py`
-  sees the commented children and calls it a parent, so it emits no row. The
-  spec settles neither reading — "commented-out lines declare nothing" says
-  they are not children, while the key plainly introduces a section. It is the
-  only key in the three files of that shape, and it is not new, so nothing
-  fails today. A *new* key written that way would fail the ratchet asking for a
-  marker the annotator will not generate; give it a live child, or a marker by
-  hand.
+- **A valueless key with nothing nested under it is classified
+  inconsistently.** `check-config-versions.sh` sets `annot = 1` whenever its
+  lookahead finds nothing nested below the key, and *nothing nested* is reached
+  by more shapes than commented children: a sibling at the same indentation and
+  a dedent both land there too. `config-yaml-version-map.py` disagrees on all
+  of them — `KeyRecord.is_leaf` returns false for any valueless key with no
+  sequence under it — so it emits no row and the annotator never writes a
+  marker. The ratchet then asks for a marker no tool in this family will
+  generate.
+
+  `auth.defaults.yaml`'s `simple:`, whose two child keys are both commented
+  out, is one instance of this and not the boundary of it; a placeholder
+  section key added ahead of its children reaches the same demand. The spec
+  settles neither reading — "commented-out lines declare nothing" says such a
+  key is childless, while the key plainly introduces a section. Nothing in the
+  three files fails today: `simple:` is the only key of the shape and it is not
+  new.
+
+  The `annot = 1` default is deliberate, not an oversight — see the comment
+  above `extract_yaml_sites`. Judging a key by its own line alone lets a new
+  nil- or list-valued *setting* slip past rule 1 owing no marker at all, which
+  ships it bare, which the file headers define as the positive claim "predates
+  v0.24.0". Flipping the default to 0 would settle this disagreement in the
+  generator's favour and reopen that hole. A demand a human has to answer by
+  hand is loud and gets fixed; a silently bare key is a false claim nobody
+  sees. So the guard is left erring loud. If you hit it, give the key a live
+  child, or write the marker by hand.
+- **"Declaration line" is spelled at two breadths, and rule 2 uses the
+  narrower one.** `YAML_DECL_RE` — in `check-config-versions.sh` and copied
+  into `resolve-unreleased-versions.sh` — accepts a sequence-entry line through
+  its optional `(- )?`. So rule 3 will validate a marker written on
+  `- text: Feedback`, and the release resolver will rewrite an `unreleased`
+  there into a concrete version. But `extract_yaml_sites` drops sequence
+  subtrees by design, so that line never becomes a record, and rule 2 is fed
+  only from records: the concrete marker it just produced can never be frozen.
+  Reaching this takes hand-writing a marker where the policy says markers do
+  not go, so no shipped line is affected. It is recorded because the *site set*
+  is now spelled twice at different breadths — the same root cause as the three
+  walkers below. The cross-check proposed there should also assert that the
+  resolver's target set equals the ratchet's site set.
 - **Three tools walk the YAML independently, and nothing asserts they agree.**
   `check-config-versions.sh` (awk), `annotate-config-versions.py` and
   `config-yaml-version-map.py` each re-implement the walk, and a divergence
   shows up not as a crash but as a wrong shipped version. The ERB divergence
   found in review is now closed — all three skip `<% if %>`/`<% end %>` before
   their sequence bookkeeping, so a control line at the sequence indentation no
-  longer ends the sequence for two walks out of three. The commented-children
-  case above remains. Reviewers have proposed, more than once, a cross-check
-  asserting the three emit identical `(path, is_site)` sets for the three
-  target files; that is the cheap pin, and a shared walker is the real fix.
+  longer ends the sequence for two walks out of three. The valueless-key
+  disagreement above remains, as does the site-set breadth mismatch.
+  Reviewers have proposed, more than once, a cross-check asserting the three
+  emit identical `(path, is_site)` sets for the three target files; that is
+  the cheap pin, and a shared walker is the real fix.
   Neither is done. If you add a fourth shape to `etc/defaults/`, check it
   against all three by hand.
 - **The ratchet needs the base branch fetched.** CI sets
