@@ -13,6 +13,7 @@ text in the fenced block under "The marker".
 """
 
 import re
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -73,6 +74,82 @@ class DocumentedPatternTest(unittest.TestCase):
         m = re.search(r"^MARKER_RE='(?P<pat>.*)'$", script, re.MULTILINE)
         self.assertIsNotNone(m, "MARKER_RE assignment not found")
         self.assertEqual(m.group("pat"), self.documented.replace(r"[ \t]", "[[:blank:]]"))
+
+
+class NearMissRecognizerTest(unittest.TestCase):
+    """The two near-miss hunters must agree, at both ends of the pattern.
+
+    The contract document requires it, and they have now diverged once at each
+    end. The leading blank was the first (a URL fragment read as a marker
+    attempt); the trailing boundary was the second, and worse: the shell
+    required a blank or end-of-line where the annotator used Python's \b, so
+    `# Since:` was a near-miss to one tool and invisible to the other. A
+    marker is hand-written wherever the contract says to write one, so a stray
+    colon shipped two contradictory version claims on one line past the whole
+    ratchet.
+
+    The shell pattern is exercised through grep rather than translated, so
+    this compares behaviour rather than two readings of a regex dialect.
+    """
+
+    CASES = (
+        ("KEY=value  # Since v0.24.0", True, "the well-formed marker"),
+        ("KEY=value  # Since: v0.24.0", True, "colon — the reported gap"),
+        ("KEY=value  # Since= v0.24.0", True, "other punctuation"),
+        ("KEY=value  # since v0.24.0", True, "lowercase typo, the point of the hunt"),
+        ("KEY=value  # Since", True, "end of line"),
+        ("KEY=value  # Sincerely, the author", False, "a word that starts with Since"),
+        ("KEY=value  #since2020", False, "a digit continues the word"),
+        (
+            "CHANGELOG=https://example.com/c#since  # Since v0.24.0",
+            True,
+            "URL fragment plus a real marker: matches once, not twice",
+        ),
+    )
+
+    def setUp(self):
+        script = sh_script("check-config-versions.sh").read_text(encoding="utf-8")
+        m = re.search(r"^MARKER_LOOSE_RE='(?P<pat>.*)'$", script, re.MULTILINE)
+        self.assertIsNotNone(m, "MARKER_LOOSE_RE assignment not found")
+        self.shell_pattern = m.group("pat")
+
+    def shell_matches(self, line: str) -> bool:
+        return (
+            subprocess.run(
+                ["grep", "-qE", self.shell_pattern], input=line, text=True
+            ).returncode
+            == 0
+        )
+
+    def test_both_spellings_agree_on_every_case(self):
+        for line, expected, why in self.CASES:
+            with self.subTest(case=why):
+                shell = self.shell_matches(line)
+                python = bool(annotate.LOOSE_SINCE_RE.search(line))
+                self.assertEqual(shell, python, f"the two hunters disagree: {why}")
+                self.assertEqual(shell, expected, why)
+
+    def test_a_url_fragment_still_counts_once(self):
+        """The leading-blank fix must survive the trailing-boundary widening.
+
+        Counting, not matching: the one-marker rule rejects a line whose
+        recognizer fires twice, so a fragment that merely *matches* somewhere
+        is not the failure — a second count is.
+        """
+        line = "CHANGELOG=https://example.com/c#since  # Since v0.24.0"
+        out = subprocess.run(
+            ["grep", "-oE", self.shell_pattern], input=line, text=True, capture_output=True
+        ).stdout
+        self.assertEqual(len(out.splitlines()), 1)
+        self.assertEqual(len(annotate.LOOSE_SINCE_RE.findall(line)), 1)
+
+    def test_two_claims_on_one_line_count_twice(self):
+        line = "    secure: true  # Since: v0.24.0  # Since v0.26.0"
+        out = subprocess.run(
+            ["grep", "-oE", self.shell_pattern], input=line, text=True, capture_output=True
+        ).stdout
+        self.assertEqual(len(out.splitlines()), 2, "the one-marker rule would not fire")
+        self.assertEqual(len(annotate.LOOSE_SINCE_RE.findall(line)), 2)
 
 
 class RecognizerBehaviourTest(unittest.TestCase):
