@@ -11,7 +11,7 @@
 #
 # Run it as part of cutting a release, BEFORE the tag is created:
 #
-#   scripts/resolve-unreleased-versions.sh v0.26.4
+#   bin/envref resolve v0.26.4
 #   git add -u && git commit -m "chore(release): resolve Since annotations to v0.26.4"
 #   git tag v0.26.4
 #
@@ -23,7 +23,17 @@
 #
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# bin/envref finds the checkout once and exports ENVREF_REPO_ROOT, so this
+# script, its two siblings and the Python modules all agree by construction
+# instead of by four more copies of the same walk. The fallback keeps a direct
+# `bash .../<script>.sh` working: every subcommand here reads git history, so
+# requiring a real checkout costs nothing it did not already need.
+REPO_ROOT="${ENVREF_REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || true)}"
+if [[ -z "$REPO_ROOT" || ! -d "$REPO_ROOT/etc/defaults" ]]; then
+  echo "FAIL: cannot locate the onetimesecret checkout." >&2
+  echo "      Run this through bin/envref, or set ENVREF_REPO_ROOT." >&2
+  exit 2
+fi
 cd "$REPO_ROOT"
 
 VERSION="${1:-}"
@@ -37,7 +47,7 @@ if [[ -z "$VERSION" ]]; then
 fi
 
 # A marker must never carry a pre-release or a malformed version: it is written
-# once and then frozen by scripts/check-config-versions.sh, so a typo here is
+# once and then frozen by bin/envref check, so a typo here is
 # permanent history.
 if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   echo "FAIL: '$VERSION' is not a stable release version (expected vX.Y.Z, no suffix)." >&2
@@ -53,7 +63,7 @@ if git rev-parse -q --verify "refs/tags/$VERSION" >/dev/null 2>&1; then
   exit 1
 fi
 
-# Discovered, not listed — the same glob scripts/check-config-versions.sh uses.
+# Discovered, not listed — the same glob bin/envref check uses.
 # A hardcoded list silently diverges the moment a defaults file is added: the
 # ratchet would see the new file, treat every key in it as new and require
 # `# Since unreleased` on each, and then this script would skip the file at
@@ -73,7 +83,7 @@ done
 # unrewritten: it would ship as `unreleased` forever.
 UNRESOLVED_RE='[[:blank:]]+# Since unreleased[[:blank:]]*$'
 
-# Declaration lines only — the same set scripts/check-config-versions.sh
+# Declaration lines only — the same set bin/envref check
 # polices. Rule 3 there inspects declaration lines deliberately, so that the
 # header blocks explaining this convention (which must quote an example marker
 # to explain it) do not trip it. Applying the rewrite to every line instead

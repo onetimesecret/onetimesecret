@@ -41,12 +41,22 @@
 #                         sequence entries are list *content*, not config keys,
 #                         so those subtrees are skipped entirely.
 #
-# Usage: scripts/check-config-versions.sh    (no arguments; exit 1 on drift)
+# Usage: bin/envref check    (no arguments; exit 1 on drift)
 #
 set -euo pipefail
 export LC_ALL=C
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# bin/envref finds the checkout once and exports ENVREF_REPO_ROOT, so this
+# script, its two siblings and the Python modules all agree by construction
+# instead of by four more copies of the same walk. The fallback keeps a direct
+# `bash .../<script>.sh` working: every subcommand here reads git history, so
+# requiring a real checkout costs nothing it did not already need.
+REPO_ROOT="${ENVREF_REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || true)}"
+if [[ -z "$REPO_ROOT" || ! -d "$REPO_ROOT/etc/defaults" ]]; then
+  echo "FAIL: cannot locate the onetimesecret checkout." >&2
+  echo "      Run this through bin/envref, or set ENVREF_REPO_ROOT." >&2
+  exit 2
+fi
 cd "$REPO_ROOT"
 
 # --- The recognizer (see "The marker" in the contract doc) --------------

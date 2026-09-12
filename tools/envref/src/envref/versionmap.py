@@ -22,7 +22,7 @@ does almost no git work:
     1. Six env vars read only from YAML, never documented in .env.reference
        (ALLOW_NIL_GLOBAL_SECRET, AUTO_DETECT_DOCKER, DEV_BASIC_AUTH,
        DEV_SESSION_AUTH, IN_DOCKER, PLAN_TTL_ANONYMOUS). These are resolved by
-       *invoking* scripts/config-version-archaeology.sh with the key names, so
+       *invoking* bin/envref archaeology with the key names, so
        they are answered by the same code that produced env-versions.tsv
        rather than by a second implementation that could disagree with it.
     2. YAML keys with no ENV read at all (`expire_after: 86400`). These get a
@@ -84,10 +84,10 @@ Requires full history — a shallow clone silently reports everything as
 introduced at the graft point. The script refuses to run on one.
 
 Usage:
-  scripts/config-yaml-version-map.py --env-versions env-versions.tsv
-  scripts/config-yaml-version-map.py --env-versions ... > yaml-versions.tsv
-  scripts/config-yaml-version-map.py --env-versions ... --root /tmp/copy
-  PARALLEL=8 scripts/config-yaml-version-map.py --env-versions ...
+  bin/envref map --env-versions env-versions.tsv
+  bin/envref map --env-versions ... > yaml-versions.tsv
+  bin/envref map --env-versions ... --root /tmp/copy
+  PARALLEL=8 bin/envref map --env-versions ...
 
 Output: the frozen version-map TSV on stdout (spec §4), progress on stderr.
 
@@ -100,7 +100,6 @@ Exit codes:
   1  unusable input: shallow clone, missing env-versions.tsv, missing target
 """
 
-import argparse
 import os
 import re
 import subprocess
@@ -108,6 +107,9 @@ import sys
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from types import SimpleNamespace
+
+from .paths import RootNotFound, repo_root as find_repo_root, sh_script
 
 # --- Frozen policy. Not knobs; do not add flags. ---
 # See docs/development/config-version-annotations.md, "Policy".
@@ -119,7 +121,14 @@ UNRELEASED = "unreleased"
 # here would be the last copy left to drift: a fourth defaults file would be
 # demanded markers by the ratchet and get no rows from this generator. Both
 # extensions, because annotate-config-versions.py treats .yml as YAML too.
-_DEFAULTS_DIR = Path(__file__).resolve().parent.parent / "etc" / "defaults"
+# Resolved at import, as before, so TARGET_FILES stays a plain constant. The
+# resolver can fail outside a checkout; the glob below already tolerates a
+# missing directory, so a failure yields an empty target list rather than an
+# import error, and the command reports it.
+try:
+    _DEFAULTS_DIR = find_repo_root() / "etc" / "defaults"
+except RootNotFound:
+    _DEFAULTS_DIR = Path("etc/defaults")
 TARGET_FILES = sorted(
     f"etc/defaults/{path.name}"
     for pattern in ("*.yaml", "*.yml")
@@ -230,7 +239,7 @@ class Git:
         """Every stable release, oldest first, in SEMANTIC VERSION order.
 
         The same tag set and the same ordering as
-        scripts/config-version-archaeology.sh, for the same two reasons its
+        bin/envref archaeology, for the same two reasons its
         header gives — this used to differ from it on both counts, and a
         verifier that disagrees with the tool it verifies is worthless:
 
@@ -353,7 +362,7 @@ def resolve_via_archaeology_script(repo_root, keys):
     regex, one tag-selection rule, no chance of the YAML map and .env.reference
     disagreeing about DEV_BASIC_AUTH.
     """
-    script = repo_root / "scripts" / "config-version-archaeology.sh"
+    script = sh_script("config-version-archaeology.sh")
     if not script.is_file():
         raise GitFailed(f"{script} not found, so {len(keys)} env var(s) cannot be resolved")
 
@@ -373,7 +382,7 @@ def resolve_via_archaeology_script(repo_root, keys):
         # for a subset while reporting success. The common cause is a shallow
         # clone, which this container re-creates between sessions.
         raise GitFailed(
-            f"scripts/config-version-archaeology.sh exited {proc.returncode} — "
+            f"bin/envref archaeology exited {proc.returncode} — "
             f"its output is partial and a short map would annotate only some sites"
         )
 
@@ -625,7 +634,7 @@ def verify_row(index, stable, record, version):
 
     Proved by the unbroken-run scan — the same method
     first_release_by_tree_scan uses, and the one
-    scripts/config-version-archaeology.sh settled on.
+    bin/envref archaeology settled on.
 
     This was a two-point test: declared at `version`, absent at the stable tag
     immediately before it. That proves the path FIRST APPEARED at `version`
@@ -669,7 +678,7 @@ def verify_row(index, stable, record, version):
 def first_release_by_tree_scan(index, stable, relpath, path):
     """The release a dotted path first shipped in, read from the release trees.
 
-    The archaeology method (scripts/config-version-archaeology.sh, "METHOD"),
+    The archaeology method (bin/envref archaeology, "METHOD"),
     asked of a dotted YAML path instead of an env var name: the answer is the
     earliest tag that begins an UNBROKEN run of releases declaring the path
     through to HEAD. A gap ends the run, so a setting that was removed and
@@ -713,26 +722,10 @@ def first_release_by_tree_scan(index, stable, relpath, path):
 # --- main ------------------------------------------------------------------
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Derive the etc/defaults/*.yaml rows of the config version map.",
-    )
-    parser.add_argument(
-        "--env-versions",
-        default="env-versions.tsv",
-        help="archaeology TSV for env vars (default: env-versions.tsv)",
-    )
-    parser.add_argument(
-        "--root",
-        default=None,
-        help="read the YAML file CONTENTS from this directory instead of the "
-        "repo. Which files are read, and all git history, still come from the "
-        "repo: a defaults file that exists only under --root has no history "
-        "here to date it from, so it is not discovered and gets no rows",
-    )
-    args = parser.parse_args()
+def _generate(env_versions: str, root: str | None) -> int:
+    args = SimpleNamespace(env_versions=env_versions, root=root)
 
-    repo_root = Path(__file__).resolve().parent.parent
+    repo_root = find_repo_root()
     read_root = Path(args.root).resolve() if args.root else repo_root
     git = Git(repo_root)
 
@@ -750,7 +743,7 @@ def main():
     env_path = Path(args.env_versions)
     if not env_path.is_file():
         log(f"FAIL: {env_path} not found — this map is derived from it, not from git.")
-        log("      Produce it first: scripts/config-version-archaeology.sh > env-versions.tsv")
+        log("      Produce it first: bin/envref archaeology > env-versions.tsv")
         return 1
     env_versions, dropped = load_env_versions(env_path)
     log(f"info: {len(env_versions)} env var version(s) loaded from {env_path}")
@@ -796,7 +789,7 @@ def main():
     if missing_env:
         log(
             f"info: {len(missing_env)} env var(s) read only from YAML — "
-            f"delegating to scripts/config-version-archaeology.sh: "
+            f"delegating to bin/envref archaeology: "
             f"{' '.join(sorted(missing_env))}"
         )
         try:
@@ -935,11 +928,35 @@ def main():
     return 0
 
 
-if __name__ == "__main__":
+def run(
+    *,
+    env_versions: str = "env-versions.tsv",
+    root: str | None = None,
+) -> int:
+    """Derive the etc/defaults/*.yaml rows of the config version map.
+
+    Parameters
+    ----------
+    env_versions
+        Archaeology TSV for env vars.
+    root
+        Read the YAML file CONTENTS from this directory instead of the repo.
+        Which files are read, and all git history, still come from the repo: a
+        defaults file that exists only under --root has no history here to date
+        it from, so it is not discovered and gets no rows.
+    """
     try:
-        sys.exit(main())
+        return _generate(env_versions=env_versions, root=root)
     except GitFailed as exc:
         # A half-finished map is worse than none: the annotator would write
         # markers for the sites that survived and report success.
         log(f"FAIL: {exc}")
-        sys.exit(1)
+        return 1
+    except RootNotFound as exc:
+        # _generate resolves the checkout before doing any work, so this is
+        # reachable and was previously a traceback — the one command on the
+        # surface that answered a missing checkout differently from the rest.
+        # 1, not 2: this module documents 1 as "unusable input", alongside a
+        # shallow clone and a missing env-versions.tsv.
+        log(f"FAIL: {exc}")
+        return 1
