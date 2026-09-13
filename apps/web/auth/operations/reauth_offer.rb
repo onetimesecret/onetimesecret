@@ -71,7 +71,7 @@ module Auth
         # (a Connect intent, an identity bind) treat methods=[] as
         # "refuse the flow", which is the right answer for an offer
         # whose account is unknown.
-        password    = !account_id.nil? && safe_password_enabled?(env)
+        password    = !account_id.nil? && safe_password_enabled?(account_id, env)
 
         methods = Onetime::ReauthPolicy.eligible_methods(
           surface,
@@ -104,14 +104,31 @@ module Auth
       # install-level capability (AUTH_ENABLED / AUTH_SIGNIN) with the
       # per-tenant SigninConfig, so this returns the SAME value the
       # rest of the auth stack applies to POST /auth/login.
-      def safe_password_enabled?(env)
-        Auth::SigninEnabled.enabled_for_request?(env)
+      def safe_password_enabled?(account_id, env)
+        return false unless Auth::SigninEnabled.enabled_for_request?(env)
+
+        password_challengeable?(account_id)
       rescue Onetime::SigninPolicyUnavailable
         # An unreadable per-domain policy on a non-operator host reads
         # as "we do not know" — the offer cannot claim password works.
         false
       rescue StandardError => ex
         log_failure('signin_enabled', ex)
+        false
+      end
+
+      def password_challengeable?(account_id)
+        account = @db[:accounts]
+          .where(id: Integer(account_id))
+          .select(:email)
+          .first
+        return false unless account
+        return true if @db[:account_password_hashes].where(id: Integer(account_id)).any?
+
+        customer = Onetime::Customer.find_by_email(account[:email])
+        customer&.has_passphrase? == true
+      rescue StandardError => ex
+        log_failure('password_challengeable', ex, account_id: account_id)
         false
       end
 

@@ -21,6 +21,7 @@ RSpec.describe Auth::Operations::ReauthOffer do
     allow(Auth::Operations::ReadWebauthnCredentials).to receive(:new).with(db).and_return(reader)
     allow(reader).to receive(:call).and_return([])
     allow(Auth::SigninEnabled).to receive(:enabled_for_request?).and_return(true)
+    allow(operation).to receive(:password_challengeable?).and_return(true)
     allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id).and_return(nil)
   end
 
@@ -41,6 +42,14 @@ RSpec.describe Auth::Operations::ReauthOffer do
         expect(result[:methods]).to eq(%w[password])
         expect(result[:webauthn_credentials]).to eq([])
         expect(result[:related_origins]).to eq([])
+      end
+
+      it 'does not advertise password when this account has no challengeable password' do
+        allow(operation).to receive(:password_challengeable?).with(42).and_return(false)
+
+        result = operation.call(account_id: 42, env: env_for(strategy: :canonical))
+
+        expect(result[:methods]).to eq([])
       end
 
       it 'orders webauthn before password when the account has a platform credential' do
