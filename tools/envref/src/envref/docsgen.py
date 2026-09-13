@@ -267,6 +267,24 @@ def header_paragraphs(lines):
     return paragraphs
 
 
+def legend_index(paragraphs):
+    """Which header paragraph explains the marker, or None.
+
+    The single decision behind both the lift and the drop. They were two
+    separate string tests that differed in arity — the lift took the FIRST
+    paragraph mentioning `# Since`, the drop removed EVERY one — so a second
+    header paragraph that merely mentioned the marker was emitted neither as
+    the legend nor inside the fenced preamble. It vanished from the published
+    page, and nothing could see it go: --check compares generated output
+    against the committed page, so once regenerated the two agree, and the
+    ratchet never looks at the header at all.
+    """
+    for index, para in enumerate(paragraphs):
+        if "# Since" in "\n".join(para):
+            return index
+    return None
+
+
 def marker_legend(lines):
     """The `# Since` legend, lifted from .env.reference rather than restated.
 
@@ -281,10 +299,11 @@ def marker_legend(lines):
     conventions, which is the property this whole family of tools exists to
     hold. Returns None when the header has no such paragraph.
     """
-    for para in header_paragraphs(lines):
-        if "# Since" in "\n".join(para):
-            return [re.sub(r"^#[ \t]?", "", line).rstrip() for line in para]
-    return None
+    paragraphs = header_paragraphs(lines)
+    index = legend_index(paragraphs)
+    if index is None:
+        return None
+    return [re.sub(r"^#[ \t]?", "", line).rstrip() for line in paragraphs[index]]
 
 
 def clean_preamble(lines):
@@ -298,14 +317,14 @@ def clean_preamble(lines):
     by explaining a file the reader is not looking at.
     """
     paragraphs = header_paragraphs(lines)
+    lifted = legend_index(paragraphs)
 
     kept = []
-    for para in paragraphs:
-        text = "\n".join(para)
+    for index, para in enumerate(paragraphs):
         if len(para) == 1 and para[0].strip().lstrip("#").strip() == ENV_REFERENCE.name:
             continue                      # "# .env.reference"
-        if "# Since" in text:
-            continue                      # duplicate of the legend above
+        if index == lifted:
+            continue                      # rendered as prose above, not twice
         kept.append(para)
 
     out = []

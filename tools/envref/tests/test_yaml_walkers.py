@@ -21,6 +21,7 @@ from pathlib import Path
 
 from envref import annotate, versionmap
 from envref.paths import repo_root, sh_script
+from envref.textio import read_text
 
 ROOT = repo_root()
 
@@ -43,11 +44,20 @@ def awk_sites():
         text=True,
         check=True,
     )
-    sites = defaultdict(set)
+    sites = defaultdict(dict)
     for line in proc.stdout.splitlines():
-        relpath, path, _marker, _annot = line.split(" ")
-        sites[relpath].add(path)
+        relpath, path, _marker, annot = line.split(" ")
+        sites[relpath][path] = annot
     return sites
+
+
+# The one place the awk walk and the map generator classify a key differently,
+# recorded in Known limits: a valueless key whose only children are commented
+# out. The guard calls it an annotation site (annot=1) because its lookahead
+# finds nothing nested; KeyRecord.is_leaf() calls it a parent (0). The guard
+# errs loud on purpose — see the comment above extract_yaml_sites — so this is
+# pinned rather than fixed. A second entry appearing here is a new divergence.
+KNOWN_ANNOT_DIVERGENCE = {("etc/defaults/auth.defaults.yaml", "simple")}
 
 
 class ThreeWalkersAgreeTest(unittest.TestCase):
@@ -67,7 +77,7 @@ class ThreeWalkersAgreeTest(unittest.TestCase):
                         relpath, path.read_text(encoding="utf-8")
                     )
                 }
-                from_awk = awk[relpath]
+                from_awk = set(awk[relpath])
                 self.assertTrue(from_awk, f"the awk walk saw nothing in {relpath}")
                 self.assertEqual(
                     from_awk - from_annotate,
@@ -80,6 +90,35 @@ class ThreeWalkersAgreeTest(unittest.TestCase):
                     "the annotator can mark a path the ratchet never freezes",
                 )
                 self.assertEqual(from_awk, from_versionmap)
+
+    def test_all_three_classify_the_same_paths_as_annotation_sites(self):
+        """Paths agreeing is not enough: `annot` is what rule 1 acts on.
+
+        Raised in review, and correct — the divergences this suite exists to
+        pin were mostly classification divergences, where the path sets were
+        identical and only `annot` differed. `annot` decides whether the
+        ratchet demands a marker and whether the generator emits a row, so a
+        repeat of exactly those bugs passed the path-set comparison alone.
+        """
+        awk = awk_sites()
+        divergences = set()
+        for relpath in versionmap.TARGET_FILES:
+            path = ROOT / relpath
+            by_path = {
+                r.path: ("1" if r.is_leaf() else "0")
+                for r in versionmap.parse_yaml_keys(
+                    relpath, read_text(path)
+                )
+            }
+            for dotted, annot in awk[relpath].items():
+                if dotted in by_path and by_path[dotted] != annot:
+                    divergences.add((relpath, dotted))
+        self.assertEqual(
+            divergences,
+            KNOWN_ANNOT_DIVERGENCE,
+            "the awk walk and the map generator disagree about which keys are "
+            "annotation sites, beyond the one case Known limits records",
+        )
 
 
 class RealFilesAgreeTest(unittest.TestCase):

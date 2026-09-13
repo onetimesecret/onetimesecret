@@ -87,6 +87,19 @@ MARKER_RE='[[:blank:]]+# Since (v[0-9]+\.[0-9]+\.[0-9]+|unreleased)[[:blank:]]*$
 # contradictory version claims past every rule below, which is the shape the
 # one-marker rule exists to stop. [^A-Za-z0-9_] is exactly \b's boundary, so
 # "# Sincerely" and "#since2020" stay out.
+#
+# POSIX classes rather than [ \t], unlike every regex written INSIDE the awk
+# programs below, because this one variable is read by both grep -E and awk
+# (as a dynamic regex, for the one-marker rule). grep -E has no \t escape —
+# that trap has cost this file twice — and a bracket expression holding a
+# literal tab would work in both but reads as a space to anyone editing it.
+# POSIX character classes are the one spelling both dialects agree on, and
+# they are required by POSIX awk: mawk 1.3.4, which is what runs this locally
+# and on the CI runner, counts two markers in a two-marker line with it.
+#
+# So do not harmonise this with the [ \t] spellings below. They differ because
+# their readers differ, and the failure if this is wrong is silent — gsub()
+# would simply match nothing and the one-marker rule would stop firing.
 MARKER_LOOSE_RE='[[:blank:]]#[[:blank:]]*[Ss][Ii][Nn][Cc][Ee]([^A-Za-z0-9_]|$)'
 
 # Key-declaration lines — the only place a marker is allowed to live.
