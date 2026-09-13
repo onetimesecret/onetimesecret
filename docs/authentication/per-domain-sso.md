@@ -288,9 +288,12 @@ may be inferred from the IdP's email claim.
    exception would be an explicit OTS policy exception, not NIST AAL
    conformance.
 
-   WebAuthn credentials are scoped to an RP ID. A passkey registered for the
-   platform RP ID cannot ordinarily be used from an unrelated tenant host, and
-   a request for the tenant RP ID does not match that platform credential.
+   WebAuthn credentials are scoped to an RP ID. [WebAuthn Level 3 section
+   5.5](https://www.w3.org/TR/webauthn-3/#dictdef-publickeycredentialrequestoptions)
+   requires the requested RP ID to exactly equal the credential's RP ID. A
+   passkey registered for the platform RP ID therefore cannot ordinarily be
+   used from an unrelated tenant host, and a request for the tenant RP ID does
+   not match that platform credential.
    Offer a password or a credential registered for the tenant surface as the
    fallback. Cross-domain passkey use requires an explicitly designed and
    supported [WebAuthn related-origins arrangement](https://www.w3.org/TR/webauthn-3/#sctn-related-origins), including a shared RP ID and its
