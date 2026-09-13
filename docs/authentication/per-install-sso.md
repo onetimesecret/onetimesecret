@@ -269,7 +269,7 @@ Refusing rather than falling back matters in the first row: a tenant admin contr
 
 #### Platform-only
 
-The panel connects identities on the **platform** surface only. Authenticated linking on a tenant (custom-domain) surface needs org-membership verification before a tenant-issuer identity may be bound to an account, and is a deliberate follow-up (#3849).
+The panel connects identities on the **platform** surface only. Authenticated linking on a tenant (custom-domain) surface is a deliberate follow-up (#3849). [NIST SP 800-63C-4 section 3.8.1](https://pages.nist.gov/800-63-4/sp800-63c/Federation/#account-linking) requires an authenticated subscriber session for linking, and [OWASP ASVS 5.0.0 requirement 7.5.1](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v75-defenses-against-session-abuse) requires full re-authentication before changing sensitive authentication attributes. OTS additionally requires an active organization membership that authorizes the exact custom domain (`OrganizationMembership#can_access_domain?`: organization-scoped, or scoped to that domain), plus a session scoped to the tenant surface and recent full local re-authentication that completes the account's required MFA factors. These tenant-session controls are OTS choices, not an architecture prescribed by those standards. Callback-domain validation (`session[:validated_omniauth_domain_id]`) is not a substitute for either. See [Requirements for authenticated tenant linking](per-domain-sso.md#requirements-for-authenticated-tenant-linking-3849).
 
 ### Sign-in interstitial (password-challenge linking)
 
@@ -309,6 +309,12 @@ This path needs no operator configuration. It is on by default and is the platfo
 ### Mailbox-proof linking (passwordless accounts)
 
 The sign-in interstitial above proves ownership with the account's **existing password**. That leaves one case: a **passwordless** account (SSO-only, or migrated without a local password) whose owner now signs in through a *new* SSO identity. There is no password to challenge — but that account can still prove ownership the same way magic-link (email_auth) does: **control of its on-file mailbox.** So instead of dead-ending at the H-3 refusal, the callback **emails a single-use link to the account's on-file address**, and binding the `(provider, issuer, uid)` identity happens only when the user clicks it and confirms. Mailbox control is the demonstrated credential; the invariant holds.
+
+This is an OTS platform-linking and account-recovery policy, not a NIST
+out-of-band authentication method or a substitute for the full
+re-authentication required for tenant Connect. NIST SP 800-63B-4 prohibits
+email for out-of-band authentication; any use of this flow is an explicit OTS
+policy exception rather than NIST AAL conformance.
 
 **The token travels only through the email — never the callback redirect.** The proof is mailbox control, so the callback redirects the browser to a **token-less** notice (`/signin?auth_notice=link_verification_sent`) and delivers the token *solely* to the on-file inbox. A caller who merely completed an SSO round-trip asserting the victim's email therefore never learns the token and cannot self-consume it.
 
