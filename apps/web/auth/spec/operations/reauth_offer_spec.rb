@@ -37,7 +37,7 @@ RSpec.describe Auth::Operations::ReauthOffer do
       it 'reports the canonical surface and password as the only offered method' do
         result = operation.call(account_id: 42, env: env_for(strategy: :canonical))
 
-        expect(result[:surface]).to eq(kind: :canonical)
+        expect(result[:surface]).to eq('kind' => 'canonical')
         expect(result[:methods]).to eq(%w[password])
         expect(result[:webauthn_credentials]).to eq([])
         expect(result[:related_origins]).to eq([])
@@ -81,7 +81,7 @@ RSpec.describe Auth::Operations::ReauthOffer do
           Onetime::CustomDomain::SigninConfig,
           related_origin_surfaces: [
             Onetime::SessionSurface::CANONICAL,
-            { kind: :custom, id: 'tenant-a' },
+            { 'kind' => 'custom', 'id' => 'tenant-a' },
           ].freeze,
         )
         allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
@@ -95,7 +95,7 @@ RSpec.describe Auth::Operations::ReauthOffer do
         expect(result[:related_origins]).to eq(
           [
             Onetime::SessionSurface::CANONICAL,
-            { kind: :custom, id: 'tenant-a' },
+            { 'kind' => 'custom', 'id' => 'tenant-a' },
           ],
         )
       end

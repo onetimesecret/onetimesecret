@@ -113,7 +113,7 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
 
     it 'resolves a known tenant-host origin to its custom-domain descriptor' do
       config.related_origins = ['https://vault.acme.com']
-      expect(config.related_origin_surfaces).to eq([{ kind: :custom, id: 'vault-domain-id' }])
+      expect(config.related_origin_surfaces).to eq([{ 'kind' => 'custom', 'id' => 'vault-domain-id' }])
     end
 
     it 'silently drops an origin whose host we do not serve' do
@@ -133,7 +133,7 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
       # (surface identity is the CustomDomain id, not the origin's port), so
       # the resolved set is deduplicated.
       config.related_origins = ['https://vault.acme.com', 'https://vault.acme.com:8443']
-      expect(config.related_origin_surfaces).to eq([{ kind: :custom, id: 'vault-domain-id' }])
+      expect(config.related_origin_surfaces).to eq([{ 'kind' => 'custom', 'id' => 'vault-domain-id' }])
     end
 
     it 'fails closed to [] when the CustomDomain lookup raises' do

@@ -394,7 +394,7 @@ module Onetime
         return Onetime::SessionSurface::CANONICAL if canonical_host?(host)
 
         record = Onetime::CustomDomain.from_display_domain(host)
-        return { kind: :custom, id: record.identifier.to_s }.freeze if record&.identifier
+        return { 'kind' => 'custom', 'id' => record.identifier.to_s }.freeze if record&.identifier
 
         nil
       rescue StandardError

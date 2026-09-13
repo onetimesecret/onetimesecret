@@ -177,9 +177,11 @@ module Onetime
         scope = credential[:scope] || credential['scope']
         scope = :platform unless scope == :tenant
 
+        kind = (surface['kind'] || surface[:kind]).to_s
+
         case scope
         when :platform
-          surface[:kind] == :canonical
+          kind == 'canonical'
         when :tenant
           # Tenant credentials are bound to a specific custom-domain
           # identifier (the :custom surface's :id). Subdomain surfaces
@@ -187,10 +189,11 @@ module Onetime
           # deployment shares the canonical rp_id unless it publishes a
           # related-origins declaration, and that path is handled by
           # the related_origins argument above.
-          return false unless surface[:kind] == :custom
+          return false unless kind == 'custom'
 
           credential_id = credential[:id] || credential['id']
-          !credential_id.to_s.empty? && credential_id.to_s == surface[:id].to_s
+          surface_id    = surface['id'] || surface[:id]
+          !credential_id.to_s.empty? && credential_id.to_s == surface_id.to_s
         end
       end
     end
