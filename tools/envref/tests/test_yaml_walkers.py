@@ -8,17 +8,19 @@ Python walks lived in separate top-level scripts that could not import each
 other, so the pin had nowhere to live; now they are two modules of one
 package, and this is it.
 
-It covers two of the three walkers. The awk walk inside
-check-config-versions.sh is still unpinned: it has no entry point that emits
-its site list, and adding one means editing a reviewed script. That remains in
-the Known limits.
+It covers all three. The awk walk inside check-config-versions.sh had no way
+to say what it saw, which is why it stayed unpinned through four divergences
+that were all on its side; `--print-sites` is that way, and it runs no rules
+and consults no base ref, so it cannot change a verdict.
 """
 
+import subprocess
 import unittest
+from collections import defaultdict
 from pathlib import Path
 
 from envref import annotate, versionmap
-from envref.paths import repo_root
+from envref.paths import repo_root, sh_script
 
 ROOT = repo_root()
 
@@ -29,6 +31,55 @@ def walk_both(text: str, relpath: str = "etc/defaults/probe.yaml"):
     from_annotate = set(annotate.yaml_path_index(bodies))
     from_versionmap = {r.path for r in versionmap.parse_yaml_keys(relpath, text)}
     return from_annotate, from_versionmap
+
+
+def awk_sites():
+    """{relpath: {dotted path}} as the ratchet's own walk sees it."""
+    proc = subprocess.run(
+        ["bash", str(sh_script("check-config-versions.sh")), "--print-sites"],
+        cwd=ROOT,
+        env={"PATH": "/usr/bin:/bin:/usr/local/bin", "ENVREF_REPO_ROOT": str(ROOT)},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    sites = defaultdict(set)
+    for line in proc.stdout.splitlines():
+        relpath, path, _marker, _annot = line.split(" ")
+        sites[relpath].add(path)
+    return sites
+
+
+class ThreeWalkersAgreeTest(unittest.TestCase):
+    """The cross-check three review passes asked for, finally three-way."""
+
+    def test_all_three_resolve_the_same_paths(self):
+        awk = awk_sites()
+        self.assertTrue(versionmap.TARGET_FILES, "no target files discovered")
+        for relpath in versionmap.TARGET_FILES:
+            with self.subTest(relpath=relpath):
+                path = ROOT / relpath
+                bodies, _ = annotate.read_lines(path)
+                from_annotate = set(annotate.yaml_path_index(bodies))
+                from_versionmap = {
+                    r.path
+                    for r in versionmap.parse_yaml_keys(
+                        relpath, path.read_text(encoding="utf-8")
+                    )
+                }
+                from_awk = awk[relpath]
+                self.assertTrue(from_awk, f"the awk walk saw nothing in {relpath}")
+                self.assertEqual(
+                    from_awk - from_annotate,
+                    set(),
+                    "the ratchet demands a marker on a path the annotator cannot address",
+                )
+                self.assertEqual(
+                    from_annotate - from_awk,
+                    set(),
+                    "the annotator can mark a path the ratchet never freezes",
+                )
+                self.assertEqual(from_awk, from_versionmap)
 
 
 class RealFilesAgreeTest(unittest.TestCase):

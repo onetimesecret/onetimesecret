@@ -56,7 +56,7 @@ def _run_sh(script: str, argv: list[str]) -> int:
 
 
 @app.command(name="check")
-def check() -> int:
+def check(*, print_sites: bool = False) -> int:
     """Run the CI ratchet over the annotated config files.
 
     New keys need a marker, shipped markers are frozen, markers are
@@ -64,8 +64,16 @@ def check() -> int:
 
     Reads CONFIG_VERSION_BASE_REF, CONFIG_VERSION_REQUIRE_BASE and
     GITHUB_BASE_REF from the environment; see the script header for the order.
+
+    Parameters
+    ----------
+    print_sites
+        Print the site list the rules are built on, as
+        "<file> <path> <marker|-> <annot>", and run no rules. This is the awk
+        walk saying what it saw, so it can be compared against the two Python
+        walks; test_yaml_walkers.py asserts they agree.
     """
-    return _run_sh("check-config-versions.sh", [])
+    return _run_sh("check-config-versions.sh", ["--print-sites"] if print_sites else [])
 
 
 @app.command(name="archaeology")

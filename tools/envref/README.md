@@ -73,13 +73,15 @@ already builds for `bin/envref check`. `pytest` is an optional convenience
 (`uv sync --extra test`); the suite itself is stdlib, matching
 `locales/scripts/tests`.
 
-The suite's centrepiece is `test_yaml_walkers.py`, which asserts that
-`annotate.py` and `versionmap.py` resolve identical dotted-path sets for every
-file in `etc/defaults/`. Reviewers asked for that cross-check twice while this
-tooling lived in `scripts/`, where it could not be written: two top-level
-scripts cannot import each other. Making them modules of one package is what
-made it possible, and it is the clearest practical argument for ADR-042 in
-this repository.
+The suite's centrepiece is `test_yaml_walkers.py`, which asserts that all
+three YAML walks — `annotate.py`, `versionmap.py` and the awk inside
+`sh/check-config-versions.sh` — resolve identical dotted-path sets for every
+file in `etc/defaults/`. Reviewers asked for that cross-check three times
+while this tooling lived in `scripts/`, where it could not be written: two
+top-level scripts cannot import each other. Making them modules of one package
+is what made it possible, and it is the clearest practical argument for
+ADR-042 in this repository. The awk walk answers through
+`bin/envref check --print-sites`, which runs no rules and reads no base ref.
 
 ## Two places this reads ADR-042 rather than following it literally
 

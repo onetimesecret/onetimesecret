@@ -252,19 +252,25 @@ File names below are relative to `tools/envref/src/envref/`.
   The valueless-key disagreement above remains, as does the site-set breadth
   mismatch.
 
-  The cross-check reviewers asked for twice now exists for two of the three:
-  `tools/envref/tests/test_yaml_walkers.py` asserts that `annotate.py` and
-  `versionmap.py` resolve identical dotted-path sets for every file in
-  `etc/defaults/`, and pins the ERB and key/colon cases above as regressions.
-  It became possible only when ADR-042 made them two modules of one package —
-  as separate top-level scripts they could not import each other, which is
-  why the pin went unwritten for so long.
+  The cross-check reviewers asked for three times now exists, and covers all
+  three walks. `tools/envref/tests/test_yaml_walkers.py` asserts they resolve
+  identical dotted-path sets for every file in `etc/defaults/` — 487 paths,
+  agreeing exactly — and pins the ERB and key/colon cases above as
+  regressions. Two of the walks are modules of one package, which ADR-042 made
+  possible; the third answers through `bin/envref check --print-sites`, which
+  runs no rules and reads no base ref, so a guard gained a way to say what it
+  saw without gaining a way to reach a different verdict.
 
-  The awk walk in `sh/check-config-versions.sh` is still unpinned: it has no
-  entry point that emits its site list, and adding one means editing a
-  reviewed script. A shared walker remains the real fix. Until then, if you
-  add a fourth shape to `etc/defaults/`, the test covers two walks and you
-  should check the third by hand.
+  This matters more than the count suggests: every divergence found in review
+  — ERB control lines, the key/colon tab, the `.yml` dispatch, and the CRLF
+  normalisation — was on the awk side, which was the walk with no voice.
+  Routing `.yaml` to the ENV walk, the historical dispatch bug, now fails four
+  cases.
+
+  A shared walker is still the real fix; the site sets agreeing is not the
+  same as the three implementations agreeing about a file none of them has
+  seen yet. If you add a fourth shape to `etc/defaults/`, the test will tell
+  you whether they still agree about it.
 - **The ratchet needs the base branch fetched.** CI sets
   `CONFIG_VERSION_REQUIRE_BASE=1` so a missing base fails loudly rather than
   silently degrading to a syntax-only check. Locally it prints a NOTE.

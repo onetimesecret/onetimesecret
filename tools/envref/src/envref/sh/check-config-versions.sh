@@ -545,15 +545,41 @@ check_file() {
       ' >> "$tmp/fail_changed"
 }
 
-for target in "${TARGETS[@]}"; do
-  case "$target" in
+kind_for() {  # <file>
+  case "$1" in
     # Both extensions, matching the TARGETS glob above. Widening one without
     # the other routed a .yml defaults file to the ENV extractor, which matches
     # no YAML line — so it yielded zero sites, every rule passed vacuously, and
     # the summary still counted it as a file checked.
-    *.yaml|*.yml) check_file "$target" yaml ;;
-    *)            check_file "$target" env  ;;
+    *.yaml|*.yml) echo yaml ;;
+    *)            echo env  ;;
   esac
+}
+
+# --- --print-sites ----------------------------------------------------------
+#
+# Emit the site list this script builds its rules on, then stop. Three tools in
+# this family walk these files independently and have now diverged four times,
+# every one of them on the awk side; the two Python walks are modules a test
+# can import and compare directly, and this one had no way to say what it saw.
+# This is that way, so test_yaml_walkers.py can assert three-way equality
+# instead of two-way.
+#
+# Output only: no rules run, no base ref is consulted, nothing is written. It
+# cannot change a verdict, which is the point of adding it to a guard rather
+# than reimplementing the walk in the test.
+if [[ "${1:-}" == "--print-sites" ]]; then
+  for target in "${TARGETS[@]}"; do
+    sed $'s/\r$//' "$target" > "$tmp/print.file"
+    extract_sites "$(kind_for "$target")" "$tmp/print.file" \
+      | sort -u \
+      | sed "s#^#${target} #"
+  done
+  exit 0
+fi
+
+for target in "${TARGETS[@]}"; do
+  check_file "$target" "$(kind_for "$target")"
 done
 
 # --- Report --------------------------------------------------------------
