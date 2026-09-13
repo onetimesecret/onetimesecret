@@ -148,6 +148,7 @@ module Auth::Config::Hooks
             .update(
               webauthn_keys_last_use_column => Sequel::CURRENT_TIMESTAMP,
               surface_scope: surface_payload,
+              rp_id: webauthn_rp_id,
             )
         rescue StandardError => ex
           Onetime.get_logger('Auth::WebAuthn').error 'WebAuthn surface stamp failed',

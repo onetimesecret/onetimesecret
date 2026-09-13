@@ -53,11 +53,15 @@ Sequel.migration do
       # under a subdomain host would fit today, but future descriptor
       # additions must not be quietly truncated.
       add_column :surface_scope, String, text: true, null: true, default: nil
+      # Exact RP ID used at registration. Required when a configured related
+      # origin verifies a credential from another surface.
+      add_column :rp_id, String, null: true, default: nil
     end
   end
 
   down do
     alter_table(:account_webauthn_keys) do
+      drop_column :rp_id
       drop_column :surface_scope
     end
   end

@@ -191,7 +191,7 @@ RSpec.describe Onetime::ReauthPolicy do
         result = described_class.eligible_methods(
           tenant_a,
           password_enabled: false,
-          webauthn_credentials: [platform_credential],
+          webauthn_credentials: [platform_credential.merge(rp_id: 'example.com')],
           related_origins: [canonical, tenant_a],
         )
         expect(result).to eq(%w[webauthn])
@@ -201,10 +201,20 @@ RSpec.describe Onetime::ReauthPolicy do
         result = described_class.eligible_methods(
           canonical,
           password_enabled: false,
-          webauthn_credentials: [tenant_a_credential],
+          webauthn_credentials: [tenant_a_credential.merge(rp_id: 'tenant.example.com')],
           related_origins: [canonical, tenant_a],
         )
         expect(result).to eq(%w[webauthn])
+      end
+
+      it 'refuses related-origin widening without stored RP provenance' do
+        result = described_class.eligible_methods(
+          tenant_a,
+          password_enabled: false,
+          webauthn_credentials: [platform_credential],
+          related_origins: [canonical, tenant_a],
+        )
+        expect(result).to eq([])
       end
 
       it 'refuses a related-origins acceptance when the current surface is not in the declared set' do

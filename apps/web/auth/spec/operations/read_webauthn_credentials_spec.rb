@@ -25,7 +25,7 @@ RSpec.describe Auth::Operations::ReadWebauthnCredentials do
         @filtered = rows_by_account.fetch(account_id, [])
         self
       end
-      define_method(:select) { |_col| self }
+      define_method(:select) { |*_columns| self }
       define_method(:all) { @filtered || [] }
     end
 
@@ -88,6 +88,16 @@ RSpec.describe Auth::Operations::ReadWebauthnCredentials do
 
       it 'reads as { scope: :platform } (subdomain shares canonical treatment today)' do
         expect(op.call(42)).to eq([{ scope: :platform }])
+      end
+    end
+
+    context 'with RP provenance' do
+      let(:rows_by_account) do
+        { 42 => [{ surface_scope: nil, rp_id: 'example.com' }] }
+      end
+
+      it 'carries the RP ID for related-origin eligibility without exposing credential material' do
+        expect(op.call(42)).to eq([{ scope: :platform, rp_id: 'example.com' }])
       end
     end
 

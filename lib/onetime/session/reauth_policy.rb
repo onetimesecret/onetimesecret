@@ -159,7 +159,10 @@ module Onetime
         related.any? do |related_surface|
           next false if related_surface == surface
 
-          credentials.any? { |c| credential_matches_surface?(c, related_surface) }
+          credentials.any? do |credential|
+            rp_id = credential[:rp_id] || credential['rp_id']
+            !rp_id.to_s.empty? && credential_matches_surface?(credential, related_surface)
+          end
         end
       end
 

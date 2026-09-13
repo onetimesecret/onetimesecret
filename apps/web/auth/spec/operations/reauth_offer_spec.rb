@@ -86,7 +86,7 @@ RSpec.describe Auth::Operations::ReauthOffer do
         )
         allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
           .with('tenant-a').and_return(signin_config)
-        allow(reader).to receive(:call).with(42).and_return([{ scope: :platform }])
+        allow(reader).to receive(:call).with(42).and_return([{ scope: :platform, rp_id: 'example.com' }])
         env           = env_for(strategy: :custom, custom_domain_id: 'tenant-a')
 
         result = operation.call(account_id: 42, env: env)
