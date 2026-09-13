@@ -429,8 +429,9 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
         site_host: 'example.com',
         domains_enabled: true,
       )
-      @tenant_domain = create_verified_custom_domain(colonel, tenant_host)
     end
+
+    let!(:tenant_domain) { create_verified_custom_domain(colonel, tenant_host) }
 
     it '404s the shell on the tenant domain for a colonel' do
       signed_in_as(colonel)
@@ -473,7 +474,7 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
       )
       # A session established ON the tenant surface (#4409); a canonical
       # session would be refused here for the surface, not by the gate.
-      signed_in_as(colonel, surface: { 'kind' => 'custom', 'id' => @tenant_domain.identifier })
+      signed_in_as(colonel, surface: { 'kind' => 'custom', 'id' => tenant_domain.identifier })
       get_api(tenant_host)
 
       expect(last_response.status).to eq(200)
