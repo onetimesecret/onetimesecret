@@ -137,3 +137,51 @@ reproducibility, and stable root entry point (e.g. `mise`).
 - `scripts/README.md` — current guidance for the legacy and lightweight script
   directory
 - `locales/scripts/pyproject.toml` — current locale tooling package metadata
+
+## Implementation Notes
+
+### 2026-09-12 — envref landed, and two clauses read as intent rather than text
+
+`tools/envref/` exists, behind `bin/envref`, with `pyproject.toml`, a `src`
+layout, `uv.lock`, and tests. The six scripts it absorbed moved out of
+`scripts/` unchanged in behaviour: the generated version map is byte-identical
+before and after the move, and the ratchet reports the same 894 sites and 603
+markers. `drift-guards.yml` and `validate-config.yml` now call `bin/envref
+check` rather than a path inside the package.
+
+Two clauses were implemented against their intent rather than their letter,
+and both are recorded in `tools/envref/README.md` so a later reader can
+overrule them deliberately:
+
+**The annotation format.** The Decision gives `envref` ownership of the
+reference's release annotation format, "including `As of x.y.z` notes". The
+shipped markers say `# Since vX.Y.Z`. That grammar predates this ADR by five
+weeks, is written on 605 lines, and is frozen by the ratchet the moment it
+merges — a marker is a statement to everyone running that release, so
+re-spelling one is not a rename. `docs/development/config-version-annotations.md`
+stays the authority on the grammar; this ADR keeps ownership of *where* that
+authority lives. Adopting `As of x.y.z` remains available as a deliberate
+migration.
+
+**The scope.** The Decision scopes `envref` to `.env.reference`. As built it
+also covers `etc/defaults/*.yaml`, because the YAML resolver is the larger
+half of the tooling and no other domain in this ADR gives it a home. Splitting
+them would put one marker contract behind two commands.
+
+### 2026-09-12 — Two conventions this first package sets
+
+**Polyglot behind one entry point.** `src/envref/sh/` holds three bash-and-awk
+implementations. Porting 950 verified lines to Python would have been a
+rewrite, which the Decision's own migration rule argues against; the package
+boundary and the single public command are what the Decision asks for, and
+both hold.
+
+**No repository-wide `.python-version`.** The package states
+`requires-python = ">=3.11"` and pins its dependencies in `uv.lock`; CI pins
+the interpreter through `actions/setup-python`, as every other Python job in
+this repository already does. A root `.python-version` names one exact
+interpreter, so pinning CI's 3.14 would oblige every contributor on 3.11 or
+3.12 to fetch a second Python to run a guard that works on theirs. If a
+repository-wide runtime manager arrives later — the Consequences section
+anticipates one — that is the decision that should set this file, not this
+package.
