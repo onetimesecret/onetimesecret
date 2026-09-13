@@ -40,6 +40,19 @@ a perfectly well-formed line look like it carries two markers, and the
 one-marker rule rejects it. A real near-miss always has a blank before its hash,
 so requiring one costs no detection.
 
+A CRLF worktree does not change any of this. `.gitattributes` does not force
+LF on these files, so `core.autocrlf=true` genuinely puts CRLF in the working
+tree, and every recognizer here anchors to end-of-line — where CR, not being
+blank, hides the marker completely. Each reader therefore normalises the
+trailing CR before matching: `tools/envref/src/envref/textio.py` is the one
+definition for the Python readers, `annotate.py` expresses the same rule as a
+split-and-restore so that a rewrite is a byte no-op, and the two shell scripts
+carry it as a literal CR in their patterns. A lone CR is deliberately not
+treated as a line ending anywhere — the annotator refuses such a file rather
+than repairing it. `tests/test_line_endings.py` asserts every reader reaches
+the same verdict from a CRLF fixture as from its LF twin; it was three
+separate bugs before it was one rule.
+
 Both ends of the near-miss recognizer are load-bearing, and the two spellings
 must agree at both. They once diverged at the trailing end — the shell used
 `([[:blank:]]|$)` and the annotator used Python's `\b` — so `# Since:` was a

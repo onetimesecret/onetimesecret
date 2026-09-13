@@ -164,7 +164,13 @@ fi
 
 # CI must not pass merely because it forgot to fetch the base branch. A guard
 # that silently downgrades to "syntax only" is a guard that stops guarding.
-if [[ -z "$BASE_REF" && -n "${CONFIG_VERSION_REQUIRE_BASE:-}" ]]; then
+#
+# --print-sites is exempt because it reads no base ref at all — it prints the
+# site list and stops. Without the exemption the flag was unusable in CI under
+# CONFIG_VERSION_REQUIRE_BASE, which is the one place a three-walker
+# disagreement gets diagnosed from a log rather than a laptop. This exempts the
+# mode, not the condition: every rule still refuses to run without a base.
+if [[ -z "$BASE_REF" && -n "${CONFIG_VERSION_REQUIRE_BASE:-}" && "${1:-}" != "--print-sites" ]]; then
   echo "FAIL: no base ref available, and CONFIG_VERSION_REQUIRE_BASE is set." >&2
   echo "      New-key and immutability drift cannot be checked without one." >&2
   echo "      Fetch the base branch first, e.g. 'git fetch origin develop'." >&2

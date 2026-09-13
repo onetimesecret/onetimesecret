@@ -102,6 +102,7 @@ from types import SimpleNamespace
 
 from . import UsageError
 from .paths import RootNotFound, repo_root
+from .textio import read_text
 
 # Resolved at import so the constants below stay constants. Outside a checkout
 # the resolver fails and ENV_REFERENCE simply will not exist, which run()
@@ -472,7 +473,12 @@ def run(
             f"        bin/envref docs ../docs.onetimesecret.com"
         )
 
-    env_text = ENV_REFERENCE.read_text(encoding="utf-8")
+    # read_text() normalises CRLF: every recognizer below anchors to
+    # end-of-line, so a CRLF worktree otherwise hides all 307 markers, the
+    # legend is omitted, and the die() above cannot fire to say so. The page
+    # is deliberately NOT normalised — it belongs to the docs repo, and the
+    # generated block this writes is LF either way.
+    env_text = read_text(ENV_REFERENCE)
     generated_block, section_count = build_generated_block(env_text)
 
     current = page_path.read_text(encoding="utf-8")

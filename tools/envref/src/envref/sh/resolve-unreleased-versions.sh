@@ -81,7 +81,23 @@ done
 # `#`, and check-config-versions.sh matches it with [[:blank:]], so writing
 # the class by hand here would leave a tab-form marker uncounted AND
 # unrewritten: it would ship as `unreleased` forever.
-UNRESOLVED_RE='[[:blank:]]+# Since unreleased[[:blank:]]*$'
+#
+# The tail carries an optional literal CR, because on a CRLF worktree that is
+# the last byte of the line and CR is not [[:blank:]] — so the count below was
+# 0 for every file, the `if` it guards was skipped, and with it BOTH the
+# rewrite and the post-rewrite re-grep that exists to catch a rewrite that did
+# nothing. The release then reported "nothing to do" and the tag shipped
+# `# Since unreleased`, which rule 2 never freezes and nothing later corrects.
+#
+# $'\r' rather than a `\r` escape inside the pattern: grep -E has no such
+# escape on BSD, and a GNU-only spelling would leave macOS with the bug.
+#
+# EOL_TAIL is shared with the sed below so the thing counted and the thing
+# rewritten cannot drift apart — the capture group puts the CR back, so the
+# file keeps its line endings byte for byte.
+CR=$'\r'
+EOL_TAIL="[[:blank:]]*${CR}?"
+UNRESOLVED_RE="[[:blank:]]+# Since unreleased${EOL_TAIL}\$"
 
 # Declaration lines only — the same set bin/envref check
 # polices. Rule 3 there inspects declaration lines deliberately, so that the
@@ -122,7 +138,7 @@ for f in "${TARGETS[@]}"; do
     # file mode. The result is then re-checked rather than trusted: the count
     # above was taken BEFORE the rewrite, so on its own it would report success
     # for a substitution that did nothing.
-    sed -E "/$decl_re/ s/([[:blank:]]+# Since )unreleased([[:blank:]]*)\$/\1${VERSION}\2/" "$f" > "$scratch"
+    sed -E "/$decl_re/ s/([[:blank:]]+# Since )unreleased(${EOL_TAIL})\$/\1${VERSION}\2/" "$f" > "$scratch"
     cat "$scratch" > "$f"
 
     left=$({ grep -E "$decl_re" "$f" || true; } | { grep -cE "$UNRESOLVED_RE" || true; })

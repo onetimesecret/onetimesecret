@@ -21,8 +21,9 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from envref import annotate
+from envref import annotate, docsgen, versionmap
 from envref.paths import sh_script
+from envref.textio import read_text
 
 FIXTURE = {
     ".env.reference": "KEY_ONE=a  # Since v0.24.0\nKEY_TWO=b  # Since unreleased\nKEY_OLD=c\n",
@@ -112,3 +113,120 @@ class AnnotatorTest(unittest.TestCase):
             path.write_bytes(b"mode: x\rold: y\n")
             with self.assertRaises(annotate.HardError):
                 annotate.read_lines(path)
+
+
+def git_fixture(root: Path, crlf: bool) -> None:
+    """A committed fixture, because the release step needs a real checkout."""
+    build(root, crlf=crlf)
+    env = {"PATH": "/usr/bin:/bin:/usr/local/bin", "HOME": str(root)}
+    for args in (
+        ["init", "-q", "."],
+        ["config", "user.email", "t@example.com"],
+        ["config", "user.name", "t"],
+        ["add", "-A"],
+        ["commit", "-qm", "fixture"],
+    ):
+        subprocess.run(["git", *args], cwd=root, env=env, check=True, capture_output=True)
+
+
+class ReaderParityTest(unittest.TestCase):
+    """Every reader must reach the same answer from LF and from its CRLF twin.
+
+    Follow-up from review, and the reason this file exists in this shape: CR
+    handling had become a rule spelled once per reader, and it was wrong in
+    three of them — each found separately, each fixed as if it were its own
+    bug. Pinning the class is the only thing that stops the fourth.
+    """
+
+    def both(self, fn):
+        """Run fn against an LF fixture and a CRLF one; return both answers."""
+        out = []
+        for crlf in (False, True):
+            with TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                build(root, crlf=crlf)
+                out.append(fn(root))
+        return out
+
+    def test_textio_read_text_is_the_one_normalisation(self):
+        lf, crlf = self.both(lambda r: read_text(r / ".env.reference"))
+        self.assertEqual(lf, crlf)
+        self.assertNotIn("\r", crlf)
+
+    def test_a_lone_cr_is_left_alone(self):
+        """Not a line ending anywhere this runs; rewriting it would hide a
+        corrupt file rather than let the caller notice it."""
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "x"
+            path.write_bytes(b"a\rb\r\nc\n")
+            self.assertEqual(read_text(path), "a\rb\nc\n")
+
+    def test_versionmap_resolves_the_same_keys(self):
+        relpath = "etc/defaults/config.defaults.yaml"
+        lf, crlf = self.both(
+            lambda r: {
+                rec.path for rec in versionmap.parse_yaml_keys(relpath, read_text(r / relpath))
+            }
+        )
+        self.assertEqual(lf, crlf)
+        self.assertTrue(lf)
+
+    def test_docsgen_sees_the_same_markers(self):
+        lf, crlf = self.both(
+            lambda r: sum(
+                1
+                for line in read_text(r / ".env.reference").split("\n")
+                if docsgen.SINCE_MARKER_RE.search(line)
+            )
+        )
+        self.assertEqual(lf, crlf)
+        self.assertEqual(lf, 2, "the fixture has two marked env keys")
+
+
+class ReleaseStepTest(unittest.TestCase):
+    """The release step is the one that fails silently, so it gets its own.
+
+    On a CRLF worktree its count was 0, which skipped the `if` guarding both
+    the rewrite AND the post-rewrite re-grep that exists to catch a rewrite
+    that did nothing. It reported "nothing to do", exit 0, and the tag shipped
+    `# Since unreleased` — which rule 2 never freezes, so nothing corrects it
+    later either.
+    """
+
+    def resolve(self, crlf: bool):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            git_fixture(root, crlf=crlf)
+            proc = subprocess.run(
+                ["bash", str(sh_script("resolve-unreleased-versions.sh")), "v0.26.4"],
+                cwd=root,
+                env={
+                    "PATH": "/usr/bin:/bin:/usr/local/bin",
+                    "HOME": str(root),
+                    "ENVREF_REPO_ROOT": str(root),
+                },
+                capture_output=True,
+                text=True,
+            )
+            return proc, (root / ".env.reference").read_bytes()
+
+    def test_it_resolves_under_crlf_too(self):
+        lf_proc, lf_bytes = self.resolve(crlf=False)
+        crlf_proc, crlf_bytes = self.resolve(crlf=True)
+        self.assertEqual(lf_proc.returncode, 0, lf_proc.stderr)
+        self.assertEqual(crlf_proc.returncode, 0, crlf_proc.stderr)
+        self.assertIn("resolved", lf_proc.stdout)
+        self.assertIn(
+            "resolved",
+            crlf_proc.stdout,
+            f"the release step was a no-op on a CRLF worktree: {crlf_proc.stdout!r}",
+        )
+        self.assertNotIn(b"unreleased", crlf_bytes)
+        self.assertIn(b"v0.26.4", crlf_bytes)
+
+    def test_it_keeps_the_line_endings_it_found(self):
+        """The rewrite is not allowed to normalise the file it edits."""
+        _, crlf_bytes = self.resolve(crlf=True)
+        self.assertIn(b"# Since v0.26.4\r\n", crlf_bytes)
+        _, lf_bytes = self.resolve(crlf=False)
+        self.assertNotIn(b"\r", lf_bytes)

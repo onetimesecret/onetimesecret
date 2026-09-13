@@ -110,6 +110,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from .paths import RootNotFound, repo_root as find_repo_root, sh_script
+from .textio import read_text
 
 # --- Frozen policy. Not knobs; do not add flags. ---
 # See docs/development/config-version-annotations.md, "Policy".
@@ -758,7 +759,10 @@ def _generate(env_versions: str, root: str | None) -> int:
         if not target.is_file():
             log(f"FAIL: {target} not found")
             return 1
-        text = target.read_text(encoding="utf-8")
+        # read_text() normalises CRLF: YAML_KEY_RE and the marker recognizer
+        # both anchor to end-of-line, and a CRLF worktree cost 99 of 431 key
+        # records here before this was shared.
+        text = read_text(target)
         parsed[relpath] = parse_yaml_keys(relpath, text)
         leaf_counts[relpath] = loose_key_counts(text)
 
