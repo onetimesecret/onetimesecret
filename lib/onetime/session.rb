@@ -16,6 +16,7 @@ require_relative 'session/impersonation'
 require_relative 'session/active_session_gate'
 require_relative 'session/surface'
 require_relative 'session/recent_reauth'
+require_relative 'session/reauth_policy'
 require_relative 'operations/sessions/track_metadata'
 
 module Onetime
