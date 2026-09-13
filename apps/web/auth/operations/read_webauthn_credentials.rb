@@ -14,9 +14,9 @@ module Auth
     # The `account_webauthn_keys` table gained a nullable `surface_scope`
     # column (migration 009) holding a JSON-encoded
     # {Onetime::SessionSurface} descriptor. Rows registered before that
-    # ships carry NULL and read as :platform — the same refusal shape a
-    # nil scope has under ReauthPolicy's unknown-scope default, and the
-    # value that matches historical single-origin deployments.
+    # ships carry NULL and read as :platform — canonical-only legacy behavior.
+    # New subdomain and custom registrations retain their exact establishing
+    # surface so their request-host RP ID remains usable only there.
     #
     # This operation returns only the policy projection, optionally carrying
     # the registration RP ID used to authorize related-origin widening:
@@ -35,7 +35,8 @@ module Auth
       end
 
       # @param account_id [Integer, String]
-      # @return [Array<Hash>] each `{ scope: :platform, rp_id: String? }` or
+      # @return [Array<Hash>] each `{ scope: :platform, rp_id: String? }`,
+      #   `{ scope: :subdomain, host:, rp_id: String? }`, or
       #   `{ scope: :tenant, id: <domain_id>, rp_id: String? }`; empty when the account
       #   has no credentials or the read fails
       def call(account_id)
@@ -71,18 +72,18 @@ module Auth
 
         kind = (parsed['kind'] || parsed[:kind]).to_s
 
-        # Only a :custom descriptor with a non-blank id resolves to a
-        # tenant credential. :canonical and :subdomain are both
-        # platform-equivalent for the offer rule (a subdomain deployment
-        # shares the canonical rp_id treatment until a related-origins
-        # declaration widens it), and an unrecognized kind, or a :custom
-        # with no id, falls back to :platform — the same safe refusal
-        # shape legacy rows carry.
-        return credential_descriptor({ scope: :platform }, row) unless kind == 'custom'
-
-        id         = parsed['id'] || parsed[:id]
-        descriptor = id.to_s.empty? ? { scope: :platform } : { scope: :tenant, id: id.to_s }
-        credential_descriptor(descriptor, row)
+        case kind
+        when 'subdomain'
+          host       = parsed['host'] || parsed[:host]
+          descriptor = host.to_s.empty? ? { scope: :platform } : { scope: :subdomain, host: host.to_s.downcase }
+          credential_descriptor(descriptor, row)
+        when 'custom'
+          id         = parsed['id'] || parsed[:id]
+          descriptor = id.to_s.empty? ? { scope: :platform } : { scope: :tenant, id: id.to_s }
+          credential_descriptor(descriptor, row)
+        else
+          credential_descriptor({ scope: :platform }, row)
+        end
       rescue JSON::ParserError
         credential_descriptor({ scope: :platform }, row)
       end

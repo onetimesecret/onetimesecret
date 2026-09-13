@@ -77,6 +77,66 @@ RSpec.describe Auth::Operations::Reauthenticate do
     expect(session).not_to have_key(Onetime::RecentReauth::KEY)
   end
 
+  describe 'WebAuthn RP selection' do
+    let(:related_offer) do
+      offer.merge(
+        surface: { 'kind' => 'custom', 'id' => 'tenant-a' },
+        current_origin: 'https://tenant.example:8443',
+        related_origins: [
+          {
+            'origin' => 'https://example.com',
+            'surface' => { 'kind' => 'canonical' },
+          },
+          {
+            'origin' => 'https://tenant.example:8443',
+            'surface' => { 'kind' => 'custom', 'id' => 'tenant-a' },
+          },
+        ],
+      )
+    end
+
+    it 'selects a related-origin credential only under its registration RP ID' do
+      row = { surface_scope: JSON.generate(kind: 'canonical'), rp_id: 'example.com' }
+
+      expect(operation.send(:credential_eligible?, row, related_offer)).to be true
+      expect(operation.send(:effective_rp_id, row)).to eq('example.com')
+    end
+
+    it 'passes the registration RP ID into challenge generation' do
+      rows = [{ webauthn_id: 'credential-id', rp_id: 'example.com' }]
+      options = double('WebAuthnOptions', challenge: 'challenge', as_json: { 'challenge' => 'challenge' })
+      allow(rodauth).to receive_messages(
+        webauthn_auth_timeout: 60_000,
+        webauthn_user_verification: 'preferred',
+      )
+      expect(WebAuthn::Credential).to receive(:options_for_get).with(
+        allow: ['credential-id'],
+        timeout: 60_000,
+        user_verification: 'preferred',
+        rp_id: 'example.com',
+      ).and_return(options)
+      allow(Onetime::SessionSidecar).to receive(:write).and_return(120)
+      allow(rodauth).to receive(:compute_hmac).with('challenge').and_return('hmac')
+
+      result = operation.send(
+        :webauthn_challenge,
+        rows,
+        account_id: 42,
+        surface: related_offer[:surface],
+        primary: true,
+      )
+
+      expect(result.status).to eq(200)
+    end
+
+    it 'rejects the same credential on a scheme or port mismatch' do
+      row = { surface_scope: JSON.generate(kind: 'canonical'), rp_id: 'example.com' }
+      mismatched = related_offer.merge(current_origin: 'https://tenant.example')
+
+      expect(operation.send(:credential_eligible?, row, mismatched)).to be false
+    end
+  end
+
   describe 'WebAuthn challenge binding' do
     let(:pending) do
       {

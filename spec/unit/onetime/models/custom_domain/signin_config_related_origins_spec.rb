@@ -97,7 +97,7 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
     end
   end
 
-  describe '#related_origin_surfaces' do
+  describe '#related_origin_members' do
     before do
       allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?).and_return(false)
       allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?).with('example.com').and_return(true)
@@ -108,38 +108,84 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
 
     it 'resolves a canonical-host origin to the canonical surface descriptor' do
       config.related_origins = ['https://example.com']
-      expect(config.related_origin_surfaces).to eq([Onetime::SessionSurface::CANONICAL])
+      expect(config.related_origin_members).to eq(
+        [{ 'origin' => 'https://example.com', 'surface' => Onetime::SessionSurface::CANONICAL }],
+      )
     end
 
-    it 'resolves a known tenant-host origin to its custom-domain descriptor' do
+    it 'resolves a known tenant-host origin without discarding the exact origin' do
       config.related_origins = ['https://vault.acme.com']
-      expect(config.related_origin_surfaces).to eq([{ 'kind' => 'custom', 'id' => 'vault-domain-id' }])
+      expect(config.related_origin_members).to eq(
+        [
+          {
+            'origin' => 'https://vault.acme.com',
+            'surface' => { 'kind' => 'custom', 'id' => 'vault-domain-id' },
+          },
+        ],
+      )
+    end
+
+    it 'resolves a platform subdomain without collapsing it to canonical' do
+      classification = Onetime::Middleware::DomainStrategy::Chooserator::Classification.new(
+        strategy: :subdomain,
+        custom_domain: nil,
+      )
+      allow(Onetime::Middleware::DomainStrategy::Chooserator).to receive(:classify)
+        .with('eu.example.com', anything, anchor_domains: anything)
+        .and_return(classification)
+      config.related_origins = ['https://eu.example.com']
+
+      expect(config.related_origin_members).to eq(
+        [
+          {
+            'origin' => 'https://eu.example.com',
+            'surface' => { 'kind' => 'subdomain', 'host' => 'eu.example.com' },
+          },
+        ],
+      )
+    end
+
+    it 'reuses the current custom-domain record instead of loading it again' do
+      current_domain = instance_double(
+        Onetime::CustomDomain,
+        display_domain: 'vault.acme.com',
+        identifier: 'vault-domain-id',
+      )
+      expect(Onetime::CustomDomain).not_to receive(:from_display_domain)
+      config.related_origins = ['https://vault.acme.com:8443']
+
+      expect(config.related_origin_members(current_domain: current_domain)).to eq(
+        [
+          {
+            'origin' => 'https://vault.acme.com:8443',
+            'surface' => { 'kind' => 'custom', 'id' => 'vault-domain-id' },
+          },
+        ],
+      )
     end
 
     it 'silently drops an origin whose host we do not serve' do
       config.related_origins = ['https://unknown.example']
-      expect(config.related_origin_surfaces).to eq([])
+      expect(config.related_origin_members).to eq([])
     end
 
     it 'returns a frozen array so callers cannot mutate the resolved set' do
       config.related_origins = ['https://example.com']
-      expect(config.related_origin_surfaces).to be_frozen
+      expect(config.related_origin_members).to be_frozen
     end
 
-    it 'deduplicates surfaces when multiple origins resolve to the same custom-domain host' do
-      allow(Onetime::CustomDomain).to receive(:from_display_domain).with('vault.acme.com')
-        .and_return(instance_double(Onetime::CustomDomain, identifier: 'vault-domain-id'))
-      # Different origin ports resolve to the same tenant surface descriptor
-      # (surface identity is the CustomDomain id, not the origin's port), so
-      # the resolved set is deduplicated.
+    it 'keeps scheme and non-default port distinct for the same surface' do
       config.related_origins = ['https://vault.acme.com', 'https://vault.acme.com:8443']
-      expect(config.related_origin_surfaces).to eq([{ 'kind' => 'custom', 'id' => 'vault-domain-id' }])
+
+      expect(config.related_origin_members.map { |member| member['origin'] }).to eq(
+        ['https://vault.acme.com', 'https://vault.acme.com:8443'],
+      )
     end
 
     it 'fails closed to [] when the CustomDomain lookup raises' do
       allow(Onetime::CustomDomain).to receive(:from_display_domain).and_raise(StandardError, 'boom')
       config.related_origins = ['https://vault.acme.com']
-      expect(config.related_origin_surfaces).to eq([])
+      expect(config.related_origin_members).to eq([])
     end
   end
 

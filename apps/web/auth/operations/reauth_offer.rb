@@ -6,6 +6,7 @@ require 'onetime/session/reauth_policy'
 require 'onetime/session/surface'
 
 require_relative 'read_webauthn_credentials'
+require_relative '../lib/public_host'
 require_relative '../signin_enabled'
 
 module Auth
@@ -29,8 +30,9 @@ module Auth
     #       methods:               ['webauthn', 'password'] (ordered subset),
     #       webauthn_credentials:  the ReadWebauthnCredentials projection
     #                              (safe to render — no verification material),
-    #       related_origins:       the resolved related-origin surface descriptors
-    #                              (empty on canonical or on a tenant with no declared set)
+    #       related_origins:       exact origin + resolved surface members
+    #                              (empty on canonical or without an active declaration)
+    #       current_origin:        exact browser origin used by the ceremony
     #     }
     #
     # ## What the caller must NOT do
@@ -65,6 +67,7 @@ module Auth
         surface     = Onetime::SessionSurface.for_env(env)
         credentials = safe_read_credentials(account_id)
         related     = safe_related_origins(env)
+        origin      = safe_current_origin(env)
         # A nil account_id has no owner to re-authenticate, so no method
         # may be offered — not even password, which would otherwise fire
         # from the install-level capability alone. The offer's callers
@@ -78,6 +81,7 @@ module Auth
           password_enabled: password,
           webauthn_credentials: credentials,
           related_origins: related,
+          current_origin: origin,
         )
 
         {
@@ -85,6 +89,7 @@ module Auth
           methods: methods,
           webauthn_credentials: credentials.freeze,
           related_origins: related,
+          current_origin: origin,
         }.freeze
       end
 
@@ -132,7 +137,8 @@ module Auth
         false
       end
 
-      # Resolve the tenant's declared related-origins surface descriptors,
+      # Resolve the tenant's declared related-origin members without dropping
+      # scheme or port,
       # or []. Only :custom surfaces can have a per-domain declaration;
       # canonical requests skip the lookup.
       def safe_related_origins(env)
@@ -142,12 +148,19 @@ module Auth
         return [] if domain_id.to_s.empty?
 
         config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)
-        return [] unless config
+        return [] unless config&.enabled?
 
-        config.related_origin_surfaces
+        config.related_origin_members(current_domain: env['onetime.custom_domain'])
       rescue StandardError => ex
         log_failure('related_origins', ex, domain_id: env['onetime.custom_domain_id'])
         []
+      end
+
+      def safe_current_origin(env)
+        Auth::PublicHost.webauthn_base_url(env) || Rack::Request.new(env).base_url
+      rescue StandardError => ex
+        log_failure('current_origin', ex)
+        nil
       end
 
       def log_failure(step, exception, **context)

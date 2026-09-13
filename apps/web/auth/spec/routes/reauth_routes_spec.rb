@@ -148,20 +148,20 @@ RSpec.describe 'Reauthentication routes (Auth::Routes::Reauth)' do
       )
     end
 
-    it 'serializes related_origins as an array of surface descriptors' do
+    it 'serializes related_origins as exact browser origins' do
       stub_offer(
         surface: { kind: :custom, id: 'tenant-a' },
         methods: %w[webauthn password],
         webauthn_credentials: [{ scope: :platform }],
-        related_origins: [{ kind: :canonical }, { kind: :custom, id: 'tenant-a' }],
+        related_origins: [
+          { origin: 'https://example.com', surface: { kind: :canonical } },
+          { origin: 'https://tenant.example:8443', surface: { kind: :custom, id: 'tenant-a' } },
+        ],
       )
       get '/reauth-offer'
 
       expect(json_body['related_origins']).to eq(
-        [
-          { 'kind' => 'canonical' },
-          { 'kind' => 'custom', 'id' => 'tenant-a' },
-        ],
+        ['https://example.com', 'https://tenant.example:8443'],
       )
     end
   end

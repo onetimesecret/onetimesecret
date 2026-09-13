@@ -71,7 +71,7 @@ module Auth
               'surface' => Auth::Routes::Reauth.serialize_surface(offer[:surface]),
               'methods' => offer[:methods],
               'webauthn_credentials' => Auth::Routes::Reauth.serialize_credentials(offer[:webauthn_credentials]),
-              'related_origins' => offer[:related_origins].map { |s| Auth::Routes::Reauth.serialize_surface(s) },
+              'related_origins' => offer[:related_origins].filter_map { |member| member[:origin] || member['origin'] },
             }
           rescue StandardError => ex
             reauth_failure(ex, account_id, 'offer')

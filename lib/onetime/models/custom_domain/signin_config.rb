@@ -338,21 +338,17 @@ module Onetime
         self.related_origins_json = normalized.empty? ? nil : JSON.generate(normalized)
       end
 
-      # Surface descriptors for the declared related origins (#4414). The
-      # shape {Onetime::ReauthPolicy.eligible_methods} expects for its
-      # `related_origins:` keyword — one descriptor per declared origin
-      # that resolves to a known surface, silently dropping origins that
-      # do not. Deliberately tolerant: an operator can list an origin the
-      # database has never heard of (a fresh tenant not yet added, a
-      # canonical host from a peer install) without breaking the policy;
-      # the offer just does not extend to it.
+      # Exact origins and their resolved surfaces for the configured WebAuthn
+      # related-origin set. Scheme and non-default port remain part of each
+      # member so policy cannot authorize a different browser origin merely
+      # because it has the same host.
       #
-      # Canonical-set membership is checked FIRST, then a verified
-      # CustomDomain lookup. Everything else drops.
-      #
-      # @return [Array<Hash>] frozen surface descriptor hashes
-      def related_origin_surfaces
-        related_origins.filter_map { |origin| surface_for_origin(origin) }.uniq.freeze
+      # @return [Array<Hash>] frozen `{ 'origin' => String, 'surface' => Hash }` entries
+      def related_origin_members(current_domain: nil)
+        related_origins.filter_map do |origin|
+          surface = surface_for_origin(origin, current_domain: current_domain)
+          { 'origin' => origin, 'surface' => surface }.freeze if surface
+        end.uniq.freeze
       end
 
       private
@@ -384,7 +380,7 @@ module Onetime
 
       # Resolve one origin URL to a {Onetime::SessionSurface}-shaped
       # descriptor, or nil when the origin names a host we do not serve.
-      def surface_for_origin(origin)
+      def surface_for_origin(origin, current_domain: nil)
         candidate = normalize_related_origin(origin)
         return nil if candidate.nil?
 
@@ -393,10 +389,21 @@ module Onetime
 
         return Onetime::SessionSurface::CANONICAL if canonical_host?(host)
 
+        if current_domain && current_domain.display_domain.to_s.downcase == host
+          return { 'kind' => 'custom', 'id' => current_domain.identifier.to_s }.freeze
+        end
+
         record = Onetime::CustomDomain.from_display_domain(host)
         return { 'kind' => 'custom', 'id' => record.identifier.to_s }.freeze if record&.identifier
 
-        nil
+        classification = Onetime::Middleware::DomainStrategy::Chooserator.classify(
+          host,
+          Onetime::Middleware::DomainStrategy.canonical_domains_parsed,
+          anchor_domains: Onetime::Middleware::DomainStrategy.anchor_domains_parsed,
+        )
+        if classification.strategy == :subdomain
+          { 'kind' => 'subdomain', 'host' => host }.freeze
+        end
       rescue StandardError
         nil
       end

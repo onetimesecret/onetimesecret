@@ -23,6 +23,7 @@ RSpec.describe Auth::Operations::ReauthOffer do
     allow(Auth::SigninEnabled).to receive(:enabled_for_request?).and_return(true)
     allow(operation).to receive(:password_challengeable?).and_return(true)
     allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id).and_return(nil)
+    allow(Auth::PublicHost).to receive(:webauthn_base_url).and_return('https://example.com')
   end
 
   def env_for(strategy:, display_domain: nil, custom_domain_id: nil)
@@ -75,7 +76,9 @@ RSpec.describe Auth::Operations::ReauthOffer do
 
     context 'on a custom surface with a matching tenant credential' do
       it 'offers webauthn (rule 2 of the policy fires)' do
-        allow(reader).to receive(:call).with(42).and_return([{ scope: :tenant, id: 'tenant-a' }])
+        allow(reader).to receive(:call).with(42)
+          .and_return([{ scope: :tenant, id: 'tenant-a', rp_id: 'tenant.example' }])
+        allow(Auth::PublicHost).to receive(:webauthn_base_url).and_return('https://tenant.example')
         env = env_for(strategy: :custom, custom_domain_id: 'tenant-a')
 
         result = operation.call(account_id: 42, env: env)
@@ -88,25 +91,45 @@ RSpec.describe Auth::Operations::ReauthOffer do
       it 'pulls the surface descriptors from the tenant SigninConfig and offers a platform credential' do
         signin_config = instance_double(
           Onetime::CustomDomain::SigninConfig,
-          related_origin_surfaces: [
-            Onetime::SessionSurface::CANONICAL,
-            { 'kind' => 'custom', 'id' => 'tenant-a' },
+          enabled?: true,
+          related_origin_members: [
+            {
+              'origin' => 'https://example.com',
+              'surface' => Onetime::SessionSurface::CANONICAL,
+            },
+            {
+              'origin' => 'https://tenant.example',
+              'surface' => { 'kind' => 'custom', 'id' => 'tenant-a' },
+            },
           ].freeze,
         )
         allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
           .with('tenant-a').and_return(signin_config)
         allow(reader).to receive(:call).with(42).and_return([{ scope: :platform, rp_id: 'example.com' }])
-        env           = env_for(strategy: :custom, custom_domain_id: 'tenant-a')
+        allow(Auth::PublicHost).to receive(:webauthn_base_url).and_return('https://tenant.example')
+        env = env_for(strategy: :custom, custom_domain_id: 'tenant-a')
 
         result = operation.call(account_id: 42, env: env)
 
         expect(result[:methods]).to include('webauthn')
-        expect(result[:related_origins]).to eq(
-          [
-            Onetime::SessionSurface::CANONICAL,
-            { 'kind' => 'custom', 'id' => 'tenant-a' },
-          ],
+        expect(result[:related_origins].map { |member| member['origin'] }).to eq(
+          ['https://example.com', 'https://tenant.example'],
         )
+      end
+
+      it 'does not widen from a disabled tenant sign-in configuration' do
+        signin_config = instance_double(
+          Onetime::CustomDomain::SigninConfig,
+          enabled?: false,
+        )
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+          .with('tenant-a').and_return(signin_config)
+        allow(reader).to receive(:call).with(42).and_return([{ scope: :platform, rp_id: 'example.com' }])
+        allow(Auth::PublicHost).to receive(:webauthn_base_url).and_return('https://tenant.example')
+
+        result = operation.call(account_id: 42, env: env_for(strategy: :custom, custom_domain_id: 'tenant-a'))
+
+        expect(result[:methods]).not_to include('webauthn')
       end
 
       it 'silently skips the tenant lookup when custom_domain_id is missing' do

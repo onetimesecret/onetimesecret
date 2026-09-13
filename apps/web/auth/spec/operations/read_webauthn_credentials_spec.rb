@@ -86,8 +86,8 @@ RSpec.describe Auth::Operations::ReadWebauthnCredentials do
         }
       end
 
-      it 'reads as { scope: :platform } (subdomain shares canonical treatment today)' do
-        expect(op.call(42)).to eq([{ scope: :platform }])
+      it 'preserves the exact subdomain registration surface' do
+        expect(op.call(42)).to eq([{ scope: :subdomain, host: 'eu.example.com' }])
       end
     end
 

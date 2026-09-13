@@ -20,8 +20,10 @@ RSpec.describe Onetime::ReauthPolicy do
   let(:tenant_b)  { { kind: :custom, id: 'tenant-b' } }
 
   let(:platform_credential) { { scope: :platform } }
-  let(:tenant_a_credential) { { scope: :tenant, id: 'tenant-a' } }
-  let(:tenant_b_credential) { { scope: :tenant, id: 'tenant-b' } }
+  let(:tenant_a_credential) { { scope: :tenant, id: 'tenant-a', rp_id: 'tenant-a.example' } }
+  let(:tenant_b_credential) { { scope: :tenant, id: 'tenant-b', rp_id: 'tenant-b.example' } }
+  let(:canonical_member) { { origin: 'https://example.com', surface: canonical } }
+  let(:tenant_a_member) { { origin: 'https://tenant-a.example', surface: tenant_a } }
 
   describe '.eligible_methods' do
     context 'password fallback' do
@@ -110,12 +112,45 @@ RSpec.describe Onetime::ReauthPolicy do
       end
     end
 
+    context 'exact registration RP matching' do
+      it 'offers a credential registered on a canonical subdomain on that subdomain' do
+        result = described_class.eligible_methods(
+          subdomain,
+          password_enabled: false,
+          webauthn_credentials: [{ scope: :subdomain, host: 'eu.example.com', rp_id: 'eu.example.com' }],
+          current_origin: 'https://eu.example.com',
+        )
+        expect(result).to eq(%w[webauthn])
+      end
+
+      it 'does not reclassify a subdomain credential as platform-wide' do
+        result = described_class.eligible_methods(
+          canonical,
+          password_enabled: false,
+          webauthn_credentials: [{ scope: :subdomain, host: 'eu.example.com', rp_id: 'eu.example.com' }],
+          current_origin: 'https://example.com',
+        )
+        expect(result).to eq([])
+      end
+
+      it 'refuses a scoped credential when its stored RP ID differs from the current host' do
+        result = described_class.eligible_methods(
+          tenant_a,
+          password_enabled: false,
+          webauthn_credentials: [tenant_a_credential.merge(rp_id: 'old.example')],
+          current_origin: 'https://tenant-a.example',
+        )
+        expect(result).to eq([])
+      end
+    end
+
     context 'tenant-registered credential on its own tenant host' do
       it 'offers WebAuthn on the :custom surface a tenant credential is scoped to' do
         result = described_class.eligible_methods(
           tenant_a,
           password_enabled: false,
           webauthn_credentials: [tenant_a_credential],
+          current_origin: 'https://tenant-a.example',
         )
         expect(result).to eq(%w[webauthn])
       end
@@ -139,11 +174,12 @@ RSpec.describe Onetime::ReauthPolicy do
       end
 
       it 'accepts a stringified scope on a tenant credential (Hash serialization tolerance)' do
-        credential = { 'scope' => :tenant, 'id' => 'tenant-a' }
+        credential = { 'scope' => :tenant, 'id' => 'tenant-a', 'rp_id' => 'tenant-a.example' }
         result     = described_class.eligible_methods(
           tenant_a,
           password_enabled: false,
           webauthn_credentials: [credential],
+          current_origin: 'https://tenant-a.example',
         )
         expect(result).to eq(%w[webauthn])
       end
@@ -181,6 +217,7 @@ RSpec.describe Onetime::ReauthPolicy do
           tenant_a,
           password_enabled: false,
           webauthn_credentials: [platform_credential, tenant_a_credential],
+          current_origin: 'https://tenant-a.example',
         )
         expect(result).to eq(%w[webauthn])
       end
@@ -192,7 +229,8 @@ RSpec.describe Onetime::ReauthPolicy do
           tenant_a,
           password_enabled: false,
           webauthn_credentials: [platform_credential.merge(rp_id: 'example.com')],
-          related_origins: [canonical, tenant_a],
+          related_origins: [canonical_member, tenant_a_member],
+          current_origin: 'https://tenant-a.example',
         )
         expect(result).to eq(%w[webauthn])
       end
@@ -201,8 +239,9 @@ RSpec.describe Onetime::ReauthPolicy do
         result = described_class.eligible_methods(
           canonical,
           password_enabled: false,
-          webauthn_credentials: [tenant_a_credential.merge(rp_id: 'tenant.example.com')],
-          related_origins: [canonical, tenant_a],
+          webauthn_credentials: [tenant_a_credential],
+          related_origins: [canonical_member, tenant_a_member],
+          current_origin: 'https://example.com',
         )
         expect(result).to eq(%w[webauthn])
       end
@@ -212,7 +251,8 @@ RSpec.describe Onetime::ReauthPolicy do
           tenant_a,
           password_enabled: false,
           webauthn_credentials: [platform_credential],
-          related_origins: [canonical, tenant_a],
+          related_origins: [canonical_member, tenant_a_member],
+          current_origin: 'https://tenant-a.example',
         )
         expect(result).to eq([])
       end
@@ -221,8 +261,9 @@ RSpec.describe Onetime::ReauthPolicy do
         result = described_class.eligible_methods(
           tenant_b,
           password_enabled: false,
-          webauthn_credentials: [platform_credential],
-          related_origins: [canonical, tenant_a],
+          webauthn_credentials: [platform_credential.merge(rp_id: 'example.com')],
+          related_origins: [canonical_member, tenant_a_member],
+          current_origin: 'https://tenant-b.example',
         )
         expect(result).to eq([])
       end
@@ -232,7 +273,30 @@ RSpec.describe Onetime::ReauthPolicy do
           tenant_a,
           password_enabled: false,
           webauthn_credentials: [tenant_b_credential],
-          related_origins: [canonical, tenant_a],
+          related_origins: [canonical_member, tenant_a_member],
+          current_origin: 'https://tenant-a.example',
+        )
+        expect(result).to eq([])
+      end
+
+      it 'refuses a credential whose stored RP ID does not identify its registration member' do
+        result = described_class.eligible_methods(
+          tenant_a,
+          password_enabled: false,
+          webauthn_credentials: [platform_credential.merge(rp_id: 'wrong.example')],
+          related_origins: [canonical_member, tenant_a_member],
+          current_origin: 'https://tenant-a.example',
+        )
+        expect(result).to eq([])
+      end
+
+      it 'does not discard scheme or port when matching the current origin' do
+        result = described_class.eligible_methods(
+          tenant_a,
+          password_enabled: false,
+          webauthn_credentials: [platform_credential.merge(rp_id: 'example.com')],
+          related_origins: [canonical_member, tenant_a_member.merge(origin: 'https://tenant-a.example:8443')],
+          current_origin: 'https://tenant-a.example',
         )
         expect(result).to eq([])
       end
@@ -319,8 +383,15 @@ RSpec.describe Onetime::ReauthPolicy do
       expect(described_class.webauthn_offerable?(tenant_a, [platform_credential], [])).to be false
     end
 
-    it 'is true on the matching tenant for a tenant credential' do
-      expect(described_class.webauthn_offerable?(tenant_a, [tenant_a_credential], [])).to be true
+    it 'is true on the matching tenant for a tenant credential with the current RP' do
+      expect(
+        described_class.webauthn_offerable?(
+          tenant_a,
+          [tenant_a_credential],
+          [],
+          current_origin: 'https://tenant-a.example',
+        ),
+      ).to be true
     end
 
     it 'is false when the credential array is empty' do

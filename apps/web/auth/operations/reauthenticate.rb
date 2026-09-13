@@ -215,22 +215,23 @@ module Auth
 
       def credential_eligible?(row, offer)
         descriptor = credential_descriptor(row[:surface_scope])
-        surface    = offer[:surface]
-        return true if Onetime::ReauthPolicy.credential_matches_surface?(descriptor, surface)
+        descriptor = descriptor.merge(rp_id: row[:rp_id]) unless row[:rp_id].to_s.empty?
 
-        related = Array(offer[:related_origins])
-        return false unless related.include?(surface)
-        return false if row[:rp_id].to_s.empty?
-
-        related.any? do |candidate|
-          candidate != surface && Onetime::ReauthPolicy.credential_matches_surface?(descriptor, candidate)
-        end
+        Onetime::ReauthPolicy.webauthn_offerable?(
+          offer[:surface],
+          [descriptor],
+          offer[:related_origins],
+          current_origin: offer[:current_origin],
+        )
       end
 
       def credential_descriptor(raw_scope)
         parsed = raw_scope.to_s.empty? ? {} : JSON.parse(raw_scope)
-        if parsed['kind'].to_s == 'custom' && !parsed['id'].to_s.empty?
-          { scope: :tenant, id: parsed['id'].to_s }
+        case parsed['kind'].to_s
+        when 'custom'
+          parsed['id'].to_s.empty? ? { scope: :platform } : { scope: :tenant, id: parsed['id'].to_s }
+        when 'subdomain'
+          parsed['host'].to_s.empty? ? { scope: :platform } : { scope: :subdomain, host: parsed['host'].to_s.downcase }
         else
           { scope: :platform }
         end
