@@ -122,6 +122,11 @@ module Auth
       # Runs after AccountManagement enables :reset_password above, so the
       # overridden methods exist.
       Overrides::ResetPasswordEnumeration.configure(self)
+      # Surface-bound sessions (#4409): stamp the establishing surface in
+      # update_session, the seam shared by `login` and every autologin
+      # (create/verify/reset, remember). Prepended, so it chains with the
+      # active-sessions update_session override regardless of order.
+      Overrides::SurfaceBinding.configure(self)
       RodauthOverrides.configure(self)
 
       # Lockout: brute force protection
