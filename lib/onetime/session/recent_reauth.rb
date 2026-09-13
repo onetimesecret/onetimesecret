@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/session/surface'
+require_relative 'surface'
 
 module Onetime
   # Recent full re-authentication proof (#4410, epic #4408).
