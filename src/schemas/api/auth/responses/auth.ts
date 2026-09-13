@@ -111,6 +111,55 @@ const authErrorSchema = z.object({
 /** Standard auth response for endpoints that don't return MFA data */
 const authResponseSchema = z.union([authSuccessSchema, authErrorSchema]);
 
+// Re-authentication
+export const reauthSurfaceSchema = z.object({
+  kind: z.string(),
+  id: z.string().optional(),
+});
+export type ReauthSurface = z.infer<typeof reauthSurfaceSchema>;
+
+export const reauthWebauthnCredentialSchema = z.object({
+  scope: z.string(),
+  id: z.string().optional(),
+});
+
+export const reauthOfferResponseSchema = z.object({
+  surface: reauthSurfaceSchema.nullable(),
+  methods: z.array(z.enum(['password', 'webauthn'])),
+  webauthn_credentials: z.array(reauthWebauthnCredentialSchema),
+  related_origins: z.array(reauthSurfaceSchema),
+});
+export type ReauthOfferResponse = z.infer<typeof reauthOfferResponseSchema>;
+
+const reauthSuccessSchema = z.object({
+  success: z.literal('Re-authentication complete'),
+});
+
+const reauthMfaRequiredSchema = z.object({
+  mfa_required: z.literal(true),
+  mfa_methods: z.array(z.string()),
+});
+
+export const reauthWebauthnChallengeSchema = z.object({
+  webauthn_auth: z.object({ challenge: z.string() }).catchall(z.unknown()),
+  webauthn_auth_challenge: z.string(),
+  webauthn_auth_challenge_hmac: z.string(),
+});
+export type ReauthWebauthnChallenge = z.infer<typeof reauthWebauthnChallengeSchema>;
+
+export const reauthErrorSchema = z.object({
+  error: z.string(),
+  error_code: z.string().optional(),
+});
+
+export const reauthResponseSchema = z.union([
+  reauthSuccessSchema,
+  reauthMfaRequiredSchema,
+  reauthWebauthnChallengeSchema,
+  reauthErrorSchema,
+]);
+export type ReauthResponse = z.infer<typeof reauthResponseSchema>;
+
 /**
  * Login response schema - supports MFA and billing redirect flows.
  *
