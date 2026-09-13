@@ -15,42 +15,31 @@ require 'spec_helper'
 require_relative '../../operations/read_webauthn_credentials'
 
 RSpec.describe Auth::Operations::ReadWebauthnCredentials do
-  # Minimal in-memory Sequel dataset stub. The operation calls
-  # `.where(account_id: …).select(:surface_scope).all`, so this
-  # simulates only that chain.
-  class FakeDataset
-    def initialize(rows_by_account = {})
-      @rows_by_account = rows_by_account
-      @filtered        = nil
+  # Minimal Sequel-dataset stand-in built inline so no test constants
+  # leak into the global namespace. The operation calls
+  # `.where(account_id: …).select(:surface_scope).all`, so we simulate
+  # exactly that chain.
+  def build_fake_db(rows_by_account)
+    dataset_class = Class.new do
+      define_method(:where) do |account_id:|
+        @filtered = rows_by_account.fetch(account_id, [])
+        self
+      end
+      define_method(:select) { |_col| self }
+      define_method(:all) { @filtered || [] }
     end
 
-    def where(account_id:)
-      @filtered = @rows_by_account.fetch(account_id, [])
-      self
-    end
+    Class.new do
+      define_method(:initialize) { @ds = dataset_class.new }
+      define_method(:[]) do |table|
+        raise "unexpected table #{table}" unless table == :account_webauthn_keys
 
-    def select(_col)
-      self
-    end
-
-    def all
-      @filtered || []
-    end
+        @ds
+      end
+    end.new
   end
 
-  class FakeDb
-    def initialize(rows_by_account = {})
-      @ds = FakeDataset.new(rows_by_account)
-    end
-
-    def [](table)
-      raise "unexpected table #{table}" unless table == :account_webauthn_keys
-
-      @ds
-    end
-  end
-
-  let(:db) { FakeDb.new(rows_by_account) }
+  let(:db) { build_fake_db(rows_by_account) }
   let(:op) { described_class.new(db) }
 
   describe '#call' do
@@ -159,12 +148,14 @@ RSpec.describe Auth::Operations::ReadWebauthnCredentials do
       end
 
       it 'projects each row into its policy-shaped descriptor, preserving order' do
-        expect(op.call(42)).to eq([
-          { scope: :platform },
-          { scope: :platform },
-          { scope: :tenant, id: 'tenant-a' },
-          { scope: :tenant, id: 'tenant-b' },
-        ])
+        expect(op.call(42)).to eq(
+          [
+            { scope: :platform },
+            { scope: :platform },
+            { scope: :tenant, id: 'tenant-a' },
+            { scope: :tenant, id: 'tenant-b' },
+          ],
+        )
       end
     end
 
@@ -176,13 +167,16 @@ RSpec.describe Auth::Operations::ReadWebauthnCredentials do
       end
 
       it 'coerces a string account_id to Integer for the WHERE clause' do
-        db_with_int_key = FakeDb.new(42 => [{ surface_scope: nil }])
+        db_with_int_key = build_fake_db(42 => [{ surface_scope: nil }])
         expect(described_class.new(db_with_int_key).call('42')).to eq([{ scope: :platform }])
       end
 
       it 'fails closed to [] on any StandardError during the read' do
-        broken_db = Object.new
-        def broken_db.[](_table); raise 'boom'; end
+        broken_db = Class.new do
+          def [](_table)
+            raise 'boom'
+          end
+        end.new
 
         expect(described_class.new(broken_db).call(42)).to eq([])
       end
