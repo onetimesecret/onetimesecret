@@ -162,10 +162,16 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
 
   # Otto's session auth strategy reads env['rack.session']; injecting the hash
   # is the established pattern here (spec/integration/full/admin_interface_spec.rb).
-  def signed_in_as(user)
+  #
+  # #4409: hand-seeded sessions need the surface marker the login hooks record,
+  # and it must match the surface the request resolves to. Every host in this
+  # file classifies :canonical (domains are off, or the host is the anchor)
+  # except the verified-tenant control below, which passes its own descriptor.
+  def signed_in_as(user, surface: Onetime::SessionSurface::CANONICAL)
     env 'rack.session', {
       'external_id' => user.extid,
       'authenticated' => true,
+      Onetime::SessionSurface::KEY => surface,
       'session_id' => SecureRandom.hex(16),
     }
   end
@@ -423,7 +429,7 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
         site_host: 'example.com',
         domains_enabled: true,
       )
-      create_verified_custom_domain(colonel, tenant_host)
+      @tenant_domain = create_verified_custom_domain(colonel, tenant_host)
     end
 
     it '404s the shell on the tenant domain for a colonel' do
@@ -465,7 +471,9 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
         site_host: 'example.com',
         domains_enabled: true,
       )
-      signed_in_as(colonel)
+      # A session established ON the tenant surface (#4409); a canonical
+      # session would be refused here for the surface, not by the gate.
+      signed_in_as(colonel, surface: { 'kind' => 'custom', 'id' => @tenant_domain.identifier })
       get_api(tenant_host)
 
       expect(last_response.status).to eq(200)

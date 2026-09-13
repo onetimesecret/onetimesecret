@@ -47,6 +47,8 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
     # Mock authentication for authenticated endpoints
     env 'rack.session', {
       'authenticated' => true,
+      # #4409: hand-seeded sessions need the surface marker the login hooks record.
+      Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
       'external_id' => customer.extid,
     }
   end
@@ -550,6 +552,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
 
         env 'rack.session', {
           'authenticated' => true,
+          Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
           'external_id' => member.extid,
         }
 
@@ -701,6 +704,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       # Switch session
       env 'rack.session', {
         'authenticated' => true,
+        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
         'external_id' => new_customer.extid,
       }
 
@@ -762,6 +766,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
 
       env 'rack.session', {
         'authenticated' => true,
+        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
         'external_id' => new_customer.extid,
       }
 
@@ -874,6 +879,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
 
       env 'rack.session', {
         'authenticated' => true,
+        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
         'external_id' => new_customer.extid,
       }
 
@@ -939,6 +945,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
 
       env 'rack.session', {
         'authenticated' => true,
+        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
         'external_id' => member.extid,
       }
 
