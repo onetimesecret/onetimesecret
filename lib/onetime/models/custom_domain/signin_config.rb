@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require 'json'
+require 'uri'
+
 require_relative '../features/boolean_encoding'
 
 #
@@ -204,6 +207,20 @@ module Onetime
       # UI to gate on (and seed from) the wrong switch.
       field :sso_enabled
 
+      # WebAuthn Related Origins Requests (WebAuthn L3) — the ORIGIN STRINGS
+      # this tenant publishes at /.well-known/webauthn as sharing its rp_id
+      # (#4414). Stored as a JSON array of absolute origin URLs
+      # ("https://vault.acme.com"). Read through {related_origins} which
+      # decodes; write through {related_origins=} which validates each entry
+      # is a well-formed absolute http(s) origin with no path or query. This
+      # is the ONLY field on this model that widens WebAuthn acceptance
+      # across surfaces, and the empty default (nothing declared) is what
+      # {Onetime::ReauthPolicy} treats as "no related-origins deployment".
+      # The value must agree with what the deployment actually serves at
+      # /.well-known/webauthn — we do not fetch it, and we do not publish
+      # it either; that is an operator concern.
+      field :related_origins_json
+
       # Timestamps (Unix epoch integers)
       field :created
       field :updated
@@ -222,6 +239,10 @@ module Onetime
         'email_auth_enabled' => { type: :boolean, storage: :native },
         'sso_enabled' => { type: :boolean, storage: :native },
         'restrict_to' => { type: :enum, values: RESTRICT_TO_VALUES, nullable: true },
+        # Colonel-writable via the URL-validating setter below; storage is
+        # the {related_origins_json} sibling field, so the registry only
+        # needs to know the shape it hands in (an array of strings).
+        'related_origins' => { type: :string_array },
       }.freeze
 
       # Tolerant predicates + normalizing setters for the boolean fields in
@@ -276,6 +297,114 @@ module Onetime
         return nil unless domain
 
         Onetime::Organization.load(domain.org_id)
+      end
+
+      # Origins this tenant has declared as sharing its WebAuthn rp_id
+      # (#4414). Read tolerates any historical stored shape — nil, blank,
+      # or a JSON parse error — as "nothing declared", so a caller can
+      # rely on {Array<String>} back.
+      #
+      # @return [Array<String>] absolute origin URLs, never nil
+      def related_origins
+        return [] if related_origins_json.to_s.empty?
+
+        parsed = JSON.parse(related_origins_json)
+        parsed.is_a?(Array) ? parsed : []
+      rescue JSON::ParserError
+        []
+      end
+
+      # Set the declared related origins. Each entry must be an absolute
+      # `http(s)://host[:port]` origin — the same shape a browser
+      # compares to `webauthn_origin`. Duplicates are removed, blanks
+      # dropped, and each entry is normalized to lowercase scheme+host
+      # (the port is preserved verbatim). An empty result clears the
+      # field so {related_origins} reads as `[]`.
+      #
+      # @param origins [Array<String>] absolute origin URLs
+      # @return [void]
+      # @raise [Onetime::Problem] if any entry is not a well-formed origin
+      def related_origins=(origins)
+        normalized = Array(origins).filter_map do |raw|
+          candidate = raw.to_s.strip
+          next nil if candidate.empty?
+
+          normalized_value = normalize_related_origin(candidate)
+          raise Onetime::Problem, "Invalid origin: #{raw}" if normalized_value.nil?
+
+          normalized_value
+        end.uniq
+
+        self.related_origins_json = normalized.empty? ? nil : JSON.generate(normalized)
+      end
+
+      # Surface descriptors for the declared related origins (#4414). The
+      # shape {Onetime::ReauthPolicy.eligible_methods} expects for its
+      # `related_origins:` keyword — one descriptor per declared origin
+      # that resolves to a known surface, silently dropping origins that
+      # do not. Deliberately tolerant: an operator can list an origin the
+      # database has never heard of (a fresh tenant not yet added, a
+      # canonical host from a peer install) without breaking the policy;
+      # the offer just does not extend to it.
+      #
+      # Canonical-set membership is checked FIRST, then a verified
+      # CustomDomain lookup. Everything else drops.
+      #
+      # @return [Array<Hash>] frozen surface descriptor hashes
+      def related_origin_surfaces
+        related_origins.filter_map { |origin| surface_for_origin(origin) }.uniq.freeze
+      end
+
+      private
+
+      # Normalize one caller-supplied origin string. Returns the canonical
+      # form (lowercase scheme+host, port preserved) or nil when the
+      # string is not a well-formed absolute http(s) origin with no path
+      # or query. Whitespace is stripped; a trailing "/" is tolerated
+      # but not written back.
+      def normalize_related_origin(raw)
+        candidate = raw.to_s.strip
+        return nil if candidate.empty?
+
+        uri = URI.parse(candidate)
+        return nil unless uri.is_a?(URI::HTTP) || uri.is_a?(URI::HTTPS)
+        return nil if uri.host.to_s.empty?
+        return nil unless uri.path.to_s.empty? || uri.path == '/'
+        return nil unless uri.query.nil? && uri.fragment.nil? && uri.userinfo.nil?
+
+        scheme    = uri.scheme.downcase
+        host      = uri.host.downcase
+        default   = scheme == 'https' ? 443 : 80
+        authority = uri.port && uri.port != default ? "#{host}:#{uri.port}" : host
+
+        "#{scheme}://#{authority}"
+      rescue URI::InvalidURIError
+        nil
+      end
+
+      # Resolve one origin URL to a {Onetime::SessionSurface}-shaped
+      # descriptor, or nil when the origin names a host we do not serve.
+      def surface_for_origin(origin)
+        candidate = normalize_related_origin(origin)
+        return nil if candidate.nil?
+
+        uri  = URI.parse(candidate)
+        host = uri.host.to_s.downcase
+
+        return Onetime::SessionSurface::CANONICAL if canonical_host?(host)
+
+        record = Onetime::CustomDomain.from_display_domain(host)
+        return { kind: :custom, id: record.identifier.to_s }.freeze if record&.identifier
+
+        nil
+      rescue StandardError
+        nil
+      end
+
+      def canonical_host?(host)
+        Onetime::Middleware::DomainStrategy.canonical_host?(host)
+      rescue StandardError
+        false
       end
 
       class << self
