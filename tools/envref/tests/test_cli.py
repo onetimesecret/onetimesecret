@@ -9,6 +9,7 @@ is the point — a rename should be a deliberate edit here too.
 import contextlib
 import io
 import unittest
+from tempfile import TemporaryDirectory
 from unittest import mock
 
 from envref import annotate, docsgen, versionmap
@@ -91,6 +92,27 @@ class CommandSurfaceTest(unittest.TestCase):
                 with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
                     result = cli.main(argv)
                 self.assertEqual(result, 2, f"{why} reported as drift")
+
+    def test_docs_reports_a_bad_invocation_as_bad_input(self):
+        """die() is "cannot run", never "the page drifted".
+
+        Caught in review, one commit after the parse-error fix established the
+        same rule: docsgen exited 1 from die(), so a mistyped docs-repo path
+        and mutually exclusive flags both claimed the page had drifted. The
+        single `return 1` in that module is the only drift it has.
+        """
+        with TemporaryDirectory() as tmp:
+            cases = (
+                ([tmp], "docs repo path with no page in it"),
+                ([tmp, "--check", "--init"], "mutually exclusive flags"),
+            )
+            for extra, why in cases:
+                with self.subTest(case=why):
+                    buf = io.StringIO()
+                    with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+                        with self.assertRaises(SystemExit) as caught:
+                            cli.main(["docs", *extra])
+                    self.assertEqual(caught.exception.code, 2, f"{why} reported as drift")
 
     def test_help_still_succeeds(self):
         buf = io.StringIO()

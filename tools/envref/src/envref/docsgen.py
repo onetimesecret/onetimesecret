@@ -153,8 +153,18 @@ ACRONYMS = {
 
 
 def die(message):
+    """Report a reason this command cannot run, and exit 2.
+
+    2, not 1. This family documents 1 as "drift" and 2 as "bad input", and the
+    single `return 1` below is the only drift there is here: the committed page
+    differs from what .env.reference generates. Everything routed through die()
+    is the other thing — a mistyped docs-repo path, mutually exclusive flags, a
+    page whose sentinels are broken, a source file that cannot be parsed. None
+    of those means the page drifted, and exiting 1 told every caller reading the
+    code rather than the message that it had.
+    """
     print(f"FAIL: {message}", file=sys.stderr)
-    sys.exit(1)
+    sys.exit(2)
 
 
 # --- .env.reference parsing ---------------------------------------------

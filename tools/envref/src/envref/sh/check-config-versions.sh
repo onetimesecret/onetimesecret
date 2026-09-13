@@ -342,14 +342,32 @@ extract_sites() {  # <kind> <file>
 check_file() {
   local path="$1" kind="$2" decl_re
   local head="$tmp/head.sites" base="$tmp/base.sites"
+  local src="$tmp/head.file"
 
-  extract_sites "$kind" "$path" | sort -u > "$head"
+  # Every recognizer below anchors on [[:blank:]]*$, and CR is not blank, so a
+  # CRLF worktree makes every marker invisible to this script while
+  # annotate.py reads the same bytes correctly — its read_lines() splits the CR
+  # off before matching and puts it back on write. Nothing in .gitattributes
+  # forces LF on these files, so `core.autocrlf=true` produces exactly that
+  # state, and the guard then reports all 603 correct markers as malformed and
+  # every key as unmarked. Normalising once here is the symmetric fix: the
+  # trailing CR comes off, and everything downstream — recognizers, value
+  # comparisons, the base-ref join — sees what read_lines() sees.
+  #
+  # $'...' so a literal CR byte reaches sed. `s/\r$//` relies on GNU sed
+  # interpreting the escape; BSD sed does not, which would leave macOS with
+  # the bug this removes.
+  #
+  # $path stays the label in every message; $src is only ever read.
+  sed $'s/\r$//' "$path" > "$src"
+
+  extract_sites "$kind" "$src" | sort -u > "$head"
   sites_total=$(( sites_total + $(wc -l < "$head" | tr -d ' ') ))
   markers_total=$(( markers_total + $({ grep -cvE ' - [01]$' "$head" || true; }) ))
 
   # --- Rule 3: well-formedness. Needs no base ref, so it always runs.
   if [[ "$kind" == "yaml" ]]; then decl_re="$YAML_DECL_RE"; else decl_re="$ENV_DECL_RE"; fi
-  { grep -nE "$decl_re" "$path" || true; } \
+  { grep -nE "$decl_re" "$src" || true; } \
     | { grep -E "$MARKER_LOOSE_RE" || true; } \
     | { grep -vE "$MARKER_RE" || true; } \
     | sed -E "s#^([0-9]+):#${path}|\1|#" >> "$tmp/fail_malformed"
@@ -372,7 +390,7 @@ check_file() {
   # only the trailing one at release — publishing a line that makes two
   # contradictory version claims. Reusing MARKER_LOOSE_RE also keeps this from
   # becoming yet another hand-spelled copy of the recognizer.
-  { grep -nE "$decl_re" "$path" || true; } \
+  { grep -nE "$decl_re" "$src" || true; } \
     | awk -v file="$path" -v loose="$MARKER_LOOSE_RE" '{
         probe = $0
         if (gsub(loose, "&", probe) > 1) {
@@ -415,7 +433,7 @@ check_file() {
   # normal state. This is the env-shaped half of the same hole.
   if [[ "$kind" == "env" ]]; then
     { grep -vE ' - [01]$' "$head" || true; } | cut -d' ' -f1 | sort -u > "$tmp/env.marked"
-    { grep -nE '^[A-Z][A-Z0-9_]+=' "$path" || true; } \
+    { grep -nE '^[A-Z][A-Z0-9_]+=' "$src" || true; } \
       | { grep -vE "$MARKER_RE" || true; } \
       | sed -E 's#^([0-9]+):([A-Z][A-Z0-9_]*)=.*$#\2 \1#' | sort -u > "$tmp/env.activebare"
     cut -d' ' -f1 "$tmp/env.activebare" | sort -u > "$tmp/env.activebare.keys"
@@ -428,7 +446,11 @@ check_file() {
 
   [[ -n "$BASE_REF" ]] || return 0
 
-  if git show "$BASE_REF:$path" > "$tmp/base.file" 2>/dev/null; then
+  if git show "$BASE_REF:$path" > "$tmp/base.raw" 2>/dev/null; then
+    # Same normalisation as the worktree side. Without it a CRLF blob on the
+    # base ref would compare unequal to an LF worktree on every line, and
+    # rule 2 would report every shipped marker as lost.
+    sed $'s/\r$//' "$tmp/base.raw" > "$tmp/base.file"
     extract_sites "$kind" "$tmp/base.file" | sort -u > "$base"
   else
     : > "$base"   # file is new on this branch: every key in it is new
@@ -473,11 +495,11 @@ check_file() {
   # reader sees and the one the annotator maintains, so for any key that has
   # one, it is the line that must still carry the base version.
   if [[ "$kind" == "env" ]]; then
-    { grep -E '^[A-Z][A-Z0-9_]+=' "$path" || true; } \
+    { grep -E '^[A-Z][A-Z0-9_]+=' "$src" || true; } \
       | { grep -E "$MARKER_RE" || true; } \
       | sed -E 's@^([A-Z][A-Z0-9_]*)=.*[[:blank:]]# Since ([^[:blank:]]+)[[:blank:]]*$@\1 \2@' \
       | sort -u > "$tmp/env.activepairs"
-    { grep -E '^[A-Z][A-Z0-9_]+=' "$path" || true; } \
+    { grep -E '^[A-Z][A-Z0-9_]+=' "$src" || true; } \
       | sed -E 's@=.*@@' | sort -u > "$tmp/env.activekeys"
   fi
 
