@@ -140,6 +140,10 @@ module Onetime
             country: env['otto.privacy.geo_country'],
             domain_strategy: env['onetime.domain_strategy'],
             display_domain: env['onetime.display_domain'],
+            # CustomDomain#identifier for :custom (DomainStrategy stash). The
+            # logic layer needs it to rebuild the surface descriptor when it
+            # mints a session itself (invite signup autologin, #4409).
+            custom_domain_id: env['onetime.custom_domain_id'],
           }.merge(additional)
         end
 
