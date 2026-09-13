@@ -47,12 +47,23 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     )
   end
 
-  let(:session) { { 'authenticated' => true, 'external_id' => 'ur_abc' } }
+  # A session established on the canonical surface, marker matching the env
+  # below (#4409). Surface-specific coverage is in the last context of this
+  # file; here the marker is set so the surface check passes and the tests
+  # focused on other predicates reach them.
+  let(:session) do
+    {
+      'authenticated'              => true,
+      'external_id'                => 'ur_abc',
+      Onetime::SessionSurface::KEY => { kind: :canonical },
+    }
+  end
   let(:env) do
     {
-      'rack.session' => session,
-      'SCRIPT_NAME' => '/api/colonel',
-      'PATH_INFO' => '/sessions',
+      'rack.session'            => session,
+      'SCRIPT_NAME'             => '/api/colonel',
+      'PATH_INFO'               => '/sessions',
+      'onetime.domain_strategy' => :canonical,
     }
   end
 
@@ -170,6 +181,99 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
       expect(result).to be_a(Otto::Security::Authentication::StrategyResult)
       expect(strategy.additional_checks_ran).to be true
       expect(env).not_to have_key(lifetime::EXPIRED_ENV_KEY)
+    end
+  end
+
+  # Surface-bound session enforcement (#4409). The check runs BEFORE the
+  # customer load, the admin bound and the active-session gate: a mismatched
+  # or missing marker refuses without an authdb round trip and without
+  # touching Redis, so a cross-surface cookie cannot even be counted as
+  # activity. Regression cases mirror the epic's acceptance criteria.
+  context 'surface-bound session enforcement' do
+    let(:session) do
+      {
+        'authenticated'              => true,
+        'external_id'                => 'ur_abc',
+        Onetime::SessionSurface::KEY => stored_surface,
+      }
+    end
+    let(:env) do
+      {
+        'rack.session'             => session,
+        'SCRIPT_NAME'              => '/api/colonel',
+        'PATH_INFO'                => '/sessions',
+        'onetime.domain_strategy'  => request_strategy,
+        'onetime.display_domain'   => request_host,
+        'onetime.custom_domain_id' => request_custom_id,
+      }
+    end
+    let(:request_host)      { nil }
+    let(:request_custom_id) { nil }
+
+    shared_examples 'refuses with SESSION_SURFACE_MISMATCH' do
+      it 'refuses before the customer load and the authdb gate' do
+        expect(Onetime::Customer).not_to receive(:load_by_extid_or_email)
+        expect(Onetime::ActiveSessionGate).not_to receive(:verdict)
+
+        result = strategy.authenticate(env, 'authenticated')
+
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        expect(result.failure_reason).to match(/\A\[SESSION_SURFACE_MISMATCH\]/)
+      end
+    end
+
+    context 'platform session on tenant surface' do
+      let(:stored_surface)    { { kind: :canonical } }
+      let(:request_strategy)  { :custom }
+      let(:request_host)      { 'secrets.acme.com' }
+      let(:request_custom_id) { 'tenant-a' }
+
+      include_examples 'refuses with SESSION_SURFACE_MISMATCH'
+    end
+
+    context 'tenant session on platform surface' do
+      let(:stored_surface)   { { kind: :custom, id: 'tenant-a' } }
+      let(:request_strategy) { :canonical }
+
+      include_examples 'refuses with SESSION_SURFACE_MISMATCH'
+    end
+
+    context 'tenant A session on tenant B surface' do
+      let(:stored_surface)    { { kind: :custom, id: 'tenant-a' } }
+      let(:request_strategy)  { :custom }
+      let(:request_host)      { 'secrets.b.example' }
+      let(:request_custom_id) { 'tenant-b' }
+
+      include_examples 'refuses with SESSION_SURFACE_MISMATCH'
+    end
+
+    context 'canonical session on canonical subdomain' do
+      let(:stored_surface)   { { kind: :canonical } }
+      let(:request_strategy) { :subdomain }
+      let(:request_host)     { 'eu.example.com' }
+
+      include_examples 'refuses with SESSION_SURFACE_MISMATCH'
+    end
+
+    context 'legacy session with no marker on canonical' do
+      let(:session) { { 'authenticated' => true, 'external_id' => 'ur_abc' } }
+      let(:env) do
+        {
+          'rack.session'            => session,
+          'SCRIPT_NAME'             => '/api/colonel',
+          'PATH_INFO'               => '/sessions',
+          'onetime.domain_strategy' => :canonical,
+        }
+      end
+
+      it 'refuses (missing marker is treated as mismatch; user re-authenticates)' do
+        expect(Onetime::Customer).not_to receive(:load_by_extid_or_email)
+
+        result = strategy.authenticate(env, 'authenticated')
+
+        expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+        expect(result.failure_reason).to match(/\A\[SESSION_SURFACE_MISMATCH\]/)
+      end
     end
   end
 end

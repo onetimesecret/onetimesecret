@@ -139,6 +139,16 @@ module Auth::Config::Hooks
         primary_auth           = authenticated_by.first if respond_to?(:authenticated_by)
         session['auth_method'] = primary_auth || (via_omniauth ? 'omniauth' : 'password')
 
+        # Bind the session to the surface that established it (#4409). Every
+        # authenticated login path — password, magic-link, WebAuthn, OmniAuth
+        # (both platform and tenant), and OmniAuth JIT account creation, which
+        # calls `login` after `after_omniauth_create_account` — runs
+        # `after_login`, so this is the single stamping point. Enforcement on
+        # subsequent requests compares this marker to the resolved surface and
+        # refuses on mismatch; a nil descriptor (:invalid, unresolved) refuses
+        # too. See lib/onetime/session/surface.rb.
+        Onetime::SessionSurface.record(session, request.env)
+
         # Join domain organization for SSO logins on custom domains.
         # Runs BEFORE MFA detection so SSO users with OTP configured (e.g.,
         # legacy password+MFA accounts now using SSO) still get joined. This

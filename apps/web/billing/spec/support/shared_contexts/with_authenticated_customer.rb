@@ -51,9 +51,16 @@ RSpec.shared_context 'with_authenticated_customer' do
     # Mock authentication by setting up session with CSRF token
     # Rack::Protection::AuthenticityToken stores the raw token in session[:csrf]
     # and validates X-CSRF-Token header against it (supports both masked and unmasked)
+    #
+    # #4409: surface-bound sessions — authenticated? refuses unless the
+    # session's stored surface matches the request's resolved surface.
+    # Rack::Test requests default to Host: example.org, which DomainStrategy
+    # classifies :canonical in the test env, so stamping a canonical marker
+    # here keeps the shared authenticated setup passing the gate.
     env 'rack.session', {
       'authenticated' => true,
       'external_id' => customer.extid,
+      Onetime::SessionSurface::KEY => { kind: :canonical },
       :csrf => csrf_token,
     }
 
@@ -95,6 +102,7 @@ RSpec.shared_context 'with_authenticated_customer' do
     env 'rack.session', {
       'authenticated' => true,
       'external_id' => other_customer.extid,
+      Onetime::SessionSurface::KEY => { kind: :canonical },
       :csrf => csrf_token,
     }
   end

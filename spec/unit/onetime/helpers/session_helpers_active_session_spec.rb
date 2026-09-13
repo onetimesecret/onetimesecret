@@ -44,7 +44,19 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     end
   end
 
-  let(:session) { { 'authenticated' => true, 'external_id' => 'ur_abc' } }
+  # A session established on the canonical surface, with the #4409 marker set
+  # so it survives the surface-bound-session gate that also runs inside
+  # authenticated?. Tests focused on other predicates supply a matching
+  # canonical request env; see session_helpers_surface_spec.rb for the
+  # surface-mismatch coverage.
+  let(:session) do
+    {
+      'authenticated'                     => true,
+      'external_id'                       => 'ur_abc',
+      Onetime::SessionSurface::KEY        => { kind: :canonical },
+    }
+  end
+  let(:canonical_env) { { 'onetime.domain_strategy' => :canonical } }
   let(:gate) { Onetime::ActiveSessionGate }
 
   before do
@@ -52,31 +64,35 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     allow(OT).to receive(:info)
   end
 
+  def helper_with_env(env)
+    helper_class.new(session, instance_double(Rack::Request, env: env))
+  end
+
   it 'stays authenticated while the gate says the active-session row is present' do
     allow(gate).to receive(:revoked?).and_return(false)
-    expect(helper.authenticated?).to be(true)
+    expect(helper_with_env(canonical_env).authenticated?).to be(true)
   end
 
   it 'is no longer authenticated once the gate says the active-session row is gone' do
     allow(gate).to receive(:revoked?).and_return(true)
-    expect(helper.authenticated?).to be(false)
+    expect(helper_with_env(canonical_env).authenticated?).to be(false)
   end
 
   it 'consults the gate once per helper, however often authenticated? is asked' do
     allow(gate).to receive(:revoked?).and_return(false)
 
-    3.times { helper.authenticated? }
-    helper.colonel?
+    inst = helper_with_env(canonical_env)
+    3.times { inst.authenticated? }
+    inst.colonel?
 
     expect(gate).to have_received(:revoked?).once
   end
 
   it 'passes the Rack env through so the strategy and the helper share one memo' do
-    env     = {}
-    request = instance_double(Rack::Request, env: env)
+    env = canonical_env.dup
     allow(gate).to receive(:revoked?).and_return(false)
 
-    helper_class.new(session, request).authenticated?
+    helper_class.new(session, instance_double(Rack::Request, env: env)).authenticated?
 
     expect(gate).to have_received(:revoked?).with(session, env: env)
   end
@@ -86,7 +102,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   # on those surfaces would pay for a second active-session SELECT the
   # strategy already made.
   it 'finds the Rack env through `req` on controllers that do not expose `request`' do
-    env = {}
+    env = canonical_env.dup
     req = instance_double(Rack::Request, env: env)
     allow(gate).to receive(:revoked?).and_return(false)
 
@@ -99,16 +115,21 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     allow(gate).to receive(:revoked?).and_return(true, false)
     allow(Onetime::SessionImpersonation).to receive(:stop!)
 
-    expect(helper.authenticated?).to be(false)
-    helper.logout!
-    session.merge!('authenticated' => true, 'external_id' => 'ur_next')
+    inst = helper_with_env(canonical_env)
+    expect(inst.authenticated?).to be(false)
+    inst.logout!
+    session.merge!(
+      'authenticated' => true,
+      'external_id' => 'ur_next',
+      Onetime::SessionSurface::KEY => { kind: :canonical },
+    )
 
-    expect(helper.authenticated?).to be(true)
+    expect(inst.authenticated?).to be(true)
     expect(gate).to have_received(:revoked?).twice
   end
 
   it 'drops the shared env memo on logout!' do
-    env     = { gate::ENV_KEY => :revoked }
+    env     = canonical_env.merge(gate::ENV_KEY => :revoked)
     request = instance_double(Rack::Request, env: env)
     allow(Onetime::SessionImpersonation).to receive(:stop!)
 

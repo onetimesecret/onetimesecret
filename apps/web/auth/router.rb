@@ -362,6 +362,49 @@ module Auth
         next { error: 'Session could not be verified; try again', error_type: 'SessionUnverified' }
       end
 
+      # Surface-bound session enforcement (#4409). A Rack session records the
+      # surface (canonical / subdomain / custom) that established it at login.
+      # A request whose resolved surface differs from that record must not be
+      # authenticated: a tenant session cannot drive platform actions, a
+      # platform session cannot drive tenant actions, and a session on tenant
+      # A cannot drive tenant B. Missing marker is treated as a mismatch —
+      # sessions established before this feature shipped are refused on first
+      # request and re-established at next login.
+      #
+      # Anonymous requests short-circuit: without an account_id there is no
+      # authenticated identity to bind, and Rodauth's login and OmniAuth
+      # request-phase routes must stay reachable.
+      #
+      # A mismatch destroys the session (rather than merely refusing) because
+      # a cookie without a `Domain` attribute (middleware_stack.rb) should
+      # never reach a different surface under RFC 6265 delivery scope; a
+      # session arriving on the wrong surface is an anomaly and letting the
+      # cookie persist keeps leaking. The already-established `revoked` path
+      # is reused for outcome routing: anonymous Rodauth routes continue as
+      # anonymous (fresh login is expected), logout is answered here, and
+      # everything else is refused.
+      if session['account_id'] && !Onetime::SessionSurface.matches_request?(session, env)
+        outcome = revoked_outcome(r.path_info)
+        Auth::Logging.log_auth_event(
+          :session_surface_mismatch,
+          level: :warn,
+          path: r.path_info,
+          account_id: session['account_id'],
+          recorded_surface: Onetime::SessionSurface.recorded(session),
+          request_surface: Onetime::SessionSurface.for_env(env),
+          outcome: outcome,
+        )
+        clear_gated_session
+
+        case outcome
+        when :logout_answered
+          next { success: true, message: 'web.auth.logout.success' }
+        when :refused
+          response.status = 401
+          next { error: 'web.auth.security.session_expired', success: false }
+        end
+      end
+
       # All Rodauth routes (login, logout, create-account, reset-password, etc.)
       # Rodauth handles all /auth/* routes when full mode is enabled
       r.rodauth

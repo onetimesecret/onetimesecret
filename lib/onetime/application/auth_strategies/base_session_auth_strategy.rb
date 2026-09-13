@@ -11,6 +11,7 @@
 # @see Onetime::Application::AuthStrategies
 
 require_relative '../../session/impersonation'
+require_relative '../../session/surface'
 require_relative 'helpers'
 require_relative 'admin_session_lifetime'
 
@@ -48,6 +49,18 @@ module Onetime
           external_id = session['external_id']
           if external_id.to_s.empty?
             return failure('[IDENTITY_MISSING] No identity in session')
+          end
+
+          # Surface-bound session enforcement (#4409). A Rack session records
+          # the surface (canonical / subdomain / custom) that established it
+          # at login; a request whose resolved surface differs is refused. A
+          # missing marker is a mismatch, so a session established before
+          # this feature shipped is refused on first request and re-minted
+          # at next login. Pure hash comparison against env stashed by
+          # DomainStrategy — no Redis/authdb read, so it runs BEFORE the
+          # customer load, the admin bound, and the active-session gate.
+          unless Onetime::SessionSurface.matches_request?(session, env)
+            return failure('[SESSION_SURFACE_MISMATCH] Session surface does not match request; sign in again')
           end
 
           # Load customer
