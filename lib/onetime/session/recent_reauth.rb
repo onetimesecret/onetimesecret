@@ -21,7 +21,7 @@ module Onetime
   #
   # A proof carries four values:
   #
-  #     { account_id:, at:, surface:, methods: }
+  #     { 'account_id' => ..., 'at' => ..., 'surface' => ..., 'methods' => ... }
   #
   # - `account_id` — the numeric account id whose credentials were verified.
   #   The gate refuses a proof intended for a different account.
@@ -33,10 +33,10 @@ module Onetime
   #   different surface, and refuses when the current request's surface is
   #   unresolved. This is a strict equality check, independent of and
   #   composed with the session's own surface binding.
-  # - `methods` — an ordered list of the factors that were completed, for
-  #   diagnostics ('password', 'webauthn', 'otp', 'recovery_code',
-  #   'webauthn-verification'). Not read by the gate; recorded so support
-  #   and audit can distinguish "password + otp" from "webauthn primary".
+  # - `methods` — an ordered list of the factors that were completed
+  #   ('password', 'webauthn', 'totp', 'recovery_code'). The gate requires
+  #   the first entry to be an explicitly allowed local primary, and the list
+  #   also lets support distinguish password + MFA from WebAuthn primary.
   #
   # A session's proof lives in the Rack session under {KEY}. It is bound to
   # the session by construction: it is stored inside the session blob, and
@@ -83,22 +83,19 @@ module Onetime
   # identity, and both must refuse rather than proceed on an unanswered
   # question.
   module RecentReauth
-    KEY = :recent_reauth
+    KEY = 'recent_reauth'
 
-    # Auth methods that MUST NOT produce a proof when observed as the
-    # primary of a login. `email_auth` is the magic-link path (mailbox
-    # possession, not a local credential); `omniauth` is the SSO path
-    # (federated, not local). Every other primary — 'password',
-    # 'webauthn' — is a local credential and may record.
-    NON_LOCAL_PRIMARIES = %w[email_auth omniauth].freeze
+    # A proof is valid only when its first completed method is an explicitly
+    # reviewed local primary. Positive matching keeps unknown, remembered,
+    # mailbox, and federated methods fail-closed.
+    LOCAL_PRIMARIES = %w[password webauthn].freeze
 
     class << self
       # Record a proof onto the session. Returns the stored payload, or
       # nil when the request has no authoritative surface (in which case
       # nothing is recorded).
       #
-      # @param session [Hash] Rack session (symbol- and string-keyed;
-      #   this module writes only the symbol {KEY})
+      # @param session [Hash] Rack session; persisted keys and values are strings
       # @param env [Hash] Rack env, for {Onetime::SessionSurface.for_env}
       # @param account_id [Integer] the account whose credentials were verified
       # @param methods [Array<String>] the ordered list of completed factors
@@ -106,15 +103,17 @@ module Onetime
       # @param now [Time] override for the recorded timestamp (test seam)
       # @return [Hash, nil] the frozen payload actually stored, or nil
       def record(session, env, account_id:, methods:, now: Time.now)
-        surface = SessionSurface.for_env(env)
+        surface           = SessionSurface.for_env(env)
+        completed_methods = Array(methods).map(&:to_s).freeze
         return nil if surface.nil?
         return nil if account_id.nil?
+        return nil unless LOCAL_PRIMARIES.include?(completed_methods.first)
 
         payload      = {
-          account_id: Integer(account_id),
-          at: now.utc.to_i,
-          surface: surface,
-          methods: Array(methods).map(&:to_s).freeze,
+          'account_id' => Integer(account_id),
+          'at' => now.utc.to_i,
+          'surface' => surface,
+          'methods' => completed_methods,
         }.freeze
         session[KEY] = payload
       end
@@ -137,14 +136,18 @@ module Onetime
         stored = session[KEY]
         return false unless stored.is_a?(Hash)
 
-        stored_account = stored[:account_id]
+        stored_account = stored['account_id']
         return false unless stored_account == Integer(account_id)
 
         current_surface = SessionSurface.for_env(env)
         return false if current_surface.nil?
-        return false unless stored[:surface] == current_surface
+        return false unless stored['surface'] == current_surface
 
-        at = stored[:at]
+        methods = stored['methods']
+        return false unless methods.is_a?(Array)
+        return false unless LOCAL_PRIMARIES.include?(methods.first)
+
+        at = stored['at']
         return false unless at.is_a?(Integer)
         return false if now.utc.to_i - at > Integer(max_age)
         return false if at > now.utc.to_i # future-dated proof is bogus
