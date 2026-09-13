@@ -34,9 +34,23 @@ RSpec.describe Auth::Operations::Reauthenticate do
   end
 
   before do
+    stub_const(
+      'Auth::Config',
+      Class.new do
+        def self.valid_login_and_password?(login:, password:)
+          raise NotImplementedError, "stand-in only (#{login}/#{password})"
+        end
+      end,
+    )
     allow(Auth::Config).to receive(:valid_login_and_password?).and_return(true)
     checker = instance_double(Auth::Operations::MfaStateChecker, check: mfa_state)
     allow(Auth::Operations::MfaStateChecker).to receive(:new).with(db).and_return(checker)
+    allow(Onetime::RecentReauth).to receive(:record).and_return(
+      'account_id' => 42,
+      'at' => Time.now.to_i,
+      'surface' => Onetime::SessionSurface::CANONICAL,
+      'methods' => %w[password],
+    )
   end
 
   it 'rejects a method that is absent from the current offer' do
@@ -60,7 +74,25 @@ RSpec.describe Auth::Operations::Reauthenticate do
 
     expect(result.status).to eq(200)
     expect(result.body).to eq('success' => 'Re-authentication complete')
-    expect(session.dig(Onetime::RecentReauth::KEY, 'methods')).to eq(%w[password])
+    expect(Onetime::RecentReauth).to have_received(:record).with(
+      session,
+      env,
+      account_id: 42,
+      methods: %w[password],
+    )
+  end
+
+  it 'fails closed when the proof cannot be persisted' do
+    allow(Onetime::RecentReauth).to receive(:record).and_return(nil)
+
+    result = operation.call(
+      account_id: 42,
+      offer: offer,
+      params: { 'method' => 'password', 'password' => 'correct-password' },
+    )
+
+    expect(result.status).to eq(403)
+    expect(result.body['error_code']).to eq('invalid_surface')
   end
 
   it 'does not record when the password is wrong' do
@@ -243,7 +275,12 @@ RSpec.describe Auth::Operations::Reauthenticate do
       )
 
       expect(result.status).to eq(200)
-      expect(session.dig(Onetime::RecentReauth::KEY, 'methods')).to eq(%w[password totp])
+      expect(Onetime::RecentReauth).to have_received(:record).with(
+        session,
+        env,
+        account_id: 42,
+        methods: %w[password totp],
+      )
     end
 
     it 'consumes a valid recovery code before recording proof' do
@@ -260,7 +297,12 @@ RSpec.describe Auth::Operations::Reauthenticate do
       )
 
       expect(result.status).to eq(200)
-      expect(session.dig(Onetime::RecentReauth::KEY, 'methods')).to eq(%w[password recovery_code])
+      expect(Onetime::RecentReauth).to have_received(:record).with(
+        session,
+        env,
+        account_id: 42,
+        methods: %w[password recovery_code],
+      )
     end
   end
 end

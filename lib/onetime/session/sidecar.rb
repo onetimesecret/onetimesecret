@@ -178,6 +178,9 @@ module Onetime
       # the assertion, so an old or concurrently replayed assertion cannot mint
       # a fresh RecentReauth proof. Absence always refuses.
       'reauth_webauthn_challenge' => { ttl: 120, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: true },
+      # One-shot recent full re-authentication proof. Connect admission consumes
+      # this key atomically, so sequential and concurrent replay both fail.
+      'recent_reauth' => { ttl: 900, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: false },
       # #3877 (#3840 Phase 4.A): the interstitial's deferred SSO identity bind
       # — the password-proven (account_id, provider, issuer, uid) tuple carried
       # across the MFA hand-off. EXPLICIT-USE: written by the link-sso route
