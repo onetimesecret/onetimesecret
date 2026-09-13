@@ -427,10 +427,7 @@ module Auth
       # Rodauth's POST /auth/webauthn-remove
       handle_webauthn_credentials_routes(r)
 
-      # Re-authentication offer: which credential paths this request's
-      # surface may present. Feeds the tenant re-auth UI and, in a
-      # follow-up commit, the POST /auth/reauth completion endpoint
-      # (#4414).
+      # Surface-aware re-authentication offer and completion endpoints (#4414).
       handle_reauth_routes(r)
 
       # SSO sign-in interstitial: password-challenge linking (#3840 Phase 3)

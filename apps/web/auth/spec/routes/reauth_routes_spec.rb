@@ -29,7 +29,7 @@ require_relative '../spec_helper'
 require_relative '../support/route_test_app_helper'
 require_relative '../../routes/reauth'
 
-RSpec.describe 'GET /reauth-offer (Auth::Routes::Reauth)' do
+RSpec.describe 'Reauthentication routes (Auth::Routes::Reauth)' do
   include Rack::Test::Methods
   include RouteTestAppHelper
 
@@ -69,8 +69,15 @@ RSpec.describe 'GET /reauth-offer (Auth::Routes::Reauth)' do
   end
 
   describe 'authentication gate' do
-    it 'returns 401 when unauthenticated' do
+    it 'returns 401 for an unauthenticated offer request' do
       get '/reauth-offer'
+
+      expect(last_response.status).to eq(401)
+      expect(json_body).to eq('error' => 'Authentication required')
+    end
+
+    it 'returns 401 for an unauthenticated completion request' do
+      post '/reauth', JSON.generate(method: 'webauthn'), 'CONTENT_TYPE' => 'application/json'
 
       expect(last_response.status).to eq(401)
       expect(json_body).to eq('error' => 'Authentication required')
@@ -156,6 +163,44 @@ RSpec.describe 'GET /reauth-offer (Auth::Routes::Reauth)' do
           { 'kind' => 'custom', 'id' => 'tenant-a' },
         ],
       )
+    end
+  end
+
+  describe 'POST /reauth' do
+    before { login(account_id) }
+
+    it 'rebuilds the offer and delegates completion for the current account' do
+      result = Auth::Operations::Reauthenticate::Result.new(
+        status: 200,
+        body: { 'success' => 'Re-authentication complete' },
+        password_verified: false,
+      )
+      operation = instance_double(Auth::Operations::Reauthenticate, call: result)
+      allow(Auth::Operations::Reauthenticate).to receive(:new).and_return(operation)
+
+      post '/reauth', JSON.generate(method: 'webauthn'), 'CONTENT_TYPE' => 'application/json'
+
+      expect(last_response.status).to eq(200)
+      expect(json_body).to eq('success' => 'Re-authentication complete')
+      expect(operation).to have_received(:call).with(
+        account_id: account_id,
+        offer: hash_including(methods: %w[password]),
+        params: hash_including('method' => 'webauthn'),
+      )
+    end
+
+    it 'sets no-store headers on completion responses' do
+      result = Auth::Operations::Reauthenticate::Result.new(
+        status: 400,
+        body: { 'error' => 'Unsupported re-authentication method.', 'error_code' => 'invalid_method' },
+        password_verified: false,
+      )
+      allow_any_instance_of(Auth::Operations::Reauthenticate).to receive(:call).and_return(result)
+
+      post '/reauth', JSON.generate(method: 'bogus'), 'CONTENT_TYPE' => 'application/json'
+
+      expect(last_response.headers['Cache-Control']).to eq('no-store')
+      expect(last_response.headers['Pragma']).to eq('no-cache')
     end
   end
 
