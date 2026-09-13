@@ -203,6 +203,11 @@ Tenant callbacks are refused instead:
 | Authenticated session with a valid connect intent, tenant callback | `identity_connect_wrong_domain` |
 | Unlinked tenant identity whose asserted email matches an existing account | `tenant_sso_link_unavailable` |
 
+The first row is defence-in-depth behind the host-bound session (below): the
+auth router refuses a platform session on a tenant host before any Rodauth
+route runs, so a tenant initiation from that browser records no intent and
+its callback arrives anonymous, landing on the second row.
+
 The refused connect attempt has already consumed its `sso_connect_intent`. A
 logged-in tenant callback without a valid intent is logged
 `omniauth_connect_intent_absent` and takes the unauthenticated email branches

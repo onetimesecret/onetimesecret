@@ -647,6 +647,14 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   # independent of the IdP email: a tenant callback must never bind a
   # tenant-issuer identity onto a PLATFORM session (validated_omniauth_domain_id
   # is set by the tenant hook on tenant callbacks only).
+  #
+  # #4409 moved the first refusal upstream: the auth router destroys a session
+  # whose recorded surface (platform) differs from the request surface (tenant)
+  # before any Rodauth route runs, so the tenant initiation records no connect
+  # intent and the callback arrives ANONYMOUS. The hook-level
+  # `identity_connect_wrong_domain` branch is now defence-in-depth behind that
+  # gate; what the round trip observes is the anonymous existing-account
+  # refusal on the tenant surface.
 
   describe 'logged-in on platform, tenant callback (surface isolation)', :oauth_flow do
     include OAuthFlowHelper
@@ -691,21 +699,32 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         skip "OmniAuth route not registered for #{host}" if last_response.status == 404
         expect(last_response.status).to eq(302)
 
-        # Callback from the SAME host -> validated_omniauth_domain_id gets set,
-        # so the connect branch sees a NON-platform surface and refuses.
+        # The platform session never reached the tenant initiation: the
+        # router refused it for the surface (#4409) and cleared it.
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:session_surface_mismatch, hash_including(path: '/sso/oidc', outcome: :continued_anonymous))
+
+        # Callback from the SAME host -> validated_omniauth_domain_id gets set.
+        # With no authenticated session and no intent, the hook takes the
+        # unauthenticated email branch: the asserted email matches an existing
+        # account, and on the tenant surface that is refused outright.
         clear_body_headers
         header 'Host', host
         post '/auth/sso/oidc/callback'
 
         expect(last_response.status).to eq(302)
-        expect(last_response.location.to_s).to include('/signin?auth_error=identity_connect_wrong_domain'),
+        expect(last_response.location.to_s).to include('/signin?auth_error=tenant_sso_link_unavailable'),
           "Tenant callback must refuse the bind. Location: #{last_response.location.inspect}"
 
         expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0),
           'Surface isolation must NOT create a tenant identity row'
 
         expect(Auth::Logging).to have_received(:log_auth_event)
-          .with(:omniauth_identity_connect_refused, hash_including(provider: 'oidc', reason: 'tenant_surface'))
+          .with(:omniauth_link_refused_existing_account, hash_including(provider: 'oidc', surface: 'tenant'))
+        # The connect branch was never entered, so neither its refusal nor a
+        # bind can have been recorded.
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_identity_connect_refused, anything)
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:omniauth_identity_connected, anything)
       ensure
