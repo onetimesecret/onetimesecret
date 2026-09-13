@@ -4,7 +4,7 @@
 
 require 'uri'
 
-require 'onetime/session/surface'
+require_relative 'surface'
 
 module Onetime
   # Tenant-surface-compatible re-authentication policy (#4414, epic #4408).
