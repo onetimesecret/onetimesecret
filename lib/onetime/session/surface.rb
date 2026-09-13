@@ -17,11 +17,12 @@ module Onetime
   # ## Surface descriptors
   #
   # The classifier returns one of four values; every consumer pattern-matches
-  # on the `:kind` key:
+  # on the `'kind'` key. Descriptors use strings because they are persisted
+  # through the session JSON codec:
   #
-  #     { kind: :canonical }
-  #     { kind: :subdomain, host: 'eu.example.com' }
-  #     { kind: :custom, id: '<CustomDomain#identifier>' }
+  #     { 'kind' => 'canonical' }
+  #     { 'kind' => 'subdomain', 'host' => 'eu.example.com' }
+  #     { 'kind' => 'custom', 'id' => '<CustomDomain#identifier>' }
   #     nil     # :invalid, unresolved, or a :custom whose id could not be read
   #
   # `:canonical` and `:subdomain` are distinct surface classes, not aliases.
@@ -42,11 +43,10 @@ module Onetime
   # mismatched on every authenticated request. There is no "unknown ==
   # matches" branch: the epic's invariant requires an authoritative marker.
   module SessionSurface
-    # Session key holding the descriptor. Symbol matches Rodauth/Rack session
-    # convention used by the sibling markers in login.rb.
-    KEY = :authenticated_surface
+    # Session data must remain stable across JSON persistence.
+    KEY = 'authenticated_surface'
 
-    CANONICAL = { kind: :canonical }.freeze
+    CANONICAL = { 'kind' => 'canonical' }.freeze
 
     class << self
       # Classify the request's surface from the Rack env populated by
@@ -62,10 +62,10 @@ module Onetime
           CANONICAL
         in :subdomain
           host = env['onetime.display_domain']
-          host.to_s.empty? ? nil : { kind: :subdomain, host: host }.freeze
+          host.to_s.empty? ? nil : { 'kind' => 'subdomain', 'host' => host }.freeze
         in :custom
           id = env['onetime.custom_domain_id']
-          id.to_s.empty? ? nil : { kind: :custom, id: id }.freeze
+          id.to_s.empty? ? nil : { 'kind' => 'custom', 'id' => id }.freeze
         else
           # :invalid, nil, or any future symbol we have not yet mapped.
           nil
@@ -87,8 +87,8 @@ module Onetime
       # request's surface. Missing marker, mismatched marker, or an
       # unresolved request surface all return false. Hash equality is used
       # deliberately: descriptors are frozen value objects, and two of them
-      # match iff every key does — the same rule for :canonical (kind only),
-      # :subdomain (kind + host), and :custom (kind + id).
+      # match iff every key does — the same rule for canonical (kind only),
+      # subdomain (kind + host), and custom (kind + id).
       #
       # @param session [Hash] Rack session
       # @param env [Hash] Rack env

@@ -56,7 +56,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   end
 
   context 'matching surfaces' do
-    let(:session) { session_on({ kind: :canonical }) }
+    let(:session) { session_on({ 'kind' => 'canonical' }) }
     let(:env)     { env_on(strategy: :canonical) }
 
     it 'authenticates a canonical session on canonical' do
@@ -65,7 +65,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   end
 
   context 'platform session on tenant surface' do
-    let(:session) { session_on({ kind: :canonical }) }
+    let(:session) { session_on({ 'kind' => 'canonical' }) }
     let(:env)     { env_on(strategy: :custom, host: 'secrets.acme.com', custom_id: 'tenant-a') }
 
     it 'refuses' do
@@ -74,7 +74,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   end
 
   context 'tenant session on platform surface' do
-    let(:session) { session_on({ kind: :custom, id: 'tenant-a' }) }
+    let(:session) { session_on({ 'kind' => 'custom', 'id' => 'tenant-a' }) }
     let(:env)     { env_on(strategy: :canonical) }
 
     it 'refuses' do
@@ -83,7 +83,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   end
 
   context 'tenant A session on tenant B surface' do
-    let(:session) { session_on({ kind: :custom, id: 'tenant-a' }) }
+    let(:session) { session_on({ 'kind' => 'custom', 'id' => 'tenant-a' }) }
     let(:env)     { env_on(strategy: :custom, host: 'secrets.b.example', custom_id: 'tenant-b') }
 
     it 'refuses' do
@@ -92,7 +92,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   end
 
   context 'canonical session on canonical subdomain' do
-    let(:session) { session_on({ kind: :canonical }) }
+    let(:session) { session_on({ 'kind' => 'canonical' }) }
     let(:env)     { env_on(strategy: :subdomain, host: 'eu.example.com') }
 
     it 'refuses (subdomain is a distinct surface class from canonical)' do
@@ -112,7 +112,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   end
 
   context 'stale custom domain (id no longer resolves in env)' do
-    let(:session) { session_on({ kind: :custom, id: 'tenant-a' }) }
+    let(:session) { session_on({ 'kind' => 'custom', 'id' => 'tenant-a' }) }
     let(:env)     { env_on(strategy: :custom, host: 'secrets.acme.com', custom_id: nil) }
 
     it 'refuses' do

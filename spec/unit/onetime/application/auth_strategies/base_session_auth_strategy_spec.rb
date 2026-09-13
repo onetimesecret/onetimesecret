@@ -55,7 +55,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     {
       'authenticated'              => true,
       'external_id'                => 'ur_abc',
-      Onetime::SessionSurface::KEY => { kind: :canonical },
+      Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
     }
   end
   let(:env) do
@@ -223,7 +223,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     end
 
     context 'platform session on tenant surface' do
-      let(:stored_surface)    { { kind: :canonical } }
+      let(:stored_surface)    { { 'kind' => 'canonical' } }
       let(:request_strategy)  { :custom }
       let(:request_host)      { 'secrets.acme.com' }
       let(:request_custom_id) { 'tenant-a' }
@@ -232,14 +232,14 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     end
 
     context 'tenant session on platform surface' do
-      let(:stored_surface)   { { kind: :custom, id: 'tenant-a' } }
+      let(:stored_surface)   { { 'kind' => 'custom', 'id' => 'tenant-a' } }
       let(:request_strategy) { :canonical }
 
       include_examples 'refuses with SESSION_SURFACE_MISMATCH'
     end
 
     context 'tenant A session on tenant B surface' do
-      let(:stored_surface)    { { kind: :custom, id: 'tenant-a' } }
+      let(:stored_surface)    { { 'kind' => 'custom', 'id' => 'tenant-a' } }
       let(:request_strategy)  { :custom }
       let(:request_host)      { 'secrets.b.example' }
       let(:request_custom_id) { 'tenant-b' }
@@ -248,7 +248,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     end
 
     context 'canonical session on canonical subdomain' do
-      let(:stored_surface)   { { kind: :canonical } }
+      let(:stored_surface)   { { 'kind' => 'canonical' } }
       let(:request_strategy) { :subdomain }
       let(:request_host)     { 'eu.example.com' }
 

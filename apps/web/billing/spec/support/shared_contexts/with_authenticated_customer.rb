@@ -60,7 +60,7 @@ RSpec.shared_context 'with_authenticated_customer' do
     env 'rack.session', {
       'authenticated' => true,
       'external_id' => customer.extid,
-      Onetime::SessionSurface::KEY => { kind: :canonical },
+      Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
       :csrf => csrf_token,
     }
 
@@ -102,7 +102,7 @@ RSpec.shared_context 'with_authenticated_customer' do
     env 'rack.session', {
       'authenticated' => true,
       'external_id' => other_customer.extid,
-      Onetime::SessionSurface::KEY => { kind: :canonical },
+      Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
       :csrf => csrf_token,
     }
   end

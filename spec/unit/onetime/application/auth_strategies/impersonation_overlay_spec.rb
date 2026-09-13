@@ -55,7 +55,7 @@ RSpec.describe 'impersonation overlay at the identity call sites' do
       # #4409: the strategy's surface-bound check runs BEFORE the customer
       # load and impersonation resolution, so the session needs a matching
       # marker for that check to pass on the canonical env below.
-      Onetime::SessionSurface::KEY => { kind: :canonical },
+      Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
       Onetime::SessionImpersonation::SESSION_KEY => marker,
     }
   end

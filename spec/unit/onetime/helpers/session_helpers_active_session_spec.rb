@@ -53,7 +53,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     {
       'authenticated'                     => true,
       'external_id'                       => 'ur_abc',
-      Onetime::SessionSurface::KEY        => { kind: :canonical },
+      Onetime::SessionSurface::KEY        => { 'kind' => 'canonical' },
     }
   end
   let(:canonical_env) { { 'onetime.domain_strategy' => :canonical } }
@@ -121,7 +121,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     session.merge!(
       'authenticated' => true,
       'external_id' => 'ur_next',
-      Onetime::SessionSurface::KEY => { kind: :canonical },
+      Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
     )
 
     expect(inst.authenticated?).to be(true)
