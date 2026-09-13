@@ -306,7 +306,7 @@ def marker_legend(lines):
     return [re.sub(r"^#[ \t]?", "", line).rstrip() for line in paragraphs[index]]
 
 
-def clean_preamble(lines):
+def clean_preamble(lines, drop_legend=True):
     """Drop the parts of .env.reference's header that are not documentation.
 
     Two paragraphs earn their place on the page: the [derived]/[independent]/
@@ -317,7 +317,7 @@ def clean_preamble(lines):
     by explaining a file the reader is not looking at.
     """
     paragraphs = header_paragraphs(lines)
-    lifted = legend_index(paragraphs)
+    lifted = legend_index(paragraphs) if drop_legend else None
 
     kept = []
     for index, para in enumerate(paragraphs):
@@ -350,6 +350,7 @@ def build_generated_block(env_text):
     ]
 
     # Applied per line, exactly as §1 specifies the recognizer.
+    lifted = False
     if any(SINCE_MARKER_RE.search(line) for line in env_text.split("\n")):
         legend = marker_legend(preamble)
         if legend is None:
@@ -360,8 +361,16 @@ def build_generated_block(env_text):
                 "      rather than keeping a second copy of it."
             )
         out += [*legend, ""]
+        lifted = True
 
-    preamble = clean_preamble(preamble)
+    # drop_legend follows whether it was actually lifted, not merely whether a
+    # legend paragraph exists. The two halves already had to agree about WHICH
+    # paragraph they meant (legend_index); this is the other half of the same
+    # rule — WHETHER. A file whose header explains the marker before any key
+    # carries one would otherwise have that paragraph dropped from the fence
+    # and never rendered as prose: the same vanishing, reached from the other
+    # side.
+    preamble = clean_preamble(preamble, drop_legend=lifted)
     if preamble:
         out += fenced(preamble)
         out.append("")

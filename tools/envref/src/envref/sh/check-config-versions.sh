@@ -218,14 +218,15 @@ extract_yaml_sites() {
       n = NR
       for (i = 1; i <= n; i++) {
         l = raw[i]
-        if (l ~ /^[ \t]*$/ || l ~ /^[ \t]*#/ || l ~ /^(---|\.\.\.)/) { content[i] = 0; continue }
+        if (l ~ /^(---|\.\.\.)/) { content[i] = 0; docmark[i] = 1; indent[i] = 0; continue }
+        if (l ~ /^[ \t]*$/ || l ~ /^[ \t]*#/) { content[i] = 0; continue }
         content[i] = 1
         match(l, /^ */); indent[i] = RLENGTH
       }
 
       depth = 0; skip = -1; seqind = -1
       for (i = 1; i <= n; i++) {
-        if (!content[i]) continue
+        if (!content[i] && !docmark[i]) continue
         line = raw[i]; ind = indent[i]
         rest = substr(line, ind + 1)
 
@@ -248,6 +249,22 @@ extract_yaml_sites() {
         # so a sibling at the same indentation as the opener is never
         # swallowed here.
         if (skip >= 0 && ind >= skip) continue
+
+        # A document marker starts a new YAML document, so the open mapping
+        # stack does not carry across it. Both Python walks clear theirs here
+        # (annotate.py, versionmap.py: stack.clear(); seq_indent = None);
+        # this walk treated the line as non-content and left depth alone, so
+        # an indented key after a mid-file `---` resolved as a child of the
+        # key above it — site.nested where they said nested. That is the
+        # wrong-shipped-version shape, not a crash. No file in etc/defaults/
+        # writes `---` after its first key, so the three agreed on the real
+        # files and --print-sites could not show it; the walker suite carries
+        # a fixture for the shape now.
+        #
+        # Placed after the skip check, mirroring the Python order: a marker
+        # buried in a skipped subtree must not reset anything. skip is left
+        # alone for the same reason the Python walks leave block_indent alone.
+        if (docmark[i]) { depth = 0; seqind = -1; continue }
         skip = -1
 
         # Still inside the sequence that seqind opened? YAML lets a sequence

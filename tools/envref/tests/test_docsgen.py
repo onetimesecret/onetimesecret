@@ -15,6 +15,7 @@ have been a person missing a paragraph they wrote.
 
 import unittest
 
+from envref import docsgen
 from envref.docsgen import clean_preamble, legend_index, marker_legend, header_paragraphs
 
 LEGEND = [
@@ -77,3 +78,45 @@ class LegendTest(unittest.TestCase):
 
     def test_a_header_with_no_legend_paragraph_reports_none(self):
         self.assertIsNone(marker_legend(preamble(UNRELATED)))
+
+
+class LegendEmittedConditionallyTest(unittest.TestCase):
+    """The lift is conditional on markers existing; the drop must be too.
+
+    Raised in review as the other half of the same rule. legend_index settled
+    WHICH paragraph the two halves mean; this settles WHETHER. A header that
+    explains the marker before any key carries one — a file mid-setup, or one
+    whose markers were all removed — otherwise had that paragraph dropped from
+    the fence and never rendered as prose.
+    """
+
+    HEADER = (
+        "# .env.reference\n"
+        "#\n"
+        "# A trailing `# Since vX.Y.Z` records the release a variable first shipped in.\n"
+        "#\n"
+        "# For quick-start configuration, see .env.example instead.\n"
+        "\n"
+        "# " + "\u2550" * 20 + "\n"
+        "#  SECTION\n"
+        "# " + "\u2550" * 20 + "\n"
+        "\n"
+    )
+
+    def page(self, body):
+        block, _ = docsgen.build_generated_block(self.HEADER + body)
+        return "\n".join(block)
+
+    def test_with_no_markers_the_paragraph_is_still_shown(self):
+        text = self.page("KEY_ONE=a\n")
+        self.assertIn(
+            "records the release",
+            text,
+            "the legend paragraph was dropped from the fence and never lifted",
+        )
+
+    def test_with_markers_it_is_lifted_once_and_not_repeated(self):
+        text = self.page("KEY_ONE=a  # Since v0.24.0\n")
+        self.assertEqual(text.count("records the release"), 1)
+        # lifted as prose means it is outside the fenced block
+        self.assertNotIn("# A trailing `# Since vX.Y.Z` records", text)

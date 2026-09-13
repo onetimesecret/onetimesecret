@@ -18,6 +18,7 @@ import subprocess
 import unittest
 from collections import defaultdict
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from envref import annotate, versionmap
 from envref.paths import repo_root, sh_script
@@ -198,3 +199,68 @@ class ErbTest(unittest.TestCase):
         self.assertIn("mode", a)
         self.assertIn("mode", v)
         self.assertEqual(a, v)
+
+
+def three_walks(yaml_text: str):
+    """(awk, annotate, versionmap) dotted-path sets for one synthetic file.
+
+    The real files cannot cover every shape — `---` after the first key is the
+    case that prompted this — so the suite needs a way to ask all three walks
+    about a file that does not exist in the repo. The awk walk answers through
+    --print-sites in a throwaway root; the other two are imported.
+    """
+    relpath = "etc/defaults/config.defaults.yaml"
+    with TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        (root / "etc" / "defaults").mkdir(parents=True)
+        (root / relpath).write_text(yaml_text, encoding="utf-8")
+        (root / ".env.reference").write_text("KEY=v\n", encoding="utf-8")
+        proc = subprocess.run(
+            ["bash", str(sh_script("check-config-versions.sh")), "--print-sites"],
+            cwd=root,
+            env={"PATH": "/usr/bin:/bin:/usr/local/bin", "ENVREF_REPO_ROOT": str(root)},
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    from_awk = {
+        line.split(" ")[1]
+        for line in proc.stdout.splitlines()
+        if line.startswith(relpath)
+    }
+    from_annotate = set(annotate.yaml_path_index(yaml_text.split("\n")))
+    from_versionmap = {r.path for r in versionmap.parse_yaml_keys(relpath, yaml_text)}
+    return from_awk, from_annotate, from_versionmap
+
+
+class SyntheticShapeTest(unittest.TestCase):
+    """Shapes etc/defaults/ does not happen to contain."""
+
+    def assertAgree(self, yaml_text, expected):
+        awk, ann, vmap = three_walks(yaml_text)
+        self.assertEqual(awk, ann, "the awk walk and the annotator disagree")
+        self.assertEqual(awk, vmap, "the awk walk and the map generator disagree")
+        self.assertEqual(awk, expected)
+
+    def test_a_document_marker_after_keys_resets_the_stack(self):
+        """A new document does not inherit the open mapping.
+
+        All three files put `---` before their first key, so the walks agreed
+        on the real files while the awk one carried `depth` across a mid-file
+        marker: an indented key after it resolved as site.nested where both
+        Python walks said nested. A wrong dotted path is a wrong shipped
+        version, not a crash.
+        """
+        self.assertAgree(
+            "site:\n  mode: a\n---\n  nested: b\n",
+            {"site", "site.mode", "nested"},
+        )
+
+    def test_a_leading_document_marker_is_still_harmless(self):
+        self.assertAgree("---\nsite:\n  mode: a\n", {"site", "site.mode"})
+
+    def test_an_end_of_document_marker_resets_too(self):
+        self.assertAgree(
+            "site:\n  mode: a\n...\n  other: b\n",
+            {"site", "site.mode", "other"},
+        )
