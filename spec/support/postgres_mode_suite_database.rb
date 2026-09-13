@@ -51,8 +51,8 @@ require_relative 'factories/auth_account_factory'
 #
 module PostgresModeSuiteDatabase
   REQUIRED_TABLES = %i[accounts account_statuses account_password_hashes].freeze
-  # Bumped to 8 by migration 008 (issuer-scoped SSO identities, #3840 Phase 0).
-  EXPECTED_SCHEMA_VERSION = 8
+  # Migration 010 records WebAuthn registration RP IDs for reauthentication.
+  EXPECTED_SCHEMA_VERSION = 10
 
   class << self
     attr_reader :database, :migration_database
