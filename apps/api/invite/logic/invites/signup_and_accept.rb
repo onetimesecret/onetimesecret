@@ -426,6 +426,16 @@ module InviteAPI::Logic
         sess['role']             = @customer.role
         sess['locale']           = @customer.locale || 'en'
 
+        # Surface marker (#4409). This session is hand-minted here, not by a
+        # request-scoped Rodauth login, so nothing else stamps it: the
+        # internal-request login_session in establish_active_session runs
+        # against an env DomainStrategy never saw and skips the stamp. The
+        # gate fails closed on a missing marker, so without this the
+        # invitee's very next request — the frontend's POST /accept — is
+        # refused. surface_env is rebuilt from the strategy metadata
+        # (Logic::Base), the same classification the request resolved.
+        Onetime::SessionSurface.record(sess, surface_env)
+
         if rodauth_session
           # Carry the Rodauth-produced auth keys onto the Rack session. Keys are
           # stringified because Rodauth's internal-request session hash uses its
