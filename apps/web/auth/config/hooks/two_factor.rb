@@ -145,14 +145,11 @@ module Auth::Config::Hooks
         # Recent full re-authentication (#4410). The second factor just
         # completed on top of the primary credential from after_login, so
         # this is the completion of a full local ceremony — EXCEPT when the
-        # primary was non-local: a magic-link primary (mailbox possession,
-        # not a local credential) or an SSO callback (federated). Neither
-        # should be laundered into a local re-auth proof by a subsequent
-        # 2FA step. session['auth_method'] was stamped by the login hook
-        # from Rodauth's `authenticated_by.first`; NON_LOCAL_PRIMARIES is
-        # the single list of primaries that must not record here.
+        # primary was not an explicit local credential. In particular, remember
+        # restoration does not run after_login, so auth_method can be nil here;
+        # a negative denylist would turn remember + OTP into a false full proof.
         primary_auth = session['auth_method']
-        unless Onetime::RecentReauth::NON_LOCAL_PRIMARIES.include?(primary_auth)
+        if Onetime::RecentReauth::LOCAL_PRIMARIES.include?(primary_auth)
           Onetime::RecentReauth.record(
             session,
             request.env,

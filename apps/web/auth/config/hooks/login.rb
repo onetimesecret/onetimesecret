@@ -380,11 +380,10 @@ module Auth::Config::Hooks
           # pending" cases the epic accepts as local proof: no MFA
           # configured, MFA configured but not required by policy, and
           # WebAuthn primary (via_webauthn_login) that Rodauth counts as
-          # covering the requirement. Two primaries are refused as
-          # non-local credentials: 'email_auth' (mailbox possession) and
-          # 'omniauth' (federated). NON_LOCAL_PRIMARIES is the single list.
+          # covering the requirement. Only explicitly reviewed local primaries
+          # may create proof; unknown and future methods remain fail-closed.
           # after_two_factor_authentication owns the MFA-completion path.
-          unless Onetime::RecentReauth::NON_LOCAL_PRIMARIES.include?(primary_auth)
+          if Onetime::RecentReauth::LOCAL_PRIMARIES.include?(primary_auth)
             Onetime::RecentReauth.record(
               session,
               request.env,
