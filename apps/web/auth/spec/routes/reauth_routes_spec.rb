@@ -204,6 +204,107 @@ RSpec.describe 'Reauthentication routes (Auth::Routes::Reauth)' do
     end
   end
 
+  describe 'login rate limiter interplay' do
+    # The route wraps password attempts in the login limiter
+    # (Onetime::Security::LoginRateLimiter). The mini app has no Valkey, so
+    # the three helpers are replaced with a recording spy.
+    let(:limiter_calls) { [] }
+    let(:app) do
+      calls = limiter_calls
+      klass = build_route_test_app(
+        db: db,
+        route_module: Auth::Routes::Reauth,
+        handler: :handle_reauth_routes,
+      )
+      klass.class_eval do
+        define_method(:check_login_rate_limit!) { |*| calls << :check }
+        define_method(:record_failed_login_attempt!) { |*| calls << :record }
+        define_method(:clear_login_rate_limit!) { |*| calls << :clear }
+      end
+      klass
+    end
+
+    before { login(account_id) }
+
+    def stub_completion(status:, body:, password_verified:)
+      result = Auth::Operations::Reauthenticate::Result.new(
+        status: status,
+        body: body,
+        password_verified: password_verified,
+      )
+      allow_any_instance_of(Auth::Operations::Reauthenticate).to receive(:call).and_return(result)
+    end
+
+    def post_password(extra = {})
+      post '/reauth',
+        JSON.generate({ method: 'password', password: 'secret' }.merge(extra)),
+        'CONTENT_TYPE' => 'application/json'
+    end
+
+    it 'records a failed attempt when the password is wrong' do
+      stub_completion(
+        status: 401,
+        body: { 'error' => 'Incorrect password.', 'error_code' => 'invalid_password' },
+        password_verified: false,
+      )
+
+      post_password
+
+      expect(limiter_calls).to eq(%i[check record])
+    end
+
+    it 'clears the limiter once the password is verified and MFA is still pending' do
+      stub_completion(
+        status: 200,
+        body: { 'mfa_required' => true, 'mfa_methods' => %w[otp] },
+        password_verified: true,
+      )
+
+      post_password
+
+      expect(limiter_calls).to eq(%i[check clear])
+    end
+
+    it 'neither clears nor records when a second factor fails after a correct password' do
+      # A wrong OTP is not a password failure (no record), but it is a
+      # failed attempt: clearing here would let an OTP-guessing loop reset
+      # the limiter on every try.
+      stub_completion(
+        status: 401,
+        body: { 'error' => 'Invalid authentication code.', 'error_code' => 'invalid_otp' },
+        password_verified: true,
+      )
+
+      post_password(otp_code: '000000')
+
+      expect(limiter_calls).to eq(%i[check])
+    end
+
+    it 'neither clears nor records when the password is right but no second factor is usable here' do
+      stub_completion(
+        status: 403,
+        body: { 'error' => 'No supported second factor is available on this surface.', 'error_code' => 'mfa_unavailable' },
+        password_verified: true,
+      )
+
+      post_password
+
+      expect(limiter_calls).to eq(%i[check])
+    end
+
+    it 'clears the limiter when the password is verified and a passkey challenge is issued' do
+      stub_completion(
+        status: 200,
+        body: { 'webauthn_auth' => {}, 'webauthn_auth_challenge' => 'c', 'webauthn_auth_challenge_hmac' => 'h' },
+        password_verified: true,
+      )
+
+      post_password
+
+      expect(limiter_calls).to eq(%i[check clear])
+    end
+  end
+
   describe 'offer construction' do
     before { login(account_id) }
 

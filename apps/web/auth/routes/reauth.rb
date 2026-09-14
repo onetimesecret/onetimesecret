@@ -100,7 +100,12 @@ module Auth
             ).call(account_id: account_id, offer: offer, params: params)
 
             if params['method'].to_s == 'password' && account
-              if result.password_verified
+              # Clear only when the attempt did not fail. A wrong OTP or
+              # recovery code after a correct password still returns
+              # password_verified (the limiter must not count it as a
+              # password failure), but it is a failed attempt and must not
+              # reset the limiter either.
+              if result.password_verified && result.status == 200
                 clear_login_rate_limit!(account[:email], request.ip)
               elsif result.body['error_code'] == 'invalid_password'
                 record_failed_login_attempt!(account[:email], request.ip)
