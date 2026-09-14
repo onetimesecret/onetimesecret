@@ -15,7 +15,7 @@ require_relative '../../operations/reauth_offer'
 RSpec.describe Auth::Operations::ReauthOffer do
   let(:db)        { instance_double(Sequel::Database) }
   let(:reader)    { instance_double(Auth::Operations::ReadWebauthnCredentials) }
-  let(:operation) { described_class.new(db) }
+  let(:operation) { described_class.new(db, webauthn_loaded: true) }
 
   before do
     allow(Auth::Operations::ReadWebauthnCredentials).to receive(:new).with(db).and_return(reader)
@@ -57,6 +57,7 @@ RSpec.describe Auth::Operations::ReauthOffer do
         allow(reader).to receive(:call).with(42).and_return([{ scope: :platform }])
         result = operation.call(account_id: 42, env: env_for(strategy: :canonical))
 
+        expect(reader).to have_received(:call).with(42)
         expect(result[:methods]).to eq(%w[webauthn password])
         expect(result[:webauthn_credentials]).to eq([{ scope: :platform }])
       end
@@ -154,6 +155,19 @@ RSpec.describe Auth::Operations::ReauthOffer do
         result = operation.call(account_id: 42, env: env_for(strategy: :canonical))
 
         expect(result[:methods]).to eq([])
+      end
+    end
+
+    context 'when the WebAuthn feature is not loaded on this install' do
+      let(:operation) { described_class.new(db, webauthn_loaded: false) }
+
+      it 'never reads passkey rows and offers password only' do
+        allow(reader).to receive(:call).with(42).and_return([{ scope: :platform }])
+        result = operation.call(account_id: 42, env: env_for(strategy: :canonical))
+
+        expect(reader).not_to have_received(:call)
+        expect(result[:webauthn_credentials]).to eq([])
+        expect(result[:methods]).to eq(%w[password])
       end
     end
 

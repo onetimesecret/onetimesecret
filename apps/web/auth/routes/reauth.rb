@@ -142,7 +142,10 @@ module Auth
       end
 
       def build_reauth_offer(account_id)
-        Auth::Operations::ReauthOffer.new(rodauth.db).call(
+        Auth::Operations::ReauthOffer.new(
+          rodauth.db,
+          webauthn_loaded: rodauth.respond_to?(:webauthn_auth_route),
+        ).call(
           account_id: account_id,
           env: request.env,
         )

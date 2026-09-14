@@ -14,7 +14,17 @@ RSpec.describe Auth::Operations::Reauthenticate do
   let(:session) { {} }
   let(:env)     { { 'onetime.domain_strategy' => :canonical } }
   let(:account) { { id: 42, email: 'user@example.com' } }
-  let(:rodauth) { double('Rodauth', account_from_session: account) }
+  # A full-feature install: the loaded-route predicates the operation uses
+  # to mask MfaStateChecker (mirroring the login hook) all respond.
+  let(:rodauth) do
+    double(
+      'Rodauth',
+      account_from_session: account,
+      otp_auth_route: 'otp-auth',
+      recovery_auth_route: 'recovery-auth',
+      webauthn_auth_route: 'webauthn-auth',
+    )
+  end
   let(:offer) do
     {
       surface: Onetime::SessionSurface::CANONICAL,
@@ -227,6 +237,101 @@ RSpec.describe Auth::Operations::Reauthenticate do
           false,
         ),
       ).to be false
+    end
+  end
+
+  context 'when a configured factor belongs to a feature that is not loaded' do
+    # Stale rows: a passkey registered before AUTH_WEBAUTHN_ENABLED was
+    # switched off, or an OTP secret left behind by AUTH_MFA_ENABLED=false.
+    let(:mfa_state) do
+      instance_double(
+        Auth::Operations::MfaStateChecker::State,
+        mfa_enabled?: true,
+        has_otp_secret: true,
+        has_recovery_codes: true,
+        has_webauthn: true,
+      )
+    end
+
+    context 'with no second-factor feature loaded' do
+      let(:rodauth) { double('Rodauth', account_from_session: account) }
+
+      it 'treats the account as having no completable MFA and records password alone' do
+        result = operation.call(
+          account_id: 42,
+          offer: offer,
+          params: { 'method' => 'password', 'password' => 'correct-password' },
+        )
+
+        expect(result.status).to eq(200)
+        expect(Onetime::RecentReauth).to have_received(:record).with(
+          session,
+          env,
+          account_id: 42,
+          methods: %w[password],
+        )
+      end
+
+      it 'refuses a passkey primary ceremony instead of raising on the missing feature' do
+        result = operation.call(
+          account_id: 42,
+          offer: offer,
+          params: { 'method' => 'webauthn' },
+        )
+
+        expect(result.status).to eq(403)
+        expect(result.body['error_code']).to eq('webauthn_unavailable')
+        expect(Onetime::RecentReauth).not_to have_received(:record)
+      end
+    end
+
+    context 'with only the OTP feature loaded' do
+      let(:rodauth) { double('Rodauth', account_from_session: account, otp_auth_route: 'otp-auth') }
+
+      it 'refuses a passkey second factor instead of raising on the missing feature' do
+        result = operation.call(
+          account_id: 42,
+          offer: offer,
+          params: { 'method' => 'password', 'password' => 'correct-password', 'mfa_method' => 'webauthn' },
+        )
+
+        expect(result.status).to eq(403)
+        expect(result.body['error_code']).to eq('webauthn_unavailable')
+        expect(result.password_verified).to be true
+      end
+
+      it 'offers only the completable second factors' do
+        result = operation.call(
+          account_id: 42,
+          offer: offer,
+          params: { 'method' => 'password', 'password' => 'correct-password' },
+        )
+
+        expect(result.status).to eq(200)
+        expect(result.body).to eq('mfa_required' => true, 'mfa_methods' => %w[otp])
+        expect(Onetime::RecentReauth).not_to have_received(:record)
+      end
+    end
+
+    context 'with only the WebAuthn feature loaded' do
+      let(:rodauth) { double('Rodauth', account_from_session: account, webauthn_auth_route: 'webauthn-auth') }
+
+      it 'routes straight to the passkey second factor (webauthn is the only completable one)' do
+        allow(db).to receive(:schema).with(:account_webauthn_keys).and_return([])
+        dataset = double('Dataset')
+        allow(db).to receive(:[]).with(:account_webauthn_keys).and_return(dataset)
+        allow(dataset).to receive_messages(where: dataset, select: dataset, all: [])
+
+        result = operation.call(
+          account_id: 42,
+          offer: offer,
+          params: { 'method' => 'password', 'password' => 'correct-password' },
+        )
+
+        expect(result.status).to eq(403)
+        expect(result.body['error_code']).to eq('webauthn_unavailable')
+        expect(result.password_verified).to be true
+      end
     end
   end
 

@@ -204,6 +204,21 @@ RSpec.describe 'Reauthentication routes (Auth::Routes::Reauth)' do
     end
   end
 
+  describe 'offer construction' do
+    before { login(account_id) }
+
+    it 'tells the offer whether the WebAuthn feature is loaded (mini app: it is not)' do
+      offer = { surface: { kind: :canonical }, methods: %w[password], webauthn_credentials: [], related_origins: [] }
+      operation = instance_double(Auth::Operations::ReauthOffer, call: offer)
+      allow(Auth::Operations::ReauthOffer).to receive(:new).and_return(operation)
+
+      get '/reauth-offer'
+
+      expect(last_response.status).to eq(200)
+      expect(Auth::Operations::ReauthOffer).to have_received(:new).with(db, webauthn_loaded: false)
+    end
+  end
+
   describe 'failure handling' do
     before { login(account_id) }
 

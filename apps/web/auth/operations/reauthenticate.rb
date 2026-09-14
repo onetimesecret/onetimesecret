@@ -21,6 +21,20 @@ module Auth
       Result          = Data.define(:status, :body, :password_verified)
       CHALLENGE_FIELD = 'reauth_webauthn_challenge'
 
+      # MfaStateChecker reports raw table counts. A factor whose Rodauth
+      # feature is not loaded on this install cannot be completed, so it must
+      # neither gate re-authentication nor be offered as a second factor —
+      # the same mask the login hook applies (config/hooks/login.rb). Stale
+      # rows (a passkey registered before AUTH_WEBAUTHN_ENABLED was switched
+      # off, an OTP secret left behind by AUTH_MFA_ENABLED=false) would
+      # otherwise route the ceremony into methods that do not exist here
+      # (NoMethodError → 500) or can never verify (401 forever).
+      LoadedMfaState = Data.define(:has_otp_secret, :has_recovery_codes, :has_webauthn) do
+        def mfa_enabled?
+          has_otp_secret || has_recovery_codes || has_webauthn
+        end
+      end
+
       def initialize(db, rodauth:, session:, env:)
         @db      = db
         @rodauth = rodauth
@@ -61,7 +75,7 @@ module Auth
         end
         return error(401, 'Incorrect password.', 'invalid_password') unless verified
 
-        state = MfaStateChecker.new(@db).check(account[:id])
+        state = loaded_mfa_state(MfaStateChecker.new(@db).check(account[:id]))
         unless state.mfa_enabled?
           return record(account[:id], %w[password], password_verified: true)
         end
@@ -107,6 +121,8 @@ module Auth
       end
 
       def authenticate_webauthn(account_id, offer, params, primary:)
+        return error(403, 'No passkey is available on this surface.', 'webauthn_unavailable', !primary) unless webauthn_loaded?
+
         rows = eligible_webauthn_rows(account_id, offer)
         return error(403, 'No passkey is available on this surface.', 'webauthn_unavailable', !primary) if rows.empty?
 
@@ -282,6 +298,26 @@ module Auth
 
       def webauthn_mfa_only?(state)
         state.has_webauthn && !state.has_otp_secret && !state.has_recovery_codes
+      end
+
+      def loaded_mfa_state(state)
+        LoadedMfaState.new(
+          has_otp_secret: otp_loaded? && state.has_otp_secret == true,
+          has_recovery_codes: recovery_loaded? && state.has_recovery_codes == true,
+          has_webauthn: webauthn_loaded? && state.has_webauthn == true,
+        )
+      end
+
+      def otp_loaded?
+        @rodauth.respond_to?(:otp_auth_route)
+      end
+
+      def recovery_loaded?
+        @rodauth.respond_to?(:recovery_auth_route)
+      end
+
+      def webauthn_loaded?
+        @rodauth.respond_to?(:webauthn_auth_route)
       end
 
       def record(account_id, methods, password_verified: false)

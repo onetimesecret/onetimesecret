@@ -56,8 +56,15 @@ module Auth
     # available so a caller can render a "wrong host" notice.
     class ReauthOffer
       # @param db [Sequel::Database]
-      def initialize(db)
-        @db = db
+      # @param webauthn_loaded [Boolean] whether the Rodauth WebAuthn feature
+      #   is loaded on this install (`rodauth.respond_to?(:webauthn_auth_route)`).
+      #   Registered passkey rows outlive AUTH_WEBAUTHN_ENABLED being switched
+      #   off; without the feature the assertion ceremony cannot run, so such
+      #   rows must not surface in the offer (mirrors the login hook's
+      #   `webauthn_loaded` mask).
+      def initialize(db, webauthn_loaded:)
+        @db              = db
+        @webauthn_loaded = webauthn_loaded == true
       end
 
       # @param account_id [Integer, nil]
@@ -97,6 +104,7 @@ module Auth
 
       def safe_read_credentials(account_id)
         return [] if account_id.nil?
+        return [] unless @webauthn_loaded
 
         ReadWebauthnCredentials.new(@db).call(account_id)
       rescue StandardError => ex
