@@ -309,7 +309,7 @@ module Onetime
         return [] if related_origins_json.to_s.empty?
 
         parsed = JSON.parse(related_origins_json)
-        parsed.is_a?(Array) ? parsed : []
+        parsed.is_a?(Array) ? parsed.grep(String) : []
       rescue JSON::ParserError
         []
       end

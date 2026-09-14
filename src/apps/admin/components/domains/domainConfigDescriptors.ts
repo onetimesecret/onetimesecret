@@ -41,6 +41,7 @@ export const DOMAIN_CONFIG_EDIT_FIELDS: Record<
       allowUnset: true,
       defaultValue: null,
     },
+    { name: 'related_origins', type: 'domains', defaultValue: [] },
   ],
   signup: [
     { name: 'enabled', type: 'boolean', defaultValue: false },

@@ -92,6 +92,7 @@ function signinConfig(overrides: Record<string, unknown> = {}) {
     email_auth_enabled: false,
     sso_enabled: false,
     restrict_to: null,
+    related_origins: [],
     created: 1700000000,
     updated: 1700003600,
     ...overrides,
