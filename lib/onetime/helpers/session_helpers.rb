@@ -24,6 +24,7 @@
 
 require_relative '../session/active_session_gate'
 require_relative '../session/impersonation'
+require_relative '../session/surface'
 
 module Onetime
   module Helpers
@@ -32,7 +33,8 @@ module Onetime
         session['authenticated'] == true &&
           !session['external_id'].to_s.empty? &&
           session_auth_enforced? &&
-          !active_session_revoked?
+          !active_session_revoked? &&
+          session_surface_matches?
       end
 
       # Check user role without loading Customer (uses session data)
@@ -74,6 +76,25 @@ module Onetime
       end
 
       private
+
+      # Surface-bound session enforcement (#4409). The Rack session records
+      # the surface (canonical / subdomain / custom) that established it at
+      # login; a request whose resolved surface differs is refused, treated
+      # as unauthenticated. A missing marker is a mismatch (legacy sessions
+      # pre-#4409 have none), so the answer is false and the session is
+      # effectively anonymous for the request. The auth router destroys such
+      # sessions before they reach any handler; on this surface we only
+      # refuse, so a browser holding a legacy or misconfigured cookie that
+      # somehow reached the main app is not treated as signed in.
+      #
+      # No SELECT: this is a pure hash comparison against env stashed by
+      # DomainStrategy, safe to call per request.
+      def session_surface_matches?
+        env = rack_env_for_impersonation
+        return false unless env
+
+        Onetime::SessionSurface.matches_request?(session, env)
+      end
 
       # Full-mode active-session enforcement (Onetime::ActiveSessionGate, terms
       # defined there): the controller-side twin of the check in

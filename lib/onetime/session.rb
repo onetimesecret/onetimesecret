@@ -14,6 +14,7 @@ require_relative 'session/codec'
 require_relative 'session/sidecar'
 require_relative 'session/impersonation'
 require_relative 'session/active_session_gate'
+require_relative 'session/surface'
 require_relative 'operations/sessions/track_metadata'
 
 module Onetime

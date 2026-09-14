@@ -24,6 +24,8 @@ module Onetime
     # @note Adds to Rack environment:
     #   - env['onetime.display_domain']  : Normalized domain for display
     #   - env['onetime.domain_strategy'] : Classification symbol (:canonical, :subdomain, :custom, :invalid)
+    #   - env['onetime.custom_domain']   : Resolved CustomDomain instance (:custom only)
+    #   - env['onetime.custom_domain_id']: CustomDomain#identifier (:custom only)
     #
     # ## :invalid is NOT only a property of the hostname (#4139)
     #
@@ -250,6 +252,18 @@ module Onetime
 
         env['onetime.display_domain']  = display_domain
         env['onetime.domain_strategy'] = resolved_domain_strategy
+
+        # For :custom, resolve the CustomDomain#identifier once and stash it in
+        # env so downstream code (surface-bound sessions, tenant SSO hooks) can
+        # read the stable tenant id without repeating the display_domain lookup.
+        # The identifier is what sessions record and enforcement compares, so
+        # exposing it here is the single source of truth for tenant identity in
+        # the request.
+        if resolved_domain_strategy == :custom
+          custom_domain                   = Chooserator.custom_domain_for(display_domain)
+          env['onetime.custom_domain']    = custom_domain
+          env['onetime.custom_domain_id'] = custom_domain&.identifier
+        end
 
         http_logger.debug '[DomainStrategy] determined',
           {
@@ -555,9 +569,19 @@ module Onetime
           # @param potential_custom_domain [String] Domain to check
           # @return [Boolean] true if domain exists in CustomDomain table
           def known_custom_domain?(potential_custom_domain)
+            !custom_domain_for(potential_custom_domain).nil?
+          end
+
+          # Loads the CustomDomain instance for a host, or nil if unknown.
+          # Exposed so the middleware can stash the resolved identifier in env
+          # without a caller-visible re-lookup.
+          #
+          # @param potential_custom_domain [String] Domain to load
+          # @return [Onetime::CustomDomain, nil]
+          def custom_domain_for(potential_custom_domain)
             # This will load the model if it hasn't been loaded yet
             # and avoid circular references between lib and v2.
-            !Onetime::CustomDomain.from_display_domain(potential_custom_domain).nil?
+            Onetime::CustomDomain.from_display_domain(potential_custom_domain)
           end
         end
       end

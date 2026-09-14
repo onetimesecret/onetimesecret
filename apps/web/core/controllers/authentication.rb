@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/session/impersonation'
+require 'onetime/session/surface'
 
 require_relative 'base'
 
@@ -128,6 +129,7 @@ module Core
           # session contract for Core's simple-auth login flow.
           session['authenticated']    = true
           session['authenticated_at'] = Familia.now.to_i
+          Onetime::SessionSurface.record(session, req.env)
 
           # #4327: an identity change must always land UNELEVATED. This path
           # deliberately does not clear or renew the session (compare

@@ -103,6 +103,8 @@ RSpec.describe 'Admin-surface session lifetime (#4331)', type: :integration do
     env 'rack.session', {
       'external_id' => user.extid,
       'authenticated' => true,
+      # #4409: hand-seeded sessions need the surface marker the login hooks record.
+      Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
       'authenticated_at' => authenticated_at,
       'role' => user.role,
     }

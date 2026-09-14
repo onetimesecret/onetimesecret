@@ -47,6 +47,8 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
 
     env 'rack.session', {
       'authenticated' => true,
+      # #4409: hand-seeded sessions need the surface marker the login hooks record.
+      Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
       'external_id' => customer.extid,
     }
   end
@@ -246,6 +248,7 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
         other_customer.save
         env 'rack.session', {
           'authenticated' => true,
+          Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
           'external_id' => other_customer.extid,
         }
       end
@@ -368,6 +371,7 @@ RSpec.describe 'BLOCKER 3: Receipt Recent API', :integration, :vcr do
       before do
         env 'rack.session', {
           'authenticated' => true,
+          Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
           'external_id' => customer.extid,
         }
       end

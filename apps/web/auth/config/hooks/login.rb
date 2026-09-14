@@ -139,6 +139,11 @@ module Auth::Config::Hooks
         primary_auth           = authenticated_by.first if respond_to?(:authenticated_by)
         session['auth_method'] = primary_auth || (via_omniauth ? 'omniauth' : 'password')
 
+        # The surface marker (#4409) is NOT stamped here. `login_session`
+        # already recorded it via the prepended update_session override
+        # (config/overrides/surface_binding.rb), which is the seam this hook
+        # shares with the autologins that never fire after_login.
+
         # Join domain organization for SSO logins on custom domains.
         # Runs BEFORE MFA detection so SSO users with OTP configured (e.g.,
         # legacy password+MFA accounts now using SSO) still get joined. This

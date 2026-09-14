@@ -45,7 +45,7 @@ module Onetime
         :domains_enabled,
         :strategy_result
 
-      attr_accessor :domain_strategy, :display_domain
+      attr_accessor :domain_strategy, :display_domain, :custom_domain_id
 
       def initialize(strategy_result, params, locale = nil)
         @strategy_result = strategy_result
@@ -364,8 +364,24 @@ module Onetime
       def extract_domain_context(strategy_result)
         return unless strategy_result
 
-        @domain_strategy = strategy_result.metadata[:domain_strategy]
-        @display_domain  = strategy_result.metadata[:display_domain]
+        @domain_strategy  = strategy_result.metadata[:domain_strategy]
+        @display_domain   = strategy_result.metadata[:display_domain]
+        @custom_domain_id = strategy_result.metadata[:custom_domain_id]
+      end
+
+      # The Rack env keys Onetime::SessionSurface.for_env reads, rebuilt from
+      # the strategy metadata (logic classes never see the env). For a logic
+      # class that mints an authenticated session itself rather than through
+      # a login path, this is what `SessionSurface.record(sess, surface_env)`
+      # takes so the session carries the same marker a login would stamp.
+      #
+      # @return [Hash]
+      def surface_env
+        {
+          'onetime.domain_strategy' => domain_strategy,
+          'onetime.display_domain' => display_domain,
+          'onetime.custom_domain_id' => custom_domain_id,
+        }
       end
 
       # Send (or resend) a verification email.
