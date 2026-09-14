@@ -127,7 +127,8 @@ export const reauthOfferResponseSchema = z.object({
   surface: reauthSurfaceSchema.nullable(),
   methods: z.array(z.enum(['password', 'webauthn'])),
   webauthn_credentials: z.array(reauthWebauthnCredentialSchema),
-  related_origins: z.array(reauthSurfaceSchema),
+  /** Exact browser origins (scheme://host[:port]) — see routes/reauth.rb */
+  related_origins: z.array(z.string()),
 });
 export type ReauthOfferResponse = z.infer<typeof reauthOfferResponseSchema>;
 

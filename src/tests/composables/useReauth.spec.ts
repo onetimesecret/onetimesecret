@@ -34,7 +34,7 @@ describe('useReauth', () => {
       surface: { kind: 'custom', id: 'tenant-a' },
       methods: ['webauthn', 'password'],
       webauthn_credentials: [{ scope: 'platform' }],
-      related_origins: [{ kind: 'canonical' }],
+      related_origins: ['https://example.com'],
     });
 
     const { fetchOffer, offer, error } = useReauth();
@@ -43,7 +43,7 @@ describe('useReauth', () => {
       surface: { kind: 'custom', id: 'tenant-a' },
       methods: ['webauthn', 'password'],
       webauthn_credentials: [{ scope: 'platform' }],
-      related_origins: [{ kind: 'canonical' }],
+      related_origins: ['https://example.com'],
     });
     expect(offer.value?.surface).toEqual({ kind: 'custom', id: 'tenant-a' });
     expect(error.value).toBeNull();
