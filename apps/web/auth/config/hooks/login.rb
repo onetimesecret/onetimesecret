@@ -369,6 +369,24 @@ module Auth::Config::Hooks
             )
           end
 
+          # Recent full re-authentication (#4410). A login that reaches
+          # branch 3b has ALREADY satisfied MFA policy: DetectMfaRequirement
+          # said no factor was pending. That covers the three "no factor
+          # pending" cases the epic accepts as local proof: no MFA
+          # configured, MFA configured but not required by policy, and
+          # WebAuthn primary (via_webauthn_login) that Rodauth counts as
+          # covering the requirement. Only explicitly reviewed local primaries
+          # may create proof; unknown and future methods remain fail-closed.
+          # after_two_factor_authentication owns the MFA-completion path.
+          if Onetime::RecentReauth::LOCAL_PRIMARIES.include?(primary_auth)
+            Onetime::RecentReauth.record(
+              session,
+              request.env,
+              account_id: account_id,
+              methods: (respond_to?(:authenticated_by) ? Array(authenticated_by) : [primary_auth].compact),
+            )
+          end
+
           # Best-effort new-sign-in security alert for password-only logins.
           # MFA logins fire this from after_two_factor_authentication instead,
           # so each completed login produces exactly one alert. Location is the
