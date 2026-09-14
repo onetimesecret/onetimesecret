@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require_relative 'sidecar'
 require_relative 'surface'
 
 module Onetime
@@ -38,9 +39,10 @@ module Onetime
   #   the first entry to be an explicitly allowed local primary, and the list
   #   also lets support distinguish password + MFA from WebAuthn primary.
   #
-  # A session's proof lives in the Rack session under {KEY}. It is bound to
-  # the session by construction: it is stored inside the session blob, and
-  # a different Rack session (different sid, different cookie) has its own.
+  # A session's proof lives in an encrypted {SessionSidecar} key under {KEY}.
+  # The envelope is bound to the session id and field name. The enforcement
+  # gate atomically consumes it, so one completed ceremony authorizes one
+  # sensitive admission attempt and cannot be replayed concurrently.
   #
   # ## What counts as a full ceremony
   #
@@ -91,7 +93,7 @@ module Onetime
     LOCAL_PRIMARIES = %w[password webauthn].freeze
 
     class << self
-      # Record a proof onto the session. Returns the stored payload, or
+      # Record a proof in the session-bound sidecar. Returns the stored payload, or
       # nil when the request has no authoritative surface (in which case
       # nothing is recorded).
       #
@@ -115,12 +117,18 @@ module Onetime
           'surface' => surface,
           'methods' => completed_methods,
         }.freeze
-        session[KEY] = payload
+
+        session.delete(KEY) if session.respond_to?(:delete)
+        return nil unless SessionSidecar.write(session_id(session), KEY, payload)
+
+        payload
+      rescue StandardError
+        nil
       end
 
-      # The gate. True iff a proof is present, is for this account, was
-      # produced on this request's surface, and is not older than
-      # `max_age` seconds.
+      # The one-shot gate. Atomically consumes the proof, then returns true iff
+      # it is for this account and surface and is not older than `max_age`.
+      # Invalid proofs remain consumed so repeated attempts cannot replay them.
       #
       # @param session [Hash, nil] Rack session
       # @param env [Hash, nil] Rack env
@@ -133,7 +141,8 @@ module Onetime
         return false if session.nil? || env.nil?
         return false if account_id.nil?
 
-        stored = session[KEY]
+        session.delete(KEY) if session.respond_to?(:delete)
+        stored = SessionSidecar.consume(session_id(session), KEY)
         return false unless stored.is_a?(Hash)
 
         stored_account = stored['account_id']
@@ -153,20 +162,35 @@ module Onetime
         return false if at > now.utc.to_i # future-dated proof is bogus
 
         true
+      rescue StandardError
+        false
       end
 
       # Read the stored payload without comparison. Callers that need to
       # log the proof or expose it in diagnostics use this; enforcement
       # uses {satisfied?}.
       def recorded(session)
-        session[KEY]
+        SessionSidecar.read(session_id(session), KEY)
+      rescue StandardError
+        nil
       end
 
       # Clear the marker. Called from logout and any code path that
       # invalidates the proof (e.g. successful identity binding when the
       # proof is single-use).
       def clear(session)
-        session.delete(KEY)
+        session.delete(KEY) if session.respond_to?(:delete)
+        SessionSidecar.delete(session_id(session), KEY)
+      rescue StandardError
+        0
+      end
+
+      private
+
+      def session_id(session)
+        session&.id&.public_id
+      rescue StandardError
+        nil
       end
     end
   end

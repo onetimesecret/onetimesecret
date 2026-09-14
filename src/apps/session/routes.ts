@@ -8,6 +8,25 @@ import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
   {
+    path: '/reauth',
+    name: 'Re-authenticate',
+    component: () => import('@/apps/session/views/Reauth.vue'),
+    meta: {
+      title: 'Re-authenticate',
+      requiresAuth: true,
+      layout: AuthLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayToggles: true,
+      },
+      sentryScrubParams: false,
+    },
+  },
+  {
     path: '/signin',
     name: 'Sign In',
     component: () => import('@/apps/session/views/Login.vue'),

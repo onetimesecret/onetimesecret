@@ -82,6 +82,7 @@ GET   /account/email/confirm/:token              Core::Controllers::Page#index a
 # Authenticated routes - require valid session
 GET   /dashboard                                 Core::Controllers::Page#index auth=sessionauth
 GET   /recent                                    Core::Controllers::Page#index auth=sessionauth
+GET   /reauth                                    Core::Controllers::Page#index auth=sessionauth
 GET   /domains/*                                 Core::Controllers::Page#index auth=sessionauth
 GET   /domains                                   Core::Controllers::Page#index auth=sessionauth
 GET   /account/*                                 Core::Controllers::Page#index auth=sessionauth

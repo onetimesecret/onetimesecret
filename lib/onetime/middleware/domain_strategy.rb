@@ -217,12 +217,20 @@ module Onetime
         display_domain  = canonical_domain
         domain_strategy = :canonical
 
+        custom_domain = nil
         if domains_enabled?
           # Check for domain context override first (development feature)
           override_domain, override_source = detect_domain_override(env)
           if override_domain
             display_domain  = override_domain
             domain_strategy = :custom
+            custom_domain   = begin
+              Chooserator.custom_domain_for(display_domain)
+            rescue StandardError => ex
+              http_logger.error '[DomainStrategy] override domain lookup failed',
+                { exception: ex, domain: display_domain }
+              nil
+            end
 
             http_logger.info '[DomainStrategy] override active',
               {
@@ -233,11 +241,13 @@ module Onetime
           else
             display_domain  = env[Rack::DetectHost.result_field_name]
             # OT.ld "[middleware] DomainStrategy: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
-            domain_strategy = Chooserator.choose_strategy(
+            classification  = Chooserator.classify(
               display_domain,
               canonical_domains_parsed,
               anchor_domains: anchor_domains_parsed,
             )
+            domain_strategy = classification.strategy
+            custom_domain   = classification.custom_domain
           end
         end
 
@@ -260,7 +270,6 @@ module Onetime
         # exposing it here is the single source of truth for tenant identity in
         # the request.
         if resolved_domain_strategy == :custom
-          custom_domain                   = Chooserator.custom_domain_for(display_domain)
           env['onetime.custom_domain']    = custom_domain
           env['onetime.custom_domain_id'] = custom_domain&.identifier
         end
@@ -354,6 +363,8 @@ module Onetime
       end
 
       module Chooserator
+        Classification = Data.define(:strategy, :custom_domain)
+
         class << self
           # Determines the domain strategy for a request domain.
           #
@@ -407,14 +418,25 @@ module Onetime
           #   The anchor subset to sweep; nil means "same as canonical_domains"
           # @return [Symbol, nil] Domain strategy (:canonical, :subdomain, :custom) or nil if invalid
           def choose_strategy(request_domain, canonical_domains, anchor_domains: nil)
+            classify(request_domain, canonical_domains, anchor_domains: anchor_domains).strategy
+          end
+
+          # Classifies a request host and retains the CustomDomain loaded while
+          # deciding :custom, so middleware callers do not perform a second
+          # datastore read outside this method's fail-closed rescue boundary.
+          #
+          # @return [Classification]
+          def classify(request_domain, canonical_domains, anchor_domains: nil)
             canonical_domains = [canonical_domains] unless canonical_domains.is_a?(Array)
             canonical_domains = canonical_domains.compact
             # Guard against empty canonical set (can happen if class init ran before Runtime.features was set)
-            return nil if canonical_domains.empty?
-            return nil if request_domain.nil? || request_domain.to_s.strip.empty?
+            return Classification.new(strategy: nil, custom_domain: nil) if canonical_domains.empty?
+            if request_domain.nil? || request_domain.to_s.strip.empty?
+              return Classification.new(strategy: nil, custom_domain: nil)
+            end
 
             canonical_domains = parse_host_set(canonical_domains)
-            return nil if canonical_domains.empty?
+            return Classification.new(strategy: nil, custom_domain: nil) if canonical_domains.empty?
 
             # An empty anchor set means no sweeps at all, never a fallback to
             # the full set: with no anchors there is nothing whose base domain
@@ -428,23 +450,27 @@ module Onetime
             # the arm this way keeps the pre-#4063 behavior identical whenever
             # the two sets are equal, while a pool member participates by exact
             # match alone.
+            strategy             = nil
+            custom_domain        = nil
             if canonical_domains.any? { |host| exact_host?(request_domain, host) } ||
                sweep_domains.any? { |host| equal_to?(request_domain, host) }
-              :canonical
-            elsif known_custom_domain?(request_domain.name)
-              :custom
+              strategy = :canonical
+            elsif (custom_domain = custom_domain_for(request_domain.name))
+              strategy = :custom
             elsif sweep_domains.any? { |host| canonical?(request_domain, host) } # rubocop:disable Lint/DuplicateBranch
-              :canonical
+              strategy = :canonical
             elsif sweep_domains.any? { |host| subdomain_of?(request_domain, host) }
-              :subdomain
+              strategy = :subdomain
             end
+
+            Classification.new(strategy: strategy, custom_domain: custom_domain)
           rescue PublicSuffix::DomainInvalid => ex
             Onetime.http_logger.debug 'Invalid domain in strategy selection',
               {
                 exception: ex,
                 request_domain: host_label(request_domain),
               }
-            nil
+            Classification.new(strategy: nil, custom_domain: nil)
           rescue StandardError => ex
             # Names, not objects: a PublicSuffix::Domain inspects to its ivars
             # and reads as noise in the log line.
@@ -454,7 +480,7 @@ module Onetime
                 request_domain: host_label(request_domain),
                 canonical_domains: canonical_domains.map { |host| host_label(host) },
               }
-            nil
+            Classification.new(strategy: nil, custom_domain: nil)
           end
 
           # @param host [PublicSuffix::Domain, String, nil]

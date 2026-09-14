@@ -281,6 +281,7 @@ module Onetime
             email_auth_enabled: config.email_auth_enabled?,
             sso_enabled: config.sso_enabled?,
             restrict_to: presence(config.restrict_to),
+            related_origins: config.related_origins,
             created: epoch_or_nil(config.created),
             updated: epoch_or_nil(config.updated),
           }

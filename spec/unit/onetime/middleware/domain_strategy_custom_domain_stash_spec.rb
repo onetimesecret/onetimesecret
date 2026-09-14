@@ -24,17 +24,16 @@ RSpec.describe Onetime::Middleware::DomainStrategy do
       # `#call` on its normal code path.
       allow(middleware).to receive_messages(
         domains_enabled?: true,
+        detect_domain_override: [nil, nil],
         canonical_domain: 'example.com',
         canonical_domains_parsed: [PublicSuffix.parse('example.com')],
         anchor_domains_parsed: [PublicSuffix.parse('example.com')],
       )
     end
 
-    it 'stashes the CustomDomain instance and identifier when strategy resolves :custom' do
-      allow(described_class::Chooserator).to receive_messages(
-        choose_strategy: :custom,
-        custom_domain_for: custom_domain,
-      )
+    it 'reuses the CustomDomain loaded during classification' do
+      expect(Onetime::CustomDomain).to receive(:from_display_domain)
+        .with('secrets.acme.com').once.and_return(custom_domain)
 
       env = {
         Rack::DetectHost.result_field_name => 'secrets.acme.com',
@@ -46,26 +45,19 @@ RSpec.describe Onetime::Middleware::DomainStrategy do
       expect(env['onetime.custom_domain_id']).to eq('domain-abc-123')
     end
 
-    it 'stashes a nil identifier when :custom classification cannot resolve the domain (blip)' do
-      # choose_strategy returned :custom (its own known_custom_domain? saw the
-      # row) but the follow-up load lost the race — a genuine possibility, and
-      # exactly the case surface enforcement must refuse rather than crash.
-      allow(described_class::Chooserator).to receive_messages(
-        choose_strategy: :custom,
-        custom_domain_for: nil,
-      )
+    it 'contains a datastore failure during classification and fails closed' do
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
+        .with('secrets.acme.com').and_raise(StandardError, 'redis unavailable')
 
       env = { Rack::DetectHost.result_field_name => 'secrets.acme.com' }
-      middleware.call(env)
+      expect { middleware.call(env) }.not_to raise_error
 
-      expect(env['onetime.domain_strategy']).to eq(:custom)
-      expect(env['onetime.custom_domain']).to be_nil
-      expect(env['onetime.custom_domain_id']).to be_nil
+      expect(env['onetime.domain_strategy']).to eq(:invalid)
+      expect(env).not_to have_key('onetime.custom_domain')
+      expect(env).not_to have_key('onetime.custom_domain_id')
     end
 
     it 'does not stash a CustomDomain for non-:custom classifications' do
-      allow(described_class::Chooserator).to receive(:choose_strategy).and_return(:canonical)
-
       env = { Rack::DetectHost.result_field_name => 'example.com' }
       middleware.call(env)
 

@@ -751,6 +751,10 @@
     "text": "Allowed signup domains",
     "content_hash": "9b5bb5b1"
   },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Related passkey origins",
+    "content_hash": "e6160714"
+  },
   "web.admin.domains.configs.fields.secrets_mode": {
     "text": "Secrets mode",
     "content_hash": "8d4349d6"

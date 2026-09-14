@@ -18,6 +18,7 @@ require_relative 'routes/account'
 require_relative 'routes/active_sessions'
 require_relative 'routes/identities'
 require_relative 'routes/webauthn_credentials'
+require_relative 'routes/reauth'
 require_relative 'routes/link_sso'
 require_relative 'routes/sso_link_confirm'
 require_relative 'routes/mfa'
@@ -46,6 +47,7 @@ module Auth
     include Auth::Routes::ActiveSessions
     include Auth::Routes::Identities
     include Auth::Routes::WebauthnCredentials
+    include Auth::Routes::Reauth
     include Auth::Routes::LinkSso
     include Auth::Routes::SsoLinkConfirm
 
@@ -424,6 +426,9 @@ module Auth
       # WebAuthn credential (passkey) listing routes; removal stays with
       # Rodauth's POST /auth/webauthn-remove
       handle_webauthn_credentials_routes(r)
+
+      # Surface-aware re-authentication offer and completion endpoints (#4414).
+      handle_reauth_routes(r)
 
       # SSO sign-in interstitial: password-challenge linking (#3840 Phase 3)
       handle_link_sso_routes(r)

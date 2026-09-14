@@ -158,7 +158,7 @@ module Onetime
       # externalize:false->true flip with no risk of leaving the two flags out
       # of step. (This is why it is neither an externalized field nor an
       # explicit-use field — a third, declared-pending-audit state.)
-      '_flash'         => { ttl: 600,   encrypted: true,  merge_on_read: true, externalize: false, destroy_warn: false },
+      '_flash' => { ttl: 600,   encrypted: true, merge_on_read: true, externalize: false, destroy_warn: false },
       # #3859: the SSO account-bound connect-intent nonce (value = the session
       # account id). EXPLICIT-USE: written by omniauth_request_validation_phase
       # when a logged-in caller POSTs connect=1, consumed (atomic GETDEL) by
@@ -173,6 +173,14 @@ module Onetime
       # and the codec's sid/field binding stops a Redis-writing attacker from
       # replaying one session's intent under another sid.
       'sso_connect_intent' => { ttl: 300, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: true },
+      # Single-use WebAuthn re-authentication challenge. Explicit-use and
+      # session-id-bound: verification atomically consumes it before checking
+      # the assertion, so an old or concurrently replayed assertion cannot mint
+      # a fresh RecentReauth proof. Absence always refuses.
+      'reauth_webauthn_challenge' => { ttl: 120, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: true },
+      # One-shot recent full re-authentication proof. Connect admission consumes
+      # this key atomically, so sequential and concurrent replay both fail.
+      'recent_reauth' => { ttl: 900, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: false },
       # #3877 (#3840 Phase 4.A): the interstitial's deferred SSO identity bind
       # — the password-proven (account_id, provider, issuer, uid) tuple carried
       # across the MFA hand-off. EXPLICIT-USE: written by the link-sso route
@@ -500,7 +508,7 @@ module Onetime
             # failure aborts cleanly with no partial writes queued.
             writes[field] = encode_envelope(sid, field, value, policy, codec)
           end
-          data = data.dup if data.equal?(session_data)
+          data  = data.dup if data.equal?(session_data)
           data.delete(field)
         elsif merged.include?(field)
           deletes << field
@@ -509,7 +517,7 @@ module Onetime
 
       return data if writes.empty? && deletes.empty?
 
-      db = dbclient || Familia.dbclient
+      db                = dbclient || Familia.dbclient
       # One TTL probe per commit (not per field): every field clamps against
       # the same blob ceiling read once, before the pipeline.
       effective_ceiling = writes.empty? ? nil : ttl_ceiling(sid, db, authoritative: ceiling, fallback: ceiling)
