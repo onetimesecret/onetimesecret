@@ -171,27 +171,16 @@ module DomainsAPI::Logic
       # @param org_id [String] Organization ID (objid or extid)
       # @return [Onetime::Organization, nil]
       def resolve_target_organization(org_id)
-        # Try loading by objid first, then extid
-        org   = safe_load_organization { Onetime::Organization.load(org_id) }
-        org ||= safe_load_organization { Onetime::Organization.find_by_extid(org_id) }
+        # Try loading by objid first, then extid. Both lookups return nil for
+        # an unknown or blank identifier rather than raising; a datastore
+        # error propagates as it would anywhere else in this logic class.
+        org   = Onetime::Organization.load(org_id)
+        org ||= Onetime::Organization.find_by_extid(org_id)
 
         return nil unless org
         return nil unless org.member?(@cust)
 
         org
-      end
-
-      # Safely load an organization, handling expected "not found" errors
-      # Re-raises connection/system errors, returns nil for record not found
-      #
-      # @yield Block that attempts to load an organization
-      # @return [Onetime::Organization, nil]
-      def safe_load_organization
-        yield
-      rescue Familia::NotConnected, Familia::Problem
-        raise # Re-raise connection/system errors
-      rescue Familia::RecordNotFound, Familia::NoIdentifier
-        nil # Record not found - expected when ID doesn't exist
       end
     end
   end
