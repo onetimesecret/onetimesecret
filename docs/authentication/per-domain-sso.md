@@ -205,7 +205,7 @@ Tenant callbacks are refused instead:
 
 | Situation | Result |
 |-----------|--------|
-| Authenticated session with a valid connect intent, tenant callback | `identity_connect_wrong_domain` |
+| Authenticated session with a valid connect intent, tenant callback | Refused: `identity_connect_conflict` for principal failures; `identity_connect_wrong_domain` for surface, membership, or release-gate failures |
 | Unlinked tenant identity whose asserted email matches an existing account | `tenant_sso_link_unavailable` |
 
 The first row is defence-in-depth behind the host-bound session (below): the
@@ -215,9 +215,9 @@ its callback arrives anonymous, landing on the second row.
 
 The refused connect attempt has already consumed its `sso_connect_intent`. A
 logged-in tenant callback without a valid intent is logged
-`omniauth_connect_intent_absent` and takes the unauthenticated email branches
-instead, so it ends in JIT creation (still subject to
-`before_omniauth_create_account`) or the second row.
+`omniauth_connect_intent_absent` and takes the ordinary non-connect path:
+existing-identity sign-in, or, for an unlinked identity, the email branches
+(JIT creation subject to `before_omniauth_create_account`, or the second row).
 
 The second message does not direct the user to Connected Identities because
 that path also refuses tenant callbacks. Today no membership state changes
@@ -226,6 +226,16 @@ support. An accepted, active membership is the precondition the future tenant
 Connect SSO flow will require (below); it does not by itself link the identity.
 
 #### Requirements for authenticated tenant linking (#3849)
+
+**Implementation status:** `config/hooks/omniauth_connect.rb` implements the
+shared callback pipeline, including session-account and Customer status,
+surface binding, exact-domain membership, and full-tuple ownership checks.
+`OmniAuthConnect.tenant_connect_enabled?` remains hard-coded `false`; there is
+no operator override. An otherwise authorized tenant Connect is refused with
+reason `tenant_connect_prerequisites_incomplete`, without binding an identity.
+Release still requires the panel's identity-equivalence behavior and the
+complete success/refusal regression matrix. Tests exercise the gated pipeline
+with that method stubbed; this does not enable tenant Connect in production.
 
 Removing the tenant refusal requires two independent controls. Neither control
 may be inferred from the IdP's email claim.
@@ -318,12 +328,15 @@ The second control prevents a platform session that happens to receive a valid
 tenant callback from gaining a tenant-issued credential. Callback-domain
 validation remains required, but it cannot substitute for session scoping.
 
-A future tenant Connect SSO flow must therefore fail closed in this order. The
-phases match the platform connect path: the request phase
-(`omniauth_request_validation_phase` in `hooks/omniauth.rb`), then the
-callback route hook (`before_omniauth_callback_route`, owned by
-`hooks/omniauth_tenant.rb`), then `account_from_omniauth` in
-`hooks/omniauth.rb`.
+The tenant Connect SSO flow must fail closed in the following authorization
+order. The request phase remains in `hooks/omniauth.rb`. The shared wrapper in
+`hooks/omniauth_connect.rb` consumes intent on entering
+`before_omniauth_callback_route`, then calls the tenant validation hook in
+`hooks/omniauth_tenant.rb`, then runs the account and binding gates. Consuming
+before tenant validation also burns intent when that validation refuses.
+This wrapper runs before the gem's cached-account and existing-identity
+shortcuts; limiting these gates to `account_from_omniauth` would miss known
+identities.
 
 1. **Request phase.** Require an explicit tenant Connect SSO initiation.
    `connect=1` on an authenticated session writes the existing short-lived,
@@ -333,9 +346,9 @@ callback route hook (`before_omniauth_callback_route`, owned by
    the callback corresponds to the custom domain that initiated it, enforce
    the tenant SSO policy, and stamp `session[:validated_omniauth_domain_id]`.
    This runs before account resolution.
-3. **Consume the intent first.** In `account_from_omniauth`, consume the
-   intent once (atomic `GETDEL`) and compare it with the current session
-   account ID, **before every gate below**. Only a present, matching intent
+3. **Consume the intent first.** The callback wrapper consumes the intent
+   once (atomic `GETDEL`, before step 2), then compares it with the current
+   session account ID after tenant validation, **before every gate below**. Only a present, matching intent
    enters steps 4 to 9; an absent, expired, or mismatched intent is not a
    connect at all and takes the existing non-connect path (logged
    `omniauth_connect_intent_absent`), exactly as on the platform surface.

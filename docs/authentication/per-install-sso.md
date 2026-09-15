@@ -201,15 +201,15 @@ omniauth_request_validation_phase → RecentReauth.satisfied? consumes the recen
     └─ fresh proof → write sidecar:<sid>:sso_connect_intent = { account_id, surface, at }
     │
     ▼
-IdP round-trip → callback → account_from_omniauth
+IdP round-trip → callback wrapper (omniauth_connect.rb)
     │
     ▼
-Consume the intent (atomic GETDEL)
-    ├─ matches the current session account AND the callback surface → bind (provider, issuer, uid), re-affirm session
+Consume the intent (atomic GETDEL), run tenant validation, then Connect gates
+    ├─ matching intent + valid principal + same surface + unclaimed/own tuple → bind or accept existing identity, re-affirm session
     ├─ tenant callback on a platform session → refuse (identity_connect_wrong_domain)
     ├─ intent surface ≠ callback surface     → refuse (identity_connect_wrong_domain)
-    ├─ session account no longer open        → refuse (identity_connect_conflict)
-    └─ absent / expired / malformed / other account → fall through to the email branches (never bind)
+    ├─ session account no longer open, Customer missing/suspended, or tuple owned elsewhere → refuse (identity_connect_conflict)
+    └─ absent / expired / malformed / other account → ordinary non-connect path
     │
     ▼
 Back to /account/settings/security/connections
@@ -246,8 +246,8 @@ Refusal is fail-closed on every path: nothing is minted, any dangling intent fro
 |----------|----------|
 | Written | `omniauth_request_validation_phase` (`config/hooks/omniauth.rb`), during `POST /auth/sso/:provider`, only when a logged-in caller submits `connect=1` **and** the recent-reauth gate consumed a fresh proof (#4411) |
 | Stored as | `sidecar:<sid>:sso_connect_intent` = `{ account_id, surface, at }` — the **session account id**, the surface descriptor the gate verified, and the mint time (a pre-#4411 bare account id is refused as malformed), short TTL (~5 min — one IdP round-trip) |
-| Consumed | Atomic GETDEL in `account_from_omniauth`, before any email-based branch |
-| Binds when | The consumed `account_id` equals the *current* session account id **and** the consumed `surface` equals the callback request's surface |
+| Consumed | Atomic GETDEL in the `before_omniauth_callback_route` wrapper, before tenant validation and the gem's cached-account/known-identity shortcuts |
+| Binds when | The intent matches the current session account and surface, the account is open with an existing unsuspended Customer, the recorded session surface matches, and the full tuple is unclaimed or already owned by that account. Tenant Connect remains release-gated. |
 | Abandoned connect | Needs no cleanup — the key expires. Additionally, any **non**-connect SSO initiation deletes a dangling intent, so a later plain `connect=0` callback can never consume one that is still in TTL |
 | Failure mode | Fail-closed — a failed write or a miss means no intent, and no intent means no bind |
 
@@ -255,21 +255,24 @@ It is a sidecar key rather than a field in the session blob on purpose. A blob-r
 
 #### Email plays no part in the decision
 
-The connect branch is evaluated **first** — ahead of the trusted-provider auto-link and the H-3 refusal — because a proven session credential outranks the email-only heuristics those branches rely on. Within it, the account is loaded **by session id** (`_account_from_session`, which also applies the open-status filter), never by email. The IdP-supplied email appears only in the audit event, obscured.
+The Connect gates run **before account resolution** — ahead of the gem's known-identity shortcut, trusted-provider auto-link, and H-3 refusal. The account is loaded **by session id** (`_account_from_session`, which also applies the open-status filter), never by email. A missing or suspended Customer is refused on both surfaces. The successful Connect audit event records the provider, issuer, and session account ID, not the IdP-supplied email.
 
 That ordering is the point: matching a connect to an email-*located* account would be the pre-account-hijacking anti-pattern — an attacker who controls an IdP that emits a victim's email would be routed to the victim's account. Routing by session leaves the victim untouched no matter what the IdP claims.
 
-"Already linked elsewhere" cannot arise on this path: an existing `(provider, issuer, uid)` row routes the gem to `account_from_omniauth_identity` instead, so this hook is only ever reached for a **new** identity.
+`BindSsoIdentity` resolves ownership by the complete `(provider, issuer, uid)` tuple after authorization. An unclaimed tuple is bound to the session account; a tuple already owned by that account is accepted without a duplicate row. A tuple owned by another account is refused without switching sessions. Connect does not use the ordinary lookup's legacy issuer backfill.
 
 #### Refusals
 
 | Condition | Outcome | Audit event |
 |-----------|---------|-------------|
 | Initiation without recent full re-authentication (no proof, stale, consumed, other account, other surface, non-local primary) | Redirect `/reauth?redirect=/account/settings/security/connections`; **no intent minted** | `omniauth_connect_reauth_required` (level `warn`) |
-| Tenant callback (`validated_omniauth_domain_id` set) on a platform session | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `tenant_surface` |
+| Tenant callback (`validated_omniauth_domain_id` set) on a platform session | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `surface_mismatch` |
 | Intent surface differs from the callback surface (or the callback surface is unresolved) | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `surface_mismatch` |
 | Session account gone or no longer open (e.g. closed mid-session) | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `session_account_missing` |
-| Logged in, but no valid intent (second tab, shared browser, intent for a different account, malformed or pre-#4411 intent) | **No bind** — falls through to the email branches exactly as an unauthenticated caller would | `omniauth_connect_intent_absent` (level `info`) |
+| Customer missing or suspended | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `session_customer_missing` or `session_customer_suspended` |
+| Exact tuple owned by another account | Redirect `/signin?auth_error=identity_connect_conflict`; no account switch | `omniauth_identity_connect_refused`, reason `identity_owned_elsewhere` |
+| Otherwise authorized tenant Connect | Redirect `/signin?auth_error=identity_connect_wrong_domain`; release gate remains closed | `omniauth_identity_connect_refused`, reason `tenant_connect_prerequisites_incomplete` |
+| Logged in, but no valid intent (second tab, shared browser, intent for a different account, malformed or pre-#4411 intent) | **No authenticated Connect** — takes the ordinary existing-identity or email-based sign-in path | `omniauth_connect_intent_absent` (level `info`) |
 | Bind succeeds | `(provider, issuer, uid)` row written for the session account; session re-affirmed | `omniauth_identity_connected` (level `warn`) |
 
 Refusing rather than falling back matters in the first row: a tenant admin controls their own IdP's assertions, so binding a tenant-issuer identity onto a platform-session account would hand them a login into that account.
