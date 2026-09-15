@@ -185,9 +185,14 @@ operator controls the provider configuration, and a bind requires all of the
 following:
 
 1. an authenticated account session;
-2. an explicit `connect=1` initiation that creates a short-lived, single-use,
-   server-side `sso_connect_intent` containing the session account ID; and
-3. a callback classified as platform-originated.
+2. recent full re-authentication with a local credential, including every
+   MFA factor the account requires, consumed single-use at initiation
+   (`Onetime::RecentReauth.satisfied?`, #4411);
+3. an explicit `connect=1` initiation that creates a short-lived, single-use,
+   server-side `sso_connect_intent` containing the session account ID and the
+   surface the re-authentication was verified on; and
+4. a callback classified as platform-originated, on the surface the intent
+   records.
 
 OAuth `state` binds the callback to the browser's SSO initiation. The connect
 intent separately proves that the initiation was a **connect** operation for
@@ -283,8 +288,9 @@ may be inferred from the IdP's email claim.
      meets that policy's user-verification and MFA requirements. Rodauth's
      `password_grace_period` and `confirm_password` features are conventional
      primitives; neither is enabled today. A session restored by the `remember`
-     feature does not satisfy the check. The platform Connect path should adopt
-     the same requirement.
+     feature does not satisfy the check. The platform Connect path enforces
+     this requirement as of #4411 (`RecentReauth::CONNECT_MAX_AGE`, 300s; see
+     [per-install-sso.md](per-install-sso.md#recent-full-re-authentication-gates-the-intent-4411)).
 
    Email authentication is not an equivalent option for this requirement.
    [NIST SP 800-63B-4 section 3.1.3.1](https://pages.nist.gov/800-63-4/sp800-63b/authenticators/#out-of-band-authenticators)

@@ -92,6 +92,13 @@ module Onetime
     # mailbox, and federated methods fail-closed.
     LOCAL_PRIMARIES = %w[password webauthn].freeze
 
+    # Maximum age of a proof that may mint a Connect intent (#4411). The
+    # sidecar TTL ({SessionSidecar::FIELDS} 'recent_reauth', 900s) is only a
+    # storage backstop; this window is the authoritative policy and is
+    # deliberately the same length as the intent's own TTL — a proof is meant
+    # to be spent by the very next Connect initiation, not banked.
+    CONNECT_MAX_AGE = 300
+
     class << self
       # Record a proof in the session-bound sidecar. Returns the stored payload, or
       # nil when the request has no authoritative surface (in which case
