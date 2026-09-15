@@ -162,26 +162,6 @@ module DomainsAPI::Logic
           },
         }
       end
-
-      private
-
-      # Resolve target organization from ID param
-      # Returns nil if not found or user is not a member
-      #
-      # @param org_id [String] Organization ID (objid or extid)
-      # @return [Onetime::Organization, nil]
-      def resolve_target_organization(org_id)
-        # Try loading by objid first, then extid. Both lookups return nil for
-        # an unknown or blank identifier rather than raising; a datastore
-        # error propagates as it would anywhere else in this logic class.
-        org   = Onetime::Organization.load(org_id)
-        org ||= Onetime::Organization.find_by_extid(org_id)
-
-        return nil unless org
-        return nil unless org.member?(@cust)
-
-        org
-      end
     end
   end
 end
