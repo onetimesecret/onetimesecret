@@ -3,15 +3,18 @@
 /**
  * Connect availability for the Connected Identities panel (#4412, epic #4408).
  *
- * The panel offers one Connect button per configured SSO route. Route-name
- * equality identifies the configured platform provider, but it cannot establish
- * tenant identity equivalence: a tenant can use the same route or issuer with a
- * different OIDC client and therefore a different pairwise subject.
+ * The panel offers one Connect button per configured SSO route. Until tenant
+ * identity linking is implemented server-side (#3849), the callback refuses
+ * every connect intent carrying `validated_omniauth_domain_id` with reason
+ * `tenant_surface`. The UI must therefore retain the existing conservative
+ * route-name suppression on tenant hosts instead of exposing a duplicate-route
+ * action that the callback cannot complete.
  *
- * The callback alone receives the full `(provider, issuer, uid)` tuple. Tenant
- * surfaces must keep Connect available and let the callback accept an identity
- * already owned by the session account, bind an unclaimed tuple, or refuse a
- * tuple owned by another account.
+ * Route-name equality is not proof that the configured tenant IdP and stored
+ * identity have the same issuer or subject. It is only the compatibility rule
+ * used while tenant binding remains unavailable. Once the callback can bind a
+ * tenant identity, suppression must compare server-provided identity evidence
+ * rather than a shared platform route name.
  */
 
 import type { ConnectedIdentity } from '@/schemas/api/auth/responses/auth';
@@ -34,21 +37,18 @@ export function connectSurfaceFor(domainStrategy: string | null | undefined): Co
 }
 
 /**
- * True when the client has enough evidence to suppress this provider.
+ * True when an identity already occupies the configured provider route.
  *
- * On the platform, a route name identifies the configured provider. On a tenant
- * surface, neither route nor issuer equality proves an equivalent identity
- * because the masked identity payload cannot establish the callback subject.
+ * The surface argument is retained so tenant linking can introduce stronger
+ * evidence without another call-site API change. For now both surfaces use
+ * route-name suppression because tenant callbacks refuse identity binds.
  */
 export function isKnownLinked(
   provider: SsoProvider,
   identities: readonly ConnectedIdentity[],
-  surface: ConnectSurface
+  _surface: ConnectSurface
 ): boolean {
-  return (
-    surface === 'platform' &&
-    identities.some((identity) => identity.provider === provider.route_name)
-  );
+  return identities.some((identity) => identity.provider === provider.route_name);
 }
 
 /**

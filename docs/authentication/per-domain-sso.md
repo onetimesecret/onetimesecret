@@ -233,9 +233,11 @@ surface binding, exact-domain membership, and full-tuple ownership checks.
 `OmniAuthConnect.tenant_connect_enabled?` remains hard-coded `false`; there is
 no operator override. An otherwise authorized tenant Connect is refused with
 reason `tenant_connect_prerequisites_incomplete`, without binding an identity.
-The panel now keeps tenant Connect available because it cannot establish the
-callback subject from masked identity rows. Release still requires the complete
-success/refusal regression matrix below. Tests exercise the gated pipeline with
+The Connected Identities panel keeps the interim tenant route-name suppression
+(#4412) until the gate opens: exposing a Connect action the callback refuses
+unconditionally would burn the user's single-use re-authentication proof for
+nothing. The swap to identity evidence ships with the gate flip (#4427).
+Release still requires the complete success/refusal regression matrix below. Tests exercise the gated pipeline with
 that method stubbed; this does not enable tenant Connect in production.
 
 Removing the tenant refusal requires two independent controls. Neither control
