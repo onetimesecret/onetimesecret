@@ -73,8 +73,8 @@ module Auth
       #   :no_customer           — no Customer for the account's external_id
       #   :no_membership         — no OrganizationMembership row for (org, customer)
       #                            (covers "in the members set but no row" — the
-      #                            organization-only state organization.member?
-      #                            would admit)
+      #                            members-set-only state organization.member?
+      #                            would admit; an organization-scoped ROW passes)
       #   :membership_inactive   — row exists but status != 'active'
       #   :domain_not_authorized — active row scoped to a different domain
       #   :lookup_error          — a lookup raised; treated as refused

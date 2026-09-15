@@ -261,7 +261,7 @@ RSpec.describe 'AuthorizeTenantConnect exact-domain membership gate (#4413)', ty
       expect(result.customer.objid).to eq(customer.objid)
     end
 
-    it 'is refused with :no_membership when the customer is in the members set with no membership row (organization-only)' do
+    it 'is refused with :no_membership when the customer is in the members set with no membership row (members-set-only)' do
       org, _owner = build_org
       domain      = build_domain_on(org)
       customer    = build_customer
