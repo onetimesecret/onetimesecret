@@ -12,9 +12,9 @@ import { describe, expect, it } from 'vitest';
 /**
  * Connect availability semantics (#4412, epic #4408).
  *
- * Tenant identity linking is refused by the callback until #3849. Both
- * surfaces therefore retain conservative route-name suppression. This is a
- * compatibility rule, not proof that issuer and subject are equal.
+ * Platform routes can use route-name suppression. Tenant routes remain visible
+ * because the client does not receive the complete subject and cannot establish
+ * equivalence before the callback.
  */
 
 const PLATFORM_ISSUER = 'https://login.microsoftonline.com/platform-tenant/v2.0';
@@ -52,26 +52,26 @@ describe('connectSurfaceFor', () => {
 });
 
 describe('isKnownLinked', () => {
-  describe('tenant surface — callback binding remains unavailable', () => {
-    it('suppresses a provider when its route name is already present', () => {
-      expect(isKnownLinked(oidc, [row({ provider: 'oidc' })], 'tenant')).toBe(true);
+  describe('tenant surface — callback determines full-tuple ownership', () => {
+    it('does not infer equivalence from a matching route name', () => {
+      expect(isKnownLinked(oidc, [row({ provider: 'oidc' })], 'tenant')).toBe(false);
     });
 
-    it('suppresses the route regardless of issuer', () => {
+    it('does not infer equivalence from a matching route and issuer', () => {
       expect(
         isKnownLinked(oidc, [row({ provider: 'oidc', issuer: TENANT_A_ISSUER })], 'tenant')
-      ).toBe(true);
+      ).toBe(false);
     });
 
-    it('suppresses the route regardless of the masked uid values', () => {
+    it('does not infer equivalence from masked uid values', () => {
       const rows = [
         row({ id: 1, provider: 'oidc', issuer: TENANT_A_ISSUER, uid: 'aaaa…1111' }),
         row({ id: 2, provider: 'oidc', issuer: TENANT_A_ISSUER, uid: 'bbbb…2222' }),
       ];
-      expect(isKnownLinked(oidc, rows, 'tenant')).toBe(true);
+      expect(isKnownLinked(oidc, rows, 'tenant')).toBe(false);
     });
 
-    it('does not suppress a provider when no route is present', () => {
+    it('keeps Connect available with no identities', () => {
       expect(isKnownLinked(oidc, [], 'tenant')).toBe(false);
     });
   });
@@ -94,9 +94,9 @@ describe('isKnownLinked', () => {
 describe('connectableSsoProviders', () => {
   const providers = [oidc, entra];
 
-  it('drops providers whose route names are already present on the tenant surface', () => {
+  it('keeps all tenant providers available until the callback resolves the tuple', () => {
     const rows = [row({ provider: 'oidc' }), row({ id: 2, provider: 'entra' })];
-    expect(connectableSsoProviders(providers, rows, 'tenant')).toEqual([]);
+    expect(connectableSsoProviders(providers, rows, 'tenant')).toEqual(providers);
   });
 
   it('drops only the exact known link on the platform surface', () => {

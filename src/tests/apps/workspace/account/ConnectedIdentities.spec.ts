@@ -343,15 +343,15 @@ describe('ConnectedIdentities', () => {
   });
 
   /**
-   * Tenant callbacks refuse identity binds until #3849. Keep the prior
-   * route-name suppression so an identity already occupying the configured
-   * route does not expose a Connect action that cannot complete.
+   * The tenant callback resolves the complete identity tuple. The masked rows
+   * available to this component cannot prove that a configured tenant route is
+   * already linked, even when its route name and issuer match.
    */
   describe('Connect on a tenant surface', () => {
     const TENANT_ISSUER = 'https://login.microsoftonline.com/tenant-a/v2.0';
     const tenantOidc: SsoProvider = { route_name: 'oidc', display_name: 'Acme SSO' };
 
-    it('suppresses a route already present under a different issuer', () => {
+    it('keeps a matching route visible when the stored identity has another issuer', () => {
       mockState.identities.value = [
         makeIdentity({ provider: 'oidc', issuer: 'https://platform-idp.example/v2.0' }),
       ];
@@ -359,11 +359,11 @@ describe('ConnectedIdentities', () => {
       wrapper = mountComponent('custom');
 
       expect(wrapper.find('[data-testid="connections-list"]').exists()).toBe(true);
-      expect(wrapper.find('[data-testid="connections-connect"]').exists()).toBe(false);
-      expect(wrapper.find('[data-testid="connections-connect-oidc"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="connections-connect"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="connections-connect-oidc"]').exists()).toBe(true);
     });
 
-    it('suppresses a route regardless of issuer or masked uid', () => {
+    it('keeps a matching route and issuer visible because masked uids are not evidence', () => {
       mockState.identities.value = [
         makeIdentity({ id: 1, provider: 'oidc', issuer: TENANT_ISSUER, uid: 'aaaa…1111' }),
         makeIdentity({ id: 2, provider: 'oidc', issuer: TENANT_ISSUER, uid: 'bbbb…2222' }),
@@ -371,10 +371,10 @@ describe('ConnectedIdentities', () => {
       mockGetSsoProviders.mockReturnValue([tenantOidc]);
       wrapper = mountComponent('custom');
 
-      expect(wrapper.find('[data-testid="connections-connect-oidc"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="connections-connect-oidc"]').exists()).toBe(true);
     });
 
-    it('keeps unrelated routes connectable while suppressing the occupied route', () => {
+    it('keeps every configured tenant route connectable', () => {
       mockState.identities.value = [makeIdentity({ provider: 'entra' })];
       mockGetSsoProviders.mockReturnValue([
         { route_name: 'entra', display_name: 'Contoso' },
@@ -382,8 +382,23 @@ describe('ConnectedIdentities', () => {
       ]);
       wrapper = mountComponent('custom');
 
-      expect(wrapper.find('[data-testid="connections-connect-entra"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="connections-connect-entra"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="connections-connect-oidc"]').exists()).toBe(true);
+    });
+
+    it('submits an explicit Connect initiation for a route already represented in stored identities', async () => {
+      mockState.identities.value = [makeIdentity({ provider: 'oidc', issuer: TENANT_ISSUER })];
+      mockGetSsoProviders.mockReturnValue([tenantOidc]);
+      wrapper = mountComponent('custom');
+
+      await wrapper.find('[data-testid="connections-connect-oidc"]').trigger('click');
+
+      expect(mockSubmitSsoLogin).toHaveBeenCalledWith({
+        routeName: 'oidc',
+        shrimp: 'test-shrimp',
+        redirect: '/account/settings/security/connections',
+        connect: true,
+      });
     });
   });
 
