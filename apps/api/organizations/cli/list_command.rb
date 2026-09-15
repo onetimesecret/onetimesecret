@@ -227,12 +227,13 @@ module Onetime
 
         issues = []
 
+        # Familia's load returns nil for a missing key rather than raising,
+        # so a stale instances entry is detected on the nil, not in a rescue.
         all_org_ids = Onetime::Organization.instances.all
         all_orgs    = all_org_ids.filter_map do |objid|
-          Onetime::Organization.load(objid)
-        rescue Familia::RecordNotFound
-          issues << "Stale instance reference: #{objid} (record not found)"
-          nil
+          org = Onetime::Organization.load(objid)
+          issues << "Stale instance reference: #{objid} (record not found)" if org.nil?
+          org
         end
 
         all_orgs.each do |org|
