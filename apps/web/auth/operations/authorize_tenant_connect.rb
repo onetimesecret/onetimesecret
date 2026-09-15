@@ -153,6 +153,10 @@ module Auth
 
         authorize(**loaded)
       rescue StandardError => ex
+        # Two events on purpose: the error event carries the exception for
+        # operators, and the refusal event below (emitted by #refuse, like every
+        # other reason) keeps the documented tenant_connect_membership_refused
+        # stream complete, so a monitor on refusals also sees datastore failures.
         Auth::Logging.log_auth_event(
           :tenant_connect_membership_lookup_error,
           level: :error,
@@ -160,7 +164,7 @@ module Auth
           error_class: ex.class.name,
           error: ex.message,
         )
-        refuse(:lookup_error, log: false)
+        refuse(:lookup_error)
       end
 
       private
@@ -202,21 +206,19 @@ module Auth
         ).freeze
       end
 
-      def refuse(reason, log: true, custom_domain: nil, organization: nil, customer: nil, membership: nil)
+      def refuse(reason, custom_domain: nil, organization: nil, customer: nil, membership: nil)
         raise ArgumentError, "unknown refusal reason #{reason.inspect}" unless REFUSAL_REASONS.include?(reason)
 
-        if log
-          Auth::Logging.log_auth_event(
-            :tenant_connect_membership_refused,
-            level: :warn,
-            reason: reason,
-            domain_id: domain_id,
-            organization_id: organization&.objid,
-            customer_extid: customer&.extid,
-            membership_status: membership&.status,
-            membership_domain_scope_id: membership&.domain_scope_id,
-          )
-        end
+        Auth::Logging.log_auth_event(
+          :tenant_connect_membership_refused,
+          level: :warn,
+          reason: reason,
+          domain_id: domain_id,
+          organization_id: organization&.objid,
+          customer_extid: customer&.extid,
+          membership_status: membership&.status,
+          membership_domain_scope_id: membership&.domain_scope_id,
+        )
 
         Result.new(
           authorized: false,

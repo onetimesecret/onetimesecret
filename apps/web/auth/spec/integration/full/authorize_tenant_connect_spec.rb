@@ -354,6 +354,23 @@ RSpec.describe 'AuthorizeTenantConnect exact-domain membership gate (#4413)', ty
       expect(result.reason).to eq(:lookup_error)
       expect(result).to be_refused
     end
+
+    it 'logs a raised lookup as BOTH the error event and the documented refusal event' do
+      org, _owner = build_org
+      domain      = build_domain_on(org)
+      customer    = build_customer
+      add_member(org, customer, domain_scope_id: domain.objid)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .and_raise(Redis::BaseError, 'connection lost')
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+      gate.call(account: account_for(customer), domain_id: domain.identifier)
+
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:tenant_connect_membership_lookup_error, hash_including(level: :error, error_class: 'Redis::BaseError'))
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:tenant_connect_membership_refused, hash_including(level: :warn, reason: :lookup_error))
+    end
   end
 
   # ==========================================================================
