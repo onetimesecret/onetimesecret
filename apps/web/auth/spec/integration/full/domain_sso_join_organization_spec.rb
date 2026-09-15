@@ -341,7 +341,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       #   end
       #
       # A bad domain_id causes JoinDomainOrganization to return {joined: false}
-      # without raising (RecordNotFound is caught internally). The hook wraps
+      # without raising (find_by_identifier returns nil, never raises). The hook wraps
       # the call in safe_execute, so either way the customer ends up with zero
       # orgs -- triggering the fallback.
 
