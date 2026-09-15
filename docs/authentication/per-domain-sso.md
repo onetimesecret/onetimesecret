@@ -344,7 +344,18 @@ callback route hook (`before_omniauth_callback_route`, owned by
    connect can never leave an intent live for a later callback within its
    TTL.
 4. Require an authenticated, open account loaded from the session
-   (`_account_from_session`), never from the SSO email claim.
+   (`_account_from_session`), never from the SSO email claim. This step owns
+   account status on both surfaces: the Rodauth `open` status filter that
+   `_account_from_session` applies, and `Customer#suspended?`. The `/auth`
+   Roda router does not run `BaseSessionAuthStrategy`, whose per-request
+   suspension refusal protects every Otto-routed app, and `SetSuspension`'s
+   session sweep cannot see inside encrypted payloads, so a suspended
+   customer holding a live session reaches the callback with no refusal
+   between them and the bind unless this step refuses it. Steps 6 and 7 do
+   not re-check it (**decision 2026-09-15**): `AuthorizeTenantConnect`
+   judges the membership, not the principal, and the platform Connect path
+   has the same exposure with no membership gate at all, so the check has to
+   live in the shared step.
 5. Verify that the authenticated session is scoped to that same tenant
    surface: the surface recorded at login equals the validated domain ID, and
    a recent re-authentication on that host is on record.

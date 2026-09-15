@@ -45,14 +45,8 @@ module Auth
 
         # Load the custom domain by objid. domain_id IS the objid here, so use
         # the by-identifier loader (as CustomDomain.from_display_domain does).
-        # CustomDomain.load requires (display_domain, org_id) and would raise
-        # ArgumentError, logged as an error when not found.
-        domain = begin
-          Onetime::CustomDomain.find_by_identifier(domain_id)
-        rescue Onetime::RecordNotFound
-          OT.le "[JoinDomainOrganization] Domain not found (RecordNotFound): #{domain_id}"
-          nil
-        end
+        # It returns nil for a missing key and never raises RecordNotFound.
+        domain = Onetime::CustomDomain.find_by_identifier(domain_id)
         return skip_result("Domain not found: #{domain_id}") unless domain
 
         # Get the domain's primary organization
