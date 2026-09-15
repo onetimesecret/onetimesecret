@@ -360,7 +360,17 @@ callback route hook (`before_omniauth_callback_route`, owned by
    that chain is a refusal; `can_access_domain?` already returns false for a
    nil domain.
 7. Require both an active membership and
-   `membership.can_access_domain?(custom_domain)`.
+   `membership.can_access_domain?(custom_domain)`. Steps 6 and 7 are
+   implemented by `Auth::Operations::AuthorizeTenantConnect` (#4413,
+   `apps/web/auth/operations/authorize_tenant_connect.rb`): it takes the
+   session account row and the validated domain ID, performs exactly the
+   lookup chain above, and returns a frozen result whose `authorized?` is the
+   only field the caller branches on. Every nil in the chain, an inactive
+   row, a sibling-domain scope and a raised lookup are distinct refusal
+   reasons, all logged as `tenant_connect_membership_refused`. The operation
+   is side-effect free: it never creates, activates or re-scopes a membership
+   and never touches `account_identities`. Its regression suite is
+   `apps/web/auth/spec/integration/full/authorize_tenant_connect_spec.rb`.
 8. Bind the new `(provider, issuer, uid)` identity only to the session account
    and log the successful connection. Do not use the returned email to select
    the account.
@@ -448,9 +458,11 @@ invitations.
 
 `OrganizationMembership#can_access_domain?` evaluates both forms and is
 already the enforcement primitive for domain resource access (the domains API,
-`OrganizationLoader`). On the identity side, only
-`Auth::Operations::BackfillTenantIssuer` currently uses it as an authorization
-gate before changing an identity row; the SSO join path does not.
+`OrganizationLoader`). On the identity side,
+`Auth::Operations::BackfillTenantIssuer` uses it as an authorization gate
+before changing a legacy identity row, and
+`Auth::Operations::AuthorizeTenantConnect` (#4413) uses it as the pre-bind gate
+for a new tenant connection; the SSO join path does not.
 
 #### Why issuer backfill has an additional provenance gate
 
@@ -483,8 +495,10 @@ platform account predates the tenant, with no security gain. The provenance
 check stays specific to the backfill operation and cannot replace either of
 the two required controls above.
 
-Until #3849 implements both controls and their failure cases,
+Until #3849 wires both controls and their failure cases into the callback,
 `apps/web/auth/config/hooks/omniauth.rb` deliberately refuses tenant connects.
+The membership gate exists (#4413) but has no call site yet; it is inert
+until the pipeline lands.
 Removing only the current surface guard would allow a tenant-controlled IdP to
 become a login method for an account outside the tenant authorization boundary.
 
