@@ -1,13 +1,13 @@
 // src/tests/apps/workspace/account/ConnectedIdentities.spec.ts
 
-import { mount, flushPromises, VueWrapper } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createTestingPinia } from '@pinia/testing';
-import { ref } from 'vue';
-import { createI18n } from 'vue-i18n';
-import { createTestI18n } from '@tests/setup';
 import type { ConnectedIdentity } from '@/schemas/api/auth/responses/auth';
 import type { IdentityErrorCode } from '@/shared/composables/useConnectedIdentities';
+import { createTestingPinia } from '@pinia/testing';
+import { createTestI18n } from '@tests/setup';
+import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ref } from 'vue';
+import { createI18n } from 'vue-i18n';
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
@@ -319,87 +319,12 @@ describe('ConnectedIdentities', () => {
 
     it('renders no connect region when every provider is already linked on the platform surface', () => {
       mockState.identities.value = [makeIdentity({ provider: 'entra' })];
-      mockGetSsoProviders.mockReturnValue([{ route_name: 'entra', display_name: 'Microsoft Entra' }]);
+      mockGetSsoProviders.mockReturnValue([
+        { route_name: 'entra', display_name: 'Microsoft Entra' },
+      ]);
       wrapper = mountComponent('canonical');
 
       expect(wrapper.find('[data-testid="connections-connect"]').exists()).toBe(false);
-    });
-  });
-
-  /**
-   * Tenant Connect availability (#4412, epic #4408).
-   *
-   * On a tenant host the configured provider is served through a PLATFORM
-   * route name (SsoConfig#platform_route_name), the UI does not know which
-   * issuer that route resolves to, and the wire uid is masked. So before the
-   * callback the UI cannot tell whether the identity Connect would produce is
-   * already linked, and it must not hide the action on route-name or issuer
-   * equality. The callback compares the complete (provider, issuer, uid)
-   * tuple and remains the sole authority for equality and conflicts; nothing
-   * decided here reaches the server.
-   */
-  describe('Connect on a tenant surface', () => {
-    const TENANT_ISSUER = 'https://login.microsoftonline.com/tenant-a/v2.0';
-    const tenantOidc: SsoProvider = { route_name: 'oidc', display_name: 'Acme SSO' };
-
-    it('keeps Connect available when equivalence is unknown (no linked rows)', () => {
-      mockGetSsoProviders.mockReturnValue([tenantOidc]);
-      wrapper = mountComponent('custom');
-
-      expect(wrapper.find('[data-testid="connections-connect-oidc"]').exists()).toBe(true);
-    });
-
-    it('keeps Connect available for a row sharing the route name but from a different IdP', () => {
-      // A platform-issuer 'oidc' row says nothing about the tenant's own IdP,
-      // which is served through the same route name.
-      mockState.identities.value = [
-        makeIdentity({ provider: 'oidc', issuer: 'https://platform-idp.example/v2.0' }),
-      ];
-      mockGetSsoProviders.mockReturnValue([tenantOidc]);
-      wrapper = mountComponent('custom');
-
-      expect(wrapper.find('[data-testid="connections-list"]').exists()).toBe(true);
-      expect(wrapper.find('[data-testid="connections-connect"]').exists()).toBe(true);
-      expect(wrapper.find('[data-testid="connections-connect-oidc"]').exists()).toBe(true);
-    });
-
-    it('keeps Connect available for rows sharing the issuer but differing in uid', () => {
-      mockState.identities.value = [
-        makeIdentity({ id: 1, provider: 'oidc', issuer: TENANT_ISSUER, uid: 'aaaa…1111' }),
-        makeIdentity({ id: 2, provider: 'oidc', issuer: TENANT_ISSUER, uid: 'bbbb…2222' }),
-      ];
-      mockGetSsoProviders.mockReturnValue([tenantOidc]);
-      wrapper = mountComponent('custom');
-
-      expect(wrapper.find('[data-testid="connections-connect-oidc"]').exists()).toBe(true);
-    });
-
-    it('keeps Connect available on a tenant host even when the route is linked on the platform', () => {
-      // Same fixture that hides the button on the platform surface above:
-      // the surface, not the rows, is what changes the answer.
-      mockState.identities.value = [makeIdentity({ provider: 'entra' })];
-      mockGetSsoProviders.mockReturnValue([{ route_name: 'entra', display_name: 'Contoso' }]);
-      wrapper = mountComponent('custom');
-
-      expect(wrapper.find('[data-testid="connections-connect-entra"]').exists()).toBe(true);
-    });
-
-    it('still marks a tenant initiation as a connect so the callback, not the UI, decides', async () => {
-      mockState.identities.value = [makeIdentity({ provider: 'oidc', issuer: TENANT_ISSUER })];
-      mockGetSsoProviders.mockReturnValue([tenantOidc]);
-      wrapper = mountComponent('custom');
-
-      await wrapper.find('[data-testid="connections-connect-oidc"]').trigger('click');
-
-      // The UI sends the same intent-marked initiation regardless of what it
-      // believes about the rows; every gate (recent re-auth, surface binding,
-      // the tenant refusal in #3849) lives in the callback pipeline.
-      expect(mockSubmitSsoLogin).toHaveBeenCalledWith({
-        routeName: 'oidc',
-        shrimp: 'test-shrimp',
-        redirect: '/account/settings/security/connections',
-        connect: true,
-      });
     });
 
     it('initiates SSO connect with the provider route, shrimp, return redirect, and connect intent', async () => {
@@ -408,14 +333,57 @@ describe('ConnectedIdentities', () => {
 
       await wrapper.find('[data-testid="connections-connect-oidc"]').trigger('click');
 
-      // connect: true is load-bearing — the backend only binds the returned
-      // identity to the session account when the initiation is marked.
       expect(mockSubmitSsoLogin).toHaveBeenCalledWith({
         routeName: 'oidc',
         shrimp: 'test-shrimp',
         redirect: '/account/settings/security/connections',
         connect: true,
       });
+    });
+  });
+
+  /**
+   * Tenant callbacks refuse identity binds until #3849. Keep the prior
+   * route-name suppression so an identity already occupying the configured
+   * route does not expose a Connect action that cannot complete.
+   */
+  describe('Connect on a tenant surface', () => {
+    const TENANT_ISSUER = 'https://login.microsoftonline.com/tenant-a/v2.0';
+    const tenantOidc: SsoProvider = { route_name: 'oidc', display_name: 'Acme SSO' };
+
+    it('suppresses a route already present under a different issuer', () => {
+      mockState.identities.value = [
+        makeIdentity({ provider: 'oidc', issuer: 'https://platform-idp.example/v2.0' }),
+      ];
+      mockGetSsoProviders.mockReturnValue([tenantOidc]);
+      wrapper = mountComponent('custom');
+
+      expect(wrapper.find('[data-testid="connections-list"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="connections-connect"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="connections-connect-oidc"]').exists()).toBe(false);
+    });
+
+    it('suppresses a route regardless of issuer or masked uid', () => {
+      mockState.identities.value = [
+        makeIdentity({ id: 1, provider: 'oidc', issuer: TENANT_ISSUER, uid: 'aaaa…1111' }),
+        makeIdentity({ id: 2, provider: 'oidc', issuer: TENANT_ISSUER, uid: 'bbbb…2222' }),
+      ];
+      mockGetSsoProviders.mockReturnValue([tenantOidc]);
+      wrapper = mountComponent('custom');
+
+      expect(wrapper.find('[data-testid="connections-connect-oidc"]').exists()).toBe(false);
+    });
+
+    it('keeps unrelated routes connectable while suppressing the occupied route', () => {
+      mockState.identities.value = [makeIdentity({ provider: 'entra' })];
+      mockGetSsoProviders.mockReturnValue([
+        { route_name: 'entra', display_name: 'Contoso' },
+        tenantOidc,
+      ]);
+      wrapper = mountComponent('custom');
+
+      expect(wrapper.find('[data-testid="connections-connect-entra"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="connections-connect-oidc"]').exists()).toBe(true);
     });
   });
 
@@ -536,7 +504,9 @@ describe('ConnectedIdentities', () => {
       mockState.error.value = 'web.auth.connections.errors.generic';
       wrapper = mountComponent();
 
-      await wrapper.find('[data-testid="connections-error"] button[aria-label="Dismiss"]').trigger('click');
+      await wrapper
+        .find('[data-testid="connections-error"] button[aria-label="Dismiss"]')
+        .trigger('click');
       expect(mockState.clearError).toHaveBeenCalled();
     });
   });

@@ -34,15 +34,10 @@
   const { identities, isLoading, error, errorCode, fetchIdentities, removeIdentity, clearError } =
     useConnectedIdentities();
 
-  // Providers the account can still link. A Connect button is hidden only
-  // when the UI has authoritative evidence that the account already holds
-  // the exact identity Connect would produce. That evidence exists on the
-  // platform surface alone, where a route name resolves to a single IdP. On
-  // a tenant host the route name is shared with the platform and other
-  // tenants, the issuer it resolves to is unknown here, and uid is masked, so
-  // equivalence is unknown until the callback compares the complete
-  // (provider, issuer, uid) tuple — Connect stays available and the callback
-  // decides (#4412). See sso-link-evidence.ts for the full reasoning.
+  // Providers whose routes are not already represented by a linked identity.
+  // Tenant callbacks still refuse identity binds (#3849), so custom domains
+  // retain conservative route-name suppression rather than offering a known
+  // failed duplicate-route action. See sso-link-evidence.ts.
   const CONNECT_REDIRECT = '/account/settings/security/connections';
 
   const connectSurface = computed(() => connectSurfaceFor(bootstrapStore.domain_strategy));

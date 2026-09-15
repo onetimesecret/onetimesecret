@@ -1,24 +1,20 @@
 // src/tests/shared/utils/sso-link-evidence.spec.ts
 
-import { describe, it, expect } from 'vitest';
 import type { ConnectedIdentity } from '@/schemas/api/auth/responses/auth';
-import type { SsoProvider } from '@/utils/features';
 import {
   connectSurfaceFor,
   connectableSsoProviders,
   isKnownLinked,
 } from '@/shared/utils/sso-link-evidence';
+import type { SsoProvider } from '@/utils/features';
+import { describe, expect, it } from 'vitest';
 
 /**
  * Connect availability semantics (#4412, epic #4408).
  *
- * The UI never holds the callback identity's full (provider, issuer, uid)
- * tuple before the IdP round-trip: the provider entry has no issuer, and the
- * wire uid is masked. So on a tenant surface neither route-name equality nor
- * issuer equality is evidence of an existing link, and Connect must stay
- * available for the callback to decide. On the platform surface a route name
- * resolves to exactly one IdP, so a matching stored row is authoritative and
- * suppresses Connect.
+ * Tenant identity linking is refused by the callback until #3849. Both
+ * surfaces therefore retain conservative route-name suppression. This is a
+ * compatibility rule, not proof that issuer and subject are equal.
  */
 
 const PLATFORM_ISSUER = 'https://login.microsoftonline.com/platform-tenant/v2.0';
@@ -56,30 +52,26 @@ describe('connectSurfaceFor', () => {
 });
 
 describe('isKnownLinked', () => {
-  describe('tenant surface — equivalence is unknown before the callback', () => {
-    it('does not treat a shared route name as an existing link', () => {
-      // A platform-issuer row under 'oidc' says nothing about the tenant's
-      // own IdP, which is served through the same route name.
-      expect(isKnownLinked(oidc, [row({ provider: 'oidc' })], 'tenant')).toBe(false);
+  describe('tenant surface — callback binding remains unavailable', () => {
+    it('suppresses a provider when its route name is already present', () => {
+      expect(isKnownLinked(oidc, [row({ provider: 'oidc' })], 'tenant')).toBe(true);
     });
 
-    it('does not treat a shared issuer as an existing link', () => {
-      // Even a row on the tenant's issuer cannot prove the same subject: the
-      // uid is masked on the wire and the callback identity is not known yet.
+    it('suppresses the route regardless of issuer', () => {
       expect(
         isKnownLinked(oidc, [row({ provider: 'oidc', issuer: TENANT_A_ISSUER })], 'tenant')
-      ).toBe(false);
+      ).toBe(true);
     });
 
-    it('does not treat two rows on one issuer with different uids as a link', () => {
+    it('suppresses the route regardless of the masked uid values', () => {
       const rows = [
         row({ id: 1, provider: 'oidc', issuer: TENANT_A_ISSUER, uid: 'aaaa…1111' }),
         row({ id: 2, provider: 'oidc', issuer: TENANT_A_ISSUER, uid: 'bbbb…2222' }),
       ];
-      expect(isKnownLinked(oidc, rows, 'tenant')).toBe(false);
+      expect(isKnownLinked(oidc, rows, 'tenant')).toBe(true);
     });
 
-    it('keeps Connect available with no rows at all', () => {
+    it('does not suppress a provider when no route is present', () => {
       expect(isKnownLinked(oidc, [], 'tenant')).toBe(false);
     });
   });
@@ -102,9 +94,9 @@ describe('isKnownLinked', () => {
 describe('connectableSsoProviders', () => {
   const providers = [oidc, entra];
 
-  it('offers every configured provider on the tenant surface regardless of rows', () => {
+  it('drops providers whose route names are already present on the tenant surface', () => {
     const rows = [row({ provider: 'oidc' }), row({ id: 2, provider: 'entra' })];
-    expect(connectableSsoProviders(providers, rows, 'tenant')).toEqual(providers);
+    expect(connectableSsoProviders(providers, rows, 'tenant')).toEqual([]);
   });
 
   it('drops only the exact known link on the platform surface', () => {

@@ -3,50 +3,25 @@
 /**
  * Connect availability for the Connected Identities panel (#4412, epic #4408).
  *
- * The panel offers one Connect button per configured SSO provider and hides
- * a button only when the account is ALREADY linked to the identity that
- * Connect would produce. "Already linked" is a statement about the callback
- * identity's complete (provider, issuer, uid) tuple, and before the IdP
- * round-trip the UI never holds that tuple:
+ * The panel offers one Connect button per configured SSO route. Until tenant
+ * identity linking is implemented server-side (#3849), the callback refuses
+ * every connect intent carrying `validated_omniauth_domain_id` with reason
+ * `tenant_surface`. The UI must therefore retain the existing conservative
+ * route-name suppression on tenant hosts instead of exposing a duplicate-route
+ * action that the callback cannot complete.
  *
- * - A bootstrap provider entry carries `route_name` + `display_name` only.
- *   On a tenant host the route name is the PLATFORM route the tenant's IdP
- *   is served through (SsoConfig#platform_route_name), so 'oidc' names a
- *   different IdP on every tenant and on the platform.
- * - Linked rows carry an issuer, but the UI does not know which issuer the
- *   configured route resolves to on this host, and rows under one route name
- *   may hold the platform issuer or another tenant's.
- * - `uid` on the wire is MASKED (routes/identities.rb#mask_uid), so even a
- *   matching issuer cannot prove the same subject.
- *
- * Route-name equality and issuer equality are therefore each compatible with
- * "not linked yet". Hiding Connect on either hides a valid action, so on a
- * tenant surface equivalence is UNKNOWN and Connect stays available. The
- * callback (account_from_omniauth, hooks/omniauth.rb) holds the complete
- * tuple and is the only place that compares it and handles conflicts; nothing
- * here is consulted server-side, so no decision made in this module can
- * authorize a bind or bypass the tenant callback controls in #3849.
- *
- * The one surface with authoritative evidence is the PLATFORM. Platform
- * providers come from env (OIDC_ISSUER, ENTRA_TENANT, ...), so a route name
- * resolves to exactly one IdP, and every stored row was bound through that
- * platform IdP (the tenant callback refuses to bind, omniauth.rb reason
- * `tenant_surface`). A stored row whose provider matches a platform route is
- * therefore an identity from that IdP, and only there does it suppress
- * Connect. When tenant Connect starts binding rows (#3849), this platform
- * rule needs the platform issuer on the provider entry to stay exact.
+ * Route-name equality is not proof that the configured tenant IdP and stored
+ * identity have the same issuer or subject. It is only the compatibility rule
+ * used while tenant binding remains unavailable. Once the callback can bind a
+ * tenant identity, suppression must compare server-provided identity evidence
+ * rather than a shared platform route name.
  */
 
 import type { ConnectedIdentity } from '@/schemas/api/auth/responses/auth';
 import type { SsoProvider } from '@/utils/features';
 
 /**
- * Which body of evidence the UI has about configured providers.
- *
- * - 'platform': a route name resolves to exactly one IdP; route equality with
- *   a stored row is evidence of an existing link.
- * - 'tenant':   the route is shared with the platform and other tenants; no
- *   pre-callback comparison is evidence of anything.
+ * Surface classification retained for the tenant-linking work in #3849.
  */
 export type ConnectSurface = 'platform' | 'tenant';
 
@@ -55,27 +30,24 @@ export type ConnectSurface = 'platform' | 'tenant';
  *
  * 'canonical' and 'subdomain' are operator hosts served with platform
  * providers. 'custom' is a tenant host. Anything else ('invalid', or a
- * missing value) is treated as 'tenant': the fail-safe direction here is to
- * KEEP Connect visible and let the callback decide, which is the opposite of
- * the backend's fail-closed session-surface gate, and correct for the same
- * reason — the UI can only hide an action, never authorize one.
+ * missing value) is treated as 'tenant'.
  */
 export function connectSurfaceFor(domainStrategy: string | null | undefined): ConnectSurface {
   return domainStrategy === 'canonical' || domainStrategy === 'subdomain' ? 'platform' : 'tenant';
 }
 
 /**
- * True only when the UI has authoritative evidence that `provider` is already
- * linked to the account. Unknown equivalence returns false so the Connect
- * action stays available.
+ * True when an identity already occupies the configured provider route.
+ *
+ * The surface argument is retained so tenant linking can introduce stronger
+ * evidence without another call-site API change. For now both surfaces use
+ * route-name suppression because tenant callbacks refuse identity binds.
  */
 export function isKnownLinked(
   provider: SsoProvider,
   identities: readonly ConnectedIdentity[],
-  surface: ConnectSurface
+  _surface: ConnectSurface
 ): boolean {
-  if (surface !== 'platform') return false;
-
   return identities.some((identity) => identity.provider === provider.route_name);
 }
 
