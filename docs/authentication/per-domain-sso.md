@@ -205,7 +205,7 @@ Tenant callbacks are refused instead:
 
 | Situation | Result |
 |-----------|--------|
-| Authenticated session with a valid connect intent, tenant callback | `identity_connect_wrong_domain` |
+| Authenticated session with a valid connect intent, tenant callback | Refused: `identity_connect_conflict` for principal failures; `identity_connect_wrong_domain` for surface, membership, or release-gate failures |
 | Unlinked tenant identity whose asserted email matches an existing account | `tenant_sso_link_unavailable` |
 
 The first row is defence-in-depth behind the host-bound session (below): the
@@ -215,9 +215,9 @@ its callback arrives anonymous, landing on the second row.
 
 The refused connect attempt has already consumed its `sso_connect_intent`. A
 logged-in tenant callback without a valid intent is logged
-`omniauth_connect_intent_absent` and takes the unauthenticated email branches
-instead, so it ends in JIT creation (still subject to
-`before_omniauth_create_account`) or the second row.
+`omniauth_connect_intent_absent` and takes the ordinary non-connect path:
+existing-identity sign-in, or, for an unlinked identity, the email branches
+(JIT creation subject to `before_omniauth_create_account`, or the second row).
 
 The second message does not direct the user to Connected Identities because
 that path also refuses tenant callbacks. Today no membership state changes
@@ -226,6 +226,21 @@ support. An accepted, active membership is the precondition the future tenant
 Connect SSO flow will require (below); it does not by itself link the identity.
 
 #### Requirements for authenticated tenant linking (#3849)
+
+**Implementation status:** `config/hooks/omniauth_connect.rb` implements the
+shared callback pipeline, including session-account and Customer status,
+surface binding, exact-domain membership, and full-tuple ownership checks.
+`OmniAuthConnect.tenant_connect_enabled?` remains hard-coded `false`; there is
+no operator override. A tenant Connect that passes the session and surface
+gates is refused with reason `tenant_connect_prerequisites_incomplete` before
+the membership gate runs, so a closed gate binds nothing and writes no
+`tenant_connect_membership_authorized` record.
+The Connected Identities panel keeps the interim tenant route-name suppression
+(#4412) until the gate opens: exposing a Connect action the callback refuses
+unconditionally would burn the user's single-use re-authentication proof for
+nothing. The swap to identity evidence ships with the gate flip (#4427).
+Release still requires the complete success/refusal regression matrix below. Tests exercise the gated pipeline with
+that method stubbed; this does not enable tenant Connect in production.
 
 Removing the tenant refusal requires two independent controls. Neither control
 may be inferred from the IdP's email claim.
@@ -318,12 +333,15 @@ The second control prevents a platform session that happens to receive a valid
 tenant callback from gaining a tenant-issued credential. Callback-domain
 validation remains required, but it cannot substitute for session scoping.
 
-A future tenant Connect SSO flow must therefore fail closed in this order. The
-phases match the platform connect path: the request phase
-(`omniauth_request_validation_phase` in `hooks/omniauth.rb`), then the
-callback route hook (`before_omniauth_callback_route`, owned by
-`hooks/omniauth_tenant.rb`), then `account_from_omniauth` in
-`hooks/omniauth.rb`.
+The tenant Connect SSO flow must fail closed in the following authorization
+order. The request phase remains in `hooks/omniauth.rb`. The shared wrapper in
+`hooks/omniauth_connect.rb` consumes intent on entering
+`before_omniauth_callback_route`, then calls the tenant validation hook in
+`hooks/omniauth_tenant.rb`, then runs the account and binding gates. Consuming
+before tenant validation also burns intent when that validation refuses.
+This wrapper runs before the gem's cached-account and existing-identity
+shortcuts; limiting these gates to `account_from_omniauth` would miss known
+identities.
 
 1. **Request phase.** Require an explicit tenant Connect SSO initiation.
    `connect=1` on an authenticated session writes the existing short-lived,
@@ -333,9 +351,9 @@ callback route hook (`before_omniauth_callback_route`, owned by
    the callback corresponds to the custom domain that initiated it, enforce
    the tenant SSO policy, and stamp `session[:validated_omniauth_domain_id]`.
    This runs before account resolution.
-3. **Consume the intent first.** In `account_from_omniauth`, consume the
-   intent once (atomic `GETDEL`) and compare it with the current session
-   account ID, **before every gate below**. Only a present, matching intent
+3. **Consume the intent first.** The callback wrapper consumes the intent
+   once (atomic `GETDEL`, before step 2), then compares it with the current
+   session account ID after tenant validation, **before every gate below**. Only a present, matching intent
    enters steps 4 to 9; an absent, expired, or mismatched intent is not a
    connect at all and takes the existing non-connect path (logged
    `omniauth_connect_intent_absent`), exactly as on the platform surface.
@@ -393,11 +411,11 @@ Every refusal after step 3 occurs after the intent has already been consumed;
 none of them may re-arm or preserve it.
 
 The server-side gates are necessary but not the only change. The Connected
-Identities panel (`src/apps/workspace/account/ConnectedIdentities.vue`) currently
-hides a provider whenever any existing identity's `provider` equals the
-provider's OmniAuth `route_name`. It must not infer that a tenant identity is
-already linked from either a matching route name or a matching issuer. A
-platform and tenant can use the same issuer with different OIDC clients; with
+Identities panel (`src/apps/workspace/account/ConnectedIdentities.vue`) must not
+infer that a tenant identity is already linked from either a matching route
+name or a matching issuer. It keeps tenant provider actions available and lets
+the callback resolve the complete tuple. A platform and tenant can use the same
+issuer with different OIDC clients; with
 [OpenID Connect pairwise subject identifiers](https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes), the issuer provides a different `sub` value to each client.
 
 **Decision (2026-09-12):** identities are keyed on `(provider, issuer, uid)`.
@@ -429,6 +447,43 @@ the login, and only the former authorizes the credential. Note that the
 so a tenant connect on a pre-existing platform account may carry that side
 effect when the account still owns an unarchived personal default workspace
 and its `default_org_id` is either empty or points at that workspace.
+
+#### Acceptance gate for enabling tenant Connect
+
+The hard-coded tenant refusal may be removed only when each row below has an
+end-to-end callback assertion, where applicable, and the listed validation
+lanes pass without skips or timeouts. Unit tests of individual policy objects
+support this evidence but do not replace callback coverage.
+
+| Area | Required acceptance evidence |
+|------|------------------------------|
+| Initiation and re-authentication | A custom-host flow through `POST /auth/reauth`, Connect initiation, and callback; password-only success where policy permits; password alone refused when MFA is required; password plus required MFA succeeds; remembered and email-authenticated sessions cannot mint an intent. |
+| Session surface | Tenant A session succeeds only on tenant A; tenant A → tenant B and tenant → platform callbacks refuse; the initiating cookie is host-only; every refusal consumes the intent. |
+| Callback validation | A live intent is consumed before domain mismatch, tenant policy, principal, membership, release, and identity-ownership refusals. A replay cannot bind. |
+| Principal and authorization | Open account and unsuspended Customer required; exact-domain, organization-scoped, and owner memberships succeed; missing, inactive, wrong-organization, and sibling-domain memberships refuse. |
+| Identity ownership | Unclaimed full tuple binds to the session account; same-account tuple is idempotent; another account's tuple refuses without changing the session. IdP email is irrelevant. |
+| No fallback | With trusted-email linking enabled and a victim email asserted, every failed tenant gate still creates no identity, account, membership, password challenge, or mailbox-proof challenge. |
+| Post-login behavior | Successful Connect reaches `JoinDomainOrganization` as an existing member, creates no membership, and preserves its scope; any documented default-workspace adoption is asserted separately. |
+| Client behavior | Platform routes remain suppressed when linked. Tenant routes remain visible despite matching route, issuer, or masked UID, and submit `connect=1`. |
+| Concurrency | Two simultaneous intent consumers yield one payload. Two PostgreSQL writers for one unclaimed tuple leave one row and produce only the documented idempotent/conflict outcomes. |
+| Browser journey | A custom-host Connected Identities journey covers panel → local re-authentication → Connect initiation → callback success, plus at least one cross-surface or ownership refusal. The success harness may open the gate only in the test process; no production override is added. |
+
+The focused acceptance files are:
+
+- `apps/web/auth/spec/integration/full/omniauth_connect_link_spec.rb`
+- `apps/web/auth/spec/integration/full/authorize_tenant_connect_spec.rb`
+- `apps/web/auth/spec/integration/full/callback_validation_spec.rb`
+- `spec/integration/full/session_surface_login_stamp_spec.rb`
+- `apps/web/auth/spec/operations/bind_sso_identity_spec.rb`
+- the session/re-authentication unit and route specs
+- `src/tests/shared/utils/sso-link-evidence.spec.ts`
+- `src/tests/apps/workspace/account/ConnectedIdentities.spec.ts`
+
+After the missing scenarios are implemented, run the focused files first, then
+`pnpm type-check:tests`, the complete Vitest suite, and the `unit`,
+`full-sqlite`, and PostgreSQL full-auth lanes. The final run must include the
+browser/system suite. A passing focused subset is not sufficient evidence to
+change `tenant_connect_enabled?`.
 
 #### Why the domain scope matters
 
@@ -506,12 +561,11 @@ platform account predates the tenant, with no security gain. The provenance
 check stays specific to the backfill operation and cannot replace either of
 the two required controls above.
 
-Until #3849 wires both controls and their failure cases into the callback,
-`apps/web/auth/config/hooks/omniauth.rb` deliberately refuses tenant connects.
-The membership gate exists (#4413) but has no call site yet; it is inert
-until the pipeline lands.
-Removing only the current surface guard would allow a tenant-controlled IdP to
-become a login method for an account outside the tenant authorization boundary.
+The callback pipeline now calls the membership gate, but the hard-coded release
+gate continues to refuse tenant Connect until the acceptance matrix above is
+complete. Removing that gate before its controls are demonstrated together
+could allow a tenant-controlled IdP to become a login method for an account
+outside the tenant authorization boundary.
 
 ## OIDC for sovereign Microsoft Entra tenants
 
