@@ -221,8 +221,6 @@ module Onetime
       # @return [CustomDomain, nil] The domain or nil if not found
       def custom_domain
         Onetime::CustomDomain.find_by_identifier(domain_id)
-      rescue Onetime::RecordNotFound
-        nil
       end
 
       # Load the owning Organization via the CustomDomain.
@@ -284,8 +282,6 @@ module Onetime
           return nil if domain_id.to_s.empty?
 
           load(domain_id)
-        rescue Onetime::RecordNotFound
-          nil
         end
 
         # Resolve effective signup availability, combining the install-level

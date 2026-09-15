@@ -706,7 +706,7 @@ module Onetime
 
         # Use Familia's find_by_identifier method
         find_by_identifier(domainid)
-      rescue Onetime::RecordNotFound, Redis::BaseError => ex
+      rescue Redis::BaseError => ex
         OT.ld "[CustomDomain.load_by_display_domain] Failed to load domain #{normalized} with id #{domainid}: #{ex.message}"
         nil
       rescue StandardError => ex
@@ -1317,11 +1317,7 @@ module Onetime
         return nil unless domain_id
 
         # Load the record using the domain ID
-        begin
-          find_by_identifier(domain_id)
-        rescue Onetime::RecordNotFound
-          nil
-        end
+        find_by_identifier(domain_id)
       end
 
       # Generate a cryptographically secure short identifier using
