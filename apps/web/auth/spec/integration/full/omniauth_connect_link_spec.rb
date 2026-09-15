@@ -1018,16 +1018,43 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       expect(identities.where(account_id: actor_id).count).to eq(0)
     end
 
-    it 'keeps the production release gate closed even for an authorized known tuple' do
+    it 'keeps the production release gate closed, ahead of the membership gate, even for a known tuple' do
       allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_call_original
+      allow(Auth::Operations::AuthorizeTenantConnect).to receive(:call).and_call_original
       expect(Auth::Config::Hooks::OmniAuthConnect.tenant_connect_enabled?).to be(false)
       identities.insert(tuple.merge(account_id: actor_id))
       tenant_connect_callback
 
       expect_connect_refused('tenant_connect_prerequisites_incomplete')
-      expect(Auth::Logging).to have_received(:log_auth_event)
+      expect(Auth::Operations::AuthorizeTenantConnect).not_to have_received(:call)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
         .with(:tenant_connect_membership_authorized, anything)
       expect(identities.where(tuple).count).to eq(1)
+    end
+
+    it 'refuses as lookup_error when a gate raises before the bind, writing nothing' do
+      allow(Auth::Operations::AuthorizeTenantConnect).to receive(:call).and_raise(RuntimeError, 'membership store down')
+      tenant_connect_callback
+
+      expect_connect_refused('lookup_error', code: 'identity_connect_conflict')
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_connect_lookup_error, hash_including(error_class: 'RuntimeError'))
+      expect(identities.where(tuple).count).to eq(0)
+    end
+
+    it 'does not report a bound identity as refused when a post-bind step fails' do
+      allow(Auth::Logging).to receive(:log_auth_event)
+        .with(:omniauth_identity_connected, anything).and_raise(RuntimeError, 'audit sink down')
+      clear_body_headers
+      post '/auth/sso/oidc/callback'
+
+      expect(last_response.status).to eq(500)
+      expect(intent_live?(@connect_sid)).to be(false)
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: actor_id))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connect_refused, anything)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_connect_lookup_error, anything)
     end
 
     %w[missing inactive sibling].each do |state|

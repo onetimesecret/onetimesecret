@@ -231,8 +231,10 @@ Connect SSO flow will require (below); it does not by itself link the identity.
 shared callback pipeline, including session-account and Customer status,
 surface binding, exact-domain membership, and full-tuple ownership checks.
 `OmniAuthConnect.tenant_connect_enabled?` remains hard-coded `false`; there is
-no operator override. An otherwise authorized tenant Connect is refused with
-reason `tenant_connect_prerequisites_incomplete`, without binding an identity.
+no operator override. A tenant Connect that passes the session and surface
+gates is refused with reason `tenant_connect_prerequisites_incomplete` before
+the membership gate runs, so a closed gate binds nothing and writes no
+`tenant_connect_membership_authorized` record.
 The Connected Identities panel keeps the interim tenant route-name suppression
 (#4412) until the gate opens: exposing a Connect action the callback refuses
 unconditionally would burn the user's single-use re-authentication proof for

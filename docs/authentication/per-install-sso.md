@@ -271,7 +271,9 @@ That ordering is the point: matching a connect to an email-*located* account wou
 | Session account gone or no longer open (e.g. closed mid-session) | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `session_account_missing` |
 | Customer missing or suspended | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `session_customer_missing` or `session_customer_suspended` |
 | Exact tuple owned by another account | Redirect `/signin?auth_error=identity_connect_conflict`; no account switch | `omniauth_identity_connect_refused`, reason `identity_owned_elsewhere` |
-| Otherwise authorized tenant Connect | Redirect `/signin?auth_error=identity_connect_wrong_domain`; release gate remains closed | `omniauth_identity_connect_refused`, reason `tenant_connect_prerequisites_incomplete` |
+| Tenant Connect while the release gate is closed (checked before the membership gate, so no `tenant_connect_membership_authorized` record is written) | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `tenant_connect_prerequisites_incomplete` |
+| A gate raises before the bind (nothing written) | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_connect_lookup_error` (level `error`), then `omniauth_identity_connect_refused`, reason `lookup_error` |
+| A step after the bind raises (ownership re-read, audit log) | Unhandled: generic 500 from the auth router; the identity **is** bound and a retry is idempotent. Never reported as a refusal | `Auth router unhandled exception` |
 | Logged in, but no valid intent (second tab, shared browser, intent for a different account, malformed or pre-#4411 intent) | **No authenticated Connect** — takes the ordinary existing-identity or email-based sign-in path | `omniauth_connect_intent_absent` (level `info`) |
 | Bind succeeds | `(provider, issuer, uid)` row written for the session account; session re-affirmed | `omniauth_identity_connected` (level `warn`) |
 
