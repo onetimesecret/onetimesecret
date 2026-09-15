@@ -52,6 +52,15 @@
 #   4. logged-in + connect intent on the PLATFORM surface + TENANT callback
 #        -> REFUSED (surface isolation): a tenant callback must not bind a
 #           tenant-issuer identity onto a platform session. Reason tenant_surface.
+#   5. (#4411) connect=1 on an authenticated session WITHOUT a recent full
+#      re-authentication proof (absent, consumed, stale, other account, other
+#      surface, or a non-local primary such as a magic link)
+#        -> the request phase mints NO intent, logs
+#           :omniauth_connect_reauth_required, and redirects to /reauth with
+#           the Connected Identities panel as the return path. The proof is
+#           single-use: one ceremony admits exactly one initiation.
+#   6. (#4411) the callback refuses an intent whose recorded surface differs
+#      from the callback's, and treats a pre-#4411 bare-id intent as absent.
 #
 # REQUIREMENTS:
 # - Valkey running on port 2163: pnpm run test:database:start
@@ -145,6 +154,38 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
     Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')
   end
 
+  # The recent-full-re-authentication proof (#4410) the request phase consumes
+  # before minting an intent (#4411). A password login records one, so the
+  # happy-path scenarios above pass the gate on the login itself; the #4411
+  # scenarios below remove or replace it to drive each refusal.
+  def reauth_proof_live?(sid)
+    Onetime::SessionSidecar.exists?(sid, 'recent_reauth')
+  end
+
+  def clear_reauth_proof(sid)
+    Onetime::SessionSidecar.delete(sid, 'recent_reauth')
+  end
+
+  # Overwrite the proof with a hand-built payload. Defaults are a fresh,
+  # canonical-surface password ceremony for `account_id`; each scenario varies
+  # exactly one binding.
+  def seed_reauth_proof(sid, account_id, at: Time.now.utc.to_i, surface: Onetime::SessionSurface::CANONICAL,
+                        methods: %w[password])
+    clear_reauth_proof(sid)
+    Onetime::SessionSidecar.write(
+      sid,
+      'recent_reauth',
+      { 'account_id' => Integer(account_id), 'at' => at, 'surface' => surface, 'methods' => methods },
+    )
+  end
+
+  def expect_reauth_required_redirect
+    expect(last_response.status).to eq(302),
+      "Expected the request phase to redirect to re-authentication, got #{last_response.status}: #{last_response.body}"
+    expect(last_response.location.to_s).to include(Auth::Config::Hooks::OmniAuth.connect_reauth_redirect),
+      "Expected a redirect to the re-authentication view, got: #{last_response.location.inspect}"
+  end
+
   # ==========================================================================
   # Scenario 1 — logged-in on the platform surface -> bind to session account
   # ==========================================================================
@@ -173,6 +214,10 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         sid = current_sid
         expect(intent_live?(sid)).to be(true),
           'Connect initiation must set the intent sidecar key'
+        # #4411: the password login recorded a recent-reauth proof, and the
+        # initiation SPENT it — one ceremony, one intent.
+        expect(reauth_proof_live?(sid)).to be(false),
+          'Connect initiation must consume the recent re-authentication proof'
 
         clear_body_headers
         post '/auth/sso/oidc/callback'
@@ -730,6 +775,216 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       ensure
         teardown_mock_auth
       end
+    end
+  end
+
+  # ==========================================================================
+  # Scenario 5 — #4411: connect=1 WITHOUT recent full re-authentication
+  # ==========================================================================
+  #
+  # An authenticated session plus connect=1 is intent, not proof. Attaching a
+  # login identity changes the account's authenticators, so the request phase
+  # mints an intent ONLY after Onetime::RecentReauth.satisfied? consumes a
+  # fresh proof for this account on this surface. Each example below removes
+  # or replaces the proof the password login recorded, and asserts the same
+  # fail-closed outcome: no intent, a warn event, a redirect to /reauth that
+  # returns to the Connected Identities panel — and, for the callback that
+  # follows, no bind.
+
+  describe 'connect initiation without recent full re-authentication (#4411)' do
+    let(:actor_email) { "actor-reauth-#{SecureRandom.hex(6)}@company.example.com" }
+    let(:other_email) { "other-#{SecureRandom.hex(6)}@company.example.com" }
+    let!(:actor_id) { seed_account_with_password(actor_email) }
+    let!(:other_id) { seed_existing_account(other_email) }
+
+    before do
+      enable_platform_fallback
+      csrf_login(actor_email)
+      unless (200..302).cover?(last_response.status)
+        raise "Precondition failed: password login did not succeed (#{last_response.status}: #{last_response.body})"
+      end
+      # A completed password login records the proof; every example starts
+      # from that known-good state and then breaks exactly one binding.
+      raise 'Precondition failed: a password login must record a recent-reauth proof' unless reauth_proof_live?(current_sid)
+
+      allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      setup_mock_auth(email: other_email, uid: "sub-#{SecureRandom.hex(8)}")
+    end
+
+    after { teardown_mock_auth }
+
+    # Drive connect=1 and assert the request phase refused: no intent minted,
+    # the proof (whatever state it was in) is gone, the event fired, and the
+    # user was sent to re-authenticate.
+    def expect_initiation_refused(sid)
+      skip 'OmniAuth route not registered' if initiate_sso_connect == 404
+
+      expect_reauth_required_redirect
+      expect(intent_live?(sid)).to be(false),
+        'A refused initiation must NOT leave a connect intent live'
+      expect(reauth_proof_live?(sid)).to be(false),
+        'The gate consumes the proof whether or not it satisfied'
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_connect_reauth_required, hash_including(provider: 'oidc', account_id: actor_id))
+    end
+
+    it 'refuses when the session carries no proof (the ordinary authenticated session)' do
+      sid = current_sid
+      clear_reauth_proof(sid)
+
+      expect_initiation_refused(sid)
+
+      # The callback that follows an abandoned refusal finds nothing to bind on.
+      clear_body_headers
+      post '/auth/sso/oidc/callback'
+
+      expect(last_response.status).to eq(302)
+      expect(identities.where(account_id: actor_id).count).to eq(0),
+        'A connect refused at initiation must NOT bind at the callback'
+      expect(identities.where(provider: 'oidc').count).to eq(0)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_connect_intent_absent, hash_including(provider: 'oidc', had_intent: false))
+    end
+
+    it 'refuses a second initiation on the same proof (single-use, replay)' do
+      sid = current_sid
+
+      # First initiation spends the login's proof and mints an intent.
+      skip 'OmniAuth route not registered' if initiate_sso_connect == 404
+      expect(last_response.status).to eq(302)
+      expect(last_response.location.to_s).not_to include(Auth::Config::Hooks::OmniAuth::REAUTH_PATH),
+        "First initiation must pass the gate. Location: #{last_response.location.inspect}"
+      expect(intent_live?(sid)).to be(true)
+      expect(reauth_proof_live?(sid)).to be(false)
+
+      # Abandon it (model the IdP round-trip never completing), then try again
+      # without re-authenticating: the spent proof admits nothing.
+      Onetime::SessionSidecar.delete(sid, 'sso_connect_intent')
+
+      expect_initiation_refused(sid)
+    end
+
+    it 'refuses a proof older than CONNECT_MAX_AGE (stale)' do
+      sid = current_sid
+      seed_reauth_proof(sid, actor_id, at: Time.now.utc.to_i - Onetime::RecentReauth::CONNECT_MAX_AGE - 1)
+
+      expect_initiation_refused(sid)
+    end
+
+    it 'refuses a proof recorded for a different account' do
+      sid = current_sid
+      seed_reauth_proof(sid, other_id)
+
+      expect_initiation_refused(sid)
+    end
+
+    it 'refuses a proof recorded on a different surface' do
+      sid = current_sid
+      seed_reauth_proof(sid, actor_id, surface: { 'kind' => 'custom', 'id' => "cd-#{SecureRandom.hex(4)}" })
+
+      expect_initiation_refused(sid)
+    end
+
+    it 'refuses mailbox proof (a magic-link primary is not a local credential)' do
+      sid = current_sid
+      seed_reauth_proof(sid, actor_id, methods: %w[email_auth])
+
+      expect_initiation_refused(sid)
+    end
+
+    it 'admits a fresh proof for this account on this surface' do
+      sid = current_sid
+      seed_reauth_proof(sid, actor_id)
+
+      skip 'OmniAuth route not registered' if initiate_sso_connect == 404
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.location.to_s).not_to include(Auth::Config::Hooks::OmniAuth::REAUTH_PATH),
+        "A fresh proof must pass the gate. Location: #{last_response.location.inspect}"
+      expect(intent_live?(sid)).to be(true)
+      expect(reauth_proof_live?(sid)).to be(false)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_connect_reauth_required, anything)
+    end
+  end
+
+  # ==========================================================================
+  # Scenario 6 — #4411: the callback's own intent checks
+  # ==========================================================================
+  #
+  # The intent carries the surface the gate verified. A callback arriving on
+  # any other surface refuses (defence in depth behind the router's session-
+  # surface gate), and an intent that is not the { account_id, surface, at }
+  # shape — including the pre-#4411 bare account id — is treated as absent.
+
+  describe 'callback intent binding (#4411)' do
+    let(:actor_email) { "actor-intent-#{SecureRandom.hex(6)}@company.example.com" }
+    let(:uid) { "sub-#{SecureRandom.hex(8)}" }
+    let!(:actor_id) { seed_account_with_password(actor_email) }
+
+    before do
+      enable_platform_fallback
+      csrf_login(actor_email)
+      unless (200..302).cover?(last_response.status)
+        raise "Precondition failed: password login did not succeed (#{last_response.status}: #{last_response.body})"
+      end
+
+      allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      setup_mock_auth(email: actor_email, uid: uid)
+    end
+
+    after { teardown_mock_auth }
+
+    it 'refuses an intent whose recorded surface differs from the callback surface' do
+      sid = current_sid
+      Onetime::SessionSidecar.write(
+        sid,
+        'sso_connect_intent',
+        {
+          'account_id' => actor_id,
+          'surface' => { 'kind' => 'custom', 'id' => "cd-#{SecureRandom.hex(4)}" },
+          'at' => Time.now.utc.to_i,
+        },
+      )
+
+      clear_body_headers
+      post '/auth/sso/oidc/callback'
+
+      skip 'OmniAuth route not registered' if last_response.status == 404
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.location.to_s).to include('/signin?auth_error=identity_connect_wrong_domain'),
+        "A surface-mismatched intent must refuse. Location: #{last_response.location.inspect}"
+      expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0),
+        'A surface-mismatched intent must NOT bind'
+      expect(intent_live?(sid)).to be(false), 'The refused intent is consumed, never replayable'
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_identity_connect_refused, hash_including(provider: 'oidc', reason: 'surface_mismatch'))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
+    end
+
+    it 'treats a pre-#4411 bare account-id intent as absent (never binds)' do
+      sid = current_sid
+      Onetime::SessionSidecar.write(sid, 'sso_connect_intent', actor_id)
+
+      clear_body_headers
+      post '/auth/sso/oidc/callback'
+
+      skip 'OmniAuth route not registered' if last_response.status == 404
+
+      expect(last_response.status).to eq(302)
+      expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0),
+        'A malformed intent must NOT bind'
+      expect(intent_live?(sid)).to be(false)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_connect_intent_absent, hash_including(provider: 'oidc', had_intent: true))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
     end
   end
 end

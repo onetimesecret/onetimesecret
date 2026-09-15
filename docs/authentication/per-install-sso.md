@@ -195,17 +195,21 @@ Signed-in user clicks "Connect {provider}"
 Form POST /auth/sso/{provider} with connect=1  (submitSsoLogin, src/shared/utils/sso.ts)
     │
     ▼
-omniauth_request_validation_phase → write sidecar:<sid>:sso_connect_intent = <account id>
+omniauth_request_validation_phase → RecentReauth.satisfied? consumes the recent-reauth proof (#4411)
+    ├─ no proof / stale / other account / other surface / non-local primary
+    │     → no intent; redirect /reauth?redirect=/account/settings/security/connections
+    └─ fresh proof → write sidecar:<sid>:sso_connect_intent = { account_id, surface, at }
     │
     ▼
 IdP round-trip → callback → account_from_omniauth
     │
     ▼
 Consume the intent (atomic GETDEL)
-    ├─ matches the current session account → bind (provider, issuer, uid) to it, re-affirm session
+    ├─ matches the current session account AND the callback surface → bind (provider, issuer, uid), re-affirm session
     ├─ tenant callback on a platform session → refuse (identity_connect_wrong_domain)
-    ├─ session account no longer open       → refuse (identity_connect_conflict)
-    └─ absent / expired / other account     → fall through to the email branches (never bind)
+    ├─ intent surface ≠ callback surface     → refuse (identity_connect_wrong_domain)
+    ├─ session account no longer open        → refuse (identity_connect_conflict)
+    └─ absent / expired / malformed / other account → fall through to the email branches (never bind)
     │
     ▼
 Back to /account/settings/security/connections
@@ -220,14 +224,30 @@ Back to /account/settings/security/connections
 
 The division of labour: OAuth `state`/CSRF proves *"this browser initiated a request"*; the intent nonce proves *"this browser initiated a **connect** for **this account**"*.
 
+#### Recent full re-authentication gates the intent (#4411)
+
+An authenticated session plus `connect=1` is intent, not proof. Attaching a login identity changes the account's authenticators ([OWASP ASVS 5.0.0 requirement 7.5.1](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v75-defenses-against-session-abuse)), so the request phase mints the intent **only** after `Onetime::RecentReauth.satisfied?` (`lib/onetime/session/recent_reauth.rb`, #4410) consumes a proof that is:
+
+| Binding | Requirement |
+|---------|-------------|
+| Account | recorded for the session's account (`session_value`) |
+| Surface | recorded on the surface the initiation arrives on (`Onetime::SessionSurface.for_env`) |
+| Age | no older than `RecentReauth::CONNECT_MAX_AGE` (300s) |
+| Ceremony | first completed method is a local primary (`password` or `webauthn`), with every MFA factor the account requires already completed |
+| Use | single-use — the gate consumes it, so one ceremony admits exactly one initiation; a second initiation (or a concurrent one) is refused |
+
+A proof is recorded only by a completed local ceremony: a password (or WebAuthn-primary) login that satisfied MFA policy, or a completed `POST /auth/reauth` (`apps/web/auth/routes/reauth.rb`, the surface-aware re-authentication endpoint from #4414). A magic-link login, an SSO callback, a remembered session, and a password step that stopped short of required MFA never record one, so none of them can reach the intent write. A user who signed in with a password moments ago passes the gate on that login; otherwise the refusal redirects to `/reauth?redirect=/account/settings/security/connections`, the re-authentication view returns them to the panel, and they click Connect again.
+
+Refusal is fail-closed on every path: nothing is minted, any dangling intent from an earlier initiation is deleted, and `omniauth_connect_reauth_required` (level `warn`) is logged. Platform mailbox-proof linking is a separate recovery policy and does not satisfy this gate.
+
 #### The connect-intent nonce (#3859)
 
 | Property | Behavior |
 |----------|----------|
-| Written | `omniauth_request_validation_phase` (`config/hooks/omniauth.rb`), during `POST /auth/sso/:provider`, only when a logged-in caller submits `connect=1` |
-| Stored as | `sidecar:<sid>:sso_connect_intent` = the **session account id** (not a bare boolean), short TTL (~5 min — one IdP round-trip) |
+| Written | `omniauth_request_validation_phase` (`config/hooks/omniauth.rb`), during `POST /auth/sso/:provider`, only when a logged-in caller submits `connect=1` **and** the recent-reauth gate consumed a fresh proof (#4411) |
+| Stored as | `sidecar:<sid>:sso_connect_intent` = `{ account_id, surface, at }` — the **session account id**, the surface descriptor the gate verified, and the mint time (a pre-#4411 bare account id is refused as malformed), short TTL (~5 min — one IdP round-trip) |
 | Consumed | Atomic GETDEL in `account_from_omniauth`, before any email-based branch |
-| Binds when | The consumed value equals the *current* session account id |
+| Binds when | The consumed `account_id` equals the *current* session account id **and** the consumed `surface` equals the callback request's surface |
 | Abandoned connect | Needs no cleanup — the key expires. Additionally, any **non**-connect SSO initiation deletes a dangling intent, so a later plain `connect=0` callback can never consume one that is still in TTL |
 | Failure mode | Fail-closed — a failed write or a miss means no intent, and no intent means no bind |
 
@@ -245,9 +265,11 @@ That ordering is the point: matching a connect to an email-*located* account wou
 
 | Condition | Outcome | Audit event |
 |-----------|---------|-------------|
+| Initiation without recent full re-authentication (no proof, stale, consumed, other account, other surface, non-local primary) | Redirect `/reauth?redirect=/account/settings/security/connections`; **no intent minted** | `omniauth_connect_reauth_required` (level `warn`) |
 | Tenant callback (`validated_omniauth_domain_id` set) on a platform session | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `tenant_surface` |
+| Intent surface differs from the callback surface (or the callback surface is unresolved) | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `surface_mismatch` |
 | Session account gone or no longer open (e.g. closed mid-session) | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `session_account_missing` |
-| Logged in, but no valid intent (second tab, shared browser, intent for a different account) | **No bind** — falls through to the email branches exactly as an unauthenticated caller would | `omniauth_connect_intent_absent` (level `info`) |
+| Logged in, but no valid intent (second tab, shared browser, intent for a different account, malformed or pre-#4411 intent) | **No bind** — falls through to the email branches exactly as an unauthenticated caller would | `omniauth_connect_intent_absent` (level `info`) |
 | Bind succeeds | `(provider, issuer, uid)` row written for the session account; session re-affirmed | `omniauth_identity_connected` (level `warn`) |
 
 Refusing rather than falling back matters in the first row: a tenant admin controls their own IdP's assertions, so binding a tenant-issuer identity onto a platform-session account would hand them a login into that account.
@@ -269,7 +291,7 @@ Refusing rather than falling back matters in the first row: a tenant admin contr
 
 #### Platform-only
 
-The panel connects identities on the **platform** surface only. Authenticated linking on a tenant (custom-domain) surface is a deliberate follow-up (#3849). [NIST SP 800-63C-4 section 3.8.1](https://pages.nist.gov/800-63-4/sp800-63c/Federation/#account-linking) requires an authenticated subscriber session for linking, and [OWASP ASVS 5.0.0 requirement 7.5.1](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v75-defenses-against-session-abuse) requires full re-authentication before changing sensitive authentication attributes. OTS additionally requires an active organization membership that authorizes the exact custom domain (`OrganizationMembership#can_access_domain?`: organization-scoped, or scoped to that domain), plus a session scoped to the tenant surface and recent full local re-authentication that completes the account's required MFA factors. These tenant-session controls are OTS choices, not an architecture prescribed by those standards. Callback-domain validation (`session[:validated_omniauth_domain_id]`) is not a substitute for either. See [Requirements for authenticated tenant linking](per-domain-sso.md#requirements-for-authenticated-tenant-linking-3849).
+The panel connects identities on the **platform** surface only. Authenticated linking on a tenant (custom-domain) surface is a deliberate follow-up (#3849). [NIST SP 800-63C-4 section 3.8.1](https://pages.nist.gov/800-63-4/sp800-63c/Federation/#account-linking) requires an authenticated subscriber session for linking, and [OWASP ASVS 5.0.0 requirement 7.5.1](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v75-defenses-against-session-abuse) requires full re-authentication before changing sensitive authentication attributes — the platform path enforces the latter through the recent-reauth gate above (#4411). For tenant linking OTS additionally requires an active organization membership that authorizes the exact custom domain (`OrganizationMembership#can_access_domain?`: organization-scoped, or scoped to that domain), plus a session scoped to the tenant surface and recent full local re-authentication that completes the account's required MFA factors. These tenant-session controls are OTS choices, not an architecture prescribed by those standards. Callback-domain validation (`session[:validated_omniauth_domain_id]`) is not a substitute for either. See [Requirements for authenticated tenant linking](per-domain-sso.md#requirements-for-authenticated-tenant-linking-3849).
 
 ### Sign-in interstitial (password-challenge linking)
 

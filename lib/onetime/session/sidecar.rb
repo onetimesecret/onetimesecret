@@ -159,14 +159,17 @@ module Onetime
       # of step. (This is why it is neither an externalized field nor an
       # explicit-use field — a third, declared-pending-audit state.)
       '_flash' => { ttl: 600,   encrypted: true, merge_on_read: true, externalize: false, destroy_warn: false },
-      # #3859: the SSO account-bound connect-intent nonce (value = the session
-      # account id). EXPLICIT-USE: written by omniauth_request_validation_phase
-      # when a logged-in caller POSTs connect=1, consumed (atomic GETDEL) by
-      # account_from_omniauth. Living here instead of in the blob is the fix
-      # for the abandoned-connect gap: a connect abandoned at the IdP (cancel /
-      # IdP error / closed tab) never reaches the consuming callback, and a
-      # blob-resident nonce would stay live for a later plain sign-in to bind
-      # on — the TTL expires it unconditionally after one IdP round-trip.
+      # #3859: the SSO account-bound connect-intent nonce (value = a
+      # { account_id, surface, at } payload since #4411; the pre-#4411 bare
+      # account id is refused as malformed). EXPLICIT-USE: written by
+      # omniauth_request_validation_phase when a logged-in caller POSTs
+      # connect=1 AND the RecentReauth gate consumed a fresh proof, consumed
+      # (atomic GETDEL) by account_from_omniauth. Living here instead of in the
+      # blob is the fix for the abandoned-connect gap: a connect abandoned at
+      # the IdP (cancel / IdP error / closed tab) never reaches the consuming
+      # callback, and a blob-resident nonce would stay live for a later plain
+      # sign-in to bind on — the TTL expires it unconditionally after one IdP
+      # round-trip.
       # Absence is the safe state (admission rule): a miss means no bind, the
       # callback falls through to the email branches' default-deny. Encrypted:
       # the value is an account id bound to the session — capability-adjacent —

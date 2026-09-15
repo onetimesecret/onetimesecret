@@ -15,10 +15,79 @@
 # See: features/omniauth.rb (provider registration)
 #
 
+require 'cgi'
+
 require 'auth/account_statuses'
 
 module Auth::Config::Hooks
   module OmniAuth
+    # The only initiator of a platform Connect is the Connected Identities
+    # panel, so a refused initiation sends the user through the SPA's
+    # re-authentication view and back to that panel (#4411). Both are SPA
+    # routes, root-relative like every other auth redirect in this file.
+    CONNECT_PANEL_PATH = '/account/settings/security/connections'
+    REAUTH_PATH        = '/reauth'
+
+    # @return [String] the redirect target for a Connect initiation that
+    #   lacked recent full re-authentication
+    def self.connect_reauth_redirect
+      "#{REAUTH_PATH}?redirect=#{CGI.escape(CONNECT_PANEL_PATH)}"
+    end
+
+    # The SSO request phase's connect-intent step, called from
+    # omniauth_request_validation_phase with the Rodauth instance (the same
+    # shape as the helpers in hooks/omniauth_tenant.rb). See that hook's
+    # comment for the full security narrative.
+    #
+    # - Not a connect initiation (anonymous, or connect != 1): delete any
+    #   dangling intent and return.
+    # - Connect initiation WITHOUT a fresh recent-reauth proof: delete any
+    #   dangling intent, log, and redirect to re-authentication (throws :halt).
+    # - Connect initiation WITH proof (consumed here): mint the
+    #   { account_id, surface, at } intent.
+    #
+    # @param rodauth [Rodauth::Auth] the request's Rodauth instance
+    # @return [void]
+    def self.capture_connect_intent!(rodauth)
+      session = rodauth.session
+      sid     = session.id&.public_id
+      env     = rodauth.request.env
+
+      unless rodauth.logged_in? && rodauth.request.params['connect'].to_s == '1'
+        Onetime::SessionSidecar.delete(sid, 'sso_connect_intent')
+        return
+      end
+
+      account_id      = rodauth.session_value
+      reauthenticated = Onetime::RecentReauth.satisfied?(
+        session,
+        env,
+        account_id: account_id,
+        max_age: Onetime::RecentReauth::CONNECT_MAX_AGE,
+      )
+
+      unless reauthenticated
+        Onetime::SessionSidecar.delete(sid, 'sso_connect_intent')
+        Auth::Logging.log_auth_event(
+          :omniauth_connect_reauth_required,
+          level: :warn,
+          provider: env['omniauth.strategy']&.name.to_s,
+          account_id: account_id,
+        )
+        rodauth.send(:redirect, connect_reauth_redirect)
+      end
+
+      Onetime::SessionSidecar.write(
+        sid,
+        'sso_connect_intent',
+        {
+          'account_id' => account_id,
+          'surface' => Onetime::SessionSurface.for_env(env),
+          'at' => Time.now.utc.to_i,
+        },
+      )
+    end
+
     # rubocop:disable Metrics/PerceivedComplexity
     # A long, linear chain of Rodauth hook registrations (mirrors the same
     # inline disable on Hooks::Account.configure). Splitting it would scatter the
@@ -48,11 +117,14 @@ module Auth::Config::Hooks
         #   1. an authenticated session (session_value), and
         #   2. an account-bound connect intent set during INITIATION — the
         #      omniauth_request_validation_phase hook below writes the sidecar
-        #      key sidecar:<sid>:sso_connect_intent = session_value (short TTL,
-        #      see SessionSidecar::FIELDS) only when the logged-in caller POSTed
-        #      connect=1 (the Connected Identities panel). CSRF/state proves
-        #      "this browser initiated a request"; the intent nonce proves
-        #      "this browser initiated a CONNECT for THIS account".
+        #      key sidecar:<sid>:sso_connect_intent (short TTL, see
+        #      SessionSidecar::FIELDS) only when the logged-in caller POSTed
+        #      connect=1 (the Connected Identities panel) AND passed the
+        #      recent-full-re-authentication gate (#4411) — the intent payload
+        #      is { account_id, surface, at }. CSRF/state proves "this browser
+        #      initiated a request"; the intent proves "this browser initiated
+        #      a CONNECT for THIS account, on THIS surface, having just
+        #      re-authenticated with a local credential".
         # We consume (atomic GETDEL) the nonce here, and bind ONLY when it
         # matches the CURRENT session account. Absent/expired/mismatched intent
         # → fall through to the email-based branches exactly as an
@@ -108,20 +180,37 @@ module Auth::Config::Hooks
         # so a plain sign-in can never reach this consume with a stale nonce
         # still live. A miss here means "absent or expired" — default-deny.
         # (Blob copies written by pre-#3859 code are discarded unconsumed.)
+        #
+        # SHAPE (#4411): the intent is `{ 'account_id', 'surface', 'at' }`,
+        # minted by the request phase only after the RecentReauth gate
+        # consumed a fresh proof. Anything else — the pre-#4411 bare account
+        # id, or a payload without the keys — is treated as ABSENT, so a
+        # malformed or legacy intent can never bind.
         session.delete(:sso_connect_intent)
-        intent_account_id  = Onetime::SessionSidecar.consume(session.id&.public_id, 'sso_connect_intent')
+        raw_intent         = Onetime::SessionSidecar.consume(session.id&.public_id, 'sso_connect_intent')
+        connect_intent     = raw_intent if raw_intent.is_a?(Hash) && raw_intent['surface'].is_a?(Hash)
+        intent_account_id  = connect_intent && connect_intent['account_id']
         has_connect_intent = logged_in? &&
                              !intent_account_id.nil? &&
                              intent_account_id.to_s == session_value.to_s
 
         if has_connect_intent
-          if session[:validated_omniauth_domain_id]
-            # Tenant callback on a platform session → refuse (surface isolation).
+          # SURFACE BINDING (#4411): the intent binds to the surface the
+          # re-authentication was verified on. The callback must arrive on
+          # that same surface — a nil request surface, or any other
+          # descriptor, refuses. Strict equality, composed with (not replaced
+          # by) the router's session-surface gate and the tenant check below.
+          callback_surface = Onetime::SessionSurface.for_env(request.env)
+          surface_bound    = !callback_surface.nil? && connect_intent['surface'] == callback_surface
+
+          if session[:validated_omniauth_domain_id] || !surface_bound
+            # Tenant callback on a platform session, or an intent minted on a
+            # different surface than the callback's → refuse (surface isolation).
             Auth::Logging.log_auth_event(
               :omniauth_identity_connect_refused,
               level: :warn,
               provider: provider,
-              reason: 'tenant_surface',
+              reason: session[:validated_omniauth_domain_id] ? 'tenant_surface' : 'surface_mismatch',
             )
             # Distinct code from the session-expired case below: this is a
             # deliberate, permanent refusal (identity linking is platform-only
@@ -170,7 +259,7 @@ module Auth::Config::Hooks
             :omniauth_connect_intent_absent,
             level: :info,
             provider: provider,
-            had_intent: !intent_account_id.nil?,
+            had_intent: !raw_intent.nil?,
           )
         end
 
@@ -627,11 +716,31 @@ module Auth::Config::Hooks
         # deterministically kills a nonce left dangling by an abandoned connect
         # before a plain (connect=0) callback could consume it. A failed write
         # fails closed: no intent → the callback never binds.
-        if logged_in? && request.params['connect'].to_s == '1'
-          Onetime::SessionSidecar.write(session.id&.public_id, 'sso_connect_intent', session_value)
-        else
-          Onetime::SessionSidecar.delete(session.id&.public_id, 'sso_connect_intent')
-        end
+        #
+        # RECENT FULL RE-AUTHENTICATION (#4411, epic #4408): an authenticated
+        # session plus connect=1 is intent, not proof. Attaching a login
+        # identity is a change to the account's authenticators, so the intent
+        # is minted ONLY when the session carries a fresh, single-use
+        # RecentReauth proof for THIS account on THIS surface —
+        # `Onetime::RecentReauth.satisfied?` is the one gate, and it CONSUMES
+        # the proof (one ceremony authorizes one Connect initiation; a
+        # concurrent or later initiation on the same proof is refused). The
+        # proof is only ever recorded by a completed local ceremony (password
+        # or WebAuthn primary plus every MFA factor the account requires):
+        # a magic-link login, an SSO callback, a remembered session, or a
+        # password step that stopped short of required MFA never records one,
+        # so none of them can reach the write below.
+        #
+        # Refusal is a redirect to the re-authentication view, which returns
+        # the user to the Connected Identities panel on success; the user then
+        # re-initiates the connect. Nothing is minted on refusal (a dangling
+        # intent from an earlier initiation is deleted), so the callback that
+        # follows an abandoned refusal can only take the no-intent path.
+        #
+        # The intent carries the account id AND the surface descriptor the
+        # gate verified, so the callback can refuse a surface-mismatched
+        # intent positively instead of relying on the router alone.
+        Auth::Config::Hooks::OmniAuth.capture_connect_intent!(self)
       end
 
       # NOTE: before_omniauth_callback_route is OWNED by omniauth_tenant.rb
