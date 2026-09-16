@@ -375,8 +375,17 @@ identities.
    has the same exposure with no membership gate at all, so the check has to
    live in the shared step.
 5. Verify that the authenticated session is scoped to that same tenant
-   surface: the surface recorded at login equals the validated domain ID, and
-   a recent re-authentication on that host is on record.
+   surface. The request surface must resolve, equal the surface recorded in
+   the connect intent, and equal the surface recorded at login for this
+   session (`Onetime::SessionSurface.matches_request?`). For a tenant
+   callback that surface is `{kind: custom, id: validated domain id}`; an
+   unvalidated callback on a custom host is never platform Connect. The
+   intent's `at` must not be in the future and must be no older than
+   `RecentReauth::CONNECT_MAX_AGE`. The re-authentication proof itself is not
+   re-checked here: `RecentReauth.satisfied?` already consumed the full local
+   proof at initiation, and consuming a second proof at the callback would
+   deny every legitimate callback. This single-use, age-bounded intent
+   carries that admission across the IdP round trip.
 6. Load the validated `CustomDomain`
    (`CustomDomain.find_by_identifier(domain_id)`), its owning organization
    (`custom_domain.primary_organization`), the session account's `Customer`
