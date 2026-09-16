@@ -165,7 +165,8 @@ module Auth::Config::Hooks
           db: db, account_id: session_account[account_id_column], **tuple,
         )
         refuse_omniauth_connect!('identity_owned_elsewhere') unless outcome == :ok
-        # Cheap guarantee (#4420): the proof was already consumed at initiation; a second bind within max_age needs a fresh ceremony.
+        # Cheap guarantee (#4420): the proof was already consumed at initiation;
+        # a second bind within max_age needs a fresh ceremony.
         Onetime::RecentReauth.clear(session)
         identity = db[omniauth_identities_table].first(tuple)
         unless identity && identity[omniauth_identities_account_id_column].to_s == session_account[account_id_column].to_s
