@@ -438,9 +438,14 @@ not create the membership that is then used to authorize attaching that same
 assertion as an account credential.
 
 The login completing a successful tenant connect still runs the `after_login`
-hook, which consumes `session[:validated_omniauth_domain_id]` and calls
+hook, which consumes the validated tenant domain id and calls
 `Auth::Operations::JoinDomainOrganization` for any tenant login
-(`hooks/login.rb`). That operation checks only `organization.member?(customer)`,
+(`hooks/login.rb`). Rodauth's `login_session` clears the Rack session before
+`after_login` fires, so the id reaches that hook through a copy the tenant
+callback hook carries on the Rodauth instance
+(`consume_validated_omniauth_domain_id`, `hooks/omniauth_tenant.rb`); the
+session key alone serves only the pre-login readers. That operation checks only
+`organization.member?(customer)`,
 not `can_access_domain?`, so on this path it returns `already_member` without
 creating anything. It is not a substitute for the gate and must not be cited
 as a reason to remove it: the gate runs before the bind, the join runs after

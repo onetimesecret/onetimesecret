@@ -976,7 +976,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         expect(identities.where(provider: 'oidc', uid: uid).all)
           .to contain_exactly(hash_including(account_id: account_id))
         expect(Auth::Operations::JoinDomainOrganization).to have_received(:new)
-          .with(customer: customer, domain_id: tenant[:domain].identifier)
+          .with(customer: an_object_having_attributes(objid: customer.objid), domain_id: tenant[:domain].identifier)
         persisted = Onetime::OrganizationMembership.find_by_org_customer(tenant[:org].objid, customer.objid)
         expect(persisted.objid).to eq(membership.objid)
         expect(persisted.domain_scope_id).to eq(tenant[:domain].objid)
@@ -1075,7 +1075,7 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       expect(persisted.objid).to eq(membership_id)
       expect(persisted.domain_scope_id).to eq(membership_scope)
       expect(Auth::Operations::JoinDomainOrganization).to have_received(:new)
-        .with(customer: customer, domain_id: @tenant[:domain].identifier)
+        .with(customer: an_object_having_attributes(objid: customer.objid), domain_id: @tenant[:domain].identifier)
     end
 
     it 'binds for an organization-scoped membership through the callback and preserves that scope' do
