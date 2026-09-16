@@ -76,6 +76,6 @@ RSpec.describe Auth::Operations::BindSsoIdentity,
     expect(outcomes).to contain_exactly(:ok, :conflict)
     rows = test_db[:account_identities].where(tuple).all
     expect(rows.size).to eq(1)
-    expect(rows.first[:account_id]).to be_in([first[:id], second[:id]])
+    expect([first[:id], second[:id]]).to include(rows.first[:account_id])
   end
 end
