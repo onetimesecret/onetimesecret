@@ -61,6 +61,10 @@
 #   password.rb         intentionally EMPTY — password-lifecycle hooks live in
 #                       account.rb (M-2 consolidation; see its module comment)
 #   billing.rb          helper methods only (auth_class_eval), defines NO hooks
+#   omniauth_connect.rb wraps before_omniauth_callback_route via `prepend` +
+#                       `super` (see omniauth.rb: auth_class_eval { prepend ... }).
+#                       The hook is still OWNED by omniauth_tenant.rb; this file
+#                       chains Connect authorization ahead of the tenant validation.
 #
 # Method overrides (a different mechanism — they replace Rodauth methods, not
 # register hooks) live in config/overrides/: error_handling.rb defines the
