@@ -45,7 +45,12 @@ module Auth::Config::Hooks
     # - Connect initiation WITHOUT a fresh recent-reauth proof: delete any
     #   dangling intent, log, and redirect to re-authentication (throws :halt).
     # - Connect initiation WITH proof (consumed here): mint the
-    #   { account_id, surface, at } intent.
+    #   { account_id, surface, at } intent, plus 'redirect' when the panel's
+    #   `redirect` param is a safe internal path (the same validator the
+    #   create-account path applies in hooks/account.rb). An absent or
+    #   rejected value omits the key, so the callback falls back to the
+    #   ordinary login redirect. The value is never logged: redirect targets
+    #   are bearer-grade in this codebase (#4305).
     #
     # @param rodauth [Rodauth::Auth] the request's Rodauth instance
     # @return [void]
@@ -78,15 +83,15 @@ module Auth::Config::Hooks
         rodauth.send(:redirect, connect_reauth_redirect)
       end
 
-      Onetime::SessionSidecar.write(
-        sid,
-        'sso_connect_intent',
-        {
-          'account_id' => account_id,
-          'surface' => Onetime::SessionSurface.for_env(env),
-          'at' => Time.now.utc.to_i,
-        },
-      )
+      intent             = {
+        'account_id' => account_id,
+        'surface' => Onetime::SessionSurface.for_env(env),
+        'at' => Time.now.utc.to_i,
+      }
+      return_path        = OT::Utils.internal_path_or_nil(rodauth.request.params['redirect'])
+      intent['redirect'] = return_path if return_path
+
+      Onetime::SessionSidecar.write(sid, 'sso_connect_intent', intent)
     end
 
     # rubocop:disable Metrics/PerceivedComplexity
@@ -483,6 +488,26 @@ module Auth::Config::Hooks
         # Also handle exact match for /auth/sso (the SSO index/landing, if any).
         is_sso_route    = request.path.start_with?("#{full_sso_prefix}/") || request.path == full_sso_prefix
         !is_sso_route
+      end
+
+      # ========================================================================
+      # Post-Connect Return Path
+      # ========================================================================
+      #
+      # The gem finishes a callback with `login('omniauth')`, whose
+      # _login_response redirects to `saved_login_redirect || login_redirect`
+      # (rodauth 2.45 features/login.rb). A completed Connect must return to
+      # the Connected Identities panel it started from, not the dashboard, so
+      # this override answers with the intent's validated `redirect` when
+      # bind_omniauth_connect_identity (hooks/omniauth_connect.rb) remembered
+      # one. Every other login — plain SSO sign-in, password, magic link —
+      # falls through to Rodauth's own value via super. Refusals never reach
+      # this method: they redirect to /signin?auth_error=... before login runs.
+      #
+      # Explicit `super()`: Rodauth config blocks become define_method bodies,
+      # where implicit-argument super is not allowed.
+      auth.login_redirect do
+        omniauth_connect_redirect || super()
       end
 
       # ========================================================================

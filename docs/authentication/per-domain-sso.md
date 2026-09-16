@@ -323,7 +323,12 @@ may be inferred from the IdP's email claim.
    Offer a password or a credential registered for the tenant surface as the
    fallback. Cross-domain passkey use requires an explicitly designed and
    supported [WebAuthn related-origins arrangement](https://www.w3.org/TR/webauthn-3/#sctn-related-origins), including a shared RP ID and its
-   `.well-known/webauthn` configuration; it is not automatic.
+   `.well-known/webauthn` configuration; it is not automatic. A tenant's
+   declared related origins may name only the platform canonical host, a
+   platform subdomain, or custom domains owned by the **same organization**;
+   an entry naming another organization's custom domain is dropped at read
+   time and logged, so it can never make that tenant's passkeys offerable
+   here (#4421).
 
    The re-authentication is performed with the account's existing credential,
    never with the tenant IdP, so a tenant administrator cannot satisfy it by
@@ -375,8 +380,17 @@ identities.
    has the same exposure with no membership gate at all, so the check has to
    live in the shared step.
 5. Verify that the authenticated session is scoped to that same tenant
-   surface: the surface recorded at login equals the validated domain ID, and
-   a recent re-authentication on that host is on record.
+   surface. The request surface must resolve, equal the surface recorded in
+   the connect intent, and equal the surface recorded at login for this
+   session (`Onetime::SessionSurface.matches_request?`). For a tenant
+   callback that surface is `{kind: custom, id: validated domain id}`; an
+   unvalidated callback on a custom host is never platform Connect. The
+   intent's `at` must not be in the future and must be no older than
+   `RecentReauth::CONNECT_MAX_AGE`. The re-authentication proof itself is not
+   re-checked here: `RecentReauth.satisfied?` already consumed the full local
+   proof at initiation, and consuming a second proof at the callback would
+   deny every legitimate callback. This single-use, age-bounded intent
+   carries that admission across the IdP round trip.
 6. Load the validated `CustomDomain`
    (`CustomDomain.find_by_identifier(domain_id)`), its owning organization
    (`custom_domain.primary_organization`), the session account's `Customer`
@@ -480,6 +494,7 @@ The focused acceptance files are:
 
 - `apps/web/auth/spec/integration/full/omniauth_connect_link_spec.rb`
 - `apps/web/auth/spec/integration/full_mfa/omniauth_connect_reauth_mfa_spec.rb`
+- `apps/web/auth/spec/integration/full_mfa/omniauth_connect_reauth_webauthn_spec.rb`
 - `apps/web/auth/spec/integration/full/authorize_tenant_connect_spec.rb`
 - `apps/web/auth/spec/integration/full/callback_validation_spec.rb`
 - `apps/web/auth/spec/integration/full/bind_sso_identity_postgres_spec.rb`

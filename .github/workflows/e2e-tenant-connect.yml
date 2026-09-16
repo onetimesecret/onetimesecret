@@ -1,0 +1,330 @@
+# .github/workflows/e2e-tenant-connect.yml
+---
+# ==============================================================================
+# E2E Tenant Connect — the browser acceptance journey for tenant SSO Connect
+# ==============================================================================
+# Runs e2e/system/connected-identities-custom-host.spec.ts (issue #3849): a
+# custom-host member signs in with a password, re-authenticates on /reauth,
+# initiates Connect and binds the tenant OIDC identity through the callback;
+# a second member of the same tenant then attempts the identical tuple and is
+# refused without touching their session. Every other Playwright lane runs
+# on the canonical host; nothing else exercises the tenant surface end to end.
+#
+# WHAT MAKES THIS LANE DIFFERENT (each item is load-bearing; see
+# e2e/system/README.md and the header of tenant_connect_test_boot.rb):
+#
+#   RACK_ENV=test                 the boot shim refuses to load in any other
+#                                 environment. Note that under RACK_ENV=test
+#                                 the RodauthMigrations initializer skips, so
+#                                 the seed script migrates the authdb itself.
+#   E2E_TENANT_CONNECT_ARMED=1    (a) the shim's second arming condition,
+#                                 (b) what makes the `tenant-connect` project
+#                                 exist in e2e/playwright.config.ts at all.
+#   RUBYOPT=-r./e2e/system/tenant_connect_test_boot.rb
+#                                 loaded ONLY into the server process of this
+#                                 job. It turns on OmniAuth test mode with the
+#                                 E2E_TENANT_CONNECT_{PROVIDER,UID,IDP_EMAIL,
+#                                 ISSUER} tuple and opens the hard-coded tenant
+#                                 Connect release gate in that process. The
+#                                 production gate is untouched — no config
+#                                 surface, no env knob, only this shim.
+#   AUTHENTICATION_MODE=full      Rodauth is mounted; the authdb is a
+#   + DOMAINS_ENABLED=true        boot-migrated sqlite under tmp/. The tenant
+#   + ORGS_SSO_ENABLED=true       host classifies :custom only with domains
+#                                 on, and the placeholder OIDC route registers
+#                                 only with org SSO on.
+#   HOST=canonical.example.org    the canonical host lives on a DIFFERENT
+#                                 registrable domain than the tenant
+#                                 (tenant.example.com) so the tenant host is
+#                                 :custom, not a canonical peer. Chromium
+#                                 resolves both families to 127.0.0.1 via
+#                                 --host-resolver-rules (playwright.config.ts).
+#   e2e/system/tenant_connect_seed.rb
+#                                 seeds the organization, custom domain,
+#                                 SsoConfig + SigninConfig, the two password
+#                                 accounts and their exact-domain memberships,
+#                                 and guarantees no identity exists for the
+#                                 tuple before the run.
+#
+# The lane runs on the runner (bin/setup + pnpm run build + bin/ots server),
+# the same shape as e2e-full-auth.yml — NOT the baked OCI image e2e.yml uses,
+# because the boot shim has to be injected into the Ruby process.
+# ==============================================================================
+name: E2E Tenant Connect
+
+on:
+  workflow_dispatch:
+  pull_request:
+    # No `branches:` filter (same reasoning as e2e-full-auth.yml): stacked PRs
+    # must exercise this lane too. The paths filter keeps it off unrelated PRs.
+    paths:
+      # The journey, its shim, its seed and the harness it runs on
+      - 'e2e/system/**'
+      - 'e2e/support/**'
+      - 'e2e/playwright.config.ts'
+      - '.github/workflows/e2e-tenant-connect.yml'
+      # The auth surface under test: Rodauth config, the OmniAuth connect /
+      # tenant hooks, the operations behind them, the routes the panel calls.
+      - 'apps/web/auth/**'
+      # The panel and the availability rule the spec drives.
+      - 'src/apps/workspace/account/**'
+      - 'src/shared/utils/sso-link-evidence.ts'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_PORT: '7143'
+  APP_URL: http://127.0.0.1:7143
+  TENANT_HOST: tenant.example.com
+  CANONICAL_HOST: canonical.example.org
+  SERVER_LOG: tmp/e2e-tenant-connect-server.log
+
+jobs:
+  e2e-tenant-connect:
+    name: custom host → /reauth → Connect callback (armed test process)
+    runs-on: ubuntu-24.04
+    # Must exceed Playwright's globalTimeout (20 min) plus setup, build, boot
+    # and artifact upload; see e2e-full-auth.yml for why the margin matters.
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      # Valkey is the only backing service this lane needs: the authdb is
+      # sqlite, mail is the logger backend, jobs are off. Same compose file
+      # and 2163 host port as every other lane.
+      - name: Start test services (valkey)
+        run: docker compose -f compose.test.yml up --wait -d valkey
+
+      - name: Setup Ruby (.ruby-version)
+        uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
+        with:
+          bundler-cache: false # bin/setup runs `bundle install` itself
+
+      - name: Setup Node (.node-version)
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: '.node-version'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Setup Python (locales:sync)
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+
+      # Same preflight contract as visual.yml and e2e-full-auth.yml: gems,
+      # node_modules, generated/locales, generated/schemas, seeded etc/. The
+      # seeded etc/*.yaml are verbatim copies of etc/defaults/, so every ENV
+      # knob below is still live after seeding.
+      - name: Run bin/setup
+        run: bin/setup
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install chromium --with-deps
+
+      # bin/ots server serves public/web/dist statically outside development.
+      - name: Build frontend assets
+        run: pnpm run build
+
+      # SECRET / AUTH_SECRET / SESSION_SECRET / ARGON2_SECRET etc., ephemeral
+      # and job-scoped, into $GITHUB_ENV. ARGON2_SECRET matters here: the seed
+      # hashes the test password with the same pepper the server verifies with.
+      - name: Generate ephemeral test secrets
+        uses: ./.github/actions/generate-test-secrets
+
+      # Provision the lane env ONCE into $GITHUB_ENV so the server, the seed
+      # script and the Playwright process all agree on one datastore, one
+      # authdb and one fixture tuple.
+      - name: Provision tenant Connect lane env
+        run: |
+          {
+            echo "RACK_ENV=test"
+            echo "LANG=en_US.UTF-8"
+            echo "SSL=false"
+            echo "HOST=${CANONICAL_HOST}:${APP_PORT}"
+            echo "DEFAULT_DOMAIN=${CANONICAL_HOST}"
+            echo "LOG_FORMATTER=default"
+
+            # --- Auth: full mode, tenant SSO, sqlite authdb -----------------
+            echo "AUTHENTICATION_MODE=full"
+            echo "AUTH_SIGNUP=true"
+            echo "AUTH_SIGNIN=true"
+            echo "AUTH_DATABASE_URL=sqlite://tmp/e2e-tenant-connect.db"
+            echo "DOMAINS_ENABLED=true"
+            echo "ORGS_SSO_ENABLED=true"
+            # Full mode requires this; not one of the names
+            # generate-test-secrets exports.
+            echo "ACCOUNT_ID_SECRET=$(openssl rand -hex 32)"
+
+            # --- Datastore (test-mode boot insists on port 2163) -----------
+            echo "REDIS_URL=redis://127.0.0.1:2163/0"
+
+            # --- Surfaces this lane does not exercise ----------------------
+            echo "EMAILER_MODE=logger"
+            echo "JOBS_ENABLED=false"
+            echo "BILLING_ENABLED=false"
+            echo "I18N_ENABLED=true"
+            echo "I18N_DEFAULT_LOCALE=en"
+
+            # --- The armed tenant Connect tuple ----------------------------
+            # Read by the boot shim (server), the seed script and the spec.
+            echo "E2E_TENANT_CONNECT_ARMED=1"
+            echo "E2E_TENANT_CONNECT_ORIGIN=http://${TENANT_HOST}:${APP_PORT}"
+            echo "E2E_TENANT_CONNECT_PROVIDER=oidc"
+            echo "E2E_TENANT_CONNECT_UID=system-connect-subject"
+            echo "E2E_TENANT_CONNECT_IDP_EMAIL=victim@example.test"
+            echo "E2E_TENANT_CONNECT_ISSUER=https://idp.example.test"
+            echo "E2E_TENANT_CONNECT_PASSWORD=TestPassword123!"
+            echo "E2E_TENANT_CONNECT_OWNER_EMAIL=owner@example.test"
+            echo "E2E_TENANT_CONNECT_SECOND_EMAIL=member@example.test"
+          } >> "$GITHUB_ENV"
+
+          mkdir -p tmp
+          rm -f tmp/e2e-tenant-connect.db
+
+      # The shim is scoped to THIS step's env: it is the only process in the
+      # job (and the only place anywhere) where the tenant Connect gate opens.
+      # `bundle exec` puts bundler/setup ahead of the shim in RUBYOPT so the
+      # shim's `require 'omniauth'` resolves the locked gem.
+      - name: Boot the armed application server
+        env:
+          RUBYOPT: -r./e2e/system/tenant_connect_test_boot.rb
+        run: |
+          bundle exec bin/ots server --port="$APP_PORT" >"$SERVER_LOG" 2>&1 &
+          echo "$!" > tmp/e2e-tenant-connect-server.pid
+
+      # __BOOTSTRAP_ME__ rather than a bare 2xx: the marker proves the built
+      # assets are being served and the bootstrap state is being injected.
+      - name: Wait for the server to serve a bootstrapped page
+        run: |
+          for _ in $(seq 1 60); do
+            if curl -fsS "$APP_URL/" 2>/dev/null | grep -q '__BOOTSTRAP_ME__'; then
+              echo "Server ready at $APP_URL"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Server did not become ready at $APP_URL within 120s"
+          tail -n 200 "$SERVER_LOG" || true
+          exit 1
+
+      # Prove the shim actually loaded into the server process before anything
+      # else runs: a server booted without it would refuse every tenant
+      # Connect with tenant_connect_prerequisites_incomplete and the spec would
+      # fail one step from the end with a misleading auth_error.
+      - name: Assert the boot shim registered the tenant OIDC route
+        run: |
+          if ! grep -q "Registering OIDC route 'oidc' for tenant SSO" "$SERVER_LOG"; then
+            echo "::error::The placeholder OIDC route did not register (ORGS_SSO_ENABLED?)"
+            tail -n 100 "$SERVER_LOG" || true
+            exit 1
+          fi
+
+      # Same env as the server (GITHUB_ENV): same Valkey DB, same sqlite file,
+      # same secrets. Migrates the authdb, then seeds the tenant and accounts.
+      - name: Seed the tenant, accounts and memberships
+        run: bundle exec ruby e2e/system/tenant_connect_seed.rb
+
+      # PLAYWRIGHT_BASE_URL skips the config's webServer auto-start (which
+      # would boot a SECOND, un-armed production-mode server on the same
+      # port). The project's own baseURL is E2E_TENANT_CONNECT_ORIGIN.
+      #
+      # Reporters come from e2e/playwright.config.ts (CI branch: list, github,
+      # html, json, blob). Do NOT pass --reporter — a CLI override replaces the
+      # whole array and breaks both the report artifacts and the flaky gate.
+      - name: Run the tenant Connect journey
+        id: playwright
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ env.E2E_TENANT_CONNECT_ORIGIN }}
+          CI: 'true'
+        run: pnpm test:playwright --project=tenant-connect
+
+      - name: Fail on flaky tests (passed only on retry)
+        if: ${{ !cancelled() && steps.playwright.outcome != 'skipped' }}
+        run: |
+          REPORT=e2e/test-results/results.json
+
+          if [ ! -f "$REPORT" ]; then
+            echo "❌ Playwright JSON report not found at $REPORT."
+            echo "The reporter pipeline is broken (see e2e/playwright.config.ts)."
+            exit 1
+          fi
+
+          FLAKY=$(jq -r '.stats.flaky // 0' "$REPORT")
+          if [ "$FLAKY" -gt 0 ]; then
+            echo "❌ $FLAKY test(s) passed only on retry (flaky outcome)."
+            echo "Flake is blocking, not silent - fix or quarantine via e2e/QUARANTINE.md."
+            echo ""
+            echo "Flaky tests:"
+            jq -r '.. | objects | select(has("tests")) | select(any(.tests[]?; .status == "flaky"))
+                   | "  - \(.file):\(.line) › \(.title)"' "$REPORT"
+            exit 1
+          fi
+
+          echo "✅ No flaky (retry-only) passes detected."
+
+      # ---- Failure forensics -------------------------------------------------
+      # The auth events (omniauth_connect_reauth_required,
+      # tenant_connect_membership_authorized, omniauth_identity_connected,
+      # omniauth_identity_connect_refused + reason) are the fastest way to tell
+      # a gate refusal from a UI regression.
+      - name: Server log on failure
+        if: failure()
+        run: |
+          echo "::group::$SERVER_LOG (auth events)"
+          grep -E 'omniauth_|tenant_connect_|reauth' "$SERVER_LOG" | tail -n 100 || true
+          echo "::endgroup::"
+          echo "::group::$SERVER_LOG (last 200 lines)"
+          tail -n 200 "$SERVER_LOG" || true
+          echo "::endgroup::"
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: playwright-report-e2e-tenant-connect
+          path: e2e/playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload Playwright test artifacts (traces, screenshots, videos)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: playwright-test-results-e2e-tenant-connect
+          path: e2e/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload server log
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: e2e-tenant-connect-logs
+          path: tmp/e2e-tenant-connect-server.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Stop background processes
+        if: always()
+        run: |
+          if [ -f tmp/e2e-tenant-connect-server.pid ]; then
+            kill "$(cat tmp/e2e-tenant-connect-server.pid)" 2>/dev/null || true
+          fi
+          docker compose -f compose.test.yml down --volumes || true

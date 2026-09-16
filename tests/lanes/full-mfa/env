@@ -1,13 +1,23 @@
-# Lane: full-mfa — full auth mode with MFA enabled against in-memory SQLite.
+# Lane: full-mfa — full auth mode with MFA and magic links (email_auth)
+# enabled against in-memory SQLite. Both features are one-shot per process
+# (Auth::Config configures once), so this is the only lane that boots with
+# either; the shared full-sqlite/full-pg lanes keep both off.
 # CI job: ruby-integration-full (T3, "SQLite, MFA" matrix row)
 #
 # NOTE: lib/tasks/spec.rake hardcodes these values for the MFA task as a
 # defense against ambient env. Keeping identical values here makes the lane
 # correct for both the runner and ad-hoc commands from this directory.
+# AUTH_MFA_ENABLED is part of that separate-process defence only: the OTP
+# feature set is loaded because :full_auth_mode boots against
+# AuthModeHelpers::MockAuthConfig, whose mfa_enabled default is hardcoded
+# true (spec/support/auth_mode_helpers.rb). AUTH_WEBAUTHN_ENABLED, by
+# contrast, IS read by that mock.
 AUTHENTICATION_MODE=full
 AUTH_DATABASE_URL='sqlite::memory:'
 ORGS_SSO_ENABLED=true
 AUTH_MFA_ENABLED=true
+AUTH_EMAIL_AUTH_ENABLED=true
+AUTH_WEBAUTHN_ENABLED=true
 
 # Generated prerequisites, produced by tests/lanes/run before the tasks below.
 LANES_CODEGEN='locales'

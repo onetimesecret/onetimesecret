@@ -116,10 +116,19 @@ module Auth::Config::Hooks
       # - Can immediately use for login
       #
       auth.after_webauthn_setup do
+        # Rodauth exposes no accessor for the credential it just stored, and
+        # `webauthn_setup_webauthn_id_param` never existed in the gem (the
+        # NameError rolled back the whole setup transaction — every passkey
+        # registration 500'd). The stored webauthn_keys_webauthn_id_column
+        # value is PublicKeyCredential#id, which the webauthn gem reads from
+        # the client payload's "id" (public_key_credential.rb from_client);
+        # webauthn_setup_data is the feature's own parsed view of that payload.
+        webauthn_id = webauthn_setup_data['id']
+
         Onetime.get_logger('Auth::WebAuthn').info 'WebAuthn credential registered',
           account_id: account[:id],
           email: account[:email],
-          webauthn_id: param(webauthn_setup_webauthn_id_param)
+          webauthn_id: webauthn_id
 
         # Stamp the surface_scope column with the descriptor of the surface
         # this credential was registered against (#4414). This is the SAME
@@ -143,7 +152,7 @@ module Auth::Config::Hooks
           surface_payload    = surface_descriptor.nil? ? nil : JSON.generate(surface_descriptor)
           db[webauthn_keys_table]
             .where(webauthn_keys_account_id_column => account_id,
-              webauthn_keys_webauthn_id_column => param(webauthn_setup_webauthn_id_param),
+              webauthn_keys_webauthn_id_column => webauthn_id,
             )
             .update(
               webauthn_keys_last_use_column => Sequel::CURRENT_TIMESTAMP,
@@ -153,14 +162,14 @@ module Auth::Config::Hooks
         rescue StandardError => ex
           Onetime.get_logger('Auth::WebAuthn').error 'WebAuthn surface stamp failed',
             account_id: account[:id],
-            webauthn_id: param(webauthn_setup_webauthn_id_param),
+            webauthn_id: webauthn_id,
             error: ex.message,
             error_class: ex.class.name
           # Best-effort: still refresh last_use so the row's timestamp is
           # accurate even when the scope stamp path fails.
           db[webauthn_keys_table]
             .where(webauthn_keys_account_id_column => account_id,
-              webauthn_keys_webauthn_id_column => param(webauthn_setup_webauthn_id_param),
+              webauthn_keys_webauthn_id_column => webauthn_id,
             )
             .update(webauthn_keys_last_use_column => Sequel::CURRENT_TIMESTAMP)
         end
@@ -305,11 +314,25 @@ module Auth::Config::Hooks
         Onetime.get_logger('Auth::WebAuthn').info 'Removing WebAuthn credential',
           account_id: account[:id],
           email: account[:email],
-          webauthn_id: param(webauthn_remove_webauthn_id_param)
+          webauthn_id: param(webauthn_remove_param)
 
         # Log credential removal for security audit
         # Consider sending notification email to account owner
         # System may prevent removal if it's the only auth method
+      end
+
+      # ========================================================================
+      # HOOK: After WebAuthn Credential Removal
+      # ========================================================================
+      #
+      # The credential is gone. A recent full re-authentication proof (#4410)
+      # produced by it — a WebAuthn-primary login, or WebAuthn as the second
+      # factor of a password ceremony — must not outlive the credential, so
+      # the proof is cleared here (#4420). Fires inside Rodauth's remove
+      # transaction, after the row is deleted.
+      #
+      auth.after_webauthn_remove do
+        Onetime::RecentReauth.clear(session)
       end
         end
   end
