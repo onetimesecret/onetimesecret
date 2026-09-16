@@ -52,7 +52,11 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
   let(:valid_password) { 'SecureP@ssw0rd123!' }
   let(:weak_password) { '123' }
 
-  let(:session) { {} }
+  let(:session) do
+    options = session_options
+    {}.tap { |data| data.define_singleton_method(:options) { options } }
+  end
+  let(:session_options) { {} }
   let(:client_ip) { '192.168.1.100' }
 
   let(:strategy_result) do
@@ -631,6 +635,7 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
 
       it 'sets up the session for auto-login' do
         logic.process
+        expect(session_options[:renew]).to be true
         expect(session['authenticated']).to be true
         expect(session['external_id']).to eq('ext-new-123')
         expect(session['account_id']).to eq(123)
@@ -681,6 +686,7 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
 
       it 'establishes a working (authenticated) session so POST /accept can proceed' do
         logic.process
+        expect(session_options[:renew]).to be true
         expect(session['authenticated']).to be true
         expect(session['external_id']).to eq('ext-new-123')
         expect(session['account_id']).to eq(123)
