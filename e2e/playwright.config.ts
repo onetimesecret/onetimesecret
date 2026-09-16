@@ -42,9 +42,7 @@ const sandboxLaunchOptions = existsSync(SANDBOX_CHROMIUM)
  */
 const chromiumLaunchOptions = {
   ...sandboxLaunchOptions,
-  ...(process.env.A11Y_CHROME_PATH
-    ? { executablePath: process.env.A11Y_CHROME_PATH }
-    : {}),
+  ...(process.env.A11Y_CHROME_PATH ? { executablePath: process.env.A11Y_CHROME_PATH } : {}),
 };
 
 /**
@@ -65,6 +63,11 @@ const visualLaunchOptions = {
     `--host-resolver-rules=MAP *.example.com ${visualResolverTarget}, MAP *.example.org ${visualResolverTarget}`,
   ],
 };
+
+// The tenant-connect system project uses the same synthetic host families as
+// the visual lane, but runs against an explicitly armed full-auth test process.
+const tenantConnectLaunchOptions = visualLaunchOptions;
+const tenantConnectArmed = process.env.E2E_TENANT_CONNECT_ARMED === '1';
 
 /**
  * Snapshot redirection for the archive/compare modes (bin/visual --archive /
@@ -207,7 +210,7 @@ export default defineConfig({
       // signup/SSO-CSRF flows). Keep the historical project name so existing
       // `--project=chromium` invocations keep working.
       name: 'chromium',
-      testIgnore: ['full/**', 'full-billing/**', 'visual/**'],
+      testIgnore: ['full/**', 'full-billing/**', 'system/**', 'visual/**'],
       use: {
         ...devices['Desktop Chrome'],
         // Extra time for container responses
@@ -238,6 +241,24 @@ export default defineConfig({
         storageState: STORAGE_STATE,
       },
     },
+
+    ...(tenantConnectArmed
+      ? [
+          {
+            // Security acceptance journey for tenant Connect. This project has
+            // no setup dependency or shared storageState: both users establish
+            // host-only sessions on the custom host under test.
+            name: 'tenant-connect',
+            testMatch: 'system/**/*.spec.ts',
+            use: {
+              ...devices['Desktop Chrome'],
+              actionTimeout: 30000,
+              baseURL: process.env.E2E_TENANT_CONNECT_ORIGIN || DEFAULT_LOCAL_URL,
+              launchOptions: tenantConnectLaunchOptions,
+            },
+          },
+        ]
+      : []),
 
     /* Visual regression lane (e2e/visual/). Noauth pages only: no `setup`
      * dependency, no storageState. Explicit viewports with

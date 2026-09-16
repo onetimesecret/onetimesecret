@@ -474,11 +474,15 @@ support this evidence but do not replace callback coverage.
 The focused acceptance files are:
 
 - `apps/web/auth/spec/integration/full/omniauth_connect_link_spec.rb`
+- `apps/web/auth/spec/integration/full_mfa/omniauth_connect_reauth_mfa_spec.rb`
 - `apps/web/auth/spec/integration/full/authorize_tenant_connect_spec.rb`
 - `apps/web/auth/spec/integration/full/callback_validation_spec.rb`
+- `apps/web/auth/spec/integration/full/bind_sso_identity_postgres_spec.rb`
 - `spec/integration/full/session_surface_login_stamp_spec.rb`
 - `apps/web/auth/spec/operations/bind_sso_identity_spec.rb`
+- `try/unit/session/sidecar_try.rb`
 - the session/re-authentication unit and route specs
+- `e2e/system/connected-identities-custom-host.spec.ts`
 - `src/tests/shared/utils/sso-link-evidence.spec.ts`
 - `src/tests/apps/workspace/account/ConnectedIdentities.spec.ts`
 

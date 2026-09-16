@@ -912,6 +912,82 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   end
 
   # ==========================================================================
+  # Scenario 5b — custom-host local re-authentication -> initiation -> callback
+  # ==========================================================================
+
+  describe 'custom-host password re-authentication and Connect callback', :oauth_flow do
+    include OAuthFlowHelper
+
+    it 'records an exact-surface proof through POST /auth/reauth and completes Connect' do
+      host       = "reauth-connect-#{SecureRandom.hex(6)}.tenant.example.com"
+      email      = unique_test_email('tenant-reauth')
+      uid        = "reauth-sub-#{SecureRandom.hex(8)}"
+      account_id = seed_account_with_password(email)
+      tenant     = setup_oauth_test_domain(host)
+      customer   = Onetime::Customer.find_by_extid(auth_db[:accounts].where(id: account_id).get(:external_id))
+      membership = Onetime::OrganizationMembership.ensure_membership(
+        tenant[:org], customer, role: 'member', domain_scope_id: tenant[:domain].objid, provisioning_source: 'sso',
+      )
+      Onetime::CustomDomain::SigninConfig.create!(
+        domain_id: tenant[:domain].identifier, enabled: true, signin_enabled: true, sso_enabled: true,
+      )
+
+      header 'Host', host
+      csrf_login(email)
+      sid = current_sid
+      clear_reauth_proof(sid)
+
+      set_cookie = last_response.headers['set-cookie'].to_s
+      expect(set_cookie).to include('onetime.session=')
+      expect(set_cookie).not_to match(/(?:^|;)\s*Domain=/i),
+        "Tenant session cookie must be host-only, got: #{set_cookie.inspect}"
+
+      clear_body_headers
+      header 'Accept', 'application/json'
+      get '/auth/reauth-offer'
+      expect(last_response.status).to eq(200)
+      expect(json_body['surface']).to eq('kind' => 'custom', 'id' => tenant[:domain].identifier)
+      expect(json_body['methods']).to include('password')
+
+      csrf_json_post(
+        '/auth/reauth', method: 'password', password: AuthTestConstants::TEST_PASSWORD,
+      )
+      expect(last_response.status).to eq(200)
+      expect(json_body).to include('success' => 'Re-authentication complete')
+      expect(Onetime::SessionSidecar.read(sid, Onetime::RecentReauth::KEY)).to include(
+        'account_id' => account_id,
+        'surface' => { 'kind' => 'custom', 'id' => tenant[:domain].identifier },
+        'methods' => %w[password],
+      )
+
+      allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_return(true)
+      allow(Auth::Operations::JoinDomainOrganization).to receive(:new).and_call_original
+      setup_mock_auth(email: unique_test_email('asserted-victim'), uid: uid)
+      begin
+        expect(initiate_sso_connect(host: host)).to eq(302)
+        expect(intent_live?(sid)).to be(true)
+        expect(reauth_proof_live?(sid)).to be(false)
+
+        clear_body_headers
+        header 'Host', host
+        post '/auth/sso/oidc/callback'
+
+        expect(last_response.status).to eq(302)
+        expect(identities.where(provider: 'oidc', uid: uid).all)
+          .to contain_exactly(hash_including(account_id: account_id))
+        expect(Auth::Operations::JoinDomainOrganization).to have_received(:new)
+          .with(customer: customer, domain_id: tenant[:domain].identifier)
+        persisted = Onetime::OrganizationMembership.find_by_org_customer(tenant[:org].objid, customer.objid)
+        expect(persisted.objid).to eq(membership.objid)
+        expect(persisted.domain_scope_id).to eq(tenant[:domain].objid)
+        expect(intent_live?(sid)).to be(false)
+      ensure
+        teardown_mock_auth
+      end
+    end
+  end
+
+  # ==========================================================================
   # Scenario 6 — #4411: the callback's own intent checks
   # ==========================================================================
   #
@@ -983,6 +1059,8 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
     it 'binds an unclaimed exact tuple to the session account, ignoring another account email' do
       identities.insert(tuple.merge(uid: "other-#{uid}", account_id: other_id))
       expect(customer.signup_domain_id.to_s).to be_empty
+      membership_id    = @membership.objid
+      membership_scope = @membership.domain_scope_id
       tenant_connect_callback
 
       expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: actor_id))
@@ -993,8 +1071,36 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         .with(:tenant_connect_membership_authorized, hash_including(domain_id: @tenant[:domain].identifier))
       expect(Auth::Logging).to have_received(:log_auth_event)
         .with(:omniauth_identity_connected, hash_including(account_id: actor_id, issuer: tuple[:issuer]))
-      expect(Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, customer.objid).domain_scope_id)
-        .to eq(@membership.domain_scope_id)
+      persisted = Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, customer.objid)
+      expect(persisted.objid).to eq(membership_id)
+      expect(persisted.domain_scope_id).to eq(membership_scope)
+      expect(Auth::Operations::JoinDomainOrganization).to have_received(:new)
+        .with(customer: customer, domain_id: @tenant[:domain].identifier)
+    end
+
+    it 'binds for an organization-scoped membership through the callback and preserves that scope' do
+      @membership.domain_scope_id = nil
+      @membership.save
+
+      tenant_connect_callback
+
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: actor_id))
+      persisted = Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, customer.objid)
+      expect(persisted.objid).to eq(@membership.objid)
+      expect(persisted.domain_scope_id).to be_nil
+      expect(persisted.org_scoped?).to be(true)
+    end
+
+    it 'binds for the organization owner through the callback' do
+      owner = @oauth_test_fixtures.last[:owner]
+      @membership.destroy!
+      auth_db[:accounts].where(id: actor_id).update(external_id: owner.extid)
+
+      tenant_connect_callback
+
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: actor_id))
+      owner_membership = Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, owner.objid)
+      expect(owner_membership).to be_owner
     end
 
     it 'accepts a known same-account tuple idempotently and consumes intent before the gem shortcut' do
@@ -1057,9 +1163,10 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         .with(:omniauth_connect_lookup_error, anything)
     end
 
-    %w[missing inactive sibling].each do |state|
+    %w[missing inactive sibling wrong_organization].each do |state|
       it "refuses #{state} membership before a known identity can bypass authorization" do
         identities.insert(tuple.merge(account_id: other_id))
+        other_membership = nil
         case state
         when 'missing'
           @membership.destroy!
@@ -1073,14 +1180,22 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
           sibling.save
           @membership.domain_scope_id = sibling.objid
           @membership.save
+        when 'wrong_organization'
+          @membership.destroy!
+          other_tenant = setup_oauth_test_domain("other-org-#{SecureRandom.hex(6)}.tenant.example.com")
+          other_membership = Onetime::OrganizationMembership.ensure_membership(
+            other_tenant[:org], customer, role: 'member', domain_scope_id: other_tenant[:domain].objid,
+            provisioning_source: 'sso',
+          )
         end
         tenant_connect_callback
 
         expect_connect_refused('tenant_membership_refused')
         expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: other_id))
         membership = Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, customer.objid)
-        if state == 'missing'
+        if %w[missing wrong_organization].include?(state)
           expect(membership).to be_nil
+          expect(other_membership&.active?).to be(true) if state == 'wrong_organization'
         else
           expect(membership.status).to eq(@membership.status)
           expect(membership.domain_scope_id).to eq(@membership.domain_scope_id)
@@ -1127,6 +1242,42 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       expect(Auth::Operations::JoinDomainOrganization).not_to have_received(:new)
       expect(Auth::Logging).not_to have_received(:log_auth_event)
         .with(:omniauth_identity_connected, anything)
+    end
+
+    it 'does not fall back to trusted-email linking after a failed tenant membership gate' do
+      allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(true)
+      allow(Onetime::SsoLinkChallenge).to receive(:issue).and_call_original
+      allow(Onetime::SsoLinkVerification).to receive(:issue).and_call_original
+      victim = Onetime::Customer.find_by_extid(auth_db[:accounts].where(id: other_id).get(:external_id))
+      accounts_before = auth_db[:accounts].count
+      @membership.status = 'pending'
+      @membership.save
+
+      tenant_connect_callback
+
+      expect_connect_refused('tenant_membership_refused')
+      expect(auth_db[:accounts].count).to eq(accounts_before)
+      expect(identities.where(tuple).count).to eq(0)
+      expect(Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, victim.objid)).to be_nil
+      persisted = Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, customer.objid)
+      expect(persisted.objid).to eq(@membership.objid)
+      expect(persisted.status).to eq('pending')
+      expect(Onetime::SsoLinkChallenge).not_to have_received(:issue)
+      expect(Onetime::SsoLinkVerification).not_to have_received(:issue)
+    end
+
+    it 'refuses a tenant session presented to the platform callback and consumes its intent' do
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      clear_body_headers
+      header 'Host', canonical_host
+      header 'Cookie', "onetime.session=#{@connect_sid}"
+      post '/auth/sso/oidc/callback'
+
+      expect(last_response.status).to eq(302)
+      expect(intent_live?(@connect_sid)).to be(false)
+      expect(identities.where(tuple).count).to eq(0)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:session_surface_mismatch, hash_including(path: '/sso/oidc/callback', outcome: :continued_anonymous))
     end
 
     it 'does not reuse a refused intent on a second callback' do
