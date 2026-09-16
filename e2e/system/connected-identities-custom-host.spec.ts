@@ -102,22 +102,11 @@ test.describe.serial('custom-host Connected Identities journey', () => {
     await openConnections(page);
     await reauthenticateFromPanel(page);
 
-    // The callback's landing page is not part of the contract under test:
-    // nothing in the auth app consumes the `redirect` field submitSsoLogin
-    // posts, so a completed Connect lands on Rodauth's login_redirect ('/').
-    // Observe the callback response itself (a refusal redirects to
-    // /signin?auth_error=…), then open the panel explicitly.
-    const [callback] = await Promise.all([
-      page.waitForResponse(
-        (candidate) => new URL(candidate.url()).pathname === `/auth/sso/${provider}/callback`
-      ),
-      page.getByTestId(`connections-connect-${provider}`).click(),
-    ]);
-    expect(callback.status()).toBe(302);
-    const landing = new URL(callback.headers()['location'] ?? '', origin);
-    expect(landing.searchParams.get('auth_error')).toBeNull();
-
-    await page.goto(`${origin}${CONNECTIONS_PATH}`);
+    // A completed Connect returns to the panel by itself: the callback honours
+    // the `redirect` field submitSsoLogin posts (a refusal goes to
+    // /signin?auth_error=… instead).
+    await page.getByTestId(`connections-connect-${provider}`).click();
+    await waitForPathname(page, CONNECTIONS_PATH);
     await waitForAppReady(page);
     await expect(page.getByTestId('connections-list')).toContainText(maskedUid);
     await expect(page.getByTestId(`connections-connect-${provider}`)).toHaveCount(0);

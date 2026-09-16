@@ -59,12 +59,12 @@ bundle exec ruby e2e/system/tenant_connect_seed.rb
 PLAYWRIGHT_BASE_URL="$E2E_TENANT_CONNECT_ORIGIN" pnpm test:playwright --project=tenant-connect
 ```
 
-The first browser test covers panel → `/reauth` → Connect initiation → callback success and asserts that the session cookie is host-only. The second account then attempts the same full tuple and proves the ownership refusal leaves its session unchanged and creates no identity.
+The first browser test covers panel → `/reauth` → Connect initiation → callback → back on the panel with the bound identity listed, and asserts that the session cookie is host-only. The second account then attempts the same full tuple and proves the ownership refusal leaves its session unchanged and creates no identity.
 
 Two facts the spec is written around:
 
 - The Connect initiation that spends the login-time proof is issued from inside the page (`fetch` with `redirect: 'manual'`), not via `page.context().request`: the synthetic host resolves only through Chromium's `--host-resolver-rules`, which Playwright's Node-side request context does not consult.
-- The callback's landing page is not asserted. Nothing in the auth app consumes the `redirect` field the panel posts with the SSO form, so a completed Connect lands on Rodauth's `login_redirect` (`/`); the spec observes the callback's 302 (no `auth_error`) and then opens the panel explicitly. `GET /auth/identities` masks the subject to `first4…last4`, and that masked form is what the panel assertions match.
+- A completed Connect returns to the panel on its own: the callback honours the `redirect` field the panel posts with the SSO form (validated as an internal path at initiation), so the spec waits for the connections path after the Connect click rather than opening the panel explicitly. `GET /auth/identities` masks the subject to `first4…last4`, and that masked form is what the panel assertions match.
 
 ## CI
 
