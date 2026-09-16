@@ -1999,6 +1999,9 @@ RSpec.describe Core::Views::ConfigSerializer do
         'providers' => [
           { 'route_name' => 'oidc', 'display_name' => 'Acme SSO' },
         ],
+        'connect_providers' => [
+          { 'route_name' => 'oidc', 'display_name' => 'Acme SSO' },
+        ],
       })
     end
 
@@ -2010,6 +2013,9 @@ RSpec.describe Core::Views::ConfigSerializer do
         'enabled' => true,
         'enforce_sso_only' => false,
         'providers' => [
+          { 'route_name' => 'entra', 'display_name' => 'Microsoft Login' },
+        ],
+        'connect_providers' => [
           { 'route_name' => 'entra', 'display_name' => 'Microsoft Login' },
         ],
       })
