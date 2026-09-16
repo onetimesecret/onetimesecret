@@ -413,8 +413,11 @@ none of them may re-arm or preserve it.
 The server-side gates are necessary but not the only change. The Connected
 Identities panel (`src/apps/workspace/account/ConnectedIdentities.vue`) must not
 infer that a tenant identity is already linked from either a matching route
-name or a matching issuer. It keeps tenant provider actions available and lets
-the callback resolve the complete tuple. A platform and tenant can use the same
+name or a matching issuer. Today it still does: the interim route-name
+suppression (#4412) stays in place while the release gate is closed, and the
+swap to full-tuple identity evidence ships with the gate flip (#4427). Once
+swapped, the panel keeps tenant provider actions available and lets the
+callback resolve the complete tuple. A platform and tenant can use the same
 issuer with different OIDC clients; with
 [OpenID Connect pairwise subject identifiers](https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes), the issuer provides a different `sub` value to each client.
 
