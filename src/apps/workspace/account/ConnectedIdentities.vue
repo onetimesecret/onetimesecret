@@ -15,7 +15,7 @@
   // (configuredProviderLabel). See the docblocks in utils/features.ts.
   import {
     configuredProviderLabel,
-    getSsoProviders,
+    getSsoConnectProviders,
     isActiveSessionsEnabledOf,
     providerLabel,
     type SsoProvider,
@@ -34,17 +34,17 @@
   const { identities, isLoading, error, errorCode, fetchIdentities, removeIdentity, clearError } =
     useConnectedIdentities();
 
-  // Providers the panel offers a Connect button for. On the platform surface
-  // a linked identity with the same route name hides the button; on a tenant
-  // surface Connect always stays available and the callback resolves whether
-  // the returned (provider, issuer, uid) tuple is already owned. Display
-  // heuristic only; see sso-link-evidence.ts.
+  // The server supplies the routes permitted for Connect on this host. On the
+  // platform surface a linked identity with the same route name hides the
+  // button; on a tenant surface Connect stays available and the callback
+  // resolves whether the returned tuple is already owned. See
+  // sso-link-evidence.ts.
   const CONNECT_REDIRECT = '/account/settings/security/connections';
 
   const connectSurface = computed(() => connectSurfaceFor(bootstrapStore.domain_strategy));
 
   const connectableProviders = computed<SsoProvider[]>(() =>
-    connectableSsoProviders(getSsoProviders(), identities.value, connectSurface.value)
+    connectableSsoProviders(getSsoConnectProviders(), identities.value, connectSurface.value)
   );
 
   // Connecting reuses the sign-in form POST (see submitSsoLogin) but marks it

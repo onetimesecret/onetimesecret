@@ -44,13 +44,12 @@ describe('connectSurfaceFor', () => {
     expect(connectSurfaceFor('custom')).toBe('tenant');
   });
 
-  it('fails toward keeping Connect visible for an invalid or missing strategy', () => {
-    // The backend's surface gate refuses on these hosts; the UI's only safe
-    // move is to not hide an action the callback is free to refuse.
-    expect(connectSurfaceFor('invalid')).toBe('tenant');
-    expect(connectSurfaceFor(undefined)).toBe('tenant');
-    expect(connectSurfaceFor(null)).toBe('tenant');
-    expect(connectSurfaceFor('')).toBe('tenant');
+  it('preserves platform route evidence for default, invalid, or missing strategies', () => {
+    expect(connectSurfaceFor('default')).toBe('platform');
+    expect(connectSurfaceFor('invalid')).toBe('platform');
+    expect(connectSurfaceFor(undefined)).toBe('platform');
+    expect(connectSurfaceFor(null)).toBe('platform');
+    expect(connectSurfaceFor('')).toBe('platform');
   });
 });
 

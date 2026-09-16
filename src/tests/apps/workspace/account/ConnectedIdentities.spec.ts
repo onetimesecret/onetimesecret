@@ -81,11 +81,13 @@ vi.mock('@/shared/composables/useConnectedIdentities', () => ({
 // them (built-in map vs. operator display_name) is exercised, not stubbed away.
 import type { SsoProvider } from '@/utils/features';
 const mockGetSsoProviders = vi.fn<() => SsoProvider[]>(() => []);
+const mockGetSsoConnectProviders = vi.fn<() => SsoProvider[]>(() => mockGetSsoProviders());
 // Sessions "related settings" link is gated on AUTH_ACTIVE_SESSIONS_ENABLED.
 const mockActiveSessionsEnabled = ref(false);
 vi.mock('@/utils/features', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/utils/features')>()),
   getSsoProviders: () => mockGetSsoProviders(),
+  getSsoConnectProviders: () => mockGetSsoConnectProviders(),
   isActiveSessionsEnabledOf: () => mockActiveSessionsEnabled.value,
 }));
 
@@ -152,6 +154,7 @@ describe('ConnectedIdentities', () => {
     mockState.removeIdentity.mockResolvedValue(true);
     // clearAllMocks keeps implementations, so reset the provider list explicitly.
     mockGetSsoProviders.mockReturnValue([]);
+    mockGetSsoConnectProviders.mockImplementation(() => mockGetSsoProviders());
     mockActiveSessionsEnabled.value = false;
   });
 
@@ -341,6 +344,14 @@ describe('ConnectedIdentities', () => {
         connect: true,
       });
     });
+  });
+
+  it('does not offer platform fallback providers for Connect on a tenant host', () => {
+    mockGetSsoProviders.mockReturnValue([{ route_name: 'oidc', display_name: 'Platform SSO' }]);
+    mockGetSsoConnectProviders.mockReturnValue([]);
+    wrapper = mountComponent('custom');
+
+    expect(wrapper.find('[data-testid="connections-connect"]').exists()).toBe(false);
   });
 
   /**

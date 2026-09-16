@@ -39,13 +39,12 @@ export type ConnectSurface = 'platform' | 'tenant';
 /**
  * Classify the page's surface from the bootstrap `domain_strategy`.
  *
- * 'canonical' and 'subdomain' are operator hosts served with platform
- * providers. 'custom' is a tenant host. Anything else ('invalid', or a
- * missing value) is treated as 'tenant': that keeps Connect visible, and the
- * backend surface gate still refuses any connect it should not accept.
+ * 'custom' is a tenant host. Every other value is treated as platform so a
+ * platform host using the bootstrap default or an unrecognised strategy keeps
+ * the route-name evidence it had before tenant Connect was introduced.
  */
 export function connectSurfaceFor(domainStrategy: string | null | undefined): ConnectSurface {
-  return domainStrategy === 'canonical' || domainStrategy === 'subdomain' ? 'platform' : 'tenant';
+  return domainStrategy === 'custom' ? 'tenant' : 'platform';
 }
 
 /**

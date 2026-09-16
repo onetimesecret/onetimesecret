@@ -580,7 +580,26 @@ RSpec.describe Core::Views::ConfigSerializer do
             'providers' => [
               { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
             ],
+            'connect_providers' => [
+              { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
+            ],
           })
+        end
+      end
+
+      context 'when a platform host has the default strategy fallback' do
+        before do
+          allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+          allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+          allow(mock_auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
+          ])
+        end
+
+        it 'keeps platform providers available for Connect' do
+          result = described_class.build_sso_config(base_view_vars.merge('domain_strategy' => :default))
+
+          expect(result['connect_providers']).to eq(result['providers'])
         end
       end
 
@@ -646,6 +665,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           expect(result['providers'].length).to eq(1)
           expect(result['providers'][0]['route_name']).to eq('entra')
           expect(result['providers'][0]['display_name']).to eq('Contoso Azure AD')
+          expect(result['connect_providers']).to eq(result['providers'])
         end
 
         it 'does not call platform sso_providers' do
@@ -717,11 +737,12 @@ RSpec.describe Core::Views::ConfigSerializer do
             ])
           end
 
-          it 'falls back to platform SSO (SigninConfig blocks tenant, not platform)' do
+          it 'keeps platform fallback for sign-in but excludes it from Connect' do
             result = described_class.build_sso_config(custom_domain_view_vars)
 
             expect(result['enabled']).to be true
             expect(result['providers'][0]['display_name']).to eq('Platform SSO')
+            expect(result['connect_providers']).to eq([])
           end
         end
       end
@@ -755,11 +776,12 @@ RSpec.describe Core::Views::ConfigSerializer do
             ])
           end
 
-          it 'falls back to platform providers' do
+          it 'keeps platform fallback for sign-in but excludes it from Connect' do
             result = described_class.build_sso_config(custom_domain_view_vars)
 
             expect(result['enabled']).to be true
             expect(result['providers'][0]['display_name']).to eq('Platform SSO')
+            expect(result['connect_providers']).to eq([])
           end
         end
 
@@ -796,11 +818,12 @@ RSpec.describe Core::Views::ConfigSerializer do
             ])
           end
 
-          it 'falls back to platform providers' do
+          it 'keeps platform fallback for sign-in but excludes it from Connect' do
             result = described_class.build_sso_config(custom_domain_view_vars)
 
             expect(result['enabled']).to be true
             expect(result['providers'][0]['route_name']).to eq('google')
+            expect(result['connect_providers']).to eq([])
           end
         end
 

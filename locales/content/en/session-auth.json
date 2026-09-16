@@ -144,9 +144,9 @@
     "content_hash": "66e7376c"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "This identity couldn't be connected because your session expired. Please sign in again, then connect it from your account settings.",
-    "context": "Shown on /signin when an authenticated SSO connect is refused because the session's account is no longer usable (#3840 Phase 2). The tenant-surface refusal has its own code, identity_connect_wrong_domain - do not merge them.",
-    "content_hash": "b8af3ce3"
+    "text": "This identity couldn't be connected. It may already belong to another account.",
+    "context": "Shown on /signin when an authenticated SSO connect is refused because the identity is already owned by another account, or the session's account is no longer usable. Tenant ownership refusals use this code; do not suggest retrying, because retrying cannot transfer the identity.",
+    "content_hash": "d8b71cf8"
   },
   "web.login.errors.identity_connect_wrong_domain": {
     "text": "This identity couldn't be connected on this domain. Start connecting from the site you're signed in to; on an organization's domain, your account must already belong to that organization.",
