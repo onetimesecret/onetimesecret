@@ -323,7 +323,12 @@ may be inferred from the IdP's email claim.
    Offer a password or a credential registered for the tenant surface as the
    fallback. Cross-domain passkey use requires an explicitly designed and
    supported [WebAuthn related-origins arrangement](https://www.w3.org/TR/webauthn-3/#sctn-related-origins), including a shared RP ID and its
-   `.well-known/webauthn` configuration; it is not automatic.
+   `.well-known/webauthn` configuration; it is not automatic. A tenant's
+   declared related origins may name only the platform canonical host, a
+   platform subdomain, or custom domains owned by the **same organization**;
+   an entry naming another organization's custom domain is dropped at read
+   time and logged, so it can never make that tenant's passkeys offerable
+   here (#4421).
 
    The re-authentication is performed with the account's existing credential,
    never with the tenant IdP, so a tenant administrator cannot satisfy it by
