@@ -635,6 +635,11 @@ jobs:
             overlay: 'billing'
             services: 'valkey rabbitmq'
             results-file: 'rspec_full_sqlite_billing_on_results.json'
+          - name: 'SQLite, MFA'
+            lane: full-mfa
+            overlay: ''
+            services: 'valkey rabbitmq'
+            results-file: 'rspec_full_mfa_results.json'
           - name: 'PG, billing: off'
             lane: full-pg
             overlay: ''

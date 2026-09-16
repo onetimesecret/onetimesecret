@@ -251,11 +251,6 @@ namespace :spec do
         ]
 
         sh env, "bundle exec rspec #{patterns.join(' ')} #{tag_filter} #{rspec_format_options}"
-
-        # AUTH_MFA_ENABLED specs need a SEPARATE process: Auth::Config is
-        # one-shot (auth-config-one-shot.md), so the shared full-mode process
-        # above — booted with MFA off — can never load the OTP feature set.
-        Rake::Task['spec:integration:full:mfa'].invoke if mode == 'full'
       end
     end
 
@@ -377,10 +372,10 @@ namespace :spec do
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'
-    task all: INTEGRATION_MODES
+    task all: INTEGRATION_MODES + ['full:mfa']
 
     desc 'Run all integration tests including Postgres'
-    task 'all:with_postgres': INTEGRATION_MODES + ['full:postgres']
+    task 'all:with_postgres': INTEGRATION_MODES + ['full:mfa', 'full:postgres']
   end
 
   # API contract specs (spec/api/) are organized by API surface and version
