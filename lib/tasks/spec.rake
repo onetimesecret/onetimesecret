@@ -268,14 +268,15 @@ namespace :spec do
         'AUTH_MFA_ENABLED' => 'true',
       }
 
+      # This task is the full-mfa lane's only task, so an empty glob would
+      # otherwise pass the "SQLite, MFA" CI row with zero examples (e.g.
+      # after a directory rename). Fail loudly instead.
       patterns = Dir.glob('apps/*/*/spec/integration/full_mfa')
-      if patterns.empty?
-        warn '[spec:integration:full:mfa] no full_mfa spec directories found; nothing to run'
-        next
-      end
+      abort '[spec:integration:full:mfa] no apps/*/*/spec/integration/full_mfa directories found' if patterns.empty?
 
-      # Distinct results file so this lane never clobbers the main full-mode
-      # JSON output when CI sets RSPEC_OUTPUT_FILE for the parent task.
+      # Distinct results file so this task never clobbers the full-mode JSON
+      # output when both run in one rake process with RSPEC_OUTPUT_FILE set
+      # (spec:integration:all).
       sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database #{rspec_format_options('mfa')}"
     end
 
