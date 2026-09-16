@@ -480,6 +480,7 @@ The focused acceptance files are:
 
 - `apps/web/auth/spec/integration/full/omniauth_connect_link_spec.rb`
 - `apps/web/auth/spec/integration/full_mfa/omniauth_connect_reauth_mfa_spec.rb`
+- `apps/web/auth/spec/integration/full_mfa/omniauth_connect_reauth_webauthn_spec.rb`
 - `apps/web/auth/spec/integration/full/authorize_tenant_connect_spec.rb`
 - `apps/web/auth/spec/integration/full/callback_validation_spec.rb`
 - `apps/web/auth/spec/integration/full/bind_sso_identity_postgres_spec.rb`

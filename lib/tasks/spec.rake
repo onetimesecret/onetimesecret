@@ -266,6 +266,9 @@ namespace :spec do
         'AUTH_DATABASE_URL' => 'sqlite::memory:',
         'ORGS_SSO_ENABLED' => 'true',
         'AUTH_MFA_ENABLED' => 'true',
+        # Passkey-as-second-factor coverage (omniauth_connect_reauth_webauthn_spec)
+        # needs the Rodauth webauthn feature set in the same one-shot boot.
+        'AUTH_WEBAUTHN_ENABLED' => 'true',
       }
 
       # This task is the full-mfa lane's only task, so an empty glob would

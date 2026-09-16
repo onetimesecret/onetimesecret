@@ -32,7 +32,12 @@ module AuthModeHelpers
       @verify_account_enabled = options.fetch(:verify_account_enabled, false)  # Disabled in test by default
       @mfa_enabled = options.fetch(:mfa_enabled, true)
       @email_auth_enabled = options.fetch(:email_auth_enabled, false)
-      @webauthn_enabled = options.fetch(:webauthn_enabled, false)
+      # Read from ENV like the SSO flags below: the full_mfa lane's passkey
+      # specs set AUTH_WEBAUTHN_ENABLED at load time (support/
+      # webauthn_flow_helper.rb) so config.rb enables the Rodauth webauthn
+      # feature set in the suite's one-shot boot. Default OFF, == 'true'
+      # semantics — the same rule etc/defaults/auth.defaults.yaml applies.
+      @webauthn_enabled = options.fetch(:webauthn_enabled) { ENV['AUTH_WEBAUTHN_ENABLED'] == 'true' }
       # SSO flags default OFF in tests, but honor env so the per-mode rake
       # batches (which run integration/full/ with provider env set) can exercise
       # the real omniauth route registration. Unset env preserves the old false.
@@ -89,6 +94,17 @@ module AuthModeHelpers
 
     def webauthn_enabled?
       @webauthn_enabled
+    end
+
+    # The two WebAuthn sub-features config/features/webauthn.rb consults at
+    # configure time. Both are separate opt-ins in production
+    # (AUTH_WEBAUTHN_VERIFY_ACCOUNT / AUTH_WEBAUTHN_AUTOFILL); off here.
+    def webauthn_verify_account_enabled?
+      false
+    end
+
+    def webauthn_autofill_enabled?
+      false
     end
 
     def sso_enabled?
