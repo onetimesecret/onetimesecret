@@ -133,6 +133,40 @@ RSpec.describe Auth::Operations::ReauthOffer do
         expect(result[:methods]).not_to include('webauthn')
       end
 
+      it 'never lets a cross-organization custom origin reach the offer (#4421)' do
+        # Real SigninConfig, not a double: the org-ownership gate lives in
+        # SigninConfig#surface_for_origin and this example proves the offer
+        # inherits it. tenant.example (org-a) declares vault.rival.example
+        # (org-b) as related; the account holds a passkey registered on the
+        # rival tenant. Before the gate, rule 3 of the policy would offer it.
+        own_domain = instance_double(
+          Onetime::CustomDomain,
+          display_domain: 'tenant.example',
+          identifier: 'tenant-a',
+          org_id: 'org-a',
+        )
+        signin_config = Onetime::CustomDomain::SigninConfig.new(domain_id: 'tenant-a')
+        signin_config.enabled = true
+        signin_config.related_origins = ['https://tenant.example', 'https://vault.rival.example']
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+          .with('tenant-a').and_return(signin_config)
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?).and_return(false)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).with('vault.rival.example')
+          .and_return(instance_double(Onetime::CustomDomain, identifier: 'rival-domain-id', org_id: 'org-b'))
+        allow(reader).to receive(:call).with(42)
+          .and_return([{ scope: :tenant, id: 'rival-domain-id', rp_id: 'vault.rival.example' }])
+        allow(Auth::PublicHost).to receive(:webauthn_base_url).and_return('https://tenant.example')
+        allow(OT).to receive(:lw)
+        env = env_for(strategy: :custom, custom_domain_id: 'tenant-a').merge('onetime.custom_domain' => own_domain)
+
+        result = operation.call(account_id: 42, env: env)
+
+        expect(result[:related_origins].map { |member| member['origin'] }).to eq(['https://tenant.example'])
+        expect(result[:related_origins].map { |member| member['surface']['id'] }).not_to include('rival-domain-id')
+        expect(result[:methods]).not_to include('webauthn')
+        expect(OT).to have_received(:lw).with(/cross-organization related origin/, hash_including(domain_id: 'tenant-a'))
+      end
+
       it 'silently skips the tenant lookup when custom_domain_id is missing' do
         env = env_for(strategy: :custom, custom_domain_id: nil)
         operation.call(account_id: 42, env: env)
