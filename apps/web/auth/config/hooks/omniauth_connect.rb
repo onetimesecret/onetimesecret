@@ -146,11 +146,17 @@ module Auth::Config::Hooks
         refuse_omniauth_connect!('lookup_error')
       end
 
-      # No rescue here. Once BindSsoIdentity has written the row, a failure in
-      # the re-read or the audit log must not be reported as a refusal: the
-      # identity IS bound, and telling the user otherwise leaves a credential
+      # No rescue here. Once BindSsoIdentity has written the row, an exception
+      # from the re-read or the audit log must not be converted into a refusal:
+      # the identity IS bound, and telling the user otherwise leaves a credential
       # attached that they believe was rejected. An unhandled error is honest,
       # and a retry is idempotent (BindSsoIdentity accepts an owned tuple).
+      #
+      # The ownership re-read below is a different case. It refuses only when
+      # the row is missing or owned by another account after :ok, which takes a
+      # concurrent disconnect or rebind between the write and the read. There
+      # the tuple is no longer this account's, so a refusal is the true state,
+      # not a masked error.
       def bind_omniauth_connect_identity(session_account:, issuer:)
         # Do NOT call the ordinary identity lookup: its platform-only legacy
         # issuer backfill is a write, and Connect ownership is the exact tuple.
