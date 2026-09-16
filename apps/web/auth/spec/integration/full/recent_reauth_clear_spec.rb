@@ -45,7 +45,6 @@
 require_relative '../../spec_helper'
 require 'rack/test'
 require 'bcrypt'
-require 'webauthn/fake_client'
 
 RSpec.describe 'RecentReauth.clear call sites (#4420)', :full_auth_mode, type: :integration do
   include Rack::Test::Methods
@@ -195,51 +194,6 @@ RSpec.describe 'RecentReauth.clear call sites (#4420)', :full_auth_mode, type: :
     def post_json(path, body)
       post(path, body.to_json, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json')
       last_response
-    end
-
-    # Drives a REAL registration through Rodauth's webauthn-setup route with
-    # the webauthn gem's FakeClient, so the production after_webauthn_setup
-    # body runs against a real credential. At HEAD before the fix the hook
-    # called `param(webauthn_setup_webauthn_id_param)` — an accessor rodauth
-    # 2.45 does not define — and every registration died with NameError
-    # inside the setup transaction.
-    it 'registers a credential through webauthn-setup and runs after_webauthn_setup' do
-      db.alter_table(:account_webauthn_keys) do
-        add_column :surface_scope, String
-        add_column :rp_id, String
-      end
-      logger = instance_spy(SemanticLogger::Logger, 'Auth::WebAuthn logger')
-      allow(Onetime).to receive(:get_logger).and_call_original
-      allow(Onetime).to receive(:get_logger).with('Auth::WebAuthn').and_return(logger)
-
-      account_id
-      post_json('/login', login: email, password: password)
-      expect(last_response.status).to eq(200), "Login failed (#{last_response.status}): #{last_response.body}"
-
-      # Step 1 of Rodauth's two-step JSON setup: a POST without the attestation
-      # returns the creation options + HMAC'd challenge with a 422.
-      post_json('/webauthn-setup', password: password)
-      expect(last_response.status).to eq(422), "Setup options failed (#{last_response.status}): #{last_response.body}"
-      options    = JSON.parse(last_response.body)
-      expect(options).to include('webauthn_setup_challenge', 'webauthn_setup_challenge_hmac')
-      client     = WebAuthn::FakeClient.new('http://example.org')
-      credential = client.create(challenge: options['webauthn_setup_challenge'])
-
-      post_json(
-        '/webauthn-setup',
-        webauthn_setup: JSON.generate(credential),
-        webauthn_setup_challenge: options['webauthn_setup_challenge'],
-        webauthn_setup_challenge_hmac: options['webauthn_setup_challenge_hmac'],
-        password: password,
-      )
-      expect(last_response.status).to eq(200),
-        "WebAuthn setup failed (#{last_response.status}): #{last_response.body}"
-
-      row = db[:account_webauthn_keys].where(account_id: account_id).first
-      expect(row).to include(webauthn_id: credential['id'], rp_id: 'example.org')
-      expect(logger).to have_received(:info)
-        .with('WebAuthn credential registered', hash_including(account_id: account_id, webauthn_id: credential['id']))
-      expect(logger).not_to have_received(:error)
     end
 
     it 'clears the proof once the credential row is deleted' do

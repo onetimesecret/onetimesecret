@@ -115,28 +115,11 @@ module Auth::Config::Hooks
       # - Can assign friendly name (e.g., "Work MacBook", "YubiKey")
       # - Can immediately use for login
       #
-      # VERSION-PINNED INVARIANT (rodauth 2.45.0, features/webauthn.rb:177-192):
-      # the setup route keeps the verified credential in a ROUTE-LOCAL
-      # (`webauthn_credential = webauthn_setup_credential_from_form_submission`)
-      # and never exposes it through an accessor, an ivar, or a request param —
-      # the browser posts the attestation blob under webauthn_setup_param, and
-      # the id is derived from it server-side (webauthn_key_insert_hash:497
-      # writes `webauthn_credential.id`). The ONLY overridable point that
-      # receives the credential before after_webauthn_setup (:192) fires is
-      # add_webauthn_credential(webauthn_credential) (:183, an auth_method),
-      # so it is wrapped here to memo the id for the hook below. RE-VERIFY on
-      # every gem upgrade: a route that starts passing the credential to the
-      # hook, or a renamed insert method, makes this wrapper redundant or dead.
-      auth.add_webauthn_credential do |webauthn_credential|
-        @webauthn_setup_credential_id = webauthn_credential.id
-        super(webauthn_credential)
-      end
-
       auth.after_webauthn_setup do
         Onetime.get_logger('Auth::WebAuthn').info 'WebAuthn credential registered',
           account_id: account[:id],
           email: account[:email],
-          webauthn_id: @webauthn_setup_credential_id
+          webauthn_id: param(webauthn_setup_webauthn_id_param)
 
         # Stamp the surface_scope column with the descriptor of the surface
         # this credential was registered against (#4414). This is the SAME
@@ -160,7 +143,7 @@ module Auth::Config::Hooks
           surface_payload    = surface_descriptor.nil? ? nil : JSON.generate(surface_descriptor)
           db[webauthn_keys_table]
             .where(webauthn_keys_account_id_column => account_id,
-              webauthn_keys_webauthn_id_column => @webauthn_setup_credential_id,
+              webauthn_keys_webauthn_id_column => param(webauthn_setup_webauthn_id_param),
             )
             .update(
               webauthn_keys_last_use_column => Sequel::CURRENT_TIMESTAMP,
@@ -170,14 +153,14 @@ module Auth::Config::Hooks
         rescue StandardError => ex
           Onetime.get_logger('Auth::WebAuthn').error 'WebAuthn surface stamp failed',
             account_id: account[:id],
-            webauthn_id: @webauthn_setup_credential_id,
+            webauthn_id: param(webauthn_setup_webauthn_id_param),
             error: ex.message,
             error_class: ex.class.name
           # Best-effort: still refresh last_use so the row's timestamp is
           # accurate even when the scope stamp path fails.
           db[webauthn_keys_table]
             .where(webauthn_keys_account_id_column => account_id,
-              webauthn_keys_webauthn_id_column => @webauthn_setup_credential_id,
+              webauthn_keys_webauthn_id_column => param(webauthn_setup_webauthn_id_param),
             )
             .update(webauthn_keys_last_use_column => Sequel::CURRENT_TIMESTAMP)
         end
