@@ -587,9 +587,8 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
       end
 
-      context 'when a platform host has the default strategy fallback' do
+      context 'when platform SSO is enabled on a subdomain' do
         before do
-          allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
           allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
           allow(mock_auth_config).to receive(:sso_providers).and_return([
             { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
@@ -597,9 +596,37 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
 
         it 'keeps platform providers available for Connect' do
-          result = described_class.build_sso_config(base_view_vars.merge('domain_strategy' => :default))
+          result = described_class.build_sso_config(base_view_vars.merge('domain_strategy' => :subdomain))
 
-          expect(result['connect_providers']).to eq(result['providers'])
+          expect(result['connect_providers']).to eq([
+            { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
+          ])
+        end
+      end
+
+      # Non-operator, non-custom strategies (:default sentinel from
+      # InitializeViewVars, :invalid from a datastore read failure) reach the
+      # platform-fallback branch only when allow_platform_fallback_for_tenants?
+      # is on, and MUST arrive there as connectable — the Connect callback
+      # itself is what fails closed for these surfaces (Session::Surface.for_env
+      # returns nil, so surface_bound is false). Pins the connectable flag on
+      # this branch so a change to `connectable: !tenant_domain?(...)` in
+      # config_serializer.rb#build_sso_config would be caught here.
+      [:default, :invalid].each do |strategy|
+        context "when platform fallback is allowed and strategy is #{strategy.inspect}" do
+          before do
+            allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+            allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+            allow(mock_auth_config).to receive(:sso_providers).and_return([
+              { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
+            ])
+          end
+
+          it 'exposes platform providers as connectable' do
+            result = described_class.build_sso_config(base_view_vars.merge('domain_strategy' => strategy))
+
+            expect(result['connect_providers']).to eq(result['providers'])
+          end
         end
       end
 
@@ -666,6 +693,16 @@ RSpec.describe Core::Views::ConfigSerializer do
           expect(result['providers'][0]['route_name']).to eq('entra')
           expect(result['providers'][0]['display_name']).to eq('Contoso Azure AD')
           expect(result['connect_providers']).to eq(result['providers'])
+        end
+
+        it 'keeps tenant providers available for Connect when platform fallback is allowed' do
+          allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+
+          result = described_class.build_sso_config(custom_domain_view_vars)
+
+          expect(result['connect_providers']).to eq([
+            { 'route_name' => 'entra', 'display_name' => 'Contoso Azure AD' },
+          ])
         end
 
         it 'does not call platform sso_providers' do

@@ -73,6 +73,9 @@
 #      unarchived personal default workspace adopts the tenant org as
 #      default_org_id and archives that workspace (JoinDomainOrganization's
 #      already_member path), leaving the membership untouched.
+#  10. (#4433) a registered custom-domain callback using platform fallback has
+#      no validated tenant domain and is refused as a surface mismatch, with no
+#      bind or account switch and no replayable intent.
 #
 # REQUIREMENTS:
 # - Valkey running on port 2163: pnpm run test:database:start
@@ -812,6 +815,93 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       ensure
         teardown_mock_auth
       end
+    end
+  end
+
+  # ==========================================================================
+  # Scenario 4b — custom-domain platform fallback callback -> REFUSE (#4433)
+  # ==========================================================================
+  #
+  # enable_platform_fallback below is scoped to the REQUEST phase: it lets
+  # OmniAuthTenant.handle_missing_tenant_config allow the /auth/sso/oidc
+  # kickoff through. The callback refusal asserted here does NOT consult
+  # allow_platform_fallback_for_tenants? — omniauth_connect.rb:113 rejects
+  # any custom-surface Connect without validated_omniauth_domain_id
+  # regardless of fallback policy. Do not read this example as pinning
+  # fallback-specific callback behavior; it pins the surface-mismatch gate.
+
+  describe 'registered custom-domain platform fallback callback (#4433)', :oauth_flow do
+    include OAuthFlowHelper
+
+    let(:host) { "fallback-connect-#{SecureRandom.hex(6)}.tenant.example.com" }
+    let(:actor_email) { unique_test_email('fallback-connect-actor') }
+    let(:other_email) { unique_test_email('fallback-connect-other') }
+    let(:uid) { "fallback-connect-sub-#{SecureRandom.hex(8)}" }
+    let!(:actor_id) { seed_account_with_password(actor_email) }
+
+    before do
+      @fallback_tenant = setup_oauth_test_domain(host)
+      Onetime::CustomDomain::SsoConfig.delete_for_domain!(@fallback_tenant[:domain].identifier)
+      Onetime::CustomDomain::SigninConfig.create!(
+        domain_id: @fallback_tenant[:domain].identifier, enabled: true, signin_enabled: true, sso_enabled: true,
+      )
+      seed_account_with_password(other_email)
+      enable_platform_fallback
+
+      header 'Host', host
+      csrf_login(actor_email)
+      expect(last_request.env['rack.session']['account_id']).to eq(actor_id)
+
+      allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      setup_mock_auth(email: other_email, uid: uid)
+    end
+
+    after do
+      teardown_mock_auth
+      Onetime::CustomDomain::SigninConfig.delete_for_domain!(@fallback_tenant[:domain].identifier) if @fallback_tenant
+    end
+
+    it 'refuses the unvalidated custom surface, preserves the account, and consumes the intent' do
+      expect(Onetime::CustomDomain::SsoConfig.find_by_domain_id(@fallback_tenant[:domain].identifier)).to be_nil
+      expect(initiate_sso_connect(host: host)).to eq(302)
+
+      sid    = current_sid
+      intent = Onetime::SessionSidecar.read(sid, 'sso_connect_intent')
+      expect(intent).to include(
+        'account_id' => actor_id,
+        'surface' => { 'kind' => 'custom', 'id' => @fallback_tenant[:domain].identifier },
+      )
+      expect(session_blob(sid)).not_to include('omniauth_tenant_domain_id', 'validated_omniauth_domain_id')
+      accounts_before = auth_db[:accounts].count
+
+      clear_body_headers
+      header 'Host', host
+      post '/auth/sso/oidc/callback'
+
+      expect_auth_error_redirect('identity_connect_wrong_domain')
+      expect(last_request.env['rack.session']['account_id']).to eq(actor_id),
+        'A refused fallback callback must not switch the authenticated account'
+      expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
+      expect(auth_db[:accounts].count).to eq(accounts_before)
+      expect(intent_live?(sid)).to be(false), 'The refused intent must be consumed'
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_identity_connect_refused, hash_including(provider: 'oidc', reason: 'surface_mismatch'))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
+
+      clear_body_headers
+      header 'Host', host
+      post '/auth/sso/oidc/callback'
+
+      expect(intent_live?(sid)).to be(false)
+      expect(last_request.env['rack.session']['account_id']).to eq(actor_id)
+      expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0),
+        'A second callback must not replay the refused Connect intent'
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_connect_intent_absent, hash_including(provider: 'oidc', had_intent: false))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
     end
   end
 
