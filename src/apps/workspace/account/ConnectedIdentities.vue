@@ -34,10 +34,11 @@
   const { identities, isLoading, error, errorCode, fetchIdentities, removeIdentity, clearError } =
     useConnectedIdentities();
 
-  // Providers whose routes are not already represented by a linked identity.
-  // Tenant callbacks still refuse identity binds (#3849), so custom domains
-  // retain conservative route-name suppression rather than offering a known
-  // failed duplicate-route action. See sso-link-evidence.ts.
+  // Providers the panel offers a Connect button for. On the platform surface
+  // a linked identity with the same route name hides the button; on a tenant
+  // surface Connect always stays available and the callback resolves whether
+  // the returned (provider, issuer, uid) tuple is already owned. Display
+  // heuristic only; see sso-link-evidence.ts.
   const CONNECT_REDIRECT = '/account/settings/security/connections';
 
   const connectSurface = computed(() => connectSurfaceFor(bootstrapStore.domain_strategy));
