@@ -1,16 +1,16 @@
-# apps/web/auth/spec/operations/create_default_workspace_claim_policy_spec.rb
+# apps/web/auth/spec/operations/ensure_default_workspace_claim_policy_spec.rb
 #
 # frozen_string_literal: true
 
 # Tests for the claim_pending_federation: kwarg on
-# Auth::Operations::CreateDefaultWorkspace.
+# Auth::Operations::EnsureDefaultWorkspace.
 #
 # There are two independent gates on the federated-subscription claim, and
 # they answer different questions:
 #
 #   require_verification:      "not YET" — defer to after_verify_account once
 #                              the user proves they own the email. Pinned by
-#                              create_default_workspace_federation_spec.rb.
+#                              ensure_default_workspace_federation_spec.rb.
 #   claim_pending_federation:  "not BY ME" — this caller creates workspaces but
 #                              does not deliver federated benefits, and has no
 #                              deferred second chance. Pinned here.
@@ -26,16 +26,16 @@
 # invite, lazy creation, standard signup) claiming exactly as before.
 #
 # Run: RACK_ENV=test bundle exec rspec \
-#   apps/web/auth/spec/operations/create_default_workspace_claim_policy_spec.rb
+#   apps/web/auth/spec/operations/ensure_default_workspace_claim_policy_spec.rb
 
 require 'spec_helper'
 require 'securerandom'
 
-RSpec.describe 'CreateDefaultWorkspace: claim_pending_federation policy' do
+RSpec.describe 'EnsureDefaultWorkspace: claim_pending_federation policy' do
   before(:all) do
     require 'onetime' unless defined?(Onetime)
     Onetime.boot! :test unless Onetime.ready?
-    require 'auth/operations/create_default_workspace'
+    require 'auth/operations/ensure_default_workspace'
     require 'billing/models/pending_federated_subscription'
   end
 
@@ -84,7 +84,7 @@ RSpec.describe 'CreateDefaultWorkspace: claim_pending_federation policy' do
   end
 
   def create_workspace(**kwargs)
-    result = Auth::Operations::CreateDefaultWorkspace.new(customer: customer, **kwargs).call
+    result = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer, **kwargs).call
     org    = result && result[:organization]
     created_organizations << org if org
     org

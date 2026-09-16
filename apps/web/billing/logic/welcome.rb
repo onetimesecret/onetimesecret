@@ -141,7 +141,7 @@ module Billing
         #
         # Step 4 used to diverge: this path went straight to
         # create_billing_workspace while the webhook twin ran
-        # Auth::Operations::CreateDefaultWorkspace first, so whichever surface
+        # Auth::Operations::EnsureDefaultWorkspace first, so whichever surface
         # handled a given checkout decided the workspace's name and whether a
         # cross-region PendingFederatedSubscription got claimed. Both now share
         # {CheckoutTargetResolver.create_checkout_workspace} (#4212).

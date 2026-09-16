@@ -78,7 +78,7 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
 
     before do
       # Stub lazy-creation to return nil so auth_org stays nil
-      allow(Auth::Operations::CreateDefaultWorkspace).to receive(:new).and_return(
+      allow(Auth::Operations::EnsureDefaultWorkspace).to receive(:new).and_return(
         double(call: nil)
       )
     end

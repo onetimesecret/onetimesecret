@@ -1,4 +1,4 @@
-# apps/web/auth/spec/operations/create_default_workspace_federation_spec.rb
+# apps/web/auth/spec/operations/ensure_default_workspace_federation_spec.rb
 #
 # frozen_string_literal: true
 
@@ -7,7 +7,7 @@
 # =============================================================================
 #
 # Security regression tests for the pending-federated-subscription claim gate
-# in Auth::Operations::CreateDefaultWorkspace.
+# in Auth::Operations::EnsureDefaultWorkspace.
 #
 # Background
 # ----------
@@ -24,7 +24,7 @@
 #
 # The fix defers the claim on that path until the email is verified
 # (require_verification: true), and re-invokes it from after_verify_account via
-# CreateDefaultWorkspace.claim_pending_federation_for. Pre-verified/trusted
+# EnsureDefaultWorkspace.claim_pending_federation_for. Pre-verified/trusted
 # callers (SSO, invite, post-payment billing, authenticated lazy creation) use
 # the default (require_verification: false) and claim immediately.
 #
@@ -34,18 +34,18 @@
 #
 # RUN:
 #   RACK_ENV=test bundle exec rspec \
-#     apps/web/auth/spec/operations/create_default_workspace_federation_spec.rb
+#     apps/web/auth/spec/operations/ensure_default_workspace_federation_spec.rb
 #
 # =============================================================================
 
 require 'spec_helper'
 require 'securerandom'
 
-RSpec.describe 'CreateDefaultWorkspace: federated subscription claim gate', type: :integration do
+RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type: :integration do
   before(:all) do
     require 'onetime' unless defined?(Onetime)
     Onetime.boot! :test unless Onetime.ready?
-    require 'auth/operations/create_default_workspace'
+    require 'auth/operations/ensure_default_workspace'
     require 'billing/models/pending_federated_subscription'
   end
 
@@ -107,7 +107,7 @@ RSpec.describe 'CreateDefaultWorkspace: federated subscription claim gate', type
       create_pending_for(email)
       customer = create_customer(email: email, verified: false)
 
-      result = Auth::Operations::CreateDefaultWorkspace.new(
+      result = Auth::Operations::EnsureDefaultWorkspace.new(
         customer: customer,
         require_verification: true,
       ).call
@@ -138,7 +138,7 @@ RSpec.describe 'CreateDefaultWorkspace: federated subscription claim gate', type
       customer = create_customer(email: email, verified: false)
 
       # Signup: workspace created, claim deferred.
-      result = Auth::Operations::CreateDefaultWorkspace.new(
+      result = Auth::Operations::EnsureDefaultWorkspace.new(
         customer: customer,
         require_verification: true,
       ).call
@@ -152,7 +152,7 @@ RSpec.describe 'CreateDefaultWorkspace: federated subscription claim gate', type
       customer.verified = true
       customer.save
 
-      applied = Auth::Operations::CreateDefaultWorkspace.claim_pending_federation_for(customer)
+      applied = Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(customer)
       expect(applied).to be(true)
 
       org.refresh!
@@ -174,7 +174,7 @@ RSpec.describe 'CreateDefaultWorkspace: federated subscription claim gate', type
       create_pending_for(email)
       customer = create_customer(email: email, verified: true)
 
-      result = Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+      result = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call
       org = result[:organization]
       created_organizations << org
 
@@ -185,7 +185,7 @@ RSpec.describe 'CreateDefaultWorkspace: federated subscription claim gate', type
 
     it 'claims at creation on the default (require_verification: false) path even ' \
        'when the Redis customer.verified flag is not yet set (SSO/omniauth caller)' do
-      # The SSO caller (after_omniauth_create_account) invokes CreateDefaultWorkspace
+      # The SSO caller (after_omniauth_create_account) invokes EnsureDefaultWorkspace
       # with the default require_verification: false, while EnsureCustomerForAccount leaves the
       # Redis customer.verified flag false (the Rodauth account is IdP-verified). This
       # asserts SSO still claims immediately and is not blocked by the new gate.
@@ -193,7 +193,7 @@ RSpec.describe 'CreateDefaultWorkspace: federated subscription claim gate', type
       create_pending_for(email)
       customer = create_customer(email: email, verified: false)
 
-      result = Auth::Operations::CreateDefaultWorkspace.new(
+      result = Auth::Operations::EnsureDefaultWorkspace.new(
         customer: customer,
         require_verification: false,
       ).call
@@ -219,7 +219,7 @@ RSpec.describe 'CreateDefaultWorkspace: federated subscription claim gate', type
       create_pending_for(email, planid: nil)
       customer = create_customer(email: email, verified: true)
 
-      result = Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+      result = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call
       org = result[:organization]
       created_organizations << org
 
@@ -234,7 +234,7 @@ RSpec.describe 'CreateDefaultWorkspace: federated subscription claim gate', type
       expect(pending_exists?(email)).to be(true)
 
       # The verify-path entry point also refuses it.
-      applied = Auth::Operations::CreateDefaultWorkspace.claim_pending_federation_for(customer)
+      applied = Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(customer)
       expect(applied).to be(false)
       expect(pending_exists?(email)).to be(true)
     end
@@ -248,13 +248,13 @@ RSpec.describe 'CreateDefaultWorkspace: federated subscription claim gate', type
       email = unique_email('none-pending')
       customer = create_customer(email: email, verified: true)
 
-      result = Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+      result = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call
       org = result[:organization]
       created_organizations << org
       expect(org.subscription_federated?).to be(false)
 
       # No pending was ever stored -> safe no-op, no error.
-      applied = Auth::Operations::CreateDefaultWorkspace.claim_pending_federation_for(customer)
+      applied = Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(customer)
       expect(applied).to be(false)
 
       org.refresh!
@@ -267,14 +267,14 @@ RSpec.describe 'CreateDefaultWorkspace: federated subscription claim gate', type
       customer = create_customer(email: email, verified: true)
 
       # First claim consumes the pending record.
-      result = Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+      result = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call
       org = result[:organization]
       created_organizations << org
       expect(org.subscription_federated?).to be(true)
       expect(pending_exists?(email)).to be(false)
 
       # Second invocation (as after_verify_account would do) is a safe no-op.
-      applied = Auth::Operations::CreateDefaultWorkspace.claim_pending_federation_for(customer)
+      applied = Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(customer)
       expect(applied).to be(false)
 
       org.refresh!
@@ -287,13 +287,13 @@ RSpec.describe 'CreateDefaultWorkspace: federated subscription claim gate', type
       customer = create_customer(email: email, verified: false)
 
       # Workspace exists but the customer never verified.
-      result = Auth::Operations::CreateDefaultWorkspace.new(
+      result = Auth::Operations::EnsureDefaultWorkspace.new(
         customer: customer,
         require_verification: true,
       ).call
       created_organizations << result[:organization]
 
-      applied = Auth::Operations::CreateDefaultWorkspace.claim_pending_federation_for(customer)
+      applied = Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(customer)
       expect(applied).to be(false)
       expect(pending_exists?(email)).to be(true)
     end

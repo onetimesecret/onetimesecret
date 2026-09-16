@@ -11,7 +11,7 @@
 #
 # Operations tested:
 #   - Auth::Operations::EnsureCustomerForAccount
-#   - Auth::Operations::CreateDefaultWorkspace
+#   - Auth::Operations::EnsureDefaultWorkspace
 #
 # REQUIREMENTS:
 # - Valkey running on port 2163: pnpm run test:database:start
@@ -30,7 +30,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
     require 'onetime' unless defined?(Onetime)
     Onetime.boot! :test unless Onetime.ready?
     require_relative '../../../operations/ensure_customer_for_account'
-    require_relative '../../../operations/create_default_workspace'
+    require_relative '../../../operations/ensure_default_workspace'
   end
 
   # Track created resources for cleanup
@@ -341,7 +341,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
     end
   end
 
-  describe 'CreateDefaultWorkspace operation' do
+  describe 'EnsureDefaultWorkspace operation' do
     it 'creates Organization with is_default true' do
       email = unique_test_email('workspace-default')
       customer = Onetime::Customer.create!(
@@ -355,7 +355,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       expect(customer.organization_instances.count).to eq(0)
 
       # Call the operation
-      operation = Auth::Operations::CreateDefaultWorkspace.new(customer: customer)
+      operation = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer)
       result = operation.call
       org = result[:organization]
       created_organizations << org
@@ -374,14 +374,14 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       created_customers << customer
 
       # First call - creates organization
-      operation1 = Auth::Operations::CreateDefaultWorkspace.new(customer: customer)
+      operation1 = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer)
       result1 = operation1.call
       created_organizations << result1[:organization]
 
       expect(customer.organization_instances.count).to eq(1)
 
       # Second call - should be no-op
-      operation2 = Auth::Operations::CreateDefaultWorkspace.new(customer: customer)
+      operation2 = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer)
       result2 = operation2.call
 
       expect(result2).to be_nil # Returns nil when workspace exists
@@ -389,7 +389,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
     end
 
     it 'returns nil when customer is nil' do
-      operation = Auth::Operations::CreateDefaultWorkspace.new(customer: nil)
+      operation = Auth::Operations::EnsureDefaultWorkspace.new(customer: nil)
       result = operation.call
 
       expect(result).to be_nil
@@ -406,7 +406,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
 
       expect(customer.organization_instances).to be_empty
 
-      operation = Auth::Operations::CreateDefaultWorkspace.new(customer: customer)
+      operation = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer)
       result = operation.call
       org = result[:organization]
       created_organizations << org
@@ -418,7 +418,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
   end
 
   describe 'full account creation flow' do
-    it 'EnsureCustomerForAccount followed by CreateDefaultWorkspace creates linked records' do
+    it 'EnsureCustomerForAccount followed by EnsureDefaultWorkspace creates linked records' do
       email = unique_test_email('full-flow')
       account = create_test_account(email: email)
 
@@ -431,7 +431,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       created_customers << customer
 
       # Step 2: Create Workspace
-      workspace_op = Auth::Operations::CreateDefaultWorkspace.new(customer: customer)
+      workspace_op = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer)
       result = workspace_op.call
       org = result[:organization]
       created_organizations << org

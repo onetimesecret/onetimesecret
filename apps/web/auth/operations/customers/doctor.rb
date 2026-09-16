@@ -441,7 +441,7 @@ module Auth
 
         # CHECK: a personal workspace still contacting a dead address
         #
-        # `CreateDefaultWorkspace` seeds the auto-created workspace's
+        # `EnsureDefaultWorkspace` seeds the auto-created workspace's
         # contact_email from the customer's address and nothing ever updated it,
         # so every self-service email change left the default org (and
         # `organization:contact_email_index`) pointing at an address no account

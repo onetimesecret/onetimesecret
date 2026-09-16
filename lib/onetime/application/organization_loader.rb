@@ -196,13 +196,13 @@ module Onetime
 
         # 6. No organization found - return nil (read-only phase)
         #
-        # Previously this called create_default_workspace() which performed
+        # Previously this called ensure_default_workspace() which performed
         # Redis writes during authentication. This caused race conditions,
         # negative caching bugs, and skipped federation checks.
         #
         # Org creation now happens lazily in auth_org (Logic::OrganizationContext)
         # when an entitlement-gated action actually needs the organization.
-        # See: apps/web/auth/operations/create_default_workspace.rb
+        # See: apps/web/auth/operations/ensure_default_workspace.rb
         OT.ld "[OrganizationLoader] No organizations found for #{customer.objid}, deferring creation"
         nil
       end
