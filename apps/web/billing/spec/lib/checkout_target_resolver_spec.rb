@@ -106,7 +106,7 @@ RSpec.describe Billing::CheckoutTargetResolver, :billing do
   # =======================================================================
   # Step 4, shared.
   #
-  # It used to be per-surface: the webhook ran CreateDefaultWorkspace first
+  # It used to be per-surface: the webhook ran EnsureDefaultWorkspace first
   # and the redirect went straight to create_billing_workspace, so the same
   # checkout produced a different workspace name and a different
   # federated-subscription outcome depending on which surface handled it
@@ -148,7 +148,7 @@ RSpec.describe Billing::CheckoutTargetResolver, :billing do
     # The claim belongs to the federated webhook path, not to a surface that
     # is about to apply a paid local subscription to this very workspace.
     it 'declines the federated-subscription claim' do
-      expect(Auth::Operations::CreateDefaultWorkspace).to receive(:new)
+      expect(Auth::Operations::EnsureDefaultWorkspace).to receive(:new)
         .with(hash_including(claim_pending_federation: false))
         .and_call_original
 
@@ -161,7 +161,7 @@ RSpec.describe Billing::CheckoutTargetResolver, :billing do
   # Familia::RecordExistsError round the concurrent-completion examples
   # exercise).
   #
-  # canonical_workspace rescues CreateDefaultWorkspace's OrganizationExists
+  # canonical_workspace rescues EnsureDefaultWorkspace's OrganizationExists
   # and tries to adopt the org holding the contact_email reservation. When
   # that org belongs to someone else, adoption correctly returns nil and the
   # fall-through is a SECOND create attempt — create_billing_workspace —
@@ -177,7 +177,7 @@ RSpec.describe Billing::CheckoutTargetResolver, :billing do
       create_test_customer(email: "resolver-interloper-#{SecureRandom.hex(4)}@example.com")
     end
 
-    # The reserving org has a member (its owner), so CreateDefaultWorkspace
+    # The reserving org has a member (its owner), so EnsureDefaultWorkspace
     # re-raises OrganizationExists instead of adopting the orphan — and the
     # checkout customer does not own it, so adopt_email_reserved_workspace
     # refuses it too.

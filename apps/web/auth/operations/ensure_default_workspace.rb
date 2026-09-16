@@ -1,4 +1,4 @@
-# apps/web/auth/operations/create_default_workspace.rb
+# apps/web/auth/operations/ensure_default_workspace.rb
 #
 # frozen_string_literal: true
 
@@ -25,7 +25,7 @@
 
 module Auth
   module Operations
-    class CreateDefaultWorkspace
+    class EnsureDefaultWorkspace
       include Onetime::LoggerMethods
 
       # @param customer [Onetime::Customer] The customer for whom to create workspace

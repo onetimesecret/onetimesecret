@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../../apps/web/auth/operations/create_default_workspace'
+require_relative '../../../apps/web/auth/operations/ensure_default_workspace'
 
 #
 # Organization Context for Logic Classes
@@ -77,7 +77,7 @@ module Onetime
         # Lazy creation for authenticated users without org
         if org.nil? && cust && !cust.anonymous?
           OT.info "[auth_org] Lazy-creating default workspace for #{cust.custid}"
-          result = Auth::Operations::CreateDefaultWorkspace.new(customer: cust).call
+          result = Auth::Operations::EnsureDefaultWorkspace.new(customer: cust).call
 
           # Update metadata so subsequent calls in same request see the org
           if result && (org = result[:organization]) && @strategy_result&.metadata&.dig(:organization_context)

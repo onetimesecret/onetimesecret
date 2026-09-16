@@ -9,7 +9,7 @@
 # Tests the complete flow:
 # 1. Auth succeeds with nil org (user has no orgs)
 # 2. When entitlement-gated action is attempted, lazy creation triggers
-# 3. CreateDefaultWorkspace is called
+# 3. EnsureDefaultWorkspace is called
 # 4. Federation check runs (apply_pending_federation!)
 #
 # Run: bundle exec rspec spec/integration/all/lazy_organization_creation_spec.rb
@@ -34,7 +34,7 @@ RSpec.describe 'Lazy Organization Creation', type: :integration, order: :defined
     end
 
     # Load required operations
-    require_relative '../../../apps/web/auth/operations/create_default_workspace'
+    require_relative '../../../apps/web/auth/operations/ensure_default_workspace'
     require_relative '../../../apps/web/billing/models/pending_federated_subscription'
 
     # Create customer WITHOUT organizations
@@ -57,10 +57,10 @@ RSpec.describe 'Lazy Organization Creation', type: :integration, order: :defined
     end
   end
 
-  describe 'CreateDefaultWorkspace operation' do
+  describe 'EnsureDefaultWorkspace operation' do
     before(:all) do
       # Trigger lazy creation
-      @workspace_result = Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
+      @workspace_result = Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer).call
       @created_org = @workspace_result[:organization] if @workspace_result
     end
 
@@ -114,7 +114,7 @@ RSpec.describe 'Lazy Organization Creation', type: :integration, order: :defined
 
   describe 'Idempotency' do
     before(:all) do
-      @second_result = Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
+      @second_result = Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer).call
     end
 
     it 'returns nil when organization already exists' do
@@ -128,7 +128,7 @@ RSpec.describe 'Lazy Organization Creation', type: :integration, order: :defined
 
   describe 'Nil customer handling' do
     it 'returns nil when customer is nil' do
-      result = Auth::Operations::CreateDefaultWorkspace.new(customer: nil).call
+      result = Auth::Operations::EnsureDefaultWorkspace.new(customer: nil).call
       expect(result).to be_nil
     end
   end
@@ -150,7 +150,7 @@ RSpec.describe 'Federation Application on Workspace Creation', type: :integratio
       exit 0
     end
 
-    require_relative '../../../apps/web/auth/operations/create_default_workspace'
+    require_relative '../../../apps/web/auth/operations/ensure_default_workspace'
     require_relative '../../../apps/web/billing/models/pending_federated_subscription'
 
     # Set up federation secret for email hash computation
@@ -177,7 +177,7 @@ RSpec.describe 'Federation Application on Workspace Creation', type: :integratio
 
   describe 'when no pending federation exists' do
     before(:all) do
-      @result = Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
+      @result = Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer).call
       @org = @result[:organization]
     end
 
@@ -461,13 +461,13 @@ RSpec.describe 'OrganizationContext in Logic Classes', type: :integration, order
         instance = test_class.new(strategy_result, @lazy_customer)
         initial_count = @lazy_customer.organization_instances.count
 
-        # This should return existing org (CreateDefaultWorkspace is idempotent)
+        # This should return existing org (EnsureDefaultWorkspace is idempotent)
         org = instance.auth_org
 
         # Note: The current implementation creates a new org because it checks
         # strategy_result.metadata which is nil, not the customer's actual orgs.
         # This is actually testing the real behavior - if we want idempotency,
-        # CreateDefaultWorkspace handles it internally.
+        # EnsureDefaultWorkspace handles it internally.
         expect(@lazy_customer.organization_instances.count).to eq(initial_count)
       end
     end

@@ -859,7 +859,7 @@ RSpec.describe 'OmniAuth hooks' do
   # after_omniauth_create_account operations
   # ==========================================================================
   #
-  # Integration tests for EnsureCustomerForAccount and CreateDefaultWorkspace operations
+  # Integration tests for EnsureCustomerForAccount and EnsureDefaultWorkspace operations
   # are in: spec/integration/omniauth_account_creation_spec.rb
   #
   # These operations are tested with real database/Redis operations to verify:

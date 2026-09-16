@@ -25,9 +25,9 @@ C. Explain in the UI why default orgs are important/necessary? Might just
    Clerk/GitHub terms the default org is the personal account, not an
    organization — and nobody lets you delete a personal account separately
    from the user.
-2. Deleting it doesn't delete it — it resets it. CreateDefaultWorkspace runs
+2. Deleting it doesn't delete it — it resets it. EnsureDefaultWorkspace runs
    from the account/omniauth hooks and lazily from `auth_org`
-   (`create_default_workspace.rb:78,151`). If the customer has zero other
+   (`ensure_default_workspace.rb:78,151`). If the customer has zero other
    orgs, the next entitlement-gated action mints a fresh `is_default` org
    (or adopts an orphan via `find_by_contact_email`, line 194). So "delete
    my only/default org" is semantically account purge
@@ -74,14 +74,14 @@ re-creation:
   (`apps/api/organizations/logic/organizations/list_organizations.rb:30,36`);
   `OrganizationLoader` skips archived at steps 3 and 5; `CreateOrganization`
   counts only non-archived toward the limit.
-- `CreateDefaultWorkspace#workspace_already_exists?` counts
+- `EnsureDefaultWorkspace#workspace_already_exists?` counts
   `organization_instances` — membership survives archiving, so it returns
-  "exists" and mints nothing (`create_default_workspace.rb:156-170`).
+  "exists" and mints nothing (`ensure_default_workspace.rb:156-170`).
 
 Three things break it, in order of severity:
 
 1. Archived-only customer silently keeps using the "deleted" org. Loader
-   returns nil → `auth_org` calls CreateDefaultWorkspace → nil → fallback
+   returns nil → `auth_org` calls EnsureDefaultWorkspace → nil → fallback
    `org ||= cust.organization_instances.first`
    (`lib/onetime/logic/organization_context.rb:91`) has no archived filter
    and hands back the archived org. So secrets, receipts, limits all keep

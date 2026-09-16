@@ -109,8 +109,8 @@ module Auth
       #
       # Resetting verification is correct for an operator-initiated change (nobody
       # has proven ownership of the new address), and wrong for the token path
-      # (the token IS the proof). It is not free: `CreateDefaultWorkspace`
-      # (create_default_workspace.rb:33-51) gates a pending cross-region federated
+      # (the token IS the proof). It is not free: `EnsureDefaultWorkspace`
+      # (ensure_default_workspace.rb:33-51) gates a pending cross-region federated
       # subscription claim on verification, so a reset can strip a paying
       # customer's federated benefit until they re-verify (D34).
       #

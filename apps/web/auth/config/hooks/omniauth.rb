@@ -819,10 +819,10 @@ module Auth::Config::Hooks
           else
             # Canonical domain SSO → create default workspace
             Onetime::ErrorHandler.safe_execute(
-              'create_default_workspace_omniauth',
+              'ensure_default_workspace_omniauth',
               external_id: customer.extid,
             ) do
-              Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+              Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call
             end
           end
         end

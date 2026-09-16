@@ -5,7 +5,7 @@
 require_relative 'operations/sync_session'
 require_relative 'operations/update_password_metadata'
 require_relative 'operations/ensure_customer_for_account'
-require_relative 'operations/create_default_workspace'
+require_relative 'operations/ensure_default_workspace'
 require_relative 'operations/join_domain_organization'
 require_relative 'operations/accept_invitation'
 require_relative 'operations/remove_authentication_data'
