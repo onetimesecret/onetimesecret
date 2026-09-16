@@ -821,6 +821,14 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   # ==========================================================================
   # Scenario 4b — custom-domain platform fallback callback -> REFUSE (#4433)
   # ==========================================================================
+  #
+  # enable_platform_fallback below is scoped to the REQUEST phase: it lets
+  # OmniAuthTenant.handle_missing_tenant_config allow the /auth/sso/oidc
+  # kickoff through. The callback refusal asserted here does NOT consult
+  # allow_platform_fallback_for_tenants? — omniauth_connect.rb:113 rejects
+  # any custom-surface Connect without validated_omniauth_domain_id
+  # regardless of fallback policy. Do not read this example as pinning
+  # fallback-specific callback behavior; it pins the surface-mismatch gate.
 
   describe 'registered custom-domain platform fallback callback (#4433)', :oauth_flow do
     include OAuthFlowHelper
