@@ -24,10 +24,12 @@
 #                                 loaded ONLY into the server process of this
 #                                 job. It turns on OmniAuth test mode with the
 #                                 E2E_TENANT_CONNECT_{PROVIDER,UID,IDP_EMAIL,
-#                                 ISSUER} tuple and opens the hard-coded tenant
-#                                 Connect release gate in that process. The
-#                                 production gate is untouched — no config
-#                                 surface, no env knob, only this shim.
+#                                 ISSUER} tuple so the tenant OIDC callback
+#                                 completes without a live IdP. Nothing else:
+#                                 the tenant Connect kill switch
+#                                 (OmniAuthConnect.tenant_connect_enabled?)
+#                                 is the application's real value (true since
+#                                 #4427); the lane exercises it as shipped.
 #   AUTHENTICATION_MODE=full      Rodauth is mounted; the authdb is a
 #   + DOMAINS_ENABLED=true        boot-migrated sqlite under tmp/. The tenant
 #   + ORGS_SSO_ENABLED=true       host classifies :custom only with domains
@@ -198,10 +200,10 @@ jobs:
           mkdir -p tmp
           rm -f tmp/e2e-tenant-connect.db
 
-      # The shim is scoped to THIS step's env: it is the only process in the
-      # job (and the only place anywhere) where the tenant Connect gate opens.
-      # `bundle exec` puts bundler/setup ahead of the shim in RUBYOPT so the
-      # shim's `require 'omniauth'` resolves the locked gem.
+      # The shim is scoped to THIS step's env: the server is the only process
+      # in the job that runs with OmniAuth test mode. `bundle exec` puts
+      # bundler/setup ahead of the shim in RUBYOPT so the shim's
+      # `require 'omniauth'` resolves the locked gem.
       - name: Boot the armed application server
         env:
           RUBYOPT: -r./e2e/system/tenant_connect_test_boot.rb
@@ -224,14 +226,23 @@ jobs:
           tail -n 200 "$SERVER_LOG" || true
           exit 1
 
-      # Prove the shim actually loaded into the server process before anything
-      # else runs: a server booted without it would refuse every tenant
-      # Connect with tenant_connect_prerequisites_incomplete and the spec would
-      # fail one step from the end with a misleading auth_error.
-      - name: Assert the boot shim registered the tenant OIDC route
+      # Two boot facts the journey depends on, asserted before anything else
+      # runs so a misconfigured server fails here and not one step from the
+      # end with a misleading auth_error:
+      #   1. the application registered the placeholder tenant OIDC route
+      #      (apps/web/auth/config/features/omniauth.rb, ORGS_SSO_ENABLED=true);
+      #   2. the boot shim loaded into the server process and armed OmniAuth
+      #      test mode (without it the callback would try to reach the
+      #      fictional issuer).
+      - name: Assert the tenant OIDC route registered and the shim armed the server
         run: |
           if ! grep -q "Registering OIDC route 'oidc' for tenant SSO" "$SERVER_LOG"; then
             echo "::error::The placeholder OIDC route did not register (ORGS_SSO_ENABLED?)"
+            tail -n 100 "$SERVER_LOG" || true
+            exit 1
+          fi
+          if ! grep -q "\[tenant_connect_test_boot\] OmniAuth test mode armed" "$SERVER_LOG"; then
+            echo "::error::The boot shim did not load into the server process (RUBYOPT?)"
             tail -n 100 "$SERVER_LOG" || true
             exit 1
           fi
