@@ -305,7 +305,7 @@ module Auth::Config::Hooks
         Onetime.get_logger('Auth::WebAuthn').info 'Removing WebAuthn credential',
           account_id: account[:id],
           email: account[:email],
-          webauthn_id: param(webauthn_remove_webauthn_id_param)
+          webauthn_id: param(webauthn_remove_param)
 
         # Log credential removal for security audit
         # Consider sending notification email to account owner
