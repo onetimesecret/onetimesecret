@@ -9,12 +9,14 @@ require 'onetime/session/surface'
 
 module Auth::Config::Hooks
   module OmniAuthConnect
-    # Release gate, not an operator bypass. The complete #3849 regression matrix
-    # must ship before this becomes true, and the tenant provider suppression in
-    # sso-link-evidence.ts is swapped for identity evidence in the same change
-    # (#4427). The authorization pipeline remains mandatory.
+    # Tenant Connect enablement constant (#3849, opened by #4427). Kept as a
+    # single re-closable kill switch for incident response, not an operator
+    # setting: there is no config key on purpose. Closing it refuses every
+    # tenant Connect callback with `tenant_connect_prerequisites_incomplete`
+    # ahead of the membership gate. The authorization pipeline (surface,
+    # membership, ownership) remains mandatory regardless of this value.
     def self.tenant_connect_enabled?
-      false
+      true
     end
 
     # The gem checks a cached account, then an existing identity, BEFORE calling
@@ -117,7 +119,7 @@ module Auth::Config::Hooks
         # across the IdP round trip; consuming a second proof here would deny all
         # legitimate callbacks. SSO itself never records a local proof.
         if domain_id
-          # Release gate before the membership gate, so a closed gate never
+          # Kill switch before the membership gate, so a closed switch never
           # leaves a tenant_connect_membership_authorized record for a Connect
           # that is refused in the next breath.
           unless Auth::Config::Hooks::OmniAuthConnect.tenant_connect_enabled?

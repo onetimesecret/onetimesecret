@@ -181,7 +181,6 @@ RSpec.describe 'OmniAuth Connect post-callback return path (#3849)', type: :inte
       expect(last_request.env['rack.session']['account_id']).to eq(account_id)
 
       allow(Auth::Logging).to receive(:log_auth_event).and_call_original
-      allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_return(true)
       allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
       setup_mock_auth(email: unique_test_email('asserted-other'), uid: uid)
       begin

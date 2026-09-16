@@ -84,7 +84,6 @@ RSpec.describe 'Tenant Connect re-authentication with MFA (#4411/#3849)',
         'methods' => %w[password totp],
       )
 
-      allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_return(true)
       initiate_sso_connect(host)
       expect(last_response.status).to eq(302)
       expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(true)
