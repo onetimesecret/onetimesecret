@@ -215,6 +215,8 @@ Consume the intent (atomic GETDEL), run tenant validation, then Connect gates
 Back to /account/settings/security/connections
 ```
 
+A completed Connect returns to the panel path the panel supplied in the form's `redirect` field, validated as an internal path at initiation (the same check signup applies; anything else is dropped and Rodauth's default login redirect applies); refusals keep their sign-in error redirect.
+
 #### Two signals are required to bind, not one
 
 `logged_in?` alone is **not** connect intent. Tabs share cookies, so an ordinary second-tab or shared-browser SSO *sign-in* arriving on an already-authenticated session would otherwise be routed through the bind path and permanently attach the arriving IdP identity to whoever happens to be signed in. Binding therefore requires **both**:
