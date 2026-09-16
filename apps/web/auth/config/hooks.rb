@@ -52,7 +52,8 @@
 #                       IP, #3948; NOT before_create_account, which account.rb
 #                       owns and which fires later in the submission)
 #   webauthn.rb         after_webauthn_setup, before_webauthn_auth,
-#                       after_webauthn_auth_failure, before_webauthn_remove
+#                       after_webauthn_auth_failure, before_webauthn_remove,
+#                       after_webauthn_remove
 #   omniauth_tenant.rb  before_omniauth_callback_route (sole owner — logs
 #                       callback start AND validates tenant context)
 #   omniauth.rb         before_omniauth_create_account, after_omniauth_create_account

@@ -240,6 +240,8 @@ A proof is recorded only by a completed local ceremony: a password (or WebAuthn-
 
 Refusal is fail-closed on every path: nothing is minted, any dangling intent from an earlier initiation is deleted, and `omniauth_connect_reauth_required` (level `warn`) is logged. Platform mailbox-proof linking is a separate recovery policy and does not satisfy this gate.
 
+A proof is also cleared before its window elapses by the events that invalidate it (#4420): logout (`before_logout`), password change (`after_change_password`), WebAuthn credential removal (`after_webauthn_remove`), and a successful Connect bind (`bind_omniauth_connect_identity`, which the gate already consumed for — the clear there is the cheap guarantee that a second bind within the window needs a fresh ceremony).
+
 #### The connect-intent nonce (#3859)
 
 | Property | Behavior |
