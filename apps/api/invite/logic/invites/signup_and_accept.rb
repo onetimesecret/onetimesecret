@@ -423,7 +423,10 @@ module InviteAPI::Logic
         # renewing that session does not affect the caller's cookie. Rack's
         # SessionHash#options exposes the real request's rack.session.options.
         # Keep this outside the active-session rescue so the fallback rotates too.
-        sess.options[:renew] = true if sess.respond_to?(:options) && sess.options
+        rotate_session!(
+          security_warning: 'invite signup is establishing authentication state without rotating the anonymous session id',
+          customer_id: @customer.extid,
+        )
 
         # Populate session with authentication state
         sess['authenticated']    = true

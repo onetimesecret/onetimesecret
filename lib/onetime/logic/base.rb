@@ -369,6 +369,31 @@ module Onetime
         @custom_domain_id = strategy_result.metadata[:custom_domain_id]
       end
 
+      # Request rotation of the live Rack session. Logic paths that cross an
+      # authentication or credential boundary use this helper so a missing
+      # rack.session.options lever is always visible rather than silently
+      # leaving the existing session id in place.
+      #
+      # @param security_warning [String] consequence of failing to rotate in the
+      #   caller's security context
+      # @param customer_id [String, nil] account identifier for log correlation
+      # @return [Boolean] whether rotation was requested
+      def rotate_session!(security_warning:, customer_id: cust&.extid)
+        options = sess.respond_to?(:options) ? sess.options : nil
+        if options.nil?
+          auth_logger.error '[session] rotation unavailable',
+            {
+              customer_id: customer_id,
+              logic: self.class.name,
+              security_warning: security_warning,
+            }
+          return false
+        end
+
+        options[:renew] = true
+        true
+      end
+
       # The Rack env keys Onetime::SessionSurface.for_env reads, rebuilt from
       # the strategy metadata (logic classes never see the env). For a logic
       # class that mints an authenticated session itself rather than through
