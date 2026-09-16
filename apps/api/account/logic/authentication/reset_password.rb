@@ -99,10 +99,11 @@ module AccountAPI::Logic
         # blob only dies on its NEXT request via the watermark. Clear the
         # in-memory session (rotating the sid when the lever exists, like the
         # logout controller) so the resetting browser ends signed out now.
-        if sess.respond_to?(:clear)
-          sess.clear
-          sess.options[:renew] = true if sess.respond_to?(:options) && sess.options
-        end
+        sess.clear if sess.respond_to?(:clear)
+        rotate_session!(
+          security_warning: 'password reset revoked all authenticated sessions but the current browser session id was not rotated',
+          customer_id: @cust.extid,
+        )
 
         # Destroy the secret on successful attempt only. Otherwise
         # the user will need to make a new request if the passwords
