@@ -26,14 +26,26 @@ require_relative 'account_seed_helper'
 # because the route is identical across the full/ and full_mfa/ lanes and only
 # the ASSERTIONS differ. What stays in each spec is the expectations.
 #
-# LOAD-TIME SIDE EFFECT — AUTH_MFA_ENABLED: requiring this file sets
-# AUTH_MFA_ENABLED=true. It must be set before the suite's FIRST boot
-# (FullModeSuiteDatabase.setup! runs from a config-level before(:context) hook,
-# ahead of any group-level hook) so config.rb loads the Rodauth OTP feature
-# set. The rake lane already exports it; doing it here makes a direct
-# `rspec <one file>` invocation work too, and means a NEW spec in this
-# directory cannot forget it. Requiring this file outside the full_mfa lane
-# would leak MFA into that process's one-shot Auth::Config boot — don't.
+# WHAT ACTUALLY LOADS THE OTP FEATURE SET: in a :full_auth_mode context the
+# auth config that config.rb consults at boot is AuthModeHelpers::MockAuthConfig
+# (spec/support/auth_mode_helpers.rb), installed by a config-level
+# before(:context) hook AHEAD of FullModeSuiteDatabase.setup! and therefore
+# ahead of the one-shot Auth::Config boot. Its `mfa_enabled` default is a
+# hardcoded `true`, so `Onetime.auth_config.mfa_enabled?` is true at configure
+# time regardless of ENV or spec/auth.test.yaml (whose `mfa: false` literal is
+# never read here). AUTH_MFA_ENABLED does NOT drive feature loading in this
+# lane; contrast `webauthn_enabled`, which the mock reads from
+# AUTH_WEBAUTHN_ENABLED (see support/webauthn_flow_helper.rb).
+#
+# LOAD-TIME SIDE EFFECT — AUTH_MFA_ENABLED: requiring this file still sets
+# AUTH_MFA_ENABLED=true. The rake lane exports it as a separate-process
+# defence (lib/tasks/spec.rake full:mfa runs its own process because
+# Auth::Config configures once per process); setting it here keeps a direct
+# `rspec <one file>` invocation environment-consistent with the lane and
+# lets AuthConfig-reading code paths outside the mock agree with it.
+# Requiring this file outside the full_mfa lane is still wrong: the mock's
+# MFA default applies to every :full_auth_mode boot, and this file's
+# hard-fail guard below would then demand OTP in a lane not meant for it.
 #
 # Usage (after `require_relative '../../spec_helper'`):
 #

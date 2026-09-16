@@ -258,8 +258,11 @@ namespace :spec do
     task 'full:mfa' do
       # Own process because Auth::Config configures exactly once per process
       # (auth-config-one-shot.md): the Rodauth OTP feature set can only exist
-      # in a boot where AUTH_MFA_ENABLED was set from the start. SQLite lane
-      # only, mirroring the default full-mode environment above.
+      # in a boot whose auth config said so from the start. In :full_auth_mode
+      # that config is AuthModeHelpers::MockAuthConfig (mfa_enabled hardcoded
+      # true); AUTH_MFA_ENABLED here is the separate-process defence against
+      # ambient env, not what loads the feature. SQLite lane only, mirroring
+      # the default full-mode environment above.
       env = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
