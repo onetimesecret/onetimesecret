@@ -98,12 +98,20 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
   end
 
   describe '#related_origin_members' do
+    # tenant-a (this config's own domain) and vault.acme.com are both owned
+    # by org-a; vault.rival.example belongs to org-b (#4421).
+    let(:own_domain) { instance_double(Onetime::CustomDomain, identifier: 'tenant-a', org_id: 'org-a') }
+
     before do
       allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?).and_return(false)
       allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?).with('example.com').and_return(true)
+      allow(Onetime::CustomDomain).to receive(:find_by_identifier).with('tenant-a').and_return(own_domain)
       allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(nil)
       allow(Onetime::CustomDomain).to receive(:from_display_domain).with('vault.acme.com')
-        .and_return(instance_double(Onetime::CustomDomain, identifier: 'vault-domain-id'))
+        .and_return(instance_double(Onetime::CustomDomain, identifier: 'vault-domain-id', org_id: 'org-a'))
+      allow(Onetime::CustomDomain).to receive(:from_display_domain).with('vault.rival.example')
+        .and_return(instance_double(Onetime::CustomDomain, identifier: 'rival-domain-id', org_id: 'org-b'))
+      allow(OT).to receive(:lw)
     end
 
     it 'resolves a canonical-host origin to the canonical surface descriptor' do
@@ -113,7 +121,15 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
       )
     end
 
-    it 'resolves a known tenant-host origin without discarding the exact origin' do
+    it 'accepts a canonical-host origin without consulting organization ownership' do
+      config.related_origins = ['https://example.com']
+      config.related_origin_members
+
+      expect(Onetime::CustomDomain).not_to have_received(:find_by_identifier)
+      expect(OT).not_to have_received(:lw)
+    end
+
+    it 'resolves a same-organization tenant-host origin without discarding the exact origin' do
       config.related_origins = ['https://vault.acme.com']
       expect(config.related_origin_members).to eq(
         [
@@ -123,9 +139,58 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
           },
         ],
       )
+      expect(OT).not_to have_received(:lw)
     end
 
-    it 'resolves a platform subdomain without collapsing it to canonical' do
+    it 'drops a tenant-host origin owned by another organization and logs the refusal (#4421)' do
+      config.related_origins = ['https://vault.acme.com', 'https://vault.rival.example']
+
+      members = config.related_origin_members
+
+      expect(members.map { |member| member['origin'] }).to eq(['https://vault.acme.com'])
+      expect(OT).to have_received(:lw).once.with(
+        /cross-organization related origin/,
+        hash_including(
+          domain_id: 'tenant-a',
+          origin: 'https://vault.rival.example',
+          related_domain_id: 'rival-domain-id',
+        ),
+      )
+    end
+
+    it 'drops a cross-organization origin even when the surface is served on the request (current_domain given)' do
+      current_domain = instance_double(
+        Onetime::CustomDomain,
+        display_domain: 'tenant.example',
+        identifier: 'tenant-a',
+        org_id: 'org-a',
+      )
+
+      config.related_origins = ['https://vault.rival.example']
+
+      expect(config.related_origin_members(current_domain: current_domain)).to eq([])
+      expect(Onetime::CustomDomain).not_to have_received(:find_by_identifier)
+    end
+
+    it 'fails closed when the config has no resolvable own domain to compare against' do
+      allow(Onetime::CustomDomain).to receive(:find_by_identifier).with('tenant-a').and_return(nil)
+      config.related_origins = ['https://vault.acme.com']
+
+      expect(config.related_origin_members).to eq([])
+      expect(OT).to have_received(:lw).once
+    end
+
+    it 'fails closed when the own domain has a blank org_id' do
+      allow(Onetime::CustomDomain).to receive(:find_by_identifier).with('tenant-a')
+        .and_return(instance_double(Onetime::CustomDomain, identifier: 'tenant-a', org_id: nil))
+      allow(Onetime::CustomDomain).to receive(:from_display_domain).with('vault.acme.com')
+        .and_return(instance_double(Onetime::CustomDomain, identifier: 'vault-domain-id', org_id: nil))
+      config.related_origins = ['https://vault.acme.com']
+
+      expect(config.related_origin_members).to eq([])
+    end
+
+    it 'resolves a platform subdomain without collapsing it to canonical or consulting ownership' do
       classification = Onetime::Middleware::DomainStrategy::Chooserator::Classification.new(
         strategy: :subdomain,
         custom_domain: nil,
@@ -143,6 +208,8 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
           },
         ],
       )
+      expect(Onetime::CustomDomain).not_to have_received(:find_by_identifier)
+      expect(OT).not_to have_received(:lw)
     end
 
     it 'reuses the current custom-domain record instead of loading it again' do

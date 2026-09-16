@@ -320,6 +320,20 @@ module Auth::Config::Hooks
         # Consider sending notification email to account owner
         # System may prevent removal if it's the only auth method
       end
+
+      # ========================================================================
+      # HOOK: After WebAuthn Credential Removal
+      # ========================================================================
+      #
+      # The credential is gone. A recent full re-authentication proof (#4410)
+      # produced by it — a WebAuthn-primary login, or WebAuthn as the second
+      # factor of a password ceremony — must not outlive the credential, so
+      # the proof is cleared here (#4420). Fires inside Rodauth's remove
+      # transaction, after the row is deleted.
+      #
+      auth.after_webauthn_remove do
+        Onetime::RecentReauth.clear(session)
+      end
         end
   end
 end

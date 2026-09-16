@@ -11,6 +11,12 @@ module Auth::Config::Hooks
       # This hook is triggered just before the session is destroyed on logout.
       #
       auth.before_logout do
+        # Clear the recent full re-authentication proof (#4420) BEFORE the
+        # session is destroyed. delete_session purges every sidecar key for the
+        # sid, but that purge is best-effort; this explicit clear is the cheap
+        # guarantee the proof is gone even when the destruction is partial.
+        Onetime::RecentReauth.clear(session)
+
         loggable_email = Onetime::Utils.obscure_email(session['email'] || 'n/a')
         OT.info "[auth] User logging out: #{loggable_email}"
         Auth::Logging.log_auth_event(

@@ -378,6 +378,18 @@ module Onetime
 
       # Resolve one origin URL to a {Onetime::SessionSurface}-shaped
       # descriptor, or nil when the origin names a host we do not serve.
+      #
+      # A `:custom` member is accepted only when the resolved CustomDomain
+      # belongs to the same organization as this config's own domain
+      # (#4421). Without that check a colonel-written entry naming another
+      # tenant's host would make that tenant's WebAuthn credentials
+      # offerable here (rp_id = theirs, expected_origin = ours), with only
+      # the browser's /.well-known/webauthn lookup — a file we do not
+      # control for the other tenant — standing in the way. Enforced on
+      # the read side rather than in {related_origins=} so rows written
+      # before the rule existed, or by a path that bypasses the setter, are
+      # neutralized too. Canonical and platform-subdomain members are not
+      # tenant-owned and are unaffected.
       def surface_for_origin(origin, current_domain: nil)
         candidate = normalize_related_origin(origin)
         return nil if candidate.nil?
@@ -392,7 +404,11 @@ module Onetime
         end
 
         record = Onetime::CustomDomain.from_display_domain(host)
-        return { 'kind' => 'custom', 'id' => record.identifier.to_s }.freeze if record&.identifier
+        if record&.identifier
+          return nil unless same_organization?(record, current_domain: current_domain, origin: candidate)
+
+          return { 'kind' => 'custom', 'id' => record.identifier.to_s }.freeze
+        end
 
         classification = Onetime::Middleware::DomainStrategy::Chooserator.classify(
           host,
@@ -409,6 +425,25 @@ module Onetime
       def canonical_host?(host)
         Onetime::Middleware::DomainStrategy.canonical_host?(host)
       rescue StandardError
+        false
+      end
+
+      # True only when `record` is owned by the same organization as this
+      # config's own domain. Fails closed: a missing own-domain record or a
+      # blank org_id on either side is a refusal, and a refusal is logged
+      # so a misconfigured entry is visible rather than silently inert.
+      def same_organization?(record, current_domain: nil, origin: nil)
+        own_domain = current_domain || custom_domain
+        own_org    = own_domain&.org_id.to_s
+        other_org  = record.org_id.to_s
+        return true if !own_org.empty? && own_org == other_org
+
+        OT.lw(
+          '[SigninConfig] Dropping cross-organization related origin',
+          domain_id: domain_id,
+          origin: origin,
+          related_domain_id: record.identifier.to_s,
+        )
         false
       end
 

@@ -37,7 +37,9 @@ full:
     remember_me: true
     verify_account: false  # Disabled in test mode
     mfa: false
-    email_auth: false
+    # Env-driven, default false: only the full-mfa lane exports it
+    # (tests/lanes/full-mfa/env), so magic links stay off everywhere else.
+    email_auth: <%= ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true' %>
     webauthn: false
     sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
 

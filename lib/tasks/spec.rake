@@ -257,15 +257,24 @@ namespace :spec do
     desc 'Run full-mode specs that require AUTH_MFA_ENABLED=true (own process)'
     task 'full:mfa' do
       # Own process because Auth::Config configures exactly once per process
-      # (auth-config-one-shot.md): the Rodauth OTP feature set can only exist
-      # in a boot where AUTH_MFA_ENABLED was set from the start. SQLite lane
-      # only, mirroring the default full-mode environment above.
+      # (auth-config-one-shot.md): the Rodauth OTP, email_auth (magic link)
+      # and webauthn feature sets can only exist in a boot whose auth config
+      # said so from the start. In :full_auth_mode that config is
+      # AuthModeHelpers::MockAuthConfig (mfa_enabled hardcoded true; the
+      # email_auth and webauthn flags read the env below). AUTH_MFA_ENABLED
+      # here is the separate-process defence against ambient env, not what
+      # loads the feature. SQLite lane only, mirroring the default full-mode
+      # environment above. Keep identical to tests/lanes/full-mfa/env.
       env = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => 'sqlite::memory:',
         'ORGS_SSO_ENABLED' => 'true',
         'AUTH_MFA_ENABLED' => 'true',
+        'AUTH_EMAIL_AUTH_ENABLED' => 'true',
+        # Passkey-as-second-factor coverage (omniauth_connect_reauth_webauthn_spec)
+        # needs the Rodauth webauthn feature set in the same one-shot boot.
+        'AUTH_WEBAUTHN_ENABLED' => 'true',
       }
 
       # This task is the full-mfa lane's only task, so an empty glob would

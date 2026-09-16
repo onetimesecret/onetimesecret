@@ -215,6 +215,8 @@ Consume the intent (atomic GETDEL), run tenant validation, then Connect gates
 Back to /account/settings/security/connections
 ```
 
+A completed Connect returns to the panel path the panel supplied in the form's `redirect` field, validated as an internal path at initiation (the same check signup applies; anything else is dropped and Rodauth's default login redirect applies); refusals keep their sign-in error redirect.
+
 #### Two signals are required to bind, not one
 
 `logged_in?` alone is **not** connect intent. Tabs share cookies, so an ordinary second-tab or shared-browser SSO *sign-in* arriving on an already-authenticated session would otherwise be routed through the bind path and permanently attach the arriving IdP identity to whoever happens to be signed in. Binding therefore requires **both**:
@@ -239,6 +241,8 @@ An authenticated session plus `connect=1` is intent, not proof. Attaching a logi
 A proof is recorded only by a completed local ceremony: a password (or WebAuthn-primary) login that satisfied MFA policy, or a completed `POST /auth/reauth` (`apps/web/auth/routes/reauth.rb`, the surface-aware re-authentication endpoint from #4414). A magic-link login, an SSO callback, a remembered session, and a password step that stopped short of required MFA never record one, so none of them can reach the intent write. A user who signed in with a password moments ago passes the gate on that login; otherwise the refusal redirects to `/reauth?redirect=/account/settings/security/connections`, the re-authentication view returns them to the panel, and they click Connect again.
 
 Refusal is fail-closed on every path: nothing is minted, any dangling intent from an earlier initiation is deleted, and `omniauth_connect_reauth_required` (level `warn`) is logged. Platform mailbox-proof linking is a separate recovery policy and does not satisfy this gate.
+
+A proof is also cleared before its window elapses by the events that invalidate it (#4420): logout (`before_logout`), password change (`after_change_password`), WebAuthn credential removal (`after_webauthn_remove`), and a successful Connect bind (`bind_omniauth_connect_identity`, which the gate already consumed for — the clear there is the cheap guarantee that a second bind within the window needs a fresh ceremony).
 
 #### The connect-intent nonce (#3859)
 

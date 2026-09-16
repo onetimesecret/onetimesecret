@@ -165,14 +165,17 @@ module Auth::Config::Hooks
           db: db, account_id: session_account[account_id_column], **tuple,
         )
         refuse_omniauth_connect!('identity_owned_elsewhere') unless outcome == :ok
+        # Cheap guarantee (#4420): the proof was already consumed at initiation;
+        # a second bind within max_age needs a fresh ceremony.
+        Onetime::RecentReauth.clear(session)
         identity = db[omniauth_identities_table].first(tuple)
         unless identity && identity[omniauth_identities_account_id_column].to_s == session_account[account_id_column].to_s
           refuse_omniauth_connect!('identity_ownership_unconfirmed')
         end
 
         # Pin both values before returning to the gem's existing-identity branch.
-        @omniauth_identity        = identity
-        @omniauth_connect_account = session_account
+        @omniauth_identity         = identity
+        @omniauth_connect_account  = session_account
         Auth::Logging.log_auth_event(
           :omniauth_identity_connected,
           level: :warn,
@@ -180,7 +183,17 @@ module Auth::Config::Hooks
           issuer: issuer,
           account_id: session_account[account_id_column],
         )
+        # The request phase only stores a validated internal path; re-checking
+        # here costs nothing and keeps a tampered sidecar from steering the
+        # post-login redirect. Read by the login_redirect override in
+        # hooks/omniauth.rb. Never logged.
+        @omniauth_connect_redirect = OT::Utils.internal_path_or_nil(@omniauth_connect_raw_intent['redirect'])
         session_account
+      end
+
+      # @return [String, nil] the panel path a completed Connect returns to
+      def omniauth_connect_redirect
+        @omniauth_connect_redirect if defined?(@omniauth_connect_redirect)
       end
 
       def refuse_omniauth_connect!(reason, wrong_domain: false)
