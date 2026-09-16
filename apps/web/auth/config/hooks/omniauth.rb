@@ -271,8 +271,8 @@ module Auth::Config::Hooks
             # gated on the platform surface, so it is false here for tenants). A
             # tenant admin controls their IdP and could otherwise trigger link emails
             # to arbitrary platform addresses, so tenant callbacks fall through to the
-            # H-3 refusal below (authenticated tenant-surface linking is a follow-up,
-            # #3849).
+            # H-3 refusal below. Tenant linking is authenticated-only: the Connect
+            # callback in hooks/omniauth_connect.rb (#3849).
             #
             # TWO email identities here, deliberately NOT interchangeable — DO NOT
             # UNIFY THEM. Both halves are security-load-bearing:
@@ -433,15 +433,17 @@ module Auth::Config::Hooks
           #   (Connected Identities) — the authenticated connect branch at the
           #   top of this hook binds it.
           #
-          # - TENANT: no recovery, by design. Identity linking is platform-only
-          #   because a tenant admin controls their IdP's assertions, so a
-          #   tenant-issuer identity must never be bound to an account located
-          #   by email (or to whatever platform session happens to be active).
-          #   Connected Identities cannot help here — the connect flow refuses
-          #   on this surface too — so pointing the user at it is a dead end.
-          #   Authenticated tenant-surface linking is deferred to #3849; until
-          #   it ships the way forward is an org-owner invite of the SSO
-          #   identity, or support.
+          # - TENANT: no UNAUTHENTICATED recovery, by design. The proof paths
+          #   that locate an account by email (password interstitial, mailbox
+          #   proof, trusted-IdP email) stay platform-only because a tenant
+          #   admin controls their IdP's assertions, so a tenant-issuer
+          #   identity must never be bound to an account located by email.
+          #   Authenticated linking on a tenant host exists (#3849): sign in
+          #   on this domain, open Connected Identities, re-authenticate, and
+          #   the Connect callback (hooks/omniauth_connect.rb) binds it after
+          #   the surface, membership and ownership gates. That path needs a
+          #   session on this host, which a restrict_to=sso tenant may not
+          #   offer, so the flash keeps the org-owner invite / support route.
           Auth::Logging.log_auth_event(
             :omniauth_link_refused_existing_account,
             level: :warn,
@@ -455,8 +457,11 @@ module Auth::Config::Hooks
             redirect '/signin?auth_error=account_exists_link_required'
           end
 
-          set_redirect_error_flash "This domain's SSO cannot be attached to an existing account yet. " \
-                                   'Ask an organization owner to invite this SSO identity, or contact support.'
+          # Mirrors web.login.errors.tenant_sso_link_unavailable.
+          set_redirect_error_flash 'This identity is not connected to an account on this domain. ' \
+                                   'If you can sign in on this domain with an account that belongs to ' \
+                                   'this organization, connect it from Connected identities. Otherwise, ' \
+                                   'ask an organization owner to invite this SSO identity, or contact support.'
           redirect '/signin?auth_error=tenant_sso_link_unavailable'
         end
 

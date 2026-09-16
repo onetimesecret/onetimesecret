@@ -253,8 +253,9 @@ RSpec.describe 'OmniAuth hooks' do
           return { interstitial: true, redirect: '/link-sso/<token>' } if has_password && platform_surface
 
           # The two surfaces refuse with DIFFERENT codes: the platform copy points
-          # at Connected Identities (self-service), which is a dead end on the
-          # tenant surface where linking is deferred to #3849.
+          # at Connected Identities unconditionally; the tenant copy can only
+          # offer it to users who can sign in on that host (authenticated
+          # Connect, #3849) and otherwise routes to an org-owner invite.
           return { refused: true, redirect: '/signin?auth_error=tenant_sso_link_unavailable' } unless platform_surface
 
           return { refused: true, redirect: '/signin?auth_error=account_exists_link_required' }
