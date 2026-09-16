@@ -997,7 +997,6 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         'methods' => %w[password],
       )
 
-      allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_return(true)
       allow(Auth::Operations::JoinDomainOrganization).to receive(:new).and_call_original
       setup_mock_auth(email: unique_test_email('asserted-victim'), uid: uid)
       begin
@@ -1175,7 +1174,6 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       csrf_login(actor_email)
       expect(last_request.env['rack.session']['account_id']).to eq(actor_id)
       allow(Auth::Logging).to receive(:log_auth_event).and_call_original
-      allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_return(true)
       allow(Auth::Operations::JoinDomainOrganization).to receive(:new).and_call_original
       allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
       setup_mock_auth(email: other_email, uid: uid)
@@ -1278,10 +1276,24 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       expect(identities.where(account_id: actor_id).count).to eq(0)
     end
 
-    it 'keeps the production release gate closed, ahead of the membership gate, even for a known tuple' do
-      allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_call_original
+    # The tenant Connect kill switch (#4427) is not stubbed open anywhere in
+    # this file: every tenant example runs against its production value.
+    it 'is open in production' do
       allow(Auth::Operations::AuthorizeTenantConnect).to receive(:call).and_call_original
-      expect(Auth::Config::Hooks::OmniAuthConnect.tenant_connect_enabled?).to be(false)
+      expect(Auth::Config::Hooks::OmniAuthConnect.tenant_connect_enabled?).to be(true)
+      identity_id = identities.insert(tuple.merge(account_id: actor_id))
+      tenant_connect_callback
+
+      expect(Auth::Operations::AuthorizeTenantConnect).to have_received(:call)
+        .with(hash_including(domain_id: @tenant[:domain].identifier))
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:tenant_connect_membership_authorized, anything)
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(id: identity_id, account_id: actor_id))
+    end
+
+    it 'when closed, refuses ahead of the membership gate' do
+      allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_return(false)
+      allow(Auth::Operations::AuthorizeTenantConnect).to receive(:call).and_call_original
       identities.insert(tuple.merge(account_id: actor_id))
       tenant_connect_callback
 
@@ -1415,7 +1427,8 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         }
         Onetime::SessionSidecar.write(@connect_sid, 'sso_connect_intent', forged_intent)
       when 'tenant_connect_prerequisites_incomplete'
-        allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_call_original
+        # The kill switch is open in production; close it for this row only.
+        allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_return(false)
       when 'tenant_membership_refused'
         @membership.status = 'pending'
         @membership.save

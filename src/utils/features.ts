@@ -205,6 +205,22 @@ export function getSsoProviders(): SsoProvider[] {
 }
 
 /**
+ * Returns SSO providers the server permits for authenticated identity Connect.
+ *
+ * This is intentionally separate from getSsoProviders(): a custom domain can
+ * offer platform-fallback SSO for sign-in while its callback must refuse a
+ * platform Connect intent on that tenant surface.
+ */
+export function getSsoConnectProviders(): SsoProvider[] {
+  if (typeof window === 'undefined') return [];
+
+  const sso = getBootstrapValue('features')?.sso;
+  if (!sso || typeof sso === 'boolean' || !sso.enabled) return [];
+
+  return Array.isArray(sso.connect_providers) ? sso.connect_providers : [];
+}
+
+/**
  * Built-in friendly labels for the omniauth strategies shipped with the app.
  *
  * Keyed on the omniauth ROUTE NAME ('entra'), NOT the domain-SSO strategy id
@@ -549,7 +565,10 @@ export function isOrganizationSwitcherEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.organizations?.enabled === true;
-  debugLog.features('features.isOrganizationSwitcherEnabled', { enabled: features?.organizations?.enabled, result });
+  debugLog.features('features.isOrganizationSwitcherEnabled', {
+    enabled: features?.organizations?.enabled,
+    result,
+  });
   return result;
 }
 
@@ -564,7 +583,10 @@ export function isOrgsSsoEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.organizations?.sso_enabled === true;
-  debugLog.features('features.isOrgsSsoEnabled', { sso_enabled: features?.organizations?.sso_enabled, result });
+  debugLog.features('features.isOrgsSsoEnabled', {
+    sso_enabled: features?.organizations?.sso_enabled,
+    result,
+  });
   return result;
 }
 
@@ -579,7 +601,10 @@ export function isOrgsCustomMailEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.organizations?.custom_mail_enabled === true;
-  debugLog.features('features.isOrgsCustomMailEnabled', { custom_mail_enabled: features?.organizations?.custom_mail_enabled, result });
+  debugLog.features('features.isOrgsCustomMailEnabled', {
+    custom_mail_enabled: features?.organizations?.custom_mail_enabled,
+    result,
+  });
   return result;
 }
 
@@ -609,7 +634,10 @@ export function isOrgsAuditLogsEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.organizations?.audit_logs_enabled !== false;
-  debugLog.features('features.isOrgsAuditLogsEnabled', { audit_logs_enabled: features?.organizations?.audit_logs_enabled, result });
+  debugLog.features('features.isOrgsAuditLogsEnabled', {
+    audit_logs_enabled: features?.organizations?.audit_logs_enabled,
+    result,
+  });
   return result;
 }
 
@@ -633,7 +661,10 @@ export function isSecretActivityCollectEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.secret_activity?.collect_enabled !== false;
-  debugLog.features('features.isSecretActivityCollectEnabled', { collect_enabled: features?.secret_activity?.collect_enabled, result });
+  debugLog.features('features.isSecretActivityCollectEnabled', {
+    collect_enabled: features?.secret_activity?.collect_enabled,
+    result,
+  });
   return result;
 }
 
@@ -656,7 +687,10 @@ export function isSecretActivityGeoCountryEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.secret_activity?.geo_country_enabled === true;
-  debugLog.features('features.isSecretActivityGeoCountryEnabled', { geo_country_enabled: features?.secret_activity?.geo_country_enabled, result });
+  debugLog.features('features.isSecretActivityGeoCountryEnabled', {
+    geo_country_enabled: features?.secret_activity?.geo_country_enabled,
+    result,
+  });
   return result;
 }
 
@@ -691,6 +725,9 @@ export function isOrgsIncomingSecretsEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.organizations?.incoming_secrets_enabled === true;
-  debugLog.features('features.isOrgsIncomingSecretsEnabled', { incoming_secrets_enabled: features?.organizations?.incoming_secrets_enabled, result });
+  debugLog.features('features.isOrgsIncomingSecretsEnabled', {
+    incoming_secrets_enabled: features?.organizations?.incoming_secrets_enabled,
+    result,
+  });
   return result;
 }

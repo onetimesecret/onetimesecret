@@ -69,7 +69,6 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
   # before this), the callback binds the asserted identity to the session
   # account and consumes the intent.
   def connect_and_bind(host, sid:, uid:, account_id:)
-    allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_return(true)
     initiate_sso_connect(host)
     skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if last_response.status == 404
     expect(last_response.status).to eq(302)
@@ -310,7 +309,6 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
 
       setup_mock_auth(email: unique_test_email('asserted-victim'), uid: uid)
       begin
-        allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_return(true)
         initiate_sso_connect(host)
         skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if last_response.status == 404
         expect(last_response.status).to eq(302)

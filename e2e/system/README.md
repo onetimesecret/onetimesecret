@@ -14,7 +14,7 @@ Three files in this directory are the whole harness:
 
 | File                                       | Role                                                                                                                                                                                                                                                               |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `tenant_connect_test_boot.rb`              | Boot shim for the **server** process only (`RUBYOPT=-r`). Enables OmniAuth test mode with the `E2E_TENANT_CONNECT_*` tuple and opens the otherwise hard-coded tenant Connect release gate in that one process. Refuses to load outside an armed test env.          |
+| `tenant_connect_test_boot.rb`              | Boot shim for the **server** process only (`RUBYOPT=-r`). Enables OmniAuth test mode with the `E2E_TENANT_CONNECT_*` tuple so the tenant OIDC callback completes without a live IdP. Nothing else: the tenant Connect kill switch is the application's real value. Refuses to load outside an armed test env. |
 | `tenant_connect_seed.rb`                   | Seeds the organization, custom domain, `SsoConfig` + `SigninConfig`, the two password accounts, their exact-domain memberships, and clears any identity for the tuple. Also migrates the authdb (the `RodauthMigrations` initializer skips under `RACK_ENV=test`). |
 | `connected-identities-custom-host.spec.ts` | The journey. Runs under the `tenant-connect` project, which maps `*.example.com` / `*.example.org` to `127.0.0.1` via Chromium's host resolver.                                                                                                                    |
 
@@ -52,7 +52,7 @@ rm -f tmp/e2e-tenant-connect.db
 RUBYOPT=-r./e2e/system/tenant_connect_test_boot.rb bundle exec bin/ots server --port=7143
 ```
 
-Seed, then run. Seed **before every run**: the first journey binds the tuple, and a second run against the same datastore fails its own precondition (`connections-connect` is hidden once the identity exists) rather than passing vacuously. `PLAYWRIGHT_BASE_URL` stops the config's `webServer` from booting a second, un-armed server:
+Seed, then run. Seed **before every run**: the first journey binds the tuple, and a second run against the same datastore would exercise the idempotent re-bind of an already-owned tuple (Connect stays offered on a tenant surface) instead of a first bind. `PLAYWRIGHT_BASE_URL` stops the config's `webServer` from booting a second, un-armed server:
 
 ```sh
 bundle exec ruby e2e/system/tenant_connect_seed.rb
@@ -68,4 +68,4 @@ Two facts the spec is written around:
 
 ## CI
 
-`.github/workflows/e2e-tenant-connect.yml` runs this project on `workflow_dispatch` and on pull requests touching `e2e/system/**`, `e2e/support/**`, `e2e/playwright.config.ts`, `apps/web/auth/**`, `src/apps/workspace/account/**` or `src/shared/utils/sso-link-evidence.ts`. It is the same bare-metal shape as `e2e-full-auth.yml` (Valkey from `compose.test.yml`, `bin/setup`, `pnpm run build`, `bin/ots server` on the runner) with the lane env above provisioned once into `$GITHUB_ENV`, the shim injected through the boot step's `RUBYOPT`, a log assertion that the placeholder OIDC route registered, the seed script, the Playwright run, the shared flaky gate, and the report / traces / server log uploaded as artifacts. The production gate is never opened anywhere else.
+`.github/workflows/e2e-tenant-connect.yml` runs this project on `workflow_dispatch` and on pull requests touching `e2e/system/**`, `e2e/support/**`, `e2e/playwright.config.ts`, `apps/web/auth/**`, `src/apps/workspace/account/**` or `src/shared/utils/sso-link-evidence.ts`. It is the same bare-metal shape as `e2e-full-auth.yml` (Valkey from `compose.test.yml`, `bin/setup`, `pnpm run build`, `bin/ots server` on the runner) with the lane env above provisioned once into `$GITHUB_ENV`, the shim injected through the boot step's `RUBYOPT`, a log assertion that the placeholder OIDC route registered and the shim loaded, the seed script, the Playwright run, the shared flaky gate, and the report / traces / server log uploaded as artifacts. The tenant Connect kill switch (`OmniAuthConnect.tenant_connect_enabled?`) is not touched by any of it; the lane runs against the shipped value.

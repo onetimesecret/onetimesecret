@@ -2,8 +2,20 @@
 
 # Test-process-only boot shim for the Playwright tenant Connect acceptance
 # project. Load with RUBYOPT=-r./e2e/system/tenant_connect_test_boot.rb.
-# It has no production configuration surface and refuses to load unless both
-# the test environment and the explicit arming flag are present.
+#
+# It does exactly one thing: put OmniAuth into test mode with a mock auth hash
+# for the E2E_TENANT_CONNECT_{PROVIDER,UID,IDP_EMAIL,ISSUER} tuple, so the
+# tenant OIDC route (registered by the application itself under
+# ORGS_SSO_ENABLED=true) completes its callback without a live IdP.
+#
+# It does NOT touch the tenant Connect kill switch
+# (Auth::Config::Hooks::OmniAuthConnect.tenant_connect_enabled?). That returns
+# true in the application since #4427; the journey runs against the real
+# value. If the switch is ever closed for incident response, this lane fails
+# with tenant_connect_prerequisites_incomplete, which is the correct signal.
+#
+# No production configuration surface: refuses to load unless both the test
+# environment and the explicit arming flag are present.
 
 unless ENV['RACK_ENV'] == 'test' && ENV['E2E_TENANT_CONNECT_ARMED'] == '1'
   abort 'tenant Connect E2E boot shim requires RACK_ENV=test and E2E_TENANT_CONNECT_ARMED=1'
@@ -25,13 +37,7 @@ OmniAuth.config.mock_auth[provider.to_sym] = OmniAuth::AuthHash.new(
   extra: { raw_info: { sub: uid, email: email, email_verified: true, iss: issuer } },
 )
 
-# The production method remains hard-coded false. Trace the definition of its
-# containing module and replace it only in this explicitly armed Ruby process.
-gate_override = nil
-gate_override = TracePoint.new(:end) do
-  next unless defined?(Auth::Config::Hooks::OmniAuthConnect)
-
-  Auth::Config::Hooks::OmniAuthConnect.define_singleton_method(:tenant_connect_enabled?) { true }
-  gate_override.disable
-end
-gate_override.enable
+# Marker the CI workflow greps for in the server log to prove this shim loaded
+# into the server process (a server booted without it would try to reach the
+# fictional issuer at callback time and fail one step from the end).
+warn "[tenant_connect_test_boot] OmniAuth test mode armed for provider '#{provider}' (issuer #{issuer})"

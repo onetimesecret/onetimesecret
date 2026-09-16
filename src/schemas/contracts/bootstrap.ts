@@ -290,6 +290,8 @@ export const ssoProviderSchema = z.object({
 export const ssoConfigSchema = z.object({
   enabled: z.boolean().default(false),
   providers: z.array(ssoProviderSchema).default([]),
+  /** Providers permitted for authenticated identity Connect on this host. */
+  connect_providers: z.array(ssoProviderSchema).default([]),
   enforce_sso_only: z.boolean().default(false),
 });
 

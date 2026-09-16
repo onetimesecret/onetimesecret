@@ -1,43 +1,44 @@
 // src/tests/utils/features.spec.ts
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  isMagicLinksEnabled,
-  isWebAuthnEnabled,
-  isSsoEnabled,
-  isSsoOnlyMode,
-  isLockoutEnabled,
-  isPasswordRequirementsEnabled,
-  isPasswordOnlyMode,
-  isEmailAuthOnlyMode,
-  isWebAuthnOnlyMode,
-  isPasswordSignInOffered,
-  getRestrictTo,
-  hasPasswordlessMethods,
-  getAuthFeatures,
-  isOrganizationSwitcherEnabled,
-  isOrgsSsoEnabled,
-  isOrgsAuditLogsEnabled,
-  isSecretActivityCollectEnabled,
-  getSecretActivityMaxEvents,
-  isOrgsCustomMailEnabled,
-  isOrgsIncomingSecretsEnabled,
-  isOwnerOrAdminOf,
-  isOwnerOrAdmin,
-  hasPasswordOf,
-  hasPassword,
-  isPasswordAuthPermittedOf,
-  isPasswordAuthPermitted,
-  isFullAuthModeOf,
-  isFullAuthMode,
-  isApproximatedDomainValidationOf,
-  isApproximatedDomainValidation,
-  providerLabel,
-  configuredProviderLabel,
-  getSsoProviders,
-} from '@/utils/features';
 import { authenticationSettingsSchema } from '@/schemas/contracts/bootstrap';
 import { _resetForTesting } from '@/services/bootstrap.service';
+import {
+  configuredProviderLabel,
+  getAuthFeatures,
+  getRestrictTo,
+  getSecretActivityMaxEvents,
+  getSsoConnectProviders,
+  getSsoProviders,
+  hasPassword,
+  hasPasswordlessMethods,
+  hasPasswordOf,
+  isApproximatedDomainValidation,
+  isApproximatedDomainValidationOf,
+  isEmailAuthOnlyMode,
+  isFullAuthMode,
+  isFullAuthModeOf,
+  isLockoutEnabled,
+  isMagicLinksEnabled,
+  isOrganizationSwitcherEnabled,
+  isOrgsAuditLogsEnabled,
+  isOrgsCustomMailEnabled,
+  isOrgsIncomingSecretsEnabled,
+  isOrgsSsoEnabled,
+  isOwnerOrAdmin,
+  isOwnerOrAdminOf,
+  isPasswordAuthPermitted,
+  isPasswordAuthPermittedOf,
+  isPasswordOnlyMode,
+  isPasswordRequirementsEnabled,
+  isPasswordSignInOffered,
+  isSecretActivityCollectEnabled,
+  isSsoEnabled,
+  isSsoOnlyMode,
+  isWebAuthnEnabled,
+  isWebAuthnOnlyMode,
+  providerLabel,
+} from '@/utils/features';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the bootstrap service
 vi.mock('@/services/bootstrap.service', async () => {
@@ -289,7 +290,9 @@ describe('features utility', () => {
 
     it('returns false when no passwordless methods are enabled', () => {
       getBootstrapValueMock.mockReturnValue({
-        webauthn: false, magic_links: false, email_auth: false,
+        webauthn: false,
+        magic_links: false,
+        email_auth: false,
       });
 
       const result = hasPasswordlessMethods();
@@ -585,7 +588,10 @@ describe('features utility', () => {
   describe('getAuthFeatures', () => {
     it('returns correct object when all features enabled with sso restriction', () => {
       getBootstrapValueMock.mockReturnValue({
-        webauthn: true, magic_links: true, sso: true, restrict_to: 'sso',
+        webauthn: true,
+        magic_links: true,
+        sso: true,
+        restrict_to: 'sso',
       });
 
       expect(getAuthFeatures()).toEqual({
@@ -598,7 +604,9 @@ describe('features utility', () => {
 
     it('returns correct object when no features enabled', () => {
       getBootstrapValueMock.mockReturnValue({
-        webauthn: false, magic_links: false, sso: false,
+        webauthn: false,
+        magic_links: false,
+        sso: false,
       });
 
       expect(getAuthFeatures()).toEqual({
@@ -1486,6 +1494,7 @@ describe('features utility', () => {
           { route_name: 'oidc', display_name: 'SSO' },
           { route_name: 'entra', display_name: 'Microsoft' },
         ],
+        connect_providers: [{ route_name: 'oidc', display_name: 'SSO' }],
       },
     };
 
@@ -1500,6 +1509,10 @@ describe('features utility', () => {
         { route_name: 'oidc', display_name: 'SSO' },
         { route_name: 'entra', display_name: 'Microsoft' },
       ]);
+    });
+
+    it('uses the server-provided subset for identity Connect', () => {
+      expect(getSsoConnectProviders()).toEqual([{ route_name: 'oidc', display_name: 'SSO' }]);
     });
 
     describe('providerLabel — canonical, built-in map wins', () => {
@@ -1543,7 +1556,10 @@ describe('features utility', () => {
           'OpenID Connect'
         );
         expect(
-          configuredProviderLabel({ route_name: 'entra' } as unknown as { route_name: string; display_name: string })
+          configuredProviderLabel({ route_name: 'entra' } as unknown as {
+            route_name: string;
+            display_name: string;
+          })
         ).toBe('Microsoft Entra');
       });
 

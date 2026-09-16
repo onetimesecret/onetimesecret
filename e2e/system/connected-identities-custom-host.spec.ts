@@ -109,7 +109,10 @@ test.describe.serial('custom-host Connected Identities journey', () => {
     await waitForPathname(page, CONNECTIONS_PATH);
     await waitForAppReady(page);
     await expect(page.getByTestId('connections-list')).toContainText(maskedUid);
-    await expect(page.getByTestId(`connections-connect-${provider}`)).toHaveCount(0);
+    // Tenant surface: the panel never suppresses Connect on route-name
+    // evidence (sso-link-evidence.ts), so the button stays offered next to the
+    // bound identity. The platform surface would hide it here.
+    await expect(page.getByTestId(`connections-connect-${provider}`)).toBeVisible();
   });
 
   test('the same tuple refuses for another tenant member without changing their session', async ({

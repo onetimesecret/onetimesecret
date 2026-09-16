@@ -178,7 +178,6 @@ RSpec.describe 'Tenant Connect after a magic-link login (#3849)',
         'account_id' => account_id, 'surface' => surface, 'methods' => %w[password],
       )
 
-      allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_return(true)
       initiate_sso_connect(host)
       expect(last_response.status).to eq(302)
       expect(last_response.location.to_s).not_to include(Auth::Config::Hooks::OmniAuth::REAUTH_PATH)
