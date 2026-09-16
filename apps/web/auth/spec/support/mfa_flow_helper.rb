@@ -77,7 +77,7 @@ module MfaFlowHelper
       unless otp_loaded
         raise 'Rodauth OTP feature not loaded — this suite must boot with ' \
               'AUTH_MFA_ENABLED=true in a fresh process (run via ' \
-              '`bundle exec rake spec:integration:full:mfa`; Auth::Config is one-shot)'
+              '`tests/lanes/run full-mfa`; Auth::Config is one-shot)'
       end
     end
 

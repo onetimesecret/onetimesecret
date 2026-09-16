@@ -1,0 +1,13 @@
+# Lane: full-mfa — full auth mode with MFA enabled against in-memory SQLite.
+# CI job: ruby-integration-full (T3, "SQLite, MFA" matrix row)
+#
+# NOTE: lib/tasks/spec.rake hardcodes these values for the MFA task as a
+# defense against ambient env. Keeping identical values here makes the lane
+# correct for both the runner and ad-hoc commands from this directory.
+AUTHENTICATION_MODE=full
+AUTH_DATABASE_URL='sqlite::memory:'
+ORGS_SSO_ENABLED=true
+AUTH_MFA_ENABLED=true
+
+# Generated prerequisites, produced by tests/lanes/run before the tasks below.
+LANES_CODEGEN='locales'

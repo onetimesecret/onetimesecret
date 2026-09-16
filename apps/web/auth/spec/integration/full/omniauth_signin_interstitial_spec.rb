@@ -618,8 +618,8 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
   # the Rodauth feature set per-example (Auth::Config is one-shot —
   # auth-config-one-shot.md), so the coverage lives elsewhere:
   #   - END-TO-END: integration/full_mfa/omniauth_signin_interstitial_mfa_spec.rb
-  #     runs in its OWN process with AUTH_MFA_ENABLED=true (rake
-  #     spec:integration:full:mfa, chained from spec:integration:full) and locks
+  #     runs in its OWN process with AUTH_MFA_ENABLED=true via the full-mfa lane
+  #     and locks
   #     in the full sequence — mfa_required + NO row at the password step, the
   #     bound row after the second factor, and no bind on a failed attempt.
   #   - MECHANICS: spec/operations/deferred_sso_bind_spec.rb (session contract,

@@ -251,11 +251,6 @@ namespace :spec do
         ]
 
         sh env, "bundle exec rspec #{patterns.join(' ')} #{tag_filter} #{rspec_format_options}"
-
-        # AUTH_MFA_ENABLED specs need a SEPARATE process: Auth::Config is
-        # one-shot (auth-config-one-shot.md), so the shared full-mode process
-        # above — booted with MFA off — can never load the OTP feature set.
-        Rake::Task['spec:integration:full:mfa'].invoke if mode == 'full'
       end
     end
 
@@ -273,14 +268,15 @@ namespace :spec do
         'AUTH_MFA_ENABLED' => 'true',
       }
 
+      # This task is the full-mfa lane's only task, so an empty glob would
+      # otherwise pass the "SQLite, MFA" CI row with zero examples (e.g.
+      # after a directory rename). Fail loudly instead.
       patterns = Dir.glob('apps/*/*/spec/integration/full_mfa')
-      if patterns.empty?
-        warn '[spec:integration:full:mfa] no full_mfa spec directories found; nothing to run'
-        next
-      end
+      abort '[spec:integration:full:mfa] no apps/*/*/spec/integration/full_mfa directories found' if patterns.empty?
 
-      # Distinct results file so this lane never clobbers the main full-mode
-      # JSON output when CI sets RSPEC_OUTPUT_FILE for the parent task.
+      # Distinct results file so this task never clobbers the full-mode JSON
+      # output when both run in one rake process with RSPEC_OUTPUT_FILE set
+      # (spec:integration:all).
       sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database #{rspec_format_options('mfa')}"
     end
 
@@ -377,10 +373,10 @@ namespace :spec do
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'
-    task all: INTEGRATION_MODES
+    task all: INTEGRATION_MODES + ['full:mfa']
 
     desc 'Run all integration tests including Postgres'
-    task 'all:with_postgres': INTEGRATION_MODES + ['full:postgres']
+    task 'all:with_postgres': INTEGRATION_MODES + ['full:mfa', 'full:postgres']
   end
 
   # API contract specs (spec/api/) are organized by API surface and version
