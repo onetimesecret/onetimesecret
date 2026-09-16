@@ -783,6 +783,11 @@ module Auth::Config::Hooks
           email: account[:email],
         )
 
+        # The credential that produced any recent full re-authentication proof
+        # no longer exists, so the proof must not outlive it (#4420). Cleared on
+        # the PRE-rotation sid, before the :renew below re-keys the session.
+        Onetime::RecentReauth.clear(session)
+
         # Rodauth is the source of truth for password management. Here, we sync
         # metadata to the customer record — including the credential watermark
         # (Customer#last_password_update), the authoritative revocation boundary
