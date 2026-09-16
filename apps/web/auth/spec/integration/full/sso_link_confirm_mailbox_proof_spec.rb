@@ -764,8 +764,8 @@ RSpec.describe 'SSO mailbox-proof link confirm (#3840 Phase 4)', type: :integrat
   # toggle the Rodauth feature set per-example (Auth::Config is one-shot —
   # auth-config-one-shot.md), so the coverage lives elsewhere:
   #   - END-TO-END: integration/full_mfa/sso_link_confirm_mailbox_proof_mfa_spec.rb
-  #     runs in its OWN process with AUTH_MFA_ENABLED=true (rake
-  #     spec:integration:full:mfa, chained from spec:integration:full) and locks
+  #     runs in its OWN process with AUTH_MFA_ENABLED=true via the full-mfa lane
+  #     and locks
   #     in the full sequence — mfa_required + token consumed + NO row at the
   #     confirm step, then the bound row after the second factor (OTP AND recovery
   #     code) succeeds.
