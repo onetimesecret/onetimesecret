@@ -752,10 +752,10 @@ module Auth::Config::Hooks
         # MUTUALLY EXCLUSIVE paths — tenant SSO users join the tenant org,
         # canonical SSO users get a default workspace. Never both.
         #
-        # Consuming domain_id via session.delete ensures after_login sees nil
-        # and skips for new accounts — preventing a redundant idempotent call.
+        # Consuming domain_id here ensures after_login sees nil and skips for
+        # new accounts — preventing a redundant idempotent call.
         if customer.is_a?(Onetime::Customer)
-          domain_id = session.delete(:validated_omniauth_domain_id)
+          domain_id = consume_validated_omniauth_domain_id
 
           if domain_id
             # Tenant domain SSO → join the domain's organization only

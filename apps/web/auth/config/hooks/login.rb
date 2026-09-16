@@ -147,12 +147,17 @@ module Auth::Config::Hooks
         # Join domain organization for SSO logins on custom domains.
         # Runs BEFORE MFA detection so SSO users with OTP configured (e.g.,
         # legacy password+MFA accounts now using SSO) still get joined. This
-        # is also the single point of cleanup for :validated_omniauth_domain_id:
-        # whether or not the join happens, the key is consumed here.
+        # is also the final point of cleanup for the validated domain id:
+        # whether or not the join happens, it is consumed here.
         # New accounts have already been joined by after_omniauth_create_account
-        # (which consumed the key); for them, session.delete returns nil and
-        # the guard below short-circuits — no duplicate call.
-        domain_id = session.delete(:validated_omniauth_domain_id)
+        # (which consumed it); for them, the consumer returns nil and the guard
+        # below short-circuits — no duplicate call.
+        #
+        # Rodauth's login_session has already cleared the Rack session by the
+        # time this hook runs, so the session key alone can never reach here;
+        # the consumer also reads the instance copy the tenant callback hook
+        # carries for exactly this reader (hooks/omniauth_tenant.rb).
+        domain_id = respond_to?(:consume_validated_omniauth_domain_id) && consume_validated_omniauth_domain_id
         if domain_id
           customer = Onetime::Customer.find_by_extid(account[:external_id])
           if customer

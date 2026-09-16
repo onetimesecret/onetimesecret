@@ -33,6 +33,7 @@ require_relative '../../support/test_helpers'
 OT.boot! :test
 
 require 'securerandom'
+require 'thread'
 require 'onetime/session/sidecar'
 
 SC = Onetime::SessionSidecar
@@ -245,6 +246,45 @@ SC.write(@sid, 'sso_connect_intent', 42, codec: @codec)
 [SC.consume(@sid, 'sso_connect_intent', codec: @codec),
  SC.consume(@sid, 'sso_connect_intent', codec: @codec)]
 #=> [42, nil]
+
+## two simultaneous consumers of the SAME connect intent yield exactly one
+## payload and one nil. The ready/start queues make both threads contend on the
+## real Valkey GETDEL instead of merely performing two sequential calls.
+@intent = {
+  'account_id' => 42,
+  'surface' => { 'kind' => 'custom', 'id' => 'cd-concurrent' },
+  'at' => Time.now.utc.to_i,
+}
+SC.write(@sid, 'sso_connect_intent', @intent, codec: @codec)
+@ready   = Queue.new
+@start   = Queue.new
+@results = Queue.new
+@threads = 2.times.map do
+  Thread.new do
+    @ready << true
+    @start.pop
+    @results << SC.consume(@sid, 'sso_connect_intent', codec: @codec)
+  rescue StandardError => ex
+    @results << ex
+  end
+end
+2.times { @ready.pop }
+2.times { @start << true }
+@joined = @threads.map { |thread| !thread.join(5).nil? }.all?
+@threads.each(&:kill) unless @joined
+@values = 2.times.map do
+  @results.pop(true)
+rescue ThreadError
+  :missing
+end
+[
+  @joined,
+  @values.count { |value| value == @intent },
+  @values.count(&:nil?),
+  @values.none? { |value| value.is_a?(Exception) },
+  DB.exists(SC.key_for(@sid, 'sso_connect_intent')),
+]
+#=> [true, 1, 1, true, 0]
 
 ## link_sso_pending_bind (#3877/#3858) is registered EXPLICIT-USE the same
 ## way: encrypted, never merged or externalized, TTL matching awaiting_mfa's
