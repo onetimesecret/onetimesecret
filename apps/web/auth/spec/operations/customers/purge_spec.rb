@@ -187,6 +187,89 @@ RSpec.describe Auth::Operations::Customers::Purge do
     expect(Auth::Operations::TeardownAccount).not_to have_received(:new)
   end
 
+  it 'refuses a stale plan signature and records the refusal without a bulk context' do
+    result = described_class.new(
+      customer: customer,
+      actor: 'ur_col',
+      expected_plan_signature: 'stale-signature',
+    ).call
+
+    expect(result.status).to eq(:refused)
+    expect(result.blockers).to eq([{ code: :preflight_changed }])
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+      hash_including(
+        verb: 'customer.purge',
+        result: :failure,
+        detail: hash_including(status: 'refused', blocker_codes: ['preflight_changed']),
+      ),
+    )
+  end
+
+  # A bulk run registers every candidate before mutation and its completion
+  # receipt carries the refused count, so a refused candidate must be covered
+  # by the receipt rather than writing its own operator-trail event: an
+  # inactivity sweep with thousands of blocked candidates would otherwise trim
+  # the capped trail by the size of the run.
+  describe 'a refused candidate under a receipt-backed bulk context' do
+    def start_bulk_context
+      allow(Onetime::ColonelAuditEvent).to receive(:record).and_return('id' => 'start-receipt')
+      Onetime::Operations::BulkAuditContext.start!(
+        actor: 'cli',
+        verb: 'customer.purge.bulk',
+        target: 'inactive-customers',
+        covered_verbs: ['customer.purge', 'session.revoke_all'],
+        candidate_targets: [customer.objid],
+        detail: { candidates: 1 },
+      )
+    end
+
+    def block_preflight
+      blocked = Auth::Operations::Customers::PurgePreflight::Plan.new(
+        actions: [], blockers: [{ code: :has_domains, org_id: 'on_blocked' }],
+      )
+      allow(preflight).to receive(:call).and_return(blocked)
+    end
+
+    it 'writes only the bulk start receipt when preflight has blockers' do
+      block_preflight
+      bulk_context = start_bulk_context
+
+      result = described_class.new(customer: customer, actor: 'cli', bulk_audit_context: bulk_context).call
+
+      expect(result.status).to eq(:refused)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        .with(hash_including(verb: 'customer.purge'))
+    end
+
+    it 'writes only the bulk start receipt when the plan signature is stale' do
+      bulk_context = start_bulk_context
+
+      result = described_class.new(
+        customer: customer,
+        actor: 'cli',
+        bulk_audit_context: bulk_context,
+        expected_plan_signature: 'stale-signature',
+      ).call
+
+      expect(result.blockers).to eq([{ code: :preflight_changed }])
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        .with(hash_including(verb: 'customer.purge'))
+    end
+
+    it 'consumes the candidate slot so a retry in the same run audits normally' do
+      block_preflight
+      bulk_context = start_bulk_context
+
+      described_class.new(customer: customer, actor: 'cli', bulk_audit_context: bulk_context).call
+      described_class.new(customer: customer, actor: 'cli', bulk_audit_context: bulk_context).call
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once
+        .with(hash_including(verb: 'customer.purge', result: :failure))
+    end
+  end
+
   it 'deletes an approved personal workspace canonically before account teardown' do
     org = double('Organization', objid: 'org-obj')
     action = Auth::Operations::Customers::PurgePreflight::Action.new(

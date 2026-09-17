@@ -120,6 +120,12 @@ module Auth
 
           @stage  = :preflight
           initial = preflight(deep: @deep)
+          # Authorization precedes the first refusal so a refused candidate
+          # never consumes an operator-trail slot; the bulk receipt records the
+          # refused count. A bulk run registers every candidate up front, and a
+          # refusal is the common outcome of an inactivity sweep, so per-refusal
+          # events would trim the capped trail by the size of the run.
+          authorize_bulk_audit(initial)
           return refused_result(initial, extid, custid) unless initial.executable?
           if @expected_plan_signature && initial.signature != @expected_plan_signature
             return refused_result(
@@ -131,7 +137,6 @@ module Auth
           end
 
           @planned_actions = initial.action_details
-          authorize_bulk_audit(initial)
           cleanup_result   = apply_cleanup(initial, extid, custid)
           return cleanup_result if cleanup_result
 
@@ -213,6 +218,10 @@ module Auth
           )
         end
 
+        # Runs on the initial plan whether or not it is executable, ahead of the
+        # first refusal, so a refused candidate never writes its own
+        # operator-trail event. Consuming the candidate slot on a refusal is
+        # correct because each candidate is purged once per run.
         def authorize_bulk_audit(plan)
           return unless @bulk_audit_context.instance_of?(Onetime::Operations::BulkAuditContext)
 
@@ -363,6 +372,9 @@ module Auth
           result(:partial, extid, custid, blockers: blockers)
         end
 
+        # Two unbounded refusal sources are kept off the capped operator trail:
+        # a bulk candidate (covered by the run's receipt, see #audit_enabled?)
+        # and the self-service path below.
         def record_unsuccessful(status, blockers, fail_closed:)
           return unless audit_enabled?
 

@@ -108,6 +108,48 @@ RSpec.describe Onetime::CLI::CustomersPurgeCommand do
     )
   end
 
+  # A bulk refusal writes no operator-trail event of its own (the completion
+  # receipt carries only the refused count), so the log line is the only place
+  # a candidate's blocker codes persist. It names codes, never the email.
+  it 'logs the blocker codes of refused and partial candidates without the email' do
+    customer     = double('customer')
+    cache_redis  = double('cache redis', zcard: 2, zrem: 1)
+    source_redis = double('source redis')
+    refused = instance_double(
+      Auth::Operations::Customers::Purge::Result,
+      status: :refused, stage: :preflight, completed_stages: [], actions: [],
+      blockers: [{ code: :has_domains, org_id: 'on_1' }, { code: :has_domains, org_id: 'on_2' }],
+    )
+    partial = instance_double(
+      Auth::Operations::Customers::Purge::Result,
+      status: :partial, stage: :teardown, completed_stages: [:cleanup], actions: [],
+      blockers: [{ code: :references_remain }],
+    )
+    records = {
+      'cust_1' => { _model: customer, email: 'refused@example.com' },
+      'cust_2' => { _model: customer, email: 'partial@example.com' },
+    }
+
+    command.instance_variable_set(:@using_remote, false)
+    allow(command).to receive(:batch_load_customer_records).and_return(records)
+    allow(Onetime::ColonelAuditEvent).to receive(:record).and_return('id' => 'receipt')
+    allow(command).to receive(:purge_customer).and_return(refused, partial)
+    allow(OT).to receive(:info)
+
+    expect do
+      capture_stdout do
+        command.send(:execute_purge, source_redis, cache_redis, %w[cust_1 cust_2], Time.utc(2024, 1, 2))
+      end
+    end.to raise_error(SystemExit)
+
+    expect(OT).to have_received(:info).with('[purge] Refused cust_1 blockers=has_domains')
+    expect(OT).to have_received(:info).with('[purge] Partial cust_2 stage=teardown blockers=references_remain')
+    expect(OT).not_to have_received(:info).with(/example\.com/)
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+      hash_including(result: :failure, detail: hash_including(refused: 1, partial: 1, errors: 2)),
+    )
+  end
+
   it 'does not mutate candidates when the bulk start receipt cannot be recorded' do
     cache_redis = double('cache redis', zcard: 1)
     source_redis = double('source redis')

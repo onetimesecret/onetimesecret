@@ -310,9 +310,14 @@ module Onetime
               when :refused
                 refused += 1
                 errors << lifecycle_error(objid, result)
+                # A bulk refusal writes no operator-trail event (the completion
+                # receipt carries only the count), so the log is where the
+                # blocker codes persist. Codes only, never the email.
+                OT.info "[purge] Refused #{objid} blockers=#{blocker_codes(result)}"
               when :partial
                 partial += 1
                 errors << lifecycle_error(objid, result)
+                OT.info "[purge] Partial #{objid} stage=#{result.stage} blockers=#{blocker_codes(result)}"
               when :not_found
                 not_found += 1
                 errors << lifecycle_error(objid, result)
@@ -548,6 +553,10 @@ module Onetime
             errors: errors,
           },
         )
+      end
+
+      def blocker_codes(result)
+        result.blockers.map { |b| b[:code] }.uniq.join(',')
       end
 
       def lifecycle_error(objid, result)
