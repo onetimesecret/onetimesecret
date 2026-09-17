@@ -1,7 +1,7 @@
 ---
-id: "043"
+id: "044"
 status: proposed
-title: "ADR-043: Criteria for Adding Bespoke OmniAuth Strategies"
+title: "ADR-044: Criteria for Adding Bespoke OmniAuth Strategies"
 ---
 
 ## Status
@@ -33,6 +33,13 @@ Entra can use generic OIDC. Zoom and DigitalOcean are examples of the low-value
 case: an issuerless, platform-only strategy would add provider-specific work
 and the issuerless collision surface without extending tenant SSO.
 
+Platform generic OIDC currently provides one install-level connection, while
+tenant SSO can resolve a different OIDC configuration for each domain. Under
+ADR-043, that difference does not create a requirement for platform parity.
+Deciding not to implement multiple platform OIDC instances is therefore
+consistent with the platform and domain scope boundary; it is not a reason to
+add provider-specific adapters instead.
+
 Some providers do have requirements that generic OIDC cannot faithfully cover.
 GitHub has no OIDC login flow. Apple is OIDC-shaped but requires a per-request
 ES256 client-secret JWT and `form_post` response handling. These are protocol
@@ -55,13 +62,13 @@ true:
    cannot safely supply.** The proposal identifies the behavior, why it must
    occur in the adapter, and how it will be tested. Apple's per-request ES256
    client-secret minting and `form_post` callback are the reference example.
-3. **A deliberate market-and-operator-experience exception applies.** The IdP has broad
-   enough adoption and concrete provider quirks that a built-in path materially
-   improves the clarity and reliability of operator setup. The proposal must explain
-   the benefit beyond a friendlier button and retain documented generic-OIDC
-   setup. Entra's `tid+oid` uid composition is an example of useful
-   provider-specific behavior; Entra and Auth0 are examples of providers that
-   may meet this exception despite OIDC being viable.
+3. **A deliberate market-and-operator-experience exception applies.** The IdP
+   has broad enough adoption and concrete provider quirks that a built-in path
+   materially improves the clarity and reliability of operator setup. The
+   proposal must explain the benefit beyond a friendlier button and retain
+   documented generic-OIDC setup. Entra's `tid+oid` uid composition is an
+   example of useful provider-specific behavior; Entra and Auth0 are examples
+   of providers that may meet this exception despite OIDC being viable.
 4. **The protocol is a distinct product feature.** A non-browser or
    non-OIDC authentication system may be evaluated on its own product merits,
    rather than being forced into the OmniAuth-adapter decision. LDAP directory
@@ -96,10 +103,11 @@ separate decision and migration plan.
 - **We gain:** One issuer-aware integration path for the broad OIDC ecosystem,
   fewer dependency and configuration surfaces, and a high bar for creating
   platform-only identity routes.
-- **Risk:** The market-and-operator-experience exception requires judgment. If it becomes
-  a label rather than evidence, it can recreate the strategy sprawl this ADR
-  prevents. Proposals must name the specific operator-experience need or provider
-  behavior and preserve generic-OIDC documentation as the baseline.
+- **Risk:** The market-and-operator-experience exception requires judgment. If
+  it becomes a label rather than evidence, it can recreate the strategy sprawl
+  this ADR prevents. Proposals must name the specific operator-experience need
+  or provider behavior and preserve generic-OIDC documentation as the
+  baseline.
 
 ## Consequences
 
@@ -107,6 +115,11 @@ New requests for Google, Auth0, GitLab, Okta, Entra, or similar OIDC-capable
 IdPs begin with generic OIDC configuration, not a search for a matching
 OmniAuth gem. A bespoke integration for a popular OIDC-capable provider is a
 documented exception, not an implication of popularity.
+
+The singleton platform OIDC configuration remains an intentional scope choice
+under ADR-043. Requests for several platform-level OIDC connections must
+justify that platform capability directly; they do not change the admission
+criteria for bespoke adapters.
 
 New issuerless strategies require an explicit platform-only decision. They
 must not be presented as tenant SSO options or as an expandable generic OAuth2
@@ -119,6 +132,7 @@ replace the checklist once a strategy is admitted.
 
 ## Related
 
+- [ADR-043: Platform Functionality Does Not Require Domain-Level Parity](adr-043-platform-functionality-does-not-require-domain-parity.md)
 - [Adding an SSO Provider](../authentication/adding-sso-providers.md) —
   provider-registration checklist and issuer classification
 - [ADR-035: Tenant Identity and Authentication-Policy Scope](adr-035-tenant-identity-auth-policy-scope.md)
