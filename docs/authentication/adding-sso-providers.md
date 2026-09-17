@@ -90,17 +90,78 @@ classified:
   available for platform SSO only. Each new issuerless provider re-adds a
   `(provider, '', uid)` platform-collision surface, so add them sparingly.
 
-When a provider supports both modes (GitLab, Auth0, Okta), integrate it
-through OIDC (`omniauth_openid_connect` with the provider's issuer) rather
-than its bespoke OAuth2 strategy — it then inherits issuer scoping for free.
+When a provider supports both modes (GitLab, Okta), integrate it through OIDC
+(`omniauth_openid_connect` with the provider's issuer) rather than its bespoke
+OAuth2 strategy — it then inherits issuer scoping for free. Auth0 is the
+exception now wired up both ways: its bespoke `omniauth-auth0` strategy *is*
+registered, and it is issuer-capable because the issuer is **operator-pinned**
+from `AUTH0_DOMAIN` rather than read out of the token (see the quirk below).
+Generic OIDC remains available for Auth0 and is preferable when tenant-surface
+SSO is needed — Apple, Auth0, Zoom and DigitalOcean are all **platform-only**
+providers, absent from `SsoConfig::PROVIDER_ROUTE_MAP`.
 
 ## Known provider quirks
 
-- **Apple** (`omniauth-apple`): callback is a **POST** (`form_post` response
-  mode) — verify the callback route and any CSRF/CSP assumptions against a
-  POST callback; the email is only present on the **first** authorization;
-  the user's name arrives in the request body, not the id_token. Apple is
-  OIDC-based and issuer-capable (`https://appleid.apple.com`).
+- **Apple** (`omniauth-apple`): issuer-capable, but via a **static strategy
+  option** rather than discovery or a claim read — the gem hard-codes
+  `ISSUER = 'https://appleid.apple.com'` and rejects any id_token whose `iss`
+  differs (after checking the signature against Apple's JWKS), while nesting
+  the decoded JWT under `extra.raw_info.id_info` with symbol keys, a shape
+  `resolve_issuer`'s token-issuer branch does not read. The definition
+  therefore declares `issuer:` itself; precedence #1 returns it.
+  **Operator prerequisite:** Apple sets `response_mode=form_post` whenever a
+  scope is requested, so the callback is a **cross-site POST**. A
+  `SameSite=Lax` cookie (this app's default) is withheld on it, taking the
+  OmniAuth state and nonce with it, so Sign in with Apple requires
+  `site.session.same_site: none` together with `secure: true`. Do not drop the
+  scope to get Apple's GET redirect instead — without `email name` Apple
+  returns no email and account creation cannot complete. The **name** arrives
+  only on the **first** authorization for a given Services ID (in the `user`
+  POST param); the **email** comes from the id_token on every authorization,
+  so repeat sign-ins and JIT account creation are unaffected. The email may be
+  a private-relay address (`@privaterelay.appleid.com`, flagged by
+  `is_private_email`) — which is why `APPLE_TRUST_EMAIL_FOR_LINKING` defaults
+  to false.
+- **Auth0** (`omniauth-auth0`): issuer-capable on a different footing — the
+  issuer is **operator-pinned** from `AUTH0_DOMAIN`, not read from the token.
+  The gem's own claim validation (`verify_iss`/`verify_aud`/`verify_nonce`/
+  `verify_expiration`) is gated on `session_authorize_params[:scope]`
+  containing `openid`, but `session_authorize_params` is built as
+  `params.to_hash` on a `Hashie::Mash` and so has **string** keys — the symbol
+  lookup is always nil, the gate never opens, and verify never runs. That is
+  an upstream defect no scope value can work around. What still holds: the
+  id_token comes from the tenant's own token endpoint over TLS and
+  `extra.raw_info` decodes it with **signature verification on** against the
+  tenant's JWKS, so `sub` (and the uid) is cryptographically attested; only
+  the claim checks are skipped. Pinning the issuer is the stronger arrangement
+  here, since nothing in the token can move it. Consequence: `exp` and `nonce`
+  are not checked either — replay protection rests on OmniAuth's `state` and
+  on the code being single-use at Auth0. The pinned value carries a
+  **trailing slash** (`https://<tenant>/`), matching the `iss` Auth0 actually
+  asserts, so validation would start working unchanged if the gem is fixed.
+  Auth0 is also a **broker**: one tenant can federate many upstream IdPs into
+  a single issuer, so `AUTH0_TRUST_EMAIL_FOR_LINKING` trusts *every*
+  connection the tenant enables, including unverified database and social
+  connections.
+- **Zoom** (gem `omniauth-zoom-v2`, strategy `:zoom`): the gem/strategy name
+  mismatch is deliberate — `cadenza-tech/omniauth-zoom-v2` replaces the
+  abandoned `omniauth-zoom` and only the *distribution* carries the `-v2`
+  suffix. Requiring `omniauth-zoom` or registering `:zoom_v2` both fail.
+  Issuerless plain OAuth2 (no id_token anywhere), so platform-only. uid is
+  Zoom's opaque user id from `GET /v2/users/me`; scope `user:read:user` is
+  what makes that read — and therefore `info.email` — available.
+- **DigitalOcean** (`omniauth-digitalocean`): issuerless plain OAuth2,
+  platform-only. uid and info come from the **token response body**, not a
+  userinfo call — the strategy reads `access_token.params['info']['uuid']` and
+  builds `info` from that same nested hash. A token without that non-standard
+  `info` member raises rather than degrading, so a failure surfaces as an SSO
+  error instead of a mis-keyed identity. Scope is `read`, space-delimited (a
+  comma is silently accepted and then mis-parsed by DigitalOcean). Note the
+  **test-mode origin switch**: with `OmniAuth.config.test_mode` true the
+  strategy hard-codes `http://localhost:3000` as its site/authorize/token
+  URLs, while `:idp_origin` is the production origin — today's specs drive the
+  callback directly so nothing depends on it, but a browser-level SSO test
+  against this provider would have to account for it.
 - **Entra ID**: uid is `tid+oid` by default. If you ever set
   `ignore_tid: true`, cross-tenant safety rests entirely on issuer scoping —
   see the security note on the `:entra` registry entry.

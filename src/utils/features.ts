@@ -232,6 +232,12 @@ const PROVIDER_LABELS: Record<string, string> = {
   entra: 'Microsoft Entra',
   github: 'GitHub',
   google: 'Google',
+  apple: 'Apple',
+  auth0: 'Auth0',
+  zoom: 'Zoom',
+  // The capitalize fallback would render 'Digitalocean'. Internal caps are
+  // exactly what this map exists for.
+  digitalocean: 'DigitalOcean',
 };
 
 /**

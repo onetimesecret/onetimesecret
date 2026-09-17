@@ -66,11 +66,18 @@ RSpec.describe Onetime::AuthConfig do
       ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET
       GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
       GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET
+      APPLE_CLIENT_ID APPLE_TEAM_ID APPLE_KEY_ID APPLE_PRIVATE_KEY
+      AUTH0_CLIENT_ID AUTH0_CLIENT_SECRET AUTH0_DOMAIN
+      ZOOM_CLIENT_ID ZOOM_CLIENT_SECRET
+      DIGITALOCEAN_CLIENT_ID DIGITALOCEAN_CLIENT_SECRET
       SSO_PROVIDER_ORDER
       OIDC_ROUTE_NAME ENTRA_ROUTE_NAME GOOGLE_ROUTE_NAME GITHUB_ROUTE_NAME
+      APPLE_ROUTE_NAME AUTH0_ROUTE_NAME ZOOM_ROUTE_NAME DIGITALOCEAN_ROUTE_NAME
       SSO_TRUST_EMAIL_FOR_LINKING
       OIDC_TRUST_EMAIL_FOR_LINKING ENTRA_TRUST_EMAIL_FOR_LINKING
       GOOGLE_TRUST_EMAIL_FOR_LINKING GITHUB_TRUST_EMAIL_FOR_LINKING
+      APPLE_TRUST_EMAIL_FOR_LINKING AUTH0_TRUST_EMAIL_FOR_LINKING
+      ZOOM_TRUST_EMAIL_FOR_LINKING DIGITALOCEAN_TRUST_EMAIL_FOR_LINKING
     ]
   end
 
@@ -478,12 +485,17 @@ RSpec.describe Onetime::AuthConfig do
 
   describe '#trust_email_for_linking?' do
     # Route name -> per-provider trust var. Verifies the reverse-mapping
-    # (entra_id != entra != ENTRA) resolves to the right env var for all four.
+    # (entra_id != entra != ENTRA) resolves to the right env var for every
+    # registered provider.
     {
       'oidc' => 'OIDC_TRUST_EMAIL_FOR_LINKING',
       'entra' => 'ENTRA_TRUST_EMAIL_FOR_LINKING',
       'google' => 'GOOGLE_TRUST_EMAIL_FOR_LINKING',
       'github' => 'GITHUB_TRUST_EMAIL_FOR_LINKING',
+      'apple' => 'APPLE_TRUST_EMAIL_FOR_LINKING',
+      'auth0' => 'AUTH0_TRUST_EMAIL_FOR_LINKING',
+      'zoom' => 'ZOOM_TRUST_EMAIL_FOR_LINKING',
+      'digitalocean' => 'DIGITALOCEAN_TRUST_EMAIL_FOR_LINKING',
     }.each do |route_name, trust_var|
       context "for the '#{route_name}' route" do
         it "defaults to false when #{trust_var} is unset" do
@@ -502,7 +514,8 @@ RSpec.describe Onetime::AuthConfig do
         end
 
         it "is unaffected by another provider's trust var" do
-          other  = (%w[OIDC ENTRA GOOGLE GITHUB] - [trust_var.split('_').first]).first
+          prefixes = %w[OIDC ENTRA GOOGLE GITHUB APPLE AUTH0 ZOOM DIGITALOCEAN]
+          other    = (prefixes - [trust_var.delete_suffix('_TRUST_EMAIL_FOR_LINKING')]).first
           config = fresh_config("#{other}_TRUST_EMAIL_FOR_LINKING" => 'true')
           expect(config.trust_email_for_linking?(route_name)).to be false
         end
@@ -645,6 +658,46 @@ RSpec.describe Onetime::AuthConfig do
       config = config_with_three_providers(SSO_PROVIDER_ORDER: 'okta github')
       expect(config.sso_providers.map { |p| p['route_name'] })
         .to eq(%w[github entra google])
+    end
+
+    # The gate is required_vars, not registry membership: adding a definition
+    # must not put a button on the login page for every deployment.
+    it 'omits registered providers whose credentials are absent' do
+      config = config_with_three_providers
+      expect(config.sso_providers.map { |p| p['route_name'] })
+        .not_to include('apple', 'auth0', 'zoom', 'digitalocean')
+    end
+
+    it 'lists a configured Apple provider after the launch four' do
+      config = config_with_three_providers(
+        APPLE_CLIENT_ID: 'com.example.web',
+        APPLE_TEAM_ID: 'TEAM123456',
+        APPLE_KEY_ID: 'KEY1234567',
+        APPLE_PRIVATE_KEY: 'pem',
+      )
+      expect(config.sso_providers.map { |p| p['route_name'] })
+        .to eq(%w[entra google github apple])
+    end
+
+    # Auth0 needs all three vars; a half-configured tenant must not surface a
+    # button that would fail at the request phase with :missing_domain.
+    it 'omits Auth0 when AUTH0_DOMAIN is missing' do
+      config = config_with_three_providers(
+        AUTH0_CLIENT_ID: 'cid',
+        AUTH0_CLIENT_SECRET: 'cs',
+      )
+      expect(config.sso_providers.map { |p| p['route_name'] }).not_to include('auth0')
+    end
+
+    it 'lists Zoom and DigitalOcean when fully configured' do
+      config = config_with_three_providers(
+        ZOOM_CLIENT_ID: 'zid',
+        ZOOM_CLIENT_SECRET: 'zs',
+        DIGITALOCEAN_CLIENT_ID: 'did',
+        DIGITALOCEAN_CLIENT_SECRET: 'ds',
+      )
+      expect(config.sso_providers.map { |p| p['route_name'] })
+        .to eq(%w[entra google github zoom digitalocean])
     end
 
     it 'derives definitions from the shared SsoProvider::Registry' do

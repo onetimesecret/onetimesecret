@@ -107,6 +107,45 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `GITHUB_ROUTE_NAME` | No | URL segment (default: `github`) |
 | `GITHUB_DISPLAY_NAME` | No | Button label (default: `GitHub`) |
 
+### Apple
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `APPLE_CLIENT_ID` | Yes | Services ID (e.g. `com.example.web`), not the App ID |
+| `APPLE_TEAM_ID` | Yes | Apple Developer Team ID |
+| `APPLE_KEY_ID` | Yes | Key ID of the Sign in with Apple private key |
+| `APPLE_PRIVATE_KEY` | Yes | Contents of the `.p8` EC key (not a path); the `\n`-escaped single-line form is accepted |
+| `APPLE_ROUTE_NAME` | No | URL segment (default: `apple`) |
+| `APPLE_DISPLAY_NAME` | No | Button label (default: `Apple`) |
+
+### Auth0
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `AUTH0_CLIENT_ID` | Yes | Application client ID |
+| `AUTH0_CLIENT_SECRET` | Yes | Application client secret |
+| `AUTH0_DOMAIN` | Yes | Tenant URL **including the scheme** (e.g. `https://your-tenant.us.auth0.com`) |
+| `AUTH0_ROUTE_NAME` | No | URL segment (default: `auth0`) |
+| `AUTH0_DISPLAY_NAME` | No | Button label (default: `Auth0`) |
+
+### Zoom
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `ZOOM_CLIENT_ID` | Yes | OAuth app client ID |
+| `ZOOM_CLIENT_SECRET` | Yes | OAuth app client secret |
+| `ZOOM_ROUTE_NAME` | No | URL segment (default: `zoom`) |
+| `ZOOM_DISPLAY_NAME` | No | Button label (default: `Zoom`) |
+
+### DigitalOcean
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DIGITALOCEAN_CLIENT_ID` | Yes | OAuth application client ID |
+| `DIGITALOCEAN_CLIENT_SECRET` | Yes | OAuth application client secret |
+| `DIGITALOCEAN_ROUTE_NAME` | No | URL segment (default: `digitalocean`) |
+| `DIGITALOCEAN_DISPLAY_NAME` | No | Button label (default: `DigitalOcean`) |
+
 ## Routes
 
 Each configured provider registers two routes:
@@ -116,7 +155,12 @@ Each configured provider registers two routes:
 | POST | `/auth/sso/{provider}` | Initiates SSO flow |
 | GET | `/auth/sso/{provider}/callback` | Receives IdP response |
 
-Where `{provider}` is the route name (`oidc`, `entra`, `google`, `github`, or custom).
+Where `{provider}` is the route name (`oidc`, `entra`, `google`, `github`, `apple`, `auth0`, `zoom`, `digitalocean`, or custom).
+
+Apple is the exception to the GET callback: it uses `response_mode=form_post`,
+so its callback arrives as a cross-site **POST** to the same path. OmniAuth's
+middleware handles either method, but the session cookie does not — see the
+Apple section below for the `same_site` prerequisite.
 
 The callback URL (`https://{host}/auth/sso/{provider}/callback`) is auto-constructed from the request host at runtime. Register this URL with your IdP — no env var needed. For multi-tenant deployments with custom domains, each domain gets its own callback URL automatically.
 
@@ -540,6 +584,108 @@ GITHUB_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 Note: For GitHub Organizations, use GitHub Apps instead of OAuth Apps for finer-grained permissions.
+
+### Apple
+
+Uses the `omniauth-apple` gem. The gem mints a fresh ES256 client-secret JWT per
+request from your `.p8` key, so there is no client secret to configure.
+
+#### Apple Developer Setup
+
+1. **Apple Developer** → Certificates, Identifiers & Profiles → Identifiers → new **Services ID**
+2. Enable **Sign in with Apple** on it and configure the web domain
+3. **Return URL**: `https://{host}/auth/sso/apple/callback`
+4. Keys → new key with **Sign in with Apple** enabled → download the `.p8` (once only)
+
+Get the values:
+- **Services ID** (e.g. `com.example.web`) → `APPLE_CLIENT_ID`
+- **Team ID** (top right of the developer portal) → `APPLE_TEAM_ID`
+- **Key ID** of the key you created → `APPLE_KEY_ID`
+- The **contents** of the `.p8` file → `APPLE_PRIVATE_KEY`
+
+```bash
+APPLE_CLIENT_ID=com.example.web
+APPLE_TEAM_ID=XXXXXXXXXX
+APPLE_KEY_ID=XXXXXXXXXX
+APPLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIGT...\n-----END PRIVATE KEY-----\n"
+```
+
+Prerequisite: Apple's callback is a cross-site POST (`response_mode=form_post`),
+and a `SameSite=Lax` cookie is withheld on it — set `site.session.same_site: none`
+with `secure: true` or the flow fails CSRF validation at the callback.
+
+Note: the user's **name** arrives only on the **first** authorization for a
+given Services ID. The **email** comes from the id_token on every
+authorization, so repeat sign-ins and account creation are unaffected — but it
+may be a private-relay address (`@privaterelay.appleid.com`). Leave
+`APPLE_TRUST_EMAIL_FOR_LINKING` false.
+
+### Auth0
+
+Uses the `omniauth-auth0` gem.
+
+#### Auth0 Dashboard Setup
+
+1. **Auth0 Dashboard** → Applications → Create Application → **Regular Web Application**
+2. **Allowed Callback URLs**: `https://{host}/auth/sso/auth0/callback`
+3. Copy **Client ID**, **Client Secret** and the tenant **Domain**
+
+```bash
+AUTH0_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+AUTH0_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+AUTH0_DOMAIN=https://your-tenant.us.auth0.com
+```
+
+Note: `AUTH0_DOMAIN` must be a **full URL with the scheme**, unlike Auth0's own
+bare-hostname examples — the CSP `form-action` origin is derived from it, and a
+schemeless value yields no origin and a blocked redirect.
+
+Note: Auth0 is an identity broker, so `AUTH0_TRUST_EMAIL_FOR_LINKING` would
+trust every connection your tenant enables, including unverified database and
+social connections. Leave it false unless all connections are verified-email
+IdPs inside your trust boundary.
+
+### Zoom
+
+Uses the `omniauth-zoom-v2` gem (the maintained replacement for the abandoned
+`omniauth-zoom`; only the gem name carries the `-v2` suffix).
+
+#### Zoom Marketplace Setup
+
+1. **Zoom App Marketplace** → Develop → Build App → **General App**
+2. **OAuth Redirect URL**: `https://{host}/auth/sso/zoom/callback`
+3. **Scopes**: add `user:read:user`
+4. Copy **Client ID** and **Client Secret**
+
+```bash
+ZOOM_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxx
+ZOOM_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+Note: Zoom is issuerless (plain OAuth2), so it is available for platform SSO
+only — the tenant surface refuses it at callback time.
+
+### DigitalOcean
+
+Uses the `omniauth-digitalocean` gem.
+
+#### DigitalOcean Setup
+
+1. **DigitalOcean Control Panel** → API → OAuth Applications → Create
+2. **Callback URL**: `https://{host}/auth/sso/digitalocean/callback`
+3. Copy **Client ID** and **Client Secret**
+
+```bash
+DIGITALOCEAN_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+DIGITALOCEAN_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+The requested scope is `read` (space-delimited, never comma-delimited) — the
+user's id and email come from the token response body rather than an account
+API call, so no write grant is needed to sign someone in.
+
+Note: DigitalOcean is issuerless (plain OAuth2), so it is available for
+platform SSO only.
 
 ## Domain Restrictions
 

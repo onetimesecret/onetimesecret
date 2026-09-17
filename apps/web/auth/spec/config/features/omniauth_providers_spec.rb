@@ -585,4 +585,113 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       expect(log_messages.last[1]).to include('Google')
     end
   end
+
+  # ================================================================
+  # Registry-driven providers (no named wrapper)
+  # ================================================================
+  #
+  # Apple, Auth0, Zoom and DigitalOcean are registered by the configure loop
+  # straight from the registry — see the comment above the named wrappers in
+  # features/omniauth.rb. These exercise configure_provider directly, which is
+  # the path every provider added from here on will take.
+  describe 'registry-driven provider registration' do
+    def configure(key)
+      Auth::Config::Features::OmniAuth.configure_provider(
+        auth, Onetime::SsoProvider::Registry.fetch(key)
+      )
+    end
+
+    it 'registers Apple with the strategy, route and pinned issuer' do
+      expect(auth).to receive(:omniauth_provider).with(
+        :apple,
+        hash_including(
+          name: :apple,
+          client_id: 'com.example.web',
+          team_id: 'TEAM123456',
+          key_id: 'KEY1234567',
+          issuer: 'https://appleid.apple.com',
+        )
+      )
+
+      ClimateControl.modify(
+        APPLE_CLIENT_ID: 'com.example.web',
+        APPLE_TEAM_ID: 'TEAM123456',
+        APPLE_KEY_ID: 'KEY1234567',
+        APPLE_PRIVATE_KEY: 'pem',
+      ) do
+        configure(:apple)
+      end
+
+      expect(log_messages.last[1]).to include('Apple')
+    end
+
+    it 'registers Auth0 with the domain and the trailing-slash issuer' do
+      expect(auth).to receive(:omniauth_provider).with(
+        :auth0,
+        hash_including(
+          name: :auth0,
+          domain: 'https://tenant.us.auth0.com',
+          issuer: 'https://tenant.us.auth0.com/',
+        )
+      )
+
+      ClimateControl.modify(
+        AUTH0_CLIENT_ID: 'cid',
+        AUTH0_CLIENT_SECRET: 'cs',
+        AUTH0_DOMAIN: 'https://tenant.us.auth0.com',
+      ) do
+        configure(:auth0)
+      end
+
+      expect(log_messages.last[1]).to include('Auth0')
+    end
+
+    # The gem is omniauth-zoom-v2; the strategy it registers is :zoom. Getting
+    # either half wrong produces a route that 404s or a LoadError at boot.
+    it 'registers Zoom under the :zoom strategy, not :zoom_v2' do
+      expect(auth).to receive(:omniauth_provider).with(
+        :zoom,
+        hash_including(name: :zoom, scope: 'user:read:user')
+      )
+
+      ClimateControl.modify(ZOOM_CLIENT_ID: 'cid', ZOOM_CLIENT_SECRET: 'cs') do
+        configure(:zoom)
+      end
+
+      expect(log_messages.last[1]).to include('Zoom')
+    end
+
+    it 'registers DigitalOcean with a space-delimited read scope' do
+      expect(auth).to receive(:omniauth_provider).with(
+        :digitalocean,
+        hash_including(name: :digitalocean, scope: 'read')
+      )
+
+      ClimateControl.modify(
+        DIGITALOCEAN_CLIENT_ID: 'cid',
+        DIGITALOCEAN_CLIENT_SECRET: 'cs',
+      ) do
+        configure(:digitalocean)
+      end
+
+      expect(log_messages.last[1]).to include('DigitalOcean')
+    end
+
+    # The skip path must not require the gem — that is what lets a deployment
+    # carry a registry entry for a provider it never configures.
+    it 'skips an unconfigured provider without registering it' do
+      expect(auth).not_to receive(:omniauth_provider)
+
+      ClimateControl.modify(
+        ZOOM_CLIENT_ID: nil,
+        ZOOM_CLIENT_SECRET: nil,
+      ) do
+        configure(:zoom)
+      end
+
+      expect(log_messages.last).to eq(
+        [:error, '[OmniAuth] Missing Zoom configuration: ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET']
+      )
+    end
+  end
 end

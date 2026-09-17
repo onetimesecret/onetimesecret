@@ -99,6 +99,10 @@ require_relative 'oidc'
 require_relative 'entra'
 require_relative 'google'
 require_relative 'github'
+require_relative 'apple'
+require_relative 'auth0'
+require_relative 'zoom'
+require_relative 'digitalocean'
 
 module Onetime
   module SsoProvider
@@ -108,6 +112,14 @@ module Onetime
         Entra::DEFINITION,
         Google::DEFINITION,
         Github::DEFINITION,
+        # Appended after the four launch providers so the default button order
+        # stays stable for existing deployments. SSO_PROVIDER_ORDER reorders
+        # per deployment; only definitions whose required_vars are all present
+        # reach the login page at all, so an unconfigured entry costs nothing.
+        Apple::DEFINITION,
+        Auth0::DEFINITION,
+        Zoom::DEFINITION,
+        Digitalocean::DEFINITION,
       ].freeze
 
       # Definition lookup by :key that answers nil on a miss — the per-request

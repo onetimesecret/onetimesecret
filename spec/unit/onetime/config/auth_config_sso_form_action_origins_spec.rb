@@ -46,6 +46,10 @@ RSpec.describe Onetime::AuthConfig do
       ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET
       GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
       GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET
+      APPLE_CLIENT_ID APPLE_TEAM_ID APPLE_KEY_ID APPLE_PRIVATE_KEY
+      AUTH0_CLIENT_ID AUTH0_CLIENT_SECRET AUTH0_DOMAIN
+      ZOOM_CLIENT_ID ZOOM_CLIENT_SECRET
+      DIGITALOCEAN_CLIENT_ID DIGITALOCEAN_CLIENT_SECRET
       SSO_FORM_ACTION_ORIGINS
     ]
   end
@@ -92,6 +96,57 @@ RSpec.describe Onetime::AuthConfig do
     it 'includes the GitHub origin when GitHub is active' do
       config = fresh_config('GITHUB_CLIENT_ID' => 'id', 'GITHUB_CLIENT_SECRET' => 'secret')
       expect(config.sso_form_action_origins).to contain_exactly('https://github.com')
+    end
+
+    it 'includes the Apple origin when Apple is active' do
+      config = fresh_config(
+        'APPLE_CLIENT_ID' => 'com.example.web',
+        'APPLE_TEAM_ID' => 'TEAM123456',
+        'APPLE_KEY_ID' => 'KEY1234567',
+        'APPLE_PRIVATE_KEY' => 'pem',
+      )
+      expect(config.sso_form_action_origins).to contain_exactly('https://appleid.apple.com')
+    end
+
+    it 'includes the Zoom origin when Zoom is active' do
+      config = fresh_config('ZOOM_CLIENT_ID' => 'id', 'ZOOM_CLIENT_SECRET' => 'secret')
+      expect(config.sso_form_action_origins).to contain_exactly('https://zoom.us')
+    end
+
+    it 'includes the DigitalOcean origin when DigitalOcean is active' do
+      config = fresh_config(
+        'DIGITALOCEAN_CLIENT_ID' => 'id',
+        'DIGITALOCEAN_CLIENT_SECRET' => 'secret',
+      )
+      expect(config.sso_form_action_origins).to contain_exactly('https://cloud.digitalocean.com')
+    end
+
+    # Auth0 is the second :idp_origin_from provider after OIDC — its origin is
+    # derived from the tenant URL rather than being a fixed string, and the
+    # issuer's trailing slash must not leak into the origin.
+    it 'derives the Auth0 origin from AUTH0_DOMAIN' do
+      config = fresh_config(
+        'AUTH0_CLIENT_ID' => 'id',
+        'AUTH0_CLIENT_SECRET' => 'secret',
+        'AUTH0_DOMAIN' => 'https://tenant.us.auth0.com/',
+      )
+      expect(config.sso_form_action_origins).to contain_exactly('https://tenant.us.auth0.com')
+    end
+
+    # THE REASON AUTH0_DOMAIN IS DOCUMENTED AS A FULL URL, and the reason
+    # Onetime::SsoProvider::Auth0.issuer_value raises on a schemeless value at
+    # boot: this layer cannot rescue the mistake. origin_from_url rejects
+    # anything without an http(s) scheme, so Auth0's own bare-hostname
+    # convention would authenticate while contributing no form-action origin —
+    # a CSP break visible only in a browser. This spec pins the gap the boot
+    # guard exists to close; it is not the behaviour operators should hit.
+    it 'contributes no origin when AUTH0_DOMAIN omits the scheme' do
+      config = fresh_config(
+        'AUTH0_CLIENT_ID' => 'id',
+        'AUTH0_CLIENT_SECRET' => 'secret',
+        'AUTH0_DOMAIN' => 'tenant.us.auth0.com',
+      )
+      expect(config.sso_form_action_origins).to eq([])
     end
 
     it 'includes the (commercial-cloud) Entra origin when Entra is active' do
