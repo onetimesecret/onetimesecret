@@ -13,6 +13,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       email: 'user@example.com',
       extid: 'ur_current',
       objid: 'cust_current',
+      organization_instances: [],
       provisioning_failure_classification: 'retained_data',
     )
   end
@@ -175,7 +176,49 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     )
   end
 
-  it 'reports a latched provisioning failure on every run even when the workspace is current' do
+  it 'reports a transient provisioning outage as deferred and never latches it after removing the claim' do
+    stale = collision(:phantom_index)
+    unavailable = Onetime::AccountProvisioningUnavailable.new(reason: :provisioning_in_progress)
+    @provisioning_failed = false
+    allow(customer).to receive(:mark_provisioning_failed!)
+    allow(Auth::Operations::WorkspaceCollision).to receive(:compare_and_delete)
+      .with(stale).and_return(true)
+    allow(provisioner).to receive(:call).and_raise(unavailable)
+
+    issues, repaired, op = run_check(stale, repair: true)
+    op.send(:check_provisioning_failure, issues, repaired)
+    op.send(:audit_repair_outcome, repaired)
+
+    # The customer's own login held the creation lock past the bounded wait:
+    # nothing was persisted, so a fresh :provisioning_error latch here would
+    # sit beside the workspace that login is about to finish.
+    expect(issues).to contain_exactly(hash_including(
+      check: :workspace_provisioning_retry_deferred,
+      classification: :provisioning_in_progress,
+      severity: :warning,
+      repairable: false,
+      partial: true,
+      message: include('nothing was latched'),
+      repair_action: include('Retry'),
+    ))
+    expect(repaired).to be_empty
+    expect(customer).not_to have_received(:mark_provisioning_failed!)
+    expect(customer.provisioning_failed?).to be(false)
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+      hash_including(
+        verb: 'customer.doctor_repair',
+        result: :partial,
+        detail: hash_including(
+          actions: [:workspace_contact_email_index_removed],
+          classification: :phantom_index,
+          retry_classification: :provisioning_in_progress,
+          error: 'Onetime::AccountProvisioningUnavailable',
+        ),
+      ),
+    )
+  end
+
+  it 'reports a latched provisioning failure on every audit run even when the workspace is current' do
     current = collision(:current_valid_workspace, raw: 'org_current')
     allow(classifier).to receive(:call).and_return(current)
 
@@ -183,7 +226,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       issues = []
       op = described_class.new(customer: customer, repair: false, actor: 'cli')
       op.send(:check_workspace_collision, issues, [])
-      op.send(:check_provisioning_failure, issues)
+      op.send(:check_provisioning_failure, issues, [])
       issues
     end
 
@@ -192,9 +235,137 @@ RSpec.describe Auth::Operations::Customers::Doctor do
         check: :workspace_provisioning_failed,
         severity: :critical,
         classification: 'retained_data',
+        repairable: true,
+        evidence: { current_classification: :current_valid_workspace, workspace_present: false },
       ))
     end
     expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:new)
+  end
+
+  describe 'provisioning latch release' do
+    # Later results are what the post-release verification sees.
+    def run_latch_check(*results, repair:)
+      allow(classifier).to receive(:call).and_return(*results)
+      issues   = []
+      repaired = []
+      op       = described_class.new(customer: customer, repair: repair, actor: 'cli')
+      op.send(:check_provisioning_failure, issues, repaired)
+      op.send(:audit_repair_outcome, repaired)
+      [issues, repaired, op]
+    end
+
+    it 'releases the latch under --repair when the live classification is clear' do
+      provisioned = double('Organization', extid: 'on_new')
+      # Empty before provisioning; the workspace appears after it.
+      allow(customer).to receive(:organization_instances).and_return([], [provisioned])
+
+      issues, repaired, op = run_latch_check(
+        collision(:clear, raw: nil),
+        collision(:current_valid_workspace),
+        repair: true,
+      )
+
+      expect(provisioner).to have_received(:call).once
+      expect(customer.provisioning_failed?).to be(false)
+      expect(issues).to be_empty
+      expect(repaired).to eq([
+        {
+          customer: 'ur_current',
+          action: :workspace_provisioning_latch_released,
+          classification: 'retained_data',
+          org: 'on_1',
+        },
+      ])
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        hash_including(result: :success, detail: { actions: [:workspace_provisioning_latch_released] }),
+      )
+      # The org-level checks that run after the release must iterate the new
+      # workspace, not the empty list memoized before provisioning.
+      expect(op.send(:customer_organizations)).to eq([provisioned])
+    end
+
+    it 'releases the latch when the customer already has a workspace, whatever the index says' do
+      allow(customer).to receive(:organization_instances).and_return([double('Organization', extid: 'on_mine')])
+
+      issues, repaired = run_latch_check(collision(:live_members), repair: true)
+
+      expect(provisioner).to have_received(:call).once
+      expect(customer.provisioning_failed?).to be(false)
+      expect(issues).to be_empty
+      # The index holder (on_1, :live_members) is a DIFFERENT org; the record
+      # names the workspace the customer actually has.
+      expect(repaired).to eq([
+        {
+          customer: 'ur_current',
+          action: :workspace_provisioning_latch_released,
+          classification: 'retained_data',
+          org: 'on_mine',
+        },
+      ])
+    end
+
+    it 'only reports a releasable latch without --repair' do
+      issues, repaired = run_latch_check(collision(:current_valid_workspace), repair: false)
+
+      expect(issues).to contain_exactly(hash_including(
+        check: :workspace_provisioning_failed,
+        repairable: true,
+        repair_action: include('converges and clears the latch'),
+      ))
+      expect(repaired).to be_empty
+      expect(provisioner).not_to have_received(:call)
+      expect(customer.provisioning_failed?).to be(true)
+    end
+
+    it 'reports an unreadable classification as transient and never releases on it' do
+      issues, repaired = run_latch_check(
+        collision(:unreadable, evidence: { reason: 'NOAUTH' }),
+        repair: true,
+      )
+
+      expect(issues).to contain_exactly(hash_including(
+        check: :workspace_provisioning_failed,
+        repairable: false,
+        message: include('unreadable (NOAUTH)'),
+        repair_action: include('Transient'),
+      ))
+      expect(repaired).to be_empty
+      expect(provisioner).not_to have_received(:call)
+      expect(customer.provisioning_failed?).to be(true)
+    end
+
+    it 'keeps a genuinely blocked latch and names the live classification' do
+      issues, repaired = run_latch_check(collision(:retained_data), repair: true)
+
+      expect(issues).to contain_exactly(hash_including(
+        check: :workspace_provisioning_failed,
+        repairable: false,
+        message: include('current collision classification is retained_data'),
+      ))
+      expect(repaired).to be_empty
+      expect(provisioner).not_to have_received(:call)
+      expect(customer.provisioning_failed?).to be(true)
+    end
+
+    it 'reports a failed release when canonical provisioning does not clear the latch' do
+      allow(provisioner).to receive(:call) # latch stays set
+
+      issues, repaired = run_latch_check(collision(:clear, raw: nil), repair: true)
+
+      expect(issues).to contain_exactly(hash_including(
+        check: :workspace_provisioning_failed,
+        repair_failed: true,
+        message: include('release attempt failed'),
+      ))
+      expect(repaired).to be_empty
+      expect(customer.provisioning_failed?).to be(true)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        hash_including(
+          result: :partial,
+          detail: hash_including(actions: [:workspace_provisioning_latch_release_attempted]),
+        ),
+      )
+    end
   end
 
   it 'does not provision or clear unsafe collisions' do
