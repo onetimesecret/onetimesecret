@@ -28,6 +28,7 @@ RSpec.describe Auth::Operations::WorkspaceCollision do
       domains: domains,
       pending_invitations: invitations,
       receipts: receipts,
+      unlisted_owned_domains: [],
     )
   end
 
@@ -41,7 +42,6 @@ RSpec.describe Auth::Operations::WorkspaceCollision do
     allow(Onetime::Organization).to receive(:load).with('org_1').and_return(organization)
     allow(Onetime::Customer).to receive(:load).and_return(nil)
     allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer).and_return(membership)
-    allow(Onetime::CustomDomain).to receive(:instances).and_return([])
   end
 
   def classify(current_customer: customer)

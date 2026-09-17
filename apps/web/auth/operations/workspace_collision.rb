@@ -202,6 +202,10 @@ module Auth
         current_membership     = current_membership_for(org_id)
         listed_domain_ids      = org.domains.to_a.map(&:to_s).uniq.sort
         live_listed_domain_ids = listed_domain_ids.select { |objid| Onetime::CustomDomain.load(objid) }
+        # Bounded second source, same pair purge_preflight uses: the owners
+        # hashkey (one HGETALL, loads only drifted ids) instead of a walk of the
+        # whole CustomDomain registry, which this runs on colonel and signup
+        # request paths.
         unlisted_domain_ids    = org.unlisted_owned_domains.map { |domain| domain.objid.to_s }.uniq.sort
         referenced_domain_ids  = (live_listed_domain_ids + unlisted_domain_ids).uniq.sort
         raw_invitation_ids     = org.pending_invitations.to_a.map(&:to_s).uniq
@@ -230,7 +234,7 @@ module Auth
           domain_ids: listed_domain_ids,
           domain_count: listed_domain_ids.size,
           domain_reference_ids: referenced_domain_ids,
-          domain_drift: listed_domain_ids != referenced_domain_ids || live_listed_domain_ids != listed_domain_ids,
+          domain_drift: listed_domain_ids != referenced_domain_ids,
           invitation_ids: raw_invitation_ids,
           invitation_count: raw_invitation_ids.size,
           receipt_count: org.receipts.size,
