@@ -464,7 +464,9 @@ export const colonelOrganizationSchema = z.object({
   stripe_customer_id: z.string().nullable(),
   stripe_subscription_id: z.string().nullable(),
   subscription_status: z.string().nullable(),
-  subscription_period_end: z.string().nullable(),
+  // Unix epoch seconds. New records are JSON numbers; legacy records may
+  // still carry a string.
+  subscription_period_end: z.union([z.number(), z.string()]).nullable(),
   billing_email: z.string().nullable(),
   // Sync health detection
   sync_status: z.enum(['synced', 'potentially_stale', 'unknown']),
@@ -509,7 +511,7 @@ export const investigateLocalStateSchema = z.object({
   stripe_customer_id: z.string().nullable(),
   stripe_subscription_id: z.string().nullable(),
   subscription_status: z.string().nullable(),
-  subscription_period_end: z.string().nullable(),
+  subscription_period_end: z.union([z.number(), z.string()]).nullable(),
 });
 
 /**
@@ -697,8 +699,8 @@ export const colonelUserBillingSchema = z.object({
       display_name: z.string().nullable(),
       planid: z.string().nullable(),
       subscription_status: z.string().nullable(),
-      /** Unix timestamp stored as a string on Organization; may be empty. */
-      subscription_period_end: z.string().nullable(),
+      /** Unix epoch seconds; new records are numbers, legacy records may hold a string. */
+      subscription_period_end: z.union([z.number(), z.string()]).nullable(),
     })
     .nullable(),
   stripe: colonelUserBillingStripeSchema,
