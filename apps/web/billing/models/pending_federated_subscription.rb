@@ -59,7 +59,7 @@ module Billing
     # ========================================
     field :subscription_status      # active, past_due, canceled, etc.
     field :planid                   # Plan identifier for benefit level
-    field :subscription_period_end  # Unix timestamp
+    field :subscription_period_end  # Unix epoch seconds as an Integer (legacy rows may hold a String)
 
     # ========================================
     # Metadata (NOT PII)
@@ -98,7 +98,7 @@ module Billing
       pending                         = new(email_hash)  # Sets identifier (email_hash) automatically
       pending.subscription_status     = subscription.status
       pending.planid                  = extract_plan_id(subscription)
-      pending.subscription_period_end = subscription.items.data.first&.current_period_end.to_s
+      pending.subscription_period_end = subscription.items.data.first&.current_period_end
       pending.region                  = region
       pending.received_at             = Time.now.to_i.to_s
       pending.save

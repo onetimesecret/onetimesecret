@@ -1356,7 +1356,11 @@ module Billing
           {
             id: org.stripe_subscription_id,
             status: org.subscription_status,
-            period_end: org.subscription_period_end,
+            # Declared on the wire as epoch seconds in a STRING (see
+            # BillingOverviewResponse in src/services/billing.service.ts). The model
+            # field holds an Integer for new records and a String for legacy ones, so
+            # pin the type here rather than leak whichever the writer chose.
+            period_end: org.subscription_period_end&.to_s,
             active: org.active_subscription?,
             past_due: org.past_due?,
             canceled: org.canceled?,

@@ -128,7 +128,7 @@ module Onetime
             puts "  [#{idx + 1}/#{total_orgs}] Would update: #{org.extid} -> status=#{status}, period_end=#{period_end}"
           else
             org.subscription_status     = status
-            org.subscription_period_end = period_end.to_s if period_end
+            org.subscription_period_end = period_end if period_end
 
             updated_fields = [:subscription_status]
             updated_fields << :subscription_period_end if period_end

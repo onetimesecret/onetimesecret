@@ -197,6 +197,23 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(data['subscription']['active']).to be true
     end
 
+    it 'serializes period_end as a string whatever type the model holds' do
+      # `period_end` is declared on the wire as epoch seconds in a STRING and
+      # the frontend parses it as one. New records hold an Integer on the
+      # model, so pin the boundary with the type most likely to leak.
+      organization.stripe_subscription_id  = 'sub_test_mock_period_end'
+      organization.subscription_status     = 'active'
+      organization.subscription_period_end = 1_772_940_425
+      organization.save
+
+      get "/billing/api/org/#{organization.extid}"
+
+      expect(last_response.status).to eq(200)
+
+      data = JSON.parse(last_response.body)
+      expect(data['subscription']['period_end']).to eq('1772940425')
+    end
+
     it 'returns nil subscription when organization has no subscription', :vcr do
       get "/billing/api/org/#{organization.extid}"
 
