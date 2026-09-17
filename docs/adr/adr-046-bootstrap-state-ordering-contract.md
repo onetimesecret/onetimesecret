@@ -162,30 +162,85 @@ accepted watermark:
    snapshot is not applied. With a seeded counter this indicates a replayed
    response or a Redis clock regression across a key loss. The coordinator
    will record a diagnostic and issue one immediate refresh. A second
-   consecutive discontinuity will force a full page load, which establishes a
-   new watermark through hydration. The client never remains on rejected state
-   indefinitely. `GET /bootstrap/me` will be served with
-   `Cache-Control: no-store`.
+   consecutive discontinuity takes the forced page load path below, which
+   establishes a new watermark through hydration. The client never remains on
+   rejected state indefinitely.
 3. **Retired epoch:** rejected, regardless of its version. The client will
    remember every epoch it has replaced for the lifetime of the page.
 4. **New epoch**, neither accepted nor retired: the session the client was
-   tracking no longer exists. The client will accept the snapshot atomically
-   as the start of a new stream and retire the prior epoch and version. This
-   happens in one of two ways:
+   tracking no longer exists. The client will retire the prior epoch and
+   version. What happens next depends on the request:
    - On the current authentication-mutation generation the transition is
-     expected.
+     expected. The client accepts the snapshot atomically as the start of a new
+     stream.
    - On an ordinary refresh it is a session replacement: logout or login in
-     another tab, or any other session-ID renewal outside this tab. The
-     coordinator will first run the same session-scoped store teardown that
-     logout uses, then commit the snapshot, and record a diagnostic. Ignoring
-     the response would leave the tab presenting a session that no longer
-     exists, with a stale CSRF token.
+     another tab, or any other session-ID renewal outside this tab. The client
+     will not apply the snapshot in place. It records a diagnostic, stops
+     ordinary refreshes, and takes the forced page load path below; hydration
+     then starts the new stream. Ignoring the response would leave the tab
+     presenting a session that no longer exists, with a stale CSRF token.
+
+In-place acceptance of a session replacement was rejected because it would
+depend on a complete teardown of session-scoped client state, and no such
+teardown exists. `authStore.logout()` resets the auth store, the bootstrap
+store's user state, the diagnostics actor context, and `sessionStorage`. It
+resets no other Pinia store, and the hard logout paths in `useAuth` rely on
+navigation to discard the rest. A login as a different customer in another tab
+could otherwise leave the prior customer's cached data on screen. A page load
+discards the JavaScript context, so it needs no teardown inventory.
 
 A snapshot is never rejected because it reports `authenticated: false`. An
 accepted snapshot that changes `authenticated` from true to false drives the
 existing logout flow. Session expiry and server-side revocation keep the
 session ID, so they arrive under rule 1: the purged or expired counter reseeds
 above the accepted version.
+
+### Response caching
+
+`GET /bootstrap/me` must be served with `Cache-Control: no-store`. This is a
+requirement of the contract, not an existing guarantee:
+`Core::Controllers::Page#bootstrap_me` sets no `Cache-Control` header today.
+A replayed response is one of the two causes of a version discontinuity, and a
+response without explicit freshness information may be stored and reused
+heuristically by a browser or intermediary. The implementation will add the
+header and a test that asserts it.
+
+### Forced page load
+
+A second consecutive version discontinuity and a session replacement both end
+in `window.location.reload()`. A reload can discard input the user has not
+submitted, such as a secret being typed, so the path follows the platform's
+documented behaviour and guidance instead of a project-specific mechanism:
+
+- A programmatic reload fires `beforeunload` like a user-initiated one. The
+  browser does not prompt by itself. It shows its generic confirmation only
+  when a `beforeunload` handler cancels the event and the document has sticky
+  activation, meaning the user has interacted with the page (HTML Standard,
+  "prompt to unload"; MDN).
+- Views that hold unsubmitted input will therefore register a `beforeunload`
+  listener through one shared composable. Following MDN, web.dev, and Chrome
+  guidance, the listener is added only while unsubmitted input exists and
+  removed once it is submitted or cleared, because a standing listener makes
+  the page ineligible for the back/forward cache in Firefox. The handler calls
+  `event.preventDefault()` and sets `returnValue = ''` for older browsers. The
+  dialog text cannot be customized.
+- Without sticky activation there is no prompt, and also no typed input to
+  lose. A tab the user never touched reloads silently.
+- If the user cancels the prompt, the client must not retry the reload. It
+  stays in a stale-session state: ordinary refreshes remain stopped, no
+  snapshot is applied, and a persistent notice states that the page must be
+  reloaded. The user can copy their input and reload when ready.
+- `beforeunload` is not reliable on mobile platforms and is not a persistence
+  mechanism. The platform's recommendation for preserving state is to save it
+  on `visibilitychange`. This contract will not do that for secret content,
+  because it would write unsubmitted secrets to browser storage. Where the
+  browser skips the prompt, a forced page load can still discard input.
+
+Only `DomainBrand.vue` registers a `beforeunload` guard today. The secret
+creation form has none, so the guard is new work for every view whose input
+this path could discard.
+
+### Downgrade guard
 
 Once the client has accepted an ordered snapshot, it will reject every later
 complete snapshot with a missing or malformed epoch, version, or generation
@@ -224,8 +279,8 @@ order the permitted transitions between epochs.
   Consumers must carry an epoch and version together, and authentication
   transitions have an explicit acceptance rule. The sidecar registry gains a
   second value model, the bare-integer counter, beside its envelopes. An
-  ordinary refresh can replace the session shown in a tab without any action
-  in that tab.
+  ordinary refresh can force a page load in a tab without any action in that
+  tab.
 - **We gain:** Deterministic ordering across workers for one browser session
   without exposing installation-wide snapshot volume. Ordering state uses the
   project's existing session lifetime and cleanup boundary.
@@ -233,9 +288,12 @@ order the permitted transitions between epochs.
   loss. A regression larger than the lost key's age, for example after
   failover to a replica with a skewed clock, can produce a lower version
   within a live epoch. The client then takes the discontinuity path: one
-  retry, then a full page load, which can discard unsaved form input. The
-  seeded counter, TTL refresh, and discontinuity recovery must therefore be
-  tested together.
+  retry, then a forced page load. The seeded counter, TTL refresh, and
+  discontinuity recovery must therefore be tested together.
+- **Risk:** A forced page load can discard unsubmitted input where the browser
+  shows no `beforeunload` prompt: on mobile platforms, or in any view that has
+  not adopted the shared guard. Secret drafts are deliberately not persisted
+  to browser storage, so there is no recovery after the reload.
 
 ## Consequences
 
@@ -243,6 +301,11 @@ Bootstrap consumers will distinguish complete snapshots from local patches.
 Only complete snapshots participate in epoch, version, and request-generation
 acceptance; local optimistic changes remain possible but cannot redefine
 server order.
+
+`GET /bootstrap/me` gains a `Cache-Control: no-store` header. Views that hold
+unsubmitted input adopt the shared `beforeunload` guard, starting with the
+secret creation form. The client gains a stale-session state and notice for a
+cancelled forced page load.
 
 All refresh entry points, including periodic checks and refreshes following
 authentication operations, will converge on one coordinator. Store updates
@@ -254,9 +317,12 @@ reseeding after key loss, TTL refresh and purge, refusal of the generic
 sidecar API for counter fields, schema validation of the fields as a unit,
 large decimal versions, hydration initialization, degraded hydration and the
 first ordered snapshot after it, a 503 from `GET /bootstrap/me` on allocation
-failure, strictly newer acceptance, version discontinuity retry and forced
-page load, rejection of retired epochs, session replacement on an ordinary
-refresh, logout in another tab, session expiry and server-side revocation
+failure, the `Cache-Control: no-store` header, strictly newer acceptance,
+version discontinuity retry and forced page load, rejection of retired epochs,
+session replacement on an ordinary refresh forcing a page load without
+applying the snapshot, conditional registration and removal of the
+`beforeunload` guard, the stale-session state after a cancelled reload with no
+reload loop, logout in another tab, session expiry and server-side revocation
 reaching the client as `authenticated: false`, authorized authentication epoch
 transitions, missing or malformed metadata, non-advancing local patches,
 overlapping request generations, authentication invalidation, and
@@ -271,7 +337,19 @@ non-normative clock-regression diagnostics.
 - `src/schemas/contracts/bootstrap.ts` — shared Zod/Rhales bootstrap contract
 - `src/shared/stores/bootstrapStore.ts` — client bootstrap state boundary
 - `src/shared/stores/authStore.ts` — periodic and authentication-related
-  refresh entry points
+  refresh entry points, and the `logout()` teardown scope
+- `apps/web/core/controllers/page.rb` — `bootstrap_me`, which sets no
+  `Cache-Control` header today
+- `src/apps/workspace/domains/DomainBrand.vue` — the existing `beforeunload`
+  guard
+- [MDN: `beforeunload` event](https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event)
+  — sticky activation, `preventDefault()`, conditional registration, mobile
+  reliability
+- [HTML Standard: unloading documents](https://html.spec.whatwg.org/multipage/browsing-the-web.html#unloading-documents)
+  — the "prompt to unload" conditions
+- [web.dev: Back/forward cache](https://web.dev/articles/bfcache) and
+  [Chrome: Deprecating the unload event](https://developer.chrome.com/docs/web-platform/deprecating-unload)
+  — add `beforeunload` listeners only while changes are unsaved
 
 ## Implementation Notes
 
@@ -309,6 +387,14 @@ non-normative clock-regression diagnostics.
   would never fire because the request succeeded. Request generation already
   excludes stale responses, so a new epoch on the current generation is
   treated as a session replacement.
+- **Accepting a session replacement in place:** Rejected because it depends on
+  a complete teardown of session-scoped stores, which `authStore.logout()`
+  does not provide. A forced page load discards all client state without an
+  inventory of stores.
+- **A custom confirmation before a forced page load:** Rejected in favour of
+  the browser's `beforeunload` prompt. The platform prompt also covers user
+  reloads, tab close, and hard navigations, and its conditions are specified
+  and documented. A custom dialog would cover only this path.
 - **`HINCRBY` on the session:** Rejected because `session:<sid>` is an encrypted
   Redis string rather than a hash, and each `SessionSidecar` field is already
   its own Redis string. A counter-specific sidecar `INCR` preserves the current
