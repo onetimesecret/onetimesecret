@@ -132,7 +132,7 @@ replace the checklist once a strategy is admitted.
 
 ## Related
 
-- [ADR-043: Platform Functionality Does Not Require Domain-Level Parity](adr-043-platform-functionality-does-not-require-domain-parity.md)
+- [ADR-043: On Parity for Platform Level and Domain Level Functionality](adr-043-on-parity-for-platform-level-and-domain-level-functionality.md)
 - [Adding an SSO Provider](../authentication/adding-sso-providers.md) —
   provider-registration checklist and issuer classification
 - [ADR-035: Tenant Identity and Authentication-Policy Scope](adr-035-tenant-identity-auth-policy-scope.md)

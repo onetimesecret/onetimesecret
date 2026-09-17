@@ -1,7 +1,7 @@
 ---
 id: "043"
 status: proposed
-title: "ADR-043: Platform Functionality Does Not Require Domain-Level Parity"
+title: "ADR-043: On Parity for Platform Level and Domain Level Functionality"
 ---
 
 ## Status
@@ -18,6 +18,13 @@ OneTime Secret exposes capabilities at two different scopes: the platform or
 installation level, and the domain level. These scopes serve different use
 cases. A platform capability configures the installation as a whole, while a
 domain capability can vary for each domain hosted by that installation.
+
+**Terminology:** The codebase uses “platform-level” and “per-install level”
+interchangeably, and “domain level” and “per-domain level” interchangeably,
+depending on the context. “Platform” describes the application surface, while
+“per-install” describes its configuration scope; both refer to a self-hosted or
+professionally hosted instance of the application. “Domain” and “per-domain”
+refer to functionality scoped to an individual domain within that instance.
 
 It is tempting to treat any difference between the two scopes as a feature
 gap. Doing so would make the more flexible scope an implicit specification for
