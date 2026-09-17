@@ -241,6 +241,57 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
     end
   end
 
+  # saml.rb:88-109: other_phase runs setup_phase and serves SP metadata from
+  # whatever options the strategy holds.
+  describe 'SP metadata sub-path' do
+    def get_metadata
+      Rack::MockRequest.new(app).get("#{host}/auth/saml/metadata")
+    end
+
+    it 'serves metadata naming the configured SP EntityID and the constant ACS URL' do
+      response = get_metadata
+
+      expect(response.status).to eq(200)
+      expect(response['content-type']).to include('application/xml')
+      expect(response.body).to include(%(entityID='#{sp_entity_id}')).or include(%(entityID="#{sp_entity_id}"))
+      expect(response.body).to include(acs_url)
+    end
+
+    it 'does not start a login (no pending AuthnRequest id is stored)' do
+      get_metadata
+
+      expect(session).not_to have_key(request_id_key)
+    end
+
+    # The placeholder registration (org-level SSO on, no platform SAML_* vars)
+    # carries blank trust anchors. With no tenant resolved, the gem would
+    # serve a document with a blank entityID for an IdP admin to import.
+    context 'with the placeholder (blank trust anchor) options' do
+      let(:strategy_options) { Onetime::SsoProvider::Saml::DEFINITION[:placeholder_options].dup }
+
+      it 'answers 404 instead of half-configured metadata' do
+        response = get_metadata
+
+        expect(response.status).to eq(404)
+        expect(response.body).not_to include('EntityDescriptor')
+      end
+    end
+
+    context 'with a blank sp_entity_id only' do
+      let(:strategy_options) { hardened_options.merge(sp_entity_id: ' ') }
+
+      it 'answers 404' do
+        expect(get_metadata.status).to eq(404)
+      end
+    end
+
+    it 'keeps /slo and /spslo disabled (slo_enabled: false)' do
+      %w[slo spslo].each do |subpath|
+        expect(Rack::MockRequest.new(app).get("#{host}/auth/saml/#{subpath}").status).to eq(501), subpath
+      end
+    end
+  end
+
   describe 'callback phase' do
     context 'with a valid response to the pending request' do
       it 'reaches the app with the NameID as uid and consumes the pending id' do

@@ -88,6 +88,9 @@
 #                     scheme/host). We additionally require byte equality,
 #                     because the configured value is what the identity is
 #                     keyed on.
+#   - saml.rb:88-109  other_phase runs setup_phase and then serves /metadata
+#                     through the PRIVATE other_phase_for_metadata
+#                     (saml.rb:284-293), which we wrap.
 #   - omniauth strategy.rb:504-506 callback_url appends the request's query
 #                     string; saml.rb:269 defaults the ACS URL to it.
 #   - omniauth strategy.rb:138 instance options are DEEP-MERGED over class
@@ -223,6 +226,22 @@ module OmniAuth
         super
           .reject { |key, _| key.to_s.start_with?('skip_') }
           .merge(matches_request_id: @expected_request_id)
+      end
+
+      # saml.rb:284-293. The gem serves SP metadata from whatever options the
+      # strategy holds. With the placeholder registration (org-level SSO on,
+      # no platform SAML_* vars) and no tenant resolved — the canonical host,
+      # or a tenant without a usable SsoConfig under platform fallback — that
+      # is a document with a BLANK entityID: half-configured metadata an IdP
+      # admin could import. Answer 404 instead; the same blank-trust-anchor
+      # test that refuses both login phases. An unresolvable tenant WITHOUT
+      # platform fallback never reaches here: the tenant setup hook has
+      # already redirected (omniauth_tenant.rb handle_missing_tenant_config;
+      # other_phase runs setup_phase first, saml.rb:88-91).
+      def other_phase_for_metadata
+        return Rack::Response.new('Not Found', 404, { 'content-type' => 'text/plain' }).finish if blank_trust_option
+
+        super
       end
 
       # saml.rb:168-182. By the time the block runs the gem has validated the
