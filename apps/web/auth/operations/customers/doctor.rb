@@ -87,13 +87,6 @@ module Auth
           invite_token cli_provision colonel_admin legacy
         ].freeze
 
-        # Operator-facing wording for each Onetime::Customer::VERIFICATION_HOLDS
-        # value the :sso_customer_unverified check can report.
-        VERIFICATION_HOLD_MESSAGES = {
-          'idp_unverified'   => 'the IdP asserted email_verified: false at sign-in',
-          'claim_unreadable' => "the IdP's email_verified claim could not be read at sign-in",
-        }.freeze
-
         # Counter fields to check
         COUNTER_FIELDS = [:secrets_created, :secrets_burned, :secrets_shared, :emails_sent].freeze
 
@@ -1021,7 +1014,7 @@ module Auth
             issues << {
               check: :sso_customer_unverified,
               severity: :medium,
-              message: "SSO-provisioned customer is unverified on purpose: #{VERIFICATION_HOLD_MESSAGES.fetch(hold, hold)} " \
+              message: "SSO-provisioned customer is unverified on purpose: #{Onetime::Customer::VERIFICATION_HOLDS.fetch(hold, hold)} " \
                        '(auth account is Verified; not auto-repaired)',
               reason: hold.to_sym,
               repairable: false,

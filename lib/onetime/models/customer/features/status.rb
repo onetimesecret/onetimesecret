@@ -64,7 +64,7 @@ module Onetime::Customer::Features
 
         raise ArgumentError,
           "Unknown verification_hold #{value.inspect}; " \
-          "expected one of: #{Onetime::Customer::VERIFICATION_HOLDS.join(', ')}"
+          "expected one of: #{Onetime::Customer::VERIFICATION_HOLDS.keys.join(', ')}"
       end
     end
 

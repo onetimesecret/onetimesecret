@@ -241,13 +241,6 @@ RSpec.describe Auth::Operations::Customers::Doctor do
 
       it_behaves_like 'a held record', :claim_unreadable, 'could not be read'
     end
-
-    # Every hold the model can carry has operator-facing wording here, so a
-    # new reason cannot be added to the model without the doctor learning it.
-    it 'has wording for every registered hold reason' do
-      expect(described_class::VERIFICATION_HOLD_MESSAGES.keys)
-        .to match_array(Onetime::Customer::VERIFICATION_HOLDS)
-    end
   end
 
   # Records that predate the field (nil) and ordinary drifted records read as
