@@ -58,7 +58,12 @@ otherwise you are here on the strength of evidence that was never collected.
 For an ownerless default workspace or occupied contact-email index, follow
 [ownerless-workspace-email-index-collision.md](./ownerless-workspace-email-index-collision.md).
 Do not attach retained workspace data to a recreated account based only on a
-matching email address.
+matching email address. An `account_provisioning_failed` finding is a latched
+409 that only `ots customers doctor --repair` (on evidence) or a resolved
+collision releases; a 503 `AccountProvisioningUnavailable` from the same
+surface is NOT latched and retries on the next request — see the
+"Provisioning latch (409) versus temporary unavailability (503)" section of
+that runbook.
 
 | Question                             | Tool                                                                                      |
 | :----------------------------------- | :---------------------------------------------------------------------------------------- |

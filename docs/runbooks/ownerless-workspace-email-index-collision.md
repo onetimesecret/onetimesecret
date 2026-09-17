@@ -133,6 +133,62 @@ repair path supported for the reported check. Do not clear an index merely
 because it blocks signup: first prove that no organization should hold it and
 retain the before/after diagnostic output with the incident record.
 
+## Provisioning latch (409) versus temporary unavailability (503)
+
+Default-workspace provisioning (`Auth::Operations::EnsureDefaultWorkspace`)
+runs lazily on the first entitlement-gated request and from the signup / SSO
+hooks. Two distinct failure states come out of it; do not treat them alike.
+
+**Latched: `AccountProvisioningFailed` (HTTP 409).** Provisioning hit a
+classified contact-email collision (`empty_orphan`, `stale_members`,
+`live_members`, `retained_data`, or an unrepairable `phantom_index` /
+`index_mismatch`). The customer record carries
+`provisioning_failure_code=default_workspace_collision` plus the
+classification, `customers diagnose` reports `account_provisioning_failed`,
+and every org-less request answers 409 with the same code. The request path
+never re-runs provisioning while the latch is set; it is released only by the
+doctor (below) or by canonical provisioning succeeding through another
+surface.
+
+**Not latched: `AccountProvisioningUnavailable` (HTTP 503, `retry_after`).**
+Nothing was persisted. Two causes, named in the body's `reason`:
+
+- `collision_unreadable` — the classifier could not read its evidence (a
+  datastore error mid-scan). This is "could not determine", not an account
+  state, so it is never latched; the next request classifies again.
+- `provisioning_in_progress` — another request holds this customer's creation
+  lock and its workspace did not appear within the bounded wait.
+
+A 503 that keeps recurring for one customer is a datastore problem (look at
+the classifier's logged `error`/`reason`), not a collision to resolve.
+
+**Creation lock.** Creation is serialized per customer with a `Familia::Lock`
+on `customer:<customer objid>:org_creation_lock` (15s TTL here; the same key
+the organizations API takes, with a 30s TTL, for a user-initiated create, so
+the two creators never interleave). A contender polls for the holder's
+workspace for up to ~2s and returns it without classifying anything, because
+a collision seen during that window would be the customer's own half-built
+organization. Never delete the lock key by hand; the TTL bounds a holder that
+died mid-create.
+
+**Releasing a latch with the doctor.** `bin/ots customers doctor <email>`
+reports `workspace_provisioning_failed` with the *current* classification and
+whether the customer already has a workspace. Under `--repair` the latch is
+released only on evidence, never blindly:
+
+- the customer already has a workspace (a stale latch from a race that the
+  workspace outlived), or
+- the live classification is `clear` or `current_valid_workspace`.
+
+The repair re-runs canonical provisioning, which converges and clears the
+flag itself, then verifies the persisted result; the audit trail records
+`workspace_provisioning_latch_released`. `phantom_index` / `index_mismatch`
+latches go through the workspace-collision repair instead (compare-and-delete
+the stale claim, then provision). Any other classification keeps the latch
+and the report names it; resolve it with sections A–D above. An `unreadable`
+classification is reported as transient with a retry action and is never a
+release.
+
 ## Handling purge results
 
 - `refused`: the customer should still exist. Resolve every blocker, rerun
