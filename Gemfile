@@ -79,8 +79,8 @@ gem 'omniauth_openid_connect', '~> 0.8'
 # omniauth-saml cannot pull it in (it requires ruby-saml ~> 1.18).
 #
 # Every bump is a deliberate review, never a Renovate automerge. RE-VERIFY on
-# bump — Auth::Strategies::RequestBoundSAML
-# (apps/web/auth/lib/strategies/request_bound_saml.rb) depends on these gem
+# bump — OmniAuth::Strategies::RequestBoundSAML
+# (lib/onetime/sso_provider/request_bound_saml.rb) depends on these gem
 # internals and documents each at its use site:
 #   - omniauth-saml request_phase keeps the AuthnRequest local (we copy its body
 #     to capture the uuid) and callback_phase builds the Response through the
@@ -90,6 +90,8 @@ gem 'omniauth_openid_connect', '~> 0.8'
 #   - Settings.new(options) REPLACES the `security` defaults wholesale
 #   - omniauth-saml `extra` carries the live Response object (SP key + raw XML)
 #   - omniauth-saml writes session['saml_uid'] / session['saml_session_index']
+#   - omniauth deep-merges instance options over class defaults, so `{}` cannot
+#     clear omniauth-saml's RelayState-forwarding default
 # Advisories: .github/workflows/static-analysis.yml runs bundler-audit on every
 # PR; Renovate vulnerabilityAlerts (.github/renovate.json5) opens the bump PR.
 gem 'omniauth-saml', '~> 2.2'

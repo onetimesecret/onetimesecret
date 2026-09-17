@@ -19,7 +19,7 @@ module Onetime
     # for the length of time for which the assertion would be considered
     # valid". This module is that set.
     #
-    # The InResponseTo binding in Auth::Strategies::RequestBoundSAML already
+    # The InResponseTo binding in OmniAuth::Strategies::RequestBoundSAML already
     # makes a replay useless to anyone who does not also hold the victim's
     # session cookie with a pending AuthnRequest (the request id is consumed
     # on first use). The replay cache is the independent second control the
@@ -82,7 +82,7 @@ module Onetime
       # a key in the datastore. See the ACCEPTED RESIDUAL note above.
       MAX_TTL = 3600
 
-      module_function
+      extend self
 
       # Atomically claim an assertion. Returns true exactly once per
       # (idp_entity_id, assertion_id) within the TTL; false means the
