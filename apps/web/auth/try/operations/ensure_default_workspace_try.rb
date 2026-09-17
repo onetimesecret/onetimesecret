@@ -56,17 +56,19 @@ Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer).call
 
 ## Two concurrent callers for one org-less customer mint exactly one workspace
 # Each thread loads its own Customer instance, as two requests would. A caller
-# either returns the workspace (winner, or contender that saw it appear), or
-# fails retryable (contender whose wait ran out); never a collision, never a
-# latch.
-@racer_results = Array.new(2)
-@racer_errors  = Array.new(2)
-threads        = 2.times.map do |i|
+# either provisions the workspace (winner), converges on one that already
+# exists (loser, whether it saw it up front or waited for it), or fails
+# retryable; never a collision, never a latch. Converging returns nil — the
+# historical "already existed" result — so outcomes are recorded with a tag
+# rather than by testing the return value for nil.
+@racer_outcomes = Array.new(2)
+threads         = 2.times.map do |i|
   Thread.new do
-    cust              = Onetime::Customer.load(@racer.objid)
-    @racer_results[i] = Auth::Operations::EnsureDefaultWorkspace.new(customer: cust).call
+    cust               = Onetime::Customer.load(@racer.objid)
+    result             = Auth::Operations::EnsureDefaultWorkspace.new(customer: cust).call
+    @racer_outcomes[i] = [:returned, result]
   rescue Onetime::AccountProvisioningUnavailable => ex
-    @racer_errors[i] = ex
+    @racer_outcomes[i] = [:failed, ex]
   end
 end
 threads.each(&:join)
@@ -74,15 +76,15 @@ threads.each(&:join)
 @racer_orgs.size
 #=> 1
 
-## Every caller that returned observed that same org; any other caller failed retryable
-observed = @racer_results.compact.map { |result| result[:organization].objid }.uniq
+## Every caller that returned a workspace returned that same one; any other failed retryable
+observed = @racer_outcomes.filter_map { |tag, value| value[:organization].objid if tag == :returned && value }.uniq
+errors   = @racer_outcomes.filter_map { |tag, value| value if tag == :failed }
 [
-  observed.size >= 1,
+  @racer_outcomes.compact.size,
   observed == [@racer_orgs.first.objid],
-  @racer_errors.compact.all? { |error| error.reason == :provisioning_in_progress },
-  @racer_results.compact.size + @racer_errors.compact.size,
+  errors.all? { |error| error.reason == :provisioning_in_progress },
 ]
-#=> [true, true, true, 2]
+#=> [2, true, true]
 
 ## The racing customer was never latched
 Onetime::Customer.load(@racer.objid).provisioning_failed?
