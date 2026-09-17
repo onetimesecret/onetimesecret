@@ -8,6 +8,7 @@ require 'onetime/models/session_metadata'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
+require 'onetime/operations/bulk_audit_context'
 
 module Onetime
   module Operations
@@ -87,7 +88,10 @@ module Onetime
         # unresolved param is still an honest record of what the operator acted on.
         # (For a pre-resolved `customer:` it is that record's extid, captured at
         # construction — see #initialize — so no lookup happens here either.)
-        audit_failures :call, verb: AUDIT_VERB, target: -> { @custid }
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @custid },
+          enabled: -> { audit_enabled? }
 
         # Session-data identity fields matched against the target's extid.
         IDENTITY_FIELDS = %w[external_id account_external_id].freeze
@@ -127,7 +131,8 @@ module Onetime
         #   {Onetime::AuditReason} for the bound and the optional-now /
         #   required-later rollout.
         # @param dbclient [Object, nil] Redis-like client; defaults to Familia.dbclient.
-        def initialize(actor:, custid: nil, customer: nil, reason: nil, dbclient: nil)
+        def initialize(actor:, custid: nil, customer: nil, reason: nil, dbclient: nil,
+                       bulk_audit_context: nil)
           # Same shape as Operations::VerifyDomain's domain:/domains: guard.
           if custid.nil? && customer.nil?
             raise ArgumentError, 'Must provide either custid: or customer:'
@@ -136,15 +141,16 @@ module Onetime
             raise ArgumentError, 'Cannot provide both custid: and customer:'
           end
 
-          @customer = customer
+          @customer           = customer
           # @custid is read by the audit_failures target lambda and by the
           # success-event target fallback in #call; for a pre-resolved customer
           # its extid IS the addressed identity, so capture it now rather than
           # touching the record again mid-raise.
-          @custid   = custid || customer.extid
-          @actor    = actor
-          @reason   = normalize_reason(reason)
-          @dbclient = dbclient
+          @custid             = custid || customer.extid
+          @actor              = actor
+          @reason             = normalize_reason(reason)
+          @dbclient           = dbclient
+          @bulk_audit_context = bulk_audit_context
         end
 
         # @return [Result]
@@ -180,19 +186,21 @@ module Onetime
           # that would otherwise evidence it, so this event is the whole record
           # of an offboarding/takeover action. An unwritable event raises
           # Onetime::AuditWriteFailure instead of returning a clean Result.
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: target,
-            result: :success,
-            detail: with_reason(
-              blobs_deleted: blobs_deleted,
-              untracked_deleted: untracked_deleted,
-              rodauth_rows_deleted: rodauth_rows_deleted,
-              scan_capped: scan_capped,
-            ),
-            fail_closed: true,
-          )
+          if audit_enabled?
+            Onetime::ColonelAuditEvent.record(
+              actor: @actor,
+              verb: AUDIT_VERB,
+              target: target,
+              result: :success,
+              detail: with_reason(
+                blobs_deleted: blobs_deleted,
+                untracked_deleted: untracked_deleted,
+                rodauth_rows_deleted: rodauth_rows_deleted,
+                scan_capped: scan_capped,
+              ),
+              fail_closed: true,
+            )
+          end
 
           Result.new(
             revoked: true,
@@ -204,6 +212,16 @@ module Onetime
         end
 
         private
+
+        def audit_enabled?
+          !Onetime::Operations::BulkAuditContext.verified?(
+            @bulk_audit_context,
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @custid,
+            operation: self,
+          )
+        end
 
         # GUARANTEED kill: delete each tracked sid's live blob directly. The sids
         # are, by construction, this customer's (TrackMetadata only ZADDs their own

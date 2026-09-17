@@ -7,6 +7,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
+require 'onetime/operations/bulk_audit_context'
 require_relative 'support'
 
 module Onetime
@@ -57,7 +58,8 @@ module Onetime
         # `result: :failure` and re-raises.
         audit_failures :call,
           verb: AUDIT_VERB,
-          target: -> { @customer&.extid }
+          target: -> { @customer&.extid },
+          enabled: -> { audit_enabled? }
 
         # @!attribute status [r] Symbol — :success | :not_found | :last_owner
         Result = Data.define(:status, :org_id, :customer_id, :role)
@@ -71,11 +73,12 @@ module Onetime
         #   refusal event, whose `reason` key already means the refusal STATUS
         #   (see {#record_refusal}). See {Onetime::AuditReason} for the bound
         #   and the optional-now / required-later rollout.
-        def initialize(org:, customer:, actor:, reason: nil)
-          @org      = org
-          @customer = customer
-          @actor    = actor
-          @reason   = normalize_reason(reason)
+        def initialize(org:, customer:, actor:, reason: nil, bulk_audit_context: nil)
+          @org                = org
+          @customer           = customer
+          @actor              = actor
+          @reason             = normalize_reason(reason)
+          @bulk_audit_context = bulk_audit_context
         end
 
         # @return [Result]
@@ -98,24 +101,37 @@ module Onetime
           # membership row is destroyed, so an unrecorded removal leaves nothing
           # to say the customer ever had access to this org. #record_refusal
           # stays fail-open: a refusal mutated nothing.
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @customer.extid,
-            result: :success,
-            detail: with_reason(org_id: @org.extid),
-            fail_closed: true,
-          )
+          if audit_enabled?
+            Onetime::ColonelAuditEvent.record(
+              actor: @actor,
+              verb: AUDIT_VERB,
+              target: @customer.extid,
+              result: :success,
+              detail: with_reason(org_id: @org.extid),
+              fail_closed: true,
+            )
+          end
 
           build(:success, removed_role)
         end
 
         private
 
+        def audit_enabled?
+          !Onetime::Operations::BulkAuditContext.verified?(
+            @bulk_audit_context,
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @customer&.extid,
+            scope: @org&.extid,
+            operation: self,
+          )
+        end
+
         # Single exit point for every non-success status, so the refusal audit
         # cannot be forgotten at an early return.
         def build(status, role)
-          record_refusal(status, role) if REFUSAL_STATUSES.include?(status)
+          record_refusal(status, role) if audit_enabled? && REFUSAL_STATUSES.include?(status)
 
           Result.new(
             status: status,
