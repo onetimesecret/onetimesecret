@@ -449,6 +449,23 @@ module Onetime
     # Returns a de-duplicated Array of origin strings (scheme://host[:port]),
     # or [] when nothing is configured. Side-effect free and safe to call at
     # router-build time (no auth-app boot required).
+    # The IdP origins this deployment has configured: every active platform
+    # provider's origin plus the SSO_FORM_ACTION_ORIGINS override, with no
+    # logging side effect.
+    #
+    # Split out of #sso_form_action_origins so a PER-REQUEST caller can ask the
+    # same question without emitting that method's split-endpoint warning on
+    # every request. Two callers today, and they must agree: the CSP
+    # form-action directive names the origins allowed to RECEIVE a redirect,
+    # and Onetime::Middleware::HttpOriginOptions names the origins allowed to
+    # POST a callback BACK. An origin trusted for one and not the other would
+    # be a flow that starts and cannot finish.
+    #
+    # @return [Array<String>] de-duplicated scheme://host[:port] origins
+    def sso_idp_origins
+      (active_provider_origins + override_form_action_origins).uniq
+    end
+
     def sso_form_action_origins
       provider_origins = active_provider_origins
       override_origins = override_form_action_origins

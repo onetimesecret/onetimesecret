@@ -113,7 +113,16 @@ providers, absent from `SsoConfig::PROVIDER_ROUTE_MAP`.
   scope is requested, so the callback is a **cross-site POST**. A
   `SameSite=Lax` cookie (this app's default) is withheld on it, taking the
   OmniAuth state and nonce with it, so Sign in with Apple requires
-  `site.session.same_site: none` together with `secure: true`. Do not drop the
+  `site.session.same_site: none` together with `secure: true`. A cross-site
+  POST also hits `Rack::Protection::HttpOrigin`, which guards the auth app and
+  would deny the callback with a 403 before OmniAuth runs — every earlier
+  provider's callback was a GET, which `safe?` short-circuits, so nothing
+  exercised that path. That half is handled in code:
+  `Onetime::Middleware::HttpOriginOptions` allows a POST to an OmniAuth
+  **callback** path when the Origin is one of the configured IdP origins, and
+  deliberately does not extend that to the request phase. **Any future
+  `form_post` provider inherits this; a provider that posts back from an
+  origin outside `AuthConfig#sso_idp_origins` would still 403.** Do not drop the
   scope to get Apple's GET redirect instead — without `email name` Apple
   returns no email and account creation cannot complete. The **name** arrives
   only on the **first** authorization for a given Services ID (in the `user`

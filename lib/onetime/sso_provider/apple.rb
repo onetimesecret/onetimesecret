@@ -32,6 +32,16 @@
 # Do not drop the scope to force Apple's GET redirect instead: without
 # 'email name' Apple returns no email and account creation cannot complete.
 #
+# The OTHER half of that cross-site POST is handled IN CODE, not by the
+# operator: Rack::Protection::HttpOrigin guards the auth app and would deny
+# the callback outright (403, before OmniAuth runs) because the Origin is
+# appleid.apple.com and no display domain can ever equal it. Every provider
+# before Apple had a GET callback, which HttpOrigin's `safe?` short-circuits,
+# so nothing exercised that path. Onetime::Middleware::HttpOriginOptions now
+# allows a POST to an OmniAuth CALLBACK path when the Origin is one of the
+# configured IdP origins — the full rationale, and why the request phase is
+# deliberately excluded, is in that file.
+#
 # NAME IS FIRST-AUTHORIZATION ONLY; EMAIL IS NOT. The two come from different
 # places in this strategy, and conflating them leads to the wrong conclusion
 # about whether repeat sign-ins work:

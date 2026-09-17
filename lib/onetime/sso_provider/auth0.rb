@@ -86,9 +86,15 @@ module Onetime
       # form-action origin from :idp_origin_from — rejects anything without an
       # http(s) scheme and returns nil. The result would be an SSO route that
       # works in every test that does not render CSP and breaks in every real
-      # browser. A boot failure naming the variable is far cheaper to diagnose
-      # than a form-action violation, and matches how the registry treats an
-      # unknown provider key (see Registry.fetch).
+      # browser. A bare hostname is Auth0's OWN documented format, so operators
+      # will reach for it; it has to be rejected where the message can name the
+      # variable.
+      #
+      # THE RAISE IS CAUGHT, and deliberately so: configure_provider rescues it,
+      # logs, and skips this one provider (see features/omniauth.rb). It must
+      # never escape — that code runs inside Rodauth configuration, where an
+      # exception takes down the entire auth app and every other
+      # authentication method with it. Loud diagnosis, bounded blast radius.
       #
       # @param domain [String, nil] AUTH0_DOMAIN value
       # @return [String, nil] issuer with a trailing slash, or nil when unset

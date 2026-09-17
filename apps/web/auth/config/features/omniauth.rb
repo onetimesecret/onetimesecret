@@ -454,7 +454,27 @@ module Auth::Config::Features
       client_id_snippet = client_id ? "#{client_id[0..8]}..." : '(none)'
       OT.li "[OmniAuth] Configuring #{defn[:label]} provider '#{provider_name}' (#{display_name}), client_id: #{client_id_snippet}"
 
-      auth.omniauth_provider(defn[:strategy], name: provider_name, **defn[:strategy_options].call)
+      # A definition may reject a value its required_vars check cannot express
+      # — Auth0 raises on a schemeless AUTH0_DOMAIN, because the CSP
+      # form-action origin is derived from that variable and a bare hostname
+      # would authenticate while silently contributing no origin.
+      #
+      # SKIP THE PROVIDER, DO NOT KILL BOOT. This runs inside Rodauth
+      # configuration, so an escaping exception fails the whole auth app: ALL
+      # authentication down — password, MFA, magic links — because one
+      # optional SSO provider was misconfigured. Every other misconfiguration
+      # here degrades to a log line and a skipped provider (see the
+      # missing-vars branch above); this keeps that contract for the one case
+      # that can raise. The operator still gets a loud, specific error naming
+      # the provider and the reason.
+      begin
+        options = defn[:strategy_options].call
+      rescue StandardError => ex
+        OT.le "[OmniAuth] Skipping #{defn[:label]} provider '#{provider_name}': #{ex.message}"
+        return
+      end
+
+      auth.omniauth_provider(defn[:strategy], name: provider_name, **options)
     end
 
     # Display-name default for boot logs. Consults AuthConfig's overlaid

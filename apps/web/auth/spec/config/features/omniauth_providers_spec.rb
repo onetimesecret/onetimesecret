@@ -677,6 +677,26 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       expect(log_messages.last[1]).to include('DigitalOcean')
     end
 
+    # BLAST RADIUS. configure_provider runs inside Rodauth configuration, so an
+    # exception escaping strategy_options fails the whole auth app — password,
+    # MFA and magic links included — over one optional SSO provider. Auth0
+    # raises on a schemeless AUTH0_DOMAIN (Auth0's own documented format), so
+    # this is reachable from a plausible typo, not a contrived input.
+    it 'skips a provider whose strategy_options raises instead of failing boot' do
+      expect(auth).not_to receive(:omniauth_provider)
+
+      ClimateControl.modify(
+        AUTH0_CLIENT_ID: 'cid',
+        AUTH0_CLIENT_SECRET: 'cs',
+        AUTH0_DOMAIN: 'tenant.us.auth0.com',
+      ) do
+        expect { configure(:auth0) }.not_to raise_error
+      end
+
+      expect(log_messages.last[0]).to eq(:error)
+      expect(log_messages.last[1]).to include('Skipping Auth0', 'AUTH0_DOMAIN must be a full URL')
+    end
+
     # The skip path must not require the gem — that is what lets a deployment
     # carry a registry entry for a provider it never configures.
     it 'skips an unconfigured provider without registering it' do
