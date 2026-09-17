@@ -7,7 +7,8 @@
 # explicitly (mirroring the colonel logic classes) so the constant is loaded when
 # these hooks fire, rather than relying on ambient load order.
 require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
-require 'auth/operations/teardown_account'
+require 'auth/operations/customers/purge'
+require 'auth/operations/customers/purge_preflight'
 
 module Auth::Config::Hooks
   module Account
@@ -19,6 +20,16 @@ module Auth::Config::Hooks
     # scope there, so this is an explicit-receiver module method.
     def self.resolve_custid(account)
       account[:external_id].to_s.empty? ? account[:email] : account[:external_id]
+    end
+
+    # Account closure is destructive, so a present external_id is authoritative.
+    # Falling back to email after that lookup misses could select a different
+    # Customer record that has since claimed the same address.
+    def self.resolve_customer(account)
+      extid = account[:external_id].to_s
+      return Onetime::Customer.find_by_extid(extid) unless extid.empty?
+
+      Onetime::Customer.find_by_email(account[:email])
     end
 
     # rubocop:disable Metrics/PerceivedComplexity, Metrics/MethodLength
@@ -278,6 +289,27 @@ module Auth::Config::Hooks
                 customer: customer,
                 require_verification: require_verification,
               ).call
+            # Only the collision is rescued. Onetime::AccountProvisioningUnavailable
+            # deliberately is NOT: it persists nothing, so safe_execute's generic
+            # path (error log + tracking, returns nil) is the right visibility.
+            # At signup no other request can hold the creation lock, so reaching
+            # it means the datastore failed mid-scan: an incident signal, not a
+            # routine transient. Signup still completes and
+            # OrganizationContext#auth_org re-runs provisioning on the first
+            # authenticated request.
+            rescue Auth::Operations::WorkspaceCollision::ProvisioningCollision => ex
+              # EnsureDefaultWorkspace persisted the bounded failure state before
+              # raising. Keep the SQL account + Customer observable and let later
+              # organization/entitlement access surface AccountProvisioningFailed.
+              Auth::Logging.log_auth_event(
+                :account_provisioning_failed,
+                level: :error,
+                account_id: account_id,
+                external_id: customer.extid,
+                code: customer.provisioning_failure_code,
+                classification: ex.collision.classification,
+              )
+              nil
             end
           end
 
@@ -1073,21 +1105,122 @@ module Auth::Config::Hooks
       end
 
       #
-      # Hook: After Account Closure
+      # Hooks: Account Closure Preflight and Cleanup
       #
-      # This hook is triggered when a user closes their account. It handles the
-      # cleanup of the associated Onetime::Customer record.
+      # Rodauth calls before_close_account before changing the SQL account status,
+      # and after_close_account afterward but inside the same SQL transaction. The
+      # preflight therefore refuses retained/drifted organization state before the
+      # irreversible closure step. The after hook applies the validated cleanup.
       #
+      # Rodauth's close_account only flips the status column and deletes the
+      # password hash. The remaining credential rows go through the feature
+      # after_close_account chain (omniauth identities, two-factor secrets,
+      # active sessions, remember keys), reached via `super()`, and through
+      # TeardownAccount's SQL removal, which covers every table whether or not
+      # its feature is loaded in this boot.
+      #
+      auth.before_close_account do
+        customer = Auth::Config::Hooks::Account.resolve_customer(account)
+        unless customer
+          raise Onetime::FormError.new(
+            'Account deletion was refused because the customer record could not be resolved.',
+            error_type: 'account_deletion_refused',
+            details: { status: :refused, blockers: [{ code: :customer_not_found }] },
+          )
+        end
+
+        plan = Auth::Operations::Customers::PurgePreflight.new(customer: customer).call
+        unless plan.executable?
+          raise Onetime::FormError.new(
+            'Account deletion was refused because organization data or membership state requires attention.',
+            error_type: 'account_deletion_refused',
+            details: {
+              status: :refused,
+              blockers: plan.blockers,
+              planned_actions: plan.action_details,
+            },
+          )
+        end
+
+        @close_account_customer       = customer
+        @close_account_plan_signature = plan.signature
+      end
+
       auth.after_close_account do
+        # Explicit `super()`: Rodauth config blocks become define_method bodies,
+        # where implicit-argument super is not allowed.
+        super()
+
+        purge  = Auth::Operations::Customers::Purge.new(
+          customer: @close_account_customer,
+          self_service: true,
+          expected_plan_signature: @close_account_plan_signature,
+        )
+        result = purge.call
+
+        unless result.status == :success
+          unless purge.mutation_started? || result.actions.any? || result.completed_stages.any?
+            raise Onetime::FormError.new(
+              'Account deletion could not be completed because organization state changed. No account closure was committed.',
+              error_type: 'account_deletion_refused',
+              details: {
+                status: result.status,
+                stage: result.stage,
+                blockers: result.blockers,
+              },
+            )
+          end
+
+          Auth::Logging.log_auth_event(
+            :account_close_cleanup_partial,
+            level: :error,
+            account_id: account_id,
+            external_id: account[:external_id],
+            email: account[:email],
+            cleanup_status: result.status,
+            stage: result.stage,
+            blockers: result.blockers,
+            completed_actions: result.actions,
+            completed_stages: result.completed_stages,
+          )
+        end
+
         Auth::Logging.log_auth_event(
           :account_closed,
           level: :info,
           account_id: account_id,
           external_id: account[:external_id],
           email: account[:email],
+          cleanup_status: result.status,
         )
+      rescue StandardError => ex
+        raise unless purge&.mutation_started?
 
-        Auth::Operations::TeardownAccount.new(account: account, db: db).call
+        context = purge.outcome_context
+        begin
+          Auth::Logging.log_auth_event(
+            :account_close_cleanup_failed_after_mutation,
+            level: :error,
+            account_id: account_id,
+            external_id: account[:external_id],
+            email: account[:email],
+            error: ex.class.name,
+            message: ex.message,
+            stage: context[:stage],
+            completed_actions: context[:actions],
+            completed_stages: context[:completed_stages],
+          )
+        rescue StandardError => logging_error
+          OT.le(
+            '[account_close_cleanup_failed_after_mutation] observability write failed',
+            exception: logging_error,
+            original_exception: ex,
+            account_id: account_id,
+            external_id: account[:external_id],
+            stage: context[:stage],
+          )
+        end
+        nil
       end
     end
     # rubocop:enable Metrics/PerceivedComplexity, Metrics/MethodLength

@@ -14,7 +14,8 @@ keys, MFA, active sessions, the Rodauth auth audit log, and the login rate
 limiter. Findings name the blocking condition (`locked_out`, `rate_limited`,
 `unverified`, `verification_stale`, `email_drift`, `no_password`, `sso_only`,
 `orphaned_auth_account`, `suspended`, `authdb_unavailable`,
-`evidence_incomplete`, `not_found`). An
+`evidence_incomplete`, `workspace_collision_*`, blocked/incomplete organization
+context, `not_found`). An
 identifier with no customer is still probed against the authdb — by email,
 extid, or numeric account id — so orphans and "not in this region" come back as
 findings, not 404s. Exit code 1 = nothing found; loop it across regions.
@@ -47,10 +48,22 @@ with no address to rate-limit (an orphan looked up by extid or account id).
 
 ## When diagnose is clean
 
-Clean means an EMPTY findings list. A result carrying `evidence_incomplete` is
-NOT clean: the reads it names never happened, so a server-side cause has not
-been ruled out. Clear those sources and re-run before working this table —
+Clean means an EMPTY findings list and organization-context evidence that is
+not blocked or incomplete. A result carrying `evidence_incomplete`, an
+unavailable organization-context section, or a workspace collision is NOT
+clean: the required reads did not complete or default-workspace provisioning is
+known to fail. Clear those sources and re-run before working this table —
 otherwise you are here on the strength of evidence that was never collected.
+
+For an ownerless default workspace or occupied contact-email index, follow
+[ownerless-workspace-email-index-collision.md](./ownerless-workspace-email-index-collision.md).
+Do not attach retained workspace data to a recreated account based only on a
+matching email address. An `account_provisioning_failed` finding is a latched
+409 that only `ots customers doctor --repair` (on evidence) or a resolved
+collision releases; a 503 `AccountProvisioningUnavailable` from the same
+surface is NOT latched and retries on the next request — see the
+"Provisioning latch (409) versus temporary unavailability (503)" section of
+that runbook.
 
 | Question                             | Tool                                                                                      |
 | :----------------------------------- | :---------------------------------------------------------------------------------------- |

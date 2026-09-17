@@ -132,6 +132,36 @@ RSpec.describe 'Auth Router ADR-013 error shape' do
       expect(body).to include(error_type: 'GuestRoutesDisabled', code: 'GUEST_CONCEAL_DISABLED')
     end
 
+    it 'translates persisted account provisioning failure to an actionable 409' do
+      ex = Onetime::AccountProvisioningFailed.new(
+        code: 'default_workspace_collision',
+        classification: 'retained_data',
+        failed_at: 1_700_000_000,
+      )
+      status, body = described_class.translate(ex)
+
+      expect(status).to eq(409)
+      expect(body).to include(
+        error_type: 'AccountProvisioningFailed',
+        code: 'default_workspace_collision',
+        classification: 'retained_data',
+      )
+    end
+
+    it 'translates retryable provisioning unavailability to a 503 with retry_after, never the 409' do
+      ex = Onetime::AccountProvisioningUnavailable.new(reason: :collision_unreadable)
+      status, body = described_class.translate(ex)
+
+      expect(status).to eq(503)
+      expect(body).to eq(
+        error: Onetime::AccountProvisioningUnavailable::DEFAULT_MESSAGE,
+        error_type: 'AccountProvisioningUnavailable',
+        reason: :collision_unreadable,
+        retry_after: Onetime::AccountProvisioningUnavailable::RETRY_AFTER,
+      )
+      expect(described_class.level_for(ex)).to eq(:warn)
+    end
+
     it 'translates Onetime::Unauthorized to 401 using the caller message' do
       status, body = described_class.translate(Onetime::Unauthorized.new('Invalid credentials'))
       expect(status).to eq(401)

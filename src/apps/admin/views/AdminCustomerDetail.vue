@@ -13,11 +13,16 @@
   import type {
     ColonelUserDetailReceipt,
     ColonelUserDetailSecret,
+    ColonelUserPurgeLifecycleItem,
+    ColonelUserPurgeLifecycleResult,
+    ColonelUserPurgeResponse,
   } from '@/schemas/api/internal/responses/colonel';
   import {
     colonelImpersonateResponseSchema,
     colonelUserDetailResponseSchema,
     colonelUserMutationResponseSchema,
+    colonelUserPurgeLifecycleResultSchema,
+    colonelUserPurgeResponseSchema,
   } from '@/schemas/api/internal/responses/colonel';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useApi } from '@/shared/composables/useApi';
@@ -135,7 +140,7 @@
       /** The #4326 confirmation token's header, when the verb is gated. */
       headers?: Record<string, string>;
     } = {}
-  ): Promise<void> {
+  ): Promise<unknown> {
     // POST -> body, DELETE -> query string (see operatorReason.ts). The
     // confirmation token rides the HEADER either way, so the two compose.
     const headerConfig = opts.headers ? { headers: opts.headers } : undefined;
@@ -147,6 +152,178 @@
         ? await $api.delete(path, deleteConfig)
         : await $api.post(path, opts.body ?? {}, headerConfig);
     gracefulParse(colonelUserMutationResponseSchema, response.data, 'ColonelUserMutationResponse');
+    return response.data;
+  }
+
+  function humanizeLifecycleKey(value: string): string {
+    return value.replaceAll('_', ' ');
+  }
+
+  function formatLifecycleValue(value: unknown): string | null {
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      return String(value);
+    }
+    if (Array.isArray(value)) {
+      const values = value
+        .map(formatLifecycleValue)
+        .filter((item): item is string => item !== null);
+      return values.length ? values.join(', ') : null;
+    }
+    return null;
+  }
+
+  /** Preserve every scalar remediation detail supplied by the backend. */
+  function formatLifecycleItem(item: ColonelUserPurgeLifecycleItem): string {
+    const summary = item.message ?? humanizeLifecycleKey(item.code ?? item.type ?? 'unknown');
+    const details = Object.entries(item).flatMap(([key, value]) => {
+      if (['message', 'code', 'type'].includes(key)) return [];
+      const formatted = formatLifecycleValue(value);
+      return formatted ? [`${humanizeLifecycleKey(key)}: ${formatted}`] : [];
+    });
+    return details.length ? `${summary} (${details.join('; ')})` : summary;
+  }
+
+  function resolvePurgeLifecycle(
+    primary: ColonelUserPurgeLifecycleResult,
+    fallback: ColonelUserPurgeLifecycleResult
+  ) {
+    return {
+      status: primary.status ?? fallback.status,
+      blockers: primary.blockers ?? fallback.blockers ?? [],
+      actions: primary.actions ?? fallback.actions ?? [],
+      plannedActions: primary.planned_actions ?? fallback.planned_actions ?? [],
+      stage: primary.stage ?? fallback.stage,
+      completedStages: primary.completed_stages ?? fallback.completed_stages ?? [],
+      deleted: primary.deleted ?? fallback.deleted,
+    };
+  }
+
+  function purgeMessageKey(status: string | undefined): string {
+    if (status === 'partial') return 'web.admin.customers.actions.purge.partial';
+    if (status === 'refused') return 'web.admin.customers.actions.purge.refused';
+    return 'web.admin.customers.actions.purge.incomplete';
+  }
+
+  function translatedResult(key: string, params: Record<string, string>, fallback: string): string {
+    const translated = t(key, params);
+    return translated === key ? fallback : translated;
+  }
+
+  /**
+   * Return an operator-facing failure for every explicit non-success lifecycle
+   * result. A missing status remains compatible with the legacy 2xx purge ack;
+   * once a status is present, unknown values fail closed rather than navigating
+   * away from a customer whose teardown may be incomplete.
+   */
+  /**
+   * One list section of the failure message. Blockers, planned cleanup,
+   * completed cleanup and completed stages differ only in their i18n key and
+   * argument name, so they share one renderer.
+   */
+  function lifecycleListPart(
+    items: string[],
+    key: string,
+    argName: string,
+    label: string
+  ): string | null {
+    if (!items.length) return null;
+    const value = items.join('; ');
+    return translatedResult(
+      `web.admin.customers.actions.purge.${key}`,
+      { [argName]: value },
+      `${label}: ${value}.`
+    );
+  }
+
+  function purgeLifecycleFailure(
+    primary: ColonelUserPurgeLifecycleResult,
+    fallback: ColonelUserPurgeLifecycleResult = {}
+  ): string | null {
+    const lifecycle = resolvePurgeLifecycle(primary, fallback);
+    if (!lifecycle.status && lifecycle.blockers.length === 0) return null;
+    if (lifecycle.status === 'success' && lifecycle.deleted !== false) return null;
+
+    const parts = [t(purgeMessageKey(lifecycle.status), { status: lifecycle.status ?? 'unknown' })];
+    if (lifecycle.stage) {
+      parts.push(
+        translatedResult(
+          'web.admin.customers.actions.purge.resultStage',
+          { stage: lifecycle.stage },
+          `Stopped at stage: ${lifecycle.stage}.`
+        )
+      );
+    }
+
+    const sections = [
+      lifecycleListPart(
+        lifecycle.blockers.map(formatLifecycleItem),
+        'resultBlockers',
+        'blockers',
+        'Blockers'
+      ),
+      lifecycleListPart(
+        lifecycle.plannedActions.map(formatLifecycleItem),
+        'resultPlannedActions',
+        'actions',
+        'Planned cleanup'
+      ),
+      lifecycleListPart(
+        lifecycle.actions.map(formatLifecycleItem),
+        'resultActions',
+        'actions',
+        'Completed cleanup'
+      ),
+      lifecycleListPart(
+        lifecycle.completedStages,
+        'resultCompletedStages',
+        'stages',
+        'Completed stages'
+      ),
+    ];
+    parts.push(...sections.filter((part): part is string => part !== null));
+
+    return parts.join(' ');
+  }
+
+  function purgeOutcomeFailure(response: ColonelUserPurgeResponse): string | null {
+    return purgeLifecycleFailure(response.record, response.details);
+  }
+
+  /** Extract lifecycle details from a structured non-2xx purge response. */
+  function purgeFailureFromError(error: unknown): string | null {
+    if (typeof error !== 'object' || error === null || !('response' in error)) return null;
+    const response = (error as { response?: { data?: unknown } }).response;
+    if (typeof response?.data !== 'object' || response.data === null) return null;
+    const details = (response.data as { details?: unknown }).details;
+    const parsed = colonelUserPurgeLifecycleResultSchema.safeParse(details);
+    if (!parsed.success || !parsed.data.status) return null;
+    return purgeLifecycleFailure(parsed.data);
+  }
+
+  async function purgeCustomer(
+    reason: string | undefined,
+    headers: Record<string, string> | undefined
+  ): Promise<void> {
+    if (purgeBlocked.value) throw new Error(purgeBlockedReason.value);
+
+    let payload: unknown;
+    try {
+      payload = await callMutation('delete', userUrl(), { reason, headers });
+    } catch (error) {
+      const lifecycleFailure = purgeFailureFromError(error);
+      if (lifecycleFailure) throw new Error(lifecycleFailure);
+      throw error;
+    }
+
+    const parsed = gracefulParse(
+      colonelUserPurgeResponseSchema,
+      payload,
+      'ColonelUserPurgeResponse'
+    );
+    if (!parsed.ok) throw new Error(t('web.admin.customers.actions.purge.unreadableResult'));
+
+    const failure = purgeOutcomeFailure(parsed.data);
+    if (failure) throw new Error(failure);
   }
 
   /**
@@ -213,8 +390,7 @@
       case 'purge':
         // Last line of the fail-closed gate: no typed token, no DELETE — even
         // if the dialog were somehow reached with a blank one.
-        if (purgeBlocked.value) throw new Error(purgeBlockedReason.value);
-        return callMutation('delete', userUrl(), { reason, headers });
+        return purgeCustomer(reason, headers);
       default:
         throw new Error('No active action');
     }

@@ -1,7 +1,7 @@
 // src/tests/apps/admin/AdminAccountDiagnosticsSection.spec.ts
 
-import { createPinia, setActivePinia } from 'pinia';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createI18n } from 'vue-i18n';
 
@@ -39,6 +39,10 @@ const i18n = createI18n({
                 authFailed:
                   'Auth database did not answer, so SQL-side checks could not run: {reason}',
                 unknown: 'Unknown',
+                organizationContextBlocked:
+                  'Organization context is blocked or incomplete. Repair workspace references.',
+                organization: 'Workspace: {id}',
+                remediation: 'Remediation: {action}',
                 facts: {
                   authStatus: 'Auth status',
                   noAccount: 'No auth account',
@@ -124,13 +128,14 @@ const LIVE_AUTH_ACCOUNT = {
  */
 function partialPayload(
   authAccount: Record<string, unknown> = LIVE_AUTH_ACCOUNT,
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
+  findings: unknown[] = []
 ) {
   return {
     shrimp: '',
     record: { identifier: 'ur_target', found: true },
     details: {
-      findings: [],
+      findings,
       sections: {
         customer: { found: true, email: 'user@example.com' },
         auth_account: authAccount,
@@ -356,6 +361,56 @@ describe('AdminAccountDiagnosticsSection (partially degraded sections)', () => {
       'No authentication events recorded.'
     );
     expect(wrapper.find('[data-testid="diagnostics-audit-log-unavailable"]').exists()).toBe(false);
+  });
+
+  it('renders workspace collision findings and their remediation', async () => {
+    await mountWith(
+      partialPayload(
+        LIVE_AUTH_ACCOUNT,
+        {
+          workspace_collision: {
+            available: true,
+            classification: 'retained_data',
+            email: 'user@example.com',
+            repairable: false,
+            evidence: { organization_extid: 'on_orphaned', domain_count: 3 },
+          },
+        },
+        [
+          {
+            severity: 'critical',
+            code: 'workspace_collision_retained_data',
+            message: 'An ownerless default workspace reserves this email.',
+            org_id: 'on_orphaned',
+            remediation: 'Inspect retained data and repair or delete the workspace explicitly.',
+          },
+        ]
+      )
+    );
+
+    const findings = wrapper.find('[data-testid="diagnostics-findings"]');
+    expect(findings.text()).toContain('workspace_collision_retained_data');
+    expect(findings.text()).toContain('on_orphaned');
+    expect(findings.text()).toContain('repair or delete the workspace explicitly');
+    expect(wrapper.find('[data-testid="diagnostics-healthy"]').exists()).toBe(false);
+  });
+
+  it('does not show healthy when organization evidence is incomplete without a finding', async () => {
+    await mountWith(
+      partialPayload(LIVE_AUTH_ACCOUNT, {
+        workspace_collision: {
+          available: false,
+          classification: 'unreadable',
+          reason: 'The contact-email index could not be read.',
+          reason_code: 'workspace_collision_unreadable',
+        },
+      })
+    );
+
+    expect(wrapper.find('[data-testid="diagnostics-healthy"]').exists()).toBe(false);
+    expect(
+      wrapper.find('[data-testid="diagnostics-organization-context-blocked"]').text()
+    ).toContain('contact-email index could not be read');
   });
 });
 

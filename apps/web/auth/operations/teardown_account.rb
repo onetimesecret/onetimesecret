@@ -14,47 +14,135 @@ module Auth
     #
     # The operation revokes sessions first, closes the Rodauth identity and removes
     # its credentials when full auth is enabled, and deletes the Redis Customer
-    # last. Rodauth invokes its
-    # after_close_account hook inside the SQL transaction; that caller supplies the
-    # same database handle so a later Redis cleanup failure aborts the SQL closure.
+    # last. Rodauth's own close_account only flips the status column and drops
+    # the password hash; the SQL credential rows (identities, MFA secrets,
+    # remember and refresh keys, active sessions) are removed here on every
+    # path, including the after_close_account hook, which runs inside the same
+    # SQL transaction and keeps closure committed once a Redis mutation has
+    # started.
     #
     # Colonel auditing remains in Customers::Purge. Supplying actor selects the
     # audited administrative session-revocation operation; self-service callers do
     # not write to the Colonel audit trail.
+    #
+    # `sweep_untracked_sessions: false` skips the administrative revocation's
+    # keyspace walk for pre-sidecar blobs (see RevokeAllForCustomer): a bulk
+    # sweep of long-idle accounts has nothing for it to find and would repeat
+    # the walk once per account. The tracked revocation always runs.
     class TeardownAccount
-      Result = Data.define(:status, :extid, :custid, :account_id)
+      class Result
+        attr_reader :status, :extid, :custid, :account_id, :completed_stages, :blocked_stage
 
-      def initialize(customer: nil, account: nil, actor: nil, reason: nil, db: nil)
+        def initialize(status:, extid:, custid:, account_id:, completed_stages: [], blocked_stage: nil)
+          @status           = status
+          @extid            = extid
+          @custid           = custid
+          @account_id       = account_id
+          @completed_stages = completed_stages.freeze
+          @blocked_stage    = blocked_stage
+          freeze
+        end
+      end
+
+      def initialize(customer: nil, account: nil, actor: nil, reason: nil, db: nil,
+                     before_mutation: nil, on_mutation: nil,
+                     bulk_audit_context: nil, sweep_untracked_sessions: true,
+                     self_service: false)
         raise ArgumentError, 'Must provide either customer: or account:' if customer.nil? && account.nil?
         raise ArgumentError, 'Cannot provide both customer: and account:' if customer && account
 
-        @customer = customer
-        @account  = account
-        @actor    = actor
-        @reason   = reason
-        @db       = db
+        @customer                 = customer
+        @account                  = account
+        @actor                    = actor
+        @reason                   = reason
+        @db                       = db
+        @before_mutation          = before_mutation
+        @on_mutation              = on_mutation
+        @bulk_audit_context       = bulk_audit_context
+        @sweep_untracked_sessions = sweep_untracked_sessions
+        @self_service             = self_service
+        @completed_stages         = []
       end
 
+      # rubocop:disable Metrics/PerceivedComplexity -- two stores, one irreversible
+      # ordering; the branches are the cross-store outcome matrix
       def call
         customer = @customer || find_customer
         unless customer
           account_id = close_auth_account(account_extid)
           status     = @account && full_auth_mode? ? :success : :not_found
-          return Result.new(status: status, extid: account_extid, custid: nil, account_id: account_id)
+          return Result.new(
+            status: status,
+            extid: account_extid,
+            custid: nil,
+            account_id: account_id,
+            completed_stages: @completed_stages,
+          )
         end
 
         extid  = customer.extid
         custid = customer.custid
 
-        revoke_sessions(customer)
-        account_id = close_auth_account(extid)
-        deleted    = Auth::Operations::DestroyCustomerRecord.new(customer: customer).call
+        return blocked_result(:session_revocation, extid, custid) unless mutation_allowed?(:session_revocation)
 
-        status = deleted ? :success : :not_found
-        Result.new(status: status, extid: extid, custid: custid, account_id: account_id)
+        mutation_started!(:session_revocation)
+        revoke_sessions(customer)
+        @completed_stages << :session_revocation
+
+        if full_auth_mode? && !mutation_allowed?(:authentication_closure)
+          return blocked_result(:authentication_closure, extid, custid)
+        end
+
+        mutation_started!(:authentication_closure) if full_auth_mode?
+        account_id = close_auth_account(extid)
+        @completed_stages << :authentication_closure if full_auth_mode?
+
+        return blocked_result(:customer_deletion, extid, custid, account_id) unless mutation_allowed?(:customer_deletion)
+
+        mutation_started!(:customer_deletion)
+        deleted = Auth::Operations::DestroyCustomerRecord.new(customer: customer).call
+        @completed_stages << :customer_deletion if deleted
+
+        status = if deleted
+                   :success
+                 elsif @before_mutation && @completed_stages.any?
+                   :partial
+                 else
+                   :not_found
+                 end
+        Result.new(
+          status: status,
+          extid: extid,
+          custid: custid,
+          account_id: account_id,
+          completed_stages: @completed_stages,
+        )
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       private
+
+      def mutation_started!(stage)
+        @on_mutation&.call(stage)
+      end
+
+      def mutation_allowed?(stage)
+        return true unless @before_mutation
+
+        @before_mutation.call(stage) == true
+      end
+
+      def blocked_result(stage, extid, custid, account_id = nil)
+        status = @completed_stages.empty? ? :refused : :partial
+        Result.new(
+          status: status,
+          extid: extid,
+          custid: custid,
+          account_id: account_id,
+          completed_stages: @completed_stages,
+          blocked_stage: stage,
+        )
+      end
 
       def find_customer
         customer = Onetime::Customer.find_by_extid(account_extid) unless account_extid.to_s.empty?
@@ -74,6 +162,9 @@ module Auth
             customer: customer,
             actor: @actor,
             reason: @reason,
+            bulk_audit_context: @bulk_audit_context,
+            sweep_untracked: @sweep_untracked_sessions,
+            self_service: @self_service,
           ).call
         else
           Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent.new(

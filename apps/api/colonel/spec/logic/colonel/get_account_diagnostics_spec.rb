@@ -161,6 +161,9 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetAccountDiagnostics do
         # A leaf no finding reads, so `sections` is asserted on its own.
         locale: "e\xFFn",
         planid: 'free_v1',
+        provisioning_failure_code: nil,
+        provisioning_failure_classification: nil,
+        provisioning_failed_at: nil,
       )
     end
 

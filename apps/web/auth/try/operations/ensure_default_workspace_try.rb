@@ -23,6 +23,13 @@ require_relative '../../../billing/controllers/billing'
 @customer.verified = true
 @customer.role     = :customer
 
+# Setup: a second org-less customer for the concurrent-creation case. Two
+# callers race through the real Familia::Lock on Customer.org_creation_lock_key;
+# without it the loser classified the winner's half-built org as a collision.
+@racer          = Onetime::Customer.create!(email: generate_unique_test_email("racer"))
+@racer.verified = true
+@racer.role     = :customer
+
 ## Can detect when customer has no organizations
 @customer.organization_instances.empty?
 #=> true
@@ -47,11 +54,57 @@ Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer).call
 @customer.organization_instances.size
 #=> 1
 
+## Two concurrent callers for one org-less customer mint exactly one workspace
+# Each thread loads its own Customer instance, as two requests would. A caller
+# either provisions the workspace (winner), converges on one that already
+# exists (loser, whether it saw it up front or waited for it), or fails
+# retryable; never a collision, never a latch. Converging returns nil — the
+# historical "already existed" result — so outcomes are recorded with a tag
+# rather than by testing the return value for nil.
+@racer_outcomes = Array.new(2)
+threads         = 2.times.map do |i|
+  Thread.new do
+    cust               = Onetime::Customer.load(@racer.objid)
+    result             = Auth::Operations::EnsureDefaultWorkspace.new(customer: cust).call
+    @racer_outcomes[i] = [:returned, result]
+  rescue Onetime::AccountProvisioningUnavailable => ex
+    @racer_outcomes[i] = [:failed, ex]
+  end
+end
+threads.each(&:join)
+@racer_orgs = Onetime::Customer.load(@racer.objid).organization_instances.to_a
+@racer_orgs.size
+#=> 1
+
+## Every caller that returned a workspace returned that same one; any other failed retryable
+observed = @racer_outcomes.filter_map { |tag, value| value[:organization].objid if tag == :returned && value }.uniq
+errors   = @racer_outcomes.filter_map { |tag, value| value if tag == :failed }
+[
+  @racer_outcomes.compact.size,
+  observed == [@racer_orgs.first.objid],
+  errors.all? { |error| error.reason == :provisioning_in_progress },
+]
+#=> [2, true, true]
+
+## The racing customer was never latched
+Onetime::Customer.load(@racer.objid).provisioning_failed?
+#=> false
+
+## The contact_email_index holds exactly the one workspace that was created
+Onetime::Organization.contact_email_index[@racer.email]
+#=> @racer_orgs.first.identifier
+
+## The creation lock was released, not left for the TTL
+Familia::Lock.new(Onetime::Customer.org_creation_lock_key(@racer.objid)).locked?
+#=> false
+
 # Teardown
 begin
   # Clean up test data
   @org.delete! if @org
   @customer.delete! if @customer
+  @racer_orgs.to_a.each(&:delete!)
+  @racer.delete! if @racer
 rescue StandardError => ex
   puts "Cleanup error (non-fatal): #{ex.message}"
 end

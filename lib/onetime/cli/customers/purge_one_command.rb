@@ -11,14 +11,16 @@
 # (Customers::Shared::CLI_ACTOR).
 #
 # NOT the same command as `bin/ots customers purge`: that one is a BULK
-# inactivity sweep (`--older-than 3y`) which deliberately uses the bare
-# DestroyCustomerRecord primitive and writes NO audit events, because a sweep would
-# flood the 10k-capped audit set. Use this command for single, deliberate,
-# accountable deletions.
+# inactivity sweep (`--older-than 3y`). Both commands use the same safe,
+# audited purge lifecycle; use this command for a single deliberate deletion.
 #
 # Guards (kept in lockstep with the colonel endpoint):
 #   - refuses an anonymous customer
 #   - requires an explicit confirmation (interactive y/N, or --yes)
+#
+# Discovery depth is the one deliberate difference: this command passes
+# `deep: true` (the global registry sweep, run twice per purge); the colonel
+# endpoint stays shallow because a request path cannot afford that sweep.
 #
 # Usage:
 #   bin/ots customers purge-one user@example.com          # confirm, then purge
@@ -57,7 +59,7 @@ module Onetime
         type: :boolean,
         default: false,
         aliases: ['-y', '-f'],
-        desc: 'Skip confirmation prompt'
+        desc: 'Skip confirmation prompt (preflight still runs and may refuse)'
       option :json,
         type: :boolean,
         default: false,
@@ -82,8 +84,10 @@ module Onetime
           # explicit about an irreversible delete.
           error_exit('Refusing to purge without --yes in --json mode', json: true) if json
 
-          puts 'This permanently destroys the customer record, its indexes and'
-          puts 'its metadata. It is NOT reversible without a Redis backup.'
+          puts 'The purge first runs a read-only organization preflight.'
+          puts 'Blockers refuse the purge without mutation. If preflight passes,'
+          puts 'the customer and approved references are permanently removed.'
+          puts 'A failure after mutation starts is reported as partial; it does not imply rollback.'
           puts
           note     = reason.to_s.strip.empty? ? '' : " (reason: #{reason})"
           print "Purge #{obscured} (#{extid})#{note}? [y/N] "
@@ -98,27 +102,69 @@ module Onetime
           customer: customer,
           actor: Customers::Shared::CLI_ACTOR,
           reason: reason,
+          deep: true, # single-account operator action; see Purge#initialize
         ).call
 
         OT.info "[cli-customers-purge-one] extid=#{extid} status=#{result.status}"
 
-        if json
-          puts JSON.pretty_generate(
-            status: result.status,
-            extid: result.extid,
-            email: obscured,
-          )
-        else
-          case result.status
-          when :success   then puts "Purged #{obscured} (#{extid})"
-          when :not_found then puts "Nothing to delete for #{obscured} (#{extid})"
-          end
-        end
+        output_result(result, email: obscured, json: json)
 
-        exit 1 if result.status == :not_found
+        exit_for_result(result)
       end
 
       private
+
+      def output_result(result, email:, json:)
+        if json
+          puts JSON.pretty_generate(purge_result_payload(result, email: email))
+          return
+        end
+
+        case result.status
+        when :success
+          puts "Purged #{email} (#{result.extid})"
+        when :refused
+          puts "Purge refused for #{email} (#{result.extid}); no mutation occurred."
+          print_lifecycle_details(result)
+        when :partial
+          puts "Purge partially completed for #{email} (#{result.extid}); mutation began."
+          print_lifecycle_details(result)
+        when :not_found
+          puts "Nothing to delete for #{email} (#{result.extid})"
+          print_lifecycle_details(result)
+        else
+          puts "Purge failed for #{email} (#{result.extid}): unknown status #{result.status.inspect}"
+          print_lifecycle_details(result)
+        end
+      end
+
+      def purge_result_payload(result, email:)
+        {
+          status: result.status,
+          deleted: result.status == :success,
+          extid: result.extid,
+          custid: result.custid,
+          email: email,
+          blockers: result.blockers,
+          actions: result.actions,
+          planned_actions: result.planned_actions,
+          stage: result.stage,
+          completed_stages: result.completed_stages,
+        }
+      end
+
+      def print_lifecycle_details(result)
+        puts "  Stage: #{result.stage || 'none'}"
+        puts "  Completed stages: #{result.completed_stages.join(', ')}"
+        puts '  Completed actions:'
+        result.actions.each { |action| puts "    #{JSON.generate(action)}" }
+        puts '  Blockers:'
+        result.blockers.each { |blocker| puts "    #{JSON.generate(blocker)}" }
+      end
+
+      def exit_for_result(result)
+        exit 1 unless result.status == :success
+      end
 
       def error_exit(message, json:)
         puts(json ? JSON.generate({ error: message }) : "Error: #{message}")

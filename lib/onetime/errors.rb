@@ -154,10 +154,11 @@ module Onetime
   #
   # NOT a FormError/Forbidden: nothing about the request is wrong.
   #
-  # Otto resolves error handlers by EXACT class name (Otto::Core::ErrorHandler
-  # looks up `error.class.name`), so every subclass needs its own
-  # register_error_handler entry in lib/onetime/application/otto_hooks.rb —
-  # inheriting from this class is not enough to inherit the 503.
+  # Otto resolves error handlers by walking error.class.ancestors, but this
+  # parent is deliberately registered nowhere: each subclass carries its own
+  # register_error_handler entry in lib/onetime/application/otto_hooks.rb so
+  # the response's error_type names the gate that failed. Inheriting from this
+  # class buys the shape (RETRY_AFTER, to_h), not the 503.
   class AuthPolicyUnavailable < Problem
     # Seconds. Surfaced in the body (Otto error handlers cannot set response
     # headers) and lifted into a Retry-After header by
@@ -210,6 +211,77 @@ module Onetime
   class OrganizationExists < Problem
   end
 
+  # A persisted account provisioning failure prevents organization and
+  # entitlement context from being established. This is an operator-remediated
+  # account state, not a retryable OrganizationExists exception: callers receive
+  # one stable code/classification without collision evidence or identifiers.
+  class AccountProvisioningFailed < Problem
+    DEFAULT_MESSAGE = 'Account setup could not be completed. Contact support and provide the error code.'
+
+    attr_reader :code, :classification, :failed_at
+
+    def initialize(code:, classification:, failed_at: nil, message: DEFAULT_MESSAGE)
+      super(message)
+      @code           = code.to_s
+      @classification = classification.to_s
+      @failed_at      = failed_at.to_s.empty? ? nil : failed_at.to_f
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'AccountProvisioningFailed',
+        code: code,
+        classification: classification,
+        failed_at: failed_at,
+      }.compact
+    end
+  end
+
+  # Default-workspace provisioning could not run to a verdict THIS request and
+  # persisted nothing: the collision classifier could not read its evidence
+  # (:unreadable is "could not determine", not an account state), or another
+  # request holds the per-customer creation lock and its workspace has not
+  # appeared within the bounded wait. The next request simply retries — which
+  # is exactly why this is a sibling of AccountProvisioningFailed and never
+  # converted into it: a 409 is a latched, operator-remediated state and this
+  # is a 503.
+  #
+  # `reason` is a bounded code for alerting (:collision_unreadable,
+  # :provisioning_in_progress); `collision` carries the classifier result for
+  # the caller's own logging and is never serialized.
+  #
+  # Otto resolves error handlers by walking error.class.ancestors
+  # (otto/core/error_handler.rb), but Problem itself is registered nowhere, so
+  # an unregistered Problem subclass is a 500. This class therefore has its
+  # own registration in lib/onetime/application/otto_hooks.rb; the Roda auth
+  # router maps it through Auth::ErrorTranslator. Both put `retry_after` in
+  # the body so Onetime::Middleware::RetryAfterHeader lifts it into the
+  # header. It lives here, not in the auth app, because it is the lib-level
+  # twin of AccountProvisioningFailed: raised through the same
+  # OrganizationContext path and consumed by both routing stacks.
+  class AccountProvisioningUnavailable < Problem
+    DEFAULT_MESSAGE = 'Account setup is temporarily unavailable. Please try again shortly.'
+    RETRY_AFTER     = 5
+
+    attr_reader :reason, :collision
+
+    def initialize(reason:, collision: nil, message: DEFAULT_MESSAGE)
+      super(message)
+      @reason    = reason.to_sym
+      @collision = collision
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'AccountProvisioningUnavailable',
+        reason: reason,
+        retry_after: RETRY_AFTER,
+      }
+    end
+  end
+
   class RecordNotFound < Problem
     # i18n shape: error_key + args are resolved at the HTTP edge so logic
     # classes never touch I18n. error_key is the full dotted i18n key (e.g.
@@ -236,19 +308,20 @@ module Onetime
   end
 
   class FormError < Problem
-    attr_accessor :form_fields, :field, :error_type, :error_key, :args
+    attr_accessor :form_fields, :field, :error_type, :error_key, :args, :details
 
     # Two shapes:
     # - Legacy: FormError.new('resolved string', field:, error_type:)
     # - i18n:   FormError.new(error_key: 'api.organizations.errors.email_required',
     #                         args: { max: 5 }, field:, error_type:)
     # The edge handler resolves error_key+args via I18n.t; logic never does.
-    def initialize(message = nil, error_key: nil, args: {}, field: nil, error_type: nil)
+    def initialize(message = nil, error_key: nil, args: {}, field: nil, error_type: nil, details: nil)
       super(message)
       @error_key  = error_key
       @args       = args
       @field      = field
       @error_type = error_type
+      @details    = details
     end
 
     def to_h
@@ -257,6 +330,7 @@ module Onetime
         error_type: error_type,
         field: field,
         error_key: error_key,
+        details: details,
       }.compact
     end
   end
