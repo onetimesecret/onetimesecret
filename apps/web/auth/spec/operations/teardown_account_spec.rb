@@ -61,6 +61,27 @@ RSpec.describe Auth::Operations::TeardownAccount do
       actor: 'ur_colonel',
       reason: 'request',
       bulk_audit_context: nil,
+      sweep_untracked: true,
+    )
+  end
+
+  it 'passes a declined untracked-session sweep through to the administrative revocation' do
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(false)
+
+    result = described_class.new(
+      customer: customer,
+      actor: 'cli',
+      reason: 'bulk',
+      sweep_untracked_sessions: false,
+    ).call
+
+    expect(result.status).to eq(:success)
+    expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).with(
+      customer: customer,
+      actor: 'cli',
+      reason: 'bulk',
+      bulk_audit_context: nil,
+      sweep_untracked: false,
     )
   end
 

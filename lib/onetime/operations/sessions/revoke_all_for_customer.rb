@@ -131,8 +131,13 @@ module Onetime
         #   {Onetime::AuditReason} for the bound and the optional-now /
         #   required-later rollout.
         # @param dbclient [Object, nil] Redis-like client; defaults to Familia.dbclient.
+        # @param sweep_untracked [Boolean] run step (b), the bounded keyspace SCAN
+        #   for pre-sidecar blobs. Every call pays for the whole scan, so a bulk
+        #   purge of accounts idle for months — whose blobs have all expired —
+        #   turns it off rather than walking the keyspace once per account. The
+        #   guaranteed tracked kill (a) and the Rodauth row purge (d) still run.
         def initialize(actor:, custid: nil, customer: nil, reason: nil, dbclient: nil,
-                       bulk_audit_context: nil)
+                       bulk_audit_context: nil, sweep_untracked: true)
           # Same shape as Operations::VerifyDomain's domain:/domains: guard.
           if custid.nil? && customer.nil?
             raise ArgumentError, 'Must provide either custid: or customer:'
@@ -151,6 +156,7 @@ module Onetime
           @reason             = normalize_reason(reason)
           @dbclient           = dbclient
           @bulk_audit_context = bulk_audit_context
+          @sweep_untracked    = sweep_untracked
         end
 
         # @return [Result]
@@ -165,8 +171,13 @@ module Onetime
 
           # (a) GUARANTEED: delete every tracked blob directly (exact, uncapped).
           tracked_deleted                = purge_tracked(db, tracked)
-          # (b) BEST-EFFORT: sweep the keyspace for untracked (pre-sidecar) blobs.
-          untracked_deleted, scan_capped = purge_untracked(db, customer, tracked_set)
+          # (b) BEST-EFFORT: sweep the keyspace for untracked (pre-sidecar) blobs,
+          #     unless the caller declined the walk (bulk sweeps of idle accounts).
+          untracked_deleted, scan_capped = if @sweep_untracked
+                                             purge_untracked(db, customer, tracked_set)
+                                           else
+                                             [0, false]
+                                           end
           # (c) Tidy metadata now that the blobs are gone.
           tidy_sidecars(customer, tracked)
           # (d) Full mode: clear the Rodauth active-session rows.
@@ -187,17 +198,18 @@ module Onetime
           # of an offboarding/takeover action. An unwritable event raises
           # Onetime::AuditWriteFailure instead of returning a clean Result.
           if audit_enabled?
+            counts = audit_counts(
+              blobs_deleted: blobs_deleted,
+              untracked_deleted: untracked_deleted,
+              rodauth_rows_deleted: rodauth_rows_deleted,
+              scan_capped: scan_capped,
+            )
             Onetime::ColonelAuditEvent.record(
               actor: @actor,
               verb: AUDIT_VERB,
               target: target,
               result: :success,
-              detail: with_reason(
-                blobs_deleted: blobs_deleted,
-                untracked_deleted: untracked_deleted,
-                rodauth_rows_deleted: rodauth_rows_deleted,
-                scan_capped: scan_capped,
-              ),
+              detail: with_reason(counts),
               fail_closed: true,
             )
           end
@@ -221,6 +233,13 @@ module Onetime
             target: @custid,
             operation: self,
           )
+        end
+
+        # The detail keeps its established shape; a declined sweep is recorded
+        # as one extra key so `untracked_deleted: 0` cannot read as "swept, none
+        # found".
+        def audit_counts(**counts)
+          @sweep_untracked ? counts : counts.merge(untracked_sweep: 'skipped')
         end
 
         # GUARANTEED kill: delete each tracked sid's live blob directly. The sids

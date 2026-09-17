@@ -21,6 +21,11 @@ module Auth
     # Colonel auditing remains in Customers::Purge. Supplying actor selects the
     # audited administrative session-revocation operation; self-service callers do
     # not write to the Colonel audit trail.
+    #
+    # `sweep_untracked_sessions: false` skips the administrative revocation's
+    # keyspace walk for pre-sidecar blobs (see RevokeAllForCustomer): a bulk
+    # sweep of long-idle accounts has nothing for it to find and would repeat
+    # the walk once per account. The tracked revocation always runs.
     class TeardownAccount
       class Result
         attr_reader :status, :extid, :custid, :account_id, :completed_stages, :blocked_stage
@@ -38,20 +43,21 @@ module Auth
 
       def initialize(customer: nil, account: nil, actor: nil, reason: nil, db: nil,
                      before_mutation: nil, on_mutation: nil, authentication_closed: false,
-                     bulk_audit_context: nil)
+                     bulk_audit_context: nil, sweep_untracked_sessions: true)
         raise ArgumentError, 'Must provide either customer: or account:' if customer.nil? && account.nil?
         raise ArgumentError, 'Cannot provide both customer: and account:' if customer && account
 
-        @customer              = customer
-        @account               = account
-        @actor                 = actor
-        @reason                = reason
-        @db                    = db
-        @before_mutation       = before_mutation
-        @on_mutation           = on_mutation
-        @authentication_closed = authentication_closed
-        @bulk_audit_context    = bulk_audit_context
-        @completed_stages      = []
+        @customer                 = customer
+        @account                  = account
+        @actor                    = actor
+        @reason                   = reason
+        @db                       = db
+        @before_mutation          = before_mutation
+        @on_mutation              = on_mutation
+        @authentication_closed    = authentication_closed
+        @bulk_audit_context       = bulk_audit_context
+        @sweep_untracked_sessions = sweep_untracked_sessions
+        @completed_stages         = []
       end
 
       # rubocop:disable Metrics/PerceivedComplexity -- two stores, one irreversible
@@ -157,6 +163,7 @@ module Auth
             actor: @actor,
             reason: @reason,
             bulk_audit_context: @bulk_audit_context,
+            sweep_untracked: @sweep_untracked_sessions,
           ).call
         else
           Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent.new(
