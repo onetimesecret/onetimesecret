@@ -159,6 +159,7 @@ RSpec.describe 'colonel destructive verbs accept an operator reason (#4338)' do
         customer: target,
         actor: 'ur_colonel_public',
         reason: 'GDPR erasure request #4412',
+        deep: true,
       )
     end
 

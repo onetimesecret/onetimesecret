@@ -121,7 +121,7 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
 
     def expect_mandatory_preflight
       expect(Auth::Operations::Customers::PurgePreflight).to receive(:new)
-        .with(customer: customer).exactly(5).times.and_return(preflight)
+        .with(customer: customer, deep: false).exactly(5).times.and_return(preflight)
       expect(preflight).to receive(:call).exactly(5).times.and_return(empty_plan)
     end
 
