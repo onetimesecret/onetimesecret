@@ -54,7 +54,8 @@
 #                     definition whose strategy_options can RAISE, since
 #                     configure_provider skips such a provider and the
 #                     advertised set must not then disagree with the
-#                     registered one. Omitted means always valid.
+#                     registered one. SAML's checks the IdP URL, EntityID and
+#                     certificate the same way. Omitted means always valid.
 #   route_var/route_default:     env var and default for the route name — the
 #                     URL segment, auth-hash provider value, and
 #                     account_identities.provider value
@@ -70,7 +71,9 @@
 #                     #4173). Either a static origin for providers whose IdP
 #                     host is fixed, or the name of an env var whose URL the
 #                     origin is derived from (OIDC's issuer; tenant OIDC uses
-#                     the SsoConfig record's issuer instead). ENTRA is static
+#                     the SsoConfig record's issuer instead; SAML's SSO
+#                     service URL — never its EntityID, which is an opaque
+#                     name and often not the login host). ENTRA is static
 #                     because the OmniAuth strategy hard-pins the commercial
 #                     cloud (login.microsoftonline.com); there is no
 #                     sovereign-cloud authority env in this app. This applies
@@ -109,6 +112,7 @@ require_relative 'google'
 require_relative 'github'
 require_relative 'apple'
 require_relative 'auth0'
+require_relative 'saml'
 
 module Onetime
   module SsoProvider
@@ -124,6 +128,11 @@ module Onetime
         # reach the login page at all, so an unconfigured entry costs nothing.
         Apple::DEFINITION,
         Auth0::DEFINITION,
+        # SAML 2.0 (#4450). The one definition whose strategy is an in-repo
+        # subclass rather than a gem's own class — see saml.rb and
+        # request_bound_saml.rb — and the one issuer-capable definition that
+        # must NOT declare an `issuer:` strategy option.
+        Saml::DEFINITION,
       ].freeze
 
       # Definition lookup by :key that answers nil on a miss — the per-request

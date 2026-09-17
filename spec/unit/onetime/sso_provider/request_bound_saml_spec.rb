@@ -23,6 +23,7 @@ require 'spec_helper'
 require 'rack/mock'
 require 'zlib'
 require 'onetime/sso_provider/request_bound_saml'
+require 'onetime/sso_provider/saml'
 require_relative '../../../support/saml/test_idp'
 
 RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
@@ -52,37 +53,18 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
   let(:sp_entity_id) { "#{host}/auth/saml/metadata" }
   let(:request_id_key) { described_class::REQUEST_ID_KEY }
 
-  # The full hardened option set from the #4450 design (D3). ruby-saml's
-  # Settings.new REPLACES the security defaults wholesale, so the hash is
-  # always complete.
+  # The SHIPPED hardened option set, from the one builder both surfaces use
+  # (Onetime::SsoProvider::Saml.strategy_options_for) — not a copy of it. So
+  # every gate below is proven against the options the platform definition and
+  # the tenant arm actually register, including the full `security` hash
+  # (ruby-saml's Settings.new REPLACES the security defaults wholesale, so it
+  # must be complete; registry_spec pins it key by key).
   let(:hardened_options) do
-    {
+    Onetime::SsoProvider::Saml.strategy_options_for(
       idp_sso_service_url: 'https://idp.example.com/saml/sso',
       idp_entity_id: idp.entity_id,
       idp_cert: idp.cert_pem,
-      sp_entity_id: sp_entity_id,
-      name_identifier_format: SamlSpec::TestIdp::PERSISTENT,
-      allowed_clock_drift: 60,
-      check_duplicated_attributes: true,
-      slo_enabled: false,
-      idp_sso_service_url_runtime_params: {},
-      security: {
-        authn_requests_signed: false,
-        logout_requests_signed: false,
-        logout_responses_signed: false,
-        want_assertions_signed: true,
-        want_assertions_encrypted: false,
-        want_name_id: true,
-        metadata_signed: false,
-        embed_sign: false,
-        digest_method: XMLSecurity::Document::SHA256,
-        signature_method: XMLSecurity::Document::RSA_SHA256,
-        check_idp_cert_expiration: true,
-        check_sp_cert_expiration: false,
-        strict_audience_validation: true,
-        lowercase_url_encoding: false,
-      },
-    }
+    ).merge(sp_entity_id: sp_entity_id)
   end
   let(:strategy_options) { hardened_options }
 
@@ -215,9 +197,10 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
       expect(xml).not_to include('tenant.example.com')
     end
 
-    # OmniAuth deep-merges instance options over class defaults, so the `{}`
-    # in hardened_options cannot clear omniauth-saml's RelayState forwarding
-    # default on its own — the subclass's class-level default is what does.
+    # The shared builder carries no idp_sso_service_url_runtime_params key:
+    # OmniAuth deep-merges instance options over class defaults, so a `{}`
+    # passed at registration could not clear omniauth-saml's RelayState
+    # forwarding default — the subclass's class-level default is what does.
     it "does not forward the user's RelayState to the IdP" do
       _, query = decode_authn_request(start_login('/auth/saml?RelayState=/evil')['location'])
 
@@ -225,8 +208,8 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
       expect(query.keys).to contain_exactly('SAMLRequest')
     end
 
-    context 'when registered without any idp_sso_service_url_runtime_params option' do
-      let(:strategy_options) { hardened_options.except(:idp_sso_service_url_runtime_params) }
+    context 'when a registration passes an empty idp_sso_service_url_runtime_params' do
+      let(:strategy_options) { hardened_options.merge(idp_sso_service_url_runtime_params: {}) }
 
       it "still does not forward the user's RelayState" do
         _, query = decode_authn_request(start_login('/auth/saml?RelayState=/evil')['location'])

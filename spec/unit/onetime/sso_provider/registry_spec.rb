@@ -16,6 +16,7 @@
 require 'spec_helper'
 require 'climate_control'
 require_relative '../../../../lib/onetime/sso_provider/registry'
+require_relative '../../../support/saml/test_idp'
 
 RSpec.describe Onetime::SsoProvider::Registry do
   let(:definitions) { described_class::DEFINITIONS }
@@ -154,6 +155,10 @@ RSpec.describe Onetime::SsoProvider::Registry do
         AUTH0_CLIENT_ID: 'cid',
         AUTH0_CLIENT_SECRET: 'cs',
         AUTH0_DOMAIN: 'https://tenant.us.auth0.com',
+        SAML_IDP_SSO_SERVICE_URL: 'https://idp.example.com/saml/sso',
+        SAML_IDP_ENTITY_ID: 'https://idp.example.com/saml/metadata',
+        SAML_IDP_CERT: SamlSpec::TestIdp.new.cert_pem,
+        SAML_SP_ENTITY_ID: 'https://ots.example.com/auth/sso/saml/metadata',
       ) do
         definitions.each do |defn|
           expect(defn[:strategy_options].call).to be_a(Hash)
@@ -226,10 +231,12 @@ RSpec.describe Onetime::SsoProvider::Registry do
       end
 
       # Every other definition is presence-only; the field is opt-in, and a
-      # definition without it must be treated as always valid.
-      it 'is the only one in the registry' do
+      # definition without it must be treated as always valid. Exactly the
+      # definitions whose strategy_options can RAISE carry one (SAML: see the
+      # SAML block below).
+      it 'is one of only two in the registry' do
         with_predicate = described_class::DEFINITIONS.select { |defn| defn[:vars_valid] }
-        expect(with_predicate.map { |defn| defn[:key] }).to eq([:auth0])
+        expect(with_predicate.map { |defn| defn[:key] }).to eq([:auth0, :saml])
       end
     end
 
@@ -267,6 +274,303 @@ RSpec.describe Onetime::SsoProvider::Registry do
       ClimateControl.modify(OIDC_CLIENT_ID: 'cid', OIDC_CLIENT_SECRET: '') do
         opts = described_class.fetch(:oidc)[:strategy_options].call
         expect(opts[:client_options]).not_to have_key(:secret)
+      end
+    end
+
+    # ========================================================================
+    # SAML (#4450)
+    # ========================================================================
+    describe 'the SAML definition' do
+      let(:saml) { described_class.fetch(:saml) }
+      let(:idp) { SamlSpec::TestIdp.new }
+      let(:valid_env) do
+        {
+          SAML_IDP_SSO_SERVICE_URL: 'https://idp.example.com/saml/sso',
+          SAML_IDP_ENTITY_ID: 'https://idp.example.com/saml/metadata',
+          SAML_IDP_CERT: idp.cert_pem,
+          SAML_SP_ENTITY_ID: 'https://ots.example.com/auth/sso/saml/metadata',
+          SAML_UID_ATTRIBUTE: nil,
+          SAML_ROUTE_NAME: nil,
+        }
+      end
+
+      def saml_options(overrides = {})
+        ClimateControl.modify(valid_env.merge(overrides)) { saml[:strategy_options].call }
+      end
+
+      def saml_valid?(overrides = {})
+        ClimateControl.modify(valid_env.merge(overrides)) { saml[:vars_valid].call }
+      end
+
+      # THE assertion this block exists for. In ruby-saml `issuer` is a
+      # deprecated alias for OUR SP EntityID (settings.rb:121-122), and
+      # resolve_issuer precedence #1 reads strategy option :issuer — so an
+      # `issuer:` key, the pattern Apple and Auth0 legitimately use, would key
+      # every SAML identity on this deployment's own EntityID and collapse
+      # every IdP into one issuer namespace. String key checked too: options
+      # end up in a Mash.
+      it 'NEVER declares an :issuer strategy option, real or placeholder' do
+        [saml_options, saml[:placeholder_options]].each do |opts|
+          expect(opts).not_to have_key(:issuer)
+          expect(opts).not_to have_key('issuer')
+        end
+      end
+
+      it 'names the in-repo strategy subclass, loaded through its own file' do
+        expect(saml[:strategy]).to eq(:request_bound_saml)
+        expect(saml[:gem_require]).to eq('onetime/sso_provider/request_bound_saml')
+        expect(saml[:issuer_capable]).to be true
+      end
+
+      # SAML has no client credential. The registry's naming rule is about the
+      # ROUTE/DISPLAY/TRUST prefix (asserted for every definition above);
+      # there is deliberately no SAML_CLIENT_ID to satisfy a convention.
+      it 'requires exactly the IdP trio, all SAML_-prefixed, with no client credential' do
+        expect(saml[:required_vars]).to eq(%w[SAML_IDP_SSO_SERVICE_URL SAML_IDP_ENTITY_ID SAML_IDP_CERT])
+        expect(saml[:required_vars]).to all(start_with('SAML_'))
+        expect(saml[:required_vars].grep(/CLIENT/)).to be_empty
+      end
+
+      # The browser is redirected to — and posts the response back from — the
+      # SSO service URL's origin. An EntityID is an opaque name (often a URN).
+      it 'derives the CSP / HttpOrigin origin from the SSO service URL, not the EntityID' do
+        expect(saml[:idp_origin_from]).to eq('SAML_IDP_SSO_SERVICE_URL')
+      end
+
+      # omniauth-saml calls Settings.new(options) without
+      # keep_security_attributes, so this hash REPLACES ruby-saml's defaults:
+      # a key missing here is nil at validation time. Asserted key by key, and
+      # as an exact key set, so neither a dropped nor an added key passes.
+      it 'passes the FULL ruby-saml security hash, key by key' do
+        expect(saml_options[:security]).to eq(
+          authn_requests_signed: false,
+          logout_requests_signed: false,
+          logout_responses_signed: false,
+          want_assertions_signed: true,
+          want_assertions_encrypted: false,
+          want_name_id: true,
+          metadata_signed: false,
+          embed_sign: false,
+          digest_method: 'http://www.w3.org/2001/04/xmlenc#sha256',
+          signature_method: 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
+          check_idp_cert_expiration: true,
+          check_sp_cert_expiration: false,
+          strict_audience_validation: true,
+          lowercase_url_encoding: false,
+        )
+      end
+
+      # RE-VERIFY on a ruby-saml bump: the literals in saml.rb (written as
+      # literals so the registry loads without the gem) must be the gem's own
+      # constants, and the security hash must cover every key ruby-saml
+      # defaults — a NEW default key in a later release would otherwise be nil.
+      it 'matches ruby-saml: algorithm constants, and every default security key is covered' do
+        require 'onelogin/ruby-saml'
+
+        expect(Onetime::SsoProvider::Saml::DIGEST_SHA256).to eq(XMLSecurity::Document::SHA256)
+        expect(Onetime::SsoProvider::Saml::SIGNATURE_RSA_SHA256).to eq(XMLSecurity::Document::RSA_SHA256)
+
+        gem_keys = OneLogin::RubySaml::Settings::DEFAULTS[:security].keys
+        expect(Onetime::SsoProvider::Saml::SECURITY.keys).to match_array(gem_keys)
+      end
+
+      # Response options, not Settings accessors: they work only at the top
+      # level (omniauth-saml forwards Response::AVAILABLE_OPTIONS) and are
+      # silently inert under `security`.
+      it 'sets the remaining hardened options at the TOP level' do
+        opts = saml_options
+
+        expect(opts[:name_identifier_format]).to eq('urn:oasis:names:tc:SAML:2.0:nameid-format:persistent')
+        expect(opts[:allowed_clock_drift]).to eq(60)
+        expect(opts[:check_duplicated_attributes]).to be true
+        expect(opts[:slo_enabled]).to be false
+        expect(opts[:security]).not_to have_key(:allowed_clock_drift)
+        expect(opts[:security]).not_to have_key(:check_duplicated_attributes)
+      end
+
+      it 'forwards only options ruby-saml actually reads' do
+        require 'onelogin/ruby-saml'
+
+        expect(OneLogin::RubySaml::Response::AVAILABLE_OPTIONS)
+          .to include(:allowed_clock_drift, :check_duplicated_attributes)
+      end
+
+      # Fingerprint-only config trusts the certificate EMBEDDED IN THE
+      # RESPONSE. No option source may set one.
+      it 'never sets an IdP certificate fingerprint, and sets no skip_* escape hatch' do
+        [saml_options, saml[:placeholder_options]].each do |opts|
+          expect(opts.keys.map(&:to_s).grep(/fingerprint|\Askip_/)).to be_empty
+        end
+      end
+
+      it 'passes the IdP trio through, the EntityID byte-for-byte' do
+        opts = saml_options
+
+        expect(opts[:idp_sso_service_url]).to eq('https://idp.example.com/saml/sso')
+        expect(opts[:idp_entity_id]).to eq('https://idp.example.com/saml/metadata')
+        expect(OpenSSL::X509::Certificate.new(opts[:idp_cert]).to_der).to eq(idp.cert.to_der)
+      end
+
+      it 'un-escapes a backslash-n encoded certificate' do
+        opts = saml_options(SAML_IDP_CERT: idp.cert_pem.gsub("\n", '\n'))
+
+        expect(opts[:idp_cert]).to eq(idp.cert_pem)
+      end
+
+      it 'sets uid_attribute only when SAML_UID_ATTRIBUTE is non-blank' do
+        expect(saml_options).not_to have_key(:uid_attribute)
+        expect(saml_options(SAML_UID_ATTRIBUTE: '  ')).not_to have_key(:uid_attribute)
+        expect(saml_options(SAML_UID_ATTRIBUTE: 'employee_id')[:uid_attribute]).to eq('employee_id')
+      end
+
+      describe 'sp_entity_id (never blank: ruby-saml skips audience validation on a blank one)' do
+        it 'uses SAML_SP_ENTITY_ID when set' do
+          expect(saml_options[:sp_entity_id]).to eq('https://ots.example.com/auth/sso/saml/metadata')
+        end
+
+        it 'defaults to the public site URL + request path + /metadata' do
+          allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => 'secrets.example.com', 'ssl' => true } })
+
+          expect(saml_options(SAML_SP_ENTITY_ID: nil)[:sp_entity_id])
+            .to eq('https://secrets.example.com/auth/sso/saml/metadata')
+        end
+
+        it 'follows SAML_ROUTE_NAME in the default' do
+          allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => 'secrets.example.com' } })
+
+          expect(saml_options(SAML_SP_ENTITY_ID: nil, SAML_ROUTE_NAME: 'okta')[:sp_entity_id])
+            .to eq('https://secrets.example.com/auth/sso/okta/metadata')
+        end
+
+        it 'refuses, and is not valid, when neither source yields a value' do
+          allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => '' } })
+
+          expect { saml_options(SAML_SP_ENTITY_ID: nil) }.to raise_error(ArgumentError, /SAML_SP_ENTITY_ID/)
+          expect(saml_valid?(SAML_SP_ENTITY_ID: nil)).to be false
+        end
+      end
+
+      # Blank trust anchors, so RequestBoundSAML refuses (:saml_misconfigured)
+      # unless the tenant hook injected a real trio + SP identifiers.
+      it 'registers placeholders that fail closed without tenant injection' do
+        placeholder = saml[:placeholder_options]
+
+        expect(placeholder[:idp_entity_id]).to eq('')
+        expect(placeholder[:sp_entity_id]).to eq('')
+        expect(placeholder[:idp_cert]).to eq('')
+        expect(URI.parse(placeholder[:idp_sso_service_url]).host).to end_with('.invalid')
+        expect(placeholder[:security]).to eq(Onetime::SsoProvider::Saml::SECURITY)
+        expect(placeholder.except(:idp_sso_service_url, :idp_entity_id, :idp_cert, :sp_entity_id, :security))
+          .to eq(Onetime::SsoProvider::Saml.hardened_options.except(:security))
+      end
+
+      # configure_provider rescues the raise and registers no route;
+      # :vars_valid is what keeps the login button from being advertised. The
+      # two must agree on every case.
+      describe 'strategy_options raise / :vars_valid agreement' do
+        invalid = {
+          'an http SSO service URL' => { SAML_IDP_SSO_SERVICE_URL: 'http://idp.example.com/saml/sso' },
+          'a schemeless SSO service URL' => { SAML_IDP_SSO_SERVICE_URL: 'idp.example.com/saml/sso' },
+          'a hostless SSO service URL' => { SAML_IDP_SSO_SERVICE_URL: 'https:///saml/sso' },
+          'an SSO service URL with credentials' => { SAML_IDP_SSO_SERVICE_URL: 'https://u:p@idp.example.com/sso' },
+          'an unparseable SSO service URL' => { SAML_IDP_SSO_SERVICE_URL: 'https://idp example.com/sso' },
+          'a whitespace-only EntityID' => { SAML_IDP_ENTITY_ID: '   ' },
+          'an EntityID with trailing whitespace' => { SAML_IDP_ENTITY_ID: 'https://idp.example.com/saml/metadata ' },
+          'an EntityID with a control character' => { SAML_IDP_ENTITY_ID: "https://idp.example.com/\nmetadata" },
+          'a certificate that is not PEM' => { SAML_IDP_CERT: 'not a certificate' },
+          'a PEM block that does not parse' => {
+            SAML_IDP_CERT: "-----BEGIN CERTIFICATE-----\nAAAA\n-----END CERTIFICATE-----\n",
+          },
+          'a SHA1 fingerprint in place of a certificate' => {
+            SAML_IDP_CERT: 'AB:CD:EF:01:23:45:67:89:AB:CD:EF:01:23:45:67:89:AB:CD:EF:01',
+          },
+        }
+
+        invalid.each do |label, overrides|
+          it "refuses #{label}" do
+            expect { saml_options(overrides) }.to raise_error(ArgumentError, /SAML_IDP_/)
+            expect(saml_valid?(overrides)).to be false
+          end
+        end
+
+        it 'refuses bare base64 DER without PEM armour' do
+          bare = idp.cert_pem.lines.reject { |line| line.start_with?('-----') }.join
+
+          expect { saml_options(SAML_IDP_CERT: bare) }.to raise_error(ArgumentError, /PEM X\.509/)
+          expect(saml_valid?(SAML_IDP_CERT: bare)).to be false
+        end
+
+        # ruby-saml's format_cert would parse only the FIRST block.
+        it 'refuses more than one certificate' do
+          two = idp.cert_pem + SamlSpec::TestIdp.new.cert_pem
+
+          expect { saml_options(SAML_IDP_CERT: two) }.to raise_error(ArgumentError, /exactly one/)
+          expect(saml_valid?(SAML_IDP_CERT: two)).to be false
+        end
+
+        # check_idp_cert_expiration would refuse every login with it anyway.
+        it 'refuses an expired certificate, naming the date' do
+          expired = SamlSpec::TestIdp.new(cert_not_after: Time.utc(2020, 1, 2)).cert_pem
+
+          expect { saml_options(SAML_IDP_CERT: expired) }.to raise_error(ArgumentError, /expired on 2020-01-02/)
+          expect(saml_valid?(SAML_IDP_CERT: expired)).to be false
+        end
+
+        # The message reaches the boot log via configure_provider.
+        it 'never puts the configured value in the error message' do
+          expect { saml_options(SAML_IDP_CERT: 'SENSITIVE-LOOKING-VALUE') }
+            .to raise_error(ArgumentError) { |ex| expect(ex.message).not_to include('SENSITIVE-LOOKING-VALUE') }
+        end
+
+        it 'is valid, and does not raise, for the good configuration' do
+          expect { saml_options }.not_to raise_error
+          expect(saml_valid?).to be true
+        end
+
+        it 'answers false instead of raising (per-request serializer path)' do
+          expect { saml_valid?(SAML_IDP_CERT: 'garbage') }.not_to raise_error
+        end
+      end
+
+      # The builder the TENANT arm reuses: same hardened hash, no env reads,
+      # and no SP identifiers (those are derived per request from full_host).
+      describe '.strategy_options_for (shared with the tenant arm)' do
+        let(:built) do
+          Onetime::SsoProvider::Saml.strategy_options_for(
+            idp_sso_service_url: 'https://tenant-idp.example.net/sso',
+            idp_entity_id: 'urn:tenant:idp',
+            idp_cert: idp.cert_pem,
+          )
+        end
+
+        it 'returns exactly the trio plus the hardened options' do
+          expect(built.keys).to contain_exactly(
+            :idp_sso_service_url, :idp_entity_id, :idp_cert,
+            *Onetime::SsoProvider::Saml.hardened_options.keys
+          )
+          expect(built[:security]).to eq(Onetime::SsoProvider::Saml::SECURITY)
+        end
+
+        it 'accepts a URN EntityID (an EntityID is a name, not a URL)' do
+          expect(built[:idp_entity_id]).to eq('urn:tenant:idp')
+        end
+
+        it 'hands out a fresh hash each call, so a caller cannot mutate the shared constant' do
+          built[:security][:want_assertions_signed] = false
+
+          expect(Onetime::SsoProvider::Saml::SECURITY[:want_assertions_signed]).to be true
+          expect(Onetime::SsoProvider::Saml.hardened_options[:security][:want_assertions_signed]).to be true
+        end
+
+        it 'raises without reading the env' do
+          ClimateControl.modify(SAML_IDP_ENTITY_ID: 'https://platform-idp.example.com') do
+            expect do
+              Onetime::SsoProvider::Saml.strategy_options_for(
+                idp_sso_service_url: 'https://tenant-idp.example.net/sso', idp_entity_id: '', idp_cert: idp.cert_pem,
+              )
+            end.to raise_error(ArgumentError, /EntityID is blank/)
+          end
+        end
       end
     end
   end
