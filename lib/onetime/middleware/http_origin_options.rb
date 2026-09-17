@@ -54,6 +54,17 @@ module Onetime
       # runs. Every provider before Apple had a GET callback, which `safe?`
       # short-circuits, so the gap only appears now.
       #
+      # SAML (#4450) IS THE SECOND SUCH PROVIDER. The HTTP-POST binding
+      # delivers the SAMLResponse as a cross-site POST from the origin of the
+      # IdP's SSO service URL — which is what the SAML definition's
+      # :idp_origin_from names (not the EntityID, an opaque name that is often
+      # on another host). Its CSRF control is not `state` but the one-shot
+      # InResponseTo binding in OmniAuth::Strategies::RequestBoundSAML: a
+      # response is refused unless this session holds the pending AuthnRequest
+      # id it answers. This method covers PLATFORM providers only: a TENANT's
+      # SAML IdP origin lives in a per-domain record, is unknown at boot, and
+      # is not in AuthConfig#sso_idp_origins.
+      #
       # THIS IS PARITY, NOT A NEW HOLE. A GET callback bypasses HttpOrigin
       # entirely today via `safe?` — no Origin check at all, from any origin.
       # This grants a POST callback the same treatment and strictly less: the

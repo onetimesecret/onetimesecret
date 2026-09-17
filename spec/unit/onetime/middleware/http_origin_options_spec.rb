@@ -200,6 +200,32 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
       expect(status).to eq(403)
     end
 
+    # SAML's HTTP-POST binding (#4450) is the same shape as Apple's
+    # form_post: a cross-site POST to the callback, from the origin of the
+    # IdP's SSO service URL. The route segment is operator-chosen
+    # (SAML_ROUTE_NAME), which the path pattern must not care about.
+    it 'allows a SAML HTTP-POST binding callback on an operator-named route' do
+      stub_idp_origins(['https://login.idp.example.com'])
+      status = post('/auth/sso/okta/callback',
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => 'https://login.idp.example.com',
+      )
+      expect(status).to eq(200)
+    end
+
+    # /metadata, /slo and /spslo are omniauth-saml sub-paths under the same
+    # prefix. None of them is a callback; none gets the exemption.
+    %w[metadata slo spslo].each do |subpath|
+      it "does not allow a cross-site POST to the SAML /#{subpath} sub-path" do
+        stub_idp_origins(['https://login.idp.example.com'])
+        status = post("/auth/sso/saml/#{subpath}",
+          'HTTP_HOST' => canonical_host,
+          'HTTP_ORIGIN' => 'https://login.idp.example.com',
+        )
+        expect(status).to eq(403)
+      end
+    end
+
     it 'fails closed when auth_config cannot answer' do
       allow(Onetime).to receive(:auth_config).and_raise(StandardError, 'boom')
       allow(OT).to receive(:lw)

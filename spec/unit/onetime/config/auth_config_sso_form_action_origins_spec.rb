@@ -3,6 +3,9 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'rack/mock'
+require 'onetime/middleware/http_origin_options'
+require_relative '../../../support/saml/test_idp'
 require 'tempfile'
 require 'fileutils'
 
@@ -48,6 +51,7 @@ RSpec.describe Onetime::AuthConfig do
       GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET
       APPLE_CLIENT_ID APPLE_TEAM_ID APPLE_KEY_ID APPLE_PRIVATE_KEY
       AUTH0_CLIENT_ID AUTH0_CLIENT_SECRET AUTH0_DOMAIN
+      SAML_IDP_SSO_SERVICE_URL SAML_IDP_ENTITY_ID SAML_IDP_CERT SAML_SP_ENTITY_ID
       SSO_FORM_ACTION_ORIGINS
     ]
   end
@@ -190,6 +194,71 @@ RSpec.describe Onetime::AuthConfig do
         'AUTH0_DOMAIN' => 'https://tenant.us.auth0.com',
       )
       expect(config.sso_providers.map { |p| p['route_name'] }).to include('auth0')
+    end
+
+    # SAML (#4450). The HTTP-POST binding makes SAML the second provider,
+    # after Apple, whose callback is a CROSS-SITE POST — so the IdP origin has
+    # to be in BOTH sets: form-action (to receive the redirect) and the
+    # HttpOrigin allowance (to post the response back).
+    describe 'SAML' do
+      let(:saml_env) do
+        {
+          'SAML_IDP_SSO_SERVICE_URL' => 'https://login.idp.example.com:8443/saml/sso?tenant=x',
+          # A different host on purpose: an EntityID is a name, not the login
+          # endpoint, and must contribute nothing.
+          'SAML_IDP_ENTITY_ID' => 'https://entity.idp.example.com/saml/metadata',
+          'SAML_IDP_CERT' => SamlSpec::TestIdp.new.cert_pem,
+          'SAML_SP_ENTITY_ID' => 'https://ots.example.com/auth/sso/saml/metadata',
+        }
+      end
+
+      def callback_env(origin, path: '/auth/sso/saml/callback', method: 'POST')
+        Rack::MockRequest.env_for("https://ots.example.com#{path}", method: method, 'HTTP_ORIGIN' => origin)
+      end
+
+      def admitted?(config, env)
+        allow(Onetime).to receive(:auth_config).and_return(config)
+        Onetime::Middleware::HttpOriginOptions.sso_callback_from_configured_idp?(env)
+      end
+
+      it 'derives the origin from the SSO service URL, never the EntityID' do
+        config = fresh_config(**saml_env)
+
+        expect(config.sso_form_action_origins).to contain_exactly('https://login.idp.example.com:8443')
+        expect(config.sso_idp_origins).to match_array(config.sso_form_action_origins)
+      end
+
+      it 'admits the cross-site POST callback from that origin, and only that origin' do
+        config = fresh_config(**saml_env)
+
+        expect(admitted?(config, callback_env('https://login.idp.example.com:8443'))).to be true
+        expect(admitted?(config, callback_env('https://entity.idp.example.com'))).to be false
+        expect(admitted?(config, callback_env('https://login.idp.example.com'))).to be false
+      end
+
+      it 'keeps Origin protection on the SAML request phase and the other sub-paths' do
+        config = fresh_config(**saml_env)
+        origin = 'https://login.idp.example.com:8443'
+
+        expect(admitted?(config, callback_env(origin, path: '/auth/sso/saml'))).to be false
+        expect(admitted?(config, callback_env(origin, path: '/auth/sso/saml/metadata'))).to be false
+        expect(admitted?(config, callback_env(origin, path: '/auth/sso/saml/slo'))).to be false
+      end
+
+      # configure_provider skips an unusable SAML config, so nothing may be
+      # widened for it either: no form-action origin, no POST allowance.
+      it 'contributes nothing when the config is present but unusable' do
+        config = fresh_config(**saml_env, 'SAML_IDP_CERT' => 'not a certificate')
+
+        expect(config.sso_form_action_origins).to eq([])
+        expect(admitted?(config, callback_env('https://login.idp.example.com:8443'))).to be false
+      end
+
+      it 'contributes nothing when SSO is disabled' do
+        config = fresh_config(sso_enabled: false, **saml_env)
+
+        expect(config.sso_idp_origins).to eq([])
+      end
     end
 
     it 'includes the (commercial-cloud) Entra origin when Entra is active' do
