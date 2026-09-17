@@ -57,6 +57,13 @@ module Auth
       LUA
 
       Result = Data.define(:classification, :email, :index_key, :organization, :raw_index_value, :evidence) do
+        # `index_key` is the VERBATIM index field the claim was found under,
+        # which is what a repair must HDEL; it defaults to the normalized address
+        # for the callers that only ever see the two spellings agree.
+        def initialize(index_key: nil, **rest)
+          super(index_key: index_key || rest[:email], **rest)
+        end
+
         def clear? = classification == :clear
         def current_valid_workspace? = classification == :current_valid_workspace
         def unreadable? = classification == :unreadable
@@ -159,7 +166,7 @@ module Auth
         Result.new(
           classification: classification,
           email: @email,
-          index_key: @index_key || @email,
+          index_key: @index_key,
           organization: organization,
           raw_index_value: raw,
           evidence: evidence,
@@ -200,7 +207,7 @@ module Auth
           owner_id: owner_id,
           owner_alive: !owner.nil?,
           owner_extid: owner&.extid,
-          current_customer_in_members: current_customer_id && raw_member_ids.include?(current_customer_id),
+          current_customer_in_members: current_customer_id ? raw_member_ids.include?(current_customer_id) : false,
           current_customer_membership_active: current_membership&.active? || false,
           current_customer_owner: (current_membership&.active? && current_membership.owner?) || false,
           member_count: raw_member_ids.size,

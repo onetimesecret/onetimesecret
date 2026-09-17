@@ -82,7 +82,6 @@ RSpec.describe Auth::Operations::WorkspaceCollision do
 
   it 'classifies an ownerless organization without members or retained data as empty_orphan' do
     result = classify(current_customer: nil)
-    warn result.evidence.inspect
 
     expect(result.classification).to eq(:empty_orphan)
     expect(result.evidence).to include(
