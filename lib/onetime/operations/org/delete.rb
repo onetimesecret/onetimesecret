@@ -510,10 +510,14 @@ module Onetime
 
         # Best-effort notification to former members. Each send is isolated so
         # one failure doesn't skip the rest, and no failure may affect the
-        # (already-committed) deletion.
+        # (already-committed) deletion. A verified account-purge capability can
+        # delete only the departing account's sole-member default workspace, so
+        # it deliberately suppresses the otherwise redundant member notice.
         #
         # @return [Integer] messages successfully enqueued.
         def notify_members_deleted
+          return 0 if @account_purge_authorized
+
           @recipients.count do |recipient|
             # Blank ("") locales are truthy and slip past a bare `||`; treat as
             # missing.
@@ -629,7 +633,7 @@ module Onetime
             display_name: @display_name,
             planid: @planid,
             members: @members,
-            members_notified: @notified || @recipients.size,
+            members_notified: @notified || (@account_purge_authorized ? 0 : @recipients.size),
             pending_invitations: @pending,
             domain_count: @domain_count,
             domains: @domains,

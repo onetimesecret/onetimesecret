@@ -489,6 +489,25 @@ RSpec.describe Onetime::Operations::Org::Delete do
         )
       end
 
+      it 'reports no member notification in an authorized purge preview' do
+        result = build(account_purge_context: purge_context).call
+
+        expect(result.status).to eq(:planned)
+        expect(result.members_notified).to eq(0)
+        expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+      end
+
+      it 'does not notify the departing sole member during an authorized account purge' do
+        result = build(dry_run: false, account_purge_context: purge_context).call
+
+        expect(result.status).to eq(:success)
+        expect(result.members_notified).to eq(0)
+        expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+          hash_including(detail: hash_including(members_notified: 0)),
+        )
+      end
+
       it 'does not bypass domain or billing guardrails' do
         allow(org).to receive(:domain_count).and_return(1)
         expect(build(dry_run: false, account_purge_context: purge_context).call.status).to eq(:has_domains)
