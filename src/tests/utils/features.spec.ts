@@ -1526,6 +1526,8 @@ describe('features utility', () => {
       it('covers the remaining built-in strategies', () => {
         expect(providerLabel('github')).toBe('GitHub');
         expect(providerLabel('google')).toBe('Google');
+        expect(providerLabel('apple')).toBe('Apple');
+        expect(providerLabel('auth0')).toBe('Auth0');
       });
 
       it('capitalizes an unknown route name', () => {

@@ -46,6 +46,8 @@ RSpec.describe Onetime::AuthConfig do
       ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET
       GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
       GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET
+      APPLE_CLIENT_ID APPLE_TEAM_ID APPLE_KEY_ID APPLE_PRIVATE_KEY
+      AUTH0_CLIENT_ID AUTH0_CLIENT_SECRET AUTH0_DOMAIN
       SSO_FORM_ACTION_ORIGINS
     ]
   end
@@ -77,6 +79,42 @@ RSpec.describe Onetime::AuthConfig do
     described_class.instance
   end
 
+  # The origins allowed to RECEIVE the redirect (CSP form-action) and the
+  # origins allowed to POST a callback BACK (HttpOriginOptions) have to be the
+  # same set, or a flow can start and not finish. #sso_idp_origins exists so
+  # the per-request middleware caller can ask that question without tripping
+  # #sso_form_action_origins' split-endpoint warning on every request; these
+  # pin the two properties that split relies on.
+  describe '#sso_idp_origins' do
+    it 'returns the same origins as the CSP form-action set' do
+      config = fresh_config(
+        'GITHUB_CLIENT_ID' => 'id', 'GITHUB_CLIENT_SECRET' => 'secret',
+        'AUTH0_CLIENT_ID' => 'id', 'AUTH0_CLIENT_SECRET' => 'secret',
+        'AUTH0_DOMAIN' => 'https://tenant.us.auth0.com',
+      )
+      expect(config.sso_idp_origins)
+        .to match_array(config.sso_form_action_origins)
+    end
+
+    it 'includes the SSO_FORM_ACTION_ORIGINS override' do
+      # An operator-declared IdP origin is trusted for both directions.
+      config = fresh_config('SSO_FORM_ACTION_ORIGINS' => 'https://idp.example.org')
+      expect(config.sso_idp_origins).to include('https://idp.example.org')
+    end
+
+    it 'returns [] when nothing is configured' do
+      expect(fresh_config.sso_idp_origins).to eq([])
+    end
+
+    # The whole reason for the split: the middleware calls this per request,
+    # and #sso_form_action_origins logs a warning in exactly this combination.
+    it 'does not log when an override is set with no active provider' do
+      expect(OT).not_to receive(:lw)
+      config = fresh_config('SSO_FORM_ACTION_ORIGINS' => 'https://idp.example.org')
+      config.sso_idp_origins
+    end
+  end
+
   describe '#sso_form_action_origins' do
     it 'returns [] when nothing is configured' do
       expect(fresh_config.sso_form_action_origins).to eq([])
@@ -92,6 +130,66 @@ RSpec.describe Onetime::AuthConfig do
     it 'includes the GitHub origin when GitHub is active' do
       config = fresh_config('GITHUB_CLIENT_ID' => 'id', 'GITHUB_CLIENT_SECRET' => 'secret')
       expect(config.sso_form_action_origins).to contain_exactly('https://github.com')
+    end
+
+    it 'includes the Apple origin when Apple is active' do
+      config = fresh_config(
+        'APPLE_CLIENT_ID' => 'com.example.web',
+        'APPLE_TEAM_ID' => 'TEAM123456',
+        'APPLE_KEY_ID' => 'KEY1234567',
+        'APPLE_PRIVATE_KEY' => 'pem',
+      )
+      expect(config.sso_form_action_origins).to contain_exactly('https://appleid.apple.com')
+    end
+
+    # Auth0 is the second :idp_origin_from provider after OIDC — its origin is
+    # derived from the tenant URL rather than being a fixed string, and the
+    # issuer's trailing slash must not leak into the origin.
+    it 'derives the Auth0 origin from AUTH0_DOMAIN' do
+      config = fresh_config(
+        'AUTH0_CLIENT_ID' => 'id',
+        'AUTH0_CLIENT_SECRET' => 'secret',
+        'AUTH0_DOMAIN' => 'https://tenant.us.auth0.com/',
+      )
+      expect(config.sso_form_action_origins).to contain_exactly('https://tenant.us.auth0.com')
+    end
+
+    # THE REASON AUTH0_DOMAIN IS DOCUMENTED AS A FULL URL, and the reason
+    # Onetime::SsoProvider::Auth0.issuer_value raises on a schemeless value at
+    # boot: this layer cannot rescue the mistake. origin_from_url rejects
+    # anything without an http(s) scheme, so Auth0's own bare-hostname
+    # convention would authenticate while contributing no form-action origin —
+    # a CSP break visible only in a browser. This spec pins the gap the boot
+    # guard exists to close; it is not the behaviour operators should hit.
+    it 'contributes no origin when AUTH0_DOMAIN omits the scheme' do
+      config = fresh_config(
+        'AUTH0_CLIENT_ID' => 'id',
+        'AUTH0_CLIENT_SECRET' => 'secret',
+        'AUTH0_DOMAIN' => 'tenant.us.auth0.com',
+      )
+      expect(config.sso_form_action_origins).to eq([])
+    end
+
+    # And it must not be ADVERTISED either. Before :vars_valid, a schemeless
+    # domain passed the presence-only gate, so the login and invite pages
+    # rendered an Auth0 button while configure_provider skipped registration —
+    # the button pointed at an /auth/sso/auth0 route that did not exist.
+    it 'does not advertise Auth0 when AUTH0_DOMAIN omits the scheme' do
+      config = fresh_config(
+        'AUTH0_CLIENT_ID' => 'id',
+        'AUTH0_CLIENT_SECRET' => 'secret',
+        'AUTH0_DOMAIN' => 'tenant.us.auth0.com',
+      )
+      expect(config.sso_providers.map { |p| p['route_name'] }).not_to include('auth0')
+    end
+
+    it 'advertises Auth0 once the scheme is supplied' do
+      config = fresh_config(
+        'AUTH0_CLIENT_ID' => 'id',
+        'AUTH0_CLIENT_SECRET' => 'secret',
+        'AUTH0_DOMAIN' => 'https://tenant.us.auth0.com',
+      )
+      expect(config.sso_providers.map { |p| p['route_name'] }).to include('auth0')
     end
 
     it 'includes the (commercial-cloud) Entra origin when Entra is active' do
