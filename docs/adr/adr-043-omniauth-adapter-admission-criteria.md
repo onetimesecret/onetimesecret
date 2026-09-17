@@ -43,8 +43,8 @@ needs rather than branding preferences.
 The default is to integrate an IdP through generic OIDC and to document that
 configuration. A proposal to add a bespoke OmniAuth strategy must first answer
 whether the IdP can support login through OIDC at all. If it can, a provider
-strategy is redundant unless it qualifies for the market-and-operator-
-experience exception below.
+strategy is redundant unless it qualifies for the market-and-operator-experience
+exception below.
 
 A bespoke strategy is admissible only when at least one of these conditions is
 true:
