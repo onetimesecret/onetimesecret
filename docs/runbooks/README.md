@@ -24,6 +24,10 @@ happens, and the steps to resolve or verify.
   root SECRET; diagnosing and recovering from a SECRET mismatch.
 - [sentry-retention-policy.md](./sentry-retention-policy.md) — Sentry data
   retention policy and its operational implications.
+- [sso-accounts-unverified.md](./sso-accounts-unverified.md) — Repairing
+  SSO-provisioned customers left unverified before v0.26.5, so their colonel /
+  admin / staff role takes effect (`bin/ots customers doctor --all --repair`);
+  what a `verification_hold` means and why the doctor will not repair it.
 - [tenant-sso-csp-form-action.md](./tenant-sso-csp-form-action.md) — Diagnosing a
   custom-domain SSO button that does nothing because CSP `form-action` blocked
   the redirect to the tenant's IdP; the `TenantCspExtras` log signals and what
