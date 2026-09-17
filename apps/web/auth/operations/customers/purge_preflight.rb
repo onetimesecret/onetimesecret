@@ -427,7 +427,9 @@ module Auth
         end
 
         def ownership_blockers(org, owner_memberships, live_members)
-          owner_id = org.owner_id.to_s
+          # A legacy `owner_id` holding the target's custid names the same person
+          # as their objid; resolve it before comparing against member objids.
+          owner_id = customer_reference?(org.owner_id) ? customer_objid : org.owner_id.to_s
           blockers = []
           blockers << :owner_id_missing if owner_id.empty?
           blockers << :owner_missing unless owner_id.empty? || live_members[owner_id]
