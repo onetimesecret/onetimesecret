@@ -24,9 +24,25 @@ module Onetime
     RESTRICT_TO_VALUES = %w[password email_auth webauthn sso].freeze
 
     # CustomDomain::SsoConfig provider types whose IdP origin comes from the
-    # TENANT's own record (its issuer) rather than from the static provider
-    # registry. See #tenant_origin_source, which is what reads this.
-    ISSUER_DERIVED_PROVIDER_TYPES = %w[oidc].freeze
+    # TENANT's own record rather than from the static provider registry,
+    # mapped to the record FIELD that holds the URL the browser is sent to.
+    # See #tenant_origin_source, which is what reads this.
+    #
+    #   oidc -> issuer                the issuer's origin (best-effort; see the
+    #                                 split-endpoint caveat on #tenant_idp_origin)
+    #   saml -> idp_sso_service_url   (#4450) the SSO endpoint's origin — NOT
+    #                                 idp_entity_id, which is an opaque name,
+    #                                 often a URN and often on another host.
+    #                                 Same choice as the platform definition's
+    #                                 :idp_origin_from.
+    #
+    # A type listed here must NEVER fall through to the registry lookup in
+    # #tenant_idp_origin: the registry's oidc/saml definitions read the
+    # PLATFORM's env vars, which name a different IdP (or none).
+    TENANT_ORIGIN_SOURCE_FIELDS = {
+      'oidc' => :issuer,
+      'saml' => :idp_sso_service_url,
+    }.freeze
 
     attr_reader :config, :path, :mode, :environment
 
@@ -549,7 +565,13 @@ module Onetime
     # configured as provider type oidc with its sovereign v2.0 issuer, which
     # this method then derives the origin from like any other tenant OIDC.
     #
-    # Non-oidc types resolve through SsoConfig::PROVIDER_ROUTE_MAP (the same
+    # SAML (#4450) derives from the record's idp_sso_service_url the same way
+    # — see TENANT_ORIGIN_SOURCE_FIELDS. One origin, two consumers that must
+    # agree: TenantCspExtras admits it into form-action (the browser is sent
+    # there) and HttpOriginOptions admits it as the Origin of the HTTP-POST
+    # binding's cross-site callback (the browser comes back from there).
+    #
+    # Record-derived types aside, types resolve through SsoConfig::PROVIDER_ROUTE_MAP (the same
     # provider_type -> route mapping the tenant strategy registration uses)
     # to a registry definition, then through #provider_origin — so a future
     # tenant provider type needs a route-map entry plus a registry
@@ -571,9 +593,9 @@ module Onetime
       provider_type = sso_config&.provider_type
       return nil if provider_type.nil?
 
-      # Issuer-derived types read the tenant record's own issuer — the
-      # registry's oidc definition points at the PLATFORM env var, which
-      # would be the wrong tenant's (or no) issuer here. #tenant_origin_source
+      # Record-derived types read the tenant record's own field — the
+      # registry's oidc/saml definitions point at the PLATFORM env vars, which
+      # would be the wrong tenant's (or no) IdP here. #tenant_origin_source
       # owns that dispatch so callers who need to reason about the SOURCE
       # (rather than the derived origin) cannot drift out of step with it.
       source = tenant_origin_source(sso_config)
@@ -604,21 +626,35 @@ module Onetime
     # registry instead of the tenant record.
     #
     # This is the single source of truth for which provider types read the
-    # tenant's issuer: #tenant_idp_origin dispatches on it, and
-    # Onetime::Middleware::TenantCspExtras uses it to tell an operator
-    # misconfiguration (tenant typed a bad issuer — fixable by editing the
-    # record) apart from route-map/registry drift (a deploy-side bug, where
-    # naming the issuer would name the wrong cause). Adding a second
-    # issuer-reading provider type is one entry here and both stay correct.
+    # tenant's own record, and WHICH FIELD (TENANT_ORIGIN_SOURCE_FIELDS: oidc
+    # -> issuer, saml -> idp_sso_service_url): #tenant_idp_origin dispatches
+    # on it, and Onetime::Middleware::TenantCspExtras uses it to tell an
+    # operator misconfiguration (tenant typed a bad URL — fixable by editing
+    # the record) apart from route-map/registry drift (a deploy-side bug,
+    # where naming the record would name the wrong cause). Adding another
+    # record-derived provider type is one map entry and both stay correct.
     #
-    # A blank issuer returns '' rather than nil: the type IS issuer-derived,
-    # the tenant just left it empty. Callers distinguish "not issuer-derived"
-    # (nil) from "issuer-derived but unset" (empty) — origin_from_url maps
+    # A blank field returns '' rather than nil: the type IS record-derived,
+    # the tenant just left it empty. Callers distinguish "not record-derived"
+    # (nil) from "record-derived but unset" (empty) — origin_from_url maps
     # both to no origin.
+    #
+    # ENCRYPTED SOURCE FIELDS (the SAML trio is AAD-bound, #4450) are
+    # revealed here. A value that will not decrypt answers '' — no origin, so
+    # neither form-action nor HttpOrigin is widened for it. That is the
+    # fail-closed direction, and this per-request path is deliberately silent
+    # about it: the login itself refuses the same record loudly
+    # (:omniauth_tenant_config_unusable) and the config API flags it
+    # (unreadable_fields).
     def tenant_origin_source(sso_config)
-      return nil unless ISSUER_DERIVED_PROVIDER_TYPES.include?(sso_config&.provider_type.to_s)
+      field = TENANT_ORIGIN_SOURCE_FIELDS[sso_config&.provider_type.to_s]
+      return nil if field.nil?
 
-      sso_config.issuer.to_s.strip
+      value = sso_config.public_send(field)
+      value = value.reveal { it } if value.respond_to?(:reveal)
+      value.to_s.strip
+    rescue StandardError
+      ''
     end
 
     private

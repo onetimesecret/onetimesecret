@@ -315,7 +315,7 @@ module AuthModeHelpers
     end
 
     def tenant_origin_delegate
-      @tenant_origin_delegate ||= Onetime::AuthConfig.allocate
+      @tenant_origin_delegate ||= Onetime::AuthConfig.send(:allocate)
     end
   end
 

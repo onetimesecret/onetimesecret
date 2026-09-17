@@ -237,6 +237,121 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
     end
   end
 
+  # #4450. A TENANT's SAML IdP posts the SAMLResponse to the tenant's own
+  # custom domain. Its origin lives in a per-domain record, so it is not in
+  # AuthConfig#sso_idp_origins; it is admitted per request, for the request's
+  # own domain only, from the SAME resolution + origin derivation that
+  # TenantCspExtras uses for form-action.
+  describe 'form_post SSO callback from the request domain\'s own tenant IdP' do
+    let(:tenant_idp_origin) { 'https://login.tenant-idp.example' }
+
+    # The REAL origin derivation (tenant_origin_source -> origin_from_url),
+    # with only the platform set stubbed empty: what is pinned here is that
+    # HttpOrigin admits exactly what AuthConfig#tenant_idp_origin answers.
+    let(:auth_config) do
+      Onetime::AuthConfig.send(:allocate).tap { |config| allow(config).to receive(:sso_idp_origins).and_return([]) }
+    end
+
+    def concealed(plaintext)
+      Class.new { define_method(:reveal) { |&block| block.call(plaintext) } }.new
+    end
+
+    def saml_config(url = 'https://login.tenant-idp.example/app/sso/saml')
+      double('CustomDomain::SsoConfig', provider_type: 'saml', idp_sso_service_url: concealed(url))
+    end
+
+    # @param sso_config [Object, nil] what the availability ladder resolved
+    def stub_resolution(sso_config, for_domain: custom_domain)
+      allow(Onetime::TenantSsoResolution).to receive(:for) do |env|
+        resolved = env['onetime.display_domain'] == for_domain ? sso_config : nil
+        instance_double(Onetime::TenantSsoResolution, sso_config: resolved)
+      end
+    end
+
+    before { allow(Onetime).to receive(:auth_config).and_return(auth_config) }
+
+    def tenant_callback(origin:, path: '/auth/sso/saml/callback', display_domain: custom_domain)
+      post(path,
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => origin,
+        'onetime.display_domain' => display_domain,
+      )
+    end
+
+    it 'allows the callback POST from the tenant IdP\'s SSO service origin' do
+      stub_resolution(saml_config)
+
+      expect(tenant_callback(origin: tenant_idp_origin)).to eq(200)
+    end
+
+    it 'admits the origin of the SSO service URL, not of the EntityID' do
+      stub_resolution(saml_config)
+
+      expect(tenant_callback(origin: 'https://entity.tenant-idp.example')).to eq(403)
+    end
+
+    it 'denies another tenant\'s IdP origin on this domain' do
+      stub_resolution(saml_config, for_domain: 'other-tenant.example.net')
+
+      expect(tenant_callback(origin: tenant_idp_origin)).to eq(403)
+    end
+
+    it 'denies when the domain has no AVAILABLE tenant SSO config' do
+      stub_resolution(nil)
+
+      expect(tenant_callback(origin: tenant_idp_origin)).to eq(403)
+    end
+
+    it 'denies without a display domain (never falls back to the Host header)' do
+      stub_resolution(saml_config, for_domain: '')
+
+      expect(tenant_callback(origin: tenant_idp_origin, display_domain: '')).to eq(403)
+      expect(Onetime::TenantSsoResolution).not_to have_received(:for)
+    end
+
+    it 'does NOT allow the request phase or a SAML sub-path' do
+      stub_resolution(saml_config)
+
+      %w[/auth/sso/saml /auth/sso/saml/metadata /auth/sso/saml/slo].each do |path|
+        expect(tenant_callback(origin: tenant_idp_origin, path: path)).to eq(403), path
+      end
+    end
+
+    it 'does not resolve the tenant at all for a same-origin POST' do
+      stub_resolution(saml_config)
+
+      post('/api/v3/anything', 'HTTP_HOST' => canonical_host, 'HTTP_ORIGIN' => "https://#{canonical_host}")
+
+      expect(Onetime::TenantSsoResolution).not_to have_received(:for)
+    end
+
+    it 'denies an unreadable (undecryptable) SSO service URL' do
+      unreadable = Class.new { def reveal = raise(Familia::EncryptionError, 'tag') }.new
+      stub_resolution(double('CustomDomain::SsoConfig', provider_type: 'saml', idp_sso_service_url: unreadable))
+
+      expect(tenant_callback(origin: tenant_idp_origin)).to eq(403)
+    end
+
+    it 'fails closed when the tenant resolution raises' do
+      allow(Onetime::TenantSsoResolution).to receive(:for).and_raise(Redis::CannotConnectError)
+      allow(OT).to receive(:lw)
+
+      expect(tenant_callback(origin: tenant_idp_origin)).to eq(403)
+      expect(OT).to have_received(:lw).with(/tenant SSO callback origin check failed: Redis::CannotConnectError/)
+    end
+
+    # Parity: the two tenant consumers cannot disagree, because this one asks
+    # the question TenantCspExtras asks. An OIDC tenant's issuer origin is
+    # therefore admitted too — harmless (its callback is a GET) and the price
+    # of having ONE answer.
+    it 'admits exactly AuthConfig#tenant_idp_origin for any record-derived type' do
+      oidc = double('CustomDomain::SsoConfig', provider_type: 'oidc', issuer: 'https://idp.tenant.example/realms/x')
+      stub_resolution(oidc)
+
+      expect(tenant_callback(origin: auth_config.tenant_idp_origin(oidc), path: '/auth/sso/oidc/callback')).to eq(200)
+    end
+  end
+
   describe 'consumers' do
     it 'is wired into the Security stack HttpOrigin component' do
       require 'onetime/middleware/security'

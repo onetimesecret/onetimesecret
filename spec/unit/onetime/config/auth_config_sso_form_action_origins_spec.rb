@@ -607,7 +607,7 @@ RSpec.describe Onetime::AuthConfig do
       double('CustomDomain::SsoConfig', provider_type: provider_type, issuer: issuer)
     end
 
-    it 'returns the stripped issuer for an issuer-derived provider type' do
+    it 'returns the stripped issuer for a record-derived provider type' do
       config = tenant_sso_config(provider_type: 'oidc', issuer: '  https://idp.example.com/x  ')
       expect(fresh_config.tenant_origin_source(config)).to eq('https://idp.example.com/x')
     end
@@ -619,7 +619,7 @@ RSpec.describe Onetime::AuthConfig do
       expect(instance.tenant_idp_origin(config)).to be_nil
     end
 
-    it "returns '' for an issuer-derived type whose issuer is unset" do
+    it "returns '' for a record-derived type whose source field is unset" do
       config = tenant_sso_config(provider_type: 'oidc', issuer: nil)
       expect(fresh_config.tenant_origin_source(config)).to eq('')
     end
@@ -635,12 +635,83 @@ RSpec.describe Onetime::AuthConfig do
       expect(instance.tenant_origin_source(nil)).to be_nil
     end
 
-    it 'covers every issuer-derived type declared in the constant' do
+    it 'reads, for every record-derived type, exactly the field the map names' do
       # Guards the drift this method exists to prevent: a type added to
-      # ISSUER_DERIVED_PROVIDER_TYPES must actually read the record's issuer.
-      described_class::ISSUER_DERIVED_PROVIDER_TYPES.each do |provider_type|
-        config = tenant_sso_config(provider_type: provider_type, issuer: 'https://idp.example.com')
+      # TENANT_ORIGIN_SOURCE_FIELDS must actually read THAT field of the
+      # record, and no other. A strict double answers only the named field,
+      # so reading any other one fails the example.
+      described_class::TENANT_ORIGIN_SOURCE_FIELDS.each do |provider_type, field|
+        config = double('CustomDomain::SsoConfig', provider_type: provider_type, field => 'https://idp.example.com')
         expect(fresh_config.tenant_origin_source(config)).to eq('https://idp.example.com')
+      end
+    end
+
+    it 'maps oidc to the issuer and saml to the SSO service URL — never the EntityID' do
+      expect(described_class::TENANT_ORIGIN_SOURCE_FIELDS)
+        .to eq('oidc' => :issuer, 'saml' => :idp_sso_service_url)
+    end
+
+    # Every record-derived type is a configurable tenant type. (The reverse is
+    # not required: entra_id resolves through the static registry.)
+    it 'names only configurable tenant provider types' do
+      expect(described_class::TENANT_ORIGIN_SOURCE_FIELDS.keys - Onetime::CustomDomain::SsoConfig::PROVIDER_TYPES)
+        .to eq([])
+    end
+
+    # ── saml (#4450): an AAD-bound encrypted source field ────────────
+    context 'with a saml config' do
+      # Stands in for Familia::ConcealedString: the value is only reachable
+      # through reveal { }.
+      def concealed(plaintext)
+        Class.new do
+          define_method(:reveal) { |&block| block.call(plaintext) }
+          define_method(:to_s) { '[CONCEALED]' }
+        end.new
+      end
+
+      def saml_config(url)
+        double('CustomDomain::SsoConfig', provider_type: 'saml', idp_sso_service_url: url)
+      end
+
+      it 'reveals the SSO service URL and derives its origin' do
+        config   = saml_config(concealed('  https://login.idp.example/app/saml/sso  '))
+        instance = fresh_config
+
+        expect(instance.tenant_origin_source(config)).to eq('https://login.idp.example/app/saml/sso')
+        expect(instance.tenant_idp_origin(config)).to eq('https://login.idp.example')
+      end
+
+      it 'never reads the platform SAML_IDP_SSO_SERVICE_URL through the registry' do
+        ENV['SAML_IDP_SSO_SERVICE_URL'] = 'https://platform-idp.example/sso'
+        config                          = saml_config(concealed('https://tenant-idp.example/sso'))
+
+        expect(fresh_config.tenant_idp_origin(config)).to eq('https://tenant-idp.example')
+      ensure
+        ENV.delete('SAML_IDP_SSO_SERVICE_URL')
+      end
+
+      it "answers '' and no origin for an unset field — not the registry fallback" do
+        ENV['SAML_IDP_SSO_SERVICE_URL'] = 'https://platform-idp.example/sso'
+        instance                        = fresh_config
+
+        expect(instance.tenant_origin_source(saml_config(nil))).to eq('')
+        expect(instance.tenant_idp_origin(saml_config(nil))).to be_nil
+      ensure
+        ENV.delete('SAML_IDP_SSO_SERVICE_URL')
+      end
+
+      it "fails closed to '' when the field cannot be decrypted" do
+        unreadable = Class.new { def reveal = raise(Familia::EncryptionError, 'auth tag') }.new
+        instance   = fresh_config
+
+        expect(instance.tenant_origin_source(saml_config(unreadable))).to eq('')
+        expect(instance.tenant_idp_origin(saml_config(unreadable))).to be_nil
+      end
+
+      it 'rejects a hostile SSO URL in the funnel' do
+        config = saml_config(concealed('https://a.example; script-src *'))
+
+        expect(fresh_config.tenant_idp_origin(config)).to be_nil
       end
     end
   end
