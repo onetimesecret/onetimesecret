@@ -4,6 +4,7 @@
 
 require 'auth/operations/teardown_account'
 require 'auth/operations/customers/purge_preflight'
+require 'auth/operations/customers/membership_snapshot'
 require 'onetime/operations/org/delete'
 require 'onetime/operations/memberships/remove'
 require 'onetime/models/colonel_audit_event'
@@ -70,22 +71,34 @@ module Auth
         #   the unbounded case, are logged only.
         # @param deep [Boolean] run the operator-grade global registry sweep in
         #   preflight. Off on request paths; see PurgePreflight#initialize.
+        # @param membership_snapshot [MembershipSnapshot, nil] the membership
+        #   registry captured once by a bulk run, so every shallow preflight of
+        #   this purge sees rows the organization's own `members` set lost.
+        # @param sweep_untracked_sessions [Boolean] let session revocation walk
+        #   the session keyspace for pre-sidecar blobs the tracked index never
+        #   saw. That walk is one bounded SCAN plus a decrypt per key, PER
+        #   ACCOUNT; a bulk inactivity sweep turns it off because its candidates
+        #   have been idle for months and every blob they could own has
+        #   expired. The tracked revocation still runs.
         def initialize(customer:, actor: nil, reason: nil, bulk_audit_context: nil,
                        authentication_closed: false, expected_plan_signature: nil,
-                       self_service: false, deep: false)
-          @customer                = customer
-          @self_service            = self_service
-          @deep                    = deep
-          @actor                   = actor || (self_service ? customer : nil)
-          @reason                  = normalize_reason(reason)
-          @bulk_audit_context      = bulk_audit_context
-          @authentication_closed   = authentication_closed
-          @expected_plan_signature = expected_plan_signature
-          @stage                   = :initialized
-          @completed_actions       = []
-          @completed_stages        = []
-          @planned_actions         = []
-          @mutation_started        = false
+                       self_service: false, deep: false, membership_snapshot: nil,
+                       sweep_untracked_sessions: true)
+          @customer                 = customer
+          @self_service             = self_service
+          @deep                     = deep
+          @membership_snapshot      = membership_snapshot
+          @sweep_untracked_sessions = sweep_untracked_sessions
+          @actor                    = actor || (self_service ? customer : nil)
+          @reason                   = normalize_reason(reason)
+          @bulk_audit_context       = bulk_audit_context
+          @authentication_closed    = authentication_closed
+          @expected_plan_signature  = expected_plan_signature
+          @stage                    = :initialized
+          @completed_actions        = []
+          @completed_stages         = []
+          @planned_actions          = []
+          @mutation_started         = false
         end
 
         def mutation_started?
@@ -143,6 +156,7 @@ module Auth
             on_mutation: method(:mark_mutation_started),
             authentication_closed: @authentication_closed,
             bulk_audit_context: @bulk_audit_authorization,
+            sweep_untracked_sessions: @sweep_untracked_sessions,
           ).call
           deletion.completed_stages.each { |completed| complete_stage(completed) }
           unless deletion.status == :success
@@ -248,7 +262,11 @@ module Auth
         # the two boundaries that matter (the initial plan and the final
         # post-teardown check) rather than once per action.
         def preflight(deep: false)
-          Auth::Operations::Customers::PurgePreflight.new(customer: @customer, deep: deep).call
+          Auth::Operations::Customers::PurgePreflight.new(
+            customer: @customer,
+            deep: deep,
+            membership_snapshot: @membership_snapshot,
+          ).call
         end
 
         def apply_cleanup(plan, extid, custid)

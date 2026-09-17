@@ -32,7 +32,7 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
     allow(contact_index).to receive(:get).and_return(nil)
     # The index is keyed verbatim, so production resolves holders through these
     # two finders. Route them back at the `get` double each example stubs.
-    allow(Onetime::Organization).to receive(:find_contact_email_claims) do |value|
+    allow(Onetime::Organization).to receive(:find_contact_email_claims) do |value, **_options|
       held = contact_index.get(value.to_s).to_s
       held.empty? ? {} : { value.to_s => held }
     end
@@ -447,6 +447,99 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
 
     expect(plan).not_to be_executable
     expect(plan.blockers).to include(hash_including(code: :contact_email_collision, org_id: 'on_foreign'))
+  end
+
+  it 'asks the contact-email finder for every spelling and refuses two holders' do
+    org              = organization
+    owner_membership = membership(
+      org_objid: org.objid,
+      customer_objid: customer.objid,
+      role: 'owner',
+    )
+    allow(customer).to receive(:participations)
+      .and_return(collection(["organization:#{org.objid}:members"]))
+    allow(customer).to receive(:organization_instances).and_return(collection([org]))
+    stub_organization_scan(org)
+    stub_membership_scan(owner_membership)
+    stub_membership_lookup(org, customer.objid => owner_membership)
+    allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
+    allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
+    # An exact hit exists, and a second spelling is held by ANOTHER organization.
+    # Only an exhaustive probe can see it.
+    allow(Onetime::Organization).to receive(:find_contact_email_claims)
+      .with('target@example.com', exhaustive: true)
+      .and_return('target@example.com' => org.objid, 'Target@Example.com' => 'org-other')
+
+    plan = described_class.new(customer: customer).call
+
+    expect(plan).not_to be_executable
+    expect(plan.blockers).to include(hash_including(code: :contact_email_index_ambiguous, holder_count: 2))
+  end
+
+  it 'sees a live membership the organization member set lost when given a registry snapshot' do
+    org               = organization
+    owner_membership  = membership(
+      org_objid: org.objid,
+      customer_objid: customer.objid,
+      role: 'owner',
+    )
+    # An ACTIVE row for another customer whose id is absent from org.members:
+    # shallow discovery derives rows from that set, so without the snapshot the
+    # workspace reads as sole-owned and is planned for deletion.
+    hidden_membership = membership(
+      org_objid: org.objid,
+      customer_objid: 'cust-hidden',
+      role: 'member',
+    )
+    allow(customer).to receive(:participations)
+      .and_return(collection(["organization:#{org.objid}:members"]))
+    allow(customer).to receive(:organization_instances).and_return(collection([org]))
+    stub_organization_scan(org)
+    stub_membership_lookup(org, customer.objid => owner_membership)
+    allow(Onetime::OrganizationMembership).to receive(:load)
+      .with(hidden_membership.objid).and_return(hidden_membership)
+    allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
+    allow(Onetime::Customer).to receive(:load).with('cust-hidden').and_return(double('Customer'))
+    allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
+
+    expect(described_class.new(customer: customer).call).to be_executable
+
+    snapshot = Auth::Operations::Customers::MembershipSnapshot.new(
+      org.objid => [owner_membership.objid, hidden_membership.objid],
+    )
+    plan = described_class.new(customer: customer, membership_snapshot: snapshot).call
+
+    expect(plan).not_to be_executable
+    expect(plan.blockers.map { |blocker| blocker[:code] }).to include(:membership_index_drift)
+    expect(plan.actions).to be_empty
+  end
+
+  it 'skips a snapshot row that no longer loads instead of reporting drift' do
+    org              = organization
+    owner_membership = membership(
+      org_objid: org.objid,
+      customer_objid: customer.objid,
+      role: 'owner',
+    )
+    allow(customer).to receive(:participations)
+      .and_return(collection(["organization:#{org.objid}:members"]))
+    allow(customer).to receive(:organization_instances).and_return(collection([org]))
+    stub_organization_scan(org)
+    stub_membership_lookup(org, customer.objid => owner_membership)
+    allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
+    allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
+
+    # Removed by an earlier candidate of the same bulk run: the snapshot still
+    # names it, the registry no longer has it.
+    snapshot = Auth::Operations::Customers::MembershipSnapshot.new(
+      org.objid => [owner_membership.objid, 'organization:org-personal:customer:cust-gone:org_membership'],
+    )
+    plan = described_class.new(customer: customer, membership_snapshot: snapshot).call
+
+    expect(plan).to be_executable
+    expect(plan.actions.map(&:type)).to eq([:delete_organization])
+    expect(Onetime::OrganizationMembership).to have_received(:load)
+      .with('organization:org-personal:customer:cust-gone:org_membership')
   end
 
   it 'blocks when organization discovery is incomplete' do

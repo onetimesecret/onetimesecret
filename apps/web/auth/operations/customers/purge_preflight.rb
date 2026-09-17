@@ -95,18 +95,24 @@ module Auth
         class AccountPurgeContext
           attr_reader :customer_objid
 
-          def initialize(customer:, organization_objid:, plan_signature:, deep: false)
+          def initialize(customer:, organization_objid:, plan_signature:, deep: false,
+                         membership_snapshot: nil)
             @customer             = customer
             @customer_objid       = customer.objid.to_s
             @organization_objid   = organization_objid.to_s
             @plan_signature       = plan_signature
             @deep                 = deep
+            @membership_snapshot  = membership_snapshot
           end
 
           def authorized_for?(organization)
             return false unless organization.objid.to_s == @organization_objid
 
-            plan = PurgePreflight.new(customer: @customer, deep: @deep).call
+            plan = PurgePreflight.new(
+              customer: @customer,
+              deep: @deep,
+              membership_snapshot: @membership_snapshot,
+            ).call
             return false unless plan.executable? && plan.signature == @plan_signature
 
             plan.actions.any? do |action|
@@ -130,9 +136,17 @@ module Auth
         #   reaches the same organizations through the customer's own reverse
         #   indexes (participations, organization_instances, default_org_id and
         #   the contact-email claim) and keeps every per-organization drift check.
-        def initialize(customer:, deep: false)
+        # @param membership_snapshot [MembershipSnapshot, nil] membership objids
+        #   grouped by organization, captured ONCE by a bulk run. Shallow
+        #   discovery otherwise derives an organization's rows from its own
+        #   `members` set, so a live row whose customer fell out of that set is
+        #   invisible and the workspace can read as sole-owned. The snapshot
+        #   closes that gap for every candidate of a sweep at the cost of one
+        #   registry read per run instead of one per preflight.
+        def initialize(customer:, deep: false, membership_snapshot: nil)
           @customer                    = customer
           @deep                        = deep
+          @membership_snapshot         = membership_snapshot
           @registered_org_ids          = {}
           @blockers                    = []
           @organizations               = {}
@@ -207,6 +221,13 @@ module Auth
         # invitation sets. The target's row is loaded directly, which keeps the
         # drift signals about the purge target itself exact even when the org's
         # collections are inconsistent.
+        #
+        # A row whose customer is missing from `members` is only reachable
+        # through the registry. Without a snapshot that residual is accepted on
+        # request paths (the through-model writes the row and the set together);
+        # a bulk run supplies one so the union is complete for every candidate.
+        # Snapshot rows are re-loaded, so a row removed since the capture is
+        # skipped rather than reported as drift.
         def discover_memberships_for_candidates
           @organizations.keys.dup.each do |org_id|
             org = @organizations[org_id]
@@ -219,6 +240,10 @@ module Auth
 
             org.pending_invitations.to_a.each do |objid|
               bucket(Onetime::OrganizationMembership.load(objid.to_s), org_id)
+            end
+
+            @membership_snapshot&.objids_for(org_id)&.each do |objid|
+              bucket(Onetime::OrganizationMembership.load(objid), org_id)
             end
           end
         end
@@ -295,12 +320,14 @@ module Auth
         # `contact_email_index` is keyed verbatim, so the holder is resolved
         # through the tolerant finder rather than a normalized HGET — otherwise a
         # Stripe-synced `Jane.Doe@Example.com` reads as unclaimed here and as
-        # drifted in {#contact_index_blockers}, refusing the purge forever.
+        # drifted in {#contact_index_blockers}, refusing the purge forever. The
+        # probe is exhaustive: an exact hit must not hide a second spelling held
+        # by a different organization, which is the ambiguity refused below.
         def discover_contact_email_holder
           email = normalized_customer_email
           return if email.empty?
 
-          holder_ids = Onetime::Organization.find_contact_email_claims(email)
+          holder_ids = Onetime::Organization.find_contact_email_claims(email, exhaustive: true)
             .values.map(&:to_s).reject(&:empty?).uniq
           if holder_ids.size > 1
             add_blocker(:contact_email_index_ambiguous, holder_count: holder_ids.size)
@@ -482,13 +509,16 @@ module Auth
           blockers.uniq
         end
 
-        # Content of the sole-owner default workspace that is deleted WITH the
-        # organization: receipts, the workspace description, a contact address
-        # that diverged from the account's (the billing-email sync writes it),
-        # and outstanding invitations the departing owner sent. None of it
-        # belongs to another party, so none of it is a reason to refuse an
-        # erasure request. Reported so an operator can still see what a purge
-        # removed. Drift-shaped signals stay in {#owned_workspace_blockers}.
+        # Content of the sole-owner default workspace that goes WITH the
+        # organization: the workspace description, a contact address that
+        # diverged from the account's (the billing-email sync writes it), and
+        # outstanding invitations the departing owner sent. Receipts are listed
+        # for the same reason but are not destroyed by any purge path: the
+        # organization's receipt index is dropped with it, while the Receipt
+        # and Secret records are TTL-bound and expire on their own schedule.
+        # None of it belongs to another party, so none of it is a reason to
+        # refuse an erasure request. Reported so an operator can still see what
+        # a purge removed. Drift-shaped signals stay in {#owned_workspace_blockers}.
         def owned_workspace_notes(org)
           notes = []
           notes << :has_receipts if org.receipt_count.to_i.positive?
@@ -597,6 +627,7 @@ module Auth
                 organization_objid: action.organization.objid,
                 plan_signature: signature,
                 deep: @deep,
+                membership_snapshot: @membership_snapshot,
               ),
             )
           end

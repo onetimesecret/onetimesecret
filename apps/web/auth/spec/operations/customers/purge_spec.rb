@@ -82,6 +82,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       on_mutation: kind_of(Method),
       authentication_closed: false,
       bulk_audit_context: nil,
+      sweep_untracked_sessions: true,
     )
     expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       actor: 'ur_col',
@@ -92,6 +93,26 @@ RSpec.describe Auth::Operations::Customers::Purge do
       # #4333: the account is destroyed before this line runs, so an
       # unwritable event cannot be recovered from anywhere else.
       fail_closed: true,
+    )
+  end
+
+  it 'hands the bulk membership snapshot to every preflight and declines the session sweep' do
+    snapshot = Auth::Operations::Customers::MembershipSnapshot.new({})
+
+    result = described_class.new(
+      customer: customer,
+      actor: 'cli',
+      membership_snapshot: snapshot,
+      sweep_untracked_sessions: false,
+    ).call
+
+    expect(result.status).to eq(:success)
+    expect(Auth::Operations::Customers::PurgePreflight).to have_received(:new)
+      .with(customer: customer, deep: false, membership_snapshot: snapshot).at_least(:twice)
+    expect(Auth::Operations::Customers::PurgePreflight).not_to have_received(:new)
+      .with(hash_including(membership_snapshot: nil))
+    expect(Auth::Operations::TeardownAccount).to have_received(:new).with(
+      hash_including(sweep_untracked_sessions: false),
     )
   end
 
@@ -106,6 +127,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       on_mutation: kind_of(Method),
       authentication_closed: false,
       bulk_audit_context: nil,
+      sweep_untracked_sessions: true,
     )
   end
 
@@ -205,6 +227,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       on_mutation: kind_of(Method),
       authentication_closed: false,
       bulk_audit_context: nil,
+      sweep_untracked_sessions: true,
     )
   end
 
@@ -258,6 +281,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       on_mutation: kind_of(Method),
       authentication_closed: false,
       bulk_audit_context: kind_of(Onetime::Operations::BulkAuditContext::CandidateAuthorization),
+      sweep_untracked_sessions: true,
     )
     expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       hash_including(verb: 'customer.purge.bulk', result: :started)

@@ -4,6 +4,11 @@ require_relative 'cli_spec_helper'
 
 RSpec.describe Onetime::CLI::CustomersPurgeCommand do
   let(:command) { described_class.new }
+  let(:membership_snapshot) { Auth::Operations::Customers::MembershipSnapshot.new({}) }
+
+  before do
+    allow(Auth::Operations::Customers::MembershipSnapshot).to receive(:capture).and_return(membership_snapshot)
+  end
 
   def capture_stdout
     original = $stdout
@@ -21,14 +26,42 @@ RSpec.describe Onetime::CLI::CustomersPurgeCommand do
     context = instance_double(Onetime::Operations::BulkAuditContext)
     cutoff = Time.utc(2024, 1, 2)
 
+    # The registry snapshot is captured once per run and shared by every
+    # candidate; the per-account untracked-session keyspace walk is declined.
     expect(Auth::Operations::Customers::Purge).to receive(:new).with(
       customer: customer,
       actor: Onetime::CLI::Customers::Shared::CLI_ACTOR,
       reason: 'bulk inactivity purge before 2024-01-02',
       bulk_audit_context: context,
+      membership_snapshot: membership_snapshot,
+      sweep_untracked_sessions: false,
     ).and_return(operation)
 
-    expect(command.send(:purge_customer, customer, cutoff, context)).to equal(result)
+    expect(command.send(:purge_customer, customer, cutoff, context, membership_snapshot)).to equal(result)
+  end
+
+  it 'captures the membership registry once per run, after the start receipt, and shares it' do
+    customer     = double('customer')
+    cache_redis  = double('cache redis', zcard: 2, zrem: 1)
+    source_redis = double('source redis')
+    result       = instance_double(Auth::Operations::Customers::Purge::Result, status: :success)
+    records      = {
+      'cust_1' => { _model: customer, email: 'a@example.com' },
+      'cust_2' => { _model: customer, email: 'b@example.com' },
+    }
+
+    command.instance_variable_set(:@using_remote, false)
+    allow(command).to receive(:batch_load_customer_records).and_return(records)
+    allow(Onetime::ColonelAuditEvent).to receive(:record).and_return('id' => 'receipt')
+    allow(command).to receive(:purge_customer).and_return(result)
+
+    capture_stdout do
+      command.send(:execute_purge, source_redis, cache_redis, %w[cust_1 cust_2], Time.utc(2024, 1, 2))
+    end
+
+    expect(Auth::Operations::Customers::MembershipSnapshot).to have_received(:capture).once
+    expect(command).to have_received(:purge_customer)
+      .with(customer, kind_of(Time), kind_of(Onetime::Operations::BulkAuditContext), membership_snapshot).twice
   end
 
   it 'records bounded start and completion receipts instead of one event per candidate' do

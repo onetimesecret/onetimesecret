@@ -259,8 +259,16 @@ module Onetime
 
         bulk_audit_context = start_bulk_audit(cutoff: cutoff, candidate_targets: candidates)
 
+        # One registry read for the whole run: every candidate's shallow
+        # preflight unions these rows with the organization's own member set,
+        # so a live membership that fell out of that set cannot make a shared
+        # workspace read as sole-owned. See MembershipSnapshot.
+        membership_snapshot = Auth::Operations::Customers::MembershipSnapshot.capture
+
         puts "PURGING #{total} candidates inactive since #{cutoff.strftime('%Y-%m-%d')}..."
         puts '(Every customer is preflighted; blocked customers are preserved)'
+        puts "(Membership registry snapshot: #{membership_snapshot.size} rows " \
+             "across #{membership_snapshot.organization_count} organizations)"
         puts
 
         candidates.each_slice(BATCH_SIZE).with_index do |batch, batch_idx|
@@ -292,7 +300,7 @@ module Onetime
                 next
               end
 
-              result = purge_customer(cust, cutoff, bulk_audit_context)
+              result = purge_customer(cust, cutoff, bulk_audit_context, membership_snapshot)
 
               case result.status
               when :success
@@ -493,12 +501,18 @@ module Onetime
         end
       end
 
-      def purge_customer(customer, cutoff, bulk_audit_context)
+      # Candidates have been idle past the cutoff, so every session blob they
+      # could own has expired: the per-account keyspace walk for untracked
+      # sessions is declined (the tracked revocation still runs). See
+      # Purge#initialize.
+      def purge_customer(customer, cutoff, bulk_audit_context, membership_snapshot)
         Auth::Operations::Customers::Purge.new(
           customer: customer,
           actor: Customers::Shared::CLI_ACTOR,
           reason: "bulk inactivity purge before #{cutoff.strftime('%Y-%m-%d')}",
           bulk_audit_context: bulk_audit_context,
+          membership_snapshot: membership_snapshot,
+          sweep_untracked_sessions: false,
         ).call
       end
 
