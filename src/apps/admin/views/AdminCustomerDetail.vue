@@ -215,6 +215,26 @@
    * once a status is present, unknown values fail closed rather than navigating
    * away from a customer whose teardown may be incomplete.
    */
+  /**
+   * One list section of the failure message. Blockers, planned cleanup,
+   * completed cleanup and completed stages differ only in their i18n key and
+   * argument name, so they share one renderer.
+   */
+  function lifecycleListPart(
+    items: string[],
+    key: string,
+    argName: string,
+    label: string
+  ): string | null {
+    if (!items.length) return null;
+    const value = items.join('; ');
+    return translatedResult(
+      `web.admin.customers.actions.purge.${key}`,
+      { [argName]: value },
+      `${label}: ${value}.`
+    );
+  }
+
   function purgeLifecycleFailure(
     primary: ColonelUserPurgeLifecycleResult,
     fallback: ColonelUserPurgeLifecycleResult = {}
@@ -233,46 +253,35 @@
         )
       );
     }
-    if (lifecycle.blockers.length) {
-      const value = lifecycle.blockers.map(formatLifecycleItem).join('; ');
-      parts.push(
-        translatedResult(
-          'web.admin.customers.actions.purge.resultBlockers',
-          { blockers: value },
-          `Blockers: ${value}.`
-        )
-      );
-    }
-    if (lifecycle.plannedActions.length) {
-      const value = lifecycle.plannedActions.map(formatLifecycleItem).join('; ');
-      parts.push(
-        translatedResult(
-          'web.admin.customers.actions.purge.resultPlannedActions',
-          { actions: value },
-          `Planned cleanup: ${value}.`
-        )
-      );
-    }
-    if (lifecycle.actions.length) {
-      const value = lifecycle.actions.map(formatLifecycleItem).join('; ');
-      parts.push(
-        translatedResult(
-          'web.admin.customers.actions.purge.resultActions',
-          { actions: value },
-          `Completed cleanup: ${value}.`
-        )
-      );
-    }
-    if (lifecycle.completedStages.length) {
-      const value = lifecycle.completedStages.join(', ');
-      parts.push(
-        translatedResult(
-          'web.admin.customers.actions.purge.resultCompletedStages',
-          { stages: value },
-          `Completed stages: ${value}.`
-        )
-      );
-    }
+
+    const sections = [
+      lifecycleListPart(
+        lifecycle.blockers.map(formatLifecycleItem),
+        'resultBlockers',
+        'blockers',
+        'Blockers'
+      ),
+      lifecycleListPart(
+        lifecycle.plannedActions.map(formatLifecycleItem),
+        'resultPlannedActions',
+        'actions',
+        'Planned cleanup'
+      ),
+      lifecycleListPart(
+        lifecycle.actions.map(formatLifecycleItem),
+        'resultActions',
+        'actions',
+        'Completed cleanup'
+      ),
+      lifecycleListPart(
+        lifecycle.completedStages,
+        'resultCompletedStages',
+        'stages',
+        'Completed stages'
+      ),
+    ];
+    parts.push(...sections.filter((part): part is string => part !== null));
+
     return parts.join(' ');
   }
 
