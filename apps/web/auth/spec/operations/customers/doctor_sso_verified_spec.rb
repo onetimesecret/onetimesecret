@@ -16,6 +16,10 @@
 #     The repair copies a fact the auth store holds; it never decides one.
 #   * The repair writes REDIS ONLY (rodauth_already_synced: true) and PRESERVES
 #     an existing verified_by rather than relabelling it 'sso'.
+#   * A verification_hold is HONOURED — a record the JIT hook deliberately left
+#     unverified (the IdP asserted email_verified: false, or the claim could
+#     not be read) is reported at :medium as not repairable, and --repair
+#     never touches it.
 #
 # Follows doctor_email_drift_spec.rb: the check is private and is exercised
 # directly, so a failure names this check rather than dragging in the nine
@@ -33,6 +37,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
 
   let(:verified)            { false }
   let(:verified_by)         { nil }
+  let(:verification_hold)   { nil }
   let(:provisioning_origin) { 'sso_jit' }
   let(:account_status)      { Auth::AccountStatuses::VERIFIED }
   let(:account_row)         { { id: 42, email: 'sso@example.com', status_id: account_status } }
@@ -47,6 +52,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       organization_instances: [],
       verified?: verified,
       verified_by: verified_by,
+      verification_hold: verification_hold,
       provisioning_origin: provisioning_origin,
     )
   end
@@ -180,6 +186,89 @@ RSpec.describe Auth::Operations::Customers::Doctor do
 
       expect { run(repair: true) }.not_to raise_error
       expect(repaired).to be_empty
+    end
+  end
+
+  # The JIT hook leaves a Customer unverified ON PURPOSE when the IdP asserts
+  # email_verified: false or the claim cannot be read, and persists the reason
+  # as verification_hold. The accounts row is still Verified (rodauth-omniauth
+  # opens every SSO account that way), so without the hold this check would
+  # read the record as drift and --repair would undo the decision.
+  describe 'when verification was withheld at JIT (verification_hold set)' do
+    shared_examples 'a held record' do |expected_reason, message_fragment|
+      it "reports a medium, non-repairable issue with reason #{expected_reason}" do
+        run
+
+        expect(issues.size).to eq(1)
+        expect(issues.first).to include(
+          check: :sso_customer_unverified,
+          severity: :medium,
+          reason: expected_reason,
+          repairable: false,
+        )
+        expect(issues.first[:message]).to include(message_fragment)
+        expect(issues.first[:repair_action]).to include('Manual decision required')
+        expect(issues.first[:repair_action]).to include('bin/ots customers verify')
+      end
+
+      it 'does not repair even under repair: true' do
+        run(repair: true)
+
+        expect(verification_calls).to be_empty
+        expect(repaired).to be_empty
+        expect(issues.size).to eq(1)
+        expect(issues.first[:repairable]).to be false
+      end
+
+      context 'when the customer is already verified (operator verified by hand)' do
+        let(:verified) { true }
+
+        it 'reports nothing' do
+          run
+          expect(issues).to be_empty
+        end
+      end
+    end
+
+    context 'when the IdP asserted email_verified: false' do
+      let(:verification_hold) { 'idp_unverified' }
+
+      it_behaves_like 'a held record', :idp_unverified, 'IdP asserted email_verified: false'
+    end
+
+    context 'when the email_verified claim could not be read' do
+      let(:verification_hold) { 'claim_unreadable' }
+
+      it_behaves_like 'a held record', :claim_unreadable, 'could not be read'
+    end
+
+    # Every hold the model can carry has operator-facing wording here, so a
+    # new reason cannot be added to the model without the doctor learning it.
+    it 'has wording for every registered hold reason' do
+      expect(described_class::VERIFICATION_HOLD_MESSAGES.keys)
+        .to match_array(Onetime::Customer::VERIFICATION_HOLDS)
+    end
+  end
+
+  # Records that predate the field (nil) and ordinary drifted records read as
+  # not held, so the auto-repair path is unchanged for them.
+  describe 'when no verification_hold is recorded' do
+    let(:verification_hold) { nil }
+
+    it 'keeps the high, repairable drift issue' do
+      run
+
+      expect(issues.size).to eq(1)
+      expect(issues.first[:severity]).to eq(:high)
+      expect(issues.first[:repairable]).to be true
+      expect(issues.first).not_to have_key(:reason)
+    end
+
+    it 'still auto-repairs under repair: true' do
+      run(repair: true)
+
+      expect(verification_calls.size).to eq(1)
+      expect(repaired.size).to eq(1)
     end
   end
 

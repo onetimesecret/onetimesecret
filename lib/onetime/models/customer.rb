@@ -67,6 +67,21 @@ module Onetime
     # - sso_jit:          Just-in-time provisioning via OmniAuth/SSO
     PROVISIONING_ORIGINS = %w[canonical_signup domain_signup invite sso_jit].freeze
 
+    # Values for the verification_hold field: WHY an sso_jit customer was
+    # deliberately left unverified at JIT provisioning, even though Rodauth
+    # opened its accounts row at Verified. nil on every other record.
+    #
+    # - idp_unverified:  the IdP explicitly asserted email_verified: false
+    # - claim_unreadable: the email_verified claim could not be inspected (the
+    #                    auth hash raised while it was read); treated as a hold
+    #                    because an explicit false may be hiding behind the error
+    #
+    # Written once by Auth::Operations::EnsureCustomerForAccount and never
+    # rewritten. The customers doctor reports a held record for manual
+    # verification instead of auto-repairing it (see
+    # Auth::Operations::Customers::Doctor#check_sso_customer_unverified).
+    VERIFICATION_HOLDS = %w[idp_unverified claim_unreadable].freeze
+
     require_relative 'customer/features'
 
     using Familia::Refinements::TimeLiterals

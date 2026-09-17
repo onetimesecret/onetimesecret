@@ -78,6 +78,13 @@ module Auth
           invite_token cli_provision colonel_admin legacy
         ].freeze
 
+        # Operator-facing wording for each Onetime::Customer::VERIFICATION_HOLDS
+        # value the :sso_customer_unverified check can report.
+        VERIFICATION_HOLD_MESSAGES = {
+          'idp_unverified'   => 'the IdP asserted email_verified: false at sign-in',
+          'claim_unreadable' => "the IdP's email_verified claim could not be read at sign-in",
+        }.freeze
+
         # Counter fields to check
         COUNTER_FIELDS = [:secrets_created, :secrets_burned, :secrets_shared, :emails_sent].freeze
 
@@ -716,6 +723,17 @@ module Auth
         # An existing verified_by is PRESERVED — a customer who was
         # email-verified or stripe-verified keeps that provenance, and only a
         # record with no provenance at all is stamped 'sso'.
+        #
+        # A VERIFICATION HOLD IS HONOURED. The JIT hook leaves the Customer
+        # unverified on purpose when the IdP asserted email_verified: false,
+        # or when that claim could not be read, and stamps verification_hold
+        # with the reason so the decision survives without the auth hash this
+        # doctor never sees. Such a record is NOT drift: the accounts row is
+        # Verified only because rodauth-omniauth opens every SSO account that
+        # way. It is reported (so it does not silently linger) but never
+        # auto-repaired, even under --repair; an operator who has confirmed
+        # the address verifies it by hand (colonel admin, or
+        # `bin/ots customers verify`).
         def check_sso_customer_unverified(issues, repaired)
           return if @customer.verified?
           return unless @customer.provisioning_origin.to_s == 'sso_jit'
@@ -723,6 +741,21 @@ module Auth
           account = auth_account
           return if account.nil?
           return unless account[:status_id] == Auth::AccountStatuses::VERIFIED
+
+          hold = @customer.verification_hold.to_s
+          unless hold.empty?
+            issues << {
+              check: :sso_customer_unverified,
+              severity: :medium,
+              message: "SSO-provisioned customer is unverified on purpose: #{VERIFICATION_HOLD_MESSAGES.fetch(hold, hold)} " \
+                       '(auth account is Verified; not auto-repaired)',
+              reason: hold.to_sym,
+              repairable: false,
+              repair_action: 'Manual decision required: confirm the address with the IdP, then verify ' \
+                             'via colonel admin or `bin/ots customers verify EMAIL`',
+            }
+            return
+          end
 
           existing_provenance = @customer.verified_by.to_s
           provenance          = existing_provenance.empty? ? 'sso' : existing_provenance

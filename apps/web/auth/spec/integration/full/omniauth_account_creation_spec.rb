@@ -310,6 +310,75 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
         expect(customer.verified_by.to_s).to eq('')
       end
 
+      # verification_hold records WHY the SSO/JIT caller withheld the verified
+      # stamp, so the customers doctor can refuse to auto-repair it later. It is
+      # a persisted field, not an in-memory flag.
+      it 'threads verification_hold: through to the new Customer' do
+        email = unique_test_email('verification-hold')
+        account = create_test_account(email: email, status_id: AuthTestConstants::STATUS_VERIFIED)
+
+        customer = Auth::Operations::EnsureCustomerForAccount.new(
+          account_id: account[:id],
+          account: account,
+          provisioning_origin: 'sso_jit',
+          verified: false,
+          verification_hold: 'idp_unverified',
+        ).call
+        created_customers << customer
+
+        expect(customer.verified?).to be false
+        expect(customer.verification_hold).to eq('idp_unverified')
+        expect(customer.verification_held?).to be true
+
+        reloaded = Onetime::Customer.load(customer.custid)
+        expect(reloaded.verification_hold).to eq('idp_unverified')
+        expect(reloaded.verification_held?).to be true
+      end
+
+      it 'records no verification_hold by default' do
+        email = unique_test_email('verification-hold-default')
+        account = create_test_account(email: email)
+
+        customer = Auth::Operations::EnsureCustomerForAccount.new(
+          account_id: account[:id],
+          account: account,
+        ).call
+        created_customers << customer
+
+        expect(customer.verification_hold.to_s).to eq('')
+        expect(customer.verification_held?).to be false
+      end
+
+      # The hold vocabulary is enforced (Onetime::Customer::VERIFICATION_HOLDS),
+      # and a hold on a verified record is a contradiction. Both are refused in
+      # the initializer, before the email index is consulted or anything is
+      # written, so no such record can be created through this operation.
+      it 'refuses an unknown or contradictory verification_hold before creating anything' do
+        email = unique_test_email('verification-hold-bad')
+        account = create_test_account(email: email, status_id: AuthTestConstants::STATUS_VERIFIED)
+
+        expect do
+          Auth::Operations::EnsureCustomerForAccount.new(
+            account_id: account[:id],
+            account: account,
+            verification_hold: 'made_up',
+          )
+        end.to raise_error(ArgumentError, /made_up/)
+
+        expect do
+          Auth::Operations::EnsureCustomerForAccount.new(
+            account_id: account[:id],
+            account: account,
+            verified: true,
+            verified_by: 'sso',
+            verification_hold: 'idp_unverified',
+          )
+        end.to raise_error(ArgumentError, /contradicts verified: true/)
+
+        expect(Onetime::Customer.email_exists?(email)).to be false
+        expect(Auth::Database.connection[:accounts].where(id: account[:id]).get(:external_id)).to be_nil
+      end
+
       # Same "don't rewrite history" rule as provisioning_origin and
       # signup_domain_id: the existing-customer branch is a no-op, so this
       # operation can never upgrade an already-unverified record.

@@ -744,7 +744,8 @@ module Auth::Config::Hooks
         #      deployment opens SSO accounts unverified (or skip_status_checks?
         #      is on) the read is not VERIFIED and the Customer stays
         #      unverified — exactly the pre-fix behaviour.
-        #   3. The IdP did not EXPLICITLY assert email_verified: false.
+        #   3. The IdP did not EXPLICITLY assert email_verified: false, and the
+        #      claim could be read at all (email_verification_hold is nil).
         #
         # This only mirrors an auth-store fact onto the Customer record; it
         # grants nothing the accounts row does not already grant. It also
@@ -753,12 +754,28 @@ module Auth::Config::Hooks
         # because with verify_account disabled every ordinary password account
         # is VERIFIED too. Records that already drifted are handled by
         # `bin/ots customers doctor --repair` (:sso_customer_unverified).
-        account_status = db[:accounts].where(id: account_id).get(:status_id)
-        sso_verified   = account_status == Auth::AccountStatuses::VERIFIED &&
-                         !Auth::Config::Hooks::OmniAuth.idp_asserts_unverified_email?(
-                           info: omniauth_info,
-                           extra: omniauth_extra,
-                         )
+        #
+        # When gate 3 withholds the stamp, the REASON is persisted on the
+        # Customer as verification_hold. The doctor has no auth hash to
+        # consult, so without it the :sso_customer_unverified repair would
+        # later "heal" a deliberately-unverified record to verified. With it,
+        # the doctor reports the record for manual verification instead.
+        account_status    = db[:accounts].where(id: account_id).get(:status_id)
+        verification_hold = Auth::Config::Hooks::OmniAuth.email_verification_hold(
+          info: omniauth_info,
+          extra: omniauth_extra,
+        )
+        sso_verified      = account_status == Auth::AccountStatuses::VERIFIED && verification_hold.nil?
+
+        if verification_hold
+          Auth::Logging.log_auth_event(
+            :omniauth_verification_held,
+            level: :info,
+            account_id: account_id,
+            provider: omniauth_provider,
+            hold: verification_hold,
+          )
+        end
 
         # Create Customer record (same as regular signup)
         customer = Onetime::ErrorHandler.safe_execute(
@@ -774,6 +791,7 @@ module Auth::Config::Hooks
             signup_domain_id: signup_domain_id,
             verified: sso_verified,
             verified_by: sso_verified ? 'sso' : nil,
+            verification_hold: verification_hold,
           ).call
         end
 
@@ -886,35 +904,60 @@ module Auth::Config::Hooks
     end
     # rubocop:enable Metrics/PerceivedComplexity
 
-    # Did the IdP EXPLICITLY tell us the address is not verified?
+    # Why (if at all) the IdP's email_verified claim withholds the verified
+    # stamp from a JIT-provisioned Customer.
     #
-    # Only an explicit false is a veto. Absence is NOT: the claim is an OIDC
-    # optional, and several supported providers (Entra ID, plain OAuth2
-    # strategies, GitHub) never emit it at all — treating silence as
-    # "unverified" would leave those deployments in exactly the broken state
-    # the caller is fixing, while treating it as a positive signal would be us
-    # inventing an assertion the IdP never made. So this narrows the
-    # verified stamp and can never widen it.
+    # Two distinct reasons, kept apart because they call for different
+    # operator follow-up (see Onetime::Customer::VERIFICATION_HOLDS):
+    #
+    #   'idp_unverified'   — the IdP EXPLICITLY asserted email_verified: false.
+    #   'claim_unreadable' — a source raised while the claim was being read.
+    #                        FAIL CLOSED: that is not "no claim", it is a claim
+    #                        we could not inspect, and an explicit false may be
+    #                        hiding behind the error. The old blanket rescue in
+    #                        fetch_claim turned this into nil and minted a
+    #                        verified Customer. Logged at WARN.
+    #
+    # Absence is NOT a hold: the claim is an OIDC optional, and several
+    # supported providers (Entra ID, plain OAuth2 strategies, GitHub) never
+    # emit it at all — treating silence as "unverified" would leave those
+    # deployments in exactly the broken state the caller is fixing, while
+    # treating it as a positive signal would be us inventing an assertion the
+    # IdP never made. So this narrows the verified stamp and can never widen it.
     #
     # Looks in `info` first, then `extra.raw_info` (OIDC UserInfo / the decoded
     # id_token). Both may be a plain Hash or an OmniAuth::AuthHash, and may be
-    # string- or symbol-keyed, so every read goes through fetch_claim.
+    # string- or symbol-keyed, so every read goes through fetch_claim. Only the
+    # reads can raise; ordinary Hash access never does, so a StandardError here
+    # is always a misbehaving auth hash.
     #
     # @param info [Hash, OmniAuth::AuthHash, nil] omniauth_info
     # @param extra [Hash, OmniAuth::AuthHash, nil] omniauth_extra
-    # @return [Boolean] true only on an explicit false-y assertion
-    def self.idp_asserts_unverified_email?(info:, extra:)
+    # @return [String, nil] one of Onetime::Customer::VERIFICATION_HOLDS, or
+    #   nil when nothing withholds the stamp (claim absent, nil, or truthy)
+    def self.email_verification_hold(info:, extra:)
       claim = fetch_claim(info, 'email_verified')
       claim = fetch_claim(fetch_claim(extra, 'raw_info'), 'email_verified') if claim.nil?
-      return false if claim.nil?
+      return nil if claim.nil?
 
       # Some providers stringify the claim ("false"); false and "false" are the
-      # same assertion. Anything else (true, "true", 1, garbage) is not a veto.
-      claim.to_s.strip.downcase == 'false'
+      # same assertion. Anything else (true, "true", 1, garbage) is not a hold.
+      claim.to_s.strip.downcase == 'false' ? 'idp_unverified' : nil
+    rescue StandardError => ex
+      Auth::Logging.log_auth_event(
+        :omniauth_email_verified_claim_unreadable,
+        level: :warn,
+        error_class: ex.class.name,
+        error_message: ex.message,
+        info_class: info.class.name,
+        extra_class: extra.class.name,
+      )
+      'claim_unreadable'
     end
 
-    # Key-shape-tolerant single-key read. Returns nil for a missing key, an
-    # unindexable source, or any error — never raises into a callback.
+    # Key-shape-tolerant single-key read. Returns nil for a missing key or an
+    # unindexable source. Deliberately does NOT rescue: a source whose `[]`
+    # raises must surface to email_verification_hold, which fails closed.
     #
     # @param source [#[], nil]
     # @param key [String] string key; the symbol form is tried as a fallback
@@ -925,8 +968,6 @@ module Auth::Config::Hooks
       value = source[key]
       value = source[key.to_sym] if value.nil?
       value
-    rescue StandardError
-      nil
     end
 
     # Does the located account have a password the Phase 3 interstitial can
