@@ -99,9 +99,9 @@ module Onetime
 
         unless normalized.match?(%r{\Ahttps?://}i)
           raise ArgumentError,
-                'AUTH0_DOMAIN must be a full URL including the scheme ' \
-                "(e.g. https://#{normalized.chomp('/')}), not a bare hostname — " \
-                'the CSP form-action origin is derived from it'
+            'AUTH0_DOMAIN must be a full URL including the scheme ' \
+            "(e.g. https://#{normalized.chomp('/')}), not a bare hostname — " \
+            'the CSP form-action origin is derived from it'
         end
 
         "#{normalized.chomp('/')}/"

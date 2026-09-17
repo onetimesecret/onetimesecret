@@ -150,7 +150,7 @@ RSpec.describe Onetime::SsoProvider::Registry do
         APPLE_CLIENT_ID: 'com.example.web',
         APPLE_TEAM_ID: 'TEAM123456',
         APPLE_KEY_ID: 'KEY1234567',
-        APPLE_PRIVATE_KEY: "-----BEGIN PRIVATE KEY-----\nMHc=\n-----END PRIVATE KEY-----\n",
+        APPLE_PRIVATE_KEY: "-----BEGIN TEST KEY-----\nMHc=\n-----END TEST KEY-----\n",
         AUTH0_CLIENT_ID: 'cid',
         AUTH0_CLIENT_SECRET: 'cs',
         AUTH0_DOMAIN: 'https://tenant.us.auth0.com',
@@ -208,14 +208,14 @@ RSpec.describe Onetime::SsoProvider::Registry do
     # failure would surface as a per-request client-secret error at the Apple
     # request phase rather than at boot.
     it 'un-escapes a backslash-n encoded Apple private key' do
-      ClimateControl.modify(APPLE_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMHc=\n-----END PRIVATE KEY-----\n') do
+      ClimateControl.modify(APPLE_PRIVATE_KEY: '-----BEGIN TEST KEY-----\nMHc=\n-----END TEST KEY-----\n') do
         opts = described_class.fetch(:apple)[:strategy_options].call
-        expect(opts[:pem]).to eq("-----BEGIN PRIVATE KEY-----\nMHc=\n-----END PRIVATE KEY-----\n")
+        expect(opts[:pem]).to eq("-----BEGIN TEST KEY-----\nMHc=\n-----END TEST KEY-----\n")
       end
     end
 
     it 'leaves an already multi-line Apple private key untouched' do
-      pem = "-----BEGIN PRIVATE KEY-----\nMHc=\n-----END PRIVATE KEY-----\n"
+      pem = "-----BEGIN TEST KEY-----\nMHc=\n-----END TEST KEY-----\n"
       ClimateControl.modify(APPLE_PRIVATE_KEY: pem) do
         opts = described_class.fetch(:apple)[:strategy_options].call
         expect(opts[:pem]).to eq(pem)

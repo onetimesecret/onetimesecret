@@ -591,13 +591,19 @@ RSpec.describe Onetime::AuthConfig do
       # Truth-table (a) — the #3844 fix. A global true with EVERY provider
       # explicitly false means linking is disabled everywhere; the boot guard
       # must NOT warn about a flag that has no effect.
-      config = fresh_config(
-        'SSO_TRUST_EMAIL_FOR_LINKING' => 'true',
-        'OIDC_TRUST_EMAIL_FOR_LINKING' => 'false',
-        'ENTRA_TRUST_EMAIL_FOR_LINKING' => 'false',
-        'GOOGLE_TRUST_EMAIL_FOR_LINKING' => 'false',
-        'GITHUB_TRUST_EMAIL_FOR_LINKING' => 'false',
-      )
+      #
+      # "Every provider" is derived from the registry rather than listed here:
+      # trust_email_for_linking_enabled? iterates provider_definitions, so a
+      # hardcoded list silently stops meaning "every" the moment a provider is
+      # added — the new entry has no explicit var, inherits the global true,
+      # and this example fails for a reason that has nothing to do with the
+      # behaviour under test. (It did, when the roster grew past four.)
+      # Any new trust var must also be added to `env_vars` above so the
+      # before/after hooks restore it.
+      all_opted_out = Onetime::SsoProvider::Registry::DEFINITIONS.to_h do |defn|
+        [defn[:trust_var], 'false']
+      end
+      config = fresh_config(**{ 'SSO_TRUST_EMAIL_FOR_LINKING' => 'true' }.merge(all_opted_out))
       expect(config.trust_email_for_linking_enabled?).to be false
     end
 

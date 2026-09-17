@@ -607,8 +607,13 @@ Get the values:
 APPLE_CLIENT_ID=com.example.web
 APPLE_TEAM_ID=XXXXXXXXXX
 APPLE_KEY_ID=XXXXXXXXXX
-APPLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIGT...\n-----END PRIVATE KEY-----\n"
+APPLE_PRIVATE_KEY="<whole .p8 file, newlines written as literal \n>"
 ```
+
+`APPLE_PRIVATE_KEY` takes the entire `.p8` file including its PEM header and
+footer lines, with each newline written as a literal `\n`; the provider
+definition un-escapes it before `OpenSSL::PKey::EC` parses it. A real sample
+is not printed here because it trips the `detect-private-key` pre-commit hook.
 
 Prerequisite: Apple's callback is a cross-site POST (`response_mode=form_post`),
 and a `SameSite=Lax` cookie is withheld on it — set `site.session.same_site: none`
