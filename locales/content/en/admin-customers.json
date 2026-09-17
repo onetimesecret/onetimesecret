@@ -560,8 +560,35 @@
     "content_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "This permanently deletes {email} and all of their data. This cannot be undone.",
+    "text": "This requests permanent deletion of {email}. A preflight runs before account teardown and refuses the purge when a workspace has domains, billing state, other members, retained data, or inconsistent references. Review and resolve any blockers before retrying. This cannot be undone after teardown begins.",
     "content_hash": "a74dd5d1"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Purge refused. The customer was preserved; resolve the blockers before retrying."
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "Purge stopped after some cleanup completed. Do not report success or retry blindly; review the completed stages and blockers."
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "Purge did not complete (status: {status}). Review the lifecycle details before retrying."
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "The server returned an unreadable purge result. No success was reported; verify the customer and workspace state before retrying."
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Stopped at stage: {stage}."
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Blockers: {blockers}."
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Planned cleanup: {actions}."
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Completed cleanup: {actions}."
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Completed stages: {stages}."
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Customer purged.",
@@ -672,8 +699,17 @@
     "content_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "No blocking condition found. Auth state looks healthy — suspect client-side issues (cookies, custom-domain signin config) or the wrong region.",
+    "text": "No blocking condition found. Auth and organization-context evidence look healthy — suspect client-side issues (cookies, custom-domain signin config) or the wrong region.",
     "content_hash": "f6d5f8d1"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "Organization context is blocked or incomplete. Inspect the indexed workspace and repair ownership, membership, or contact-email index drift before treating this account as healthy."
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Workspace: {id}"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Remediation: {action}"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "Auth database not available (simple auth mode) — SQL-side checks were skipped.",
