@@ -11,6 +11,7 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
       'Customer',
       objid: 'cust-target',
       extid: 'ur_target',
+      custid: 'target@example.com',
       email: 'target@example.com',
       default_org_id: 'org-personal',
     )
@@ -24,8 +25,21 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
     allow(Onetime::Organization).to receive(:instances).and_return(instances)
     allow(Onetime::OrganizationMembership).to receive(:instances).and_return(membership_instances)
     allow(Onetime::CustomDomain).to receive(:instances).and_return(domain_instances)
+    allow(Onetime::Organization).to receive(:load).and_return(nil)
     allow(Onetime::Organization).to receive(:contact_email_index).and_return(contact_index)
     allow(contact_index).to receive(:get).and_return(nil)
+    # The index is keyed verbatim, so production resolves holders through these
+    # two finders. Route them back at the `get` double each example stubs.
+    allow(Onetime::Organization).to receive(:find_contact_email_claims) do |value|
+      held = contact_index.get(value.to_s).to_s
+      held.empty? ? {} : { value.to_s => held }
+    end
+    allow(Onetime::Organization).to receive(:find_contact_email_holder_id) do |value|
+      contact_index.get(value.to_s)
+    end
+    # Shallow discovery probes registry membership for one id instead of reading
+    # the whole registry.
+    allow(instances).to receive(:member?).and_return(true)
     stub_instance_scan(instances, [])
     stub_instance_scan(membership_instances, [])
     stub_instance_scan(domain_instances, [])
@@ -47,6 +61,7 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
       receipt_count: 0,
       billing_live?: false,
       planid: 'free_v1',
+      migration_status: nil,
       members: collection(['cust-target']),
       pending_invitations: collection([]),
       domains: collection([]),
@@ -208,7 +223,9 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
     allow(Onetime::Customer).to receive(:load).with(owner.objid).and_return(owner)
     allow(contact_index).to receive(:get).with('owner@example.com').and_return(org.objid)
 
-    plan = described_class.new(customer: customer).call
+    # Reachable only through the global registry sweep: the customer's own
+    # reverse indexes do not name this organization.
+    plan = described_class.new(customer: customer, deep: true).call
 
     expect(plan).not_to be_executable
     expect(plan.blockers.map { |blocker| blocker[:code] })
@@ -216,7 +233,7 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
     expect(plan.actions).to be_empty
   end
 
-  it 'fails closed on stale members, retained data, and billing state' do
+  it 'fails closed on drift and billing state, not on the account own workspace content' do
     org = organization(
       members: collection([customer.objid, 'cust-stale']),
       domain_count: 1,
@@ -252,13 +269,106 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
       :membership_index_drift,
       :other_members,
       :has_domains,
-      :pending_invitations,
       :pending_invitation_drift,
-      :has_receipts,
       :billing_state,
-      :retained_organization_data,
     )
+    # Receipts, outstanding invitations and the workspace description are
+    # deleted WITH the organization, so they are not reasons to refuse.
+    expect(codes).not_to include(:has_receipts, :pending_invitations, :retained_organization_data)
     expect(plan.actions).to be_empty
+  end
+
+  it 'reports deletable workspace content as action evidence rather than a blocker' do
+    org = organization(
+      receipt_count: 3,
+      pending_invitation_count: 0,
+      contact_email: 'Billing.Sync@Example.com',
+      description: 'retained description',
+    )
+    owner_membership = membership(
+      org_objid: org.objid,
+      customer_objid: customer.objid,
+      role: 'owner',
+    )
+    allow(customer).to receive(:participations)
+      .and_return(collection(["organization:#{org.objid}:members"]))
+    allow(customer).to receive(:organization_instances).and_return(collection([org]))
+    stub_membership_lookup(org, customer.objid => owner_membership)
+    allow(Onetime::Organization).to receive(:load).with(org.objid).and_return(org)
+    allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
+    allow(contact_index).to receive(:get).with(org.contact_email).and_return(org.objid)
+
+    plan = described_class.new(customer: customer).call
+
+    expect(plan).to be_executable
+    expect(plan.actions.map(&:type)).to eq([:delete_organization])
+    expect(plan.actions.first.notes)
+      .to include(:has_receipts, :contact_email_mismatch, :retained_description)
+  end
+
+  it 'blocks a half-finished migration, which owns rows outside this workspace' do
+    org = organization(migration_status: 'in_progress')
+    owner_membership = membership(
+      org_objid: org.objid,
+      customer_objid: customer.objid,
+      role: 'owner',
+    )
+    allow(customer).to receive(:participations)
+      .and_return(collection(["organization:#{org.objid}:members"]))
+    allow(customer).to receive(:organization_instances).and_return(collection([org]))
+    stub_membership_lookup(org, customer.objid => owner_membership)
+    allow(Onetime::Organization).to receive(:load).with(org.objid).and_return(org)
+    allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
+    allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
+
+    plan = described_class.new(customer: customer).call
+
+    expect(plan).not_to be_executable
+    expect(plan.blockers).to include(hash_including(code: :migration_in_flight))
+  end
+
+  it 'accepts a legacy owner_id/created_by that still carries the custid' do
+    org = organization(owner_id: 'target@example.com', created_by: 'target@example.com')
+    owner_membership = membership(
+      org_objid: org.objid,
+      customer_objid: customer.objid,
+      role: 'owner',
+    )
+    allow(customer).to receive(:participations)
+      .and_return(collection(["organization:#{org.objid}:members"]))
+    allow(customer).to receive(:organization_instances).and_return(collection([org]))
+    stub_membership_lookup(org, customer.objid => owner_membership)
+    allow(Onetime::Organization).to receive(:load).with(org.objid).and_return(org)
+    allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
+    allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
+
+    plan = described_class.new(customer: customer).call
+    codes = plan.blockers.map { |blocker| blocker[:code] }
+
+    expect(codes).not_to include(:owner_id_mismatch, :creator_mismatch)
+    expect(plan.actions.map(&:type)).to eq([:delete_organization])
+  end
+
+  it 'does not read the global registries on the shallow request path' do
+    org = organization
+    owner_membership = membership(
+      org_objid: org.objid,
+      customer_objid: customer.objid,
+      role: 'owner',
+    )
+    allow(customer).to receive(:participations)
+      .and_return(collection(["organization:#{org.objid}:members"]))
+    allow(customer).to receive(:organization_instances).and_return(collection([org]))
+    stub_membership_lookup(org, customer.objid => owner_membership)
+    allow(Onetime::Organization).to receive(:load).with(org.objid).and_return(org)
+    allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
+    allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
+
+    expect(instances).not_to receive(:each)
+    expect(membership_instances).not_to receive(:each)
+    expect(domain_instances).not_to receive(:each)
+
+    expect(described_class.new(customer: customer).call).to be_executable
   end
 
   it 'blocks a default workspace that is not the target customer default' do
@@ -302,7 +412,7 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
     allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
     allow(contact_index).to receive(:get).with('target@example.com').and_return(org.objid)
 
-    plan = described_class.new(customer: customer).call
+    plan = described_class.new(customer: customer, deep: true).call
 
     expect(plan).not_to be_executable
     expect(plan.blockers).to include(hash_including(code: :drifted_domains))
@@ -344,7 +454,7 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
     allow(domain_instances).to receive(:each).and_raise(Familia::Problem, 'unavailable')
     allow(contact_index).to receive(:get).and_raise(Familia::Problem, 'unavailable')
 
-    plan = described_class.new(customer: customer).call
+    plan = described_class.new(customer: customer, deep: true).call
 
     expect(plan).not_to be_executable
     expect(plan.blockers.map { |blocker| blocker[:code] }).to contain_exactly(
