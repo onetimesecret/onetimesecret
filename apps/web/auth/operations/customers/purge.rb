@@ -81,7 +81,7 @@ module Auth
         #   have been idle for months and every blob they could own has
         #   expired. The tracked revocation still runs.
         def initialize(customer:, actor: nil, reason: nil, bulk_audit_context: nil,
-                       authentication_closed: false, expected_plan_signature: nil,
+                       expected_plan_signature: nil,
                        self_service: false, deep: false, membership_snapshot: nil,
                        sweep_untracked_sessions: true)
           @customer                 = customer
@@ -92,7 +92,6 @@ module Auth
           @actor                    = actor || (self_service ? customer : nil)
           @reason                   = normalize_reason(reason)
           @bulk_audit_context       = bulk_audit_context
-          @authentication_closed    = authentication_closed
           @expected_plan_signature  = expected_plan_signature
           @stage                    = :initialized
           @completed_actions        = []
@@ -159,7 +158,6 @@ module Auth
             reason: @reason,
             before_mutation: method(:revalidate_account_mutation),
             on_mutation: method(:mark_mutation_started),
-            authentication_closed: @authentication_closed,
             bulk_audit_context: @bulk_audit_authorization,
             sweep_untracked_sessions: @sweep_untracked_sessions,
           ).call

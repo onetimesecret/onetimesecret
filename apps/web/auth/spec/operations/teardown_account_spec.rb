@@ -142,19 +142,6 @@ RSpec.describe Auth::Operations::TeardownAccount do
     expect(Auth::Operations::DestroyCustomerRecord).to have_received(:new).with(customer: customer)
   end
 
-  it 'does not recursively remove authentication data when Rodauth already closed the account' do
-    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
-
-    result = described_class.new(
-      customer: customer,
-      authentication_closed: true,
-    ).call
-
-    expect(result.status).to eq(:success)
-    expect(Auth::Operations::RemoveAuthenticationData).not_to have_received(:call)
-    expect(customer_deleter).to have_received(:call)
-  end
-
   it 'scrubs SQL credentials when the account has no resolvable Redis customer' do
     allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
     account = { id: 42, external_id: 'ur_missing', email: 'missing@example.com' }

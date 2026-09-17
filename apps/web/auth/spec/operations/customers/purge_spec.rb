@@ -80,7 +80,6 @@ RSpec.describe Auth::Operations::Customers::Purge do
       reason: nil,
       before_mutation: kind_of(Method),
       on_mutation: kind_of(Method),
-      authentication_closed: false,
       bulk_audit_context: nil,
       sweep_untracked_sessions: true,
     )
@@ -125,7 +124,6 @@ RSpec.describe Auth::Operations::Customers::Purge do
       reason: 'takeover',
       before_mutation: kind_of(Method),
       on_mutation: kind_of(Method),
-      authentication_closed: false,
       bulk_audit_context: nil,
       sweep_untracked_sessions: true,
     )
@@ -308,7 +306,6 @@ RSpec.describe Auth::Operations::Customers::Purge do
       reason: 'erasure',
       before_mutation: kind_of(Method),
       on_mutation: kind_of(Method),
-      authentication_closed: false,
       bulk_audit_context: nil,
       sweep_untracked_sessions: true,
     )
@@ -362,7 +359,6 @@ RSpec.describe Auth::Operations::Customers::Purge do
       reason: nil,
       before_mutation: kind_of(Method),
       on_mutation: kind_of(Method),
-      authentication_closed: false,
       bulk_audit_context: kind_of(Onetime::Operations::BulkAuditContext::CandidateAuthorization),
       sweep_untracked_sessions: true,
     )

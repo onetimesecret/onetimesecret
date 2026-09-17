@@ -14,9 +14,12 @@ module Auth
     #
     # The operation revokes sessions first, closes the Rodauth identity and removes
     # its credentials when full auth is enabled, and deletes the Redis Customer
-    # last. Rodauth invokes its after_close_account hook inside the SQL transaction;
-    # that caller marks authentication_closed and keeps SQL closure committed after
-    # any Redis mutation has started.
+    # last. Rodauth's own close_account only flips the status column and drops
+    # the password hash; the SQL credential rows (identities, MFA secrets,
+    # remember and refresh keys, active sessions) are removed here on every
+    # path, including the after_close_account hook, which runs inside the same
+    # SQL transaction and keeps closure committed once a Redis mutation has
+    # started.
     #
     # Colonel auditing remains in Customers::Purge. Supplying actor selects the
     # audited administrative session-revocation operation; self-service callers do
@@ -42,7 +45,7 @@ module Auth
       end
 
       def initialize(customer: nil, account: nil, actor: nil, reason: nil, db: nil,
-                     before_mutation: nil, on_mutation: nil, authentication_closed: false,
+                     before_mutation: nil, on_mutation: nil,
                      bulk_audit_context: nil, sweep_untracked_sessions: true)
         raise ArgumentError, 'Must provide either customer: or account:' if customer.nil? && account.nil?
         raise ArgumentError, 'Cannot provide both customer: and account:' if customer && account
@@ -54,7 +57,6 @@ module Auth
         @db                       = db
         @before_mutation          = before_mutation
         @on_mutation              = on_mutation
-        @authentication_closed    = authentication_closed
         @bulk_audit_context       = bulk_audit_context
         @sweep_untracked_sessions = sweep_untracked_sessions
         @completed_stages         = []
@@ -65,7 +67,7 @@ module Auth
       def call
         customer = @customer || find_customer
         unless customer
-          account_id = @authentication_closed ? @account&.[](:id) : close_auth_account(account_extid)
+          account_id = close_auth_account(account_extid)
           status     = @account && full_auth_mode? ? :success : :not_found
           return Result.new(
             status: status,
@@ -85,17 +87,13 @@ module Auth
         revoke_sessions(customer)
         @completed_stages << :session_revocation
 
-        if full_auth_mode? && !@authentication_closed && !mutation_allowed?(:authentication_closure)
+        if full_auth_mode? && !mutation_allowed?(:authentication_closure)
           return blocked_result(:authentication_closure, extid, custid)
         end
 
-        mutation_started!(:authentication_closure) if full_auth_mode? && !@authentication_closed
-        account_id = if @authentication_closed
-                       @account&.[](:id)
-                     else
-                       close_auth_account(extid)
-                     end
-        @completed_stages << :authentication_closure if full_auth_mode? && !@authentication_closed
+        mutation_started!(:authentication_closure) if full_auth_mode?
+        account_id = close_auth_account(extid)
+        @completed_stages << :authentication_closure if full_auth_mode?
 
         return blocked_result(:customer_deletion, extid, custid, account_id) unless mutation_allowed?(:customer_deletion)
 
