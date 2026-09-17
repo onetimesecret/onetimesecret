@@ -13,7 +13,7 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
       extid: 'ur_target',
       custid: 'target@example.com',
       email: 'target@example.com',
-      default_org_id: 'org-personal',
+      default_org_id: nil,
     )
   end
   let(:instances) { double('Organization.instances') }
@@ -26,6 +26,8 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
     allow(Onetime::OrganizationMembership).to receive(:instances).and_return(membership_instances)
     allow(Onetime::CustomDomain).to receive(:instances).and_return(domain_instances)
     allow(Onetime::Organization).to receive(:load).and_return(nil)
+    allow(Onetime::OrganizationMembership).to receive(:load).and_return(nil)
+    allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer).and_return(nil)
     allow(Onetime::Organization).to receive(:contact_email_index).and_return(contact_index)
     allow(contact_index).to receive(:get).and_return(nil)
     # The index is keyed verbatim, so production resolves holders through these
