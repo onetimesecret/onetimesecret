@@ -47,7 +47,18 @@ module Auth::Config::Hooks
       entra_id: %w[OmniAuth::Strategies::EntraId OmniAuth::Strategies::AzureActivedirectoryV2],
       google_oauth2: %w[OmniAuth::Strategies::GoogleOauth2],
       github: %w[OmniAuth::Strategies::GitHub],
+      # #4450. The SUBCLASS only — never the gem's OmniAuth::Strategies::SAML.
+      # Every SAML-specific gate (InResponseTo binding, issuer equality,
+      # replay cache, the scrubbed `extra`) lives in RequestBoundSAML, so
+      # injecting a tenant's trust anchors into a plain omniauth-saml strategy
+      # would run a tenant login with none of them. Compared by class NAME so
+      # this file never has to load omniauth-saml.
+      request_bound_saml: %w[OmniAuth::Strategies::RequestBoundSAML],
     }.freeze
+
+    # The strategy class whose tenant flow needs per-request SP identifiers
+    # (see .inject_saml_sp_identifiers). A name, for the same reason as above.
+    SAML_STRATEGY_CLASS = 'OmniAuth::Strategies::RequestBoundSAML'
 
     def self.configure(auth)
       # Single consumer for the validated tenant domain id. Reads the session
@@ -119,6 +130,16 @@ module Auth::Config::Hooks
         # 4. Callback validation sees domain B → no mismatch detected
         strategy          = request.env['omniauth.strategy']
         is_callback_phase = strategy&.on_callback_path?
+
+        # Neither phase: a strategy SUB-PATH. Only SAML has them — omniauth-saml
+        # runs setup_phase (and therefore this hook) from other_phase for
+        # /metadata, /slo and /spslo (saml.rb:88-109), so that the SP metadata
+        # it serves is the resolved TENANT's. Such a request must get the
+        # tenant's options but must NOT start a login: storing the tenant
+        # context below from a bare GET /auth/sso/saml/metadata would plant
+        # "a tenant flow is pending" in the session of anyone who can be made
+        # to load that URL. RE-VERIFY on an omniauth-saml bump.
+        is_request_phase = strategy.nil? || strategy.on_request_path?
 
         # OIDC strategies require an explicit redirect_uri in both the
         # authorize request and token exchange. Unlike OAuth2-based strategies,
@@ -222,7 +243,7 @@ module Auth::Config::Hooks
         # Store tenant context in session for callback validation.
         # Only during request phase — callback phase must NOT overwrite the
         # stored context, otherwise the mismatch check is defeated.
-        unless is_callback_phase
+        if is_request_phase && !is_callback_phase
           session[:omniauth_tenant_domain_id] = custom_domain.identifier
           session[:omniauth_tenant_host]      = host
         end
@@ -615,7 +636,20 @@ module Auth::Config::Hooks
       strategy = request.env['omniauth.strategy']
       return unless strategy
 
-      options = sso_config.to_omniauth_options
+      # A record that cannot produce usable options is REFUSED — never handed
+      # to handle_missing_tenant_config, whose platform-fallback arm would run
+      # this tenant's login through the PLATFORM's IdP while the tenant
+      # context stored above still stamps the callback as validated for this
+      # domain (and joins its organization). Today only the SAML arm raises
+      # here: an unreadable (AAD-bound) or unusable trio — blank field,
+      # non-https URL, unparseable or EXPIRED certificate (#4450). A SAML
+      # strategy with a half-known trust anchor must not run at all; ruby-saml
+      # answers a blank EntityID by SKIPPING issuer validation.
+      options = begin
+        sso_config.to_omniauth_options
+      rescue Onetime::Problem => ex
+        refuse_unusable_tenant_config(sso_config, ex, rodauth)
+      end
 
       # Extract the strategy-specific options (excluding :strategy and :name keys
       # which are used for provider registration, not runtime configuration)
@@ -652,10 +686,85 @@ module Auth::Config::Hooks
       # This modifies the strategy's options hash in place
       merge_strategy_options(strategy, options)
 
+      # SAML: our SP identifiers for THIS public host (#4450)
+      inject_saml_sp_identifiers(strategy)
+
       # For OIDC strategies, clear memoized discovery data
       # The strategy may have cached the discovery document and client
       # from boot-time configuration; we need fresh instances.
       clear_oidc_memoization(strategy)
+    end
+
+    # Refuse a tenant flow whose SsoConfig cannot produce strategy options.
+    #
+    # Clears the pending tenant context first, so the refusal leaves nothing
+    # in the session for a later callback to validate against, then redirects
+    # to the same sso_not_configured landing the missing-config path uses —
+    # from the visitor's side it IS not configured. The audit event is
+    # distinct and at :error: this is a broken record an operator must fix,
+    # not a policy outcome. Scalars only; the Problem message is built from
+    # fixed strings in the model (field names, a certificate expiry date, an
+    # exception class name) and never carries field content.
+    #
+    # @param sso_config [Onetime::CustomDomain::SsoConfig]
+    # @param error [Onetime::Problem]
+    # @param rodauth [Rodauth] Rodauth instance (for session + redirect)
+    # @return [void] never returns normally — redirect halts the request
+    def self.refuse_unusable_tenant_config(sso_config, error, rodauth)
+      Auth::Logging.log_auth_event(
+        :omniauth_tenant_config_unusable,
+        level: :error,
+        domain_id: sso_config.domain_id,
+        provider_type: sso_config.provider_type,
+        error: error.message,
+      )
+
+      rodauth.session.delete(:omniauth_tenant_domain_id)
+      rodauth.session.delete(:omniauth_tenant_host)
+
+      rodauth.send(:redirect, '/signin?auth_error=sso_not_configured')
+    end
+
+    # Derive the SAML SP identifiers for a TENANT flow from the request's
+    # public host (#4450).
+    #
+    #   assertion_consumer_service_url = full_host + callback_path
+    #   sp_entity_id                   = full_host + request_path + '/metadata'
+    #
+    # The platform definition's sp_entity_id is a boot-time constant naming
+    # the canonical host. A tenant's IdP is configured against the TENANT's
+    # domain, so both values must name the host the visitor is actually on —
+    # and must be identical on the request phase (written into the
+    # AuthnRequest), the callback phase (ruby-saml validates the response's
+    # Audience against sp_entity_id and its Destination/Recipient against the
+    # ACS URL), and the /metadata sub-path (what the tenant's IdP admin
+    # imports). This hook runs on all three and derives them the same way
+    # each time. sp_entity_id is the URL the metadata is served from — the
+    # convention IdP admins expect, and the same shape as the platform
+    # default (Onetime::SsoProvider::Saml.platform_sp_entity_id).
+    #
+    # `strategy.full_host` is the PUBLIC host (the override installed in
+    # features/omniauth.rb, #4224) — never request.host, which behind a
+    # Host-rewriting proxy is the origin target, a host the tenant's IdP has
+    # never heard of. The API serializer shows the admin the same two values
+    # (DomainsAPI::Logic::SsoConfig::Serializers#saml_sp_identifiers); keep
+    # the path shapes in step.
+    #
+    # Runs ONLY after tenant options were injected: a platform (or
+    # platform-fallback) SAML flow keeps the platform's registered
+    # sp_entity_id, and RequestBoundSAML#callback_url already supplies its
+    # ACS URL.
+    #
+    # @param strategy [OmniAuth::Strategy] The active strategy
+    # @return [void]
+    def self.inject_saml_sp_identifiers(strategy)
+      # By NAME on purpose (see SAML_STRATEGY_CLASS): instance_of? would need
+      # the constant, and with it omniauth-saml, loaded in every process.
+      return unless strategy.class.name == SAML_STRATEGY_CLASS # rubocop:disable Style/ClassEqualityComparison
+
+      base                                              = strategy.full_host
+      strategy.options[:assertion_consumer_service_url] = base + strategy.callback_path
+      strategy.options[:sp_entity_id]                   = "#{base}#{strategy.request_path}/metadata"
     end
 
     # Check if the active OmniAuth strategy matches the expected type.
@@ -673,6 +782,16 @@ module Auth::Config::Hooks
     end
 
     # Merge options into the strategy, handling nested client_options.
+    #
+    # Only :client_options is merged key-by-key (the OIDC redirect_uri set
+    # earlier in omniauth_setup must survive). Every other value — including
+    # SAML's nested :security hash (#4450) — REPLACES what the strategy was
+    # registered with, and for :security that is the required behaviour, not
+    # an accident: the tenant arm always supplies the FULL hardened hash from
+    # the shared builder, so replacement can only ever install the complete
+    # set, whereas a key-by-key merge would let a future registered key the
+    # tenant hash lacks survive into a tenant flow. Pinned in
+    # omniauth_tenant_helpers_spec.
     #
     # @param strategy [OmniAuth::Strategy] The active strategy
     # @param options [Hash] Options to merge
