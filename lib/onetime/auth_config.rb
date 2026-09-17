@@ -399,19 +399,23 @@ module Onetime
       ENV.fetch('OIDC_ROUTE_NAME', 'oidc')
     end
 
-    # All configured SSO providers, built dynamically from env var presence.
+    # All configured SSO providers, built dynamically from the env.
     # Returns an array of hashes: [{ 'route_name' => 'oidc', 'display_name' => 'SSO' }, ...]
-    # Each entry corresponds to a provider whose required env vars are present.
+    # Each entry corresponds to a provider that passes #provider_active?.
     # Returns empty array if SSO is disabled or no providers are configured.
     # Order follows provider_definitions (the registry), unless the operator
     # sets SSO_PROVIDER_ORDER — a comma/space-separated list of route names.
     # Listed providers come first in the given order; unlisted ones keep their
     # registry order after them, so a partial list is safe.
+    #
+    # THIS IS WHAT THE LOGIN AND INVITE PAGES RENDER BUTTONS FROM, so a
+    # provider listed here and not registered at boot is a button that leads
+    # nowhere. #provider_active? is the gate both sides share.
     def sso_providers
       return [] unless sso_enabled?
 
       providers = provider_definitions.filter_map do |defn|
-        next unless defn[:required_vars].all? { |var| env_present?(var) }
+        next unless provider_active?(defn)
 
         display = ENV.fetch(defn[:display_var], nil) || defn[:display_default]
         {
@@ -758,16 +762,48 @@ module Onetime
       end
     end
 
-    # Origins for the providers that pass #sso_providers' gate (SSO enabled and
-    # all required env vars present). Reuses provider_definitions so it can
-    # never register an origin for a provider that would not register.
+    # Is this provider both CONFIGURED and USABLE?
+    #
+    # required_vars is a presence check and nothing more. A definition may
+    # also carry :vars_valid — a zero-arg callable for a constraint presence
+    # cannot express — and Auth0 does: AUTH0_DOMAIN must include the scheme,
+    # because the CSP form-action origin is derived from it.
+    #
+    # WHY BOTH HALVES MATTER. Auth::Config::Features::OmniAuth#configure_provider
+    # rescues a raising strategy_options and registers no route for that
+    # provider. Gating only on presence here would advertise a login button
+    # for a provider whose route does not exist, so the two sides have to
+    # agree on one predicate, which is this one.
+    #
+    # Fails closed. This runs per request (the serializer) and inside the
+    # HttpOrigin middleware via #sso_idp_origins, so a :vars_valid that raises
+    # drops the provider rather than the response.
+    #
+    # @param defn [Hash] a provider definition from the registry
+    # @return [Boolean]
+    def provider_active?(defn)
+      return false unless defn[:required_vars].all? { |var| env_present?(var) }
+      return true unless defn[:vars_valid]
+
+      begin
+        defn[:vars_valid].call
+      rescue StandardError => ex
+        OT.lw "[auth_config] #{defn[:label]} validity check raised, " \
+              "treating provider as inactive: #{ex.class}: #{ex.message}"
+        false
+      end
+    end
+
+    # Origins for the providers that pass #sso_providers' gate (SSO enabled
+    # and #provider_active?). Shares that gate so it can never register an
+    # origin for a provider that would not register.
     # filter_map drops a provider whose origin cannot be resolved (e.g. a
     # malformed OIDC_ISSUER), so a bad issuer is skipped, never raised.
     def active_provider_origins
       return [] unless sso_enabled?
 
       provider_definitions.filter_map do |defn|
-        next unless defn[:required_vars].all? { |var| env_present?(var) }
+        next unless provider_active?(defn)
 
         provider_origin(defn)
       end

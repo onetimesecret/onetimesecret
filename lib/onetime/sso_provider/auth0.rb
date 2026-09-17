@@ -113,6 +113,28 @@ module Onetime
         "#{normalized.chomp('/')}/"
       end
 
+      # Is AUTH0_DOMAIN not just SET but USABLE?
+      #
+      # required_vars is a presence check, and presence is not enough here: a
+      # schemeless AUTH0_DOMAIN is present, so it passes that gate, yet
+      # configure_provider then rescues issuer_value's raise and registers no
+      # route. Without this predicate the serializer would advertise an Auth0
+      # button on the login and invite pages pointing at an /auth/sso/auth0
+      # action that does not exist. AuthConfig#provider_active? consults it, so
+      # the advertised set and the registered set cannot disagree.
+      #
+      # Auth0 is the only definition that needs one, because it is the only
+      # one whose strategy_options can raise. A malformed OIDC_ISSUER still
+      # registers a route and fails at the IdP instead, which is a different
+      # failure with a different remedy.
+      #
+      # @return [Boolean]
+      def self.domain_usable?
+        !issuer_value(ENV.fetch('AUTH0_DOMAIN', nil)).nil?
+      rescue ArgumentError
+        false
+      end
+
       DEFINITION = {
         key: :auth0,
         label: 'Auth0',
@@ -120,6 +142,7 @@ module Onetime
         gem_require: 'omniauth-auth0',
         issuer_capable: true,
         required_vars: %w[AUTH0_CLIENT_ID AUTH0_CLIENT_SECRET AUTH0_DOMAIN],
+        vars_valid: -> { domain_usable? },
         route_var: 'AUTH0_ROUTE_NAME',
         route_default: 'auth0',
         display_var: 'AUTH0_DISPLAY_NAME',

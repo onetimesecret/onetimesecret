@@ -170,6 +170,28 @@ RSpec.describe Onetime::AuthConfig do
       expect(config.sso_form_action_origins).to eq([])
     end
 
+    # And it must not be ADVERTISED either. Before :vars_valid, a schemeless
+    # domain passed the presence-only gate, so the login and invite pages
+    # rendered an Auth0 button while configure_provider skipped registration —
+    # the button pointed at an /auth/sso/auth0 route that did not exist.
+    it 'does not advertise Auth0 when AUTH0_DOMAIN omits the scheme' do
+      config = fresh_config(
+        'AUTH0_CLIENT_ID' => 'id',
+        'AUTH0_CLIENT_SECRET' => 'secret',
+        'AUTH0_DOMAIN' => 'tenant.us.auth0.com',
+      )
+      expect(config.sso_providers.map { |p| p['route_name'] }).not_to include('auth0')
+    end
+
+    it 'advertises Auth0 once the scheme is supplied' do
+      config = fresh_config(
+        'AUTH0_CLIENT_ID' => 'id',
+        'AUTH0_CLIENT_SECRET' => 'secret',
+        'AUTH0_DOMAIN' => 'https://tenant.us.auth0.com',
+      )
+      expect(config.sso_providers.map { |p| p['route_name'] }).to include('auth0')
+    end
+
     it 'includes the (commercial-cloud) Entra origin when Entra is active' do
       config = fresh_config(
         'ENTRA_TENANT_ID' => 'tenant',

@@ -47,6 +47,14 @@
 #   required_vars:    env vars that must ALL be present for the provider to
 #                     register with real credentials (and to appear in
 #                     sso_providers / CSP origins)
+#   vars_valid:       OPTIONAL zero-arg callable returning a boolean, checked
+#                     after required_vars by AuthConfig#provider_active?. For
+#                     a constraint presence cannot express — Auth0's
+#                     AUTH0_DOMAIN must carry a scheme. Needed only by a
+#                     definition whose strategy_options can RAISE, since
+#                     configure_provider skips such a provider and the
+#                     advertised set must not then disagree with the
+#                     registered one. Omitted means always valid.
 #   route_var/route_default:     env var and default for the route name — the
 #                     URL segment, auth-hash provider value, and
 #                     account_identities.provider value

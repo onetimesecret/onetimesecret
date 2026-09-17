@@ -467,6 +467,12 @@ module Auth::Config::Features
       # missing-vars branch above); this keeps that contract for the one case
       # that can raise. The operator still gets a loud, specific error naming
       # the provider and the reason.
+      #
+      # THE SERIALIZER AGREES. A definition that can raise here also carries
+      # :vars_valid, which AuthConfig#provider_active? checks, so a provider
+      # skipped below is not advertised as a login button either. This rescue
+      # stays as the general net: strategy_options can raise for reasons no
+      # predicate anticipated, and boot must survive that too.
       begin
         options = defn[:strategy_options].call
       rescue StandardError => ex

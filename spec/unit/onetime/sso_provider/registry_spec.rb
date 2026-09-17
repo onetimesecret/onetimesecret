@@ -199,6 +199,40 @@ RSpec.describe Onetime::SsoProvider::Registry do
       end
     end
 
+    # The companion to that raise. required_vars sees AUTH0_DOMAIN as PRESENT
+    # and would advertise a login button, while configure_provider rescues the
+    # raise and registers no route — a button leading nowhere. :vars_valid is
+    # the predicate AuthConfig#provider_active? consults so the advertised set
+    # and the registered set cannot disagree.
+    describe 'the Auth0 :vars_valid predicate' do
+      it 'is false for a schemeless AUTH0_DOMAIN' do
+        ClimateControl.modify(AUTH0_DOMAIN: 'tenant.us.auth0.com') do
+          expect(described_class.fetch(:auth0)[:vars_valid].call).to be false
+        end
+      end
+
+      it 'is true for a scheme-ful AUTH0_DOMAIN' do
+        ClimateControl.modify(AUTH0_DOMAIN: 'https://tenant.us.auth0.com') do
+          expect(described_class.fetch(:auth0)[:vars_valid].call).to be true
+        end
+      end
+
+      # It swallows the ArgumentError rather than propagating it: this runs on
+      # the per-request serializer path, not only at boot.
+      it 'answers false instead of raising' do
+        ClimateControl.modify(AUTH0_DOMAIN: 'tenant.us.auth0.com') do
+          expect { described_class.fetch(:auth0)[:vars_valid].call }.not_to raise_error
+        end
+      end
+
+      # Every other definition is presence-only; the field is opt-in, and a
+      # definition without it must be treated as always valid.
+      it 'is the only one in the registry' do
+        with_predicate = described_class::DEFINITIONS.select { |defn| defn[:vars_valid] }
+        expect(with_predicate.map { |defn| defn[:key] }).to eq([:auth0])
+      end
+    end
+
     # Deployments routinely carry multi-line secrets as a single line with
     # literal backslash-n. OpenSSL::PKey::EC cannot parse that, and the
     # failure would surface as a per-request client-secret error at the Apple

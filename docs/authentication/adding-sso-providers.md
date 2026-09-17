@@ -148,6 +148,15 @@ from `SsoConfig::PROVIDER_ROUTE_MAP`.
   on the code being single-use at Auth0. The pinned value carries a
   **trailing slash** (`https://<tenant>/`), matching the `iss` Auth0 actually
   asserts, so validation would start working unchanged if the gem is fixed.
+  `AUTH0_DOMAIN` must include the scheme; a bare hostname (Auth0's own
+  documented format) makes `strategy_options` raise, and `configure_provider`
+  then logs and skips the provider rather than failing boot. Because
+  `required_vars` is a *presence* check and would still see the variable as
+  set, the definition also carries **`vars_valid`** — the predicate
+  `AuthConfig#provider_active?` consults so a skipped provider is not
+  advertised as a login button pointing at a route that was never registered.
+  Any future definition whose `strategy_options` can raise needs the same
+  field; see the registry header.
   Auth0 is also a **broker**: one tenant can federate many upstream IdPs into
   a single issuer, so `AUTH0_TRUST_EMAIL_FOR_LINKING` trusts *every*
   connection the tenant enables, including unverified database and social
