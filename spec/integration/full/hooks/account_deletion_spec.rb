@@ -227,6 +227,27 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
 
         customer = find_customer_by_email(test_email)
         org_id   = customer.organization_instances.first.objid
+        account  = find_account_by_email(test_email)
+
+        # Rodauth's close_account only flips the status and drops the password
+        # hash. Credential rows other features own must leave with the account:
+        # a surviving (provider, issuer, uid) identity would resolve the closed
+        # account on the next SSO sign-in and block a fresh JIT create on the
+        # unique index. MFA tables are not seeded here because an OTP row makes
+        # Rodauth demand a second factor for this route; RemoveAuthenticationData
+        # removes them through the same table list.
+        test_db[:account_identities].insert(
+          account_id: account[:id],
+          provider: 'google',
+          issuer: 'https://accounts.google.com',
+          uid: "uid-#{SecureRandom.hex(4)}",
+        )
+        test_db[:account_remember_keys].insert(
+          id: account[:id],
+          key: SecureRandom.hex(16),
+          deadline: Time.now + 3600,
+        )
+        expect(test_db[:account_active_session_keys].where(account_id: account[:id]).count).to be >= 1
 
         # Now attempt to close account with correct password
         post_json '/auth/close-account', { password: valid_password }
@@ -237,6 +258,9 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         closed_account = find_account_by_email(test_email)
         expect(closed_account[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
         expect(test_db[:account_password_hashes].where(id: closed_account[:id]).first).to be_nil
+        expect(test_db[:account_identities].where(account_id: closed_account[:id]).count).to eq(0)
+        expect(test_db[:account_remember_keys].where(id: closed_account[:id]).count).to eq(0)
+        expect(test_db[:account_active_session_keys].where(account_id: closed_account[:id]).count).to eq(0)
         expect(find_customer_by_email(test_email)).to be_nil
         expect(Onetime::Organization.load(org_id)).to be_nil
       end
@@ -254,11 +278,15 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
 
         allow(Auth::Logging).to receive(:log_auth_event).and_call_original
         allow(Auth::Operations::Customers::Purge).to receive(:new).and_wrap_original do |original, **kwargs|
-          operation       = original.call(**kwargs)
-          preflight_calls = 0
-          allow(operation).to receive(:preflight).and_wrap_original do |preflight|
-            preflight_calls += 1
-            preflight_calls == 6 ? residual : preflight.call
+          operation = original.call(**kwargs)
+          # Every earlier revalidation (per action, per teardown stage) must see
+          # the real plan; only the scan after teardown reports the residual.
+          allow(operation).to receive(:preflight).and_wrap_original do |preflight, **options|
+            if operation.instance_variable_get(:@stage) == :post_teardown_revalidation
+              residual
+            else
+              preflight.call(**options)
+            end
           end
           operation
         end

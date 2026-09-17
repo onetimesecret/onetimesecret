@@ -1106,9 +1106,14 @@ module Auth::Config::Hooks
       # Rodauth calls before_close_account before changing the SQL account status,
       # and after_close_account afterward but inside the same SQL transaction. The
       # preflight therefore refuses retained/drifted organization state before the
-      # irreversible closure step. The after hook applies the validated cleanup and
-      # skips authentication removal: Rodauth owns status/credential/token cleanup
-      # for this route, avoiding recursive or duplicate account closure.
+      # irreversible closure step. The after hook applies the validated cleanup.
+      #
+      # Rodauth's close_account only flips the status column and deletes the
+      # password hash. The remaining credential rows go through the feature
+      # after_close_account chain (omniauth identities, two-factor secrets,
+      # active sessions, remember keys), reached via `super()`, and through
+      # TeardownAccount's SQL removal, which covers every table whether or not
+      # its feature is loaded in this boot.
       #
       auth.before_close_account do
         customer = Auth::Config::Hooks::Account.resolve_customer(account)
@@ -1138,17 +1143,19 @@ module Auth::Config::Hooks
       end
 
       auth.after_close_account do
+        # Explicit `super()`: Rodauth config blocks become define_method bodies,
+        # where implicit-argument super is not allowed.
+        super()
+
         purge  = Auth::Operations::Customers::Purge.new(
           customer: @close_account_customer,
           self_service: true,
-          authentication_closed: true,
           expected_plan_signature: @close_account_plan_signature,
         )
         result = purge.call
 
         unless result.status == :success
-          mutation_started = purge.mutation_started? || result.actions.any? || result.completed_stages.any?
-          unless mutation_started
+          unless purge.mutation_started? || result.actions.any? || result.completed_stages.any?
             raise Onetime::FormError.new(
               'Account deletion could not be completed because organization state changed. No account closure was committed.',
               error_type: 'account_deletion_refused',
