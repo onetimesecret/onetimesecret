@@ -614,22 +614,32 @@ module Onetime
       # the holder is correct.
       #
       # Exact probes first (raw, then normalized) so the common path stays a
-      # single HGET; the bounded case-insensitive HSCAN only runs when neither
-      # spelling is present.
+      # single HGET. By default the first exact hit is the answer: provisioning
+      # only needs to know whether the address is held. That fast path cannot
+      # see a SECOND spelling of the same address pointing at a different
+      # organization, so a caller that must treat two claimants as drift (the
+      # purge preflight's `contact_email_index_ambiguous`) passes
+      # `exhaustive: true` and pays for the bounded case-insensitive HSCAN even
+      # after an exact hit. Without an exact hit the scan runs either way.
       #
       # @param email [String] address in any spelling
+      # @param exhaustive [Boolean] keep collecting after an exact hit
       # @return [Hash{String => String}] stored key => organization objid
-      def find_contact_email_claims(email)
+      def find_contact_email_claims(email, exhaustive: false)
         raw        = email.to_s.strip
         normalized = OT::Utils.normalize_email(raw).to_s
         return {} if normalized.empty?
 
+        claims = {}
         [raw, normalized].uniq.reject(&:empty?).each do |candidate|
           value = contact_email_index.get(candidate)
-          return { candidate => value.to_s } unless value.to_s.empty?
+          next if value.to_s.empty?
+
+          claims[candidate] = value.to_s
+          return claims unless exhaustive
         end
 
-        scan_contact_email_index(normalized)
+        scan_contact_email_index(normalized).merge(claims)
       end
 
       # The single organization objid claiming `email`, or nil when the address
