@@ -283,6 +283,20 @@ RSpec.describe ColonelAPI::Logic::Colonel::PurgeUser do
       expect(data[:record][:extid]).to eq('ur_target')
     end
 
+    # PurgePreflight's contract: deep discovery is three whole-registry scans
+    # per preflight and is never used on a request path. The global sweep is
+    # the job of `bin/ots customers purge-one`, the only deep path; the bulk
+    # purge is shallow over a MembershipSnapshot, and the colonel endpoint
+    # stays shallow.
+    it 'uses shallow discovery (the deep registry sweep is the CLI operator path)' do
+      logic = logic_for
+      logic.raise_concerns
+      logic.process
+
+      expect(Auth::Operations::Customers::Purge).to have_received(:new)
+        .with(hash_excluding(deep: true))
+    end
+
     it 'records no audit event of its own (the op owns the trail)' do
       logic = logic_for
       logic.raise_concerns

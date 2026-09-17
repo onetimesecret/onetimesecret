@@ -18,6 +18,10 @@
 #   - refuses an anonymous customer
 #   - requires an explicit confirmation (interactive y/N, or --yes)
 #
+# Discovery depth is the one deliberate difference: this command passes
+# `deep: true` (the global registry sweep, run twice per purge); the colonel
+# endpoint stays shallow because a request path cannot afford that sweep.
+#
 # Usage:
 #   bin/ots customers purge-one user@example.com          # confirm, then purge
 #   bin/ots customers purge-one user@example.com --reason "GDPR erasure #123"

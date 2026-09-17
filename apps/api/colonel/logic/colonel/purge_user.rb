@@ -89,13 +89,19 @@ module ColonelAPI
           @purged_extid = user.extid
           @purged_objid = user.objid
 
+          # REQUEST PATH: shallow discovery only (the customer's reverse indexes
+          # plus the contact-email claim), per PurgePreflight's contract. The
+          # deep global sweep is three whole-registry scans per preflight, and
+          # Purge runs the deep preflight twice (initial plan and post-teardown
+          # validation), synchronously in this worker, so a client timeout
+          # would not stop the mutation. That sweep is the CLI's job:
+          # `bin/ots customers purge-one` is the only deep path, for the
+          # reference no reverse index points at. The bulk purge stays shallow
+          # too, over a once-per-run MembershipSnapshot.
           @result = Auth::Operations::Customers::Purge.new(
             customer: user,
             actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
             reason: reason,
-            # Single-account operator action: affordable, and the global sweep
-            # catches references the customer's own indexes do not point at.
-            deep: true,
           ).call
 
           OT.info "[PurgeUser] user=#{purged_extid} status=#{result.status}"
