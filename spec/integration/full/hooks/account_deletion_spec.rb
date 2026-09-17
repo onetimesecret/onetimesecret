@@ -281,13 +281,17 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         )
       end
 
-      it 'refuses retained workspace data before SQL closure and preserves the session for a retry' do
+      # An unfinished v1->v2 migration owns rows OUTSIDE this workspace, so it
+      # still blocks. A plain workspace description does not: it is the account's
+      # own content and is deleted with the organization (see the companion
+      # example below).
+      it 'refuses an in-flight migration before SQL closure and preserves the session for a retry' do
         login(email: test_email, password: valid_password)
         expect(last_response.status).to eq(200)
 
         customer         = find_customer_by_email(test_email)
         organization     = customer.organization_instances.first
-        organization.description = 'retained account data'
+        organization.migration_status = 'in_progress'
         organization.save
 
         post_json '/auth/close-account', { password: valid_password }
@@ -302,13 +306,33 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
 
         # The refusal occurs before Rodauth clears the session. Once the retained
         # marker is removed, the same authenticated session can retry successfully.
-        organization.description = nil
+        organization.migration_status = nil
         organization.save
         post_json '/auth/close-account', { password: valid_password }
 
         expect([200, 302]).to include(last_response.status)
         expect(find_account_by_email(test_email)[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
         expect(find_customer_by_email(test_email)).to be_nil
+      end
+
+      # Erasure must not be unavailable to an ordinary account because its own
+      # workspace holds its own content.
+      it 'deletes a workspace carrying the account own content rather than refusing' do
+        login(email: test_email, password: valid_password)
+        expect(last_response.status).to eq(200)
+
+        customer                 = find_customer_by_email(test_email)
+        organization             = customer.organization_instances.first
+        organization.description = 'retained account data'
+        organization.save
+
+        post_json '/auth/close-account', { password: valid_password }
+
+        expect([200, 302]).to include(last_response.status),
+          "Expected closure to commit, got #{last_response.status}: #{last_response.body[0..200]}"
+        expect(find_account_by_email(test_email)[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
+        expect(find_customer_by_email(test_email)).to be_nil
+        expect(Onetime::Organization.load(organization.objid)).to be_nil
       end
 
       it 'rejects incorrect password at close-account endpoint' do

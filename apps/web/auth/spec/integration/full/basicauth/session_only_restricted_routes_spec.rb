@@ -150,8 +150,11 @@ RSpec.describe 'Session-only restricted routes', type: :integration do
           expect(error.error_type).to eq('account_deletion_refused')
           expect(error.details[:blockers]).to eq([{ code: :retained_data, org_id: 'on_blocked' }])
         end
+        # `self_service: true` attributes the actor to the account and routes the
+        # events off the capped operator audit trail.
         expect(Auth::Operations::Customers::Purge).to have_received(:new).with(
           customer: test_customer,
+          self_service: true,
         )
         expect(session_auth_result.session['authenticated']).to be(true)
         expect(test_customer.exists?).to be(true)
