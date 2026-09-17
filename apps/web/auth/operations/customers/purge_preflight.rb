@@ -8,6 +8,8 @@ module Auth
       # Read-only, drift-tolerant organization preflight for an administrative
       # customer purge. A plan is executable only when every discovered
       # relationship is complete and unambiguous.
+      # rubocop:disable Metrics/ClassLength -- one blocker taxonomy; splitting it
+      # would scatter the refusal rules across files
       class PurgePreflight
         BILLING_IDENTIFIER_FIELDS = [
           :stripe_customer_id,
@@ -334,6 +336,8 @@ module Auth
           @organizations[org.objid.to_s] = org
         end
 
+        # rubocop:disable Metrics/PerceivedComplexity -- decision table: every branch is
+        # one named blocker or one piece of action evidence
         def classify(org)
           org_id                  = org.objid.to_s
           org_ref                 = public_org_id(org)
@@ -424,6 +428,7 @@ module Auth
           )
           nil
         end
+        # rubocop:enable Metrics/PerceivedComplexity
 
         def ownership_blockers(org, owner_memberships, live_members)
           # A legacy `owner_id` holding the target's custid names the same person
@@ -634,6 +639,7 @@ module Auth
           'unknown'
         end
       end
+      # rubocop:enable Metrics/ClassLength
     end
   end
 end

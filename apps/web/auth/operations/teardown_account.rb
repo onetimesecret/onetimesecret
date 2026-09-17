@@ -54,6 +54,8 @@ module Auth
         @completed_stages      = []
       end
 
+      # rubocop:disable Metrics/PerceivedComplexity -- two stores, one irreversible
+      # ordering; the branches are the cross-store outcome matrix
       def call
         customer = @customer || find_customer
         unless customer
@@ -110,6 +112,7 @@ module Auth
           completed_stages: @completed_stages,
         )
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       private
 
