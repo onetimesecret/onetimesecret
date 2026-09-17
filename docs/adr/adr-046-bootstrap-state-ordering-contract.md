@@ -57,11 +57,15 @@ both the HTML hydration payload and `GET /bootstrap/me`:
 - `snapshot_generated_at`: the server generation time, used only for age and
   diagnostics.
 
-The shared Zod/Rhales bootstrap schema will validate the three fields as a
-unit: all present and valid, or all absent. A `GET /bootstrap/me` response must
-carry them. Absence is permitted only in a degraded hydration payload (see
-allocation failure below). `snapshot_epoch` will be 32 lowercase hexadecimal
-characters.
+The shared Zod/Rhales bootstrap schema will validate `snapshot_epoch` and
+`snapshot_version` as a unit: both present and valid, or both absent. A
+`GET /bootstrap/me` response must carry them. Absence is permitted only in a
+degraded hydration payload (see allocation failure below).
+`snapshot_generated_at` is an optional string in the schema, so a missing or
+malformed timestamp cannot fail the parse of a payload whose ordering pair is
+valid; its format is checked separately (see below).
+
+`snapshot_epoch` will be 32 lowercase hexadecimal characters.
 `snapshot_version` will match `^[1-9][0-9]*$` and will never be encoded as a
 JSON number, avoiding JavaScript's integer precision limit. The client will
 compare validated versions with `BigInt`.
@@ -74,14 +78,38 @@ YYYY-MM-DDTHH:mm:ss.ssssssZ
 ```
 
 For example, `2026-09-17T17:28:59.123456Z` is valid. This datetime is
-non-normative: it will not decide whether a snapshot is newer. Clock rollback
-or skew will produce a structured diagnostic but will not override the epoch,
-version, or request-generation decision.
+non-normative: it will not decide whether a snapshot is newer or whether it is
+applied. Clock rollback or skew will produce a structured diagnostic but will
+not override the epoch, version, or request-generation decision. The format
+binds the server. On the client, a missing or malformed value produces the
+same kind of diagnostic and the snapshot's age is reported as unknown; the
+snapshot is still classified by its epoch and version and applied if accepted.
+A logout or a permission downgrade must not be discarded because a serializer
+rendered three fractional digits instead of six.
 
 ### Server allocation
 
 The server will allocate the three fields once for each complete snapshot,
-after authentication resolution:
+after the session is loaded and before it reads any state the snapshot
+reports. The version is a start stamp: a snapshot reflects every write
+committed before its version was allocated. Accepting the highest version
+therefore never moves the client behind the instant that version's request
+began. The session blob is the one exception, because allocation needs the
+session ID.
+
+State read before allocation must not be serialized. Today the authentication
+strategy runs ahead of the controller and resolves the customer record, the
+organization context (`OrganizationLoader#load_organization_context`), and
+the authenticated decision. `OrganizationSerializer` emits the plan,
+entitlements, limits, and role from that organization. The implementation
+will either allocate between session load and the authentication strategy, or
+re-run identity and organization resolution after allocation.
+
+The stamp does not order two snapshots whose requests overlap on the server.
+Either one may carry the newer state. That case does not reach acceptance in
+one tab: every request for a complete snapshot takes a request generation, so
+the coordinator applies only responses whose request began after the previous
+accepted response arrived, and discards the rest. The allocation steps are:
 
 1. It will derive `snapshot_epoch` from the current session ID with a
    domain-separated HMAC-SHA256 keyed by the application secret, truncated to
@@ -243,34 +271,40 @@ this path could discard.
 ### Downgrade guard
 
 Once the client has accepted an ordered snapshot, it will reject every later
-complete snapshot with a missing or malformed epoch, version, or generation
-timestamp. This is a downgrade guard; invalid ordering metadata cannot make
-the client forget or bypass its accepted watermark. Local state patches are
+complete snapshot with a missing or malformed epoch or version. This is a
+downgrade guard; invalid ordering metadata cannot make the client forget or
+bypass its accepted watermark. The guard does not cover
+`snapshot_generated_at`, which orders nothing: a missing or malformed
+generation timestamp is a diagnostic, not a rejection. Local state patches are
 not complete server snapshots and never advance or replace the watermark.
 
 ### Refresh coordination
 
 One shared refresh coordinator will own ordinary bootstrap refreshes and allow
-at most one ordinary refresh request in flight. It will assign a monotonically
-increasing client request generation to operations that exceptionally overlap.
+at most one ordinary refresh request in flight. Every request for a complete
+snapshot takes the next client request generation, and starting one
+invalidates all earlier generations.
 
 Authentication mutations will cancel an older refresh when possible and will
 always invalidate its request generation. Only a response on the current
 request generation may establish a new epoch; a stale response never can. The
-acceptance check and commit of all
-snapshot-derived state will form one transaction at the client coordination
-boundary; no consumer may apply a complete response independently before that
-decision.
+acceptance check and commit of all snapshot-derived state will form one
+transaction at the client coordination boundary; no consumer may apply a
+complete response independently before that decision.
 
 Structured diagnostics will record rejected epochs or versions, version
 discontinuities, session replacements, invalidated request generations,
-allocation failures, degraded hydration payloads, and clock regressions.
+allocation failures, degraded hydration payloads, missing or malformed
+generation timestamps, and clock regressions.
 Diagnostics will include ordering metadata but not bootstrap payload contents.
 A rejected snapshot leaves the last accepted state intact.
 
-This contract claims a server-authoritative total order within each session
-epoch. It does not claim or require a global order among snapshots delivered
-to unrelated sessions. Current client request generations authoritatively
+This contract claims a server-authoritative total order of version
+allocations within each session epoch, and that each snapshot reflects every
+write committed before its allocation. It does not claim that two snapshots
+built by overlapping requests are ordered by the state they carry. It does not
+claim or require a global order among snapshots delivered to unrelated
+sessions. Current client request generations authoritatively
 order the permitted transitions between epochs.
 
 ## Trade-offs
@@ -312,9 +346,10 @@ authentication operations, will converge on one coordinator. Store updates
 that currently occur outside the bootstrap-store update path will happen only
 after the coordinator accepts the complete response.
 
-Tests will cover epoch derivation, atomic version allocation, seeding and
-reseeding after key loss, TTL refresh and purge, refusal of the generic
-sidecar API for counter fields, schema validation of the fields as a unit,
+Tests will cover epoch derivation, atomic version allocation, allocation
+preceding every state read the snapshot serializes, seeding and reseeding
+after key loss, TTL refresh and purge, refusal of the generic sidecar API for
+counter fields, schema validation of the epoch and version as a unit,
 large decimal versions, hydration initialization, degraded hydration and the
 first ordered snapshot after it, a 503 from `GET /bootstrap/me` on allocation
 failure, the `Cache-Control: no-store` header, strictly newer acceptance,
@@ -324,7 +359,8 @@ applying the snapshot, conditional registration and removal of the
 `beforeunload` guard, the stale-session state after a cancelled reload with no
 reload loop, logout in another tab, session expiry and server-side revocation
 reaching the client as `authenticated: false`, authorized authentication epoch
-transitions, missing or malformed metadata, non-advancing local patches,
+transitions, a missing or malformed epoch or version, a missing or malformed
+generation timestamp applying with a diagnostic, non-advancing local patches,
 overlapping request generations, authentication invalidation, and
 non-normative clock-regression diagnostics.
 
@@ -395,6 +431,25 @@ non-normative clock-regression diagnostics.
   the browser's `beforeunload` prompt. The platform prompt also covers user
   reloads, tab close, and hard navigations, and its conditions are specified
   and documented. A custom dialog would cover only this path.
+- **Allocating the version after the snapshot state is read:** Rejected
+  because an end stamp guarantees only that a snapshot omits writes committed
+  after its allocation, which says nothing about how stale it is. A start
+  stamp guarantees that a snapshot reflects every write committed before its
+  allocation. Neither placement orders overlapping requests. Request
+  generation does, so no acceptance decision in one tab depends on the
+  placement. The choice fixes what a version means to any consumer that
+  compares two of them. The cost is that state resolved ahead of the
+  controller cannot be serialized as-is.
+- **Gating acceptance on `snapshot_generated_at`:** Rejected because the field
+  orders nothing. A guard that rejected a malformed timestamp would discard
+  snapshots whose epoch and version are valid, including logouts and
+  permission downgrades, over a formatting difference between serializers.
+- **An epoch derived from the session ID and a random token created with the
+  counter:** This would surface counter loss as an epoch change and remove
+  the dependence on the Redis clock. Rejected because every benign key loss in
+  a live session, such as eviction or a lapsed TTL, would then force a page
+  load, where the seeded counter makes it invisible. The clock-regression case
+  it removes already ends in the same forced page load.
 - **`HINCRBY` on the session:** Rejected because `session:<sid>` is an encrypted
   Redis string rather than a hash, and each `SessionSidecar` field is already
   its own Redis string. A counter-specific sidecar `INCR` preserves the current
