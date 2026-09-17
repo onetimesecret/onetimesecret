@@ -182,14 +182,13 @@ module Auth
 
           # The customer's own pointer is a reverse index in its own right: a
           # default workspace whose membership rows drifted is still reachable.
+          # Discovery only: a pointer left over from an organization that is
+          # already gone is not drift worth refusing over, and it dangles by
+          # design between the cleanup and teardown stages of a purge.
           default_org_id = @customer.default_org_id.to_s
           unless default_org_id.empty?
             org = Onetime::Organization.load(default_org_id)
-            if org
-              add_organization(org)
-            else
-              add_blocker(:dangling_default_workspace_pointer, reference: default_org_id)
-            end
+            add_organization(org) if org
           end
         rescue StandardError => ex
           add_blocker(:participation_lookup_failed, message: ex.class.name)
