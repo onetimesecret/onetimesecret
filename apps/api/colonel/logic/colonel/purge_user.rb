@@ -93,12 +93,14 @@ module ColonelAPI
             customer: user,
             actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
             reason: reason,
+            # Single-account operator action: affordable, and the global sweep
+            # catches references the customer's own indexes do not point at.
+            deep: true,
           ).call
-
-          handle_result_status
 
           OT.info "[PurgeUser] user=#{purged_extid} status=#{result.status}"
 
+          handle_result_status
           success_data
         end
 
@@ -109,31 +111,56 @@ module ColonelAPI
               user_id: purged_objid,
               extid: purged_extid,
             },
-            details: {
+            details: purge_result_payload.merge(
               message: 'User purged successfully',
-            },
+            ),
           }
         end
 
         private
 
-        # Purge::Result#status is a CLOSED contract (purge.rb): :success or
-        # :not_found, nothing else.
-        #
-        # :not_found means DestroyCustomerRecord found nothing to destroy — the record
-        # vanished between raise_concerns and the destroy — and in that case the
-        # op records NO ColonelAuditEvent. Reporting `deleted: true` would invent
-        # both a deletion and an audit trail. The CLI peer (`bin/ots customers
-        # purge-one`) applies the same discipline by exiting 1 on this status.
-        #
-        # The else arm exists so a future status added to the op fails loudly
-        # here instead of being swallowed back into a success response.
         def handle_result_status
           case result.status
-          when :success   then nil
-          when :not_found then raise_not_found('User not found')
-          else raise_form_error("Purge did not complete (#{result.status})", field: :user_id)
+          when :success
+            nil
+          when :refused
+            raise_form_error(
+              'Purge refused. Resolve the reported blockers and retry.',
+              field: :user_id,
+              error_type: :conflict,
+              details: purge_result_payload,
+            )
+          when :partial
+            raise_form_error(
+              'Purge stopped after mutation began. Review the completed stages before retrying.',
+              field: :user_id,
+              error_type: :partial,
+              details: purge_result_payload,
+            )
+          when :not_found
+            raise_not_found('User not found')
+          else
+            raise_form_error(
+              "Purge did not complete (#{result.status})",
+              field: :user_id,
+              error_type: :system_error,
+              details: purge_result_payload,
+            )
           end
+        end
+
+        def purge_result_payload
+          {
+            status: result.status,
+            deleted: result.status == :success,
+            extid: result.extid,
+            custid: result.custid,
+            blockers: result.blockers,
+            actions: result.actions,
+            planned_actions: result.planned_actions,
+            stage: result.stage,
+            completed_stages: result.completed_stages,
+          }
         end
       end
     end

@@ -455,10 +455,17 @@ module Onetime
         raise Onetime::Problem, message
       end
 
-      # Remove all member participations
-      # Use .compact to handle already-destroyed members (stale objids in set)
+      # Remove all member participations through the membership's semantic
+      # cleanup so materialized entitlement subkeys do not survive the org.
+      # Fall back to the relationship primitive only for legacy rows whose
+      # through model is already missing; org deletion still owns that drift.
       list_members.compact.each do |member|
-        remove_members_instance(member)
+        membership = OrganizationMembership.find_by_org_customer(objid, member.objid)
+        if membership
+          membership.destroy_with_index_cleanup!
+        else
+          remove_members_instance(member)
+        end
       end
 
       # Clean up all pending invitations (staged models in pending_invitations set)

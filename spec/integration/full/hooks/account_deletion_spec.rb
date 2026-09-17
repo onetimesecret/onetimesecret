@@ -225,6 +225,9 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         login(email: test_email, password: valid_password)
         expect(last_response.status).to eq(200)
 
+        customer = find_customer_by_email(test_email)
+        org_id   = customer.organization_instances.first.objid
+
         # Now attempt to close account with correct password
         post_json '/auth/close-account', { password: valid_password }
 
@@ -234,6 +237,77 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         closed_account = find_account_by_email(test_email)
         expect(closed_account[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
         expect(test_db[:account_password_hashes].where(id: closed_account[:id]).first).to be_nil
+        expect(find_customer_by_email(test_email)).to be_nil
+        expect(Onetime::Organization.load(org_id)).to be_nil
+      end
+
+      it 'keeps the Rodauth account closed when post-teardown revalidation reports a partial purge' do
+        login(email: test_email, password: valid_password)
+        expect(last_response.status).to eq(200)
+
+        customer     = find_customer_by_email(test_email)
+        organization = customer.organization_instances.first
+        residual = Auth::Operations::Customers::PurgePreflight::Plan.new(
+          actions: [],
+          blockers: [{ code: :post_teardown_revalidation_failed }],
+        )
+
+        allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+        allow(Auth::Operations::Customers::Purge).to receive(:new).and_wrap_original do |original, **kwargs|
+          operation       = original.call(**kwargs)
+          preflight_calls = 0
+          allow(operation).to receive(:preflight).and_wrap_original do |preflight|
+            preflight_calls += 1
+            preflight_calls == 6 ? residual : preflight.call
+          end
+          operation
+        end
+
+        post_json '/auth/close-account', { password: valid_password }
+
+        expect([200, 302]).to include(last_response.status),
+          "Expected closure to commit, got #{last_response.status}: #{last_response.body[0..200]}"
+        expect(find_account_by_email(test_email)[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
+        expect(find_customer_by_email(test_email)).to be_nil
+        expect(Onetime::Organization.load(organization.objid)).to be_nil
+        expect(Auth::Logging).to have_received(:log_auth_event).with(
+          :account_close_cleanup_partial,
+          hash_including(
+            level: :error,
+            cleanup_status: :partial,
+            stage: :post_teardown_revalidation,
+            completed_stages: include(:customer_deletion),
+          ),
+        )
+      end
+
+      it 'refuses retained workspace data before SQL closure and preserves the session for a retry' do
+        login(email: test_email, password: valid_password)
+        expect(last_response.status).to eq(200)
+
+        customer         = find_customer_by_email(test_email)
+        organization     = customer.organization_instances.first
+        organization.description = 'retained account data'
+        organization.save
+
+        post_json '/auth/close-account', { password: valid_password }
+
+        expect(last_response.status).to eq(422)
+        body = JSON.parse(last_response.body)
+        expect(body['error_type']).to eq('account_deletion_refused')
+        expect(body.dig('details', 'blockers')).not_to be_empty
+        expect(find_account_by_email(test_email)[:status_id]).not_to eq(Auth::AccountStatuses::CLOSED)
+        expect(find_customer_by_email(test_email)).not_to be_nil
+        expect(Onetime::Organization.load(organization.objid)).not_to be_nil
+
+        # The refusal occurs before Rodauth clears the session. Once the retained
+        # marker is removed, the same authenticated session can retry successfully.
+        organization.description = nil
+        organization.save
+        post_json '/auth/close-account', { password: valid_password }
+
+        expect([200, 302]).to include(last_response.status)
+        expect(find_account_by_email(test_email)[:status_id]).to eq(Auth::AccountStatuses::CLOSED)
         expect(find_customer_by_email(test_email)).to be_nil
       end
 

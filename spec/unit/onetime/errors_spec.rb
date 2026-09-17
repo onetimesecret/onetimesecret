@@ -182,6 +182,14 @@ RSpec.describe 'Onetime error #to_s tracks @message mutation' do
   end
 
   describe Onetime::FormError do
+    it 'serializes optional structured details without changing legacy payloads' do
+      legacy = described_class.new('legacy')
+      error  = described_class.new('blocked', details: { status: :refused, blockers: [{ code: :billing_state }] })
+
+      expect(legacy.to_h).not_to have_key(:details)
+      expect(error.to_h[:details]).to eq(status: :refused, blockers: [{ code: :billing_state }])
+    end
+
     it 'returns the mutated @message via to_s, not the constructor-time string' do
       error = described_class.new('original form error')
       error.message = 'localized form error'

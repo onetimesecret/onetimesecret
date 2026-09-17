@@ -38,9 +38,21 @@ RSpec.describe ColonelAPI::Logic::Colonel::PurgeUser do
       role: 'customer', exists?: true, anonymous?: false)
   end
 
-  let(:purge_result) do
-    instance_double(Auth::Operations::Customers::Purge::Result, status: :success)
+  def purge_result_for(status, **overrides)
+    defaults = {
+      status: status,
+      extid: 'ur_target',
+      custid: 'cust_target',
+      blockers: [],
+      actions: [],
+      planned_actions: [],
+      stage: :complete,
+      completed_stages: [],
+    }
+    instance_double(Auth::Operations::Customers::Purge::Result, **defaults.merge(overrides))
   end
+
+  let(:purge_result) { purge_result_for(:success) }
 
   let(:op) { instance_double(Auth::Operations::Customers::Purge, call: purge_result) }
 
@@ -190,6 +202,72 @@ RSpec.describe ColonelAPI::Logic::Colonel::PurgeUser do
     it 'refuses a non-colonel before anything else, and writes NO audit event' do
       expect { logic_for(customer).raise_concerns }.to raise_error(Onetime::Forbidden)
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+    end
+  end
+
+  describe 'purge lifecycle results' do
+    it 'returns deleted true only for success and exposes lifecycle details' do
+      logic = logic_for
+      logic.raise_concerns
+
+      data = logic.process
+
+      expect(data[:record][:deleted]).to be true
+      expect(data[:details]).to include(status: :success, deleted: true, stage: :complete)
+    end
+
+    it 'maps refusal to a structured 422 form error without claiming deletion' do
+      blockers = [{ code: :billing_state, org_id: 'org_blocked' }]
+      allow(purge_result).to receive_messages(
+        status: :refused,
+        blockers: blockers,
+        planned_actions: [{ type: :remove_membership, org_id: 'org_other' }],
+        stage: :preflight,
+      )
+      logic = logic_for
+      logic.raise_concerns
+
+      expect { logic.process }.to raise_error(Onetime::FormError) do |error|
+        expect(error.error_type).to eq(:conflict)
+        expect(error.to_h[:details]).to include(
+          status: :refused,
+          deleted: false,
+          blockers: blockers,
+          stage: :preflight,
+        )
+      end
+    end
+
+    it 'maps partial to a hard error with completed work and stage' do
+      actions = [{ type: :remove_membership, org_id: 'org_done', status: :success }]
+      allow(purge_result).to receive_messages(
+        status: :partial,
+        blockers: [{ code: :preflight_changed }],
+        actions: actions,
+        stage: :post_cleanup_revalidation,
+        completed_stages: [:remove_membership],
+      )
+      logic = logic_for
+      logic.raise_concerns
+
+      expect { logic.process }.to raise_error(Onetime::FormError) do |error|
+        expect(error.error_type).to eq(:partial)
+        expect(error.to_h[:details]).to include(
+          status: :partial,
+          deleted: false,
+          actions: actions,
+          stage: :post_cleanup_revalidation,
+          completed_stages: [:remove_membership],
+        )
+      end
+    end
+
+    it 'maps not_found to 404 semantics' do
+      allow(purge_result).to receive(:status).and_return(:not_found)
+      logic = logic_for
+      logic.raise_concerns
+
+      expect { logic.process }.to raise_error(Onetime::RecordNotFound, 'User not found')
     end
   end
 

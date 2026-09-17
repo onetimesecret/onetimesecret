@@ -263,19 +263,20 @@ module Onetime
   end
 
   class FormError < Problem
-    attr_accessor :form_fields, :field, :error_type, :error_key, :args
+    attr_accessor :form_fields, :field, :error_type, :error_key, :args, :details
 
     # Two shapes:
     # - Legacy: FormError.new('resolved string', field:, error_type:)
     # - i18n:   FormError.new(error_key: 'api.organizations.errors.email_required',
     #                         args: { max: 5 }, field:, error_type:)
     # The edge handler resolves error_key+args via I18n.t; logic never does.
-    def initialize(message = nil, error_key: nil, args: {}, field: nil, error_type: nil)
+    def initialize(message = nil, error_key: nil, args: {}, field: nil, error_type: nil, details: nil)
       super(message)
       @error_key  = error_key
       @args       = args
       @field      = field
       @error_type = error_type
+      @details    = details
     end
 
     def to_h
@@ -284,6 +285,7 @@ module Onetime
         error_type: error_type,
         field: field,
         error_key: error_key,
+        details: details,
       }.compact
     end
   end

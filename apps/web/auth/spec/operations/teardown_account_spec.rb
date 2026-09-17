@@ -60,7 +60,45 @@ RSpec.describe Auth::Operations::TeardownAccount do
       customer: customer,
       actor: 'ur_colonel',
       reason: 'request',
+      bulk_audit_context: nil,
     )
+  end
+
+  it 'revalidates immediately before each administrative mutation' do
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
+    stages = []
+    guard  = lambda do |stage|
+      stages << stage
+      true
+    end
+
+    result = described_class.new(
+      customer: customer,
+      actor: 'ur_colonel',
+      before_mutation: guard,
+    ).call
+
+    expect(result.status).to eq(:success)
+    expect(stages).to eq([:session_revocation, :authentication_closure, :customer_deletion])
+    expect(result.completed_stages)
+      .to eq([:session_revocation, :authentication_closure, :customer_deletion])
+  end
+
+  it 'returns a truthful partial result when revalidation blocks after session revocation' do
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
+    guard = lambda { |stage| stage == :session_revocation }
+
+    result = described_class.new(
+      customer: customer,
+      actor: 'ur_colonel',
+      before_mutation: guard,
+    ).call
+
+    expect(result.status).to eq(:partial)
+    expect(result.blocked_stage).to eq(:authentication_closure)
+    expect(result.completed_stages).to eq([:session_revocation])
+    expect(Auth::Operations::RemoveAuthenticationData).not_to have_received(:call)
+    expect(customer_deleter).not_to have_received(:call)
   end
 
   it 'uses the Rodauth transaction database for self-service teardown' do
@@ -81,6 +119,19 @@ RSpec.describe Auth::Operations::TeardownAccount do
       retain_account: true,
     )
     expect(Auth::Operations::DestroyCustomerRecord).to have_received(:new).with(customer: customer)
+  end
+
+  it 'does not recursively remove authentication data when Rodauth already closed the account' do
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
+
+    result = described_class.new(
+      customer: customer,
+      authentication_closed: true,
+    ).call
+
+    expect(result.status).to eq(:success)
+    expect(Auth::Operations::RemoveAuthenticationData).not_to have_received(:call)
+    expect(customer_deleter).to have_received(:call)
   end
 
   it 'scrubs SQL credentials when the account has no resolvable Redis customer' do

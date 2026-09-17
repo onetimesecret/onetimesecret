@@ -124,6 +124,38 @@ RSpec.describe 'Session-only restricted routes', type: :integration do
         logic = AccountAPI::Logic::Account::DestroyAccount.new(session_auth_result, {})
         expect(logic.sess['authenticated']).to eq(true)
       end
+
+      it 'surfaces purge refusal details and preserves the customer session' do
+        password = 'self-service-refusal-password'
+        test_customer.update_passphrase(password)
+        result = Auth::Operations::Customers::Purge::Result.new(
+          status: :refused,
+          extid: test_customer.extid,
+          custid: test_customer.custid,
+          blockers: [{ code: :retained_data, org_id: 'on_blocked' }],
+          stage: :preflight,
+        )
+        purge = instance_double(Auth::Operations::Customers::Purge, call: result)
+        allow(Auth::Operations::Customers::Purge).to receive(:new).and_return(purge)
+        allow(Onetime).to receive(:debug?).and_return(false)
+
+        logic = AccountAPI::Logic::Account::DestroyAccount.new(
+          session_auth_result,
+          { 'confirmation' => password },
+        )
+        allow(logic).to receive(:verify_password).and_return(true)
+        logic.raise_concerns
+
+        expect { logic.process }.to raise_error(Onetime::FormError) do |error|
+          expect(error.error_type).to eq('account_deletion_refused')
+          expect(error.details[:blockers]).to eq([{ code: :retained_data, org_id: 'on_blocked' }])
+        end
+        expect(Auth::Operations::Customers::Purge).to have_received(:new).with(
+          customer: test_customer,
+        )
+        expect(session_auth_result.session['authenticated']).to be(true)
+        expect(test_customer.exists?).to be(true)
+      end
     end
   end
 
