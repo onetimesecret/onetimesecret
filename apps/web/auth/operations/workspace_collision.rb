@@ -51,6 +51,8 @@ module Auth
         :migration_comment,
       ].freeze
 
+      REPORTABLE_EMAIL_FIELDS = [:normalized_email, :index_key, :contact_email].freeze
+
       COMPARE_AND_DELETE_SCRIPT = <<~LUA
         if redis.call('HGET', KEYS[1], ARGV[1]) ~= ARGV[2] then return 0 end
         return redis.call('HDEL', KEYS[1], ARGV[1])
@@ -77,13 +79,23 @@ module Auth
           {
             available: !unreadable?,
             classification: classification,
-            email: email,
+            email: OT::Utils.obscure_email(email.to_s),
             repairable: repairable_index_claim?,
             reason: (evidence[:reason] if unreadable?),
             reason_code: (:workspace_collision_unreadable if unreadable?),
-            evidence: evidence,
+            evidence: WorkspaceCollision.reportable_evidence(evidence),
           }.compact
         end
+      end
+
+      def self.reportable_evidence(evidence)
+        reportable = evidence.dup
+        REPORTABLE_EMAIL_FIELDS.each do |field|
+          next unless reportable.key?(field)
+
+          reportable[field] = OT::Utils.obscure_email(reportable[field].to_s)
+        end
+        reportable
       end
 
       class ProvisioningCollision < Onetime::Problem
@@ -189,8 +201,9 @@ module Auth
         stale_member_ids       = loaded_members.filter_map { |objid, customer| objid unless customer }
         current_membership     = current_membership_for(org_id)
         listed_domain_ids      = org.domains.to_a.map(&:to_s).uniq.sort
-        referenced_domain_ids  = referenced_domain_ids_for(org_id)
         live_listed_domain_ids = listed_domain_ids.select { |objid| Onetime::CustomDomain.load(objid) }
+        unlisted_domain_ids    = org.unlisted_owned_domains.map { |domain| domain.objid.to_s }.uniq.sort
+        referenced_domain_ids  = (live_listed_domain_ids + unlisted_domain_ids).uniq.sort
         raw_invitation_ids     = org.pending_invitations.to_a.map(&:to_s).uniq
         billing_markers        = present_fields(org, BILLING_FIELDS, boolean_false_is_empty: true)
         retained_markers       = retained_data_markers(org)
@@ -282,15 +295,6 @@ module Auth
           org = Onetime::Organization.load(objid)
           org if org && normalize_email(org.contact_email) == @email
         end
-      end
-
-      # Independent of org.domains: catches domain records that still reference
-      # the organization after its relationship collection drifted.
-      def referenced_domain_ids_for(org_id)
-        Onetime::CustomDomain.instances.to_a.filter_map do |objid|
-          domain = Onetime::CustomDomain.load(objid)
-          domain&.objid.to_s if domain&.org_id.to_s == org_id
-        end.uniq.sort
       end
 
       def retained_data_markers(org)

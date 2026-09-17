@@ -74,6 +74,25 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     )
   end
 
+  it 'obscures every address-bearing collision evidence field' do
+    index_key = 'Jane.Doe@Example.com'
+    contact_email = 'other@example.com'
+    issues, = run_check(collision(
+      :index_mismatch,
+      evidence: {
+        normalized_email: customer.email,
+        index_key: index_key,
+        contact_email: contact_email,
+      },
+    ))
+
+    expect(issues.first[:evidence]).to include(
+      normalized_email: OT::Utils.obscure_email(customer.email),
+      index_key: OT::Utils.obscure_email(index_key),
+      contact_email: OT::Utils.obscure_email(contact_email),
+    )
+  end
+
   it 'CAS-removes a phantom claim, provisions canonically, verifies it, and reports a completed repair' do
     stale = collision(:phantom_index)
     current = collision(

@@ -133,6 +133,31 @@ RSpec.describe Auth::Operations::WorkspaceCollision do
     expect(result.evidence[:reason]).to eq('NOAUTH')
   end
 
+  it 'obscures every address-bearing field in its reportable representation' do
+    index_key = 'Jane.Doe@Example.com'
+    contact_email = 'other@example.com'
+    result = described_class::Result.new(
+      classification: :index_mismatch,
+      email: email,
+      organization: nil,
+      raw_index_value: 'org_1',
+      evidence: {
+        normalized_email: email,
+        index_key: index_key,
+        contact_email: contact_email,
+      },
+    )
+
+    report = result.to_h
+
+    expect(report[:email]).to eq(OT::Utils.obscure_email(email))
+    expect(report[:evidence]).to include(
+      normalized_email: OT::Utils.obscure_email(email),
+      index_key: OT::Utils.obscure_email(index_key),
+      contact_email: OT::Utils.obscure_email(contact_email),
+    )
+  end
+
   it 'does not repair a stale pointer when another live organization carries the address' do
     claimant = double('Claimant', objid: 'org_live', extid: 'on_live', contact_email: email)
     allow(Onetime::Organization).to receive(:instances).and_return(['org_live'])

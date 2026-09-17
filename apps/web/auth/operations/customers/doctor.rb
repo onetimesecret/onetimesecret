@@ -243,7 +243,7 @@ module Auth
             severity: classification == :unreadable ? :critical : :high,
             message: messages.fetch(classification),
             org_extid: org_extid,
-            evidence: reportable_workspace_collision_evidence(collision.evidence),
+            evidence: WorkspaceCollision.reportable_evidence(collision.evidence),
             repairable: repairable,
             repair_action: if repairable
                              'Compare-and-delete the unchanged stale contact_email_index claim, then provision canonically'
@@ -477,16 +477,6 @@ module Auth
           return "#{message}the durable provisioning failure remains latched." unless latch_result[:status] == :unverified
 
           "#{message}the durable failure state could not be verified or updated."
-        end
-
-        def reportable_workspace_collision_evidence(evidence)
-          reportable = evidence.dup
-          [:normalized_email, :contact_email].each do |field|
-            next unless reportable.key?(field)
-
-            reportable[field] = OT::Utils.obscure_email(reportable[field].to_s)
-          end
-          reportable
         end
 
         # CHECK: default_org_id points to existing org that customer is member of
