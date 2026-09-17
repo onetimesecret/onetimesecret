@@ -6,6 +6,8 @@ require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'auth/account_statuses'
 require 'auth/operations/set_customer_verification'
+require 'auth/operations/workspace_collision'
+require 'auth/operations/ensure_default_workspace'
 
 module Auth
   module Operations
@@ -52,6 +54,13 @@ module Auth
         AUDIT_VERB = 'customer.doctor_repair'
 
         SEVERITY_ORDER = { critical: 0, high: 1, medium: 2, warning: 3, low: 4 }.freeze
+
+        # Issues the workspace-collision repair emits when its canonical
+        # provisioning retry did not converge this run.
+        PROVISIONING_RETRY_CHECKS = [
+          :workspace_provisioning_retry_failed,
+          :workspace_provisioning_retry_deferred,
+        ].freeze
 
         # Valid customer roles (historical data-shape check — see NOTE above)
         VALID_ROLES = %w[customer anonymous colonel].freeze
@@ -108,6 +117,8 @@ module Auth
           issues   = []
           repaired = []
 
+          check_workspace_collision(issues, repaired)
+          check_provisioning_failure(issues, repaired)
           check_orphan_default_org(issues, repaired)
           check_email_index_entry(issues, repaired)
           check_auth_email_drift(issues, repaired)
@@ -120,7 +131,7 @@ module Auth
           check_counter_sanity(issues, repaired)
           check_field_serialization(issues, repaired)
 
-          audit_repair(repaired) if @repair && repaired.any?
+          audit_repair_outcome(repaired) if @repair
 
           Report.new(issues: issues.sort_by { |i| SEVERITY_ORDER[i[:severity]] }, repaired: repaired)
         rescue StandardError => ex
@@ -211,6 +222,269 @@ module Auth
         end
 
         private
+
+        # CHECK: the raw organization contact-email index can block workspace
+        # provisioning even when no organization is reachable through customer
+        # participation. Repair is deliberately limited to stale index claims;
+        # no organization is adopted and no membership is changed here.
+        def check_workspace_collision(issues, repaired)
+          collision = WorkspaceCollision.new(email: @customer.email, customer: @customer).call
+          return if [:clear, :current_valid_workspace].include?(collision.classification)
+
+          classification = collision.classification
+          repairable     = collision.repairable_index_claim?
+          org_extid      = collision.evidence[:organization_extid]
+          messages       = {
+            phantom_index: 'contact_email_index points to a missing organization and blocks default-workspace provisioning',
+            index_mismatch: 'contact_email_index points to an organization whose contact_email no longer matches',
+            empty_orphan: 'an empty ownerless organization reserves the customer email; same-email adoption is forbidden',
+            stale_members: 'an ownerless organization with stale member references reserves the customer email',
+            live_members: 'an organization with a live owner or member reserves the customer email',
+            retained_data: 'an organization with retained domains, invitations, receipts, billing, or other data reserves the customer email',
+            unreadable: "workspace collision evidence is unreadable (#{collision.evidence[:reason] || 'unknown'})",
+          }
+
+          collision_issue = {
+            check: :"workspace_collision_#{classification}",
+            classification: classification,
+            severity: classification == :unreadable ? :critical : :high,
+            message: messages.fetch(classification),
+            org_extid: org_extid,
+            evidence: WorkspaceCollision.reportable_evidence(collision.evidence),
+            repairable: repairable,
+            repair_action: if repairable
+                             'Compare-and-delete the unchanged stale contact_email_index claim, then provision canonically'
+                           else
+                             'Manual lifecycle decision required; do not adopt by email or alter memberships'
+                           end,
+          }
+          issues << collision_issue
+
+          return unless @repair && repairable
+          return unless WorkspaceCollision.compare_and_delete(collision)
+
+          OT.info "[customers doctor] Removed stale contact-email claim for #{@customer.extid} (#{classification})"
+          converge_workspace_repair(collision_issue, issues, repaired, classification)
+        end
+
+        def converge_workspace_repair(collision_issue, issues, repaired, original_classification)
+          Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer).call
+
+          verified = WorkspaceCollision.new(email: @customer.email, customer: @customer).call
+          unless verified.current_valid_workspace? && !@customer.provisioning_failed?
+            raise Onetime::Problem,
+              "Default-workspace repair verification failed: #{verified.classification}"
+          end
+
+          issues.delete(collision_issue)
+          repaired << {
+            customer: @customer.extid,
+            action: :workspace_collision_repaired,
+            classification: original_classification,
+            org: verified.organization&.extid || verified.evidence[:organization_extid],
+          }
+          refresh_customer_organizations!
+          OT.info "[customers doctor] Provisioned and verified default workspace for #{@customer.extid}"
+        rescue Onetime::AccountProvisioningUnavailable => ex
+          # Transient, and NOT a failure to latch: provisioning persisted
+          # nothing (unreadable evidence, or the customer's own login held the
+          # creation lock past the bounded wait). Retaining :provisioning_error
+          # here would mint exactly the stale-latch-beside-a-real-workspace
+          # state the latch release exists to undo. Partial because the index
+          # claim is already gone; the next request or a rerun provisions.
+          issues.delete(collision_issue)
+          issues << {
+            check: :workspace_provisioning_retry_deferred,
+            classification: ex.reason,
+            severity: :warning,
+            message: 'Default-workspace provisioning was temporarily unavailable after the stale ' \
+                     "contact-email claim was removed (#{ex.reason}); nothing was latched",
+            repairable: false,
+            repair_action: 'Retry customer repair shortly; the next authenticated request also re-runs provisioning',
+            partial: true,
+          }
+          @partial_repair      = {
+            error: ex,
+            actions: [:workspace_contact_email_index_removed],
+            classification: original_classification,
+            retry_classification: ex.reason,
+          }
+        rescue StandardError => ex
+          retry_classification = if ex.is_a?(WorkspaceCollision::ProvisioningCollision)
+                                   ex.collision.classification
+                                 else
+                                   :provisioning_error
+                                 end
+          latch_result         = retain_provisioning_failure(retry_classification)
+          issues.delete(collision_issue)
+          issues << {
+            check: :workspace_provisioning_retry_failed,
+            classification: retry_classification,
+            severity: :critical,
+            message: provisioning_retry_failure_message(latch_result),
+            repairable: false,
+            repair_action: 'Inspect the new provisioning failure before retrying customer repair',
+            repair_failed: true,
+            partial: true,
+          }
+          @partial_repair      = {
+            error: ex,
+            actions: [:workspace_contact_email_index_removed],
+            classification: original_classification,
+            retry_classification: retry_classification,
+            latch_error: latch_result[:error],
+          }
+        end
+
+        # CHECK: a latched provisioning failure (AccountProvisioningFailed 409
+        # on every org-less request). The request path never re-runs
+        # provisioning once latched, so this is the only release. The release
+        # is evidence-backed, never a blind flag clear: the latch is releasable
+        # only when the customer already has a workspace or the live
+        # classification says nothing blocks provisioning (:clear /
+        # :current_valid_workspace); then canonical provisioning converges and
+        # clears the flag itself. :unreadable is transient and only ever
+        # reported. Anything else keeps the latch with its real classification.
+        def check_provisioning_failure(issues, repaired)
+          return unless @customer.provisioning_failed?
+          # A retry this run already failed or deferred; a second attempt here
+          # would just repeat that verdict on top of it.
+          return if issues.any? { |issue| PROVISIONING_RETRY_CHECKS.include?(issue[:check]) }
+
+          release = provisioning_latch_release
+          issue   = {
+            check: :workspace_provisioning_failed,
+            classification: @customer.provisioning_failure_classification.to_s,
+            severity: :critical,
+            message: provisioning_latch_message(release),
+            evidence: {
+              current_classification: release[:classification],
+              workspace_present: release[:workspace_present],
+            },
+            repairable: release[:releasable],
+            repair_action: provisioning_latch_repair_action(release),
+          }
+          issues << issue
+
+          return unless @repair && release[:releasable]
+
+          release_provisioning_latch(issue, issues, repaired, release)
+        end
+
+        # Fresh evidence, not the classification check_workspace_collision saw:
+        # a repair there may just have changed it.
+        def provisioning_latch_release
+          collision         = WorkspaceCollision.new(email: @customer.email, customer: @customer).call
+          workspace_present = customer_organizations.any?
+          releasable        = workspace_present ||
+                              [:clear, :current_valid_workspace].include?(collision.classification)
+          {
+            classification: collision.classification,
+            workspace_present: workspace_present,
+            releasable: releasable,
+            transient: collision.unreadable?,
+            reason: collision.evidence[:reason],
+          }
+        end
+
+        def provisioning_latch_message(release)
+          base = 'Default-workspace provisioning failure remains latched'
+          return "#{base}; the customer now has a workspace, so the latch is stale" if release[:workspace_present]
+          return "#{base}; current collision classification is #{release[:classification]}, nothing blocks provisioning" if release[:releasable]
+          if release[:transient]
+            return "#{base}; collision evidence is currently unreadable (#{release[:reason] || 'unknown'})"
+          end
+
+          "#{base}; current collision classification is #{release[:classification]}"
+        end
+
+        def provisioning_latch_repair_action(release)
+          return 'Re-run canonical workspace provisioning, which converges and clears the latch' if release[:releasable]
+          return 'Transient: retry once the datastore answers; do not clear the latch on unreadable evidence' if release[:transient]
+
+          'Resolve the workspace collision, then retry canonical workspace provisioning'
+        end
+
+        # The flag is cleared by EnsureDefaultWorkspace itself (its exists-path
+        # and success-path both clear it); we only verify the persisted result
+        # so a silent non-clear cannot be reported as a repair.
+        def release_provisioning_latch(issue, issues, repaired, release)
+          Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer).call
+
+          persisted = Onetime::Customer.load(@customer.objid)
+          verified  = WorkspaceCollision.new(email: @customer.email, customer: @customer).call
+          converged = persisted && !persisted.provisioning_failed? &&
+                      (verified.current_valid_workspace? || persisted.organization_instances.to_a.any?)
+          unless converged
+            raise Onetime::Problem,
+              "Provisioning latch release verification failed: #{verified.classification}"
+          end
+
+          issues.delete(issue)
+          repaired << {
+            customer: @customer.extid,
+            action: :workspace_provisioning_latch_released,
+            classification: issue[:classification],
+            org: released_workspace_extid(persisted, verified),
+          }
+          refresh_customer_organizations!
+          OT.info "[customers doctor] Released stale provisioning latch for #{@customer.extid} " \
+                  "(#{release[:workspace_present] ? 'workspace present' : verified.classification})"
+        rescue StandardError => ex
+          # A collision here re-latches through the canonical path with its own
+          # fresh classification; an unavailable error changes nothing. Either
+          # way the latch stands and the report says why.
+          retry_classification  = ex.respond_to?(:collision) && ex.collision ? ex.collision.classification : :provisioning_error
+          issue[:message]       = "#{issue[:message]}; release attempt failed (#{retry_classification}: #{ex.message})"
+          issue[:repair_failed] = true
+          @partial_repair       = {
+            error: ex,
+            actions: [:workspace_provisioning_latch_release_attempted],
+            classification: issue[:classification],
+            retry_classification: retry_classification,
+          }
+        end
+
+        # The org a latch-release record names is the customer's OWN workspace.
+        # Only a :current_valid_workspace verdict identifies that org; when the
+        # release reason was "workspace present", `verified` may still classify
+        # :live_members / :retained_data against the index HOLDER, a different
+        # org, so its organization must not be recorded as the one released.
+        def released_workspace_extid(persisted, verified)
+          if verified.current_valid_workspace?
+            return verified.organization&.extid || verified.evidence[:organization_extid]
+          end
+
+          own = persisted.organization_instances.to_a
+          (own.find { |org| default_org?(org) } || own.first)&.extid
+        end
+
+        def retain_provisioning_failure(classification)
+          persisted = Onetime::Customer.load(@customer.objid)
+          return { status: :retained } if persisted&.provisioning_failed?
+
+          @customer.mark_provisioning_failed!(
+            code: Auth::Operations::EnsureDefaultWorkspace::PROVISIONING_FAILURE_CODE,
+            classification: classification,
+          )
+
+          persisted = Onetime::Customer.load(@customer.objid)
+          return { status: :updated } if persisted&.provisioning_failed?
+
+          {
+            status: :unverified,
+            error: Onetime::Problem.new('Provisioning failure was not persisted'),
+          }
+        rescue StandardError => ex
+          { status: :unverified, error: ex }
+        end
+
+        def provisioning_retry_failure_message(latch_result)
+          message = 'Default-workspace provisioning failed after the stale contact-email claim was removed; '
+          return "#{message}the durable provisioning failure remains latched." unless latch_result[:status] == :unverified
+
+          "#{message}the durable failure state could not be verified or updated."
+        end
 
         # CHECK: default_org_id points to existing org that customer is member of
         def check_orphan_default_org(issues, repaired)
@@ -809,6 +1083,13 @@ module Auth
           @customer_organizations = []
         end
 
+        # A repair that provisioned a workspace invalidates the memo: the
+        # org-level checks that follow (email index, contact email, membership
+        # sync) must see the new org, not the empty list captured before it.
+        def refresh_customer_organizations!
+          @customer_organizations = nil
+        end
+
         # `is_default` is a conservative boolean: absent/blank means NOT default.
         def default_org?(org)
           org.respond_to?(:is_default) && org.is_default.to_s == 'true'
@@ -834,6 +1115,15 @@ module Auth
           false
         end
 
+        def audit_repair_outcome(repaired)
+          if @partial_repair
+            actions = @partial_repair[:actions] + repaired.map { |repair| repair[:action] }.compact
+            audit_partial_repair(@partial_repair.merge(actions: actions.uniq))
+          elsif repaired.any?
+            audit_repair(repaired)
+          end
+        end
+
         # One audit event per repaired customer (see class docs).
         def audit_repair(repaired)
           return if @actor.nil?
@@ -844,6 +1134,33 @@ module Auth
             target: @customer.extid,
             result: :success,
             detail: { actions: repaired.map { |r| r[:action] }.compact },
+          )
+        end
+
+        # A stale claim was removed but canonical provisioning did not converge.
+        # Record one bounded doctor event, explicitly partial rather than success.
+        def audit_partial_repair(partial)
+          return if @actor.nil?
+
+          error  = partial[:error]
+          detail = {
+            actions: partial[:actions],
+            classification: partial[:classification],
+            retry_classification: partial[:retry_classification],
+            error: error.class.name,
+            message: error.message.to_s,
+          }
+          if partial[:latch_error]
+            latch_error          = partial[:latch_error]
+            detail[:latch_error] = "#{latch_error.class}: #{latch_error.message}"
+          end
+
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @customer.extid,
+            result: :partial,
+            detail: detail,
           )
         end
 

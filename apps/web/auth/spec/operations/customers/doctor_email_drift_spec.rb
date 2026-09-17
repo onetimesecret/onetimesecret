@@ -35,6 +35,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       extid: 'ur_c',
       obscure_email: 'li***@e***.com',
       organization_instances: [],
+      provisioning_failed?: false,
     )
   end
 

@@ -322,21 +322,20 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
         org
       end
 
-      it 'creates the customer their own workspace rather than adopting it' do
-        expect(operation.call).to eq(:success)
+      it 'fails closed rather than adopting it or creating a second workspace' do
+        expect { operation.call }
+          .to raise_error(Auth::Operations::WorkspaceCollision::ProvisioningCollision) do |error|
+            expect(error.collision.classification).to eq(:live_members)
+          end
 
-        target = customer.organization_instances.to_a.find { |org| org.owner?(customer) }
-        created_organizations << target if target
-
-        expect(target).not_to be_nil
-        expect(target.stripe_subscription_id).to eq(stripe_subscription_id)
+        expect(customer.organization_instances.to_a).to be_empty
+        customer.refresh!
+        expect(customer.provisioning_failed?).to be(true)
       end
 
       it 'leaves the reservation holder untouched' do
-        expect { operation.call }.not_to raise_error
-
-        target = customer.organization_instances.to_a.find { |org| org.owner?(customer) }
-        created_organizations << target if target
+        expect { operation.call }
+          .to raise_error(Auth::Operations::WorkspaceCollision::ProvisioningCollision)
 
         foreign_org.refresh!
         expect(foreign_org.stripe_subscription_id).to be_nil

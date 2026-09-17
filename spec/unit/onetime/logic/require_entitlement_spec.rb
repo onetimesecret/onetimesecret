@@ -70,7 +70,14 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
   # entitlement-check branches (the anonymous short-circuit returns true
   # before either branch is hit).
   let(:authenticated_cust) do
-    double('Customer', anonymous?: false, custid: 'cust123', objid: 'cust-obj-123', organization_instances: [])
+    double(
+      'Customer',
+      anonymous?: false,
+      custid: 'cust123',
+      objid: 'cust-obj-123',
+      organization_instances: [],
+      provisioning_failed?: false,
+    )
   end
 
   describe 'when auth_org is nil (fail-closed behavior)' do
@@ -130,6 +137,52 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
         expect { logic.require_entitlement!('api_access') }
           .to raise_error(Onetime::EntitlementRequired)
       end
+    end
+  end
+
+  describe 'when account provisioning previously failed' do
+    subject(:logic) { test_class.new(strategy_result_class.new(metadata: {}), cust: failed_customer) }
+
+    let(:failed_customer) do
+      double(
+        'Customer',
+        anonymous?: false,
+        custid: 'cust123',
+        provisioning_failed?: true,
+        provisioning_failure_code: 'default_workspace_collision',
+        provisioning_failure_classification: 'retained_data',
+        provisioning_failed_at: '1700000000.5',
+      )
+    end
+
+    it 'raises the dedicated actionable error without retrying provisioning' do
+      expect(Auth::Operations::EnsureDefaultWorkspace).not_to receive(:new)
+
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::AccountProvisioningFailed) do |error|
+          expect(error.to_h).to include(
+            code: 'default_workspace_collision',
+            classification: 'retained_data',
+            failed_at: 1_700_000_000.5,
+          )
+        end
+    end
+  end
+
+  describe 'when provisioning is temporarily unavailable' do
+    subject(:logic) { test_class.new(strategy_result_class.new(metadata: {}), cust: authenticated_cust) }
+
+    let(:unavailable) { Onetime::AccountProvisioningUnavailable.new(reason: :collision_unreadable) }
+
+    before do
+      allow(Auth::Operations::EnsureDefaultWorkspace).to receive(:new).and_return(
+        double(call: nil).tap { |op| allow(op).to receive(:call).and_raise(unavailable) }
+      )
+    end
+
+    it 'lets the retryable 503 error propagate as itself rather than converting it into the 409 latch' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::AccountProvisioningUnavailable) { |error| expect(error).to be(unavailable) }
     end
   end
 

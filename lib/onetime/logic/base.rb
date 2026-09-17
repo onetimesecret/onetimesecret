@@ -157,13 +157,14 @@ module Onetime
       # - Hybrid: raise_form_error('Authentication required', error_key: '...', field: :foo)
       # error_key is the full dotted i18n key. The HTTP edge resolves it per
       # request locale; logic stays free of locale/I18n boot concerns.
-      def raise_form_error(msg = nil, error_key: nil, args: {}, field: nil, error_type: nil)
+      def raise_form_error(msg = nil, error_key: nil, args: {}, field: nil, error_type: nil, details: nil)
         ex             = OT::FormError.new(
           msg,
           error_key: error_key,
           args: args,
           field: field,
           error_type: error_type,
+          details: details,
         )
         ex.form_fields = form_fields if respond_to?(:form_fields)
         raise ex

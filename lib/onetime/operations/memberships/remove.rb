@@ -7,6 +7,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
+require 'onetime/operations/bulk_audit_context'
 require_relative 'support'
 
 module Onetime
@@ -54,10 +55,14 @@ module Onetime
         # destroy_with_index_cleanup! tears down four entitlement sub-keys and
         # three index structures; a partial failure leaves the org in an unknown
         # state, and the success-path record sits after it. Records one
-        # `result: :failure` and re-raises.
+        # `result: :failure` and re-raises. Self-service callers skip the
+        # failure audit for the same log-eviction reason the success path
+        # routes to the security trail; the account-close hook logs the raise
+        # through its own path.
         audit_failures :call,
           verb: AUDIT_VERB,
-          target: -> { @customer&.extid }
+          target: -> { @customer&.extid },
+          enabled: -> { audit_enabled? && !@self_service }
 
         # @!attribute status [r] Symbol — :success | :not_found | :last_owner
         Result = Data.define(:status, :org_id, :customer_id, :role)
@@ -71,11 +76,20 @@ module Onetime
         #   refusal event, whose `reason` key already means the refusal STATUS
         #   (see {#record_refusal}). See {Onetime::AuditReason} for the bound
         #   and the optional-now / required-later rollout.
-        def initialize(org:, customer:, actor:, reason: nil)
-          @org      = org
-          @customer = customer
-          @actor    = actor
-          @reason   = normalize_reason(reason)
+        # @param self_service [Boolean] the account itself asked for this removal
+        #   (via Customers::Purge on /auth/close-account or the simple-mode
+        #   endpoint). Routes the audit write to the security trail via
+        #   {Onetime::ColonelAuditEvent.record_security} (fail-open) instead of
+        #   the count-capped operator trail: a user who can retry a deletion at
+        #   will must not be able to evict operator history from it.
+        def initialize(org:, customer:, actor:, reason: nil, bulk_audit_context: nil,
+                       self_service: false)
+          @org                = org
+          @customer           = customer
+          @actor              = actor
+          @reason             = normalize_reason(reason)
+          @bulk_audit_context = bulk_audit_context
+          @self_service       = self_service
         end
 
         # @return [Result]
@@ -98,24 +112,33 @@ module Onetime
           # membership row is destroyed, so an unrecorded removal leaves nothing
           # to say the customer ever had access to this org. #record_refusal
           # stays fail-open: a refusal mutated nothing.
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @customer.extid,
-            result: :success,
-            detail: with_reason(org_id: @org.extid),
-            fail_closed: true,
-          )
+          #
+          # Self-service (Customers::Purge on user-triggered close-account)
+          # routes to the security trail instead — the operator-trail is capped
+          # and trimmed oldest-first, so a user who can retry deletion must not
+          # be able to write to it.
+          record_success_event if audit_enabled?
 
           build(:success, removed_role)
         end
 
         private
 
+        def audit_enabled?
+          !Onetime::Operations::BulkAuditContext.verified?(
+            @bulk_audit_context,
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @customer&.extid,
+            scope: @org&.extid,
+            operation: self,
+          )
+        end
+
         # Single exit point for every non-success status, so the refusal audit
         # cannot be forgotten at an early return.
         def build(status, role)
-          record_refusal(status, role) if REFUSAL_STATUSES.include?(status)
+          record_refusal(status, role) if audit_enabled? && REFUSAL_STATUSES.include?(status)
 
           Result.new(
             status: status,
@@ -134,7 +157,20 @@ module Onetime
         # a shipped audit detail key to make room would break every reader
         # filtering on it. A refusal mutated nothing, so what a reviewer needs
         # from it is why the SYSTEM said no, which is what this records.
+        #
+        # Self-service refusals log-only (see class docs / #record_success_event):
+        # a user-triggered call must never write to the capped operator trail,
+        # and a refusal mutated nothing to reconstruct.
         def record_refusal(status, role)
+          if @self_service
+            OT.info '[Memberships::Remove] self-service removal refused',
+              external_id: @customer.extid,
+              org_id: @org.extid,
+              status: status.to_s,
+              role: role
+            return
+          end
+
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
@@ -144,6 +180,32 @@ module Onetime
           )
         rescue StandardError => ex
           OT.le "[Memberships::Remove] refusal audit failed: #{ex.class}: #{ex.message}"
+        end
+
+        # Route success writes to the operator trail (fail-closed) or the
+        # security trail (fail-open) based on whether the call is self-service.
+        # See #initialize for the rationale.
+        def record_success_event
+          detail = with_reason(org_id: @org.extid)
+
+          if @self_service
+            Onetime::ColonelAuditEvent.record_security(
+              actor: @actor,
+              verb: AUDIT_VERB,
+              target: @customer.extid,
+              result: :success,
+              detail: detail,
+            )
+          else
+            Onetime::ColonelAuditEvent.record(
+              actor: @actor,
+              verb: AUDIT_VERB,
+              target: @customer.extid,
+              result: :success,
+              detail: detail,
+              fail_closed: true,
+            )
+          end
         end
       end
     end

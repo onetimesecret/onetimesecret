@@ -841,6 +841,27 @@ module Auth::Config::Hooks
               external_id: customer.extid,
             ) do
               Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call
+            # Only the collision is rescued. Onetime::AccountProvisioningUnavailable
+            # deliberately is NOT (same reasoning as hooks/account.rb): it
+            # persists nothing, and at JIT-create time no other request can hold
+            # the creation lock, so it means the datastore failed mid-scan.
+            # safe_execute's error log + tracking is the right visibility for
+            # that; the SSO login completes and OrganizationContext#auth_org
+            # re-runs provisioning on the first authenticated request.
+            rescue Auth::Operations::WorkspaceCollision::ProvisioningCollision => ex
+              # The account remains persisted and diagnosable. Organization and
+              # entitlement access now maps this state to AccountProvisioningFailed
+              # instead of retrying the same collision on every request.
+              Auth::Logging.log_auth_event(
+                :account_provisioning_failed,
+                level: :error,
+                account_id: account_id,
+                external_id: customer.extid,
+                provider: omniauth_provider,
+                code: customer.provisioning_failure_code,
+                classification: ex.collision.classification,
+              )
+              nil
             end
           end
         end
