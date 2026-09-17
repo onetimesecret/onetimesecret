@@ -963,7 +963,18 @@ module Auth::Config::Hooks
 
       # Some providers stringify the claim ("false"); false and "false" are the
       # same assertion. Anything else (true, "true", 1, garbage) is not a hold.
-      claim.to_s.strip.downcase == 'false' ? 'idp_unverified' : nil
+      #
+      # SAML (#4450): RequestBoundSAML hands raw_info over as a plain Hash of
+      # attribute name => Array<String>, so an IdP attribute named
+      # `email_verified` arrives as ["false"] — whose #to_s is '["false"]', not
+      # 'false'. Without the unwrap an explicit IdP veto would be silently
+      # ignored on exactly one protocol. ANY false among the values holds:
+      # this method only ever narrows the verified stamp. (SAML defines no
+      # such claim; with the attribute absent, a SAML JIT account is verified
+      # on IdP trust alone — never held as 'claim_unreadable', since a plain
+      # Hash read cannot raise.)
+      values = claim.is_a?(Array) ? claim : [claim]
+      values.any? { |value| value.to_s.strip.downcase == 'false' } ? 'idp_unverified' : nil
     rescue StandardError => ex
       Auth::Logging.log_auth_event(
         :omniauth_email_verified_claim_unreadable,
