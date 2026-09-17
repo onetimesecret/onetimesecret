@@ -28,7 +28,9 @@ whatever Stripe returned. Every lookup therefore goes through
 `Organization.find_contact_email_claims`, which probes the raw and normalized
 spellings and falls back to a bounded case-insensitive `HSCAN`. A normalized
 `HGET` would report a claimed address as unclaimed and a correct holder as
-drifted.
+drifted. Provisioning takes the first exact hit; the preflight passes
+`exhaustive: true` so an exact hit cannot hide a second spelling held by a
+different organization, which it refuses as `contact_email_index_ambiguous`.
 
 #### Discovery depth
 
@@ -44,6 +46,19 @@ action plus three times during teardown, so they are never used on a request
 path or in the bulk sweep. Deep mode runs them at the initial plan and the
 final post-teardown validation; the intermediate revalidations stay shallow.
 
+Shallow discovery derives an organization's membership rows from the
+organization's own `members` set (plus the purge target's row, loaded
+directly). A live row whose customer is missing from that set is reachable
+only through the registry, so on a request path — self-service closure — it is
+not seen and a shared workspace could read as sole-owned. This residual is
+accepted there: the through-model writes the row and the set together, so the
+state is drift, not a normal write, and the deep operator paths do refuse it.
+The bulk sweep does not accept it: it captures the membership registry **once
+per run** (`MembershipSnapshot`, a parse of the registry's sorted set with no
+per-row load) and every candidate's shallow preflight unions those rows with
+the `members` set. Snapshot rows are re-loaded when used, so a row removed by
+an earlier candidate of the same run is skipped rather than reported as drift.
+
 A relationship must be complete and unambiguous before purge can execute. The
 operation may plan only these automatic actions:
 
@@ -58,12 +73,18 @@ ownership/membership/index drift. It also refuses when a scan fails and the
 evidence is incomplete. Operators must transfer ownership, remove retained
 resources, or repair drift and then run preflight again.
 
-What does **not** refuse: content of the sole-owner default workspace that is
-deleted with it — receipts, the workspace description, outstanding invitations
-the departing owner sent, and a contact address that diverged from the account's
-(the billing-email sync writes that field). None of it belongs to another party,
-so none of it is a reason to refuse an erasure request; it is reported on the
-planned action as `notes` so an operator can still see what a purge removed.
+What does **not** refuse: content of the sole-owner default workspace that goes
+with it — the workspace description, outstanding invitations the departing
+owner sent, a contact address that diverged from the account's (the
+billing-email sync writes that field), and the workspace's receipts. None of it
+belongs to another party, so none of it is a reason to refuse an erasure
+request; it is reported on the planned action as `notes` so an operator can
+still see what a purge removed. Receipts are a note, not a deletion: no purge
+path destroys `Receipt` or `Secret` records. Deleting the organization drops its
+receipt index and deleting the customer drops theirs; the records themselves
+are TTL-bound (a receipt lives twice its secret's TTL) and expire on that
+schedule. Refusing over receipts would make erasure unavailable to any account
+that used the product in the last two weeks.
 `owner_id` and `created_by` are compared tolerantly against both the customer's
 objid and custid, because rows predating the objid standardization chore still
 carry the custid and a legacy encoding is not drift.
@@ -156,3 +177,14 @@ Bulk deletion must use the same preflighted lifecycle for each selected
 customer. Candidate selection by inactivity changes how targets are chosen; it
 does not weaken organization ownership policy or turn a partial result into
 success.
+
+Two per-account costs are paid once per run instead. The membership registry is
+captured once (see *Discovery depth*) and shared by every candidate's preflight.
+And the session revocation inside teardown is constructed with
+`sweep_untracked_sessions: false`: the administrative revoke normally follows
+its guaranteed tracked kill with a bounded `SCAN` of the whole session keyspace
+for pre-sidecar blobs, decrypting each key, and a sweep would repeat that walk
+once per candidate. Candidates have been idle past the cutoff, so every blob
+they could own has expired; the tracked revocation and the Rodauth row purge
+still run, and the revocation's audit detail records `untracked_sweep:
+skipped` so a zero count cannot read as a completed sweep.

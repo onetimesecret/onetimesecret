@@ -43,7 +43,8 @@ as one of the following:
 | Owned workspace with domains | Refuse until domains are removed or transferred. |
 | Owned workspace with billing state | Refuse until billing is resolved. |
 | Owned workspace with other members | Refuse until ownership is transferred or membership is otherwise resolved. |
-| Workspace with invitations, receipts, or retained data | Refuse pending an explicit data-lifecycle decision. |
+| Sole-owned workspace with the owner's own invitations, receipts, or description | Delete; reported on the planned action as `notes`. Receipts are TTL-bound records and are not destroyed by the purge. |
+| Workspace with an unfinished v1 to v2 migration | Refuse: the migration owns rows outside the workspace. |
 | Drifted ownership, membership, domain, instance, or contact-email index evidence | Refuse until repaired and re-diagnosed. |
 | Incomplete scan or lookup | Refuse because absence of evidence is not proof that cleanup is safe. |
 
