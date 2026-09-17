@@ -232,6 +232,8 @@ const PROVIDER_LABELS: Record<string, string> = {
   entra: 'Microsoft Entra',
   github: 'GitHub',
   google: 'Google',
+  apple: 'Apple',
+  auth0: 'Auth0',
 };
 
 /**

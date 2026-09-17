@@ -66,11 +66,15 @@ RSpec.describe Onetime::AuthConfig do
       ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET
       GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
       GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET
+      APPLE_CLIENT_ID APPLE_TEAM_ID APPLE_KEY_ID APPLE_PRIVATE_KEY
+      AUTH0_CLIENT_ID AUTH0_CLIENT_SECRET AUTH0_DOMAIN
       SSO_PROVIDER_ORDER
       OIDC_ROUTE_NAME ENTRA_ROUTE_NAME GOOGLE_ROUTE_NAME GITHUB_ROUTE_NAME
+      APPLE_ROUTE_NAME AUTH0_ROUTE_NAME
       SSO_TRUST_EMAIL_FOR_LINKING
       OIDC_TRUST_EMAIL_FOR_LINKING ENTRA_TRUST_EMAIL_FOR_LINKING
       GOOGLE_TRUST_EMAIL_FOR_LINKING GITHUB_TRUST_EMAIL_FOR_LINKING
+      APPLE_TRUST_EMAIL_FOR_LINKING AUTH0_TRUST_EMAIL_FOR_LINKING
     ]
   end
 
@@ -478,12 +482,15 @@ RSpec.describe Onetime::AuthConfig do
 
   describe '#trust_email_for_linking?' do
     # Route name -> per-provider trust var. Verifies the reverse-mapping
-    # (entra_id != entra != ENTRA) resolves to the right env var for all four.
+    # (entra_id != entra != ENTRA) resolves to the right env var for every
+    # registered provider.
     {
       'oidc' => 'OIDC_TRUST_EMAIL_FOR_LINKING',
       'entra' => 'ENTRA_TRUST_EMAIL_FOR_LINKING',
       'google' => 'GOOGLE_TRUST_EMAIL_FOR_LINKING',
       'github' => 'GITHUB_TRUST_EMAIL_FOR_LINKING',
+      'apple' => 'APPLE_TRUST_EMAIL_FOR_LINKING',
+      'auth0' => 'AUTH0_TRUST_EMAIL_FOR_LINKING',
     }.each do |route_name, trust_var|
       context "for the '#{route_name}' route" do
         it "defaults to false when #{trust_var} is unset" do
@@ -502,7 +509,8 @@ RSpec.describe Onetime::AuthConfig do
         end
 
         it "is unaffected by another provider's trust var" do
-          other  = (%w[OIDC ENTRA GOOGLE GITHUB] - [trust_var.split('_').first]).first
+          prefixes = %w[OIDC ENTRA GOOGLE GITHUB APPLE AUTH0]
+          other    = (prefixes - [trust_var.delete_suffix('_TRUST_EMAIL_FOR_LINKING')]).first
           config = fresh_config("#{other}_TRUST_EMAIL_FOR_LINKING" => 'true')
           expect(config.trust_email_for_linking?(route_name)).to be false
         end
@@ -578,13 +586,19 @@ RSpec.describe Onetime::AuthConfig do
       # Truth-table (a) — the #3844 fix. A global true with EVERY provider
       # explicitly false means linking is disabled everywhere; the boot guard
       # must NOT warn about a flag that has no effect.
-      config = fresh_config(
-        'SSO_TRUST_EMAIL_FOR_LINKING' => 'true',
-        'OIDC_TRUST_EMAIL_FOR_LINKING' => 'false',
-        'ENTRA_TRUST_EMAIL_FOR_LINKING' => 'false',
-        'GOOGLE_TRUST_EMAIL_FOR_LINKING' => 'false',
-        'GITHUB_TRUST_EMAIL_FOR_LINKING' => 'false',
-      )
+      #
+      # "Every provider" is derived from the registry rather than listed here:
+      # trust_email_for_linking_enabled? iterates provider_definitions, so a
+      # hardcoded list silently stops meaning "every" the moment a provider is
+      # added — the new entry has no explicit var, inherits the global true,
+      # and this example fails for a reason that has nothing to do with the
+      # behaviour under test. (It did, when the roster grew past four.)
+      # Any new trust var must also be added to `env_vars` above so the
+      # before/after hooks restore it.
+      all_opted_out = Onetime::SsoProvider::Registry::DEFINITIONS.to_h do |defn|
+        [defn[:trust_var], 'false']
+      end
+      config = fresh_config(**{ 'SSO_TRUST_EMAIL_FOR_LINKING' => 'true' }.merge(all_opted_out))
       expect(config.trust_email_for_linking_enabled?).to be false
     end
 
@@ -645,6 +659,45 @@ RSpec.describe Onetime::AuthConfig do
       config = config_with_three_providers(SSO_PROVIDER_ORDER: 'okta github')
       expect(config.sso_providers.map { |p| p['route_name'] })
         .to eq(%w[github entra google])
+    end
+
+    # The gate is required_vars, not registry membership: adding a definition
+    # must not put a button on the login page for every deployment.
+    it 'omits registered providers whose credentials are absent' do
+      config = config_with_three_providers
+      expect(config.sso_providers.map { |p| p['route_name'] })
+        .not_to include('apple', 'auth0')
+    end
+
+    it 'lists a configured Apple provider after the launch four' do
+      config = config_with_three_providers(
+        APPLE_CLIENT_ID: 'com.example.web',
+        APPLE_TEAM_ID: 'TEAM123456',
+        APPLE_KEY_ID: 'KEY1234567',
+        APPLE_PRIVATE_KEY: 'pem',
+      )
+      expect(config.sso_providers.map { |p| p['route_name'] })
+        .to eq(%w[entra google github apple])
+    end
+
+    # Auth0 needs all three vars; a half-configured tenant must not surface a
+    # button that would fail at the request phase with :missing_domain.
+    it 'omits Auth0 when AUTH0_DOMAIN is missing' do
+      config = config_with_three_providers(
+        AUTH0_CLIENT_ID: 'cid',
+        AUTH0_CLIENT_SECRET: 'cs',
+      )
+      expect(config.sso_providers.map { |p| p['route_name'] }).not_to include('auth0')
+    end
+
+    it 'lists Auth0 when all three vars are present' do
+      config = config_with_three_providers(
+        AUTH0_CLIENT_ID: 'cid',
+        AUTH0_CLIENT_SECRET: 'cs',
+        AUTH0_DOMAIN: 'https://tenant.us.auth0.com',
+      )
+      expect(config.sso_providers.map { |p| p['route_name'] })
+        .to eq(%w[entra google github auth0])
     end
 
     it 'derives definitions from the shared SsoProvider::Registry' do
