@@ -476,8 +476,13 @@ module Auth
         # org's own `contact_email` is the authoritative probe key. The tolerant
         # finder covers the remaining case where the stored key and the field
         # disagree only in case or Unicode form.
+        #
+        # No contact email is not drift: the workspace modal submits none,
+        # `Organization.create!` persists nil and reserves nothing, and
+        # `delete!` skips the index for it. Only a carried address can disagree
+        # with the index.
         def contact_index_blockers(org)
-          return [:contact_email_missing] if normalized_email(org.contact_email).empty?
+          return [] if normalized_email(org.contact_email).empty?
 
           holder = Onetime::Organization.contact_email_index.get(org.contact_email.to_s).to_s
           holder = Onetime::Organization.find_contact_email_holder_id(org.contact_email).to_s if holder.empty?

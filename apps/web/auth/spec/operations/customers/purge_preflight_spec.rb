@@ -192,6 +192,51 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
     expect(plan.actions.first.role).to eq('member')
   end
 
+  it 'plans membership removal from a workspace that carries no contact email' do
+    # Workspaces created through the product UI have no contact email: the
+    # modal submits display_name and description only, so nothing was ever
+    # reserved in the index and an absent address is not drift.
+    owner = double('Owner', objid: 'cust-owner')
+    org = organization(
+      objid: 'org-ui-created',
+      extid: 'on_ui_created',
+      owner_id: owner.objid,
+      created_by: owner.objid,
+      contact_email: nil,
+      is_default: 'false',
+      members: collection([customer.objid, owner.objid]),
+    )
+    target_membership = membership(
+      org_objid: org.objid,
+      customer_objid: customer.objid,
+      role: 'member',
+    )
+    owner_membership = membership(
+      org_objid: org.objid,
+      customer_objid: owner.objid,
+      role: 'owner',
+    )
+
+    allow(customer).to receive(:participations)
+      .and_return(collection(["organization:#{org.objid}:members"]))
+    allow(customer).to receive(:organization_instances).and_return(collection([org]))
+    stub_organization_scan(org)
+    stub_membership_scan(target_membership, owner_membership)
+    stub_membership_lookup(
+      org,
+      customer.objid => target_membership,
+      owner.objid => owner_membership,
+    )
+    allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
+    allow(Onetime::Customer).to receive(:load).with(owner.objid).and_return(owner)
+
+    plan = described_class.new(customer: customer).call
+
+    expect(plan).to be_executable
+    expect(plan.blockers).to be_empty
+    expect(plan.actions.map(&:type)).to eq([:remove_membership])
+  end
+
   it 'discovers an active target membership even when both relationship indexes omit it' do
     owner = double('Owner', objid: 'cust-owner')
     org = organization(
