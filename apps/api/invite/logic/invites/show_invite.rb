@@ -177,15 +177,14 @@ module InviteAPI::Logic
         # sso_config.provider_type). AuthConfig#sso_providers yields only
         # 'route_name' and 'display_name', and the platform registry's own
         # identity (SsoProvider::Registry keys: oidc, entra, google, github,
-        # apple, auth0, zoom, digitalocean) is a different vocabulary from
-        # tenant PROVIDER_TYPES (oidc, entra_id) — 'entra' vs 'entra_id'
-        # collide, and every other platform key (google, github, apple, auth0,
-        # zoom, digitalocean) has no tenant counterpart at all. Those six are
-        # platform-only by design: the issuerless ones are refused on the
-        # tenant surface, and apple/auth0 are simply absent from
-        # PROVIDER_ROUTE_MAP. Emitting a registry key as :provider_type would
-        # put a third vocabulary on a field whose values consumers read as the
-        # tenant enum, so the field stays absent. What identifies a
+        # apple, auth0) is a different vocabulary from tenant PROVIDER_TYPES
+        # (oidc, entra_id) — 'entra' vs 'entra_id' collide, and every other
+        # platform key (google, github, apple, auth0) has no tenant counterpart
+        # at all. Those four are platform-only by design: the issuerless ones
+        # are refused on the tenant surface, and apple/auth0 are simply absent
+        # from PROVIDER_ROUTE_MAP. Emitting a registry key as :provider_type
+        # would put a third vocabulary on a field whose values consumers read
+        # as the tenant enum, so the field stays absent. What identifies a
         # platform-fallback provider is :platform_route_name, which the tenant
         # arm carries too — that is the field to route and branch on.
         Onetime.auth_config.sso_providers.filter_map do |provider|

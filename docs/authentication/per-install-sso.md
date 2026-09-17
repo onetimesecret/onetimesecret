@@ -128,24 +128,6 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `AUTH0_ROUTE_NAME` | No | URL segment (default: `auth0`) |
 | `AUTH0_DISPLAY_NAME` | No | Button label (default: `Auth0`) |
 
-### Zoom
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `ZOOM_CLIENT_ID` | Yes | OAuth app client ID |
-| `ZOOM_CLIENT_SECRET` | Yes | OAuth app client secret |
-| `ZOOM_ROUTE_NAME` | No | URL segment (default: `zoom`) |
-| `ZOOM_DISPLAY_NAME` | No | Button label (default: `Zoom`) |
-
-### DigitalOcean
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DIGITALOCEAN_CLIENT_ID` | Yes | OAuth application client ID |
-| `DIGITALOCEAN_CLIENT_SECRET` | Yes | OAuth application client secret |
-| `DIGITALOCEAN_ROUTE_NAME` | No | URL segment (default: `digitalocean`) |
-| `DIGITALOCEAN_DISPLAY_NAME` | No | Button label (default: `DigitalOcean`) |
-
 ## Routes
 
 Each configured provider registers two routes:
@@ -155,7 +137,7 @@ Each configured provider registers two routes:
 | POST | `/auth/sso/{provider}` | Initiates SSO flow |
 | GET | `/auth/sso/{provider}/callback` | Receives IdP response |
 
-Where `{provider}` is the route name (`oidc`, `entra`, `google`, `github`, `apple`, `auth0`, `zoom`, `digitalocean`, or custom).
+Where `{provider}` is the route name (`oidc`, `entra`, `google`, `github`, `apple`, `auth0`, or custom).
 
 Apple is the exception to the GET callback: it uses `response_mode=form_post`,
 so its callback arrives as a cross-site **POST** to the same path. OmniAuth's
@@ -649,48 +631,6 @@ Note: Auth0 is an identity broker, so `AUTH0_TRUST_EMAIL_FOR_LINKING` would
 trust every connection your tenant enables, including unverified database and
 social connections. Leave it false unless all connections are verified-email
 IdPs inside your trust boundary.
-
-### Zoom
-
-Uses the `omniauth-zoom-v2` gem (the maintained replacement for the abandoned
-`omniauth-zoom`; only the gem name carries the `-v2` suffix).
-
-#### Zoom Marketplace Setup
-
-1. **Zoom App Marketplace** → Develop → Build App → **General App**
-2. **OAuth Redirect URL**: `https://{host}/auth/sso/zoom/callback`
-3. **Scopes**: add `user:read:user`
-4. Copy **Client ID** and **Client Secret**
-
-```bash
-ZOOM_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxx
-ZOOM_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-Note: Zoom is issuerless (plain OAuth2), so it is available for platform SSO
-only — the tenant surface refuses it at callback time.
-
-### DigitalOcean
-
-Uses the `omniauth-digitalocean` gem.
-
-#### DigitalOcean Setup
-
-1. **DigitalOcean Control Panel** → API → OAuth Applications → Create
-2. **Callback URL**: `https://{host}/auth/sso/digitalocean/callback`
-3. Copy **Client ID** and **Client Secret**
-
-```bash
-DIGITALOCEAN_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-DIGITALOCEAN_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-The requested scope is `read` (space-delimited, never comma-delimited) — the
-user's id and email come from the token response body rather than an account
-API call, so no write grant is needed to sign someone in.
-
-Note: DigitalOcean is issuerless (plain OAuth2), so it is available for
-platform SSO only.
 
 ## Domain Restrictions
 

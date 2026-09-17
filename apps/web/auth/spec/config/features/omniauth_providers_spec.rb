@@ -590,7 +590,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
   # Registry-driven providers (no named wrapper)
   # ================================================================
   #
-  # Apple, Auth0, Zoom and DigitalOcean are registered by the configure loop
+  # Apple and Auth0 are registered by the configure loop
   # straight from the registry — see the comment above the named wrappers in
   # features/omniauth.rb. These exercise configure_provider directly, which is
   # the path every provider added from here on will take.
@@ -646,37 +646,6 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       expect(log_messages.last[1]).to include('Auth0')
     end
 
-    # The gem is omniauth-zoom-v2; the strategy it registers is :zoom. Getting
-    # either half wrong produces a route that 404s or a LoadError at boot.
-    it 'registers Zoom under the :zoom strategy, not :zoom_v2' do
-      expect(auth).to receive(:omniauth_provider).with(
-        :zoom,
-        hash_including(name: :zoom, scope: 'user:read:user')
-      )
-
-      ClimateControl.modify(ZOOM_CLIENT_ID: 'cid', ZOOM_CLIENT_SECRET: 'cs') do
-        configure(:zoom)
-      end
-
-      expect(log_messages.last[1]).to include('Zoom')
-    end
-
-    it 'registers DigitalOcean with a space-delimited read scope' do
-      expect(auth).to receive(:omniauth_provider).with(
-        :digitalocean,
-        hash_including(name: :digitalocean, scope: 'read')
-      )
-
-      ClimateControl.modify(
-        DIGITALOCEAN_CLIENT_ID: 'cid',
-        DIGITALOCEAN_CLIENT_SECRET: 'cs',
-      ) do
-        configure(:digitalocean)
-      end
-
-      expect(log_messages.last[1]).to include('DigitalOcean')
-    end
-
     # BLAST RADIUS. configure_provider runs inside Rodauth configuration, so an
     # exception escaping strategy_options fails the whole auth app — password,
     # MFA and magic links included — over one optional SSO provider. Auth0
@@ -703,14 +672,17 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       expect(auth).not_to receive(:omniauth_provider)
 
       ClimateControl.modify(
-        ZOOM_CLIENT_ID: nil,
-        ZOOM_CLIENT_SECRET: nil,
+        APPLE_CLIENT_ID: nil,
+        APPLE_TEAM_ID: nil,
+        APPLE_KEY_ID: nil,
+        APPLE_PRIVATE_KEY: nil,
       ) do
-        configure(:zoom)
+        configure(:apple)
       end
 
       expect(log_messages.last).to eq(
-        [:error, '[OmniAuth] Missing Zoom configuration: ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET']
+        [:error, '[OmniAuth] Missing Apple configuration: ' \
+                 'APPLE_CLIENT_ID, APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY']
       )
     end
   end

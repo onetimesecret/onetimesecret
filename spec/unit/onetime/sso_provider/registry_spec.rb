@@ -154,10 +154,6 @@ RSpec.describe Onetime::SsoProvider::Registry do
         AUTH0_CLIENT_ID: 'cid',
         AUTH0_CLIENT_SECRET: 'cs',
         AUTH0_DOMAIN: 'https://tenant.us.auth0.com',
-        ZOOM_CLIENT_ID: 'cid',
-        ZOOM_CLIENT_SECRET: 'cs',
-        DIGITALOCEAN_CLIENT_ID: 'cid',
-        DIGITALOCEAN_CLIENT_SECRET: 'cs',
       ) do
         definitions.each do |defn|
           expect(defn[:strategy_options].call).to be_a(Hash)

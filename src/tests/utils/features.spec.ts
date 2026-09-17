@@ -1528,13 +1528,6 @@ describe('features utility', () => {
         expect(providerLabel('google')).toBe('Google');
         expect(providerLabel('apple')).toBe('Apple');
         expect(providerLabel('auth0')).toBe('Auth0');
-        expect(providerLabel('zoom')).toBe('Zoom');
-      });
-
-      // The capitalize fallback would render 'Digitalocean'. This is the only
-      // built-in route name whose label is not reproducible by capitalizing.
-      it('preserves internal capitals the fallback would flatten', () => {
-        expect(providerLabel('digitalocean')).toBe('DigitalOcean');
       });
 
       it('capitalizes an unknown route name', () => {

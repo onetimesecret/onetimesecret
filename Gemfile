@@ -58,13 +58,9 @@ gem 'rodauth-tools', '~> 0.4.0'
 # this block, all of which require `omniauth ~> 2.0`.
 gem 'omniauth-apple', '~> 1.4'
 gem 'omniauth-auth0', '~> 3.2'
-gem 'omniauth-digitalocean', '~> 0.3'
 gem 'omniauth-entra-id', '~> 3.1'
 gem 'omniauth-github', '~> 2.0'
 gem 'omniauth-google-oauth2', '~> 1.2'
-# Maintained replacement for the abandoned omniauth-zoom; the strategy it
-# registers is still :zoom. See lib/onetime/sso_provider/zoom.rb.
-gem 'omniauth-zoom-v2', '~> 1.0'
 gem 'omniauth_openid_connect', '~> 0.8'
 
 # Web server and middleware

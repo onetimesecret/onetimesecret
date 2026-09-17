@@ -68,16 +68,13 @@ RSpec.describe Onetime::AuthConfig do
       GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET
       APPLE_CLIENT_ID APPLE_TEAM_ID APPLE_KEY_ID APPLE_PRIVATE_KEY
       AUTH0_CLIENT_ID AUTH0_CLIENT_SECRET AUTH0_DOMAIN
-      ZOOM_CLIENT_ID ZOOM_CLIENT_SECRET
-      DIGITALOCEAN_CLIENT_ID DIGITALOCEAN_CLIENT_SECRET
       SSO_PROVIDER_ORDER
       OIDC_ROUTE_NAME ENTRA_ROUTE_NAME GOOGLE_ROUTE_NAME GITHUB_ROUTE_NAME
-      APPLE_ROUTE_NAME AUTH0_ROUTE_NAME ZOOM_ROUTE_NAME DIGITALOCEAN_ROUTE_NAME
+      APPLE_ROUTE_NAME AUTH0_ROUTE_NAME
       SSO_TRUST_EMAIL_FOR_LINKING
       OIDC_TRUST_EMAIL_FOR_LINKING ENTRA_TRUST_EMAIL_FOR_LINKING
       GOOGLE_TRUST_EMAIL_FOR_LINKING GITHUB_TRUST_EMAIL_FOR_LINKING
       APPLE_TRUST_EMAIL_FOR_LINKING AUTH0_TRUST_EMAIL_FOR_LINKING
-      ZOOM_TRUST_EMAIL_FOR_LINKING DIGITALOCEAN_TRUST_EMAIL_FOR_LINKING
     ]
   end
 
@@ -494,8 +491,6 @@ RSpec.describe Onetime::AuthConfig do
       'github' => 'GITHUB_TRUST_EMAIL_FOR_LINKING',
       'apple' => 'APPLE_TRUST_EMAIL_FOR_LINKING',
       'auth0' => 'AUTH0_TRUST_EMAIL_FOR_LINKING',
-      'zoom' => 'ZOOM_TRUST_EMAIL_FOR_LINKING',
-      'digitalocean' => 'DIGITALOCEAN_TRUST_EMAIL_FOR_LINKING',
     }.each do |route_name, trust_var|
       context "for the '#{route_name}' route" do
         it "defaults to false when #{trust_var} is unset" do
@@ -514,7 +509,7 @@ RSpec.describe Onetime::AuthConfig do
         end
 
         it "is unaffected by another provider's trust var" do
-          prefixes = %w[OIDC ENTRA GOOGLE GITHUB APPLE AUTH0 ZOOM DIGITALOCEAN]
+          prefixes = %w[OIDC ENTRA GOOGLE GITHUB APPLE AUTH0]
           other    = (prefixes - [trust_var.delete_suffix('_TRUST_EMAIL_FOR_LINKING')]).first
           config = fresh_config("#{other}_TRUST_EMAIL_FOR_LINKING" => 'true')
           expect(config.trust_email_for_linking?(route_name)).to be false
@@ -671,7 +666,7 @@ RSpec.describe Onetime::AuthConfig do
     it 'omits registered providers whose credentials are absent' do
       config = config_with_three_providers
       expect(config.sso_providers.map { |p| p['route_name'] })
-        .not_to include('apple', 'auth0', 'zoom', 'digitalocean')
+        .not_to include('apple', 'auth0')
     end
 
     it 'lists a configured Apple provider after the launch four' do
@@ -695,15 +690,14 @@ RSpec.describe Onetime::AuthConfig do
       expect(config.sso_providers.map { |p| p['route_name'] }).not_to include('auth0')
     end
 
-    it 'lists Zoom and DigitalOcean when fully configured' do
+    it 'lists Auth0 when all three vars are present' do
       config = config_with_three_providers(
-        ZOOM_CLIENT_ID: 'zid',
-        ZOOM_CLIENT_SECRET: 'zs',
-        DIGITALOCEAN_CLIENT_ID: 'did',
-        DIGITALOCEAN_CLIENT_SECRET: 'ds',
+        AUTH0_CLIENT_ID: 'cid',
+        AUTH0_CLIENT_SECRET: 'cs',
+        AUTH0_DOMAIN: 'https://tenant.us.auth0.com',
       )
       expect(config.sso_providers.map { |p| p['route_name'] })
-        .to eq(%w[entra google github zoom digitalocean])
+        .to eq(%w[entra google github auth0])
     end
 
     it 'derives definitions from the shared SsoProvider::Registry' do

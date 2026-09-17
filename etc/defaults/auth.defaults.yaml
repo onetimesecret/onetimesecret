@@ -108,8 +108,6 @@ full:
     #   GitHub: GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
     #   Apple: APPLE_CLIENT_ID, APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY
     #   Auth0: AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET, AUTH0_DOMAIN
-    #   Zoom: ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET
-    #   DigitalOcean: DIGITALOCEAN_CLIENT_ID, DIGITALOCEAN_CLIENT_SECRET
     sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>  # Since v0.24.5
 
   # ──────────────────────────────────────────────────────────────────────

@@ -533,7 +533,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
     # OIDC and Entra do; the remaining registry providers do not, in two
     # different ways, and neither is visible from the :issuer_capable flag:
     #
-    #   issuerless (google, github, zoom, digitalocean) resolve to the ''
+    #   issuerless (google, github) resolve to the ''
     #     sentinel and are refused on the tenant surface by
     #     refuse_issuerless_on_tenant?.
     #   issuer-capable but NOT tenant-distinct (apple, auth0) carry a
@@ -550,7 +550,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
     # edit and points at the work it requires first.
     it 'admits no provider whose issuer is not tenant-distinct' do
       tenant_routes  = described_class::PROVIDER_ROUTE_MAP.values.map { |entry| entry[:default] }
-      not_distinct   = %w[google github zoom digitalocean apple auth0]
+      not_distinct   = %w[google github apple auth0]
       wrongly_tenant = tenant_routes & not_distinct
 
       expect(wrongly_tenant).to be_empty,

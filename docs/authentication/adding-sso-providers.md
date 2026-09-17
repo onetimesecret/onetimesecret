@@ -97,8 +97,8 @@ exception now wired up both ways: its bespoke `omniauth-auth0` strategy *is*
 registered, and it is issuer-capable because the issuer is **operator-pinned**
 from `AUTH0_DOMAIN` rather than read out of the token (see the quirk below).
 Generic OIDC remains available for Auth0 and is preferable when tenant-surface
-SSO is needed — Apple, Auth0, Zoom and DigitalOcean are all **platform-only**
-providers, absent from `SsoConfig::PROVIDER_ROUTE_MAP`.
+SSO is needed — both Apple and Auth0 are **platform-only** providers, absent
+from `SsoConfig::PROVIDER_ROUTE_MAP`.
 
 ## Known provider quirks
 
@@ -152,25 +152,6 @@ providers, absent from `SsoConfig::PROVIDER_ROUTE_MAP`.
   a single issuer, so `AUTH0_TRUST_EMAIL_FOR_LINKING` trusts *every*
   connection the tenant enables, including unverified database and social
   connections.
-- **Zoom** (gem `omniauth-zoom-v2`, strategy `:zoom`): the gem/strategy name
-  mismatch is deliberate — `cadenza-tech/omniauth-zoom-v2` replaces the
-  abandoned `omniauth-zoom` and only the *distribution* carries the `-v2`
-  suffix. Requiring `omniauth-zoom` or registering `:zoom_v2` both fail.
-  Issuerless plain OAuth2 (no id_token anywhere), so platform-only. uid is
-  Zoom's opaque user id from `GET /v2/users/me`; scope `user:read:user` is
-  what makes that read — and therefore `info.email` — available.
-- **DigitalOcean** (`omniauth-digitalocean`): issuerless plain OAuth2,
-  platform-only. uid and info come from the **token response body**, not a
-  userinfo call — the strategy reads `access_token.params['info']['uuid']` and
-  builds `info` from that same nested hash. A token without that non-standard
-  `info` member raises rather than degrading, so a failure surfaces as an SSO
-  error instead of a mis-keyed identity. Scope is `read`, space-delimited (a
-  comma is silently accepted and then mis-parsed by DigitalOcean). Note the
-  **test-mode origin switch**: with `OmniAuth.config.test_mode` true the
-  strategy hard-codes `http://localhost:3000` as its site/authorize/token
-  URLs, while `:idp_origin` is the production origin — today's specs drive the
-  callback directly so nothing depends on it, but a browser-level SSO test
-  against this provider would have to account for it.
 - **Entra ID**: uid is `tid+oid` by default. If you ever set
   `ignore_tid: true`, cross-tenant safety rests entirely on issuer scoping —
   see the security note on the `:entra` registry entry.
