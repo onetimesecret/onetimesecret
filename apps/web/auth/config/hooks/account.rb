@@ -22,10 +22,14 @@ module Auth::Config::Hooks
       account[:external_id].to_s.empty? ? account[:email] : account[:external_id]
     end
 
+    # Account closure is destructive, so a present external_id is authoritative.
+    # Falling back to email after that lookup misses could select a different
+    # Customer record that has since claimed the same address.
     def self.resolve_customer(account)
-      extid    = account[:external_id].to_s
-      customer = Onetime::Customer.find_by_extid(extid) unless extid.empty?
-      customer || Onetime::Customer.find_by_email(account[:email])
+      extid = account[:external_id].to_s
+      return Onetime::Customer.find_by_extid(extid) unless extid.empty?
+
+      Onetime::Customer.find_by_email(account[:email])
     end
 
     # rubocop:disable Metrics/PerceivedComplexity, Metrics/MethodLength
