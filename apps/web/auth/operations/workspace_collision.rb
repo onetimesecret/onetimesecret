@@ -290,15 +290,26 @@ module Auth
         )
       end
 
-      # Independent of the index holder: a stale pointer is not safely removable
-      # if another live organization already carries the address but is itself
-      # missing from the index. Deleting in that state would let provisioning
-      # reserve the field and create a duplicate workspace.
+      # Independent of the index holder this result classified: a stale pointer
+      # is not safely removable if another live organization already carries the
+      # address. Deleting in that state would let provisioning reserve the field
+      # and create a duplicate workspace.
+      #
+      # Discovery is the same bounded exhaustive probe purge_preflight uses (two
+      # HGETs plus a capped case-insensitive HSCAN) rather than a walk of the
+      # whole Organization registry, because this runs on colonel, doctor and
+      # signup/login request paths. The holder under repair filters itself out:
+      # on :phantom_index it does not load, on :index_mismatch its contact_email
+      # no longer matches. The residual gap — an organization carrying the
+      # address with NO index entry at all — is field/index drift owned by
+      # `bin/ots org doctor` (check: contact_email vs contact_email_index).
       def contact_email_claimants
-        Onetime::Organization.instances.to_a.filter_map do |objid|
-          org = Onetime::Organization.load(objid)
-          org if org && normalize_email(org.contact_email) == @email
-        end
+        Onetime::Organization.find_contact_email_claims(@email, exhaustive: true)
+          .values.map(&:to_s).reject(&:empty?).uniq
+          .filter_map do |objid|
+            org = Onetime::Organization.load(objid)
+            org if org && normalize_email(org.contact_email) == @email
+          end
       end
 
       def retained_data_markers(org)

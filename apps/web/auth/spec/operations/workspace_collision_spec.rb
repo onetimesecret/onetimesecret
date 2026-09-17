@@ -160,7 +160,9 @@ RSpec.describe Auth::Operations::WorkspaceCollision do
 
   it 'does not repair a stale pointer when another live organization carries the address' do
     claimant = double('Claimant', objid: 'org_live', extid: 'on_live', contact_email: email)
-    allow(Onetime::Organization).to receive(:instances).and_return(['org_live'])
+    # A second index spelling held by a different organization, found by the
+    # exhaustive case-insensitive HSCAN rather than by a registry walk.
+    allow(raw_client).to receive(:hscan).and_return(['0', [['User@Example.com', 'org_live']]])
     allow(Onetime::Organization).to receive(:load).with('org_live').and_return(claimant)
     allow(organization).to receive(:contact_email).and_return('other@example.com')
 
