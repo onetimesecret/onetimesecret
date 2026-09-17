@@ -26,7 +26,8 @@ module DomainSsoTestFixtures
   # Tenant SSO is OIDC/Entra-only (#3902): issuerless providers (google,
   # github) resolve to the shared '' issuer sentinel and cannot satisfy the
   # (provider, issuer, uid) identity partitioning, so they were removed.
-  PROVIDER_TYPES = %i[oidc entra_id].freeze
+  # SAML (#4450) joins them: its issuer is the tenant's IdP EntityID.
+  PROVIDER_TYPES = %i[oidc entra_id saml].freeze
 
   # Mock encryption key for testing (32 bytes for AES-256)
   TEST_ENCRYPTION_KEY = 'test_encryption_key_32_bytes_ok!'.freeze
@@ -75,7 +76,42 @@ module DomainSsoTestFixtures
       client_secret: 'entra_domain_test_client_secret_value',
       allowed_domains: ['contoso.onmicrosoft.com', 'contoso.com'],
     },
+    # No client_id / client_secret: SAML has no client credential (#4450).
+    # idp_cert is NOT here — it is a real X.509 certificate generated once per
+    # process (.saml_cert_pem) and merged in by
+    # build_domain_sso_config_attributes, so no key material is checked in
+    # and loading this file costs no keygen.
+    saml: {
+      provider_type: 'saml',
+      display_name: 'Corporate SAML',
+      idp_sso_service_url: 'https://idp.example.com/saml/sso',
+      idp_entity_id: 'https://idp.example.com/saml/metadata',
+      allowed_domains: ['example.com'],
+    },
   }.freeze
+
+  # A self-signed PEM certificate for the SAML fixtures, generated on first
+  # use and shared for the process (2048-bit keygen is ~100ms). Only the
+  # certificate is kept; the key is discarded — these fixtures configure an
+  # IdP, they never sign as one (spec/support/saml/test_idp.rb does that).
+  #
+  # @return [String] PEM
+  def self.saml_cert_pem
+    @saml_cert_pem ||= begin
+      require 'openssl'
+      key             = OpenSSL::PKey::RSA.new(2048)
+      cert            = OpenSSL::X509::Certificate.new
+      cert.version    = 2
+      cert.serial     = SecureRandom.random_number(2**32)
+      cert.subject    = OpenSSL::X509::Name.parse('/CN=fixture-idp.example.com')
+      cert.issuer     = cert.subject
+      cert.public_key = key.public_key
+      cert.not_before = Time.now - 3600
+      cert.not_after  = Time.now + 86_400
+      cert.sign(key, OpenSSL::Digest.new('SHA256'))
+      cert.to_pem
+    end
+  end
 
   # ==========================================================================
   # Factory Methods
@@ -83,13 +119,14 @@ module DomainSsoTestFixtures
 
   # Build CustomDomain::SsoConfig attributes hash for a given provider type
   #
-  # @param provider [Symbol] one of :oidc, :entra_id
+  # @param provider [Symbol] one of :oidc, :entra_id, :saml
   # @param overrides [Hash] attributes to override defaults
   # @return [Hash] complete attributes hash
   def build_domain_sso_config_attributes(provider = :oidc, overrides = {})
     raise ArgumentError, "Unknown provider: #{provider}" unless PROVIDER_CONFIGS.key?(provider)
 
     domain_id = overrides.delete(:domain_id) || SAMPLE_DOMAIN_IDS[:primary]
+    overrides = { idp_cert: DomainSsoTestFixtures.saml_cert_pem }.merge(overrides) if provider == :saml
 
     # domain_id MUST come before client_id/client_secret in hash iteration order.
     # AAD encryption reads domain_id when encrypting credentials, so it must be
@@ -105,7 +142,7 @@ module DomainSsoTestFixtures
   # This creates an instance with stubbed persistence methods,
   # suitable for testing model behavior without Redis.
   #
-  # @param provider [Symbol] one of :oidc, :entra_id
+  # @param provider [Symbol] one of :oidc, :entra_id, :saml
   # @param overrides [Hash] attributes to override defaults
   # @return [Onetime::CustomDomain::SsoConfig] stubbed instance
   #
@@ -179,6 +216,24 @@ module DomainSsoTestFixtures
     config
   end
 
+  # A structurally valid PEM certificate whose validity window has closed.
+  #
+  # @return [String] PEM
+  def expired_saml_cert_pem
+    require 'openssl'
+    key             = OpenSSL::PKey::RSA.new(2048)
+    cert            = OpenSSL::X509::Certificate.new
+    cert.version    = 2
+    cert.serial     = 1
+    cert.subject    = OpenSSL::X509::Name.parse('/CN=expired-idp.example.com')
+    cert.issuer     = cert.subject
+    cert.public_key = key.public_key
+    cert.not_before = Time.now - 7200
+    cert.not_after  = Time.now - 3600
+    cert.sign(key, OpenSSL::Digest.new('SHA256'))
+    cert.to_pem
+  end
+
   # Build a disabled CustomDomain::SsoConfig
   #
   # @param provider [Symbol] provider type
@@ -224,6 +279,18 @@ module DomainSsoTestFixtures
         tenant_id: 'contoso-tenant-uuid-1234',
         scope: 'openid profile email',
       }
+    when :saml
+      # The hardened half comes from the single shared builder — asserting
+      # against the builder (not a restated hash) is the point: the tenant arm
+      # must not carry its own copy. registry_spec pins the hash's contents.
+      Onetime::SsoProvider::Saml.hardened_options.merge(
+        strategy: :request_bound_saml,
+        name: extid,
+        idp_sso_service_url: 'https://idp.example.com/saml/sso',
+        idp_entity_id: 'https://idp.example.com/saml/metadata',
+        idp_cert: DomainSsoTestFixtures.saml_cert_pem,
+        uid_attribute: nil,
+      )
     end
   end
 
@@ -245,6 +312,7 @@ module DomainSsoTestFixtures
     {
       oidc: ['user@example.com', 'admin@subsidiary.example.com'],
       entra_id: ['user@contoso.onmicrosoft.com', 'admin@contoso.com'],
+      saml: ['user@example.com'],
     }
   end
 
@@ -253,6 +321,7 @@ module DomainSsoTestFixtures
     {
       oidc: ['user@attacker.com', 'admin@not-example.com'],
       entra_id: ['user@external.com', 'admin@fabrikam.com'],
+      saml: ['user@attacker.com'],
     }
   end
 

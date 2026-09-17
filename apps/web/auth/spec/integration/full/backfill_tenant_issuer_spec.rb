@@ -106,7 +106,8 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
   end
 
   # Create a CustomDomain + SsoConfig on an existing org.
-  def build_domain_on(org, provider_type: 'oidc', issuer: :default, tenant_id: nil, grant_org_scope: false, enabled: true)
+  def build_domain_on(org, provider_type: 'oidc', issuer: :default, tenant_id: nil, grant_org_scope: false, enabled: true,
+                      idp_entity_id: nil)
     issuer = (provider_type == 'oidc' ? tenant_issuer : nil) if issuer == :default
     run = SecureRandom.hex(6)
 
@@ -128,6 +129,7 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
     sso.grant_org_scope = grant_org_scope.to_s
     sso.issuer          = issuer unless issuer.nil?
     sso.tenant_id       = tenant_id unless tenant_id.nil?
+    sso.idp_entity_id   = idp_entity_id unless idp_entity_id.nil?
     sso.created         = Familia.now.to_i
     sso.updated         = sso.created
     sso.save
@@ -636,6 +638,36 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
       op = new_operation(tenant)
       expect(op.issuer).to eq('https://login.microsoftonline.com/contoso-uuid/v2.0')
       expect(op.provider).to eq('entra')
+    end
+
+    # #4450. The stamped issuer must byte-match what resolve_issuer's SAML
+    # branch returns at callback: the configured IdP EntityID (an AAD-bound
+    # encrypted_field, so it is REVEALED) — not stripped, not normalized, and
+    # a URN is as good as a URL.
+    it 'saml uses the revealed idp_entity_id verbatim' do
+      tenant = build_tenant(provider_type: 'saml', issuer: nil, idp_entity_id: 'urn:example:IdP/Tenant-A')
+      op = new_operation(tenant)
+      expect(op.issuer).to eq('urn:example:IdP/Tenant-A')
+      expect(op.provider).to eq('saml')
+    end
+
+    it 'saml ignores a stale issuer field on the record' do
+      tenant = build_tenant(provider_type: 'saml', issuer: 'https://stale-oidc.example.com',
+        idp_entity_id: 'https://idp.example.com/saml/metadata')
+      expect(new_operation(tenant).issuer).to eq('https://idp.example.com/saml/metadata')
+    end
+
+    it 'raises for saml with no idp_entity_id and no override (never stamps the sentinel)' do
+      tenant = build_tenant(provider_type: 'saml', issuer: nil)
+      expect { new_operation(tenant) }.to raise_error(Onetime::Problem, /idp_entity_id/)
+    end
+
+    it 'raises for saml when idp_entity_id cannot be decrypted' do
+      tenant = build_tenant(provider_type: 'saml', issuer: nil, idp_entity_id: 'https://idp.example.com/saml/metadata')
+      allow_any_instance_of(Onetime::CustomDomain::SsoConfig)
+        .to receive(:reveal_saml_field).and_raise(Familia::EncryptionError, 'auth tag')
+
+      expect { new_operation(tenant) }.to raise_error(Onetime::Problem, /unreadable idp_entity_id \(Familia::EncryptionError\)/)
     end
 
     it 'refuses google/github (they resolve to the sentinel; nothing to backfill)' do

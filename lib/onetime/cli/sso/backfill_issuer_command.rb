@@ -248,8 +248,8 @@ module Onetime
             issuer onto legacy rows whose account belongs to the domain organization,
             so the exact tenant lookup matches again.
 
-            Only oidc and entra_id domains are eligible — the only configurable
-            tenant provider types since #3902. Pre-#3902 issuerless records
+            Only oidc, entra_id and saml domains are eligible — the only configurable
+            tenant provider types since #3902 (saml: #4450, issuer = IdP EntityID). Pre-#3902 issuerless records
             (google/github) resolved to the '' sentinel at callback time, so
             their legacy rows already match and are refused.
 

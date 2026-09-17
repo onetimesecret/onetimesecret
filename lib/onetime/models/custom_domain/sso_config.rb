@@ -3,6 +3,9 @@
 # frozen_string_literal: true
 
 require_relative '../features/boolean_encoding'
+# Configuration-only and gem-free (it never loads omniauth-saml/ruby-saml):
+# the shared SAML validators and the single hardened-options builder (#4450).
+require_relative '../../sso_provider/saml'
 
 #
 # CustomDomain::SsoConfig - Per-domain SSO credential storage
@@ -40,7 +43,24 @@ module Onetime
       # refuse_issuerless_on_tenant?), so they are not configurable here.
       # PLATFORM/install-level SSO still supports them (separate surface,
       # registered from ENV in apps/web/auth/config/features/omniauth.rb).
-      PROVIDER_TYPES = %w[oidc entra_id].freeze
+      #
+      # SAML (#4450) qualifies on the same rule: its issuer is the tenant's
+      # own IdP EntityID (idp_entity_id), which
+      # OmniAuth::Strategies::RequestBoundSAML proves byte-equal to the single
+      # Issuer of every validated response before an identity is keyed on it.
+      PROVIDER_TYPES = %w[oidc entra_id saml].freeze
+
+      # Provider types that authenticate to the IdP with an OAuth client
+      # credential. SAML has none — its trust anchor is the IdP's signing
+      # certificate — so client_id / client_secret are neither required nor
+      # stored for it. The ONE list the model, the API logic
+      # (put/patch/test_connection) and the contract test read, so "is
+      # client_id required?" has a single answer per provider type.
+      CLIENT_CREDENTIAL_PROVIDER_TYPES = %w[oidc entra_id].freeze
+
+      # The SAML IdP trio. All three are encrypted_fields (below) and all
+      # three are required for provider_type 'saml'.
+      SAML_FIELDS = [:idp_sso_service_url, :idp_entity_id, :idp_cert].freeze
 
       # Provider metadata for UI filtering logic
       #
@@ -63,6 +83,16 @@ module Onetime
           idp_controls_access: true,
           description: 'Microsoft Entra ID - access controlled via Azure app assignment',
         },
+        # Treated like generic OIDC, not like Entra: "SAML" names a protocol,
+        # not an IdP, so nothing here can promise that the IdP restricts who
+        # may reach this application. Recommending the domain filter is the
+        # conservative default; an operator whose IdP does app assignment
+        # simply leaves the allowlist empty.
+        'saml' => {
+          requires_domain_filter: true,
+          idp_controls_access: false,
+          description: 'Generic SAML 2.0 identity provider - domain filtering recommended',
+        },
       }.freeze
 
       # Map provider_type to platform route name ENV var and default.
@@ -72,6 +102,7 @@ module Onetime
       PROVIDER_ROUTE_MAP = {
         'oidc' => { env_var: 'OIDC_ROUTE_NAME', default: 'oidc' },
         'entra_id' => { env_var: 'ENTRA_ROUTE_NAME', default: 'entra' },
+        'saml' => { env_var: 'SAML_ROUTE_NAME', default: 'saml' },
       }.freeze
 
       prefix :custom_domain__sso_config
@@ -93,13 +124,16 @@ module Onetime
       # Required fields vary by provider_type:
       #   - entra_id: requires tenant_id
       #   - oidc:     requires issuer
+      #   - saml:     requires idp_sso_service_url, idp_entity_id, idp_cert
       #
-      # Both remaining providers carry a tenant-distinguishing issuer — the
-      # reason issuerless OAuth2 providers were removed from this surface
-      # (#3902, see PROVIDER_TYPES).
+      # Every provider carries a tenant-distinguishing issuer — the reason
+      # issuerless OAuth2 providers were removed from this surface (#3902,
+      # see PROVIDER_TYPES).
       #
       # Universal required fields (all providers):
-      #   - client_id, provider_type
+      #   - provider_type
+      # client_id is required for the OAuth-family types only
+      # (CLIENT_CREDENTIAL_PROVIDER_TYPES); SAML has no client credential.
       # client_secret is required for entra_id only — OIDC public clients
       # (PKCE) may omit it. display_name is optional.
       #
@@ -111,6 +145,24 @@ module Onetime
       # Encrypted credential storage with domain-bound AAD
       encrypted_field :client_id, aad_fields: [:domain_id]
       encrypted_field :client_secret, aad_fields: [:domain_id]
+
+      # SAML IdP trio (#4450; SAML_FIELDS). None of the three is a SECRET —
+      # an SSO URL, an EntityID and a PUBLIC certificate are all things the
+      # IdP publishes, and the API serializer returns them in plaintext. They
+      # are encrypted_fields for INTEGRITY: together they are the tenant's
+      # whole trust anchor (whose signature is accepted, and which issuer the
+      # identities are keyed on), and the domain_id-bound AAD means a value
+      # copied from — or swapped with — another domain's record fails to
+      # decrypt instead of silently re-pointing this domain's logins at a
+      # different IdP. Every reader must therefore treat a reveal FAILURE as
+      # an error state, never as "unset" (see #reveal_saml_field).
+      #
+      # There is deliberately no fingerprint field. Fingerprint-only trust
+      # accepts whatever certificate the RESPONSE embeds (ruby-saml, SHA1 by
+      # default); trust here is a pinned PEM certificate or nothing.
+      encrypted_field :idp_sso_service_url, aad_fields: [:domain_id]
+      encrypted_field :idp_entity_id, aad_fields: [:domain_id]
+      encrypted_field :idp_cert, aad_fields: [:domain_id]
 
       # Domain allowlist (JSON array string)
       field :allowed_domains_json
@@ -292,6 +344,8 @@ module Onetime
           build_oidc_options
         when 'entra_id'
           build_entra_id_options
+        when 'saml'
+          build_saml_options
         else
           raise Onetime::Problem, "Unsupported SSO provider type: #{provider_type}"
         end
@@ -336,28 +390,71 @@ module Onetime
                               nil
         end
 
-        errors << 'client_id is required' if client_id_val.to_s.empty?
-        errors << 'client_secret is required' if client_secret_val.to_s.empty? && provider_type != 'oidc'
+        # Client credentials belong to the OAuth-family types only. SAML has
+        # none (CLIENT_CREDENTIAL_PROVIDER_TYPES), so requiring one there
+        # would force operators to invent a value that nothing reads. A
+        # missing or unknown provider_type keeps the requirement: the only
+        # exemption is a type KNOWN to have no client credential.
+        if !PROVIDER_TYPES.include?(provider_type) || self.class.client_credentials?(provider_type)
+          errors << 'client_id is required' if client_id_val.to_s.empty?
+          errors << 'client_secret is required' if client_secret_val.to_s.empty? && provider_type != 'oidc'
+        end
 
         # Provider-specific field requirements:
         #
-        #   | provider_type | tenant_id | issuer | client_secret |
-        #   |---------------|-----------|--------|---------------|
-        #   | entra_id      | required  | -      | required      |
-        #   | oidc          | -         | required | optional    |
+        #   | provider_type | tenant_id | issuer   | client_id | client_secret | SAML trio |
+        #   |---------------|-----------|----------|-----------|---------------|-----------|
+        #   | entra_id      | required  | -        | required  | required      | -         |
+        #   | oidc          | -         | required | required  | optional      | -         |
+        #   | saml          | -         | -        | -         | -             | required  |
         #
         # OIDC supports public clients (PKCE flow) without a client secret.
-        # Every tenant provider requires an issuer-bearing field (issuer or
-        # tenant_id) — issuerless providers are not configurable (#3902).
+        # Every tenant provider requires an issuer-bearing field (issuer,
+        # tenant_id or idp_entity_id) — issuerless providers are not
+        # configurable (#3902).
         #
         case provider_type
         when 'oidc'
           errors << 'issuer is required for OIDC provider' if issuer.to_s.empty?
         when 'entra_id'
           errors << 'tenant_id is required for Entra ID provider' if tenant_id.to_s.empty?
+        when 'saml'
+          errors.concat(saml_validation_errors)
         end
 
         errors
+      end
+
+      # Plaintext of one SAML trio field ('' when unset).
+      #
+      # RAISES on a reveal failure, on purpose: for an AAD-bound trust anchor
+      # "cannot decrypt" means the value was corrupted, swapped in from
+      # another domain's record, or encrypted under a key this process does
+      # not hold — exactly what the binding exists to catch. Callers choose
+      # the failure direction explicitly (the serializer flags it, the
+      # OmniAuth path refuses the login, validation reports the field as
+      # unreadable); nothing gets to read it as "unset" by accident.
+      #
+      # @param name [Symbol] one of SAML_FIELDS
+      # @return [String]
+      # @raise [ArgumentError] for a field outside SAML_FIELDS
+      # @raise [StandardError] whatever Familia raises when reveal fails
+      def reveal_saml_field(name)
+        raise ArgumentError, "Not a SAML field: #{name}" unless SAML_FIELDS.include?(name)
+
+        concealed = public_send(name)
+        return '' if concealed.nil?
+
+        concealed.reveal { it }.to_s
+      end
+
+      # The revealed trio, keyed the way
+      # Onetime::SsoProvider::Saml.strategy_options_for takes it.
+      #
+      # @return [Hash{Symbol => String}]
+      # @raise [StandardError] when any field cannot be revealed
+      def saml_trio
+        SAML_FIELDS.to_h { |name| [name, reveal_saml_field(name)] }
       end
 
       # Check if the configuration is valid.
@@ -368,6 +465,15 @@ module Onetime
       end
 
       class << self
+        # Whether this provider type authenticates with an OAuth client
+        # credential (client_id, and for non-OIDC types client_secret).
+        #
+        # @param provider_type [String]
+        # @return [Boolean]
+        def client_credentials?(provider_type)
+          CLIENT_CREDENTIAL_PROVIDER_TYPES.include?(provider_type.to_s)
+        end
+
         # Returns provider metadata for all supported providers.
         #
         # @return [Hash] Provider type => metadata hash
@@ -550,9 +656,21 @@ module Onetime
           config.enforce_sso_only = attrs[:enforce_sso_only].to_s if attrs.key?(:enforce_sso_only)
           config.grant_org_scope  = attrs[:grant_org_scope].to_s if attrs.key?(:grant_org_scope)
 
-          # Set encrypted fields
+          # Set encrypted fields. BEFORE save is correct: Familia's AAD is
+          # built from the class name, field name, identifier and the
+          # aad_fields VALUES (encrypted_field_type.rb build_aad) — domain_id
+          # is assigned by `new` above, and nothing in the AAD depends on
+          # whether the record exists yet. The opposite ordering in
+          # MailerConfig.create! (set after save, with a comment about
+          # record.exists?) describes an older Familia; both orderings
+          # round-trip on Familia 2.12. Pinned against the real datastore in
+          # try/unit/models/custom_domain_sso_config_saml_try.rb — RE-VERIFY on
+          # a Familia bump.
           config.client_id     = attrs[:client_id] if attrs.key?(:client_id)
           config.client_secret = attrs[:client_secret] if attrs.key?(:client_secret)
+          SAML_FIELDS.each do |name|
+            config.public_send(:"#{name}=", attrs[name]) if attrs.key?(name)
+          end
 
           # Set allowed domains
           config.allowed_domains = attrs[:allowed_domains] if attrs.key?(:allowed_domains)
@@ -637,6 +755,88 @@ module Onetime
           tenant_id: tenant_id,
           scope: 'openid profile email',
         }
+      end
+
+      # The tenant's IdP trio + the SAME hardened options the platform
+      # definition registers with. Onetime::SsoProvider::Saml.strategy_options_for
+      # is the single builder for both surfaces — the security hash is not
+      # restated here, and must never be.
+      #
+      # RAISES Onetime::Problem when the trio is unreadable or unusable (blank
+      # field, non-https URL, unparseable / multi-block / EXPIRED certificate).
+      # A SAML strategy without a proven trust anchor must not run, and
+      # ruby-saml answers a blank EntityID by SKIPPING issuer validation, so
+      # there is no "inject what we have" fallback. The OmniAuth tenant hook
+      # rescues this into a refusal (omniauth_tenant.rb
+      # inject_tenant_credentials).
+      #
+      # What is deliberately NOT in this hash:
+      #   - sp_entity_id / assertion_consumer_service_url. They are derived
+      #     per request from strategy.full_host by the tenant hook: one record
+      #     can be reached through more than one public host shape, and the
+      #     model has no request.
+      #   - :issuer. In ruby-saml `issuer` is a deprecated alias for OUR SP
+      #     EntityID (settings.rb:121-122) and resolve_issuer's precedence #1
+      #     reads strategy option :issuer — see lib/onetime/sso_provider/saml.rb.
+      #   - any fingerprint option (see the field declarations).
+      #
+      # uid_attribute is set to nil EXPLICITLY rather than omitted. Tenant
+      # options are merged over the platform-registered strategy's options
+      # (merge_strategy_options), so an omitted key would let a platform
+      # SAML_UID_ATTRIBUTE leak into every tenant's login and change which
+      # value their identities are keyed on. Tenants have no uid_attribute
+      # setting: the uid is the NameID, and a transient NameID is refused.
+      def build_saml_options
+        trio = begin
+          saml_trio
+        rescue StandardError => ex
+          # Class name only: a decryption error message is not ours to vouch for.
+          raise Onetime::Problem, "SAML SSO config for domain #{domain_id} is unreadable (#{ex.class.name})"
+        end
+
+        options = begin
+          Onetime::SsoProvider::Saml.strategy_options_for(**trio)
+        rescue ArgumentError => ex
+          # The builder's messages are fixed strings naming the field (plus a
+          # certificate expiry date); they never carry field content.
+          raise Onetime::Problem, "SAML SSO config for domain #{domain_id} is unusable: #{ex.message}"
+        end
+
+        options.merge(strategy: :request_bound_saml, name: strategy_name, uid_attribute: nil)
+      end
+
+      # Model-level invariants for the SAML trio: each field present,
+      # readable and STRUCTURALLY valid. The validators are the platform
+      # definition's own (Onetime::SsoProvider::Saml), so the two surfaces
+      # cannot disagree about what a usable trio looks like.
+      #
+      # Certificate EXPIRY is not an invariant here (allow_expired: true): a
+      # certificate expires without anyone writing to the record, and the API
+      # re-validates the whole record on every PATCH, so an expiry check here
+      # would make an expired config impossible to disable or edit. Expiry is
+      # enforced where a certificate is accepted (API write path) and where
+      # it is used (#build_saml_options, and ruby-saml's
+      # check_idp_cert_expiration at login).
+      #
+      # The SSRF host check on the SSO URL lives in the API layer with the
+      # OIDC issuer's (it needs DNS); this method does no I/O.
+      def saml_validation_errors
+        saml = Onetime::SsoProvider::Saml
+
+        SAML_FIELDS.filter_map do |name|
+          value = begin
+            reveal_saml_field(name)
+          rescue StandardError
+            next "#{name} cannot be read (re-enter the value)"
+          end
+          next "#{name} is required for SAML provider" if value.strip.empty?
+
+          case name
+          when :idp_sso_service_url then saml.sso_url_problem(value)
+          when :idp_entity_id       then saml.entity_id_problem(value)
+          when :idp_cert            then saml.cert_problem(value, allow_expired: true)
+          end
+        end
       end
     end
   end
