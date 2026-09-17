@@ -91,7 +91,7 @@ module Onetime
         audit_failures :call,
           verb: AUDIT_VERB,
           target: -> { @custid },
-          enabled: -> { audit_enabled? }
+          enabled: -> { audit_enabled? && !@self_service }
 
         # Session-data identity fields matched against the target's extid.
         IDENTITY_FIELDS = %w[external_id account_external_id].freeze
@@ -136,8 +136,14 @@ module Onetime
         #   purge of accounts idle for months — whose blobs have all expired —
         #   turns it off rather than walking the keyspace once per account. The
         #   guaranteed tracked kill (a) and the Rodauth row purge (d) still run.
+        # @param self_service [Boolean] the account itself asked for this via
+        #   Customers::Purge on /auth/close-account (or the simple-mode
+        #   endpoint). Routes the audit write to the security trail via
+        #   {Onetime::ColonelAuditEvent.record_security} (fail-open) instead of
+        #   the count-capped operator trail: a user who can retry a deletion at
+        #   will must not be able to evict operator history from it.
         def initialize(actor:, custid: nil, customer: nil, reason: nil, dbclient: nil,
-                       bulk_audit_context: nil, sweep_untracked: true)
+                       bulk_audit_context: nil, sweep_untracked: true, self_service: false)
           # Same shape as Operations::VerifyDomain's domain:/domains: guard.
           if custid.nil? && customer.nil?
             raise ArgumentError, 'Must provide either custid: or customer:'
@@ -157,6 +163,7 @@ module Onetime
           @dbclient           = dbclient
           @bulk_audit_context = bulk_audit_context
           @sweep_untracked    = sweep_untracked
+          @self_service       = self_service
         end
 
         # @return [Result]
@@ -197,6 +204,11 @@ module Onetime
           # that would otherwise evidence it, so this event is the whole record
           # of an offboarding/takeover action. An unwritable event raises
           # Onetime::AuditWriteFailure instead of returning a clean Result.
+          #
+          # Self-service (Customers::Purge on user-triggered close-account)
+          # routes to the security trail (fail-open) instead — the operator
+          # trail is capped and trimmed oldest-first, so a user who can retry
+          # deletion must not be able to write to it.
           if audit_enabled?
             counts = audit_counts(
               blobs_deleted: blobs_deleted,
@@ -204,14 +216,7 @@ module Onetime
               rodauth_rows_deleted: rodauth_rows_deleted,
               scan_capped: scan_capped,
             )
-            Onetime::ColonelAuditEvent.record(
-              actor: @actor,
-              verb: AUDIT_VERB,
-              target: target,
-              result: :success,
-              detail: with_reason(counts),
-              fail_closed: true,
-            )
+            record_success_event(target: target, counts: counts)
           end
 
           Result.new(
@@ -240,6 +245,32 @@ module Onetime
         # found".
         def audit_counts(**counts)
           @sweep_untracked ? counts : counts.merge(untracked_sweep: 'skipped')
+        end
+
+        # Route the success write to the operator trail (fail-closed) or the
+        # security trail (fail-open) based on whether the call is self-service.
+        # See #initialize for the rationale.
+        def record_success_event(target:, counts:)
+          detail = with_reason(counts)
+
+          if @self_service
+            Onetime::ColonelAuditEvent.record_security(
+              actor: @actor,
+              verb: AUDIT_VERB,
+              target: target,
+              result: :success,
+              detail: detail,
+            )
+          else
+            Onetime::ColonelAuditEvent.record(
+              actor: @actor,
+              verb: AUDIT_VERB,
+              target: target,
+              result: :success,
+              detail: detail,
+              fail_closed: true,
+            )
+          end
         end
 
         # GUARANTEED kill: delete each tracked sid's live blob directly. The sids

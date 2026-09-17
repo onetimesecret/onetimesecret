@@ -62,6 +62,7 @@ RSpec.describe Auth::Operations::TeardownAccount do
       reason: 'request',
       bulk_audit_context: nil,
       sweep_untracked: true,
+      self_service: false,
     )
   end
 
@@ -82,7 +83,19 @@ RSpec.describe Auth::Operations::TeardownAccount do
       reason: 'bulk',
       bulk_audit_context: nil,
       sweep_untracked: false,
+      self_service: false,
     )
+  end
+
+  # A user-triggered close-account routes the nested administrative revoke to
+  # the security trail, not the count-capped operator trail.
+  it 'threads self_service: through to the administrative revocation' do
+    allow(Onetime.auth_config).to receive(:full_enabled?).and_return(false)
+
+    described_class.new(customer: customer, actor: 'ur_self', self_service: true).call
+
+    expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new)
+      .with(hash_including(self_service: true))
   end
 
   it 'revalidates immediately before each administrative mutation' do

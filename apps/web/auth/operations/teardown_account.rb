@@ -46,7 +46,8 @@ module Auth
 
       def initialize(customer: nil, account: nil, actor: nil, reason: nil, db: nil,
                      before_mutation: nil, on_mutation: nil,
-                     bulk_audit_context: nil, sweep_untracked_sessions: true)
+                     bulk_audit_context: nil, sweep_untracked_sessions: true,
+                     self_service: false)
         raise ArgumentError, 'Must provide either customer: or account:' if customer.nil? && account.nil?
         raise ArgumentError, 'Cannot provide both customer: and account:' if customer && account
 
@@ -59,6 +60,7 @@ module Auth
         @on_mutation              = on_mutation
         @bulk_audit_context       = bulk_audit_context
         @sweep_untracked_sessions = sweep_untracked_sessions
+        @self_service             = self_service
         @completed_stages         = []
       end
 
@@ -162,6 +164,7 @@ module Auth
             reason: @reason,
             bulk_audit_context: @bulk_audit_context,
             sweep_untracked: @sweep_untracked_sessions,
+            self_service: @self_service,
           ).call
         else
           Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent.new(

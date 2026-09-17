@@ -160,6 +160,7 @@ module Auth
             on_mutation: method(:mark_mutation_started),
             bulk_audit_context: @bulk_audit_authorization,
             sweep_untracked_sessions: @sweep_untracked_sessions,
+            self_service: @self_service,
           ).call
           deletion.completed_stages.each { |completed| complete_stage(completed) }
           unless deletion.status == :success
@@ -331,6 +332,7 @@ module Auth
             account_purge_context: action.account_purge_context,
             reason: @reason,
             bulk_audit_context: @bulk_audit_authorization,
+            self_service: @self_service,
           )
           track_cleanup_mutation { operation.call }
         end
@@ -342,6 +344,7 @@ module Auth
             actor: @actor,
             reason: @reason,
             bulk_audit_context: @bulk_audit_authorization,
+            self_service: @self_service,
           )
           track_cleanup_mutation { operation.call }
         end

@@ -82,6 +82,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       on_mutation: kind_of(Method),
       bulk_audit_context: nil,
       sweep_untracked_sessions: true,
+      self_service: false,
     )
     expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       actor: 'ur_col',
@@ -126,7 +127,20 @@ RSpec.describe Auth::Operations::Customers::Purge do
       on_mutation: kind_of(Method),
       bulk_audit_context: nil,
       sweep_untracked_sessions: true,
+      self_service: false,
     )
+  end
+
+  # A user-triggered close-account (auth close_account hook, simple-mode
+  # /destroyaccount) must not be able to flush the count-capped operator
+  # audit trail via the nested Org::Delete / Memberships::Remove /
+  # RevokeAllForCustomer writes. Purge threads self_service: through so those
+  # ops route to the security trail (fail-open).
+  it 'threads self_service: through to TeardownAccount' do
+    described_class.new(customer: customer, self_service: true).call
+
+    expect(Auth::Operations::TeardownAccount).to have_received(:new)
+      .with(hash_including(self_service: true))
   end
 
   # The reason the op takes `customer:` at all: a revoke keyed by extid
@@ -299,6 +313,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       account_purge_context: nil,
       reason: 'erasure',
       bulk_audit_context: nil,
+      self_service: false,
     )
     expect(Auth::Operations::TeardownAccount).to have_received(:new).with(
       customer: customer,
@@ -308,6 +323,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       on_mutation: kind_of(Method),
       bulk_audit_context: nil,
       sweep_untracked_sessions: true,
+      self_service: false,
     )
   end
 
@@ -352,6 +368,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       account_purge_context: nil,
       reason: nil,
       bulk_audit_context: kind_of(Onetime::Operations::BulkAuditContext::CandidateAuthorization),
+      self_service: false,
     )
     expect(Auth::Operations::TeardownAccount).to have_received(:new).with(
       customer: customer,
@@ -361,6 +378,7 @@ RSpec.describe Auth::Operations::Customers::Purge do
       on_mutation: kind_of(Method),
       bulk_audit_context: kind_of(Onetime::Operations::BulkAuditContext::CandidateAuthorization),
       sweep_untracked_sessions: true,
+      self_service: false,
     )
     expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       hash_including(verb: 'customer.purge.bulk', result: :started)
@@ -443,7 +461,54 @@ RSpec.describe Auth::Operations::Customers::Purge do
     expect(result.status).to eq(:success)
     expect(Onetime::Operations::Memberships::Remove).to have_received(:new).with(
       org: org, customer: customer, actor: 'ur_col', reason: nil, bulk_audit_context: nil,
+      self_service: false,
     )
+  end
+
+  it 'threads self_service: through to a nested Org::Delete on the applied action' do
+    org      = double('Organization', objid: 'org-personal', extid: 'on_personal')
+    delete_a = Auth::Operations::Customers::PurgePreflight::Action.new(
+      type: :delete_organization, organization: org, org_id: 'on_personal', role: 'owner',
+    )
+    ready = Auth::Operations::Customers::PurgePreflight::Plan.new(
+      actions: [delete_a], blockers: [],
+    )
+    planners = [ready, ready, empty_plan, empty_plan].map do |plan|
+      instance_double(Auth::Operations::Customers::PurgePreflight, call: plan)
+    end
+    allow(Auth::Operations::Customers::PurgePreflight).to receive(:new).and_return(*planners)
+
+    delete_op = instance_double(Onetime::Operations::Org::Delete,
+      call: double('OrgDeleteResult', status: :success))
+    allow(Onetime::Operations::Org::Delete).to receive(:new).and_return(delete_op)
+
+    described_class.new(customer: customer, self_service: true).call
+
+    expect(Onetime::Operations::Org::Delete).to have_received(:new)
+      .with(hash_including(self_service: true))
+  end
+
+  it 'threads self_service: through to a nested Memberships::Remove on the applied action' do
+    org      = double('Organization', objid: 'org-shared', extid: 'on_shared')
+    remove_a = Auth::Operations::Customers::PurgePreflight::Action.new(
+      type: :remove_membership, organization: org, org_id: 'on_shared', role: 'member',
+    )
+    ready = Auth::Operations::Customers::PurgePreflight::Plan.new(
+      actions: [remove_a], blockers: [],
+    )
+    planners = [ready, ready, empty_plan, empty_plan].map do |plan|
+      instance_double(Auth::Operations::Customers::PurgePreflight, call: plan)
+    end
+    allow(Auth::Operations::Customers::PurgePreflight).to receive(:new).and_return(*planners)
+
+    remove_op = instance_double(Onetime::Operations::Memberships::Remove,
+      call: double('MembershipRemoveResult', status: :success))
+    allow(Onetime::Operations::Memberships::Remove).to receive(:new).and_return(remove_op)
+
+    described_class.new(customer: customer, self_service: true).call
+
+    expect(Onetime::Operations::Memberships::Remove).to have_received(:new)
+      .with(hash_including(self_service: true))
   end
 
   it 'returns :partial and does not tear down the account when references remain after cleanup' do

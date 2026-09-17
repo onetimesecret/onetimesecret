@@ -230,6 +230,47 @@ RSpec.describe Onetime::Operations::Org::Delete do
       end
     end
 
+    # Self-service — a user-triggered close-account cannot write to the
+    # count-capped operator trail. The op routes to the security trail
+    # (fail-open); an unhandled raise mid-teardown skips the AuditedFailure
+    # record, so a purge loop cannot flush operator history via failure
+    # events either.
+    describe 'self-service routing' do
+      before { allow(Onetime::ColonelAuditEvent).to receive(:record_security) }
+
+      it 'routes the applied event to the security trail (fail-open, not the operator trail)' do
+        build(dry_run: false, self_service: true).call
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
+          actor: actor,
+          verb: 'organization.delete',
+          target: 'on_org_ext',
+          result: :success,
+          detail: {
+            display_name: 'Acme',
+            planid: 'free_v1',
+            members: 2,
+            members_notified: 2,
+            pending_invitations: 2,
+            default_org_cleared: 1,
+            forced: [],
+          },
+        )
+        # The operator trail is off-limits on this path.
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      end
+
+      it 'suppresses the AuditedFailure record on a raised teardown' do
+        allow(org).to receive(:destroy!).and_raise(Onetime::Problem, 'redis down')
+
+        expect { build(dry_run: false, self_service: true).call }
+          .to raise_error(Onetime::Problem, /redis down/)
+
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record_security)
+      end
+    end
+
     describe 'post-destroy failures never undo a committed delete' do
       it 'isolates a failing notification: the rest still send, the delete stands' do
         allow(Onetime::Jobs::Publisher).to receive(:enqueue_email) do |_t, payload, **|

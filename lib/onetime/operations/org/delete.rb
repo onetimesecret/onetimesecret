@@ -168,7 +168,7 @@ module Onetime
           verb: AUDIT_VERB,
           target: -> { @extid },
           detail: -> { { dry_run: @dry_run } },
-          enabled: -> { audit_enabled? }
+          enabled: -> { audit_enabled? && !@self_service }
 
         # @!attribute status [r] Symbol — :planned (dry run) | :success | one of
         #   {REFUSAL_STATUSES}.
@@ -262,9 +262,16 @@ module Onetime
         #   for the former members. Blank is treated as absent and both details
         #   keep their pre-#4338 shape; see {Onetime::AuditReason} for the bound
         #   and the optional-now / required-later rollout.
+        # @param self_service [Boolean] the account that owns this org asked
+        #   for the delete on its own close-account path (via
+        #   Customers::Purge). Routes the audit write to the security trail via
+        #   {Onetime::ColonelAuditEvent.record_security} (fail-open) instead of
+        #   the count-capped operator trail: a user who can retry a deletion at
+        #   will must not be able to evict operator history from it.
         def initialize(org:, actor:, dry_run: true, force_default: false,
                        force_subscription: false, deleted_by: nil, reason: nil,
-                       account_purge_context: nil, bulk_audit_context: nil)
+                       account_purge_context: nil, bulk_audit_context: nil,
+                       self_service: false)
           @org                   = org
           @actor                 = actor
           @dry_run               = dry_run
@@ -274,6 +281,7 @@ module Onetime
           @reason                = normalize_reason(reason)
           @account_purge_context = account_purge_context
           @bulk_audit_context    = bulk_audit_context
+          @self_service          = self_service
 
           # Snapshotted at construction so the AuditedFailure target survives a
           # raise anywhere in #call, including after destroy! has emptied the
@@ -430,24 +438,14 @@ module Onetime
           # adapter reports a failed delete instead of :success with no trail.
           # The teardown is NOT rolled back (see the model's fail-closed note);
           # the refusal statuses above still return normally and audit nothing.
+          #
+          # Self-service (Customers::Purge on user-triggered close-account)
+          # routes to the security trail instead — the operator-trail is capped
+          # and trimmed oldest-first, so a user who can retry deletion must not
+          # be able to write to it.
           return unless audit_enabled?
 
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @extid,
-            result: :success,
-            detail: with_reason(
-              display_name: @display_name.to_s,
-              planid: @planid,
-              members: @members.size,
-              members_notified: @notified,
-              pending_invitations: @pending,
-              default_org_cleared: @cleared.size,
-              forced: forced_guards,
-            ),
-            fail_closed: true,
-          )
+          record_success_event
         end
 
         # Owner memberships are the live authority (organization.rb:102-107 —
@@ -625,6 +623,40 @@ module Onetime
         # applied event's. `audit_verb` defaults to AUDIT_VERB, `audit_actor`
         # to @actor.
         def audit_target = @extid
+
+        # Route the applied success write to the operator trail (fail-closed)
+        # or the security trail (fail-open) based on whether the call came from
+        # a user's own close-account path. See #initialize for the rationale.
+        def record_success_event
+          detail = with_reason(
+            display_name: @display_name.to_s,
+            planid: @planid,
+            members: @members.size,
+            members_notified: @notified,
+            pending_invitations: @pending,
+            default_org_cleared: @cleared.size,
+            forced: forced_guards,
+          )
+
+          if @self_service
+            Onetime::ColonelAuditEvent.record_security(
+              actor: @actor,
+              verb: AUDIT_VERB,
+              target: @extid,
+              result: :success,
+              detail: detail,
+            )
+          else
+            Onetime::ColonelAuditEvent.record(
+              actor: @actor,
+              verb: AUDIT_VERB,
+              target: @extid,
+              result: :success,
+              detail: detail,
+              fail_closed: true,
+            )
+          end
+        end
 
         def build(status)
           Result.new(
