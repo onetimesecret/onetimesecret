@@ -16,10 +16,33 @@ Colonel `DELETE /api/colonel/users/:user_id` and
 Preflight discovers relationships from all available directions, including:
 
 - customer participation references;
+- the customer's own `default_org_id` pointer;
 - organization member sets and membership records;
 - organization ownership and instance indexes;
-- the normalized customer email in `Organization.contact_email_index`;
+- the customer email in `Organization.contact_email_index`;
 - domain records that refer to an organization.
+
+`contact_email_index` is keyed **verbatim**: `Organization.create!` reserves the
+address exactly as the caller supplied it, and the billing-email sync writes
+whatever Stripe returned. Every lookup therefore goes through
+`Organization.find_contact_email_claims`, which probes the raw and normalized
+spellings and falls back to a bounded case-insensitive `HSCAN`. A normalized
+`HGET` would report a claimed address as unclaimed and a correct holder as
+drifted.
+
+#### Discovery depth
+
+Discovery is **shallow** by default: it reaches organizations through the
+customer's own reverse indexes and keeps every per-organization drift check.
+Single-account operator entry points (the colonel endpoint and
+`bin/ots customers purge-one`) pass `deep: true`, which additionally sweeps the
+global `Organization`, `OrganizationMembership` and `CustomDomain` registries to
+catch a reference no reverse index points at — an organization whose `owner_id`
+names the customer but which is absent from their participations. Those sweeps
+are whole-registry reads, and the lifecycle re-runs preflight once per planned
+action plus three times during teardown, so they are never used on a request
+path or in the bulk sweep. Deep mode runs them at the initial plan and the
+final post-teardown validation; the intermediate revalidations stay shallow.
 
 A relationship must be complete and unambiguous before purge can execute. The
 operation may plan only these automatic actions:
@@ -30,10 +53,20 @@ operation may plan only these automatic actions:
    organization deletion operation when it is empty and non-billing.
 
 Preflight refuses before account teardown when an owned workspace has domains,
-billing state, other members, pending invitations, receipts, retained
-organization data, or ownership/membership/index drift. It also refuses when a
-scan fails and the evidence is incomplete. Operators must transfer ownership,
-remove retained resources, or repair drift and then run preflight again.
+billing state, other members, an unfinished v1 to v2 migration, or
+ownership/membership/index drift. It also refuses when a scan fails and the
+evidence is incomplete. Operators must transfer ownership, remove retained
+resources, or repair drift and then run preflight again.
+
+What does **not** refuse: content of the sole-owner default workspace that is
+deleted with it — receipts, the workspace description, outstanding invitations
+the departing owner sent, and a contact address that diverged from the account's
+(the billing-email sync writes that field). None of it belongs to another party,
+so none of it is a reason to refuse an erasure request; it is reported on the
+planned action as `notes` so an operator can still see what a purge removed.
+`owner_id` and `created_by` are compared tolerantly against both the customer's
+objid and custid, because rows predating the objid standardization chore still
+carry the custid and a legacy encoding is not drift.
 
 A customer email matching an organization contact email is discovery evidence,
 not authorization to attach that organization to another account.
@@ -100,11 +133,22 @@ in every store is deleted.
 
 ## Self-service deletion
 
-Self-service account closure shares the ordered session/authentication/customer
-teardown, but the organization preflight policy above describes the
-administrative purge surface. Self-service closure is not an authorization to
-dispose of ambiguous retained organization data, and it must never become a
-same-email adoption path.
+Self-service account closure — `/auth/close-account` in full mode and the
+simple-mode delete endpoint — runs the **same** preflight and cleanup policy as
+the administrative purge. It is not an authorization to dispose of ambiguous
+retained organization data, and it must never become a same-email adoption path.
+
+Two things differ, both because the account itself is the actor:
+
+- **Attribution.** The purge is constructed with `self_service: true`, which
+  defaults the actor to the customer. Without it these events would be recorded
+  as `actor: 'unknown'`.
+- **Audit trail.** Self-service events are written to the **security** trail,
+  not the operator trail. The operator trail is capped and trimmed oldest-first,
+  so a caller who can retry a deletion at will must not be able to write to it.
+  Refusals are the unbounded case — a blocked account produces one per click —
+  and are logged only, never recorded. A refusal that has already crossed a
+  mutation boundary is still recorded, on the security trail.
 
 ## Bulk inactivity purge
 
