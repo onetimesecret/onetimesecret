@@ -39,6 +39,9 @@ module Auth
       Onetime::Forbidden => 403,
       Onetime::Unauthorized => 401,
       Onetime::AccountProvisioningFailed => 409,
+      # Provisioning persisted nothing and the next request retries it; 503,
+      # never the 409 above (see Onetime::AccountProvisioningUnavailable).
+      Onetime::AccountProvisioningUnavailable => 503,
       # An auth gate could not READ this host's policy (#4139/#4157). 503, not
       # the gate's usual 404: see Onetime::AuthPolicyUnavailable. Registered on
       # the FAMILY, not on SigninPolicyUnavailable alone — this table's lookup
@@ -64,6 +67,7 @@ module Auth
       Onetime::Forbidden => :warn,
       Onetime::Unauthorized => :warn,
       Onetime::AccountProvisioningFailed => :warn,
+      Onetime::AccountProvisioningUnavailable => :warn,
       Onetime::AuthPolicyUnavailable => :error,
     }.freeze
 

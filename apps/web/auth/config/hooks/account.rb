@@ -285,6 +285,14 @@ module Auth::Config::Hooks
                 customer: customer,
                 require_verification: require_verification,
               ).call
+            # Only the collision is rescued. Onetime::AccountProvisioningUnavailable
+            # deliberately is NOT: it persists nothing, so safe_execute's generic
+            # path (error log + tracking, returns nil) is the right visibility.
+            # At signup no other request can hold the creation lock, so reaching
+            # it means the datastore failed mid-scan: an incident signal, not a
+            # routine transient. Signup still completes and
+            # OrganizationContext#auth_org re-runs provisioning on the first
+            # authenticated request.
             rescue Auth::Operations::WorkspaceCollision::ProvisioningCollision => ex
               # EnsureDefaultWorkspace persisted the bounded failure state before
               # raising. Keep the SQL account + Customer observable and let later

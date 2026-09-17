@@ -90,6 +90,13 @@ module Onetime
             # this rescue the bare ProvisioningCollision (an Onetime::Problem,
             # registered in no error table) escapes as a 500 — so only the SECOND
             # request would get the intended 409.
+            #
+            # Deliberately NOT rescued: Onetime::AccountProvisioningUnavailable.
+            # It means the operation persisted nothing (unreadable collision
+            # evidence, or another request holds the creation lock) and is
+            # registered as a 503 in its own right. Folding it into the 409
+            # would tell the client to contact support for a state that the
+            # next request clears on its own.
             raise_provisioning_failed!(cust)
           end
 

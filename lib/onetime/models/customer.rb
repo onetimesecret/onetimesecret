@@ -366,6 +366,21 @@ module Onetime
     class << self
       attr_reader :values, :dummy
 
+      # The ONE per-customer organization-creation lock key. Every creator
+      # (OrganizationAPI CreateOrganization and Auth EnsureDefaultWorkspace)
+      # takes a Familia::Lock on this same key, so a default-workspace
+      # provision and a user-initiated org create for the same customer
+      # serialize against each other: Organization.create! is not atomic
+      # (index reserve → save → add member), and a second creator classifying
+      # the first one's half-built org is what latched permanent 409s. Defined
+      # once here so the call sites cannot drift onto different keys.
+      #
+      # @param objid [String] the customer's objid
+      # @return [String]
+      def org_creation_lock_key(objid)
+        "customer:#{objid}:org_creation_lock"
+      end
+
       def create!(email = nil, **kwargs)
         # Handle both positional email argument (legacy) and keyword argument
         email ||= kwargs[:email] || kwargs['email']

@@ -169,6 +169,23 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
     end
   end
 
+  describe 'when provisioning is temporarily unavailable' do
+    subject(:logic) { test_class.new(strategy_result_class.new(metadata: {}), cust: authenticated_cust) }
+
+    let(:unavailable) { Onetime::AccountProvisioningUnavailable.new(reason: :collision_unreadable) }
+
+    before do
+      allow(Auth::Operations::EnsureDefaultWorkspace).to receive(:new).and_return(
+        double(call: nil).tap { |op| allow(op).to receive(:call).and_raise(unavailable) }
+      )
+    end
+
+    it 'lets the retryable 503 error propagate as itself rather than converting it into the 409 latch' do
+      expect { logic.require_entitlement!('api_access') }
+        .to raise_error(Onetime::AccountProvisioningUnavailable) { |error| expect(error).to be(unavailable) }
+    end
+  end
+
   describe 'when cust is anonymous' do
     let(:anonymous_cust) { double('Customer', anonymous?: true, custid: nil) }
 

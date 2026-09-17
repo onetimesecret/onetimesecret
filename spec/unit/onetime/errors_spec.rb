@@ -33,6 +33,21 @@ RSpec.describe Onetime::AccountProvisioningFailed do
   end
 end
 
+RSpec.describe Onetime::AccountProvisioningUnavailable do
+  it 'serializes a bounded reason and retry_after, never the collision evidence' do
+    collision = double('collision', classification: :unreadable)
+    error     = described_class.new(reason: 'collision_unreadable', collision: collision)
+
+    expect(error.collision).to be(collision)
+    expect(error.to_h).to eq(
+      error: described_class::DEFAULT_MESSAGE,
+      error_type: 'AccountProvisioningUnavailable',
+      reason: :collision_unreadable,
+      retry_after: described_class::RETRY_AFTER,
+    )
+  end
+end
+
 RSpec.describe Onetime::LimitExceeded do
   describe '#initialize' do
     it 'defaults to legacy message when none provided' do

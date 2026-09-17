@@ -31,6 +31,25 @@ module Auth
 
       PROVISIONING_FAILURE_CODE = 'default_workspace_collision'
 
+      # Per-customer creation lock. Organization.create! is not atomic (index
+      # reserve → save → add member; is_default! lands later still), so two
+      # concurrent requests for the same org-less customer — parallel SPA calls
+      # right after login — used to interleave: the loser classified the
+      # winner's half-built org as :phantom_index (and compare-and-deleted the
+      # winner's LIVE reservation, then minted a second workspace) or as
+      # :live_members (and latched a permanent 409 next to a working
+      # workspace). A Familia::Lock (SET NX EX, token-checked release) on
+      # Customer.org_creation_lock_key makes the create path single-file — and
+      # single-file against OrganizationAPI CreateOrganization too, which locks
+      # the same key. The TTL only bounds a holder that died mid-create.
+      CREATE_LOCK_TTL      = 15
+      # A contender never classifies a collision that may be the customer's own
+      # in-flight org: it waits for the holder's workspace to appear and
+      # otherwise fails retryable. Total wait stays well under any proxy
+      # timeout and under CREATE_LOCK_TTL.
+      CREATE_LOCK_WAIT     = 2.0
+      CREATE_LOCK_INTERVAL = 0.1
+
       # @param customer [Onetime::Customer] The customer for whom to create workspace
       # @param require_verification [Boolean] When true, defer claiming a
       #   pending federated subscription until the customer's email is verified.
@@ -103,18 +122,13 @@ module Auth
           return nil
         end
 
-        if workspace_already_exists?
-          @customer.clear_provisioning_failure!
-          auth_logger.debug "[create-default-workspace] Workspace already exists for customer #{@customer.custid}"
-          return nil
-        end
+        return converge_on_existing_workspace if workspace_already_exists?
 
-        org = create_default_organization
-        @customer.clear_provisioning_failure!
+        lock  = Familia::Lock.new(Onetime::Customer.org_creation_lock_key(@customer.objid))
+        token = lock.acquire(ttl: CREATE_LOCK_TTL)
+        return await_concurrent_provisioning unless token
 
-        auth_logger.info "[create-default-workspace] Created workspace for #{@customer.custid}: org=#{org.objid}"
-
-        { organization: org }
+        provision_under_lock(lock, token)
       end
 
       # Claim a deferred pending federated subscription for a customer whose
@@ -176,8 +190,13 @@ module Auth
       end
 
       # Check if customer already has an organization (e.g., via invite)
+      #
+      # @param quiet [Boolean] log at debug instead of info. The contender
+      #   poll loop reads this every CREATE_LOCK_INTERVAL, which at info would
+      #   be up to ~20 lines per contended request; the normal path keeps its
+      #   single info line.
       # @return [Boolean]
-      def workspace_already_exists?
+      def workspace_already_exists?(quiet: false)
         return false unless @customer
 
         # Use Familia v2 auto-generated reverse collection method
@@ -185,13 +204,73 @@ module Auth
         org_count = @customer.organization_instances.count
         has_org   = org_count > 0
 
-        auth_logger.info "[create-default-workspace] Customer #{@customer.custid} has #{org_count} organizations"
-
-        if has_org
-          auth_logger.info "[create-default-workspace] Customer #{@customer.custid} already has organization, skipping"
-        end
+        auth_logger.public_send(
+          quiet ? :debug : :info,
+          "[create-default-workspace] Customer #{@customer.custid} has #{org_count} organizations" \
+          "#{'; already has organization, skipping' if has_org}",
+        )
 
         has_org
+      end
+
+      # A workspace that exists is the whole invariant; a latch next to it is
+      # stale by definition, so every exists-path clears it.
+      # @return [nil] the historical "already existed" result
+      def converge_on_existing_workspace
+        @customer.clear_provisioning_failure!
+        auth_logger.debug "[create-default-workspace] Workspace already exists for customer #{@customer.custid}"
+        nil
+      end
+
+      # @param lock [Familia::Lock] the held per-customer creation lock
+      # @param token [String] the token #call acquired it with
+      # @return [Hash, nil] see #call
+      def provision_under_lock(lock, token)
+        # Double-checked: the previous holder may have provisioned between our
+        # first check and the lock.
+        return converge_on_existing_workspace if workspace_already_exists?
+
+        org = create_default_organization
+        @customer.clear_provisioning_failure!
+
+        auth_logger.info "[create-default-workspace] Created workspace for #{@customer.custid}: org=#{org.objid}"
+
+        { organization: org }
+      ensure
+        release_create_lock(lock, token)
+      end
+
+      # Familia::Lock#release is token-checked: a holder that outlived the TTL
+      # cannot delete the lock a successor now owns.
+      def release_create_lock(lock, token)
+        lock.release(token)
+      rescue StandardError => ex
+        # The TTL reclaims it; failing the request over a release would turn a
+        # provisioned workspace into an error response.
+        auth_logger.warn '[create-default-workspace] Could not release create lock',
+          { customer: @customer.extid, error: ex.class.name }
+      end
+
+      # Another request is provisioning this customer right now. Never
+      # classify (the collision would be the customer's own in-flight org) and
+      # never latch: wait a bounded time for that workspace, otherwise fail
+      # retryable so the next request finds it.
+      # @return [Hash] the holder's workspace
+      # @raise [Onetime::AccountProvisioningUnavailable] when nothing appears
+      def await_concurrent_provisioning
+        deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + CREATE_LOCK_WAIT
+        loop do
+          sleep CREATE_LOCK_INTERVAL
+          if workspace_already_exists?(quiet: true)
+            converge_on_existing_workspace
+            return { organization: default_organization_for(@customer) }
+          end
+          break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+        end
+
+        auth_logger.warn '[create-default-workspace] Concurrent provisioning did not complete within wait; retryable',
+          { customer: @customer.extid, waited_seconds: CREATE_LOCK_WAIT }
+        raise Onetime::AccountProvisioningUnavailable.new(reason: :provisioning_in_progress)
       end
 
       # Creates the default organization for the customer
@@ -213,6 +292,19 @@ module Auth
         org
       rescue Onetime::OrganizationExists
         collision = WorkspaceCollision.new(email: @customer.email, customer: @customer).call
+
+        # :unreadable is "could not determine" (a datastore error mid-scan), not
+        # an account state. Latching it would turn one Redis timeout into a
+        # permanent 409 that the request path can never clear.
+        if collision.unreadable?
+          auth_logger.warn '[create-default-workspace] Collision evidence unreadable; failing retryable without latching',
+            {
+              customer: @customer.extid,
+              error: collision.evidence[:error],
+              reason: collision.evidence[:reason],
+            }
+          raise Onetime::AccountProvisioningUnavailable.new(reason: :collision_unreadable, collision: collision)
+        end
 
         if collision.current_valid_workspace?
           existing = collision.organization
