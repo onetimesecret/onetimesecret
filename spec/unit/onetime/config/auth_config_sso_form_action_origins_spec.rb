@@ -81,6 +81,42 @@ RSpec.describe Onetime::AuthConfig do
     described_class.instance
   end
 
+  # The origins allowed to RECEIVE the redirect (CSP form-action) and the
+  # origins allowed to POST a callback BACK (HttpOriginOptions) have to be the
+  # same set, or a flow can start and not finish. #sso_idp_origins exists so
+  # the per-request middleware caller can ask that question without tripping
+  # #sso_form_action_origins' split-endpoint warning on every request; these
+  # pin the two properties that split relies on.
+  describe '#sso_idp_origins' do
+    it 'returns the same origins as the CSP form-action set' do
+      config = fresh_config(
+        'GITHUB_CLIENT_ID' => 'id', 'GITHUB_CLIENT_SECRET' => 'secret',
+        'AUTH0_CLIENT_ID' => 'id', 'AUTH0_CLIENT_SECRET' => 'secret',
+        'AUTH0_DOMAIN' => 'https://tenant.us.auth0.com',
+      )
+      expect(config.sso_idp_origins)
+        .to match_array(config.sso_form_action_origins)
+    end
+
+    it 'includes the SSO_FORM_ACTION_ORIGINS override' do
+      # An operator-declared IdP origin is trusted for both directions.
+      config = fresh_config('SSO_FORM_ACTION_ORIGINS' => 'https://idp.example.org')
+      expect(config.sso_idp_origins).to include('https://idp.example.org')
+    end
+
+    it 'returns [] when nothing is configured' do
+      expect(fresh_config.sso_idp_origins).to eq([])
+    end
+
+    # The whole reason for the split: the middleware calls this per request,
+    # and #sso_form_action_origins logs a warning in exactly this combination.
+    it 'does not log when an override is set with no active provider' do
+      expect(OT).not_to receive(:lw)
+      config = fresh_config('SSO_FORM_ACTION_ORIGINS' => 'https://idp.example.org')
+      config.sso_idp_origins
+    end
+  end
+
   describe '#sso_form_action_origins' do
     it 'returns [] when nothing is configured' do
       expect(fresh_config.sso_form_action_origins).to eq([])
