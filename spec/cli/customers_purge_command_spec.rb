@@ -134,7 +134,8 @@ RSpec.describe Onetime::CLI::CustomersPurgeCommand do
     allow(command).to receive(:batch_load_customer_records).and_return(records)
     allow(Onetime::ColonelAuditEvent).to receive(:record).and_return('id' => 'receipt')
     allow(command).to receive(:purge_customer).and_return(refused, partial)
-    allow(OT).to receive(:info)
+    logged = []
+    allow(OT).to receive(:info) { |*args| logged << args.map(&:to_s).join(' ') }
 
     expect do
       capture_stdout do
@@ -144,7 +145,10 @@ RSpec.describe Onetime::CLI::CustomersPurgeCommand do
 
     expect(OT).to have_received(:info).with('[purge] Refused cust_1 blockers=has_domains')
     expect(OT).to have_received(:info).with('[purge] Partial cust_2 stage=teardown blockers=references_remain')
-    expect(OT).not_to have_received(:info).with(/example\.com/)
+    # Substring, not a regex: the assertion is that the address never appears
+    # anywhere in a log line, which is exactly the unanchored match CodeQL
+    # objects to when a pattern like this is used for URL matching.
+    expect(logged.select { |message| message.include?('example.com') }).to be_empty
     expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
       hash_including(result: :failure, detail: hash_including(refused: 1, partial: 1, errors: 2)),
     )
