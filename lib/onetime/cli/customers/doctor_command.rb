@@ -13,6 +13,7 @@
 #   6. verified/verified_by consistency (WARNING)
 #   7. counter fields are non-negative (LOW)
 #   8. hash field values are properly JSON-serialized (HIGH)
+#   9. contact-email index collisions are classified independently (HIGH)
 #
 # Usage:
 #   bin/ots customers doctor trytoremember@me.not  # Check by email or extid
@@ -112,6 +113,7 @@ module Onetime
             6. verified/verified_by consistency (WARNING)
             7. counter fields are non-negative (LOW)
             8. hash field values are properly JSON-serialized (HIGH)
+            9. contact-email workspace collisions are classified (HIGH)
         USAGE
       end
 
@@ -216,6 +218,8 @@ module Onetime
               puts "  #{r[:customer]}: fixed email_index entry"
             when :default_org_cleared
               puts "  #{r[:customer]}: cleared default_org_id (#{r[:reason]})"
+            when :workspace_collision_repaired
+              puts "  #{r[:customer]}: repaired #{r[:classification]} collision and provisioned workspace #{r[:org]}"
             when :stale_org_removed
               puts "  #{r[:customer]}: removed stale org reference"
             when :added_to_org_members
@@ -288,6 +292,8 @@ module Onetime
         has_repairable = all_issues.any? { |i| i[:repairable] }
 
         if repair
+          return exit 1 if all_issues.any? { |issue| issue[:repair_failed] }
+
           if report[:repaired].empty?
             if has_repairable
               exit 1
