@@ -983,6 +983,56 @@ RSpec.describe 'OmniAuth hooks' do
         )
         expect(result).to eq('')
       end
+
+      # ----------------------------------------------------------------
+      # SAML (#4450): decided first and alone. `issuer` is ruby-saml's alias
+      # for OUR SP EntityID, raw_info keys are IdP-chosen attribute names, and
+      # the '' sentinel is ACCEPTED on the platform surface — so for a SAML
+      # strategy none of the ordinary sources may be consulted.
+      # ----------------------------------------------------------------
+      context 'with a SAML strategy' do
+        let(:hostile) do
+          {
+            strategy_options: { issuer: 'https://ots.example.com/auth/sso/saml/metadata', discovery: true },
+            provider: 'oidc', oidc_route_name: 'oidc', env_oidc_issuer: 'https://env.example',
+            token_issuer: 'https://attacker-named-attribute.example',
+            saml_strategy: true,
+          }
+        end
+
+        it 'returns the validated IdP EntityID and nothing else' do
+          result = feature.resolve_issuer(**hostile, saml_issuer: 'https://idp.example.com/saml/metadata')
+          expect(result).to eq('https://idp.example.com/saml/metadata')
+        end
+
+        it 'returns it byte-for-byte (URN EntityIDs, no normalization)' do
+          expect(feature.resolve_issuer(**hostile, saml_issuer: 'urn:Example:IdP')).to eq('urn:Example:IdP')
+        end
+
+        [nil, '', "  \t"].each do |blank|
+          it "raises instead of falling through when the EntityID is #{blank.inspect}" do
+            expect { feature.resolve_issuer(**hostile, saml_issuer: blank) }
+              .to raise_error(feature::SamlIssuerUnresolved)
+          end
+        end
+
+        it 'never yields the sentinel, even with every other source empty' do
+          expect do
+            feature.resolve_issuer(
+              strategy_options: {}, provider: 'saml', oidc_route_name: 'oidc', env_oidc_issuer: nil,
+              saml_strategy: true, saml_issuer: nil,
+            )
+          end.to raise_error(feature::SamlIssuerUnresolved)
+        end
+      end
+
+      it 'ignores saml_issuer for a non-SAML strategy' do
+        result = feature.resolve_issuer(
+          strategy_options: {}, provider: 'github', oidc_route_name: 'oidc', env_oidc_issuer: nil,
+          saml_strategy: false, saml_issuer: 'https://idp.example.com/saml/metadata',
+        )
+        expect(result).to eq('')
+      end
     end
 
     describe '.platform_path?' do
@@ -1059,6 +1109,189 @@ RSpec.describe 'OmniAuth hooks' do
                                                            resolved_issuer: '', platform_path: true)
           expect(result[:account_id]).to eq(50)
           expect(ds.first(account_id: 50)[:issuer]).to eq('')
+        end
+      end
+    end
+
+    # ======================================================================
+    # The Rodauth wiring, without a Rodauth: configure_issuer_scoped_identities
+    # is handed a recorder that installs the auth-class helpers and the three
+    # DSL blocks onto a bare host class. What runs is the SHIPPED block bodies.
+    # ======================================================================
+    describe 'SAML through the wired retrieve / insert / update blocks (#4450)' do
+      before(:all) do
+        require 'omniauth'
+        require 'onetime/sso_provider/request_bound_saml'
+      end
+
+      let(:events) { [] }
+      let(:logging) do
+        recorded = events
+        Module.new do
+          define_singleton_method(:log_auth_event) { |event, **fields| recorded << [event, fields] }
+        end
+      end
+
+      let(:host_class) do
+        dataset = ds
+        klass   = Class.new do
+          attr_accessor :omniauth_strategy, :omniauth_extra, :omniauth_provider, :omniauth_uid, :session,
+            :account_id, :redirected_to
+
+          define_method(:omniauth_identities_ds) { dataset }
+
+          def omniauth_identities_id_column = :id
+          def omniauth_identities_provider_column = :provider
+          def omniauth_identities_uid_column = :uid
+          def omniauth_identities_account_id_column = :account_id
+
+          def redirect(path)
+            @redirected_to = path
+            throw :halt
+          end
+        end
+
+        recorder = Object.new
+        recorder.define_singleton_method(:auth_class_eval) { |&blk| klass.class_eval(&blk) }
+        {
+          retrieve_omniauth_identity: :retrieve,
+          omniauth_identity_insert_hash: :insert_hash,
+          omniauth_identity_update_hash: :update_hash,
+        }.each do |dsl, name|
+          recorder.define_singleton_method(dsl) { |&blk| klass.send(:define_method, name, &blk) }
+        end
+        feature.configure_issuer_scoped_identities(recorder)
+        klass
+      end
+
+      let(:entity_id) { 'https://idp.example.com/saml/metadata' }
+      let(:strategy_options) { { idp_entity_id: entity_id, sp_entity_id: 'https://ots.example.com/sp' } }
+      let(:strategy) { ::OmniAuth::Strategies::RequestBoundSAML.new(->(_env) { [404, {}, []] }, **strategy_options) }
+      let(:validated_domain_id) { nil }
+
+      # `extra` exactly as the callback sees it: the strategy's own #extra,
+      # wrapped by the auth hash into a Mash.
+      def auth_extra(extra_hash)
+        ::OmniAuth::AuthHash.new(extra: extra_hash).extra
+      end
+
+      let(:host) do
+        host_class.new.tap do |h|
+          h.omniauth_strategy = strategy
+          h.omniauth_extra    = auth_extra(strategy.respond_to?(:extra) ? strategy.extra : {})
+          h.omniauth_provider = :saml
+          h.omniauth_uid      = 'name-id-1'
+          h.account_id        = 7
+          h.session           = { validated_omniauth_domain_id: validated_domain_id }
+        end
+      end
+
+      def retrieve(host)
+        result = :halted
+        catch(:halt) { result = host.retrieve('saml', 'name-id-1') }
+        result
+      end
+
+      before { stub_const('Auth::Logging', logging) }
+
+      it 'keys the lookup and the insert/update hashes on the IdP EntityID' do
+        ds.insert(account_id: 70, provider: 'saml', issuer: entity_id, uid: 'name-id-1')
+        ds.insert(account_id: 71, provider: 'saml', issuer: 'https://other-idp.example', uid: 'name-id-1')
+
+        expect(retrieve(host)[:account_id]).to eq(70)
+        expect(host.insert_hash).to include(issuer: entity_id, provider: 'saml', uid: 'name-id-1')
+        expect(host.update_hash).to eq(issuer: entity_id)
+        expect(events).to be_empty
+      end
+
+      # Every raw_info key is an attribute name the IdP chooses.
+      it 'ignores an IdP attribute named iss' do
+        host.omniauth_extra = auth_extra(strategy.extra.merge('raw_info' => { 'iss' => ['https://evil.example'] }))
+
+        expect(host.resolved_issuer).to eq(entity_id)
+      end
+
+      # `issuer` is ruby-saml's alias for OUR SP EntityID. The registry never
+      # sets it; if some other option source did, it still must not move the key.
+      context 'when an issuer option reaches the strategy anyway' do
+        let(:strategy_options) { super().merge(issuer: 'https://ots.example.com/sp') }
+
+        it 'still keys on the IdP EntityID' do
+          expect(host.resolved_issuer).to eq(entity_id)
+        end
+      end
+
+      shared_examples 'a refused SAML callback' do |surface|
+        it "refuses on the #{surface} surface before any lookup, with a scalar-only audit event" do
+          # The row a '' issuer WOULD match — on the platform surface via the
+          # exact query, which is precisely why the sentinel is unsafe here.
+          ds.insert(account_id: 80, provider: 'saml', issuer: '', uid: 'name-id-1')
+          allow(feature).to receive(:lookup_identity).and_call_original
+
+          expect(retrieve(host)).to eq(:halted)
+          expect(host.redirected_to).to eq('/signin?auth_error=sso_failed')
+          expect(feature).not_to have_received(:lookup_identity)
+
+          expect(events.map(&:first)).to eq([:omniauth_saml_issuer_unresolved_refused])
+          fields = events.first.last
+          expect(fields).to include(level: :error, provider: 'saml', surface: surface)
+          expect(fields.values).to all(be_a(String).or(be_a(Symbol)))
+        end
+
+        it "can never write a '' issuer on the #{surface} surface" do
+          expect { host.insert_hash }.to raise_error(feature::SamlIssuerUnresolved)
+          expect { host.update_hash }.to raise_error(feature::SamlIssuerUnresolved)
+        end
+      end
+
+      context 'when the SAML strategy yields a blank EntityID' do
+        let(:strategy_options) { { idp_entity_id: '', sp_entity_id: 'https://ots.example.com/sp' } }
+
+        it_behaves_like 'a refused SAML callback', 'platform'
+
+        context 'on a tenant callback' do
+          let(:validated_domain_id) { 'domain-123' }
+
+          it_behaves_like 'a refused SAML callback', 'tenant'
+        end
+      end
+
+      context 'when extra carries no idp_entity_id at all' do
+        before { host.omniauth_extra = auth_extra('raw_info' => {}) }
+
+        it_behaves_like 'a refused SAML callback', 'platform'
+      end
+
+      context 'when extra is nil' do
+        before { host.omniauth_extra = nil }
+
+        it_behaves_like 'a refused SAML callback', 'platform'
+      end
+
+      # Identified by the GEM's base class: a plain omniauth-saml strategy has
+      # the gem's own extra (no idp_entity_id) and must be refused, not
+      # treated as an issuerless OAuth2 provider.
+      context 'when the strategy is the unhardened gem class' do
+        let(:strategy) do
+          ::OmniAuth::Strategies::SAML.new(->(_env) { [404, {}, []] }, idp_entity_id: entity_id, issuer: 'https://sp')
+        end
+
+        before { host.omniauth_extra = auth_extra('raw_info' => { 'iss' => ['https://evil.example'] }) }
+
+        it_behaves_like 'a refused SAML callback', 'platform'
+      end
+
+      context 'with a non-SAML strategy' do
+        let(:strategy) { Struct.new(:options).new({ tenant_id: 'x' }) }
+
+        before do
+          host.omniauth_provider = :entra
+          host.omniauth_extra    = auth_extra('raw_info' => { 'iss' => 'https://login.microsoftonline.com/x/v2.0' })
+        end
+
+        it 'is unaffected: the token iss still resolves' do
+          expect(host.omniauth_saml_strategy?).to be false
+          expect(host.resolved_issuer).to eq('https://login.microsoftonline.com/x/v2.0')
         end
       end
     end

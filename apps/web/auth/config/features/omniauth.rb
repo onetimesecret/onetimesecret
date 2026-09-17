@@ -3,7 +3,8 @@
 # frozen_string_literal: true
 
 #
-# SSO via external identity providers (OIDC, Entra ID, Google, GitHub).
+# SSO via external identity providers (OIDC, Entra ID, Google, GitHub, Apple,
+# Auth0, SAML).
 #
 # Registers OmniAuth strategies at boot. When platform env vars are present,
 # strategies use real credentials. When org-level SSO is enabled
@@ -192,8 +193,21 @@ module Auth::Config::Features
       ::OmniAuth.config.full_host = ->(env) { full_host_for(env) }
     end
 
+    # Raised by .resolve_issuer when a SAML strategy yields no issuer. Never
+    # escapes a callback in practice — retrieve_omniauth_identity rescues it
+    # into an audited refusal — but it is an exception rather than a return
+    # value so that NO caller (the insert/update hashes included) can ever
+    # receive '' for a SAML identity and write or match a sentinel row.
+    class SamlIssuerUnresolved < StandardError; end
+
     # Resolve the issuer for the current callback.
-    # Precedence:
+    #
+    # SAML is decided FIRST and ALONE (#4450): when saml_strategy is true the
+    # answer is saml_issuer or a raise — none of the numbered sources below is
+    # consulted. See the SAML INVARIANT block under
+    # configure_issuer_scoped_identities for why each one is unsafe for SAML.
+    #
+    # Precedence (every non-SAML strategy):
     #   1. strategy option :issuer — OIDC discovery populates and validates this.
     #   2. token issuer (`iss`) from the auth hash's extra.raw_info — id-token
     #      providers (Entra ID) expose the validated `iss` claim here. OIDC never
@@ -214,9 +228,25 @@ module Auth::Config::Features
     # @param oidc_route_name [String] configured OIDC route name (OIDC_ROUTE_NAME)
     # @param env_oidc_issuer [String, nil] ENV['OIDC_ISSUER']
     # @param token_issuer [String, nil] validated `iss` claim from extra.raw_info
-    # @return [String] resolved issuer or the '' sentinel
+    # @param saml_strategy [Boolean] the active strategy is an
+    #   OmniAuth::Strategies::SAML (decided by CLASS — route names are
+    #   operator-configurable and prove nothing)
+    # @param saml_issuer [String, nil] extra['idp_entity_id'] from
+    #   RequestBoundSAML: the configured IdP EntityID, proven byte-equal to the
+    #   validated response's single Issuer
+    # @return [String] resolved issuer or the '' sentinel (never '' for SAML)
+    # @raise [SamlIssuerUnresolved] SAML strategy with a blank saml_issuer
     def self.resolve_issuer(strategy_options:, provider:, oidc_route_name:, env_oidc_issuer:,
-                            token_issuer: nil)
+                            token_issuer: nil, saml_strategy: false, saml_issuer: nil)
+      if saml_strategy
+        # Blank-tested with strip, RETURNED unstripped: the value is one half
+        # of the identity key and must stay byte-identical to what the
+        # strategy compared (and to what the tenant backfill writes).
+        raise SamlIssuerUnresolved, 'SAML strategy yielded no IdP EntityID' if saml_issuer.to_s.strip.empty?
+
+        return saml_issuer.to_s
+      end
+
       option_issuer = strategy_options && strategy_options[:issuer]
       return option_issuer.to_s if option_issuer && !option_issuer.to_s.empty?
 
@@ -295,14 +325,89 @@ module Auth::Config::Features
       # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
       auth.auth_class_eval do
         # Resolver: strategy option > token `iss` (Entra) > ENV OIDC_ISSUER > ''.
+        # SAML bypasses that chain entirely — see the SAML INVARIANT below.
         def resolved_issuer
+          saml = omniauth_saml_strategy?
+
           Auth::Config::Features::OmniAuth.resolve_issuer(
             strategy_options: omniauth_strategy&.options,
             provider: omniauth_provider,
             oidc_route_name: ENV.fetch('OIDC_ROUTE_NAME', 'oidc'),
             env_oidc_issuer: ENV.fetch('OIDC_ISSUER', nil),
-            token_issuer: omniauth_token_issuer,
+            # Not even READ for SAML: every raw_info key is an attribute name
+            # the IdP chooses, so an attribute called `iss` must never be
+            # looked at as a token issuer.
+            token_issuer: saml ? nil : omniauth_token_issuer,
+            saml_strategy: saml,
+            saml_issuer: saml ? omniauth_saml_issuer : nil,
           )
+        end
+
+        # ====================================================================
+        # SAML INVARIANT (#4450) — RE-VERIFY on any ruby-saml / omniauth-saml
+        # bump (ruby-saml is pinned exactly in the Gemfile for this reason).
+        # ====================================================================
+        #
+        # A SAML identity is keyed ('<route>', <IdP EntityID>, <NameID or
+        # uid_attribute>). The issuer half comes from exactly one place:
+        # extra['idp_entity_id'] as built by
+        # OmniAuth::Strategies::RequestBoundSAML#extra
+        # (lib/onetime/sso_provider/request_bound_saml.rb) — the CONFIGURED
+        # EntityID, which that strategy only hands over after proving it
+        # byte-equal to the single Issuer of a response ruby-saml validated.
+        #
+        # Why none of the ordinary sources is safe for SAML:
+        #   1. options[:issuer] — in ruby-saml 1.18.1 `issuer` is a deprecated
+        #      alias for OUR OWN SP EntityID (settings.rb:121-122). Keying on
+        #      it collapses every IdP into one issuer namespace. The registry
+        #      definition never sets it (registry_spec), and this branch never
+        #      reads it — a tenant record or future option source that did set
+        #      it still cannot move the key.
+        #   2. raw_info['iss'] — raw_info is the IdP's attribute statement;
+        #      `iss` would be an attacker-nameable attribute.
+        #   3. ENV OIDC_ISSUER — another protocol's issuer; reachable when an
+        #      operator names the SAML route the same as OIDC_ROUTE_NAME.
+        #   4. '' sentinel — accepted on the platform surface, where it also
+        #      enables the legacy-row grace + lazy upgrade in lookup_identity.
+        #
+        # Gem internals this relies on (verified: omniauth-saml 2.2.5 saml.rb,
+        # ruby-saml 1.18.1 response.rb / settings.rb):
+        #   - saml.rb:168-182 handle_response sets soft = false, so is_valid?
+        #     RAISES on the first failed check and the auth hash is built only
+        #     for a validated document.
+        #   - saml.rb:132 `extra` is an overridable instance method; the
+        #     subclass replaces it wholesale (no response_object, plain-Hash
+        #     raw_info, string keys).
+        #   - response.rb:305-327 `issuers` returns the uniq'd Response +
+        #     Assertion Issuer strings and raises when either is missing or
+        #     repeated; response.rb:746 validate_issuer is SKIPPED when
+        #     settings.idp_entity_id is nil, which is why the subclass refuses
+        #     a blank one before the gem runs.
+        #   - settings.rb:121-122 the `issuer` alias described in (1).
+        #   - omniauth auth_hash: `extra` is wrapped in a Hashie::Mash, so the
+        #     string key read below also answers for a symbol-keyed source.
+        #
+        # SAML is identified by STRATEGY CLASS, and by the GEM's base class
+        # rather than our subclass: a plain OmniAuth::Strategies::SAML that
+        # somehow got registered has no extra['idp_entity_id'], resolves
+        # blank, and is refused — fail closed, not "treated as OAuth2".
+        # `defined?` because omniauth-saml is only required when a SAML
+        # provider registers (lazy gem_require in configure_provider).
+        def omniauth_saml_strategy?
+          return false unless defined?(::OmniAuth::Strategies::SAML)
+
+          omniauth_strategy.is_a?(::OmniAuth::Strategies::SAML)
+        end
+
+        # extra['idp_entity_id'] — see the SAML INVARIANT above. Anything that
+        # is not a String (a Hash/Array smuggled through a future `extra`
+        # change) reads as absent.
+        def omniauth_saml_issuer
+          extra = omniauth_extra
+          return nil unless extra.respond_to?(:[])
+
+          value = extra['idp_entity_id'] || extra[:idp_entity_id]
+          value.is_a?(String) ? value : nil
         end
 
         # The validated `iss` claim from the auth hash's extra.raw_info, if the
@@ -345,8 +450,29 @@ module Auth::Config::Features
       # omniauth_uid). The block MUST accept them or every callback 500s with
       # ArgumentError (wrong number of arguments).
       auth.retrieve_omniauth_identity do |provider, uid|
-        issuer        = resolved_issuer
         platform_path = omniauth_platform_path?
+
+        # SECURITY-CRITICAL (#4450): a SAML callback with no resolvable issuer
+        # is refused on BOTH surfaces, before any lookup and therefore before
+        # any create. It cannot be left to refuse_issuerless_on_tenant? below
+        # — that gate is tenant-only by design (platform GitHub/Google are
+        # legitimately issuerless), and on the platform surface a '' issuer is
+        # not merely accepted but matches legacy rows. RequestBoundSAML
+        # already refuses a blank EntityID at both phases, so reaching this
+        # means that gate was bypassed or the gem changed under us: log it as
+        # an error. Scalars only — never the auth hash.
+        begin
+          issuer = resolved_issuer
+        rescue Auth::Config::Features::OmniAuth::SamlIssuerUnresolved
+          Auth::Logging.log_auth_event(
+            :omniauth_saml_issuer_unresolved_refused,
+            level: :error,
+            provider: provider.to_s,
+            surface: platform_path ? 'platform' : 'tenant',
+            strategy_class: omniauth_strategy.class.name,
+          )
+          redirect '/signin?auth_error=sso_failed'
+        end
 
         # SECURITY-CRITICAL: refuse issuerless providers (GitHub/Google) on the
         # tenant surface BEFORE any identity match. Their '' issuer is shared
@@ -422,6 +548,9 @@ module Auth::Config::Features
     #   - vars missing, org SSO on   -> register with placeholder credentials
     #     (the OmniAuthTenant hook injects tenant credentials at request time)
     #   - vars missing, org SSO off  -> log the missing vars and skip
+    # Plus one for a definition whose strategy_options RAISES (Auth0, SAML):
+    #   - vars present but unusable  -> log the reason; placeholder when org
+    #     SSO is on, otherwise skip (see the rescue below)
     def self.configure_provider(auth, defn)
       provider_name = ENV.fetch(defn[:route_var], defn[:route_default]).to_sym
       display_name  = ENV.fetch(defn[:display_var], nil) || display_default_for(defn)
@@ -441,8 +570,7 @@ module Auth::Config::Features
       require defn[:gem_require]
 
       if missing.any?
-        OT.li "[OmniAuth] Registering #{defn[:label]} route '#{provider_name}' for tenant SSO (no platform credentials)"
-        auth.omniauth_provider(defn[:strategy], name: provider_name, **defn[:placeholder_options])
+        register_placeholder(auth, defn, provider_name)
         return
       end
 
@@ -473,14 +601,30 @@ module Auth::Config::Features
       # skipped below is not advertised as a login button either. This rescue
       # stays as the general net: strategy_options can raise for reasons no
       # predicate anticipated, and boot must survive that too.
+      #
+      # WITH ORG SSO ON, THE ROUTE STILL REGISTERS — as the placeholder. That
+      # is the same outcome as the vars being absent altogether (above), and
+      # it matters for a tenant-capable provider (SAML, #4450): a typo in the
+      # PLATFORM's SAML_IDP_CERT must not delete the route every TENANT's SAML
+      # config is injected into. The platform side stays unadvertised
+      # (:vars_valid) and the placeholder's own options decide what an
+      # un-injected request does (SAML's blank trust anchors refuse it).
       begin
         options = defn[:strategy_options].call
       rescue StandardError => ex
         OT.le "[OmniAuth] Skipping #{defn[:label]} provider '#{provider_name}': #{ex.message}"
+        register_placeholder(auth, defn, provider_name) if Onetime.auth_config.orgs_sso_enabled?
         return
       end
 
       auth.omniauth_provider(defn[:strategy], name: provider_name, **options)
+    end
+
+    # Register a definition's route with its placeholder options, for the
+    # OmniAuthTenant hook to inject tenant credentials into at request time.
+    def self.register_placeholder(auth, defn, provider_name)
+      OT.li "[OmniAuth] Registering #{defn[:label]} route '#{provider_name}' for tenant SSO (no platform credentials)"
+      auth.omniauth_provider(defn[:strategy], name: provider_name, **defn[:placeholder_options])
     end
 
     # Display-name default for boot logs. Consults AuthConfig's overlaid
