@@ -7,6 +7,7 @@ require_relative 'base'
 require_relative 'serializers'
 require_relative 'change_logger'
 require_relative 'ssrf_protection'
+require_relative 'saml_fields'
 
 module DomainsAPI
   module Logic
@@ -20,10 +21,15 @@ module DomainsAPI
       #
       # Request body:
       # - provider_type: Required for create, optional for update (uses existing if empty)
-      # - client_id: Required for create, optional for update (uses existing if empty)
-      # - client_secret: Required for create (except OIDC public clients),
-      #   optional for update (preserves existing if empty). Switching to a
-      #   non-OIDC provider requires a secret — from the request or already stored.
+      # - client_id: Required for create, optional for update (uses existing if
+      #   empty). Not used by saml (no client credential).
+      # - client_secret: Required for create (except OIDC public clients and
+      #   saml), optional for update (preserves existing if empty). Switching to
+      #   entra_id requires a secret — from the request or already stored.
+      # - idp_sso_service_url, idp_entity_id, idp_cert: Required for saml on
+      #   create (#4450; see SamlFields); each preserves its existing value if
+      #   empty. idp_cert_fingerprint (and its ruby-saml siblings) is refused
+      #   for every provider type.
       # - tenant_id: Required for entra_id provider on create (preserves existing if empty)
       # - issuer: Required for oidc provider on create (preserves existing if empty)
       # - display_name: Optional. Human-readable name (preserves existing if empty)
@@ -36,6 +42,7 @@ module DomainsAPI
         include Serializers
         include ChangeLogger
         include SsrfProtection
+        include SamlFields
 
         VALID_PROVIDER_TYPES = Onetime::CustomDomain::SsoConfig::PROVIDER_TYPES.freeze
 
@@ -49,6 +56,7 @@ module DomainsAPI
           @client_secret            = params['client_secret'].to_s.strip
           @tenant_id                = sanitize_plain_text(params['tenant_id'])
           @issuer                   = sanitize_url(params['issuer'])
+          process_saml_params
           # Track whether allowed_domains was explicitly provided (for PATCH semantics)
           @allowed_domains_provided = params.key?('allowed_domains')
           @allowed_domains          = parse_allowed_domains(params['allowed_domains'])
@@ -81,6 +89,9 @@ module DomainsAPI
 
           # Validate provider_type
           validate_provider_type
+
+          # Never accepted, whatever the provider type (see SamlFields)
+          reject_forbidden_saml_params!
 
           # Validate client credentials
           validate_client_credentials
@@ -145,6 +156,8 @@ module DomainsAPI
             display_name: @display_name,
             tenant_id: @tenant_id,
             issuer: @issuer,
+            idp_sso_service_url: @idp_sso_service_url,
+            idp_entity_id: @idp_entity_id,
             allowed_domains: @allowed_domains,
             enabled: @enabled,
             enforce_sso_only: @enforce_sso_only,
@@ -197,8 +210,15 @@ module DomainsAPI
         # For new configs: client_id and client_secret are required
         # For updates: falls back to existing values when not provided
         def validate_client_credentials
+          # SAML has no client credential (#4450); update_existing_config
+          # clears any stored one on a switch to saml.
+          return unless Onetime::CustomDomain::SsoConfig.client_credentials?(@provider_type)
+
           if @client_id.to_s.empty?
-            if @existing_config
+            # A record switching AWAY from saml has no stored client_id to
+            # fall back on; name the field instead of letting the model's
+            # catch-all report it after the fact.
+            if @existing_config && stored_client_id?
               @client_id = @existing_config.client_id
             else
               raise_form_error('Client ID is required', field: :client_id, error_type: :missing)
@@ -215,6 +235,14 @@ module DomainsAPI
           if @existing_config.nil? || !stored_client_secret?
             raise_form_error('Client secret is required', field: :client_secret, error_type: :missing)
           end
+        end
+
+        # Whether the stored record has a non-empty client_id to preserve.
+        # An undecryptable value counts as absent — fail closed.
+        def stored_client_id?
+          !@existing_config.client_id&.reveal { it }.to_s.empty?
+        rescue StandardError
+          false
         end
 
         # Whether the stored record has a non-empty client_secret to preserve.
@@ -252,18 +280,29 @@ module DomainsAPI
             if missing_tenant
               raise_form_error('Tenant ID is required for Entra ID provider', field: :tenant_id, error_type: :missing)
             end
+          when 'saml'
+            # Each blank field falls back to the stored value — but only when
+            # the stored record IS a saml record. On a switch to saml the
+            # whole trio must arrive with the request.
+            stored = @existing_config&.provider_type == 'saml' ? @existing_config : nil
+            validate_saml_fields!(stored: stored)
           end
         end
 
         def create_new_config
+          saml = @provider_type == 'saml'
+
           @sso_config = Onetime::CustomDomain::SsoConfig.create!(
             domain_id: @custom_domain.identifier,
             provider_type: @provider_type,
             display_name: @display_name,
-            client_id: @client_id,
-            client_secret: @client_secret,
+            client_id: saml ? '' : @client_id,
+            client_secret: saml ? '' : @client_secret,
             tenant_id: @tenant_id,
             issuer: @issuer,
+            idp_sso_service_url: saml ? @idp_sso_service_url : '',
+            idp_entity_id: saml ? @idp_entity_id : '',
+            idp_cert: saml ? @idp_cert : '',
             allowed_domains: @allowed_domains,
             enabled: @enabled,
             enforce_sso_only: @enforce_sso_only,
@@ -278,6 +317,11 @@ module DomainsAPI
         # - A provider switch clears the outgoing provider's field (issuer for
         #   oidc, tenant_id for entra_id) unless the request supplies it,
         #   matching the end state a full PUT would produce.
+        # - The SAML trio and the client credentials are mutually exclusive by
+        #   provider type (#4450): a saml record never keeps client_id /
+        #   client_secret / issuer / tenant_id, and a non-saml record never
+        #   keeps the trio — whatever the request carried. Only the side the
+        #   type uses was validated.
         #
         # allowed_domains behavior:
         # - When omitted: preserves existing domains (true PATCH semantics)
@@ -294,7 +338,7 @@ module DomainsAPI
           # PATCH semantics: only update fields that are provided (non-empty)
           @sso_config.provider_type    = @provider_type
           @sso_config.display_name     = @display_name unless @display_name.to_s.empty?
-          @sso_config.client_id        = @client_id
+          @sso_config.client_id        = @client_id unless @provider_type == 'saml'
           @sso_config.tenant_id        = @tenant_id unless @tenant_id.to_s.empty?
           @sso_config.issuer           = @issuer unless @issuer.to_s.empty?
           @sso_config.enabled          = @enabled.to_s if @enabled_provided
@@ -313,6 +357,8 @@ module DomainsAPI
           # Only update client_secret if provided (preserves existing otherwise)
           @sso_config.client_secret = @client_secret unless @client_secret.to_s.empty?
 
+          apply_saml_exclusivity
+
           # Only update allowed_domains if explicitly provided in the request.
           @sso_config.allowed_domains = @allowed_domains if @allowed_domains_provided
 
@@ -327,6 +373,19 @@ module DomainsAPI
 
           # commit_fields runs its own transaction internally for atomicity
           @sso_config.commit_fields
+        end
+
+        # See the PATCH-semantics note on update_existing_config. Runs last so
+        # it wins over the field-by-field assignments above.
+        def apply_saml_exclusivity
+          if @provider_type == 'saml'
+            saml_submitted.each do |field, value|
+              @sso_config.public_send(:"#{field}=", value) unless value.empty?
+            end
+            [:client_id, :client_secret, :issuer, :tenant_id].each { |name| @sso_config.public_send(:"#{name}=", '') }
+          else
+            Onetime::CustomDomain::SsoConfig::SAML_FIELDS.each { |name| @sso_config.public_send(:"#{name}=", '') }
+          end
         end
 
         # Log enabled/disabled state change if it occurred.

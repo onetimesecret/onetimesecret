@@ -7,6 +7,7 @@ require_relative 'base'
 require_relative 'serializers'
 require_relative 'change_logger'
 require_relative 'ssrf_protection'
+require_relative 'saml_fields'
 
 module DomainsAPI
   module Logic
@@ -19,14 +20,19 @@ module DomainsAPI
       #   Requires the requesting user to be an organization owner with manage_sso.
       #
       # Request body:
-      # - provider_type: Required. One of: oidc, entra_id (tenant SSO is
-      #   OIDC/Entra-only — issuerless providers were removed, #3902)
-      # - client_id: Required. OAuth client ID
-      # - client_secret: Required, except for OIDC (public-client/PKCE flows
-      #   may omit it — see validate_client_credentials). A PUT that omits it
+      # - provider_type: Required. One of: oidc, entra_id, saml (issuerless
+      #   providers were removed, #3902)
+      # - client_id: Required for oidc and entra_id. OAuth client ID. Not
+      #   used by saml (no client credential) — any value sent is discarded.
+      # - client_secret: Required for entra_id; optional for OIDC
+      #   (public-client/PKCE flows may omit it — see
+      #   validate_client_credentials); not used by saml. A PUT that omits it
       #   clears any previously stored secret, per full-replacement semantics.
       # - tenant_id: Required for entra_id provider, empty/null for others
       # - issuer: Required for oidc provider, empty/null for others
+      # - idp_sso_service_url, idp_entity_id, idp_cert: Required for saml
+      #   (#4450; see SamlFields), cleared for others. idp_cert_fingerprint
+      #   (and its ruby-saml siblings) is refused for every provider type.
       # - display_name: Optional. Human-readable name (defaults to empty)
       # - allowed_domains: Optional. Array of allowed email domains (defaults to empty)
       # - enabled: Optional. Boolean to enable/disable SSO (default: false)
@@ -37,6 +43,7 @@ module DomainsAPI
         include Serializers
         include ChangeLogger
         include SsrfProtection
+        include SamlFields
 
         VALID_PROVIDER_TYPES = Onetime::CustomDomain::SsoConfig::PROVIDER_TYPES.freeze
 
@@ -50,6 +57,7 @@ module DomainsAPI
           @client_secret    = params['client_secret'].to_s.strip
           @tenant_id        = sanitize_plain_text(params['tenant_id'])
           @issuer           = sanitize_url(params['issuer'])
+          process_saml_params
           @allowed_domains  = parse_allowed_domains(params['allowed_domains'])
           @enabled          = parse_boolean(params['enabled'])
           @enforce_sso_only = parse_boolean(params['enforce_sso_only'])
@@ -72,8 +80,11 @@ module DomainsAPI
           # Validate provider_type
           validate_provider_type
 
-          # Validate client credentials (client_id always; client_secret
-          # except for OIDC — see header comment)
+          # Never accepted, whatever the provider type (see SamlFields)
+          reject_forbidden_saml_params!
+
+          # Validate client credentials (OAuth-family types only: client_id
+          # always; client_secret except for OIDC — see header comment)
           validate_client_credentials
 
           # Validate provider-specific fields
@@ -129,6 +140,8 @@ module DomainsAPI
             display_name: @display_name,
             tenant_id: @tenant_id,
             issuer: @issuer,
+            idp_sso_service_url: @idp_sso_service_url,
+            idp_entity_id: @idp_entity_id,
             allowed_domains: @allowed_domains,
             enabled: @enabled,
             enforce_sso_only: @enforce_sso_only,
@@ -151,6 +164,9 @@ module DomainsAPI
         end
 
         def validate_client_credentials
+          # SAML has no client credential (#4450).
+          return unless Onetime::CustomDomain::SsoConfig.client_credentials?(@provider_type)
+
           raise_form_error('Client ID is required', field: :client_id, error_type: :missing) if @client_id.to_s.empty?
 
           # client_secret required for all providers except OIDC (which supports public clients/PKCE)
@@ -178,7 +194,32 @@ module DomainsAPI
             if @tenant_id.to_s.empty?
               raise_form_error('Tenant ID is required for Entra ID provider', field: :tenant_id, error_type: :missing)
             end
+          when 'saml'
+            validate_saml_fields!
           end
+        end
+
+        # The provider-scoped fields as they will be stored. '' clears.
+        #
+        # The SAML trio and the client credentials are mutually exclusive by
+        # provider type, and the side the type does not use is CLEARED rather
+        # than stored as sent: only the used side was validated above, and an
+        # unvalidated trust anchor (or credential) must not sit on the record
+        # waiting for a later provider_type flip to make it live. A saml
+        # record likewise drops issuer / tenant_id. For the OAuth-family types
+        # issuer and tenant_id are stored as sent, as before.
+        def replacement_attributes
+          saml = @provider_type == 'saml'
+
+          {
+            client_id: saml ? '' : @client_id,
+            client_secret: saml ? '' : @client_secret,
+            tenant_id: saml ? '' : @tenant_id,
+            issuer: saml ? '' : @issuer,
+            idp_sso_service_url: saml ? @idp_sso_service_url : '',
+            idp_entity_id: saml ? @idp_entity_id : '',
+            idp_cert: saml ? @idp_cert : '',
+          }
         end
 
         def create_new_config
@@ -186,10 +227,7 @@ module DomainsAPI
             domain_id: @custom_domain.identifier,
             provider_type: @provider_type,
             display_name: @display_name,
-            client_id: @client_id,
-            client_secret: @client_secret,
-            tenant_id: @tenant_id,
-            issuer: @issuer,
+            **replacement_attributes,
             allowed_domains: @allowed_domains,
             enabled: @enabled,
             enforce_sso_only: @enforce_sso_only,
@@ -208,10 +246,10 @@ module DomainsAPI
           # PUT semantics: full replacement - set ALL fields from request
           @sso_config.provider_type    = @provider_type
           @sso_config.display_name     = @display_name    # Empty string clears the field
-          @sso_config.client_id        = @client_id
-          @sso_config.client_secret    = @client_secret   # Empty clears it (OIDC only; validate_client_credentials requires it non-empty otherwise)
-          @sso_config.tenant_id        = @tenant_id       # Empty string clears the field
-          @sso_config.issuer           = @issuer          # Empty string clears the field
+          # Provider-scoped fields: '' clears. client_secret is empty only for
+          # OIDC public clients and SAML (validate_client_credentials requires
+          # it otherwise).
+          replacement_attributes.each { |name, value| @sso_config.public_send(:"#{name}=", value) }
           @sso_config.allowed_domains  = @allowed_domains # Empty array clears the field
           @sso_config.enabled          = @enabled.to_s
           @sso_config.enforce_sso_only = @enforce_sso_only.to_s
