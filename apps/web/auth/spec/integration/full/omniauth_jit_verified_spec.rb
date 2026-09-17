@@ -138,6 +138,9 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
         expect(customer.verified?).to be(true),
           'SSO JIT-provisioned customer must be verified — has_system_role? gates on it'
         expect(customer.verified_by.to_s).to eq('sso')
+        expect(customer.verification_held?).to be(false),
+          'Nothing was withheld, so no verification_hold may be recorded'
+        expect(customer.verification_hold.to_s).to eq('')
       ensure
         teardown_mock_auth
       end
@@ -188,11 +191,17 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
   #
   # Absence of the claim is NOT a veto (most enterprise IdPs never emit it), but
   # an IdP that actively says the address is unverified is taken at its word.
+  #
+  # The reason is also PERSISTED as Customer#verification_hold: the customers
+  # doctor has no auth hash, and without it its :sso_customer_unverified repair
+  # would later mirror the (always-Verified) accounts row onto this record —
+  # undoing the veto. With it, the doctor reports the record for manual
+  # verification instead.
 
   describe 'an IdP asserting email_verified: false' do
     before { enable_platform_fallback }
 
-    it 'provisions the customer unverified' do
+    it 'provisions the customer unverified with verification_hold=idp_unverified' do
       email = jit_email('jit-unverified-claim')
       uid   = "sub-#{SecureRandom.hex(8)}"
 
@@ -218,6 +227,9 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
         expect(customer.verified?).to be(false),
           'An explicit email_verified: false assertion must veto the verified stamp'
         expect(customer.verified_by.to_s).to eq('')
+        expect(customer.verification_hold).to eq('idp_unverified'),
+          'The reason must be persisted so `customers doctor --repair` does not undo the veto'
+        expect(customer.verification_held?).to be(true)
       ensure
         teardown_mock_auth
       end
@@ -229,38 +241,76 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
   # ==========================================================================
   #
   # Cheap and exhaustive on the shapes the callback specs cannot vary quickly:
-  # string vs symbol keys, info vs extra.raw_info, stringified booleans, and the
-  # absence that must NOT read as a veto.
+  # string vs symbol keys, info vs extra.raw_info, stringified booleans, the
+  # absence that must NOT read as a hold, and the read error that MUST.
 
   # Named rather than passed as a constant: the auth app (and therefore
   # Auth::Config) is only loaded by the before(:all) boot above, well after
   # RSpec evaluates this file's describe arguments.
-  describe 'Auth::Config::Hooks::OmniAuth.idp_asserts_unverified_email?' do
-    subject(:veto?) { Auth::Config::Hooks::OmniAuth.method(:idp_asserts_unverified_email?) }
+  describe 'Auth::Config::Hooks::OmniAuth.email_verification_hold' do
+    subject(:hold) { Auth::Config::Hooks::OmniAuth.method(:email_verification_hold) }
 
-    it 'vetoes on an explicit false in info' do
-      expect(veto?.call(info: { 'email_verified' => false }, extra: nil)).to be true
-      expect(veto?.call(info: { email_verified: false }, extra: nil)).to be true
-      expect(veto?.call(info: { 'email_verified' => 'false' }, extra: nil)).to be true
+    it 'holds as idp_unverified on an explicit false in info' do
+      expect(hold.call(info: { 'email_verified' => false }, extra: nil)).to eq('idp_unverified')
+      expect(hold.call(info: { email_verified: false }, extra: nil)).to eq('idp_unverified')
+      expect(hold.call(info: { 'email_verified' => 'false' }, extra: nil)).to eq('idp_unverified')
     end
 
-    it 'vetoes on an explicit false in extra.raw_info' do
-      expect(veto?.call(info: {}, extra: { 'raw_info' => { 'email_verified' => false } })).to be true
-      expect(veto?.call(info: nil, extra: { raw_info: { email_verified: false } })).to be true
+    it 'holds as idp_unverified on an explicit false in extra.raw_info' do
+      expect(hold.call(info: {}, extra: { 'raw_info' => { 'email_verified' => false } })).to eq('idp_unverified')
+      expect(hold.call(info: nil, extra: { raw_info: { email_verified: false } })).to eq('idp_unverified')
     end
 
-    it 'does not veto when the claim is absent, nil, or true' do
-      expect(veto?.call(info: nil, extra: nil)).to be false
-      expect(veto?.call(info: {}, extra: {})).to be false
-      expect(veto?.call(info: { 'name' => 'No Claim' }, extra: { 'raw_info' => { 'sub' => 'x' } })).to be false
-      expect(veto?.call(info: { 'email_verified' => true }, extra: nil)).to be false
-      expect(veto?.call(info: { 'email_verified' => 'true' }, extra: nil)).to be false
+    # No auth hash at all is the ordinary "claim absent" case, not an error:
+    # both sources are simply unindexable, and absence is never a hold.
+    it 'does not hold when the claim is absent, nil, or true' do
+      expect(hold.call(info: nil, extra: nil)).to be_nil
+      expect(hold.call(info: {}, extra: {})).to be_nil
+      expect(hold.call(info: { 'name' => 'No Claim' }, extra: { 'raw_info' => { 'sub' => 'x' } })).to be_nil
+      expect(hold.call(info: { 'email_verified' => true }, extra: nil)).to be_nil
+      expect(hold.call(info: { 'email_verified' => 'true' }, extra: nil)).to be_nil
     end
 
     it 'prefers info over extra.raw_info' do
       expect(
-        veto?.call(info: { 'email_verified' => true }, extra: { 'raw_info' => { 'email_verified' => false } }),
-      ).to be false
+        hold.call(info: { 'email_verified' => true }, extra: { 'raw_info' => { 'email_verified' => false } }),
+      ).to be_nil
+    end
+
+    it 'only ever returns a registered hold reason' do
+      expect(Onetime::Customer::VERIFICATION_HOLDS).to include('idp_unverified', 'claim_unreadable')
+    end
+
+    # FAIL CLOSED. A source whose `[]` raises may be hiding an explicit
+    # email_verified: false; the old blanket rescue in fetch_claim turned
+    # that into "no claim" and minted a verified Customer. The read error is
+    # logged at WARN and reported as its own hold reason, distinct from an
+    # explicit IdP veto, so the operator knows to look at the provider
+    # response rather than the IdP's opinion of the address.
+    it 'holds as claim_unreadable (and warns) when reading info raises' do
+      raising_info = Object.new
+      def raising_info.[](*)
+        raise ArgumentError, 'misbehaving auth hash'
+      end
+
+      allow(Auth::Logging).to receive(:log_auth_event)
+
+      expect(hold.call(info: raising_info, extra: nil)).to eq('claim_unreadable')
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :omniauth_email_verified_claim_unreadable,
+        hash_including(level: :warn, error_class: 'ArgumentError', error_message: 'misbehaving auth hash'),
+      )
+    end
+
+    it 'holds as claim_unreadable when reading extra.raw_info raises even though info is silent' do
+      raising_extra = Object.new
+      def raising_extra.[](*)
+        raise 'boom'
+      end
+
+      allow(Auth::Logging).to receive(:log_auth_event)
+
+      expect(hold.call(info: { 'name' => 'No Claim' }, extra: raising_extra)).to eq('claim_unreadable')
     end
   end
 end

@@ -39,8 +39,24 @@ module Auth
       # @param verified_by [String, nil] Provenance tag stored alongside
       #   `verified` (see Auth::Operations::Customers::Doctor::VALID_VERIFIED_BY).
       #   Only meaningful when verified: true.
+      # @param verification_hold [String, nil] One of
+      #   Onetime::Customer::VERIFICATION_HOLDS. The SSO/JIT caller passes it
+      #   when it deliberately left the Customer unverified — the IdP asserted
+      #   email_verified: false, or the claim could not be read — so the record
+      #   carries WHY and the customers doctor never auto-"repairs" that
+      #   decision away. Contradicts verified: true (ArgumentError). Ignored
+      #   for existing customers (same "don't rewrite history" rule as
+      #   provisioning_origin).
+      # @raise [ArgumentError] unknown verification_hold, or a hold combined
+      #   with verified: true — refused before any lookup or write
       def initialize(account_id:, account:, db: nil, provisioning_origin: nil, signup_domain_id: nil,
-                     verified: false, verified_by: nil)
+                     verified: false, verified_by: nil, verification_hold: nil)
+        Onetime::Customer.assert_known_verification_hold!(verification_hold)
+        if verified && !verification_hold.to_s.empty?
+          raise ArgumentError,
+            "verification_hold #{verification_hold.inspect} contradicts verified: true"
+        end
+
         @account_id          = account_id
         @account             = account
         @db                  = db || Auth::Database.connection
@@ -48,6 +64,7 @@ module Auth
         @signup_domain_id    = signup_domain_id
         @verified            = verified ? true : false
         @verified_by         = @verified ? verified_by : nil
+        @verification_hold   = verification_hold.to_s.empty? ? nil : verification_hold.to_s
       end
 
       # Executes the customer creation/loading operation
@@ -87,6 +104,7 @@ module Auth
             # established verification (see the `verified:` param docs).
             verified: @verified,
             verified_by: @verified_by,
+            verification_hold: @verification_hold,
             provisioning_origin: @provisioning_origin,
             signup_domain_id: @signup_domain_id,
           )
@@ -94,7 +112,8 @@ module Auth
           auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: customer, " \
                            "origin: #{@provisioning_origin || 'unknown'}, " \
                            "signup_domain_id: #{@signup_domain_id || 'none'}, " \
-                           "verified: #{@verified}, verified_by: #{@verified_by || 'none'})"
+                           "verified: #{@verified}, verified_by: #{@verified_by || 'none'}, " \
+                           "verification_hold: #{@verification_hold || 'none'})"
         end
 
         customer

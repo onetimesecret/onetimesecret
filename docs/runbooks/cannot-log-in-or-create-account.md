@@ -39,7 +39,7 @@ with no address to rate-limit (an orphan looked up by extid or account id).
 
 ## Failure buckets
 
-1. **Account state** — unverified, closed, locked out, Customer↔auth drift. → diagnose
+1. **Account state** — unverified, closed, locked out, Customer↔auth drift. → diagnose. An SSO user whose colonel/admin role has no effect is Redis-side drift that diagnose does not see → [sso-accounts-unverified.md](./sso-accounts-unverified.md)
 2. **Rate limiting** — Valkey limiters block before Rodauth sees the attempt. → diagnose
 3. **Email delivery** — verification/reset email never sent, bounced, suppressed.
 4. **Surface config** — custom domain with signin/signup default-OFF (v0.26.2 regression) or `restrict_to: 'sso'`; a `restrict_to` whose method is unavailable on that host, which fails closed to "sign-in unavailable" rather than re-offering the other methods (ADR-034#degradation-is-fail-closed); wrong region.
@@ -71,3 +71,4 @@ that runbook.
 | Did the verification email go out?   | Colonel email provider status/rates; `ots email test/validate`. No per-recipient send log |
 | Client-side failure?                 | Sentry, filtered to /auth routes by time (email is scrubbed)                              |
 | Index integrity?                     | `ots customers doctor <email>`                                                            |
+| SSO user's system role not effective? | `ots customers doctor <email>` → [sso-accounts-unverified.md](./sso-accounts-unverified.md) |
