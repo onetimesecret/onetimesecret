@@ -1,42 +1,114 @@
+# Deleting an Account
 
-After #4395, all three flows funnel through Auth::Operations::TeardownAccount, which runs the same ordered teardown: revoke sessions → close/strip the SQL auth identity (full mode only) → delete the Redis Customer last. What differs per flow is session-revoke variant, auditing, and whether SQL is touched.
+Account deletion is a lifecycle operation, not a direct `Customer#destroy!`.
+The account, its authentication identity, memberships, and owned workspaces can
+span Redis/Valkey, the authentication database, and external billing systems.
+The operation therefore plans and validates the entire relationship set before
+performing irreversible writes.
 
-Common end state (the teardown contract)
+## Administrative purge contract
 
-1. Sessions revoked first — before either store is torn down, so no live session outlives the record.
-2. SQL auth identity (full mode only) — RemoveAuthenticationData runs with retain_account: true, so the accounts row is not hard-deleted. It is:
-   - flipped to status_id = CLOSED (status 3), a retained closed row;
-   - stripped of every credential/MFA/pending-token table (password hashes, reset/verify/login-change keys, JWT refresh, remember, webauthn, otp, recovery/sms, identities, active-session keys, etc.);
-   - audit logs preserved (account_authentication_audit_logs is excluded from the delete when retaining).
-   - In simple mode this phase is a no-op (full_auth_mode? false) — there is no SQL identity.
-3. Redis Customer deleted last — DestroyCustomerRecord calls customer.destroy! (model + class indexes). Ordering is deliberate: SQL closure happens before the irreversible Redis delete, and in the hook path a Redis failure aborts the SQL transaction.
+Colonel `DELETE /api/colonel/users/:user_id` and
+`bin/ots customers purge-one` use the same customer purge lifecycle.
 
-Net: Redis customer is fully gone; the SQL identity survives as a closed, credential-less, audit-bearing tombstone (full mode).
+### Preflight policy
 
-The three flows
+Preflight discovers relationships from all available directions, including:
 
-Flow: Self-service, simple mode
-Entry: DestroyAccount logic (DELETE account API); password checked against Redis Customer.passphrase
-Session revoke: RevokeAllForCustomerExceptCurrent(except: nil) → all
-SQL phase: none (no auth DB)
-Audit: none
-────────────────────────────────────────
-Flow: Self-service, full mode
-Entry: Rodauth /auth/close-account → after_close_account hook → TeardownAccount(account:, db:)
-Session revoke: same, all
-SQL phase: retained closed row (runs inside Rodauth's txn, shared db)
-Audit: none (Rodauth's own audit log is what's preserved)
-────────────────────────────────────────
-Flow: Admin / colonel
-Entry: PurgeUser → Customers::Purge → TeardownAccount(customer:, actor:, reason:); also bin/ots customers purge-one
-Session revoke: audited RevokeAllForCustomer → records session.revoke_all
-SQL phase: retained closed row
-Audit: Customers::Purge records customer.purge ColonelAuditEvent, fail-closed (unwritable audit fails the purge)
+- customer participation references;
+- organization member sets and membership records;
+- organization ownership and instance indexes;
+- the normalized customer email in `Organization.contact_email_index`;
+- domain records that refer to an organization.
 
-Key branch points inside the orchestrator:
-- actor presence selects the audited (RevokeAllForCustomer) vs. plain (RevokeAllForCustomerExceptCurrent) revoke — self-service never writes the colonel audit trail.
-- customer: vs account: — self-service simple passes the resolved Customer; the Rodauth hook passes the account hash and TeardownAccount resolves the customer by external_id, falling back to email. In the account: + full-mode case, the result is :success even if no Redis customer is found, so closing an account whose Redis side is already gone doesn't fail.
+A relationship must be complete and unambiguous before purge can execute. The
+operation may plan only these automatic actions:
 
-One thing outside "the 3 flows"
+1. remove a consistent, non-owner membership through the canonical membership
+   removal operation; or
+2. delete a sole-owned personal default workspace through the canonical
+   organization deletion operation when it is empty and non-billing.
 
-The bulk bin/ots customers purge inactivity sweep deliberately does not go through TeardownAccount/Purge — it deletes via the bare DestroyCustomerRecord primitive (no SQL teardown, no per-record audit) to avoid flooding the capped audit set. So "any of the 3 code flows" = the two self-service paths + colonel purge; the maintenance sweep is a separate, intentionally lighter path.
+Preflight refuses before account teardown when an owned workspace has domains,
+billing state, other members, pending invitations, receipts, retained
+organization data, or ownership/membership/index drift. It also refuses when a
+scan fails and the evidence is incomplete. Operators must transfer ownership,
+remove retained resources, or repair drift and then run preflight again.
+
+A customer email matching an organization contact email is discovery evidence,
+not authorization to attach that organization to another account.
+
+## Lifecycle ordering
+
+The ordering is deliberate:
+
+1. **Complete read-only preflight.** Discover every relevant relationship and
+   produce blockers plus a cleanup plan.
+2. **Revalidate before each cleanup mutation.** If the plan changed, stop.
+3. **Organization cleanup.** Delete an approved empty personal workspace and/or
+   remove approved non-owner memberships through canonical operations.
+4. **Post-cleanup revalidation.** Require an executable plan with no remaining
+   actions or blockers.
+5. **Account teardown.** Revalidate immediately before each account mutation,
+   revoke sessions, close and strip the SQL authentication identity in full auth
+   mode, and delete the Redis/Valkey customer last.
+6. **Post-teardown reference validation.** Scan again so a concurrent workspace
+   write cannot be reported as a clean purge.
+7. **Audit completion.** Record the final administrative purge event.
+
+Redis/Valkey and the authentication database do not provide one transaction
+across this sequence. Revalidation narrows the race window; structured partial
+results make any operation that crossed a mutation boundary visible.
+
+## Result semantics
+
+The lifecycle result includes `status`, `blockers`, completed `actions`,
+`planned_actions`, current `stage`, and `completed_stages`.
+
+- `success`: all policy-approved cleanup and account teardown completed, final
+  reference validation passed, and the audit event was recorded.
+- `refused`: preflight or revalidation stopped the operation before any cleanup
+  action completed. The customer remains available for remediation and retry.
+- `partial`: one or more cleanup or teardown stages completed before a later
+  guard, revalidation, or write failed. Do not report deletion as successful and
+  do not retry blindly; inspect `stage`, `completed_stages`, `actions`, and
+  `blockers` first.
+- `not_found`: the target disappeared or could not be deleted as the resolved
+  target. This is not proof of a successful purge.
+
+Only `success` permits the admin UI to show a success notification and leave the
+customer page. A 2xx transport response is not itself proof of lifecycle
+success.
+
+## What successful purge guarantees
+
+A successful purge removes or resolves the organization references that would
+reserve the purged customer's normalized email or leave ownership/member
+references to that customer. Recreating and verifying an account with the same
+email can therefore provision a new default workspace and establish a usable
+organization context for entitlement-gated requests.
+
+This is a recreation guarantee, not data restoration. The new account does not
+inherit the old account's organizations or retained workspace data. No recovery
+path may adopt a workspace based only on email equality.
+
+In full authentication mode, account teardown retains a closed,
+credential-stripped SQL account row and its authentication audit history. That
+retained tombstone is intentional and does not reserve the email against a new
+live account. Consequently, purge confirmation must not claim that every datum
+in every store is deleted.
+
+## Self-service deletion
+
+Self-service account closure shares the ordered session/authentication/customer
+teardown, but the organization preflight policy above describes the
+administrative purge surface. Self-service closure is not an authorization to
+dispose of ambiguous retained organization data, and it must never become a
+same-email adoption path.
+
+## Bulk inactivity purge
+
+Bulk deletion must use the same preflighted lifecycle for each selected
+customer. Candidate selection by inactivity changes how targets are chosen; it
+does not weaken organization ownership policy or turn a partial result into
+success.

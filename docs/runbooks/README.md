@@ -18,6 +18,9 @@ happens, and the steps to resolve or verify.
   Resolving duplicate plan entries surfaced on the plans page.
 - [feedback-rate-limit-verification.md](./feedback-rate-limit-verification.md) —
   Verifying the feedback rate limit behaves correctly end-to-end.
+- [ownerless-workspace-email-index-collision.md](./ownerless-workspace-email-index-collision.md) —
+  Diagnosing and safely resolving ownerless default workspaces and contact-email
+  index collisions after account purge or recreation.
 - [raw-email-field-serialization.md](./raw-email-field-serialization.md) —
   Handling raw email field serialization issues.
 - [secret-rotation.md](./secret-rotation.md) — Backing up and rotating the

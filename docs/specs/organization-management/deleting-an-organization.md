@@ -1,103 +1,117 @@
 # Deleting an Organization
 
-Status: draft notes — options and complications, no design decided yet.
+Status: implemented lifecycle policy for organization deletion and customer
+purge integration.
 
-## Options
+## Purpose
 
-A. Outright delete. Solve the technical complexity and make it a non-issue.
-B. Archive/hide. A user-facing option in the Org Settings. Removes it from
-   the org context dropdown and orgs list page. There's a chance it could
-   cause strange behaviour.
-   - In Django, soft deletes are clean and easy by creating a base
-     Manager/QuerySet class that automatically appends `.active()` to the
-     model's queries. They just don't exist as far as the application is
-     concerned.
-C. Explain in the UI why default orgs are important/necessary? Might just
-   sound like lazy bullshit (which I think it would be).
+Organization deletion must preserve ownership, membership, domain, billing,
+contact-email index, and default-workspace invariants. It must use the canonical
+organization operation; deleting a model hash directly is not equivalent.
 
-## Complications with removing a default org
+Customer purge is a coordinated caller of that operation. It does not receive a
+general force-delete capability.
 
-1. A default org is the user's identity container, not a team. Plan,
-   entitlements, limits, Stripe customer/subscription
-   (`with_organization_billing.rb:63-79`), receipts (`receipt.rb:74`), and
-   domains all hang off the org. A customer with no active org is a
-   degraded read-only session (`organization_loader.rb:197-207`). In
-   Clerk/GitHub terms the default org is the personal account, not an
-   organization — and nobody lets you delete a personal account separately
-   from the user.
-2. Deleting it doesn't delete it — it resets it. CreateDefaultWorkspace runs
-   from the account/omniauth hooks and lazily from `auth_org`
-   (`create_default_workspace.rb:78,151`). If the customer has zero other
-   orgs, the next entitlement-gated action mints a fresh `is_default` org
-   (or adopts an orphan via `find_by_contact_email`, line 194). So "delete
-   my only/default org" is semantically account purge
-   (`bin/ots customers purge-one`), which is exactly why `:last_org` is
-   non-overridable.
-3. No cascade, no transaction, no undo. Redis has no FKs; teardown is
-   ordered writes with per-step rescue. After `destroy!`, these still point
-   at the dead objid:
-   - `Receipt#org_id` + the `organization:<objid>:receipts` zset key
-     (never touched by `destroy!`)
-   - `SessionMetadata#org_id`, `ColonelAuditEvent` payloads (fine as
-     tombstone refs, but readers must be nil-tolerant)
-   - `OrganizationMembership` through-model hashes —
-     `remove_members_instance` removes participation; the
-     `ensure_member_through_models` chore exists because this drifts
-   - Stripe: `stripe_customer_id` goes with the org, the Stripe Customer
-     lives on with no back-pointer (the #4205 drift). The op refuses while
-     `billing_live?`, but a canceled-sub org still orphans the Stripe
-     customer.
-   - Materialized entitlement/limit/secret_activity keys — verify whether
-     Familia's `destroy!` clears those DataTypes; unconfirmed.
-4. `is_default` is a label on the org, `default_org_id` is a pointer on the
-   customer, and they can disagree. The op clears the pointer but never
-   promotes a surviving org to `is_default`, so the "personal workspace"
-   badge, colonel `v-if="org.is_default"` branches, and the `:is_default`
-   guard stop protecting anything for that user. If the customer has
-   another org, the correct verb is demote-and-promote, not delete-and-hope.
-5. Audit eviction — refusals are deliberately unaudited because the audit
-   set is COUNT-capped (documented in the op header). Any new reversible
-   path must keep that property.
+## Standalone organization deletion
 
-Common thread: (a) cascade memberships/invitations, never users; (b) hard
-delete is explicit and irreversible, or there is a soft/delayed path —
-never a hidden half-cascade; (c) the personal container is only deleted by
-deleting the user; (d) "must have ≥1 org" is enforced at login by routing
-to create, not by refusing deletion.
+`Onetime::Operations::Org::Delete` is the canonical deletion path used by the
+CLI, Colonel, and customer-facing adapters. It plans before applying and owns
+cleanup of organization indexes, memberships, invitations, affected
+`default_org_id` pointers, notifications, and audit records.
 
-## Complications with soft deleting
+The operation retains independent guardrails for:
 
-`archive!` already hides the org everywhere that matters and blocks
-re-creation:
+- attached or drifted domains;
+- default personal workspaces;
+- active subscriptions;
+- deleting an owner's last organization.
 
-- `ListOrganizations` rejects archived
-  (`apps/api/organizations/logic/organizations/list_organizations.rb:30,36`);
-  `OrganizationLoader` skips archived at steps 3 and 5; `CreateOrganization`
-  counts only non-archived toward the limit.
-- `CreateDefaultWorkspace#workspace_already_exists?` counts
-  `organization_instances` — membership survives archiving, so it returns
-  "exists" and mints nothing (`create_default_workspace.rb:156-170`).
+Operator force options unlock only the guard they name. In particular, forcing
+a default workspace does not bypass domains or billing, and forcing a billing
+organization does not cancel Stripe.
 
-Three things break it, in order of severity:
+## Customer purge policy
 
-1. Archived-only customer silently keeps using the "deleted" org. Loader
-   returns nil → `auth_org` calls CreateDefaultWorkspace → nil → fallback
-   `org ||= cust.organization_instances.first`
-   (`lib/onetime/logic/organization_context.rb:91`) has no archived filter
-   and hands back the archived org. So secrets, receipts, limits all keep
-   keying off it; it's invisible, not gone. This is the same trap as
-   #4211's "nil-on-archived". Either keep `:last_org` non-overridable for
-   soft delete too, or fix that fallback to `.reject(&:archived?)` and
-   decide what an org-less session does.
-2. `archived` already means something else. `archive!`/`archived_comment`
-   are the SSO bulk-migration "superseded by domain org" state;
-   `JoinDomainOrganization` re-archives on every domain SSO login and
-   domains doctor check 9 reads it that way
-   (`organization.rb:323-357`). Reusing it for customer-requested deletion
-   conflates states. Use a separate marker (`deleted_at` + reason, or a
-   status field) — or at minimum a reserved `archived_comment` value the
-   SSO paths never write.
-3. `archive!` skips the guards `Org::Delete` has. It warns on domains and
-   never checks `billing_live?`, so a soft-deleted org can keep billing in
-   Stripe and keep owning live domains. And nothing promotes a surviving
-   org to `is_default`/`default_org_id`.
+Administrative account purge performs a global, read-only organization
+preflight before account teardown. Each discovered relationship is classified
+as one of the following:
+
+| Relationship | Policy |
+| --- | --- |
+| Consistent non-owner membership | Remove through semantic membership cleanup. |
+| Sole-owned, empty, non-billing personal default workspace | Delete through canonical organization teardown. |
+| Owned workspace with domains | Refuse until domains are removed or transferred. |
+| Owned workspace with billing state | Refuse until billing is resolved. |
+| Owned workspace with other members | Refuse until ownership is transferred or membership is otherwise resolved. |
+| Workspace with invitations, receipts, or retained data | Refuse pending an explicit data-lifecycle decision. |
+| Drifted ownership, membership, domain, instance, or contact-email index evidence | Refuse until repaired and re-diagnosed. |
+| Incomplete scan or lookup | Refuse because absence of evidence is not proof that cleanup is safe. |
+
+The account-purge integration may bypass only the default-workspace and
+last-organization guardrails for the exact personal workspace authorized by a
+fresh, matching purge plan. Domain and billing guardrails remain active. The
+capability is revalidated immediately before organization mutation and is not
+available to public adapters.
+
+## Ordering and concurrency
+
+The customer lifecycle uses this sequence:
+
+1. discover all customer, membership, organization, contact-email index, and
+   domain references;
+2. refuse if any relationship is unsafe or incomplete;
+3. before each planned cleanup, rerun preflight and require the same remaining
+   plan;
+4. execute one canonical organization or membership operation;
+5. after cleanup, require a clean plan with no remaining actions;
+6. revalidate immediately before account teardown mutations;
+7. revoke sessions, close/strip the authentication identity, and delete the
+   customer;
+8. scan organization references again;
+9. record successful completion only after final validation and audit.
+
+There is no cross-store transaction. If the plan changes or a later operation
+fails after an earlier cleanup completed, the result is `partial`, not
+`success`.
+
+## Refusal and partial outcomes
+
+A `refused` result means no planned cleanup action completed. It returns the
+blocking organization evidence and the current stage so an operator can repair
+state while the customer remains intact.
+
+A `partial` result means at least one cleanup or teardown stage completed before
+the lifecycle stopped. Operators must inspect `actions`, `stage`,
+`completed_stages`, and `blockers`; they must not assume that either the old
+account or all old organization references still exist. Re-running without that
+inspection can compound drift.
+
+Only a `success` result means final organization-reference validation passed.
+
+## Same-email recreation
+
+After a successful purge, no old organization contact-email reservation or
+ownership/member reference remains that can block a newly created account with
+the same normalized email. The recreated account can provision a new default
+workspace and use organization-context-dependent endpoints.
+
+This guarantee does not authorize restoration. A matching contact email alone
+never proves that a new account owns an old workspace. Automatic same-email-only
+adoption is prohibited, especially when the workspace contains domains,
+billing, live or stale members, receipts, invitations, or other retained data.
+Any supported restoration must be explicit, complete, and audited, and must
+repair ownership metadata, memberships, indexes, and entitlements together.
+
+## Operational interfaces
+
+- Preview or delete one organization with `bin/ots org delete ORG`.
+- Transfer ownership with `bin/ots org transfer-ownership ORG NEW_OWNER`.
+- Remove a non-owner membership with `bin/ots memberships remove`.
+- Diagnose global organization drift with `bin/ots org doctor --all --json`.
+- Purge one account through the coordinated lifecycle with
+  `bin/ots customers purge-one IDENTIFIER` or Colonel customer details.
+
+Do not use direct model destruction or raw index deletion as the primary repair
+path. See
+[`ownerless-workspace-email-index-collision.md`](../../runbooks/ownerless-workspace-email-index-collision.md)
+for incident handling.
