@@ -53,7 +53,10 @@ record with none is stamped `sso`. One `ColonelAuditEvent` per repaired customer
 - **Verification was withheld on purpose.** When the JIT hook deliberately left
   the customer unverified, it recorded why in `verification_hold`, and the
   doctor reports such a record at MEDIUM but never auto-repairs it, even with
-  `--repair`. The reason tells you what to check:
+  `--repair`. Holds are recorded only when the post-upgrade JIT flow creates a
+  Customer; it does not add one to an existing Customer, so older unverified
+  `sso_jit` records without a hold remain HIGH, repairable findings even if the
+  IdP now asserts `email_verified: false`. The reason tells you what to check:
 
   | `verification_hold` | Meaning                                                   | Before verifying by hand                                        |
   | :------------------ | :-------------------------------------------------------- | :-------------------------------------------------------------- |
