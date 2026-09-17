@@ -9,7 +9,9 @@ performing irreversible writes.
 ## Administrative purge contract
 
 Colonel `DELETE /api/colonel/users/:user_id` and
-`bin/ots customers purge-one` use the same customer purge lifecycle.
+`bin/ots customers purge-one` use the same customer purge lifecycle. They
+differ only in discovery depth (see *Discovery depth*): the CLI command sweeps
+the global registries, the endpoint does not.
 
 ### Preflight policy
 
@@ -35,24 +37,29 @@ different organization, which it refuses as `contact_email_index_ambiguous`.
 #### Discovery depth
 
 Discovery is **shallow** by default: it reaches organizations through the
-customer's own reverse indexes and keeps every per-organization drift check.
-Single-account operator entry points (the colonel endpoint and
-`bin/ots customers purge-one`) pass `deep: true`, which additionally sweeps the
-global `Organization`, `OrganizationMembership` and `CustomDomain` registries to
-catch a reference no reverse index points at — an organization whose `owner_id`
-names the customer but which is absent from their participations. Those sweeps
-are whole-registry reads, and the lifecycle re-runs preflight once per planned
-action plus three times during teardown, so they are never used on a request
-path or in the bulk sweep. Deep mode runs them at the initial plan and the
+customer's own reverse indexes (participations, `organization_instances`,
+`default_org_id`) and the contact-email claim, and keeps every
+per-organization drift check. Only the CLI single-account path
+(`bin/ots customers purge-one`) passes `deep: true`, which additionally sweeps
+the global `Organization`, `OrganizationMembership` and `CustomDomain`
+registries to catch a reference no reverse index points at — an organization
+whose `owner_id` names the customer but which is absent from their
+participations. Those sweeps are whole-registry reads, and the lifecycle
+re-runs preflight once per planned action plus three times during teardown, so
+they are never used on a request path — the colonel endpoint
+(`DELETE /api/colonel/users/:id`) is shallow, like self-service closure — or
+in the bulk sweep. An operator who needs the global sweep for one account runs
+`purge-one` from the CLI. Deep mode runs the sweeps at the initial plan and the
 final post-teardown validation; the intermediate revalidations stay shallow.
 
 Shallow discovery derives an organization's membership rows from the
 organization's own `members` set (plus the purge target's row, loaded
 directly). A live row whose customer is missing from that set is reachable
-only through the registry, so on a request path — self-service closure — it is
-not seen and a shared workspace could read as sole-owned. This residual is
-accepted there: the through-model writes the row and the set together, so the
-state is drift, not a normal write, and the deep operator paths do refuse it.
+only through the registry, so on a request path — self-service closure and
+the colonel endpoint — it is not seen and a shared workspace could read as
+sole-owned. This residual is accepted there: the through-model writes the row
+and the set together, so the state is drift, not a normal write, and the deep
+CLI path does refuse it.
 The bulk sweep does not accept it: it captures the membership registry **once
 per run** (`MembershipSnapshot`, a parse of the registry's sorted set with no
 per-row load) and every candidate's shallow preflight unions those rows with
@@ -177,6 +184,21 @@ Bulk deletion must use the same preflighted lifecycle for each selected
 customer. Candidate selection by inactivity changes how targets are chosen; it
 does not weaken organization ownership policy or turn a partial result into
 success.
+
+The run's audit trail is one receipt pair, not one event per candidate. The CLI
+opens a `customer.purge.bulk` start receipt on the operator trail that registers
+every candidate (`BulkAuditContext`), and each purge authorizes its candidate
+against that receipt **immediately after the initial preflight, before the
+first refusal**. A covered purge, and the organization, membership, and session
+operations nested under it, suppress their own operator events; the completion
+receipt records the destroyed, refused, partial, and not-found counts. The
+ordering is the invariant: a refused candidate never consumes an operator-trail
+slot, because the operator trail is capped and trimmed oldest-first and refusal
+is the common outcome of an inactivity sweep. Because the receipt carries only
+counts, the CLI writes each refused or partial candidate's identifier and
+blocker codes (never the email) to the application log; that log line is the
+only place they persist. A candidate the receipt does not cover — unregistered,
+already consumed, or under a completed context — audits normally.
 
 Two per-account costs are paid once per run instead. The membership registry is
 captured once (see *Discovery depth*) and shared by every candidate's preflight.
