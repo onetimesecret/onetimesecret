@@ -209,8 +209,39 @@ module Onetime
       # better a skipped provider and a named variable than a button that
       # always fails.
       #
+      # allow_expired: exists for ONE caller — the tenant record's own
+      # validity check (CustomDomain::SsoConfig#validation_errors). A stored
+      # record whose certificate has since expired must stay EDITABLE (a
+      # PATCH that disables SSO re-validates the whole record), so expiry is
+      # not a model invariant there. It is still refused everywhere a
+      # certificate is ACCEPTED or USED: the API write path, test_connection,
+      # and .strategy_options_for — all of which leave this false.
+      #
+      # @param pem [String, nil]
+      # @param allow_expired [Boolean] structure-only check (see above)
       # @return [String, nil] problem description, or nil when usable
-      def self.cert_problem(pem)
+      def self.cert_problem(pem, allow_expired: false)
+        cert = parse_single_cert(pem)
+        return cert if cert.is_a?(String)
+        return nil if allow_expired
+        return "IdP certificate expired on #{cert.not_after.utc.strftime('%Y-%m-%d')}" if cert.not_after < Time.now
+
+        nil
+      end
+
+      # The parsed certificate, or nil when it is not exactly one parseable
+      # PEM block. For callers that REPORT on a certificate (test_connection's
+      # expiry date) — never a substitute for .cert_problem.
+      #
+      # @return [OpenSSL::X509::Certificate, nil]
+      def self.parse_cert(pem)
+        cert = parse_single_cert(pem)
+        cert.is_a?(String) ? nil : cert
+      end
+
+      # @return [OpenSSL::X509::Certificate, String] the certificate, or the
+      #   structural problem as a String
+      def self.parse_single_cert(pem)
         text = normalize_pem(pem).to_s
         return 'IdP certificate is blank' if text.strip.empty?
 
@@ -218,13 +249,11 @@ module Onetime
         return 'IdP certificate must be a PEM X.509 certificate (-----BEGIN CERTIFICATE-----)' if blocks.zero?
         return 'IdP certificate must contain exactly one PEM certificate' if blocks > 1
 
-        cert = OpenSSL::X509::Certificate.new(text)
-        return "IdP certificate expired on #{cert.not_after.utc.strftime('%Y-%m-%d')}" if cert.not_after < Time.now
-
-        nil
+        OpenSSL::X509::Certificate.new(text)
       rescue OpenSSL::X509::CertificateError
         'IdP certificate does not parse as X.509'
       end
+      private_class_method :parse_single_cert
 
       # Same convention as APPLE_PRIVATE_KEY (apple.rb): deployments carry
       # multi-line values as one line with literal \n. A value that already

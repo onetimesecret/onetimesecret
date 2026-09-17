@@ -516,6 +516,51 @@ RSpec.describe Onetime::SsoProvider::Registry do
           expect(saml_valid?(SAML_IDP_CERT: expired)).to be false
         end
 
+        # allow_expired: exists for the tenant RECORD's validity check only
+        # (an expired certificate must not make a stored config uneditable).
+        # It relaxes expiry and nothing else, and the builder never uses it.
+        describe '.cert_problem(allow_expired: true)' do
+          let(:expired) { SamlSpec::TestIdp.new(cert_not_after: Time.utc(2020, 1, 2)).cert_pem }
+
+          it 'accepts an expired certificate that is otherwise well-formed' do
+            expect(Onetime::SsoProvider::Saml.cert_problem(expired, allow_expired: true)).to be_nil
+            expect(Onetime::SsoProvider::Saml.cert_problem(expired)).to match(/expired on 2020-01-02/)
+          end
+
+          it 'still refuses every structural problem' do
+            saml = Onetime::SsoProvider::Saml
+
+            expect(saml.cert_problem('', allow_expired: true)).to match(/blank/)
+            expect(saml.cert_problem('AB:CD:EF', allow_expired: true)).to match(/PEM X\.509/)
+            expect(saml.cert_problem(expired + expired, allow_expired: true)).to match(/exactly one/)
+            expect(saml.cert_problem("-----BEGIN CERTIFICATE-----\nnope\n-----END CERTIFICATE-----", allow_expired: true))
+              .to match(/does not parse/)
+          end
+
+          it 'is not honoured by the shared builder' do
+            expect do
+              Onetime::SsoProvider::Saml.strategy_options_for(
+                idp_sso_service_url: 'https://idp.example.com/sso', idp_entity_id: 'urn:idp', idp_cert: expired,
+              )
+            end.to raise_error(ArgumentError, /expired/)
+          end
+        end
+
+        describe '.parse_cert' do
+          it 'returns the certificate for one well-formed PEM block, expired or not' do
+            expired = SamlSpec::TestIdp.new(cert_not_after: Time.utc(2020, 1, 2)).cert_pem
+
+            expect(Onetime::SsoProvider::Saml.parse_cert(idp.cert_pem)).to be_a(OpenSSL::X509::Certificate)
+            expect(Onetime::SsoProvider::Saml.parse_cert(expired).not_after).to eq(Time.utc(2020, 1, 2))
+          end
+
+          it 'returns nil for anything else' do
+            ['', nil, 'garbage', idp.cert_pem * 2].each do |value|
+              expect(Onetime::SsoProvider::Saml.parse_cert(value)).to be_nil
+            end
+          end
+        end
+
         # The message reaches the boot log via configure_provider.
         it 'never puts the configured value in the error message' do
           expect { saml_options(SAML_IDP_CERT: 'SENSITIVE-LOOKING-VALUE') }
