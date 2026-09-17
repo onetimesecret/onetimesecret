@@ -211,6 +211,37 @@ module Onetime
     # for paths that don't set it (CLI, tests, migrations).
     field :provisioning_origin
 
+    # Persisted, non-sensitive account provisioning failure state. The code is
+    # stable for routing/alerting, classification is the bounded workspace
+    # collision category, and the timestamp records when support should begin
+    # its investigation. No exception message, email, or organization id is
+    # stored here.
+    field :provisioning_failure_code
+    field :provisioning_failure_classification
+    field :provisioning_failed_at
+
+    def provisioning_failed?
+      !provisioning_failure_code.to_s.empty?
+    end
+
+    def mark_provisioning_failed!(code:, classification:, at: Familia.now.to_f)
+      self.provisioning_failure_code           = code.to_s
+      self.provisioning_failure_classification = classification.to_s
+      self.provisioning_failed_at              = at
+      save
+    end
+
+    def clear_provisioning_failure!
+      return false unless provisioning_failed? || !provisioning_failure_classification.to_s.empty? ||
+                          !provisioning_failed_at.to_s.empty?
+
+      self.provisioning_failure_code           = nil
+      self.provisioning_failure_classification = nil
+      self.provisioning_failed_at              = nil
+      save
+      true
+    end
+
     def init
       super
 

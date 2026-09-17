@@ -104,6 +104,13 @@ module Onetime
           with_error_correlation(error.to_h, req, error)
         end
 
+        # Persisted signup provisioning failures are account-state conflicts.
+        # The stable code/classification lets clients and support distinguish
+        # them from transient entitlement-context failures.
+        router.register_error_handler(Onetime::AccountProvisioningFailed, status: 409, log_level: :warn) do |error, req|
+          with_error_correlation(error.to_h, req, error)
+        end
+
         # Rate limit exceeded errors return 429 with retry info
         router.register_error_handler(Onetime::LimitExceeded, status: 429, log_level: :warn) do |error, req|
           Onetime::Application::ErrorResolver.resolve!(error, req)

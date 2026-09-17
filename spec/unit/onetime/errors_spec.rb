@@ -15,6 +15,24 @@ require 'spec_helper'
 # Mirrors the pattern used for EntitlementRequired (see
 # spec/unit/onetime/logic/require_entitlement_spec.rb for context).
 
+RSpec.describe Onetime::AccountProvisioningFailed do
+  it 'serializes only the stable non-sensitive provisioning state' do
+    error = described_class.new(
+      code: 'default_workspace_collision',
+      classification: 'retained_data',
+      failed_at: '1700000000.5',
+    )
+
+    expect(error.to_h).to eq(
+      error: described_class::DEFAULT_MESSAGE,
+      error_type: 'AccountProvisioningFailed',
+      code: 'default_workspace_collision',
+      classification: 'retained_data',
+      failed_at: 1_700_000_000.5,
+    )
+  end
+end
+
 RSpec.describe Onetime::LimitExceeded do
   describe '#initialize' do
     it 'defaults to legacy message when none provided' do

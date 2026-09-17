@@ -74,10 +74,24 @@ module Onetime
 
         org = @strategy_result&.metadata&.dig(:organization_context, :organization)
 
-        # Lazy creation for authenticated users without org
+        # Lazy creation for authenticated users without org. A signup collision
+        # is persisted as first-class account state, so later requests fail with
+        # one stable actionable error instead of retrying provisioning and leaking
+        # OrganizationExists/ProvisioningCollision through arbitrary endpoints.
         if org.nil? && cust && !cust.anonymous?
+          raise_provisioning_failed!(cust) if cust.provisioning_failed?
+
           OT.info "[auth_org] Lazy-creating default workspace for #{cust.custid}"
-          result = Auth::Operations::CreateDefaultWorkspace.new(customer: cust).call
+          result = begin
+            Auth::Operations::CreateDefaultWorkspace.new(customer: cust).call
+          rescue Auth::Operations::WorkspaceCollision::ProvisioningCollision
+            # The guard above only sees a failure that was ALREADY persisted. The
+            # request that first hits the collision marks it here, and without
+            # this rescue the bare ProvisioningCollision (an Onetime::Problem,
+            # registered in no error table) escapes as a 500 — so only the SECOND
+            # request would get the intended 409.
+            raise_provisioning_failed!(cust)
+          end
 
           # Update metadata so subsequent calls in same request see the org
           if result && (org = result[:organization]) && @strategy_result&.metadata&.dig(:organization_context)
@@ -91,6 +105,17 @@ module Onetime
         end
 
         @auth_org = org
+      end
+
+      # One stable, registered error for both the first collision and every
+      # request after it. Reads the persisted state rather than the exception so
+      # the two paths cannot diverge.
+      def raise_provisioning_failed!(cust)
+        raise Onetime::AccountProvisioningFailed.new(
+          code: cust.provisioning_failure_code,
+          classification: cust.provisioning_failure_classification,
+          failed_at: cust.provisioning_failed_at,
+        )
       end
 
       # Immutable accessor: returns the membership linking authenticated customer

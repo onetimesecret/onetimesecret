@@ -588,6 +588,73 @@ module Onetime
         # Use unique_index auto-generated finder for O(1) lookup
         !find_by_contact_email(email).nil?
       end
+
+      # Number of HSCAN rounds/entries a tolerant contact-email probe will spend
+      # before giving up. A single address can only be carried by a handful of
+      # case variants, so a low ceiling is enough; the cap exists so a pathological
+      # index cannot turn an O(1) lookup into an unbounded scan.
+      CONTACT_EMAIL_SCAN_COUNT  = 500
+      CONTACT_EMAIL_SCAN_ROUNDS = 20
+
+      # Every index entry whose stored key normalizes to `email`.
+      #
+      # `contact_email_index` is keyed VERBATIM: `create!` reserves the address
+      # with `hsetnx(contact_email, ...)` after only `.strip`, `delete!` removes
+      # the same raw value, and the billing-email sync writers assign whatever
+      # Stripe returned. A normalized `get` therefore MISSES any row whose
+      # address was stored with different case or Unicode form — reporting an
+      # address as unclaimed when an organization holds it, or as drifted when
+      # the holder is correct.
+      #
+      # Exact probes first (raw, then normalized) so the common path stays a
+      # single HGET; the bounded case-insensitive HSCAN only runs when neither
+      # spelling is present.
+      #
+      # @param email [String] address in any spelling
+      # @return [Hash{String => String}] stored key => organization objid
+      def find_contact_email_claims(email)
+        raw        = email.to_s.strip
+        normalized = OT::Utils.normalize_email(raw).to_s
+        return {} if normalized.empty?
+
+        [raw, normalized].uniq.reject(&:empty?).each do |candidate|
+          value = contact_email_index.get(candidate)
+          return { candidate => value.to_s } unless value.to_s.empty?
+        end
+
+        scan_contact_email_index(normalized)
+      end
+
+      # The single organization objid claiming `email`, or nil when the address
+      # is unclaimed. Raises nothing on ambiguity — callers that must treat two
+      # claimants as drift read {.find_contact_email_claims} directly.
+      def find_contact_email_holder_id(email)
+        find_contact_email_claims(email).values.map(&:to_s).reject(&:empty?).uniq.first
+      end
+
+      private
+
+      def scan_contact_email_index(normalized)
+        dbkey    = contact_email_index.dbkey
+        client   = contact_email_index.dbclient
+        pattern  = OT::Utils.glob_case_insensitive(normalized)
+        claims   = {}
+        cursor   = '0'
+        rounds   = 0
+
+        loop do
+          cursor, entries = client.hscan(dbkey, cursor, match: pattern, count: CONTACT_EMAIL_SCAN_COUNT)
+          entries.each do |key, value|
+            claims[key.to_s] = value.to_s if OT::Utils.normalize_email(key).to_s == normalized
+          end
+          rounds         += 1
+
+          break if cursor == '0'
+          break if rounds >= CONTACT_EMAIL_SCAN_ROUNDS
+        end
+
+        claims
+      end
     end
   end
 end

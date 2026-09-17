@@ -55,6 +55,8 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
       planid: 'anonymous',
       email: 'cust123@example.com',
       organization_instances: [:existing_org],
+      provisioning_failed?: false,
+      clear_provisioning_failure!: false,
     )
   end
 

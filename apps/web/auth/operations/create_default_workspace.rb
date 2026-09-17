@@ -2,7 +2,8 @@
 #
 # frozen_string_literal: true
 
-#
+require 'auth/operations/workspace_collision'
+
 # CANONICAL SOURCE FOR DEFAULT WORKSPACE CREATION
 #
 # Creates a default Organization for a new customer during registration.
@@ -27,6 +28,8 @@ module Auth
   module Operations
     class CreateDefaultWorkspace
       include Onetime::LoggerMethods
+
+      PROVISIONING_FAILURE_CODE = 'default_workspace_collision'
 
       # @param customer [Onetime::Customer] The customer for whom to create workspace
       # @param require_verification [Boolean] When true, defer claiming a
@@ -101,11 +104,13 @@ module Auth
         end
 
         if workspace_already_exists?
+          @customer.clear_provisioning_failure!
           auth_logger.debug "[create-default-workspace] Workspace already exists for customer #{@customer.custid}"
           return nil
         end
 
         org = create_default_organization
+        @customer.clear_provisioning_failure!
 
         auth_logger.info "[create-default-workspace] Created workspace for #{@customer.custid}: org=#{org.objid}"
 
@@ -191,7 +196,7 @@ module Auth
 
       # Creates the default organization for the customer
       # @return [Onetime::Organization]
-      def create_default_organization
+      def create_default_organization(retry_phantom: true)
         org = Onetime::Organization.create!(
           'Default Workspace',  # Not shown to individual plan users
           @customer,
@@ -207,20 +212,31 @@ module Auth
 
         org
       rescue Onetime::OrganizationExists
-        # Org exists in the email index but customer has no membership link
-        # (e.g., incomplete prior creation, data inconsistency after SSO).
-        # Find the existing org and repair the membership.
-        existing = Onetime::Organization.find_by_contact_email(@customer.email)
-        raise unless existing
+        collision = WorkspaceCollision.new(email: @customer.email, customer: @customer).call
 
-        if existing.member_count > 0
-          auth_logger.warn "[create-default-workspace] Existing org #{existing.extid} already has members, skipping adoption for #{@customer.custid}"
-          raise
+        if collision.current_valid_workspace?
+          existing = collision.organization
+          auth_logger.info "[create-default-workspace] Converged on current workspace #{existing.extid} for #{@customer.custid}"
+          return existing
         end
 
-        auth_logger.info "[create-default-workspace] Adopting orphaned org #{existing.extid} for #{@customer.custid}"
-        existing.add_members_instance(@customer, through_attrs: { role: 'owner' })
-        existing
+        if retry_phantom && collision.classification == :phantom_index &&
+           WorkspaceCollision.compare_and_delete(collision)
+          auth_logger.warn "[create-default-workspace] Removed phantom contact-email claim and retrying for #{@customer.custid}"
+          return create_default_organization(retry_phantom: false)
+        end
+
+        @customer.mark_provisioning_failed!(
+          code: PROVISIONING_FAILURE_CODE,
+          classification: collision.classification,
+        )
+        auth_logger.warn '[create-default-workspace] Refusing classified contact-email collision',
+          {
+            customer: @customer.extid,
+            classification: collision.classification,
+            provisioning_failure_code: PROVISIONING_FAILURE_CODE,
+          }
+        raise WorkspaceCollision::ProvisioningCollision, collision
       rescue StandardError => ex
         auth_logger.error "[create-default-workspace] Failed to create organization: #{ex.message}"
         raise

@@ -210,6 +210,33 @@ module Onetime
   class OrganizationExists < Problem
   end
 
+  # A persisted account provisioning failure prevents organization and
+  # entitlement context from being established. This is an operator-remediated
+  # account state, not a retryable OrganizationExists exception: callers receive
+  # one stable code/classification without collision evidence or identifiers.
+  class AccountProvisioningFailed < Problem
+    DEFAULT_MESSAGE = 'Account setup could not be completed. Contact support and provide the error code.'
+
+    attr_reader :code, :classification, :failed_at
+
+    def initialize(code:, classification:, failed_at: nil, message: DEFAULT_MESSAGE)
+      super(message)
+      @code           = code.to_s
+      @classification = classification.to_s
+      @failed_at      = failed_at.to_s.empty? ? nil : failed_at.to_f
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'AccountProvisioningFailed',
+        code: code,
+        classification: classification,
+        failed_at: failed_at,
+      }.compact
+    end
+  end
+
   class RecordNotFound < Problem
     # i18n shape: error_key + args are resolved at the HTTP edge so logic
     # classes never touch I18n. error_key is the full dotted i18n key (e.g.

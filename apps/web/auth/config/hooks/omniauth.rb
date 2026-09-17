@@ -822,7 +822,21 @@ module Auth::Config::Hooks
               'create_default_workspace_omniauth',
               external_id: customer.extid,
             ) do
-              Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+                Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+            rescue Auth::Operations::WorkspaceCollision::ProvisioningCollision => ex
+                # The account remains persisted and diagnosable. Organization and
+                # entitlement access now maps this state to AccountProvisioningFailed
+                # instead of retrying the same collision on every request.
+                Auth::Logging.log_auth_event(
+                  :account_provisioning_failed,
+                  level: :error,
+                  account_id: account_id,
+                  external_id: customer.extid,
+                  provider: omniauth_provider,
+                  code: customer.provisioning_failure_code,
+                  classification: ex.collision.classification,
+                )
+                nil
             end
           end
         end

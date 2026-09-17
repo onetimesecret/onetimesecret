@@ -274,10 +274,23 @@ module Auth::Config::Hooks
             require_verification = Onetime.auth_config.verify_account_enabled?
 
             Onetime::ErrorHandler.safe_execute('create_default_workspace', external_id: customer.extid) do
-              Auth::Operations::CreateDefaultWorkspace.new(
-                customer: customer,
-                require_verification: require_verification,
-              ).call
+                Auth::Operations::CreateDefaultWorkspace.new(
+                  customer: customer,
+                  require_verification: require_verification,
+                ).call
+            rescue Auth::Operations::WorkspaceCollision::ProvisioningCollision => ex
+                # CreateDefaultWorkspace persisted the bounded failure state before
+                # raising. Keep the SQL account + Customer observable and let later
+                # organization/entitlement access surface AccountProvisioningFailed.
+                Auth::Logging.log_auth_event(
+                  :account_provisioning_failed,
+                  level: :error,
+                  account_id: account_id,
+                  external_id: customer.extid,
+                  code: customer.provisioning_failure_code,
+                  classification: ex.collision.classification,
+                )
+                nil
             end
           end
 

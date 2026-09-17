@@ -177,45 +177,43 @@ RSpec.describe Billing::CheckoutTargetResolver, :billing do
       create_test_customer(email: "resolver-interloper-#{SecureRandom.hex(4)}@example.com")
     end
 
-    # The reserving org has a member (its owner), so CreateDefaultWorkspace
-    # re-raises OrganizationExists instead of adopting the orphan — and the
-    # checkout customer does not own it, so adopt_email_reserved_workspace
-    # refuses it too.
+    # The reserving org has a live owner. Canonical provisioning must classify
+    # that collision, latch the failure, and refuse rather than adopting the
+    # foreign workspace or creating an unaddressable second workspace.
     let!(:stranger_org) do
       org = Onetime::Organization.create!('Stranger Workspace', interloper, reserved_email)
       created_organizations << org
       org
     end
 
-    it 'creates a workspace without a contact_email rather than failing or capturing the stranger org' do
-      org = create_step4_for('[CheckoutCompleted]', cust: fresh_customer, stripe_id: fresh_stripe_id)
+    it 'fails closed instead of creating a second workspace or capturing the stranger org' do
+      expect do
+        create_step4_for('[CheckoutCompleted]', cust: fresh_customer, stripe_id: fresh_stripe_id)
+      end.to raise_error(Auth::Operations::WorkspaceCollision::ProvisioningCollision) do |error|
+        expect(error.collision.classification).to eq(:live_members)
+      end
 
-      expect(org).to be_a(Onetime::Organization)
-      expect(org.objid).not_to eq(stranger_org.objid)
-      expect(org.owner?(fresh_customer)).to be(true)
-      expect(org.contact_email.to_s).to be_empty
-      expect(org.stripe_customer_id).to eq(fresh_stripe_id)
+      expect(fresh_customer.organization_instances.to_a).to be_empty
     end
 
     it 'leaves the stranger org untouched' do
-      create_step4_for('[CheckoutCompleted]', cust: fresh_customer, stripe_id: fresh_stripe_id)
+      expect do
+        create_step4_for('[CheckoutCompleted]', cust: fresh_customer, stripe_id: fresh_stripe_id)
+      end.to raise_error(Auth::Operations::WorkspaceCollision::ProvisioningCollision)
 
       stranger_org.refresh!
       expect(stranger_org.stripe_customer_id).to be_nil
       expect(stranger_org.owner?(fresh_customer)).to be(false)
     end
 
-    it 'warns that the workspace will be created without a contact_email' do
-      create_step4_for('[CheckoutCompleted]', cust: fresh_customer, stripe_id: fresh_stripe_id)
+    it 'durably latches the classified provisioning failure' do
+      expect do
+        create_step4_for('[CheckoutCompleted]', cust: fresh_customer, stripe_id: fresh_stripe_id)
+      end.to raise_error(Auth::Operations::WorkspaceCollision::ProvisioningCollision)
 
-      expect(logger).to have_received(:warn).with(
-        a_string_including('does not own'),
-        hash_including(customer_extid: fresh_customer.extid, orgid: stranger_org.objid),
-      )
-      expect(logger).to have_received(:warn).with(
-        a_string_including('creating workspace without one'),
-        hash_including(customer_extid: fresh_customer.extid),
-      )
+      fresh_customer.refresh!
+      expect(fresh_customer.provisioning_failed?).to be(true)
+      expect(fresh_customer.provisioning_failure_classification).to eq('live_members')
     end
   end
 
