@@ -275,29 +275,29 @@ module Auth::Config::Hooks
             # federated subscription. We deliberately do not gate on verified?
             # here (the Redis customer.verified flag never becomes true without
             # verify_account, so gating would disable federated claims entirely);
-            # CreateDefaultWorkspace instead emits a loud security-audit log for
+            # EnsureDefaultWorkspace instead emits a loud security-audit log for
             # each such unverified immediate claim. See
-            # CreateDefaultWorkspace#apply_pending_federation! and #initialize.
+            # EnsureDefaultWorkspace#apply_pending_federation! and #initialize.
             require_verification = Onetime.auth_config.verify_account_enabled?
 
-            Onetime::ErrorHandler.safe_execute('create_default_workspace', external_id: customer.extid) do
-                Auth::Operations::CreateDefaultWorkspace.new(
-                  customer: customer,
-                  require_verification: require_verification,
-                ).call
+            Onetime::ErrorHandler.safe_execute('ensure_default_workspace', external_id: customer.extid) do
+              Auth::Operations::EnsureDefaultWorkspace.new(
+                customer: customer,
+                require_verification: require_verification,
+              ).call
             rescue Auth::Operations::WorkspaceCollision::ProvisioningCollision => ex
-                # CreateDefaultWorkspace persisted the bounded failure state before
-                # raising. Keep the SQL account + Customer observable and let later
-                # organization/entitlement access surface AccountProvisioningFailed.
-                Auth::Logging.log_auth_event(
-                  :account_provisioning_failed,
-                  level: :error,
-                  account_id: account_id,
-                  external_id: customer.extid,
-                  code: customer.provisioning_failure_code,
-                  classification: ex.collision.classification,
-                )
-                nil
+              # EnsureDefaultWorkspace persisted the bounded failure state before
+              # raising. Keep the SQL account + Customer observable and let later
+              # organization/entitlement access surface AccountProvisioningFailed.
+              Auth::Logging.log_auth_event(
+                :account_provisioning_failed,
+                level: :error,
+                account_id: account_id,
+                external_id: customer.extid,
+                code: customer.provisioning_failure_code,
+                classification: ex.collision.classification,
+              )
+              nil
             end
           end
 
@@ -422,7 +422,7 @@ module Auth::Config::Hooks
 
           # Claim any pending federated subscription now that the email is
           # verified (issue: federated benefit theft via unverified signup).
-          # CreateDefaultWorkspace defers this claim on the standard signup path;
+          # EnsureDefaultWorkspace defers this claim on the standard signup path;
           # here we apply it to the workspace created at signup. Idempotent and a
           # safe no-op when nothing is pending or it was already claimed. Re-fetch
           # the customer so verified? reflects the state just persisted above.
@@ -432,7 +432,7 @@ module Auth::Config::Hooks
             verified_customer = Onetime::Customer.find_by_extid(account[:external_id])
             next unless verified_customer
 
-            Auth::Operations::CreateDefaultWorkspace.claim_pending_federation_for(verified_customer)
+            Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(verified_customer)
           end
 
           # Surface pending plan intent for checkout redirect (issue #3126)

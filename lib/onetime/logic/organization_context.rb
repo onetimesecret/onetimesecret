@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../../apps/web/auth/operations/create_default_workspace'
+require_relative '../../../apps/web/auth/operations/ensure_default_workspace'
 
 #
 # Organization Context for Logic Classes
@@ -83,7 +83,7 @@ module Onetime
 
           OT.info "[auth_org] Lazy-creating default workspace for #{cust.custid}"
           result = begin
-            Auth::Operations::CreateDefaultWorkspace.new(customer: cust).call
+            Auth::Operations::EnsureDefaultWorkspace.new(customer: cust).call
           rescue Auth::Operations::WorkspaceCollision::ProvisioningCollision
             # The guard above only sees a failure that was ALREADY persisted. The
             # request that first hits the collision marks it here, and without

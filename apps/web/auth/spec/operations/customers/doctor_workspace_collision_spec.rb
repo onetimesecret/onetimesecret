@@ -4,7 +4,7 @@
 
 require 'spec_helper'
 require 'auth/operations/customers/doctor'
-require 'auth/operations/create_default_workspace'
+require 'auth/operations/ensure_default_workspace'
 
 RSpec.describe Auth::Operations::Customers::Doctor do
   let(:customer) do
@@ -17,7 +17,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     )
   end
   let(:classifier) { instance_double(Auth::Operations::WorkspaceCollision) }
-  let(:provisioner) { instance_double(Auth::Operations::CreateDefaultWorkspace) }
+  let(:provisioner) { instance_double(Auth::Operations::EnsureDefaultWorkspace) }
 
   before do
     @provisioning_failed = true
@@ -25,7 +25,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     allow(Onetime::Customer).to receive(:load).with('cust_current').and_return(customer)
     allow(Auth::Operations::WorkspaceCollision).to receive(:new).and_return(classifier)
     allow(Auth::Operations::WorkspaceCollision).to receive(:compare_and_delete).and_call_original
-    allow(Auth::Operations::CreateDefaultWorkspace).to receive(:new)
+    allow(Auth::Operations::EnsureDefaultWorkspace).to receive(:new)
       .with(customer: customer).and_return(provisioner)
     allow(provisioner).to receive(:call) { @provisioning_failed = false }
     allow(Onetime::ColonelAuditEvent).to receive(:record)
@@ -194,7 +194,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
         classification: 'retained_data',
       ))
     end
-    expect(Auth::Operations::CreateDefaultWorkspace).not_to have_received(:new)
+    expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:new)
   end
 
   it 'does not provision or clear unsafe collisions' do
@@ -206,7 +206,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     end
 
     expect(Auth::Operations::WorkspaceCollision).not_to have_received(:compare_and_delete)
-    expect(Auth::Operations::CreateDefaultWorkspace).not_to have_received(:new)
+    expect(Auth::Operations::EnsureDefaultWorkspace).not_to have_received(:new)
     expect(customer.provisioning_failed?).to be(true)
   end
 

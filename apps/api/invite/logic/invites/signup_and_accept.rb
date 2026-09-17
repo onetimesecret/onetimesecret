@@ -418,6 +418,16 @@ module InviteAPI::Logic
             nil
           end
 
+        # Rotate the real Rack session at the anonymous-to-authenticated
+        # transition (#4393). Rodauth's internal request has its own env;
+        # renewing that session does not affect the caller's cookie. Rack's
+        # SessionHash#options exposes the real request's rack.session.options.
+        # Keep this outside the active-session rescue so the fallback rotates too.
+        rotate_session!(
+          security_warning: 'invite signup is establishing authentication state without rotating the anonymous session id',
+          customer_id: @customer.extid,
+        )
+
         # Populate session with authentication state
         sess['authenticated']    = true
         sess['authenticated_at'] = Familia.now.to_i

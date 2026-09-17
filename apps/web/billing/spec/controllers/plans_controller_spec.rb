@@ -738,7 +738,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
 
       default_org = orgs.find { |o| o.is_default }
       expect(default_org).not_to be_nil
-      # CreateDefaultWorkspace names new orgs "Default Workspace" (see f5edcf7cc)
+      # EnsureDefaultWorkspace names new orgs "Default Workspace" (see f5edcf7cc)
       expect(default_org.display_name).to eq('Default Workspace')
       created_organizations.concat(orgs)
     end
@@ -797,7 +797,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
 
       expect(created.size).to eq(1)
       workspace = created.first
-      # CheckoutTargetResolver#new_workspace naming, NOT CreateDefaultWorkspace's
+      # CheckoutTargetResolver#new_workspace naming, NOT EnsureDefaultWorkspace's
       expect(workspace.display_name).to eq("#{new_customer.email}'s Workspace")
       expect(workspace.is_default).to be_truthy
       # The archived org kept the contact_email reservation, so the retry path ran

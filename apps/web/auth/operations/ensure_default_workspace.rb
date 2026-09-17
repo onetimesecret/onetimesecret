@@ -1,4 +1,4 @@
-# apps/web/auth/operations/create_default_workspace.rb
+# apps/web/auth/operations/ensure_default_workspace.rb
 #
 # frozen_string_literal: true
 
@@ -26,7 +26,7 @@ require 'auth/operations/workspace_collision'
 
 module Auth
   module Operations
-    class CreateDefaultWorkspace
+    class EnsureDefaultWorkspace
       include Onetime::LoggerMethods
 
       PROVISIONING_FAILURE_CODE = 'default_workspace_collision'

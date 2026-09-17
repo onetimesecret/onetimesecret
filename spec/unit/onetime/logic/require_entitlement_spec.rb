@@ -85,7 +85,7 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
 
     before do
       # Stub lazy-creation to return nil so auth_org stays nil
-      allow(Auth::Operations::CreateDefaultWorkspace).to receive(:new).and_return(
+      allow(Auth::Operations::EnsureDefaultWorkspace).to receive(:new).and_return(
         double(call: nil)
       )
     end
@@ -156,7 +156,7 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
     end
 
     it 'raises the dedicated actionable error without retrying provisioning' do
-      expect(Auth::Operations::CreateDefaultWorkspace).not_to receive(:new)
+      expect(Auth::Operations::EnsureDefaultWorkspace).not_to receive(:new)
 
       expect { logic.require_entitlement!('api_access') }
         .to raise_error(Onetime::AccountProvisioningFailed) do |error|

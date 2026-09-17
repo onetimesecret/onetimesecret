@@ -1,11 +1,11 @@
-# apps/web/auth/spec/operations/create_default_workspace_collision_spec.rb
+# apps/web/auth/spec/operations/ensure_default_workspace_collision_spec.rb
 #
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'auth/operations/create_default_workspace'
+require 'auth/operations/ensure_default_workspace'
 
-RSpec.describe Auth::Operations::CreateDefaultWorkspace do
+RSpec.describe Auth::Operations::EnsureDefaultWorkspace do
   let(:email) { 'user@example.com' }
   let(:organizations) { double('organization_instances', count: 0) }
   let(:customer) do

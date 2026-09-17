@@ -41,7 +41,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     end
   end
 
-  # Stub organization_instances with a non-empty array so CreateDefaultWorkspace
+  # Stub organization_instances with a non-empty array so EnsureDefaultWorkspace
   # sees the customer already has an org and skips creation (these tests are
   # about TTL config, not workspace creation).
   subject { V2ConfigTestAction.new(strategy_result, base_params) }

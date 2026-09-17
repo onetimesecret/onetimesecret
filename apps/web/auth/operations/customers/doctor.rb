@@ -7,7 +7,7 @@ require 'onetime/audited_failure'
 require 'auth/account_statuses'
 require 'auth/operations/set_customer_verification'
 require 'auth/operations/workspace_collision'
-require 'auth/operations/create_default_workspace'
+require 'auth/operations/ensure_default_workspace'
 
 module Auth
   module Operations
@@ -254,7 +254,7 @@ module Auth
         end
 
         def converge_workspace_repair(collision_issue, issues, repaired, original_classification)
-          Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
+          Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer).call
 
           verified = WorkspaceCollision.new(email: @customer.email, customer: @customer).call
           unless verified.current_valid_workspace? && !@customer.provisioning_failed?
@@ -316,7 +316,7 @@ module Auth
           return { status: :retained } if persisted&.provisioning_failed?
 
           @customer.mark_provisioning_failed!(
-            code: Auth::Operations::CreateDefaultWorkspace::PROVISIONING_FAILURE_CODE,
+            code: Auth::Operations::EnsureDefaultWorkspace::PROVISIONING_FAILURE_CODE,
             classification: classification,
           )
 
@@ -584,7 +584,7 @@ module Auth
 
         # CHECK: a personal workspace still contacting a dead address
         #
-        # `CreateDefaultWorkspace` seeds the auto-created workspace's
+        # `EnsureDefaultWorkspace` seeds the auto-created workspace's
         # contact_email from the customer's address and nothing ever updated it,
         # so every self-service email change left the default org (and
         # `organization:contact_email_index`) pointing at an address no account
