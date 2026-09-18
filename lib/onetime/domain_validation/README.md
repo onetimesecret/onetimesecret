@@ -82,7 +82,7 @@ Caddy has no per-domain status API, so `caddy_on_demand` uses `TlsProbe`:
 How the result is stored (`VerifyDomain#persist_changes`):
 
 - `is_resolving` `true`/`false` is written to `resolving`; `nil` is skipped.
-- `has_ssl` exists only inside the `vhost` blob, so the strategy returns `:data` only when `has_ssl` is known. The blob uses the keys the domain pages already read (`status`, `status_message`, `has_ssl`, `is_resolving`, `dns_pointed_at`, `ssl_active_from`, `ssl_active_until`, `last_monitored_unix`) plus `source: tls_probe`. `status` is `ACTIVE_SSL`, `PENDING_SSL` (resolves, no valid certificate yet) or `DNS_INCORRECT` (does not resolve).
+- `has_ssl` exists only inside the `vhost` blob. The strategy rewrites the blob whenever `is_resolving` is known, so its `status` and `is_resolving` follow the `resolving` field; when `has_ssl` is unknown, the stored `has_ssl`, `ssl_active_from` and `ssl_active_until` are carried into the new blob rather than overwritten. The blob uses the keys the domain pages already read (`status`, `status_message`, `has_ssl`, `is_resolving`, `dns_pointed_at`, `ssl_active_from`, `ssl_active_until`, `last_monitored_unix`) plus `source: tls_probe`. `status` is `ACTIVE_SSL`, `PENDING_SSL` (resolves, no valid certificate yet) or `DNS_INCORRECT` (does not resolve).
 - When the probe could not tell anything, the strategy returns neither `:data` nor `:mode`. Nothing stored changes and `vhost_fetch_failed_at` is set, which the UI shows as a failed check.
 - A `vhost` blob written under `approximated` is never replaced by the probe. After a strategy cutover it is the only record of the remote vhost; see the cleanup chore below. Once that blob is cleared the probe's blob takes its place.
 

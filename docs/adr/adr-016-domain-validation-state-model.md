@@ -182,8 +182,12 @@ compare the address with this deployment's. The Decision section's
 no configured expected address to compare against. Ownership rests on the TXT
 check alone, as the non-conflation rule requires.
 
-`has_ssl` is persisted inside the `vhost` blob, so the strategy returns
-`:data` only when `has_ssl` is known, and returns neither `:data` nor `:mode`
+`has_ssl` is persisted inside the `vhost` blob. The strategy rewrites the
+blob whenever `is_resolving` is known, so the blob's `status` and
+`is_resolving` never disagree with the `resolving` field; when `has_ssl` is
+unknown (port 443 unreachable, or the egress guard refused the address) the
+stored `has_ssl` and certificate dates are carried into the new blob, so an
+unknown never overwrites a known value. It returns neither `:data` nor `:mode`
 when the probe learned nothing; `VerifyDomain#persist_changes` then stores
 nothing and sets `vhost_fetch_failed_at`. A `vhost` blob left by
 `approximated` is not replaced (it is the orphaned-vhost chore's evidence).
