@@ -534,6 +534,39 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
         expect(result[:ready]).to be false
       end
     end
+
+    # Hosts fronted by another proxy (e.g. a Cloudflare CNAME setup) report
+    # ACTIVE_SSL_PROXIED: DNS points elsewhere but requests reach the cluster
+    # and the certificate is active.
+    context 'when domain is active behind another proxy' do
+      before do
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:get_vhost_by_incoming_address)
+          .and_return(double('Response', code: 200, parsed_response: {
+            'data' => { 'status' => 'ACTIVE_SSL_PROXIED', 'has_ssl' => true, 'is_resolving' => true }
+          }))
+      end
+
+      it 'returns ready true' do
+        expect(strategy.check_status(custom_domain)[:ready]).to be true
+      end
+    end
+
+    # UNKNOWN = Approximated cannot determine a reliable status right now.
+    context 'when status is UNKNOWN' do
+      before do
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:get_vhost_by_incoming_address)
+          .and_return(double('Response', code: 200, parsed_response: {
+            'data' => { 'status' => 'UNKNOWN', 'has_ssl' => false, 'is_resolving' => false }
+          }))
+      end
+
+      it 'reports is_resolving nil so the stored flag is left alone' do
+        result = strategy.check_status(custom_domain)
+        expect(result[:is_resolving]).to be_nil
+        expect(result[:ready]).to be false
+        expect(result[:status]).to eq('UNKNOWN')
+      end
+    end
   end
 end
 
