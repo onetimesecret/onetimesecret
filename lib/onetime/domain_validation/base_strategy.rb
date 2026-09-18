@@ -82,8 +82,9 @@ module Onetime
       #   - :status [String, nil] Provider-specific status code
       #   - :status_message [String, nil] Human-readable status
       #   - :data [Hash, nil] Payload stored as the domain's `vhost` blob, which
-      #     is where has_ssl is kept. Leave it out when has_ssl is nil so the
-      #     stored value is not overwritten.
+      #     is where has_ssl is kept. When has_ssl is nil, either leave :data
+      #     out or carry the stored has_ssl into it, so an unknown never
+      #     overwrites a known value.
       #   - :mode [String, nil] Strategy mode identifier
       #
       # Returning neither :data nor :mode means the check itself failed:

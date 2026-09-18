@@ -94,10 +94,15 @@ module Onetime
       # How each answer reaches storage (VerifyDomain#persist_changes):
       #
       #   is_resolving  true/false is stored in `resolving`; nil is skipped.
-      #   has_ssl       lives only inside the `vhost` blob (:data). :data is
-      #                 returned only when has_ssl is known, so an unknown
-      #                 never overwrites the stored value. A blob left by
-      #                 the Approximated strategy is not overwritten either:
+      #   has_ssl       lives only inside the `vhost` blob (:data). The blob
+      #                 is rewritten on every check that knows is_resolving,
+      #                 so its status and is_resolving never disagree with
+      #                 `resolving`. When has_ssl is unknown (the probe could
+      #                 not reach port 443, or the egress guard refused the
+      #                 address) the stored has_ssl and certificate dates are
+      #                 carried into the new blob, so an unknown never
+      #                 overwrites a known value. A blob left by the
+      #                 Approximated strategy is not overwritten at all:
       #                 after a cutover it is the only record that a remote
       #                 vhost exists, and the RemoveOrphanedApproximatedVhosts
       #                 chore clears it once that vhost is dealt with.
@@ -124,7 +129,8 @@ module Onetime
           message: result.message,
           mode: MODE,
         }
-        status[:data] = vhost_data(custom_domain, result) if !result.has_ssl.nil? && owns_vhost?(custom_domain)
+        # TlsProbe never knows has_ssl without knowing is_resolving.
+        status[:data] = vhost_data(custom_domain, result) if !result.is_resolving.nil? && owns_vhost?(custom_domain)
         status
       rescue StandardError => ex
         # TlsProbe rescues its own work; this is a failure of ours and says
@@ -228,26 +234,40 @@ module Onetime
       # The subset of Approximated's vhost payload the domain pages read,
       # filled from the probe. `status` reuses Approximated's values where the
       # UI keys off them (ACTIVE_SSL -> active, DNS_INCORRECT -> warning).
+      #
+      # Only called for a blob this strategy owns and a known is_resolving.
       def vhost_data(custom_domain, result)
-        certificate = result.certificate
-        status      = if result.has_ssl then 'ACTIVE_SSL'
-                      elsif result.is_resolving then 'PENDING_SSL'
-                      else
-                        'DNS_INCORRECT'
-                      end
+        ssl    = ssl_fields(custom_domain, result)
+        status = if ssl['has_ssl'] == true then 'ACTIVE_SSL'
+                 elsif result.is_resolving then 'PENDING_SSL'
+                 else
+                   'DNS_INCORRECT'
+                 end
 
         {
           'incoming_address' => custom_domain.display_domain,
           'status' => status,
           'status_message' => result.message,
-          'has_ssl' => result.has_ssl,
           'is_resolving' => result.is_resolving,
           'dns_pointed_at' => result.connected_to || result.addresses.first,
-          'ssl_active_from' => iso8601(certificate&.not_before),
-          'ssl_active_until' => iso8601(certificate&.not_after),
           'last_monitored_unix' => OT.now.to_i,
           'source' => VHOST_SOURCE,
-        }.compact
+        }.merge(ssl).compact
+      end
+
+      # has_ssl and the certificate dates: from the probe when it knows, else
+      # whatever the previous check stored.
+      def ssl_fields(custom_domain, result)
+        if result.has_ssl.nil?
+          stored = custom_domain.parse_vhost
+          return stored.is_a?(Hash) ? stored.slice('has_ssl', 'ssl_active_from', 'ssl_active_until') : {}
+        end
+
+        {
+          'has_ssl' => result.has_ssl,
+          'ssl_active_from' => iso8601(result.certificate&.not_before),
+          'ssl_active_until' => iso8601(result.certificate&.not_after),
+        }
       end
 
       def iso8601(time)

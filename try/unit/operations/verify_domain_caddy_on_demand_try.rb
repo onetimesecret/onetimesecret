@@ -25,7 +25,7 @@
 #   8. A probe that could not tell leaves `resolving` and vhost as they were
 #      and marks the check as failed (vhost_fetch_failed_at).
 #   9. A probe that knows only that the name resolves stores `resolving` and
-#      leaves vhost (has_ssl) alone.
+#      refreshes the vhost blob, carrying the stored has_ssl forward.
 #  10. A vhost blob written under the Approximated strategy is not replaced.
 #
 # The scripted probe reports resolving + valid certificate until case 7, so
@@ -262,13 +262,13 @@ caddy_try_verify(@domain)
 caddy_try_reload(@domain).vhost_fetch_failed_at.to_i.positive?
 #=> true
 
-## Status: resolving known, certificate unknown - resolving stored, vhost (has_ssl) untouched
+## Status: resolving known, certificate unknown - resolving stored, stored has_ssl carried forward
 @probe.is_resolving = true
 @probe.has_ssl      = nil
 caddy_try_verify(@domain)
 @stored = caddy_try_reload(@domain)
-[@stored.resolving == true, @stored.vhost == @vhost_before, @stored.vhost_fetch_failed_at.to_s.empty?]
-#=> [true, true, true]
+[@stored.resolving == true, @stored.parse_vhost.values_at('has_ssl', 'status'), @stored.vhost_fetch_failed_at.to_s.empty?]
+#=> [true, [true, 'ACTIVE_SSL'], true]
 
 ## Status: resolves without a valid certificate - has_ssl false is stored
 @probe.is_resolving = true
@@ -295,6 +295,14 @@ caddy_try_verify(@domain)
 @stored = caddy_try_reload(@domain)
 [@stored.resolving == true, @stored.parse_vhost['status']]
 #=> [false, 'DNS_INCORRECT']
+
+## Status: the name resolves again but port 443 cannot be reached - the blob follows `resolving`, has_ssl stays as stored
+@probe.is_resolving = true
+@probe.has_ssl      = nil
+caddy_try_verify(@domain)
+@stored = caddy_try_reload(@domain)
+[@stored.resolving == true, @stored.parse_vhost.values_at('is_resolving', 'status', 'has_ssl')]
+#=> [true, [true, 'PENDING_SSL', false]]
 
 ## Status: an Approximated-era vhost blob is left for the cleanup chore; resolving is still stored
 @domain.vhost       = { 'id' => 42, 'incoming_address' => @domain.display_domain, 'status' => 'ACTIVE_SSL' }.to_json
