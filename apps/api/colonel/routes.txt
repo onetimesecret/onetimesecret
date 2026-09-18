@@ -165,6 +165,11 @@ GET    /billing/catalog                   ColonelAPI::Logic::Colonel::GetBilling
 # Stripe-linked organization roster. Index-backed (organization:stripe_customer_id_index),
 # paginated + bounded — never a full Organization.instances scan. Read-only.
 GET    /billing/stripe-organizations      ColonelAPI::Logic::Colonel::ListStripeOrganizations response=json auth=sessionauth role=colonel scope=internal
+# Local webhook observability only: no Stripe API calls, replays, or writes. The
+# list walks a bounded Redis keyspace and marks its lower-bound count as capped.
+GET    /billing/webhook-events            ColonelAPI::Logic::Colonel::ListStripeWebhookEvents response=json auth=sessionauth role=colonel scope=internal
+GET    /billing/webhook-events/:event_id  ColonelAPI::Logic::Colonel::GetStripeWebhookEvent response=json auth=sessionauth role=colonel scope=internal
+GET    /billing/pending-federated-subscriptions ColonelAPI::Logic::Colonel::ListPendingFederatedSubscriptions response=json auth=sessionauth role=colonel scope=internal
 
 # Observability: audit trail reader + export + daily activity trends (all read-only)
 # The literal /audit/export MUST precede /audit only for readability — they are
