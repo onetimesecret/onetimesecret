@@ -132,8 +132,14 @@ the TXT check had to land first so that `verified` carries proof by the time
 the gate can open. `passthrough` still performs no ownership check (ADR-017).
 
 Operator impact: domains that were marked verified under `caddy_on_demand`
-without a TXT record lose `verified` on the first refresh after upgrade,
-unless the record exists or a Colonel override holds the flag.
+without a TXT record lose `verified` on the first check after upgrade,
+unless the record exists or a Colonel override holds the flag. That includes
+a first check that is indeterminate: the strategy returns `false` rather than
+`nil` for a verified domain with no `verified_confirmed_at`, because such a
+flag was never backed by a TXT check and the serving axis below would
+otherwise make the domain `ready?`. Installs that do not run
+`DomainRefreshJob` (the scheduler is off by default) need
+`bin/ots domains verify --all` for any of this to reach existing domains.
 
 ### Serving axis implemented for `caddy_on_demand` (2026-09-18)
 
@@ -169,7 +175,21 @@ nothing and sets `vhost_fetch_failed_at`. A `vhost` blob left by
 The frontend part of the Decision (`useDomainStatus.ts` keyed on
 `validation_strategy`) is not done. The probe blob reuses Approximated's
 `status` values (`ACTIVE_SSL`, `DNS_INCORRECT`) plus `PENDING_SSL`, so the
-existing single badge renders correctly without it.
+single badge has correct data to render wherever it is shown. Today that is
+the Colonel domain pages only. The customer workspace hides the badge and
+the verification screen on every non-`approximated` install
+(`isApproximatedDomainValidation()` gates `showVerificationStatus` in
+`DomainHeader`, `DomainsTableDomainCell` and `DomainsTableActionsCell`, and
+the `DomainVerify` route guard redirects to `DomainDns`, which shows only
+the CNAME/ALIAS record). So under `caddy_on_demand` a customer cannot see the
+TXT challenge, the status, or a verify button; the operator reads the record
+from the Colonel domain detail page, the domains API payload or
+`bin/ots domains verify <domain>` and runs the verify. Closing that gap needs
+a predicate for "strategies that check ownership" (`approximated`,
+`caddy_on_demand`) separate from "uses Approximated", because the same flag
+currently also selects the Approximated proxy targets (`cluster.proxy_ip` /
+`proxy_host`) that `VerifyDomainDetails` renders and that are empty under
+`caddy_on_demand`.
 
 ### Caddy `ask` deprecation — confirmed in the app itself, not just the example file (2026-06-30)
 

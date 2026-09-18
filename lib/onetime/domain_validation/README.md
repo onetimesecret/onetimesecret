@@ -18,11 +18,19 @@ Custom domain SSL and DNS validation strategies.
 |-------------|---------|--------------------------------------|
 | `true` | Exactly one TXT value at the domain's validation record, equal to the challenge | Set to true |
 | `false` | The resolver stated the record is missing (NXDOMAIN, or NOERROR without TXT data) or the values are not exactly one match | Set to false, unless a Colonel override holds it |
-| `nil` (+ `indeterminate: true`) | No answer: SERVFAIL, REFUSED, timeout, network error | Left unchanged, for at most 7 days (see below) |
+| `nil` (+ `indeterminate: true`) | No answer: SERVFAIL, REFUSED, timeout, network error, a hostname with no A-label form | Left unchanged, for at most 7 days (see below) |
 
 `TxtVerifier` implements this with `TxtResolver`, a small resolver that reads the DNS response code. `Resolv::DNS#getresources` cannot be used for it: it returns `[]` for NXDOMAIN, SERVFAIL and a timeout alike.
 
+A reply only counts as definitive when it is an answer about the name (`DnsStubResolver#ensure_usable!`). A NOERROR or NXDOMAIN reply with neither `ra` nor `aa` set (a nameserver that does not recurse for us, typically an upward referral) and an answer section with nothing owned by the queried name are skipped like a failed exchange, so they end up indeterminate rather than "not found". CNAME chains are followed whatever order the answer section lists them in.
+
+Internationalised hostnames are queried, and probed, in their A-label form (`AsciiHostname`). `CustomDomain` stores the hostname as typed; sent as typed it would come back NXDOMAIN, which is our encoding speaking and not the customer's DNS.
+
 Under `caddy_on_demand` the TXT check is the ownership proof. Caddy completing an ACME challenge shows that the name resolves to this deployment; it does not show which account, if any, controls the domain. The internal ACME endpoint (`apps/internal/acme`) only authorises a certificate for a domain that is `ready?`, which requires `verified`.
+
+`caddy_on_demand` makes one exception to "nil leaves `verified` unchanged": a domain that is verified with no `verified_confirmed_at`. Before this strategy checked TXT records it marked every domain verified, so such a flag has no proof behind it, and with the status probe now filling in `resolving`, holding it would make the domain `ready?`. The strategy returns `false` for it instead of `nil`. A Colonel override holds the domain as for any other `false`, and the next check that finds the record verifies it.
+
+Existing domains are only re-checked when something runs the check. Installs that do not run the scheduler with `jobs.domain_refresh` enabled (both are off by default) must run `bin/ots domains verify --all` once after upgrading for the TXT check to take effect on existing domains, and periodically after that.
 
 Under `approximated` the API's answer is used when it has one. When its own DNS lookup failed (`actual_values: false`), `TxtVerifier` decides instead, with the same three outcomes.
 
@@ -37,7 +45,7 @@ When a check is indeterminate and `verified_unconfirmed_since` is more than 7 da
 
 The window runs from the first indeterminate check, not from the last passing one. A deployment that does not run `DomainRefreshJob` may check a domain once in months, and one resolver failure on that check must not demote it. A demotion always takes two indeterminate checks at least 7 days apart with no passing check between them.
 
-- A domain with no clock, which is every domain at upgrade, starts one on its first indeterminate check and is not demoted by that check.
+- A domain with no clock, which is every domain at upgrade, starts one on its first indeterminate check and is not demoted by that check (except under `caddy_on_demand` when it was never confirmed, see above).
 - A Colonel override exempts the domain, as it does for a definitive failure.
 - Unverified domains are not affected.
 - A demoted domain becomes verified again on its next passing check.
@@ -123,6 +131,7 @@ Re-run until the dry run reports no candidates. Domains that are skipped every t
 - `txt_resolver.rb` - TXT lookup that reports the DNS response code
 - `address_resolver.rb` - A/AAAA lookup that reports the DNS response code
 - `dns_stub_resolver.rb` - Transport and time budget shared by the two resolvers
+- `ascii_hostname.rb` - A-label (punycode) form of a hostname for DNS and TLS
 - `tls_probe.rb` - Resolution and certificate check for `caddy_on_demand` status, behind the egress guard
 
 ## DNS Widget Integration
