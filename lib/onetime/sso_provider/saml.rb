@@ -103,7 +103,16 @@ module Onetime
       # The FULL ruby-saml security hash — see the header for why it can never
       # be partial. We sign nothing (no SP key is configured), so every
       # *_signed / embed_sign key is false; what we REQUIRE of the IdP is
-      # want_assertions_signed, SHA-256 and an unexpired certificate.
+      # want_assertions_signed and an unexpired certificate.
+      #
+      # digest_method / signature_method are SP-SIDE signing parameters only
+      # (ruby-saml xml_security.rb:147 `sign_document`), which with no SP key
+      # never runs; they are set to SHA-256 so nothing SHA1 is ever advertised
+      # in SP metadata. They do NOT constrain the IdP: the verifier reads the
+      # SignatureMethod and DigestMethod the RESPONSE declares
+      # (xml_security.rb:341, :415), so a SHA1-signed response still verifies.
+      # A minimum-algorithm gate would be a new RequestBoundSAML check, not a
+      # value in this hash. RE-VERIFY on a ruby-saml bump. (#4450)
       SECURITY = {
         authn_requests_signed: false,
         logout_requests_signed: false,
