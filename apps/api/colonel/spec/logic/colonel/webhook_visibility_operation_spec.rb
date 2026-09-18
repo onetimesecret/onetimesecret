@@ -123,6 +123,53 @@ RSpec.describe Onetime::Operations::Billing::WebhookVisibility do
     expect(page.stale_count).to eq(1)
   end
 
+  it 'treats a loaded event whose key no longer exists as stale, not as a blank row' do
+    allow(event_a).to receive(:exists?).and_return(false)
+    allow(event_index).to receive(:element_count).and_return(2)
+    allow(event_index).to receive(:revrange).with(0, 49).and_return(['evt_a', 'evt_b'])
+
+    page = visibility.list_webhook_events
+
+    expect(event_index).to have_received(:remove).with('evt_a').once
+    expect(page.rows.map { |row| row[:event_id] }).to eq(['evt_b'])
+    expect(page.stale_count).to eq(1)
+  end
+
+  it 'treats a loaded pending record whose key no longer exists as stale' do
+    gone = Pending.new(
+      email_hash: 'email-hash-never-expose', subscription_status: 'active', planid: 'pro_v1',
+      region: 'eu', received_at: '300', source_stripe_event_id: nil,
+    )
+    allow(gone).to receive(:exists?).and_return(false)
+    allow(pending_index).to receive(:element_count).and_return(1)
+    allow(pending_index).to receive(:revrange).with(0, 49).and_return(['email-hash-never-expose'])
+    allow(pending_model).to receive(:load_multi).and_return([gone])
+
+    page = visibility.list_pending_federated_subscriptions
+
+    expect(pending_index).to have_received(:remove).with('email-hash-never-expose').once
+    expect(page.rows).to eq([])
+    expect(page.stale_count).to eq(1)
+  end
+
+  it 'reports a source event whose key no longer exists as expired, not available' do
+    correlated = Pending.new(
+      email_hash: 'email-hash-never-expose', subscription_status: 'active', planid: 'pro_v1',
+      region: 'eu', received_at: '300', source_stripe_event_id: 'evt_b',
+    )
+    allow(event_b).to receive(:exists?).and_return(false)
+    allow(pending_index).to receive(:element_count).and_return(1)
+    allow(pending_index).to receive(:revrange).with(0, 49).and_return(['email-hash-never-expose'])
+    allow(pending_model).to receive(:load_multi).and_return([correlated])
+    allow(event_model).to receive(:load_multi).with(['evt_b']).and_return([event_b])
+
+    page = visibility.list_pending_federated_subscriptions
+
+    expect(page.rows.first[:source_webhook]).to eq(
+      state: 'expired', processing_status: nil, outcome: nil,
+    )
+  end
+
   it 'does not expose payload, customer/object identifiers, or raw error text in detail' do
     detail = visibility.webhook_event_detail(event_b)
 
