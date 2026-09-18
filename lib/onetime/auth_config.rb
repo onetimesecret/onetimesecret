@@ -657,6 +657,66 @@ module Onetime
       ''
     end
 
+    # PUBLIC, and a CLASS method (#4450): the domains API validates a tenant's
+    # SAML SSO service URL through this same funnel
+    # (DomainsAPI::Logic::SsoConfig::SamlFields), so a URL is only ever
+    # accepted if the origin derived from it here — the one TenantCspExtras
+    # and HttpOriginOptions will later admit — is CSP-safe. A pure function of
+    # its argument, reached as Onetime::AuthConfig.origin_from_url so the rule
+    # does not depend on whichever auth_config INSTANCE a process (or a test
+    # mock) installed; the instance method delegates for the callers here.
+    def origin_from_url(url)
+      self.class.origin_from_url(url)
+    end
+
+    # Derive an origin (scheme://host[:port]) from a URL, omitting a default
+    # port (80/443). Returns nil for a blank, schemeless, hostless, or
+    # otherwise malformed URL — never raises. Note that URI.parse sets #host to
+    # an empty string (not nil) for a scheme-present, hostless URL such as
+    # "https://" or "https:///path", so an empty/whitespace host is treated the
+    # same as nil to avoid emitting a degenerate "https://" origin. A returned
+    # origin is guaranteed to survive otto's own extras validator (final gate
+    # below), so nothing reaching a caller is dropped later without a warning.
+    def self.origin_from_url(url)
+      str = url.to_s.strip
+      return nil if str.empty?
+
+      uri = URI.parse(str)
+
+      # Only http(s) may widen the CSP form-action directive. Plain http is
+      # kept on purpose: internal OIDC providers commonly run without TLS.
+      return nil unless %w[http https].include?(uri.scheme&.downcase)
+
+      host = uri.host.to_s.strip
+      return nil if host.empty?
+
+      # Reject a host carrying CSP-hostile characters (whitespace, ';', ',',
+      # quotes, brackets, control chars). URI.parse keeps a trailing ';' on the
+      # host ("idp.example.com;" from "https://idp.example.com;"), and such an
+      # origin would break the form-action directive — otto's per-request
+      # reject_injection! raises, 500-ing every request. Guard here so a
+      # returned origin is always CSP-safe.
+      return nil if host.match?(/[\s;,'"()<>]/) || host.match?(/[\x00-\x1f]/)
+
+      origin  = "#{uri.scheme}://#{host}"
+      origin += ":#{uri.port}" if uri.port && uri.port != uri.default_port
+
+      # Final gate: otto's OWN validator, the same code that sanitizes the
+      # request-scoped extras at policy-build time (otto 2.9.0
+      # lib/otto/security/csp/request_extras.rb). Validating THROUGH it rather
+      # than mirroring its rules is what stops the two from drifting: anything
+      # otto would drop later (port outside 1..65535, a '%' in the host, a
+      # double-trailing-dot FQDN) must be rejected HERE, where the caller
+      # still knows
+      # the domain and the SsoConfig record and can say so in a warning. Otto
+      # drops it with a generic message naming neither — the silent #4173
+      # blocked redirect. It also normalizes (downcased scheme and host, a
+      # single trailing dot stripped).
+      Otto::Security::CSP::RequestExtras.normalize_origin(origin)
+    rescue URI::Error
+      nil
+    end
+
     private
 
     # The restriction as CONFIGURED, before any validation: the stripped
@@ -874,54 +934,6 @@ module Onetime
         OT.lw "[auth_config] dropping invalid SSO_FORM_ACTION_ORIGINS token: #{token.inspect}" if origin.nil?
         origin
       end
-    end
-
-    # Derive an origin (scheme://host[:port]) from a URL, omitting a default
-    # port (80/443). Returns nil for a blank, schemeless, hostless, or
-    # otherwise malformed URL — never raises. Note that URI.parse sets #host to
-    # an empty string (not nil) for a scheme-present, hostless URL such as
-    # "https://" or "https:///path", so an empty/whitespace host is treated the
-    # same as nil to avoid emitting a degenerate "https://" origin. A returned
-    # origin is guaranteed to survive otto's own extras validator (final gate
-    # below), so nothing reaching a caller is dropped later without a warning.
-    def origin_from_url(url)
-      str = url.to_s.strip
-      return nil if str.empty?
-
-      uri = URI.parse(str)
-
-      # Only http(s) may widen the CSP form-action directive. Plain http is
-      # kept on purpose: internal OIDC providers commonly run without TLS.
-      return nil unless %w[http https].include?(uri.scheme&.downcase)
-
-      host = uri.host.to_s.strip
-      return nil if host.empty?
-
-      # Reject a host carrying CSP-hostile characters (whitespace, ';', ',',
-      # quotes, brackets, control chars). URI.parse keeps a trailing ';' on the
-      # host ("idp.example.com;" from "https://idp.example.com;"), and such an
-      # origin would break the form-action directive — otto's per-request
-      # reject_injection! raises, 500-ing every request. Guard here so a
-      # returned origin is always CSP-safe.
-      return nil if host.match?(/[\s;,'"()<>]/) || host.match?(/[\x00-\x1f]/)
-
-      origin  = "#{uri.scheme}://#{host}"
-      origin += ":#{uri.port}" if uri.port && uri.port != uri.default_port
-
-      # Final gate: otto's OWN validator, the same code that sanitizes the
-      # request-scoped extras at policy-build time (otto 2.9.0
-      # lib/otto/security/csp/request_extras.rb). Validating THROUGH it rather
-      # than mirroring its rules is what stops the two from drifting: anything
-      # otto would drop later (port outside 1..65535, a '%' in the host, a
-      # double-trailing-dot FQDN) must be rejected HERE, where the caller
-      # still knows
-      # the domain and the SsoConfig record and can say so in a warning. Otto
-      # drops it with a generic message naming neither — the silent #4173
-      # blocked redirect. It also normalizes (downcased scheme and host, a
-      # single trailing dot stripped).
-      Otto::Security::CSP::RequestExtras.normalize_origin(origin)
-    rescue URI::Error
-      nil
     end
 
     # Check if an environment variable is present and non-empty

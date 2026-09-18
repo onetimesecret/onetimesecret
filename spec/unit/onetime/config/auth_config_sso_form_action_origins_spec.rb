@@ -715,4 +715,35 @@ RSpec.describe Onetime::AuthConfig do
       end
     end
   end
+
+  # The funnel as a CLASS method (#4450): the domains API accepts a tenant's
+  # SAML SSO URL only if this derives an origin from it, and reaches it as
+  # Onetime::AuthConfig.origin_from_url so the rule does not depend on which
+  # auth_config instance (or test mock) a process installed. The instance
+  # method must stay a pure delegate so both consumers see one rule.
+  describe '.origin_from_url' do
+    {
+      'https://idp.example.com/saml/sso' => 'https://idp.example.com',
+      'https://IDP.example.com:8443/x' => 'https://idp.example.com:8443',
+      'http://internal-idp.corp/sso' => 'http://internal-idp.corp',
+      'https://10.0.0.5/sso' => 'https://10.0.0.5',
+      'https://idp.example.com;/sso' => nil,
+      %(https://idp.example.com'/sso) => nil,
+      'https://a b.example/sso' => nil,
+      'ftp://idp.example.com/sso' => nil,
+      '' => nil,
+      nil => nil,
+    }.each do |url, origin|
+      it "derives #{origin.inspect} from #{url.inspect}" do
+        expect(described_class.origin_from_url(url)).to eq(origin)
+      end
+    end
+
+    it 'is what the instance method answers' do
+      instance = fresh_config
+      ['https://idp.example.com/saml/sso', 'https://idp.example.com;/sso'].each do |url|
+        expect(instance.origin_from_url(url)).to eq(described_class.origin_from_url(url))
+      end
+    end
+  end
 end

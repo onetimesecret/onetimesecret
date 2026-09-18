@@ -628,7 +628,7 @@ options, as platform SAML — the gates and refusal codes in
 
 | Field | Required | Rules |
 |-------|----------|-------|
-| `idp_sso_service_url` | yes | `https://` URL on a public host. It gets the same SSRF host check as an OIDC issuer even though the server never fetches it (its origin is admitted into this domain's CSP `form-action` and `HttpOrigin` allowances), so an IdP that resolves only to private addresses is refused at save time |
+| `idp_sso_service_url` | yes | `https://` URL with no userinfo whose origin is CSP-safe (a plain hostname — no spaces, quotes or punctuation in the host). The server never fetches it (the browser is redirected to it), so unlike an OIDC issuer it gets no SSRF host check and an IdP on a private network is accepted; its origin is admitted into this domain's CSP `form-action` and `HttpOrigin` allowances |
 | `idp_entity_id` | yes | The IdP's EntityID exactly as it sends it in `<Issuer>`. Surrounding whitespace is stripped on input; the stored value is compared byte for byte at every sign-in. Identities from this domain are keyed on it **scoped to the domain** (`"<domain_id>\|<EntityID>"`), never on the bare EntityID — see below |
 | `idp_cert` | yes | Exactly one PEM `-----BEGIN CERTIFICATE-----` block that parses as X.509 and has not expired when saved. CRLF and the literal-`\n` single-line form are accepted |
 

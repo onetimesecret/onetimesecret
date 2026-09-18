@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require 'onetime/sso_provider/saml'
-require_relative 'ssrf_protection'
 
 module DomainsAPI
   module Logic
@@ -22,21 +21,26 @@ module DomainsAPI
       # cert_problem) — this module adds only what is specific to a value
       # arriving over the API:
       #
-      #   - the SSRF host check the OIDC issuer gets (SsrfProtection). The
-      #     server never fetches a SAML SSO URL — the browser is redirected to
-      #     it — but the URL's origin is admitted into this domain's CSP
-      #     form-action and HttpOrigin allowances, so it is held to the same
-      #     "public https host" bar.
+      #   - the SSO URL must yield a CSP-safe ORIGIN. The server never fetches
+      #     a SAML SSO URL — it is a browser-navigation target — so the SSRF
+      #     host check the OIDC issuer gets (SsrfProtection, for a URL the
+      #     server DOES fetch at discovery) is deliberately NOT applied: an
+      #     IdP on a private network is a legitimate configuration for a
+      #     browser that can reach it. What the URL's origin IS admitted into
+      #     is this domain's CSP form-action and HttpOrigin allowances
+      #     (AuthConfig#tenant_idp_origin), so the value is accepted only if
+      #     Onetime::AuthConfig.origin_from_url — the same funnel those consumers use
+      #     — derives an origin from it: http(s), a host free of CSP-hostile
+      #     characters, and one otto's own extras validator keeps. Together
+      #     with sso_url_problem (https only, no userinfo) that is the whole
+      #     rule.
       #   - certificate EXPIRY. The model deliberately does not treat expiry
       #     as a record invariant (SsoConfig#saml_validation_errors); the
       #     point where a certificate is ACCEPTED is here.
       #   - refusing fingerprint parameters outright (see FORBIDDEN_PARAMS).
       #
-      # Includes SsrfProtection. Includers must respond to `params` and
-      # `raise_form_error`.
+      # Includers must respond to `params` and `raise_form_error`.
       module SamlFields
-        include SsrfProtection
-
         # Never accepted, in any spelling ruby-saml understands. A
         # fingerprint-only configuration trusts whatever certificate the
         # RESPONSE embeds (SHA1 by default), and idp_cert_multi would widen
@@ -104,12 +108,22 @@ module DomainsAPI
           case field
           when :idp_sso_service_url
             saml.sso_url_problem(value) ||
-              (valid_issuer_host?(value) ? nil : 'IdP SSO service URL must be an HTTPS URL pointing to a public host')
+              (csp_safe_origin?(value) ? nil : 'IdP SSO service URL must have a plain hostname (no spaces, quotes or punctuation in the host)')
           when :idp_entity_id
             saml.entity_id_problem(value)
           when :idp_cert
             saml.cert_problem(value)
           end
+        end
+
+        # Whether the origin the CSP / HttpOrigin allowances will derive from
+        # this URL is one they can carry. See the header.
+        #
+        # @return [Boolean]
+        def csp_safe_origin?(url)
+          !Onetime::AuthConfig.origin_from_url(url).nil?
+        rescue StandardError
+          false
         end
 
         # @return [Hash{Symbol => String}]

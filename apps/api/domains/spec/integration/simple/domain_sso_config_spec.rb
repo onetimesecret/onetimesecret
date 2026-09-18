@@ -1314,14 +1314,47 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         expect(json_body).to include('error_type' => 'invalid', 'field' => 'idp_sso_service_url')
       end
 
-      it 'returns 422 (invalid) for an SSO service URL on a private host' do
+      # The server never fetches the SSO URL (the browser is redirected to
+      # it), so the OIDC issuer's SSRF host check does not apply: an IdP that
+      # only the user's browser can reach is a legitimate configuration.
+      it 'accepts an SSO service URL that resolves to a private address' do
         allow(Resolv).to receive(:getaddresses).and_return(['10.0.0.5'])
 
         csrf_put api_path(test_custom_domain.extid), valid_saml_params
 
-        expect(last_response.status).to eq(422)
-        expect(json_body).to include('error_type' => 'invalid', 'field' => 'idp_sso_service_url')
-        expect(last_response.body).not_to include('10.0.0.5')
+        expect(last_response.status).to eq(200), last_response.body
+        expect(stored_config.reveal_saml_field(:idp_sso_service_url)).to eq('https://idp.example.com/saml/sso')
+      end
+
+      it 'accepts an SSO service URL on a private hostname' do
+        csrf_put api_path(test_custom_domain.extid),
+          valid_saml_params.merge(idp_sso_service_url: 'https://sso.corp.internal/saml/sso')
+
+        expect(last_response.status).to eq(200), last_response.body
+      end
+
+      # What the URL's origin IS admitted into is the domain's CSP form-action
+      # and HttpOrigin allowances (AuthConfig#origin_from_url is the funnel),
+      # so a host that would break the CSP directive is refused at save time.
+      {
+        'a trailing semicolon on the host' => 'https://idp.example.com;/saml/sso',
+        'a quote in the host' => %(https://idp.example.com'/saml/sso),
+        'userinfo' => 'https://user:secret@idp.example.com/saml/sso',
+      }.each do |label, url|
+        it "returns 422 (invalid) for an SSO service URL with #{label}" do
+          csrf_put api_path(test_custom_domain.extid), valid_saml_params.merge(idp_sso_service_url: url)
+
+          expect(last_response.status).to eq(422)
+          expect(json_body).to include('error_type' => 'invalid', 'field' => 'idp_sso_service_url')
+          expect(last_response.body).not_to include('secret')
+        end
+      end
+
+      it 'stores only a URL whose derived origin the CSP layer will carry' do
+        csrf_put api_path(test_custom_domain.extid), valid_saml_params
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(Onetime.auth_config.tenant_idp_origin(stored_config)).to eq('https://idp.example.com')
       end
 
       it 'returns 422 (invalid) for a fingerprint in place of the certificate' do
