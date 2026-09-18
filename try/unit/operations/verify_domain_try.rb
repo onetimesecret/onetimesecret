@@ -256,7 +256,7 @@ end
 
 ## Result to_h - produces hash representation
 @result1.to_h.keys.sort
-#=> [:current_state, :dns_validated, :domain, :error, :is_resolving, :persisted, :previous_state, :ssl_ready]
+#=> [:current_state, :dns_indeterminate, :dns_message, :dns_validated, :domain, :error, :is_resolving, :persisted, :previous_state, :ssl_ready]
 
 ## Result changed? - detects state change
 # Reset domain and verify with different outcome
@@ -284,7 +284,7 @@ end
 
 ## BulkResult to_h - produces hash with nested results
 @bulk_result.to_h.keys.sort
-#=> [:duration_seconds, :failed_count, :results, :skipped_count, :total, :verified_count]
+#=> [:demoted_count, :duration_seconds, :failed_count, :indeterminate_count, :results, :skipped_count, :total, :verified_count]
 
 # ─────────────────────────────────────────────────────────────────────────
 # Issue #3080: atomic persistence smoke tests.
@@ -354,6 +354,59 @@ end
 ## Issue #3080: PassiveStrategy — Result.is_resolving is true
 @passive_result.is_resolving
 #=> true
+
+## Indeterminate TXT check — a verified domain is NOT demoted
+# The upstream checker answered 200 but its own DNS lookup failed
+# (Approximated: "actual_values" => false). That is no evidence about the
+# customer's DNS, so the stored verified flag must survive the run.
+@domain1.verified  = true
+@domain1.resolving = true
+@domain1.save
+@indeterminate_strategy = MockValidationStrategy.new
+@indeterminate_strategy.ownership_result = {
+  validated: nil,
+  indeterminate: true,
+  message: 'Upstream DNS checker returned no result (indeterminate)',
+  data: [{ 'actual_values' => false, 'match' => false }],
+}
+@indeterminate_result = Onetime::Operations::VerifyDomain.new(
+  domain: @domain1,
+  strategy: @indeterminate_strategy,
+  persist: true,
+).call
+[@indeterminate_result.previous_state, @indeterminate_result.current_state, @indeterminate_result.demoted?]
+#=> [:verified, :verified, false]
+
+## Indeterminate TXT check — persisted verified flag is still true
+Onetime::CustomDomain.find_by_identifier(@domain1.identifier).verified
+#=> true
+
+## Indeterminate TXT check — Result reports indeterminate, not a plain failure
+[@indeterminate_result.dns_validated, @indeterminate_result.dns_indeterminate, @indeterminate_result.dns_message]
+#=> [false, true, 'Upstream DNS checker returned no result (indeterminate)']
+
+## Real mismatch — a verified domain IS demoted and the Result says so
+@indeterminate_strategy.ownership_result = { validated: false, message: 'TXT record not found', data: [{ 'actual_values' => [], 'match' => false }] }
+@demoted_result = Onetime::Operations::VerifyDomain.new(
+  domain: @domain1,
+  strategy: @indeterminate_strategy,
+  persist: true,
+).call
+[@demoted_result.previous_state, @demoted_result.current_state, @demoted_result.demoted?, @demoted_result.dns_indeterminate]
+#=> [:verified, :resolving, true, false]
+
+## Bulk verification — counts indeterminate and demoted runs
+@domain1.verified = true
+@domain1.save
+@indeterminate_strategy.ownership_result = { validated: false, message: 'TXT record not found', data: [] }
+@bulk_counts = Onetime::Operations::VerifyDomain.new(
+  domains: [@domain1],
+  strategy: @indeterminate_strategy,
+  persist: true,
+  rate_limit: 0,
+).call
+[@bulk_counts.indeterminate_count, @bulk_counts.demoted_count]
+#=> [0, 1]
 
 ## Argument validation - requires domain or domains
 begin

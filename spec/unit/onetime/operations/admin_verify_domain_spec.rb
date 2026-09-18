@@ -28,6 +28,8 @@ RSpec.describe Onetime::Operations::AdminVerifyDomain do
       previous_state: previous,
       current_state: current,
       dns_validated: success,
+      dns_indeterminate: false,
+      dns_message: nil,
       is_resolving: success,
       ssl_ready: success,
       persisted: true,
