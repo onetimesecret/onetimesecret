@@ -20,7 +20,14 @@ provider appears on the login and signup pages with zero frontend changes.
 ## Checklist
 
 1. **Pick the strategy gem** and add it to the `Gemfile`
-   (e.g. `gem 'omniauth-gitlab'`), then `bundle install`.
+   (e.g. `gem 'omniauth-gitlab'`), then `bundle install`. If the gem's own
+   defaults do not meet the gates this application needs, subclass the
+   strategy under `lib/onetime/sso_provider/` and point the definition's
+   `gem_require` at that file; the file requires the gem itself, so the gem
+   still loads lazily (`request_bound_saml.rb` is the precedent). When the
+   gem *is* the trust decision, pin it exactly and write the rationale in
+   the `Gemfile` (ruby-saml); `bundler-audit` runs against `Gemfile.lock` on
+   every PR (`.github/workflows/static-analysis.yml`).
 
 2. **Decide the issuer question first** (see below). Prefer OIDC-capable
    providers.
@@ -31,9 +38,10 @@ provider appears on the login and signup pages with zero frontend changes.
    `lib/onetime/sso_provider/registry.rb`. Copy an existing file of the
    same shape (issuer-capable: copy `entra.rb` or `oidc.rb`; plain OAuth2:
    copy `github.rb`). Every field is documented in the registry header.
-   Keep the env prefix consistent (`FOO_CLIENT_ID`, `FOO_ROUTE_NAME`,
-   `FOO_DISPLAY_NAME`, `FOO_TRUST_EMAIL_FOR_LINKING`) — the registry spec
-   enforces this.
+   Keep the env prefix consistent (`FOO_ROUTE_NAME`, `FOO_DISPLAY_NAME`,
+   `FOO_TRUST_EMAIL_FOR_LINKING`, and `FOO_CLIENT_ID` where the protocol has
+   a client credential — SAML has none and declares `SAML_IDP_*` instead) —
+   the registry spec enforces the route/display/trust prefix.
 
 4. **Run the guard rails** — always through the lane runner (never `rspec`
    directly; see AGENTS.md — the runner clears ambient env and provisions
@@ -52,7 +60,7 @@ provider appears on the login and signup pages with zero frontend changes.
    `src/shared/components/icons/sprites/MdiSprites.vue` and map the default
    route name in `PROVIDER_ICONS` in
    `src/apps/session/components/SsoButton.vue`. Unmapped providers get the
-   neutral building-office icon.
+   neutral building-office icon; `saml` maps to the generic `key` glyph.
 
 7. **Optional ordering** — `SSO_PROVIDER_ORDER` (comma/space-separated route
    names) reorders the buttons; unlisted providers keep registry order after
@@ -68,6 +76,12 @@ requires a restart — a runtime config reload does not re-register strategies.
 names — are read per request, but a provider that didn't register at boot
 can't appear regardless.)
 
+A definition whose `strategy_options` **raises** (Auth0, SAML) is skipped with
+an error in the boot log; boot itself never fails. When org-level SSO is on,
+the placeholder route is registered anyway — the same outcome as the vars
+being absent — so a platform-side typo cannot delete the route that tenant
+SSO injects into; `vars_valid` keeps the platform button hidden meanwhile.
+
 ## The issuer decision (read before adding anything)
 
 The identity table is keyed `(provider, issuer, uid)`. Issuer scoping is what
@@ -80,7 +94,11 @@ classified:
   chain (`resolve_issuer` in `apps/web/auth/config/features/omniauth.rb`) and
   work on **both** the platform and tenant surfaces. If the strategy exposes
   its issuer some other way, extend `resolve_issuer` — never let a real IdP
-  issuer collapse to the `''` sentinel.
+  issuer collapse to the `''` sentinel. SAML is that case: `resolve_issuer`
+  has a dedicated branch, decided by strategy **class**
+  (`OmniAuth::Strategies::SAML`, never by route name), that reads the
+  validated IdP EntityID from `extra['idp_entity_id']` and raises instead of
+  ever returning `''` — see the SAML quirk below.
 
 - **Issuerless** (`issuer_capable: false`): plain OAuth2 providers (GitHub,
   Google, Facebook, Discord, GitLab in OAuth2 mode). They resolve to the `''`
@@ -98,7 +116,8 @@ registered, and it is issuer-capable because the issuer is **operator-pinned**
 from `AUTH0_DOMAIN` rather than read out of the token (see the quirk below).
 Generic OIDC remains available for Auth0 and is preferable when tenant-surface
 SSO is needed — both Apple and Auth0 are **platform-only** providers, absent
-from `SsoConfig::PROVIDER_ROUTE_MAP`.
+from `SsoConfig::PROVIDER_ROUTE_MAP`. SAML is in that map (`'saml'`) and is
+tenant-eligible, because its issuer is the tenant's own IdP EntityID.
 
 ## Known provider quirks
 
@@ -161,6 +180,128 @@ from `SsoConfig::PROVIDER_ROUTE_MAP`.
   a single issuer, so `AUTH0_TRUST_EMAIL_FOR_LINKING` trusts *every*
   connection the tenant enables, including unverified database and social
   connections.
+- **SAML 2.0** (`omniauth-saml` + `ruby-saml`, #4450): issuer-capable,
+  tenant-eligible, and the reference case for ADR-044 criterion 1 (an IdP that
+  speaks only SAML has no OIDC login flow). It is registered **only** through
+  this application's subclass `OmniAuth::Strategies::RequestBoundSAML`
+  (`lib/onetime/sso_provider/request_bound_saml.rb`, declared as
+  `strategy: :request_bound_saml`); the stock strategy is issuerless as
+  shipped and accepts unsolicited responses, so `STRATEGY_CLASS_MAP` in the
+  tenant hook names the subclass alone. The definition
+  (`lib/onetime/sso_provider/saml.rb`) is configuration only and loads without
+  either gem. `Onetime::SsoProvider::Saml.strategy_options_for` is the single
+  hardened-options builder for the platform definition and the tenant arm
+  (`CustomDomain::SsoConfig#build_saml_options`); the `security:` hash is
+  always passed **in full**, because omniauth-saml builds
+  `Settings.new(options)` without `keep_security_attributes` and a partial
+  hash would replace ruby-saml's defaults with nils. `allowed_clock_drift`
+  and `check_duplicated_attributes` are Response options and only work at the
+  top level of the strategy options, not under `security`.
+  The subclass owns every SAML-specific gate. Each fails closed and surfaces
+  as an ordinary OmniAuth failure (the existing `sso_failed` path) with a
+  scalar-only `[saml_response_refused]` log event naming the `reason`:
+  - **No IdP-initiated SSO.** The request phase stores the AuthnRequest id in
+    the session (`saml_authn_request_id` — one per session, so a second
+    sign-in tab supersedes the first) and the callback consumes it before a
+    byte is parsed, passing it as `matches_request_id`. A callback with no
+    pending id is refused (`saml_no_pending_request`). ruby-saml treats a
+    nil `matches_request_id` as "do not check", so this binding is the whole
+    of the login-CSRF control — SAML has no `state` parameter.
+  - **Issuer byte-equality.** After ruby-saml validates the document, the
+    response must carry exactly one Issuer value (Response and signed
+    Assertion, uniq'd) that is `==` the configured `idp_entity_id`
+    (`saml_issuer_unreadable`, `saml_issuer_mismatch`). The gem's own
+    `uri_match?` is case-insensitive on scheme and host, which is not good
+    enough for a value the identity row is keyed on. A blank `idp_entity_id`
+    or `sp_entity_id` is refused at both phases (`saml_misconfigured`)
+    because ruby-saml *skips* issuer and audience validation when they are
+    blank.
+  - **Never `issuer:`.** In ruby-saml `issuer` is a deprecated alias for
+    **our** SP EntityID (`settings.rb`, `sp_entity_id || issuer`); a
+    definition that declared it the way Apple's does would key every SAML
+    identity on one constant. The validated EntityID reaches `resolve_issuer`
+    as `extra['idp_entity_id']` through a SAML-only branch that raises
+    `SamlIssuerUnresolved` rather than returning `''`;
+    `retrieve_omniauth_identity` rescues that into an audited refusal on
+    **both** surfaces (`omniauth_saml_issuer_unresolved_refused`). For SAML,
+    `raw_info['iss']` is never read — every `raw_info` key is an attribute
+    name the IdP chooses. `registry_spec` asserts the definition has no
+    `:issuer` key.
+  - **Stable uid.** The uid is the NameID; the persistent format is requested
+    in every AuthnRequest. A transient NameID is refused unless
+    `uid_attribute` is configured (`saml_transient_name_id`); a blank uid is
+    refused (`saml_missing_uid`). Tenants have no `uid_attribute` setting —
+    the tenant arm resets it to nil so a platform `SAML_UID_ATTRIBUTE` cannot
+    leak into tenant logins.
+  - **Assertion replay.** `Onetime::Security::SamlAssertionReplayGuard`
+    claims `SET NX EX` on a digest of (EntityID, assertion id) with
+    TTL = `NotOnOrAfter` − now + clock drift, clamped to 1s..3600s
+    (`saml_assertion_replayed`; `saml_assertion_unbounded` when the assertion
+    has no ID or no `NotOnOrAfter`; `saml_replay_guard_unavailable` on any
+    datastore error). Accepted residual of the cap: an assertion whose
+    validity window exceeds one hour is replayable, as far as this control
+    is concerned, once its key expires; the InResponseTo binding still
+    applies to it.
+  - **Scrubbed `extra`.** The gem's `extra` carries the live
+    `response_object` — the settings (IdP cert, SP key if any) and the full
+    response XML. The subclass replaces `extra` with scalars:
+    `idp_entity_id`, `name_id_format`, `session_index`, and `raw_info` as a
+    plain `Hash` of attribute name => `Array<String>` (the injected
+    `fingerprint` key dropped; values stay arrays). It also deletes the gem's
+    `session['saml_uid']` / `['saml_session_index']`, clears the gem's
+    RelayState forwarding (`idp_sso_service_url_runtime_params` — as a
+    **class** default, because an instance-level `{}` is deep-merged into the
+    gem's default and changes nothing), strips every ruby-saml `skip_*`
+    option, and fixes `callback_url` to `full_host + callback_path` (omniauth's
+    default appends the request query string and omniauth-saml makes that the
+    ACS URL).
+  - **SLO is off** (`slo_enabled: false`; `/slo` and `/spslo` answer 501).
+    The gem's IdP-initiated logout default is `session.clear` on the Rack
+    session, which bypasses this application's active-session rows; SLO needs
+    its own design against the revoke/destroy vocabulary before it is turned
+    on. `/metadata` stays up as public SP metadata, except that it answers
+    404 while the trust anchors are blank (the placeholder registration with
+    no tenant resolved).
+  - **Verification rests on IdP trust.** SAML has no `email_verified` claim;
+    a JIT account is verified because the operator configured the IdP. An
+    attribute the IdP happens to name `email_verified` with a `false` value
+    is still honoured as a hold — `email_verification_hold` unwraps the
+    `Array` values SAML attributes arrive as.
+  **Operator prerequisites:** the HTTP-POST binding is a cross-site POST, so
+  SAML needs `site.session.same_site: none` with `secure: true` exactly like
+  Apple, and the callback origin is admitted through `HttpOriginOptions` from
+  the **SSO service URL's** origin (`idp_origin_from`), never the EntityID (an
+  opaque name, often a URN on another host). A tenant's SAML IdP origin is
+  admitted per request by `sso_callback_from_tenant_idp?`, the counterpart of
+  the platform set, sourced from the same record field as CSP `form-action`
+  (`AuthConfig::TENANT_ORIGIN_SOURCE_FIELDS`).
+  **Skip, not fail-boot.** Issue #4450 asked for a boot failure when
+  `SAML_IDP_ENTITY_ID` is missing. `configure_provider` is built never to
+  kill boot (an exception inside Rodauth configuration takes password, MFA
+  and magic-link sign-in down with it), so SAML follows the Auth0 contract:
+  `strategy_options` raises naming the variable, the provider is skipped
+  with an error in the boot log, and `vars_valid` (https SSO URL, non-blank
+  EntityID, exactly one unexpired PEM certificate — fingerprints are never
+  accepted) keeps the button hidden. With org-level SSO on, the placeholder
+  route (blank trust anchors) is registered anyway so the tenant hook has a
+  route to inject into; the subclass refuses every un-injected request on
+  it.
+  **Gem currency.** `ruby-saml` is pinned exactly (`= 1.18.1`; its 1.17 and
+  1.18 releases were signature-verification and parser-differential CVE
+  fixes) with the rationale in the `Gemfile`; `bundler-audit` runs on every
+  PR and Renovate's vulnerability alerts open the bump PR. Every bump is a
+  review, not an automerge. The gem internals this integration depends on
+  carry `RE-VERIFY on bump` markers in three places — the `Gemfile` comment,
+  the `request_bound_saml.rb` header, and the `SAML INVARIANT` block in
+  `features/omniauth.rb`: the copied `request_phase` body, the wrapped
+  private `options_for_response_object` / `handle_response` /
+  `other_phase_for_metadata`, `issuers` raising on a missing or repeated
+  Issuer, `validate_in_response_to` passing on nil, `Settings.new` replacing
+  `security`, `extra` being an overridable method, and options being
+  deep-merged. `registry_spec` pins the `SECURITY` keys to
+  `Settings::DEFAULTS[:security].keys`, so a new gem default fails the spec.
+  ruby-saml's STDOUT logger (it logs AuthnRequest XML at DEBUG) is re-pointed
+  at the `Auth` logger by `RubySamlLogBridge` when the gem is required.
 - **Entra ID**: uid is `tid+oid` by default. If you ever set
   `ignore_tid: true`, cross-tenant safety rests entirely on issuer scoping —
   see the security note on the `:entra` registry entry.
@@ -177,3 +318,11 @@ uses `sso_failed`. New error codes must be added both to
 `authErrorMessages` in `src/apps/session/views/Login.vue` (unknown codes fall
 back to the generic `sso_failed` message, so a frontend/backend version skew
 degrades gracefully instead of rendering nothing).
+
+SAML refusals made by `RequestBoundSAML` are ordinary OmniAuth failures and
+land on `sso_failed`; the `reason` is in the `[saml_response_refused]` log
+event, and document-validation failures from ruby-saml arrive as
+`invalid_ticket` in the `[OmniAuth FAILURE]` line. A custom domain whose
+stored SAML record is unusable (expired certificate, unreadable field) is
+refused before the strategy runs and lands on `sso_not_configured`, with an
+`omniauth_tenant_config_unusable` audit event at error level.
