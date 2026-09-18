@@ -2,11 +2,11 @@
 #
 # frozen_string_literal: true
 
-require 'resolv'
 require 'securerandom'
 
 require_relative 'features'
 require_relative 'approximated_client'
+require_relative 'txt_verifier'
 
 module Onetime
   module DomainValidation
@@ -40,14 +40,18 @@ module Onetime
       # requests reach the cluster and the certificate is active.
       ACTIVE_SSL_STATUSES = %w[ACTIVE_SSL ACTIVE_SSL_PROXIED].freeze
 
-      attr_reader :client, :config
+      attr_reader :client, :config, :txt_verifier
 
       # @param config [Hash] Application configuration (typically OT.conf)
       # @param client [Module] HTTP client module (default: ApproximatedClient)
+      # @param txt_verifier [#verify] Native TXT check used when the upstream
+      #   checker is indeterminate (default: TxtVerifier). Injected so specs
+      #   never touch the network.
       #
-      def initialize(config, client: ApproximatedClient)
-        @config = config
-        @client = client
+      def initialize(config, client: ApproximatedClient, txt_verifier: TxtVerifier.new)
+        @config       = config
+        @client       = client
+        @txt_verifier = txt_verifier
       end
 
       # Validates domain ownership via TXT record.
@@ -271,33 +275,55 @@ module Onetime
       #
       #   match == true            -> validated: true
       #   actual_values is Array   -> validated: false (not found / mismatch)
-      #   anything else            -> validated: nil   (indeterminate)
+      #   anything else            -> upstream indeterminate; ask TxtVerifier
       #
       # Callers must treat nil as "no answer" and leave the stored verified
       # flag untouched (VerifyDomain#persist_changes does). Collapsing a failed
       # upstream lookup into `false` demoted correctly-configured domains on
       # every refresh run.
       #
-      # An indeterminate upstream result gets one native TXT lookup and, when
-      # that cannot promote, one NXDOMAIN sentinel probe against Approximated
-      # itself. The sentinel reveals which state covers "record does not
-      # exist" upstream:
+      # When upstream is indeterminate, our own lookup (TxtVerifier) decides,
+      # and its three outcomes pass through with their meaning intact:
+      #
+      #   native true   -> validated: true
+      #   native false  -> validated: false. The resolver stated NXDOMAIN, or
+      #                    NOERROR without TXT data, or values that are not
+      #                    "exactly one, matching". This demotes a verified
+      #                    domain (an operator override still holds it, in
+      #                    VerifyDomain).
+      #   native nil    -> validated: nil. SERVFAIL, REFUSED, a timeout or an
+      #                    exception is no answer, from either checker.
+      #
+      # Why a native false demotes even though upstream gave no answer:
+      #
+      #   - `verified` asserts that the customer controls the domain now. When
+      #     the proof is gone (record removed, zone lapsed, domain changed
+      #     hands) the assertion has to go with it.
+      #   - A healthy upstream would have reported the same empty or different
+      #     values and demoted through the Array branch above. The native path
+      #     reaches the same result, it does not add a new way to lose
+      #     `verified`.
+      #   - TxtVerifier's false has to mean one thing under both strategies.
+      #   - It cannot bring back the false demotions: those came from reading
+      #     a failed lookup as a mismatch, and TxtVerifier keeps every failed
+      #     lookup in nil. A false needs a definitive response code.
+      #
+      # The NXDOMAIN sentinel probe therefore only runs when the native lookup
+      # is indeterminate too. It reveals which upstream state covers "record
+      # does not exist":
       #
       #   sentinel actual_values is []     -> Approximated distinguishes NXDOMAIN
       #                                       from lookup failure; a `false` on
-      #                                       the real check is a genuine
-      #                                       upstream fault, not a deletion.
+      #                                       the real check is an upstream
+      #                                       fault, not a deletion.
       #   sentinel actual_values is false  -> Approximated conflates NXDOMAIN
-      #                                       and SERVFAIL. A deleted TXT
-      #                                       record cannot be demoted through
-      #                                       this checker, because native
-      #                                       resolution cannot settle it
-      #                                       either (Resolv reports NXDOMAIN
-      #                                       and SERVFAIL as "no resources").
+      #                                       and SERVFAIL, so a deleted TXT
+      #                                       record is only ever demoted by
+      #                                       the native lookup.
       #
-      # Either way the caller stays indeterminate; the probe outcome is
-      # recorded so operators can tell "checker is broken today" apart from
-      # "checker will never demote a deleted TXT record."
+      # The probe never changes the outcome; it is recorded so operators can
+      # tell "upstream checker is broken today" apart from "upstream checker
+      # never reports a deleted TXT record."
       #
       # @param custom_domain [Onetime::CustomDomain]
       # @param match_records [Array<Hash>] 'records' from the API response
@@ -324,12 +350,33 @@ module Onetime
         OT.lw "[ApproximatedStrategy] Indeterminate TXT check for #{custom_domain.display_domain}: " \
               "#{match_records.inspect}"
 
-        if native_txt_values(custom_domain.validation_record) == [custom_domain.txt_validation_value.to_s]
+        classify_native(custom_domain, match_records)
+      end
+
+      # Settles an indeterminate upstream result with our own TXT lookup.
+      # See classify_ownership for the reasoning.
+      #
+      # :data keeps the upstream records first and appends the native record,
+      # so the log line for a demotion shows what both checkers saw.
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @param match_records [Array<Hash>] upstream 'records' (indeterminate)
+      # @return [Hash] See BaseStrategy#validate_ownership
+      #
+      def classify_native(custom_domain, match_records)
+        native = txt_verifier.verify(custom_domain.validation_record, custom_domain.txt_validation_value)
+        data   = match_records + Array(native[:data])
+
+        # A false without :data is TxtVerifier declining to look (no challenge
+        # configured). That is not an answer from DNS, so it does not demote.
+        definitive = native[:validated] == true || (native[:validated] == false && native[:data])
+
+        if definitive
           return {
-            validated: true,
-            message: 'TXT record validated (native lookup; upstream checker indeterminate)',
-            data: match_records,
-            source: 'native',
+            validated: native[:validated],
+            message: "#{native[:message]} (native lookup; upstream checker indeterminate)",
+            data: data,
+            source: native[:source],
           }
         end
 
@@ -342,7 +389,7 @@ module Onetime
                          when :conflates
                            'Upstream DNS checker returned no result (indeterminate; ' \
                            'NXDOMAIN probe shows the checker conflates NXDOMAIN with lookup ' \
-                           'failure — a deleted TXT record cannot be demoted through this checker)'
+                           'failure — only the native lookup can report a deleted TXT record)'
                          else
                            'Upstream DNS checker returned no result (indeterminate)'
                          end
@@ -351,8 +398,8 @@ module Onetime
           validated: nil,
           indeterminate: true,
           nxdomain_probe: nxdomain_probe,
-          message: message,
-          data: match_records,
+          message: "#{message}; native lookup: #{native[:message]}",
+          data: data,
         }
       end
 
@@ -393,19 +440,6 @@ module Onetime
       rescue StandardError => ex
         OT.lw "[ApproximatedStrategy] NXDOMAIN probe failed for #{custom_domain.display_domain}: #{ex.message}"
         :unknown
-      end
-
-      # @param hostname [String]
-      # @return [Array<String>] TXT values; empty on NXDOMAIN or any failure
-      def native_txt_values(hostname)
-        resolver          = Resolv::DNS.new
-        resolver.timeouts = 5
-        resolver.getresources(hostname, Resolv::DNS::Resource::IN::TXT).map { |r| r.strings.join.strip }
-      rescue StandardError => ex
-        OT.lw "[ApproximatedStrategy] Native TXT lookup failed for #{hostname}: #{ex.message}"
-        []
-      ensure
-        resolver&.close
       end
     end
   end
