@@ -144,11 +144,106 @@ RSpec.describe Onetime::DomainValidation::TxtResolver do
       expect(resolver_for(server).lookup(hostname).values).to eq(['delegated'])
     end
 
+    # RFC 1034 does not fix the order of the answer section.
+    it 'follows a CNAME chain when the TXT record is listed before the CNAME' do
+      target = Resolv::DNS::Name.create('challenges.dns-host.example.')
+      server = start_server do |s, q, _|
+        s.reply_to(q, answers: [[target, txt.new('delegated')], [nil, cname.new(target)]])
+      end
+
+      expect(resolver_for(server).lookup(hostname).values).to eq(['delegated'])
+    end
+
+    it 'follows a multi-hop CNAME chain whose links are out of order' do
+      hop1   = Resolv::DNS::Name.create('hop1.dns-host.example.')
+      hop2   = Resolv::DNS::Name.create('hop2.dns-host.example.')
+      hop3   = Resolv::DNS::Name.create('hop3.dns-host.example.')
+      server = start_server do |s, q, _|
+        s.reply_to(
+          q,
+          answers: [
+            [hop2, cname.new(hop3)],
+            [hop3, txt.new('delegated')],
+            [nil, cname.new(hop1)],
+            [hop1, cname.new(hop2)],
+          ],
+        )
+      end
+
+      expect(resolver_for(server).lookup(hostname).values).to eq(['delegated'])
+    end
+
+    it 'reports no values, definitively, when the CNAME target has no TXT data' do
+      target = Resolv::DNS::Name.create('challenges.dns-host.example.')
+      server = start_server { |s, q, _| s.reply_to(q, answers: [[nil, cname.new(target)]]) }
+      answer = resolver_for(server).lookup(hostname)
+
+      expect(answer).to be_definitive
+      expect(answer.values).to eq([])
+    end
+
+    it 'ends the walk on a CNAME loop' do
+      target = Resolv::DNS::Name.create('loop.dns-host.example.')
+      server = start_server do |s, q, _|
+        s.reply_to(q, answers: [[nil, cname.new(target)], [target, cname.new(q.question.first[0])]])
+      end
+
+      expect(resolver_for(server).lookup(hostname).values).to eq([])
+    end
+
     it 'ignores TXT records owned by another name' do
+      other  = Resolv::DNS::Name.create('unrelated.example.')
+      server = start_server do |s, q, _|
+        s.reply_to(q, answers: [[other, txt.new('stray')], [nil, txt.new('ours')]])
+      end
+
+      expect(resolver_for(server).lookup(hostname).values).to eq(['ours'])
+    end
+
+    it 'does not read an answer section with nothing for the queried name as "no TXT data"' do
       other  = Resolv::DNS::Name.create('unrelated.example.')
       server = start_server { |s, q, _| s.reply_to(q, answers: [[other, txt.new('stray')]]) }
 
-      expect(resolver_for(server).lookup(hostname).values).to eq([])
+      expect { resolver_for(server, timeout: 0.5).lookup(hostname) }
+        .to raise_error(described_class::NoReplyError, /no record for the queried name/)
+    end
+
+    context 'when the nameserver does not recurse for us' do
+      # What a server with recursion disabled (or denied to this client)
+      # sends instead of REFUSED: NOERROR, ra=0, no answer, root NS records.
+      def referral(server, query)
+        root = Resolv::DNS::Name.create('.')
+        ns   = Resolv::DNS::Resource::IN::NS.new(Resolv::DNS::Name.create('a.root-servers.net.'))
+        server.reply_to(query, ra: 0, authority: [[root, ns]])
+      end
+
+      it 'does not read the referral as "no TXT data"' do
+        server = start_server { |s, q, _| referral(s, q) }
+
+        expect { resolver_for(server, timeout: 0.5).lookup(hostname) }
+          .to raise_error(described_class::NoReplyError, /neither recursive nor authoritative/)
+        expect(server.queries.size).to eq(described_class::ROUNDS)
+      end
+
+      it 'moves on to a nameserver that does recurse' do
+        refusing = start_server { |s, q, _| referral(s, q) }
+        healthy  = start_server { |s, q, _| s.reply_to(q, answers: [[nil, txt.new('v')]]) }
+
+        expect(resolver_for(refusing, healthy).lookup(hostname).values).to eq(['v'])
+      end
+
+      it 'does not read NXDOMAIN without ra or aa as definitive either' do
+        server = start_server { |s, q, _| s.reply_to(q, rcode: rcode::NXDomain, ra: 0) }
+
+        expect { resolver_for(server, timeout: 0.5).lookup(hostname) }
+          .to raise_error(described_class::NoReplyError)
+      end
+
+      it 'accepts an authoritative answer (aa=1) without recursion' do
+        server = start_server { |s, q, _| s.reply_to(q, rcode: rcode::NXDomain, ra: 0, aa: 1) }
+
+        expect(resolver_for(server).lookup(hostname)).to be_nxdomain
+      end
     end
 
     it 'retries over TCP when the UDP reply is truncated' do

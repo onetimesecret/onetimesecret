@@ -72,6 +72,48 @@ RSpec.describe Onetime::DomainValidation::AddressResolver do
       expect(resolver_for(server).lookup(hostname).addresses).to eq(['93.184.216.34'])
     end
 
+    # RFC 1034 does not fix the order of the answer section.
+    it 'follows a CNAME chain when the address is listed before the CNAME' do
+      target = Resolv::DNS::Name.create('edge.example.net.')
+      server = start_server do |s, q, _|
+        next s.reply_to(q, answers: [[nil, cname.new(target)]]) unless q.question.first[1] == a
+
+        s.reply_to(q, answers: [[target, a.new('93.184.216.34')], [nil, cname.new(target)]])
+      end
+
+      expect(resolver_for(server).lookup(hostname).addresses).to eq(['93.184.216.34'])
+    end
+
+    it 'follows a multi-hop CNAME chain whose links are out of order' do
+      hop1   = Resolv::DNS::Name.create('hop1.example.net.')
+      hop2   = Resolv::DNS::Name.create('hop2.example.net.')
+      server = start_server do |s, q, _|
+        chain = [[hop1, cname.new(hop2)], [nil, cname.new(hop1)]]
+        next s.reply_to(q, answers: chain) unless q.question.first[1] == aaaa
+
+        s.reply_to(q, answers: [[hop2, aaaa.new('2606:2800:220:1::1')], *chain])
+      end
+
+      expect(resolver_for(server).lookup(hostname).addresses).to eq(['2606:2800:220:1::1'])
+    end
+
+    it 'does not read an answer section with nothing for the queried name as "no address"' do
+      other  = Resolv::DNS::Name.create('other.example.net.')
+      server = start_server { |s, q, _| s.reply_to(q, answers: [[other, a.new('93.184.216.34')]]) }
+
+      expect { resolver_for(server, timeout: 0.6).lookup(hostname) }
+        .to raise_error(described_class::NoReplyError)
+    end
+
+    it 'does not read a referral from a non-recursive nameserver as "no address"' do
+      root   = Resolv::DNS::Name.create('.')
+      ns     = Resolv::DNS::Resource::IN::NS.new(Resolv::DNS::Name.create('a.root-servers.net.'))
+      server = start_server { |s, q, _| s.reply_to(q, ra: 0, authority: [[root, ns]]) }
+
+      expect { resolver_for(server, timeout: 0.6).lookup(hostname) }
+        .to raise_error(described_class::NoReplyError, /neither recursive nor authoritative/)
+    end
+
     it 'reports NXDOMAIN as definitive without asking for the other family' do
       server = start_family_server(a => rcode::NXDomain)
       answer = resolver_for(server).lookup(hostname)

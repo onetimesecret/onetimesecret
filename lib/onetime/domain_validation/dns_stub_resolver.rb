@@ -106,9 +106,9 @@ module Onetime
       # Asks each nameserver for +rtype+ records at +name+ until +deadline+.
       #
       # Returns as soon as a nameserver gives a definitive reply (NOERROR or
-      # NXDOMAIN). Other response codes move on to the next nameserver; if
-      # none does better, the last such reply is returned so the caller can
-      # see the code.
+      # NXDOMAIN, see #ensure_usable!). Other response codes move on to the
+      # next nameserver; if none does better, the last such reply is returned
+      # so the caller can see the code.
       #
       # @param name [Resolv::DNS::Name] absolute name (see #absolute_name)
       # @param rtype [Class] Resolv::DNS::Resource::IN::*
@@ -119,7 +119,8 @@ module Onetime
       def query(name, rtype, deadline)
         raise ArgumentError, 'No DNS nameservers configured' if nameservers.empty?
 
-        last = nil
+        last          = nil
+        @last_failure = nil
         nameservers.cycle(ROUNDS) do |host, port|
           remaining = deadline - monotonic
           break unless remaining.positive?
@@ -131,25 +132,69 @@ module Onetime
           return last if DEFINITIVE_RCODES.include?(last.rcode)
         end
 
-        last || raise(NoReplyError, "No DNS reply for #{name} within #{timeout}s")
+        last || raise(NoReplyError, no_reply_message(name))
+      end
+
+      # Carries the last failed exchange, so a nameserver that replies but is
+      # never usable (see #ensure_usable!) is named in the caller's log line.
+      def no_reply_message(name, summary = 'No DNS reply')
+        ["#{summary} for #{name} within #{timeout}s", @last_failure].compact.join(': ')
       end
 
       # Resource data of +rtype+ owned by the queried name, following any
-      # CNAME chain in the answer section (recursive resolvers return the
-      # chain in order). Records owned by an unrelated name are ignored.
+      # CNAME chain in the answer section. Records owned by an unrelated name
+      # are ignored.
+      #
+      # The chain is followed through a map of the whole answer section, not
+      # by reading it top to bottom: RFC 1034 does not fix the order of the
+      # answer section, and resolvers have returned the final records ahead
+      # of the CNAMEs that lead to them. The walk is bounded by the number of
+      # records, so a CNAME loop ends it.
       #
       # @return [Array<Resolv::DNS::Resource>] empty unless rcode is NOERROR
       def records(reply, name, rtype)
         return [] unless reply.rcode == Resolv::DNS::RCode::NoError
 
+        aliases = reply.answer.each_with_object({}) do |(rr_name, _ttl, data), map|
+          map[rr_name] = data.name if data.is_a?(CNAME)
+        end
+
         owner = name
-        reply.answer.each do |rr_name, _ttl, data|
-          owner = data.name if data.is_a?(CNAME) && rr_name == owner
+        reply.answer.size.times do
+          target = aliases[owner]
+          break if target.nil?
+
+          owner = target
         end
 
         reply.answer.filter_map do |rr_name, _ttl, data|
           data if data.is_a?(rtype) && rr_name == owner
         end
+      end
+
+      # A NOERROR or NXDOMAIN reply is read as a statement about the name, so
+      # it has to be one. Two replies carry those codes without saying
+      # anything about the name, and reading either as "no such record" would
+      # turn a resolver-side condition into a definitive negative for every
+      # domain checked through that resolver:
+      #
+      #   - ra=0 and aa=0: the nameserver neither recursed for us nor is
+      #     authoritative. A server that refuses recursion this way (rather
+      #     than with REFUSED) sends NOERROR, an empty answer section and an
+      #     upward referral in the authority section.
+      #   - a non-empty answer section in which nothing is owned by the
+      #     queried name, so none of it can be attributed to the question.
+      #
+      # @raise [AttemptFailed] the next nameserver is tried
+      def ensure_usable!(reply, name)
+        return unless DEFINITIVE_RCODES.include?(reply.rcode)
+
+        if reply.ra.to_i.zero? && reply.aa.to_i.zero?
+          raise AttemptFailed, "#{RCODE_NAMES[reply.rcode]} reply is neither recursive nor authoritative (ra=0, aa=0)"
+        end
+        return if reply.answer.empty? || reply.answer.any? { |rr_name, _ttl, _data| rr_name == name }
+
+        raise AttemptFailed, 'answer section holds no record for the queried name'
       end
 
       def monotonic
@@ -187,8 +232,10 @@ module Onetime
 
         reply = udp_exchange(host, port, packet, id, question, deadline)
         reply = tcp_exchange(host, port, packet, id, question, deadline) if reply.tc == 1
+        ensure_usable!(reply, name)
         reply
       rescue *ATTEMPT_ERRORS => ex
+        @last_failure = "#{host}:#{port} #{ex.message}"
         OT.ld "[#{self.class.name.split('::').last}] No reply from #{host}:#{port} for #{name}: #{ex.class}: #{ex.message}"
         nil
       end
