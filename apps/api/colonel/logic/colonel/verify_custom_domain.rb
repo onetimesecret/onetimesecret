@@ -54,7 +54,7 @@ module ColonelAPI
 
           OT.info "[VerifyCustomDomain] #{custom_domain.display_domain} -> " \
                   "state=#{result.current_state}, dns=#{result.dns_validated}, indeterminate=#{result.dns_indeterminate}, " \
-                  "resolving=#{result.is_resolving}"
+                  "resolving=#{result.is_resolving.inspect}"
 
           success_data
         end
@@ -88,6 +88,10 @@ module ColonelAPI
               # and has been for longer than the confirmation window, so
               # verified was withdrawn.
               dns_outcome: result.dns_outcome.to_s,
+              # true / false / nil. nil (JSON null) means this check could not
+              # tell — provider status UNKNOWN, API or probe failure — and is
+              # never sent as false. `record.resolving` above is the stored,
+              # last known answer and stays a boolean.
               ssl_ready: result.ssl_ready,
               is_resolving: result.is_resolving,
               # nil on success; the op's captured error message on a check failure.
