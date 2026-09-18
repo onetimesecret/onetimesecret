@@ -11,7 +11,8 @@
 #
 #   1. No TXT record: the domain does not become verified; ready? stays false.
 #   2. A matching TXT record promotes.
-#   3. An indeterminate lookup leaves a verified domain verified.
+#   3. An indeterminate lookup leaves a verified domain verified, provided a
+#      TXT check has confirmed it before (verified_confirmed_at).
 #   4. A definitive negative demotes a verified domain ...
 #   5. ... unless an operator override holds it.
 #   6. A newly created domain starts unverified.
@@ -200,6 +201,26 @@ caddy_try_verify(@domain)
 [@marker_after_pass, @after_clear.demoted?, caddy_try_reload(@domain).ready?]
 #=> [false, true, false]
 
+## Verified with no confirmation on record (the flag as stored before this strategy checked TXT) - an indeterminate lookup does not hold it
+@legacy           = Onetime::CustomDomain.create!("caddy-legacy-#{@suffix}.example.com", @org.objid)
+@legacy.verified  = true
+@legacy.resolving = true
+@legacy.save
+@resolver.rcode  = Resolv::DNS::RCode::ServFail
+@resolver.values = []
+@legacy_result   = caddy_try_verify(@legacy)
+@stored          = caddy_try_reload(@legacy)
+[@stored.verified_confirmed_at, @legacy_result.dns_outcome, @legacy_result.demoted?, @stored.verified == true, @stored.ready?]
+#=> [nil, :failed, true, false, false]
+
+## Verified with no confirmation on record - an operator override still holds it
+@legacy.verified             = true
+@legacy.verified_by_override = true
+@legacy.save
+@legacy_held = caddy_try_verify(@legacy)
+[@legacy_held.dns_outcome, @legacy_held.demoted?, caddy_try_reload(@legacy).ready?]
+#=> [:override_held, false, true]
+
 ## Status: a definite probe answer is stored (resolving, and has_ssl inside vhost)
 @probe.is_resolving = true
 @probe.has_ssl      = true
@@ -271,5 +292,6 @@ caddy_try_verify(@domain)
 
 # Teardown
 @domain.destroy! if @domain&.exists?
+@legacy.destroy! if @legacy&.exists?
 @org.destroy! if @org&.exists?
 @owner.destroy! if @owner&.exists?
