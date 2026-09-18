@@ -52,6 +52,55 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
       get '/bootstrap/me'
       expect { JSON.parse(last_response.body) }.not_to raise_error
     end
+
+    it 'prevents storage of the personalized bootstrap response' do
+      get '/bootstrap/me'
+      expect(last_response.headers['Cache-Control']).to eq('private, no-store')
+    end
+  end
+
+  describe 'personalized HTML response caching' do
+    it 'prevents storage of the rendered Web Core shell', :aggregate_failures do
+      get '/'
+
+      expect(last_response.status).to eq(200)
+      expect(last_response.content_type).to include('text/html')
+      expect(last_response.headers['Cache-Control']).to eq('private, no-store')
+    end
+  end
+
+  describe 'bootstrap diagnostics' do
+    it 'retains request correlation and state flags without session identifiers or PII' do
+      logger = spy('session_logger')
+      allow(Onetime).to receive(:get_logger).and_call_original
+      allow(Onetime).to receive(:get_logger).with('Session').and_return(logger)
+      allow(Onetime).to receive(:session_logger).and_return(logger)
+
+      get '/bootstrap/me', {}, { 'HTTP_X_REQUEST_ID' => 'request-4461' }
+
+      expect(logger).to have_received(:debug).with(
+        'Exporting bootstrap state',
+        {
+          session_class: kind_of(String),
+          authenticated: false,
+          has_external_id: false,
+          authenticated_check: false,
+          request_id: 'request-4461',
+        },
+      )
+      expect(logger).to have_received(:debug).with(
+        'Session',
+        {
+          module: 'InitializeViewVars',
+          session_class: kind_of(String),
+          has_account_id: false,
+          has_external_id: false,
+          awaiting_mfa: false,
+          authenticated: false,
+          request_id: 'request-4461',
+        },
+      )
+    end
   end
 
   describe 'anonymous user' do

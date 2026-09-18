@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-# Tests for Core::Middleware::RequestSetup CSP emission.
+# Tests for Core::Middleware::RequestSetup response security headers.
 #
 # RequestSetup#finalize_response is the single web chokepoint every Core response
 # passes through. For HTML responses it emits a Content-Security-Policy by
@@ -50,6 +50,23 @@ RSpec.describe Core::Middleware::RequestSetup do
     allow(OT).to receive(:conf).and_return(conf)
     middleware.send(:emit_csp_header, headers, request_env)
     headers['content-security-policy']
+  end
+
+  describe '#setup_request' do
+    it 'logs request correlation without logging the generated nonce' do
+      logger = spy('http_logger')
+      allow(OT).to receive(:debug?).and_return(true)
+      allow(middleware).to receive(:http_logger).and_return(logger)
+      request_env = { 'HTTP_X_REQUEST_ID' => 'request-4461' }
+
+      middleware.send(:setup_request, request_env)
+
+      expect(request_env['onetime.nonce']).to be_a(String)
+      expect(logger).to have_received(:debug).with(
+        'Request setup complete',
+        { nonce_generated: true, request_id: 'request-4461' },
+      )
+    end
   end
 
   describe '#emit_csp_header' do
@@ -148,9 +165,10 @@ RSpec.describe Core::Middleware::RequestSetup do
       headers.keys.select { |key| key.to_s.casecmp?('content-type') }
     end
 
-    it 'defaults a missing Content-Type to HTML and emits a CSP', :aggregate_failures do
+    it 'defaults a missing Content-Type to personalized HTML security headers', :aggregate_failures do
       headers = call_with({})
       expect(headers['content-type']).to eq('text/html; charset=utf-8')
+      expect(headers['cache-control']).to eq('private, no-store')
       expect(headers['content-security-policy']).to include("'nonce-")
     end
 
@@ -162,11 +180,20 @@ RSpec.describe Core::Middleware::RequestSetup do
       expect(headers['Content-Type']).to eq('application/json')
     end
 
-    it 'attaches no CSP to a canonically-cased non-HTML response' do
+    it 'attaches no HTML security headers to a canonically-cased non-HTML response' do
       # With no spurious lowercase text/html default injected, the Writer sees
       # only the real application/json media type and emits nothing.
       headers = call_with({ 'Content-Type' => 'application/json' })
+      expect(headers).not_to have_key('cache-control')
       expect(headers).not_to have_key('content-security-policy')
+    end
+
+    it 'replaces an existing HTML cache policy without duplicate header casing', :aggregate_failures do
+      headers = call_with({ 'Content-Type' => 'text/html', 'Cache-Control' => 'public, max-age=60' })
+      cache_control_keys = headers.keys.select { |key| key.to_s.casecmp?('cache-control') }
+
+      expect(cache_control_keys).to contain_exactly('cache-control')
+      expect(headers['cache-control']).to eq('private, no-store')
     end
   end
 end
