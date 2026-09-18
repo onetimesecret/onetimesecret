@@ -40,7 +40,7 @@ The third kind matters for a cutover from `approximated` to `caddy_on_demand`. C
 
 Existing domains are only re-checked when something runs the check. Installs that do not run the scheduler with `jobs.domain_refresh` enabled (both are off by default) must run `bin/ots domains verify --all` once after upgrading for the TXT check to take effect on existing domains, and periodically after that.
 
-Under `approximated` the API's answer is used when it has one. When its own DNS lookup failed (`actual_values: false`), `TxtVerifier` decides instead, with the same three outcomes.
+Under `approximated` the API's answer is used when it has one. When it has none, `TxtVerifier` decides instead, with the same three outcomes. "None" covers a 200 whose own DNS lookup failed (`actual_values: false`) and every case where the checker could not be asked: no API key configured, a non-200 response, a client exception. None of those is evidence about the customer's DNS, so none is reported as a failed check. A deployment whose API key is missing or revoked therefore keeps confirming its domains through the native lookup, and only a domain whose native lookup is indeterminate as well runs into the confirmation window below. An exception raised by a strategy is handled the same way in `VerifyDomain`: indeterminate, never failed.
 
 ### Confirmation window
 
