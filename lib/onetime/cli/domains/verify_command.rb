@@ -268,7 +268,8 @@ module Onetime
 
       def output_verification_results(result)
         puts 'Verification Results:'
-        puts "  DNS Validated:    #{format_bool(result.dns_validated)}"
+        puts "  DNS Validated:    #{format_dns(result)}"
+        puts "  DNS Detail:       #{result.dns_message}" if result.dns_message
         puts "  SSL Ready:        #{format_bool(result.ssl_ready)}"
         puts "  Is Resolving:     #{format_bool(result.is_resolving)}"
         puts
@@ -318,7 +319,9 @@ module Onetime
           full_txt_host = "#{txt_host}.#{domain.base_domain}"
           puts
           puts '1. DNS Ownership (TXT record):'
-          puts "   Status: #{result.dns_validated ? 'PASS' : 'FAIL'}"
+          dns_status    = result.dns_validated ? 'PASS' : 'FAIL'
+          dns_status    = 'INDETERMINATE (verified unchanged)' if result.dns_indeterminate
+          puts "   Status: #{dns_status}"
           puts "   Expected: TXT record at #{full_txt_host}"
           puts "   Value:    #{txt_value}"
           puts
@@ -360,6 +363,8 @@ module Onetime
         puts format('  Total Processed:  %d', result.total)
         puts format('  Verified:         %d', result.verified_count)
         puts format('  Failed:           %d', result.failed_count)
+        puts format('  Indeterminate:    %d', result.indeterminate_count)
+        puts format('  Demoted:          %d', result.demoted_count)
         puts format('  Duration:         %.2f seconds', result.duration_seconds)
         puts
 
@@ -375,7 +380,7 @@ module Onetime
             puts format(
               '%-40s %-12s %-12s %-10s',
               r.domain.display_domain[0..39],
-              format_bool(r.dns_validated),
+              format_dns(r),
               format_bool(r.is_resolving),
               status,
             )
@@ -384,6 +389,10 @@ module Onetime
         end
         puts
       end
+
+      # An indeterminate TXT check is neither pass nor fail: the upstream
+      # checker produced no answer and the stored verified flag was left alone.
+      def format_dns(result) = result.dns_indeterminate ? 'indeterminate' : format_bool(result.dns_validated)
 
       def output_state_distribution(result)
         state_counts                                                  = Hash.new(0)
