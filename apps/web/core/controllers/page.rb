@@ -38,15 +38,21 @@ module Core
       end
 
       def bootstrap_me
-        rack_session = req.env['rack.session']
-        session_logger.debug 'Exporting bootstrap state',
-          {
-            session_class: rack_session.class.name,
-            authenticated: rack_session['authenticated'] == true,
-            has_external_id: !rack_session['external_id'].nil?,
-            authenticated_check: authenticated?,
-            request_id: req.env['HTTP_X_REQUEST_ID'],
-          }
+        # Guard the debug payload behind OT.debug? — Ruby always evaluates
+        # method arguments, so an ungated call would run the full
+        # CustomerSessionEvaluator (customer load + active-session gate) on
+        # every request via `authenticated?`, even when the logger is silenced.
+        if OT.debug?
+          rack_session = req.env['rack.session']
+          session_logger.debug 'Exporting bootstrap state',
+            {
+              session_class: rack_session.class.name,
+              authenticated: rack_session['authenticated'] == true,
+              has_external_id: !rack_session['external_id'].nil?,
+              authenticated_check: authenticated?,
+              request_id: req.env['HTTP_X_REQUEST_ID'],
+            }
+        end
 
         # Simplified: BaseView now extracts everything from req
         view                         = Core::Views::BootstrapMe.new(req)

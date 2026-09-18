@@ -75,6 +75,7 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
       allow(Onetime).to receive(:get_logger).and_call_original
       allow(Onetime).to receive(:get_logger).with('Session').and_return(logger)
       allow(Onetime).to receive(:session_logger).and_return(logger)
+      allow(OT).to receive(:debug?).and_return(true)
 
       get '/bootstrap/me', {}, { 'HTTP_X_REQUEST_ID' => 'request-4461' }
 
@@ -100,6 +101,21 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
           request_id: 'request-4461',
         },
       )
+    end
+
+    # `authenticated?` runs the full CustomerSessionEvaluator (customer load
+    # + active-session gate). Ruby always evaluates method arguments, so a
+    # naive `logger.debug 'msg', { authenticated_check: authenticated? }`
+    # would fire that evaluator on every request even when the logger is
+    # silenced. The OT.debug? guard around the whole log call keeps the
+    # evaluator dormant when diagnostics are off.
+    it 'does not evaluate authenticated? when OT.debug? is false' do
+      allow(OT).to receive(:debug?).and_return(false)
+      expect_any_instance_of(Core::Controllers::Page).not_to receive(:authenticated?)
+
+      get '/bootstrap/me'
+
+      expect(last_response.status).to eq(200)
     end
   end
 
