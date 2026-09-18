@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'resolv'
+
 require_relative 'features'
 require_relative 'approximated_client'
 
@@ -63,14 +65,9 @@ module Onetime
 
         if res.code == 200
           payload       = res.parsed_response
-          match_records = payload['records']
-          found_match   = match_records.any? { |record| record['match'] == true }
+          match_records = Array(payload['records'])
 
-          {
-            validated: found_match,
-            message: found_match ? 'TXT record validated' : 'TXT record not found or mismatch',
-            data: match_records,
-          }
+          classify_ownership(custom_domain, match_records)
         else
           {
             validated: false,
@@ -249,6 +246,83 @@ module Onetime
       # @return [Boolean] true - Approximated actively manages certificates
       def manages_certificates?
         true
+      end
+
+      private
+
+      # Classifies a check-records-match-exactly response into three outcomes.
+      #
+      # Approximated's contract for 'actual_values' is an Array of the values
+      # it saw, or the literal `false` "when DNS resolution or the record-type
+      # lookup failed". Only an Array is evidence about the customer's DNS:
+      #
+      #   match == true            -> validated: true
+      #   actual_values is Array   -> validated: false (not found / mismatch)
+      #   anything else            -> validated: nil   (indeterminate)
+      #
+      # Callers must treat nil as "no answer" and leave the stored verified
+      # flag untouched (VerifyDomain#persist_changes does). Collapsing a failed
+      # upstream lookup into `false` demoted correctly-configured domains on
+      # every refresh run.
+      #
+      # An indeterminate upstream result gets one native TXT lookup. It can
+      # only promote (exactly one value, equal to the challenge); an empty or
+      # differing native answer stays indeterminate because Resolv reports
+      # SERVFAIL and NXDOMAIN alike as "no resources".
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @param match_records [Array<Hash>] 'records' from the API response
+      # @return [Hash] See BaseStrategy#validate_ownership
+      #
+      def classify_ownership(custom_domain, match_records)
+        if match_records.any? { |record| record['match'] == true }
+          return { validated: true, message: 'TXT record validated', data: match_records }
+        end
+
+        looked_up = !match_records.empty? &&
+                    match_records.all? { |record| record['actual_values'].is_a?(Array) }
+
+        if looked_up
+          seen    = match_records.flat_map { |record| record['actual_values'] }
+          message = if seen.empty?
+            'TXT record not found'
+          else
+            "TXT record mismatch (#{seen.size} value(s) found, exactly one matching value required)"
+          end
+          return { validated: false, message: message, data: match_records }
+        end
+
+        OT.lw "[ApproximatedStrategy] Indeterminate TXT check for #{custom_domain.display_domain}: " \
+              "#{match_records.inspect}"
+
+        if native_txt_values(custom_domain.validation_record) == [custom_domain.txt_validation_value.to_s]
+          return {
+            validated: true,
+            message: 'TXT record validated (native lookup; upstream checker indeterminate)',
+            data: match_records,
+            source: 'native',
+          }
+        end
+
+        {
+          validated: nil,
+          indeterminate: true,
+          message: 'Upstream DNS checker returned no result (indeterminate)',
+          data: match_records,
+        }
+      end
+
+      # @param hostname [String]
+      # @return [Array<String>] TXT values; empty on NXDOMAIN or any failure
+      def native_txt_values(hostname)
+        resolver          = Resolv::DNS.new
+        resolver.timeouts = 5
+        resolver.getresources(hostname, Resolv::DNS::Resource::IN::TXT).map { |r| r.strings.join.strip }
+      rescue StandardError => ex
+        OT.lw "[ApproximatedStrategy] Native TXT lookup failed for #{hostname}: #{ex.message}"
+        []
+      ensure
+        resolver&.close
       end
     end
   end

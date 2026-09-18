@@ -214,10 +214,11 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
                code: 200,
                parsed_response: {
                  'records' => [
-                   { 'match' => false, 'address' => custom_domain.validation_record }
+                   { 'match' => false, 'actual_values' => actual_values, 'address' => custom_domain.validation_record }
                  ]
                })
       end
+      let(:actual_values) { [] }
 
       before do
         allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
@@ -229,9 +230,106 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
         expect(result[:validated]).to be false
       end
 
-      it 'includes descriptive message' do
+      it 'reports not found when the checker saw no values' do
         result = strategy.validate_ownership(custom_domain)
-        expect(result[:message]).to include('not found or mismatch')
+        expect(result[:message]).to eq('TXT record not found')
+      end
+
+      context 'with values that do not match exactly' do
+        let(:actual_values) { %w[validation123 something-else] }
+
+        it 'reports a mismatch with the value count' do
+          result = strategy.validate_ownership(custom_domain)
+          expect(result[:validated]).to be false
+          expect(result[:message]).to include('mismatch (2 value(s) found')
+        end
+      end
+
+      it 'never falls back to a native lookup' do
+        expect(Resolv::DNS).not_to receive(:new)
+        strategy.validate_ownership(custom_domain)
+      end
+    end
+
+    # Approximated's contract: actual_values is `false` "when DNS resolution or
+    # the record-type lookup failed". Observed for a correctly-configured
+    # tenant on 2026-09-18; treating it as a mismatch demoted the domain on
+    # every refresh run.
+    context 'when the checker answers 200 but its own lookup failed (actual_values: false)' do
+      let(:api_response) do
+        double('Response',
+               code: 200,
+               parsed_response: {
+                 'records' => [
+                   { 'actual_values' => false, 'address' => custom_domain.validation_record,
+                     'match' => false, 'match_against' => 'validation123', 'type' => 'TXT' }
+                 ]
+               })
+      end
+      let(:native_values) { [] }
+      let(:resolver) { instance_double(Resolv::DNS, :timeouts= => nil, close: nil) }
+
+      before do
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
+          .and_return(api_response)
+        allow(OT).to receive(:lw)
+        allow(Resolv::DNS).to receive(:new).and_return(resolver)
+        allow(resolver).to receive(:getresources)
+          .with(custom_domain.validation_record, Resolv::DNS::Resource::IN::TXT)
+          .and_return(native_values.map { |v| Resolv::DNS::Resource::IN::TXT.new(v) })
+      end
+
+      it 'returns validated nil and flags the result indeterminate' do
+        result = strategy.validate_ownership(custom_domain)
+        expect(result[:validated]).to be_nil
+        expect(result[:indeterminate]).to be true
+        expect(result[:message]).to include('indeterminate')
+      end
+
+      it 'keeps the raw payload and logs it' do
+        expect(OT).to receive(:lw).with(/Indeterminate TXT check.*"actual_values" *=> *false/)
+        result = strategy.validate_ownership(custom_domain)
+        expect(result[:data].first['actual_values']).to be false
+      end
+
+      context 'and the native lookup returns exactly the challenge value' do
+        let(:native_values) { ['validation123'] }
+
+        it 'validates from the native answer' do
+          result = strategy.validate_ownership(custom_domain)
+          expect(result[:validated]).to be true
+          expect(result[:source]).to eq('native')
+        end
+      end
+
+      context 'and the native lookup returns the value among others' do
+        let(:native_values) { %w[validation123 other] }
+
+        it 'stays indeterminate (exactly-one semantics preserved)' do
+          expect(strategy.validate_ownership(custom_domain)[:validated]).to be_nil
+        end
+      end
+
+      context 'and the native lookup raises' do
+        before { allow(resolver).to receive(:getresources).and_raise(Resolv::ResolvTimeout) }
+
+        it 'stays indeterminate' do
+          expect(strategy.validate_ownership(custom_domain)[:validated]).to be_nil
+        end
+      end
+    end
+
+    context 'when the 200 payload carries no records' do
+      before do
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
+          .and_return(double('Response', code: 200, parsed_response: {}))
+        allow(OT).to receive(:lw)
+        allow(Resolv::DNS).to receive(:new)
+          .and_return(instance_double(Resolv::DNS, :timeouts= => nil, close: nil, getresources: []))
+      end
+
+      it 'is indeterminate, not a mismatch' do
+        expect(strategy.validate_ownership(custom_domain)[:validated]).to be_nil
       end
     end
 
