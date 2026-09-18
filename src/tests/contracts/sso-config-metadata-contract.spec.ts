@@ -1,23 +1,163 @@
 // src/tests/contracts/sso-config-metadata-contract.spec.ts
 //
-// Contract tests for SSO_PROVIDER_METADATA constant and customDomainSsoConfigCanonical schema.
-// Verifies frontend metadata matches backend PROVIDER_METADATA constant in:
-// lib/onetime/models/custom_domain/sso_config.rb
+// Contract tests for the SSO provider constants and the
+// customDomainSsoConfigCanonical schema. Verifies the frontend mirrors of
+// PROVIDER_TYPES, PROVIDER_METADATA, CLIENT_CREDENTIAL_PROVIDER_TYPES,
+// PROVIDER_ROUTE_MAP and SAML_FIELDS in
+// lib/onetime/models/custom_domain/sso_config.rb.
 //
-// These tests ensure the frontend has accurate information about which
-// providers require domain filtering vs having IdP-controlled access.
+// The Ruby constants are READ FROM SOURCE (same approach as
+// customer-role-contract.spec.ts), so a backend provider type, route default
+// or credential rule the frontend does not know about fails CI instead of
+// shipping a form that hides a required field or previews the wrong callback
+// URL. Before #4450 the form carried an untested third copy of the route map.
 //
 // Note: SSO config is per-domain. Model is CustomDomain::SsoConfig (#2786, #2801).
 
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
+  SSO_CLIENT_CREDENTIAL_PROVIDER_TYPES,
   SSO_PROVIDER_METADATA,
+  SSO_PROVIDER_ROUTE_NAMES,
+  SSO_SAML_FIELDS,
   ssoProviderTypeSchema,
+  ssoProviderUsesClientCredentials,
   customDomainSsoConfigCanonical,
   patchSsoConfigPayloadSchema,
   putSsoConfigPayloadSchema,
+  putSsoConfigPayloadStrictSchema,
   type SsoProviderType,
 } from '@/schemas/contracts/custom-domain/sso-config';
+
+// ---------------------------------------------------------------------------
+// Backend source extraction
+// ---------------------------------------------------------------------------
+
+const SSO_CONFIG_SOURCE_PATH = fileURLToPath(
+  new URL('../../../lib/onetime/models/custom_domain/sso_config.rb', import.meta.url)
+);
+
+const rubySource = readFileSync(SSO_CONFIG_SOURCE_PATH, 'utf8');
+
+/**
+ * Extracts a `%w[...]` word list constant from the Ruby model. Throws
+ * (failing the suite loudly) if the declaration moved or changed shape — a
+ * silent empty list would make the assertions below vacuously pass.
+ */
+function rubyWordList(constant: string): string[] {
+  const match = rubySource.match(new RegExp(`${constant}\\s*=\\s*%w\\[([^\\]]*)\\]`));
+  if (!match) {
+    throw new Error(
+      `Could not extract ${constant} from ${SSO_CONFIG_SOURCE_PATH}. ` +
+        'If the declaration moved or changed shape, update this test AND ' +
+        'verify the frontend mirror still matches.'
+    );
+  }
+  return match[1].trim().split(/\s+/).filter(Boolean);
+}
+
+/** `SAML_FIELDS = [:a, :b, :c].freeze` → ['a', 'b', 'c'] */
+function rubySymbolList(constant: string): string[] {
+  const match = rubySource.match(new RegExp(`${constant}\\s*=\\s*\\[([^\\]]*)\\]`));
+  if (!match) {
+    throw new Error(`Could not extract ${constant} from ${SSO_CONFIG_SOURCE_PATH}.`);
+  }
+  return match[1]
+    .split(',')
+    .map((s) => s.trim().replace(/^:/, ''))
+    .filter(Boolean);
+}
+
+/**
+ * PROVIDER_ROUTE_MAP `'type' => { env_var: 'X', default: 'route' }` entries.
+ * Every provider type must have one, so the count is asserted too.
+ */
+function rubyRouteDefaults(): Record<string, string> {
+  const block = rubySource.match(/PROVIDER_ROUTE_MAP\s*=\s*\{([\s\S]*?)\}\.freeze/);
+  if (!block) {
+    throw new Error(`Could not extract PROVIDER_ROUTE_MAP from ${SSO_CONFIG_SOURCE_PATH}.`);
+  }
+  const entries = [...block[1].matchAll(/'([a-z_]+)'\s*=>\s*\{[^}]*default:\s*'([a-z_]+)'/g)];
+  if (entries.length === 0) {
+    throw new Error('PROVIDER_ROUTE_MAP matched but no entries were parsed.');
+  }
+  return Object.fromEntries(entries.map(([, type, route]) => [type, route]));
+}
+
+/**
+ * PROVIDER_METADATA booleans per type. Description strings are not compared
+ * (the frontend uses typographic dashes); the two booleans drive UI
+ * behaviour and must agree exactly.
+ */
+function rubyMetadataBooleans(): Record<string, { requiresDomainFilter: boolean; idpControlsAccess: boolean }> {
+  const block = rubySource.match(/PROVIDER_METADATA\s*=\s*\{([\s\S]*?)\n\s*\}\.freeze/);
+  if (!block) {
+    throw new Error(`Could not extract PROVIDER_METADATA from ${SSO_CONFIG_SOURCE_PATH}.`);
+  }
+  const entries = [
+    ...block[1].matchAll(
+      /'([a-z_]+)'\s*=>\s*\{[^}]*requires_domain_filter:\s*(true|false)[^}]*idp_controls_access:\s*(true|false)/g
+    ),
+  ];
+  if (entries.length === 0) {
+    throw new Error('PROVIDER_METADATA matched but no entries were parsed.');
+  }
+  return Object.fromEntries(
+    entries.map(([, type, rdf, ica]) => [
+      type,
+      { requiresDomainFilter: rdf === 'true', idpControlsAccess: ica === 'true' },
+    ])
+  );
+}
+
+describe('Backend constant sync (read from sso_config.rb)', () => {
+  it('ssoProviderTypeSchema equals PROVIDER_TYPES', () => {
+    expect([...ssoProviderTypeSchema.options].sort()).toEqual(rubyWordList('PROVIDER_TYPES').sort());
+  });
+
+  it('SSO_CLIENT_CREDENTIAL_PROVIDER_TYPES equals CLIENT_CREDENTIAL_PROVIDER_TYPES', () => {
+    expect([...SSO_CLIENT_CREDENTIAL_PROVIDER_TYPES].sort()).toEqual(
+      rubyWordList('CLIENT_CREDENTIAL_PROVIDER_TYPES').sort()
+    );
+  });
+
+  it('SSO_PROVIDER_ROUTE_NAMES equals the PROVIDER_ROUTE_MAP defaults, one per provider type', () => {
+    const defaults = rubyRouteDefaults();
+    expect(Object.keys(defaults).sort()).toEqual([...ssoProviderTypeSchema.options].sort());
+    expect(SSO_PROVIDER_ROUTE_NAMES).toEqual(defaults);
+  });
+
+  it('SSO_PROVIDER_METADATA booleans equal PROVIDER_METADATA, one per provider type', () => {
+    const backend = rubyMetadataBooleans();
+    expect(Object.keys(backend).sort()).toEqual([...ssoProviderTypeSchema.options].sort());
+    for (const [type, booleans] of Object.entries(backend)) {
+      const frontend = SSO_PROVIDER_METADATA[type as SsoProviderType];
+      expect(frontend.requiresDomainFilter, `${type}.requiresDomainFilter`).toBe(booleans.requiresDomainFilter);
+      expect(frontend.idpControlsAccess, `${type}.idpControlsAccess`).toBe(booleans.idpControlsAccess);
+    }
+  });
+
+  it('SSO_SAML_FIELDS equals SAML_FIELDS', () => {
+    expect([...SSO_SAML_FIELDS]).toEqual(rubySymbolList('SAML_FIELDS'));
+  });
+
+  it('every SAML field is declared nullable on the canonical schema', () => {
+    for (const field of SSO_SAML_FIELDS) {
+      expect(customDomainSsoConfigCanonical.shape[field].safeParse(null).success, field).toBe(true);
+      expect(customDomainSsoConfigCanonical.shape[field].safeParse('x').success, field).toBe(true);
+    }
+  });
+});
+
+describe('ssoProviderUsesClientCredentials', () => {
+  it('is true for oidc and entra_id, false for saml', () => {
+    expect(ssoProviderUsesClientCredentials('oidc')).toBe(true);
+    expect(ssoProviderUsesClientCredentials('entra_id')).toBe(true);
+    expect(ssoProviderUsesClientCredentials('saml')).toBe(false);
+  });
+});
 
 describe('SSO_PROVIDER_METADATA constant', () => {
   describe('structure', () => {
