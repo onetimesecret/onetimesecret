@@ -141,6 +141,24 @@ otherwise make the domain `ready?`. Installs that do not run
 `DomainRefreshJob` (the scheduler is off by default) need
 `bin/ots domains verify --all` for any of this to reach existing domains.
 
+`verified_confirmed_at` is written only for a pass from a strategy that
+checks the record (`BaseStrategy#proves_ownership?`: `approximated` and
+`caddy_on_demand`). A `passthrough` pass sets `verified` and records no
+confirmation, so a domain verified under `passthrough` is treated as never
+confirmed after a move to `caddy_on_demand`.
+
+The never-confirmed rule also reaches an install that cuts over from
+`approximated` to `caddy_on_demand` at or soon after this upgrade. The field
+is new, so every domain starts without it, including those Approximated had
+proven; and cutover is the first time the app needs its own working resolver
+on every check. The operator sequence is: upgrade while still on
+`approximated`; run a full `bin/ots domains verify --all` pass (or a complete
+`DomainRefreshJob` walk) so the confirmation is recorded for every proven
+domain; confirm the app host has a working resolver; then switch strategy.
+Without that, a first lookup under `caddy_on_demand` that gets no answer
+withdraws `verified` from a domain Approximated had proven, until the next
+passing check or a Colonel override.
+
 ### Serving axis implemented for `caddy_on_demand` (2026-09-18)
 
 `CaddyOnDemandStrategy#check_status` no longer returns `nil` for both fields.

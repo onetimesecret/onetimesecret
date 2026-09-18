@@ -49,6 +49,13 @@ Changed
   verified on the next check that finds the record. A Colonel override holds
   it here as well.
 
+  The same applies to a domain verified under ``passthrough``. That strategy
+  passes every domain without a DNS check, so its passes are stored in
+  verified but are not recorded as a TXT confirmation
+  (``verified_confirmed_at`` stays empty). After a move from ``passthrough``
+  to ``caddy_on_demand`` such a domain stays verified only once a check finds
+  its TXT record, or under a Colonel override.
+
 - The ``caddy_on_demand`` strategy now reports real resolving and SSL status
   for custom domains. Previously both were always unknown, so the domain
   pages never updated and a domain could not become ready without an operator
@@ -88,6 +95,24 @@ Changed
     the Approximated side: run the ``remove_orphaned_approximated_vhosts``
     chore with the Approximated API key still configured, or delete them in
     the Approximated dashboard.
+
+    Sequence the switch so that proven domains keep verified.
+    ``verified_confirmed_at`` is new in this version and is only written by a
+    passing check on this version, so immediately after upgrading every
+    domain has none, including domains Approximated had proven. Before
+    changing the strategy: (1) upgrade while still on ``approximated`` and
+    run a full ``bin/ots domains verify --all`` pass (or let the domain
+    refresh job complete a walk of every page), which records the
+    confirmation for each domain whose TXT record is in place; (2) confirm
+    the application host has a working resolver (nameservers in
+    ``resolv.conf``, outbound DNS allowed), because ``caddy_on_demand`` is
+    the first time the application does the TXT lookup itself on every
+    check. If the strategy is switched without this, a first lookup under
+    ``caddy_on_demand`` that gets no answer (no nameserver configured, DNS
+    egress blocked, SERVFAIL, timeout) withdraws verified from a domain that
+    Approximated had proven, and link creation under ``require_verified``,
+    domain sign-in and SSO stop working for it until the next passing check
+    or a Colonel override.
 
 - A verified domain whose TXT checks stop producing an answer is no longer
   held verified indefinitely. The first indeterminate check of a verified
