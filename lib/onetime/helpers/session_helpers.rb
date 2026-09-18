@@ -10,7 +10,10 @@
 # Session Data Stored:
 # - external_id: Links to Customer.extid (Redis primary key)
 # - email: User's email address
-# - role: User's role (customer, colonel, etc.) for quick permission checks
+# - role: User's role (customer, colonel, etc.). DISPLAY ONLY: read by the
+#   colonel Sessions console and `bin/ots session` (Operations::Sessions::Store,
+#   Colonel::GetSessionDetail). Never an authorization input; role checks load
+#   the Customer through the evaluator.
 # - authenticated: Boolean flag
 # - authenticated_at: Unix timestamp
 #
@@ -93,8 +96,10 @@ module Onetime
         principal = verdict.principal
         customer  = verdict.customer
 
-        # Refresh the cached role from the PRINCIPAL only. The target's role
-        # must never be persisted into the operator's session during an overlay.
+        # Refresh the session's role from the PRINCIPAL only. It is display data
+        # for the colonel Sessions console, which lists the session under its
+        # owner; an overlay must never stamp the target's role into the
+        # operator's session.
         if verdict.impersonation.nil? && session['role'] != principal.role
           session['role'] = principal.role
         end
