@@ -181,6 +181,24 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
     identities.where(uid: uid).all
   end
 
+  # Corrupt one of tenant A's AAD-bound trust anchors by copying tenant B's
+  # ciphertext for the same field into A's record (the swap
+  # try/unit/models/custom_domain_sso_config_saml_try.rb proves unreadable).
+  def swap_trust_anchor_from_b_into_a(field)
+    config_a = Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant_a.domain.identifier)
+    config_b = Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant_b.domain.identifier)
+    Familia.dbclient.hset(config_a.dbkey, field.to_s, Familia.dbclient.hget(config_b.dbkey, field.to_s))
+  end
+
+  def audit_events
+    events = []
+    allow(Auth::Logging).to receive(:log_auth_event).and_wrap_original do |original, event, **fields|
+      events << [event, fields]
+      original.call(event, **fields)
+    end
+    events
+  end
+
   # The issuer a tenant's identity rows carry: the IdP EntityID scoped to the
   # domain (see Onetime::SsoProvider::Saml.tenant_issuer).
   def tenant_issuer(tenant)
@@ -224,6 +242,33 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to include('auth_error=sso_not_configured')
       expect(last_response.headers['Location']).not_to include('SAMLRequest')
+    end
+
+    # The joined path the model tryout and the stubbed hook spec each pin one
+    # half of: build_saml_options wraps a reveal failure into Onetime::Problem
+    # and inject_tenant_credentials rescues ONLY that into the
+    # sso_not_configured refusal. A regression in either half would 500 here
+    # instead, and the expired-certificate case above (ArgumentError, not a
+    # reveal failure) would stay green.
+    %i[idp_cert idp_entity_id].each do |field|
+      it "refuses, with an audit event, when the stored #{field} cannot be decrypted" do
+        events = audit_events
+        swap_trust_anchor_from_b_into_a(field)
+
+        header 'Host', tenant_a.host
+        post '/auth/sso/saml'
+
+        expect(last_response.status).to eq(302)
+        expect(last_response.headers['Location']).to include('auth_error=sso_not_configured')
+        expect(last_response.headers['Location']).not_to include('SAMLRequest')
+        expect(last_request.env['rack.session'].to_h.keys.map(&:to_s)).not_to include('omniauth_tenant_domain_id')
+
+        unusable = events.find { |event, _| event == :omniauth_tenant_config_unusable }
+        expect(unusable).not_to be_nil
+        expect(unusable.last).to include(level: :error, provider_type: 'saml', domain_id: tenant_a.domain.identifier)
+        expect(unusable.last[:error]).to include('unreadable')
+        expect(unusable.last.values).to all(be_a(String).or(be_a(Symbol)))
+      end
     end
   end
 
@@ -290,13 +335,28 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       expect(rows.map { |row| row[:account_id] }.uniq.size).to eq(2)
     end
 
-    it 'consumes the pending request id: a second callback has nothing to answer' do
-      sign_in(tenant_a, name_id: name_id, email: email_a)
+    # A FRESH, validly signed response to the SAME AuthnRequest: only the
+    # one-shot consumption of the pending id stands between it and a second
+    # login (a garbage SAMLResponse would be refused at parse time and prove
+    # nothing about the consumption).
+    it 'consumes the pending request id: a second answer to the same request is refused' do
+      created_emails << email_a
+      request = start_login(tenant_a)
+      answer  = lambda do
+        tenant_a.idp.response(
+          in_response_to: request.id, acs_url: request.acs_url, audience: request.sp_entity_id,
+          name_id: name_id, attributes: { 'email' => [email_a] }
+        )
+      end
 
-      header 'Host', tenant_a.host
-      post '/auth/sso/saml/callback', { 'SAMLResponse' => 'irrelevant' }
+      post_callback(tenant_a, answer.call)
+      expect(last_response.headers['Location'].to_s).not_to include('auth_error')
+      expect(identity_rows(name_id).size).to eq(1)
+
+      post_callback(tenant_a, answer.call)
 
       expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      expect(identity_rows(name_id).size).to eq(1)
     end
   end
 
@@ -544,6 +604,18 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
 
       expect(last_response.body).not_to include('EntityDescriptor')
       expect(last_response.headers['Location'].to_s).to include('auth_error=sso_not_configured')
+    end
+
+    it 'emits no metadata for a tenant whose trust anchor cannot be decrypted' do
+      events = audit_events
+      swap_trust_anchor_from_b_into_a(:idp_cert)
+
+      header 'Host', tenant_a.host
+      get '/auth/sso/saml/metadata'
+
+      expect(last_response.body).not_to include('EntityDescriptor')
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_not_configured')
+      expect(events.map(&:first)).to include(:omniauth_tenant_config_unusable)
     end
   end
 end

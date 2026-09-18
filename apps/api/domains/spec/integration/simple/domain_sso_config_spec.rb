@@ -1490,6 +1490,37 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           expect(last_response.status).to eq(422)
           expect(json_body['field']).to eq('idp_cert_fingerprint')
         end
+
+        # SamlFields#stored_saml_value?: a stored value that will not decrypt
+        # (swapped in from another domain, corrupted, foreign key) counts as
+        # ABSENT, so a partial update cannot quietly preserve a trust anchor
+        # nobody can read; the admin must re-enter it. Fail closed — a
+        # rescue that answered true would leave every login refusing
+        # sso_not_configured with nothing on the form to say why.
+        context 'when a stored trio field cannot be decrypted' do
+          before do
+            other          = Onetime::CustomDomain::SsoConfig.new(domain_id: "other-#{test_run_id}")
+            other.idp_cert = saml_cert
+            Familia.dbclient.hset(stored_config.dbkey, 'idp_cert', other.idp_cert.encrypted_value)
+            allow(OT).to receive(:lw)
+          end
+
+          it 'refuses a partial update that would preserve it, naming the field' do
+            csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed' }
+
+            expect(last_response.status).to eq(422)
+            expect(json_body).to include('error_type' => 'missing', 'field' => 'idp_cert')
+            expect(stored_config.display_name).to eq('Corp SAML')
+          end
+
+          it 'accepts the update once the field is re-entered' do
+            csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed', idp_cert: saml_cert }
+
+            expect(last_response.status).to eq(200), last_response.body
+            expect(stored_config.display_name).to eq('Renamed')
+            expect(stored_config.reveal_saml_field(:idp_cert)).to eq(saml_cert.strip)
+          end
+        end
       end
 
       context 'with an existing oidc config' do
@@ -1550,6 +1581,42 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         json_get api_path(test_custom_domain.extid)
 
         expect(json_body['record']).to include('sp_entity_id' => nil, 'acs_url' => nil, 'unreadable_fields' => [])
+      end
+
+      # The credential fields go through the same error-state contract: a
+      # client_secret that will not decrypt must be reported, not served as
+      # a null the form reads as "unset" (and PATCH would then preserve).
+      context 'with an entra_id record whose credential ciphertext was swapped' do
+        before do
+          csrf_put api_path(test_custom_domain.extid), valid_entra_params
+          allow(OT).to receive(:lw)
+        end
+
+        def swap_in_foreign(field, value)
+          other = Onetime::CustomDomain::SsoConfig.new(domain_id: "other-#{test_run_id}")
+          other.public_send(:"#{field}=", value)
+          Familia.dbclient.hset(stored_config.dbkey, field.to_s, other.public_send(field).encrypted_value)
+        end
+
+        it 'names client_secret in unreadable_fields with a null mask' do
+          swap_in_foreign(:client_secret, 'foreign-secret')
+
+          json_get api_path(test_custom_domain.extid)
+
+          expect(last_response.status).to eq(200)
+          expect(json_body['record']).to include('unreadable_fields' => ['client_secret'], 'client_secret_masked' => nil)
+          expect(json_body['record']['client_id']).to eq('test-client-id-12345')
+        end
+
+        it 'names client_id in unreadable_fields with a null value' do
+          swap_in_foreign(:client_id, 'foreign-client')
+
+          json_get api_path(test_custom_domain.extid)
+
+          expect(last_response.status).to eq(200)
+          expect(json_body['record']).to include('unreadable_fields' => ['client_id'], 'client_id' => nil)
+          expect(json_body['record']['client_secret_masked']).to end_with('cdef')
+        end
       end
     end
 

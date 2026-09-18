@@ -892,7 +892,7 @@ so they never reach a log line unbounded.
 |----------|---------|-------|
 | `saml_no_pending_request` | The callback arrived in a session with no pending sign-in | `site.session.same_site` must be `none` with `secure: true`; an IdP-initiated sign-in (started from the IdP's portal) is refused by design; a second sign-in tab supersedes the first |
 | `saml_misconfigured` | `idp_entity_id` or `sp_entity_id` is blank on the route | On the canonical host the platform vars are unusable and the route is the tenant placeholder; on a custom domain the tenant record was not injected |
-| `saml_issuer_unreadable` | The response has no Issuer, or more than one distinct Issuer element | IdP configuration |
+| `saml_issuer_unreadable` | The Issuer elements could not be read after validation (defense in depth: a missing or repeated Issuer is refused by ruby-saml first, as `invalid_ticket`) | IdP configuration |
 | `saml_weak_signature_algorithm` | A signature in the response uses a `SignatureMethod` or `DigestMethod` outside the allowlist (RSA/ECDSA-SHA256/384/512, SHA-256/384/512) — typically RSA-SHA1 / SHA1 | Configure SHA-256 signing at the IdP; the log event names the offending `kind` and `algorithm` URI |
 | `saml_issuer_mismatch` | The response's Issuer is not byte-equal to `SAML_IDP_ENTITY_ID` (or the tenant's `idp_entity_id`) | Copy the EntityID exactly as the IdP publishes it — scheme case, port, trailing slash |
 | `saml_transient_name_id` | The IdP sent a transient NameID | Configure a persistent NameID at the IdP, or set `SAML_UID_ATTRIBUTE` (platform only) |

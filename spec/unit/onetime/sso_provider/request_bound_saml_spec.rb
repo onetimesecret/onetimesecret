@@ -560,10 +560,13 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
     describe 'issuer gate' do
       before { start_login }
 
+      # The GEM refuses this first (validate_issuer runs on the missing
+      # Response Issuer before the block runs), so the subclass's own
+      # :saml_issuer_unreadable is legitimately not the type here.
       it 'refuses a response with no Response Issuer' do
         post_callback(response_for(session[request_id_key], response_issuer: nil))
 
-        expect(failures.size).to eq(1)
+        expect(failure_types).to eq([:invalid_ticket])
         expect(reached_app).to be_empty
       end
 
@@ -612,13 +615,33 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         expect(reached_app).to be_empty
       end
 
-      it 'refuses when reading the issuers raises after validation' do
-        allow_any_instance_of(OneLogin::RubySaml::Response) # rubocop:disable RSpec/AnyInstance
-          .to receive(:issuers).and_raise(OneLogin::RubySaml::ValidationError, 'Issuer of the Assertion not found or multiple.')
+      # The subclass's own rescue: without it the ValidationError would
+      # propagate into omniauth-saml's callback_phase rescue and become a
+      # generic :invalid_ticket — still closed, but the distinct symbol and
+      # the [saml_response_refused] event the ops docs name would be gone.
+      #
+      # `issuers` is ALSO what the gem's validate_issuer calls during
+      # is_valid?, so a stub that raised unconditionally would be refused by
+      # the gem first (:invalid_ticket) and never reach the subclass. The
+      # raise is armed only once validation has returned — the point at
+      # which the subclass reads the issuers itself.
+      it 'refuses when reading the issuers raises after validation, under its own symbol' do
+        validated = false
+        allow_any_instance_of(OneLogin::RubySaml::Response).to receive(:is_valid?).and_wrap_original do |original, *args| # rubocop:disable RSpec/AnyInstance
+          original.call(*args).tap { validated = true }
+        end
+        allow_any_instance_of(OneLogin::RubySaml::Response).to receive(:issuers).and_wrap_original do |original, *args| # rubocop:disable RSpec/AnyInstance
+          raise OneLogin::RubySaml::ValidationError, 'Issuer of the Assertion not found or multiple.' if validated
+
+          original.call(*args)
+        end
         post_callback(response_for(session[request_id_key]))
 
-        expect(failures.size).to eq(1)
+        expect(failure_types).to eq([:saml_issuer_unreadable])
+        expect(auth_logger).to have_received(:warn)
+          .with('[saml_response_refused]', hash_including(reason: 'saml_issuer_unreadable', phase: 'callback'))
         expect(reached_app).to be_empty
+        expect(fake_dbclient.writes).to be_empty
       end
     end
 
@@ -736,6 +759,27 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         expect(failure_types).to eq([:saml_assertion_unbounded])
         expect(fake_dbclient.writes).to be_empty
         expect(reached_app).to be_empty
+        expect(auth_logger).to have_received(:warn).with(
+          '[saml_response_refused]',
+          hash_including(reason: 'saml_assertion_unbounded', has_assertion_id: false, has_not_on_or_after: true),
+        )
+      end
+
+      # The other operand of the same gate. Without it a nil NotOnOrAfter
+      # would reach the guard's ArgumentError and be refused under the
+      # OUTAGE symbol, which an operator reads as a datastore incident.
+      it 'refuses an assertion with no NotOnOrAfter under the unbounded symbol, not the outage one' do
+        allow_any_instance_of(OneLogin::RubySaml::Response).to receive(:not_on_or_after).and_return(nil) # rubocop:disable RSpec/AnyInstance
+        start_login
+        post_callback(response_for(session[request_id_key]))
+
+        expect(failure_types).to eq([:saml_assertion_unbounded])
+        expect(fake_dbclient.writes).to be_empty
+        expect(reached_app).to be_empty
+        expect(auth_logger).to have_received(:warn).with(
+          '[saml_response_refused]',
+          hash_including(reason: 'saml_assertion_unbounded', has_assertion_id: true, has_not_on_or_after: false),
+        )
       end
     end
 
