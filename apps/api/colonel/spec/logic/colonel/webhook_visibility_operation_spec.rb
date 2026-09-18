@@ -15,13 +15,16 @@ RSpec.describe Onetime::Operations::Billing::WebhookVisibility do
   ) do
     def retryable? = processing_status != 'success' && attempt_count.to_i < 3
     def max_attempts_reached? = attempt_count.to_i >= 3
+    def exists? = true
   end
 
   Pending = Struct.new(
     :email_hash, :subscription_status, :planid, :region, :received_at,
     :source_stripe_event_id,
     keyword_init: true,
-  )
+  ) do
+    def exists? = true
+  end
 
   let(:event_a) do
     Event.new(
