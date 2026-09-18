@@ -6,6 +6,8 @@ require 'resolv'
 require 'securerandom'
 require 'socket'
 
+require_relative 'ascii_hostname'
+
 module Onetime
   module DomainValidation
     # DnsStubResolver - Minimal stub resolver that reports the DNS response code.
@@ -24,7 +26,7 @@ module Onetime
     # asks the system's recursive resolvers (/etc/resolv.conf) with RD set, over
     # UDP, retrying over TCP when the reply is truncated.
     #
-    # The query name is always absolute. Resolv applies the resolv.conf search
+    # The query name is always absolute and in A-label form. Resolv applies the resolv.conf search
     # list to relative names, so an NXDOMAIN for "_challenge.example.com" is
     # retried as "_challenge.example.com.<search domain>", where a wildcard in
     # the search domain could answer for the customer's zone.
@@ -213,12 +215,16 @@ module Onetime
       end
 
       # The trailing dot makes the name absolute, which keeps resolv.conf's
-      # search list and ndots out of the lookup.
+      # search list and ndots out of the lookup. An internationalised name is
+      # queried in its A-label form (see AsciiHostname for why).
+      #
+      # @raise [ArgumentError] blank hostname, or one with no A-label form
+      #   (AsciiHostname::ConversionError)
       def absolute_name(hostname)
         fqdn = hostname.to_s.strip.chomp('.')
         raise ArgumentError, 'DNS lookup requires a hostname' if fqdn.empty?
 
-        Resolv::DNS::Name.create("#{fqdn}.")
+        Resolv::DNS::Name.create("#{AsciiHostname.call(fqdn)}.")
       end
 
       # One nameserver, UDP first and TCP if the reply was truncated.
