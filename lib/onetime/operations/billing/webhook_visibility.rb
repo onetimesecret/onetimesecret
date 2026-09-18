@@ -60,7 +60,7 @@ module Onetime
           stop  = start + normalized_per_page - 1
           ids   = safe_revrange(index, start, stop)
 
-          events       = ids.empty? ? [] : @webhook_event_model.load_multi(ids).compact.select(&:exists?)
+          events       = ids.empty? ? [] : @webhook_event_model.load_multi(ids).compact
           events_by_id = events.to_h { |event| [event_identifier(event), event] }
           stale_ids    = ids.reject { |id| events_by_id.key?(id) }
           prune_stale(index, stale_ids)
@@ -126,7 +126,7 @@ module Onetime
           stop  = start + normalized_per_page - 1
           ids   = safe_revrange(index, start, stop)
 
-          records       = ids.empty? ? [] : @pending_subscription_model.load_multi(ids).compact.select(&:exists?)
+          records       = ids.empty? ? [] : @pending_subscription_model.load_multi(ids).compact
           records_by_id = records.to_h { |record| [record.email_hash.to_s, record] }
           stale_ids     = ids.reject { |id| records_by_id.key?(id) }
           prune_stale(index, stale_ids)
@@ -211,7 +211,7 @@ module Onetime
           ids = subscriptions.filter_map { |subscription| source_event_identifier(subscription) }.uniq
           return {} if ids.empty?
 
-          @webhook_event_model.load_multi(ids).compact.select(&:exists?).to_h do |event|
+          @webhook_event_model.load_multi(ids).compact.to_h do |event|
             [event_identifier(event), event]
           end
         end
