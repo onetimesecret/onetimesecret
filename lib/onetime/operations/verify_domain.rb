@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative 'verify_domain/confirmation_window'
+
 module Onetime
   module Operations
     #
@@ -36,12 +38,14 @@ module Onetime
         :dns_indeterminate, # Boolean: the TXT check produced no answer; verified left untouched
         :dns_message,     # String or nil: strategy's description of the TXT outcome
         :override_held,   # Boolean: TXT check failed but an operator override kept verified
+        :confirmation_expired, # Boolean: indeterminate for longer than the confirmation window; verified withdrawn
         :ssl_ready,       # Boolean: has valid SSL certificate
         :is_resolving,    # Boolean: DNS resolving to correct target
         :persisted,       # Boolean: changes were saved
         :error,           # String or nil: error message if failed
       ) do
-        def initialize(dns_indeterminate: false, dns_message: nil, override_held: false, **)
+        def initialize(dns_indeterminate: false, dns_message: nil, override_held: false,
+                       confirmation_expired: false, **)
           super
         end
 
@@ -50,9 +54,13 @@ module Onetime
         end
 
         # One label for the TXT outcome, for operator-facing output.
-        # @return [Symbol] :validated, :indeterminate, :override_held, :failed
+        # @return [Symbol] :validated, :confirmation_expired, :indeterminate,
+        #   :override_held, :failed
         def dns_outcome
           return :validated if dns_validated
+          # Still an indeterminate check (dns_indeterminate stays true), but
+          # unlike plain :indeterminate it did not leave verified unchanged.
+          return :confirmation_expired if confirmation_expired
           return :indeterminate if dns_indeterminate
 
           override_held ? :override_held : :failed
@@ -78,6 +86,7 @@ module Onetime
             dns_message: dns_message,
             dns_outcome: dns_outcome,
             override_held: override_held,
+            confirmation_expired: confirmation_expired,
             ssl_ready: ssl_ready,
             is_resolving: is_resolving,
             persisted: persisted,
@@ -94,10 +103,11 @@ module Onetime
         :skipped_count,   # Integer: domains skipped (already verified, etc.)
         :indeterminate_count, # Integer: domains whose TXT check produced no answer
         :demoted_count,   # Integer: domains that lost :verified on this run
+        :confirmation_expired_count, # Integer: of those, indeterminate past the confirmation window
         :results,         # Array<Result>: individual results
         :duration_seconds, # Float: total processing time
       ) do
-        def initialize(indeterminate_count: 0, demoted_count: 0, **)
+        def initialize(indeterminate_count: 0, demoted_count: 0, confirmation_expired_count: 0, **)
           super
         end
 
@@ -113,6 +123,7 @@ module Onetime
             skipped_count: skipped_count,
             indeterminate_count: indeterminate_count,
             demoted_count: demoted_count,
+            confirmation_expired_count: confirmation_expired_count,
             duration_seconds: duration_seconds,
             results: results.map(&:to_h),
           }
@@ -176,6 +187,7 @@ module Onetime
 
         # Perform DNS ownership validation
         dns_result = validate_ownership(domain)
+        window     = ConfirmationWindow.new(domain, dns_result)
 
         # Check SSL/resolution status
         status_result = check_status(domain)
@@ -185,7 +197,7 @@ module Onetime
         # WHAT we persist (verified/unverified), not WHETHER we persist
         persisted = false
         if @persist
-          persisted = persist_changes(domain, dns_result, status_result)
+          persisted = persist_changes(domain, dns_result, status_result, window)
         end
 
         current_state = domain.verification_state
@@ -207,13 +219,14 @@ module Onetime
           dns_indeterminate: dns_result[:indeterminate] == true,
           dns_message: dns_result[:message],
           override_held: override_held?(domain, dns_result),
+          confirmation_expired: window.expired?,
           ssl_ready: status_result[:has_ssl] || false,
           is_resolving: status_result[:is_resolving] || false,
           persisted: persisted,
           error: nil,
         )
 
-        log_notable_outcome(result, dns_result)
+        log_notable_outcome(result, dns_result, window)
         result
       rescue StandardError => ex
         logger.error 'Domain verification failed',
@@ -258,6 +271,7 @@ module Onetime
           skipped_count: 0, # Could be extended for skip logic
           indeterminate_count: results.count { |r| r.dns_indeterminate },
           demoted_count: results.count { |r| r.demoted? },
+          confirmation_expired_count: results.count { |r| r.confirmation_expired },
           results: results,
           duration_seconds: duration.round(2),
         )
@@ -280,21 +294,31 @@ module Onetime
         { validated: false, message: ex.message, data: nil }
       end
 
-      # Warn on the two outcomes an operator needs to find without a console
-      # session: an indeterminate TXT check (verified left untouched) and a
-      # demotion out of :verified. The raw strategy payload rides along so the
-      # failure modes can be told apart from the log line alone.
+      # Warn on the outcomes an operator needs to find without a console
+      # session: an indeterminate TXT check (verified left untouched, or
+      # withdrawn once the confirmation window ran out) and a demotion out of
+      # :verified. The raw strategy payload rides along so the failure modes
+      # can be told apart from the log line alone.
       #
       # @param result [Result]
       # @param dns_result [Hash]
-      def log_notable_outcome(result, dns_result)
+      # @param window [ConfirmationWindow]
+      def log_notable_outcome(result, dns_result, window)
         if result.override_held
           logger.info 'DNS validation failed; verified held by operator override',
             domain: result.domain.display_domain,
             message: dns_result[:message]
         end
 
-        if result.dns_indeterminate
+        if result.confirmation_expired
+          logger.warn 'DNS validation indeterminate past the confirmation window; verified withdrawn',
+            domain: result.domain.display_domain,
+            unconfirmed_since: window.unconfirmed_since,
+            last_confirmed_at: window.last_confirmed_at,
+            max_age: window.max_age,
+            persisted: result.persisted,
+            message: dns_result[:message]
+        elsif result.dns_indeterminate
           logger.warn 'DNS validation indeterminate; verified left unchanged',
             domain: result.domain.display_domain,
             state: result.current_state,
@@ -400,19 +424,25 @@ module Onetime
       # A 200 is not enough for `verified`: the strategy returns validated: nil
       # when the upstream checker answered but its own DNS lookup failed
       # (indeterminate). That is not evidence about the customer's DNS, so the
-      # stored flag is left alone — neither promoted nor demoted.
+      # stored flag is left alone — neither promoted nor demoted. The one
+      # exception is bounded by time: ConfirmationWindow withdraws verified
+      # once every check has been indeterminate for longer than its max age.
       #
       # @param domain [Onetime::CustomDomain]
       # @param dns_result [Hash]
       # @param status_result [Hash]
+      # @param window [ConfirmationWindow]
       # @return [Boolean] Whether changes were saved
-      def persist_changes(domain, dns_result, status_result)
+      def persist_changes(domain, dns_result, status_result, window)
         if (dns_result[:data] || dns_result[:mode]) && !dns_result[:validated].nil? &&
            !override_held?(domain, dns_result)
           domain.verified! dns_result[:validated]
           # DNS has now proven ownership itself; the operator's assertion is
           # no longer what holds the flag, so later failures demote normally.
           domain.verified_by_override = false if dns_result[:validated]
+          window.record_settled(dns_result[:validated])
+        else
+          window.record_unsettled
         end
 
         if status_result[:data] || status_result[:mode]

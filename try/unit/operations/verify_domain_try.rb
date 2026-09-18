@@ -257,7 +257,7 @@ end
 
 ## Result to_h - produces hash representation
 @result1.to_h.keys.sort
-#=> [:current_state, :dns_indeterminate, :dns_message, :dns_outcome, :dns_validated, :domain, :error, :is_resolving, :override_held, :persisted, :previous_state, :ssl_ready]
+#=> [:confirmation_expired, :current_state, :dns_indeterminate, :dns_message, :dns_outcome, :dns_validated, :domain, :error, :is_resolving, :override_held, :persisted, :previous_state, :ssl_ready]
 
 ## Result changed? - detects state change
 # Reset domain and verify with different outcome
@@ -285,7 +285,7 @@ end
 
 ## BulkResult to_h - produces hash with nested results
 @bulk_result.to_h.keys.sort
-#=> [:demoted_count, :duration_seconds, :failed_count, :indeterminate_count, :results, :skipped_count, :total, :verified_count]
+#=> [:confirmation_expired_count, :demoted_count, :duration_seconds, :failed_count, :indeterminate_count, :results, :skipped_count, :total, :verified_count]
 
 # ─────────────────────────────────────────────────────────────────────────
 # Issue #3080: atomic persistence smoke tests.
