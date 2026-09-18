@@ -18,13 +18,33 @@ Custom domain SSL and DNS validation strategies.
 |-------------|---------|--------------------------------------|
 | `true` | Exactly one TXT value at the domain's validation record, equal to the challenge | Set to true |
 | `false` | The resolver stated the record is missing (NXDOMAIN, or NOERROR without TXT data) or the values are not exactly one match | Set to false, unless a Colonel override holds it |
-| `nil` (+ `indeterminate: true`) | No answer: SERVFAIL, REFUSED, timeout, network error | Left unchanged |
+| `nil` (+ `indeterminate: true`) | No answer: SERVFAIL, REFUSED, timeout, network error | Left unchanged, for at most 7 days (see below) |
 
 `TxtVerifier` implements this with `TxtResolver`, a small resolver that reads the DNS response code. `Resolv::DNS#getresources` cannot be used for it: it returns `[]` for NXDOMAIN, SERVFAIL and a timeout alike.
 
 Under `caddy_on_demand` the TXT check is the ownership proof. Caddy completing an ACME challenge shows that the name resolves to this deployment; it does not show which account, if any, controls the domain. The internal ACME endpoint (`apps/internal/acme`) only authorises a certificate for a domain that is `ready?`, which requires `verified`.
 
 Under `approximated` the API's answer is used when it has one. When its own DNS lookup failed (`actual_values: false`), `TxtVerifier` decides instead, with the same three outcomes.
+
+### Confirmation window
+
+An indeterminate check may not hold `verified` indefinitely. `VerifyDomain::ConfirmationWindow` (`lib/onetime/operations/verify_domain/confirmation_window.rb`) keeps two timestamps on `CustomDomain`:
+
+- `verified_confirmed_at`: the last passing check.
+- `verified_unconfirmed_since`: the first indeterminate check of a verified domain since then. Any definitive answer clears it.
+
+When a check is indeterminate and `verified_unconfirmed_since` is more than 7 days old (`ConfirmationWindow::MAX_AGE`), `verified` is withdrawn. The result reports `dns_outcome: confirmation_expired`, bulk results count it in `confirmation_expired_count`, and VerifyDomain logs a warning.
+
+The window runs from the first indeterminate check, not from the last passing one. A deployment that does not run `DomainRefreshJob` may check a domain once in months, and one resolver failure on that check must not demote it. A demotion always takes two indeterminate checks at least 7 days apart with no passing check between them.
+
+- A domain with no clock, which is every domain at upgrade, starts one on its first indeterminate check and is not demoted by that check.
+- A Colonel override exempts the domain, as it does for a definitive failure.
+- Unverified domains are not affected.
+- A demoted domain becomes verified again on its next passing check.
+
+## Bulk pacing
+
+`bulk_rate_limit` is the pause, in seconds, a bulk run takes between domains. `approximated` declares 0.5 for its API rate cap; the other strategies declare none. `VerifyDomain` uses it for bulk runs unless the caller passes `rate_limit:` (the `jobs.domain_refresh.rate_limit` setting, or `bin/ots domains verify --all --rate-limit N`), which overrides the strategy, including with 0.
 
 ## Status check
 
