@@ -108,6 +108,33 @@ describe('billing observability response contracts', () => {
     );
   });
 
+  it('accepts stale_count on both details roots and their pagination envelopes', () => {
+    const webhookParsed = colonelWebhookEventsResponseSchema.parse({
+      shrimp: '',
+      record: {},
+      details: {
+        events: [],
+        pagination: { ...pagination, capped: true, stale_count: 3 },
+        capped: true,
+        stale_count: 3,
+      },
+    });
+    expect(webhookParsed.details?.stale_count).toBe(3);
+    expect(webhookParsed.details?.pagination.stale_count).toBe(3);
+
+    const pendingParsed = colonelPendingFederatedSubscriptionsResponseSchema.parse({
+      shrimp: '',
+      record: {},
+      details: {
+        subscriptions: [],
+        pagination: { ...pagination, stale_count: 1 },
+        stale_count: 1,
+      },
+    });
+    expect(pendingParsed.details?.stale_count).toBe(1);
+    expect(pendingParsed.details?.pagination.stale_count).toBe(1);
+  });
+
   it('rejects a pending row whose missing webhook correlation is ambiguous', () => {
     expect(
       colonelPendingFederatedSubscriptionsResponseSchema.safeParse({

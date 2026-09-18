@@ -152,6 +152,36 @@ describe('billing observability sections', () => {
     expect(wrapper.text()).toContain('web.admin.billing.pendingFederated.webhook.no_correlation');
   });
 
+  it('surfaces the webhook stale banner when the wire response reports skipped index entries', async () => {
+    const list = webhookList();
+    list.details.pagination = { ...list.details.pagination, stale_count: 3 } as typeof list.details.pagination;
+    mockApi.get.mockResolvedValue({ data: list });
+    wrapper = mount(WebhookEventsSection, {
+      global: { plugins: [i18n], stubs: { DetailDrawer: drawerStub } },
+    });
+    await flushPromises();
+
+    const stale = wrapper.find('[data-testid="billing-webhook-events-stale"]');
+    expect(stale.exists()).toBe(true);
+    expect(stale.text()).toContain('web.admin.billing.webhookEvents.stale');
+  });
+
+  it('surfaces the pending stale banner alongside capped when both apply', async () => {
+    const list = pendingList('expired');
+    list.details.pagination = {
+      ...list.details.pagination,
+      stale_count: 2,
+    } as typeof list.details.pagination;
+    mockApi.get.mockResolvedValue({ data: list });
+    wrapper = mount(PendingFederatedSubscriptionsSection, { global: { plugins: [i18n] } });
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="billing-pending-federated-capped"]').exists()).toBe(true);
+    const stale = wrapper.find('[data-testid="billing-pending-federated-stale"]');
+    expect(stale.exists()).toBe(true);
+    expect(stale.text()).toContain('web.admin.billing.pendingFederated.stale');
+  });
+
   it('shows a retry control for a failed pending-subscription request', async () => {
     mockApi.get.mockRejectedValueOnce(new Error('Network Error'));
     wrapper = mount(PendingFederatedSubscriptionsSection, { global: { plugins: [i18n] } });

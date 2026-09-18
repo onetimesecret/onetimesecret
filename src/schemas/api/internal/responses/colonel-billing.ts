@@ -225,6 +225,9 @@ export const colonelWebhookEventsDetailsSchema = z.object({
   pagination: paginationSchema,
   /** A bounded scan means `total_count` is a lower bound. */
   capped: z.boolean().optional(),
+  /** Index entries on THIS page whose event object no longer loads; they are
+   *  pruned lazily, so a page can be short of `per_page` even mid-list. */
+  stale_count: z.number().optional(),
 });
 
 /**
@@ -298,6 +301,8 @@ export const colonelPendingFederatedSubscriptionsDetailsSchema = z.object({
   pagination: paginationSchema,
   /** A bounded scan means `total_count` is a lower bound. */
   capped: z.boolean().optional(),
+  /** Index entries on THIS page whose pending record no longer loads. */
+  stale_count: z.number().optional(),
 });
 
 export const colonelPendingFederatedSubscriptionsResponseSchema = createApiResponseSchema(

@@ -19,6 +19,8 @@ export const useAdminPendingFederatedSubscriptions = defineStore(
     const subscriptions = ref<ColonelPendingFederatedSubscription[]>([]);
     const pagination = ref<PageMeta | null>(null);
     const capped = ref(false);
+    /** Index entries on the current page whose pending record no longer loads. */
+    const staleCount = ref(0);
 
     const pager = usePaginatedFetch<
       ColonelPendingFederatedSubscriptionsResponse,
@@ -30,6 +32,7 @@ export const useAdminPendingFederatedSubscriptions = defineStore(
       select: (data) => {
         const meta = data.details?.pagination ?? null;
         capped.value = meta?.capped === true || data.details?.capped === true;
+        staleCount.value = meta?.stale_count ?? data.details?.stale_count ?? 0;
         return { items: data.details?.subscriptions ?? [], pagination: meta };
       },
     });
@@ -42,12 +45,16 @@ export const useAdminPendingFederatedSubscriptions = defineStore(
         const result = await pager.fetchPage(targetPage);
         subscriptions.value = result?.items ?? [];
         pagination.value = result?.pagination ?? null;
-        if (!result) capped.value = false;
+        if (!result) {
+          capped.value = false;
+          staleCount.value = 0;
+        }
         return result;
       } catch (error) {
         subscriptions.value = [];
         pagination.value = null;
         capped.value = false;
+        staleCount.value = 0;
         throw error;
       }
     }
@@ -56,6 +63,7 @@ export const useAdminPendingFederatedSubscriptions = defineStore(
       subscriptions.value = [];
       pagination.value = null;
       capped.value = false;
+      staleCount.value = 0;
       pager.reset();
     }
 
@@ -63,6 +71,7 @@ export const useAdminPendingFederatedSubscriptions = defineStore(
       subscriptions,
       pagination,
       capped,
+      staleCount,
       loading: pager.loading,
       error: pager.error,
       validationError: pager.validationError,

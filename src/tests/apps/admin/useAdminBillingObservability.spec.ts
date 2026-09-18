@@ -41,7 +41,7 @@ describe('billing observability stores', () => {
               retryable: false,
             },
           ],
-          pagination: { ...pagination, capped: true },
+          pagination: { ...pagination, capped: true, stale_count: 3 },
         },
       },
     });
@@ -54,6 +54,25 @@ describe('billing observability stores', () => {
     });
     expect(store.events[0].event_id).toBe('evt_123');
     expect(store.capped).toBe(true);
+    expect(store.staleCount).toBe(3);
+  });
+
+  it('reads staleCount from details root when pagination omits it', async () => {
+    mockApi.get.mockResolvedValue({
+      data: {
+        record: {},
+        details: {
+          events: [],
+          pagination,
+          stale_count: 5,
+        },
+      },
+    });
+    const store = useAdminWebhookEvents();
+
+    await store.fetchPage(1);
+
+    expect(store.staleCount).toBe(5);
   });
 
   it('fetches pending subscriptions without accumulating pages', async () => {
@@ -74,7 +93,7 @@ describe('billing observability stores', () => {
               },
             },
           ],
-          pagination,
+          pagination: { ...pagination, stale_count: 2 },
         },
       },
     });
@@ -87,6 +106,26 @@ describe('billing observability stores', () => {
     });
     expect(store.subscriptions).toHaveLength(1);
     expect(store.subscriptions[0].source_webhook.state).toBe('no_correlation');
+    expect(store.staleCount).toBe(2);
+  });
+
+  it('resets pending staleCount on a failed page fetch', async () => {
+    mockApi.get.mockResolvedValueOnce({
+      data: {
+        record: {},
+        details: {
+          subscriptions: [],
+          pagination: { ...pagination, stale_count: 4 },
+        },
+      },
+    });
+    const store = useAdminPendingFederatedSubscriptions();
+    await store.fetchPage(1);
+    expect(store.staleCount).toBe(4);
+
+    mockApi.get.mockRejectedValueOnce(new Error('Network Error'));
+    await expect(store.fetchPage(2)).rejects.toThrow('Network Error');
+    expect(store.staleCount).toBe(0);
   });
 
   it('clears stale rows after a failed response', async () => {

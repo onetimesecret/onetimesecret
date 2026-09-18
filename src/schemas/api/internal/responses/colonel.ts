@@ -76,6 +76,9 @@ export const paginationSchema = z.object({
   /** True when a role/search scan hit its request-path cap, so total_count
    *  understates the population — more rows exist beyond what was scanned. */
   capped: z.boolean().optional(),
+  /** Index entries on THIS page whose backing object no longer loads and were
+   *  pruned; the rendered row list can therefore be short of `per_page`. */
+  stale_count: z.number().optional(),
   role_filter: z.string().nullable().optional(),
   /** Server echo of the email search term (users list). */
   search: z.string().nullable().optional(),

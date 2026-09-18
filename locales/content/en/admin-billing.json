@@ -223,6 +223,10 @@
     "text": "The event scan hit its limit, so the total is a lower bound.",
     "content_hash": "5b96b15b"
   },
+  "web.admin.billing.webhookEvents.stale": {
+    "text": "{count} index entry/entries on this page point at a webhook event that no longer loads and were skipped.",
+    "content_hash": "879c2d98"
+  },
   "web.admin.billing.webhookEvents.empty": {
     "text": "No locally retained webhook events found.",
     "content_hash": "7e33e23d"
@@ -314,6 +318,10 @@
   "web.admin.billing.pendingFederated.capped": {
     "text": "The pending-subscription scan hit its limit, so the total is a lower bound.",
     "content_hash": "a1e02735"
+  },
+  "web.admin.billing.pendingFederated.stale": {
+    "text": "{count} index entry/entries on this page point at a pending subscription that no longer loads and were skipped.",
+    "content_hash": "56b4bd53"
   },
   "web.admin.billing.pendingFederated.empty": {
     "text": "No pending federated subscriptions found.",

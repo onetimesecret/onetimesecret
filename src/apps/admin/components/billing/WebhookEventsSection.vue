@@ -24,7 +24,7 @@
    */
   const { t } = useI18n();
   const store = useAdminWebhookEvents();
-  const { events, pagination, loading, error, capped } = storeToRefs(store);
+  const { events, pagination, loading, error, capped, staleCount } = storeToRefs(store);
 
   const columns = computed<DataTableColumn<ColonelWebhookEvent>[]>(() => [
     { key: 'eventId', label: t('web.admin.billing.webhookEvents.columns.eventId') },
@@ -146,11 +146,20 @@
     </div>
 
     <div
-      v-if="capped"
-      class="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200"
+      v-if="capped || staleCount > 0"
+      class="mb-4 flex flex-col gap-1 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200"
       role="status"
-      data-testid="billing-webhook-events-capped">
-      {{ t('web.admin.billing.webhookEvents.capped') }}
+      data-testid="billing-webhook-events-caveat">
+      <span
+        v-if="capped"
+        data-testid="billing-webhook-events-capped">
+        {{ t('web.admin.billing.webhookEvents.capped') }}
+      </span>
+      <span
+        v-if="staleCount > 0"
+        data-testid="billing-webhook-events-stale">
+        {{ t('web.admin.billing.webhookEvents.stale', { count: staleCount }) }}
+      </span>
     </div>
 
     <div
