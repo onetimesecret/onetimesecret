@@ -21,6 +21,17 @@ module Onetime
       #       dns_propagation_window: '24h'  # re-check unverified/unresolving domains every cycle for this long after creation ('0' disables)
       #
       # The Approximated rate limit (0.5s) caps a 200-domain run at ~100s.
+      #
+      # Under caddy_on_demand each domain costs our own lookups instead of an
+      # API call: the TXT check (TxtResolver, <= 5s) and the status probe
+      # (TlsProbe: address lookup <= 3s, connect + handshake <= 5s). A healthy
+      # domain takes tens of milliseconds. Every budget is only spent on a
+      # timeout, so the ceiling is 13s + the 0.5s pause per domain: 45 min for
+      # a 200-domain page if every stage of every domain timed out. A resolver
+      # outage is the realistic bad case, and it never reaches the TLS stage:
+      # 8.5s per domain, ~28 min per page, inside the default 30m interval.
+      # Lower batch_size if pages routinely run past check_interval; runs are
+      # allowed to overlap and each works on its own clock-derived page.
       class DomainRefreshJob < ScheduledJob
         DEFAULT_BATCH_SIZE             = 200
         DEFAULT_RATE_LIMIT             = 0.5
