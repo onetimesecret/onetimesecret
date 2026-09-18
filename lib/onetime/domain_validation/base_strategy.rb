@@ -33,7 +33,10 @@ module Onetime
       #
       # @param custom_domain [Onetime::CustomDomain] The domain to validate
       # @return [Hash] Validation result:
-      #   - :validated [Boolean] Whether validation passed
+      #   - :validated [Boolean, nil] Whether validation passed; nil when the
+      #     check could not produce an answer (indeterminate). Callers must
+      #     not change stored verification state on nil.
+      #   - :indeterminate [Boolean, nil] true alongside validated: nil
       #   - :message [String] Human-readable result
       #   - :data [Hash, nil] Additional validation data (strategy-specific)
       #   - :mode [String, nil] Strategy mode identifier
