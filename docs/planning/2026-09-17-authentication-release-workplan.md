@@ -1,8 +1,8 @@
 # Release Workplan - Authentication consistency: v0.26.13, v0.27.0, and backlog
 
-Decision model: based on ADR-045. Snapshot ordering: ADR-046.
+Decision model: [ADR-045 — Prioritizing Work](../adr/adr-045-prioritizing-work.md). Snapshot ordering: [ADR-046 — Bootstrap State Ordering Contract](https://github.com/onetimesecret/onetimesecret/pull/4449).
 
-Tracking: epic #4451. Issue numbers below are its sub-issues.
+Tracking: [Epic #4451 — Consistent authentication across routing, bootstrap, Vue navigation, and protected APIs](https://github.com/onetimesecret/onetimesecret/issues/4451). Issue numbers below are its sub-issues.
 
 ## v0.26.13 — Resolve the shared authentication design
 
