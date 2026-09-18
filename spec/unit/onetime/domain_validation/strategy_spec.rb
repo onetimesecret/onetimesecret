@@ -644,23 +644,124 @@ end
 
 RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
   let(:config) { {} }
-  let(:strategy) { described_class.new(config) }
-  let(:custom_domain) { double('CustomDomain', display_domain: 'example.com') }
+  let(:answer_class) { Onetime::DomainValidation::TxtResolver::Answer }
+  let(:resolver) { instance_double(Onetime::DomainValidation::TxtResolver, close: nil) }
+  # The real verifier over a fake resolver: the three outcomes are exercised
+  # through the real classification and no example opens a socket.
+  let(:txt_verifier) { Onetime::DomainValidation::TxtVerifier.new(resolver_factory: -> { resolver }) }
+  let(:strategy) { described_class.new(config, txt_verifier: txt_verifier) }
+  let(:custom_domain) do
+    double('CustomDomain',
+           display_domain: 'example.com',
+           txt_validation_value: 'validation123',
+           validation_record: '_onetime-challenge-abc123.example.com')
+  end
+
+  def stub_lookup(rcode, values = [])
+    allow(resolver).to receive(:lookup)
+      .with(custom_domain.validation_record)
+      .and_return(answer_class.new(rcode: rcode, values: values))
+  end
+
+  before { allow(OT).to receive(:lw) }
 
   describe '#validate_ownership' do
-    it 'returns validated true' do
-      result = strategy.validate_ownership(custom_domain)
-      expect(result[:validated]).to be true
+    subject(:result) { strategy.validate_ownership(custom_domain) }
+
+    it 'defaults to a TxtVerifier' do
+      expect(described_class.new(config).txt_verifier).to be_a(Onetime::DomainValidation::TxtVerifier)
     end
 
-    it 'indicates caddy_on_demand mode' do
-      result = strategy.validate_ownership(custom_domain)
-      expect(result[:mode]).to eq('caddy_on_demand')
+    context 'with exactly one TXT value equal to the challenge' do
+      before { stub_lookup(Resolv::DNS::RCode::NoError, ['validation123']) }
+
+      it 'validates from the native lookup' do
+        expect(result).to include(validated: true, source: 'native', mode: 'caddy_on_demand')
+      end
+
+      it 'carries :data so VerifyDomain persists the outcome' do
+        expect(result[:data]).to contain_exactly(hash_including('match' => true, 'actual_values' => ['validation123']))
+      end
     end
 
-    it 'explains validation is delegated to Caddy' do
-      result = strategy.validate_ownership(custom_domain)
-      expect(result[:message]).to include('Caddy')
+    context 'when the record does not exist (NXDOMAIN)' do
+      before { stub_lookup(Resolv::DNS::RCode::NXDomain) }
+
+      it 'is a definitive failure' do
+        expect(result).to include(validated: false, message: 'TXT record not found', mode: 'caddy_on_demand')
+        expect(result).not_to have_key(:indeterminate)
+        expect(result[:data]).to contain_exactly(hash_including('actual_values' => [], 'rcode' => 'NXDOMAIN'))
+      end
+    end
+
+    context 'when the name exists without TXT data (NOERROR, empty answer)' do
+      before { stub_lookup(Resolv::DNS::RCode::NoError) }
+
+      it 'is a definitive failure' do
+        expect(result).to include(validated: false, message: 'TXT record not found')
+      end
+    end
+
+    context 'when the TXT value differs from the challenge' do
+      before { stub_lookup(Resolv::DNS::RCode::NoError, ['something-else']) }
+
+      it 'is a definitive failure reported as a mismatch' do
+        expect(result[:validated]).to be false
+        expect(result[:message]).to include('mismatch (1 value(s) found')
+      end
+    end
+
+    context 'when the challenge is present among other values' do
+      before { stub_lookup(Resolv::DNS::RCode::NoError, %w[validation123 other]) }
+
+      it 'fails (exactly one matching value required, as with Approximated)' do
+        expect(result[:validated]).to be false
+        expect(result[:message]).to include('mismatch (2 value(s) found')
+      end
+    end
+
+    context 'when the resolver answers SERVFAIL' do
+      before { stub_lookup(Resolv::DNS::RCode::ServFail) }
+
+      it 'is indeterminate, never a failure' do
+        expect(result).to include(validated: nil, indeterminate: true, mode: 'caddy_on_demand')
+        expect(result[:message]).to include('SERVFAIL')
+      end
+    end
+
+    context 'when the lookup times out' do
+      before do
+        allow(resolver).to receive(:lookup)
+          .and_raise(Onetime::DomainValidation::TxtResolver::NoReplyError, 'no reply')
+      end
+
+      it 'is indeterminate' do
+        expect(result).to include(validated: nil, indeterminate: true)
+      end
+    end
+
+    context 'when the domain has no challenge value' do
+      let(:custom_domain) do
+        double('CustomDomain', display_domain: 'example.com', txt_validation_value: nil,
+                               validation_record: '_onetime-challenge-abc123.example.com')
+      end
+
+      it 'fails without a lookup' do
+        expect(resolver).not_to receive(:lookup)
+        expect(result).to include(validated: false, mode: 'caddy_on_demand')
+      end
+    end
+
+    context 'when the domain cannot produce its validation record' do
+      before do
+        allow(custom_domain).to receive(:validation_record).and_raise(StandardError, 'boom')
+        allow(OT).to receive(:le)
+      end
+
+      it 'logs and stays indeterminate' do
+        expect(result).to include(validated: nil, indeterminate: true, mode: 'caddy_on_demand')
+        expect(OT).to have_received(:le).with(/Error validating example.com/)
+      end
     end
   end
 
