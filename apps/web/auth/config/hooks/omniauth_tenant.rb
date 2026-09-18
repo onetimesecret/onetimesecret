@@ -392,8 +392,15 @@ module Auth::Config::Hooks
         # session never reaches the existing-account join in hooks/login.rb.
         # The instance variable is the copy that survives that reset; both are
         # read and cleared together by consume_validated_omniauth_domain_id.
+        #
+        # @omniauth_identity_scope_domain_id is a THIRD copy that nothing
+        # consumes (#4450): the identity-key scope for a tenant SAML callback,
+        # read by omniauth_identity_scope_domain_id (features/omniauth.rb) when
+        # the insert/update hashes are built — which rodauth-omniauth does
+        # AFTER after_omniauth_create_account has consumed the two above.
         session[:validated_omniauth_domain_id] = expected_domain_id
         @validated_omniauth_domain_id          = expected_domain_id
+        @omniauth_identity_scope_domain_id     = expected_domain_id
 
         Auth::Logging.log_auth_event(
           :omniauth_tenant_callback_validated,

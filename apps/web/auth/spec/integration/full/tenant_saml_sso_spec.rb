@@ -19,13 +19,15 @@
 #
 # and asserts what the whole feature exists to guarantee:
 #
-#   1. the identity row is keyed (route, idp_entity_id, uid) — the issuer
-#      column holds the TENANT's IdP EntityID, never '' and never our own SP
-#      EntityID;
+#   1. the identity row is keyed (route, "<domain_id>|<idp_entity_id>", uid)
+#      — the issuer column holds the TENANT's IdP EntityID scoped to the
+#      domain that pinned the certificate (Onetime::SsoProvider::Saml
+#      .tenant_issuer), never '' and never our own SP EntityID;
 #   2. two tenants whose IdPs assert the SAME NameID get two identities and
 #      two accounts (no cross-tenant collapse);
 #   3. a response signed by tenant A's IdP is refused on tenant B, whether it
-#      names A's EntityID honestly or forges B's;
+#      names A's EntityID honestly or forges B's — and tenant B CONFIGURING
+#      A's EntityID with B's own certificate cannot reach A's identities;
 #   4. the SP metadata served on a tenant host names that tenant's identifiers,
 #      and a host with no resolvable tenant config emits none.
 #
@@ -179,6 +181,12 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
     identities.where(uid: uid).all
   end
 
+  # The issuer a tenant's identity rows carry: the IdP EntityID scoped to the
+  # domain (see Onetime::SsoProvider::Saml.tenant_issuer).
+  def tenant_issuer(tenant)
+    Onetime::SsoProvider::Saml.tenant_issuer(tenant.domain.identifier, tenant.idp.entity_id)
+  end
+
   # ── request phase ─────────────────────────────────────────────────────────
 
   describe 'request phase on a tenant domain' do
@@ -226,7 +234,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
     let(:email_a) { "user-a-#{run_id}@saml-tenant.example.com" }
     let(:email_b) { "user-b-#{run_id}@saml-tenant.example.com" }
 
-    it 'keys the identity on (route, IdP EntityID, NameID)' do
+    it 'keys the identity on (route, domain-scoped IdP EntityID, NameID)' do
       sign_in(tenant_a, name_id: name_id, email: email_a)
 
       expect(last_response.status).to eq(302), last_response.body[0, 300]
@@ -234,18 +242,20 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
 
       rows = identity_rows(name_id)
       expect(rows.size).to eq(1)
-      expect(rows.first).to include(provider: 'saml', issuer: tenant_a.idp.entity_id, uid: name_id)
+      expect(rows.first).to include(provider: 'saml', issuer: tenant_issuer(tenant_a), uid: name_id)
+      expect(rows.first[:issuer]).to eq("#{tenant_a.domain.identifier}|#{tenant_a.idp.entity_id}")
 
       account = db[:accounts].where(id: rows.first[:account_id]).first
       expect(account[:email]).to eq(email_a)
     end
 
-    it 'never keys on the sentinel or on our own SP EntityID' do
+    it 'never keys on the sentinel, on our own SP EntityID, or on the bare EntityID' do
       sign_in(tenant_a, name_id: name_id, email: email_a)
 
       issuer = identity_rows(name_id).first[:issuer]
       expect(issuer).not_to eq('')
       expect(issuer).not_to include(tenant_a.host)
+      expect(issuer).not_to eq(tenant_a.idp.entity_id)
     end
 
     it 'joins the JIT account to the tenant organization' do
@@ -276,7 +286,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       expect(last_response.headers['Location'].to_s).not_to include('auth_error')
 
       rows = identity_rows(name_id)
-      expect(rows.map { |row| row[:issuer] }).to contain_exactly(tenant_a.idp.entity_id, tenant_b.idp.entity_id)
+      expect(rows.map { |row| row[:issuer] }).to contain_exactly(tenant_issuer(tenant_a), tenant_issuer(tenant_b))
       expect(rows.map { |row| row[:account_id] }.uniq.size).to eq(2)
     end
 
@@ -314,6 +324,39 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
         response_issuer: tenant_b.idp.entity_id, assertion_issuer: tenant_b.idp.entity_id)
 
       expect_refused
+    end
+
+    # The takeover the DOMAIN half of the tenant issuer key exists to prevent.
+    # A tenant admin asserts the EntityID alongside their OWN certificate, so
+    # B can CONFIGURE A's EntityID (or the platform's) and have B's IdP sign
+    # responses naming it: the signature verifies against B's pinned
+    # certificate and the Issuer equals B's configured EntityID, so every
+    # strategy gate passes. Keyed on the bare EntityID, that response would
+    # resolve A's victim row and log B's operator into the victim's account.
+    it 'cannot reach tenant A identities by configuring tenant A EntityID with tenant B certificate' do
+      sign_in(tenant_a, name_id: name_id, email: email)
+      expect(last_response.headers['Location'].to_s).not_to include('auth_error')
+      victim_row = identity_rows(name_id).fetch(0)
+      victim     = Onetime::Customer.find_by_email(email)
+
+      config               = Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant_b.domain.identifier)
+      config.idp_entity_id = tenant_a.idp.entity_id
+      config.commit_fields
+      impostor = SamlSpec::TestIdp.new(entity_id: tenant_a.idp.entity_id, key: tenant_b.idp.key, cert: tenant_b.idp.cert)
+
+      clear_cookies
+      attacker_email = "attacker-#{run_id}@saml-tenant.example.com"
+      sign_in(tenant_b, name_id: name_id, email: attacker_email, idp: impostor)
+
+      expect(last_response.status).to eq(302)
+      rows = identity_rows(name_id)
+      expect(rows.map { |row| row[:account_id] }).to include(victim_row[:account_id])
+      expect(rows.reject { |row| row[:id] == victim_row[:id] }.map { |row| row[:account_id] })
+        .not_to include(victim_row[:account_id])
+      expect(identities.where(id: victim_row[:id]).first[:issuer]).to eq(victim_row[:issuer])
+      expect(db[:accounts].where(email: attacker_email).count).to be <= 1
+      expect(tenant_b.org.member?(victim)).to be false
+      expect(last_request.env['rack.session'].to_h['account_id']).not_to eq(victim_row[:account_id])
     end
 
     # The mirror image: a response that is entirely valid FOR TENANT A (A's

@@ -311,14 +311,20 @@ module Auth
       #                           #2 via omniauth_token_issuer). DERIVED — verify
       #                           against IdP metadata before --confirm, or pass
       #                           --issuer.
-      #   - saml               -> the record's idp_entity_id, REVEALED (it is an
-      #                           AAD-bound encrypted_field). This is the exact
-      #                           string resolve_issuer's SAML branch returns:
-      #                           the strategy's extra['idp_entity_id'] is the
-      #                           configured EntityID, proven byte-equal to the
-      #                           response Issuer. NOT stripped, NOT normalized.
-      #                           Unset or unreadable -> refuse, like a missing
-      #                           Entra tenant_id.
+      #   - saml               -> Onetime::SsoProvider::Saml.tenant_issuer(
+      #                           domain.identifier, idp_entity_id): the
+      #                           record's idp_entity_id, REVEALED (it is an
+      #                           AAD-bound encrypted_field), scoped to THIS
+      #                           domain — "<domain_id>|<EntityID>". This is
+      #                           the exact string resolve_issuer's SAML branch
+      #                           returns on the tenant surface: the strategy's
+      #                           extra['idp_entity_id'] is the configured
+      #                           EntityID, proven byte-equal to the response
+      #                           Issuer, and the validated tenant domain id is
+      #                           the scope (see tenant_issuer for why a bare
+      #                           EntityID is a cross-tenant takeover). NOT
+      #                           stripped, NOT normalized. Unset or unreadable
+      #                           -> refuse, like a missing Entra tenant_id.
       #   - anything else      -> a pre-#3902 issuerless record (google/github,
       #                           since removed from PROVIDER_TYPES) resolved to
       #                           '' at callback, so no lockout; refuse (nothing
@@ -347,7 +353,7 @@ module Auth
             end
             "https://login.microsoftonline.com/#{tenant_id}/v2.0"
           when 'saml'
-            saml_entity_id(sso_config)
+            Onetime::SsoProvider::Saml.tenant_issuer(domain.identifier, saml_entity_id(sso_config))
           end
 
         if resolved.to_s.strip.empty?

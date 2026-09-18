@@ -100,6 +100,11 @@ module Onetime
       # the same top-level option).
       ALLOWED_CLOCK_DRIFT = 60
 
+      # Separator inside a TENANT SAML issuer key (see .tenant_issuer). A
+      # CustomDomain identifier is a base-36 Familia id, so it can never
+      # contain this character and the key splits unambiguously.
+      TENANT_ISSUER_SEPARATOR = '|'
+
       # The FULL ruby-saml security hash — see the header for why it can never
       # be partial. We sign nothing (no SP key is configured), so every
       # *_signed / embed_sign key is false; what we REQUIRE of the IdP is
@@ -129,6 +134,44 @@ module Onetime
         strict_audience_validation: true,
         lowercase_url_encoding: false,
       }.freeze
+
+      # The issuer half of a TENANT SAML identity key: the validated EntityID
+      # scoped to the custom domain whose record vouched for it.
+      #
+      # WHY THE DOMAIN IS PART OF THE KEY. For OIDC / Entra tenants the issuer
+      # string is bound to an origin the server verified — discovery and the
+      # JWKS fetch tie `iss` to a TLS host — so two tenants naming the same
+      # issuer are, provably, the same IdP and may share identity rows. A SAML
+      # EntityID is an opaque, UNAUTHENTICATED name: a tenant admin asserts it
+      # alongside their OWN signing certificate, and nothing outside that
+      # record vouches for the pair. Keyed on the bare EntityID, tenant B could
+      # configure tenant A's EntityID (or the platform's SAML_IDP_ENTITY_ID)
+      # with B's certificate, have B's IdP sign a response naming it and any
+      # NameID it likes, pass every strategy gate (signature verifies against
+      # B's pinned certificate, Issuer equals B's configured value) and resolve
+      # A's victim row — a cross-tenant account takeover that then joins the
+      # victim into B's organization. Scoping the key to the domain makes the
+      # trust anchor and the identity namespace the same thing: the record
+      # that pinned the certificate is the record whose identities it can
+      # match. The platform surface keeps the bare EntityID (its trust anchor
+      # is the env, one per deployment), so a tenant's rows can never match a
+      # platform row in either direction.
+      #
+      # Written by resolve_issuer (features/omniauth.rb) at callback time and
+      # by Auth::Operations::BackfillTenantIssuer — the two must byte-match.
+      # The EntityID is NOT stripped or normalized here for the same reason
+      # strategy_options_for does not.
+      #
+      # @param domain_id [String] the CustomDomain identifier (`domainid`)
+      # @param idp_entity_id [String] the validated IdP EntityID
+      # @return [String] "<domain_id>|<idp_entity_id>"
+      # @raise [ArgumentError] when either half is blank
+      def self.tenant_issuer(domain_id, idp_entity_id)
+        raise ArgumentError, 'tenant SAML issuer needs a domain id' if domain_id.to_s.strip.empty?
+        raise ArgumentError, 'tenant SAML issuer needs an IdP EntityID' if idp_entity_id.to_s.strip.empty?
+
+        "#{domain_id}#{TENANT_ISSUER_SEPARATOR}#{idp_entity_id}"
+      end
 
       # Everything about the strategy that is NOT per-IdP. A fresh, unfrozen
       # Hash per call: OmniAuth merges it into a Mash, and callers add keys.

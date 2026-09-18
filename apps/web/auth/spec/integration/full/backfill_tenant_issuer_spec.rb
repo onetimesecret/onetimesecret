@@ -641,20 +641,27 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
     end
 
     # #4450. The stamped issuer must byte-match what resolve_issuer's SAML
-    # branch returns at callback: the configured IdP EntityID (an AAD-bound
-    # encrypted_field, so it is REVEALED) — not stripped, not normalized, and
-    # a URN is as good as a URL.
-    it 'saml uses the revealed idp_entity_id verbatim' do
+    # branch returns on a TENANT callback: the configured IdP EntityID (an
+    # AAD-bound encrypted_field, so it is REVEALED) scoped to this domain —
+    # "<domain_id>|<EntityID>" (Onetime::SsoProvider::Saml.tenant_issuer).
+    # The EntityID half is not stripped, not normalized, and a URN is as good
+    # as a URL. Never the bare EntityID: that is the platform key, and a
+    # tenant row must not be matchable through it.
+    it 'saml uses the revealed idp_entity_id verbatim, scoped to the domain' do
       tenant = build_tenant(provider_type: 'saml', issuer: nil, idp_entity_id: 'urn:example:IdP/Tenant-A')
       op = new_operation(tenant)
-      expect(op.issuer).to eq('urn:example:IdP/Tenant-A')
+      expect(op.issuer).to eq("#{tenant.domain.identifier}|urn:example:IdP/Tenant-A")
+      expect(op.issuer).to eq(
+        Onetime::SsoProvider::Saml.tenant_issuer(tenant.domain.identifier, 'urn:example:IdP/Tenant-A'),
+      )
       expect(op.provider).to eq('saml')
     end
 
     it 'saml ignores a stale issuer field on the record' do
       tenant = build_tenant(provider_type: 'saml', issuer: 'https://stale-oidc.example.com',
         idp_entity_id: 'https://idp.example.com/saml/metadata')
-      expect(new_operation(tenant).issuer).to eq('https://idp.example.com/saml/metadata')
+      expect(new_operation(tenant).issuer)
+        .to eq("#{tenant.domain.identifier}|https://idp.example.com/saml/metadata")
     end
 
     it 'raises for saml with no idp_entity_id and no override (never stamps the sentinel)' do

@@ -227,6 +227,22 @@ tenant-eligible, because its issuer is the tenant's own IdP EntityID.
     `raw_info['iss']` is never read — every `raw_info` key is an attribute
     name the IdP chooses. `registry_spec` asserts the definition has no
     `:issuer` key.
+  - **Tenant identities are scoped to the domain.** On a tenant surface the
+    issuer half of the key is
+    `Onetime::SsoProvider::Saml.tenant_issuer(domain_id, idp_entity_id)`
+    — `"<domain_id>|<EntityID>"` — not the bare EntityID. A SAML EntityID is
+    an unauthenticated name a tenant admin asserts alongside their **own**
+    signing certificate (nothing like OIDC discovery ties it to an origin),
+    so on a bare-EntityID key tenant B could configure tenant A's EntityID
+    (or the platform's `SAML_IDP_ENTITY_ID`) with B's certificate, have B's
+    IdP sign a response naming it and the victim's NameID, pass every
+    strategy gate and resolve A's identity row. The scope is read through
+    `omniauth_identity_scope_domain_id`, a copy the tenant hook stamps and
+    nothing consumes — rodauth-omniauth builds the identity insert hash
+    *after* `after_omniauth_create_account` has consumed the session copy.
+    `bin/ots sso backfill-issuer` stamps the same scoped value. The platform
+    surface keeps the bare EntityID, so tenant and platform rows can never
+    match each other. `tenant_saml_sso_spec` drives the attack end to end.
   - **Stable uid.** The uid is the NameID; the persistent format is requested
     in every AuthnRequest. A transient NameID is refused unless
     `uid_attribute` is configured (`saml_transient_name_id`); a blank uid is

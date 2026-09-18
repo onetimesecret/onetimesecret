@@ -629,7 +629,7 @@ options, as platform SAML — the gates and refusal codes in
 | Field | Required | Rules |
 |-------|----------|-------|
 | `idp_sso_service_url` | yes | `https://` URL on a public host. It gets the same SSRF host check as an OIDC issuer even though the server never fetches it (its origin is admitted into this domain's CSP `form-action` and `HttpOrigin` allowances), so an IdP that resolves only to private addresses is refused at save time |
-| `idp_entity_id` | yes | The IdP's EntityID exactly as it sends it in `<Issuer>`. Surrounding whitespace is stripped on input; the stored value is compared byte for byte at every sign-in and is the issuer of every identity from this domain |
+| `idp_entity_id` | yes | The IdP's EntityID exactly as it sends it in `<Issuer>`. Surrounding whitespace is stripped on input; the stored value is compared byte for byte at every sign-in. Identities from this domain are keyed on it **scoped to the domain** (`"<domain_id>\|<EntityID>"`), never on the bare EntityID — see below |
 | `idp_cert` | yes | Exactly one PEM `-----BEGIN CERTIFICATE-----` block that parses as X.509 and has not expired when saved. CRLF and the literal-`\n` single-line form are accepted |
 
 `client_id`, `client_secret`, `issuer` and `tenant_id` are neither required
@@ -647,6 +647,18 @@ domain's record fails to decrypt instead of silently pointing this domain's
 sign-ins at another IdP. A reveal failure is an error state, never "unset":
 the serializer lists such fields in `unreadable_fields`, the SSO form shows
 them as needing re-entry, and a sign-in through the record is refused.
+
+The identity key follows the same boundary. An EntityID is an unauthenticated
+name: the domain admin asserts it alongside their own signing certificate, and
+nothing outside the record vouches for the pair (an OIDC issuer, by contrast,
+is tied to an origin by discovery). So a tenant SAML identity is keyed
+`(route, "<domain_id>|<EntityID>", NameID)` — the EntityID scoped to the
+domain whose record pinned the certificate — rather than on the bare
+EntityID, which platform rows and other domains' rows would share. Two domains
+that name the same IdP therefore get separate identities and accounts, and a
+domain that configures another IdP's EntityID with its own certificate can
+match nothing but its own rows. `bin/ots sso backfill-issuer` stamps the same
+scoped value.
 
 ### What to register at the IdP
 

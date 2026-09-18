@@ -1009,6 +1009,48 @@ RSpec.describe 'OmniAuth hooks' do
           expect(feature.resolve_issuer(**hostile, saml_issuer: 'urn:Example:IdP')).to eq('urn:Example:IdP')
         end
 
+        # A SAML EntityID is an unauthenticated name a tenant admin asserts
+        # alongside their own certificate, so a tenant identity is keyed on
+        # the EntityID scoped to the domain that pinned the certificate —
+        # never on the bare EntityID a platform row (or another tenant's)
+        # would share. See Onetime::SsoProvider::Saml.tenant_issuer.
+        context 'on a tenant callback (saml_scope_domain_id present)' do
+          it 'scopes the EntityID to the validated domain' do
+            result = feature.resolve_issuer(
+              **hostile, saml_issuer: 'https://idp.example.com/saml/metadata', saml_scope_domain_id: 'cd_abc123',
+            )
+            expect(result).to eq('cd_abc123|https://idp.example.com/saml/metadata')
+            expect(result).to eq(
+              Onetime::SsoProvider::Saml.tenant_issuer('cd_abc123', 'https://idp.example.com/saml/metadata'),
+            )
+          end
+
+          it 'keeps the EntityID half byte-for-byte' do
+            expect(feature.resolve_issuer(**hostile, saml_issuer: ' urn:Example:IdP', saml_scope_domain_id: 'cd_1'))
+              .to eq('cd_1| urn:Example:IdP')
+          end
+
+          it 'never equals the platform key for the same EntityID' do
+            platform = feature.resolve_issuer(**hostile, saml_issuer: 'https://idp.example.com/saml/metadata')
+            tenant   = feature.resolve_issuer(
+              **hostile, saml_issuer: 'https://idp.example.com/saml/metadata', saml_scope_domain_id: 'cd_1',
+            )
+            expect(tenant).not_to eq(platform)
+          end
+
+          it 'still raises for a blank EntityID' do
+            expect { feature.resolve_issuer(**hostile, saml_issuer: '', saml_scope_domain_id: 'cd_1') }
+              .to raise_error(feature::SamlIssuerUnresolved)
+          end
+        end
+
+        [nil, '', '  '].each do |blank|
+          it "keys on the bare EntityID when the scope is #{blank.inspect} (platform surface)" do
+            expect(feature.resolve_issuer(**hostile, saml_issuer: 'urn:idp', saml_scope_domain_id: blank))
+              .to eq('urn:idp')
+          end
+        end
+
         [nil, '', "  \t"].each do |blank|
           it "raises instead of falling through when the EntityID is #{blank.inspect}" do
             expect { feature.resolve_issuer(**hostile, saml_issuer: blank) }
@@ -1202,6 +1244,54 @@ RSpec.describe 'OmniAuth hooks' do
         expect(host.insert_hash).to include(issuer: entity_id, provider: 'saml', uid: 'name-id-1')
         expect(host.update_hash).to eq(issuer: entity_id)
         expect(events).to be_empty
+      end
+
+      # The cross-tenant takeover: tenant B configures tenant A's EntityID (or
+      # the platform's) with B's own certificate. Every strategy gate passes,
+      # so the identity KEY is the only thing standing between B's IdP and A's
+      # rows — it must carry the domain.
+      context 'on a tenant callback' do
+        let(:validated_domain_id) { 'cd_tenant_b' }
+        let(:scoped_issuer) { Onetime::SsoProvider::Saml.tenant_issuer('cd_tenant_b', entity_id) }
+
+        it 'never matches a platform row or another tenant row carrying the same EntityID' do
+          ds.insert(account_id: 70, provider: 'saml', issuer: entity_id, uid: 'name-id-1')
+          ds.insert(account_id: 72, provider: 'saml', issuer: "cd_tenant_a|#{entity_id}", uid: 'name-id-1')
+
+          expect(retrieve(host)).to be_nil
+          expect(events).to be_empty
+        end
+
+        it 'matches and writes the domain-scoped key' do
+          ds.insert(account_id: 73, provider: 'saml', issuer: scoped_issuer, uid: 'name-id-1')
+
+          expect(retrieve(host)[:account_id]).to eq(73)
+          expect(host.insert_hash).to include(issuer: scoped_issuer)
+          expect(host.update_hash).to eq(issuer: scoped_issuer)
+        end
+
+        # rodauth-omniauth builds the insert hash AFTER
+        # after_omniauth_create_account has consumed the session key and the
+        # carried ivar; the scope must survive that (hooks/omniauth_tenant.rb
+        # stamps a third, unconsumed copy).
+        it 'keeps the scope after the validated domain id has been consumed' do
+          host.instance_variable_set(:@omniauth_identity_scope_domain_id, 'cd_tenant_b')
+          host.session.delete(:validated_omniauth_domain_id)
+
+          expect(host.omniauth_identity_scope_domain_id).to eq('cd_tenant_b')
+          expect(host.insert_hash).to include(issuer: scoped_issuer)
+        end
+
+        it 'reads the session copy first while it exists' do
+          host.instance_variable_set(:@omniauth_identity_scope_domain_id, 'cd_stale')
+
+          expect(host.omniauth_identity_scope_domain_id).to eq('cd_tenant_b')
+        end
+      end
+
+      it 'has no scope on the platform surface (bare EntityID key)' do
+        expect(host.omniauth_identity_scope_domain_id).to be_nil
+        expect(host.resolved_issuer).to eq(entity_id)
       end
 
       # Every raw_info key is an attribute name the IdP chooses.

@@ -14,7 +14,10 @@ Added
   IdP. Every response must answer the sign-in request this site issued
   (IdP-initiated sign-in and single logout are not supported), assertions are
   single-use, and the response Issuer must equal the configured EntityID
-  exactly. Requires ``site.session.same_site: none`` with ``secure: true``,
+  exactly. Per-domain identities are keyed on the EntityID scoped to the
+  domain that pinned the certificate, so a domain cannot reach another
+  domain's (or the platform's) identities by configuring their EntityID with
+  its own certificate. Requires ``site.session.same_site: none`` with ``secure: true``,
   like Sign in with Apple. Missing or unusable ``SAML_*`` values skip the
   provider with an error in the boot log rather than failing boot. (#4450)
 

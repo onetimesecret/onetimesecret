@@ -234,17 +234,26 @@ module Auth::Config::Features
     # @param saml_issuer [String, nil] extra['idp_entity_id'] from
     #   RequestBoundSAML: the configured IdP EntityID, proven byte-equal to the
     #   validated response's single Issuer
+    # @param saml_scope_domain_id [String, nil] the validated tenant domain id
+    #   for a TENANT SAML callback (nil on the platform surface). A tenant SAML
+    #   identity is keyed on the EntityID scoped to this domain — see
+    #   Onetime::SsoProvider::Saml.tenant_issuer for why a bare EntityID is a
+    #   cross-tenant takeover — so the same NameID at the "same" EntityID is a
+    #   different identity on every domain, and never a platform one.
     # @return [String] resolved issuer or the '' sentinel (never '' for SAML)
     # @raise [SamlIssuerUnresolved] SAML strategy with a blank saml_issuer
     def self.resolve_issuer(strategy_options:, provider:, oidc_route_name:, env_oidc_issuer:,
-                            token_issuer: nil, saml_strategy: false, saml_issuer: nil)
+                            token_issuer: nil, saml_strategy: false, saml_issuer: nil,
+                            saml_scope_domain_id: nil)
       if saml_strategy
         # Blank-tested with strip, RETURNED unstripped: the value is one half
         # of the identity key and must stay byte-identical to what the
         # strategy compared (and to what the tenant backfill writes).
         raise SamlIssuerUnresolved, 'SAML strategy yielded no IdP EntityID' if saml_issuer.to_s.strip.empty?
 
-        return saml_issuer.to_s
+        return saml_issuer.to_s if saml_scope_domain_id.to_s.strip.empty?
+
+        return Onetime::SsoProvider::Saml.tenant_issuer(saml_scope_domain_id.to_s, saml_issuer.to_s)
       end
 
       option_issuer = strategy_options && strategy_options[:issuer]
@@ -340,6 +349,7 @@ module Auth::Config::Features
             token_issuer: saml ? nil : omniauth_token_issuer,
             saml_strategy: saml,
             saml_issuer: saml ? omniauth_saml_issuer : nil,
+            saml_scope_domain_id: saml ? omniauth_identity_scope_domain_id : nil,
           )
         end
 
@@ -348,13 +358,32 @@ module Auth::Config::Features
         # bump (ruby-saml is pinned exactly in the Gemfile for this reason).
         # ====================================================================
         #
-        # A SAML identity is keyed ('<route>', <IdP EntityID>, <NameID or
-        # uid_attribute>). The issuer half comes from exactly one place:
-        # extra['idp_entity_id'] as built by
-        # OmniAuth::Strategies::RequestBoundSAML#extra
+        # A SAML identity is keyed ('<route>', <issuer>, <NameID or
+        # uid_attribute>), where <issuer> is the IdP EntityID on the PLATFORM
+        # surface and Onetime::SsoProvider::Saml.tenant_issuer(domain_id,
+        # EntityID) — "<domain_id>|<EntityID>" — on a TENANT surface. The
+        # EntityID comes from exactly one place: extra['idp_entity_id'] as
+        # built by OmniAuth::Strategies::RequestBoundSAML#extra
         # (lib/onetime/sso_provider/request_bound_saml.rb) — the CONFIGURED
         # EntityID, which that strategy only hands over after proving it
         # byte-equal to the single Issuer of a response ruby-saml validated.
+        #
+        # WHY THE TENANT KEY CARRIES THE DOMAIN. "Configured" means configured
+        # BY THE TENANT ADMIN, alongside their own signing certificate: a SAML
+        # EntityID is an unauthenticated name, unlike an OIDC issuer that
+        # discovery ties to a TLS origin. Tenant B can configure tenant A's
+        # EntityID (or the platform's) with B's certificate and have B's IdP
+        # sign a response naming it and any NameID — every strategy gate
+        # passes, and on a bare-EntityID key that response resolves A's row.
+        # Scoping the tenant key to the domain that pinned the certificate
+        # closes it in both directions (a tenant row never matches a platform
+        # row either). The scope is read through
+        # omniauth_identity_scope_domain_id, NOT the consumable session key:
+        # after_omniauth_create_account consumes that key BEFORE rodauth-
+        # omniauth builds the identity insert hash (feature.rb
+        # _handle_omniauth_callback: omniauth_create_account, then
+        # create_omniauth_identity), so a reader that saw nil there would key
+        # a JIT tenant identity like a platform one.
         #
         # Why none of the ordinary sources is safe for SAML:
         #   1. options[:issuer] — in ruby-saml 1.18.1 `issuer` is a deprecated
@@ -397,6 +426,22 @@ module Auth::Config::Features
           return false unless defined?(::OmniAuth::Strategies::SAML)
 
           omniauth_strategy.is_a?(::OmniAuth::Strategies::SAML)
+        end
+
+        # The validated tenant domain id for identity SCOPING, readable for the
+        # whole callback. The session copy is authoritative while it exists;
+        # @omniauth_identity_scope_domain_id is the copy the tenant hook
+        # (hooks/omniauth_tenant.rb before_omniauth_callback_route) stamps for
+        # this purpose and nothing consumes, so the insert/update hashes built
+        # AFTER after_omniauth_create_account still see it. nil on the
+        # platform surface — and on a platform-fallback tenant flow, which
+        # runs the PLATFORM IdP and is keyed like one.
+        #
+        # @return [String, nil]
+        def omniauth_identity_scope_domain_id
+          scope = session[:validated_omniauth_domain_id]
+          scope = @omniauth_identity_scope_domain_id if scope.to_s.empty?
+          scope.to_s.empty? ? nil : scope.to_s
         end
 
         # extra['idp_entity_id'] — see the SAML INVARIANT above. Anything that

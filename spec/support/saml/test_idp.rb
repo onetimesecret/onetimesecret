@@ -47,12 +47,15 @@ module SamlSpec
 
     # @param entity_id [String] the IdP EntityID written into Issuer elements
     # @param key [OpenSSL::PKey::RSA] pass a fresh key to model a DIFFERENT IdP
-    # @param cert_not_after [Time] certificate expiry
+    # @param cert [OpenSSL::X509::Certificate, nil] an EXISTING certificate for
+    #   `key` — models an IdP operator who keeps their pinned certificate and
+    #   changes only what they assert (e.g. claims another IdP's EntityID)
+    # @param cert_not_after [Time] certificate expiry (ignored when cert given)
     def initialize(entity_id: 'https://idp.example.com/saml/metadata', key: self.class.shared_key,
-                   cert_not_after: Time.now + 86_400)
+                   cert: nil, cert_not_after: Time.now + 86_400)
       @entity_id = entity_id
       @key       = key
-      @cert      = self_signed_cert(key, cert_not_after)
+      @cert      = cert || self_signed_cert(key, cert_not_after)
     end
 
     def cert_pem
