@@ -53,7 +53,9 @@ export const colonelDomainVerifyDetailsSchema = z.object({
   dns_validated: z.boolean(),
   dns_indeterminate: z.boolean().optional(),
   dns_message: z.string().nullable().optional(),
-  dns_outcome: z.enum(['validated', 'indeterminate', 'override_held', 'failed']).optional(),
+  dns_outcome: z
+    .enum(['validated', 'confirmation_expired', 'indeterminate', 'override_held', 'failed'])
+    .optional(),
   ssl_ready: z.boolean().nullable(),
   is_resolving: z.boolean().nullable(),
   error: z.string().nullable(),
