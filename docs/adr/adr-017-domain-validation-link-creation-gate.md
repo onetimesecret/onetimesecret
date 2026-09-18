@@ -39,7 +39,9 @@ that domain belongs to someone else (typo, an expired/dangling domain, a
 domain the customer doesn't control), OTS itself becomes the takeover
 vector. This risk extends to `caddy_on_demand` (ADR-016): a Caddy ACME
 issuance proves DNS resolution, not account ownership, and the strategy
-performs no ownership check today.
+performed no ownership check when this ADR was written. (Since 2026-09-18
+`caddy_on_demand` checks the TXT challenge record itself; see the ADR-016
+implementation note.)
 
 The "stuck forever" blocker does not actually require deferring the gate.
 Cloudflare's and RFC 8555's validation lifecycles are bounded (finite
