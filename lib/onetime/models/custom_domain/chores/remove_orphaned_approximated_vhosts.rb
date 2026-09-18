@@ -254,14 +254,18 @@ module Onetime
 
       # 1d, first half: where does the domain resolve from here?
       #
+      # proxy_ip may list several entries separated by commas or whitespace.
+      # Each is a single address or a CIDR range (203.0.113.0/24); a range
+      # covers every address inside it. Entries that do not parse are ignored.
+      #
       # @param name [String] display domain
       # @return [Symbol] :moved, :on_approximated, :indeterminate
       def dns_evidence(name)
         proxy_host = features.proxy_host.to_s.strip.downcase.chomp('.')
-        cluster    = normalize_addresses(features.proxy_ip.to_s.split(/[\s,]+/))
+        cluster    = parse_networks(features.proxy_ip.to_s.split(/[\s,]+/))
 
         unless proxy_host.empty?
-          host_addresses = normalize_addresses(resolver.lookup(proxy_host).addresses)
+          host_addresses = parse_networks(resolver.lookup(proxy_host).addresses)
           # A cluster hostname we cannot resolve leaves the comparison blind.
           return :indeterminate if host_addresses.empty?
 
@@ -274,15 +278,16 @@ module Onetime
       # Pure comparison of a lookup against the cluster's addresses.
       #
       # @param snapshot [DnsLookup::Snapshot]
-      # @param cluster [Array<String>] normalized Approximated addresses
+      # @param cluster [Array<String, IPAddr>] Approximated addresses and CIDR ranges
       # @param proxy_host [String] Approximated CNAME target, may be empty
       # @return [Symbol] :moved, :on_approximated, :indeterminate
       def classify_dns(snapshot, cluster, proxy_host)
-        return :indeterminate if cluster.empty?
+        networks = parse_networks(cluster)
+        return :indeterminate if networks.empty?
 
-        addresses = normalize_addresses(snapshot.addresses)
+        addresses = parse_networks(snapshot.addresses)
         return :indeterminate if addresses.empty?
-        return :on_approximated if addresses.intersect?(cluster)
+        return :on_approximated if addresses.any? { |address| in_cluster?(networks, address) }
         return :on_approximated if !proxy_host.empty? && snapshot.cnames.include?(proxy_host)
 
         :moved
@@ -381,12 +386,24 @@ module Onetime
         sleeper.call(@pause) if @pause.to_f.positive?
       end
 
-      def normalize_addresses(list)
+      # IPAddr compares by value, so case and zero compression in an IPv6
+      # literal do not matter, and "a.b.c.d/nn" becomes a range.
+      #
+      # @return [Array<IPAddr>] entries that do not parse are dropped
+      def parse_networks(list)
         Array(list).filter_map do |entry|
-          IPAddr.new(entry.to_s.strip).to_s
+          next entry if entry.is_a?(IPAddr)
+
+          IPAddr.new(entry.to_s.strip)
         rescue IPAddr::Error
           nil
         end.uniq
+      end
+
+      # Same address family only: an IPv4 range says nothing about an IPv6
+      # address, and IPAddr#include? across families is not reliable.
+      def in_cluster?(networks, address)
+        networks.any? { |network| network.family == address.family && network.include?(address) }
       end
 
       def skip(domain, reason, level: :debug)
