@@ -107,6 +107,39 @@ ensure
   OT.instance_variable_set(:@conf, restore)
 end
 
+## schedule registers the job with overlap protection on a real scheduler
+@scheduler = Rufus::Scheduler.new
+RefreshJob.schedule(@scheduler)
+@scheduled = @scheduler.jobs.first
+[@scheduler.jobs.size, @scheduled.opts[:overlap], @scheduled.original]
+#=> [1, false, '30m']
+
+## A tick that fires while the previous run is still working is skipped
+@runs    = 0
+@release = Queue.new
+@started = Queue.new
+@overlap_job = @scheduler.schedule_every('1h', overlap: false, first_in: '1h') do
+  @runs += 1
+  @started << true
+  @release.pop
+end
+@overlap_job.trigger(Time.now)
+@started.pop
+@overlap_job.trigger(Time.now) # previous run still holds the job
+@release << true
+sleep 0.05 until @overlap_job.running? == false
+@runs
+#=> 1
+
+## schedule registers nothing when the job is disabled
+@scheduler.shutdown(:kill)
+@scheduler = Rufus::Scheduler.new
+with_config('enabled' => false) { RefreshJob.schedule(@scheduler) }
+count = @scheduler.jobs.size
+@scheduler.shutdown(:kill)
+count
+#=> 0
+
 ## interval_seconds parses the configured rufus duration
 RefreshJob.send(:interval_seconds, RefreshJob.send(:interval))
 #=> 1800

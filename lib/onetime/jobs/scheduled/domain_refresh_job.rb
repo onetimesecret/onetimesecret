@@ -30,8 +30,14 @@ module Onetime
       # a 200-domain page if every stage of every domain timed out. A resolver
       # outage is the realistic bad case, and it never reaches the TLS stage:
       # 8.5s per domain, ~28 min per page, inside the default 30m interval.
-      # Lower batch_size if pages routinely run past check_interval; runs are
-      # allowed to overlap and each works on its own clock-derived page.
+      # Lower batch_size if pages routinely run past check_interval.
+      #
+      # Runs never overlap within a scheduler process (overlap: false): a
+      # tick that fires while the previous run is still working is skipped,
+      # not queued. Two runs at once would double the outbound lookups and
+      # let both write the same domain. The skipped tick's page waits one
+      # extra walk, the same cost as any other missed tick (see page_offset).
+      # The guard is per process; run one scheduler process per deployment.
       class DomainRefreshJob < ScheduledJob
         DEFAULT_BATCH_SIZE             = 200
         DEFAULT_RATE_LIMIT             = 0.5
@@ -44,7 +50,7 @@ module Onetime
 
             scheduler_logger.info "[DomainRefreshJob] Scheduling with interval: #{interval}"
 
-            every(scheduler, interval, first_in: '2m') do
+            every(scheduler, interval, first_in: '2m', overlap: false) do
               refresh_domains
             end
           end
