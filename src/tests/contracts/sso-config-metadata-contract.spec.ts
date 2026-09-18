@@ -459,4 +459,72 @@ describe('PUT/PATCH payload schemas with enforce_sso_only', () => {
       }
     });
   });
+
+  // The per-provider superRefine branches the request schema
+  // (src/schemas/api/domains/requests/sso-config.ts) applies at runtime.
+  // client_id is optional on the base schema since #4450 (SAML has no client
+  // credential), so the refine is the only client-side thing that still
+  // requires it for oidc / entra_id — and the only thing that requires the
+  // SAML trio. Each branch is exercised so deleting it fails here, not at the
+  // API's 422.
+  describe('putSsoConfigPayloadStrictSchema', () => {
+    const samlPayload = {
+      provider_type: 'saml' as SsoProviderType,
+      display_name: 'Corp SAML',
+      idp_sso_service_url: 'https://idp.example.com/saml/sso',
+      idp_entity_id: 'https://idp.example.com/saml/metadata',
+      idp_cert: '-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----',
+    };
+
+    const issuePaths = (payload: unknown): string[][] => {
+      const result = putSsoConfigPayloadStrictSchema.safeParse(payload);
+      return result.success ? [] : result.error.issues.map((issue) => issue.path.map(String));
+    };
+
+    it('accepts a saml payload with the trio and NO client_id', () => {
+      expect('client_id' in samlPayload).toBe(false);
+      expect(putSsoConfigPayloadStrictSchema.safeParse(samlPayload).success).toBe(true);
+    });
+
+    it.each(SSO_SAML_FIELDS)('rejects a saml payload missing %s at that path', (field) => {
+      const { [field]: _omitted, ...payload } = samlPayload;
+      expect(issuePaths(payload)).toContainEqual([field]);
+    });
+
+    it.each(SSO_SAML_FIELDS)('rejects a saml payload with an empty %s at that path', (field) => {
+      expect(issuePaths({ ...samlPayload, [field]: '' })).toContainEqual([field]);
+    });
+
+    it('rejects an oidc payload with an issuer but no client_id at client_id', () => {
+      const payload = {
+        provider_type: 'oidc' as SsoProviderType,
+        display_name: 'Corp OIDC',
+        issuer: 'https://auth.example.com',
+      };
+      expect(issuePaths(payload)).toContainEqual(['client_id']);
+    });
+
+    it('rejects an entra_id payload with a client_id but no tenant_id at tenant_id (regression control)', () => {
+      const payload = {
+        provider_type: 'entra_id' as SsoProviderType,
+        display_name: 'Corp Entra',
+        client_id: 'client-123',
+        client_secret: 'secret-456',
+      };
+      const paths = issuePaths(payload);
+      expect(paths).toContainEqual(['tenant_id']);
+      expect(paths).not.toContainEqual(['client_id']);
+    });
+
+    it('does not demand the SAML trio of a credential provider', () => {
+      const payload = {
+        provider_type: 'oidc' as SsoProviderType,
+        display_name: 'Corp OIDC',
+        issuer: 'https://auth.example.com',
+        client_id: 'client-123',
+        client_secret: 'secret-456',
+      };
+      expect(putSsoConfigPayloadStrictSchema.safeParse(payload).success).toBe(true);
+    });
+  });
 });

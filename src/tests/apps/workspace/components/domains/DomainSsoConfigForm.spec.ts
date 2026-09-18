@@ -986,14 +986,30 @@ describe('DomainSsoConfigForm', () => {
     });
 
     describe('required guards', () => {
-      it('disables save and test until all three IdP fields are filled', async () => {
-        wrapper = await mountComponent({
-          formState: { ...mockSamlFormState, idp_cert: '' },
-        });
+      // Each trio field on its own: a guard that checked only one of them
+      // would pass a single-field example.
+      it.each(['idp_sso_service_url', 'idp_entity_id', 'idp_cert'] as const)(
+        'disables save and test when %s is blank',
+        async (field) => {
+          wrapper = await mountComponent({
+            formState: { ...mockSamlFormState, [field]: '' },
+          });
 
-        expect(submitButton(wrapper).attributes('disabled')).toBeDefined();
-        expect(findTestButton(wrapper)!.attributes('disabled')).toBeDefined();
-      });
+          expect(submitButton(wrapper).attributes('disabled')).toBeDefined();
+          expect(findTestButton(wrapper)!.attributes('disabled')).toBeDefined();
+        }
+      );
+
+      it.each(['idp_sso_service_url', 'idp_entity_id', 'idp_cert'] as const)(
+        'disables save and test when %s is whitespace only',
+        async (field) => {
+          wrapper = await mountComponent({
+            formState: { ...mockSamlFormState, [field]: '   ' },
+          });
+
+          expect(submitButton(wrapper).attributes('disabled')).toBeDefined();
+        }
+      );
 
       it('enables save and test with the trio filled and NO client_id', async () => {
         wrapper = await mountComponent({ formState: mockSamlFormState });
