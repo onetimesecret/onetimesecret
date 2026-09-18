@@ -180,9 +180,13 @@ end
   strategy: @failing_ownership_strategy,
   persist: false,
 ).call
-# Errors in validate_ownership are caught and return validated: false
+# Errors in validate_ownership are caught: nothing was validated
 @result4.dns_validated
 #=> false
+
+## Error handling - a raised ownership check is "could not tell", not a failed check
+[@result4.dns_outcome, @result4.dns_indeterminate]
+#=> [:indeterminate, true]
 
 ## Error handling - success? still true because exception was handled
 # The operation itself succeeded (ran to completion), just validation failed
