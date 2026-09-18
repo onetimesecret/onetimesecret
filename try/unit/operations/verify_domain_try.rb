@@ -256,7 +256,7 @@ end
 
 ## Result to_h - produces hash representation
 @result1.to_h.keys.sort
-#=> [:current_state, :dns_indeterminate, :dns_message, :dns_validated, :domain, :error, :is_resolving, :persisted, :previous_state, :ssl_ready]
+#=> [:current_state, :dns_indeterminate, :dns_message, :dns_outcome, :dns_validated, :domain, :error, :is_resolving, :override_held, :persisted, :previous_state, :ssl_ready]
 
 ## Result changed? - detects state change
 # Reset domain and verify with different outcome
@@ -407,6 +407,41 @@ Onetime::CustomDomain.find_by_identifier(@domain1.identifier).verified
 ).call
 [@bulk_counts.indeterminate_count, @bulk_counts.demoted_count]
 #=> [0, 1]
+
+## Operator override — a failed TXT check does NOT demote an overridden domain
+# The Colonel override sets verified_by_override. It is the operator's standing
+# assertion for domains DNS checks cannot reach, so a real mismatch holds.
+@domain2.verified             = true
+@domain2.verified_by_override = true
+@domain2.resolving            = true
+@domain2.save
+@override_strategy = MockValidationStrategy.new
+@override_strategy.ownership_result = { validated: false, message: 'TXT record not found', data: [] }
+@override_result = Onetime::Operations::VerifyDomain.new(
+  domain: @domain2,
+  strategy: @override_strategy,
+  persist: true,
+).call
+[@override_result.current_state, @override_result.demoted?, @override_result.override_held, @override_result.dns_outcome]
+#=> [:verified, false, true, :override_held]
+
+## Operator override — persisted flags survive the failed check
+@reloaded_override = Onetime::CustomDomain.find_by_identifier(@domain2.identifier)
+[@reloaded_override.verified, @reloaded_override.verified_by_override]
+#=> [true, true]
+
+## Operator override — a passing check clears the marker (DNS now holds the flag)
+@override_strategy.ownership_result = { validated: true, message: 'TXT record validated', data: [] }
+Onetime::Operations::VerifyDomain.new(domain: @domain2, strategy: @override_strategy, persist: true).call
+@reloaded_override = Onetime::CustomDomain.find_by_identifier(@domain2.identifier)
+[@reloaded_override.verified, @reloaded_override.verified_by_override]
+#=> [true, false]
+
+## Operator override — with the marker cleared, a later mismatch demotes normally
+@override_strategy.ownership_result = { validated: false, message: 'TXT record not found', data: [] }
+@after_clear = Onetime::Operations::VerifyDomain.new(domain: @domain2, strategy: @override_strategy, persist: true).call
+[@after_clear.demoted?, @after_clear.override_held]
+#=> [true, false]
 
 ## Argument validation - requires domain or domains
 begin

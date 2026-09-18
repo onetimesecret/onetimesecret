@@ -12,6 +12,7 @@
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
   import type { ColonelDomainRemoveDetails } from '@/apps/admin/stores/useAdminDomains';
+  import { verifyOutcomeNotice } from '@/apps/admin/utils/verifyOutcomeNotice';
   import { colonelDomainDetailResponseSchema } from '@/schemas/api/internal/responses/colonel-domains';
   import type { ColonelDomainVerifyDetails } from '@/schemas/api/internal/responses/colonel-domains';
   import type {
@@ -400,20 +401,11 @@
     dialogOpen.value = true;
   }
 
-  /** Per-state operator notification for verify. Unknown states fall back. */
-  const VERIFY_MESSAGE_KEYS: Record<string, string> = {
-    verified: 'web.admin.domains.verify.success.verified',
-    resolving: 'web.admin.domains.verify.success.resolving',
-    pending: 'web.admin.domains.verify.success.pending',
-    unverified: 'web.admin.domains.verify.success.unverified',
-  };
-
   function notifyVerifyOutcome(): void {
-    const state = verifyResult.value?.current_state ?? '';
-    const messageKey = VERIFY_MESSAGE_KEYS[state] ?? 'web.admin.domains.verify.success.done';
+    const { messageKey, severity } = verifyOutcomeNotice(verifyResult.value);
     notifications.show(
       t(messageKey, { domain: record.value?.display_domain ?? publicId.value }),
-      state === 'verified' ? 'success' : 'info'
+      severity
     );
   }
 
@@ -471,7 +463,14 @@
     if (!r) return;
 
     const options: { verified?: boolean; resolving?: boolean } = {};
-    if (overrideVerified.value !== null && overrideVerified.value !== r.verified) {
+    // Asserting verified=true on an already-verified domain is still a change
+    // when no override marker is set: it makes the flag sticky against a
+    // failed TXT check (verified_by_override).
+    const assertsOverride = overrideVerified.value === true && !r.verified_by_override;
+    if (
+      overrideVerified.value !== null &&
+      (overrideVerified.value !== r.verified || assertsOverride)
+    ) {
       options.verified = overrideVerified.value;
     }
     if (overrideResolving.value !== null && overrideResolving.value !== r.resolving) {
@@ -644,7 +643,11 @@
           testid="stat-state" />
         <StatCard
           :label="t('web.admin.domains.fields.verified')"
-          :value="yesNo(record.verified)"
+          :value="
+            record.verified_by_override
+              ? t('web.admin.domains.fields.verifiedByOverride')
+              : yesNo(record.verified)
+          "
           icon="check-circle"
           testid="stat-verified" />
         <StatCard

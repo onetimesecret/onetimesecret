@@ -34,17 +34,27 @@ module Onetime
         :dns_validated,   # Boolean: TXT record matches
         :dns_indeterminate, # Boolean: the TXT check produced no answer; verified left untouched
         :dns_message,     # String or nil: strategy's description of the TXT outcome
+        :override_held,   # Boolean: TXT check failed but an operator override kept verified
         :ssl_ready,       # Boolean: has valid SSL certificate
         :is_resolving,    # Boolean: DNS resolving to correct target
         :persisted,       # Boolean: changes were saved
         :error,           # String or nil: error message if failed
       ) do
-        def initialize(dns_indeterminate: false, dns_message: nil, **)
+        def initialize(dns_indeterminate: false, dns_message: nil, override_held: false, **)
           super
         end
 
         def success?
           error.nil?
+        end
+
+        # One label for the TXT outcome, for operator-facing output.
+        # @return [Symbol] :validated, :indeterminate, :override_held, :failed
+        def dns_outcome
+          return :validated if dns_validated
+          return :indeterminate if dns_indeterminate
+
+          override_held ? :override_held : :failed
         end
 
         # The domain lost :verified on this run (the signature of the SSO
@@ -65,6 +75,8 @@ module Onetime
             dns_validated: dns_validated,
             dns_indeterminate: dns_indeterminate,
             dns_message: dns_message,
+            dns_outcome: dns_outcome,
+            override_held: override_held,
             ssl_ready: ssl_ready,
             is_resolving: is_resolving,
             persisted: persisted,
@@ -191,6 +203,7 @@ module Onetime
           dns_validated: dns_result[:validated] || false,
           dns_indeterminate: dns_result[:indeterminate] == true,
           dns_message: dns_result[:message],
+          override_held: override_held?(domain, dns_result),
           ssl_ready: status_result[:has_ssl] || false,
           is_resolving: status_result[:is_resolving] || false,
           persisted: persisted,
@@ -271,6 +284,12 @@ module Onetime
       # @param result [Result]
       # @param dns_result [Hash]
       def log_notable_outcome(result, dns_result)
+        if result.override_held
+          logger.info 'DNS validation failed; verified held by operator override',
+            domain: result.domain.display_domain,
+            message: dns_result[:message]
+        end
+
         if result.dns_indeterminate
           logger.warn 'DNS validation indeterminate; verified left unchanged',
             domain: result.domain.display_domain,
@@ -376,8 +395,12 @@ module Onetime
       # @param status_result [Hash]
       # @return [Boolean] Whether changes were saved
       def persist_changes(domain, dns_result, status_result)
-        if (dns_result[:data] || dns_result[:mode]) && !dns_result[:validated].nil?
+        if (dns_result[:data] || dns_result[:mode]) && !dns_result[:validated].nil? &&
+           !override_held?(domain, dns_result)
           domain.verified! dns_result[:validated]
+          # DNS has now proven ownership itself; the operator's assertion is
+          # no longer what holds the flag, so later failures demote normally.
+          domain.verified_by_override = false if dns_result[:validated]
         end
 
         if status_result[:data] || status_result[:mode]
@@ -399,6 +422,18 @@ module Onetime
           domain: domain.display_domain,
           error: ex.message
         false
+      end
+
+      # A Colonel override is an operator's standing assertion of ownership for
+      # domains DNS checks cannot reach (private networks, a broken upstream
+      # checker). A failed check must not undo it on the next refresh run; only
+      # the operator (override to false) or a passing check clears it.
+      #
+      # @param domain [Onetime::CustomDomain]
+      # @param dns_result [Hash]
+      # @return [Boolean]
+      def override_held?(domain, dns_result)
+        dns_result[:validated] == false && domain.verified_by_override == true
       end
 
       # Enqueue a background favicon fetch for a freshly-verified domain.
