@@ -36,10 +36,11 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
   include Rack::Test::Methods
 
   # Scripted stand-in for DomainValidation::TxtResolver, keyed by hostname.
-  # The example group shares its datastore, so the page walk can pick up
-  # domains other specs left behind. A hostname this resolver was not told
-  # about gets no reply (indeterminate), which keeps the run from storing a
-  # scripted "no record" on rows that are not ours.
+  # A hostname this resolver was not told about gets no reply, which the
+  # verifier reports as indeterminate. That is not harmless to a row we do not
+  # own (an indeterminate check writes to it, and demotes it when it is
+  # verified with no confirmation on record), so rows other specs left in the
+  # shared datastore never get this far: see the VerifyDomain wrap below.
   let(:resolver_class) do
     Class.new do
       attr_reader :records, :failures, :lookups
@@ -69,7 +70,7 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
   # Scripted stand-in for DomainValidation::TlsProbe. The default is a name
   # that resolves and has no certificate yet: the state every domain is in
   # when Caddy asks for the first time. Any other hostname "could not be
-  # probed", for the same reason the resolver stays silent about it.
+  # probed"; like the resolver, it is only ever asked about ours.
   let(:probe_class) do
     Class.new do
       attr_accessor :is_resolving, :has_ssl
@@ -130,6 +131,20 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
     expect(Onetime::DomainValidation::DnsStubResolver).not_to receive(:new)
     expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_favicon_fetch)
 
+    # The example group shares its datastore, so the job's page walk also
+    # loads domains other specs (possibly running from another worktree) left
+    # behind. The walk itself stays real; VerifyDomain is handed only the row
+    # this spec created, so nothing is written to the others. refresh! checks
+    # that the walk did reach ours before it was narrowed.
+    @walked = []
+    allow(Onetime::Operations::VerifyDomain).to receive(:new).and_wrap_original do |original, **kwargs|
+      if kwargs[:domains]
+        @walked          = kwargs[:domains].map(&:identifier)
+        kwargs[:domains] = kwargs[:domains].select { |d| d.identifier == domain.identifier }
+      end
+      original.call(**kwargs)
+    end
+
     # Ours, and without a record until an example publishes one.
     resolver.records[domain.validation_record] = []
   end
@@ -145,8 +160,10 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
   # that did not visit the domain fails here rather than in a later assertion.
   def refresh!
     resolver.lookups.clear
+    @walked.clear
     Onetime::Jobs::Scheduled::DomainRefreshJob.send(:refresh_domains)
-    expect(resolver.lookups).to include(domain.validation_record)
+    expect(@walked).to include(domain.identifier)
+    expect(resolver.lookups).to eq([domain.validation_record])
   end
 
   def stored
