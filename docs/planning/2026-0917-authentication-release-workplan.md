@@ -17,7 +17,7 @@ The release outcome is consistent authentication across server routing, bootstra
 
 Implement in this order:
 
-1. **Establish the failure matrix.** (#4452) Exercise protected HTML, hydrated HTML, `GET /bootstrap/me`, and protected APIs with revoked, inactive, absolutely expired, MFA-pending, suspended, credential-stale, and tenant-surface-mismatched sessions, plus authentication-database failure. Identify where verdicts diverge and confirm the precise rejection behind the reported incident. Capture refusal codes and request IDs without recording credentials.
+1. **Establish the failure matrix.** (#4452) Exercise protected HTML, hydrated HTML, `GET /bootstrap/me`, and protected APIs with revoked, inactive, absolutely expired, legacy unstamped, MFA-pending, suspended, credential-stale, and tenant-surface-mismatched sessions, plus authentication-database failure. Identify where verdicts diverge and confirm the precise rejection behind the reported incident. Capture refusal codes and request IDs without recording credentials.
 
 2. **Extract the common session evaluator.** (#4453) Reuse the existing checks and their ordering. Return a typed verdict with the verified principal/effective identity only on success. Protected HTML and APIs enforce that verdict; public routes remain reachable but hydrated and fetched bootstrap payloads serialize authenticated identity only after success. Keep route-specific authorization and admin API expiry outside the shared customer-authentication predicate.
 
@@ -89,7 +89,7 @@ No issues are filed for these until the evidence exists.
 
 The v0.26.13 release gate is tracked in #4463.
 
-- Test the same session fixtures through protected HTML, hydrated HTML, `GET /bootstrap/me`, and protected APIs. Assert a shared schema and consistent identity verdicts while preserving deliberate differences in response format and admin scope.
+- Test the same session fixtures, including legacy unstamped sessions, through protected HTML, hydrated HTML, `GET /bootstrap/me`, and protected APIs. Assert a shared schema and consistent identity verdicts while preserving deliberate differences in response format and admin scope.
 - Cover ADR-046's test list in full (#4457, #4464, #4465). The ADR owns that list; it is not restated here.
 - Browser tests cover hydrated startup with zero `/bootstrap/me` requests, exactly one request for explicit stale-state recovery, refresh after idle/revocation, `/dashboard → /signin` without a Vue bounce, MFA completion, account switching, and retry after verification failure.
 - Ordering tests prove newer snapshots replace state; a refused snapshot mutates no store; reverse-resolution order retains the newest eligible snapshot; local partial patches do not advance the watermark; authentication mutations invalidate late requests; and logout in another tab, session expiry, and server-side revocation all reach the tab.
