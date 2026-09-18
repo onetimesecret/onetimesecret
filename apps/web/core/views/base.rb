@@ -45,9 +45,13 @@ module Core
         @req             = req
         @strategy_result = req.env['otto.strategy_result']
 
-        # Extract the session, then independently project identity from the
-        # project-owned evaluator. A strategy result without a successful common
-        # verdict may withhold identity, but cannot grant it to a serializer.
+        # Extract the session. Identity is only projected when a strategy
+        # result is present: without one this is the error-recovery path
+        # (500-style handler), and the view is treated as anonymous even if
+        # the raw session carries authenticated=true. Running the evaluator
+        # here would let error pages and serializers leak custid/email on
+        # responses that historically answered as anonymous. The session
+        # itself is still needed downstream (CSRF token, messages).
         @sess   = if @strategy_result
                   @strategy_result.session
                 else
@@ -57,8 +61,12 @@ module Core
                     {}
                   end
                 end
-        verdict = Onetime::CustomerSessionEvaluator.evaluate(@sess, env: req.env)
-        @cust   = verdict.customer
+        if @strategy_result
+          verdict = Onetime::CustomerSessionEvaluator.evaluate(@sess, env: req.env)
+          @cust   = verdict.customer
+        else
+          @cust = nil
+        end
 
         # Extract locale from request environment
         @locale = req.env.fetch('otto.locale', OT.default_locale)

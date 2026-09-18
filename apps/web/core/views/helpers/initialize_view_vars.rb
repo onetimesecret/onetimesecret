@@ -70,9 +70,21 @@ module Core
           end
         end
 
-        verdict       = Onetime::CustomerSessionEvaluator.evaluate(sess, env: req.env)
-        authenticated = verdict.authenticated?
-        cust          = verdict.customer
+        # Identity is projected ONLY when a strategy result is present. Without
+        # one this is the error-recovery path (500-style handler entry): the
+        # evaluator MUST NOT run against the raw session, or serializers would
+        # leak custid/email onto responses that historically answered as
+        # anonymous. See Core::Views::BaseView#initialize for the twin gate.
+        if strategy_result
+          verdict       = Onetime::CustomerSessionEvaluator.evaluate(sess, env: req.env)
+          authenticated = verdict.authenticated?
+          cust          = verdict.customer
+          awaiting_mfa  = verdict.mfa_pending?
+        else
+          authenticated = false
+          cust          = nil
+          awaiting_mfa  = false
+        end
 
         # Generate masked CSRF token from the canonical Rack session, NOT the
         # strategy-resolved `sess` which may be a detached {} on anonymous
@@ -84,8 +96,6 @@ module Core
         shrimp       = if rack_session
                    Rack::Protection::AuthenticityToken.token(rack_session)
                  end
-
-        awaiting_mfa = verdict.mfa_pending?
 
         Onetime.session_logger.debug 'Session',
           {
