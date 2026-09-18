@@ -48,6 +48,25 @@ module Billing
     identifier_field :email_hash
 
     # ========================================
+    # Read Index (admin visibility)
+    # ========================================
+    # Score: received_at epoch seconds. Member: email_hash.
+    #
+    # Written by .store_from_webhook after each save (subsequent notifications
+    # for the same email_hash refresh the score — newest wins). Trimmed to
+    # INDEX_MAX_ENTRIES on every write. Read by
+    # Onetime::Operations::Billing::WebhookVisibility instead of scanning
+    # object keys.
+    #
+    # The index is a rebuildable read cache — the pending rows remain the code
+    # of record. On deploy the index is empty and populates as webhooks arrive.
+    class_sorted_set :recent_records
+
+    # Retention cap on the read index. Bounds Redis memory; older hashes are
+    # trimmed on every write.
+    INDEX_MAX_ENTRIES = 10_000
+
+    # ========================================
     # Lookup Key (NOT PII)
     # ========================================
     # Note: identifier_field :email_hash provides uniqueness via the identifier
@@ -105,7 +124,24 @@ module Billing
       pending.received_at             = Time.now.to_i.to_s
       pending.source_stripe_event_id  = source_stripe_event_id
       pending.save
+      record_recent_index(pending)
       pending
+    end
+
+    # Append this record to the admin read index and trim to cap.
+    #
+    # The index is a rebuildable read cache; a failure here must NOT fail the
+    # webhook write path (the object row is the code of record). Log and
+    # swallow.
+    def self.record_recent_index(pending)
+      recent_records.add(pending.email_hash, pending.received_at.to_i)
+      recent_records.remrangebyrank(0, -(INDEX_MAX_ENTRIES + 1))
+    rescue StandardError => ex
+      Onetime.billing_logger.warn '[PendingFederatedSubscription] recent index write failed',
+        exception: ex.class.name,
+        message: ex.message,
+        email_hash: pending.email_hash
+      nil
     end
 
     # Extract plan ID from subscription

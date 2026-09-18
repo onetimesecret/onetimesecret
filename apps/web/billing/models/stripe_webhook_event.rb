@@ -60,6 +60,28 @@ module Billing
     identifier_field :stripe_event_id
 
     # ========================================
+    # Read Index (admin visibility)
+    # ========================================
+    # Score: first_seen_at epoch seconds. Member: stripe_event_id.
+    #
+    # Written by WebhookValidator#initialize_event_record on first insert only,
+    # and trimmed to INDEX_MAX_ENTRIES on every write. Read by
+    # Onetime::Operations::Billing::WebhookVisibility instead of scanning object
+    # keys, which is O(N) over the entire keyspace and yields a "recent" view
+    # only by accident.
+    #
+    # The index is a rebuildable read cache — the object rows remain the code
+    # of record. On deploy the index is empty; the 5-day TTL means it reaches
+    # full population within 5 days of continuous webhook traffic. Older event
+    # rows written before this index existed are absent from admin listings
+    # until they are re-written or expire.
+    class_sorted_set :recent_events
+
+    # Retention cap on the read index. Bounds Redis memory; older ids are
+    # trimmed on every write.
+    INDEX_MAX_ENTRIES = 10_000
+
+    # ========================================
     # Core Identification
     # ========================================
     field :stripe_event_id  # Stripe event ID (evt_xxx)
@@ -110,6 +132,28 @@ module Billing
       return false unless event
 
       event.success?
+    end
+
+    # Append this event to the admin read index and trim to cap.
+    #
+    # Called from WebhookValidator#initialize_event_record on FIRST INIT only —
+    # not from #mark_processing! / #mark_success! / #save, because the index
+    # score is first_seen_at (arrival time), not last-update time. Refreshing
+    # the score on every state transition would break the newest-first ordering
+    # the admin view depends on.
+    #
+    # The index is a rebuildable read cache; a failure here must NOT fail the
+    # webhook write path (the object row is the code of record). Log and
+    # swallow.
+    def self.record_recent_index(event)
+      recent_events.add(event.stripe_event_id, event.first_seen_at.to_i)
+      recent_events.remrangebyrank(0, -(INDEX_MAX_ENTRIES + 1))
+    rescue StandardError => ex
+      Onetime.billing_logger.warn '[StripeWebhookEvent] recent index write failed',
+        exception: ex.class.name,
+        message: ex.message,
+        event_id: event.stripe_event_id
+      nil
     end
 
     # ========================================
