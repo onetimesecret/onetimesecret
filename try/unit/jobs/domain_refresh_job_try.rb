@@ -132,12 +132,16 @@ RefreshJob.schedule(@scheduler)
   @release.pop
 end
 @overlap_job.trigger(Time.now)
-@started.pop
+@started.pop(timeout: 5)
 @overlap_job.trigger(Time.now) # previous run still holds the job
-@release << true
-sleep 0.05 until @overlap_job.running? == false
-@runs
-#=> 1
+sleep 0.1 # a second run, if one was wrongly started, gets to count itself
+# Two tokens and a deadline: were overlap protection to regress, the second
+# run is released too and @runs reports 2, instead of the lane hanging on it.
+2.times { @release << true }
+@deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 5
+sleep 0.05 while @overlap_job.running? && Process.clock_gettime(Process::CLOCK_MONOTONIC) < @deadline
+[@runs, @overlap_job.running?]
+#=> [1, false]
 
 ## schedule registers nothing when the job is disabled
 @scheduler.shutdown(:kill)
