@@ -43,6 +43,13 @@ Security
   and a ``bundler-audit`` job runs against ``Gemfile.lock`` on every pull
   request. (#4450)
 
+- The SSO failure log line and ``omniauth_failure`` audit event now carry
+  the strategy gem's error message bounded to 500 characters on one line,
+  for every provider; for SAML the message is a fixed string and ruby-saml's
+  check name is logged separately, bounded, so response text (Issuer,
+  Audience, an unsigned StatusMessage) can no longer forge or flood auth log
+  lines. (#4450)
+
 Documentation
 -------------
 
