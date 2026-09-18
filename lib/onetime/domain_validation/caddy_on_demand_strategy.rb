@@ -174,6 +174,11 @@ module Onetime
         false
       end
 
+      # @return [Boolean] true - a pass means TxtVerifier found the record
+      def proves_ownership?
+        true
+      end
+
       private
 
       def txt_check(custom_domain)

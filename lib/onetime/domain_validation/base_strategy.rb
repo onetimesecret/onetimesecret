@@ -149,6 +149,20 @@ module Onetime
         false
       end
 
+      # Whether validated: true from this strategy means the TXT challenge
+      # record was checked and matched.
+      #
+      # VerifyDomain records verified_confirmed_at only for such a pass, and
+      # that timestamp is later read as evidence that ownership was once
+      # established (CaddyOnDemandStrategy#never_confirmed?). A strategy that
+      # passes every domain without a lookup must leave this false.
+      #
+      # @return [Boolean]
+      #
+      def proves_ownership?
+        false
+      end
+
       # Seconds a bulk run should pause between domains for this strategy.
       #
       # Pacing belongs to whatever the strategy talks to: a provider API with

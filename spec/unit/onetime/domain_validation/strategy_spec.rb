@@ -184,6 +184,12 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
     end
   end
 
+  describe '#proves_ownership?' do
+    it 'is true: a pass means the TXT record was checked' do
+      expect(strategy.proves_ownership?).to be(true)
+    end
+  end
+
   describe '#validate_ownership' do
     context 'when API key is not configured' do
       before do
@@ -719,6 +725,16 @@ RSpec.describe Onetime::DomainValidation::PassthroughStrategy do
     end
   end
 
+  describe '#proves_ownership?' do
+    it 'is false: every domain passes without a lookup' do
+      expect(strategy.proves_ownership?).to be(false)
+    end
+
+    it 'is false for a strategy that does not say otherwise' do
+      expect(Class.new(Onetime::DomainValidation::BaseStrategy).new.proves_ownership?).to be(false)
+    end
+  end
+
   describe '#validate_ownership' do
     it 'always returns validated true' do
       result = strategy.validate_ownership(custom_domain)
@@ -798,6 +814,12 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
   describe '#bulk_rate_limit' do
     it 'declares no pacing for its own lookups' do
       expect(strategy.bulk_rate_limit).to eq(0)
+    end
+  end
+
+  describe '#proves_ownership?' do
+    it 'is true: a pass means the TXT record was found' do
+      expect(strategy.proves_ownership?).to be(true)
     end
   end
 
