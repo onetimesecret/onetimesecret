@@ -14,13 +14,14 @@ module Onetime
     #   result.ssl_ready      # => true/false
     #
     # Bulk domain usage:
-    #   result = VerifyDomain.new(domains: domain_list, rate_limit: 0.5).call
+    #   result = VerifyDomain.new(domains: domain_list).call
     #   result.verified_count # => 5
     #   result.results        # => [Result, Result, ...]
     #
     # Options:
     #   - persist: Whether to save changes to Redis (default: true)
-    #   - rate_limit: Delay in seconds between API calls in bulk mode (default: 0.5)
+    #   - rate_limit: Delay in seconds between domains in bulk mode
+    #     (default: nil, the strategy's own bulk_rate_limit)
     #   - strategy: Custom validation strategy (default: from config)
     #
     class VerifyDomain
@@ -122,8 +123,10 @@ module Onetime
       # @param domains [Array<Onetime::CustomDomain>, nil] Multiple domains for bulk mode
       # @param strategy [Onetime::DomainValidation::BaseStrategy, nil] Validation strategy
       # @param persist [Boolean] Whether to save changes to Redis
-      # @param rate_limit [Float] Delay in seconds between API calls (bulk mode)
-      def initialize(domain: nil, domains: nil, strategy: nil, persist: true, rate_limit: 0.5)
+      # @param rate_limit [Numeric, nil] Delay in seconds between domains (bulk
+      #   mode). nil defers to the strategy's bulk_rate_limit; any number,
+      #   including 0, overrides it.
+      def initialize(domain: nil, domains: nil, strategy: nil, persist: true, rate_limit: nil)
         @domain     = domain
         @domains    = domains
         @strategy   = strategy
@@ -230,16 +233,17 @@ module Onetime
         )
       end
 
-      # Verify multiple domains with rate limiting
+      # Verify multiple domains, paced by the strategy (or the caller's
+      # explicit rate_limit)
       #
       # @return [BulkResult] Aggregated results
       def verify_bulk
         start_time = Time.now
         results    = []
+        pause      = (@rate_limit.nil? ? strategy.bulk_rate_limit : @rate_limit).to_f
 
         @domains.each_with_index do |domain, index|
-          # Rate limiting between API calls
-          sleep(@rate_limit) if index.positive? && @rate_limit.positive?
+          sleep(pause) if index.positive? && pause.positive?
 
           result = verify_single(domain)
           results << result

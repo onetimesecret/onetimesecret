@@ -20,9 +20,10 @@ require 'onetime/operations/verify_domain'
 
 # Mock strategy for testing without external API calls
 class MockValidationStrategy
-  attr_accessor :ownership_result, :status_result, :certificate_result
+  attr_accessor :ownership_result, :status_result, :certificate_result, :bulk_rate_limit
 
   def initialize
+    @bulk_rate_limit = 0
     @ownership_result = { validated: true, message: 'TXT record matches', data: [] }
     @status_result = {
       ready: true,
@@ -407,6 +408,31 @@ Onetime::CustomDomain.find_by_identifier(@domain1.identifier).verified
 ).call
 [@bulk_counts.indeterminate_count, @bulk_counts.demoted_count]
 #=> [0, 1]
+
+## Bulk pacing — no explicit rate_limit defers to the strategy's bulk_rate_limit
+@paced_strategy = MockValidationStrategy.new
+@paced_strategy.bulk_rate_limit = 0.25
+def recorded_sleeps(**opts)
+  sleeps = []
+  op = Onetime::Operations::VerifyDomain.new(domains: [@domain1, @domain2, @domain3], persist: false, **opts)
+  op.define_singleton_method(:sleep) { |seconds| sleeps << seconds }
+  op.call
+  sleeps
+end
+recorded_sleeps(strategy: @paced_strategy)
+#=> [0.25, 0.25]
+
+## Bulk pacing — a strategy that declares no pacing never sleeps
+recorded_sleeps(strategy: MockValidationStrategy.new)
+#=> []
+
+## Bulk pacing — an explicit rate_limit overrides the strategy
+recorded_sleeps(strategy: @paced_strategy, rate_limit: 1.5)
+#=> [1.5, 1.5]
+
+## Bulk pacing — an explicit 0 turns the strategy's pacing off
+recorded_sleeps(strategy: @paced_strategy, rate_limit: 0)
+#=> []
 
 ## Operator override — a failed TXT check does NOT demote an overridden domain
 # The Colonel override sets verified_by_override. It is the operator's standing
