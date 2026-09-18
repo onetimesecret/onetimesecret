@@ -161,7 +161,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     # every surface, and that is the more fundamental refusal. The admin bound
     # must not run at all, so it cannot mask it with a different message.
     it 'reports the stale-credential failure and never consults the gate or the bound' do
-      allow(strategy).to receive(:session_predates_credential_change?).and_return(true)
+      allow(cust).to receive(:last_password_update).and_return(Familia.now.to_i)
       expect(Onetime::ActiveSessionGate).not_to receive(:verdict)
       expect(strategy).not_to receive(:admin_session_expiry_reason)
 
