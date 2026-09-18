@@ -250,14 +250,27 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
       end
     end
 
+    # The server never fetches the SSO URL (the browser is redirected to
+    # it), so it gets no SSRF host check: an IdP on a private network is a
+    # legitimate configuration. What is checked is that its ORIGIN is one
+    # the CSP form-action / HttpOrigin allowances can carry.
     context 'with an SSO URL whose host resolves to a private address' do
       before { allow(Resolv).to receive(:getaddresses).and_return(['10.0.0.5']) }
 
-      it 'fails with invalid_sso_url and does not echo the address' do
+      it 'succeeds without resolving the host' do
+        expect(result[:success]).to be true
+        expect(Resolv).not_to have_received(:getaddresses)
+      end
+    end
+
+    context 'with an SSO URL whose host would break the CSP form-action directive' do
+      let(:sso_url) { 'https://idp.example.com;/saml/sso' }
+
+      it 'fails with invalid_sso_url, naming the field, without echoing the host' do
         expect(result[:success]).to be false
-        expect(result[:details][:error_code]).to eq('invalid_sso_url')
-        expect(result[:message]).to eq('IdP SSO service URL must be an HTTPS URL pointing to a public host')
-        expect(result.inspect).not_to include('10.0.0.5')
+        expect(result[:details]).to include(error_code: 'invalid_sso_url', field: 'idp_sso_service_url')
+        expect(result[:message]).to include('plain hostname')
+        expect(result.inspect).not_to include('idp.example.com;')
       end
     end
 

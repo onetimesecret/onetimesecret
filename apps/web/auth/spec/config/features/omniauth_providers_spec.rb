@@ -722,7 +722,11 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
         # `issuer` is ruby-saml's alias for OUR SP EntityID, and resolve_issuer
         # precedence #1 — see lib/onetime/sso_provider/saml.rb.
         expect(opts).not_to have_key(:issuer)
-        expect(opts.keys.map(&:to_s).grep(/fingerprint/)).to be_empty
+        # No fingerprint trust anchor; idp_cert_fingerprint_algorithm is the
+        # SHA-256 digest ruby-saml matches a response-embedded certificate
+        # against the pinned one with (registry_spec pins it), not a fingerprint.
+        expect(opts.keys.map(&:to_s).grep(/fingerprint/)).to eq(['idp_cert_fingerprint_algorithm'])
+        expect(opts[:idp_cert_fingerprint_algorithm]).to eq(Onetime::SsoProvider::Saml::DIGEST_SHA256)
         expect(log_messages.last[1]).to include('SAML', 'client_id: (none)')
       end
 
