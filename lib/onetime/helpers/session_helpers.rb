@@ -22,26 +22,22 @@
 #   has_role?(:colonel) # Fast - checks session only
 #   current_customer    # Slow - loads from Redis (use sparingly)
 
-require_relative '../session/active_session_gate'
+require_relative '../session/customer_session_evaluator'
 require_relative '../session/impersonation'
-require_relative '../session/surface'
 
 module Onetime
   module Helpers
     module SessionHelpers
       def authenticated?
-        session['authenticated'] == true &&
-          !session['external_id'].to_s.empty? &&
-          session_auth_enforced? &&
-          !active_session_revoked? &&
-          session_surface_matches?
+        customer_session_verdict.authenticated? && session_auth_enforced?
       end
 
-      # Check user role without loading Customer (uses session data)
+      # Compatibility role checks derive from the evaluator's effective identity.
+      # A session cache may withhold access when stale, but must never grant it.
       def has_role?(role_name)
-        return false unless authenticated?
+        return false unless session_auth_enforced?
 
-        session['role'].to_s == role_name.to_s
+        customer_session_verdict.customer&.role?(role_name) || false
       end
 
       def colonel?
@@ -71,72 +67,40 @@ module Onetime
         )
 
         session.clear
-        forget_active_session_verdict
+        forget_customer_session_verdict
         OT.info "[logout] Session #{session_id} destroyed" if session_id
       end
 
       private
 
-      # Surface-bound session enforcement (#4409). The Rack session records
-      # the surface (canonical / subdomain / custom) that established it at
-      # login; a request whose resolved surface differs is refused, treated
-      # as unauthenticated. A missing marker is a mismatch (legacy sessions
-      # pre-#4409 have none), so the answer is false and the session is
-      # effectively anonymous for the request. The auth router destroys such
-      # sessions before they reach any handler; on this surface we only
-      # refuse, so a browser holding a legacy or misconfigured cookie that
-      # somehow reached the main app is not treated as signed in.
-      #
-      # No SELECT: this is a pure hash comparison against env stashed by
-      # DomainStrategy, safe to call per request.
-      def session_surface_matches?
-        env = rack_env_for_impersonation
-        return false unless env
-
-        Onetime::SessionSurface.matches_request?(session, env)
+      def customer_session_verdict
+        env                         = rack_env_for_impersonation
+        @customer_session_verdict ||= Onetime::CustomerSessionEvaluator.evaluate(session, env: env)
       end
 
-      # Full-mode active-session enforcement (Onetime::ActiveSessionGate, terms
-      # defined there): the controller-side twin of the check in
-      # BaseSessionAuthStrategy, so a page render and an API call answer the
-      # same way once the Rack session's active-session row is revoked or
-      # cannot be checked. Memoized per request through the Rack env when there
-      # is one (the strategy shares the memo), else per helper instance, so
-      # the many `authenticated?` calls in one request cost one SELECT.
-      def active_session_revoked?
-        return @active_session_revoked unless @active_session_revoked.nil?
-
-        @active_session_revoked = Onetime::ActiveSessionGate.revoked?(session, env: rack_env_for_impersonation)
-      end
-
-      # The session identity just changed inside this request (login or
-      # logout): a verdict reached for the previous identity must not outlive
-      # it, in this helper or in the shared env memo.
-      def forget_active_session_verdict
-        @active_session_revoked = nil
-        env                     = rack_env_for_impersonation
+      # The session identity just changed inside this request (login or logout):
+      # neither the common verdict nor the active-session sub-verdict may outlive it.
+      def forget_customer_session_verdict
+        @customer_session_verdict = nil
+        env                       = rack_env_for_impersonation
+        Onetime::CustomerSessionEvaluator.forget(env)
         env&.delete(Onetime::ActiveSessionGate::ENV_KEY)
       end
 
       def load_current_customer
-        return nil unless authenticated?
+        return nil unless session_auth_enforced?
 
-        # The PRINCIPAL — always the session owner, never the impersonation
-        # target. session['external_id'] stays the colonel's extid for the
-        # whole impersonation (overlay, not swap).
-        principal = Onetime::Customer.find_by_extid(session['external_id'])
-        return nil unless principal
+        verdict = customer_session_verdict
+        return nil unless verdict.authenticated?
 
-        customer, impersonating = Onetime::SessionImpersonation.resolve(
-          session, principal, env: rack_env_for_impersonation
-        )
+        principal = verdict.principal
+        customer  = verdict.customer
 
-        # Refresh the cached role from the PRINCIPAL only. Writing the target's
-        # role here would stamp a customer role into the colonel's own session
-        # blob, and `has_role?`/`colonel?` read that cache without loading a
-        # Customer — so a single impersonation would silently demote the
-        # operator for the rest of the session, surviving the stop.
-        session['role']      = principal.role if !impersonating && session['role'] != principal.role
+        # Refresh the cached role from the PRINCIPAL only. The target's role
+        # must never be persisted into the operator's session during an overlay.
+        if verdict.impersonation.nil? && session['role'] != principal.role
+          session['role'] = principal.role
+        end
         session['last_seen'] = Familia.now.to_i
 
         customer

@@ -31,12 +31,22 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     end
   end
 
-  # The active-session gate is not what these tests exercise; keep it green so
-  # a mismatch below is the only reason authenticated? can answer false.
+  let(:customer) do
+    instance_double(
+      Onetime::Customer,
+      suspended?: false,
+      last_password_update: 0,
+    )
+  end
+
+  # Customer and active-session checks are not what these surface tests exercise;
+  # keep them green so a mismatch is the only refusal reason.
   before do
     allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => { 'enabled' => true } } })
     allow(OT).to receive(:info)
-    allow(Onetime::ActiveSessionGate).to receive(:revoked?).and_return(false)
+    allow(Onetime::Customer).to receive(:load_by_extid_or_email).with('ur_abc').and_return(customer)
+    allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:active)
+    allow(Onetime::SessionImpersonation).to receive(:resolve).and_return([customer, nil])
   end
 
   def session_on(descriptor)
