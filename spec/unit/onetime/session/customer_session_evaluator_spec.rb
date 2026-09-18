@@ -46,7 +46,7 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
       events << :surface
       true
     end
-    allow(Onetime::Customer).to receive(:load_by_extid_or_email) do
+    allow(Onetime::Customer).to receive(:find_by_extid) do
       events << :customer_load
       principal
     end
@@ -102,7 +102,7 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
     expect(verdict.reason).to eq(:awaiting_mfa)
     expect(verdict.principal).to be_nil
     expect(verdict.customer).to be_nil
-    expect(Onetime::Customer).not_to have_received(:load_by_extid_or_email)
+    expect(Onetime::Customer).not_to have_received(:find_by_extid)
   end
 
   it 'returns unavailable without exposing an identity when active membership cannot be checked' do
@@ -118,7 +118,7 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
   end
 
   it 'returns unavailable without exposing an identity when customer resolution raises' do
-    allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+    allow(Onetime::Customer).to receive(:find_by_extid)
       .and_raise(Redis::ConnectionError, 'customer store unavailable')
 
     verdict = described_class.evaluate(session, env: env)
@@ -171,7 +171,7 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
   end
 
   it 'keeps a missing customer as a definitive rejection' do
-    allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(nil)
+    allow(Onetime::Customer).to receive(:find_by_extid).and_return(nil)
 
     verdict = described_class.evaluate(session, env: env)
 
@@ -236,7 +236,7 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
       expect(seen).to eq([principal])
       expect(verdict).to be(expired)
       expect(described_class.evaluate(session, env: env)).to be(expired)
-      expect(Onetime::Customer).to have_received(:load_by_extid_or_email).once
+      expect(Onetime::Customer).to have_received(:find_by_extid).once
     end
 
     it 'returns the cached authenticated verdict when the boundary passes' do
@@ -263,7 +263,7 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
 
     expect(verdict.status).to eq(:rejected)
     expect(verdict.reason).to eq(:surface_mismatch)
-    expect(Onetime::Customer).not_to have_received(:load_by_extid_or_email)
+    expect(Onetime::Customer).not_to have_received(:find_by_extid)
   end
 
   describe described_class::Verdict do

@@ -124,7 +124,7 @@ RSpec.shared_context 'view_test_context' do
     # Use block implementation instead of and_yield to avoid
     # RSpec 4.x arity checking issues on x86_64-linux
     allow(Onetime).to receive(:with_diagnostics) { |&block| block&.call }
-    allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+    allow(Onetime::Customer).to receive(:find_by_extid)
       .with('test@example.com')
       .and_return(customer)
     allow(Onetime::ActiveSessionGate).to receive(:verdict)

@@ -167,14 +167,22 @@ module Onetime
       )
     end
 
-    # Keep the former anonymous compatibility loader's rescue boundary around
-    # customer storage and the predicates that immediately verify the loaded
-    # record. Public routes must remain reachable during a customer-store
-    # failure, while protected routes receive the typed unavailable verdict.
-    # Surface, caller-owned, active-session, and impersonation errors remain
-    # outside this boundary and retain their existing handling.
+    # Session identity is resolved by extid ONLY. Email fallback is deliberately
+    # excluded: session +external_id+ is meant to carry an extid (+ur_...+), and
+    # if it ever holds an email (data corruption, bug, or a hostile write) an
+    # email fallback would resolve whichever account owns that email — a
+    # cross-identity resolution the anonymous compatibility path never allowed.
+    # Operator-supplied identifiers (e.g. impersonation redemption) use a
+    # different, broader loader under a different threat model.
+    #
+    # The rescue boundary matches the former anonymous compatibility loader's:
+    # customer storage failures and the predicates that immediately verify the
+    # loaded record return the typed unavailable verdict, so public routes
+    # remain reachable while protected routes see the refusal. Surface,
+    # caller-owned, active-session, and impersonation errors remain outside
+    # this boundary and retain their existing handling.
     def resolve_customer(external_id)
-      Customer.load_by_extid_or_email(external_id)
+      Customer.find_by_extid(external_id)
     rescue StandardError => ex
       customer_unavailable(ex)
     end

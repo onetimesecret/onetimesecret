@@ -70,7 +70,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   before do
     allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => { 'enabled' => true } } })
     allow(OT).to receive(:info)
-    allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(customer)
+    allow(Onetime::Customer).to receive(:find_by_extid).and_return(customer)
     allow(Onetime::SessionImpersonation).to receive(:resolve).and_return([customer, nil])
   end
 
