@@ -3,12 +3,9 @@
 # frozen_string_literal: true
 
 #
-# Session-based authentication helpers that minimize database/Redis lookups.
-#
-# Performance Pattern:
-# - Authentication checks use session data only (no DB/Redis hit)
-# - Customer object is lazy-loaded only when actually needed
-# - Role checks use session data for common permission checks
+# Session-based authentication helpers. Identity and role answers come from
+# Onetime::CustomerSessionEvaluator, whose verdict is memoized per request, so
+# repeated calls in one request cost one evaluation.
 #
 # Session Data Stored:
 # - external_id: Links to Customer.extid (Redis primary key)
@@ -18,9 +15,9 @@
 # - authenticated_at: Unix timestamp
 #
 # Usage:
-#   authenticated?      # Fast - checks session only
-#   has_role?(:colonel) # Fast - checks session only
-#   current_customer    # Slow - loads from Redis (use sparingly)
+#   authenticated?      # Shared evaluator verdict (memoized per request)
+#   has_role?(:colonel) # Role of the EFFECTIVE customer (the impersonation target mid-overlay)
+#   current_customer    # Effective customer from the same verdict
 
 require_relative '../session/customer_session_evaluator'
 require_relative '../session/impersonation'
@@ -29,7 +26,7 @@ module Onetime
   module Helpers
     module SessionHelpers
       def authenticated?
-        customer_session_verdict.authenticated? && session_auth_enforced?
+        session_auth_enforced? && customer_session_verdict.authenticated?
       end
 
       # Compatibility role checks derive from the evaluator's effective identity.
