@@ -154,6 +154,35 @@ module Billing
       nil
     end
 
+    # Drop this record's id from the admin read index.
+    #
+    # Called from the +destroy!+ override so any callsite that removes the
+    # row (typically claim, from EnsureDefaultWorkspace) also drops the id
+    # from +recent_records+. Without this the id sat at its original rank
+    # until the 90-day key TTL fired, and rank-based pagination in
+    # WebhookVisibility would skip one record across the page boundary each
+    # time the read-side prune touched a mid-index stale id.
+    #
+    # Best-effort — the index is a rebuildable read cache and a failure
+    # here must not fail the destroy. Log and swallow.
+    def self.unindex_recent(email_hash)
+      recent_records.remove(email_hash)
+    rescue StandardError => ex
+      Onetime.billing_logger.warn '[PendingFederatedSubscription] recent index remove failed',
+        exception: ex.class.name,
+        message: ex.message,
+        email_hash: email_hash
+      nil
+    end
+
+    # Ensure destroying a record also drops it from the admin read index.
+    # Runs before +super+ so the id is gone even if the row destroy itself
+    # raises (whichever the row's fate, the index should not keep it).
+    def destroy!
+      self.class.unindex_recent(email_hash)
+      super
+    end
+
     # Extract plan ID from subscription
     #
     # Metadata-first: pending records exist precisely for CROSS-REGION
