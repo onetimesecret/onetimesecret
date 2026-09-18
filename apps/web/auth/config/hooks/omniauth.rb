@@ -35,6 +35,29 @@ module Auth::Config::Hooks
       "#{REAUTH_PATH}?redirect=#{CGI.escape(CONNECT_PANEL_PATH)}"
     end
 
+    # Longest failure message copied into a log line or audit event.
+    FAILURE_MESSAGE_MAX = 500
+
+    # The exception message an OmniAuth failure carries, made safe to log:
+    # one line, valid encoding, at most FAILURE_MESSAGE_MAX characters.
+    #
+    # Strategy gems build these messages from provider responses — ruby-saml
+    # embeds the response's Issuer, Audience values and the unsigned
+    # StatusMessage (up to its 250,000-byte cap), OAuth2 gems the token
+    # endpoint's error body — so an unauthenticated client who can start a
+    # login can choose what lands here. Bounding and flattening it keeps a
+    # crafted message from forging log lines or flooding the auth log; the
+    # exception CLASS is logged separately and is ours to trust.
+    #
+    # @param message [String, nil]
+    # @return [String]
+    def self.loggable_failure_message(message)
+      text = message.to_s.scrub('?').gsub(/[[:cntrl:]]+/, ' ')
+      return 'No error message' if text.strip.empty?
+
+      text[0, FAILURE_MESSAGE_MAX]
+    end
+
     # The SSO request phase's connect-intent step, called from
     # omniauth_request_validation_phase with the Rodauth instance (the same
     # shape as the helpers in hooks/omniauth_tenant.rb). See that hook's
@@ -888,7 +911,10 @@ module Auth::Config::Hooks
         # Extract error details with safe fallbacks for logging.
         # Use safe navigation and || fallbacks to avoid exceptions.
         error_type  = (omniauth_error_type if respond_to?(:omniauth_error_type)) || :unknown
-        error_msg   = omniauth_error&.message || 'No error message'
+        # Bounded and flattened: the message is provider-response-derived
+        # text an unauthenticated client can shape (see
+        # loggable_failure_message).
+        error_msg   = Auth::Config::Hooks::OmniAuth.loggable_failure_message(omniauth_error&.message)
         error_class = omniauth_error&.class&.name || 'Unknown'
 
         # Debug: write to stderr so it shows in overmind/terminal

@@ -102,6 +102,26 @@ module SamlSpec
       ))
     end
 
+    # A non-Success Response with no Assertion and an IdP-chosen
+    # StatusMessage — what a login failure at the IdP looks like, and what
+    # an attacker who can start a login can post unsigned: ruby-saml appends
+    # the StatusMessage verbatim to its ValidationError BEFORE any signature
+    # check (validate_success_status precedes validate_signature).
+    #
+    # @return [String] base64-encoded Response XML
+    def failure_response(in_response_to:, acs_url:, status_message:, now: Time.now.utc)
+      irt = in_response_to ? %( InResponseTo="#{esc(in_response_to)}") : ''
+
+      Base64.strict_encode64(
+        %(<samlp:Response xmlns:samlp="#{PROTOCOL_NS}" ID="_#{SecureRandom.uuid}" Version="2.0" ) +
+        %(IssueInstant="#{ts(now)}" Destination="#{esc(acs_url)}"#{irt}>) +
+        %(<saml:Issuer xmlns:saml="#{ASSERTION_NS}">#{esc(entity_id)}</saml:Issuer>) +
+        '<samlp:Status><samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Requester"/>' \
+        "<samlp:StatusMessage>#{esc(status_message)}</samlp:StatusMessage></samlp:Status>" \
+        '</samlp:Response>',
+      )
+    end
+
     private
 
     def response_xml(assertion:, issuer:, in_response_to:, acs_url:, now:)

@@ -880,9 +880,13 @@ A customer provisioned on a current version can also be unverified on purpose: i
 ### SAML sign-in refused
 
 Every refusal lands on `/signin?auth_error=sso_failed`. The reason is in the
-auth log as `[saml_response_refused] reason=<code>` (a gate in
-`RequestBoundSAML`) or in the `[OmniAuth FAILURE] type=invalid_ticket` line
-(ruby-saml document validation). Nothing from the response body is logged.
+auth log as `[saml_response_refused] reason=<code>` — a gate in
+`RequestBoundSAML`, or `reason=invalid_ticket` for ruby-saml document
+validation, where `detail` carries the gem's check name (bounded to 200
+characters, one line). The `[OmniAuth FAILURE]` line and the
+`omniauth_failure` audit event carry a fixed message for SAML: ruby-saml's
+messages embed response text (Issuer, Audience, the unsigned StatusMessage),
+so they never reach a log line unbounded.
 
 | `reason` | Meaning | Check |
 |----------|---------|-------|
@@ -896,7 +900,7 @@ auth log as `[saml_response_refused] reason=<code>` (a gate in
 | `saml_assertion_unbounded` | The assertion has no `ID` or no `Conditions/@NotOnOrAfter` | IdP configuration; both are required |
 | `saml_assertion_replayed` | The same assertion was presented a second time | Browser back/refresh on the callback page; otherwise investigate |
 | `saml_replay_guard_unavailable` | Valkey/Redis was unavailable during the callback | Datastore health; the callback fails closed |
-| `invalid_ticket` (`[OmniAuth FAILURE]`) | ruby-saml rejected the document: signature, unsigned assertion, audience, destination or recipient, validity window (60 s clock drift allowed), expired IdP certificate, InResponseTo mismatch | The failure message names the check; compare the IdP's SP registration with the values in the SAML setup table |
+| `invalid_ticket` | ruby-saml rejected the document: signature, unsigned assertion, audience, destination or recipient, validity window (60 s clock drift allowed), expired IdP certificate, InResponseTo mismatch, non-Success status | The event's `detail` names the check; compare the IdP's SP registration with the values in the SAML setup table |
 
 ### SAML callback returns 403
 

@@ -853,6 +853,36 @@ RSpec.describe 'OmniAuth hooks' do
     it 'configure accepts one argument (auth object)' do
       expect(Auth::Config::Hooks::OmniAuth.method(:configure).arity).to eq(1)
     end
+
+    # The failure hook logs the strategy gem's exception message, which is
+    # built from provider responses an unauthenticated client can shape
+    # (ruby-saml embeds the unsigned StatusMessage verbatim). One line,
+    # bounded, valid encoding — and never empty, so the log field is stable.
+    describe '.loggable_failure_message' do
+      let(:hooks) { Auth::Config::Hooks::OmniAuth }
+
+      it 'bounds the message' do
+        expect(hooks.loggable_failure_message('A' * 10_000).length).to eq(hooks::FAILURE_MESSAGE_MAX)
+      end
+
+      it 'flattens newlines and control characters so a message cannot forge log lines' do
+        expect(hooks.loggable_failure_message("bad\n[login_success] forged\r\n\tx")).to eq('bad [login_success] forged x')
+      end
+
+      it 'scrubs invalid encoding' do
+        expect(hooks.loggable_failure_message("ok\xff".dup.force_encoding('UTF-8'))).to eq('ok?')
+      end
+
+      [nil, '', "  \n"].each do |blank|
+        it "substitutes a fixed placeholder for #{blank.inspect}" do
+          expect(hooks.loggable_failure_message(blank)).to eq('No error message')
+        end
+      end
+
+      it 'passes an ordinary message through' do
+        expect(hooks.loggable_failure_message('Invalid Audience')).to eq('Invalid Audience')
+      end
+    end
   end
 
   # ==========================================================================

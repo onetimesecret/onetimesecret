@@ -389,6 +389,33 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       expect_refused
     end
 
+    # An unsigned non-Success response with an attacker-chosen StatusMessage
+    # is refused by ruby-saml BEFORE any signature check, with the message
+    # embedded in its ValidationError. Nothing from it may reach a log line
+    # unbounded: the strategy swaps the gem exception for a fixed-message
+    # Refusal, and the failure hook bounds what it logs.
+    it 'logs a bounded, single-line failure for an unsigned StatusMessage flood' do
+      flood = "x\n[login_success] forged=true\r\n" + ('A' * 100_000)
+      events = []
+      allow(Auth::Logging).to receive(:log_auth_event).and_wrap_original do |original, event, **fields|
+        events << [event, fields]
+        original.call(event, **fields)
+      end
+      request = start_login(tenant_a)
+
+      post_callback(tenant_a, tenant_a.idp.failure_response(
+        in_response_to: request.id, acs_url: request.acs_url, status_message: flood,
+      ))
+
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      failure = events.find { |event, _| event == :omniauth_failure }
+      expect(failure).not_to be_nil
+      message = failure.last[:error_message].to_s
+      expect(message).to eq('SAML response failed validation')
+      expect(message).not_to match(/[\r\n]/)
+      expect(events.map(&:first)).not_to include(:login_success)
+    end
+
     it 'refuses a second presentation of the same assertion' do
       created_emails << email
       assertion_id = "_#{SecureRandom.uuid}"

@@ -486,6 +486,44 @@ module OmniAuth
         end
       end
 
+      # Every refusal the GEM makes — omniauth-saml's callback_phase rescues
+      # both ValidationError classes into fail!(:invalid_ticket, $!)
+      # (saml.rb:62-74) — arrives here with the gem's exception, and ruby-saml
+      # builds those messages from the response: "Doesn't match the issuer,
+      # expected: <x>, but was: <ISSUER>", "Invalid Audience ... <AUDIENCES>",
+      # and Utils.status_error_msg appends the unsigned <StatusMessage>
+      # verbatim (validate_success_status runs BEFORE validate_signature, so
+      # no signature is needed to get there). The message is capped only by
+      # the gem's 250,000-byte message_max_bytesize, and it would otherwise be
+      # logged unbounded by omniauth's own logger, the application's
+      # omniauth_on_failure hook and the audit event — a log-injection and
+      # log-flooding surface open to anyone who can start a login.
+      #
+      # So a gem exception is swapped for a Refusal with a FIXED message, and
+      # the gem's message reaches the log only through the same scalar-only,
+      # bounded event this file's own refusals emit. Refusals made here pass
+      # through untouched (they are already Refusals with fixed messages).
+      # omniauth strategy.rb:542 `fail!(message_key, exception = nil)` —
+      # RE-VERIFY the arity on an omniauth bump.
+      def fail!(message_key, exception = nil)
+        gem_refusal = exception.is_a?(OmniAuth::Strategies::SAML::ValidationError) ||
+                      exception.is_a?(OneLogin::RubySaml::ValidationError)
+        return super if !gem_refusal || exception.is_a?(Refusal)
+
+        Onetime.get_logger('Auth').warn(
+          '[saml_response_refused]',
+          {
+            reason: message_key.to_s,
+            provider: name.to_s,
+            phase: current_phase_label,
+            error_class: exception.class.name,
+            detail: loggable(exception.message),
+          },
+        )
+
+        super(message_key, Refusal.new('SAML response failed validation'))
+      end
+
       # fail! with a distinct type + one scalar-only log event. The exception
       # message is a fixed string from this file: omniauth logs it and the
       # application's omniauth_on_failure hook logs it again, so it must
@@ -505,8 +543,10 @@ module OmniAuth
         on_callback_path? ? 'callback' : 'request'
       end
 
+      # One line, valid encoding, bounded: an IdP-supplied string may carry
+      # newlines and control characters that would forge log lines.
       def loggable(value)
-        value.to_s.scrub('?')[0, LOG_VALUE_MAX]
+        value.to_s.scrub('?').gsub(/[[:cntrl:]]+/, ' ')[0, LOG_VALUE_MAX]
       end
     end
   end

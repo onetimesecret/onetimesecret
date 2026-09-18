@@ -372,7 +372,11 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         post_callback(response_for('_some-other-request'))
 
         expect(failure_types).to eq([:invalid_ticket])
-        expect(failures.first[:error].message).to include('InResponseTo')
+        # The gem's message names the check; it reaches the log as the
+        # bounded `detail` of the scalar event, never as the exception.
+        expect(failures.first[:error].message).to eq('SAML response failed validation')
+        expect(auth_logger).to have_received(:warn)
+          .with('[saml_response_refused]', hash_including(reason: 'invalid_ticket', detail: /InResponseTo/))
         expect(reached_app).to be_empty
         expect(session).not_to have_key(request_id_key)
       end
@@ -771,6 +775,69 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         end
       end
 
+      # Refusals the GEM makes carry response-derived text in their message
+      # (Issuer, Audience values, the unsigned StatusMessage). The failure
+      # exception that reaches omniauth's logger and the app's failure hook
+      # must be a Refusal with a fixed message; the gem's text reaches the
+      # log only as the bounded, single-line `detail` of the scalar event.
+      describe 'gem-made refusals' do
+        it 'replaces the gem exception with a fixed-message Refusal and one bounded scalar event' do
+          start_login
+          post_callback(response_for(session[request_id_key], audience: 'https://other-sp.example.com/metadata'))
+
+          expect(failure_types).to eq([:invalid_ticket])
+          error = failures.first[:error]
+          expect(error).to be_a(described_class::Refusal)
+          expect(error.message).to eq('SAML response failed validation')
+          expect(error.message).not_to include('other-sp')
+          expect(auth_logger).to have_received(:warn).once.with(
+            '[saml_response_refused]',
+            hash_including(reason: 'invalid_ticket', provider: 'saml', phase: 'callback',
+              error_class: 'OneLogin::RubySaml::ValidationError'),
+          )
+          expect(auth_logger).to have_received(:warn) do |_message, payload|
+            expect(payload[:detail]).to include('Invalid Audience')
+            expect(payload[:detail].length).to be <= described_class::LOG_VALUE_MAX
+            expect(payload.values).to all(be_a(String))
+          end
+        end
+
+        it 'bounds and flattens an unsigned StatusMessage flood' do
+          flood = "x\n[login_success] forged=true\r\n" + ('A' * 100_000)
+          start_login
+          post_callback(idp.failure_response(in_response_to: session[request_id_key], acs_url: acs_url, status_message: flood))
+
+          expect(failure_types).to eq([:invalid_ticket])
+          expect(failures.first[:error].message).to eq('SAML response failed validation')
+          expect(auth_logger).to have_received(:warn).once do |_message, payload|
+            expect(payload[:detail].length).to be <= described_class::LOG_VALUE_MAX
+            expect(payload[:detail]).not_to match(/[\r\n]/)
+            expect(payload[:detail]).not_to include("\n[login_success]")
+          end
+          expect(reached_app).to be_empty
+        end
+
+        it "also covers the gem's own SAML response missing error" do
+          start_login
+          Rack::MockRequest.new(app).post(acs_url)
+
+          expect(failure_types).to eq([:invalid_ticket])
+          expect(failures.first[:error]).to be_a(described_class::Refusal)
+          expect(auth_logger).to have_received(:warn).with(
+            '[saml_response_refused]',
+            hash_including(reason: 'invalid_ticket', error_class: 'OmniAuth::Strategies::SAML::ValidationError'),
+          )
+        end
+
+        it 'leaves refusals made by the subclass untouched (one event, the original message)' do
+          start_login
+          post_callback(response_for(session[request_id_key], name_id_format: SamlSpec::TestIdp::TRANSIENT))
+
+          expect(failures.first[:error].message).to eq('SAML NameID is transient and no uid_attribute is configured')
+          expect(auth_logger).to have_received(:warn).once
+        end
+      end
+
       it 'truncates IdP-supplied strings copied into the log event' do
         # uri_match? ignores the fragment, so this passes the gem.
         long = "#{idp.entity_id}##{'a' * 1000}"
@@ -780,6 +847,15 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         expect(auth_logger).to have_received(:warn) do |_message, payload|
           expect(payload[:observed_issuer].length).to be <= described_class::LOG_VALUE_MAX
         end
+      end
+
+      # Every IdP-supplied string reaching a log event goes through
+      # `loggable`; a newline in one would forge a log line.
+      it 'flattens control characters in IdP-supplied strings copied into the log event' do
+        strategy = described_class.new(->(_env) { [404, {}, []] }, **strategy_options)
+
+        expect(strategy.send(:loggable, "a\nb\r\nc\tforged\x00")).to eq('a b c forged ')
+        expect(strategy.send(:loggable, "\xff".dup.force_encoding('UTF-8'))).to eq('?')
       end
     end
   end
