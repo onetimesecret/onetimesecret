@@ -5,6 +5,7 @@
 require 'rhales'
 
 require 'onetime/middleware'
+require 'onetime/session/customer_session_evaluator'
 
 require 'onetime/models'
 
@@ -44,19 +45,20 @@ module Core
         @req             = req
         @strategy_result = req.env['otto.strategy_result']
 
-        # Extract session and customer from strategy_result or use fallback values
-        if @strategy_result
-          @sess = @strategy_result.session
-          @cust = @strategy_result.user # nil for anonymous requests
-        else
-          # Error recovery: Otto didn't run, use direct session access
-          @sess = begin
-            req.session
-          rescue StandardError
-            {}
-          end
-          @cust = nil # Anonymous - no customer
-        end
+        # Extract the session, then independently project identity from the
+        # project-owned evaluator. A strategy result without a successful common
+        # verdict may withhold identity, but cannot grant it to a serializer.
+        @sess   = if @strategy_result
+                  @strategy_result.session
+                else
+                  begin
+                    req.session
+                  rescue StandardError
+                    {}
+                  end
+                end
+        verdict = Onetime::CustomerSessionEvaluator.evaluate(@sess, env: req.env)
+        @cust   = verdict.customer
 
         # Extract locale from request environment
         @locale = req.env.fetch('otto.locale', OT.default_locale)

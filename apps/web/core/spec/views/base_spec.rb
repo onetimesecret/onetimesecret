@@ -107,6 +107,14 @@ RSpec.describe Core::Views::BaseView do
     end
 
     context 'with anonymous user' do
+      let(:session) do
+        {
+          'csrf' => 'test_shrimp',
+          'awaiting_mfa' => false,
+          'authenticated' => false,
+        }
+      end
+
       let(:customer) do
         cust = instance_double(Onetime::Customer,
           anonymous?: true,

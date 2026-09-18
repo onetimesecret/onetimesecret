@@ -20,14 +20,17 @@ module Core
       def self.serialize(view_vars)
         output = output_template
 
-        output['authenticated'] = view_vars['authenticated']
-        output['awaiting_mfa']  = view_vars['awaiting_mfa'] || false
         cust                    = view_vars['cust']
+        # Defense in depth: serialized authentication requires both the common
+        # verdict projection and its effective customer. Compatibility inputs
+        # may withhold identity but cannot grant it by setting one field alone.
+        output['authenticated'] = view_vars['authenticated'] == true && !cust.nil?
+        output['awaiting_mfa']  = !output['authenticated'] && view_vars['awaiting_mfa'] == true
 
-        # For anonymous users (nil cust), return null to match frontend schema.
-        # The customerCanonical schema requires non-null objid string, so we
-        # cannot return an object with nil fields - must be null or valid object.
-        output['cust'] = cust&.safe_dump
+        # The customerCanonical schema requires either a valid object or null.
+        # Never serialize a supplied customer unless the evaluator projection is
+        # also authenticated; this is the final defense against stale view inputs.
+        output['cust'] = cust.safe_dump if output['authenticated']
 
         # Check if there was a valid session at the time of this response
         # This is crucial for error pages where authenticated=false but the user
@@ -36,7 +39,7 @@ module Core
         sess                        = view_vars['sess']
         output['had_valid_session'] = !!(sess && !sess.empty? && !sess['external_id'].to_s.empty?)
 
-        # When authenticated, provide full customer data
+        # Only a successful evaluator verdict provides full customer data.
         if output['authenticated']
           output['custid']         = cust.custid
           output['email']          = cust.email
@@ -78,10 +81,6 @@ module Core
           # exactly the case it exists for.
           output['impersonation'] = Onetime::SessionImpersonation.context
 
-        # When awaiting MFA, provide minimal data from session (no customer access yet)
-        elsif output['awaiting_mfa']
-          output['email'] = view_vars['session_email']  # From session, not customer
-          # Do NOT provide custid or customer object - user doesn't have access yet
         end
 
         output

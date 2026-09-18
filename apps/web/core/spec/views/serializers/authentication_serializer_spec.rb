@@ -244,6 +244,64 @@ RSpec.describe Core::Views::AuthenticationSerializer do
     end
   end
 
+  describe 'identity defense in depth' do
+    let(:cust) do
+      instance_double(
+        Onetime::Customer,
+        safe_dump: { 'custid' => 'alice@example.com' },
+        custid: 'alice@example.com',
+        email: 'alice@example.com',
+        created: nil,
+      )
+    end
+
+    it 'does not let a customer object grant identity when the verdict projection is unauthenticated' do
+      output = described_class.serialize(
+        'authenticated' => false,
+        'awaiting_mfa' => false,
+        'cust' => cust,
+        'sess' => { 'external_id' => 'ur_alice' },
+      )
+
+      expect(output).to include(
+        'authenticated' => false,
+        'cust' => nil,
+        'custid' => nil,
+        'email' => nil,
+        'customer_since' => nil,
+      )
+    end
+
+    it 'does not let an authenticated flag grant identity without an evaluated customer' do
+      output = described_class.serialize(
+        'authenticated' => true,
+        'awaiting_mfa' => false,
+        'cust' => nil,
+        'sess' => { 'external_id' => 'ur_missing' },
+      )
+
+      expect(output).to include('authenticated' => false, 'cust' => nil, 'email' => nil)
+    end
+
+    it 'exposes no session email or customer data while MFA is pending' do
+      output = described_class.serialize(
+        'authenticated' => false,
+        'awaiting_mfa' => true,
+        'session_email' => 'alice@example.com',
+        'cust' => nil,
+        'sess' => { 'external_id' => 'ur_alice' },
+      )
+
+      expect(output).to include(
+        'authenticated' => false,
+        'awaiting_mfa' => true,
+        'cust' => nil,
+        'custid' => nil,
+        'email' => nil,
+      )
+    end
+  end
+
   describe 'output template' do
     it 'defaults password_auth_permitted to true' do
       expect(described_class.output_template['password_auth_permitted']).to be(true)
