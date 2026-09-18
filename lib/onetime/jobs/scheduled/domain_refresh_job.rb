@@ -16,7 +16,7 @@ module Onetime
       #     domain_refresh:
       #       enabled: true
       #       check_interval: '30m'
-      #       batch_size: 200    # max domains processed per run (cursor walks the full set)
+      #       batch_size: 200    # max domains processed per run (clock-derived page walks the full set)
       #       rate_limit: 0.5    # seconds between Approximated API calls
       #
       # The Approximated rate limit (0.5s) caps a 200-domain run at ~100s.
@@ -24,8 +24,6 @@ module Onetime
         DEFAULT_BATCH_SIZE = 200
         DEFAULT_RATE_LIMIT = 0.5
         DEFAULT_INTERVAL   = '30m'
-        CURSOR_KEY         = 'jobs:domain_refresh:cursor'
-        CURSOR_TTL         = 86_400 # a stale cursor expires and the walk restarts at 0
 
         class << self
           def schedule(scheduler)
@@ -58,21 +56,14 @@ module Onetime
             limit.is_a?(Numeric) && limit >= 0 ? limit.to_f : DEFAULT_RATE_LIMIT
           end
 
-          # Walk the FULL CustomDomain.instances set one batch per run, resuming
-          # from a persisted cursor and wrapping at the end. Always taking the
-          # newest batch starved every domain past the first batch_size forever:
-          # their cached vhost/resolving state never refreshed. One batch per
-          # run (not the whole set) keeps a run bounded by the Approximated
-          # rate limit. Membership changes between runs shift offsets slightly;
-          # the worst case is a domain refreshed twice or one cycle late.
+          # Walk the FULL CustomDomain.instances set one page per run. Always
+          # taking the newest batch starved every domain past the first
+          # batch_size forever: their cached vhost/resolving state never
+          # refreshed. One page per run (not the whole set) keeps a run bounded
+          # by the Approximated rate limit.
           def refresh_domains
-            offset      = read_cursor
+            offset      = page_offset(Onetime::CustomDomain.instances.element_count, Familia.now.to_i)
             identifiers = Onetime::CustomDomain.instances.revrangeraw(offset, offset + batch_size - 1)
-            if identifiers.empty? && offset.positive?
-              offset      = 0
-              identifiers = Onetime::CustomDomain.instances.revrangeraw(0, batch_size - 1)
-            end
-            write_cursor(next_offset(offset, identifiers.size))
 
             # load_multi pipelines the batch fetch; .all would HGETALL every domain.
             domains = Onetime::CustomDomain.load_multi(identifiers).compact
@@ -97,17 +88,20 @@ module Onetime
             scheduler_logger.error ex.backtrace.first(5).join("\n") if OT.debug?
           end
 
-          # A short (or empty) page means the end of the set: start over.
-          def next_offset(offset, page_size)
-            page_size < batch_size ? 0 : offset + batch_size
-          end
+          # The page is derived from the clock, so there is no position to
+          # persist, expire, or reset: tick counts whole intervals since the
+          # epoch and wraps over the page count. The modulus is pages, not
+          # domains, so windows stay aligned to batch_size (the last page is
+          # simply short) and the walk only re-phases when the set grows or
+          # shrinks across a page boundary, not on every add or remove. A
+          # re-phase, or a tick the scheduler skipped or fired twice, costs a
+          # page one extra cycle or one repeat refresh.
+          def page_offset(total, now)
+            pages = (total.to_f / batch_size).ceil
+            return 0 if pages.zero?
 
-          def read_cursor
-            Familia.dbclient.get(CURSOR_KEY).to_i
-          end
-
-          def write_cursor(offset)
-            Familia.dbclient.set(CURSOR_KEY, offset.to_s, ex: CURSOR_TTL)
+            tick = now / interval_seconds(interval)
+            (tick % pages) * batch_size
           end
         end
       end

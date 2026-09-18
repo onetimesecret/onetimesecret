@@ -2,15 +2,16 @@
 #
 # frozen_string_literal: true
 
-# Onetime::Jobs::Scheduled::DomainRefreshJob cursor walk.
+# Onetime::Jobs::Scheduled::DomainRefreshJob page walk.
 #
 # The job used to take the newest batch_size domains on every run, so any
-# domain past the first batch never refreshed. It now resumes from a persisted
-# cursor, one batch per run, and wraps at the end of the set.
+# domain past the first batch never refreshed. It now derives one page per run
+# from the clock (whole intervals since the epoch, modulo the page count), so
+# the walk covers the full set with no persisted position.
 #
-# CustomDomain.instances / load_multi and Operations::VerifyDomain are swapped
-# for in-memory stand-ins (restored at the end) so the walk is observable
-# without Approximated or a populated domain set. The cursor itself is real.
+# CustomDomain.instances / load_multi, Operations::VerifyDomain and Familia.now
+# are swapped for in-memory stand-ins (restored at the end) so the walk is
+# observable without Approximated, a populated domain set, or a real clock.
 
 require_relative '../../support/test_helpers'
 
@@ -23,13 +24,14 @@ RefreshJob = Onetime::Jobs::Scheduled::DomainRefreshJob
 
 @orig_conf = OT.instance_variable_get(:@conf)
 OT.instance_variable_set(:@conf, @orig_conf.merge(
-  'jobs' => { 'domain_refresh' => { 'enabled' => true, 'batch_size' => 2, 'rate_limit' => 0 } },
+  'jobs' => { 'domain_refresh' => { 'enabled' => true, 'batch_size' => 2, 'rate_limit' => 0, 'check_interval' => '30m' } },
 ))
 
 # Newest-first id list, as revrangeraw would return it.
 IDS = %w[d5 d4 d3 d2 d1].freeze
 
 class FakeInstances
+  def element_count = IDS.size
   def revrangeraw(start, stop) = IDS[start..stop] || []
 end
 
@@ -61,46 +63,54 @@ Onetime::Operations.send(:remove_const, :VerifyDomain)
 Onetime::Operations.const_set(:VerifyDomain, FakeVerify)
 FakeVerify.const_set(:BulkResult, @real_verify::BulkResult)
 
-Familia.dbclient.del(RefreshJob::CURSOR_KEY)
+@familia = Familia.singleton_class
+@familia.send(:alias_method, :__orig_now, :now)
 
-def run_refresh
+# Tick 0 of a 3-page cycle: 1800s intervals, 5 domains, 2 per page.
+BASE = 1800 * 3 * 1000
+
+def run_refresh(now)
+  @familia.send(:define_method, :now) { now }
   RefreshJob.send(:refresh_domains)
-  Familia.dbclient.get(RefreshJob::CURSOR_KEY).to_i
+  FakeVerify.seen.last
 end
 
-## next_offset advances by a full page and wraps on a short or empty one
-[RefreshJob.send(:next_offset, 0, 2), RefreshJob.send(:next_offset, 4, 1), RefreshJob.send(:next_offset, 4, 0)]
-#=> [2, 0, 0]
+## interval_seconds parses the configured rufus duration
+RefreshJob.send(:interval_seconds, RefreshJob.send(:interval))
+#=> 1800
 
-## Run 1 takes the newest batch and advances the cursor
-run_refresh
-#=> 2
+## page_offset steps one aligned page per interval and wraps over the page count
+[0, 1, 2, 3].map { |tick| RefreshJob.send(:page_offset, 5, BASE + (tick * 1800)) }
+#=> [0, 2, 4, 0]
 
-## Run 2 resumes where run 1 stopped
-run_refresh
-#=> 4
+## page_offset is constant within an interval
+[RefreshJob.send(:page_offset, 5, BASE + 1800), RefreshJob.send(:page_offset, 5, BASE + 3599)]
+#=> [2, 2]
 
-## Run 3 reaches the short last page and wraps the cursor
-run_refresh
+## page_offset never lands past the end when the set shrinks
+(0..5).map { |tick| RefreshJob.send(:page_offset, 1, BASE + (tick * 1800)) }.uniq
+#=> [0]
+
+## page_offset is 0 for an empty set
+RefreshJob.send(:page_offset, 0, BASE)
 #=> 0
 
-## Every domain was refreshed exactly once across the three runs
+## Three consecutive ticks refresh every domain exactly once
+(0..2).each { |tick| run_refresh(BASE + (tick * 1800)) }
 FakeVerify.seen
 #=> [%w[d5 d4], %w[d3 d2], %w[d1]]
 
-## Run 4 starts over from the newest batch
-run_refresh
-FakeVerify.seen.last
+## The fourth tick starts over from the newest page
+run_refresh(BASE + (3 * 1800))
 #=> %w[d5 d4]
 
-## A cursor past the end of the set (domains were removed) restarts at the top
-Familia.dbclient.set(RefreshJob::CURSOR_KEY, '40')
-run_refresh
-[FakeVerify.seen.last, Familia.dbclient.get(RefreshJob::CURSOR_KEY).to_i]
-#=> [%w[d5 d4], 2]
+## A rerun inside the same interval (scheduler restart) repeats the page
+run_refresh(BASE + (3 * 1800) + 120)
+#=> %w[d5 d4]
 
 # Teardown
-Familia.dbclient.del(RefreshJob::CURSOR_KEY)
+@familia.send(:alias_method, :now, :__orig_now)
+@familia.send(:remove_method, :__orig_now)
 Onetime::Operations.send(:remove_const, :VerifyDomain)
 Onetime::Operations.const_set(:VerifyDomain, @real_verify)
 @cd.send(:alias_method, :instances, :__orig_instances)
