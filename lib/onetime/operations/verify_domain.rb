@@ -13,7 +13,7 @@ module Onetime
     # Single domain usage:
     #   result = VerifyDomain.new(domain: custom_domain).call
     #   result.dns_validated  # => true/false
-    #   result.ssl_ready      # => true/false
+    #   result.ssl_ready      # => true/false/nil (nil: could not tell)
     #
     # Bulk domain usage:
     #   result = VerifyDomain.new(domains: domain_list).call
@@ -41,8 +41,12 @@ module Onetime
         :dns_message,     # String or nil: strategy's description of the TXT outcome
         :override_held,   # Boolean: TXT check failed but an operator override kept verified
         :confirmation_expired, # Boolean: indeterminate for longer than the confirmation window; verified withdrawn
-        :ssl_ready,       # Boolean: has valid SSL certificate
-        :is_resolving,    # Boolean: DNS resolving to correct target
+        # Both status answers have three values, as BaseStrategy#check_status
+        # does: true, false, or nil when this check could not tell (provider
+        # status UNKNOWN, API or probe failure, an exception). nil is never
+        # reported as false; the stored `resolving` keeps its last known value.
+        :ssl_ready,       # Boolean or nil: has valid SSL certificate
+        :is_resolving,    # Boolean or nil: DNS resolving to correct target
         :persisted,       # Boolean: changes were saved
         :error,           # String or nil: error message if failed
       ) do
@@ -222,8 +226,8 @@ module Onetime
           dns_message: dns_result[:message],
           override_held: override_held?(domain, dns_result),
           confirmation_expired: window.expired?,
-          ssl_ready: status_result[:has_ssl] || false,
-          is_resolving: status_result[:is_resolving] || false,
+          ssl_ready: tri_state(status_result[:has_ssl]),
+          is_resolving: tri_state(status_result[:is_resolving]),
           persisted: persisted,
           error: nil,
         )
@@ -242,8 +246,8 @@ module Onetime
           current_state: domain&.verification_state,
           dns_validated: false,
           dns_indeterminate: true, # nothing was learned about the TXT record
-          ssl_ready: false,
-          is_resolving: false,
+          ssl_ready: nil,
+          is_resolving: nil,
           persisted: false,
           error: ex.message,
         )
@@ -347,7 +351,7 @@ module Onetime
       # Check SSL and resolution status
       #
       # @param domain [Onetime::CustomDomain]
-      # @return [Hash] { ready: Boolean, has_ssl: Boolean, is_resolving: Boolean, ... }
+      # @return [Hash] { ready: Boolean, has_ssl: Boolean or nil, is_resolving: Boolean or nil, ... }
       def check_status(domain)
         result = strategy.check_status(domain)
 
@@ -369,7 +373,16 @@ module Onetime
         logger.error 'Status check error',
           domain: domain.display_domain,
           error: ex.message
-        { ready: false, has_ssl: false, is_resolving: false, message: ex.message }
+        # Could not tell: no :data and no :mode, so nothing stored changes.
+        { ready: false, has_ssl: nil, is_resolving: nil, message: ex.message }
+      end
+
+      # true and false pass through; anything else (a missing key after a
+      # failed status call, nil from the strategy) is "could not tell".
+      def tri_state(value)
+        return value if [true, false].include?(value)
+
+        nil
       end
 
       # Check if the result indicates vhost was not found (404 from Approximated)

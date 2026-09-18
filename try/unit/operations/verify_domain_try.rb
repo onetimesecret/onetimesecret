@@ -218,9 +218,27 @@ end
   strategy: @broken_strategy,
   persist: false,
 ).call
-# check_status exception also gets caught and returns default values
-@result_broken.is_resolving
-#=> false
+# A raised status check could not tell: nil, never false
+[@result_broken.is_resolving, @result_broken.ssl_ready, @result_broken.success?]
+#=> [nil, nil, true]
+
+## Status - a status result without an answer (failed provider call) is nil in the Result and in to_h
+@strategy.ownership_result = { validated: true, message: 'OK', data: [] }
+@strategy.status_result = { ready: false, message: 'Status check failed: 500' }
+@result_no_status = Onetime::Operations::VerifyDomain.new(domain: @domain3, strategy: @strategy, persist: false).call
+[@result_no_status.is_resolving, @result_no_status.ssl_ready, @result_no_status.to_h.values_at(:is_resolving, :ssl_ready)]
+#=> [nil, nil, [nil, nil]]
+
+## Status - a provider that reports resolving as unknown keeps what it does know
+@strategy.status_result = { ready: false, has_ssl: false, is_resolving: nil, data: { 'status' => 'UNKNOWN' } }
+@result_unknown = Onetime::Operations::VerifyDomain.new(domain: @domain3, strategy: @strategy, persist: false).call
+[@result_unknown.is_resolving, @result_unknown.ssl_ready]
+#=> [nil, false]
+
+## Status - an unknown status reaches the bulk result's to_h unchanged
+@bulk_unknown = Onetime::Operations::VerifyDomain.new(domains: [@domain3], strategy: @strategy, persist: false).call
+@bulk_unknown.to_h[:results].first.values_at(:is_resolving, :ssl_ready)
+#=> [nil, false]
 
 ## Bulk verification - processes multiple domains
 @strategy.ownership_result = { validated: true, message: 'OK', data: [] }
