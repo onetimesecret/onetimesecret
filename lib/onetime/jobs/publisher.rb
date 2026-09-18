@@ -244,13 +244,40 @@ module Onetime
             event_type: event.type
 
           require 'apps/web/billing/operations/process_webhook_event'
-          result = Billing::Operations::ProcessWebhookEvent.new(
-            event: event,
-            context: { source: :sync_fallback },
-          ).call
+          begin
+            result = Billing::Operations::ProcessWebhookEvent.new(
+              event: event,
+              context: { source: :sync_fallback },
+            ).call
+          rescue StandardError => ex
+            # Processing failed — bookkeeping matches the async worker's
+            # mark_event_failed. Re-raise so the controller returns 500 and
+            # Stripe retries; side effects haven't been applied.
+            begin
+              Billing::StripeWebhookEvent.find_by_identifier(event.id)&.mark_failed!(ex)
+            rescue StandardError => bookkeeping_ex
+              logger.error 'Sync-fallback bookkeeping failed after processing error',
+                event_id: event.id,
+                original_error: ex.message,
+                bookkeeping_error: bookkeeping_ex.message
+            end
+            raise
+          end
 
-          Billing::StripeWebhookEvent.find_by_identifier(event.id)
-            &.record_processing_outcome!(result)
+          # Processing succeeded — transition the record to `success` (the
+          # async worker does the same via mark_event_success). The rescue is
+          # critical: a bookkeeping failure AFTER side effects have been
+          # applied must NOT cause a 500 and a Stripe redelivery of
+          # already-applied work. See billing_worker.rb:187-198 for the same
+          # pattern in the async path.
+          begin
+            Billing::StripeWebhookEvent.find_by_identifier(event.id)
+              &.mark_success!(outcome: result)
+          rescue StandardError => ex
+            logger.error 'Failed to mark sync-fallback event success',
+              event_id: event.id,
+              error: ex.message
+          end
 
           logger.info 'Billing event processed synchronously',
             event_id: event.id,

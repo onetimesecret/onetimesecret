@@ -213,6 +213,34 @@ RSpec.describe Billing::StripeWebhookEvent, type: :billing do
         reloaded = described_class.find_by_identifier(event_id)
         expect(reloaded.processing_outcome).to eq('owner_only')
       end
+
+      # Regression: prior implementation unconditionally wrote outcome&.to_s,
+      # so a future caller that forgot the kwarg would silently erase a
+      # previously-recorded outcome. Omitting the kwarg must be a no-op for
+      # processing_outcome.
+      it 'preserves a previously recorded outcome when outcome kwarg is omitted' do
+        event = described_class.new(stripe_event_id: event_id)
+        event.record_processing_outcome!(:owner_only)
+
+        reloaded = described_class.find_by_identifier(event_id)
+        reloaded.mark_success!
+
+        final = described_class.find_by_identifier(event_id)
+        expect(final.processing_outcome).to eq('owner_only')
+        expect(final.processing_status).to eq('success')
+      end
+
+      it 'clears a previously recorded outcome when outcome is explicitly nil' do
+        event = described_class.new(stripe_event_id: event_id)
+        event.record_processing_outcome!(:owner_only)
+
+        reloaded = described_class.find_by_identifier(event_id)
+        reloaded.mark_success!(outcome: nil)
+
+        final = described_class.find_by_identifier(event_id)
+        expect(final.processing_outcome).to be_nil
+        expect(final.processing_status).to eq('success')
+      end
     end
 
     describe '#mark_failed!' do

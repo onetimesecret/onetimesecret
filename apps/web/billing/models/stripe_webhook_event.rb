@@ -267,15 +267,26 @@ module Billing
       save
     end
 
+    # Sentinel used to distinguish "outcome kwarg omitted" from an explicit nil
+    # in {mark_success!}. Omission preserves any previously-recorded outcome;
+    # explicit nil clears it. This keeps future callers that forget to pass
+    # `outcome:` from silently erasing a prior record.
+    NO_OUTCOME_UPDATE = Object.new.freeze
+    private_constant :NO_OUTCOME_UPDATE
+
     # Mark event as successfully processed
-    # Clears any previous errors
-    # @param outcome [Symbol, String, nil] Semantic processing result
+    # Clears any previous errors.
+    #
+    # @param outcome [Symbol, String, nil] Semantic processing result. When the
+    #   kwarg is OMITTED, `processing_outcome` is left untouched (any prior
+    #   recorded outcome is preserved). An explicit `nil` clears it — callers
+    #   that want to clear the outcome must be explicit about it.
     # @return [Boolean] True if save succeeded
-    def mark_success!(outcome: nil)
+    def mark_success!(outcome: NO_OUTCOME_UPDATE)
       self.processing_status  = 'success'
       self.processed_at       = Time.now.to_i.to_s
       self.error_message      = nil # Clear any previous errors
-      self.processing_outcome = outcome&.to_s
+      self.processing_outcome = outcome&.to_s unless outcome.equal?(NO_OUTCOME_UPDATE)
       save
     end
 
