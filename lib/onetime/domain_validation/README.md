@@ -40,6 +40,24 @@ features:
       vhost_target: target.example.com
 ```
 
+## Moving off `approximated`
+
+Changing `validation_strategy` away from `approximated` does not delete anything on Approximated. Each domain provisioned before the change keeps its vhost there (billable, and able to serve the hostname for as long as DNS points at the cluster) and keeps the old `vhost` JSON on its `CustomDomain` record. The `remove_orphaned_approximated_vhosts` housekeeping chore cleans both up.
+
+Keep `approximated.api_key` and `proxy_ip` / `proxy_host` configured after the cutover. The chore needs the key to delete and the proxy address to tell which domains still point at the cluster.
+
+```bash
+# Dry run (default): lists deletion candidates, makes no Approximated API call
+bin/ots housekeeping run Onetime::CustomDomain remove_orphaned_approximated_vhosts
+
+# Delete
+APPROXIMATED_VHOST_CLEANUP=apply bin/ots housekeeping run Onetime::CustomDomain remove_orphaned_approximated_vhosts
+```
+
+A vhost is deleted only when the domain resolves, from this host, to addresses outside the Approximated cluster, and Approximated itself reports the vhost as not resolving and not receiving traffic. A domain that still points at the cluster, has no DNS answer, or is served through another proxy (`ACTIVE_SSL_PROXIED`) is skipped and picked up again on the next run. The nightly HousekeepingJob runs the chore as a dry run unless the variable is set in its environment. `verified`, `resolving` and the TXT fields are never changed.
+
+Re-run until the dry run reports no candidates. Domains that are skipped every time (no DNS answer, proxied, renamed) need a manual decision in the Approximated dashboard.
+
 ## Files
 
 - `features.rb` - Config accessor (strategy, API keys, proxy settings)
