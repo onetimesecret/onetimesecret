@@ -37,6 +37,7 @@ require 'onetime/operations/verify_domain'
 require 'onetime/operations/admin_verify_domain'
 require_relative '../customers/shared'
 require_relative 'shared'
+require_relative 'verify_issues'
 
 module Onetime
   module CLI
@@ -328,7 +329,7 @@ module Onetime
         end
 
         puts '2. DNS Resolution (CNAME/A record):'
-        puts "   Status: #{result.is_resolving ? 'PASS' : 'FAIL'}"
+        puts "   Status: #{format_status(result.is_resolving, no: 'FAIL')}"
         puts '   Domain should resolve to the proxy server'
         puts
         puts '   # Check CNAME record:'
@@ -339,7 +340,7 @@ module Onetime
         puts
 
         puts '3. SSL Certificate:'
-        puts "   Status: #{result.ssl_ready ? 'PASS' : 'PENDING'}"
+        puts "   Status: #{format_status(result.ssl_ready, no: 'PENDING')}"
         puts
         puts '   # Check SSL certificate:'
         puts "   echo | openssl s_client -connect #{domain.display_domain}:443 -servername #{domain.display_domain} 2>/dev/null | openssl x509 -noout -dates"
@@ -434,18 +435,7 @@ module Onetime
         state_counts                                                  = Hash.new(0)
         result.results.each { |r| state_counts[r.current_state.to_s] += 1 }
 
-        issues = { orphaned: [], org_not_found: [], dns_failed: [], dns_indeterminate: [], dns_expired: [], ssl_failed: [] }
-        result.results.each do |r|
-          domain = r.domain
-          issues[:orphaned] << domain.display_domain if domain.org_id.to_s.empty?
-          if !domain.org_id.to_s.empty? && domain.primary_organization.nil?
-            issues[:org_not_found] << domain.display_domain
-          end
-          issues[:dns_failed] << domain.display_domain if r.dns_outcome == :failed
-          issues[:dns_indeterminate] << domain.display_domain if r.dns_indeterminate
-          issues[:dns_expired] << domain.display_domain if r.confirmation_expired
-          issues[:ssl_failed] << domain.display_domain unless r.ssl_ready
-        end
+        issues = Domains::VerifyIssues.tally(result.results)
 
         output = result.to_h.merge(
           dry_run: dry_run,
@@ -476,6 +466,15 @@ module Onetime
         when true then 'yes'
         when false then 'no'
         else 'unknown'
+        end
+      end
+
+      # Status line for a three-valued check: nil is "could not tell".
+      def format_status(value, no:)
+        case value
+        when true then 'PASS'
+        when false then no
+        else 'UNKNOWN'
         end
       end
     end

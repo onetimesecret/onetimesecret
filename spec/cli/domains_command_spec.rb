@@ -409,6 +409,66 @@ RSpec.describe 'Domains Command', type: :cli do
       end
     end
 
+    # is_resolving / ssl_ready are nil when the status check gave no answer.
+    # That is printed as unknown, never as no / FAIL / PENDING.
+    context 'when the status check could not tell' do
+      def unknown_status_result
+        Onetime::Operations::VerifyDomain::Result.new(
+          domain: domain, previous_state: :verified, current_state: :verified,
+          dns_validated: true, dns_message: 'TXT record validated',
+          ssl_ready: nil, is_resolving: nil, persisted: true, error: nil
+        )
+      end
+
+      def unknown_status_bulk
+        Onetime::Operations::VerifyDomain::BulkResult.new(
+          total: 1, verified_count: 1, failed_count: 0, skipped_count: 0,
+          results: [unknown_status_result], duration_seconds: 0.1
+        )
+      end
+
+      before do
+        allow(domain).to receive_messages(
+          verification_state: :verified, txt_validation_host: '_onetime-challenge-abc',
+          txt_validation_value: 'abc123', base_domain: 'example.com', primary_organization: organization
+        )
+        allow(Onetime::CustomDomain).to receive_messages(load_by_display_domain: domain, load_multi: [domain])
+        allow(Onetime::Operations::AdminVerifyDomain).to receive(:new)
+          .and_return(double('AdminVerify', call: unknown_status_result))
+        allow(Onetime::Operations::VerifyDomain).to receive(:new)
+          .and_return(double('Verify', call: unknown_status_bulk))
+      end
+
+      it 'prints unknown in single mode' do
+        stdout = run_cli_command_quietly('domains', 'verify', 'example.com')[:stdout]
+
+        expect(stdout).to match(/SSL Ready:\s+unknown/)
+        expect(stdout).to match(/Is Resolving:\s+unknown/)
+        expect(stdout.scan('Status: UNKNOWN').size).to eq(2)
+        expect(stdout).not_to include('Status: FAIL')
+        expect(stdout).not_to include('Status: PENDING')
+      end
+
+      it 'sends null in single JSON' do
+        payload = JSON.parse(run_cli_command_quietly('domains', 'verify', 'example.com', '--json')[:stdout])
+
+        expect(payload).to include('is_resolving' => nil, 'ssl_ready' => nil)
+      end
+
+      it 'prints unknown in the bulk table' do
+        stdout = run_cli_command_quietly('domains', 'verify', '--all')[:stdout]
+
+        expect(stdout).to match(/example\.com\s+yes\s+unknown\s+verified/)
+      end
+
+      it 'lists it under ssl_unknown, not ssl_failed, in bulk JSON' do
+        payload = JSON.parse(run_cli_command_quietly('domains', 'verify', '--all', '--json')[:stdout])
+
+        expect(payload['issue_details']).to include('ssl_unknown' => ['example.com'], 'ssl_failed' => [])
+        expect(payload['results'].first).to include('is_resolving' => nil, 'ssl_ready' => nil)
+      end
+    end
+
     context 'with bulk pacing' do
       let(:empty_bulk) do
         Onetime::Operations::VerifyDomain::BulkResult.new(
