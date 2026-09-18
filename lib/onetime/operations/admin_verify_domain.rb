@@ -71,6 +71,8 @@ module Onetime
             previous_state: result.previous_state.to_s,
             current_state: result.current_state.to_s,
             dns_validated: result.dns_validated,
+            dns_indeterminate: result.dns_indeterminate,
+            dns_message: result.dns_message,
             is_resolving: result.is_resolving,
             ssl_ready: result.ssl_ready,
             persisted: result.persisted,
