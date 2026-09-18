@@ -35,7 +35,9 @@ module Onetime
         :previous_state,  # Symbol: :unverified, :pending, :resolving, :verified
         :current_state,   # Symbol: :unverified, :pending, :resolving, :verified
         :dns_validated,   # Boolean: TXT record matches
-        :dns_indeterminate, # Boolean: the TXT check produced no answer; verified left untouched
+        # Boolean: the TXT check produced no answer; verified left unchanged
+        # unless confirmation_expired is also true (see ConfirmationWindow)
+        :dns_indeterminate,
         :dns_message,     # String or nil: strategy's description of the TXT outcome
         :override_held,   # Boolean: TXT check failed but an operator override kept verified
         :confirmation_expired, # Boolean: indeterminate for longer than the confirmation window; verified withdrawn
