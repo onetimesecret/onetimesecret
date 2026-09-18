@@ -429,25 +429,127 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
     end
   end
 
-  describe 'vhost state that does not parse' do
-    before { allow(OT).to receive(:le) } # CustomDomain#parse_vhost reports the bad JSON
+  describe 'vhost written by the Caddy on-demand TLS probe (not Approximated state)' do
+    {
+      'a JSON string' => '{"source":"tls_probe","has_ssl":true}',
+      'a Hash' => { 'source' => 'tls_probe', 'has_ssl' => true },
+    }.each do |label, value|
+      context "when the probe blob is #{label}" do
+        let(:vhost) { value }
 
-    context 'when vhost is a garbage string' do
-      let(:vhost) { 'not-json-at-all' }
+        it 'is not vhost state' do
+          expect(chore.vhost_state?(domain)).to be false
+        end
 
-      it 'still counts as Approximated-era state and is deleted by display_domain' do
+        it 'is a silent skip with no DNS or API call and nothing written' do
+          expect(chore.call(domain)).to be_nil
+
+          expect(log_lines).to be_empty
+          expect(resolver).not_to have_received(:lookup)
+          expect(client).not_to have_received(:get_vhost_by_incoming_address)
+          expect(client).not_to have_received(:delete_vhost)
+          expect(domain.vhost).to eq(value)
+          expect(domain).not_to have_received(:save_fields)
+        end
+
+        include_examples 'ownership fields untouched'
+      end
+    end
+
+    context 'when an Approximated blob merely mentions tls_probe' do
+      let(:stored_vhost) { { 'incoming_address' => display_domain, 'source' => 'other', 'note' => 'tls_probe' } }
+
+      it 'is still vhost state and is deleted' do
+        expect(chore.vhost_state?(domain)).to be true
         expect(chore.call(domain)).to be true
-        expect(client).to have_received(:delete_vhost).with(api_key, display_domain)
-        expect(domain.vhost).to be_nil
+      end
+    end
+  end
+
+  # Fails closed: content that is not a JSON object cannot say which hostname
+  # the vhost was created for, so the rename guard cannot be evaluated.
+  describe 'vhost state that does not parse to a Hash' do
+    before do
+      allow(OT).to receive(:le)
+      allow(domain).to receive(:parse_vhost).and_call_original
+    end
+
+    {
+      'a garbage string' => 'not-json-at-all',
+      'truncated JSON' => '{"incoming_address":"secrets.example.com"',
+      'a JSON array' => '[{"incoming_address":"secrets.example.com"}]',
+      'a JSON string' => '"secrets.example.com"',
+      'a JSON number' => '42',
+      'JSON true' => 'true',
+      'garbage that mentions tls_probe' => 'source: tls_probe (not json)',
+    }.each do |label, value|
+      context "when vhost is #{label}" do
+        let(:vhost) { value }
+
+        it 'counts as state but is not parseable and does not match' do
+          expect(chore.vhost_state?(domain)).to be true
+          expect(chore.vhost_parseable?(domain)).to be false
+          expect(chore.vhost_matches_domain?(domain)).to be false
+        end
+
+        it 'logs one warn asking for manual review' do
+          chore.call(domain)
+
+          expect(log_lines).to eq(
+            [[:warn,
+              'Skipping: unparseable vhost data; needs manual review',
+              { chore: chore_name, domain: display_domain, domain_extid: domain.extid }]],
+          )
+        end
+
+        it 'does not go through CustomDomain#parse_vhost and its error log' do
+          chore.call(domain)
+
+          expect(domain).not_to have_received(:parse_vhost)
+          expect(OT).not_to have_received(:le)
+        end
+
+        include_examples 'a skip before the API'
+        include_examples 'no DNS lookup'
+      end
+    end
+
+    context 'when the corrupt record is a dry run candidate otherwise' do
+      let(:vhost) { 'not-json-at-all' }
+      let(:apply) { false }
+
+      it 'still warns instead of listing it as a deletion candidate' do
+        chore.call(domain)
+        expect(log_lines.map { |line| line[0] }).to eq([:warn])
+      end
+    end
+
+    context 'when the strategy is still approximated' do
+      let(:vhost) { 'not-json-at-all' }
+      let(:strategy) { 'approximated' }
+
+      it 'skips on the strategy guard without the warn' do
+        chore.call(domain)
+        expect(logged(:warn)).to be_empty
       end
     end
 
     context 'when vhost is a non-empty Hash without incoming_address' do
       let(:vhost) { { 'id' => 4242 } }
 
-      it 'proceeds to the delete' do
+      it 'is parseable and proceeds to the delete' do
+        expect(chore.vhost_parseable?(domain)).to be true
         expect(chore.call(domain)).to be true
         expect(client).to have_received(:delete_vhost).with(api_key, display_domain)
+      end
+    end
+
+    context 'when vhost is a JSON object without incoming_address' do
+      let(:vhost) { '{"id":4242}' }
+
+      it 'is parseable and proceeds to the delete' do
+        expect(chore.vhost_parseable?(domain)).to be true
+        expect(chore.call(domain)).to be true
       end
     end
   end
@@ -1471,6 +1573,7 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
       'DELETE invalid key' => { delete_result: -> { response_error('Invalid API key') } },
       'dry run' => { apply: -> { false } },
       'renamed domain' => { stored_vhost: -> { { 'incoming_address' => 'old-name.example.com' } } },
+      'corrupt vhost data' => { vhost: -> { 'not-json-at-all' } },
       'DNS still on cluster' => { dns_answers: -> { { display_domain => snapshot([cluster_ip]) } } },
       'strategy still approximated' => { strategy: -> { 'approximated' } },
     }
@@ -1511,12 +1614,13 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
         idle_after_failure: 'after.sweep.example.com',
         still_on_cluster: 'pointed.sweep.example.com',
         no_state: 'clean.sweep.example.com',
+        corrupt: 'corrupt.sweep.example.com',
       }
     end
 
     let(:records) do
       names.to_h do |key, name|
-        state = key == :no_state ? nil : JSON.generate('incoming_address' => name)
+        state = { no_state: nil, corrupt: 'not-json-at-all' }.fetch(key) { JSON.generate('incoming_address' => name) }
         [key, build_domain(name, state)]
       end
     end
@@ -1559,7 +1663,7 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
 
       expect(report).to eq(
         model: 'Onetime::CustomDomain',
-        scanned: 5,
+        scanned: 6,
         chores: { chore_name => { modified: 2, errors: 1 } },
       )
     end
@@ -1580,6 +1684,8 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
       expect(client).to have_received(:delete_vhost).exactly(3).times
       expect(client).not_to have_received(:delete_vhost).with(anything, names[:still_on_cluster])
       expect(client).not_to have_received(:delete_vhost).with(anything, names[:no_state])
+      expect(client).not_to have_received(:delete_vhost).with(anything, names[:corrupt])
+      expect(records[:corrupt].vhost).to eq('not-json-at-all')
     end
 
     it 'reports the failure through OT.le without the API key' do
