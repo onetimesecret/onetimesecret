@@ -705,11 +705,14 @@ callback is refused as `saml_no_pending_request`.
   `omniauth_tenant_config_unusable` audit event until a current certificate
   is saved. Only one certificate is trusted at a time; there is no overlap
   window for rotation.
-- **Identity key** is `(saml, idp_entity_id, NameID)`. Changing
-  `idp_entity_id` changes the key and orphans the domain's existing
-  identities. `bin/ots sso backfill-issuer` accepts `saml` domains and stamps
-  the revealed `idp_entity_id`; it refuses when the field is unset or
-  unreadable.
+- **Identity key** is `(route, "<domain_id>|<idp_entity_id>", NameID)` — the
+  EntityID scoped to this domain, never the bare EntityID (see the identity
+  key discussion at the top of this section). Changing
+  `idp_entity_id` changes the key for this domain only and orphans the
+  domain's existing identities. `bin/ots sso backfill-issuer` accepts `saml`
+  domains and stamps the same scoped value derived from the revealed
+  `idp_entity_id`; it refuses when the field is unset or unreadable, and a
+  `--issuer` override must itself be in the `"<domain_id>|<EntityID>"` form.
 - **Provider metadata** is `requires_domain_filter: true`,
   `idp_controls_access: false`, the same posture as generic OIDC: "SAML"
   names a protocol, not an IdP, so an email-domain allowlist is recommended
@@ -809,7 +812,7 @@ previously configured tenant that was pointed at the wrong cloud.
 | SSO configured but login fails | No custom domain with SSO config | Add custom domain and configure SSO |
 | Platform SSO used instead of domain SSO | Accessing via canonical domain | Use domain's custom URL |
 | SAML sign-in lands on `sso_not_configured` | The domain's SAML record is unusable: expired certificate, or a field that no longer decrypts | Check the `omniauth_tenant_config_unusable` log event; save a current certificate or re-enter the flagged fields |
-| SAML save refused: "must be an HTTPS URL pointing to a public host" | The IdP's SSO URL resolves to a private or loopback address | Per-domain SAML supports publicly resolvable IdPs only |
+| SAML save refused: "must have a plain hostname (no spaces, quotes or punctuation in the host)" or "host must not end with a dot" | The SSO URL's host carries characters the CSP `form-action` directive cannot carry, or a trailing dot that the derived origin would strip (the browser would then POST from an origin that was never admitted) | Enter the IdP's SSO URL with a plain hostname. Private-network IdPs are accepted: the server never fetches this URL |
 | SAML callback returns 403 | The POST's `Origin` is not the record's `idp_sso_service_url` origin, or the domain has no available SSO config | See [Custom-Domain POST Returns 403](#custom-domain-post-returns-403-httporigin) |
 
 ### SSO Login Blocked on Chromium-Family Browsers (CSP `form-action`)
