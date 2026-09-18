@@ -806,6 +806,80 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
       end
     end
 
+    context 'when proxy_ip is an IPv4 CIDR range and the domain resolves inside it' do
+      let(:proxy_ip) { '203.0.113.0/24' }
+      let(:dns_answers) { { display_domain => snapshot(['203.0.113.77']) } }
+
+      include_examples 'DNS evidence that blocks cleanup', :on_approximated
+    end
+
+    context 'when proxy_ip is an IPv4 CIDR range and the domain resolves just outside it' do
+      let(:proxy_ip) { '203.0.113.0/25' }
+      let(:dns_answers) { { display_domain => snapshot(['203.0.113.128']) } }
+
+      it 'classifies as :moved and proceeds to the API' do
+        expect(chore.dns_evidence(display_domain)).to eq(:moved)
+        expect(chore.call(domain)).to be true
+        expect(client).to have_received(:delete_vhost).with(api_key, display_domain)
+      end
+    end
+
+    context 'when proxy_ip is an IPv6 CIDR range and the domain resolves inside it' do
+      let(:proxy_ip) { '2001:DB8:ABCD::/48' }
+      let(:dns_answers) { { display_domain => snapshot(['2001:db8:abcd:0:0:0:0:1']) } }
+
+      include_examples 'DNS evidence that blocks cleanup', :on_approximated
+    end
+
+    context 'when proxy_ip is an IPv6 CIDR range and the domain resolves outside it' do
+      let(:proxy_ip) { '2001:db8:abcd::/48' }
+      let(:dns_answers) { { display_domain => snapshot(['2001:db8:abce::1']) } }
+
+      it 'classifies as :moved' do
+        expect(chore.dns_evidence(display_domain)).to eq(:moved)
+      end
+    end
+
+    context 'when proxy_ip mixes a single address, a CIDR range and invalid entries' do
+      let(:proxy_ip) { "#{cluster_ip}, 192.0.2.0/28 not-an-ip 10.0.0.0/99" }
+
+      {
+        'the single address' => ['203.0.113.10', :on_approximated],
+        'an address inside the range' => ['192.0.2.15', :on_approximated],
+        'the address after the range' => ['192.0.2.16', :moved],
+        'a neighbour of the single address' => ['203.0.113.11', :moved],
+      }.each do |label, (address, expected)|
+        it "classifies #{label} as #{expected.inspect} without raising" do
+          dns_answers[display_domain] = snapshot([address])
+          expect(chore.dns_evidence(display_domain)).to eq(expected)
+        end
+      end
+    end
+
+    context 'when the cluster is IPv4 only and the domain answers with IPv6 as well' do
+      let(:proxy_ip) { '0.0.0.0/0' }
+
+      it 'compares within one address family and does not raise' do
+        dns_answers[display_domain] = snapshot(['2001:db8::99'])
+        expect(chore.dns_evidence(display_domain)).to eq(:moved)
+      end
+
+      it 'still matches the IPv4 answer' do
+        dns_answers[display_domain] = snapshot(['2001:db8::99', elsewhere_ip])
+        expect(chore.dns_evidence(display_domain)).to eq(:on_approximated)
+      end
+    end
+
+    context "when proxy_host's addresses are combined with a proxy_ip range" do
+      let(:proxy_ip) { '192.0.2.0/28' }
+      let(:proxy_host) { 'cluster.approximated.example' }
+      let(:dns_answers) do
+        { proxy_host => snapshot(['203.0.113.20']), display_domain => snapshot(['192.0.2.3']) }
+      end
+
+      include_examples 'DNS evidence that blocks cleanup', :on_approximated
+    end
+
     context 'when every address is outside the cluster' do
       let(:proxy_host) { 'cluster.approximated.example' }
       let(:dns_answers) do
