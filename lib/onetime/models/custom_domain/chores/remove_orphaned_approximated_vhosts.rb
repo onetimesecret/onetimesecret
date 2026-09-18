@@ -149,7 +149,8 @@ module Onetime
       # @param resolver [#lookup, nil] returns a DnsLookup::Snapshot (default: DnsLookup)
       # @param features [Module, nil] config accessor (default: DomainValidation::Features)
       # @param config [Hash, nil] application config (default: OT.conf)
-      # @param apply [Boolean, nil] true deletes, false is a dry run, nil reads APPLY_ENV
+      # @param apply [Boolean, nil] only `true` deletes, nil reads APPLY_ENV, anything
+      #   else (false, or a non-boolean such as 'true') is a dry run
       # @param pause [Numeric] seconds to wait after each API call
       # @param sleeper [#call] receives the pause (default: Kernel#sleep)
       def initialize(client: nil, resolver: nil, features: nil, config: nil,
@@ -399,8 +400,10 @@ module Onetime
         nil
       end
 
+      # Only the literal `true` applies. Any other non-nil value ('false',
+      # 'true', 1) is a dry run rather than a truthy accident.
       def apply?
-        return @apply unless @apply.nil?
+        return @apply == true unless @apply.nil?
 
         ENV.fetch(APPLY_ENV, nil) == APPLY_VALUE
       end

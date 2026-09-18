@@ -914,6 +914,30 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
       include_examples 'a dry run'
     end
 
+    # Only the literal `true` applies; a truthy non-boolean must not delete.
+    {
+      "'false'" => 'false',
+      "'true'" => 'true',
+      "'apply'" => 'apply',
+      '1' => 1,
+      ':apply' => :apply,
+      'an arbitrary object' => Object.new.freeze,
+    }.each do |label, value|
+      context "with apply: #{label}" do
+        let(:apply) { value }
+
+        include_examples 'a dry run'
+      end
+
+      context "with apply: #{label} while the environment says apply" do
+        let(:apply) { value }
+
+        before { ENV[apply_env] = 'apply' }
+
+        include_examples 'a dry run'
+      end
+    end
+
     context 'with apply: nil and the environment variable unset' do
       let(:apply) { nil }
 
