@@ -52,6 +52,9 @@ module Onetime
         if status != :authenticated && (principal || customer || impersonation)
           raise ArgumentError, 'identity is available only for an authenticated verdict'
         end
+        if status == :authenticated && (principal.nil? || customer.nil?)
+          raise ArgumentError, 'an authenticated verdict requires a principal and a customer'
+        end
 
         @status        = status
         @reason        = reason
@@ -100,7 +103,7 @@ module Onetime
     end
 
     def evaluate
-      return @env[ENV_KEY] if @env.is_a?(Hash) && @env.key?(ENV_KEY)
+      return with_caller_boundary(@env[ENV_KEY]) if @env.is_a?(Hash) && @env.key?(ENV_KEY)
 
       verdict       = evaluate_uncached
       @env[ENV_KEY] = verdict if @env.is_a?(Hash)
@@ -109,6 +112,20 @@ module Onetime
 
     private
 
+    # The memo is keyed by request, not by caller. A verdict cached by a caller
+    # without +before_active+ (a public route, a view, a compatibility helper)
+    # has not been through this caller's boundary, so an authenticated memo is
+    # re-judged against it before it is returned. A refusal replaces the memo:
+    # the request is refused for every later reader too.
+    def with_caller_boundary(cached)
+      return cached unless @before_active && cached.authenticated?
+
+      boundary_verdict = @before_active.call(cached.principal)
+      return cached unless boundary_verdict
+
+      @env[ENV_KEY] = boundary_verdict
+    end
+
     def evaluate_uncached
       return verdict(:anonymous, :session_missing) unless @session
       return verdict(:mfa_pending, :awaiting_mfa) if @session['awaiting_mfa'] == true
@@ -116,6 +133,9 @@ module Onetime
 
       external_id = @session['external_id']
       return verdict(:rejected, :identity_missing) if external_id.to_s.empty?
+      # No Rack env (a bare helper harness) means no resolved surface to match:
+      # refuse, as the compatibility helper did before the evaluator.
+      return verdict(:rejected, :surface_mismatch) unless @env.is_a?(Hash)
       return verdict(:rejected, :surface_mismatch) unless SessionSurface.matches_request?(@session, @env)
 
       principal = resolve_customer(external_id)

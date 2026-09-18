@@ -214,4 +214,68 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
     expect(verdict.customer).to be(target)
     expect(verdict.impersonation).to eq({ 'id' => 'imp_1' })
   end
+
+  describe 'the per-request memo and the caller-owned boundary' do
+    let(:expired) do
+      described_class::Verdict.new(status: :rejected, reason: :admin_session_expired, detail: :idle)
+    end
+
+    it 'applies before_active to an authenticated verdict cached by a caller without one' do
+      expect(described_class.evaluate(session, env: env).status).to eq(:authenticated)
+
+      seen    = []
+      verdict = described_class.evaluate(
+        session,
+        env: env,
+        before_active: ->(cust) do
+          seen << cust
+          expired
+        end,
+      )
+
+      expect(seen).to eq([principal])
+      expect(verdict).to be(expired)
+      expect(described_class.evaluate(session, env: env)).to be(expired)
+      expect(Onetime::Customer).to have_received(:load_by_extid_or_email).once
+    end
+
+    it 'returns the cached authenticated verdict when the boundary passes' do
+      cached = described_class.evaluate(session, env: env)
+
+      verdict = described_class.evaluate(session, env: env, before_active: ->(_cust) {})
+
+      expect(verdict).to be(cached)
+    end
+
+    it 'does not run the boundary against a cached refusal' do
+      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
+      cached   = described_class.evaluate(session, env: env)
+      boundary = ->(_cust) { raise 'boundary must not run' }
+
+      expect(described_class.evaluate(session, env: env, before_active: boundary)).to be(cached)
+    end
+  end
+
+  it 'refuses an authenticated session as a surface mismatch when there is no Rack env' do
+    allow(Onetime::SessionSurface).to receive(:matches_request?).and_call_original
+
+    verdict = described_class.evaluate(session, env: nil)
+
+    expect(verdict.status).to eq(:rejected)
+    expect(verdict.reason).to eq(:surface_mismatch)
+    expect(Onetime::Customer).not_to have_received(:load_by_extid_or_email)
+  end
+
+  describe described_class::Verdict do
+    it 'refuses an authenticated verdict without a principal and a customer' do
+      customer = instance_double(Onetime::Customer)
+
+      expect { described_class.new(status: :authenticated, reason: :authenticated) }
+        .to raise_error(ArgumentError, /requires a principal and a customer/)
+      expect { described_class.new(status: :authenticated, reason: :authenticated, customer: customer) }
+        .to raise_error(ArgumentError, /requires a principal and a customer/)
+      expect { described_class.new(status: :authenticated, reason: :authenticated, principal: customer) }
+        .to raise_error(ArgumentError, /requires a principal and a customer/)
+    end
+  end
 end
