@@ -678,7 +678,7 @@ the value of `site.host` and `saml` the route name:
 | Assertion Consumer Service (ACS) URL | `https://{host}/auth/sso/saml/callback`, HTTP-POST binding |
 | SP metadata | `https://{host}/auth/sso/saml/metadata` (served once the provider is configured) |
 | NameID format | persistent (requested in every AuthnRequest; a transient NameID is refused unless `SAML_UID_ATTRIBUTE` is set) |
-| Assertion signing | required, RSA-SHA256 / SHA-256 digest (SHA-1 is rejected) |
+| Assertion signing | required (`want_assertions_signed`). Configure RSA-SHA256 at the IdP: ruby-saml 1.18.1 verifies whichever algorithm the response declares, so nothing on this side rejects SHA-1 |
 | Assertion encryption | off (not supported) |
 | AuthnRequest signing | off (requests are not signed; no SP key is configured) |
 | Attributes | the user's email as an attribute named `email` or `mail` (the NameID is the user id, not the email); optionally `name`, `first_name`, `last_name`, and the attribute named in `SAML_UID_ATTRIBUTE` |
@@ -895,7 +895,7 @@ auth log as `[saml_response_refused] reason=<code>` (a gate in
 | `saml_assertion_unbounded` | The assertion has no `ID` or no `Conditions/@NotOnOrAfter` | IdP configuration; both are required |
 | `saml_assertion_replayed` | The same assertion was presented a second time | Browser back/refresh on the callback page; otherwise investigate |
 | `saml_replay_guard_unavailable` | Valkey/Redis was unavailable during the callback | Datastore health; the callback fails closed |
-| `invalid_ticket` (`[OmniAuth FAILURE]`) | ruby-saml rejected the document: signature, unsigned assertion, SHA-1 algorithms, audience, destination or recipient, validity window (60 s clock drift allowed), expired IdP certificate, InResponseTo mismatch | The failure message names the check; compare the IdP's SP registration with the values in the SAML setup table |
+| `invalid_ticket` (`[OmniAuth FAILURE]`) | ruby-saml rejected the document: signature, unsigned assertion, audience, destination or recipient, validity window (60 s clock drift allowed), expired IdP certificate, InResponseTo mismatch | The failure message names the check; compare the IdP's SP registration with the values in the SAML setup table |
 
 ### SAML callback returns 403
 
@@ -957,7 +957,7 @@ SSO_FORM_ACTION_ORIGINS="https://authorize.example.gov"
 - Sessions use same security settings as password auth
 - Domain restrictions validated before account creation
 - Client secrets should be rotated per provider's recommendations
-- SAML: every response must answer the AuthnRequest this session issued (InResponseTo, one-shot) — IdP-initiated sign-in is refused; the response Issuer must equal the configured EntityID byte for byte; assertions are signed with SHA-256 and single-use (a Valkey replay cache keyed on the assertion ID, TTL bounded by `NotOnOrAfter`, capped at one hour); trust is one pinned PEM certificate with expiry checked, never a fingerprint; the auth hash never carries the raw response
+- SAML: every response must answer the AuthnRequest this session issued (InResponseTo, one-shot) — IdP-initiated sign-in is refused; the response Issuer must equal the configured EntityID byte for byte; assertions must be signed (the verifier accepts the algorithm the response declares — configure SHA-256 at the IdP) and are single-use (a Valkey replay cache keyed on the assertion ID, TTL bounded by `NotOnOrAfter`, capped at one hour); trust is one pinned PEM certificate with expiry checked, never a fingerprint; the auth hash never carries the raw response
 - `ruby-saml` is pinned exactly in the `Gemfile` with its advisory history; `bundler-audit` runs on every PR
 
 ## Codebase Reference

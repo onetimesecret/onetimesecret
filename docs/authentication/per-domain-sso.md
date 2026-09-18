@@ -671,7 +671,8 @@ so verify the domain before configuring the IdP.
 The IdP-side requirements are the platform ones: a persistent NameID (a
 transient NameID is refused, and there is no per-domain uid attribute — an
 IdP that can only emit transient NameIDs cannot be used by a tenant), signed
-assertions with SHA-256, the email as an attribute named `email` or `mail`,
+assertions (configure SHA-256 at the IdP), the email as an attribute named
+`email` or `mail`,
 no IdP-initiated sign-in, no single logout. The session cookie prerequisite
 applies too: `site.session.same_site: none` with `secure: true`, or every
 callback is refused as `saml_no_pending_request`.
