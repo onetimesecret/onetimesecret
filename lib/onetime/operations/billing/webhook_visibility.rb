@@ -8,23 +8,27 @@ require 'billing/models/pending_federated_subscription'
 module Onetime
   module Operations
     module Billing
-      # Read-only, bounded projections of local billing webhook state.
+      # Read-only, index-backed projections of local billing webhook state.
       #
-      # The webhook and pending-federation stores have no read index. This
-      # operation therefore scans object keys with a hard row and round bound,
-      # then sorts the collected records by their received timestamp and stable
-      # identifier. A capped response is deliberately a lower-bound view: it
-      # must never be presented as the complete population.
+      # Both listings read a dedicated write-time sorted-set index (newest
+      # first by scored timestamp) rather than SCANning the object keyspace.
+      # This is the same shape Onetime::Operations::Billing::StripeOrganizations
+      # uses, and for the same reason: SCAN bounds the keyspace covered per
+      # request rather than the matched keys, so a bounded scan on a large
+      # deployment returns an arbitrary sub-sample with no ordering guarantee
+      # and pages that duplicate or drop rows across requests.
       #
-      # No Stripe client is involved. This operation only reads the local Redis
+      # The index is a rebuildable read cache; the object rows remain the code
+      # of record. When an id is present in the index but its object no longer
+      # loads (TTL expired between the index write and this read), the id is
+      # pruned from the index lazily and counted into `stale_count`.
+      #
+      # No Stripe client is involved. This operation only reads local Redis
       # records and never extends an expiration, writes an audit entry, or
       # mutates claim state.
       class WebhookVisibility
         DEFAULT_PER_PAGE = 50
         MAX_PER_PAGE     = 100
-        MAX_SCAN_ROWS    = 5_000
-        MAX_SCAN_ROUNDS  = 100
-        SCAN_COUNT       = 100
 
         Page = Data.define(
           :rows,
@@ -33,23 +37,42 @@ module Onetime
           :total_count,
           :total_pages,
           :capped,
+          :stale_count,
         )
 
         def initialize(
-          dbclient: Familia.dbclient,
           webhook_event_model: ::Billing::StripeWebhookEvent,
           pending_subscription_model: ::Billing::PendingFederatedSubscription
         )
-          @dbclient                   = dbclient
           @webhook_event_model        = webhook_event_model
           @pending_subscription_model = pending_subscription_model
         end
 
         def list_webhook_events(page: 1, per_page: DEFAULT_PER_PAGE)
-          records, capped = bounded_records(@webhook_event_model)
-          paginate(records.sort_by { |event| event_sort_key(event) }, page, per_page, capped) do |event|
+          index = @webhook_event_model.recent_events
+          cap   = ::Billing::StripeWebhookEvent::INDEX_MAX_ENTRIES
+
+          normalized_page, normalized_per_page = normalize_pagination(page, per_page)
+          total_count                          = safe_element_count(index)
+          capped                               = total_count >= cap
+
+          start = (normalized_page - 1) * normalized_per_page
+          stop  = start + normalized_per_page - 1
+          ids   = safe_revrange(index, start, stop)
+
+          events       = ids.empty? ? [] : @webhook_event_model.load_multi(ids).compact
+          events_by_id = events.to_h { |event| [event_identifier(event), event] }
+          stale_ids    = ids.reject { |id| events_by_id.key?(id) }
+          prune_stale(index, stale_ids)
+
+          rows = ids.filter_map do |id|
+            event = events_by_id[id]
+            next if event.nil?
+
             webhook_event_row(event)
           end
+
+          build_page(rows, total_count, normalized_page, normalized_per_page, capped, stale_ids.size)
         end
 
         def find_webhook_event(event_id)
@@ -92,87 +115,67 @@ module Onetime
         end
 
         def list_pending_federated_subscriptions(page: 1, per_page: DEFAULT_PER_PAGE)
-          records, capped                      = bounded_records(@pending_subscription_model)
-          ordered                              = records.sort_by { |subscription| pending_sort_key(subscription) }
-          normalized_page, normalized_per_page = normalize_pagination(page, per_page)
-          start                                = (normalized_page - 1) * normalized_per_page
-          slice                                = ordered[start, normalized_per_page] || []
-          source_events                        = source_events_for(slice)
+          index = @pending_subscription_model.recent_records
+          cap   = ::Billing::PendingFederatedSubscription::INDEX_MAX_ENTRIES
 
-          rows = slice.map do |subscription|
+          normalized_page, normalized_per_page = normalize_pagination(page, per_page)
+          total_count                          = safe_element_count(index)
+          capped                               = total_count >= cap
+
+          start = (normalized_page - 1) * normalized_per_page
+          stop  = start + normalized_per_page - 1
+          ids   = safe_revrange(index, start, stop)
+
+          records       = ids.empty? ? [] : @pending_subscription_model.load_multi(ids).compact
+          records_by_id = records.to_h { |record| [record.email_hash.to_s, record] }
+          stale_ids     = ids.reject { |id| records_by_id.key?(id) }
+          prune_stale(index, stale_ids)
+
+          ordered_records = ids.filter_map { |id| records_by_id[id] }
+          source_events   = source_events_for(ordered_records)
+
+          rows = ordered_records.map do |subscription|
             pending_subscription_row(subscription, source_events)
           end
 
-          build_page(rows, ordered.size, normalized_page, normalized_per_page, capped)
+          build_page(rows, total_count, normalized_page, normalized_per_page, capped, stale_ids.size)
         end
 
         private
 
-        # Scan only object keys: identifiers are recovered without reading any
-        # raw stored field, then load_multi performs one bounded batched read.
-        # SCAN may return duplicate keys while Redis is being modified, so the
-        # identifier set is deduplicated before the row cap is applied.
-        def bounded_records(model)
-          identifiers, capped = bounded_identifiers(model)
-          return [[], capped] if identifiers.empty?
+        # Reverse rank slice: 0 = newest. Errors returning nil are surfaced as
+        # an empty page rather than a 500 — this is a read-only admin view.
+        def safe_revrange(index, start, stop)
+          return [] if stop < start
 
-          records = model.load_multi(identifiers).compact
-          # An object can expire between SCAN and the batched read. Its absence
-          # means this response cannot honestly claim an exact population.
-          [records, capped || records.size != identifiers.size]
+          Array(index.revrange(start, stop)).map(&:to_s)
+        rescue StandardError => ex
+          OT.le '[Billing::WebhookVisibility] index revrange failed',
+            { exception: ex, message: ex.message }
+          []
         end
 
-        def bounded_identifiers(model)
-          identifiers = []
-          seen        = {}
-          cursor      = '0'
-          rounds      = 0
-          capped      = false
+        def safe_element_count(index)
+          index.element_count.to_i
+        rescue StandardError
+          0
+        end
 
-          loop do
-            cursor, keys = @dbclient.scan(
-              cursor,
-              match: "#{model.prefix}:*:object",
-              count: SCAN_COUNT,
-            )
-            rounds      += 1
-
-            keys.sort.each do |key|
-              identifier = identifier_from_object_key(model, key)
-              next if identifier.empty? || seen.key?(identifier)
-
-              seen[identifier] = true
-              if identifiers.size >= MAX_SCAN_ROWS
-                capped = true
-                break
-              end
-
-              identifiers << identifier
-            end
-
-            break if capped || cursor == '0' || rounds >= MAX_SCAN_ROUNDS || identifiers.size >= MAX_SCAN_ROWS
+        # Lazy staleness prune: an id in the index whose object no longer
+        # loads (TTL expired between write and read) is dropped from the
+        # index so it stops occupying a slot and stops repopulating
+        # `stale_count` on every request. Best-effort — if the remove itself
+        # fails, the next read will try again.
+        def prune_stale(index, ids)
+          ids.each do |id|
+            index.remove(id)
+          rescue StandardError => ex
+            OT.le '[Billing::WebhookVisibility] index prune failed',
+              { exception: ex, message: ex.message, id: id }
           end
-
-          # A nonterminal cursor means a row/round bound ended the walk. A scan
-          # batch that itself overflowed MAX_SCAN_ROWS is capped even if Redis
-          # returned its terminal cursor in that batch.
-          capped ||= cursor != '0'
-          [identifiers, capped]
         end
 
-        def identifier_from_object_key(model, key)
-          key.to_s.delete_prefix("#{model.prefix}:").delete_suffix(':object')
-        end
-
-        def paginate(records, page, per_page, capped, &)
-          normalized_page, normalized_per_page = normalize_pagination(page, per_page)
-          start                                = (normalized_page - 1) * normalized_per_page
-          rows                                 = (records[start, normalized_per_page] || []).map(&)
-
-          build_page(rows, records.size, normalized_page, normalized_per_page, capped)
-        end
-
-        def build_page(rows, total_count, page, per_page, capped)
+        def build_page(rows, total_count, page, per_page, capped, stale_count)
           Page.new(
             rows: rows,
             page: page,
@@ -180,6 +183,7 @@ module Onetime
             total_count: total_count,
             total_pages: (total_count.to_f / per_page).ceil,
             capped: capped,
+            stale_count: stale_count,
           )
         end
 
@@ -190,16 +194,6 @@ module Onetime
           normalized_per_page = DEFAULT_PER_PAGE if normalized_per_page < 1
           normalized_per_page = MAX_PER_PAGE if normalized_per_page > MAX_PER_PAGE
           [normalized_page, normalized_per_page]
-        end
-
-        # Negative timestamp creates newest-first order; event id resolves ties
-        # deterministically across an otherwise unordered SCAN result.
-        def event_sort_key(event)
-          [-epoch_or_nil(event.first_seen_at).to_i, event_identifier(event)]
-        end
-
-        def pending_sort_key(subscription)
-          [-epoch_or_nil(subscription.received_at).to_i, subscription.email_hash.to_s]
         end
 
         def pending_subscription_row(subscription, source_events)
