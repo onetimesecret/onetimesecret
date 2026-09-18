@@ -65,9 +65,9 @@ module Core
 
         @messages = []
 
-        # Initialize view variables, passing pre-resolved sess/cust
-        # to avoid re-extraction (eliminates duplication)
-        @view_vars = self.class.initialize_view_vars(req, @sess, @cust)
+        # Initialize view variables, passing the pre-resolved session. Identity
+        # is re-read from the evaluator's per-request memo, never passed in.
+        @view_vars = self.class.initialize_view_vars(req, @sess)
 
         # Call subclass init hook if defined
         init if respond_to?(:init)

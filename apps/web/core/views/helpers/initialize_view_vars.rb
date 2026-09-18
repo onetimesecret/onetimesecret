@@ -34,9 +34,8 @@ module Core
       #
       # @param req [Rack::Request] Current request object
       # @param sess [Hash, nil] Pre-resolved session (optional, extracted from strategy_result if nil)
-      # @param cust [Customer, nil] Pre-resolved customer (optional, extracted from strategy_result if nil)
       # @return [Hash] Collection of initialized variables
-      def initialize_view_vars(req, sess = nil, _cust = nil)
+      def initialize_view_vars(req, sess = nil)
         # Extract the top-level keys from the YAML configuration.
         #
         # SECURITY: This implementation follows an opt-in approach for configuration filtering.
