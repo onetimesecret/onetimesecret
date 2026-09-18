@@ -188,12 +188,27 @@ RSpec.describe Core::Middleware::RequestSetup do
       expect(headers).not_to have_key('content-security-policy')
     end
 
-    it 'replaces an existing HTML cache policy without duplicate header casing', :aggregate_failures do
-      headers = call_with({ 'Content-Type' => 'text/html', 'Cache-Control' => 'public, max-age=60' })
+    it 'stamps private, no-store on an HTML response with no Cache-Control set' do
+      headers = call_with({ 'Content-Type' => 'text/html' })
+      expect(headers['cache-control']).to eq('private, no-store')
+    end
+
+    it 'defers to an upstream Cache-Control on HTML responses (route opt-out)', :aggregate_failures do
+      # Routes that know their HTML is not personalized can set their own
+      # Cache-Control and the middleware leaves it alone. Case-insensitive
+      # presence check matches #ensure_content_type: a canonically-cased
+      # `Cache-Control` still counts as "already set".
+      headers = call_with({ 'Content-Type' => 'text/html', 'Cache-Control' => 'public, max-age=300' })
       cache_control_keys = headers.keys.select { |key| key.to_s.casecmp?('cache-control') }
 
-      expect(cache_control_keys).to contain_exactly('cache-control')
-      expect(headers['cache-control']).to eq('private, no-store')
+      expect(cache_control_keys).to contain_exactly('Cache-Control')
+      expect(headers['Cache-Control']).to eq('public, max-age=300')
+    end
+
+    it 'leaves Cache-Control untouched on non-HTML responses', :aggregate_failures do
+      headers = call_with({ 'Content-Type' => 'application/json' })
+      expect(headers).not_to have_key('cache-control')
+      expect(headers).not_to have_key('Cache-Control')
     end
   end
 end
