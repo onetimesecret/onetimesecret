@@ -66,6 +66,8 @@ The window runs from the first indeterminate check, not from the last passing on
 
 `check_status` reports two things, each with the same three outcomes (`true`, `false`, `nil` = could not tell). `nil` never changes stored state.
 
+`nil` is also reported as such. `VerifyDomain::Result#is_resolving` and `#ssl_ready` carry it through (a status result with no answer at all, such as a failed provider call or a raised exception, is `nil` for both), the Colonel verify response sends `details.is_resolving` / `details.ssl_ready` as JSON `null`, and `bin/ots domains verify` prints `unknown` (`UNKNOWN` in the diagnostic section; `issue_details.ssl_unknown`, apart from `ssl_failed`, in bulk JSON). The stored `resolving` field stays a boolean: it is the last known answer.
+
 | | Stored in | `approximated` | `caddy_on_demand` | `passthrough` |
 |---|---|---|---|---|
 | `is_resolving` | `CustomDomain#resolving` | Approximated's claim (`nil` while its status is `UNKNOWN`) | Our own A/AAAA lookup | Always `true` |

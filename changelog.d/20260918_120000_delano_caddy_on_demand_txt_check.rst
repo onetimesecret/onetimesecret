@@ -139,6 +139,19 @@ Changed
   follows the same rule for ``--rate-limit``. Installs whose config file sets
   ``rate_limit: 0.5`` explicitly keep that pause under every strategy.
 
+- A resolving or SSL status that a verify could not determine is now
+  reported as unknown instead of as "no". This applies to every strategy
+  (Approximated's ``UNKNOWN`` vhost status, a failed Approximated status call,
+  a Caddy on-demand probe that timed out). In the Colonel verify response
+  (``POST /api/colonel/domains/:extid/verify``) ``details.is_resolving`` and
+  ``details.ssl_ready`` are now ``true``, ``false`` or ``null``; the same two
+  fields in the ``domain.verify`` audit event detail and in
+  ``bin/ots domains verify --json`` follow. ``bin/ots domains verify`` prints
+  ``unknown`` (``Status: UNKNOWN`` in the diagnostic section), and bulk JSON
+  lists such domains under ``issue_details.ssl_unknown`` rather than
+  ``ssl_failed``. The stored ``resolving`` flag is unchanged: it remains a
+  boolean holding the last known answer.
+
 Fixed
 -----
 
