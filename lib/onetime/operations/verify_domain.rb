@@ -440,7 +440,7 @@ module Onetime
           # DNS has now proven ownership itself; the operator's assertion is
           # no longer what holds the flag, so later failures demote normally.
           domain.verified_by_override = false if dns_result[:validated]
-          window.record_settled(dns_result[:validated])
+          window.record_settled(dns_result[:validated], proven: strategy.proves_ownership?)
         else
           window.record_unsettled
         end

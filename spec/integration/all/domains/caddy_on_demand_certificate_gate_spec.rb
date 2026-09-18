@@ -331,6 +331,31 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
     end
   end
 
+  # The default strategy passes every domain without a lookup. Such a pass is
+  # stored in `verified` but is not a TXT confirmation, so a later move to
+  # caddy_on_demand finds the domain in the state of the context above.
+  context 'with a domain verified under the passthrough strategy before the cutover' do
+    before do
+      passthrough = Onetime::DomainValidation::PassthroughStrategy.new(OT.conf)
+      Onetime::Operations::VerifyDomain.new(domain: stored, strategy: passthrough, persist: true).call
+      resolver.failures[domain.validation_record] = Resolv::DNS::RCode::ServFail
+    end
+
+    it 'has no confirmation on record, although passthrough left it verified and resolving' do
+      expect(stored.verified).to be(true)
+      expect(stored.resolving).to be(true)
+      expect(stored.verified_confirmed_at).to be_nil
+    end
+
+    it 'does not hold verified through an indeterminate lookup, and the ask endpoint refuses' do
+      refresh!
+
+      expect(stored.verified).to be(false)
+      expect(stored.ready?).to be(false)
+      expect(ask).to eq(403)
+    end
+  end
+
   it 'never promotes on an indeterminate lookup' do
     resolver.failures[domain.validation_record] = Resolv::DNS::RCode::ServFail
     refresh!

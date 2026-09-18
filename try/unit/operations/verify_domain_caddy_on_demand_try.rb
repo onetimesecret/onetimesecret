@@ -16,6 +16,8 @@
 #   4. A definitive negative demotes a verified domain ...
 #   5. ... unless an operator override holds it.
 #   6. A newly created domain starts unverified.
+#   6a. A domain the Passthrough strategy verified has no confirmation on
+#       record, so after a move to this strategy case 3 does not apply to it.
 #
 # The status half (check_status) runs over a scripted TlsProbe:
 #
@@ -221,6 +223,20 @@ caddy_try_verify(@domain)
 [@legacy_held.dns_outcome, @legacy_held.demoted?, caddy_try_reload(@legacy).ready?]
 #=> [:override_held, false, true]
 
+## Verified under Passthrough, then checked here - the passthrough pass is no confirmation, so an indeterminate lookup does not hold it
+@cutover = Onetime::CustomDomain.create!("caddy-cutover-#{@suffix}.example.com", @org.objid)
+Onetime::Operations::VerifyDomain.new(
+  domain: @cutover, strategy: Onetime::DomainValidation::PassthroughStrategy.new({}), persist: true
+).call
+@before_cutover  = caddy_try_reload(@cutover)
+@before_state    = [@before_cutover.ready?, @before_cutover.verified_confirmed_at]
+@resolver.rcode  = Resolv::DNS::RCode::ServFail
+@resolver.values = []
+@cutover_result  = caddy_try_verify(@before_cutover)
+@stored          = caddy_try_reload(@cutover)
+[*@before_state, @cutover_result.dns_outcome, @cutover_result.demoted?, @stored.ready?]
+#=> [true, nil, :failed, true, false]
+
 ## Status: a definite probe answer is stored (resolving, and has_ssl inside vhost)
 @probe.is_resolving = true
 @probe.has_ssl      = true
@@ -293,5 +309,6 @@ caddy_try_verify(@domain)
 # Teardown
 @domain.destroy! if @domain&.exists?
 @legacy.destroy! if @legacy&.exists?
+@cutover.destroy! if @cutover&.exists?
 @org.destroy! if @org&.exists?
 @owner.destroy! if @owner&.exists?

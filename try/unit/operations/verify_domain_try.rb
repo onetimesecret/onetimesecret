@@ -49,6 +49,10 @@ class MockValidationStrategy
   def strategy_name
     'mock'
   end
+
+  def proves_ownership?
+    true
+  end
 end
 
 # Setup test fixtures
