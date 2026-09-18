@@ -319,9 +319,7 @@ module Onetime
           full_txt_host = "#{txt_host}.#{domain.base_domain}"
           puts
           puts '1. DNS Ownership (TXT record):'
-          dns_status    = result.dns_validated ? 'PASS' : 'FAIL'
-          dns_status    = 'INDETERMINATE (verified unchanged)' if result.dns_indeterminate
-          puts "   Status: #{dns_status}"
+          puts "   Status: #{result.dns_outcome.to_s.upcase}" # VALIDATED / FAILED / INDETERMINATE / OVERRIDE_HELD
           puts "   Expected: TXT record at #{full_txt_host}"
           puts "   Value:    #{txt_value}"
           puts
@@ -390,9 +388,13 @@ module Onetime
         puts
       end
 
-      # An indeterminate TXT check is neither pass nor fail: the upstream
-      # checker produced no answer and the stored verified flag was left alone.
-      def format_dns(result) = result.dns_indeterminate ? 'indeterminate' : format_bool(result.dns_validated)
+      # Two TXT outcomes are neither pass nor fail and leave `verified` alone:
+      # indeterminate (the upstream checker produced no answer) and a failed
+      # check on a domain held verified by an operator override.
+      def format_dns(result)
+        { indeterminate: 'indeterminate', override_held: 'no (override)' }
+          .fetch(result.dns_outcome) { format_bool(result.dns_validated) }
+      end
 
       def output_state_distribution(result)
         state_counts                                                  = Hash.new(0)
@@ -434,14 +436,15 @@ module Onetime
         state_counts                                                  = Hash.new(0)
         result.results.each { |r| state_counts[r.current_state.to_s] += 1 }
 
-        issues = { orphaned: [], org_not_found: [], dns_failed: [], ssl_failed: [] }
+        issues = { orphaned: [], org_not_found: [], dns_failed: [], dns_indeterminate: [], ssl_failed: [] }
         result.results.each do |r|
           domain = r.domain
           issues[:orphaned] << domain.display_domain if domain.org_id.to_s.empty?
           if !domain.org_id.to_s.empty? && domain.primary_organization.nil?
             issues[:org_not_found] << domain.display_domain
           end
-          issues[:dns_failed] << domain.display_domain unless r.dns_validated
+          issues[:dns_failed] << domain.display_domain if r.dns_outcome == :failed
+          issues[:dns_indeterminate] << domain.display_domain if r.dns_indeterminate
           issues[:ssl_failed] << domain.display_domain unless r.ssl_ready
         end
 

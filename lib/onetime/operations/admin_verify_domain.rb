@@ -73,6 +73,7 @@ module Onetime
             dns_validated: result.dns_validated,
             dns_indeterminate: result.dns_indeterminate,
             dns_message: result.dns_message,
+            override_held: result.override_held,
             is_resolving: result.is_resolving,
             ssl_ready: result.ssl_ready,
             persisted: result.persisted,

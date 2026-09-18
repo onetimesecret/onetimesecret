@@ -263,7 +263,7 @@ RSpec.describe 'Domains Command', type: :cli do
   describe 'verify subcommand' do
     def verify_result
       double('VerifyResult',
-        domain: domain, success?: true, dns_validated: true, dns_indeterminate: false,
+        domain: domain, success?: true, dns_validated: true, dns_indeterminate: false, dns_outcome: :validated,
         dns_message: 'TXT record validated', ssl_ready: true,
         is_resolving: true, previous_state: :pending, current_state: :verified,
         changed?: true, persisted: true, error: nil,

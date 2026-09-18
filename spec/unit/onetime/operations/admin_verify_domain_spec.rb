@@ -30,6 +30,7 @@ RSpec.describe Onetime::Operations::AdminVerifyDomain do
       dns_validated: success,
       dns_indeterminate: false,
       dns_message: nil,
+      override_held: false,
       is_resolving: success,
       ssl_ready: success,
       persisted: true,

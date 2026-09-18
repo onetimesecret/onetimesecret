@@ -67,6 +67,7 @@ module ColonelAPI
               display_domain: custom_domain.display_domain,
               verification_state: custom_domain.verification_state.to_s,
               verified: custom_domain.verified.to_s == 'true',
+              verified_by_override: custom_domain.verified_by_override == true,
               resolving: custom_domain.resolving.to_s == 'true',
               ready: custom_domain.ready?,
               updated: custom_domain.updated,
@@ -80,6 +81,9 @@ module ColonelAPI
               # left unchanged. dns_message says which TXT outcome occurred.
               dns_indeterminate: result.dns_indeterminate,
               dns_message: result.dns_message,
+              # validated / indeterminate / override_held / failed — drives the
+              # operator notification when the state alone would mislead.
+              dns_outcome: result.dns_outcome.to_s,
               ssl_ready: result.ssl_ready,
               is_resolving: result.is_resolving,
               # nil on success; the op's captured error message on a check failure.

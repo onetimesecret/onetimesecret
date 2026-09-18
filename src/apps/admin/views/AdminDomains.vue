@@ -17,6 +17,7 @@
   import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
+  import { verifyOutcomeNotice } from '@/apps/admin/utils/verifyOutcomeNotice';
   import type {
     ColonelCustomDomain,
     ColonelOrganization,
@@ -210,24 +211,12 @@
     dialogOpen.value = true;
   }
 
-  /** Per-state operator notification. Unknown states fall back to `done`. */
-  const VERIFY_MESSAGE_KEYS: Record<string, string> = {
-    verified: 'web.admin.domains.verify.success.verified',
-    resolving: 'web.admin.domains.verify.success.resolving',
-    pending: 'web.admin.domains.verify.success.pending',
-    unverified: 'web.admin.domains.verify.success.unverified',
-  };
-
-  /** Map the honest post-verify state to its operator notification. */
+  /** Map the honest post-verify outcome to its operator notification. */
   function notifyOutcome(): void {
-    const state = verifyResult.value?.current_state ?? '';
     const domainName = activeDomain.value?.display_domain ?? '';
-    const messageKey = VERIFY_MESSAGE_KEYS[state] ?? 'web.admin.domains.verify.success.done';
+    const { messageKey, severity } = verifyOutcomeNotice(verifyResult.value);
 
-    notifications.show(
-      t(messageKey, { domain: domainName }),
-      state === 'verified' ? 'success' : 'info'
-    );
+    notifications.show(t(messageKey, { domain: domainName }), severity);
   }
 
   async function onConfirm(): Promise<void> {
@@ -533,12 +522,8 @@
     panelVerifyingExtid.value = domain.extid;
     try {
       const outcome = await store.verify(domain.extid);
-      const state = outcome?.current_state ?? '';
-      const messageKey = VERIFY_MESSAGE_KEYS[state] ?? 'web.admin.domains.verify.success.done';
-      notifications.show(
-        t(messageKey, { domain: domain.display_domain }),
-        state === 'verified' ? 'success' : 'info'
-      );
+      const { messageKey, severity } = verifyOutcomeNotice(outcome);
+      notifications.show(t(messageKey, { domain: domain.display_domain }), severity);
       await loadOrgDomains();
       if (expandedExtid.value === domain.extid) await loadDomainDetail(domain.extid);
     } catch {
