@@ -202,5 +202,153 @@
   "web.admin.billing.stripeOrgs.columns.stripeCustomer": {
     "text": "Stripe customer ID",
     "content_hash": "7e1d8bbb"
+  },
+  "web.admin.billing.webhookEvents.title": {
+    "text": "Stripe webhook events",
+    "content_hash": "3a7c05f8"
+  },
+  "web.admin.billing.webhookEvents.description": {
+    "text": "Read-only local record of Stripe webhook processing.",
+    "content_hash": "adc1e97f"
+  },
+  "web.admin.billing.webhookEvents.retention": {
+    "text": "Local webhook event records are retained for five days. Older events are not available here.",
+    "content_hash": "de4c2f78"
+  },
+  "web.admin.billing.webhookEvents.loadError": {
+    "text": "Could not load the webhook event list.",
+    "content_hash": "b070d441"
+  },
+  "web.admin.billing.webhookEvents.capped": {
+    "text": "The event scan hit its limit, so the total is a lower bound.",
+    "content_hash": "5b96b15b"
+  },
+  "web.admin.billing.webhookEvents.empty": {
+    "text": "No locally retained webhook events found.",
+    "content_hash": "7e33e23d"
+  },
+  "web.admin.billing.webhookEvents.viewDetail": {
+    "text": "View details",
+    "content_hash": "d1bf045b"
+  },
+  "web.admin.billing.webhookEvents.columns.eventId": {
+    "text": "Event ID",
+    "content_hash": "3045abaf"
+  },
+  "web.admin.billing.webhookEvents.columns.type": {
+    "text": "Type",
+    "content_hash": "baaddf70"
+  },
+  "web.admin.billing.webhookEvents.columns.status": {
+    "text": "Processing status",
+    "content_hash": "3f6498ae"
+  },
+  "web.admin.billing.webhookEvents.columns.received": {
+    "text": "Received",
+    "content_hash": "49f19bee"
+  },
+  "web.admin.billing.webhookEvents.columns.outcome": {
+    "text": "Outcome",
+    "content_hash": "4e80abb5"
+  },
+  "web.admin.billing.webhookEvents.detail.title": {
+    "text": "Webhook event details",
+    "content_hash": "829b940c"
+  },
+  "web.admin.billing.webhookEvents.detail.notFound": {
+    "text": "This local event is no longer available.",
+    "content_hash": "b029d878"
+  },
+  "web.admin.billing.webhookEvents.detail.loadError": {
+    "text": "Could not load webhook event details.",
+    "content_hash": "39f7a33b"
+  },
+  "web.admin.billing.webhookEvents.detail.received": {
+    "text": "Received at",
+    "content_hash": "1ddb1a75"
+  },
+  "web.admin.billing.webhookEvents.detail.lastAttempt": {
+    "text": "Last processing attempt",
+    "content_hash": "b1325ebb"
+  },
+  "web.admin.billing.webhookEvents.detail.processed": {
+    "text": "Processed at",
+    "content_hash": "2eb2da28"
+  },
+  "web.admin.billing.webhookEvents.detail.attempts": {
+    "text": "Attempts",
+    "content_hash": "06e70139"
+  },
+  "web.admin.billing.webhookEvents.detail.mode": {
+    "text": "Mode",
+    "content_hash": "5e23ec6a"
+  },
+  "web.admin.billing.webhookEvents.detail.live": {
+    "text": "Live",
+    "content_hash": "b64ac05f"
+  },
+  "web.admin.billing.webhookEvents.detail.test": {
+    "text": "Test",
+    "content_hash": "532eaabd"
+  },
+  "web.admin.billing.webhookEvents.detail.apiVersion": {
+    "text": "Stripe API version",
+    "content_hash": "9cd61c6f"
+  },
+  "web.admin.billing.pendingFederated.title": {
+    "text": "Pending federated subscriptions",
+    "content_hash": "8bc81ff7"
+  },
+  "web.admin.billing.pendingFederated.description": {
+    "text": "Subscriptions waiting for a verified account in this region to claim their benefits.",
+    "content_hash": "e4c714c8"
+  },
+  "web.admin.billing.pendingFederated.correlationRetention": {
+    "text": "Pending subscriptions can remain for 90 days, but local webhook records are retained for only five days. An expired or unavailable correlation does not indicate a processing outcome.",
+    "content_hash": "c846410e"
+  },
+  "web.admin.billing.pendingFederated.loadError": {
+    "text": "Could not load pending federated subscriptions.",
+    "content_hash": "a1ecc6cb"
+  },
+  "web.admin.billing.pendingFederated.capped": {
+    "text": "The pending-subscription scan hit its limit, so the total is a lower bound.",
+    "content_hash": "a1e02735"
+  },
+  "web.admin.billing.pendingFederated.empty": {
+    "text": "No pending federated subscriptions found.",
+    "content_hash": "91453fda"
+  },
+  "web.admin.billing.pendingFederated.unresolvedPlan": {
+    "text": "Unresolved",
+    "content_hash": "36afca80"
+  },
+  "web.admin.billing.pendingFederated.columns.status": {
+    "text": "Subscription status",
+    "content_hash": "f0723c4e"
+  },
+  "web.admin.billing.pendingFederated.columns.planid": {
+    "text": "Stored plan ID",
+    "content_hash": "159600ef"
+  },
+  "web.admin.billing.pendingFederated.columns.region": {
+    "text": "Region",
+    "content_hash": "d3a008ef"
+  },
+  "web.admin.billing.pendingFederated.columns.received": {
+    "text": "Received",
+    "content_hash": "49f19bee"
+  },
+  "web.admin.billing.pendingFederated.columns.webhook": {
+    "text": "Source webhook",
+    "content_hash": "e96bd1ef"
+  },
+  "web.admin.billing.pendingFederated.webhook.no_correlation": {
+    "text": "Unavailable — no correlated local webhook was recorded.",
+    "content_hash": "57ed7d3a"
+  },
+  "web.admin.billing.pendingFederated.webhook.expired": {
+    "text": "Unavailable — the correlated local webhook expired after five days.",
+    "content_hash": "6173ad4b"
   }
 }

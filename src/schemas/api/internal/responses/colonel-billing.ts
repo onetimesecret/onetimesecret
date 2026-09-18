@@ -17,6 +17,7 @@
 
 import { createApiResponseSchema } from '@/schemas/api/base';
 import { z } from 'zod';
+import { paginationSchema } from './colonel';
 
 // ============================================================================
 // PlanEntry — one normalized catalog plan (same shape on both the config and
@@ -193,4 +194,121 @@ export type StripeOrganizationsPageMeta = z.infer<
 >;
 export type ColonelStripeOrganizationsResponse = z.infer<
   typeof colonelStripeOrganizationsResponseSchema
+>;
+
+// ============================================================================
+// Stripe webhook event observability — read-only list + safe detail
+// ============================================================================
+//
+// GET /api/colonel/billing/webhook-events
+// GET /api/colonel/billing/webhook-events/:event_id
+//
+// The underlying Horreum record has a five-day TTL. These contracts deliberately
+// include only operational metadata: no Stripe payload, customer data, or replay
+// controls cross this boundary. `processing_outcome` is the server-normalized
+// result. Error text is deliberately not exposed.
+
+/** One paginated, locally retained Stripe webhook event. */
+export const colonelWebhookEventSchema = z.object({
+  event_id: z.string(),
+  event_type: z.string().nullable(),
+  processing_status: z.string().nullable(),
+  processing_outcome: z.string().nullable(),
+  received_at: z.number().nullable(),
+  processed_at: z.number().nullable(),
+  attempt_count: z.number(),
+  retryable: z.boolean(),
+});
+
+export const colonelWebhookEventsDetailsSchema = z.object({
+  events: z.array(colonelWebhookEventSchema),
+  pagination: paginationSchema,
+  /** A bounded scan means `total_count` is a lower bound. */
+  capped: z.boolean().optional(),
+});
+
+/**
+ * The explicit allow-list for the event drawer. In particular, `event_payload`
+ * is intentionally absent: payload inspection and replay remain CLI-only.
+ */
+export const colonelWebhookEventDetailRecordSchema = colonelWebhookEventSchema;
+
+export const colonelWebhookEventDetailDetailsSchema = z.object({
+  api_version: z.string().nullable(),
+  livemode: z.boolean().nullable(),
+  stripe_created_at: z.number().nullable(),
+  pending_webhooks: z.number().nullable(),
+  last_attempt_at: z.number().nullable(),
+  retryable: z.boolean(),
+  max_attempts_reached: z.boolean(),
+  circuit_retry_at: z.number().nullable(),
+  circuit_retry_count: z.number().nullable(),
+  error_present: z.boolean(),
+});
+
+export const colonelWebhookEventsResponseSchema = createApiResponseSchema(
+  z.object({}),
+  colonelWebhookEventsDetailsSchema
+);
+
+export const colonelWebhookEventDetailResponseSchema = createApiResponseSchema(
+  colonelWebhookEventDetailRecordSchema,
+  colonelWebhookEventDetailDetailsSchema
+);
+
+export type ColonelWebhookEvent = z.infer<typeof colonelWebhookEventSchema>;
+export type ColonelWebhookEventsResponse = z.infer<typeof colonelWebhookEventsResponseSchema>;
+export type ColonelWebhookEventDetail = z.infer<typeof colonelWebhookEventDetailRecordSchema>;
+export type ColonelWebhookEventDetailResponse = z.infer<
+  typeof colonelWebhookEventDetailResponseSchema
+>;
+
+// ============================================================================
+// Pending federated subscriptions — read-only list
+// ============================================================================
+//
+// GET /api/colonel/billing/pending-federated-subscriptions
+//
+// Pending rows never expose their email-hash identifier. Correlation is explicit
+// because a pending subscription survives for 90 days while its originating
+// local webhook record expires after five. `no_correlation` and `expired` are
+// distinct unavailable states, neither of which implies a processing result.
+
+export const colonelPendingFederatedWebhookSchema = z
+  .object({
+    state: z.enum(['available', 'no_correlation', 'expired']),
+    processing_status: z.string().nullable(),
+    outcome: z.string().nullable(),
+  })
+  .strict();
+
+export const colonelPendingFederatedSubscriptionSchema = z
+  .object({
+    subscription_status: z.string().nullable(),
+    /** Canonical stored plan id; null means no resolvable local plan was stored. */
+    planid: z.string().nullable(),
+    region: z.string().nullable(),
+    received_at: z.number().nullable(),
+    source_webhook: colonelPendingFederatedWebhookSchema,
+  })
+  .strict();
+
+export const colonelPendingFederatedSubscriptionsDetailsSchema = z.object({
+  subscriptions: z.array(colonelPendingFederatedSubscriptionSchema),
+  pagination: paginationSchema,
+  /** A bounded scan means `total_count` is a lower bound. */
+  capped: z.boolean().optional(),
+});
+
+export const colonelPendingFederatedSubscriptionsResponseSchema = createApiResponseSchema(
+  z.object({}),
+  colonelPendingFederatedSubscriptionsDetailsSchema
+);
+
+export type ColonelPendingFederatedWebhook = z.infer<typeof colonelPendingFederatedWebhookSchema>;
+export type ColonelPendingFederatedSubscription = z.infer<
+  typeof colonelPendingFederatedSubscriptionSchema
+>;
+export type ColonelPendingFederatedSubscriptionsResponse = z.infer<
+  typeof colonelPendingFederatedSubscriptionsResponseSchema
 >;
