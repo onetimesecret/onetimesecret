@@ -13,8 +13,9 @@ Added
   and validates them locally through "Test connection" without contacting the
   IdP. Every response must answer the sign-in request this site issued
   (IdP-initiated sign-in and single logout are not supported), assertions are
-  single-use, and the response Issuer must equal the configured EntityID
-  exactly. Per-domain identities are keyed on the EntityID scoped to the
+  single-use, the response Issuer must equal the configured EntityID
+  exactly, and a response signed or digested with SHA-1 (or any algorithm
+  outside RSA/ECDSA-SHA256/384/512) is refused. Per-domain identities are keyed on the EntityID scoped to the
   domain that pinned the certificate, so a domain cannot reach another
   domain's (or the platform's) identities by configuring their EntityID with
   its own certificate. Requires ``site.session.same_site: none`` with ``secure: true``,

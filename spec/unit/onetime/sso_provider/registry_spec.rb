@@ -396,11 +396,28 @@ RSpec.describe Onetime::SsoProvider::Registry do
       end
 
       # Fingerprint-only config trusts the certificate EMBEDDED IN THE
-      # RESPONSE. No option source may set one.
+      # RESPONSE. No option source may set one. idp_cert_fingerprint_algorithm
+      # is NOT a fingerprint (see the next example) and is the one
+      # fingerprint-named key allowed through.
       it 'never sets an IdP certificate fingerprint, and sets no skip_* escape hatch' do
         [saml_options, saml[:placeholder_options]].each do |opts|
-          expect(opts.keys.map(&:to_s).grep(/fingerprint|\Askip_/)).to be_empty
+          expect(opts.keys.map(&:to_s).grep(/fingerprint|\Askip_/)).to eq(['idp_cert_fingerprint_algorithm'])
+          expect(opts).not_to have_key(:idp_cert_fingerprint)
+          expect(opts).not_to have_key(:idp_cert_multi)
         end
+      end
+
+      # ruby-saml matches a certificate embedded in the response against the
+      # pinned idp_cert by fingerprint (settings.rb:280 defaults to SHA1) and
+      # then verifies with the EMBEDDED one, so the match digest is part of
+      # the trust anchor. RE-VERIFY on a ruby-saml bump.
+      it 'matches an embedded certificate against the pinned one with SHA-256, not SHA-1' do
+        require 'onelogin/ruby-saml'
+
+        [saml_options, saml[:placeholder_options]].each do |opts|
+          expect(opts[:idp_cert_fingerprint_algorithm]).to eq(XMLSecurity::Document::SHA256)
+        end
+        expect(OneLogin::RubySaml::Settings::DEFAULTS[:idp_cert_fingerprint_algorithm]).to eq(XMLSecurity::Document::SHA1)
       end
 
       it 'passes the IdP trio through, the EntityID byte-for-byte' do

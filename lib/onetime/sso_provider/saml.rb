@@ -115,9 +115,13 @@ module Onetime
       # never runs; they are set to SHA-256 so nothing SHA1 is ever advertised
       # in SP metadata. They do NOT constrain the IdP: the verifier reads the
       # SignatureMethod and DigestMethod the RESPONSE declares
-      # (xml_security.rb:341, :415), so a SHA1-signed response still verifies.
-      # A minimum-algorithm gate would be a new RequestBoundSAML check, not a
-      # value in this hash. RE-VERIFY on a ruby-saml bump. (#4450)
+      # (xml_security.rb:341, :415) and maps any URI it does not recognise to
+      # SHA1, so a SHA1-signed response verifies under this hash. The
+      # minimum-algorithm gate is therefore a RequestBoundSAML check
+      # (signature_algorithm_refusal: an allowlist of SHA-256/384/512 RSA and
+      # ECDSA methods and SHA-256/384/512 digests, refusal
+      # :saml_weak_signature_algorithm), not a value here. RE-VERIFY on a
+      # ruby-saml bump. (#4450)
       SECURITY = {
         authn_requests_signed: false,
         logout_requests_signed: false,
@@ -183,6 +187,15 @@ module Onetime
           allowed_clock_drift: ALLOWED_CLOCK_DRIFT,
           check_duplicated_attributes: true,
           slo_enabled: false,
+          # NOT a fingerprint (idp_cert_fingerprint is never set): the digest
+          # ruby-saml uses to match a certificate EMBEDDED in the response
+          # against the pinned idp_cert before verifying with the embedded
+          # one (xml_security.rb validate_document; settings.rb:280 defaults
+          # it to SHA1). A chosen-prefix SHA-1 collision on the DER would let
+          # an attacker's certificate pass as the pinned one; SHA-256 closes
+          # that. Absent an embedded certificate the pinned one is used
+          # directly and this is inert. RE-VERIFY on a ruby-saml bump.
+          idp_cert_fingerprint_algorithm: DIGEST_SHA256,
           security: SECURITY.dup,
         }
       end

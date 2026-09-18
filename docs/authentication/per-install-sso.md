@@ -678,7 +678,7 @@ the value of `site.host` and `saml` the route name:
 | Assertion Consumer Service (ACS) URL | `https://{host}/auth/sso/saml/callback`, HTTP-POST binding |
 | SP metadata | `https://{host}/auth/sso/saml/metadata` (served once the provider is configured) |
 | NameID format | persistent (requested in every AuthnRequest; a transient NameID is refused unless `SAML_UID_ATTRIBUTE` is set) |
-| Assertion signing | required (`want_assertions_signed`). Configure RSA-SHA256 at the IdP: ruby-saml 1.18.1 verifies whichever algorithm the response declares, so nothing on this side rejects SHA-1 |
+| Assertion signing | required (`want_assertions_signed`), RSA-SHA256 or stronger. A response signed or digested with SHA-1 (or any algorithm outside RSA/ECDSA-SHA256/384/512 and SHA-256/384/512) is refused as `saml_weak_signature_algorithm`: ruby-saml 1.18.1 itself verifies whichever algorithm the response declares, so the strategy enforces the allowlist |
 | Assertion encryption | off (not supported) |
 | AuthnRequest signing | off (requests are not signed; no SP key is configured) |
 | Attributes | the user's email as an attribute named `email` or `mail` (the NameID is the user id, not the email); optionally `name`, `first_name`, `last_name`, and the attribute named in `SAML_UID_ATTRIBUTE` |
@@ -889,6 +889,7 @@ auth log as `[saml_response_refused] reason=<code>` (a gate in
 | `saml_no_pending_request` | The callback arrived in a session with no pending sign-in | `site.session.same_site` must be `none` with `secure: true`; an IdP-initiated sign-in (started from the IdP's portal) is refused by design; a second sign-in tab supersedes the first |
 | `saml_misconfigured` | `idp_entity_id` or `sp_entity_id` is blank on the route | On the canonical host the platform vars are unusable and the route is the tenant placeholder; on a custom domain the tenant record was not injected |
 | `saml_issuer_unreadable` | The response has no Issuer, or more than one distinct Issuer element | IdP configuration |
+| `saml_weak_signature_algorithm` | A signature in the response uses a `SignatureMethod` or `DigestMethod` outside the allowlist (RSA/ECDSA-SHA256/384/512, SHA-256/384/512) — typically RSA-SHA1 / SHA1 | Configure SHA-256 signing at the IdP; the log event names the offending `kind` and `algorithm` URI |
 | `saml_issuer_mismatch` | The response's Issuer is not byte-equal to `SAML_IDP_ENTITY_ID` (or the tenant's `idp_entity_id`) | Copy the EntityID exactly as the IdP publishes it — scheme case, port, trailing slash |
 | `saml_transient_name_id` | The IdP sent a transient NameID | Configure a persistent NameID at the IdP, or set `SAML_UID_ATTRIBUTE` (platform only) |
 | `saml_missing_uid` | The NameID (or the uid attribute) is empty | IdP attribute mapping |
@@ -957,7 +958,7 @@ SSO_FORM_ACTION_ORIGINS="https://authorize.example.gov"
 - Sessions use same security settings as password auth
 - Domain restrictions validated before account creation
 - Client secrets should be rotated per provider's recommendations
-- SAML: every response must answer the AuthnRequest this session issued (InResponseTo, one-shot) — IdP-initiated sign-in is refused; the response Issuer must equal the configured EntityID byte for byte; assertions must be signed (the verifier accepts the algorithm the response declares — configure SHA-256 at the IdP) and are single-use (a Valkey replay cache keyed on the assertion ID, TTL bounded by `NotOnOrAfter`, capped at one hour); trust is one pinned PEM certificate with expiry checked, never a fingerprint; the auth hash never carries the raw response
+- SAML: every response must answer the AuthnRequest this session issued (InResponseTo, one-shot) — IdP-initiated sign-in is refused; the response Issuer must equal the configured EntityID byte for byte; assertions must be signed with SHA-256 or stronger (ruby-saml verifies whichever algorithm the response declares, so the strategy refuses SHA-1 and unknown algorithms itself; a certificate embedded in the response is matched against the pinned one by SHA-256 fingerprint) and are single-use (a Valkey replay cache keyed on the assertion ID, TTL bounded by `NotOnOrAfter`, capped at one hour); trust is one pinned PEM certificate with expiry checked, never a fingerprint; the auth hash never carries the raw response
 - `ruby-saml` is pinned exactly in the `Gemfile` with its advisory history; `bundler-audit` runs on every PR
 
 ## Codebase Reference

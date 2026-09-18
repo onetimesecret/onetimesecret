@@ -207,6 +207,19 @@ tenant-eligible, because its issuer is the tenant's own IdP EntityID.
     pending id is refused (`saml_no_pending_request`). ruby-saml treats a
     nil `matches_request_id` as "do not check", so this binding is the whole
     of the login-CSRF control — SAML has no `state` parameter.
+  - **Signature algorithm allowlist.** ruby-saml verifies with whichever
+    `SignatureMethod` / `DigestMethod` URI the response declares and maps
+    any URI it does not recognise to SHA-1 (`xml_security.rb` `algorithm`),
+    so a SHA-1 signed response verifies under the hardened settings. After
+    validation the strategy reads every `ds:Signature` in the validated
+    REXML document(s) (`response.document`, `decrypted_document`) — the same
+    parser and objects the verifier read — and refuses anything outside
+    `ALLOWED_SIGNATURE_METHODS` / `ALLOWED_DIGEST_METHODS` (RSA/ECDSA
+    SHA-256/384/512, digests SHA-256/384/512) as
+    `saml_weak_signature_algorithm`. `idp_cert_fingerprint_algorithm` is
+    pinned to SHA-256 for the same reason: the gem matches a certificate
+    embedded in the response against the pinned one by fingerprint (SHA-1 by
+    default) and then verifies with the embedded one.
   - **Issuer byte-equality.** After ruby-saml validates the document, the
     response must carry exactly one Issuer value (Response and signed
     Assertion, uniq'd) that is `==` the configured `idp_entity_id`

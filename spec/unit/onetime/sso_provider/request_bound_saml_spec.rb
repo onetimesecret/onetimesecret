@@ -467,6 +467,92 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
       end
     end
 
+    describe 'signature algorithm gate' do
+      let(:sha1)     { XMLSecurity::Document::SHA1 }
+      let(:rsa_sha1) { XMLSecurity::Document::RSA_SHA1 }
+
+      before { start_login }
+
+      # WHY THE GATE EXISTS, pinned against the gem: under the shipped
+      # hardened settings ruby-saml 1.18.1 verifies a SHA-1 signed response
+      # exactly like a SHA-256 one (xml_security.rb `algorithm` reads the URI
+      # the response declares). If a bump makes this example fail, the gate
+      # has become redundant — keep it anyway; it is the allowlist.
+      it 'documents that ruby-saml alone accepts an RSA-SHA1 / SHA1 signed response' do
+        settings = OneLogin::RubySaml::Settings.new(
+          hardened_options.merge(assertion_consumer_service_url: acs_url),
+        )
+        response = OneLogin::RubySaml::Response.new(
+          response_for(session[request_id_key], signature_method: rsa_sha1, digest_method: sha1),
+          settings: settings, matches_request_id: session[request_id_key],
+          allowed_clock_drift: 60, check_duplicated_attributes: true,
+        )
+
+        expect(response.is_valid?).to be(true), response.errors.inspect
+      end
+
+      it 'refuses an RSA-SHA1 signature' do
+        post_callback(response_for(session[request_id_key], signature_method: rsa_sha1))
+
+        expect(failure_types).to eq([:saml_weak_signature_algorithm])
+        expect(reached_app).to be_empty
+        expect(fake_dbclient.writes).to be_empty
+        expect(auth_logger).to have_received(:warn).with(
+          '[saml_response_refused]',
+          hash_including(reason: 'saml_weak_signature_algorithm', kind: 'signature_method', algorithm: rsa_sha1),
+        )
+      end
+
+      it 'refuses a SHA1 digest even under an RSA-SHA256 signature' do
+        post_callback(response_for(session[request_id_key], digest_method: sha1))
+
+        expect(failure_types).to eq([:saml_weak_signature_algorithm])
+        expect(reached_app).to be_empty
+        expect(auth_logger).to have_received(:warn).with(
+          '[saml_response_refused]',
+          hash_including(reason: 'saml_weak_signature_algorithm', kind: 'digest_method', algorithm: sha1),
+        )
+      end
+
+      # Allowlist, not denylist: the gem maps an unknown URI to SHA1 and would
+      # verify it; the gate must refuse it on the string alone.
+      it 'refuses an algorithm URI it does not know, even one the gem would resolve' do
+        post_callback(response_for(session[request_id_key], signature_method: 'http://www.w3.org/2000/09/xmldsig#dsa-sha1'))
+
+        expect(failure_types).to eq([:saml_weak_signature_algorithm])
+        expect(reached_app).to be_empty
+      end
+
+      {
+        'RSA-SHA384 / SHA384' => [XMLSecurity::Document::RSA_SHA384, XMLSecurity::Document::SHA384],
+        'RSA-SHA512 / SHA512' => [XMLSecurity::Document::RSA_SHA512, XMLSecurity::Document::SHA512],
+      }.each do |label, (signature_method, digest_method)|
+        it "accepts #{label}" do
+          post_callback(response_for(session[request_id_key], signature_method: signature_method, digest_method: digest_method))
+
+          expect(failure_types).to be_empty
+          expect(reached_app.size).to eq(1)
+        end
+      end
+
+      it 'runs before the issuer gate, so a weak signature never spends a datastore write' do
+        post_callback(response_for(
+          session[request_id_key], signature_method: rsa_sha1,
+          response_issuer: 'https://IDP.example.com/saml/metadata', assertion_issuer: 'https://IDP.example.com/saml/metadata'
+        ))
+
+        expect(failure_types).to eq([:saml_weak_signature_algorithm])
+        expect(fake_dbclient.writes).to be_empty
+      end
+
+      it 'keeps the allowlists to SHA-2 RSA / ECDSA methods and SHA-2 digests' do
+        expect(described_class::ALLOWED_SIGNATURE_METHODS).to all(match(%r{#(rsa|ecdsa)-sha(256|384|512)\z}))
+        expect(described_class::ALLOWED_DIGEST_METHODS).to all(match(/#sha(256|384|512)\z/))
+        expect(described_class::ALLOWED_SIGNATURE_METHODS).not_to include(rsa_sha1)
+        expect(described_class::ALLOWED_DIGEST_METHODS).not_to include(sha1)
+      end
+    end
+
     describe 'issuer gate' do
       before { start_login }
 

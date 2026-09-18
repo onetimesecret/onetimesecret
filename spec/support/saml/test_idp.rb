@@ -74,6 +74,9 @@ module SamlSpec
     # @param response_issuer [String, nil] nil omits the Response Issuer
     # @param assertion_issuer [String]
     # @param sign [Boolean] false leaves the Assertion unsigned
+    # @param signature_method [String] XML-DSig SignatureMethod URI; SHA-1
+    #   (XMLSecurity::Document::RSA_SHA1) models a legacy IdP
+    # @param digest_method [String] XML-DSig DigestMethod URI
     # @return [String] base64-encoded Response XML
     def response(in_response_to:, acs_url:, audience:,
                  name_id: 'user-1234', name_id_format: PERSISTENT,
@@ -81,7 +84,9 @@ module SamlSpec
                  assertion_id: "_#{SecureRandom.uuid}",
                  response_issuer: entity_id, assertion_issuer: entity_id,
                  now: Time.now.utc, not_on_or_after: nil,
-                 session_index: "_#{SecureRandom.hex(8)}", sign: true)
+                 session_index: "_#{SecureRandom.hex(8)}", sign: true,
+                 signature_method: XMLSecurity::Document::RSA_SHA256,
+                 digest_method: XMLSecurity::Document::SHA256)
       not_on_or_after ||= now + 300
 
       assertion = assertion_xml(
@@ -89,7 +94,7 @@ module SamlSpec
         in_response_to: in_response_to, acs_url: acs_url, audience: audience, attributes: attributes,
         now: now, not_on_or_after: not_on_or_after, session_index: session_index
       )
-      assertion = sign_xml(assertion) if sign
+      assertion = sign_xml(assertion, signature_method, digest_method) if sign
 
       Base64.strict_encode64(response_xml(
         assertion: assertion, issuer: response_issuer, in_response_to: in_response_to,
@@ -155,9 +160,9 @@ module SamlSpec
       "<saml:AttributeStatement>#{body}</saml:AttributeStatement>"
     end
 
-    def sign_xml(xml)
+    def sign_xml(xml, signature_method, digest_method)
       doc = XMLSecurity::Document.new(xml)
-      doc.sign_document(key, cert, XMLSecurity::Document::RSA_SHA256, XMLSecurity::Document::SHA256)
+      doc.sign_document(key, cert, signature_method, digest_method)
       doc.to_s
     end
 

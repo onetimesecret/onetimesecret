@@ -36,6 +36,10 @@
 #     6. The gem writes session['saml_uid'] / session['saml_session_index']
 #        on every successful callback for its SLO endpoints. SLO is off here
 #        (slo_enabled: false), so nothing reads them.
+#     7. The verifier accepts whichever signature and digest algorithm the
+#        response declares — a SHA-1 signed response verifies exactly like a
+#        SHA-256 one, and the SECURITY hash cannot change that (its
+#        digest/signature_method are SP-side signing parameters).
 #
 #   rodauth-omniauth's before_omniauth_callback_route has a single owner
 #   (apps/web/auth/config/hooks/omniauth_tenant.rb) and Rodauth hooks do not
@@ -88,6 +92,24 @@
 #                     scheme/host). We additionally require byte equality,
 #                     because the configured value is what the identity is
 #                     keyed on.
+#   - xml_security.rb:93-110 `algorithm` maps the SignatureMethod /
+#                     DigestMethod URI the RESPONSE declares to a digest class
+#                     — and maps ANY URI it does not recognise to SHA1. The
+#                     verifier (cache_referenced_xml :341, validate_signature
+#                     :415) reads those URIs with REXML from the
+#                     SignedDocument it validates (`document`, or
+#                     `decrypted_document` for an encrypted assertion;
+#                     response.rb doc_to_validate) and accepts whatever they
+#                     name, so a SHA-1 signed response verifies under the
+#                     hardened settings (SECURITY's digest/signature_method
+#                     are SP-side signing parameters). signature_algorithm_
+#                     refusal below reads the same attributes from the same
+#                     REXML documents and refuses anything off its allowlist.
+#   - settings.rb:280 idp_cert_fingerprint_algorithm defaults to SHA1, and
+#                     xml_security.rb validate_document compares a
+#                     response-embedded certificate with the pinned one by
+#                     that fingerprint — then verifies with the EMBEDDED
+#                     certificate. Saml.hardened_options pins SHA-256 there.
 #   - saml.rb:88-109  other_phase runs setup_phase and then serves /metadata
 #                     through the PRIVATE other_phase_for_metadata
 #                     (saml.rb:284-293), which we wrap.
@@ -141,6 +163,32 @@ module OmniAuth
       GEM_SESSION_KEYS = %w[saml_uid saml_session_index].freeze
 
       TRANSIENT_NAME_ID_FORMAT = 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient'
+
+      DSIG_NS = 'http://www.w3.org/2000/09/xmldsig#'
+
+      # The only XML-DSig algorithms a response may be signed with. An
+      # ALLOWLIST on the exact URI string, never a denylist and never the
+      # class ruby-saml resolves it to: xml_security.rb `algorithm` maps every
+      # URI it does not recognise (and rsa-sha1, dsa-sha1, ...) to SHA1, so
+      # "not in this list" is the only safe reading of "unknown". RSA-PSS
+      # (xmldsig-more#sha256-rsa-MGF1 etc.) is deliberately absent: the gem
+      # resolves it to a plain SHA-256 PKCS#1 v1.5 verify and it would fail
+      # anyway. ECDSA is included because the same `verify` call works for an
+      # EC public key. RE-VERIFY on a ruby-saml bump.
+      ALLOWED_SIGNATURE_METHODS = %w[
+        http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
+        http://www.w3.org/2001/04/xmldsig-more#rsa-sha384
+        http://www.w3.org/2001/04/xmldsig-more#rsa-sha512
+        http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256
+        http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha384
+        http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha512
+      ].freeze
+
+      ALLOWED_DIGEST_METHODS = %w[
+        http://www.w3.org/2001/04/xmlenc#sha256
+        http://www.w3.org/2001/04/xmldsig-more#sha384
+        http://www.w3.org/2001/04/xmlenc#sha512
+      ].freeze
 
       # Longest IdP-supplied string copied into a log event.
       LOG_VALUE_MAX = 200
@@ -271,9 +319,68 @@ module OmniAuth
           return [:invalid_ticket, 'SAML response failed validation', { error_count: response.errors.size }]
         end
 
-        issuer_refusal(response) ||
+        signature_algorithm_refusal(response) ||
+          issuer_refusal(response) ||
           name_id_refusal(response) ||
           replay_refusal(response, opts)
+      end
+
+      # Every ds:Signature in the document(s) ruby-saml validated must name
+      # an allowlisted SignatureMethod, and every ds:Reference under it an
+      # allowlisted DigestMethod. ruby-saml verifies with whatever the
+      # response declares and resolves anything unfamiliar to SHA-1 (see the
+      # header), so without this a SHA-1 signature — collision-capable since
+      # 2017 — is as good as SHA-256.
+      #
+      # Read with REXML from `response.document` and, when the assertion was
+      # encrypted, `response.decrypted_document`: the same parser, the same
+      # SignedDocument objects and the same XPath shape the verifier used
+      # (xml_security.rb:341 './ds:SignedInfo/ds:SignatureMethod', :415
+      # './ds:DigestMethod' under the Reference) — never a fresh parse of the
+      # raw parameter with another parser, which could see a different
+      # Signature than the one that was verified. Gating EVERY signature
+      # rather than locating the one the gem picked is a superset: a response
+      # carrying any weak signature is refused, verified or not.
+      #
+      # A document with no Signature at all cannot reach here (the gem
+      # requires one), so an empty read is treated as a refusal too.
+      def signature_algorithm_refusal(response)
+        documents = [response.document, response.decrypted_document].compact
+        found     = 0
+
+        documents.each do |doc|
+          REXML::XPath.each(doc, '//ds:Signature', 'ds' => DSIG_NS) do |signature|
+            found += 1
+
+            signature_method = REXML::XPath.first(
+              signature, './ds:SignedInfo/ds:SignatureMethod/@Algorithm', 'ds' => DSIG_NS
+            )&.value.to_s
+            unless ALLOWED_SIGNATURE_METHODS.include?(signature_method)
+              return weak_algorithm_refusal('signature_method', signature_method)
+            end
+
+            REXML::XPath.each(signature, './ds:SignedInfo/ds:Reference', 'ds' => DSIG_NS) do |reference|
+              digest_method = REXML::XPath.first(reference, './ds:DigestMethod/@Algorithm', 'ds' => DSIG_NS)&.value.to_s
+              return weak_algorithm_refusal('digest_method', digest_method) unless ALLOWED_DIGEST_METHODS.include?(digest_method)
+            end
+          end
+        end
+
+        return weak_algorithm_refusal('signature_method', '') if found.zero?
+
+        nil
+      rescue StandardError => ex
+        # An XPath surprise on a document the gem already accepted: refuse,
+        # class name only.
+        [:saml_weak_signature_algorithm, 'SAML signature algorithms could not be read', { error_class: ex.class.name }]
+      end
+
+      def weak_algorithm_refusal(kind, uri)
+        [
+          :saml_weak_signature_algorithm,
+          'SAML response uses a signature or digest algorithm that is not allowed',
+          { kind: kind, algorithm: loggable(uri) },
+        ]
       end
 
       # Exactly one Issuer value across Response and Assertion, byte-equal to
