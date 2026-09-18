@@ -382,8 +382,16 @@ module Onetime
       # (vhost stayed green while resolving flipped to "false" on API failure).
       #
       # Fresh-data indicators:
-      #   :data present — active strategy returned a payload (Approximated 200)
-      #   :mode present — passive strategy, no remote call to fail
+      #   :data present — active strategy returned a payload (Approximated 200,
+      #                   or the Caddy on-demand probe with a known has_ssl)
+      #   :mode present — the strategy's own answer, no provider call to fail
+      #
+      # Status has two nil-guards. `resolving` is skipped here when
+      # :is_resolving is nil. has_ssl has no field of its own: it is stored
+      # inside the `vhost` blob, so a strategy that does not know it must
+      # leave :data out (CaddyOnDemandStrategy#check_status does). A status
+      # result with neither :data nor :mode changes nothing and records the
+      # failed check in vhost_fetch_failed_at.
       #
       # A 200 is not enough for `verified`: the strategy returns validated: nil
       # when the upstream checker answered but its own DNS lookup failed
