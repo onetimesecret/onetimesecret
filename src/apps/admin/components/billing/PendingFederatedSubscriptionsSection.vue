@@ -19,16 +19,18 @@
   const store = useAdminPendingFederatedSubscriptions();
   const { subscriptions, pagination, loading, error, capped, staleCount } = storeToRefs(store);
 
+  type PendingRow = ColonelPendingFederatedSubscription & { row_key: string };
+
   // Pending records intentionally expose no email-hash identifier. Add a
   // page-local render key rather than leaking one just to satisfy table keys.
-  const tableRows = computed(() =>
+  const tableRows = computed<PendingRow[]>(() =>
     subscriptions.value.map((subscription, index) => ({
       ...subscription,
       row_key: `${subscription.received_at ?? 'unknown'}:${index}`,
     }))
   );
 
-  const columns = computed<DataTableColumn<ColonelPendingFederatedSubscription>[]>(() => [
+  const columns = computed<DataTableColumn<PendingRow>[]>(() => [
     { key: 'status', label: t('web.admin.billing.pendingFederated.columns.status') },
     { key: 'planid', label: t('web.admin.billing.pendingFederated.columns.planid') },
     { key: 'region', label: t('web.admin.billing.pendingFederated.columns.region') },
