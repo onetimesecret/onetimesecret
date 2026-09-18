@@ -81,8 +81,11 @@ module ColonelAPI
               # left unchanged. dns_message says which TXT outcome occurred.
               dns_indeterminate: result.dns_indeterminate,
               dns_message: result.dns_message,
-              # validated / indeterminate / override_held / failed — drives the
-              # operator notification when the state alone would mislead.
+              # validated / confirmation_expired / indeterminate / override_held /
+              # failed — drives the operator notification when the state alone
+              # would mislead. confirmation_expired: the check was indeterminate
+              # and has been for longer than the confirmation window, so
+              # verified was withdrawn.
               dns_outcome: result.dns_outcome.to_s,
               ssl_ready: result.ssl_ready,
               is_resolving: result.is_resolving,

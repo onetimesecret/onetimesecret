@@ -43,6 +43,10 @@
     "text": "The TXT check failed for {domain}, but it stays verified because of an operator override.",
     "content_hash": "e754aac8"
   },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "The DNS check for {domain} has returned no result for more than 7 days. It is no longer verified.",
+    "content_hash": "a6901cb5"
+  },
   "web.admin.domains.verify.success.done": {
     "text": "Verification complete for {domain}.",
     "content_hash": "ed67e22d"

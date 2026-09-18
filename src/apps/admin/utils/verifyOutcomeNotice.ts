@@ -7,11 +7,13 @@ import type { ColonelDomainVerifyDetails } from '@/schemas/api/internal/response
  * instead of at each of the three call sites (domains list, org panel, domain
  * detail).
  *
- * `current_state` alone misleads for two TXT outcomes that leave `verified`
- * untouched, so `dns_outcome` wins when it names one of them:
+ * `current_state` alone misleads for the TXT outcomes below, so `dns_outcome`
+ * wins when it names one of them. The first two leave `verified` untouched;
+ * the third withdraws it without the DNS check ever having failed:
  *
- *   - `indeterminate`  the upstream DNS checker produced no answer
- *   - `override_held`  the TXT check failed but an operator override holds
+ *   - `indeterminate`         the DNS check produced no answer
+ *   - `override_held`         the TXT check failed but an operator override holds
+ *   - `confirmation_expired`  no answer for longer than the confirmation window
  *
  * Everything else maps from the post-verify state; unknown states fall back to
  * `done`.
@@ -26,6 +28,7 @@ const STATE_MESSAGE_KEYS: Record<string, string> = {
 const OUTCOME_MESSAGE_KEYS: Record<string, string> = {
   indeterminate: 'web.admin.domains.verify.success.indeterminate',
   override_held: 'web.admin.domains.verify.success.overrideHeld',
+  confirmation_expired: 'web.admin.domains.verify.success.confirmationExpired',
 };
 
 export interface VerifyOutcomeNotice {
