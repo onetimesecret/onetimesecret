@@ -164,6 +164,23 @@ RSpec.describe Onetime::DomainValidation::TlsProbe do
     tls_server_class.new(*cert_and_key).tap { |server| servers << server }
   end
 
+  context 'with an internationalised hostname' do
+    let(:hostname) { 'Bücher.example' }
+    let(:a_label)  { 'xn--bcher-kva.example' }
+
+    before do
+      resolves_to(public_ip)
+      start_tls_server(pki.leaf(a_label))
+    end
+
+    it 'resolves, sends SNI and verifies the certificate in the A-label form' do
+      expect(result.is_resolving).to be(true)
+      expect(result.has_ssl).to be(true)
+      expect(resolver.lookups).to eq([a_label])
+      expect(servers.last.server_names).to eq([a_label])
+    end
+  end
+
   context 'when the name resolves and the server presents a valid certificate' do
     before do
       resolves_to(public_ip)
@@ -335,10 +352,12 @@ RSpec.describe Onetime::DomainValidation::TlsProbe do
       expect(probe.probe(hostname)).to be_indeterminate
     end
 
-    it 'is indeterminate for a blank or non-ASCII hostname, without a lookup' do
+    it 'is indeterminate for a blank hostname or one with no A-label form, without a lookup' do
       expect(probe.probe(' ')).to be_indeterminate
-      expect(probe.probe('bücher.example')).to be_indeterminate
+      expect(probe.probe("#{'ü' * 60}.example")).to be_indeterminate
+      expect(probe.probe("b\xFFcher.example")).to be_indeterminate
       expect(resolver.lookups).to be_empty
+      expect(OT).to have_received(:lw).with(/Not probing/).exactly(3).times
     end
 
     [Errno::ETIMEDOUT, Errno::EHOSTUNREACH, Errno::ENETUNREACH, IO::TimeoutError].each do |error|
