@@ -19,8 +19,14 @@
 #
 # Usage:
 #   authenticated?      # Shared evaluator verdict (memoized per request)
-#   has_role?(:colonel) # Role of the EFFECTIVE customer (the impersonation target mid-overlay)
-#   current_customer    # Effective customer from the same verdict
+#   has_role?(:colonel) # Role of the ACTING PRINCIPAL — never the impersonation
+#                       # target. Role gates answer about the operator; whether a
+#                       # privileged action is allowed on an impersonated surface
+#                       # is a decision for the impersonation policy, not for the
+#                       # role check.
+#   colonel?            # Convenience alias for has_role?(:colonel); same principal-only semantics.
+#   current_customer    # EFFECTIVE customer from the same verdict (the
+#                       # impersonation target mid-overlay, otherwise the principal).
 
 require_relative '../session/customer_session_evaluator'
 require_relative '../session/impersonation'
@@ -32,12 +38,16 @@ module Onetime
         session_auth_enforced? && customer_session_verdict.authenticated?
       end
 
-      # Compatibility role checks derive from the evaluator's effective identity.
-      # A session cache may withhold access when stale, but must never grant it.
+      # Role checks answer about the ACTING PRINCIPAL, not the effective
+      # customer. The principal-role invariant is what keeps `colonel?` true
+      # for the operator throughout an impersonation session, so the admin UI
+      # remains visible and the operator can end the overlay. Whether a
+      # privileged action is allowed on an impersonated surface is a decision
+      # for the impersonation policy — never for `has_role?`.
       def has_role?(role_name)
         return false unless session_auth_enforced?
 
-        customer_session_verdict.customer&.role?(role_name) || false
+        customer_session_verdict.principal&.role?(role_name) || false
       end
 
       def colonel?
