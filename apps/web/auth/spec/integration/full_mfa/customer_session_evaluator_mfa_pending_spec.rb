@@ -41,11 +41,14 @@ RSpec.describe 'Auth router MFA-pending session gate', :full_auth_mode, type: :i
     expect(json_body).to include('id' => account_id, 'email' => email)
   end
 
-  it 'keeps anonymous password recovery usable without discarding the pending MFA session' do
+  it 'refuses anonymous account-lifecycle routes so the MFA challenge cannot be side-stepped' do
     csrf_json_post('/auth/reset-password-request', login: email)
+    expect_mfa_pending_refusal
 
-    expect(last_response.status).to eq(200), last_response.body
+    csrf_json_post('/auth/create-account', login: "another-#{email}", password: AuthTestConstants::TEST_PASSWORD)
+    expect_mfa_pending_refusal
 
+    # The challenge remains completable — a refused probe did not strand the session.
     csrf_json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(@secret).now)
     expect(last_response.status).to eq(200), last_response.body
   end

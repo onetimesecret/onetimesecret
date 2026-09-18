@@ -174,14 +174,15 @@ module Auth
       rodauth.respond_to?(:omniauth_prefix) && path.start_with?("#{rodauth.omniauth_prefix}/")
     end
 
-    # A partial two-factor session may only reach the routes that finish its
-    # challenge, routes that already accept anonymous credential/recovery
-    # requests, and logout. The session remains intact so a refused probe or an
-    # anonymous recovery request does not strand the in-progress MFA ceremony.
+    # A partial two-factor session may only reach the routes that finish or
+    # abandon the challenge: the second-factor completion routes
+    # (MFA_PENDING_RODAUTH_ROUTES) and logout. Anonymous credential and recovery
+    # routes are NOT permitted here — allowing them lets a partial MFA session
+    # start unrelated account-lifecycle flows (create-account, verify-account,
+    # reset-password-request, OmniAuth) while the challenge sits half-finished.
     def mfa_pending_rodauth_route?(path)
       path == "/#{rodauth.logout_route}" ||
-        named_rodauth_route?(path, MFA_PENDING_RODAUTH_ROUTES) ||
-        anonymous_rodauth_route?(path)
+        named_rodauth_route?(path, MFA_PENDING_RODAUTH_ROUTES)
     end
 
     # How the gate's :revoked branch answers `path`: the logout is answered
@@ -291,9 +292,14 @@ module Auth
       customer_session_verdict = Onetime::CustomerSessionEvaluator.evaluate(session, env: env)
       auth_session_reason      = customer_session_verdict.reason
 
+      # Invariant: only add ActiveSessionGate detail when the evaluator's answer
+      # is inconclusive with respect to gate state. :customer_unavailable is the
+      # sole reason the evaluator skipped its own gate call and needs it filled
+      # in here. Every other rejection is definitive and must not be overwritten
+      # by a fallback :active_session_unavailable, which would preserve the cookie.
       if !customer_session_verdict.authenticated? &&
          session['authenticated'] == true &&
-         ![:active_session_revoked, :active_session_unavailable, :surface_mismatch].include?(auth_session_reason)
+         auth_session_reason == :customer_unavailable
         case Onetime::ActiveSessionGate.verdict(session, env: env)
         when :revoked
           auth_session_reason = :active_session_revoked
@@ -436,8 +442,20 @@ module Auth
       end
 
       # All Rodauth routes (login, logout, create-account, reset-password, etc.)
-      # Rodauth handles all /auth/* routes when full mode is enabled
-      r.rodauth
+      # Rodauth handles all /auth/* routes when full mode is enabled.
+      #
+      # Rodauth's login/2FA/verify hooks mutate session['authenticated'] and
+      # session['awaiting_mfa'] in-band, and it uses `throw :halt` when it
+      # answers a route. That halts before any post-r.rodauth invalidation runs,
+      # so the CustomerSessionEvaluator memo (populated at the top of this
+      # route block) would go stale for anyone else reading env[ENV_KEY] later.
+      # An `ensure` block is the only reliable invalidation point for both the
+      # halt and pass-through paths. Delete on a hash — cheap and always safe.
+      begin
+        r.rodauth
+      ensure
+        Onetime::CustomerSessionEvaluator.forget(env)
+      end
 
       # Account routes (mfa-status, account info)
       handle_account_routes(r)
