@@ -28,7 +28,15 @@ Internationalised hostnames are queried, and probed, in their A-label form (`Asc
 
 Under `caddy_on_demand` the TXT check is the ownership proof. Caddy completing an ACME challenge shows that the name resolves to this deployment; it does not show which account, if any, controls the domain. The internal ACME endpoint (`apps/internal/acme`) only authorises a certificate for a domain that is `ready?`, which requires `verified`.
 
-`caddy_on_demand` makes one exception to "nil leaves `verified` unchanged": a domain that is verified with no `verified_confirmed_at`. Before this strategy checked TXT records it marked every domain verified, so such a flag has no proof behind it, and with the status probe now filling in `resolving`, holding it would make the domain `ready?`. The strategy returns `false` for it instead of `nil`. A Colonel override holds the domain as for any other `false`, and the next check that finds the record verifies it.
+`caddy_on_demand` makes one exception to "nil leaves `verified` unchanged": a domain that is verified with no `verified_confirmed_at`. The hold exists to protect a verification a TXT check once established, and `verified_confirmed_at` is the record of that check; without one there is nothing on record for the hold to protect, and with the status probe now filling in `resolving`, holding the flag would make the domain `ready?`. The strategy returns `false` for it instead of `nil`. A Colonel override holds the domain as for any other `false`, and the next check that finds the record verifies it.
+
+Three kinds of domain are verified with no `verified_confirmed_at`:
+
+- Verified by `caddy_on_demand` before it checked TXT records. No proof exists.
+- Verified by `passthrough`, which passes every domain without a lookup. `VerifyDomain` records a confirmation only for a strategy whose `proves_ownership?` is true (`approximated`, `caddy_on_demand`), so a passthrough pass never writes the field. No proof exists.
+- Verified by `approximated` on a version that did not have the field yet. The proof was real and is simply not on record. The field is written by the first passing check on this version.
+
+The third kind matters for a cutover from `approximated` to `caddy_on_demand`. Cutover is also the first time the app needs its own working resolver for every check; with no nameserver in `resolv.conf` or DNS egress blocked, every lookup is indeterminate. Before switching strategy, upgrade while still on `approximated`, run a full `bin/ots domains verify --all` pass (or let `DomainRefreshJob` walk every page) so that `verified_confirmed_at` is recorded for each proven domain, and confirm the app host can resolve names. Otherwise an unanswered first lookup under `caddy_on_demand` withdraws `verified` from a domain Approximated had proven, until the next passing check or a Colonel override.
 
 Existing domains are only re-checked when something runs the check. Installs that do not run the scheduler with `jobs.domain_refresh` enabled (both are off by default) must run `bin/ots domains verify --all` once after upgrading for the TXT check to take effect on existing domains, and periodically after that.
 
@@ -38,7 +46,7 @@ Under `approximated` the API's answer is used when it has one. When its own DNS 
 
 An indeterminate check may not hold `verified` indefinitely. `VerifyDomain::ConfirmationWindow` (`lib/onetime/operations/verify_domain/confirmation_window.rb`) keeps two timestamps on `CustomDomain`:
 
-- `verified_confirmed_at`: the last passing check.
+- `verified_confirmed_at`: the last passing TXT check. Not written for a pass from a strategy that does not check the record (`passthrough`).
 - `verified_unconfirmed_since`: the first indeterminate check of a verified domain since then. Any definitive answer clears it.
 
 When a check is indeterminate and `verified_unconfirmed_since` is more than 7 days old (`ConfirmationWindow::MAX_AGE`), `verified` is withdrawn. The result reports `dns_outcome: confirmation_expired`, bulk results count it in `confirmation_expired_count`, and VerifyDomain logs a warning.

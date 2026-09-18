@@ -209,9 +209,13 @@ module Onetime
       # confirmation, and a domain held by an operator override
       # (VerifyDomain#override_held? applies to this false like any other).
       #
-      # A domain verified under another strategy before verified_confirmed_at
-      # existed also lands here if its first check is indeterminate. It is
-      # promoted again by the next check that finds the record.
+      # Two other kinds of domain land here. One verified under Passthrough,
+      # which records no confirmation because it checks nothing
+      # (#proves_ownership?). And one Approximated had proven before
+      # verified_confirmed_at existed, if its first check here is
+      # indeterminate: that proof is real but not on record, so a cutover
+      # should follow a full verify pass on Approximated (see the README).
+      # Either is promoted again by the next check that finds the record.
       def never_confirmed?(custom_domain, result)
         result[:indeterminate] == true &&
           custom_domain.verified == true && # boolean_field native
