@@ -32,8 +32,8 @@ module DomainsAPI
       #     Onetime::AuthConfig.origin_from_url — the same funnel those consumers use
       #     — derives an origin from it: http(s), a host free of CSP-hostile
       #     characters, and one otto's own extras validator keeps. Together
-      #     with sso_url_problem (https only, no userinfo) that is the whole
-      #     rule.
+      #     with sso_url_problem (https only, no userinfo, no trailing dot on
+      #     the host — see its comment) that is the whole rule.
       #   - certificate EXPIRY. The model deliberately does not treat expiry
       #     as a record invariant (SsoConfig#saml_validation_errors); the
       #     point where a certificate is ACCEPTED is here.

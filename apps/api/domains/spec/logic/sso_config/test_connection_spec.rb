@@ -274,6 +274,19 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
       end
     end
 
+    # otto's normalize_origin strips one trailing dot, so the admitted origin
+    # would be 'https://idp.example.com' while the IdP's HTTP-POST callback
+    # carries Origin 'https://idp.example.com.' — every callback would 403.
+    context 'with an SSO URL whose host ends with a dot' do
+      let(:sso_url) { 'https://idp.example.com./saml/sso' }
+
+      it 'fails with invalid_sso_url, naming the field' do
+        expect(result[:success]).to be false
+        expect(result[:details]).to include(error_code: 'invalid_sso_url', field: 'idp_sso_service_url')
+        expect(result[:message]).to eq('IdP SSO service URL host must not end with a dot')
+      end
+    end
+
     context 'with an EntityID containing a control character' do
       let(:entity_id) { "https://idp.example.com/\u0000metadata" }
 

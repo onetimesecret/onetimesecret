@@ -240,6 +240,19 @@ module Onetime
       # from this origin, and an http origin lets a network attacker replace
       # the login page that collects the IdP credentials.
       #
+      # No trailing dot on the host. The URL is admitted into the CSP
+      # form-action and HttpOrigin allowances as an ORIGIN derived through
+      # AuthConfig.origin_from_url, and otto's normalize_origin strips one
+      # trailing dot from the host (otto 2.9.0 request_extras.rb; its own
+      # comment notes browsers do NOT equate "idp.example.com." with
+      # "idp.example.com"). The browser is redirected to the dotted host and
+      # the IdP's HTTP-POST callback then carries Origin
+      # "https://idp.example.com." — which HttpOriginOptions compares as a
+      # raw string against the stripped admitted origin, so every callback
+      # is refused (403) and the CSP directive lists a host the browser never
+      # POSTs from. Accepting such a URL produces a record that can never
+      # complete a login; refuse it where the URL is accepted instead.
+      #
       # @return [String, nil] problem description, or nil when usable
       def self.sso_url_problem(url)
         str = url.to_s.strip
@@ -249,6 +262,7 @@ module Onetime
         return 'IdP SSO service URL must be an https:// URL' unless uri.is_a?(URI::HTTPS)
         return 'IdP SSO service URL has no host' if uri.host.to_s.strip.empty?
         return 'IdP SSO service URL must not carry credentials' if uri.userinfo
+        return 'IdP SSO service URL host must not end with a dot' if uri.host.end_with?('.')
 
         nil
       rescue URI::Error

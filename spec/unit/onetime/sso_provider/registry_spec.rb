@@ -491,6 +491,9 @@ RSpec.describe Onetime::SsoProvider::Registry do
           'a hostless SSO service URL' => { SAML_IDP_SSO_SERVICE_URL: 'https:///saml/sso' },
           'an SSO service URL with credentials' => { SAML_IDP_SSO_SERVICE_URL: 'https://u:p@idp.example.com/sso' },
           'an unparseable SSO service URL' => { SAML_IDP_SSO_SERVICE_URL: 'https://idp example.com/sso' },
+          # origin_from_url would strip the dot, admitting an origin the
+          # browser never POSTs from (Saml.sso_url_problem).
+          'an SSO service URL whose host ends with a dot' => { SAML_IDP_SSO_SERVICE_URL: 'https://idp.example.com./sso' },
           'a whitespace-only EntityID' => { SAML_IDP_ENTITY_ID: '   ' },
           'an EntityID with trailing whitespace' => { SAML_IDP_ENTITY_ID: 'https://idp.example.com/saml/metadata ' },
           'an EntityID with a control character' => { SAML_IDP_ENTITY_ID: "https://idp.example.com/\nmetadata" },

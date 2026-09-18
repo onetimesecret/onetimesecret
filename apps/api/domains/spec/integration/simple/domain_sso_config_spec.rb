@@ -1340,6 +1340,10 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         'a trailing semicolon on the host' => 'https://idp.example.com;/saml/sso',
         'a quote in the host' => %(https://idp.example.com'/saml/sso),
         'userinfo' => 'https://user:secret@idp.example.com/saml/sso',
+        # Derives fine — but as 'https://idp.example.com' (otto strips one
+        # trailing dot), an origin the dotted-host IdP never POSTs from, so
+        # every callback would be refused by HttpOrigin. Refused at save.
+        'a trailing dot on the host' => 'https://idp.example.com./saml/sso',
       }.each do |label, url|
         it "returns 422 (invalid) for an SSO service URL with #{label}" do
           csrf_put api_path(test_custom_domain.extid), valid_saml_params.merge(idp_sso_service_url: url)

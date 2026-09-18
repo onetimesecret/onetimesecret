@@ -818,8 +818,9 @@ module Onetime
       # it is used (#build_saml_options, and ruby-saml's
       # check_idp_cert_expiration at login).
       #
-      # The SSRF host check on the SSO URL lives in the API layer with the
-      # OIDC issuer's (it needs DNS); this method does no I/O.
+      # The SSO URL gets no SSRF host check anywhere (the server never fetches
+      # it; see DomainsAPI::Logic::SsoConfig::SamlFields); this method does no
+      # I/O.
       def saml_validation_errors
         saml = Onetime::SsoProvider::Saml
 
