@@ -33,6 +33,12 @@ module Onetime
     #   }
     #
     class ApproximatedStrategy < BaseStrategy
+      # Vhost statuses that mean "serving over SSL with no known issues".
+      # ACTIVE_SSL_PROXIED is the normal state for a host fronted by another
+      # proxy (e.g. a Cloudflare CNAME setup): DNS points elsewhere but
+      # requests reach the cluster and the certificate is active.
+      ACTIVE_SSL_STATUSES = %w[ACTIVE_SSL ACTIVE_SSL_PROXIED].freeze
+
       attr_reader :client, :config
 
       # @param config [Hash] Application configuration (typically OT.conf)
@@ -155,10 +161,16 @@ module Onetime
           payload = res.parsed_response
           data    = payload['data']
 
+          # UNKNOWN is Approximated's "cannot determine a reliable status right
+          # now" — not evidence that DNS stopped resolving. Report nil so
+          # VerifyDomain leaves the stored resolving flag alone, the same
+          # discipline as an indeterminate TXT check.
+          indeterminate = data['status'] == 'UNKNOWN'
+
           {
-            ready: data['status'] == 'ACTIVE_SSL',
+            ready: ACTIVE_SSL_STATUSES.include?(data['status']),
             has_ssl: data['has_ssl'],
-            is_resolving: data['is_resolving'],
+            is_resolving: indeterminate ? nil : data['is_resolving'],
             status: data['status'],
             status_message: data['status_message'],
             data: data,
