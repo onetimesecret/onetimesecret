@@ -28,7 +28,12 @@
 #   3. no Approximated API key configured              → skip, state kept (it
 #                                                        is the only record
 #                                                        that a vhost exists)
-#   4. stored incoming_address ≠ display_domain        → log + skip (renamed
+#   4. stored vhost content is not a JSON object       → warn + skip (corrupt
+#                                                        data; which hostname
+#                                                        it belongs to cannot
+#                                                        be checked, so it
+#                                                        needs manual review)
+#      stored incoming_address ≠ display_domain        → log + skip (renamed
 #                                                        domain; the old name
 #                                                        may belong to someone
 #                                                        else now)
@@ -77,6 +82,7 @@
 # configured until the chore reports nothing left, then remove this file.
 
 require 'ipaddr'
+require 'json'
 require 'resolv'
 
 require_relative '../../../domain_validation/features'
@@ -174,6 +180,7 @@ module Onetime
         return skip(domain, 'record has no display_domain') if name.empty?
         return skip(domain, 'system strategy is approximated or not set') unless strategy_permits_cleanup?
         return skip(domain, 'no Approximated API key configured') unless api_key_configured?
+        return skip(domain, 'unparseable vhost data; needs manual review', level: :warn) unless vhost_parseable?(domain)
         return skip(domain, 'stored vhost belongs to another hostname', level: :warn) unless vhost_matches_domain?(domain)
 
         evidence = dns_evidence(name)
@@ -214,7 +221,8 @@ module Onetime
 
       # 1c. Apart from that probe blob, `vhost` is only ever written from an
       # Approximated API response, so any other content is Approximated-era
-      # state. Unparseable content still counts.
+      # state. Unparseable content still counts as state so that it is
+      # reported (see #vhost_parseable?) instead of silently ignored.
       #
       # @param domain [Onetime::CustomDomain]
       # @return [Boolean]
@@ -226,16 +234,25 @@ module Onetime
         !['', '{}', 'null'].include?(raw.to_s.strip)
       end
 
-      # The substring test keeps parse_vhost (which logs on bad JSON) away
-      # from unparseable Approximated-era content.
+      # The substring test avoids parsing every Approximated blob twice.
       #
       # @return [Boolean]
       def probe_blob?(domain, raw)
         return raw['source'] == PROBE_SOURCE if raw.is_a?(Hash)
         return false unless raw.to_s.include?(PROBE_SOURCE)
 
-        stored = domain.parse_vhost
-        stored.is_a?(Hash) && stored['source'] == PROBE_SOURCE
+        stored = stored_vhost(domain)
+        !stored.nil? && stored['source'] == PROBE_SOURCE
+      end
+
+      # Content that is not a JSON object (garbage, a JSON array or scalar)
+      # cannot tell us which hostname the vhost was created for, so the rename
+      # guard below has nothing to check. Skip and leave it for an operator.
+      #
+      # @param domain [Onetime::CustomDomain]
+      # @return [Boolean] true when the stored content is a Hash
+      def vhost_parseable?(domain)
+        !stored_vhost(domain).nil?
       end
 
       # A renamed domain keeps the vhost JSON of its old hostname. Deleting by
@@ -243,10 +260,11 @@ module Onetime
       # vhost that now serves a different record.
       #
       # @param domain [Onetime::CustomDomain]
-      # @return [Boolean] true when the stored address is absent or matches
+      # @return [Boolean] true when the stored address is absent or matches;
+      #   false when the stored content cannot be read
       def vhost_matches_domain?(domain)
-        stored = domain.parse_vhost
-        return true unless stored.is_a?(Hash)
+        stored = stored_vhost(domain)
+        return false if stored.nil?
 
         incoming = stored['incoming_address'].to_s.strip.downcase
         incoming.empty? || incoming == domain.display_domain.to_s.strip.downcase
@@ -372,6 +390,21 @@ module Onetime
         CLEARED_FIELDS.each { |field| domain.send(:"#{field}=", nil) }
         domain.updated = OT.now.to_i
         domain.save_fields(*CLEARED_FIELDS, :updated)
+      end
+
+      # Parsed here rather than through CustomDomain#parse_vhost, which maps
+      # bad JSON to {} (indistinguishable from "no incoming_address") and
+      # writes an error line on every call.
+      #
+      # @return [Hash, nil] nil when the content is not a JSON object
+      def stored_vhost(domain)
+        raw = domain.vhost
+        return raw if raw.is_a?(Hash)
+
+        parsed = JSON.parse(raw.to_s)
+        parsed.is_a?(Hash) ? parsed : nil
+      rescue JSON::ParserError, TypeError
+        nil
       end
 
       def not_found?(error)
