@@ -297,6 +297,14 @@ describe('customDomainSsoConfigCanonical schema', () => {
       client_secret_masked: '****5678',
       tenant_id: 'tenant-123',
       issuer: null,
+      // SAML trio + SP identifiers are null for a non-saml record (#4450);
+      // unreadable_fields is [] for a healthy one.
+      idp_sso_service_url: null,
+      idp_entity_id: null,
+      idp_cert: null,
+      sp_entity_id: null,
+      acs_url: null,
+      unreadable_fields: [],
       allowed_domains: [],
       requires_domain_filter: false,
       idp_controls_access: true,
