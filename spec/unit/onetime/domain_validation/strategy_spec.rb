@@ -779,9 +779,13 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
            display_domain: 'example.com',
            txt_validation_value: 'validation123',
            validation_record: '_onetime-challenge-abc123.example.com',
+           verified: verified,
+           verified_confirmed_at: verified_confirmed_at,
            parse_vhost: stored_vhost)
   end
   let(:stored_vhost) { {} }
+  let(:verified) { false }
+  let(:verified_confirmed_at) { nil }
 
   def stub_lookup(rcode, values = [])
     allow(resolver).to receive(:lookup)
@@ -868,6 +872,46 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
       end
 
       it 'is indeterminate' do
+        expect(result).to include(validated: nil, indeterminate: true)
+      end
+    end
+
+    # `verified` set before this strategy checked anything: there is no
+    # earlier TXT proof for an indeterminate lookup to protect.
+    context 'when the domain is verified but no TXT check ever confirmed it' do
+      let(:verified) { true }
+
+      it 'turns an indeterminate lookup into a definitive failure' do
+        stub_lookup(Resolv::DNS::RCode::ServFail)
+
+        expect(result).to include(validated: false, mode: 'caddy_on_demand', source: 'native')
+        expect(result).not_to have_key(:indeterminate)
+        expect(result[:message]).to match(/has not been confirmed by a TXT check .*SERVFAIL/)
+        expect(result[:data]).to contain_exactly(hash_including('actual_values' => false))
+      end
+
+      it 'does the same when the failure is our own' do
+        allow(custom_domain).to receive(:validation_record).and_raise(StandardError, 'boom')
+        allow(OT).to receive(:le)
+
+        expect(result).to include(validated: false, mode: 'caddy_on_demand')
+        expect(result).not_to have_key(:indeterminate)
+      end
+
+      it 'still validates when the record is found' do
+        stub_lookup(Resolv::DNS::RCode::NoError, ['validation123'])
+
+        expect(result).to include(validated: true)
+      end
+    end
+
+    context 'when the domain is verified and a TXT check has confirmed it' do
+      let(:verified) { true }
+      let(:verified_confirmed_at) { 1_789_000_000 }
+
+      it 'keeps an indeterminate lookup indeterminate, so verified is held' do
+        stub_lookup(Resolv::DNS::RCode::ServFail)
+
         expect(result).to include(validated: nil, indeterminate: true)
       end
     end

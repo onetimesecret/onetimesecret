@@ -53,7 +53,7 @@ module Onetime
 
       # Validates domain ownership via the TXT challenge record.
       #
-      # Three outcomes, passed through from TxtVerifier unchanged:
+      # Three outcomes, passed through from TxtVerifier:
       #
       #   validated: true   exactly one TXT value, equal to the challenge
       #   validated: false  the resolver stated the record is missing or
@@ -61,6 +61,8 @@ module Onetime
       #                     operator override holds it)
       #   validated: nil    the lookup produced no answer; stored state is
       #                     left alone (VerifyDomain#persist_changes)
+      #
+      # with one exception to nil, see #never_confirmed?.
       #
       # A domain with no challenge value also fails. TxtVerifier omits :data
       # for that case, but the :mode added here means VerifyDomain stores the
@@ -70,16 +72,8 @@ module Onetime
       # @return [Hash] See BaseStrategy#validate_ownership
       #
       def validate_ownership(custom_domain)
-        txt_verifier
-          .verify(custom_domain.validation_record, custom_domain.txt_validation_value)
-          .merge(mode: MODE)
-      rescue StandardError => ex
-        # TxtVerifier rescues its own lookup. Anything reaching here is ours
-        # (e.g. the domain could not produce its validation record), which is
-        # not evidence about the customer's DNS.
-        OT.le "[CaddyOnDemandStrategy] Error validating #{custom_domain.display_domain}: " \
-              "#{ex.class}: #{ex.message}"
-        { validated: nil, indeterminate: true, message: "Error: #{ex.message}", mode: MODE }
+        result = txt_check(custom_domain)
+        never_confirmed?(custom_domain, result) ? unconfirmed(result) : result
       end
 
       # Certificate issuance handled automatically by Caddy.
@@ -181,6 +175,49 @@ module Onetime
       end
 
       private
+
+      def txt_check(custom_domain)
+        txt_verifier
+          .verify(custom_domain.validation_record, custom_domain.txt_validation_value)
+          .merge(mode: MODE)
+      rescue StandardError => ex
+        # TxtVerifier rescues its own lookup. Anything reaching here is ours
+        # (e.g. the domain could not produce its validation record), which is
+        # not evidence about the customer's DNS.
+        OT.le "[CaddyOnDemandStrategy] Error validating #{custom_domain.display_domain}: " \
+              "#{ex.class}: #{ex.message}"
+        { validated: nil, indeterminate: true, message: "Error: #{ex.message}", mode: MODE }
+      end
+
+      # An indeterminate lookup leaves `verified` alone so that a resolver
+      # failure cannot undo a verification a TXT check once established.
+      # verified_confirmed_at records that check. When it is nil and the
+      # domain is nevertheless verified, the flag was set before this strategy
+      # checked anything, so there is no earlier proof for the hold to protect
+      # — and with the status probe now filling in `resolving`, holding it
+      # would make the domain ready? and let the ACME ask endpoint answer for
+      # it. Such a domain gets a definitive false instead.
+      #
+      # Not affected: an unverified domain (nil and false store the same, and
+      # nil keeps the "could not tell" report), a domain with a recorded
+      # confirmation, and a domain held by an operator override
+      # (VerifyDomain#override_held? applies to this false like any other).
+      #
+      # A domain verified under another strategy before verified_confirmed_at
+      # existed also lands here if its first check is indeterminate. It is
+      # promoted again by the next check that finds the record.
+      def never_confirmed?(custom_domain, result)
+        result[:indeterminate] == true &&
+          custom_domain.verified == true && # boolean_field native
+          custom_domain.verified_confirmed_at.nil?
+      end
+
+      def unconfirmed(result)
+        result.except(:indeterminate).merge(
+          validated: false,
+          message: "Ownership has not been confirmed by a TXT check (#{result[:message]})",
+        )
+      end
 
       # True when the stored blob is empty or was written by this strategy.
       def owns_vhost?(custom_domain)
