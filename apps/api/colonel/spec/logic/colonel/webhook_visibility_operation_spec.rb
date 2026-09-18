@@ -40,13 +40,33 @@ RSpec.describe Onetime::Operations::Billing::WebhookVisibility do
       event_payload: '{"customer":"never_expose"}', circuit_retry_at: '250', circuit_retry_count: '1',
     )
   end
-  let(:event_model) { class_double(Billing::StripeWebhookEvent, prefix: 'stripe_webhook_event') }
-  let(:pending_model) { class_double(Billing::PendingFederatedSubscription, prefix: 'pending_fed_sub') }
-  let(:redis) { instance_double('Redis') }
+
+  # Stubs for the class-level sorted-set indexes. Familia exposes them as
+  # `Model.recent_events` / `Model.recent_records`; we replace them here with
+  # a hand-rolled instance-double stand-in that supports the four methods the
+  # operation calls: element_count, revrange, remove.
+  let(:event_index)   { double('recent_events') }
+  let(:pending_index) { double('recent_records') }
+
+  let(:event_model) do
+    class_double(
+      Billing::StripeWebhookEvent,
+      recent_events: event_index,
+    ).tap do |dbl|
+      stub_const('Billing::StripeWebhookEvent::INDEX_MAX_ENTRIES', 10_000)
+    end
+  end
+  let(:pending_model) do
+    class_double(
+      Billing::PendingFederatedSubscription,
+      recent_records: pending_index,
+    ).tap do |dbl|
+      stub_const('Billing::PendingFederatedSubscription::INDEX_MAX_ENTRIES', 10_000)
+    end
+  end
 
   subject(:visibility) do
     described_class.new(
-      dbclient: redis,
       webhook_event_model: event_model,
       pending_subscription_model: pending_model,
     )
@@ -55,12 +75,14 @@ RSpec.describe Onetime::Operations::Billing::WebhookVisibility do
   before do
     allow(event_model).to receive(:load_multi) { |ids| [event_a, event_b].select { |event| ids.include?(event.stripe_event_id) } }
     allow(pending_model).to receive(:load_multi).and_return([])
+    allow(event_index).to receive(:remove)
+    allow(pending_index).to receive(:remove)
   end
 
-  it 'sorts an unordered Redis scan by received time and emits an allowlisted event row' do
-    allow(redis).to receive(:scan).with(
-      '0', match: 'stripe_webhook_event:*:object', count: described_class::SCAN_COUNT,
-    ).and_return(['0', ['stripe_webhook_event:evt_a:object', 'stripe_webhook_event:evt_b:object']])
+  it 'reads the index newest-first (via revrange) and emits an allowlisted event row' do
+    # Index has 2 entries. Page 1 / per_page 1 returns just the newest.
+    allow(event_index).to receive(:element_count).and_return(2)
+    allow(event_index).to receive(:revrange).with(0, 0).and_return(['evt_b'])
 
     page = visibility.list_webhook_events(page: 1, per_page: 1)
 
@@ -71,19 +93,31 @@ RSpec.describe Onetime::Operations::Billing::WebhookVisibility do
         processed_at: nil, attempt_count: 2, retryable: true,
       },
     ])
-    expect(page).to have_attributes(total_count: 2, total_pages: 2, capped: false)
+    expect(page).to have_attributes(
+      total_count: 2, total_pages: 2, capped: false, stale_count: 0,
+    )
   end
 
-  it 'marks counts capped when the bounded scan stops before Redis reaches its terminal cursor' do
-    stub_const('Onetime::Operations::Billing::WebhookVisibility::MAX_SCAN_ROWS', 1)
-    allow(redis).to receive(:scan).with(
-      '0', match: 'stripe_webhook_event:*:object', count: described_class::SCAN_COUNT,
-    ).and_return(['17', ['stripe_webhook_event:evt_a:object']])
+  it 'marks capped only when the index reaches INDEX_MAX_ENTRIES' do
+    stub_const('Billing::StripeWebhookEvent::INDEX_MAX_ENTRIES', 1)
+    allow(event_index).to receive(:element_count).and_return(1)
+    allow(event_index).to receive(:revrange).with(0, 49).and_return(['evt_a'])
 
     page = visibility.list_webhook_events
 
     expect(page).to have_attributes(total_count: 1, capped: true)
-    expect(redis).to have_received(:scan).once
+  end
+
+  it 'lazy-prunes stale ids (index entry whose object no longer loads) and counts them' do
+    allow(event_index).to receive(:element_count).and_return(3)
+    allow(event_index).to receive(:revrange).with(0, 49).and_return(['evt_gone', 'evt_a', 'evt_b'])
+
+    page = visibility.list_webhook_events
+
+    expect(event_index).to have_received(:remove).with('evt_gone').once
+    expect(event_index).not_to have_received(:remove).with('evt_a')
+    expect(page.rows.map { |row| row[:event_id] }).to eq(['evt_a', 'evt_b'])
+    expect(page.stale_count).to eq(1)
   end
 
   it 'does not expose payload, customer/object identifiers, or raw error text in detail' do
@@ -105,9 +139,9 @@ RSpec.describe Onetime::Operations::Billing::WebhookVisibility do
       email_hash: 'another-hash-never-expose', subscription_status: 'past_due', planid: 'pro_v1',
       region: 'us', received_at: '200', source_stripe_event_id: 'evt_expired',
     )
-    allow(redis).to receive(:scan).with(
-      '0', match: 'pending_fed_sub:*:object', count: described_class::SCAN_COUNT,
-    ).and_return(['0', ['pending_fed_sub:email-hash-never-expose:object', 'pending_fed_sub:another-hash-never-expose:object']])
+    allow(pending_index).to receive(:element_count).and_return(2)
+    allow(pending_index).to receive(:revrange).with(0, 49)
+      .and_return(['email-hash-never-expose', 'another-hash-never-expose'])
     allow(pending_model).to receive(:load_multi).and_return([legacy, expired_source])
     allow(event_model).to receive(:load_multi).with(['evt_expired']).and_return([])
 
@@ -131,9 +165,8 @@ RSpec.describe Onetime::Operations::Billing::WebhookVisibility do
       email_hash: 'email-hash-never-expose', subscription_status: 'active', planid: 'pro_v1',
       region: 'eu', received_at: '300', source_stripe_event_id: 'evt_b',
     )
-    allow(redis).to receive(:scan).with(
-      '0', match: 'pending_fed_sub:*:object', count: described_class::SCAN_COUNT,
-    ).and_return(['0', ['pending_fed_sub:email-hash-never-expose:object']])
+    allow(pending_index).to receive(:element_count).and_return(1)
+    allow(pending_index).to receive(:revrange).with(0, 49).and_return(['email-hash-never-expose'])
     allow(pending_model).to receive(:load_multi).and_return([correlated])
     allow(event_model).to receive(:load_multi).with(['evt_b']).and_return([event_b])
 

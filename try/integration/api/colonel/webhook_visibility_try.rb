@@ -56,6 +56,11 @@ def last_response; @test.last_response; end
 @event.data_object_id = 'cus_should_not_be_exposed'
 @event.event_payload = '{"customer":"cus_should_not_be_exposed"}'
 @event.save
+# WebhookVisibility reads a write-time sorted-set index instead of scanning
+# the object keyspace. Real callers register through
+# Billing::WebhookValidator#initialize_event_record; this fixture writes the
+# row directly, so the index has to be populated the same way.
+Billing::StripeWebhookEvent.record_recent_index(@event)
 
 @pending_hash = "pending_hash_should_not_be_exposed_#{@timestamp}"
 @pending = Billing::PendingFederatedSubscription.new(@pending_hash)
@@ -64,6 +69,7 @@ def last_response; @test.last_response; end
 @pending.region = 'eu'
 @pending.received_at = @timestamp.to_s
 @pending.save
+Billing::PendingFederatedSubscription.record_recent_index(@pending)
 
 ## Anonymous webhook list gets 401
 get '/api/colonel/billing/webhook-events', {}, { 'HTTP_ACCEPT' => 'application/json' }

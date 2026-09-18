@@ -142,6 +142,16 @@ RSpec.describe 'PendingFederation: Webhook Storage', :integration, :process_webh
       pending = track_pending(Billing::PendingFederatedSubscription.find_by_email_hash(email_hash))
       expect(pending.source_stripe_event_id).to eq(event.id)
     end
+
+    it 'appends the email_hash to the recent_records read index' do
+      Billing::PendingFederatedSubscription.recent_records.clear
+      operation.call
+      pending = track_pending(Billing::PendingFederatedSubscription.find_by_email_hash(email_hash))
+      expect(pending).not_to be_nil
+      expect(Billing::PendingFederatedSubscription.recent_records.member?(email_hash)).to be true
+      expect(Billing::PendingFederatedSubscription.recent_records.score(email_hash))
+        .to be_within(5).of(Time.now.to_i)
+    end
   end
 
   describe 'duplicate webhooks: idempotent storage' do

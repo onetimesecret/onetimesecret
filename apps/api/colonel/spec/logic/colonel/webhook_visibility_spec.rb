@@ -23,7 +23,7 @@ RSpec.describe 'Colonel webhook visibility adapters' do
   let(:page) do
     Onetime::Operations::Billing::WebhookVisibility::Page.new(
       rows: [{ event_id: 'evt_1' }], page: 1, per_page: 50,
-      total_count: 1, total_pages: 1, capped: true,
+      total_count: 1, total_pages: 1, capped: true, stale_count: 0,
     )
   end
 
