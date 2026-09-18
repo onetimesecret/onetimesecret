@@ -187,9 +187,9 @@ module InviteAPI::Logic
         # a mapping this arm may rely on.) Emitting a registry key as
         # :provider_type would put a third vocabulary on a field whose values
         # consumers read as the tenant enum, so the field stays absent. What
-        # identifies a
-        # platform-fallback provider is :platform_route_name, which the tenant
-        # arm carries too — that is the field to route and branch on.
+        # identifies a platform-fallback provider is :platform_route_name,
+        # which the tenant arm carries too — that is the field to route and
+        # branch on.
         Onetime.auth_config.sso_providers.filter_map do |provider|
           route_name = provider['route_name'].to_s
           next if route_name.empty?
