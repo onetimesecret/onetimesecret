@@ -155,6 +155,36 @@ including issuer classification, strategy configuration, tests, and operator
 documentation. This ADR decides whether that work should begin; it does not
 replace the checklist once a strategy is admitted.
 
+## Applied examples
+
+The following provider requests illustrate the default outcome under this
+ADR: generic OIDC configuration rather than a bespoke strategy.
+
+**Clever.** Clever's Instant Login is OIDC-shaped. No provider-specific
+protocol behavior is identified that generic OIDC cannot faithfully cover,
+and the K-12 market case does not name a concrete quirk that meets the
+market-experience threshold. Rostering is a separate product surface,
+outside the SSO-login decision.
+
+**AWS Cognito.** Cognito is a conforming OIDC provider with issuer
+discovery. No protocol quirk requires an adapter. Broad adoption alone
+does not meet the market-experience bar, which this ADR sets against
+strategy sprawl.
+
+**A second generic OIDC gem (e.g. `omniauth_oidc`).** A second generic
+OIDC strategy is config-surface duplication without provider specificity.
+It carries the same hazards as the config-driven generic OAuth2 route
+this ADR rejects: arbitrary claims mapping and no reviewable provider
+contract. Generic OIDC is already the default; the way to improve it is
+to harden the single strategy, not to add another.
+
+**Keycloak.** Keycloak realms expose a validated OIDC issuer with
+discovery, and generic OIDC has been the standard integration route for
+years. Operator setup — realm URL in, discovery does the rest — is
+straightforward. No provider-specific protocol behavior is named that
+generic OIDC cannot supply, and self-hosted-IdP adoption alone does not
+clear the market-experience threshold.
+
 ## Related
 
 - [ADR-043: On Parity for Platform Level and Domain Level Functionality](adr-043-on-parity-for-platform-level-and-domain-level-functionality.md)
