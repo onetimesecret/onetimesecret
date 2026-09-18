@@ -70,11 +70,21 @@ module Billing
     # keys, which is O(N) over the entire keyspace and yields a "recent" view
     # only by accident.
     #
-    # The index is a rebuildable read cache — the object rows remain the code
+    # The index is a rebuildable read cache; the object rows remain the code
     # of record. On deploy the index is empty; the 5-day TTL means it reaches
     # full population within 5 days of continuous webhook traffic. Older event
     # rows written before this index existed are absent from admin listings
     # until they are re-written or expire.
+    #
+    # TEST-FIXTURE WARNING
+    # Bare +StripeWebhookEvent.new(...).save+ in test fixtures DOES NOT populate
+    # this index. Only the production write paths do: the sole writer is
+    # +Billing::StripeWebhookEvent.record_recent_index+, called by
+    # +Billing::WebhookValidator#initialize_event_record+ on first insert.
+    # Specs that exercise admin-visibility read paths (e.g. WebhookVisibility)
+    # must call +record_recent_index+ explicitly or drive the flow through
+    # +WebhookValidator+, or their assertions will pass vacuously against an
+    # empty sorted set.
     class_sorted_set :recent_events
 
     # Retention cap on the read index. Bounds Redis memory; older ids are

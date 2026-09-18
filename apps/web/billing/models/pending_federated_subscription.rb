@@ -58,8 +58,18 @@ module Billing
     # Onetime::Operations::Billing::WebhookVisibility instead of scanning
     # object keys.
     #
-    # The index is a rebuildable read cache — the pending rows remain the code
+    # The index is a rebuildable read cache; the pending rows remain the code
     # of record. On deploy the index is empty and populates as webhooks arrive.
+    #
+    # TEST-FIXTURE WARNING
+    # Bare +PendingFederatedSubscription.new(...).save+ in test fixtures DOES
+    # NOT populate this index. Only the production write paths do: the sole
+    # writer is +Billing::PendingFederatedSubscription.record_recent_index+,
+    # called by +Billing::PendingFederatedSubscription.store_from_webhook+
+    # after each save. Specs that exercise admin-visibility read paths (e.g.
+    # WebhookVisibility) must call +record_recent_index+ explicitly or drive
+    # the flow through +store_from_webhook+, or their assertions will pass
+    # vacuously against an empty sorted set.
     class_sorted_set :recent_records
 
     # Retention cap on the read index. Bounds Redis memory; older hashes are
