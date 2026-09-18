@@ -1164,6 +1164,9 @@ features:
     #   - caddy_on_demand: Use Caddy's on-demand TLS (requires internal ACME endpoint).
     #     Ownership is checked with our own DNS lookup of the domain's TXT
     #     challenge record; Caddy issuing a certificate does not verify a domain.
+    #     Resolving and SSL status come from our own A/AAAA lookup and a TLS
+    #     handshake to the domain on port 443, so the application host needs
+    #     outbound DNS and outbound TCP 443.
     validation_strategy: <%= ENV['DOMAINS_VALIDATION_STRATEGY'] || 'passthrough' %>  # Since v0.24.0
 
     # Approximated proxy configuration (required for 'approximated' strategy)
