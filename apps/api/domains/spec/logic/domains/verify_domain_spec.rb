@@ -60,6 +60,7 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
       instance_double(
         Onetime::Operations::VerifyDomain::Result,
         dns_validated: true,
+        dns_indeterminate: false,
         is_resolving: true,
       )
     end

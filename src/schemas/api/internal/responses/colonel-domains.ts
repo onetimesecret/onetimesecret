@@ -50,6 +50,8 @@ export const colonelDomainVerifyDetailsSchema = z.object({
   current_state: z.string(),
   changed: z.boolean(),
   dns_validated: z.boolean(),
+  dns_indeterminate: z.boolean().optional(),
+  dns_message: z.string().nullable().optional(),
   ssl_ready: z.boolean(),
   is_resolving: z.boolean(),
   error: z.string().nullable(),
