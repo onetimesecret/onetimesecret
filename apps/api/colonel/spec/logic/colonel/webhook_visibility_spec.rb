@@ -23,7 +23,7 @@ RSpec.describe 'Colonel webhook visibility adapters' do
   let(:page) do
     Onetime::Operations::Billing::WebhookVisibility::Page.new(
       rows: [{ event_id: 'evt_1' }], page: 1, per_page: 50,
-      total_count: 1, total_pages: 1, capped: true, stale_count: 0,
+      total_count: 1, total_pages: 1, capped: true, stale_count: 2,
     )
   end
 
@@ -49,9 +49,27 @@ RSpec.describe 'Colonel webhook visibility adapters' do
         record: {},
         details: {
           events: [{ event_id: 'evt_1' }],
-          pagination: { page: 1, per_page: 50, total_count: 1, total_pages: 1, capped: true },
+          pagination: {
+            page: 1, per_page: 50, total_count: 1, total_pages: 1,
+            capped: true, stale_count: 2,
+          },
+          capped: true,
+          stale_count: 2,
         },
       )
+    end
+
+    it 'surfaces stale_count at both pagination and details root' do
+      visibility = instance_double(Onetime::Operations::Billing::WebhookVisibility)
+      allow(Onetime::Operations::Billing::WebhookVisibility).to receive(:new).and_return(visibility)
+      allow(visibility).to receive(:list_webhook_events).and_return(page)
+
+      logic = described_class.new(strategy_result, {})
+      logic.raise_concerns
+      data = logic.process
+
+      expect(data[:details][:pagination]).to include(stale_count: 2)
+      expect(data[:details]).to include(stale_count: 2)
     end
 
     it 'refuses a non-colonel before reading Redis' do
@@ -72,7 +90,8 @@ RSpec.describe 'Colonel webhook visibility adapters' do
       data = logic.process
 
       expect(visibility).to have_received(:list_pending_federated_subscriptions).with(page: 0, per_page: 1000)
-      expect(data[:details][:pagination]).to include(capped: true)
+      expect(data[:details][:pagination]).to include(capped: true, stale_count: 2)
+      expect(data[:details]).to include(stale_count: 2)
       expect(data.to_s).not_to include('email_hash')
     end
   end

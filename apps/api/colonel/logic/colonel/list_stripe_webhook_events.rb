@@ -38,6 +38,8 @@ module ColonelAPI
             details: {
               events: result.rows,
               pagination: pagination,
+              capped: result.capped,
+              stale_count: result.stale_count,
             },
           }
         end
@@ -56,6 +58,9 @@ module ColonelAPI
             total_pages: result.total_pages,
             # The count is a lower bound when the bounded Redis walk stopped.
             capped: result.capped,
+            # Index entries on this page whose object no longer loads; they are
+            # pruned lazily, so a page can be short of `per_page` even mid-list.
+            stale_count: result.stale_count,
           }
         end
       end

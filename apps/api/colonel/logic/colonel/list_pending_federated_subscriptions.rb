@@ -43,7 +43,11 @@ module ColonelAPI
                 total_count: result.total_count,
                 total_pages: result.total_pages,
                 capped: result.capped,
+                # Index entries on this page whose object no longer loads.
+                stale_count: result.stale_count,
               },
+              capped: result.capped,
+              stale_count: result.stale_count,
             },
           }
         end
