@@ -517,6 +517,60 @@ RSpec.describe Billing::StripeWebhookEvent, type: :billing do
     end
   end
 
+  describe '.record_recent_index' do
+    before do
+      described_class.recent_events.clear
+    end
+
+    def build_event(id, first_seen_at)
+      event                = described_class.new(stripe_event_id: id)
+      event.first_seen_at  = first_seen_at.to_s
+      event
+    end
+
+    it 'adds the event id to recent_events at the first_seen_at score' do
+      seen  = Time.now.to_i
+      event = build_event(event_id, seen)
+
+      described_class.record_recent_index(event)
+
+      expect(described_class.recent_events.member?(event_id)).to be true
+      expect(described_class.recent_events.score(event_id)).to eq(seen.to_f)
+    end
+
+    it 'trims to INDEX_MAX_ENTRIES on every write' do
+      stub_const('::Billing::StripeWebhookEvent::INDEX_MAX_ENTRIES', 3)
+
+      base_time = Time.now.to_i
+      ids       = Array.new(4) { |i| ["evt_trim_#{i}", base_time + i] }
+      ids.each { |id, ts| described_class.record_recent_index(build_event(id, ts)) }
+
+      expect(described_class.recent_events.element_count).to eq(3)
+
+      # revrange returns newest-first; the oldest id (lowest score) must be gone
+      newest_ids = described_class.recent_events.revrange(0, -1)
+      expect(newest_ids).to eq(%w[evt_trim_3 evt_trim_2 evt_trim_1])
+      expect(described_class.recent_events.member?('evt_trim_0')).to be false
+    end
+
+    it 'swallows sorted-set write errors and warns' do
+      event = build_event(event_id, Time.now.to_i)
+
+      fake_set = double('recent_events')
+      allow(fake_set).to receive(:add).and_raise(RuntimeError.new('boom'))
+      allow(described_class).to receive(:recent_events).and_return(fake_set)
+
+      logger = double('billing_logger')
+      allow(Onetime).to receive(:billing_logger).and_return(logger)
+      expect(logger).to receive(:warn).with(
+        '[StripeWebhookEvent] recent index write failed',
+        hash_including(exception: 'RuntimeError', message: 'boom', event_id: event_id),
+      )
+
+      expect { described_class.record_recent_index(event) }.not_to raise_error
+    end
+  end
+
   describe 'circuit retry flow' do
     it 'schedules retry → processes on circuit recovery' do
       event = described_class.new(stripe_event_id: event_id)
