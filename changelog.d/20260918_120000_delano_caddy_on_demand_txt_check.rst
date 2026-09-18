@@ -148,6 +148,17 @@ Fixed
   unverified. One local negative no longer revokes an existing verification by
   itself; a definitive negative from Approximated still does.
 
+- Under the ``approximated`` strategy, a TXT check that could not reach
+  Approximated at all (no API key configured, a non-200 response, a network
+  error) is no longer reported as a failed check. The application does its
+  own lookup in those cases too, so a domain whose record is in place is
+  confirmed, a removed record is noticed, and only a domain whose native
+  lookup also produces no answer is reported as indeterminate and falls under
+  the 7-day confirmation window. An install whose Approximated API key is
+  missing or revoked keeps its domains verified through the native lookup. An
+  unexpected error during a verify is likewise reported as indeterminate
+  rather than failed.
+
 Documentation
 -------------
 
