@@ -178,6 +178,12 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
     expect(described_class.new(config).txt_verifier).to be_a(Onetime::DomainValidation::TxtVerifier)
   end
 
+  describe '#bulk_rate_limit' do
+    it 'paces bulk runs for the API rate cap' do
+      expect(strategy.bulk_rate_limit).to eq(0.5)
+    end
+  end
+
   describe '#validate_ownership' do
     context 'when API key is not configured' do
       before do
@@ -707,6 +713,12 @@ RSpec.describe Onetime::DomainValidation::PassthroughStrategy do
   let(:strategy) { described_class.new(config) }
   let(:custom_domain) { double('CustomDomain', display_domain: 'example.com') }
 
+  describe '#bulk_rate_limit' do
+    it 'declares no pacing' do
+      expect(strategy.bulk_rate_limit).to eq(0)
+    end
+  end
+
   describe '#validate_ownership' do
     it 'always returns validated true' do
       result = strategy.validate_ownership(custom_domain)
@@ -778,6 +790,12 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
   end
 
   before { allow(OT).to receive(:lw) }
+
+  describe '#bulk_rate_limit' do
+    it 'declares no pacing for its own lookups' do
+      expect(strategy.bulk_rate_limit).to eq(0)
+    end
+  end
 
   describe '#validate_ownership' do
     subject(:result) { strategy.validate_ownership(custom_domain) }

@@ -143,6 +143,19 @@ module Onetime
       def manages_certificates?
         false
       end
+
+      # Seconds a bulk run should pause between domains for this strategy.
+      #
+      # Pacing belongs to whatever the strategy talks to: a provider API with
+      # a request cap needs a pause, our own DNS and TLS lookups do not.
+      # VerifyDomain's bulk mode uses this unless the caller passes an
+      # explicit rate_limit.
+      #
+      # @return [Numeric] seconds; 0 means no pause
+      #
+      def bulk_rate_limit
+        0
+      end
     end
   end
 end
