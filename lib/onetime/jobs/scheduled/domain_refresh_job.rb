@@ -121,7 +121,8 @@ module Onetime
 
             scheduler_logger.info "[DomainRefreshJob] Done in #{result.duration_seconds}s — " \
                                   "verified=#{result.verified_count} failed=#{result.failed_count} " \
-                                  "indeterminate=#{result.indeterminate_count} demoted=#{result.demoted_count}"
+                                  "indeterminate=#{result.indeterminate_count} demoted=#{result.demoted_count} " \
+                                  "expired=#{result.confirmation_expired_count}"
           rescue StandardError => ex
             scheduler_logger.error "[DomainRefreshJob] Unexpected error: #{ex.class} - #{ex.message}"
             scheduler_logger.error ex.backtrace.first(5).join("\n") if OT.debug?
