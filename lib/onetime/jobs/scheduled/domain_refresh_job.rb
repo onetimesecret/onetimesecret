@@ -143,7 +143,7 @@ module Onetime
 
             Onetime::CustomDomain.load_multi(identifiers)
               .compact
-              .reject { |d| d.verified && d.resolving }
+              .reject { |d| d.verified && d.resolving } # boolean_field native
           end
 
           # The page is derived from the clock, so there is no position to
