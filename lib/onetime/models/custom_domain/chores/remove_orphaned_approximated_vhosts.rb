@@ -10,10 +10,12 @@
 #   Under the `approximated` strategy every custom domain gets a vhost on
 #   Approximated's cluster (VerifyDomain / Domains::Create store the API's
 #   `data` object verbatim in the `vhost` field). CaddyOnDemandStrategy and
-#   PassthroughStrategy implement #delete_vhost as a no-op and never write
-#   `vhost`, so after a cutover the remote vhost keeps existing (billable,
-#   and still able to terminate TLS for the hostname if DNS points there)
-#   and the record keeps advertising stale vhost data.
+#   PassthroughStrategy implement #delete_vhost as a no-op and never replace
+#   an Approximated `vhost` blob, so after a cutover the remote vhost keeps
+#   existing (billable, and still able to terminate TLS for the hostname if
+#   DNS points there) and the record keeps advertising stale vhost data.
+#   CaddyOnDemandStrategy does write its own status blob once the field is
+#   empty; that blob is marked `source: tls_probe` and is not vhost state.
 #
 # Deleting a vhost that still serves traffic is a customer outage that we
 # cannot undo without re-provisioning and a new certificate. Every guard
@@ -204,17 +206,35 @@ module Onetime
         !features.api_key.to_s.strip.empty?
       end
 
-      # 1c. `vhost` is only ever written from an Approximated API response
-      # (the other strategies return no :data), so any content is
-      # Approximated-era state. Unparseable content still counts.
+      # `source` value CaddyOnDemandStrategy::VHOST_SOURCE puts on the status
+      # blob it writes from its own probe. Approximated's payload has no
+      # `source` key.
+      PROBE_SOURCE = 'tls_probe'
+
+      # 1c. Apart from that probe blob, `vhost` is only ever written from an
+      # Approximated API response, so any other content is Approximated-era
+      # state. Unparseable content still counts.
       #
       # @param domain [Onetime::CustomDomain]
       # @return [Boolean]
       def vhost_state?(domain)
         raw = domain.vhost
+        return false if probe_blob?(domain, raw)
         return !raw.empty? if raw.is_a?(Hash)
 
         !['', '{}', 'null'].include?(raw.to_s.strip)
+      end
+
+      # The substring test keeps parse_vhost (which logs on bad JSON) away
+      # from unparseable Approximated-era content.
+      #
+      # @return [Boolean]
+      def probe_blob?(domain, raw)
+        return raw['source'] == PROBE_SOURCE if raw.is_a?(Hash)
+        return false unless raw.to_s.include?(PROBE_SOURCE)
+
+        stored = domain.parse_vhost
+        stored.is_a?(Hash) && stored['source'] == PROBE_SOURCE
       end
 
       # A renamed domain keeps the vhost JSON of its old hostname. Deleting by
