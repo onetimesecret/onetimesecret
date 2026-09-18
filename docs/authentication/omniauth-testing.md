@@ -89,6 +89,10 @@ tests/lanes/run full-sqlite
 # no mocks of ruby-saml
 tests/lanes/run unit --only spec/unit/onetime/sso_provider/request_bound_saml_spec.rb
 tests/lanes/run full-pg --only apps/web/auth/spec/integration/full/tenant_saml_sso_spec.rb
+# Platform surface: its own lane. The shared full lanes boot the saml route
+# as the tenant placeholder; this one boots with SAML_* set (the IdP keypair
+# is minted by the spec at load time — no key material is checked in).
+tests/lanes/run full-saml-platform
 try --agent try/unit/security/saml_assertion_replay_guard_try.rb
 ```
 

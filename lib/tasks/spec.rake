@@ -289,6 +289,34 @@ namespace :spec do
       sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database #{rspec_format_options('mfa')}"
     end
 
+    desc 'Run full-mode specs with the PLATFORM SAML provider configured (own process)'
+    task 'full:saml_platform' do
+      # Own process for the same one-shot reason as full:mfa (#4450):
+      # configure_provider reads SAML_* when Auth::Config configures, and with
+      # them set the saml route registers with REAL trust anchors instead of
+      # the tenant placeholder. The shared full lanes assert the placeholder
+      # (canonical host 404 / refused), so the two cannot share a boot.
+      # SAML_IDP_CERT is installed by the spec itself before the first boot
+      # from a keypair it mints (no key material is checked in). Keep
+      # identical to tests/lanes/full-saml-platform/env.
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'full',
+        'AUTH_DATABASE_URL' => 'sqlite::memory:',
+        'ORGS_SSO_ENABLED' => 'true',
+        'AUTH_SSO_ENABLED' => 'true',
+        'SAML_IDP_SSO_SERVICE_URL' => 'https://login.platform-idp.test/saml/sso',
+        'SAML_IDP_ENTITY_ID' => 'https://platform-idp.test/saml/metadata',
+      }
+
+      patterns = Dir.glob('apps/*/*/spec/integration/full_saml_platform')
+      if patterns.empty?
+        abort '[spec:integration:full:saml_platform] no apps/*/*/spec/integration/full_saml_platform directories found'
+      end
+
+      sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database #{rspec_format_options('saml_platform')}"
+    end
+
     desc 'Run full mode with PostgreSQL (PG-only specs)'
     task 'full:postgres' do
       env      = {
@@ -382,10 +410,10 @@ namespace :spec do
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'
-    task all: INTEGRATION_MODES + ['full:mfa']
+    task all: INTEGRATION_MODES + ['full:mfa', 'full:saml_platform']
 
     desc 'Run all integration tests including Postgres'
-    task 'all:with_postgres': INTEGRATION_MODES + ['full:mfa', 'full:postgres']
+    task 'all:with_postgres': INTEGRATION_MODES + ['full:mfa', 'full:saml_platform', 'full:postgres']
   end
 
   # API contract specs (spec/api/) are organized by API surface and version

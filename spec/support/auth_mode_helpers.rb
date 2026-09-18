@@ -292,6 +292,30 @@ module AuthModeHelpers
       ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.split.uniq
     end
 
+    # Onetime::AuthConfig#sso_idp_origins (#4450): the PLATFORM IdP origins a
+    # cross-site POST callback may carry as Origin
+    # (Onetime::Middleware::HttpOriginOptions.sso_callback_from_configured_idp?).
+    # Env-aware like the flags above: production's own gate (sso_enabled?,
+    # then the definition's required vars present and :vars_valid) and
+    # production's own per-definition derivation (provider_origin ->
+    # origin_from_url), delegated to the real methods so the mock cannot
+    # drift, over the raw registry (the display-name rewrite
+    # provider_definitions applies to OIDC does not touch origins). The
+    # full-saml-platform lane is the one process that boots with a platform
+    # provider's vars set and needs its HTTP-POST callback admitted.
+    def sso_idp_origins
+      override = sso_form_action_origins
+      return override unless sso_enabled?
+
+      derived = Onetime::SsoProvider::Registry::DEFINITIONS.filter_map do |defn|
+        next unless tenant_origin_delegate.send(:provider_active?, defn)
+
+        tenant_origin_delegate.send(:provider_origin, defn)
+      end
+
+      (derived + override).uniq
+    end
+
     # Onetime::AuthConfig#tenant_idp_origin (#4173), delegated to the REAL
     # pure function so specs that mount Onetime::Middleware::TenantCspExtras
     # don't NoMethodError — and so the mock can never drift from production's

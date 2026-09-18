@@ -498,8 +498,13 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
 
   # ── HttpOrigin admission of the tenant IdP ────────────────────────────────
   #
-  # Rack::Protection::HttpOrigin is not mounted in the test stack
-  # (http_origin=false), so the callbacks above never met it. This drives the
+  # Rack::Protection::HttpOrigin IS mounted on the auth app in every
+  # environment (the :authenticated_web middleware profile,
+  # lib/onetime/application/middleware_profile.rb), so the cross-site POST
+  # callbacks above only passed because the tenant allowance admitted the
+  # IdP Origin they carry — a callback with an unadmitted Origin is 403
+  # "Forbidden" before OmniAuth runs (the platform e2e hit exactly that until
+  # MockAuthConfig#sso_idp_origins became env-aware). This block drives the
   # allowance itself against the REAL records — TenantSsoResolution, the
   # AAD-bound encrypted SSO URL, and whichever auth_config the lane boots
   # (MockAuthConfig delegates to the production derivation). The middleware
