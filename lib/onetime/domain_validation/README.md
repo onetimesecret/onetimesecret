@@ -74,7 +74,7 @@ features:
 
 Changing `validation_strategy` away from `approximated` does not delete anything on Approximated. Each domain provisioned before the change keeps its vhost there (billable, and able to serve the hostname for as long as DNS points at the cluster) and keeps the old `vhost` JSON on its `CustomDomain` record. The `remove_orphaned_approximated_vhosts` housekeeping chore cleans both up.
 
-Keep `approximated.api_key` and `proxy_ip` / `proxy_host` configured after the cutover. The chore needs the key to delete and the proxy address to tell which domains still point at the cluster.
+Keep `approximated.api_key` and `proxy_ip` / `proxy_host` configured after the cutover. The chore needs the key to delete and the proxy address to tell which domains still point at the cluster. `proxy_ip` may list several entries separated by commas or spaces; each is a single address or a CIDR range such as `203.0.113.0/24`.
 
 ```bash
 # Dry run (default): lists deletion candidates, makes no Approximated API call
@@ -88,7 +88,7 @@ A vhost is deleted only when the domain resolves, from this host, to addresses o
 
 Under `caddy_on_demand` a domain's SSL status on the domain pages keeps showing the old Approximated data until the chore has cleared its `vhost` JSON; the status probe fills the field from then on (see Status check). `resolving` is updated by the probe regardless. The chore ignores `vhost` JSON the probe wrote (`source: tls_probe`).
 
-Re-run until the dry run reports no candidates. Domains that are skipped every time (no DNS answer, proxied, renamed) need a manual decision in the Approximated dashboard.
+Re-run until the dry run reports no candidates. Domains that are skipped every time (no DNS answer, proxied, renamed, or a stored `vhost` value that is not valid JSON, which is logged as a warning) need a manual decision in the Approximated dashboard.
 
 ## Files
 
