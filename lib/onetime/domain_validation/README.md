@@ -74,7 +74,7 @@ features:
 
 Changing `validation_strategy` away from `approximated` does not delete anything on Approximated. Each domain provisioned before the change keeps its vhost there (billable, and able to serve the hostname for as long as DNS points at the cluster) and keeps the old `vhost` JSON on its `CustomDomain` record. The `remove_orphaned_approximated_vhosts` housekeeping chore cleans both up.
 
-Keep `approximated.api_key` and `proxy_ip` / `proxy_host` configured after the cutover. The chore needs the key to delete and the proxy address to tell which domains still point at the cluster. `proxy_ip` may list several entries separated by commas or spaces; each is a single address or a CIDR range such as `203.0.113.0/24`.
+Keep `approximated.api_key` and `proxy_ip` / `proxy_host` configured after the cutover. The chore needs the key to delete and the proxy address to tell which domains still point at the cluster. The chore reads `proxy_ip` as one or more entries separated by commas or spaces, each a single address or a CIDR range such as `203.0.113.0/24`. The same value is shown to customers as the A record target in the domain setup screens, so only widen it once no domain is still being set up against Approximated.
 
 ```bash
 # Dry run (default): lists deletion candidates, makes no Approximated API call
