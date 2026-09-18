@@ -136,6 +136,12 @@ RSpec.describe 'PendingFederation: Webhook Storage', :integration, :process_webh
         expect(pending.received_at.to_i).to eq(Time.now.to_i)
       end
     end
+
+    it 'stores the source Stripe webhook event ID' do
+      operation.call
+      pending = track_pending(Billing::PendingFederatedSubscription.find_by_email_hash(email_hash))
+      expect(pending.source_stripe_event_id).to eq(event.id)
+    end
   end
 
   describe 'duplicate webhooks: idempotent storage' do

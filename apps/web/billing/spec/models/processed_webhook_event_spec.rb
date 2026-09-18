@@ -38,7 +38,16 @@ RSpec.describe Billing::StripeWebhookEvent, type: :billing do
       expect(reloaded.livemode).to eq('false')
       expect(reloaded.data_object_id).to eq('sub_test123')
       expect(reloaded.processing_status).to eq('pending')
+      expect(reloaded.processing_outcome).to be_nil
       expect(reloaded.event_payload).to eq('{"id":"evt_123"}')
+    end
+
+    it 'persists a semantic processing outcome' do
+      event = described_class.new(stripe_event_id: event_id)
+      event.record_processing_outcome!(:pending_stored)
+
+      reloaded = described_class.find_by_identifier(event_id)
+      expect(reloaded.processing_outcome).to eq('pending_stored')
     end
 
     it 'persists processing state fields' do
@@ -195,6 +204,14 @@ RSpec.describe Billing::StripeWebhookEvent, type: :billing do
 
         reloaded = described_class.find_by_identifier(event_id)
         expect(reloaded.processed_at.to_i).to be >= before
+      end
+
+      it 'stores the semantic outcome' do
+        event = described_class.new(stripe_event_id: event_id)
+        event.mark_success!(outcome: :owner_only)
+
+        reloaded = described_class.find_by_identifier(event_id)
+        expect(reloaded.processing_outcome).to eq('owner_only')
       end
     end
 

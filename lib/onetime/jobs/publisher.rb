@@ -249,6 +249,9 @@ module Onetime
             context: { source: :sync_fallback },
           ).call
 
+          Billing::StripeWebhookEvent.find_by_identifier(event.id)
+            &.record_processing_outcome!(result)
+
           logger.info 'Billing event processed synchronously',
             event_id: event.id,
             event_type: event.type,

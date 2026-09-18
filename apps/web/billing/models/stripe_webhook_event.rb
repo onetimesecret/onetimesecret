@@ -75,8 +75,9 @@ module Billing
     field :processed_at      # Timestamp when successfully processed
     field :first_seen_at     # Timestamp when first received
     field :last_attempt_at   # Timestamp of most recent processing attempt
-    field :attempt_count     # Number of webhook delivery attempts (default: 0)
-    field :error_message     # Error details if processing failed
+    field :attempt_count       # Number of webhook delivery attempts (default: 0)
+    field :error_message       # Error details if processing failed
+    field :processing_outcome  # Semantic result returned by ProcessWebhookEvent
 
     # ========================================
     # Stripe Event Metadata
@@ -250,19 +251,31 @@ module Billing
     # Increments attempt count and updates timestamp
     # @return [Boolean] True if save succeeded
     def mark_processing!
-      self.processing_status = 'pending'
-      self.last_attempt_at   = Time.now.to_i.to_s
-      self.attempt_count     = (attempt_count.to_i + 1).to_s
+      self.processing_status  = 'pending'
+      self.last_attempt_at    = Time.now.to_i.to_s
+      self.attempt_count      = (attempt_count.to_i + 1).to_s
+      self.processing_outcome = nil
+      save
+    end
+
+    # Persist the semantic result returned by ProcessWebhookEvent.
+    #
+    # @param outcome [Symbol, String, nil] Semantic processing result
+    # @return [Boolean] True if save succeeded
+    def record_processing_outcome!(outcome)
+      self.processing_outcome = outcome&.to_s
       save
     end
 
     # Mark event as successfully processed
     # Clears any previous errors
+    # @param outcome [Symbol, String, nil] Semantic processing result
     # @return [Boolean] True if save succeeded
-    def mark_success!
-      self.processing_status = 'success'
-      self.processed_at      = Time.now.to_i.to_s
-      self.error_message     = nil # Clear any previous errors
+    def mark_success!(outcome: nil)
+      self.processing_status  = 'success'
+      self.processed_at       = Time.now.to_i.to_s
+      self.error_message      = nil # Clear any previous errors
+      self.processing_outcome = outcome&.to_s
       save
     end
 
