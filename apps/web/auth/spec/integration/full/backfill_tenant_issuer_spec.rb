@@ -702,6 +702,43 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
       expect(new_operation(google, issuer: override).issuer).to eq(override)
     end
 
+    # #4450. The tenant callback only ever keys a SAML identity on
+    # "<domain_id>|<EntityID>", so an override in any other shape would
+    # stamp rows no sign-in can match. It is refused, not auto-scoped.
+    describe 'saml --issuer override' do
+      let(:tenant) { build_tenant(provider_type: 'saml', issuer: nil, idp_entity_id: 'urn:example:IdP/Tenant-A') }
+      let(:scoped) { "#{tenant.domain.identifier}|https://idp.example.com/saml/metadata" }
+
+      it 'accepts the domain-scoped form verbatim (not double-prefixed)' do
+        expect(new_operation(tenant, issuer: scoped).issuer).to eq(scoped)
+        expect(new_operation(tenant, issuer: " #{scoped} ").issuer).to eq(scoped)
+      end
+
+      it 'refuses a bare EntityID, naming the scoped form with this domain id' do
+        expect { new_operation(tenant, issuer: 'https://idp.example.com/saml/metadata') }
+          .to raise_error(Onetime::Problem) { |ex|
+            expect(ex.message).to include('never the bare EntityID')
+            expect(ex.message).to include(%("#{tenant.domain.identifier}|<EntityID>"))
+          }
+      end
+
+      it 'refuses a scoped form for a different domain' do
+        expect { new_operation(tenant, issuer: 'otherdomainid|https://idp.example.com/saml/metadata') }
+          .to raise_error(Onetime::Problem, /never the bare EntityID/)
+      end
+
+      it 'refuses the prefix with nothing after it' do
+        expect { new_operation(tenant, issuer: "#{tenant.domain.identifier}| ") }
+          .to raise_error(Onetime::Problem, /empty EntityID/)
+      end
+
+      it 'names the scoped form when the record has no idp_entity_id' do
+        bare = build_tenant(provider_type: 'saml', issuer: nil)
+        expect { new_operation(bare) }
+          .to raise_error(Onetime::Problem, /#{Regexp.escape(bare.domain.identifier)}\|<EntityID>/)
+      end
+    end
+
     it 'exposes sso_enabled? and constructs (non-fatally) for a disabled config' do
       expect(new_operation(build_tenant).sso_enabled?).to be true
       disabled = build_tenant(enabled: false)

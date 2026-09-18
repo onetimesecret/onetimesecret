@@ -33,7 +33,8 @@ module Onetime
       option :issuer,
         type: :string,
         default: nil,
-        desc: 'Operator override for the issuer to stamp (required/recommended for Entra)'
+        desc: 'Operator override for the issuer to stamp (required/recommended for Entra; ' \
+              'for saml must be the domain-scoped "<domain_id>|<EntityID>")'
 
       option :confirm,
         type: :boolean,
@@ -249,9 +250,11 @@ module Onetime
             so the exact tenant lookup matches again.
 
             Only oidc, entra_id and saml domains are eligible — the only configurable
-            tenant provider types since #3902 (saml: #4450, issuer = IdP EntityID). Pre-#3902 issuerless records
-            (google/github) resolved to the '' sentinel at callback time, so
-            their legacy rows already match and are refused.
+            tenant provider types since #3902. For saml (#4450) the issuer is the
+            IdP EntityID scoped to the domain, "<domain_id>|<EntityID>" — never
+            the bare EntityID. Pre-#3902 issuerless records (google/github)
+            resolved to the '' sentinel at callback time, so their legacy rows
+            already match and are refused.
 
             Scoping is per-row and fail-closed: a row is stamped ONLY when it passes
             BOTH gates —
@@ -267,9 +270,12 @@ module Onetime
             DOMAIN                  Display name (secrets.example.com) or CustomDomain extid
 
           Options:
-            --issuer URL            Override the issuer to stamp. REQUIRED/recommended
+            --issuer ISSUER         Override the issuer to stamp. REQUIRED/recommended
                                     for Entra, whose live `iss` is
-                                    https://login.microsoftonline.com/{tenant_id}/v2.0
+                                    https://login.microsoftonline.com/{tenant_id}/v2.0.
+                                    For saml it must be the domain-scoped form
+                                    "<domain_id>|<EntityID>"; a bare EntityID is
+                                    refused (no tenant sign-in could match it)
             --confirm               Execute changes (default is dry-run)
             --json                  JSON output (for scripting)
             --help, -h              Show this help message
