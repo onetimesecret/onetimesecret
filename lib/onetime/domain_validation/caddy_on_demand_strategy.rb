@@ -95,12 +95,14 @@ module Onetime
       # How each answer reaches storage (VerifyDomain#persist_changes):
       #
       #   is_resolving  true/false is stored in `resolving`; nil is skipped.
-      #   has_ssl       lives only inside the `vhost` blob (:data). :data is
-      #                 normally returned only when has_ssl is known. After an
-      #                 Approximated cutover, a known resolution result also
-      #                 replaces stale UI state and carries an internal marker
-      #                 so RemoveOrphanedApproximatedVhosts can still clean up
-      #                 the remote vhost.
+      #   has_ssl       lives only inside the `vhost` blob (:data). The blob
+      #                 is rewritten on every check that knows is_resolving,
+      #                 so its status and is_resolving never disagree with
+      #                 `resolving`. When has_ssl is unknown, a blob already
+      #                 owned by this strategy carries its stored SSL fields.
+      #                 After an Approximated cutover, stale UI state is not
+      #                 carried; it is replaced with current probe state plus
+      #                 an internal marker for orphaned-vhost cleanup.
       #   both nil      no :mode and no :data, the same shape Approximated
       #                 returns when its API call fails: nothing stored
       #                 changes and vhost_fetch_failed_at is set, which the UI
@@ -127,8 +129,13 @@ module Onetime
         owns_vhost      = owns_vhost?(custom_domain)
         cleanup_pending = approximated_cleanup_pending?(custom_domain) || !owns_vhost
 
-        if !result.has_ssl.nil? || (!owns_vhost && !result.is_resolving.nil?)
-          status[:data] = vhost_data(custom_domain, result, cleanup_pending: cleanup_pending)
+        unless result.is_resolving.nil?
+          status[:data] = vhost_data(
+            custom_domain,
+            result,
+            carry_stored_ssl: owns_vhost,
+            cleanup_pending: cleanup_pending,
+          )
         end
         status
       rescue StandardError => ex
@@ -238,27 +245,42 @@ module Onetime
       # The subset of Approximated's vhost payload the domain pages read,
       # filled from the probe. `status` reuses Approximated's values where the
       # UI keys off them (ACTIVE_SSL -> active, DNS_INCORRECT -> warning).
-      def vhost_data(custom_domain, result, cleanup_pending: false)
-        certificate = result.certificate
-        status      = if result.has_ssl then 'ACTIVE_SSL'
-                      elsif result.is_resolving then 'PENDING_SSL'
-                      else
-                        'DNS_INCORRECT'
-                      end
+      def vhost_data(custom_domain, result, carry_stored_ssl:, cleanup_pending: false)
+        ssl    = ssl_fields(custom_domain, result, carry_stored: carry_stored_ssl)
+        status = if ssl['has_ssl'] == true then 'ACTIVE_SSL'
+                 elsif result.is_resolving then 'PENDING_SSL'
+                 else
+                   'DNS_INCORRECT'
+                 end
 
         {
           'incoming_address' => custom_domain.display_domain,
           'status' => status,
           'status_message' => result.message,
-          'has_ssl' => result.has_ssl,
           'is_resolving' => result.is_resolving,
           'dns_pointed_at' => result.connected_to || result.addresses.first,
-          'ssl_active_from' => iso8601(certificate&.not_before),
-          'ssl_active_until' => iso8601(certificate&.not_after),
           'last_monitored_unix' => OT.now.to_i,
           'source' => VHOST_SOURCE,
           APPROXIMATED_CLEANUP_PENDING => (true if cleanup_pending),
-        }.compact
+        }.merge(ssl).compact
+      end
+
+      # has_ssl and certificate dates come from the probe when it knows. An
+      # unknown result carries fields only from a blob this strategy owns;
+      # Approximated-era values would otherwise keep stale active UI state.
+      def ssl_fields(custom_domain, result, carry_stored:)
+        if result.has_ssl.nil?
+          return {} unless carry_stored
+
+          stored = custom_domain.parse_vhost
+          return stored.is_a?(Hash) ? stored.slice('has_ssl', 'ssl_active_from', 'ssl_active_until') : {}
+        end
+
+        {
+          'has_ssl' => result.has_ssl,
+          'ssl_active_from' => iso8601(result.certificate&.not_before),
+          'ssl_active_until' => iso8601(result.certificate&.not_after),
+        }
       end
 
       def iso8601(time)

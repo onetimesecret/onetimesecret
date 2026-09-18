@@ -1098,9 +1098,53 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
     context 'when the domain resolves but the certificate could not be checked' do
       before { stub_probe(is_resolving: true, has_ssl: nil, addresses: ['10.0.0.5']) }
 
-      it 'reports resolving and leaves the vhost payload out so has_ssl is not overwritten' do
+      it 'reports resolving with has_ssl unknown' do
         expect(result).to include(ready: false, is_resolving: true, has_ssl: nil, mode: 'caddy_on_demand')
-        expect(result).not_to have_key(:data)
+      end
+
+      context 'with nothing stored yet' do
+        it 'writes a blob that says resolving and makes no has_ssl claim' do
+          expect(result[:data]).to include('status' => 'PENDING_SSL', 'is_resolving' => true, 'source' => 'tls_probe')
+          expect(result[:data]).not_to have_key('has_ssl')
+        end
+      end
+
+      # Checked once before its A record existed, then from a host that cannot
+      # reach port 443 on it: `resolving` becomes true, and the blob the UI
+      # reads must not go on saying DNS_INCORRECT.
+      context 'with a stored blob from before the name resolved' do
+        let(:stored_vhost) do
+          { 'source' => 'tls_probe', 'status' => 'DNS_INCORRECT', 'is_resolving' => false, 'has_ssl' => false }
+        end
+
+        it 'refreshes status and is_resolving and leaves has_ssl as stored' do
+          expect(result[:data]).to include('status' => 'PENDING_SSL', 'is_resolving' => true, 'has_ssl' => false)
+          expect(result[:data]['last_monitored_unix']).to be_a(Integer)
+        end
+      end
+
+      context 'with a stored blob that recorded a valid certificate' do
+        let(:stored_vhost) do
+          { 'source' => 'tls_probe', 'status' => 'ACTIVE_SSL', 'is_resolving' => true, 'has_ssl' => true,
+            'ssl_active_from' => '2026-09-01T00:00:00Z', 'ssl_active_until' => '2026-11-30T00:00:00Z' }
+        end
+
+        it 'carries has_ssl and the certificate dates forward' do
+          expect(result[:data]).to include(
+            'status' => 'ACTIVE_SSL',
+            'has_ssl' => true,
+            'ssl_active_from' => '2026-09-01T00:00:00Z',
+            'ssl_active_until' => '2026-11-30T00:00:00Z',
+          )
+        end
+      end
+
+      context 'with an Approximated vhost blob stored' do
+        let(:stored_vhost) { { 'id' => 123, 'status' => 'ACTIVE_SSL' } }
+
+        it 'leaves the blob for the cleanup chore' do
+          expect(result).not_to have_key(:data)
+        end
       end
     end
 
