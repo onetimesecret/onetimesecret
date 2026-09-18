@@ -54,10 +54,11 @@ in `write_session`), and this contract follows that precedent.
 
 ## Decision
 
-A session is ordered when its session blob marks it authenticated or awaiting
-MFA. These are the sessions whose tabs refresh. Every complete bootstrap
-payload for an ordered session will include these ordering fields through both
-the HTML hydration payload and `GET /bootstrap/me`:
+A session is ordered when its loaded session state marks it authenticated or
+awaiting MFA. `awaiting_mfa` may be sidecar-backed rather than present in the
+serialized session blob. These are the sessions whose tabs refresh. Every
+complete bootstrap payload for an ordered session will include these ordering
+fields through both the HTML hydration payload and `GET /bootstrap/me`:
 
 - `snapshot_epoch`: an opaque, unpredictable identifier for the current
   session-ID lifetime;
@@ -127,9 +128,9 @@ accepted response arrived, and discards the rest. The allocation steps are:
 1. It will derive `snapshot_epoch` from the current session ID with a
    domain-separated HMAC-SHA256 keyed by the application secret, truncated to
    128 bits and encoded as lowercase hexadecimal. The raw bearer session ID
-   will never enter the payload. The same SID therefore produces a stable,
-   opaque epoch, while session renewal produces a different epoch without
-   migration state.
+   will never enter the payload. With an unchanged application secret, the same
+   SID produces a stable, opaque epoch; session renewal derives a new epoch
+   without migration state.
 2. `snapshot_version` will use one registered sidecar key bound to the current
    session ID, under a new registry policy, `counter: true`. A counter field
    holds a bare Redis integer, not a JSON or codec envelope. It is not
@@ -285,11 +286,14 @@ documented behaviour and guidance instead of a project-specific mechanism:
   dialog text cannot be customized.
 - Without sticky activation there is no prompt, and also no typed input to
   lose. A tab the user never touched reloads silently.
-- If the user cancels the prompt, the client must not retry the reload. It
-  stays in a stale-session state: ordinary refreshes remain stopped, no
-  snapshot is applied, and a persistent notice states that the page must be
-  reloaded. The user can copy their input and reload when ready.
-- The client records the time of each forced page load in a per-tab
+- Browsers do not report whether a `beforeunload` prompt was cancelled. Before
+  calling `window.location.reload()`, the client must synchronously enter the
+  stale-session state: ordinary refreshes remain stopped, no snapshot is
+  applied, and a persistent notice states that the page must be reloaded. If
+  the navigation proceeds, it discards that state. If the user cancels the
+  prompt, the state remains visible and the client does not retry the reload.
+  The user can copy their input and reload when ready.
+- The client records the time of each forced page-load attempt in a per-tab
   `sessionStorage` marker. If another forced page load is demanded within one
   minute of the last, the client enters the stale-session state instead of
   reloading. This bounds a reload loop whatever its cause.
@@ -299,9 +303,12 @@ documented behaviour and guidance instead of a project-specific mechanism:
   because it would write unsubmitted secrets to browser storage. Where the
   browser skips the prompt, a forced page load can still discard input.
 
-Only `DomainBrand.vue` registers a `beforeunload` guard today. The secret
-creation form has none, so the guard is new work for every view whose input
-this path could discard.
+Only `DomainBrand.vue` has a `beforeunload` guard today. It installs its
+listener when the component mounts and removes it on unmount; its handler
+returns unless there are unsaved changes. It therefore does not yet meet this
+contract's conditional-registration requirement. The secret creation form has
+no guard, so the shared guard is new work for every view whose input this path
+could discard.
 
 ### Downgrade guard
 
@@ -370,10 +377,10 @@ permitted transitions between epochs.
   shows no `beforeunload` prompt: on mobile platforms, or in any view that has
   not adopted the shared guard. Secret drafts are deliberately not persisted
   to browser storage, so there is no recovery after the reload.
-- **Risk:** `snapshot_epoch` is a stable per-session identifier, and
-  diagnostics record it. It is not a credential and cannot be reversed to the
-  session ID, but it correlates one session's events and must be treated as
-  such wherever diagnostics are stored.
+- **Risk:** `snapshot_epoch` is a stable per-session identifier while the
+  application secret remains unchanged, and diagnostics record it. It is not a
+  credential and cannot be reversed to the session ID, but it correlates one
+  session's events and must be treated as such wherever diagnostics are stored.
 - **Risk:** Rotating the application secret changes every epoch. Every open
   tab with an ordered session takes the session-replacement path at its next
   refresh. The refresh interval's jitter spreads those page loads, and
