@@ -256,7 +256,7 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
     # tenant on 2026-09-18; treating it as a mismatch demoted the domain on
     # every refresh run.
     context 'when the checker answers 200 but its own lookup failed (actual_values: false)' do
-      let(:api_response) do
+      let(:primary_response) do
         double('Response',
                code: 200,
                parsed_response: {
@@ -266,12 +266,25 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
                  ]
                })
       end
+      let(:probe_actual_values) { [] }
+      let(:probe_response) do
+        double('Response',
+               code: 200,
+               parsed_response: {
+                 'records' => [
+                   { 'actual_values' => probe_actual_values, 'match' => false, 'type' => 'TXT' }
+                 ]
+               })
+      end
       let(:native_values) { [] }
       let(:resolver) { instance_double(Resolv::DNS, :timeouts= => nil, close: nil) }
 
       before do
-        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
-          .and_return(api_response)
+        call_count = 0
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly) do
+          call_count += 1
+          call_count == 1 ? primary_response : probe_response
+        end
         allow(OT).to receive(:lw)
         allow(Resolv::DNS).to receive(:new).and_return(resolver)
         allow(resolver).to receive(:getresources)
@@ -292,6 +305,63 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
         expect(result[:data].first['actual_values']).to be false
       end
 
+      it 'reports the NXDOMAIN probe outcome (:distinguishes when the sentinel returns [])' do
+        result = strategy.validate_ownership(custom_domain)
+        expect(result[:nxdomain_probe]).to eq(:distinguishes)
+        expect(result[:message]).to include('distinguishes')
+      end
+
+      context 'and the NXDOMAIN probe returns actual_values: false (checker conflates)' do
+        let(:probe_response) do
+          double('Response',
+                 code: 200,
+                 parsed_response: {
+                   'records' => [
+                     { 'actual_values' => false, 'match' => false, 'type' => 'TXT' }
+                   ]
+                 })
+        end
+
+        it 'stays indeterminate and flags that deleted TXT records cannot be demoted' do
+          result = strategy.validate_ownership(custom_domain)
+          expect(result[:validated]).to be_nil
+          expect(result[:indeterminate]).to be true
+          expect(result[:nxdomain_probe]).to eq(:conflates)
+          expect(result[:message]).to include('conflates')
+        end
+      end
+
+      context 'and the NXDOMAIN probe itself is inconclusive' do
+        before do
+          allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
+            .and_return(primary_response, double('Response', code: 500, parsed_response: {}))
+        end
+
+        it 'stays indeterminate with :unknown probe outcome' do
+          result = strategy.validate_ownership(custom_domain)
+          expect(result[:validated]).to be_nil
+          expect(result[:nxdomain_probe]).to eq(:unknown)
+        end
+      end
+
+      context 'and the NXDOMAIN probe raises' do
+        before do
+          call_count = 0
+          allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly) do
+            call_count += 1
+            raise StandardError, 'probe boom' if call_count == 2
+
+            primary_response
+          end
+        end
+
+        it 'swallows the probe error and stays indeterminate' do
+          result = strategy.validate_ownership(custom_domain)
+          expect(result[:validated]).to be_nil
+          expect(result[:nxdomain_probe]).to eq(:unknown)
+        end
+      end
+
       context 'and the native lookup returns exactly the challenge value' do
         let(:native_values) { ['validation123'] }
 
@@ -299,6 +369,12 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
           result = strategy.validate_ownership(custom_domain)
           expect(result[:validated]).to be true
           expect(result[:source]).to eq('native')
+        end
+
+        it 'does not issue a NXDOMAIN probe when the native lookup promotes' do
+          expect(Onetime::DomainValidation::ApproximatedClient)
+            .to receive(:check_records_match_exactly).once.and_return(primary_response)
+          strategy.validate_ownership(custom_domain)
         end
       end
 
@@ -321,8 +397,17 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
 
     context 'when the 200 payload carries no records' do
       before do
-        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
-          .and_return(double('Response', code: 200, parsed_response: {}))
+        call_count = 0
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly) do
+          call_count += 1
+          if call_count == 1
+            double('Response', code: 200, parsed_response: {})
+          else
+            double('Response', code: 200, parsed_response: {
+              'records' => [{ 'actual_values' => [], 'match' => false, 'type' => 'TXT' }]
+            })
+          end
+        end
         allow(OT).to receive(:lw)
         allow(Resolv::DNS).to receive(:new)
           .and_return(instance_double(Resolv::DNS, :timeouts= => nil, close: nil, getresources: []))
