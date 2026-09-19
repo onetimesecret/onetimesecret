@@ -34,6 +34,16 @@ module Onetime
   # The predicate is read at each decision, never cached. If one Rack env is
   # dispatched to a second route, the second route's declaration governs from
   # that point on.
+  #
+  # ## Refused requests
+  #
+  # "A refused request is not activity" is the older half of the same rule
+  # (#4331): a request the session gates turned away must not advance the
+  # deadline it was turned away under, or the refusal would only ever cost
+  # one 401. {.refused?} reads the two places a refusal is recorded, and
+  # {.counts?} is the single question the two session-store writers ask.
+  # The gate does not ask it: it produces the refusal, and already refuses
+  # before it touches.
   module SessionActivity
     extend self
 
@@ -51,6 +61,33 @@ module Onetime
       return false unless options.is_a?(Hash)
 
       options[OPTION] == PASSIVE
+    end
+
+    # True when a session gate refused this request: the shared evaluator
+    # rejected the customer session or could not verify it, or the
+    # admin-surface bounds (#4331) flagged it. The Rack session blob still
+    # says `authenticated` in every one of these cases, which is why the
+    # writers cannot tell from the session data alone.
+    #
+    # An anonymous or MFA-pending verdict is not a refusal. A login that
+    # completes inside such a request clears the memo and writes an
+    # authenticated session, and that write is activity.
+    #
+    # The constants are resolved here, at call time, because the evaluator
+    # requires the gate and the gate requires this file.
+    def refused?(env)
+      return false unless env.is_a?(Hash)
+      return true unless env[Onetime::Application::AuthStrategies::AdminSessionLifetime::EXPIRED_ENV_KEY].nil?
+
+      verdict = env[Onetime::CustomerSessionEvaluator::ENV_KEY]
+      return false unless verdict.respond_to?(:rejected?) && verdict.respond_to?(:unavailable?)
+
+      verdict.rejected? || verdict.unavailable?
+    end
+
+    # Whether this request may move an inactivity clock.
+    def counts?(env)
+      !passive?(env) && !refused?(env)
     end
   end
 end
