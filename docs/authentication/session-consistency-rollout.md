@@ -68,8 +68,18 @@ and continue unordered.
 - **Traffic.** A normal page load makes no `GET /bootstrap/me` request. Expect
   that endpoint's request rate, and the `Bootstrap verification` line count, to
   drop.
-- **Caching.** `/auth` responses send `Cache-Control: private, no-store` by
-  default. Confirm no intermediary overrides it.
+- **Caching.** `/auth` responses, and every `/api` response that sets no
+  policy of its own, send `Cache-Control: private, no-store`. Confirm no
+  intermediary overrides it.
+- **Ended sessions leave a marker.** Logout and revocation write
+  `ended_sid:<digest>` to the datastore with a 5-minute TTL. It holds no
+  session id. A `Session write refused: the session was ended during this
+  request` line (Session logger, info) means a request outlived its session
+  and was stopped from restoring it; occasional lines are the mechanism
+  working.
+- **SQLite auth database.** Connections now open transactions with `BEGIN
+  IMMEDIATE` and wait for locks with the GVL released. Concurrent sign-ups
+  queue instead of answering `500`. No action needed; PostgreSQL is untouched.
 
 ## Staging review
 

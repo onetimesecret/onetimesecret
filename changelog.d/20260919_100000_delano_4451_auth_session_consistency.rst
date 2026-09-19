@@ -15,6 +15,14 @@ Added
   and ``code_scope`` (``customer_session``, ``verification_unavailable`` or
   ``admin_session``). Status codes, redirects and existing body fields are
   unchanged. #4462
+- A client may mark a timer-driven ``GET`` or ``HEAD`` with the request header
+  ``X-Session-Activity: passive``. The request is authenticated and answered
+  as usual and moves no inactivity clock, exactly like the
+  ``GET /bootstrap/me`` poll. The header is ignored on ``POST``, ``PUT``,
+  ``PATCH`` and ``DELETE`` and can only shorten the sender's own session. The
+  dashboard's two 5-minute refreshes use it, so a tab left on the dashboard
+  now signs out on schedule. A proxy that strips unknown request headers
+  turns those refreshes back into activity and breaks nothing else. #4455
 - Two log lines: ``Bootstrap verification`` (Session logger, info; one per
   authenticated ``/bootstrap/me`` poll, with query and write counts) and
   ``Session refused`` (Auth logger; carries the ``code``, the request id and
@@ -51,6 +59,14 @@ Changed
   ``session_id`` for these lines must change. #4461
 - ``/auth`` responses now send ``Cache-Control: private, no-store`` by
   default. #4461
+- Every response under ``/api`` that sets no cache policy of its own now sends
+  ``Cache-Control: private, no-store``. The API sent no ``Cache-Control``
+  before. Confirm no intermediary overrides it. #4470
+- Under ``RACK_ENV=test`` diagnostics (Sentry) stay off unless
+  ``DIAGNOSTICS_ENABLED_IN_TEST=true`` is set as well, and the server that
+  Playwright starts itself is given ``DIAGNOSTICS_ENABLED=false``. A test
+  server booted from a developer's shell no longer reports to the Sentry
+  project that shell points at. No other environment changes.
 - Protected pages, page hydration, ``GET /bootstrap/me``, protected APIs and
   the ``/auth`` routes now decide from one shared customer-session verdict, so
   they can no longer disagree about whether a session is valid. #4453, #4454
@@ -72,16 +88,27 @@ Fixed
   ``POST /auth/logout`` already did. A request still in flight during the
   logout could write the whole session back and hand the browser its old
   cookie again, leaving the user signed in; that copy is now refused as
-  ``active_session_revoked``. Full authentication mode only: simple mode has
-  no such row.
+  ``active_session_revoked``.
+- A request in flight while its session is ended (logout, or a session revoked
+  from the sessions page or by an operator) can no longer write the session
+  back, in either authentication mode. Ending a session leaves a 5-minute
+  marker (``ended_sid:<digest>`` in the datastore, never the session id), and a
+  session write that finds it is discarded and sends no cookie.
+- Concurrent sign-ups against a SQLite auth database no longer answer ``500``
+  (``database is locked``). Writers now wait for each other. A sign-up that
+  loses a race for its email address answers exactly like an ordinary
+  duplicate sign-up, on SQLite and PostgreSQL; it used to answer ``422`` with
+  "already an account with this login".
 - Repeated verification failures no longer sign the user out.
 
 Security
 --------
 
-- The raw session id is no longer written to the session store's log lines
-  or the sign-in/sign-out lines of the Web Core authentication controller; a
-  logged id could be replayed as the cookie. #4461
+- The raw session id is no longer written to the session store's log lines,
+  the sign-in, sign-out and password-reset lines, or any ``/auth`` event line
+  (``[before_logout]``, ``[after_logout]``, unhandled exceptions); a logged id
+  could be replayed as the cookie. These lines carry ``session_handle``.
+  #4461
 - A session that has presented a password but not its second factor can no
   longer read ``/auth/account``, list or remove active sessions, list SSO
   identities or passkeys, or start a re-authentication. It reaches only the
@@ -99,4 +126,5 @@ Documentation
   notes for this release and the signals to check on staging. #4463
 - Security records: ``docs/security/audits/security-audit-2026-09-19.md``
   reviews this package, the risk register closes ``RISK-2026-08-13-02`` and
-  gains four low-rated entries.
+  gains four low-rated entries, two of which (``RISK-2026-09-19-01``,
+  ``RISK-2026-09-19-03``) this release also closes.
