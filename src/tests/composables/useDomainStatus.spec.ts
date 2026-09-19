@@ -14,6 +14,7 @@ vi.mock('vue-i18n', () => ({
         'web.STATUS.dns_incorrect': 'DNS Incorrect',
         'web.STATUS.unverified': 'Unverified',
         'web.STATUS.pending_ssl': 'Certificate pending',
+        'web.domains.pending_verification': 'Pending Verification',
       };
       return translations[key] ?? key;
     },
@@ -324,10 +325,12 @@ describe('useDomainStatus', () => {
         expect(status.isError.value).toBe(false);
       });
 
-      it('reads "Unverified" in the warning colour', () => {
+      // Not "Unverified": that text belongs to a failed status check
+      // ("could not tell"); this is a "no" the customer has to act on.
+      it('reads "Pending Verification" in the warning colour', () => {
         const status = useDomainStatus(pending({ verified: false }));
 
-        expect(status.displayStatus.value).toBe('Unverified');
+        expect(status.displayStatus.value).toBe('Pending Verification');
         expect(status.statusIcon.value).toBe('alert-circle');
         expect(status.statusColor.value).toBe('text-amber-500 dark:text-amber-400');
       });
@@ -342,6 +345,84 @@ describe('useDomainStatus', () => {
       expect(status.displayStatus.value).toBe('Unverified');
       expect(status.statusIcon.value).toBe('help-circle');
       expect(status.needsAttention.value).toBe(true);
+    });
+  });
+
+  // The blob says what is on the network; `verified` says whether ownership
+  // is confirmed. After a demotion under caddy_on_demand the certificate
+  // issued earlier keeps serving, so the probe keeps writing ACTIVE_SSL while
+  // verified is false. The badge must not read "Active" then.
+  describe('active blob status without a passing ownership check', () => {
+    const activeBlob = (status: string, overrides: Partial<CustomDomain> = {}) =>
+      ref(
+        createMockDomain({
+          vhost: { status, last_monitored_unix: MOCK_DATE },
+          verified: false,
+          ...overrides,
+        })
+      );
+
+    it.each(['ACTIVE', 'ACTIVE_SSL', 'ACTIVE_SSL_PROXIED'])(
+      'is not active and needs the ownership check for %s',
+      (blobStatus) => {
+        const status = useDomainStatus(activeBlob(blobStatus));
+
+        expect(status.isActive.value).toBe(false);
+        expect(status.needsOwnershipCheck.value).toBe(true);
+        expect(status.needsAttention.value).toBe(true);
+        expect(status.isError.value).toBe(false);
+        expect(status.isWarning.value).toBe(false);
+        expect(status.isAwaitingCertificate.value).toBe(false);
+      }
+    );
+
+    it('reads "Pending Verification" in the warning colour, not "Active"', () => {
+      const status = useDomainStatus(activeBlob('ACTIVE_SSL'));
+
+      expect(status.displayStatus.value).toBe('Pending Verification');
+      expect(status.statusIcon.value).toBe('alert-circle');
+      expect(status.statusColor.value).toBe('text-amber-500 dark:text-amber-400');
+    });
+
+    it('treats a missing verified value like false', () => {
+      const status = useDomainStatus(
+        activeBlob('ACTIVE_SSL', { verified: undefined as unknown as boolean })
+      );
+
+      expect(status.isActive.value).toBe(false);
+      expect(status.needsOwnershipCheck.value).toBe(true);
+    });
+
+    it('leaves a verified domain exactly as before', () => {
+      const status = useDomainStatus(activeBlob('ACTIVE_SSL', { verified: true }));
+
+      expect(status.isActive.value).toBe(true);
+      expect(status.needsOwnershipCheck.value).toBe(false);
+      expect(status.needsAttention.value).toBe(false);
+      expect(status.displayStatus.value).toBe('Active');
+      expect(status.statusIcon.value).toBe('check-circle');
+      expect(status.statusColor.value).toBe('text-emerald-600 dark:text-emerald-400');
+    });
+
+    it('does not flag an unverified domain whose blob is not resolving as an ownership case', () => {
+      const dnsIncorrect = useDomainStatus(activeBlob('DNS_INCORRECT'));
+      const inactive = useDomainStatus(activeBlob('PENDING'));
+
+      expect(dnsIncorrect.needsOwnershipCheck.value).toBe(false);
+      expect(dnsIncorrect.displayStatus.value).toBe('DNS Incorrect');
+      expect(inactive.needsOwnershipCheck.value).toBe(false);
+      expect(inactive.displayStatus.value).toBe('Inactive');
+    });
+
+    it('keeps "could not tell" and "not verified" as different labels', () => {
+      const stale = useDomainStatus(
+        activeBlob('ACTIVE_SSL', { verified: true, vhost_fetch_failed_at: Date.now() / 1000 - 60 })
+      );
+      const unverified = useDomainStatus(activeBlob('ACTIVE_SSL'));
+
+      expect(stale.displayStatus.value).toBe('Unverified');
+      expect(unverified.displayStatus.value).toBe('Pending Verification');
+      expect(stale.statusIcon.value).not.toBe(unverified.statusIcon.value);
     });
   });
 
