@@ -83,6 +83,15 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
       expect { config.related_origins = ['ftp://vault.acme.com'] }.to raise_error(Onetime::Problem, /Invalid origin/)
     end
 
+    it 'types the refusal and carries the entry and locale key for the API layer' do
+      expect { config.related_origins = ['vault.acme.com'] }.to raise_error(
+        described_class::InvalidRelatedOrigin,
+      ) { |error|
+        expect(error.origins).to eq(['vault.acme.com'])
+        expect(error.error_key).to eq('api.domains.errors.related_origins_invalid')
+      }
+    end
+
     it 'raises Onetime::Problem on an entry with a path component' do
       expect { config.related_origins = ['https://vault.acme.com/webauthn'] }.to raise_error(Onetime::Problem)
     end
@@ -146,6 +155,14 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
     it 'refuses a custom domain owned by another organization and names it' do
       expect { config.related_origins = ['https://vault.acme.com', 'https://vault.rival.example'] }
         .to raise_error(Onetime::Problem, %r{another organization: https://vault\.rival\.example\z})
+    end
+
+    it 'types the refusal and carries only the foreign entries and the locale key' do
+      expect { config.related_origins = ['https://vault.acme.com', 'https://vault.rival.example'] }
+        .to raise_error(described_class::ForeignRelatedOrigin) { |error|
+          expect(error.origins).to eq(['https://vault.rival.example'])
+          expect(error.error_key).to eq('api.domains.errors.related_origins_foreign_organization')
+        }
     end
 
     it 'stores nothing from a refused write, the acceptable entries included' do

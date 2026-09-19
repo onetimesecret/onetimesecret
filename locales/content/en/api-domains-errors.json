@@ -58,5 +58,15 @@
     "text": "Incoming secrets must be enabled with at least one recipient before it can be used as the homepage.",
     "context": "Returned by PUT /api/domains/:extid/homepage-config when secrets_mode=incoming but the domain's IncomingConfig is missing, disabled, or has no recipients",
     "content_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "Not a valid origin: %{origins}. Enter the scheme and host, for example https://vault.example.com",
+    "context": "Returned by PUT /api/colonel/domains/:extid/configs/signin (field related_origins) when an entry is not an absolute http(s)://host[:port] origin. %{origins} is the refused entry as typed",
+    "content_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "These origins belong to another organization and cannot be added: %{origins}",
+    "context": "Returned by PUT /api/colonel/domains/:extid/configs/signin (field related_origins) when an entry names a custom domain owned by a different organization (#4421). %{origins} is a comma-separated list of the refused origin URLs",
+    "content_hash": "ac21c1e7"
   }
 }
