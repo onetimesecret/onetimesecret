@@ -1,5 +1,31 @@
 .. A new scriv changelog fragment.
 
+Added
+-----
+
+- ``remove_orphaned_approximated_vhosts`` housekeeping chore, for installs
+  that moved from the ``approximated`` validation strategy to another one.
+  Changing the strategy deletes nothing on Approximated, so each domain keeps
+  a billable virtual host there and the old vhost data on its record; the
+  chore removes both. It is a dry run by default: it lists the deletion
+  candidates and makes no Approximated API call. The nightly housekeeping job
+  also runs it as a dry run. To delete, run it with the variable set::
+
+      # Dry run (default)
+      bin/ots housekeeping run Onetime::CustomDomain remove_orphaned_approximated_vhosts
+
+      # Apply
+      APPROXIMATED_VHOST_CLEANUP=apply bin/ots housekeeping run Onetime::CustomDomain remove_orphaned_approximated_vhosts
+
+  Only the literal value ``apply`` deletes. Keep ``approximated.api_key`` and
+  ``proxy_ip`` / ``proxy_host`` configured after the cutover: the chore needs
+  the key to delete and the proxy address to tell which domains still point
+  at the Approximated cluster. A virtual host is deleted only when the domain
+  resolves to addresses outside the cluster and Approximated reports it as
+  not resolving and not receiving traffic; everything else is skipped and
+  picked up on a later run. ``verified``, ``resolving`` and the TXT fields
+  are never changed. Details are in ``lib/onetime/domain_validation/README.md``.
+
 Changed
 -------
 
@@ -97,17 +123,22 @@ Changed
     the strategy. Virtual hosts created while ``approximated`` was active stay
     there, billable and able to serve the hostname, until they are removed on
     the Approximated side: run the ``remove_orphaned_approximated_vhosts``
-    chore with the Approximated API key still configured, or delete them in
-    the Approximated dashboard.
+    chore (see Added above; a dry run unless
+    ``APPROXIMATED_VHOST_CLEANUP=apply`` is set) with the Approximated API
+    key still configured, or delete them in the Approximated dashboard.
 
     Sequence the switch so that proven domains keep verified.
     ``verified_confirmed_at`` is new in this version and is only written by a
     passing check on this version, so immediately after upgrading every
     domain has none, including domains Approximated had proven. Before
-    changing the strategy: (1) upgrade while still on ``approximated`` and
-    run a full ``bin/ots domains verify --all`` pass (or let the domain
-    refresh job complete a walk of every page), which records the
-    confirmation for each domain whose TXT record is in place; (2) confirm
+    changing the strategy: (1) upgrade while still on ``approximated`` and,
+    still on ``approximated``, let one full refresh cycle complete on this
+    version: either run ``bin/ots domains verify --all`` to the end (without
+    ``--dry-run``, which records nothing), or let
+    the domain refresh job walk every page (number of domains divided by
+    ``batch_size``, times ``check_interval``). Every passing check, whether
+    Approximated or the native lookup answered it, stamps
+    ``verified_confirmed_at`` for that domain; (2) confirm
     the application host has a working resolver (nameservers in
     ``resolv.conf``, outbound DNS allowed), because ``caddy_on_demand`` is
     the first time the application does the TXT lookup itself on every
