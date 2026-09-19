@@ -16,6 +16,7 @@ require_relative '../middleware/admin_network_isolation'
 require_relative '../middleware/csrf_response_header'
 require_relative '../middleware/normalize_content_type'
 require_relative '../middleware/retry_after_header'
+require_relative '../middleware/session_failure_code'
 require_relative '../middleware/validate_multipart'
 require_relative '../middleware/entitlement_preview_context'
 require_relative '../middleware/impersonation_context'
@@ -752,6 +753,13 @@ module Onetime
           # so Otto apps and the Roda /auth app get identical back-off headers.
           logger.debug 'Setting up Retry-After header middleware'
           builder.use Onetime::Middleware::RetryAfterHeader
+
+          # Stable `code` / `code_scope` on session-authentication 401s. Otto
+          # renders that body inside the gem from the failure string alone, so
+          # the typed evaluator reason is carried across here (#4462). Mounted
+          # beside RetryAfterHeader for the same reason it exists.
+          logger.debug 'Setting up session failure code middleware'
+          builder.use Onetime::Middleware::SessionFailureCode
 
           # CSRF Response Header - MUST be before Security middleware so that
           # 403 responses from AuthenticityToken also get a fresh masked token.
