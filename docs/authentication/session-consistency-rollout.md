@@ -59,13 +59,21 @@ and continue unordered.
   dashboard's receipt lists refresh every 5 minutes while their tab is visible
   and when it becomes visible again; those requests declare themselves with the
   request header `X-Session-Activity: passive` and do not count either, so a
-  tab left on the dashboard signs out on schedule too. A hidden tab sends none. The header is honoured on `GET`
-  and `HEAD` only and can only shorten the sender's own session. A proxy that
-  strips unknown request headers turns those refreshes back into activity; it
-  breaks nothing else.
+  tab left on the dashboard signs out on schedule too. A hidden tab sends none.
+  The header is honoured on `GET` and `HEAD` only and can only shorten the
+  sender's own session. A proxy that strips unknown request headers turns
+  those refreshes back into activity; it breaks nothing else.
 - **Log fields.** Session store lines carry `session_handle` instead of
-  `session_id`, and `redis_key` is gone. Update any log query, alert or
-  dashboard keyed on `session_id` for those lines.
+  `session_id`, and `redis_key` is gone. So do the sign-in, sign-out and
+  password-reset lines, every `/auth` event line, and the request lines of
+  `LOG_HTTP_CAPTURE=debug`: no log line writes a session id. Update any log
+  query, alert or dashboard keyed on `session_id`.
+- **Duplicate sign-ups in the log.** An ordinary duplicate sign-up (full mode)
+  logs `registration_blocked_existing_account` at info. The error-level
+  `registration_blocked_auth_db_conflict` now means what its hint says: the
+  auth database has the account and the datastore has no customer record.
+  An alert on it will fire far less often, and should be looked at when it
+  does.
 - **Traffic.** A normal page load makes no `GET /bootstrap/me` request. Expect
   that endpoint's request rate, and the `Bootstrap verification` line count, to
   drop.
@@ -80,7 +88,23 @@ and continue unordered.
   working.
 - **SQLite auth database.** Connections now open transactions with `BEGIN
   IMMEDIATE` and wait for locks with the GVL released. Concurrent sign-ups
-  queue instead of answering `500`. No action needed; PostgreSQL is untouched.
+  queue instead of answering `500`. The migration connections do the same, so
+  several processes booting at once no longer race on the file. No action
+  needed; PostgreSQL is untouched.
+- **`/auth` can answer `503`.** When the auth database is saturated (a SQLite
+  write lock held past the 5-second wait, or no free pooled connection on
+  either engine) `/auth` answers `503` with `Retry-After: 1` and `error_type:
+  AuthDatabaseBusy`, where it answered a generic `500`. Seeing it means more
+  concurrent auth writes than the deployment has capacity for.
+- **Sign-up answers.** In full mode a sign-up for an existing account answers
+  `400` with `{"error": "Unable to create account"}` whether that account is
+  verified, unverified, or was created by a concurrent request a moment
+  earlier. It used to answer `403` for an unverified account and `422` for a
+  lost race.
+- **Session ids the server does not know.** A cookie naming an id with no
+  stored session (expired, ended, or never issued) is given a new id on that
+  request. Signing out removes the session's `session_metadata:<id>` key at
+  once.
 
 ## Developer notes
 
@@ -133,3 +157,9 @@ session identifier.
 - Session `401`s send no `WWW-Authenticate` header, and verification outages
   answer `401` rather than `503`. Both are recorded in the failure matrix and
   belong to [#4469](https://github.com/onetimesecret/onetimesecret/issues/4469).
+- Completing the second factor does not renew the session id; the password
+  step does. `RISK-2026-09-19-02`, tracked by
+  [#4466](https://github.com/onetimesecret/onetimesecret/issues/4466).
+- In full mode `POST /auth/create-account` still answers an existing account
+  (`400`) differently from a new one (`200`). It no longer tells a verified
+  account from an unverified one. `RISK-2026-08-14-M03`.

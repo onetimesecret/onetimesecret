@@ -71,6 +71,12 @@ the original evidence; each entry here identifies the fix and the baseline used 
   `tests/lanes/run full-sqlite --only spec/integration/full/logout_ends_active_session_spec.rb`
   with 6 and 0; `tests/lanes/run unit --only spec/unit/onetime/session/ended_spec.rb` with 15
   and 0.
+- **Follow-up, `5b799daae`:** two loose ends of the same mechanism. A cookie naming an id with no
+  blob (never issued, expired, or ended) is never adopted: the empty session starts under a
+  server-generated id, as stock Rack does, which replaces the ended-marker lookup `d673d07dd` made
+  on that branch. And `delete_session` destroys the sid-keyed `session_metadata:<sid>` record, so
+  an ended session's id no longer stays readable in a key name until that record's 30-day TTL.
+  Both are covered in `try/unit/session_try.rb`.
 - **Closure baseline:** `d673d07dd` (`feature/4451-auth-session-consistency`) on 2026-09-19.
 
 ### RISK-2026-09-19-03 — Resolved

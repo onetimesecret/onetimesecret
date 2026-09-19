@@ -21,8 +21,9 @@ Added
   ``GET /bootstrap/me`` poll. The header is ignored on ``POST``, ``PUT``,
   ``PATCH`` and ``DELETE`` and can only shorten the sender's own session. The
   dashboard's receipt lists use it for their 5-minute and tab-visibility
-  refreshes, so a tab left on the dashboard now signs out on schedule. A proxy that strips unknown request headers
-  turns those refreshes back into activity and breaks nothing else. #4455
+  refreshes, so a tab left on the dashboard now signs out on schedule. A proxy
+  that strips unknown request headers turns those refreshes back into
+  activity and breaks nothing else. #4455
 - Two log lines: ``Bootstrap verification`` (Session logger, info; one per
   authenticated ``/bootstrap/me`` poll, with query and write counts) and
   ``Session refused`` (Auth logger; carries the ``code``, the request id and
@@ -57,6 +58,17 @@ Changed
 - Session store log lines carry ``session_handle`` instead of ``session_id``,
   and ``redis_key`` is gone. Any log query, alert or dashboard keyed on
   ``session_id`` for these lines must change. #4461
+- ``LOG_HTTP_CAPTURE=debug`` request lines carry ``session_handle`` as well;
+  no log line writes a session id any more. #4461
+- An ordinary duplicate sign-up logs ``registration_blocked_existing_account``
+  at info. ``registration_blocked_auth_db_conflict`` (error) is now logged only
+  when the auth database has the account and the datastore has no customer
+  record for it, which is what its hint always described. Alerts on that
+  event will fire far less often.
+- A session cookie naming an id the server holds no session for is given a new
+  id instead of keeping the one it presented (stock Rack behaviour). Signing
+  out also removes the session's ``session_metadata:<id>`` key instead of
+  leaving it to expire.
 - ``/auth`` responses now send ``Cache-Control: private, no-store`` by
   default. #4461
 - Every response under ``/api`` that sets no cache policy of its own now sends
@@ -98,7 +110,23 @@ Fixed
   (``database is locked``). Writers now wait for each other. A sign-up that
   loses a race for its email address answers exactly like an ordinary
   duplicate sign-up, on SQLite and PostgreSQL; it used to answer ``422`` with
-  "already an account with this login".
+  "already an account with this login". A sign-up for an existing *unverified*
+  account now answers ``400`` like one for a verified account; it answered
+  ``403``, which told a caller the account's state.
+- ``/auth`` answers ``503`` with ``Retry-After: 1`` (``error_type:
+  AuthDatabaseBusy``) when the auth database is saturated: a SQLite write lock
+  held past the 5-second wait, or no free pooled connection. It answered a
+  generic ``500``. Migration connections use the same SQLite wait settings as
+  request connections.
+- After signing out or switching accounts in the same tab, the custom-domain
+  list could stay empty until a forced refresh.
+- The colonel console shows a refused ``allowed_signup_domains`` entry under
+  that field. ``PUT /api/colonel/domains/:extid/configs/signup`` answers the
+  ``422`` with ``field`` and ``error_key``
+  (``api.domains.errors.allowed_signup_domains_invalid``), as the
+  ``related_origins`` refusals already do.
+- ``apps/web/core/templates/error.rue`` did not parse, so its hydration schema
+  was never generated.
 - Repeated verification failures no longer sign the user out.
 - Opening ``/recent`` directly showed an empty list: the receipt list only
   loaded if the dashboard had been visited first. The dashboard's 5-minute
@@ -129,5 +157,7 @@ Documentation
   notes for this release and the signals to check on staging. #4463
 - Security records: ``docs/security/audits/security-audit-2026-09-19.md``
   reviews this package, the risk register closes ``RISK-2026-08-13-02`` and
-  gains four low-rated entries, two of which (``RISK-2026-09-19-01``,
-  ``RISK-2026-09-19-03``) this release also closes.
+  gains four low-rated entries. This release closes three of them
+  (``RISK-2026-09-19-01``, ``-03`` and ``-04``); ``RISK-2026-09-19-02``
+  (no session id renewal when the second factor completes) stays open,
+  tracked by #4466.
