@@ -49,13 +49,37 @@ Changed
   for it. To keep a domain verified, either publish its TXT record or set the
   verification override for that domain in the Colonel admin; an override
   holds verified through failed checks until it is removed or a check passes.
-  The record's host and value are shown on the Colonel domain detail page, in
-  the output of ``bin/ots domains verify <domain>``, and as
+  The record's host and value are shown to the domain's owner on the domain's
+  verification page (see the next entry), on the Colonel domain detail page,
+  in the output of ``bin/ots domains verify <domain>``, and as
   ``txt_validation_host`` / ``txt_validation_value`` in the domains API
-  payload. The customer-facing domain pages do not show the TXT record or a
-  verify button under this strategy yet (they do under ``approximated``), so
-  the operator has to pass the record on to the domain's owner and run the
-  verify.
+  payload.
+
+- The customer-facing domain pages now work under ``caddy_on_demand``. They
+  previously showed the TXT challenge record, the status badge and the verify
+  button only under ``approximated``, so under ``caddy_on_demand`` a customer
+  had no way to learn which TXT record to publish. Both strategies now get
+  the verification page: the TXT record's host and value, the verify button,
+  and the status badge in the domain list and header. Adding a domain lands
+  on that page and schedules the first check, as it does under
+  ``approximated``. ``passthrough`` is unchanged and keeps the plain DNS
+  setup page.
+
+  Under ``caddy_on_demand`` the address record on that page points at this
+  install: a CNAME (ALIAS/ANAME for an apex domain) to the canonical domain,
+  falling back to the site host. The Approximated ``proxy_ip`` /
+  ``proxy_host`` values are never shown under this strategy, even when they
+  are still configured for the orphaned-vhost chore, and the Approximated DNS
+  widget stays ``approximated``-only.
+
+  The status badge has two new readings for the probe's ``PENDING_SSL``
+  status (the name resolves, no certificate was seen). A verified domain
+  reads "Certificate pending" and is not flagged as a problem: Caddy obtains
+  the certificate on the first request after the TXT check passes. A domain
+  whose TXT check has not passed reads "Unverified" and links to the
+  verification page, because no certificate will be issued until it does.
+  The SSL row of the status table reads "Unknown" rather than "Inactive" when
+  the check could not tell.
 
   Existing domains are only re-checked when something runs the check. The
   scheduler is off by default (``JOBS_ENABLED``), and without it and

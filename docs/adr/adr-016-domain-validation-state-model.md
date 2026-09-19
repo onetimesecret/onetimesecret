@@ -196,24 +196,62 @@ when the probe learned nothing; `VerifyDomain#persist_changes` then stores
 nothing and sets `vhost_fetch_failed_at`. A `vhost` blob left by
 `approximated` is not replaced (it is the orphaned-vhost chore's evidence).
 
-The frontend part of the Decision (`useDomainStatus.ts` keyed on
-`validation_strategy`) is not done. The probe blob reuses Approximated's
-`status` values (`ACTIVE_SSL`, `DNS_INCORRECT`) plus `PENDING_SSL`, so the
-single badge has correct data to render wherever it is shown. Today that is
-the Colonel domain pages only. The customer workspace hides the badge and
-the verification screen on every non-`approximated` install
-(`isApproximatedDomainValidation()` gates `showVerificationStatus` in
-`DomainHeader`, `DomainsTableDomainCell` and `DomainsTableActionsCell`, and
-the `DomainVerify` route guard redirects to `DomainDns`, which shows only
-the CNAME/ALIAS record). So under `caddy_on_demand` a customer cannot see the
-TXT challenge, the status, or a verify button; the operator reads the record
-from the Colonel domain detail page, the domains API payload or
-`bin/ots domains verify <domain>` and runs the verify. Closing that gap needs
-a predicate for "strategies that check ownership" (`approximated`,
-`caddy_on_demand`) separate from "uses Approximated", because the same flag
-currently also selects the Approximated proxy targets (`cluster.proxy_ip` /
-`proxy_host`) that `VerifyDomainDetails` renders and that are empty under
-`caddy_on_demand`.
+The probe blob reuses Approximated's `status` values (`ACTIVE_SSL`,
+`DNS_INCORRECT`) plus `PENDING_SSL`, so the single badge has correct data to
+render wherever it is shown.
+
+### Customer workspace under `caddy_on_demand` (2026-09-18)
+
+Until this note the customer workspace hid the badge and the verification
+screen on every non-`approximated` install: one flag,
+`isApproximatedDomainValidation()`, gated `showVerificationStatus` in
+`DomainHeader`, `DomainsTableDomainCell` and `DomainsTableActionsCell`, the
+`DomainVerify` / `DomainDns` route guards and the post-add navigation. Under
+`caddy_on_demand` a customer therefore could not see the TXT challenge, the
+status, or a verify button, and no domain could become verified without the
+operator relaying the record. The flag answered two unrelated questions, so
+it is now two predicates in `src/utils/features.ts`, both read from one
+capability table that is the only place the frontend interprets a strategy
+name:
+
+- `isDomainOwnershipChecked()` — the strategy requires the TXT record
+  (`approximated`, `caddy_on_demand`; mirrors
+  `BaseStrategy#proves_ownership?`). Gates the badge, the TXT record, the
+  verify action, the route guards and `useDomainsManager.navigateAfterAdd`.
+- `isApproximatedDomainValidation()` — the domain points at the Approximated
+  proxy. Gates only the proxy targets (`cluster.proxy_ip` / `proxy_host`)
+  and the Approximated DNS widget.
+
+Where the address record points is `useDomainDnsRecord`, shared by
+`VerifyDomainDetails`, `DomainVerify` and `DomainDns`. Without the
+Approximated proxy it is this install by name: CNAME, or ALIAS/ANAME for an
+apex, to `canonical_domain`, falling back to `site_host` (both already in the
+bootstrap payload, and what `DomainDns` showed for `passthrough`). No backend
+addition was needed. The backend has no configured address for this strategy
+(the Decision's "cross-checked" resolution target is still open, see above),
+so an A record to an IP is not offered; the apex notice says an A record to
+the server's IP is the alternative. The proxy fields are not read at all
+under `caddy_on_demand`: an install keeps them configured after a cutover for
+the orphaned-vhost chore, and showing them would send new domains to
+Approximated.
+
+`useDomainStatus.ts` is still keyed on the blob's `status`, not on
+`validation_strategy`; the Decision's per-strategy keying turned out not to
+be needed because the probe writes the shared values. `PENDING_SSL` is the
+one addition, and it is read together with `verified`, because under this
+strategy Caddy may only obtain a certificate once the ACME endpoint sees a
+verified domain:
+
+- verified: "Certificate pending". Not an error and not a warning; nothing
+  for the customer to do.
+- not verified: "Unverified", in the warning style, linking to the
+  verification page. Without this the badge would promise a certificate that
+  cannot be issued.
+
+`PENDING_SSL` is also what the blob says when `has_ssl` is unknown and the
+stored certificate dates have lapsed. The badge cannot tell that apart from a
+first certificate; the status table can, and its SSL row reads "Unknown"
+rather than "Inactive" when `has_ssl` is absent.
 
 ### Caddy `ask` deprecation — confirmed in the app itself, not just the example file (2026-06-30)
 

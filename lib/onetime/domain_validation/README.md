@@ -94,6 +94,19 @@ Time budget per domain: address lookup 3s, connect plus handshake 5s, each spent
 
 A certificate from a private CA (for example Caddy's `tls internal`) fails verification against the system trust store and is reported as `has_ssl: false`.
 
+## Customer pages
+
+The workspace decides what to show from two predicates in `src/utils/features.ts`. They read one capability table, which is the only place the frontend interprets a strategy name; a new strategy needs a row there.
+
+| | `approximated` | `caddy_on_demand` | `passthrough` |
+|---|---|---|---|
+| `isDomainOwnershipChecked()` (mirrors `proves_ownership?`): status badge, TXT record, verify button, `DomainVerify` page | Yes | Yes | No, plain `DomainDns` page |
+| `isApproximatedDomainValidation()`: address record points at `proxy_ip` / `proxy_host`, DNS widget | Yes | No | No |
+
+Without the Approximated proxy the address record points at this install by name: a CNAME, or ALIAS/ANAME for an apex domain, to the canonical domain, falling back to the site host (`useDomainDnsRecord`). `proxy_ip` / `proxy_host` are never shown under `caddy_on_demand`, including when they stay configured for the cleanup chore below.
+
+The badge reads the blob's `status`. `PENDING_SSL` is read together with `verified`: a verified domain shows "Certificate pending" and is not flagged; an unverified one shows "Unverified" and links to the verification page, since no certificate is issued until the TXT check passes. An absent `has_ssl` shows as "Unknown" in the status table, not "Inactive".
+
 ## Configuration
 
 Configure in `config.yaml`:
@@ -114,7 +127,7 @@ features:
 
 Changing `validation_strategy` away from `approximated` does not delete anything on Approximated. Each domain provisioned before the change keeps its vhost there (billable, and able to serve the hostname for as long as DNS points at the cluster) and keeps the old `vhost` JSON on its `CustomDomain` record. The `remove_orphaned_approximated_vhosts` housekeeping chore cleans both up.
 
-Keep `approximated.api_key` and `proxy_ip` / `proxy_host` configured after the cutover. The chore needs the key to delete and the proxy address to tell which domains still point at the cluster. The chore reads `proxy_ip` as one or more entries separated by commas or spaces, each a single address or a CIDR range such as `203.0.113.0/24`. The same value is shown to customers as the A record target in the domain setup screens, so only widen it once no domain is still being set up against Approximated.
+Keep `approximated.api_key` and `proxy_ip` / `proxy_host` configured after the cutover. The chore needs the key to delete and the proxy address to tell which domains still point at the cluster. The chore reads `proxy_ip` as one or more entries separated by commas or spaces, each a single address or a CIDR range such as `203.0.113.0/24`. Under `approximated` the same value is shown to customers as the A record target in the domain setup screens, so only widen it before the cutover if no domain is still being set up against Approximated. After the cutover the customer pages no longer read it (see Customer pages above).
 
 ```bash
 # Dry run (default): lists deletion candidates, makes no Approximated API call
