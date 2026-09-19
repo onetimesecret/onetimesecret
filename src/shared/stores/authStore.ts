@@ -2,6 +2,7 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { effectiveAuthStatus, type ClientAuthStatus } from '@/schemas/contracts/bootstrap';
+import type { SessionFailure } from '@/schemas/contracts/session-failure';
 import { classifyError, errorGuards } from '@/schemas/errors';
 import { clearDiagnosticsActorContext } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
@@ -80,6 +81,22 @@ import { useBootstrapStore } from './bootstrapStore';
  * applied in place); or, for an anomaly, it is retried once immediately and a
  * second consecutive anomaly takes the forced page load path. A refused
  * snapshot mutates nothing.
+ *
+ * ───────────────────────────────────────────────────────────────────────────────
+ * REJECTION VS OUTAGE (#4460)
+ * ───────────────────────────────────────────────────────────────────────────────
+ *
+ * Only a definitive server statement ends the authenticated state: an accepted
+ * snapshot that reports no session. A transport failure, timeout or 5xx is not
+ * a verdict (RFC 9110 §15.5.2 vs §15.6.4): the last accepted snapshot stands
+ * and the request is retried with backoff and jitter (AWS Builders' Library,
+ * "Timeouts, retries, and backoff with jitter"). An earlier revision replaced
+ * backoff with "3 strikes, then logout()"; that logout was client-only (the
+ * cookie still authenticated, a reload restored the session) and sent every
+ * open tab to the login endpoint during an outage. At the limit the client now
+ * withholds protected UI (`unavailable`) and keeps retrying. API error
+ * handlers never write authentication state: `noteApiRejection` only REQUESTS
+ * a reconciliation through this coordinator.
  */
 export const AUTH_CHECK_CONFIG = {
   INTERVAL: 15 * 60 * 1000,
@@ -93,6 +110,8 @@ export const AUTH_CHECK_CONFIG = {
   BACKOFF_FLOOR: 1000,
   /** Upper bound on a server-supplied Retry-After. */
   RETRY_AFTER_CAP: 5 * 60 * 1000,
+  /** Rejected API calls request at most one reconciliation per this window. */
+  REJECTION_MIN_INTERVAL: 5 * 1000,
 } as const;
 
 /** Why the tab took the forced page load path (ADR-046). */
@@ -195,6 +214,7 @@ export type AuthStore = {
   retryNow: () => Promise<RefreshOutcome>;
   stop: () => void;
   forcePageLoad: (cause: ForcedPageLoadCause) => void;
+  noteApiRejection: (failure: SessionFailure | null) => void;
   checkWindowStatus: () => Promise<boolean>;
   refreshAuthState: () => Promise<void>;
   setAuthenticated: (value: boolean) => Promise<void>;
@@ -266,6 +286,7 @@ export const useAuthStore = defineStore('auth', () => {
   let generation = 0;
   let inFlight: Flight | null = null;
   let consecutiveAnomalies = 0;
+  let lastRejectionRefreshAt = 0;
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
   let visibilityHandler: (() => void) | null = null;
 
@@ -627,6 +648,40 @@ export const useAuthStore = defineStore('auth', () => {
     }, delay);
   }
 
+  /**
+   * A protected API call was rejected (#4460). This REQUESTS reconciliation;
+   * it never writes authentication state. The coordinator's next accepted
+   * snapshot is what changes the status, by the same rules as any other.
+   *
+   * By scope (#4462):
+   * - `customer_session`          the server examined the session and refused
+   *                               it: reconcile.
+   * - `verification_unavailable`  an outage, not a verdict: reconcile. The
+   *                               server will answer `unavailable` or 5xx,
+   *                               which counts as ONE failed verification
+   *                               however many API calls saw the outage.
+   * - `admin_session`             the admin-only timeout. The customer session
+   *                               is untouched; the admin surface owns it.
+   * - uncoded 401 (`null`)        a backend that predates the codes, or a
+   *                               rejected credential (#4469). Reconciling can
+   *                               only withhold, so it is safe for both.
+   *
+   * A tab the server last said holds no session has nothing to reconcile, and
+   * `awaiting_mfa` tells an MFA-pending tab what it already knows.
+   */
+  function noteApiRejection(failure: SessionFailure | null) {
+    if (staleSession.value) return;
+    if (failure?.code_scope === 'admin_session') return;
+    if (!bootstrapStore.lastSnapshotReportedSession) return;
+    if (failure?.code === 'awaiting_mfa' && authStatus.value === 'mfa_pending') return;
+
+    const now = Date.now();
+    if (now - lastRejectionRefreshAt < AUTH_CHECK_CONFIG.REJECTION_MIN_INTERVAL) return;
+    lastRejectionRefreshAt = now;
+
+    void refresh({ kind: 'ordinary', reason: 'rejection' });
+  }
+
   /** Explicit retry: skips the backoff wait, not the rules. */
   function retryNow(): Promise<RefreshOutcome> {
     return refresh({ kind: 'ordinary', reason: 'retry' });
@@ -748,6 +803,7 @@ export const useAuthStore = defineStore('auth', () => {
     lastCheckTime.value = null;
     _initialized.value = false;
     consecutiveAnomalies = 0;
+    lastRejectionRefreshAt = 0;
     // staleSession is NOT reset: only a page load leaves that state.
   }
 
@@ -789,6 +845,7 @@ export const useAuthStore = defineStore('auth', () => {
     retryNow,
     stop,
     forcePageLoad,
+    noteApiRejection,
     checkWindowStatus,
     refreshAuthState,
     logout,

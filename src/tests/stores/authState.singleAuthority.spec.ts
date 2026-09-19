@@ -91,3 +91,44 @@ describe('one refresh coordinator (#4459)', () => {
     expect(code(mastHead?.text ?? '')).not.toMatch(/onMounted|\.refresh\(/);
   });
 });
+
+describe('no API error handler writes authentication state (#4460)', () => {
+  it('the three writers of the client status are called from the two auth stores only', () => {
+    expect(matching(/\.(withholdAuthority|applySnapshot|resetForLogout)\(/).sort()).toEqual([
+      'src/shared/stores/authStore.ts',
+      'src/shared/stores/bootstrapStore.ts',
+    ]);
+  });
+
+  it('a local sign-out is never called from a catch block', () => {
+    // A rejection REQUESTS reconciliation (authStore.noteApiRejection); it does
+    // not sign the client out. The sign-out callers that exist are success
+    // paths and the /logout route.
+    const inCatch = /catch\s*(\([^)]*\))?\s*\{[^}]*\b(logout|logoutMinimal|setAuthenticated)\(/;
+    expect(matching(inCatch)).toEqual([]);
+  });
+
+  it('the axios interceptors reach the auth store through noteApiRejection only', () => {
+    const interceptors = files.find((f) => f.path === 'src/plugins/axios/interceptors.ts');
+    const uses = code(interceptors?.text ?? '').match(/useAuthStore\(\)\.(\w+)/g) ?? [];
+
+    expect(uses).toEqual(['useAuthStore().noteApiRejection']);
+  });
+
+  it('admin-expiry recovery stays on the admin surface', () => {
+    expect(
+      matching(/noteAdminSessionExpiry|adminSessionExpired\b/).filter(
+        (path) => !path.startsWith('src/apps/admin/')
+      )
+    ).toEqual([]);
+  });
+
+  it('the old client-only logout at MAX_FAILURES is gone', () => {
+    const authStore = files.find((f) => f.path === 'src/shared/stores/authStore.ts');
+    const text = code(authStore?.text ?? '');
+    const noteFailure = text.slice(text.indexOf('function noteFailure'), text.indexOf('function noteApiRejection'));
+
+    expect(noteFailure).toContain('MAX_FAILURES');
+    expect(noteFailure).not.toMatch(/logout|resetForLogout|\$reset/);
+  });
+});

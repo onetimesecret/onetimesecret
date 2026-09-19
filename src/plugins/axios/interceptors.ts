@@ -4,7 +4,9 @@ import {
   scrubSensitiveStrings,
   scrubUrlWithPatterns,
 } from '@/plugins/core/diagnostics/scrubbers';
+import { parseSessionFailure } from '@/schemas/contracts/session-failure';
 import { useLanguageStore } from '@/shared/stores';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { addBreadcrumb } from '@sentry/vue';
@@ -149,8 +151,33 @@ export const errorInterceptor = (error: AxiosError) => {
     csrfStore.updateShrimp(responseShrimp);
   }
 
+  noteRejection(error);
+
   return Promise.reject(error); // no gate keeping, just pass the error along
 };
+
+/**
+ * Tells the refresh coordinator that a request was refused with 401 (#4460).
+ *
+ * This is the ONE place a rejected API call touches authentication, and all
+ * it does is report: `noteApiRejection` requests a reconciliation against
+ * GET /bootstrap/me, and only a snapshot the coordinator accepts can change
+ * the status. No error handler writes authentication state. What to do with
+ * each `code_scope` (#4462) is the coordinator's policy, not the
+ * interceptor's; an uncoded 401 is passed as null.
+ *
+ * Nothing else is reported: a network error, a timeout or a 5xx on an API
+ * call says nothing about the session, and the coordinator's own request is
+ * what counts verification failures.
+ */
+function noteRejection(error: AxiosError): void {
+  if (error.response?.status !== 401) return;
+  try {
+    useAuthStore().noteApiRejection(parseSessionFailure(error));
+  } catch {
+    // Pinia not yet active during app bootstrap: nothing to reconcile yet.
+  }
+}
 
 /**
  * Creates a truncated version of the shrimp token for safe logging
