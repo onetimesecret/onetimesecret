@@ -21,11 +21,20 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
   end
 
   it 'uses the shared authenticated verdict for an available /auth account request' do
+    # The router forgets the env memo in an `ensure` after r.rodauth, so the
+    # verdict is captured where the router obtains it, not read back from
+    # last_request.env.
+    reasons = []
+    allow(Onetime::CustomerSessionEvaluator).to receive(:evaluate).and_wrap_original do |original, *args, **kwargs|
+      original.call(*args, **kwargs).tap { |verdict| reasons << verdict.reason }
+    end
+
     get_json '/auth/account'
 
     expect(last_response.status).to eq(200), last_response.body
-    expect(last_request.env.fetch(Onetime::CustomerSessionEvaluator::ENV_KEY).reason).to eq(:authenticated)
-    expect(Onetime::CustomerSessionEvaluator).to have_received(:evaluate).at_least(:once)
+    expect(reasons).not_to be_empty
+    expect(reasons).to all(eq(:authenticated))
+    expect(last_request.env).not_to have_key(Onetime::CustomerSessionEvaluator::ENV_KEY)
   end
 
   it 'destroys a revoked session and retains the established 401 JSON response' do
@@ -137,14 +146,102 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
     expect(session_store.find_key(Familia.dbclient, sid)).not_to be_nil
   end
 
-  it 'leaves anonymous recovery routes usable without destroying an MFA-pending session' do
+  it 'refuses anonymous account-lifecycle routes for an MFA-pending session and preserves it' do
     sid = current_session_id
     mark_session_mfa_pending
 
     post_json '/auth/reset-password-request', { login: email }
 
-    expect(last_response.status).to eq(200), last_response.body
+    expect_mfa_pending_refusal_without_account_data
     expect(session_store.find_key(Familia.dbclient, sid)).not_to be_nil
+  end
+
+  it 'destroys an MFA-pending session whose active-session row was revoked' do
+    sid = current_session_id
+    mark_session_mfa_pending
+    active_session_rows.delete
+
+    get_json '/auth/account'
+
+    expect_revoked_refusal_without_account_data
+    expect(session_store.find_key(Familia.dbclient, sid)).to be_nil
+  end
+
+  # An autologin session (verify-account, reset-password, create-account):
+  # Rodauth's login_session ran, so it carries account_id, the join key and
+  # the surface marker, but after_login never did, so SyncSession never wrote
+  # the app-level `authenticated` flag. Rodauth authorizes it from account_id
+  # alone.
+  describe 'a Rodauth-logged-in session without the authenticated flag' do
+    before { rewrite_session_blob { |blob| blob.delete('authenticated') } }
+
+    it 'is served by Rodauth and not destroyed while its active-session row is live' do
+      sid = current_session_id
+
+      get_json '/auth/account'
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect(JSON.parse(last_response.body)).to include('id' => @account[:id], 'email' => email)
+      expect(session_store.find_key(Familia.dbclient, sid)).not_to be_nil
+      expect(session_blob).to include('account_id' => @account[:id])
+    end
+
+    it 'is destroyed and refused without account data once its active-session row is revoked' do
+      sid = current_session_id
+      active_session_rows.delete
+
+      get_json '/auth/account'
+
+      expect_revoked_refusal_without_account_data
+      expect(session_store.find_key(Familia.dbclient, sid)).to be_nil
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :active_session_revoked,
+        hash_including(path: '/account', outcome: :refused),
+      )
+    end
+
+    it 'cannot change the password once its active-session row is revoked' do
+      sid = current_session_id
+      active_session_rows.delete
+
+      post_json '/auth/change-password',
+        { password: password, 'new-password': 'Replaced-Test1234!', 'password-confirm': 'Replaced-Test1234!' }
+
+      expect_revoked_refusal_without_account_data
+      expect(session_store.find_key(Familia.dbclient, sid)).to be_nil
+
+      clear_cookies
+      post_json '/auth/login', { login: email, password: password }
+      expect(last_response.status).to eq(200), 'the original password must still sign in'
+    end
+
+    it 'is destroyed and refused on a surface other than the one it was established on' do
+      sid = current_session_id
+      rewrite_session_blob do |blob|
+        blob[Onetime::SessionSurface::KEY] = { 'kind' => 'custom', 'id' => 'other-domain' }
+      end
+
+      get_json '/auth/account'
+
+      expect_revoked_refusal_without_account_data
+      expect(session_store.find_key(Familia.dbclient, sid)).to be_nil
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :session_surface_mismatch,
+        hash_including(path: '/account', outcome: :refused),
+      )
+    end
+
+    it 'is preserved and refused while the authentication database cannot verify its row' do
+      sid = current_session_id
+      allow(Auth::Database).to receive(:connection).and_raise(Sequel::DatabaseConnectionError, 'down')
+
+      get_json '/auth/account'
+
+      expect(last_response.status).to eq(401)
+      expect(JSON.parse(last_response.body)['error_type']).to eq('SessionUnverified')
+      expect_no_account_data
+      expect(session_store.find_key(Familia.dbclient, sid)).not_to be_nil
+    end
   end
 
   it 'preserves and refuses a non-revoked session when the customer store is unavailable' do

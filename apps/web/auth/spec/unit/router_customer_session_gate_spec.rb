@@ -4,13 +4,17 @@
 
 # Unit coverage for two invariants in apps/web/auth/router.rb's route block:
 #
-#   1. The outage re-check that promotes :customer_unavailable to an
-#      ActiveSessionGate detail runs ONLY for :customer_unavailable. Every
-#      definitive rejection reason (account_suspended, stale_credentials,
-#      admin_session_expired, customer_not_found, identity_missing,
-#      awaiting_mfa) must survive an ActiveSessionGate stub returning
-#      :unavailable — otherwise the fallback would overwrite the reason with
-#      :active_session_unavailable and the caller would preserve the cookie.
+#   1. The /auth-local re-check (Auth::SessionRecheck.reason_for) fills in the
+#      surface and ActiveSessionGate checks ONLY for a Rodauth-logged-in Rack
+#      session (account_id present) whose evaluator reason was returned before
+#      those checks ran: :awaiting_mfa and :not_authenticated (surface, then
+#      gate) and :customer_unavailable (gate only). Every definitive rejection
+#      (account_suspended, stale_credentials, admin_session_expired,
+#      customer_not_found, identity_missing) must survive an ActiveSessionGate
+#      stub returning :unavailable — otherwise the fallback would overwrite
+#      the reason with :active_session_unavailable and the caller would
+#      preserve the cookie. A genuinely anonymous session (no account_id)
+#      never reaches either check.
 #
 #   2. env['onetime.customer_session_verdict'] is forgotten after r.rodauth
 #      runs, in BOTH the :halt (Rodauth answered the route) and pass-through
@@ -18,12 +22,12 @@
 #      so an unforget'd memo goes stale for any downstream reader that also
 #      reads env[ENV_KEY] later in the request.
 #
-# The specs run against a MINI Roda app that reproduces the route-block
-# fragments under test verbatim. The alternative — booting Auth::Router — is
-# gated on Rodauth's one-shot configuration and requires the integration lane.
-# Keep the mini-app fragments byte-identical to router.rb; if that block ever
-# refactors, this spec must move with it (or be replaced by an integration
-# spec) rather than silently pass against a stale copy.
+# The specs run against a MINI Roda app. Booting Auth::Router is gated on
+# Rodauth's one-shot configuration and requires the integration lane. For
+# invariant 1 the mini app calls Auth::SessionRecheck.reason_for, the same
+# module function the router calls, so there is no copied fragment to drift.
+# For invariant 2 the begin/ensure fragment is still reproduced by hand; keep
+# it identical to router.rb.
 
 require 'roda'
 require 'rack/test'
@@ -32,6 +36,7 @@ require 'securerandom'
 require_relative '../spec_helper'
 require 'onetime/session/customer_session_evaluator'
 require 'onetime/session/active_session_gate'
+require_relative '../../session_recheck'
 
 RSpec.describe 'Auth::Router customer-session gate' do
   include Rack::Test::Methods
@@ -49,12 +54,20 @@ RSpec.describe 'Auth::Router customer-session gate' do
     end
   end
 
-  # Mini app for finding #1: reproduces the outage re-check block from
-  # apps/web/auth/router.rb (the "if !customer_session_verdict.authenticated?
-  # && session['authenticated'] == true && auth_session_reason ==
-  # :customer_unavailable" branch) and returns the reason it settled on so
-  # the spec can assert.
-  let(:outage_check_app) do
+  def stub_evaluator(status:, reason:)
+    allow(Onetime::CustomerSessionEvaluator).to receive(:evaluate)
+      .and_return(stub_verdict(status: status, reason: reason))
+  end
+
+  def settled_reason
+    get '/gate'
+    expect(last_response.status).to eq(200)
+    JSON.parse(last_response.body)['reason']
+  end
+
+  # Mini app for invariant 1: evaluates, hands the verdict to the router's
+  # re-check, and returns the reason it settled on so the spec can assert.
+  let(:recheck_app) do
     Class.new(Roda) do
       plugin :sessions, secret: SecureRandom.hex(64)
       plugin :json
@@ -63,24 +76,13 @@ RSpec.describe 'Auth::Router customer-session gate' do
       route do |r|
         r.post 'seed' do
           session['authenticated'] = true if r.params['authenticated']
+          session['account_id']    = Integer(r.params['account_id']) if r.params['account_id']
           { ok: true }
         end
 
         r.get 'gate' do
           customer_session_verdict = Onetime::CustomerSessionEvaluator.evaluate(session, env: env)
-          auth_session_reason      = customer_session_verdict.reason
-
-          # BYTE-IDENTICAL to router.rb (see the invariant comment there).
-          if !customer_session_verdict.authenticated? &&
-             session['authenticated'] == true &&
-             auth_session_reason == :customer_unavailable
-            case Onetime::ActiveSessionGate.verdict(session, env: env)
-            when :revoked
-              auth_session_reason = :active_session_revoked
-            when :unavailable
-              auth_session_reason = :active_session_unavailable
-            end
-          end
+          auth_session_reason      = Auth::SessionRecheck.reason_for(customer_session_verdict, session, env)
 
           { reason: auth_session_reason.to_s }
         end
@@ -88,63 +90,135 @@ RSpec.describe 'Auth::Router customer-session gate' do
     end
   end
 
-  describe 'outage re-check (finding #1)' do
-    let(:app) { outage_check_app }
+  describe '/auth-local surface and active-session re-check' do
+    let(:app) { recheck_app }
 
-    before do
-      # Establish session['authenticated']=true (the guard's precondition).
-      post '/seed', authenticated: true
-      expect(last_response.status).to eq(200)
-    end
-
-    # Every definitive rejection reason from REASONS other than
-    # :customer_unavailable and the authenticated/anonymous branches. Each
-    # must survive an ActiveSessionGate returning :unavailable — the previous
-    # allowlist masked all of these behind :active_session_unavailable.
-    [
-      :account_suspended,
-      :stale_credentials,
-      :admin_session_expired,
-      :customer_not_found,
-      :identity_missing,
-      :awaiting_mfa,
-    ].each do |reason|
-      it "preserves #{reason} instead of overwriting it with :active_session_unavailable" do
-        rejection_status = reason == :awaiting_mfa ? :mfa_pending : :rejected
-        allow(Onetime::CustomerSessionEvaluator).to receive(:evaluate)
-          .and_return(stub_verdict(status: rejection_status, reason: reason))
-        expect(Onetime::ActiveSessionGate).not_to receive(:verdict)
-
-        get '/gate'
-
+    context 'with a Rodauth-logged-in Rack session (account_id present)' do
+      before do
+        post '/seed', authenticated: true, account_id: 42
         expect(last_response.status).to eq(200)
-        expect(JSON.parse(last_response.body)['reason']).to eq(reason.to_s)
+        allow(Onetime::SessionSurface).to receive(:matches_request?).and_return(true)
+      end
+
+      # Every definitive rejection reason from REASONS. Each must survive an
+      # ActiveSessionGate that would answer :unavailable: the gate is never
+      # consulted for them.
+      [
+        :account_suspended,
+        :stale_credentials,
+        :admin_session_expired,
+        :customer_not_found,
+        :identity_missing,
+      ].each do |reason|
+        it "preserves #{reason} instead of overwriting it with :active_session_unavailable" do
+          stub_evaluator(status: :rejected, reason: reason)
+          allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:unavailable)
+
+          expect(settled_reason).to eq(reason.to_s)
+          expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
+          expect(Onetime::SessionSurface).not_to have_received(:matches_request?)
+        end
+      end
+
+      it 'leaves an authenticated verdict alone without consulting the gate again' do
+        stub_evaluator(status: :authenticated, reason: :authenticated)
+        allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
+
+        expect(settled_reason).to eq('authenticated')
+        expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
+      end
+
+      context 'when the evaluator answers :customer_unavailable' do
+        before { stub_evaluator(status: :unavailable, reason: :customer_unavailable) }
+
+        it 'runs the ActiveSessionGate re-check and adopts :active_session_unavailable' do
+          allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:unavailable)
+
+          expect(settled_reason).to eq('active_session_unavailable')
+          expect(Onetime::ActiveSessionGate).to have_received(:verdict)
+        end
+
+        it 'promotes to :active_session_revoked when the gate answers :revoked' do
+          allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
+
+          expect(settled_reason).to eq('active_session_revoked')
+        end
+
+        it 'does not repeat the surface check the evaluator already passed' do
+          allow(Onetime::SessionSurface).to receive(:matches_request?).and_return(false)
+          allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:active)
+
+          expect(settled_reason).to eq('customer_unavailable')
+          expect(Onetime::SessionSurface).not_to have_received(:matches_request?)
+        end
+      end
+
+      # The two reasons the evaluator returns before its surface check. Both
+      # describe a session Rodauth would authorize from account_id alone.
+      {
+        awaiting_mfa: :mfa_pending,
+        not_authenticated: :anonymous,
+      }.each do |reason, status|
+        context "when the evaluator answers :#{reason}" do
+          before { stub_evaluator(status: status, reason: reason) }
+
+          it 'becomes :active_session_revoked when the gate answers :revoked' do
+            allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
+
+            expect(settled_reason).to eq('active_session_revoked')
+          end
+
+          it 'becomes :active_session_unavailable when the gate answers :unavailable' do
+            allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:unavailable)
+
+            expect(settled_reason).to eq('active_session_unavailable')
+          end
+
+          it 'becomes :surface_mismatch on a surface mismatch, before the gate is consulted' do
+            allow(Onetime::SessionSurface).to receive(:matches_request?).and_return(false)
+            allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:active)
+
+            expect(settled_reason).to eq('surface_mismatch')
+            expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
+          end
+
+          [:active, :skipped].each do |gate_verdict|
+            it "stands when the surface matches and the gate answers :#{gate_verdict}" do
+              allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(gate_verdict)
+
+              expect(settled_reason).to eq(reason.to_s)
+              expect(Onetime::SessionSurface).to have_received(:matches_request?)
+              expect(Onetime::ActiveSessionGate).to have_received(:verdict)
+            end
+          end
+        end
       end
     end
 
-    it 'runs the ActiveSessionGate re-check for :customer_unavailable and adopts :active_session_unavailable' do
-      allow(Onetime::CustomerSessionEvaluator).to receive(:evaluate)
-        .and_return(stub_verdict(status: :unavailable, reason: :customer_unavailable))
-      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:unavailable)
+    context 'with a genuinely anonymous Rack session (no account_id)' do
+      before do
+        allow(Onetime::SessionSurface).to receive(:matches_request?).and_return(false)
+        allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
+      end
 
-      get '/gate'
+      it 'leaves :not_authenticated alone and consults neither check' do
+        stub_evaluator(status: :anonymous, reason: :not_authenticated)
 
-      expect(Onetime::ActiveSessionGate).to have_received(:verdict)
-      expect(JSON.parse(last_response.body)['reason']).to eq('active_session_unavailable')
-    end
+        expect(settled_reason).to eq('not_authenticated')
+        expect(Onetime::SessionSurface).not_to have_received(:matches_request?)
+        expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
+      end
 
-    it 'promotes :customer_unavailable to :active_session_revoked when the gate answers :revoked' do
-      allow(Onetime::CustomerSessionEvaluator).to receive(:evaluate)
-        .and_return(stub_verdict(status: :unavailable, reason: :customer_unavailable))
-      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
+      it 'leaves :session_missing alone and consults neither check' do
+        stub_evaluator(status: :anonymous, reason: :session_missing)
 
-      get '/gate'
-
-      expect(JSON.parse(last_response.body)['reason']).to eq('active_session_revoked')
+        expect(settled_reason).to eq('session_missing')
+        expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
+      end
     end
   end
 
-  # Mini app for finding #8: reproduces the begin/ensure wrap around r.rodauth.
+  # Mini app for invariant 2: reproduces the begin/ensure wrap around r.rodauth.
   # `r.rodauth` is stubbed by a lambda that mutates the session (as real Rodauth
   # would) and either returns normally or throws :halt (as Rodauth does when it
   # answers a route). The ensure clause must call
@@ -175,12 +249,11 @@ RSpec.describe 'Auth::Router customer-session gate' do
     end
   end
 
-  describe 'memo invalidation after r.rodauth (finding #8)' do
+  describe 'memo invalidation after r.rodauth (invariant 2)' do
     let(:app) { memo_forget_app }
 
     it 'forgets env[ENV_KEY] after the r.rodauth pass-through path' do
       pass_through = ->(_session) { :ok }
-      env_capture  = nil
 
       # Rack::Test env override so we can inject the stub and read env back.
       get '/run', {}, 'test.rodauth' => pass_through, 'rack.after_reply' => []

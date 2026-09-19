@@ -15,6 +15,7 @@ require 'onetime/session/customer_session_evaluator'
 
 require_relative 'config'
 require_relative 'error_translator'
+require_relative 'session_recheck'
 require_relative 'routes/account'
 require_relative 'routes/active_sessions'
 require_relative 'routes/identities'
@@ -174,15 +175,43 @@ module Auth
       rodauth.respond_to?(:omniauth_prefix) && path.start_with?("#{rodauth.omniauth_prefix}/")
     end
 
+    # Routes this router serves itself (not Rodauth's) that the MFA challenge
+    # page cannot work without, keyed by request method; exact matches on
+    # request.path_info. Deliberately tiny and hand-kept:
+    #
+    #   GET /mfa-status   The challenge page (MfaChallenge.vue, via useMfa's
+    #                     fetchMfaStatus) reads the per-factor booleans on
+    #                     mount to decide which factors to offer. Refused, the
+    #                     passkey affordance never renders, a TOTP user sees
+    #                     an error banner, and the page loses its recovery
+    #                     from a session marked awaiting_mfa for an account
+    #                     with no second factor. The body carries factor
+    #                     booleans, a recovery-code count and the OTP
+    #                     last-use time; no identifiers.
+    #
+    # Everything else the page calls is either a Rodauth route already in
+    # MFA_PENDING_RODAUTH_ROUTES (the passkey challenge fetch and its
+    # verification are both POST /webauthn-auth), logout, or lives outside
+    # the /auth mount (/bootstrap/me). /account and /account.json are NOT
+    # here: they return the account's id and email, which a session that has
+    # presented only one factor must not read.
+    MFA_PENDING_CUSTOM_ROUTES = {
+      'GET' => ['/mfa-status'].freeze,
+    }.freeze
+
     # A partial two-factor session may only reach the routes that finish or
     # abandon the challenge: the second-factor completion routes
-    # (MFA_PENDING_RODAUTH_ROUTES) and logout. Anonymous credential and recovery
-    # routes are NOT permitted here — allowing them lets a partial MFA session
-    # start unrelated account-lifecycle flows (create-account, verify-account,
+    # (MFA_PENDING_RODAUTH_ROUTES), logout, and the method-scoped custom
+    # routes the challenge page depends on (MFA_PENDING_CUSTOM_ROUTES).
+    # Anonymous credential and recovery routes are NOT permitted here —
+    # allowing them lets a partial MFA session start unrelated
+    # account-lifecycle flows (create-account, verify-account,
     # reset-password-request, OmniAuth) while the challenge sits half-finished.
-    def mfa_pending_rodauth_route?(path)
-      path == "/#{rodauth.logout_route}" ||
-        named_rodauth_route?(path, MFA_PENDING_RODAUTH_ROUTES)
+    def mfa_pending_route?(request_method, path)
+      return true if path == "/#{rodauth.logout_route}"
+      return true if named_rodauth_route?(path, MFA_PENDING_RODAUTH_ROUTES)
+
+      MFA_PENDING_CUSTOM_ROUTES.fetch(request_method, []).include?(path)
     end
 
     # How the gate's :revoked branch answers `path`: the logout is answered
@@ -283,36 +312,48 @@ module Auth
         end
       end
 
-      # Rodauth authenticates these routes from the Rack session alone. Obtain
-      # the shared customer-session verdict before r.rodauth. When a customer
-      # predicate rejects before the evaluator's normative active-session
-      # boundary, /auth still performs its own membership check: revocation is
-      # destructive on this surface and must not be hidden by an earlier
-      # customer-store verdict. This does not reorder the shared evaluator.
+      # Rodauth authenticates these routes from the Rack session alone:
+      # `rodauth.logged_in?` is `session['account_id']` being present, with no
+      # reference to the app-level `authenticated` flag. Obtain the shared
+      # customer-session verdict before r.rodauth, then let
+      # Auth::SessionRecheck fill in what the evaluator had not reached when
+      # it answered. This does not reorder the shared evaluator.
+      #
+      # The re-check is keyed on Rodauth's notion of logged in, not on
+      # `session['authenticated'] == true`, because that flag is exactly what
+      # the two affected kinds of session lack:
+      #
+      #   :awaiting_mfa       An MFA-pending session. The evaluator answers
+      #                       before its surface and active-session checks, so
+      #                       both run here: a session revoked or replayed on
+      #                       another surface mid-challenge must not be able
+      #                       to complete otp-auth / webauthn-auth /
+      #                       recovery-auth.
+      #   :not_authenticated  With an account_id, an autologin session
+      #                       (verify-account, invite create-account)
+      #                       that never went through after_login. Rodauth
+      #                       serves it every login-required route, so both
+      #                       checks run here too. Without an account_id the
+      #                       request is genuinely anonymous and neither check
+      #                       applies.
+      #   :customer_unavailable  Already past the surface check; only the
+      #                       active-session row is left to examine.
+      #                       Revocation is destructive on this surface and
+      #                       must not be hidden by a customer-store outage.
+      #
+      # Invariant: every other rejection is definitive and is never
+      # overwritten by a fallback :active_session_unavailable, which would
+      # preserve the cookie.
       customer_session_verdict = Onetime::CustomerSessionEvaluator.evaluate(session, env: env)
-      auth_session_reason      = customer_session_verdict.reason
-
-      # Invariant: only add ActiveSessionGate detail when the evaluator's answer
-      # is inconclusive with respect to gate state. :customer_unavailable is the
-      # sole reason the evaluator skipped its own gate call and needs it filled
-      # in here. Every other rejection is definitive and must not be overwritten
-      # by a fallback :active_session_unavailable, which would preserve the cookie.
-      if !customer_session_verdict.authenticated? &&
-         session['authenticated'] == true &&
-         auth_session_reason == :customer_unavailable
-        case Onetime::ActiveSessionGate.verdict(session, env: env)
-        when :revoked
-          auth_session_reason = :active_session_revoked
-        when :unavailable
-          auth_session_reason = :active_session_unavailable
-        end
-      end
+      auth_session_reason      = Auth::SessionRecheck.reason_for(customer_session_verdict, session, env)
 
       case auth_session_reason
       when :authenticated
         # Continue to authenticated routes below.
       when :awaiting_mfa
-        unless mfa_pending_rodauth_route?(r.path_info)
+        # Surface matched and the active-session row is live (or the session
+        # predates the join key); see Auth::SessionRecheck.
+        unless mfa_pending_route?(r.request_method, r.path_info)
           response.status = 401
           next { error: 'Authentication required' }
         end
@@ -416,16 +457,39 @@ module Auth
 
         response.status = 401
         next { error: 'Session could not be verified; try again', error_type: 'SessionUnverified' }
+      when :session_missing, :not_authenticated
+        # Nothing to destroy, by construction. The evaluator answers
+        # :not_authenticated only when the `authenticated` flag is absent, so
+        # this is one of two requests:
+        #
+        #   - Genuinely anonymous (no account_id). Rodauth treats it as logged
+        #     out; its anonymous routes run and its login-required routes
+        #     refuse it.
+        #   - A Rodauth login without the app-level flag: an autologin session
+        #     (verify-account, invite create-account). It reaches
+        #     this branch only after Auth::SessionRecheck matched its surface
+        #     and found its active-session row live (or found no join key to
+        #     check, the gate's existing exemption); a mismatch or a revoked
+        #     row was turned into :surface_mismatch / :active_session_revoked
+        #     above and destroyed there. What is left is a valid Rodauth
+        #     login, and destroying it would sign the user out on the request
+        #     after they verified their account or reset their password.
+        #
+        # Continue to Rodauth, which authorizes it as it would any login.
       when :identity_missing, :customer_not_found, :account_suspended, :stale_credentials,
-           :admin_session_expired, :session_missing, :not_authenticated
-        # A definitive rejection paired with Rodauth's authenticated Rack flag
-        # destroys that invalid session before dispatch. Anonymous
-        # credential/recovery routes may continue, logout succeeds, and
-        # login-required routes retain the established session-expired refusal.
-        # session_missing / not_authenticated only reach this branch when a
-        # malformed Rack session claims authenticated=true without an identity;
-        # a genuinely anonymous request has nothing to destroy and falls through.
-        if session['authenticated'] == true
+           :admin_session_expired
+        # A definitive rejection destroys the invalid session before dispatch.
+        # Anonymous credential/recovery routes may continue, logout succeeds,
+        # and login-required routes retain the established session-expired
+        # refusal. The evaluator reaches each of these reasons only past its
+        # `authenticated == true` check, so the flag is set whenever this
+        # branch runs on the evaluator's own verdict. The guard also accepts
+        # Rodauth's notion of logged in, so that the destroy never depends on
+        # the app-level flag alone: what matters on this surface is whether
+        # Rodauth would authorize the session, and a session Rodauth would
+        # authorize must not survive a definitive rejection. A Rack session
+        # that is neither has nothing to destroy and falls through.
+        if session['authenticated'] == true || rodauth.logged_in?
           outcome = revoked_outcome(r.path_info)
           clear_gated_session
 
