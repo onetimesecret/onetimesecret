@@ -275,7 +275,23 @@ status link in the domain list puts the status text in its accessible name.
 `PENDING_SSL` is also what the blob says when `has_ssl` is unknown and the
 stored certificate dates have lapsed. The badge cannot tell that apart from a
 first certificate; the status table can, and its SSL row reads "Unknown"
-rather than "Inactive" when `has_ssl` is absent.
+rather than "Inactive" when `has_ssl` is absent. The probe's blob has no
+`target_address` and no `last_monitored_humanized` (both are Approximated's);
+the table hides the target row when there is none and derives "Last
+monitored" from `last_monitored_unix`.
+
+The badge cannot say what the TXT check itself learned. `vhost_fetch_failed_at`
+tracks the status probe only, and an indeterminate TXT lookup leaves
+`verified` as it was, so after a verify the record reads the same for "no
+answer" as for "record missing". The customer verify response
+(`POST /api/domains/:extid/verify`) therefore carries `details.dns_outcome`
+and `details.dns_indeterminate`, as the Colonel response does, and
+`domainVerifyNotice` picks the toast and the inline alert from it: the
+success text for `validated` only, "could not complete the check, try again"
+for `indeterminate` / `confirmation_expired`, and "record not found" for
+`failed` / `override_held`. The outcome is reported for the check the
+customer just ran; it is not stored, so a page load between checks still
+shows the badge alone.
 
 ### Caddy `ask` deprecation — confirmed in the app itself, not just the example file (2026-06-30)
 
