@@ -94,9 +94,10 @@ module Auth::Config::Hooks
             diagnostic_hint: diagnostic_hint,
           )
 
-          set_error_flash(create_account_error_flash)
-          request.env['rodauth.error_flash'] = create_account_error_flash
-          throw_rodauth_error
+          # The shared answer (config/overrides/duplicate_signup.rb): an
+          # unverified account, which only a concurrent sign-up can put here,
+          # answers as it would have a moment later.
+          refuse_signup_for_existing_account(email)
         end
 
         # Check Redis (customer database)
