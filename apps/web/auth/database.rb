@@ -237,13 +237,65 @@ module Auth
           database_url
         end
 
-        Sequel.connect(
-          connection_opts,
-          logger: Onetime.get_logger('Sequel'),
-          sql_log_level: :trace,  # Log SQL statements at trace level for safety
-        ).tap do |db|
-          db.extension :date_arithmetic
-        end
+        connect(connection_opts)
+      end
+    end
+
+    # How long a SQLite connection waits for a lock another connection holds.
+    # Sequel's own default for its `:timeout` option.
+    SQLITE_BUSY_TIMEOUT_MS = 5_000
+
+    # Open the authdb connection. The one place connection options live, so
+    # the lazy and the immediate connection cannot drift.
+    #
+    # ## SQLite: two settings, and both are needed
+    #
+    # Concurrent sign-ups answered 500 (`SQLite3::BusyException: database is
+    # locked` on the accounts INSERT): 7 of 8 parallel POST
+    # /auth/create-account on a file-backed authdb. Two separate causes, and
+    # fixing either alone changes nothing (measured with four threads that
+    # each read, then insert, inside a transaction: three of four fail under
+    # either fix alone, none under both):
+    #
+    # 1. `transaction_mode = :immediate`. Rodauth's create-account reads inside
+    #    its transaction before it inserts. Under SQLite's default DEFERRED
+    #    mode two connections then both hold a SHARED lock and both ask to
+    #    upgrade; SQLite refuses the second AT ONCE, without consulting the
+    #    busy handler, because waiting would deadlock. BEGIN IMMEDIATE takes
+    #    the write lock up front, where waiting is safe. Read-only
+    #    transactions queue behind writers too; on a single-instance SQLite
+    #    authdb that is the price of not failing.
+    #
+    # 2. `busy_handler_timeout=` in place of `busy_timeout`. Sequel's
+    #    `:timeout` option calls sqlite3_busy_timeout, which sleeps inside C
+    #    while holding Ruby's GVL. In a threaded server the thread that owns
+    #    the lock is then unable to run and release it: every waiter burns
+    #    the whole timeout and fails anyway. The sqlite3 gem's
+    #    busy_handler_timeout= does the same wait and releases the GVL between
+    #    attempts. It is set per connection, after Sequel's own setting, which
+    #    it replaces.
+    #
+    # A wait that still outlasts the timeout raises as before. Reaching it
+    # takes more queued writers than the server has threads.
+    #
+    # PostgreSQL needs none of this: a duplicate insert waits on the row and
+    # then raises a unique violation, which Rodauth handles.
+    #
+    # @param connection_opts [String, Hash] a database URL or a Sequel
+    #   connection hash
+    # @return [Sequel::Database]
+    def self.connect(connection_opts)
+      sqlite  = connection_opts.is_a?(String) && connection_opts.start_with?('sqlite')
+      options = { logger: Onetime.get_logger('Sequel'), sql_log_level: :trace } # SQL at trace level for safety
+
+      if sqlite
+        options[:timeout]       = SQLITE_BUSY_TIMEOUT_MS
+        options[:after_connect] = ->(conn) { conn.busy_handler_timeout = SQLITE_BUSY_TIMEOUT_MS if conn.respond_to?(:busy_handler_timeout=) }
+      end
+
+      Sequel.connect(connection_opts, **options).tap do |db|
+        db.extension :date_arithmetic
+        db.transaction_mode = :immediate if sqlite
       end
     end
 
@@ -254,13 +306,7 @@ module Auth
 
       database_url = Onetime.auth_config.database_url || 'sqlite://data/auth.db'
 
-      Sequel.connect(
-        database_url,
-        logger: Onetime.get_logger('Sequel'),
-        sql_log_level: :trace,
-      ).tap do |db|
-        db.extension :date_arithmetic
-      end
+      connect(database_url)
     end
 
     # Ensure database migrations are up to date.
