@@ -44,9 +44,11 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
     get_json '/auth/account'
 
     expect(last_response.status).to eq(401)
-    expect(JSON.parse(last_response.body)).to include(
+    expect(JSON.parse(last_response.body)).to eq(
       'error' => 'web.auth.security.session_expired',
       'success' => false,
+      'code' => 'active_session_revoked',
+      'code_scope' => 'customer_session',
     )
     expect(session_store.find_key(Familia.dbclient, sid)).to be_nil
     expect(Onetime::CustomerSessionEvaluator).to have_received(:evaluate).at_least(:once)
@@ -108,6 +110,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
     get_json '/auth/account'
 
     expect(last_response.status).to eq(401)
+    expect_session_failure_code('account_suspended', 'customer_session')
     expect_no_account_data
     expect(session_store.find_key(Familia.dbclient, sid)).to be_nil
   end
@@ -121,6 +124,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
     get_json '/auth/account'
 
     expect(last_response.status).to eq(401)
+    expect_session_failure_code('stale_credentials', 'customer_session')
     expect_no_account_data
     expect(session_store.find_key(Familia.dbclient, sid)).to be_nil
   end
@@ -239,6 +243,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
 
       expect(last_response.status).to eq(401)
       expect(JSON.parse(last_response.body)['error_type']).to eq('SessionUnverified')
+      expect_session_failure_code('active_session_unavailable', 'verification_unavailable')
       expect_no_account_data
       expect(session_store.find_key(Familia.dbclient, sid)).not_to be_nil
     end
@@ -252,7 +257,12 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
     get_json '/auth/account'
 
     expect(last_response.status).to eq(401)
-    expect(JSON.parse(last_response.body)['error_type']).to eq('SessionUnverified')
+    expect(JSON.parse(last_response.body)).to eq(
+      'error' => 'Session could not be verified; try again',
+      'error_type' => 'SessionUnverified',
+      'code' => 'customer_unavailable',
+      'code_scope' => 'verification_unavailable',
+    )
     expect_no_account_data
     expect(session_store.find_key(Familia.dbclient, sid)).not_to be_nil
   end
@@ -326,6 +336,9 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
 
     expect(last_response.status).to eq(401)
     expect(JSON.parse(last_response.body)['error']).to eq('web.auth.security.session_expired')
+    # The typed verdict crosses the boundary instead of collapsing into the
+    # same session_expired body a revocation answers with (#4462).
+    expect_session_failure_code('surface_mismatch', 'customer_session')
     expect(session_store.find_key(Familia.dbclient, sid)).to be_nil
     expect(Auth::Logging).to have_received(:log_auth_event).with(
       :session_surface_mismatch,
@@ -360,6 +373,10 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
     session_store.load_data(Familia.dbclient, key, codec: session_codec)
   end
 
+  def expect_session_failure_code(code, scope)
+    expect(JSON.parse(last_response.body)).to include('code' => code, 'code_scope' => scope)
+  end
+
   def expect_revoked_refusal_without_account_data
     expect(last_response.status).to eq(401)
     expect(JSON.parse(last_response.body)).to include(
@@ -371,7 +388,11 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
 
   def expect_mfa_pending_refusal_without_account_data
     expect(last_response.status).to eq(401)
-    expect(JSON.parse(last_response.body)).to eq('error' => 'Authentication required')
+    expect(JSON.parse(last_response.body)).to eq(
+      'error' => 'Authentication required',
+      'code' => 'awaiting_mfa',
+      'code_scope' => 'customer_session',
+    )
     expect(last_request.env.fetch(Onetime::CustomerSessionEvaluator::ENV_KEY).reason).to eq(:awaiting_mfa)
     expect_no_account_data
   end
