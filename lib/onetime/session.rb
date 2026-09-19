@@ -14,6 +14,7 @@ require_relative 'session/codec'
 require_relative 'session/sidecar'
 require_relative 'session/impersonation'
 require_relative 'session/active_session_gate'
+require_relative 'session/ended'
 require_relative 'session/surface'
 require_relative 'session/recent_reauth'
 require_relative 'session/reauth_policy'
@@ -169,6 +170,12 @@ module Onetime
           session_handle: handle,
           operation: 'delete',
         }
+
+      # The marker BEFORE the blob (Onetime::SessionEnded): a request that
+      # loaded this session earlier and commits later finds it after its own
+      # SET and takes its copy back out. Set-then-delete here and
+      # set-then-check there is what leaves no order in which the copy stays.
+      Onetime::SessionEnded.mark(sid_string, dbclient: @dbclient)
 
       if stringkey = get_stringkey(sid_string)
         result = stringkey.del
@@ -474,6 +481,23 @@ module Onetime
               operation: 'read',
             }
 
+          # An id that was ended on purpose (revoked from another device, a
+          # logout whose response this browser has not applied yet) cannot be
+          # written under while its marker lives, so an empty session kept
+          # under it would lose its CSRF token and the next sign-in with it.
+          # Give the browser a new id instead. One EXISTS, on this branch
+          # only: a cookie naming a blob that is gone.
+          if Onetime::SessionEnded.ended?(sid_string, dbclient: @dbclient)
+            new_sid = generate_sid
+            session_logger.debug 'Ended session id replaced',
+              {
+                session_handle: handle,
+                new_session_handle: log_handle(new_sid),
+                operation: 'read',
+              }
+            return [new_sid, {}]
+          end
+
           return [sid, {}]  # Empty session - Rodauth sees this as "not logged in"
         end
 
@@ -749,6 +773,32 @@ module Onetime
 
       end
 
+      # The session was ended while this request held it (a logout or a
+      # revocation that ran between this request's read and this write): take
+      # the copy back out and report the write as not saved, so Rack sends no
+      # cookie either (RISK-2026-09-19-01). AFTER the SET, never before it;
+      # see Onetime::SessionEnded for why only this order closes the race. An
+      # error here reaches the outer rescue: a write that could not be checked
+      # is not reported as saved.
+      #
+      # Asked in both auth modes. In full mode a LOGOUT also removes the
+      # active-session row, which makes a written-back copy refusable
+      # (Onetime::ActiveSessionGate.end_session), but a single-session revoke
+      # (Operations::Sessions::RevokeForCustomer, DeleteSession) deletes only
+      # the blob and leaves the row, so the row does not cover every way a
+      # session ends. The EXISTS costs this method nothing net: it takes the
+      # place of the TTL read that used to feed the trace line at the end.
+      if Onetime::SessionEnded.ended?(sid_string, dbclient: @dbclient)
+        stringkey.del
+        Onetime::SessionSidecar.purge(sid_string, dbclient: @dbclient)
+        session_logger.info 'Session write refused: the session was ended during this request',
+          {
+            session_handle: handle,
+            operation: 'write',
+          }
+        return false
+      end
+
       # Best-effort per-customer session sidecar (spec 40; adaptation #2). This
       # is the ONLY request-path point where the plain sid and the post-login
       # session_data are both present, and it commits ~per request so the sidecar
@@ -779,8 +829,9 @@ module Onetime
       end
 
       # Calculate session data metrics for logging
+      # The TTL is the one this method just set, not a second read of it.
       data_size  = signed_data.bytesize
-      ttl_value  = stringkey.ttl
+      ttl_value  = (write_ttl && write_ttl > 0 ? write_ttl : @expire_after).to_i
       expires_at = ttl_value > 0 ? Time.now + ttl_value : nil
 
       # Structured trace logging with all critical session fields

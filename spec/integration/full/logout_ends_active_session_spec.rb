@@ -91,6 +91,33 @@ RSpec.describe 'Logout ends the active session (#4451)', type: :integration do
   it_behaves_like 'a logout that a late write cannot undo', :get, '/logout'
   it_behaves_like 'a logout that a late write cannot undo', :post, '/auth/logout'
 
+  # A single-session revoke deletes the blob and leaves the active-session
+  # row (Operations::Sessions::RevokeForCustomer), so in full mode the row
+  # does not cover it: a request in flight would write back a copy the row
+  # still vouches for. The ended-marker refuses that write
+  # (Onetime::SessionEnded). Driven through a real held request, so the late
+  # write is Onetime::Session#write_session's own.
+  it 'a revoked session is not written back by a request that was in flight', :aggregate_failures do
+    sid = current_session_id
+
+    held = hold_request_while do
+      Onetime::Operations::Sessions::RevokeForCustomer.new(
+        custid: @matrix_customer.extid,
+        session_id: sid,
+        actor: @matrix_customer,
+      ).call
+    end
+
+    expect(held.status).to eq(200)
+    expect(activity_count).to eq(1)
+    expect(session_store.find_key(Familia.dbclient, sid)).to be_nil
+    expect(held.headers['set-cookie'].to_s).not_to include(sid)
+
+    clear_cookies
+    set_cookie "onetime.session=#{sid}"
+    expect(request_surface(:protected_api, request_id: 'after-revoke-api')[:status]).to eq(401)
+  end
+
   it "leaves the account's other sessions signed in", :aggregate_failures do
     other = SecureRandom.hex(32)
     test_db[:account_active_session_keys].insert(account_id: @matrix_account[:id], session_id: other)

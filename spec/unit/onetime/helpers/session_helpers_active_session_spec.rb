@@ -158,6 +158,18 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     expect(env).not_to have_key(gate::TOUCH_DEFERRED_ENV_KEY)
   end
 
+  # RISK-2026-09-19-01: only a renewed id gets an ended-marker, and only the
+  # marker stops a request in flight from writing the session back.
+  it 'renews the session id on logout!' do
+    options = {}
+    request = instance_double(Rack::Request, env: canonical_env.merge('rack.session.options' => options))
+    allow(Onetime::SessionImpersonation).to receive(:stop!)
+
+    helper_class.new(session, request).logout!
+
+    expect(options[:renew]).to be(true)
+  end
+
   # #4461: the sid is the bearer credential. Neither it nor Rack's private id
   # is logged; the line carries the handle every other session log line uses.
   it 'logs the session handle on logout!, never a session id', :aggregate_failures do
