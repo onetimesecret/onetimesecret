@@ -76,8 +76,14 @@ Changed
   status (the name resolves, no certificate was seen). A verified domain
   reads "Certificate pending" and is not flagged as a problem: Caddy obtains
   the certificate on the first request after the TXT check passes. A domain
-  whose TXT check has not passed reads "Unverified" and links to the
-  verification page, because no certificate will be issued until it does.
+  whose TXT check has not passed reads "Pending Verification" and links to
+  the verification page, because no certificate will be issued until it
+  does. The same reading now applies, under both ``approximated`` and
+  ``caddy_on_demand``, to an unverified domain whose status still says
+  active (for example after its TXT record was removed while the certificate
+  issued earlier keeps serving): it no longer reads "Active" and no longer
+  gets the Manage quick action. "Unverified" is kept for a status check that
+  failed.
   The SSL row of the status table reads "Unknown" rather than "Inactive" when
   the check could not tell.
 
