@@ -51,4 +51,78 @@ RSpec.describe Onetime::SessionActivity do
       expect(passive.first).to match(%r{\AGET\s+/bootstrap/me\s})
     end
   end
+
+  describe '.refused? and .counts?' do
+    let(:evaluator) { Onetime::CustomerSessionEvaluator }
+    let(:verdict_key) { evaluator::ENV_KEY }
+    let(:admin_key) { Onetime::Application::AuthStrategies::AdminSessionLifetime::EXPIRED_ENV_KEY }
+
+    def verdict(status, reason)
+      evaluator::Verdict.new(status: status, reason: reason)
+    end
+
+    # Every non-success reason the evaluator can produce, with the status it is
+    # raised under and whether it is a refusal. `fetch` has no default: a
+    # reason added later fails here until someone decides which it is, instead
+    # of silently counting as activity.
+    classification = {
+      session_missing: [:anonymous, false],
+      not_authenticated: [:anonymous, false],
+      awaiting_mfa: [:mfa_pending, false],
+      identity_missing: [:rejected, true],
+      surface_mismatch: [:rejected, true],
+      customer_not_found: [:rejected, true],
+      account_suspended: [:rejected, true],
+      stale_credentials: [:rejected, true],
+      admin_session_expired: [:rejected, true],
+      active_session_revoked: [:rejected, true],
+      active_session_unavailable: [:unavailable, true],
+      customer_unavailable: [:unavailable, true],
+    }.freeze
+
+    (Onetime::CustomerSessionEvaluator::REASONS - [:authenticated]).each do |reason|
+      it "classifies the #{reason} verdict" do
+        status, refused = classification.fetch(reason)
+        env             = { verdict_key => verdict(status, reason) }
+
+        expect(described_class.refused?(env)).to be(refused)
+        expect(described_class.counts?(env)).to be(!refused)
+      end
+    end
+
+    it 'counts an authenticated verdict on an ordinary route' do
+      customer = instance_double(Onetime::Customer)
+      env      = {
+        verdict_key => evaluator::Verdict.new(status: :authenticated, reason: :authenticated, principal: customer, customer: customer),
+        'otto.route_options' => { auth: 'sessionauth' },
+      }
+
+      expect(described_class.counts?(env)).to be(true)
+    end
+
+    it 'does not count an authenticated verdict on a passive route' do
+      customer = instance_double(Onetime::Customer)
+      env      = {
+        verdict_key => evaluator::Verdict.new(status: :authenticated, reason: :authenticated, principal: customer, customer: customer),
+        'otto.route_options' => { activity: 'passive' },
+      }
+
+      expect(described_class.refused?(env)).to be(false)
+      expect(described_class.counts?(env)).to be(false)
+    end
+
+    it 'treats the admin-surface bounds flag (#4331) as a refusal' do
+      expect(described_class.refused?(admin_key => 'idle')).to be(true)
+      expect(described_class.counts?(admin_key => 'idle')).to be(false)
+    end
+
+    it 'counts a request nobody evaluated, and one with no env' do
+      expect(described_class.counts?({})).to be(true)
+      expect(described_class.counts?(nil)).to be(true)
+    end
+
+    it 'ignores a verdict entry that is not a verdict' do
+      expect(described_class.refused?(verdict_key => 'rejected')).to be(false)
+    end
+  end
 end

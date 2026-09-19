@@ -409,6 +409,16 @@ RSpec.describe Onetime::ActiveSessionGate do
         expect(last_use_in_db.to_i).to eq(stale.to_i)
       end
 
+      # Login and logout change who the Rack session belongs to mid-request.
+      it 'drops the deferral with the memo when the session identity changes' do
+        described_class.forget(env)
+        env['otto.route_options'] = { auth: 'sessionauth' }
+
+        expect(env).not_to have_key(described_class::ENV_KEY)
+        expect(described_class.settle_deferred_touch(session, env: env)).to be(false)
+        expect(last_use_in_db.to_i).to eq(stale.to_i)
+      end
+
       it 'swallows a failing deferred refresh and warns' do
         env['otto.route_options'] = { auth: 'sessionauth' }
         allow(Auth::Database).to receive(:connection).and_raise(Sequel::DatabaseConnectionError, 'gone')

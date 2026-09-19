@@ -94,7 +94,7 @@ module Onetime
         @customer_session_verdict = nil
         env                       = rack_env_for_impersonation
         Onetime::CustomerSessionEvaluator.forget(env)
-        env&.delete(Onetime::ActiveSessionGate::ENV_KEY)
+        Onetime::ActiveSessionGate.forget(env)
       end
 
       def load_current_customer

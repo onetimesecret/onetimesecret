@@ -264,7 +264,7 @@ module Auth
     def clear_gated_session
       rodauth.clear_session
       Onetime::CustomerSessionEvaluator.forget(env)
-      env.delete(Onetime::ActiveSessionGate::ENV_KEY)
+      Onetime::ActiveSessionGate.forget(env)
     end
 
     # A session refusal body plus its stable `code` / `code_scope` (#4462).

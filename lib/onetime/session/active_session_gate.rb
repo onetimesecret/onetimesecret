@@ -184,6 +184,16 @@ module Onetime
       result
     end
 
+    # The session identity changed inside this request (login or logout):
+    # neither the verdict nor a refresh deferred for the previous identity may
+    # outlive it. The counts stay; they describe the request, not the session.
+    def forget(env)
+      return unless env.is_a?(Hash)
+
+      env.delete(ENV_KEY)
+      env.delete(TOUCH_DEFERRED_ENV_KEY)
+    end
+
     # Perform a `last_use` refresh that a passive reader deferred earlier on
     # this env, if this reader is activity. Called on every memo hit here and
     # by {Onetime::CustomerSessionEvaluator} on its own memo hit, which never
