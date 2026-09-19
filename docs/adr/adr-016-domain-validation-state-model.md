@@ -100,6 +100,39 @@ table) since it's specific to that provider's onboarding flow.
 
 ## Implementation Notes
 
+### Ownership axis implemented for `caddy_on_demand` (2026-09-18)
+
+`CaddyOnDemandStrategy#validate_ownership` used to return `validated: true`
+without checking anything, so any verify pass set `verified`. It now checks
+the TXT challenge record through `DomainValidation::TxtVerifier`, with the
+same "exactly one matching value" rule Approximated applies and the three
+outcomes of `BaseStrategy#validate_ownership`:
+
+- `true`: the record matches.
+- `false`: the resolver stated the record is missing or different
+  (NXDOMAIN, NOERROR without TXT data, other values). Demotes, unless a
+  Colonel override holds the flag.
+- `nil` / indeterminate: SERVFAIL, REFUSED, timeout, network error. Stored
+  state is left alone.
+
+The Trade-offs section suggests reusing the sender-domain DNS machinery.
+That code uses `Resolv::DNS#getresources`, which returns `[]` for NXDOMAIN,
+SERVFAIL and a timeout alike, so it cannot separate `false` from `nil`.
+`DomainValidation::TxtResolver` sends the query itself and reads the
+response code; it uses only the stdlib message codec.
+
+`ApproximatedStrategy` uses the same verifier when Approximated's own lookup
+fails (`actual_values: false`), including its definitive negatives.
+
+Order of work matters for the "ask gate is unsatisfiable" note below. The
+OTS-side resolving check makes `ready?` reachable under `caddy_on_demand`;
+the TXT check had to land first so that `verified` carries proof by the time
+the gate can open. `passthrough` still performs no ownership check (ADR-017).
+
+Operator impact: domains that were marked verified under `caddy_on_demand`
+without a TXT record lose `verified` on the first refresh after upgrade,
+unless the record exists or a Colonel override holds the flag.
+
 ### Caddy `ask` deprecation — confirmed in the app itself, not just the example file (2026-06-30)
 
 Caddy's live config-docs API (`GET https://caddyserver.com/api/docs/config/apps/tls/automation/on_demand/`,

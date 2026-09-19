@@ -21,13 +21,12 @@ The endpoint is then available at `http://127.0.0.1:3000/api/internal/acme/ask`.
 ## Endpoint
 
 ```
-GET /api/internal/acme/ask?domain=example.com[&check_verification=false]
+GET /api/internal/acme/ask?domain=example.com
 ```
 
 | Parameter | Required | Default | Description |
 |-----------|----------|---------|-------------|
 | `domain` | yes | — | The domain to validate |
-| `check_verification` | no | `true` | Set to `false` to skip DNS verification check (domain must still exist) |
 
 | Status | Meaning |
 |--------|---------|
@@ -40,7 +39,8 @@ GET /api/internal/acme/ask?domain=example.com[&check_verification=false]
 
 - **Localhost-only**: `LocalhostOnly` middleware rejects non-loopback IPs (127.0.0.1, ::1, ::ffff:127.0.0.1)
 - **Fail-closed**: Database errors return 403 (no certificate issued)
-- **DNS ownership required**: Only domains with `ready?` status (DNS TXT verified) are allowed
+- **DNS ownership required**: Only domains with `ready?` status (DNS TXT verified) are allowed. Under the `caddy_on_demand` strategy the application checks the TXT challenge record with its own DNS lookup (`lib/onetime/domain_validation/txt_verifier.rb`). Caddy completing the ACME challenge is not an ownership check.
+- **No bypass parameter**: the endpoint ignores `check_verification`. It was removed from the HTTP interface so a local process cannot skip the ownership check through the query string.
 
 ### Blocking external access at the reverse proxy
 
@@ -78,15 +78,7 @@ on_demand_tls {
 }
 ```
 
-By default, Caddy's `ask` URL enforces DNS verification — only domains with verified TXT records get certificates. To issue certificates for registered but not-yet-verified domains (e.g. during initial setup), append `check_verification=false`:
-
-```caddyfile
-on_demand_tls {
-  ask http://127.0.0.1:12020/api/internal/acme/ask?check_verification=false
-}
-```
-
-The domain must still exist in the CustomDomain database; this only skips the DNS ownership proof.
+The endpoint always enforces DNS verification: only domains whose TXT challenge record has been verified get certificates. There is no query parameter to skip it.
 
 ## Testing
 
@@ -123,11 +115,8 @@ curl "http://127.0.0.1:3000/api/internal/acme/ask"
 # Unknown domain → 403
 curl "http://127.0.0.1:3000/api/internal/acme/ask?domain=nonexistent.example.com"
 
-# Unverified but registered domain → 403 (default)
+# Unverified but registered domain → 403
 curl "http://127.0.0.1:3000/api/internal/acme/ask?domain=pending.example.com"
-
-# Skip verification (domain must still exist) → 200
-curl "http://127.0.0.1:3000/api/internal/acme/ask?domain=pending.example.com&check_verification=false"
 ```
 
 ## Architecture
@@ -136,11 +125,10 @@ curl "http://127.0.0.1:3000/api/internal/acme/ask?domain=pending.example.com&che
 Caddy TLS request
   → on_demand_tls ask endpoint
     → LocalhostOnly middleware (401 if not loopback)
-      → AskHandler (parses domain, check_verification)
-        → Application.domain_allowed?(domain, check_verification:)
+      → AskHandler (parses domain)
+        → Application.domain_allowed?(domain)
           → CustomDomain.load_by_display_domain
             → nil? → 403 Forbidden
-            → check_verification false? → 200 OK
             → custom_domain.ready? (DNS TXT verified?)
               → 200 OK / 403 Forbidden
 ```

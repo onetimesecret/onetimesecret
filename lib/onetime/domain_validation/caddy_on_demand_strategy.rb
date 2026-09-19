@@ -2,36 +2,70 @@
 #
 # frozen_string_literal: true
 
+require_relative 'txt_verifier'
+
 module Onetime
   module DomainValidation
     # CaddyOnDemandStrategy - Caddy's on_demand_tls certificate management.
     #
-    # Use this when using Caddy's on-demand TLS feature. Caddy will call
-    # the internal ACME endpoint to check if a domain is allowed before
-    # issuing a certificate.
+    # Use this when using Caddy's on-demand TLS feature. Caddy calls the
+    # internal ACME endpoint (apps/internal/acme) to ask whether a domain is
+    # allowed before issuing a certificate, and that endpoint answers from
+    # CustomDomain#ready?, which requires `verified`.
     #
-    # This strategy doesn't perform validation itself - it relies on Caddy
-    # to handle the ACME challenge and certificate issuance. We just track
-    # which domains are registered in our system.
+    # Two separate proofs are involved and only one of them is Caddy's:
+    #
+    #   - Ownership: this strategy checks the TXT challenge record with our
+    #     own DNS lookup (TxtVerifier), the same "exactly one matching value"
+    #     rule the Approximated strategy applies.
+    #   - Certificate issuance: Caddy completes the ACME challenge. That shows
+    #     the name currently resolves to this deployment. It says nothing
+    #     about which account, if any, controls the domain, so it is never
+    #     read as ownership (ADR-016).
     #
     class CaddyOnDemandStrategy < BaseStrategy
-      attr_reader :config
+      MODE = 'caddy_on_demand'
 
-      def initialize(config)
-        @config = config
+      attr_reader :config, :txt_verifier
+
+      # @param config [Hash] Application configuration (typically OT.conf)
+      # @param txt_verifier [#verify] Ownership checker (default: TxtVerifier).
+      #   Injected so specs never touch the network.
+      #
+      def initialize(config, txt_verifier: TxtVerifier.new)
+        @config       = config
+        @txt_verifier = txt_verifier
       end
 
-      # Validation delegated to Caddy's ACME challenge.
+      # Validates domain ownership via the TXT challenge record.
       #
-      # @param _custom_domain [Onetime::CustomDomain] Ignored
-      # @return [Hash] Delegated validation response
+      # Three outcomes, passed through from TxtVerifier unchanged:
       #
-      def validate_ownership(_custom_domain)
-        {
-          validated: true,
-          message: 'Validation delegated to Caddy on-demand TLS',
-          mode: 'caddy_on_demand',
-        }
+      #   validated: true   exactly one TXT value, equal to the challenge
+      #   validated: false  the resolver stated the record is missing or
+      #                     different (demotes a verified domain, unless an
+      #                     operator override holds it)
+      #   validated: nil    the lookup produced no answer; stored state is
+      #                     left alone (VerifyDomain#persist_changes)
+      #
+      # A domain with no challenge value also fails. TxtVerifier omits :data
+      # for that case, but the :mode added here means VerifyDomain stores the
+      # false: a domain with nothing to prove ownership is not verified.
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @return [Hash] See BaseStrategy#validate_ownership
+      #
+      def validate_ownership(custom_domain)
+        txt_verifier
+          .verify(custom_domain.validation_record, custom_domain.txt_validation_value)
+          .merge(mode: MODE)
+      rescue StandardError => ex
+        # TxtVerifier rescues its own lookup. Anything reaching here is ours
+        # (e.g. the domain could not produce its validation record), which is
+        # not evidence about the customer's DNS.
+        OT.le "[CaddyOnDemandStrategy] Error validating #{custom_domain.display_domain}: " \
+              "#{ex.class}: #{ex.message}"
+        { validated: nil, indeterminate: true, message: "Error: #{ex.message}", mode: MODE }
       end
 
       # Certificate issuance handled automatically by Caddy.
@@ -43,7 +77,7 @@ module Onetime
         {
           status: 'delegated',
           message: 'Certificate issuance delegated to Caddy',
-          mode: 'caddy_on_demand',
+          mode: MODE,
         }
       end
 
@@ -56,7 +90,7 @@ module Onetime
         {
           ready: true,
           message: 'Domain registered for Caddy on-demand TLS',
-          mode: 'caddy_on_demand',
+          mode: MODE,
           has_ssl: nil, # Unknown - managed by Caddy
           is_resolving: nil, # Unknown - managed by Caddy
         }
@@ -71,7 +105,7 @@ module Onetime
         {
           deleted: false,
           message: 'No-op: certificate lifecycle managed by Caddy',
-          mode: 'caddy_on_demand',
+          mode: MODE,
         }
       end
 
@@ -83,7 +117,7 @@ module Onetime
         {
           available: false,
           message: 'DNS widget not available with Caddy on-demand TLS',
-          mode: 'caddy_on_demand',
+          mode: MODE,
         }
       end
 

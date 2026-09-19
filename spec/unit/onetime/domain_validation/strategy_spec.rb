@@ -150,7 +150,14 @@ end
 
 RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
   let(:config) { {} }
-  let(:strategy) { described_class.new(config) }
+  let(:answer_class) { Onetime::DomainValidation::TxtResolver::Answer }
+  # The native fallback runs the real TxtVerifier over a fake resolver, so no
+  # example opens a socket. NXDOMAIN unless a context says otherwise.
+  let(:native_rcode) { Resolv::DNS::RCode::NXDomain }
+  let(:native_values) { [] }
+  let(:resolver) { instance_double(Onetime::DomainValidation::TxtResolver, close: nil) }
+  let(:txt_verifier) { Onetime::DomainValidation::TxtVerifier.new(resolver_factory: -> { resolver }) }
+  let(:strategy) { described_class.new(config, txt_verifier: txt_verifier) }
   let(:custom_domain) do
     double('CustomDomain',
            display_domain: 'example.com',
@@ -161,6 +168,12 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
   before do
     allow(Onetime::DomainValidation::Features).to receive(:api_key).and_return('test_api_key')
     allow(Onetime::DomainValidation::Features).to receive(:vhost_target).and_return('app.example.com')
+    allow(resolver).to receive(:lookup)
+      .with(custom_domain.validation_record) { answer_class.new(rcode: native_rcode, values: native_values) }
+  end
+
+  it 'defaults to a TxtVerifier for the native fallback' do
+    expect(described_class.new(config).txt_verifier).to be_a(Onetime::DomainValidation::TxtVerifier)
   end
 
   describe '#validate_ownership' do
@@ -246,7 +259,7 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
       end
 
       it 'never falls back to a native lookup' do
-        expect(Resolv::DNS).not_to receive(:new)
+        expect(resolver).not_to receive(:lookup)
         strategy.validate_ownership(custom_domain)
       end
     end
@@ -276,8 +289,9 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
                  ]
                })
       end
-      let(:native_values) { [] }
-      let(:resolver) { instance_double(Resolv::DNS, :timeouts= => nil, close: nil) }
+      # Upstream gave no answer, so the native lookup decides. SERVFAIL keeps
+      # it indeterminate for the examples below unless a context overrides.
+      let(:native_rcode) { Resolv::DNS::RCode::ServFail }
 
       before do
         call_count = 0
@@ -286,89 +300,112 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
           call_count == 1 ? primary_response : probe_response
         end
         allow(OT).to receive(:lw)
-        allow(Resolv::DNS).to receive(:new).and_return(resolver)
-        allow(resolver).to receive(:getresources)
-          .with(custom_domain.validation_record, Resolv::DNS::Resource::IN::TXT)
-          .and_return(native_values.map { |v| Resolv::DNS::Resource::IN::TXT.new(v) })
       end
 
-      it 'returns validated nil and flags the result indeterminate' do
-        result = strategy.validate_ownership(custom_domain)
-        expect(result[:validated]).to be_nil
-        expect(result[:indeterminate]).to be true
-        expect(result[:message]).to include('indeterminate')
-      end
-
-      it 'keeps the raw payload and logs it' do
-        expect(OT).to receive(:lw).with(/Indeterminate TXT check.*"actual_values" *=> *false/)
-        result = strategy.validate_ownership(custom_domain)
-        expect(result[:data].first['actual_values']).to be false
-      end
-
-      it 'reports the NXDOMAIN probe outcome (:distinguishes when the sentinel returns [])' do
-        result = strategy.validate_ownership(custom_domain)
-        expect(result[:nxdomain_probe]).to eq(:distinguishes)
-        expect(result[:message]).to include('distinguishes')
-      end
-
-      context 'and the NXDOMAIN probe returns actual_values: false (checker conflates)' do
-        let(:probe_response) do
-          double('Response',
-                 code: 200,
-                 parsed_response: {
-                   'records' => [
-                     { 'actual_values' => false, 'match' => false, 'type' => 'TXT' }
-                   ]
-                 })
-        end
-
-        it 'stays indeterminate and flags that deleted TXT records cannot be demoted' do
+      context 'and the native lookup is indeterminate too (SERVFAIL)' do
+        it 'returns validated nil and flags the result indeterminate' do
           result = strategy.validate_ownership(custom_domain)
           expect(result[:validated]).to be_nil
           expect(result[:indeterminate]).to be true
-          expect(result[:nxdomain_probe]).to eq(:conflates)
-          expect(result[:message]).to include('conflates')
-        end
-      end
-
-      context 'and the NXDOMAIN probe itself is inconclusive' do
-        before do
-          allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
-            .and_return(primary_response, double('Response', code: 500, parsed_response: {}))
+          expect(result[:message]).to include('indeterminate')
         end
 
-        it 'stays indeterminate with :unknown probe outcome' do
+        it 'keeps the raw upstream payload first, appends the native record, and logs' do
+          expect(OT).to receive(:lw).with(/Indeterminate TXT check.*"actual_values" *=> *false/)
           result = strategy.validate_ownership(custom_domain)
-          expect(result[:validated]).to be_nil
-          expect(result[:nxdomain_probe]).to eq(:unknown)
+          expect(result[:data].first['actual_values']).to be false
+          expect(result[:data].last).to include('actual_values' => false, 'error' => 'SERVFAIL')
+          expect(result[:message]).to include('native lookup:').and include('SERVFAIL')
         end
-      end
 
-      context 'and the NXDOMAIN probe raises' do
-        before do
-          call_count = 0
-          allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly) do
-            call_count += 1
-            raise StandardError, 'probe boom' if call_count == 2
+        it 'reports the NXDOMAIN probe outcome (:distinguishes when the sentinel returns [])' do
+          result = strategy.validate_ownership(custom_domain)
+          expect(result[:nxdomain_probe]).to eq(:distinguishes)
+          expect(result[:message]).to include('distinguishes')
+        end
 
-            primary_response
+        context 'and the NXDOMAIN probe returns actual_values: false (checker conflates)' do
+          let(:probe_response) do
+            double('Response',
+                   code: 200,
+                   parsed_response: {
+                     'records' => [
+                       { 'actual_values' => false, 'match' => false, 'type' => 'TXT' }
+                     ]
+                   })
+          end
+
+          it 'stays indeterminate and flags that only the native lookup reports deletions' do
+            result = strategy.validate_ownership(custom_domain)
+            expect(result[:validated]).to be_nil
+            expect(result[:indeterminate]).to be true
+            expect(result[:nxdomain_probe]).to eq(:conflates)
+            expect(result[:message]).to include('conflates')
           end
         end
 
-        it 'swallows the probe error and stays indeterminate' do
+        context 'and the NXDOMAIN probe itself is inconclusive' do
+          before do
+            allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
+              .and_return(primary_response, double('Response', code: 500, parsed_response: {}))
+          end
+
+          it 'stays indeterminate with :unknown probe outcome' do
+            result = strategy.validate_ownership(custom_domain)
+            expect(result[:validated]).to be_nil
+            expect(result[:nxdomain_probe]).to eq(:unknown)
+          end
+        end
+
+        context 'and the NXDOMAIN probe raises' do
+          before do
+            call_count = 0
+            allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly) do
+              call_count += 1
+              raise StandardError, 'probe boom' if call_count == 2
+
+              primary_response
+            end
+          end
+
+          it 'swallows the probe error and stays indeterminate' do
+            result = strategy.validate_ownership(custom_domain)
+            expect(result[:validated]).to be_nil
+            expect(result[:nxdomain_probe]).to eq(:unknown)
+          end
+        end
+      end
+
+      context 'and the native lookup times out' do
+        before do
+          allow(resolver).to receive(:lookup)
+            .and_raise(Onetime::DomainValidation::TxtResolver::NoReplyError, 'no reply')
+        end
+
+        it 'stays indeterminate' do
           result = strategy.validate_ownership(custom_domain)
           expect(result[:validated]).to be_nil
-          expect(result[:nxdomain_probe]).to eq(:unknown)
+          expect(result[:indeterminate]).to be true
+        end
+      end
+
+      context 'and the native lookup is REFUSED' do
+        let(:native_rcode) { Resolv::DNS::RCode::Refused }
+
+        it 'stays indeterminate' do
+          expect(strategy.validate_ownership(custom_domain)).to include(validated: nil, indeterminate: true)
         end
       end
 
       context 'and the native lookup returns exactly the challenge value' do
+        let(:native_rcode) { Resolv::DNS::RCode::NoError }
         let(:native_values) { ['validation123'] }
 
         it 'validates from the native answer' do
           result = strategy.validate_ownership(custom_domain)
           expect(result[:validated]).to be true
           expect(result[:source]).to eq('native')
+          expect(result[:message]).to eq('TXT record validated (native lookup; upstream checker indeterminate)')
         end
 
         it 'does not issue a NXDOMAIN probe when the native lookup promotes' do
@@ -378,43 +415,83 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
         end
       end
 
-      context 'and the native lookup returns the value among others' do
-        let(:native_values) { %w[validation123 other] }
+      # A definitive negative from our own resolver is evidence about the
+      # customer's DNS, the same evidence a healthy upstream would have
+      # reported as []. It demotes; VerifyDomain still honours an override.
+      context 'and the native lookup answers NXDOMAIN' do
+        let(:native_rcode) { Resolv::DNS::RCode::NXDomain }
 
-        it 'stays indeterminate (exactly-one semantics preserved)' do
-          expect(strategy.validate_ownership(custom_domain)[:validated]).to be_nil
+        it 'fails definitively from the native answer' do
+          result = strategy.validate_ownership(custom_domain)
+          expect(result).to include(validated: false, source: 'native')
+          expect(result).not_to have_key(:indeterminate)
+          expect(result[:message]).to eq('TXT record not found (native lookup; upstream checker indeterminate)')
+        end
+
+        it 'carries :data so VerifyDomain persists the demotion' do
+          result = strategy.validate_ownership(custom_domain)
+          expect(result[:data].first['actual_values']).to be false
+          expect(result[:data].last).to include('actual_values' => [], 'rcode' => 'NXDOMAIN')
+        end
+
+        it 'does not issue a NXDOMAIN probe' do
+          expect(Onetime::DomainValidation::ApproximatedClient)
+            .to receive(:check_records_match_exactly).once.and_return(primary_response)
+          strategy.validate_ownership(custom_domain)
         end
       end
 
-      context 'and the native lookup raises' do
-        before { allow(resolver).to receive(:getresources).and_raise(Resolv::ResolvTimeout) }
+      context 'and the native lookup answers NOERROR without TXT data' do
+        let(:native_rcode) { Resolv::DNS::RCode::NoError }
 
-        it 'stays indeterminate' do
-          expect(strategy.validate_ownership(custom_domain)[:validated]).to be_nil
+        it 'fails definitively' do
+          expect(strategy.validate_ownership(custom_domain)).to include(validated: false, source: 'native')
+        end
+      end
+
+      context 'and the native lookup returns the value among others' do
+        let(:native_rcode) { Resolv::DNS::RCode::NoError }
+        let(:native_values) { %w[validation123 other] }
+
+        it 'fails definitively (exactly-one semantics preserved)' do
+          result = strategy.validate_ownership(custom_domain)
+          expect(result[:validated]).to be false
+          expect(result[:message]).to include('mismatch (2 value(s) found')
+        end
+      end
+
+      context 'and the domain has no challenge value' do
+        let(:custom_domain) do
+          double('CustomDomain', display_domain: 'example.com', txt_validation_value: nil,
+                                 validation_record: '_onetime-challenge-abc123.example.com')
+        end
+
+        it 'stays indeterminate (the verifier never looked, so nothing demotes)' do
+          expect(resolver).not_to receive(:lookup)
+          expect(strategy.validate_ownership(custom_domain)).to include(validated: nil, indeterminate: true)
         end
       end
     end
 
     context 'when the 200 payload carries no records' do
       before do
-        call_count = 0
-        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly) do
-          call_count += 1
-          if call_count == 1
-            double('Response', code: 200, parsed_response: {})
-          else
-            double('Response', code: 200, parsed_response: {
-              'records' => [{ 'actual_values' => [], 'match' => false, 'type' => 'TXT' }]
-            })
-          end
-        end
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
+          .and_return(double('Response', code: 200, parsed_response: {}))
         allow(OT).to receive(:lw)
-        allow(Resolv::DNS).to receive(:new)
-          .and_return(instance_double(Resolv::DNS, :timeouts= => nil, close: nil, getresources: []))
       end
 
-      it 'is indeterminate, not a mismatch' do
-        expect(strategy.validate_ownership(custom_domain)[:validated]).to be_nil
+      it 'is not read as a mismatch: the native lookup decides' do
+        result = strategy.validate_ownership(custom_domain)
+        expect(result).to include(validated: false, source: 'native')
+        expect(result[:data]).to contain_exactly(hash_including('rcode' => 'NXDOMAIN'))
+      end
+
+      context 'and the native lookup is indeterminate' do
+        let(:native_rcode) { Resolv::DNS::RCode::ServFail }
+
+        it 'is indeterminate' do
+          expect(strategy.validate_ownership(custom_domain)[:validated]).to be_nil
+        end
       end
     end
 
@@ -709,23 +786,124 @@ end
 
 RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
   let(:config) { {} }
-  let(:strategy) { described_class.new(config) }
-  let(:custom_domain) { double('CustomDomain', display_domain: 'example.com') }
+  let(:answer_class) { Onetime::DomainValidation::TxtResolver::Answer }
+  let(:resolver) { instance_double(Onetime::DomainValidation::TxtResolver, close: nil) }
+  # The real verifier over a fake resolver: the three outcomes are exercised
+  # through the real classification and no example opens a socket.
+  let(:txt_verifier) { Onetime::DomainValidation::TxtVerifier.new(resolver_factory: -> { resolver }) }
+  let(:strategy) { described_class.new(config, txt_verifier: txt_verifier) }
+  let(:custom_domain) do
+    double('CustomDomain',
+           display_domain: 'example.com',
+           txt_validation_value: 'validation123',
+           validation_record: '_onetime-challenge-abc123.example.com')
+  end
+
+  def stub_lookup(rcode, values = [])
+    allow(resolver).to receive(:lookup)
+      .with(custom_domain.validation_record)
+      .and_return(answer_class.new(rcode: rcode, values: values))
+  end
+
+  before { allow(OT).to receive(:lw) }
 
   describe '#validate_ownership' do
-    it 'returns validated true' do
-      result = strategy.validate_ownership(custom_domain)
-      expect(result[:validated]).to be true
+    subject(:result) { strategy.validate_ownership(custom_domain) }
+
+    it 'defaults to a TxtVerifier' do
+      expect(described_class.new(config).txt_verifier).to be_a(Onetime::DomainValidation::TxtVerifier)
     end
 
-    it 'indicates caddy_on_demand mode' do
-      result = strategy.validate_ownership(custom_domain)
-      expect(result[:mode]).to eq('caddy_on_demand')
+    context 'with exactly one TXT value equal to the challenge' do
+      before { stub_lookup(Resolv::DNS::RCode::NoError, ['validation123']) }
+
+      it 'validates from the native lookup' do
+        expect(result).to include(validated: true, source: 'native', mode: 'caddy_on_demand')
+      end
+
+      it 'carries :data so VerifyDomain persists the outcome' do
+        expect(result[:data]).to contain_exactly(hash_including('match' => true, 'actual_values' => ['validation123']))
+      end
     end
 
-    it 'explains validation is delegated to Caddy' do
-      result = strategy.validate_ownership(custom_domain)
-      expect(result[:message]).to include('Caddy')
+    context 'when the record does not exist (NXDOMAIN)' do
+      before { stub_lookup(Resolv::DNS::RCode::NXDomain) }
+
+      it 'is a definitive failure' do
+        expect(result).to include(validated: false, message: 'TXT record not found', mode: 'caddy_on_demand')
+        expect(result).not_to have_key(:indeterminate)
+        expect(result[:data]).to contain_exactly(hash_including('actual_values' => [], 'rcode' => 'NXDOMAIN'))
+      end
+    end
+
+    context 'when the name exists without TXT data (NOERROR, empty answer)' do
+      before { stub_lookup(Resolv::DNS::RCode::NoError) }
+
+      it 'is a definitive failure' do
+        expect(result).to include(validated: false, message: 'TXT record not found')
+      end
+    end
+
+    context 'when the TXT value differs from the challenge' do
+      before { stub_lookup(Resolv::DNS::RCode::NoError, ['something-else']) }
+
+      it 'is a definitive failure reported as a mismatch' do
+        expect(result[:validated]).to be false
+        expect(result[:message]).to include('mismatch (1 value(s) found')
+      end
+    end
+
+    context 'when the challenge is present among other values' do
+      before { stub_lookup(Resolv::DNS::RCode::NoError, %w[validation123 other]) }
+
+      it 'fails (exactly one matching value required, as with Approximated)' do
+        expect(result[:validated]).to be false
+        expect(result[:message]).to include('mismatch (2 value(s) found')
+      end
+    end
+
+    context 'when the resolver answers SERVFAIL' do
+      before { stub_lookup(Resolv::DNS::RCode::ServFail) }
+
+      it 'is indeterminate, never a failure' do
+        expect(result).to include(validated: nil, indeterminate: true, mode: 'caddy_on_demand')
+        expect(result[:message]).to include('SERVFAIL')
+      end
+    end
+
+    context 'when the lookup times out' do
+      before do
+        allow(resolver).to receive(:lookup)
+          .and_raise(Onetime::DomainValidation::TxtResolver::NoReplyError, 'no reply')
+      end
+
+      it 'is indeterminate' do
+        expect(result).to include(validated: nil, indeterminate: true)
+      end
+    end
+
+    context 'when the domain has no challenge value' do
+      let(:custom_domain) do
+        double('CustomDomain', display_domain: 'example.com', txt_validation_value: nil,
+                               validation_record: '_onetime-challenge-abc123.example.com')
+      end
+
+      it 'fails without a lookup' do
+        expect(resolver).not_to receive(:lookup)
+        expect(result).to include(validated: false, mode: 'caddy_on_demand')
+      end
+    end
+
+    context 'when the domain cannot produce its validation record' do
+      before do
+        allow(custom_domain).to receive(:validation_record).and_raise(StandardError, 'boom')
+        allow(OT).to receive(:le)
+      end
+
+      it 'logs and stays indeterminate' do
+        expect(result).to include(validated: nil, indeterminate: true, mode: 'caddy_on_demand')
+        expect(OT).to have_received(:le).with(/Error validating example.com/)
+      end
     end
   end
 
