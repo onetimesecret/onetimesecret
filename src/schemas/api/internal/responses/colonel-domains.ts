@@ -45,6 +45,10 @@ export const colonelDomainVerifyRecordSchema = z.object({
  * The verify outcome. `current_state` is the post-verification state and drives
  * the operator-facing notification. `error` is the op's captured DNS/SSL error
  * message (or null on a clean run) — surfaced honestly rather than swallowed.
+ *
+ * `record.resolving` above is the STORED, last known answer and stays boolean.
+ * `details.is_resolving` / `details.ssl_ready` are what THIS check saw, and
+ * are null when it saw nothing.
  */
 export const colonelDomainVerifyDetailsSchema = z.object({
   previous_state: z.string(),
@@ -56,8 +60,11 @@ export const colonelDomainVerifyDetailsSchema = z.object({
   dns_outcome: z
     .enum(['validated', 'confirmation_expired', 'indeterminate', 'override_held', 'failed'])
     .optional(),
-  ssl_ready: z.boolean(),
-  is_resolving: z.boolean(),
+  // Three-valued: true, false, or null when the status check could not tell
+  // (failed status call, probe timeout, Approximated UNKNOWN). null is not
+  // false; render it as "unknown".
+  ssl_ready: z.boolean().nullable(),
+  is_resolving: z.boolean().nullable(),
   error: z.string().nullable(),
   message: z.string(),
 });
