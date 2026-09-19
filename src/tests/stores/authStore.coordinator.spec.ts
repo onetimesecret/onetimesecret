@@ -308,6 +308,9 @@ describe('authStore refresh coordinator (#4459)', () => {
       expect(store.isAuthenticated).toBe(false);
       // The last accepted snapshot stands: nothing was logged out or cleared.
       expect(bootstrapStore.cust?.extid).toBe(mockCustomer.extid);
+      // Nothing is granted, but the chrome still shows who is signed in: the
+      // masthead must not offer "Sign in" to a user who was not signed out.
+      expect(store.isUserPresent).toBe(true);
       expect(sessionStorage.getItem('unrelated')).toBe('kept');
     });
 
