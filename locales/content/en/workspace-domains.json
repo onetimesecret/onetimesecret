@@ -455,6 +455,14 @@
     "text": "Domain verification initiated successfully.",
     "content_hash": "5969b924"
   },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "We couldn't complete the DNS check just now. This doesn't mean your records are wrong. Please try again in a few minutes.",
+    "content_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "We didn't find the expected TXT record. Check that it exists and that its value matches exactly. New DNS records can take a few minutes to appear.",
+    "content_hash": "6c847d46"
+  },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
     "text": "Are you sure you want to remove this domain? This action cannot be undone.",
     "content_hash": "403c6d3b"
