@@ -213,7 +213,9 @@
     @update:open="emit('update:open', $event)">
     <form @submit.prevent="onSubmit">
       <div class="space-y-4">
-        <template
+        <!-- One wrapper per field, so its error sits with it inside the
+             container's vertical rhythm -->
+        <div
           v-for="field in fields"
           :key="field.name">
           <!-- Boolean toggle (accessible native checkbox) -->
@@ -296,10 +298,10 @@
             :id="errorId(field.name)"
             role="alert"
             :data-testid="`config-field-error-${field.name}`"
-            class="!mt-1 text-sm text-red-700 dark:text-red-300">
+            class="mt-1 text-sm text-red-700 dark:text-red-300">
             {{ error }}
           </p>
-        </template>
+        </div>
       </div>
 
       <!-- Error stays IN the modal (useAdminMutation convention). A refusal
