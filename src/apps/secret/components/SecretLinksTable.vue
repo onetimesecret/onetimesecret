@@ -3,9 +3,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import { InlineToast } from '@/shared/components/ui/notifications';
 import type { RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 
 import SecretLinksTableRow from './SecretLinksTableRow.vue';
 
@@ -24,10 +23,6 @@ const handleUpdateMemo = (id: string, memo: string) => {
   emit('update:memo', id, memo);
 };
 
-// Toast notification state
-const showToast = ref(false);
-const toastMessage = ref('');
-
 const hasSecrets = computed(() => props.records.length > 0);
 
 // Sort secrets by creation time (most recent first)
@@ -39,17 +34,6 @@ const sortedSecrets = computed(() =>
 
 const handleCopy = () => {
   // Copy feedback is now handled by the tooltip in SecretLinksTableRow
-};
-
-const handleBurn = (record: RecentSecretRecord) => {
-  // Here you would add logic to delete the message, e.g.,
-  // through a store or service call
-  void record; // Suppress unused variable warning until burn logic is implemented
-  toastMessage.value = t('web.secrets.messageDeleted');
-  showToast.value = true;
-  setTimeout(() => {
-    showToast.value = false;
-  }, 1500);
 };
 </script>
 
@@ -87,14 +71,8 @@ const handleBurn = (record: RecentSecretRecord) => {
           :index="sortedSecrets.length - idx"
           :is-last="idx === sortedSecrets.length - 1"
           @copy="handleCopy"
-          @delete="handleBurn"
           @update:memo="handleUpdateMemo" />
       </ul>
     </div>
-
-    <InlineToast
-      :show="showToast"
-      :message="toastMessage"
-      aria-live="polite" />
   </div>
 </template>
