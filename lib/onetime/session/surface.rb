@@ -56,6 +56,8 @@ module Onetime
       # @param env [Hash] Rack env
       # @return [Hash, nil]
       def for_env(env)
+        return nil unless env.is_a?(Hash)
+
         strategy = env['onetime.domain_strategy']
         case strategy
         in :canonical

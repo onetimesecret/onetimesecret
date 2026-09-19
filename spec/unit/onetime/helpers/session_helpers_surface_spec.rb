@@ -31,12 +31,22 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     end
   end
 
-  # The active-session gate is not what these tests exercise; keep it green so
-  # a mismatch below is the only reason authenticated? can answer false.
+  let(:customer) do
+    instance_double(
+      Onetime::Customer,
+      suspended?: false,
+      last_password_update: 0,
+    )
+  end
+
+  # Customer and active-session checks are not what these surface tests exercise;
+  # keep them green so a mismatch is the only refusal reason.
   before do
     allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => { 'enabled' => true } } })
     allow(OT).to receive(:info)
-    allow(Onetime::ActiveSessionGate).to receive(:revoked?).and_return(false)
+    allow(Onetime::Customer).to receive(:find_by_extid).with('ur_abc').and_return(customer)
+    allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:active)
+    allow(Onetime::SessionImpersonation).to receive(:resolve).and_return([customer, nil])
   end
 
   def session_on(descriptor)
@@ -61,6 +71,26 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
 
     it 'authenticates a canonical session on canonical' do
       expect(helper.authenticated?).to be(true)
+    end
+  end
+
+  context 'without a request accessor' do
+    subject(:helper) do
+      Class.new do
+        include Onetime::Helpers::SessionHelpers
+
+        attr_reader :session
+
+        def initialize(session)
+          @session = session
+        end
+      end.new(session)
+    end
+
+    let(:session) { session_on({ 'kind' => 'canonical' }) }
+
+    it 'refuses authentication instead of raising' do
+      expect(helper.authenticated?).to be(false)
     end
   end
 

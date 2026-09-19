@@ -58,10 +58,20 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   end
   let(:canonical_env) { { 'onetime.domain_strategy' => :canonical } }
   let(:gate) { Onetime::ActiveSessionGate }
+  let(:customer) do
+    instance_double(
+      Onetime::Customer,
+      suspended?: false,
+      last_password_update: 0,
+      role?: false,
+    )
+  end
 
   before do
     allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => { 'enabled' => true } } })
     allow(OT).to receive(:info)
+    allow(Onetime::Customer).to receive(:find_by_extid).and_return(customer)
+    allow(Onetime::SessionImpersonation).to receive(:resolve).and_return([customer, nil])
   end
 
   def helper_with_env(env)
@@ -69,32 +79,32 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   end
 
   it 'stays authenticated while the gate says the active-session row is present' do
-    allow(gate).to receive(:revoked?).and_return(false)
+    allow(gate).to receive(:verdict).and_return(:active)
     expect(helper_with_env(canonical_env).authenticated?).to be(true)
   end
 
   it 'is no longer authenticated once the gate says the active-session row is gone' do
-    allow(gate).to receive(:revoked?).and_return(true)
+    allow(gate).to receive(:verdict).and_return(:revoked)
     expect(helper_with_env(canonical_env).authenticated?).to be(false)
   end
 
   it 'consults the gate once per helper, however often authenticated? is asked' do
-    allow(gate).to receive(:revoked?).and_return(false)
+    allow(gate).to receive(:verdict).and_return(:active)
 
     inst = helper_with_env(canonical_env)
     3.times { inst.authenticated? }
     inst.colonel?
 
-    expect(gate).to have_received(:revoked?).once
+    expect(gate).to have_received(:verdict).once
   end
 
   it 'passes the Rack env through so the strategy and the helper share one memo' do
     env = canonical_env.dup
-    allow(gate).to receive(:revoked?).and_return(false)
+    allow(gate).to receive(:verdict).and_return(:active)
 
     helper_class.new(session, instance_double(Rack::Request, env: env)).authenticated?
 
-    expect(gate).to have_received(:revoked?).with(session, env: env)
+    expect(gate).to have_received(:verdict).with(session, env: env)
   end
 
   # The core and billing controllers expose the request as `req`, not
@@ -104,15 +114,15 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
   it 'finds the Rack env through `req` on controllers that do not expose `request`' do
     env = canonical_env.dup
     req = instance_double(Rack::Request, env: env)
-    allow(gate).to receive(:revoked?).and_return(false)
+    allow(gate).to receive(:verdict).and_return(:active)
 
     req_helper_class.new(session, req).authenticated?
 
-    expect(gate).to have_received(:revoked?).with(session, env: env)
+    expect(gate).to have_received(:verdict).with(session, env: env)
   end
 
   it 'forgets the verdict on logout! so the next identity is judged afresh' do
-    allow(gate).to receive(:revoked?).and_return(true, false)
+    allow(gate).to receive(:verdict).and_return(:revoked, :active)
     allow(Onetime::SessionImpersonation).to receive(:stop!)
 
     inst = helper_with_env(canonical_env)
@@ -125,7 +135,7 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     )
 
     expect(inst.authenticated?).to be(true)
-    expect(gate).to have_received(:revoked?).twice
+    expect(gate).to have_received(:verdict).twice
   end
 
   it 'drops the shared env memo on logout!' do

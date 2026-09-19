@@ -1298,6 +1298,36 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       expect(Auth::Operations::JoinDomainOrganization).not_to have_received(:new)
     end
 
+    # A suspended Customer never reaches the Connect hook from a live
+    # session: the auth router's customer-session gate destroys the Rack
+    # session ahead of Rodauth (:account_suspended is a definitive
+    # rejection), which purges the Connect intent with it. The callback then
+    # runs as the anonymous request it now is, exactly as it does after the
+    # router's surface-mismatch and revocation destroys. In production that
+    # callback fails OmniAuth's state check, the state having gone with the
+    # session; mock mode skips the check, so what the anonymous callback does
+    # next is not asserted here. What is asserted: the session is gone, the
+    # intent is gone, and nothing was bound to the suspended account.
+    def expect_suspended_session_rejected(sid, account_id)
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :customer_session_rejected,
+        hash_including(
+          path: '/sso/oidc/callback',
+          reason: :account_suspended,
+          outcome: :continued_anonymous,
+          account_id: account_id,
+          sidecar_fields: ['sso_connect_intent'],
+        ),
+      )
+      expect(intent_live?(sid)).to be(false)
+      expect(Onetime::Operations::Sessions::Store.find_key(Familia.dbclient, sid)).to be_nil
+      expect(identities.where(account_id: account_id).count).to eq(0)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:tenant_connect_membership_authorized, anything)
+    end
+
     it 'binds an unclaimed exact tuple to the session account, ignoring another account email' do
       identities.insert(tuple.merge(uid: "other-#{uid}", account_id: other_id))
       expect(customer.signup_domain_id.to_s).to be_empty
@@ -1522,9 +1552,6 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       when 'tenant_membership_refused'
         @membership.status = 'pending'
         @membership.save
-      when 'session_customer_suspended'
-        customer.suspended = 'true'
-        customer.save
       when 'identity_owned_elsewhere'
         identities.insert(tuple.merge(account_id: other_id))
       else
@@ -1540,7 +1567,6 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       'surface_mismatch' => 'identity_connect_wrong_domain',
       'tenant_connect_prerequisites_incomplete' => 'identity_connect_wrong_domain',
       'tenant_membership_refused' => 'identity_connect_wrong_domain',
-      'session_customer_suspended' => 'identity_connect_conflict',
       'identity_owned_elsewhere' => 'identity_connect_conflict',
     }.each do |reason, code|
       it "does not fall back to trusted-email linking after the #{reason} gate" do
@@ -1707,26 +1733,29 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       end
     end
 
-    %w[missing suspended].each do |state|
-      it "refuses a #{state} session Customer before resolving a known tuple" do
-        identities.insert(tuple.merge(account_id: other_id))
-        if state == 'missing'
-          auth_db[:accounts].where(id: actor_id).update(external_id: "ur#{SecureRandom.hex(8)}")
-        else
-          customer.suspended = 'true'
-          customer.save
-        end
-        tenant_connect_callback
+    it 'refuses a missing session Customer before resolving a known tuple' do
+      identities.insert(tuple.merge(account_id: other_id))
+      auth_db[:accounts].where(id: actor_id).update(external_id: "ur#{SecureRandom.hex(8)}")
+      tenant_connect_callback
 
-        expect_connect_refused("session_customer_#{state}", code: 'identity_connect_conflict')
-        expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: other_id))
-      end
+      expect_connect_refused('session_customer_missing', code: 'identity_connect_conflict')
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: other_id))
+    end
+
+    it 'destroys a suspended session at the router, so its Connect intent binds nothing' do
+      identities.insert(tuple.merge(account_id: other_id))
+      customer.suspended = 'true'
+      customer.save
+      tenant_connect_callback
+
+      expect_suspended_session_rejected(@connect_sid, actor_id)
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: other_id))
     end
   end
 
   describe 'platform connect principal gate (#3849)' do
     %w[missing suspended].each do |state|
-      it "refuses a #{state} Customer on a live platform session and consumes intent" do
+      it "binds nothing for a #{state} Customer on a live platform session and consumes intent" do
         enable_platform_fallback
         email = unique_test_email('platform-principal')
         account_id = seed_account_with_password(email)
@@ -1747,12 +1776,33 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
           clear_body_headers
           post '/auth/sso/oidc/callback'
 
-          expect_auth_error_redirect('identity_connect_conflict')
           expect(intent_live?(sid)).to be(false)
           expect(identities.where(account_id: account_id).count).to eq(0)
-          expect(last_request.env['rack.session']['account_id']).to eq(account_id)
-          expect(Auth::Logging).to have_received(:log_auth_event)
-            .with(:omniauth_identity_connect_refused, hash_including(reason: "session_customer_#{state}"))
+          if state == 'missing'
+            expect_auth_error_redirect('identity_connect_conflict')
+            expect(last_request.env['rack.session']['account_id']).to eq(account_id)
+            expect(Auth::Logging).to have_received(:log_auth_event)
+              .with(:omniauth_identity_connect_refused, hash_including(reason: 'session_customer_missing'))
+          else
+            # The router's customer-session gate destroys a suspended session
+            # ahead of Rodauth, so the Connect hook's own suspension refusal
+            # is not reached; the intent is purged with the session and the
+            # callback continues anonymous (in production it then fails
+            # OmniAuth's state check, which mock mode skips).
+            expect(Onetime::Operations::Sessions::Store.find_key(Familia.dbclient, sid)).to be_nil
+            expect(Auth::Logging).to have_received(:log_auth_event).with(
+              :customer_session_rejected,
+              hash_including(
+                path: '/sso/oidc/callback',
+                reason: :account_suspended,
+                outcome: :continued_anonymous,
+                account_id: account_id,
+                sidecar_fields: ['sso_connect_intent'],
+              ),
+            )
+            expect(Auth::Logging).not_to have_received(:log_auth_event)
+              .with(:omniauth_identity_connected, anything)
+          end
         ensure
           teardown_mock_auth
         end
