@@ -100,6 +100,34 @@ page.locator('[data-testid^="org-card-"]')  // Prefix match
 | `TEST_USER_EMAIL` | Auth user for `full/` tests |
 | `TEST_USER_PASSWORD` | Auth password for `full/` tests |
 | `PLAYWRIGHT_HEADLESS` | Set `false` for headed debugging |
+| `E2E_DIAGNOSTICS_ENABLED` | Set `true` to let the auto-started server report to Sentry (default: off) |
+
+### Diagnostics are off in test servers
+
+An e2e run provokes errors on purpose, and a locally booted server inherits
+your shell. If that shell exports `DIAGNOSTICS_ENABLED=true` and a real
+`SENTRY_DSN` for your dev server, those errors used to land in the production
+Sentry project. Two guards now prevent it, and neither changes a production
+boot:
+
+- **The server Playwright starts itself** (no `PLAYWRIGHT_BASE_URL`) is given
+  `DIAGNOSTICS_ENABLED=false`, whatever the shell says. Set
+  `E2E_DIAGNOSTICS_ENABLED=true` to opt back in, for example to test the Sentry
+  wiring against a scratch project.
+- **Any server booted with `RACK_ENV=test`** ignores `DIAGNOSTICS_ENABLED`
+  unless `DIAGNOSTICS_ENABLED_IN_TEST=true` is also set
+  (`Onetime::Config.diagnostics_enabled?`). This covers backend and frontend:
+  the frontend SDK follows the same flag.
+
+A server you start yourself with `RACK_ENV=production` (the recipe in
+`.github/workflows/e2e-full-auth.yml` does, because full auth mode needs it)
+is indistinguishable from a real deployment, so no guard can apply to it.
+Start it with `DIAGNOSTICS_ENABLED=false`, or unset `SENTRY_DSN*` first. The
+boot banner prints `Diagnostics: true/false`; check it before running the
+suite.
+
+Parallel sign-ups no longer need `--workers=1` against a SQLite authdb
+(`Auth::Database.connect`).
 
 ## CI
 
