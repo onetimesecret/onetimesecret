@@ -67,7 +67,10 @@ module Onetime
       # exempts from revocation forever.
 
       def logout!
-        session_id = session.id&.private_id if session.respond_to?(:id)
+        # The handle, not an id: it is the identifier every other session log
+        # line and the colonel session view carry, and it cannot be replayed
+        # as the cookie (#4461). Taken before the clear below.
+        handle = Onetime::SessionMetadata.handle_for(session.id&.public_id) if session.respond_to?(:id)
 
         # Close the impersonation FIRST. session.clear would take the marker
         # with it and leave the audit trail holding a start with no end.
@@ -78,7 +81,7 @@ module Onetime
 
         session.clear
         forget_customer_session_verdict
-        OT.info "[logout] Session #{session_id} destroyed" if session_id
+        OT.info "[logout] Session destroyed (session_handle=#{handle})" if handle
       end
 
       private
