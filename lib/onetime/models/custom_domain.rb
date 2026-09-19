@@ -217,8 +217,10 @@ module Onetime
         raise Onetime::Problem, 'This domain overlaps with the default site domain'
       end
 
-      # Verify the new domain is not already taken in either index
-      existing = self.class.display_domain_index.get(new_domain)
+      # Verify the new domain is not already taken, under either form of an
+      # internationalised name (display_domain_id_for). A record may still be
+      # renamed between its own two forms.
+      existing = self.class.display_domain_id_for(new_domain)
       if existing && existing != identifier
         raise Onetime::Problem, 'Domain already registered'
       end
