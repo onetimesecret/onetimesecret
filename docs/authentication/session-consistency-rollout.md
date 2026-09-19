@@ -100,9 +100,10 @@ and continue unordered.
   `public/schemas/*.json` turns the validation off.
 - `pnpm run schemas:rhales:generate` had stopped producing anything ("No schema
   sections found"): the rake task did not know where `bootstrap.ts` lives. It
-  now carries the same schema settings as the app. `error.rue` is still skipped
-  with a template parse warning; that predates this release and affects only
-  the error page's schema.
+  now carries the same schema settings as the app. `error.rue` used a Mustache
+  section Rhales cannot parse, so its schema was skipped with a warning; the
+  template is fixed, all three schemas generate, and a spec parses every Web
+  Core template.
 
 ## Staging review
 
