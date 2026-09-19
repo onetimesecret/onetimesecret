@@ -15,6 +15,7 @@ import {
   anonymousBootstrap,
   authenticatedBootstrap,
   mfaPendingBootstrap,
+  newerSnapshot,
   unavailableBootstrap,
 } from '@/tests/fixtures/bootstrap.fixture';
 import { toWire } from '@/tests/fixtures/bootstrap-wire';
@@ -234,7 +235,8 @@ describe('authStore', () => {
 
     it('otherwise goes through the coordinator', async () => {
       await mountWith(authenticatedBootstrap);
-      axiosMock.onGet(ENDPOINT).reply(200, toWire(authenticatedBootstrap));
+      // Strictly newer than hydration, or it would be an anomaly (ADR-046).
+      axiosMock.onGet(ENDPOINT).reply(200, toWire(newerSnapshot(authenticatedBootstrap)));
 
       expect(await store.checkWindowStatus()).toBe(true);
       expect(axiosMock.history.get).toHaveLength(1);
