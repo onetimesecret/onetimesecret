@@ -1,5 +1,6 @@
 // src/apps/admin/utils/adminSessionExpiry.ts
 
+import { parseSessionFailure } from '@/schemas/contracts/session-failure';
 import { ref, type Ref } from 'vue';
 
 /**
@@ -8,8 +9,12 @@ import { ref, type Ref } from 'vue';
  * The server bounds the ADMIN API SURFACE (/api/colonel) with an idle and an
  * absolute timeout while leaving the shared onetime.session cookie alone. So the
  * /colonel shell keeps loading, the tenant app keeps working, and the only
- * signal the console gets is a 401 on its own API calls carrying the
- * {@link ADMIN_SESSION_EXPIRED_PREFIX} marker.
+ * signal the console gets is a 401 on its own API calls carrying the stable
+ * code {@link ADMIN_SESSION_EXPIRED_CODE} in scope `admin_session` (#4462).
+ *
+ * The customer session is intact, so this recovery stays on the admin surface
+ * (#4460): the shared refresh coordinator ignores the `admin_session` scope
+ * and nothing here touches customer authentication state.
  *
  * ## Why a module-level ref and not a store
  *
@@ -32,9 +37,18 @@ import { ref, type Ref } from 'vue';
  */
 
 /**
- * The server-side marker, from
- * `lib/onetime/application/auth_strategies/base_session_auth_strategy.rb`. Keep
- * the two in sync — this string IS the contract.
+ * The stable failure code, from `Onetime::SessionFailureCode`
+ * (lib/onetime/session/failure_code.rb), mirrored in
+ * `src/schemas/contracts/session-failure.ts`. This is the contract.
+ */
+export const ADMIN_SESSION_EXPIRED_CODE = 'admin_session_expired';
+
+/**
+ * The bracket marker a backend that predates the codes puts in `message`
+ * (`base_session_auth_strategy.rb`). Matched only as a fallback: on a
+ * `sessionauth,basicauth` route Otto renders the LAST strategy's failure, so
+ * `message` reads `[AUTH_HEADER_MISSING]` whatever the session strategy said.
+ * It works here only because /api/colonel is `sessionauth`-only.
  */
 export const ADMIN_SESSION_EXPIRED_PREFIX = '[ADMIN_SESSION_EXPIRED]';
 
@@ -91,9 +105,10 @@ function responseOf(error: unknown): ErrorBodyLike | undefined {
 /**
  * Flip the shared flag when `error` is the admin-session-expired 401.
  *
- * Otto renders an auth failure as `{error: 'Authentication Required', message:
- * '<reason>'}`, so the marker arrives in `message`; `error` is checked too so a
- * future handler that promotes the reason to the top-level field still matches.
+ * Keyed on the stable `code` (#4462). For a backend without codes it falls
+ * back to the bracket marker: Otto renders an auth failure as `{error:
+ * 'Authentication Required', message: '<reason>'}`, so the marker arrives in
+ * `message`; `error` is checked too.
  *
  * @returns true when this error was the expired-admin-session 401
  */
@@ -101,10 +116,15 @@ export function noteAdminSessionExpiry(error: unknown): boolean {
   const response = responseOf(error);
   if (response?.status !== 401) return false;
 
-  const carriesMarker = [response.data?.message, response.data?.error].some(
-    (value) => typeof value === 'string' && value.startsWith(ADMIN_SESSION_EXPIRED_PREFIX)
-  );
-  if (!carriesMarker) return false;
+  const failure = parseSessionFailure(error);
+  // A coded 401 is decided by its code alone: any other code is some other
+  // failure, whatever the message says.
+  const expired = failure
+    ? failure.code === ADMIN_SESSION_EXPIRED_CODE
+    : [response.data?.message, response.data?.error].some(
+        (value) => typeof value === 'string' && value.startsWith(ADMIN_SESSION_EXPIRED_PREFIX)
+      );
+  if (!expired) return false;
 
   adminSessionExpired.value = true;
   return true;
