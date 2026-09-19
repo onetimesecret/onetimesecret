@@ -267,6 +267,11 @@ put "/api/colonel/domains/#{@extid}/configs/signup",
 [last_response.status, Onetime::ColonelAuditEvent.count - @before_audit]
 #=> [422, 1]
 
+## that 422 is tagged for the console like the related_origins refusals: field, locale key, en text
+@refusal = JSON.parse(last_response.body)
+[@refusal['field'], @refusal['error_key'], @refusal['error'].include?('not_a_domain')]
+#=> ['allowed_signup_domains', 'api.domains.errors.allowed_signup_domains_invalid', true]
+
 ## the in-op failure is recorded with the UNCHANGED upsert verb + domain target
 @latest = Onetime::ColonelAuditEvent.recent(1, 0).first
 [@latest['verb'], @latest['target'], @latest['result'],

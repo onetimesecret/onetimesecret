@@ -85,20 +85,18 @@ module ColonelAPI
           success_data
         rescue OT::FormError, Onetime::RecordNotFound
           raise
-        rescue Onetime::CustomDomain::SigninConfig::RelatedOriginError => ex
-          # The related_origins refusals (malformed entry; #4421 another
-          # organization's domain) name the entries an operator must fix.
-          # Tagged with the field and a locale key so the console shows them
-          # against Related passkey origins, in the operator's language.
-          raise_form_error(
-            ex.message,
-            error_key: ex.error_key,
-            args: { origins: ex.origins.join(', ') },
-            field: :related_origins,
-          )
+        rescue Onetime::CustomDomain::SigninConfig::RelatedOriginError,
+               Onetime::CustomDomain::SignupConfig::InvalidAllowedSignupDomain => ex
+          # Typed setter refusals (related_origins: malformed entry, or #4421
+          # another organization's domain; allowed_signup_domains: not a
+          # registrable domain) name the entries an operator must fix. Tagged
+          # with their field and a locale key so the console shows them
+          # against that field, in the operator's language.
+          raise_form_error(ex.message, error_key: ex.error_key, args: ex.args, field: ex.field.to_sym)
         rescue Onetime::Problem => ex
-          # Model-level validation surfaced from the op (e.g.
-          # allowed_signup_domains PublicSuffix rejection) → 422 form error.
+          # Any other model-level refusal from the op → untagged 422 form
+          # error. Every setter refusal the four kinds have today is typed
+          # above; a new one should be typed the same way, not matched here.
           raise_form_error(ex.message)
         end
 

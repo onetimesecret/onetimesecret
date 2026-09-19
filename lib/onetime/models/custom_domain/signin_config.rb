@@ -70,6 +70,11 @@ module Onetime
         def error_key
           self.class::ERROR_KEY
         end
+
+        # The writable field the refusal belongs to, and the locale arguments
+        # for {#error_key}: what an API layer needs to tag and localize it.
+        def field = 'related_origins'
+        def args  = { origins: origins.join(', ') }
       end
 
       # An entry that is not an absolute `http(s)://host[:port]` origin.
