@@ -1,103 +1,145 @@
 // src/shared/stores/authStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia/types';
+import {
+  bootstrapSchema,
+  effectiveAuthStatus,
+  type ClientAuthStatus,
+} from '@/schemas/contracts/bootstrap';
 import { classifyError, errorGuards } from '@/schemas/errors';
 import { clearDiagnosticsActorContext } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
-import { defineStore, PiniaCustomProperties, storeToRefs } from 'pinia';
+import { defineStore, getActivePinia, PiniaCustomProperties, storeToRefs } from 'pinia';
 import { computed, inject, ref } from 'vue';
 import { useBootstrapStore } from './bootstrapStore';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * AUTHENTICATION STATE MANAGEMENT
+ * AUTHENTICATION ACCESSORS AND THE REFRESH COORDINATOR
  * ═══════════════════════════════════════════════════════════════════════════════
  *
- * This store manages client-side authentication state and coordinates with
- * the server via the /bootstrap/me endpoint. It works in concert with:
- *
- * - useAuth composable: Handles auth operations (login, logout, signup)
- * - useMfa composable: Handles MFA setup and verification
- * - bootstrapStore: Provides reactive access to server-injected state
- * - Route guards: Enforce authentication requirements on navigation
- *
  * ───────────────────────────────────────────────────────────────────────────────
- * AUTHENTICATION STATES
+ * ONE AUTHORITY (#4458)
  * ───────────────────────────────────────────────────────────────────────────────
  *
- * The system recognizes three distinct authentication states:
+ * This store holds NO authentication state of its own. The client status lives
+ * in exactly one writable place, `bootstrapStore.authStatus`, and every
+ * accessor exported here (`isAuthenticated`, `isFullyAuthenticated`,
+ * `awaitingMfa`, `isUserPresent`) is a computed over it:
  *
- * 1. UNAUTHENTICATED (isAuthenticated=false, awaitingMfa=false)
- *    - No valid session
- *    - User sees: Sign In / Create Account links
- *    - Access: Public pages only
+ *   checking       nothing verified yet (missing/invalid hydration). Client-only.
+ *   authenticated  the server said so, and sent a customer.
+ *   mfa_pending    first factor passed, second outstanding.
+ *   anonymous      no customer session, including one the server rejected.
+ *   unavailable    verification cannot be completed. NOT a sign-out.
  *
- * 2. AWAITING MFA (isAuthenticated=false, awaitingMfa=true)
- *    - Password verified, OTP pending
- *    - Server returns authenticated=false until MFA completes
- *    - User sees: Limited menu with "Complete MFA" option
- *    - Access: MFA verification page only, guards redirect elsewhere to /mfa-verify
- *    - Session has awaiting_mfa=true flag from server
- *
- * 3. FULLY AUTHENTICATED (isAuthenticated=true, awaitingMfa=false)
- *    - All auth steps complete
- *    - User sees: Full navigation menu
- *    - Access: All authorized pages
+ * Only `authenticated` grants anything. The status changes only when a
+ * complete, contract-valid snapshot is applied (hydration, or a response this
+ * coordinator accepted), on an explicit local sign-out, or when the coordinator
+ * withholds authority after repeated failures. Nothing is read from
+ * sessionStorage, and `had_valid_session` is not consulted (#4468 removes it).
  *
  * ───────────────────────────────────────────────────────────────────────────────
- * CUSTOMER OBJECT STATE
+ * ONE COORDINATOR (#4459, ADR-046 "Refresh coordination")
  * ───────────────────────────────────────────────────────────────────────────────
  *
- * The `cust` object from bootstrapStore follows this pattern:
+ * `refresh({ kind, reason })` is the only caller of GET /bootstrap/me. Triggers:
+ * authentication mutations; returning to a stale visible tab; the passive
+ * interval; a rejection that needs reconciliation; an explicit retry; and the
+ * single verification a `checking` page needs. Navigation is NOT a trigger.
  *
- * - ANONYMOUS USER: `cust` is `null` (AuthenticationSerializer returns cust: null)
- * - AUTHENTICATED USER: `cust` is a fully hydrated object with `objid`, `email`, etc.
- *
- * Template checks should use `v-if="cust?.objid"` to confirm authentication,
- * as this handles both the null case and ensures the object is properly populated.
- *
- * ───────────────────────────────────────────────────────────────────────────────
- * STATE SYNCHRONIZATION (CRITICAL)
- * ───────────────────────────────────────────────────────────────────────────────
- *
- * State is stored in bootstrapStore which is the single source of truth.
- *
- * When refreshing state from /bootstrap/me endpoint:
- * - ALWAYS use bootstrapStore.update() to update state
- * - All computed properties derive from bootstrapStore refs
- *
- * The awaitingMfa computed property reads from bootstrapStore. Route guards
- * will see updated values immediately after bootstrapStore.update().
- *
- * LOGIN WITH MFA: The login response includes mfa_required=true, so useAuth
- * updates bootstrapStore directly with awaiting_mfa=true. No /window fetch is
- * needed - the state flows naturally from the login response to the route guard.
- *
- * ───────────────────────────────────────────────────────────────────────────────
- * PERIODIC REFRESH CONFIGURATION
- * ───────────────────────────────────────────────────────────────────────────────
- *
- * The timing strategy uses two mechanisms:
- * 1. Base interval (15 minutes) for regular checks
- * 2. Random jitter (±90 seconds) to prevent synchronized client requests
- *    across multiple browser sessions, reducing server load spikes
- *
- * The /bootstrap/me endpoint provides complete state refresh including:
- * - Authentication status (authenticated, awaiting_mfa)
- * - Customer data and entitlements
- * - CSRF token (shrimp) refresh
- * - Configuration and feature flags
- *
- * Note: Exponential backoff was intentionally removed in favor of a simpler
- * "3 strikes" model because immediate logout after failures provides clearer UX.
+ * - Every request takes the next generation. A response whose generation is
+ *   no longer current is dropped as a unit.
+ * - `ordinary` requests are deduplicated: callers share the one in flight.
+ * - An `auth-mutation` request aborts whatever is in flight and starts again,
+ *   so a response that began before a login/logout/MFA step cannot land after
+ *   it. Local sign-out invalidates the generation too.
+ * - A failure (network, timeout, 5xx incl. 503, a payload that fails the
+ *   contract, or a snapshot that says `unavailable`) mutates nothing. It is
+ *   retried with exponential backoff and full jitter, never sooner than the
+ *   server's Retry-After. At MAX_FAILURES the status becomes `unavailable`
+ *   and retries continue at the cap. It never signs the user out: a client
+ *   that cannot reach the server has learned nothing about the session.
  */
 export const AUTH_CHECK_CONFIG = {
   INTERVAL: 15 * 60 * 1000,
   JITTER: 90 * 1000,
   MAX_FAILURES: 3,
   ENDPOINT: '/bootstrap/me',
+  /** Backoff: full jitter over min(CAP, BASE * 2^failures), AWS Builders' Library form. */
+  BACKOFF_BASE: 2 * 1000,
+  BACKOFF_CAP: 60 * 1000,
+  /** A retry never fires sooner than this, whatever the jitter draws. */
+  BACKOFF_FLOOR: 1000,
+  /** Upper bound on a server-supplied Retry-After. */
+  RETRY_AFTER_CAP: 5 * 60 * 1000,
 } as const;
+
+export type RefreshKind = 'ordinary' | 'auth-mutation';
+
+/** Why a refresh was requested. Diagnostic only; it never changes the outcome. */
+export type RefreshReason =
+  | 'initial-verification'
+  | 'interval'
+  | 'visibility'
+  | 'rejection'
+  | 'retry'
+  | 'login'
+  | 'mfa'
+  | 'signup'
+  | 'verify-account'
+  | 'invite'
+  | 'impersonation'
+  | 'account-switch'
+  | 'plan-preview'
+  | 'password-change'
+  | 'csrf'
+  | 'check';
+
+export interface RefreshRequest {
+  kind: RefreshKind;
+  reason: RefreshReason;
+}
+
+/**
+ * - `applied`    a snapshot of the current generation was accepted and applied.
+ * - `failed`     no usable statement was obtained; nothing changed.
+ * - `superseded` a later generation started first; this response was dropped.
+ */
+export type RefreshOutcome = 'applied' | 'failed' | 'superseded';
+
+/**
+ * Parses a Retry-After header (delay-seconds or HTTP-date) into milliseconds.
+ * Returns 0 when absent or unusable; capped at RETRY_AFTER_CAP.
+ */
+export function parseRetryAfter(value: unknown, now: number = Date.now()): number {
+  if (typeof value !== 'string' && typeof value !== 'number') return 0;
+  const text = String(value).trim();
+  if (text === '') return 0;
+
+  const ms = /^\d+$/.test(text) ? Number(text) * 1000 : Date.parse(text) - now;
+  if (!Number.isFinite(ms) || ms <= 0) return 0;
+  return Math.min(ms, AUTH_CHECK_CONFIG.RETRY_AFTER_CAP);
+}
+
+/**
+ * Delay before the next retry, in milliseconds.
+ *
+ * @param failures - Consecutive failures so far (>= 1)
+ * @param retryAfterMs - Floor demanded by the server, already parsed
+ * @param random - Injected for tests; a value in [0, 1)
+ */
+export function retryDelay(
+  failures: number,
+  retryAfterMs: number = 0,
+  random: () => number = Math.random
+): number {
+  const exponent = Math.min(Math.max(failures - 1, 0), 16);
+  const { BACKOFF_BASE, BACKOFF_CAP, BACKOFF_FLOOR } = AUTH_CHECK_CONFIG;
+  const ceiling = Math.min(BACKOFF_CAP, BACKOFF_BASE * 2 ** exponent);
+  return Math.max(random() * ceiling, retryAfterMs, BACKOFF_FLOOR);
+}
 
 interface StoreOptions extends PiniaPluginOptions {}
 
@@ -106,13 +148,14 @@ interface StoreOptions extends PiniaPluginOptions {}
  */
 export type AuthStore = {
   // State
-  isAuthenticated: boolean | null;
   authCheckTimer: ReturnType<typeof setTimeout> | null;
   failureCount: number | null;
   lastCheckTime: number | null;
   _initialized: boolean;
 
-  // Getters
+  // Getters (all derived from bootstrapStore.authStatus)
+  authStatus: ClientAuthStatus;
+  isAuthenticated: boolean;
   needsCheck: boolean;
   isInitialized: boolean;
   awaitingMfa: boolean;
@@ -121,10 +164,14 @@ export type AuthStore = {
 
   // Actions
   init: () => { needsCheck: boolean; isInitialized: boolean };
+  refresh: (request: RefreshRequest) => Promise<RefreshOutcome>;
+  retryNow: () => Promise<RefreshOutcome>;
+  stop: () => void;
   checkWindowStatus: () => Promise<boolean>;
-  refreshAuthState: () => Promise<boolean>;
+  refreshAuthState: () => Promise<void>;
   setAuthenticated: (value: boolean) => Promise<void>;
   logout: () => Promise<void>;
+  logoutMinimal: () => Promise<void>;
   $scheduleNextCheck: () => void;
   $stopAuthCheck: () => Promise<void>;
   $dispose: () => Promise<void>;
@@ -132,84 +179,96 @@ export type AuthStore = {
 } & PiniaCustomProperties;
 
 /**
- * Authentication store for managing user authentication state.
- * Uses Pinia for state management, providing reactive auth state
- * that can be observed using storeToRefs:
+ * Stores holding data that belongs to ONE account. Reset when authority is
+ * lost or the account changes (#4458). Recipient-facing and browser-local
+ * stores (secretStore, incomingStore, localReceiptStore) are deliberately not
+ * here: they work without an account.
  *
- * @example
- * ```ts
- * import { useAuthStore } from '@/stores/authStore'
- * import { storeToRefs } from 'pinia'
- *
- * const authStore = useAuthStore()
- * const { isAuthenticated } = storeToRefs(authStore)
- *
- * // React to auth state changes
- * watch(isAuthenticated, (newValue) => {
- *   console.log('Auth state changed:', newValue)
- * })
- * ```
+ * Keyed by store id and loaded on demand. authStore is imported almost
+ * everywhere, so it must not import these statically: that would pull every
+ * one of them (and their dependencies) into each importer and into the entry
+ * chunk, and secretStore -> authStore would become a cycle. A store is only
+ * loaded here when its state already exists, i.e. when its module is already
+ * in memory, so the import resolves from cache.
  */
+type Resettable = () => { $reset: () => void };
+const ACCOUNT_SCOPED_STORES: Readonly<Record<string, () => Promise<Resettable>>> = {
+  account: () => import('./accountStore').then((m) => m.useAccountStore),
+  customer: () => import('./customerStore').then((m) => m.useCustomerStore),
+  domains: () => import('./domainsStore').then((m) => m.useDomainsStore),
+  entitlements: () => import('./entitlementsStore').then((m) => m.useEntitlementsStore),
+  members: () => import('./membersStore').then((m) => m.useMembersStore),
+  organization: () => import('./organizationStore').then((m) => m.useOrganizationStore),
+  receiptList: () => import('./receiptListStore').then((m) => m.useReceiptListStore),
+  receipt: () => import('./receiptStore').then((m) => m.useReceiptStore),
+};
+
 /* eslint-disable max-lines-per-function */
 export const useAuthStore = defineStore('auth', () => {
   const $api = inject('api') as AxiosInstance;
   const bootstrapStore = useBootstrapStore();
 
-  // Get reactive refs from bootstrapStore
-  const {
-    authenticated: bsAuthenticated,
-    awaiting_mfa: bsAwaitingMfa,
-    had_valid_session: bsHadValidSession,
-    cust: bsCust,
-    email: bsEmail,
-  } = storeToRefs(bootstrapStore);
+  const { authStatus, cust: bsCust } = storeToRefs(bootstrapStore);
 
-  // State
-  const isAuthenticated = ref<boolean | null>(null);
+  // State. None of it says who is signed in.
   const authCheckTimer = ref<ReturnType<typeof setTimeout> | null>(null);
   const failureCount = ref<number | null>(null);
   const lastCheckTime = ref<number | null>(null);
   const _initialized = ref(false);
 
+  // Coordinator bookkeeping. Not reactive: nothing renders from it.
+  let generation = 0;
+  let inFlight: {
+    generation: number;
+    controller: AbortController;
+    promise: Promise<RefreshOutcome>;
+  } | null = null;
+  let retryTimer: ReturnType<typeof setTimeout> | null = null;
+  let visibilityHandler: (() => void) | null = null;
+
   // Getters
-  const needsCheck = computed((): boolean => {
-    /**
-     * Determines if the last auth check is older than the check interval.
-     * Used to decide whether to perform a fresh check when a tab becomes visible.
-     */
+  /** Read-only view of THE client status, for guards and layouts. */
+  const status = computed((): ClientAuthStatus => authStatus.value);
+
+  const isAuthenticated = computed((): boolean => authStatus.value === 'authenticated');
+
+  /**
+   * Whether the last accepted snapshot is older than the check interval.
+   *
+   * A plain function, evaluated when asked. It must NOT be a computed:
+   * Date.now() is not a reactive dependency, so a computed would cache its
+   * first answer and a tab could never become stale by time passing.
+   */
+  function isStale(): boolean {
     if (!lastCheckTime.value) return true;
     return Date.now() - lastCheckTime.value > AUTH_CHECK_CONFIG.INTERVAL;
-  });
+  }
+
+  /**
+   * @deprecated Reactive only to `lastCheckTime`, not to the clock (see
+   * isStale). Kept for existing readers; nothing decides from it.
+   */
+  const needsCheck = computed((): boolean => isStale());
 
   const isInitialized = computed(() => _initialized.value);
 
-  /**
-   * Whether user is awaiting MFA verification (password OK, OTP pending).
-   * This is a transitional state between unauthenticated and fully authenticated.
-   * Derives from bootstrapStore for reactivity.
-   */
-  const awaitingMfa = computed(() => bsAwaitingMfa.value ?? false);
+  /** Password OK, second factor pending. */
+  const awaitingMfa = computed((): boolean => authStatus.value === 'mfa_pending');
 
   /**
-   * Whether user has completed ALL authentication steps.
-   * False if MFA is pending, even if password auth succeeded.
-   * Use this for route protection and access control.
+   * Whether ALL authentication steps are complete. With one status this is the
+   * same statement as isAuthenticated; both names are kept for their callers.
    */
-  const isFullyAuthenticated = computed(() =>
-    isAuthenticated.value === true && !awaitingMfa.value
+  const isFullyAuthenticated = computed((): boolean => authStatus.value === 'authenticated');
+
+  /**
+   * Whether a user is present (MFA-pending or authenticated). For UI decisions
+   * (user menu vs sign-in links), never for access control.
+   */
+  const isUserPresent = computed(
+    (): boolean =>
+      authStatus.value === 'mfa_pending' || (authStatus.value === 'authenticated' && !!bsCust.value)
   );
-
-  /**
-   * Whether a user is present (logged in partially or fully).
-   * True for both MFA-pending and fully authenticated states.
-   * Use this for UI decisions (show user menu, hide sign-in links).
-   * Derives from bootstrapStore refs for reactivity.
-   */
-  const isUserPresent = computed(() => {
-    const hasAuthenticatedCustomer = isAuthenticated.value && bsCust.value;
-    const hasMfaPendingEmail = awaitingMfa.value && bsEmail.value;
-    return !!(hasAuthenticatedCustomer || hasMfaPendingEmail);
-  });
 
   // Actions
 
@@ -221,157 +280,194 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
 
-    // Read from bootstrapStore refs (already hydrated from window state)
-    const inputValue = bsAuthenticated.value;
-    const hadValidSession = bsHadValidSession.value;
-    const storedAuthState = sessionStorage.getItem('ots_auth_state');
+    // bootstrapStore has already parsed hydration. A verified statement from
+    // the server counts as a check; `checking` does not.
+    if (authStatus.value !== 'checking') lastCheckTime.value = Date.now();
+    if (isAuthenticated.value) $scheduleNextCheck();
 
-    // Debug logging for auth initialization flow
-    loggingService.debug('[AuthStore.init] Auth state from bootstrapStore:', {
-      authenticated: inputValue,
-      authenticatedType: typeof inputValue,
-      hadValidSession,
-      storedAuthState,
-      bootstrapInitialized: bootstrapStore.isInitialized,
-    });
-
-    // Detect if this might be an error page masquerading as unauthenticated:
-    // - Window says authenticated = false
-    // - But server indicates there was a valid session (had_valid_session = true)
-    // - And we have a recent auth state stored in sessionStorage
-    // This scenario happens when server returns 500 error page which defaults
-    // to authenticated = false even though the user has a valid session.
-    // The server sets had_valid_session by checking the session cookie on its side.
-    if (inputValue === false && hadValidSession === true && storedAuthState === 'true') {
-      // Likely a server error page, preserve the stored auth state
-      loggingService.warn(
-        'Window state shows unauthenticated but server had valid session - ' +
-        'likely server error page, preserving auth state'
-      );
-      isAuthenticated.value = true;
-    } else {
-      // Normal flow: trust window state
-      // Regardless of what the value is, if it isn't exactly true, it's false.
-      // i.e. unlimited ways to fail, only one way to succeed.
-      isAuthenticated.value = inputValue === true;
-    }
-
-    // Store auth state for error recovery
-    if (isAuthenticated.value) {
-      sessionStorage.setItem('ots_auth_state', 'true');
-      lastCheckTime.value = Date.now();
-      $scheduleNextCheck();
-    } else {
-      sessionStorage.removeItem('ots_auth_state');
-    }
-
+    listenForVisibility();
     _initialized.value = true;
 
-    // Debug logging for final auth state after init
     loggingService.debug('[AuthStore.init] Initialization complete:', {
-      isAuthenticated: isAuthenticated.value,
-      lastCheckTime: lastCheckTime.value,
+      authStatus: authStatus.value,
       needsCheck: needsCheck.value,
-      initialized: _initialized.value,
     });
 
     return { needsCheck, isInitialized };
   }
 
   /**
-   * Checks the current authentication status with the server.
-   *
-   * @description
-   * This method implements a robust authentication check mechanism:
-   * 1. Validates current auth state with server
-   * 2. Updates local and window state
-   * 3. Manages failure counting
-   *
-   * Key behaviors:
-   * - Automatic logout after MAX_FAILURES consecutive failures
-   * - Resets failure counter on successful check
-   * - Maintains sync between local and window state
-   * - Allows refresh during MFA pending state (awaiting_mfa=true)
-   *
-   * @returns Current authentication state
+   * Returning to a stale visible tab is a refresh trigger. Background tabs
+   * throttle timers, so the interval alone cannot be relied on.
    */
-  async function checkWindowStatus() {
-    // Allow refresh if authenticated OR if awaiting MFA completion.
-    // When isAuthenticated is null (uncertain/initial state), we should verify.
-    // Skip only when definitively unauthenticated and not awaiting MFA.
-    const shouldSkip = isAuthenticated.value === false && !awaitingMfa.value;
-    loggingService.debug('[AuthStore.checkWindowStatus] Called with state:', {
-      isAuthenticated: isAuthenticated.value,
-      isAuthenticatedType: typeof isAuthenticated.value,
-      awaitingMfa: awaitingMfa.value,
-      willSkip: shouldSkip,
-    });
+  function listenForVisibility() {
+    if (typeof document === 'undefined' || visibilityHandler) return;
+    visibilityHandler = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (authStatus.value === 'anonymous' || !isStale()) return;
+      void refresh({ kind: 'ordinary', reason: 'visibility' });
+    };
+    document.addEventListener('visibilitychange', visibilityHandler);
+  }
 
-    if (shouldSkip) {
-      loggingService.debug('[AuthStore.checkWindowStatus] Skipping check - user definitively not authenticated and not awaiting MFA');
-      return false;
+  /**
+   * Invalidates every request issued so far. Called by authentication
+   * mutations and local sign-out: a response that started before them must
+   * never be applied after them.
+   */
+  function invalidateGeneration() {
+    generation += 1;
+    inFlight?.controller.abort();
+    inFlight = null;
+    clearRetry();
+  }
+
+  function clearRetry() {
+    if (retryTimer !== null) {
+      clearTimeout(retryTimer);
+      retryTimer = null;
     }
+  }
 
-    loggingService.debug('[AuthStore.checkWindowStatus] Making API call to /bootstrap/me');
-
-    try {
-      const response = await $api.get(AUTH_CHECK_CONFIG.ENDPOINT);
-
-      // Update bootstrapStore with server response - single source of truth.
-      // All computed properties derive from bootstrapStore refs, so route guards
-      // and components will see updated values immediately.
-      if (response.data) {
-        bootstrapStore.update(response.data, { source: 'bootstrap' });
-      }
-
-      // Update local auth state from refreshed window data
-      isAuthenticated.value = response.data.authenticated || false;
-      failureCount.value = 0;
-      lastCheckTime.value = Date.now();
-
-      loggingService.debug('[AuthStore.checkWindowStatus] API response:', {
-        authenticated: response.data.authenticated,
-        awaiting_mfa: response.data.awaiting_mfa,
-        newIsAuthenticated: isAuthenticated.value,
+  /**
+   * Requests a complete snapshot. The ONLY caller of GET /bootstrap/me.
+   */
+  function refresh(request: RefreshRequest): Promise<RefreshOutcome> {
+    if (request.kind === 'ordinary' && inFlight) {
+      loggingService.debug('[AuthStore.refresh] Joined the request in flight', {
+        reason: request.reason,
       });
-
-      return isAuthenticated.value;
-    } catch (error) {
-      // Classify error and log technical/security errors
-      const classified = classifyError(error);
-
-      // Log technical/security errors (not human errors)
-      if (!errorGuards.isOfHumanInterest(classified)) {
-        loggingService.error(classified);
-      }
-
-      failureCount.value = (failureCount.value ?? 0) + 1;
-      if (failureCount.value >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
-        await logout();
-      }
-      return false;
+      return inFlight.promise;
     }
-  }
 
-  /**
-   * Forces an immediate window state refresh and reschedules next check.
-   * Useful when the application needs to ensure fresh auth and config state.
-   */
-  async function refreshAuthState() {
-    return checkWindowStatus().then(() => {
-      $scheduleNextCheck();
+    if (request.kind === 'auth-mutation') inFlight?.controller.abort();
+    clearRetry();
+
+    generation += 1;
+    const mine = generation;
+    const controller = new AbortController();
+    const promise = run(mine, controller.signal, request).finally(() => {
+      if (inFlight?.generation === mine) inFlight = null;
     });
+    inFlight = { generation: mine, controller, promise };
+    return promise;
+  }
+
+  async function run(
+    mine: number,
+    signal: AbortSignal,
+    request: RefreshRequest
+  ): Promise<RefreshOutcome> {
+    loggingService.debug('[AuthStore.refresh] Requesting snapshot', { ...request, generation: mine });
+
+    let retryAfterMs = 0;
+    try {
+      const response = await $api.get(AUTH_CHECK_CONFIG.ENDPOINT, { signal });
+      if (mine !== generation) return 'superseded';
+
+      // Validate BEFORE anything is mutated. A payload that fails the shared
+      // contract reaches no store.
+      const parsed = bootstrapSchema.safeParse(response.data);
+      if (parsed.success && effectiveAuthStatus(parsed.data) !== 'unavailable') {
+        // Epoch/version acceptance (ADR-046, #4464) slots in here: between a
+        // current generation and the commit below.
+        await commit(parsed.data);
+        return 'applied';
+      }
+      // `unavailable` from the server is a failed verification, not a verdict:
+      // applying it would read as "session ended" during an auth-DB outage.
+      // Paths only, never values: the payload carries personal data.
+      loggingService.warn('[AuthStore.refresh] Snapshot not usable', {
+        generation: mine,
+        contractValid: parsed.success,
+        invalidPaths: parsed.success ? [] : parsed.error.issues.map((issue) => issue.path.join('.')),
+      });
+    } catch (error) {
+      if (mine !== generation) return 'superseded';
+      retryAfterMs = parseRetryAfter(retryAfterHeader(error));
+      const classified = classifyError(error);
+      if (!errorGuards.isOfHumanInterest(classified)) loggingService.error(classified);
+    }
+
+    noteFailure(retryAfterMs);
+    return 'failed';
+  }
+
+  /** Applies an accepted snapshot and clears what no longer belongs. */
+  async function commit(snapshot: Parameters<typeof bootstrapStore.applySnapshot>[0]) {
+    const priorStatus = authStatus.value;
+    const priorAccount = bootstrapStore.custid;
+
+    bootstrapStore.applySnapshot(snapshot);
+
+    const lostAuthority = priorStatus === 'authenticated' && authStatus.value !== 'authenticated';
+    const changedAccount = priorAccount !== '' && priorAccount !== bootstrapStore.custid;
+    if (lostAuthority || changedAccount) await clearAccountScopedState();
+
+    failureCount.value = 0;
+    lastCheckTime.value = Date.now();
+    $scheduleNextCheck();
+  }
+
+  function noteFailure(retryAfterMs: number) {
+    failureCount.value = (failureCount.value ?? 0) + 1;
+    // From `checking` there is no verified state to keep serving while we
+    // retry, so one failed verification is already `unavailable`. Otherwise
+    // the last accepted snapshot stands until MAX_FAILURES.
+    const nothingVerified = authStatus.value === 'checking';
+    if (nothingVerified || failureCount.value >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
+      bootstrapStore.withholdAuthority('unavailable');
+    }
+
+    clearRetry();
+    const delay = retryDelay(failureCount.value, retryAfterMs);
+    retryTimer = setTimeout(() => {
+      retryTimer = null;
+      void refresh({ kind: 'ordinary', reason: 'retry' });
+    }, delay);
+  }
+
+  /** Explicit retry: skips the backoff wait, not the rules. */
+  function retryNow(): Promise<RefreshOutcome> {
+    return refresh({ kind: 'ordinary', reason: 'retry' });
+  }
+
+  /** Stops every timer and invalidates what is in flight. */
+  function stop() {
+    invalidateGeneration();
+    void $stopAuthCheck();
   }
 
   /**
-   * Schedules the next authentication check with a randomized interval.
-   *
-   * The random jitter added to the base interval helps prevent
-   * synchronized requests from multiple clients hitting the server
-   * at the same time, which could cause load spikes.
-   *
-   * The jitter is ±90 seconds, providing a good balance between
-   * regular checks and load distribution.
+   * Resets the account-scoped stores that exist. A store that was never
+   * created holds nothing, and creating it here would run its init (and
+   * possibly a fetch) only to reset it.
+   */
+  async function clearAccountScopedState(): Promise<void> {
+    const existing = getActivePinia()?.state.value ?? {};
+    const ids = Object.keys(ACCOUNT_SCOPED_STORES).filter((id) => id in existing);
+    const stores = await Promise.all(ids.map((id) => ACCOUNT_SCOPED_STORES[id]()));
+    for (const useStore of stores) useStore().$reset();
+  }
+
+  /**
+   * @deprecated Use refresh(). Kept for its callers: verifies with the server
+   * unless the status is already a definitive `anonymous`.
+   */
+  async function checkWindowStatus(): Promise<boolean> {
+    if (authStatus.value === 'anonymous') return false;
+    await refresh({ kind: 'ordinary', reason: 'check' });
+    return isAuthenticated.value;
+  }
+
+  /** @deprecated Use refresh(). */
+  async function refreshAuthState(): Promise<void> {
+    await refresh({ kind: 'ordinary', reason: 'check' });
+  }
+
+  /**
+   * Passive verification: 15 minutes ± 90 s. The jitter keeps clients from
+   * polling in step. Runs only while authenticated.
    */
   function $scheduleNextCheck() {
     $stopAuthCheck();
@@ -381,16 +477,12 @@ export const useAuthStore = defineStore('auth', () => {
     const jitter = (Math.random() - 0.5) * 2 * AUTH_CHECK_CONFIG.JITTER;
     const nextCheck = AUTH_CHECK_CONFIG.INTERVAL + jitter;
 
-    authCheckTimer.value = setTimeout(async () => {
-      await checkWindowStatus();
-      $scheduleNextCheck();
+    authCheckTimer.value = setTimeout(() => {
+      authCheckTimer.value = null;
+      void refresh({ kind: 'ordinary', reason: 'interval' });
     }, nextCheck);
   }
 
-  /**
-   * Stops the periodic authentication check.
-   * Clears the existing timeout and resets the authCheckTimer.
-   */
   async function $stopAuthCheck() {
     if (authCheckTimer.value !== null) {
       clearTimeout(authCheckTimer.value);
@@ -399,134 +491,89 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Logs out the current user and resets the auth state.
+   * Local (SPA) sign-out: no page navigation follows.
    *
-   * - Clearing cookies
-   * - Resetting all related stores
-   * - Clearing session storage
-   * - Updating window state
-   * Clears authentication state and storage.
-   *
-   * This method resets the store state to its initial values using `this.$reset()`.
-   * It also clears session storage and stops any ongoing authentication checks.
-   * This is typically used during logout to ensure that all user-specific data
-   * is cleared and the store is returned to its default state.
+   * Invalidates the generation FIRST, so a refresh already in flight cannot
+   * restore the identity being cleared here.
    */
   async function logout() {
+    invalidateGeneration();
     await $stopAuthCheck();
 
     $reset();
 
-    // Reset bootstrapStore user state while preserving server config.
-    // resetForLogout() also evicts `diagnostics_ref` from the pre-Pinia
-    // bootstrap.service snapshot, so the reference survives in neither of the
-    // two places the bootstrap payload is mirrored. The Sentry scope is a
-    // third holder, and it is cleared just below.
+    // Resets account state (and the pre-Pinia mirror) to anonymous while
+    // preserving server config.
     bootstrapStore.resetForLogout();
+    await clearAccountScopedState();
 
-    // Clear the Sentry user context: setUser(null) on BOTH the isolated and
-    // current scopes.
-    //
-    // This is the SOFT (SPA) logout path — no page navigation follows, so the
-    // Sentry scopes survive with whatever user context was last written.
-    // Without this call every subsequent error in the now-anonymous session
-    // would keep reporting the previous session's ref. resetForLogout() above
-    // clears the store field, but the store is not where Sentry reads the
-    // context from.
-    //
-    // The HARD logout paths in useAuth (POST /auth/logout followed by
-    // window.location.href) do not need this — the navigation tears down the
-    // JS context and the scopes with it.
-    //
-    // No-ops when diagnostics are disabled, so it is called unconditionally.
+    // The Sentry scopes survive a soft logout; without this every later error
+    // in the now-anonymous session would keep the previous session's ref.
+    // No-ops when diagnostics are disabled.
     clearDiagnosticsActorContext();
 
     deleteCookie('locale');
 
-    // Clear all session storage;
     sessionStorage.clear();
-
-    // Remove any and all lingering store state
-    // context.pinia.state.value = {};
   }
 
   /**
    * Minimal logout: clears cookies and session storage without resetting
    * reactive Pinia state. Use this when a hard navigation (window.location.href)
    * follows immediately — the page reload discards all in-memory state, and
-   * skipping $reset() / bootstrapStore.$reset() avoids a visual flash where
-   * brand-dependent components briefly revert to defaults.
+   * skipping the resets avoids a visual flash where brand-dependent components
+   * briefly revert to defaults. The generation is still invalidated, so
+   * nothing in flight can land during unload.
    */
   async function logoutMinimal() {
+    invalidateGeneration();
     await $stopAuthCheck();
 
     deleteCookie('locale');
     sessionStorage.clear();
   }
-  /**
-   * Disposes of the store, stopping the auth check.
-   *
-   * - Disposing of a store does not reset its state. If you recreate the store,
-   *   it will start with its initial state as defined in the store definition.
-   * - Once a store is disposed of, it should not be used again.
-   *
-   */
+
   async function $dispose() {
-    await $stopAuthCheck();
+    stop();
+    if (visibilityHandler) {
+      document.removeEventListener('visibilitychange', visibilityHandler);
+      visibilityHandler = null;
+    }
   }
 
   function $reset() {
-    isAuthenticated.value = null;
+    invalidateGeneration();
     authCheckTimer.value = null;
     failureCount.value = null;
     lastCheckTime.value = null;
     _initialized.value = false;
-    sessionStorage.removeItem('ots_auth_state');
   }
 
   /**
-   * Sets the authenticated state and refreshes window state from server.
+   * Called after a successful authentication step (login, MFA, SSO link).
    *
-   * Called after successful authentication operations (login, MFA verification).
-   * Triggers a /window refresh to get complete server state including:
-   * - Customer data and entitlements
-   * - Updated awaiting_mfa flag (critical for MFA flow completion)
-   * - Fresh CSRF token
-   *
-   * @param value - The authentication state to set
+   * It does NOT set anything locally: it asks the server, as an
+   * authentication mutation, and the answer is the state. `false` is a local
+   * sign-out.
    */
   async function setAuthenticated(value: boolean) {
-    isAuthenticated.value = value;
-
-    // Update sessionStorage for error recovery
-    if (value) {
-      sessionStorage.setItem('ots_auth_state', 'true');
-      // Fetch fresh window state immediately to get customer data
-      // and updated awaiting_mfa flag (critical after MFA verification)
-      await checkWindowStatus();
-    } else {
-      sessionStorage.removeItem('ots_auth_state');
-      await $stopAuthCheck();
+    if (!value) {
+      await logout();
+      return;
     }
-
-    // Sync flags via bootstrapStore for reactivity. When setting authenticated to true,
-    // we also set awaiting_mfa to false. This optimistic update prevents getting
-    // stuck if the subsequent checkWindowStatus() call fails.
-    bootstrapStore.update({
-      authenticated: value,
-      ...(value ? { awaiting_mfa: false } : {}),
-    });
+    await refresh({ kind: 'auth-mutation', reason: 'login' });
   }
 
   return {
     // State
-    isAuthenticated,
     authCheckTimer,
     failureCount,
     lastCheckTime,
     _initialized,
 
     // Getters
+    authStatus: status,
+    isAuthenticated,
     needsCheck,
     isInitialized,
     awaitingMfa,
@@ -535,6 +582,9 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Actions
     init,
+    refresh,
+    retryNow,
+    stop,
     checkWindowStatus,
     refreshAuthState,
     logout,
@@ -547,6 +597,15 @@ export const useAuthStore = defineStore('auth', () => {
     $reset,
   };
 });
+
+/** Reads Retry-After from an axios-shaped error without assuming its class. */
+function retryAfterHeader(error: unknown): unknown {
+  if (typeof error !== 'object' || error === null || !('response' in error)) return undefined;
+  const response = (error as { response?: { headers?: unknown } }).response;
+  const headers = response?.headers;
+  if (typeof headers !== 'object' || headers === null) return undefined;
+  return (headers as Record<string, unknown>)['retry-after'];
+}
 
 const deleteCookie = (name: string) => {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;

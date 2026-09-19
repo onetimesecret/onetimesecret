@@ -4,7 +4,7 @@
 import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { createApi } from '@/api';
 import {
@@ -18,7 +18,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const bootstrapStore = useBootstrapStore();
+const authStore = useAuthStore();
 const organizationStore = useOrganizationStore();
 const $api = createApi();
 
@@ -107,7 +107,7 @@ const actualPlanName = computed(() => {
  * Sync client state after the preview override changes on the server.
  *
  * The override is applied server-side on every read (ADR-020), so plain
- * refetches return preview-corrected data: bootstrapStore.refresh() picks up
+ * refetches return preview-corrected data: authStore.refresh() picks up
  * the banner fields (`entitlement_preview_planid` / `_plan_name`), and
  * fetchOrganizations() reloads the org records whose entitlements/limits
  * `useEntitlements` gates features on.
@@ -119,7 +119,7 @@ const actualPlanName = computed(() => {
  */
 const syncPreviewState = async () => {
   const [, refreshedOrgs] = await Promise.all([
-    bootstrapStore.refresh(),
+    authStore.refresh({ kind: 'auth-mutation', reason: 'plan-preview' }),
     organizationStore.fetchOrganizations(),
   ]);
 

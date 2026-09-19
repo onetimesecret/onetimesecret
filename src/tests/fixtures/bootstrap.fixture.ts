@@ -208,9 +208,22 @@ export const mfaPendingBootstrap: BootstrapPayload = {
   authenticated: false,
   awaiting_mfa: true,
   had_valid_session: true,
-  cust: mockCustomer,
-  custid: mockCustomer.extid,
-  email: mockCustomer.email,
+  // No cust / custid / email: the server sends no identity until the second
+  // factor is verified (AuthenticationSerializer, #4462).
+};
+
+/**
+ * The session could not be verified (auth-DB outage, or an error-recovery
+ * render that still had a session). NOT a sign-out, and no identity.
+ * The refresh coordinator treats this as a failed refresh; hydration shows it
+ * as `unavailable`.
+ */
+export const unavailableBootstrap: BootstrapPayload = {
+  ...baseBootstrap,
+  auth_status: 'unavailable',
+  authenticated: false,
+  awaiting_mfa: false,
+  had_valid_session: true,
 };
 
 /**
@@ -260,3 +273,23 @@ export const standaloneBootstrap: BootstrapPayload = {
   ...authenticatedBootstrap,
   billing_enabled: false,
 };
+
+/**
+ * Puts a bootstrap store into a given authentication state the only way
+ * production can (#4458): by applying a complete, contract-valid snapshot.
+ *
+ * `bootstrapStore.update({ authenticated: true })` and
+ * `authStore.$patch({ isAuthenticated: true })` no longer do anything: local
+ * patches cannot state who is signed in, and authStore holds no flag.
+ *
+ * @example
+ *   applyBootstrap(bootstrapStore, authenticatedBootstrap, { email: 'a@b.c' });
+ *   applyBootstrap(bootstrapStore, anonymousBootstrap);
+ */
+export function applyBootstrap(
+  store: { applySnapshot: (snapshot: BootstrapPayload) => void },
+  scenario: BootstrapPayload,
+  overrides: Partial<BootstrapPayload> = {}
+): void {
+  store.applySnapshot(bootstrapSchema.parse({ ...scenario, ...overrides }));
+}

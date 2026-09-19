@@ -3,13 +3,13 @@
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { createApi } from '@/api';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const bootstrapStore = useBootstrapStore();
+const authStore = useAuthStore();
 const $api = createApi();
 
 // Test plan mode composable
@@ -24,7 +24,7 @@ const handleReset = async () => {
     await $api.post('/api/colonel/entitlement-preview', { planid: null });
 
     // Refresh bootstrap state to clear test mode (no page reload needed)
-    await bootstrapStore.refresh();
+    await authStore.refresh({ kind: 'auth-mutation', reason: 'plan-preview' });
   } catch (err: unknown) {
     console.error('Failed to reset test mode:', err);
   } finally {

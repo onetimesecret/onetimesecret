@@ -4,7 +4,12 @@ import InviteSignUpForm from '@/apps/session/components/InviteSignUpForm.vue';
 import AcceptInvite from '@/apps/session/views/AcceptInvite.vue';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { mockCustomer } from '@tests/fixtures/bootstrap.fixture';
+import {
+  anonymousBootstrap,
+  applyBootstrap,
+  authenticatedBootstrap,
+  mockCustomer,
+} from '@tests/fixtures/bootstrap.fixture';
 import { createTestI18n } from '@tests/setup';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
@@ -183,8 +188,7 @@ describe('AcceptInvite', () => {
       // email live on bootstrapStore (see authStore.ts's CUSTOMER OBJECT
       // STATE notes) — emailMismatch in AcceptInvite.vue reads
       // bootstrapStore.email, not authStore, so both must be set here.
-      authStore.$patch({ isAuthenticated: true });
-      bootstrapStore.$patch({
+      applyBootstrap(bootstrapStore, authenticatedBootstrap, {
         email: 'invitee@example.com',
         cust: { ...mockCustomer, email: 'invitee@example.com' },
       });
@@ -305,8 +309,7 @@ describe('AcceptInvite', () => {
    */
   describe('Host sign-in restriction (ADR-034#invite-signup-is-gated)', () => {
     beforeEach(() => {
-      authStore.$patch({ isAuthenticated: false });
-      bootstrapStore.$patch({ cust: null });
+      applyBootstrap(bootstrapStore, anonymousBootstrap);
     });
 
     const replyWith = (record: Record<string, unknown>, token = 'test-token-123') => {
@@ -544,8 +547,7 @@ describe('AcceptInvite', () => {
         // the restriction is spent once a session exists. This is what lets
         // the ADR-034#invite-signup-is-gated flow terminate: SSO signs them in,
         // they return here, they join.
-        authStore.$patch({ isAuthenticated: true });
-        bootstrapStore.$patch({
+        applyBootstrap(bootstrapStore, authenticatedBootstrap, {
           email: 'invitee@example.com',
           cust: { ...mockCustomer, email: 'invitee@example.com' },
         });
@@ -598,8 +600,7 @@ describe('AcceptInvite', () => {
       // email live on bootstrapStore (see authStore.ts's CUSTOMER OBJECT
       // STATE notes) — emailMismatch in AcceptInvite.vue reads
       // bootstrapStore.email, not authStore, so both must be set here.
-      authStore.$patch({ isAuthenticated: true });
-      bootstrapStore.$patch({
+      applyBootstrap(bootstrapStore, authenticatedBootstrap, {
         email: 'invitee@example.com',
         cust: { ...mockCustomer, email: 'invitee@example.com' },
       });
@@ -651,8 +652,7 @@ describe('AcceptInvite', () => {
       // email live on bootstrapStore (see authStore.ts's CUSTOMER OBJECT
       // STATE notes) — emailMismatch in AcceptInvite.vue reads
       // bootstrapStore.email, not authStore, so both must be set here.
-      authStore.$patch({ isAuthenticated: true });
-      bootstrapStore.$patch({
+      applyBootstrap(bootstrapStore, authenticatedBootstrap, {
         email: 'invitee@example.com',
         cust: { ...mockCustomer, email: 'invitee@example.com' },
       });
@@ -705,8 +705,7 @@ describe('AcceptInvite', () => {
       // email live on bootstrapStore (see authStore.ts's CUSTOMER OBJECT
       // STATE notes) — emailMismatch in AcceptInvite.vue reads
       // bootstrapStore.email, not authStore, so both must be set here.
-      authStore.$patch({ isAuthenticated: true });
-      bootstrapStore.$patch({
+      applyBootstrap(bootstrapStore, authenticatedBootstrap, {
         email: 'invitee@example.com',
         cust: { ...mockCustomer, email: 'invitee@example.com' },
       });
@@ -742,8 +741,7 @@ describe('AcceptInvite', () => {
       // email live on bootstrapStore (see authStore.ts's CUSTOMER OBJECT
       // STATE notes) — emailMismatch in AcceptInvite.vue reads
       // bootstrapStore.email, not authStore, so both must be set here.
-      authStore.$patch({ isAuthenticated: true });
-      bootstrapStore.$patch({
+      applyBootstrap(bootstrapStore, authenticatedBootstrap, {
         email: 'invitee@example.com',
         cust: { ...mockCustomer, email: 'invitee@example.com' },
       });
