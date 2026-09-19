@@ -90,9 +90,11 @@ and continue unordered.
 - `pnpm run schemas:rhales:generate` had stopped producing anything ("No schema
   sections found"): the rake task did not know where `bootstrap.ts` lives. It
   now carries the same schema settings as the app. `error.rue` used a Mustache
-  section Rhales cannot parse, so its schema was skipped with a warning; the
-  template is fixed, all three schemas generate, and a spec parses every Web
-  Core template.
+  section Rhales cannot parse, so its schema was skipped with a warning.
+  Nothing has rendered that template since error pages moved to the Vue entry
+  point (October 2025), so it is removed with its view class; both remaining
+  schemas (`index`, `admin`) generate, and a spec parses every Web Core
+  template.
 
 ## Staging review
 
