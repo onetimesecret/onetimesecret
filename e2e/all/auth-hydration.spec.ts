@@ -39,13 +39,29 @@ function recordBootstrapRequests(page: Page): string[] {
   return seen;
 }
 
-/** Main-frame navigations, in order. */
+/**
+ * Every path the main frame shows, in order. `framenavigated` also fires for
+ * same-document history writes, and vue-router makes two of those while it
+ * settles the initial route, so the LENGTH of this list says nothing; what it
+ * contains does.
+ */
 function recordNavigations(page: Page): string[] {
   const urls: string[] = [];
   page.on('framenavigated', (frame) => {
     if (frame === page.mainFrame()) urls.push(new URL(frame.url()).pathname);
   });
   return urls;
+}
+
+/** Main-frame DOCUMENT requests the server answered: `"<status> <path>"`. */
+function recordDocuments(page: Page): string[] {
+  const documents: string[] = [];
+  page.on('response', (response) => {
+    const request = response.request();
+    if (!request.isNavigationRequest() || request.frame() !== page.mainFrame()) return;
+    documents.push(`${response.status()} ${new URL(response.url()).pathname}`);
+  });
+  return documents;
 }
 
 test.describe('hydration is the initial snapshot (#4456)', () => {
@@ -74,6 +90,7 @@ test.describe('hydration is the initial snapshot (#4456)', () => {
   test('/dashboard reaches /signin without a Vue bounce', async ({ page }) => {
     const bootstrapRequests = recordBootstrapRequests(page);
     const navigations = recordNavigations(page);
+    const documents = recordDocuments(page);
 
     await page.goto('/dashboard');
     await waitForAppReady(page);
@@ -82,13 +99,13 @@ test.describe('hydration is the initial snapshot (#4456)', () => {
     // /signin directly. (What the Location carries is the server's business
     // and is covered by the Ruby failure-matrix specs, not asserted here.)
     expect(new URL(page.url()).pathname).toBe('/signin');
+    expect(documents).toEqual(['302 /dashboard', '200 /signin']);
 
-    // No bounce: the dashboard route never committed, and nothing navigated
-    // again once sign-in was reached. A bounce shows up here as a /dashboard
-    // entry, or as more than one entry ending in /signin.
-    expect(navigations).not.toContain('/dashboard');
-    expect(navigations.filter((path) => path === '/signin')).toHaveLength(1);
-    expect(navigations.at(-1)).toBe('/signin');
+    // No bounce: the dashboard route never showed, not even for a frame. A
+    // Vue bounce is the client loading /dashboard and THEN routing away, which
+    // puts /dashboard in this list; the server's redirect never does.
+    expect(navigations.length).toBeGreaterThan(0);
+    expect(new Set(navigations)).toEqual(new Set(['/signin']));
 
     // And the decision needed no request: it came from the hydrated snapshot.
     expect(bootstrapRequests).toEqual([]);
