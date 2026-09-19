@@ -3,7 +3,10 @@
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import DomainsTableActionsCell from '@/apps/workspace/components/dashboard/DomainsTableActionsCell.vue';
-import { isApproximatedDomainValidation } from '@/utils/features';
+import {
+  OWNERSHIP_CHECKING_STRATEGIES,
+  setDomainValidationStrategy,
+} from '@tests/support/domainValidationStrategy';
 
 // Mock vue-i18n
 vi.mock('vue-i18n', () => ({
@@ -25,12 +28,12 @@ vi.mock('vue-i18n', () => ({
 
 // Control the install's domain validation strategy. Default to approximated so
 // the existing menu expectations (which show "Verify Domain" → DomainVerify)
-// hold; individual tests flip it to exercise the self-hosted CNAME path.
-vi.mock('@/utils/features', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/utils/features')>()),
-  isApproximatedDomainValidation: vi.fn(() => true),
-}));
-const mockApprox = vi.mocked(isApproximatedDomainValidation);
+// hold; individual tests switch it to exercise the other strategies. The real
+// capability table is evaluated, not a boolean stub.
+vi.mock('@/utils/features', async (importOriginal) => {
+  const { featuresForStrategy } = await import('@tests/support/domainValidationStrategy');
+  return featuresForStrategy(await importOriginal<typeof import('@/utils/features')>());
+});
 
 // Mock HeadlessUI MenuItem to render slot content with v-if support
 vi.mock('@headlessui/vue', () => ({
@@ -85,10 +88,11 @@ function mountComponent({
   canManageSso = false,
   canEmailConfig = false,
   canIncomingSecrets = false,
+  domain = mockDomain as Record<string, unknown>,
 } = {}) {
   return mount(DomainsTableActionsCell, {
     props: {
-      domain: mockDomain,
+      domain: domain as never,
       orgid: 'org_ext_123',
       canBrand,
       canManageSso,
@@ -109,8 +113,8 @@ function mountComponent({
 
 describe('DomainsTableActionsCell', () => {
   beforeEach(() => {
-    // clearAllMocks() keeps mockReturnValue overrides, so re-assert the default.
-    mockApprox.mockReturnValue(true);
+    // The strategy is module state in the support helper, so re-assert the default.
+    setDomainValidationStrategy('approximated');
   });
 
   afterEach(() => {
@@ -300,20 +304,35 @@ describe('DomainsTableActionsCell', () => {
     const toOf = (link: { attributes: (name: string) => string | undefined }) =>
       JSON.parse(link.attributes('data-to')!);
 
-    it('links to DomainVerify labelled "Verify Domain" when approximated', () => {
-      mockApprox.mockReturnValue(true);
+    it.each(OWNERSHIP_CHECKING_STRATEGIES)(
+      'links to DomainVerify labelled "Verify Domain" under %s',
+      (strategy) => {
+        setDomainValidationStrategy(strategy);
+        const wrapper = mountComponent();
+
+        const links = wrapper.findAll('a[data-to]');
+        const verifyLink = links.find((l) => toOf(l).name === 'DomainVerify');
+
+        expect(verifyLink).toBeDefined();
+        expect(verifyLink!.text()).toBe('Verify Domain');
+        expect(links.find((l) => toOf(l).name === 'DomainDns')).toBeUndefined();
+      }
+    );
+
+    it('keeps the verify menu item a labelled link inside a menuitem', () => {
+      setDomainValidationStrategy('caddy_on_demand');
       const wrapper = mountComponent();
 
-      const verifyLink = wrapper
-        .findAll('a[data-to]')
-        .find((l) => toOf(l).name === 'DomainVerify');
+      const verifyItem = wrapper
+        .findAll('[role="menuitem"]')
+        .find((item) => item.text() === 'Verify Domain');
 
-      expect(verifyLink).toBeDefined();
-      expect(verifyLink!.text()).toBe('Verify Domain');
+      expect(verifyItem).toBeDefined();
+      expect(toOf(verifyItem!.find('a[data-to]')).name).toBe('DomainVerify');
     });
 
-    it('links to DomainDns labelled "DNS Setup" when not approximated', () => {
-      mockApprox.mockReturnValue(false);
+    it('links to DomainDns labelled "DNS Setup" under passthrough', () => {
+      setDomainValidationStrategy('passthrough');
       const wrapper = mountComponent();
 
       const links = wrapper.findAll('a[data-to]');
@@ -326,12 +345,12 @@ describe('DomainsTableActionsCell', () => {
         extid: 'dm-test-extid',
       });
 
-      // The Approximated verification screen must not be linked.
+      // The verification screen must not be linked.
       expect(links.find((l) => toOf(l).name === 'DomainVerify')).toBeUndefined();
     });
 
-    it('surfaces the Manage quick action on non-approximated installs even without DNS status', () => {
-      mockApprox.mockReturnValue(false);
+    it('surfaces the Manage quick action under passthrough even without DNS status', () => {
+      setDomainValidationStrategy('passthrough');
       const wrapper = mountComponent();
 
       const manageLink = wrapper
@@ -339,6 +358,28 @@ describe('DomainsTableActionsCell', () => {
         .find((l) => toOf(l).name === 'DomainDetail');
 
       expect(manageLink).toBeDefined();
+    });
+
+    it('hides Manage for a caddy_on_demand domain that still needs its TXT check', () => {
+      setDomainValidationStrategy('caddy_on_demand');
+      const wrapper = mountComponent({
+        domain: { ...mockDomain, verified: false, vhost: { status: 'PENDING_SSL' } },
+      });
+
+      expect(
+        wrapper.findAll('a[data-to]').find((l) => toOf(l).name === 'DomainDetail')
+      ).toBeUndefined();
+    });
+
+    it('surfaces Manage for a verified caddy_on_demand domain awaiting its certificate', () => {
+      setDomainValidationStrategy('caddy_on_demand');
+      const wrapper = mountComponent({
+        domain: { ...mockDomain, verified: true, vhost: { status: 'PENDING_SSL' } },
+      });
+
+      expect(
+        wrapper.findAll('a[data-to]').find((l) => toOf(l).name === 'DomainDetail')
+      ).toBeDefined();
     });
   });
 

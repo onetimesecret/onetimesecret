@@ -23,7 +23,7 @@ import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
 import {
-  isApproximatedDomainValidation,
+  isDomainOwnershipChecked,
   isOrgsCustomMailEnabled,
   isOrgsIncomingSecretsEnabled,
 } from '@/utils/features';
@@ -178,14 +178,15 @@ interface Section {
 // eslint-disable-next-line max-lines-per-function
 const sections = computed<Section[]>(() => [
   {
-    // DNS setup is only surfaced on non-approximated installs. Approximated
-    // installs reach DNS/verification via the header status badge instead.
+    // DNS setup is only surfaced on installs that do not check ownership.
+    // The others reach DNS/verification via the header status badge instead
+    // (the DomainDns route redirects to DomainVerify there).
     key: 'dns',
     route: { name: 'DomainDns', params: { orgid: props.orgid, extid: props.extid } },
     icon: { collection: 'heroicons', name: 'globe-alt' },
     titleKey: 'web.domains.detail.dns_title',
     descriptionKey: 'web.domains.detail.dns_description',
-    available: !isApproximatedDomainValidation(),
+    available: !isDomainOwnershipChecked(),
     locked: false,
     expandable: false,
   },

@@ -4,7 +4,7 @@ import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import DashboardMain from '@/apps/workspace/dashboard/DashboardMain.vue';
 import DashboardRecent from '@/apps/workspace/dashboard/DashboardRecent.vue';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { isApproximatedDomainValidation } from '@/utils/features';
+import { isDomainOwnershipChecked } from '@/utils/features';
 import type { RouteRecordRaw } from 'vue-router';
 import { SCOPE_PRESETS } from '@/types/router';
 
@@ -103,11 +103,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/org/:orgid/domains/:extid/verify',
     name: 'DomainVerify',
     component: () => import('@/apps/workspace/domains/DomainVerify.vue'),
-    // The Approximated verification screen is only meaningful on approximated
-    // installs. On others (self-hosted/custom), a stale/bookmarked link lands
-    // on the CNAME-setup screen instead. See isApproximatedDomainValidation().
+    // The verification screen (TXT record, status, verify action) is only
+    // meaningful when the strategy checks ownership (approximated,
+    // caddy_on_demand). On other installs a stale/bookmarked link lands on the
+    // CNAME-setup screen instead. See isDomainOwnershipChecked().
     beforeEnter: (to) =>
-      isApproximatedDomainValidation()
+      isDomainOwnershipChecked()
         ? true
         : { name: 'DomainDns', params: to.params },
     meta: {
@@ -132,10 +133,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/org/:orgid/domains/:extid/dns',
     name: 'DomainDns',
     component: () => import('@/apps/workspace/domains/DomainDns.vue'),
-    // Mirror of DomainVerify: approximated installs use the verification screen,
-    // so a stale/bookmarked DNS link redirects there.
+    // Mirror of DomainVerify: installs that check ownership use the
+    // verification screen (it carries the DNS record as well as the TXT
+    // record), so a stale/bookmarked DNS link redirects there.
     beforeEnter: (to) =>
-      isApproximatedDomainValidation()
+      isDomainOwnershipChecked()
         ? { name: 'DomainVerify', params: to.params }
         : true,
     meta: {
