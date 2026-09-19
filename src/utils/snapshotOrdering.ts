@@ -14,6 +14,7 @@
 import {
   bootstrapSchema,
   SNAPSHOT_GENERATED_AT_PATTERN,
+  withoutWireNulls,
   type BootstrapPayload,
 } from '@/schemas/contracts/bootstrap';
 
@@ -182,7 +183,9 @@ export type ParsedSnapshot =
  *
  * Reports issue PATHS only, never values: the payload carries personal data.
  */
-export function parseCompleteSnapshot(data: unknown): ParsedSnapshot {
+export function parseCompleteSnapshot(wire: unknown): ParsedSnapshot {
+  // A wire null on a key whose schema has no null means "not emitted".
+  const data = withoutWireNulls(wire);
   const parsed = bootstrapSchema.safeParse(data);
   if (parsed.success) return { ok: true, payload: parsed.data, pairMalformed: false };
 
