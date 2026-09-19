@@ -506,37 +506,110 @@ export function isOwnerOrAdmin(): boolean {
 }
 
 /**
+ * What the frontend needs to know about each custom-domain validation
+ * strategy. Mirrors the capability predicates the backend strategies declare
+ * (lib/onetime/domain_validation/base_strategy.rb):
+ *
+ * - `checksOwnership` — BaseStrategy#proves_ownership?. The backend requires
+ *   the TXT challenge record before a domain becomes verified, and it writes a
+ *   per-domain status (the vhost blob) the badge can render.
+ * - `usesApproximatedProxy` — the DNS targets are Approximated's proxy
+ *   (`cluster.proxy_ip` / `proxy_host`) and the Approximated DNS widget applies.
+ *
+ * This table is the only place a strategy name is interpreted. Components,
+ * route guards and composables go through the predicates below; do not compare
+ * `validation_strategy` to a literal anywhere else. A strategy that is not
+ * listed (older backend, unknown value) gets no capabilities, which is the
+ * 'passthrough' behaviour.
+ */
+interface DomainValidationCapabilities {
+  checksOwnership: boolean;
+  usesApproximatedProxy: boolean;
+}
+
+const NO_DOMAIN_VALIDATION_CAPABILITIES: DomainValidationCapabilities = {
+  checksOwnership: false,
+  usesApproximatedProxy: false,
+};
+
+const DOMAIN_VALIDATION_CAPABILITIES: ReadonlyMap<string, DomainValidationCapabilities> = new Map([
+  ['approximated', { checksOwnership: true, usesApproximatedProxy: true }],
+  ['caddy_on_demand', { checksOwnership: true, usesApproximatedProxy: false }],
+  ['passthrough', NO_DOMAIN_VALIDATION_CAPABILITIES],
+]);
+
+/**
+ * Bootstrap-shape input for the domain validation predicates. The domains API
+ * `details.cluster` object carries the same `validation_strategy` key, so a
+ * caller holding a cluster can pass `{ domains: cluster }`.
+ */
+interface DomainValidationState {
+  domains?: { validation_strategy?: string | null } | null;
+}
+
+function domainValidationCapabilitiesOf(
+  state: DomainValidationState
+): DomainValidationCapabilities {
+  const strategy = state.domains?.validation_strategy;
+  if (typeof strategy !== 'string') return NO_DOMAIN_VALIDATION_CAPABILITIES;
+  return DOMAIN_VALIDATION_CAPABILITIES.get(strategy) ?? NO_DOMAIN_VALIDATION_CAPABILITIES;
+}
+
+/**
+ * Pure predicate: the install's validation strategy checks domain ownership
+ * (the TXT challenge record) in the given state.
+ */
+export function isDomainOwnershipCheckedOf(state: DomainValidationState): boolean {
+  return domainValidationCapabilitiesOf(state).checksOwnership;
+}
+
+/**
+ * Checks whether the install's validation strategy checks domain ownership.
+ *
+ * True under 'approximated' and 'caddy_on_demand': the backend requires the
+ * TXT challenge record before a domain becomes verified, and it writes the
+ * per-domain vhost status that drives the active / DNS-incorrect / pending
+ * badges. Callers use this to show the verification status, the TXT record
+ * and the verify action, and to route to the DomainVerify screen.
+ *
+ * False under 'passthrough', which performs no ownership check (ADR-017) and
+ * never populates the status, so every domain would misleadingly read
+ * "Inactive". Those installs get the simpler DomainDns screen.
+ *
+ * Deliberately separate from isApproximatedDomainValidation(): which DNS
+ * target a customer is told to use is a different question from whether the
+ * TXT record is required. See the 2026-09-18 notes in docs/adr/adr-016.
+ *
+ * The strategy is install-level configuration
+ * (features.domains.validation_strategy), exposed on the bootstrap payload's
+ * top-level `domains` key.
+ */
+export function isDomainOwnershipChecked(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  return isDomainOwnershipCheckedOf({ domains: getBootstrapValue('domains') });
+}
+
+/**
  * Pure predicate: install uses the 'approximated' custom-domain validation
  * strategy in the given state.
  */
-export function isApproximatedDomainValidationOf(state: {
-  domains?: { validation_strategy?: string | null } | null;
-}): boolean {
-  return state.domains?.validation_strategy === 'approximated';
+export function isApproximatedDomainValidationOf(state: DomainValidationState): boolean {
+  return domainValidationCapabilitiesOf(state).usesApproximatedProxy;
 }
 
 /**
  * Checks whether the install uses Approximated for custom-domain validation.
  *
  * Approximated is a third-party proxy service (used by onetimesecret.com) that
- * monitors DNS and provisions TLS certs. Its per-domain vhost status drives the
- * active / inactive / DNS-incorrect badges in the domain manager. Under
- * 'passthrough' that status is never populated, so every domain would
- * misleadingly read "Inactive".
+ * monitors DNS and provisions TLS certs. Customers point their domain at the
+ * Approximated proxy (`cluster.proxy_ip` / `proxy_host`), and the Approximated
+ * DNS widget can configure those records for them.
  *
- * Under 'caddy_on_demand' the status IS populated (the backend probes the
- * domain and writes the same vhost `status` values) and the backend requires
- * the TXT challenge record, exactly as under 'approximated'. The callers of
- * this predicate do not reflect that yet: they still hide the status UI, the
- * TXT record and the verify action on every non-approximated install, because
- * the same flag also selects the Approximated proxy targets shown on the
- * verification screen. See the 2026-09-18 notes in docs/adr/adr-016.
- *
- * Callers use this to hide the Approximated-driven status UI and the
- * Approximated verification flow on non-approximated installs, where operators
- * manage their own DNS records. The strategy is install-level configuration
- * (features.domains.validation_strategy), exposed on the bootstrap payload's
- * top-level `domains` key.
+ * Use this ONLY for those Approximated-specific concerns: the proxy targets
+ * and the DNS widget. Whether to show the verification status, the TXT record
+ * and the verify action is isDomainOwnershipChecked(), which is also true
+ * under 'caddy_on_demand'.
  */
 export function isApproximatedDomainValidation(): boolean {
   if (typeof window === 'undefined') return false;
