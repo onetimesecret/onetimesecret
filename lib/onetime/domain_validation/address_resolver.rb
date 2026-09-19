@@ -79,7 +79,7 @@ module Onetime
         return Answer.new(rcode: Resolv::DNS::RCode::NoError, addresses: addresses.uniq) if addresses.any?
 
         answered = replies.filter_map { |_rtype, reply| reply }
-        raise NoReplyError, "No DNS reply for #{name} within #{timeout}s" if answered.empty?
+        raise NoReplyError, no_reply_message(name) if answered.empty?
 
         nxdomain = Resolv::DNS::RCode::NXDomain
         return Answer.new(rcode: nxdomain, addresses: []) if answered.any? { |reply| reply.rcode == nxdomain }
@@ -88,7 +88,7 @@ module Onetime
         # definitive "no address": report the failure.
         unsettled = answered.find { |reply| !DEFINITIVE_RCODES.include?(reply.rcode) }
         return Answer.new(rcode: unsettled.rcode, addresses: []) if unsettled
-        raise NoReplyError, "Incomplete DNS reply for #{name} within #{timeout}s" if answered.size < replies.size
+        raise NoReplyError, no_reply_message(name, 'Incomplete DNS reply') if answered.size < replies.size
 
         Answer.new(rcode: Resolv::DNS::RCode::NoError, addresses: [])
       end

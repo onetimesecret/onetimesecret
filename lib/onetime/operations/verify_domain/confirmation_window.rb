@@ -16,7 +16,10 @@ module Onetime
       #
       # Two fields on CustomDomain carry the state:
       #
-      #   verified_confirmed_at       epoch of the last passing TXT check
+      #   verified_confirmed_at       epoch of the last passing TXT check.
+      #                               Written only for a strategy that checks
+      #                               the record (proves_ownership?); a pass
+      #                               from Passthrough is not one.
       #   verified_unconfirmed_since  epoch of the first indeterminate check
       #                               since then; nil while there is none
       #
@@ -62,13 +65,18 @@ module Onetime
           @applicable && !unconfirmed_since.nil? && (@now - unconfirmed_since) > max_age
         end
 
-        # A definitive TXT outcome was stored: either answer ends the
-        # unconfirmed run, and a pass is the new last confirmation.
+        # A definitive outcome was stored: either answer ends the unconfirmed
+        # run. A pass is the new last confirmation only when it came from a
+        # check of the TXT record (proven). verified_confirmed_at is read as
+        # evidence of such a check (CaddyOnDemandStrategy#never_confirmed?),
+        # so a strategy that passes every domain must not write it.
         # The caller saves the domain.
         #
         # @param validated [Boolean]
-        def record_settled(validated)
-          @domain.verified_confirmed_at      = @now if validated
+        # @param proven [Boolean] the strategy checks the TXT record
+        #   (BaseStrategy#proves_ownership?)
+        def record_settled(validated, proven:)
+          @domain.verified_confirmed_at      = @now if validated && proven == true
           @domain.verified_unconfirmed_since = nil
         end
 

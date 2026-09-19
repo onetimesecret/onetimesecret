@@ -77,8 +77,9 @@ module ColonelAPI
               current_state: result.current_state.to_s,
               changed: result.changed?,
               dns_validated: result.dns_validated,
-              # true when the upstream checker produced no answer; verified was
-              # left unchanged. dns_message says which TXT outcome occurred.
+              # true when the TXT check produced no answer; verified was left
+              # unchanged unless dns_outcome is confirmation_expired (see
+              # ConfirmationWindow). dns_message says which TXT outcome occurred.
               dns_indeterminate: result.dns_indeterminate,
               dns_message: result.dns_message,
               # validated / confirmation_expired / indeterminate / override_held /

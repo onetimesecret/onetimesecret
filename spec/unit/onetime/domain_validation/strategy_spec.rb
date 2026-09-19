@@ -182,6 +182,12 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
     end
   end
 
+  describe '#proves_ownership?' do
+    it 'is true: a pass means the TXT record was checked' do
+      expect(strategy.proves_ownership?).to be(true)
+    end
+  end
+
   describe '#validate_ownership' do
     context 'when API key is not configured' do
       before do
@@ -749,6 +755,16 @@ RSpec.describe Onetime::DomainValidation::PassthroughStrategy do
     end
   end
 
+  describe '#proves_ownership?' do
+    it 'is false: every domain passes without a lookup' do
+      expect(strategy.proves_ownership?).to be(false)
+    end
+
+    it 'is false for a strategy that does not say otherwise' do
+      expect(Class.new(Onetime::DomainValidation::BaseStrategy).new.proves_ownership?).to be(false)
+    end
+  end
+
   describe '#validate_ownership' do
     it 'always returns validated true' do
       result = strategy.validate_ownership(custom_domain)
@@ -809,9 +825,13 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
            display_domain: 'example.com',
            txt_validation_value: 'validation123',
            validation_record: '_onetime-challenge-abc123.example.com',
+           verified: verified,
+           verified_confirmed_at: verified_confirmed_at,
            parse_vhost: stored_vhost)
   end
   let(:stored_vhost) { {} }
+  let(:verified) { false }
+  let(:verified_confirmed_at) { nil }
 
   def stub_lookup(rcode, values = [])
     allow(resolver).to receive(:lookup)
@@ -824,6 +844,12 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
   describe '#bulk_rate_limit' do
     it 'declares no pacing for its own lookups' do
       expect(strategy.bulk_rate_limit).to eq(0)
+    end
+  end
+
+  describe '#proves_ownership?' do
+    it 'is true: a pass means the TXT record was found' do
+      expect(strategy.proves_ownership?).to be(true)
     end
   end
 
@@ -898,6 +924,46 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
       end
 
       it 'is indeterminate' do
+        expect(result).to include(validated: nil, indeterminate: true)
+      end
+    end
+
+    # `verified` set before this strategy checked anything: there is no
+    # earlier TXT proof for an indeterminate lookup to protect.
+    context 'when the domain is verified but no TXT check ever confirmed it' do
+      let(:verified) { true }
+
+      it 'turns an indeterminate lookup into a definitive failure' do
+        stub_lookup(Resolv::DNS::RCode::ServFail)
+
+        expect(result).to include(validated: false, mode: 'caddy_on_demand', source: 'native')
+        expect(result).not_to have_key(:indeterminate)
+        expect(result[:message]).to match(/has not been confirmed by a TXT check .*SERVFAIL/)
+        expect(result[:data]).to contain_exactly(hash_including('actual_values' => false))
+      end
+
+      it 'does the same when the failure is our own' do
+        allow(custom_domain).to receive(:validation_record).and_raise(StandardError, 'boom')
+        allow(OT).to receive(:le)
+
+        expect(result).to include(validated: false, mode: 'caddy_on_demand')
+        expect(result).not_to have_key(:indeterminate)
+      end
+
+      it 'still validates when the record is found' do
+        stub_lookup(Resolv::DNS::RCode::NoError, ['validation123'])
+
+        expect(result).to include(validated: true)
+      end
+    end
+
+    context 'when the domain is verified and a TXT check has confirmed it' do
+      let(:verified) { true }
+      let(:verified_confirmed_at) { 1_789_000_000 }
+
+      it 'keeps an indeterminate lookup indeterminate, so verified is held' do
+        stub_lookup(Resolv::DNS::RCode::ServFail)
+
         expect(result).to include(validated: nil, indeterminate: true)
       end
     end
@@ -1030,9 +1096,53 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
     context 'when the domain resolves but the certificate could not be checked' do
       before { stub_probe(is_resolving: true, has_ssl: nil, addresses: ['10.0.0.5']) }
 
-      it 'reports resolving and leaves the vhost payload out so has_ssl is not overwritten' do
+      it 'reports resolving with has_ssl unknown' do
         expect(result).to include(ready: false, is_resolving: true, has_ssl: nil, mode: 'caddy_on_demand')
-        expect(result).not_to have_key(:data)
+      end
+
+      context 'with nothing stored yet' do
+        it 'writes a blob that says resolving and makes no has_ssl claim' do
+          expect(result[:data]).to include('status' => 'PENDING_SSL', 'is_resolving' => true, 'source' => 'tls_probe')
+          expect(result[:data]).not_to have_key('has_ssl')
+        end
+      end
+
+      # Checked once before its A record existed, then from a host that cannot
+      # reach port 443 on it: `resolving` becomes true, and the blob the UI
+      # reads must not go on saying DNS_INCORRECT.
+      context 'with a stored blob from before the name resolved' do
+        let(:stored_vhost) do
+          { 'source' => 'tls_probe', 'status' => 'DNS_INCORRECT', 'is_resolving' => false, 'has_ssl' => false }
+        end
+
+        it 'refreshes status and is_resolving and leaves has_ssl as stored' do
+          expect(result[:data]).to include('status' => 'PENDING_SSL', 'is_resolving' => true, 'has_ssl' => false)
+          expect(result[:data]['last_monitored_unix']).to be_a(Integer)
+        end
+      end
+
+      context 'with a stored blob that recorded a valid certificate' do
+        let(:stored_vhost) do
+          { 'source' => 'tls_probe', 'status' => 'ACTIVE_SSL', 'is_resolving' => true, 'has_ssl' => true,
+            'ssl_active_from' => '2026-09-01T00:00:00Z', 'ssl_active_until' => '2026-11-30T00:00:00Z' }
+        end
+
+        it 'carries has_ssl and the certificate dates forward' do
+          expect(result[:data]).to include(
+            'status' => 'ACTIVE_SSL',
+            'has_ssl' => true,
+            'ssl_active_from' => '2026-09-01T00:00:00Z',
+            'ssl_active_until' => '2026-11-30T00:00:00Z',
+          )
+        end
+      end
+
+      context 'with an Approximated vhost blob stored' do
+        let(:stored_vhost) { { 'id' => 123, 'status' => 'ACTIVE_SSL' } }
+
+        it 'leaves the blob for the cleanup chore' do
+          expect(result).not_to have_key(:data)
+        end
       end
     end
 

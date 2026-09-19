@@ -11,10 +11,13 @@
 #
 #   1. No TXT record: the domain does not become verified; ready? stays false.
 #   2. A matching TXT record promotes.
-#   3. An indeterminate lookup leaves a verified domain verified.
+#   3. An indeterminate lookup leaves a verified domain verified, provided a
+#      TXT check has confirmed it before (verified_confirmed_at).
 #   4. A definitive negative demotes a verified domain ...
 #   5. ... unless an operator override holds it.
 #   6. A newly created domain starts unverified.
+#   6a. A domain the Passthrough strategy verified has no confirmation on
+#       record, so after a move to this strategy case 3 does not apply to it.
 #
 # The status half (check_status) runs over a scripted TlsProbe:
 #
@@ -22,7 +25,7 @@
 #   8. A probe that could not tell leaves `resolving` and vhost as they were
 #      and marks the check as failed (vhost_fetch_failed_at).
 #   9. A probe that knows only that the name resolves stores `resolving` and
-#      leaves vhost (has_ssl) alone.
+#      refreshes the vhost blob, carrying the stored has_ssl forward.
 #  10. A vhost blob written under the Approximated strategy is not replaced.
 #
 # The scripted probe reports resolving + valid certificate until case 7, so
@@ -200,6 +203,40 @@ caddy_try_verify(@domain)
 [@marker_after_pass, @after_clear.demoted?, caddy_try_reload(@domain).ready?]
 #=> [false, true, false]
 
+## Verified with no confirmation on record (the flag as stored before this strategy checked TXT) - an indeterminate lookup does not hold it
+@legacy           = Onetime::CustomDomain.create!("caddy-legacy-#{@suffix}.example.com", @org.objid)
+@legacy.verified  = true
+@legacy.resolving = true
+@legacy.save
+@resolver.rcode  = Resolv::DNS::RCode::ServFail
+@resolver.values = []
+@legacy_result   = caddy_try_verify(@legacy)
+@stored          = caddy_try_reload(@legacy)
+[@stored.verified_confirmed_at, @legacy_result.dns_outcome, @legacy_result.demoted?, @stored.verified == true, @stored.ready?]
+#=> [nil, :failed, true, false, false]
+
+## Verified with no confirmation on record - an operator override still holds it
+@legacy.verified             = true
+@legacy.verified_by_override = true
+@legacy.save
+@legacy_held = caddy_try_verify(@legacy)
+[@legacy_held.dns_outcome, @legacy_held.demoted?, caddy_try_reload(@legacy).ready?]
+#=> [:override_held, false, true]
+
+## Verified under Passthrough, then checked here - the passthrough pass is no confirmation, so an indeterminate lookup does not hold it
+@cutover = Onetime::CustomDomain.create!("caddy-cutover-#{@suffix}.example.com", @org.objid)
+Onetime::Operations::VerifyDomain.new(
+  domain: @cutover, strategy: Onetime::DomainValidation::PassthroughStrategy.new({}), persist: true
+).call
+@before_cutover  = caddy_try_reload(@cutover)
+@before_state    = [@before_cutover.ready?, @before_cutover.verified_confirmed_at]
+@resolver.rcode  = Resolv::DNS::RCode::ServFail
+@resolver.values = []
+@cutover_result  = caddy_try_verify(@before_cutover)
+@stored          = caddy_try_reload(@cutover)
+[*@before_state, @cutover_result.dns_outcome, @cutover_result.demoted?, @stored.ready?]
+#=> [true, nil, :failed, true, false]
+
 ## Status: a definite probe answer is stored (resolving, and has_ssl inside vhost)
 @probe.is_resolving = true
 @probe.has_ssl      = true
@@ -225,13 +262,13 @@ caddy_try_verify(@domain)
 caddy_try_reload(@domain).vhost_fetch_failed_at.to_i.positive?
 #=> true
 
-## Status: resolving known, certificate unknown - resolving stored, vhost (has_ssl) untouched
+## Status: resolving known, certificate unknown - resolving stored, stored has_ssl carried forward
 @probe.is_resolving = true
 @probe.has_ssl      = nil
 caddy_try_verify(@domain)
 @stored = caddy_try_reload(@domain)
-[@stored.resolving == true, @stored.vhost == @vhost_before, @stored.vhost_fetch_failed_at.to_s.empty?]
-#=> [true, true, true]
+[@stored.resolving == true, @stored.parse_vhost.values_at('has_ssl', 'status'), @stored.vhost_fetch_failed_at.to_s.empty?]
+#=> [true, [true, 'ACTIVE_SSL'], true]
 
 ## Status: resolves without a valid certificate - has_ssl false is stored
 @probe.is_resolving = true
@@ -259,6 +296,14 @@ caddy_try_verify(@domain)
 [@stored.resolving == true, @stored.parse_vhost['status']]
 #=> [false, 'DNS_INCORRECT']
 
+## Status: the name resolves again but port 443 cannot be reached - the blob follows `resolving`, has_ssl stays as stored
+@probe.is_resolving = true
+@probe.has_ssl      = nil
+caddy_try_verify(@domain)
+@stored = caddy_try_reload(@domain)
+[@stored.resolving == true, @stored.parse_vhost.values_at('is_resolving', 'status', 'has_ssl')]
+#=> [true, [true, 'PENDING_SSL', false]]
+
 ## Status: an Approximated-era vhost blob is left for the cleanup chore; resolving is still stored
 @domain.vhost       = { 'id' => 42, 'incoming_address' => @domain.display_domain, 'status' => 'ACTIVE_SSL' }.to_json
 @domain.save
@@ -271,5 +316,7 @@ caddy_try_verify(@domain)
 
 # Teardown
 @domain.destroy! if @domain&.exists?
+@legacy.destroy! if @legacy&.exists?
+@cutover.destroy! if @cutover&.exists?
 @org.destroy! if @org&.exists?
 @owner.destroy! if @owner&.exists?

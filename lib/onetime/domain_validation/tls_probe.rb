@@ -5,7 +5,7 @@
 require 'openssl'
 require 'socket'
 
-require 'onetime/http/guard'
+require_relative '../http/guard'
 require_relative 'address_resolver'
 
 module Onetime
@@ -39,6 +39,10 @@ module Onetime
     # is rejected if any address is loopback/private/link-local/reserved, and
     # the connection is dialled to a vetted IP — never re-resolved — with the
     # hostname used only for SNI and certificate verification.
+    #
+    # An internationalised name is probed in its A-label form (AsciiHostname):
+    # that is what DNS carries, what a client sends as SNI and what the
+    # certificate names. A name with no A-label form is "could not tell".
     #
     # Time budget per probe: DNS 3s (AddressResolver) + connect and handshake
     # 5s together, so at most 8s, and that only when both stages time out.
@@ -105,10 +109,8 @@ module Onetime
       # @param hostname [String] the custom domain as the customer's visitors type it
       # @return [Result]
       def probe(hostname)
-        host = hostname.to_s.strip.downcase.chomp('.')
-        # A name the wire format cannot carry as typed would come back
-        # NXDOMAIN for the wrong reason.
-        return unknown("Hostname #{host.inspect} cannot be probed") if host.empty? || !host.ascii_only?
+        host = ascii_hostname(hostname)
+        return unknown("Hostname #{hostname.inspect} cannot be probed") if host.nil?
 
         answer = resolve(host)
         return unknown("DNS lookup failed (#{answer.rcode_name})") unless answer.definitive?
@@ -126,6 +128,17 @@ module Onetime
 
       def unknown(message)
         Result.new(is_resolving: nil, has_ssl: nil, message: message)
+      end
+
+      # A name the wire format cannot carry would come back NXDOMAIN for the
+      # wrong reason, so it is not looked up at all.
+      #
+      # @return [String, nil]
+      def ascii_hostname(hostname)
+        AsciiHostname.call(hostname)
+      rescue AsciiHostname::ConversionError => ex
+        OT.lw "[TlsProbe] Not probing #{hostname.inspect}: #{ex.message}"
+        nil
       end
 
       def resolve(host)

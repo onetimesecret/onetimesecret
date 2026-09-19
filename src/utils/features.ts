@@ -519,11 +519,18 @@ export function isApproximatedDomainValidationOf(state: {
  * Checks whether the install uses Approximated for custom-domain validation.
  *
  * Approximated is a third-party proxy service (used by onetimesecret.com) that
- * monitors DNS and provisions TLS certs. Its per-domain vhost status is the
- * ONLY source that drives the active / inactive / DNS-incorrect badges in the
- * domain manager. On self-hosted installs that manage their own DNS and certs
- * (`validation_strategy` of 'passthrough' or 'caddy_on_demand'), that status is
- * never populated, so every domain would misleadingly read "Inactive".
+ * monitors DNS and provisions TLS certs. Its per-domain vhost status drives the
+ * active / inactive / DNS-incorrect badges in the domain manager. Under
+ * 'passthrough' that status is never populated, so every domain would
+ * misleadingly read "Inactive".
+ *
+ * Under 'caddy_on_demand' the status IS populated (the backend probes the
+ * domain and writes the same vhost `status` values) and the backend requires
+ * the TXT challenge record, exactly as under 'approximated'. The callers of
+ * this predicate do not reflect that yet: they still hide the status UI, the
+ * TXT record and the verify action on every non-approximated install, because
+ * the same flag also selects the Approximated proxy targets shown on the
+ * verification screen. See the 2026-09-18 notes in docs/adr/adr-016.
  *
  * Callers use this to hide the Approximated-driven status UI and the
  * Approximated verification flow on non-approximated installs, where operators
