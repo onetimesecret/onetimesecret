@@ -239,8 +239,7 @@ module CustomerSessionFailureMatrix
       verdict
     end
 
-    header 'Accept', 'application/json'
-    get '/api/account/'
+    get '/api/account/', {}, { 'HTTP_ACCEPT' => 'application/json' }
     expect(fired).to be(true)
     last_response
   end
@@ -266,7 +265,10 @@ module CustomerSessionFailureMatrix
     end
   end
 
-  def request_surface(surface, request_id:)
+  # @param declare_passive [Boolean] send `X-Session-Activity: passive`, as a
+  #   client timer does (RISK-2026-09-19-04)
+  # @param verb [Symbol] the request method; the surfaces are GETs by default
+  def request_surface(surface, request_id:, declare_passive: false, verb: :get)
     config  = SURFACES.fetch(surface)
     markers = []
     allow_any_instance_of(Onetime::Application::AuthStrategies::SessionAuthStrategy)
@@ -278,10 +280,9 @@ module CustomerSessionFailureMatrix
         result
       end
 
-    get config.fetch(:path), {}, {
-      'HTTP_ACCEPT' => config.fetch(:accept),
-      'HTTP_X_REQUEST_ID' => request_id,
-    }
+    headers = { 'HTTP_ACCEPT' => config.fetch(:accept), 'HTTP_X_REQUEST_ID' => request_id }
+    headers[Onetime::SessionActivity::HEADER_ENV_KEY] = Onetime::SessionActivity::PASSIVE if declare_passive
+    public_send(verb, config.fetch(:path), {}, headers)
 
     payload = parse_bootstrap(last_response, config[:bootstrap]) if config[:bootstrap] && last_response.status == 200
     body    = last_response.body

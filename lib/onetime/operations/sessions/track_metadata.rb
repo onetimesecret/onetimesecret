@@ -77,7 +77,14 @@ module Onetime
           # The same holds for the two other requests that are not activity
           # (#4455): one the shared evaluator refused, and one whose route only
           # verifies the session on a timer. See #not_activity?.
-          return nil if not_activity?
+          #
+          # One exception: a passive request whose session has no record yet
+          # still creates it. The record is what lists the session for its
+          # owner and for an operator, and "passive" can be declared by the
+          # client (X-Session-Activity); a session that only ever sent passive
+          # requests must not be able to stay off that list. It happens at
+          # most once per session, and a refused request never qualifies.
+          return nil if not_activity? && !unindexed_passive?
 
           customer = Onetime::Customer.find_by_extid(extid)
           return nil if customer.nil?
@@ -140,6 +147,15 @@ module Onetime
         # is "not activity": skipping one best-effort upsert costs a sidecar
         # refresh, while stamping it could slide an idle window that a gate
         # just enforced.
+        def unindexed_passive?
+          return false if Onetime::SessionActivity.refused?(@env)
+
+          !Onetime::SessionMetadata.exists?(@session_id)
+        rescue StandardError => ex
+          OT.ld "[Sessions::TrackMetadata] index check failed, upsert skipped: #{ex.class}"
+          false
+        end
+
         def not_activity?
           !Onetime::SessionActivity.counts?(@env)
         rescue StandardError => ex

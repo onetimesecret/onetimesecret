@@ -52,6 +52,86 @@ RSpec.describe Onetime::SessionActivity do
     end
   end
 
+  # RISK-2026-09-19-04: a route cannot tell a timer's GET from a person's.
+  # The client may say so, and the declaration can only take activity away.
+  describe 'the X-Session-Activity request header' do
+    def declared(method, value = 'passive', extra = {})
+      { 'REQUEST_METHOD' => method, 'HTTP_X_SESSION_ACTIVITY' => value }.merge(extra)
+    end
+
+    it 'is named X-Session-Activity, and Rack delivers it under the key that is read' do
+      env = Rack::MockRequest.env_for('/api/account/', described_class::HEADER_ENV_KEY => 'passive')
+
+      expect(described_class::HEADER).to eq('X-Session-Activity')
+      expect(described_class::HEADER_ENV_KEY).to eq("HTTP_#{described_class::HEADER.upcase.tr('-', '_')}")
+      expect(described_class.passive?(env)).to be(true)
+    end
+
+    %w[GET HEAD].each do |method|
+      it "makes a #{method} passive" do
+        expect(described_class.passive?(declared(method))).to be(true)
+        expect(described_class.counts?(declared(method))).to be(false)
+      end
+    end
+
+    it 'tolerates case and surrounding whitespace in the value' do
+      expect(described_class.passive?(declared('GET', ' Passive '))).to be(true)
+    end
+
+    # State-changing requests always count, whatever they declare. The list
+    # is an allowlist: a method nobody thought of is activity too.
+    %w[POST PUT PATCH DELETE OPTIONS PROPFIND].each do |method|
+      it "is ignored on #{method}" do
+        expect(described_class.passive?(declared(method))).to be(false)
+        expect(described_class.counts?(declared(method))).to be(true)
+      end
+    end
+
+    it 'is ignored when the request method is missing' do
+      expect(described_class.passive?('HTTP_X_SESSION_ACTIVITY' => 'passive')).to be(false)
+    end
+
+    # It can only REDUCE activity: no value turns a passive route active.
+    ['active', 'activity', 'true', '', 'passive, active', 'not-passive', nil, 1, ['passive']].each do |value|
+      it "reads nothing but the exact value: #{value.inspect} is not a declaration" do
+        expect(described_class.passive?(declared('GET', value))).to be(false)
+      end
+
+      it "leaves a passive route passive when the header says #{value.inspect}" do
+        env = declared('GET', value, 'otto.route_options' => { activity: 'passive' })
+
+        expect(described_class.passive?(env)).to be(true)
+      end
+    end
+
+    it 'leaves a passive route passive on a state-changing method: the route is the server speaking' do
+      env = declared('POST', 'active', 'otto.route_options' => { activity: 'passive' })
+
+      expect(described_class.passive?(env)).to be(true)
+    end
+
+    # It reaches the activity predicate and nothing else: a refusal stays a
+    # refusal, and the header is not an input to it.
+    it 'does not touch .refused?' do
+      rejected = Onetime::CustomerSessionEvaluator::Verdict.new(status: :rejected, reason: :account_suspended)
+
+      expect(described_class.refused?(declared('GET'))).to be(false)
+      expect(described_class.refused?(declared('GET', 'passive', Onetime::CustomerSessionEvaluator::ENV_KEY => rejected))).to be(true)
+    end
+
+    it 'is read by SessionActivity and by no other server code' do
+      readers = Dir[File.join(Onetime::HOME, '{lib,apps}/**/*.rb')]
+        .reject { |path| path.include?('/spec/') }
+        .select { |path| File.read(path).match?(/X_SESSION_ACTIVITY|X-Session-Activity/i) }
+        .map { |path| path.delete_prefix("#{Onetime::HOME}/") }
+
+      expect(readers).to contain_exactly(
+        'lib/onetime/session/activity.rb',
+        'lib/onetime/operations/sessions/track_metadata.rb',
+      )
+    end
+  end
+
   describe '.refused? and .counts?' do
     let(:evaluator) { Onetime::CustomerSessionEvaluator }
     let(:verdict_key) { evaluator::ENV_KEY }

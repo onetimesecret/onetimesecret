@@ -17,7 +17,8 @@
 # is what an hour of inactivity looks like to the code under test.
 #
 # "A passive check followed by a real activity in one request" cannot be
-# produced over HTTP: passive is a property of the matched route. It is covered
+# produced over HTTP: passive is a property of the request as a whole (its
+# route, or the client's X-Session-Activity declaration). It is covered
 # where it can be driven, in spec/unit/onetime/session/active_session_gate_spec.rb
 # and customer_session_evaluator_spec.rb.
 
@@ -97,6 +98,61 @@ RSpec.describe 'Passive verification does not count as session activity (#4455)'
     expect(activity_snapshot.fetch(:last_use)).to be > stale_last_use
     expect(session_metadata.last_activity_at.to_i).to be > stale_activity
     expect(blob_ttl).to be > 600
+  end
+
+  # RISK-2026-09-19-04: the dashboard's refresh timers call ordinary API
+  # routes. The client declares those requests passive, and the declaration
+  # can only take activity away.
+  describe 'a request the client declares passive (X-Session-Activity)' do
+    def timer(request_id: 'declared-passive', verb: :get)
+      request_surface(:protected_api, request_id: request_id, declare_passive: true, verb: verb)
+    end
+
+    it 'is verified and answered like any other, and moves no clock', :aggregate_failures do
+      stale_last_use = activity_snapshot.fetch(:last_use)
+      stale_activity = backdate_last_activity!(7_200)
+      Familia.dbclient.expire(blob_key, 600)
+
+      observations, writes = capture_activity_writes { Array.new(5) { |i| timer(request_id: "declared-passive-#{i}") } }
+
+      expect(observations.map { |o| o[:status] }).to all(eq(200))
+      expect(observations.map { |o| o[:verdict] }).to all(eq(:authenticated))
+      expect(writes).to be_empty
+      expect(activity_snapshot.fetch(:last_use)).to eq(stale_last_use)
+      expect(session_metadata.last_activity_at.to_i).to eq(stale_activity)
+      expect(blob_ttl).to be <= 600
+    end
+
+    it 'cannot keep a session past the inactivity deadline', :aggregate_failures do
+      active_session_rows.update(last_use: Time.now - (gate::INACTIVITY_DEADLINE + 60))
+
+      expect(timer(request_id: 'declared-passive-expired')).to include(status: 401, refusal_code: 'active_session_revoked')
+      expect(activity_count).to eq(0)
+    end
+
+    it 'does not get a revoked session through', :aggregate_failures do
+      active_session_rows.delete
+
+      expect(timer(request_id: 'declared-passive-revoked')).to include(status: 401, refusal_code: 'active_session_revoked')
+    end
+
+    it 'is ignored on a state-changing request, which always counts', :aggregate_failures do
+      stale_last_use = activity_snapshot.fetch(:last_use)
+      Familia.dbclient.expire(blob_key, 600)
+
+      # The route has no POST; what is pinned is the session, not the answer.
+      timer(request_id: 'declared-passive-post', verb: :post)
+
+      expect(blob_ttl).to be > 600
+      expect(activity_snapshot.fetch(:last_use)).to be >= stale_last_use
+    end
+
+    it 'leaves the same request without the header counting as activity' do
+      stale_last_use = activity_snapshot.fetch(:last_use)
+
+      expect(act(request_id: 'undeclared')[:status]).to eq(200)
+      expect(activity_snapshot.fetch(:last_use)).to be > stale_last_use
+    end
   end
 
   it 'counts a page load as activity: a person asked for it' do

@@ -289,10 +289,38 @@ divergence is deliberate and stays.
 Two limits are worth knowing. The verdict is memoized per request, so a
 refresh skipped for a passive reader is recorded in the env and performed by
 the first activity reader served from the memo; over HTTP a request is one or
-the other, so this is exercised in the unit specs. And "passive" covers the
-session check only: the dashboard's five-minute receipt refresh and the
-secret-links status refresh are ordinary API requests on routes that real
-navigation also uses, and they still count as activity.
+the other, so this is exercised in the unit specs. And a route declaration
+covers the session check only: the dashboard's five-minute receipt refresh
+and the secret-links status refresh are ordinary API requests on routes that
+real navigation also uses, and no route option can tell the two apart.
+
+**D8a. A client may declare a safe request passive.** The client knows which
+of its requests a timer sent, so it says so with a request header:
+
+```
+X-Session-Activity: passive
+```
+
+`Onetime::SessionActivity.passive?` honours it next to the route option, and
+the three clocks above treat the request exactly as they treat the poll. The
+header can only take activity away:
+
+| Rule | Why |
+|---|---|
+| Only the exact value `passive` is read (case and surrounding whitespace aside). | No value can make a passive route count as activity. |
+| Honoured on `GET` and `HEAD` only, as an allowlist. | A request that changes state is something a person did; `POST`, `PUT`, `PATCH`, `DELETE` and any method not listed always count. |
+| Read by the activity predicate and nothing else. | Authentication, the evaluator, both deadlines, revocation and every refusal code are identical with and without it (one matrix example per state pins this). |
+| A passive request still creates the session's metadata record when none exists. | The record is what lists a session for its owner and for an operator; a session that only ever declared itself passive must not be able to stay off that list. |
+
+What a caller gains by sending it is an earlier end to its own session, so the
+server does not need to trust it and nothing is gained by forging it. One
+cost is accepted: a passive request does not refresh the metadata record, so
+the session list's last-activity time and country do not move for it. That is
+the same for the route-declared poll. There is no CORS layer in this
+application (the client is same-origin), so no allowed-headers list needs the
+name; a deployment that adds a cross-origin gateway in front must allow
+`X-Session-Activity` or the timers will count as activity again, which is the
+safe direction.
 
 Each poll that carries a session claim writes one `Bootstrap verification`
 line (Session logger, info) with `passive`, the verdict, the queries and
@@ -470,7 +498,14 @@ security decisions." *OTS choice (#4455):* a timer-driven session check is
 not user activity, so it verifies and moves no inactivity clock (D8); the
 absolute lifetime is enforced by the same query and no request can move it.
 The standard does not say which requests count as activity; treating the
-poll as passive is this project's decision, recorded here.
+poll as passive is this project's decision, recorded here. *OTS choice
+(`RISK-2026-09-19-04`):* the same reasoning covers the client's other timers,
+which the server cannot tell from navigation, so the client declares them
+with `X-Session-Activity: passive` (D8a). The declaration is accepted
+because it can only shorten the session of the caller that sends it: it is
+ignored on every state-changing method and is no input to authentication.
+Without it a tab left on the dashboard never reached the inactivity timeout
+that 7.3.1 asks for.
 
 **A terminated session must stop working everywhere, and ordering must not be
 able to delay that.**
