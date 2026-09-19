@@ -17,6 +17,7 @@ require_relative '../middleware/csrf_response_header'
 require_relative '../middleware/normalize_content_type'
 require_relative '../middleware/retry_after_header'
 require_relative '../middleware/session_failure_code'
+require_relative '../middleware/api_cache_policy'
 require_relative '../middleware/validate_multipart'
 require_relative '../middleware/entitlement_preview_context'
 require_relative '../middleware/impersonation_context'
@@ -760,6 +761,13 @@ module Onetime
           # beside RetryAfterHeader for the same reason it exists.
           logger.debug 'Setting up session failure code middleware'
           builder.use Onetime::Middleware::SessionFailureCode
+
+          # `Cache-Control: private, no-store` on every /api response that set
+          # no policy of its own (RISK-2026-09-19-03). Here, inside the two
+          # above, so the 401 they annotate and the 429/503 they stamp get it
+          # too; a no-op for every mount that is not under /api.
+          logger.debug 'Setting up API cache policy middleware'
+          builder.use Onetime::Middleware::ApiCachePolicy
 
           # CSRF Response Header - MUST be before Security middleware so that
           # 403 responses from AuthenticityToken also get a fresh masked token.
