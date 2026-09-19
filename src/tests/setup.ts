@@ -1,24 +1,15 @@
 // src/tests/setup.ts
 
-// Mock autoInitPlugin since it can't be found
-const autoInitPlugin = () =>
-  ((_context: PiniaPluginContext) =>
-    // Basic mock implementation
-    ({
-      install: () => {
-        /* mock implementation */
-      },
-    })) as unknown as PiniaPlugin;
+import { autoInitPlugin } from '@/plugins/pinia/autoInitPlugin';
 import { createTestingPinia } from '@pinia/testing';
 import type { AxiosInstance } from 'axios';
-import AxiosMockAdapter from 'axios-mock-adapter';
-import type { PiniaPluginContext } from 'pinia';
-import { PiniaPlugin, setActivePinia } from 'pinia';
+import type AxiosMockAdapter from 'axios-mock-adapter';
+import { setActivePinia } from 'pinia';
 import { vi } from 'vitest';
 import type { App, ComponentPublicInstance } from 'vue';
 import { createApp, h } from 'vue';
 import { createI18n } from 'vue-i18n';
-import { createSharedApiInstance } from './setup-stores';
+import { createSharedApiInstance, installSharedAxiosMock } from './setup-stores';
 
 // Use the shared axios instance that works with AxiosMockAdapter
 const createApi = (): AxiosInstance => createSharedApiInstance();
@@ -130,6 +121,13 @@ export interface SetupTestPiniaOptions {
   mockAxios?: boolean;
   /** Whether to mount the app to activate Vue context (default: true) */
   mountApp?: boolean;
+  /**
+   * Whether stores run `init()` on creation, as they do in the app
+   * (default: true). Pass `false` only in a spec that is ABOUT `init()` —
+   * one that calls it with its own options or timing, or asserts the state
+   * before it has run. Everything else should see an initialized store.
+   */
+  autoInit?: boolean;
   /** Initial window state (default: stateFixture) */
   windowState?: BootstrapPayload;
 }
@@ -173,21 +171,30 @@ export async function setupTestPinia(options: SetupTestPiniaOptions = {}): Promi
     stubActions = false,
     mockAxios = true,
     mountApp = true,
+    autoInit = true,
     windowState: _windowState = {}, // allow test cases to provide their own state
   } = options;
 
   try {
     // Create API and mock if requested
+    // The shared instance is also what the `inject('api')` fallback returns
+    // (setup-stores.ts), and the adapter installed here becomes the one
+    // `getGlobalAxiosMock()` returns: one instance, one adapter, whichever way
+    // a spec reaches them.
     const api = createApi();
-    const axiosMock = mockAxios ? new AxiosMockAdapter(api) : null;
+    const axiosMock = mockAxios ? installSharedAxiosMock() : null;
 
     // Create Vue app context
     const { app } = createVueWrapper();
 
     // Create and register Pinia FIRST (before providing dependencies)
+    // The REAL plugin, as appInitializer registers it: every store with an
+    // `init()` runs it on creation. Production also passes `api` (which stores
+    // ignore, with a warning) and the device locale; neither is passed here, so
+    // a spec that needs a locale calls `init({ deviceLocale })` itself.
     const pinia = createTestingPinia({
       stubActions,
-      plugins: [autoInitPlugin()],
+      plugins: autoInit ? [autoInitPlugin()] : [],
       createSpy: vi.fn, // Use Vitest's spy function
     });
 

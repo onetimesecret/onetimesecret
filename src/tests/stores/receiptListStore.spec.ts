@@ -88,7 +88,12 @@ describe('receiptListStore', () => {
   });
 
   describe('refreshRecords', () => {
-    it('should fetch records only when not initialized', async () => {
+    it('fetches once on an auto-initialized store, then only when forced', async () => {
+      // The auto-init plugin has already run init(), as it does in the app.
+      // "Initialized" must not be mistaken for "loaded".
+      expect(store.initialized()).toBe(true);
+      expect(store.records).toBeNull();
+
       const mockResponse = {
         records: mockReceiptRecentRecords,
         details: mockReceiptRecentDetails,
