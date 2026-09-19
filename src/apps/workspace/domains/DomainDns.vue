@@ -4,19 +4,18 @@
   /**
    * Domain DNS Setup Page
    *
-   * Simple CNAME-instructions screen for installs that do NOT use Approximated
-   * validation (self-hosted / custom installs managing their own DNS and TLS).
-   * It shows the single CNAME record the operator needs to point at the
-   * install's canonical domain — no Approximated proxy hosts, no vhost status,
-   * no verification polling. See isApproximatedDomainValidation() for why the
-   * Approximated verification screen is bypassed here.
+   * Simple CNAME-instructions screen for installs whose validation strategy
+   * does not check ownership ('passthrough': self-hosted / custom installs
+   * managing their own DNS and TLS). It shows the single record the operator
+   * needs to point at the install's canonical domain — no TXT record, no vhost
+   * status, no verification polling. Installs that check ownership use
+   * DomainVerify instead; see isDomainOwnershipChecked().
    */
   import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import DetailField from '@/shared/components/ui/DetailField.vue';
   import { useDomain } from '@/shared/composables/useDomain';
-  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { storeToRefs } from 'pinia';
+  import { useDomainDnsRecord } from '@/shared/composables/useDomainDnsRecord';
   import { computed, onMounted } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
@@ -31,37 +30,17 @@
 
   const { domain, initialize: initializeDomain } = useDomain(props.extid);
 
-  const bootstrapStore = useBootstrapStore();
-  const { canonical_domain, site_host } = storeToRefs(bootstrapStore);
+  // Record type, host and target. Shared with the DomainVerify screen; see
+  // useDomainDnsRecord for where the record points under each strategy.
+  const { isApex, recordType, recordHost, recordHostAppendix, recordTarget } =
+    useDomainDnsRecord(domain);
 
-  const isApex = computed(() => domain.value?.is_apex ?? false);
-
-  // The canonical host the record should point at. Prefer the middleware-derived
-  // canonical domain, falling back to the configured site host.
-  const recordTarget = computed(() => canonical_domain.value || site_host.value || '');
-
-  // An apex (zone-root) domain can't use a CNAME; ALIAS/ANAME (or an A record to
-  // the server IP) is required. Non-apex subdomains use a CNAME. Keep the record
-  // type, heading, and host consistent with is_apex so the page never tells the
-  // operator to create a CNAME it also says is invalid.
-  const recordType = computed(() => (isApex.value ? 'ALIAS / ANAME' : 'CNAME'));
+  // An apex (zone-root) domain can't use a CNAME; keep the heading consistent
+  // with the record type so the page never tells the operator to create a
+  // CNAME it also says is invalid.
   const recordHeading = computed(() =>
     isApex.value ? t('web.domains.dns.apex_heading') : t('web.domains.dns.cname_heading')
   );
-
-  // Host mirrors VerifyDomainDetails: '@' at the zone root for apex domains,
-  // otherwise the subdomain label (trd). Keyed on is_apex — not trd's
-  // truthiness — so a blank trd on a non-apex record doesn't silently read '@'.
-  const recordHost = computed(() => (isApex.value ? '@' : domain.value?.trd || '@'));
-
-  // Appendix shows the base domain for context. Apex has no leading dot
-  // ('@' + example.com), matching VerifyDomainDetails' apex record; a subdomain
-  // gets the dotted form (test + .example.com).
-  const recordHostAppendix = computed(() => {
-    const base = domain.value?.base_domain;
-    if (!base) return '';
-    return isApex.value ? base : `.${base}`;
-  });
 
   // Always return to the domain's detail hub rather than router.back(): this
   // page is also reachable from links (menu, hub card), where back() would be
