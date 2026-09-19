@@ -305,4 +305,151 @@ RSpec.describe Onetime::ActiveSessionGate do
       end
     end
   end
+
+  # #4455. Passive is a route declaration (Onetime::SessionActivity), so these
+  # examples drive it through the same env key Otto publishes. "The clock" is
+  # the row's own timestamps: the gate decides in the database, so moving
+  # `last_use` is the controlled clock and stubbing Time.now would test nothing.
+  describe 'passive verification' do
+    let(:passive_env) { { 'otto.route_options' => { activity: 'passive' } } }
+    let(:activity_env) { { 'otto.route_options' => { auth: 'sessionauth' } } }
+    let(:stale) { Time.now - (described_class::TOUCH_INTERVAL + 60) }
+
+    def last_use_in_db
+      rows.first[:last_use]
+    end
+
+    it 'verifies a live row without refreshing last_use, however often it is polled' do
+      insert_row(last_use: stale)
+
+      verdicts = Array.new(5) { described_class.verdict(session, env: passive_env.dup) }
+
+      expect(verdicts).to all(eq(:active))
+      expect(last_use_in_db.to_i).to eq(stale.to_i)
+    end
+
+    it 'lets polling alone run into the inactivity deadline' do
+      insert_row(last_use: stale, created_at: stale)
+      expect(described_class.verdict(session, env: passive_env.dup)).to eq(:active)
+
+      # The clock advances past the deadline with nothing but polls behind it.
+      rows.update(last_use: Time.now - (described_class::INACTIVITY_DEADLINE + 60))
+
+      expect(described_class.verdict(session, env: passive_env.dup)).to eq(:revoked)
+      expect(rows.count).to eq(0)
+    end
+
+    it 'still refreshes last_use for an activity request' do
+      insert_row(last_use: stale)
+
+      expect(described_class.verdict(session, env: activity_env.dup)).to eq(:active)
+
+      expect(Time.now - last_use_in_db).to be < 5
+    end
+
+    it 'holds the lifetime deadline against activity and polling alike' do
+      [activity_env, passive_env].each do |env|
+        rows.delete
+        insert_row(last_use: Time.now, created_at: Time.now - (described_class::LIFETIME_DEADLINE + 60))
+
+        expect(described_class.verdict(session, env: env.dup)).to eq(:revoked)
+        expect(rows.count).to eq(0)
+      end
+    end
+
+    it 'treats a request with no matched route as activity' do
+      insert_row(last_use: stale)
+
+      described_class.verdict(session, env: {})
+
+      expect(Time.now - last_use_in_db).to be < 5
+    end
+
+    describe 'a passive check followed by activity on the same env' do
+      let(:env) { passive_env.dup }
+
+      before do
+        insert_row(last_use: stale)
+        described_class.verdict(session, env: env)
+      end
+
+      it 'records the deferral instead of the write' do
+        expect(env[described_class::TOUCH_DEFERRED_ENV_KEY]).to be(true)
+        expect(last_use_in_db.to_i).to eq(stale.to_i)
+      end
+
+      it 'performs the deferred refresh when an activity reader is served from the memo' do
+        env['otto.route_options'] = { auth: 'sessionauth' }
+
+        expect(described_class.verdict(session, env: env)).to eq(:active)
+
+        expect(Time.now - last_use_in_db).to be < 5
+        expect(env).not_to have_key(described_class::TOUCH_DEFERRED_ENV_KEY)
+      end
+
+      it 'performs it once, not once per reader' do
+        env['otto.route_options'] = { auth: 'sessionauth' }
+        3.times { described_class.verdict(session, env: env) }
+
+        expect(env[described_class::STATS_ENV_KEY]).to eq(queries: 1, writes: 1)
+      end
+
+      it 'keeps deferring while every reader is passive' do
+        3.times { described_class.verdict(session, env: env) }
+
+        expect(last_use_in_db.to_i).to eq(stale.to_i)
+        expect(env[described_class::STATS_ENV_KEY]).to eq(queries: 1, writes: 0)
+      end
+
+      it 'never refreshes on behalf of a memo that is not :active' do
+        env['otto.route_options']    = { auth: 'sessionauth' }
+        env[described_class::ENV_KEY] = :revoked
+
+        expect(described_class.settle_deferred_touch(session, env: env)).to be(false)
+        expect(last_use_in_db.to_i).to eq(stale.to_i)
+      end
+
+      it 'swallows a failing deferred refresh and warns' do
+        env['otto.route_options'] = { auth: 'sessionauth' }
+        allow(Auth::Database).to receive(:connection).and_raise(Sequel::DatabaseConnectionError, 'gone')
+
+        expect(described_class.verdict(session, env: env)).to eq(:active)
+        expect(OT).to have_received(:lw).with(/deferred last_use refresh could not run.*account_id=42/)
+      end
+    end
+
+    describe 'request counts' do
+      it 'reports one query and no write for a passive poll of a stale row' do
+        insert_row(last_use: stale)
+        env = passive_env.dup
+        described_class.verdict(session, env: env)
+
+        expect(env[described_class::STATS_ENV_KEY]).to eq(queries: 1, writes: 0)
+      end
+
+      it 'reports the write for an activity request' do
+        insert_row(last_use: stale)
+        env = activity_env.dup
+        described_class.verdict(session, env: env)
+
+        expect(env[described_class::STATS_ENV_KEY]).to eq(queries: 1, writes: 1)
+      end
+
+      it 'reports the removal of an expired row as a write, passive or not' do
+        insert_row(last_use: Time.now - (described_class::INACTIVITY_DEADLINE + 60))
+        env = passive_env.dup
+        described_class.verdict(session, env: env)
+
+        expect(env[described_class::STATS_ENV_KEY]).to eq(queries: 1, writes: 1)
+      end
+
+      it 'reports nothing when the gate does not apply' do
+        session.delete('active_session_id_hmac')
+        env = passive_env.dup
+        described_class.verdict(session, env: env)
+
+        expect(env).not_to have_key(described_class::STATS_ENV_KEY)
+      end
+    end
+  end
 end

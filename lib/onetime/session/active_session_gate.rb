@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative 'activity'
+
 module Onetime
   # Per-request enforcement of Rodauth's active-session table in full auth
   # mode.
@@ -103,11 +105,40 @@ module Onetime
   # would silently break on any host whose process TZ differs from the
   # database session's, in one direction expiring live sessions and never
   # refreshing, in the other never expiring and refreshing on every request.
+  #
+  # ## Passive verification (#4455)
+  #
+  # A request whose route declares `activity=passive`
+  # ({Onetime::SessionActivity}) is verified in full: the same SELECT, the
+  # same two deadlines, the same removal of an expired row. It does not
+  # refresh `last_use`. A tab that only polls therefore reaches the
+  # inactivity deadline exactly when a closed tab would.
+  #
+  # The verdict is memoized per request, so a refresh skipped for a passive
+  # reader must not be lost to an activity reader that arrives later on the
+  # same env and is served from the memo. The skipped refresh is recorded
+  # under {TOUCH_DEFERRED_ENV_KEY} and performed, once, by the first
+  # non-passive reader ({.settle_deferred_touch}). Nothing else is deferred:
+  # a refusal is final for the request, and a refused request never touches.
+  #
+  # ## Counts
+  #
+  # Each request's SELECT and write counts against the table are kept under
+  # {STATS_ENV_KEY} so the bootstrap endpoint can report them (#4463 rollout
+  # review) without a SQL logger.
   module ActiveSessionGate
     extend self
 
     # Per-request memo of the verdict, keyed in the Rack env.
     ENV_KEY = 'onetime.active_session_gate'
+
+    # Set when a passive reader found `last_use` due a refresh and left it
+    # alone. Cleared by the activity reader that performs the refresh.
+    TOUCH_DEFERRED_ENV_KEY = 'onetime.active_session_gate.touch_deferred'
+
+    # `{ queries: Integer, writes: Integer }` issued against {TABLE} on this
+    # request. Absent when the gate did not apply or never ran.
+    STATS_ENV_KEY = 'onetime.active_session_gate.stats'
 
     # Minimum seconds between `last_use` writes for one active-session row.
     TOUCH_INTERVAL = 300
@@ -143,38 +174,91 @@ module Onetime
     #   :unavailable (authdb could not answer), or :skipped (gate does not
     #   apply)
     def verdict(session, env: nil)
-      return env[ENV_KEY] if env.is_a?(Hash) && env.key?(ENV_KEY)
+      if env.is_a?(Hash) && env.key?(ENV_KEY)
+        settle_deferred_touch(session, env: env)
+        return env[ENV_KEY]
+      end
 
-      result       = compute(session)
+      result       = compute(session, env)
       env[ENV_KEY] = result if env.is_a?(Hash)
       result
     end
 
+    # Perform a `last_use` refresh that a passive reader deferred earlier on
+    # this env, if this reader is activity. Called on every memo hit here and
+    # by {Onetime::CustomerSessionEvaluator} on its own memo hit, which never
+    # reaches {.verdict}. A no-op in every other case, at the cost of one
+    # Hash lookup.
+    #
+    # The flag is cleared before the write so the refresh is attempted at
+    # most once per request, and only an :active memo is honoured: a request
+    # that was refused must never advance the deadline it was refused under.
+    #
+    # @return [Boolean] true when the refresh was attempted
+    def settle_deferred_touch(session, env:)
+      return false unless env.is_a?(Hash) && env[TOUCH_DEFERRED_ENV_KEY]
+      return false if SessionActivity.passive?(env)
+
+      env.delete(TOUCH_DEFERRED_ENV_KEY)
+      return false unless env[ENV_KEY] == :active && applicable?(session)
+
+      db = ::Auth::Database.connection
+      return false if db.nil?
+
+      touch(row_dataset(db, session), session, env)
+      true
+    rescue StandardError => ex
+      OT.lw "[active_session_gate] deferred last_use refresh could not run #{who(session)}: #{ex.class}: #{ex.message}"
+      false
+    end
+
     private
 
-    def compute(session)
+    def compute(session, env = nil)
       return :skipped unless applicable?(session)
 
       db = ::Auth::Database.connection
       return unavailable(session, 'no auth database connection') if db.nil?
 
-      row_ds = db[TABLE].where(
-        account_id: session['account_id'],
-        session_id: session['active_session_id_hmac'],
-      )
+      row_ds = row_dataset(db, session)
+      count(env, :queries)
       row    = row_ds.select(
         Sequel.as(past_expression(:last_use, INACTIVITY_DEADLINE), :inactive),
         Sequel.as(past_expression(:created_at, LIFETIME_DEADLINE), :outlived),
         Sequel.as(past_expression(:last_use, TOUCH_INTERVAL), :touch_due),
       ).first
       return revoked(session) if row.nil?
-      return expire(row_ds, session, 'inactivity') if row[:inactive].to_i == 1
-      return expire(row_ds, session, 'lifetime') if row[:outlived].to_i == 1
+      return expire(row_ds, session, 'inactivity', env) if row[:inactive].to_i == 1
+      return expire(row_ds, session, 'lifetime', env) if row[:outlived].to_i == 1
 
-      touch(row_ds, session) if row[:touch_due].to_i == 1
+      record_activity(row_ds, session, env) if row[:touch_due].to_i == 1
       :active
     rescue StandardError => ex
       unavailable(session, "#{ex.class}: #{ex.message}")
+    end
+
+    def row_dataset(db, session)
+      db[TABLE].where(
+        account_id: session['account_id'],
+        session_id: session['active_session_id_hmac'],
+      )
+    end
+
+    # `last_use` is due a refresh. An activity request refreshes it; a
+    # passive one leaves it and says so, for {.settle_deferred_touch}.
+    def record_activity(row_ds, session, env)
+      if SessionActivity.passive?(env)
+        env[TOUCH_DEFERRED_ENV_KEY] = true
+      else
+        touch(row_ds, session, env)
+      end
+    end
+
+    def count(env, key)
+      return unless env.is_a?(Hash)
+
+      stats       = (env[STATS_ENV_KEY] ||= { queries: 0, writes: 0 })
+      stats[key] += 1
     end
 
     # Full mode with the feature on, a Rack session carrying both halves of
@@ -207,8 +291,9 @@ module Onetime
     # cannot reach is collected by the sessions page's sweep instead.
     # Logged at info because the user sees a sign-out with no action of
     # their own behind it, and support needs to be able to name the deadline.
-    def expire(row_ds, session, deadline)
+    def expire(row_ds, session, deadline, env = nil)
       OT.info "[active_session_gate] active-session row past its #{deadline} deadline; removed, Rack session refused #{who(session)}"
+      count(env, :writes)
       row_ds.delete
       :revoked
     rescue StandardError => ex
@@ -242,7 +327,8 @@ module Onetime
     # debug: the row's `last_use` is what Rodauth's inactivity sweep reads,
     # so a write that keeps failing ends in a live session being revoked a
     # day later, and that logout must be traceable to its cause.
-    def touch(row_ds, session)
+    def touch(row_ds, session, env = nil)
+      count(env, :writes)
       row_ds.update(last_use: Sequel::CURRENT_TIMESTAMP)
     rescue StandardError => ex
       OT.lw '[active_session_gate] last_use refresh on active-session row failed; if this persists the ' \
