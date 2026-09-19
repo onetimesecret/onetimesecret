@@ -123,6 +123,8 @@ features:
       vhost_target: target.example.com
 ```
 
+`validation_strategy` is matched without regard to letter case, and `caddy` and `external` are accepted as aliases for `caddy_on_demand` and `passthrough` (`Features::STRATEGY_ALIASES`, which `Strategy.for_config` also reads). API payloads always carry the canonical name of the strategy in effect (`Features.effective_strategy_name`, used by `Features.safe_dump` and the bootstrap `domains.validation_strategy`), so the frontend capability table in `src/utils/features.ts` lists canonical names only. An unknown value runs, and is reported, as `passthrough` unless `strict_strategy` is set.
+
 ## Moving off `approximated`
 
 Changing `validation_strategy` away from `approximated` does not delete anything on Approximated. Each domain provisioned before the change keeps its vhost there (billable, and able to serve the hostname for as long as DNS points at the cluster) and keeps the old `vhost` JSON on its `CustomDomain` record. The `remove_orphaned_approximated_vhosts` housekeeping chore cleans both up.

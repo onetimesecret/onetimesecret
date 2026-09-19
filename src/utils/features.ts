@@ -521,6 +521,11 @@ export function isOwnerOrAdmin(): boolean {
  * `validation_strategy` to a literal anywhere else. A strategy that is not
  * listed (older backend, unknown value) gets no capabilities, which is the
  * 'passthrough' behaviour.
+ *
+ * Only canonical names are listed. The config accepts aliases and any letter
+ * case ('caddy', 'external'); the backend resolves those to the canonical name
+ * before sending it (DomainValidation::Features.effective_strategy_name), so
+ * do not add alias strings here or in components.
  */
 interface DomainValidationCapabilities {
   checksOwnership: boolean;
