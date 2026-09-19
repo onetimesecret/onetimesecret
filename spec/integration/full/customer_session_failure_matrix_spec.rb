@@ -89,6 +89,26 @@ RSpec.describe 'Cross-surface customer-session failure matrix (#4452)', type: :i
     end
   end
 
+  # #4461. The /auth app answers nothing but authentication state, so every
+  # response it finishes is unstorable: a success, a refusal, and a route that
+  # sets its own policy keeps a policy that is at least as strict.
+  it 'never lets an /auth authentication-state response be stored', :aggregate_failures do
+    establish_matrix_session!
+    expect(last_response.headers['cache-control']).to eq('private, no-store') # the login itself
+
+    header 'Accept', 'application/json'
+    get '/auth/account'
+    expect(last_response.status).to eq(200)
+    expect(last_response.headers['cache-control']).to eq('private, no-store')
+    expect(last_response.headers['content-type']).to include('application/json')
+
+    active_session_rows.delete
+    get '/auth/account'
+    expect(last_response.status).to eq(401)
+    expect(JSON.parse(last_response.body)).to include('code' => 'active_session_revoked')
+    expect(last_response.headers['cache-control']).to eq('private, no-store')
+  end
+
   def expect_activity(expected, before_activity, after_activity, before_count, after_count, writes)
     inserts = writes.grep(/\bINSERT\b/i)
     updates = writes.grep(/\bUPDATE\b/i)

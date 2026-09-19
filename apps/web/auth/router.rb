@@ -59,6 +59,15 @@ module Auth
     plugin :status_handler
     plugin :flash  # Required for Rodauth flash messages on browser redirects (e.g., OmniAuth)
 
+    # Everything this app answers is authentication state: login and MFA
+    # results, the account, its sessions and credentials, and the refusals in
+    # between. None of it may be stored by a browser or an intermediary
+    # (#4461; OWASP ASVS 5.0 14.3.2). It is a default, applied with `||=` when
+    # the response is finished, so a route that sets its own Cache-Control
+    # (routes/reauth.rb) keeps it. Roda merges this into its existing default
+    # headers; Content-Type is unaffected.
+    plugin :default_headers, 'cache-control' => 'private, no-store'
+
     # plugin :sessions,
     #   key: 'onetime.session',
     #   secret: ENV.fetch('SESSION_SECRET', SecureRandom.hex(64))
