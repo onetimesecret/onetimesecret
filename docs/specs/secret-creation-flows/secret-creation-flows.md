@@ -70,8 +70,9 @@ either transition — each is a full route swap.
 - A *true* modal+same-page experience (receipt rendered in an overlay over a
   persisting form) does not exist anywhere today. The Incoming card styling can
   be reused for the shell, but the modal mechanics would be net-new.
-- `views/incoming/IncomingSecretForm.vue` and `IncomingSuccessView.vue` are
-  orphaned duplicates — no router references them; safe to delete.
+- The orphaned duplicates `views/incoming/IncomingSecretForm.vue` and
+  `IncomingSuccessView.vue` were removed; the routes above are the only
+  incoming pages.
 
 ## Implementation References
 
