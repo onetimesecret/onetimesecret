@@ -194,6 +194,38 @@ module Onetime
       env.delete(TOUCH_DEFERRED_ENV_KEY)
     end
 
+    # Logout: remove the active-session row this Rack session joins to, as
+    # Rodauth's own logout does (`remove_current_session`). Call it BEFORE the
+    # Rack session is cleared, while the join key is still readable.
+    #
+    # Clearing the Rack session is not enough. The store is last-writer-wins,
+    # and every response re-sends the session cookie: a request that loaded
+    # the session before the logout and commits after it writes the whole
+    # blob back under the old id AND hands the browser the old cookie again.
+    # Observed in a browser (dashboard fetches in flight during a logout in
+    # another tab): the next GET /bootstrap/me answered `authenticated`. With
+    # the row gone that resurrected blob is refused as revoked on its next
+    # request, exactly like a session revoked from the sessions page.
+    #
+    # Never raises and never blocks the logout: a row this delete cannot
+    # reach is still bounded by the inactivity deadline and the sweep.
+    #
+    # @return [Boolean] true when a row was removed
+    def end_session(session, env: nil)
+      return false unless applicable?(session)
+
+      db = ::Auth::Database.connection
+      return false if db.nil?
+
+      removed = row_dataset(db, session).delete
+      forget(env)
+      removed.positive?
+    rescue StandardError => ex
+      OT.lw "[active_session_gate] active-session row could not be removed at logout #{who(session)}: " \
+            "#{ex.class}: #{ex.message}"
+      false
+    end
+
     # Perform a `last_use` refresh that a passive reader deferred earlier on
     # this env, if this reader is activity. Called on every memo hit here and
     # by {Onetime::CustomerSessionEvaluator} on its own memo hit, which never

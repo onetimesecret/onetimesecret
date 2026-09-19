@@ -79,6 +79,10 @@ module Onetime
           ended_by: Onetime::SessionImpersonation::ENDED_BY_LOGOUT,
         )
 
+        # The row before the blob: a concurrent request can write the blob
+        # back, and only the missing row makes that copy refusable.
+        Onetime::ActiveSessionGate.end_session(session, env: rack_env_for_impersonation)
+
         session.clear
         forget_customer_session_verdict
         OT.info "[logout] Session destroyed (session_handle=#{handle})" if handle

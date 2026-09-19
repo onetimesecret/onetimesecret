@@ -135,6 +135,57 @@ RSpec.describe Onetime::ActiveSessionGate do
     end
   end
 
+  describe '.end_session (logout)' do
+    it 'removes the row, so a copy of the Rack session written back afterwards is refused' do
+      insert_row
+      resurrected = session.dup # what an in-flight request loaded before the logout
+
+      expect(described_class.end_session(session)).to be(true)
+
+      expect(rows.count).to eq(0)
+      expect(described_class.verdict(resurrected)).to eq(:revoked)
+    end
+
+    it "leaves the account's other sessions and other accounts alone" do
+      insert_row
+      rows.insert(account_id: 42, session_id: 'b' * 64)
+      rows.insert(account_id: 7, session_id: hmac)
+
+      described_class.end_session(session)
+
+      expect(rows.select_map([:account_id, :session_id])).to contain_exactly([42, 'b' * 64], [7, hmac])
+    end
+
+    it 'forgets a verdict memoized earlier in the request' do
+      insert_row
+      env = {}
+      expect(described_class.verdict(session, env: env)).to eq(:active)
+
+      described_class.end_session(session, env: env)
+
+      expect(described_class.verdict(session, env: env)).to eq(:revoked)
+    end
+
+    it 'is false, with no query, where the gate does not apply' do
+      allow(Onetime.auth_config).to receive(:full_enabled?).and_return(false)
+      expect(Auth::Database).not_to receive(:connection)
+      expect(described_class.end_session(session)).to be(false)
+      expect(described_class.end_session({})).to be(false)
+      expect(described_class.end_session(nil)).to be(false)
+    end
+
+    it 'is false when there was no row to remove' do
+      expect(described_class.end_session(session)).to be(false)
+    end
+
+    it 'never raises: a logout must complete during an authdb outage' do
+      allow(Auth::Database).to receive(:connection).and_raise(Sequel::DatabaseConnectionError, 'down')
+
+      expect(described_class.end_session(session)).to be(false)
+      expect(OT).to have_received(:lw).with(/could not be removed at logout.*account_id=42/)
+    end
+  end
+
   describe 'per-request memo' do
     it 'computes once per env and serves the memo afterwards' do
       insert_row

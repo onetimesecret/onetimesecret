@@ -47,18 +47,19 @@ module Core
       def logout
         res.do_not_cache!
 
-        # Capture session info for logging before clearing
-        customer_id = session['external_id']
-        session_id  = begin
-                       session.id&.public_id
+        # Capture session info for logging before clearing. The handle, never
+        # the id: a logged session id can be replayed as the cookie (#4461).
+        customer_id    = session['external_id']
+        session_handle = begin
+                           Onetime::SessionMetadata.handle_for(session.id&.public_id)
         rescue StandardError
-                       nil
+                           nil
         end
 
         auth_logger.debug 'Session destruction initiated',
           {
             customer_id: customer_id,
-            session_id: session_id,
+            session_handle: session_handle,
             ip: req.ip,
           }
 
@@ -70,6 +71,11 @@ module Core
           session,
           ended_by: Onetime::SessionImpersonation::ENDED_BY_LOGOUT,
         )
+
+        # The active-session row before the blob: an in-flight request can
+        # write the blob back after this one clears it, and only the missing
+        # row makes that copy refusable (Onetime::ActiveSessionGate.end_session).
+        Onetime::ActiveSessionGate.end_session(session, env: req.env)
 
         # Clear all session data
         session.clear
@@ -83,7 +89,7 @@ module Core
         auth_logger.info 'Session destroyed',
           {
             customer_id: customer_id,
-            session_id: session_id,
+            session_handle: session_handle,
             ip: req.ip,
           }
 
@@ -147,7 +153,7 @@ module Core
               email: cust_after.obscure_email,
               external_id: cust_after.extid,
               role: cust_after.role,
-              session_id: session.id&.public_id,
+              session_handle: Onetime::SessionMetadata.handle_for(session.id&.public_id),
               ip: req.ip,
             }
 
