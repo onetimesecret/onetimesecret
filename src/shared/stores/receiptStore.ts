@@ -1,10 +1,8 @@
 // src/shared/stores/receiptStore.ts
 
 import { createError } from '@/shared/composables/useAsyncHandler';
-import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v3/receipt';
-import { loggingService } from '@/services/logging.service';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
@@ -38,7 +36,6 @@ export const RECEIPT_STATUS = {
   ORPHANED: 'orphaned',
 } as const;
 
-interface StoreOptions extends PiniaPluginOptions {}
 
 /**
  * Type definition for ReceiptStore.
@@ -100,10 +97,9 @@ export const useReceiptStore = defineStore('receipt', () => {
    *
    * @returns Object containing initialization status
    */
-  function init(options?: StoreOptions) {
+  function init() {
     if (_initialized.value) return { isInitialized };
 
-    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
 
     _initialized.value = true;
     return { isInitialized };

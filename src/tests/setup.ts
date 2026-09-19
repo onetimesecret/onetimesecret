@@ -189,9 +189,9 @@ export async function setupTestPinia(options: SetupTestPiniaOptions = {}): Promi
 
     // Create and register Pinia FIRST (before providing dependencies)
     // The REAL plugin, as appInitializer registers it: every store with an
-    // `init()` runs it on creation. Production also passes `api` (which stores
-    // ignore, with a warning) and the device locale; neither is passed here, so
-    // a spec that needs a locale calls `init({ deviceLocale })` itself.
+    // `init()` runs it on creation. Production also passes the device locale;
+    // it is not passed here, so a spec that needs a locale calls
+    // `init({ deviceLocale })` itself.
     const pinia = createTestingPinia({
       stubActions,
       plugins: autoInit ? [autoInitPlugin()] : [],

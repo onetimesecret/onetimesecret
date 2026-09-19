@@ -1,6 +1,5 @@
 // src/shared/stores/authStore.ts
 
-import { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { effectiveAuthStatus, type ClientAuthStatus } from '@/schemas/contracts/bootstrap';
 import type { SessionFailure } from '@/schemas/contracts/session-failure';
 import { classifyError, errorGuards } from '@/schemas/errors';
@@ -186,7 +185,6 @@ export function retryDelay(
   return Math.max(random() * ceiling, retryAfterMs, BACKOFF_FLOOR);
 }
 
-interface StoreOptions extends PiniaPluginOptions {}
 
 /**
  * Type definition for AuthStore.
@@ -344,13 +342,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Actions
 
-  function init(options?: StoreOptions) {
+  function init() {
     if (_initialized.value) {
       loggingService.debug('[AuthStore.init] Already initialized, skipping');
       return { needsCheck, isInitialized };
     }
 
-    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
 
     // bootstrapStore has already parsed hydration. A verified statement from
     // the server counts as a check; `checking` does not.
