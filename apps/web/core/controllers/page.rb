@@ -67,6 +67,7 @@ module Core
         # Simplified: BaseView now extracts everything from req
         view                         = Core::Views::BootstrapMe.new(req)
         data                         = view.serialized_data
+        log_bootstrap_verification
         res.headers['content-type']  = 'application/json; charset=utf-8'
         # On the 503 as well: a stored failure replayed later would read as a
         # fresh one (ADR-046, "Response caching").
@@ -123,6 +124,34 @@ module Core
       end
 
       private
+
+      # What verifying the session cost this poll, for the #4463 rollout
+      # review (#4455): the queries and writes ActiveSessionGate issued
+      # against the active-session table, and whether the route was passive.
+      # A passive poll of a live session reads `queries: 1, writes: 0`; a
+      # write here means an expired row was removed, which is the one write a
+      # poll is meant to make.
+      #
+      # One line per poll that carried a session claim. A visitor with no
+      # session is skipped: it is most of the traffic and verifies nothing.
+      # The join is the request id; the line carries no session identifier.
+      def log_bootstrap_verification
+        verdict = req.env[Onetime::CustomerSessionEvaluator::ENV_KEY]
+        return if verdict.nil? || verdict.anonymous?
+
+        stats = req.env[Onetime::ActiveSessionGate::STATS_ENV_KEY] || {}
+        session_logger.info 'Bootstrap verification',
+          {
+            passive: Onetime::SessionActivity.passive?(req.env),
+            verdict: verdict.status,
+            reason: verdict.reason,
+            active_session_queries: stats.fetch(:queries, 0),
+            active_session_writes: stats.fetch(:writes, 0),
+            request_id: req.env['HTTP_X_REQUEST_ID'],
+          }
+      rescue StandardError
+        nil
+      end
 
       # A snapshot that reports a session must carry the ordering pair
       # (ADR-046): the server never labels an unversioned payload as ordered,

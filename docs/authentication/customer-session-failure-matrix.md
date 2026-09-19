@@ -201,8 +201,14 @@ exactly as above.
 
 On an **active** full-mode session whose row is older than
 `ActiveSessionGate::TOUCH_INTERVAL` (300 s), every surface that evaluates the
-session refreshes the row's `last_use`, including hydrated HTML and
-`GET /bootstrap/me`. The full-mode spec pins that for hydrated HTML (D8).
+session refreshes the row's `last_use`, with one exception:
+`GET /bootstrap/me` verifies the session and refreshes nothing (D8). The
+full-mode spec pins both halves: hydrated HTML leaves the row `:touched`, the
+bootstrap poll leaves it `:unchanged` with no write issued.
+
+A request that is **refused** refreshes nothing on any surface, in either
+mode: not `last_use`, not the sidecar's `last_activity_at`, and not the Rack
+session blob's TTL.
 
 ## Divergences
 
@@ -266,11 +272,35 @@ reason `/auth` acts on, and codes, can be `surface_mismatch` or
 `active_session_revoked` where the other surfaces say `awaiting_mfa` or
 `not_authenticated`.
 
-**D8. Passive verification counts as activity.** Hydrated HTML and
-`GET /bootstrap/me` both refresh `last_use` on an active row, so a tab left
-open keeps its session alive through its periodic poll. A page load is a user
-action; a background poll is not. #4455 changes the poll and replaces the
-"pending #4455" example in the full-mode spec.
+**D8. The two public surfaces verify alike and differ in whether they count
+as activity.** Until #4455 both refreshed `last_use` on an active row, so a
+tab left open kept its session alive through its periodic poll. A page load
+is a user action; a background poll is not. `GET /bootstrap/me` now declares
+`activity=passive` in `apps/web/core/routes.txt`
+(`Onetime::SessionActivity`). It runs the same SELECT, enforces both
+deadlines and still removes an expired row (D2), but it moves none of the
+three inactivity clocks: the active-session row's `last_use`
+(`ActiveSessionGate`), the sidecar's `last_activity_at` that the admin idle
+bound reads (`Operations::Sessions::TrackMetadata`), and the Rack session
+blob's TTL, which is the only inactivity clock in simple mode
+(`Onetime::Session#write_session`). Hydrated HTML is unchanged. This
+divergence is deliberate and stays.
+
+Two limits are worth knowing. The verdict is memoized per request, so a
+refresh skipped for a passive reader is recorded in the env and performed by
+the first activity reader served from the memo; over HTTP a request is one or
+the other, so this is exercised in the unit specs. And "passive" covers the
+session check only: the dashboard's five-minute receipt refresh and the
+secret-links status refresh are ordinary API requests on routes that real
+navigation also uses, and they still count as activity.
+
+Each poll that carries a session claim writes one `Bootstrap verification`
+line (Session logger, info) with `passive`, the verdict, the queries and
+writes issued against the active-session table, and the request id. A
+passive poll of a live session reads `active_session_queries: 1,
+active_session_writes: 0`. Pinned by
+`spec/integration/full/passive_verification_spec.rb` and its simple-mode
+twin.
 
 ## The reported incident
 
@@ -410,6 +440,18 @@ one of the replay causes ADR-046 lists.
 "Verify that the application sets sufficient anti-caching HTTP response header
 fields (i.e., Cache-Control: no-store) so that sensitive data is not cached in
 browsers."
+
+**An inactivity timeout has to measure inactivity.**
+[OWASP ASVS 5.0.0 requirements 7.3.1 and 7.3.2](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v73-session-timeout):
+"Verify that there is an inactivity timeout such that re-authentication is
+enforced according to risk analysis and documented security decisions." and
+"Verify that there is an absolute maximum session lifetime such that
+re-authentication is enforced according to risk analysis and documented
+security decisions." *OTS choice (#4455):* a timer-driven session check is
+not user activity, so it verifies and moves no inactivity clock (D8); the
+absolute lifetime is enforced by the same query and no request can move it.
+The standard does not say which requests count as activity; treating the
+poll as passive is this project's decision, recorded here.
 
 **A terminated session must stop working everywhere, and ordering must not be
 able to delay that.**

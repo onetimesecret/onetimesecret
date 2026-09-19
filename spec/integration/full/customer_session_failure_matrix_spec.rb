@@ -54,30 +54,39 @@ RSpec.describe 'Cross-surface customer-session failure matrix (#4452)', type: :i
     end
   end
 
-  it 'keeps hydrated HTML on the current active-session activity policy pending #4455', :aggregate_failures do
-    establish_matrix_session!
-    before_activity = activity_snapshot
+  # The one state the matrix rows do not cover is the healthy one, and it is
+  # where the two public surfaces differ (#4455, divergence D8 in the doc). Both
+  # verify the same live session and expose the same identity; only the page
+  # load, which a person asked for, counts as activity.
+  {
+    hydrated_html: :touched,
+    bootstrap: :unchanged,
+  }.each do |surface, activity|
+    it "verifies an active session on #{surface} and leaves its active-session row #{activity}", :aggregate_failures do
+      establish_matrix_session!
+      before_activity = activity_snapshot
 
-    observation, activity_writes = capture_activity_writes do
-      request_surface(:hydrated_html, request_id: 'matrix-active-hydrated-html')
+      observation, activity_writes = capture_activity_writes do
+        request_surface(surface, request_id: "matrix-active-#{surface}")
+      end
+
+      expect(observation).to include(
+        status: 200,
+        verdict: :authenticated,
+        authenticated: true,
+        awaiting_mfa: false,
+        customer_exposed: true,
+        identity_exposed: true,
+      )
+      expect_activity(
+        activity,
+        before_activity,
+        activity_snapshot,
+        1,
+        activity_count,
+        activity_writes,
+      )
     end
-
-    expect(observation).to include(
-      status: 200,
-      verdict: :authenticated,
-      authenticated: true,
-      awaiting_mfa: false,
-      customer_exposed: true,
-      identity_exposed: true,
-    )
-    expect_activity(
-      :touched,
-      before_activity,
-      activity_snapshot,
-      1,
-      activity_count,
-      activity_writes,
-    )
   end
 
   def expect_activity(expected, before_activity, after_activity, before_count, after_count, writes)
