@@ -56,9 +56,10 @@ and continue unordered.
   not count as activity. A signed-in tab left untouched reaches the inactivity
   deadline; before this release its own 15-minute poll kept it alive
   indefinitely. Expect more sessions ending by inactivity than before. The
-  dashboard's two 5-minute data refreshes declare themselves with the request
-  header `X-Session-Activity: passive` and do not count either, so a tab left
-  on the dashboard signs out on schedule too. The header is honoured on `GET`
+  dashboard's receipt lists refresh every 5 minutes while their tab is visible
+  and when it becomes visible again; those requests declare themselves with the
+  request header `X-Session-Activity: passive` and do not count either, so a
+  tab left on the dashboard signs out on schedule too. A hidden tab sends none. The header is honoured on `GET`
   and `HEAD` only and can only shorten the sender's own session. A proxy that
   strips unknown request headers turns those refreshes back into activity; it
   breaks nothing else.

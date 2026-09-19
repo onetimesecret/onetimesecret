@@ -20,8 +20,8 @@ Added
   as usual and moves no inactivity clock, exactly like the
   ``GET /bootstrap/me`` poll. The header is ignored on ``POST``, ``PUT``,
   ``PATCH`` and ``DELETE`` and can only shorten the sender's own session. The
-  dashboard's two 5-minute refreshes use it, so a tab left on the dashboard
-  now signs out on schedule. A proxy that strips unknown request headers
+  dashboard's receipt lists use it for their 5-minute and tab-visibility
+  refreshes, so a tab left on the dashboard now signs out on schedule. A proxy that strips unknown request headers
   turns those refreshes back into activity and breaks nothing else. #4455
 - Two log lines: ``Bootstrap verification`` (Session logger, info; one per
   authenticated ``/bootstrap/me`` poll, with query and write counts) and
@@ -100,6 +100,9 @@ Fixed
   duplicate sign-up, on SQLite and PostgreSQL; it used to answer ``422`` with
   "already an account with this login".
 - Repeated verification failures no longer sign the user out.
+- Opening ``/recent`` directly showed an empty list: the receipt list only
+  loaded if the dashboard had been visited first. The dashboard's 5-minute
+  status refresh, which never sent a request, now runs.
 
 Security
 --------

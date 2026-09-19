@@ -1,12 +1,12 @@
 # Active Security Risk Register
 
-**Last reviewed:** 2026-09-19 · **Code baseline:** `onetimesecret` @ `e8f1fd79e` (`feature/4451-auth-session-consistency`)
+**Last reviewed:** 2026-09-19 · **Code baseline:** `onetimesecret` @ `982caad44` (`feature/4451-auth-session-consistency`)
 
 This is the canonical tracker for security work that remains actionable. Dated audits and
 historical risk registers preserve evidence; they do not define the current status of a finding.
 Source ratings are retained until a new assessment explicitly re-rates a risk.
 
-**Active items:** 20 open, 1 mitigating · **Accepted exceptions:** none recorded
+**Active items:** 20 open · **Accepted exceptions:** none recorded
 
 ## How to use this register
 
@@ -42,7 +42,6 @@ Source ratings are retained until a new assessment explicitly re-rates a risk.
 | RISK-2026-08-14-L08 | P4 / Low | Open | In simple mode, reset-password can burn an arbitrary secret when its identifier is known. | [Historical L-8](risk-registers/risk-register-2026-08-14.md); restrict lookup/burn to reset-password secrets. |
 | RISK-2026-08-13-03 | P3 / Low | Open | SMTP2GO client error bodies reach logs and Sentry without redaction. | [2026-08-13 finding 3](audits/security-audit-2026-08-13.md); redact at the logging boundary or omit response bodies from Sentry. |
 | RISK-2026-09-19-02 | P4 / Low | Open | Completing the second factor does not renew the session ID; only the password step does. | [2026-09-19 finding 2](audits/security-audit-2026-09-19.md); renew the ID on MFA completion and carry the active-session row and sidecar across it. Tracking: [#4466](https://github.com/onetimesecret/onetimesecret/issues/4466) (v0.27.0), whose scope names MFA completion among the establishment paths to rotate and owns the cookie-tossing design the renewal depends on. Owner: Unassigned. |
-| RISK-2026-09-19-04 | P4 / Low | Mitigating | Dashboard data-refresh timers count as activity, so a tab left on the dashboard never reaches the inactivity deadline. Full mode's absolute session lifetime still applies. | [2026-09-19 finding 4](audits/security-audit-2026-09-19.md). The server half is in (`a011d4c7f`): a `GET` or `HEAD` carrying `X-Session-Activity: passive` is verified in full and moves no inactivity clock ([failure matrix D8a](../authentication/customer-session-failure-matrix.md)). Remaining: the client sends the header on its two timers (`DashboardRecent.vue`, `SecretLinksTable.vue`); resolve once that ships with a spec. Tracking: [#4455](https://github.com/onetimesecret/onetimesecret/issues/4455). Owner: Unassigned. |
 
 ## Historical sources
 

@@ -93,3 +93,41 @@ the original evidence; each entry here identifies the fix and the baseline used 
   `tests/lanes/run simple --only spec/integration/simple/customer_session_failure_matrix_spec.rb`
   25 examples, 0 failures.
 - **Closure baseline:** `eaeaebdca` (`feature/4451-auth-session-consistency`) on 2026-09-19.
+
+### RISK-2026-09-19-04 — Resolved
+
+- **Finding:** Dashboard data refreshes counted as session activity, so a tab left on the
+  dashboard never reached the inactivity deadline.
+- **Source:** [2026-09-19 session-consistency package review](../audits/security-audit-2026-09-19.md),
+  finding 4.
+- **Resolution:** Server half `a011d4c7f`: a `GET` or `HEAD` carrying `X-Session-Activity: passive`
+  is verified in full and moves no inactivity clock
+  ([failure matrix D8a](../../authentication/customer-session-failure-matrix.md)). Client half
+  `982caad44`: the API client takes a per-request `passive` option, and its request interceptor is
+  the one place that writes the header, on `GET` and `HEAD` only and never as an instance default.
+  The receipt lists on `/recent` (`DashboardRecent.vue`) and on the dashboard
+  (`RecentSecretsTable.vue`) refresh through `useBackgroundRefresh`, every 5 minutes while the tab
+  is visible and when it becomes visible again, and each of those requests is passive. The load on
+  arrival stays an ordinary request. A hidden tab sends nothing.
+- **Correction to the finding:** the two timers it named sent no request. `DashboardRecent.vue`'s
+  timer called a refresh that returned early once the list was loaded, and
+  `SecretLinksTable.vue`'s timer incremented a value nothing read. The unmarked background request
+  that did run was `RecentSecretsTable.vue`'s tab-visibility refresh, which fires only when the
+  tab becomes visible again, so a tab left open and untouched was not being kept alive. The
+  resolution makes
+  the timers work as the release notes describe and marks every background refresh, so the risk
+  does not appear with them.
+- **Verification:** `pnpm exec vitest run src/tests/api/passiveRequest.spec.ts
+  src/tests/apps/workspace/dashboard/passiveRefresh.spec.ts
+  src/tests/composables/useBackgroundRefresh.spec.ts src/tests/stores/receiptListStore.spec.ts`
+  completed with 44 passed, 1 skipped, 0 failed. `passiveRequest.spec.ts` asserts the header on
+  the real `createApi()` client: present on a passive `GET` and `HEAD`, absent on an ordinary
+  request, absent on `POST`, `PUT`, `PATCH` and `DELETE` even when asked for, and absent from the
+  instance defaults afterwards. `passiveRefresh.spec.ts` mounts both components with the real
+  store and interceptor and asserts the header per trigger: arrival none, timer `passive`,
+  visibility `passive`, hidden tab no request, unmounted no request. Removing the option from one
+  composable fails two of its examples. The server side is asserted by the failure matrix (D8a)
+  in both lanes.
+- **Residual:** a proxy that strips unknown request headers turns these refreshes back into
+  activity (rollout notes). Full mode's absolute session lifetime still applies.
+- **Closure baseline:** `982caad44` (`feature/4451-auth-session-consistency`) on 2026-09-19.
