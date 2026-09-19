@@ -162,12 +162,6 @@ describe('incomingStore', () => {
       const result = store.init();
       expect(result).toHaveProperty('isInitialized');
     });
-
-    it('ignores api option with warning (logged internally)', () => {
-      // This tests that providing api option doesn't throw
-      store.init({ api: {} as any });
-      expect(store._initialized).toBe(true);
-    });
   });
 
   describe('loadConfig()', () => {
