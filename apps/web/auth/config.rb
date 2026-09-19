@@ -122,6 +122,9 @@ module Auth
       # Runs after AccountManagement enables :reset_password above, so the
       # overridden methods exist.
       Overrides::ResetPasswordEnumeration.configure(self)
+      # One answer for a sign-up whose login already has an account, however
+      # late it is detected (a unique violation from a concurrent sign-up).
+      Overrides::DuplicateSignup.configure(self)
       # Surface-bound sessions (#4409): stamp the establishing surface in
       # update_session, the seam shared by `login` and every autologin
       # (create/verify/reset, remember). Prepended, so it chains with the
