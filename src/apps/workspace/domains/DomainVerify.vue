@@ -9,6 +9,7 @@
   import VerifyDomainDetails from '@/apps/workspace/components/domains/VerifyDomainDetails.vue';
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
   import { useDomain } from '@/shared/composables/useDomain';
+  import { useDomainDnsRecord } from '@/shared/composables/useDomainDnsRecord';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { CustomDomainProxy, type CustomDomainResponse } from '@/schemas/api/v3/responses/domains';
   import { storeToRefs } from 'pinia';
@@ -63,35 +64,35 @@
     await fetchDomain();
   };
 
+  // Where the address record points, and whether that is Approximated's proxy.
+  // This screen serves every strategy that checks ownership (approximated and
+  // caddy_on_demand; see isDomainOwnershipChecked and the route guard). The TXT
+  // record and the verify action are common to them. The proxy targets and the
+  // DNS widget are Approximated-only.
+  const {
+    kind: addressRecordKind,
+    recordTarget: dnsTargetAddress,
+    usesApproximatedProxy,
+  } = useDomainDnsRecord(domain, cluster);
+
   // DNS Widget configuration
   // Show widget only when:
   // 1. Feature flag is enabled (dns_widget)
-  // 2. Domain exists and is not yet verified
-  // 3. Cluster uses approximated validation strategy
+  // 2. Domain exists and has not been checked yet
+  // 3. The install uses the Approximated proxy (the widget is Approximated's)
   const showDnsWidget = computed(
     () =>
       isDnsWidgetEnabled.value &&
       domain.value &&
       !domain.value.vhost?.last_monitored_unix &&
-      cluster.value?.validation_strategy === 'approximated'
+      usesApproximatedProxy.value
   );
 
-  // Show manual DNS instructions for non-approximated strategies
+  // Show the written DNS instructions when the domain points at this install
+  // rather than at the Approximated proxy
   const showManualInstructions = computed(
-    () =>
-      domain.value &&
-      !domain.value.vhost?.last_monitored_unix &&
-      cluster.value?.validation_strategy !== 'approximated'
+    () => domain.value && !domain.value.vhost?.last_monitored_unix && !usesApproximatedProxy.value
   );
-
-  // Target address for DNS records (IP for apex domains, hostname otherwise)
-  const dnsTargetAddress = computed(() => {
-    // For apex domains, use the proxy IP; otherwise use proxy_host for CNAME
-    if (domain.value?.is_apex) {
-      return cluster.value?.proxy_ip ?? '';
-    }
-    return cluster.value?.proxy_host ?? '';
-  });
 
   // Check if enough time has passed since last verification
   const canVerify = (): boolean => {
@@ -183,17 +184,23 @@
               class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>
             at
             <span
-              :title="cluster?.proxy_name ?? ''"
-              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.proxy_host }}</span>{{ t('web.domains.if_you_already_have_a_cname_record_for_that_addr') }}
+              data-testid="manual-dns-target"
+              class="bg-white px-2 dark:bg-gray-800">{{ dnsTargetAddress }}</span>{{ t('web.domains.if_you_already_have_a_cname_record_for_that_addr') }}
             <span
-              :title="cluster?.proxy_name ?? ''"
-              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.proxy_host }}</span>
+              class="bg-white px-2 dark:bg-gray-800">{{ dnsTargetAddress }}</span>
             {{ t('web.domains.and_remove_any_other_a_aaaa_or_cname_records_for') }}
           </p>
+          <!-- Disclaimer for apex domains. Pointing at this install by name
+               needs ALIAS/ANAME; pointing at the Approximated proxy uses an A
+               record to its IP. -->
           <p
-            v-if="domain?.is_apex"
+            v-if="addressRecordKind === 'alias'"
             class="border-l-4 border-yellow-500 bg-yellow-100 p-4 text-yellow-700">
-            <!-- Disclaimer for apex domains -->
+            <strong>{{ t('web.COMMON.important') }}:</strong> {{ t('web.domains.dns.apex_notice') }}
+          </p>
+          <p
+            v-else-if="addressRecordKind === 'a'"
+            class="border-l-4 border-yellow-500 bg-yellow-100 p-4 text-yellow-700">
             <strong>{{ t('web.COMMON.important') }}:</strong> {{ t('web.domains.please_note_that_for_apex_domains') }}
             <span
               class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>{{ t('web.domains.a_cname_record_is_not_allowed_instead_youll_need') }}
@@ -261,7 +268,8 @@
       </div>
     </div>
 
-    <!-- Manual verification steps for non-approximated strategies -->
+    <!-- Written verification steps: the TXT record, the address record and the
+         verify action. Shown whenever the Approximated DNS widget is not. -->
     <VerifyDomainDetails
       v-if="domain && !showDnsWidget"
       :domain="domain"

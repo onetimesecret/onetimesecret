@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import { useDomainDnsRecord } from '@/shared/composables/useDomainDnsRecord';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { CustomDomainProxy, type CustomDomainResponse } from '@/schemas/api/v3/responses/domains';
 import { type CustomDomain } from '@/schemas/shapes/v3/custom-domain';
@@ -30,6 +31,20 @@ const emit = defineEmits<{
 
 const { verifyDomain, isLoading, error } = useDomainsManager();
 const { t } = useI18n();
+
+// Step 2: the address record. The TXT record in step 1 is the same under every
+// strategy that checks ownership; where the domain points is not (Approximated's
+// proxy, or this install's own host). See useDomainDnsRecord.
+const { kind, recordType, recordHost, recordHostAppendix, recordTarget } = useDomainDnsRecord(
+  () => props.domain,
+  () => props.cluster
+);
+
+const addressRecordHeading = computed(() => {
+  if (kind.value === 'a') return t('web.domains.2_create_the_a_record');
+  if (kind.value === 'alias') return t('web.domains.2_create_the_alias_record');
+  return t('web.domains.2_create_the_cname_record');
+});
 
 const success = ref<string | undefined>(undefined);
 const buttonDisabledDelay = ref(false);
@@ -73,6 +88,9 @@ const verify = async () => {
     <div class="mb-4 flex justify-end">
       <button
         v-if="withVerifyCTA"
+        type="button"
+        data-testid="verify-domain-details-button"
+        :aria-busy="isLoading"
         @click="verify"
         :disabled="isButtonDisabled"
         class="flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-3
@@ -113,54 +131,31 @@ const verify = async () => {
         </div>
       </li>
       <li
-        v-if="domain?.is_apex"
+        data-testid="verify-address-record"
         class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          {{ t('web.domains.2_create_the_a_record') }}
+          {{ addressRecordHeading }}
         </h3>
 
         <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
           <DetailField
             :label="t('web.COMMON.type')"
-            value="A" />
+            :value="recordType" />
           <DetailField
             :label="t('web.COMMON.host')"
-            :value="domain?.trd ? domain.trd : '@'"
-            :appendix="domain?.base_domain" />
+            :value="recordHost"
+            :appendix="recordHostAppendix" />
           <DetailField
             :label="t('web.COMMON.value')"
-            :value="cluster?.proxy_ip ?? ''" />
+            :value="recordTarget" />
         </div>
-      </li>
-      <li
-        v-else
-        class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
-        <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          {{ t('web.domains.2_create_the_cname_record') }}
-        </h3>
 
-        <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
-          <DetailField
-            v-if="domain?.is_apex"
-            :label="t('web.COMMON.type')"
-            value="A" />
-          <DetailField
-            v-else
-            :label="t('web.COMMON.type')"
-            value="CNAME" />
-          <DetailField
-            :label="t('web.COMMON.host')"
-            :value="domain?.trd ? domain.trd : '@'"
-            :appendix="`.${domain?.base_domain}`" />
-          <DetailField
-            v-if="domain?.is_apex"
-            :label="t('web.COMMON.value')"
-            :value="cluster?.proxy_ip ?? ''" />
-          <DetailField
-            v-else
-            :label="t('web.COMMON.value')"
-            :value="cluster?.proxy_host ?? ''" />
-        </div>
+        <!-- Apex domains cannot use a CNAME at the zone root. -->
+        <p
+          v-if="kind === 'alias'"
+          class="mt-4 border-l-4 border-yellow-500 bg-yellow-100 p-4 text-sm text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300">
+          <strong>{{ t('web.COMMON.important') }}:</strong> {{ t('web.domains.dns.apex_notice') }}
+        </p>
       </li>
       <li class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
