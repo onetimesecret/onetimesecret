@@ -328,11 +328,19 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * Whether a user is present (MFA-pending or authenticated). For UI decisions
    * (user menu vs sign-in links), never for access control.
+   *
+   * `unavailable` reached through failed refreshes keeps the last accepted
+   * snapshot, and the user has NOT been signed out: the chrome keeps showing
+   * who they are. Offering them "Sign in" there would say the opposite of the
+   * verification-unavailable view. An `unavailable` the server stated itself
+   * carries no customer, so nobody is shown.
    */
-  const isUserPresent = computed(
-    (): boolean =>
-      authStatus.value === 'mfa_pending' || (authStatus.value === 'authenticated' && !!bsCust.value)
-  );
+  const isUserPresent = computed((): boolean => {
+    if (authStatus.value === 'mfa_pending') return true;
+    if (!bsCust.value) return false;
+    if (authStatus.value === 'authenticated') return true;
+    return authStatus.value === 'unavailable' && bootstrapStore.lastSnapshotReportedSession;
+  });
 
   // Actions
 
