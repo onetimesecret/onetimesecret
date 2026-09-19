@@ -1,14 +1,21 @@
 // src/shared/stores/authStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia/types';
-import {
-  bootstrapSchema,
-  effectiveAuthStatus,
-  type ClientAuthStatus,
-} from '@/schemas/contracts/bootstrap';
+import { effectiveAuthStatus, type ClientAuthStatus } from '@/schemas/contracts/bootstrap';
 import { classifyError, errorGuards } from '@/schemas/errors';
 import { clearDiagnosticsActorContext } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
+import { attemptForcedPageLoad } from '@/utils/forcedPageLoad';
+import { parkSessionTransition, type SessionTransition } from '@/utils/sessionTransition';
+import {
+  classifySnapshot,
+  describeGeneratedAt,
+  isClockRegression,
+  pairOf,
+  parseCompleteSnapshot,
+  type SnapshotDecision,
+} from '@/utils/snapshotOrdering';
+import { addBreadcrumb } from '@sentry/vue';
 import { AxiosInstance } from 'axios';
 import { defineStore, getActivePinia, PiniaCustomProperties, storeToRefs } from 'pinia';
 import { computed, inject, ref } from 'vue';
@@ -61,6 +68,18 @@ import { useBootstrapStore } from './bootstrapStore';
  *   server's Retry-After. At MAX_FAILURES the status becomes `unavailable`
  *   and retries continue at the cap. It never signs the user out: a client
  *   that cannot reach the server has learned nothing about the session.
+ *
+ * ───────────────────────────────────────────────────────────────────────────────
+ * ACCEPTANCE (#4464, ADR-046 "Client acceptance")
+ * ───────────────────────────────────────────────────────────────────────────────
+ *
+ * A response on the current generation is classified by
+ * `classifySnapshot` (src/utils/snapshotOrdering.ts) and then exactly one of
+ * three things happens: it is applied as a unit; the tab takes the forced page
+ * load path (a session that ended or was replaced outside this tab is never
+ * applied in place); or, for an anomaly, it is retried once immediately and a
+ * second consecutive anomaly takes the forced page load path. A refused
+ * snapshot mutates nothing.
  */
 export const AUTH_CHECK_CONFIG = {
   INTERVAL: 15 * 60 * 1000,
@@ -76,11 +95,15 @@ export const AUTH_CHECK_CONFIG = {
   RETRY_AFTER_CAP: 5 * 60 * 1000,
 } as const;
 
+/** Why the tab took the forced page load path (ADR-046). */
+export type ForcedPageLoadCause = SessionTransition | 'anomaly';
+
 export type RefreshKind = 'ordinary' | 'auth-mutation';
 
 /** Why a refresh was requested. Diagnostic only; it never changes the outcome. */
 export type RefreshReason =
   | 'initial-verification'
+  | 'unordered-hydration'
   | 'interval'
   | 'visibility'
   | 'rejection'
@@ -106,8 +129,11 @@ export interface RefreshRequest {
  * - `applied`    a snapshot of the current generation was accepted and applied.
  * - `failed`     no usable statement was obtained; nothing changed.
  * - `superseded` a later generation started first; this response was dropped.
+ * - `refused`    the snapshot was not applied and the tab is in the
+ *                stale-session state (a page load is under way, was cancelled,
+ *                or was bounded). Nothing changed.
  */
-export type RefreshOutcome = 'applied' | 'failed' | 'superseded';
+export type RefreshOutcome = 'applied' | 'failed' | 'superseded' | 'refused';
 
 /**
  * Parses a Retry-After header (delay-seconds or HTTP-date) into milliseconds.
@@ -152,6 +178,7 @@ export type AuthStore = {
   failureCount: number | null;
   lastCheckTime: number | null;
   _initialized: boolean;
+  staleSession: boolean;
 
   // Getters (all derived from bootstrapStore.authStatus)
   authStatus: ClientAuthStatus;
@@ -167,6 +194,7 @@ export type AuthStore = {
   refresh: (request: RefreshRequest) => Promise<RefreshOutcome>;
   retryNow: () => Promise<RefreshOutcome>;
   stop: () => void;
+  forcePageLoad: (cause: ForcedPageLoadCause) => void;
   checkWindowStatus: () => Promise<boolean>;
   refreshAuthState: () => Promise<void>;
   setAuthenticated: (value: boolean) => Promise<void>;
@@ -192,6 +220,16 @@ export type AuthStore = {
  * in memory, so the import resolves from cache.
  */
 type Resettable = () => { $reset: () => void };
+
+/** One caller-visible refresh. An anomaly retry moves it to a new generation. */
+interface Flight {
+  generation: number;
+  controller: AbortController;
+  promise: Promise<RefreshOutcome>;
+}
+
+/** Outcome of a single request; `anomaly` asks run() for the one retry. */
+type AttemptOutcome = RefreshOutcome | 'anomaly';
 const ACCOUNT_SCOPED_STORES: Readonly<Record<string, () => Promise<Resettable>>> = {
   account: () => import('./accountStore').then((m) => m.useAccountStore),
   customer: () => import('./customerStore').then((m) => m.useCustomerStore),
@@ -215,14 +253,19 @@ export const useAuthStore = defineStore('auth', () => {
   const failureCount = ref<number | null>(null);
   const lastCheckTime = ref<number | null>(null);
   const _initialized = ref(false);
+  /**
+   * The stale-session state (ADR-046 "Forced page load"). Entered
+   * synchronously before a forced reload and never left: a page load discards
+   * it, and if the user cancels the browser's prompt it is what keeps the
+   * persistent notice up. While set, no request is made and no snapshot is
+   * applied.
+   */
+  const staleSession = ref(false);
 
   // Coordinator bookkeeping. Not reactive: nothing renders from it.
   let generation = 0;
-  let inFlight: {
-    generation: number;
-    controller: AbortController;
-    promise: Promise<RefreshOutcome>;
-  } | null = null;
+  let inFlight: Flight | null = null;
+  let consecutiveAnomalies = 0;
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
   let visibilityHandler: (() => void) | null = null;
 
@@ -288,6 +331,15 @@ export const useAuthStore = defineStore('auth', () => {
     listenForVisibility();
     _initialized.value = true;
 
+    // Hydration reports a session but carries no ordering pair: degraded
+    // hydration, a request that authenticated after the allocation middleware
+    // ran, or a server that predates the contract. One immediate ordinary
+    // refresh establishes the watermark (ADR-046 "Client acceptance").
+    if (bootstrapStore.lastSnapshotReportedSession && !bootstrapStore.watermark) {
+      recordOrdering('degraded-hydration', {});
+      void refresh({ kind: 'ordinary', reason: 'unordered-hydration' });
+    }
+
     loggingService.debug('[AuthStore.init] Initialization complete:', {
       authStatus: authStatus.value,
       needsCheck: needsCheck.value,
@@ -333,6 +385,10 @@ export const useAuthStore = defineStore('auth', () => {
    * Requests a complete snapshot. The ONLY caller of GET /bootstrap/me.
    */
   function refresh(request: RefreshRequest): Promise<RefreshOutcome> {
+    // Stale-session state: ordinary refreshes stay stopped and no snapshot is
+    // applied. Only a page load leaves it.
+    if (staleSession.value) return Promise.resolve('refused');
+
     if (request.kind === 'ordinary' && inFlight) {
       loggingService.debug('[AuthStore.refresh] Joined the request in flight', {
         reason: request.reason,
@@ -344,47 +400,63 @@ export const useAuthStore = defineStore('auth', () => {
     clearRetry();
 
     generation += 1;
-    const mine = generation;
-    const controller = new AbortController();
-    const promise = run(mine, controller.signal, request).finally(() => {
-      if (inFlight?.generation === mine) inFlight = null;
+    const flight: Flight = {
+      generation,
+      controller: new AbortController(),
+      promise: Promise.resolve('superseded'),
+    };
+    flight.promise = run(flight, request).finally(() => {
+      if (inFlight === flight) inFlight = null;
     });
-    inFlight = { generation: mine, controller, promise };
-    return promise;
+    inFlight = flight;
+    return flight.promise;
   }
 
-  async function run(
+  /**
+   * One caller-visible refresh: a request and, after a first anomaly, the one
+   * immediate retry ADR-046 allows. The retry is a new request for a complete
+   * snapshot, so it takes the next generation; callers that joined this
+   * flight keep waiting on the same promise.
+   */
+  async function run(flight: Flight, request: RefreshRequest): Promise<RefreshOutcome> {
+    for (;;) {
+      const outcome = await attempt(flight.generation, flight.controller.signal, request);
+      if (outcome !== 'anomaly') return outcome;
+      generation += 1;
+      flight.generation = generation;
+    }
+  }
+
+  async function attempt(
     mine: number,
     signal: AbortSignal,
     request: RefreshRequest
-  ): Promise<RefreshOutcome> {
+  ): Promise<AttemptOutcome> {
     loggingService.debug('[AuthStore.refresh] Requesting snapshot', { ...request, generation: mine });
 
     let retryAfterMs = 0;
     try {
       const response = await $api.get(AUTH_CHECK_CONFIG.ENDPOINT, { signal });
-      if (mine !== generation) return 'superseded';
+      if (mine !== generation) return dropped(mine, request);
 
       // Validate BEFORE anything is mutated. A payload that fails the shared
       // contract reaches no store.
-      const parsed = bootstrapSchema.safeParse(response.data);
-      if (parsed.success && effectiveAuthStatus(parsed.data) !== 'unavailable') {
-        // Epoch/version acceptance (ADR-046, #4464) slots in here: between a
-        // current generation and the commit below.
-        await commit(parsed.data);
-        return 'applied';
+      const parsed = parseCompleteSnapshot(response.data);
+      if (parsed.ok && effectiveAuthStatus(parsed.payload) !== 'unavailable') {
+        return await accept(mine, request, parsed.payload, parsed.pairMalformed);
       }
       // `unavailable` from the server is a failed verification, not a verdict:
       // applying it would read as "session ended" during an auth-DB outage.
       // Paths only, never values: the payload carries personal data.
       loggingService.warn('[AuthStore.refresh] Snapshot not usable', {
         generation: mine,
-        contractValid: parsed.success,
-        invalidPaths: parsed.success ? [] : parsed.error.issues.map((issue) => issue.path.join('.')),
+        contractValid: parsed.ok,
+        invalidPaths: parsed.ok ? [] : parsed.invalidPaths,
       });
     } catch (error) {
-      if (mine !== generation) return 'superseded';
+      if (mine !== generation) return dropped(mine, request);
       retryAfterMs = parseRetryAfter(retryAfterHeader(error));
+      if (isAllocationFailure(error)) recordOrdering('allocation-failure', { generation: mine });
       const classified = classifyError(error);
       if (!errorGuards.isOfHumanInterest(classified)) loggingService.error(classified);
     }
@@ -393,12 +465,140 @@ export const useAuthStore = defineStore('auth', () => {
     return 'failed';
   }
 
+  function dropped(mine: number, request: RefreshRequest): 'superseded' {
+    recordOrdering('generation-invalidated', { generation: mine, kind: request.kind });
+    return 'superseded';
+  }
+
+  /**
+   * The acceptance check and the commit, as one transaction (ADR-046). No
+   * await separates the decision from applySnapshot(), so nothing can
+   * interleave; a decision other than `apply` mutates no store.
+   */
+  async function accept(
+    mine: number,
+    request: RefreshRequest,
+    payload: Parameters<typeof bootstrapStore.applySnapshot>[0],
+    pairMalformed: boolean
+  ): Promise<AttemptOutcome> {
+    const watermark = bootstrapStore.watermark;
+    const pair = pairOf(payload);
+    const status = effectiveAuthStatus(payload);
+    const decision = classifySnapshot({
+      generationIsCurrent: mine === generation,
+      kind: request.kind,
+      watermark,
+      retiredEpochs: bootstrapStore.retiredEpochs,
+      priorSession: bootstrapStore.lastSnapshotReportedSession,
+      reportsSession: status === 'authenticated' || status === 'mfa_pending',
+      pair,
+    });
+    const ordering = {
+      generation: mine,
+      kind: request.kind,
+      epoch: pair?.epoch,
+      version: pair?.version,
+      prior_epoch: watermark?.epoch,
+      prior_version: watermark?.version,
+      pair_malformed: pairMalformed || undefined,
+    };
+
+    switch (decision.outcome) {
+      case 'stale':
+        return dropped(mine, request);
+
+      case 'force-page-load':
+        recordOrdering(decision.cause === 'ended' ? 'session-ended' : 'session-replaced', ordering);
+        forcePageLoad(decision.cause);
+        return 'refused';
+
+      case 'anomaly':
+        consecutiveAnomalies += 1;
+        recordOrdering('anomaly', { ...ordering, cause: decision.cause, consecutive: consecutiveAnomalies });
+        if (consecutiveAnomalies < 2) return 'anomaly';
+        forcePageLoad('anomaly');
+        return 'refused';
+
+      case 'apply':
+        recordApplied(decision.stream, payload.snapshot_generated_at, ordering);
+        consecutiveAnomalies = 0;
+        await commit(payload, decision.retire);
+        return 'applied';
+    }
+  }
+
+  /**
+   * Diagnostics for a snapshot that IS being applied. `snapshot_generated_at`
+   * is read here and nowhere else: it never decides anything (ADR-046).
+   */
+  function recordApplied(
+    stream: Extract<SnapshotDecision, { outcome: 'apply' }>['stream'],
+    generatedAtRaw: unknown,
+    ordering: Record<string, unknown>
+  ) {
+    const prior = describeGeneratedAt(bootstrapStore.snapshot_generated_at);
+    const generatedAt = describeGeneratedAt(generatedAtRaw);
+    if (ordering.epoch !== undefined && generatedAt.state !== 'ok') {
+      recordOrdering(`generated-at-${generatedAt.state}`, { ...ordering, age: 'unknown' });
+    }
+    if (stream === 'advance' && isClockRegression(prior, generatedAt)) {
+      recordOrdering('clock-regression', ordering);
+    }
+    if (stream === 'ended') recordOrdering('session-ended', ordering);
+    if (stream === 'new-epoch') recordOrdering('session-replaced', ordering);
+  }
+
+  /**
+   * Structured ordering diagnostics (ADR-046 "Refresh coordination"): ordering
+   * metadata only, never payload contents. `snapshot_epoch` correlates one
+   * session's events and is treated as such; it is not a credential and cannot
+   * be reversed to the session ID.
+   */
+  function recordOrdering(event: string, data: Record<string, unknown>) {
+    const routine = event === 'generation-invalidated';
+    const fields = { event, ...data };
+    if (routine) loggingService.debug('[AuthStore.ordering]', fields);
+    else loggingService.warn(`[AuthStore.ordering] ${event}`, fields);
+    addBreadcrumb({
+      category: 'bootstrap.ordering',
+      level: routine ? 'debug' : 'warning',
+      message: event,
+      data: fields,
+    });
+  }
+
+  /**
+   * The forced page load path (ADR-046, #4465).
+   *
+   * Order matters. The stale-session state is entered SYNCHRONOUSLY, before
+   * the reload: browsers do not report a cancelled `beforeunload` prompt, so
+   * the notice must already be up if the user stays. Refreshes stop, nothing
+   * in flight can land, and the reload is never retried. It must not go
+   * through logout(): that clears sessionStorage, and with it the loop-bound
+   * marker and the parked transition message.
+   */
+  function forcePageLoad(cause: ForcedPageLoadCause) {
+    if (staleSession.value) return;
+    staleSession.value = true;
+    stop();
+
+    // The next page says why, once (#4461). An anomaly is not a session
+    // transition and has nothing to tell the user.
+    if (cause !== 'anomaly') parkSessionTransition(cause);
+
+    const result = attemptForcedPageLoad();
+    recordOrdering('forced-page-load', { cause, result });
+  }
+
   /** Applies an accepted snapshot and clears what no longer belongs. */
-  async function commit(snapshot: Parameters<typeof bootstrapStore.applySnapshot>[0]) {
+  async function commit(
+    snapshot: Parameters<typeof bootstrapStore.applySnapshot>[0],
+    retire: string | null = null
+  ) {
     const priorStatus = authStatus.value;
     const priorAccount = bootstrapStore.custid;
 
-    bootstrapStore.applySnapshot(snapshot);
+    bootstrapStore.applySnapshot(snapshot, { retire });
 
     const lostAuthority = priorStatus === 'authenticated' && authStatus.value !== 'authenticated';
     const changedAccount = priorAccount !== '' && priorAccount !== bootstrapStore.custid;
@@ -547,6 +747,8 @@ export const useAuthStore = defineStore('auth', () => {
     failureCount.value = null;
     lastCheckTime.value = null;
     _initialized.value = false;
+    consecutiveAnomalies = 0;
+    // staleSession is NOT reset: only a page load leaves that state.
   }
 
   /**
@@ -570,6 +772,7 @@ export const useAuthStore = defineStore('auth', () => {
     failureCount,
     lastCheckTime,
     _initialized,
+    staleSession,
 
     // Getters
     authStatus: status,
@@ -585,6 +788,7 @@ export const useAuthStore = defineStore('auth', () => {
     refresh,
     retryNow,
     stop,
+    forcePageLoad,
     checkWindowStatus,
     refreshAuthState,
     logout,
@@ -597,6 +801,19 @@ export const useAuthStore = defineStore('auth', () => {
     $reset,
   };
 });
+
+/** The 503 GET /bootstrap/me answers when the ordering pair cannot be allocated. */
+function isAllocationFailure(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null || !('response' in error)) return false;
+  const response = (error as { response?: { status?: unknown; data?: unknown } }).response;
+  const data = response?.data;
+  return (
+    response?.status === 503 &&
+    typeof data === 'object' &&
+    data !== null &&
+    (data as { error_type?: unknown }).error_type === 'SnapshotOrderingUnavailable'
+  );
+}
 
 /** Reads Retry-After from an axios-shaped error without assuming its class. */
 function retryAfterHeader(error: unknown): unknown {

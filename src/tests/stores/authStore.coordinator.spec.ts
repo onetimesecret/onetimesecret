@@ -15,8 +15,10 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import {
   anonymousBootstrap,
   authenticatedBootstrap,
+  inOtherEpoch,
   mfaPendingBootstrap,
   mockCustomer,
+  newerSnapshot,
   unavailableBootstrap,
 } from '@/tests/fixtures/bootstrap.fixture';
 import { toWire } from '@/tests/fixtures/bootstrap-wire';
@@ -30,12 +32,27 @@ const BOOTSTRAP_KEY = '__BOOTSTRAP_ME__';
 
 type Reply = [number, unknown?, Record<string, string>?];
 
+// Another account is another session: its snapshots start a new epoch.
 const accountB: BootstrapPayload = {
-  ...authenticatedBootstrap,
+  ...inOtherEpoch(authenticatedBootstrap),
   cust: { ...mockCustomer, objid: 'cust-b', extid: 'ur-b', email: 'b@example.com' },
   custid: 'ur-b',
   email: 'b@example.com',
 };
+
+// The forced page load path is covered in authStore.acceptance.spec.ts; here
+// it must only never reach jsdom's unimplemented navigation.
+vi.mock('@/utils/forcedPageLoad', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/forcedPageLoad')>()),
+  attemptForcedPageLoad: vi.fn(() => 'reloading'),
+}));
+
+/**
+ * The wire form of the NEXT snapshot in the stream. A refresh response must be
+ * strictly newer than what the tab holds, or it is an anomaly (ADR-046).
+ */
+let tick = 0;
+const next = (payload: BootstrapPayload) => toWire(newerSnapshot(payload, ++tick));
 
 /** A reply the test resolves by hand, to control the order responses land in. */
 function deferred() {
@@ -104,7 +121,7 @@ describe('authStore refresh coordinator (#4459)', () => {
 
     it('missing hydration becomes whatever the server then says', async () => {
       await mountWith(null);
-      axiosMock.onGet(ENDPOINT).reply(200, toWire(authenticatedBootstrap));
+      axiosMock.onGet(ENDPOINT).reply(() => [200, next(authenticatedBootstrap)]);
 
       expect(await store.refresh({ kind: 'ordinary', reason: 'initial-verification' })).toBe('applied');
 
@@ -116,7 +133,7 @@ describe('authStore refresh coordinator (#4459)', () => {
   describe('deduplication', () => {
     it('concurrent ordinary requests share one request', async () => {
       await mountWith(authenticatedBootstrap);
-      axiosMock.onGet(ENDPOINT).reply(200, toWire(authenticatedBootstrap));
+      axiosMock.onGet(ENDPOINT).reply(() => [200, next(authenticatedBootstrap)]);
 
       const outcomes = await Promise.all([
         store.refresh({ kind: 'ordinary', reason: 'visibility' }),
@@ -131,7 +148,7 @@ describe('authStore refresh coordinator (#4459)', () => {
 
     it('an ordinary request joins an authentication mutation already in flight', async () => {
       await mountWith(anonymousBootstrap);
-      axiosMock.onGet(ENDPOINT).reply(200, toWire(authenticatedBootstrap));
+      axiosMock.onGet(ENDPOINT).reply(() => [200, next(authenticatedBootstrap)]);
 
       await Promise.all([store.setAuthenticated(true), store.refresh({ kind: 'ordinary', reason: 'csrf' })]);
 
@@ -147,7 +164,7 @@ describe('authStore refresh coordinator (#4459)', () => {
 
       const pending = store.refresh({ kind: 'ordinary', reason: 'interval' });
       await store.logout();
-      late.resolve([200, toWire(authenticatedBootstrap)]);
+      late.resolve([200, next(authenticatedBootstrap)]);
 
       expect(await pending).toBe('superseded');
       expect(store.authStatus).toBe('anonymous');
@@ -168,7 +185,7 @@ describe('authStore refresh coordinator (#4459)', () => {
       newer.resolve([200, toWire(anonymousBootstrap)]);
       expect(await second).toBe('applied');
       // ...and the older one, still saying "authenticated", lands afterwards.
-      older.resolve([200, toWire(authenticatedBootstrap)]);
+      older.resolve([200, next(authenticatedBootstrap)]);
       expect(await first).toBe('superseded');
 
       expect(store.authStatus).toBe('anonymous');
@@ -196,7 +213,7 @@ describe('authStore refresh coordinator (#4459)', () => {
     it('a superseded FAILURE counts for nothing either', async () => {
       await mountWith(authenticatedBootstrap);
       const older = deferred();
-      axiosMock.onGet(ENDPOINT).replyOnce(() => older.promise).onGet(ENDPOINT).reply(200, toWire(authenticatedBootstrap));
+      axiosMock.onGet(ENDPOINT).replyOnce(() => older.promise).onGet(ENDPOINT).reply(() => [200, next(authenticatedBootstrap)]);
 
       const first = store.refresh({ kind: 'ordinary', reason: 'interval' });
       await store.refresh({ kind: 'auth-mutation', reason: 'mfa' });
@@ -239,19 +256,19 @@ describe('authStore refresh coordinator (#4459)', () => {
     it('the same account refreshing resets nothing', async () => {
       await mountWith(authenticatedBootstrap);
       const reset = vi.spyOn(useOrganizationStore(), '$reset');
-      axiosMock.onGet(ENDPOINT).reply(200, toWire(authenticatedBootstrap));
+      axiosMock.onGet(ENDPOINT).reply(() => [200, next(authenticatedBootstrap)]);
 
       await store.refresh({ kind: 'ordinary', reason: 'interval' });
 
       expect(reset).not.toHaveBeenCalled();
     });
 
-    it('losing authority resets them', async () => {
+    it("losing authority through this tab's own mutation resets them", async () => {
       await mountWith(authenticatedBootstrap);
       const reset = vi.spyOn(useOrganizationStore(), '$reset');
       axiosMock.onGet(ENDPOINT).reply(200, toWire(anonymousBootstrap));
 
-      await store.refresh({ kind: 'ordinary', reason: 'interval' });
+      await store.refresh({ kind: 'auth-mutation', reason: 'check' });
 
       expect(store.authStatus).toBe('anonymous');
       expect(reset).toHaveBeenCalledTimes(1);
@@ -313,7 +330,7 @@ describe('authStore refresh coordinator (#4459)', () => {
       expect(store.authStatus).toBe('unavailable');
 
       axiosMock.reset();
-      axiosMock.onGet(ENDPOINT).reply(200, toWire(authenticatedBootstrap));
+      axiosMock.onGet(ENDPOINT).reply(() => [200, next(authenticatedBootstrap)]);
       expect(await store.retryNow()).toBe('applied');
 
       expect(store.authStatus).toBe('authenticated');
@@ -400,7 +417,7 @@ describe('authStore refresh coordinator (#4459)', () => {
 
     it('a success cancels the pending retry', async () => {
       await mountWith(authenticatedBootstrap);
-      axiosMock.onGet(ENDPOINT).replyOnce(500).onGet(ENDPOINT).reply(200, toWire(authenticatedBootstrap));
+      axiosMock.onGet(ENDPOINT).replyOnce(500).onGet(ENDPOINT).reply(() => [200, next(authenticatedBootstrap)]);
 
       await store.refresh({ kind: 'ordinary', reason: 'interval' });
       await store.retryNow();
@@ -419,7 +436,7 @@ describe('authStore refresh coordinator (#4459)', () => {
 
     it('returning to a STALE visible tab makes exactly one request', async () => {
       await mountWith(authenticatedBootstrap);
-      axiosMock.onGet(ENDPOINT).reply(200, toWire(authenticatedBootstrap));
+      axiosMock.onGet(ENDPOINT).reply(() => [200, next(authenticatedBootstrap)]);
       vi.setSystemTime(Date.now() + AUTH_CHECK_CONFIG.INTERVAL + 1000);
 
       setVisibility('visible');
@@ -457,7 +474,7 @@ describe('authStore refresh coordinator (#4459)', () => {
 
     it('the passive interval fires once per interval while authenticated', async () => {
       await mountWith(authenticatedBootstrap);
-      axiosMock.onGet(ENDPOINT).reply(200, toWire(authenticatedBootstrap));
+      axiosMock.onGet(ENDPOINT).reply(() => [200, next(authenticatedBootstrap)]);
 
       await vi.advanceTimersByTimeAsync(AUTH_CHECK_CONFIG.INTERVAL + AUTH_CHECK_CONFIG.JITTER);
       expect(requests()).toBe(1);
@@ -511,7 +528,7 @@ describe('authStore refresh coordinator (#4459)', () => {
 
       const stale = store.refresh({ kind: 'ordinary', reason: 'interval' });
       await store.refresh({ kind: 'auth-mutation', reason: 'login' });
-      late.resolve([200, toWire(authenticatedBootstrap)]);
+      late.resolve([200, next(authenticatedBootstrap)]);
       await stale;
 
       expect(store.authStatus).toBe('anonymous');

@@ -18,6 +18,7 @@ import {
   updateBootstrapSnapshot,
 } from '@/services/bootstrap.service';
 import { setDiagnosticsActorContext } from '@/services/diagnostics.service';
+import { parseCompleteSnapshot } from '@/utils/snapshotOrdering';
 import { defineStore } from 'pinia';
 
 /**
@@ -135,7 +136,20 @@ const AUTH_AUTHORITY_KEYS = [
 ] as const satisfies ReadonlyArray<keyof BootstrapPayload>;
 
 /** State keys that are not part of the server payload. */
-const CLIENT_ONLY_KEYS: ReadonlySet<string> = new Set(['_initialized', 'authStatus']);
+const CLIENT_ONLY_KEYS: ReadonlySet<string> = new Set([
+  '_initialized',
+  'authStatus',
+  'retiredEpochs',
+]);
+
+/**
+ * The accepted ordering pair (ADR-046). `version` stays a decimal string:
+ * compare with BigInt, never as a number.
+ */
+export interface SnapshotWatermark {
+  epoch: string;
+  version: string;
+}
 
 /**
  * Filters out undefined values from an object.
@@ -164,6 +178,12 @@ interface BootstrapState extends BootstrapPayload {
    * init(), applySnapshot(), withholdAuthority() and the two resets.
    */
   authStatus: ClientAuthStatus;
+  /**
+   * Every snapshot epoch this page has replaced (ADR-046, #4464). A snapshot
+   * from one of them is an anomaly for the lifetime of the page, so this
+   * survives both resets; only a page load forgets it.
+   */
+  retiredEpochs: string[];
 }
 
 /** Restores every account-scoped key of `target` to its logged-out default. */
@@ -242,6 +262,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
     ...structuredClone(DEFAULTS),
     _initialized: false,
     authStatus: 'checking',
+    retiredEpochs: [],
   }),
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -253,6 +274,28 @@ export const useBootstrapStore = defineStore('bootstrap', {
      * Whether the store has been initialized from bootstrap data.
      */
     isInitialized: (state): boolean => state._initialized,
+
+    /**
+     * The ordering watermark (ADR-046, #4464): the epoch and version of the
+     * last APPLIED complete snapshot, or null when the tab is unordered.
+     *
+     * Derived, not stored separately, so it cannot drift from the state it
+     * describes. applySnapshot() replaces both fields with the snapshot's own
+     * (clearing them when the snapshot carries none), and update() drops them
+     * with the other authority keys, so a local patch can never advance it.
+     */
+    watermark: (state): SnapshotWatermark | null =>
+      state.snapshot_epoch !== undefined && state.snapshot_version !== undefined
+        ? { epoch: state.snapshot_epoch, version: state.snapshot_version }
+        : null,
+
+    /**
+     * Whether the last ACCEPTED snapshot reported a session. Unlike
+     * `authStatus` this does not change when authority is withheld after
+     * failed refreshes: it answers "did the server last say there was a
+     * session", which is what decides whether a later "no session" is an end.
+     */
+    lastSnapshotReportedSession: (state): boolean => state.authenticated || state.awaiting_mfa,
 
     /**
      * Header configuration from UI settings.
@@ -332,10 +375,14 @@ export const useBootstrapStore = defineStore('bootstrap', {
           return { isInitialized: true };
         }
 
-        const parsed = bootstrapSchema.safeParse(snapshot);
+        // Hydration establishes the initial watermark (ADR-046, #4464): a full
+        // page load has no preceding watermark and accepts its validated pair
+        // as the start of the stream. Without a valid pair the tab starts
+        // unordered; a malformed pair does not make the rest unreadable.
+        const parsed = parseCompleteSnapshot(snapshot);
 
-        if (parsed.success) {
-          this.applySnapshot(parsed.data);
+        if (parsed.ok) {
+          this.applySnapshot(parsed.payload);
         } else {
           // Invalid hydration. The configuration half is still applied as it
           // always was, so the page renders in the right locale and with the
@@ -345,7 +392,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
           // statement about who is signed in.
           console.error(
             '[BootstrapStore.init] Hydration failed the bootstrap contract, status: checking',
-            parsed.error.issues.map((issue) => issue.path.join('.'))
+            parsed.invalidPaths
           );
           const config: Record<string, unknown> = { ...filterDefined(snapshot) };
           for (const key of AUTH_AUTHORITY_KEYS) delete config[key];
@@ -389,9 +436,15 @@ export const useBootstrapStore = defineStore('bootstrap', {
      * its logged-out default, whatever the payload carried. The store, the
      * pre-Pinia mirror and the diagnostics actor context change together.
      *
+     * Ordering (ADR-046, #4464): the snapshot's own epoch/version pair becomes
+     * the watermark in the same patch, and `retire` names an epoch the caller
+     * decided this snapshot replaces. This method does not decide acceptance;
+     * the refresh coordinator does, before calling it.
+     *
      * @param snapshot - Output of bootstrapSchema.parse/safeParse, never raw JSON
+     * @param options.retire - Epoch to remember as replaced, if any
      */
-    applySnapshot(snapshot: BootstrapPayload): void {
+    applySnapshot(snapshot: BootstrapPayload, options: { retire?: string | null } = {}): void {
       const status = effectiveAuthStatus(snapshot);
       const next: Record<string, unknown> = { ...structuredClone(DEFAULTS), ...snapshot };
 
@@ -422,6 +475,9 @@ export const useBootstrapStore = defineStore('bootstrap', {
         Object.assign(target, next);
         state.authStatus = status;
         state._initialized = true;
+        if (options.retire && !state.retiredEpochs.includes(options.retire)) {
+          state.retiredEpochs.push(options.retire);
+        }
       });
 
       replaceBootstrapSnapshot(next as Partial<BootstrapPayload>);
@@ -521,6 +577,17 @@ export const useBootstrapStore = defineStore('bootstrap', {
         disabled_homepage: this.disabled_homepage,
       };
 
+      // A local sign-out ends this tab's stream: retire its epoch so a
+      // snapshot from the signed-out session is never accepted again, and
+      // keep the epochs already retired (ADR-046: remembered for the
+      // lifetime of the page). $reset() clears the pair, so the tab
+      // continues unordered.
+      const retiredEpochs = [...this.retiredEpochs];
+      const endedEpoch = this.snapshot_epoch;
+      if (endedEpoch !== undefined && !retiredEpochs.includes(endedEpoch)) {
+        retiredEpochs.push(endedEpoch);
+      }
+
       // Use built-in $reset to restore all state to DEFAULTS
       this.$reset();
 
@@ -540,6 +607,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
         state.authStatus = 'anonymous';
         state.auth_status = 'anonymous';
         state._initialized = true;
+        state.retiredEpochs = retiredEpochs;
       });
 
       // Replace the PRE-PINIA mirror as well. bootstrap.service holds a second

@@ -169,11 +169,27 @@ export const baseBootstrap: BootstrapPayload = {
 // =============================================================================
 
 /**
+ * A valid ADR-046 ordering pair. The server sends one with EVERY payload that
+ * reports a session (authenticated or MFA-pending), so the session fixtures
+ * below carry it; anonymous and unavailable payloads never do. Use
+ * `newerSnapshot()` to build the next snapshot of the same stream.
+ */
+export const snapshotOrdering = {
+  snapshot_epoch: '0123456789abcdef0123456789abcdef',
+  snapshot_version: '1758236400000001',
+  snapshot_generated_at: '2026-09-17T17:28:59.123456Z',
+} as const;
+
+/** A second session's epoch: what a login elsewhere or an SID renewal produces. */
+export const otherSnapshotEpoch = 'fedcba9876543210fedcba9876543210';
+
+/**
  * Authenticated user bootstrap state.
  * User is fully authenticated with customer data.
  */
 export const authenticatedBootstrap: BootstrapPayload = {
   ...baseBootstrap,
+  ...snapshotOrdering,
   auth_status: 'authenticated',
   authenticated: true,
   awaiting_mfa: false,
@@ -204,6 +220,7 @@ export const anonymousBootstrap: BootstrapPayload = {
  */
 export const mfaPendingBootstrap: BootstrapPayload = {
   ...baseBootstrap,
+  ...snapshotOrdering,
   auth_status: 'mfa_pending',
   authenticated: false,
   awaiting_mfa: true,
@@ -225,17 +242,6 @@ export const unavailableBootstrap: BootstrapPayload = {
   awaiting_mfa: false,
   had_valid_session: true,
 };
-
-/**
- * A valid ADR-046 ordering pair, for an ordered (authenticated or
- * MFA-pending) snapshot. Spread into a scenario fixture and override
- * `snapshot_version` to build a sequence.
- */
-export const snapshotOrdering = {
-  snapshot_epoch: '0123456789abcdef0123456789abcdef',
-  snapshot_version: '1758236400000001',
-  snapshot_generated_at: '2026-09-17T17:28:59.123456Z',
-} as const;
 
 /**
  * Colonel (admin) user bootstrap state.
@@ -273,6 +279,27 @@ export const standaloneBootstrap: BootstrapPayload = {
   ...authenticatedBootstrap,
   billing_enabled: false,
 };
+
+/**
+ * The next snapshot of the same stream: same epoch, strictly greater version.
+ * A refresh response must be newer than the snapshot the tab holds, or the
+ * coordinator classifies it as an anomaly (ADR-046 rule 4).
+ *
+ * @param by - How far to advance; use increasing values for a sequence
+ */
+export function newerSnapshot(payload: BootstrapPayload, by: number = 1): BootstrapPayload {
+  const current = BigInt(payload.snapshot_version ?? snapshotOrdering.snapshot_version);
+  return {
+    ...payload,
+    snapshot_epoch: payload.snapshot_epoch ?? snapshotOrdering.snapshot_epoch,
+    snapshot_version: (current + BigInt(by)).toString(),
+  };
+}
+
+/** The same payload as the start of ANOTHER session's stream. */
+export function inOtherEpoch(payload: BootstrapPayload): BootstrapPayload {
+  return { ...payload, snapshot_epoch: otherSnapshotEpoch };
+}
 
 /**
  * Puts a bootstrap store into a given authentication state the only way
