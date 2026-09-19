@@ -4,6 +4,8 @@
 
 require 'onetime/logger_methods'
 require 'onetime/session/customer_session_evaluator'
+require 'onetime/session/auth_status'
+require 'onetime/session/snapshot_ordering'
 require 'onetime/tenant_sso_resolution'
 
 module Core
@@ -75,15 +77,42 @@ module Core
         # evaluator MUST NOT run against the raw session, or serializers would
         # leak custid/email onto responses that historically answered as
         # anonymous. See Core::Views::BaseView#initialize for the twin gate.
+        #
+        # `auth_status` is the public projection of the verdict (#4462). On the
+        # error-recovery path it is a statement about the raw session only:
+        # `unavailable` when the session names a customer this response cannot
+        # vouch for, `anonymous` otherwise. It never carries identity.
         if strategy_result
           verdict       = Onetime::CustomerSessionEvaluator.evaluate(sess, env: req.env)
           authenticated = verdict.authenticated?
           cust          = verdict.customer
           awaiting_mfa  = verdict.mfa_pending?
+          auth_status   = Onetime::SessionAuthStatus.for_verdict(verdict)
         else
           authenticated = false
           cust          = nil
           awaiting_mfa  = false
+          auth_status   = Onetime::SessionAuthStatus.without_verdict(sess)
+        end
+
+        # Bootstrap snapshot ordering (ADR-046), allocated by
+        # Core::Middleware::SnapshotOrdering ahead of the strategy. Passed
+        # through only when the request reports a session: the pair labels a
+        # complete snapshot of an ORDERED session, and a payload that reports
+        # no session (anonymous, rejected, unavailable, error recovery) is
+        # never subjected to ordering by the client. A failed allocation
+        # ({ error: }) carries no pair and is passed as nil — the degraded
+        # hydration payload.
+        allocation        = req.env[Onetime::SnapshotOrdering::ENV_KEY]
+        reports_session   = authenticated || awaiting_mfa
+        snapshot_ordering = allocation if reports_session && allocation.is_a?(Hash) && allocation[:version]
+        if reports_session && snapshot_ordering.nil?
+          Onetime.session_logger.warn 'Bootstrap snapshot serialized without ordering',
+            {
+              module: 'InitializeViewVars',
+              error: allocation.is_a?(Hash) ? allocation[:error] : 'not_allocated',
+              request_id: req.env['HTTP_X_REQUEST_ID'],
+            }
         end
 
         # Generate masked CSRF token from the canonical Rack session, NOT the
@@ -105,11 +134,12 @@ module Core
             has_external_id: !sess&.[]('external_id').nil?,
             awaiting_mfa: awaiting_mfa,
             authenticated: authenticated,
+            auth_status: auth_status,
             request_id: req.env['HTTP_X_REQUEST_ID'],
           }
 
         # MFA-pending and refused sessions expose state only, never customer or
-        # effective-identity fields. The public wire status/codes land in #4462.
+        # effective-identity fields.
         session_email = nil
 
         # ====================================================================
@@ -266,6 +296,7 @@ module Core
 
         # Return all view variables as a hash
         {
+          'auth_status' => auth_status,
           'authenticated' => authenticated,
           'awaiting_mfa' => awaiting_mfa,
           'baseuri' => baseuri,
@@ -290,6 +321,7 @@ module Core
           'sess' => sess,
           'session_email' => session_email,
           'shrimp' => shrimp,
+          'snapshot_ordering' => snapshot_ordering,
           'site' => safe_site,
           'site_host' => site_host,
           # The request's tenant SSO answer, resolved lazily and ONCE (#4173).

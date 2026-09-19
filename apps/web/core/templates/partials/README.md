@@ -24,7 +24,7 @@ This directory contains modernized HTML `<head>` templates for the Onetime Secre
 - Open Graph meta tags for social sharing
 - Twitter Card meta tags
 
-**Usage**: Default template used in index.rue and error.rue
+**Usage**: Default template used in index.rue
 
 ### head-secret-share.rue
 **Purpose**: Optimized head content for secret sharing pages

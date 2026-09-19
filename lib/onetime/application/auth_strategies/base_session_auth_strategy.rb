@@ -11,6 +11,7 @@
 # @see Onetime::Application::AuthStrategies
 
 require_relative '../../session/customer_session_evaluator'
+require_relative '../../session/failure_code'
 require_relative 'helpers'
 require_relative 'admin_session_lifetime'
 
@@ -37,7 +38,7 @@ module Onetime
               admin_expiry_verdict(session, principal, env)
             end,
           )
-          return failure_for(verdict) unless verdict.authenticated?
+          return failure_for(verdict, env) unless verdict.authenticated?
 
           cust = verdict.customer
 
@@ -93,7 +94,17 @@ module Onetime
           )
         end
 
-        def failure_for(verdict)
+        # The typed reason is handed to Onetime::Middleware::SessionFailureCode
+        # through the env: Otto renders the 401 body itself from the failure
+        # string alone, so the reason would otherwise be collapsed into a
+        # bracket marker inside `message` (#4462).
+        #
+        # This is also where every Otto session refusal is logged, once, with
+        # its code and request id and no credential (#4461).
+        def failure_for(verdict, env)
+          env[Onetime::SessionFailureCode::ENV_KEY] = verdict.reason if env.is_a?(Hash)
+          Onetime::SessionFailureCode.log_refusal(verdict.reason, env)
+
           if verdict.reason == :admin_session_expired
             return failure(
               "[ADMIN_SESSION_EXPIRED] Admin session #{verdict.detail} timeout exceeded; sign in again",

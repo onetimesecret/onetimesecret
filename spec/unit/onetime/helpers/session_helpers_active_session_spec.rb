@@ -147,4 +147,44 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
 
     expect(env).not_to have_key(gate::ENV_KEY)
   end
+
+  it 'drops a last_use refresh deferred for the previous identity on logout! (#4455)' do
+    env     = canonical_env.merge(gate::ENV_KEY => :active, gate::TOUCH_DEFERRED_ENV_KEY => true)
+    request = instance_double(Rack::Request, env: env)
+    allow(Onetime::SessionImpersonation).to receive(:stop!)
+
+    helper_class.new(session, request).logout!
+
+    expect(env).not_to have_key(gate::TOUCH_DEFERRED_ENV_KEY)
+  end
+
+  # RISK-2026-09-19-01: only a renewed id gets an ended-marker, and only the
+  # marker stops a request in flight from writing the session back.
+  it 'renews the session id on logout!' do
+    options = {}
+    request = instance_double(Rack::Request, env: canonical_env.merge('rack.session.options' => options))
+    allow(Onetime::SessionImpersonation).to receive(:stop!)
+
+    helper_class.new(session, request).logout!
+
+    expect(options[:renew]).to be(true)
+  end
+
+  # #4461: the sid is the bearer credential. Neither it nor Rack's private id
+  # is logged; the line carries the handle every other session log line uses.
+  it 'logs the session handle on logout!, never a session id', :aggregate_failures do
+    sid            = Rack::Session::SessionId.new('c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655')
+    rack_session   = session.dup
+    rack_session.define_singleton_method(:id) { sid }
+    logged         = []
+    allow(OT).to receive(:info) { |message| logged << message }
+    allow(Onetime::SessionImpersonation).to receive(:stop!)
+
+    helper_class.new(rack_session, instance_double(Rack::Request, env: canonical_env)).logout!
+
+    line = logged.grep(/\[logout\]/).first
+    expect(line).to include("session_handle=#{Onetime::SessionMetadata.handle_for(sid.public_id)}")
+    expect(line).not_to include(sid.public_id)
+    expect(line).not_to include(sid.private_id)
+  end
 end

@@ -4,25 +4,28 @@ require 'spec_helper'
 require 'onetime/session/customer_session_evaluator'
 
 RSpec.describe Onetime::CustomerSessionEvaluator do
-  class TrackingCustomerSession < Hash
-    attr_reader :events
+  # A session Hash that records which keys the evaluator reads, in order.
+  let(:tracking_session_class) do
+    Class.new(Hash) do
+      attr_reader :events
 
-    def initialize(values, events)
-      @events = events
-      super()
-      merge!(values)
-    end
+      def initialize(values, events)
+        @events = events
+        super()
+        merge!(values)
+      end
 
-    def [](key)
-      events << key
-      super
+      def [](key)
+        events << key
+        super
+      end
     end
   end
 
   let(:events) { [] }
   let(:env) { { 'onetime.domain_strategy' => :canonical } }
   let(:session) do
-    TrackingCustomerSession.new(
+    tracking_session_class.new(
       {
         'authenticated' => true,
         'authenticated_at' => 101,
@@ -253,6 +256,39 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
       boundary = ->(_cust) { raise 'boundary must not run' }
 
       expect(described_class.evaluate(session, env: env, before_active: boundary)).to be(cached)
+    end
+  end
+
+  # #4455. A memo hit returns before the gate is consulted, so the evaluator
+  # itself must offer the gate a `last_use` refresh that a passive reader
+  # deferred earlier on the same env.
+  describe 'a deferred activity refresh on a memo hit' do
+    before { allow(Onetime::ActiveSessionGate).to receive(:settle_deferred_touch) }
+
+    it 'offers it to the gate when the memoized verdict is authenticated' do
+      described_class.evaluate(session, env: env)
+      expect(Onetime::ActiveSessionGate).not_to have_received(:settle_deferred_touch)
+
+      described_class.evaluate(session, env: env)
+
+      expect(Onetime::ActiveSessionGate).to have_received(:settle_deferred_touch).with(session, env: env).once
+    end
+
+    it 'does not offer it for a memoized refusal' do
+      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
+
+      2.times { described_class.evaluate(session, env: env) }
+
+      expect(Onetime::ActiveSessionGate).not_to have_received(:settle_deferred_touch)
+    end
+
+    it 'does not offer it when this caller\'s boundary refuses the memoized verdict' do
+      described_class.evaluate(session, env: env)
+      expired = described_class::Verdict.new(status: :rejected, reason: :admin_session_expired, detail: :idle)
+
+      described_class.evaluate(session, env: env, before_active: ->(_cust) { expired })
+
+      expect(Onetime::ActiveSessionGate).not_to have_received(:settle_deferred_touch)
     end
   end
 

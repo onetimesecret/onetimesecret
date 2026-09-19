@@ -10,8 +10,11 @@
 
 import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 import {
+  SNAPSHOT_GENERATED_AT_PATTERN,
   apiInterfaceSchema,
+  authStatusValues,
   bootstrapSchema,
+  effectiveAuthStatus,
   featuresSchema,
   impersonationSchema,
   organizationSchema,
@@ -87,7 +90,12 @@ const FRONTEND_ONLY_FIELDS: Record<string, string> = {
 // We need to get the keys from the BootstrapPayload interface.
 // Since TypeScript interfaces don't exist at runtime, we use the baseBootstrap
 // fixture which implements the interface completely.
-import { baseBootstrap } from '@/tests/fixtures/bootstrap.fixture';
+import {
+  authenticatedBootstrap,
+  baseBootstrap,
+  snapshotOrdering,
+} from '@/tests/fixtures/bootstrap.fixture';
+import { toWire } from '@/tests/fixtures/bootstrap-wire';
 
 const BOOTSTRAP_PAYLOAD_KEYS = Object.keys(baseBootstrap) as (keyof BootstrapPayload)[];
 
@@ -532,6 +540,205 @@ describe('impersonationSchema', () => {
 });
 
 // ============================================================================
+// TESTS: auth_status (#4462)
+// ============================================================================
+
+describe('Bootstrap auth_status contract', () => {
+  const cust = { objid: 'cust_1' };
+
+  it('declares exactly the four server values; checking is client-only', () => {
+    expect([...authStatusValues].sort()).toEqual(
+      ['anonymous', 'authenticated', 'mfa_pending', 'unavailable']
+    );
+    expect(bootstrapSchema.safeParse({ auth_status: 'checking' }).success).toBe(false);
+  });
+
+  it('accepts each server value', () => {
+    for (const value of authStatusValues) {
+      expect(bootstrapSchema.parse({ auth_status: value }).auth_status).toBe(value);
+    }
+  });
+
+  it('leaves the key absent for a backend that predates it (no invented default)', () => {
+    const parsed = bootstrapSchema.parse({ authenticated: false });
+    expect('auth_status' in parsed).toBe(false);
+  });
+
+  it('rejects null: the serializer always emits a value', () => {
+    expect(bootstrapSchema.safeParse({ auth_status: null }).success).toBe(false);
+  });
+
+  describe('effectiveAuthStatus can only withhold', () => {
+    it('agrees with a consistent current-backend payload', () => {
+      expect(effectiveAuthStatus({ auth_status: 'authenticated', authenticated: true, cust })).toBe(
+        'authenticated'
+      );
+      expect(effectiveAuthStatus({ auth_status: 'mfa_pending', awaiting_mfa: true, cust: null })).toBe(
+        'mfa_pending'
+      );
+      expect(effectiveAuthStatus({ auth_status: 'anonymous', cust: null })).toBe('anonymous');
+      expect(effectiveAuthStatus({ auth_status: 'unavailable', cust: null })).toBe('unavailable');
+    });
+
+    it('new frontend, old backend: derives the status from the legacy booleans', () => {
+      expect(effectiveAuthStatus({ authenticated: true, cust })).toBe('authenticated');
+      expect(effectiveAuthStatus({ authenticated: false, awaiting_mfa: true, cust: null })).toBe(
+        'mfa_pending'
+      );
+      expect(effectiveAuthStatus({ authenticated: false, cust: null })).toBe('anonymous');
+      expect(effectiveAuthStatus({})).toBe('anonymous');
+    });
+
+    it('never promotes: a status of authenticated without the projection or the customer', () => {
+      expect(effectiveAuthStatus({ auth_status: 'authenticated', authenticated: false, cust })).toBe(
+        'unavailable'
+      );
+      expect(
+        effectiveAuthStatus({ auth_status: 'authenticated', authenticated: true, cust: null })
+      ).toBe('unavailable');
+      expect(effectiveAuthStatus({ authenticated: true, cust: null })).toBe('unavailable');
+    });
+
+    it('never promotes: a non-authenticated status wins over the legacy booleans', () => {
+      for (const status of ['anonymous', 'mfa_pending', 'unavailable'] as const) {
+        expect(effectiveAuthStatus({ auth_status: status, authenticated: true, cust })).toBe(status);
+      }
+    });
+
+    it('is authenticated only when status, projection and customer all agree', () => {
+      const statuses = [undefined, ...authStatusValues];
+      for (const auth_status of statuses) {
+        for (const authenticated of [true, false, undefined]) {
+          for (const c of [cust, null, undefined]) {
+            const result = effectiveAuthStatus({ auth_status, authenticated, cust: c });
+            const allAgree =
+              (auth_status === undefined || auth_status === 'authenticated') &&
+              authenticated === true &&
+              c === cust;
+            expect(result === 'authenticated').toBe(allAgree);
+          }
+        }
+      }
+    });
+  });
+});
+
+// ============================================================================
+// TESTS: Snapshot ordering fields (ADR-046, "Payload")
+// ============================================================================
+
+describe('Bootstrap snapshot ordering contract', () => {
+  const { snapshot_epoch, snapshot_version, snapshot_generated_at } = snapshotOrdering;
+
+  it('accepts a payload with no ordering fields (anonymous, degraded, or pre-contract server)', () => {
+    const parsed = bootstrapSchema.parse({});
+    expect('snapshot_epoch' in parsed).toBe(false);
+    expect('snapshot_version' in parsed).toBe(false);
+    expect('snapshot_generated_at' in parsed).toBe(false);
+  });
+
+  it('accepts the pair together and keeps the version a string', () => {
+    const parsed = bootstrapSchema.parse({ snapshot_epoch, snapshot_version, snapshot_generated_at });
+    expect(parsed.snapshot_epoch).toBe(snapshot_epoch);
+    expect(parsed.snapshot_version).toBe(snapshot_version);
+    expect(typeof parsed.snapshot_version).toBe('string');
+  });
+
+  describe('the epoch and version are a unit', () => {
+    it('rejects an epoch without a version', () => {
+      const result = bootstrapSchema.safeParse({ snapshot_epoch });
+      expect(result.success).toBe(false);
+      expect(result.error?.issues[0].path).toEqual(['snapshot_version']);
+    });
+
+    it('rejects a version without an epoch', () => {
+      const result = bootstrapSchema.safeParse({ snapshot_version });
+      expect(result.success).toBe(false);
+      expect(result.error?.issues[0].path).toEqual(['snapshot_epoch']);
+    });
+
+    it('rejects null for either: the server omits the keys, it never nulls them', () => {
+      expect(bootstrapSchema.safeParse({ snapshot_epoch: null, snapshot_version: null }).success).toBe(
+        false
+      );
+      expect(bootstrapSchema.safeParse({ snapshot_epoch, snapshot_version: null }).success).toBe(false);
+    });
+  });
+
+  it.each([
+    ['uppercase hex', '0123456789ABCDEF0123456789ABCDEF'],
+    ['31 characters', '0123456789abcdef0123456789abcde'],
+    ['33 characters', '0123456789abcdef0123456789abcdef0'],
+    ['non-hex', 'g123456789abcdef0123456789abcdef'],
+    ['empty', ''],
+  ])('rejects a malformed epoch: %s', (_label, epoch) => {
+    expect(bootstrapSchema.safeParse({ snapshot_epoch: epoch, snapshot_version }).success).toBe(false);
+  });
+
+  it.each([
+    ['zero', '0'],
+    ['leading zero', '0123'],
+    ['negative', '-1'],
+    ['exponent form', '1.758e15'],
+    ['decimal point', '12.0'],
+    ['whitespace', ' 12'],
+    ['empty', ''],
+  ])('rejects a non-canonical version: %s', (_label, version) => {
+    expect(bootstrapSchema.safeParse({ snapshot_epoch, snapshot_version: version }).success).toBe(false);
+  });
+
+  it('rejects a JSON number version, whatever its size', () => {
+    expect(bootstrapSchema.safeParse({ snapshot_epoch, snapshot_version: 12 }).success).toBe(false);
+  });
+
+  it('carries a version beyond 2^64 exactly, comparable with BigInt', () => {
+    const huge = '18446744073709551617';
+    const parsed = bootstrapSchema.parse({ snapshot_epoch, snapshot_version: huge });
+
+    expect(parsed.snapshot_version).toBe(huge);
+    expect(BigInt(parsed.snapshot_version!) > BigInt('18446744073709551616')).toBe(true);
+    // The reason it is never a number: this comparison is wrong in doubles.
+    expect(Number(huge) > Number('18446744073709551616')).toBe(false);
+  });
+
+  describe('snapshot_generated_at never decides a parse', () => {
+    it.each([
+      ['three fractional digits', '2026-09-17T17:28:59.123Z'],
+      ['no fraction', '2026-09-17T17:28:59Z'],
+      ['an offset instead of Z', '2026-09-17T17:28:59.123456+00:00'],
+      ['not a date at all', 'yesterday'],
+      ['empty', ''],
+    ])('a malformed timestamp still parses with a valid pair: %s', (_label, generatedAt) => {
+      const result = bootstrapSchema.safeParse({
+        snapshot_epoch,
+        snapshot_version,
+        snapshot_generated_at: generatedAt,
+      });
+
+      expect(result.success).toBe(true);
+      expect(SNAPSHOT_GENERATED_AT_PATTERN.test(generatedAt)).toBe(false);
+    });
+
+    it('a missing timestamp parses with a valid pair', () => {
+      expect(bootstrapSchema.safeParse({ snapshot_epoch, snapshot_version }).success).toBe(true);
+    });
+
+    it('the separate format check accepts exactly the server format', () => {
+      expect(SNAPSHOT_GENERATED_AT_PATTERN.test(snapshot_generated_at)).toBe(true);
+    });
+
+    it('a well-formed timestamp cannot rescue an invalid pair', () => {
+      expect(bootstrapSchema.safeParse({ snapshot_epoch, snapshot_generated_at }).success).toBe(false);
+    });
+  });
+
+  it('keeps the schema an object schema: defaults and shape survive the refinement', () => {
+    expect(bootstrapSchema.parse({}).authenticated).toBe(false);
+    expect(Object.keys(bootstrapSchema.shape)).toContain('snapshot_epoch');
+  });
+});
+
+// ============================================================================
 // TESTS: Realistic Payload Parsing
 // ============================================================================
 
@@ -677,5 +884,72 @@ describe('Bootstrap type consistency', () => {
     for (const field of booleanFields) {
       expect(typeof baseBootstrap[field]).toBe('boolean');
     }
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WIRE ENCODING OF AN AUTHENTICATED PAYLOAD (#4458)
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// From #4458 the client validates hydration and every /bootstrap/me response
+// with bootstrapSchema BEFORE any store is touched, and a payload that fails
+// reads as "cannot verify". So the schema has to accept what the server
+// really sends. `cust` comes from `safe_dump`: its timestamps are epoch
+// seconds, never a Date (JSON has none). If this block fails, every signed-in
+// user fails verification.
+describe('bootstrapSchema accepts the wire encoding of cust', () => {
+  const wire = toWire(authenticatedBootstrap) as { cust: Record<string, unknown> };
+
+  it('the wire fixture really is wire-shaped', () => {
+    expect(typeof wire.cust.created).toBe('number');
+    expect(typeof wire.cust.updated).toBe('number');
+    expect(JSON.parse(JSON.stringify(wire))).toEqual(wire);
+  });
+
+  it('parses an authenticated payload with epoch-second timestamps', () => {
+    const parsed = bootstrapSchema.safeParse(wire);
+
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data.cust?.created).toBeInstanceOf(Date);
+    expect(parsed.data.cust?.updated).toBeInstanceOf(Date);
+    expect(parsed.data.cust?.created.getTime()).toBe((wire.cust.created as number) * 1000);
+    expect(effectiveAuthStatus(parsed.data)).toBe('authenticated');
+  });
+
+  it('accepts epoch seconds as a numeric string', () => {
+    const parsed = bootstrapSchema.safeParse({
+      ...wire,
+      cust: { ...wire.cust, created: '1609372800', updated: '1609459200.5' },
+    });
+
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data.cust?.created.toISOString()).toBe('2020-12-31T00:00:00.000Z');
+  });
+
+  it('last_login may be null or absent', () => {
+    for (const last_login of [null, undefined, 1609459200]) {
+      const parsed = bootstrapSchema.safeParse({ ...wire, cust: { ...wire.cust, last_login } });
+      expect(parsed.success).toBe(true);
+    }
+    const { last_login: _omitted, ...withoutLastLogin } = wire.cust;
+    const parsed = bootstrapSchema.safeParse({ ...wire, cust: withoutLastLogin });
+    expect(parsed.success && parsed.data.cust?.last_login).toBeNull();
+  });
+
+  it('is idempotent: an already-parsed snapshot parses again', () => {
+    const once = bootstrapSchema.parse(wire);
+    const twice = bootstrapSchema.parse(once);
+    expect(twice.cust?.created.getTime()).toBe(once.cust?.created.getTime());
+  });
+
+  it.each([
+    ['an ISO string', '2026-09-19T00:00:00.000Z'],
+    ['a non-numeric string', 'yesterday'],
+    ['a boolean', true],
+    ['null', null],
+  ])('still rejects %s for created', (_name, created) => {
+    expect(bootstrapSchema.safeParse({ ...wire, cust: { ...wire.cust, created } }).success).toBe(false);
   });
 });

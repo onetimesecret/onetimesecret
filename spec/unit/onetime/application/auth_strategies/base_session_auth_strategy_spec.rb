@@ -94,6 +94,14 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
       expect(env[lifetime::EXPIRED_ENV_KEY]).to eq('absolute')
     end
 
+    # #4462: Otto renders the 401 from the failure string alone, so the typed
+    # reason is handed to Onetime::Middleware::SessionFailureCode through env.
+    it 'hands the typed reason to the failure-code middleware' do
+      strategy.authenticate(env, 'authenticated')
+
+      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:admin_session_expired)
+    end
+
     # The bound runs BEFORE additional_checks, which is where role/permission
     # checks live: an expired admin session must not reach them.
     it 'never reaches additional_checks' do
@@ -169,6 +177,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
 
       expect(result.failure_reason).to include('SESSION_STALE_CREDENTIALS')
       expect(env).not_to have_key(lifetime::EXPIRED_ENV_KEY)
+      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:stale_credentials)
     end
   end
 
@@ -181,6 +190,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
       expect(result).to be_a(Otto::Security::Authentication::StrategyResult)
       expect(strategy.additional_checks_ran).to be true
       expect(env).not_to have_key(lifetime::EXPIRED_ENV_KEY)
+      expect(env).not_to have_key(Onetime::SessionFailureCode::ENV_KEY)
     end
   end
 

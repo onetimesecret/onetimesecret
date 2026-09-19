@@ -2,12 +2,22 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/application/error_correlation'
+
 require_relative 'base'
 
 module Core
   module Controllers
     class Page
       include Controllers::Base
+
+      # ADR-046 step 7. `retry_after` reaches the client as the Retry-After
+      # header through Onetime::Middleware::RetryAfterHeader.
+      SNAPSHOT_ORDERING_UNAVAILABLE = {
+        error: 'Snapshot ordering unavailable',
+        error_type: 'SnapshotOrderingUnavailable',
+        retry_after: 5,
+      }.freeze
 
       # GET /colonel and /colonel/* (role=colonel).
       #
@@ -56,9 +66,22 @@ module Core
 
         # Simplified: BaseView now extracts everything from req
         view                         = Core::Views::BootstrapMe.new(req)
+        data                         = view.serialized_data
+        log_bootstrap_verification
         res.headers['content-type']  = 'application/json; charset=utf-8'
+        # On the 503 as well: a stored failure replayed later would read as a
+        # fresh one (ADR-046, "Response caching").
         res.headers['cache-control'] = 'private, no-store'
-        res.body                     = view.serialized_data.to_json
+
+        if snapshot_unordered?(data)
+          res.status = 503
+          res.body   = Onetime::Application::ErrorCorrelation.apply(
+            SNAPSHOT_ORDERING_UNAVAILABLE.dup, req.env
+          ).to_json
+          return
+        end
+
+        res.body = data.to_json
       end
 
       def robots_txt
@@ -98,6 +121,50 @@ module Core
           res.write(logic.icon_data)
           res.finish
         end
+      end
+
+      private
+
+      # What verifying the session cost this poll, for the #4463 rollout
+      # review (#4455): the queries and writes ActiveSessionGate issued
+      # against the active-session table, and whether the route was passive.
+      # A passive poll of a live session reads `queries: 1, writes: 0`; a
+      # write here means an expired row was removed, which is the one write a
+      # poll is meant to make.
+      #
+      # One line per poll that carried a session claim. A visitor with no
+      # session is skipped: it is most of the traffic and verifies nothing.
+      # The join is the request id; the line carries no session identifier.
+      def log_bootstrap_verification
+        verdict = req.env[Onetime::CustomerSessionEvaluator::ENV_KEY]
+        return if verdict.nil? || verdict.anonymous?
+
+        stats = req.env[Onetime::ActiveSessionGate::STATS_ENV_KEY] || {}
+        session_logger.info 'Bootstrap verification',
+          {
+            passive: Onetime::SessionActivity.passive?(req.env),
+            verdict: verdict.status,
+            reason: verdict.reason,
+            active_session_queries: stats.fetch(:queries, 0),
+            active_session_writes: stats.fetch(:writes, 0),
+            request_id: req.env['HTTP_X_REQUEST_ID'],
+          }
+      rescue StandardError
+        nil
+      end
+
+      # A snapshot that reports a session must carry the ordering pair
+      # (ADR-046): the server never labels an unversioned payload as ordered,
+      # and never hands an ordered tab a session snapshot it cannot place. The
+      # client treats the 503 as a failed refresh and keeps its last accepted
+      # state.
+      #
+      # A snapshot that reports NO session is served as it is, pair or not.
+      # Session expiry, revocation and logout reach the tab that way, and an
+      # ordering outage must never be able to withhold them.
+      def snapshot_unordered?(data)
+        reports_session = data['authenticated'] == true || data['awaiting_mfa'] == true
+        reports_session && data['snapshot_version'].nil?
       end
     end
   end

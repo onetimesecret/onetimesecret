@@ -402,6 +402,83 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
         allow(Sentry).to receive(:initialized?).and_return(true)
       end
 
+      # These examples are about how the diagnostics section is merged, which
+      # is the same in every environment. They run under RACK_ENV=test, where
+      # diagnostics additionally need the explicit opt-in (see 'the test-mode
+      # guard' below), so they opt in.
+      around do |example|
+        previous                           = ENV.fetch('DIAGNOSTICS_ENABLED_IN_TEST', nil)
+        ENV['DIAGNOSTICS_ENABLED_IN_TEST'] = 'true'
+        example.run
+      ensure
+        ENV['DIAGNOSTICS_ENABLED_IN_TEST'] = previous
+      end
+
+      # A dev shell exports DIAGNOSTICS_ENABLED=true and a real SENTRY_DSN; a
+      # locally booted test server inherited both and reported to the
+      # production Sentry project.
+      describe 'the test-mode guard' do
+        let(:live_diagnostics) do
+          config                = OT::Config.deep_clone(minimal_config)
+          config['diagnostics'] = {
+            'enabled' => true,
+            'sentry' => {
+              'defaults' => { 'dsn' => 'https://key@sentry.example.com/1' },
+              'backend' => { 'dsn' => 'https://key@sentry.example.com/1' },
+              'frontend' => { 'dsn' => 'https://key@sentry.example.com/2' },
+            },
+          }
+          config
+        end
+
+        it 'keeps diagnostics off under RACK_ENV=test, even when enabled with real DSNs', :aggregate_failures do
+          ENV.delete('DIAGNOSTICS_ENABLED_IN_TEST')
+          expect(Onetime.testing?).to be(true)
+
+          processed = Onetime::Config.after_load(live_diagnostics)
+
+          expect(processed['diagnostics']['enabled']).to be(false)
+          expect(OT.d9s_enabled).to be(false) # gates every capture call and the frontend SDK
+        end
+
+        it 'ignores any opt-in value other than "true"' do
+          ENV['DIAGNOSTICS_ENABLED_IN_TEST'] = '1'
+
+          expect(Onetime::Config.after_load(live_diagnostics)['diagnostics']['enabled']).to be(false)
+        end
+
+        it 'turns them on under RACK_ENV=test with the explicit opt-in', :aggregate_failures do
+          processed = Onetime::Config.after_load(live_diagnostics)
+
+          expect(processed['diagnostics']['enabled']).to be(true)
+          expect(OT.d9s_enabled).to be(true)
+        end
+
+        it 'does not change any other environment: the configured value stands, with no opt-in', :aggregate_failures do
+          ENV.delete('DIAGNOSTICS_ENABLED_IN_TEST')
+
+          # after_load deep-freezes outside the test environment, so each pass
+          # gets its own copy.
+          rack_env = ENV.fetch('RACK_ENV', nil)
+          %w[production development staging].each do |environment|
+            ENV['RACK_ENV'] = environment
+            processed       = Onetime::Config.after_load(OT::Config.deep_clone(live_diagnostics))
+
+            expect(processed['diagnostics']['enabled']).to be(true), "expected diagnostics on in #{environment}"
+            expect(OT.d9s_enabled).to be(true)
+          end
+        ensure
+          ENV['RACK_ENV'] = rack_env
+        end
+
+        it 'cannot turn on what the configuration turned off' do
+          config                           = live_diagnostics
+          config['diagnostics']['enabled'] = false
+
+          expect(Onetime::Config.after_load(config)['diagnostics']['enabled']).to be(false)
+        end
+      end
+
       it 'enables diagnostics from test config file' do
         raw_config = OT::Config.deep_clone(test_config)
 

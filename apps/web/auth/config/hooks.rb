@@ -19,6 +19,35 @@
 # auth_class_eval and called conditionally from the owning hook (see billing.rb).
 # The duplicate-hook guard spec enforces this one-owner invariant.
 #
+# WRAPPERS are the one sanctioned way to run code around a hook from another
+# file, and they are a different mechanism with the opposite property: a module
+# that defines the hook method with `def`, calls `super`, and is prepended onto
+# the auth class DOES chain, in ancestor order. The registration rule above
+# cannot see one, and an unplanned second wrapper is as dangerous as a second
+# registration: a missing or reordered `super` can skip tenant validation,
+# consume the Connect intent twice, or move Connect authorization behind a gem
+# shortcut. So wrappers are owned too (#4432):
+#
+#   - the approved set is closed. Today it is exactly one module,
+#     Auth::Config::Hooks::OmniAuthConnect::Callback, around
+#     before_omniauth_callback_route, prepended once from hooks/omniauth.rb;
+#   - its position is fixed: prepended, so it runs FIRST, and its `super`
+#     reaches the gem's hook method, which calls the block registered by
+#     omniauth_tenant.rb. Nothing application-owned sits between them.
+#
+# Enforced in two places, because neither sees everything.
+#
+#   - Static: apps/web/auth/spec/config/hook_ownership_spec.rb fails on any
+#     `def before_*/after_*/around_*` under config/ that is not in its approved
+#     list, and on an approved module prepended zero or several times.
+#   - Runtime: apps/web/auth/spec/integration/full/omniauth_callback_wrapper_order_spec.rb
+#     reads the configured class's ancestors, so it also catches a wrapper
+#     defined outside config/ or built with define_method, and it is what
+#     asserts the order.
+#
+# Adding a wrapper means changing both specs and this section in the same
+# commit, with the reason it cannot live in the owning hook.
+#
 # Hook ownership (re-verify with:
 #   rg -n --pcre2 "\bauth\.(before|after|around)_[a-z_0-9]+(?=\s+do\b)" apps/web/auth/config/):
 #
@@ -62,8 +91,9 @@
 #   password.rb         intentionally EMPTY — password-lifecycle hooks live in
 #                       account.rb (M-2 consolidation; see its module comment)
 #   billing.rb          helper methods only (auth_class_eval), defines NO hooks
-#   omniauth_connect.rb wraps before_omniauth_callback_route via `prepend` +
-#                       `super` (see omniauth.rb: auth_class_eval { prepend ... }).
+#   omniauth_connect.rb registers NO hook. It holds the one approved WRAPPER
+#                       (see WRAPPERS above) around before_omniauth_callback_route,
+#                       installed by omniauth.rb: auth_class_eval { prepend ... }.
 #                       The hook is still OWNED by omniauth_tenant.rb; this file
 #                       chains Connect authorization ahead of the tenant validation.
 #

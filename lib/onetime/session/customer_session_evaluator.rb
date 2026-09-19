@@ -103,7 +103,7 @@ module Onetime
     end
 
     def evaluate
-      return with_caller_boundary(@env[ENV_KEY]) if @env.is_a?(Hash) && @env.key?(ENV_KEY)
+      return from_memo if @env.is_a?(Hash) && @env.key?(ENV_KEY)
 
       verdict       = evaluate_uncached
       @env[ENV_KEY] = verdict if @env.is_a?(Hash)
@@ -111,6 +111,16 @@ module Onetime
     end
 
     private
+
+    # A memo hit never reaches ActiveSessionGate, so a `last_use` refresh that
+    # a passive reader deferred (#4455) is offered to the gate here. Only a
+    # verdict that is still authenticated after this caller's boundary counts
+    # as activity: a refused request must not advance the deadline.
+    def from_memo
+      verdict = with_caller_boundary(@env[ENV_KEY])
+      ActiveSessionGate.settle_deferred_touch(@session, env: @env) if verdict.authenticated?
+      verdict
+    end
 
     # The memo is keyed by request, not by caller. A verdict cached by a caller
     # without +before_active+ (a public route, a view, a compatibility helper)

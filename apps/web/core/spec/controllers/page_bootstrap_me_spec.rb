@@ -98,9 +98,25 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
           has_external_id: false,
           awaiting_mfa: false,
           authenticated: false,
+          auth_status: 'anonymous',
           request_id: 'request-4461',
         },
       )
+    end
+
+    # #4455: the verification line is for polls that carried a session claim
+    # (spec/integration/full/passive_verification_spec.rb asserts its counts).
+    # A visitor with no session is most of the traffic and verifies nothing.
+    it 'writes no verification line for a visitor without a session' do
+      logger = spy('session_logger')
+      allow(Onetime).to receive(:get_logger).and_call_original
+      allow(Onetime).to receive(:get_logger).with('Session').and_return(logger)
+      allow(Onetime).to receive(:session_logger).and_return(logger)
+
+      get '/bootstrap/me', {}, { 'HTTP_X_REQUEST_ID' => 'request-4455' }
+
+      expect(last_response.status).to eq(200)
+      expect(logger).not_to have_received(:info).with('Bootstrap verification', anything)
     end
 
     # `authenticated?` runs the full CustomerSessionEvaluator (customer load
@@ -120,6 +136,35 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
   end
 
   describe 'anonymous user' do
+    # #4462: the status is the statement; the booleans are its projections.
+    it 'returns auth_status anonymous, agreeing with both projections', :aggregate_failures do
+      get '/bootstrap/me'
+      data = JSON.parse(last_response.body)
+
+      expect(data['auth_status']).to eq('anonymous')
+      expect(data['authenticated']).to be false
+      expect(data['awaiting_mfa']).to be false
+      expect(data['cust']).to be_nil
+    end
+
+    it 'carries no session-failure code: a public surface speaks through auth_status' do
+      get '/bootstrap/me'
+      data = JSON.parse(last_response.body)
+
+      expect(data).not_to have_key('code')
+      expect(data).not_to have_key('code_scope')
+    end
+
+    # ADR-046: an anonymous session is not ordered. The keys are OMITTED, not
+    # null: the schema rejects null and would fail the whole payload.
+    it 'carries no snapshot ordering fields' do
+      get '/bootstrap/me'
+      data = JSON.parse(last_response.body)
+
+      expect(data.keys.grep(/\Asnapshot_/)).to be_empty
+      expect(last_response.body).not_to include('snapshot_')
+    end
+
     it 'returns authenticated as false' do
       get '/bootstrap/me'
       data = JSON.parse(last_response.body)

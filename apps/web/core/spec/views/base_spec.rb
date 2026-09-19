@@ -155,6 +155,7 @@ RSpec.describe Core::Views::BaseView do
 
       it 'sets appropriate anonymous state' do
         vars = subject.serialized_data
+        expect(vars['auth_status']).to eq('anonymous')
         expect(vars['authenticated']).to be false
         expect(vars['custid']).to be_nil
         expect(vars['email']).to be_nil
@@ -257,6 +258,85 @@ RSpec.describe Core::Views::BaseView do
     it 'still exposes the raw session (CSRF/messages remain reachable)' do
       view = described_class.new(rack_request)
       expect(view.sess).to be(authenticated_session)
+    end
+
+    # #4462: the server states what the client used to infer from
+    # had_valid_session. The session names a customer this response cannot
+    # vouch for, so the status is `unavailable`: no identity, and not a
+    # sign-out either.
+    it 'reports auth_status unavailable, with no identity, for a session that names a customer' do
+      data = described_class.new(rack_request).serialized_data
+
+      expect(data).to include(
+        'auth_status' => 'unavailable',
+        'authenticated' => false,
+        'awaiting_mfa' => false,
+        'cust' => nil,
+      )
+      expect(data['custid']).to be_nil
+      expect(data['email']).to be_nil
+    end
+
+    it 'reports auth_status anonymous when the raw session names no customer' do
+      authenticated_session.delete('external_id')
+
+      expect(described_class.new(rack_request).serialized_data).to include(
+        'auth_status' => 'anonymous',
+        'authenticated' => false,
+      )
+    end
+  end
+
+  # ADR-046 / #4457. The view passes the middleware's allocation through only
+  # for a payload that reports a session, and a failed allocation degrades the
+  # hydration payload instead of failing the render.
+  describe 'bootstrap snapshot ordering' do
+    let(:allocation) do
+      {
+        epoch: '0123456789abcdef0123456789abcdef',
+        version: '1758236400000001',
+        generated_at: '2026-09-17T17:28:59.123456Z',
+      }
+    end
+
+    let(:logger) { spy('session_logger') }
+
+    before { allow(Onetime).to receive(:session_logger).and_return(logger) }
+
+    it 'emits the pair the middleware allocated for an authenticated snapshot' do
+      rack_request.env[Onetime::SnapshotOrdering::ENV_KEY] = allocation
+
+      expect(subject.serialized_data).to include(
+        'auth_status' => 'authenticated',
+        'snapshot_epoch' => allocation[:epoch],
+        'snapshot_version' => allocation[:version],
+        'snapshot_generated_at' => allocation[:generated_at],
+      )
+    end
+
+    it 'renders a degraded hydration payload when allocation failed: no pair, one diagnostic', :aggregate_failures do
+      rack_request.env[Onetime::SnapshotOrdering::ENV_KEY] = { error: 'Redis::CannotConnectError' }
+      rack_request.env['HTTP_X_REQUEST_ID']                = 'req-degraded'
+
+      data = subject.serialized_data
+
+      expect(data).to include('auth_status' => 'authenticated', 'authenticated' => true)
+      expect(data.keys.grep(/\Asnapshot_/)).to be_empty
+      expect(logger).to have_received(:warn).with(
+        'Bootstrap snapshot serialized without ordering',
+        { module: 'InitializeViewVars', error: 'Redis::CannotConnectError', request_id: 'req-degraded' },
+      )
+    end
+
+    it 'never labels a payload that reports no session, even if an allocation exists' do
+      rack_request.env[Onetime::SnapshotOrdering::ENV_KEY] = allocation
+      session['authenticated']                             = false
+
+      data = described_class.new(rack_request).serialized_data
+
+      expect(data).to include('auth_status' => 'anonymous', 'authenticated' => false)
+      expect(data.keys.grep(/\Asnapshot_/)).to be_empty
+      expect(logger).not_to have_received(:warn).with('Bootstrap snapshot serialized without ordering', anything)
     end
   end
 

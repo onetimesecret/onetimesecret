@@ -115,7 +115,7 @@ module AccountAPI::Logic
             customer_id: @cust.extid,
             email: @cust.obscure_email,
             ip: @strategy_result&.metadata&.dig(:ip),
-            session_id: safe_session_id,
+            session_handle: session_log_handle,
           }
 
         success_data

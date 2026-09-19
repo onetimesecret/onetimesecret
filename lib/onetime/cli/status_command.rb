@@ -378,9 +378,16 @@ module Onetime
           return { status: 'not_required', enabled: false }
         end
 
-        require 'sequel'
+        # Through Auth::Database.connect, the one place authdb connection
+        # options live: a probe that lands while SQLite is write-locked waits
+        # as the app's connections do, where a bare Sequel.connect would
+        # report a busy database as an error. It opens one unshared
+        # connection and nothing else (no migrations, no boot, not the app's
+        # memoized connection), and the probe's SELECT runs outside a
+        # transaction, so transaction_mode = :immediate takes no lock here.
+        require 'auth/database'
         db_url = OT.auth_config.database_url
-        db     = Sequel.connect(db_url)
+        db     = Auth::Database.connect(db_url)
 
         begin
           adapter = db.adapter_scheme.to_s

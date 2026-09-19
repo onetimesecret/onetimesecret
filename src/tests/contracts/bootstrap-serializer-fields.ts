@@ -12,8 +12,12 @@
 // Source: apps/web/core/views/serializers/authentication_serializer.rb
 // ============================================================================
 export const AUTHENTICATION_SERIALIZER_FIELDS = [
+  // Server statement about the customer session (#4462). `authenticated` and
+  // `awaiting_mfa` are projections of it.
+  'auth_status',
   'authenticated',
   'awaiting_mfa',
+  // Deprecated: superseded by auth_status 'unavailable'. Remove in v0.27 (#4468).
   'had_valid_session',
   'has_password',
   'password_auth_permitted',
@@ -136,6 +140,12 @@ export const SYSTEM_SERIALIZER_FIELDS = [
   'ot_version_long',
   'ruby_version',
   'shrimp',
+  // Snapshot ordering (ADR-046). Declared in the output_template but emitted
+  // only for an ordered session (authenticated or MFA-pending); the keys are
+  // OMITTED otherwise, never null.
+  'snapshot_epoch',
+  'snapshot_version',
+  'snapshot_generated_at',
 ] as const;
 
 // ============================================================================

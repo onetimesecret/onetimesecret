@@ -659,6 +659,125 @@ describe('DomainConfigsSection', () => {
     });
   });
 
+  describe('edit modal: a 422 the server attached to a field (#4421)', () => {
+    // The body UpsertDomainConfig answers when related_origins names another
+    // organization's custom domain. `error` arrives already localized: the
+    // server resolves `error_key` through the en (or request) locale.
+    const FOREIGN_ORIGIN_422 = {
+      error:
+        'These origins belong to another organization and cannot be added: https://vault.rival.example',
+      field: 'related_origins',
+      error_key: 'api.domains.errors.related_origins_foreign_organization',
+    };
+
+    async function submitRelatedOrigins(value: string) {
+      wrapper = mountSection();
+      await flushPromises();
+      await wrapper.find('[data-testid="config-edit-signin"]').trigger('click');
+      await flushPromises();
+      await wrapper.find('[data-testid="config-field-related_origins"]').setValue(value);
+      await wrapper.find('[data-testid="config-edit-submit"]').trigger('click');
+      await flushPromises();
+      return wrapper.find('[data-testid="config-edit-modal"]');
+    }
+
+    it('shows the message against related_origins, not in the general alert', async () => {
+      mockApi.put.mockRejectedValue(axiosError(422, FOREIGN_ORIGIN_422));
+
+      const modal = await submitRelatedOrigins('https://vault.rival.example');
+
+      const fieldError = modal.find('[data-testid="config-field-error-related_origins"]');
+      expect(fieldError.exists()).toBe(true);
+      expect(fieldError.text()).toBe(FOREIGN_ORIGIN_422.error);
+      expect(fieldError.attributes('role')).toBe('alert');
+      // Exactly one alert, and it is the field's: nothing generic, nothing doubled.
+      expect(modal.findAll('[role="alert"]')).toHaveLength(1);
+      // The refusal stays in the modal: no toast, no refetch, modal still open.
+      expect(showMock).not.toHaveBeenCalled();
+      expect(mockApi.get).toHaveBeenCalledTimes(1);
+    });
+
+    it('marks the field invalid and ties the message to it for assistive tech', async () => {
+      mockApi.put.mockRejectedValue(axiosError(422, FOREIGN_ORIGIN_422));
+
+      const modal = await submitRelatedOrigins('https://vault.rival.example');
+
+      const field = modal.find('[data-testid="config-field-related_origins"]');
+      const fieldError = modal.find('[data-testid="config-field-error-related_origins"]');
+      expect(field.attributes('aria-invalid')).toBe('true');
+      expect(field.attributes('aria-describedby')?.split(' ')).toContain(
+        fieldError.attributes('id')
+      );
+      // The other fields are untouched.
+      expect(
+        modal.find('[data-testid="config-field-email_auth_enabled"]').attributes('aria-invalid')
+      ).toBeUndefined();
+    });
+
+    it('moves focus to the refused field', async () => {
+      mockApi.put.mockRejectedValue(axiosError(422, FOREIGN_ORIGIN_422));
+      wrapper = mount(DomainConfigsSection, {
+        props: { extid: EXTID, displayDomain: 'secrets.example.com' },
+        global: { plugins: [pinia, i18n] },
+        attachTo: document.body,
+      });
+      await flushPromises();
+      await wrapper.find('[data-testid="config-edit-signin"]').trigger('click');
+      await flushPromises();
+      await wrapper
+        .find('[data-testid="config-field-related_origins"]')
+        .setValue('https://vault.rival.example');
+      await wrapper.find('[data-testid="config-edit-submit"]').trigger('click');
+      await flushPromises();
+
+      expect(document.activeElement).toBe(
+        wrapper.find('[data-testid="config-field-related_origins"]').element
+      );
+    });
+
+    it('clears the field error when the next attempt succeeds', async () => {
+      mockApi.put.mockRejectedValueOnce(axiosError(422, FOREIGN_ORIGIN_422));
+      mockApi.put.mockResolvedValueOnce({ data: upsertAck() });
+
+      const modal = await submitRelatedOrigins('https://vault.rival.example');
+      expect(modal.find('[data-testid="config-field-error-related_origins"]').exists()).toBe(true);
+
+      await wrapper.find('[data-testid="config-field-related_origins"]').setValue(
+        'https://vault.acme.example'
+      );
+      await wrapper.find('[data-testid="config-edit-submit"]').trigger('click');
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="config-edit-modal"]').exists()).toBe(false);
+      expect(showMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to the general alert for a field the modal does not render', async () => {
+      mockApi.put.mockRejectedValue(
+        axiosError(422, { error: 'Unknown config kind', field: 'kind' })
+      );
+
+      const modal = await submitRelatedOrigins('https://vault.acme.example');
+
+      expect(modal.findAll('[role="alert"]')).toHaveLength(1);
+      expect(modal.find('[role="alert"]').text()).toBe('Unknown config kind');
+      expect(modal.find('[data-testid^="config-field-error-"]').exists()).toBe(false);
+    });
+
+    it('tells the operator that related_origins takes origins, not bare domains', async () => {
+      wrapper = mountSection();
+      await flushPromises();
+      await wrapper.find('[data-testid="config-edit-signin"]').trigger('click');
+      await flushPromises();
+
+      // Pass-through i18n renders the key (ADR-014).
+      const hintId = wrapper
+        .find('[data-testid="config-field-related_origins"]')
+        .attributes('aria-describedby');
+      expect(wrapper.find(`#${hintId}`).text()).toBe('web.admin.domains.configs.edit.originsHint');
+    });
+  });
+
   describe('delete (typed-confirm, token = the kind slug)', () => {
     it('gates the delete on the retyped kind, then DELETEs and refetches', async () => {
       mockApi.delete.mockResolvedValue({ data: deleteAck('sso') });

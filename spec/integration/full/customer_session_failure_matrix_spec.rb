@@ -46,92 +46,114 @@ RSpec.describe 'Cross-surface customer-session failure matrix (#4452)', type: :i
         expect(observation[:refusal_markers]).to eq(expectation.fetch(:markers).fetch(surface))
 
         if public_surface?(surface)
-          expect_public_observation(observation, expectation.fetch(:public))
+          expect_public_observation(observation, expectation)
         else
-          expect_protected_observation(observation, expectation.fetch(:protected), surface)
+          expect_protected_observation(observation, expectation, surface)
         end
       end
     end
   end
 
-  it 'keeps hydrated HTML on the current active-session activity policy pending #4455', :aggregate_failures do
+  # RISK-2026-09-19-04: a client may declare a safe request passive
+  # (X-Session-Activity). The declaration reaches the activity predicate and
+  # nothing else, so every state must be decided, answered and coded exactly as
+  # it is without the header.
+  CustomerSessionFailureMatrix::STATES.each do |state, expectation|
+    it "records #{state} on protected_api the same when the client declares the request passive", :aggregate_failures do
+      establish_matrix_session! unless state == :missing_anonymous
+      apply_matrix_state!(state)
+      observation = nil
+
+      with_matrix_state_dependencies(state) do
+        observation = request_surface(:protected_api, request_id: "matrix-declared-#{state}", declare_passive: true)
+      end
+
+      expect(observation[:verdict]).to eq(expectation.fetch(:verdict))
+      expect(observation[:refusal_markers]).to eq(expectation.fetch(:markers).fetch(:protected_api))
+      expect_protected_observation(observation, expectation, :protected_api)
+    end
+  end
+
+  # The one state the matrix rows do not cover is the healthy one, and it is
+  # where the two public surfaces differ (#4455, divergence D8 in the doc). Both
+  # verify the same live session and expose the same identity; only the page
+  # load, which a person asked for, counts as activity.
+  #
+  # The protected API has the same two answers, chosen by the client instead
+  # of the route (RISK-2026-09-19-04): a request counts unless the client
+  # declared it passive.
+  [
+    [:hydrated_html, false, :touched],
+    [:bootstrap, false, :unchanged],
+    [:protected_api, false, :touched],
+    [:protected_api, true, :unchanged],
+  ].each do |surface, declared, activity|
+    label = declared ? "#{surface} declared passive" : surface.to_s
+
+    it "verifies an active session on #{label} and leaves its active-session row #{activity}", :aggregate_failures do
+      establish_matrix_session!
+      before_activity = activity_snapshot
+
+      observation, activity_writes = capture_activity_writes do
+        request_surface(surface, request_id: "matrix-active-#{surface}", declare_passive: declared)
+      end
+
+      expect(observation).to include(status: 200, verdict: :authenticated)
+      if public_surface?(surface)
+        expect(observation).to include(
+          authenticated: true,
+          awaiting_mfa: false,
+          customer_exposed: true,
+          identity_exposed: true,
+        )
+      end
+      expect_activity(
+        activity,
+        before_activity,
+        activity_snapshot,
+        1,
+        activity_count,
+        activity_writes,
+      )
+    end
+  end
+
+  # RISK-2026-09-19-03. The API sent no Cache-Control at all. It now defaults
+  # to private, no-store through the whole stack: a personalized 200, an
+  # anonymous 200 and Otto's own 404. (A route's own policy is never
+  # overwritten; spec/unit/onetime/middleware/api_cache_policy_spec.rb.)
+  it 'never lets an /api response be stored', :aggregate_failures do
     establish_matrix_session!
-    before_activity = activity_snapshot
 
-    observation, activity_writes = capture_activity_writes do
-      request_surface(:hydrated_html, request_id: 'matrix-active-hydrated-html')
-    end
+    observation = request_surface(:protected_api, request_id: 'matrix-api-cache')
+    expect(observation).to include(status: 200, cache_control: 'private, no-store')
 
-    expect(observation).to include(
-      status: 200,
-      verdict: :authenticated,
-      authenticated: true,
-      awaiting_mfa: false,
-      customer_exposed: true,
-      identity_exposed: true,
-    )
-    expect_activity(
-      :touched,
-      before_activity,
-      activity_snapshot,
-      1,
-      activity_count,
-      activity_writes,
-    )
+    get '/api/v2/status', {}, { 'HTTP_ACCEPT' => 'application/json' }
+    expect(last_response.headers['cache-control']).to eq('private, no-store')
+
+    get '/api/v2/no-such-route', {}, { 'HTTP_ACCEPT' => 'application/json' }
+    expect(last_response.status).to eq(404)
+    expect(last_response.headers['cache-control']).to eq('private, no-store')
   end
 
-  def public_surface?(surface)
-    %i[hydrated_html bootstrap].include?(surface)
-  end
+  # #4461. The /auth app answers nothing but authentication state, so every
+  # response it finishes is unstorable: a success, a refusal, and a route that
+  # sets its own policy keeps a policy that is at least as strict.
+  it 'never lets an /auth authentication-state response be stored', :aggregate_failures do
+    establish_matrix_session!
+    expect(last_response.headers['cache-control']).to eq('private, no-store') # the login itself
 
+    header 'Accept', 'application/json'
+    get '/auth/account'
+    expect(last_response.status).to eq(200)
+    expect(last_response.headers['cache-control']).to eq('private, no-store')
+    expect(last_response.headers['content-type']).to include('application/json')
 
-  def expect_public_observation(observation, verdict)
-    expect(observation[:status]).to eq(200)
-    expect(observation[:refusal_code]).to be_nil
-
-    case verdict
-    when :anonymous
-      expect(observation).to include(
-        authenticated: false,
-        awaiting_mfa: false,
-        customer_exposed: false,
-        identity_exposed: false,
-      )
-    when :mfa_pending
-      expect(observation).to include(
-        authenticated: false,
-        awaiting_mfa: true,
-        customer_exposed: false,
-        identity_exposed: false,
-      )
-      expect(observation.fetch(:payload)).to include(
-        CustomerSessionFailureMatrix::MFA_PROTECTED_ACCOUNT_FIELDS,
-      )
-    when :identity_exposed
-      expect(observation).to include(
-        authenticated: true,
-        awaiting_mfa: false,
-        customer_exposed: true,
-        identity_exposed: true,
-      )
-    else
-      raise ArgumentError, "unknown public verdict: #{verdict}"
-    end
-  end
-
-  def expect_protected_observation(observation, verdict, surface)
-    case verdict
-    when :refused
-      expect(observation[:status]).to eq(surface == :protected_html ? 302 : 401)
-      expect(observation[:refusal_code]).to eq(surface == :protected_api ? 'Authentication Required' : nil)
-      expect(observation).to include(identity_exposed: false, customer_exposed: false)
-    when :authenticated
-      expect(observation[:status]).to eq(200)
-      expect(observation[:refusal_code]).to be_nil
-      expect(observation).to include(identity_exposed: true, customer_exposed: true)
-    else
-      raise ArgumentError, "unknown protected verdict: #{verdict}"
-    end
+    active_session_rows.delete
+    get '/auth/account'
+    expect(last_response.status).to eq(401)
+    expect(JSON.parse(last_response.body)).to include('code' => 'active_session_revoked')
+    expect(last_response.headers['cache-control']).to eq('private, no-store')
   end
 
   def expect_activity(expected, before_activity, after_activity, before_count, after_count, writes)

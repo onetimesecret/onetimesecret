@@ -643,7 +643,7 @@ module Onetime
       # and set our local config with the merged values.
       diagnostics                                = loaded_config.fetch('diagnostics', {})
       conf['diagnostics']                        = {
-        'enabled' => diagnostics['enabled'] || false,
+        'enabled' => diagnostics_enabled?(diagnostics),
         'sentry' => apply_defaults_to_peers(diagnostics['sentry']),
       }
       conf['diagnostics']['sentry']['backend'] ||= {}
@@ -671,6 +671,27 @@ module Onetime
       # See also: boot.rb line 133 which guards the raw_conf freeze.
       deep_freeze(conf) unless OT.testing?
       conf
+    end
+
+    # Whether diagnostics (Sentry, backend and frontend) are on for this boot.
+    #
+    # Outside the test environment this is the configured value and nothing
+    # else. Under RACK_ENV=test the configured value is not enough: a
+    # developer's shell exports DIAGNOSTICS_ENABLED=true and a real SENTRY_DSN
+    # for their dev server, a locally booted test server inherits both, and
+    # its errors (deliberate ones, mostly) were reported to the production
+    # Sentry project. There, diagnostics also need DIAGNOSTICS_ENABLED_IN_TEST
+    # =true, which no ordinary shell sets. The hermetic lanes never reach this:
+    # they clear the environment and their config has no DSN.
+    #
+    # This is the single switch. The SetupDiagnostics initializer reads
+    # `diagnostics.enabled`, and Onetime.d9s_enabled, which gates every capture
+    # call and the frontend SDK, is computed from it below.
+    def diagnostics_enabled?(diagnostics)
+      return false unless diagnostics.is_a?(Hash) && diagnostics['enabled']
+      return true unless OT.testing?
+
+      ENV['DIAGNOSTICS_ENABLED_IN_TEST'] == 'true'
     end
 
     # Sentinel values for brand.og_image_url meaning "emit no social card at

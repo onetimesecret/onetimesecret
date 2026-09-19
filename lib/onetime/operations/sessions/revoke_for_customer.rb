@@ -91,7 +91,7 @@ module Onetime
           # Invalidate: delete the live encrypted blob. This is the actual logout.
           blob_deleted = false
           if key
-            db.del(key)
+            Store.destroy_blob(db, key)
             blob_deleted = true
           end
 

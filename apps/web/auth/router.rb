@@ -12,6 +12,7 @@ require 'onetime/logger_methods'
 require 'onetime/application/error_correlation'
 require 'onetime/models/custom_domain/signin_config'
 require 'onetime/session/customer_session_evaluator'
+require 'onetime/session/failure_code'
 
 require_relative 'config'
 require_relative 'error_translator'
@@ -58,6 +59,15 @@ module Auth
     plugin :status_handler
     plugin :flash  # Required for Rodauth flash messages on browser redirects (e.g., OmniAuth)
 
+    # Everything this app answers is authentication state: login and MFA
+    # results, the account, its sessions and credentials, and the refusals in
+    # between. None of it may be stored by a browser or an intermediary
+    # (#4461; OWASP ASVS 5.0 14.3.2). It is a default, applied with `||=` when
+    # the response is finished, so a route that sets its own Cache-Control
+    # (routes/reauth.rb) keeps it. Roda merges this into its existing default
+    # headers; Content-Type is unaffected.
+    plugin :default_headers, 'cache-control' => 'private, no-store'
+
     # plugin :sessions,
     #   key: 'onetime.session',
     #   secret: ENV.fetch('SESSION_SECRET', SecureRandom.hex(64))
@@ -93,27 +103,22 @@ module Auth
     # bypass this handler and stay request-independent — the x-request-id
     # response header still correlates them.
     #
-    # Logging: 500s log at :error with backtrace so production failures are
-    # not silent (Roda's :error_handler does not log by default). Translated
-    # typed exceptions log at the per-class level from
-    # Auth::ErrorTranslator::LOG_LEVEL_BY_CLASS, which mirrors the
-    # `log_level:` values passed to `register_error_handler` in
-    # `lib/onetime/application/otto_hooks.rb`. That keeps the Roda Auth app
+    # Logging: Auth::ErrorTranslator.log_entry decides level and message.
+    # An exception the translator does not know logs at :error as "unhandled
+    # exception" with backtrace so production failures are not silent (Roda's
+    # :error_handler does not log by default). A translated exception logs at
+    # the per-class level from Auth::ErrorTranslator::LOG_LEVEL_BY_CLASS,
+    # which mirrors the `log_level:` values passed to `register_error_handler`
+    # in `lib/onetime/application/otto_hooks.rb`. That keeps the Roda Auth app
     # and Otto apps emitting at the same level for the same exception class.
+    # The split is on "translated", not on the status: the retryable 503s
+    # (AuthDatabaseBusy, AccountProvisioningUnavailable) are deliberate
+    # answers at :warn, not unhandled exceptions.
     plugin :error_handler do |e|
       status, body             = Auth::ErrorTranslator.translate(e)
       body                     = Onetime::Application::ErrorCorrelation.apply(body, request.env, e)
-      if status >= 500
-        auth_logger.error 'Auth router unhandled exception', exception: e
-      else
-        level = Auth::ErrorTranslator.level_for(e)
-        auth_logger.public_send(
-          level,
-          'Auth router translated exception',
-          exception_class: e.class.name,
-          status: status,
-        )
-      end
+      level, message, payload  = Auth::ErrorTranslator.log_entry(e)
+      auth_logger.public_send(level, message, payload)
       response.status          = status
       response['content-type'] = 'application/json'
       body.to_json
@@ -263,7 +268,19 @@ module Auth
     def clear_gated_session
       rodauth.clear_session
       Onetime::CustomerSessionEvaluator.forget(env)
-      env.delete(Onetime::ActiveSessionGate::ENV_KEY)
+      Onetime::ActiveSessionGate.forget(env)
+    end
+
+    # A session refusal body plus its stable `code` / `code_scope` (#4462).
+    # The existing fields are the caller's and are not changed; the codes are
+    # the same ones the Otto surfaces answer with
+    # (Onetime::Middleware::SessionFailureCode), so a client reads one
+    # vocabulary on every surface. `reason` is the one this router acted on,
+    # which may be Auth::SessionRecheck's rather than the evaluator's. Logged
+    # here, once per refusal, with the same code and the request id (#4461).
+    def session_refusal(body, reason)
+      Onetime::SessionFailureCode.log_refusal(reason, env)
+      body.merge(Onetime::SessionFailureCode.for(reason).transform_keys(&:to_sym))
     end
 
     # Main routing logic
@@ -355,7 +372,7 @@ module Auth
         # predates the join key); see Auth::SessionRecheck.
         unless mfa_pending_route?(r.request_method, r.path_info)
           response.status = 401
-          next { error: 'Authentication required' }
+          next session_refusal({ error: 'Authentication required' }, auth_session_reason)
         end
       when :active_session_revoked, :surface_mismatch
         outcome = revoked_outcome(r.path_info)
@@ -436,7 +453,7 @@ module Auth
           next { success: true, message: 'web.auth.logout.success' }
         when :refused
           response.status = 401
-          next { error: 'web.auth.security.session_expired', success: false }
+          next session_refusal({ error: 'web.auth.security.session_expired', success: false }, auth_session_reason)
         end
       when :active_session_unavailable, :customer_unavailable
         # Fail closed, but keep the Rack session so a transient verification
@@ -456,7 +473,10 @@ module Auth
         end
 
         response.status = 401
-        next { error: 'Session could not be verified; try again', error_type: 'SessionUnverified' }
+        next session_refusal(
+          { error: 'Session could not be verified; try again', error_type: 'SessionUnverified' },
+          auth_session_reason,
+        )
       when :session_missing, :not_authenticated
         # Nothing to destroy, by construction. The evaluator answers
         # :not_authenticated only when the `authenticated` flag is absent, so
@@ -516,7 +536,7 @@ module Auth
             next { success: true, message: 'web.auth.logout.success' }
           when :refused
             response.status = 401
-            next { error: 'web.auth.security.session_expired', success: false }
+            next session_refusal({ error: 'web.auth.security.session_expired', success: false }, auth_session_reason)
           end
         end
       else
@@ -536,7 +556,11 @@ module Auth
       begin
         r.rodauth
       ensure
+        # Both memos: the active-session sub-verdict was computed for the same
+        # pre-Rodauth identity (a login mints a new join key, a logout removes
+        # the row), and Auth::SessionRecheck reads it on its own.
         Onetime::CustomerSessionEvaluator.forget(env)
+        Onetime::ActiveSessionGate.forget(env)
       end
 
       # Account routes (mfa-status, account info)

@@ -355,6 +355,22 @@ module Onetime
         sess.id if sess.respond_to?(:id)
       end
 
+      # What a log line carries in place of the session id (#4461). The id is
+      # the bearer credential: read out of a log it can be replayed as the
+      # cookie. The handle is the keyed digest every session-store line and
+      # the colonel session view already use, so a line still joins to a
+      # session an operator can see and revoke. {#safe_session_id} stays for
+      # the callers that need the id itself, never for a log payload.
+      #
+      # @return [String, nil]
+      def session_log_handle
+        sid = safe_session_id
+        sid = sid.public_id if sid.respond_to?(:public_id)
+        Onetime::SessionMetadata.handle_for(sid)
+      rescue StandardError
+        nil
+      end
+
       def custom_domain?
         domain_strategy.to_s == 'custom'
       end

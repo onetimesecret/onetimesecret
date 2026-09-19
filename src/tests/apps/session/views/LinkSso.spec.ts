@@ -38,15 +38,16 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 
 // Auth store: controllable auth state + spyable setAuthenticated.
 const mockSetAuthenticated = vi.fn();
-const mockAuthStore = { isFullyAuthenticated: false, setAuthenticated: mockSetAuthenticated };
+// The MFA hand-off asks the refresh coordinator for the server's statement
+// (#4458); it patches nothing locally.
+const mockRefresh = vi.fn(async () => 'applied');
+const mockAuthStore = {
+  isFullyAuthenticated: false,
+  setAuthenticated: mockSetAuthenticated,
+  refresh: mockRefresh,
+};
 vi.mock('@/shared/stores/authStore', () => ({
   useAuthStore: () => mockAuthStore,
-}));
-
-// Bootstrap store: MFA hand-off marks awaiting_mfa via update() (mirrors Login).
-const mockBootstrapUpdate = vi.fn();
-vi.mock('@/shared/stores/bootstrapStore', () => ({
-  useBootstrapStore: () => ({ update: mockBootstrapUpdate }),
 }));
 
 // Composable: controllable reactive state + spies.
@@ -303,10 +304,11 @@ describe('LinkSso', () => {
       // Not fully authenticated — the OTP challenge is not skipped.
       expect(mockSetAuthenticated).not.toHaveBeenCalled();
       // Marked awaiting MFA so the route guard permits /mfa-verify (mirrors Login).
-      expect(mockBootstrapUpdate).toHaveBeenCalledWith({
-        awaiting_mfa: true,
-        authenticated: false,
-      });
+      expect(mockRefresh).toHaveBeenCalledWith({ kind: 'auth-mutation', reason: 'login' });
+      // The /mfa-verify guard admits `mfa_pending` only: ask first, then go.
+      expect(mockRefresh.mock.invocationCallOrder[0]).toBeLessThan(
+        mockPush.mock.invocationCallOrder[0]
+      );
       expect(mockPush).toHaveBeenCalledWith({ path: '/mfa-verify', query: undefined });
     });
 

@@ -67,30 +67,32 @@ require 'spec_helper'
 RSpec.describe 'Middleware manifest (characterization)' do
   # Minimal stand-in for Rack::Builder: records what MiddlewareStack.configure
   # would mount without instantiating any middleware or booting an app.
-  class MiddlewareRecorder
-    attr_reader :used, :ran, :mapped, :warmups
+  let(:recorder_class) do
+    Class.new do
+      attr_reader :used, :ran, :mapped, :warmups
 
-    def initialize
-      @used    = []
-      @ran     = []
-      @mapped  = []
-      @warmups = []
-    end
+      def initialize
+        @used    = []
+        @ran     = []
+        @mapped  = []
+        @warmups = []
+      end
 
-    def use(klass, *args, &blk)
-      @used << klass
-    end
+      def use(klass, *_args, &_blk)
+        @used << klass
+      end
 
-    def run(app)
-      @ran << app
-    end
+      def run(app)
+        @ran << app
+      end
 
-    def map(path, &blk)
-      @mapped << path
-    end
+      def map(path, &_blk)
+        @mapped << path
+      end
 
-    def warmup(&blk)
-      @warmups << blk
+      def warmup(&blk)
+        @warmups << blk
+      end
     end
   end
 
@@ -100,7 +102,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
     #   - Onetime::Application::RequestLogger: absent (logging http.enabled: false)
     #   - Sentry::Rack::CaptureExceptions: absent when diagnostics is disabled;
     #     characterized in its own example below with d9s_enabled pinned true.
-    UNIVERSAL_MIDDLEWARE_BASE = [
+    universal_middleware_base = [
       'Onetime::Middleware::AssumeHttps',
       'Otto::Security::Middleware::IPPrivacyMiddleware',
       'Onetime::Middleware::HealthAccessControl',
@@ -125,12 +127,14 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Middleware::I18nLocale',
       'Onetime::Middleware::DomainStrategy',
       'Onetime::Middleware::RetryAfterHeader',
+      'Onetime::Middleware::SessionFailureCode',
+      'Onetime::Middleware::ApiCachePolicy',
       'Onetime::Middleware::CsrfResponseHeader',
       'Onetime::Middleware::Security',
     ].freeze
 
     subject(:recorded_names) do
-      recorder = MiddlewareRecorder.new
+      recorder = recorder_class.new
       Onetime::Application::MiddlewareStack.configure(
         recorder,
         application_context: { name: 'ManifestSpec', prefix: '/manifest-spec' },
@@ -152,12 +156,12 @@ RSpec.describe 'Middleware manifest (characterization)' do
 
     it 'mounts exactly the known universal middleware, in order (diagnostics disabled)' do
       Onetime.d9s_enabled = false
-      expect(recorded_names).to eq UNIVERSAL_MIDDLEWARE_BASE
+      expect(recorded_names).to eq universal_middleware_base
     end
 
     it 'adds only Sentry::Rack::CaptureExceptions, before RetryAfterHeader (diagnostics enabled)' do
       Onetime.d9s_enabled = true
-      expected = UNIVERSAL_MIDDLEWARE_BASE.dup
+      expected = universal_middleware_base.dup
       expected.insert(
         expected.index('Onetime::Middleware::RetryAfterHeader'),
         'Sentry::Rack::CaptureExceptions',
@@ -166,7 +170,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
     end
 
     it 'only records `use` calls (no run/map/warmup at the universal layer)' do
-      recorder = MiddlewareRecorder.new
+      recorder = recorder_class.new
       Onetime::Application::MiddlewareStack.configure(
         recorder,
         application_context: { name: 'ManifestSpec', prefix: '/manifest-spec' },
@@ -203,7 +207,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
     # in registration order, as resolved under RACK_ENV=test. Entries wrapped
     # in environment-conditional blocks in the class bodies are absent here —
     # see the blind-spot warning at the top of this file.
-    EXPECTED_CLASS_LEVEL_MIDDLEWARE = {
+    expected_class_level_middleware = {
       # Onetime.development? block (ViteProxy, SessionDebugger,
       # SchemaValidator) absent under test.
       # TenantCspExtras sits INSIDE RequestSetup by design (#4173): it writes
@@ -214,6 +218,9 @@ RSpec.describe 'Middleware manifest (characterization)' do
         'Onetime::Middleware::TenantCspExtras',
         'Core::Middleware::ErrorHandling',
         'Onetime::Middleware::StaticFiles',
+        # Innermost: ahead of the router (and so the auth strategy), behind
+        # StaticFiles so asset requests allocate nothing (ADR-046).
+        'Core::Middleware::SnapshotOrdering',
       ],
       'Billing::Application' => [],
       'V1::Application' => ['Rack::JSONBodyParser'],
@@ -232,7 +239,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Internal::ACME::Application' => ['Internal::ACME::LocalhostOnly'],
     }.freeze
 
-    EXPECTED_CLASS_LEVEL_MIDDLEWARE.each do |class_name, expected|
+    expected_class_level_middleware.each do |class_name, expected|
       it "#{class_name} resolves exactly #{expected.inspect}" do
         klass  = Object.const_get(class_name)
         actual = klass.resolved_middleware.map { |mw, _args, _blk| mw.name }
@@ -246,7 +253,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
     # characterizes the DECLARATIONS; resolution behavior is covered by
     # middleware_profile_spec.rb. Auth::Application (not loadable here, see
     # header) declares :authenticated_web.
-    EXPECTED_MIDDLEWARE_PROFILES = {
+    expected_middleware_profiles = {
       'Core::Application' => :standard,
       'Billing::Application' => :standard,
       'V1::Application' => :standard,
@@ -262,7 +269,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Internal::ACME::Application' => :internal,
     }.freeze
 
-    EXPECTED_MIDDLEWARE_PROFILES.each do |class_name, expected_profile|
+    expected_middleware_profiles.each do |class_name, expected_profile|
       it "#{class_name} declares middleware profile #{expected_profile.inspect}" do
         expect(Object.const_get(class_name).middleware_profile).to eq(expected_profile)
       end
@@ -271,15 +278,15 @@ RSpec.describe 'Middleware manifest (characterization)' do
     it 'covers every loaded Onetime::Application::Base subclass except the known exclusions' do
       # Auth::Application is deliberately not required (see header note); any
       # other subclass appearing here means a new app was added without a
-      # manifest entry — add it to EXPECTED_CLASS_LEVEL_MIDDLEWARE.
+      # manifest entry — add it to expected_class_level_middleware.
       loaded = ObjectSpace.each_object(Class)
         .select { |cls| cls < Onetime::Application::Base }
         .map(&:name)
         .compact
         .reject { |name| name == 'Auth::Application' }
 
-      expect(loaded - EXPECTED_CLASS_LEVEL_MIDDLEWARE.keys).to be_empty,
-        "Unmanifested Application subclasses: #{(loaded - EXPECTED_CLASS_LEVEL_MIDDLEWARE.keys).inspect}"
+      expect(loaded - expected_class_level_middleware.keys).to be_empty,
+        "Unmanifested Application subclasses: #{(loaded - expected_class_level_middleware.keys).inspect}"
     end
   end
 end

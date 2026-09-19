@@ -2,6 +2,8 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import StaleSessionNotice from '@/shared/components/auth/StaleSessionNotice.vue';
+  import VerificationUnavailable from '@/shared/components/auth/VerificationUnavailable.vue';
   import { iconLibraryComponents } from '@/shared/components/icons/sprites';
   import CriticalSprites from '@/shared/components/icons/sprites/CriticalSprites.vue';
   import ImpersonationBanner from '@/shared/components/ui/ImpersonationBanner.vue';
@@ -9,14 +11,40 @@
   import RouteErrorBoundary from '@/shared/components/errors/RouteErrorBoundary.vue';
   import QuietLayout from '@/shared/layouts/MinimalLayout.vue';
   import { useBrandTheme } from '@/shared/composables/useBrandTheme';
+  import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useNotificationsStore } from '@/shared/stores/notificationsStore';
+  import { consumeSessionTransition } from '@/utils/sessionTransition';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, ref, onMounted, watchEffect, type Component, markRaw } from 'vue';
   import { useRoute } from 'vue-router';
 
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const route = useRoute();
   const bootstrapStore = useBootstrapStore();
+  const authStore = useAuthStore();
+
+  // Protected content is withheld while authority cannot be established
+  // (#4460): `unavailable` after repeated failed verifications, or a `checking`
+  // that was never resolved. The guards let navigation through in both states
+  // so nobody is bounced to /signin by an outage; this is where the protected
+  // UI is actually kept off the screen. One place, so it holds for every
+  // layout of both bundles. Public routes render as usual.
+  const withholdProtected = computed(
+    () =>
+      !!route.meta.requiresAuth &&
+      (authStore.authStatus === 'unavailable' || authStore.authStatus === 'checking')
+  );
+
+  // One session transition, one message (#4461). A session that ended or was
+  // replaced outside this tab ends in a forced page load; the page that loads
+  // next (this one) says why, once. consume removes the parked kind, so a
+  // remount or a later navigation cannot repeat it.
+  const announceSessionTransition = () => {
+    const kind = consumeSessionTransition();
+    if (!kind) return;
+    useNotificationsStore().show(t(`web.auth.session.${kind}`), 'info', 'top', 10000);
+  };
 
   useBrandTheme();
 
@@ -107,6 +135,7 @@
   };
 
   onMounted(loadAllSprites);
+  onMounted(announceSessionTransition);
 </script>
 <!--
 /**
@@ -132,6 +161,12 @@
        is absent for every ordinary session. -->
   <ImpersonationBanner v-if="bootstrapStore.impersonation" />
 
+  <!-- Stale-session state (ADR-046 "Forced page load"). Mounted here for the
+       same reason: every route of both bundles. It renders only while the
+       refresh coordinator holds that state, i.e. after a forced reload was
+       cancelled or bounded. -->
+  <StaleSessionNotice />
+
   <!-- Dynamic layout selection based on route.meta.layout -->
   <component
     :is="layout"
@@ -145,7 +180,9 @@
       v-slot="{ Component }"
       class="rounded-md">
       <RouteErrorBoundary :reset-key="$route.fullPath">
+        <VerificationUnavailable v-if="withholdProtected" />
         <component
+          v-else
           :is="Component"
           :key="$route.fullPath" />
       </RouteErrorBoundary>

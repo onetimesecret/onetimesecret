@@ -156,6 +156,13 @@ RSpec.describe 'Admin-surface session lifetime (#4331)', type: :integration do
       # "Authentication Required".
       expect(JSON.parse(response.body)['message'])
         .to match(/\A\[ADMIN_SESSION_EXPIRED\] Admin session absolute timeout exceeded/)
+      # #4462: the stable code, scoped apart from a customer-session rejection
+      # so the client leaves the (still valid) customer session alone.
+      expect(JSON.parse(response.body)).to include(
+        'error' => 'Authentication Required',
+        'code' => 'admin_session_expired',
+        'code_scope' => 'admin_session',
+      )
     end
 
     # THE regression this design exists to prevent. Expiring the session object
@@ -206,6 +213,10 @@ RSpec.describe 'Admin-surface session lifetime (#4331)', type: :integration do
       expect(response.status).to eq(401)
       expect(JSON.parse(response.body)['message'])
         .to match(/\A\[ADMIN_SESSION_EXPIRED\] Admin session idle timeout exceeded/)
+      expect(JSON.parse(response.body)).to include(
+        'code' => 'admin_session_expired',
+        'code_scope' => 'admin_session',
+      )
     end
 
     # The M-5 regression, and the reason TrackMetadata honours the env flag: a

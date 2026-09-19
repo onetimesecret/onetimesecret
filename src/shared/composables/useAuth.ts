@@ -39,7 +39,6 @@ import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
 import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
 import { SIGNIN_VERIFIED_STATE_KEY } from '@/shared/constants/signin';
 import { useAuthStore } from '@/shared/stores/authStore';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import type { LockoutStatus } from '@/types/auth';
@@ -65,11 +64,13 @@ import { useRouter } from 'vue-router';
  * 3. Response is validated by loginResponseSchema (Zod)
  *    - CRITICAL: Schema union order matters - MFA schema must be first
  * 4. If requiresMfa(response) is true:
- *    a. checkWindowStatus() refreshes state (gets awaiting_mfa=true)
+ *    a. authStore.refresh({ kind: 'auth-mutation' }) asks the server, which
+ *       answers auth_status 'mfa_pending'. Nothing is patched locally.
  *    b. router.push('/mfa-verify') navigates to OTP form
  *    c. MfaChallenge.vue handles OTP verification via useMfa composable
  * 5. If no MFA required:
- *    a. setAuthenticated(true) updates state and fetches /window
+ *    a. setAuthenticated(true) does the same authentication-mutation refresh
+ *       of GET /bootstrap/me; the accepted snapshot IS the state
  *    b. router.push('/') navigates to dashboard
  *
  * ───────────────────────────────────────────────────────────────────────────────
@@ -96,7 +97,6 @@ export function useAuth() {
   const router = useRouter();
   const { locale } = useI18n();
   const authStore = useAuthStore();
-  const bootstrapStore = useBootstrapStore();
   const csrfStore = useCsrfStore();
   const notificationsStore = useNotificationsStore();
 
@@ -199,11 +199,10 @@ export function useAuth() {
           mfa_methods: validated.mfa_methods,
         });
 
-        // Update bootstrap store directly from login response - no round-trip needed.
-        // The login response already tells us MFA is required, so we set awaiting_mfa
-        // to allow route guards to permit access to /mfa-verify.
-        // We also explicitly set authenticated: false to ensure consistent state.
-        bootstrapStore.update({ awaiting_mfa: true, authenticated: false });
+        // MFA-pending is the SERVER's statement, not a local patch (#4458): ask
+        // for a snapshot as an authentication mutation. The /mfa-verify guard
+        // admits `mfa_pending` only, so this must land before we navigate.
+        await authStore.refresh({ kind: 'auth-mutation', reason: 'login' });
 
         // Redirect to MFA verification - guard will allow access since awaiting_mfa is set.
         // Preserve the redirect param AND the plan-intent pair (product/interval)
@@ -527,7 +526,7 @@ export function useAuth() {
       // Refresh bootstrap state so has_password and other auth-related
       // fields reflect the current server state. This matters when an
       // SSO-only user sets a password for the first time.
-      await bootstrapStore.refresh();
+      await authStore.refresh({ kind: 'auth-mutation', reason: 'password-change' });
 
       return true;
     });

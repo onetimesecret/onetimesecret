@@ -79,24 +79,34 @@ module Auth::Config::Hooks
         existing_account = db[:accounts].where(email: email).first
 
         if existing_account
-          diagnostic_hint = <<~HINT.strip
-            Registration blocked: Account exists in authdb but may be missing from
-            Redis. This can occur after clearing Redis without resetting authdb.
-            Consider: (1) deleting the account from authdb, or (2) resetting both
-            databases together.
-          HINT
+          # With its customer record this is an ordinary duplicate (info);
+          # without one it is the two-database mismatch the hint describes.
+          if Onetime::Customer.email_exists?(email)
+            Auth::Logging.log_auth_event(
+              :registration_blocked_existing_account,
+              level: :info,
+              email: OT::Utils.obscure_email(email),
+              account_id: existing_account[:id],
+            )
+          else
+            diagnostic_hint = <<~HINT.strip
+              Registration blocked: Account exists in authdb but is missing from
+              Redis. This can occur after clearing Redis without resetting authdb.
+              Consider: (1) deleting the account from authdb, or (2) resetting both
+              databases together.
+            HINT
 
-          Auth::Logging.log_auth_event(
-            :registration_blocked_auth_db_conflict,
-            level: :error,
-            email: OT::Utils.obscure_email(email),
-            account_id: existing_account[:id],
-            diagnostic_hint: diagnostic_hint,
-          )
+            Auth::Logging.log_auth_event(
+              :registration_blocked_auth_db_conflict,
+              level: :error,
+              email: OT::Utils.obscure_email(email),
+              account_id: existing_account[:id],
+              diagnostic_hint: diagnostic_hint,
+            )
+          end
 
-          set_error_flash(create_account_error_flash)
-          request.env['rodauth.error_flash'] = create_account_error_flash
-          throw_rodauth_error
+          # The shared answer (config/overrides/duplicate_signup.rb).
+          refuse_signup_for_existing_account(email)
         end
 
         # Check Redis (customer database)

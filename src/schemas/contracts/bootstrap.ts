@@ -704,6 +704,136 @@ export const diagnosticsRefSchema = z.strictObject({
 export type DiagnosticsRefBlock = z.infer<typeof diagnosticsRefSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// SNAPSHOT ORDERING (ADR-046)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** 128-bit keyed digest of the session id, lowercase hex. Opaque. */
+export const SNAPSHOT_EPOCH_PATTERN = /^[0-9a-f]{32}$/;
+
+/** Canonical positive decimal. Compared with BigInt, never parsed to a number. */
+export const SNAPSHOT_VERSION_PATTERN = /^[1-9][0-9]*$/;
+
+/**
+ * Fixed-width UTC RFC 3339 with exactly six fractional digits, e.g.
+ * `2026-09-17T17:28:59.123456Z`. Binds the server. On the client a mismatch is
+ * a diagnostic and the snapshot's age is "unknown"; it NEVER decides whether
+ * a snapshot is applied, so it is not part of `bootstrapSchema`.
+ */
+export const SNAPSHOT_GENERATED_AT_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/;
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// AUTH STATUS (#4462)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * `auth_status` values the SERVER sends. Mirrors
+ * `Onetime::SessionAuthStatus::VALUES` (lib/onetime/session/auth_status.rb).
+ *
+ * - `authenticated` — an authenticated customer session; `cust` is present.
+ * - `mfa_pending`   — first factor passed, second factor outstanding.
+ * - `anonymous`     — no customer session, including one the server rejected.
+ *                     The reason is never on a public payload.
+ * - `unavailable`   — the session could not be verified. NOT a sign-out.
+ */
+export const authStatusValues = ['authenticated', 'anonymous', 'mfa_pending', 'unavailable'] as const;
+export const authStatusSchema = z.enum(authStatusValues);
+export type AuthStatus = z.infer<typeof authStatusSchema>;
+
+/** Client-side status. `checking` is client-only and never on the wire. */
+export type ClientAuthStatus = AuthStatus | 'checking';
+
+/**
+ * The status a client may act on for a parsed payload.
+ *
+ * Compatibility rule (#4462): any path through here can only WITHHOLD access.
+ * `authenticated` requires the status (when the server sent one), the
+ * `authenticated` projection, and a customer to all agree. A payload from a
+ * backend that predates `auth_status` is read from the two booleans, which is
+ * never more permissive than that server's own `authenticated`.
+ */
+export function effectiveAuthStatus(payload: {
+  auth_status?: AuthStatus;
+  authenticated?: boolean;
+  awaiting_mfa?: boolean;
+  cust?: unknown;
+}): AuthStatus {
+  const hasCustomer = payload.cust !== null && payload.cust !== undefined;
+  const identified = payload.authenticated === true && hasCustomer;
+
+  if (payload.auth_status === undefined) {
+    if (identified) return 'authenticated';
+    // `authenticated: true` without a customer is not a usable identity.
+    if (payload.authenticated === true) return 'unavailable';
+    return payload.awaiting_mfa === true ? 'mfa_pending' : 'anonymous';
+  }
+
+  if (payload.auth_status !== 'authenticated') return payload.auth_status;
+  return identified ? 'authenticated' : 'unavailable';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BOOTSTRAP CUSTOMER (wire shape)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * A customer timestamp as it arrives in a bootstrap payload.
+ *
+ * `customerCanonical` is the POST-parse shape: its timestamps are `z.date()`,
+ * and JSON cannot carry a Date. The server emits `cust.safe_dump`, i.e. epoch
+ * seconds. Nothing parsed a wire payload with `bootstrapSchema` before #4458,
+ * so the mismatch was latent; from #4458 on, hydration and every
+ * /bootstrap/me response are validated with it, and an authenticated payload
+ * that failed here would read as "cannot verify" for every signed-in user.
+ *
+ * Accepted, and nothing else: epoch seconds as a number; epoch seconds as a
+ * numeric string (the datastore's encoding); or a Date, so that parsing an
+ * already-parsed snapshot stays idempotent. The OUTPUT is always a Date, so
+ * `BootstrapPayload` is unchanged for every consumer.
+ */
+const bootstrapTimestamp = z
+  .union([
+    z.date(),
+    z.number(),
+    z
+      .string()
+      .regex(/^\d+(\.\d+)?$/)
+      .transform(Number),
+  ])
+  .transform((value) => (value instanceof Date ? value : new Date(value * 1000)));
+
+/**
+ * A customer counter as it arrives in a bootstrap payload.
+ *
+ * `safe_dump` reads the counters straight from the datastore, which stores
+ * them as decimal strings ("0"); observed on a live /bootstrap/me body. A
+ * number is accepted too, so parsing an already-parsed snapshot is idempotent.
+ */
+const bootstrapCounter = z.union([
+  z.number(),
+  z
+    .string()
+    .regex(/^\d+$/)
+    .transform(Number),
+]);
+
+/**
+ * `customerCanonical` with the wire encoding `cust.safe_dump` really has:
+ * epoch-second timestamps, string counters, and no `feature_flags` key (it is
+ * not a safe_dump field). Pinned against a recorded server body in
+ * src/tests/contracts/bootstrap-wire-contract.spec.ts.
+ */
+export const bootstrapCustomerSchema = customerCanonical.extend({
+  created: bootstrapTimestamp,
+  updated: bootstrapTimestamp,
+  last_login: bootstrapTimestamp.nullish().transform((value) => value ?? null),
+  secrets_created: bootstrapCounter,
+  secrets_burned: bootstrapCounter,
+  secrets_shared: bootstrapCounter,
+  emails_sent: bootstrapCounter,
+  feature_flags: customerCanonical.shape.feature_flags.default({}),
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // BOOTSTRAP PAYLOAD SCHEMA (full payload for Rhales validation)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -793,8 +923,16 @@ export const bootstrapSchema = z.object({
   // AuthenticationSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
   apitoken: z.string().optional(),
+  // The server's statement about the customer session (#4462). `.optional()`
+  // with no default: a backend that predates the field omits it, and the
+  // client then derives a status from the two booleans below — a derivation
+  // that can only withhold. See effectiveAuthStatus().
+  auth_status: authStatusSchema.optional(),
+  // Compatibility projections of `auth_status`. The serializer computes both
+  // FROM it, so the three never disagree on a payload from a current backend.
   authenticated: z.boolean().default(false),
   awaiting_mfa: z.boolean().optional().default(false),
+  /** @deprecated Superseded by `auth_status: 'unavailable'`. Remove in v0.27 (#4468). */
   had_valid_session: z.boolean().default(false),
   // Tri-state: true/false are definitive; null means the server could not
   // determine it (transient auth-DB failure during serialization). The store
@@ -806,7 +944,7 @@ export const bootstrapSchema = z.object({
   // is not 'full'. Defaults true so consumer accounts keep the affordance.
   password_auth_permitted: z.boolean().default(true),
   custid: z.string().default(''),
-  cust: customerCanonical.nullable().default(null),
+  cust: bootstrapCustomerSchema.nullable().default(null),
   email: z.string().default(''),
   // customer_since: formatted date string (e.g., "Mar 21, 2026") from Ruby epochdom()
   customer_since: z.string().optional(),
@@ -861,7 +999,18 @@ export const bootstrapSchema = z.object({
   // ─────────────────────────────────────────────────────────────────────────────
   locale: z.string().default('en'),
   default_locale: z.string().default('en'),
-  fallback_locale: z.string().default('en'),
+  // OT.fallback_locale is the config's `i18n.fallback_locale` verbatim: a map
+  // of locale -> fallback chain (the shape vue-i18n takes, see src/i18n.ts),
+  // or a single locale string on a minimal config.
+  fallback_locale: z
+    .union([
+      z.string(),
+      z.record(
+        z.string(),
+        z.union([z.array(z.string()), z.string().transform((locale) => [locale])])
+      ),
+    ])
+    .default('en'),
   supported_locales: z.array(z.string()).default([]),
   i18n_enabled: z.boolean().default(true),
   // Date/time display format: 'locale', 'iso8601', 'us', 'eu', 'eu-dot', 'uk',
@@ -891,6 +1040,21 @@ export const bootstrapSchema = z.object({
   ruby_version: z.string().default(''),
   shrimp: z.string().default(''),
   nonce: z.string().nullable().default(null),
+
+  // Snapshot ordering (ADR-046). Present only on a complete snapshot of an
+  // ORDERED session (authenticated or MFA-pending). ABSENT — never null —
+  // for every other payload, for a degraded hydration whose allocation
+  // failed, and from a backend that predates the contract. The epoch and the
+  // version are validated as a unit by the superRefine below.
+  //
+  // `snapshot_version` is a decimal STRING, never a JSON number: compare with
+  // BigInt. `snapshot_generated_at` is diagnostic only and deliberately has
+  // NO format constraint here: a missing or malformed timestamp must not
+  // fail the parse of a payload whose ordering pair is valid. Its format
+  // (SNAPSHOT_GENERATED_AT_PATTERN) is checked separately, for diagnostics.
+  snapshot_epoch: z.string().regex(SNAPSHOT_EPOCH_PATTERN).optional(),
+  snapshot_version: z.string().regex(SNAPSHOT_VERSION_PATTERN).optional(),
+  snapshot_generated_at: z.string().optional(),
   homepage_mode: z.string().nullable().default(null),
   enjoyTheVue: z.boolean().default(false),
 
@@ -926,7 +1090,59 @@ export const bootstrapSchema = z.object({
   // Development (always emitted by ConfigSerializer)
   // ─────────────────────────────────────────────────────────────────────────────
   development: developmentConfigSchema.default(developmentConfigSchema.parse({})),
-});
+})
+  // ADR-046: the ordering pair is a unit — both present and valid, or both
+  // absent. Zod 4 keeps the object type through a refinement, so `.shape`,
+  // `parse({})` and `z.infer` are unchanged. JSON Schema cannot express the
+  // rule; the generated schema validates each field's format only.
+  .superRefine((payload, ctx) => {
+    const hasEpoch = payload.snapshot_epoch !== undefined;
+    const hasVersion = payload.snapshot_version !== undefined;
+    if (hasEpoch === hasVersion) return;
+
+    ctx.addIssue({
+      code: 'custom',
+      path: [hasEpoch ? 'snapshot_version' : 'snapshot_epoch'],
+      message: 'snapshot_epoch and snapshot_version must both be present or both be absent',
+    });
+  });
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WIRE NULLS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let nullRejectingKeys: ReadonlySet<string> | undefined;
+
+/**
+ * Reads a server `null` as "not emitted" for every top-level key whose schema
+ * does not accept null.
+ *
+ * Every Ruby serializer seeds its `output_template` with nil for each key it
+ * owns and overwrites only what applies to the request, so ANY key can arrive
+ * as null (`custid` for an anonymous visitor, `domains` with the feature off,
+ * `support_email` on a bare config). The schema's `.default()` is the value a
+ * consumer should see in that case, and Zod applies a default to `undefined`
+ * only. Keys whose schema accepts null (`cust`, `organization`, ...) are left
+ * alone, so a meaningful null stays a null.
+ *
+ * Apply this to a payload that came off the wire (hydration, /bootstrap/me)
+ * before `bootstrapSchema.parse`. It never adds a key or changes a value, so
+ * it cannot make a payload claim more than the server sent.
+ */
+export function withoutWireNulls(data: unknown): unknown {
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) return data;
+
+  nullRejectingKeys ??= new Set(
+    Object.entries(bootstrapSchema.shape)
+      .filter(([, field]) => !(field as z.ZodType).safeParse(null).success)
+      .map(([key]) => key)
+  );
+
+  const rejecting = nullRejectingKeys;
+  return Object.fromEntries(
+    Object.entries(data).filter(([key, value]) => !(value === null && rejecting.has(key)))
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // BOOTSTRAP PAYLOAD TYPE
