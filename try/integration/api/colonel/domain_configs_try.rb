@@ -307,7 +307,23 @@ put "/api/colonel/domains/#{@extid}/configs/signin",
  Onetime::ColonelAuditEvent.count - @before_audit]
 #=> [422, true, 1]
 
+## that 422 is tagged for the console: the field, a locale key, and the en text naming the origin
+@refusal = JSON.parse(last_response.body)
+[@refusal['field'], @refusal['error_key'], @refusal['error']]
+#=> ['related_origins', 'api.domains.errors.related_origins_foreign_organization', "These origins belong to another organization and cannot be added: https://#{@rival.display_domain}"]
+
 ## the refused write stored nothing: the earlier value is intact
+Onetime::CustomDomain::SigninConfig.find_by_domain_id(@domain.identifier).related_origins
+#=> ["https://#{@domain2.display_domain}"]
+
+## a malformed entry is refused the same way: 422 against the field, with its own locale key
+put "/api/colonel/domains/#{@extid}/configs/signin",
+  { 'related_origins' => ['vault.example.com'] }, confirming_config(@domain, 'signin')
+@refusal = JSON.parse(last_response.body)
+[last_response.status, @refusal['field'], @refusal['error_key'], @refusal['error'].include?('vault.example.com')]
+#=> [422, 'related_origins', 'api.domains.errors.related_origins_invalid', true]
+
+## and it stored nothing either
 Onetime::CustomDomain::SigninConfig.find_by_domain_id(@domain.identifier).related_origins
 #=> ["https://#{@domain2.display_domain}"]
 

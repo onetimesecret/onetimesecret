@@ -55,6 +55,35 @@ module Onetime
       # Valid values for restrict_to — matches AuthConfig::RESTRICT_TO_VALUES
       RESTRICT_TO_VALUES = %w[password email_auth webauthn sso].freeze
 
+      # Refusals from {#related_origins=}. Problems like any other setter
+      # refusal, but typed and carrying the offending entries and a locale
+      # key, so an API layer can attach the answer to the `related_origins`
+      # field and localize it instead of matching on the message.
+      class RelatedOriginError < Onetime::Problem
+        attr_reader :origins
+
+        def initialize(origins)
+          @origins = Array(origins).map(&:to_s)
+          super("#{self.class::SUMMARY}: #{@origins.join(', ')}")
+        end
+
+        def error_key
+          self.class::ERROR_KEY
+        end
+      end
+
+      # An entry that is not an absolute `http(s)://host[:port]` origin.
+      class InvalidRelatedOrigin < RelatedOriginError
+        SUMMARY   = 'Invalid origin'
+        ERROR_KEY = 'api.domains.errors.related_origins_invalid'
+      end
+
+      # An entry naming a custom domain that another organization owns (#4421).
+      class ForeignRelatedOrigin < RelatedOriginError
+        SUMMARY   = 'Origin belongs to another organization'
+        ERROR_KEY = 'api.domains.errors.related_origins_foreign_organization'
+      end
+
       # DomainStrategy classifications for the operator's OWN surfaces, the
       # only hosts no per-domain config can speak for. Used by
       # resolve_lookup_failure to decide who survives an unreadable policy;
@@ -329,23 +358,22 @@ module Onetime
       #
       # @param origins [Array<String>] absolute origin URLs
       # @return [void]
-      # @raise [Onetime::Problem] if any entry is not a well-formed origin,
-      #   or names a custom domain owned by another organization
+      # @raise [InvalidRelatedOrigin] if any entry is not a well-formed origin
+      # @raise [ForeignRelatedOrigin] if any entry names a custom domain owned
+      #   by another organization
       def related_origins=(origins)
         normalized = Array(origins).filter_map do |raw|
           candidate = raw.to_s.strip
           next nil if candidate.empty?
 
           normalized_value = normalize_related_origin(candidate)
-          raise Onetime::Problem, "Invalid origin: #{raw}" if normalized_value.nil?
+          raise InvalidRelatedOrigin.new(raw) if normalized_value.nil?
 
           normalized_value
         end.uniq
 
         foreign = normalized.select { |origin| foreign_custom_origin?(origin) }
-        unless foreign.empty?
-          raise Onetime::Problem, "Origin belongs to another organization: #{foreign.join(', ')}"
-        end
+        raise ForeignRelatedOrigin.new(foreign) unless foreign.empty?
 
         self.related_origins_json = normalized.empty? ? nil : JSON.generate(normalized)
       end
