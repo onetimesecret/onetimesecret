@@ -64,11 +64,13 @@ import { useRouter } from 'vue-router';
  * 3. Response is validated by loginResponseSchema (Zod)
  *    - CRITICAL: Schema union order matters - MFA schema must be first
  * 4. If requiresMfa(response) is true:
- *    a. checkWindowStatus() refreshes state (gets awaiting_mfa=true)
+ *    a. authStore.refresh({ kind: 'auth-mutation' }) asks the server, which
+ *       answers auth_status 'mfa_pending'. Nothing is patched locally.
  *    b. router.push('/mfa-verify') navigates to OTP form
  *    c. MfaChallenge.vue handles OTP verification via useMfa composable
  * 5. If no MFA required:
- *    a. setAuthenticated(true) updates state and fetches /window
+ *    a. setAuthenticated(true) does the same authentication-mutation refresh
+ *       of GET /bootstrap/me; the accepted snapshot IS the state
  *    b. router.push('/') navigates to dashboard
  *
  * ───────────────────────────────────────────────────────────────────────────────
