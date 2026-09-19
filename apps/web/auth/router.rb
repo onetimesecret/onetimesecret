@@ -489,8 +489,26 @@ module Auth
         # Rodauth would authorize the session, and a session Rodauth would
         # authorize must not survive a definitive rejection. A Rack session
         # that is neither has nothing to destroy and falls through.
+        #
+        # Logged before the clear, like the :revoked branch, with whatever the
+        # Rack session was carrying mid-flow. An SSO callback that arrives on
+        # such a session is handled as it is there: the session is destroyed,
+        # the callback continues as the anonymous request it now is, and any
+        # Connect intent is purged with the session, so nothing can be bound
+        # to the rejected account. The hook-level Connect refusal
+        # (hooks/omniauth_connect.rb) is not reached from a rejected session;
+        # this line is the record of why that Connect went nowhere.
         if session['authenticated'] == true || rodauth.logged_in?
           outcome = revoked_outcome(r.path_info)
+          Auth::Logging.log_auth_event(
+            :customer_session_rejected,
+            level: :warn,
+            path: r.path_info,
+            account_id: session['account_id'],
+            reason: auth_session_reason,
+            outcome: outcome,
+            **inflight_session_state,
+          )
           clear_gated_session
 
           case outcome
