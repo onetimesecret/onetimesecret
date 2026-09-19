@@ -280,6 +280,53 @@ put "/api/colonel/domains/#{@extid}/configs/signup",
 [last_response.status, @resp['details']['config']['validation_strategy'], @resp['details']['config']['allowed_signup_domains']]
 #=> [200, 'domain_allowlist', ['corp.example.com']]
 
+# ----------------------------------------------------------------
+# PUT signin related_origins — organization ownership (#4421)
+#
+# A related origin naming ANOTHER organization's custom domain would make
+# that tenant's WebAuthn credentials offerable here. The read side drops
+# such a member regardless; the write side refuses it so the operator is
+# told, rather than handed a 200 for an entry that can never take effect.
+# ----------------------------------------------------------------
+
+## PUT signin related_origins naming a SAME-organization domain round-trips
+put "/api/colonel/domains/#{@extid}/configs/signin",
+  { 'related_origins' => ["https://#{@domain2.display_domain}"] }, confirming_config(@domain, 'signin')
+@resp = JSON.parse(last_response.body)
+[last_response.status, @resp['details']['config']['related_origins']]
+#=> [200, ["https://#{@domain2.display_domain}"]]
+
+## PUT signin related_origins naming ANOTHER organization's domain -> 422 from the model setter, audited
+@rival_owner = Onetime::Customer.create!(email: "rival_dc_#{@timestamp}@example.com")
+@rival_org   = Onetime::Organization.create!("DC Rival #{@timestamp}", @rival_owner, "billing_rival_dc_#{@timestamp}@example.com")
+@rival       = Onetime::CustomDomain.create!("colonel-dc-rival-#{@timestamp}.example.com", @rival_org.objid)
+@before_audit = Onetime::ColonelAuditEvent.count
+put "/api/colonel/domains/#{@extid}/configs/signin",
+  { 'related_origins' => ["https://#{@rival.display_domain}"] }, confirming_config(@domain, 'signin')
+[last_response.status, last_response.body.include?('another organization'),
+ Onetime::ColonelAuditEvent.count - @before_audit]
+#=> [422, true, 1]
+
+## the refused write stored nothing: the earlier value is intact
+Onetime::CustomDomain::SigninConfig.find_by_domain_id(@domain.identifier).related_origins
+#=> ["https://#{@domain2.display_domain}"]
+
+## PUT signin related_origins on a domain with NO signin config: outcome=created and the origins are stored
+@domain3 = Onetime::CustomDomain.create!("colonel-dc3-#{@timestamp}.example.com", @org.objid)
+put "/api/colonel/domains/#{@domain3.extid}/configs/signin",
+  { 'related_origins' => ["https://#{@domain.display_domain}"] }, confirming_config(@domain3, 'signin')
+@resp = JSON.parse(last_response.body)
+[last_response.status, @resp['details']['outcome'],
+ Onetime::CustomDomain::SigninConfig.find_by_domain_id(@domain3.identifier).related_origins]
+#=> [200, 'created', ["https://#{@domain.display_domain}"]]
+
+## a FIRST write naming another organization's domain -> 422 and no config is created
+@domain4 = Onetime::CustomDomain.create!("colonel-dc4-#{@timestamp}.example.com", @org.objid)
+put "/api/colonel/domains/#{@domain4.extid}/configs/signin",
+  { 'related_origins' => ["https://#{@rival.display_domain}"] }, confirming_config(@domain4, 'signin')
+[last_response.status, Onetime::CustomDomain::SigninConfig.exists_for_domain?(@domain4.identifier)]
+#=> [422, false]
+
 ## PUT sso -> 422: not editable via the colonel API
 put "/api/colonel/domains/#{@extid}/configs/sso", { 'enabled' => 'true' }, colonel_headers
 [last_response.status, last_response.body.include?('not editable')]
@@ -388,6 +435,14 @@ Onetime::CustomDomain::ConfigRegistry.slugs.each do |slug|
   Onetime::CustomDomain::ConfigRegistry.model_for(slug).delete_for_domain!(@domain.identifier)  rescue nil
   Onetime::CustomDomain::ConfigRegistry.model_for(slug).delete_for_domain!(@domain2.identifier) rescue nil
 end
+[@domain3, @domain4, @rival].compact.each do |extra|
+  Onetime::CustomDomain::ConfigRegistry.slugs.each do |slug|
+    Onetime::CustomDomain::ConfigRegistry.model_for(slug).delete_for_domain!(extra.identifier) rescue nil
+  end
+  extra.destroy! rescue nil
+end
+@rival_org&.destroy!   rescue nil
+@rival_owner&.destroy! rescue nil
 @domain.destroy!    rescue nil
 @domain2.destroy!   rescue nil
 @org.destroy!       rescue nil
