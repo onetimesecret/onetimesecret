@@ -123,6 +123,31 @@ Billing::PendingFederatedSubscription.pending?(@eh1)
 Billing::PendingFederatedSubscription.pending?('nonexistent_hash_value')
 #=> false
 
+# --- Recent-records index maintenance ---
+#
+# destroy! must drop the id from recent_records. Without this, an admin
+# paging through WebhookVisibility with rank-based slices would skip one
+# record at each page boundary the read-side prune touched — see
+# lib/onetime/operations/billing/webhook_visibility.rb.
+
+## store_from_webhook populates recent_records with the id
+@eh_idx = Onetime::Utils::EmailHash.compute('federation-index-test@example.com')
+sub_idx = build_mock_subscription(status: 'active', period_end: 1_750_000_000)
+Billing::PendingFederatedSubscription.store_from_webhook(email_hash: @eh_idx, subscription: sub_idx)
+Billing::PendingFederatedSubscription.recent_records.member?(@eh_idx)
+#=> true
+
+## destroy! drops the id from recent_records
+record = Billing::PendingFederatedSubscription.find_by_email_hash(@eh_idx)
+record.destroy!
+Billing::PendingFederatedSubscription.recent_records.member?(@eh_idx)
+#=> false
+
+## unindex_recent is idempotent when the id is already gone
+Billing::PendingFederatedSubscription.unindex_recent(@eh_idx)
+Billing::PendingFederatedSubscription.recent_records.member?(@eh_idx)
+#=> false
+
 # Teardown: destroy test records and restore secret
 [@eh1, @eh2, @eh3, @eh4, @eh5, @eh6, @eh7].each do |h|
   record = Billing::PendingFederatedSubscription.find_by_email_hash(h)

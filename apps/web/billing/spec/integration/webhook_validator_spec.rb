@@ -283,5 +283,27 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
       expect(reloaded.data_object_id).to eq('sub_test123')
       expect(reloaded.event_payload).to eq(payload)
     end
+
+    it 'appends the event id to the recent_events read index on first init' do
+      Billing::StripeWebhookEvent.recent_events.clear
+      validator.initialize_event_record(stripe_event, payload)
+
+      expect(Billing::StripeWebhookEvent.recent_events.member?('evt_metadata_test')).to be true
+      # score is first_seen_at epoch seconds
+      expect(Billing::StripeWebhookEvent.recent_events.score('evt_metadata_test'))
+        .to be_within(5).of(Time.now.to_i)
+    end
+
+    it 'does not refresh the index score on a second init call (idempotent)' do
+      Billing::StripeWebhookEvent.recent_events.clear
+      first = validator.initialize_event_record(stripe_event, payload)
+      original_score = Billing::StripeWebhookEvent.recent_events.score(first.stripe_event_id)
+
+      sleep 1
+      validator.initialize_event_record(stripe_event, payload)
+
+      expect(Billing::StripeWebhookEvent.recent_events.score(first.stripe_event_id))
+        .to eq(original_score)
+    end
   end
 end

@@ -331,7 +331,8 @@ That ordering is the point: matching a connect to an email-*located* account wou
 | Intent surface differs from the callback surface (or the callback surface is unresolved) | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `surface_mismatch` |
 | Platform-fallback Connect callback on a custom domain without validated tenant context | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `surface_mismatch` |
 | Session account gone or no longer open (e.g. closed mid-session) | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `session_account_missing` |
-| Customer missing or suspended | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `session_customer_missing` or `session_customer_suspended` |
+| Customer missing | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `session_customer_missing` |
+| Customer suspended | The auth router destroys the session before the Connect hook runs; the intent is purged with it and nothing is bound. See [Sessions ended before the callback](#sessions-ended-before-the-callback). The hook keeps its own `session_customer_suspended` refusal as a backstop | `customer_session_rejected` (level `warn`), reason `account_suspended` |
 | Exact tuple owned by another account | Redirect `/signin?auth_error=identity_connect_conflict`; no account switch | `omniauth_identity_connect_refused`, reason `identity_owned_elsewhere` |
 | Tenant Connect while the enablement constant is closed (`OmniAuthConnect.tenant_connect_enabled?`, an internal kill switch with no operator setting; checked before the membership gate, so no `tenant_connect_membership_authorized` record is written) | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `tenant_connect_prerequisites_incomplete` |
 | Tenant Connect without an active membership that authorizes the exact custom domain (`Auth::Operations::AuthorizeTenantConnect`) | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `tenant_connect_membership_refused`, then `omniauth_identity_connect_refused`, reason `tenant_membership_refused` |
@@ -342,6 +343,25 @@ That ordering is the point: matching a connect to an email-*located* account wou
 | Bind succeeds | `(provider, issuer, uid)` row written for the session account; session re-affirmed | `omniauth_identity_connected` (level `warn`) |
 
 Refusing rather than falling back matters in the `surface_mismatch` rows: a tenant admin controls their own IdP's assertions, so binding a tenant-issuer identity onto a platform-session account would hand them a login into that account.
+
+#### Sessions ended before the callback
+
+The auth router (`apps/web/auth/router.rb`) evaluates the customer session ahead of every `/auth/*` route, Rodauth's and OmniAuth's included. Three verdicts destroy the Rack session on the spot: a revoked active-session row, a surface mismatch, and a definitive customer rejection (suspended, stale credentials, customer not found). When the request is an SSO callback, the router then lets it continue as the anonymous request it now is, and logs the event with `outcome: continued_anonymous` and the in-flight state it found (`omniauth_keys`, `sidecar_fields`).
+
+| Verdict | Audit event |
+|---------|-------------|
+| Active-session row revoked | `active_session_revoked`, plus `active_session_revoked_mid_flow` (level `warn`) when a flow was in flight |
+| Surface mismatch | `session_surface_mismatch` (level `warn`) |
+| Suspended, stale credentials, customer not found | `customer_session_rejected` (level `warn`), with `reason` |
+
+Two requirements decide this ordering:
+
+- **The session ends first.** [OWASP ASVS 5.0.0 requirement 7.4.2](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v74-session-termination) requires that all active sessions are terminated when an account is disabled, and 7.4.1 that a terminated session cannot be used further. A suspended account's session is therefore not kept alive so that a later hook can refuse it more specifically.
+- **The callback cannot outlive the session that started it.** [RFC 9700 section 2.1](https://www.rfc-editor.org/rfc/rfc9700.html#section-2.1) requires one-time `state` values "securely bound to the user agent", and [section 4.7.1](https://www.rfc-editor.org/rfc/rfc9700.html#section-4.7.1) describes `state` as linking the redirection request to the user agent session ([RFC 6749 section 10.12](https://www.rfc-editor.org/rfc/rfc6749#section-10.12) is the original requirement). OmniAuth keeps `omniauth.state`, the OIDC nonce and the PKCE verifier in the Rack session, so destroying the session removes them and the callback fails state verification. The Connect intent lives in the session sidecar and is purged by the same destroy, so nothing can be bound to the ended account.
+
+The user sees an SSO failure and signs in again; the provider's one-time authorization code is spent. That is the cost of ending the session first, and the `warn` lines above are what tie the SSO failure to its cause.
+
+**Test-mode caveat.** OmniAuth's mock mode (`OmniAuth.config.test_mode`) short-circuits the strategy's callback phase, so the state check does not run in specs. After a destroy, a mocked callback proceeds as an ordinary anonymous sign-in with the mocked assertion. Specs for these cases assert the router outcome (session destroyed, intent purged, nothing bound to the ended account, event logged) and do not assert what the mocked anonymous callback does next.
 
 #### Managing linked identities (`GET` / `DELETE /auth/identities`)
 

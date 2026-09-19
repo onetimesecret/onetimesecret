@@ -63,7 +63,10 @@ import {
 } from './colonel-banner';
 import {
   colonelBillingCatalogResponseSchema,
+  colonelPendingFederatedSubscriptionsResponseSchema,
   colonelStripeOrganizationsResponseSchema,
+  colonelWebhookEventDetailResponseSchema,
+  colonelWebhookEventsResponseSchema,
 } from './colonel-billing';
 import {
   colonelCustomerSessionRevokeAllResponseSchema,
@@ -232,6 +235,9 @@ export const responseSchemas = {
   colonelEmailMessages: colonelEmailMessagesResponseSchema,
   colonelBillingCatalog: colonelBillingCatalogResponseSchema,
   colonelStripeOrganizations: colonelStripeOrganizationsResponseSchema,
+  colonelWebhookEvents: colonelWebhookEventsResponseSchema,
+  colonelWebhookEventDetail: colonelWebhookEventDetailResponseSchema,
+  colonelPendingFederatedSubscriptions: colonelPendingFederatedSubscriptionsResponseSchema,
 
   // Colonel / admin — observability (audit reader + trends)
   colonelAuditEvents: colonelAuditEventsResponseSchema,

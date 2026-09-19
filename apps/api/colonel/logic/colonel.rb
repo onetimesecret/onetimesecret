@@ -146,9 +146,13 @@ require_relative 'colonel/get_email_provider_status'
 require_relative 'colonel/lookup_email_recipient'
 require_relative 'colonel/list_email_messages'
 
-# Billing catalog (ticket #45) + the Stripe-linked organization roster
+# Billing catalog (ticket #45), Stripe-linked organization roster, and local
+# webhook/federation observability (#4347).
 require_relative 'colonel/get_billing_catalog'
 require_relative 'colonel/list_stripe_organizations'
+require_relative 'colonel/list_stripe_webhook_events'
+require_relative 'colonel/get_stripe_webhook_event'
+require_relative 'colonel/list_pending_federated_subscriptions'
 
 # Observability: audit trail reader + export + daily activity trends
 require_relative 'colonel/list_colonel_audit_events'

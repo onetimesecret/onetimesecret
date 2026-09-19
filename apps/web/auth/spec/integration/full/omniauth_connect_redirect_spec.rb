@@ -267,9 +267,10 @@ RSpec.describe 'OmniAuth Connect post-callback return path (#3849)', type: :inte
         expect(read_intent(sid)).to include('redirect' => panel_path)
 
         # Trip the principal gate after the intent (with its redirect) exists.
-        customer           = Onetime::Customer.find_by_extid(auth_db[:accounts].where(id: account_id).get(:external_id))
-        customer.suspended = 'true'
-        customer.save
+        # A missing Customer, not a suspended one: the auth router destroys a
+        # suspended session before the Connect hook runs, so that state never
+        # reaches the hook-level refusal this example is about.
+        auth_db[:accounts].where(id: account_id).update(external_id: "ur#{SecureRandom.hex(8)}")
 
         allow(Auth::Logging).to receive(:log_auth_event).and_call_original
         clear_body_headers
@@ -281,7 +282,7 @@ RSpec.describe 'OmniAuth Connect post-callback return path (#3849)', type: :inte
         expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
         expect(Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')).to be(false)
         expect(Auth::Logging).to have_received(:log_auth_event)
-          .with(:omniauth_identity_connect_refused, hash_including(reason: 'session_customer_suspended'))
+          .with(:omniauth_identity_connect_refused, hash_including(reason: 'session_customer_missing'))
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:omniauth_identity_connected, anything)
       ensure

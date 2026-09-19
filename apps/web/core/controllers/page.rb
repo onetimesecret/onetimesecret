@@ -21,7 +21,7 @@ module Core
         # Keep parity with Base#index: the view layer serializes homepage_mode.
         req.env['onetime.homepage_mode'] = determine_homepage_mode
 
-        view = Core::Views::AdminPoint.new(req)
+        view     = Core::Views::AdminPoint.new(req)
         res.body = view.render
       end
 
@@ -38,29 +38,27 @@ module Core
       end
 
       def bootstrap_me
-        rack_session = req.env['rack.session']
-        session_logger.debug 'Exporting bootstrap state',
-          {
-            session_class: rack_session.class.name,
-            session_id: begin
-                                  rack_session.id.public_id
-            rescue StandardError
-                                  'no-id'
-            end,
-            session_keys: begin
-                                    rack_session.keys
-            rescue StandardError
-                                    []
-            end,
-            authenticated: rack_session['authenticated'],
-            has_external_id: !rack_session['external_id'].nil?,
-            authenticated_check: authenticated?,
-          }
+        # Guard the debug payload behind OT.debug? — Ruby always evaluates
+        # method arguments, so an ungated call would run the full
+        # CustomerSessionEvaluator (customer load + active-session gate) on
+        # every request via `authenticated?`, even when the logger is silenced.
+        if OT.debug?
+          rack_session = req.env['rack.session']
+          session_logger.debug 'Exporting bootstrap state',
+            {
+              session_class: rack_session.class.name,
+              authenticated: rack_session['authenticated'] == true,
+              has_external_id: !rack_session['external_id'].nil?,
+              authenticated_check: authenticated?,
+              request_id: req.env['HTTP_X_REQUEST_ID'],
+            }
+        end
 
         # Simplified: BaseView now extracts everything from req
-        view                        = Core::Views::BootstrapMe.new(req)
-        res.headers['content-type'] = 'application/json; charset=utf-8'
-        res.body                    = view.serialized_data.to_json
+        view                         = Core::Views::BootstrapMe.new(req)
+        res.headers['content-type']  = 'application/json; charset=utf-8'
+        res.headers['cache-control'] = 'private, no-store'
+        res.body                     = view.serialized_data.to_json
       end
 
       def robots_txt

@@ -116,6 +116,13 @@ RSpec.describe Billing::Workers::BillingWorker, :billing do
   end
 
   let(:operation_instance) { instance_double('ProcessWebhookEventDouble') }
+  let!(:webhook_event_record) do
+    event = Billing::StripeWebhookEvent.new(stripe_event_id: event_id)
+    event.processing_status = 'pending'
+    event.attempt_count = '1'
+    event.save
+    event
+  end
 
   before do
     # Store envelope
@@ -126,7 +133,11 @@ RSpec.describe Billing::Workers::BillingWorker, :billing do
 
     # Mock the operation class to return our controlled instance
     allow(Billing::Operations::ProcessWebhookEvent).to receive(:new).and_return(operation_instance)
-    allow(operation_instance).to receive(:call).and_return(true)
+    allow(operation_instance).to receive(:call).and_return(:success)
+  end
+
+  after do
+    webhook_event_record.destroy! rescue nil
   end
 
   describe '#work_with_params' do
@@ -163,6 +174,26 @@ RSpec.describe Billing::Workers::BillingWorker, :billing do
         worker.work_with_params(message, delivery_info, metadata)
 
         expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
+      end
+
+      it 'persists the semantic processing outcome' do
+        allow(operation_instance).to receive(:call).and_return(:not_found)
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        event_record = Billing::StripeWebhookEvent.find_by_identifier(event_id)
+        expect(event_record.processing_status).to eq('success')
+        expect(event_record.processing_outcome).to eq('not_found')
+      end
+
+      it 'persists :queued without marking the event successful' do
+        allow(operation_instance).to receive(:call).and_return(:queued)
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        event_record = Billing::StripeWebhookEvent.find_by_identifier(event_id)
+        expect(event_record.processing_status).to eq('pending')
+        expect(event_record.processing_outcome).to eq('queued')
       end
 
       it 'reconstructs Stripe event with correct type' do
@@ -208,7 +239,10 @@ RSpec.describe Billing::Workers::BillingWorker, :billing do
 
         worker.work_with_params(message, delivery_info, metadata)
 
+        event_record = Billing::StripeWebhookEvent.find_by_identifier(event_id)
         expect(worker.rejected?).to be true
+        expect(event_record.processing_status).to eq('retrying')
+        expect(event_record.processing_outcome).to be_nil
         # Initial + 3 retries = 4 calls
         expect(operation_instance).to have_received(:call).exactly(4).times
       end

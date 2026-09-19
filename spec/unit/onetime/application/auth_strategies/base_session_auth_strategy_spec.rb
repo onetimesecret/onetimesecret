@@ -69,7 +69,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
 
   before do
     allow(OT).to receive(:ld)
-    allow(Onetime::Customer).to receive(:load_by_extid_or_email).with('ur_abc').and_return(cust)
+    allow(Onetime::Customer).to receive(:find_by_extid).with('ur_abc').and_return(cust)
     # OrganizationLoader reaches for real models otherwise; this strategy's org
     # context is not what this file is about.
     allow(strategy).to receive(:load_organization_context).and_return(nil)
@@ -161,7 +161,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     # every surface, and that is the more fundamental refusal. The admin bound
     # must not run at all, so it cannot mask it with a different message.
     it 'reports the stale-credential failure and never consults the gate or the bound' do
-      allow(strategy).to receive(:session_predates_credential_change?).and_return(true)
+      allow(cust).to receive(:last_password_update).and_return(Familia.now.to_i)
       expect(Onetime::ActiveSessionGate).not_to receive(:verdict)
       expect(strategy).not_to receive(:admin_session_expiry_reason)
 
@@ -212,7 +212,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
 
     shared_examples 'refuses with SESSION_SURFACE_MISMATCH' do
       it 'refuses before the customer load and the authdb gate' do
-        expect(Onetime::Customer).not_to receive(:load_by_extid_or_email)
+        expect(Onetime::Customer).not_to receive(:find_by_extid)
         expect(Onetime::ActiveSessionGate).not_to receive(:verdict)
 
         result = strategy.authenticate(env, 'authenticated')
@@ -267,7 +267,7 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
       end
 
       it 'refuses (missing marker is treated as mismatch; user re-authenticates)' do
-        expect(Onetime::Customer).not_to receive(:load_by_extid_or_email)
+        expect(Onetime::Customer).not_to receive(:find_by_extid)
 
         result = strategy.authenticate(env, 'authenticated')
 
