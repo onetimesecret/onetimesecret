@@ -772,6 +772,43 @@ export function effectiveAuthStatus(payload: {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// BOOTSTRAP CUSTOMER (wire shape)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * A customer timestamp as it arrives in a bootstrap payload.
+ *
+ * `customerCanonical` is the POST-parse shape: its timestamps are `z.date()`,
+ * and JSON cannot carry a Date. The server emits `cust.safe_dump`, i.e. epoch
+ * seconds. Nothing parsed a wire payload with `bootstrapSchema` before #4458,
+ * so the mismatch was latent; from #4458 on, hydration and every
+ * /bootstrap/me response are validated with it, and an authenticated payload
+ * that failed here would read as "cannot verify" for every signed-in user.
+ *
+ * Accepted, and nothing else: epoch seconds as a number; epoch seconds as a
+ * numeric string (the datastore's encoding); or a Date, so that parsing an
+ * already-parsed snapshot stays idempotent. The OUTPUT is always a Date, so
+ * `BootstrapPayload` is unchanged for every consumer.
+ */
+const bootstrapTimestamp = z
+  .union([
+    z.date(),
+    z.number(),
+    z
+      .string()
+      .regex(/^\d+(\.\d+)?$/)
+      .transform(Number),
+  ])
+  .transform((value) => (value instanceof Date ? value : new Date(value * 1000)));
+
+/** `customerCanonical` with the wire encoding of its three timestamps. */
+export const bootstrapCustomerSchema = customerCanonical.extend({
+  created: bootstrapTimestamp,
+  updated: bootstrapTimestamp,
+  last_login: bootstrapTimestamp.nullish().transform((value) => value ?? null),
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // BOOTSTRAP PAYLOAD SCHEMA (full payload for Rhales validation)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -882,7 +919,7 @@ export const bootstrapSchema = z.object({
   // is not 'full'. Defaults true so consumer accounts keep the affordance.
   password_auth_permitted: z.boolean().default(true),
   custid: z.string().default(''),
-  cust: customerCanonical.nullable().default(null),
+  cust: bootstrapCustomerSchema.nullable().default(null),
   email: z.string().default(''),
   // customer_since: formatted date string (e.g., "Mar 21, 2026") from Ruby epochdom()
   customer_since: z.string().optional(),
