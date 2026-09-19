@@ -84,9 +84,9 @@ describe('beforeunload guard adoption (#4465)', () => {
   let add: ReturnType<typeof vi.spyOn>;
   let remove: ReturnType<typeof vi.spyOn>;
 
+  const isBeforeUnload = (call: unknown[]) => call[0] === 'beforeunload';
   const registered = () =>
-    add.mock.calls.filter(([type]) => type === 'beforeunload').length -
-    remove.mock.calls.filter(([type]) => type === 'beforeunload').length;
+    add.mock.calls.filter(isBeforeUnload).length - remove.mock.calls.filter(isBeforeUnload).length;
 
   const pinia = () =>
     createTestingPinia({
