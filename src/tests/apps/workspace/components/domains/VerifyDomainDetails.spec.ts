@@ -252,6 +252,86 @@ describe('VerifyDomainDetails', () => {
     });
   });
 
+  // The refreshed record reads the same after "could not tell" as after "no":
+  // an indeterminate TXT check leaves `verified` as it was. The alert is where
+  // the customer sees the difference.
+  describe('verify outcome alert', () => {
+    const outcomeAlert = '[data-testid="verify-outcome-alert"]';
+
+    const verifyWith = async (details: Record<string, unknown> | undefined) => {
+      mockVerifyDomain.mockResolvedValueOnce({ record: { extid: 'dm-test-extid' }, details });
+      const wrapper = mountComponent();
+      await wrapper.find('[data-testid="verify-domain-details-button"]').trigger('click');
+      await flushPromises();
+      return wrapper;
+    };
+
+    it('validated: the success text, and no outcome alert', async () => {
+      const wrapper = await verifyWith({ dns_outcome: 'validated', dns_indeterminate: false });
+
+      expect(wrapper.text()).toContain('web.domains.domain_verification_initiated_successfully');
+      expect(wrapper.find(outcomeAlert).exists()).toBe(false);
+    });
+
+    it.each(['indeterminate', 'confirmation_expired'])(
+      '%s: a warning that the check could not be completed, not a success',
+      async (dns_outcome) => {
+        const wrapper = await verifyWith({ dns_outcome, dns_indeterminate: true });
+        const alert = wrapper.find(outcomeAlert);
+
+        expect(alert.text()).toBe('web.domains.verify_outcome.indeterminate');
+        expect(alert.attributes('data-severity')).toBe('warning');
+        expect(alert.attributes('role')).toBe('status');
+        expect(wrapper.text()).not.toContain(
+          'web.domains.domain_verification_initiated_successfully'
+        );
+        expect(wrapper.text()).not.toContain('web.domains.verify_outcome.record_not_found');
+      }
+    );
+
+    it('failed: the record was not found, not a success', async () => {
+      const wrapper = await verifyWith({ dns_outcome: 'failed', dns_indeterminate: false });
+      const alert = wrapper.find(outcomeAlert);
+
+      expect(alert.text()).toBe('web.domains.verify_outcome.record_not_found');
+      expect(alert.attributes('data-severity')).toBe('info');
+      expect(wrapper.text()).not.toContain(
+        'web.domains.domain_verification_initiated_successfully'
+      );
+      expect(wrapper.text()).not.toContain('web.domains.verify_outcome.indeterminate');
+    });
+
+    it('a response without an outcome keeps the neutral success text', async () => {
+      const wrapper = await verifyWith(undefined);
+
+      expect(wrapper.text()).toContain('web.domains.domain_verification_initiated_successfully');
+      expect(wrapper.find(outcomeAlert).exists()).toBe(false);
+    });
+
+    it('a later check replaces the earlier alert', async () => {
+      vi.useFakeTimers();
+      try {
+        const wrapper = await verifyWith({ dns_outcome: 'indeterminate', dns_indeterminate: true });
+        expect(wrapper.find(outcomeAlert).exists()).toBe(true);
+
+        // The button re-enables 3 seconds after a check.
+        await vi.advanceTimersByTimeAsync(3000);
+        mockVerifyDomain.mockResolvedValueOnce({
+          record: { extid: 'dm-test-extid' },
+          details: { dns_outcome: 'validated', dns_indeterminate: false },
+        });
+        await wrapper.find('[data-testid="verify-domain-details-button"]').trigger('click');
+        await flushPromises();
+
+        expect(mockVerifyDomain).toHaveBeenCalledTimes(2);
+        expect(wrapper.find(outcomeAlert).exists()).toBe(false);
+        expect(wrapper.text()).toContain('web.domains.domain_verification_initiated_successfully');
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
   describe('accessibility', () => {
     it('the verify action is a real button with a text label', () => {
       const button = mountComponent().find('[data-testid="verify-domain-details-button"]');
