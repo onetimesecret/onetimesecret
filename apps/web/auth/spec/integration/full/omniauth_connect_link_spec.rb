@@ -516,6 +516,113 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   end
 
   # ==========================================================================
+  # Scenario 2b' — the fail-closed rescue covers Connect lookups only (#4431)
+  # ==========================================================================
+  #
+  # authorize_omniauth_connect used to rescue StandardError method-wide, so an
+  # error in the intent-absent branch — reached by every ordinary sign-in
+  # callback on a logged-in session — was reported to the user as
+  # identity_connect_conflict although no Connect was requested. The two
+  # examples pin both sides of the boundary: outside it nothing is
+  # reclassified, inside it a lookup failure still refuses before any bind.
+
+  describe 'scope of the Connect lookup rescue (#4431)' do
+    before { enable_platform_fallback }
+
+    it 'keeps a no-intent callback on the ordinary path when the intent-absent log raises' do
+      actor_email = "actor-lograise-#{SecureRandom.hex(6)}@company.example.com"
+      other_email = "other-#{SecureRandom.hex(6)}@company.example.com"
+      uid         = "sub-#{SecureRandom.hex(8)}"
+
+      actor_id = seed_account_with_password(actor_email)
+      seed_existing_account(other_email)
+
+      csrf_login(actor_email)
+      expect(last_response.status).to be_between(200, 302)
+
+      allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      allow(Auth::Logging).to receive(:log_auth_event)
+        .with(:omniauth_connect_intent_absent, anything).and_raise(RuntimeError, 'log sink down')
+      allow(OT).to receive(:le).and_call_original
+
+      setup_mock_auth(email: other_email, uid: uid)
+      begin
+        clear_body_headers
+        post '/auth/sso/oidc/callback'
+
+        skip 'OmniAuth route not registered' if last_response.status == 404
+
+        # Not vacuous: the raising branch was reached.
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:omniauth_connect_intent_absent, anything)
+        expect(OT).to have_received(:le).with(/intent-absent log failed: RuntimeError/)
+
+        # The ordinary path answered: a redirect, and not the Connect refusal.
+        expect(last_response.status).to eq(302)
+        expect(last_response.location.to_s).not_to include('identity_connect_conflict')
+        expect(last_response.location.to_s).not_to include('identity_connect_wrong_domain')
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_identity_connect_refused, anything)
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_connect_lookup_error, anything)
+
+        # And it is still not a Connect: nothing binds onto the session account.
+        expect(identities.where(account_id: actor_id).count).to eq(0)
+        expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
+      ensure
+        teardown_mock_auth
+      end
+    end
+
+    it 'still refuses as lookup_error, binding nothing, when a lookup raises after a valid intent' do
+      email      = "connect-lookupraise-#{SecureRandom.hex(6)}@company.example.com"
+      uid        = "sub-#{SecureRandom.hex(8)}"
+      account_id = seed_account_with_password(email)
+
+      csrf_login(email)
+      expect(last_response.status).to be_between(200, 302)
+
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      setup_mock_auth(email: email, uid: uid)
+      begin
+        skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if initiate_sso_connect == 404
+
+        sid = current_sid
+        expect(intent_live?(sid)).to be(true)
+
+        # The session gate ahead of the /auth router loads the same Customer;
+        # failing it there is a 401 that never reaches the hook. Fail only the
+        # hook's own lookup, which is the one under test.
+        allow(Onetime::Customer).to receive(:find_by_extid).and_wrap_original do |original, *args|
+          from_hook = caller.first(30).any? { |frame| frame.include?('config/hooks/omniauth_connect.rb') }
+          raise 'customer store down' if from_hook
+
+          original.call(*args)
+        end
+
+        clear_body_headers
+        post '/auth/sso/oidc/callback'
+
+        expect(last_response.status).to eq(302)
+        expect(last_response.location.to_s).to include('auth_error=identity_connect_conflict')
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:omniauth_connect_lookup_error, hash_including(error_class: 'RuntimeError'))
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:omniauth_identity_connect_refused, hash_including(reason: 'lookup_error'))
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_identity_connected, anything)
+
+        expect(identities.where(account_id: account_id).count).to eq(0)
+        expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
+        expect(intent_live?(sid)).to be(false), 'a refused Connect still consumes its intent'
+      ensure
+        teardown_mock_auth
+      end
+    end
+  end
+
+  # ==========================================================================
   # Scenario 2c — ABANDONED connect: expired intent must not bind (#3859)
   # ==========================================================================
   #
