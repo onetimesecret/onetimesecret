@@ -241,6 +241,24 @@ module Onetime
           }
       end
 
+      # The metadata record is keyed by the raw sid (`session_metadata:<sid>`),
+      # so leaving it to its TTL keeps the ended session's id readable in the
+      # keyspace after the session is gone. The revoke operations already
+      # destroy it; this is the same step for a logout or an id renewal. The
+      # customer's index entry is pruned by ListForCustomer's liveness check.
+      # Best-effort, like the purge above: it must never disturb the delete.
+      begin
+        Onetime::SessionMetadata.load(sid_string)&.destroy!
+      rescue StandardError => ex
+        session_logger.error 'Session metadata cleanup failed (record is TTL-bounded)',
+          {
+            session_handle: handle,
+            error: ex.message,
+            error_class: ex.class.name,
+            operation: 'delete',
+          }
+      end
+
       new_sid = generate_sid
       session_logger.trace 'New session generated after deletion',
         {
@@ -481,24 +499,23 @@ module Onetime
               operation: 'read',
             }
 
-          # An id that was ended on purpose (revoked from another device, a
-          # logout whose response this browser has not applied yet) cannot be
-          # written under while its marker lives, so an empty session kept
+          # A cookie naming a blob that does not exist never keeps its id:
+          # the empty session starts under an id this server generated, as
+          # stock Rack's persisted stores do. Two cases ride on it. An id the
+          # server never issued (planted by a sibling subdomain, or guessed)
+          # is not adopted as a session id. And an id that was ended on
+          # purpose (revoked from another device, a logout whose response
+          # this browser has not applied yet) cannot be written under while
+          # its Onetime::SessionEnded marker lives, so an empty session kept
           # under it would lose its CSRF token and the next sign-in with it.
-          # Give the browser a new id instead. One EXISTS, on this branch
-          # only: a cookie naming a blob that is gone.
-          if Onetime::SessionEnded.ended?(sid_string, dbclient: @dbclient)
-            new_sid = generate_sid
-            session_logger.debug 'Ended session id replaced',
-              {
-                session_handle: handle,
-                new_session_handle: log_handle(new_sid),
-                operation: 'read',
-              }
-            return [new_sid, {}]
-          end
-
-          return [sid, {}]  # Empty session - Rodauth sees this as "not logged in"
+          new_sid = generate_sid
+          session_logger.debug 'Session id without a blob replaced',
+            {
+              session_handle: handle,
+              new_session_handle: log_handle(new_sid),
+              operation: 'read',
+            }
+          return [new_sid, {}]  # Empty session - Rodauth sees this as "not logged in"
         end
 
         # Split stored data into base64 data and HMAC signature
