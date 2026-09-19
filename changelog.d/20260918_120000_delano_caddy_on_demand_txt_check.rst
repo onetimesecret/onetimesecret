@@ -87,6 +87,10 @@ Changed
     longer overlap: a tick that fires while the previous run is still working
     is skipped, and its page is picked up on the next walk. Lower
     ``batch_size`` if runs routinely take longer than ``check_interval``.
+    The skip works inside one scheduler process. Scheduled jobs assume a
+    single ``bin/ots scheduler`` per datastore, which is how the shipped
+    compose file and S6 image run it; a second scheduler would repeat every
+    refresh.
   - **Cutover from** ``approximated``: removing a domain under
     ``caddy_on_demand`` does not delete anything on Approximated
     (``delete_vhost`` is a no-op for this strategy), and neither does changing
