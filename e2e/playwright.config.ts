@@ -347,6 +347,16 @@ export default defineConfig({
     : {
         command: 'RACK_ENV=production bin/ots server',
         cwd: '../', // Project root relative to this config
+        /* The server inherits this shell's environment, and a developer's
+         * shell exports DIAGNOSTICS_ENABLED=true with a real SENTRY_DSN for
+         * their dev server. The e2e run provokes errors on purpose; without
+         * this they were reported to the production Sentry project. Playwright
+         * merges `env` over process.env, so this wins over the shell.
+         * E2E_DIAGNOSTICS_ENABLED=true opts back in (e.g. to test the Sentry
+         * wiring itself against a scratch project). */
+        env: {
+          DIAGNOSTICS_ENABLED: process.env.E2E_DIAGNOSTICS_ENABLED === 'true' ? 'true' : 'false',
+        },
         url: DEFAULT_LOCAL_URL,
         reuseExistingServer: !process.env.CI,
         timeout: 30000,
