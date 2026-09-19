@@ -491,6 +491,9 @@ module CustomerSessionFailureMatrix
 
       if surface == :protected_html
         expect(observation[:status]).to eq(302)
+        # The redirect is Web Core HTML too: its Location can carry the page
+        # the visitor was refused, so it is not to be stored either (#4461).
+        expect(observation[:cache_control]).to eq('private, no-store')
         expect(observation[:refusal_code]).to be_nil
         expect(observation[:refusal_body]).to be_nil
       else
@@ -516,6 +519,9 @@ module CustomerSessionFailureMatrix
       end
     when :authenticated
       expect(observation[:status]).to eq(200)
+      # Personalized HTML is never stored (#4461). The API's own cache policy
+      # is outside that issue and is not asserted here.
+      expect(observation[:cache_control]).to eq('private, no-store') if surface == :protected_html
       expect(observation[:refusal_code]).to be_nil
       expect(observation).to include(identity_exposed: true, customer_exposed: true)
     else

@@ -439,7 +439,11 @@ one of the replay causes ADR-046 lists.
 [OWASP ASVS 5.0.0 requirement 14.3.2](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x23-V14-Data-Protection.md):
 "Verify that the application sets sufficient anti-caching HTTP response header
 fields (i.e., Cache-Control: no-store) so that sensitive data is not cached in
-browsers."
+browsers." *OTS choice (#4461):* the same value is the default for every
+response the `/auth` app finishes (`plugin :default_headers` in
+`apps/web/auth/router.rb`), since it answers nothing but authentication
+state; a route that sets its own policy keeps it. JSON API responses under
+`/api` are outside #4461 and send no `Cache-Control` today.
 
 **An inactivity timeout has to measure inactivity.**
 [OWASP ASVS 5.0.0 requirements 7.3.1 and 7.3.2](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v73-session-timeout):
