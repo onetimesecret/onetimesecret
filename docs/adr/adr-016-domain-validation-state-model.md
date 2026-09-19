@@ -133,6 +133,42 @@ Operator impact: domains that were marked verified under `caddy_on_demand`
 without a TXT record lose `verified` on the first refresh after upgrade,
 unless the record exists or a Colonel override holds the flag.
 
+### Serving axis implemented for `caddy_on_demand` (2026-09-18)
+
+`CaddyOnDemandStrategy#check_status` no longer returns `nil` for both fields.
+It runs `DomainValidation::TlsProbe`:
+
+- `is_resolving` comes from an OTS-performed A/AAAA lookup
+  (`AddressResolver`, the same response-code-aware transport as
+  `TxtResolver`): an address is `true`, NXDOMAIN or an empty NOERROR for both
+  families is `false`, anything else is `nil` and leaves `resolving` alone.
+- `has_ssl` comes from a TLS handshake to port 443 with SNI and full chain
+  and hostname verification. No application data is sent.
+- The hostname is customer-controlled, so the dial goes through
+  `Onetime::Http::Guard`: one resolution, the whole address set rejected if
+  any address is non-public, and the connection pinned to a vetted IP. A
+  refused probe reports `is_resolving: true, has_ssl: nil`.
+
+This makes the "ask gate is unsatisfiable" note below historical: `resolving`
+is now written under `caddy_on_demand`, so `ready?` is reachable once the TXT
+check has passed. `resolving` deliberately does not depend on the certificate
+(Caddy cannot obtain one until the ask endpoint says yes), and it does not
+compare the address with this deployment's. The Decision section's
+"cross-checked" resolution target is still open for this strategy: there is
+no configured expected address to compare against. Ownership rests on the TXT
+check alone, as the non-conflation rule requires.
+
+`has_ssl` is persisted inside the `vhost` blob, so the strategy returns
+`:data` only when `has_ssl` is known, and returns neither `:data` nor `:mode`
+when the probe learned nothing; `VerifyDomain#persist_changes` then stores
+nothing and sets `vhost_fetch_failed_at`. A `vhost` blob left by
+`approximated` is not replaced (it is the orphaned-vhost chore's evidence).
+
+The frontend part of the Decision (`useDomainStatus.ts` keyed on
+`validation_strategy`) is not done. The probe blob reuses Approximated's
+`status` values (`ACTIVE_SSL`, `DNS_INCORRECT`) plus `PENDING_SSL`, so the
+existing single badge renders correctly without it.
+
 ### Caddy `ask` deprecation — confirmed in the app itself, not just the example file (2026-06-30)
 
 Caddy's live config-docs API (`GET https://caddyserver.com/api/docs/config/apps/tls/automation/on_demand/`,
@@ -220,6 +256,9 @@ in-memory boolean check with no I/O. This already meets the guidance — no
 remediation needed here, only confirmed and documented.
 
 ### ACME `ask` gate is unsatisfiable under `caddy_on_demand` today — makes this ADR a functional prerequisite, not just UI/ownership polish (2026-07-03, re-verified against current source 2026-07-05)
+
+> Resolved 2026-09-18: see "Serving axis implemented for `caddy_on_demand`"
+> above. The analysis is kept as written.
 
 The `ask` endpoint gates cert issuance on `ready?` ⇔
 `verification_state == :verified` (`custom_domain.rb:656`, `639-647`), which

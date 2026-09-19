@@ -140,7 +140,8 @@ describe('jobsDomainRefreshShape — defaults and bounds', () => {
     expect(result.enabled).toBe(false);
     expect(result.check_interval).toBe('30m');
     expect(result.batch_size).toBe(200);
-    expect(result.rate_limit).toBe(0.5);
+    // Unset on purpose: the validation strategy supplies the pacing.
+    expect(result.rate_limit).toBeUndefined();
   });
 
   it('rejects non-positive batch_size', () => {

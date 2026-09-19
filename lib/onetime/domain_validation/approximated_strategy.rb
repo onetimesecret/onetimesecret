@@ -40,6 +40,9 @@ module Onetime
       # requests reach the cluster and the certificate is active.
       ACTIVE_SSL_STATUSES = %w[ACTIVE_SSL ACTIVE_SSL_PROXIED].freeze
 
+      # Seconds between domains in a bulk run, to stay under the API rate cap.
+      BULK_RATE_LIMIT = 0.5
+
       attr_reader :client, :config, :txt_verifier
 
       # @param config [Hash] Application configuration (typically OT.conf)
@@ -263,6 +266,12 @@ module Onetime
       # @return [Boolean] true - Approximated actively manages certificates
       def manages_certificates?
         true
+      end
+
+      # Approximated caps API requests; each domain in a bulk run costs two
+      # calls (check_records + get_vhost_by_incoming_address).
+      def bulk_rate_limit
+        BULK_RATE_LIMIT
       end
 
       private

@@ -63,7 +63,15 @@ class FakeVerify
   end
   self.seen = []
 
-  def initialize(domains:, **) = @domains = domains
+  class << self
+    attr_accessor :rate_limits
+  end
+  self.rate_limits = []
+
+  def initialize(domains:, rate_limit: :not_passed, **)
+    @domains = domains
+    self.class.rate_limits << rate_limit
+  end
 
   def call
     self.class.seen << @domains.map(&:identifier)
@@ -106,6 +114,39 @@ def with_config(overrides)
 ensure
   OT.instance_variable_set(:@conf, restore)
 end
+
+## schedule registers the job with overlap protection on a real scheduler
+@scheduler = Rufus::Scheduler.new
+RefreshJob.schedule(@scheduler)
+@scheduled = @scheduler.jobs.first
+[@scheduler.jobs.size, @scheduled.opts[:overlap], @scheduled.original]
+#=> [1, false, '30m']
+
+## A tick that fires while the previous run is still working is skipped
+@runs    = 0
+@release = Queue.new
+@started = Queue.new
+@overlap_job = @scheduler.schedule_every('1h', overlap: false, first_in: '1h') do
+  @runs += 1
+  @started << true
+  @release.pop
+end
+@overlap_job.trigger(Time.now)
+@started.pop
+@overlap_job.trigger(Time.now) # previous run still holds the job
+@release << true
+sleep 0.05 until @overlap_job.running? == false
+@runs
+#=> 1
+
+## schedule registers nothing when the job is disabled
+@scheduler.shutdown(:kill)
+@scheduler = Rufus::Scheduler.new
+with_config('enabled' => false) { RefreshJob.schedule(@scheduler) }
+count = @scheduler.jobs.size
+@scheduler.shutdown(:kill)
+count
+#=> 0
 
 ## interval_seconds parses the configured rufus duration
 RefreshJob.send(:interval_seconds, RefreshJob.send(:interval))
@@ -155,6 +196,24 @@ FakeVerify.seen.clear
 with_config('dns_propagation_window' => '0') { run_refresh(BASE) }
 FakeVerify.seen.last
 #=> %w[d5 d4]
+
+## A configured rate_limit is passed through as an explicit override
+FakeVerify.rate_limits.clear
+with_config('rate_limit' => 0.75) { run_refresh(BASE) }
+FakeVerify.rate_limits
+#=> [0.75]
+
+## A configured 0 is still an explicit override (no pause)
+FakeVerify.rate_limits.clear
+run_refresh(BASE)
+FakeVerify.rate_limits
+#=> [0.0]
+
+## An unset rate_limit passes nil so the validation strategy paces the run
+FakeVerify.rate_limits.clear
+with_config('rate_limit' => nil) { run_refresh(BASE) }
+FakeVerify.rate_limits
+#=> [nil]
 
 ## Three consecutive ticks refresh every domain (page + warm-up combined)
 FakeVerify.seen.clear

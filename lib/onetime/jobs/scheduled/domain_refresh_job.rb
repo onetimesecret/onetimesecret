@@ -17,13 +17,32 @@ module Onetime
       #       enabled: true
       #       check_interval: '30m'
       #       batch_size: 200                # max domains processed per run (clock-derived page walks the full set)
-      #       rate_limit: 0.5                # seconds between Approximated API calls
+      #       rate_limit: 0.5                # seconds between domains; unset = the strategy's own pacing
       #       dns_propagation_window: '24h'  # re-check unverified/unresolving domains every cycle for this long after creation ('0' disables)
       #
-      # The Approximated rate limit (0.5s) caps a 200-domain run at ~100s.
+      # Pacing comes from the validation strategy (BaseStrategy#bulk_rate_limit):
+      # Approximated declares 0.5s for its API rate cap, which puts a healthy
+      # 200-domain run at ~100s; strategies that make our own lookups declare
+      # none. A configured rate_limit overrides the strategy either way.
+      #
+      # Under caddy_on_demand each domain costs our own lookups instead of an
+      # API call: the TXT check (TxtResolver, <= 5s) and the status probe
+      # (TlsProbe: address lookup <= 3s, connect + handshake <= 5s). A healthy
+      # domain takes tens of milliseconds. Every budget is only spent on a
+      # timeout, so the ceiling is 13s per domain: ~43 min for a 200-domain
+      # page if every stage of every domain timed out. A resolver outage is
+      # the realistic bad case, and it never reaches the TLS stage: 8s per
+      # domain, ~27 min per page, inside the default 30m interval.
+      # Lower batch_size if pages routinely run past check_interval.
+      #
+      # Runs never overlap within a scheduler process (overlap: false): a
+      # tick that fires while the previous run is still working is skipped,
+      # not queued. Two runs at once would double the outbound lookups and
+      # let both write the same domain. The skipped tick's page waits one
+      # extra walk, the same cost as any other missed tick (see page_offset).
+      # The guard is per process; run one scheduler process per deployment.
       class DomainRefreshJob < ScheduledJob
         DEFAULT_BATCH_SIZE             = 200
-        DEFAULT_RATE_LIMIT             = 0.5
         DEFAULT_INTERVAL               = '30m'
         DEFAULT_DNS_PROPAGATION_WINDOW = '24h'
 
@@ -33,7 +52,7 @@ module Onetime
 
             scheduler_logger.info "[DomainRefreshJob] Scheduling with interval: #{interval}"
 
-            every(scheduler, interval, first_in: '2m') do
+            every(scheduler, interval, first_in: '2m', overlap: false) do
               refresh_domains
             end
           end
@@ -53,9 +72,10 @@ module Onetime
             size.positive? ? size : DEFAULT_BATCH_SIZE
           end
 
+          # nil (unset or unusable) leaves pacing to the validation strategy.
           def rate_limit
             limit = OT.conf.dig('jobs', 'domain_refresh', 'rate_limit')
-            limit.is_a?(Numeric) && limit >= 0 ? limit.to_f : DEFAULT_RATE_LIMIT
+            limit.to_f if limit.is_a?(Numeric) && limit >= 0
           end
 
           def dns_propagation_window_seconds

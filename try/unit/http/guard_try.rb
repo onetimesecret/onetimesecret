@@ -140,6 +140,19 @@ rescue G::Blocked => ex
 end
 #=> 'no A/AAAA records for unknown.test'
 
+## validate_addresses! applies the same rules to addresses the caller resolved:
+## IPv4-first ordering, uniq'd
+G.validate_addresses!('own.test', ['2606:4700::6810:84e5', '93.184.216.34', '93.184.216.34'])
+#=> ['93.184.216.34', '2606:4700::6810:84e5']
+
+## validate_addresses! rejects the whole set when one address is blocked
+classify { G.validate_addresses!('own.test', ['93.184.216.34', '10.0.0.1']) }
+#=> :blocked
+
+## validate_addresses! rejects an empty set
+classify { G.validate_addresses!('own.test', []) }
+#=> :blocked
+
 ## pinned_address! returns the first validated address (IPv4 preferred)
 G.pinned_address!('ds.test')
 #=> '8.8.8.8'

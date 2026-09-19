@@ -1164,6 +1164,9 @@ features:
     #   - caddy_on_demand: Use Caddy's on-demand TLS (requires internal ACME endpoint).
     #     Ownership is checked with our own DNS lookup of the domain's TXT
     #     challenge record; Caddy issuing a certificate does not verify a domain.
+    #     Resolving and SSL status come from our own A/AAAA lookup and a TLS
+    #     handshake to the domain on port 443, so the application host needs
+    #     outbound DNS and outbound TCP 443.
     validation_strategy: <%= ENV['DOMAINS_VALIDATION_STRATEGY'] || 'passthrough' %>  # Since v0.24.0
 
     # Approximated proxy configuration (required for 'approximated' strategy)
@@ -1566,8 +1569,11 @@ jobs:
     check_interval: '30m'  # Since v0.25.2
     # Maximum domains processed per run (rate limiting)
     batch_size: 200  # Since v0.25.2
-    # Seconds between Approximated API calls within a run
-    rate_limit: 0.5  # Since v0.25.2
+    # Seconds to pause between domains within a run. Leave unset to use the
+    # validation strategy's own pacing (approximated: 0.5 for its API rate
+    # cap; caddy_on_demand and passthrough: none). Any number, including 0,
+    # overrides the strategy.
+    # rate_limit: 0.5  # Since v0.25.2
     # DNS-propagation warm-up: any domain created within this window that is
     # still not fully verified (verified=false OR resolving=false) is
     # re-checked every cycle, in addition to the paged walk. Shortens the
