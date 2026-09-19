@@ -126,7 +126,8 @@ Fixed
   (``api.domains.errors.allowed_signup_domains_invalid``), as the
   ``related_origins`` refusals already do.
 - ``apps/web/core/templates/error.rue`` did not parse, so its hydration schema
-  was never generated.
+  was never generated. The template and ``Core::Views::Error`` are removed:
+  nothing has rendered them since error pages moved to the Vue entry point.
 - Repeated verification failures no longer sign the user out.
 - Opening ``/recent`` directly showed an empty list: the receipt list only
   loaded if the dashboard had been visited first. The dashboard's 5-minute
