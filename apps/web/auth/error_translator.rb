@@ -71,6 +71,21 @@ module Auth
       Onetime::AuthPolicyUnavailable => :error,
     }.freeze
 
+    # The authdb could not take the request in time: a SQLite write lock held
+    # longer than Auth::Database::SQLITE_BUSY_TIMEOUT_MS, or no pooled
+    # connection free within Sequel's pool timeout. Both mean more queued
+    # work than the server has capacity for, not a defect in the request, so
+    # they answer 503 with a Retry-After (RFC 9110 15.6.4) instead of the
+    # generic 500. Matched by predicate, not by STATUS_BY_CLASS: Sequel raises
+    # the SQLite case as a plain Sequel::DatabaseError whose only distinguishing
+    # mark is the driver exception it wraps.
+    AUTHDB_BUSY_STATUS = 503
+    AUTHDB_BUSY_BODY   = {
+      error: 'The service is busy. Please try again shortly.',
+      error_type: 'AuthDatabaseBusy',
+      retry_after: 1,
+    }.freeze
+
     DEFAULT_STATUS     = 500
     DEFAULT_LOG_LEVEL  = :error
     DEFAULT_ERROR_TYPE = 'ServerError'
@@ -94,18 +109,23 @@ module Auth
     # @param exception [Exception]
     # @return [Integer] HTTP status code
     def self.status_for(exception)
+      return AUTHDB_BUSY_STATUS if authdb_busy?(exception)
+
       STATUS_BY_CLASS[exception.class] || ancestor_status(exception) || DEFAULT_STATUS
     end
 
     # @param exception [Exception]
     # @return [Symbol] Log severity (:info, :warn, :error)
     def self.level_for(exception)
+      return :warn if authdb_busy?(exception)
+
       LOG_LEVEL_BY_CLASS[exception.class] || ancestor_level(exception) || DEFAULT_LOG_LEVEL
     end
 
     # @param exception [Exception]
     # @return [Hash] ADR-013 body hash
     def self.body_for(exception)
+      return AUTHDB_BUSY_BODY.dup if authdb_busy?(exception)
       return generic_body unless known_typed?(exception)
 
       # Typed Onetime exceptions in STATUS_BY_CLASS that define #to_h
@@ -120,6 +140,15 @@ module Auth
       # is caller-supplied and not sensitive at the auth boundary (e.g.
       # 'Invalid credentials').
       { error: exception.message, error_type: short_class_name(exception) }
+    end
+
+    # @param exception [Exception]
+    # @return [Boolean] whether the authdb was saturated (see AUTHDB_BUSY_STATUS)
+    def self.authdb_busy?(exception)
+      return true if defined?(Sequel::PoolTimeout) && exception.is_a?(Sequel::PoolTimeout)
+      return false unless defined?(SQLite3::BusyException)
+
+      exception.respond_to?(:wrapped_exception) && exception.wrapped_exception.is_a?(SQLite3::BusyException)
     end
 
     # Walk the exception's actual inheritance chain (not STATUS_BY_CLASS

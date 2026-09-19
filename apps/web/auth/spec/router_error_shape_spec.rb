@@ -162,6 +162,29 @@ RSpec.describe 'Auth Router ADR-013 error shape' do
       expect(described_class.level_for(ex)).to eq(:warn)
     end
 
+    it 'translates a SQLite lock wait that outlasted the busy timeout to a 503 with retry_after', :aggregate_failures do
+      require 'sqlite3'
+      ex = Sequel::DatabaseError.new('SQLite3::BusyException: database is locked')
+      ex.wrapped_exception = SQLite3::BusyException.new('database is locked')
+
+      status, body = described_class.translate(ex)
+      expect(status).to eq(503)
+      expect(body).to eq(error: 'The service is busy. Please try again shortly.', error_type: 'AuthDatabaseBusy', retry_after: 1)
+      expect(body.to_s).not_to include('locked')
+      expect(described_class.level_for(ex)).to eq(:warn)
+    end
+
+    it 'translates an exhausted connection pool the same way' do
+      status, body = described_class.translate(Sequel::PoolTimeout.new('timeout: 5.0'))
+      expect([status, body[:error_type], body[:retry_after]]).to eq([503, 'AuthDatabaseBusy', 1])
+    end
+
+    it 'leaves every other database error a generic 500' do
+      ex = Sequel::DatabaseError.new('syntax error')
+      ex.wrapped_exception = StandardError.new('syntax error')
+      expect(described_class.translate(ex).first).to eq(500)
+    end
+
     it 'translates Onetime::Unauthorized to 401 using the caller message' do
       status, body = described_class.translate(Onetime::Unauthorized.new('Invalid credentials'))
       expect(status).to eq(401)
