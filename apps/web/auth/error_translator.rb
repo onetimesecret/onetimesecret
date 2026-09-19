@@ -22,7 +22,8 @@ module Auth
   # may extract a shared registry consumed by both layers.
   #
   # This module is pure: input is an Exception, output is a [status, body_hash]
-  # pair. It performs no logging, no i18n resolution, and no IO. The caller is
+  # pair (and, from .log_entry, what the caller should log). It performs no
+  # logging, no i18n resolution, and no IO. The caller is
   # responsible for any auth-layer logging and for request/log correlation
   # (apps/web/auth/router.rb runs the translated body through the shared
   # Onetime::Application::ErrorCorrelation, exactly as the Otto hooks do).
@@ -91,6 +92,10 @@ module Auth
     DEFAULT_ERROR_TYPE = 'ServerError'
     DEFAULT_MESSAGE    = 'Internal Server Error'
 
+    # Log messages for the router's error handler (see .log_entry).
+    TRANSLATED_LOG_MESSAGE = 'Auth router translated exception'
+    UNHANDLED_LOG_MESSAGE  = 'Auth router unhandled exception'
+
     # ADR-013 body for router-level 404 fallbacks (status_handler(404) and
     # the route-block catch-all in apps/web/auth/router.rb). Single source of
     # truth so the two paths cannot drift; the integration spec pins it.
@@ -120,6 +125,46 @@ module Auth
       return :warn if authdb_busy?(exception)
 
       LOG_LEVEL_BY_CLASS[exception.class] || ancestor_level(exception) || DEFAULT_LOG_LEVEL
+    end
+
+    # Whether this module answers the exception with something other than
+    # the generic 500: a class registered in STATUS_BY_CLASS (or a subclass
+    # of one), or a saturated authdb. Decided by what the exception IS, never
+    # by the status: a deliberate 503 is translated, an unknown 500 is not.
+    #
+    # @param exception [Exception]
+    # @return [Boolean]
+    def self.translated?(exception)
+      authdb_busy?(exception) || known_typed?(exception)
+    end
+
+    # What the router's error handler should log: a level, a message and a
+    # payload. A translated exception logs at its own level (.level_for) under
+    # TRANSLATED_LOG_MESSAGE, so a retryable 503 (AuthDatabaseBusy,
+    # AccountProvisioningUnavailable) is a :warn and not an "unhandled
+    # exception" at :error. Anything else is a genuine unhandled exception:
+    # :error with the exception, so production failures are not silent.
+    #
+    # A translated 5xx keeps the exception in the payload: the client is told
+    # only "busy" or "unavailable", and the message and backtrace (which
+    # statement waited on the lock, which read failed) exist nowhere else.
+    #
+    # @param exception [Exception]
+    # @return [Array(Symbol, String, Hash)] level, message, payload
+    def self.log_entry(exception)
+      unless translated?(exception)
+        return [DEFAULT_LOG_LEVEL, UNHANDLED_LOG_MESSAGE, { exception: exception }]
+      end
+
+      status              = status_for(exception)
+      payload             = {
+        exception_class: exception.class.name,
+        error_type: body_for(exception)[:error_type],
+        status: status,
+      }
+      payload[:exception] = exception if status >= 500
+
+      [level_for(exception), TRANSLATED_LOG_MESSAGE, payload]
     end
 
     # @param exception [Exception]
