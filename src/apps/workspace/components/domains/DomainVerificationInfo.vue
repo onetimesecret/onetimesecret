@@ -26,9 +26,8 @@
     return '/dashboard';
   });
 
-  const { statusIcon, statusColor, isActive, isWarning, isError, isStale } = useDomainStatus(
-    () => props.domain
-  );
+  const { statusIcon, statusColor, isActive, isWarning, isAwaitingCertificate, isStale } =
+    useDomainStatus(() => props.domain);
 
   /**
    * Tooltip text that explains the actual status, not just "view status"
@@ -37,7 +36,25 @@
     if (isStale.value) return t('web.domains.status_tooltip_unverified');
     if (isActive.value) return t('web.domains.status_tooltip_active');
     if (isWarning.value) return t('web.domains.status_tooltip_dns_incorrect');
+    if (isAwaitingCertificate.value) return t('web.domains.status_tooltip_pending_ssl');
     return t('web.domains.status_tooltip_not_verified');
+  });
+
+  /**
+   * SSL row. `vhost.has_ssl` is three-valued on the wire: true, false, or
+   * absent when the check could not tell (the caddy_on_demand probe could not
+   * reach port 443, or the stored certificate dates have lapsed). Absent is
+   * "unknown", not "inactive".
+   */
+  const sslStatus = computed(() => {
+    const hasSsl = props.domain?.vhost?.has_ssl;
+    if (hasSsl === true) {
+      return { label: t('web.COMMON.active'), color: 'text-emerald-600 dark:text-emerald-400' };
+    }
+    if (hasSsl === false) {
+      return { label: t('web.COMMON.inactive'), color: 'text-rose-600 dark:text-rose-500' };
+    }
+    return { label: t('web.COMMON.unknown'), color: 'text-gray-500 dark:text-gray-400' };
   });
 
   /**
@@ -79,15 +96,8 @@
       <OIcon
         collection="mdi"
         :name="statusIcon"
-        class="shrink-0 opacity-75"
-        :class="[
-          'size-4 transition-opacity hover:opacity-80',
-          {
-            'text-amber-500 dark:text-amber-400': isStale || isWarning,
-            'text-emerald-600 dark:text-emerald-400': !isStale && isActive,
-            'text-rose-600 dark:text-rose-500': !isStale && !isActive && isError,
-          },
-        ]" />
+        class="size-4 shrink-0 opacity-75 transition-opacity hover:opacity-80"
+        :class="statusColor" />
     </RouterLink>
     <div
       v-else
@@ -149,9 +159,10 @@
               t('web.domains.ssl_status')
             }}</span>
             <span
+              data-testid="vhost-ssl-status"
               class="text-base"
-              :class="domain?.vhost?.has_ssl ? 'text-emerald-600' : 'text-rose-600'">
-              {{ domain?.vhost?.has_ssl ? t('web.COMMON.active') : t('web.COMMON.inactive') }}
+              :class="sslStatus.color">
+              {{ sslStatus.label }}
             </span>
           </div>
 

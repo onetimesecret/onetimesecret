@@ -13,6 +13,7 @@ vi.mock('vue-i18n', () => ({
         'web.STATUS.inactive': 'Inactive',
         'web.STATUS.dns_incorrect': 'DNS Incorrect',
         'web.STATUS.unverified': 'Unverified',
+        'web.STATUS.pending_ssl': 'Certificate pending',
       };
       return translations[key] ?? key;
     },
@@ -277,6 +278,91 @@ describe('useDomainStatus', () => {
       }));
       const { statusColor } = useDomainStatus(domain);
       expect(statusColor.value).toBe('text-rose-600 dark:text-rose-500');
+    });
+  });
+
+  // PENDING_SSL is written by the caddy_on_demand status probe: the name
+  // resolves, no certificate seen. What it means depends on `verified`,
+  // because Caddy may only obtain a certificate after the TXT check passed.
+  describe('PENDING_SSL (caddy_on_demand probe)', () => {
+    const pending = (overrides: Partial<CustomDomain> = {}) =>
+      ref(
+        createMockDomain({
+          vhost: { status: 'PENDING_SSL', last_monitored_unix: MOCK_DATE },
+          ...overrides,
+        })
+      );
+
+    describe('verified domain awaiting its first certificate', () => {
+      it('is not an error and needs no attention', () => {
+        const status = useDomainStatus(pending({ verified: true }));
+
+        expect(status.isAwaitingCertificate.value).toBe(true);
+        expect(status.isError.value).toBe(false);
+        expect(status.isWarning.value).toBe(false);
+        expect(status.isActive.value).toBe(false);
+        expect(status.needsOwnershipCheck.value).toBe(false);
+        expect(status.needsAttention.value).toBe(false);
+      });
+
+      it('reads "Certificate pending", not "Inactive"', () => {
+        const status = useDomainStatus(pending({ verified: true }));
+
+        expect(status.displayStatus.value).toBe('Certificate pending');
+        expect(status.statusIcon.value).toBe('timer-outline');
+        expect(status.statusColor.value).toBe('text-sky-600 dark:text-sky-400');
+      });
+    });
+
+    describe('domain whose TXT check has not passed', () => {
+      it('needs attention without being an error', () => {
+        const status = useDomainStatus(pending({ verified: false }));
+
+        expect(status.needsOwnershipCheck.value).toBe(true);
+        expect(status.needsAttention.value).toBe(true);
+        expect(status.isAwaitingCertificate.value).toBe(false);
+        expect(status.isError.value).toBe(false);
+      });
+
+      it('reads "Unverified" in the warning colour', () => {
+        const status = useDomainStatus(pending({ verified: false }));
+
+        expect(status.displayStatus.value).toBe('Unverified');
+        expect(status.statusIcon.value).toBe('alert-circle');
+        expect(status.statusColor.value).toBe('text-amber-500 dark:text-amber-400');
+      });
+    });
+
+    it('lets a failed last check win over the pending label', () => {
+      const status = useDomainStatus(
+        pending({ verified: true, vhost_fetch_failed_at: Date.now() / 1000 - 60 })
+      );
+
+      expect(status.isStale.value).toBe(true);
+      expect(status.displayStatus.value).toBe('Unverified');
+      expect(status.statusIcon.value).toBe('help-circle');
+      expect(status.needsAttention.value).toBe(true);
+    });
+  });
+
+  describe('needsAttention', () => {
+    it('is false for an active domain', () => {
+      const domain = ref(
+        createMockDomain({ vhost: { status: 'ACTIVE_SSL', last_monitored_unix: MOCK_DATE } })
+      );
+      expect(useDomainStatus(domain).needsAttention.value).toBe(false);
+    });
+
+    it('is true for DNS_INCORRECT and for an inactive domain', () => {
+      const warning = ref(createMockDomain({ vhost: { status: 'DNS_INCORRECT' } }));
+      const inactive = ref(createMockDomain({ vhost: { status: 'PENDING' } }));
+
+      expect(useDomainStatus(warning).needsAttention.value).toBe(true);
+      expect(useDomainStatus(inactive).needsAttention.value).toBe(true);
+    });
+
+    it('is false when there is no domain', () => {
+      expect(useDomainStatus(ref<CustomDomain | null>(null)).needsAttention.value).toBe(false);
     });
   });
 
