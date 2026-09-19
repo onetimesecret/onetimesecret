@@ -104,6 +104,21 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
       )
     end
 
+    # #4455: the verification line is for polls that carried a session claim
+    # (spec/integration/full/passive_verification_spec.rb asserts its counts).
+    # A visitor with no session is most of the traffic and verifies nothing.
+    it 'writes no verification line for a visitor without a session' do
+      logger = spy('session_logger')
+      allow(Onetime).to receive(:get_logger).and_call_original
+      allow(Onetime).to receive(:get_logger).with('Session').and_return(logger)
+      allow(Onetime).to receive(:session_logger).and_return(logger)
+
+      get '/bootstrap/me', {}, { 'HTTP_X_REQUEST_ID' => 'request-4455' }
+
+      expect(last_response.status).to eq(200)
+      expect(logger).not_to have_received(:info).with('Bootstrap verification', anything)
+    end
+
     # `authenticated?` runs the full CustomerSessionEvaluator (customer load
     # + active-session gate). Ruby always evaluates method arguments, so a
     # naive `logger.debug 'msg', { authenticated_check: authenticated? }`
