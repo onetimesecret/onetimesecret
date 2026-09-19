@@ -1,6 +1,7 @@
 // src/tests/setup-stores.ts
 
 import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
+import { autoInitPlugin } from '@/plugins/pinia/autoInitPlugin';
 import { createTestingPinia } from '@pinia/testing';
 import axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
@@ -102,8 +103,12 @@ beforeEach(() => {
     ...baseBootstrap,
   } as BootstrapPayload;
 
+  // The REAL auto-init plugin, as appInitializer and setupTestPinia register
+  // it, so a spec that never calls setupTestPinia() (most component specs)
+  // also sees stores whose init() has run, as the app's stores have.
   const pinia = createTestingPinia({
     stubActions: false,
+    plugins: [autoInitPlugin()],
     createSpy: vi.fn,
   });
   setActivePinia(pinia);
