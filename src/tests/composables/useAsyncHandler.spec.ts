@@ -533,4 +533,57 @@ describe('useAsyncHandler', () => {
       expect(loadingCalls[loadingCalls.length - 1]).toEqual([false]); // Last operation ends
     });
   });
+  // #4461: one session transition produces exactly one user-facing message.
+  describe('session-coded 401s', () => {
+    const refusal = (body: Record<string, unknown>, status = 401) =>
+      Object.assign(new Error(`Request failed with status code ${status}`), {
+        isAxiosError: true,
+        response: { status, data: { error: 'Authentication Required', ...body } },
+      });
+    const revoked = { code: 'active_session_revoked', code_scope: 'customer_session' };
+
+    it('leaves the message to the refresh coordinator when the tab held a session', async () => {
+      mockBootstrapStore.mockReturnValue({ lastSnapshotReportedSession: true });
+      const onError = vi.fn();
+      const { wrap } = useAsyncHandler({ ...mockOptions, onError });
+
+      // Five calls fail at once; none of them toasts.
+      await Promise.all(Array.from({ length: 5 }, () => wrap(() => Promise.reject(refusal(revoked)))));
+
+      expect(mockOptions.notify).not.toHaveBeenCalled();
+      // The caller still learns of the failure.
+      expect(onError).toHaveBeenCalledTimes(5);
+    });
+
+    it('still notifies an anonymous tab: nothing will reconcile for it', async () => {
+      mockBootstrapStore.mockReturnValue({ lastSnapshotReportedSession: false });
+      const { wrap } = useAsyncHandler(mockOptions);
+
+      await wrap(() => Promise.reject(refusal({ code: 'session_missing', code_scope: 'customer_session' })));
+
+      expect(mockOptions.notify).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ['a verification outage', { code: 'customer_unavailable', code_scope: 'verification_unavailable' }],
+      ['the admin-only timeout', { code: 'admin_session_expired', code_scope: 'admin_session' }],
+      ['an uncoded 401 such as a wrong password', {}],
+    ])('still notifies for %s', async (_name, body) => {
+      mockBootstrapStore.mockReturnValue({ lastSnapshotReportedSession: true });
+      const { wrap } = useAsyncHandler(mockOptions);
+
+      await wrap(() => Promise.reject(refusal(body)));
+
+      expect(mockOptions.notify).toHaveBeenCalledTimes(1);
+    });
+
+    it('a code on any other status is not a session refusal', async () => {
+      mockBootstrapStore.mockReturnValue({ lastSnapshotReportedSession: true });
+      const { wrap } = useAsyncHandler(mockOptions);
+
+      await wrap(() => Promise.reject(refusal(revoked, 403)));
+
+      expect(mockOptions.notify).toHaveBeenCalledTimes(1);
+    });
+  });
 });

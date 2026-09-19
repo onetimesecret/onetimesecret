@@ -1,5 +1,6 @@
 // src/shared/composables/useAsyncHandler.ts
 
+import { parseSessionFailure } from '@/schemas/contracts/session-failure';
 import type { ApplicationError } from '@/schemas/errors';
 import { classifyError, createError, errorGuards, wrapError } from '@/schemas/errors';
 import { captureException, isDiagnosticsEnabled } from '@/services/diagnostics.service';
@@ -143,6 +144,28 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
   }
 
   /**
+   * Whether the refresh coordinator owns the message for this error (#4461).
+   *
+   * A 401 coded `customer_session`, in a tab that held a session, is the first
+   * sign of a session transition. The axios interceptor has already asked the
+   * coordinator to reconcile; if the server confirms, the page reloads and
+   * says "your session has ended" once. Toasting "Authentication Required"
+   * here as well, once per failed call, would make it several messages for
+   * one transition. The onError callback and logging still run.
+   *
+   * Everything else keeps its notification: an anonymous tab (nothing will
+   * reconcile), a verification outage (not a transition; the user's action
+   * did fail), the admin-only timeout, and uncoded 401s such as a wrong
+   * password.
+   */
+  function coordinatorOwnsMessage(error: unknown): boolean {
+    return (
+      parseSessionFailure(error)?.code_scope === 'customer_session' &&
+      bootstrap.lastSnapshotReportedSession
+    );
+  }
+
+  /**
    * Logs technical errors and sends to Sentry with context tags
    */
   function logTechnicalError(error: unknown, classifiedError: ApplicationError): void {
@@ -191,7 +214,7 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
       const classifiedError = classifyError(error as Error);
 
       handleErrorCallback(classifiedError);
-      notifyUser(classifiedError);
+      if (!coordinatorOwnsMessage(error)) notifyUser(classifiedError);
       logTechnicalError(error, classifiedError);
 
       return undefined;
