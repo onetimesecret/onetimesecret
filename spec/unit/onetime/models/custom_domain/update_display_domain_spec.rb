@@ -116,6 +116,51 @@ RSpec.describe Onetime::CustomDomain, '#update_display_domain' do
   end
 
   # ------------------------------------------------------------------ #
+  # Internationalised names — the Unicode and A-label forms name the same
+  # domain, so the taken-check reads the index the way every other lookup
+  # does (display_domain_id_for), not by the exact string alone.
+  # ------------------------------------------------------------------ #
+
+  context "when the new domain is the other form of another record's name" do
+    before do
+      domain # build first so the index double is in place
+      allow(described_class.display_domain_index).to receive(:get)
+        .with('bücher.com').and_return('cd-other-id')
+    end
+
+    it 'rejects the A-label form of a name registered in Unicode' do
+      expect {
+        domain.update_display_domain('xn--bcher-kva.com')
+      }.to raise_error(Onetime::Problem, /Domain already registered/)
+    end
+
+    it 'does not touch the display_domain index before raising' do
+      expect {
+        domain.update_display_domain('xn--bcher-kva.com')
+      }.to raise_error(Onetime::Problem)
+      expect(described_class.display_domain_index).not_to have_received(:remove)
+      expect(described_class.display_domain_index).not_to have_received(:put)
+    end
+
+    it 'still allows an unrelated A-label' do
+      expect { domain.update_display_domain('xn--bcher-kvb.com') }.not_to raise_error
+    end
+  end
+
+  context 'when the new domain is the other form of its own name' do
+    before do
+      domain.instance_variable_set(:@display_domain, 'bücher.com')
+      allow(described_class.display_domain_index).to receive(:get)
+        .with('bücher.com').and_return('cd-test-id')
+    end
+
+    it 'allows the rename' do
+      domain.update_display_domain('xn--bcher-kva.com')
+      expect(domain.display_domain).to eq('xn--bcher-kva.com')
+    end
+  end
+
+  # ------------------------------------------------------------------ #
   # Control characters — rejected during normalization via the
   # class-level display_domain guard (contains_control_chars?).
   # ------------------------------------------------------------------ #

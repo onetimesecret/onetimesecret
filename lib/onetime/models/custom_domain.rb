@@ -221,8 +221,10 @@ module Onetime
         raise Onetime::Problem, 'This domain overlaps with the default site domain'
       end
 
-      # Verify the new domain is not already taken, preserving the exact-key
-      # precedence used for legacy Unicode/A-label duplicate records.
+      # Verify the new domain is not already taken under either form of an
+      # internationalised name, while preserving exact-key precedence for legacy
+      # Unicode/A-label duplicate records. A record may still rename between its
+      # own two forms.
       existing = self.class.display_domain_id_for(new_domain)
       if existing && existing != identifier
         raise Onetime::Problem, 'Domain already registered'
