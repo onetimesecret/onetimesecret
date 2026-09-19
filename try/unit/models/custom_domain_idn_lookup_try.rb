@@ -101,6 +101,15 @@ idn_try_acme_allowed?(@typed_unicode_name)
 [Onetime::CustomDomain.load_by_display_domain("xn--nnx-#{@suffix}.example.com"), idn_try_acme_allowed?("ünknown-#{@suffix}.example.com")]
 #=> [nil, false]
 
+## An A-label that is not the encoding of the stored name is a miss: the decomposed spelling decodes and normalises to the same characters, but it is a different DNS name
+@decomposed_ascii = "xn--#{SimpleIDN::Punycode.encode("bu\u0308cher-#{@suffix}")}.com"
+[@decomposed_ascii == @ascii_name, SimpleIDN.to_unicode(@decomposed_ascii).unicode_normalize(:nfc) == @unicode_name, Onetime::CustomDomain.load_by_display_domain(@decomposed_ascii), Onetime::CustomDomain.resolve_domain_id(@decomposed_ascii), idn_try_acme_allowed?(@decomposed_ascii)]
+#=> [false, true, nil, nil, false]
+
+## Such an A-label has no Unicode key, while the canonical A-label still has one
+[Onetime::CustomDomain.display_domain_lookup_keys(@decomposed_ascii), Onetime::CustomDomain.display_domain_lookup_keys(@ascii_name)]
+#=> [[@decomposed_ascii], [@ascii_name, @unicode_name]]
+
 ## An overlong label is a miss, not an exception
 @overlong = "#{'ü' * 70}.example.com"
 [Onetime::CustomDomain.load_by_display_domain(@overlong), Onetime::CustomDomain.from_display_domain(@overlong), idn_try_acme_allowed?(@overlong)]

@@ -108,7 +108,7 @@ function detailPayload(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function verifyAck(current_state = 'pending') {
+function verifyAck(current_state = 'pending', detailOverrides: Record<string, unknown> = {}) {
   return {
     shrimp: '',
     record: {
@@ -130,6 +130,7 @@ function verifyAck(current_state = 'pending') {
       is_resolving: current_state !== 'pending',
       error: null,
       message: 'Domain verification completed',
+      ...detailOverrides,
     },
   };
 }
@@ -306,6 +307,28 @@ describe('AdminDomainDetail', () => {
       expect(showMock).toHaveBeenCalledTimes(1);
       expect(showMock.mock.calls[0][1]).toBe('info');
       expect(mockApi.get).toHaveBeenCalledTimes(2);
+    });
+
+    // null = the status check could not tell. The response must still parse so
+    // the outcome reaches the notice instead of the neutral "done".
+    it.each([
+      ['indeterminate', 'web.admin.domains.verify.success.indeterminate'],
+      ['confirmation_expired', 'web.admin.domains.verify.success.confirmationExpired'],
+    ])('reports %s with an unknown (null) resolving/SSL status', async (dns_outcome, key) => {
+      mockApi.post.mockResolvedValue({
+        data: verifyAck('resolving', { ssl_ready: null, is_resolving: null, dns_outcome }),
+      });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="verify-button"]').trigger('click');
+      await flushPromises();
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+
+      expect(showMock).toHaveBeenCalledTimes(1);
+      expect(showMock.mock.calls[0][0]).toContain(key);
+      expect(showMock.mock.calls[0][1]).toBe('warning');
     });
 
     it('keeps a 4xx failure inside the dialog and does not toast', async () => {

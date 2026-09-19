@@ -49,13 +49,54 @@ Changed
   for it. To keep a domain verified, either publish its TXT record or set the
   verification override for that domain in the Colonel admin; an override
   holds verified through failed checks until it is removed or a check passes.
-  The record's host and value are shown on the Colonel domain detail page, in
-  the output of ``bin/ots domains verify <domain>``, and as
+  The record's host and value are shown to the domain's owner on the domain's
+  verification page (see the next entry), on the Colonel domain detail page,
+  in the output of ``bin/ots domains verify <domain>``, and as
   ``txt_validation_host`` / ``txt_validation_value`` in the domains API
-  payload. The customer-facing domain pages do not show the TXT record or a
-  verify button under this strategy yet (they do under ``approximated``), so
-  the operator has to pass the record on to the domain's owner and run the
-  verify.
+  payload.
+
+- The customer-facing domain pages now work under ``caddy_on_demand``. They
+  previously showed the TXT challenge record, the status badge and the verify
+  button only under ``approximated``, so under ``caddy_on_demand`` a customer
+  had no way to learn which TXT record to publish. Both strategies now get
+  the verification page: the TXT record's host and value, the verify button,
+  and the status badge in the domain list and header. Adding a domain lands
+  on that page and schedules the first check, as it does under
+  ``approximated``. ``passthrough`` is unchanged and keeps the plain DNS
+  setup page.
+
+  Under ``caddy_on_demand`` the address record on that page points at this
+  install: a CNAME (ALIAS/ANAME for an apex domain) to the canonical domain,
+  falling back to the site host. The Approximated ``proxy_ip`` /
+  ``proxy_host`` values are never shown under this strategy, even when they
+  are still configured for the orphaned-vhost chore, and the Approximated DNS
+  widget stays ``approximated``-only. The Colonel domain DNS panel shows the
+  same address record as the customer pages; it previously showed the
+  Approximated proxy targets under every strategy.
+
+  The status badge has two new readings for the probe's ``PENDING_SSL``
+  status (the name resolves, no certificate was seen). A verified domain
+  reads "Certificate pending" and is not flagged as a problem: Caddy obtains
+  the certificate on the first request after the TXT check passes. A domain
+  whose TXT check has not passed reads "Pending Verification" and links to
+  the verification page, because no certificate will be issued until it
+  does. The same reading now applies, under both ``approximated`` and
+  ``caddy_on_demand``, to an unverified domain whose status still says
+  active (for example after its TXT record was removed while the certificate
+  issued earlier keeps serving): it no longer reads "Active" and no longer
+  gets the Manage quick action. "Unverified" is kept for a status check that
+  failed.
+  The SSL row of the status table reads "Unknown" rather than "Inactive" when
+  the check could not tell. Under ``caddy_on_demand`` the table shows when the
+  domain was last checked and leaves out the Approximated target address row.
+
+  The verify button's feedback now follows what the TXT check found. The
+  response of ``POST /api/domains/:extid/verify`` gains ``details.dns_outcome``
+  (``validated``, ``indeterminate``, ``confirmation_expired``, ``failed`` or
+  ``override_held``) and ``details.dns_indeterminate``. The success message is
+  shown only for a matching record. A lookup that produced no answer says the
+  check could not be completed and to try again, and a missing or different
+  record says so; before, all three showed the same success message.
 
   Existing domains are only re-checked when something runs the check. The
   scheduler is off by default (``JOBS_ENABLED``), and without it and
@@ -216,9 +257,18 @@ Fixed
   Host header, so such a domain was refused a certificate under
   ``caddy_on_demand`` and was not recognised as a custom domain on incoming
   requests. Stored domains are not changed. The second form of a name that is
-  already registered can no longer be added as a separate domain. A name that
-  cannot be converted (an overlong label, malformed punycode) is answered with
-  403 by the ACME endpoint.
+  already registered can no longer be added as a separate domain, or reached
+  by renaming another one. Only the punycode form that is the encoding of the
+  stored name matches it. A name that cannot be converted (an overlong label,
+  malformed punycode) is answered with 403 by the ACME endpoint.
+
+- ``features.domains.validation_strategy`` has always accepted any letter case
+  and the aliases ``caddy`` and ``external``, but the configured spelling was
+  sent to the frontend as written, which only recognises ``approximated``,
+  ``caddy_on_demand`` and ``passthrough``. With ``caddy`` the domain pages
+  therefore behaved as under ``passthrough`` (no TXT record, no verify
+  button). The bootstrap payload and the domains API ``cluster`` now carry the
+  canonical name of the strategy in effect.
 
 Documentation
 -------------

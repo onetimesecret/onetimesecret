@@ -32,6 +32,22 @@ module Onetime
     #   Features.safe_dump       # => Hash for API responses
     #
     class Features
+      # Strategy used when validation_strategy is unset, or is not a name
+      # Strategy.for_config knows (outside strict mode).
+      DEFAULT_STRATEGY = 'passthrough'
+
+      # Every spelling validation_strategy accepts (after strip + downcase),
+      # mapped to the canonical strategy name. Strategy.for_config picks the
+      # strategy class from the canonical name, and the same name is what
+      # goes out in API payloads, so clients only ever match canonical names.
+      STRATEGY_ALIASES = {
+        'approximated' => 'approximated',
+        'passthrough' => 'passthrough',
+        'external' => 'passthrough',
+        'caddy_on_demand' => 'caddy_on_demand',
+        'caddy' => 'caddy_on_demand',
+      }.freeze
+
       # Class-level state - set once at boot, read many times
       @strategy_name = nil
       @api_key       = nil
@@ -117,27 +133,52 @@ module Onetime
           !api_key.to_s.empty?
         end
 
+        # Canonical name for a configured validation_strategy value.
+        #
+        # @param raw [String, nil] the value as configured ("Caddy", "external")
+        # @return [String, nil] canonical name; nil for a blank or unknown value
+        #
+        def canonical_strategy_name(raw)
+          STRATEGY_ALIASES[raw.to_s.strip.downcase]
+        end
+
+        # Canonical name of the strategy in effect for a configured value:
+        # what Strategy.for_config resolves it to outside strict mode, where
+        # a blank or unknown value runs as passthrough.
+        #
+        # @param raw [String, nil] defaults to the loaded strategy_name
+        # @return [String] one of STRATEGY_ALIASES' canonical names
+        #
+        def effective_strategy_name(raw = strategy_name)
+          canonical_strategy_name(raw) || DEFAULT_STRATEGY
+        end
+
         # Check if using Approximated strategy.
         #
         # @return [Boolean]
         #
         def approximated?
-          strategy_name&.downcase == 'approximated'
+          canonical_strategy_name(strategy_name) == 'approximated'
         end
 
         # Safe dump of configuration for API responses.
         # Excludes sensitive data (api_key).
         #
+        # The strategy goes out under its canonical name whatever spelling
+        # was configured ("caddy", "Approximated"): the frontend keys its
+        # strategy capabilities on the canonical names only.
+        #
         # @return [Hash] Configuration data safe for client exposure
         #
         def safe_dump
           {
-            type: strategy_name,          # Legacy field name for compatibility
+            # Legacy field name for compatibility; nil while no strategy is loaded
+            type: strategy_name.nil? ? nil : effective_strategy_name,
             proxy_ip: proxy_ip,
             proxy_name: proxy_name,
             proxy_host: proxy_host,
             vhost_target: vhost_target,
-            validation_strategy: strategy_name || 'passthrough',
+            validation_strategy: effective_strategy_name,
           }
         end
 

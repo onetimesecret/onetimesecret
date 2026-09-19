@@ -196,6 +196,18 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
         expect(last_response.status).to eq(403)
       end
 
+      # Punycode of the decomposed spelling (u + combining diaeresis). It
+      # decodes and NFC-normalises to the stored characters, but it is a
+      # different DNS name from xn--bcher-kva.example.
+      it 'answers 403 for an A-label that is not the encoding of the stored name' do
+        decomposed = "xn--#{SimpleIDN::Punycode.encode("bu\u0308cher")}.example"
+        expect(decomposed).not_to eq('xn--bcher-kva.example')
+        expect(SimpleIDN.to_unicode(decomposed).unicode_normalize(:nfc)).to eq('bücher.example')
+
+        get '/ask', domain: decomposed
+        expect(last_response.status).to eq(403)
+      end
+
       it 'answers 403, not 500, for an overlong label' do
         get '/ask', domain: "#{'ü' * 70}.example"
         expect(last_response.status).to eq(403)

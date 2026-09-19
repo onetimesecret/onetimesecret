@@ -26,7 +26,7 @@ A reply only counts as definitive when it is an answer about the name (`DnsStubR
 
 Internationalised hostnames are queried, and probed, in their A-label form (`AsciiHostname`). `CustomDomain` stores the hostname as typed; sent as typed it would come back NXDOMAIN, which is our encoding speaking and not the customer's DNS.
 
-The reverse direction is handled in the `CustomDomain` lookup. Names that arrive over the wire are A-labels: the SNI name Caddy passes to the ACME ask endpoint, and the Host header. `CustomDomain.display_domain_id_for` (behind `load_by_display_domain`, `from_display_domain` and `resolve_domain_id`) tries the name as given, then its A-label form, then its Unicode (NFC) form, so a domain stored as `bücher.example` is found when asked for as `xn--bcher-kva.example` and the other way round. Stored data is not rewritten, a plain ASCII name still costs one index read, and a name that cannot be converted is a miss (403 from the ask endpoint), not an error. The same lookup keeps the second form of an already registered name from being registered as a separate domain.
+The reverse direction is handled in the `CustomDomain` lookup. Names that arrive over the wire are A-labels: the SNI name Caddy passes to the ACME ask endpoint, and the Host header. `CustomDomain.display_domain_id_for` (behind `load_by_display_domain`, `from_display_domain` and `resolve_domain_id`) tries the name as given, then its A-label form, then its Unicode (NFC) form when that form encodes back to the same A-label, so a domain stored as `bücher.example` is found when asked for as `xn--bcher-kva.example` and the other way round. Stored data is not rewritten, a plain ASCII name still costs one index read, and a name that cannot be converted is a miss (403 from the ask endpoint), not an error. An A-label that is not the encoding of an NFC name (for example the punycode of a decomposed spelling) is looked up by its exact string only: it is a different DNS name from the one its decoded characters normalise to. The same lookup keeps the second form of an already registered name from being registered as a separate domain, on creation and on rename (`update_display_domain`).
 
 Under `caddy_on_demand` the TXT check is the ownership proof. Caddy completing an ACME challenge shows that the name resolves to this deployment; it does not show which account, if any, controls the domain. The internal ACME endpoint (`apps/internal/acme`) only authorises a certificate for a domain that is `ready?`, which requires `verified`.
 
@@ -94,6 +94,21 @@ Time budget per domain: address lookup 3s, connect plus handshake 5s, each spent
 
 A certificate from a private CA (for example Caddy's `tls internal`) fails verification against the system trust store and is reported as `has_ssl: false`.
 
+## Customer pages
+
+The workspace decides what to show from two predicates in `src/utils/features.ts`. They read one capability table, which is the only place the frontend interprets a strategy name; a new strategy needs a row there.
+
+| | `approximated` | `caddy_on_demand` | `passthrough` |
+|---|---|---|---|
+| `isDomainOwnershipChecked()` (mirrors `proves_ownership?`): status badge, TXT record, verify button, `DomainVerify` page | Yes | Yes | No, plain `DomainDns` page |
+| `isApproximatedDomainValidation()`: address record points at `proxy_ip` / `proxy_host`, DNS widget | Yes | No | No |
+
+Without the Approximated proxy the address record points at this install by name: a CNAME, or ALIAS/ANAME for an apex domain, to the canonical domain, falling back to the site host (`useDomainDnsRecord`). `proxy_ip` / `proxy_host` are never shown under `caddy_on_demand`, including when they stay configured for the cleanup chore below. The Colonel domain DNS panel (`AdminDomainDnsDetails`) takes its address record from the same composable, reading the strategy from the `cluster` in the Colonel response, so an operator sees the record the customer sees.
+
+The badge reads the blob's `status` together with `verified` (`useDomainStatus.ts`). The blob says what was last seen on the network; `verified` says whether the TXT check has passed, and the badge never promises more than `verified` allows. A resolving domain (`ACTIVE`, `ACTIVE_SSL`, `ACTIVE_SSL_PROXIED` or `PENDING_SSL`) that is not verified shows "Pending Verification" in the warning style, links to the verification page and does not get the Manage quick action. That covers a new domain whose TXT record is not published yet, and a demoted one: after the record is removed the certificate issued earlier keeps serving, so the probe keeps writing `ACTIVE_SSL` while `verified` is false. A verified domain reads "Active" for the active statuses and "Certificate pending" for `PENDING_SSL`, and is not flagged. "Unverified" is reserved for a failed status check (`vhost_fetch_failed_at` within the freshness window): "could not tell" and "not verified" have different text, and the status link's accessible name carries that text. An absent `has_ssl` shows as "Unknown" in the status table, not "Inactive". The table hides the target address row when the blob has no `target_address` (the probe writes none) and derives "Last monitored" from `last_monitored_unix` when there is no `last_monitored_humanized`.
+
+The badge reflects stored state, which an indeterminate TXT check does not change. What the check itself learned is in the verify response: `POST /api/domains/:extid/verify` returns `details.dns_outcome` (`validated`, `indeterminate`, `confirmation_expired`, `failed`, `override_held`) and `details.dns_indeterminate`, the same values the Colonel verify response carries. The customer pages choose the verify toast and alert from it (`domainVerifyNotice.ts`): success for `validated` only, "the check could not be completed, try again" for `indeterminate` and `confirmation_expired`, and "record not found" for `failed` and `override_held`.
+
 ## Configuration
 
 Configure in `config.yaml`:
@@ -110,11 +125,13 @@ features:
       vhost_target: target.example.com
 ```
 
+`validation_strategy` is matched without regard to letter case, and `caddy` and `external` are accepted as aliases for `caddy_on_demand` and `passthrough` (`Features::STRATEGY_ALIASES`, which `Strategy.for_config` also reads). API payloads always carry the canonical name of the strategy in effect (`Features.effective_strategy_name`, used by `Features.safe_dump` and the bootstrap `domains.validation_strategy`), so the frontend capability table in `src/utils/features.ts` lists canonical names only. An unknown value runs, and is reported, as `passthrough` unless `strict_strategy` is set.
+
 ## Moving off `approximated`
 
 Changing `validation_strategy` away from `approximated` does not delete anything on Approximated. Each domain provisioned before the change keeps its vhost there (billable, and able to serve the hostname for as long as DNS points at the cluster) and keeps the old `vhost` JSON on its `CustomDomain` record. The `remove_orphaned_approximated_vhosts` housekeeping chore cleans both up.
 
-Keep `approximated.api_key` and `proxy_ip` / `proxy_host` configured after the cutover. The chore needs the key to delete and the proxy address to tell which domains still point at the cluster. The chore reads `proxy_ip` as one or more entries separated by commas or spaces, each a single address or a CIDR range such as `203.0.113.0/24`. The same value is shown to customers as the A record target in the domain setup screens, so only widen it once no domain is still being set up against Approximated.
+Keep `approximated.api_key` and `proxy_ip` / `proxy_host` configured after the cutover. The chore needs the key to delete and the proxy address to tell which domains still point at the cluster. The chore reads `proxy_ip` as one or more entries separated by commas or spaces, each a single address or a CIDR range such as `203.0.113.0/24`. Under `approximated` the same value is shown to customers as the A record target in the domain setup screens, so only widen it before the cutover if no domain is still being set up against Approximated. After the cutover the customer pages no longer read it (see Customer pages above).
 
 ```bash
 # Dry run (default): lists deletion candidates, makes no Approximated API call

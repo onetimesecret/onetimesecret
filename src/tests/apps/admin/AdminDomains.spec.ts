@@ -97,7 +97,7 @@ function domainsPayload(
   };
 }
 
-function verifyAck(current_state = 'verified') {
+function verifyAck(current_state = 'verified', detailOverrides: Record<string, unknown> = {}) {
   return {
     shrimp: '',
     record: {
@@ -119,6 +119,7 @@ function verifyAck(current_state = 'verified') {
       is_resolving: current_state !== 'pending',
       error: null,
       message: 'Domain verification completed',
+      ...detailOverrides,
     },
   };
 }
@@ -264,6 +265,57 @@ describe('AdminDomains (card grid + verify — ticket #31)', () => {
 
     expect(showMock).toHaveBeenCalledTimes(1);
     expect(showMock.mock.calls[0][1]).toBe('info');
+  });
+
+  // The status check is three-valued: null means it could not tell. A schema
+  // that only took booleans dropped the whole response, and with it the
+  // outcome, leaving the neutral "done" notice.
+  it('parses an unknown resolving/SSL status (null) and reports the indeterminate outcome', async () => {
+    mockApi.get.mockResolvedValue({ data: domainsPayload() });
+    mockApi.post.mockResolvedValue({
+      data: verifyAck('verified', {
+        ssl_ready: null,
+        is_resolving: null,
+        dns_indeterminate: true,
+        dns_outcome: 'indeterminate',
+      }),
+    });
+    wrapper = mountView();
+    await flushPromises();
+
+    await wrapper.find('[data-testid="domain-verify-cd_abc123"]').trigger('click');
+    await flushPromises();
+    await wrapper.find('[data-testid="admin-confirm-submit"]').trigger('submit');
+    await flushPromises();
+
+    expect(showMock).toHaveBeenCalledTimes(1);
+    expect(showMock.mock.calls[0][0]).toContain('web.admin.domains.verify.success.indeterminate');
+    expect(showMock.mock.calls[0][1]).toBe('warning');
+  });
+
+  it('reports a verification withdrawn after the confirmation window', async () => {
+    mockApi.get.mockResolvedValue({ data: domainsPayload() });
+    mockApi.post.mockResolvedValue({
+      data: verifyAck('resolving', {
+        previous_state: 'verified',
+        ssl_ready: null,
+        is_resolving: null,
+        dns_outcome: 'confirmation_expired',
+      }),
+    });
+    wrapper = mountView();
+    await flushPromises();
+
+    await wrapper.find('[data-testid="domain-verify-cd_abc123"]').trigger('click');
+    await flushPromises();
+    await wrapper.find('[data-testid="admin-confirm-submit"]').trigger('submit');
+    await flushPromises();
+
+    expect(showMock).toHaveBeenCalledTimes(1);
+    expect(showMock.mock.calls[0][0]).toContain(
+      'web.admin.domains.verify.success.confirmationExpired'
+    );
+    expect(showMock.mock.calls[0][1]).toBe('warning');
   });
 
   it('shows the error banner + retry on a network failure', async () => {

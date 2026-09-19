@@ -14,6 +14,8 @@ import {
   hasPasswordOf,
   isApproximatedDomainValidation,
   isApproximatedDomainValidationOf,
+  isDomainOwnershipChecked,
+  isDomainOwnershipCheckedOf,
   isEmailAuthOnlyMode,
   isFullAuthMode,
   isFullAuthModeOf,
@@ -1428,6 +1430,96 @@ describe('features utility', () => {
     });
   });
 
+  describe('isDomainOwnershipCheckedOf', () => {
+    // Mirrors BaseStrategy#proves_ownership? on the backend: the strategies
+    // that require the TXT challenge record.
+    it.each(['approximated', 'caddy_on_demand'])('returns true for %s', (strategy) => {
+      expect(isDomainOwnershipCheckedOf({ domains: { validation_strategy: strategy } })).toBe(
+        true
+      );
+    });
+
+    it('returns false for passthrough, which performs no ownership check', () => {
+      expect(isDomainOwnershipCheckedOf({ domains: { validation_strategy: 'passthrough' } })).toBe(
+        false
+      );
+    });
+
+    it('returns false for an unknown strategy rather than guessing', () => {
+      expect(
+        isDomainOwnershipCheckedOf({ domains: { validation_strategy: 'some_future_strategy' } })
+      ).toBe(false);
+      // Object.prototype keys must not resolve to a capability entry.
+      expect(isDomainOwnershipCheckedOf({ domains: { validation_strategy: 'constructor' } })).toBe(
+        false
+      );
+    });
+
+    // Only canonical names are expected here. The config accepts aliases and
+    // any letter case ('caddy', 'external', 'Approximated'), and the backend
+    // resolves them before they leave it
+    // (DomainValidation::Features.effective_strategy_name, used by
+    // Features.safe_dump and ConfigSerializer#transform_domains). An alias
+    // reaching the frontend is a producer defect, so it gets no capabilities
+    // here instead of a second alias table to keep in step.
+    it.each(['Approximated', 'caddy', 'Caddy_On_Demand', 'external'])(
+      'does not interpret the non-canonical spelling %s',
+      (strategy) => {
+        expect(isDomainOwnershipCheckedOf({ domains: { validation_strategy: strategy } })).toBe(
+          false
+        );
+      }
+    );
+
+    it('returns false when domains or validation_strategy is absent', () => {
+      expect(isDomainOwnershipCheckedOf({})).toBe(false);
+      expect(isDomainOwnershipCheckedOf({ domains: null })).toBe(false);
+      expect(isDomainOwnershipCheckedOf({ domains: {} })).toBe(false);
+      expect(isDomainOwnershipCheckedOf({ domains: { validation_strategy: null } })).toBe(false);
+    });
+
+    it('is a separate question from the Approximated proxy targets', () => {
+      const caddy = { domains: { validation_strategy: 'caddy_on_demand' } };
+
+      expect(isDomainOwnershipCheckedOf(caddy)).toBe(true);
+      expect(isApproximatedDomainValidationOf(caddy)).toBe(false);
+    });
+
+    it('accepts a domains API cluster object as the domains state', () => {
+      const cluster = {
+        type: 'caddy_on_demand',
+        proxy_ip: null,
+        proxy_host: null,
+        validation_strategy: 'caddy_on_demand',
+      };
+
+      expect(isDomainOwnershipCheckedOf({ domains: cluster })).toBe(true);
+    });
+  });
+
+  describe('isDomainOwnershipChecked', () => {
+    it('reads the domains bootstrap key', () => {
+      getBootstrapValueMock.mockReturnValue({ validation_strategy: 'caddy_on_demand' });
+
+      expect(isDomainOwnershipChecked()).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('domains');
+    });
+
+    it('returns true for approximated and false for passthrough', () => {
+      getBootstrapValueMock.mockReturnValue({ validation_strategy: 'approximated' });
+      expect(isDomainOwnershipChecked()).toBe(true);
+
+      getBootstrapValueMock.mockReturnValue({ validation_strategy: 'passthrough' });
+      expect(isDomainOwnershipChecked()).toBe(false);
+    });
+
+    it('returns false when the domains key is absent from bootstrap', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      expect(isDomainOwnershipChecked()).toBe(false);
+    });
+  });
+
   describe('isApproximatedDomainValidationOf', () => {
     it('returns true only for the exact "approximated" strategy', () => {
       expect(
@@ -1688,6 +1780,11 @@ describe('features utility', () => {
 
     it('isApproximatedDomainValidation returns false when window is undefined', () => {
       const result = isApproximatedDomainValidation();
+      expect(result).toBe(false);
+    });
+
+    it('isDomainOwnershipChecked returns false when window is undefined', () => {
+      const result = isDomainOwnershipChecked();
       expect(result).toBe(false);
     });
   });

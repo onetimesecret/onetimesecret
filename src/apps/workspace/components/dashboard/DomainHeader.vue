@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useDomainStatus } from '@/shared/composables/useDomainStatus';
-  import { isApproximatedDomainValidation } from '@/utils/features';
+  import { isDomainOwnershipChecked } from '@/utils/features';
   import { CustomDomain } from '@/schemas/shapes/v3';
   import { computed } from 'vue';
 
@@ -65,11 +65,11 @@
     () => props.domain
   );
 
-  // The active/inactive badge reflects Approximated's per-domain DNS check.
-  // On installs that don't use Approximated, that status is never populated
-  // (every domain would read "Inactive"), so hide the badge entirely. See #3618
-  // rationale in isApproximatedDomainValidation().
-  const showVerificationStatus = computed(() => isApproximatedDomainValidation());
+  // The status badge reflects the per-domain check a strategy that checks
+  // ownership writes (approximated, caddy_on_demand). On other installs that
+  // status is never populated (every domain would read "Inactive"), so hide
+  // the badge entirely. See #3618 and isDomainOwnershipChecked().
+  const showVerificationStatus = computed(() => isDomainOwnershipChecked());
 
 </script>
 
