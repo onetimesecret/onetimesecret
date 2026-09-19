@@ -82,6 +82,28 @@ and continue unordered.
   IMMEDIATE` and wait for locks with the GVL released. Concurrent sign-ups
   queue instead of answering `500`. No action needed; PostgreSQL is untouched.
 
+## Developer notes
+
+- **Local hydration schemas.** The bootstrap payload gained `snapshot_epoch`,
+  `snapshot_version` and `snapshot_generated_at`. In development the backend
+  validates every page's hydration data against `public/schemas/*.json`
+  (`Rhales::Middleware::SchemaValidator`, mounted only when
+  `public/schemas/index.json` exists, failing loudly). Those files are generated
+  and gitignored, and the schemas are closed, so a checkout that generated them
+  before this release answers `500` for every page once it runs this code.
+  `pnpm run dev` now repairs that: its `predev` step runs
+  `pnpm run schemas:rhales:refresh`, which regenerates the schemas when the
+  checkout has them and does nothing when it does not. If you start only the
+  backend, or a page was requested before the frontend finished starting (the
+  backend keeps the first schema it reads), run
+  `pnpm run schemas:rhales:generate` and restart the backend. Deleting
+  `public/schemas/*.json` turns the validation off.
+- `pnpm run schemas:rhales:generate` had stopped producing anything ("No schema
+  sections found"): the rake task did not know where `bootstrap.ts` lives. It
+  now carries the same schema settings as the app. `error.rue` is still skipped
+  with a template parse warning; that predates this release and affects only
+  the error page's schema.
+
 ## Staging review
 
 The review is a human step. #4463 stays open until someone has looked at each
