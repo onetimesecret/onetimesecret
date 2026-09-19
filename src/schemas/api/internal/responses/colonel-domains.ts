@@ -138,6 +138,10 @@ export const colonelDomainClusterSchema = z
   .object({
     proxy_ip: z.string().nullable().optional(),
     proxy_host: z.string().nullable().optional(),
+    // Canonical strategy name. Decides whether the proxy fields above are
+    // where a domain points at all (see useDomainDnsRecord); they stay
+    // configured after a move off `approximated`.
+    validation_strategy: z.string().nullable().optional(),
   })
   .passthrough()
   .nullable();
