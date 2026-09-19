@@ -118,6 +118,24 @@ RSpec.describe 'Cross-surface customer-session failure matrix (#4452)', type: :i
     end
   end
 
+  # RISK-2026-09-19-03. The API sent no Cache-Control at all. It now defaults
+  # to private, no-store through the whole stack: a personalized 200, an
+  # anonymous 200 and Otto's own 404. (A route's own policy is never
+  # overwritten; spec/unit/onetime/middleware/api_cache_policy_spec.rb.)
+  it 'never lets an /api response be stored', :aggregate_failures do
+    establish_matrix_session!
+
+    observation = request_surface(:protected_api, request_id: 'matrix-api-cache')
+    expect(observation).to include(status: 200, cache_control: 'private, no-store')
+
+    get '/api/v2/status', {}, { 'HTTP_ACCEPT' => 'application/json' }
+    expect(last_response.headers['cache-control']).to eq('private, no-store')
+
+    get '/api/v2/no-such-route', {}, { 'HTTP_ACCEPT' => 'application/json' }
+    expect(last_response.status).to eq(404)
+    expect(last_response.headers['cache-control']).to eq('private, no-store')
+  end
+
   # #4461. The /auth app answers nothing but authentication state, so every
   # response it finishes is unstorable: a success, a refusal, and a route that
   # sets its own policy keeps a policy that is at least as strict.

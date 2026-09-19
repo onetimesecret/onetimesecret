@@ -527,6 +527,9 @@ module CustomerSessionFailureMatrix
         expect(observation[:refusal_body]).to be_nil
       else
         expect(observation[:status]).to eq(401)
+        # Every /api response is unstorable by default, refusals included
+        # (RISK-2026-09-19-03, Onetime::Middleware::ApiCachePolicy).
+        expect(observation[:cache_control]).to eq('private, no-store')
         expect(observation[:refusal_code]).to eq(expectation.fetch(:code))
         # `message` is NOT the session marker on this route. /api/account/ is
         # `auth=sessionauth,basicauth`, and Otto renders the LAST failure in
@@ -548,9 +551,9 @@ module CustomerSessionFailureMatrix
       end
     when :authenticated
       expect(observation[:status]).to eq(200)
-      # Personalized HTML is never stored (#4461). The API's own cache policy
-      # is outside that issue and is not asserted here.
-      expect(observation[:cache_control]).to eq('private, no-store') if surface == :protected_html
+      # Personalized responses are never stored: HTML since #4461, the API
+      # since RISK-2026-09-19-03.
+      expect(observation[:cache_control]).to eq('private, no-store')
       expect(observation[:refusal_code]).to be_nil
       expect(observation).to include(identity_exposed: true, customer_exposed: true)
     else
