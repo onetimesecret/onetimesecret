@@ -25,6 +25,22 @@
 # is a checked-in file rather than a blanket `-e` disable so a reader can see
 # exactly what was accepted, per file and per rule, and `git log` shows when
 # each entry appeared.
+#
+# GEM ADVISORIES (#4450)
+#
+# The gem-audit job runs bundler-audit against Gemfile.lock. It lives here for
+# the same reason the shell lint does: no services, no matrix, seconds to run,
+# and it must not distort ci.yml's per-tier timing. It reads ONLY the lockfile,
+# so there is no `bundle install`.
+#
+# It arrived with ruby-saml, which is pinned exactly (see the Gemfile rationale)
+# because its advisory history is a run of authentication bypasses. An exact pin
+# never moves on its own, so something has to say when it must: Renovate's
+# vulnerabilityAlerts opens the bump PR, and this job makes every OTHER PR red
+# until that bump lands. Deliberately NO ignore list and NO baseline file — an
+# advisory against an auth-path gem is not a finding to be accepted per file.
+# If an advisory genuinely does not apply, record it in a checked-in
+# .bundler-audit.yml with the reasoning, in its own reviewed commit.
 ---
 name: Static analysis
 
@@ -47,8 +63,34 @@ env:
   SHELLCHECK_SHA256: '8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198'
   ACTIONLINT_VERSION: '1.7.12'
   ACTIONLINT_SHA256: '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8'
+  BUNDLER_AUDIT_VERSION: '0.9.3'
 
 jobs:
+  gem-audit:
+    name: bundler-audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      # bundler-cache stays off: nothing from the bundle is loaded. The audit
+      # tool is installed on its own, pinned, outside the app's Gemfile so it
+      # can never be the reason the application bundle changes.
+      - uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
+        with:
+          ruby-version-file: '.ruby-version'
+          bundler-cache: false
+
+      - name: Install pinned bundler-audit
+        run: gem install bundler-audit -v "${BUNDLER_AUDIT_VERSION}" --no-document
+
+      # --update fetches rubysec/ruby-advisory-db at run time: the advisory set
+      # is intentionally NOT pinned, a new advisory is exactly what this job
+      # exists to notice. The same command a developer runs locally.
+      - name: Check Gemfile.lock against the Ruby advisory database
+        run: bundle-audit check --update
+
   shell-tests:
     name: shell tests
     runs-on: ubuntu-24.04

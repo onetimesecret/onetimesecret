@@ -1,8 +1,8 @@
 // src/tests/apps/workspace/components/domains/DomainSsoConfigForm.spec.ts
 //
 // Tests for DomainSsoConfigForm.vue covering:
-// 1. Provider type selector rendering (OIDC/Entra-only — #3902)
-// 2. Provider-specific field visibility (Entra ID, OIDC)
+// 1. Provider type selector rendering (OIDC / Entra / SAML — #3902, #4450)
+// 2. Provider-specific field visibility (Entra ID, OIDC, SAML)
 // 3. Form validation for required fields
 // 4. Event emissions (save, delete, test, discard)
 // 5. Form state updates via v-model
@@ -58,16 +58,9 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
   },
 }));
 
-
-// Mock SSO provider metadata (OIDC/Entra-only — #3902)
-// Note: This mock matches the actual module path the component imports from.
-// If tests fail due to provider metadata behavior, verify the component import path.
-vi.mock('@/schemas/shapes/domains/sso-config', () => ({
-  SSO_PROVIDER_METADATA: {
-    entra_id: { requiresDomainFilter: false, idpControlsAccess: true, description: 'Microsoft Entra ID' },
-    oidc: { requiresDomainFilter: true, idpControlsAccess: false, description: 'Generic OIDC' },
-  },
-}));
+// The component reads SSO_PROVIDER_ROUTE_NAMES and
+// ssoProviderUsesClientCredentials from the real shapes module (which the
+// contract spec pins to the Ruby source) — deliberately NOT mocked.
 
 // i18n setup (pass-through: keys render as raw key paths — see ADR-014)
 const i18n = createTestI18n();
@@ -84,6 +77,9 @@ function createDefaultFormState(): SsoConfigFormState {
     client_secret: '',
     tenant_id: '',
     issuer: '',
+    idp_sso_service_url: '',
+    idp_entity_id: '',
+    idp_cert: '',
     allowed_domains: [],
     enabled: false,
     enforce_sso_only: false,
@@ -102,6 +98,12 @@ const mockExistingConfig: CustomDomainSsoConfig = {
   client_secret_masked: '****5678',
   tenant_id: 'tenant-uuid-123',
   issuer: null,
+  idp_sso_service_url: null,
+  idp_entity_id: null,
+  idp_cert: null,
+  sp_entity_id: null,
+  acs_url: null,
+  unreadable_fields: [],
   allowed_domains: ['example.com'],
   requires_domain_filter: false,
   idp_controls_access: true,
@@ -116,6 +118,9 @@ const mockExistingFormState: SsoConfigFormState = {
   client_secret: '', // Never populated from API
   tenant_id: 'tenant-uuid-123',
   issuer: '',
+  idp_sso_service_url: '',
+  idp_entity_id: '',
+  idp_cert: '',
   allowed_domains: ['example.com'],
   enabled: true,
   enforce_sso_only: false,
@@ -125,6 +130,36 @@ const mockExistingFormState: SsoConfigFormState = {
 const mockEnforceSsoOnlyFormState: SsoConfigFormState = {
   ...mockExistingFormState,
   enforce_sso_only: true,
+};
+
+// SAML (#4450): no client credential; the IdP trio is plaintext on the wire.
+const SAML_CERT = '-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----';
+
+const mockSamlFormState: SsoConfigFormState = {
+  ...createDefaultFormState(),
+  provider_type: 'saml',
+  display_name: 'Acme SAML',
+  idp_sso_service_url: 'https://idp.example.com/sso',
+  idp_entity_id: 'https://idp.example.com/entity',
+  idp_cert: SAML_CERT,
+};
+
+const mockSamlConfig: CustomDomainSsoConfig = {
+  ...mockExistingConfig,
+  provider_type: 'saml',
+  display_name: 'Acme SAML',
+  client_id: '',
+  client_secret_masked: null,
+  tenant_id: null,
+  idp_sso_service_url: 'https://idp.example.com/sso',
+  idp_entity_id: 'https://idp.example.com/entity',
+  idp_cert: SAML_CERT,
+  // The API composes these from the domain; note the non-default route name,
+  // which the host-derived preview could not know.
+  sp_entity_id: 'https://secrets.example.com/auth/sso/corp-saml/metadata',
+  acs_url: 'https://secrets.example.com/auth/sso/corp-saml/callback',
+  requires_domain_filter: true,
+  idp_controls_access: false,
 };
 
 interface MountOptions {
@@ -208,19 +243,20 @@ describe('DomainSsoConfigForm', () => {
   // ─────────────────────────────────────────────────────────────────────────────
 
   describe('Provider type selector', () => {
-    // Tenant SSO is OIDC/Entra-only: issuerless providers (Google, GitHub)
-    // cannot satisfy per-tenant identity partitioning and were removed from
-    // the tenant surface (#3902, PR #3900).
-    it('renders exactly the two supported provider options (entra_id, oidc)', async () => {
+    // Issuerless providers (Google, GitHub) cannot satisfy per-tenant identity
+    // partitioning and were removed from the tenant surface (#3902, PR #3900).
+    // SAML joined in #4450 — its issuer is the IdP EntityID.
+    it('renders exactly the three supported provider options (entra_id, oidc, saml)', async () => {
       wrapper = await mountComponent();
 
       expect(wrapper.find('#domain-provider-entra_id').exists()).toBe(true);
       expect(wrapper.find('#domain-provider-oidc').exists()).toBe(true);
+      expect(wrapper.find('#domain-provider-saml').exists()).toBe(true);
       expect(wrapper.find('#domain-provider-google').exists()).toBe(false);
       expect(wrapper.find('#domain-provider-github').exists()).toBe(false);
 
       const providerRadios = wrapper.findAll('input[type="radio"][name="provider_type"]');
-      expect(providerRadios).toHaveLength(2);
+      expect(providerRadios).toHaveLength(3);
     });
 
     it('selects Entra ID by default', async () => {
@@ -892,6 +928,312 @@ describe('DomainSsoConfigForm', () => {
   // ─────────────────────────────────────────────────────────────────────────────
   // Accessibility
   // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('SAML provider (#4450)', () => {
+    const findTestButton = (w: VueWrapper) =>
+      w.findAll('button[type="button"]').find((b) => b.text().includes('test_button'));
+    const submitButton = (w: VueWrapper) => w.find('button[type="submit"]');
+
+    describe('field visibility', () => {
+      it('shows the IdP trio and hides the client credential inputs', async () => {
+        wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'saml' } });
+
+        expect(wrapper.find('#domain-sso-idp-sso-service-url').exists()).toBe(true);
+        expect(wrapper.find('#domain-sso-idp-entity-id').exists()).toBe(true);
+        expect(wrapper.find('#domain-sso-idp-cert').exists()).toBe(true);
+        expect(wrapper.find('#domain-sso-client-id').exists()).toBe(false);
+        expect(wrapper.find('#domain-sso-client-secret').exists()).toBe(false);
+        expect(wrapper.find('#domain-sso-tenant-id').exists()).toBe(false);
+        expect(wrapper.find('#domain-sso-issuer').exists()).toBe(false);
+      });
+
+      it('keeps the client credential inputs for oidc and entra_id', async () => {
+        for (const provider_type of ['oidc', 'entra_id'] as const) {
+          wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type } });
+          expect(wrapper.find('#domain-sso-client-id').exists()).toBe(true);
+          expect(wrapper.find('#domain-sso-client-secret').exists()).toBe(true);
+          expect(wrapper.find('#domain-sso-idp-cert').exists()).toBe(false);
+          wrapper.unmount();
+        }
+      });
+
+      it('the certificate input is a textarea with a hint, and the SSO URL input is type=url', async () => {
+        wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'saml' } });
+
+        const cert = wrapper.find('#domain-sso-idp-cert');
+        expect(cert.element.tagName).toBe('TEXTAREA');
+        expect(cert.attributes('aria-describedby')).toBe('domain-sso-idp-cert-hint');
+        expect(wrapper.find('#domain-sso-idp-cert-hint').exists()).toBe(true);
+        expect(wrapper.find('#domain-sso-idp-sso-service-url').attributes('type')).toBe('url');
+      });
+    });
+
+    describe('state updates', () => {
+      it.each([
+        ['idp_sso_service_url', '#domain-sso-idp-sso-service-url', 'https://idp.example.com/sso'],
+        ['idp_entity_id', '#domain-sso-idp-entity-id', 'https://idp.example.com/entity'],
+        ['idp_cert', '#domain-sso-idp-cert', SAML_CERT],
+      ] as const)('emits update:formState when %s changes', async (field, selector, value) => {
+        wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'saml' } });
+
+        await wrapper.find(selector).setValue(value);
+        await flushPromises();
+
+        const emitted = wrapper.emitted('update:formState');
+        expect(emitted).toBeTruthy();
+        expect(emitted![emitted!.length - 1][0]).toMatchObject({ [field]: value });
+      });
+    });
+
+    describe('required guards', () => {
+      // Each trio field on its own: a guard that checked only one of them
+      // would pass a single-field example.
+      it.each(['idp_sso_service_url', 'idp_entity_id', 'idp_cert'] as const)(
+        'disables save and test when %s is blank',
+        async (field) => {
+          wrapper = await mountComponent({
+            formState: { ...mockSamlFormState, [field]: '' },
+          });
+
+          expect(submitButton(wrapper).attributes('disabled')).toBeDefined();
+          expect(findTestButton(wrapper)!.attributes('disabled')).toBeDefined();
+        }
+      );
+
+      it.each(['idp_sso_service_url', 'idp_entity_id', 'idp_cert'] as const)(
+        'disables save and test when %s is whitespace only',
+        async (field) => {
+          wrapper = await mountComponent({
+            formState: { ...mockSamlFormState, [field]: '   ' },
+          });
+
+          expect(submitButton(wrapper).attributes('disabled')).toBeDefined();
+        }
+      );
+
+      it('enables save and test with the trio filled and NO client_id', async () => {
+        wrapper = await mountComponent({ formState: mockSamlFormState });
+
+        expect(mockSamlFormState.client_id).toBe('');
+        expect(submitButton(wrapper).attributes('disabled')).toBeUndefined();
+        expect(findTestButton(wrapper)!.attributes('disabled')).toBeUndefined();
+      });
+
+      it('still requires client_id for oidc (guard is per provider, not dropped)', async () => {
+        wrapper = await mountComponent({
+          formState: {
+            ...createDefaultFormState(),
+            provider_type: 'oidc',
+            display_name: 'x',
+            issuer: 'https://idp.example.com',
+            client_id: '',
+          },
+        });
+
+        expect(submitButton(wrapper).attributes('disabled')).toBeDefined();
+      });
+
+      it('emits save on submit for a complete saml form', async () => {
+        wrapper = await mountComponent({ formState: mockSamlFormState });
+
+        await wrapper.find('form').trigger('submit.prevent');
+        await flushPromises();
+
+        expect(wrapper.emitted('save')).toBeTruthy();
+      });
+    });
+
+    describe('service-provider identifiers', () => {
+      it('previews SP Entity ID and ACS URL from the host before a record exists', async () => {
+        wrapper = await mountComponent({ formState: mockSamlFormState, domainHost: 'secrets.example.com' });
+
+        expect(wrapper.find('[data-testid="sso-saml-sp-entity-id"]').text()).toBe(
+          'https://secrets.example.com/auth/sso/saml/metadata'
+        );
+        expect(wrapper.find('[data-testid="sso-saml-acs-url"]').text()).toBe(
+          'https://secrets.example.com/auth/sso/saml/callback'
+        );
+      });
+
+      it('prefers the API-composed sp_entity_id / acs_url of a saved saml record', async () => {
+        wrapper = await mountComponent({
+          formState: mockSamlFormState,
+          ssoConfig: mockSamlConfig,
+          isConfigured: true,
+        });
+
+        expect(wrapper.find('[data-testid="sso-saml-sp-entity-id"]').text()).toBe(mockSamlConfig.sp_entity_id);
+        expect(wrapper.find('[data-testid="sso-saml-acs-url"]').text()).toBe(mockSamlConfig.acs_url);
+      });
+
+      it('falls back to the host preview when the API could not derive them', async () => {
+        wrapper = await mountComponent({
+          formState: mockSamlFormState,
+          ssoConfig: { ...mockSamlConfig, sp_entity_id: null, acs_url: null },
+          isConfigured: true,
+          domainHost: 'secrets.example.com',
+        });
+
+        expect(wrapper.find('[data-testid="sso-saml-sp-entity-id"]').text()).toBe(
+          'https://secrets.example.com/auth/sso/saml/metadata'
+        );
+      });
+
+      it('replaces the generic callback block and offers a copy control per value', async () => {
+        wrapper = await mountComponent({ formState: mockSamlFormState });
+
+        expect(wrapper.text()).not.toContain('web.organizations.sso.callback_url_hint');
+        const block = wrapper.find('[data-testid="sso-saml-sp-details"]');
+        expect(block.exists()).toBe(true);
+        expect(block.findAll('button')).toHaveLength(2);
+      });
+
+      it('shows the generic callback block, not the SP block, for oidc', async () => {
+        wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'oidc' } });
+
+        expect(wrapper.text()).toContain('web.organizations.sso.callback_url_hint');
+        expect(wrapper.find('[data-testid="sso-saml-sp-details"]').exists()).toBe(false);
+      });
+
+      it('hides the SP block when no host is known and no record exists', async () => {
+        wrapper = await mountComponent({ formState: mockSamlFormState, domainHost: '' });
+
+        expect(wrapper.find('[data-testid="sso-saml-sp-details"]').exists()).toBe(false);
+      });
+    });
+
+    describe('reveal failure (unreadable_fields)', () => {
+      it('renders an alert naming the field and marks the input invalid', async () => {
+        wrapper = await mountComponent({
+          formState: { ...mockSamlFormState, idp_cert: '' },
+          ssoConfig: { ...mockSamlConfig, idp_cert: null, unreadable_fields: ['idp_cert'] },
+          isConfigured: true,
+        });
+
+        const alert = wrapper.find('[data-testid="sso-unreadable-fields-alert"]');
+        expect(alert.exists()).toBe(true);
+        expect(alert.attributes('role')).toBe('alert');
+        expect(alert.text()).toContain('web.organizations.sso.unreadable_fields_alert');
+
+        const cert = wrapper.find('#domain-sso-idp-cert');
+        expect(cert.attributes('aria-invalid')).toBe('true');
+        expect(cert.attributes('aria-describedby')).toBe('domain-sso-idp-cert-hint domain-sso-idp-cert-error');
+        expect(wrapper.find('#domain-sso-idp-cert-error').exists()).toBe(true);
+        // Untouched siblings stay clean.
+        expect(wrapper.find('#domain-sso-idp-entity-id').attributes('aria-invalid')).toBeUndefined();
+        expect(wrapper.find('#domain-sso-idp-entity-id-error').exists()).toBe(false);
+        // And the save is blocked until the value is re-entered.
+        expect(submitButton(wrapper).attributes('disabled')).toBeDefined();
+      });
+
+      it('renders nothing for a healthy record', async () => {
+        wrapper = await mountComponent({ formState: mockSamlFormState, ssoConfig: mockSamlConfig, isConfigured: true });
+
+        expect(wrapper.find('[data-testid="sso-unreadable-fields-alert"]').exists()).toBe(false);
+        expect(wrapper.find('#domain-sso-idp-cert').attributes('aria-invalid')).toBeUndefined();
+      });
+
+      it('covers the client credential fields too (entra_id secret must be re-entered)', async () => {
+        wrapper = await mountComponent({
+          formState: mockExistingFormState,
+          ssoConfig: { ...mockExistingConfig, client_secret_masked: null, unreadable_fields: ['client_secret'] },
+          isConfigured: true,
+        });
+
+        expect(wrapper.find('[data-testid="sso-unreadable-fields-alert"]').exists()).toBe(true);
+        const secret = wrapper.find('#domain-sso-client-secret');
+        expect(secret.attributes('aria-invalid')).toBe('true');
+        expect(secret.attributes('required')).toBeDefined();
+        // Editing normally lets the secret stay blank; not when it is unreadable.
+        expect(submitButton(wrapper).attributes('disabled')).toBeDefined();
+      });
+    });
+
+    describe('test connection', () => {
+      it('uses the local-check hint for saml', async () => {
+        wrapper = await mountComponent({ formState: mockSamlFormState });
+
+        expect(wrapper.text()).toContain('web.organizations.sso.test_connection_hint_saml');
+        expect(wrapper.text()).not.toMatch(/test_connection_hint(?!_saml)/);
+      });
+
+      it('renders certificate subject and expiry from a successful local check', async () => {
+        wrapper = await mountComponent({
+          formState: mockSamlFormState,
+          testResult: {
+            user_id: 'cust_456',
+            success: true,
+            provider_type: 'saml',
+            message: 'SAML configuration is valid (checked locally; the identity provider was not contacted)',
+            details: {
+              idp_entity_id: 'https://idp.example.com/entity',
+              idp_sso_service_url: 'https://idp.example.com/sso',
+              certificate_subject: 'CN=idp.example.com',
+              certificate_not_after: '2030-01-01T00:00:00Z',
+              certificate_expires_in_days: 1200,
+            },
+          },
+        });
+
+        const details = wrapper.find('[data-testid="sso-test-saml-details"]');
+        expect(details.exists()).toBe(true);
+        expect(details.text()).toContain('CN=idp.example.com');
+        expect(details.text()).toContain('web.organizations.sso.certificate_expires_in_days');
+        expect(wrapper.find('[role="status"]').exists()).toBe(true);
+      });
+
+      it('names the offending field and the expiry on a failed local check', async () => {
+        wrapper = await mountComponent({
+          formState: mockSamlFormState,
+          testResult: {
+            user_id: 'cust_456',
+            success: false,
+            provider_type: 'saml',
+            message: 'IdP certificate expired on 2024-01-01',
+            details: {
+              error_code: 'certificate_expired',
+              field: 'idp_cert',
+              description: 'IdP certificate expired on 2024-01-01',
+              certificate_not_after: '2024-01-01T00:00:00Z',
+            },
+          },
+        });
+
+        const alert = wrapper.find('[role="alert"]');
+        expect(alert.exists()).toBe(true);
+        expect(alert.text()).toContain('certificate_expired');
+        expect(alert.text()).toContain('web.organizations.sso.idp_cert');
+        expect(alert.text()).toContain('web.organizations.sso.certificate_expires');
+      });
+    });
+
+    describe('accessibility', () => {
+      it('every IdP input has an associated label, hint and an asterisk', async () => {
+        wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'saml' } });
+
+        for (const id of ['domain-sso-idp-sso-service-url', 'domain-sso-idp-entity-id', 'domain-sso-idp-cert']) {
+          const label = wrapper.find(`label[for="${id}"]`);
+          expect(label.exists()).toBe(true);
+          expect(label.text()).toContain('*');
+          expect(wrapper.find(`#${id}`).attributes('aria-describedby')).toBe(`${id}-hint`);
+          expect(wrapper.find(`#${id}-hint`).exists()).toBe(true);
+        }
+      });
+
+      it('read-only SP values are labelled', async () => {
+        wrapper = await mountComponent({ formState: mockSamlFormState });
+
+        expect(wrapper.find('[data-testid="sso-saml-sp-entity-id"]').attributes('aria-labelledby')).toBe(
+          'domain-sso-sp-entity-id-label'
+        );
+        expect(wrapper.find('#domain-sso-sp-entity-id-label').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="sso-saml-acs-url"]').attributes('aria-labelledby')).toBe(
+          'domain-sso-acs-url-label'
+        );
+        expect(wrapper.find('#domain-sso-acs-url-label').exists()).toBe(true);
+      });
+    });
+  });
 
   describe('Accessibility', () => {
     it('form inputs have associated labels', async () => {

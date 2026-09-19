@@ -54,11 +54,14 @@ export type GetSsoConfigRequest = z.infer<typeof getSsoConfigRequestSchema>;
  * Request body for PUT (full replacement) of SSO configuration.
  *
  * PUT semantics: the request body IS the new state.
- * - Required fields: provider_type, client_id, client_secret, display_name
- * - Optional fields: tenant_id, issuer, allowed_domains, enabled
+ * - Required fields: provider_type, display_name
+ * - Optional fields: client_secret, tenant_id, issuer, allowed_domains, enabled
  * - Provider-specific validation:
+ *   - oidc / entra_id require client_id (entra_id also client_secret)
  *   - entra_id requires tenant_id
  *   - oidc requires issuer (valid URL)
+ *   - saml requires idp_sso_service_url (https), idp_entity_id, idp_cert (PEM)
+ *     and has no client credential (#4450)
  *
  * Uses strict validation for provider-specific requirements.
  */
@@ -79,12 +82,15 @@ export type PutSsoConfigRequest = z.infer<typeof putSsoConfigRequestSchema>;
  * - client_secret is optional (preserves existing if omitted)
  *
  * Fields:
- * - provider_type: optional enum ('oidc' | 'entra_id')
- * - client_id: optional string
+ * - provider_type: optional enum ('oidc' | 'entra_id' | 'saml')
+ * - client_id: optional string (oidc / entra_id)
  * - client_secret: optional string
  * - display_name: optional string
  * - tenant_id: optional string (for Entra ID)
  * - issuer: optional string URL (for OIDC)
+ * - idp_sso_service_url, idp_entity_id, idp_cert: optional strings (for
+ *   SAML, #4450). Blank preserves the stored value on an existing saml
+ *   record; switching TO saml needs all three.
  * - allowed_domains: optional array of strings
  * - enabled: optional boolean
  */

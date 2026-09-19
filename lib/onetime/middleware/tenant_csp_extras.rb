@@ -223,7 +223,8 @@ module Onetime
       #
       # Scoped by AuthConfig#tenant_origin_source on purpose — the SAME
       # dispatch #tenant_idp_origin itself runs, so this cannot drift out of
-      # step with which types actually read the tenant issuer. For the other
+      # step with which types actually read the tenant record, or which field
+      # (oidc: issuer; saml: idp_sso_service_url, #4450 — hence `source=`). For the other
       # provider types the origin comes from the static registry definition,
       # not from tenant data, so a nil there means route-map/registry drift —
       # a deploy-side bug an operator cannot fix by editing the tenant record.
@@ -242,7 +243,7 @@ module Onetime
         OT.lw '[TenantCspExtras] tenant SSO is available but its IdP origin failed ' \
               "validation for #{display_domain.inspect} " \
               "(provider_type=#{config.provider_type.to_s.inspect}, " \
-              "issuer=#{truncate_for_log(source).inspect}); form-action not widened"
+              "source=#{truncate_for_log(source).inspect}); form-action not widened"
       end
 
       def first_rejected_origin_warning_for?(display_domain)

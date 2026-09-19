@@ -63,12 +63,12 @@ module Auth
     #      the last soft-spot where safety relied on an operator spotting a duplicate
     #      account_id in the dry-run.
     #
-    # Only providers whose resolved issuer is non-'' (oidc, entra_id) can lock a
-    # user out. Issuerless providers (google/github) resolved to the '' sentinel,
+    # Only providers whose resolved issuer is non-'' (oidc, entra_id, saml) can
+    # lock a user out. Issuerless providers (google/github) resolved to the '' sentinel,
     # so a legacy '' row still matched the exact lookup — those users were never
     # locked out and this operation refuses to run for them. As of #3902 those
     # provider types are no longer configurable on the tenant surface at all
-    # (SsoConfig::PROVIDER_TYPES is oidc/entra_id only), so the eligibility
+    # (SsoConfig::PROVIDER_TYPES is oidc/entra_id/saml only), so the eligibility
     # guard below is a defense-in-depth check against pre-#3902 stored records.
     #
     # Idempotent, dry-run by default. Mirrors BulkSsoMigration's conventions.
@@ -90,7 +90,15 @@ module Auth
       # SsoConfig::PROVIDER_TYPES. Kept as an explicit local constant: the
       # guard exists to refuse pre-#3902 stored records, independent of what
       # the model currently accepts.
-      ISSUER_BEARING_PROVIDER_TYPES = %w[oidc entra_id].freeze
+      #
+      # 'saml' (#4450) is issuer-bearing by construction — its identities are
+      # keyed on the tenant's IdP EntityID and never on '' (resolve_issuer
+      # refuses a blank SAML issuer on both surfaces). Tenant SAML postdates
+      # migration 008, so there are no legacy '' rows to repair on a domain
+      # that has only ever used it; the entry matters for a domain that
+      # SWITCHED an existing provider route to saml, and keeps this list in
+      # lockstep with PROVIDER_TYPES (tripwire: domain_sso_config_spec).
+      ISSUER_BEARING_PROVIDER_TYPES = %w[oidc entra_id saml].freeze
 
       Result = Struct.new(
         :status,
@@ -121,7 +129,9 @@ module Auth
       #   Needed for Entra, where the live `iss` is
       #   https://login.microsoftonline.com/{tenant_id}/v2.0 and may differ from
       #   any stored field. When present (and non-blank) it wins over the
-      #   config-derived value for EVERY provider.
+      #   config-derived value for EVERY provider. For saml it must already be
+      #   the domain-scoped form "<domain_id>|<EntityID>" (see
+      #   #saml_override_problem).
       # @param dry_run [Boolean] when true (default), writes nothing and reports
       #   what WOULD happen.
       def initialize(domain:, issuer: nil, dry_run: true)
@@ -294,7 +304,9 @@ module Auth
 
       # Resolve the issuer to stamp so it equals what resolve_issuer produces at
       # live callback time:
-      #   - override present   -> the override (wins for every provider)
+      #   - override present   -> the override (wins for every provider; for
+      #                           saml it must be in the scoped form below, or
+      #                           it is refused — see #saml_override_problem)
       #   - oidc               -> sso_config.issuer (injected into strategy
       #                           options; resolve_issuer precedence #1). NOT
       #                           normalized — must byte-match the live value.
@@ -303,14 +315,36 @@ module Auth
       #                           #2 via omniauth_token_issuer). DERIVED — verify
       #                           against IdP metadata before --confirm, or pass
       #                           --issuer.
+      #   - saml               -> Onetime::SsoProvider::Saml.tenant_issuer(
+      #                           domain.identifier, idp_entity_id): the
+      #                           record's idp_entity_id, REVEALED (it is an
+      #                           AAD-bound encrypted_field), scoped to THIS
+      #                           domain — "<domain_id>|<EntityID>". This is
+      #                           the exact string resolve_issuer's SAML branch
+      #                           returns on the tenant surface: the strategy's
+      #                           extra['idp_entity_id'] is the configured
+      #                           EntityID, proven byte-equal to the response
+      #                           Issuer, and the validated tenant domain id is
+      #                           the scope (see tenant_issuer for why a bare
+      #                           EntityID is a cross-tenant takeover). NOT
+      #                           stripped, NOT normalized. Unset or unreadable
+      #                           -> refuse, like a missing Entra tenant_id.
       #   - anything else      -> a pre-#3902 issuerless record (google/github,
       #                           since removed from PROVIDER_TYPES) resolved to
       #                           '' at callback, so no lockout; refuse (nothing
       #                           to backfill).
       def resolve_issuer(sso_config, override)
-        return override.to_s.strip unless override.to_s.strip.empty?
-
         provider_type = sso_config.provider_type.to_s
+
+        unless override.to_s.strip.empty?
+          override = override.to_s.strip
+          if provider_type == 'saml'
+            problem = saml_override_problem(override)
+            raise Onetime::Problem, "--issuer #{problem}" if problem
+          end
+          return override
+        end
+
         unless ISSUER_BEARING_PROVIDER_TYPES.include?(provider_type)
           raise Onetime::Problem,
             "provider_type '#{provider_type}' resolves to the '' sentinel issuer at callback time, " \
@@ -330,6 +364,8 @@ module Auth
                 '(live `iss` is https://login.microsoftonline.com/{tenant_id}/v2.0).'
             end
             "https://login.microsoftonline.com/#{tenant_id}/v2.0"
+          when 'saml'
+            Onetime::SsoProvider::Saml.tenant_issuer(domain.identifier, saml_entity_id(sso_config))
           end
 
         if resolved.to_s.strip.empty?
@@ -339,6 +375,58 @@ module Auth
         end
 
         resolved
+      end
+
+      # A SAML override that the tenant callback could never produce is refused
+      # rather than stamped. resolve_issuer's SAML branch (features/omniauth.rb)
+      # only ever writes Saml.tenant_issuer(domain_id, EntityID) =
+      # "<domain_id>|<EntityID>"; a bare EntityID — the platform-surface key —
+      # would stamp rows no tenant sign-in can match, so those accounts would
+      # get a fresh JIT identity at next login instead of the backfilled one.
+      # The domain half must be THIS domain: any other prefix is a row for a
+      # different tenant's namespace. Not auto-scoped: an operator who pastes
+      # "<domain_id>|<EntityID>" must not be double-prefixed, and the two forms
+      # are only distinguishable by convention, so the caller states it.
+      #
+      # @param override [String] stripped, non-blank
+      # @return [String, nil] problem description, or nil when acceptable
+      def saml_override_problem(override)
+        prefix = "#{domain.identifier}#{Onetime::SsoProvider::Saml::TENANT_ISSUER_SEPARATOR}"
+        unless override.start_with?(prefix)
+          return "for a saml domain must be the domain-scoped issuer #{saml_issuer_form}, " \
+                 'never the bare EntityID (the tenant callback never keys an identity on it)'
+        end
+        return "for a saml domain has an empty EntityID after '#{prefix}'" if override.delete_prefix(prefix).strip.empty?
+
+        nil
+      end
+
+      # The scoped form, spelled with THIS domain's id so an operator can copy it.
+      def saml_issuer_form
+        "\"#{domain.identifier}#{Onetime::SsoProvider::Saml::TENANT_ISSUER_SEPARATOR}<EntityID>\" " \
+          '(Onetime::SsoProvider::Saml.tenant_issuer)'
+      end
+
+      # The tenant's IdP EntityID, revealed. Raises Problem when it is unset or
+      # will not decrypt — an unreadable trust anchor is never a reason to
+      # guess, and '' must never be stamped for SAML.
+      def saml_entity_id(sso_config)
+        entity_id = begin
+          sso_config.reveal_saml_field(:idp_entity_id)
+        rescue StandardError => ex
+          raise Onetime::Problem,
+            "SAML SSO config for #{domain.display_domain} has an unreadable idp_entity_id (#{ex.class.name}); " \
+            "re-save the SSO config, or pass --issuer #{saml_issuer_form}."
+        end
+
+        if entity_id.strip.empty?
+          raise Onetime::Problem,
+            "SAML SSO config for #{domain.display_domain} has no idp_entity_id; pass --issuer " \
+            "#{saml_issuer_form} — the live tenant issuer is the IdP EntityID scoped to this domain, " \
+            'never the bare EntityID.'
+        end
+
+        entity_id
       end
 
       def process_identity_safely(row)

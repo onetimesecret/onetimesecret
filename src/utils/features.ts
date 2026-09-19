@@ -234,6 +234,8 @@ const PROVIDER_LABELS: Record<string, string> = {
   google: 'Google',
   apple: 'Apple',
   auth0: 'Auth0',
+  // Without an entry the capitalized-route fallback would render 'Saml'.
+  saml: 'SAML',
 };
 
 /**

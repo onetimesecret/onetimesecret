@@ -42,8 +42,9 @@ add provider-specific adapters instead.
 
 Some providers do have requirements that generic OIDC cannot faithfully cover.
 GitHub has no OIDC login flow. Apple is OIDC-shaped but requires a per-request
-ES256 client-secret JWT and `form_post` response handling. These are protocol
-needs rather than branding preferences.
+ES256 client-secret JWT and `form_post` response handling. An IdP that speaks
+only SAML 2.0 has no OIDC login flow at all. These are protocol needs rather
+than branding preferences.
 
 ## Decision
 
@@ -57,7 +58,8 @@ A bespoke strategy is admissible only when at least one of these conditions is
 true:
 
 1. **OIDC is unavailable.** The IdP has no usable OIDC login flow, as with
-   GitHub.
+   GitHub, or as with an IdP that offers only SAML 2.0. SAML (#4450) is the
+   reference case for this criterion; see Consequences.
 2. **OIDC needs provider-specific protocol behavior that the generic strategy
    cannot safely supply.** The proposal identifies the behavior, why it must
    occur in the adapter, and how it will be tested. Apple's per-request ES256
@@ -125,10 +127,63 @@ New issuerless strategies require an explicit platform-only decision. They
 must not be presented as tenant SSO options or as an expandable generic OAuth2
 catalog.
 
+SAML 2.0 (#4450) is the first strategy admitted under criterion 1 and is the
+reference for what admission costs. The IdPs it reaches have no OIDC flow, so
+generic OIDC is not an alternative. It is issuer-capable only through this
+application's subclass, `OmniAuth::Strategies::RequestBoundSAML`, together
+with a required `idp_entity_id`: the stock `omniauth-saml` strategy produces
+no validated issuer (it would resolve to the `''` sentinel), ruby-saml skips
+issuer validation when no EntityID is configured, and the strategy accepts
+unsolicited responses, so as shipped it would not have qualified. The
+validated IdP EntityID reaches the identity key through its own
+`resolve_issuer` branch, decided by strategy class, that raises rather than
+falling back to any other issuer source. Admission carried preconditions a
+future proposal should expect to meet: an exactly pinned verifier gem with its
+advisory history recorded in the `Gemfile` and a `bundler-audit` job on every
+pull request; a subclass that owns every protocol-specific gate (request
+binding, issuer byte-equality, stable uid, single-use assertions, a scrubbed
+auth hash); tenant eligibility through `SsoConfig::PROVIDER_ROUTE_MAP` with
+the same hardened options as the platform definition; and operator
+documentation of what is deliberately unsupported (IdP-initiated sign-in,
+single logout). One departure from the proposal: missing or invalid platform
+configuration skips the provider rather than failing boot, because provider
+registration is designed never to take the other sign-in methods down with
+it.
+
 Implementation work remains governed by the provider-registration checklist,
 including issuer classification, strategy configuration, tests, and operator
 documentation. This ADR decides whether that work should begin; it does not
 replace the checklist once a strategy is admitted.
+
+## Applied examples
+
+The following provider requests illustrate the default outcome under this
+ADR: generic OIDC configuration rather than a bespoke strategy.
+
+**Clever.** Clever's Instant Login is OIDC-shaped. No provider-specific
+protocol behavior is identified that generic OIDC cannot faithfully cover,
+and the K-12 market case does not name a concrete quirk that meets the
+market-experience threshold. Rostering is a separate product surface,
+outside the SSO-login decision.
+
+**AWS Cognito.** Cognito is a conforming OIDC provider with issuer
+discovery. No protocol quirk requires an adapter. Broad adoption alone
+does not meet the market-experience bar, which this ADR sets against
+strategy sprawl.
+
+**A second generic OIDC gem (e.g. `omniauth_oidc`).** A second generic
+OIDC strategy is config-surface duplication without provider specificity.
+It carries the same hazards as the config-driven generic OAuth2 route
+this ADR rejects: arbitrary claims mapping and no reviewable provider
+contract. Generic OIDC is already the default; the way to improve it is
+to harden the single strategy, not to add another.
+
+**Keycloak.** Keycloak realms expose a validated OIDC issuer with
+discovery, and generic OIDC has been the standard integration route for
+years. Operator setup — realm URL in, discovery does the rest — is
+straightforward. No provider-specific protocol behavior is named that
+generic OIDC cannot supply, and self-hosted-IdP adoption alone does not
+clear the market-experience threshold.
 
 ## Related
 
@@ -138,3 +193,5 @@ replace the checklist once a strategy is admitted.
 - [ADR-035: Tenant Identity and Authentication-Policy Scope](adr-035-tenant-identity-auth-policy-scope.md)
 - `lib/onetime/sso_provider/registry.rb` — provider definitions and
   issuer-capability contract
+- `lib/onetime/sso_provider/request_bound_saml.rb` — the SAML reference case
+  for criterion 1 (#4450)

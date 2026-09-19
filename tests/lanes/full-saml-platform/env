@@ -1,0 +1,29 @@
+# Lane: full-saml-platform — full auth mode with the PLATFORM SAML provider
+# configured from the environment (#4450), against in-memory SQLite.
+#
+# Own process on purpose: Auth::Config configures once per process and
+# configure_provider reads SAML_* at that moment, so a SAML_IDP_ENTITY_ID
+# here would flip the full-sqlite/full-pg lanes — where the saml route is
+# the tenant PLACEHOLDER (blank trust anchors) and the tenant e2e asserts
+# the canonical host answers 404 / refuses — from green to red.
+# CI job: ruby-integration-full (T3, "SQLite, platform SAML" matrix row)
+#
+# SAML_IDP_CERT is deliberately NOT here. The spec mints the IdP keypair at
+# load time (spec/support/saml/test_idp.rb — no key material is checked in;
+# the pre-commit hook refuses private keys) and installs the matching PEM in
+# ENV before the first boot. The three public strings below are what the
+# lane provides; the spec is tagged `lane_env:` on SAML_IDP_ENTITY_ID.
+#
+# NOTE: lib/tasks/spec.rake hardcodes these values for the task as a
+# defense against ambient env. Keep identical.
+AUTHENTICATION_MODE=full
+AUTH_DATABASE_URL='sqlite::memory:'
+ORGS_SSO_ENABLED=true
+# Platform SSO on: MockAuthConfig#sso_enabled? honours this, and it gates the
+# platform IdP-origin set HttpOriginOptions admits for the POST callback.
+AUTH_SSO_ENABLED=true
+SAML_IDP_SSO_SERVICE_URL='https://login.platform-idp.test/saml/sso'
+SAML_IDP_ENTITY_ID='https://platform-idp.test/saml/metadata'
+
+# Generated prerequisites, produced by tests/lanes/run before the tasks below.
+LANES_CODEGEN='locales'

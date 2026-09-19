@@ -106,7 +106,8 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
   end
 
   # Create a CustomDomain + SsoConfig on an existing org.
-  def build_domain_on(org, provider_type: 'oidc', issuer: :default, tenant_id: nil, grant_org_scope: false, enabled: true)
+  def build_domain_on(org, provider_type: 'oidc', issuer: :default, tenant_id: nil, grant_org_scope: false, enabled: true,
+                      idp_entity_id: nil)
     issuer = (provider_type == 'oidc' ? tenant_issuer : nil) if issuer == :default
     run = SecureRandom.hex(6)
 
@@ -128,6 +129,7 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
     sso.grant_org_scope = grant_org_scope.to_s
     sso.issuer          = issuer unless issuer.nil?
     sso.tenant_id       = tenant_id unless tenant_id.nil?
+    sso.idp_entity_id   = idp_entity_id unless idp_entity_id.nil?
     sso.created         = Familia.now.to_i
     sso.updated         = sso.created
     sso.save
@@ -638,6 +640,43 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
       expect(op.provider).to eq('entra')
     end
 
+    # #4450. The stamped issuer must byte-match what resolve_issuer's SAML
+    # branch returns on a TENANT callback: the configured IdP EntityID (an
+    # AAD-bound encrypted_field, so it is REVEALED) scoped to this domain —
+    # "<domain_id>|<EntityID>" (Onetime::SsoProvider::Saml.tenant_issuer).
+    # The EntityID half is not stripped, not normalized, and a URN is as good
+    # as a URL. Never the bare EntityID: that is the platform key, and a
+    # tenant row must not be matchable through it.
+    it 'saml uses the revealed idp_entity_id verbatim, scoped to the domain' do
+      tenant = build_tenant(provider_type: 'saml', issuer: nil, idp_entity_id: 'urn:example:IdP/Tenant-A')
+      op = new_operation(tenant)
+      expect(op.issuer).to eq("#{tenant.domain.identifier}|urn:example:IdP/Tenant-A")
+      expect(op.issuer).to eq(
+        Onetime::SsoProvider::Saml.tenant_issuer(tenant.domain.identifier, 'urn:example:IdP/Tenant-A'),
+      )
+      expect(op.provider).to eq('saml')
+    end
+
+    it 'saml ignores a stale issuer field on the record' do
+      tenant = build_tenant(provider_type: 'saml', issuer: 'https://stale-oidc.example.com',
+        idp_entity_id: 'https://idp.example.com/saml/metadata')
+      expect(new_operation(tenant).issuer)
+        .to eq("#{tenant.domain.identifier}|https://idp.example.com/saml/metadata")
+    end
+
+    it 'raises for saml with no idp_entity_id and no override (never stamps the sentinel)' do
+      tenant = build_tenant(provider_type: 'saml', issuer: nil)
+      expect { new_operation(tenant) }.to raise_error(Onetime::Problem, /idp_entity_id/)
+    end
+
+    it 'raises for saml when idp_entity_id cannot be decrypted' do
+      tenant = build_tenant(provider_type: 'saml', issuer: nil, idp_entity_id: 'https://idp.example.com/saml/metadata')
+      allow_any_instance_of(Onetime::CustomDomain::SsoConfig)
+        .to receive(:reveal_saml_field).and_raise(Familia::EncryptionError, 'auth tag')
+
+      expect { new_operation(tenant) }.to raise_error(Onetime::Problem, /unreadable idp_entity_id \(Familia::EncryptionError\)/)
+    end
+
     it 'refuses google/github (they resolve to the sentinel; nothing to backfill)' do
       %w[google github].each do |ptype|
         tenant = build_tenant(provider_type: ptype, issuer: nil)
@@ -661,6 +700,43 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
       expect(new_operation(oidc, issuer: override).issuer).to eq(override)
       google = build_tenant(provider_type: 'google', issuer: nil)
       expect(new_operation(google, issuer: override).issuer).to eq(override)
+    end
+
+    # #4450. The tenant callback only ever keys a SAML identity on
+    # "<domain_id>|<EntityID>", so an override in any other shape would
+    # stamp rows no sign-in can match. It is refused, not auto-scoped.
+    describe 'saml --issuer override' do
+      let(:tenant) { build_tenant(provider_type: 'saml', issuer: nil, idp_entity_id: 'urn:example:IdP/Tenant-A') }
+      let(:scoped) { "#{tenant.domain.identifier}|https://idp.example.com/saml/metadata" }
+
+      it 'accepts the domain-scoped form verbatim (not double-prefixed)' do
+        expect(new_operation(tenant, issuer: scoped).issuer).to eq(scoped)
+        expect(new_operation(tenant, issuer: " #{scoped} ").issuer).to eq(scoped)
+      end
+
+      it 'refuses a bare EntityID, naming the scoped form with this domain id' do
+        expect { new_operation(tenant, issuer: 'https://idp.example.com/saml/metadata') }
+          .to raise_error(Onetime::Problem) { |ex|
+            expect(ex.message).to include('never the bare EntityID')
+            expect(ex.message).to include(%("#{tenant.domain.identifier}|<EntityID>"))
+          }
+      end
+
+      it 'refuses a scoped form for a different domain' do
+        expect { new_operation(tenant, issuer: 'otherdomainid|https://idp.example.com/saml/metadata') }
+          .to raise_error(Onetime::Problem, /never the bare EntityID/)
+      end
+
+      it 'refuses the prefix with nothing after it' do
+        expect { new_operation(tenant, issuer: "#{tenant.domain.identifier}| ") }
+          .to raise_error(Onetime::Problem, /empty EntityID/)
+      end
+
+      it 'names the scoped form when the record has no idp_entity_id' do
+        bare = build_tenant(provider_type: 'saml', issuer: nil)
+        expect { new_operation(bare) }
+          .to raise_error(Onetime::Problem, /#{Regexp.escape(bare.domain.identifier)}\|<EntityID>/)
+      end
     end
 
     it 'exposes sso_enabled? and constructs (non-fatally) for a disabled config' do

@@ -45,9 +45,14 @@ export interface SsoConfigResponse {
  */
 export interface TestSsoConnectionRequest {
   provider_type: SsoProviderType;
-  client_id: string;
+  /** Required for oidc / entra_id; absent for saml (no client credential, #4450). */
+  client_id?: string;
   tenant_id?: string;
   issuer?: string;
+  /** SAML trio (#4450) — all three required for provider_type 'saml'. */
+  idp_sso_service_url?: string;
+  idp_entity_id?: string;
+  idp_cert?: string;
 }
 
 /**
@@ -67,6 +72,15 @@ export interface TestSsoConnectionResponse {
     userinfo_endpoint?: string;
     scopes_supported?: string[];
     note?: string;
+    // Success details (SAML, #4450). The test is LOCAL — the IdP is not
+    // contacted — so what it reports is what it parsed: the trio as
+    // submitted and the certificate's subject / expiry.
+    idp_entity_id?: string;
+    idp_sso_service_url?: string;
+    certificate_subject?: string;
+    /** ISO 8601. Also present on a `certificate_expired` failure. */
+    certificate_not_after?: string;
+    certificate_expires_in_days?: number;
     // Error details
     error_code?: string;
     http_status?: number;
@@ -75,6 +89,12 @@ export interface TestSsoConnectionResponse {
     missing_fields?: string[];
     content_type?: string;
     timeout_seconds?: number;
+    /**
+     * SAML: the offending field (idp_sso_service_url | idp_entity_id |
+     * idp_cert) for error_code invalid_sso_url | invalid_entity_id |
+     * invalid_certificate | certificate_expired.
+     */
+    field?: string;
   };
 }
 
@@ -158,6 +178,9 @@ export const SsoService = {
     domainExtId: string,
     payload: PutSsoConfigRequest | PatchSsoConfigRequest
   ): Promise<SsoConfigResponse> {
+    // A saml payload never carries client_secret, so it always takes the
+    // PATCH path; PATCH creates when no record exists and, for saml, requires
+    // the full IdP trio on create or on a switch to saml (#4450).
     const hasClientSecret = 'client_secret' in payload && payload.client_secret && payload.client_secret.length > 0;
 
     if (hasClientSecret) {
