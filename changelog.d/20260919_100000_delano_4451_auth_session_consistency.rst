@@ -51,10 +51,13 @@ Changed
   ``session_id`` for these lines must change. #4461
 - ``/auth`` responses now send ``Cache-Control: private, no-store`` by
   default. #4461
-- Colonel ``PUT /api/colonel/domains/:extid/configs/signin`` answers ``422``
-  for a ``related_origins`` entry owned by another organization (it used to
-  answer ``200`` for an entry that never took effect), and a first write now
-  stores ``related_origins`` instead of silently dropping it. #4421
+- Protected pages, page hydration, ``GET /bootstrap/me``, protected APIs and
+  the ``/auth`` routes now decide from one shared customer-session verdict, so
+  they can no longer disagree about whether a session is valid. #4453, #4454
+- Deploy the backend and the frontend of this release together. Each half
+  tolerates the other's previous version only in a degraded form, and a
+  rolling deploy with mixed workers can reload a signed-in tab once. See
+  ``docs/authentication/session-consistency-rollout.md``. #4463
 
 Deprecated
 ----------
@@ -72,8 +75,6 @@ Fixed
   ``active_session_revoked``. Full authentication mode only: simple mode has
   no such row.
 - Repeated verification failures no longer sign the user out.
-- A failing log sink during an OmniAuth callback without a Connect intent no
-  longer reclassifies an ordinary SSO sign-in as a refused Connect. #4431
 
 Security
 --------
@@ -81,6 +82,12 @@ Security
 - The raw session id is no longer written to the session store's log lines
   or the sign-in/sign-out lines of the Web Core authentication controller; a
   logged id could be replayed as the cookie. #4461
+- A session that has presented a password but not its second factor can no
+  longer read ``/auth/account``, list or remove active sessions, list SSO
+  identities or passkeys, or start a re-authentication. It reaches only the
+  challenge routes, ``GET /auth/mfa-status`` and logout, and is answered
+  ``401`` with ``code: awaiting_mfa`` elsewhere. Closes
+  ``RISK-2026-08-13-02`` in the security risk register. #4453
 
 Documentation
 -------------
@@ -88,11 +95,8 @@ Documentation
 - New ``docs/authentication/customer-session-failure-matrix.md``: every
   session state on every surface, the refusal code each produces, and what
   to capture when a user reports being signed out. #4452
-
-AI Assistance
--------------
-
-- Implemented and reviewed with Claude across planning, backend, frontend
-  and browser-test stages. The first real browser run found two defects the
-  unit suites could not: the bootstrap schema rejected every real server
-  payload, and ``GET /logout`` could be undone by an in-flight request.
+- New ``docs/authentication/session-consistency-rollout.md``: deployment
+  notes for this release and the signals to check on staging. #4463
+- Security records: ``docs/security/audits/security-audit-2026-09-19.md``
+  reviews this package, the risk register closes ``RISK-2026-08-13-02`` and
+  gains four low-rated entries.
