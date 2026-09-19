@@ -225,14 +225,35 @@ module CustomerSessionFailureMatrix
     response.headers['x-request-id'] || response.headers['X-Request-ID']
   end
 
+  # Attach the SQL capture to every Sequel::Database that talks to the
+  # account_active_session_keys table on this request path — both the
+  # test_db (which the row-count assertions read through) and the
+  # Auth::Database.connection (which the ActiveSessionGate's expiring DELETE
+  # is issued against). The two are the SAME underlying PostgreSQL database
+  # but distinct Sequel::Database instances whenever both FullModeSuiteDatabase
+  # AND PostgresModeSuiteDatabase have set up in one process (each installs
+  # its own Auth::Database.connection stub, and the last writer wins). Logging
+  # only through test_db.loggers then misses the gate's DELETE/UPDATE and the
+  # `deletes`/`updates` assertions fail vacuously.
+  #
+  # Auth::Database.connection may be stubbed to raise in outage-simulation
+  # states (:authentication_database_unavailable); rescue so the capture setup
+  # does not itself trigger the very error the state is meant to exercise.
   def capture_activity_writes
     logger = SqlCapture.new
-    test_db.loggers << logger
+    databases = [test_db]
+    begin
+      other = ::Auth::Database.connection
+      databases << other if other && !databases.any? { |db| db.equal?(other) }
+    rescue StandardError
+      # Outage-simulation state: leave the capture attached to test_db only.
+    end
+    databases.each { |db| db.loggers << logger }
     result = yield
     writes = logger.messages.grep(/\b(?:INSERT|UPDATE|DELETE)\b.*\baccount_active_session_keys\b/i)
     [result, writes]
   ensure
-    test_db.loggers.delete(logger) if logger
+    databases&.each { |db| db.loggers.delete(logger) if logger }
   end
 
   def active_session_rows
