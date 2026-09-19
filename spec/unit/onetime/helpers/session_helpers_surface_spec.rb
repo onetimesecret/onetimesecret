@@ -74,6 +74,26 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     end
   end
 
+  context 'without a request accessor' do
+    subject(:helper) do
+      Class.new do
+        include Onetime::Helpers::SessionHelpers
+
+        attr_reader :session
+
+        def initialize(session)
+          @session = session
+        end
+      end.new(session)
+    end
+
+    let(:session) { session_on({ 'kind' => 'canonical' }) }
+
+    it 'refuses authentication instead of raising' do
+      expect(helper.authenticated?).to be(false)
+    end
+  end
+
   context 'platform session on tenant surface' do
     let(:session) { session_on({ 'kind' => 'canonical' }) }
     let(:env)     { env_on(strategy: :custom, host: 'secrets.acme.com', custom_id: 'tenant-a') }
