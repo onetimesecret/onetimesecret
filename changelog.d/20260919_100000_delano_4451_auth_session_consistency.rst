@@ -117,7 +117,8 @@ Fixed
   AuthDatabaseBusy``) when the auth database is saturated: a SQLite write lock
   held past the 5-second wait, or no free pooled connection. It answered a
   generic ``500``. Migration connections use the same SQLite wait settings as
-  request connections.
+  request connections. The retryable ``503`` answers are logged at ``warn`` as
+  a translated exception, not at ``error`` as an unhandled one.
 - After signing out or switching accounts in the same tab, the custom-domain
   list could stay empty until a forced refresh.
 - The colonel console shows a refused ``allowed_signup_domains`` entry under

@@ -95,7 +95,10 @@ and continue unordered.
   write lock held past the 5-second wait, or no free pooled connection on
   either engine) `/auth` answers `503` with `Retry-After: 1` and `error_type:
   AuthDatabaseBusy`, where it answered a generic `500`. Seeing it means more
-  concurrent auth writes than the deployment has capacity for.
+  concurrent auth writes than the deployment has capacity for. It is logged
+  at `warn` as `Auth router translated exception` with `error_type` and
+  `status`; `Auth router unhandled exception` (`error`) now means only an
+  exception `/auth` has no answer for.
 - **Sign-up answers.** In full mode a sign-up for an existing account answers
   `400` with `{"error": "Unable to create account"}` whether that account is
   verified, unverified, or was created by a concurrent request a moment
