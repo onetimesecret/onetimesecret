@@ -51,6 +51,24 @@ describe('verifyOutcomeNotice', () => {
     });
   });
 
+  // The state reads `resolving`, which would suggest the TXT record was
+  // checked and did not match. It was never reached.
+  it('reports a verification withdrawn after the confirmation window', () => {
+    expect(
+      verifyOutcomeNotice(
+        details({
+          previous_state: 'verified',
+          current_state: 'resolving',
+          changed: true,
+          dns_outcome: 'confirmation_expired',
+        })
+      )
+    ).toEqual({
+      messageKey: 'web.admin.domains.verify.success.confirmationExpired',
+      severity: 'warning',
+    });
+  });
+
   it('falls back to done for an unknown state, a response without dns_outcome, or null', () => {
     expect(verifyOutcomeNotice(details({ current_state: 'mystery' })).messageKey).toBe(
       'web.admin.domains.verify.success.done'

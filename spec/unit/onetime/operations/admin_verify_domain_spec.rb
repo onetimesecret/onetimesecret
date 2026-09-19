@@ -21,9 +21,8 @@ RSpec.describe Onetime::Operations::AdminVerifyDomain do
   let(:inner)  { instance_double(Onetime::Operations::VerifyDomain) }
 
   # A stand-in for VerifyDomain::Result with the fields the wrapper reads.
-  def result_double(success:, previous: :pending, current: :verified)
-    double(
-      'VerifyDomain::Result',
+  def result_double(success:, previous: :pending, current: :verified, **overrides)
+    fields = {
       success?: success,
       previous_state: previous,
       current_state: current,
@@ -34,8 +33,11 @@ RSpec.describe Onetime::Operations::AdminVerifyDomain do
       is_resolving: success,
       ssl_ready: success,
       persisted: true,
+      dns_outcome: success ? :validated : :failed,
+      confirmation_expired: false,
       error: success ? nil : 'DNS lookup failed',
-    )
+    }
+    double('VerifyDomain::Result', **fields.merge(overrides))
   end
 
   before do
@@ -70,8 +72,38 @@ RSpec.describe Onetime::Operations::AdminVerifyDomain do
         previous_state: 'pending',
         current_state: 'verified',
         dns_validated: true,
+        dns_outcome: 'validated',
+        confirmation_expired: false,
         is_resolving: true,
         ssl_ready: true,
+      ),
+    )
+  end
+
+  it 'records why verified was withdrawn when the confirmation window expired' do
+    allow(inner).to receive(:call).and_return(
+      result_double(
+        success: true,
+        previous: :verified,
+        current: :resolving,
+        dns_validated: false,
+        dns_indeterminate: true,
+        dns_outcome: :confirmation_expired,
+        confirmation_expired: true,
+      ),
+    )
+
+    described_class.new(domain: domain, actor: 'ur_col').call
+
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+      hash_including(
+        detail: hash_including(
+          previous_state: 'verified',
+          current_state: 'resolving',
+          dns_indeterminate: true,
+          dns_outcome: 'confirmation_expired',
+          confirmation_expired: true,
+        ),
       ),
     )
   end

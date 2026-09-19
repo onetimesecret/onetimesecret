@@ -52,8 +52,10 @@ end
 #=> [true, true, true]
 
 ## domain_refresh block matches inlined defaults (enabled by default)
+# rate_limit is deliberately absent: unset leaves bulk pacing to the
+# validation strategy (BaseStrategy#bulk_rate_limit).
 @jobs['domain_refresh']
-#=> {"enabled"=>true, "check_interval"=>"30m", "batch_size"=>200, "rate_limit"=>0.5}
+#=> {"enabled"=>true, "check_interval"=>"30m", "batch_size"=>200, "dns_propagation_window"=>"24h"}
 
 ## expiration_warnings block matches inlined defaults
 @jobs['expiration_warnings']
