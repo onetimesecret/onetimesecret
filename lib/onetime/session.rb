@@ -162,10 +162,11 @@ module Onetime
     def delete_session(_request, sid, _options)
       # Extract string ID from SessionId object if needed
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
+      handle     = log_handle(sid_string)
 
       session_logger.info 'Session deletion initiated',
         {
-          session_id: sid_string,
+          session_handle: handle,
           operation: 'delete',
         }
 
@@ -173,15 +174,14 @@ module Onetime
         result = stringkey.del
         session_logger.trace 'Session deleted from Redis',
           {
-            session_id: sid_string,
-            redis_key: stringkey.dbkey,
+            session_handle: handle,
             deleted: result,
             operation: 'delete',
           }
       else
         session_logger.trace 'No session found to delete',
           {
-            session_id: sid_string,
+            session_handle: handle,
             operation: 'delete',
           }
       end
@@ -219,7 +219,7 @@ module Onetime
         unless doomed.empty?
           session_logger.warn 'Session destroyed with in-flight sidecar state',
             {
-              session_id: sid_string,
+              session_handle: handle,
               fields: doomed,
               operation: 'delete',
             }
@@ -227,7 +227,7 @@ module Onetime
       rescue StandardError => ex
         session_logger.error 'Sidecar purge failed (orphans are TTL-bounded)',
           {
-            session_id: sid_string,
+            session_handle: handle,
             error: ex.message,
             error_class: ex.class.name,
             operation: 'delete',
@@ -237,7 +237,7 @@ module Onetime
       new_sid = generate_sid
       session_logger.trace 'New session generated after deletion',
         {
-          session_id: new_sid.respond_to?(:public_id) ? new_sid.public_id : new_sid,
+          session_handle: log_handle(new_sid),
           operation: 'delete',
         }
 
@@ -422,10 +422,11 @@ module Onetime
       # Parent class already extracts sid from cookies
       # sid may be a SessionId object or nil
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
+      handle     = log_handle(sid_string)
 
       session_logger.trace 'Session lookup initiated',
         {
-          session_id: sid_string,
+          session_handle: handle,
           sid_type: sid.class.name,
           operation: 'read',
         }
@@ -434,7 +435,7 @@ module Onetime
       unless sid_string && valid_session_id?(sid_string)
         session_logger.trace 'Session ID invalid or missing',
           {
-            session_id: sid_string,
+            session_handle: handle,
             valid: false,
             operation: 'read',
           }
@@ -442,7 +443,7 @@ module Onetime
         new_sid = generate_sid
         session_logger.trace 'New session created',
           {
-            session_id: new_sid.respond_to?(:public_id) ? new_sid.public_id : new_sid,
+            session_handle: log_handle(new_sid),
             operation: 'read',
           }
 
@@ -457,7 +458,7 @@ module Onetime
 
         session_logger.trace 'Redis lookup complete',
           {
-            session_id: sid_string,
+            session_handle: handle,
             has_data: !stored_data.nil?,
             data_size: stored_data&.bytesize,
             ttl: stringkey&.ttl,
@@ -469,7 +470,7 @@ module Onetime
         unless stored_data
           session_logger.trace 'No session data found',
             {
-              session_id: sid_string,
+              session_handle: handle,
               operation: 'read',
             }
 
@@ -482,7 +483,7 @@ module Onetime
 
         session_logger.trace 'HMAC verification',
           {
-            session_id: sid_string,
+            session_handle: handle,
             has_hmac: !hmac.nil?,
             data_length: data&.length,
             hmac_length: hmac&.length,
@@ -494,7 +495,7 @@ module Onetime
         unless hmac && valid_hmac?(data, hmac)
           session_logger.warn 'Session HMAC verification failed',
             {
-              session_id: sid_string,
+              session_handle: handle,
               has_hmac: !hmac.nil?,
               operation: 'read',
             }
@@ -508,7 +509,7 @@ module Onetime
         encrypted_data = Base64.strict_decode64(data)
         session_logger.trace 'Base64 decode complete',
           {
-            session_id: sid_string,
+            session_handle: handle,
             encrypted_size: encrypted_data.bytesize,
             operation: 'read',
           }
@@ -518,7 +519,7 @@ module Onetime
         unless decrypted_data
           session_logger.warn 'Session decryption failed',
             {
-              session_id: sid_string,
+              session_handle: handle,
               operation: 'read',
             }
           new_sid = generate_sid
@@ -527,7 +528,7 @@ module Onetime
 
         session_logger.trace 'AES-256-GCM decryption complete',
           {
-            session_id: sid_string,
+            session_handle: handle,
             decrypted_size: decrypted_data.bytesize,
             operation: 'read',
           }
@@ -559,7 +560,7 @@ module Onetime
         rescue StandardError => ex
           session_logger.error 'Sidecar merge failed (skipped)',
             {
-              session_id: sid_string,
+              session_handle: handle,
               error: ex.message,
               error_class: ex.class.name,
               operation: 'read',
@@ -568,7 +569,7 @@ module Onetime
 
         session_logger.trace 'Session loaded successfully',
           {
-            session_id: sid_string,
+            session_handle: handle,
             session_keys: session_data.keys,
             account_id: session_data['account_id'],
             external_id: session_data['external_id'],
@@ -585,7 +586,7 @@ module Onetime
         # Log error with structured context
         session_logger.error 'Error reading session',
           {
-            session_id: sid_string,
+            session_handle: handle,
             error: ex.message,
             error_class: ex.class.name,
             backtrace: ex.backtrace&.first(5),
@@ -625,10 +626,11 @@ module Onetime
     def write_session(request, sid, session_data, _options)
       # Extract string ID from SessionId object if needed
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
+      handle     = log_handle(sid_string)
 
       session_logger.trace 'Session write initiated',
         {
-          session_id: sid_string,
+          session_handle: handle,
           session_keys: session_data&.keys,
           session_data_class: session_data.class.name,
           operation: 'write',
@@ -664,7 +666,7 @@ module Onetime
       rescue StandardError => ex
         session_logger.error 'Sidecar commit failed (fields stay in blob)',
           {
-            session_id: sid_string,
+            session_handle: handle,
             error: ex.message,
             error_class: ex.class.name,
             operation: 'write',
@@ -676,7 +678,7 @@ module Onetime
       json_data = Familia::JsonSerializer.dump(session_data)
       session_logger.trace 'JSON serialization complete',
         {
-          session_id: sid_string,
+          session_handle: handle,
           json_size: json_data.bytesize,
           operation: 'write',
         }
@@ -686,7 +688,7 @@ module Onetime
       encrypted_data = encrypt_data(json_data)
       session_logger.trace 'AES-256-GCM encryption complete',
         {
-          session_id: sid_string,
+          session_handle: handle,
           encrypted_size: encrypted_data.bytesize,
           operation: 'write',
         }
@@ -695,7 +697,7 @@ module Onetime
       encoded = Base64.strict_encode64(encrypted_data)
       session_logger.trace 'Base64 encoding complete',
         {
-          session_id: sid_string,
+          session_handle: handle,
           encoded_size: encoded.bytesize,
           operation: 'write',
         }
@@ -707,7 +709,7 @@ module Onetime
 
       session_logger.trace 'HMAC computation complete',
         {
-          session_id: sid_string,
+          session_handle: handle,
           hmac_length: hmac.length,
           signed_data_size: signed_data.bytesize,
           operation: 'write',
@@ -722,8 +724,7 @@ module Onetime
       stringkey.set(signed_data)
       session_logger.trace 'Redis SET complete',
         {
-          session_id: sid_string,
-          redis_key: stringkey.dbkey,
+          session_handle: handle,
           operation: 'write',
         }
 
@@ -732,7 +733,7 @@ module Onetime
         stringkey.update_expiration(expiration: @expire_after)
         session_logger.trace 'Expiration updated',
           {
-            session_id: sid_string,
+            session_handle: handle,
             expire_after: @expire_after,
             operation: 'write',
           }
@@ -760,7 +761,7 @@ module Onetime
         rescue StandardError => ex
           session_logger.error 'Session metadata sidecar failed (swallowed)',
             {
-              session_id: sid_string,
+              session_handle: handle,
               error: ex.message,
               error_class: ex.class.name,
               operation: 'write',
@@ -776,7 +777,7 @@ module Onetime
       # Structured trace logging with all critical session fields
       session_logger.trace 'Session saved successfully',
         {
-          session_id: sid_string,
+          session_handle: handle,
           session_keys: session_data&.keys,
           account_id: session_data&.fetch('account_id', 'n/a'),
           external_id: session_data&.fetch('external_id', 'n/a'),
@@ -797,7 +798,7 @@ module Onetime
       # Log error with structured context
       session_logger.error 'Error writing session',
         {
-          session_id: sid_string,
+          session_handle: handle,
           session_keys: session_data&.keys,
           error: ex.message,
           error_class: ex.class.name,
@@ -807,6 +808,21 @@ module Onetime
 
       # Return false to indicate failure
       false
+    end
+
+    # The identifier session log lines carry (#4461). The sid is the bearer
+    # credential: anyone who can read it out of a log can replay it as the
+    # cookie. The handle is a keyed digest of it, the same one the colonel
+    # session view shows, so a log line still joins to a session an operator
+    # can see and revoke, and cannot be turned back into the sid.
+    #
+    # @param sid [String, Rack::Session::SessionId, nil]
+    # @return [String, nil]
+    def log_handle(sid)
+      plain = sid.respond_to?(:public_id) ? sid.public_id : sid
+      Onetime::SessionMetadata.handle_for(plain)
+    rescue StandardError
+      nil
     end
 
     # Clean up expired sessions (optional, can be called periodically)

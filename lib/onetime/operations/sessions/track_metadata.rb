@@ -110,10 +110,11 @@ module Onetime
 
           meta
         rescue StandardError => ex
+          # The handle, never the sid: the sid is the bearer credential (#4461).
           OT.le(
             '[Sessions::TrackMetadata] sidecar upsert failed (swallowed)',
             exception: ex,
-            session_id: @session_id,
+            session_handle: Onetime::SessionMetadata.handle_for(@session_id),
           )
           nil
         end
