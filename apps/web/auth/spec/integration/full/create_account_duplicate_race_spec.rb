@@ -130,11 +130,21 @@ RSpec.describe 'A sign-up that loses a race answers like an ordinary duplicate',
       ordinary = sign_up(login) # the row exists now, so the wrapper above stays out of it
 
       expect(lost).to eq(ordinary)
-      expect(lost[:status]).to be_between(400, 403)
+      expect(lost[:status]).to eq(400)
       expect(lost[:body]).to eq('error' => 'Unable to create account')
       expect(lost[:body].to_s).not_to match(/already|field-error/i)
       expect(db[:accounts].where(email: login).count).to eq(1)
     end
+  end
+
+  it 'answers a sign-up for an unverified account exactly like one for a verified account', :aggregate_failures do
+    verified = "signup-verified-#{SecureRandom.hex(6)}@example.com"
+    @created_emails << verified
+    db[:accounts].insert(email: login, status_id: 1)
+    db[:accounts].insert(email: verified, status_id: 2)
+
+    expect(sign_up(login)).to eq(sign_up(verified))
+    expect(sign_up(login)).to eq(status: 400, body: { 'error' => 'Unable to create account' })
   end
 
   it 'never answers 500, creates one account, and gives every loser the ordinary answer', :aggregate_failures do

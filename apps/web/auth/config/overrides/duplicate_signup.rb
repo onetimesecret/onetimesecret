@@ -12,7 +12,9 @@
 # POST /auth/create-account decides "this login is taken" in three places:
 #
 #   1. verify_account's `new_account`, before the transaction: an UNVERIFIED
-#      account answers 403 with the generic create-account error.
+#      account. Stock Rodauth answers 403 (`unopen_account_error_status`)
+#      where a verified account answers 400, so the status alone told a
+#      caller which of the two states the account was in.
 #   2. `before_create_account` (config/hooks/account.rb), inside the
 #      transaction: an account in the authdb answers 400 with the same error.
 #   3. `save_account`, at the INSERT: a unique violation. Stock Rodauth
@@ -25,11 +27,13 @@
 # ordinary one in status and in body, and said in words what the generic
 # error exists not to say.
 #
-# Both late detections now answer through {#refuse_signup_for_existing_account},
-# which replays the ordinary decision against the account that exists NOW:
-# `new_account` answers 403 when that account is unverified, and anything else
-# gets the hook's generic 400. A request that loses the race is therefore
-# indistinguishable from one that arrived a moment later, on SQLite (where the
+# All three now give ONE answer: 400 with the generic create-account error.
+# `new_account` is overridden so an unverified account answers like a verified
+# one (the original flash reader still runs, so the `create_account_blocked`
+# log line is kept), and both late detections answer through
+# {#refuse_signup_for_existing_account}. A request that loses the race is
+# therefore indistinguishable from one that arrived a moment later, and an
+# unverified account from a verified one, on SQLite (where the
 # transaction serializes the two and the loser is caught by (2)) and on
 # PostgreSQL (where both reach the INSERT and the loser is caught by (3)).
 #
@@ -43,13 +47,28 @@ module Auth::Config::Overrides
       auth.auth_class_eval do
         # Answer a sign-up for a login that already has an account, the way
         # an ordinary duplicate is answered. Always halts.
-        def refuse_signup_for_existing_account(login)
-          # verify_account: halts here with 403 when the account is unverified.
-          new_account(login)
-
+        def refuse_signup_for_existing_account(_login)
           set_error_flash(create_account_error_flash)
           request.env['rodauth.error_flash'] = create_account_error_flash
           throw_rodauth_error
+        end
+
+        # An unverified account answers a sign-up the way a verified one
+        # does. verify_account's version answers 403 and renders the resend
+        # view; the status was the only difference a JSON caller could see,
+        # and it named the account's state. The route calls this OUTSIDE its
+        # catch_error block, so it returns the response itself instead of
+        # throwing; with no status set here, the JSON layer supplies the same
+        # default the thrown error gets. The unverified flash reader is still
+        # called for its `create_account_blocked` log line.
+        def new_account(login)
+          if features.include?(:verify_account) && account_from_login(login) && allow_resending_verify_account_email?
+            attempt_to_create_unverified_account_error_flash
+            set_error_flash(create_account_error_flash)
+            request.env['rodauth.error_flash'] = create_account_error_flash
+            return_response create_account_view
+          end
+          super
         end
 
         def save_account
