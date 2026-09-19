@@ -43,11 +43,13 @@ module Onetime
       # @param txt_verifier [#verify] Ownership checker (default: TxtVerifier).
       # @param tls_probe [#probe] Status checker (default: TlsProbe).
       #   Both are injected so specs never touch the network.
+      # @param clock [#call] Returns the current Time (default: OT.now).
       #
-      def initialize(config, txt_verifier: TxtVerifier.new, tls_probe: TlsProbe.new)
+      def initialize(config, txt_verifier: TxtVerifier.new, tls_probe: TlsProbe.new, clock: -> { OT.now })
         @config       = config
         @txt_verifier = txt_verifier
         @tls_probe    = tls_probe
+        @clock        = clock
       end
 
       # Validates domain ownership via the TXT challenge record.
@@ -101,7 +103,9 @@ module Onetime
       #                 not reach port 443, or the egress guard refused the
       #                 address) the stored has_ssl and certificate dates are
       #                 carried into the new blob, so an unknown never
-      #                 overwrites a known value. A blob left by the
+      #                 overwrites a known value. They are carried only
+      #                 while the stored certificate is still inside its
+      #                 validity period (see #carried_ssl_fields). A blob left by the
       #                 Approximated strategy is not overwritten at all:
       #                 after a cutover it is the only record that a remote
       #                 vhost exists, and the RemoveOrphanedApproximatedVhosts
@@ -254,24 +258,45 @@ module Onetime
           'status_message' => result.message,
           'is_resolving' => result.is_resolving,
           'dns_pointed_at' => result.connected_to || result.addresses.first,
-          'last_monitored_unix' => OT.now.to_i,
+          'last_monitored_unix' => @clock.call.to_i,
           'source' => VHOST_SOURCE,
         }.merge(ssl).compact
       end
 
       # has_ssl and the certificate dates: from the probe when it knows, else
-      # whatever the previous check stored.
+      # what the previous check stored, for as long as that is still true.
       def ssl_fields(custom_domain, result)
-        if result.has_ssl.nil?
-          stored = custom_domain.parse_vhost
-          return stored.is_a?(Hash) ? stored.slice('has_ssl', 'ssl_active_from', 'ssl_active_until') : {}
-        end
+        return carried_ssl_fields(custom_domain) if result.has_ssl.nil?
 
         {
           'has_ssl' => result.has_ssl,
           'ssl_active_from' => iso8601(result.certificate&.not_before),
           'ssl_active_until' => iso8601(result.certificate&.not_after),
         }
+      end
+
+      # The stored has_ssl and dates describe one certificate, the one an
+      # earlier probe saw. Once its ssl_active_until has passed they describe
+      # nothing: that certificate has expired, and whether Caddy renewed it
+      # is exactly what this check could not tell. They are dropped then, so
+      # the blob makes no has_ssl claim and shows no expired date as the
+      # active one, until a probe sees the current certificate. A date that
+      # cannot be read is dropped the same way.
+      def carried_ssl_fields(custom_domain)
+        stored = custom_domain.parse_vhost
+        return {} unless stored.is_a?(Hash)
+
+        carried = stored.slice('has_ssl', 'ssl_active_from', 'ssl_active_until')
+        return carried unless carried.key?('ssl_active_until')
+
+        active_until = parse_time(carried['ssl_active_until'])
+        active_until && active_until > @clock.call ? carried : {}
+      end
+
+      def parse_time(value)
+        Time.iso8601(value.to_s)
+      rescue ArgumentError
+        nil
       end
 
       def iso8601(time)

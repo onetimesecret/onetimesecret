@@ -1061,7 +1061,10 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
 
     let(:probe_result_class) { Onetime::DomainValidation::TlsProbe::Result }
     let(:tls_probe) { instance_double(Onetime::DomainValidation::TlsProbe) }
-    let(:strategy) { described_class.new(config, txt_verifier: txt_verifier, tls_probe: tls_probe) }
+    # Fixed so the examples about stored certificate dates do not depend on
+    # the day they run.
+    let(:now) { Time.utc(2026, 9, 18, 12, 0, 0) }
+    let(:strategy) { described_class.new(config, txt_verifier: txt_verifier, tls_probe: tls_probe, clock: -> { now }) }
 
     def stub_probe(**attrs)
       allow(tls_probe).to receive(:probe)
@@ -1185,6 +1188,56 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
             'ssl_active_from' => '2026-09-01T00:00:00Z',
             'ssl_active_until' => '2026-11-30T00:00:00Z',
           )
+        end
+      end
+
+      context 'with a stored certificate whose validity has run out' do
+        let(:stored_vhost) do
+          { 'source' => 'tls_probe', 'status' => 'ACTIVE_SSL', 'is_resolving' => true, 'has_ssl' => true,
+            'ssl_active_from' => '2026-06-01T00:00:00Z', 'ssl_active_until' => '2026-08-30T00:00:00Z' }
+        end
+
+        it 'does not carry the expired certificate forward: no has_ssl claim and no dates' do
+          expect(result[:data]).to include('status' => 'PENDING_SSL', 'is_resolving' => true)
+          expect(result[:data].keys).not_to include('has_ssl', 'ssl_active_from', 'ssl_active_until')
+        end
+
+        it 'still reports has_ssl as unknown for this check' do
+          expect(result).to include(has_ssl: nil, is_resolving: true)
+        end
+
+        context 'when it runs out exactly now' do
+          let(:now) { Time.utc(2026, 8, 30) }
+
+          it 'is no longer carried' do
+            expect(result[:data].keys).not_to include('has_ssl', 'ssl_active_until')
+          end
+        end
+
+        context 'one second before it runs out' do
+          let(:now) { Time.utc(2026, 8, 29, 23, 59, 59) }
+
+          it 'is still carried' do
+            expect(result[:data]).to include('has_ssl' => true, 'ssl_active_until' => '2026-08-30T00:00:00Z')
+          end
+        end
+      end
+
+      context 'with a stored ssl_active_until that cannot be read' do
+        let(:stored_vhost) do
+          { 'source' => 'tls_probe', 'status' => 'ACTIVE_SSL', 'has_ssl' => true, 'ssl_active_until' => 'soon' }
+        end
+
+        it 'drops it with the has_ssl claim it belonged to' do
+          expect(result[:data].keys).not_to include('has_ssl', 'ssl_active_until')
+        end
+      end
+
+      context 'with a stored has_ssl: false (no certificate dates)' do
+        let(:stored_vhost) { { 'source' => 'tls_probe', 'status' => 'PENDING_SSL', 'has_ssl' => false } }
+
+        it 'carries the false forward' do
+          expect(result[:data]).to include('has_ssl' => false, 'status' => 'PENDING_SSL')
         end
       end
 
