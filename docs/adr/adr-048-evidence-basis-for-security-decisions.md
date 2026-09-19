@@ -15,9 +15,9 @@ Proposed
 ## Context
 
 Security-relevant behavior in this codebase is often decided amid conflicting
-claims: a reviewer interprets a change one way, a specification asserts
-another, and the existing code does something else. In that situation, the
-question “should the behavior change, or should the specification change?”
+claims: a reviewer interprets a change one way, a test asserts another, and
+the existing code does something else. In that situation, the question
+“should the behavior change, or should the test change?”
 can be settled by whoever is present, based on preference or memory.
 
 Neither is reliable. Preferences vary. Recalled requirements may come from a
@@ -30,10 +30,10 @@ The repository already demonstrates a better practice.
 [`docs/authentication/per-install-sso.md`](../authentication/per-install-sso.md)
 cites OWASP ASVS 5.0.0 requirement 7.5.1 and NIST SP 800-63C-4 section 3.8.1
 for authenticated identity linking. It also distinguishes requirements in
-those sources from additional controls chosen by OneTime Secret (OTS).
+those sources from additional controls chosen by Onetime Secret (OTS).
 However, this practice is not recorded and is applied unevenly. The same
 document originally gave no basis for its behavior when a session ends before
-an SSO callback. That omission turned a specification failure into a request
+an SSO callback. That omission turned a test failure into a request
 for the maintainer’s opinion.
 
 “Follow best practices” is not a decision because it cannot be checked. The
@@ -72,10 +72,13 @@ Outside this scope, the ADR is advisory.
    citations.
 
 2. **Verify the citation against the source text.** Read the cited section when
-   writing the decision. Quote the operative sentence when it is short and
-   helps establish the requirement. A citation recalled from memory is a lead
-   to verify, not evidence. This rule applies equally to people and agents;
-   identify an agent-provided citation as unverified until someone checks it.
+   writing the decision. Record the operative sentence with a direct or
+   section-level link. If the source cannot be excerpted, record its edition
+   and exact clause number instead. Put this evidence in the durable feature
+   document or commit message; a chat transcript alone is not a durable
+   record. A citation recalled from memory, or retrieved without this
+   checkable record, remains unverified. This rule applies equally to people
+   and agents.
 
 3. **Prefer sources in this order:**
 
@@ -103,8 +106,8 @@ Outside this scope, the ADR is advisory.
    Do not presume that either the existing test or the existing behavior is
    correct. If the applicable sources require one outcome, change the side
    that conflicts with that outcome. If the sources allow both outcomes or
-   conflict with one another, apply rule 6. Record the result and rationale in
-   the commit message.
+   conflict with one another, apply rule 6. Summarize the result and rationale
+   in the commit message.
 
 6. **Record judgments when sources do not determine the answer.** If no
    authoritative source addresses the case, or the applicable sources permit
@@ -144,7 +147,8 @@ refer to an existing evidence record instead of repeating it.
 
 - **We lose:** Speed at the moment of decision. Reading the relevant source
   takes longer than relying on memory, and some decisions will wait for that
-  verification. Seniority can no longer settle a disagreement by itself.
+  verification. Seniority alone does not settle a disagreement; when sources
+  do not determine the answer, rule 6 requires a recorded judgment.
 - **We gain:** Decisions that later maintainers, auditors, and customer
   security reviewers can verify without asking the original author. A shared
   source also gives disagreements a checkable basis.
@@ -171,7 +175,7 @@ refer to an existing evidence record instead of repeating it.
 
 ### Prompting case (2026-09-18)
 
-Four SSO Connect specifications expected a hook-level refusal for a suspended
+Four SSO Connect RSpec examples expected a hook-level refusal for a suspended
 customer, while the authentication router had begun destroying the session
 before the hook ran. The first recommendation expressed a preference. The
 first citations were recalled from memory, and one used a superseded section
@@ -181,5 +185,5 @@ Reading [OWASP ASVS 5.0.0 requirements 7.4.1 and 7.4.2](https://github.com/OWASP
 [RFC 9700 sections 2.1](https://www.rfc-editor.org/rfc/rfc9700.html#section-2.1)
 and [4.7.1](https://www.rfc-editor.org/rfc/rfc9700.html#section-4.7.1), and
 [RFC 6749 section 10.12](https://www.rfc-editor.org/rfc/rfc6749#section-10.12)
-showed that the behavior was supported and the specifications were stale. The
+showed that the behavior was supported and the RSpec examples were stale. The
 recommendation changed after the sources were verified.
