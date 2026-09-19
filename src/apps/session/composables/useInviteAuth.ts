@@ -6,7 +6,6 @@
 
 import { ref } from 'vue';
 import { useAuthStore } from '@/shared/stores/authStore';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useApi } from '@/shared/composables/useApi';
 import { useI18n } from 'vue-i18n';
@@ -88,7 +87,6 @@ function extractErrorInfo(
 export function useInviteAuth() {
   const $api = useApi();
   const authStore = useAuthStore();
-  const bootstrapStore = useBootstrapStore();
   const csrfStore = useCsrfStore();
   const { locale } = useI18n();
 
@@ -98,11 +96,8 @@ export function useInviteAuth() {
 
   /** Best-effort CSRF token refresh before POST. */
   async function refreshCsrf() {
-    try {
-      await bootstrapStore.refresh();
-    } catch (e) {
-      console.warn('[useInviteAuth] Bootstrap refresh failed, proceeding:', e);
-    }
+    // Through the refresh coordinator (#4459), which never throws.
+    await authStore.refresh({ kind: 'ordinary', reason: 'csrf' });
   }
 
   /** Sets error state from extracted error info. */
@@ -218,7 +213,8 @@ export function useInviteAuth() {
       if (loginResp.data?.mfa_required) {
         // MFA flow - invite_token is preserved in session by backend
         // User will return to invite page after MFA completion
-        bootstrapStore.update({ awaiting_mfa: true, authenticated: false });
+        // MFA-pending is the server's statement, not a local patch (#4458).
+        await authStore.refresh({ kind: 'auth-mutation', reason: 'login' });
         return { success: false, requiresMfa: true, redirect: `/invite/${inviteToken}` };
       }
 

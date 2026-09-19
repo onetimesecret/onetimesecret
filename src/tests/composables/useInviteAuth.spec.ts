@@ -51,8 +51,9 @@ describe('useInviteAuth', () => {
     bootstrapStore = useBootstrapStore();
     _csrfStore = useCsrfStore();
 
-    // Stub bootstrap refresh to resolve immediately (CSRF refresh)
-    vi.spyOn(bootstrapStore, 'refresh').mockResolvedValue(undefined as any);
+    // Stub the refresh coordinator (CSRF refresh, and the auth-mutation
+    // refresh after an MFA-required login). It never throws; it reports.
+    vi.spyOn(authStore, 'refresh').mockResolvedValue('applied');
   });
 
   afterEach(() => {
@@ -196,7 +197,8 @@ describe('useInviteAuth', () => {
       const { signupForInvite } = useInviteAuth();
       await signupForInvite('u@e.com', 'pw12345678', true, 'tok');
 
-      expect(bootstrapStore.refresh).toHaveBeenCalledOnce();
+      expect(authStore.refresh).toHaveBeenCalledOnce();
+      expect(authStore.refresh).toHaveBeenCalledWith({ kind: 'ordinary', reason: 'csrf' });
     });
 
     it('returns error when server responds with error field', async () => {
@@ -340,7 +342,7 @@ describe('useInviteAuth', () => {
     });
 
     it('proceeds even if CSRF refresh fails', async () => {
-      vi.spyOn(bootstrapStore, 'refresh').mockRejectedValue(new Error('CSRF fail'));
+      vi.spyOn(authStore, 'refresh').mockResolvedValue('failed');
       axiosMock.onPost('/api/invite/tok/signup').reply(200, {});
       vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
 
@@ -460,17 +462,16 @@ describe('useInviteAuth', () => {
       });
     });
 
-    it('updates bootstrapStore for MFA flow', async () => {
+    it('asks the server for the MFA-pending state instead of patching it (#4458)', async () => {
       axiosMock.onPost('/auth/login').reply(200, { mfa_required: true });
       const updateSpy = vi.spyOn(bootstrapStore, 'update');
 
       const { loginForInvite } = useInviteAuth();
-      await loginForInvite('u@e.com', 'pw12345678', 'tok');
+      const result = await loginForInvite('u@e.com', 'pw12345678', 'tok');
 
-      expect(updateSpy).toHaveBeenCalledWith({
-        awaiting_mfa: true,
-        authenticated: false,
-      });
+      expect(result.requiresMfa).toBe(true);
+      expect(authStore.refresh).toHaveBeenCalledWith({ kind: 'auth-mutation', reason: 'login' });
+      expect(updateSpy).not.toHaveBeenCalled();
     });
 
     it('does not call setAuthenticated when MFA is required', async () => {
