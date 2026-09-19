@@ -94,4 +94,65 @@ RSpec.describe Core::Views::SystemSerializer do
       end
     end
   end
+
+  # ADR-046. The pair is present as a unit or the keys are OMITTED: the schema
+  # rejects null, and a null here would fail the whole bootstrap payload.
+  describe 'snapshot ordering fields' do
+    let(:ordering_keys) { %w[snapshot_epoch snapshot_version snapshot_generated_at] }
+
+    let(:allocation) do
+      {
+        epoch: '0123456789abcdef0123456789abcdef',
+        version: '1758236400000001',
+        generated_at: '2026-09-17T17:28:59.123456Z',
+      }
+    end
+
+    def serialize(ordering)
+      described_class.serialize(base_vars.merge('authenticated' => true, 'snapshot_ordering' => ordering))
+    end
+
+    it 'declares the keys in the output template so the registry passes them through' do
+      expect(described_class.output_template.keys).to include(*ordering_keys)
+    end
+
+    it 'emits the allocation verbatim, the version still a String' do
+      output = serialize(allocation)
+
+      expect(output).to include(
+        'snapshot_epoch' => '0123456789abcdef0123456789abcdef',
+        'snapshot_version' => '1758236400000001',
+        'snapshot_generated_at' => '2026-09-17T17:28:59.123456Z',
+      )
+      expect(output.to_json).to include('"snapshot_version":"1758236400000001"')
+    end
+
+    it 'omits every key, rather than emitting null, when there is no allocation' do
+      [nil, {}, { error: 'Redis::CannotConnectError' }].each do |ordering|
+        output = serialize(ordering)
+
+        ordering_keys.each { |key| expect(output).not_to have_key(key) }
+        expect(output.to_json).not_to include('snapshot_')
+      end
+    end
+
+    it 'omits the pair as a unit when either half is missing or not a String' do
+      [
+        allocation.merge(epoch: nil),
+        allocation.merge(version: nil),
+        allocation.merge(version: 1_758_236_400_000_001),
+      ].each do |ordering|
+        output = serialize(ordering)
+
+        ordering_keys.each { |key| expect(output).not_to have_key(key) }
+      end
+    end
+
+    it 'emits a valid pair without a timestamp: the timestamp never gates the pair' do
+      output = serialize(allocation.merge(generated_at: nil))
+
+      expect(output).to include('snapshot_epoch' => allocation[:epoch], 'snapshot_version' => allocation[:version])
+      expect(output).not_to have_key('snapshot_generated_at')
+    end
+  end
 end

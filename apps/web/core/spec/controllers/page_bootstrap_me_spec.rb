@@ -140,6 +140,16 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
       expect(data).not_to have_key('code_scope')
     end
 
+    # ADR-046: an anonymous session is not ordered. The keys are OMITTED, not
+    # null: the schema rejects null and would fail the whole payload.
+    it 'carries no snapshot ordering fields' do
+      get '/bootstrap/me'
+      data = JSON.parse(last_response.body)
+
+      expect(data.keys.grep(/\Asnapshot_/)).to be_empty
+      expect(last_response.body).not_to include('snapshot_')
+    end
+
     it 'returns authenticated as false' do
       get '/bootstrap/me'
       data = JSON.parse(last_response.body)

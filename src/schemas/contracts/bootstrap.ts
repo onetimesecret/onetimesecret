@@ -704,6 +704,24 @@ export const diagnosticsRefSchema = z.strictObject({
 export type DiagnosticsRefBlock = z.infer<typeof diagnosticsRefSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// SNAPSHOT ORDERING (ADR-046)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** 128-bit keyed digest of the session id, lowercase hex. Opaque. */
+export const SNAPSHOT_EPOCH_PATTERN = /^[0-9a-f]{32}$/;
+
+/** Canonical positive decimal. Compared with BigInt, never parsed to a number. */
+export const SNAPSHOT_VERSION_PATTERN = /^[1-9][0-9]*$/;
+
+/**
+ * Fixed-width UTC RFC 3339 with exactly six fractional digits, e.g.
+ * `2026-09-17T17:28:59.123456Z`. Binds the server. On the client a mismatch is
+ * a diagnostic and the snapshot's age is "unknown"; it NEVER decides whether
+ * a snapshot is applied, so it is not part of `bootstrapSchema`.
+ */
+export const SNAPSHOT_GENERATED_AT_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/;
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // AUTH STATUS (#4462)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -949,6 +967,21 @@ export const bootstrapSchema = z.object({
   ruby_version: z.string().default(''),
   shrimp: z.string().default(''),
   nonce: z.string().nullable().default(null),
+
+  // Snapshot ordering (ADR-046). Present only on a complete snapshot of an
+  // ORDERED session (authenticated or MFA-pending). ABSENT — never null —
+  // for every other payload, for a degraded hydration whose allocation
+  // failed, and from a backend that predates the contract. The epoch and the
+  // version are validated as a unit by the superRefine below.
+  //
+  // `snapshot_version` is a decimal STRING, never a JSON number: compare with
+  // BigInt. `snapshot_generated_at` is diagnostic only and deliberately has
+  // NO format constraint here: a missing or malformed timestamp must not
+  // fail the parse of a payload whose ordering pair is valid. Its format
+  // (SNAPSHOT_GENERATED_AT_PATTERN) is checked separately, for diagnostics.
+  snapshot_epoch: z.string().regex(SNAPSHOT_EPOCH_PATTERN).optional(),
+  snapshot_version: z.string().regex(SNAPSHOT_VERSION_PATTERN).optional(),
+  snapshot_generated_at: z.string().optional(),
   homepage_mode: z.string().nullable().default(null),
   enjoyTheVue: z.boolean().default(false),
 
@@ -984,7 +1017,22 @@ export const bootstrapSchema = z.object({
   // Development (always emitted by ConfigSerializer)
   // ─────────────────────────────────────────────────────────────────────────────
   development: developmentConfigSchema.default(developmentConfigSchema.parse({})),
-});
+})
+  // ADR-046: the ordering pair is a unit — both present and valid, or both
+  // absent. Zod 4 keeps the object type through a refinement, so `.shape`,
+  // `parse({})` and `z.infer` are unchanged. JSON Schema cannot express the
+  // rule; the generated schema validates each field's format only.
+  .superRefine((payload, ctx) => {
+    const hasEpoch = payload.snapshot_epoch !== undefined;
+    const hasVersion = payload.snapshot_version !== undefined;
+    if (hasEpoch === hasVersion) return;
+
+    ctx.addIssue({
+      code: 'custom',
+      path: [hasEpoch ? 'snapshot_version' : 'snapshot_epoch'],
+      message: 'snapshot_epoch and snapshot_version must both be present or both be absent',
+    });
+  });
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // BOOTSTRAP PAYLOAD TYPE

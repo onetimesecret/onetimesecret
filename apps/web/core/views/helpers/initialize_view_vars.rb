@@ -5,6 +5,7 @@
 require 'onetime/logger_methods'
 require 'onetime/session/customer_session_evaluator'
 require 'onetime/session/auth_status'
+require 'onetime/session/snapshot_ordering'
 require 'onetime/tenant_sso_resolution'
 
 module Core
@@ -92,6 +93,26 @@ module Core
           cust          = nil
           awaiting_mfa  = false
           auth_status   = Onetime::SessionAuthStatus.without_verdict(sess)
+        end
+
+        # Bootstrap snapshot ordering (ADR-046), allocated by
+        # Core::Middleware::SnapshotOrdering ahead of the strategy. Passed
+        # through only when the request reports a session: the pair labels a
+        # complete snapshot of an ORDERED session, and a payload that reports
+        # no session (anonymous, rejected, unavailable, error recovery) is
+        # never subjected to ordering by the client. A failed allocation
+        # ({ error: }) carries no pair and is passed as nil — the degraded
+        # hydration payload.
+        allocation        = req.env[Onetime::SnapshotOrdering::ENV_KEY]
+        reports_session   = authenticated || awaiting_mfa
+        snapshot_ordering = allocation if reports_session && allocation.is_a?(Hash) && allocation[:version]
+        if reports_session && snapshot_ordering.nil?
+          Onetime.session_logger.warn 'Bootstrap snapshot serialized without ordering',
+            {
+              module: 'InitializeViewVars',
+              error: allocation.is_a?(Hash) ? allocation[:error] : 'not_allocated',
+              request_id: req.env['HTTP_X_REQUEST_ID'],
+            }
         end
 
         # Generate masked CSRF token from the canonical Rack session, NOT the
@@ -300,6 +321,7 @@ module Core
           'sess' => sess,
           'session_email' => session_email,
           'shrimp' => shrimp,
+          'snapshot_ordering' => snapshot_ordering,
           'site' => safe_site,
           'site_host' => site_host,
           # The request's tenant SSO answer, resolved lazily and ONCE (#4173).
