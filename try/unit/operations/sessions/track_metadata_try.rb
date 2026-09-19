@@ -122,6 +122,44 @@ SM.load(@sid).last_activity_at.to_i >= @ts
 [@poll_results, SM.load(@sid).last_activity_at.to_i, @cust.active_sessions.score(@sid).to_i]
 #=> [[nil, nil, nil], @ts - 7_200, @ts - 7_200]
 
+## a request the CLIENT declared passive (X-Session-Activity: passive on a GET,
+## a dashboard refresh timer) is the same: no stamp, however often repeated
+@declared_env = { 'REQUEST_METHOD' => 'GET', 'HTTP_X_SESSION_ACTIVITY' => 'passive' }
+@declared_results = Array.new(3) { TM.new(session_id: @sid, session_data: @auth_session, env: @declared_env).call }
+[@declared_results, SM.load(@sid).last_activity_at.to_i, @cust.active_sessions.score(@sid).to_i]
+#=> [[nil, nil, nil], @ts - 7_200, @ts - 7_200]
+
+## the declaration is ignored on a state-changing method: a POST always stamps
+TM.new(session_id: @sid, session_data: @auth_session, env: @declared_env.merge('REQUEST_METHOD' => 'POST')).call
+@posted_at = SM.load(@sid).last_activity_at.to_i
+@reset = SM.load(@sid)
+@reset.last_activity_at = @ts - 7_200
+@reset.save
+@posted_at >= @ts
+#=> true
+
+## a passive request still INDEXES a session that has no record yet: a session
+## that only ever declares itself passive cannot stay off its owner's list.
+## Once only; the next passive request leaves the record alone
+@unindexed_sid = "tryunindexed_#{@nonce}"
+SM.load(@unindexed_sid)&.destroy!
+@cust.active_sessions.remove(@unindexed_sid)
+@first = TM.new(session_id: @unindexed_sid, session_data: @auth_session, env: @declared_env).call
+@indexed = SM.load(@unindexed_sid)
+@indexed.last_activity_at = @ts - 7_200
+@indexed.save
+@second = TM.new(session_id: @unindexed_sid, session_data: @auth_session, env: @declared_env).call
+[@first.nil?, @cust.active_sessions.member?(@unindexed_sid), @second, SM.load(@unindexed_sid).last_activity_at.to_i]
+#=> [false, true, nil, @ts - 7_200]
+
+## a REFUSED passive request indexes nothing
+@refused_sid = "tryrefusedpassive_#{@nonce}"
+SM.load(@refused_sid)&.destroy!
+@refused_verdict = Onetime::CustomerSessionEvaluator::Verdict.new(status: :rejected, reason: :account_suspended)
+@r = TM.new(session_id: @refused_sid, session_data: @auth_session, env: @declared_env.merge(@verdict_key => @refused_verdict)).call
+[@r, SM.load(@refused_sid).nil?]
+#=> [nil, true]
+
 ## a request the shared evaluator REJECTED does not stamp activity, even though
 ## the Rack session blob still says authenticated (suspension, revocation, stale
 ## credentials and surface mismatch all leave the blob as it was)
@@ -227,6 +265,7 @@ SM.load(@geo_sid)&.destroy!
 
 ## with no env (env: nil) geo_country is nil — no lookup is invented
 @nogeo_sid = "trynogeo_#{@nonce}"
+SM.load(@unindexed_sid)&.destroy!
 SM.load(@nogeo_sid)&.destroy!
 @nogeo = TM.new(session_id: @nogeo_sid, session_data: @auth_session).call
 @nogeo.geo_country.nil?

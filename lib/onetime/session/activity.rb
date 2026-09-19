@@ -25,6 +25,25 @@ module Onetime
   # - {Onetime::Session#write_session}: the Rack session blob's TTL (the only
   #   inactivity clock in simple mode).
   #
+  # ## Requests the client declares passive
+  #
+  # A route cannot say which of its requests a person asked for. The
+  # dashboard's receipt list is fetched by navigation and re-fetched by a
+  # five-minute timer through the same `GET`, and with only the route
+  # declaration a tab left on the dashboard never reached the inactivity
+  # deadline (RISK-2026-09-19-04). The client knows the difference, so it may
+  # say so:
+  #
+  #     X-Session-Activity: passive
+  #
+  # The header can only ever take activity away. It is read for nothing but
+  # the exact value `passive`, so no value makes a passive route count; it is
+  # honoured on `GET` and `HEAD` only, so a request that changes state always
+  # counts, whatever it declares; and it reaches nothing but this predicate,
+  # so authentication, the evaluator and both deadlines run exactly as they
+  # do without it. What a caller can do with it is let its own session end
+  # sooner. Nothing is gained by forging it and nothing needs to trust it.
+  #
   # Otto parses `key=value` route tokens into Symbol keys and publishes them
   # at `env['otto.route_options']` when the route matches, before the auth
   # strategy runs. A request no Otto route matched (the Roda auth app, a
@@ -51,16 +70,41 @@ module Onetime
     OPTION                = :activity
     PASSIVE               = 'passive'
 
+    # The request header a client sets on a timer-driven request, and the Rack
+    # env key it arrives under. The only value read is {PASSIVE}.
+    HEADER         = 'X-Session-Activity'
+    HEADER_ENV_KEY = 'HTTP_X_SESSION_ACTIVITY'
+
+    # The methods the header is honoured on: an allowlist, so a method this
+    # list has never heard of counts as activity.
+    DECLARABLE_METHODS = %w[GET HEAD].freeze
+
     # @param env [Hash, nil] the Rack env
-    # @return [Boolean] true only when the matched route declares
-    #   `activity=passive`
+    # @return [Boolean] true when the matched route declares
+    #   `activity=passive`, or the client declared this safe request passive
     def passive?(env)
       return false unless env.is_a?(Hash)
 
+      route_passive?(env) || client_declared_passive?(env)
+    end
+
+    # @return [Boolean] true only when the matched route declares
+    #   `activity=passive`
+    def route_passive?(env)
       options = env[ROUTE_OPTIONS_ENV_KEY]
       return false unless options.is_a?(Hash)
 
       options[OPTION] == PASSIVE
+    end
+
+    # @return [Boolean] true only for a GET or HEAD whose
+    #   `X-Session-Activity` header is exactly `passive` (case and surrounding
+    #   whitespace aside)
+    def client_declared_passive?(env)
+      return false unless DECLARABLE_METHODS.include?(env['REQUEST_METHOD'])
+
+      declared = env[HEADER_ENV_KEY]
+      declared.is_a?(String) && declared.strip.casecmp?(PASSIVE)
     end
 
     # True when a session gate refused this request: the shared evaluator

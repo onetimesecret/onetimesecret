@@ -54,30 +54,59 @@ RSpec.describe 'Cross-surface customer-session failure matrix (#4452)', type: :i
     end
   end
 
+  # RISK-2026-09-19-04: a client may declare a safe request passive
+  # (X-Session-Activity). The declaration reaches the activity predicate and
+  # nothing else, so every state must be decided, answered and coded exactly as
+  # it is without the header.
+  CustomerSessionFailureMatrix::STATES.each do |state, expectation|
+    it "records #{state} on protected_api the same when the client declares the request passive", :aggregate_failures do
+      establish_matrix_session! unless state == :missing_anonymous
+      apply_matrix_state!(state)
+      observation = nil
+
+      with_matrix_state_dependencies(state) do
+        observation = request_surface(:protected_api, request_id: "matrix-declared-#{state}", declare_passive: true)
+      end
+
+      expect(observation[:verdict]).to eq(expectation.fetch(:verdict))
+      expect(observation[:refusal_markers]).to eq(expectation.fetch(:markers).fetch(:protected_api))
+      expect_protected_observation(observation, expectation, :protected_api)
+    end
+  end
+
   # The one state the matrix rows do not cover is the healthy one, and it is
   # where the two public surfaces differ (#4455, divergence D8 in the doc). Both
   # verify the same live session and expose the same identity; only the page
   # load, which a person asked for, counts as activity.
-  {
-    hydrated_html: :touched,
-    bootstrap: :unchanged,
-  }.each do |surface, activity|
-    it "verifies an active session on #{surface} and leaves its active-session row #{activity}", :aggregate_failures do
+  #
+  # The protected API has the same two answers, chosen by the client instead
+  # of the route (RISK-2026-09-19-04): a request counts unless the client
+  # declared it passive.
+  [
+    [:hydrated_html, false, :touched],
+    [:bootstrap, false, :unchanged],
+    [:protected_api, false, :touched],
+    [:protected_api, true, :unchanged],
+  ].each do |surface, declared, activity|
+    label = declared ? "#{surface} declared passive" : surface.to_s
+
+    it "verifies an active session on #{label} and leaves its active-session row #{activity}", :aggregate_failures do
       establish_matrix_session!
       before_activity = activity_snapshot
 
       observation, activity_writes = capture_activity_writes do
-        request_surface(surface, request_id: "matrix-active-#{surface}")
+        request_surface(surface, request_id: "matrix-active-#{surface}", declare_passive: declared)
       end
 
-      expect(observation).to include(
-        status: 200,
-        verdict: :authenticated,
-        authenticated: true,
-        awaiting_mfa: false,
-        customer_exposed: true,
-        identity_exposed: true,
-      )
+      expect(observation).to include(status: 200, verdict: :authenticated)
+      if public_surface?(surface)
+        expect(observation).to include(
+          authenticated: true,
+          awaiting_mfa: false,
+          customer_exposed: true,
+          identity_exposed: true,
+        )
+      end
       expect_activity(
         activity,
         before_activity,

@@ -88,6 +88,28 @@ RSpec.describe 'Passive verification does not count as session activity in simpl
     expect(blob_ttl).to be > 600
   end
 
+  # RISK-2026-09-19-04: a timer-driven API request, declared passive by the
+  # client. In simple mode the blob TTL is the whole inactivity clock.
+  it 'does not grow the session TTL for a request the client declares passive', :aggregate_failures do
+    Familia.dbclient.expire(blob_key, 600)
+
+    ttls = Array.new(3) do |i|
+      observation = request_surface(:protected_api, request_id: "simple-declared-passive-#{i}", declare_passive: true)
+      expect(observation[:status]).to eq(200)
+      blob_ttl
+    end
+
+    expect(ttls).to all(be <= 600)
+  end
+
+  it 'ignores the declaration on a state-changing request' do
+    Familia.dbclient.expire(blob_key, 600)
+
+    request_surface(:protected_api, request_id: 'simple-declared-passive-post', declare_passive: true, verb: :post)
+
+    expect(blob_ttl).to be > 600
+  end
+
   it 'resets the session TTL for a page load: a person asked for it' do
     Familia.dbclient.expire(blob_key, 600)
 

@@ -187,3 +187,27 @@ and [4.7.1](https://www.rfc-editor.org/rfc/rfc9700.html#section-4.7.1), and
 [RFC 6749 section 10.12](https://www.rfc-editor.org/rfc/rfc6749#section-10.12)
 showed that the behavior was supported and the RSpec examples were stale. The
 recommendation changed after the sources were verified.
+
+### Client-declared passive requests (2026-09-19)
+
+[OWASP ASVS 5.0.0 requirement 7.3.1](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v73-session-timeout)
+requires an inactivity timeout and leaves "inactivity" to the application's
+"risk analysis and documented security decisions". It does not say which
+requests count as activity. Two OTS choices follow from it, and both are
+choices rather than requirements:
+
+1. `GET /bootstrap/me`, the periodic session check, is verified in full and
+   moves no inactivity clock (#4455).
+2. A client may mark any other timer-driven `GET` or `HEAD` the same way with
+   the request header `X-Session-Activity: passive`. The server honours the
+   header only where it shortens the caller's own session: it is ignored on
+   state-changing methods, no value of it turns a passive route into
+   activity, and it is no input to authentication or to any refusal.
+
+The second choice was accepted without a standard that names such a header
+because of that asymmetry: a declaration that can only withhold needs no
+trust. A header that could extend a session, or skip a check, would need the
+evidence this ADR asks for and would not get it.
+
+The full record, with the rules and the specs that pin them, is
+[divergence D8a of the customer-session failure matrix](../authentication/customer-session-failure-matrix.md).

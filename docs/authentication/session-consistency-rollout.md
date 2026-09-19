@@ -56,8 +56,12 @@ and continue unordered.
   not count as activity. A signed-in tab left untouched reaches the inactivity
   deadline; before this release its own 15-minute poll kept it alive
   indefinitely. Expect more sessions ending by inactivity than before. The
-  dashboard's two 5-minute data refreshes are ordinary API calls and still count
-  as activity, so a tab left on the dashboard stays signed in.
+  dashboard's two 5-minute data refreshes declare themselves with the request
+  header `X-Session-Activity: passive` and do not count either, so a tab left
+  on the dashboard signs out on schedule too. The header is honoured on `GET`
+  and `HEAD` only and can only shorten the sender's own session. A proxy that
+  strips unknown request headers turns those refreshes back into activity; it
+  breaks nothing else.
 - **Log fields.** Session store lines carry `session_handle` instead of
   `session_id`, and `redis_key` is gone. Update any log query, alert or
   dashboard keyed on `session_id` for those lines.
