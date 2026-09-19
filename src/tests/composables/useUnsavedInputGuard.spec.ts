@@ -11,9 +11,9 @@ describe('useUnsavedInputGuard', () => {
   let add: ReturnType<typeof vi.spyOn>;
   let remove: ReturnType<typeof vi.spyOn>;
 
+  const isBeforeUnload = (call: unknown[]) => call[0] === 'beforeunload';
   const registered = () =>
-    add.mock.calls.filter(([type]) => type === 'beforeunload').length -
-    remove.mock.calls.filter(([type]) => type === 'beforeunload').length;
+    add.mock.calls.filter(isBeforeUnload).length - remove.mock.calls.filter(isBeforeUnload).length;
 
   /** Dispatches a real, cancelable beforeunload and reports what the page did. */
   function unload() {
@@ -88,7 +88,7 @@ describe('useUnsavedInputGuard', () => {
   it('cancels the event and sets returnValue for older browsers', () => {
     const scope = effectScope();
     scope.run(() => useUnsavedInputGuard(ref(true)));
-    const handler = add.mock.calls.find(([type]) => type === 'beforeunload')?.[1] as (
+    const handler = add.mock.calls.find(isBeforeUnload)?.[1] as (
       event: BeforeUnloadEvent
     ) => void;
     // jsdom has no BeforeUnloadEvent, and Event#returnValue is the legacy
