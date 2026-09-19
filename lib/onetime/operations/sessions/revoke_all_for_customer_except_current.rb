@@ -268,7 +268,7 @@ module Onetime
               next false
             end
 
-            db.del(key)
+            Store.destroy_blob(db, key)
             # Sidecar purge runs ONLY on this deleted branch: the preserved
             # current session and any watermark-spared session stay fully
             # alive, per-value keys included (killing e.g. a live
@@ -305,7 +305,7 @@ module Onetime
             # Watermark guard (see class docs): spare post-credential-change blobs.
             next if watermark.positive? && spared_by_watermark?(data, watermark)
 
-            db.del(key)
+            Store.destroy_blob(db, key)
             # Deleted-blob branch only — current/spared sids never reach here,
             # so their per-value sidecar keys survive with them.
             Onetime::SessionSidecar.purge(sid, dbclient: db)

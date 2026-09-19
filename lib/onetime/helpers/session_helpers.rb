@@ -84,6 +84,15 @@ module Onetime
         Onetime::ActiveSessionGate.end_session(session, env: rack_env_for_impersonation)
 
         session.clear
+
+        # Renew the id, as Web Core's #logout does. The store then deletes the
+        # old blob and sets its ended-marker (Onetime::SessionEnded), so a
+        # request still in flight under the old id cannot write the session
+        # back (RISK-2026-09-19-01). Clearing alone leaves the id live, and a
+        # live id cannot carry a marker: its own next write would be refused.
+        options         = rack_env_for_impersonation&.[]('rack.session.options')
+        options[:renew] = true if options.respond_to?(:[]=)
+
         forget_customer_session_verdict
         OT.info "[logout] Session destroyed (session_handle=#{handle})" if handle
       end

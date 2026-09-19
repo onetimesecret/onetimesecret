@@ -92,10 +92,6 @@ session identifier.
 
 ## Known limits in this release
 
-- Simple authentication mode has no active-session row, so a logout there can
-  still be undone by a request that was in flight when it happened. Tracked as
-  `RISK-2026-09-19-01` in the
-  [active security risk register](../security/active-risk-register.md).
 - Session `401`s send no `WWW-Authenticate` header, and verification outages
   answer `401` rather than `503`. Both are recorded in the failure matrix and
   belong to [#4469](https://github.com/onetimesecret/onetimesecret/issues/4469).

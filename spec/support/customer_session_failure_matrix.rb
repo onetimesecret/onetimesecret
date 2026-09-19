@@ -217,6 +217,34 @@ module CustomerSessionFailureMatrix
     session_store.load_data(Familia.dbclient, key, codec: session_codec)
   end
 
+  # Hold one request open between its session read and its session write,
+  # and run the block to completion in that gap (RISK-2026-09-19-01).
+  #
+  # The held request is `GET /api/account/` with the current cookie. The block
+  # runs on its own thread, joined before the held request continues, right
+  # after that request's first customer-session evaluation (which has loaded
+  # the session). The interleaving is therefore exact, not timed, and the late
+  # write goes through the real Onetime::Session#write_session.
+  #
+  # @return [Rack::MockResponse] the held request's response
+  def hold_request_while
+    fired = false
+
+    allow(Onetime::CustomerSessionEvaluator).to receive(:evaluate).and_wrap_original do |original, session, **kwargs|
+      verdict = original.call(session, **kwargs)
+      unless fired
+        fired = true
+        Thread.new { yield }.join
+      end
+      verdict
+    end
+
+    header 'Accept', 'application/json'
+    get '/api/account/'
+    expect(fired).to be(true)
+    last_response
+  end
+
   def rewrite_session_blob
     db   = Familia.dbclient
     key  = session_store.find_key(db, current_session_id)

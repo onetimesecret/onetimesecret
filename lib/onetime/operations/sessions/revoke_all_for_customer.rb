@@ -285,7 +285,7 @@ module Onetime
             key = Store.find_key(db, sid)
             next false unless key
 
-            db.del(key)
+            Store.destroy_blob(db, key)
             # A revoked sid's per-value sidecar keys must die with the blob —
             # exact registry-derived names, format-gated (legacy non-hex ids
             # no-op).
@@ -323,7 +323,7 @@ module Onetime
             next unless data.is_a?(Hash)
             next unless IDENTITY_FIELDS.any? { |f| data[f].to_s == extid }
 
-            db.del(key)
+            Store.destroy_blob(db, key)
             # Untracked (pre-sidecar-index) sessions can still own per-value
             # sidecar keys; those must not survive the blob either.
             Onetime::SessionSidecar.purge(sid, dbclient: db)

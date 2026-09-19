@@ -6,6 +6,7 @@ require 'json'
 require 'redis' # for Redis::CommandError in the defensive load_data rescue
 require 'onetime/session/codec' # canonical decryptor injected into load_data
 require 'onetime/models/session_metadata' # handle_for — the non-bearer session id
+require 'onetime/session/ended' # the marker every blob delete sets first
 
 module Onetime
   module Operations
@@ -182,6 +183,21 @@ module Onetime
           return false unless data.is_a?(Hash)
 
           IDENTITY_FIELDS.any? { |f| !data[f].to_s.empty? }
+        end
+
+        # Delete a session blob: the ONE way the session operations end a
+        # session. The ended-marker goes in first (Onetime::SessionEnded), so
+        # a request that loaded the session before this and commits after it
+        # cannot write the blob back and undo the revocation
+        # (RISK-2026-09-19-01). A bare `del` leaves that race open; do not
+        # call one on a session key.
+        #
+        # @param dbclient [Object] Redis-like client
+        # @param key [String] the resolved session key ({find_key}, {scan_keys})
+        # @return [Integer] the DEL reply
+        def destroy_blob(dbclient, key)
+          Onetime::SessionEnded.mark(extract_id(key), dbclient: dbclient)
+          dbclient.del(key)
         end
 
         # Recover the bare session id from a full key. Strips EVERY leading
