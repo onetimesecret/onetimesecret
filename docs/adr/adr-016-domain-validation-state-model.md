@@ -187,7 +187,11 @@ blob whenever `is_resolving` is known, so the blob's `status` and
 `is_resolving` never disagree with the `resolving` field; when `has_ssl` is
 unknown (port 443 unreachable, or the egress guard refused the address) the
 stored `has_ssl` and certificate dates are carried into the new blob, so an
-unknown never overwrites a known value. It returns neither `:data` nor `:mode`
+unknown never overwrites a known value. They are carried only while the
+stored `ssl_active_until` is in the future: past it they describe a
+certificate that has expired, and whether it was renewed is what the check
+could not tell, so the blob then makes no `has_ssl` claim and shows no dates
+until a probe sees the current certificate. It returns neither `:data` nor `:mode`
 when the probe learned nothing; `VerifyDomain#persist_changes` then stores
 nothing and sets `vhost_fetch_failed_at`. A `vhost` blob left by
 `approximated` is not replaced (it is the orphaned-vhost chore's evidence).

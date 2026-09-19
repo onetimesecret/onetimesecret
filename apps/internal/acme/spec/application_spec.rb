@@ -162,6 +162,56 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
       end
     end
 
+    # Caddy sends the SNI name in A-label form, while CustomDomain may have
+    # indexed the name in Unicode, as typed. The lookup tries both forms
+    # (CustomDomain.display_domain_id_for); only the index is stubbed here.
+    context 'with an internationalised domain' do
+      let(:idn_domain) { double('CustomDomain', display_domain: 'bücher.example', ready?: true) }
+      let(:index) { double('display_domain_index') }
+
+      before do
+        allow(index).to receive(:get).and_return(nil)
+        allow(index).to receive(:get).with('bücher.example').and_return('domain-id-1')
+        allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(index)
+        allow(Onetime::CustomDomain).to receive(:find_by_identifier).with('domain-id-1').and_return(idn_domain)
+      end
+
+      it 'allows a name indexed in Unicode when asked by its A-label' do
+        get '/ask', domain: 'xn--bcher-kva.example'
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'allows it when asked by its U-label' do
+        get '/ask', domain: 'bücher.example'
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'matches the A-label case-insensitively' do
+        get '/ask', domain: 'XN--BCHER-KVA.example'
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'answers 403 for a different A-label' do
+        get '/ask', domain: 'xn--bcher-kvb.example'
+        expect(last_response.status).to eq(403)
+      end
+
+      it 'answers 403, not 500, for an overlong label' do
+        get '/ask', domain: "#{'ü' * 70}.example"
+        expect(last_response.status).to eq(403)
+      end
+
+      it 'answers 403, not 500, for malformed punycode' do
+        get '/ask', domain: 'xn--@@.example'
+        expect(last_response.status).to eq(403)
+      end
+
+      it 'answers 403, not 500, for an overlong name' do
+        get '/ask', domain: "xn--bcher-kva.#{(['a' * 60] * 5).join('.')}.example"
+        expect(last_response.status).to eq(403)
+      end
+    end
+
     context 'when database error occurs' do
       before do
         allow(Onetime::CustomDomain).to receive(:load_by_display_domain)

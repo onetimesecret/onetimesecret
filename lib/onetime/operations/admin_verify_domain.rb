@@ -78,6 +78,7 @@ module Onetime
             confirmation_expired: result.confirmation_expired,
             dns_message: result.dns_message,
             override_held: result.override_held,
+            # nil when the status check could not tell (not the same as false)
             is_resolving: result.is_resolving,
             ssl_ready: result.ssl_ready,
             persisted: result.persisted,

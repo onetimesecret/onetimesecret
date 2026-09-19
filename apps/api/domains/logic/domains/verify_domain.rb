@@ -27,7 +27,7 @@ module DomainsAPI::Logic
           persist: true,
         ).call
 
-        OT.info "[VerifyDomain.process] #{display_domain} -> validated=#{result.dns_validated}, indeterminate=#{result.dns_indeterminate}, resolving=#{result.is_resolving}"
+        OT.info "[VerifyDomain.process] #{display_domain} -> validated=#{result.dns_validated}, indeterminate=#{result.dns_indeterminate}, resolving=#{result.is_resolving.inspect}"
 
         success_data
       end
