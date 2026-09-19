@@ -98,8 +98,12 @@ module Onetime
         # through the env: Otto renders the 401 body itself from the failure
         # string alone, so the reason would otherwise be collapsed into a
         # bracket marker inside `message` (#4462).
+        #
+        # This is also where every Otto session refusal is logged, once, with
+        # its code and request id and no credential (#4461).
         def failure_for(verdict, env)
           env[Onetime::SessionFailureCode::ENV_KEY] = verdict.reason if env.is_a?(Hash)
+          Onetime::SessionFailureCode.log_refusal(verdict.reason, env)
 
           if verdict.reason == :admin_session_expired
             return failure(

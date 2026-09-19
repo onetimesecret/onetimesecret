@@ -272,8 +272,10 @@ module Auth
     # the same ones the Otto surfaces answer with
     # (Onetime::Middleware::SessionFailureCode), so a client reads one
     # vocabulary on every surface. `reason` is the one this router acted on,
-    # which may be Auth::SessionRecheck's rather than the evaluator's.
+    # which may be Auth::SessionRecheck's rather than the evaluator's. Logged
+    # here, once per refusal, with the same code and the request id (#4461).
     def session_refusal(body, reason)
+      Onetime::SessionFailureCode.log_refusal(reason, env)
       body.merge(Onetime::SessionFailureCode.for(reason).transform_keys(&:to_sym))
     end
 
