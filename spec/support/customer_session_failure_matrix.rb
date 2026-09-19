@@ -325,7 +325,7 @@ module CustomerSessionFailureMatrix
       allow(Auth::Database).to receive(:connection)
         .and_raise(Sequel::DatabaseConnectionError, 'session matrix simulated outage')
     when :customer_storage_unavailable
-      allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+      allow(Onetime::Customer).to receive(:find_by_extid)
         .and_raise(Redis::ConnectionError, 'session matrix simulated customer-store outage')
     end
     yield
@@ -334,7 +334,7 @@ module CustomerSessionFailureMatrix
     when :authentication_database_unavailable
       allow(Auth::Database).to receive(:connection).and_call_original
     when :customer_storage_unavailable
-      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_call_original
+      allow(Onetime::Customer).to receive(:find_by_extid).and_call_original
     end
   end
 

@@ -71,7 +71,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
   it 'destroys a revoked session even when the customer is missing' do
     sid = current_session_id
     active_session_rows.delete
-    allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(nil)
+    allow(Onetime::Customer).to receive(:find_by_extid).and_return(nil)
 
     get_json '/auth/account'
 
@@ -82,7 +82,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
   it 'destroys a revoked session even when the customer store is unavailable' do
     sid = current_session_id
     active_session_rows.delete
-    allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+    allow(Onetime::Customer).to receive(:find_by_extid)
       .and_raise(Redis::ConnectionError, 'customer store unavailable')
 
     get_json '/auth/account'
@@ -149,7 +149,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
 
   it 'preserves and refuses a non-revoked session when the customer store is unavailable' do
     sid = current_session_id
-    allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+    allow(Onetime::Customer).to receive(:find_by_extid)
       .and_raise(Redis::ConnectionError, 'customer store unavailable')
 
     get_json '/auth/account'
@@ -162,7 +162,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
 
   it 'keeps logout available when the customer store is unavailable' do
     sid = current_session_id
-    allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+    allow(Onetime::Customer).to receive(:find_by_extid)
       .and_raise(Redis::ConnectionError, 'customer store unavailable')
 
     post_json '/auth/logout', {}
