@@ -49,7 +49,7 @@ GEM
     base64 (0.3.0)
     bcrypt (3.1.22)
     benchmark (0.5.0)
-    bigdecimal (4.1.2)
+    bigdecimal (4.1.3)
     bindata (2.5.1)
     bunny (2.24.0)
       amq-protocol (~> 2.3)
@@ -97,7 +97,7 @@ GEM
       oj (~> 3.16)
       redis (>= 5.0, < 6.0)
       uri-valkey (~> 1.4)
-    faraday (2.14.3)
+    faraday (2.14.4)
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
@@ -254,8 +254,8 @@ GEM
     omniauth-github (2.0.1)
       omniauth (~> 2.0)
       omniauth-oauth2 (~> 1.8)
-    omniauth-google-oauth2 (1.2.2)
-      jwt (>= 2.9.2)
+    omniauth-google-oauth2 (1.2.3)
+      jwt (>= 2.9.2, < 4)
       oauth2 (~> 2.0)
       omniauth (~> 2.0)
       omniauth-oauth2 (~> 1.8)
@@ -571,7 +571,7 @@ GEM
       activemodel (>= 3.0.0)
       public_suffix
     vcr (6.4.0)
-    version_gem (1.1.14)
+    version_gem (1.1.15)
     webauthn (3.4.3)
       android_key_attestation (~> 0.3.0)
       bindata (~> 2.4)
