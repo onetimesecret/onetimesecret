@@ -87,7 +87,16 @@ Changed
   gets the Manage quick action. "Unverified" is kept for a status check that
   failed.
   The SSL row of the status table reads "Unknown" rather than "Inactive" when
-  the check could not tell.
+  the check could not tell. Under ``caddy_on_demand`` the table shows when the
+  domain was last checked and leaves out the Approximated target address row.
+
+  The verify button's feedback now follows what the TXT check found. The
+  response of ``POST /api/domains/:extid/verify`` gains ``details.dns_outcome``
+  (``validated``, ``indeterminate``, ``confirmation_expired``, ``failed`` or
+  ``override_held``) and ``details.dns_indeterminate``. The success message is
+  shown only for a matching record. A lookup that produced no answer says the
+  check could not be completed and to try again, and a missing or different
+  record says so; before, all three showed the same success message.
 
   Existing domains are only re-checked when something runs the check. The
   scheduler is off by default (``JOBS_ENABLED``), and without it and
