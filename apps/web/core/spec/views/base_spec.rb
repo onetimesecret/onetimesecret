@@ -155,6 +155,7 @@ RSpec.describe Core::Views::BaseView do
 
       it 'sets appropriate anonymous state' do
         vars = subject.serialized_data
+        expect(vars['auth_status']).to eq('anonymous')
         expect(vars['authenticated']).to be false
         expect(vars['custid']).to be_nil
         expect(vars['email']).to be_nil
@@ -257,6 +258,32 @@ RSpec.describe Core::Views::BaseView do
     it 'still exposes the raw session (CSRF/messages remain reachable)' do
       view = described_class.new(rack_request)
       expect(view.sess).to be(authenticated_session)
+    end
+
+    # #4462: the server states what the client used to infer from
+    # had_valid_session. The session names a customer this response cannot
+    # vouch for, so the status is `unavailable`: no identity, and not a
+    # sign-out either.
+    it 'reports auth_status unavailable, with no identity, for a session that names a customer' do
+      data = described_class.new(rack_request).serialized_data
+
+      expect(data).to include(
+        'auth_status' => 'unavailable',
+        'authenticated' => false,
+        'awaiting_mfa' => false,
+        'cust' => nil,
+      )
+      expect(data['custid']).to be_nil
+      expect(data['email']).to be_nil
+    end
+
+    it 'reports auth_status anonymous when the raw session names no customer' do
+      authenticated_session.delete('external_id')
+
+      expect(described_class.new(rack_request).serialized_data).to include(
+        'auth_status' => 'anonymous',
+        'authenticated' => false,
+      )
     end
   end
 

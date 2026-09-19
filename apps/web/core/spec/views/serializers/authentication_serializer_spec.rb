@@ -302,7 +302,148 @@ RSpec.describe Core::Views::AuthenticationSerializer do
     end
   end
 
+  # #4462. `auth_status` is the statement; the two booleans are projections of
+  # it. The matrix below is every evaluator status plus both error-recovery
+  # rows, fed through the same projection InitializeViewVars uses.
+  describe 'auth_status and its compatibility projections' do
+    let(:cust) do
+      instance_double(
+        Onetime::Customer,
+        safe_dump: { 'custid' => 'alice@example.com' },
+        custid: 'alice@example.com',
+        email: 'alice@example.com',
+        created: nil,
+        role?: false,
+      )
+    end
+
+    before do
+      allow(described_class).to receive_messages(account_has_password?: true, password_auth_permitted?: true)
+      Onetime::SessionImpersonation.clear_context
+    end
+
+    def verdict(status, reason)
+      identity = status == :authenticated ? { principal: cust, customer: cust } : {}
+      Onetime::CustomerSessionEvaluator::Verdict.new(status: status, reason: reason, **identity)
+    end
+
+    # The view vars InitializeViewVars builds from a verdict.
+    def vars_for(verdict)
+      {
+        'auth_status' => Onetime::SessionAuthStatus.for_verdict(verdict),
+        'authenticated' => verdict.authenticated?,
+        'awaiting_mfa' => verdict.mfa_pending?,
+        'cust' => verdict.customer,
+        'sess' => { 'external_id' => 'ur_alice' },
+      }
+    end
+
+    {
+      [:authenticated, :authenticated] => ['authenticated', true, false],
+      [:mfa_pending, :awaiting_mfa] => ['mfa_pending', false, true],
+      [:anonymous, :session_missing] => ['anonymous', false, false],
+      [:anonymous, :not_authenticated] => ['anonymous', false, false],
+      [:rejected, :surface_mismatch] => ['anonymous', false, false],
+      [:rejected, :active_session_revoked] => ['anonymous', false, false],
+      [:rejected, :account_suspended] => ['anonymous', false, false],
+      [:unavailable, :active_session_unavailable] => ['unavailable', false, false],
+      [:unavailable, :customer_unavailable] => ['unavailable', false, false],
+    }.each do |(status, reason), (auth_status, authenticated, awaiting_mfa)|
+      it "projects a #{status}/#{reason} verdict as #{auth_status}" do
+        output = described_class.serialize(vars_for(verdict(status, reason)))
+
+        expect(output).to include(
+          'auth_status' => auth_status,
+          'authenticated' => authenticated,
+          'awaiting_mfa' => awaiting_mfa,
+        )
+        expect(output['cust'].nil?).to be(!authenticated)
+      end
+    end
+
+    it 'covers every evaluator status' do
+      expect(Onetime::SessionAuthStatus::BY_VERDICT_STATUS.keys)
+        .to match_array(Onetime::CustomerSessionEvaluator::STATUSES)
+      expect(Onetime::SessionAuthStatus::BY_VERDICT_STATUS.values.uniq)
+        .to match_array(Onetime::SessionAuthStatus::VALUES)
+    end
+
+    it 'never puts a rejection reason on the public payload' do
+      output = described_class.serialize(vars_for(verdict(:rejected, :surface_mismatch)))
+
+      expect(output.to_json).not_to include('surface_mismatch')
+      expect(output).not_to have_key('code')
+    end
+
+    describe 'error-recovery render (no strategy result, evaluator not run)' do
+      it 'reports unavailable when the raw session names a customer' do
+        sess   = { 'external_id' => 'ur_alice' }
+        output = described_class.serialize(
+          'auth_status' => Onetime::SessionAuthStatus.without_verdict(sess),
+          'authenticated' => false, 'awaiting_mfa' => false, 'cust' => nil, 'sess' => sess
+        )
+
+        expect(output).to include('auth_status' => 'unavailable', 'authenticated' => false, 'cust' => nil)
+        # Deprecated twin, still emitted for a pre-auth_status frontend (#4468).
+        expect(output['had_valid_session']).to be(true)
+      end
+
+      it 'reports anonymous when it does not' do
+        [nil, {}, { 'external_id' => '' }].each do |sess|
+          output = described_class.serialize(
+            'auth_status' => Onetime::SessionAuthStatus.without_verdict(sess),
+            'authenticated' => false, 'awaiting_mfa' => false, 'cust' => nil, 'sess' => sess
+          )
+
+          expect(output).to include('auth_status' => 'anonymous', 'authenticated' => false)
+        end
+      end
+    end
+
+    describe 'the projections can never disagree with the status' do
+      statuses = Onetime::SessionAuthStatus::VALUES + [nil, 'checking', 'bogus']
+
+      statuses.product([true, false, nil], [true, false, nil], [true, false]).each do |status, authed, mfa, has_cust|
+        it "auth_status=#{status.inspect} authenticated=#{authed.inspect} awaiting_mfa=#{mfa.inspect} cust=#{has_cust}" do
+          output = described_class.serialize(
+            'auth_status' => status, 'authenticated' => authed, 'awaiting_mfa' => mfa,
+            'cust' => (has_cust ? cust : nil), 'sess' => {}
+          )
+
+          expect(Onetime::SessionAuthStatus::VALUES).to include(output['auth_status'])
+          expect(output['authenticated']).to be(output['auth_status'] == 'authenticated')
+          expect(output['awaiting_mfa']).to be(output['auth_status'] == 'mfa_pending')
+          expect(output['cust'].nil?).to be(output['auth_status'] != 'authenticated')
+
+          # Only withhold: authenticated needs the status (or, for a caller
+          # that sent none, the legacy flag), the flag, AND the customer.
+          granted = output['auth_status'] == 'authenticated'
+          expect(granted).to be(false) unless authed == true && has_cust
+          expect(granted).to be(false) if Onetime::SessionAuthStatus::VALUES.include?(status) && status != 'authenticated'
+        end
+      end
+    end
+
+    it 'degrades an authenticated claim without a customer to unavailable, not to an identity' do
+      output = described_class.serialize('auth_status' => 'authenticated', 'authenticated' => true, 'cust' => nil)
+
+      expect(output).to include('auth_status' => 'unavailable', 'authenticated' => false, 'cust' => nil)
+    end
+
+    it 'derives the status from the legacy booleans for a caller that supplies none' do
+      expect(described_class.serialize('authenticated' => true, 'cust' => cust)['auth_status']).to eq('authenticated')
+      expect(described_class.serialize('awaiting_mfa' => true)['auth_status']).to eq('mfa_pending')
+      expect(described_class.serialize({})['auth_status']).to eq('anonymous')
+    end
+  end
+
   describe 'output template' do
+    it 'declares auth_status, defaulting to the most restrictive settled state' do
+      expect(described_class.output_template).to include(
+        'auth_status' => 'anonymous', 'authenticated' => false, 'awaiting_mfa' => false,
+      )
+    end
+
     it 'defaults password_auth_permitted to true' do
       expect(described_class.output_template['password_auth_permitted']).to be(true)
     end

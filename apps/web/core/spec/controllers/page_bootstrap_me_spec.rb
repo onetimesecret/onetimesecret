@@ -98,6 +98,7 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
           has_external_id: false,
           awaiting_mfa: false,
           authenticated: false,
+          auth_status: 'anonymous',
           request_id: 'request-4461',
         },
       )
@@ -120,6 +121,25 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
   end
 
   describe 'anonymous user' do
+    # #4462: the status is the statement; the booleans are its projections.
+    it 'returns auth_status anonymous, agreeing with both projections', :aggregate_failures do
+      get '/bootstrap/me'
+      data = JSON.parse(last_response.body)
+
+      expect(data['auth_status']).to eq('anonymous')
+      expect(data['authenticated']).to be false
+      expect(data['awaiting_mfa']).to be false
+      expect(data['cust']).to be_nil
+    end
+
+    it 'carries no session-failure code: a public surface speaks through auth_status' do
+      get '/bootstrap/me'
+      data = JSON.parse(last_response.body)
+
+      expect(data).not_to have_key('code')
+      expect(data).not_to have_key('code_scope')
+    end
+
     it 'returns authenticated as false' do
       get '/bootstrap/me'
       data = JSON.parse(last_response.body)

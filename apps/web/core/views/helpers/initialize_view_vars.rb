@@ -4,6 +4,7 @@
 
 require 'onetime/logger_methods'
 require 'onetime/session/customer_session_evaluator'
+require 'onetime/session/auth_status'
 require 'onetime/tenant_sso_resolution'
 
 module Core
@@ -75,15 +76,22 @@ module Core
         # evaluator MUST NOT run against the raw session, or serializers would
         # leak custid/email onto responses that historically answered as
         # anonymous. See Core::Views::BaseView#initialize for the twin gate.
+        #
+        # `auth_status` is the public projection of the verdict (#4462). On the
+        # error-recovery path it is a statement about the raw session only:
+        # `unavailable` when the session names a customer this response cannot
+        # vouch for, `anonymous` otherwise. It never carries identity.
         if strategy_result
           verdict       = Onetime::CustomerSessionEvaluator.evaluate(sess, env: req.env)
           authenticated = verdict.authenticated?
           cust          = verdict.customer
           awaiting_mfa  = verdict.mfa_pending?
+          auth_status   = Onetime::SessionAuthStatus.for_verdict(verdict)
         else
           authenticated = false
           cust          = nil
           awaiting_mfa  = false
+          auth_status   = Onetime::SessionAuthStatus.without_verdict(sess)
         end
 
         # Generate masked CSRF token from the canonical Rack session, NOT the
@@ -105,11 +113,12 @@ module Core
             has_external_id: !sess&.[]('external_id').nil?,
             awaiting_mfa: awaiting_mfa,
             authenticated: authenticated,
+            auth_status: auth_status,
             request_id: req.env['HTTP_X_REQUEST_ID'],
           }
 
         # MFA-pending and refused sessions expose state only, never customer or
-        # effective-identity fields. The public wire status/codes land in #4462.
+        # effective-identity fields.
         session_email = nil
 
         # ====================================================================
@@ -266,6 +275,7 @@ module Core
 
         # Return all view variables as a hash
         {
+          'auth_status' => auth_status,
           'authenticated' => authenticated,
           'awaiting_mfa' => awaiting_mfa,
           'baseuri' => baseuri,

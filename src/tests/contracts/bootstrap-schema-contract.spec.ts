@@ -11,7 +11,9 @@
 import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 import {
   apiInterfaceSchema,
+  authStatusValues,
   bootstrapSchema,
+  effectiveAuthStatus,
   featuresSchema,
   impersonationSchema,
   organizationSchema,
@@ -528,6 +530,90 @@ describe('impersonationSchema', () => {
   it('accepts an explicit null (what the serializer emits when inactive)', () => {
     const parsed = bootstrapSchema.parse({ impersonation: null });
     expect(parsed.impersonation).toBeNull();
+  });
+});
+
+// ============================================================================
+// TESTS: auth_status (#4462)
+// ============================================================================
+
+describe('Bootstrap auth_status contract', () => {
+  const cust = { objid: 'cust_1' };
+
+  it('declares exactly the four server values; checking is client-only', () => {
+    expect([...authStatusValues].sort()).toEqual(
+      ['anonymous', 'authenticated', 'mfa_pending', 'unavailable']
+    );
+    expect(bootstrapSchema.safeParse({ auth_status: 'checking' }).success).toBe(false);
+  });
+
+  it('accepts each server value', () => {
+    for (const value of authStatusValues) {
+      expect(bootstrapSchema.parse({ auth_status: value }).auth_status).toBe(value);
+    }
+  });
+
+  it('leaves the key absent for a backend that predates it (no invented default)', () => {
+    const parsed = bootstrapSchema.parse({ authenticated: false });
+    expect('auth_status' in parsed).toBe(false);
+  });
+
+  it('rejects null: the serializer always emits a value', () => {
+    expect(bootstrapSchema.safeParse({ auth_status: null }).success).toBe(false);
+  });
+
+  describe('effectiveAuthStatus can only withhold', () => {
+    it('agrees with a consistent current-backend payload', () => {
+      expect(effectiveAuthStatus({ auth_status: 'authenticated', authenticated: true, cust })).toBe(
+        'authenticated'
+      );
+      expect(effectiveAuthStatus({ auth_status: 'mfa_pending', awaiting_mfa: true, cust: null })).toBe(
+        'mfa_pending'
+      );
+      expect(effectiveAuthStatus({ auth_status: 'anonymous', cust: null })).toBe('anonymous');
+      expect(effectiveAuthStatus({ auth_status: 'unavailable', cust: null })).toBe('unavailable');
+    });
+
+    it('new frontend, old backend: derives the status from the legacy booleans', () => {
+      expect(effectiveAuthStatus({ authenticated: true, cust })).toBe('authenticated');
+      expect(effectiveAuthStatus({ authenticated: false, awaiting_mfa: true, cust: null })).toBe(
+        'mfa_pending'
+      );
+      expect(effectiveAuthStatus({ authenticated: false, cust: null })).toBe('anonymous');
+      expect(effectiveAuthStatus({})).toBe('anonymous');
+    });
+
+    it('never promotes: a status of authenticated without the projection or the customer', () => {
+      expect(effectiveAuthStatus({ auth_status: 'authenticated', authenticated: false, cust })).toBe(
+        'unavailable'
+      );
+      expect(
+        effectiveAuthStatus({ auth_status: 'authenticated', authenticated: true, cust: null })
+      ).toBe('unavailable');
+      expect(effectiveAuthStatus({ authenticated: true, cust: null })).toBe('unavailable');
+    });
+
+    it('never promotes: a non-authenticated status wins over the legacy booleans', () => {
+      for (const status of ['anonymous', 'mfa_pending', 'unavailable'] as const) {
+        expect(effectiveAuthStatus({ auth_status: status, authenticated: true, cust })).toBe(status);
+      }
+    });
+
+    it('is authenticated only when status, projection and customer all agree', () => {
+      const statuses = [undefined, ...authStatusValues];
+      for (const auth_status of statuses) {
+        for (const authenticated of [true, false, undefined]) {
+          for (const c of [cust, null, undefined]) {
+            const result = effectiveAuthStatus({ auth_status, authenticated, cust: c });
+            const allAgree =
+              (auth_status === undefined || auth_status === 'authenticated') &&
+              authenticated === true &&
+              c === cust;
+            expect(result === 'authenticated').toBe(allAgree);
+          }
+        }
+      }
+    });
   });
 });
 
