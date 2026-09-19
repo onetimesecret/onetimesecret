@@ -147,7 +147,9 @@ RSpec.describe Auth::Operations::ReauthOffer do
         )
         signin_config = Onetime::CustomDomain::SigninConfig.new(domain_id: 'tenant-a')
         signin_config.enabled = true
-        signin_config.related_origins = ['https://tenant.example', 'https://vault.rival.example']
+        # Seeded as a stored row: the setter refuses this entry, and the read
+        # side is what neutralizes one that is already there.
+        signin_config.related_origins_json = JSON.generate(['https://tenant.example', 'https://vault.rival.example'])
         allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
           .with('tenant-a').and_return(signin_config)
         allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?).and_return(false)
