@@ -157,7 +157,11 @@ RSpec.describe 'Auth router MFA-pending session gate', :full_auth_mode, type: :i
 
   def expect_mfa_pending_refusal
     expect(last_response.status).to eq(401)
-    expect(json_body).to eq('error' => 'Authentication required')
+    expect(json_body).to eq(
+      'error' => 'Authentication required',
+      'code' => 'awaiting_mfa',
+      'code_scope' => 'customer_session',
+    )
     expect(last_response.body).not_to include(email)
     expect(last_response.body).not_to include(account_id.to_s)
   end

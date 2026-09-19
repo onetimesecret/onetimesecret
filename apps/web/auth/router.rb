@@ -12,6 +12,7 @@ require 'onetime/logger_methods'
 require 'onetime/application/error_correlation'
 require 'onetime/models/custom_domain/signin_config'
 require 'onetime/session/customer_session_evaluator'
+require 'onetime/session/failure_code'
 
 require_relative 'config'
 require_relative 'error_translator'
@@ -266,6 +267,16 @@ module Auth
       env.delete(Onetime::ActiveSessionGate::ENV_KEY)
     end
 
+    # A session refusal body plus its stable `code` / `code_scope` (#4462).
+    # The existing fields are the caller's and are not changed; the codes are
+    # the same ones the Otto surfaces answer with
+    # (Onetime::Middleware::SessionFailureCode), so a client reads one
+    # vocabulary on every surface. `reason` is the one this router acted on,
+    # which may be Auth::SessionRecheck's rather than the evaluator's.
+    def session_refusal(body, reason)
+      body.merge(Onetime::SessionFailureCode.for(reason).transform_keys(&:to_sym))
+    end
+
     # Main routing logic
     route do |r|
       # Debug logging for development
@@ -355,7 +366,7 @@ module Auth
         # predates the join key); see Auth::SessionRecheck.
         unless mfa_pending_route?(r.request_method, r.path_info)
           response.status = 401
-          next { error: 'Authentication required' }
+          next session_refusal({ error: 'Authentication required' }, auth_session_reason)
         end
       when :active_session_revoked, :surface_mismatch
         outcome = revoked_outcome(r.path_info)
@@ -436,7 +447,7 @@ module Auth
           next { success: true, message: 'web.auth.logout.success' }
         when :refused
           response.status = 401
-          next { error: 'web.auth.security.session_expired', success: false }
+          next session_refusal({ error: 'web.auth.security.session_expired', success: false }, auth_session_reason)
         end
       when :active_session_unavailable, :customer_unavailable
         # Fail closed, but keep the Rack session so a transient verification
@@ -456,7 +467,10 @@ module Auth
         end
 
         response.status = 401
-        next { error: 'Session could not be verified; try again', error_type: 'SessionUnverified' }
+        next session_refusal(
+          { error: 'Session could not be verified; try again', error_type: 'SessionUnverified' },
+          auth_session_reason,
+        )
       when :session_missing, :not_authenticated
         # Nothing to destroy, by construction. The evaluator answers
         # :not_authenticated only when the `authenticated` flag is absent, so
@@ -516,7 +530,7 @@ module Auth
             next { success: true, message: 'web.auth.logout.success' }
           when :refused
             response.status = 401
-            next { error: 'web.auth.security.session_expired', success: false }
+            next session_refusal({ error: 'web.auth.security.session_expired', success: false }, auth_session_reason)
           end
         end
       else
