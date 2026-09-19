@@ -6,6 +6,7 @@ import { ApplicationError } from '@/schemas/errors';
 import type { PutHomepageConfigRequest } from '@/schemas/api/domains/requests';
 import type { CustomDomain } from '@/schemas/shapes/v3';
 import { useDomainsStore, useNotificationsStore } from '@/shared/stores';
+import { domainVerifyNotice } from '@/shared/utils/domainVerifyNotice';
 import { isDomainOwnershipChecked } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { computed, onScopeDispose, ref } from 'vue';
@@ -109,7 +110,10 @@ export function useDomainsManager() {
   const verifyDomain = async (extid: string) =>
     wrap(async () => {
       const result = await store.verifyDomain(extid);
-      notifications.show(t('web.domains.domain_verification_initiated_successfully'), 'success', 'top');
+      // A check that could not be completed, or found no record, does not
+      // read as a success. See domainVerifyNotice.
+      const notice = domainVerifyNotice(result?.details);
+      notifications.show(t(notice.messageKey), notice.severity, 'top');
       return result;
     });
 

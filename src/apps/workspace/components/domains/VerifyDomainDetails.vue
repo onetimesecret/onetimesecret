@@ -5,6 +5,7 @@
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomainDnsRecord } from '@/shared/composables/useDomainDnsRecord';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
+import { domainVerifyNotice, type DomainVerifyNotice } from '@/shared/utils/domainVerifyNotice';
 import { CustomDomainProxy, type CustomDomainResponse } from '@/schemas/api/v3/responses/domains';
 import { type CustomDomain } from '@/schemas/shapes/v3/custom-domain';
 import { computed, ref } from 'vue';
@@ -46,7 +47,16 @@ const addressRecordHeading = computed(() => {
   return t('web.domains.2_create_the_cname_record');
 });
 
-const success = ref<string | undefined>(undefined);
+// What the last check learned about the TXT record. Only a match reads as a
+// success; "could not tell" and "record not found" get their own alert so the
+// customer is not steered to change DNS that may be correct.
+const notice = ref<DomainVerifyNotice | null>(null);
+const success = computed(() =>
+  notice.value?.severity === 'success' ? t(notice.value.messageKey) : undefined
+);
+const outcomeAlert = computed(() =>
+  notice.value && notice.value.severity !== 'success' ? notice.value : null
+);
 const buttonDisabledDelay = ref(false);
 const isButtonDisabled = computed(() => isLoading.value || buttonDisabledDelay.value);
 const buttonText = computed(() => isLoading.value ? t('web.COMMON.processing') : t('web.domains.verify_domain'));
@@ -57,7 +67,7 @@ const verify = async () => {
   try {
     const result = await verifyDomain(props.domain.extid);
     if (result) {
-      success.value = t('web.domains.domain_verification_initiated_successfully')
+      notice.value = domainVerifyNotice(result.details);
       emit('domainVerify', result);
 
       buttonDisabledDelay.value = true;
@@ -84,6 +94,27 @@ const verify = async () => {
     <BasicFormAlerts
       :success="success"
       :errors="error ? [error.message] : []" />
+
+    <div
+      v-if="outcomeAlert"
+      role="status"
+      data-testid="verify-outcome-alert"
+      :data-severity="outcomeAlert.severity"
+      class="mb-4 flex rounded-md p-4"
+      :class="
+        outcomeAlert.severity === 'warning'
+          ? 'bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-100'
+          : 'bg-sky-50 text-sky-800 dark:bg-sky-900/30 dark:text-sky-100'
+      ">
+      <OIcon
+        collection="mdi"
+        :name="outcomeAlert.severity === 'warning' ? 'alert-circle-outline' : 'information-outline'"
+        class="mr-3 mt-0.5 size-5 shrink-0"
+        aria-hidden="true" />
+      <p class="text-sm">
+        {{ t(outcomeAlert.messageKey) }}
+      </p>
+    </div>
 
     <div class="mb-4 flex justify-end">
       <button

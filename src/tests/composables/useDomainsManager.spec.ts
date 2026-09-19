@@ -359,6 +359,65 @@ describe('useDomainsManager', () => {
     });
   });
 
+  // The toast follows what the TXT check learned, not merely that a response
+  // came back. DomainVerify.triggerVerification and the post-add check both
+  // go through here.
+  describe('verifyDomain', () => {
+    const toastFor = async (details: Record<string, unknown> | undefined) => {
+      mockDependencies.domainsStore.verifyDomain.mockResolvedValueOnce({ record: {}, details });
+      const { verifyDomain } = mountComposable(() => useDomainsManager());
+      const result = await verifyDomain('dm-test-extid');
+      return { result, show: mockDependencies.notificationsStore.show };
+    };
+
+    it('validated: success toast, and the response is returned to the caller', async () => {
+      const details = { dns_outcome: 'validated', dns_indeterminate: false };
+      const { result, show } = await toastFor(details);
+
+      expect(show).toHaveBeenCalledWith(
+        'web.domains.domain_verification_initiated_successfully',
+        'success',
+        'top'
+      );
+      expect(result).toEqual({ record: {}, details });
+    });
+
+    it.each(['indeterminate', 'confirmation_expired'])(
+      '%s: a warning that the check could not be completed',
+      async (dns_outcome) => {
+        const { show } = await toastFor({ dns_outcome, dns_indeterminate: true });
+
+        expect(show).toHaveBeenCalledTimes(1);
+        expect(show).toHaveBeenCalledWith(
+          'web.domains.verify_outcome.indeterminate',
+          'warning',
+          'top'
+        );
+      }
+    );
+
+    it('failed: the record was not found', async () => {
+      const { show } = await toastFor({ dns_outcome: 'failed', dns_indeterminate: false });
+
+      expect(show).toHaveBeenCalledTimes(1);
+      expect(show).toHaveBeenCalledWith(
+        'web.domains.verify_outcome.record_not_found',
+        'info',
+        'top'
+      );
+    });
+
+    it('a response without an outcome keeps the neutral success toast', async () => {
+      const { show } = await toastFor(undefined);
+
+      expect(show).toHaveBeenCalledWith(
+        'web.domains.domain_verification_initiated_successfully',
+        'success',
+        'top'
+      );
+    });
+  });
+
   describe('domain deletion', () => {
     describe('deleteDomain', () => {
       it('successfully deletes a domain after confirmation', async () => {

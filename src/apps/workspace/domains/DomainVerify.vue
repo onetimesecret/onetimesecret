@@ -101,7 +101,10 @@
   };
 
   // Trigger backend verification (called on mount and widget success)
-  // Errors are handled via global notifications by useDomainsManager.wrap()
+  // Errors are handled via global notifications by useDomainsManager.wrap().
+  // The toast for a completed call is chosen there too, from the TXT outcome
+  // in the response (see domainVerifyNotice): "could not tell" and "record not
+  // found" do not read as a success.
   const triggerVerification = async () => {
     // Guard: no domain, already in progress, or rate limited
     if (!domain.value || verificationInProgress.value || !canVerify()) {
