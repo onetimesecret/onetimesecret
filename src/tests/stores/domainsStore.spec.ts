@@ -212,8 +212,12 @@ describe('domainsStore', () => {
       // refreshRecords catches errors internally (does not throw)
       await expect(store.refreshRecords()).resolves.toBeUndefined();
 
-      // Store should not be marked as initialized after a failed fetch
-      expect(store.initialized).toBe(false);
+      // A failed fetch does not count as loaded, so the next refresh retries.
+      // (`initialized` says nothing here: the auto-init plugin sets it when
+      // the store is created.)
+      expect(store.records).toBeNull();
+      await store.refreshRecords();
+      expect(axiosMock.history.get).toHaveLength(2);
     });
 
     it('should handle validation errors gracefully', async () => {

@@ -324,7 +324,10 @@ export const useDomainsStore = defineStore('domains', () => {
     const normalizedOrgId = orgId ?? null;
     const orgChanged = normalizedOrgId !== _currentOrgId.value;
 
-    if (!force && _initialized.value && !orgChanged) return;
+    // "Loaded" is `records !== null`, not `_initialized`: the auto-init plugin
+    // runs `init()` at store creation, so `_initialized` is true before any
+    // fetch and would turn a plain `refreshRecords()` into a no-op.
+    if (!force && records.value !== null && !orgChanged) return;
 
     try {
       await fetchList(orgId);

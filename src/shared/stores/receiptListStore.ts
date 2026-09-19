@@ -110,8 +110,16 @@ export const useReceiptListStore = defineStore('receiptList', () => {
     return validated;
   }
 
+  /**
+   * Load the list unless it is already loaded; `force` reloads it.
+   *
+   * "Loaded" is `records !== null`, NOT `_initialized`: the auto-init plugin
+   * runs `init()` when the store is created, so `_initialized` is already true
+   * before anything has been fetched. Gating on it made this a no-op in the
+   * running app (a direct visit to /recent showed an empty list).
+   */
   async function refreshRecords(force = false, options: FetchListOptions = {}) {
-    if (!force && _initialized.value) return;
+    if (!force && records.value !== null) return;
 
     await fetchList(options);
     _initialized.value = true;
