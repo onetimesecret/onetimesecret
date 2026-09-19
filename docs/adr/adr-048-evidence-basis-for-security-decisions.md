@@ -27,85 +27,92 @@ a confidently remembered requirement may not say what it is remembered to say.
 Work in this repository is also increasingly drafted by AI agents, which
 produce plausible citations from memory with the same fluency as correct ones.
 
-The repository already cites standards in places, and does it well:
-`docs/authentication/per-install-sso.md` links OWASP ASVS 5.0.0 7.5.1 and NIST
-SP 800-63C-4 3.8.1 for authenticated identity linking, and states which
-controls are OTS choices that those standards do not prescribe. That practice
-is unrecorded and unevenly applied. The same document had no basis recorded
-for what happens when a session is ended before an SSO callback, and that gap
-is what turned a spec failure into a request for the maintainer's opinion.
+The repository already cites standards in places. For example,
+`docs/authentication/per-install-sso.md` cites OWASP ASVS 5.0.0 requirement
+7.5.1 and NIST SP 800-63C-4 section 3.8.1 for authenticated identity linking,
+and distinguishes controls those standards require from OTS choices. That
+practice is not yet recorded or applied consistently. In the same document, a
+gap in the basis for ending a session before an SSO callback turned a stale
+specification into a request for maintainer judgment.
 
-"Follow best practices" is not a decision: it is non-contentious and cannot be
-checked. What can be decided is the standard of evidence a security decision
-must meet, how that evidence is recorded, and what happens when no standard
-speaks.
+“Follow best practices” cannot resolve a disagreement or be checked later. The
+project needs a standard for the evidence that supports a security decision,
+how to record it, and how to proceed when no standard applies.
 
 ## Decision
 
-A decision that changes or defends security-relevant behavior rests on a
-cited, verified source, recorded where the behavior is documented. It does not
-rest on the preference of the maintainer, a reviewer, or an agent.
+Security-relevant behavior that is introduced, changed, or defended in a
+disagreement must be supported by a cited, verified source—or recorded as a
+judgment when no applicable source exists—in the document that records the
+behavior. It must not rest only on the preference or recollection of a
+maintainer, reviewer, or agent.
 
-**Scope.** Authentication, session management, federation and identity
-linking, authorization and tenant isolation, cryptography and secret handling,
-transport and browser security policy, and the audit logging of those. Outside
-this scope the ADR is advisory.
+### Scope
 
-**1. Cite a primary source, pinned.** Name the document, its version or
-revision, and the section or requirement number, with a link: `OWASP ASVS
-5.0.0 requirement 7.4.2`, `RFC 9700 section 2.1`, `NIST SP 800-63B-4 section
-3.1.3.1`. "Industry best practice" and "OWASP recommends" are not citations.
+This decision applies to authentication; session management; federation and
+identity linking; authorization and tenant isolation; cryptography and secret
+handling; transport and browser security policy; and audit logging for those
+areas. Outside this scope, it is advisory.
 
-**2. Verify against the source text when writing.** Read the cited section at
-the time the citation is written, and quote the operative sentence when it is
-short. A citation from memory is a lead to check, not a basis. This applies to
-people and to agents alike; an agent's unverified citation is reported as
-unverified.
+### Required evidence
 
-**3. Prefer sources in this order.**
+1. **Cite the highest-authority applicable source, at a pinned version.** Name
+   the document, version or revision, and section or requirement number, and
+   link directly to it. For example: [OWASP ASVS 5.0.0 requirement
+   7.4.2](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v74-session-termination),
+   [RFC 9700 section 2.1](https://www.rfc-editor.org/rfc/rfc9700.html#section-2.1),
+   or [NIST SP 800-63C-4 section
+   3.8.1](https://pages.nist.gov/800-63-4/sp800-63c/Federation/#account-linking).
+   “Industry best practice” and “OWASP recommends” are not citations.
+2. **Verify the source text when writing.** Read the cited section and quote
+   its operative sentence when it is short. A citation recalled from memory is
+   a lead to verify, not evidence. Report an agent-provided citation that has
+   not been verified as unverified.
+3. **Distinguish the source requirement from the OTS control.** State what the
+   source requires, then the control OTS uses to meet it. Label controls the
+   source does not prescribe as OTS choices.
+4. **Resolve a test/behavior conflict with the source.** Neither existing
+   behavior nor an existing test is presumed correct. Update the test when the
+   source supports the behavior; otherwise update the behavior. Record the
+   source and outcome in the commit message.
+5. **Record a judgment when no source applies.** State that no applicable
+   source was found, the reasoning, and the threat addressed. Do not stretch a
+   citation to cover the judgment. Use an ADR when the judgment establishes a
+   pattern, is expensive to reverse, affects multiple components, or resolves
+   a technical debate.
+6. **Record deliberate deviations beside the citation.** When OTS knowingly
+   does not meet a cited requirement—for example, because it does not target a
+   level or accept a cost—state the deviation and reason.
 
-1. The normative specification for the protocol or mechanism in use (IETF
-   RFCs and BCPs, W3C and WHATWG specifications, OpenID Foundation
-   specifications, FIPS).
-2. Government and standards-body guidance (NIST SP 800 series, ISO/IEC 27001
-   and 27002).
-3. Consensus verification standards (OWASP ASVS, and OWASP Cheat Sheets as
-   supporting detail).
-4. Documentation of the library that implements the behavior (Rodauth,
-   OmniAuth, ruby-saml), for what the library does, not for what is correct.
+### Source order
 
-Blog posts, forum answers and vendor marketing can locate a primary source.
-They are not cited as the basis.
+Use the following order to select among applicable sources:
 
-**4. Separate what the source requires from what OTS chose.** A standard
-rarely prescribes an architecture. State the requirement, then state the
-control OTS uses to meet it, and mark additional controls as OTS choices. A
-reader must be able to tell which parts a standard would let us change.
+1. The normative specification for the protocol or mechanism in use: IETF RFCs
+   and BCPs, W3C and WHATWG specifications, OpenID Foundation specifications,
+   or FIPS.
+2. Government or standards-body guidance, including the NIST SP 800 series and
+   ISO/IEC 27001 and 27002.
+3. Consensus verification standards, including OWASP ASVS; OWASP Cheat Sheets
+   may provide supporting detail.
+4. Library documentation, such as Rodauth, OmniAuth, or ruby-saml, to describe
+   library behavior rather than to establish what is correct.
 
-**5. When a test and the behavior disagree, the source decides.** Neither the
-existing test nor the existing behavior is presumed correct. If the source
-supports the behavior, the test changes; if it supports the test, the
-behavior changes. The commit message records which, and why.
+Blog posts, forum answers, and vendor marketing may help locate a source, but
+are not evidence for the decision.
 
-**6. When no source speaks, say so.** Record the decision as a judgment, with
-the reasoning and the threat it answers. Do not stretch a citation to cover
-it. A judgment that establishes a pattern or is expensive to reverse gets its
-own ADR under the usual criteria.
+### Where to record the evidence
 
-**7. Deviations are allowed and recorded.** Where OTS knowingly does not meet
-a requirement it cites (a level it does not target, a cost it does not
-accept), the document says so next to the citation, with the reason.
+Record the full argument in the durable feature document—for example,
+`docs/authentication/`, `docs/security/`, or an ADR that meets the [ADR
+criteria](README.md#when-to-write-an-adr). Summarize the source and outcome in
+the commit message as required by [ADR-039](adr-039-issue-and-pull-request-references-in-change-metadata.md).
+Source comments may name the standard and explain the local reason for the
+behavior, but do not carry the full argument.
 
-**Where the record lives.** In the durable document for the feature
-(`docs/authentication/`, `docs/security/`, an ADR when the README criteria are
-met), and summarized in the commit message per ADR-039. Source comments
-explain the local reason for the behavior and may name the standard; they do
-not carry the full argument.
-
-**What this does not require.** Citations for routine changes, for behavior
-that no one disputes, or retroactively for existing code. The obligation
-attaches when security-relevant behavior is introduced, changed, or defended
-against a challenge.
+This decision does not require citations for routine, undisputed changes or
+retroactively for existing code. It applies when security-relevant behavior is
+introduced, changed, or defended against a challenge.
 
 ## Trade-offs
 
@@ -125,21 +132,9 @@ against a challenge.
 
 ## Related
 
-- ADR-039: Issue and Pull Request References in Change Metadata.
-- ADR-045: Prioritizing Work, which takes the same position on evidence for
-  planning decisions.
-- `docs/authentication/per-install-sso.md`, "Connected Identities" and
-  "Sessions ended before the callback": the citation practice this ADR
-  records, and the case that prompted it.
-
-## Implementation Notes
-
-### Prompting case (2026-09-18)
-
-Four SSO Connect specs expected a hook-level refusal for a suspended customer,
-while the auth router had begun destroying that session before the hook ran.
-The first recommendation made was a preference, and the first citations
-offered were from memory, one of them with a superseded section number. Read
-against the sources (OWASP ASVS 5.0.0 7.4.1 and 7.4.2; RFC 9700 2.1 and 4.7.1;
-RFC 6749 10.12), the behavior was correct and the specs were stale. The
-recommendation reversed once the sources were read.
+- [ADR-039: Issue and Pull Request References in Change Metadata](adr-039-issue-and-pull-request-references-in-change-metadata.md)
+- [ADR-045: Prioritizing Work](adr-045-prioritizing-work.md), which applies the
+  same evidence-based approach to planning decisions.
+- [`docs/authentication/per-install-sso.md`](../authentication/per-install-sso.md),
+  particularly [Connected Identities](../authentication/per-install-sso.md#connected-identities-authenticated-linking-from-account-settings)
+  and [Sessions ended before the callback](../authentication/per-install-sso.md#sessions-ended-before-the-callback).
