@@ -330,6 +330,14 @@ valid:
 | Tenant surface did not match | `customer_session_evaluator.rb:139` | `tenant_surface_mismatch` | A session established on one host presented on another refuses there and only there. |
 | Credential watermark | `customer_session_evaluator.rb:148`, `:205-210` | `credential_stale` | A password change elsewhere invalidates this session. |
 
+A seventh mechanism was found later, by the first real run of the #4459
+browser tests, and runs the OTHER way (a signed-out user still shown as signed
+in, then refused):
+
+| Candidate | Where | Reproduced by | Why it fits |
+|---|---|---|---|
+| Logout undone by an in-flight request | `apps/web/core/controllers/authentication.rb` `#logout` cleared the Rack session only; the store is last-writer-wins (`lib/onetime/session.rb` `#write_session`) and every response re-sends the cookie | `spec/integration/full/logout_ends_active_session_spec.rb`; `e2e/auth/session-consistency.spec.ts` "a session ended outside the tab" | A request that loaded the session before `GET /logout` and committed after it wrote the whole blob back under the old id and re-installed the old cookie. The active-session row had never been removed, so the copy was a valid session: observed as `/api/organizations` 401, then `GET /bootstrap/me` `authenticated`, 30 ms after the logout. Tabs of one browser then disagree about whether the user is signed in. Fixed: logout removes the row first (`Onetime::ActiveSessionGate.end_session`), so the copy is refused as `active_session_revoked`. Simple mode has no row and keeps the race. |
+
 Client-side amplifiers — code that turns one refusal, or one failed poll, into
 a signed-out UI (unchanged since `56a95f8b6`; addressed by #4456, #4458,
 #4459, #4460):
@@ -381,6 +389,13 @@ credential disclosure. None was reproduced:
   `src/schemas/contracts/bootstrap.ts` reads a payload without `auth_status`
   from the booleans, which can only withhold.
 - Login rotates the session ID (baseline spec).
+
+One finding came from the browser run rather than the matrix: `GET /logout`
+could be undone by a request already in flight (see "The reported incident",
+seventh mechanism). It is not fixation or bypass by a third party (the copy
+is the user's own session, in their own browser), but a logout that does not
+reliably end the session is a session-management defect (ASVS 7.4.1), and it
+is fixed in full mode in this release.
 
 Two observations that are not vulnerabilities are recorded as D1 (loss of the
 refusal reason on the wire, fixed here) and in "Evidence" (no
