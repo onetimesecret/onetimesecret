@@ -40,6 +40,22 @@ module ApproxTryIndeterminateClient
   end
 end
 
+# Approximated client whose DNS checker finds the record.
+module ApproxTryMatchingClient
+  Response = ApproxTryIndeterminateClient::Response
+
+  def self.check_records_match_exactly(_api_key, records)
+    Response.new(200, { 'records' => records.map do |r|
+      { 'type' => 'TXT', 'address' => r[:address], 'match_against' => r[:match_against],
+        'match' => true, 'actual_values' => [r[:match_against]] }
+    end })
+  end
+
+  def self.get_vhost_by_incoming_address(api_key, domain)
+    ApproxTryIndeterminateClient.get_vhost_by_incoming_address(api_key, domain)
+  end
+end
+
 # Scripted stand-in for DomainValidation::TxtResolver.
 class ApproxTryScriptedResolver
   attr_accessor :rcode, :values, :error
@@ -118,6 +134,31 @@ end
 @stored          = approx_try_reload(@domain)
 [@matched.dns_outcome, @stored.verified, @stored.verified_by_override == true]
 #=> [:validated, true, false]
+
+## Native match - the confirmation is recorded (the strategy proves ownership)
+(Familia.now.to_i - @stored.verified_confirmed_at).between?(0, 5)
+#=> true
+
+## Upstream match - a pass answered by Approximated records the confirmation too
+# What a cutover to caddy_on_demand relies on: one verify pass on this version
+# while still on approximated stamps verified_confirmed_at for every proven domain.
+@domain.verified_confirmed_at      = nil
+@domain.verified_unconfirmed_since = Familia.now.to_i - 3600
+@domain.save
+@upstream_strategy = Onetime::DomainValidation::ApproximatedStrategy.new(
+  {}, client: ApproxTryMatchingClient, txt_verifier: @verifier
+)
+@upstream = Onetime::Operations::VerifyDomain.new(domain: @domain, strategy: @upstream_strategy, persist: true).call
+@stored   = approx_try_reload(@domain)
+[@upstream.dns_outcome, @upstream_strategy.proves_ownership?, (Familia.now.to_i - @stored.verified_confirmed_at.to_i).between?(0, 5), @stored.verified_unconfirmed_since]
+#=> [:validated, true, true, nil]
+
+## Upstream match - a dry run records nothing
+@domain.verified_confirmed_at = nil
+@domain.save
+Onetime::Operations::VerifyDomain.new(domain: @domain, strategy: @upstream_strategy, persist: false).call
+approx_try_reload(@domain).verified_confirmed_at
+#=> nil
 
 # Teardown
 Onetime::DomainValidation::Features.api_key = @previous_api_key
