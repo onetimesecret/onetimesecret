@@ -70,7 +70,9 @@ Changed
   falling back to the site host. The Approximated ``proxy_ip`` /
   ``proxy_host`` values are never shown under this strategy, even when they
   are still configured for the orphaned-vhost chore, and the Approximated DNS
-  widget stays ``approximated``-only.
+  widget stays ``approximated``-only. The Colonel domain DNS panel shows the
+  same address record as the customer pages; it previously showed the
+  Approximated proxy targets under every strategy.
 
   The status badge has two new readings for the probe's ``PENDING_SSL``
   status (the name resolves, no certificate was seen). A verified domain
