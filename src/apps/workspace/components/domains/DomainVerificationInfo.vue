@@ -30,7 +30,10 @@
     useDomainStatus(() => props.domain);
 
   /**
-   * Tooltip text that explains the actual status, not just "view status"
+   * Tooltip text that explains the actual status, not just "view status".
+   * Same precedence as useDomainStatus#displayStatus. `isActive` already
+   * requires `verified`, so a domain whose status blob still reads active
+   * after its TXT check stopped passing falls through to "not verified".
    */
   const statusTooltip = computed(() => {
     if (isStale.value) return t('web.domains.status_tooltip_unverified');

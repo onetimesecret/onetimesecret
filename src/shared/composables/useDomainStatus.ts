@@ -13,21 +13,30 @@ const STALE_FRESHNESS_WINDOW_SECONDS = 6 * 60 * 60;
 export function useDomainStatus(domain: MaybeRefOrGetter<CustomDomain | null>) {
   const { t } = useI18n(); // Must be called at setup time, not in computed callbacks
 
-  const isActive = computed(() => {
-    const d = toValue(domain);
-    if (!d) return false;
-    const status = d.vhost?.status;
-    const decision =
-      status === 'ACTIVE' || status === 'ACTIVE_SSL' || status === 'ACTIVE_SSL_PROXIED';
-    return decision;
+  // The status blob (`vhost.status`) says what was last seen on the network:
+  // whether the name resolves here and whether a certificate is served.
+  // `verified` says whether the TXT ownership check has passed. They are
+  // written independently, and the blob alone must not promise more than
+  // `verified` allows: a domain that lost its TXT record is demoted
+  // (verified=false) while the certificate issued earlier keeps serving for
+  // weeks, so the probe keeps writing ACTIVE_SSL. An unverified domain is not
+  // ready on the backend (no certificate issuance or renewal, no auth URLs),
+  // whatever the blob says.
+  const hasActiveBlobStatus = computed(() => {
+    const status = toValue(domain)?.vhost?.status;
+    return status === 'ACTIVE' || status === 'ACTIVE_SSL' || status === 'ACTIVE_SSL_PROXIED';
   });
+
+  const isVerified = computed(() => toValue(domain)?.verified === true);
+
+  /** Resolving and serving per the blob, and ownership is confirmed. */
+  const isActive = computed(() => hasActiveBlobStatus.value && isVerified.value);
 
   const isWarning = computed(() => toValue(domain)?.vhost?.status === 'DNS_INCORRECT');
 
   // PENDING_SSL is written by the caddy_on_demand status probe: the name
   // resolves but no certificate was seen. Caddy can only obtain one after the
-  // ACME ask endpoint says yes, which needs the TXT check to have passed, so
-  // what this means depends on `verified`.
+  // ACME ask endpoint says yes, which needs the TXT check to have passed.
   const isPendingSsl = computed(() => toValue(domain)?.vhost?.status === 'PENDING_SSL');
 
   /**
@@ -35,20 +44,21 @@ export function useDomainStatus(domain: MaybeRefOrGetter<CustomDomain | null>) {
    * normal state between a passing TXT check and the first request Caddy
    * serves for the name. Not an error and nothing for the customer to do.
    */
-  const isAwaitingCertificate = computed(
-    () => isPendingSsl.value && toValue(domain)?.verified === true
-  );
+  const isAwaitingCertificate = computed(() => isPendingSsl.value && isVerified.value);
 
   /**
-   * Resolving, but ownership has not been confirmed, so no certificate will
-   * be issued until the TXT check passes. The customer has to act.
+   * The name resolves here per the blob (active or certificate pending), but
+   * ownership is not confirmed: the TXT check has not passed yet, or it
+   * passed once and the record has since gone. The customer has to act, so
+   * this is a "no", kept apart from `isStale` ("could not tell").
    */
   const needsOwnershipCheck = computed(
-    () => isPendingSsl.value && toValue(domain)?.verified !== true
+    () => (hasActiveBlobStatus.value || isPendingSsl.value) && !isVerified.value
   );
 
   const isError = computed(
-    () => !!toValue(domain) && !isActive.value && !isWarning.value && !isPendingSsl.value
+    () =>
+      !!toValue(domain) && !hasActiveBlobStatus.value && !isWarning.value && !isPendingSsl.value
   );
 
   /**
@@ -72,13 +82,17 @@ export function useDomainStatus(domain: MaybeRefOrGetter<CustomDomain | null>) {
     () => isWarning.value || isError.value || isStale.value || needsOwnershipCheck.value
   );
 
+  // "Unverified" is the stale label only: the last status check failed, so we
+  // could not tell. An outstanding ownership check is a different state with
+  // its own text, so the two stay apart for screen-reader users as well (the
+  // icons that also differ are aria-hidden).
   const displayStatus = computed(() => {
     if (!toValue(domain)) return '';
     if (isStale.value) return t('web.STATUS.unverified');
     if (isActive.value) return t('web.STATUS.active');
     if (isWarning.value) return t('web.STATUS.dns_incorrect');
     if (isAwaitingCertificate.value) return t('web.STATUS.pending_ssl');
-    if (needsOwnershipCheck.value) return t('web.STATUS.unverified');
+    if (needsOwnershipCheck.value) return t('web.domains.pending_verification');
     return t('web.STATUS.inactive');
   });
 

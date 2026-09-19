@@ -371,6 +371,41 @@ describe('DomainsTableActionsCell', () => {
       ).toBeUndefined();
     });
 
+    // After a demotion the certificate issued earlier keeps serving, so the
+    // status blob stays ACTIVE_SSL while verified is false. The clickable
+    // status text in the domain cell is the action then, not Manage.
+    it.each(OWNERSHIP_CHECKING_STRATEGIES)(
+      'hides Manage under %s for an unverified domain whose status blob still reads active',
+      (strategy) => {
+        setDomainValidationStrategy(strategy);
+        const wrapper = mountComponent({
+          domain: { ...mockDomain, verified: false, vhost: { status: 'ACTIVE_SSL' } },
+        });
+
+        expect(
+          wrapper.findAll('a[data-to]').find((l) => toOf(l).name === 'DomainDetail')
+        ).toBeUndefined();
+        // The verification screen stays reachable from the menu.
+        expect(
+          wrapper.findAll('a[data-to]').find((l) => toOf(l).name === 'DomainVerify')
+        ).toBeDefined();
+      }
+    );
+
+    it.each(OWNERSHIP_CHECKING_STRATEGIES)(
+      'surfaces Manage under %s for a verified domain with an active status blob',
+      (strategy) => {
+        setDomainValidationStrategy(strategy);
+        const wrapper = mountComponent({
+          domain: { ...mockDomain, verified: true, vhost: { status: 'ACTIVE_SSL' } },
+        });
+
+        expect(
+          wrapper.findAll('a[data-to]').find((l) => toOf(l).name === 'DomainDetail')
+        ).toBeDefined();
+      }
+    );
+
     it('surfaces Manage for a verified caddy_on_demand domain awaiting its certificate', () => {
       setDomainValidationStrategy('caddy_on_demand');
       const wrapper = mountComponent({
