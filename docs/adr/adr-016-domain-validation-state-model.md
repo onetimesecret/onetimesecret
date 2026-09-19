@@ -245,9 +245,24 @@ verified domain:
 
 - verified: "Certificate pending". Not an error and not a warning; nothing
   for the customer to do.
-- not verified: "Unverified", in the warning style, linking to the
+- not verified: "Pending Verification", in the warning style, linking to the
   verification page. Without this the badge would promise a certificate that
   cannot be issued.
+
+The same rule applies to the active statuses (`ACTIVE`, `ACTIVE_SSL`,
+`ACTIVE_SSL_PROXIED`): they read "Active" only for a verified domain. After a
+demotion (the TXT record is removed and a check gets a definitive negative)
+the certificate Caddy issued earlier keeps serving until it expires, so the
+probe keeps writing `ACTIVE_SSL` while `verified` is false and `ready?` is
+false. Such a domain reads "Pending Verification", links to the verification
+page and loses the Manage quick action, the same as a resolving domain that
+never passed. A verified domain, including one verified by override, is
+unaffected under either strategy.
+
+"Unverified" is kept for the stale case only (the last status fetch failed
+within the freshness window), so "could not tell" and "not verified" are
+different text, not just different icons. The icons are decorative, and the
+status link in the domain list puts the status text in its accessible name.
 
 `PENDING_SSL` is also what the blob says when `has_ssl` is unknown and the
 stored certificate dates have lapsed. The badge cannot tell that apart from a
