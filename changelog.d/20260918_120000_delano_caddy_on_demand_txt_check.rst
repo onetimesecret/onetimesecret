@@ -233,9 +233,18 @@ Fixed
   Host header, so such a domain was refused a certificate under
   ``caddy_on_demand`` and was not recognised as a custom domain on incoming
   requests. Stored domains are not changed. The second form of a name that is
-  already registered can no longer be added as a separate domain. A name that
-  cannot be converted (an overlong label, malformed punycode) is answered with
-  403 by the ACME endpoint.
+  already registered can no longer be added as a separate domain, or reached
+  by renaming another one. Only the punycode form that is the encoding of the
+  stored name matches it. A name that cannot be converted (an overlong label,
+  malformed punycode) is answered with 403 by the ACME endpoint.
+
+- ``features.domains.validation_strategy`` has always accepted any letter case
+  and the aliases ``caddy`` and ``external``, but the configured spelling was
+  sent to the frontend as written, which only recognises ``approximated``,
+  ``caddy_on_demand`` and ``passthrough``. With ``caddy`` the domain pages
+  therefore behaved as under ``passthrough`` (no TXT record, no verify
+  button). The bootstrap payload and the domains API ``cluster`` now carry the
+  canonical name of the strategy in effect.
 
 Documentation
 -------------
