@@ -7,6 +7,7 @@
 //   - Vue's provide/inject is real; only an unprovided 'api' falls back.
 
 import { useIncomingStore } from '@/shared/stores/incomingStore';
+import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
 import { useReceiptListStore } from '@/shared/stores/receiptListStore';
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
@@ -19,10 +20,16 @@ const EMPTY_LIST = { records: [], details: {}, count: 0 };
 
 describe('setupTestPinia harness', () => {
   describe('auto-init', () => {
+    it('also runs init() under the global pinia, for specs that never call setupTestPinia', () => {
+      // setup-stores.ts installs this pinia in a global beforeEach.
+      expect(useLocalReceiptStore().isInitialized).toBe(true);
+      expect(useIncomingStore().isInitialized).toBe(true);
+    });
+
     it('runs init() on stores created afterwards, as the app does', async () => {
       await setupTestPinia();
 
-      expect(useReceiptListStore().initialized()).toBe(true);
+      expect(useLocalReceiptStore().isInitialized).toBe(true);
       expect(useIncomingStore().isInitialized).toBe(true);
     });
 
@@ -36,7 +43,7 @@ describe('setupTestPinia harness', () => {
     it('leaves init() to the spec when autoInit is false', async () => {
       await setupTestPinia({ autoInit: false });
 
-      expect(useReceiptListStore().initialized()).toBe(false);
+      expect(useLocalReceiptStore().isInitialized).toBe(false);
       expect(useIncomingStore().isInitialized).toBe(false);
     });
   });
