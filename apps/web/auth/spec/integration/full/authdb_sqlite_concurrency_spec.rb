@@ -78,6 +78,22 @@ RSpec.describe 'Auth::Database.connect on a file-backed SQLite authdb', type: :i
     expect(results.tally).to eq(created: 1, duplicate: 5)
   end
 
+  it 'gives the migration connections the same settings', :aggregate_failures do
+    url = "sqlite://#{@path}"
+    allow(Onetime.auth_config).to receive(:database_url_migrations).and_return(url)
+
+    migration  = Auth::Migrator.send(:migration_connection)
+    standalone = Auth::Database.connect(url, logger: nil)
+
+    [migration, standalone].each do |conn|
+      expect(conn.transaction_mode).to eq(:immediate)
+      expect(conn.opts[:timeout]).to eq(Auth::Database::SQLITE_BUSY_TIMEOUT_MS)
+    ensure
+      conn.disconnect
+    end
+    expect(standalone.loggers).to be_empty
+  end
+
   it 'leaves a PostgreSQL connection hash alone' do
     # Only this one call is intercepted: the PostgreSQL lanes' own cleanup
     # hooks connect through Sequel too.

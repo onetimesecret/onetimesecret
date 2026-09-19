@@ -281,12 +281,18 @@ module Auth
     # PostgreSQL needs none of this: a duplicate insert waits on the row and
     # then raises a unique violation, which Rodauth handles.
     #
+    # Every authdb connection is made here, the migration connections
+    # included: several processes booting at once run migrations against the
+    # same SQLite file, and that is the same contention.
+    #
     # @param connection_opts [String, Hash] a database URL or a Sequel
     #   connection hash
+    # @param logger [#info, nil] SQL logger; nil for the standalone migration
+    #   path, which runs without the application loaded
     # @return [Sequel::Database]
-    def self.connect(connection_opts)
+    def self.connect(connection_opts, logger: Onetime.get_logger('Sequel'))
       sqlite  = connection_opts.is_a?(String) && connection_opts.start_with?('sqlite')
-      options = { logger: Onetime.get_logger('Sequel'), sql_log_level: :trace } # SQL at trace level for safety
+      options = logger ? { logger: logger, sql_log_level: :trace } : {} # SQL at trace level for safety
 
       if sqlite
         options[:timeout]       = SQLITE_BUSY_TIMEOUT_MS
@@ -343,7 +349,7 @@ module Auth
         migrations_dir = File.join(__dir__, 'migrations')
         raise "Migrations directory not found: #{migrations_dir}" unless Dir.exist?(migrations_dir)
 
-        conn = Sequel.connect(database_url)
+        conn = connect(database_url, logger: nil)
         begin
           # Use advisory locks for PostgreSQL to handle concurrent boots
           use_advisory_lock = conn.adapter_scheme == :postgres
