@@ -70,6 +70,20 @@
     return formatDistanceToNow(Number(failedAt) * 1000, { addSuffix: true });
   });
 
+  /**
+   * "Last monitored" row. Approximated's payload carries its own humanized
+   * text; the caddy_on_demand probe writes only `last_monitored_unix`, which
+   * the v3 vhost schema parses to a Date. Empty string when neither is usable.
+   */
+  const lastMonitoredText = computed(() => {
+    const vhost = props.domain?.vhost;
+    if (vhost?.last_monitored_humanized) return vhost.last_monitored_humanized;
+
+    const monitoredAt = vhost?.last_monitored_unix;
+    if (!(monitoredAt instanceof Date) || Number.isNaN(monitoredAt.getTime())) return '';
+    return formatDistanceToNow(monitoredAt, { addSuffix: true });
+  });
+
   // const formatDate = (dateString: string): string => {
   //   const date = new Date(dateString);
   //   /**
@@ -130,7 +144,11 @@
               class="text-base">{{ domain?.vhost?.status_message }}</span>
           </div>
 
-          <div class="flex flex-col">
+          <!-- Approximated-only: the caddy_on_demand probe has no proxy target. -->
+          <div
+            v-if="domain?.vhost?.target_address"
+            data-testid="vhost-target-address"
+            class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
               t('web.domains.target_address')
             }}</span>
@@ -173,9 +191,9 @@
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
               t('web.domains.last_monitored')
             }}</span>
-            <span class="text-base text-gray-900 dark:text-white">{{
-              domain?.vhost?.last_monitored_humanized
-            }}</span>
+            <span
+              data-testid="vhost-last-monitored"
+              class="text-base text-gray-900 dark:text-white">{{ lastMonitoredText }}</span>
           </div>
 
           <div
