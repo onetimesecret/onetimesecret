@@ -49,15 +49,24 @@ interface MockDomainStatus {
   displayStatus?: string;
 }
 const mockUseDomainStatus = vi.fn<() => MockDomainStatus>();
+// Set by the blocks that need the label and link derived from a real domain
+// record (blob status + verified) instead of stated flags.
+let useRealDomainStatus = false;
 const withNeedsAttention = (status: MockDomainStatus) => ({
   ...status,
   needsAttention: Boolean(
     status.isWarning || status.isError || status.isStale || status.needsOwnershipCheck
   ),
 });
-vi.mock('@/shared/composables/useDomainStatus', () => ({
-  useDomainStatus: () => withNeedsAttention(mockUseDomainStatus()),
-}));
+vi.mock('@/shared/composables/useDomainStatus', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/shared/composables/useDomainStatus')>();
+  return {
+    useDomainStatus: (domain: Parameters<typeof actual.useDomainStatus>[0]) =>
+      useRealDomainStatus
+        ? actual.useDomainStatus(domain)
+        : withNeedsAttention(mockUseDomainStatus()),
+  };
+});
 
 // Control the install's domain validation strategy. Default to approximated so
 // the DNS status assertions below hold; the dedicated blocks cover the others.
@@ -123,6 +132,7 @@ describe('DomainsTableDomainCell', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    useRealDomainStatus = false;
   });
 
   describe('domain name link', () => {
@@ -269,7 +279,7 @@ describe('DomainsTableDomainCell', () => {
     it('links the status text to the verify page when the TXT check is outstanding', () => {
       mockUseDomainStatus.mockReturnValue({
         needsOwnershipCheck: true,
-        displayStatus: 'web.STATUS.unverified',
+        displayStatus: 'web.domains.pending_verification',
       });
 
       const wrapper = mountComponent();
@@ -277,8 +287,62 @@ describe('DomainsTableDomainCell', () => {
 
       expect(link.exists()).toBe(true);
       expect(link.attributes('data-to')).toBe('"/org/org_ext_123/domains/dm-test-extid/verify"');
-      expect(link.attributes('aria-label')).toBe('web.domains.verify_now');
-      expect(link.text()).toContain('web.STATUS.unverified');
+      expect(link.attributes('aria-label')).toBe(
+        'web.domains.pending_verification. web.domains.verify_now'
+      );
+      expect(link.text()).toContain('web.domains.pending_verification');
+    });
+
+    // Real composable from here: the label and link come from the record.
+    describe('from the domain record', () => {
+      const activeBlob = { status: 'ACTIVE_SSL', last_monitored_unix: new Date('2024-01-02') };
+
+      beforeEach(() => {
+        useRealDomainStatus = true;
+      });
+
+      // After a demotion the certificate issued earlier keeps serving, so the
+      // blob stays ACTIVE_SSL while verified is false.
+      it('links to the verify page instead of reading active when verified is false', () => {
+        const wrapper = mountComponent({ domainOverrides: { verified: false, vhost: activeBlob } });
+        const link = wrapper.find('a.text-amber-600');
+
+        expect(link.exists()).toBe(true);
+        expect(link.attributes('data-to')).toBe('"/org/org_ext_123/domains/dm-test-extid/verify"');
+        expect(link.text()).toContain('web.domains.pending_verification');
+        expect(link.text()).not.toContain('web.STATUS.active');
+        expect(link.find('[data-icon-name="alert-circle"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="verification-info"]').exists()).toBe(false);
+      });
+
+      it('keeps the status icon for the same blob when verified is true', () => {
+        const wrapper = mountComponent({ domainOverrides: { verified: true, vhost: activeBlob } });
+
+        expect(wrapper.find('a.text-amber-600').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="verification-info"]').exists()).toBe(true);
+      });
+
+      it('announces a failed check and an outstanding ownership check differently', () => {
+        const stale = mountComponent({
+          domainOverrides: {
+            verified: true,
+            vhost: activeBlob,
+            vhost_fetch_failed_at: Date.now() / 1000 - 60,
+          },
+        }).find('a.text-amber-600');
+        const unverified = mountComponent({
+          domainOverrides: { verified: false, vhost: activeBlob },
+        }).find('a.text-amber-600');
+
+        expect(stale.attributes('aria-label')).toBe(
+          'web.STATUS.unverified. web.domains.verify_now'
+        );
+        expect(unverified.attributes('aria-label')).toBe(
+          'web.domains.pending_verification. web.domains.verify_now'
+        );
+        expect(stale.text()).toContain('web.STATUS.unverified');
+        expect(unverified.text()).not.toContain('web.STATUS.unverified');
+      });
     });
 
     it('keeps the status icon, not a warning link, while awaiting the first certificate', () => {

@@ -135,12 +135,16 @@ const { t } = useI18n();
 
     <div class="flex items-center gap-2">
       <!-- When DNS issues exist or the last fetch failed: show clickable status
-           text. Only meaningful when the strategy checks ownership. -->
+           text. Only meaningful when the strategy checks ownership.
+           The aria-label replaces the link text for assistive technology, so
+           it carries the status too: a failed check ("could not tell") and an
+           outstanding ownership check ("no") link to the same screen and must
+           not be announced identically. -->
       <template v-if="showVerificationStatus && needsAttention">
         <router-link
           :to="verifyRoute"
           class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
-          :aria-label="t('web.domains.verify_now')">
+          :aria-label="`${displayStatus}. ${t('web.domains.verify_now')}`">
           <OIcon
             collection="mdi"
             :name="isStale ? 'help-circle' : 'alert-circle'"
