@@ -36,7 +36,6 @@ require_relative '../../support/test_helpers'
 OT.boot! :test
 
 require 'securerandom'
-require 'thread'
 require 'onetime/session/sidecar'
 
 SC = Onetime::SessionSidecar

@@ -140,10 +140,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
     context "when we set OT.conf manually" do
       let(:loaded_config) { Onetime::Config.load(source_config_path) }
 
-      before do
-
-      end
-
       # Under RACK_ENV=test `enabled` additionally needs the explicit opt-in
       # (Onetime::Config.diagnostics_enabled?). This example is about the
       # other rule, "no DSN, no diagnostics", so it opts in to reach it.
