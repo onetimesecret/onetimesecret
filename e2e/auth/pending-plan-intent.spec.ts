@@ -44,7 +44,9 @@
 //                                   identity_plus_v1 (etc/billing.yaml or
 //                                   materialized plans) — otherwise
 //                                   verify-account validates the intent,
-//                                   fails, and correctly drops the redirect
+//                                   fails, and correctly drops the redirect.
+//                                   Without it the pricing page offers no
+//                                   CTA for the plan and the journey skips.
 //
 //   pnpm test:playwright e2e/auth/pending-plan-intent.spec.ts \
 //     --project=chromium
@@ -55,7 +57,7 @@
 // rather than skipped on: a silent skip would turn "the feature is broken"
 // into a green run.
 
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 import {
   signIn,
@@ -84,6 +86,40 @@ const PLAN = { product: 'identity_plus_v1', interval: 'monthly' } as const;
  * see the hook comment in apps/web/auth/config/hooks/account.rb.)
  */
 const EXPECTED_SIGNIN_REDIRECT = `/billing/plans?product=${PLAN.product}&interval=${PLAN.interval}`;
+
+const BILLING_UNAVAILABLE_SKIP = 'No plan CTAs available - billing may be disabled';
+
+/**
+ * The pricing-page CTA for PLAN, located by the BEHAVIOUR under test:
+ * Pricing.vue's getSignupUrl puts the plan id in the CTA href
+ * (/signup?product=<id>&interval=…). Located by href rather than by
+ * highlight-ring classes or "the first Get started link" — the highlight
+ * class is styling, and the first CTA on the page can be another tier's
+ * (the free plan's links to /signup with NO product at all), which is
+ * exactly the wrong-CTA flake repeat-runs surfaced here.
+ */
+function planCta(page: Page): Locator {
+  return page.locator(`a[href*="product=${PLAN.product}"]`).first();
+}
+
+/**
+ * Opens PLAN's pricing deep link and reports whether the target offers the
+ * plan at all. False means billing is off on the target (BILLING_ENABLED=false)
+ * or its catalog does not carry PLAN: a property of the environment, which
+ * the tests that need billing skip on rather than fail on.
+ *
+ * Plan cards render after the plans fetch, later than app-ready — so this
+ * WAITS for the CTA, and answers false only if it genuinely never appears.
+ * An isVisible() snapshot here skips falsely whenever the check races the
+ * fetch.
+ */
+async function targetOffersPlan(page: Page, interval: string): Promise<boolean> {
+  await page.goto(`/pricing/${PLAN.product}/${interval}`);
+  await waitForAppReady(page);
+  return planCta(page)
+    .waitFor({ state: 'visible', timeout: 10_000 })
+    .then(() => true, () => false);
+}
 
 /**
  * Starts recording the JSON body of the next POST whose URL contains
@@ -147,29 +183,11 @@ test.describe('Pending Plan Intent - Signup Flow', () => {
   test('pricing deep link preserves product and interval in signup redirect', async ({
     page,
   }) => {
-    // Visit pricing page with specific plan
-    await page.goto(`/pricing/${PLAN.product}/yearly`);
-    await waitForAppReady(page);
+    // Visit the pricing page with a specific plan; skip if the target has
+    // no billing to offer it.
+    test.skip(!(await targetOffersPlan(page, 'yearly')), BILLING_UNAVAILABLE_SKIP);
 
-    // The CTA for the deep-linked plan, located by the BEHAVIOUR under test:
-    // Pricing.vue's getSignupUrl puts the plan id in the CTA href
-    // (/signup?product=<id>&interval=…). Located by href rather than by
-    // highlight-ring classes or "the first Get started link" — the highlight
-    // class is styling, and the first CTA on the page can be another tier's
-    // (the free plan's links to /signup with NO product at all), which is
-    // exactly the wrong-CTA flake repeat-runs surfaced here.
-    const planCta = page.locator(`a[href*="product=${PLAN.product}"]`).first();
-
-    // Plan cards render after the plans fetch, later than app-ready — so
-    // WAIT for the CTA, and only skip if it genuinely never appears
-    // (billing disabled on the target). An isVisible() snapshot here skips
-    // falsely whenever the check races the fetch.
-    const ctaAppeared = await planCta
-      .waitFor({ state: 'visible', timeout: 10_000 })
-      .then(() => true, () => false);
-    test.skip(!ctaAppeared, 'No plan CTAs available - billing may be disabled');
-
-    await planCta.click();
+    await planCta(page).click();
 
     // Verify redirect to signup with query params
     await expect(page).toHaveURL(/\/signup\?/);
@@ -388,6 +406,12 @@ test.describe('Plan intent journey (issue #4306)', () => {
     baseURL,
     page,
   }) => {
+    // The journey ends on the billing plans page and verify-account only
+    // mints that redirect for a plan the catalog resolves. Same check, same
+    // skip as the pricing deep-link test above; asked before the signup so a
+    // billing-less target does not collect an account per run.
+    test.skip(!(await targetOffersPlan(page, PLAN.interval)), BILLING_UNAVAILABLE_SKIP);
+
     const { email, requestBody } = await submitSignup(
       page,
       `/signup?product=${PLAN.product}&interval=${PLAN.interval}`,
