@@ -2,7 +2,7 @@
 
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { ApplicationError, classifyError } from '@/schemas/errors';
-import { isApproximatedDomainValidation } from '@/utils/features';
+import { setDomainValidationStrategy } from '@tests/support/domainValidationStrategy';
 import { AxiosError, AxiosHeaders } from 'axios';
 import { mockDomains, newDomainData } from '@/tests/fixtures/domains.fixture';
 import { createPinia, setActivePinia } from 'pinia';
@@ -116,12 +116,12 @@ vi.mock('@/shared/stores/notificationsStore', () => ({
 
 // Control the install's domain validation strategy. Default to approximated so
 // the existing post-add navigation expectations (DomainVerify + verify poll)
-// hold; the self-hosted test flips it to exercise the CNAME-screen path.
-vi.mock('@/utils/features', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/utils/features')>()),
-  isApproximatedDomainValidation: vi.fn(() => true),
-}));
-const mockApprox = vi.mocked(isApproximatedDomainValidation);
+// hold; dedicated tests cover caddy_on_demand and passthrough. The real
+// capability table is evaluated, not a boolean stub.
+vi.mock('@/utils/features', async (importOriginal) => {
+  const { featuresForStrategy } = await import('@tests/support/domainValidationStrategy');
+  return featuresForStrategy(await importOriginal<typeof import('@/utils/features')>());
+});
 
 vi.mock('@/shared/composables/useConfirmDialog', () => ({
   useConfirmDialog: () => mockDependencies.confirmDialog,
@@ -185,8 +185,8 @@ describe('useDomainsManager', () => {
     currentRouteParams = { orgid: 'test-org-id' };
     // Reset entitlement capture
     mockEntitlementCapture.onError = null;
-    // clearAllMocks() keeps mockReturnValue overrides, so re-assert the default.
-    mockApprox.mockReturnValue(true);
+    // The strategy is module state in the support helper, so re-assert the default.
+    setDomainValidationStrategy('approximated');
   });
 
   describe('domain addition', () => {
@@ -218,8 +218,37 @@ describe('useDomainsManager', () => {
         );
       });
 
-      it('routes to the CNAME screen (not the Approximated verify screen) on self-hosted installs', async () => {
-        mockApprox.mockReturnValue(false);
+      it('navigates to verification and schedules the first check under caddy_on_demand', async () => {
+        vi.useFakeTimers();
+        try {
+          setDomainValidationStrategy('caddy_on_demand');
+          mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
+            record: newDomainData,
+            details: { domain_context: newDomainData.display_domain },
+          });
+          mockDependencies.domainsStore.verifyDomain.mockResolvedValueOnce({});
+
+          const { handleAddDomain } = mountComposable(() => useDomainsManager());
+          await handleAddDomain(newDomainData.domainid);
+
+          // The TXT record is shown on DomainVerify; DomainDns would hide it.
+          expect(mockDependencies.router.push).toHaveBeenCalledWith({
+            name: 'DomainVerify',
+            params: { orgid: 'test-org-id', extid: newDomainData.extid },
+          });
+          expect(mockDependencies.domainsStore.verifyDomain).not.toHaveBeenCalled();
+
+          await vi.advanceTimersByTimeAsync(2000);
+          expect(mockDependencies.domainsStore.verifyDomain).toHaveBeenCalledWith(
+            newDomainData.extid
+          );
+        } finally {
+          vi.useRealTimers();
+        }
+      });
+
+      it('routes to the CNAME screen and schedules no check under passthrough', async () => {
+        setDomainValidationStrategy('passthrough');
         mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
           record: newDomainData,
           details: { domain_context: newDomainData.display_domain },

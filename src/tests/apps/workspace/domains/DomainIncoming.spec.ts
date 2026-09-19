@@ -169,7 +169,7 @@ vi.mock('@/utils/features', () => ({
   isOrgsIncomingSecretsEnabled: () => mockIsOrgsIncomingSecretsEnabled,
   // DomainHeader (rendered inside this page) reads the domain validation
   // strategy; provide it so the whole-module mock doesn't drop the export.
-  isApproximatedDomainValidation: () => false,
+  isDomainOwnershipChecked: () => false,
 }));
 
 // ---------------------------------------------------------------------------
