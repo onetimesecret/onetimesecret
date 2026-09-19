@@ -85,6 +85,14 @@ module Onetime
     #                   copy (see #merge) — a deletion could not win that
     #                   conflict. The next healthy commit then converges the
     #                   field to absent everywhere.
+    #   counter       — the value is a BARE Redis integer, not an envelope
+    #                   (ADR-046). Only #allocate_counter touches the key;
+    #                   #write, #read and #consume raise for it, because an
+    #                   envelope write would make every later INCR fail and an
+    #                   envelope read of an integer returns nil. Never
+    #                   encrypted, merged, or externalized: the payload
+    #                   publishes the value and the key name is its binding to
+    #                   the session. Covered by #purge like every other field.
     #   destroy_warn  — in-flight hand-off state: destroying a session while
     #                   this field holds a live TRUTHY value takes an
     #                   uncompleted hand-off with it, and the middleware's
@@ -230,7 +238,61 @@ module Onetime
         absent_when_falsy: true,
         destroy_warn: false,
       },
+      # ADR-046: the bootstrap snapshot version, a per-session-ID sequence the
+      # client uses to refuse a stale complete snapshot. A COUNTER field (see
+      # the policy list): a bare integer allocated by one Lua call in
+      # #allocate_counter, seeded from Redis TIME so a recreated key starts
+      # above everything the lost key issued.
+      #
+      # Absence is the safe state (admission rule): with no key the next
+      # allocation reseeds, and ordering can only ever make a client refuse or
+      # reload, never grant. Not a secret: the payload publishes it.
+      #
+      # ttl: the allocator is handed the session's authoritative lifetime
+      # (`expire_after`) by its caller, per ADR-046 step 5; this value is the
+      # fallback when none is configured. The key can outlive a blob whose TTL
+      # a later request did not refresh, by less than `expire_after`. It is
+      # inert without the blob, purged on destroy, and TTL-bounded otherwise.
+      'snapshot_version' => {
+        ttl: DEFAULT_TTL_CEILING,
+        counter: true,
+        encrypted: false,
+        merge_on_read: false,
+        externalize: false,
+        destroy_warn: false,
+      },
     }.freeze
+
+    # Raised by #allocate_counter when it cannot return a version. Unlike the
+    # generic API, which answers nil for a bad sid, allocation must be loud:
+    # the caller may never label an unversioned payload as ordered (ADR-046
+    # step 7). Redis errors propagate as themselves.
+    class CounterAllocationError < StandardError; end
+
+    # One atomic allocation (ADR-046 step 3). KEYS[1] = the counter key,
+    # ARGV[1] = TTL seconds.
+    #
+    # - Key exists: INCR.
+    # - Key absent: seed from Redis TIME as integer microseconds. Built by
+    #   string concatenation (seconds .. zero-padded microseconds), never by
+    #   arithmetic: Lua numbers are doubles and print in exponent form at this
+    #   magnitude.
+    # - Both branches set the TTL, then the stored STRING is returned, for the
+    #   same reason: INCR's numeric reply would pass through a Lua double.
+    ALLOCATE_COUNTER_LUA = <<~LUA
+      if redis.call('EXISTS', KEYS[1]) == 1 then
+        redis.call('INCR', KEYS[1])
+      else
+        local now = redis.call('TIME')
+        redis.call('SET', KEYS[1], now[1] .. string.format('%06d', tonumber(now[2])))
+      end
+      redis.call('EXPIRE', KEYS[1], tonumber(ARGV[1]))
+      return redis.call('GET', KEYS[1])
+    LUA
+
+    # A canonical positive decimal: what the wire contract requires of
+    # `snapshot_version`.
+    COUNTER_FORMAT = /\A[1-9][0-9]*\z/
 
     # Deterministic key derivation — no stored key names needed, which is what
     # makes purge an exact O(registry) DEL. Callers are responsible for sid
@@ -271,7 +333,7 @@ module Onetime
     #   (which deletes instead).
     def write(sid, field, value, ttl: nil, dbclient: nil, codec: nil)
       field  = field.to_s
-      policy = ensure_registered!(field)
+      policy = ensure_envelope_field!(field)
       return nil unless valid_sid?(sid)
 
       db = dbclient || Familia.dbclient
@@ -293,7 +355,7 @@ module Onetime
     # @return [Object, nil]
     def read(sid, field, dbclient: nil, codec: nil)
       field  = field.to_s
-      policy = ensure_registered!(field)
+      policy = ensure_envelope_field!(field)
       return nil unless valid_sid?(sid)
 
       db = dbclient || Familia.dbclient
@@ -312,7 +374,7 @@ module Onetime
     #   tampered/binding-mismatch).
     def consume(sid, field, dbclient: nil, codec: nil)
       field  = field.to_s
-      policy = ensure_registered!(field)
+      policy = ensure_envelope_field!(field)
       return nil unless valid_sid?(sid)
 
       db  = dbclient || Familia.dbclient
@@ -326,6 +388,34 @@ module Onetime
               end&.first
             end
       decode_envelope(sid, field, raw, policy, codec)
+    end
+
+    # Allocate the next value of a COUNTER field (ADR-046): strictly greater
+    # than every value this key has issued, and, through the TIME seed, than
+    # every value a lost predecessor issued while the Redis clock moves
+    # forward. Gaps are allowed. One EVAL; atomic across workers.
+    #
+    # Raises instead of answering nil (see CounterAllocationError). The
+    # caller owns the rescue: an allocation failure must never fail a session
+    # write or a request that serializes no snapshot.
+    #
+    # @param ttl [Integer, nil] the session's authoritative lifetime
+    #   (`expire_after`); falls back to the configured value, then the
+    #   registry's.
+    # @return [String] the version as a canonical decimal string. Never an
+    #   Integer: the wire contract forbids a JSON number here.
+    def allocate_counter(sid, field, ttl: nil, dbclient: nil)
+      field  = field.to_s
+      policy = ensure_registered!(field)
+      raise ArgumentError, "session sidecar field is not a counter: #{field.inspect}" unless policy[:counter]
+      raise CounterAllocationError, 'session id failed the sidecar format guard' unless valid_sid?(sid)
+
+      seconds = ttl.to_i.positive? ? ttl.to_i : (configured_expire_after || policy[:ttl])
+      db      = dbclient || Familia.dbclient
+      value   = db.eval(ALLOCATE_COUNTER_LUA, keys: [key_for(sid, field)], argv: [seconds]).to_s
+      return value if value.match?(COUNTER_FORMAT)
+
+      raise CounterAllocationError, 'counter allocation returned a non-canonical value'
     end
 
     # @return [Boolean] whether the field's key currently exists.
@@ -549,6 +639,15 @@ module Onetime
       raise ArgumentError, "unregistered session sidecar field: #{field.inspect}"
     end
 
+    # The envelope API (#write/#read/#consume) refuses a counter field: its
+    # key holds a bare integer owned by #allocate_counter alone.
+    def ensure_envelope_field!(field)
+      policy = ensure_registered!(field)
+      return policy unless policy[:counter]
+
+      raise ArgumentError, "session sidecar field is a counter; use allocate_counter: #{field.inspect}"
+    end
+
     # INVARIANT: a sidecar key must never outlive the session blob it rides on.
     #
     # `authoritative:` is the TTL the blob IS BEING (re)written to in the same
@@ -581,8 +680,15 @@ module Onetime
 
       return fallback.to_i if fallback.to_i.positive?
 
-      configured = Onetime.respond_to?(:session_config) ? Onetime.session_config['expire_after'].to_i : 0
-      configured.positive? ? configured : DEFAULT_TTL_CEILING
+      configured_expire_after || DEFAULT_TTL_CEILING
+    end
+
+    # @return [Integer, nil] the configured session lifetime, when positive.
+    def configured_expire_after
+      return nil unless Onetime.respond_to?(:session_config)
+
+      configured = Onetime.session_config['expire_after'].to_i
+      configured.positive? ? configured : nil
     end
 
     # Total by construction: a non-positive ceiling (which #ttl_ceiling never
