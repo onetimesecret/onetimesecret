@@ -15,6 +15,9 @@ module ColonelAPI
       #   without running DNS checks. This is an administrative escape hatch for
       #   situations where DNS verification cannot complete normally (e.g., private
       #   networks, DNS propagation delays, or manual verification by operator).
+      #   Overriding `verified` to true is sticky: it sets verified_by_override,
+      #   which stops later failed TXT checks from demoting the domain until DNS
+      #   validates on its own or an operator overrides back to false.
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this logic
       # (verify_one_of_roles!(colonel: true)) enforce the colonel role. Unlike the
@@ -73,7 +76,13 @@ module ColonelAPI
 
           # Apply changes atomically
           custom_domain.atomic_write do
-            custom_domain.verified  = verified_param unless verified_param.nil?
+            unless verified_param.nil?
+              custom_domain.verified             = verified_param
+              # Marks the flag as operator-asserted so VerifyDomain (refresh
+              # job, customer/colonel/CLI verify) does not demote it on the
+              # next failed TXT check. Overriding to false clears the marker.
+              custom_domain.verified_by_override = verified_param
+            end
             custom_domain.resolving = resolving_param unless resolving_param.nil?
             custom_domain.updated   = OT.now.to_i
           end
@@ -95,6 +104,7 @@ module ColonelAPI
               display_domain: custom_domain.display_domain,
               verification_state: custom_domain.verification_state.to_s,
               verified: custom_domain.verified.to_s == 'true',
+              verified_by_override: custom_domain.verified_by_override == true,
               resolving: custom_domain.resolving.to_s == 'true',
               ready: custom_domain.ready?,
               updated: custom_domain.updated,

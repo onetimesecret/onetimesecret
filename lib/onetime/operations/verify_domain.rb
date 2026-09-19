@@ -32,13 +32,35 @@ module Onetime
         :previous_state,  # Symbol: :unverified, :pending, :resolving, :verified
         :current_state,   # Symbol: :unverified, :pending, :resolving, :verified
         :dns_validated,   # Boolean: TXT record matches
+        :dns_indeterminate, # Boolean: the TXT check produced no answer; verified left untouched
+        :dns_message,     # String or nil: strategy's description of the TXT outcome
+        :override_held,   # Boolean: TXT check failed but an operator override kept verified
         :ssl_ready,       # Boolean: has valid SSL certificate
         :is_resolving,    # Boolean: DNS resolving to correct target
         :persisted,       # Boolean: changes were saved
         :error,           # String or nil: error message if failed
       ) do
+        def initialize(dns_indeterminate: false, dns_message: nil, override_held: false, **)
+          super
+        end
+
         def success?
           error.nil?
+        end
+
+        # One label for the TXT outcome, for operator-facing output.
+        # @return [Symbol] :validated, :indeterminate, :override_held, :failed
+        def dns_outcome
+          return :validated if dns_validated
+          return :indeterminate if dns_indeterminate
+
+          override_held ? :override_held : :failed
+        end
+
+        # The domain lost :verified on this run (the signature of the SSO
+        # breakage incidents: verified gates every auth URL).
+        def demoted?
+          previous_state == :verified && current_state != :verified
         end
 
         def changed?
@@ -51,6 +73,10 @@ module Onetime
             previous_state: previous_state,
             current_state: current_state,
             dns_validated: dns_validated,
+            dns_indeterminate: dns_indeterminate,
+            dns_message: dns_message,
+            dns_outcome: dns_outcome,
+            override_held: override_held,
             ssl_ready: ssl_ready,
             is_resolving: is_resolving,
             persisted: persisted,
@@ -65,9 +91,15 @@ module Onetime
         :verified_count,  # Integer: domains with dns_validated=true
         :failed_count,    # Integer: domains with errors
         :skipped_count,   # Integer: domains skipped (already verified, etc.)
+        :indeterminate_count, # Integer: domains whose TXT check produced no answer
+        :demoted_count,   # Integer: domains that lost :verified on this run
         :results,         # Array<Result>: individual results
         :duration_seconds, # Float: total processing time
       ) do
+        def initialize(indeterminate_count: 0, demoted_count: 0, **)
+          super
+        end
+
         def success?
           failed_count == 0
         end
@@ -78,6 +110,8 @@ module Onetime
             verified_count: verified_count,
             failed_count: failed_count,
             skipped_count: skipped_count,
+            indeterminate_count: indeterminate_count,
+            demoted_count: demoted_count,
             duration_seconds: duration_seconds,
             results: results.map(&:to_h),
           }
@@ -162,16 +196,22 @@ module Onetime
           enqueue_favicon_fetch(domain)
         end
 
-        Result.new(
+        result = Result.new(
           domain: domain,
           previous_state: previous_state,
           current_state: current_state,
           dns_validated: dns_result[:validated] || false,
+          dns_indeterminate: dns_result[:indeterminate] == true,
+          dns_message: dns_result[:message],
+          override_held: override_held?(domain, dns_result),
           ssl_ready: status_result[:has_ssl] || false,
           is_resolving: status_result[:is_resolving] || false,
           persisted: persisted,
           error: nil,
         )
+
+        log_notable_outcome(result, dns_result)
+        result
       rescue StandardError => ex
         logger.error 'Domain verification failed',
           domain: domain&.display_domain,
@@ -212,6 +252,8 @@ module Onetime
           verified_count: results.count { |r| r.dns_validated },
           failed_count: results.count { |r| !r.success? },
           skipped_count: 0, # Could be extended for skip logic
+          indeterminate_count: results.count { |r| r.dns_indeterminate },
+          demoted_count: results.count { |r| r.demoted? },
           results: results,
           duration_seconds: duration.round(2),
         )
@@ -232,6 +274,40 @@ module Onetime
           domain: domain.display_domain,
           error: ex.message
         { validated: false, message: ex.message, data: nil }
+      end
+
+      # Warn on the two outcomes an operator needs to find without a console
+      # session: an indeterminate TXT check (verified left untouched) and a
+      # demotion out of :verified. The raw strategy payload rides along so the
+      # failure modes can be told apart from the log line alone.
+      #
+      # @param result [Result]
+      # @param dns_result [Hash]
+      def log_notable_outcome(result, dns_result)
+        if result.override_held
+          logger.info 'DNS validation failed; verified held by operator override',
+            domain: result.domain.display_domain,
+            message: dns_result[:message]
+        end
+
+        if result.dns_indeterminate
+          logger.warn 'DNS validation indeterminate; verified left unchanged',
+            domain: result.domain.display_domain,
+            state: result.current_state,
+            message: dns_result[:message],
+            data: dns_result[:data]
+        end
+
+        return unless result.demoted?
+
+        logger.warn 'Domain demoted from verified',
+          domain: result.domain.display_domain,
+          previous_state: result.previous_state,
+          current_state: result.current_state,
+          dns_validated: result.dns_validated,
+          is_resolving: result.is_resolving,
+          message: dns_result[:message],
+          data: dns_result[:data]
       end
 
       # Check SSL and resolution status
@@ -309,13 +385,22 @@ module Onetime
       #   :data present — active strategy returned a payload (Approximated 200)
       #   :mode present — passive strategy, no remote call to fail
       #
+      # A 200 is not enough for `verified`: the strategy returns validated: nil
+      # when the upstream checker answered but its own DNS lookup failed
+      # (indeterminate). That is not evidence about the customer's DNS, so the
+      # stored flag is left alone — neither promoted nor demoted.
+      #
       # @param domain [Onetime::CustomDomain]
       # @param dns_result [Hash]
       # @param status_result [Hash]
       # @return [Boolean] Whether changes were saved
       def persist_changes(domain, dns_result, status_result)
-        if (dns_result[:data] || dns_result[:mode]) && !dns_result[:validated].nil?
+        if (dns_result[:data] || dns_result[:mode]) && !dns_result[:validated].nil? &&
+           !override_held?(domain, dns_result)
           domain.verified! dns_result[:validated]
+          # DNS has now proven ownership itself; the operator's assertion is
+          # no longer what holds the flag, so later failures demote normally.
+          domain.verified_by_override = false if dns_result[:validated]
         end
 
         if status_result[:data] || status_result[:mode]
@@ -337,6 +422,18 @@ module Onetime
           domain: domain.display_domain,
           error: ex.message
         false
+      end
+
+      # A Colonel override is an operator's standing assertion of ownership for
+      # domains DNS checks cannot reach (private networks, a broken upstream
+      # checker). A failed check must not undo it on the next refresh run; only
+      # the operator (override to false) or a passing check clears it.
+      #
+      # @param domain [Onetime::CustomDomain]
+      # @param dns_result [Hash]
+      # @return [Boolean]
+      def override_held?(domain, dns_result)
+        dns_result[:validated] == false && domain.verified_by_override == true
       end
 
       # Enqueue a background favicon fetch for a freshly-verified domain.

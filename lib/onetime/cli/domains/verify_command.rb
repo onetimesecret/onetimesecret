@@ -268,7 +268,8 @@ module Onetime
 
       def output_verification_results(result)
         puts 'Verification Results:'
-        puts "  DNS Validated:    #{format_bool(result.dns_validated)}"
+        puts "  DNS Validated:    #{format_dns(result)}"
+        puts "  DNS Detail:       #{result.dns_message}" if result.dns_message
         puts "  SSL Ready:        #{format_bool(result.ssl_ready)}"
         puts "  Is Resolving:     #{format_bool(result.is_resolving)}"
         puts
@@ -318,7 +319,7 @@ module Onetime
           full_txt_host = "#{txt_host}.#{domain.base_domain}"
           puts
           puts '1. DNS Ownership (TXT record):'
-          puts "   Status: #{result.dns_validated ? 'PASS' : 'FAIL'}"
+          puts "   Status: #{result.dns_outcome.to_s.upcase}" # VALIDATED / FAILED / INDETERMINATE / OVERRIDE_HELD
           puts "   Expected: TXT record at #{full_txt_host}"
           puts "   Value:    #{txt_value}"
           puts
@@ -360,6 +361,8 @@ module Onetime
         puts format('  Total Processed:  %d', result.total)
         puts format('  Verified:         %d', result.verified_count)
         puts format('  Failed:           %d', result.failed_count)
+        puts format('  Indeterminate:    %d', result.indeterminate_count)
+        puts format('  Demoted:          %d', result.demoted_count)
         puts format('  Duration:         %.2f seconds', result.duration_seconds)
         puts
 
@@ -375,7 +378,7 @@ module Onetime
             puts format(
               '%-40s %-12s %-12s %-10s',
               r.domain.display_domain[0..39],
-              format_bool(r.dns_validated),
+              format_dns(r),
               format_bool(r.is_resolving),
               status,
             )
@@ -383,6 +386,14 @@ module Onetime
           end
         end
         puts
+      end
+
+      # Two TXT outcomes are neither pass nor fail and leave `verified` alone:
+      # indeterminate (the upstream checker produced no answer) and a failed
+      # check on a domain held verified by an operator override.
+      def format_dns(result)
+        { indeterminate: 'indeterminate', override_held: 'no (override)' }
+          .fetch(result.dns_outcome) { format_bool(result.dns_validated) }
       end
 
       def output_state_distribution(result)
@@ -425,14 +436,15 @@ module Onetime
         state_counts                                                  = Hash.new(0)
         result.results.each { |r| state_counts[r.current_state.to_s] += 1 }
 
-        issues = { orphaned: [], org_not_found: [], dns_failed: [], ssl_failed: [] }
+        issues = { orphaned: [], org_not_found: [], dns_failed: [], dns_indeterminate: [], ssl_failed: [] }
         result.results.each do |r|
           domain = r.domain
           issues[:orphaned] << domain.display_domain if domain.org_id.to_s.empty?
           if !domain.org_id.to_s.empty? && domain.primary_organization.nil?
             issues[:org_not_found] << domain.display_domain
           end
-          issues[:dns_failed] << domain.display_domain unless r.dns_validated
+          issues[:dns_failed] << domain.display_domain if r.dns_outcome == :failed
+          issues[:dns_indeterminate] << domain.display_domain if r.dns_indeterminate
           issues[:ssl_failed] << domain.display_domain unless r.ssl_ready
         end
 

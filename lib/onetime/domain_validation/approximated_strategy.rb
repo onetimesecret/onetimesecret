@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require 'resolv'
+require 'securerandom'
+
 require_relative 'features'
 require_relative 'approximated_client'
 
@@ -31,6 +34,12 @@ module Onetime
     #   }
     #
     class ApproximatedStrategy < BaseStrategy
+      # Vhost statuses that mean "serving over SSL with no known issues".
+      # ACTIVE_SSL_PROXIED is the normal state for a host fronted by another
+      # proxy (e.g. a Cloudflare CNAME setup): DNS points elsewhere but
+      # requests reach the cluster and the certificate is active.
+      ACTIVE_SSL_STATUSES = %w[ACTIVE_SSL ACTIVE_SSL_PROXIED].freeze
+
       attr_reader :client, :config
 
       # @param config [Hash] Application configuration (typically OT.conf)
@@ -63,14 +72,9 @@ module Onetime
 
         if res.code == 200
           payload       = res.parsed_response
-          match_records = payload['records']
-          found_match   = match_records.any? { |record| record['match'] == true }
+          match_records = Array(payload['records'])
 
-          {
-            validated: found_match,
-            message: found_match ? 'TXT record validated' : 'TXT record not found or mismatch',
-            data: match_records,
-          }
+          classify_ownership(custom_domain, match_records)
         else
           {
             validated: false,
@@ -158,10 +162,16 @@ module Onetime
           payload = res.parsed_response
           data    = payload['data']
 
+          # UNKNOWN is Approximated's "cannot determine a reliable status right
+          # now" — not evidence that DNS stopped resolving. Report nil so
+          # VerifyDomain leaves the stored resolving flag alone, the same
+          # discipline as an indeterminate TXT check.
+          indeterminate = data['status'] == 'UNKNOWN'
+
           {
-            ready: data['status'] == 'ACTIVE_SSL',
+            ready: ACTIVE_SSL_STATUSES.include?(data['status']),
             has_ssl: data['has_ssl'],
-            is_resolving: data['is_resolving'],
+            is_resolving: indeterminate ? nil : data['is_resolving'],
             status: data['status'],
             status_message: data['status_message'],
             data: data,
@@ -249,6 +259,153 @@ module Onetime
       # @return [Boolean] true - Approximated actively manages certificates
       def manages_certificates?
         true
+      end
+
+      private
+
+      # Classifies a check-records-match-exactly response into three outcomes.
+      #
+      # Approximated's contract for 'actual_values' is an Array of the values
+      # it saw, or the literal `false` "when DNS resolution or the record-type
+      # lookup failed". Only an Array is evidence about the customer's DNS:
+      #
+      #   match == true            -> validated: true
+      #   actual_values is Array   -> validated: false (not found / mismatch)
+      #   anything else            -> validated: nil   (indeterminate)
+      #
+      # Callers must treat nil as "no answer" and leave the stored verified
+      # flag untouched (VerifyDomain#persist_changes does). Collapsing a failed
+      # upstream lookup into `false` demoted correctly-configured domains on
+      # every refresh run.
+      #
+      # An indeterminate upstream result gets one native TXT lookup and, when
+      # that cannot promote, one NXDOMAIN sentinel probe against Approximated
+      # itself. The sentinel reveals which state covers "record does not
+      # exist" upstream:
+      #
+      #   sentinel actual_values is []     -> Approximated distinguishes NXDOMAIN
+      #                                       from lookup failure; a `false` on
+      #                                       the real check is a genuine
+      #                                       upstream fault, not a deletion.
+      #   sentinel actual_values is false  -> Approximated conflates NXDOMAIN
+      #                                       and SERVFAIL. A deleted TXT
+      #                                       record cannot be demoted through
+      #                                       this checker, because native
+      #                                       resolution cannot settle it
+      #                                       either (Resolv reports NXDOMAIN
+      #                                       and SERVFAIL as "no resources").
+      #
+      # Either way the caller stays indeterminate; the probe outcome is
+      # recorded so operators can tell "checker is broken today" apart from
+      # "checker will never demote a deleted TXT record."
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @param match_records [Array<Hash>] 'records' from the API response
+      # @return [Hash] See BaseStrategy#validate_ownership
+      #
+      def classify_ownership(custom_domain, match_records)
+        if match_records.any? { |record| record['match'] == true }
+          return { validated: true, message: 'TXT record validated', data: match_records }
+        end
+
+        looked_up = !match_records.empty? &&
+                    match_records.all? { |record| record['actual_values'].is_a?(Array) }
+
+        if looked_up
+          seen    = match_records.flat_map { |record| record['actual_values'] }
+          message = if seen.empty?
+            'TXT record not found'
+          else
+            "TXT record mismatch (#{seen.size} value(s) found, exactly one matching value required)"
+          end
+          return { validated: false, message: message, data: match_records }
+        end
+
+        OT.lw "[ApproximatedStrategy] Indeterminate TXT check for #{custom_domain.display_domain}: " \
+              "#{match_records.inspect}"
+
+        if native_txt_values(custom_domain.validation_record) == [custom_domain.txt_validation_value.to_s]
+          return {
+            validated: true,
+            message: 'TXT record validated (native lookup; upstream checker indeterminate)',
+            data: match_records,
+            source: 'native',
+          }
+        end
+
+        nxdomain_probe = probe_nxdomain_semantics(custom_domain)
+        message        = case nxdomain_probe
+                         when :distinguishes
+                           'Upstream DNS checker returned no result (indeterminate; ' \
+                           'NXDOMAIN probe shows the checker distinguishes missing records — ' \
+                           'this false is a transient upstream fault)'
+                         when :conflates
+                           'Upstream DNS checker returned no result (indeterminate; ' \
+                           'NXDOMAIN probe shows the checker conflates NXDOMAIN with lookup ' \
+                           'failure — a deleted TXT record cannot be demoted through this checker)'
+                         else
+                           'Upstream DNS checker returned no result (indeterminate)'
+                         end
+
+        {
+          validated: nil,
+          indeterminate: true,
+          nxdomain_probe: nxdomain_probe,
+          message: message,
+          data: match_records,
+        }
+      end
+
+      # Probes Approximated's NXDOMAIN semantics with a single call against a
+      # random subdomain of the customer's zone that cannot resolve.
+      #
+      # Approximated's contract for 'actual_values' is either an Array of
+      # values it saw or the literal `false` "when DNS resolution or the
+      # record-type lookup failed." The probe reveals which of those two
+      # states covers NXDOMAIN for this deployment.
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @return [Symbol] :distinguishes, :conflates, :unknown
+      #
+      def probe_nxdomain_semantics(custom_domain)
+        api_key = Features.api_key
+        return :unknown if api_key.to_s.empty?
+
+        sentinel = "_nxdomain-probe-#{SecureRandom.uuid}.#{custom_domain.display_domain}"
+        records  = [{ type: 'TXT', address: sentinel, match_against: 'probe-should-not-match' }]
+
+        res = client.check_records_match_exactly(api_key, records)
+        return :unknown unless res.code == 200
+
+        record = Array(res.parsed_response['records']).first
+        return :unknown if record.nil?
+
+        case record['actual_values']
+        when Array
+          # A non-empty array means a wildcard or misconfigured zone answered
+          # the probe. That is not evidence about NXDOMAIN handling.
+          record['actual_values'].empty? ? :distinguishes : :unknown
+        when false
+          :conflates
+        else
+          :unknown
+        end
+      rescue StandardError => ex
+        OT.lw "[ApproximatedStrategy] NXDOMAIN probe failed for #{custom_domain.display_domain}: #{ex.message}"
+        :unknown
+      end
+
+      # @param hostname [String]
+      # @return [Array<String>] TXT values; empty on NXDOMAIN or any failure
+      def native_txt_values(hostname)
+        resolver          = Resolv::DNS.new
+        resolver.timeouts = 5
+        resolver.getresources(hostname, Resolv::DNS::Resource::IN::TXT).map { |r| r.strings.join.strip }
+      rescue StandardError => ex
+        OT.lw "[ApproximatedStrategy] Native TXT lookup failed for #{hostname}: #{ex.message}"
+        []
+      ensure
+        resolver&.close
       end
     end
   end

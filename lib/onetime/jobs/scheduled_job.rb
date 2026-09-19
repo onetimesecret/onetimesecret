@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'rufus-scheduler'
+
 module Onetime
   module Jobs
     # Base class for scheduled jobs using rufus-scheduler
@@ -73,6 +75,15 @@ module Onetime
         end
 
         private
+
+        # Seconds in an interval, parsed the same way `every` schedules it, so
+        # a job deriving state from its own cadence can't disagree with the
+        # scheduler about how long that cadence is.
+        # @param interval [String, Numeric] Interval (e.g., '1h', '30m', 90)
+        # @return [Integer]
+        def interval_seconds(interval)
+          Rufus::Scheduler.parse_duration(interval).to_i
+        end
 
         # Execute block with error handling
         # Logs errors but doesn't re-raise to avoid crashing the scheduler
