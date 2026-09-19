@@ -227,6 +227,10 @@
     "text": "Domain not verified — click to verify",
     "content_hash": "a9806710"
   },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Domain verified — waiting for its certificate",
+    "content_hash": "541bd705"
+  },
   "web.domains.status_tooltip_unverified": {
     "text": "Domain status unverified — click to refresh",
     "content_hash": "a45aa76d"
@@ -426,6 +430,10 @@
   "web.domains.2_create_the_a_record": {
     "text": "2. Create the A record",
     "content_hash": "7b5aa1fc"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Create the ALIAS or ANAME record",
+    "content_hash": "17b04e6a"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
     "text": "Add this hostname to your DNS configuration:",

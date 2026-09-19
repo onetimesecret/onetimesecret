@@ -672,6 +672,10 @@
     "text": "Inactive",
     "content_hash": "ac7c949f"
   },
+  "web.COMMON.unknown": {
+    "text": "Unknown",
+    "content_hash": "b764cdc0"
+  },
   "web.COMMON.an_error_occurred": {
     "text": "An error occurred",
     "content_hash": "ddf785b7"
@@ -1072,6 +1076,10 @@
   "web.STATUS.inactive": {
     "text": "Inactive",
     "content_hash": "ac7c949f"
+  },
+  "web.STATUS.pending_ssl": {
+    "text": "Certificate pending",
+    "content_hash": "dd34f305"
   },
   "web.FEATURES.unlimited_views": {
     "text": "Unlimited Views",
