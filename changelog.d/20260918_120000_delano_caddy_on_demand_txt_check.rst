@@ -174,6 +174,17 @@ Fixed
   unexpected error during a verify is likewise reported as indeterminate
   rather than failed.
 
+- An internationalised custom domain that was entered in Unicode (for example
+  ``bücher.example``) is now found when it is looked up by its punycode form
+  (``xn--bcher-kva.example``), and the other way round. Caddy asks the
+  internal ACME endpoint about the punycode name and browsers send it in the
+  Host header, so such a domain was refused a certificate under
+  ``caddy_on_demand`` and was not recognised as a custom domain on incoming
+  requests. Stored domains are not changed. The second form of a name that is
+  already registered can no longer be added as a separate domain. A name that
+  cannot be converted (an overlong label, malformed punycode) is answered with
+  403 by the ACME endpoint.
+
 Documentation
 -------------
 
