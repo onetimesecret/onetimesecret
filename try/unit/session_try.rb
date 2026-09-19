@@ -406,6 +406,81 @@ call_private_method(@sidecar_session, :delete_session, MockRequestWithEnv.new, @
 [before, DB.exists("session:#{@orphan_sid}"), DB.exists("sidecar:#{@orphan_sid}:domain_context")]
 #=> [1, 0, 0]
 
+# ---- #4455: only activity resets the blob's TTL -------------------------
+#
+# The blob's TTL is an inactivity clock (the only one in simple auth mode). The
+# controlled clock here is the key's own TTL, moved with EXPIRE: the rule is
+# about what a write does to the time the blob has left, so that is what these
+# cases set and read. expire_after is 3600 for @sidecar_session.
+
+## an ordinary (activity) write resets the blob to expire_after
+@ttl_sid  = SecureRandom.hex(32)
+@ttl_data = { 'authenticated' => true, 'external_id' => "ur_ttl_#{SecureRandom.hex(4)}" }
+@activity_req = MockRequestWithEnv.new({}, { 'otto.route_options' => { auth: 'sessionauth' } })
+call_private_method(@sidecar_session, :write_session, @activity_req, @ttl_sid, @ttl_data, {})
+DB.expire("session:#{@ttl_sid}", 600)
+call_private_method(@sidecar_session, :write_session, @activity_req, @ttl_sid, @ttl_data, {})
+DB.ttl("session:#{@ttl_sid}") > 3590
+#=> true
+
+## a PASSIVE write keeps what the blob had left: polling alone, however often,
+## never extends the session
+DB.expire("session:#{@ttl_sid}", 600)
+@passive_req = MockRequestWithEnv.new({}, { 'otto.route_options' => { activity: 'passive' } })
+5.times { call_private_method(@sidecar_session, :write_session, @passive_req, @ttl_sid, @ttl_data, {}) }
+@after_polls = DB.ttl("session:#{@ttl_sid}")
+[@after_polls <= 600, @after_polls > 590]
+#=> [true, true]
+
+## ...and still stores what the request wrote: passive limits the clock, not
+## the write
+@ttl_data['poll_marker'] = 'kept'
+call_private_method(@sidecar_session, :write_session, @passive_req, @ttl_sid, @ttl_data, {})
+_psid, @polled_data = call_private_method(@sidecar_session, :find_session, MockRequestWithEnv.new, @ttl_sid)
+[@polled_data['poll_marker'], DB.ttl("session:#{@ttl_sid}") <= 600]
+#=> ['kept', true]
+
+## a request a session gate REFUSED keeps the remaining TTL too: a rejected
+## request cannot revive or extend the session it was refused under
+@refused_verdict = Onetime::CustomerSessionEvaluator::Verdict.new(status: :rejected, reason: :account_suspended)
+@refused_req = MockRequestWithEnv.new({}, { Onetime::CustomerSessionEvaluator::ENV_KEY => @refused_verdict })
+DB.expire("session:#{@ttl_sid}", 300)
+call_private_method(@sidecar_session, :write_session, @refused_req, @ttl_sid, @ttl_data, {})
+DB.ttl("session:#{@ttl_sid}") <= 300
+#=> true
+
+## one refused because verification was UNAVAILABLE likewise: an outage cannot
+## hand back a fresh deadline
+@outage_verdict = Onetime::CustomerSessionEvaluator::Verdict.new(status: :unavailable, reason: :active_session_unavailable)
+@outage_req = MockRequestWithEnv.new({}, { Onetime::CustomerSessionEvaluator::ENV_KEY => @outage_verdict })
+call_private_method(@sidecar_session, :write_session, @outage_req, @ttl_sid, @ttl_data, {})
+DB.ttl("session:#{@ttl_sid}") <= 300
+#=> true
+
+## real activity after the polls resets the clock again
+call_private_method(@sidecar_session, :write_session, @activity_req, @ttl_sid, @ttl_data, {})
+DB.ttl("session:#{@ttl_sid}") > 3590
+#=> true
+
+## a passive write of a session that does not exist yet gets the full TTL: the
+## fallback is never a key without an expiry
+@new_sid = SecureRandom.hex(32)
+call_private_method(@sidecar_session, :write_session, @passive_req, @new_sid, { 'csrf' => 'x' }, {})
+DB.ttl("session:#{@new_sid}") > 3590
+#=> true
+
+## ...and so does a blob that somehow lost its expiry (-1)
+DB.persist("session:#{@new_sid}")
+call_private_method(@sidecar_session, :write_session, @passive_req, @new_sid, { 'csrf' => 'x' }, {})
+DB.ttl("session:#{@new_sid}") > 3590
+#=> true
+
+## a request with no env (MockRequest) is activity, as before
+DB.expire("session:#{@ttl_sid}", 600)
+call_private_method(@sidecar_session, :write_session, MockRequest.new, @ttl_sid, @ttl_data, {})
+DB.ttl("session:#{@ttl_sid}") > 3590
+#=> true
+
 # ---- #4461: the sid is a bearer credential and is never logged ----------
 
 ## no log line from a write, a read or a delete carries the sid, at any level;
@@ -440,7 +515,7 @@ call_private_method(@log_session, :delete_session, MockRequestWithEnv.new, @log_
 #=> [false, false, 32]
 
 # Cleanup: sidecar fixtures (the TTL clamp would reap them anyway)
-[@sc_sid, @sw_sid, @bm_sid, @orphan_sid, @log_sid].compact.each do |sid|
+[@sc_sid, @sw_sid, @bm_sid, @orphan_sid, @ttl_sid, @new_sid, @log_sid].compact.each do |sid|
   DB.del("session:#{sid}")
   Onetime::SessionSidecar.purge(sid)
 end

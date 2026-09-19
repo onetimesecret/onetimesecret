@@ -647,21 +647,27 @@ module Onetime
       # the blob's). This runs before anything reads `authenticated` /
       # `external_id`, and those fields are never externalized, so the
       # TrackMetadata gate below is unaffected.
+      # The TTL this write gives the blob (#4455). Activity resets it to
+      # @expire_after, as always. A request that is not activity (a passive
+      # poll, or one a session gate refused) keeps whatever the blob had left.
+      # Read here, before the SET below replaces the key.
+      write_ttl = expiration_for_write(sid_string, request.respond_to?(:env) ? request.env : nil)
+
       begin
         merged_fields = request.respond_to?(:env) ? request.env['onetime.session.sidecar_merged'] : nil
-        # ceiling: the blob is refreshed to @expire_after immediately below in
-        # this same request, so @expire_after — not the blob's about-to-be-
-        # overwritten remaining TTL — is the authoritative clamp ceiling for the
-        # sidecar keys commit writes (SessionSidecar#ttl_ceiling treats a passed
-        # ceiling as `authoritative:`). This also covers the FIRST commit, where
-        # the blob key does not exist yet so no ceiling could be read off it.
+        # ceiling: the blob is set to write_ttl below in this same request, so
+        # write_ttl — not the blob's about-to-be-overwritten remaining TTL — is
+        # the authoritative clamp ceiling for the sidecar keys commit writes
+        # (SessionSidecar#ttl_ceiling treats a passed ceiling as
+        # `authoritative:`). This also covers the FIRST commit, where the blob
+        # key does not exist yet so no ceiling could be read off it.
         session_data  = Onetime::SessionSidecar.commit(
           sid_string,
           session_data,
           merged: merged_fields,
           dbclient: @dbclient,
           codec: @codec,
-          ceiling: @expire_after,
+          ceiling: write_ttl,
         )
       rescue StandardError => ex
         session_logger.error 'Sidecar commit failed (fields stay in blob)',
@@ -728,13 +734,16 @@ module Onetime
           operation: 'write',
         }
 
-      # Step 7: Update expiration if configured
-      if @expire_after && @expire_after > 0
-        stringkey.update_expiration(expiration: @expire_after)
+      # Step 7: Update expiration if configured. StringKey#set has already
+      # applied the default (@expire_after); this is what makes write_ttl win
+      # when the request was not activity.
+      if write_ttl && write_ttl > 0
+        stringkey.update_expiration(expiration: write_ttl)
         session_logger.trace 'Expiration updated',
           {
             session_handle: handle,
-            expire_after: @expire_after,
+            expire_after: write_ttl,
+            activity: write_ttl == @expire_after,
             operation: 'write',
           }
 
@@ -808,6 +817,42 @@ module Onetime
 
       # Return false to indicate failure
       false
+    end
+
+    # The TTL to give the blob on this write.
+    #
+    # The blob's TTL is an inactivity clock: the only one in simple auth mode,
+    # and the shorter of two in full mode. Resetting it on every write is what
+    # keeps an active user signed in, and is exactly what a request that is not
+    # activity must not do (Onetime::SessionActivity): a tab that only polls
+    # GET /bootstrap/me would otherwise never expire, and a session refused
+    # during an authdb outage would come back with a fresh deadline.
+    #
+    # Such a request keeps the blob's remaining TTL. Redis reports whole
+    # seconds rounded down, so repeated polls can only shorten it. A key that
+    # does not exist yet (-2: a new or regenerated session) or that has no
+    # expiry (-1) gets @expire_after, as does any failure to read the TTL:
+    # the fallback is today's behaviour, never an immortal key.
+    #
+    # The sidecar's snapshot_version counter is refreshed to @expire_after by
+    # its own allocator on every ordered request, poll included, so it may
+    # outlive the blob by less than @expire_after. It is purged with the
+    # session and TTL-bounded otherwise.
+    def expiration_for_write(sid_string, env)
+      return @expire_after if Onetime::SessionActivity.counts?(env)
+
+      remaining = get_stringkey(sid_string)&.ttl.to_i
+      return @expire_after unless remaining.positive?
+
+      @expire_after.to_i.positive? ? [remaining, @expire_after].min : remaining
+    rescue StandardError => ex
+      session_logger.warn 'Remaining session TTL unreadable; using the default',
+        {
+          session_handle: log_handle(sid_string),
+          error_class: ex.class.name,
+          operation: 'write',
+        }
+      @expire_after
     end
 
     # The identifier session log lines carry (#4461). The sid is the bearer
