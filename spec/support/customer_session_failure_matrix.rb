@@ -3,6 +3,23 @@
 require 'json'
 require 'nokogiri'
 
+# The cross-surface customer-session failure matrix (#4452), in executable
+# form. STATES is the machine-readable matrix: one row per session state, and
+# per row what every surface must answer. The prose twin, with the divergences
+# called out, is docs/authentication/customer-session-failure-matrix.md; change
+# them together.
+#
+# Row keys:
+#   verdict      CustomerSessionEvaluator status memoized for the request
+#   markers      the bracket marker the session strategy fails with, per surface
+#   protected    :refused (302 HTML / 401 API) or :authenticated
+#   public       what hydration and GET /bootstrap/me expose
+#   auth_status  the wire `auth_status` on both public surfaces (#4462)
+#   code, scope  the wire `code` / `code_scope` on the protected API 401
+#                (#4462); nil when the request is not refused
+#   ordered      whether both public surfaces carry the ADR-046 ordering pair
+#                (#4457): only a payload that reports a session does
+#   activity     what each surface does to the active-session row
 module CustomerSessionFailureMatrix
   SURFACES = {
     protected_html: { path: '/dashboard', accept: 'text/html' },
@@ -65,6 +82,10 @@ module CustomerSessionFailureMatrix
       verdict: :anonymous,
       protected: :refused,
       public: :anonymous,
+      auth_status: 'anonymous',
+      code: 'not_authenticated',
+      scope: 'customer_session',
+      ordered: false,
       activity: NO_ACTIVE_SESSION,
     },
     revoked: {
@@ -72,6 +93,10 @@ module CustomerSessionFailureMatrix
       verdict: :rejected,
       protected: :refused,
       public: :anonymous,
+      auth_status: 'anonymous',
+      code: 'active_session_revoked',
+      scope: 'customer_session',
+      ordered: false,
       activity: NO_ACTIVE_SESSION,
     },
     inactive: {
@@ -79,6 +104,10 @@ module CustomerSessionFailureMatrix
       verdict: :rejected,
       protected: :refused,
       public: :anonymous,
+      auth_status: 'anonymous',
+      code: 'active_session_revoked',
+      scope: 'customer_session',
+      ordered: false,
       activity: EXPIRED_ACTIVITY,
     },
     absolute_expired: {
@@ -86,6 +115,10 @@ module CustomerSessionFailureMatrix
       verdict: :rejected,
       protected: :refused,
       public: :anonymous,
+      auth_status: 'anonymous',
+      code: 'active_session_revoked',
+      scope: 'customer_session',
+      ordered: false,
       activity: EXPIRED_ACTIVITY,
     },
     legacy_unstamped: {
@@ -93,6 +126,10 @@ module CustomerSessionFailureMatrix
       verdict: :authenticated,
       protected: :authenticated,
       public: :identity_exposed,
+      auth_status: 'authenticated',
+      code: nil,
+      scope: nil,
+      ordered: true,
       activity: NO_ACTIVITY,
     },
     mfa_pending: {
@@ -100,6 +137,10 @@ module CustomerSessionFailureMatrix
       verdict: :mfa_pending,
       protected: :refused,
       public: :mfa_pending,
+      auth_status: 'mfa_pending',
+      code: 'awaiting_mfa',
+      scope: 'customer_session',
+      ordered: true,
       activity: NO_ACTIVITY,
     },
     suspended: {
@@ -107,6 +148,10 @@ module CustomerSessionFailureMatrix
       verdict: :rejected,
       protected: :refused,
       public: :anonymous,
+      auth_status: 'anonymous',
+      code: 'account_suspended',
+      scope: 'customer_session',
+      ordered: false,
       activity: NO_ACTIVITY,
     },
     credential_stale: {
@@ -114,6 +159,10 @@ module CustomerSessionFailureMatrix
       verdict: :rejected,
       protected: :refused,
       public: :anonymous,
+      auth_status: 'anonymous',
+      code: 'stale_credentials',
+      scope: 'customer_session',
+      ordered: false,
       activity: NO_ACTIVITY,
     },
     tenant_surface_mismatch: {
@@ -121,6 +170,10 @@ module CustomerSessionFailureMatrix
       verdict: :rejected,
       protected: :refused,
       public: :anonymous,
+      auth_status: 'anonymous',
+      code: 'surface_mismatch',
+      scope: 'customer_session',
+      ordered: false,
       activity: NO_ACTIVITY,
     },
     authentication_database_unavailable: {
@@ -128,6 +181,10 @@ module CustomerSessionFailureMatrix
       verdict: :unavailable,
       protected: :refused,
       public: :anonymous,
+      auth_status: 'unavailable',
+      code: 'active_session_unavailable',
+      scope: 'verification_unavailable',
+      ordered: false,
       activity: NO_ACTIVITY,
     },
     customer_storage_unavailable: {
@@ -135,6 +192,10 @@ module CustomerSessionFailureMatrix
       verdict: :unavailable,
       protected: :refused,
       public: :anonymous,
+      auth_status: 'unavailable',
+      code: 'customer_unavailable',
+      scope: 'verification_unavailable',
+      ordered: false,
       activity: NO_ACTIVITY,
     },
   }.freeze
@@ -203,10 +264,17 @@ module CustomerSessionFailureMatrix
       verdict: last_request.env[Onetime::CustomerSessionEvaluator::ENV_KEY]&.status,
       authenticated: payload&.fetch('authenticated', nil),
       awaiting_mfa: payload&.fetch('awaiting_mfa', nil),
+      auth_status: payload&.fetch('auth_status', nil),
+      snapshot_epoch: payload&.fetch('snapshot_epoch', nil),
+      snapshot_version: payload&.fetch('snapshot_version', nil),
+      snapshot_keys: payload ? payload.keys.grep(/\Asnapshot_/).sort : [],
+      session_id_exposed: body.include?(current_session_id.to_s) && !current_session_id.to_s.empty?,
       customer_exposed: payload ? !payload['cust'].nil? : body.include?(@matrix_customer.extid),
       identity_exposed: body.include?(@matrix_customer.email) || body.include?(@matrix_customer.extid),
       refusal_markers: markers.compact.uniq,
       refusal_code: refusal_code(body),
+      refusal_body: refusal_body(body),
+      cache_control: last_response.headers['cache-control'],
       request_id: response_request_id(last_response),
     }
   end
@@ -216,6 +284,15 @@ module CustomerSessionFailureMatrix
     parsed['code'] || parsed['error_type'] || parsed['error']
   rescue JSON::ParserError
     body[/\[(?<marker>[A-Z0-9_]+)\]/, :marker]
+  end
+
+  # The parsed JSON refusal, for asserting that the pre-#4462 fields are
+  # unchanged. nil for a non-JSON body (the protected-HTML redirect).
+  def refusal_body(body)
+    parsed = JSON.parse(body)
+    parsed.is_a?(Hash) && parsed.key?('error') ? parsed : nil
+  rescue JSON::ParserError
+    nil
   end
 
   def response_request_id(response)
@@ -356,6 +433,93 @@ module CustomerSessionFailureMatrix
       allow(Auth::Database).to receive(:connection).and_call_original
     when :customer_storage_unavailable
       allow(Onetime::Customer).to receive(:find_by_extid).and_call_original
+    end
+  end
+
+  def public_surface?(surface)
+    %i[hydrated_html bootstrap].include?(surface)
+  end
+
+  # Hydration and GET /bootstrap/me: always 200, never a refusal code, and the
+  # status with both of its projections in agreement (#4462).
+  def expect_public_observation(observation, expectation)
+    expect(observation[:status]).to eq(200)
+    expect(observation[:refusal_code]).to be_nil
+    expect(observation[:cache_control]).to eq('private, no-store')
+    expect(observation[:session_id_exposed]).to be(false)
+
+    auth_status = expectation.fetch(:auth_status)
+    expect(observation[:auth_status]).to eq(auth_status)
+    expect(observation[:authenticated]).to be(auth_status == 'authenticated')
+    expect(observation[:awaiting_mfa]).to be(auth_status == 'mfa_pending')
+
+    expect_snapshot_ordering(observation, expectation.fetch(:ordered))
+
+    case expectation.fetch(:public)
+    when :anonymous
+      expect(observation).to include(customer_exposed: false, identity_exposed: false)
+    when :mfa_pending
+      expect(observation).to include(customer_exposed: false, identity_exposed: false)
+      expect(observation.fetch(:payload)).to include(MFA_PROTECTED_ACCOUNT_FIELDS)
+    when :identity_exposed
+      expect(observation).to include(customer_exposed: true, identity_exposed: true)
+    else
+      raise ArgumentError, "unknown public verdict: #{expectation.fetch(:public)}"
+    end
+  end
+
+  # ADR-046: the pair labels a snapshot that reports a session, and is OMITTED
+  # (never null) from one that does not. A session end therefore reaches the
+  # client as a plain unordered payload whatever happened to the counter.
+  def expect_snapshot_ordering(observation, ordered)
+    if ordered
+      expect(observation[:snapshot_epoch]).to match(/\A[0-9a-f]{32}\z/)
+      expect(observation[:snapshot_version]).to match(/\A[1-9][0-9]*\z/)
+      expect(observation[:snapshot_keys]).to eq(%w[snapshot_epoch snapshot_generated_at snapshot_version])
+    else
+      expect(observation[:snapshot_keys]).to eq([])
+    end
+  end
+
+  # Protected HTML and the protected API. The status, the redirect, and the
+  # pre-#4462 body fields are asserted unchanged; `code` / `code_scope` are
+  # additive, and only on the JSON refusal.
+  def expect_protected_observation(observation, expectation, surface)
+    case expectation.fetch(:protected)
+    when :refused
+      expect(observation).to include(identity_exposed: false, customer_exposed: false)
+
+      if surface == :protected_html
+        expect(observation[:status]).to eq(302)
+        expect(observation[:refusal_code]).to be_nil
+        expect(observation[:refusal_body]).to be_nil
+      else
+        expect(observation[:status]).to eq(401)
+        expect(observation[:refusal_code]).to eq(expectation.fetch(:code))
+        # `message` is NOT the session marker on this route. /api/account/ is
+        # `auth=sessionauth,basicauth`, and Otto renders the LAST failure in
+        # the chain: basicauth's, which for a browser is always the missing
+        # header. Before #4462 that made every session refusal on the API
+        # indistinguishable on the wire; `code` is what carries the typed
+        # verdict across. The session marker is still asserted, from the
+        # strategy itself, through observation[:refusal_markers].
+        expect(observation[:refusal_body]).to include(
+          'error' => 'Authentication Required',
+          'message' => '[AUTH_HEADER_MISSING] No authorization header',
+          'timestamp' => a_kind_of(Integer),
+          'code' => expectation.fetch(:code),
+          'code_scope' => expectation.fetch(:scope),
+        )
+        expect(observation[:refusal_body].keys).to contain_exactly(
+          'error', 'message', 'timestamp', 'code', 'code_scope'
+        )
+      end
+    when :authenticated
+      expect(observation[:status]).to eq(200)
+      expect(observation[:refusal_code]).to be_nil
+      expect(observation).to include(identity_exposed: true, customer_exposed: true)
+    else
+      raise ArgumentError, "unknown protected verdict: #{expectation.fetch(:protected)}"
     end
   end
 
