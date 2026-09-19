@@ -406,8 +406,41 @@ call_private_method(@sidecar_session, :delete_session, MockRequestWithEnv.new, @
 [before, DB.exists("session:#{@orphan_sid}"), DB.exists("sidecar:#{@orphan_sid}:domain_context")]
 #=> [1, 0, 0]
 
+# ---- #4461: the sid is a bearer credential and is never logged ----------
+
+## no log line from a write, a read or a delete carries the sid, at any level;
+## each carries the non-reversible handle instead
+class SessionLogCapture
+  attr_reader :lines
+
+  def initialize
+    @lines = []
+  end
+
+  %i[trace debug info warn error fatal].each do |level|
+    define_method(level) { |message, payload = nil| @lines << [level, message, payload] }
+  end
+end
+@capture     = SessionLogCapture.new
+@log_session = Session.new(@app, { secret: @secret, key: 'test.session', expire_after: 3600, namespace: 'session' })
+capture      = @capture
+@log_session.define_singleton_method(:session_logger) { capture }
+@log_sid = SecureRandom.hex(32)
+call_private_method(@log_session, :write_session, MockRequestWithEnv.new, @log_sid, { 'authenticated' => false }, {})
+call_private_method(@log_session, :find_session, MockRequestWithEnv.new, @log_sid)
+call_private_method(@log_session, :find_session, MockRequestWithEnv.new, 'not-a-valid-sid')
+call_private_method(@log_session, :delete_session, MockRequestWithEnv.new, @log_sid, {})
+@logged  = @capture.lines.map(&:inspect).join("\n")
+@handle  = Onetime::SessionMetadata.handle_for(@log_sid)
+[@capture.lines.size > 10, @logged.include?(@log_sid), @logged.include?('not-a-valid-sid'), @logged.include?(@handle)]
+#=> [true, false, false, true]
+
+## the handle is not the sid, nor a prefix or substring of it
+[@handle == @log_sid, @log_sid.include?(@handle), @handle.length]
+#=> [false, false, 32]
+
 # Cleanup: sidecar fixtures (the TTL clamp would reap them anyway)
-[@sc_sid, @sw_sid, @bm_sid, @orphan_sid].compact.each do |sid|
+[@sc_sid, @sw_sid, @bm_sid, @orphan_sid, @log_sid].compact.each do |sid|
   DB.del("session:#{sid}")
   Onetime::SessionSidecar.purge(sid)
 end
