@@ -669,6 +669,10 @@ module Core
         # optional require_verified/default fields; everything else stays
         # server-side.
         #
+        # validation_strategy goes out under its canonical name: the config
+        # accepts aliases and any letter case ("caddy", "External"), and the
+        # frontend matches canonical names only.
+        #
         # @param domains [Hash] Raw domains config from features
         # @return [Hash] Frontend-safe domains fields
         def transform_domains(domains)
@@ -676,7 +680,8 @@ module Core
             'enabled' => domains.fetch('enabled', false),
             'require_verified' => domains.fetch('require_verified', false),
             'default' => domains['default'],
-            'validation_strategy' => domains.fetch('validation_strategy', 'passthrough'),
+            'validation_strategy' => Onetime::DomainValidation::Features
+              .effective_strategy_name(domains['validation_strategy']),
           }
         end
 
