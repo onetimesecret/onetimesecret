@@ -1453,10 +1453,23 @@ describe('features utility', () => {
       expect(isDomainOwnershipCheckedOf({ domains: { validation_strategy: 'constructor' } })).toBe(
         false
       );
-      expect(isDomainOwnershipCheckedOf({ domains: { validation_strategy: 'Approximated' } })).toBe(
-        false
-      );
     });
+
+    // Only canonical names are expected here. The config accepts aliases and
+    // any letter case ('caddy', 'external', 'Approximated'), and the backend
+    // resolves them before they leave it
+    // (DomainValidation::Features.effective_strategy_name, used by
+    // Features.safe_dump and ConfigSerializer#transform_domains). An alias
+    // reaching the frontend is a producer defect, so it gets no capabilities
+    // here instead of a second alias table to keep in step.
+    it.each(['Approximated', 'caddy', 'Caddy_On_Demand', 'external'])(
+      'does not interpret the non-canonical spelling %s',
+      (strategy) => {
+        expect(isDomainOwnershipCheckedOf({ domains: { validation_strategy: strategy } })).toBe(
+          false
+        );
+      }
+    );
 
     it('returns false when domains or validation_strategy is absent', () => {
       expect(isDomainOwnershipCheckedOf({})).toBe(false);
