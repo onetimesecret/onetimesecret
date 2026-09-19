@@ -6,6 +6,7 @@ import type { ReceiptList, ReceiptListDetails } from '@/schemas/shapes/v3/receip
 import { loggingService } from '@/services/logging.service';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { useApi } from '@/shared/composables/useApi';
+import type { AxiosRequestConfig } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { ref, type Ref } from 'vue';
 
@@ -22,6 +23,12 @@ export interface FetchListOptions {
   domainExtid?: string;
   /** If true, errors will not trigger user notifications (for background refreshes) */
   silent?: boolean;
+  /**
+   * True when no person caused this fetch (a timer or a tab-visibility
+   * refresh). The request is then declared passive and does not count as
+   * session activity. Never set it for navigation or a user action.
+   */
+  passive?: boolean;
 }
 
 /**
@@ -85,7 +92,10 @@ export const useReceiptListStore = defineStore('receiptList', () => {
     if (options.scope) params.scope = options.scope;
     if (options.domainExtid) params.domain_extid = options.domainExtid;
 
-    const response = await $api.get('/api/v3/receipt/recent', { params });
+    const config: AxiosRequestConfig = { params };
+    if (options.passive === true) config.passive = true;
+
+    const response = await $api.get('/api/v3/receipt/recent', config);
 
     const result = gracefulParse(
       responseSchemas.receiptList,
