@@ -395,6 +395,23 @@ call_private_method(@sidecar_session, :delete_session, MockRequestWithEnv.new, @
 [DB.exists("session:#{@sc_sid}"), DB.exists("sidecar:#{@sc_sid}:domain_context")]
 #=> [0, 0]
 
+## delete_session destroys the sid-keyed metadata record too, so an ended
+## session's id does not stay readable in a key name until that record's TTL
+@md_sid = SecureRandom.hex(32)
+Onetime::SessionMetadata.new(session_id: @md_sid, user_id: 'ur_try').save
+@md_before = Onetime::SessionMetadata.load(@md_sid).nil?
+call_private_method(@sidecar_session, :delete_session, MockRequestWithEnv.new, @md_sid, {})
+[@md_before, Onetime::SessionMetadata.load(@md_sid).nil?, DB.keys("session_metadata:#{@md_sid}*")]
+#=> [false, true, []]
+
+## A cookie naming an id with NO blob is never adopted: the empty session
+## starts under a server-generated id (stock Rack behaviour), whether the id
+## was never issued, expired, or ended on purpose
+@unknown_sid = SecureRandom.hex(32)
+unk_sid, unk_data = call_private_method(@sidecar_session, :find_session, MockRequestWithEnv.new, @unknown_sid)
+[unk_sid.public_id == @unknown_sid, unk_sid.public_id.length, unk_data]
+#=> [false, 64, {}]
+
 ## delete_session purges orphaned sidecar keys even when the blob is ALREADY
 ## gone — the purge is unconditional, not gated on the blob still existing (the
 ## pre-#4391 router-level behavior). Seed a sidecar for a fresh sid with NO
