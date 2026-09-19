@@ -3,8 +3,10 @@
 # frozen_string_literal: true
 
 require 'public_suffix'
+require 'simpleidn'
 
 require_relative 'field_types'
+require_relative '../domain_validation/ascii_hostname'
 
 module Onetime
   # Custom Domain
@@ -69,6 +71,9 @@ module Onetime
       MAX_SUBDOMAIN_DEPTH = 10  # e.g. a.b.c.d.e.f.g.h.i.j.example.com
       MAX_TOTAL_LENGTH    = 253 # RFC 1034 section 3.1
     end
+
+    # Marks an A-label ("xn--bcher-kva"), the ASCII form of a Unicode label.
+    IDN_ACE_PREFIX = 'xn--' unless defined?(IDN_ACE_PREFIX)
 
     using Familia::Refinements::TimeLiterals
 
@@ -710,18 +715,17 @@ module Onetime
       # @param domain_name [String] The domain name to look up
       # @return [CustomDomain, nil] The domain if found, nil otherwise
       def load_by_display_domain(domain_name)
-        normalized = domain_name.to_s.downcase
-        domainid   = display_domain_index.get(normalized)
+        domainid = display_domain_id_for(domain_name)
         return nil if domainid.nil?
 
         # Use Familia's find_by_identifier method
         find_by_identifier(domainid)
       rescue Redis::BaseError => ex
-        OT.ld "[CustomDomain.load_by_display_domain] Failed to load domain #{normalized} with id #{domainid}: #{ex.message}"
+        OT.ld "[CustomDomain.load_by_display_domain] Failed to load domain #{domain_name.inspect} with id #{domainid}: #{ex.message}"
         nil
       rescue StandardError => ex
         # Fail-open: Redis errors during lookup should not block the request
-        OT.le "[CustomDomain.load_by_display_domain] Unexpected error for #{normalized}: #{ex.class} - #{ex.message}"
+        OT.le "[CustomDomain.load_by_display_domain] Unexpected error for #{domain_name.inspect}: #{ex.class} - #{ex.message}"
         nil
       end
 
@@ -736,12 +740,73 @@ module Onetime
       def resolve_domain_id(fqdn)
         return nil if fqdn.nil? || fqdn.to_s.empty?
 
-        domain_id = display_domain_index.get(fqdn)
+        domain_id = display_domain_id_for(fqdn)
         OT.ld "[CustomDomain] Resolved #{fqdn} to domain_id=#{domain_id}" if domain_id
         domain_id
       rescue StandardError => ex
         OT.le "[CustomDomain] Failed to resolve domain_id for #{fqdn}: #{ex.message}"
         nil
+      end
+
+      # The one read of display_domain_index that every lookup by name goes
+      # through (load_by_display_domain, from_display_domain,
+      # resolve_domain_id).
+      #
+      # display_domain is stored as the customer typed it, so an
+      # internationalised name may be indexed in Unicode ("bücher.example")
+      # or in A-label form ("xn--bcher-kva.example"). Names that arrive over
+      # the wire are always A-labels: the SNI name Caddy hands to the ACME
+      # ask endpoint, and the Host header. Both forms name the same domain,
+      # so a miss on the name as given is retried with its other forms
+      # (see display_domain_lookup_keys). Stored data is not rewritten.
+      #
+      # When both forms were registered as separate records before this
+      # lookup existed, each is still found by its own exact name first.
+      #
+      # @param domain_name [String, #to_s]
+      # @return [String, nil] The CustomDomain objid, or nil
+      # @raise [Redis::BaseError] if reading the index fails
+      def display_domain_id_for(domain_name)
+        display_domain_lookup_keys(domain_name).each do |key|
+          domain_id = display_domain_index.get(key)
+          return domain_id if domain_id
+        end
+
+        nil
+      end
+
+      # Index keys to try for a name, in order: the name as given
+      # (lower-case), then its A-label form, then its Unicode (NFC) form.
+      #
+      # A plain ASCII name has one key, so the common lookup costs one read
+      # and no conversion. A name that cannot be converted (overlong label,
+      # malformed punycode, invalid bytes) keeps whatever keys could be
+      # built; the lookup misses and nothing raises.
+      #
+      # Not covered: a Unicode name that was stored in a normalisation form
+      # other than NFC is only found by the exact bytes it was stored with.
+      #
+      # @param domain_name [String, #to_s]
+      # @return [Array<String>] one to three distinct keys; empty for a
+      #   blank or unreadable name
+      def display_domain_lookup_keys(domain_name)
+        name = domain_name.to_s
+        return [] if name.empty? || !name.valid_encoding?
+
+        typed = name.downcase
+        return [typed] if typed.ascii_only? && !typed.include?(IDN_ACE_PREFIX)
+
+        [typed, *idn_forms(typed)].uniq
+      end
+
+      # @return [Array<String>] A-label form, then Unicode form; fewer when a
+      #   conversion fails
+      def idn_forms(name)
+        ascii = Onetime::DomainValidation::AsciiHostname.call(name)
+        [ascii, SimpleIDN.to_unicode(ascii).unicode_normalize(:nfc)]
+      rescue StandardError => ex
+        OT.ld "[CustomDomain] No alternate form for #{name.inspect}: #{ex.class}: #{ex.message}"
+        [ascii].compact
       end
 
       # Check if a domain exists but has no organization (orphaned)
@@ -1319,11 +1384,9 @@ module Onetime
       # @return [Onetime::CustomDomain, nil]
       # @raise [Redis::BaseError] if reading the index or domain record fails
       def from_display_domain(display_domain)
-        normalized = display_domain.to_s.downcase
-        return nil if normalized.empty?
-
-        # Get the domain ID from the display_domain_index hash
-        domain_id = display_domain_index.get(normalized)
+        # Get the domain ID from the display_domain_index hash, trying the
+        # name's A-label and Unicode forms too (display_domain_id_for)
+        domain_id = display_domain_id_for(display_domain)
         return nil unless domain_id
 
         # Load the record using the domain ID
