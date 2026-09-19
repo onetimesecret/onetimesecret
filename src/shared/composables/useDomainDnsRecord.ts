@@ -75,8 +75,8 @@ export function useDomainDnsRecord(
   });
 
   // '@' at the zone root for apex domains, otherwise the subdomain label.
-  // Keyed on is_apex — not trd's truthiness — so a blank trd on a non-apex
-  // record doesn't silently read '@'.
+  // A non-apex record with a blank trd also reads '@', as it did before this
+  // composable existed.
   const recordHost = computed(() => (isApex.value ? '@' : toValue(domain)?.trd || '@'));
 
   // The base domain for context. Apex has no leading dot ('@' + example.com);
