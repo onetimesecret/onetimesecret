@@ -287,6 +287,59 @@ RSpec.describe Core::Views::BaseView do
     end
   end
 
+  # ADR-046 / #4457. The view passes the middleware's allocation through only
+  # for a payload that reports a session, and a failed allocation degrades the
+  # hydration payload instead of failing the render.
+  describe 'bootstrap snapshot ordering' do
+    let(:allocation) do
+      {
+        epoch: '0123456789abcdef0123456789abcdef',
+        version: '1758236400000001',
+        generated_at: '2026-09-17T17:28:59.123456Z',
+      }
+    end
+
+    let(:logger) { spy('session_logger') }
+
+    before { allow(Onetime).to receive(:session_logger).and_return(logger) }
+
+    it 'emits the pair the middleware allocated for an authenticated snapshot' do
+      rack_request.env[Onetime::SnapshotOrdering::ENV_KEY] = allocation
+
+      expect(subject.serialized_data).to include(
+        'auth_status' => 'authenticated',
+        'snapshot_epoch' => allocation[:epoch],
+        'snapshot_version' => allocation[:version],
+        'snapshot_generated_at' => allocation[:generated_at],
+      )
+    end
+
+    it 'renders a degraded hydration payload when allocation failed: no pair, one diagnostic', :aggregate_failures do
+      rack_request.env[Onetime::SnapshotOrdering::ENV_KEY] = { error: 'Redis::CannotConnectError' }
+      rack_request.env['HTTP_X_REQUEST_ID']                = 'req-degraded'
+
+      data = subject.serialized_data
+
+      expect(data).to include('auth_status' => 'authenticated', 'authenticated' => true)
+      expect(data.keys.grep(/\Asnapshot_/)).to be_empty
+      expect(logger).to have_received(:warn).with(
+        'Bootstrap snapshot serialized without ordering',
+        { module: 'InitializeViewVars', error: 'Redis::CannotConnectError', request_id: 'req-degraded' },
+      )
+    end
+
+    it 'never labels a payload that reports no session, even if an allocation exists' do
+      rack_request.env[Onetime::SnapshotOrdering::ENV_KEY] = allocation
+      session['authenticated']                             = false
+
+      data = described_class.new(rack_request).serialized_data
+
+      expect(data).to include('auth_status' => 'anonymous', 'authenticated' => false)
+      expect(data.keys.grep(/\Asnapshot_/)).to be_empty
+      expect(logger).not_to have_received(:warn).with('Bootstrap snapshot serialized without ordering', anything)
+    end
+  end
+
   describe '#add_message' do
     it 'adds info message to messages array' do
       subject.add_message('Test message')

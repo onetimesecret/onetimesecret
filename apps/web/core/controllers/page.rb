@@ -2,12 +2,22 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/application/error_correlation'
+
 require_relative 'base'
 
 module Core
   module Controllers
     class Page
       include Controllers::Base
+
+      # ADR-046 step 7. `retry_after` reaches the client as the Retry-After
+      # header through Onetime::Middleware::RetryAfterHeader.
+      SNAPSHOT_ORDERING_UNAVAILABLE = {
+        error: 'Snapshot ordering unavailable',
+        error_type: 'SnapshotOrderingUnavailable',
+        retry_after: 5,
+      }.freeze
 
       # GET /colonel and /colonel/* (role=colonel).
       #
@@ -56,9 +66,21 @@ module Core
 
         # Simplified: BaseView now extracts everything from req
         view                         = Core::Views::BootstrapMe.new(req)
+        data                         = view.serialized_data
         res.headers['content-type']  = 'application/json; charset=utf-8'
+        # On the 503 as well: a stored failure replayed later would read as a
+        # fresh one (ADR-046, "Response caching").
         res.headers['cache-control'] = 'private, no-store'
-        res.body                     = view.serialized_data.to_json
+
+        if snapshot_unordered?(data)
+          res.status = 503
+          res.body   = Onetime::Application::ErrorCorrelation.apply(
+            SNAPSHOT_ORDERING_UNAVAILABLE.dup, req.env
+          ).to_json
+          return
+        end
+
+        res.body = data.to_json
       end
 
       def robots_txt
@@ -98,6 +120,22 @@ module Core
           res.write(logic.icon_data)
           res.finish
         end
+      end
+
+      private
+
+      # A snapshot that reports a session must carry the ordering pair
+      # (ADR-046): the server never labels an unversioned payload as ordered,
+      # and never hands an ordered tab a session snapshot it cannot place. The
+      # client treats the 503 as a failed refresh and keeps its last accepted
+      # state.
+      #
+      # A snapshot that reports NO session is served as it is, pair or not.
+      # Session expiry, revocation and logout reach the tab that way, and an
+      # ordering outage must never be able to withhold them.
+      def snapshot_unordered?(data)
+        reports_session = data['authenticated'] == true || data['awaiting_mfa'] == true
+        reports_session && data['snapshot_version'].nil?
       end
     end
   end

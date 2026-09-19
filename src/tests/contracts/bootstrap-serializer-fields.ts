@@ -140,6 +140,12 @@ export const SYSTEM_SERIALIZER_FIELDS = [
   'ot_version_long',
   'ruby_version',
   'shrimp',
+  // Snapshot ordering (ADR-046). Declared in the output_template but emitted
+  // only for an ordered session (authenticated or MFA-pending); the keys are
+  // OMITTED otherwise, never null.
+  'snapshot_epoch',
+  'snapshot_version',
+  'snapshot_generated_at',
 ] as const;
 
 // ============================================================================

@@ -137,6 +137,10 @@ export const baseBootstrap: BootstrapPayload = {
   // fields (see the matching `DEFAULTS` comment in bootstrapStore.ts).
   customer_since: undefined,
   organization: undefined,
+  // Snapshot ordering (ADR-046): absent unless the session is ordered.
+  snapshot_epoch: undefined,
+  snapshot_version: undefined,
+  snapshot_generated_at: undefined,
   entitlement_preview_planid: undefined,
   entitlement_preview_plan_name: undefined,
   nonce: null,
@@ -208,6 +212,17 @@ export const mfaPendingBootstrap: BootstrapPayload = {
   custid: mockCustomer.extid,
   email: mockCustomer.email,
 };
+
+/**
+ * A valid ADR-046 ordering pair, for an ordered (authenticated or
+ * MFA-pending) snapshot. Spread into a scenario fixture and override
+ * `snapshot_version` to build a sequence.
+ */
+export const snapshotOrdering = {
+  snapshot_epoch: '0123456789abcdef0123456789abcdef',
+  snapshot_version: '1758236400000001',
+  snapshot_generated_at: '2026-09-17T17:28:59.123456Z',
+} as const;
 
 /**
  * Colonel (admin) user bootstrap state.
