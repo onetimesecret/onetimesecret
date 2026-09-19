@@ -46,6 +46,27 @@ const DOMAIN_CONTEXT_HEADER = 'O-Domain-Context';
 const DOMAIN_CONTEXT_STORAGE_KEY = 'domainContext';
 
 /**
+ * Passive-request declaration (ADR-048, RISK-2026-09-19-04).
+ *
+ * A request made with `{ passive: true }` carries `X-Session-Activity:
+ * passive`. The server (`Onetime::SessionActivity`) still verifies the session
+ * in full but does not move the inactivity clock, so the background refreshes
+ * of an unattended tab cannot keep its session alive. It reads the header on
+ * GET and HEAD only and it is never an input to authorization; the same
+ * allowlist is applied here so the option cannot appear to work on a write.
+ *
+ * This is the only place the wire name is spelled. Callers pass the `passive`
+ * request option (see src/types/declarations/axios.d.ts).
+ */
+export const SESSION_ACTIVITY_HEADER = 'X-Session-Activity';
+export const SESSION_ACTIVITY_PASSIVE = 'passive';
+const PASSIVE_DECLARABLE_METHODS = new Set(['get', 'head']);
+
+const declaresPassive = (config: InternalAxiosRequestConfig): boolean =>
+  config.passive === true &&
+  PASSIVE_DECLARABLE_METHODS.has((config.method ?? 'get').toLowerCase());
+
+/**
  * Gets the domain context override from sessionStorage.
  * @returns The domain context value or null if not set
  */
@@ -83,6 +104,12 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
     }
   } catch {
     // Pinia not yet active during app bootstrap — request proceeds without store headers
+  }
+
+  // Timer- and visibility-driven reads declare themselves passive. Set per
+  // request, from the request's own option; never an instance default.
+  if (declaresPassive(config)) {
+    config.headers[SESSION_ACTIVITY_HEADER] = SESSION_ACTIVITY_PASSIVE;
   }
 
   // Add domain context override header if set (development feature)
