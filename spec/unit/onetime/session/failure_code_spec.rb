@@ -59,6 +59,25 @@ RSpec.describe Onetime::SessionFailureCode do
     expect(described_class.for(:no_such_reason)).to eq({})
   end
 
+  # The frontend's copy of the table. Both halves must change together; this
+  # is the check that fails when only one does.
+  describe 'parity with src/schemas/contracts/session-failure.ts' do
+    let(:source) { File.read(File.join(Onetime::HOME, 'src/schemas/contracts/session-failure.ts')) }
+
+    it 'lists the same codes with the same scopes' do
+      block    = source[/export const SESSION_FAILURE_CODES = \{(.*?)\} as const/m, 1]
+      frontend = block.scan(/^\s*(\w+): '(\w+)',$/).to_h
+
+      expect(frontend).to eq(described_class::CODES.to_h { |reason, entry| [reason.to_s, entry['code_scope']] })
+    end
+
+    it 'lists the same emitted scopes' do
+      block = source[/export const sessionFailureScopeValues = \[(.*?)\] as const/m, 1]
+
+      expect(block.scan(/^\s*'(\w+)',$/).flatten).to match_array(described_class::SCOPES)
+    end
+  end
+
   it 'is deeply frozen so a caller cannot edit the contract at runtime' do
     expect(described_class::CODES).to be_frozen
     expect(described_class::CODES.values).to all(be_frozen)
