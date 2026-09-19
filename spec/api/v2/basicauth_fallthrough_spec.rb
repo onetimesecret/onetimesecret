@@ -105,6 +105,17 @@ RSpec.describe 'API v2 Basic auth anonymous fallthrough (fail closed)', type: :i
       body = JSON.parse(last_response.body)
       expect(body['message']).to include('CREDENTIALS_INVALID')
     end
+
+    # #4462: `code` is a statement about the customer session. A rejected API
+    # credential is `credential` scope (reserved, #4469) and stays uncoded,
+    # with the 401 body otherwise exactly as Otto renders it.
+    it 'carries no session-failure code (a rejected credential is not a session verdict)' do
+      json_get unknown_secret_path,
+        authorization: basic_header("nobody_#{SecureRandom.uuid}@example.com", 'not_a_real_key')
+      body = JSON.parse(last_response.body)
+      expect(body.keys).to contain_exactly('error', 'message', 'timestamp')
+      expect(body['error']).to eq('Authentication Required')
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -291,6 +302,17 @@ RSpec.describe 'API v2 Basic auth anonymous fallthrough (fail closed)', type: :i
     it 'returns 401 with no Authorization header (unchanged)' do
       json_get '/api/v2/receipt/recent'
       expect(last_response.status).to eq(401)
+    end
+
+    # No session strategy is in this chain, so nothing examined the customer
+    # session and the refusal makes no statement about it (#4462).
+    it 'carries no session-failure code with or without credentials' do
+      json_get '/api/v2/receipt/recent'
+      expect(JSON.parse(last_response.body).keys).to contain_exactly('error', 'message', 'timestamp')
+
+      json_get '/api/v2/receipt/recent',
+        authorization: basic_header("nobody_#{SecureRandom.uuid}@example.com", 'not_a_real_key')
+      expect(JSON.parse(last_response.body).keys).to contain_exactly('error', 'message', 'timestamp')
     end
   end
 end
