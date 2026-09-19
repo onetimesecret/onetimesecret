@@ -109,8 +109,9 @@ describe('bootstrapStore: single authentication authority (#4458)', () => {
     });
 
     it('invalid hydration is `checking`: config kept, identity withheld', () => {
-      // `shrimp: null` fails the contract (`.default('')` rejects null).
-      hydrate({ ...accountA, locale: 'fr', shrimp: null });
+      // A wrong TYPE fails the contract. A null would not: on the wire it
+      // means "not emitted" (withoutWireNulls) and reads as the default.
+      hydrate({ ...accountA, locale: 'fr', shrimp: 42 });
       store.init();
 
       expect(store.authStatus).toBe('checking');

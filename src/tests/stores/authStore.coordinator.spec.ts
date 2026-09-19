@@ -281,7 +281,7 @@ describe('authStore refresh coordinator (#4459)', () => {
       ['a timeout', (mock) => mock.onGet(ENDPOINT).timeout()],
       ['a 500', (mock) => mock.onGet(ENDPOINT).reply(500)],
       ['a 503 (snapshot ordering unavailable)', (mock) => mock.onGet(ENDPOINT).reply(503, { error: 'x' }, { 'retry-after': '5' })],
-      ['a payload that fails the contract', (mock) => mock.onGet(ENDPOINT).reply(200, { ...toWire(authenticatedBootstrap), shrimp: null })],
+      ['a payload that fails the contract', (mock) => mock.onGet(ENDPOINT).reply(200, { ...toWire(authenticatedBootstrap), shrimp: 42 })],
       ['a snapshot that says `unavailable`', (mock) => mock.onGet(ENDPOINT).reply(200, toWire(unavailableBootstrap))],
     ];
 
