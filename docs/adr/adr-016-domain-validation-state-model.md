@@ -236,6 +236,14 @@ under `caddy_on_demand`: an install keeps them configured after a cutover for
 the orphaned-vhost chore, and showing them would send new domains to
 Approximated.
 
+The Colonel domain DNS panel (`AdminDomainDnsDetails`, on the domain detail
+page and in the domains list) built the same step from `cluster.proxy_ip` /
+`proxy_host` under every strategy, so an operator relaying it after a cutover
+gave out the Approximated targets. It now uses `useDomainDnsRecord` too, with
+the strategy taken from the `cluster` in the Colonel response
+(`Features.safe_dump`, which carries the canonical strategy name), and only
+says "the proxy" when the record points at one.
+
 `useDomainStatus.ts` is still keyed on the blob's `status`, not on
 `validation_strategy`; the Decision's per-strategy keying turned out not to
 be needed because the probe writes the shared values. `PENDING_SSL` is the
