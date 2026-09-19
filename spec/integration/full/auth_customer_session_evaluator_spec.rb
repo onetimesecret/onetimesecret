@@ -35,6 +35,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
     expect(reasons).not_to be_empty
     expect(reasons).to all(eq(:authenticated))
     expect(last_request.env).not_to have_key(Onetime::CustomerSessionEvaluator::ENV_KEY)
+    expect(last_request.env).not_to have_key(Onetime::ActiveSessionGate::ENV_KEY)
   end
 
   it 'destroys a revoked session and retains the established 401 JSON response' do
