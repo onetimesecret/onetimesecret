@@ -55,6 +55,10 @@ RSpec.describe Onetime::SessionSurface do
       expect(described_class.for_env({})).to be_nil
     end
 
+    it 'returns nil when there is no Rack env' do
+      expect(described_class.for_env(nil)).to be_nil
+    end
+
     it 'freezes returned descriptors so callers cannot mutate the marker' do
       env  = env_for(strategy: :custom, custom_domain_id: 'x')
       expect(described_class.for_env(env)).to be_frozen
@@ -140,6 +144,11 @@ RSpec.describe Onetime::SessionSurface do
     it 'refuses when the request surface is unresolved (:invalid)' do
       session = { described_class::KEY => { 'kind' => 'canonical' } }
       expect(described_class.matches_request?(session, env_for(strategy: :invalid))).to be false
+    end
+
+    it 'refuses when there is no Rack env' do
+      session = { described_class::KEY => { 'kind' => 'canonical' } }
+      expect(described_class.matches_request?(session, nil)).to be false
     end
 
     it 'refuses a custom session whose recorded id no longer resolves (stale-domain case)' do

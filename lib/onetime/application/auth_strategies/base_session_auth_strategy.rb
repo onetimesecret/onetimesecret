@@ -10,8 +10,7 @@
 #
 # @see Onetime::Application::AuthStrategies
 
-require_relative '../../session/impersonation'
-require_relative '../../session/surface'
+require_relative '../../session/customer_session_evaluator'
 require_relative 'helpers'
 require_relative 'admin_session_lifetime'
 
@@ -31,111 +30,19 @@ module Onetime
 
         def authenticate(env, _requirement)
           session = env['rack.session']
-          return failure('[SESSION_MISSING] No session available') unless session
+          verdict = Onetime::CustomerSessionEvaluator.evaluate(
+            session,
+            env: env,
+            before_active: ->(principal) do
+              admin_expiry_verdict(session, principal, env)
+            end,
+          )
+          return failure_for(verdict) unless verdict.authenticated?
 
-          # Defense-in-depth (M-11): a session mid-MFA must never authenticate a
-          # request, even if some future code path sets authenticated=true without
-          # clearing this flag. PrepareMfaSession writes the STRING key
-          # 'awaiting_mfa'; SyncSession deletes it when MFA completes. Read the
-          # string key deliberately — a symbol :awaiting_mfa would silently never
-          # match. Guard is nil/false-safe: only == true blocks.
-          return failure('[SESSION_AWAITING_MFA] MFA not completed') if session['awaiting_mfa'] == true
+          cust = verdict.customer
 
-          # Check if session is authenticated
-          unless session['authenticated'] == true
-            return failure('[SESSION_NOT_AUTHENTICATED] Not authenticated')
-          end
-
-          external_id = session['external_id']
-          if external_id.to_s.empty?
-            return failure('[IDENTITY_MISSING] No identity in session')
-          end
-
-          # Surface-bound session enforcement (#4409). A Rack session records
-          # the surface (canonical / subdomain / custom) that established it
-          # at login; a request whose resolved surface differs is refused. A
-          # missing marker is a mismatch, so a session established before
-          # this feature shipped is refused on first request and re-minted
-          # at next login. Pure hash comparison against env stashed by
-          # DomainStrategy — no Redis/authdb read, so it runs BEFORE the
-          # customer load, the admin bound, and the active-session gate.
-          unless Onetime::SessionSurface.matches_request?(session, env)
-            return failure('[SESSION_SURFACE_MISMATCH] Session surface does not match request; sign in again')
-          end
-
-          # Load customer
-          cust = Onetime::Customer.load_by_extid_or_email(external_id)
-          return failure('[CUSTOMER_NOT_FOUND] Customer not found') unless cust
-
-          # Suspended accounts are rejected on EVERY request, so a suspension
-          # takes effect immediately even for sessions the suspend-time sweep
-          # could not see (encrypted payloads). Reversible trust & safety
-          # state — see Auth::Operations::Customers::SetSuspension.
-          return failure('[ACCOUNT_SUSPENDED] Account suspended') if cust.suspended?
-
-          # Credential watermark (#3810): reject any session authenticated before
-          # the customer's last password change/reset. This per-request check —
-          # not the enumerative blob deletion in the password hooks, which is
-          # hygiene — is the authoritative revocation boundary, so even a blob
-          # the hooks never found dies here. See Helpers for the fail-secure /
-          # never-mass-logout semantics.
-          if session_predates_credential_change?(session, cust)
-            return failure('[SESSION_STALE_CREDENTIALS] Session predates last credential change')
-          end
-
-          # Admin-surface session bounds (#4331). Runs here because this is the
-          # one per-request chokepoint that already has the loaded customer
-          # (hence cust.role) and the raw session. Deliberately AFTER the
-          # watermark and BEFORE the active-session gate and additional_checks:
-          # the gate refreshes the active-session row's `last_use`, and an
-          # admin session this bound has already declared expired must not
-          # register as activity on that row either.
-          #
-          # The session is NOT mutated: an auth strategy runs on read paths and
-          # must stay side-effect-free, and clearing `authenticated` here would
-          # risk a write on a request that should not commit one. Failing is
-          # sufficient — the SPA sees the 401 and routes to sign-in, which
-          # replaces the session. The env flag is not a session write; it tells
-          # TrackMetadata that a REFUSED request is not activity, so the request
-          # we are rejecting cannot slide the idle window forward on its way out.
-          if (reason = admin_session_expiry_reason(session, cust, env))
-            env[AdminSessionLifetime::EXPIRED_ENV_KEY] = reason.to_s
-            return failure(
-              "[ADMIN_SESSION_EXPIRED] Admin session #{reason} timeout exceeded; sign in again",
-            )
-          end
-
-          # Full-mode active-session enforcement (Onetime::ActiveSessionGate,
-          # terms defined there): a Rack session whose active-session row has
-          # been revoked — by the user from another device, or by an operator
-          # in Rodauth Admin — is refused here, on its next request. Until this
-          # check existed the row was consulted only by the sessions page, so
-          # revoking it ended nothing. AFTER the watermark and the admin bound
-          # (both refuse without touching the authdb) and BEFORE
-          # additional_checks. Reads the authdb, never writes the Rack session;
-          # the verdict is memoized in env. Fails CLOSED: a Rack session whose
-          # row the authdb cannot check is refused too, under its own marker so
-          # the logs read as an outage, not as a revocation.
-          case Onetime::ActiveSessionGate.verdict(session, env: env)
-          when :revoked
-            return failure('[SESSION_REVOKED] Active-session row revoked; sign in again')
-          when :unavailable
-            return failure('[SESSION_UNVERIFIED] Active-session row could not be checked; try again')
-          end
-
-          # Colonel impersonation overlay. THE authoritative resolution: this
-          # strategy_result.user is what Onetime::Logic::Base#cust returns and
-          # what additional_metadata builds user_roles from, so from here down
-          # the request IS the target customer — including the role checks
-          # that make /api/colonel 403 while impersonating.
-          #
-          # Deliberately AFTER the suspension and credential-watermark checks
-          # above: those judge the PRINCIPAL (the operator), and a suspended or
-          # credential-revoked colonel must lose the whole session, not just
-          # the overlay.
-          cust, = Onetime::SessionImpersonation.resolve(session, cust, env: env)
-
-          # Perform additional checks (role, permissions, etc.)
+          # Route-specific role and permission checks deliberately remain outside
+          # the common customer-session identity verdict.
           check_result = additional_checks(cust, env)
           return check_result if check_result.is_a?(Otto::Security::Authentication::AuthFailure)
 
@@ -147,6 +54,7 @@ module Onetime
           # Build complete metadata hash, then splat it into success()
           metadata_hash = build_metadata(env, additional_metadata(cust)).merge(
             organization_context: org_context,
+            customer_session_verdict: verdict,
           )
 
           success(
@@ -158,6 +66,42 @@ module Onetime
         end
 
         protected
+
+        FAILURE_REASONS = {
+          session_missing: '[SESSION_MISSING] No session available',
+          awaiting_mfa: '[SESSION_AWAITING_MFA] MFA not completed',
+          not_authenticated: '[SESSION_NOT_AUTHENTICATED] Not authenticated',
+          identity_missing: '[IDENTITY_MISSING] No identity in session',
+          surface_mismatch: '[SESSION_SURFACE_MISMATCH] Session surface does not match request; sign in again',
+          customer_not_found: '[CUSTOMER_NOT_FOUND] Customer not found',
+          account_suspended: '[ACCOUNT_SUSPENDED] Account suspended',
+          stale_credentials: '[SESSION_STALE_CREDENTIALS] Session predates last credential change',
+          active_session_revoked: '[SESSION_REVOKED] Active-session row revoked; sign in again',
+          active_session_unavailable: '[SESSION_UNVERIFIED] Active-session row could not be checked; try again',
+          customer_unavailable: '[SESSION_UNVERIFIED] Customer session could not be checked; try again',
+        }.freeze
+
+        def admin_expiry_verdict(session, principal, env)
+          reason = admin_session_expiry_reason(session, principal, env)
+          return nil unless reason
+
+          env[AdminSessionLifetime::EXPIRED_ENV_KEY] = reason.to_s
+          Onetime::CustomerSessionEvaluator::Verdict.new(
+            status: :rejected,
+            reason: :admin_session_expired,
+            detail: reason,
+          )
+        end
+
+        def failure_for(verdict)
+          if verdict.reason == :admin_session_expired
+            return failure(
+              "[ADMIN_SESSION_EXPIRED] Admin session #{verdict.detail} timeout exceeded; sign in again",
+            )
+          end
+
+          failure(FAILURE_REASONS.fetch(verdict.reason))
+        end
 
         # Override in subclasses to add role/permission checks
         #

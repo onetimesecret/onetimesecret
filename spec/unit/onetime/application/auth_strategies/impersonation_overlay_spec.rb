@@ -83,8 +83,9 @@ RSpec.describe 'impersonation overlay at the identity call sites' do
     end
 
     before do
-      # The principal is loaded from external_id; the resolver loads the target.
-      allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+      # The principal is loaded from external_id (extid-only); the impersonation
+      # resolver loads the target through the broader email-tolerant loader.
+      allow(Onetime::Customer).to receive(:find_by_extid)
         .with('ur_colonel').and_return(colonel)
       allow(Onetime::Customer).to receive(:load_by_extid_or_email)
         .with('ur_target').and_return(target)
@@ -165,8 +166,9 @@ RSpec.describe 'impersonation overlay at the identity call sites' do
 
     before do
       allow(helper).to receive(:session_auth_enforced?).and_return(true)
-      allow(Onetime::ActiveSessionGate).to receive(:revoked?).and_return(false)
-      allow(Onetime::Customer).to receive(:find_by_extid).with('ur_colonel').and_return(colonel)
+      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:active)
+      allow(Onetime::Customer).to receive(:find_by_extid)
+        .with('ur_colonel').and_return(colonel)
       allow(Onetime::Customer).to receive(:load_by_extid_or_email)
         .with('ur_target').and_return(target)
       allow(target).to receive(:exists?).and_return(true)

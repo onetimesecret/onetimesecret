@@ -130,6 +130,7 @@ module Core
           session['authenticated']    = true
           session['authenticated_at'] = Familia.now.to_i
           Onetime::SessionSurface.record(session, req.env)
+          forget_customer_session_verdict
 
           # #4327: an identity change must always land UNELEVATED. This path
           # deliberately does not clear or renew the session (compare
