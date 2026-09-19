@@ -147,6 +147,25 @@ RSpec.describe 'A sign-up that loses a race answers like an ordinary duplicate',
     expect(sign_up(login)).to eq(status: 400, body: { 'error' => 'Unable to create account' })
   end
 
+  it 'logs an ordinary duplicate at info and keeps the error for an account with no customer record', :aggregate_failures do
+    events = []
+    allow(Auth::Logging).to receive(:log_auth_event).and_wrap_original do |original, event, **fields|
+      events << [event, fields[:level]]
+      original.call(event, **fields)
+    end
+
+    expect(sign_up(login)[:status]).to eq(200)
+    sign_up(login)
+    expect(events).to include([:registration_blocked_existing_account, :info])
+    expect(events.map(&:first)).not_to include(:registration_blocked_auth_db_conflict)
+
+    orphan = "signup-orphan-#{SecureRandom.hex(6)}@example.com"
+    @created_emails << orphan
+    db[:accounts].insert(email: orphan, status_id: 2)
+    sign_up(orphan)
+    expect(events).to include([:registration_blocked_auth_db_conflict, :error])
+  end
+
   it 'never answers 500, creates one account, and gives every loser the ordinary answer', :aggregate_failures do
     answers = Array.new(6) { Thread.new { sign_up(login) } }.map(&:value)
 
