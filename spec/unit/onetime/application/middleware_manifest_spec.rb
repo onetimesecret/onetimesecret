@@ -125,6 +125,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Middleware::I18nLocale',
       'Onetime::Middleware::DomainStrategy',
       'Onetime::Middleware::RetryAfterHeader',
+      'Onetime::Middleware::SessionFailureCode',
       'Onetime::Middleware::CsrfResponseHeader',
       'Onetime::Middleware::Security',
     ].freeze

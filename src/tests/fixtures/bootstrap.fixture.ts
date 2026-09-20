@@ -81,6 +81,10 @@ export const baseBootstrap: BootstrapPayload = {
   // Test CSRF token
   shrimp: 'test-csrf-token',
 
+  // The serializer always emits a status (#4462); the base state is anonymous.
+  // `.optional()` in the schema, so it is absent from schemaDefaults.
+  auth_status: 'anonymous',
+
   // Test domain configuration
   canonical_domain: 'test.onetimesecret.com',
   // AC1 shape (#4063): LINK_DOMAINS unset, so the server resolves the pool to
@@ -166,6 +170,7 @@ export const baseBootstrap: BootstrapPayload = {
  */
 export const authenticatedBootstrap: BootstrapPayload = {
   ...baseBootstrap,
+  auth_status: 'authenticated',
   authenticated: true,
   awaiting_mfa: false,
   had_valid_session: true,
@@ -180,6 +185,7 @@ export const authenticatedBootstrap: BootstrapPayload = {
  */
 export const anonymousBootstrap: BootstrapPayload = {
   ...baseBootstrap,
+  auth_status: 'anonymous',
   authenticated: false,
   awaiting_mfa: false,
   had_valid_session: false,
@@ -194,6 +200,7 @@ export const anonymousBootstrap: BootstrapPayload = {
  */
 export const mfaPendingBootstrap: BootstrapPayload = {
   ...baseBootstrap,
+  auth_status: 'mfa_pending',
   authenticated: false,
   awaiting_mfa: true,
   had_valid_session: true,

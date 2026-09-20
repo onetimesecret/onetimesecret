@@ -704,6 +704,56 @@ export const diagnosticsRefSchema = z.strictObject({
 export type DiagnosticsRefBlock = z.infer<typeof diagnosticsRefSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// AUTH STATUS (#4462)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * `auth_status` values the SERVER sends. Mirrors
+ * `Onetime::SessionAuthStatus::VALUES` (lib/onetime/session/auth_status.rb).
+ *
+ * - `authenticated` — an authenticated customer session; `cust` is present.
+ * - `mfa_pending`   — first factor passed, second factor outstanding.
+ * - `anonymous`     — no customer session, including one the server rejected.
+ *                     The reason is never on a public payload.
+ * - `unavailable`   — the session could not be verified. NOT a sign-out.
+ */
+export const authStatusValues = ['authenticated', 'anonymous', 'mfa_pending', 'unavailable'] as const;
+export const authStatusSchema = z.enum(authStatusValues);
+export type AuthStatus = z.infer<typeof authStatusSchema>;
+
+/** Client-side status. `checking` is client-only and never on the wire. */
+export type ClientAuthStatus = AuthStatus | 'checking';
+
+/**
+ * The status a client may act on for a parsed payload.
+ *
+ * Compatibility rule (#4462): any path through here can only WITHHOLD access.
+ * `authenticated` requires the status (when the server sent one), the
+ * `authenticated` projection, and a customer to all agree. A payload from a
+ * backend that predates `auth_status` is read from the two booleans, which is
+ * never more permissive than that server's own `authenticated`.
+ */
+export function effectiveAuthStatus(payload: {
+  auth_status?: AuthStatus;
+  authenticated?: boolean;
+  awaiting_mfa?: boolean;
+  cust?: unknown;
+}): AuthStatus {
+  const hasCustomer = payload.cust !== null && payload.cust !== undefined;
+  const identified = payload.authenticated === true && hasCustomer;
+
+  if (payload.auth_status === undefined) {
+    if (identified) return 'authenticated';
+    // `authenticated: true` without a customer is not a usable identity.
+    if (payload.authenticated === true) return 'unavailable';
+    return payload.awaiting_mfa === true ? 'mfa_pending' : 'anonymous';
+  }
+
+  if (payload.auth_status !== 'authenticated') return payload.auth_status;
+  return identified ? 'authenticated' : 'unavailable';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // BOOTSTRAP PAYLOAD SCHEMA (full payload for Rhales validation)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -793,8 +843,16 @@ export const bootstrapSchema = z.object({
   // AuthenticationSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
   apitoken: z.string().optional(),
+  // The server's statement about the customer session (#4462). `.optional()`
+  // with no default: a backend that predates the field omits it, and the
+  // client then derives a status from the two booleans below — a derivation
+  // that can only withhold. See effectiveAuthStatus().
+  auth_status: authStatusSchema.optional(),
+  // Compatibility projections of `auth_status`. The serializer computes both
+  // FROM it, so the three never disagree on a payload from a current backend.
   authenticated: z.boolean().default(false),
   awaiting_mfa: z.boolean().optional().default(false),
+  /** @deprecated Superseded by `auth_status: 'unavailable'`. Remove in v0.27 (#4468). */
   had_valid_session: z.boolean().default(false),
   // Tri-state: true/false are definitive; null means the server could not
   // determine it (transient auth-DB failure during serialization). The store
