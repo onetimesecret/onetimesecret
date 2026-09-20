@@ -248,6 +248,18 @@ module Onetime
       # allocation reseeds, and ordering can only ever make a client refuse or
       # reload, never grant. Not a secret: the payload publishes it.
       #
+      # Known regression window (accepted): if the key is evicted AND Valkey's
+      # `TIME` has moved backward between eviction and reseed (NTP step-back,
+      # replica promotion with clock skew), the Lua seed can land BELOW a
+      # version already issued in the same session-ID epoch. A client holding
+      # the earlier watermark will reject the fresh snapshot and take its
+      # reload path — one bad snapshot, self-healing. We do NOT try to prevent
+      # this here (a persisted floor, a wall-clock-bucketed key name, or a
+      # 503-on-regress would each add machinery the failure mode does not
+      # justify). Instead #allocate_counter emits an `snapshot_counter_seeded`
+      # diagnostic every time the seed branch fires, so a persistent recurrence
+      # (indicating an actual clock problem worth chasing) is visible in logs.
+      #
       # ttl: the allocator is handed the session's authoritative lifetime
       # (`expire_after`) by its caller, per ADR-046 step 5; this value is the
       # fallback when none is configured. The key can outlive a blob whose TTL
@@ -413,9 +425,29 @@ module Onetime
       seconds = ttl.to_i.positive? ? ttl.to_i : (configured_expire_after || policy[:ttl])
       db      = dbclient || Familia.dbclient
       value   = db.eval(ALLOCATE_COUNTER_LUA, keys: [key_for(sid, field)], argv: [seconds]).to_s
-      return value if value.match?(COUNTER_FORMAT)
+      unless value.match?(COUNTER_FORMAT)
+        raise CounterAllocationError, 'counter allocation returned a non-canonical value'
+      end
 
-      raise CounterAllocationError, 'counter allocation returned a non-canonical value'
+      # Diagnostic-only. A TIME-seeded value is the concatenation of Redis
+      # `TIME` seconds and zero-padded microseconds, so ≥16 digits today and
+      # for the next ~270 years; an INCR value in a session's lifetime will
+      # never approach that length. When this fires we are on the reseed
+      # branch, which is where the accepted regression window lives (see the
+      # `snapshot_version` registry comment). Log-only: correctness is the
+      # client's reject-and-reload path. Best-effort — a logging failure must
+      # never fail the allocation.
+      if value.length >= 16
+        begin
+          OT.li '[snapshot_counter_seeded] ' \
+                "sid_handle=#{Onetime::SessionMetadata.handle_for(sid)} " \
+                "field=#{field} value=#{value}"
+        rescue StandardError
+          # deliberately swallowed
+        end
+      end
+
+      value
     end
 
     # @return [Boolean] whether the field's key currently exists.
