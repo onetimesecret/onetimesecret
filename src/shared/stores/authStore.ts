@@ -207,6 +207,8 @@ export type AuthStore = {
   awaitingMfa: boolean;
   isFullyAuthenticated: boolean;
   isUserPresent: boolean;
+  protectedActionsAvailable: boolean;
+  escapeActionsAvailable: boolean;
 
   // Actions
   init: () => { needsCheck: boolean; isInitialized: boolean };
@@ -217,7 +219,7 @@ export type AuthStore = {
   noteApiRejection: (failure: SessionFailure | null) => void;
   checkWindowStatus: () => Promise<boolean>;
   refreshAuthState: () => Promise<void>;
-  setAuthenticated: (value: boolean) => Promise<void>;
+  setAuthenticated: (value: boolean) => Promise<RefreshOutcome | 'noop'>;
   logout: () => Promise<void>;
   logoutMinimal: () => Promise<void>;
   $scheduleNextCheck: () => void;
@@ -341,6 +343,31 @@ export const useAuthStore = defineStore('auth', () => {
     if (authStatus.value === 'authenticated') return true;
     return authStatus.value === 'unavailable' && bootstrapStore.lastSnapshotReportedSession;
   });
+
+  /**
+   * Whether protected/mutation-issuing action controls (billing changes, plan
+   * preview activation, org/domain mutations, etc.) should be enabled in the
+   * chrome (#4497 item 13, ADR-046 §"caller contracts" table 2).
+   *
+   * Only `authenticated` grants this. `checking`, `unavailable` and
+   * `mfa_pending` all keep retained identity visible for continuity, but no
+   * mutation should fire from the chrome while authority is uncertain: the
+   * server may already have retired the session, and a colonel-only trigger
+   * (PlanPreviewModal) or a routine action would issue during the outage.
+   */
+  const protectedActionsAvailable = computed(
+    (): boolean => authStatus.value === 'authenticated'
+  );
+
+  /**
+   * Whether escape actions (sign-out, stop-impersonation) should be enabled.
+   *
+   * Always true whenever a retained identity is visible, regardless of
+   * `authStatus`. A user whom the coordinator cannot verify (or who is
+   * mid-MFA) must still be able to leave — otherwise they are trapped in the
+   * chrome with no exit.
+   */
+  const escapeActionsAvailable = computed((): boolean => isUserPresent.value);
 
   // Actions
 
@@ -821,13 +848,18 @@ export const useAuthStore = defineStore('auth', () => {
    * It does NOT set anything locally: it asks the server, as an
    * authentication mutation, and the answer is the state. `false` is a local
    * sign-out.
+   *
+   * Returns the `RefreshOutcome` from the underlying `refresh()` so callers
+   * can gate navigation on `'applied'` and avoid pushing to a protected route
+   * when the snapshot never landed (transport failure, superseded, refused).
+   * A local sign-out has no refresh and returns `'noop'`.
    */
-  async function setAuthenticated(value: boolean) {
+  async function setAuthenticated(value: boolean): Promise<RefreshOutcome | 'noop'> {
     if (!value) {
       await logout();
-      return;
+      return 'noop';
     }
-    await refresh({ kind: 'auth-mutation', reason: 'login' });
+    return refresh({ kind: 'auth-mutation', reason: 'login' });
   }
 
   return {
@@ -846,6 +878,8 @@ export const useAuthStore = defineStore('auth', () => {
     awaitingMfa,
     isFullyAuthenticated,
     isUserPresent,
+    protectedActionsAvailable,
+    escapeActionsAvailable,
 
     // Actions
     init,
