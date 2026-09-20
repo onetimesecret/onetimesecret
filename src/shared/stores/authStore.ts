@@ -7,7 +7,11 @@ import { classifyError, errorGuards } from '@/schemas/errors';
 import { clearDiagnosticsActorContext } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
 import { attemptForcedPageLoad } from '@/utils/forcedPageLoad';
-import { parkSessionTransition, type SessionTransition } from '@/utils/sessionTransition';
+import {
+  clearSessionTransition,
+  parkSessionTransition,
+  type SessionTransition,
+} from '@/utils/sessionTransition';
 import {
   classifySnapshot,
   describeGeneratedAt,
@@ -155,6 +159,62 @@ export interface RefreshRequest {
 export type RefreshOutcome = 'applied' | 'failed' | 'superseded' | 'refused';
 
 /**
+ * Whether the refresh coordinator claims ownership of the user-visible message
+ * for a rejected API call (§3, Arc E, PR #4497). The interceptor asks
+ * `noteApiRejection` for this and attaches it to the error so
+ * `useAsyncHandler.coordinatorOwnsMessage` reads exactly one field instead of
+ * maintaining its own list of carve-outs.
+ *
+ * - `ownedByCoordinator: true`  — the coordinator either has a reconciliation
+ *   in flight or is going to force a page load. The toast that would
+ *   otherwise appear per failed call would be redundant with the once-only
+ *   transition announcement.
+ * - `ownedByCoordinator: false` — the coordinator declined to act, so the
+ *   caller's local error handling stands (an anonymous tab, an admin-timeout,
+ *   an MFA-pending `awaiting_mfa`, or a throttled duplicate rejection).
+ */
+export type RejectionDisposition =
+  | { ownedByCoordinator: true; reason: 'reconciling' | 'will-reload' }
+  | { ownedByCoordinator: false; reason: 'skipped-carve-out' | 'throttled' | 'nonauth' };
+
+/**
+ * The property key the axios interceptor stamps on a rejected error to carry
+ * the coordinator's disposition. A Symbol so it cannot collide with any
+ * server-supplied field on the error body.
+ */
+export const COORDINATOR_DISPOSITION_KEY = Symbol.for('ots.coordinatorDisposition');
+
+/**
+ * Reads the coordinator disposition off an error the interceptor has already
+ * stamped. Returns `null` when the error is not one the interceptor handled
+ * (a non-401, an error thrown outside the API pipeline, or a fetch failure
+ * before Pinia was active). Callers treat `null` as "not owned".
+ */
+export function readCoordinatorDisposition(error: unknown): RejectionDisposition | null {
+  if (typeof error !== 'object' || error === null) return null;
+  const value = (error as Record<string | symbol, unknown>)[COORDINATOR_DISPOSITION_KEY];
+  if (typeof value !== 'object' || value === null) return null;
+  return value as RejectionDisposition;
+}
+
+const DISPOSITION_CARVE_OUT: RejectionDisposition = {
+  ownedByCoordinator: false,
+  reason: 'skipped-carve-out',
+};
+const DISPOSITION_THROTTLED: RejectionDisposition = {
+  ownedByCoordinator: false,
+  reason: 'throttled',
+};
+const DISPOSITION_RECONCILING: RejectionDisposition = {
+  ownedByCoordinator: true,
+  reason: 'reconciling',
+};
+const DISPOSITION_WILL_RELOAD: RejectionDisposition = {
+  ownedByCoordinator: true,
+  reason: 'will-reload',
+};
+
+/**
  * Parses a Retry-After header (delay-seconds or HTTP-date) into milliseconds.
  * Returns 0 when absent or unusable; capped at RETRY_AFTER_CAP.
  */
@@ -216,7 +276,7 @@ export type AuthStore = {
   retryNow: () => Promise<RefreshOutcome>;
   stop: () => void;
   forcePageLoad: (cause: ForcedPageLoadCause) => void;
-  noteApiRejection: (failure: SessionFailure | null) => void;
+  noteApiRejection: (failure: SessionFailure | null) => RejectionDisposition;
   checkWindowStatus: () => Promise<boolean>;
   refreshAuthState: () => Promise<void>;
   setAuthenticated: (value: boolean) => Promise<RefreshOutcome | 'noop'>;
@@ -394,6 +454,17 @@ export const useAuthStore = defineStore('auth', () => {
     if (bootstrapStore.lastSnapshotReportedSession && !bootstrapStore.watermark) {
       recordOrdering('degraded-hydration', {});
       void refresh({ kind: 'ordinary', reason: 'unordered-hydration' });
+    }
+
+    // Hydration itself said `unavailable` (Arc B, §2). Without an explicit
+    // recovery, the tab would sit here until visibility+isStale fires at the
+    // ≥15min mark. Schedule a bounded verification retry immediately so the
+    // capped backoff timer takes over. This uses `kind: 'ordinary'` because it
+    // is a verification retry, not an auth mutation, and failureCount has not
+    // been touched yet (nothingVerified in noteFailure will keep the status at
+    // `unavailable` on the first retry failure — exactly what we want).
+    if (authStatus.value === 'unavailable' && failureCount.value === null) {
+      scheduleUnavailableRecovery();
     }
 
     loggingService.debug('[AuthStore.init] Initialization complete:', {
@@ -646,23 +717,66 @@ export const useAuthStore = defineStore('auth', () => {
     recordOrdering('forced-page-load', { cause, result });
   }
 
-  /** Applies an accepted snapshot and clears what no longer belongs. */
+  /**
+   * Applies an accepted snapshot and clears what no longer belongs.
+   *
+   * Generation ownership across the dynamic-import `await` (§4, Arc F):
+   * `clearAccountScopedState` runs BEFORE `applySnapshot`, so the tab is never
+   * left showing a new snapshot with stale account-scoped stores hanging off
+   * it. The decision to clear is made from the INCOMING payload (its
+   * effectiveAuthStatus and custid), which is safe: parseCompleteSnapshot has
+   * already validated it. After the await, `mine === generation` gates every
+   * later step so an older commit that lost its race to a newer refresh does
+   * not clobber the newer generation's failureCount, timer or lastCheckTime.
+   */
   async function commit(
     snapshot: Parameters<typeof bootstrapStore.applySnapshot>[0],
     retire: string | null = null
   ) {
+    const mine = generation;
     const priorStatus = authStatus.value;
     const priorAccount = bootstrapStore.custid;
+    const nextStatus = effectiveAuthStatus(snapshot);
+    const nextAccount = snapshot.custid ?? '';
+
+    const lostAuthority = priorStatus === 'authenticated' && nextStatus !== 'authenticated';
+    const changedAccount = priorAccount !== '' && priorAccount !== nextAccount;
+    if (lostAuthority || changedAccount) await clearAccountScopedState();
+
+    // A newer refresh took the generation while we awaited the dynamic imports
+    // above: its own commit() (or a later one still) owns the store now. Do
+    // not applySnapshot, reset counters, or reschedule — the newer path did.
+    if (mine !== generation) {
+      recordOrdering('generation-invalidated', { generation: mine, kind: 'commit' });
+      return;
+    }
 
     bootstrapStore.applySnapshot(snapshot, { retire });
-
-    const lostAuthority = priorStatus === 'authenticated' && authStatus.value !== 'authenticated';
-    const changedAccount = priorAccount !== '' && priorAccount !== bootstrapStore.custid;
-    if (lostAuthority || changedAccount) await clearAccountScopedState();
 
     failureCount.value = 0;
     lastCheckTime.value = Date.now();
     $scheduleNextCheck();
+
+    // A successful reconciliation means a reload is no longer the resolution
+    // for whatever was parked (§5, PR #4497 item 16). Fast-path clean-up; the
+    // TTL is what actually guarantees the message cannot outlive its context.
+    clearSessionTransition();
+  }
+
+  /**
+   * Hydration said `unavailable` (§2, Arc B). Kick off the same backoff timer
+   * that `noteFailure` uses, so the tab does not sit waiting for a
+   * visibility+isStale trigger 15 minutes out. Starts at the first backoff
+   * step (failures = 1). No status write: hydration already left the store in
+   * `unavailable`, and only the coordinator's own request will change it.
+   */
+  function scheduleUnavailableRecovery() {
+    clearRetry();
+    const delay = retryDelay(1);
+    retryTimer = setTimeout(() => {
+      retryTimer = null;
+      void refresh({ kind: 'ordinary', reason: 'retry' });
+    }, delay);
   }
 
   function noteFailure(retryAfterMs: number) {
@@ -704,17 +818,28 @@ export const useAuthStore = defineStore('auth', () => {
    * A tab the server last said holds no session has nothing to reconcile, and
    * `awaiting_mfa` tells an MFA-pending tab what it already knows.
    */
-  function noteApiRejection(failure: SessionFailure | null) {
-    if (staleSession.value) return;
-    if (failure?.code_scope === 'admin_session') return;
-    if (!bootstrapStore.lastSnapshotReportedSession) return;
-    if (failure?.code === 'awaiting_mfa' && authStatus.value === 'mfa_pending') return;
+  function noteApiRejection(failure: SessionFailure | null): RejectionDisposition {
+    // A tab already in the stale-session state has begun (or completed) its
+    // forced page load: the transition notice is or will be on screen.
+    if (staleSession.value) return DISPOSITION_WILL_RELOAD;
+
+    if (failure?.code_scope === 'admin_session') return DISPOSITION_CARVE_OUT;
+    if (!bootstrapStore.lastSnapshotReportedSession) return DISPOSITION_CARVE_OUT;
+    if (failure?.code === 'awaiting_mfa' && authStatus.value === 'mfa_pending') {
+      return DISPOSITION_CARVE_OUT;
+    }
 
     const now = Date.now();
-    if (now - lastRejectionRefreshAt < AUTH_CHECK_CONFIG.REJECTION_MIN_INTERVAL) return;
+    if (now - lastRejectionRefreshAt < AUTH_CHECK_CONFIG.REJECTION_MIN_INTERVAL) {
+      // A reconciliation was requested within the window; this one is a
+      // duplicate. The coordinator will not run again for this rejection, so
+      // its message cannot cover the toast — let the caller surface it.
+      return DISPOSITION_THROTTLED;
+    }
     lastRejectionRefreshAt = now;
 
     void refresh({ kind: 'ordinary', reason: 'rejection' });
+    return DISPOSITION_RECONCILING;
   }
 
   /** Explicit retry: skips the backoff wait, not the rules. */

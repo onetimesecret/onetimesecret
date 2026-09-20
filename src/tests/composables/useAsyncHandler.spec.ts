@@ -9,6 +9,10 @@
 
 import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { createError } from '@/schemas/errors/classifier';
+import {
+  COORDINATOR_DISPOSITION_KEY,
+  type RejectionDisposition,
+} from '@/shared/stores/authStore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
@@ -533,8 +537,15 @@ describe('useAsyncHandler', () => {
       expect(loadingCalls[loadingCalls.length - 1]).toEqual([false]); // Last operation ends
     });
   });
-  // #4461: one session transition produces exactly one user-facing message.
-  describe('session-coded 401s', () => {
+  // #4461, §3, PR #4497: `coordinatorOwnsMessage` reads the coordinator's
+  // disposition off the error — the interceptor stamps it, useAsyncHandler
+  // does not re-derive carve-outs. The tests below stamp the disposition to
+  // simulate what the interceptor would attach in production.
+  describe('coordinator-owned messages', () => {
+    const stamp = <E extends object>(err: E, disposition: RejectionDisposition): E => {
+      (err as Record<string | symbol, unknown>)[COORDINATOR_DISPOSITION_KEY] = disposition;
+      return err;
+    };
     const refusal = (body: Record<string, unknown>, status = 401) =>
       Object.assign(new Error(`Request failed with status code ${status}`), {
         isAxiosError: true,
@@ -542,45 +553,63 @@ describe('useAsyncHandler', () => {
       });
     const revoked = { code: 'active_session_revoked', code_scope: 'customer_session' };
 
-    it('leaves the message to the refresh coordinator when the tab held a session', async () => {
+    it('suppresses the toast when the coordinator is reconciling', async () => {
       mockBootstrapStore.mockReturnValue({ lastSnapshotReportedSession: true });
       const onError = vi.fn();
       const { wrap } = useAsyncHandler({ ...mockOptions, onError });
 
-      // Five calls fail at once; none of them toasts.
-      await Promise.all(Array.from({ length: 5 }, () => wrap(() => Promise.reject(refusal(revoked)))));
+      await Promise.all(
+        Array.from({ length: 5 }, () =>
+          wrap(() =>
+            Promise.reject(
+              stamp(refusal(revoked), { ownedByCoordinator: true, reason: 'reconciling' })
+            )
+          )
+        )
+      );
 
       expect(mockOptions.notify).not.toHaveBeenCalled();
       // The caller still learns of the failure.
       expect(onError).toHaveBeenCalledTimes(5);
     });
 
-    it('still notifies an anonymous tab: nothing will reconcile for it', async () => {
-      mockBootstrapStore.mockReturnValue({ lastSnapshotReportedSession: false });
+    it('suppresses the toast when a reload is imminent', async () => {
+      mockBootstrapStore.mockReturnValue({ lastSnapshotReportedSession: true });
       const { wrap } = useAsyncHandler(mockOptions);
 
-      await wrap(() => Promise.reject(refusal({ code: 'session_missing', code_scope: 'customer_session' })));
+      await wrap(() =>
+        Promise.reject(
+          stamp(refusal(revoked), { ownedByCoordinator: true, reason: 'will-reload' })
+        )
+      );
 
-      expect(mockOptions.notify).toHaveBeenCalledTimes(1);
+      expect(mockOptions.notify).not.toHaveBeenCalled();
     });
 
     it.each([
-      ['a verification outage', { code: 'customer_unavailable', code_scope: 'verification_unavailable' }],
-      ['the admin-only timeout', { code: 'admin_session_expired', code_scope: 'admin_session' }],
-      ['an uncoded 401 such as a wrong password', {}],
-    ])('still notifies for %s', async (_name, body) => {
+      ['a carve-out (anonymous tab / admin_session / awaiting_mfa)', 'skipped-carve-out'],
+      ['a throttled duplicate rejection', 'throttled'],
+    ])('still notifies for %s (disposition: %s)', async (_name, reason) => {
       mockBootstrapStore.mockReturnValue({ lastSnapshotReportedSession: true });
       const { wrap } = useAsyncHandler(mockOptions);
 
-      await wrap(() => Promise.reject(refusal(body)));
+      await wrap(() =>
+        Promise.reject(
+          stamp(refusal(revoked), {
+            ownedByCoordinator: false,
+            reason: reason as 'skipped-carve-out' | 'throttled',
+          })
+        )
+      );
 
       expect(mockOptions.notify).toHaveBeenCalledTimes(1);
     });
 
-    it('a code on any other status is not a session refusal', async () => {
+    it('an unstamped error (never touched the interceptor) is not owned', async () => {
       mockBootstrapStore.mockReturnValue({ lastSnapshotReportedSession: true });
       const { wrap } = useAsyncHandler(mockOptions);
 
+      // No stamp: a non-401 rejection or an error thrown outside the API pipeline.
       await wrap(() => Promise.reject(refusal(revoked, 403)));
 
       expect(mockOptions.notify).toHaveBeenCalledTimes(1);

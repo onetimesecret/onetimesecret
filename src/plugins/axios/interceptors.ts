@@ -6,7 +6,11 @@ import {
 } from '@/plugins/core/diagnostics/scrubbers';
 import { parseSessionFailure } from '@/schemas/contracts/session-failure';
 import { useLanguageStore } from '@/shared/stores';
-import { useAuthStore } from '@/shared/stores/authStore';
+import {
+  COORDINATOR_DISPOSITION_KEY,
+  useAuthStore,
+  type RejectionDisposition,
+} from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { addBreadcrumb } from '@sentry/vue';
@@ -200,7 +204,13 @@ export const errorInterceptor = (error: AxiosError) => {
 function noteRejection(error: AxiosError): void {
   if (error.response?.status !== 401) return;
   try {
-    useAuthStore().noteApiRejection(parseSessionFailure(error));
+    const disposition: RejectionDisposition = useAuthStore().noteApiRejection(
+      parseSessionFailure(error)
+    );
+    // Attach the disposition to the error so useAsyncHandler.coordinatorOwnsMessage
+    // reads it verbatim instead of re-deriving carve-outs (§3, Arc E, PR #4497).
+    (error as unknown as Record<string | symbol, unknown>)[COORDINATOR_DISPOSITION_KEY] =
+      disposition;
   } catch {
     // Pinia not yet active during app bootstrap: nothing to reconcile yet.
   }

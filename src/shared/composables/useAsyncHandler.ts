@@ -1,11 +1,11 @@
 // src/shared/composables/useAsyncHandler.ts
 
-import { parseSessionFailure } from '@/schemas/contracts/session-failure';
 import type { ApplicationError } from '@/schemas/errors';
 import { classifyError, createError, errorGuards, wrapError } from '@/schemas/errors';
 import { captureException, isDiagnosticsEnabled } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
 import type {} from '@/shared/stores/notificationsStore';
+import { readCoordinatorDisposition } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { NotificationSeverity } from '@/types/ui/notifications';
 import { useI18n } from 'vue-i18n';
@@ -144,25 +144,19 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
   }
 
   /**
-   * Whether the refresh coordinator owns the message for this error (#4461).
+   * Whether the refresh coordinator owns the user-visible message for this
+   * error (#4461, §3, Arc E, PR #4497).
    *
-   * A 401 coded `customer_session`, in a tab that held a session, is the first
-   * sign of a session transition. The axios interceptor has already asked the
-   * coordinator to reconcile; if the server confirms, the page reloads and
-   * says "your session has ended" once. Toasting "Authentication Required"
-   * here as well, once per failed call, would make it several messages for
-   * one transition. The onError callback and logging still run.
-   *
-   * Everything else keeps its notification: an anonymous tab (nothing will
-   * reconcile), a verification outage (not a transition; the user's action
-   * did fail), the admin-only timeout, and uncoded 401s such as a wrong
-   * password.
+   * The list of carve-outs (`admin_session`, `awaiting_mfa` on an MFA-pending
+   * tab, an anonymous tab, throttled duplicates) lives in exactly one place:
+   * `authStore.noteApiRejection`. The interceptor stamps that decision on
+   * the error via `COORDINATOR_DISPOSITION_KEY`, and this reads that one
+   * field. If it is absent (a non-401, an error that never touched the
+   * interceptor, or a bootstrap-time rejection where Pinia wasn't ready) we
+   * treat it as not owned — the caller's toast stands.
    */
   function coordinatorOwnsMessage(error: unknown): boolean {
-    return (
-      parseSessionFailure(error)?.code_scope === 'customer_session' &&
-      bootstrap.lastSnapshotReportedSession
-    );
+    return readCoordinatorDisposition(error)?.ownedByCoordinator === true;
   }
 
   /**
