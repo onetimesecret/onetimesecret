@@ -64,8 +64,12 @@ RSpec.describe Onetime::SessionEnded do
       expect(described_class.mark(sid, dbclient: db)).to be(true)
     end
 
-    it 'is bounded by request duration, not by the session lifetime' do
-      expect(described_class::TTL).to be_between(60, 600)
+    # Puma has no built-in per-request deadline (worker_timeout is a
+    # worker-liveness check, not a request cap), so the marker must be long
+    # enough to outlive any realistic in-flight request. A future edit
+    # dropping the TTL back under a defensible bound should trip this.
+    it 'is at least one hour so it outlives any realistic in-flight request' do
+      expect(described_class::TTL).to be >= 3600
     end
 
     it 'never raises: the session must still be ended when the marker cannot be written' do

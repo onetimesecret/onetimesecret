@@ -54,17 +54,25 @@ module Onetime
   # never issues the id again (256 random bits), and a cookie still naming it
   # finds no blob and loads an empty session (under a new id while the marker
   # lives, see Onetime::Session#find_session), so a later write under it
-  # carries nothing of the ended session. {TTL} is five times Puma's 60 s
-  # worker timeout (etc/puma.rb), the longest a request can run before its
-  # worker is killed.
+  # carries nothing of the ended session.
+  #
+  # {TTL} must reliably outlive the longest in-flight request that could
+  # still write the old blob after revocation. Puma has no built-in
+  # per-request deadline: `worker_timeout` (etc/puma.rb) is a worker-liveness
+  # check to the master, and a request that keeps the worker's reactor
+  # checking in can run indefinitely. In practice a real request finishes in
+  # well under a minute; one hour is a conservative upper bound that
+  # comfortably exceeds any realistic in-flight request.
   # It is deliberately NOT the session lifetime: a marker per ended session
-  # for 24 hours or more would be the keyspace the blob delete just freed.
+  # for the 24 h+ session TTL would meaningfully re-consume the keyspace the
+  # blob delete just freed, and one hour is short enough relative to it to
+  # keep marker keyspace bounded.
   module SessionEnded
     extend self
 
     KEY_PREFIX = 'ended_sid'
     DOMAIN     = 'session-ended:v1'
-    TTL        = 300
+    TTL        = 3600
 
     # @param sid [String, #public_id, nil] the plain session id
     # @return [String, nil] the marker key, nil for a blank id
