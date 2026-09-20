@@ -5,6 +5,7 @@
 require 'familia'
 
 require_relative 'codec'
+require_relative '../logger_methods'
 
 module Onetime
   # Per-value session storage with independent TTLs (issue #3858).
@@ -49,6 +50,7 @@ module Onetime
   # Familia::StringKey's two-step set + update_expiration would reintroduce.
   module SessionSidecar
     extend self
+    extend Onetime::LoggerMethods
 
     # Same format Session#valid_session_id? enforces. Every mutator is gated on
     # it, which guarantees two things at once: (1) every key this module ever
@@ -439,9 +441,12 @@ module Onetime
       # never fail the allocation.
       if value.length >= 16
         begin
-          OT.li '[snapshot_counter_seeded] ' \
-                "sid_handle=#{Onetime::SessionMetadata.handle_for(sid)} " \
-                "field=#{field} value=#{value}"
+          session_logger.info(
+            'snapshot_counter_seeded',
+            sid_handle: Onetime::SessionMetadata.handle_for(sid),
+            field: field,
+            value: value,
+          )
         rescue StandardError
           # deliberately swallowed
         end
