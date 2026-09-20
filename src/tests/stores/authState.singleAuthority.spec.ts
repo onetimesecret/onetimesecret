@@ -28,6 +28,11 @@ const files = sourceFiles().map((path) => ({
 }));
 
 /** Drops comments so that prose about a thing is not mistaken for use of it. */
+// Test-only source scanner: three sequential regexes strip three distinct
+// comment styles (block, HTML, line). There is no user input and no
+// exploitable sanitization path — the "multi-character sanitization" warning
+// is a false positive for this shape.
+// lgtm[js/incomplete-multi-character-sanitization]
 function code(text: string): string {
   return text
     .replace(/\/\*[\s\S]*?\*\//g, '')
