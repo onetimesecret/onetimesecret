@@ -119,7 +119,7 @@ const actualPlanName = computed(() => {
  */
 const syncPreviewState = async () => {
   const [, refreshedOrgs] = await Promise.all([
-    authStore.refresh({ kind: 'auth-mutation', reason: 'plan-preview' }),
+    authStore.refresh({ kind: 'ordinary', reason: 'plan-preview' }),
     organizationStore.fetchOrganizations(),
   ]);
 

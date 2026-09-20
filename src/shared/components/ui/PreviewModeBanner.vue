@@ -24,7 +24,7 @@ const handleReset = async () => {
     await $api.post('/api/colonel/entitlement-preview', { planid: null });
 
     // Refresh bootstrap state to clear test mode (no page reload needed)
-    await authStore.refresh({ kind: 'auth-mutation', reason: 'plan-preview' });
+    await authStore.refresh({ kind: 'ordinary', reason: 'plan-preview' });
   } catch (err: unknown) {
     console.error('Failed to reset test mode:', err);
   } finally {
