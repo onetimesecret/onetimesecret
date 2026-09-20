@@ -80,7 +80,7 @@ it before a wider rollout.
 
 | Signal | Where to look | Expected | Reopens |
 |---|---|---|---|
-| Refusal codes | Auth logger, message `Session refused`: `code`, `code_scope`, `request_id`, `route` | `session_missing`, `not_authenticated` and `awaiting_mfa` at debug. Others at info, and rare. No `active_session_revoked` for a user who did not sign out or revoke a session. | #4453, #4455 |
+| Refusal codes | Auth logger, message `Session refused`: `code`, `code_scope`, `request_id`, `route` | `session_missing`, `not_authenticated` and `awaiting_mfa` at debug. Others at info, and rare. `active_session_revoked` is expected after logout, explicit revocation, inactivity expiry, or the absolute-lifetime deadline (the same code covers all four). | #4453, #4455 |
 | Verification-unavailable rate | The same line at warn with `code_scope: verification_unavailable`; client view `verification-unavailable` | Zero outside a datastore or authdb incident. Users are not signed out during one. | #4460 |
 | Redirect loops | Browser: sign in, sign out in a second tab, let a tab go stale. Client breadcrumb `forced-page-load` in category `bootstrap.ordering` | One reload per transition, one message, then `/signin`. Never two reloads within a minute. | #4465 |
 | Ordering diagnostics | Client breadcrumbs in `bootstrap.ordering`: `anomaly`, `session-ended`, `session-replaced`, `degraded-hydration`, `allocation-failure`. Server: `Snapshot ordering allocation failed`, `Bootstrap snapshot serialized without ordering` | `anomaly` only during the rolling deploy. `session-ended` and `session-replaced` match real sign-outs and sign-ins. The two server lines absent. | #4457, #4464 |

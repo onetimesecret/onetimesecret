@@ -486,7 +486,9 @@ browsers." *OTS choice (#4461):* the same value is the default for every
 response the `/auth` app finishes (`plugin :default_headers` in
 `apps/web/auth/router.rb`), since it answers nothing but authentication
 state; a route that sets its own policy keeps it. JSON API responses under
-`/api` are outside #4461 and send no `Cache-Control` today.
+`/api` default to `Cache-Control: private, no-store` through
+`Onetime::Middleware::ApiCachePolicy` (RISK-2026-09-19-03); a route that
+already set its own `Cache-Control` keeps it.
 
 **An inactivity timeout has to measure inactivity.**
 [OWASP ASVS 5.0.0 requirements 7.3.1 and 7.3.2](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v73-session-timeout):
