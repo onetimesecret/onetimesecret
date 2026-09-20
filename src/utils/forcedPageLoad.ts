@@ -43,6 +43,20 @@ function readMarker(storage: Pick<Storage, 'getItem'>): number | null {
 }
 
 /**
+ * Resolves the storage handle. In Safari private mode, when cookies are
+ * blocked, or inside a sandboxed iframe, accessing `window.sessionStorage`
+ * itself throws `SecurityError` — before any get/set call. Return `null`
+ * so callers can treat the tab as unbounded and refuse the reload.
+ */
+function resolveStorage(deps: ForcedPageLoadDeps): Pick<Storage, 'getItem' | 'setItem'> | null {
+  try {
+    return deps.storage ?? window.sessionStorage;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Reloads the page unless a forced page load was already attempted within
  * the last minute in this tab.
  *
@@ -52,8 +66,12 @@ function readMarker(storage: Pick<Storage, 'getItem'>): number | null {
  */
 export function attemptForcedPageLoad(deps: ForcedPageLoadDeps = {}): ForcedPageLoadResult {
   const now = deps.now ?? Date.now();
-  const storage = deps.storage ?? window.sessionStorage;
+  const storage = resolveStorage(deps);
   const reload = deps.reload ?? (() => window.location.reload());
+
+  // No storage handle means we cannot record the marker. An unrecorded reload
+  // cannot be bounded, so refuse and stay in the stale-session state.
+  if (storage === null) return 'bounded';
 
   const last = readMarker(storage);
   // A marker from the future (clock moved back) counts as recent.
