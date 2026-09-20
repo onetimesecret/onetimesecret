@@ -108,13 +108,24 @@ module Onetime
       reply == true || (reply.is_a?(Integer) && reply.positive?)
     end
 
-    private
-
-    def handle(sid)
+    # Log-safe identifier for a sid: the same keyed digest the colonel
+    # session view shows. Public so callers that must LOG a refused blob
+    # delete (see {Onetime::Operations::Sessions::Store.destroy_blob}) have
+    # one canonical, sid-safe handle helper and don't reimplement it.
+    #
+    # @param sid [String, Rack::Session::SessionId, nil]
+    # @return [String, nil]
+    def handle_for(sid)
       plain = sid.respond_to?(:public_id) ? sid.public_id : sid
       Onetime::SessionMetadata.handle_for(plain)
     rescue StandardError
       nil
+    end
+
+    private
+
+    def handle(sid)
+      handle_for(sid)
     end
   end
 end

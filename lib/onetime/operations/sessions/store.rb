@@ -192,11 +192,24 @@ module Onetime
         # (RISK-2026-09-19-01). A bare `del` leaves that race open; do not
         # call one on a session key.
         #
+        # ## Refusal contract
+        #
+        # When {Onetime::SessionEnded.mark} returns false (transient datastore
+        # failure), the DEL is REFUSED and this returns nil. The invariant is
+        # "no blob delete without a live marker": deleting the blob after a
+        # failed marker would leave a post-write EXISTS check with nothing to
+        # find, and an in-flight writer's copy would survive as a working
+        # session. Callers observe nil and log the refusal (see
+        # {Onetime::SessionEnded.handle_for} for a sid-safe log identifier).
+        #
         # @param dbclient [Object] Redis-like client
         # @param key [String] the resolved session key ({find_key}, {scan_keys})
-        # @return [Integer] the DEL reply
+        # @return [Integer, nil] the DEL reply, or nil when the marker could
+        #   not be written and the DEL was refused
         def destroy_blob(dbclient, key)
-          Onetime::SessionEnded.mark(extract_id(key), dbclient: dbclient)
+          sid = extract_id(key)
+          return nil unless Onetime::SessionEnded.mark(sid, dbclient: dbclient)
+
           dbclient.del(key)
         end
 

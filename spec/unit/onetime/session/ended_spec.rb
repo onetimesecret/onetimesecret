@@ -110,12 +110,39 @@ RSpec.describe Onetime::SessionEnded do
       expect(Onetime::Operations::Sessions::Store.destroy_blob(db, key)).to eq(1)
     end
 
+    # RISK-2026-09-19-01 invariant: no blob delete without a live marker.
+    # If SET failed transiently and DEL ran anyway, a concurrent in-flight
+    # writer's post-SET EXISTS finds nothing and its copy survives.
+    it 'refuses the DEL and returns nil when the marker write fails' do
+      key = "session:#{sid}"
+      allow(db).to receive(:set).and_raise(Redis::CannotConnectError)
+      allow(OT).to receive(:lw)
+
+      expect(db).not_to receive(:del)
+      expect(Onetime::Operations::Sessions::Store.destroy_blob(db, key)).to be_nil
+    end
+
     it 'is the only blob delete in the session operations' do
       sources = Dir[File.join(Onetime::HOME, 'lib/onetime/operations/sessions/*.rb')]
       bare    = sources.reject { |path| path.end_with?('/store.rb') }
         .select { |path| File.read(path).match?(/^\s*(db|dbclient|redis)\.(del|unlink)\(/) }
 
       expect(bare).to be_empty
+    end
+  end
+
+  describe '.handle_for' do
+    it 'returns the SessionMetadata handle for a plain sid' do
+      expect(described_class.handle_for(sid)).to eq(Onetime::SessionMetadata.handle_for(sid))
+    end
+
+    it 'accepts a Rack SessionId' do
+      expect(described_class.handle_for(Rack::Session::SessionId.new(sid))).to eq(Onetime::SessionMetadata.handle_for(sid))
+    end
+
+    it 'swallows errors and returns nil' do
+      allow(Onetime::SessionMetadata).to receive(:handle_for).and_raise(StandardError)
+      expect(described_class.handle_for(sid)).to be_nil
     end
   end
 end

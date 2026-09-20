@@ -175,9 +175,21 @@ module Onetime
       # loaded this session earlier and commits later finds it after its own
       # SET and takes its copy back out. Set-then-delete here and
       # set-then-check there is what leaves no order in which the copy stays.
-      Onetime::SessionEnded.mark(sid_string, dbclient: @dbclient)
+      #
+      # REFUSE the blob delete when the marker could not be written: the two
+      # operations are one atomic step in the RISK-2026-09-19-01 invariant.
+      # Deleting the blob without a live marker would leave an in-flight
+      # writer's copy behind as a working session — a much worse outcome than
+      # a transient logout failure the caller can retry.
+      marker_ok = Onetime::SessionEnded.mark(sid_string, dbclient: @dbclient)
 
-      if stringkey = get_stringkey(sid_string)
+      if !marker_ok
+        session_logger.error 'Session delete refused: ended-marker write failed',
+          {
+            session_handle: handle,
+            operation: 'delete',
+          }
+      elsif stringkey = get_stringkey(sid_string)
         result = stringkey.del
         session_logger.trace 'Session deleted from Redis',
           {
@@ -669,6 +681,17 @@ module Onetime
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
       handle     = log_handle(sid_string)
 
+      # Tracks whether the blob SET at line ~783 actually completed. The outer
+      # rescue below uses this to know if a compensating DEL is required: an
+      # exception raised AFTER the SET (notably the SessionEnded.ended? check
+      # at line ~820, which raises on a datastore error by design) would
+      # otherwise leave a freshly-written blob under an already-ended sid and
+      # the browser would keep a working session. False by default so a
+      # pre-SET failure never triggers a spurious cleanup on a key that may
+      # belong to a concurrent writer.
+      blob_written = false
+      stringkey    = nil
+
       session_logger.trace 'Session write initiated',
         {
           session_handle: handle,
@@ -769,6 +792,7 @@ module Onetime
       # Key: session:c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655
       # Value: eyJhY2NvdW50X2lkIjoxMjN9...--a3f5e8d9c2b1...
       stringkey.set(signed_data)
+      blob_written = true
       session_logger.trace 'Redis SET complete',
         {
           session_handle: handle,
@@ -882,6 +906,39 @@ module Onetime
           backtrace: ex.backtrace&.first(5),
           operation: 'write',
         }
+
+      # Compensating delete (RISK-2026-09-19-01): if the blob SET completed
+      # before the exception (e.g. Onetime::SessionEnded.ended? raised on a
+      # datastore error), the freshly-written blob would otherwise survive
+      # under an already-ended sid and the browser would keep a working
+      # session. Mirror the successful ended?-true branch: del + purge the
+      # sidecars. Gated on blob_written so a pre-SET failure never touches a
+      # key that may belong to a concurrent writer.
+      #
+      # Own begin/rescue so a cleanup failure cannot mask the original
+      # exception; the rescue keeps this method's original return value.
+      if blob_written
+        begin
+          stringkey&.del
+          Onetime::SessionSidecar.purge(sid_string, dbclient: @dbclient)
+          session_logger.info 'Session write failed; compensating delete attempted',
+            {
+              session_handle: handle,
+              error: ex.message,
+              error_class: ex.class.name,
+              operation: 'write',
+            }
+        rescue StandardError => cleanup_ex
+          session_logger.error 'Session write compensating delete failed',
+            {
+              session_handle: handle,
+              original_error: ex.message,
+              cleanup_error: cleanup_ex.message,
+              cleanup_error_class: cleanup_ex.class.name,
+              operation: 'write',
+            }
+        end
+      end
 
       # Return false to indicate failure
       false
