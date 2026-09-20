@@ -39,18 +39,27 @@ export function useBackgroundRefresh(
 
   let timer: number | null = null;
   let lastRun = 0;
+  // A refresh may outlast the throttle window (slow network, backpressure).
+  // Without this guard a visibility-change or a second interval tick could
+  // start a second request while the first is still open; if their responses
+  // arrive out of order, the older one would overwrite newer data.
+  let inFlight = false;
 
   const run = async () => {
     if (document.visibilityState !== 'visible') return;
+    if (inFlight) return;
 
     const now = Date.now();
     if (now - lastRun < throttleMs) return;
     lastRun = now;
 
+    inFlight = true;
     try {
       await refresh();
     } catch (error) {
       console.debug('[useBackgroundRefresh] refresh failed:', error);
+    } finally {
+      inFlight = false;
     }
   };
 
