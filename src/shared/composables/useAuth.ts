@@ -29,6 +29,7 @@ import {
   type VerifyAccountResponse,
 } from '@/schemas/api/auth/responses/auth';
 import { loggingService } from '@/services/logging.service';
+import { ensureAuthenticated, ensureMfaPending } from '@/shared/composables/authCompletion';
 import { useApi } from '@/shared/composables/useApi';
 import {
   createError,
@@ -202,7 +203,18 @@ export function useAuth() {
         // MFA-pending is the SERVER's statement, not a local patch (#4458): ask
         // for a snapshot as an authentication mutation. The /mfa-verify guard
         // admits `mfa_pending` only, so this must land before we navigate.
-        await authStore.refresh({ kind: 'auth-mutation', reason: 'login' });
+        //
+        // #4497 item 4: refresh() reports transport/contract failures as
+        // 'failed' without throwing. Do NOT navigate to /mfa-verify when the
+        // snapshot did not land — the guard would redirect to /signin and
+        // lose the challenge. Retry verification (cheap, idempotent) rather
+        // than re-POST the single-use auth mutation.
+        const mfaOutcome = await ensureMfaPending(authStore, 'login');
+        if (mfaOutcome !== 'applied') {
+          if (mfaOutcome === 'superseded') return false; // A newer coordinator run owns this.
+          // TODO: [#4497 item 4] confirm error UX with design — inline copy pending.
+          throw createError('web.auth.mfa.verification_unavailable', 'human', 'error');
+        }
 
         // Redirect to MFA verification - guard will allow access since awaiting_mfa is set.
         // Preserve the redirect param AND the plan-intent pair (product/interval)
@@ -222,8 +234,18 @@ export function useAuth() {
         return false; // Not fully logged in yet
       }
 
-      // Success - update auth state (this fetches fresh window state)
-      await authStore.setAuthenticated(true);
+      // Success - update auth state (this fetches fresh window state).
+      // #4497 item 8: setAuthenticated now returns the RefreshOutcome. Only
+      // navigate to a protected destination when the snapshot was applied AND
+      // the resulting status is `authenticated`. Otherwise retry verification
+      // and, if it still won't land, surface a retryable error rather than
+      // routing to Dashboard with no accepted snapshot.
+      const authOutcome = await ensureAuthenticated(authStore, 'login');
+      if (authOutcome !== 'applied') {
+        if (authOutcome === 'superseded') return false;
+        // TODO: [#4497 item 8] confirm error UX with design — inline copy pending.
+        throw createError('web.auth.login.verification_unavailable', 'human', 'error');
+      }
 
       // Billing intent (validated by backend, else the query pair) wins, then
       // the validated ?redirect, then the dashboard. Shared with the

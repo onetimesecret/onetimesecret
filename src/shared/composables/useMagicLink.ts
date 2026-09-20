@@ -5,6 +5,7 @@ import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { ensureAuthenticated } from '@/shared/composables/authCompletion';
 import { useApi } from '@/shared/composables/useApi';
 import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
 
@@ -89,7 +90,19 @@ export function useMagicLink() {
         fieldError.value = response.data['field-error'] || null;
         return false;
       }
-      await authStore.setAuthenticated(true);
+      // #4497 item 8: setAuthenticated returns the RefreshOutcome. Only
+      // navigate to the (protected) post-auth destination when the snapshot
+      // was applied AND the status is `authenticated`. Retry verification —
+      // never re-POST the single-use magic-link key.
+      const outcome = await ensureAuthenticated(authStore, 'magic-link');
+      if (outcome === 'superseded') return false; // Newer coordinator run owns this.
+      if (outcome !== 'applied') {
+        // TODO: [#4497 item 8] confirm error UX with design — reusing the
+        // sessionExpired copy since the failure mode is functionally the
+        // same (verification could not be completed).
+        error.value = t('web.auth.magicLink.sessionExpired');
+        return false;
+      }
       // A magic link is a PRIMARY factor: the session is live, so honour the
       // same destination precedence as a password login (billing intent >
       // validated ?redirect > '/') instead of dumping the user on the

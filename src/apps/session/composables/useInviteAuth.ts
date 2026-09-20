@@ -8,6 +8,7 @@ import { ref } from 'vue';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useApi } from '@/shared/composables/useApi';
+import { ensureMfaPending } from '@/shared/composables/authCompletion';
 import { useI18n } from 'vue-i18n';
 
 /**
@@ -214,7 +215,25 @@ export function useInviteAuth() {
         // MFA flow - invite_token is preserved in session by backend
         // User will return to invite page after MFA completion
         // MFA-pending is the server's statement, not a local patch (#4458).
-        await authStore.refresh({ kind: 'auth-mutation', reason: 'login' });
+        //
+        // #4497 item 5: refresh() reports transport/contract failures as
+        // 'failed' without throwing. If the snapshot did not land, do NOT
+        // report requiresMfa=true — the guard would redirect the parent to
+        // /signin and lose the invite MFA challenge. Retry verification
+        // (never re-POST the single-use login), then surface a retryable
+        // error so AcceptInvite keeps the flow retryable.
+        const outcome = await ensureMfaPending(authStore, 'invite-login');
+        // 'superseded' is success-by-delegation — the caller must not
+        // navigate but must NOT report an error either.
+        if (outcome === 'superseded') return { success: false };
+        if (outcome !== 'applied') {
+          const message = 'An error occurred';
+          setError({ message });
+          // TODO: [#4497 item 5] confirm error UX with design — surfacing
+          // through the composable's existing error state (no new i18n key
+          // yet); AcceptInvite renders this inline.
+          return { success: false, error: message };
+        }
         return { success: false, requiresMfa: true, redirect: `/invite/${inviteToken}` };
       }
 
