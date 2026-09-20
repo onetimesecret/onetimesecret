@@ -26,14 +26,22 @@
 
   // Protected content is withheld while authority cannot be established
   // (#4460): `unavailable` after repeated failed verifications, or a `checking`
-  // that was never resolved. The guards let navigation through in both states
-  // so nobody is bounced to /signin by an outage; this is where the protected
-  // UI is actually kept off the screen. One place, so it holds for every
-  // layout of both bundles. Public routes render as usual.
+  // that was never resolved. `mfa_pending` is also withheld here (#4497 item
+  // 12): a refresh can flip an already-mounted protected route from
+  // authenticated to mfa_pending WITHOUT starting a new navigation, so the
+  // MFA guard is not rerun and the previously-rendered subtree would keep
+  // showing account data while stores are reset. /mfa-verify itself has
+  // `requiresAuth: false`, so it stays reachable. The guards let navigation
+  // through in these states so nobody is bounced to /signin by an outage;
+  // this is where the protected UI is actually kept off the screen. One
+  // place, so it holds for every layout of both bundles. Public routes
+  // render as usual.
   const withholdProtected = computed(
     () =>
       !!route.meta.requiresAuth &&
-      (authStore.authStatus === 'unavailable' || authStore.authStatus === 'checking')
+      (authStore.authStatus === 'unavailable' ||
+        authStore.authStatus === 'checking' ||
+        authStore.authStatus === 'mfa_pending')
   );
 
   // One session transition, one message (#4461). A session that ended or was
