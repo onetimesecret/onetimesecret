@@ -69,6 +69,11 @@ module Onetime
       [reason, { 'code' => reason.to_s, 'code_scope' => scope }.freeze]
     end.freeze
 
+    # Reasons that describe a visitor who never claimed a session, or a login
+    # that is still in progress. They are the steady state of any public site,
+    # so .log_refusal records them at debug.
+    ROUTINE_REASONS = [:session_missing, :not_authenticated, :awaiting_mfa].freeze
+
     class << self
       # @param reason [Symbol, String, nil] an evaluator reason
       # @return [Hash{String=>String}] `code` and `code_scope`, or an empty
@@ -78,6 +83,48 @@ module Onetime
         return {} if reason.nil?
 
         CODES.fetch(reason.to_sym, {})
+      end
+
+      # One structured line per session refusal, from both places a refusal
+      # is answered: the Otto session strategies and the /auth router (#4461).
+      #
+      # It carries what joins a client report to the server's decision and
+      # nothing that could be replayed: the `code` and `code_scope` the client
+      # was sent, the request id it was sent, and the route PATTERN. Never the
+      # sid, a cookie, a token, or the request path, whose segments can be
+      # secret identifiers.
+      #
+      # A refused claim is info; an outage is warn, because it refuses
+      # sessions that may be perfectly valid. Never raises: logging must not
+      # be able to change how a request is answered.
+      #
+      # @param reason [Symbol, String, nil] the evaluator reason acted on
+      # @param env [Hash, nil] the Rack env
+      # @return [void]
+      def log_refusal(reason, env)
+        pair = self.for(reason)
+        return if pair.empty?
+
+        level   = refusal_log_level(reason.to_sym, pair['code_scope'])
+        payload = pair.transform_keys(&:to_sym)
+        if env.is_a?(Hash)
+          payload[:request_id] = env['HTTP_X_REQUEST_ID']
+          payload[:route]      = env['otto.route_definition']&.path if env['otto.route_definition'].respond_to?(:path)
+        end
+
+        Onetime.auth_logger.public_send(level, 'Session refused', payload.compact)
+        nil
+      rescue StandardError
+        nil
+      end
+
+      private
+
+      def refusal_log_level(reason, scope)
+        return :debug if ROUTINE_REASONS.include?(reason)
+        return :warn if scope == SCOPE_VERIFICATION_UNAVAILABLE
+
+        :info
       end
     end
   end

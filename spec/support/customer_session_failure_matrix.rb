@@ -217,6 +217,33 @@ module CustomerSessionFailureMatrix
     session_store.load_data(Familia.dbclient, key, codec: session_codec)
   end
 
+  # Hold one request open between its session read and its session write,
+  # and run the block to completion in that gap (RISK-2026-09-19-01).
+  #
+  # The held request is `GET /api/account/` with the current cookie. The block
+  # runs on its own thread, joined before the held request continues, right
+  # after that request's first customer-session evaluation (which has loaded
+  # the session). The interleaving is therefore exact, not timed, and the late
+  # write goes through the real Onetime::Session#write_session.
+  #
+  # @return [Rack::MockResponse] the held request's response
+  def hold_request_while
+    fired = false
+
+    allow(Onetime::CustomerSessionEvaluator).to receive(:evaluate).and_wrap_original do |original, session, **kwargs|
+      verdict = original.call(session, **kwargs)
+      unless fired
+        fired = true
+        Thread.new { yield }.join
+      end
+      verdict
+    end
+
+    get '/api/account/', {}, { 'HTTP_ACCEPT' => 'application/json' }
+    expect(fired).to be(true)
+    last_response
+  end
+
   def rewrite_session_blob
     db   = Familia.dbclient
     key  = session_store.find_key(db, current_session_id)
@@ -238,7 +265,10 @@ module CustomerSessionFailureMatrix
     end
   end
 
-  def request_surface(surface, request_id:)
+  # @param declare_passive [Boolean] send `X-Session-Activity: passive`, as a
+  #   client timer does (RISK-2026-09-19-04)
+  # @param verb [Symbol] the request method; the surfaces are GETs by default
+  def request_surface(surface, request_id:, declare_passive: false, verb: :get)
     config  = SURFACES.fetch(surface)
     markers = []
     allow_any_instance_of(Onetime::Application::AuthStrategies::SessionAuthStrategy)
@@ -250,10 +280,9 @@ module CustomerSessionFailureMatrix
         result
       end
 
-    get config.fetch(:path), {}, {
-      'HTTP_ACCEPT' => config.fetch(:accept),
-      'HTTP_X_REQUEST_ID' => request_id,
-    }
+    headers = { 'HTTP_ACCEPT' => config.fetch(:accept), 'HTTP_X_REQUEST_ID' => request_id }
+    headers[Onetime::SessionActivity::HEADER_ENV_KEY] = Onetime::SessionActivity::PASSIVE if declare_passive
+    public_send(verb, config.fetch(:path), {}, headers)
 
     payload = parse_bootstrap(last_response, config[:bootstrap]) if config[:bootstrap] && last_response.status == 200
     body    = last_response.body
@@ -491,10 +520,16 @@ module CustomerSessionFailureMatrix
 
       if surface == :protected_html
         expect(observation[:status]).to eq(302)
+        # The redirect is Web Core HTML too: its Location can carry the page
+        # the visitor was refused, so it is not to be stored either (#4461).
+        expect(observation[:cache_control]).to eq('private, no-store')
         expect(observation[:refusal_code]).to be_nil
         expect(observation[:refusal_body]).to be_nil
       else
         expect(observation[:status]).to eq(401)
+        # Every /api response is unstorable by default, refusals included
+        # (RISK-2026-09-19-03, Onetime::Middleware::ApiCachePolicy).
+        expect(observation[:cache_control]).to eq('private, no-store')
         expect(observation[:refusal_code]).to eq(expectation.fetch(:code))
         # `message` is NOT the session marker on this route. /api/account/ is
         # `auth=sessionauth,basicauth`, and Otto renders the LAST failure in
@@ -516,6 +551,9 @@ module CustomerSessionFailureMatrix
       end
     when :authenticated
       expect(observation[:status]).to eq(200)
+      # Personalized responses are never stored: HTML since #4461, the API
+      # since RISK-2026-09-19-03.
+      expect(observation[:cache_control]).to eq('private, no-store')
       expect(observation[:refusal_code]).to be_nil
       expect(observation).to include(identity_exposed: true, customer_exposed: true)
     else

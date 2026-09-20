@@ -203,8 +203,14 @@ exactly as above.
 
 On an **active** full-mode session whose row is older than
 `ActiveSessionGate::TOUCH_INTERVAL` (300 s), every surface that evaluates the
-session refreshes the row's `last_use`, including hydrated HTML and
-`GET /bootstrap/me`. The full-mode spec pins that for hydrated HTML (D8).
+session refreshes the row's `last_use`, with one exception:
+`GET /bootstrap/me` verifies the session and refreshes nothing (D8). The
+full-mode spec pins both halves: hydrated HTML leaves the row `:touched`, the
+bootstrap poll leaves it `:unchanged` with no write issued.
+
+A request that is **refused** refreshes nothing on any surface, in either
+mode: not `last_use`, not the sidecar's `last_activity_at`, and not the Rack
+session blob's TTL.
 
 ## Divergences
 
@@ -268,11 +274,63 @@ reason `/auth` acts on, and codes, can be `surface_mismatch` or
 `active_session_revoked` where the other surfaces say `awaiting_mfa` or
 `not_authenticated`.
 
-**D8. Passive verification counts as activity.** Hydrated HTML and
-`GET /bootstrap/me` both refresh `last_use` on an active row, so a tab left
-open keeps its session alive through its periodic poll. A page load is a user
-action; a background poll is not. #4455 changes the poll and replaces the
-"pending #4455" example in the full-mode spec.
+**D8. The two public surfaces verify alike and differ in whether they count
+as activity.** Until #4455 both refreshed `last_use` on an active row, so a
+tab left open kept its session alive through its periodic poll. A page load
+is a user action; a background poll is not. `GET /bootstrap/me` now declares
+`activity=passive` in `apps/web/core/routes.txt`
+(`Onetime::SessionActivity`). It runs the same SELECT, enforces both
+deadlines and still removes an expired row (D2), but it moves none of the
+three inactivity clocks: the active-session row's `last_use`
+(`ActiveSessionGate`), the sidecar's `last_activity_at` that the admin idle
+bound reads (`Operations::Sessions::TrackMetadata`), and the Rack session
+blob's TTL, which is the only inactivity clock in simple mode
+(`Onetime::Session#write_session`). Hydrated HTML is unchanged. This
+divergence is deliberate and stays.
+
+Two limits are worth knowing. The verdict is memoized per request, so a
+refresh skipped for a passive reader is recorded in the env and performed by
+the first activity reader served from the memo; over HTTP a request is one or
+the other, so this is exercised in the unit specs. And a route declaration
+covers the session check only: the dashboard's five-minute receipt refresh
+and the secret-links status refresh are ordinary API requests on routes that
+real navigation also uses, and no route option can tell the two apart.
+
+**D8a. A client may declare a safe request passive.** The client knows which
+of its requests a timer sent, so it says so with a request header:
+
+```
+X-Session-Activity: passive
+```
+
+`Onetime::SessionActivity.passive?` honours it next to the route option, and
+the three clocks above treat the request exactly as they treat the poll. The
+header can only take activity away:
+
+| Rule | Why |
+|---|---|
+| Only the exact value `passive` is read (case and surrounding whitespace aside). | No value can make a passive route count as activity. |
+| Honoured on `GET` and `HEAD` only, as an allowlist. | A request that changes state is something a person did; `POST`, `PUT`, `PATCH`, `DELETE` and any method not listed always count. |
+| Read by the activity predicate and nothing else. | Authentication, the evaluator, both deadlines, revocation and every refusal code are identical with and without it (one matrix example per state pins this). |
+| A passive request still creates the session's metadata record when none exists. | The record is what lists a session for its owner and for an operator; a session that only ever declared itself passive must not be able to stay off that list. |
+
+What a caller gains by sending it is an earlier end to its own session, so the
+server does not need to trust it and nothing is gained by forging it. One
+cost is accepted: a passive request does not refresh the metadata record, so
+the session list's last-activity time and country do not move for it. That is
+the same for the route-declared poll. There is no CORS layer in this
+application (the client is same-origin), so no allowed-headers list needs the
+name; a deployment that adds a cross-origin gateway in front must allow
+`X-Session-Activity` or the timers will count as activity again, which is the
+safe direction.
+
+Each poll that carries a session claim writes one `Bootstrap verification`
+line (Session logger, info) with `passive`, the verdict, the queries and
+writes issued against the active-session table, and the request id. A
+passive poll of a live session reads `active_session_queries: 1,
+active_session_writes: 0`. Pinned by
+`spec/integration/full/passive_verification_spec.rb` and its simple-mode
+twin.
 
 ## The reported incident
 
@@ -301,6 +359,14 @@ valid:
 | Customer store could not answer | `customer_session_evaluator.rb:184-203` | `customer_storage_unavailable` | Same shape as above. |
 | Tenant surface did not match | `customer_session_evaluator.rb:139` | `tenant_surface_mismatch` | A session established on one host presented on another refuses there and only there. |
 | Credential watermark | `customer_session_evaluator.rb:148`, `:205-210` | `credential_stale` | A password change elsewhere invalidates this session. |
+
+A seventh mechanism was found later, by the first real run of the #4459
+browser tests, and runs the OTHER way (a signed-out user still shown as signed
+in, then refused):
+
+| Candidate | Where | Reproduced by | Why it fits |
+|---|---|---|---|
+| Logout undone by an in-flight request | `apps/web/core/controllers/authentication.rb` `#logout` cleared the Rack session only; the store is last-writer-wins (`lib/onetime/session.rb` `#write_session`) and every response re-sends the cookie | `spec/integration/full/logout_ends_active_session_spec.rb`; `e2e/auth/session-consistency.spec.ts` "a session ended outside the tab" | A request that loaded the session before `GET /logout` and committed after it wrote the whole blob back under the old id and re-installed the old cookie. The active-session row had never been removed, so the copy was a valid session: observed as `/api/organizations` 401, then `GET /bootstrap/me` `authenticated`, 30 ms after the logout. Tabs of one browser then disagree about whether the user is signed in. Fixed twice over. Logout removes the row first (`Onetime::ActiveSessionGate.end_session`), so in full mode a copy is refused as `active_session_revoked`. And every path that deletes a session blob first sets a 300-second ended-marker (`Onetime::SessionEnded`, key `ended_sid:<HMAC of the id>`), which `#write_session` looks for after its own `SET`: a late write is taken back out, reported as not saved, and sends no cookie. That covers what the row cannot: simple mode, which has no row, and a single-session revoke (`Operations::Sessions::RevokeForCustomer`, `DeleteSession`), which deletes the blob and leaves the row in both modes. `spec/integration/simple/logout_write_back_spec.rb` holds a real request open across the logout and across a revoke. |
 
 Client-side amplifiers — code that turns one refusal, or one failed poll, into
 a signed-out UI (unchanged since `56a95f8b6`; addressed by #4456, #4458,
@@ -353,6 +419,13 @@ credential disclosure. None was reproduced:
   `src/schemas/contracts/bootstrap.ts` reads a payload without `auth_status`
   from the booleans, which can only withhold.
 - Login rotates the session ID (baseline spec).
+
+One finding came from the browser run rather than the matrix: `GET /logout`
+could be undone by a request already in flight (see "The reported incident",
+seventh mechanism). It is not fixation or bypass by a third party (the copy
+is the user's own session, in their own browser), but a logout that does not
+reliably end the session is a session-management defect (ASVS 7.4.1), and it
+is fixed in both authentication modes in this release (`RISK-2026-09-19-01`).
 
 Two observations that are not vulnerabilities are recorded as D1 (loss of the
 refusal reason on the wire, fixed here) and in "Evidence" (no
@@ -411,7 +484,32 @@ one of the replay causes ADR-046 lists.
 [OWASP ASVS 5.0.0 requirement 14.3.2](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x23-V14-Data-Protection.md):
 "Verify that the application sets sufficient anti-caching HTTP response header
 fields (i.e., Cache-Control: no-store) so that sensitive data is not cached in
-browsers."
+browsers." *OTS choice (#4461):* the same value is the default for every
+response the `/auth` app finishes (`plugin :default_headers` in
+`apps/web/auth/router.rb`), since it answers nothing but authentication
+state; a route that sets its own policy keeps it. JSON API responses under
+`/api` default to `Cache-Control: private, no-store` through
+`Onetime::Middleware::ApiCachePolicy` (RISK-2026-09-19-03); a route that
+already set its own `Cache-Control` keeps it.
+
+**An inactivity timeout has to measure inactivity.**
+[OWASP ASVS 5.0.0 requirements 7.3.1 and 7.3.2](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v73-session-timeout):
+"Verify that there is an inactivity timeout such that re-authentication is
+enforced according to risk analysis and documented security decisions." and
+"Verify that there is an absolute maximum session lifetime such that
+re-authentication is enforced according to risk analysis and documented
+security decisions." *OTS choice (#4455):* a timer-driven session check is
+not user activity, so it verifies and moves no inactivity clock (D8); the
+absolute lifetime is enforced by the same query and no request can move it.
+The standard does not say which requests count as activity; treating the
+poll as passive is this project's decision, recorded here. *OTS choice
+(`RISK-2026-09-19-04`):* the same reasoning covers the client's other timers,
+which the server cannot tell from navigation, so the client declares them
+with `X-Session-Activity: passive` (D8a). The declaration is accepted
+because it can only shorten the session of the caller that sends it: it is
+ignored on every state-changing method and is no input to authentication.
+Without it a tab left on the dashboard never reached the inactivity timeout
+that 7.3.1 asks for.
 
 **A terminated session must stop working everywhere, and ordering must not be
 able to delay that.**

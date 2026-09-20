@@ -8,19 +8,20 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SecretReceiptTable from '@/apps/secret/components/SecretReceiptTable.vue';
   import { InlineToast } from '@/shared/components/ui/notifications';
+  import { useBackgroundRefresh } from '@/shared/composables/useBackgroundRefresh';
   import { useReceiptList } from '@/shared/composables/useReceiptList';
-  import { onMounted, computed, ref, onBeforeUnmount } from 'vue';
+  import { onMounted, computed, ref } from 'vue';
 
   // Define props
   interface Props {}
   defineProps<Props>();
 
   const { t } = useI18n(); // auto-import
-  const { details, recordCount, isLoading, refreshRecords, error } = useReceiptList();
+  const { details, recordCount, isLoading, refreshRecords, refreshInBackground, error } =
+    useReceiptList();
 
   const sectionId = ref(`dashboard-recent-${Math.random().toString(36).substring(2, 9)}`);
   const lastRefreshed = ref(new Date());
-  const refreshInterval = ref<number | null>(null);
 
   // Refresh state
   const isRefreshing = ref(false);
@@ -33,31 +34,28 @@
   const revealedReceipts = computed(() => details.value?.revealed_receipts ?? []);
   const pendingReceipts = computed(() => details.value?.pending_receipts ?? []);
 
-  // Method to force refresh
+  // Method to force refresh (a person clicked: an ordinary, active request)
   const handleRefresh = async () => {
     isRefreshing.value = true;
-    await refreshRecords();
+    await refreshRecords(true);
     lastRefreshed.value = new Date();
     setTimeout(() => {
       isRefreshing.value = false;
     }, 1500);
   };
 
-  // Set up auto-refresh interval
-  onMounted(() => {
-    refreshRecords();
-    refreshInterval.value = window.setInterval(() => {
-      // Auto-refresh status every 5 minutes
-      refreshRecords();
-      lastRefreshed.value = new Date();
-    }, 300000); // Every 5 minutes
+  // Statuses refresh every 5 minutes while the tab is visible, and when it
+  // becomes visible again. Those requests are passive: an unattended dashboard
+  // must still reach its inactivity deadline.
+  const backgroundRefresh = useBackgroundRefresh(async () => {
+    await refreshInBackground();
+    lastRefreshed.value = new Date();
   });
 
-  // Clean up
-  onBeforeUnmount(() => {
-    if (refreshInterval.value) {
-      clearInterval(refreshInterval.value);
-    }
+  // The load on arrival is navigation: an ordinary, active request.
+  onMounted(() => {
+    refreshRecords();
+    backgroundRefresh.start();
   });
 </script>
 

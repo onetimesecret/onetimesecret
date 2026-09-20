@@ -9,11 +9,13 @@ require 'json'
 RSpec.describe Onetime::Application::RequestLogger do
   # Capture what the HTTP logger receives. log_request calls
   # @logger.send(level, json_string), so each entry is [level, parsed_payload].
+  subject(:middleware) { described_class.new(downstream, config) }
+
   let(:captured) { [] }
   let(:logger) do
     sink = captured
     obj  = Object.new
-    %i[trace debug info warn error fatal].each do |lvl|
+    [:trace, :debug, :info, :warn, :error, :fatal].each do |lvl|
       obj.define_singleton_method(lvl) { |msg| sink << [lvl, JSON.parse(msg)] }
     end
     obj
@@ -25,15 +27,13 @@ RSpec.describe Onetime::Application::RequestLogger do
   # like OttoHooks#with_error_correlation does mid-request.
   let(:config) { { 'capture' => 'standard' } }
   let(:downstream) do
-    lambda do |env|
+    ->(env) do
       env['otto.error_type'] = error_type if error_type
       [status, {}, []]
     end
   end
   let(:status) { 200 }
   let(:error_type) { nil }
-
-  subject(:middleware) { described_class.new(downstream, config) }
 
   before { allow(Onetime).to receive(:get_logger).with('HTTP').and_return(logger) }
 
@@ -108,8 +108,8 @@ RSpec.describe Onetime::Application::RequestLogger do
     let(:config) { { 'capture' => 'debug' } }
 
     around do |example|
-      original_conf         = Onetime.logging_conf
-      Onetime.logging_conf  = { 'http' => { 'allowed_error_fields' => allowed_fields } }
+      original_conf        = Onetime.logging_conf
+      Onetime.logging_conf = { 'http' => { 'allowed_error_fields' => allowed_fields } }
       example.run
       Onetime.logging_conf = original_conf
     end
@@ -137,6 +137,20 @@ RSpec.describe Onetime::Application::RequestLogger do
           headers: { 'HTTP_COOKIE' => 'session=abc', 'HTTP_AUTHORIZATION' => 'Bearer xyz' },
         )
         expect(payload['headers']).to eq({})
+      end
+    end
+
+    context 'with a loaded session' do
+      let(:allowed_fields) { [] }
+      let(:sid) { 'c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655' }
+
+      it 'logs the session handle, never the session id (the bearer cookie value)' do
+        session         = Struct.new(:id).new(Rack::Session::SessionId.new(sid))
+        _level, payload = call_with_params(params: {}, headers: { 'rack.session' => session })
+
+        expect(payload['session_handle']).to eq(Onetime::SessionMetadata.handle_for(sid))
+        expect(payload).not_to have_key('session_id')
+        expect(payload.to_s).not_to include(sid)
       end
     end
 

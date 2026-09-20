@@ -126,6 +126,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Onetime::Middleware::DomainStrategy',
       'Onetime::Middleware::RetryAfterHeader',
       'Onetime::Middleware::SessionFailureCode',
+      'Onetime::Middleware::ApiCachePolicy',
       'Onetime::Middleware::CsrfResponseHeader',
       'Onetime::Middleware::Security',
     ].freeze

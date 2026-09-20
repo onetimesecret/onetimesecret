@@ -194,6 +194,87 @@ RSpec.describe Onetime::Application::AuthStrategies::BaseSessionAuthStrategy do
     end
   end
 
+  # #4455/#4463: `failure_for` is non-terminal, so on chained-strategy
+  # routes such as `sessionauth,basicauth` (e.g. /api/account/) a rejected
+  # verdict still lets Otto try the next strategy. Emitting "Session refused"
+  # for a request that never presented a session identity is misleading — the
+  # session had nothing to say. Log a refusal only when a credentialed
+  # session was actually inspected and rejected.
+  context 'refusal logging gate' do
+    let(:logger) { double('auth_logger', debug: nil, info: nil, warn: nil, error: nil) }
+
+    before { allow(Onetime).to receive(:auth_logger).and_return(logger) }
+
+    it 'does not log when no session cookie is present (session_missing)' do
+      env['rack.session'] = nil
+
+      strategy.authenticate(env, 'authenticated')
+
+      expect(logger).not_to have_received(:info)
+      expect(logger).not_to have_received(:debug)
+      expect(logger).not_to have_received(:warn)
+      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:session_missing)
+    end
+
+    it 'does not log when the session has no authenticated flag (not_authenticated)' do
+      env['rack.session'] = { Onetime::SessionSurface::KEY => { 'kind' => 'canonical' } }
+
+      strategy.authenticate(env, 'authenticated')
+
+      expect(logger).not_to have_received(:info)
+      expect(logger).not_to have_received(:debug)
+      expect(logger).not_to have_received(:warn)
+      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:not_authenticated)
+    end
+
+    it 'does not log when the session is authenticated but carries no external_id (identity_missing)' do
+      env['rack.session'] = {
+        'authenticated'              => true,
+        Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
+      }
+
+      strategy.authenticate(env, 'authenticated')
+
+      expect(logger).not_to have_received(:info)
+      expect(logger).not_to have_received(:debug)
+      expect(logger).not_to have_received(:warn)
+      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:identity_missing)
+    end
+
+    it 'logs when a credentialed session is refused on a surface mismatch' do
+      env['onetime.domain_strategy']  = :custom
+      env['onetime.display_domain']   = 'secrets.acme.com'
+      env['onetime.custom_domain_id'] = 'tenant-a'
+
+      strategy.authenticate(env, 'authenticated')
+
+      expect(logger).to have_received(:info).with('Session refused', hash_including(code: 'surface_mismatch'))
+      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:surface_mismatch)
+    end
+
+    it 'logs when the active-session gate revokes a credentialed session' do
+      allow(strategy).to receive(:admin_session_expiry_reason).and_return(nil)
+      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
+
+      strategy.authenticate(env, 'authenticated')
+
+      expect(logger).to have_received(:info).with('Session refused', hash_including(code: 'active_session_revoked'))
+      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:active_session_revoked)
+    end
+
+    it 'logs when a credentialed session is refused for stale credentials' do
+      # The gate does not distinguish routes: a non-routine reason emits
+      # regardless of whether a follow-on strategy is registered, because
+      # the credentialed session was inspected and rejected.
+      allow(cust).to receive(:last_password_update).and_return(Familia.now.to_i)
+
+      strategy.authenticate(env, 'authenticated')
+
+      expect(logger).to have_received(:info).with('Session refused', hash_including(code: 'stale_credentials'))
+      expect(env[Onetime::SessionFailureCode::ENV_KEY]).to eq(:stale_credentials)
+    end
+  end
+
   # Surface-bound session enforcement (#4409). The check runs BEFORE the
   # customer load, the admin bound and the active-session gate: a mismatched
   # or missing marker refuses without an authdb round trip and without

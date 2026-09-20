@@ -177,7 +177,9 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
   describe Onetime::Operations::Sessions::Delete do
     # This op records NO detail at all without a reason, so it pins the
     # nil-detail edge of the rule rather than the merge.
-    let(:dbclient) { double('Redis', del: 1) }
+    # `set` is the ended-marker every blob delete writes first
+    # (Onetime::SessionEnded, RISK-2026-09-19-01).
+    let(:dbclient) { double('Redis', del: 1, set: 'OK') }
 
     before do
       allow(Onetime::Operations::Sessions::Store)

@@ -3,8 +3,9 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import SecretLinksTable from '@/apps/secret/components/SecretLinksTable.vue';
+  import { useBackgroundRefresh } from '@/shared/composables/useBackgroundRefresh';
   import { useRecentSecrets } from '@/shared/composables/useRecentSecrets';
-  import { ref, onMounted, onUnmounted, computed } from 'vue';
+  import { ref, onMounted, computed } from 'vue';
 
   export interface Props {
     /** Whether to show the workspace mode toggle checkbox. Default true. */
@@ -23,6 +24,7 @@
     toggleWorkspaceMode,
     fetch,
     refreshStatuses,
+    refreshInBackground,
     clear,
     updateMemo,
     isAuthenticated,
@@ -47,48 +49,21 @@
 
   const tableId = ref(`recent-secrets-${Math.random().toString(36).substring(2, 9)}`);
 
-  // Throttle refresh to prevent excessive API calls on rapid tab switches
-  const REFRESH_THROTTLE_MS = 5000;
-  let lastRefreshTime = 0;
+  // Background refresh: every 5 minutes while the tab is visible, and when the
+  // tab becomes visible again (throttled against rapid tab switching).
+  // Authenticated users re-fetch from the API; guests sync local statuses.
+  // Nobody initiated these requests, so they are silent and, signed in,
+  // passive: they do not count as session activity.
+  const backgroundRefresh = useBackgroundRefresh(refreshInBackground);
 
-  // Refresh data when tab becomes visible (user returns from another tab)
-  // Authenticated users: fetch fresh data from API
-  // Guest users: refresh statuses from server to sync local storage
-  // Throttled to prevent excessive requests on rapid tab switching
-  // Errors are silently ignored - this is a background refresh, not user-initiated
-  const handleVisibilityChange = async () => {
-    if (document.visibilityState === 'visible') {
-      const now = Date.now();
-      if (now - lastRefreshTime < REFRESH_THROTTLE_MS) return;
-      lastRefreshTime = now;
-
-      try {
-        if (isAuthenticated.value) {
-          await fetch({ silent: true });
-        } else {
-          await refreshStatuses({ silent: true });
-        }
-      } catch (e) {
-        // Silently ignore errors on background refresh (e.g., server unavailable)
-        // User didn't initiate this action, so don't show error toasts
-        // Log for debugging in development
-        console.debug('Background refresh failed:', e);
-      }
-    }
-  };
-
-  // Fetch records on mount and set up visibility listener
+  // The load on arrival is navigation: an ordinary, active request.
   // For guest users, also refresh statuses from server to sync with actual state
   onMounted(async () => {
     await fetch();
     if (!isAuthenticated.value) {
       await refreshStatuses();
     }
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-  });
-
-  onUnmounted(() => {
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    backgroundRefresh.start();
   });
 
   // Method to dismiss/clear all recent secrets

@@ -94,12 +94,38 @@ module Onetime
           )
         end
 
+        # Evaluator reasons that describe a request which never presented a
+        # credentialed session — no cookie, no `authenticated` flag, no
+        # identity in the blob. On chained-strategy routes such as
+        # `sessionauth,basicauth`, the failure produced here is non-terminal
+        # and another strategy still decides the response, so emitting a
+        # "Session refused" line would be misleading: nothing was refused,
+        # the session simply had nothing to say (#4463).
+        SILENT_REASONS = [
+          :session_missing,
+          :identity_missing,
+          :not_authenticated,
+        ].freeze
+        private_constant :SILENT_REASONS
+
         # The typed reason is handed to Onetime::Middleware::SessionFailureCode
         # through the env: Otto renders the 401 body itself from the failure
         # string alone, so the reason would otherwise be collapsed into a
         # bracket marker inside `message` (#4462).
+        #
+        # This is also where every Otto session refusal is logged, once, with
+        # its code and request id and no credential (#4461) — EXCEPT when the
+        # reason is in SILENT_REASONS. Those describe requests that never had
+        # a session identity to refuse and are therefore silent by design so
+        # a chained strategy (e.g. basicauth on `/api/account/`) can decide
+        # the response without emitting a misleading refusal line. A
+        # credentialed session that was inspected and rejected
+        # (surface_mismatch, stale_credentials, active_session_revoked, ...)
+        # is still logged even if a later strategy saves the request, because
+        # a rejected credential is an auditable event.
         def failure_for(verdict, env)
           env[Onetime::SessionFailureCode::ENV_KEY] = verdict.reason if env.is_a?(Hash)
+          Onetime::SessionFailureCode.log_refusal(verdict.reason, env) unless SILENT_REASONS.include?(verdict.reason)
 
           if verdict.reason == :admin_session_expired
             return failure(
