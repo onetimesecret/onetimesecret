@@ -112,14 +112,10 @@ module Onetime
   # ({Onetime::SessionActivity}) is verified in full: the same SELECT, the
   # same two deadlines, the same removal of an expired row. It does not
   # refresh `last_use`. A tab that only polls therefore reaches the
-  # inactivity deadline exactly when a closed tab would.
-  #
-  # The verdict is memoized per request, so a refresh skipped for a passive
-  # reader must not be lost to an activity reader that arrives later on the
-  # same env and is served from the memo. The skipped refresh is recorded
-  # under {TOUCH_DEFERRED_ENV_KEY} and performed, once, by the first
-  # non-passive reader ({.settle_deferred_touch}). Nothing else is deferred:
-  # a refusal is final for the request, and a refused request never touches.
+  # inactivity deadline exactly when a closed tab would. Passivity is a
+  # property of the request (route options + request header) and does not
+  # change mid-request, so there is nothing to defer: a passive reader
+  # skips the touch outright.
   #
   # ## Counts
   #
@@ -131,10 +127,6 @@ module Onetime
 
     # Per-request memo of the verdict, keyed in the Rack env.
     ENV_KEY = 'onetime.active_session_gate'
-
-    # Set when a passive reader found `last_use` due a refresh and left it
-    # alone. Cleared by the activity reader that performs the refresh.
-    TOUCH_DEFERRED_ENV_KEY = 'onetime.active_session_gate.touch_deferred'
 
     # `{ queries: Integer, writes: Integer }` issued against {TABLE} on this
     # request. Absent when the gate did not apply or never ran.
@@ -174,24 +166,20 @@ module Onetime
     #   :unavailable (authdb could not answer), or :skipped (gate does not
     #   apply)
     def verdict(session, env: nil)
-      if env.is_a?(Hash) && env.key?(ENV_KEY)
-        settle_deferred_touch(session, env: env)
-        return env[ENV_KEY]
-      end
+      return env[ENV_KEY] if env.is_a?(Hash) && env.key?(ENV_KEY)
 
       result       = compute(session, env)
       env[ENV_KEY] = result if env.is_a?(Hash)
       result
     end
 
-    # The session identity changed inside this request (login or logout):
-    # neither the verdict nor a refresh deferred for the previous identity may
-    # outlive it. The counts stay; they describe the request, not the session.
+    # The session identity changed inside this request (login or logout): the
+    # verdict for the previous identity may not outlive it. The counts stay;
+    # they describe the request, not the session.
     def forget(env)
       return unless env.is_a?(Hash)
 
       env.delete(ENV_KEY)
-      env.delete(TOUCH_DEFERRED_ENV_KEY)
     end
 
     # Logout: remove the active-session row this Rack session joins to, as
@@ -223,34 +211,6 @@ module Onetime
     rescue StandardError => ex
       OT.lw "[active_session_gate] active-session row could not be removed at logout #{who(session)}: " \
             "#{ex.class}: #{ex.message}"
-      false
-    end
-
-    # Perform a `last_use` refresh that a passive reader deferred earlier on
-    # this env, if this reader is activity. Called on every memo hit here and
-    # by {Onetime::CustomerSessionEvaluator} on its own memo hit, which never
-    # reaches {.verdict}. A no-op in every other case, at the cost of one
-    # Hash lookup.
-    #
-    # The flag is cleared before the write so the refresh is attempted at
-    # most once per request, and only an :active memo is honoured: a request
-    # that was refused must never advance the deadline it was refused under.
-    #
-    # @return [Boolean] true when the refresh was attempted
-    def settle_deferred_touch(session, env:)
-      return false unless env.is_a?(Hash) && env[TOUCH_DEFERRED_ENV_KEY]
-      return false if SessionActivity.passive?(env)
-
-      env.delete(TOUCH_DEFERRED_ENV_KEY)
-      return false unless env[ENV_KEY] == :active && applicable?(session)
-
-      db = ::Auth::Database.connection
-      return false if db.nil?
-
-      touch(row_dataset(db, session), session, env)
-      true
-    rescue StandardError => ex
-      OT.lw "[active_session_gate] deferred last_use refresh could not run #{who(session)}: #{ex.class}: #{ex.message}"
       false
     end
 
@@ -287,13 +247,9 @@ module Onetime
     end
 
     # `last_use` is due a refresh. An activity request refreshes it; a
-    # passive one leaves it and says so, for {.settle_deferred_touch}.
+    # passive one leaves it alone (see the class docstring).
     def record_activity(row_ds, session, env)
-      if SessionActivity.passive?(env)
-        env[TOUCH_DEFERRED_ENV_KEY] = true
-      else
-        touch(row_ds, session, env)
-      end
+      touch(row_ds, session, env) unless SessionActivity.passive?(env)
     end
 
     def count(env, key)

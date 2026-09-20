@@ -148,16 +148,6 @@ RSpec.describe Onetime::Helpers::SessionHelpers do
     expect(env).not_to have_key(gate::ENV_KEY)
   end
 
-  it 'drops a last_use refresh deferred for the previous identity on logout! (#4455)' do
-    env     = canonical_env.merge(gate::ENV_KEY => :active, gate::TOUCH_DEFERRED_ENV_KEY => true)
-    request = instance_double(Rack::Request, env: env)
-    allow(Onetime::SessionImpersonation).to receive(:stop!)
-
-    helper_class.new(session, request).logout!
-
-    expect(env).not_to have_key(gate::TOUCH_DEFERRED_ENV_KEY)
-  end
-
   # RISK-2026-09-19-01: only a renewed id gets an ended-marker, and only the
   # marker stops a request in flight from writing the session back.
   it 'renews the session id on logout!' do

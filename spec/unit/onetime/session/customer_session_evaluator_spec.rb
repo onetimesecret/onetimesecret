@@ -256,39 +256,6 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
     end
   end
 
-  # #4455. A memo hit returns before the gate is consulted, so the evaluator
-  # itself must offer the gate a `last_use` refresh that a passive reader
-  # deferred earlier on the same env.
-  describe 'a deferred activity refresh on a memo hit' do
-    before { allow(Onetime::ActiveSessionGate).to receive(:settle_deferred_touch) }
-
-    it 'offers it to the gate when the memoized verdict is authenticated' do
-      described_class.evaluate(session, env: env)
-      expect(Onetime::ActiveSessionGate).not_to have_received(:settle_deferred_touch)
-
-      described_class.evaluate(session, env: env)
-
-      expect(Onetime::ActiveSessionGate).to have_received(:settle_deferred_touch).with(session, env: env).once
-    end
-
-    it 'does not offer it for a memoized refusal' do
-      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
-
-      2.times { described_class.evaluate(session, env: env) }
-
-      expect(Onetime::ActiveSessionGate).not_to have_received(:settle_deferred_touch)
-    end
-
-    it 'does not offer it when this caller\'s boundary refuses the memoized verdict' do
-      described_class.evaluate(session, env: env)
-      expired = described_class::Verdict.new(status: :rejected, reason: :admin_session_expired, detail: :idle)
-
-      described_class.evaluate(session, env: env, before_active: ->(_cust) { expired })
-
-      expect(Onetime::ActiveSessionGate).not_to have_received(:settle_deferred_touch)
-    end
-  end
-
   it 'refuses an authenticated session as a surface mismatch when there is no Rack env' do
     allow(Onetime::SessionSurface).to receive(:matches_request?).and_call_original
 

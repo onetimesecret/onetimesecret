@@ -416,69 +416,6 @@ RSpec.describe Onetime::ActiveSessionGate do
       expect(Time.now - last_use_in_db).to be < 5
     end
 
-    describe 'a passive check followed by activity on the same env' do
-      let(:env) { passive_env.dup }
-
-      before do
-        insert_row(last_use: stale)
-        described_class.verdict(session, env: env)
-      end
-
-      it 'records the deferral instead of the write' do
-        expect(env[described_class::TOUCH_DEFERRED_ENV_KEY]).to be(true)
-        expect(last_use_in_db.to_i).to eq(stale.to_i)
-      end
-
-      it 'performs the deferred refresh when an activity reader is served from the memo' do
-        env['otto.route_options'] = { auth: 'sessionauth' }
-
-        expect(described_class.verdict(session, env: env)).to eq(:active)
-
-        expect(Time.now - last_use_in_db).to be < 5
-        expect(env).not_to have_key(described_class::TOUCH_DEFERRED_ENV_KEY)
-      end
-
-      it 'performs it once, not once per reader' do
-        env['otto.route_options'] = { auth: 'sessionauth' }
-        3.times { described_class.verdict(session, env: env) }
-
-        expect(env[described_class::STATS_ENV_KEY]).to eq(queries: 1, writes: 1)
-      end
-
-      it 'keeps deferring while every reader is passive' do
-        3.times { described_class.verdict(session, env: env) }
-
-        expect(last_use_in_db.to_i).to eq(stale.to_i)
-        expect(env[described_class::STATS_ENV_KEY]).to eq(queries: 1, writes: 0)
-      end
-
-      it 'never refreshes on behalf of a memo that is not :active' do
-        env['otto.route_options']    = { auth: 'sessionauth' }
-        env[described_class::ENV_KEY] = :revoked
-
-        expect(described_class.settle_deferred_touch(session, env: env)).to be(false)
-        expect(last_use_in_db.to_i).to eq(stale.to_i)
-      end
-
-      # Login and logout change who the Rack session belongs to mid-request.
-      it 'drops the deferral with the memo when the session identity changes' do
-        described_class.forget(env)
-        env['otto.route_options'] = { auth: 'sessionauth' }
-
-        expect(env).not_to have_key(described_class::ENV_KEY)
-        expect(described_class.settle_deferred_touch(session, env: env)).to be(false)
-        expect(last_use_in_db.to_i).to eq(stale.to_i)
-      end
-
-      it 'swallows a failing deferred refresh and warns' do
-        env['otto.route_options'] = { auth: 'sessionauth' }
-        allow(Auth::Database).to receive(:connection).and_raise(Sequel::DatabaseConnectionError, 'gone')
-
-        expect(described_class.verdict(session, env: env)).to eq(:active)
-        expect(OT).to have_received(:lw).with(/deferred last_use refresh could not run.*account_id=42/)
-      end
-    end
-
     describe 'request counts' do
       it 'reports one query and no write for a passive poll of a stale row' do
         insert_row(last_use: stale)
