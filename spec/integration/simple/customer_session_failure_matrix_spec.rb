@@ -40,10 +40,10 @@ RSpec.describe 'Cross-surface customer-session failure matrix in simple mode (#4
         expect(observation[:verdict]).to eq(expectation.fetch(:verdict))
         expect(observation[:refusal_markers]).to eq(expectation.fetch(:markers).fetch(surface))
 
-        if %i[hydrated_html bootstrap].include?(surface)
-          expect_public_observation(observation, expectation.fetch(:public))
+        if public_surface?(surface)
+          expect_public_observation(observation, expectation)
         else
-          expect_protected_observation(observation, expectation.fetch(:protected), surface)
+          expect_protected_observation(observation, expectation, surface)
         end
       end
     end
@@ -58,54 +58,5 @@ RSpec.describe 'Cross-surface customer-session failure matrix in simple mode (#4
       :absolute_expired,
       :authentication_database_unavailable,
     )
-  end
-
-  def expect_public_observation(observation, verdict)
-    expect(observation[:status]).to eq(200)
-    expect(observation[:refusal_code]).to be_nil
-
-    case verdict
-    when :anonymous
-      expect(observation).to include(
-        authenticated: false,
-        awaiting_mfa: false,
-        customer_exposed: false,
-        identity_exposed: false,
-      )
-    when :mfa_pending
-      expect(observation).to include(
-        authenticated: false,
-        awaiting_mfa: true,
-        customer_exposed: false,
-        identity_exposed: false,
-      )
-      expect(observation.fetch(:payload)).to include(
-        CustomerSessionFailureMatrix::MFA_PROTECTED_ACCOUNT_FIELDS,
-      )
-    when :identity_exposed
-      expect(observation).to include(
-        authenticated: true,
-        awaiting_mfa: false,
-        customer_exposed: true,
-        identity_exposed: true,
-      )
-    else
-      raise ArgumentError, "unsupported simple-mode public verdict: #{verdict}"
-    end
-  end
-
-  def expect_protected_observation(observation, verdict, surface)
-    case verdict
-    when :refused
-      expect(observation[:status]).to eq(surface == :protected_html ? 302 : 401)
-      expect(observation[:refusal_code]).to eq(surface == :protected_api ? 'Authentication Required' : nil)
-      expect(observation).to include(identity_exposed: false, customer_exposed: false)
-    when :authenticated
-      expect(observation[:status]).to eq(200)
-      expect(observation[:refusal_code]).to be_nil
-      expect(observation).to include(identity_exposed: true, customer_exposed: true)
-    else
-      raise ArgumentError, "unknown protected verdict: #{verdict}"
-    end
   end
 end

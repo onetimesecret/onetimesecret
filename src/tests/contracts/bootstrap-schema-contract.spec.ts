@@ -10,6 +10,7 @@
 
 import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 import {
+  SNAPSHOT_GENERATED_AT_PATTERN,
   apiInterfaceSchema,
   authStatusValues,
   bootstrapSchema,
@@ -89,7 +90,7 @@ const FRONTEND_ONLY_FIELDS: Record<string, string> = {
 // We need to get the keys from the BootstrapPayload interface.
 // Since TypeScript interfaces don't exist at runtime, we use the baseBootstrap
 // fixture which implements the interface completely.
-import { baseBootstrap } from '@/tests/fixtures/bootstrap.fixture';
+import { baseBootstrap, snapshotOrdering } from '@/tests/fixtures/bootstrap.fixture';
 
 const BOOTSTRAP_PAYLOAD_KEYS = Object.keys(baseBootstrap) as (keyof BootstrapPayload)[];
 
@@ -614,6 +615,121 @@ describe('Bootstrap auth_status contract', () => {
         }
       }
     });
+  });
+});
+
+// ============================================================================
+// TESTS: Snapshot ordering fields (ADR-046, "Payload")
+// ============================================================================
+
+describe('Bootstrap snapshot ordering contract', () => {
+  const { snapshot_epoch, snapshot_version, snapshot_generated_at } = snapshotOrdering;
+
+  it('accepts a payload with no ordering fields (anonymous, degraded, or pre-contract server)', () => {
+    const parsed = bootstrapSchema.parse({});
+    expect('snapshot_epoch' in parsed).toBe(false);
+    expect('snapshot_version' in parsed).toBe(false);
+    expect('snapshot_generated_at' in parsed).toBe(false);
+  });
+
+  it('accepts the pair together and keeps the version a string', () => {
+    const parsed = bootstrapSchema.parse({ snapshot_epoch, snapshot_version, snapshot_generated_at });
+    expect(parsed.snapshot_epoch).toBe(snapshot_epoch);
+    expect(parsed.snapshot_version).toBe(snapshot_version);
+    expect(typeof parsed.snapshot_version).toBe('string');
+  });
+
+  describe('the epoch and version are a unit', () => {
+    it('rejects an epoch without a version', () => {
+      const result = bootstrapSchema.safeParse({ snapshot_epoch });
+      expect(result.success).toBe(false);
+      expect(result.error?.issues[0].path).toEqual(['snapshot_version']);
+    });
+
+    it('rejects a version without an epoch', () => {
+      const result = bootstrapSchema.safeParse({ snapshot_version });
+      expect(result.success).toBe(false);
+      expect(result.error?.issues[0].path).toEqual(['snapshot_epoch']);
+    });
+
+    it('rejects null for either: the server omits the keys, it never nulls them', () => {
+      expect(bootstrapSchema.safeParse({ snapshot_epoch: null, snapshot_version: null }).success).toBe(
+        false
+      );
+      expect(bootstrapSchema.safeParse({ snapshot_epoch, snapshot_version: null }).success).toBe(false);
+    });
+  });
+
+  it.each([
+    ['uppercase hex', '0123456789ABCDEF0123456789ABCDEF'],
+    ['31 characters', '0123456789abcdef0123456789abcde'],
+    ['33 characters', '0123456789abcdef0123456789abcdef0'],
+    ['non-hex', 'g123456789abcdef0123456789abcdef'],
+    ['empty', ''],
+  ])('rejects a malformed epoch: %s', (_label, epoch) => {
+    expect(bootstrapSchema.safeParse({ snapshot_epoch: epoch, snapshot_version }).success).toBe(false);
+  });
+
+  it.each([
+    ['zero', '0'],
+    ['leading zero', '0123'],
+    ['negative', '-1'],
+    ['exponent form', '1.758e15'],
+    ['decimal point', '12.0'],
+    ['whitespace', ' 12'],
+    ['empty', ''],
+  ])('rejects a non-canonical version: %s', (_label, version) => {
+    expect(bootstrapSchema.safeParse({ snapshot_epoch, snapshot_version: version }).success).toBe(false);
+  });
+
+  it('rejects a JSON number version, whatever its size', () => {
+    expect(bootstrapSchema.safeParse({ snapshot_epoch, snapshot_version: 12 }).success).toBe(false);
+  });
+
+  it('carries a version beyond 2^64 exactly, comparable with BigInt', () => {
+    const huge = '18446744073709551617';
+    const parsed = bootstrapSchema.parse({ snapshot_epoch, snapshot_version: huge });
+
+    expect(parsed.snapshot_version).toBe(huge);
+    expect(BigInt(parsed.snapshot_version!) > BigInt('18446744073709551616')).toBe(true);
+    // The reason it is never a number: this comparison is wrong in doubles.
+    expect(Number(huge) > Number('18446744073709551616')).toBe(false);
+  });
+
+  describe('snapshot_generated_at never decides a parse', () => {
+    it.each([
+      ['three fractional digits', '2026-09-17T17:28:59.123Z'],
+      ['no fraction', '2026-09-17T17:28:59Z'],
+      ['an offset instead of Z', '2026-09-17T17:28:59.123456+00:00'],
+      ['not a date at all', 'yesterday'],
+      ['empty', ''],
+    ])('a malformed timestamp still parses with a valid pair: %s', (_label, generatedAt) => {
+      const result = bootstrapSchema.safeParse({
+        snapshot_epoch,
+        snapshot_version,
+        snapshot_generated_at: generatedAt,
+      });
+
+      expect(result.success).toBe(true);
+      expect(SNAPSHOT_GENERATED_AT_PATTERN.test(generatedAt)).toBe(false);
+    });
+
+    it('a missing timestamp parses with a valid pair', () => {
+      expect(bootstrapSchema.safeParse({ snapshot_epoch, snapshot_version }).success).toBe(true);
+    });
+
+    it('the separate format check accepts exactly the server format', () => {
+      expect(SNAPSHOT_GENERATED_AT_PATTERN.test(snapshot_generated_at)).toBe(true);
+    });
+
+    it('a well-formed timestamp cannot rescue an invalid pair', () => {
+      expect(bootstrapSchema.safeParse({ snapshot_epoch, snapshot_generated_at }).success).toBe(false);
+    });
+  });
+
+  it('keeps the schema an object schema: defaults and shape survive the refinement', () => {
+    expect(bootstrapSchema.parse({}).authenticated).toBe(false);
+    expect(Object.keys(bootstrapSchema.shape)).toContain('snapshot_epoch');
   });
 });
 

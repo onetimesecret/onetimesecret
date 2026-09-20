@@ -215,6 +215,9 @@ RSpec.describe 'Middleware manifest (characterization)' do
         'Onetime::Middleware::TenantCspExtras',
         'Core::Middleware::ErrorHandling',
         'Onetime::Middleware::StaticFiles',
+        # Innermost: ahead of the router (and so the auth strategy), behind
+        # StaticFiles so asset requests allocate nothing (ADR-046).
+        'Core::Middleware::SnapshotOrdering',
       ],
       'Billing::Application' => [],
       'V1::Application' => ['Rack::JSONBodyParser'],
