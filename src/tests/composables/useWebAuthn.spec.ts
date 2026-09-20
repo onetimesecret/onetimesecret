@@ -2,6 +2,8 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useWebAuthn } from '@/shared/composables/useWebAuthn';
+import { authenticatedBootstrap } from '@/tests/fixtures/bootstrap.fixture';
+import { toWire } from '@/tests/fixtures/bootstrap-wire';
 import { setupTestPinia } from '../setup';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 
@@ -150,8 +152,10 @@ describe('useWebAuthn', () => {
       // Mock API calls (uses /auth/webauthn-login for passwordless)
       axiosMock.onPost('/auth/webauthn-login').replyOnce(422, challengeResponse);
       axiosMock.onPost('/auth/webauthn-login').replyOnce(200, { success: 'Authenticated' });
-      // Mock the bootstrap/me call that happens after setAuthenticated(true)
-      axiosMock.onGet('/bootstrap/me').reply(200, { authenticated: true });
+      // Mock the bootstrap/me call that happens after setAuthenticated(true).
+      // #4497 Arc A: the coordinator refuses a snapshot without cust, so the
+      // canonical authenticated fixture is used here.
+      axiosMock.onGet('/bootstrap/me').reply(200, toWire(authenticatedBootstrap));
 
       const { authenticateWebAuthn, isLoading, error } = useWebAuthn();
 
@@ -194,7 +198,7 @@ describe('useWebAuthn', () => {
         webauthn_auth_challenge_hmac: 'hmac-data',
       });
       axiosMock.onPost('/auth/webauthn-login').replyOnce(200, { success: 'Authenticated' });
-      axiosMock.onGet('/bootstrap/me').reply(200, { authenticated: true });
+      axiosMock.onGet('/bootstrap/me').reply(200, toWire(authenticatedBootstrap));
 
       const { authenticateWebAuthn } = useWebAuthn();
       expect(await authenticateWebAuthn('user@example.com')).toBe(true);
@@ -215,7 +219,7 @@ describe('useWebAuthn', () => {
         webauthn_auth_challenge_hmac: 'hmac-data',
       });
       axiosMock.onPost('/auth/webauthn-login').replyOnce(200, { success: 'Authenticated' });
-      axiosMock.onGet('/bootstrap/me').reply(200, { authenticated: true });
+      axiosMock.onGet('/bootstrap/me').reply(200, toWire(authenticatedBootstrap));
 
       const { authenticateWebAuthn } = useWebAuthn();
       expect(await authenticateWebAuthn('user@example.com')).toBe(true);
@@ -236,7 +240,7 @@ describe('useWebAuthn', () => {
         webauthn_auth_challenge_hmac: 'hmac',
       });
       axiosMock.onPost('/auth/webauthn-login').replyOnce(200, { success: 'Authenticated' });
-      axiosMock.onGet('/bootstrap/me').reply(200, { authenticated: true });
+      axiosMock.onGet('/bootstrap/me').reply(200, toWire(authenticatedBootstrap));
 
       const { authenticateWebAuthn, error } = useWebAuthn();
       const result = await authenticateWebAuthn('user@example.com');

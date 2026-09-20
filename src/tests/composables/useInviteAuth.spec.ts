@@ -451,6 +451,11 @@ describe('useInviteAuth', () => {
 
     it('returns MFA required when server indicates mfa_required', async () => {
       axiosMock.onPost('/auth/login').reply(200, { mfa_required: true });
+      // #4497 Arc A: ensureMfaPending gates on authStatus === 'mfa_pending'.
+      // authStore.refresh is stubbed at the store boundary (beforeEach), so
+      // the real applySnapshot never runs; mark the bootstrap store's status
+      // by hand as if the coordinator had committed an mfa_pending snapshot.
+      bootstrapStore.authStatus = 'mfa_pending';
 
       const { loginForInvite } = useInviteAuth();
       const result = await loginForInvite('u@e.com', 'pw12345678', 'tok-abc');
@@ -464,6 +469,8 @@ describe('useInviteAuth', () => {
 
     it('asks the server for the MFA-pending state instead of patching it (#4458)', async () => {
       axiosMock.onPost('/auth/login').reply(200, { mfa_required: true });
+      // See sibling test for the manual authStatus advance rationale (#4497).
+      bootstrapStore.authStatus = 'mfa_pending';
       const updateSpy = vi.spyOn(bootstrapStore, 'update');
 
       const { loginForInvite } = useInviteAuth();
