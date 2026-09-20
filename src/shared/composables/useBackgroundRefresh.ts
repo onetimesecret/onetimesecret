@@ -28,7 +28,10 @@ export interface BackgroundRefreshOptions {
  * tell them. A session that ended is handled by the API client, not here.
  *
  * Call `start()` once the initial, user-initiated load is done. Stops itself
- * when the component unmounts.
+ * when the component unmounts. Once `stop()` has run (explicitly or via
+ * `onBeforeUnmount`), any subsequent `start()` is a no-op: this protects
+ * callers whose `onMounted` awaits complete after the component has been
+ * torn down (Vue does not await async `onMounted` before unmount).
  */
 export function useBackgroundRefresh(
   refresh: () => Promise<unknown>,
@@ -44,8 +47,14 @@ export function useBackgroundRefresh(
   // start a second request while the first is still open; if their responses
   // arrive out of order, the older one would overwrite newer data.
   let inFlight = false;
+  // Once stopped (explicitly or via onBeforeUnmount), a later start() or an
+  // in-flight run() continuation must not resurrect the interval/listener or
+  // mutate caller state. This guards async `onMounted` callers that call
+  // start() after the component has already unmounted.
+  let stopped = false;
 
   const run = async () => {
+    if (stopped) return;
     if (document.visibilityState !== 'visible') return;
     if (inFlight) return;
 
@@ -69,10 +78,17 @@ export function useBackgroundRefresh(
       timer = null;
     }
     document.removeEventListener('visibilitychange', run);
+    stopped = true;
   };
 
   const start = () => {
-    stop();
+    if (stopped) return;
+    // Idempotent: clear any prior interval/listener without flipping `stopped`.
+    if (timer !== null) {
+      window.clearInterval(timer);
+      timer = null;
+    }
+    document.removeEventListener('visibilitychange', run);
     timer = window.setInterval(run, intervalMs);
     document.addEventListener('visibilitychange', run);
   };

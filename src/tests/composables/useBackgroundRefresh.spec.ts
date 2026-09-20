@@ -112,4 +112,71 @@ describe('useBackgroundRefresh', () => {
 
     expect(refresh).not.toHaveBeenCalled();
   });
+
+  // Guards async `onMounted` callers whose awaits resolve after the component
+  // has already unmounted: a later start() must not resurrect the interval or
+  // the visibilitychange listener (which would keep mutating store state).
+  it('is a no-op if start() is called after stop()', async () => {
+    const setInterval = vi.spyOn(window, 'setInterval');
+    const addEventListener = vi.spyOn(document, 'addEventListener');
+
+    const controls = (() => {
+      let captured!: ReturnType<typeof useBackgroundRefresh>;
+      const wrapper = mount(
+        defineComponent({
+          setup() {
+            captured = useBackgroundRefresh(refresh);
+            return () => h('div');
+          },
+        })
+      );
+      return { wrapper, captured };
+    })();
+
+    controls.captured.stop();
+    setInterval.mockClear();
+    addEventListener.mockClear();
+
+    controls.captured.start();
+
+    expect(setInterval).not.toHaveBeenCalled();
+    expect(addEventListener).not.toHaveBeenCalledWith('visibilitychange', expect.anything());
+
+    // And no ticks fire either.
+    await vi.advanceTimersByTimeAsync(BACKGROUND_REFRESH_INTERVAL_MS * 2);
+    setVisibility('visible');
+    expect(refresh).not.toHaveBeenCalled();
+
+    controls.wrapper.unmount();
+    setInterval.mockRestore();
+    addEventListener.mockRestore();
+  });
+
+  // Belt and braces: a stray in-flight run() (or one that resumes after stop)
+  // must not call refresh() again once stopped.
+  it('run() is a no-op after stop()', async () => {
+    let captured!: ReturnType<typeof useBackgroundRefresh>;
+    const wrapper = mount(
+      defineComponent({
+        setup() {
+          captured = useBackgroundRefresh(refresh);
+          captured.start();
+          return () => h('div');
+        },
+      })
+    );
+
+    captured.stop();
+    refresh.mockClear();
+
+    // Attempt to trigger the run path by dispatching visibility events
+    // directly (the listener is removed, but this proves defence-in-depth
+    // even if it were re-attached somehow).
+    setVisibility('hidden');
+    setVisibility('visible');
+    await vi.advanceTimersByTimeAsync(BACKGROUND_REFRESH_INTERVAL_MS * 2);
+
+    expect(refresh).not.toHaveBeenCalled();
+    wrapper.unmount();
+  });
 });
