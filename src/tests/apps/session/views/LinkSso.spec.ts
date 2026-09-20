@@ -37,12 +37,22 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 }));
 
 // Auth store: controllable auth state + spyable setAuthenticated.
-const mockSetAuthenticated = vi.fn();
+// #4497 Arc A: ensureAuthenticated / ensureMfaPending gate navigation on the
+// RefreshOutcome AND on authStore.authStatus matching the destination. The
+// mock returns 'applied' from both entry points and carries an authStatus
+// the sibling `describe` blocks flip to 'mfa_pending' for MFA flows.
+const mockSetAuthenticated = vi.fn(async () => 'applied');
 // The MFA hand-off asks the refresh coordinator for the server's statement
 // (#4458); it patches nothing locally.
 const mockRefresh = vi.fn(async () => 'applied');
-const mockAuthStore = {
+const mockAuthStore: {
+  isFullyAuthenticated: boolean;
+  authStatus: 'authenticated' | 'mfa_pending' | 'anonymous' | 'checking' | 'unavailable';
+  setAuthenticated: typeof mockSetAuthenticated;
+  refresh: typeof mockRefresh;
+} = {
   isFullyAuthenticated: false,
+  authStatus: 'authenticated',
   setAuthenticated: mockSetAuthenticated,
   refresh: mockRefresh,
 };
@@ -122,6 +132,12 @@ describe('LinkSso', () => {
     mockState.fetchChallenge.mockResolvedValue(makeChallenge());
     mockState.verifyLink.mockResolvedValue({ success: 'ok' });
     mockAuthStore.isFullyAuthenticated = false;
+    // #4497 Arc A: default the coordinator verdict to authenticated. MFA
+    // describe blocks below flip this to 'mfa_pending' so ensureMfaPending
+    // sees the destination it gates on.
+    mockAuthStore.authStatus = 'authenticated';
+    mockSetAuthenticated.mockResolvedValue('applied');
+    mockRefresh.mockResolvedValue('applied');
   });
 
   afterEach(() => {
@@ -289,6 +305,9 @@ describe('LinkSso', () => {
   describe('Verify success — MFA required', () => {
     beforeEach(() => {
       mockState.challenge.value = makeChallenge();
+      // #4497 Arc A: ensureMfaPending only navigates when authStatus is
+      // 'mfa_pending' after the refresh coordinator lands.
+      mockAuthStore.authStatus = 'mfa_pending';
     });
 
     it('does NOT mark fully authenticated and hands off to /mfa-verify', async () => {
