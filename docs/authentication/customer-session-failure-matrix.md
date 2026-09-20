@@ -54,8 +54,10 @@ request. The matrix exists to keep that true.
 
 ### `auth_status` — public surfaces
 
-Hydration and `GET /bootstrap/me` always answer 200 and never carry a failure
-code. They state the session through `auth_status`
+Hydration always answers 200. `GET /bootstrap/me` normally answers 200, but
+returns a retryable 503 (with `Retry-After: 5`) when an ordered session's
+snapshot metadata cannot be allocated (ADR-046 step 7). Neither surface
+carries a session-failure code. They state the session through `auth_status`
 (`lib/onetime/session/auth_status.rb`):
 
 | Evaluator status | `auth_status` | `authenticated` | `awaiting_mfa` | `cust` |
