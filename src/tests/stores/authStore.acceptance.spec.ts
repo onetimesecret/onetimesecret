@@ -23,7 +23,7 @@ import {
 } from '@/tests/fixtures/bootstrap.fixture';
 import { toWire } from '@/tests/fixtures/bootstrap-wire';
 import { attemptForcedPageLoad } from '@/utils/forcedPageLoad';
-import { SESSION_TRANSITION_KEY } from '@/utils/sessionTransition';
+import { consumeSessionTransition, SESSION_TRANSITION_KEY } from '@/utils/sessionTransition';
 import { addBreadcrumb } from '@sentry/vue';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -348,7 +348,7 @@ describe('authStore snapshot acceptance (#4464)', () => {
       expect(attemptForcedPageLoad).toHaveBeenCalledTimes(1);
       expect(store.staleSession).toBe(true);
       expect(observe()).toEqual(before);
-      expect(sessionStorage.getItem(SESSION_TRANSITION_KEY)).toBe('ended');
+      expect(consumeSessionTransition()).toBe('ended');
       expect(eventNames()).toContain('session-ended');
     });
 
@@ -399,7 +399,7 @@ describe('authStore snapshot acceptance (#4464)', () => {
       expect(observe()).toEqual(before);
       expect(bootstrapStore.custid).toBe(mockCustomer.extid);
       expect(attemptForcedPageLoad).toHaveBeenCalledTimes(1);
-      expect(sessionStorage.getItem(SESSION_TRANSITION_KEY)).toBe('replaced');
+      expect(consumeSessionTransition()).toBe('replaced');
       expect(eventNames()).toContain('session-replaced');
     });
 
