@@ -48,6 +48,23 @@ function recordNavigations(page: Page): string[] {
   return urls;
 }
 
+/**
+ * Server-visible top-level navigations: one entry per document request the
+ * browser sent. `framenavigated` fires per-commit and Chromium/Vue Router 4
+ * legitimately produce multiple commits per logical page load (initial-URL
+ * commit + history normalization + scroll-restoration replaceState), so it
+ * cannot count "the browser committed X once". This can.
+ */
+function recordDocumentRequests(page: Page): string[] {
+  const paths: string[] = [];
+  page.on('request', (request) => {
+    if (request.isNavigationRequest() && request.resourceType() === 'document') {
+      paths.push(new URL(request.url()).pathname);
+    }
+  });
+  return paths;
+}
+
 test.describe('hydration is the initial snapshot (#4456)', () => {
   test('an anonymous page load makes no /bootstrap/me request', async ({ page }) => {
     const bootstrapRequests = recordBootstrapRequests(page);
@@ -74,6 +91,7 @@ test.describe('hydration is the initial snapshot (#4456)', () => {
   test('/dashboard reaches /signin without a Vue bounce', async ({ page }) => {
     const bootstrapRequests = recordBootstrapRequests(page);
     const navigations = recordNavigations(page);
+    const documentRequests = recordDocumentRequests(page);
 
     await page.goto('/dashboard');
     await waitForAppReady(page);
@@ -83,12 +101,14 @@ test.describe('hydration is the initial snapshot (#4456)', () => {
     // and is covered by the Ruby failure-matrix specs, not asserted here.)
     expect(new URL(page.url()).pathname).toBe('/signin');
 
-    // No bounce: the dashboard route never committed, and nothing navigated
-    // again once sign-in was reached. A bounce shows up here as a /dashboard
-    // entry, or as more than one entry ending in /signin.
+    // No bounce: the dashboard route never committed and nothing navigated
+    // again once sign-in was reached. A bounce would show up as a /dashboard
+    // entry, a last entry that is not /signin, or a second /signin document
+    // request. Same-URL Vue-Router pushes emit framenavigated but no document
+    // request, so counting requests is what actually catches a bounce.
     expect(navigations).not.toContain('/dashboard');
-    expect(navigations.filter((path) => path === '/signin')).toHaveLength(1);
     expect(navigations.at(-1)).toBe('/signin');
+    expect(documentRequests.filter((path) => path === '/signin')).toHaveLength(1);
 
     // And the decision needed no request: it came from the hydrated snapshot.
     expect(bootstrapRequests).toEqual([]);
