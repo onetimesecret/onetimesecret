@@ -22,6 +22,17 @@ const authStore = useAuthStore();
 const organizationStore = useOrganizationStore();
 const $api = createApi();
 
+/**
+ * Internal guard for the mutation submit paths (#4497 item 13).
+ *
+ * The UserMenu trigger is already aria-disabled while authority is uncertain,
+ * but this modal has a public `isOpen` prop and any other caller (or a state
+ * flip while the modal is already open) could otherwise submit against the
+ * protected `/api/colonel/entitlement-preview` endpoint. Read the computed
+ * imperatively at submit time — the ref reflects the live authStatus.
+ */
+const canSubmitMutation = () => authStore.protectedActionsAvailable;
+
 const props = defineProps<{
   isOpen: boolean;
 }>();
@@ -133,6 +144,12 @@ const syncPreviewState = async () => {
 };
 
 const handleActivateTestMode = async (planId: string) => {
+  // #4497 item 13: refuse the submit when authority is not established.
+  // Close the modal so the operator is not left staring at a dead control.
+  if (!canSubmitMutation()) {
+    emit('close');
+    return;
+  }
   isLoading.value = true;
   error.value = null;
 
@@ -152,6 +169,11 @@ const handleActivateTestMode = async (planId: string) => {
 };
 
 const handleResetToActual = async () => {
+  // #4497 item 13: refuse the submit when authority is not established.
+  if (!canSubmitMutation()) {
+    emit('close');
+    return;
+  }
   isLoading.value = true;
   error.value = null;
 
