@@ -67,17 +67,13 @@ describe('authStore: rejection vs verification-unavailable (#4460)', () => {
   });
 
   describe('no number of failures logs the user out', () => {
+    // NB: SnapshotOrderingUnavailable (allocation 503) is covered separately
+    // below (PR #4497 item 11). It must NOT cascade into withhold-authority
+    // for signed-in users, so it does NOT participate in this shared loop.
     const outages: Array<[string, (mock: AxiosMockAdapter) => void]> = [
       ['transport failures', (mock) => mock.onGet(ENDPOINT).networkError()],
       ['timeouts', (mock) => mock.onGet(ENDPOINT).timeout()],
       ['500s', (mock) => mock.onGet(ENDPOINT).reply(500)],
-      [
-        "ADR-046's allocation-failure 503",
-        (mock) =>
-          mock
-            .onGet(ENDPOINT)
-            .reply(503, { error_type: 'SnapshotOrderingUnavailable' }, { 'retry-after': '5' }),
-      ],
       [
         'server snapshots that say `unavailable`',
         (mock) => mock.onGet(ENDPOINT).reply(200, toWire(unavailableBootstrap)),
@@ -139,6 +135,70 @@ describe('authStore: rejection vs verification-unavailable (#4460)', () => {
       expect(store.authStatus).toBe('authenticated');
       expect(store.failureCount).toBe(0);
       expect(attemptForcedPageLoad).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('SnapshotOrderingUnavailable 503 does not cascade to withhold (PR #4497 item 11)', () => {
+    it('returns allocation-unavailable, does not increment failureCount, does not withhold', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock
+        .onGet(ENDPOINT)
+        .reply(503, { error_type: 'SnapshotOrderingUnavailable' }, { 'retry-after': '5' });
+
+      for (let i = 1; i <= 100; i++) {
+        expect(await store.refresh({ kind: 'ordinary', reason: 'retry' })).toBe(
+          'allocation-unavailable'
+        );
+        // Never crosses MAX_FAILURES — the last accepted snapshot stands and
+        // failureCount is not incremented (stays at its hydration-era value,
+        // which is `null` when nothing has committed here).
+        expect(store.authStatus).toBe('authenticated');
+        expect(store.failureCount ?? 0).toBe(0);
+      }
+      expect(bootstrapStore.cust).not.toBeNull();
+      expect(attemptForcedPageLoad).not.toHaveBeenCalled();
+      expect(store.staleSession).toBe(false);
+    });
+
+    it('schedules a bounded retry driven by Retry-After', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock
+        .onGet(ENDPOINT)
+        .reply(503, { error_type: 'SnapshotOrderingUnavailable' }, { 'retry-after': '5' });
+
+      expect(await store.refresh({ kind: 'ordinary', reason: 'interval' })).toBe(
+        'allocation-unavailable'
+      );
+      expect(requests()).toBe(1);
+
+      // Before the Retry-After elapses no new request has fired.
+      await vi.advanceTimersByTimeAsync(4_000);
+      expect(requests()).toBe(1);
+
+      // At the Retry-After the coordinator retries once.
+      await vi.advanceTimersByTimeAsync(2_000);
+      expect(requests()).toBe(2);
+    });
+
+    it('a checking tab is not withheld by a single allocation 503 (would have been with noteFailure)', async () => {
+      // A `checking` tab (no hydration) is the worst case for withhold-cascade:
+      // noteFailure() would immediately transition it to `unavailable`. The
+      // allocation path must NOT touch failureCount, so the status stays
+      // `checking` and the tab keeps retrying without blanking the UI.
+      await mountWith({} as BootstrapPayload);
+      axiosMock
+        .onGet(ENDPOINT)
+        .reply(503, { error_type: 'SnapshotOrderingUnavailable' }, { 'retry-after': '5' });
+
+      const prior = store.authStatus;
+      const priorCount = store.failureCount;
+      expect(await store.refresh({ kind: 'ordinary', reason: 'retry' })).toBe(
+        'allocation-unavailable'
+      );
+      // Not incremented — failureCount is unchanged (still whatever hydration
+      // set, typically null for a checking tab).
+      expect(store.failureCount).toBe(priorCount);
+      expect(store.authStatus).toBe(prior);
     });
   });
 

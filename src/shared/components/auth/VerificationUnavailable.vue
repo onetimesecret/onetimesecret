@@ -36,7 +36,10 @@
     retryFailed.value = false;
     try {
       const outcome = await authStore.retryNow();
-      retryFailed.value = outcome === 'failed';
+      // PR #4497 item 11: `allocation-unavailable` is a bounded coordinator
+      // retry scheduled elsewhere; from the user's perspective the retry did
+      // not land, so surface the same "please try again" state as `failed`.
+      retryFailed.value = outcome === 'failed' || outcome === 'allocation-unavailable';
     } finally {
       retrying.value = false;
     }

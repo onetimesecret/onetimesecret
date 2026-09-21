@@ -149,14 +149,30 @@ export interface RefreshRequest {
 }
 
 /**
- * - `applied`    a snapshot of the current generation was accepted and applied.
- * - `failed`     no usable statement was obtained; nothing changed.
- * - `superseded` a later generation started first; this response was dropped.
- * - `refused`    the snapshot was not applied and the tab is in the
- *                stale-session state (a page load is under way, was cancelled,
- *                or was bounded). Nothing changed.
+ * - `applied`                a snapshot of the current generation was accepted
+ *                            and applied.
+ * - `failed`                 no usable statement was obtained; nothing changed.
+ * - `superseded`             a later generation started first; this response
+ *                            was dropped.
+ * - `refused`                the snapshot was not applied and the tab is in
+ *                            the stale-session state (a page load is under
+ *                            way, was cancelled, or was bounded). Nothing
+ *                            changed.
+ * - `allocation-unavailable` GET /bootstrap/me answered 503
+ *                            SnapshotOrderingUnavailable: the sidecar counter
+ *                            allocation is down. NOT a session verdict, so it
+ *                            does NOT increment failureCount and cannot cross
+ *                            MAX_FAILURES to withhold authority for signed-in
+ *                            users. A bounded Retry-After-driven retry is
+ *                            scheduled (PR #4497 item 11). Callers treat it
+ *                            the same as `failed` for navigation.
  */
-export type RefreshOutcome = 'applied' | 'failed' | 'superseded' | 'refused';
+export type RefreshOutcome =
+  | 'applied'
+  | 'failed'
+  | 'superseded'
+  | 'refused'
+  | 'allocation-unavailable';
 
 /**
  * Whether the refresh coordinator claims ownership of the user-visible message
@@ -583,13 +599,45 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       if (mine !== generation) return dropped(mine, request);
       retryAfterMs = parseRetryAfter(retryAfterHeader(error));
-      if (isAllocationFailure(error)) recordOrdering('allocation-failure', { generation: mine });
+      // PR #4497 item 11: a 503 SnapshotOrderingUnavailable is the sidecar
+      // counter allocation failing, not a session verdict. It must NOT
+      // increment failureCount — under a sustained outage that would cross
+      // MAX_FAILURES within ~10s and withholdAuthority('unavailable') would
+      // blank the UI for every signed-in user. Instead, schedule a bounded
+      // Retry-After-driven retry and return a distinct outcome so callers can
+      // tell it apart from `failed` if they care to. Callers today treat
+      // anything other than 'applied'/'superseded' as non-advance, which is
+      // the right behaviour for this too.
+      if (isAllocationFailure(error)) {
+        recordOrdering('allocation-failure', { generation: mine });
+        scheduleAllocationRetry(retryAfterMs);
+        return 'allocation-unavailable';
+      }
       const classified = classifyError(error);
       if (!errorGuards.isOfHumanInterest(classified)) loggingService.error(classified);
     }
 
     noteFailure(retryAfterMs);
     return 'failed';
+  }
+
+  /**
+   * PR #4497 item 11: bounded retry for a 503 SnapshotOrderingUnavailable.
+   * Uses the server's Retry-After when present, floors at BACKOFF_FLOOR, and
+   * caps at RETRY_AFTER_CAP. Does not increment failureCount and does not
+   * change status — the last accepted snapshot stands. Cancels any pending
+   * retry timer so overlapping outages don't stack.
+   */
+  function scheduleAllocationRetry(retryAfterMs: number) {
+    clearRetry();
+    const { BACKOFF_FLOOR, RETRY_AFTER_CAP } = AUTH_CHECK_CONFIG;
+    const DEFAULT_ALLOCATION_RETRY_MS = 5000;
+    const requested = retryAfterMs > 0 ? retryAfterMs : DEFAULT_ALLOCATION_RETRY_MS;
+    const delay = Math.min(Math.max(requested, BACKOFF_FLOOR), RETRY_AFTER_CAP);
+    retryTimer = setTimeout(() => {
+      retryTimer = null;
+      void refresh({ kind: 'ordinary', reason: 'retry' });
+    }, delay);
   }
 
   function dropped(mine: number, request: RefreshRequest): 'superseded' {
