@@ -110,7 +110,7 @@ describe('useInviteAuth', () => {
     it('returns success when server accepts the signup', async () => {
       axiosMock.onPost('/api/invite/invite-token-abc123/signup').reply(200, {});
       // Mock setAuthenticated to avoid the real implementation side-effects
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite } = useInviteAuth();
       const result = await signupForInvite(
@@ -129,7 +129,7 @@ describe('useInviteAuth', () => {
     // screen renders, and the user's manual click then 404s.
     it('does NOT POST /api/invite/:token/accept after signup', async () => {
       axiosMock.onPost('/api/invite/no-chain-token/signup').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite } = useInviteAuth();
       const result = await signupForInvite('u@e.com', 'pw12345678', true, 'no-chain-token');
@@ -143,7 +143,7 @@ describe('useInviteAuth', () => {
 
     it('calls setAuthenticated(true) on success', async () => {
       axiosMock.onPost('/api/invite/tok123/signup').reply(200, {});
-      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite } = useInviteAuth();
       await signupForInvite('user@example.com', 'pw12345678', true, 'tok123');
@@ -159,6 +159,7 @@ describe('useInviteAuth', () => {
       vi.spyOn(authStore, 'setAuthenticated').mockImplementation(async () => {
         await new Promise((resolve) => setTimeout(resolve, 5000));
         setAuthResolved = true;
+        return 'applied';
       });
 
       const { signupForInvite } = useInviteAuth();
@@ -171,7 +172,7 @@ describe('useInviteAuth', () => {
 
     it('sends password, agree, shrimp in the POST body (not email)', async () => {
       axiosMock.onPost('/api/invite/tok-abc/signup').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite } = useInviteAuth();
       // Note: email and skill params are ignored by the new endpoint
@@ -192,7 +193,7 @@ describe('useInviteAuth', () => {
 
     it('refreshes CSRF before posting', async () => {
       axiosMock.onPost('/api/invite/tok/signup').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite } = useInviteAuth();
       await signupForInvite('u@e.com', 'pw12345678', true, 'tok');
@@ -299,7 +300,7 @@ describe('useInviteAuth', () => {
       axiosMock.onPost('/api/invite/tok/signup').reply(200, {
         error: 'Unable to create account',
       });
-      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite } = useInviteAuth();
       await signupForInvite('u@e.com', 'pw12345678', true, 'tok');
@@ -320,7 +321,7 @@ describe('useInviteAuth', () => {
 
     it('sets isLoading during the request and clears it after', async () => {
       axiosMock.onPost('/api/invite/tok/signup').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite, isLoading } = useInviteAuth();
 
@@ -344,7 +345,7 @@ describe('useInviteAuth', () => {
     it('proceeds even if CSRF refresh fails', async () => {
       vi.spyOn(authStore, 'refresh').mockResolvedValue('failed');
       axiosMock.onPost('/api/invite/tok/signup').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite } = useInviteAuth();
       const result = await signupForInvite('u@e.com', 'pw12345678', true, 'tok');
@@ -382,7 +383,7 @@ describe('useInviteAuth', () => {
   describe('loginForInvite', () => {
     it('returns success when server accepts the login', async () => {
       axiosMock.onPost('/auth/login').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { loginForInvite } = useInviteAuth();
       const result = await loginForInvite('user@example.com', 'pw12345678', 'tok-abc');
@@ -395,7 +396,7 @@ describe('useInviteAuth', () => {
     // user's explicit click on the AcceptInvite view.
     it('does NOT POST /api/invite/:token/accept after login', async () => {
       axiosMock.onPost('/auth/login').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { loginForInvite } = useInviteAuth();
       const result = await loginForInvite('u@e.com', 'pw12345678', 'no-chain-login');
@@ -409,7 +410,7 @@ describe('useInviteAuth', () => {
 
     it('calls setAuthenticated(true) on success', async () => {
       axiosMock.onPost('/auth/login').reply(200, {});
-      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { loginForInvite } = useInviteAuth();
       await loginForInvite('u@e.com', 'pw12345678', 'tok');
@@ -424,6 +425,7 @@ describe('useInviteAuth', () => {
       vi.spyOn(authStore, 'setAuthenticated').mockImplementation(async () => {
         await new Promise((resolve) => setTimeout(resolve, 5000));
         setAuthResolved = true;
+        return 'applied';
       });
 
       const { loginForInvite } = useInviteAuth();
@@ -435,7 +437,7 @@ describe('useInviteAuth', () => {
 
     it('sends invite_token in the POST body', async () => {
       axiosMock.onPost('/auth/login').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { loginForInvite } = useInviteAuth();
       await loginForInvite('user@example.com', 'pw12345678', 'tok-xyz');
@@ -483,7 +485,7 @@ describe('useInviteAuth', () => {
 
     it('does not call setAuthenticated when MFA is required', async () => {
       axiosMock.onPost('/auth/login').reply(200, { mfa_required: true });
-      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { loginForInvite } = useInviteAuth();
       await loginForInvite('u@e.com', 'pw12345678', 'tok');
@@ -517,7 +519,7 @@ describe('useInviteAuth', () => {
 
     it('sets and clears isLoading', async () => {
       axiosMock.onPost('/auth/login').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { loginForInvite, isLoading } = useInviteAuth();
 
