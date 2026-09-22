@@ -90,6 +90,7 @@ describe('dashboard receipt refreshes: active vs passive', () => {
     // window.__BOOTSTRAP_ME__ — a bare `useBootstrapStore()` never triggers
     // it, so init() has to be called explicitly here.
     useBootstrapStore().init();
+    useAuthStore().init();
     expect(useAuthStore().isFullyAuthenticated).toBe(true);
   });
 
