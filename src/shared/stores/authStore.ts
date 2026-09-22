@@ -780,9 +780,11 @@ export const useAuthStore = defineStore('auth', () => {
    * left showing a new snapshot with stale account-scoped stores hanging off
    * it. The decision to clear is made from the INCOMING payload (its
    * effectiveAuthStatus and custid), which is safe: parseCompleteSnapshot has
-   * already validated it. After the await, `mine === generation` gates every
-   * later step so an older commit that lost its race to a newer refresh does
-   * not clobber the newer generation's failureCount, timer or lastCheckTime.
+   * already validated it. The same `mine === generation` check gates the
+   * resets themselves (inside clearAccountScopedState, after its imports) and,
+   * after the await, every later step, so an older commit that lost its race
+   * to a newer refresh neither empties the stores the newer commit populated
+   * nor clobbers its failureCount, timer or lastCheckTime.
    */
   async function commit(
     snapshot: Parameters<typeof bootstrapStore.applySnapshot>[0],
@@ -796,7 +798,9 @@ export const useAuthStore = defineStore('auth', () => {
 
     const lostAuthority = priorStatus === 'authenticated' && nextStatus !== 'authenticated';
     const changedAccount = priorAccount !== '' && priorAccount !== nextAccount;
-    if (lostAuthority || changedAccount) await clearAccountScopedState();
+    if (lostAuthority || changedAccount) {
+      await clearAccountScopedState(() => mine === generation);
+    }
 
     // A newer refresh took the generation while we awaited the dynamic imports
     // above: its own commit() (or a later one still) owns the store now. Do
@@ -912,11 +916,17 @@ export const useAuthStore = defineStore('auth', () => {
    * Resets the account-scoped stores that exist. A store that was never
    * created holds nothing, and creating it here would run its init (and
    * possibly a fetch) only to reset it.
+   *
+   * `stillOwner` is checked after the dynamic imports resolve and before any
+   * reset (ADR-046#commit-generation-ownership). Without it, a commit whose
+   * imports outlast a newer commit would reset the stores that newer commit
+   * already populated. Omitted, the resets are unconditional (logout).
    */
-  async function clearAccountScopedState(): Promise<void> {
+  async function clearAccountScopedState(stillOwner?: () => boolean): Promise<void> {
     const existing = getActivePinia()?.state.value ?? {};
     const ids = Object.keys(ACCOUNT_SCOPED_STORES).filter((id) => id in existing);
     const stores = await Promise.all(ids.map((id) => ACCOUNT_SCOPED_STORES[id]()));
+    if (stillOwner && !stillOwner()) return;
     for (const useStore of stores) useStore().$reset();
   }
 

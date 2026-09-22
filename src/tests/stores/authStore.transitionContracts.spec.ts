@@ -30,6 +30,7 @@ import {
 import { toWire } from '@/tests/fixtures/bootstrap-wire';
 import { attemptForcedPageLoad } from '@/utils/forcedPageLoad';
 import type AxiosMockAdapter from 'axios-mock-adapter';
+import { getActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
 
@@ -37,6 +38,20 @@ vi.mock('@/utils/forcedPageLoad', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/utils/forcedPageLoad')>()),
   attemptForcedPageLoad: vi.fn(() => 'reloading'),
 }));
+
+// receiptListStore is outside this spec's static import graph, so the first
+// dynamic import of it (from clearAccountScopedState) waits on this gate. That
+// lets a test hold an older commit inside its cleanup while a newer one lands.
+const receiptListImport = vi.hoisted(() => {
+  let release!: () => void;
+  const gate = new Promise<void>((r) => (release = r));
+  return { gate, release, reset: vi.fn() };
+});
+
+vi.mock('@/shared/stores/receiptListStore', async () => {
+  await receiptListImport.gate;
+  return { useReceiptListStore: () => ({ $reset: receiptListImport.reset }) };
+});
 
 const ENDPOINT = AUTH_CHECK_CONFIG.ENDPOINT;
 const BOOTSTRAP_KEY = '__BOOTSTRAP_ME__';
@@ -177,6 +192,33 @@ describe('authStore PR #4497 transition contracts', () => {
       // The newer generation's state is intact.
       expect(bootstrapStore.custid).toBe('ur-b');
       expect(store.lastCheckTime).toBe(lastCheckAfterNewer);
+    });
+
+    it("an older commit held in its cleanup imports does not reset the stores a newer commit populated", async () => {
+      await mountWith(authenticatedBootstrap);
+      // Make receiptList an existing store so the cleanup must import it.
+      const pinia = getActivePinia();
+      if (!pinia) throw new Error('no active pinia');
+      pinia.state.value.receiptList = {};
+
+      // Older: an auth mutation ended the session. Losing authority sends
+      // commit() into clearAccountScopedState, which parks on the gated import.
+      axiosMock.onGet(ENDPOINT).replyOnce(200, toWire(newerSnapshot(anonymousBootstrap)));
+      const first = store.refresh({ kind: 'auth-mutation', reason: 'password-change' });
+      await vi.advanceTimersByTimeAsync(0);
+      expect(bootstrapStore.custid).toBe(authenticatedBootstrap.custid);
+
+      // Newer: same account, still authenticated. Nothing to clear, so it
+      // applies straight away and takes the generation.
+      axiosMock.onGet(ENDPOINT).replyOnce(200, toWire(newerSnapshot(authenticatedBootstrap)));
+      expect(await store.refresh({ kind: 'auth-mutation', reason: 'login' })).toBe('applied');
+
+      receiptListImport.release();
+      expect(await first).toBe('applied');
+
+      expect(receiptListImport.reset).not.toHaveBeenCalled();
+      expect(store.authStatus).toBe('authenticated');
+      expect(bootstrapStore.custid).toBe(authenticatedBootstrap.custid);
     });
 
     it('an account change still resets account-scoped stores when the commit owns its generation', async () => {
