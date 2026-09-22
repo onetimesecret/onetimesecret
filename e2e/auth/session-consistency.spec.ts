@@ -26,13 +26,13 @@
 //   PLAYWRIGHT_BASE_URL=https://dev.onetime.dev MAILPIT_URL=https://dev.onetime.dev:8025 \
 //     pnpm test:playwright e2e/auth/session-consistency.spec.ts --project=chromium
 
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
 
 import {
   FRESH_CONTEXT,
   signIn,
   submitSignup,
-  verifyInFreshContext,
+  verifyInFreshContext as verifyInFreshContextBase,
   waitForAppReady,
   waitForPathname,
 } from '../support/auth-journey';
@@ -111,6 +111,37 @@ async function becomeVisible(page: Page): Promise<void> {
 }
 
 test.describe('authenticated bootstrap consistency (#4456, #4459, #4460, #4464)', () => {
+  const verificationContexts = new Set<BrowserContext>();
+
+  async function verifyInFreshContext(
+    browser: Browser,
+    email: string,
+    baseURL: string
+  ): Promise<Page> {
+    const trackedBrowser = new Proxy(browser, {
+      get(target, property) {
+        if (property === 'newContext') {
+          return async (...args: Parameters<Browser['newContext']>) => {
+            const context = await target.newContext(...args);
+            verificationContexts.add(context);
+            return context;
+          };
+        }
+
+        const value = Reflect.get(target, property, target);
+        return typeof value === 'function' ? value.bind(target) : value;
+      },
+    });
+
+    return verifyInFreshContextBase(trackedBrowser, email, baseURL);
+  }
+
+  test.afterEach(async () => {
+    const contexts = [...verificationContexts];
+    verificationContexts.clear();
+    await Promise.all(contexts.map((context) => context.close()));
+  });
+
   test.beforeEach(async () => {
     test.skip(
       !(await isMailpitReachable()),
@@ -288,7 +319,11 @@ test.describe('authenticated bootstrap consistency (#4456, #4459, #4460, #4464)'
 
     // Account B is created and verified in contexts of its own...
     const signupB = await browser.newContext({ ...FRESH_CONTEXT, baseURL: baseURL! });
-    const { email: emailB } = await submitSignup(await signupB.newPage(), '/signup', SIGNUP_OPTIONS);
+    const { email: emailB } = await submitSignup(
+      await signupB.newPage(),
+      '/signup',
+      SIGNUP_OPTIONS
+    );
     const verifiedB = await verifyInFreshContext(browser, emailB, baseURL!);
     await verifiedB.context().close();
     await signupB.close();
