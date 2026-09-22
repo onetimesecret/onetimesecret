@@ -100,7 +100,8 @@ describe('authStore PR #4497 transition contracts', () => {
     if (hydration) win[BOOTSTRAP_KEY] = toWire(hydration);
     else delete win[BOOTSTRAP_KEY];
 
-    const setup = await setupTestPinia();
+    // This spec drives init() itself under fake timers, so no auto-init.
+    const setup = await setupTestPinia({ autoInit: false });
     axiosMock = setup.axiosMock as AxiosMockAdapter;
     bootstrapStore = useBootstrapStore();
     store = useAuthStore();

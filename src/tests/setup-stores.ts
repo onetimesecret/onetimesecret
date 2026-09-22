@@ -7,6 +7,7 @@ import axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { setActivePinia } from 'pinia';
 import { beforeEach, vi } from 'vitest';
+import { _resetForTesting as resetBootstrapService } from '@/services/bootstrap.service';
 import { baseBootstrap } from './fixtures/bootstrap.fixture';
 
 // One axios instance per spec file (vitest isolates the module registry per
@@ -98,6 +99,13 @@ vi.mock('vue', async () => {
 
 // Setup global Pinia instance and window state
 beforeEach(() => {
+  // The bootstrap service keeps the last applied snapshot in module state, and
+  // the auth store's forced-page-load marker lives in sessionStorage. Both
+  // outlive a pinia and would carry one test's applied session into the next
+  // test's hydration (an identical snapshot then classifies as `not-newer`).
+  resetBootstrapService();
+  sessionStorage.clear();
+
   // Set up window state before creating stores using modern bootstrap fixture
   (window as any).__BOOTSTRAP_ME__ = {
     ...baseBootstrap,
