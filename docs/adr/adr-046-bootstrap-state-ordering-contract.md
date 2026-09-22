@@ -432,9 +432,12 @@ chrome offers.
   `escapeActionsAvailable`, which is true whenever a retained identity is
   shown. A user whom the tab cannot verify must still be able to leave.
 - **Protected actions** are every other control that issues a mutation from
-  the chrome, such as plan-preview activation. They follow
-  `protectedActionsAvailable`, which is true only for `authenticated`. While
-  authority is uncertain the server may already have retired the session.
+  the chrome, such as plan-preview activation and the domain-context sync
+  behind the workspace domain picker (the selection still changes locally;
+  only the server write is withheld). They follow
+  `protectedActionsAvailable`, which is true only for `authenticated` outside
+  stale-session mode. While authority is uncertain the server may already
+  have retired the session.
 - **Stale-session mode disables protected actions and keeps escapes.** The
   forced page load enters stale-session without changing `authStatus`. If the
   reload is bounded or the user cancels the `beforeunload` prompt, the tab
