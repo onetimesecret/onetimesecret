@@ -339,6 +339,11 @@ const ACCOUNT_SCOPED_STORES: Readonly<Record<string, () => Promise<Resettable>>>
   receipt: () => import('./receiptStore').then((m) => m.useReceiptStore),
 };
 
+/** An `apply` decision with the ordering metadata its diagnostics carry. */
+type AppliedDecision = Extract<SnapshotDecision, { outcome: 'apply' }> & {
+  ordering: Record<string, unknown>;
+};
+
 /* eslint-disable max-lines-per-function */
 export const useAuthStore = defineStore('auth', () => {
   const $api = inject('api') as AxiosInstance;
@@ -702,9 +707,7 @@ export const useAuthStore = defineStore('auth', () => {
         return 'refused';
 
       case 'apply':
-        recordApplied(decision.stream, payload.snapshot_generated_at, ordering);
-        consecutiveAnomalies = 0;
-        return commitOrDrop(mine, request, payload, decision.retire);
+        return commitOrDrop(mine, request, payload, { ...decision, ordering });
     }
   }
 
@@ -712,26 +715,33 @@ export const useAuthStore = defineStore('auth', () => {
    * A commit that lost the generation across its cleanup imports applied
    * nothing (ADR-046#commit-generation-ownership): it reports `superseded`,
    * never `applied`, so callers do not act on a snapshot that did not land.
+   * Only a snapshot that landed emits applied-stream diagnostics and ends a
+   * run of anomalies. The prior `snapshot_generated_at` is read before the
+   * commit, because applySnapshot() replaces it.
    */
   async function commitOrDrop(
     mine: number,
     request: RefreshRequest,
     payload: Parameters<typeof bootstrapStore.applySnapshot>[0],
-    retire: string | null
+    applied: AppliedDecision
   ): Promise<'applied' | 'superseded'> {
-    return (await commit(payload, retire)) ? 'applied' : dropped(mine, request);
+    const priorGeneratedAt = bootstrapStore.snapshot_generated_at;
+    if (!(await commit(payload, applied.retire))) return dropped(mine, request);
+    recordApplied(applied, priorGeneratedAt, payload.snapshot_generated_at);
+    consecutiveAnomalies = 0;
+    return 'applied';
   }
 
   /**
-   * Diagnostics for a snapshot that IS being applied. `snapshot_generated_at`
-   * is read here and nowhere else: it never decides anything (ADR-046).
+   * Diagnostics for a snapshot that WAS applied. `snapshot_generated_at` is
+   * read here and nowhere else: it never decides anything (ADR-046).
    */
   function recordApplied(
-    stream: Extract<SnapshotDecision, { outcome: 'apply' }>['stream'],
-    generatedAtRaw: unknown,
-    ordering: Record<string, unknown>
+    { stream, ordering }: AppliedDecision,
+    priorGeneratedAtRaw: unknown,
+    generatedAtRaw: unknown
   ) {
-    const prior = describeGeneratedAt(bootstrapStore.snapshot_generated_at);
+    const prior = describeGeneratedAt(priorGeneratedAtRaw);
     const generatedAt = describeGeneratedAt(generatedAtRaw);
     if (ordering.epoch !== undefined && generatedAt.state !== 'ok') {
       recordOrdering(`generated-at-${generatedAt.state}`, { ...ordering, age: 'unknown' });

@@ -29,6 +29,7 @@ import {
 } from '@/tests/fixtures/bootstrap.fixture';
 import { toWire } from '@/tests/fixtures/bootstrap-wire';
 import { attemptForcedPageLoad } from '@/utils/forcedPageLoad';
+import { addBreadcrumb } from '@sentry/vue';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { getActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -37,6 +38,11 @@ import { setupTestPinia } from '../setup';
 vi.mock('@/utils/forcedPageLoad', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/utils/forcedPageLoad')>()),
   attemptForcedPageLoad: vi.fn(() => 'reloading'),
+}));
+
+vi.mock('@sentry/vue', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@sentry/vue')>()),
+  addBreadcrumb: vi.fn(),
 }));
 
 // receiptListStore is outside this spec's static import graph, so the first
@@ -51,6 +57,19 @@ const receiptListImport = vi.hoisted(() => {
 vi.mock('@/shared/stores/receiptListStore', async () => {
   await receiptListImport.gate;
   return { useReceiptListStore: () => ({ $reset: receiptListImport.reset }) };
+});
+
+// A second one-shot gate: a module import resolves once per file, so a later
+// case that needs a parked commit must gate a store no earlier case imported.
+const receiptImport = vi.hoisted(() => {
+  let release!: () => void;
+  const gate = new Promise<void>((r) => (release = r));
+  return { gate, release };
+});
+
+vi.mock('@/shared/stores/receiptStore', async () => {
+  await receiptImport.gate;
+  return { useReceiptStore: () => ({ $reset: vi.fn() }) };
 });
 
 const ENDPOINT = AUTH_CHECK_CONFIG.ENDPOINT;
@@ -91,10 +110,15 @@ describe('authStore PR #4497 transition contracts', () => {
   }
 
   const requests = () => axiosMock.history.get.filter((r) => r.url === ENDPOINT).length;
+  const orderingEvents = () =>
+    vi
+      .mocked(addBreadcrumb)
+      .mock.calls.flatMap(([c]) => (c.category === 'bootstrap.ordering' ? [c.message] : []));
 
   beforeEach(() => {
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
     vi.mocked(attemptForcedPageLoad).mockClear();
+    vi.mocked(addBreadcrumb).mockClear();
   });
 
   afterEach(() => {
@@ -220,6 +244,31 @@ describe('authStore PR #4497 transition contracts', () => {
       expect(receiptListImport.reset).not.toHaveBeenCalled();
       expect(store.authStatus).toBe('authenticated');
       expect(bootstrapStore.custid).toBe(authenticatedBootstrap.custid);
+
+      // Nor emit the applied-stream diagnostics of the session it ended.
+      expect(orderingEvents()).not.toContain('session-ended');
+    });
+
+    it('a commit that loses its generation in its cleanup imports does not end a run of anomalies', async () => {
+      await mountWith(authenticatedBootstrap);
+      // A store only this case makes existing, so its import is still gated.
+      getActivePinia()!.state.value.receipt = {};
+
+      // One anomaly (a replay of the hydrated version) whose retry fails.
+      const replay = toWire(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).replyOnce(200, replay).onGet(ENDPOINT).networkErrorOnce();
+      expect(await store.refresh({ kind: 'ordinary', reason: 'interval' })).toBe('failed');
+      // An ended session parks in its cleanup imports, then loses the generation.
+      axiosMock.onGet(ENDPOINT).replyOnce(200, toWire(newerSnapshot(anonymousBootstrap)));
+      const parked = store.refresh({ kind: 'auth-mutation', reason: 'password-change' });
+      await vi.advanceTimersByTimeAsync(0);
+      store.stop();
+      receiptImport.release();
+      expect(await parked).toBe('superseded');
+      // The dropped commit did not reset the count: this is the second in a row.
+      axiosMock.onGet(ENDPOINT).replyOnce(200, replay);
+      expect(await store.refresh({ kind: 'ordinary', reason: 'interval' })).toBe('refused');
+      expect(attemptForcedPageLoad).toHaveBeenCalledTimes(1);
     });
 
     it('an account change still resets account-scoped stores when the commit owns its generation', async () => {
