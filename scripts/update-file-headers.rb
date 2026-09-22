@@ -32,7 +32,7 @@
 require 'pathname'
 
 class HeaderValidator
-  REPO_ROOT = Pathname.new(__dir__).parent.freeze
+  REPO_ROOT = Pathname.pwd.freeze
 
   def initialize(fix: false, paths: [])
     @fix         = fix
