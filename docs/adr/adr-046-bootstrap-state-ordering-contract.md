@@ -160,27 +160,38 @@ accepted response arrived, and discards the rest. The allocation steps are:
    while API requests also extend the blob, and Redis can evict the key, so it
    can be lost while the session lives; the seed covers that case.
 6. The version will be returned to the payload as a decimal string.
-7. Allocation failure includes a Redis error and a session ID that fails the
-   sidecar `SID_FORMAT` guard. The allocation method will raise for both and
-   will not return nil the way the generic API does. The middleware catches
-   the failure and records it for the request, so a route that serializes no
-   snapshot is unaffected. The server will never label an unversioned payload
-   as ordered. The result depends on the path:
-   - `GET /bootstrap/me` will fail with a retryable 503. The client treats it
-     as a failed refresh: it retains its last accepted state and the failure
-     counts toward the existing consecutive-failure limit.
-   - The HTML hydration path has no last accepted state to fall back on, so
-     the page will still render. Its payload will omit the epoch and version
-     and the server will record a diagnostic. The client starts unordered
-     (see client acceptance below).
-   - Neither case changes the session middleware's best-effort failure
-     posture: an allocation failure must not make an otherwise valid session
-     write fail.
+7. The allocation method raises on failure; see allocation failure below.
 
 An epoch is deliberately scoped to one session ID. A session-ID renewal starts
 a new epoch instead of attempting to migrate or compare the old sidecar
 counter. This avoids exposing an installation-wide counter and keeps the
 ordering state within the sidecar's existing ownership and cleanup boundary.
+
+#### Allocation failure {#allocation-failure}
+
+Allocation failure includes a Redis error and a session ID that fails the
+sidecar `SID_FORMAT` guard. The allocation method will raise for both and
+will not return nil the way the generic API does. The middleware catches
+the failure and records it for the request, so a route that serializes no
+snapshot is unaffected. The server will never label an unversioned payload
+as ordered. The result depends on the path:
+
+- `GET /bootstrap/me` will fail with a retryable 503. The client retains
+  its last accepted state and retries after the server's `Retry-After`,
+  floored and capped like every other coordinator retry, with a
+  five-second default. The failure does not count toward the
+  consecutive-failure limit and never moves the tab to `unavailable`:
+  it is a fault in ordering storage, not a verdict on the session, and
+  counting it would withhold authority from every signed-in tab for the
+  length of a Redis outage. The refresh resolves as
+  `allocation-unavailable`, which callers treat as not applied.
+- The HTML hydration path has no last accepted state to fall back on, so
+  the page will still render. Its payload will omit the epoch and version
+  and the server will record a diagnostic. The client starts unordered
+  (see client acceptance below).
+- Neither case changes the session middleware's best-effort failure
+  posture: an allocation failure must not make an otherwise valid session
+  write fail.
 
 ### Client acceptance
 
@@ -310,6 +321,19 @@ contract's conditional-registration requirement. The secret creation form has
 no guard, so the shared guard is new work for every view whose input this path
 could discard.
 
+#### Parked transition message {#parked-transition-ttl}
+
+Before a forced page load for an ended or replaced session, the client parks
+the kind of transition in `sessionStorage` so the reloaded page can tell the
+user why it reloaded. `reload()` only requests a navigation; it does not
+report whether the navigation happened, and a cancelled `beforeunload` prompt
+leaves the park behind. Each park is therefore stamped with the time it was
+written, and the reader discards one older than one minute. A real reload
+consumes it within milliseconds. A successful commit also clears it, because
+a reconciled tab no longer needs the reload to explain anything. The time
+limit is what guarantees a stale message never appears on an unrelated later
+page load; the clear on commit only makes that happen sooner.
+
 ### Downgrade guard
 
 Once the client holds a watermark, a snapshot that reports a session but lacks
@@ -352,6 +376,107 @@ built by overlapping requests are ordered by the state they carry. It does not
 claim or require a global order among snapshots delivered to unrelated
 sessions. Current client request generations authoritatively order the
 permitted transitions between epochs.
+
+### Caller contracts {#caller-contracts}
+
+The coordinator decides what the tab believes. The contracts below bind the
+code that acts on that decision: views and composables that navigate after
+authentication, chrome that offers actions, error handlers that report a
+rejected call, and the coordinator's own commit.
+
+#### Auth completion {#auth-completion-caller-contract}
+
+`refresh()` resolves to a `RefreshOutcome`: `applied`, `superseded`,
+`failed`, `refused`, or `allocation-unavailable`. `setAuthenticated()`
+returns that outcome instead of discarding it.
+
+A caller that finishes a first-factor authentication POST and then navigates
+to a destination derived from authority, such as `/mfa-verify` or the
+dashboard, checks three independent conditions before navigating:
+
+1. **The operation is still its own.** `superseded` means a newer
+   coordinator run has already reconciled and owns the destination. The
+   caller does nothing. This is success by delegation, not a failure.
+2. **A snapshot was applied.** Any outcome other than `applied` means the
+   tab has not verified the new session. The caller retries verification
+   with an ordinary refresh, does not re-send the authentication POST, and
+   does not navigate. After a short bounded retry it shows a retryable error.
+3. **The resulting status matches the destination.** A caller heading to
+   the dashboard does not navigate while the status is `mfa_pending`, and
+   the reverse. It retries as in (2), and shows an error if the mismatch
+   persists.
+
+The retry targets verification because the authentication POST may be single
+use: it can consume a nonce, a rate-limit slot, or a lockout counter.
+Verification is idempotent and cheap. `src/shared/composables/authCompletion.ts`
+implements the three checks for every caller. How a retryable completion
+error is presented is not yet settled (#4501); each caller currently reuses the
+error display it already has.
+
+#### Authority and action gating {#authority-action-gating}
+
+Each status decides three things independently: whether the protected route
+body renders, whether a retained identity is shown, and which actions the
+chrome offers.
+
+| Status | Protected route body | Identity shown | Protected actions | Escape actions |
+|--------|----------------------|----------------|-------------------|----------------|
+| `authenticated` | rendered | yes | enabled | enabled |
+| `mfa_pending` | withheld | yes | disabled | enabled |
+| `checking` | withheld | no | disabled | disabled |
+| `unavailable`, last snapshot reported a session | withheld | yes, last accepted | disabled | enabled |
+| `unavailable`, otherwise | withheld | no | disabled | disabled |
+| `anonymous` | redirected to sign-in | no | disabled | not applicable |
+
+- **Escape actions** are sign-out and stop-impersonation. They follow
+  `escapeActionsAvailable`, which is true whenever a retained identity is
+  shown. A user whom the tab cannot verify must still be able to leave.
+- **Protected actions** are every other control that issues a mutation from
+  the chrome, such as plan-preview activation. They follow
+  `protectedActionsAvailable`, which is true only for `authenticated`. While
+  authority is uncertain the server may already have retired the session.
+- **The retained identity is deliberate.** Showing the last accepted user
+  during an outage tells them they were not signed out. It grants nothing;
+  mutation controls are gated separately.
+- **`mfa_pending` withholds the route body in place.** A refresh can move a
+  mounted protected route from `authenticated` to `mfa_pending` without a
+  navigation, so no route guard reruns. The root view withholds the body so
+  account data does not stay on screen while stores reset. `/mfa-verify`
+  does not require authentication and stays reachable.
+- **An `unavailable` hydration schedules recovery.** When the hydration
+  payload itself reports `unavailable`, `init()` starts the coordinator's
+  backoff at its first step instead of waiting for the visibility and
+  staleness check, which can be fifteen minutes away. After initialization,
+  failed refreshes continue the same backoff.
+
+#### Rejection disposition {#rejection-disposition}
+
+When an API call is rejected, the coordinator
+decides whether it owns the user-visible message and returns that decision as
+a `RejectionDisposition`:
+
+- owned by the coordinator: `reconciling` or `will-reload`;
+- not owned: `skipped-carve-out`, `throttled`, or `nonauth`.
+
+The axios interceptor attaches the disposition to the rejected error.
+`useAsyncHandler` suppresses its own notice only when the disposition says the
+coordinator owns the message. The carve-out list and the throttle decision
+exist only in the coordinator; no consumer keeps a copy. With two copies, a
+throttled reconciliation left the user with no feedback: the handler assumed
+the coordinator would speak and the coordinator did not run.
+
+#### Commit generation ownership {#commit-generation-ownership}
+
+`commit()` captures its request generation before its first `await`. After
+every `await` it checks that the generation is still current, and if it is not
+it skips the rest: applying the snapshot, resetting the failure count,
+scheduling the next refresh, and recording the check time. The newer run does
+those.
+
+Account-scoped stores are cleared before the snapshot is applied, not after.
+The dynamic-import `await` in that clearing therefore happens while no new
+snapshot is visible, and a superseded commit leaves nothing applied. To any
+caller, a commit either completes or has no effect.
 
 ## Trade-offs
 
@@ -534,3 +659,29 @@ Tests will cover:
   its own Redis string. A counter-specific sidecar `INCR` preserves the current
   key naming, lifetime, and cleanup model. It does not fit the envelope value
   model, which is why the registry gains a counter policy.
+
+### Caller-contract alternatives considered and rejected (2026-09-22)
+
+- **Re-sending the authentication POST when verification fails:** Rejected
+  because the POST can consume a nonce, a rate-limit slot, or a lockout
+  counter. Verification is the idempotent step, so it is the one retried.
+- **Treating `superseded` as a failure in auth completion:** Rejected because
+  a newer coordinator run has already reconciled. Surfacing an error, or
+  navigating on the older result, would contradict the run that owns the
+  destination.
+- **Hiding the retained identity during an outage:** Rejected because it
+  offered "Sign in" to a user who was still signed in. The defect was that
+  mutation controls were not gated separately from identity.
+- **Gating escape actions on `authenticated`:** Rejected because a user whom
+  the tab cannot verify would have no way to sign out or stop impersonating.
+- **Keeping the carve-out list in each consumer of a rejection:** Rejected
+  because the copies drift, and a consumer cannot know whether the
+  coordinator was throttled. The coordinator returns its decision instead.
+- **A generation check inside each store's reset:** Rejected in favour of
+  clearing stores before the snapshot is applied. Ordering makes the whole
+  commit appear atomic; per-store checks would need every store to know about
+  generations.
+- **Parking the transition message only when the status is `reloading`:**
+  Rejected because `reloading` means `reload()` was called, not that the
+  navigation happened. A cancelled `beforeunload` prompt would still leave
+  the park behind. The time limit covers every cause.
