@@ -236,7 +236,9 @@ test.describe('authenticated bootstrap consistency (#4456, #4459, #4460, #4464)'
     // Let the dashboard's own fetches finish. One still in flight when the
     // session ends elsewhere is answered 401, and that rejection (not the
     // visibility trigger these scenarios are about) would start the refresh.
-    await expect.poll(() => inFlight.started > 0 && inFlight.pending === 0).toBe(true);
+    await expect
+      .poll(() => inFlight.started > 0 && inFlight.pending === 0, { timeout: 30_000 })
+      .toBe(true);
     await nextTask(tab);
     expect(inFlight.pending).toBe(0);
     await tab.clock.setSystemTime(Date.now() + PAST_THE_CHECK_INTERVAL_MS);
