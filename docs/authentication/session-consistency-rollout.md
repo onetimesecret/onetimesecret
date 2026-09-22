@@ -70,6 +70,13 @@ and continue unordered.
   drop.
 - **Caching.** `/auth` responses send `Cache-Control: private, no-store` by
   default. Confirm no intermediary overrides it.
+- **Sign-up answers.** In full mode a sign-up for an existing account answers
+  `400` with `{"error": "Unable to create account"}` whether that account is
+  verified, unverified, or was created by a concurrent request a moment
+  earlier. It used to answer `403` for an unverified account and `422` for a
+  lost race. An ordinary duplicate logs `registration_blocked_existing_account`
+  at info; `registration_blocked_auth_db_conflict` (error) now fires only when
+  the auth database has the account and the datastore has no customer for it.
 
 ## Staging review
 
