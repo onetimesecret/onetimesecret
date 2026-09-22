@@ -537,7 +537,7 @@ describe('useAsyncHandler', () => {
       expect(loadingCalls[loadingCalls.length - 1]).toEqual([false]); // Last operation ends
     });
   });
-  // #4461, §3, PR #4497: `coordinatorOwnsMessage` reads the coordinator's
+  // #4461, ADR-046#rejection-disposition: `coordinatorOwnsMessage` reads the coordinator's
   // disposition off the error — the interceptor stamps it, useAsyncHandler
   // does not re-derive carve-outs. The tests below stamp the disposition to
   // simulate what the interceptor would attach in production.

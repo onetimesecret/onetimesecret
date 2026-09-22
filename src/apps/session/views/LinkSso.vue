@@ -120,15 +120,15 @@
       // /mfa-verify guard admits `mfa_pending` only, so await the snapshot;
       // preserve any ?redirect for the post-verify hop.
       //
-      // #4497 item 6: refresh() may return 'failed'/'superseded'/'refused'
-      // without throwing. Do NOT push to /mfa-verify when the snapshot did
-      // not land — the guard would redirect away. Retry verification (never
+      // ADR-046#auth-completion-caller-contract: refresh() may return
+      // 'failed'/'superseded'/'refused' without throwing. Do NOT push to /mfa-verify when the
+      // snapshot did not land — the guard would redirect away. Retry verification (never
       // re-POST the single-use link-verify) then, if still stuck, surface a
       // retryable error via the dead-end panel.
       const outcome = await ensureMfaPending(authStore, 'link-sso');
       if (outcome === 'superseded') return; // Newer coordinator run owns this.
       if (outcome !== 'applied') {
-        // TODO: [#4497 item 6] confirm error UX with design — reusing the
+        // TODO(#4501): confirm error UX with design — reusing the
         // existing dead-end panel here since it already handles the
         // "nothing left to try" case with a retry entry point (signin).
         challengeUnavailable.value = true;
@@ -142,13 +142,13 @@
     }
 
     loggingService.debug('[LinkSso] Link verified, completing sign-in');
-    // #4497 item 6: setAuthenticated returns the RefreshOutcome. Only route
-    // to the (protected) post-link destination when the snapshot was applied
+    // ADR-046#auth-completion-caller-contract: setAuthenticated returns the RefreshOutcome. Only
+    // route to the (protected) post-link destination when the snapshot was applied
     // AND the status is `authenticated`.
     const outcome = await ensureAuthenticated(authStore, 'link-sso');
     if (outcome === 'superseded') return;
     if (outcome !== 'applied') {
-      // TODO: [#4497 item 6] confirm error UX with design.
+      // TODO(#4501): confirm error UX with design.
       challengeUnavailable.value = true;
       return;
     }

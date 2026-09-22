@@ -23,7 +23,7 @@ const organizationStore = useOrganizationStore();
 const $api = createApi();
 
 /**
- * Internal guard for the mutation submit paths (#4497 item 13).
+ * Internal guard for the mutation submit paths (ADR-046#authority-action-gating).
  *
  * The UserMenu trigger is already aria-disabled while authority is uncertain,
  * but this modal has a public `isOpen` prop and any other caller (or a state
@@ -144,7 +144,7 @@ const syncPreviewState = async () => {
 };
 
 const handleActivateTestMode = async (planId: string) => {
-  // #4497 item 13: refuse the submit when authority is not established.
+  // ADR-046#authority-action-gating: refuse the submit when authority is not established.
   // Close the modal so the operator is not left staring at a dead control.
   if (!canSubmitMutation()) {
     emit('close');
@@ -169,7 +169,7 @@ const handleActivateTestMode = async (planId: string) => {
 };
 
 const handleResetToActual = async () => {
-  // #4497 item 13: refuse the submit when authority is not established.
+  // ADR-046#authority-action-gating: refuse the submit when authority is not established.
   if (!canSubmitMutation()) {
     emit('close');
     return;

@@ -204,7 +204,7 @@ export function useAuth() {
         // for a snapshot as an authentication mutation. The /mfa-verify guard
         // admits `mfa_pending` only, so this must land before we navigate.
         //
-        // #4497 item 4: refresh() reports transport/contract failures as
+        // ADR-046#auth-completion-caller-contract: refresh() reports transport/contract failures as
         // 'failed' without throwing. Do NOT navigate to /mfa-verify when the
         // snapshot did not land — the guard would redirect to /signin and
         // lose the challenge. Retry verification (cheap, idempotent) rather
@@ -212,7 +212,7 @@ export function useAuth() {
         const mfaOutcome = await ensureMfaPending(authStore, 'login');
         if (mfaOutcome !== 'applied') {
           if (mfaOutcome === 'superseded') return false; // A newer coordinator run owns this.
-          // TODO: [#4497 item 4] confirm error UX with design — inline copy pending.
+          // TODO(#4501): confirm error UX with design — inline copy pending.
           throw createError('web.auth.mfa.verification_unavailable', 'human', 'error');
         }
 
@@ -235,15 +235,15 @@ export function useAuth() {
       }
 
       // Success - update auth state (this fetches fresh window state).
-      // #4497 item 8: setAuthenticated now returns the RefreshOutcome. Only
-      // navigate to a protected destination when the snapshot was applied AND
+      // ADR-046#auth-completion-caller-contract: setAuthenticated now returns the RefreshOutcome.
+      // Only navigate to a protected destination when the snapshot was applied AND
       // the resulting status is `authenticated`. Otherwise retry verification
       // and, if it still won't land, surface a retryable error rather than
       // routing to Dashboard with no accepted snapshot.
       const authOutcome = await ensureAuthenticated(authStore, 'login');
       if (authOutcome !== 'applied') {
         if (authOutcome === 'superseded') return false;
-        // TODO: [#4497 item 8] confirm error UX with design — inline copy pending.
+        // TODO(#4501): confirm error UX with design — inline copy pending.
         throw createError('web.auth.login.verification_unavailable', 'human', 'error');
       }
 

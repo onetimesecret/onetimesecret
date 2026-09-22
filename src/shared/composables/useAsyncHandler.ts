@@ -145,7 +145,7 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
 
   /**
    * Whether the refresh coordinator owns the user-visible message for this
-   * error (#4461, §3, Arc E, PR #4497).
+   * error (#4461, ADR-046#rejection-disposition).
    *
    * The list of carve-outs (`admin_session`, `awaiting_mfa` on an MFA-pending
    * tab, an anonymous tab, throttled duplicates) lives in exactly one place:

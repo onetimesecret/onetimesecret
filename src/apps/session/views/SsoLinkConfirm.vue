@@ -115,14 +115,14 @@
       // /mfa-verify guard admits `mfa_pending` only, so await the snapshot;
       // preserve any ?redirect for the post-verify hop.
       //
-      // #4497 item 7: refresh() may return 'failed'/'superseded'/'refused'
-      // without throwing. Do NOT push to /mfa-verify when the snapshot did
-      // not land. Retry verification (never re-POST the single-use
+      // ADR-046#auth-completion-caller-contract: refresh() may return
+      // 'failed'/'superseded'/'refused' without throwing. Do NOT push to /mfa-verify when the
+      // snapshot did not land. Retry verification (never re-POST the single-use
       // confirm) then fall through to the terminal panel if still stuck.
       const outcome = await ensureMfaPending(authStore, 'sso-link-confirm');
       if (outcome === 'superseded') return; // Newer coordinator run owns this.
       if (outcome !== 'applied') {
-        // TODO: [#4497 item 7] confirm error UX with design — reusing the
+        // TODO(#4501): confirm error UX with design — reusing the
         // terminal panel since the single-use token is already consumed on
         // the server side; the caller cannot retry the POST.
         linkUnavailable.value = true;
@@ -136,14 +136,14 @@
     }
 
     loggingService.debug('[SsoLinkConfirm] Link confirmed, completing sign-in');
-    // #4497 item 7: gate the post-link navigation on an `applied` snapshot
-    // that lands `authenticated`. Otherwise the user would arrive on a
+    // ADR-046#auth-completion-caller-contract: gate the post-link navigation on an `applied`
+    // snapshot that lands `authenticated`. Otherwise the user would arrive on a
     // protected route with the coordinator still unaware of the completed
     // link.
     const outcome = await ensureAuthenticated(authStore, 'sso-link-confirm');
     if (outcome === 'superseded') return;
     if (outcome !== 'applied') {
-      // TODO: [#4497 item 7] confirm error UX with design.
+      // TODO(#4501): confirm error UX with design.
       linkUnavailable.value = true;
       return;
     }

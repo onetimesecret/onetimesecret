@@ -1,6 +1,6 @@
 // src/tests/composables/useAuth.singleAuthority.spec.ts
 //
-// #4497 Arc A regression suite (see .plans/4497-transition-contracts.md §6.1).
+// Regression suite for ADR-046#auth-completion-caller-contract.
 //
 // Corrects the pre-#4497 bug where a caller finished a first-factor auth POST,
 // then blindly router.push()'d to /mfa-verify or Dashboard regardless of what
@@ -42,7 +42,7 @@ vi.mock('@/services/logging.service', () => ({
   },
 }));
 
-describe('useAuth — #4497 Arc A auth-completion caller contract', () => {
+describe('useAuth — auth-completion caller contract (ADR-046#auth-completion-caller-contract)', () => {
   let axiosMock: AxiosMockAdapter;
   let router: ReturnType<typeof getRouter>;
   let mockRoute: { query: Record<string, string> };

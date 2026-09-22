@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * PlanPreviewModal is a colonel mutation surface: its submits POST to
- * /api/colonel/entitlement-preview. #4497 item 13 requires that the submit
+ * /api/colonel/entitlement-preview. ADR-046#authority-action-gating requires that the submit
  * paths refuse to fire while auth authority is not established, even if a
  * caller opens the modal or state flips mid-interaction. The UserMenu trigger
  * already aria-disables the entry point; this test pins the internal guard.
@@ -70,7 +70,7 @@ import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
 
-describe('PlanPreviewModal — #4497 item 13 submit gating', () => {
+describe('PlanPreviewModal — submit gating (ADR-046#authority-action-gating)', () => {
   let wrapper: VueWrapper | undefined;
 
   beforeEach(() => {

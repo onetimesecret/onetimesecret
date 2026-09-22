@@ -134,8 +134,8 @@ describe('useMagicLink', () => {
     beforeEach(() => {
       mockRoute.query = {};
       mockRouterPush.mockClear();
-      // #4497 Arc A: post-#4464 the coordinator refuses a snapshot without cust
-      // (effectiveAuthStatus → 'unavailable'). ensureAuthenticated then returns
+      // ADR-046#auth-completion-caller-contract: post-#4464 the coordinator refuses a snapshot
+      // without cust (effectiveAuthStatus → 'unavailable'). ensureAuthenticated then returns
       // 'status-mismatch' and verifyMagicLink refuses to navigate. Supply the
       // canonical authenticated fixture (wire encoding) so the classifier
       // sees a real identity.

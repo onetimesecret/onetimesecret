@@ -37,8 +37,8 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 }));
 
 // Auth store: controllable auth state + spyable setAuthenticated.
-// #4497 Arc A: ensureAuthenticated / ensureMfaPending gate navigation on the
-// RefreshOutcome AND on authStore.authStatus matching the destination. The
+// ADR-046#auth-completion-caller-contract: ensureAuthenticated / ensureMfaPending gate navigation
+// on the RefreshOutcome AND on authStore.authStatus matching the destination. The
 // mock returns 'applied' from both entry points and carries an authStatus
 // the sibling `describe` blocks flip to 'mfa_pending' for MFA flows.
 const mockSetAuthenticated = vi.fn(async () => 'applied');
@@ -130,8 +130,8 @@ describe('SsoLinkConfirm', () => {
     mockState.fetchPendingLink.mockResolvedValue(makeLink());
     mockState.confirmLink.mockResolvedValue({ success: 'ok' });
     mockAuthStore.isFullyAuthenticated = false;
-    // #4497 Arc A: default the coordinator verdict to authenticated. MFA
-    // describe blocks below flip this to 'mfa_pending' so ensureMfaPending
+    // ADR-046#auth-completion-caller-contract: default the coordinator verdict to authenticated.
+    // MFA describe blocks below flip this to 'mfa_pending' so ensureMfaPending
     // sees the destination it gates on.
     mockAuthStore.authStatus = 'authenticated';
     mockSetAuthenticated.mockResolvedValue('applied');
@@ -297,7 +297,7 @@ describe('SsoLinkConfirm', () => {
   describe('Confirm success — MFA required', () => {
     beforeEach(() => {
       mockState.pendingLink.value = makeLink();
-      // #4497 Arc A: ensureMfaPending only navigates when authStatus is
+      // ADR-046#auth-completion-caller-contract: ensureMfaPending only navigates when authStatus is
       // 'mfa_pending' after the refresh coordinator lands.
       mockAuthStore.authStatus = 'mfa_pending';
     });

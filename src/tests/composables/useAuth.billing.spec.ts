@@ -111,8 +111,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
     vi.mocked(useRoute).mockReturnValue(mockRoute as any);
 
     // Mock the /bootstrap/me endpoint used by authStore.setAuthenticated.
-    // #4497 Arc A: post-#4464 the coordinator refuses a snapshot without cust
-    // (effectiveAuthStatus → 'unavailable'). Use the canonical authenticated
+    // ADR-046#auth-completion-caller-contract: post-#4464 the coordinator refuses a snapshot
+    // without cust (effectiveAuthStatus → 'unavailable'). Use the canonical authenticated
     // fixture (wire encoding) so ensureAuthenticated / ensureMfaPending land
     // as 'applied'.
     axiosMock.onGet('/bootstrap/me').reply(200, {
@@ -204,7 +204,7 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
      * Re-mock the endpoint so the disabled state survives the refetch.
      */
     const disableBillingOnRefetch = (value: boolean | undefined) => {
-      // #4497 Arc A: carry the canonical authenticated identity so the
+      // ADR-046#auth-completion-caller-contract: carry the canonical authenticated identity so the
       // refresh coordinator accepts the snapshot. Strip billing_enabled from
       // the fixture so the caller's value (or its absence) is what the store
       // reads back.
@@ -347,7 +347,7 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
     // forwarded so the completion path keeps its fallback tier.
 
     beforeEach(() => {
-      // #4497 Arc A: ensureMfaPending only navigates when the follow-up
+      // ADR-046#auth-completion-caller-contract: ensureMfaPending only navigates when the follow-up
       // snapshot lands as `mfa_pending`. The outer beforeEach mocks the
       // authenticated fixture; override it here so the MFA flow's refresh
       // sees an mfa_pending payload.
@@ -544,8 +544,8 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
     vi.mocked(useRouter).mockReturnValue(router);
     vi.mocked(useRoute).mockReturnValue(mockRoute as any);
 
-    // Mock the /bootstrap/me endpoint. #4497 Arc A: canonical authenticated
-    // fixture so the refresh coordinator lands the snapshot with cust.
+    // Mock the /bootstrap/me endpoint. ADR-046#auth-completion-caller-contract: canonical
+    // authenticated fixture so the refresh coordinator lands the snapshot with cust.
     axiosMock.onGet('/bootstrap/me').reply(200, {
       ...toWire(authenticatedBootstrap),
       billing_enabled: true,
@@ -657,8 +657,8 @@ describe('useAuth - Subscription Status Checks', () => {
     vi.mocked(useRouter).mockReturnValue(router);
     vi.mocked(useRoute).mockReturnValue(mockRoute as any);
 
-    // Mock the /bootstrap/me endpoint. #4497 Arc A: canonical authenticated
-    // fixture so the refresh coordinator lands the snapshot with cust.
+    // Mock the /bootstrap/me endpoint. ADR-046#auth-completion-caller-contract: canonical
+    // authenticated fixture so the refresh coordinator lands the snapshot with cust.
     axiosMock.onGet('/bootstrap/me').reply(200, {
       ...toWire(authenticatedBootstrap),
       billing_enabled: true,

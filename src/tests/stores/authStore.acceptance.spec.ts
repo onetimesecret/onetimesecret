@@ -475,7 +475,7 @@ describe('authStore snapshot acceptance (#4464)', () => {
       const before = observe();
       axiosMock.onGet(ENDPOINT).reply(503, { error_type: 'SnapshotOrderingUnavailable' }, { 'retry-after': '5' });
 
-      // PR #4497 item 11: allocation 503 returns a distinct outcome and does
+      // ADR-046#allocation-failure: allocation 503 returns a distinct outcome and does
       // NOT increment failureCount / withhold authority.
       expect(await store.refresh({ kind: 'ordinary', reason: 'interval' })).toBe(
         'allocation-unavailable'

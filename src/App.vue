@@ -26,8 +26,8 @@
 
   // Protected content is withheld while authority cannot be established
   // (#4460): `unavailable` after repeated failed verifications, or a `checking`
-  // that was never resolved. `mfa_pending` is also withheld here (#4497 item
-  // 12): a refresh can flip an already-mounted protected route from
+  // that was never resolved. `mfa_pending` is also withheld here
+  // (ADR-046#authority-action-gating): a refresh can flip an already-mounted protected route from
   // authenticated to mfa_pending WITHOUT starting a new navigation, so the
   // MFA guard is not rerun and the previously-rendered subtree would keep
   // showing account data while stores are reset. /mfa-verify itself has

@@ -1,9 +1,9 @@
 // src/tests/stores/authStore.transitionContracts.spec.ts
 //
-// PR #4497 transition contracts (.plans/4497-transition-contracts.md):
-//   Arc B — init() recovery for `unavailable` hydration (§2, §6.2)
-//   Arc F — generation ownership across commit() cleanup (§4, §6.3)
-//   Arc E — rejection disposition surfaces user-visible feedback (§3, §6.4)
+// PR #4497 caller contracts (ADR-046#caller-contracts):
+//   init() recovery for `unavailable` hydration (ADR-046#authority-action-gating)
+//   generation ownership across commit() cleanup (ADR-046#commit-generation-ownership)
+//   rejection disposition surfaces user-visible feedback (ADR-046#rejection-disposition)
 //
 // The tests here target each arc's regression scenario. Style follows the
 // existing coordinator / rejection specs alongside.
@@ -93,9 +93,9 @@ describe('authStore PR #4497 transition contracts', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Arc B — init() recovery for `unavailable` hydration (§2, §6.2)
+  // init() recovery for `unavailable` hydration (ADR-046#authority-action-gating)
   // -------------------------------------------------------------------------
-  describe('Arc B: unavailable hydration schedules bounded retry (§2, §6.2)', () => {
+  describe('unavailable hydration schedules bounded retry (ADR-046#authority-action-gating)', () => {
     it('a tab hydrated as `unavailable` retries within the backoff window without waiting 15 minutes', async () => {
       await mountWith(unavailableBootstrap);
       expect(store.authStatus).toBe('unavailable');
@@ -141,9 +141,9 @@ describe('authStore PR #4497 transition contracts', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Arc F — generation ownership across commit() cleanup (§4, §6.3)
+  // generation ownership across commit() cleanup (ADR-046#commit-generation-ownership)
   // -------------------------------------------------------------------------
-  describe('Arc F: commit() gates post-await work on the generation (§4, §6.3)', () => {
+  describe('commit() gates post-await work on the generation (ADR-046#commit-generation-ownership)', () => {
     it("an older commit's post-await steps no-op when a newer refresh has taken the generation", async () => {
       await mountWith(authenticatedBootstrap);
 
@@ -192,9 +192,9 @@ describe('authStore PR #4497 transition contracts', () => {
   });
 
   // -------------------------------------------------------------------------
-  // Arc E — one shared disposition on rejections (§3, §6.4)
+  // one shared disposition on rejections (ADR-046#rejection-disposition)
   // -------------------------------------------------------------------------
-  describe('Arc E: noteApiRejection returns an explicit disposition (§3, §6.4)', () => {
+  describe('noteApiRejection returns an explicit disposition (ADR-046#rejection-disposition)', () => {
     const revoked = { code: 'active_session_revoked', code_scope: 'customer_session' } as const;
 
     it('an accepted rejection returns { ownedByCoordinator: true, reason: reconciling }', async () => {
@@ -216,7 +216,8 @@ describe('authStore PR #4497 transition contracts', () => {
 
       expect(first.ownedByCoordinator).toBe(true);
       // A follow-up rejection within REJECTION_MIN_INTERVAL is throttled — the
-      // coordinator will NOT run for it, so the caller keeps its toast (§3).
+      // coordinator will NOT run for it, so the caller keeps its toast
+      // (ADR-046#rejection-disposition).
       expect(second).toEqual({ ownedByCoordinator: false, reason: 'throttled' });
     });
 

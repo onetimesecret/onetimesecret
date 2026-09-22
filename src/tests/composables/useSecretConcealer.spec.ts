@@ -29,7 +29,7 @@ const mockAuthStore: { isAuthenticated: boolean | null } = {
 };
 vi.mock('@/shared/stores/authStore', () => ({
   useAuthStore: () => mockAuthStore,
-  // #4497 Arc E: useAsyncHandler reads this off the error; specs that don't
+  // ADR-046#rejection-disposition: useAsyncHandler reads this off the error; specs that don't
   // exercise 401s still touch the import graph, so a null-returning stub is
   // enough.
   readCoordinatorDisposition: () => null,

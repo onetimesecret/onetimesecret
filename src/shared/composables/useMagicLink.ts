@@ -90,14 +90,14 @@ export function useMagicLink() {
         fieldError.value = response.data['field-error'] || null;
         return false;
       }
-      // #4497 item 8: setAuthenticated returns the RefreshOutcome. Only
+      // ADR-046#auth-completion-caller-contract: setAuthenticated returns the RefreshOutcome. Only
       // navigate to the (protected) post-auth destination when the snapshot
       // was applied AND the status is `authenticated`. Retry verification —
       // never re-POST the single-use magic-link key.
       const outcome = await ensureAuthenticated(authStore, 'magic-link');
       if (outcome === 'superseded') return false; // Newer coordinator run owns this.
       if (outcome !== 'applied') {
-        // TODO: [#4497 item 8] confirm error UX with design — reusing the
+        // TODO(#4501): confirm error UX with design — reusing the
         // sessionExpired copy since the failure mode is functionally the
         // same (verification could not be completed).
         error.value = t('web.auth.magicLink.sessionExpired');

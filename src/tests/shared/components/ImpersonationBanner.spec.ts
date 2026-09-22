@@ -77,7 +77,7 @@ describe('ImpersonationBanner', () => {
    * (authenticated + cust) so `authStore.escapeActionsAvailable` is true and
    * the stop control is enabled — matching production where an operator only
    * ever sees this banner in an active session. Pass `escapeAvailable: false`
-   * to exercise the #4497 item 13 gate (no retained identity, e.g. `checking`
+   * to exercise the ADR-046#authority-action-gating gate (no retained identity, e.g. `checking`
    * with no cust).
    */
   function mountBanner(
@@ -261,7 +261,7 @@ describe('ImpersonationBanner', () => {
     });
 
     /**
-     * #4497 item 13 — during the auth 'unavailable' outage (or any state where
+     * ADR-046#authority-action-gating — during the auth 'unavailable' outage (or any state where
      * no identity is retained), the escape control must be aria-disabled AND
      * refuse to submit even if a click reaches the handler. The stop endpoint
      * is protected; issuing it while authority is withheld would hit the API

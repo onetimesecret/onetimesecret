@@ -1,7 +1,7 @@
 // src/tests/utils/sessionTransition.spec.ts
 //
 // #4461: one session transition produces exactly one user-facing message.
-// §5, PR #4497 item 16: parked messages carry a TTL so a cancelled reload
+// ADR-046#parked-transition-ttl: parked messages carry a TTL so a cancelled reload
 // (or a beforeunload prompt the user rejected) cannot leave a stale one-liner
 // waiting for the next mount.
 
@@ -44,8 +44,8 @@ describe('session transition parking', () => {
     expect(consumeSessionTransition()).toBeNull();
   });
 
-  // §5 regression: TTL guards a park that outlived its reload attempt.
-  describe('TTL (§5, PR #4497)', () => {
+  // ADR-046#parked-transition-ttl regression: TTL guards a park that outlived its reload attempt.
+  describe('TTL (ADR-046#parked-transition-ttl)', () => {
     it('discards a park older than SESSION_TRANSITION_TTL_MS', () => {
       const parkedAt = 0;
       parkSessionTransition('ended', parkedAt);

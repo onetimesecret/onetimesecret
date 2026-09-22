@@ -164,7 +164,7 @@ export interface RefreshRequest {
  *                            does NOT increment failureCount and cannot cross
  *                            MAX_FAILURES to withhold authority for signed-in
  *                            users. A bounded Retry-After-driven retry is
- *                            scheduled (PR #4497 item 11). Callers treat it
+ *                            scheduled (ADR-046#allocation-failure). Callers treat it
  *                            the same as `failed` for navigation.
  */
 export type RefreshOutcome =
@@ -176,7 +176,7 @@ export type RefreshOutcome =
 
 /**
  * Whether the refresh coordinator claims ownership of the user-visible message
- * for a rejected API call (§3, Arc E, PR #4497). The interceptor asks
+ * for a rejected API call (ADR-046#rejection-disposition). The interceptor asks
  * `noteApiRejection` for this and attaches it to the error so
  * `useAsyncHandler.coordinatorOwnsMessage` reads exactly one field instead of
  * maintaining its own list of carve-outs.
@@ -423,7 +423,7 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * Whether protected/mutation-issuing action controls (billing changes, plan
    * preview activation, org/domain mutations, etc.) should be enabled in the
-   * chrome (#4497 item 13, ADR-046 §"caller contracts" table 2).
+   * chrome (ADR-046#authority-action-gating).
    *
    * Only `authenticated` grants this. `checking`, `unavailable` and
    * `mfa_pending` all keep retained identity visible for continuity, but no
@@ -472,7 +472,7 @@ export const useAuthStore = defineStore('auth', () => {
       void refresh({ kind: 'ordinary', reason: 'unordered-hydration' });
     }
 
-    // Hydration itself said `unavailable` (Arc B, §2). Without an explicit
+    // Hydration itself said `unavailable` (ADR-046#authority-action-gating). Without an explicit
     // recovery, the tab would sit here until visibility+isStale fires at the
     // ≥15min mark. Schedule a bounded verification retry immediately so the
     // capped backoff timer takes over. This uses `kind: 'ordinary'` because it
@@ -599,7 +599,7 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       if (mine !== generation) return dropped(mine, request);
       retryAfterMs = parseRetryAfter(retryAfterHeader(error));
-      // PR #4497 item 11: a 503 SnapshotOrderingUnavailable is the sidecar
+      // ADR-046#allocation-failure: a 503 SnapshotOrderingUnavailable is the sidecar
       // counter allocation failing, not a session verdict. It must NOT
       // increment failureCount — under a sustained outage that would cross
       // MAX_FAILURES within ~10s and withholdAuthority('unavailable') would
@@ -622,7 +622,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * PR #4497 item 11: bounded retry for a 503 SnapshotOrderingUnavailable.
+   * ADR-046#allocation-failure: bounded retry for a 503 SnapshotOrderingUnavailable.
    * Uses the server's Retry-After when present, floors at BACKOFF_FLOOR, and
    * caps at RETRY_AFTER_CAP. Does not increment failureCount and does not
    * change status — the last accepted snapshot stands. Cancels any pending
@@ -768,7 +768,7 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * Applies an accepted snapshot and clears what no longer belongs.
    *
-   * Generation ownership across the dynamic-import `await` (§4, Arc F):
+   * Generation ownership across the dynamic-import `await` (ADR-046#commit-generation-ownership):
    * `clearAccountScopedState` runs BEFORE `applySnapshot`, so the tab is never
    * left showing a new snapshot with stale account-scoped stores hanging off
    * it. The decision to clear is made from the INCOMING payload (its
@@ -806,13 +806,13 @@ export const useAuthStore = defineStore('auth', () => {
     $scheduleNextCheck();
 
     // A successful reconciliation means a reload is no longer the resolution
-    // for whatever was parked (§5, PR #4497 item 16). Fast-path clean-up; the
+    // for whatever was parked (ADR-046#parked-transition-ttl). Fast-path clean-up; the
     // TTL is what actually guarantees the message cannot outlive its context.
     clearSessionTransition();
   }
 
   /**
-   * Hydration said `unavailable` (§2, Arc B). Kick off the same backoff timer
+   * Hydration said `unavailable` (ADR-046#authority-action-gating). Kick off the same backoff timer
    * that `noteFailure` uses, so the tab does not sit waiting for a
    * visibility+isStale trigger 15 minutes out. Starts at the first backoff
    * step (failures = 1). No status write: hydration already left the store in

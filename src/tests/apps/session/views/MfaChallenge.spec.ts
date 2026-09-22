@@ -184,8 +184,8 @@ describe('MfaChallenge', () => {
         ],
       },
     });
-    // #4497 Arc A: ensureAuthenticated in authCompletion.ts requires the
-    // initial setAuthenticated() to resolve 'applied' AND bootstrapStore's
+    // ADR-046#auth-completion-caller-contract: ensureAuthenticated in authCompletion.ts requires
+    // the initial setAuthenticated() to resolve 'applied' AND bootstrapStore's
     // authStatus to be 'authenticated' before completeChallenge navigates.
     // With createTestingPinia's default stubActions the setAuthenticated spy
     // returns undefined and applySnapshot is a no-op. Wire the spy to commit

@@ -208,7 +208,7 @@ function noteRejection(error: AxiosError): void {
       parseSessionFailure(error)
     );
     // Attach the disposition to the error so useAsyncHandler.coordinatorOwnsMessage
-    // reads it verbatim instead of re-deriving carve-outs (§3, Arc E, PR #4497).
+    // reads it verbatim instead of re-deriving carve-outs (ADR-046#rejection-disposition).
     (error as unknown as Record<string | symbol, unknown>)[COORDINATOR_DISPOSITION_KEY] =
       disposition;
   } catch {

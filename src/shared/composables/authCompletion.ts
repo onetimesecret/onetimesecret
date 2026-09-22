@@ -17,7 +17,7 @@ interface AuthCompletionStore {
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * AUTH-COMPLETION CALLER CONTRACT (#4497 Arc A)
+ * AUTH-COMPLETION CALLER CONTRACT (ADR-046#auth-completion-caller-contract)
  * ═══════════════════════════════════════════════════════════════════════════════
  *
  * A caller finishing a first-factor auth POST and needing to navigate to an
@@ -28,7 +28,7 @@ interface AuthCompletionStore {
  *   2. outcome === 'applied'   — else retry VERIFICATION (never the auth POST).
  *   3. authStatus matches the intended destination — else keep retrying.
  *
- * Rationale (ADR-046, .plans/4497-transition-contracts.md §1):
+ * Rationale (ADR-046#auth-completion-caller-contract):
  *
  * A first-factor auth POST may be single-use (nonce, rate-limit, lockout
  * counter). On refresh failure retry the CHEAP idempotent step (`refresh`),

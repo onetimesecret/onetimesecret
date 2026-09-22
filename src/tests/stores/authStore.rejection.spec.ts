@@ -68,7 +68,7 @@ describe('authStore: rejection vs verification-unavailable (#4460)', () => {
 
   describe('no number of failures logs the user out', () => {
     // NB: SnapshotOrderingUnavailable (allocation 503) is covered separately
-    // below (PR #4497 item 11). It must NOT cascade into withhold-authority
+    // below (ADR-046#allocation-failure). It must NOT cascade into withhold-authority
     // for signed-in users, so it does NOT participate in this shared loop.
     const outages: Array<[string, (mock: AxiosMockAdapter) => void]> = [
       ['transport failures', (mock) => mock.onGet(ENDPOINT).networkError()],
@@ -138,7 +138,7 @@ describe('authStore: rejection vs verification-unavailable (#4460)', () => {
     });
   });
 
-  describe('SnapshotOrderingUnavailable 503 does not cascade to withhold (PR #4497 item 11)', () => {
+  describe('SnapshotOrderingUnavailable 503 does not cascade to withhold (ADR-046#allocation-failure)', () => {
     it('returns allocation-unavailable, does not increment failureCount, does not withhold', async () => {
       await mountWith(authenticatedBootstrap);
       axiosMock

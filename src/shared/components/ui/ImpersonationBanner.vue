@@ -37,7 +37,7 @@
   const authStore = useAuthStore();
   // Escape actions (stop-impersonation) stay usable across `checking`,
   // `unavailable`, and `mfa_pending` — but MUST be withheld if there is no
-  // retained identity to leave behind (#4497 item 13).
+  // retained identity to leave behind (ADR-046#authority-action-gating).
   const { escapeActionsAvailable } = storeToRefs(authStore);
 
   const impersonation = computed(() => bootstrapStore.impersonation);
@@ -85,7 +85,7 @@
 
   async function handleStop(): Promise<void> {
     if (stopping.value) return;
-    // Belt-and-braces guard (#4497 item 13): the :disabled binding aria-disables
+    // Belt-and-braces guard (ADR-046#authority-action-gating): the :disabled binding aria-disables
     // the control while authority is uncertain, but a submit that slips through
     // (e.g. state flip mid-click) must not reach the protected endpoint.
     if (!escapeActionsAvailable.value) return;

@@ -216,7 +216,7 @@ export function useInviteAuth() {
         // User will return to invite page after MFA completion
         // MFA-pending is the server's statement, not a local patch (#4458).
         //
-        // #4497 item 5: refresh() reports transport/contract failures as
+        // ADR-046#auth-completion-caller-contract: refresh() reports transport/contract failures as
         // 'failed' without throwing. If the snapshot did not land, do NOT
         // report requiresMfa=true — the guard would redirect the parent to
         // /signin and lose the invite MFA challenge. Retry verification
@@ -229,7 +229,7 @@ export function useInviteAuth() {
         if (outcome !== 'applied') {
           const message = 'An error occurred';
           setError({ message });
-          // TODO: [#4497 item 5] confirm error UX with design — surfacing
+          // TODO(#4501): confirm error UX with design — surfacing
           // through the composable's existing error state (no new i18n key
           // yet); AcceptInvite renders this inline.
           return { success: false, error: message };

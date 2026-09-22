@@ -153,8 +153,8 @@ describe('useWebAuthn', () => {
       axiosMock.onPost('/auth/webauthn-login').replyOnce(422, challengeResponse);
       axiosMock.onPost('/auth/webauthn-login').replyOnce(200, { success: 'Authenticated' });
       // Mock the bootstrap/me call that happens after setAuthenticated(true).
-      // #4497 Arc A: the coordinator refuses a snapshot without cust, so the
-      // canonical authenticated fixture is used here.
+      // ADR-046#auth-completion-caller-contract: the coordinator refuses a snapshot without cust,
+      // so the canonical authenticated fixture is used here.
       axiosMock.onGet('/bootstrap/me').reply(200, toWire(authenticatedBootstrap));
 
       const { authenticateWebAuthn, isLoading, error } = useWebAuthn();

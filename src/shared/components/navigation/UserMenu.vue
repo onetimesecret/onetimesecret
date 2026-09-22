@@ -90,7 +90,7 @@
   const { billing_enabled } = storeToRefs(bootstrapStore);
 
   // Mutation controls in the chrome are gated while the coordinator cannot
-  // vouch for the session (#4497 item 13). Escape actions (logout) stay
+  // vouch for the session (ADR-046#authority-action-gating). Escape actions (logout) stay
   // enabled: retained-identity states must still let the user leave.
   const authStore = useAuthStore();
   const { protectedActionsAvailable } = storeToRefs(authStore);
@@ -189,7 +189,7 @@
 
   const openPlanPreviewModal = () => {
     // Do not open a mutation modal while authority is not established
-    // (#4497 item 13). The menu item is aria-disabled in that state; this
+    // (ADR-046#authority-action-gating). The menu item is aria-disabled in that state; this
     // is a belt-and-braces guard.
     if (!protectedActionsAvailable.value) return;
     isPlanPreviewModalOpen.value = true;
@@ -261,7 +261,7 @@
       icon: { collection: 'heroicons', name: 'beaker' },
       variant: isPreviewModeActive.value ? 'caution' : 'default',
       condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainMember.value,
-      // Mutation-issuing (#4497 item 13): opens a modal whose confirm posts
+      // Mutation-issuing (ADR-046#authority-action-gating): opens a modal whose confirm posts
       // /api/colonel/entitlement-preview. Gated on verified authority.
       disabled: () => !protectedActionsAvailable.value,
       onClick: openPlanPreviewModal,

@@ -11,7 +11,7 @@
 // The parked value selects a sentence. It is never an authentication
 // decision: nothing reads it to decide who is signed in.
 //
-// TTL (§5, PR #4497): reload() only requests navigation, so the parked
+// TTL (ADR-046#parked-transition-ttl): reload() only requests navigation, so the parked
 // message can outlive a cancelled reload (the user hit "Stay") or a
 // beforeunload prompt the browser suppressed. The parked value carries its
 // own parkedAt timestamp and is discarded on read if older than
