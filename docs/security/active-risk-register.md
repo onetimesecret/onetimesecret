@@ -1,12 +1,12 @@
 # Active Security Risk Register
 
-**Last reviewed:** 2026-09-19 · **Code baseline:** `onetimesecret` @ `295038d24` (`feature/4451-auth-session-consistency`)
+**Last reviewed:** 2026-09-19 · **Code baseline:** `onetimesecret` @ `2134b86ab` (`feature/4463-browser-specs-release-gate`)
 
 This is the canonical tracker for security work that remains actionable. Dated audits and
 historical risk registers preserve evidence; they do not define the current status of a finding.
 Source ratings are retained until a new assessment explicitly re-rates a risk.
 
-**Active items:** 23 open · **Accepted exceptions:** none recorded
+**Active items:** 20 open · **Accepted exceptions:** none recorded
 
 ## How to use this register
 
@@ -33,7 +33,7 @@ Source ratings are retained until a new assessment explicitly re-rates a risk.
 | RISK-2026-08-14-M09 | P3 / Medium | Open | Vendored DNS widget injects remote HTML; an XSS remains conditional on a CSP/nonce bypass. | [Historical M-9](risk-registers/risk-register-2026-08-14.md); remove or safely sanitize remote HTML injection. |
 | RISK-2026-08-14-L07 | P3 / Medium | Open | Redis TLS is not enforced or asserted at boot. | [Historical L-7](risk-registers/risk-register-2026-08-14.md); require or assert `rediss://` for remote Redis. |
 | RISK-2026-08-14-COOKIE-TOSSING | P3 / Medium | Open | `Rack::Protection::CookieTossing` is off; sibling-subdomain cookie control can survive simple-mode login. | [Historical residual](risk-registers/risk-register-2026-08-14.md); configure the application session key and renew the ID on login. |
-| RISK-2026-08-14-L09 | P4 / Low / conditional Medium | Open | Debug HTTP capture can log a raw session cookie; raw emails remain at other log sites. | [Historical L-9](risk-registers/risk-register-2026-08-14.md); redact credentials and email values at every sink. Reviewed [2026-09-19](audits/security-audit-2026-09-19.md): the session-store and sign-in/sign-out lines now log a handle; `LOG_HTTP_CAPTURE=debug` still records `session_id`. Rating unchanged. |
+| RISK-2026-08-14-L09 | P4 / Low / conditional Medium | Open | Raw emails remain at some log sites. (The raw session id in debug HTTP capture is fixed.) | [Historical L-9](risk-registers/risk-register-2026-08-14.md); redact credentials and email values at every sink. Reviewed [2026-09-19](audits/security-audit-2026-09-19.md): the session-store and sign-in/sign-out lines now log a handle, and since `1e76be0cc` so do the logic-class lines (simple-mode sign-in, password reset, passphrase failure) and every `Auth::Logging` event, which that review had missed. Since `0a1762239` `LOG_HTTP_CAPTURE=debug` records `session_handle` too, so no log site writes a raw session id. Raw emails remain at other sites, which keeps this row open. Rating unchanged. |
 | RISK-2026-08-14-L05 | P4 / Low | Open | `brace-expansion` overrides remain below `GHSA-rgw5-rvv9-x895` floors. | [Historical L-5](risk-registers/risk-register-2026-08-14.md); raise pinned versions and correct the rationale. |
 | RISK-2026-08-14-L01 | P4 / Low | Open | `RemoveMember` bypasses the entitlement layer and does not confirm that the actor is active. | [Historical L-1](risk-registers/risk-register-2026-08-14.md); use the shared authorization checks. |
 | RISK-2026-08-14-M06 | P4 / Low | Open | A domain-scoped member with `audit_logs` can read sibling-domain receipt metadata. | [Historical M-6](risk-registers/risk-register-2026-08-14.md); enforce domain scope on the listing. |
@@ -41,10 +41,7 @@ Source ratings are retained until a new assessment explicitly re-rates a risk.
 | RISK-2026-08-14-L03 | P4 / Low | Open | The `secret` field accepts an object and persists Ruby `.to_s` rather than enforcing the string schema. | [Historical L-3](risk-registers/risk-register-2026-08-14.md); enforce the request type. |
 | RISK-2026-08-14-L08 | P4 / Low | Open | In simple mode, reset-password can burn an arbitrary secret when its identifier is known. | [Historical L-8](risk-registers/risk-register-2026-08-14.md); restrict lookup/burn to reset-password secrets. |
 | RISK-2026-08-13-03 | P3 / Low | Open | SMTP2GO client error bodies reach logs and Sentry without redaction. | [2026-08-13 finding 3](audits/security-audit-2026-08-13.md); redact at the logging boundary or omit response bodies from Sentry. |
-| RISK-2026-09-19-01 | P4 / Low | Open | Simple mode: a request in flight during logout can write the session back and re-install the cookie, leaving that browser signed in. Full mode is fixed. | [2026-09-19 finding 1](audits/security-audit-2026-09-19.md); mark the session ended at logout and refuse the late write, or renew the ID on clear. Owner: Unassigned. Not scheduled. |
-| RISK-2026-09-19-02 | P4 / Low | Open | Completing the second factor does not renew the session ID; only the password step does. | [2026-09-19 finding 2](audits/security-audit-2026-09-19.md); renew the ID on MFA completion and carry the active-session row and sidecar across it. Owner: Unassigned. Not scheduled. |
-| RISK-2026-09-19-03 | P4 / Low | Open | Personalized `/api` JSON responses send no `Cache-Control`. | [2026-09-19 finding 3](audits/security-audit-2026-09-19.md); default authenticated `/api` responses to `private, no-store`. Owner: Unassigned. Not scheduled. |
-| RISK-2026-09-19-04 | P4 / Low | Open | Dashboard data-refresh timers count as activity, so a tab left on the dashboard never reaches the inactivity deadline. Full mode's absolute session lifetime still applies. | [2026-09-19 finding 4](audits/security-audit-2026-09-19.md); let the client declare timer-driven requests passive. Owner: Unassigned. Not scheduled. |
+| RISK-2026-09-19-02 | P4 / Low | Open | Completing the second factor does not renew the session ID; only the password step does. | [2026-09-19 finding 2](audits/security-audit-2026-09-19.md); renew the ID on MFA completion and carry the active-session row and sidecar across it. Tracking: [#4466](https://github.com/onetimesecret/onetimesecret/issues/4466) (v0.27.0), whose scope names MFA completion among the establishment paths to rotate and owns the cookie-tossing design the renewal depends on. Owner: Unassigned. |
 
 ## Historical sources
 
