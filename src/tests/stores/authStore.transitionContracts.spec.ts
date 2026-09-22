@@ -280,12 +280,12 @@ describe('authStore PR #4497 transition contracts', () => {
   // stale-session mode gates protected actions (ADR-046#authority-action-gating)
   // -------------------------------------------------------------------------
   describe('stale-session mode gates protected actions (ADR-046#authority-action-gating)', () => {
-    it('a bounded session-replaced reload disables protected actions but keeps escapes', async () => {
+    it('a bounded replaced-session reload disables protected actions but keeps escapes', async () => {
       await mountWith(authenticatedBootstrap);
       expect(store.protectedActionsAvailable).toBe(true);
       vi.mocked(attemptForcedPageLoad).mockReturnValueOnce('bounded');
 
-      store.forcePageLoad('session-replaced');
+      store.forcePageLoad('replaced');
 
       expect(attemptForcedPageLoad).toHaveBeenCalledTimes(1);
       expect(store.staleSession).toBe(true);
