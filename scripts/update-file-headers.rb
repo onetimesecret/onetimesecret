@@ -189,18 +189,29 @@ class HeaderValidator
   #   - an immediately following `#` separator line
   #   - an immediately following `# frozen_string_literal: true`
   #   - a single trailing blank line
+  # Also consumes a stray `# frozen_string_literal: true` (with surrounding
+  # blanks) that appears before any real code, so the fixer does not duplicate
+  # it when rewriting the header.
   # Any other leading comment (license, rubocop directive, author credit)
   # is preserved as content.
+  # Matches a path-header line for any .rb path, e.g. `# lib/foo.rb` or
+  # `# ruby/lib/foo.rb`. Used to detect stale headers left over from a rename.
+  RUBY_PATH_HEADER_RE = %r{\A#\s+[\w./-]+\.rb\z}
+
   def find_ruby_content_start(lines, relative_path, start = 0)
     idx = start
     header_line = "# #{relative_path}"
 
-    if lines[idx]&.strip == header_line
+    if lines[idx]&.strip == header_line || lines[idx]&.strip&.match?(RUBY_PATH_HEADER_RE)
       idx += 1
       idx += 1 if lines[idx]&.strip == '#'
       idx += 1 if lines[idx]&.strip == '# frozen_string_literal: true'
     end
-    idx += 1 if lines[idx]&.strip == ''
+    idx += 1 while lines[idx]&.strip == ''
+    if lines[idx]&.strip == '# frozen_string_literal: true'
+      idx += 1
+      idx += 1 while lines[idx]&.strip == ''
+    end
     idx
   end
 
