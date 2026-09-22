@@ -1,5 +1,6 @@
 // src/tests/stores/bootstrapStore.spec.ts
 
+import { bootstrapSchema } from '@/schemas/contracts/bootstrap';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import * as bootstrapService from '@/services/bootstrap.service';
 import * as diagnosticsService from '@/services/diagnostics.service';
@@ -22,9 +23,8 @@ import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 vi.mock('@/services/bootstrap.service', () => ({
   getBootstrapSnapshot: vi.fn(),
   updateBootstrapSnapshot: vi.fn(),
-  // Used by update() to evict `diagnostics_ref` from the snapshot when a full
-  // /bootstrap/me body omits it (anonymous session).
-  clearBootstrapSnapshotKey: vi.fn(),
+  // applySnapshot()/resetForLogout() replace the pre-Pinia mirror (#4458).
+  replaceBootstrapSnapshot: vi.fn(),
   _resetForTesting: vi.fn(),
 }));
 
@@ -129,7 +129,9 @@ describe('bootstrapStore', () => {
       expect(store.authenticated).toBe(false);
       expect(store.awaiting_mfa).toBe(true);
       expect(store.had_valid_session).toBe(true);
-      expect(store.cust).toEqual(mockCustomer);
+      expect(store.authStatus).toBe('mfa_pending');
+      // No identity until the second factor is verified.
+      expect(store.cust).toBeNull();
     });
 
     it('hydrates colonel (admin) state correctly', () => {
@@ -174,11 +176,11 @@ describe('bootstrapStore', () => {
 
     it('updates partial state correctly', () => {
       store.update({
-        authenticated: true,
+        enjoyTheVue: true,
         email: 'updated@example.com',
       });
 
-      expect(store.authenticated).toBe(true);
+      expect(store.enjoyTheVue).toBe(true);
       expect(store.email).toBe('updated@example.com');
       // Other fields should remain unchanged
       expect(store.locale).toBe('en');
@@ -192,7 +194,7 @@ describe('bootstrapStore', () => {
       const updateSnapshotMock = vi.mocked(bootstrapService.updateBootstrapSnapshot);
       updateSnapshotMock.mockClear();
 
-      const payload = { authenticated: true, has_password: true };
+      const payload = { enjoyTheVue: true, has_password: true };
       store.update(payload);
 
       expect(updateSnapshotMock).toHaveBeenCalledTimes(1);
@@ -225,18 +227,20 @@ describe('bootstrapStore', () => {
       expect(store.email).toBe('test@example.com'); // Preserved
     });
 
-    it('updates authentication state', () => {
-      expect(store.authenticated).toBe(false);
+    it('cannot state who is signed in: authority keys are dropped (#4458)', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       store.update({
         authenticated: true,
-        awaiting_mfa: false,
-        had_valid_session: true,
+        awaiting_mfa: true,
+        auth_status: 'authenticated',
       });
 
-      expect(store.authenticated).toBe(true);
+      expect(warn).toHaveBeenCalledTimes(3);
+      warn.mockRestore();
+      expect(store.authenticated).toBe(false);
       expect(store.awaiting_mfa).toBe(false);
-      expect(store.had_valid_session).toBe(true);
+      expect(store.authStatus).not.toBe('authenticated');
     });
 
     it('updates user identity', () => {
@@ -427,63 +431,6 @@ describe('bootstrapStore', () => {
   // REFRESH TESTS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('refresh()', () => {
-    beforeEach(() => {
-      mockGetBootstrapSnapshot.mockReturnValue(anonymousBootstrap);
-      store.init();
-    });
-
-    it('fetches /bootstrap/me endpoint and updates state', async () => {
-      const refreshedState: Partial<BootstrapPayload> = {
-        authenticated: true,
-        email: 'refreshed@example.com',
-        cust: mockCustomer,
-      };
-
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(refreshedState),
-      });
-
-      await store.refresh();
-
-      expect(globalThis.fetch).toHaveBeenCalledWith('/bootstrap/me', {
-        method: 'GET',
-        credentials: 'same-origin',
-        headers: { Accept: 'application/json' },
-      });
-      expect(store.authenticated).toBe(true);
-      expect(store.email).toBe('refreshed@example.com');
-    });
-
-    it('throws error on failed fetch', async () => {
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: false,
-        status: 500,
-      });
-
-      await expect(store.refresh()).rejects.toThrow(
-        '[BootstrapStore] Failed to refresh state: 500'
-      );
-    });
-
-    it('throws error on network failure', async () => {
-      globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
-
-      await expect(store.refresh()).rejects.toThrow('Network error');
-    });
-
-    it('updates CSRF token on refresh', async () => {
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ shrimp: 'new-csrf-token' }),
-      });
-
-      await store.refresh();
-
-      expect(store.shrimp).toBe('new-csrf-token');
-    });
-  });
 
   // ═══════════════════════════════════════════════════════════════════════════
   // RESET TESTS
@@ -944,12 +891,11 @@ describe('bootstrapStore', () => {
     });
 
     it('update() triggers reactive changes', () => {
-      const initialAuth = store.authenticated;
-      expect(initialAuth).toBe(false);
+      const initialFlag = store.enjoyTheVue;
 
-      store.update({ authenticated: true });
+      store.update({ enjoyTheVue: !initialFlag });
 
-      expect(store.authenticated).toBe(true);
+      expect(store.enjoyTheVue).toBe(!initialFlag);
     });
 
     it('computed getter updates when underlying ref changes', () => {
@@ -1005,8 +951,12 @@ describe('bootstrapStore', () => {
 
       store.init();
 
-      expect(store.authenticated).toBe(true);
-      expect(store.email).toBe('partial@example.com');
+      // `authenticated: true` without a customer is not a usable identity:
+      // the status can only withhold (effectiveAuthStatus), and identity
+      // fields are withheld with it.
+      expect(store.authStatus).toBe('unavailable');
+      expect(store.authenticated).toBe(false);
+      expect(store.email).toBe('');
       // Missing fields should use defaults
       expect(store.locale).toBe('en');
       expect(store.billing_enabled).toBe(false);
@@ -1122,11 +1072,18 @@ describe('bootstrapStore', () => {
     it('provides organization data for organizationStore', () => {
       mockGetBootstrapSnapshot.mockReturnValue({
         ...authenticatedBootstrap,
-        organization: { planid: 'enterprise' },
+        organization: {
+          objid: 'org-objid-1',
+          extid: 'on-ext-1',
+          display_name: 'Acme',
+          is_default: true,
+          current_user_role: 'owner',
+        },
       });
       store.init();
 
-      expect(store.organization?.planid).toBe('enterprise');
+      expect(store.organization?.extid).toBe('on-ext-1');
+      expect(store.organization?.current_user_role).toBe('owner');
     });
   });
 
@@ -1200,7 +1157,7 @@ describe('bootstrapStore', () => {
     it('update() merges partial state without replacing entire state', () => {
       // Set up initial state with multiple fields
       store.update({
-        authenticated: true,
+        enjoyTheVue: true,
         email: 'first@example.com',
         locale: 'es',
       });
@@ -1209,35 +1166,35 @@ describe('bootstrapStore', () => {
       store.update({ locale: 'fr' });
 
       expect(store.locale).toBe('fr');
-      expect(store.authenticated).toBe(true); // Preserved
+      expect(store.enjoyTheVue).toBe(true); // Preserved
       expect(store.email).toBe('first@example.com'); // Preserved
     });
 
     it('sequential updates accumulate correctly', () => {
-      store.update({ authenticated: true });
+      store.update({ enjoyTheVue: true });
       store.update({ email: 'step1@example.com' });
       store.update({ custid: 'cust-123' });
       store.update({ locale: 'de' });
 
-      expect(store.authenticated).toBe(true);
+      expect(store.enjoyTheVue).toBe(true);
       expect(store.email).toBe('step1@example.com');
       expect(store.custid).toBe('cust-123');
       expect(store.locale).toBe('de');
     });
 
     it('$reset() can be called multiple times safely', () => {
-      store.update({ authenticated: true, email: 'test@example.com' });
+      store.update({ enjoyTheVue: true, email: 'test@example.com' });
 
       store.$reset();
-      expect(store.authenticated).toBe(false);
+      expect(store.enjoyTheVue).toBe(false);
 
       // Update again
-      store.update({ authenticated: true });
-      expect(store.authenticated).toBe(true);
+      store.update({ enjoyTheVue: true });
+      expect(store.enjoyTheVue).toBe(true);
 
       // Reset again
       store.$reset();
-      expect(store.authenticated).toBe(false);
+      expect(store.enjoyTheVue).toBe(false);
     });
 
     it('store can be re-initialized after $reset()', async () => {
@@ -1495,82 +1452,6 @@ describe('bootstrapStore', () => {
   // REFRESH EDGE CASES
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('refresh() Edge Cases', () => {
-    beforeEach(() => {
-      mockGetBootstrapSnapshot.mockReturnValue(authenticatedBootstrap);
-      store.init();
-    });
-
-    it('refresh() updates all fields from server response', async () => {
-      const serverResponse: Partial<BootstrapPayload> = {
-        authenticated: false,
-        awaiting_mfa: true,
-        email: 'changed@example.com',
-        locale: 'fr',
-        shrimp: 'new-token',
-      };
-
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(serverResponse),
-      });
-
-      await store.refresh();
-
-      expect(store.authenticated).toBe(false);
-      expect(store.awaiting_mfa).toBe(true);
-      expect(store.email).toBe('changed@example.com');
-      expect(store.locale).toBe('fr');
-      expect(store.shrimp).toBe('new-token');
-    });
-
-    it('refresh() preserves fields not in server response', async () => {
-      // Set initial state
-      store.update({ locale: 'es', billing_enabled: true });
-
-      // Server response only updates some fields
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ authenticated: false }),
-      });
-
-      await store.refresh();
-
-      // Updated field
-      expect(store.authenticated).toBe(false);
-      // Preserved fields (not in response)
-      expect(store.locale).toBe('es');
-      expect(store.billing_enabled).toBe(true);
-    });
-
-    it('refresh() handles empty response gracefully', async () => {
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({}),
-      });
-
-      // Should not throw
-      await expect(store.refresh()).resolves.toBeUndefined();
-
-      // State should be unchanged
-      expect(store.authenticated).toBe(true);
-    });
-
-    it('refresh() handles various HTTP error codes', async () => {
-      const errorCodes = [400, 401, 403, 404, 500, 502, 503];
-
-      for (const status of errorCodes) {
-        globalThis.fetch = vi.fn().mockResolvedValue({
-          ok: false,
-          status,
-        });
-
-        await expect(store.refresh()).rejects.toThrow(
-          `[BootstrapStore] Failed to refresh state: ${status}`
-        );
-      }
-    });
-  });
 
   // ═══════════════════════════════════════════════════════════════════════════
   // DEEP NESTED OBJECT TESTS
@@ -1676,11 +1557,11 @@ describe('bootstrapStore', () => {
     });
 
     it('handles boolean false values correctly (not treated as undefined)', () => {
-      store.update({ authenticated: true });
-      expect(store.authenticated).toBe(true);
+      store.update({ enjoyTheVue: true });
+      expect(store.enjoyTheVue).toBe(true);
 
-      store.update({ authenticated: false });
-      expect(store.authenticated).toBe(false);
+      store.update({ enjoyTheVue: false });
+      expect(store.enjoyTheVue).toBe(false);
     });
 
     it('handles empty string values correctly', () => {
@@ -1736,7 +1617,9 @@ describe('bootstrapStore', () => {
 
       store.init();
 
-      expect(store.authenticated).toBe(true);
+      // `authenticated: true` with no customer can only withhold (#4462).
+      expect(store.authStatus).toBe('unavailable');
+      expect(store.authenticated).toBe(false);
       // Undefined values should not overwrite defaults
       expect(store.email).toBe('');
       expect(store.cust).toBeNull();
@@ -1779,14 +1662,16 @@ describe('bootstrapStore', () => {
       expect(result.isInitialized).toBe(true);
       expect(store.isInitialized).toBe(true);
 
-      // Should have default values
+      // Defaults, and `checking`: a hydration that threw verified nothing,
+      // so it must not read as anonymous (#4456).
+      expect(store.authStatus).toBe('checking');
       expect(store.authenticated).toBe(false);
       expect(store.cust).toBeNull();
       expect(store.email).toBe('');
 
       // Should log the error
       expect(consoleSpy).toHaveBeenCalledWith(
-        '[BootstrapStore.init] Failed to initialize from snapshot, using defaults:',
+        '[BootstrapStore.init] Failed to initialize from snapshot, status: checking:',
         parseError
       );
 
@@ -1806,7 +1691,7 @@ describe('bootstrapStore', () => {
 describe('bootstrapStore user context', () => {
   let store: ReturnType<typeof useBootstrapStore>;
   let mockSetActorContext: Mock;
-  let mockClearSnapshotKey: Mock;
+  let mockReplaceSnapshot: Mock;
 
   // 16 lowercase hex, matching what DiagnosticsRef derives and what
   // DIAGNOSTICS_REF_PATTERN admits. setDiagnosticsActorContext is mocked here,
@@ -1817,7 +1702,7 @@ describe('bootstrapStore user context', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockSetActorContext = vi.mocked(diagnosticsService.setDiagnosticsActorContext);
-    mockClearSnapshotKey = vi.mocked(bootstrapService.clearBootstrapSnapshotKey);
+    mockReplaceSnapshot = vi.mocked(bootstrapService.replaceBootstrapSnapshot);
     await setupTestPinia();
     store = useBootstrapStore();
   });
@@ -1837,22 +1722,25 @@ describe('bootstrapStore user context', () => {
     expect(mockSetActorContext).toHaveBeenCalledWith(REF_BLOCK);
   });
 
-  it('clears the context when a bootstrap response OMITS diagnostics_ref (anonymous)', () => {
-    store.update({
-      authenticated: true,
-      diagnostics_ref: { ...REF_BLOCK },
-    } as Partial<BootstrapPayload>);
+  it('clears the context when a complete snapshot OMITS diagnostics_ref (anonymous)', () => {
+    store.applySnapshot(
+      bootstrapSchema.parse({ ...authenticatedBootstrap, diagnostics_ref: { ...REF_BLOCK } })
+    );
+    expect(store.diagnostics_ref).toEqual(REF_BLOCK);
     mockSetActorContext.mockClear();
+    mockReplaceSnapshot.mockClear();
 
-    // A full /bootstrap/me body reporting an anonymous session: the block is
-    // absent, not null. filterDefined() alone would leave the old ref.
-    store.update({ authenticated: false } as Partial<BootstrapPayload>, {
-      source: 'bootstrap',
-    });
+    // A complete /bootstrap/me body reporting an anonymous session: the block
+    // is absent, not null. applySnapshot() REPLACES, so absence clears it in
+    // the store, in the Sentry context and in the pre-Pinia mirror at once.
+    store.applySnapshot(bootstrapSchema.parse(anonymousBootstrap));
 
     expect(store.diagnostics_ref).toBeUndefined();
     expect(mockSetActorContext).toHaveBeenCalledWith(null);
-    expect(mockClearSnapshotKey).toHaveBeenCalledWith('diagnostics_ref');
+    expect(mockReplaceSnapshot).toHaveBeenCalledTimes(1);
+    // The service is mocked here; the real one drops undefined keys (see
+    // bootstrapStore.accountTransition.spec.ts, which uses it unmocked).
+    expect(mockReplaceSnapshot.mock.calls[0][0].diagnostics_ref).toBeUndefined();
   });
 
   it('replaces the ref on account change', () => {
@@ -1900,14 +1788,19 @@ describe('bootstrapStore user context', () => {
   // skips undefined). Without this, a soft/SPA logout left the previous ref
   // readable.
   it('evicts diagnostics_ref from the pre-Pinia snapshot on resetForLogout', () => {
-    store.update({
-      authenticated: true,
-      diagnostics_ref: { ...REF_BLOCK },
-    } as Partial<BootstrapPayload>);
-    mockClearSnapshotKey.mockClear();
+    store.applySnapshot(
+      bootstrapSchema.parse({ ...authenticatedBootstrap, diagnostics_ref: { ...REF_BLOCK } })
+    );
+    mockReplaceSnapshot.mockClear();
 
     store.resetForLogout();
 
-    expect(mockClearSnapshotKey).toHaveBeenCalledWith('diagnostics_ref');
+    // The mirror is replaced from the post-reset state, which evicts every
+    // account-scoped key, not only this one.
+    expect(mockReplaceSnapshot).toHaveBeenCalledTimes(1);
+    const mirror = mockReplaceSnapshot.mock.calls[0][0];
+    expect(mirror.diagnostics_ref).toBeUndefined();
+    expect(mirror.cust).toBeNull();
+    expect(mirror).not.toHaveProperty('authStatus');
   });
 });

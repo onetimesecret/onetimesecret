@@ -17,12 +17,20 @@ import {
   handleSsoOnlyRoute,
   setupRouterGuards,
   validateAuthentication,
+  verifyIfChecking,
 } from '@/router/guards.routes';
 import { loggingService } from '@/services/logging.service';
 import { useAuthStore } from '@/shared/stores';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { isSsoOnlyMode } from '@/utils/features';
+
+/**
+ * Registration order of the beforeEach guards in setupRouterGuards(). Tests
+ * pull a guard out of the mocked router by position; naming the positions
+ * keeps a newly inserted guard a one-line change here.
+ */
+const GUARD = { verify: 0, layout: 1, authFeature: 2, ssoOnly: 3, auth: 4 } as const;
 
 /** Sync guard that blocks routes for disabled auth features. */
 type FeatureGuard = (to: RouteLocationNormalized) => RouteLocationRaw | true;
@@ -51,10 +59,11 @@ const publicRoute: RouteLocationNormalized = {
 
 vi.mock('@/shared/stores/authStore', () => ({
   useAuthStore: vi.fn(() => ({
+    authStatus: 'anonymous',
     isAuthenticated: false,
     isFullyAuthenticated: false,
-    needsCheck: false,
-    checkWindowStatus: vi.fn(),
+    awaitingMfa: false,
+    refresh: vi.fn(),
   })),
 }));
 
@@ -129,7 +138,7 @@ describe('Router Guards', () => {
 
     const getLayoutGuard = (): LayoutGuard => {
       setupRouterGuards(router);
-      return vi.mocked(router.beforeEach).mock.calls[0][0] as LayoutGuard;
+      return vi.mocked(router.beforeEach).mock.calls[GUARD.layout][0] as LayoutGuard;
     };
 
     it('returns early for non-custom domains', () => {
@@ -256,7 +265,7 @@ describe('Router Guards', () => {
     setupRouterGuards(router);
 
     // Index 3: main guard (0=custom-domain, 1=feature-check, 2=sso-only, 3=main)
-    const guard = vi.mocked(router.beforeEach).mock.calls[3][0] as AuthGuard;
+    const guard = vi.mocked(router.beforeEach).mock.calls[GUARD.auth][0] as AuthGuard;
     const to: RouteLocationNormalized = {
       meta: { isAuthRoute: true },
       query: {},
@@ -269,7 +278,7 @@ describe('Router Guards', () => {
       redirectedFrom: undefined
     };
 
-    const authStore = { isAuthenticated: true, isFullyAuthenticated: true };
+    const authStore = { authStatus: 'authenticated', isAuthenticated: true, isFullyAuthenticated: true };
     vi.mocked(useAuthStore).mockReturnValue(authStore as ReturnType<typeof useAuthStore>);
 
     const result = await guard(to);
@@ -302,10 +311,10 @@ describe('Router Guards', () => {
 
     const getMainGuard = (): AuthGuard => {
       setupRouterGuards(router);
-      const authStore = { isAuthenticated: true, isFullyAuthenticated: true };
+      const authStore = { authStatus: 'authenticated', isAuthenticated: true, isFullyAuthenticated: true };
       vi.mocked(useAuthStore).mockReturnValue(authStore as ReturnType<typeof useAuthStore>);
       // Index 3: main guard (0=custom-domain, 1=feature-check, 2=sso-only, 3=main)
-      return vi.mocked(router.beforeEach).mock.calls[3][0] as AuthGuard;
+      return vi.mocked(router.beforeEach).mock.calls[GUARD.auth][0] as AuthGuard;
     };
 
     it('honours a valid internal redirect param', async () => {
@@ -374,7 +383,7 @@ describe('Router Guards', () => {
     setupRouterGuards(router);
 
     // Index 3: main guard (0=custom-domain, 1=feature-check, 2=sso-only, 3=main)
-    const guard = vi.mocked(router.beforeEach).mock.calls[3][0] as AuthGuard;
+    const guard = vi.mocked(router.beforeEach).mock.calls[GUARD.auth][0] as AuthGuard;
     const to: RouteLocationNormalized = {
       path: '/',
       query: {},
@@ -387,7 +396,7 @@ describe('Router Guards', () => {
       meta: {}
     };
 
-    const authStore = { isAuthenticated: true, isFullyAuthenticated: true };
+    const authStore = { authStatus: 'authenticated', isAuthenticated: true, isFullyAuthenticated: true };
     vi.mocked(useAuthStore).mockReturnValue(authStore as ReturnType<typeof useAuthStore>);
 
     const result = await guard(to);
@@ -403,7 +412,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[GUARD.authFeature][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signup' as const, isAuthRoute: true },
         path: '/signup',
@@ -427,7 +436,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[GUARD.authFeature][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signup' as const, isAuthRoute: true },
         path: '/signup',
@@ -451,7 +460,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[GUARD.authFeature][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
         path: '/signin',
@@ -475,7 +484,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[GUARD.authFeature][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signup' as const, isAuthRoute: true },
         path: '/signup',
@@ -499,7 +508,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[GUARD.authFeature][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
         path: '/mfa-verify',
@@ -523,7 +532,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[GUARD.authFeature][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
         path: '/reset-password',
@@ -547,7 +556,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[GUARD.authFeature][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
         path: '/email-login',
@@ -571,7 +580,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[GUARD.authFeature][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
         path: '/forgot',
@@ -595,7 +604,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[GUARD.authFeature][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
         path: '/mfa-verify',
@@ -619,7 +628,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[GUARD.authFeature][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signin' as const, isAuthRoute: true },
         path: '/email-login',
@@ -643,7 +652,7 @@ describe('Router Guards', () => {
       });
 
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[GUARD.authFeature][0] as FeatureGuard;
       const to = {
         meta: { requiresFeature: 'signup' as const, isAuthRoute: true },
         path: '/signup/professional',
@@ -662,7 +671,7 @@ describe('Router Guards', () => {
 
     it('should not redirect routes without requiresFeature', () => {
       setupRouterGuards(router);
-      const guard = vi.mocked(router.beforeEach).mock.calls[1][0] as FeatureGuard;
+      const guard = vi.mocked(router.beforeEach).mock.calls[GUARD.authFeature][0] as FeatureGuard;
       const to = {
         meta: {},
         path: '/some-page',
@@ -680,19 +689,14 @@ describe('Router Guards', () => {
     });
   });
 
-  describe('validateAuthentication', () => {
-    // Mocked<AuthValidator> (not plain AuthValidator) so checkWindowStatus
-    // keeps its vi.fn() mock methods (e.g. mockResolvedValueOnce) at the type
-    // level, matching what vi.fn() actually returns at runtime.
+  describe('validateAuthentication (#4456)', () => {
     let mockValidator: Mocked<AuthValidator>;
     let protectedRoute: RouteLocationNormalized;
 
     beforeEach(() => {
-      // Create mock validator with vi.fn() for methods
       mockValidator = {
-        needsCheck: true,
-        isAuthenticated: null,
-        checkWindowStatus: vi.fn().mockImplementation(async () => true),
+        authStatus: 'authenticated',
+        refresh: vi.fn().mockResolvedValue('applied'),
       } satisfies Mocked<AuthValidator>;
 
       protectedRoute = {
@@ -708,52 +712,86 @@ describe('Router Guards', () => {
       } as RouteLocationNormalized;
     });
 
-    test('performs check when needed on protected route', async () => {
-      mockValidator.needsCheck = true;
+    test('allows a hydrated authenticated session without any request', async () => {
       const result = await validateAuthentication(mockValidator, protectedRoute);
-      expect(mockValidator.checkWindowStatus).toHaveBeenCalled();
+      expect(mockValidator.refresh).not.toHaveBeenCalled();
       expect(result).toBe(true);
     });
 
-    test('skips check when not needed on protected route', async () => {
-      // Set up authenticated state
-      mockValidator.needsCheck = false;
-      mockValidator.isAuthenticated = true; // Add this line to indicate authenticated state
+    test.each(['anonymous', 'mfa_pending'] as const)(
+      'refuses %s without any request',
+      async (status) => {
+        mockValidator.authStatus = status;
+        const result = await validateAuthentication(mockValidator, protectedRoute);
+        expect(mockValidator.refresh).not.toHaveBeenCalled();
+        expect(result).toBe(false);
+      }
+    );
 
-      const result = await validateAuthentication(mockValidator, protectedRoute);
-      expect(mockValidator.checkWindowStatus).not.toHaveBeenCalled();
-      expect(result).toBe(true);
-    });
-
-    test('skips return false when no need for a check', async () => {
-      //  when `needsCheck` is false but `isAuthenticated` is null (the default
-      // value in our setup), the validator should return false for protected routes.
-      mockValidator.needsCheck = false;
-      const result = await validateAuthentication(mockValidator, protectedRoute);
-      expect(mockValidator.checkWindowStatus).not.toHaveBeenCalled();
-      expect(result).toBe(false);
-    });
-
-    test('always returns true for public routes', async () => {
-      mockValidator.needsCheck = true;
-      mockValidator.isAuthenticated = false;
+    test('always returns true for public routes, even while checking', async () => {
+      mockValidator.authStatus = 'checking';
       const result = await validateAuthentication(mockValidator, publicRoute);
-      expect(mockValidator.checkWindowStatus).not.toHaveBeenCalled();
+      expect(mockValidator.refresh).not.toHaveBeenCalled();
       expect(result).toBe(true);
     });
 
-    test('returns false when auth check fails', async () => {
-      mockValidator.needsCheck = true;
-      mockValidator.checkWindowStatus.mockResolvedValueOnce(false);
+    test('checking verifies exactly once, then decides from the answer', async () => {
+      mockValidator.authStatus = 'checking';
+      mockValidator.refresh.mockImplementationOnce(async () => {
+        mockValidator.authStatus = 'anonymous';
+        return 'applied';
+      });
+
       const result = await validateAuthentication(mockValidator, protectedRoute);
+
+      expect(mockValidator.refresh).toHaveBeenCalledTimes(1);
+      expect(mockValidator.refresh).toHaveBeenCalledWith({
+        kind: 'ordinary',
+        reason: 'initial-verification',
+      });
       expect(result).toBe(false);
     });
 
-    test('returns false when authenticated is null', async () => {
-      mockValidator.needsCheck = false;
-      mockValidator.isAuthenticated = null;
+    test('checking never becomes a /signin bounce when verification fails', async () => {
+      mockValidator.authStatus = 'checking';
+      mockValidator.refresh.mockImplementationOnce(async () => {
+        mockValidator.authStatus = 'unavailable';
+        return 'failed';
+      });
+
+      // true = do not redirect to /signin. `unavailable` is not a sign-out.
+      expect(await validateAuthentication(mockValidator, protectedRoute)).toBe(true);
+    });
+
+    test('unavailable is not a sign-out: no redirect, no request', async () => {
+      mockValidator.authStatus = 'unavailable';
       const result = await validateAuthentication(mockValidator, protectedRoute);
-      expect(result).toBe(false);
+      expect(mockValidator.refresh).not.toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('first guard: verifyIfChecking (#4456)', () => {
+    test.each(['authenticated', 'anonymous', 'mfa_pending', 'unavailable'] as const)(
+      'a verified %s status makes no request during navigation',
+      async (status) => {
+        const store: Mocked<AuthValidator> = { authStatus: status, refresh: vi.fn() };
+        await verifyIfChecking(store);
+        expect(store.refresh).not.toHaveBeenCalled();
+      }
+    );
+
+    test('is registered ahead of every guard that reads auth state', async () => {
+      const router = { beforeEach: vi.fn(), afterEach: vi.fn() } as unknown as Router;
+      const store = { authStatus: 'checking', refresh: vi.fn().mockResolvedValue('failed') };
+      vi.mocked(useAuthStore).mockReturnValue(store as unknown as ReturnType<typeof useAuthStore>);
+
+      await setupRouterGuards(router);
+      const first = vi.mocked(router.beforeEach).mock.calls[GUARD.verify][0] as () => Promise<boolean>;
+
+      expect(GUARD.verify).toBe(0);
+      expect(await first()).toBe(true);
+      expect(store.refresh).toHaveBeenCalledTimes(1);
     });
   });
 

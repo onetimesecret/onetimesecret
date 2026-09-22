@@ -33,6 +33,7 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 }));
 
 import ImpersonationBanner from '@/shared/components/ui/ImpersonationBanner.vue';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { createTestI18n } from '@tests/setup';
 
@@ -69,10 +70,37 @@ describe('ImpersonationBanner', () => {
     vi.useRealTimers();
   });
 
-  /** Seed the SERVER-derived marker and mount. */
-  function mountBanner(state: Record<string, unknown> | null): VueWrapper {
+  /**
+   * Seed the SERVER-derived marker and mount.
+   *
+   * By default the bootstrap store is seeded with a retained-identity snapshot
+   * (authenticated + cust) so `authStore.escapeActionsAvailable` is true and
+   * the stop control is enabled — matching production where an operator only
+   * ever sees this banner in an active session. Pass `escapeAvailable: false`
+   * to exercise the ADR-046#authority-action-gating gate (no retained identity, e.g. `checking`
+   * with no cust).
+   */
+  function mountBanner(
+    state: Record<string, unknown> | null,
+    opts: { escapeAvailable?: boolean } = {}
+  ): VueWrapper {
     const store = useBootstrapStore();
-    store.$patch({ impersonation: state as never });
+    const escapeAvailable = opts.escapeAvailable ?? true;
+    if (escapeAvailable) {
+      store.$patch({
+        impersonation: state as never,
+        authStatus: 'authenticated',
+        authenticated: true,
+        cust: { custid: 'cust_bob', email: 'bob@example.com' } as never,
+      });
+    } else {
+      store.$patch({
+        impersonation: state as never,
+        authStatus: 'checking',
+        authenticated: false,
+        cust: undefined as never,
+      });
+    }
     return mount(ImpersonationBanner, { global: { plugins: [i18n] } });
   }
 
@@ -230,6 +258,28 @@ describe('ImpersonationBanner', () => {
       wrapper = mountBanner(marker());
       expect(stopButton(wrapper).element.tagName).toBe('BUTTON');
       expect(stopButton(wrapper).attributes('type')).toBe('button');
+    });
+
+    /**
+     * ADR-046#authority-action-gating — during the auth 'unavailable' outage (or any state where
+     * no identity is retained), the escape control must be aria-disabled AND
+     * refuse to submit even if a click reaches the handler. The stop endpoint
+     * is protected; issuing it while authority is withheld would hit the API
+     * during the outage.
+     */
+    it('is disabled and refuses to submit when escapeActionsAvailable is false', async () => {
+      stopImpersonationMock.mockResolvedValue('/colonel');
+      wrapper = mountBanner(marker(), { escapeAvailable: false });
+
+      // Sanity: the computed we're gating on is actually false in this setup.
+      expect(useAuthStore().escapeActionsAvailable).toBe(false);
+      expect(stopButton(wrapper).attributes('disabled')).toBeDefined();
+
+      // Even if a click reaches the handler, the service is not called.
+      await stopButton(wrapper).trigger('click');
+      await flushPromises();
+      expect(stopImpersonationMock).not.toHaveBeenCalled();
+      expect(hardNavigateMock).not.toHaveBeenCalled();
     });
   });
 });

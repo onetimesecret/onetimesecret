@@ -561,7 +561,11 @@ module Auth
       begin
         r.rodauth
       ensure
+        # Both memos: the active-session sub-verdict was computed for the same
+        # pre-Rodauth identity (a login mints a new join key, a logout removes
+        # the row), and Auth::SessionRecheck reads it on its own.
         Onetime::CustomerSessionEvaluator.forget(env)
+        Onetime::ActiveSessionGate.forget(env)
       end
 
       # Account routes (mfa-status, account info)

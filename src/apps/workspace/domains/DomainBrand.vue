@@ -11,11 +11,12 @@
   import { useBranding } from '@/shared/composables/useBranding';
   import { useDomain } from '@/shared/composables/useDomain';
   import { useEntitlements } from '@/shared/composables/useEntitlements';
+  import { useUnsavedInputGuard } from '@/shared/composables/useUnsavedInputGuard';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { ENTITLEMENTS } from '@/types/organization';
   import { storeToRefs } from 'pinia';
-  import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+  import { computed, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter, onBeforeRouteLeave } from 'vue-router';
 
@@ -104,23 +105,14 @@
   // Native navigations bypass Vue Router: the masthead logo is a hard <a href>
   // and the UserMenu has external <a href> items, so onBeforeRouteLeave (which
   // only guards in-app routing, e.g. the Back button) never fires for them.
-  // A beforeunload listener catches those hard navigations — plus refresh and
-  // tab close — while edits are pending, mirroring the in-app confirm below.
-  const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-    if (!hasUnsavedChanges.value) return;
-    event.preventDefault();
-    // Legacy browsers require returnValue set to trigger the native prompt.
-    event.returnValue = '';
-  };
+  // The shared guard catches those hard navigations — plus refresh, tab close
+  // and a forced page load (ADR-046) — and registers its beforeunload listener
+  // only while edits are pending, mirroring the in-app confirm below.
+  useUnsavedInputGuard(hasUnsavedChanges);
 
   onMounted(() => {
     initializeBrand();
     initializeDomain();
-    window.addEventListener('beforeunload', handleBeforeUnload);
-  });
-
-  onUnmounted(() => {
-    window.removeEventListener('beforeunload', handleBeforeUnload);
   });
 
   onBeforeRouteLeave((to, from, next) => {
