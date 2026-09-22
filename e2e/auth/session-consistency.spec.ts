@@ -236,8 +236,10 @@ test.describe('authenticated bootstrap consistency (#4456, #4459, #4460, #4464)'
     }).toPass({ timeout: 30_000 });
     expect(bootstrapRequests.length).toBeGreaterThanOrEqual(3);
 
-    // Not a sign-out: still on the page, and the server session is intact.
+    // Not a sign-out: still on the page, the chrome still shows the user
+    // (not "Sign in"), and the server session is intact.
     expect(new URL(tab.url()).pathname).toBe('/dashboard');
+    await expect(tab.getByTestId('user-menu-trigger')).toBeVisible();
     const account = await tab.context().request.get('/api/account/');
     expect(account.status()).toBe(200);
 
