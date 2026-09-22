@@ -214,7 +214,8 @@ describe('authStore PR #4497 transition contracts', () => {
       expect(await store.refresh({ kind: 'auth-mutation', reason: 'login' })).toBe('applied');
 
       receiptListImport.release();
-      expect(await first).toBe('applied');
+      // Its snapshot never landed, so it must not report 'applied'.
+      expect(await first).toBe('superseded');
 
       expect(receiptListImport.reset).not.toHaveBeenCalled();
       expect(store.authStatus).toBe('authenticated');

@@ -704,9 +704,22 @@ export const useAuthStore = defineStore('auth', () => {
       case 'apply':
         recordApplied(decision.stream, payload.snapshot_generated_at, ordering);
         consecutiveAnomalies = 0;
-        await commit(payload, decision.retire);
-        return 'applied';
+        return commitOrDrop(mine, request, payload, decision.retire);
     }
+  }
+
+  /**
+   * A commit that lost the generation across its cleanup imports applied
+   * nothing (ADR-046#commit-generation-ownership): it reports `superseded`,
+   * never `applied`, so callers do not act on a snapshot that did not land.
+   */
+  async function commitOrDrop(
+    mine: number,
+    request: RefreshRequest,
+    payload: Parameters<typeof bootstrapStore.applySnapshot>[0],
+    retire: string | null
+  ): Promise<'applied' | 'superseded'> {
+    return (await commit(payload, retire)) ? 'applied' : dropped(mine, request);
   }
 
   /**
@@ -785,11 +798,14 @@ export const useAuthStore = defineStore('auth', () => {
    * after the await, every later step, so an older commit that lost its race
    * to a newer refresh neither empties the stores the newer commit populated
    * nor clobbers its failureCount, timer or lastCheckTime.
+   *
+   * Returns true when the snapshot was applied, false when the generation was
+   * lost before it could be (the caller records that as superseded).
    */
   async function commit(
     snapshot: Parameters<typeof bootstrapStore.applySnapshot>[0],
     retire: string | null = null
-  ) {
+  ): Promise<boolean> {
     const mine = generation;
     const priorStatus = authStatus.value;
     const priorAccount = bootstrapStore.custid;
@@ -805,10 +821,7 @@ export const useAuthStore = defineStore('auth', () => {
     // A newer refresh took the generation while we awaited the dynamic imports
     // above: its own commit() (or a later one still) owns the store now. Do
     // not applySnapshot, reset counters, or reschedule — the newer path did.
-    if (mine !== generation) {
-      recordOrdering('generation-invalidated', { generation: mine, kind: 'commit' });
-      return;
-    }
+    if (mine !== generation) return false;
 
     bootstrapStore.applySnapshot(snapshot, { retire });
 
@@ -820,6 +833,7 @@ export const useAuthStore = defineStore('auth', () => {
     // for whatever was parked (ADR-046#parked-transition-ttl). Fast-path clean-up; the
     // TTL is what actually guarantees the message cannot outlive its context.
     clearSessionTransition();
+    return true;
   }
 
   /**
