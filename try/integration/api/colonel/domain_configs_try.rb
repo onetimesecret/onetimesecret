@@ -323,10 +323,10 @@ Onetime::CustomDomain::SigninConfig.find_by_domain_id(@domain.identifier).relate
 
 ## a malformed entry is refused the same way: 422 against the field, with its own locale key
 put "/api/colonel/domains/#{@extid}/configs/signin",
-  { 'related_origins' => ['vault.example.com'] }, confirming_config(@domain, 'signin')
+  { 'related_origins' => ['files.example.net'] }, confirming_config(@domain, 'signin')
 @refusal = JSON.parse(last_response.body)
-[last_response.status, @refusal['field'], @refusal['error_key'], @refusal['error'].include?('vault.example.com')]
-#=> [422, 'related_origins', 'api.domains.errors.related_origins_invalid', true]
+[last_response.status, @refusal['field'], @refusal['error_key'], @refusal['error']]
+#=> [422, 'related_origins', 'api.domains.errors.related_origins_invalid', 'Not a valid origin: files.example.net. Enter the scheme and host, for example https://vault.example.com']
 
 ## and it stored nothing either
 Onetime::CustomDomain::SigninConfig.find_by_domain_id(@domain.identifier).related_origins
