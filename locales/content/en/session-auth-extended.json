@@ -1043,6 +1043,14 @@
     "text": "You have not been signed out. We could not reach the server to confirm your session, so this page is hidden until we can. We will keep trying.",
     "content_hash": "bb230c2c"
   },
+  "web.auth.login.verification_unavailable": {
+    "text": "Your sign-in succeeded, but we could not confirm your session. Please try again in a moment.",
+    "content_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Your password was accepted, but we could not start two-factor verification. Please try again in a moment.",
+    "content_hash": "5fd5e240"
+  },
   "web.auth.session.retry": {
     "text": "Try again",
     "content_hash": "d8b8392e"

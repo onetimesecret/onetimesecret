@@ -96,7 +96,7 @@ import { useRouter } from 'vue-router';
 export function useAuth() {
   const $api = useApi();
   const router = useRouter();
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const authStore = useAuthStore();
   const csrfStore = useCsrfStore();
   const notificationsStore = useNotificationsStore();
@@ -213,7 +213,7 @@ export function useAuth() {
         if (mfaOutcome !== 'applied') {
           if (mfaOutcome === 'superseded') return false; // A newer coordinator run owns this.
           // TODO(#4501): confirm error UX with design — inline copy pending.
-          throw createError('web.auth.mfa.verification_unavailable', 'human', 'error');
+          throw createError(t('web.auth.mfa.verification_unavailable'), 'human', 'error');
         }
 
         // Redirect to MFA verification - guard will allow access since awaiting_mfa is set.
@@ -244,7 +244,7 @@ export function useAuth() {
       if (authOutcome !== 'applied') {
         if (authOutcome === 'superseded') return false;
         // TODO(#4501): confirm error UX with design — inline copy pending.
-        throw createError('web.auth.login.verification_unavailable', 'human', 'error');
+        throw createError(t('web.auth.login.verification_unavailable'), 'human', 'error');
       }
 
       // Billing intent (validated by backend, else the query pair) wins, then
