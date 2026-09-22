@@ -430,9 +430,15 @@ export const useAuthStore = defineStore('auth', () => {
    * mutation should fire from the chrome while authority is uncertain: the
    * server may already have retired the session, and a colonel-only trigger
    * (PlanPreviewModal) or a routine action would issue during the outage.
+   *
+   * Stale-session mode revokes it too. forcePageLoad() enters that state
+   * without touching `authStatus`, and when the reload is bounded or the
+   * `beforeunload` prompt is cancelled the tab stays up showing
+   * `authenticated`. The coordinator already knows that session ended or was
+   * replaced; after a replacement the cookie may belong to another account.
    */
   const protectedActionsAvailable = computed(
-    (): boolean => authStatus.value === 'authenticated'
+    (): boolean => authStatus.value === 'authenticated' && !staleSession.value
   );
 
   /**
@@ -441,7 +447,8 @@ export const useAuthStore = defineStore('auth', () => {
    * Always true whenever a retained identity is visible, regardless of
    * `authStatus`. A user whom the coordinator cannot verify (or who is
    * mid-MFA) must still be able to leave — otherwise they are trapped in the
-   * chrome with no exit.
+   * chrome with no exit. Stale-session mode does not revoke it, for the same
+   * reason.
    */
   const escapeActionsAvailable = computed((): boolean => isUserPresent.value);
 

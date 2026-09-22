@@ -275,4 +275,25 @@ describe('authStore PR #4497 transition contracts', () => {
       expect(readCoordinatorDisposition(undefined)).toBeNull();
     });
   });
+
+  // -------------------------------------------------------------------------
+  // stale-session mode gates protected actions (ADR-046#authority-action-gating)
+  // -------------------------------------------------------------------------
+  describe('stale-session mode gates protected actions (ADR-046#authority-action-gating)', () => {
+    it('a bounded session-replaced reload disables protected actions but keeps escapes', async () => {
+      await mountWith(authenticatedBootstrap);
+      expect(store.protectedActionsAvailable).toBe(true);
+      vi.mocked(attemptForcedPageLoad).mockReturnValueOnce('bounded');
+
+      store.forcePageLoad('session-replaced');
+
+      expect(attemptForcedPageLoad).toHaveBeenCalledTimes(1);
+      expect(store.staleSession).toBe(true);
+      // authStatus is untouched by the forced page load; the gate must not
+      // rely on it alone.
+      expect(store.authStatus).toBe('authenticated');
+      expect(store.protectedActionsAvailable).toBe(false);
+      expect(store.escapeActionsAvailable).toBe(true);
+    });
+  });
 });

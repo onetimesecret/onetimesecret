@@ -435,6 +435,13 @@ chrome offers.
   the chrome, such as plan-preview activation. They follow
   `protectedActionsAvailable`, which is true only for `authenticated`. While
   authority is uncertain the server may already have retired the session.
+- **Stale-session mode disables protected actions and keeps escapes.** The
+  forced page load enters stale-session without changing `authStatus`. If the
+  reload is bounded or the user cancels the `beforeunload` prompt, the tab
+  stays up still reading `authenticated`, but the coordinator knows that
+  session ended or was replaced, and after a replacement the cookie may
+  belong to another account. `protectedActionsAvailable` is therefore false
+  in stale-session mode. `escapeActionsAvailable` is unaffected.
 - **The retained identity is deliberate.** Showing the last accepted user
   during an outage tells them they were not signed out. It grants nothing;
   mutation controls are gated separately.
