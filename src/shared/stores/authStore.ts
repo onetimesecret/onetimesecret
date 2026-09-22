@@ -1,103 +1,266 @@
 // src/shared/stores/authStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia/types';
+import { effectiveAuthStatus, type ClientAuthStatus } from '@/schemas/contracts/bootstrap';
+import type { SessionFailure } from '@/schemas/contracts/session-failure';
 import { classifyError, errorGuards } from '@/schemas/errors';
 import { clearDiagnosticsActorContext } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
+import { attemptForcedPageLoad } from '@/utils/forcedPageLoad';
+import {
+  clearSessionTransition,
+  parkSessionTransition,
+  type SessionTransition,
+} from '@/utils/sessionTransition';
+import {
+  classifySnapshot,
+  describeGeneratedAt,
+  isClockRegression,
+  pairOf,
+  parseCompleteSnapshot,
+  type SnapshotDecision,
+} from '@/utils/snapshotOrdering';
+import { addBreadcrumb } from '@sentry/vue';
 import { AxiosInstance } from 'axios';
-import { defineStore, PiniaCustomProperties, storeToRefs } from 'pinia';
+import { defineStore, getActivePinia, PiniaCustomProperties, storeToRefs } from 'pinia';
 import { computed, inject, ref } from 'vue';
 import { useBootstrapStore } from './bootstrapStore';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * AUTHENTICATION STATE MANAGEMENT
+ * AUTHENTICATION ACCESSORS AND THE REFRESH COORDINATOR
  * ═══════════════════════════════════════════════════════════════════════════════
  *
- * This store manages client-side authentication state and coordinates with
- * the server via the /bootstrap/me endpoint. It works in concert with:
- *
- * - useAuth composable: Handles auth operations (login, logout, signup)
- * - useMfa composable: Handles MFA setup and verification
- * - bootstrapStore: Provides reactive access to server-injected state
- * - Route guards: Enforce authentication requirements on navigation
- *
  * ───────────────────────────────────────────────────────────────────────────────
- * AUTHENTICATION STATES
+ * ONE AUTHORITY (#4458)
  * ───────────────────────────────────────────────────────────────────────────────
  *
- * The system recognizes three distinct authentication states:
+ * This store holds NO authentication state of its own. The client status lives
+ * in exactly one writable place, `bootstrapStore.authStatus`, and every
+ * accessor exported here (`isAuthenticated`, `isFullyAuthenticated`,
+ * `awaitingMfa`, `isUserPresent`) is a computed over it:
  *
- * 1. UNAUTHENTICATED (isAuthenticated=false, awaitingMfa=false)
- *    - No valid session
- *    - User sees: Sign In / Create Account links
- *    - Access: Public pages only
+ *   checking       nothing verified yet (missing/invalid hydration). Client-only.
+ *   authenticated  the server said so, and sent a customer.
+ *   mfa_pending    first factor passed, second outstanding.
+ *   anonymous      no customer session, including one the server rejected.
+ *   unavailable    verification cannot be completed. NOT a sign-out.
  *
- * 2. AWAITING MFA (isAuthenticated=false, awaitingMfa=true)
- *    - Password verified, OTP pending
- *    - Server returns authenticated=false until MFA completes
- *    - User sees: Limited menu with "Complete MFA" option
- *    - Access: MFA verification page only, guards redirect elsewhere to /mfa-verify
- *    - Session has awaiting_mfa=true flag from server
- *
- * 3. FULLY AUTHENTICATED (isAuthenticated=true, awaitingMfa=false)
- *    - All auth steps complete
- *    - User sees: Full navigation menu
- *    - Access: All authorized pages
+ * Only `authenticated` grants anything. The status changes only when a
+ * complete, contract-valid snapshot is applied (hydration, or a response this
+ * coordinator accepted), on an explicit local sign-out, or when the coordinator
+ * withholds authority after repeated failures. Nothing is read from
+ * sessionStorage, and `had_valid_session` is not consulted (#4468 removes it).
  *
  * ───────────────────────────────────────────────────────────────────────────────
- * CUSTOMER OBJECT STATE
+ * ONE COORDINATOR (#4459, ADR-046 "Refresh coordination")
  * ───────────────────────────────────────────────────────────────────────────────
  *
- * The `cust` object from bootstrapStore follows this pattern:
+ * `refresh({ kind, reason })` is the only caller of GET /bootstrap/me. Triggers:
+ * authentication mutations; returning to a stale visible tab; the passive
+ * interval; a rejection that needs reconciliation; an explicit retry; and the
+ * single verification a `checking` page needs. Navigation is NOT a trigger.
  *
- * - ANONYMOUS USER: `cust` is `null` (AuthenticationSerializer returns cust: null)
- * - AUTHENTICATED USER: `cust` is a fully hydrated object with `objid`, `email`, etc.
- *
- * Template checks should use `v-if="cust?.objid"` to confirm authentication,
- * as this handles both the null case and ensures the object is properly populated.
- *
- * ───────────────────────────────────────────────────────────────────────────────
- * STATE SYNCHRONIZATION (CRITICAL)
- * ───────────────────────────────────────────────────────────────────────────────
- *
- * State is stored in bootstrapStore which is the single source of truth.
- *
- * When refreshing state from /bootstrap/me endpoint:
- * - ALWAYS use bootstrapStore.update() to update state
- * - All computed properties derive from bootstrapStore refs
- *
- * The awaitingMfa computed property reads from bootstrapStore. Route guards
- * will see updated values immediately after bootstrapStore.update().
- *
- * LOGIN WITH MFA: The login response includes mfa_required=true, so useAuth
- * updates bootstrapStore directly with awaiting_mfa=true. No /window fetch is
- * needed - the state flows naturally from the login response to the route guard.
+ * - Every request takes the next generation. A response whose generation is
+ *   no longer current is dropped as a unit.
+ * - `ordinary` requests are deduplicated: callers share the one in flight.
+ * - An `auth-mutation` request aborts whatever is in flight and starts again,
+ *   so a response that began before a login/logout/MFA step cannot land after
+ *   it. Local sign-out invalidates the generation too.
+ * - A failure (network, timeout, 5xx incl. 503, a payload that fails the
+ *   contract, or a snapshot that says `unavailable`) mutates nothing. It is
+ *   retried with exponential backoff and full jitter, never sooner than the
+ *   server's Retry-After. At MAX_FAILURES the status becomes `unavailable`
+ *   and retries continue at the cap. It never signs the user out: a client
+ *   that cannot reach the server has learned nothing about the session.
  *
  * ───────────────────────────────────────────────────────────────────────────────
- * PERIODIC REFRESH CONFIGURATION
+ * ACCEPTANCE (#4464, ADR-046 "Client acceptance")
  * ───────────────────────────────────────────────────────────────────────────────
  *
- * The timing strategy uses two mechanisms:
- * 1. Base interval (15 minutes) for regular checks
- * 2. Random jitter (±90 seconds) to prevent synchronized client requests
- *    across multiple browser sessions, reducing server load spikes
+ * A response on the current generation is classified by
+ * `classifySnapshot` (src/utils/snapshotOrdering.ts) and then exactly one of
+ * three things happens: it is applied as a unit; the tab takes the forced page
+ * load path (a session that ended or was replaced outside this tab is never
+ * applied in place); or, for an anomaly, it is retried once immediately and a
+ * second consecutive anomaly takes the forced page load path. A refused
+ * snapshot mutates nothing.
  *
- * The /bootstrap/me endpoint provides complete state refresh including:
- * - Authentication status (authenticated, awaiting_mfa)
- * - Customer data and entitlements
- * - CSRF token (shrimp) refresh
- * - Configuration and feature flags
+ * ───────────────────────────────────────────────────────────────────────────────
+ * REJECTION VS OUTAGE (#4460)
+ * ───────────────────────────────────────────────────────────────────────────────
  *
- * Note: Exponential backoff was intentionally removed in favor of a simpler
- * "3 strikes" model because immediate logout after failures provides clearer UX.
+ * Only a definitive server statement ends the authenticated state: an accepted
+ * snapshot that reports no session. A transport failure, timeout or 5xx is not
+ * a verdict (RFC 9110 §15.5.2 vs §15.6.4): the last accepted snapshot stands
+ * and the request is retried with backoff and jitter (AWS Builders' Library,
+ * "Timeouts, retries, and backoff with jitter"). An earlier revision replaced
+ * backoff with "3 strikes, then logout()"; that logout was client-only (the
+ * cookie still authenticated, a reload restored the session) and sent every
+ * open tab to the login endpoint during an outage. At the limit the client now
+ * withholds protected UI (`unavailable`) and keeps retrying. API error
+ * handlers never write authentication state: `noteApiRejection` only REQUESTS
+ * a reconciliation through this coordinator.
  */
 export const AUTH_CHECK_CONFIG = {
   INTERVAL: 15 * 60 * 1000,
   JITTER: 90 * 1000,
   MAX_FAILURES: 3,
   ENDPOINT: '/bootstrap/me',
+  /** Backoff: full jitter over min(CAP, BASE * 2^failures), AWS Builders' Library form. */
+  BACKOFF_BASE: 2 * 1000,
+  BACKOFF_CAP: 60 * 1000,
+  /** A retry never fires sooner than this, whatever the jitter draws. */
+  BACKOFF_FLOOR: 1000,
+  /** Upper bound on a server-supplied Retry-After. */
+  RETRY_AFTER_CAP: 5 * 60 * 1000,
+  /** Rejected API calls request at most one reconciliation per this window. */
+  REJECTION_MIN_INTERVAL: 5 * 1000,
 } as const;
+
+/** Why the tab took the forced page load path (ADR-046). */
+export type ForcedPageLoadCause = SessionTransition | 'anomaly';
+
+export type RefreshKind = 'ordinary' | 'auth-mutation';
+
+/** Why a refresh was requested. Diagnostic only; it never changes the outcome. */
+export type RefreshReason =
+  | 'initial-verification'
+  | 'unordered-hydration'
+  | 'interval'
+  | 'visibility'
+  | 'rejection'
+  | 'retry'
+  | 'login'
+  | 'mfa'
+  | 'signup'
+  | 'verify-account'
+  | 'invite'
+  | 'impersonation'
+  | 'account-switch'
+  | 'plan-preview'
+  | 'password-change'
+  | 'csrf'
+  | 'check';
+
+export interface RefreshRequest {
+  kind: RefreshKind;
+  reason: RefreshReason;
+}
+
+/**
+ * - `applied`                a snapshot of the current generation was accepted
+ *                            and applied.
+ * - `failed`                 no usable statement was obtained; nothing changed.
+ * - `superseded`             a later generation started first; this response
+ *                            was dropped.
+ * - `refused`                the snapshot was not applied and the tab is in
+ *                            the stale-session state (a page load is under
+ *                            way, was cancelled, or was bounded). Nothing
+ *                            changed.
+ * - `allocation-unavailable` GET /bootstrap/me answered 503
+ *                            SnapshotOrderingUnavailable: the sidecar counter
+ *                            allocation is down. NOT a session verdict, so it
+ *                            does NOT increment failureCount and cannot cross
+ *                            MAX_FAILURES to withhold authority for signed-in
+ *                            users. A bounded Retry-After-driven retry is
+ *                            scheduled (ADR-046#allocation-failure). Callers treat it
+ *                            the same as `failed` for navigation.
+ */
+export type RefreshOutcome =
+  | 'applied'
+  | 'failed'
+  | 'superseded'
+  | 'refused'
+  | 'allocation-unavailable';
+
+/**
+ * Whether the refresh coordinator claims ownership of the user-visible message
+ * for a rejected API call (ADR-046#rejection-disposition). The interceptor asks
+ * `noteApiRejection` for this and attaches it to the error so
+ * `useAsyncHandler.coordinatorOwnsMessage` reads exactly one field instead of
+ * maintaining its own list of carve-outs.
+ *
+ * - `ownedByCoordinator: true`  — the coordinator either has a reconciliation
+ *   in flight or is going to force a page load. The toast that would
+ *   otherwise appear per failed call would be redundant with the once-only
+ *   transition announcement.
+ * - `ownedByCoordinator: false` — the coordinator declined to act, so the
+ *   caller's local error handling stands (an anonymous tab, an admin-timeout,
+ *   an MFA-pending `awaiting_mfa`, or a throttled duplicate rejection).
+ */
+export type RejectionDisposition =
+  | { ownedByCoordinator: true; reason: 'reconciling' | 'will-reload' }
+  | { ownedByCoordinator: false; reason: 'skipped-carve-out' | 'throttled' | 'nonauth' };
+
+/**
+ * The property key the axios interceptor stamps on a rejected error to carry
+ * the coordinator's disposition. A Symbol so it cannot collide with any
+ * server-supplied field on the error body.
+ */
+export const COORDINATOR_DISPOSITION_KEY = Symbol.for('ots.coordinatorDisposition');
+
+/**
+ * Reads the coordinator disposition off an error the interceptor has already
+ * stamped. Returns `null` when the error is not one the interceptor handled
+ * (a non-401, an error thrown outside the API pipeline, or a fetch failure
+ * before Pinia was active). Callers treat `null` as "not owned".
+ */
+export function readCoordinatorDisposition(error: unknown): RejectionDisposition | null {
+  if (typeof error !== 'object' || error === null) return null;
+  const value = (error as Record<string | symbol, unknown>)[COORDINATOR_DISPOSITION_KEY];
+  if (typeof value !== 'object' || value === null) return null;
+  return value as RejectionDisposition;
+}
+
+const DISPOSITION_CARVE_OUT: RejectionDisposition = {
+  ownedByCoordinator: false,
+  reason: 'skipped-carve-out',
+};
+const DISPOSITION_THROTTLED: RejectionDisposition = {
+  ownedByCoordinator: false,
+  reason: 'throttled',
+};
+const DISPOSITION_RECONCILING: RejectionDisposition = {
+  ownedByCoordinator: true,
+  reason: 'reconciling',
+};
+const DISPOSITION_WILL_RELOAD: RejectionDisposition = {
+  ownedByCoordinator: true,
+  reason: 'will-reload',
+};
+
+/**
+ * Parses a Retry-After header (delay-seconds or HTTP-date) into milliseconds.
+ * Returns 0 when absent or unusable; capped at RETRY_AFTER_CAP.
+ */
+export function parseRetryAfter(value: unknown, now: number = Date.now()): number {
+  if (typeof value !== 'string' && typeof value !== 'number') return 0;
+  const text = String(value).trim();
+  if (text === '') return 0;
+
+  const ms = /^\d+$/.test(text) ? Number(text) * 1000 : Date.parse(text) - now;
+  if (!Number.isFinite(ms) || ms <= 0) return 0;
+  return Math.min(ms, AUTH_CHECK_CONFIG.RETRY_AFTER_CAP);
+}
+
+/**
+ * Delay before the next retry, in milliseconds.
+ *
+ * @param failures - Consecutive failures so far (>= 1)
+ * @param retryAfterMs - Floor demanded by the server, already parsed
+ * @param random - Injected for tests; a value in [0, 1)
+ */
+export function retryDelay(
+  failures: number,
+  retryAfterMs: number = 0,
+  random: () => number = Math.random
+): number {
+  const exponent = Math.min(Math.max(failures - 1, 0), 16);
+  const { BACKOFF_BASE, BACKOFF_CAP, BACKOFF_FLOOR } = AUTH_CHECK_CONFIG;
+  const ceiling = Math.min(BACKOFF_CAP, BACKOFF_BASE * 2 ** exponent);
+  return Math.max(random() * ceiling, retryAfterMs, BACKOFF_FLOOR);
+}
 
 interface StoreOptions extends PiniaPluginOptions {}
 
@@ -106,25 +269,35 @@ interface StoreOptions extends PiniaPluginOptions {}
  */
 export type AuthStore = {
   // State
-  isAuthenticated: boolean | null;
   authCheckTimer: ReturnType<typeof setTimeout> | null;
   failureCount: number | null;
   lastCheckTime: number | null;
   _initialized: boolean;
+  staleSession: boolean;
 
-  // Getters
+  // Getters (all derived from bootstrapStore.authStatus)
+  authStatus: ClientAuthStatus;
+  isAuthenticated: boolean;
   needsCheck: boolean;
   isInitialized: boolean;
   awaitingMfa: boolean;
   isFullyAuthenticated: boolean;
   isUserPresent: boolean;
+  protectedActionsAvailable: boolean;
+  escapeActionsAvailable: boolean;
 
   // Actions
   init: () => { needsCheck: boolean; isInitialized: boolean };
+  refresh: (request: RefreshRequest) => Promise<RefreshOutcome>;
+  retryNow: () => Promise<RefreshOutcome>;
+  stop: () => void;
+  forcePageLoad: (cause: ForcedPageLoadCause) => void;
+  noteApiRejection: (failure: SessionFailure | null) => RejectionDisposition;
   checkWindowStatus: () => Promise<boolean>;
-  refreshAuthState: () => Promise<boolean>;
-  setAuthenticated: (value: boolean) => Promise<void>;
+  refreshAuthState: () => Promise<void>;
+  setAuthenticated: (value: boolean) => Promise<RefreshOutcome | 'noop'>;
   logout: () => Promise<void>;
+  logoutMinimal: () => Promise<void>;
   $scheduleNextCheck: () => void;
   $stopAuthCheck: () => Promise<void>;
   $dispose: () => Promise<void>;
@@ -132,84 +305,157 @@ export type AuthStore = {
 } & PiniaCustomProperties;
 
 /**
- * Authentication store for managing user authentication state.
- * Uses Pinia for state management, providing reactive auth state
- * that can be observed using storeToRefs:
+ * Stores holding data that belongs to ONE account. Reset when authority is
+ * lost or the account changes (#4458). Recipient-facing and browser-local
+ * stores (secretStore, incomingStore, localReceiptStore) are deliberately not
+ * here: they work without an account.
  *
- * @example
- * ```ts
- * import { useAuthStore } from '@/stores/authStore'
- * import { storeToRefs } from 'pinia'
- *
- * const authStore = useAuthStore()
- * const { isAuthenticated } = storeToRefs(authStore)
- *
- * // React to auth state changes
- * watch(isAuthenticated, (newValue) => {
- *   console.log('Auth state changed:', newValue)
- * })
- * ```
+ * Keyed by store id and loaded on demand. authStore is imported almost
+ * everywhere, so it must not import these statically: that would pull every
+ * one of them (and their dependencies) into each importer and into the entry
+ * chunk, and secretStore -> authStore would become a cycle. A store is only
+ * loaded here when its state already exists, i.e. when its module is already
+ * in memory, so the import resolves from cache.
  */
+type Resettable = () => { $reset: () => void };
+
+/** One caller-visible refresh. An anomaly retry moves it to a new generation. */
+interface Flight {
+  generation: number;
+  controller: AbortController;
+  promise: Promise<RefreshOutcome>;
+}
+
+/** Outcome of a single request; `anomaly` asks run() for the one retry. */
+type AttemptOutcome = RefreshOutcome | 'anomaly';
+const ACCOUNT_SCOPED_STORES: Readonly<Record<string, () => Promise<Resettable>>> = {
+  account: () => import('./accountStore').then((m) => m.useAccountStore),
+  customer: () => import('./customerStore').then((m) => m.useCustomerStore),
+  domains: () => import('./domainsStore').then((m) => m.useDomainsStore),
+  entitlements: () => import('./entitlementsStore').then((m) => m.useEntitlementsStore),
+  members: () => import('./membersStore').then((m) => m.useMembersStore),
+  organization: () => import('./organizationStore').then((m) => m.useOrganizationStore),
+  receiptList: () => import('./receiptListStore').then((m) => m.useReceiptListStore),
+  receipt: () => import('./receiptStore').then((m) => m.useReceiptStore),
+};
+
+/** An `apply` decision with the ordering metadata its diagnostics carry. */
+type AppliedDecision = Extract<SnapshotDecision, { outcome: 'apply' }> & {
+  ordering: Record<string, unknown>;
+};
+
 /* eslint-disable max-lines-per-function */
 export const useAuthStore = defineStore('auth', () => {
   const $api = inject('api') as AxiosInstance;
   const bootstrapStore = useBootstrapStore();
 
-  // Get reactive refs from bootstrapStore
-  const {
-    authenticated: bsAuthenticated,
-    awaiting_mfa: bsAwaitingMfa,
-    had_valid_session: bsHadValidSession,
-    cust: bsCust,
-    email: bsEmail,
-  } = storeToRefs(bootstrapStore);
+  const { authStatus, cust: bsCust } = storeToRefs(bootstrapStore);
 
-  // State
-  const isAuthenticated = ref<boolean | null>(null);
+  // State. None of it says who is signed in.
   const authCheckTimer = ref<ReturnType<typeof setTimeout> | null>(null);
   const failureCount = ref<number | null>(null);
   const lastCheckTime = ref<number | null>(null);
   const _initialized = ref(false);
+  /**
+   * The stale-session state (ADR-046 "Forced page load"). Entered
+   * synchronously before a forced reload and never left: a page load discards
+   * it, and if the user cancels the browser's prompt it is what keeps the
+   * persistent notice up. While set, no request is made and no snapshot is
+   * applied.
+   */
+  const staleSession = ref(false);
+
+  // Coordinator bookkeeping. Not reactive: nothing renders from it.
+  let generation = 0;
+  let inFlight: Flight | null = null;
+  let consecutiveAnomalies = 0;
+  let lastRejectionRefreshAt = 0;
+  let retryTimer: ReturnType<typeof setTimeout> | null = null;
+  let visibilityHandler: (() => void) | null = null;
 
   // Getters
-  const needsCheck = computed((): boolean => {
-    /**
-     * Determines if the last auth check is older than the check interval.
-     * Used to decide whether to perform a fresh check when a tab becomes visible.
-     */
+  /** Read-only view of THE client status, for guards and layouts. */
+  const status = computed((): ClientAuthStatus => authStatus.value);
+
+  const isAuthenticated = computed((): boolean => authStatus.value === 'authenticated');
+
+  /**
+   * Whether the last accepted snapshot is older than the check interval.
+   *
+   * A plain function, evaluated when asked. It must NOT be a computed:
+   * Date.now() is not a reactive dependency, so a computed would cache its
+   * first answer and a tab could never become stale by time passing.
+   */
+  function isStale(): boolean {
     if (!lastCheckTime.value) return true;
     return Date.now() - lastCheckTime.value > AUTH_CHECK_CONFIG.INTERVAL;
-  });
+  }
+
+  /**
+   * @deprecated Reactive only to `lastCheckTime`, not to the clock (see
+   * isStale). Kept for existing readers; nothing decides from it.
+   */
+  const needsCheck = computed((): boolean => isStale());
 
   const isInitialized = computed(() => _initialized.value);
 
-  /**
-   * Whether user is awaiting MFA verification (password OK, OTP pending).
-   * This is a transitional state between unauthenticated and fully authenticated.
-   * Derives from bootstrapStore for reactivity.
-   */
-  const awaitingMfa = computed(() => bsAwaitingMfa.value ?? false);
+  /** Password OK, second factor pending. */
+  const awaitingMfa = computed((): boolean => authStatus.value === 'mfa_pending');
 
   /**
-   * Whether user has completed ALL authentication steps.
-   * False if MFA is pending, even if password auth succeeded.
-   * Use this for route protection and access control.
+   * Whether ALL authentication steps are complete. With one status this is the
+   * same statement as isAuthenticated; both names are kept for their callers.
    */
-  const isFullyAuthenticated = computed(() =>
-    isAuthenticated.value === true && !awaitingMfa.value
+  const isFullyAuthenticated = computed((): boolean => authStatus.value === 'authenticated');
+
+  /**
+   * Whether a user is present (MFA-pending or authenticated). For UI decisions
+   * (user menu vs sign-in links), never for access control.
+   *
+   * `unavailable` reached through failed refreshes keeps the last accepted
+   * snapshot, and the user has NOT been signed out: the chrome keeps showing
+   * who they are. Offering them "Sign in" there would say the opposite of the
+   * verification-unavailable view. An `unavailable` the server stated itself
+   * carries no customer, so nobody is shown.
+   */
+  const isUserPresent = computed((): boolean => {
+    if (authStatus.value === 'mfa_pending') return true;
+    if (!bsCust.value) return false;
+    if (authStatus.value === 'authenticated') return true;
+    return authStatus.value === 'unavailable' && bootstrapStore.lastSnapshotReportedSession;
+  });
+
+  /**
+   * Whether protected/mutation-issuing action controls (billing changes, plan
+   * preview activation, org/domain mutations, etc.) should be enabled in the
+   * chrome (ADR-046#authority-action-gating).
+   *
+   * Only `authenticated` grants this. `checking`, `unavailable` and
+   * `mfa_pending` all keep retained identity visible for continuity, but no
+   * mutation should fire from the chrome while authority is uncertain: the
+   * server may already have retired the session, and a colonel-only trigger
+   * (PlanPreviewModal) or a routine action would issue during the outage.
+   *
+   * Stale-session mode revokes it too. forcePageLoad() enters that state
+   * without touching `authStatus`, and when the reload is bounded or the
+   * `beforeunload` prompt is cancelled the tab stays up showing
+   * `authenticated`. The coordinator already knows that session ended or was
+   * replaced; after a replacement the cookie may belong to another account.
+   */
+  const protectedActionsAvailable = computed(
+    (): boolean => authStatus.value === 'authenticated' && !staleSession.value
   );
 
   /**
-   * Whether a user is present (logged in partially or fully).
-   * True for both MFA-pending and fully authenticated states.
-   * Use this for UI decisions (show user menu, hide sign-in links).
-   * Derives from bootstrapStore refs for reactivity.
+   * Whether escape actions (sign-out, stop-impersonation) should be enabled.
+   *
+   * Always true whenever a retained identity is visible, regardless of
+   * `authStatus`. A user whom the coordinator cannot verify (or who is
+   * mid-MFA) must still be able to leave — otherwise they are trapped in the
+   * chrome with no exit. Stale-session mode does not revoke it, for the same
+   * reason.
    */
-  const isUserPresent = computed(() => {
-    const hasAuthenticatedCustomer = isAuthenticated.value && bsCust.value;
-    const hasMfaPendingEmail = awaitingMfa.value && bsEmail.value;
-    return !!(hasAuthenticatedCustomer || hasMfaPendingEmail);
-  });
+  const escapeActionsAvailable = computed((): boolean => isUserPresent.value);
 
   // Actions
 
@@ -221,157 +467,511 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
 
-    // Read from bootstrapStore refs (already hydrated from window state)
-    const inputValue = bsAuthenticated.value;
-    const hadValidSession = bsHadValidSession.value;
-    const storedAuthState = sessionStorage.getItem('ots_auth_state');
+    // bootstrapStore has already parsed hydration. A verified statement from
+    // the server counts as a check; `checking` does not.
+    if (authStatus.value !== 'checking') lastCheckTime.value = Date.now();
+    if (isAuthenticated.value) $scheduleNextCheck();
 
-    // Debug logging for auth initialization flow
-    loggingService.debug('[AuthStore.init] Auth state from bootstrapStore:', {
-      authenticated: inputValue,
-      authenticatedType: typeof inputValue,
-      hadValidSession,
-      storedAuthState,
-      bootstrapInitialized: bootstrapStore.isInitialized,
-    });
-
-    // Detect if this might be an error page masquerading as unauthenticated:
-    // - Window says authenticated = false
-    // - But server indicates there was a valid session (had_valid_session = true)
-    // - And we have a recent auth state stored in sessionStorage
-    // This scenario happens when server returns 500 error page which defaults
-    // to authenticated = false even though the user has a valid session.
-    // The server sets had_valid_session by checking the session cookie on its side.
-    if (inputValue === false && hadValidSession === true && storedAuthState === 'true') {
-      // Likely a server error page, preserve the stored auth state
-      loggingService.warn(
-        'Window state shows unauthenticated but server had valid session - ' +
-        'likely server error page, preserving auth state'
-      );
-      isAuthenticated.value = true;
-    } else {
-      // Normal flow: trust window state
-      // Regardless of what the value is, if it isn't exactly true, it's false.
-      // i.e. unlimited ways to fail, only one way to succeed.
-      isAuthenticated.value = inputValue === true;
-    }
-
-    // Store auth state for error recovery
-    if (isAuthenticated.value) {
-      sessionStorage.setItem('ots_auth_state', 'true');
-      lastCheckTime.value = Date.now();
-      $scheduleNextCheck();
-    } else {
-      sessionStorage.removeItem('ots_auth_state');
-    }
-
+    listenForVisibility();
     _initialized.value = true;
 
-    // Debug logging for final auth state after init
+    // Hydration reports a session but carries no ordering pair: degraded
+    // hydration, a request that authenticated after the allocation middleware
+    // ran, or a server that predates the contract. One immediate ordinary
+    // refresh establishes the watermark (ADR-046 "Client acceptance").
+    if (bootstrapStore.lastSnapshotReportedSession && !bootstrapStore.watermark) {
+      recordOrdering('degraded-hydration', {});
+      void refresh({ kind: 'ordinary', reason: 'unordered-hydration' });
+    }
+
+    // Hydration itself said `unavailable` (ADR-046#authority-action-gating). Without an explicit
+    // recovery, the tab would sit here until visibility+isStale fires at the
+    // ≥15min mark. Schedule a bounded verification retry immediately so the
+    // capped backoff timer takes over. This uses `kind: 'ordinary'` because it
+    // is a verification retry, not an auth mutation, and failureCount has not
+    // been touched yet (nothingVerified in noteFailure will keep the status at
+    // `unavailable` on the first retry failure — exactly what we want).
+    if (authStatus.value === 'unavailable' && failureCount.value === null) {
+      scheduleUnavailableRecovery();
+    }
+
     loggingService.debug('[AuthStore.init] Initialization complete:', {
-      isAuthenticated: isAuthenticated.value,
-      lastCheckTime: lastCheckTime.value,
+      authStatus: authStatus.value,
       needsCheck: needsCheck.value,
-      initialized: _initialized.value,
     });
 
     return { needsCheck, isInitialized };
   }
 
   /**
-   * Checks the current authentication status with the server.
-   *
-   * @description
-   * This method implements a robust authentication check mechanism:
-   * 1. Validates current auth state with server
-   * 2. Updates local and window state
-   * 3. Manages failure counting
-   *
-   * Key behaviors:
-   * - Automatic logout after MAX_FAILURES consecutive failures
-   * - Resets failure counter on successful check
-   * - Maintains sync between local and window state
-   * - Allows refresh during MFA pending state (awaiting_mfa=true)
-   *
-   * @returns Current authentication state
+   * Returning to a stale visible tab is a refresh trigger. Background tabs
+   * throttle timers, so the interval alone cannot be relied on.
    */
-  async function checkWindowStatus() {
-    // Allow refresh if authenticated OR if awaiting MFA completion.
-    // When isAuthenticated is null (uncertain/initial state), we should verify.
-    // Skip only when definitively unauthenticated and not awaiting MFA.
-    const shouldSkip = isAuthenticated.value === false && !awaitingMfa.value;
-    loggingService.debug('[AuthStore.checkWindowStatus] Called with state:', {
-      isAuthenticated: isAuthenticated.value,
-      isAuthenticatedType: typeof isAuthenticated.value,
-      awaitingMfa: awaitingMfa.value,
-      willSkip: shouldSkip,
-    });
+  function listenForVisibility() {
+    if (typeof document === 'undefined' || visibilityHandler) return;
+    visibilityHandler = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (authStatus.value === 'anonymous' || !isStale()) return;
+      void refresh({ kind: 'ordinary', reason: 'visibility' });
+    };
+    document.addEventListener('visibilitychange', visibilityHandler);
+  }
 
-    if (shouldSkip) {
-      loggingService.debug('[AuthStore.checkWindowStatus] Skipping check - user definitively not authenticated and not awaiting MFA');
-      return false;
+  /**
+   * Invalidates every request issued so far. Called by authentication
+   * mutations and local sign-out: a response that started before them must
+   * never be applied after them.
+   */
+  function invalidateGeneration() {
+    generation += 1;
+    inFlight?.controller.abort();
+    inFlight = null;
+    clearRetry();
+  }
+
+  function clearRetry() {
+    if (retryTimer !== null) {
+      clearTimeout(retryTimer);
+      retryTimer = null;
     }
+  }
 
-    loggingService.debug('[AuthStore.checkWindowStatus] Making API call to /bootstrap/me');
+  /**
+   * Requests a complete snapshot. The ONLY caller of GET /bootstrap/me.
+   */
+  function refresh(request: RefreshRequest): Promise<RefreshOutcome> {
+    // Stale-session state: ordinary refreshes stay stopped and no snapshot is
+    // applied. Only a page load leaves it.
+    if (staleSession.value) return Promise.resolve('refused');
 
-    try {
-      const response = await $api.get(AUTH_CHECK_CONFIG.ENDPOINT);
-
-      // Update bootstrapStore with server response - single source of truth.
-      // All computed properties derive from bootstrapStore refs, so route guards
-      // and components will see updated values immediately.
-      if (response.data) {
-        bootstrapStore.update(response.data, { source: 'bootstrap' });
-      }
-
-      // Update local auth state from refreshed window data
-      isAuthenticated.value = response.data.authenticated || false;
-      failureCount.value = 0;
-      lastCheckTime.value = Date.now();
-
-      loggingService.debug('[AuthStore.checkWindowStatus] API response:', {
-        authenticated: response.data.authenticated,
-        awaiting_mfa: response.data.awaiting_mfa,
-        newIsAuthenticated: isAuthenticated.value,
+    if (request.kind === 'ordinary' && inFlight) {
+      loggingService.debug('[AuthStore.refresh] Joined the request in flight', {
+        reason: request.reason,
       });
+      return inFlight.promise;
+    }
 
-      return isAuthenticated.value;
+    if (request.kind === 'auth-mutation') inFlight?.controller.abort();
+    clearRetry();
+
+    generation += 1;
+    const flight: Flight = {
+      generation,
+      controller: new AbortController(),
+      promise: Promise.resolve('superseded'),
+    };
+    flight.promise = run(flight, request).finally(() => {
+      if (inFlight === flight) inFlight = null;
+    });
+    inFlight = flight;
+    return flight.promise;
+  }
+
+  /**
+   * One caller-visible refresh: a request and, after a first anomaly, the one
+   * immediate retry ADR-046 allows. The retry is a new request for a complete
+   * snapshot, so it takes the next generation; callers that joined this
+   * flight keep waiting on the same promise.
+   */
+  async function run(flight: Flight, request: RefreshRequest): Promise<RefreshOutcome> {
+    for (;;) {
+      const outcome = await attempt(flight.generation, flight.controller.signal, request);
+      if (outcome !== 'anomaly') return outcome;
+      generation += 1;
+      flight.generation = generation;
+    }
+  }
+
+  async function attempt(
+    mine: number,
+    signal: AbortSignal,
+    request: RefreshRequest
+  ): Promise<AttemptOutcome> {
+    loggingService.debug('[AuthStore.refresh] Requesting snapshot', { ...request, generation: mine });
+
+    let retryAfterMs = 0;
+    try {
+      const response = await $api.get(AUTH_CHECK_CONFIG.ENDPOINT, { signal });
+      if (mine !== generation) return dropped(mine, request);
+
+      // Validate BEFORE anything is mutated. A payload that fails the shared
+      // contract reaches no store.
+      const parsed = parseCompleteSnapshot(response.data);
+      if (parsed.ok && effectiveAuthStatus(parsed.payload) !== 'unavailable') {
+        return await accept(mine, request, parsed.payload, parsed.pairMalformed);
+      }
+      // `unavailable` from the server is a failed verification, not a verdict:
+      // applying it would read as "session ended" during an auth-DB outage.
+      // Paths only, never values: the payload carries personal data.
+      loggingService.warn('[AuthStore.refresh] Snapshot not usable', {
+        generation: mine,
+        contractValid: parsed.ok,
+        invalidPaths: parsed.ok ? [] : parsed.invalidPaths,
+      });
     } catch (error) {
-      // Classify error and log technical/security errors
+      if (mine !== generation) return dropped(mine, request);
+      retryAfterMs = parseRetryAfter(retryAfterHeader(error));
+      // ADR-046#allocation-failure: a 503 SnapshotOrderingUnavailable is the sidecar
+      // counter allocation failing, not a session verdict. It must NOT
+      // increment failureCount — under a sustained outage that would cross
+      // MAX_FAILURES within ~10s and withholdAuthority('unavailable') would
+      // blank the UI for every signed-in user. Instead, schedule a bounded
+      // Retry-After-driven retry and return a distinct outcome so callers can
+      // tell it apart from `failed` if they care to. Callers today treat
+      // anything other than 'applied'/'superseded' as non-advance, which is
+      // the right behaviour for this too.
+      if (isAllocationFailure(error)) {
+        recordOrdering('allocation-failure', { generation: mine });
+        scheduleAllocationRetry(retryAfterMs);
+        return 'allocation-unavailable';
+      }
       const classified = classifyError(error);
+      if (!errorGuards.isOfHumanInterest(classified)) loggingService.error(classified);
+    }
 
-      // Log technical/security errors (not human errors)
-      if (!errorGuards.isOfHumanInterest(classified)) {
-        loggingService.error(classified);
-      }
+    noteFailure(retryAfterMs);
+    return 'failed';
+  }
 
-      failureCount.value = (failureCount.value ?? 0) + 1;
-      if (failureCount.value >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
-        await logout();
-      }
-      return false;
+  /**
+   * ADR-046#allocation-failure: bounded retry for a 503 SnapshotOrderingUnavailable.
+   * Uses the server's Retry-After when present, floors at BACKOFF_FLOOR, and
+   * caps at RETRY_AFTER_CAP. Does not increment failureCount and does not
+   * change status — the last accepted snapshot stands. Cancels any pending
+   * retry timer so overlapping outages don't stack.
+   */
+  function scheduleAllocationRetry(retryAfterMs: number) {
+    clearRetry();
+    const { BACKOFF_FLOOR, RETRY_AFTER_CAP } = AUTH_CHECK_CONFIG;
+    const DEFAULT_ALLOCATION_RETRY_MS = 5000;
+    const requested = retryAfterMs > 0 ? retryAfterMs : DEFAULT_ALLOCATION_RETRY_MS;
+    const delay = Math.min(Math.max(requested, BACKOFF_FLOOR), RETRY_AFTER_CAP);
+    retryTimer = setTimeout(() => {
+      retryTimer = null;
+      void refresh({ kind: 'ordinary', reason: 'retry' });
+    }, delay);
+  }
+
+  function dropped(mine: number, request: RefreshRequest): 'superseded' {
+    recordOrdering('generation-invalidated', { generation: mine, kind: request.kind });
+    return 'superseded';
+  }
+
+  /**
+   * The acceptance check and the commit, as one transaction (ADR-046). No
+   * await separates the decision from applySnapshot(), so nothing can
+   * interleave; a decision other than `apply` mutates no store.
+   */
+  async function accept(
+    mine: number,
+    request: RefreshRequest,
+    payload: Parameters<typeof bootstrapStore.applySnapshot>[0],
+    pairMalformed: boolean
+  ): Promise<AttemptOutcome> {
+    const watermark = bootstrapStore.watermark;
+    const pair = pairOf(payload);
+    const status = effectiveAuthStatus(payload);
+    const decision = classifySnapshot({
+      generationIsCurrent: mine === generation,
+      kind: request.kind,
+      watermark,
+      retiredEpochs: bootstrapStore.retiredEpochs,
+      priorSession: bootstrapStore.lastSnapshotReportedSession,
+      reportsSession: status === 'authenticated' || status === 'mfa_pending',
+      pair,
+    });
+    const ordering = {
+      generation: mine,
+      kind: request.kind,
+      epoch: pair?.epoch,
+      version: pair?.version,
+      prior_epoch: watermark?.epoch,
+      prior_version: watermark?.version,
+      pair_malformed: pairMalformed || undefined,
+    };
+
+    switch (decision.outcome) {
+      case 'stale':
+        return dropped(mine, request);
+
+      case 'force-page-load':
+        recordOrdering(decision.cause === 'ended' ? 'session-ended' : 'session-replaced', ordering);
+        forcePageLoad(decision.cause);
+        return 'refused';
+
+      case 'anomaly':
+        consecutiveAnomalies += 1;
+        recordOrdering('anomaly', { ...ordering, cause: decision.cause, consecutive: consecutiveAnomalies });
+        if (consecutiveAnomalies < 2) return 'anomaly';
+        forcePageLoad('anomaly');
+        return 'refused';
+
+      case 'apply':
+        return commitOrDrop(mine, request, payload, { ...decision, ordering });
     }
   }
 
   /**
-   * Forces an immediate window state refresh and reschedules next check.
-   * Useful when the application needs to ensure fresh auth and config state.
+   * A commit that lost the generation across its cleanup imports applied
+   * nothing (ADR-046#commit-generation-ownership): it reports `superseded`,
+   * never `applied`, so callers do not act on a snapshot that did not land.
+   * Only a snapshot that landed emits applied-stream diagnostics and ends a
+   * run of anomalies. The prior `snapshot_generated_at` is read before the
+   * commit, because applySnapshot() replaces it.
    */
-  async function refreshAuthState() {
-    return checkWindowStatus().then(() => {
-      $scheduleNextCheck();
+  async function commitOrDrop(
+    mine: number,
+    request: RefreshRequest,
+    payload: Parameters<typeof bootstrapStore.applySnapshot>[0],
+    applied: AppliedDecision
+  ): Promise<'applied' | 'superseded'> {
+    const priorGeneratedAt = bootstrapStore.snapshot_generated_at;
+    if (!(await commit(payload, applied.retire))) return dropped(mine, request);
+    recordApplied(applied, priorGeneratedAt, payload.snapshot_generated_at);
+    consecutiveAnomalies = 0;
+    return 'applied';
+  }
+
+  /**
+   * Diagnostics for a snapshot that WAS applied. `snapshot_generated_at` is
+   * read here and nowhere else: it never decides anything (ADR-046).
+   */
+  function recordApplied(
+    { stream, ordering }: AppliedDecision,
+    priorGeneratedAtRaw: unknown,
+    generatedAtRaw: unknown
+  ) {
+    const prior = describeGeneratedAt(priorGeneratedAtRaw);
+    const generatedAt = describeGeneratedAt(generatedAtRaw);
+    if (ordering.epoch !== undefined && generatedAt.state !== 'ok') {
+      recordOrdering(`generated-at-${generatedAt.state}`, { ...ordering, age: 'unknown' });
+    }
+    if (stream === 'advance' && isClockRegression(prior, generatedAt)) {
+      recordOrdering('clock-regression', ordering);
+    }
+    if (stream === 'ended') recordOrdering('session-ended', ordering);
+    if (stream === 'new-epoch') recordOrdering('session-replaced', ordering);
+  }
+
+  /**
+   * Structured ordering diagnostics (ADR-046 "Refresh coordination"): ordering
+   * metadata only, never payload contents. `snapshot_epoch` correlates one
+   * session's events and is treated as such; it is not a credential and cannot
+   * be reversed to the session ID.
+   */
+  function recordOrdering(event: string, data: Record<string, unknown>) {
+    const routine = event === 'generation-invalidated';
+    const fields = { event, ...data };
+    if (routine) loggingService.debug('[AuthStore.ordering]', fields);
+    else loggingService.warn(`[AuthStore.ordering] ${event}`, fields);
+    addBreadcrumb({
+      category: 'bootstrap.ordering',
+      level: routine ? 'debug' : 'warning',
+      message: event,
+      data: fields,
     });
   }
 
   /**
-   * Schedules the next authentication check with a randomized interval.
+   * The forced page load path (ADR-046, #4465).
    *
-   * The random jitter added to the base interval helps prevent
-   * synchronized requests from multiple clients hitting the server
-   * at the same time, which could cause load spikes.
+   * Order matters. The stale-session state is entered SYNCHRONOUSLY, before
+   * the reload: browsers do not report a cancelled `beforeunload` prompt, so
+   * the notice must already be up if the user stays. Refreshes stop, nothing
+   * in flight can land, and the reload is never retried. It must not go
+   * through logout(): that clears sessionStorage, and with it the loop-bound
+   * marker and the parked transition message.
+   */
+  function forcePageLoad(cause: ForcedPageLoadCause) {
+    if (staleSession.value) return;
+    staleSession.value = true;
+    stop();
+
+    // The next page says why, once (#4461). An anomaly is not a session
+    // transition and has nothing to tell the user.
+    if (cause !== 'anomaly') parkSessionTransition(cause);
+
+    const result = attemptForcedPageLoad();
+    recordOrdering('forced-page-load', { cause, result });
+  }
+
+  /**
+   * Applies an accepted snapshot and clears what no longer belongs.
    *
-   * The jitter is ±90 seconds, providing a good balance between
-   * regular checks and load distribution.
+   * Generation ownership across the dynamic-import `await` (ADR-046#commit-generation-ownership):
+   * `clearAccountScopedState` runs BEFORE `applySnapshot`, so the tab is never
+   * left showing a new snapshot with stale account-scoped stores hanging off
+   * it. The decision to clear is made from the INCOMING payload (its
+   * effectiveAuthStatus and custid), which is safe: parseCompleteSnapshot has
+   * already validated it. The same `mine === generation` check gates the
+   * resets themselves (inside clearAccountScopedState, after its imports) and,
+   * after the await, every later step, so an older commit that lost its race
+   * to a newer refresh neither empties the stores the newer commit populated
+   * nor clobbers its failureCount, timer or lastCheckTime.
+   *
+   * Returns true when the snapshot was applied, false when the generation was
+   * lost before it could be (the caller records that as superseded).
+   */
+  async function commit(
+    snapshot: Parameters<typeof bootstrapStore.applySnapshot>[0],
+    retire: string | null = null
+  ): Promise<boolean> {
+    const mine = generation;
+    const priorStatus = authStatus.value;
+    const priorAccount = bootstrapStore.custid;
+    const nextStatus = effectiveAuthStatus(snapshot);
+    const nextAccount = snapshot.custid ?? '';
+
+    const lostAuthority = priorStatus === 'authenticated' && nextStatus !== 'authenticated';
+    const changedAccount = priorAccount !== '' && priorAccount !== nextAccount;
+    if (lostAuthority || changedAccount) {
+      await clearAccountScopedState(() => mine === generation);
+    }
+
+    // A newer refresh took the generation while we awaited the dynamic imports
+    // above: its own commit() (or a later one still) owns the store now. Do
+    // not applySnapshot, reset counters, or reschedule — the newer path did.
+    if (mine !== generation) return false;
+
+    bootstrapStore.applySnapshot(snapshot, { retire });
+
+    failureCount.value = 0;
+    lastCheckTime.value = Date.now();
+    $scheduleNextCheck();
+
+    // A successful reconciliation means a reload is no longer the resolution
+    // for whatever was parked (ADR-046#parked-transition-ttl). Fast-path clean-up; the
+    // TTL is what actually guarantees the message cannot outlive its context.
+    clearSessionTransition();
+    return true;
+  }
+
+  /**
+   * Hydration said `unavailable` (ADR-046#authority-action-gating). Kick off the same backoff timer
+   * that `noteFailure` uses, so the tab does not sit waiting for a
+   * visibility+isStale trigger 15 minutes out. Starts at the first backoff
+   * step (failures = 1). No status write: hydration already left the store in
+   * `unavailable`, and only the coordinator's own request will change it.
+   */
+  function scheduleUnavailableRecovery() {
+    clearRetry();
+    const delay = retryDelay(1);
+    retryTimer = setTimeout(() => {
+      retryTimer = null;
+      void refresh({ kind: 'ordinary', reason: 'retry' });
+    }, delay);
+  }
+
+  function noteFailure(retryAfterMs: number) {
+    failureCount.value = (failureCount.value ?? 0) + 1;
+    // From `checking` there is no verified state to keep serving while we
+    // retry, so one failed verification is already `unavailable`. Otherwise
+    // the last accepted snapshot stands until MAX_FAILURES.
+    const nothingVerified = authStatus.value === 'checking';
+    if (nothingVerified || failureCount.value >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
+      bootstrapStore.withholdAuthority('unavailable');
+    }
+
+    clearRetry();
+    const delay = retryDelay(failureCount.value, retryAfterMs);
+    retryTimer = setTimeout(() => {
+      retryTimer = null;
+      void refresh({ kind: 'ordinary', reason: 'retry' });
+    }, delay);
+  }
+
+  /**
+   * A protected API call was rejected (#4460). This REQUESTS reconciliation;
+   * it never writes authentication state. The coordinator's next accepted
+   * snapshot is what changes the status, by the same rules as any other.
+   *
+   * By scope (#4462):
+   * - `customer_session`          the server examined the session and refused
+   *                               it: reconcile.
+   * - `verification_unavailable`  an outage, not a verdict: reconcile. The
+   *                               server will answer `unavailable` or 5xx,
+   *                               which counts as ONE failed verification
+   *                               however many API calls saw the outage.
+   * - `admin_session`             the admin-only timeout. The customer session
+   *                               is untouched; the admin surface owns it.
+   * - uncoded 401 (`null`)        a backend that predates the codes, or a
+   *                               rejected credential (#4469). Reconciling can
+   *                               only withhold, so it is safe for both.
+   *
+   * A tab the server last said holds no session has nothing to reconcile, and
+   * `awaiting_mfa` tells an MFA-pending tab what it already knows.
+   */
+  function noteApiRejection(failure: SessionFailure | null): RejectionDisposition {
+    // A tab already in the stale-session state has begun (or completed) its
+    // forced page load: the transition notice is or will be on screen.
+    if (staleSession.value) return DISPOSITION_WILL_RELOAD;
+
+    if (failure?.code_scope === 'admin_session') return DISPOSITION_CARVE_OUT;
+    if (!bootstrapStore.lastSnapshotReportedSession) return DISPOSITION_CARVE_OUT;
+    if (failure?.code === 'awaiting_mfa' && authStatus.value === 'mfa_pending') {
+      return DISPOSITION_CARVE_OUT;
+    }
+
+    const now = Date.now();
+    if (now - lastRejectionRefreshAt < AUTH_CHECK_CONFIG.REJECTION_MIN_INTERVAL) {
+      // A reconciliation was requested within the window; this one is a
+      // duplicate. The coordinator will not run again for this rejection, so
+      // its message cannot cover the toast — let the caller surface it.
+      return DISPOSITION_THROTTLED;
+    }
+    lastRejectionRefreshAt = now;
+
+    void refresh({ kind: 'ordinary', reason: 'rejection' });
+    return DISPOSITION_RECONCILING;
+  }
+
+  /** Explicit retry: skips the backoff wait, not the rules. */
+  function retryNow(): Promise<RefreshOutcome> {
+    return refresh({ kind: 'ordinary', reason: 'retry' });
+  }
+
+  /** Stops every timer and invalidates what is in flight. */
+  function stop() {
+    invalidateGeneration();
+    void $stopAuthCheck();
+  }
+
+  /**
+   * Resets the account-scoped stores that exist. A store that was never
+   * created holds nothing, and creating it here would run its init (and
+   * possibly a fetch) only to reset it.
+   *
+   * `stillOwner` is checked after the dynamic imports resolve and before any
+   * reset (ADR-046#commit-generation-ownership). Without it, a commit whose
+   * imports outlast a newer commit would reset the stores that newer commit
+   * already populated. Omitted, the resets are unconditional (logout).
+   */
+  async function clearAccountScopedState(stillOwner?: () => boolean): Promise<void> {
+    const existing = getActivePinia()?.state.value ?? {};
+    const ids = Object.keys(ACCOUNT_SCOPED_STORES).filter((id) => id in existing);
+    const stores = await Promise.all(ids.map((id) => ACCOUNT_SCOPED_STORES[id]()));
+    if (stillOwner && !stillOwner()) return;
+    for (const useStore of stores) useStore().$reset();
+  }
+
+  /**
+   * @deprecated Use refresh(). Kept for its callers: verifies with the server
+   * unless the status is already a definitive `anonymous`.
+   */
+  async function checkWindowStatus(): Promise<boolean> {
+    if (authStatus.value === 'anonymous') return false;
+    await refresh({ kind: 'ordinary', reason: 'check' });
+    return isAuthenticated.value;
+  }
+
+  /** @deprecated Use refresh(). */
+  async function refreshAuthState(): Promise<void> {
+    await refresh({ kind: 'ordinary', reason: 'check' });
+  }
+
+  /**
+   * Passive verification: 15 minutes ± 90 s. The jitter keeps clients from
+   * polling in step. Runs only while authenticated.
    */
   function $scheduleNextCheck() {
     $stopAuthCheck();
@@ -381,16 +981,12 @@ export const useAuthStore = defineStore('auth', () => {
     const jitter = (Math.random() - 0.5) * 2 * AUTH_CHECK_CONFIG.JITTER;
     const nextCheck = AUTH_CHECK_CONFIG.INTERVAL + jitter;
 
-    authCheckTimer.value = setTimeout(async () => {
-      await checkWindowStatus();
-      $scheduleNextCheck();
+    authCheckTimer.value = setTimeout(() => {
+      authCheckTimer.value = null;
+      void refresh({ kind: 'ordinary', reason: 'interval' });
     }, nextCheck);
   }
 
-  /**
-   * Stops the periodic authentication check.
-   * Clears the existing timeout and resets the authCheckTimer.
-   */
   async function $stopAuthCheck() {
     if (authCheckTimer.value !== null) {
       clearTimeout(authCheckTimer.value);
@@ -399,142 +995,113 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Logs out the current user and resets the auth state.
+   * Local (SPA) sign-out: no page navigation follows.
    *
-   * - Clearing cookies
-   * - Resetting all related stores
-   * - Clearing session storage
-   * - Updating window state
-   * Clears authentication state and storage.
-   *
-   * This method resets the store state to its initial values using `this.$reset()`.
-   * It also clears session storage and stops any ongoing authentication checks.
-   * This is typically used during logout to ensure that all user-specific data
-   * is cleared and the store is returned to its default state.
+   * Invalidates the generation FIRST, so a refresh already in flight cannot
+   * restore the identity being cleared here.
    */
   async function logout() {
+    invalidateGeneration();
     await $stopAuthCheck();
 
     $reset();
 
-    // Reset bootstrapStore user state while preserving server config.
-    // resetForLogout() also evicts `diagnostics_ref` from the pre-Pinia
-    // bootstrap.service snapshot, so the reference survives in neither of the
-    // two places the bootstrap payload is mirrored. The Sentry scope is a
-    // third holder, and it is cleared just below.
+    // Resets account state (and the pre-Pinia mirror) to anonymous while
+    // preserving server config.
     bootstrapStore.resetForLogout();
+    await clearAccountScopedState();
 
-    // Clear the Sentry user context: setUser(null) on BOTH the isolated and
-    // current scopes.
-    //
-    // This is the SOFT (SPA) logout path — no page navigation follows, so the
-    // Sentry scopes survive with whatever user context was last written.
-    // Without this call every subsequent error in the now-anonymous session
-    // would keep reporting the previous session's ref. resetForLogout() above
-    // clears the store field, but the store is not where Sentry reads the
-    // context from.
-    //
-    // The HARD logout paths in useAuth (POST /auth/logout followed by
-    // window.location.href) do not need this — the navigation tears down the
-    // JS context and the scopes with it.
-    //
-    // No-ops when diagnostics are disabled, so it is called unconditionally.
+    // The Sentry scopes survive a soft logout; without this every later error
+    // in the now-anonymous session would keep the previous session's ref.
+    // No-ops when diagnostics are disabled.
     clearDiagnosticsActorContext();
 
     deleteCookie('locale');
 
-    // Clear all session storage;
     sessionStorage.clear();
-
-    // Remove any and all lingering store state
-    // context.pinia.state.value = {};
   }
 
   /**
    * Minimal logout: clears cookies and session storage without resetting
    * reactive Pinia state. Use this when a hard navigation (window.location.href)
    * follows immediately — the page reload discards all in-memory state, and
-   * skipping $reset() / bootstrapStore.$reset() avoids a visual flash where
-   * brand-dependent components briefly revert to defaults.
+   * skipping the resets avoids a visual flash where brand-dependent components
+   * briefly revert to defaults. The generation is still invalidated, so
+   * nothing in flight can land during unload.
    */
   async function logoutMinimal() {
+    invalidateGeneration();
     await $stopAuthCheck();
 
     deleteCookie('locale');
     sessionStorage.clear();
   }
-  /**
-   * Disposes of the store, stopping the auth check.
-   *
-   * - Disposing of a store does not reset its state. If you recreate the store,
-   *   it will start with its initial state as defined in the store definition.
-   * - Once a store is disposed of, it should not be used again.
-   *
-   */
+
   async function $dispose() {
-    await $stopAuthCheck();
+    stop();
+    if (visibilityHandler) {
+      document.removeEventListener('visibilitychange', visibilityHandler);
+      visibilityHandler = null;
+    }
   }
 
   function $reset() {
-    isAuthenticated.value = null;
+    invalidateGeneration();
     authCheckTimer.value = null;
     failureCount.value = null;
     lastCheckTime.value = null;
     _initialized.value = false;
-    sessionStorage.removeItem('ots_auth_state');
+    consecutiveAnomalies = 0;
+    lastRejectionRefreshAt = 0;
+    // staleSession is NOT reset: only a page load leaves that state.
   }
 
   /**
-   * Sets the authenticated state and refreshes window state from server.
+   * Called after a successful authentication step (login, MFA, SSO link).
    *
-   * Called after successful authentication operations (login, MFA verification).
-   * Triggers a /window refresh to get complete server state including:
-   * - Customer data and entitlements
-   * - Updated awaiting_mfa flag (critical for MFA flow completion)
-   * - Fresh CSRF token
+   * It does NOT set anything locally: it asks the server, as an
+   * authentication mutation, and the answer is the state. `false` is a local
+   * sign-out.
    *
-   * @param value - The authentication state to set
+   * Returns the `RefreshOutcome` from the underlying `refresh()` so callers
+   * can gate navigation on `'applied'` and avoid pushing to a protected route
+   * when the snapshot never landed (transport failure, superseded, refused).
+   * A local sign-out has no refresh and returns `'noop'`.
    */
-  async function setAuthenticated(value: boolean) {
-    isAuthenticated.value = value;
-
-    // Update sessionStorage for error recovery
-    if (value) {
-      sessionStorage.setItem('ots_auth_state', 'true');
-      // Fetch fresh window state immediately to get customer data
-      // and updated awaiting_mfa flag (critical after MFA verification)
-      await checkWindowStatus();
-    } else {
-      sessionStorage.removeItem('ots_auth_state');
-      await $stopAuthCheck();
+  async function setAuthenticated(value: boolean): Promise<RefreshOutcome | 'noop'> {
+    if (!value) {
+      await logout();
+      return 'noop';
     }
-
-    // Sync flags via bootstrapStore for reactivity. When setting authenticated to true,
-    // we also set awaiting_mfa to false. This optimistic update prevents getting
-    // stuck if the subsequent checkWindowStatus() call fails.
-    bootstrapStore.update({
-      authenticated: value,
-      ...(value ? { awaiting_mfa: false } : {}),
-    });
+    return refresh({ kind: 'auth-mutation', reason: 'login' });
   }
 
   return {
     // State
-    isAuthenticated,
     authCheckTimer,
     failureCount,
     lastCheckTime,
     _initialized,
+    staleSession,
 
     // Getters
+    authStatus: status,
+    isAuthenticated,
     needsCheck,
     isInitialized,
     awaitingMfa,
     isFullyAuthenticated,
     isUserPresent,
+    protectedActionsAvailable,
+    escapeActionsAvailable,
 
     // Actions
     init,
+    refresh,
+    retryNow,
+    stop,
+    forcePageLoad,
+    noteApiRejection,
     checkWindowStatus,
     refreshAuthState,
     logout,
@@ -547,6 +1114,28 @@ export const useAuthStore = defineStore('auth', () => {
     $reset,
   };
 });
+
+/** The 503 GET /bootstrap/me answers when the ordering pair cannot be allocated. */
+function isAllocationFailure(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null || !('response' in error)) return false;
+  const response = (error as { response?: { status?: unknown; data?: unknown } }).response;
+  const data = response?.data;
+  return (
+    response?.status === 503 &&
+    typeof data === 'object' &&
+    data !== null &&
+    (data as { error_type?: unknown }).error_type === 'SnapshotOrderingUnavailable'
+  );
+}
+
+/** Reads Retry-After from an axios-shaped error without assuming its class. */
+function retryAfterHeader(error: unknown): unknown {
+  if (typeof error !== 'object' || error === null || !('response' in error)) return undefined;
+  const response = (error as { response?: { headers?: unknown } }).response;
+  const headers = response?.headers;
+  if (typeof headers !== 'object' || headers === null) return undefined;
+  return (headers as Record<string, unknown>)['retry-after'];
+}
 
 const deleteCookie = (name: string) => {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;

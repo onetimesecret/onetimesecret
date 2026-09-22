@@ -21,7 +21,7 @@
   const bootstrapStore = useBootstrapStore();
 
   // Feature toggles — derived from the reactive bootstrap store so they reflect
-  // post-login state without re-mounting (e.g. after checkWindowStatus refresh).
+  // post-login state without re-mounting (e.g. after a snapshot the refresh coordinator accepted).
   const activeSessionsEnabled = computed(() => isActiveSessionsEnabledOf(bootstrapStore));
   const mfaFeatureEnabled = computed(() => isMfaEnabledOf(bootstrapStore));
   const webAuthnEnabled = computed(() => isWebAuthnEnabledOf(bootstrapStore));

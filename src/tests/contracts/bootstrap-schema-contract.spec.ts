@@ -90,7 +90,12 @@ const FRONTEND_ONLY_FIELDS: Record<string, string> = {
 // We need to get the keys from the BootstrapPayload interface.
 // Since TypeScript interfaces don't exist at runtime, we use the baseBootstrap
 // fixture which implements the interface completely.
-import { baseBootstrap, snapshotOrdering } from '@/tests/fixtures/bootstrap.fixture';
+import {
+  authenticatedBootstrap,
+  baseBootstrap,
+  snapshotOrdering,
+} from '@/tests/fixtures/bootstrap.fixture';
+import { toWire } from '@/tests/fixtures/bootstrap-wire';
 
 const BOOTSTRAP_PAYLOAD_KEYS = Object.keys(baseBootstrap) as (keyof BootstrapPayload)[];
 
@@ -879,5 +884,72 @@ describe('Bootstrap type consistency', () => {
     for (const field of booleanFields) {
       expect(typeof baseBootstrap[field]).toBe('boolean');
     }
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WIRE ENCODING OF AN AUTHENTICATED PAYLOAD (#4458)
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// From #4458 the client validates hydration and every /bootstrap/me response
+// with bootstrapSchema BEFORE any store is touched, and a payload that fails
+// reads as "cannot verify". So the schema has to accept what the server
+// really sends. `cust` comes from `safe_dump`: its timestamps are epoch
+// seconds, never a Date (JSON has none). If this block fails, every signed-in
+// user fails verification.
+describe('bootstrapSchema accepts the wire encoding of cust', () => {
+  const wire = toWire(authenticatedBootstrap) as { cust: Record<string, unknown> };
+
+  it('the wire fixture really is wire-shaped', () => {
+    expect(typeof wire.cust.created).toBe('number');
+    expect(typeof wire.cust.updated).toBe('number');
+    expect(JSON.parse(JSON.stringify(wire))).toEqual(wire);
+  });
+
+  it('parses an authenticated payload with epoch-second timestamps', () => {
+    const parsed = bootstrapSchema.safeParse(wire);
+
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data.cust?.created).toBeInstanceOf(Date);
+    expect(parsed.data.cust?.updated).toBeInstanceOf(Date);
+    expect(parsed.data.cust?.created.getTime()).toBe((wire.cust.created as number) * 1000);
+    expect(effectiveAuthStatus(parsed.data)).toBe('authenticated');
+  });
+
+  it('accepts epoch seconds as a numeric string', () => {
+    const parsed = bootstrapSchema.safeParse({
+      ...wire,
+      cust: { ...wire.cust, created: '1609372800', updated: '1609459200.5' },
+    });
+
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data.cust?.created.toISOString()).toBe('2020-12-31T00:00:00.000Z');
+  });
+
+  it('last_login may be null or absent', () => {
+    for (const last_login of [null, undefined, 1609459200]) {
+      const parsed = bootstrapSchema.safeParse({ ...wire, cust: { ...wire.cust, last_login } });
+      expect(parsed.success).toBe(true);
+    }
+    const { last_login: _omitted, ...withoutLastLogin } = wire.cust;
+    const parsed = bootstrapSchema.safeParse({ ...wire, cust: withoutLastLogin });
+    expect(parsed.success && parsed.data.cust?.last_login).toBeNull();
+  });
+
+  it('is idempotent: an already-parsed snapshot parses again', () => {
+    const once = bootstrapSchema.parse(wire);
+    const twice = bootstrapSchema.parse(once);
+    expect(twice.cust?.created.getTime()).toBe(once.cust?.created.getTime());
+  });
+
+  it.each([
+    ['an ISO string', '2026-09-19T00:00:00.000Z'],
+    ['a non-numeric string', 'yesterday'],
+    ['a boolean', true],
+    ['null', null],
+  ])('still rejects %s for created', (_name, created) => {
+    expect(bootstrapSchema.safeParse({ ...wire, cust: { ...wire.cust, created } }).success).toBe(false);
   });
 });
