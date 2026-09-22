@@ -1,3 +1,5 @@
+# lib/onetime/session/customer_session_evaluator.rb
+#
 # frozen_string_literal: true
 
 require_relative 'active_session_gate'
