@@ -34,6 +34,10 @@ require 'pathname'
 class HeaderValidator
   REPO_ROOT = Pathname.pwd.freeze
 
+  # Matches a path-header line for any .rb path, e.g. `# lib/foo.rb` or
+  # `# ruby/lib/foo.rb`. Used to detect stale headers left over from a rename.
+  RUBY_PATH_HEADER_RE = %r{\A#\s+[\w./-]+\.rb\z}
+
   def initialize(fix: false, paths: [])
     @fix         = fix
     @paths       = paths
@@ -67,11 +71,11 @@ class HeaderValidator
         if full_path.directory?
           # Path is a directory - search within it
           Dir.glob(File.join(path, '**/*.{rb,py,ts,vue}'), base: REPO_ROOT)
-             .select { |f| File.fnmatch?(pattern, f, File::FNM_PATHNAME) }
+            .select { |f| File.fnmatch?(pattern, f, File::FNM_PATHNAME) }
         else
           # Path is a glob or file pattern
           Dir.glob(path, base: REPO_ROOT)
-             .select { |f| File.fnmatch?(pattern, f, File::FNM_PATHNAME) }
+            .select { |f| File.fnmatch?(pattern, f, File::FNM_PATHNAME) }
         end
       end.uniq
     end
@@ -164,42 +168,38 @@ class HeaderValidator
       errors << "Line #{offset + 4}: Expected blank line, got: #{lines[offset + 3]&.strip.inspect}"
     end
 
-    if errors.any?
-      if @fix
-        fix_ruby_header(full_path, relative_path, lines)
-      else
-        @errors << { file: relative_path, issues: errors }
-      end
+    return unless errors.any?
+
+    if @fix
+      fix_ruby_header(full_path, relative_path, lines)
+    else
+      @errors << { file: relative_path, issues: errors }
     end
   end
 
   def fix_ruby_header(full_path, relative_path, lines)
-    has_shebang = lines[0]&.start_with?('#!')
+    has_shebang   = lines[0]&.start_with?('#!')
     content_start = find_ruby_content_start(lines, relative_path, has_shebang ? 1 : 0)
-    content = lines[content_start..].join
+    content       = lines[content_start..].join
 
-    prefix = has_shebang ? lines[0] : ''
+    prefix     = has_shebang ? lines[0] : ''
     new_header = "# #{relative_path}\n#\n# frozen_string_literal: true\n\n"
     File.write(full_path, prefix + new_header + content)
     @fixed << relative_path
   end
 
   # Only consume lines that are part of the existing file-path header:
-  #   - the exact path-header line (`# <relative_path>`)
+  #   - the path-header line (`# <relative_path>`, or any stale `# <path>.rb`)
   #   - an immediately following `#` separator line
   #   - an immediately following `# frozen_string_literal: true`
-  #   - a single trailing blank line
+  #   - trailing blank lines
   # Also consumes a stray `# frozen_string_literal: true` (with surrounding
   # blanks) that appears before any real code, so the fixer does not duplicate
   # it when rewriting the header.
   # Any other leading comment (license, rubocop directive, author credit)
   # is preserved as content.
-  # Matches a path-header line for any .rb path, e.g. `# lib/foo.rb` or
-  # `# ruby/lib/foo.rb`. Used to detect stale headers left over from a rename.
-  RUBY_PATH_HEADER_RE = %r{\A#\s+[\w./-]+\.rb\z}
-
   def find_ruby_content_start(lines, relative_path, start = 0)
-    idx = start
+    idx         = start
     header_line = "# #{relative_path}"
 
     if lines[idx]&.strip == header_line || lines[idx]&.strip&.match?(RUBY_PATH_HEADER_RE)
@@ -235,21 +235,21 @@ class HeaderValidator
       errors << "Line #{offset + 2}: Expected blank line, got: #{lines[offset + 1]&.strip.inspect}"
     end
 
-    if errors.any?
-      if @fix
-        fix_python_header(full_path, relative_path, lines)
-      else
-        @errors << { file: relative_path, issues: errors }
-      end
+    return unless errors.any?
+
+    if @fix
+      fix_python_header(full_path, relative_path, lines)
+    else
+      @errors << { file: relative_path, issues: errors }
     end
   end
 
   def fix_python_header(full_path, relative_path, lines)
-    has_shebang = lines[0]&.start_with?('#!')
+    has_shebang   = lines[0]&.start_with?('#!')
     content_start = find_python_content_start(lines, relative_path, has_shebang ? 1 : 0)
-    content = lines[content_start..].join
+    content       = lines[content_start..].join
 
-    prefix = has_shebang ? lines[0] : ''
+    prefix     = has_shebang ? lines[0] : ''
     new_header = "# #{relative_path}\n\n"
     File.write(full_path, prefix + new_header + content)
     @fixed << relative_path
@@ -258,7 +258,7 @@ class HeaderValidator
   # Only consume the exact file-path header line plus one trailing blank.
   # Preserves encoding cookies, license stubs, module docstrings.
   def find_python_content_start(lines, relative_path, start = 0)
-    idx = start
+    idx  = start
     idx += 1 if lines[idx]&.strip == "# #{relative_path}"
     idx += 1 if lines[idx]&.strip == ''
     idx
@@ -284,21 +284,21 @@ class HeaderValidator
       errors << "Line #{offset + 2}: Expected blank line, got: #{lines[offset + 1]&.strip.inspect}"
     end
 
-    if errors.any?
-      if @fix
-        fix_typescript_header(full_path, relative_path, lines)
-      else
-        @errors << { file: relative_path, issues: errors }
-      end
+    return unless errors.any?
+
+    if @fix
+      fix_typescript_header(full_path, relative_path, lines)
+    else
+      @errors << { file: relative_path, issues: errors }
     end
   end
 
   def fix_typescript_header(full_path, relative_path, lines)
-    has_shebang = lines[0]&.start_with?('#!')
+    has_shebang   = lines[0]&.start_with?('#!')
     content_start = find_typescript_content_start(lines, has_shebang ? 1 : 0)
-    content = lines[content_start..].join
+    content       = lines[content_start..].join
 
-    prefix = has_shebang ? lines[0] : ''
+    prefix     = has_shebang ? lines[0] : ''
     new_header = "// #{relative_path}\n\n"
     File.write(full_path, prefix + new_header + content)
     @fixed << relative_path
@@ -335,21 +335,21 @@ class HeaderValidator
       errors << "Line #{offset + 2}: Expected blank line, got: #{lines[offset + 1]&.strip.inspect}"
     end
 
-    if errors.any?
-      if @fix
-        fix_vue_header(full_path, relative_path, lines)
-      else
-        @errors << { file: relative_path, issues: errors }
-      end
+    return unless errors.any?
+
+    if @fix
+      fix_vue_header(full_path, relative_path, lines)
+    else
+      @errors << { file: relative_path, issues: errors }
     end
   end
 
   def fix_vue_header(full_path, relative_path, lines)
-    has_shebang = lines[0]&.start_with?('#!')
+    has_shebang   = lines[0]&.start_with?('#!')
     content_start = find_vue_content_start(lines, has_shebang ? 1 : 0)
-    content = lines[content_start..].join
+    content       = lines[content_start..].join
 
-    prefix = has_shebang ? lines[0] : ''
+    prefix     = has_shebang ? lines[0] : ''
     new_header = "<!-- #{relative_path} -->\n\n"
     File.write(full_path, prefix + new_header + content)
     @fixed << relative_path
@@ -422,7 +422,7 @@ class HeaderValidator
 end
 
 # Main execution
-fix_mode = ARGV.delete('--fix')
-paths    = ARGV.dup
+fix_mode  = ARGV.delete('--fix')
+paths     = ARGV.dup
 validator = HeaderValidator.new(fix: !!fix_mode, paths: paths)
 validator.validate_all
