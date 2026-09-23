@@ -11,15 +11,16 @@ Fixed
   end it exactly as they end any other session. The sessions page marks
   remembered sessions. Two-factor sign-ins are remembered once the second
   factor is completed. Works in both simple and full authentication modes;
-  ``AUTH_REMEMBER_ME_ENABLED=false`` still turns it off.
+  ``AUTH_REMEMBER_ME_ENABLED=false`` still turns it off, and also returns
+  sessions already remembered to the default lifetime.
 
 Changed
 -------
 
 - Full authentication mode: the auth database gains a nullable
   ``remember_until`` column on ``account_active_session_keys`` (migration
-  011, applied automatically at boot). Installs that set
-  ``SKIP_AUTH_MIGRATIONS=true`` must run it before starting this version:
-  the per-request session check reads the column and refuses sessions
-  while it is missing. Rodauth's separate remember-me cookie is no longer
+  011). The web process applies it at boot, before it serves requests.
+  Installs that apply auth migrations by hand must run it before starting
+  this version: the per-request session check reads the column and
+  refuses sessions while it is missing. Rodauth's separate remember-me cookie is no longer
   enabled; it was set but never read.
