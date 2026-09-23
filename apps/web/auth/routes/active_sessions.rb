@@ -47,8 +47,14 @@ module Auth
             # its session_id column. Rodauth's token is its own minted
             # active_session_id, NOT the Rack sid, so no digest computed here from
             # a sid could ever match a row.
+            #
+            # `remembered` is asked of the database, against its own clock, as
+            # the gate's deadlines are: remember_until is written in that clock.
+            remembered     = Sequel.case({ (Sequel[:remember_until] > Sequel::CURRENT_TIMESTAMP) => 1 }, 0)
             sessions       = rodauth.db[:account_active_session_keys]
               .where(account_id: account_id)
+              .select_all(:account_active_session_keys)
+              .select_append(Sequel.as(remembered, :remembered))
               .order(Sequel.desc(:last_use))
               .all
             metadata_by_id = active_session_metadata_by_hmac(account_id)
@@ -67,7 +73,7 @@ module Auth
                 user_agent: metadata&.dig(:user_agent),
                 geo_country: metadata&.dig(:geo_country),
                 is_current: session[:session_id] == current_session_id_hmac,
-                remember_enabled: false,  # TODO: Check remember table if feature enabled
+                remember_enabled: session[:remembered].to_i == 1,
               }
             end
 
