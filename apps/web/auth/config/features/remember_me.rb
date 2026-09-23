@@ -48,6 +48,12 @@ module Auth::Config::Features
   # cannot be stamped, neither is, and the login proceeds as a default
   # session: a Rack session that outlived its row's inactivity deadline would
   # only be refused, so stamping one without the other buys nothing.
+  #
+  # The UPDATE runs in its own savepoint. It executes inside Rodauth's login
+  # (or second-factor) transaction, and on PostgreSQL a failed statement
+  # aborts the whole transaction: rescuing the error would leave the login
+  # to roll back its own active-session row, or fail on the audit insert
+  # that follows. The savepoint confines a failure to the stamp.
   module RememberMe
     # Rack session key for the choice held across the second factor.
     PENDING_KEY = 'remember_me_pending'
@@ -88,9 +94,11 @@ module Auth::Config::Features
           join_key = session['active_session_id_hmac']
           return true unless Onetime.auth_config.active_sessions_enabled? && !join_key.to_s.empty?
 
-          updated = db[Onetime::ActiveSessionGate::TABLE]
-            .where(account_id: account_id, session_id: join_key)
-            .update(remember_until: Sequel.date_add(Sequel::CURRENT_TIMESTAMP, seconds: Onetime::RememberMe::DURATION))
+          updated = db.transaction(savepoint: true) do
+            db[Onetime::ActiveSessionGate::TABLE]
+              .where(account_id: account_id, session_id: join_key)
+              .update(remember_until: Sequel.date_add(Sequel::CURRENT_TIMESTAMP, seconds: Onetime::RememberMe::DURATION))
+          end
           return true if updated == 1
 
           OT.lw "[remember_me] no active-session row to stamp; session not remembered (account_id=#{account_id})"

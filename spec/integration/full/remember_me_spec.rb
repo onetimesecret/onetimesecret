@@ -117,6 +117,28 @@ RSpec.describe 'Remember me: a fixed 14-day session (full mode)', type: :integra
       expect(account_request).to eq(401)
     end
 
+    # The stamp runs inside Rodauth's login transaction. A failing statement
+    # there must cost only the stamp: on PostgreSQL an unconfined failure
+    # aborts the transaction and takes the active-session row with it. Runs
+    # on PostgreSQL in the full-pg-agnostic lane.
+    it 'falls back to a default session when the row stamp fails', :aggregate_failures do
+      # The stamp's value becomes a column that does not exist, so the
+      # database itself rejects the UPDATE (and PostgreSQL aborts the
+      # enclosing transaction, as it would on a timeout or a lock error).
+      allow(Sequel).to receive(:date_add).and_call_original
+      allow(Sequel).to receive(:date_add)
+        .with(Sequel::CURRENT_TIMESTAMP, seconds: duration)
+        .and_return(Sequel.lit('remember_me_spec_no_such_column'))
+
+      login!('remember-me' => true)
+
+      expect(session_blob).not_to have_key('remember_until')
+      expect(current_row).not_to be_nil
+      expect(current_row[:remember_until]).to be_nil
+      expect(account_request).to eq(200)
+      expect(blob_ttl).to be_between(1, 86_400)
+    end
+
     it 'ends at logout like any other session', :aggregate_failures do
       login!('remember-me' => true)
       post_json '/auth/logout', {}
