@@ -26,7 +26,7 @@ Changed
 -------
 
 - When org-level SSO is enabled and a platform provider's environment
-  variables are present but unusable (Auth0, Apple, SAML), the tenant
+  variables are present but unusable (Apple, SAML), the tenant
   placeholder route is now registered as if the variables were absent,
   instead of no route at all; the platform button stays hidden. A
   platform-side typo can no longer remove the route that per-domain SSO

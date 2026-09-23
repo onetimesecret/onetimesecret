@@ -49,8 +49,8 @@
 #                     sso_providers / CSP origins)
 #   vars_valid:       OPTIONAL zero-arg callable returning a boolean, checked
 #                     after required_vars by AuthConfig#provider_active?. For
-#                     a constraint presence cannot express — Auth0's
-#                     AUTH0_DOMAIN must carry a scheme. Needed only by a
+#                     a constraint presence cannot express — e.g. a URL
+#                     variable that must carry a scheme. Needed only by a
 #                     definition whose strategy_options can RAISE, since
 #                     configure_provider skips such a provider and the
 #                     advertised set must not then disagree with the
@@ -111,7 +111,6 @@ require_relative 'entra'
 require_relative 'google'
 require_relative 'github'
 require_relative 'apple'
-require_relative 'auth0'
 require_relative 'saml'
 
 module Onetime
@@ -127,7 +126,6 @@ module Onetime
         # per deployment; only definitions whose required_vars are all present
         # reach the login page at all, so an unconfigured entry costs nothing.
         Apple::DEFINITION,
-        Auth0::DEFINITION,
         # SAML 2.0 (#4450). The one definition whose strategy is an in-repo
         # subclass rather than a gem's own class — see saml.rb and
         # request_bound_saml.rb — and the one issuer-capable definition that

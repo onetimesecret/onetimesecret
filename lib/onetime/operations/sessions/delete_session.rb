@@ -75,7 +75,7 @@ module Onetime
           end
 
           # Same mutation the CLI performed inline, preserved verbatim.
-          db.del(key)
+          Store.destroy_blob(db, key)
 
           # The sid's per-value sidecar keys (Onetime::SessionSidecar) go with
           # the blob — an exact O(registry) DEL by name, format-gated inside

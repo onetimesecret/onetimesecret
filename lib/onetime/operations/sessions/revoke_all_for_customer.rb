@@ -283,9 +283,17 @@ module Onetime
         def purge_tracked(db, tracked)
           tracked.count do |sid|
             key = Store.find_key(db, sid)
-            next false unless key
+            unless key
+              # No live blob today, but the operator still intends the sid dead:
+              # an in-flight request that loaded the blob earlier can re-SET it
+              # under the same id. Set the ended-marker so the writer's post-SET
+              # {Onetime::SessionEnded.ended?} check takes that copy back out
+              # (RISK-2026-09-19-01).
+              Onetime::SessionEnded.mark(sid, dbclient: db)
+              next false
+            end
 
-            db.del(key)
+            Store.destroy_blob(db, key)
             # A revoked sid's per-value sidecar keys must die with the blob —
             # exact registry-derived names, format-gated (legacy non-hex ids
             # no-op).
@@ -323,7 +331,7 @@ module Onetime
             next unless data.is_a?(Hash)
             next unless IDENTITY_FIELDS.any? { |f| data[f].to_s == extid }
 
-            db.del(key)
+            Store.destroy_blob(db, key)
             # Untracked (pre-sidecar-index) sessions can still own per-value
             # sidecar keys; those must not survive the blob either.
             Onetime::SessionSidecar.purge(sid, dbclient: db)

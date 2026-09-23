@@ -25,6 +25,9 @@
 #   deletion; fast path returns the same object), merge overlays absent fields
 #   but the BLOB copy wins on conflict (a stale sidecar value must never be
 #   laundered back to freshness; the next commit heals the sidecar)
+# - counter policy (ADR-046 snapshot_version): generic API refusal, TIME
+#   seeding as an integer string, atomic INCR, TTL set and refreshed, reseeding
+#   above the lost key's versions, purge, allocation failure raising
 #
 # Run: try --agent try/unit/session/sidecar_try.rb
 
@@ -33,7 +36,6 @@ require_relative '../../support/test_helpers'
 OT.boot! :test
 
 require 'securerandom'
-require 'thread'
 require 'onetime/session/sidecar'
 
 SC = Onetime::SessionSidecar
@@ -500,6 +502,127 @@ SC.write(@sid, 'elevated_until', @elev, codec: @codec)
 DB.set("sidecar:#{@sid2}:elevated_until", DB.get("sidecar:#{@sid}:elevated_until"))
 SC.read(@sid2, 'elevated_until', codec: @codec)
 #=> nil
+
+# ---- snapshot_version: the ADR-046 counter policy -------------------------
+
+## the field is registered as a COUNTER: a bare integer, never an envelope,
+## never encrypted, merged, externalized, or warned about on destroy
+SC::FIELDS['snapshot_version'].values_at(:counter, :encrypted, :merge_on_read, :externalize, :destroy_warn)
+#=> [true, false, false, false, false]
+
+## the generic envelope API refuses a counter field: an envelope write would
+## make every later INCR fail, and an envelope read of an integer returns nil
+%i[write read consume].map do |verb|
+  args = verb == :write ? [@sid, 'snapshot_version', 1] : [@sid, 'snapshot_version']
+  SC.public_send(verb, *args)
+  :no_error
+rescue ArgumentError => ex
+  ex.message.include?('allocate_counter') ? :refused : :other
+end
+#=> [:refused, :refused, :refused]
+
+## ...and the refusal wrote nothing
+DB.exists("sidecar:#{@sid}:snapshot_version")
+#=> 0
+
+## allocate_counter is for counter fields only
+SC.allocate_counter(@sid, 'awaiting_mfa', ttl: 60)
+#=!> ArgumentError
+
+## an unregistered field is still rejected by the registry gate
+SC.allocate_counter(@sid, 'unregistered_field', ttl: 60)
+#=!> ArgumentError
+
+## a sid that fails the format guard RAISES: allocation never answers nil the
+## way the generic API does, so an unversioned payload is never labelled ordered
+SC.allocate_counter('not-a-sid', 'snapshot_version', ttl: 60)
+#=!> Onetime::SessionSidecar::CounterAllocationError
+
+## ...and creates no key
+DB.keys('sidecar:not-a-sid:*')
+#=> []
+
+## a Redis failure propagates to the caller, which owns the rescue
+@down = Object.new
+def @down.eval(*, **) = raise(Redis::CannotConnectError, 'down')
+SC.allocate_counter(@sid, 'snapshot_version', ttl: 60, dbclient: @down)
+#=!> Redis::CannotConnectError
+
+## SEEDING: the first allocation seeds from Redis TIME as integer
+## microseconds, returned as a canonical decimal STRING (never a number, never
+## Lua's exponent form)
+@t0 = DB.time.then { |sec, usec| (sec * 1_000_000) + usec }
+@v1 = SC.allocate_counter(@sid, 'snapshot_version', ttl: 600)
+@t1 = DB.time.then { |sec, usec| (sec * 1_000_000) + usec }
+[@v1.class, @v1.match?(/\A[1-9][0-9]*\z/), @v1.to_i.between?(@t0, @t1)]
+#=> [String, true, true]
+
+## the key holds the same bare integer string the caller was given
+DB.get("sidecar:#{@sid}:snapshot_version")
+#=> @v1
+
+## a zero-padded microsecond part keeps the seed at integer-microsecond width
+## (sec .. usec without padding would be up to 5 digits short)
+@v1.length
+#=> @t1.to_s.length
+
+## INCR: within one key lifetime order comes from INCR alone, one step each
+@v2 = SC.allocate_counter(@sid, 'snapshot_version', ttl: 600)
+@v3 = SC.allocate_counter(@sid, 'snapshot_version', ttl: 600)
+[@v2.to_i - @v1.to_i, @v3.to_i - @v2.to_i]
+#=> [1, 1]
+
+## ATOMIC across workers: concurrent allocations never issue the same version
+@concurrent = Array.new(8) do
+  Thread.new { Array.new(25) { SC.allocate_counter(@sid, 'snapshot_version', ttl: 600, dbclient: Familia.create_dbclient) } }
+end.flat_map(&:value)
+[@concurrent.size, @concurrent.uniq.size, @concurrent.map(&:to_i).min > @v3.to_i]
+#=> [200, 200, true]
+
+## TTL: set on the seed and REFRESHED on every allocation, to the session's
+## authoritative lifetime handed in by the caller, not the blob's remaining TTL
+DB.set(@blob_key, 'x', ex: 30)
+DB.expire("sidecar:#{@sid}:snapshot_version", 5)
+SC.allocate_counter(@sid, 'snapshot_version', ttl: 600)
+DB.ttl("sidecar:#{@sid}:snapshot_version").between?(590, 600)
+#=> true
+
+## with no ttl given it falls back to the configured session lifetime
+SC.allocate_counter(@sid2, 'snapshot_version')
+DB.ttl("sidecar:#{@sid2}:snapshot_version").between?(1, Onetime.session_config['expire_after'].to_i)
+#=> true
+
+## RESEEDING after key loss (expiry, eviction, purge inside a live session):
+## the recreated counter starts ABOVE every version the lost key issued, so
+## the loss is invisible to a client holding the old watermark
+@before_loss = SC.allocate_counter(@sid, 'snapshot_version', ttl: 600)
+DB.del("sidecar:#{@sid}:snapshot_version")
+@after_loss = SC.allocate_counter(@sid, 'snapshot_version', ttl: 600)
+@after_loss.to_i > @before_loss.to_i
+#=> true
+
+## a version far beyond 2^53 survives as an exact decimal string: the reply is
+## the stored string, not a number that passed through a Lua double
+DB.set("sidecar:#{@sid}:snapshot_version", '9007199254740993')
+SC.allocate_counter(@sid, 'snapshot_version', ttl: 600)
+#=> '9007199254740994'
+
+## PURGE covers the counter by exact name, like every registry field
+SC.purge(@sid)
+DB.exists("sidecar:#{@sid}:snapshot_version")
+#=> 0
+
+## the counter is a distinct stream per session id
+SC.key_for(@sid, 'snapshot_version') == SC.key_for(@sid2, 'snapshot_version')
+#=> false
+
+## merge and commit never touch it: it is not part of the session hash
+DB.set(@blob_key, 'x', ex: 600)
+SC.allocate_counter(@sid, 'snapshot_version', ttl: 600)
+[SC.merge(@sid, { 'account_id' => 7 }, codec: @codec)[:data].key?('snapshot_version'),
+ SC.commit(@sid, { 'account_id' => 7 }, codec: @codec),
+ SC.inflight_fields(@sid, codec: @codec).include?('snapshot_version')]
+#=> [false, { 'account_id' => 7 }, false]
 
 # Cleanup
 DB.del(@blob_key)

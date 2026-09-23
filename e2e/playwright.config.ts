@@ -8,6 +8,26 @@ import { fileURLToPath } from 'node:url';
 // Default local server URL (Ruby backend with built assets)
 const DEFAULT_LOCAL_URL = 'http://localhost:7143';
 
+// Hosts that resolve to this machine: loopback, *.localhost, and the local
+// Caddy dev host. A server there was started from a developer's shell, so it
+// may carry DIAGNOSTICS_ENABLED=true and a real SENTRY_DSN.
+const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]', 'dev.onetime.dev']);
+function isLocalUrl(url: string): boolean {
+  try {
+    const { hostname } = new URL(url);
+    return LOCAL_HOSTNAMES.has(hostname) || hostname.endsWith('.localhost');
+  } catch {
+    return false;
+  }
+}
+
+// The diagnostics guard runs for every local target: the server Playwright
+// spawns or reuses (no PLAYWRIGHT_BASE_URL) and a local server named by
+// PLAYWRIGHT_BASE_URL. Remote targets (staging, smoke) may run with
+// diagnostics on legitimately, so they are not checked.
+const guardDiagnostics =
+  !process.env.PLAYWRIGHT_BASE_URL || isLocalUrl(process.env.PLAYWRIGHT_BASE_URL);
+
 // Directory containing this config file. package.json is `"type": "module"`,
 // so the config loads as ESM and `__dirname` is unavailable.
 const CONFIG_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -339,6 +359,11 @@ export default defineConfig({
   /* Output directory for test artifacts */
   outputDir: 'test-results/',
 
+  /* Local targets only: fail fast when the local server (spawned, reused,
+   * or named by PLAYWRIGHT_BASE_URL) has diagnostics on. See
+   * support/diagnostics-guard.ts. */
+  globalSetup: guardDiagnostics ? './support/diagnostics-guard.ts' : undefined,
+
   /* Auto-start Ruby server when no external URL is provided.
    * Requires `pnpm run build` first to generate frontend assets.
    * Set PLAYWRIGHT_BASE_URL to skip auto-start and test against external server. */
@@ -347,6 +372,17 @@ export default defineConfig({
     : {
         command: 'RACK_ENV=production bin/ots server',
         cwd: '../', // Project root relative to this config
+        /* The server inherits this shell's environment, and a developer's
+         * shell exports DIAGNOSTICS_ENABLED=true with a real SENTRY_DSN for
+         * their dev server. The e2e run provokes errors on purpose; without
+         * this they were reported to the production Sentry project. Playwright
+         * merges `env` over process.env, so this wins over the shell.
+         * E2E_DIAGNOSTICS_ENABLED=true opts back in (e.g. to test the Sentry
+         * wiring itself against a scratch project). A REUSED server never sees
+         * this block; globalSetup (support/diagnostics-guard.ts) covers it. */
+        env: {
+          DIAGNOSTICS_ENABLED: process.env.E2E_DIAGNOSTICS_ENABLED === 'true' ? 'true' : 'false',
+        },
         url: DEFAULT_LOCAL_URL,
         reuseExistingServer: !process.env.CI,
         timeout: 30000,

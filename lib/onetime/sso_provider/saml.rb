@@ -12,7 +12,7 @@
 # (the registry is read by AuthConfig in processes that never load them).
 #
 # ISSUER-CAPABLE, BUT NOT THROUGH AN `issuer:` OPTION — and that is the one
-# pattern from apple.rb / auth0.rb this file must NEVER copy. In ruby-saml,
+# pattern from apple.rb this file must NEVER copy. In ruby-saml,
 # `issuer` is a deprecated alias for OUR OWN SP EntityID (settings.rb:121-122,
 # `sp_entity_id = @sp_entity_id || @issuer`). resolve_issuer precedence #1
 # reads strategy option :issuer, so declaring one here would key every SAML
@@ -57,7 +57,7 @@
 # issue text asks for a boot failure. configure_provider is deliberately built
 # never to kill boot (features/omniauth.rb: an exception inside Rodauth
 # configuration takes password, MFA and magic-link sign-in down with it), so
-# SAML follows the Auth0 contract instead: strategy_options raises with a
+# SAML follows the skip contract instead: strategy_options raises with a
 # message naming the variable, configure_provider logs it and registers no
 # route, and :vars_valid keeps the login button from being advertised.
 #
@@ -238,7 +238,7 @@ module Onetime
         options
       end
 
-      # https only. Unlike OIDC_ISSUER / AUTH0_DOMAIN there is no http
+      # https only. Unlike OIDC_ISSUER there is no http
       # allowance: the signed assertion travels through the user's browser
       # from this origin, and an http origin lets a network attacker replace
       # the login page that collects the IdP credentials.
@@ -470,7 +470,7 @@ module Onetime
       end
 
       # Are the SAML_* vars not just SET but USABLE? The :vars_valid predicate
-      # (see auth0.rb domain_usable? for why the advertised and registered
+      # (see the registry header for why the advertised and registered
       # provider sets need one shared answer). Runs per request on the
       # serializer and HttpOrigin paths; one X.509 parse, no I/O.
       #

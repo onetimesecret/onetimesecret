@@ -8,6 +8,7 @@
   import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
+  import { useUnsavedInputGuard } from '@/shared/composables/useUnsavedInputGuard';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
   import {
@@ -134,6 +135,13 @@
 
   // Compute whether the form has content or not
   const hasContent = computed(() => !!form.secret && (form.secret as string).trim().length > 0);
+
+  // Unsubmitted secret content: ask before the page unloads (reload, tab
+  // close, hard navigation, or a forced page load, ADR-046). The listener
+  // exists only while there is content; operations.reset() on success removes
+  // it before the receipt navigation. The draft is never written to browser
+  // storage.
+  useUnsavedInputGuard(hasContent);
 
   // Form submission handlers
   const handleSubmit = () => {

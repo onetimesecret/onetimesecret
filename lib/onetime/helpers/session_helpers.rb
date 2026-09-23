@@ -67,7 +67,10 @@ module Onetime
       # exempts from revocation forever.
 
       def logout!
-        session_id = session.id&.private_id if session.respond_to?(:id)
+        # The handle, not an id: it is the identifier every other session log
+        # line and the colonel session view carry, and it cannot be replayed
+        # as the cookie (#4461). Taken before the clear below.
+        handle = Onetime::SessionMetadata.handle_for(session.id&.public_id) if session.respond_to?(:id)
 
         # Close the impersonation FIRST. session.clear would take the marker
         # with it and leave the audit trail holding a start with no end.
@@ -76,9 +79,22 @@ module Onetime
           ended_by: Onetime::SessionImpersonation::ENDED_BY_LOGOUT,
         )
 
+        # The row before the blob: a concurrent request can write the blob
+        # back, and only the missing row makes that copy refusable.
+        Onetime::ActiveSessionGate.end_session(session, env: rack_env_for_impersonation)
+
         session.clear
+
+        # Renew the id, as Web Core's #logout does. The store then deletes the
+        # old blob and sets its ended-marker (Onetime::SessionEnded), so a
+        # request still in flight under the old id cannot write the session
+        # back (RISK-2026-09-19-01). Clearing alone leaves the id live, and a
+        # live id cannot carry a marker: its own next write would be refused.
+        options         = rack_env_for_impersonation&.[]('rack.session.options')
+        options[:renew] = true if options.respond_to?(:[]=)
+
         forget_customer_session_verdict
-        OT.info "[logout] Session #{session_id} destroyed" if session_id
+        OT.info "[logout] Session destroyed (session_handle=#{handle})" if handle
       end
 
       private
@@ -94,7 +110,7 @@ module Onetime
         @customer_session_verdict = nil
         env                       = rack_env_for_impersonation
         Onetime::CustomerSessionEvaluator.forget(env)
-        env&.delete(Onetime::ActiveSessionGate::ENV_KEY)
+        Onetime::ActiveSessionGate.forget(env)
       end
 
       def load_current_customer

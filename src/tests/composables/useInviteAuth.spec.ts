@@ -51,8 +51,9 @@ describe('useInviteAuth', () => {
     bootstrapStore = useBootstrapStore();
     _csrfStore = useCsrfStore();
 
-    // Stub bootstrap refresh to resolve immediately (CSRF refresh)
-    vi.spyOn(bootstrapStore, 'refresh').mockResolvedValue(undefined as any);
+    // Stub the refresh coordinator (CSRF refresh, and the auth-mutation
+    // refresh after an MFA-required login). It never throws; it reports.
+    vi.spyOn(authStore, 'refresh').mockResolvedValue('applied');
   });
 
   afterEach(() => {
@@ -109,7 +110,7 @@ describe('useInviteAuth', () => {
     it('returns success when server accepts the signup', async () => {
       axiosMock.onPost('/api/invite/invite-token-abc123/signup').reply(200, {});
       // Mock setAuthenticated to avoid the real implementation side-effects
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite } = useInviteAuth();
       const result = await signupForInvite(
@@ -128,7 +129,7 @@ describe('useInviteAuth', () => {
     // screen renders, and the user's manual click then 404s.
     it('does NOT POST /api/invite/:token/accept after signup', async () => {
       axiosMock.onPost('/api/invite/no-chain-token/signup').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite } = useInviteAuth();
       const result = await signupForInvite('u@e.com', 'pw12345678', true, 'no-chain-token');
@@ -142,7 +143,7 @@ describe('useInviteAuth', () => {
 
     it('calls setAuthenticated(true) on success', async () => {
       axiosMock.onPost('/api/invite/tok123/signup').reply(200, {});
-      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite } = useInviteAuth();
       await signupForInvite('user@example.com', 'pw12345678', true, 'tok123');
@@ -158,6 +159,7 @@ describe('useInviteAuth', () => {
       vi.spyOn(authStore, 'setAuthenticated').mockImplementation(async () => {
         await new Promise((resolve) => setTimeout(resolve, 5000));
         setAuthResolved = true;
+        return 'applied';
       });
 
       const { signupForInvite } = useInviteAuth();
@@ -170,7 +172,7 @@ describe('useInviteAuth', () => {
 
     it('sends password, agree, shrimp in the POST body (not email)', async () => {
       axiosMock.onPost('/api/invite/tok-abc/signup').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite } = useInviteAuth();
       // Note: email and skill params are ignored by the new endpoint
@@ -191,12 +193,13 @@ describe('useInviteAuth', () => {
 
     it('refreshes CSRF before posting', async () => {
       axiosMock.onPost('/api/invite/tok/signup').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite } = useInviteAuth();
       await signupForInvite('u@e.com', 'pw12345678', true, 'tok');
 
-      expect(bootstrapStore.refresh).toHaveBeenCalledOnce();
+      expect(authStore.refresh).toHaveBeenCalledOnce();
+      expect(authStore.refresh).toHaveBeenCalledWith({ kind: 'ordinary', reason: 'csrf' });
     });
 
     it('returns error when server responds with error field', async () => {
@@ -297,7 +300,7 @@ describe('useInviteAuth', () => {
       axiosMock.onPost('/api/invite/tok/signup').reply(200, {
         error: 'Unable to create account',
       });
-      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite } = useInviteAuth();
       await signupForInvite('u@e.com', 'pw12345678', true, 'tok');
@@ -318,7 +321,7 @@ describe('useInviteAuth', () => {
 
     it('sets isLoading during the request and clears it after', async () => {
       axiosMock.onPost('/api/invite/tok/signup').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite, isLoading } = useInviteAuth();
 
@@ -340,9 +343,9 @@ describe('useInviteAuth', () => {
     });
 
     it('proceeds even if CSRF refresh fails', async () => {
-      vi.spyOn(bootstrapStore, 'refresh').mockRejectedValue(new Error('CSRF fail'));
+      vi.spyOn(authStore, 'refresh').mockResolvedValue('failed');
       axiosMock.onPost('/api/invite/tok/signup').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { signupForInvite } = useInviteAuth();
       const result = await signupForInvite('u@e.com', 'pw12345678', true, 'tok');
@@ -380,7 +383,7 @@ describe('useInviteAuth', () => {
   describe('loginForInvite', () => {
     it('returns success when server accepts the login', async () => {
       axiosMock.onPost('/auth/login').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { loginForInvite } = useInviteAuth();
       const result = await loginForInvite('user@example.com', 'pw12345678', 'tok-abc');
@@ -393,7 +396,7 @@ describe('useInviteAuth', () => {
     // user's explicit click on the AcceptInvite view.
     it('does NOT POST /api/invite/:token/accept after login', async () => {
       axiosMock.onPost('/auth/login').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { loginForInvite } = useInviteAuth();
       const result = await loginForInvite('u@e.com', 'pw12345678', 'no-chain-login');
@@ -407,7 +410,7 @@ describe('useInviteAuth', () => {
 
     it('calls setAuthenticated(true) on success', async () => {
       axiosMock.onPost('/auth/login').reply(200, {});
-      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { loginForInvite } = useInviteAuth();
       await loginForInvite('u@e.com', 'pw12345678', 'tok');
@@ -422,6 +425,7 @@ describe('useInviteAuth', () => {
       vi.spyOn(authStore, 'setAuthenticated').mockImplementation(async () => {
         await new Promise((resolve) => setTimeout(resolve, 5000));
         setAuthResolved = true;
+        return 'applied';
       });
 
       const { loginForInvite } = useInviteAuth();
@@ -433,7 +437,7 @@ describe('useInviteAuth', () => {
 
     it('sends invite_token in the POST body', async () => {
       axiosMock.onPost('/auth/login').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { loginForInvite } = useInviteAuth();
       await loginForInvite('user@example.com', 'pw12345678', 'tok-xyz');
@@ -449,6 +453,11 @@ describe('useInviteAuth', () => {
 
     it('returns MFA required when server indicates mfa_required', async () => {
       axiosMock.onPost('/auth/login').reply(200, { mfa_required: true });
+      // ADR-046#auth-completion-caller-contract: ensureMfaPending gates on authStatus ===
+      // 'mfa_pending'. authStore.refresh is stubbed at the store boundary (beforeEach), so
+      // the real applySnapshot never runs; mark the bootstrap store's status
+      // by hand as if the coordinator had committed an mfa_pending snapshot.
+      bootstrapStore.authStatus = 'mfa_pending';
 
       const { loginForInvite } = useInviteAuth();
       const result = await loginForInvite('u@e.com', 'pw12345678', 'tok-abc');
@@ -460,22 +469,23 @@ describe('useInviteAuth', () => {
       });
     });
 
-    it('updates bootstrapStore for MFA flow', async () => {
+    it('asks the server for the MFA-pending state instead of patching it (#4458)', async () => {
       axiosMock.onPost('/auth/login').reply(200, { mfa_required: true });
+      // See sibling test for the manual authStatus advance rationale (#4497).
+      bootstrapStore.authStatus = 'mfa_pending';
       const updateSpy = vi.spyOn(bootstrapStore, 'update');
 
       const { loginForInvite } = useInviteAuth();
-      await loginForInvite('u@e.com', 'pw12345678', 'tok');
+      const result = await loginForInvite('u@e.com', 'pw12345678', 'tok');
 
-      expect(updateSpy).toHaveBeenCalledWith({
-        awaiting_mfa: true,
-        authenticated: false,
-      });
+      expect(result.requiresMfa).toBe(true);
+      expect(authStore.refresh).toHaveBeenCalledWith({ kind: 'auth-mutation', reason: 'login' });
+      expect(updateSpy).not.toHaveBeenCalled();
     });
 
     it('does not call setAuthenticated when MFA is required', async () => {
       axiosMock.onPost('/auth/login').reply(200, { mfa_required: true });
-      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      const spy = vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { loginForInvite } = useInviteAuth();
       await loginForInvite('u@e.com', 'pw12345678', 'tok');
@@ -509,7 +519,7 @@ describe('useInviteAuth', () => {
 
     it('sets and clears isLoading', async () => {
       axiosMock.onPost('/auth/login').reply(200, {});
-      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue(undefined);
+      vi.spyOn(authStore, 'setAuthenticated').mockResolvedValue('applied');
 
       const { loginForInvite, isLoading } = useInviteAuth();
 

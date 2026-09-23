@@ -601,9 +601,9 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
     #   issuerless (google, github) resolve to the ''
     #     sentinel and are refused on the tenant surface by
     #     refuse_issuerless_on_tenant?.
-    #   issuer-capable but NOT tenant-distinct (apple, auth0) carry a
-    #     DEPLOYMENT CONSTANT — Apple's is the single global
-    #     https://appleid.apple.com, Auth0's is pinned from one env var. A
+    #   issuer-capable but NOT tenant-distinct (apple) carries a
+    #     DEPLOYMENT CONSTANT — the single global
+    #     https://appleid.apple.com. A
     #     non-empty resolved issuer is exactly what disables that refusal, so
     #     the second group is held off the tenant surface only by its absence
     #     from PROVIDER_ROUTE_MAP.
@@ -615,7 +615,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
     # edit and points at the work it requires first.
     it 'admits no provider whose issuer is not tenant-distinct' do
       tenant_routes  = described_class::PROVIDER_ROUTE_MAP.values.map { |entry| entry[:default] }
-      not_distinct   = %w[google github apple auth0]
+      not_distinct   = %w[google github apple]
       wrongly_tenant = tenant_routes & not_distinct
 
       expect(wrongly_tenant).to be_empty,

@@ -1527,7 +1527,6 @@ describe('features utility', () => {
         expect(providerLabel('github')).toBe('GitHub');
         expect(providerLabel('google')).toBe('Google');
         expect(providerLabel('apple')).toBe('Apple');
-        expect(providerLabel('auth0')).toBe('Auth0');
         expect(providerLabel('saml')).toBe('SAML');
       });
 

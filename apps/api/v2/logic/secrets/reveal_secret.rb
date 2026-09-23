@@ -242,7 +242,7 @@ module V2::Logic
             {
               secret_identifier: secret.shortid,
               user_id: cust&.extid,
-              session_id: safe_session_id&.public_id,
+              session_handle: session_log_handle,
               action: 'reveal',
               result: :passphrase_failed,
               attempt_count: attempt_count,

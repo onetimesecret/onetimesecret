@@ -862,8 +862,8 @@ module Onetime
     #
     # required_vars is a presence check and nothing more. A definition may
     # also carry :vars_valid — a zero-arg callable for a constraint presence
-    # cannot express — and Auth0 does: AUTH0_DOMAIN must include the scheme,
-    # because the CSP form-action origin is derived from it. SAML does too
+    # cannot express, such as a URL variable that must include the scheme
+    # because the CSP form-action origin is derived from it. SAML does
     # (#4450): an https SSO service URL, a non-blank EntityID, and exactly one
     # unexpired PEM certificate — a SAML route with no usable trust anchor is
     # never registered, so it must never be advertised or have its IdP origin

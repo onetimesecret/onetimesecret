@@ -76,6 +76,31 @@ describe('noteAdminSessionExpiry', () => {
     expect(adminSessionExpired.value).toBe(false);
   });
 
+  // #4462/#4460: the stable code is the contract. On a chained route Otto
+  // renders the LAST strategy's message, so the marker may not be there at all.
+  it('recognises the stable code whatever the message says', () => {
+    const error = axiosError(401, {
+      error: 'Authentication Required',
+      message: '[AUTH_HEADER_MISSING] No authorization header',
+      code: 'admin_session_expired',
+      code_scope: 'admin_session',
+    });
+
+    expect(noteAdminSessionExpiry(error)).toBe(true);
+    expect(adminSessionExpired.value).toBe(true);
+  });
+
+  it('a coded 401 is decided by its code alone: a customer-session refusal is not an admin expiry', () => {
+    const error = axiosError(401, {
+      ...expiredBody,
+      code: 'active_session_revoked',
+      code_scope: 'customer_session',
+    });
+
+    expect(noteAdminSessionExpiry(error)).toBe(false);
+    expect(adminSessionExpired.value).toBe(false);
+  });
+
   it('ignores a network error with no response', () => {
     expect(noteAdminSessionExpiry(new Error('Network Error'))).toBe(false);
     expect(noteAdminSessionExpiry(null)).toBe(false);

@@ -133,6 +133,9 @@ describe('CSRF Store', () => {
     });
 
     it('does NOT sync when store is not initialized', async () => {
+      // Only reachable without the auto-init plugin, which runs init() on
+      // creation in the app.
+      await setupTestPinia({ autoInit: false });
       const bootstrapStore = useBootstrapStore();
       bootstrapStore.update({ shrimp: 'initial-token' });
 

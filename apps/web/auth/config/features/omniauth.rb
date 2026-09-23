@@ -4,7 +4,7 @@
 
 #
 # SSO via external identity providers (OIDC, Entra ID, Google, GitHub, Apple,
-# Auth0, SAML).
+# SAML).
 #
 # Registers OmniAuth strategies at boot. When platform env vars are present,
 # strategies use real credentials. When org-level SSO is enabled
@@ -593,7 +593,7 @@ module Auth::Config::Features
     #   - vars missing, org SSO on   -> register with placeholder credentials
     #     (the OmniAuthTenant hook injects tenant credentials at request time)
     #   - vars missing, org SSO off  -> log the missing vars and skip
-    # Plus one for a definition whose strategy_options RAISES (Auth0, SAML):
+    # Plus one for a definition whose strategy_options RAISES (SAML):
     #   - vars present but unusable  -> log the reason; placeholder when org
     #     SSO is on, otherwise skip (see the rescue below)
     def self.configure_provider(auth, defn)
@@ -630,9 +630,9 @@ module Auth::Config::Features
       OT.li "[OmniAuth] Configuring #{defn[:label]} provider '#{provider_name}' (#{display_name}), client_id: #{client_id_snippet}"
 
       # A definition may reject a value its required_vars check cannot express
-      # — Auth0 raises on a schemeless AUTH0_DOMAIN, because the CSP
-      # form-action origin is derived from that variable and a bare hostname
-      # would authenticate while silently contributing no origin.
+      # — e.g. raising on a schemeless URL variable, because the CSP
+      # form-action origin is derived from it and a bare hostname would
+      # authenticate while silently contributing no origin.
       #
       # SKIP THE PROVIDER, DO NOT KILL BOOT. This runs inside Rodauth
       # configuration, so an escaping exception fails the whole auth app: ALL

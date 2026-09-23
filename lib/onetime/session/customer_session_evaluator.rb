@@ -1,3 +1,5 @@
+# lib/onetime/session/customer_session_evaluator.rb
+#
 # frozen_string_literal: true
 
 require_relative 'active_session_gate'
@@ -103,7 +105,7 @@ module Onetime
     end
 
     def evaluate
-      return with_caller_boundary(@env[ENV_KEY]) if @env.is_a?(Hash) && @env.key?(ENV_KEY)
+      return from_memo if @env.is_a?(Hash) && @env.key?(ENV_KEY)
 
       verdict       = evaluate_uncached
       @env[ENV_KEY] = verdict if @env.is_a?(Hash)
@@ -111,6 +113,10 @@ module Onetime
     end
 
     private
+
+    def from_memo
+      with_caller_boundary(@env[ENV_KEY])
+    end
 
     # The memo is keyed by request, not by caller. A verdict cached by a caller
     # without +before_active+ (a public route, a view, a compatibility helper)

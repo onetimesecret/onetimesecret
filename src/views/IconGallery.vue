@@ -1,4 +1,5 @@
 <!-- src/views/IconGallery.vue -->
+
 <!--
   Developer tool: Icon gallery showing all available SVG sprite symbols.
   Not linked from main navigation - access directly at /icons
