@@ -207,6 +207,25 @@ tenant-eligible, because its issuer is the tenant's own IdP EntityID.
     pending id is refused (`saml_no_pending_request`). ruby-saml treats a
     nil `matches_request_id` as "do not check", so this binding is the whole
     of the login-CSRF control — SAML has no `state` parameter.
+    Only a POST carrying a `SAMLResponse` consumes the id: anything else
+    (a cross-site `<img>` GET, a HEAD, a bare POST) is refused
+    (`saml_response_missing`) with the pending id left in place, because
+    the SameSite=None cookie the POST binding needs means such a request
+    arrives with the user's session and would otherwise cancel their
+    in-flight sign-in.
+  - **Binding read from the signed assertion.** `matches_request_id` is
+    compared by ruby-saml against the UNSIGNED `Response/@InResponseTo`;
+    the signed assertion's `SubjectConfirmationData/@InResponseTo` is
+    checked only when present. A valid signed assertion whose confirmation
+    data omits it (IdP-initiated, or one an attacker obtained by starting
+    their own login) therefore passes the gem once rewrapped in a Response
+    naming the victim's pending id. After validation the strategy re-reads
+    the bearer `SubjectConfirmation` elements through ruby-saml's
+    signed-assertion accessor and requires EVERY one to carry
+    `InResponseTo` byte-equal to the pending id
+    (`saml_in_response_to_unbound`). IdPs that omit the attribute on
+    SP-initiated responses are refused by design; Okta, Entra ID and AD FS
+    always emit it.
   - **Signature algorithm allowlist.** ruby-saml verifies with whichever
     `SignatureMethod` / `DigestMethod` URI the response declares and maps
     any URI it does not recognise to SHA-1 (`xml_security.rb` `algorithm`),
@@ -262,15 +281,18 @@ tenant-eligible, because its issuer is the tenant's own IdP EntityID.
     refused (`saml_missing_uid`). Tenants have no `uid_attribute` setting —
     the tenant arm resets it to nil so a platform `SAML_UID_ATTRIBUTE` cannot
     leak into tenant logins.
-  - **Assertion replay.** `Onetime::Security::SamlAssertionReplayGuard`
+  - **Assertion replay and lifetime.** `Onetime::Security::SamlAssertionReplayGuard`
     claims `SET NX EX` on a digest of (EntityID, assertion id) with
-    TTL = `NotOnOrAfter` − now + clock drift, clamped to 1s..3600s
+    TTL = `NotOnOrAfter` − now + clock drift, floored at 1s
     (`saml_assertion_replayed`; `saml_assertion_unbounded` when the assertion
     has no ID or no `NotOnOrAfter`; `saml_replay_guard_unavailable` on any
-    datastore error). Accepted residual of the cap: an assertion whose
-    validity window exceeds one hour is replayable, as far as this control
-    is concerned, once its key expires; the InResponseTo binding still
-    applies to it.
+    datastore error). ruby-saml imposes no maximum `NotOnOrAfter`, so the
+    strategy does: an assertion valid for longer than
+    `MAX_LIFETIME` (3600s) + clock drift past now is refused
+    (`saml_assertion_lifetime_exceeded`) rather than remembered for a
+    clamped, shorter time — a marker that expires before the assertion
+    does is no marker. One hour admits the Entra ID / AD FS default (60
+    min) and Okta's (5 min).
   - **Scrubbed `extra`.** The gem's `extra` carries the live
     `response_object` — the settings (IdP cert, SP key if any) and the full
     response XML. The subclass replaces `extra` with scalars:

@@ -18,7 +18,15 @@
 #        generated, so there is nothing to pass. Every response is accepted
 #        as if unsolicited ("IdP-initiated SSO"), which lets an attacker
 #        deliver THEIR valid response to a victim's browser (login CSRF /
-#        session fixation into the attacker's account).
+#        session fixation into the attacker's account). And even with
+#        :matches_request_id, the gem compares it against the UNSIGNED
+#        Response/@InResponseTo (validate_in_response_to); the signed
+#        assertion's SubjectConfirmationData/@InResponseTo is checked only
+#        when present (validate_subject_confirmation). want_assertions_signed
+#        is the only signing requirement, so a valid signed assertion whose
+#        SubjectConfirmationData omits InResponseTo can be lifted into an
+#        attacker-built Response naming whatever request id the victim's
+#        session is waiting for.
 #     2. Issuer validation is skipped when settings.idp_entity_id is nil
 #        (ruby-saml response.rb validate_issuer), and audience validation is
 #        skipped when sp_entity_id is blank (validate_audience). The app keys
@@ -28,7 +36,8 @@
 #     3. A `transient` NameID is, by definition, a fresh random value per
 #        login. Used as the uid it mints a new account on every sign-in.
 #     4. Nothing stops a second presentation of the same assertion inside
-#        its validity window.
+#        its validity window, and nothing bounds that window
+#        (validate_conditions has no maximum NotOnOrAfter).
 #     5. The auth hash's `extra` carries the live ruby-saml Response object:
 #        the settings (SP private key when one is configured, IdP cert) and
 #        the full response XML. Anything that inspects, logs, marshals or
@@ -52,6 +61,15 @@
 # IdP-INITIATED SSO IS DELIBERATELY UNSUPPORTED. A callback with no pending
 # AuthnRequest id in the session is refused. That is the point of (1), not a
 # limitation to be worked around.
+#
+# THE REQUEST BINDING IS READ FROM THE SIGNED ASSERTION. The pending id must
+# appear as SubjectConfirmationData/@InResponseTo on every bearer
+# SubjectConfirmation of the assertion the signature covers — not merely as
+# the unsigned Response/@InResponseTo the gem checks. An IdP that omits it
+# for SP-initiated sign-in is refused BY DESIGN (:saml_in_response_to_unbound):
+# without it nothing signed ties the assertion to this login attempt. Okta,
+# Entra ID and AD FS always emit it. This closes the "SubjectConfirmationData
+# InResponseTo" design question that shipped open with #4450.
 #
 # EVERY GATE FAILS CLOSED. A blank option, an unreadable issuer, a missing
 # assertion id, a datastore error in the replay cache — each is a refusal,
@@ -85,6 +103,22 @@
 #   - response.rb:626-633 validate_in_response_to passes when
 #                     :matches_request_id is absent OR nil — so we refuse a
 #                     blank pending id ourselves before the gem ever runs.
+#                     It reads /p:Response/@InResponseTo, which no signature
+#                     covers when only the assertion is signed.
+#   - response.rb:791-826 validate_subject_confirmation accepts the FIRST
+#                     bearer SubjectConfirmation whose SubjectConfirmationData
+#                     passes, and treats an absent @InResponseTo as passing.
+#                     request_binding_refusal below re-reads the same nodes
+#                     through the PRIVATE xpath_from_signed_assertion
+#                     (:1018-1026, the exact helper the gem uses there) and
+#                     requires the attribute on every bearer confirmation.
+#   - response.rb:968-996 get_cached_signed_assertion returns the Assertion
+#                     from the referenced_xml of the validated signature
+#                     (ID-matched), or an EMPTY document when nothing signed
+#                     is found — so an empty read below is a refusal, never a
+#                     fall-through to the unsigned document.
+#   - response.rb:721-740 validate_conditions bounds NotBefore/NotOnOrAfter
+#                     against now only; there is no maximum lifetime.
 #   - response.rb:305-327 `issuers` returns the uniq'd Response + Assertion
 #                     Issuer strings and RAISES ValidationError when either
 #                     element is missing or repeated.
@@ -115,6 +149,15 @@
 #                     (saml.rb:284-293), which we wrap.
 #   - omniauth strategy.rb:504-506 callback_url appends the request's query
 #                     string; saml.rb:269 defaults the ACS URL to it.
+#   - omniauth strategy.rb callback_call runs callback_phase for ANY HTTP
+#                     method (allowed_request_methods gates the request phase
+#                     only), and saml.rb:63 raises "SAML response missing"
+#                     only after our callback_phase has run. The HTTP-POST
+#                     binding needs a SameSite=None session cookie, so a
+#                     cross-site <img> GET to the callback path arrives WITH
+#                     the session — callback_phase must not consume the
+#                     pending id for anything but a POST carrying a
+#                     SAMLResponse.
 #   - omniauth strategy.rb:138 instance options are DEEP-MERGED over class
 #                     defaults, so an empty Hash option cannot clear a
 #                     Hash-valued gem default (see
@@ -166,6 +209,10 @@ module OmniAuth
 
       DSIG_NS = 'http://www.w3.org/2000/09/xmldsig#'
 
+      SAML_ASSERTION_NS = 'urn:oasis:names:tc:SAML:2.0:assertion'
+
+      BEARER_METHOD = 'urn:oasis:names:tc:SAML:2.0:cm:bearer'
+
       # The only XML-DSig algorithms a response may be signed with. An
       # ALLOWLIST on the exact URI string, never a denylist and never the
       # class ruby-saml resolves it to: xml_security.rb `algorithm` maps every
@@ -213,6 +260,23 @@ module OmniAuth
       end
 
       def callback_phase
+        # Only a POST carrying a SAMLResponse is a callback at all. Anything
+        # else (a cross-site <img> GET, a HEAD, a bare POST) is refused
+        # WITHOUT touching the pending id: with the SameSite=None cookie the
+        # POST binding requires, such a request arrives with the victim's
+        # session, and consuming the id here would let any page the user
+        # visits mid-login cancel their sign-in (the IdP's real POST would
+        # then be refused as saml_no_pending_request).
+        posted = request.params['SAMLResponse']
+        unless request.post? && posted.is_a?(String) && !posted.empty?
+          return refuse!(
+            :saml_response_missing,
+            'SAML callback is not a POST carrying a SAMLResponse',
+            method: loggable(request.request_method),
+            has_saml_response: posted.is_a?(String) && !posted.empty?,
+          )
+        end
+
         # One-shot: consumed BEFORE anything is validated, so a response that
         # fails any later check still burns the pending id. `.to_s` because a
         # session store may hand back nil or (after a serializer round trip)
@@ -320,6 +384,7 @@ module OmniAuth
         end
 
         signature_algorithm_refusal(response) ||
+          request_binding_refusal(response) ||
           issuer_refusal(response) ||
           name_id_refusal(response) ||
           replay_refusal(response, opts)
@@ -381,6 +446,57 @@ module OmniAuth
           'SAML response uses a signature or digest algorithm that is not allowed',
           { kind: kind, algorithm: loggable(uri) },
         ]
+      end
+
+      # The pending AuthnRequest id must be written INTO THE SIGNED ASSERTION:
+      # SubjectConfirmationData/@InResponseTo, byte-equal to the id this
+      # session issued, on every bearer SubjectConfirmation. The gem has
+      # already matched the UNSIGNED Response/@InResponseTo; on its own that
+      # binds nothing, because an attacker who obtains any valid signed
+      # assertion for the victim's IdP (one whose SubjectConfirmationData
+      # carries no InResponseTo — an IdP-initiated or unclaimed one) can wrap
+      # it in a Response of their own naming the victim's pending id.
+      #
+      # Read through the gem's own signed-assertion accessor (private
+      # xpath_from_signed_assertion — the element the verified signature's
+      # Reference resolved to, ID-matched), never from response.document: the
+      # unsigned wrapper must not be able to supply the attribute. The same
+      # bearer/Method filter as validate_subject_confirmation, but EVERY
+      # bearer confirmation must be bound (the gem accepts the first that
+      # passes, so one bound and one unbound confirmation would pass it).
+      # An empty read — no signed assertion, no bearer confirmation — is a
+      # refusal.
+      #
+      # IdPs that omit SubjectConfirmationData/@InResponseTo on SP-initiated
+      # responses are refused by design (see the header).
+      def request_binding_refusal(response)
+        expected = @expected_request_id.to_s
+        return [:saml_in_response_to_unbound, 'No pending AuthnRequest id to bind', {}] if expected.empty?
+
+        bound   = 0
+        unbound = 0
+        response.send(:xpath_from_signed_assertion, '/a:Subject/a:SubjectConfirmation').each do |confirmation|
+          method = confirmation.attributes['Method']
+          next if !method.nil? && method != BEARER_METHOD
+
+          data  = REXML::XPath.first(confirmation, 'a:SubjectConfirmationData', 'a' => SAML_ASSERTION_NS)
+          value = data&.attributes&.[]('InResponseTo')
+          if value.is_a?(String) && value == expected
+            bound += 1
+          else
+            unbound += 1
+          end
+        end
+
+        return nil if bound.positive? && unbound.zero?
+
+        [
+          :saml_in_response_to_unbound,
+          'SAML assertion SubjectConfirmationData does not bind the pending AuthnRequest',
+          { bound_confirmations: bound, unbound_confirmations: unbound },
+        ]
+      rescue StandardError => ex
+        [:saml_in_response_to_unbound, 'SAML SubjectConfirmation could not be read', { error_class: ex.class.name }]
       end
 
       # Exactly one Issuer value across Response and Assertion, byte-equal to

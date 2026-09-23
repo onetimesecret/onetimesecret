@@ -295,5 +295,32 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
       expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
       expect(identity_rows.size).to eq(1)
     end
+
+    # The binding must be in the SIGNED assertion: a valid signed assertion
+    # whose SubjectConfirmationData carries no InResponseTo, rewrapped in a
+    # Response naming this session's pending request id, passes ruby-saml.
+    it 'refuses an unclaimed signed assertion rewrapped to name the pending request' do
+      sign_in(subject_confirmations: [nil])
+
+      expect_refused
+    end
+
+    # omniauth runs the callback phase for any method. A cross-site GET (an
+    # <img> on any page the user visits mid-login) must not consume the
+    # pending id, or the IdP's real POST is refused.
+    it 'does not let a GET to the callback path burn the pending request' do
+      created_emails << email
+      request = start_login
+
+      header 'Host', canonical_host
+      get '/auth/sso/saml/callback'
+      expect(last_response.status).to eq(302)
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+
+      post_callback(answer(request))
+
+      expect(last_response.headers['Location'].to_s).not_to include('auth_error')
+      expect(identity_rows.size).to eq(1)
+    end
   end
 end

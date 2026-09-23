@@ -141,8 +141,8 @@ falling back to any other issuer source. Admission carried preconditions a
 future proposal should expect to meet: an exactly pinned verifier gem with its
 advisory history recorded in the `Gemfile` and a `bundler-audit` job on every
 pull request; a subclass that owns every protocol-specific gate (request
-binding, issuer byte-equality, stable uid, single-use assertions, a scrubbed
-auth hash); tenant eligibility through `SsoConfig::PROVIDER_ROUTE_MAP` with
+binding read from the signed assertion, issuer byte-equality, stable uid,
+single-use assertions with a bounded lifetime, a scrubbed auth hash); tenant eligibility through `SsoConfig::PROVIDER_ROUTE_MAP` with
 the same hardened options as the platform definition; and operator
 documentation of what is deliberately unsupported (IdP-initiated sign-in,
 single logout). One departure from the proposal: missing or invalid platform

@@ -74,6 +74,9 @@ curl -s $OIDC_ISSUER/.well-known/openid-configuration | jq '.authorization_endpo
 | Other IdP failure | Redirected to `/signin?auth_error=sso_failed` |
 | SAML response with no pending sign-in (IdP-initiated, or the session cookie was withheld) | Redirected to `/signin?auth_error=sso_failed`; log shows `[saml_response_refused] reason=saml_no_pending_request` |
 | SAML response presented twice | Second presentation refused, `reason=saml_assertion_replayed` |
+| SAML assertion whose signed `SubjectConfirmationData` carries no `InResponseTo`, wrapped in a Response naming the pending request | Refused, `reason=saml_in_response_to_unbound` |
+| GET (or POST without `SAMLResponse`) to the SAML callback while a sign-in is pending | Refused, `reason=saml_response_missing`; the pending sign-in survives and the IdP's real POST still completes |
+| SAML assertion with `NotOnOrAfter` more than an hour out | Refused, `reason=saml_assertion_lifetime_exceeded` |
 
 ## Automated Tests
 

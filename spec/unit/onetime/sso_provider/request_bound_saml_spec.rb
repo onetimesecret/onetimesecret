@@ -447,10 +447,182 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         expect(reached_app).to be_empty
       end
 
-      it 'refuses a request with no SAMLResponse parameter' do
+      it 'refuses a request with no SAMLResponse parameter before the gem sees it' do
         Rack::MockRequest.new(app).post(acs_url)
 
+        expect(failure_types).to eq([:saml_response_missing])
+      end
+    end
+
+    # omniauth's callback_call runs callback_phase for ANY method, and the
+    # POST binding needs a SameSite=None cookie — so a cross-site <img> GET
+    # to the callback path arrives with the victim's session. Consuming the
+    # pending id there would let any page cancel an in-flight sign-in.
+    describe 'callback method gate' do
+      before { start_login }
+
+      it 'refuses a GET and leaves the pending id in place' do
+        pending_id = session[request_id_key]
+        response   = Rack::MockRequest.new(app).get("#{acs_url}?SAMLResponse=#{response_for(pending_id)}")
+
+        expect(response.status).to eq(401)
+        expect(failure_types).to eq([:saml_response_missing])
+        expect(session[request_id_key]).to eq(pending_id)
+        expect(reached_app).to be_empty
+        expect(auth_logger).to have_received(:warn).with(
+          '[saml_response_refused]',
+          hash_including(reason: 'saml_response_missing', method: 'GET', has_saml_response: true, phase: 'callback'),
+        )
+      end
+
+      it 'refuses a HEAD and leaves the pending id in place' do
+        pending_id = session[request_id_key]
+        Rack::MockRequest.new(app).head(acs_url)
+
+        expect(failure_types).to eq([:saml_response_missing])
+        expect(session[request_id_key]).to eq(pending_id)
+      end
+
+      it 'refuses a POST without a SAMLResponse and leaves the pending id in place' do
+        pending_id = session[request_id_key]
+        Rack::MockRequest.new(app).post(acs_url, params: { 'RelayState' => 'x' })
+
+        expect(failure_types).to eq([:saml_response_missing])
+        expect(session[request_id_key]).to eq(pending_id)
+        expect(auth_logger).to have_received(:warn).with(
+          '[saml_response_refused]',
+          hash_including(reason: 'saml_response_missing', method: 'POST', has_saml_response: false),
+        )
+      end
+
+      it 'refuses a POST whose SAMLResponse is blank or not a string, leaving the pending id' do
+        pending_id = session[request_id_key]
+        Rack::MockRequest.new(app).post(acs_url, params: { 'SAMLResponse' => '' })
+        Rack::MockRequest.new(app).post(acs_url, params: { 'SAMLResponse' => %w[a b] })
+
+        expect(failure_types).to eq([:saml_response_missing, :saml_response_missing])
+        expect(session[request_id_key]).to eq(pending_id)
+      end
+
+      it 'still completes the real IdP POST after a cross-site GET tried to burn the id' do
+        pending_id = session[request_id_key]
+        Rack::MockRequest.new(app).get(acs_url)
+        post_callback(response_for(pending_id))
+
+        expect(failure_types).to eq([:saml_response_missing])
+        expect(reached_app.size).to eq(1)
+        expect(session).not_to have_key(request_id_key)
+      end
+    end
+
+    # The gem matches only the UNSIGNED Response/@InResponseTo against the
+    # pending id; the signed assertion's SubjectConfirmationData/@InResponseTo
+    # is compared only when present. So a valid signed assertion whose
+    # confirmation data carries no InResponseTo — an IdP-initiated one, or
+    # one an attacker obtained by starting their own login — passes the gem
+    # once rewrapped in a Response naming the victim's pending id. The
+    # subclass requires the binding IN THE SIGNED ASSERTION.
+    describe 'request binding gate (signed SubjectConfirmationData/@InResponseTo)' do
+      before { start_login }
+
+      it 'refuses an unclaimed signed assertion rewrapped in a Response naming the pending id' do
+        post_callback(response_for(session[request_id_key], subject_confirmations: [nil]))
+
+        expect(failure_types).to eq([:saml_in_response_to_unbound])
+        expect(reached_app).to be_empty
+        expect(fake_dbclient.writes).to be_empty
+        expect(auth_logger).to have_received(:warn).with(
+          '[saml_response_refused]',
+          hash_including(reason: 'saml_in_response_to_unbound', bound_confirmations: 0, unbound_confirmations: 1),
+        )
+      end
+
+      # Pinned against the gem so the gate's reason for existing is visible:
+      # if a ruby-saml bump starts refusing this, the gate is redundant but
+      # stays (it is what makes the binding signed).
+      it 'documents that ruby-saml alone accepts the rewrapped assertion' do
+        settings = OneLogin::RubySaml::Settings.new(
+          hardened_options.merge(assertion_consumer_service_url: acs_url),
+        )
+        response = OneLogin::RubySaml::Response.new(
+          response_for(session[request_id_key], subject_confirmations: [nil]),
+          settings: settings,
+          matches_request_id: session[request_id_key],
+          allowed_clock_drift: 60,
+          check_duplicated_attributes: true,
+        )
+
+        expect(response.is_valid?).to be(true), response.errors.inspect
+      end
+
+      # The gem's validate_subject_confirmation catches a single mismatching
+      # confirmation itself (:invalid_ticket); still closed.
+      it 'refuses a signed InResponseTo that names another request (gem refusal)' do
+        post_callback(response_for(session[request_id_key], subject_confirmations: ['_another-request']))
+
         expect(failure_types).to eq([:invalid_ticket])
+        expect(auth_logger).to have_received(:warn)
+          .with('[saml_response_refused]', hash_including(reason: 'invalid_ticket', detail: /SubjectConfirmation/))
+        expect(reached_app).to be_empty
+      end
+
+      # The gem accepts the FIRST bearer confirmation that passes, and an
+      # absent InResponseTo passes — so bound + unbound passes the gem. Every
+      # bearer confirmation must be bound.
+      it 'refuses when one bearer confirmation is bound and another is not' do
+        pending_id = session[request_id_key]
+        post_callback(response_for(pending_id, subject_confirmations: [pending_id, nil]))
+
+        expect(failure_types).to eq([:saml_in_response_to_unbound])
+        expect(auth_logger).to have_received(:warn).with(
+          '[saml_response_refused]',
+          hash_including(reason: 'saml_in_response_to_unbound', bound_confirmations: 1, unbound_confirmations: 1),
+        )
+        expect(reached_app).to be_empty
+      end
+
+      it 'passes a bound assertion on to the later gates' do
+        pending_id = session[request_id_key]
+        post_callback(response_for(pending_id, subject_confirmations: [pending_id], name_id_format: SamlSpec::TestIdp::TRANSIENT))
+
+        expect(failure_types).to eq([:saml_transient_name_id])
+      end
+
+      it 'accepts a bound assertion with two bound bearer confirmations' do
+        pending_id = session[request_id_key]
+        post_callback(response_for(pending_id, subject_confirmations: [pending_id, pending_id]))
+
+        expect(failures).to be_empty
+        expect(reached_app.size).to eq(1)
+      end
+
+      # The gem calls the same helper inside validate_subject_confirmation,
+      # so an unconditional stub would be refused by the gem first; it is
+      # armed only once validation has returned.
+      it 'refuses under its own symbol when the signed assertion reads empty after validation' do
+        validated = false
+        allow_any_instance_of(OneLogin::RubySaml::Response).to receive(:is_valid?).and_wrap_original do |original, *args| # rubocop:disable RSpec/AnyInstance
+          original.call(*args).tap { validated = true }
+        end
+        allow_any_instance_of(OneLogin::RubySaml::Response).to receive(:xpath_from_signed_assertion).and_wrap_original do |original, *args| # rubocop:disable RSpec/AnyInstance
+          validated && args.first == '/a:Subject/a:SubjectConfirmation' ? [] : original.call(*args)
+        end
+        post_callback(response_for(session[request_id_key]))
+
+        expect(failure_types).to eq([:saml_in_response_to_unbound])
+        expect(auth_logger).to have_received(:warn).with(
+          '[saml_response_refused]',
+          hash_including(reason: 'saml_in_response_to_unbound', bound_confirmations: 0, unbound_confirmations: 0),
+        )
+        expect(reached_app).to be_empty
+        expect(fake_dbclient.writes).to be_empty
+      end
+
+      it 'runs before the issuer gate' do
+        folded = 'https://IDP.example.com/saml/metadata'
+        post_callback(response_for(session[request_id_key], subject_confirmations: [nil], response_issuer: folded, assertion_issuer: folded))
+
+        expect(failure_types).to eq([:saml_in_response_to_unbound])
       end
     end
 
@@ -890,16 +1062,25 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
           expect(reached_app).to be_empty
         end
 
-        it "also covers the gem's own SAML response missing error" do
-          start_login
-          Rack::MockRequest.new(app).post(acs_url)
+        # omniauth-saml's other ValidationError class. Its "SAML response
+        # missing" raise is unreachable now (the subclass refuses a bare
+        # callback first, without consuming the pending id), so the missing
+        # uid attribute raise (saml.rb:115) is the path that exercises it.
+        context "with the gem's own ValidationError class" do
+          let(:strategy_options) { hardened_options.merge(uid_attribute: 'employee_id') }
 
-          expect(failure_types).to eq([:invalid_ticket])
-          expect(failures.first[:error]).to be_a(described_class::Refusal)
-          expect(auth_logger).to have_received(:warn).with(
-            '[saml_response_refused]',
-            hash_including(reason: 'invalid_ticket', error_class: 'OmniAuth::Strategies::SAML::ValidationError'),
-          )
+          it 'is replaced the same way' do
+            start_login
+            post_callback(response_for(session[request_id_key], attributes: { 'email' => ['e@example.com'] }))
+
+            expect(failure_types).to eq([:invalid_ticket])
+            expect(failures.first[:error]).to be_a(described_class::Refusal)
+            expect(failures.first[:error].message).not_to include('employee_id')
+            expect(auth_logger).to have_received(:warn).with(
+              '[saml_response_refused]',
+              hash_including(reason: 'invalid_ticket', error_class: 'OmniAuth::Strategies::SAML::ValidationError'),
+            )
+          end
         end
 
         it 'leaves refusals made by the subclass untouched (one event, the original message)' do

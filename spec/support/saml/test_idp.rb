@@ -69,6 +69,13 @@ module SamlSpec
     #
     # @param in_response_to [String, nil] AuthnRequest id; nil omits the
     #   attribute everywhere (an unsolicited / IdP-initiated response)
+    # @param subject_confirmations [Array<String, nil>, nil] one bearer
+    #   SubjectConfirmation per element, each with that InResponseTo (nil
+    #   omits the attribute). nil (default) emits the single confirmation a
+    #   real IdP would, mirroring `in_response_to`. Lets a spec build an
+    #   assertion whose SIGNED binding disagrees with the unsigned
+    #   Response/@InResponseTo — e.g. `[nil]` is an unclaimed assertion
+    #   rewrapped in a Response naming the victim's pending request.
     # @param acs_url [String] Destination + SubjectConfirmationData Recipient
     # @param audience [String] the SP EntityID
     # @param response_issuer [String, nil] nil omits the Response Issuer
@@ -80,6 +87,7 @@ module SamlSpec
     # @return [String] base64-encoded Response XML
     def response(in_response_to:, acs_url:, audience:,
                  name_id: 'user-1234', name_id_format: PERSISTENT,
+                 subject_confirmations: nil,
                  attributes: { 'email' => ['user@example.com'] },
                  assertion_id: "_#{SecureRandom.uuid}",
                  response_issuer: entity_id, assertion_issuer: entity_id,
@@ -90,9 +98,17 @@ module SamlSpec
       not_on_or_after ||= now + 300
 
       assertion = assertion_xml(
-        id: assertion_id, issuer: assertion_issuer, name_id: name_id, name_id_format: name_id_format,
-        in_response_to: in_response_to, acs_url: acs_url, audience: audience, attributes: attributes,
-        now: now, not_on_or_after: not_on_or_after, session_index: session_index
+        id: assertion_id,
+        issuer: assertion_issuer,
+        name_id: name_id,
+        name_id_format: name_id_format,
+        subject_confirmations: subject_confirmations || [in_response_to],
+        acs_url: acs_url,
+        audience: audience,
+        attributes: attributes,
+        now: now,
+        not_on_or_after: not_on_or_after,
+        session_index: session_index
       )
       assertion = sign_xml(assertion, signature_method, digest_method) if sign
 
@@ -137,9 +153,14 @@ module SamlSpec
     end
 
     # rubocop:disable Metrics/ParameterLists -- mirrors the SAML assertion's own shape
-    def assertion_xml(id:, issuer:, name_id:, name_id_format:, in_response_to:, acs_url:, audience:,
+    def assertion_xml(id:, issuer:, name_id:, name_id_format:, subject_confirmations:, acs_url:, audience:,
                       attributes:, now:, not_on_or_after:, session_index:)
-      irt = in_response_to ? %( InResponseTo="#{esc(in_response_to)}") : ''
+      confirmations = subject_confirmations.map do |in_response_to|
+        irt = in_response_to ? %( InResponseTo="#{esc(in_response_to)}") : ''
+        '<saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">' +
+          %(<saml:SubjectConfirmationData NotOnOrAfter="#{ts(not_on_or_after)}" Recipient="#{esc(acs_url)}"#{irt}/>) +
+          '</saml:SubjectConfirmation>'
+      end.join
 
       # xmlns:samlp is declared although the Assertion never uses it: ruby-saml
       # signs with an InclusiveNamespaces PrefixList that names `samlp`
@@ -151,9 +172,7 @@ module SamlSpec
         %(<saml:Issuer>#{esc(issuer)}</saml:Issuer>) +
         '<saml:Subject>' +
         %(<saml:NameID Format="#{esc(name_id_format)}">#{esc(name_id)}</saml:NameID>) +
-        '<saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">' +
-        %(<saml:SubjectConfirmationData NotOnOrAfter="#{ts(not_on_or_after)}" Recipient="#{esc(acs_url)}"#{irt}/>) +
-        '</saml:SubjectConfirmation>' +
+        confirmations +
         '</saml:Subject>' +
         %(<saml:Conditions NotBefore="#{ts(now - 5)}" NotOnOrAfter="#{ts(not_on_or_after)}">) +
         %(<saml:AudienceRestriction><saml:Audience>#{esc(audience)}</saml:Audience></saml:AudienceRestriction>) +
