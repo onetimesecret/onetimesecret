@@ -17,7 +17,8 @@
  * in the real Sentry project.
  *
  * So instead of trusting how the server was started, ask it: the bootstrap
- * payload's d9s_enabled is OT.d9s_enabled, the runtime switch that gates
+ * payload's d9s_enabled (read from the rendered <script data-window>
+ * tag) is OT.d9s_enabled, the runtime switch that gates
  * every backend capture and the frontend SDK. Playwright runs global setup
  * after webServer is up, so this sees the spawned and the reused server
  * alike. E2E_DIAGNOSTICS_ENABLED=true (the same opt-in the webServer env
@@ -25,8 +26,6 @@
  */
 
 import { chromium, type FullConfig } from '@playwright/test';
-
-type BootstrapWindow = Window & { __BOOTSTRAP_ME__?: { d9s_enabled?: boolean } };
 
 export default async function diagnosticsGuard(config: FullConfig): Promise<void> {
   if (process.env.E2E_DIAGNOSTICS_ENABLED === 'true') return;
@@ -38,16 +37,13 @@ export default async function diagnosticsGuard(config: FullConfig): Promise<void
   try {
     const page = await browser.newPage();
     await page.goto(baseURL);
-    // waitForFunction resolves on a truthy value, so wait for the payload
-    // itself, then read the flag (false is the answer we hope for).
-    const d9sEnabled = await page
-      .waitForFunction(() => Boolean((window as BootstrapWindow).__BOOTSTRAP_ME__), undefined, {
-        timeout: 15_000,
-      })
-      .then(
-        () => page.evaluate(() => (window as BootstrapWindow).__BOOTSTRAP_ME__?.d9s_enabled),
-        () => undefined
-      );
+    // Read the payload the server rendered into the document, not
+    // window.__BOOTSTRAP_ME__: the app consumes that at startup and leaves
+    // `true` behind, so reading the global races the app's boot.
+    const d9sEnabled = await page.evaluate(() => {
+      const data = document.querySelector('script[data-window="__BOOTSTRAP_ME__"]')?.textContent;
+      return data ? (JSON.parse(data) as { d9s_enabled?: unknown }).d9s_enabled : undefined;
+    });
 
     if (typeof d9sEnabled !== 'boolean') {
       throw new Error(

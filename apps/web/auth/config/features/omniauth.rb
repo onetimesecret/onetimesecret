@@ -455,9 +455,9 @@ module Auth::Config::Features
       OT.li "[OmniAuth] Configuring #{defn[:label]} provider '#{provider_name}' (#{display_name}), client_id: #{client_id_snippet}"
 
       # A definition may reject a value its required_vars check cannot express
-      # — Auth0 raises on a schemeless AUTH0_DOMAIN, because the CSP
-      # form-action origin is derived from that variable and a bare hostname
-      # would authenticate while silently contributing no origin.
+      # — e.g. raising on a schemeless URL variable, because the CSP
+      # form-action origin is derived from it and a bare hostname would
+      # authenticate while silently contributing no origin.
       #
       # SKIP THE PROVIDER, DO NOT KILL BOOT. This runs inside Rodauth
       # configuration, so an escaping exception fails the whole auth app: ALL

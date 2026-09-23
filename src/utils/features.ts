@@ -233,7 +233,6 @@ const PROVIDER_LABELS: Record<string, string> = {
   github: 'GitHub',
   google: 'Google',
   apple: 'Apple',
-  auth0: 'Auth0',
 };
 
 /**
