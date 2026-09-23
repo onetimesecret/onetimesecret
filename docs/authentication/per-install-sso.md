@@ -141,7 +141,7 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `SAML_ROUTE_NAME` | No | URL segment (default: `saml`) |
 | `SAML_DISPLAY_NAME` | No | Button label (default: `SAML SSO`) |
 
-A missing **or unusable** value (non-https URL, blank EntityID, a certificate that does not parse, has more than one block, or has expired) skips the provider with an error in the boot log and hides the button; boot never fails. See [SAML 2.0](#saml-20-1) under Provider Configuration.
+A missing **or unusable** value (non-https URL, a URL with a fragment or a host the CSP layer cannot carry, blank EntityID, a certificate that does not parse, has more than one block, or has expired) skips the provider with an error in the boot log and hides the button; boot never fails. See [SAML 2.0](#saml-20-1) under Provider Configuration.
 
 ## Routes
 
@@ -736,6 +736,18 @@ Prerequisite: the HTTP-POST binding delivers the response as a cross-site POST
 and a `SameSite=Lax` cookie is withheld on it, taking the pending sign-in
 request with it — set `site.session.same_site: none` with `secure: true`, as
 for Apple. Without it every callback is refused as `saml_no_pending_request`.
+The app checks this for you: whenever the `saml` route registers under an
+incompatible cookie — the platform `SAML_*` variables are set, or
+`ORGS_SSO_ENABLED=true` registers the route for tenant SSO — boot logs one
+error line, `[OmniAuth] SAML is enabled (…) but site.session.same_site is
+'lax' and secure is …; SAML needs same_site: none with secure: true, …`, and
+continues (boot never aborts for an SSO provider). On the tenant side the same
+rule is enforced at save time: the domain SSO API refuses to create a
+`provider_type: saml` configuration (422 on `provider_type`, "SAML sign-in
+cannot complete on this install: …") while the cookie is incompatible, since an
+organization admin cannot change the install's cookie. An existing SAML record
+stays editable — it can be disabled, rotated or switched to another provider —
+so nothing gets stuck.
 
 Missing or unusable configuration skips the provider (`[OmniAuth] Skipping
 SAML provider 'saml': …` in the boot log, naming the variable) and hides the
@@ -910,7 +922,9 @@ so they never reach a log line unbounded.
 
 | `reason` | Meaning | Check |
 |----------|---------|-------|
-| `saml_no_pending_request` | The callback arrived in a session with no pending sign-in | `site.session.same_site` must be `none` with `secure: true`; an IdP-initiated sign-in (started from the IdP's portal) is refused by design; a second sign-in tab supersedes the first |
+| `saml_no_pending_request` | The callback arrived in a session with no pending sign-in | `site.session.same_site` must be `none` with `secure: true` (boot logs `[OmniAuth] SAML is enabled … but site.session.same_site is …` when it is not); an IdP-initiated sign-in (started from the IdP's portal) is refused by design; a second sign-in tab supersedes the first |
+| `saml_response_missing` | The callback was not a POST carrying a `SAMLResponse` (the event names the `method`); the pending sign-in is left intact | A cross-site GET (an `<img>` or prefetch) hitting the callback path, or a browser retrying a redirect as GET; harmless unless frequent |
+| `saml_in_response_to_unbound` | The signed assertion's `SubjectConfirmationData/@InResponseTo` is missing, or does not equal the pending AuthnRequest id on every bearer confirmation | The IdP omits `InResponseTo` on SP-initiated responses (refused by design; Okta, Entra ID and AD FS emit it); otherwise a rewrapped assertion — investigate |
 | `saml_misconfigured` | `idp_entity_id` or `sp_entity_id` is blank on the route | On the canonical host the platform vars are unusable and the route is the tenant placeholder; on a custom domain the tenant record was not injected |
 | `saml_issuer_unreadable` | The Issuer elements could not be read after validation (defense in depth: a missing or repeated Issuer is refused by ruby-saml first, as `invalid_ticket`) | IdP configuration |
 | `saml_weak_signature_algorithm` | A signature in the response uses a `SignatureMethod` or `DigestMethod` outside the allowlist (RSA/ECDSA-SHA256/384/512, SHA-256/384/512) — typically RSA-SHA1 / SHA1 | Configure SHA-256 signing at the IdP; the log event names the offending `kind` and `algorithm` URI |
@@ -918,6 +932,7 @@ so they never reach a log line unbounded.
 | `saml_transient_name_id` | The IdP sent a transient NameID | Configure a persistent NameID at the IdP, or set `SAML_UID_ATTRIBUTE` (platform only) |
 | `saml_missing_uid` | The NameID (or the uid attribute) is empty | IdP attribute mapping |
 | `saml_assertion_unbounded` | The assertion has no `ID` or no `Conditions/@NotOnOrAfter` | IdP configuration; both are required |
+| `saml_assertion_lifetime_exceeded` | `Conditions/@NotOnOrAfter` is more than one hour (plus 60 s clock drift) in the future; the event carries `lifetime_seconds` | Shorten the assertion lifetime at the IdP (the Entra ID / AD FS default of 60 min is accepted); check the IdP clock |
 | `saml_assertion_replayed` | The same assertion was presented a second time | Browser back/refresh on the callback page; otherwise investigate |
 | `saml_replay_guard_unavailable` | Valkey/Redis was unavailable during the callback | Datastore health; the callback fails closed |
 | `invalid_ticket` | ruby-saml rejected the document: signature, unsigned assertion, audience, destination or recipient, validity window (60 s clock drift allowed), expired IdP certificate, InResponseTo mismatch, non-Success status | The event's `detail` names the check; compare the IdP's SP registration with the values in the SAML setup table |
@@ -982,7 +997,7 @@ SSO_FORM_ACTION_ORIGINS="https://authorize.example.gov"
 - Sessions use same security settings as password auth
 - Domain restrictions validated before account creation
 - Client secrets should be rotated per provider's recommendations
-- SAML: every response must answer the AuthnRequest this session issued (InResponseTo, one-shot) — IdP-initiated sign-in is refused; the response Issuer must equal the configured EntityID byte for byte; assertions must be signed with SHA-256 or stronger (ruby-saml verifies whichever algorithm the response declares, so the strategy refuses SHA-1 and unknown algorithms itself; a certificate embedded in the response is matched against the pinned one by SHA-256 fingerprint) and are single-use (a Valkey replay cache keyed on the assertion ID, TTL bounded by `NotOnOrAfter`, capped at one hour); trust is one pinned PEM certificate with expiry checked, never a fingerprint; the auth hash never carries the raw response
+- SAML: every response must answer the AuthnRequest this session issued (`InResponseTo` on the signed assertion's `SubjectConfirmationData`, one-shot; only a POST carrying a `SAMLResponse` consumes the pending id) — IdP-initiated sign-in is refused; the response Issuer must equal the configured EntityID byte for byte; assertions must be signed with SHA-256 or stronger (ruby-saml verifies whichever algorithm the response declares, so the strategy refuses SHA-1 and unknown algorithms itself; a certificate embedded in the response is matched against the pinned one by SHA-256 fingerprint) and are single-use (a Valkey replay cache keyed on the assertion ID, TTL bounded by `NotOnOrAfter`; assertions valid for more than one hour are refused); trust is one pinned PEM certificate with expiry checked, never a fingerprint; the auth hash never carries the raw response
 - `ruby-saml` is pinned exactly in the `Gemfile` with its advisory history; `bundler-audit` runs on every PR
 
 ## Codebase Reference
