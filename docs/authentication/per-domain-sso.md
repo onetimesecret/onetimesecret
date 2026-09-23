@@ -686,6 +686,8 @@ previously configured tenant that was pointed at the wrong cloud.
 | Mismatch between YAML key and plan | Root uses `sso`, plan uses `manage_sso` | Use consistent naming (`manage_sso`) |
 | SSO configured but login fails | No custom domain with SSO config | Add custom domain and configure SSO |
 | Platform SSO used instead of domain SSO | Accessing via canonical domain | Use domain's custom URL |
+| Test Connection fails with `issuer_mismatch` (OIDC only) | The configured issuer is not exactly the discovery document's `issuer`. The comparison is exact, including any trailing slash (Auth0 uses one) | Set the Issuer URL to the **Discovered Issuer** value shown in the result, character for character, and test again |
+| Test Connection fails with `discovery_too_large` | The discovery document is larger than the 256 KiB limit | Check that the issuer URL points at the IdP, not at a page that returns a large document |
 
 ### SSO Login Blocked on Chromium-Family Browsers (CSP `form-action`)
 
