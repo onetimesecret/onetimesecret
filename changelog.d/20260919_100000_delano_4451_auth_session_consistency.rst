@@ -3,132 +3,74 @@
 Added
 -----
 
-- Bootstrap payloads (page hydration and ``GET /bootstrap/me``) now state the
-  session in one field, ``auth_status`` (``authenticated``, ``anonymous``,
-  ``mfa_pending`` or ``unavailable``). ``authenticated`` and ``awaiting_mfa``
-  are derived from it and can no longer disagree. Payloads that report a
-  session also carry ``snapshot_epoch``, ``snapshot_version`` and
-  ``snapshot_generated_at`` so a browser tab can refuse a snapshot older than
-  the one it holds (ADR-046). #4462, #4457
-- JSON ``401`` responses for a refused session carry ``code`` (for example
-  ``active_session_revoked``, ``stale_credentials``, ``admin_session_expired``)
-  and ``code_scope`` (``customer_session``, ``verification_unavailable`` or
-  ``admin_session``). Status codes, redirects and existing body fields are
+- Bootstrap payloads now expose a single ``auth_status`` and versioned snapshot
+  metadata, allowing browser tabs to reject stale authentication state. #4457,
+  #4462
+- JSON ``401`` responses for refused sessions now include stable ``code`` and
+  ``code_scope`` fields. Existing status codes, redirects, and body fields are
   unchanged. #4462
-- A client may mark a timer-driven ``GET`` or ``HEAD`` with the request header
-  ``X-Session-Activity: passive``. The request is authenticated and answered
-  as usual and moves no inactivity clock, exactly like the
-  ``GET /bootstrap/me`` poll. The header is ignored on ``POST``, ``PUT``,
-  ``PATCH`` and ``DELETE`` and can only shorten the sender's own session. The
-  dashboard's receipt lists use it for their 5-minute and tab-visibility
-  refreshes, so a tab left on the dashboard now signs out on schedule. A proxy
-  that strips unknown request headers turns those refreshes back into
-  activity and breaks nothing else. #4455
-- Two log lines: ``Bootstrap verification`` (Session logger, info; one per
-  authenticated ``/bootstrap/me`` poll, with query and write counts) and
-  ``Session refused`` (Auth logger; carries the ``code``, the request id and
-  the route pattern, never a session id or the request path). #4455, #4461
+- Clients can mark timer-driven ``GET`` and ``HEAD`` requests with
+  ``X-Session-Activity: passive`` so they do not extend the sender's inactivity
+  deadline. The header is ignored for state-changing requests. #4455
 
 Changed
 -------
 
-- An idle signed-in tab now really reaches the inactivity deadline.
-  ``GET /bootstrap/me`` is verified in full but no longer counts as activity:
-  it does not move the active-session row's ``last_use``, the admin idle
-  bound or the session's TTL. Before this release the 15-minute poll kept an
-  untouched tab signed in indefinitely. A request that a session gate refused
-  does not count as activity either. #4455
-- A page load makes no ``/bootstrap/me`` request when the server-rendered
-  payload is valid (previously at least one per load). Expect a visible drop
-  in that endpoint's traffic. A page whose payload is missing or invalid
-  makes exactly one request instead of rendering as signed out. #4456
-- When the server cannot be reached to verify the session, protected pages
-  show "We can't verify your session right now" with a retry button after
-  three failed attempts. The user is not signed out and recovery needs no
-  page load. #4460
-- A session that ended, was revoked, or was replaced by another sign-in
-  outside a tab reloads that tab once and shows one message. If a secret is
-  being typed the browser asks before leaving. Rotating the application
-  secret changes every ``snapshot_epoch``, so each open signed-in tab reloads
-  once at its next refresh. #4464, #4465
-- ``GET /bootstrap/me`` can answer ``503`` with ``Retry-After: 5`` when a
-  signed-in payload cannot be given a snapshot version (datastore trouble).
-  Clients retry; an ended session is still reported as ``200`` anonymous.
-  #4457
-- Session store log lines carry ``session_handle`` instead of ``session_id``,
-  and ``redis_key`` is gone. Any log query, alert or dashboard keyed on
-  ``session_id`` for these lines must change. #4461
-- ``LOG_HTTP_CAPTURE=debug`` request lines carry ``session_handle`` as well;
-  no log line writes a session id any more. #4461
-- A session cookie naming an id the server holds no session for is given a new
-  id instead of keeping the one it presented (stock Rack behaviour). Signing
-  out also removes the session's ``session_metadata:<id>`` key instead of
-  leaving it to expire.
-- ``/auth`` responses now send ``Cache-Control: private, no-store`` by
-  default. #4461
-- Every response under ``/api`` that sets no cache policy of its own now sends
-  ``Cache-Control: private, no-store``. The API sent no ``Cache-Control``
-  before. Confirm no intermediary overrides it. #4470
-- Protected pages, page hydration, ``GET /bootstrap/me``, protected APIs and
-  the ``/auth`` routes now decide from one shared customer-session verdict, so
-  they can no longer disagree about whether a session is valid. #4453, #4454
-- Deploy the backend and the frontend of this release together. Each half
-  tolerates the other's previous version only in a degraded form, and a
-  rolling deploy with mixed workers can reload a signed-in tab once. See
-  ``docs/authentication/session-consistency-rollout.md``. #4463
+- Idle dashboard tabs now sign out at the configured inactivity deadline;
+  background refreshes and refused requests no longer keep sessions active.
+  #4455
+- Pages use valid server-rendered authentication state without an initial
+  ``GET /bootstrap/me`` request. If session verification is temporarily
+  unavailable, protected pages retry without signing the user out. #4456, #4460
+- Tabs reload once and show a message when their session ends, is revoked, or
+  is replaced elsewhere. The browser asks before leaving when a secret is being
+  edited. #4464, #4465
+- ``GET /bootstrap/me`` can return ``503`` with ``Retry-After: 5`` when session
+  state cannot be verified; clients retry automatically. #4457
+- Session-related logs now use ``session_handle`` instead of ``session_id`` and
+  no longer include ``redis_key``. Update affected log queries, alerts, and
+  dashboards. #4461
+- ``/auth`` responses and API responses without their own cache policy now send
+  ``Cache-Control: private, no-store``. Confirm that intermediaries do not
+  override this policy. #4461, #4470
+- Protected pages, bootstrap payloads, protected APIs, and authentication routes
+  now use the same customer-session verdict. #4453, #4454
+- Deploy this release's backend and frontend together. Mixed-version rolling
+  deployments can briefly degrade session handling and reload a signed-in tab.
+  See ``docs/authentication/session-consistency-rollout.md``. #4463
 
 Deprecated
 ----------
 
-- ``had_valid_session`` in the bootstrap payload. Nothing reads it; removal is
-  tracked in #4468.
+- The bootstrap payload field ``had_valid_session`` is deprecated and scheduled
+  for removal in #4468.
 
 Fixed
 -----
 
-- ``GET /logout`` now removes the session's active-session row, as
-  ``POST /auth/logout`` already did. A request still in flight during the
-  logout could write the whole session back and hand the browser its old
-  cookie again, leaving the user signed in; that copy is now refused as
-  ``active_session_revoked``.
-- A request in flight while its session is ended (logout, or a session revoked
-  from the sessions page or by an operator) can no longer write the session
-  back, in either authentication mode. Ending a session leaves a 5-minute
-  marker (``ended_sid:<digest>`` in the datastore, never the session id), and a
-  session write that finds it is discarded and sends no cookie.
-- The colonel console shows a refused ``allowed_signup_domains`` entry under
-  that field. ``PUT /api/colonel/domains/:extid/configs/signup`` answers the
-  ``422`` with ``field`` and ``error_key``
-  (``api.domains.errors.allowed_signup_domains_invalid``), as the
-  ``related_origins`` refusals already do.
-- Repeated verification failures no longer sign the user out.
+- Logout and session revocation now prevent in-flight requests from restoring
+  an ended session or its cookie.
+- Colonel now shows ``allowed_signup_domains`` validation failures against the
+  correct field and includes field-specific error details in the API response.
+- Repeated session-verification failures no longer sign the user out.
 
 Security
 --------
 
-- The raw session id is no longer written to the session store's log lines,
-  the sign-in, sign-out and password-reset lines, or any ``/auth`` event line
-  (``[before_logout]``, ``[after_logout]``, unhandled exceptions); a logged id
-  could be replayed as the cookie. These lines carry ``session_handle``.
-  #4461
-- A session that has presented a password but not its second factor can no
-  longer read ``/auth/account``, list or remove active sessions, list SSO
-  identities or passkeys, or start a re-authentication. It reaches only the
-  challenge routes, ``GET /auth/mfa-status`` and logout, and is answered
-  ``401`` with ``code: awaiting_mfa`` elsewhere. Closes
-  ``RISK-2026-08-13-02`` in the security risk register. #4453
+- Raw session IDs have been removed from authentication and session-store logs
+  because they could be replayed as session cookies. Use ``session_handle`` for
+  correlation instead. #4461
+- Sessions awaiting a second factor can now access only MFA challenge and status
+  routes and logout; other account, session, SSO identity, passkey, and
+  re-authentication routes return ``401``. #4453
 
 Documentation
 -------------
 
-- New ``docs/authentication/customer-session-failure-matrix.md``: every
-  session state on every surface, the refusal code each produces, and what
-  to capture when a user reports being signed out. #4452
-- New ``docs/authentication/session-consistency-rollout.md``: deployment
-  notes for this release and the signals to check on staging. #4463
-- Security records: ``docs/security/audits/security-audit-2026-09-19.md``
-  reviews this package, the risk register closes ``RISK-2026-08-13-02`` and
-  gains four low-rated entries. This release closes three of them
-  (``RISK-2026-09-19-01``, ``-03`` and ``-04``); ``RISK-2026-09-19-02``
-  (no session id renewal when the second factor completes) stays open,
-  tracked by #4466.
+- Added ``docs/authentication/customer-session-failure-matrix.md`` for session
+  refusal behavior and troubleshooting. #4452
+- Added ``docs/authentication/session-consistency-rollout.md`` for deployment
+  and staging verification guidance. #4463
+- Added ``docs/security/audits/security-audit-2026-09-19.md`` and updated the
+  security risk register with the reviewed session-consistency risks. #4451,
+  #4466
