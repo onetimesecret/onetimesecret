@@ -105,6 +105,31 @@ and continue unordered.
   at info; `registration_blocked_auth_db_conflict` (error) now fires only when
   the auth database has the account and the datastore has no customer for it.
 
+## Developer notes
+
+- **Local hydration schemas.** The bootstrap payload gained `snapshot_epoch`,
+  `snapshot_version` and `snapshot_generated_at`. In development the backend
+  validates every page's hydration data against `public/schemas/*.json`
+  (`Rhales::Middleware::SchemaValidator`, mounted only when
+  `public/schemas/index.json` exists, failing loudly). Those files are generated
+  and gitignored, and the schemas are closed, so a checkout that generated them
+  before this release answers `500` for every page once it runs this code.
+  `pnpm run dev` now repairs that: its `predev` step runs
+  `pnpm run schemas:rhales:refresh`, which regenerates the schemas when the
+  checkout has them and does nothing when it does not. If you start only the
+  backend, or a page was requested before the frontend finished starting (the
+  backend keeps the first schema it reads), run
+  `pnpm run schemas:rhales:generate` and restart the backend. Deleting
+  `public/schemas/*.json` turns the validation off.
+- `pnpm run schemas:rhales:generate` had stopped producing anything ("No schema
+  sections found"): the rake task did not know where `bootstrap.ts` lives. It
+  now carries the same schema settings as the app. `error.rue` used a Mustache
+  section Rhales cannot parse, so its schema was skipped with a warning.
+  Nothing has rendered that template since error pages moved to the Vue entry
+  point (October 2025), so it is removed with its view class; both remaining
+  schemas (`index`, `admin`) generate, and a spec parses every Web Core
+  template.
+
 ## Staging review
 
 The review is a human step. #4463 stays open until someone has looked at each
