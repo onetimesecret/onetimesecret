@@ -250,7 +250,10 @@ describe('authStore PR #4497 transition contracts', () => {
       expect(orderingEvents()).not.toContain('session-ended');
     });
 
-    it('a commit that loses its generation in its cleanup imports does not end a run of anomalies', async () => {
+    it('a commit that loses its generation in its cleanup imports carries no anomaly count forward', async () => {
+      // The anomaly count belongs to one refresh (authStore.run). A dropped
+      // commit neither resets nor preserves anything: the refresh it lost
+      // ended, and so did any run of anomalies before it.
       await mountWith(authenticatedBootstrap);
       // A store only this case makes existing, so its import is still gated.
       getActivePinia()!.state.value.receipt = {};
@@ -266,10 +269,16 @@ describe('authStore PR #4497 transition contracts', () => {
       store.stop();
       receiptImport.release();
       expect(await parked).toBe('superseded');
-      // The dropped commit did not reset the count: this is the second in a row.
-      axiosMock.onGet(ENDPOINT).replyOnce(200, replay);
-      expect(await store.refresh({ kind: 'ordinary', reason: 'interval' })).toBe('refused');
-      expect(attemptForcedPageLoad).toHaveBeenCalledTimes(1);
+      // The next anomaly is the first of its refresh: retried once, and the
+      // good retry lands.
+      axiosMock
+        .onGet(ENDPOINT)
+        .replyOnce(200, replay)
+        .onGet(ENDPOINT)
+        .replyOnce(200, toWire(newerSnapshot(authenticatedBootstrap)));
+      expect(await store.refresh({ kind: 'ordinary', reason: 'interval' })).toBe('applied');
+      expect(attemptForcedPageLoad).not.toHaveBeenCalled();
+      expect(store.staleSession).toBe(false);
     });
 
     it('an account change still resets account-scoped stores when the commit owns its generation', async () => {

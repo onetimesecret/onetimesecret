@@ -20,7 +20,7 @@ form:
 |---|---|
 | New frontend, old backend | The payload has no `auth_status` and no ordering pair. The client derives the status from `authenticated` / `awaiting_mfa` (restrictive when they disagree) and runs unordered. Every signed-in page load makes one immediate `GET /bootstrap/me`. API `401`s carry no `code`, so a rejected call reconciles only while the tab holds a session. |
 | Old frontend, new backend | The new fields are ignored. The old client still polls on startup and every 15 minutes; those polls no longer keep a session alive. It still signs the user out after three failed refreshes, and a `503` from `GET /bootstrap/me` counts as one. |
-| Mixed workers during a rolling deploy | A tab that holds a watermark and reaches a worker without the contract gets a session snapshot with no pair. That is an anomaly: one immediate retry, and a second consecutive one reloads the tab. The reload is bounded to once per minute per tab. |
+| Mixed workers during a rolling deploy | A tab that holds a watermark and reaches a worker without the contract gets a session snapshot with no pair. That is an anomaly: one immediate retry, and a second one on that retry reloads the tab. Each refresh gets its own retry; an anomaly whose retry failed does not count against a later one. The reload is bounded to once per minute per tab. |
 
 Keep the mixed-worker window short. A blue/green switch avoids it entirely.
 
