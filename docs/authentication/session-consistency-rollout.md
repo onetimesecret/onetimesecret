@@ -86,9 +86,9 @@ and continue unordered.
   once.
 - **SQLite auth database.** Connections now open transactions with `BEGIN
   IMMEDIATE` and wait for locks with the GVL released. Concurrent sign-ups
-  queue instead of answering `500`. The migration connections and the
-  `ots status` probe do the same, so several processes booting at once no
-  longer race on the file. No action needed; PostgreSQL is untouched.
+  queue instead of answering `500`. The migration connections, including
+  `rake auth:migrate`, do the same, so several processes booting at once no
+  longer race on the file. No action needed; PostgreSQL locking is unchanged.
 - **`/auth` can answer `503`.** When the auth database is saturated (a SQLite
   write lock held past the 5-second wait, or no free pooled connection on
   either engine) `/auth` answers `503` with `Retry-After: 1` and `error_type:
