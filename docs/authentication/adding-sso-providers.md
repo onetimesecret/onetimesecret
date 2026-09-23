@@ -90,6 +90,29 @@ classified:
   available for platform SSO only. Each new issuerless provider re-adds a
   `(provider, '', uid)` platform-collision surface, so add them sparingly.
 
+### Install-wide discovery issuer check (`discovery_issuer_var`)
+
+An issuer-capable provider that uses OIDC discovery (`discovery: true`) with an
+install-wide issuer from the env should set `discovery_issuer_var` to the name
+of that env var (`oidc.rb` sets `'OIDC_ISSUER'`). On the first platform sign-in
+attempt in each process, the `omniauth_setup` hook fetches the discovery
+document and compares its `issuer` to the env value with exact string equality
+(`Onetime::SsoProvider::IssuerValidation`). On a mismatch the attempt is
+redirected to `/signin?auth_error=sso_issuer_mismatch` without reaching the
+IdP, and `AuthConfig#provider_active?` reports the provider unavailable while
+the result is cached. Route registration does not change, so tenant OIDC on
+the same route keeps working. See
+[Issuer mismatch](per-install-sso.md#issuer-mismatch) for timing and log
+fields.
+
+Rules:
+
+- Name only the install-wide issuer env var. Tenant issuers come from the
+  `SsoConfig` record and are checked by Test Connection, not by this hook.
+- Leave it unset for providers without discovery or with a fixed, non-operator
+  issuer (Entra ID, plain OAuth2 providers).
+- The placeholder issuer (`https://placeholder.invalid`) is never checked.
+
 When a provider supports both modes (GitLab, Okta), integrate it through OIDC
 (`omniauth_openid_connect` with the provider's issuer) rather than its bespoke
 OAuth2 strategy — it then inherits issuer scoping for free. Auth0 is
