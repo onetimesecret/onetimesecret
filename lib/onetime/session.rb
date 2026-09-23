@@ -18,6 +18,7 @@ require_relative 'session/ended'
 require_relative 'session/surface'
 require_relative 'session/recent_reauth'
 require_relative 'session/reauth_policy'
+require_relative 'session/remember_me'
 require_relative 'operations/sessions/track_metadata'
 
 module Onetime
@@ -632,6 +633,11 @@ module Onetime
             operation: 'read',
           }
 
+        # A remembered session's lifetime is known from here on, so anything
+        # that sizes a key to this request's session lifetime (the snapshot
+        # ordering counter, ADR-046) sees the fixed one, not the default.
+        apply_cookie_lifetime(request, Onetime::RememberMe.remaining(session_data))
+
         # Return session data - this becomes env['rack.session']
         # Rodauth checks env['rack.session'][:account_id] to verify login
         [sid, session_data]
@@ -676,7 +682,7 @@ module Onetime
     #
     # 6. Cookie contains just the session ID (not encrypted)
     #    Set-Cookie: onetime.session=c9803eb...
-    def write_session(request, sid, session_data, _options)
+    def write_session(request, sid, session_data, options)
       # Extract string ID from SessionId object if needed
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
       handle     = log_handle(sid_string)
@@ -714,8 +720,16 @@ module Onetime
       # The TTL this write gives the blob (#4455). Activity resets it to
       # @expire_after, as always. A request that is not activity (a passive
       # poll, or one a session gate refused) keeps whatever the blob had left.
-      # Read here, before the SET below replaces the key.
-      write_ttl = expiration_for_write(sid_string, request.respond_to?(:env) ? request.env : nil)
+      # A remembered session gets the time left to its fixed deadline either
+      # way. Read here, before the SET below replaces the key.
+      remembered_ttl = Onetime::RememberMe.remaining(session_data)
+      write_ttl      = remembered_ttl || expiration_for_write(sid_string, request.respond_to?(:env) ? request.env : nil)
+
+      # The cookie Rack sets after this returns ends with the blob: at the
+      # remember deadline, or @expire_after from now as always. Set on every
+      # write because the session read may have been remembered and this
+      # write, after a logout or a new sign-in, not.
+      apply_cookie_lifetime(options, remembered_ttl)
 
       begin
         merged_fields = request.respond_to?(:env) ? request.env['onetime.session.sidecar_merged'] : nil
@@ -944,7 +958,32 @@ module Onetime
       false
     end
 
-    # The TTL to give the blob on this write.
+    # The cookie lifetime for this request, in the per-request Rack session
+    # options Rack builds the cookie from (commit_session: `expires` from
+    # :expire_after, and :max_age, which also becomes the Max-Age
+    # attribute). A remembered session's cookie ends at its remember
+    # deadline, with both attributes; any other gets @expire_after and no
+    # Max-Age, which is the default.
+    #
+    # @param target [Rack::Request, Hash, nil] the request (its env holds the
+    #   options) or the options hash itself
+    # @param remembered_ttl [Integer, nil] seconds to the remember deadline
+    def apply_cookie_lifetime(target, remembered_ttl)
+      options = target.respond_to?(:env) ? target.env[Rack::RACK_SESSION_OPTIONS] : target
+      return unless options.respond_to?(:[]=)
+
+      if remembered_ttl
+        options[:expire_after] = remembered_ttl
+        options[:max_age]      = remembered_ttl
+      else
+        options[:expire_after] = @expire_after
+        options.delete(:max_age)
+      end
+    end
+
+    # The TTL to give the blob on this write, for a session that is not
+    # remembered (a remembered one gets the time to its deadline; see
+    # write_session).
     #
     # The blob's TTL is an inactivity clock: the only one in simple auth mode,
     # and the shorter of two in full mode. Resetting it on every write is what
