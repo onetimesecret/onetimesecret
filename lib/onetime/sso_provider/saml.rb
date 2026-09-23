@@ -253,6 +253,24 @@ module Onetime
       # POSTs from. Accepting such a URL produces a record that can never
       # complete a login; refuse it where the URL is accepted instead.
       #
+      # No fragment. ruby-saml's Authrequest#create appends "?SAMLRequest=..."
+      # to idp_sso_service_url by string concatenation, so a "#frag" already
+      # on the URL swallows the whole query: the browser is sent to the IdP
+      # with no SAMLRequest at all.
+      #
+      # The host must yield a CSP-safe ORIGIN. URI.parse keeps a trailing ';'
+      # (or quote, comma, bracket) on the host, so "https://idp.example.com;/sso"
+      # parses — but AuthConfig.origin_from_url, the one funnel the CSP
+      # form-action and HttpOrigin allowances derive the IdP origin through,
+      # returns nil for such a host and active_provider_origins /
+      # tenant_idp_origin drop it silently. The provider would be advertised
+      # (platform) or saved (tenant) while no callback could ever be admitted.
+      # Checking THROUGH origin_from_url here is what makes this one rule
+      # cover the platform env, the model invariant and the API path alike.
+      #
+      SSO_URL_ORIGIN_PROBLEM = 'IdP SSO service URL must have a plain hostname ' \
+                               '(no spaces, quotes or punctuation in the host)'
+
       # @return [String, nil] problem description, or nil when usable
       def self.sso_url_problem(url)
         str = url.to_s.strip
@@ -263,11 +281,27 @@ module Onetime
         return 'IdP SSO service URL has no host' if uri.host.to_s.strip.empty?
         return 'IdP SSO service URL must not carry credentials' if uri.userinfo
         return 'IdP SSO service URL host must not end with a dot' if uri.host.end_with?('.')
+        return 'IdP SSO service URL must not contain a fragment' if uri.fragment
+        return SSO_URL_ORIGIN_PROBLEM if csp_origin_for(str).nil?
 
         nil
       rescue URI::Error
         'IdP SSO service URL is not a valid URL'
       end
+
+      # The origin the CSP / HttpOrigin allowances would derive from the URL,
+      # or nil when they would derive none. Resolved lazily: auth_config.rb
+      # requires the registry (and so this file), so a top-level require here
+      # would be circular.
+      #
+      # @return [String, nil]
+      def self.csp_origin_for(url)
+        require_relative '../auth_config' unless defined?(Onetime::AuthConfig)
+        Onetime::AuthConfig.origin_from_url(url)
+      rescue StandardError
+        nil
+      end
+      private_class_method :csp_origin_for
 
       # @return [String, nil] problem description, or nil when usable
       def self.entity_id_problem(entity_id)

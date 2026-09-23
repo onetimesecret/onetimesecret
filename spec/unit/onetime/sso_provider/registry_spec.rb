@@ -494,6 +494,13 @@ RSpec.describe Onetime::SsoProvider::Registry do
           # origin_from_url would strip the dot, admitting an origin the
           # browser never POSTs from (Saml.sso_url_problem).
           'an SSO service URL whose host ends with a dot' => { SAML_IDP_SSO_SERVICE_URL: 'https://idp.example.com./sso' },
+          # ruby-saml concatenates "?SAMLRequest=" onto the URL; a fragment
+          # swallows the query and the IdP receives no request.
+          'an SSO service URL with a fragment' => { SAML_IDP_SSO_SERVICE_URL: 'https://idp.example.com/sso#login' },
+          # URI.parse keeps the ';' on the host; origin_from_url derives no
+          # origin, so the CSP / HttpOrigin allowances would omit the IdP
+          # while the button was advertised (Saml.sso_url_problem).
+          'an SSO service URL with a semicolon in the host' => { SAML_IDP_SSO_SERVICE_URL: 'https://idp.example.com;/sso' },
           'a whitespace-only EntityID' => { SAML_IDP_ENTITY_ID: '   ' },
           'an EntityID with trailing whitespace' => { SAML_IDP_ENTITY_ID: 'https://idp.example.com/saml/metadata ' },
           'an EntityID with a control character' => { SAML_IDP_ENTITY_ID: "https://idp.example.com/\nmetadata" },

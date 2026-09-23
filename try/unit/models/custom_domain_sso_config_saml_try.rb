@@ -202,6 +202,16 @@ end
 @bad.validation_errors
 #=> ['IdP SSO service URL must be an https:// URL']
 
+## An SSO URL with a fragment is refused (ruby-saml appends ?SAMLRequest= by concatenation)
+@bad.idp_sso_service_url = 'https://idp.example.com/sso#login'
+@bad.validation_errors
+#=> ['IdP SSO service URL must not contain a fragment']
+
+## An SSO URL whose host yields no CSP-safe origin is refused at the model too (one rule)
+@bad.idp_sso_service_url = 'https://idp.example.com;/sso'
+@bad.validation_errors
+#=> ['IdP SSO service URL must have a plain hostname (no spaces, quotes or punctuation in the host)']
+
 ## Something that is not a PEM certificate is refused
 @bad.idp_sso_service_url = @sso_url
 @bad.idp_cert = 'AA:BB:CC:DD'
