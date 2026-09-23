@@ -91,7 +91,9 @@ RSpec.describe 'OmniAuth callback hook wrapper order (#4432)', type: :integratio
 
   it 'detects a second prepended wrapper (the check is not vacuous)' do
     intruder = Module.new do
-      def before_omniauth_callback_route = super
+      # A wrapper that only calls super IS the fixture: its presence in the
+      # ancestor chain is what the check must see.
+      def before_omniauth_callback_route = super # rubocop:disable Lint/UselessMethodDefinition
     end
     subclass = Class.new(Auth::Config) { prepend intruder }
 

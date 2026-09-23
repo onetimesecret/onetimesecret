@@ -46,7 +46,7 @@ end
 
 # Helper class for mocking Rack apps
 class MockApp
-  def call(env)
+  def call(_env)
     [200, {}, ["OK"]]
   end
 end
@@ -190,7 +190,7 @@ result.nil?
 plaintext = '{"account_id":123}'
 encrypted = call_private_method(@session, :encrypt_data, plaintext)
 # Tamper with the ciphertext portion (after IV and auth_tag)
-tampered = encrypted[0, 28] + "x" * (encrypted.bytesize - 28)
+tampered = encrypted[0, 28] + ("x" * (encrypted.bytesize - 28))
 result = call_private_method(@session, :decrypt_data, tampered)
 result.nil?
 #=> true
@@ -219,7 +219,7 @@ call_private_method(@session, :valid_hmac?, data, hmac)
 
 ## Invalid HMAC verification fails
 data = "test data"
-bad_hmac = "invalid" + "0" * 58
+bad_hmac = "invalid" + ("0" * 58)
 !call_private_method(@session, :valid_hmac?, data, bad_hmac)
 #=> true
 
@@ -234,7 +234,7 @@ sid = SecureRandom.hex(32)
 key1 = call_private_method(@session, :get_stringkey, sid)
 key2 = call_private_method(@session, :get_stringkey, sid)
 # Each call creates a new instance, but they represent the same Redis key
-key1.object_id != key2.object_id && key1.keystring == key2.keystring
+!key1.equal?(key2) && key1.keystring == key2.keystring
 #=> true
 
 ## Find session returns new session for new request

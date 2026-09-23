@@ -4,25 +4,28 @@ require 'spec_helper'
 require 'onetime/session/customer_session_evaluator'
 
 RSpec.describe Onetime::CustomerSessionEvaluator do
-  class TrackingCustomerSession < Hash
-    attr_reader :events
+  # A session Hash that records which keys the evaluator reads, in order.
+  let(:tracking_session_class) do
+    Class.new(Hash) do
+      attr_reader :events
 
-    def initialize(values, events)
-      @events = events
-      super()
-      merge!(values)
-    end
+      def initialize(values, events)
+        @events = events
+        super()
+        merge!(values)
+      end
 
-    def [](key)
-      events << key
-      super
+      def [](key)
+        events << key
+        super
+      end
     end
   end
 
   let(:events) { [] }
   let(:env) { { 'onetime.domain_strategy' => :canonical } }
   let(:session) do
-    TrackingCustomerSession.new(
+    tracking_session_class.new(
       {
         'authenticated' => true,
         'authenticated_at' => 101,
