@@ -166,6 +166,23 @@ RSpec.describe 'A sign-up that loses a race answers like an ordinary duplicate',
     expect(events).to include([:registration_blocked_auth_db_conflict, :error])
   end
 
+  it 'answers a duplicate with the ordinary refusal when Redis is unreachable', :aggregate_failures do
+    db[:accounts].insert(email: login, status_id: 2)
+    ordinary = sign_up(login)
+
+    events = []
+    allow(Auth::Logging).to receive(:log_auth_event).and_wrap_original do |original, event, **fields|
+      events << [event, fields[:level], fields[:customer_lookup_error]]
+      original.call(event, **fields)
+    end
+    allow(Onetime::Customer).to receive(:email_exists?).and_raise(Redis::CannotConnectError, 'redis down')
+
+    expect(sign_up(login)).to eq(ordinary)
+    expect(ordinary).to eq(status: 400, body: { 'error' => 'Unable to create account' })
+    expect(events).to include([:registration_blocked_existing_account, :warn, 'Redis::CannotConnectError'])
+    expect(events.map(&:first)).not_to include(:registration_blocked_auth_db_conflict)
+  end
+
   it 'never answers 500, creates one account, and gives every loser the ordinary answer', :aggregate_failures do
     answers = Array.new(6) { Thread.new { sign_up(login) } }.map(&:value)
 

@@ -79,16 +79,33 @@ module Auth::Config::Hooks
         existing_account = db[:accounts].where(email: email).first
 
         if existing_account
-          # With its customer record this is an ordinary duplicate (info);
-          # without one it is the two-database mismatch the hint describes.
-          if Onetime::Customer.email_exists?(email)
+          # The SQL row alone decides the answer; Redis only picks the log
+          # line. With its customer record this is an ordinary duplicate
+          # (info); without one it is the two-database mismatch the hint
+          # describes. An unreachable Redis must not turn the refusal into a
+          # 500, so the lookup failure is logged and the refusal still runs.
+          customer_exists =
+            begin
+              Onetime::Customer.email_exists?(email)
+            rescue Redis::BaseError => ex
+              Auth::Logging.log_auth_event(
+                :registration_blocked_existing_account,
+                level: :warn,
+                email: OT::Utils.obscure_email(email),
+                account_id: existing_account[:id],
+                customer_lookup_error: ex.class.name,
+              )
+              nil
+            end
+
+          if customer_exists
             Auth::Logging.log_auth_event(
               :registration_blocked_existing_account,
               level: :info,
               email: OT::Utils.obscure_email(email),
               account_id: existing_account[:id],
             )
-          else
+          elsif customer_exists == false
             diagnostic_hint = <<~HINT.strip
               Registration blocked: Account exists in authdb but is missing from
               Redis. This can occur after clearing Redis without resetting authdb.
