@@ -142,7 +142,7 @@ importers:
         specifier: ^9.39.4
         version: 9.39.4
       '@eslint/plugin-kit':
-        specifier: ^0.7.0
+        specifier: ^0.7.2
         version: 0.7.2
       '@intlify/devtools-types':
         specifier: ^11.3.0

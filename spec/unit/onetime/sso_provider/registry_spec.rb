@@ -151,9 +151,6 @@ RSpec.describe Onetime::SsoProvider::Registry do
         APPLE_TEAM_ID: 'TEAM123456',
         APPLE_KEY_ID: 'KEY1234567',
         APPLE_PRIVATE_KEY: "-----BEGIN TEST KEY-----\nMHc=\n-----END TEST KEY-----\n",
-        AUTH0_CLIENT_ID: 'cid',
-        AUTH0_CLIENT_SECRET: 'cs',
-        AUTH0_DOMAIN: 'https://tenant.us.auth0.com',
       ) do
         definitions.each do |defn|
           expect(defn[:strategy_options].call).to be_a(Hash)
@@ -161,76 +158,13 @@ RSpec.describe Onetime::SsoProvider::Registry do
       end
     end
 
-    # The Auth0 identity key is ('auth0', <this string>, sub), and it is also
-    # the value JWTValidator#verify_iss would compare against if the gem's
-    # scope gate were ever repaired (see lib/onetime/sso_provider/auth0.rb).
-    # Auth0 asserts `iss` WITH a trailing slash, so a slashless value here
-    # would key every row on a string the IdP never sends.
-    it 'pins the Auth0 issuer to the domain with exactly one trailing slash' do
-      ClimateControl.modify(AUTH0_DOMAIN: 'https://tenant.us.auth0.com') do
-        opts = described_class.fetch(:auth0)[:strategy_options].call
-        expect(opts[:issuer]).to eq('https://tenant.us.auth0.com/')
-      end
-    end
-
-    it 'does not double the Auth0 trailing slash when the domain already has one' do
-      ClimateControl.modify(AUTH0_DOMAIN: 'https://tenant.us.auth0.com/') do
-        opts = described_class.fetch(:auth0)[:strategy_options].call
-        expect(opts[:issuer]).to eq('https://tenant.us.auth0.com/')
-      end
-    end
-
-    # A bare hostname is what Auth0's own documentation shows, so operators
-    # will reach for it. The strategy would accept it and the CSP form-action
-    # origin would silently be omitted (AuthConfig#origin_from_url needs a
-    # scheme), producing an SSO route that only fails in a real browser.
-    # Fail at boot, where the message can name the variable.
-    it 'refuses a schemeless AUTH0_DOMAIN rather than breaking CSP silently' do
-      ClimateControl.modify(AUTH0_DOMAIN: 'tenant.us.auth0.com') do
-        expect { described_class.fetch(:auth0)[:strategy_options].call }
-          .to raise_error(ArgumentError, /AUTH0_DOMAIN must be a full URL/)
-      end
-    end
-
-    it 'accepts an http AUTH0_DOMAIN (private/self-hosted Auth0 deployments)' do
-      ClimateControl.modify(AUTH0_DOMAIN: 'http://auth0.internal:3000') do
-        opts = described_class.fetch(:auth0)[:strategy_options].call
-        expect(opts[:issuer]).to eq('http://auth0.internal:3000/')
-      end
-    end
-
-    # The companion to that raise. required_vars sees AUTH0_DOMAIN as PRESENT
-    # and would advertise a login button, while configure_provider rescues the
-    # raise and registers no route — a button leading nowhere. :vars_valid is
-    # the predicate AuthConfig#provider_active? consults so the advertised set
-    # and the registered set cannot disagree.
-    describe 'the Auth0 :vars_valid predicate' do
-      it 'is false for a schemeless AUTH0_DOMAIN' do
-        ClimateControl.modify(AUTH0_DOMAIN: 'tenant.us.auth0.com') do
-          expect(described_class.fetch(:auth0)[:vars_valid].call).to be false
-        end
-      end
-
-      it 'is true for a scheme-ful AUTH0_DOMAIN' do
-        ClimateControl.modify(AUTH0_DOMAIN: 'https://tenant.us.auth0.com') do
-          expect(described_class.fetch(:auth0)[:vars_valid].call).to be true
-        end
-      end
-
-      # It swallows the ArgumentError rather than propagating it: this runs on
-      # the per-request serializer path, not only at boot.
-      it 'answers false instead of raising' do
-        ClimateControl.modify(AUTH0_DOMAIN: 'tenant.us.auth0.com') do
-          expect { described_class.fetch(:auth0)[:vars_valid].call }.not_to raise_error
-        end
-      end
-
-      # Every other definition is presence-only; the field is opt-in, and a
-      # definition without it must be treated as always valid.
-      it 'is the only one in the registry' do
-        with_predicate = described_class::DEFINITIONS.select { |defn| defn[:vars_valid] }
-        expect(with_predicate.map { |defn| defn[:key] }).to eq([:auth0])
-      end
+    # :vars_valid is opt-in — a definition without it is presence-only and
+    # always valid once required_vars are present. No current definition
+    # needs one; a definition whose strategy_options can raise must add it
+    # (see the registry header) so the advertised and registered sets agree.
+    it 'carries no :vars_valid predicate on any current definition' do
+      with_predicate = described_class::DEFINITIONS.select { |defn| defn[:vars_valid] }
+      expect(with_predicate.map { |defn| defn[:key] }).to be_empty
     end
 
     # Deployments routinely carry multi-line secrets as a single line with

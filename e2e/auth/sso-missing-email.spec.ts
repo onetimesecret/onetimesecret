@@ -22,6 +22,8 @@
 
 import { test, expect } from '@playwright/test';
 
+import { waitForAppReady } from '../support/auth-journey';
+
 // Exact English copy from locales/content/en/session-auth.json under
 // `web.login.errors.invalid_email`. Asserted as a substring (locale-tolerant
 // callers can swap base URL, but the default en build must show this text).
@@ -46,7 +48,7 @@ test.describe('SSO missing-email error (issue #3478)', () => {
     page,
   }) => {
     await page.goto('/signin?auth_error=invalid_email');
-    await page.waitForLoadState('networkidle');
+    await waitForAppReady(page);
 
     // Core guard: the error must surface in an accessible alert.
     const alert = page.getByRole('alert');
@@ -70,7 +72,7 @@ test.describe('SSO missing-email error (issue #3478)', () => {
     // contract: the param is gone from the URL, but the already-rendered alert
     // persists (the message was captured into reactive state on mount).
     await page.goto('/signin?auth_error=invalid_email');
-    await page.waitForLoadState('networkidle');
+    await waitForAppReady(page);
 
     // The alert is shown...
     await expect(page.getByRole('alert')).toContainText(INVALID_EMAIL_TEXT);
@@ -91,7 +93,7 @@ test.describe('SSO missing-email error (issue #3478)', () => {
     // Contrast case: without the query param there must be no error alert, so a
     // healthy signin page is never confused with the error state.
     await page.goto('/signin');
-    await page.waitForLoadState('networkidle');
+    await waitForAppReady(page);
 
     await expect(page.getByRole('alert')).toHaveCount(0);
 
@@ -108,7 +110,7 @@ test.describe('SSO missing-email error (issue #3478)', () => {
   for (const code of SIBLING_ERROR_CODES) {
     test(`auth_error=${code} renders a non-empty alert on a usable page`, async ({ page }) => {
       await page.goto(`/signin?auth_error=${code}`);
-      await page.waitForLoadState('networkidle');
+      await waitForAppReady(page);
 
       const alert = page.getByRole('alert');
       await expect(alert).toBeVisible();
@@ -129,7 +131,7 @@ test.describe('SSO missing-email error (issue #3478)', () => {
     // recognize (e.g. a backend newer than the deployed frontend) must still
     // surface an error rather than a silent/blank page.
     await page.goto('/signin?auth_error=some_unknown_code_xyz');
-    await page.waitForLoadState('networkidle');
+    await waitForAppReady(page);
 
     const alert = page.getByRole('alert');
     await expect(alert).toBeVisible();
@@ -200,7 +202,7 @@ test.describe('SSO missing-email full round-trip (issue #3478, gated)', () => {
     );
 
     await page.goto('/signin');
-    await page.waitForLoadState('networkidle');
+    await waitForAppReady(page);
 
     // Skip-guard consistent with sso-csrf.spec.ts: only meaningful when the SSO
     // button (OmniAuth) is actually enabled in this environment.
@@ -219,7 +221,7 @@ test.describe('SSO missing-email full round-trip (issue #3478, gated)', () => {
       ssoButton.click(),
     ]);
 
-    await page.waitForLoadState('networkidle');
+    await waitForAppReady(page);
 
     // Same user-observable contract as the CI-friendly guard: the alert renders
     // and the page is usable rather than frozen.

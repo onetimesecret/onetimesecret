@@ -12,7 +12,7 @@
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { storeToRefs } from 'pinia';
-  import { computed, watch, type Component, onMounted, shallowRef } from 'vue';
+  import { computed, watch, type Component, shallowRef } from 'vue';
 
   const authStore = useAuthStore();
   const bootstrapStore = useBootstrapStore();
@@ -247,14 +247,9 @@
   // Watch for changes to logoUrl and load Vue component if needed
   watch(() => logoConfig.value.url, loadLogoComponent, { immediate: true });
 
-  // Refresh bootstrap state to ensure auth status is up to date
-  onMounted(async () => {
-    try {
-      await bootstrapStore.refresh();
-    } catch (error) {
-      console.warn('Failed to refresh bootstrap state:', error);
-    }
-  });
+  // No startup refresh (#4456): the hydrated snapshot injected before Vue
+  // mounts IS the initial state. Refreshes belong to the coordinator in
+  // authStore, on its triggers only.
 </script>
 
 <template>

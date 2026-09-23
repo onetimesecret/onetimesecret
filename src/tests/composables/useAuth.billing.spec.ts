@@ -11,6 +11,8 @@
 
 import { useAuth } from '@/shared/composables/useAuth';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { authenticatedBootstrap, mfaPendingBootstrap, newerSnapshot } from '@/tests/fixtures/bootstrap.fixture';
+import { toWire } from '@/tests/fixtures/bootstrap-wire';
 import { createWireOrganization, type OrganizationWire } from '@/tests/fixtures/billing.fixture';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
@@ -47,6 +49,17 @@ vi.mock('@/services/logging.service', () => ({
  *
  * Returns wire format (epoch timestamps) for API response mocking.
  */
+// The auth store's init() runs when the store is created (the real auto-init
+// plugin) and, seeing a session that has no ordering watermark yet, refreshes
+// once. The login under test then refreshes again. A real server answers each
+// request with a newer snapshot_version; a frozen mock would make the second
+// answer the `not-newer` anomaly and force a page load. Advance it per reply.
+let snapshotVersionBump = 0;
+
+function nextSnapshot(payload: Parameters<typeof newerSnapshot>[0]) {
+  return newerSnapshot(payload, ++snapshotVersionBump);
+}
+
 function createMockOrganization(overrides: Partial<OrganizationWire> = {}): OrganizationWire {
   const now = Math.floor(Date.now() / 1000);
   return createWireOrganization({
@@ -108,12 +121,15 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
     vi.mocked(useRouter).mockReturnValue(router);
     vi.mocked(useRoute).mockReturnValue(mockRoute as any);
 
-    // Mock the /bootstrap/me endpoint used by authStore.setAuthenticated
-    axiosMock.onGet('/bootstrap/me').reply(200, {
-      authenticated: true,
-      billing_enabled: true,
-      shrimp: 'new-shrimp-token',
-    });
+    // Mock the /bootstrap/me endpoint used by authStore.setAuthenticated.
+    // ADR-046#auth-completion-caller-contract: post-#4464 the coordinator refuses a snapshot
+    // without cust (effectiveAuthStatus → 'unavailable'). Use the canonical authenticated
+    // fixture (wire encoding) so ensureAuthenticated / ensureMfaPending land
+    // as 'applied'.
+    axiosMock.onGet('/bootstrap/me').reply(() => [
+      200,
+      { ...toWire(nextSnapshot(authenticatedBootstrap)), billing_enabled: true, shrimp: 'new-shrimp-token' },
+    ]);
   });
 
   afterEach(() => {
@@ -198,10 +214,17 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
      * Re-mock the endpoint so the disabled state survives the refetch.
      */
     const disableBillingOnRefetch = (value: boolean | undefined) => {
-      axiosMock.onGet('/bootstrap/me').reply(200, {
-        authenticated: true,
-        ...(value === undefined ? {} : { billing_enabled: value }),
-        shrimp: 'new-shrimp-token',
+      // ADR-046#auth-completion-caller-contract: carry the canonical authenticated identity so the
+      // refresh coordinator accepts the snapshot. Strip billing_enabled from
+      // the fixture so the caller's value (or its absence) is what the store
+      // reads back.
+      axiosMock.onGet('/bootstrap/me').reply(() => {
+        const { billing_enabled: _drop, ...rest } = toWire(nextSnapshot(authenticatedBootstrap));
+        void _drop;
+        return [
+          200,
+          { ...rest, ...(value === undefined ? {} : { billing_enabled: value }), shrimp: 'new-shrimp-token' },
+        ];
       });
     };
 
@@ -333,6 +356,14 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
     // the billing redirect only happens after the second factor succeeds
     // (MfaChallenge → navigateAfterAuth). #4306: the plan-intent query pair is
     // forwarded so the completion path keeps its fallback tier.
+
+    beforeEach(() => {
+      // ADR-046#auth-completion-caller-contract: ensureMfaPending only navigates when the follow-up
+      // snapshot lands as `mfa_pending`. The outer beforeEach mocks the
+      // authenticated fixture; override it here so the MFA flow's refresh
+      // sees an mfa_pending payload.
+      axiosMock.onGet('/bootstrap/me').reply(() => [200, toWire(nextSnapshot(mfaPendingBootstrap))]);
+    });
 
     it('should not attempt billing redirect when MFA is required', async () => {
       setRouteQuery({ product: 'identity', interval: 'month' });
@@ -524,12 +555,12 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
     vi.mocked(useRouter).mockReturnValue(router);
     vi.mocked(useRoute).mockReturnValue(mockRoute as any);
 
-    // Mock the /bootstrap/me endpoint
-    axiosMock.onGet('/bootstrap/me').reply(200, {
-      authenticated: true,
-      billing_enabled: true,
-      shrimp: 'new-shrimp-token',
-    });
+    // Mock the /bootstrap/me endpoint. ADR-046#auth-completion-caller-contract: canonical
+    // authenticated fixture so the refresh coordinator lands the snapshot with cust.
+    axiosMock.onGet('/bootstrap/me').reply(() => [
+      200,
+      { ...toWire(nextSnapshot(authenticatedBootstrap)), billing_enabled: true, shrimp: 'new-shrimp-token' },
+    ]);
   });
 
   afterEach(() => {
@@ -636,12 +667,12 @@ describe('useAuth - Subscription Status Checks', () => {
     vi.mocked(useRouter).mockReturnValue(router);
     vi.mocked(useRoute).mockReturnValue(mockRoute as any);
 
-    // Mock the /bootstrap/me endpoint
-    axiosMock.onGet('/bootstrap/me').reply(200, {
-      authenticated: true,
-      billing_enabled: true,
-      shrimp: 'new-shrimp-token',
-    });
+    // Mock the /bootstrap/me endpoint. ADR-046#auth-completion-caller-contract: canonical
+    // authenticated fixture so the refresh coordinator lands the snapshot with cust.
+    axiosMock.onGet('/bootstrap/me').reply(() => [
+      200,
+      { ...toWire(nextSnapshot(authenticatedBootstrap)), billing_enabled: true, shrimp: 'new-shrimp-token' },
+    ]);
   });
 
   afterEach(() => {

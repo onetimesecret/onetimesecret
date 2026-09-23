@@ -66,9 +66,6 @@ module Auth::Config::Hooks
         bind_omniauth_connect_identity(**authorized)
       end
 
-      # Every gate that precedes the bind. Nothing has been written when a
-      # lookup raises here, so refusing is accurate; the rescue stops at this
-      # method on purpose (see bind_omniauth_connect_identity).
       def omniauth_connect_intent_matches?(intent)
         now = Time.now.utc.to_i
         intent.is_a?(Hash) && intent['surface'].is_a?(Hash) &&
@@ -78,20 +75,42 @@ module Auth::Config::Hooks
           intent['account_id'].to_s == session_value.to_s
       end
 
+      # No Connect was requested unless a valid intent was consumed, and then
+      # this is an ordinary sign-in callback: return nil and let it continue.
+      # That branch sits OUTSIDE the fail-closed rescue on purpose (#4431). A
+      # failure here says nothing about identity ownership, so it must never
+      # surface as identity_connect_conflict.
       def authorize_omniauth_connect
         intent = @omniauth_connect_raw_intent
         unless omniauth_connect_intent_matches?(intent)
-          if logged_in?
-            Auth::Logging.log_auth_event(
-              :omniauth_connect_intent_absent,
-              level: :info,
-              provider: omniauth_provider,
-              had_intent: !intent.nil?,
-            )
-          end
+          note_omniauth_connect_intent_absent(intent) if logged_in?
           return nil
         end
 
+        authorize_omniauth_connect_lookups(intent)
+      end
+
+      # Best-effort diagnostic. A log sink that raises must neither fail an
+      # ordinary sign-in nor reclassify it, so the error is reported and
+      # dropped here rather than reaching any rescue that refuses.
+      def note_omniauth_connect_intent_absent(intent)
+        Auth::Logging.log_auth_event(
+          :omniauth_connect_intent_absent,
+          level: :info,
+          provider: omniauth_provider,
+          had_intent: !intent.nil?,
+        )
+      rescue StandardError => ex
+        OT.le "[omniauth-connect] intent-absent log failed: #{ex.class}"
+      end
+
+      # Every gate that precedes the bind, reached only with a valid intent.
+      # When a lookup raises here the authorization is indeterminate and
+      # nothing has been written, so refusing is accurate; the rescue stops at
+      # this method on purpose (see bind_omniauth_connect_identity).
+      # refuse_omniauth_connect! redirects by throw, which the rescue does not
+      # intercept.
+      def authorize_omniauth_connect_lookups(intent)
         # Shared principal gate: the auth router does not run the Otto strategy's
         # suspension check. Missing Customer data is not evidence of good standing.
         session_account = _account_from_session

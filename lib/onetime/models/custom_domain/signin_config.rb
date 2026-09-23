@@ -55,6 +55,40 @@ module Onetime
       # Valid values for restrict_to — matches AuthConfig::RESTRICT_TO_VALUES
       RESTRICT_TO_VALUES = %w[password email_auth webauthn sso].freeze
 
+      # Refusals from {#related_origins=}. Problems like any other setter
+      # refusal, but typed and carrying the offending entries and a locale
+      # key, so an API layer can attach the answer to the `related_origins`
+      # field and localize it instead of matching on the message.
+      class RelatedOriginError < Onetime::Problem
+        attr_reader :origins
+
+        def initialize(origins)
+          @origins = Array(origins).map(&:to_s)
+          super("#{self.class::SUMMARY}: #{@origins.join(', ')}")
+        end
+
+        def error_key
+          self.class::ERROR_KEY
+        end
+
+        # The writable field the refusal belongs to, and the locale arguments
+        # for {#error_key}: what an API layer needs to tag and localize it.
+        def field = 'related_origins'
+        def args  = { origins: origins.join(', ') }
+      end
+
+      # An entry that is not an absolute `http(s)://host[:port]` origin.
+      class InvalidRelatedOrigin < RelatedOriginError
+        SUMMARY   = 'Invalid origin'
+        ERROR_KEY = 'api.domains.errors.related_origins_invalid'
+      end
+
+      # An entry naming a custom domain that another organization owns (#4421).
+      class ForeignRelatedOrigin < RelatedOriginError
+        SUMMARY   = 'Origin belongs to another organization'
+        ERROR_KEY = 'api.domains.errors.related_origins_foreign_organization'
+      end
+
       # DomainStrategy classifications for the operator's OWN surfaces, the
       # only hosts no per-domain config can speak for. Used by
       # resolve_lookup_failure to decide who survives an unreadable policy;
@@ -319,19 +353,32 @@ module Onetime
       # (the port is preserved verbatim). An empty result clears the
       # field so {related_origins} reads as `[]`.
       #
+      # An entry naming a custom domain owned by ANOTHER organization is
+      # refused here (#4421), so the operator learns at write time that the
+      # entry can never take effect. This is feedback, not the control:
+      # {surface_for_origin} re-checks ownership on every read, because a
+      # domain can change hands after it was written and a row can be
+      # written without this setter. Hosts this install does not serve are
+      # still accepted; they resolve to no surface on read.
+      #
       # @param origins [Array<String>] absolute origin URLs
       # @return [void]
-      # @raise [Onetime::Problem] if any entry is not a well-formed origin
+      # @raise [InvalidRelatedOrigin] if any entry is not a well-formed origin
+      # @raise [ForeignRelatedOrigin] if any entry names a custom domain owned
+      #   by another organization
       def related_origins=(origins)
         normalized = Array(origins).filter_map do |raw|
           candidate = raw.to_s.strip
           next nil if candidate.empty?
 
           normalized_value = normalize_related_origin(candidate)
-          raise Onetime::Problem, "Invalid origin: #{raw}" if normalized_value.nil?
+          raise InvalidRelatedOrigin.new(raw) if normalized_value.nil?
 
           normalized_value
         end.uniq
+
+        foreign = normalized.select { |origin| foreign_custom_origin?(origin) }
+        raise ForeignRelatedOrigin.new(foreign) unless foreign.empty?
 
         self.related_origins_json = normalized.empty? ? nil : JSON.generate(normalized)
       end
@@ -385,11 +432,13 @@ module Onetime
       # tenant's host would make that tenant's WebAuthn credentials
       # offerable here (rp_id = theirs, expected_origin = ours), with only
       # the browser's /.well-known/webauthn lookup — a file we do not
-      # control for the other tenant — standing in the way. Enforced on
-      # the read side rather than in {related_origins=} so rows written
-      # before the rule existed, or by a path that bypasses the setter, are
-      # neutralized too. Canonical and platform-subdomain members are not
-      # tenant-owned and are unaffected.
+      # control for the other tenant — standing in the way. This read-side
+      # check is the control: rows written before the rule existed, by a
+      # path that bypasses the setter, or for a domain that has since
+      # changed organization are neutralized here. {related_origins=}
+      # applies the same rule at write time for operator feedback only.
+      # Canonical and platform-subdomain members are not tenant-owned and
+      # are unaffected.
       def surface_for_origin(origin, current_domain: nil)
         candidate = normalize_related_origin(origin)
         return nil if candidate.nil?
@@ -428,15 +477,33 @@ module Onetime
         false
       end
 
-      # True only when `record` is owned by the same organization as this
-      # config's own domain. Fails closed: a missing own-domain record or a
-      # blank org_id on either side is a refusal, and a refusal is logged
-      # so a misconfigured entry is visible rather than silently inert.
+      # Write-side twin of the ownership rule in {surface_for_origin}:
+      # true when `origin` names a custom domain this install serves that
+      # is not owned by this config's organization. Canonical hosts and
+      # hosts we do not serve are never foreign. Lookup errors propagate:
+      # a write that cannot be checked must not be stored.
+      def foreign_custom_origin?(origin)
+        host = URI.parse(origin).host.to_s.downcase
+        return false if canonical_host?(host)
+
+        record = Onetime::CustomDomain.from_display_domain(host)
+        return false unless record&.identifier
+        return false if record.identifier.to_s == domain_id.to_s
+
+        !owned_by_same_organization?(record, custom_domain)
+      end
+
+      # Fails closed: a missing own-domain record or a blank org_id on
+      # either side is "not the same organization".
+      def owned_by_same_organization?(record, own_domain)
+        own_org = own_domain&.org_id.to_s
+        !own_org.empty? && own_org == record.org_id.to_s
+      end
+
+      # Read-side ownership check. A refusal is logged so a stored entry
+      # that no longer qualifies is visible rather than silently inert.
       def same_organization?(record, current_domain: nil, origin: nil)
-        own_domain = current_domain || custom_domain
-        own_org    = own_domain&.org_id.to_s
-        other_org  = record.org_id.to_s
-        return true if !own_org.empty? && own_org == other_org
+        return true if owned_by_same_organization?(record, current_domain || custom_domain)
 
         OT.lw(
           '[SigninConfig] Dropping cross-organization related origin',
@@ -1117,7 +1184,8 @@ module Onetime
         # @param domain_id [String] CustomDomain identifier
         # @param attrs [Hash] Configuration attributes
         # @return [CustomDomain::SigninConfig] The created config
-        # @raise [Onetime::Problem] if config already exists
+        # @raise [Onetime::Problem] if config already exists, or
+        #   related_origins is refused by {#related_origins=}
         def create!(domain_id:, **attrs)
           raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
           raise Onetime::Problem, 'Signin config already exists for this domain' if exists_for_domain?(domain_id)
@@ -1126,6 +1194,11 @@ module Onetime
 
           config.enabled            = attrs.key?(:enabled) ? attrs[:enabled] : false
           config.restrict_to        = attrs[:restrict_to] if attrs.key?(:restrict_to)
+
+          # Through the validating setter, before save: a first write is held
+          # to the same shape and ownership rules as an update (#4421), and a
+          # refusal persists nothing.
+          config.related_origins    = attrs[:related_origins] if attrs.key?(:related_origins)
 
           # Convention: all boolean fields use conservative defaults (false).
           # The `enabled` master switch gates runtime consultation — creating

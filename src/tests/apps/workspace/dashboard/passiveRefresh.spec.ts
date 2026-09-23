@@ -84,7 +84,13 @@ describe('dashboard receipt refreshes: active vs passive', () => {
     Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
 
     vi.useFakeTimers(); // before the stores: authStore.init() schedules its interval
-    useBootstrapStore();
+    // ADR-046#auth-completion-caller-contract: after #4451 landed authStatus,
+    // `isFullyAuthenticated` is a computed over `bootstrapStore.authStatus === 'authenticated'`.
+    // That status only exists once the bootstrap store hydrates from
+    // window.__BOOTSTRAP_ME__ — a bare `useBootstrapStore()` never triggers
+    // it, so init() has to be called explicitly here.
+    useBootstrapStore().init();
+    useAuthStore().init();
     expect(useAuthStore().isFullyAuthenticated).toBe(true);
   });
 

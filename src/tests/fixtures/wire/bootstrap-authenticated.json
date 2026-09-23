@@ -1,0 +1,526 @@
+{
+  "auth_status": "authenticated",
+  "authenticated": true,
+  "awaiting_mfa": false,
+  "had_valid_session": true,
+  "has_password": true,
+  "password_auth_permitted": true,
+  "custid": "01a0b90a-5171-77c1-88bd-d7e69aa210b5",
+  "cust": {
+    "objid": "01a0b90a-5171-77c1-88bd-d7e69aa210b5",
+    "extid": "ur0jrz8qg0k0vzrgfd31lai7dvy",
+    "email": "recorded-user@test.onetimesecret.com",
+    "role": "customer",
+    "verified": true,
+    "last_login": 1789810856.9797,
+    "locale": "",
+    "updated": 1789810856.76001,
+    "created": 1789810856.30599,
+    "secrets_created": "0",
+    "secrets_burned": "0",
+    "secrets_shared": "0",
+    "emails_sent": "0",
+    "active": true,
+    "notify_on_reveal": false
+  },
+  "email": "recorded-user@test.onetimesecret.com",
+  "customer_since": "Sep 19, 2026",
+  "entitlement_preview_planid": null,
+  "entitlement_preview_plan_name": null,
+  "impersonation": null,
+  "api": {
+    "enabled": true,
+    "guest_routes": {
+      "enabled": true,
+      "conceal": true,
+      "generate": true,
+      "reveal": true,
+      "burn": true,
+      "show": true,
+      "receipt": true
+    }
+  },
+  "authentication": {
+    "enabled": true,
+    "signin": true,
+    "signup": true,
+    "autoverify": false,
+    "allowed_signup_domains": [],
+    "required": false,
+    "reset_request_rate_limit": {
+      "enabled": true,
+      "max_per_ip": 10,
+      "max_per_email": 30,
+      "window": 3600,
+      "lockout": 3600
+    },
+    "create_account_rate_limit": {
+      "enabled": false,
+      "max_per_ip": 10,
+      "window": 3600,
+      "lockout": 3600
+    },
+    "mode": "full"
+  },
+  "brand_primary_color": null,
+  "brand_product_name": null,
+  "brand_product_domain": null,
+  "brand_support_email": null,
+  "brand_corner_style": "rounded",
+  "brand_font_family": "sans",
+  "brand_button_text_light": null,
+  "brand_logo_url": null,
+  "brand_logo_dark_url": null,
+  "brand_logo_alt": null,
+  "brand_favicon_url": null,
+  "d9s_enabled": true,
+  "development": {
+    "enabled": false,
+    "domain_context_enabled": false
+  },
+  "diagnostics": {
+    "sentry": {
+      "dsn": "https://publickey@sentry.example.com/1",
+      "trackComponents": true,
+      "sampleRate": 1.0,
+      "maxBreadcrumbs": 5,
+      "logErrors": true,
+      "environment": "production",
+      "release": "4782c9a"
+    }
+  },
+  "docs_host": "https://docs.onetimesecret.com/",
+  "domains": null,
+  "domains_enabled": false,
+  "features": {
+    "signin": true,
+    "lockout": false,
+    "password_requirements": false,
+    "active_sessions": true,
+    "remember_me": true,
+    "mfa": true,
+    "email_auth": true,
+    "webauthn": false,
+    "sso": {
+      "enabled": true,
+      "providers": [
+        {
+          "route_name": "entra",
+          "display_name": "Microsoft"
+        }
+      ],
+      "connect_providers": [
+        {
+          "route_name": "entra",
+          "display_name": "Microsoft"
+        }
+      ]
+    },
+    "restrict_to": null,
+    "effective_restrict_to": {
+      "state": "unrestricted",
+      "restrict_to": null,
+      "source": "global"
+    },
+    "organizations": {
+      "enabled": true,
+      "sso_enabled": true,
+      "custom_mail_enabled": true,
+      "incoming_secrets_enabled": true,
+      "audit_logs_enabled": true
+    },
+    "secret_activity": {
+      "collect_enabled": true,
+      "max_events": 10000,
+      "geo_country_enabled": false
+    }
+  },
+  "frontend_development": false,
+  "frontend_host": "",
+  "homepage_mode": null,
+  "legal": {
+    "terms_url": "https://onetimesecret.com/terms",
+    "privacy_url": "https://onetimesecret.com/privacy",
+    "dpa_url": null,
+    "cookie_url": null,
+    "aup_url": null,
+    "security_url": null
+  },
+  "billing_enabled": false,
+  "checkout_host": "pay.onetimesecret.com",
+  "regions": {
+    "enabled": true,
+    "current_jurisdiction": "CA",
+    "jurisdictions": [
+      {
+        "identifier": "EU",
+        "domain": "eu.example.com",
+        "display_name_i18n_key": "web.regions.jurisdictions.eu.name"
+      },
+      {
+        "identifier": "CA",
+        "domain": "ca.example.com",
+        "display_name_i18n_key": "web.regions.jurisdictions.ca.name"
+      },
+      {
+        "identifier": "NZ",
+        "domain": "nz.example.com",
+        "display_name_i18n_key": "web.regions.jurisdictions.nz.name"
+      }
+    ]
+  },
+  "regions_enabled": true,
+  "secret_options": {
+    "default_ttl": 604800,
+    "ttl_options": [
+      60,
+      300,
+      1800,
+      3600,
+      14400,
+      43200,
+      86400,
+      259200,
+      604800,
+      1209600,
+      2592000
+    ],
+    "ttl_max_anonymous": 604800,
+    "passphrase": {
+      "required": false,
+      "minimum_length": 4,
+      "maximum_length": 128,
+      "enforce_complexity": false
+    },
+    "content": {
+      "maximum_length": 10000
+    },
+    "password_generation": {
+      "default_length": 12,
+      "maximum_length": 128,
+      "length_options": [
+        8,
+        12,
+        16,
+        20,
+        24,
+        32
+      ],
+      "character_sets": {
+        "uppercase": true,
+        "lowercase": true,
+        "numbers": true,
+        "symbols": true,
+        "exclude_ambiguous": true
+      }
+    },
+    "generated_value_display_ttl": 60,
+    "create_rate_limit": {
+      "enabled": true,
+      "max_per_ip": 500,
+      "window": 3600,
+      "lockout": 3600
+    }
+  },
+  "site_host": "localhost:7143",
+  "support_email": null,
+  "support_host": "docs.onetimesecret.com",
+  "ui": {
+    "enabled": true,
+    "homepage": {
+      "mode": null,
+      "matching_cidrs": [],
+      "mode_header": "O-Homepage-Mode",
+      "disabled_variant": "closed",
+      "custom_disabled_variant": null,
+      "public_links": {
+        "recipient_intro": null
+      }
+    },
+    "capabilities": {
+      "burn": true,
+      "show": true,
+      "receipt": true,
+      "recipient": true
+    },
+    "header": {
+      "enabled": true,
+      "logo": {
+        "href": null,
+        "show_name": null,
+        "prominent": null
+      },
+      "navigation": {
+        "enabled": true
+      }
+    },
+    "footer_links": {
+      "enabled": true,
+      "groups": [
+        {
+          "name": "legal",
+          "i18n_key": "web.footer.legals",
+          "links": [
+            {
+              "text": "Terms of Service",
+              "i18n_key": "web.layout.terms_of_service",
+              "url": "https://onetimesecret.com/terms"
+            },
+            {
+              "text": "Privacy Policy",
+              "i18n_key": "web.layout.privacy_policy",
+              "url": "https://onetimesecret.com/privacy"
+            }
+          ]
+        },
+        {
+          "name": "resources",
+          "i18n_key": "web.footer.resources",
+          "links": [
+            {
+              "text": "Docs",
+              "i18n_key": "web.footer.docs",
+              "url": "https://docs.onetimesecret.com/"
+            },
+            {
+              "text": "Status",
+              "i18n_key": "web.COMMON.status",
+              "url": "https://status.onetimesecret.com/"
+            }
+          ]
+        },
+        {
+          "name": "support",
+          "i18n_key": "web.footer.support",
+          "links": [
+            {
+              "text": "About",
+              "i18n_key": "web.COMMON.about",
+              "url": "https://onetimesecret.com/about"
+            },
+            {
+              "text": "Contact",
+              "i18n_key": "web.footer.contact",
+              "url": "/feedback"
+            }
+          ]
+        }
+      ]
+    },
+    "workspace_links": {
+      "enabled": false,
+      "links": [
+        {
+          "text": "API Docs",
+          "i18n_key": "web.footer.api_docs",
+          "url": "https://api.onetimesecret.com/"
+        },
+        {
+          "text": "Branding Guide",
+          "i18n_key": "web.footer.branding_guide",
+          "url": "https://docs.onetimesecret.com/"
+        },
+        {
+          "text": "Feedback",
+          "i18n_key": "web.TITLES.feedback",
+          "url": "/feedback"
+        }
+      ]
+    },
+    "show_version": true,
+    "help": {
+      "enabled": true
+    }
+  },
+  "canonical_domain": "localhost:7143",
+  "custom_domains": null,
+  "display_domain": "localhost:7143",
+  "domain_branding": null,
+  "domain_id": null,
+  "domain_locale": null,
+  "domain_logo": null,
+  "domain_context": null,
+  "domain_strategy": "canonical",
+  "homepage_config": null,
+  "link_domains": [
+    "localhost:7143"
+  ],
+  "locale": "en",
+  "default_locale": "en",
+  "fallback_locale": {
+    "ca": [
+      "ca_ES",
+      "en"
+    ],
+    "ca-ES": [
+      "ca_ES",
+      "en"
+    ],
+    "da": [
+      "da_DK",
+      "en"
+    ],
+    "da-DK": [
+      "da_DK",
+      "en"
+    ],
+    "de": [
+      "de",
+      "de_AT",
+      "en"
+    ],
+    "de-AT": [
+      "de_AT",
+      "de",
+      "en"
+    ],
+    "el": [
+      "el_GR",
+      "en"
+    ],
+    "el-GR": [
+      "el_GR",
+      "en"
+    ],
+    "fr": [
+      "fr_FR",
+      "fr_CA",
+      "en"
+    ],
+    "fr-CA": [
+      "fr_CA",
+      "fr_FR",
+      "en"
+    ],
+    "it": [
+      "it_IT",
+      "en"
+    ],
+    "mi": [
+      "mi_NZ",
+      "en"
+    ],
+    "mi-NZ": [
+      "mi_NZ",
+      "en"
+    ],
+    "pt": [
+      "pt_BR",
+      "pt_PT",
+      "en"
+    ],
+    "pt-BR": [
+      "pt_BR",
+      "pt_PT",
+      "en"
+    ],
+    "pt-PT": [
+      "pt_PT",
+      "pt_BR",
+      "en"
+    ],
+    "sl": [
+      "sl_SI",
+      "en"
+    ],
+    "sl-SI": [
+      "sl_SI",
+      "en"
+    ],
+    "sv": [
+      "sv_SE",
+      "en"
+    ],
+    "sv-SE": [
+      "sv_SE",
+      "en"
+    ],
+    "default": [
+      "en"
+    ]
+  },
+  "supported_locales": [
+    "ar",
+    "bg",
+    "ca_ES",
+    "cs",
+    "da_DK",
+    "de",
+    "de_AT",
+    "el_GR",
+    "en",
+    "eo",
+    "es",
+    "fr_CA",
+    "fr_FR",
+    "he",
+    "hu",
+    "it_IT",
+    "ja",
+    "ko",
+    "mi_NZ",
+    "nl",
+    "pl",
+    "pt_BR",
+    "pt_PT",
+    "ru",
+    "sl_SI",
+    "sv_SE",
+    "tr",
+    "uk",
+    "vi",
+    "zh"
+  ],
+  "i18n_enabled": true,
+  "date_format": "locale",
+  "datetime_format": "locale",
+  "messages": null,
+  "global_banner": null,
+  "global_banner_scope": null,
+  "organization": {
+    "objid": "01a0b90a-517b-7c8d-9d59-8a1d21f417aa",
+    "extid": "on3brpq3aceb0ioh8vpc5jdgo89",
+    "display_name": "Default Workspace",
+    "is_default": true,
+    "planid": "free_v1",
+    "current_user_role": "owner",
+    "entitlements": [
+      "create_secrets",
+      "view_receipt",
+      "api_access",
+      "notifications",
+      "extended_default_expiration",
+      "manage_teams",
+      "manage_members",
+      "audit_logs",
+      "workspace_branding",
+      "ip_access_rules",
+      "custom_domains",
+      "homepage_secrets",
+      "incoming_secrets",
+      "custom_branding",
+      "custom_privacy_defaults",
+      "custom_mail_sender",
+      "flexible_from_domain",
+      "custom_signin_config",
+      "custom_signup_validation",
+      "manage_sso",
+      "manage_org",
+      "manage_billing"
+    ],
+    "limits": {
+      "teams": -1,
+      "total_members_per_org": -1,
+      "custom_domains": -1,
+      "secret_lifetime": -1
+    }
+  },
+  "ot_version": "0.0.0-rc0",
+  "ot_version_long": "0.0.0-rc0 (4782c9a)",
+  "ruby_version": "3.4.10",
+  "shrimp": "recorded-csrf-token-removed",
+  "nonce": "cmVjb3JkZWQtbm9uY2U=",
+  "snapshot_epoch": "27485c1ed9b5e1b69e60d1f3c665ec3c",
+  "snapshot_version": "1789810857165692",
+  "snapshot_generated_at": "2026-09-19T09:40:58.831159Z"
+}

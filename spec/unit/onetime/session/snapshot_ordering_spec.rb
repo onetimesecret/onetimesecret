@@ -134,12 +134,40 @@ RSpec.describe Onetime::SnapshotOrdering do
         .select { |path| File.read(File.join(Onetime::HOME, path)).include?('snapshot') }
     end
 
-    it 'is mentioned only by the allocator, the serializer and the schema' do
+    it 'is mentioned only by its producers, the schema, and the client files that carry or report it' do
       expect(mentions).to contain_exactly(
+        # Produce it.
         'lib/onetime/session/snapshot_ordering.rb',
         'apps/web/core/views/serializers/system_serializer.rb',
+        # Declares it, unconstrained.
         'src/schemas/contracts/bootstrap.ts',
+        # Carries it: a snapshot key like any other (default + local-patch drop list).
+        'src/shared/stores/bootstrapStore.ts',
+        # Report on it: describeGeneratedAt / isClockRegression, and the
+        # coordinator's diagnostics for a snapshot it has ALREADY decided to apply.
+        'src/utils/snapshotOrdering.ts',
+        'src/shared/stores/authStore.ts',
       )
+    end
+
+    it 'is not an input to the client acceptance decision' do
+      source   = File.read(File.join(Onetime::HOME, 'src/utils/snapshotOrdering.ts'))
+      decision = source[/^export interface ClassifyInput.*?(?=^export type GeneratedAtReport)/m]
+
+      # The slice runs from the classifier's input type to the end of the last
+      # classify* function; the diagnostic helpers start after it.
+      expect(decision).to include('export function classifySnapshot', 'function classifySession')
+      expect(decision).not_to match(/generated/i)
+    end
+
+    it 'reaches the coordinator only after the decision, as a diagnostic' do
+      source = File.read(File.join(Onetime::HOME, 'src/shared/stores/authStore.ts'))
+      code   = source.lines.grep(/generated_?at/i).reject { |line| line.strip.start_with?('*', '//') }
+
+      # Every use is inside recordApplied (or the call into it). None feeds
+      # classifySnapshot, and none is on a line that returns or applies.
+      expect(code).not_to be_empty
+      expect(code.grep(/classifySnapshot|applySnapshot|return /)).to be_empty
     end
 
     it 'has no format constraint inside bootstrapSchema' do

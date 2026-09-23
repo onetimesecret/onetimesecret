@@ -766,7 +766,7 @@ module Onetime
     #
     # required_vars is a presence check and nothing more. A definition may
     # also carry :vars_valid — a zero-arg callable for a constraint presence
-    # cannot express — and Auth0 does: AUTH0_DOMAIN must include the scheme,
+    # cannot express, such as a URL variable that must include the scheme
     # because the CSP form-action origin is derived from it.
     #
     # WHY BOTH HALVES MATTER. Auth::Config::Features::OmniAuth#configure_provider

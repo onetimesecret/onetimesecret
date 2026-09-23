@@ -3,14 +3,20 @@
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { createApi } from '@/api';
+import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const bootstrapStore = useBootstrapStore();
+const authStore = useAuthStore();
 const $api = createApi();
+
+// The reset POSTs the same protected endpoint PlanPreviewModal does, so it
+// follows the same gate (ADR-046#authority-action-gating): no mutation while
+// authority is uncertain or the session is stale.
+const { protectedActionsAvailable } = storeToRefs(authStore);
 
 // Test plan mode composable
 const { previewPlanName } = usePreviewPlanMode();
@@ -18,13 +24,14 @@ const { previewPlanName } = usePreviewPlanMode();
 const isResetting = ref(false);
 
 const handleReset = async () => {
+  if (!protectedActionsAvailable.value) return;
   isResetting.value = true;
 
   try {
     await $api.post('/api/colonel/entitlement-preview', { planid: null });
 
     // Refresh bootstrap state to clear test mode (no page reload needed)
-    await bootstrapStore.refresh();
+    await authStore.refresh({ kind: 'ordinary', reason: 'plan-preview' });
   } catch (err: unknown) {
     console.error('Failed to reset test mode:', err);
   } finally {
@@ -51,7 +58,7 @@ const handleReset = async () => {
       </div>
       <button
         type="button"
-        :disabled="isResetting"
+        :disabled="isResetting || !protectedActionsAvailable"
         class="inline-flex items-center gap-2 rounded-md px-3 py-1 text-sm font-medium text-amber-900 transition-colors hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-50 dark:text-amber-100 dark:hover:bg-amber-800/50"
         @click="handleReset">
         <span v-if="!isResetting">{{ t('web.colonel.clickToReset') }}</span>

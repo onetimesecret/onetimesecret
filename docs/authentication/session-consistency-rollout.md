@@ -20,7 +20,7 @@ form:
 |---|---|
 | New frontend, old backend | The payload has no `auth_status` and no ordering pair. The client derives the status from `authenticated` / `awaiting_mfa` (restrictive when they disagree) and runs unordered. Every signed-in page load makes one immediate `GET /bootstrap/me`. API `401`s carry no `code`, so a rejected call reconciles only while the tab holds a session. |
 | Old frontend, new backend | The new fields are ignored. The old client still polls on startup and every 15 minutes; those polls no longer keep a session alive. It still signs the user out after three failed refreshes, and a `503` from `GET /bootstrap/me` counts as one. |
-| Mixed workers during a rolling deploy | A tab that holds a watermark and reaches a worker without the contract gets a session snapshot with no pair. That is an anomaly: one immediate retry, and a second consecutive one reloads the tab. The reload is bounded to once per minute per tab. |
+| Mixed workers during a rolling deploy | A tab that holds a watermark and reaches a worker without the contract gets a session snapshot with no pair. That is an anomaly: one immediate retry, and a second one on that retry reloads the tab. Each refresh gets its own retry; an anomaly whose retry failed does not count against a later one. The reload is bounded to once per minute per tab. |
 
 Keep the mixed-worker window short. A blue/green switch avoids it entirely.
 
@@ -56,20 +56,79 @@ and continue unordered.
   not count as activity. A signed-in tab left untouched reaches the inactivity
   deadline; before this release its own 15-minute poll kept it alive
   indefinitely. Expect more sessions ending by inactivity than before. The
-  dashboard's two 5-minute data refreshes declare themselves with the request
-  header `X-Session-Activity: passive` and do not count either, so a tab left
-  on the dashboard signs out on schedule too. The header is honoured on `GET`
-  and `HEAD` only and can only shorten the sender's own session. A proxy that
-  strips unknown request headers turns those refreshes back into activity; it
-  breaks nothing else.
+  dashboard's receipt lists refresh every 5 minutes while their tab is visible
+  and when it becomes visible again; those requests declare themselves with the
+  request header `X-Session-Activity: passive` and do not count either, so a
+  tab left on the dashboard signs out on schedule too. A hidden tab sends none.
+  The header is honoured on `GET` and `HEAD` only and can only shorten the
+  sender's own session. A proxy that strips unknown request headers turns
+  those refreshes back into activity; it breaks nothing else.
 - **Log fields.** Session store lines carry `session_handle` instead of
-  `session_id`, and `redis_key` is gone. Update any log query, alert or
-  dashboard keyed on `session_id` for those lines.
+  `session_id`, and `redis_key` is gone. So do the sign-in, sign-out and
+  password-reset lines, every `/auth` event line, and the request lines of
+  `LOG_HTTP_CAPTURE=debug`: no log line writes a session id. Update any log
+  query, alert or dashboard keyed on `session_id`.
 - **Traffic.** A normal page load makes no `GET /bootstrap/me` request. Expect
   that endpoint's request rate, and the `Bootstrap verification` line count, to
   drop.
-- **Caching.** `/auth` responses send `Cache-Control: private, no-store` by
-  default. Confirm no intermediary overrides it.
+- **Caching.** `/auth` responses, and every `/api` response that sets no
+  policy of its own, send `Cache-Control: private, no-store`. Confirm no
+  intermediary overrides it.
+- **Ended sessions leave a marker.** Logout and revocation write
+  `ended_sid:<digest>` to the datastore with a 5-minute TTL. It holds no
+  session id. A `Session write refused: the session was ended during this
+  request` line (Session logger, info) means a request outlived its session
+  and was stopped from restoring it; occasional lines are the mechanism
+  working.
+- **Session ids the server does not know.** A cookie naming an id with no
+  stored session (expired, ended, or never issued) is given a new id on that
+  request. Signing out removes the session's `session_metadata:<id>` key at
+  once.
+- **SQLite auth database.** Connections now open transactions with `BEGIN
+  IMMEDIATE` and wait for locks with the GVL released. Concurrent sign-ups
+  queue instead of answering `500`. The migration connections, including
+  `rake auth:migrate`, do the same, so several processes booting at once no
+  longer race on the file. No action needed; PostgreSQL locking is unchanged.
+- **`/auth` can answer `503`.** When the auth database is saturated (a SQLite
+  write lock held past the 5-second wait, or no free pooled connection on
+  either engine) `/auth` answers `503` with `Retry-After: 1` and `error_type:
+  AuthDatabaseBusy`, where it answered a generic `500`. Seeing it means more
+  concurrent auth writes than the deployment has capacity for. It is logged
+  at `warn` as `Auth router translated exception` with `error_type` and
+  `status`; `Auth router unhandled exception` (`error`) now means only an
+  exception `/auth` has no answer for.
+- **Sign-up answers.** In full mode a sign-up for an existing account answers
+  `400` with `{"error": "Unable to create account"}` whether that account is
+  verified, unverified, or was created by a concurrent request a moment
+  earlier. It used to answer `403` for an unverified account and `422` for a
+  lost race. An ordinary duplicate logs `registration_blocked_existing_account`
+  at info; `registration_blocked_auth_db_conflict` (error) now fires only when
+  the auth database has the account and the datastore has no customer for it.
+
+## Developer notes
+
+- **Local hydration schemas.** The bootstrap payload gained `snapshot_epoch`,
+  `snapshot_version` and `snapshot_generated_at`. In development the backend
+  validates every page's hydration data against `public/schemas/*.json`
+  (`Rhales::Middleware::SchemaValidator`, mounted only when
+  `public/schemas/index.json` exists, failing loudly). Those files are generated
+  and gitignored, and the schemas are closed, so a checkout that generated them
+  before this release answers `500` for every page once it runs this code.
+  `pnpm run dev` now repairs that: its `predev` step runs
+  `pnpm run schemas:rhales:refresh`, which regenerates the schemas when the
+  checkout has them and does nothing when it does not. If you start only the
+  backend, or a page was requested before the frontend finished starting (the
+  backend keeps the first schema it reads), run
+  `pnpm run schemas:rhales:generate` and restart the backend. Deleting
+  `public/schemas/*.json` turns the validation off.
+- `pnpm run schemas:rhales:generate` had stopped producing anything ("No schema
+  sections found"): the rake task did not know where `bootstrap.ts` lives. It
+  now carries the same schema settings as the app. `error.rue` used a Mustache
+  section Rhales cannot parse, so its schema was skipped with a warning.
+  Nothing has rendered that template since error pages moved to the Vue entry
+  point (October 2025), so it is removed with its view class; both remaining
+  schemas (`index`, `admin`) generate, and a spec parses every Web Core
+  template.
 
 ## Staging review
 
@@ -99,3 +158,6 @@ session identifier.
 - Session `401`s send no `WWW-Authenticate` header, and verification outages
   answer `401` rather than `503`. Both are recorded in the failure matrix and
   belong to [#4469](https://github.com/onetimesecret/onetimesecret/issues/4469).
+- Completing the second factor does not renew the session id; the password
+  step does. `RISK-2026-09-19-02`, tracked by
+  [#4466](https://github.com/onetimesecret/onetimesecret/issues/4466).

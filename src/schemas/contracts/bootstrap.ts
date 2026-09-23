@@ -772,6 +772,68 @@ export function effectiveAuthStatus(payload: {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// BOOTSTRAP CUSTOMER (wire shape)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * A customer timestamp as it arrives in a bootstrap payload.
+ *
+ * `customerCanonical` is the POST-parse shape: its timestamps are `z.date()`,
+ * and JSON cannot carry a Date. The server emits `cust.safe_dump`, i.e. epoch
+ * seconds. Nothing parsed a wire payload with `bootstrapSchema` before #4458,
+ * so the mismatch was latent; from #4458 on, hydration and every
+ * /bootstrap/me response are validated with it, and an authenticated payload
+ * that failed here would read as "cannot verify" for every signed-in user.
+ *
+ * Accepted, and nothing else: epoch seconds as a number; epoch seconds as a
+ * numeric string (the datastore's encoding); or a Date, so that parsing an
+ * already-parsed snapshot stays idempotent. The OUTPUT is always a Date, so
+ * `BootstrapPayload` is unchanged for every consumer.
+ */
+const bootstrapTimestamp = z
+  .union([
+    z.date(),
+    z.number(),
+    z
+      .string()
+      .regex(/^\d+(\.\d+)?$/)
+      .transform(Number),
+  ])
+  .transform((value) => (value instanceof Date ? value : new Date(value * 1000)));
+
+/**
+ * A customer counter as it arrives in a bootstrap payload.
+ *
+ * `safe_dump` reads the counters straight from the datastore, which stores
+ * them as decimal strings ("0"); observed on a live /bootstrap/me body. A
+ * number is accepted too, so parsing an already-parsed snapshot is idempotent.
+ */
+const bootstrapCounter = z.union([
+  z.number(),
+  z
+    .string()
+    .regex(/^\d+$/)
+    .transform(Number),
+]);
+
+/**
+ * `customerCanonical` with the wire encoding `cust.safe_dump` really has:
+ * epoch-second timestamps, string counters, and no `feature_flags` key (it is
+ * not a safe_dump field). Pinned against a recorded server body in
+ * src/tests/contracts/bootstrap-wire-contract.spec.ts.
+ */
+export const bootstrapCustomerSchema = customerCanonical.extend({
+  created: bootstrapTimestamp,
+  updated: bootstrapTimestamp,
+  last_login: bootstrapTimestamp.nullish().transform((value) => value ?? null),
+  secrets_created: bootstrapCounter,
+  secrets_burned: bootstrapCounter,
+  secrets_shared: bootstrapCounter,
+  emails_sent: bootstrapCounter,
+  feature_flags: customerCanonical.shape.feature_flags.default({}),
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // BOOTSTRAP PAYLOAD SCHEMA (full payload for Rhales validation)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -882,7 +944,7 @@ export const bootstrapSchema = z.object({
   // is not 'full'. Defaults true so consumer accounts keep the affordance.
   password_auth_permitted: z.boolean().default(true),
   custid: z.string().default(''),
-  cust: customerCanonical.nullable().default(null),
+  cust: bootstrapCustomerSchema.nullable().default(null),
   email: z.string().default(''),
   // customer_since: formatted date string (e.g., "Mar 21, 2026") from Ruby epochdom()
   customer_since: z.string().optional(),
@@ -937,7 +999,18 @@ export const bootstrapSchema = z.object({
   // ─────────────────────────────────────────────────────────────────────────────
   locale: z.string().default('en'),
   default_locale: z.string().default('en'),
-  fallback_locale: z.string().default('en'),
+  // OT.fallback_locale is the config's `i18n.fallback_locale` verbatim: a map
+  // of locale -> fallback chain (the shape vue-i18n takes, see src/i18n.ts),
+  // or a single locale string on a minimal config.
+  fallback_locale: z
+    .union([
+      z.string(),
+      z.record(
+        z.string(),
+        z.union([z.array(z.string()), z.string().transform((locale) => [locale])])
+      ),
+    ])
+    .default('en'),
   supported_locales: z.array(z.string()).default([]),
   i18n_enabled: z.boolean().default(true),
   // Date/time display format: 'locale', 'iso8601', 'us', 'eu', 'eu-dot', 'uk',
@@ -1033,6 +1106,43 @@ export const bootstrapSchema = z.object({
       message: 'snapshot_epoch and snapshot_version must both be present or both be absent',
     });
   });
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WIRE NULLS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let nullRejectingKeys: ReadonlySet<string> | undefined;
+
+/**
+ * Reads a server `null` as "not emitted" for every top-level key whose schema
+ * does not accept null.
+ *
+ * Every Ruby serializer seeds its `output_template` with nil for each key it
+ * owns and overwrites only what applies to the request, so ANY key can arrive
+ * as null (`custid` for an anonymous visitor, `domains` with the feature off,
+ * `support_email` on a bare config). The schema's `.default()` is the value a
+ * consumer should see in that case, and Zod applies a default to `undefined`
+ * only. Keys whose schema accepts null (`cust`, `organization`, ...) are left
+ * alone, so a meaningful null stays a null.
+ *
+ * Apply this to a payload that came off the wire (hydration, /bootstrap/me)
+ * before `bootstrapSchema.parse`. It never adds a key or changes a value, so
+ * it cannot make a payload claim more than the server sent.
+ */
+export function withoutWireNulls(data: unknown): unknown {
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) return data;
+
+  nullRejectingKeys ??= new Set(
+    Object.entries(bootstrapSchema.shape)
+      .filter(([, field]) => !(field as z.ZodType).safeParse(null).success)
+      .map(([key]) => key)
+  );
+
+  const rejecting = nullRejectingKeys;
+  return Object.fromEntries(
+    Object.entries(data).filter(([key, value]) => !(value === null && rejecting.has(key)))
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // BOOTSTRAP PAYLOAD TYPE
