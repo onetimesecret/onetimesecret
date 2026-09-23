@@ -103,27 +103,22 @@ module Auth
     # bypass this handler and stay request-independent — the x-request-id
     # response header still correlates them.
     #
-    # Logging: 500s log at :error with backtrace so production failures are
-    # not silent (Roda's :error_handler does not log by default). Translated
-    # typed exceptions log at the per-class level from
-    # Auth::ErrorTranslator::LOG_LEVEL_BY_CLASS, which mirrors the
-    # `log_level:` values passed to `register_error_handler` in
-    # `lib/onetime/application/otto_hooks.rb`. That keeps the Roda Auth app
+    # Logging: Auth::ErrorTranslator.log_entry decides level and message.
+    # An exception the translator does not know logs at :error as "unhandled
+    # exception" with backtrace so production failures are not silent (Roda's
+    # :error_handler does not log by default). A translated exception logs at
+    # the per-class level from Auth::ErrorTranslator::LOG_LEVEL_BY_CLASS,
+    # which mirrors the `log_level:` values passed to `register_error_handler`
+    # in `lib/onetime/application/otto_hooks.rb`. That keeps the Roda Auth app
     # and Otto apps emitting at the same level for the same exception class.
+    # The split is on "translated", not on the status: the retryable 503s
+    # (AuthDatabaseBusy, AccountProvisioningUnavailable) are deliberate
+    # answers at :warn, not unhandled exceptions.
     plugin :error_handler do |e|
       status, body             = Auth::ErrorTranslator.translate(e)
       body                     = Onetime::Application::ErrorCorrelation.apply(body, request.env, e)
-      if status >= 500
-        auth_logger.error 'Auth router unhandled exception', exception: e
-      else
-        level = Auth::ErrorTranslator.level_for(e)
-        auth_logger.public_send(
-          level,
-          'Auth router translated exception',
-          exception_class: e.class.name,
-          status: status,
-        )
-      end
+      level, message, payload  = Auth::ErrorTranslator.log_entry(e)
+      auth_logger.public_send(level, message, payload)
       response.status          = status
       response['content-type'] = 'application/json'
       body.to_json

@@ -56,20 +56,47 @@ and continue unordered.
   not count as activity. A signed-in tab left untouched reaches the inactivity
   deadline; before this release its own 15-minute poll kept it alive
   indefinitely. Expect more sessions ending by inactivity than before. The
-  dashboard's two 5-minute data refreshes declare themselves with the request
-  header `X-Session-Activity: passive` and do not count either, so a tab left
-  on the dashboard signs out on schedule too. The header is honoured on `GET`
-  and `HEAD` only and can only shorten the sender's own session. A proxy that
-  strips unknown request headers turns those refreshes back into activity; it
-  breaks nothing else.
+  dashboard's receipt lists refresh every 5 minutes while their tab is visible
+  and when it becomes visible again; those requests declare themselves with the
+  request header `X-Session-Activity: passive` and do not count either, so a
+  tab left on the dashboard signs out on schedule too. A hidden tab sends none.
+  The header is honoured on `GET` and `HEAD` only and can only shorten the
+  sender's own session. A proxy that strips unknown request headers turns
+  those refreshes back into activity; it breaks nothing else.
 - **Log fields.** Session store lines carry `session_handle` instead of
-  `session_id`, and `redis_key` is gone. Update any log query, alert or
-  dashboard keyed on `session_id` for those lines.
+  `session_id`, and `redis_key` is gone. So do the sign-in, sign-out and
+  password-reset lines, every `/auth` event line, and the request lines of
+  `LOG_HTTP_CAPTURE=debug`: no log line writes a session id. Update any log
+  query, alert or dashboard keyed on `session_id`.
 - **Traffic.** A normal page load makes no `GET /bootstrap/me` request. Expect
   that endpoint's request rate, and the `Bootstrap verification` line count, to
   drop.
-- **Caching.** `/auth` responses send `Cache-Control: private, no-store` by
-  default. Confirm no intermediary overrides it.
+- **Caching.** `/auth` responses, and every `/api` response that sets no
+  policy of its own, send `Cache-Control: private, no-store`. Confirm no
+  intermediary overrides it.
+- **Ended sessions leave a marker.** Logout and revocation write
+  `ended_sid:<digest>` to the datastore with a 5-minute TTL. It holds no
+  session id. A `Session write refused: the session was ended during this
+  request` line (Session logger, info) means a request outlived its session
+  and was stopped from restoring it; occasional lines are the mechanism
+  working.
+- **Session ids the server does not know.** A cookie naming an id with no
+  stored session (expired, ended, or never issued) is given a new id on that
+  request. Signing out removes the session's `session_metadata:<id>` key at
+  once.
+- **SQLite auth database.** Connections now open transactions with `BEGIN
+  IMMEDIATE` and wait for locks with the GVL released. Concurrent sign-ups
+  queue instead of answering `500`. The migration connections, including
+  `rake auth:migrate`, do the same, so several processes booting at once no
+  longer race on the file. No action needed; PostgreSQL locking is unchanged.
+- **`/auth` can answer `503`.** When the auth database is saturated (a SQLite
+  write lock held past the 5-second wait, or no free pooled connection on
+  either engine) `/auth` answers `503` with `Retry-After: 1` and `error_type:
+  AuthDatabaseBusy`, where it answered a generic `500`. Seeing it means more
+  concurrent auth writes than the deployment has capacity for. It is logged
+  at `warn` as `Auth router translated exception` with `error_type` and
+  `status`; `Auth router unhandled exception` (`error`) now means only an
+  exception `/auth` has no answer for.
 
 ## Developer notes
 
@@ -124,3 +151,6 @@ session identifier.
 - Session `401`s send no `WWW-Authenticate` header, and verification outages
   answer `401` rather than `503`. Both are recorded in the failure matrix and
   belong to [#4469](https://github.com/onetimesecret/onetimesecret/issues/4469).
+- Completing the second factor does not renew the session id; the password
+  step does. `RISK-2026-09-19-02`, tracked by
+  [#4466](https://github.com/onetimesecret/onetimesecret/issues/4466).
