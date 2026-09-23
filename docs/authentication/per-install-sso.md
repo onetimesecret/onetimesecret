@@ -118,16 +118,6 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `APPLE_ROUTE_NAME` | No | URL segment (default: `apple`) |
 | `APPLE_DISPLAY_NAME` | No | Button label (default: `Apple`) |
 
-### Auth0
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `AUTH0_CLIENT_ID` | Yes | Application client ID |
-| `AUTH0_CLIENT_SECRET` | Yes | Application client secret |
-| `AUTH0_DOMAIN` | Yes | Tenant URL **including the scheme** (e.g. `https://your-tenant.us.auth0.com`) |
-| `AUTH0_ROUTE_NAME` | No | URL segment (default: `auth0`) |
-| `AUTH0_DISPLAY_NAME` | No | Button label (default: `Auth0`) |
-
 ## Routes
 
 Each configured provider registers two routes:
@@ -137,7 +127,7 @@ Each configured provider registers two routes:
 | POST | `/auth/sso/{provider}` | Initiates SSO flow |
 | GET | `/auth/sso/{provider}/callback` | Receives IdP response |
 
-Where `{provider}` is the route name (`oidc`, `entra`, `google`, `github`, `apple`, `auth0`, or custom).
+Where `{provider}` is the route name (`oidc`, `entra`, `google`, `github`, `apple`, or custom).
 
 Apple is the exception to the GET callback: it uses `response_mode=form_post`,
 so its callback arrives as a cross-site **POST** to the same path. OmniAuth's
@@ -626,31 +616,6 @@ given Services ID. The **email** comes from the id_token on every
 authorization, so repeat sign-ins and account creation are unaffected — but it
 may be a private-relay address (`@privaterelay.appleid.com`). Leave
 `APPLE_TRUST_EMAIL_FOR_LINKING` false.
-
-### Auth0
-
-Uses the `omniauth-auth0` gem.
-
-#### Auth0 Dashboard Setup
-
-1. **Auth0 Dashboard** → Applications → Create Application → **Regular Web Application**
-2. **Allowed Callback URLs**: `https://{host}/auth/sso/auth0/callback`
-3. Copy **Client ID**, **Client Secret** and the tenant **Domain**
-
-```bash
-AUTH0_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-AUTH0_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-AUTH0_DOMAIN=https://your-tenant.us.auth0.com
-```
-
-Note: `AUTH0_DOMAIN` must be a **full URL with the scheme**, unlike Auth0's own
-bare-hostname examples — the CSP `form-action` origin is derived from it, and a
-schemeless value yields no origin and a blocked redirect.
-
-Note: Auth0 is an identity broker, so `AUTH0_TRUST_EMAIL_FOR_LINKING` would
-trust every connection your tenant enables, including unverified database and
-social connections. Leave it false unless all connections are verified-email
-IdPs inside your trust boundary.
 
 ## Domain Restrictions
 

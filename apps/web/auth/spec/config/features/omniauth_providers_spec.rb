@@ -590,7 +590,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
   # Registry-driven providers (no named wrapper)
   # ================================================================
   #
-  # Apple and Auth0 are registered by the configure loop
+  # Apple is registered by the configure loop
   # straight from the registry — see the comment above the named wrappers in
   # features/omniauth.rb. These exercise configure_provider directly, which is
   # the path every provider added from here on will take.
@@ -625,45 +625,29 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       expect(log_messages.last[1]).to include('Apple')
     end
 
-    it 'registers Auth0 with the domain and the trailing-slash issuer' do
-      expect(auth).to receive(:omniauth_provider).with(
-        :auth0,
-        hash_including(
-          name: :auth0,
-          domain: 'https://tenant.us.auth0.com',
-          issuer: 'https://tenant.us.auth0.com/',
-        )
-      )
-
-      ClimateControl.modify(
-        AUTH0_CLIENT_ID: 'cid',
-        AUTH0_CLIENT_SECRET: 'cs',
-        AUTH0_DOMAIN: 'https://tenant.us.auth0.com',
-      ) do
-        configure(:auth0)
-      end
-
-      expect(log_messages.last[1]).to include('Auth0')
-    end
-
     # BLAST RADIUS. configure_provider runs inside Rodauth configuration, so an
     # exception escaping strategy_options fails the whole auth app — password,
-    # MFA and magic links included — over one optional SSO provider. Auth0
-    # raises on a schemeless AUTH0_DOMAIN (Auth0's own documented format), so
-    # this is reachable from a plausible typo, not a contrived input.
+    # MFA and magic links included — over one optional SSO provider. A
+    # definition that validates a URL variable raises on a schemeless value,
+    # so this is reachable from a plausible typo, not a contrived input.
     it 'skips a provider whose strategy_options raises instead of failing boot' do
       expect(auth).not_to receive(:omniauth_provider)
 
+      raising = Onetime::SsoProvider::Registry.fetch(:apple).merge(
+        strategy_options: -> { raise ArgumentError, 'APPLE_PRIVATE_KEY must be a PEM' },
+      )
+
       ClimateControl.modify(
-        AUTH0_CLIENT_ID: 'cid',
-        AUTH0_CLIENT_SECRET: 'cs',
-        AUTH0_DOMAIN: 'tenant.us.auth0.com',
+        APPLE_CLIENT_ID: 'com.example.web',
+        APPLE_TEAM_ID: 'TEAM123456',
+        APPLE_KEY_ID: 'KEY1234567',
+        APPLE_PRIVATE_KEY: 'pem',
       ) do
-        expect { configure(:auth0) }.not_to raise_error
+        expect { Auth::Config::Features::OmniAuth.configure_provider(auth, raising) }.not_to raise_error
       end
 
       expect(log_messages.last[0]).to eq(:error)
-      expect(log_messages.last[1]).to include('Skipping Auth0', 'AUTH0_DOMAIN must be a full URL')
+      expect(log_messages.last[1]).to include('Skipping Apple', 'APPLE_PRIVATE_KEY must be a PEM')
     end
 
     # The skip path must not require the gem — that is what lets a deployment
