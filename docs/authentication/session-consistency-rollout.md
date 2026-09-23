@@ -84,6 +84,19 @@ and continue unordered.
   stored session (expired, ended, or never issued) is given a new id on that
   request. Signing out removes the session's `session_metadata:<id>` key at
   once.
+- **SQLite auth database.** Connections now open transactions with `BEGIN
+  IMMEDIATE` and wait for locks with the GVL released. Concurrent sign-ups
+  queue instead of answering `500`. The migration connections, including
+  `rake auth:migrate`, do the same, so several processes booting at once no
+  longer race on the file. No action needed; PostgreSQL locking is unchanged.
+- **`/auth` can answer `503`.** When the auth database is saturated (a SQLite
+  write lock held past the 5-second wait, or no free pooled connection on
+  either engine) `/auth` answers `503` with `Retry-After: 1` and `error_type:
+  AuthDatabaseBusy`, where it answered a generic `500`. Seeing it means more
+  concurrent auth writes than the deployment has capacity for. It is logged
+  at `warn` as `Auth router translated exception` with `error_type` and
+  `status`; `Auth router unhandled exception` (`error`) now means only an
+  exception `/auth` has no answer for.
 
 ## Staging review
 
