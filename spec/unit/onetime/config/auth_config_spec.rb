@@ -67,14 +67,13 @@ RSpec.describe Onetime::AuthConfig do
       GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
       GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET
       APPLE_CLIENT_ID APPLE_TEAM_ID APPLE_KEY_ID APPLE_PRIVATE_KEY
-      AUTH0_CLIENT_ID AUTH0_CLIENT_SECRET AUTH0_DOMAIN
       SSO_PROVIDER_ORDER
       OIDC_ROUTE_NAME ENTRA_ROUTE_NAME GOOGLE_ROUTE_NAME GITHUB_ROUTE_NAME
-      APPLE_ROUTE_NAME AUTH0_ROUTE_NAME
+      APPLE_ROUTE_NAME
       SSO_TRUST_EMAIL_FOR_LINKING
       OIDC_TRUST_EMAIL_FOR_LINKING ENTRA_TRUST_EMAIL_FOR_LINKING
       GOOGLE_TRUST_EMAIL_FOR_LINKING GITHUB_TRUST_EMAIL_FOR_LINKING
-      APPLE_TRUST_EMAIL_FOR_LINKING AUTH0_TRUST_EMAIL_FOR_LINKING
+      APPLE_TRUST_EMAIL_FOR_LINKING
     ]
   end
 
@@ -490,7 +489,6 @@ RSpec.describe Onetime::AuthConfig do
       'google' => 'GOOGLE_TRUST_EMAIL_FOR_LINKING',
       'github' => 'GITHUB_TRUST_EMAIL_FOR_LINKING',
       'apple' => 'APPLE_TRUST_EMAIL_FOR_LINKING',
-      'auth0' => 'AUTH0_TRUST_EMAIL_FOR_LINKING',
     }.each do |route_name, trust_var|
       context "for the '#{route_name}' route" do
         it "defaults to false when #{trust_var} is unset" do
@@ -509,7 +507,7 @@ RSpec.describe Onetime::AuthConfig do
         end
 
         it "is unaffected by another provider's trust var" do
-          prefixes = %w[OIDC ENTRA GOOGLE GITHUB APPLE AUTH0]
+          prefixes = %w[OIDC ENTRA GOOGLE GITHUB APPLE]
           other    = (prefixes - [trust_var.delete_suffix('_TRUST_EMAIL_FOR_LINKING')]).first
           config = fresh_config("#{other}_TRUST_EMAIL_FOR_LINKING" => 'true')
           expect(config.trust_email_for_linking?(route_name)).to be false
@@ -666,7 +664,7 @@ RSpec.describe Onetime::AuthConfig do
     it 'omits registered providers whose credentials are absent' do
       config = config_with_three_providers
       expect(config.sso_providers.map { |p| p['route_name'] })
-        .not_to include('apple', 'auth0')
+        .not_to include('apple')
     end
 
     it 'lists a configured Apple provider after the launch four' do
@@ -680,24 +678,40 @@ RSpec.describe Onetime::AuthConfig do
         .to eq(%w[entra google github apple])
     end
 
-    # Auth0 needs all three vars; a half-configured tenant must not surface a
-    # button that would fail at the request phase with :missing_domain.
-    it 'omits Auth0 when AUTH0_DOMAIN is missing' do
-      config = config_with_three_providers(
-        AUTH0_CLIENT_ID: 'cid',
-        AUTH0_CLIENT_SECRET: 'cs',
-      )
-      expect(config.sso_providers.map { |p| p['route_name'] }).not_to include('auth0')
-    end
+    # required_vars is a presence check. A definition may also carry a
+    # :vars_valid predicate for a constraint presence cannot express; the
+    # advertised set must follow it so a provider configure_provider would skip
+    # is never offered as a login button pointing at an unregistered route.
+    # Exercised through #sso_providers, the public gate, with the registry
+    # narrowed to one definition.
+    describe 'the :vars_valid predicate' do
+      def advertised_with(defn, **env)
+        config = fresh_config(AUTH_SSO_ENABLED: 'true', **env)
+        allow(config).to receive(:provider_definitions).and_return([defn])
+        config.sso_providers.map { |p| p['route_name'] }
+      end
 
-    it 'lists Auth0 when all three vars are present' do
-      config = config_with_three_providers(
-        AUTH0_CLIENT_ID: 'cid',
-        AUTH0_CLIENT_SECRET: 'cs',
-        AUTH0_DOMAIN: 'https://tenant.us.auth0.com',
-      )
-      expect(config.sso_providers.map { |p| p['route_name'] })
-        .to eq(%w[entra google github auth0])
+      def base = Onetime::SsoProvider::Registry.fetch(:github)
+      def env  = { GITHUB_CLIENT_ID: 'cid', GITHUB_CLIENT_SECRET: 'cs' }
+
+      it 'advertises a provider whose required vars are present and declares no predicate' do
+        expect(advertised_with(base, **env)).to eq(%w[github])
+      end
+
+      it 'omits a provider with a required var absent' do
+        expect(advertised_with(base, GITHUB_CLIENT_ID: 'cid')).to be_empty
+      end
+
+      it 'omits a provider whose predicate answers false' do
+        expect(advertised_with(base.merge(vars_valid: -> { false }), **env)).to be_empty
+      end
+
+      # Runs per request and inside the HttpOrigin middleware, so a raising
+      # predicate drops the provider, not the response.
+      it 'omits a provider whose predicate raises, without raising' do
+        defn = base.merge(vars_valid: -> { raise ArgumentError, 'bad value' })
+        expect(advertised_with(defn, **env)).to be_empty
+      end
     end
 
     it 'derives definitions from the shared SsoProvider::Registry' do

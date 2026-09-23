@@ -92,13 +92,11 @@ classified:
 
 When a provider supports both modes (GitLab, Okta), integrate it through OIDC
 (`omniauth_openid_connect` with the provider's issuer) rather than its bespoke
-OAuth2 strategy — it then inherits issuer scoping for free. Auth0 is the
-exception now wired up both ways: its bespoke `omniauth-auth0` strategy *is*
-registered, and it is issuer-capable because the issuer is **operator-pinned**
-from `AUTH0_DOMAIN` rather than read out of the token (see the quirk below).
-Generic OIDC remains available for Auth0 and is preferable when tenant-surface
-SSO is needed — both Apple and Auth0 are **platform-only** providers, absent
-from `SsoConfig::PROVIDER_ROUTE_MAP`.
+OAuth2 strategy — it then inherits issuer scoping for free. Auth0 is
+configured this way: the bespoke `omniauth-auth0` strategy was tried and
+dropped before release because its claim validation never runs (see the note
+below) and its `jwt ~> 2` pin held the whole bundle off jwt 3.x. Apple is a
+**platform-only** provider, absent from `SsoConfig::PROVIDER_ROUTE_MAP`.
 
 ## Known provider quirks
 
@@ -131,36 +129,19 @@ from `SsoConfig::PROVIDER_ROUTE_MAP`.
   a private-relay address (`@privaterelay.appleid.com`, flagged by
   `is_private_email`) — which is why `APPLE_TRUST_EMAIL_FOR_LINKING` defaults
   to false.
-- **Auth0** (`omniauth-auth0`): issuer-capable on a different footing — the
-  issuer is **operator-pinned** from `AUTH0_DOMAIN`, not read from the token.
-  The gem's own claim validation (`verify_iss`/`verify_aud`/`verify_nonce`/
-  `verify_expiration`) is gated on `session_authorize_params[:scope]`
-  containing `openid`, but `session_authorize_params` is built as
-  `params.to_hash` on a `Hashie::Mash` and so has **string** keys — the symbol
-  lookup is always nil, the gate never opens, and verify never runs. That is
-  an upstream defect no scope value can work around. What still holds: the
-  id_token comes from the tenant's own token endpoint over TLS and
-  `extra.raw_info` decodes it with **signature verification on** against the
-  tenant's JWKS, so `sub` (and the uid) is cryptographically attested; only
-  the claim checks are skipped. Pinning the issuer is the stronger arrangement
-  here, since nothing in the token can move it. Consequence: `exp` and `nonce`
-  are not checked either — replay protection rests on OmniAuth's `state` and
-  on the code being single-use at Auth0. The pinned value carries a
-  **trailing slash** (`https://<tenant>/`), matching the `iss` Auth0 actually
-  asserts, so validation would start working unchanged if the gem is fixed.
-  `AUTH0_DOMAIN` must include the scheme; a bare hostname (Auth0's own
-  documented format) makes `strategy_options` raise, and `configure_provider`
-  then logs and skips the provider rather than failing boot. Because
-  `required_vars` is a *presence* check and would still see the variable as
-  set, the definition also carries **`vars_valid`** — the predicate
-  `AuthConfig#provider_active?` consults so a skipped provider is not
-  advertised as a login button pointing at a route that was never registered.
-  Any future definition whose `strategy_options` can raise needs the same
-  field; see the registry header.
-  Auth0 is also a **broker**: one tenant can federate many upstream IdPs into
-  a single issuer, so `AUTH0_TRUST_EMAIL_FOR_LINKING` trusts *every*
-  connection the tenant enables, including unverified database and social
-  connections.
+- **Auth0**: use generic OIDC (`OIDC_*`; see `per-install-sso.md`), with
+  `OIDC_ISSUER` carrying the trailing slash Auth0 puts in `iss`
+  (`https://<tenant>/`); the issuer check is exact. The bespoke
+  `omniauth-auth0` gem (3.2) is not integrated: its claim validation
+  (`verify_iss`/`verify_aud`/`verify_nonce`/`verify_expiration`) is gated on
+  `session_authorize_params[:scope]`, but that hash is built as
+  `params.to_hash` on a `Hashie::Mash` and has **string** keys, so the gate
+  never opens and `exp` and `nonce` go unchecked. It also pins `jwt ~> 2`,
+  which moved the lock from jwt 3.2.0 to 2.10.3 for every consumer. Generic
+  OIDC validates all of those claims and keeps Auth0 tenant-capable. Auth0 is
+  a **broker**: one tenant can federate many upstream IdPs into a single
+  issuer, so `OIDC_TRUST_EMAIL_FOR_LINKING` trusts *every* connection the
+  tenant enables, including unverified database and social connections.
 - **Entra ID**: uid is `tid+oid` by default. If you ever set
   `ignore_tid: true`, cross-tenant safety rests entirely on issuer scoping —
   see the security note on the `:entra` registry entry.
