@@ -67,9 +67,12 @@
 # SameSite=Lax cookie is withheld, the session holding the pending
 # AuthnRequest id is absent, and the strategy refuses the response as
 # :saml_no_pending_request. SAML therefore requires
-# `site.session.same_site: none` with `secure: true`. The other half —
-# Rack::Protection::HttpOrigin admitting the IdP's Origin on the callback path
-# — is handled in code from :idp_origin_from below
+# `site.session.same_site: none` with `secure: true`. .session_cookie_problem
+# is that rule as code: configure_provider logs it (error level, boot does not
+# abort) whenever the saml route registers under an incompatible cookie, and
+# the tenant API refuses to save a saml config under one (SamlFields). The
+# other half — Rack::Protection::HttpOrigin admitting the IdP's Origin on the
+# callback path — is handled in code from :idp_origin_from below
 # (Onetime::Middleware::HttpOriginOptions).
 #
 # THE CSP / HttpOrigin ORIGIN COMES FROM THE SSO SERVICE URL, NOT THE ENTITYID.
@@ -391,6 +394,41 @@ module Onetime
       # A boot-time constant, not derived per request: the IdP registers ONE
       # audience for the platform, whichever host a request arrives on.
       #
+      # The session-cookie prerequisite (header: OPERATOR PREREQUISITE), as a
+      # checkable rule. The HTTP-POST callback is a cross-site POST; a cookie
+      # that is not SameSite=None is withheld on it, and a browser refuses a
+      # SameSite=None cookie that is not also Secure. Either way the session
+      # holding the pending AuthnRequest id is absent at the callback and
+      # every sign-in ends as :saml_no_pending_request.
+      #
+      # ONE rule for two consumers: the boot warning when the saml route
+      # registers (features/omniauth.rb configure_provider) and the tenant
+      # API's save-time refusal (SamlFields#validate_saml_fields!). It is
+      # deliberately NOT a rung in tenant_sso_unavailable_reason: that ladder
+      # feeds sso_available_for_tenant_host? and the restrict_to pin, and a
+      # rung here could re-enable password sign-in on an SSO-only host.
+      #
+      # @param session [Hash] the resolved session settings (Onetime.session_config)
+      # @return [String, nil] problem description, or nil when compatible
+      def self.session_cookie_problem(session = current_session_config)
+        same_site = session['same_site'].to_s.strip.downcase
+        secure    = session['secure'] == true
+        return nil if same_site == 'none' && secure
+
+        "site.session.same_site is #{same_site.empty? ? 'unset' : "'#{same_site}'"} " \
+          "and secure is #{secure}; SAML needs same_site: none with secure: true, " \
+          'or the session cookie is withheld on the cross-site HTTP-POST callback ' \
+          'and every SAML sign-in is refused as saml_no_pending_request'
+      end
+
+      # @return [Hash] Onetime.session_config, or {} before boot has defined it
+      def self.current_session_config
+        return {} unless defined?(Onetime) && Onetime.respond_to?(:session_config)
+
+        Onetime.session_config || {}
+      end
+      private_class_method :current_session_config
+
       # @param route_name [String] the configured route name (SAML_ROUTE_NAME)
       # @return [String]
       # @raise [ArgumentError] when neither source yields a value

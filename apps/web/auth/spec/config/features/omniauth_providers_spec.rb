@@ -59,6 +59,12 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
 
     auth_config_stub = double('auth_config', orgs_sso_enabled?: orgs_sso_enabled)
     allow(Onetime).to receive(:auth_config).and_return(auth_config_stub)
+
+    # A SAML-compatible session cookie, so the saml route's boot warning
+    # (Saml.session_cookie_problem) does not add a line to log_messages in
+    # examples asserting on exact log sequences. The warning itself is
+    # pinned under 'the session-cookie boot warning' with explicit values.
+    allow(Onetime).to receive(:session_config).and_return('same_site' => 'none', 'secure' => true)
   end
 
   # ================================================================
@@ -775,6 +781,80 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
 
           expect(log_messages.last[0]).to eq(:error)
           expect(log_messages.last[1]).to include('Skipping SAML', message, 'SAML_IDP_CERT')
+        end
+      end
+
+      # The HTTP-POST callback is a cross-site POST: under the shipped
+      # SameSite=Lax cookie every sign-in ends as saml_no_pending_request.
+      # One line at error level when the saml route registers, boot goes on.
+      describe 'the session-cookie boot warning' do
+        before { allow(auth).to receive(:omniauth_provider) }
+
+        def cookie_warnings
+          log_messages.select { |level, msg| level == :error && msg.include?('SAML is enabled') }
+        end
+
+        it 'warns once, naming both settings and the consequence, under a lax cookie' do
+          allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => true)
+
+          ClimateControl.modify(saml_env) { configure(:saml) }
+
+          expect(cookie_warnings.size).to eq(1)
+          expect(cookie_warnings.first[1]).to include(
+            'platform SAML_* configuration', "same_site is 'lax'", 'secure is true',
+            'same_site: none with secure: true', 'saml_no_pending_request'
+          )
+          # The registration line stays the last word.
+          expect(log_messages.last[1]).to include('Configuring SAML')
+        end
+
+        it 'warns under SameSite=None without Secure' do
+          allow(Onetime).to receive(:session_config).and_return('same_site' => 'none', 'secure' => false)
+
+          ClimateControl.modify(saml_env) { configure(:saml) }
+
+          expect(cookie_warnings.size).to eq(1)
+          expect(cookie_warnings.first[1]).to include("same_site is 'none'", 'secure is false')
+        end
+
+        it 'is silent under SameSite=None with Secure' do
+          allow(Onetime).to receive(:session_config).and_return('same_site' => 'none', 'secure' => true)
+
+          ClimateControl.modify(saml_env) { configure(:saml) }
+
+          expect(cookie_warnings).to be_empty
+        end
+
+        it 'is silent when SAML is not enabled at all (no vars, no org SSO)' do
+          allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => true)
+
+          ClimateControl.modify(saml_env.transform_values { nil }) { configure(:saml) }
+
+          expect(cookie_warnings).to be_empty
+        end
+
+        it 'does not warn for a provider other than saml' do
+          allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => true)
+
+          ClimateControl.modify(OIDC_CLIENT_ID: 'x', OIDC_CLIENT_SECRET: 'y', OIDC_ISSUER: 'https://issuer.example.com') do
+            configure(:oidc)
+          end
+
+          expect(cookie_warnings).to be_empty
+        end
+
+        context 'with orgs_sso_enabled and no platform vars (tenant placeholder)' do
+          let(:orgs_sso_enabled) { true }
+
+          it 'warns, naming ORGS_SSO_ENABLED, before the placeholder registration line' do
+            allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => true)
+
+            ClimateControl.modify(saml_env.transform_values { nil }) { configure(:saml) }
+
+            expect(cookie_warnings.size).to eq(1)
+            expect(cookie_warnings.first[1]).to include('tenant SSO (ORGS_SSO_ENABLED=true)')
+            expect(log_messages.last[1]).to include('for tenant SSO')
+          end
         end
       end
 

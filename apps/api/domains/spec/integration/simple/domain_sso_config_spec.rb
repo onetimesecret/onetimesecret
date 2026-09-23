@@ -1221,9 +1221,95 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
     end
 
+    # The install's session cookie, as the save path reads it. The test
+    # config ships the default (same_site: lax), under which a saml config
+    # can never complete a sign-in and the API refuses to save one
+    # (SamlFields#reject_incompatible_session_cookie!). Stubbed to the
+    # compatible pair here so the contract below is exercised; the refusal
+    # itself is pinned in 'under an incompatible session cookie'.
+    def stub_session_cookie(same_site:, secure:)
+      allow(Onetime).to receive(:session_config).and_wrap_original do |original|
+        original.call.merge('same_site' => same_site, 'secure' => secure)
+      end
+    end
+
     before do
       enable_sso_feature_flag
       login_as(test_owner)
+      stub_session_cookie(same_site: 'none', secure: true)
+    end
+
+    describe 'under an incompatible session cookie' do
+      before { stub_session_cookie(same_site: 'lax', secure: true) }
+
+      it 'refuses to create a saml config via PUT, on provider_type, naming the settings' do
+        csrf_put api_path(test_custom_domain.extid), valid_saml_params
+
+        expect(last_response.status).to eq(422)
+        expect(json_body).to include('error_type' => 'invalid', 'field' => 'provider_type')
+        expect(json_body['error']).to include("same_site is 'lax'", 'same_site: none with secure: true', 'site.session')
+        expect(stored_config).to be_nil
+      end
+
+      it 'refuses SameSite=None without Secure too' do
+        stub_session_cookie(same_site: 'none', secure: false)
+
+        csrf_put api_path(test_custom_domain.extid), valid_saml_params
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['field']).to eq('provider_type')
+      end
+
+      it 'refuses a PATCH that switches an oidc config to saml' do
+        stub_session_cookie(same_site: 'none', secure: true)
+        csrf_put api_path(test_custom_domain.extid), valid_oidc_params
+        expect(last_response.status).to eq(200), last_response.body
+        stub_session_cookie(same_site: 'lax', secure: true)
+
+        csrf_patch api_path(test_custom_domain.extid), valid_saml_params
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['field']).to eq('provider_type')
+        expect(stored_config.provider_type).to eq('oidc')
+      end
+
+      it 'still accepts an oidc config (the rule is saml-only)' do
+        csrf_put api_path(test_custom_domain.extid), valid_oidc_params
+
+        expect(last_response.status).to eq(200), last_response.body
+      end
+
+      context 'with a saml config saved while the cookie was compatible' do
+        before do
+          stub_session_cookie(same_site: 'none', secure: true)
+          csrf_put api_path(test_custom_domain.extid), valid_saml_params
+          expect(last_response.status).to eq(200), last_response.body
+          stub_session_cookie(same_site: 'lax', secure: true)
+        end
+
+        # An existing record must stay editable: the admin can disable it,
+        # rotate a field, or switch provider — never be stuck with it.
+        it 'can still be disabled via PATCH' do
+          csrf_patch api_path(test_custom_domain.extid), { enabled: false }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_config.enabled?).to be false
+        end
+
+        it 'can still rotate a trio field via PATCH' do
+          csrf_patch api_path(test_custom_domain.extid), { idp_entity_id: 'urn:example:rotated' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_config.reveal_saml_field(:idp_entity_id)).to eq('urn:example:rotated')
+        end
+
+        it 'is refused on a full PUT replace (PUT re-introduces the config)' do
+          csrf_put api_path(test_custom_domain.extid), valid_saml_params.merge(display_name: 'Replaced')
+
+          expect(last_response.status).to eq(422)
+          expect(json_body['field']).to eq('provider_type')
+        end
+      end
     end
 
     describe 'PUT' do

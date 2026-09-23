@@ -21,23 +21,27 @@ module DomainsAPI
       # cert_problem) — this module adds only what is specific to a value
       # arriving over the API:
       #
-      #   - the SSO URL must yield a CSP-safe ORIGIN. The server never fetches
-      #     a SAML SSO URL — it is a browser-navigation target — so the SSRF
-      #     host check the OIDC issuer gets (SsrfProtection, for a URL the
-      #     server DOES fetch at discovery) is deliberately NOT applied: an
-      #     IdP on a private network is a legitimate configuration for a
-      #     browser that can reach it. What the URL's origin IS admitted into
-      #     is this domain's CSP form-action and HttpOrigin allowances
-      #     (AuthConfig#tenant_idp_origin), so the value is accepted only if
-      #     Onetime::AuthConfig.origin_from_url — the same funnel those consumers use
-      #     — derives an origin from it: http(s), a host free of CSP-hostile
-      #     characters, and one otto's own extras validator keeps. Together
-      #     with sso_url_problem (https only, no userinfo, no trailing dot on
-      #     the host — see its comment) that is the whole rule.
+      #   - NO SSRF host check on the SSO URL. The server never fetches a
+      #     SAML SSO URL — it is a browser-navigation target — so the check
+      #     the OIDC issuer gets (SsrfProtection, for a URL the server DOES
+      #     fetch at discovery) is deliberately NOT applied: an IdP on a
+      #     private network is a legitimate configuration for a browser that
+      #     can reach it. That the URL's ORIGIN is one this domain's CSP
+      #     form-action and HttpOrigin allowances can carry
+      #     (AuthConfig#tenant_idp_origin) is part of sso_url_problem itself,
+      #     so the platform env, the model and this path share the rule.
       #   - certificate EXPIRY. The model deliberately does not treat expiry
       #     as a record invariant (SsoConfig#saml_validation_errors); the
       #     point where a certificate is ACCEPTED is here.
       #   - refusing fingerprint parameters outright (see FORBIDDEN_PARAMS).
+      #   - the install's SESSION COOKIE. A saml config under a cookie that
+      #     is not SameSite=None + Secure can never complete a sign-in
+      #     (Saml.session_cookie_problem), and an org admin cannot change the
+      #     install's cookie. Refused when a request INTRODUCES a saml config
+      #     (PUT, or a PATCH creating / switching to saml); a PATCH editing an
+      #     existing saml record — rotating a field, renaming, disabling — is
+      #     not blocked, so a record saved before the cookie changed can
+      #     always be repaired or switched off.
       #
       # Includers must respond to `params` and `raise_form_error`.
       module SamlFields
@@ -88,6 +92,7 @@ module DomainsAPI
         #   test_connection, or a create — makes every field required.
         def validate_saml_fields!(stored: nil)
           reject_forbidden_saml_params!
+          reject_incompatible_session_cookie! if stored.nil?
 
           saml_submitted.each do |field, value|
             if value.empty?
@@ -101,29 +106,33 @@ module DomainsAPI
           end
         end
 
+        # See the header: one rule (Saml.session_cookie_problem) shared with
+        # the boot warning, surfaced on provider_type because no field of the
+        # trio is at fault.
+        def reject_incompatible_session_cookie!
+          problem = Onetime::SsoProvider::Saml.session_cookie_problem
+          return if problem.nil?
+
+          raise_form_error(
+            "SAML sign-in cannot complete on this install: #{problem}. " \
+            'The operator must change site.session before a SAML configuration can be saved.',
+            field: :provider_type,
+            error_type: :invalid,
+          )
+        end
+
         # @return [String, nil] the first problem with a submitted value
         def saml_problem(field, value)
           saml = Onetime::SsoProvider::Saml
 
           case field
           when :idp_sso_service_url
-            saml.sso_url_problem(value) ||
-              (csp_safe_origin?(value) ? nil : 'IdP SSO service URL must have a plain hostname (no spaces, quotes or punctuation in the host)')
+            saml.sso_url_problem(value)
           when :idp_entity_id
             saml.entity_id_problem(value)
           when :idp_cert
             saml.cert_problem(value)
           end
-        end
-
-        # Whether the origin the CSP / HttpOrigin allowances will derive from
-        # this URL is one they can carry. See the header.
-        #
-        # @return [Boolean]
-        def csp_safe_origin?(url)
-          !Onetime::AuthConfig.origin_from_url(url).nil?
-        rescue StandardError
-          false
         end
 
         # @return [Hash{Symbol => String}]
