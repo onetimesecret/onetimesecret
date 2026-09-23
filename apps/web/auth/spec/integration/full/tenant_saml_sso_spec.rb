@@ -240,14 +240,14 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       post '/auth/sso/saml'
 
       expect(last_response.status).to eq(302)
-      expect(last_response.headers['Location']).to include('auth_error=sso_not_configured')
+      expect(last_response.headers['Location']).to include('auth_error=sso_config_unusable')
       expect(last_response.headers['Location']).not_to include('SAMLRequest')
     end
 
     # The joined path the model tryout and the stubbed hook spec each pin one
     # half of: build_saml_options wraps a reveal failure into Onetime::Problem
     # and inject_tenant_credentials rescues ONLY that into the
-    # sso_not_configured refusal. A regression in either half would 500 here
+    # sso_config_unusable refusal. A regression in either half would 500 here
     # instead, and the expired-certificate case above (ArgumentError, not a
     # reveal failure) would stay green.
     %i[idp_cert idp_entity_id].each do |field|
@@ -259,7 +259,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
         post '/auth/sso/saml'
 
         expect(last_response.status).to eq(302)
-        expect(last_response.headers['Location']).to include('auth_error=sso_not_configured')
+        expect(last_response.headers['Location']).to include('auth_error=sso_config_unusable')
         expect(last_response.headers['Location']).not_to include('SAMLRequest')
         expect(last_request.env['rack.session'].to_h.keys.map(&:to_s)).not_to include('omniauth_tenant_domain_id')
 
@@ -608,7 +608,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       get '/auth/sso/saml/metadata'
 
       expect(last_response.body).not_to include('EntityDescriptor')
-      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_not_configured')
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_config_unusable')
     end
 
     it 'emits no metadata for a tenant whose trust anchor cannot be decrypted' do
@@ -619,7 +619,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       get '/auth/sso/saml/metadata'
 
       expect(last_response.body).not_to include('EntityDescriptor')
-      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_not_configured')
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_config_unusable')
       expect(events.map(&:first)).to include(:omniauth_tenant_config_unusable)
     end
   end

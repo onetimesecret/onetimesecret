@@ -457,6 +457,26 @@ module Onetime
         SAML_FIELDS.to_h { |name| [name, reveal_saml_field(name)] }
       end
 
+      # Expiry of the stored IdP signing certificate, for the API to surface
+      # to the admin (#4450). Informational only: this is deliberately NOT a
+      # rung of tenant_sso_unavailable_reason, whose verdict feeds the
+      # restrict_to pin — an expiry rung there could re-open password
+      # sign-in on an SSO-only host. Expiry is enforced where the certificate
+      # is used (#build_saml_options, which refuses the login).
+      #
+      # @return [Time, nil] nil for a non-saml record, an unset or unreadable
+      #   certificate, or one OpenSSL cannot parse
+      def idp_cert_not_after
+        return nil unless provider_type == 'saml'
+
+        pem = reveal_saml_field(:idp_cert)
+        return nil if pem.strip.empty?
+
+        OpenSSL::X509::Certificate.new(pem).not_after
+      rescue StandardError
+        nil
+      end
+
       # Check if the configuration is valid.
       #
       # @return [Boolean] true if no validation errors

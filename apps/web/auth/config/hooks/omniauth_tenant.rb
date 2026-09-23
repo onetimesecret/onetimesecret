@@ -706,12 +706,17 @@ module Auth::Config::Hooks
     #
     # Clears the pending tenant context first, so the refusal leaves nothing
     # in the session for a later callback to validate against, then redirects
-    # to the same sso_not_configured landing the missing-config path uses —
-    # from the visitor's side it IS not configured. The audit event is
-    # distinct and at :error: this is a broken record an operator must fix,
-    # not a policy outcome. Scalars only; the Problem message is built from
-    # fixed strings in the model (field names, a certificate expiry date, an
-    # exception class name) and never carries field content.
+    # to /signin with auth_error=sso_config_unusable — NOT the
+    # sso_not_configured landing the missing-config path uses. A record
+    # exists and is advertised (the availability ladder never checks
+    # certificate expiry, on purpose: an expiry rung would feed the
+    # restrict_to pin and could re-open password sign-in on an SSO-only
+    # host), so "not configured" would send the visitor to the wrong fix.
+    # The audit event is distinct and at :error: this is a broken record an
+    # operator must fix, not a policy outcome. Scalars only; the Problem
+    # message is built from fixed strings in the model (field names, a
+    # certificate expiry date, an exception class name) and never carries
+    # field content.
     #
     # @param sso_config [Onetime::CustomDomain::SsoConfig]
     # @param error [Onetime::Problem]
@@ -729,7 +734,7 @@ module Auth::Config::Hooks
       rodauth.session.delete(:omniauth_tenant_domain_id)
       rodauth.session.delete(:omniauth_tenant_host)
 
-      rodauth.send(:redirect, '/signin?auth_error=sso_not_configured')
+      rodauth.send(:redirect, '/signin?auth_error=sso_config_unusable')
     end
 
     # Derive the SAML SP identifiers for a TENANT flow from the request's

@@ -727,12 +727,14 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
           allow(helpers).to receive(:handle_missing_tenant_config)
         end
 
-        it 'redirects to sso_not_configured and injects nothing' do
+        # sso_config_unusable, not sso_not_configured: a record exists and is
+        # advertised, so the visitor must be told it is broken, not absent.
+        it 'redirects to sso_config_unusable and injects nothing' do
           before_options = options_hash.dup
 
           catch(:halt) { helpers.inject_tenant_credentials(sso_config, request, rodauth) }
 
-          expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+          expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_config_unusable')
           expect(options_hash).to eq(before_options)
         end
 

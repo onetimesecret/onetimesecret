@@ -32,12 +32,21 @@ module DomainsAPI
         # sp_entity_id / acs_url are read-only values for the admin to paste
         # into their IdP; null for non-saml records. See #saml_sp_identifiers.
         #
+        # cert_expires_at / cert_expired describe the stored idp_cert's
+        # validity window (ISO 8601 UTC / boolean). An expired certificate
+        # stays advertised on the sign-in page — availability deliberately
+        # ignores expiry (SsoConfig#idp_cert_not_after) — while every login
+        # through it is refused as sso_config_unusable, so this is the one
+        # place the admin learns WHY. null / false when there is no parseable
+        # certificate (non-saml, unset, unreadable).
+        #
         # @param config [Onetime::CustomDomain::SsoConfig] SSO config to serialize
         # @return [Hash] Serialized config matching TypeScript schema
         def serialize_sso_config(config)
           unreadable = []
           reveal     = ->(name) { reveal_field(config, name, unreadable) }
           sp         = saml_sp_identifiers(config)
+          not_after  = config.idp_cert_not_after
 
           {
             domain_id: config.domain_id,
@@ -55,6 +64,8 @@ module DomainsAPI
             idp_cert: reveal.call(:idp_cert),
             sp_entity_id: sp[:sp_entity_id],
             acs_url: sp[:acs_url],
+            cert_expires_at: not_after&.utc&.iso8601,
+            cert_expired: !not_after.nil? && not_after <= Time.now,
             unreadable_fields: unreadable,
             allowed_domains: config.allowed_domains,
             requires_domain_filter: config.requires_domain_filter?,
