@@ -4,6 +4,7 @@
 
 require 'onetime/models/session_metadata'
 require 'onetime/operations/sessions/list_for_customer'
+require 'onetime/session/remember_me'
 
 module Auth
   module Routes
@@ -50,6 +51,9 @@ module Auth
             #
             # `remembered` is asked of the database, against its own clock, as
             # the gate's deadlines are: remember_until is written in that clock.
+            # With remember-me switched off no row is remembered (the gate
+            # ignores remember_until too).
+            remember_on    = Onetime::RememberMe.enabled?
             remembered     = Sequel.case({ (Sequel[:remember_until] > Sequel::CURRENT_TIMESTAMP) => 1 }, 0)
             sessions       = rodauth.db[:account_active_session_keys]
               .where(account_id: account_id)
@@ -73,7 +77,7 @@ module Auth
                 user_agent: metadata&.dig(:user_agent),
                 geo_country: metadata&.dig(:geo_country),
                 is_current: session[:session_id] == current_session_id_hmac,
-                remember_enabled: session[:remembered].to_i == 1,
+                remember_enabled: remember_on && session[:remembered].to_i == 1,
               }
             end
 

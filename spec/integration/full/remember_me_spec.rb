@@ -102,6 +102,18 @@ RSpec.describe 'Remember me: a fixed 14-day session (full mode)', type: :integra
       expect(account_request).to eq(200)
     end
 
+    it 'loses its exemption and 14-day blob once remember-me is switched off', :aggregate_failures do
+      login!('remember-me' => true)
+      allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_return(false)
+
+      expect(account_request).to eq(200)
+      expect(blob_ttl).to be_between(1, 86_400)
+
+      idle = Time.now - (gate::INACTIVITY_DEADLINE + 3600)
+      active_session_rows.update(last_use: idle, created_at: idle)
+      expect(account_request).to eq(401)
+    end
+
     it 'is refused once remember_until has passed, and its row removed', :aggregate_failures do
       login!('remember-me' => true)
       active_session_rows.update(remember_until: Time.now - 60)

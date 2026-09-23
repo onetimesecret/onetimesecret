@@ -31,7 +31,26 @@ RSpec.describe Onetime::RememberMe do
     end
   end
 
+  describe '.enabled?' do
+    it 'follows the mode-independent switch' do
+      allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_return(false)
+      expect(described_class.enabled?).to be(false)
+    end
+
+    it 'is false, not an error, when the config cannot be read' do
+      allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_raise(RuntimeError)
+      expect(described_class.enabled?).to be(false)
+    end
+  end
+
   describe '.remaining' do
+    before { allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_return(true) }
+
+    it 'is nil for a stamped session once remember-me is switched off' do
+      allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_return(false)
+      expect(described_class.remaining({ 'remember_until' => now.to_i + 3600 }, now: now)).to be_nil
+    end
+
     it 'is the seconds left to the deadline' do
       expect(described_class.remaining({ 'remember_until' => now.to_i + 3600 }, now: now)).to eq(3600)
     end

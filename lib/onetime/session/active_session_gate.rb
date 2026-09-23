@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'activity'
+require_relative 'remember_me'
 
 module Onetime
   # Per-request enforcement of Rodauth's active-session table in full auth
@@ -76,7 +77,8 @@ module Onetime
   # `remember_until` has passed; the lifetime deadline still applies. The
   # full rule is {expired_condition}, which Rodauth's sweep is configured
   # with as well, so a remembered row left idle on one device is not swept
-  # away by the sessions page opened on another.
+  # away by the sessions page opened on another. With remember-me switched
+  # off, `remember_until` is ignored and every row is a default one.
   #
   # ## Failure posture: closed
   #
@@ -303,12 +305,20 @@ module Onetime
     end
 
     # Idle past the inactivity deadline, for a row that is not remembered.
+    # With remember-me switched off (AUTH_REMEMBER_ME_ENABLED=false) no row
+    # is remembered: a stamp made before the switch no longer exempts it.
     def inactive_condition
-      Sequel.&({ remember_until: nil }, past_condition(:last_use, INACTIVITY_DEADLINE))
+      idle = past_condition(:last_use, INACTIVITY_DEADLINE)
+      return idle unless RememberMe.enabled?
+
+      Sequel.&({ remember_until: nil }, idle)
     end
 
-    # Remembered, and the remember deadline has passed.
+    # Remembered, and the remember deadline has passed. Never true with
+    # remember-me switched off, for the same reason.
     def remember_lapsed_condition
+      return Sequel.lit('1 = 0') unless RememberMe.enabled?
+
       Sequel.&(Sequel.~(remember_until: nil), Sequel[:remember_until] < Sequel::CURRENT_TIMESTAMP)
     end
 

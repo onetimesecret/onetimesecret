@@ -113,6 +113,24 @@ RSpec.describe 'Remember me: a fixed 14-day session (simple mode)', type: :integ
     end
   end
 
+  describe 'with AUTH_REMEMBER_ME_ENABLED=false' do
+    it 'ignores the parameter' do
+      allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_return(false)
+      login!('remember-me' => true)
+
+      expect(session_blob).not_to have_key('remember_until')
+    end
+
+    it 'returns a session remembered before the switch to the default lifetime', :aggregate_failures do
+      login!('remember-me' => true)
+      allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_return(false)
+
+      expect(account_request).to eq(200)
+      expect(blob_ttl).to be_between(1, 86_400)
+      expect(session_cookie_header.to_s).not_to match(/max-age/i)
+    end
+  end
+
   it 'ends at logout, and the next anonymous cookie is a default one', :aggregate_failures do
     login!('remember-me' => true)
     get '/logout'

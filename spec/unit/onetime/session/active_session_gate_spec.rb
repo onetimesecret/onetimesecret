@@ -45,7 +45,9 @@ RSpec.describe Onetime::ActiveSessionGate do
   before do
     stub_const('Auth::Database', Class.new { def self.connection = nil }) unless defined?(Auth::Database)
     allow(Auth::Database).to receive(:connection).and_return(db)
-    allow(Onetime.auth_config).to receive_messages(full_enabled?: true, active_sessions_enabled?: true)
+    allow(Onetime.auth_config).to receive_messages(
+      full_enabled?: true, active_sessions_enabled?: true, remember_me_sessions_enabled?: true,
+    )
     allow(OT).to receive(:le)
     allow(OT).to receive(:lw)
     allow(OT).to receive(:ld)
@@ -318,6 +320,25 @@ RSpec.describe Onetime::ActiveSessionGate do
       expect(OT).to have_received(:info).with(/past its inactivity deadline/)
     end
 
+    # AUTH_REMEMBER_ME_ENABLED=false: a stamp made while it was on no longer
+    # counts, so an operator can end remembered sessions by switching it off.
+    context 'with remember-me switched off' do
+      before { allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_return(false) }
+
+      it 'holds a remembered row to the inactivity deadline' do
+        insert_row(last_use: idle, created_at: idle, remember_until: now + 86_400)
+
+        expect(described_class.verdict(session)).to eq(:revoked)
+        expect(OT).to have_received(:info).with(/past its inactivity deadline/)
+      end
+
+      it 'ignores a lapsed remember_until on a row in use' do
+        insert_row(last_use: now, created_at: now - 86_400, remember_until: now - 60)
+
+        expect(described_class.verdict(session)).to eq(:active)
+      end
+    end
+
     it 'answers all of it in the one SELECT' do
       insert_row(last_use: idle, created_at: idle, remember_until: now + 86_400)
       env = {}
@@ -348,6 +369,16 @@ RSpec.describe Onetime::ActiveSessionGate do
 
       expect(rows.where(described_class.expired_condition).select_map(:session_id))
         .to contain_exactly('idle', 'lapsed', 'outlived')
+    end
+
+    it 'treats every row as unremembered with remember-me switched off' do
+      allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_return(false)
+      insert('idle-remembered', last_use: idle, created_at: idle, remember_until: now + 86_400)
+      insert('lapsed', remember_until: now - 60)
+      insert('fresh')
+
+      expect(rows.where(described_class.expired_condition).select_map(:session_id))
+        .to contain_exactly('idle-remembered')
     end
   end
 

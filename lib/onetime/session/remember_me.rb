@@ -58,9 +58,18 @@ module Onetime
       TRUTHY.include?(value)
     end
 
-    # Whether this install honours the checkbox (AUTH_REMEMBER_ME_ENABLED).
+    # Whether this install honours the checkbox (AUTH_REMEMBER_ME_ENABLED),
+    # in either auth mode. Read on every session write, so it never raises:
+    # an unreadable config means not remembered, i.e. the default session.
+    #
+    # Turning the switch off also ends the remembered lifetime of sessions
+    # already stamped: {remaining} stops honouring the stamp (the next write
+    # gives the blob the default TTL and the cookie the default lifetime),
+    # and the gate stops exempting their rows from the inactivity deadline.
     def enabled?
-      Onetime.auth_config.remember_me_enabled?
+      Onetime.auth_config.remember_me_sessions_enabled?
+    rescue StandardError
+      false
     end
 
     # Stamp the fixed deadline into the Rack session.
@@ -71,9 +80,10 @@ module Onetime
     end
 
     # Seconds left until the session's remember deadline, or nil when the
-    # session is not remembered: no stamp, a stamp in the past, or a value
-    # that is not an integer epoch. Capped at {DURATION}, so no stored value
-    # can give a session a longer life than a fresh sign-in would.
+    # session is not remembered: no stamp, a stamp in the past, a value that
+    # is not an integer epoch, or the switch is off. Capped at {DURATION},
+    # so no stored value can give a session a longer life than a fresh
+    # sign-in would.
     #
     # @param session [Hash, #[], nil] the Rack session or its data hash
     # @return [Integer, nil]
@@ -81,7 +91,7 @@ module Onetime
       return nil unless session.respond_to?(:[])
 
       deadline = session[SESSION_KEY]
-      return nil unless deadline.is_a?(Integer)
+      return nil unless deadline.is_a?(Integer) && enabled?
 
       left = deadline - now.to_i
       left.positive? ? [left, DURATION].min : nil
