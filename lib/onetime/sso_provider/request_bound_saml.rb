@@ -437,9 +437,17 @@ module OmniAuth
 
       # Last gate, so a response refused for any other reason does not spend
       # a datastore write. See Onetime::Security::SamlAssertionReplayGuard.
+      #
+      # An assertion valid for longer than the guard's MAX_LIFETIME (plus the
+      # clock drift it was validated with) is refused outright rather than
+      # remembered for a clamped, shorter time: a replay marker that expires
+      # before the assertion does is a marker that stops working exactly when
+      # it is needed. ruby-saml itself imposes no maximum lifetime.
       def replay_refusal(response, opts)
+        guard           = Onetime::Security::SamlAssertionReplayGuard
         assertion_id    = response.assertion_id.to_s
         not_on_or_after = response.not_on_or_after
+        clock_drift     = opts[:allowed_clock_drift].to_f
 
         if assertion_id.strip.empty? || !not_on_or_after.is_a?(Time)
           return [
@@ -449,11 +457,21 @@ module OmniAuth
           ]
         end
 
-        claimed = Onetime::Security::SamlAssertionReplayGuard.claim(
+        now = Time.now
+        if guard.lifetime_exceeded?(not_on_or_after, clock_drift: clock_drift, now: now)
+          return [
+            :saml_assertion_lifetime_exceeded,
+            'SAML assertion NotOnOrAfter is further out than this SP accepts',
+            { lifetime_seconds: (not_on_or_after - now).ceil, max_lifetime_seconds: guard::MAX_LIFETIME },
+          ]
+        end
+
+        claimed = guard.claim(
           idp_entity_id: options.idp_entity_id.to_s,
           assertion_id: assertion_id,
           not_on_or_after: not_on_or_after,
-          clock_drift: opts[:allowed_clock_drift].to_f,
+          clock_drift: clock_drift,
+          now: now,
         )
         return nil if claimed == true
 

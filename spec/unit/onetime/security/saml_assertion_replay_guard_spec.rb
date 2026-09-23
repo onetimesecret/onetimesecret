@@ -128,12 +128,50 @@ RSpec.describe Onetime::Security::SamlAssertionReplayGuard do
       expect(described_class.ttl_for(now - 3600, clock_drift: 0, now: now)).to eq(described_class::MIN_TTL)
     end
 
-    it 'caps at MAX_TTL for an IdP-chosen far-future NotOnOrAfter' do
-      expect(described_class.ttl_for(Time.utc(9999, 1, 1), clock_drift: 60, now: now)).to eq(described_class::MAX_TTL)
+    it 'never clamps an assertion lifetime_exceeded? admits (the marker outlives the gem window)' do
+      longest = now + described_class::MAX_LIFETIME + 60
+
+      expect(described_class.lifetime_exceeded?(longest, clock_drift: 60, now: now)).to be(false)
+      expect(described_class.ttl_for(longest, clock_drift: 60, now: now)).to eq(described_class::MAX_LIFETIME + 120)
     end
 
-    it 'keeps the cap at one hour' do
-      expect(described_class::MAX_TTL).to eq(3600)
+    it 'still clamps an IdP-chosen far-future NotOnOrAfter for a caller that skipped lifetime_exceeded?' do
+      expect(described_class.ttl_for(Time.utc(9999, 1, 1), clock_drift: 60, now: now))
+        .to eq(described_class.max_ttl_for(60))
+    end
+
+    it 'keeps the accepted lifetime at one hour' do
+      expect(described_class::MAX_LIFETIME).to eq(3600)
+    end
+  end
+
+  describe '.lifetime_exceeded?' do
+    it 'is false inside MAX_LIFETIME' do
+      expect(described_class.lifetime_exceeded?(now + 300, clock_drift: 60, now: now)).to be(false)
+      expect(described_class.lifetime_exceeded?(now + 3600, clock_drift: 0, now: now)).to be(false)
+    end
+
+    it 'tolerates an IdP clock ahead by up to the drift, and no more' do
+      expect(described_class.lifetime_exceeded?(now + 3660, clock_drift: 60, now: now)).to be(false)
+      expect(described_class.lifetime_exceeded?(now + 3661, clock_drift: 60, now: now)).to be(true)
+      expect(described_class.lifetime_exceeded?(now + 3601, clock_drift: 0, now: now)).to be(true)
+    end
+
+    it 'is true for day-long and far-future windows' do
+      expect(described_class.lifetime_exceeded?(now + 86_400, clock_drift: 60, now: now)).to be(true)
+      expect(described_class.lifetime_exceeded?(Time.utc(9999, 1, 1), clock_drift: 60, now: now)).to be(true)
+    end
+
+    it 'raises rather than answering for a non-Time' do
+      expect { described_class.lifetime_exceeded?(nil, now: now) }.to raise_error(ArgumentError, /not_on_or_after/)
+    end
+  end
+
+  describe '.max_ttl_for' do
+    it 'is MAX_LIFETIME plus twice the drift (remaining validity + the gem allowance), rounded up' do
+      expect(described_class.max_ttl_for(0)).to eq(3600)
+      expect(described_class.max_ttl_for(60)).to eq(3720)
+      expect(described_class.max_ttl_for(0.5)).to eq(3602)
     end
   end
 end

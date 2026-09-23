@@ -751,6 +751,35 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         expect(reached_app).to be_empty
       end
 
+      # ruby-saml imposes no maximum NotOnOrAfter. An assertion valid for
+      # longer than the guard will remember it would become replayable once
+      # the marker expired; it is refused instead of silently clamped.
+      it 'refuses an assertion whose NotOnOrAfter is beyond MAX_LIFETIME + clock drift, without claiming' do
+        start_login
+        now = Time.now.utc
+        post_callback(response_for(session[request_id_key], now: now, not_on_or_after: now + 3600 + 60 + 30))
+
+        expect(failure_types).to eq([:saml_assertion_lifetime_exceeded])
+        expect(fake_dbclient.writes).to be_empty
+        expect(reached_app).to be_empty
+        expect(auth_logger).to have_received(:warn).with(
+          '[saml_response_refused]',
+          hash_including(reason: 'saml_assertion_lifetime_exceeded', max_lifetime_seconds: 3600, lifetime_seconds: be_between(3685, 3690)),
+        )
+      end
+
+      it 'accepts a one-hour assertion (AD FS / Entra ID default) with the IdP clock ahead by the tolerated drift' do
+        start_login
+        now = Time.now.utc
+        post_callback(response_for(session[request_id_key], now: now, not_on_or_after: now + 3600 + 30))
+
+        expect(failures).to be_empty
+        expect(reached_app.size).to eq(1)
+        # The marker outlives the gem's acceptance window (NotOnOrAfter + 60s)
+        # instead of being clamped short of it.
+        expect(fake_dbclient.writes.first[:ex]).to be_between(3685, 3691)
+      end
+
       it 'refuses an assertion with no readable id or expiry, without claiming' do
         allow_any_instance_of(OneLogin::RubySaml::Response).to receive(:assertion_id).and_return(nil) # rubocop:disable RSpec/AnyInstance
         start_login

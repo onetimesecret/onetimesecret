@@ -19,12 +19,14 @@ module Onetime
     # for the length of time for which the assertion would be considered
     # valid". This module is that set.
     #
-    # The InResponseTo binding in OmniAuth::Strategies::RequestBoundSAML already
-    # makes a replay useless to anyone who does not also hold the victim's
-    # session cookie with a pending AuthnRequest (the request id is consumed
-    # on first use). The replay cache is the independent second control the
-    # spec asks for: it does not depend on session state, so it still holds if
-    # the session-side binding is ever weakened by a gem bump.
+    # The request binding in OmniAuth::Strategies::RequestBoundSAML (the SIGNED
+    # assertion's SubjectConfirmationData/@InResponseTo must equal the pending
+    # AuthnRequest id, which is consumed on first use) already makes a replay
+    # useless to anyone who does not also hold a victim session whose pending
+    # id the IdP wrote into that very assertion — which no later session can
+    # have. The replay cache is the independent second control the spec asks
+    # for: it does not depend on session state, so it still holds if the
+    # session-side binding is ever weakened by a gem bump.
     #
     # One atomic gate, same shape as VerificationResendCooldown:
     #
@@ -41,18 +43,30 @@ module Onetime
     # deny each other's logins. The caller passes the CONFIGURED entity id,
     # which the strategy has already proven equal to the response Issuer.
     #
+    # LIFETIME BOUND: ruby-saml's validate_conditions has no maximum — it
+    # accepts any NotOnOrAfter in the future — and NotOnOrAfter is
+    # IdP-controlled. A key that must outlive a day-long (or year-9999)
+    # assertion would park in the datastore indefinitely, and a key that is
+    # capped SHORTER than the assertion leaves the assertion replayable once
+    # the key expires. Neither is acceptable, so the guard does not clamp
+    # silently: `lifetime_exceeded?` tells the caller that an assertion is
+    # valid for longer than MAX_LIFETIME past now (plus the clock drift the
+    # response was validated with, so an IdP clock running ahead by the
+    # tolerated amount does not cause refusals), and the caller REFUSES such
+    # an assertion before claiming anything. Mainstream IdPs issue 5-60 minute
+    # windows (Okta 5 min, Entra ID and AD FS 60 min), so one hour admits all
+    # of them and refuses only the pathological.
+    #
     # TTL: (NotOnOrAfter - now) + clock drift, because ruby-saml accepts the
     # assertion until NotOnOrAfter + allowed_clock_drift — the key must outlive
     # the last instant the gem would still validate the document. Floored at
     # MIN_TTL (EX 0 is a Redis error, and a just-expiring assertion that the
-    # gem accepted inside its drift allowance must still be recorded). Capped
-    # at MAX_TTL: NotOnOrAfter is IdP-controlled, and an IdP that issues
-    # day-long (or year-9999) assertions must not be able to park keys in the
-    # datastore indefinitely. ACCEPTED RESIDUAL of the cap: an assertion whose
-    # validity window exceeds MAX_TTL becomes replayable, as far as THIS
-    # control is concerned, once the key expires. Mainstream IdPs issue
-    # 5-10 minute windows, so one hour is already generous; the InResponseTo
-    # binding still applies to such an assertion.
+    # gem accepted inside its drift allowance must still be recorded). The
+    # upper clamp (`max_ttl_for`) is MAX_LIFETIME + 2 x drift: for every
+    # assertion `lifetime_exceeded?` admits it never binds, so the key is
+    # guaranteed to outlive the gem's acceptance window. It exists only so a
+    # caller that skipped `lifetime_exceeded?` still cannot park a key
+    # indefinitely.
     #
     # FAIL SEMANTICS: datastore errors propagate (they are never rescued
     # here), matching the other lib/onetime/security/ primitives. The caller
@@ -78,9 +92,9 @@ module Onetime
       # Seconds. EX must be a positive integer.
       MIN_TTL = 1
 
-      # Seconds. Upper bound on how long an IdP-chosen NotOnOrAfter can hold
-      # a key in the datastore. See the ACCEPTED RESIDUAL note above.
-      MAX_TTL = 3600
+      # Seconds. The longest (NotOnOrAfter - now) the caller should accept,
+      # before clock drift. See LIFETIME BOUND above.
+      MAX_LIFETIME = 3600
 
       extend self
 
@@ -122,13 +136,39 @@ module Onetime
         "#{KEY_PREFIX}:#{digest}"
       end
 
-      # @return [Integer] seconds, within MIN_TTL..MAX_TTL
+      # Whether the assertion stays valid for longer than the guard is willing
+      # to remember it. The caller MUST refuse when this is true; `claim` does
+      # not check it (so the refusal carries its own reason, not the guard's
+      # error class).
+      #
+      # @param not_on_or_after [Time] Conditions/@NotOnOrAfter
+      # @param clock_drift [Numeric] tolerated IdP clock skew (seconds)
+      # @param now [Time] injectable clock for tests
+      # @return [Boolean] true when NotOnOrAfter is beyond
+      #   now + MAX_LIFETIME + clock_drift
+      # @raise [ArgumentError] when not_on_or_after is not a Time
+      def lifetime_exceeded?(not_on_or_after, clock_drift: 0, now: Time.now)
+        raise ArgumentError, 'not_on_or_after must be a Time' unless not_on_or_after.is_a?(Time)
+
+        (not_on_or_after - now) > MAX_LIFETIME + clock_drift.to_f.abs
+      end
+
+      # @return [Integer] seconds, within MIN_TTL..max_ttl_for(clock_drift)
       # @raise [ArgumentError] when not_on_or_after is not a Time
       def ttl_for(not_on_or_after, clock_drift: 0, now: Time.now)
         raise ArgumentError, 'not_on_or_after must be a Time' unless not_on_or_after.is_a?(Time)
 
         remaining = (not_on_or_after - now).ceil + clock_drift.to_f.ceil
-        remaining.clamp(MIN_TTL, MAX_TTL)
+        remaining.clamp(MIN_TTL, max_ttl_for(clock_drift))
+      end
+
+      # The longest key an accepted assertion can need: MAX_LIFETIME + drift
+      # of remaining validity (the `lifetime_exceeded?` bound) plus the drift
+      # added on top for the gem's acceptance window.
+      #
+      # @return [Integer] seconds
+      def max_ttl_for(clock_drift)
+        MAX_LIFETIME + (2 * clock_drift.to_f.abs.ceil)
       end
     end
   end

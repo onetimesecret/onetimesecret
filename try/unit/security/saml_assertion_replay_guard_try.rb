@@ -11,10 +11,13 @@
 # 2. The key carries a TTL derived from NotOnOrAfter + clock drift
 # 3. Key shape: prefix + sha256, no IdP-controlled bytes in the keyspace
 # 4. The same assertion id under a different IdP is an independent claim
-# 5. TTL floor (already-expired NotOnOrAfter) and TTL cap (far-future)
-# 6. Once the key expires the id can be claimed again (the documented
-#    residual of the cap — and proof the EX is what releases it)
+# 5. TTL floor (already-expired NotOnOrAfter) and the TTL cap a caller that
+#    skipped lifetime_exceeded? still hits (far-future)
+# 6. Once the key expires the id can be claimed again (proof the EX is what
+#    releases it)
 # 7. Blank identifiers / non-Time expiry raise rather than claim
+# 8. lifetime_exceeded? is what the strategy refuses on: a one-hour
+#    assertion passes (with drift), anything longer does not
 #
 # Run: bundle exec try --agent try/unit/security/saml_assertion_replay_guard_try.rb
 
@@ -81,9 +84,22 @@ claim_for(@idp_a, "#{@aid}-expired", @now - 600, drift: 0)
 @redis.ttl(@guard.key_for(@idp_a, "#{@aid}-expired")).between?(0, 1)
 #=> true
 
-## a far-future NotOnOrAfter is capped at MAX_TTL
+## a far-future NotOnOrAfter is capped at max_ttl_for(drift) (= MAX_LIFETIME + 2 x drift)
 claim_for(@idp_a, "#{@aid}-far", @now + (86_400 * 365))
-@redis.ttl(@guard.key_for(@idp_a, "#{@aid}-far")).between?(@guard::MAX_TTL - 5, @guard::MAX_TTL)
+@redis.ttl(@guard.key_for(@idp_a, "#{@aid}-far")).between?(@guard.max_ttl_for(60) - 5, @guard.max_ttl_for(60))
+#=> true
+
+## the longest lifetime the strategy admits is one hour plus the drift
+@guard.lifetime_exceeded?(@now + @guard::MAX_LIFETIME + 60, clock_drift: 60, now: @now)
+#=> false
+
+## one second past that is refused by the caller before any claim
+@guard.lifetime_exceeded?(@now + @guard::MAX_LIFETIME + 61, clock_drift: 60, now: @now)
+#=> true
+
+## an admitted one-hour assertion's key is NOT clamped: it outlives the gem's window (3600 + 2 x 60)
+claim_for(@idp_a, "#{@aid}-hour", @now + @guard::MAX_LIFETIME + 60)
+@redis.ttl(@guard.key_for(@idp_a, "#{@aid}-hour")).between?(3715, 3720)
 #=> true
 
 ## after the key expires the id is claimable again (EX is what releases it)
