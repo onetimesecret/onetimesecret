@@ -160,6 +160,16 @@ describe('Login.vue auth_error handling', () => {
       expect(alert.text()).not.toContain('web.login.errors.sso_failed');
     });
 
+    it('displays the misconfigured-provider copy when auth_error=sso_issuer_mismatch', async () => {
+      wrapper = await createWrapper({ auth_error: 'sso_issuer_mismatch' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.sso_issuer_mismatch');
+      expect(alert.text()).not.toContain('web.login.errors.sso_failed');
+    });
+
     it('displays token expired error', async () => {
       wrapper = await createWrapper({ auth_error: 'token_expired' });
       await flushPromises();
