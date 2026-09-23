@@ -75,6 +75,11 @@ export interface TestSsoConnectionResponse {
     missing_fields?: string[];
     content_type?: string;
     timeout_seconds?: number;
+    max_bytes?: number;
+    // issuer_mismatch (generic OIDC only): exact values, never normalized.
+    // discovery_issuer is null when the document's issuer is not a string.
+    configured_issuer?: string;
+    discovery_issuer?: string | null;
   };
 }
 

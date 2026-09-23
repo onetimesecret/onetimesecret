@@ -1006,6 +1006,18 @@
     "text": "Missing Fields",
     "content_hash": "757df777"
   },
+  "web.organizations.sso.configured_issuer": {
+    "text": "Configured Issuer",
+    "content_hash": "6b307b7f"
+  },
+  "web.organizations.sso.discovery_issuer": {
+    "text": "Discovered Issuer",
+    "content_hash": "9d74f978"
+  },
+  "web.organizations.sso.issuer_mismatch_hint": {
+    "text": "OIDC issuer identifiers must match exactly, including any trailing slash. Set the Issuer URL to the discovered value shown above.",
+    "content_hash": "ec144c88"
+  },
   "web.organizations.sso.status_enabled": {
     "text": "Enabled",
     "content_hash": "92c1cdfd"
