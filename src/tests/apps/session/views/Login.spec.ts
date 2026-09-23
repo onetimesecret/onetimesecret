@@ -247,6 +247,18 @@ describe('Login.vue auth_error handling', () => {
       expect(alert.text()).toContain('web.login.errors.org_join_failed');
     });
 
+    it('displays the unusable-config copy when auth_error=sso_config_unusable', async () => {
+      // A tenant SSO record that exists but cannot produce a login (e.g. an
+      // expired IdP certificate) must not read as "not configured".
+      wrapper = await createWrapper({ auth_error: 'sso_config_unusable' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.sso_config_unusable');
+      expect(alert.text()).not.toContain('web.login.errors.sso_not_configured');
+    });
+
     it('shows a generic error for unknown codes (never a blank page)', async () => {
       // Regression guard for issue #3478: an auth_error code this bundle does
       // not recognize (e.g. from a backend newer than the deployed frontend)

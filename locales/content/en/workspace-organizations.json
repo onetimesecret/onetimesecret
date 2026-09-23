@@ -949,6 +949,16 @@
     "text": "Some stored values could not be read and must be entered again: {fields}",
     "content_hash": "e9fa9d16"
   },
+  "web.organizations.sso.idp_cert_expired_alert": {
+    "text": "The identity provider certificate expired on {date}. Sign-in through this connection will fail until a current certificate is saved.",
+    "context": "Error callout at the top of the SSO form for a saved SAML connection whose stored IdP certificate has already expired. {date} is the localized expiry date.",
+    "content_hash": "527fb721"
+  },
+  "web.organizations.sso.idp_cert_expiring_notice": {
+    "text": "The identity provider certificate expires on {date}. Replace it before then so sign-in keeps working.",
+    "context": "Advisory notice at the top of the SSO form for a saved SAML connection whose stored IdP certificate expires within 30 days. {date} is the localized expiry date.",
+    "content_hash": "ccaf6ca7"
+  },
   "web.organizations.sso.allowed_domains": {
     "text": "Allowed Email Domains",
     "content_hash": "0295ad71"

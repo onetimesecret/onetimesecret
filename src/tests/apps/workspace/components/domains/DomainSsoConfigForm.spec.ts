@@ -1102,6 +1102,67 @@ describe('DomainSsoConfigForm', () => {
       });
     });
 
+    describe('stored certificate validity (cert_expired / cert_expires_at)', () => {
+      const DAY = 86_400_000;
+      const iso = (offsetMs: number) => new Date(Date.now() + offsetMs).toISOString();
+
+      it('renders an error alert when the saved certificate has expired', async () => {
+        wrapper = await mountComponent({
+          formState: mockSamlFormState,
+          ssoConfig: { ...mockSamlConfig, cert_expires_at: iso(-DAY), cert_expired: true },
+          isConfigured: true,
+        });
+
+        const alert = wrapper.find('[data-testid="sso-idp-cert-expired-alert"]');
+        expect(alert.exists()).toBe(true);
+        expect(alert.attributes('role')).toBe('alert');
+        expect(alert.text()).toContain('web.organizations.sso.idp_cert_expired_alert');
+        expect(wrapper.find('[data-testid="sso-idp-cert-expiring-notice"]').exists()).toBe(false);
+      });
+
+      it('renders a softer notice when the certificate expires within 30 days', async () => {
+        wrapper = await mountComponent({
+          formState: mockSamlFormState,
+          ssoConfig: { ...mockSamlConfig, cert_expires_at: iso(10 * DAY), cert_expired: false },
+          isConfigured: true,
+        });
+
+        expect(wrapper.find('[data-testid="sso-idp-cert-expired-alert"]').exists()).toBe(false);
+        const notice = wrapper.find('[data-testid="sso-idp-cert-expiring-notice"]');
+        expect(notice.exists()).toBe(true);
+        expect(notice.text()).toContain('web.organizations.sso.idp_cert_expiring_notice');
+      });
+
+      it('renders neither for a certificate valid beyond 30 days', async () => {
+        wrapper = await mountComponent({
+          formState: mockSamlFormState,
+          ssoConfig: { ...mockSamlConfig, cert_expires_at: iso(90 * DAY), cert_expired: false },
+          isConfigured: true,
+        });
+
+        expect(wrapper.find('[data-testid="sso-idp-cert-expired-alert"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="sso-idp-cert-expiring-notice"]').exists()).toBe(false);
+      });
+
+      it('hides the expired alert once a different certificate is pasted', async () => {
+        const replacement = '-----BEGIN CERTIFICATE-----\nNEW\n-----END CERTIFICATE-----';
+        wrapper = await mountComponent({
+          formState: { ...mockSamlFormState, idp_cert: replacement },
+          ssoConfig: { ...mockSamlConfig, cert_expires_at: iso(-DAY), cert_expired: true },
+          isConfigured: true,
+        });
+
+        expect(wrapper.find('[data-testid="sso-idp-cert-expired-alert"]').exists()).toBe(false);
+      });
+
+      it('renders nothing when the payload predates the fields', async () => {
+        wrapper = await mountComponent({ formState: mockSamlFormState, ssoConfig: mockSamlConfig, isConfigured: true });
+
+        expect(wrapper.find('[data-testid="sso-idp-cert-expired-alert"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="sso-idp-cert-expiring-notice"]').exists()).toBe(false);
+      });
+    });
+
     describe('reveal failure (unreadable_fields)', () => {
       it('renders an alert naming the field and marks the input invalid', async () => {
         wrapper = await mountComponent({

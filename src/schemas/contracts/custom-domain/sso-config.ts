@@ -257,6 +257,22 @@ export const customDomainSsoConfigCanonical = z.object({
   acs_url: z.string().nullable(),
 
   /**
+   * Expiry of the stored SAML IdP certificate (ISO 8601 UTC), read-only.
+   * Null for non-saml records and for a certificate that is unset,
+   * unreadable or unparseable. Optional so a payload from an API that
+   * predates the key still parses.
+   *
+   * An expired certificate is still ADVERTISED on the sign-in page —
+   * availability deliberately ignores expiry — while every login through it
+   * is refused (auth_error=sso_config_unusable), so this pair is how the
+   * admin learns why.
+   */
+  cert_expires_at: z.string().nullable().optional(),
+
+  /** Whether cert_expires_at is in the past. False whenever it is null. */
+  cert_expired: z.boolean().nullable().optional(),
+
+  /**
    * Names of encrypted fields whose reveal FAILED (any of client_id,
    * client_secret, idp_sso_service_url, idp_entity_id, idp_cert). Empty for
    * a healthy record. A listed field is served as null; the UI must render

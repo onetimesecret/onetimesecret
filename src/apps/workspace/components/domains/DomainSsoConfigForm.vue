@@ -185,6 +185,31 @@ const callbackUrl = computed(
   () => savedSamlRecord.value?.acs_url ?? (ssoRouteBase.value ? `${ssoRouteBase.value}/callback` : null)
 );
 
+/** Days before expiry at which the softer "expiring soon" notice appears. */
+const CERT_EXPIRY_NOTICE_DAYS = 30;
+
+/**
+ * Validity of the SAVED SAML record's IdP certificate (#4450). The API
+ * reports cert_expires_at / cert_expired; an expired certificate stays
+ * advertised on the sign-in page while every login through it is refused,
+ * so this form is where the admin learns why. Null once the admin has
+ * pasted a different certificate — the warning is about the stored one.
+ */
+const storedCertExpiry = computed(() => {
+  const record = savedSamlRecord.value;
+  if (!record?.cert_expires_at) return null;
+  if (props.formState.idp_cert.trim() !== (record.idp_cert ?? '').trim()) return null;
+  const date = new Date(record.cert_expires_at);
+  if (Number.isNaN(date.getTime())) return null;
+  const msLeft = date.getTime() - Date.now();
+  const expired = record.cert_expired === true || msLeft <= 0;
+  return {
+    date: date.toLocaleDateString(),
+    expired,
+    expiringSoon: !expired && msLeft <= CERT_EXPIRY_NOTICE_DAYS * 86_400_000,
+  };
+});
+
 const spEntityId = computed(
   () => savedSamlRecord.value?.sp_entity_id ?? (ssoRouteBase.value ? `${ssoRouteBase.value}/metadata` : null)
 );
@@ -417,6 +442,39 @@ class="space-y-6">
           aria-hidden="true" />
         <p class="text-sm text-red-700 dark:text-red-300">
           {{ t('web.organizations.sso.unreadable_fields_alert', { fields: unreadableFieldNames }) }}
+        </p>
+      </div>
+
+      <!-- Stored IdP certificate validity (#4450): expired is an error — the
+           connection is advertised but every sign-in through it is refused —
+           and expiring soon is an advisory. Both hide once a different
+           certificate is pasted. Amber is the fixed warning hue (#4132). -->
+      <div
+        v-if="storedCertExpiry?.expired"
+        data-testid="sso-idp-cert-expired-alert"
+        role="alert"
+        class="flex items-start gap-2 rounded-md bg-red-50 px-3 py-2 dark:bg-red-900/20">
+        <OIcon
+          collection="heroicons"
+          name="exclamation-triangle"
+          class="mt-0.5 size-4 flex-shrink-0 text-red-600 dark:text-red-400"
+          aria-hidden="true" />
+        <p class="text-sm text-red-700 dark:text-red-300">
+          {{ t('web.organizations.sso.idp_cert_expired_alert', { date: storedCertExpiry.date }) }}
+        </p>
+      </div>
+      <div
+        v-else-if="storedCertExpiry?.expiringSoon"
+        data-testid="sso-idp-cert-expiring-notice"
+        role="status"
+        class="flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-900/20">
+        <OIcon
+          collection="heroicons"
+          name="exclamation-triangle"
+          class="mt-0.5 size-4 flex-shrink-0 text-amber-600 dark:text-amber-400"
+          aria-hidden="true" />
+        <p class="text-sm text-amber-700 dark:text-amber-300">
+          {{ t('web.organizations.sso.idp_cert_expiring_notice', { date: storedCertExpiry.date }) }}
         </p>
       </div>
 
