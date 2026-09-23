@@ -87,7 +87,7 @@ const PLAN = { product: 'identity_plus_v1', interval: 'monthly' } as const;
  */
 const EXPECTED_SIGNIN_REDIRECT = `/billing/plans?product=${PLAN.product}&interval=${PLAN.interval}`;
 
-const BILLING_UNAVAILABLE_SKIP = 'No plan CTAs available - billing may be disabled';
+const BILLING_UNAVAILABLE_SKIP = `Billing disabled, or the catalog does not offer ${PLAN.product}`;
 
 /**
  * The pricing-page CTA for PLAN, located by the BEHAVIOUR under test:
@@ -102,23 +102,53 @@ function planCta(page: Page): Locator {
   return page.locator(`a[href*="product=${PLAN.product}"]`).first();
 }
 
+/** Pricing-route interval → the catalog's per-price interval key. */
+const CATALOG_INTERVAL: Record<string, string> = { monthly: 'month', yearly: 'year' };
+
 /**
  * Opens PLAN's pricing deep link and reports whether the target offers the
- * plan at all. False means billing is off on the target (BILLING_ENABLED=false)
- * or its catalog does not carry PLAN: a property of the environment, which
- * the tests that need billing skip on rather than fail on.
+ * plan at all. False means billing is off on the target or its catalog does
+ * not carry PLAN at that interval: a property of the environment, which the
+ * tests that need billing skip on rather than fail on.
  *
- * Plan cards render after the plans fetch, later than app-ready — so this
- * WAITS for the CTA, and answers false only if it genuinely never appears.
- * An isVisible() snapshot here skips falsely whenever the check races the
- * fetch.
+ * Both answers come from authoritative signals, never from the CTA's
+ * absence: billing_enabled from the bootstrap payload, then the plans
+ * catalog response the page itself fetched. Everything past those — a
+ * failed plans request, a malformed body, a CTA that never renders or was
+ * renamed — is a regression and FAILS the test instead of skipping it.
  */
 async function targetOffersPlan(page: Page, interval: string): Promise<boolean> {
+  const plansResponse = page.waitForResponse(
+    (response) => new URL(response.url()).pathname === '/billing/api/plans'
+  );
+  // Unobserved when billing is off; keep its rejection from going unhandled.
+  plansResponse.catch(() => {});
+
   await page.goto(`/pricing/${PLAN.product}/${interval}`);
   await waitForAppReady(page);
-  return planCta(page)
-    .waitFor({ state: 'visible', timeout: 10_000 })
-    .then(() => true, () => false);
+
+  const billingEnabled = await page.evaluate(
+    () =>
+      (window as unknown as { __BOOTSTRAP_ME__?: { billing_enabled?: boolean } }).__BOOTSTRAP_ME__
+        ?.billing_enabled
+  );
+  expect(billingEnabled, 'bootstrap payload must carry billing_enabled').toEqual(
+    expect.any(Boolean)
+  );
+  if (!billingEnabled) return false;
+
+  const response = await plansResponse;
+  expect(response.status(), 'GET /billing/api/plans').toBe(200);
+  const { plans } = (await response.json()) as { plans: Array<{ id: string; interval: string }> };
+  expect(Array.isArray(plans), 'plans catalog body must carry a plans array').toBe(true);
+  const catalogInterval = CATALOG_INTERVAL[interval];
+  if (!plans.some((plan) => plan.id === PLAN.product && plan.interval === catalogInterval)) {
+    return false;
+  }
+
+  // Billing is on and the catalog carries PLAN: the CTA MUST render.
+  await expect(planCta(page)).toBeVisible({ timeout: 10_000 });
+  return true;
 }
 
 /**
