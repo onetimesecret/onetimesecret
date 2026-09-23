@@ -732,6 +732,19 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
           .to raise_error(Onetime::Problem, /empty EntityID/)
       end
 
+      # resolve_issuer strips only the OUTER edges of the override, so the
+      # EntityID half is held to Saml.entity_id_problem: it is stamped
+      # verbatim and must byte-match the configured EntityID.
+      it 'refuses a leading space after the separator' do
+        expect { new_operation(tenant, issuer: "#{tenant.domain.identifier}| https://idp.example.com/saml/metadata") }
+          .to raise_error(Onetime::Problem, /unusable EntityID.*leading or trailing whitespace/)
+      end
+
+      it 'refuses control characters in the EntityID' do
+        expect { new_operation(tenant, issuer: "#{tenant.domain.identifier}|https://idp.example.com/saml\u0001metadata") }
+          .to raise_error(Onetime::Problem, /unusable EntityID.*control characters/)
+      end
+
       it 'names the scoped form when the record has no idp_entity_id' do
         bare = build_tenant(provider_type: 'saml', issuer: nil)
         expect { new_operation(bare) }

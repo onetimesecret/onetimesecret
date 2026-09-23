@@ -391,12 +391,20 @@ module Auth
       # @param override [String] stripped, non-blank
       # @return [String, nil] problem description, or nil when acceptable
       def saml_override_problem(override)
-        prefix = "#{domain.identifier}#{Onetime::SsoProvider::Saml::TENANT_ISSUER_SEPARATOR}"
+        prefix    = "#{domain.identifier}#{Onetime::SsoProvider::Saml::TENANT_ISSUER_SEPARATOR}"
         unless override.start_with?(prefix)
           return "for a saml domain must be the domain-scoped issuer #{saml_issuer_form}, " \
                  'never the bare EntityID (the tenant callback never keys an identity on it)'
         end
-        return "for a saml domain has an empty EntityID after '#{prefix}'" if override.delete_prefix(prefix).strip.empty?
+        entity_id = override.delete_prefix(prefix)
+        return "for a saml domain has an empty EntityID after '#{prefix}'" if entity_id.strip.empty?
+
+        # The EntityID half is stamped verbatim (never stripped or normalized),
+        # so it is held to the same shape the strategy accepts: no surrounding
+        # whitespace, no control characters. resolve_issuer only strips the
+        # OUTER edges of the override, which leaves a space after '|' intact.
+        problem = Onetime::SsoProvider::Saml.entity_id_problem(entity_id)
+        return "for a saml domain has an unusable EntityID after '#{prefix}': #{problem}" if problem
 
         nil
       end
