@@ -264,8 +264,23 @@ module DomainsAPI
         # Local validation only — see the class comment. No network request is
         # made (the SSRF host check resolves the SSO URL's hostname, nothing
         # more). The same checks, in the same order, that PUT/PATCH apply
-        # (SamlFields#saml_problem), so "test passes" means "save will accept".
+        # (SamlFields#saml_problem, preceded by the install's session-cookie
+        # rule), so "test passes" means "save will accept".
         def test_saml_configuration
+          cookie_problem = Onetime::SsoProvider::Saml.session_cookie_problem
+          unless cookie_problem.nil?
+            return {
+              success: false,
+              provider_type: @provider_type,
+              message: "SAML sign-in cannot complete on this install: #{cookie_problem}",
+              details: {
+                error_code: 'session_cookie_incompatible',
+                field: 'provider_type',
+                description: cookie_problem,
+              },
+            }
+          end
+
           saml_submitted.each do |field, value|
             problem = saml_problem(field, value)
             next if problem.nil?

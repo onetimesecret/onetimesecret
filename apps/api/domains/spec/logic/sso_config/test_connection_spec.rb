@@ -218,6 +218,35 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
 
     let(:result) { logic.send(:test_saml_configuration) }
 
+    # The shipped test config carries same_site: lax; the cookie rule is
+    # exercised in its own context below.
+    def stub_session_cookie(same_site:, secure:)
+      allow(Onetime).to receive(:session_config).and_wrap_original do |original|
+        original.call.merge('same_site' => same_site, 'secure' => secure)
+      end
+    end
+
+    before { stub_session_cookie(same_site: 'none', secure: true) }
+
+    # Test and save must agree (SamlFields#reject_incompatible_session_cookie!
+    # refuses the PUT): a green Test followed by a 422 on save is the
+    # disagreement the class comment promises not to produce.
+    context 'under a session cookie SAML cannot use' do
+      before { stub_session_cookie(same_site: 'lax', secure: false) }
+
+      it 'fails on provider_type, naming the settings, before looking at the trio' do
+        expect(result[:success]).to be false
+        expect(result[:details]).to include(error_code: 'session_cookie_incompatible', field: 'provider_type')
+        expect(result[:message]).to include("same_site is 'lax'").and include('secure is false')
+      end
+
+      it 'never opens a network connection' do
+        result
+
+        expect(Net::HTTP).not_to have_received(:new)
+      end
+    end
+
     it 'succeeds for a valid trio and reports the certificate expiry' do
       expect(result[:success]).to be true
       expect(result[:provider_type]).to eq('saml')
