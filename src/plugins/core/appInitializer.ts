@@ -93,11 +93,11 @@ function initializeApp(app: App, options: AppInitializerOptions) {
     // notify: notifications.add,
   });
 
-  // Register auto-init plugin before creating stores. We pass the api client
-  // and browser locale to the plugin so stores can use them during init.
+  // Register auto-init plugin before creating stores. It passes the browser
+  // locale to each store's init(); the api client reaches stores through
+  // inject('api'), provided below.
   pinia.use(
     autoInitPlugin({
-      api,
       deviceLocale: navigator.language,
     })
   );

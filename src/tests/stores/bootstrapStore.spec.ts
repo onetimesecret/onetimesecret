@@ -44,8 +44,10 @@ describe('bootstrapStore', () => {
     vi.clearAllMocks();
     mockGetBootstrapSnapshot = vi.mocked(bootstrapService.getBootstrapSnapshot);
 
-    // Initialize test environment
-    await setupTestPinia();
+    // Initialize test environment. These tests set the snapshot mock and then
+    // call init() themselves, so the auto-init plugin is off (it would hydrate
+    // at creation, before the mock is set); see SetupTestPiniaOptions.autoInit.
+    await setupTestPinia({ autoInit: false });
     store = useBootstrapStore();
   });
 
@@ -768,7 +770,7 @@ describe('bootstrapStore', () => {
     describe('isInitialized', () => {
       it('returns false before init()', async () => {
         // Create fresh store without init
-        await setupTestPinia();
+        await setupTestPinia({ autoInit: false });
         const freshStore = useBootstrapStore();
 
         expect(freshStore.isInitialized).toBe(false);
@@ -1102,8 +1104,8 @@ describe('bootstrapStore', () => {
     it('store DEFAULTS match schema BOOTSTRAP_UI_DEFAULTS for overlapping fields', async () => {
       const { BOOTSTRAP_UI_DEFAULTS } = await import('@/tests/contracts/bootstrap-test-schema');
 
-      // Create fresh store to verify initial DEFAULTS
-      await setupTestPinia();
+      // Create fresh store to verify initial DEFAULTS (before init() hydrates)
+      await setupTestPinia({ autoInit: false });
       const freshStore = useBootstrapStore();
 
       // UI configuration

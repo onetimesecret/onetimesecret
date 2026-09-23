@@ -74,14 +74,11 @@ describe('authStore refresh coordinator (#4459)', () => {
 
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock as AxiosMockAdapter;
+    // The auto-init plugin runs init() as each store is created, as in the
+    // app. Fake timers BEFORE creation: init schedules the passive interval.
+    vi.useFakeTimers();
     bootstrapStore = useBootstrapStore();
     store = useAuthStore();
-    // autoInitPlugin does not fire under createTestingPinia in this harness;
-    // like the other store specs, initialize explicitly, in app order.
-    // Fake timers BEFORE init: init schedules the passive interval.
-    vi.useFakeTimers();
-    bootstrapStore.init();
-    store.init();
   }
 
   const requests = () => axiosMock.history.get.filter((r) => r.url === ENDPOINT).length;

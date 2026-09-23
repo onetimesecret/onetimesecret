@@ -88,7 +88,12 @@ describe('receiptListStore', () => {
   });
 
   describe('refreshRecords', () => {
-    it('should fetch records only when not initialized', async () => {
+    it('fetches once on an auto-initialized store, then only when forced', async () => {
+      // The auto-init plugin has already run init(), as it does in the app.
+      // "init() has run" must not be mistaken for "loaded".
+      expect(store.isLoaded).toBe(false);
+      expect(store.records).toBeNull();
+
       const mockResponse = {
         records: mockReceiptRecentRecords,
         details: mockReceiptRecentDetails,
@@ -98,7 +103,7 @@ describe('receiptListStore', () => {
       axiosMock.onGet('/api/v3/receipt/recent').reply(200, mockResponse);
 
       await store.refreshRecords();
-      expect(store.initialized()).toBe(true);
+      expect(store.isLoaded).toBe(true);
 
       // Second call should not fetch
       await store.refreshRecords();
@@ -118,12 +123,12 @@ describe('receiptListStore', () => {
 
       // First call to initialize
       await store.refreshRecords();
-      expect(store.initialized()).toBe(true);
+      expect(store.isLoaded).toBe(true);
       expect(axiosMock.history.get.length).toBe(1);
 
       // Second call with force=true should fetch again
       await store.refreshRecords(true);
-      expect(store.initialized()).toBe(true);
+      expect(store.isLoaded).toBe(true);
       expect(axiosMock.history.get.length).toBe(2);
     });
   });
@@ -238,7 +243,7 @@ describe('receiptListStore', () => {
       axiosMock.onGet('/api/v3/receipt/recent').reply(200, mockResponse);
 
       await store.refreshRecords();
-      expect(store.initialized()).toBe(true);
+      expect(store.isLoaded).toBe(true);
 
       // Verify hydration behavior
       await store.refreshRecords();

@@ -16,7 +16,9 @@ describe('useReauth', () => {
   beforeEach(async () => {
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock!;
-    useCsrfStore().init({ shrimp: 'csrf-token' });
+    // init() already ran (auto-init plugin); set the token the way the app
+    // does after a response.
+    useCsrfStore().updateShrimp('csrf-token');
     Object.defineProperty(window, 'PublicKeyCredential', {
       value: function PublicKeyCredential() {},
       writable: true,

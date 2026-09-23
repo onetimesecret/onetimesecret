@@ -67,12 +67,13 @@ describe('authStore snapshot acceptance (#4464)', () => {
 
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock as AxiosMockAdapter;
-    bootstrapStore = useBootstrapStore();
-    store = useAuthStore();
+    // The auto-init plugin runs init() as each store is created, as in the
+    // app. So replies init() needs, and fake timers (init schedules the
+    // passive interval), come BEFORE the stores.
     arrange?.(axiosMock);
     vi.useFakeTimers();
-    bootstrapStore.init();
-    store.init();
+    bootstrapStore = useBootstrapStore();
+    store = useAuthStore();
   }
 
   const requests = () => axiosMock.history.get.filter((r) => r.url === ENDPOINT).length;
