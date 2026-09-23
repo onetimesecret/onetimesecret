@@ -28,6 +28,12 @@ end
 # every rake task that boots the app with this partial configuration.
 namespace :rhales do
   task :configure_schema_sources do
+    # Rhales parses the whole stdout of `pnpm exec tsx` as JSON. pnpm 11
+    # verifies dependencies before `exec` and prints "Already up to date" /
+    # "Done in ..." to stdout ahead of the schema, so every schema fails to
+    # parse. Skip that check for the subprocesses this task spawns.
+    ENV['pnpm_config_verify_deps_before_run'] = 'false'
+
     next if Rhales.configuration.frozen?
 
     root = File.expand_path('../..', __dir__)
