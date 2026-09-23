@@ -41,6 +41,51 @@ RSpec.describe 'Auth router MFA-pending session gate', :full_auth_mode, type: :i
     expect(json_body).to include('id' => account_id, 'email' => email)
   end
 
+  # RISK-2026-08-13-02 closure coverage (docs/security/active-risk-register.md):
+  # the 2026-09-09 audit asks that a first-factor-only session be refused by
+  # EVERY account and session route this router serves itself, except
+  # mfa-status. The gate is an allowlist (MFA_PENDING_CUSTOM_ROUTES), so a new
+  # route is refused by default; this list pins the ones the finding named plus
+  # the re-authentication pair added since.
+  it 'refuses every hand-written account and session route except mfa-status' do
+    refused_reads = %w[
+      /auth/account
+      /auth/account.json
+      /auth/active-sessions
+      /auth/identities
+      /auth/webauthn-credentials
+      /auth/reauth-offer
+    ]
+
+    refused_reads.each do |path|
+      clear_body_headers
+      get path, {}, 'HTTP_ACCEPT' => 'application/json'
+      expect_mfa_pending_refusal
+    end
+
+    rows_before = active_session_rows.count
+    expect_any_instance_of(Auth::Config).not_to receive(:remove_all_active_sessions_except_current)
+    expect_any_instance_of(Auth::Config).not_to receive(:remove_active_session)
+
+    csrf_json_post('/auth/remove-all-active-sessions', {})
+    expect_mfa_pending_refusal
+
+    csrf_json_post('/auth/reauth', password: AuthTestConstants::TEST_PASSWORD)
+    expect_mfa_pending_refusal
+
+    csrf_json_delete('/auth/active-sessions/not-a-real-session-id')
+    expect_mfa_pending_refusal
+
+    csrf_json_delete('/auth/identities/1')
+    expect_mfa_pending_refusal
+
+    expect(active_session_rows.count).to eq(rows_before)
+
+    clear_body_headers
+    get '/auth/mfa-status', {}, 'HTTP_ACCEPT' => 'application/json'
+    expect(last_response.status).to eq(200), last_response.body
+  end
+
   it 'refuses anonymous account-lifecycle routes so the MFA challenge cannot be side-stepped' do
     csrf_json_post('/auth/reset-password-request', login: email)
     expect_mfa_pending_refusal
@@ -132,6 +177,16 @@ RSpec.describe 'Auth router MFA-pending session gate', :full_auth_mode, type: :i
       'success' => false,
     )
     expect(last_response.body).not_to include(email)
+  end
+
+  # JSON DELETE with the CSRF token in the header, as the SPA sends it.
+  def csrf_json_delete(path)
+    csrf = fetch_csrf_token
+    clear_body_headers
+    header 'Accept', 'application/json'
+    header 'X-CSRF-Token', csrf if csrf
+    delete path
+    last_response
   end
 
   def active_session_rows

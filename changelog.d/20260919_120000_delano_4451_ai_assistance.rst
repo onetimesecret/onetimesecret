@@ -1,0 +1,10 @@
+.. A new scriv changelog fragment.
+
+AI Assistance
+-------------
+
+- The auth session consistency package (#4451) was implemented and reviewed
+  with Claude across planning, backend, frontend, browser-test and
+  verification stages. The first real browser run found two defects the unit
+  suites could not: the bootstrap schema rejected every real server payload,
+  and ``GET /logout`` could be undone by an in-flight request.
