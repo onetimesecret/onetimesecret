@@ -2,38 +2,102 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/session/remember_me'
+require 'onetime/session/active_session_gate'
+
 module Auth::Config::Features
-  # Remember me feature: persistent login across browser sessions.
-  # Provides the "Remember me" checkbox on the login form.
+  # Remember me: the login form's checkbox makes THIS session last a fixed 14
+  # days from sign-in instead of the rolling 24 hours. The mechanism, and why
+  # it is not Rodauth's remember feature, is described in
+  # lib/onetime/session/remember_me.rb.
   #
-  # ENV: AUTH_REMEMBER_ME_ENABLED (default: enabled, set to 'false' to disable)
+  # ENV: AUTH_REMEMBER_ME_ENABLED (default: enabled, set to 'false' to disable).
+  # Disabled, the `remember-me` parameter is ignored and every session is a
+  # default one.
   #
+  # Rodauth's :remember feature is NOT enabled. Before this, it was, and
+  # nothing ever called remember_login or load_memory, so the checkbox did
+  # nothing. account_remember_keys stays in the schema, and is still cleared
+  # on account deletion (operations/remove_authentication_data.rb).
+  #
+  # ## Which logins
+  #
+  # Any login that fires after_login and carries a truthy `remember-me`
+  # parameter (Onetime::RememberMe::TRUTHY): the SPA's password form sends
+  # it; the email-auth, WebAuthn and OmniAuth routes would honour it the same
+  # way, but no client sends it there today. The autologins
+  # (create_account, verify_account, reset_password) do not fire after_login
+  # and are never remembered.
+  #
+  # ## Two-phase (MFA) logins
+  #
+  # The parameter arrives with the password, but the session is not signed in
+  # until the second factor. So a login that still owes a second factor only
+  # records the choice (`remember_me_pending`), and the session is
+  # remembered when after_two_factor_authentication completes it; the 14
+  # days run from then. A login abandoned at the second factor stays a
+  # default session and its choice expires with it. The active-session row
+  # exists from the first phase (login_session inserts it), so the second
+  # phase stamps the same row.
+  #
+  # ## What is stamped
+  #
+  # The active-session row first, in the database's clock (the clock the gate
+  # decides in), then the Rack session (Onetime::RememberMe.stamp), which the
+  # session store turns into the blob TTL and the cookie lifetime. If the row
+  # cannot be stamped, neither is, and the login proceeds as a default
+  # session: a Rack session that outlived its row's inactivity deadline would
+  # only be refused, so stamping one without the other buys nothing.
   module RememberMe
+    # Rack session key for the choice held across the second factor.
+    PENDING_KEY = 'remember_me_pending'
+
     def self.configure(auth)
-      auth.enable :remember
+      # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
+      auth.auth_class_eval do
+        # Called from after_login (config/hooks/login.rb).
+        def remember_me_after_login(second_factor_pending:)
+          return unless Onetime::RememberMe.requested?(raw_param(Onetime::RememberMe::PARAM))
 
-      # Remember cookie settings are inherited from Rodauth defaults:
-      # - remember_cookie_key: '_remember'
-      # - remember_deadline_interval: 14 days
-      # - extend_remember_deadline?: false
+          if second_factor_pending
+            session[Auth::Config::Features::RememberMe::PENDING_KEY] = true
+          else
+            remember_this_session
+          end
+        end
 
-      # Surface marker on remember-restored sessions (#4409). `load_memory`
-      # mints its session through `login_session('remember')`, so the
-      # prepended update_session override (config/overrides/surface_binding.rb)
-      # records the surface of the request that PRESENTED the cookie; no
-      # after_load_memory hook is needed for that.
-      #
-      # KNOWN LIMIT, deliberately not closed here: account_remember_keys holds
-      # only (id, key, deadline), so a restore cannot check that the token is
-      # being presented on the surface that ISSUED it. Browser delivery scope
-      # (no `Domain` attribute, lib/onetime/application/middleware_stack.rb)
-      # keeps a browser on the issuing host, but a copied token is not bound
-      # server-side. Today this is inert: nothing in the app calls
-      # `rodauth.load_memory`, so a remember cookie is set and never consumed.
-      # Wiring it up requires binding the token to its issuing surface first
-      # (a surface column on account_remember_keys, checked in
-      # before_load_memory, refuse on mismatch) — see the review thread on
-      # PR #4418.
+        # Called from after_two_factor_authentication (config/hooks/two_factor.rb).
+        def remember_me_after_two_factor
+          return unless session.delete(Auth::Config::Features::RememberMe::PENDING_KEY)
+
+          remember_this_session
+        end
+
+        def remember_this_session
+          return unless stamp_active_session_remember_until
+
+          Onetime::RememberMe.stamp(session)
+        rescue StandardError => ex
+          session.delete(Onetime::RememberMe::SESSION_KEY)
+          OT.le "[remember_me] session not remembered (account_id=#{account_id}): #{ex.class}: #{ex.message}"
+        end
+
+        # True when there is no row to stamp (active_sessions off) or the
+        # row was stamped.
+        def stamp_active_session_remember_until
+          join_key = session['active_session_id_hmac']
+          return true unless Onetime.auth_config.active_sessions_enabled? && !join_key.to_s.empty?
+
+          updated = db[Onetime::ActiveSessionGate::TABLE]
+            .where(account_id: account_id, session_id: join_key)
+            .update(remember_until: Sequel.date_add(Sequel::CURRENT_TIMESTAMP, seconds: Onetime::RememberMe::DURATION))
+          return true if updated == 1
+
+          OT.lw "[remember_me] no active-session row to stamp; session not remembered (account_id=#{account_id})"
+          false
+        end
+      end
+      # rubocop:enable Lint/NestedMethodDefinition
     end
   end
 end
