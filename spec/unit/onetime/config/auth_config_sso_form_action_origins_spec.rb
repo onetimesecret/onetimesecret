@@ -51,15 +51,15 @@ RSpec.describe Onetime::AuthConfig do
     ]
   end
 
-  before(:each) do
-    @saved_env = env_vars.map { |k| [k, ENV[k]] }.to_h
+  before do
+    @saved_env = env_vars.map { |k| [k, ENV.fetch(k, nil)] }.to_h
     env_vars.each { |k| ENV.delete(k) }
     File.write(config_path, base_yaml)
     allow(Onetime::Utils::ConfigResolver).to receive(:resolve)
       .with('auth').and_return(config_path)
   end
 
-  after(:each) do
+  after do
     @saved_env.each do |k, v|
       v.nil? ? ENV.delete(k) : ENV[k] = v
     end
@@ -71,7 +71,7 @@ RSpec.describe Onetime::AuthConfig do
   # instance. AUTH_SSO_ENABLED defaults ON here so provider env vars actually
   # gate a provider (SSO must be enabled for provider origins to appear).
   def fresh_config(sso_enabled: true, **env_overrides)
-    ENV['AUTH_SSO_ENABLED'] = 'true' if sso_enabled
+    ENV['AUTH_SSO_ENABLED']                 = 'true' if sso_enabled
     env_overrides.each { |k, v| ENV[k.to_s] = v }
     described_class.instance_variable_set(:@singleton__instance__, nil)
     File.write(config_path, base_yaml)
@@ -90,7 +90,7 @@ RSpec.describe Onetime::AuthConfig do
         'GITHUB_CLIENT_ID' => 'id',
         'GITHUB_CLIENT_SECRET' => 'secret',
         'OIDC_ISSUER' => 'https://idp.example.com',
-        'OIDC_CLIENT_ID' => 'id'
+        'OIDC_CLIENT_ID' => 'id',
       )
       expect(config.sso_idp_origins)
         .to match_array(config.sso_form_action_origins)
@@ -112,6 +112,36 @@ RSpec.describe Onetime::AuthConfig do
       expect(OT).not_to receive(:lw)
       config = fresh_config('SSO_FORM_ACTION_ORIGINS' => 'https://idp.example.org')
       config.sso_idp_origins
+    end
+  end
+
+  # #4513: while a mismatch verdict is cached the provider is unavailable, so
+  # neither the CSP form-action set nor HttpOrigin may keep trusting its IdP.
+  describe 'with a cached install-wide OIDC issuer mismatch' do
+    let(:issuer) { 'https://idp.example.com' }
+
+    before do
+      Onetime::SsoProvider::IssuerValidation.reset!
+      result  = Onetime::SsoProvider::DiscoveryFetcher::Result.new(
+        status: :ok,
+        url: nil,
+        http_status: 200,
+        http_message: 'OK',
+        content_type: 'application/json',
+        body: { issuer: "#{issuer}/" }.to_json,
+        error: nil,
+      )
+      fetcher = instance_double(Onetime::SsoProvider::DiscoveryFetcher, fetch: result)
+      Onetime::SsoProvider::IssuerValidation.verify(issuer, fetcher: fetcher)
+    end
+
+    after { Onetime::SsoProvider::IssuerValidation.reset! }
+
+    it 'drops the OIDC origin from #sso_idp_origins and #sso_form_action_origins' do
+      config = fresh_config(OIDC_ISSUER: issuer, OIDC_CLIENT_ID: 'cid', GOOGLE_CLIENT_ID: 'g', GOOGLE_CLIENT_SECRET: 's')
+
+      expect(config.sso_idp_origins).to eq(['https://accounts.google.com'])
+      expect(config.sso_form_action_origins).to eq(['https://accounts.google.com'])
     end
   end
 
@@ -198,7 +228,7 @@ RSpec.describe Onetime::AuthConfig do
     # The provider still gates in (OIDC_ISSUER is non-empty), so this exercises
     # the origin-derivation guard, not the provider gate.
     it 'skips OIDC (no bare-scheme origin) when OIDC_ISSUER is scheme-only "https://"' do
-      config = fresh_config('OIDC_ISSUER' => 'https://', 'OIDC_CLIENT_ID' => 'id')
+      config  = fresh_config('OIDC_ISSUER' => 'https://', 'OIDC_CLIENT_ID' => 'id')
       expect { config.sso_form_action_origins }.not_to raise_error
       origins = config.sso_form_action_origins
       expect(origins).to eq([])
@@ -206,7 +236,7 @@ RSpec.describe Onetime::AuthConfig do
     end
 
     it 'skips OIDC (no bare-scheme origin) when OIDC_ISSUER is hostless "https:///path"' do
-      config = fresh_config('OIDC_ISSUER' => 'https:///path', 'OIDC_CLIENT_ID' => 'id')
+      config  = fresh_config('OIDC_ISSUER' => 'https:///path', 'OIDC_CLIENT_ID' => 'id')
       expect { config.sso_form_action_origins }.not_to raise_error
       origins = config.sso_form_action_origins
       expect(origins).to eq([])
@@ -217,8 +247,10 @@ RSpec.describe Onetime::AuthConfig do
 
     it 'collects origins from every active provider' do
       config = fresh_config(
-        'GOOGLE_CLIENT_ID' => 'id', 'GOOGLE_CLIENT_SECRET' => 'secret',
-        'GITHUB_CLIENT_ID' => 'id', 'GITHUB_CLIENT_SECRET' => 'secret',
+        'GOOGLE_CLIENT_ID' => 'id',
+        'GOOGLE_CLIENT_SECRET' => 'secret',
+        'GITHUB_CLIENT_ID' => 'id',
+        'GITHUB_CLIENT_SECRET' => 'secret',
       )
       expect(config.sso_form_action_origins).to contain_exactly(
         'https://accounts.google.com',
@@ -254,7 +286,8 @@ RSpec.describe Onetime::AuthConfig do
 
     it 'de-duplicates when the override repeats a provider-derived origin' do
       config = fresh_config(
-        'GOOGLE_CLIENT_ID' => 'id', 'GOOGLE_CLIENT_SECRET' => 'secret',
+        'GOOGLE_CLIENT_ID' => 'id',
+        'GOOGLE_CLIENT_SECRET' => 'secret',
         'SSO_FORM_ACTION_ORIGINS' => 'https://accounts.google.com',
       )
       expect(config.sso_form_action_origins).to contain_exactly('https://accounts.google.com')
@@ -275,7 +308,7 @@ RSpec.describe Onetime::AuthConfig do
     # origin token carrying ';'. URI.parse keeps the trailing ';' on the host,
     # so the host guard in origin_from_url must reject it.
     it 'never emits an origin containing a semicolon from an injection value' do
-      config = fresh_config(
+      config  = fresh_config(
         'SSO_FORM_ACTION_ORIGINS' => 'https://idp.example.com; script-src https://evil.example',
       )
       origins = config.sso_form_action_origins
@@ -403,7 +436,7 @@ RSpec.describe Onetime::AuthConfig do
     end
 
     it 'returns nil (no raise) for an unparseable issuer' do
-      config = tenant_sso_config(provider_type: 'oidc', issuer: 'not a valid uri')
+      config   = tenant_sso_config(provider_type: 'oidc', issuer: 'not a valid uri')
       instance = fresh_config
       expect { instance.tenant_idp_origin(config) }.not_to raise_error
       expect(instance.tenant_idp_origin(config)).to be_nil
@@ -467,7 +500,7 @@ RSpec.describe Onetime::AuthConfig do
           'future_idp' => { env_var: 'FUTURE_ROUTE_NAME', default: 'future' },
         ),
       )
-      config = tenant_sso_config(provider_type: 'future_idp')
+      config   = tenant_sso_config(provider_type: 'future_idp')
       instance = fresh_config
       expect { instance.tenant_idp_origin(config) }.not_to raise_error
       expect(instance.tenant_idp_origin(config)).to be_nil
@@ -494,7 +527,7 @@ RSpec.describe Onetime::AuthConfig do
     end
 
     it 'returns the raw hostile issuer unfiltered (validation is the funnel\'s job)' do
-      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://a.example; script-src *')
+      config   = tenant_sso_config(provider_type: 'oidc', issuer: 'https://a.example; script-src *')
       instance = fresh_config
       expect(instance.tenant_origin_source(config)).to eq('https://a.example; script-src *')
       expect(instance.tenant_idp_origin(config)).to be_nil

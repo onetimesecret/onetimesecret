@@ -11,6 +11,7 @@ require 'singleton'
 require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
 require_relative 'sso_provider/registry'
+require_relative 'sso_provider/issuer_validation'
 
 # The origin validator otto applies to the request-scoped CSP extras channel;
 # #origin_from_url funnels through it so the two cannot drift (see there).
@@ -399,6 +400,19 @@ module Onetime
       ENV.fetch('OIDC_ROUTE_NAME', 'oidc')
     end
 
+    # The install-wide OIDC discovery issuer for a registered route, verbatim,
+    # or nil when the route's definition declares no :discovery_issuer_var or
+    # the env var is blank (#4513). The omniauth_setup hook uses it to decide
+    # whether a platform-path request runs the request-phase issuer check;
+    # tenant OIDC never reaches that check.
+    #
+    # @param route_name [String, Symbol] the OmniAuth provider/route name
+    # @return [String, nil]
+    def install_discovery_issuer_for_route(route_name)
+      defn = provider_definition_for_route(route_name)
+      defn ? install_discovery_issuer(defn) : nil
+    end
+
     # All configured SSO providers, built dynamically from the env.
     # Returns an array of hashes: [{ 'route_name' => 'oidc', 'display_name' => 'SSO' }, ...]
     # Each entry corresponds to a provider that passes #provider_active?.
@@ -775,6 +789,10 @@ module Onetime
     # for a provider whose route does not exist, so the two sides have to
     # agree on one predicate, which is this one.
     #
+    # A THIRD HALF. An install-wide OIDC issuer known (cached) to mismatch its
+    # discovery document is unusable too — the gem refuses it in the request
+    # phase — so it is reported inactive (#install_issuer_rejected?).
+    #
     # Fails closed. This runs per request (the serializer) and inside the
     # HttpOrigin middleware via #sso_idp_origins, so a :vars_valid that raises
     # drops the provider rather than the response.
@@ -783,6 +801,7 @@ module Onetime
     # @return [Boolean]
     def provider_active?(defn)
       return false unless defn[:required_vars].all? { |var| env_present?(var) }
+      return false if install_issuer_rejected?(defn)
       return true unless defn[:vars_valid]
 
       begin
@@ -792,6 +811,38 @@ module Onetime
               "treating provider as inactive: #{ex.class}: #{ex.message}"
         false
       end
+    end
+
+    # The install-wide discovery issuer for a definition that declares
+    # :discovery_issuer_var (OIDC's OIDC_ISSUER), verbatim, or nil when the
+    # definition has none or the env var is blank.
+    #
+    # @param defn [Hash] a provider definition from the registry
+    # @return [String, nil]
+    def install_discovery_issuer(defn)
+      var = defn[:discovery_issuer_var]
+      return nil unless var
+
+      value = ENV.fetch(var, nil)
+      value.nil? || value.empty? ? nil : value
+    end
+
+    # Whether this process has a cached, unexpired verdict that the
+    # definition's install-wide issuer does NOT match its discovery document
+    # (#4513). Reads the SsoProvider::IssuerValidation cache only — no I/O,
+    # so it is safe here in the per-request #provider_active? gate. The verdict
+    # is set lazily by the omniauth_setup hook on the first sign-in attempt,
+    # so a mismatched provider is advertised until that attempt; once it is
+    # known, the button and the CSP/HttpOrigin origins drop it together.
+    # Registration is untouched: the route stays mounted for tenant OIDC.
+    #
+    # @param defn [Hash] a provider definition from the registry
+    # @return [Boolean]
+    def install_issuer_rejected?(defn)
+      issuer = install_discovery_issuer(defn)
+      return false unless issuer
+
+      SsoProvider::IssuerValidation.rejected?(issuer)
     end
 
     # Origins for the providers that pass #sso_providers' gate (SSO enabled
