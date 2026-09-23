@@ -83,6 +83,11 @@ describe('authStore snapshot acceptance (#4464)', () => {
       .mock.calls.map(([crumb]) => crumb)
       .filter((crumb) => crumb.category === 'bootstrap.ordering');
   const eventNames = () => events().map((crumb) => crumb.message);
+  /** The `consecutive` count each anomaly diagnostic carried, in order. */
+  const consecutiveCounts = () =>
+    events()
+      .filter((crumb) => crumb.message === 'anomaly')
+      .map((crumb) => crumb.data?.consecutive);
 
   /** Everything a refused snapshot must leave alone. */
   function observe() {
@@ -284,7 +289,7 @@ describe('authStore snapshot acceptance (#4464)', () => {
       expect(bootstrapStore.cust).toBeNull();
     });
 
-    it('anomalies are consecutive across refreshes; an applied snapshot resets the count', async () => {
+    it('every refresh gets its own retry: an anomaly in one never counts toward the next', async () => {
       await mountWith(authenticatedBootstrap);
       axiosMock
         .onGet(ENDPOINT)
@@ -301,6 +306,55 @@ describe('authStore snapshot acceptance (#4464)', () => {
 
       expect(requests()).toBe(4);
       expect(attemptForcedPageLoad).not.toHaveBeenCalled();
+      expect(consecutiveCounts()).toEqual([1, 1]);
+    });
+
+    it('a retry that fails ends the path: the next anomaly is retried, not reloaded', async () => {
+      // A store-lifetime counter reset only when a snapshot was applied. One
+      // anomaly whose retry hit the network, then hours of failures, left it
+      // at 1; the next unrelated anomaly reloaded the tab without its retry.
+      await mountWith(authenticatedBootstrap);
+      const replay = toWire(authenticatedBootstrap);
+      axiosMock
+        .onGet(ENDPOINT)
+        .replyOnce(200, replay)
+        .onGet(ENDPOINT)
+        .networkErrorOnce()
+        .onGet(ENDPOINT)
+        .networkErrorOnce()
+        .onGet(ENDPOINT)
+        .replyOnce(200, replay)
+        .onGet(ENDPOINT)
+        .replyOnce(200, toWire(newerSnapshot(authenticatedBootstrap)));
+
+      expect(await store.refresh({ kind: 'ordinary', reason: 'interval' })).toBe('failed');
+      expect(await store.refresh({ kind: 'ordinary', reason: 'retry' })).toBe('failed');
+      expect(await store.refresh({ kind: 'ordinary', reason: 'interval' })).toBe('applied');
+
+      expect(requests()).toBe(5);
+      expect(attemptForcedPageLoad).not.toHaveBeenCalled();
+      expect(store.staleSession).toBe(false);
+      expect(consecutiveCounts()).toEqual([1, 1]);
+    });
+
+    it('two anomalies in one refresh still take the forced page load, whatever came before', async () => {
+      await mountWith(authenticatedBootstrap);
+      const replay = toWire(authenticatedBootstrap);
+      axiosMock
+        .onGet(ENDPOINT)
+        .replyOnce(200, replay)
+        .onGet(ENDPOINT)
+        .networkErrorOnce()
+        .onGet(ENDPOINT)
+        .reply(200, replay);
+
+      expect(await store.refresh({ kind: 'ordinary', reason: 'interval' })).toBe('failed');
+      expect(await store.refresh({ kind: 'ordinary', reason: 'interval' })).toBe('refused');
+
+      expect(requests()).toBe(4);
+      expect(attemptForcedPageLoad).toHaveBeenCalledTimes(1);
+      expect(store.staleSession).toBe(true);
+      expect(consecutiveCounts()).toEqual([1, 1, 2]);
     });
 
     it('the retry takes the next generation, and joiners wait for its answer', async () => {

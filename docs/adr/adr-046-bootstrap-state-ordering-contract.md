@@ -252,8 +252,12 @@ A tab with a watermark will classify the response in this order:
    replayed response, a Redis clock regression across a key loss, and a worker
    that predates this contract during a rolling deploy. The coordinator will
    record a diagnostic and issue one immediate refresh. A second consecutive
-   anomaly takes the forced page load path below. The client will remember
-   every epoch it has replaced for the lifetime of the page.
+   anomaly takes the forced page load path below. Consecutive means within
+   that one refresh: only the immediate retry's own response can be the
+   second. A retry that fails, is superseded, or applies ends the path, and
+   a later anomaly begins a new one with its own retry; the count never
+   outlives the refresh it was made in. The client will remember every epoch
+   it has replaced for the lifetime of the page.
 
 Applying an ended or replaced session in place was rejected because it would
 depend on a complete teardown of session-scoped client state, and no such

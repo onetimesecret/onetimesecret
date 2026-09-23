@@ -82,8 +82,10 @@ import { useBootstrapStore } from './bootstrapStore';
  * three things happens: it is applied as a unit; the tab takes the forced page
  * load path (a session that ended or was replaced outside this tab is never
  * applied in place); or, for an anomaly, it is retried once immediately and a
- * second consecutive anomaly takes the forced page load path. A refused
- * snapshot mutates nothing.
+ * second consecutive anomaly takes the forced page load path. "Consecutive"
+ * means within one refresh: the anomaly count lives in run()'s retry loop, so
+ * a retry that fails, is superseded, or lands ends the path. A later anomaly,
+ * however soon, begins its own. A refused snapshot mutates nothing.
  *
  * ───────────────────────────────────────────────────────────────────────────────
  * REJECTION VS OUTAGE (#4460)
@@ -366,7 +368,6 @@ export const useAuthStore = defineStore('auth', () => {
   // Coordinator bookkeeping. Not reactive: nothing renders from it.
   let generation = 0;
   let inFlight: Flight | null = null;
-  let consecutiveAnomalies = 0;
   let lastRejectionRefreshAt = 0;
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
   let visibilityHandler: (() => void) | null = null;
@@ -569,11 +570,21 @@ export const useAuthStore = defineStore('auth', () => {
    * immediate retry ADR-046 allows. The retry is a new request for a complete
    * snapshot, so it takes the next generation; callers that joined this
    * flight keep waiting on the same promise.
+   *
+   * The anomaly count is this loop's own. It exists only while the refresh
+   * does, so "a second consecutive anomaly" can only be the retry's answer.
+   * A store-lifetime counter was reset only by an applied snapshot, so one
+   * anomaly whose retry failed at the transport would hold the count at 1
+   * across hours of outage, and the next unrelated anomaly reloaded the tab
+   * without its retry.
    */
   async function run(flight: Flight, request: RefreshRequest): Promise<RefreshOutcome> {
+    let anomalies = 0;
     for (;;) {
-      const outcome = await attempt(flight.generation, flight.controller.signal, request);
+      const { generation: mine, controller } = flight;
+      const outcome = await attempt(mine, controller.signal, request, anomalies);
       if (outcome !== 'anomaly') return outcome;
+      anomalies += 1;
       generation += 1;
       flight.generation = generation;
     }
@@ -582,7 +593,8 @@ export const useAuthStore = defineStore('auth', () => {
   async function attempt(
     mine: number,
     signal: AbortSignal,
-    request: RefreshRequest
+    request: RefreshRequest,
+    priorAnomalies: number
   ): Promise<AttemptOutcome> {
     loggingService.debug('[AuthStore.refresh] Requesting snapshot', { ...request, generation: mine });
 
@@ -595,7 +607,7 @@ export const useAuthStore = defineStore('auth', () => {
       // contract reaches no store.
       const parsed = parseCompleteSnapshot(response.data);
       if (parsed.ok && effectiveAuthStatus(parsed.payload) !== 'unavailable') {
-        return await accept(mine, request, parsed.payload, parsed.pairMalformed);
+        return await accept(mine, request, parsed.payload, parsed.pairMalformed, priorAnomalies);
       }
       // `unavailable` from the server is a failed verification, not a verdict:
       // applying it would read as "session ended" during an auth-DB outage.
@@ -658,12 +670,16 @@ export const useAuthStore = defineStore('auth', () => {
    * The acceptance check and the commit, as one transaction (ADR-046). No
    * await separates the decision from applySnapshot(), so nothing can
    * interleave; a decision other than `apply` mutates no store.
+   *
+   * `priorAnomalies` is how many anomalies this refresh has already seen:
+   * 0 on the first request, 1 on its retry.
    */
   async function accept(
     mine: number,
     request: RefreshRequest,
     payload: Parameters<typeof bootstrapStore.applySnapshot>[0],
-    pairMalformed: boolean
+    pairMalformed: boolean,
+    priorAnomalies: number
   ): Promise<AttemptOutcome> {
     const watermark = bootstrapStore.watermark;
     const pair = pairOf(payload);
@@ -696,12 +712,13 @@ export const useAuthStore = defineStore('auth', () => {
         forcePageLoad(decision.cause);
         return 'refused';
 
-      case 'anomaly':
-        consecutiveAnomalies += 1;
-        recordOrdering('anomaly', { ...ordering, cause: decision.cause, consecutive: consecutiveAnomalies });
-        if (consecutiveAnomalies < 2) return 'anomaly';
+      case 'anomaly': {
+        const consecutive = priorAnomalies + 1;
+        recordOrdering('anomaly', { ...ordering, cause: decision.cause, consecutive });
+        if (consecutive < 2) return 'anomaly';
         forcePageLoad('anomaly');
         return 'refused';
+      }
 
       case 'apply':
         return commitOrDrop(mine, request, payload, { ...decision, ordering });
@@ -712,9 +729,9 @@ export const useAuthStore = defineStore('auth', () => {
    * A commit that lost the generation across its cleanup imports applied
    * nothing (ADR-046#commit-generation-ownership): it reports `superseded`,
    * never `applied`, so callers do not act on a snapshot that did not land.
-   * Only a snapshot that landed emits applied-stream diagnostics and ends a
-   * run of anomalies. The prior `snapshot_generated_at` is read before the
-   * commit, because applySnapshot() replaces it.
+   * Only a snapshot that landed emits applied-stream diagnostics. The prior
+   * `snapshot_generated_at` is read before the commit, because
+   * applySnapshot() replaces it.
    */
   async function commitOrDrop(
     mine: number,
@@ -725,7 +742,6 @@ export const useAuthStore = defineStore('auth', () => {
     const priorGeneratedAt = bootstrapStore.snapshot_generated_at;
     if (!(await commit(payload, applied.retire))) return dropped(mine, request);
     recordApplied(applied, priorGeneratedAt, payload.snapshot_generated_at);
-    consecutiveAnomalies = 0;
     return 'applied';
   }
 
@@ -1048,7 +1064,6 @@ export const useAuthStore = defineStore('auth', () => {
     failureCount.value = null;
     lastCheckTime.value = null;
     _initialized.value = false;
-    consecutiveAnomalies = 0;
     lastRejectionRefreshAt = 0;
     // staleSession is NOT reset: only a page load leaves that state.
   }
