@@ -1,0 +1,7 @@
+.. A new scriv changelog fragment.
+
+AI Assistance
+-------------
+
+- Claude assisted with planning, implementation, review, and browser testing
+  for the auth session consistency work in #4451.

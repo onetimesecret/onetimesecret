@@ -46,6 +46,8 @@ on:
       # The suite and its harness
       - 'e2e/**'
       - '.github/workflows/e2e-full-auth.yml'
+      # Composite actions this lane calls (generate-test-secrets below).
+      - '.github/actions/**'
       - 'compose.test.yml'
       - 'compose.e2e.yml'
       # What the browser renders
@@ -57,6 +59,9 @@ on:
       # The auth surface itself: Rodauth config, hooks, the verify/signin
       # routes, and the redirect plumbing this lane exists to guard.
       - 'apps/web/auth/**'
+      # Web Core serves the HTML shell and hydration data every page in this
+      # lane boots from (views, templates, the Rhales schemas).
+      - 'apps/web/core/**'
       - 'etc/auth.yaml'
       - 'etc/defaults/auth.defaults.yaml'
       # Backend: the signup logic class, the mail delivery backends, the job
@@ -187,6 +192,13 @@ jobs:
             echo "AUTH_VERIFY_ACCOUNT_ENABLED=true"
             echo "AUTH_SIGNUP=true"
             echo "AUTH_SIGNIN=true"
+            # TOTP second factor (default OFF). session-consistency.spec.ts
+            # enrols its own TOTP key over /auth/otp-setup and completes the
+            # challenge in the browser; with this unset that scenario skips
+            # itself and "MFA completion" (#4459) has no browser coverage.
+            # Accounts that never enrol are unaffected, so the other specs in
+            # this lane see no difference.
+            echo "AUTH_MFA_ENABLED=true"
             # Boot-migrated sqlite authdb — the same path compose-smoke and
             # visual.yml exercise. The engine is irrelevant to this journey.
             echo "AUTH_DATABASE_URL=sqlite://tmp/e2e-full-auth.db"
@@ -296,8 +308,15 @@ jobs:
           tail -n 200 "$WORKER_LOG" || true
           exit 1
 
-      # SCOPED, not `e2e/auth/`. Of the five specs in that directory:
+      # SCOPED, not `e2e/auth/`. Of the six specs in that directory:
       #   signup-redirect-preservation  the target of this lane.
+      #   session-consistency           #4456/#4459/#4460/#4464: hydration,
+      #                                 the refresh coordinator, verification
+      #                                 outage, session ended / revoked /
+      #                                 replaced elsewhere, MFA completion.
+      #                                 Needs verified accounts (Mailpit) and
+      #                                 AUTH_MFA_ENABLED, both provisioned
+      #                                 above. Part of the #4463 release gate.
       #   sso-missing-email             CI-friendly by construction — it drives
       #                                 /signin?auth_error=… directly and needs
       #                                 no IdP. Its one real-IdP variant is
@@ -312,6 +331,12 @@ jobs:
       #                                 red the default outcome of this lane.
       # Widen this list as specs are proven against this stack, not before.
       #
+      # e2e/all/auth-hydration is the anonymous half of session-consistency
+      # (#4456: zero startup requests, /dashboard -> /signin without a Vue
+      # bounce). It is mode-agnostic and also runs in e2e.yml, but that lane
+      # boots the OCI image in simple mode; the protected-HTML redirect it
+      # asserts is decided by full mode's session gate here.
+      #
       # Reporters come from e2e/playwright.config.ts (CI branch: list, github,
       # html, json, blob). Do NOT pass --reporter — a CLI override replaces the
       # whole array and breaks both the report artifacts and the flaky gate.
@@ -324,6 +349,8 @@ jobs:
           pnpm test:playwright \
             e2e/auth/signup-redirect-preservation.spec.ts \
             e2e/auth/sso-missing-email.spec.ts \
+            e2e/auth/session-consistency.spec.ts \
+            e2e/all/auth-hydration.spec.ts \
             --project=chromium
 
       - name: Fail on flaky tests (passed only on retry)
