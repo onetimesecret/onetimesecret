@@ -207,7 +207,12 @@ tenant's own IdP EntityID.
     `InResponseTo` byte-equal to the pending id
     (`saml_in_response_to_unbound`). IdPs that omit the attribute on
     SP-initiated responses are refused by design; Okta, Entra ID and AD FS
-    always emit it.
+    always emit it. Requiring the attribute is the SAML 2.0 Profiles
+    baseline (4.1.4.2/4.1.4.3). Requiring it on *every* bearer confirmation
+    is stricter than the baseline, which accepts the assertion when any one
+    bearer confirmation validates; that is a deliberate hardening choice
+    (a mixed bound/unbound assertion is ambiguous about which login it
+    answers), not a spec requirement.
   - **Signature algorithm allowlist.** ruby-saml verifies with whichever
     `SignatureMethod` / `DigestMethod` URI the response declares and maps
     any URI it does not recognise to SHA-1 (`xml_security.rb` `algorithm`),

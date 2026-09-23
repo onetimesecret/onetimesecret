@@ -71,6 +71,15 @@
 # Entra ID and AD FS always emit it. This closes the "SubjectConfirmationData
 # InResponseTo" design question that shipped open with #4450.
 #
+# Requiring the attribute is the SAML 2.0 Profiles baseline (4.1.4.2/4.1.4.3:
+# a bearer confirmation answering an AuthnRequest MUST carry InResponseTo
+# and the SP MUST verify it). Requiring it on EVERY bearer confirmation is
+# stricter than that baseline, which accepts an assertion when any one
+# bearer confirmation validates. That extra strictness is a deliberate
+# hardening choice, not a spec requirement: an assertion that mixes a bound
+# and an unbound bearer confirmation is ambiguous about which login it
+# answers, and no supported IdP emits one.
+#
 # EVERY GATE FAILS CLOSED. A blank option, an unreadable issuer, a missing
 # assertion id, a datastore error in the replay cache — each is a refusal,
 # never a fall-through to the gem's permissive default.
@@ -464,6 +473,8 @@ module OmniAuth
       # bearer/Method filter as validate_subject_confirmation, but EVERY
       # bearer confirmation must be bound (the gem accepts the first that
       # passes, so one bound and one unbound confirmation would pass it).
+      # The every-bearer rule is a hardening choice beyond the SAML Profiles
+      # baseline of "at least one valid bearer confirmation" — see the header.
       # An empty read — no signed assertion, no bearer confirmation — is a
       # refusal.
       #
