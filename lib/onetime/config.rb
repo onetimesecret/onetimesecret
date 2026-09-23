@@ -689,6 +689,15 @@ module Onetime
     # call and the frontend SDK, is computed from it below.
     def diagnostics_enabled?(diagnostics)
       return false unless diagnostics.is_a?(Hash) && diagnostics['enabled']
+
+      diagnostics_permitted_in_env?
+    end
+
+    # The environment half of diagnostics_enabled?: false only under
+    # RACK_ENV=test without DIAGNOSTICS_ENABLED_IN_TEST=true. Reads ENV alone,
+    # so pre-boot callers (bin/ots diagnostics sentry doctor) apply the same
+    # rule instead of restating it.
+    def diagnostics_permitted_in_env?
       return true unless OT.testing?
 
       ENV['DIAGNOSTICS_ENABLED_IN_TEST'] == 'true'
