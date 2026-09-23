@@ -114,24 +114,21 @@ boot:
   `DIAGNOSTICS_ENABLED=false`, whatever the shell says. Set
   `E2E_DIAGNOSTICS_ENABLED=true` to opt back in, for example to test the Sentry
   wiring against a scratch project.
-- **A server Playwright reuses** (outside CI, anything already answering on
-  `localhost:7143` is reused instead of spawned, so the setting above never
-  reaches it) is checked before any test runs: global setup reads its
-  bootstrap `d9s_enabled` and aborts the run if diagnostics are on
-  (`support/diagnostics-guard.ts`). The same `E2E_DIAGNOSTICS_ENABLED=true`
-  skips the check.
+- **Any other local server** is checked before any test runs: global setup
+  reads its bootstrap `d9s_enabled` and aborts the run if diagnostics are on
+  (`support/diagnostics-guard.ts`). That covers a server Playwright reuses
+  (outside CI, anything already answering on `localhost:7143` is reused
+  instead of spawned, so the setting above never reaches it) and a server
+  named by a local `PLAYWRIGHT_BASE_URL` (loopback, `*.localhost`, or
+  `dev.onetime.dev`). The same `E2E_DIAGNOSTICS_ENABLED=true` skips the check.
 - **Any server booted with `RACK_ENV=test`** ignores `DIAGNOSTICS_ENABLED`
   unless `DIAGNOSTICS_ENABLED_IN_TEST=true` is also set
   (`Onetime::Config.diagnostics_enabled?`). This covers backend and frontend:
   the frontend SDK follows the same flag.
 
-A server you start yourself with `RACK_ENV=production` and point the suite at
-with `PLAYWRIGHT_BASE_URL` (the recipe in `.github/workflows/e2e-full-auth.yml`
-does, because full auth mode needs it) is indistinguishable from a real
-deployment, so no guard applies to it.
-Start it with `DIAGNOSTICS_ENABLED=false`, or unset `SENTRY_DSN*` first. The
-boot banner prints `Diagnostics: true/false`; check it before running the
-suite.
+A `PLAYWRIGHT_BASE_URL` on any other host (staging, a smoke target) is
+treated as a real deployment, where diagnostics may be on by design, so no
+guard applies to it.
 
 Parallel sign-ups no longer need `--workers=1` against a SQLite authdb
 (`Auth::Database.connect`).

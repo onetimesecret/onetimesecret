@@ -8,6 +8,26 @@ import { fileURLToPath } from 'node:url';
 // Default local server URL (Ruby backend with built assets)
 const DEFAULT_LOCAL_URL = 'http://localhost:7143';
 
+// Hosts that resolve to this machine: loopback, *.localhost, and the local
+// Caddy dev host. A server there was started from a developer's shell, so it
+// may carry DIAGNOSTICS_ENABLED=true and a real SENTRY_DSN.
+const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]', 'dev.onetime.dev']);
+function isLocalUrl(url: string): boolean {
+  try {
+    const { hostname } = new URL(url);
+    return LOCAL_HOSTNAMES.has(hostname) || hostname.endsWith('.localhost');
+  } catch {
+    return false;
+  }
+}
+
+// The diagnostics guard runs for every local target: the server Playwright
+// spawns or reuses (no PLAYWRIGHT_BASE_URL) and a local server named by
+// PLAYWRIGHT_BASE_URL. Remote targets (staging, smoke) may run with
+// diagnostics on legitimately, so they are not checked.
+const guardDiagnostics =
+  !process.env.PLAYWRIGHT_BASE_URL || isLocalUrl(process.env.PLAYWRIGHT_BASE_URL);
+
 // Directory containing this config file. package.json is `"type": "module"`,
 // so the config loads as ESM and `__dirname` is unavailable.
 const CONFIG_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -339,9 +359,10 @@ export default defineConfig({
   /* Output directory for test artifacts */
   outputDir: 'test-results/',
 
-  /* Local runs only: fail fast when the local server (spawned or reused)
-   * has diagnostics on. See support/diagnostics-guard.ts. */
-  globalSetup: process.env.PLAYWRIGHT_BASE_URL ? undefined : './support/diagnostics-guard.ts',
+  /* Local targets only: fail fast when the local server (spawned, reused,
+   * or named by PLAYWRIGHT_BASE_URL) has diagnostics on. See
+   * support/diagnostics-guard.ts. */
+  globalSetup: guardDiagnostics ? './support/diagnostics-guard.ts' : undefined,
 
   /* Auto-start Ruby server when no external URL is provided.
    * Requires `pnpm run build` first to generate frontend assets.

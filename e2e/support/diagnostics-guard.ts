@@ -1,16 +1,20 @@
 // e2e/support/diagnostics-guard.ts
 
 /**
- * Global setup for local runs (no PLAYWRIGHT_BASE_URL): refuse to start the
- * suite against a server that reports to Sentry.
+ * Global setup for local targets: refuse to start the suite against a
+ * server that reports to Sentry. playwright.config.ts registers it when
+ * PLAYWRIGHT_BASE_URL is unset or names a local host (loopback, *.localhost,
+ * dev.onetime.dev).
  *
  * The webServer block gives the server Playwright spawns
  * DIAGNOSTICS_ENABLED=false, but `reuseExistingServer` (on outside CI)
- * skips spawning when something already answers on the local URL — and a
- * server started by hand from a dev shell carries that shell's
- * DIAGNOSTICS_ENABLED=true and real SENTRY_DSN. The env block never reaches
- * it, and the errors the suite provokes on purpose would land in the real
- * Sentry project.
+ * skips spawning when something already answers on the local URL, and
+ * PLAYWRIGHT_BASE_URL skips webServer entirely. Either way the suite can
+ * end up against a server started by hand from a dev shell, carrying that
+ * shell's DIAGNOSTICS_ENABLED=true and real SENTRY_DSN. The env block never
+ * reaches it, the RACK_ENV=test gate does not apply to a development or
+ * production boot, and the errors the suite provokes on purpose would land
+ * in the real Sentry project.
  *
  * So instead of trusting how the server was started, ask it: the bootstrap
  * payload's d9s_enabled is OT.d9s_enabled, the runtime switch that gates
