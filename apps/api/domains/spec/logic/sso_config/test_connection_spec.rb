@@ -172,6 +172,101 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
     end
   end
 
+  describe 'OIDC discovery issuer comparison' do
+    before { stub_issuer_resolution(['203.0.113.10']) }
+
+    def discovery_body_for(discovered_issuer)
+      {
+        issuer: discovered_issuer,
+        authorization_endpoint: 'https://idp.example.com/authorize',
+        token_endpoint: 'https://idp.example.com/token',
+        jwks_uri: 'https://idp.example.com/jwks',
+      }.to_json
+    end
+
+    def run_with_discovered(discovered_issuer)
+      respond_with(success_response(discovery_body_for(discovered_issuer)))
+      logic.send(:test_oidc_connection)
+    end
+
+    context 'when the configured issuer matches exactly' do
+      it 'succeeds and reports the discovered issuer' do
+        result = run_with_discovered('https://idp.example.com')
+
+        expect(result[:success]).to be true
+        expect(result[:details][:issuer]).to eq('https://idp.example.com')
+      end
+    end
+
+    context 'when the configured issuer has a trailing slash and matches exactly' do
+      let(:issuer) { 'https://tenant.auth0.com/' }
+
+      it 'succeeds' do
+        result = run_with_discovered('https://tenant.auth0.com/')
+
+        expect(result[:success]).to be true
+        # The well-known path is built without doubling the slash.
+        expect(Net::HTTP).to have_received(:new).with('tenant.auth0.com', 443, nil)
+      end
+    end
+
+    context 'when discovery adds a trailing slash the configured issuer lacks' do
+      let(:issuer) { 'https://tenant.auth0.com' }
+
+      it 'fails with issuer_mismatch and both values' do
+        result = run_with_discovered('https://tenant.auth0.com/')
+
+        expect(result[:success]).to be false
+        expect(result[:provider_type]).to eq('oidc')
+        expect(result[:details]).to eq(
+          error_code: 'issuer_mismatch',
+          configured_issuer: 'https://tenant.auth0.com',
+          discovery_issuer: 'https://tenant.auth0.com/',
+        )
+        expect(result[:message]).to include('compared exactly')
+        expect(result[:message]).to include('trailing slash')
+      end
+    end
+
+    context 'when the configured issuer has a trailing slash discovery lacks' do
+      let(:issuer) { 'https://idp.example.com/' }
+
+      it 'fails with issuer_mismatch' do
+        result = run_with_discovered('https://idp.example.com')
+
+        expect(result[:success]).to be false
+        expect(result[:details][:error_code]).to eq('issuer_mismatch')
+        expect(result[:details][:configured_issuer]).to eq('https://idp.example.com/')
+        expect(result[:details][:discovery_issuer]).to eq('https://idp.example.com')
+      end
+    end
+
+    it 'fails with issuer_mismatch on any other textual difference' do
+      result = run_with_discovered('https://login.example.com')
+
+      expect(result[:details][:error_code]).to eq('issuer_mismatch')
+      expect(result[:details][:discovery_issuer]).to eq('https://login.example.com')
+    end
+
+    it 'fails with issuer_mismatch on a case-only difference' do
+      expect(run_with_discovered('https://IDP.example.com')[:details][:error_code]).to eq('issuer_mismatch')
+    end
+
+    it 'fails with issuer_mismatch and a nil discovery_issuer for a non-string issuer' do
+      result = run_with_discovered(['https://idp.example.com'])
+
+      expect(result[:details][:error_code]).to eq('issuer_mismatch')
+      expect(result[:details][:discovery_issuer]).to be_nil
+    end
+
+    it 'still reports a missing issuer as invalid_discovery' do
+      result = run_with_discovered('')
+
+      expect(result[:details][:error_code]).to eq('invalid_discovery')
+      expect(result[:details][:missing_fields]).to eq(['issuer'])
+    end
+  end
+
   describe 'fetch outcome to error_code mapping' do
     before { stub_issuer_resolution(['203.0.113.10']) }
 
@@ -296,7 +391,10 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
 
       result = logic.send(:test_entra_id_connection)
 
+      # Entra has no configured issuer; the discovered one (here unrelated
+      # to any input) is never compared.
       expect(result[:success]).to be true
+      expect(result[:details][:issuer]).to eq('https://login.microsoftonline.com/x/v2.0')
       expect(Net::HTTP).to have_received(:new).with('login.microsoftonline.com', 443, nil)
       expect(http_instance).to have_received(:ipaddr=).with('203.0.113.20')
     end

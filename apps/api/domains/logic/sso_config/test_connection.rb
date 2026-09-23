@@ -5,6 +5,7 @@
 require 'json'
 require_relative 'base'
 require_relative '../../../../../lib/onetime/sso_provider/discovery_fetcher'
+require_relative '../../../../../lib/onetime/sso_provider/discovery_issuer'
 require_relative 'ssrf_protection'
 
 module DomainsAPI
@@ -16,6 +17,13 @@ module DomainsAPI
       #   discovery document availability. This does NOT perform an actual
       #   OAuth flow or validate client credentials - it only confirms
       #   the IdP endpoint is accessible and properly configured.
+      #
+      #   For generic OIDC, the discovery document's `issuer` must equal the
+      #   configured issuer exactly (OIDC Discovery 1.0 section 4.3; no
+      #   trailing-slash or case normalization). A difference is reported as
+      #   error_code 'issuer_mismatch' with details.configured_issuer and
+      #   details.discovery_issuer. Entra ID has no operator-supplied issuer
+      #   and is not compared.
       #
       #   Uses credentials from request body (not stored config) to allow
       #   testing before saving. Does not persist anything.
@@ -345,6 +353,18 @@ module DomainsAPI
             }
           end
 
+          # Generic OIDC only: the operator-supplied issuer must equal the
+          # discovered one exactly, or the IdP's ID tokens will never
+          # validate. Entra's discovery URL is built from the tenant ID and
+          # there is no operator-supplied issuer to compare against.
+          if @provider_type == 'oidc'
+            issuer_check = Onetime::SsoProvider::DiscoveryIssuer.check(
+              configured: @issuer,
+              discovered: discovery['issuer'],
+            )
+            return issuer_mismatch_failure(issuer_check, provider_name) unless issuer_check.ok?
+          end
+
           # Success - return key endpoints
           {
             success: true,
@@ -369,6 +389,18 @@ module DomainsAPI
               content_type: fetched.content_type,
             },
           }
+        end
+
+        def issuer_mismatch_failure(issuer_check, provider_name)
+          failure(
+            "#{provider_name} issuer mismatch: the discovery document declares a different " \
+            'issuer than the one configured. Issuer identifiers are compared exactly, ' \
+            'including any trailing slash (Auth0, for example, uses a trailing slash). ' \
+            'Set the issuer to the exact value the discovery document declares.',
+            error_code: 'issuer_mismatch',
+            configured_issuer: issuer_check.configured,
+            discovery_issuer: issuer_check.discovered_string,
+          )
         end
 
         def sanitize_error_message(message)
