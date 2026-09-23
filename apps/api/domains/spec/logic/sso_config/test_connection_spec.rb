@@ -4,12 +4,13 @@
 
 # Unit tests for TestConnection's SSRF-pinned discovery fetch.
 #
-# fetch_url resolves + validates the issuer host ONCE through the shared
-# egress guard (Onetime::Http::Guard) and pins the dial to that exact IP via
-# Net::HTTP#ipaddr=, closing the validate-then-reresolve DNS-rebinding
-# window. valid_issuer_host? remains upstream as a cheap early rejection,
-# but fetch_url is the enforcement point — it also covers
-# test_entra_id_connection, which never passes through valid_issuer_host?.
+# The shared Onetime::SsoProvider::DiscoveryFetcher resolves + validates the
+# issuer host ONCE through the egress guard (Onetime::Http::Guard) and pins
+# the dial to that exact IP via Net::HTTP#ipaddr=, closing the
+# validate-then-reresolve DNS-rebinding window. valid_issuer_host? remains
+# upstream as a cheap early rejection, but the fetcher is the enforcement
+# point — it also covers test_entra_id_connection, which never passes
+# through valid_issuer_host?.
 #
 # Hermetic: the guard's DNS seam (Guard.resolve_addresses) and Net::HTTP.new
 # are stubbed; no live DNS or network.
@@ -45,7 +46,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
 
     # Upstream valid_issuer_host? resolves the host via Resolv.getaddresses and
     # now fails closed on empty resolution. Stub it to a public IP so the
-    # save-time check passes and these tests exercise fetch_url's pinned guard
+    # save-time check passes and these tests exercise the fetcher's pinned guard
     # (the enforcement point). Guard.resolve_addresses is the separately-stubbed
     # fetch-time seam, so a test can model DNS rebinding: public at check time,
     # something else at fetch time.
@@ -65,9 +66,25 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
     allow(Onetime::Http::Guard).to receive(:resolve_addresses).and_return(addresses)
   end
 
+  # A real Net::HTTPOK whose streamed body (read_body with a block, as the
+  # fetcher reads it under its size cap) yields +body+.
   def success_response(body)
     Net::HTTPOK.new('1.1', '200', 'OK').tap do |response|
-      allow(response).to receive(:body).and_return(body)
+      allow(response).to receive(:read_body) { |&blk| blk.call(body) }
+    end
+  end
+
+  # Net::HTTP#request yields the response to the block before the body is
+  # read. Each outcome is either a response (yielded and returned) or an
+  # exception class (raised). The last outcome repeats.
+  def respond_with(*outcomes)
+    queue = outcomes.dup
+    allow(http_instance).to receive(:request) do |_request, &blk|
+      outcome = queue.size > 1 ? queue.shift : queue.first
+      raise outcome if outcome.is_a?(Class) && outcome <= Exception
+
+      blk&.call(outcome)
+      outcome
     end
   end
 
@@ -116,7 +133,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
 
       before do
         stub_issuer_resolution(['203.0.113.10'])
-        allow(http_instance).to receive(:request).and_return(success_response(discovery_body))
+        respond_with(success_response(discovery_body))
       end
 
       it 'pins the connection to the validated IP' do
@@ -142,9 +159,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
 
       before do
         stub_issuer_resolution(['203.0.113.10', '203.0.113.11'])
-        allow(http_instance).to receive(:request)
-          .and_invoke(->(_req) { raise Errno::ECONNREFUSED },
-                      ->(_req) { success_response(discovery_body) })
+        respond_with(Errno::ECONNREFUSED, success_response(discovery_body))
       end
 
       it 'falls back to the next validated address, each dial still pinned' do
@@ -157,9 +172,101 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
     end
   end
 
+  describe 'fetch outcome to error_code mapping' do
+    before { stub_issuer_resolution(['203.0.113.10']) }
+
+    def error_response(klass, code, message)
+      klass.new('1.1', code, message).tap do |response|
+        allow(response).to receive(:read_body)
+      end
+    end
+
+    it 'maps 404 to discovery_not_found with the URL' do
+      respond_with(error_response(Net::HTTPNotFound, '404', 'Not Found'))
+
+      result = logic.send(:test_oidc_connection)
+
+      expect(result[:message]).to eq('OIDC discovery document not found')
+      expect(result[:details]).to eq(
+        error_code: 'discovery_not_found',
+        http_status: 404,
+        url: 'https://idp.example.com/.well-known/openid-configuration',
+      )
+    end
+
+    it 'maps a redirect to http_error without following it' do
+      respond_with(error_response(Net::HTTPMovedPermanently, '301', 'Moved Permanently'))
+
+      result = logic.send(:test_oidc_connection)
+
+      expect(result[:details]).to eq(error_code: 'http_error', http_status: 301, description: 'Moved Permanently')
+      expect(http_instance).to have_received(:request).once
+    end
+
+    it 'maps an oversize document to discovery_too_large' do
+      response = success_response('x' * ((256 * 1024) + 1))
+      respond_with(response)
+
+      result = logic.send(:test_oidc_connection)
+
+      expect(result[:success]).to be false
+      expect(result[:details][:error_code]).to eq('discovery_too_large')
+      expect(result[:details][:max_bytes]).to eq(256 * 1024)
+    end
+
+    it 'maps timeouts to timeout with the configured budget' do
+      respond_with(Net::ReadTimeout)
+
+      result = logic.send(:test_oidc_connection)
+
+      expect(result[:details][:error_code]).to eq('timeout')
+      expect(result[:details][:timeout_seconds]).to eq(10)
+    end
+
+    it 'maps TLS failures to ssl_error with a sanitized description' do
+      allow(http_instance).to receive(:request).and_raise(OpenSSL::SSL::SSLError, 'SSL_connect 203.0.113.10:443 failed')
+
+      result = logic.send(:test_oidc_connection)
+
+      expect(result[:details][:error_code]).to eq('ssl_error')
+      expect(result[:details][:description]).not_to include('203.0.113.10')
+    end
+
+    it 'maps exhausted connection attempts to unexpected_error' do
+      respond_with(Errno::ECONNREFUSED)
+
+      result = logic.send(:test_oidc_connection)
+
+      expect(result[:details][:error_code]).to eq('unexpected_error')
+      expect(OT).to have_received(:le).with(/Errno::ECONNREFUSED/)
+    end
+
+    it 'maps invalid JSON to invalid_json' do
+      respond_with(success_response('<html>'))
+
+      expect(logic.send(:test_oidc_connection)[:details][:error_code]).to eq('invalid_json')
+    end
+
+    it 'sends the Test Connection user agent' do
+      sent = nil
+      response = error_response(Net::HTTPNotFound, '404', 'Not Found')
+      allow(http_instance).to receive(:request) do |request, &blk|
+        sent = request
+        blk&.call(response)
+        response
+      end
+
+      logic.send(:test_oidc_connection)
+
+      expect(sent.path).to eq('/.well-known/openid-configuration')
+      expect(sent['User-Agent']).to eq('OneTimeSecret-SSO-Test/1.0')
+      expect(sent['Accept']).to eq('application/json')
+    end
+  end
+
   describe '#test_entra_id_connection' do
     # Entra's discovery URL is built from the tenant, not the issuer, and
-    # never passes through valid_issuer_host? — fetch_url's guard is the
+    # never passes through valid_issuer_host? — the fetcher's guard is the
     # only enforcement on this path.
     let(:provider_type) { 'entra_id' }
     let(:issuer) { nil }
@@ -185,7 +292,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
         token_endpoint: 'https://login.microsoftonline.com/x/token',
         jwks_uri: 'https://login.microsoftonline.com/x/jwks',
       }.to_json
-      allow(http_instance).to receive(:request).and_return(success_response(body))
+      respond_with(success_response(body))
 
       result = logic.send(:test_entra_id_connection)
 
