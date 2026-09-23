@@ -339,6 +339,10 @@ export default defineConfig({
   /* Output directory for test artifacts */
   outputDir: 'test-results/',
 
+  /* Local runs only: fail fast when the local server (spawned or reused)
+   * has diagnostics on. See support/diagnostics-guard.ts. */
+  globalSetup: process.env.PLAYWRIGHT_BASE_URL ? undefined : './support/diagnostics-guard.ts',
+
   /* Auto-start Ruby server when no external URL is provided.
    * Requires `pnpm run build` first to generate frontend assets.
    * Set PLAYWRIGHT_BASE_URL to skip auto-start and test against external server. */
@@ -353,7 +357,8 @@ export default defineConfig({
          * this they were reported to the production Sentry project. Playwright
          * merges `env` over process.env, so this wins over the shell.
          * E2E_DIAGNOSTICS_ENABLED=true opts back in (e.g. to test the Sentry
-         * wiring itself against a scratch project). */
+         * wiring itself against a scratch project). A REUSED server never sees
+         * this block; globalSetup (support/diagnostics-guard.ts) covers it. */
         env: {
           DIAGNOSTICS_ENABLED: process.env.E2E_DIAGNOSTICS_ENABLED === 'true' ? 'true' : 'false',
         },
