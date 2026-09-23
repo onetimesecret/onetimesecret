@@ -510,8 +510,13 @@ OIDC_CLIENT_SECRET=secret-from-keycloak
 2. Settings → Allowed Callback URLs: `https://{host}/auth/sso/oidc/callback`
 3. Copy **Domain**, **Client ID**, **Client Secret**
 
+Auth0 asserts `iss` with a **trailing slash** (`https://<tenant>/`).
+`OIDC_ISSUER` must match it byte for byte: both the discovery document's
+`issuer` and the id_token's `iss` are compared exactly, so without the slash
+sign-in fails with an issuer mismatch. Custom domains follow the same rule.
+
 ```bash
-OIDC_ISSUER=https://your-tenant.auth0.com
+OIDC_ISSUER=https://your-tenant.auth0.com/
 OIDC_CLIENT_ID=your-client-id
 OIDC_CLIENT_SECRET=your-client-secret
 ```

@@ -129,7 +129,9 @@ below) and its `jwt ~> 2` pin held the whole bundle off jwt 3.x. Apple is a
   a private-relay address (`@privaterelay.appleid.com`, flagged by
   `is_private_email`) — which is why `APPLE_TRUST_EMAIL_FOR_LINKING` defaults
   to false.
-- **Auth0**: use generic OIDC (`OIDC_*`; see `per-install-sso.md`). The bespoke
+- **Auth0**: use generic OIDC (`OIDC_*`; see `per-install-sso.md`), with
+  `OIDC_ISSUER` carrying the trailing slash Auth0 puts in `iss`
+  (`https://<tenant>/`); the issuer check is exact. The bespoke
   `omniauth-auth0` gem (3.2) is not integrated: its claim validation
   (`verify_iss`/`verify_aud`/`verify_nonce`/`verify_expiration`) is gated on
   `session_authorize_params[:scope]`, but that hash is built as
