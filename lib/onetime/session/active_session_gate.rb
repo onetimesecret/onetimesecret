@@ -71,6 +71,13 @@ module Onetime
   # An expired row is refused before `last_use` is touched, so it is never
   # revived by the request that finds it.
   #
+  # A remembered row (`remember_until` set, see {Onetime::RememberMe}) is
+  # exempt from the inactivity deadline and refused instead once
+  # `remember_until` has passed; the lifetime deadline still applies. The
+  # full rule is {expired_condition}, which Rodauth's sweep is configured
+  # with as well, so a remembered row left idle on one device is not swept
+  # away by the sessions page opened on another.
+  #
   # ## Failure posture: closed
   #
   # A Rack session whose active-session row cannot be checked is refused. The
@@ -214,6 +221,19 @@ module Onetime
       false
     end
 
+    # The rows that are past a deadline, as one SQL condition: a row that is
+    # not remembered and idle past {INACTIVITY_DEADLINE}, a remembered row
+    # whose `remember_until` has passed, or any row older than
+    # {LIFETIME_DEADLINE}. The per-request SELECT below asks the same three
+    # questions one at a time so the refusal can name the deadline; Rodauth's
+    # sweep (`inactive_session_cond`, overridden in
+    # apps/web/auth/config/features/active_sessions.rb) deletes on this.
+    #
+    # @return [Sequel::SQL::BooleanExpression]
+    def expired_condition
+      Sequel.|(inactive_condition, remember_lapsed_condition, lifetime_condition)
+    end
+
     private
 
     def compute(session, env = nil)
@@ -225,12 +245,14 @@ module Onetime
       row_ds = row_dataset(db, session)
       count(env, :queries)
       row    = row_ds.select(
-        Sequel.as(past_expression(:last_use, INACTIVITY_DEADLINE), :inactive),
-        Sequel.as(past_expression(:created_at, LIFETIME_DEADLINE), :outlived),
-        Sequel.as(past_expression(:last_use, TOUCH_INTERVAL), :touch_due),
+        Sequel.as(flag(inactive_condition), :inactive),
+        Sequel.as(flag(remember_lapsed_condition), :remember_lapsed),
+        Sequel.as(flag(lifetime_condition), :outlived),
+        Sequel.as(flag(past_condition(:last_use, TOUCH_INTERVAL)), :touch_due),
       ).first
       return revoked(session) if row.nil?
       return expire(row_ds, session, 'inactivity', env) if row[:inactive].to_i == 1
+      return expire(row_ds, session, 'remember', env) if row[:remember_lapsed].to_i == 1
       return expire(row_ds, session, 'lifetime', env) if row[:outlived].to_i == 1
 
       record_activity(row_ds, session, env) if row[:touch_due].to_i == 1
@@ -270,17 +292,35 @@ module Onetime
       defined?(::Auth::Database) ? true : false
     end
 
-    # `1` when the row's timestamp `column` (`last_use` and `created_at` are
-    # both NOT NULL in the schema) is more than `seconds` old, else `0`.
-    # Evaluated by the database against its own CURRENT_TIMESTAMP, never
-    # against Ruby's clock, and as an integer CASE rather than a bare boolean
-    # because SQLite returns booleans as integers and Sequel only typecasts
-    # declared boolean columns. `Sequel.date_sub` comes from the
-    # date_arithmetic extension, which Auth::Database loads on the authdb
-    # connection (Rodauth's active_sessions feature needs it too).
-    def past_expression(column, seconds)
-      past = Sequel[column] < Sequel.date_sub(Sequel::CURRENT_TIMESTAMP, seconds: seconds)
-      Sequel.case({ past => 1 }, 0)
+    # True when the row's timestamp `column` (`last_use` and `created_at` are
+    # both NOT NULL in the schema) is more than `seconds` old. Evaluated by
+    # the database against its own CURRENT_TIMESTAMP, never against Ruby's
+    # clock. `Sequel.date_sub` comes from the date_arithmetic extension,
+    # which Auth::Database loads on the authdb connection (Rodauth's
+    # active_sessions feature needs it too).
+    def past_condition(column, seconds)
+      Sequel[column] < Sequel.date_sub(Sequel::CURRENT_TIMESTAMP, seconds: seconds)
+    end
+
+    # Idle past the inactivity deadline, for a row that is not remembered.
+    def inactive_condition
+      Sequel.&({ remember_until: nil }, past_condition(:last_use, INACTIVITY_DEADLINE))
+    end
+
+    # Remembered, and the remember deadline has passed.
+    def remember_lapsed_condition
+      Sequel.&(Sequel.~(remember_until: nil), Sequel[:remember_until] < Sequel::CURRENT_TIMESTAMP)
+    end
+
+    def lifetime_condition
+      past_condition(:created_at, LIFETIME_DEADLINE)
+    end
+
+    # `1` or `0` for a condition, as an integer CASE rather than a bare
+    # boolean because SQLite returns booleans as integers and Sequel only
+    # typecasts declared boolean columns.
+    def flag(condition)
+      Sequel.case({ condition => 1 }, 0)
     end
 
     # The row is past the named deadline: remove it, as Rodauth's sweep

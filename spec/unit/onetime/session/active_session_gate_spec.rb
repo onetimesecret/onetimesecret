@@ -29,6 +29,7 @@ RSpec.describe Onetime::ActiveSessionGate do
         String :session_id
         Time :created_at, null: false, default: Sequel::CURRENT_TIMESTAMP
         Time :last_use, null: false, default: Sequel::CURRENT_TIMESTAMP
+        Time :remember_until # migration 011
         primary_key [:account_id, :session_id]
       end
     end
@@ -51,8 +52,10 @@ RSpec.describe Onetime::ActiveSessionGate do
     allow(OT).to receive(:info)
   end
 
-  def insert_row(last_use: Time.now, created_at: last_use)
-    db[:account_active_session_keys].insert(account_id: 42, session_id: hmac, last_use: last_use, created_at: created_at)
+  def insert_row(last_use: Time.now, created_at: last_use, remember_until: nil)
+    db[:account_active_session_keys].insert(
+      account_id: 42, session_id: hmac, last_use: last_use, created_at: created_at, remember_until: remember_until,
+    )
   end
 
   def rows
@@ -254,7 +257,7 @@ RSpec.describe Onetime::ActiveSessionGate do
       insert_row(last_use: now - (described_class::INACTIVITY_DEADLINE + 60), created_at: now)
       dataset = instance_double(Sequel::Dataset)
       allow(db).to receive(:[]).with(described_class::TABLE).and_return(dataset)
-      allow(dataset).to receive_messages(where: dataset, select: dataset, first: { inactive: 1, outlived: 0, touch_due: 1 })
+      allow(dataset).to receive_messages(where: dataset, select: dataset, first: { inactive: 1, remember_lapsed: 0, outlived: 0, touch_due: 1 })
       allow(dataset).to receive(:delete).and_raise(Sequel::DatabaseError, 'read-only replica')
 
       expect(described_class.verdict(session)).to eq(:revoked)
@@ -275,6 +278,76 @@ RSpec.describe Onetime::ActiveSessionGate do
 
       expect(described_class.verdict(session)).to eq(:active)
       expect(rows.count).to eq(1)
+    end
+  end
+
+  # "Remember me" (Onetime::RememberMe): a row with remember_until trades the
+  # inactivity deadline for a fixed one.
+  describe 'remembered rows' do
+    let(:now) { Time.now }
+    let(:idle) { now - (described_class::INACTIVITY_DEADLINE + 3600) }
+
+    it 'keeps a remembered row idle past the inactivity deadline active' do
+      insert_row(last_use: idle, created_at: idle, remember_until: now + 86_400)
+
+      expect(described_class.verdict(session)).to eq(:active)
+      expect(rows.count).to eq(1)
+    end
+
+    it 'refuses a remembered row once remember_until has passed, however recent its last_use, and removes it' do
+      insert_row(last_use: now, created_at: now - 86_400, remember_until: now - 60)
+
+      expect(described_class.verdict(session)).to eq(:revoked)
+      expect(rows.count).to eq(0)
+      expect(OT).to have_received(:info).with(/past its remember deadline/)
+    end
+
+    it 'still applies the lifetime deadline to a remembered row' do
+      insert_row(
+        last_use: now, created_at: now - (described_class::LIFETIME_DEADLINE + 60), remember_until: now + 86_400,
+      )
+
+      expect(described_class.verdict(session)).to eq(:revoked)
+      expect(OT).to have_received(:info).with(/past its lifetime deadline/)
+    end
+
+    it 'leaves a row that is not remembered on the inactivity deadline' do
+      insert_row(last_use: idle, created_at: idle, remember_until: nil)
+
+      expect(described_class.verdict(session)).to eq(:revoked)
+      expect(OT).to have_received(:info).with(/past its inactivity deadline/)
+    end
+
+    it 'answers all of it in the one SELECT' do
+      insert_row(last_use: idle, created_at: idle, remember_until: now + 86_400)
+      env = {}
+
+      described_class.verdict(session, env: env)
+
+      expect(env[described_class::STATS_ENV_KEY][:queries]).to eq(1)
+    end
+  end
+
+  # Rodauth's sweep deletes on this condition (inactive_session_cond,
+  # apps/web/auth/config/features/active_sessions.rb), so it must select
+  # exactly the rows the gate would refuse.
+  describe '.expired_condition' do
+    let(:now) { Time.now }
+    let(:idle) { now - (described_class::INACTIVITY_DEADLINE + 3600) }
+
+    def insert(session_id, **cols)
+      rows.insert(account_id: 42, session_id: session_id, last_use: now, created_at: now, **cols)
+    end
+
+    it 'selects idle unremembered, lapsed remembered and outlived rows, and nothing else' do
+      insert('idle', last_use: idle)
+      insert('idle-remembered', last_use: idle, created_at: idle, remember_until: now + 86_400)
+      insert('lapsed', remember_until: now - 60)
+      insert('outlived', created_at: now - (described_class::LIFETIME_DEADLINE + 60), remember_until: now + 86_400)
+      insert('fresh')
+
+      expect(rows.where(described_class.expired_condition).select_map(:session_id))
+        .to contain_exactly('idle', 'lapsed', 'outlived')
     end
   end
 
