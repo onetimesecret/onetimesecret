@@ -216,6 +216,29 @@ RSpec.describe 'Remember me: a fixed 14-day session (full mode)', type: :integra
       expect(account_request).to eq(200)
     end
 
+    # Revoking refuses the other device's Rack session but leaves its blob
+    # in Redis. Its next request drops the remember deadline, so the blob
+    # and cookie fall back to the default lifetime instead of living on to
+    # remember_until.
+    it 'returns a revoked remembered session to the default lifetime', :aggregate_failures do
+      login!('remember-me' => true)
+      remembered_sid  = current_session_id
+      remembered_hmac = session_blob.fetch('active_session_id_hmac')
+
+      clear_cookies
+      login!
+      delete_json "/auth/active-sessions/#{remembered_hmac}"
+      expect(last_response.status).to eq(200), last_response.body
+
+      clear_cookies
+      set_cookie "onetime.session=#{remembered_sid}"
+      expect(account_request).to eq(401)
+
+      expect(current_session_id).to eq(remembered_sid)
+      expect(session_blob).not_to have_key('remember_until')
+      expect(blob_ttl).to be_between(1, 86_400)
+    end
+
     it 'reports remember_enabled false once remember_until has passed' do
       login!('remember-me' => true)
       hmac = session_blob.fetch('active_session_id_hmac')

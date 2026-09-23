@@ -33,7 +33,9 @@ module Onetime
   # - **revoke**: remove an active-session row. **destroy**: delete a Rack
   #   session's blob from Redis, which is what logout does. **refuse**: answer
   #   a request 401 (strategies) or `authenticated? == false` (helpers) while
-  #   leaving the Rack session in Redis. Refusing is all this gate ever does.
+  #   leaving the Rack session in Redis. Refusing is all this gate ever does,
+  #   with one addition: a Rack session refused as :revoked loses its
+  #   remember-me deadline (see {forfeit_remember}).
   #
   # ## The gap this closes
   #
@@ -341,6 +343,7 @@ module Onetime
     # their own behind it, and support needs to be able to name the deadline.
     def expire(row_ds, session, deadline, env = nil)
       OT.info "[active_session_gate] active-session row past its #{deadline} deadline; removed, Rack session refused #{who(session)}"
+      forfeit_remember(session)
       count(env, :writes)
       row_ds.delete
       :revoked
@@ -357,7 +360,21 @@ module Onetime
     # just revoked it.
     def revoked(session)
       OT.info "[active_session_gate] no active-session row for the Rack session; refused #{who(session)}"
+      forfeit_remember(session)
       :revoked
+    end
+
+    # A revoked Rack session stays in Redis (refuse, not destroy), and with
+    # its remember-me deadline the blob and cookie would live on for up to
+    # {RememberMe::DURATION}. The row is the only thing refusing it, so a
+    # later change that takes the gate out of play (simple mode, active
+    # sessions off) would bring it back for that long. Dropping the stamp
+    # returns the session to the default lifetime on this request's write:
+    # a refused request is not activity, so the blob keeps at most the
+    # default TTL (Onetime::Session#expiration_for_write). Not done for
+    # :unavailable, where the session is meant to be honoured again.
+    def forfeit_remember(session)
+      session.delete(RememberMe::SESSION_KEY) if session.respond_to?(:delete)
     end
 
     # The join, for log lines. The join key is a digest of a random token,

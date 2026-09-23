@@ -339,6 +339,36 @@ RSpec.describe Onetime::ActiveSessionGate do
       end
     end
 
+    describe 'a refused remembered Rack session' do
+      let(:session) { super().merge('remember_until' => now.to_i + 86_400) }
+
+      it 'loses its remember deadline when its row is gone' do
+        expect(described_class.verdict(session)).to eq(:revoked)
+        expect(session).not_to have_key('remember_until')
+      end
+
+      it 'loses its remember deadline when its row has expired' do
+        insert_row(last_use: now, created_at: now - (described_class::LIFETIME_DEADLINE + 60), remember_until: now + 86_400)
+
+        expect(described_class.verdict(session)).to eq(:revoked)
+        expect(session).not_to have_key('remember_until')
+      end
+
+      it 'keeps it when the authdb cannot answer' do
+        allow(Auth::Database).to receive(:connection).and_return(nil)
+
+        expect(described_class.verdict(session)).to eq(:unavailable)
+        expect(session).to have_key('remember_until')
+      end
+
+      it 'keeps it while the row is active' do
+        insert_row(remember_until: now + 86_400)
+
+        expect(described_class.verdict(session)).to eq(:active)
+        expect(session).to have_key('remember_until')
+      end
+    end
+
     it 'answers all of it in the one SELECT' do
       insert_row(last_use: idle, created_at: idle, remember_until: now + 86_400)
       env = {}
