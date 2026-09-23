@@ -19,6 +19,7 @@
 
 require_relative '../../spec_helper'
 require 'tmpdir'
+require 'open3'
 require 'auth/database'
 
 RSpec.describe 'Auth::Database.connect on a file-backed SQLite authdb', type: :integration do
@@ -84,14 +85,51 @@ RSpec.describe 'Auth::Database.connect on a file-backed SQLite authdb', type: :i
 
     migration  = Auth::Migrator.send(:migration_connection)
     standalone = Auth::Database.connect(url, logger: nil)
+    rake       = Auth::DatabaseConnection.open(url) # rake auth:migrate
 
-    [migration, standalone].each do |conn|
+    [migration, standalone, rake].each do |conn|
       expect(conn.transaction_mode).to eq(:immediate)
       expect(conn.opts[:timeout]).to eq(Auth::Database::SQLITE_BUSY_TIMEOUT_MS)
     ensure
       conn.disconnect
     end
     expect(standalone.loggers).to be_empty
+  end
+
+  # rake auth:migrate loads this file and nothing else from the application.
+  it 'opens a connection without the application loaded' do
+    script      = <<~RUBY
+      require ARGV.fetch(0)
+      abort 'Onetime loaded' if defined?(Onetime)
+      db = Auth::DatabaseConnection.open(ARGV.fetch(1))
+      print db.transaction_mode
+      db.disconnect
+    RUBY
+    source      = File.expand_path('../../../database_connection.rb', __dir__)
+    out, status = Open3.capture2e(RbConfig.ruby, '-e', script, source, "sqlite://#{@path}")
+
+    expect([out, status.success?]).to eq(['immediate', true])
+  end
+
+  it 'converts a multi-host PostgreSQL URL before connecting' do
+    url    = 'postgresql://user:pass@host1:5432,host2:5433/authdb?sslmode=require'
+    target = {
+      adapter: 'postgres',
+      host: 'host1',
+      port: 5432,
+      database: 'authdb',
+      user: 'user',
+      password: 'pass',
+      sslmode: 'require',
+    }
+    allow(Sequel).to receive(:connect).and_call_original
+    allow(Sequel).to receive(:connect).with(target, any_args)
+      .and_return(instance_double(Sequel::Database, extension: nil))
+
+    Auth::Database.connect(url)
+    Auth::DatabaseConnection.open(url)
+
+    expect(Sequel).to have_received(:connect).with(target, any_args).twice
   end
 
   it 'leaves a PostgreSQL connection hash alone' do

@@ -5,6 +5,7 @@
 require 'sequel'
 require 'logger'
 
+require_relative 'database_connection'
 require_relative 'migrator'
 
 module Auth
@@ -155,69 +156,20 @@ module Auth
       @connection.__connected__?
     end
 
-    # Parses PostgreSQL multi-host connection URLs into Sequel connection hash.
-    #
-    # PostgreSQL libpq supports comma-separated hosts for failover:
-    #   postgresql://user:pass@host1:5432,host2:5432/dbname?sslmode=require
-    #
-    # But this isn't a valid RFC 3986 URI, so Ruby's URI.parse fails.
-    # Sequel needs either a single-host URL or a connection hash.
-    #
-    # This method extracts the first (primary) host and converts the URL
-    # to a Sequel connection hash, which pg gem will handle correctly.
+    # Converts a multi-host PostgreSQL URL to a Sequel connection hash. See
+    # Auth::DatabaseConnection.parse_postgres_multihost_url.
     #
     # @param url [String] PostgreSQL connection URL with comma-separated hosts
     # @return [Hash] Sequel connection parameters
     def self.parse_postgres_multihost_url(url)
-      # Extract components using regex since URI.parse won't work
-      match = url.match(
-        %r{
-                ^postgresql://
-                (?:([^:@]+)(?::([^@]+))?@)?  # user:password (optional)
-                ([^,/]+)                      # first host:port
-                (?:,[^/]+)?                   # additional hosts (ignored - use primary)
-                (?:/([^?]+))?                 # database name
-                (?:\?(.+))?                   # query params
-              }x,
-      )
-
-      raise ArgumentError, "Invalid PostgreSQL URL format: #{url}" unless match
-
-      user, password, host_port, database, query_string = match.captures
-
-      # Parse host and port from first host
-      host, port = host_port.split(':')
-      port     ||= '5432'
-
-      # Parse query parameters
-      params = {}
-      if query_string
-        query_string.split('&').each do |param|
-          key, value         = param.split('=', 2)
-          params[key.to_sym] = value
-        end
-      end
-
-      # Build Sequel connection hash
-      opts = {
-        adapter: 'postgres',
-        host: host,
-        port: port.to_i,
-        database: database || 'postgres',
-      }
-
-      opts[:user]     = user if user
-      opts[:password] = password if password
-
-      # Map PostgreSQL connection params to pg gem options
-      opts[:sslmode] = params[:sslmode] if params[:sslmode]
+      opts = DatabaseConnection.parse_postgres_multihost_url(url)
 
       sequel_logger.info '[Database] Converted multi-host PostgreSQL URL to connection hash',
-        host: host,
-        port: port,
-        database: database,
-        has_user: !user.nil?,
-        sslmode: params[:sslmode]
+        host: opts[:host],
+        port: opts[:port],
+        database: opts[:database],
+        has_user: opts.key?(:user),
+        sslmode: opts[:sslmode]
 
       opts
     end
@@ -229,61 +181,18 @@ module Auth
         # Get database URL from auth config or environment
         database_url = Onetime.auth_config.database_url || 'sqlite://data/auth.db'
 
-        # PostgreSQL multi-host URLs (host1:port1,host2:port2) are not valid URIs
-        # Convert them to Sequel's hash format for proper failover support
-        connection_opts = if database_url.start_with?('postgresql://') && database_url.split('?').first.include?(',')
-          parse_postgres_multihost_url(database_url)
-        else
-          database_url
-        end
-
-        connect(connection_opts)
+        connect(database_url)
       end
     end
 
-    # How long a SQLite connection waits for a lock another connection holds.
-    # Sequel's own default for its `:timeout` option.
-    SQLITE_BUSY_TIMEOUT_MS = 5_000
+    SQLITE_BUSY_TIMEOUT_MS = DatabaseConnection::SQLITE_BUSY_TIMEOUT_MS
 
-    # Open the authdb connection. The one place connection options live, so
-    # the lazy and the immediate connection cannot drift.
+    # Open an authdb connection with the application's SQL logger. Every
+    # authdb connection is made here or, without the application loaded, in
+    # Auth::DatabaseConnection.open, which holds the connection options and
+    # documents the SQLite settings.
     #
-    # ## SQLite: two settings, and both are needed
-    #
-    # Concurrent sign-ups answered 500 (`SQLite3::BusyException: database is
-    # locked` on the accounts INSERT): 7 of 8 parallel POST
-    # /auth/create-account on a file-backed authdb. Two separate causes, and
-    # fixing either alone changes nothing (measured with four threads that
-    # each read, then insert, inside a transaction: three of four fail under
-    # either fix alone, none under both):
-    #
-    # 1. `transaction_mode = :immediate`. Rodauth's create-account reads inside
-    #    its transaction before it inserts. Under SQLite's default DEFERRED
-    #    mode two connections then both hold a SHARED lock and both ask to
-    #    upgrade; SQLite refuses the second AT ONCE, without consulting the
-    #    busy handler, because waiting would deadlock. BEGIN IMMEDIATE takes
-    #    the write lock up front, where waiting is safe. Read-only
-    #    transactions queue behind writers too; on a single-instance SQLite
-    #    authdb that is the price of not failing.
-    #
-    # 2. `busy_handler_timeout=` in place of `busy_timeout`. Sequel's
-    #    `:timeout` option calls sqlite3_busy_timeout, which sleeps inside C
-    #    while holding Ruby's GVL. In a threaded server the thread that owns
-    #    the lock is then unable to run and release it: every waiter burns
-    #    the whole timeout and fails anyway. The sqlite3 gem's
-    #    busy_handler_timeout= does the same wait and releases the GVL between
-    #    attempts. It is set per connection, after Sequel's own setting, which
-    #    it replaces.
-    #
-    # A wait that still outlasts the timeout raises as before. Reaching it
-    # takes more queued writers than the server has threads.
-    #
-    # PostgreSQL needs none of this: a duplicate insert waits on the row and
-    # then raises a unique violation, which Rodauth handles.
-    #
-    # Every authdb connection is made here, the migration connections
-    # included: several processes booting at once run migrations against the
-    # same SQLite file, and that is the same contention.
+    # A multi-host PostgreSQL URL is converted here first, for the log line.
     #
     # @param connection_opts [String, Hash] a database URL or a Sequel
     #   connection hash
@@ -291,18 +200,9 @@ module Auth
     #   path, which runs without the application loaded
     # @return [Sequel::Database]
     def self.connect(connection_opts, logger: Onetime.get_logger('Sequel'))
-      sqlite  = connection_opts.is_a?(String) && connection_opts.start_with?('sqlite')
-      options = logger ? { logger: logger, sql_log_level: :trace } : {} # SQL at trace level for safety
+      connection_opts = parse_postgres_multihost_url(connection_opts) if DatabaseConnection.multihost_postgres_url?(connection_opts)
 
-      if sqlite
-        options[:timeout]       = SQLITE_BUSY_TIMEOUT_MS
-        options[:after_connect] = ->(conn) { conn.busy_handler_timeout = SQLITE_BUSY_TIMEOUT_MS if conn.respond_to?(:busy_handler_timeout=) }
-      end
-
-      Sequel.connect(connection_opts, **options).tap do |db|
-        db.extension :date_arithmetic
-        db.transaction_mode = :immediate if sqlite
-      end
+      DatabaseConnection.open(connection_opts, logger: logger)
     end
 
     # Legacy method for compatibility - creates connection immediately
