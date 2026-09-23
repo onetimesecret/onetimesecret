@@ -1488,6 +1488,39 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           expect(Onetime::CustomDomain::SsoConfig::SAML_FIELDS.map { |name| config.public_send(name) }).to all(be_nil)
         end
 
+        # A saml record stores no issuer, so a switch to oidc has nothing to
+        # fall back on: the issuer must arrive with the request.
+        it 'rejects a switch to oidc that omits the issuer' do
+          csrf_patch api_path(test_custom_domain.extid), { provider_type: 'oidc', client_id: 'oidc-client' }
+
+          expect(last_response.status).to eq(422)
+          expect(json_body).to include('error_type' => 'missing', 'field' => 'issuer')
+        end
+
+        it 'rejects a switch to oidc with an internal issuer host' do
+          csrf_patch api_path(test_custom_domain.extid),
+            { provider_type: 'oidc', client_id: 'oidc-client', issuer: 'https://sso.corp.internal/oidc' }
+
+          expect(last_response.status).to eq(422)
+          expect(json_body).to include('error_type' => 'invalid', 'field' => 'issuer')
+          expect(stored_config.provider_type).to eq('saml')
+        end
+
+        # Records created before the create path cleared the OAuth-family
+        # fields can carry an issuer that no validator ever saw. Switching
+        # such a record to oidc must validate the stored value, not adopt it.
+        it 'validates a dormant stored issuer when switching to oidc without one' do
+          config        = stored_config
+          config.issuer = 'https://sso.corp.internal/oidc'
+          config.commit_fields
+
+          csrf_patch api_path(test_custom_domain.extid), { provider_type: 'oidc', client_id: 'oidc-client' }
+
+          expect(last_response.status).to eq(422)
+          expect(json_body).to include('error_type' => 'invalid', 'field' => 'issuer')
+          expect(stored_config.provider_type).to eq('saml')
+        end
+
         it 'refuses a fingerprint param' do
           csrf_patch api_path(test_custom_domain.extid), { idp_cert_fingerprint: 'AB:CD' }
 
@@ -1555,6 +1588,21 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
         expect(last_response.status).to eq(200), last_response.body
         expect(json_body['record']['provider_type']).to eq('saml')
+      end
+
+      # Same end state as PUT: a saml record keeps none of the OAuth-family
+      # fields, so a stray issuer / tenant_id cannot lie dormant on it.
+      it 'stores no issuer or tenant_id on a PATCH-created saml config even when supplied' do
+        csrf_patch api_path(test_custom_domain.extid), valid_saml_params.merge(
+          client_id: 'stray-client', client_secret: 'stray-secret',
+          issuer: 'https://auth.example.com', tenant_id: 'stray-tenant'
+        )
+
+        expect(last_response.status).to eq(200), last_response.body
+        config = stored_config
+        expect(config.provider_type).to eq('saml')
+        expect([config.client_id, config.client_secret]).to eq([nil, nil])
+        expect([config.issuer.to_s, config.tenant_id.to_s]).to eq(['', ''])
       end
     end
 

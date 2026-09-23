@@ -258,15 +258,22 @@ module DomainsAPI
           case @provider_type
           when 'oidc'
             # For PATCH: require issuer if creating new config or if existing config has no issuer
-            missing_issuer = @issuer.to_s.empty? &&
-                             (@existing_config.nil? || @existing_config.issuer.to_s.empty?)
+            stored_issuer  = @existing_config&.issuer.to_s
+            missing_issuer = @issuer.to_s.empty? && stored_issuer.empty?
             if missing_issuer
               raise_form_error('Issuer URL is required for OIDC provider', field: :issuer, error_type: :missing)
             end
 
-            # SSRF prevention: validate issuer URL host is not internal/private
-            # Only validate if a new issuer is being provided (not empty)
-            if !@issuer.to_s.empty? && !valid_issuer_host?(@issuer)
+            # SSRF prevention: validate issuer URL host is not internal/private.
+            # Runs on a submitted issuer, and on the STORED one when the
+            # record is switching into oidc: only an oidc record's issuer was
+            # validated at save time, so a value left dormant on a saml /
+            # entra_id record (pre-#4450 create path) must not go live
+            # unchecked. An oidc-to-oidc PATCH that omits issuer keeps the
+            # already-validated value without re-resolving it.
+            switching_to_oidc = !@existing_config.nil? && @existing_config.provider_type != 'oidc'
+            effective_issuer  = @issuer.to_s.empty? ? stored_issuer : @issuer
+            if (!@issuer.to_s.empty? || switching_to_oidc) && !valid_issuer_host?(effective_issuer)
               raise_form_error(
                 'Issuer URL must be a valid HTTPS URL pointing to a public host',
                 field: :issuer,
@@ -289,6 +296,11 @@ module DomainsAPI
           end
         end
 
+        # Mirrors PutSsoConfig#replacement_attributes: a saml record stores
+        # NONE of the OAuth-family fields, however the request arrived. Only
+        # the side the provider type uses was validated, and an unvalidated
+        # issuer must not sit dormant on the record for a later provider_type
+        # flip to make live (see validate_provider_specific_fields).
         def create_new_config
           saml = @provider_type == 'saml'
 
@@ -298,8 +310,8 @@ module DomainsAPI
             display_name: @display_name,
             client_id: saml ? '' : @client_id,
             client_secret: saml ? '' : @client_secret,
-            tenant_id: @tenant_id,
-            issuer: @issuer,
+            tenant_id: saml ? '' : @tenant_id,
+            issuer: saml ? '' : @issuer,
             idp_sso_service_url: saml ? @idp_sso_service_url : '',
             idp_entity_id: saml ? @idp_entity_id : '',
             idp_cert: saml ? @idp_cert : '',
