@@ -316,6 +316,14 @@ module Auth::Config::Hooks
         # superseded request whose per-strategy binding leaked past the
         # marker cleanup, or a session that lost its markers — both must
         # fail closed. Belt to the refusal paths' clear_pending_tenant_context.
+        #
+        # No carve-out for anonymous sessions or for Connect. A tenant Connect
+        # callback whose session the router already destroyed lands here too
+        # and is refused with the same 403 (omniauth_connect_link_spec.rb,
+        # "tenant connect callback pipeline"); in production OmniAuth's state
+        # check refuses it first, and only mock mode reaches this branch.
+        # Exempting the anonymous case would reopen the platform path in the
+        # one state this belt exists to close.
         injected_config = request.env['onetime.tenant_sso_config']
         if expected_domain_id.nil? && injected_config
           Auth::Logging.log_auth_event(

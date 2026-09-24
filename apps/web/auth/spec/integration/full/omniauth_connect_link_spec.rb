@@ -1345,6 +1345,21 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   # any other surface refuses (defence in depth behind the router's session-
   # surface gate), and an intent that is not the { account_id, surface, at }
   # shape — including the pre-#4411 bare account id — is treated as absent.
+  #
+  # SETTLED (#4450, PR #4541): three examples below expect 403
+  # tenant_context_missing where they once expected 302. Each posts a
+  # callback that reaches the TENANT host with no pending tenant flow in the
+  # session (the router destroyed the session, or a second callback follows
+  # the one that consumed the markers). The tenant hook refuses that state
+  # outright (hooks/omniauth_tenant.rb before_omniauth_callback_route): the
+  # strategy ran with the tenant's options, so a platform-path outcome is
+  # never legitimate. The 302 was never the property under test — the
+  # examples pin that nothing binds, no account is created and the intent is
+  # consumed, and they still do. In production OmniAuth's own state check
+  # refuses these callbacks before the hook; mock mode skips it, which is why
+  # only these specs ever see the 403. Do NOT exempt anonymous sessions from
+  # the refusal to recover the 302: that reopens the platform path exactly
+  # where the refusal closes it.
 
   describe 'tenant connect callback pipeline (#3849)', :oauth_flow do
     include OAuthFlowHelper
