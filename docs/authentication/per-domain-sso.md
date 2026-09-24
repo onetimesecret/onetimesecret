@@ -144,7 +144,7 @@ A record that cannot produce usable options — today only a `saml` record with
 an unreadable or unusable trio, including an expired certificate — is refused
 at step 5: the hook logs `omniauth_tenant_config_unusable` at error level,
 clears the pending tenant context and redirects to
-`/signin?auth_error=sso_not_configured`. It never falls back to platform SSO
+`/signin?auth_error=sso_config_unusable`. It never falls back to platform SSO
 for that request, because the tenant context stored a moment earlier would
 still stamp the callback as validated for the domain.
 
@@ -707,7 +707,7 @@ provider) whatever the cookie.
 - **Expiry after save** does not invalidate the record: it stays editable and
   can be disabled (the API re-validates the whole record on every `PATCH`, so
   an expiry invariant would make an expired config impossible to turn off).
-  Every sign-in through it is refused with `sso_not_configured` and the
+  Every sign-in through it is refused with `sso_config_unusable` and the
   `omniauth_tenant_config_unusable` audit event until a current certificate
   is saved. Only one certificate is trusted at a time; there is no overlap
   window for rotation.
@@ -817,7 +817,7 @@ previously configured tenant that was pointed at the wrong cloud.
 | Mismatch between YAML key and plan | Root uses `sso`, plan uses `manage_sso` | Use consistent naming (`manage_sso`) |
 | SSO configured but login fails | No custom domain with SSO config | Add custom domain and configure SSO |
 | Platform SSO used instead of domain SSO | Accessing via canonical domain | Use domain's custom URL |
-| SAML sign-in lands on `sso_not_configured` | The domain's SAML record is unusable: expired certificate, or a field that no longer decrypts | Check the `omniauth_tenant_config_unusable` log event; save a current certificate or re-enter the flagged fields |
+| SAML sign-in lands on `sso_config_unusable` | The domain's SAML record is unusable: expired certificate, or a field that no longer decrypts | Check the `omniauth_tenant_config_unusable` log event; save a current certificate or re-enter the flagged fields |
 | SAML save refused: "SAML sign-in cannot complete on this install: site.session.same_site is …" | The install's session cookie is not `SameSite=None; Secure`, so no SAML callback could ever complete; the rule is enforced where the configuration is created | The operator sets `site.session.same_site: none` with `secure: true` (see [per-install-sso.md](per-install-sso.md#saml-20-1)) and restarts; boot logs the same rule as `[OmniAuth] SAML is enabled … but …` |
 | SAML save refused: "must have a plain hostname (no spaces, quotes or punctuation in the host)", "must not contain a fragment" or "host must not end with a dot" | The SSO URL's host carries characters the CSP `form-action` directive cannot carry, or a trailing dot that the derived origin would strip (the browser would then POST from an origin that was never admitted) | Enter the IdP's SSO URL with a plain hostname. Private-network IdPs are accepted: the server never fetches this URL |
 | SAML callback returns 403 | The POST's `Origin` is not the record's `idp_sso_service_url` origin, or the domain has no available SSO config | See [Custom-Domain POST Returns 403](#custom-domain-post-returns-403-httporigin) |

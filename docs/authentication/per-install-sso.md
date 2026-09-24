@@ -841,7 +841,8 @@ OmniAuth failure → omniauth_on_failure hook (logs to stderr + Auth::Logging)
 |-------------------|----------|---------|
 | `sso_failed` | `web.login.errors.sso_failed` | General SSO failure |
 | `sso_cancelled` | `web.login.errors.sso_cancelled` | The user declined at the IdP |
-| `sso_not_configured` | `web.login.errors.sso_not_configured` | Custom domain without a usable tenant SSO configuration |
+| `sso_not_configured` | `web.login.errors.sso_not_configured` | Custom domain with no tenant SSO configuration at all |
+| `sso_config_unusable` | `web.login.errors.sso_config_unusable` | Tenant SSO exists but cannot produce usable options: expired or not-yet-valid certificate, or a field that no longer decrypts |
 
 SAML refusals made by `RequestBoundSAML` land on `sso_failed` with the reason
 in a `[saml_response_refused]` log event; ruby-saml document-validation

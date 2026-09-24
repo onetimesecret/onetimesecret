@@ -362,5 +362,5 @@ land on `sso_failed`; the `reason` is in the `[saml_response_refused]` log
 event, and document-validation failures from ruby-saml arrive as
 `invalid_ticket` in the `[OmniAuth FAILURE]` line. A custom domain whose
 stored SAML record is unusable (expired certificate, unreadable field) is
-refused before the strategy runs and lands on `sso_not_configured`, with an
+refused before the strategy runs and lands on `sso_config_unusable`, with an
 `omniauth_tenant_config_unusable` audit event at error level.
