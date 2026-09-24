@@ -294,9 +294,13 @@ tenant's own IdP EntityID.
     RelayState forwarding (`idp_sso_service_url_runtime_params` — as a
     **class** default, because an instance-level `{}` is deep-merged into the
     gem's default and changes nothing), strips every ruby-saml `skip_*`
-    option, and fixes `callback_url` to `full_host + callback_path` (omniauth's
-    default appends the request query string and omniauth-saml makes that the
-    ACS URL).
+    option, and fixes `callback_url` to `full_host + callback_path` as the
+    fallback (omniauth's default appends the request query string and
+    omniauth-saml makes that the ACS URL) — reached only by the un-injected
+    placeholder, since both surfaces now pin the ACS explicitly (platform to
+    `site.host` at boot, tenant per request) and the strategy refuses a
+    request whose public host is not the pinned ACS host
+    (`saml_acs_host_mismatch`).
   - **SLO is off** (`slo_enabled: false`; `/slo` and `/spslo` answer 501).
     The gem's IdP-initiated logout default is `session.clear` on the Rack
     session, which bypasses this application's active-session rows; SLO needs
@@ -323,8 +327,8 @@ tenant's own IdP EntityID.
   and magic-link sign-in down with it), so SAML follows the skip contract:
   `strategy_options` raises naming the variable, the provider is skipped
   with an error in the boot log, and `vars_valid` (https SSO URL, non-blank
-  EntityID, exactly one unexpired PEM certificate — fingerprints are never
-  accepted) keeps the button hidden. With org-level SSO on, the placeholder
+  EntityID, exactly one PEM certificate inside its validity window —
+  fingerprints are never accepted) keeps the button hidden. With org-level SSO on, the placeholder
   route (blank trust anchors) is registered anyway so the tenant hook has a
   route to inject into; the subclass refuses every un-injected request on
   it.

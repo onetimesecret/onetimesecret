@@ -125,13 +125,13 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 |----------|----------|-------------|
 | `SAML_IDP_SSO_SERVICE_URL` | Yes | The IdP's SSO endpoint (HTTP-Redirect binding). `https://` only; no credentials in the URL |
 | `SAML_IDP_ENTITY_ID` | Yes | The IdP's EntityID exactly as it sends it in `<Issuer>`; compared byte for byte and stored as the issuer of every SAML identity |
-| `SAML_IDP_CERT` | Yes | The IdP's X.509 signing certificate in PEM form: exactly one certificate, not expired; the `\n`-escaped single-line form is accepted. Fingerprints are not accepted |
+| `SAML_IDP_CERT` | Yes | The IdP's X.509 signing certificate in PEM form: exactly one certificate, inside its validity window (not expired, not yet valid); the `\n`-escaped single-line form is accepted. Fingerprints are not accepted |
 | `SAML_SP_ENTITY_ID` | No | Our SP EntityID (the Audience the IdP must send). Default: `https://{site.host}/auth/sso/{route}/metadata` |
 | `SAML_UID_ATTRIBUTE` | No | SAML attribute to use as the stable user id instead of the NameID. Required when the IdP can only send a transient NameID |
 | `SAML_ROUTE_NAME` | No | URL segment (default: `saml`) |
 | `SAML_DISPLAY_NAME` | No | Button label (default: `SAML SSO`) |
 
-A missing **or unusable** value (non-https URL, a URL with a fragment or a host the CSP layer cannot carry, blank EntityID, a certificate that does not parse, has more than one block, or has expired) skips the provider with an error in the boot log and hides the button; boot never fails. See [SAML 2.0](#saml-20-1) under Provider Configuration.
+A missing **or unusable** value (non-https URL, a URL with a fragment or a host the CSP layer cannot carry, blank EntityID, a certificate that does not parse, has more than one block, has expired, or is not yet valid) skips the provider with an error in the boot log and hides the button; boot never fails. See [SAML 2.0](#saml-20-1) under Provider Configuration.
 
 ## Routes
 
@@ -706,12 +706,16 @@ Prerequisite: the HTTP-POST binding delivers the response as a cross-site POST
 and a `SameSite=Lax` cookie is withheld on it, taking the pending sign-in
 request with it — set `site.session.same_site: none` with `secure: true`, as
 for Apple. Without it every callback is refused as `saml_no_pending_request`.
-The app checks this for you: whenever the `saml` route registers under an
-incompatible cookie — the platform `SAML_*` variables are set, or
-`ORGS_SSO_ENABLED=true` registers the route for tenant SSO — boot logs one
-error line, `[OmniAuth] SAML is enabled (…) but site.session.same_site is
-'lax' and secure is …; SAML needs same_site: none with secure: true, …`, and
-continues (boot never aborts for an SSO provider). On the tenant side the same
+The app checks this for you. With the platform `SAML_*` variables set under an
+incompatible cookie, the provider is skipped outright — no route, no login
+button — and boot logs `[OmniAuth] Skipping SAML provider 'saml':
+site.session.same_site is 'lax' and secure is …; SAML needs same_site: none
+with secure: true, …` (the same skip contract as missing vars, below). With
+`ORGS_SSO_ENABLED=true` and no platform vars, the route still registers as the
+tenant placeholder, and boot instead logs `[OmniAuth] SAML is enabled (tenant
+SSO (ORGS_SSO_ENABLED=true)) but site.session.same_site is 'lax' and secure is
+…; SAML needs same_site: none with secure: true, …`, continuing (boot never
+aborts for an SSO provider). On the tenant side the same
 rule is enforced at save time: the domain SSO API refuses to create a
 `provider_type: saml` configuration (422 on `provider_type`, "SAML sign-in
 cannot complete on this install: …") while the cookie is incompatible, since an
@@ -740,12 +744,13 @@ AuthnRequests, multiple IdP certificates, fingerprint configuration. One
 sign-in attempt is pending per session: a second tab's request supersedes the
 first, whose response is then refused.
 
-Custom domains with `SSO_ALLOW_PLATFORM_FALLBACK=true`: a platform SAML sign-in
-started from a custom domain posts back to that domain's ACS URL
-(`https://{custom-domain}/auth/sso/saml/callback`) while the SP EntityID stays
-the canonical value. The IdP must have each such ACS URL registered, or those
-sign-ins fail at the IdP. Per-domain SAML with its own record is the intended
-setup for custom domains — see [Per-Domain SSO](per-domain-sso.md#saml-20-for-a-custom-domain).
+Platform SAML now serves the canonical host only. The ACS is always
+`https://{site.host}/auth/sso/{route}/callback`, pinned at boot alongside the
+SP EntityID. Platform SAML is not offered on custom domains under
+`SSO_ALLOW_PLATFORM_FALLBACK`, and a sign-in started there is refused
+(`saml_acs_host_mismatch`, visitor lands on `sso_failed`). Per-domain SAML
+with its own record is the only custom-domain path — see
+[Per-Domain SSO](per-domain-sso.md#saml-20-for-a-custom-domain).
 
 ## Domain Restrictions
 
@@ -893,7 +898,8 @@ so they never reach a log line unbounded.
 
 | `reason` | Meaning | Check |
 |----------|---------|-------|
-| `saml_no_pending_request` | The callback arrived in a session with no pending sign-in | `site.session.same_site` must be `none` with `secure: true` (boot logs `[OmniAuth] SAML is enabled … but site.session.same_site is …` when it is not); an IdP-initiated sign-in (started from the IdP's portal) is refused by design; a second sign-in tab supersedes the first |
+| `saml_no_pending_request` | The callback arrived in a session with no pending sign-in | `site.session.same_site` must be `none` with `secure: true` (boot logs `[OmniAuth] SAML is enabled … but site.session.same_site is …` for the tenant placeholder only — with platform `SAML_*` vars set the provider is skipped instead and never reaches this row); an IdP-initiated sign-in (started from the IdP's portal) is refused by design; a second sign-in tab supersedes the first |
+| `saml_acs_host_mismatch` | The request's public host is not the pinned platform ACS host (`site.host`) | Platform SAML serves the canonical host only; sign in from the canonical host, or configure per-domain SAML for a custom domain |
 | `saml_response_missing` | The callback was not a POST carrying a `SAMLResponse` (the event names the `method`); the pending sign-in is left intact | A cross-site GET (an `<img>` or prefetch) hitting the callback path, or a browser retrying a redirect as GET; harmless unless frequent |
 | `saml_in_response_to_unbound` | The signed assertion's `SubjectConfirmationData/@InResponseTo` is missing, or does not equal the pending AuthnRequest id on every bearer confirmation | The IdP omits `InResponseTo` on SP-initiated responses (refused by design; Okta, Entra ID and AD FS emit it); otherwise a rewrapped assertion — investigate |
 | `saml_misconfigured` | `idp_entity_id` or `sp_entity_id` is blank on the route | On the canonical host the platform vars are unusable and the route is the tenant placeholder; on a custom domain the tenant record was not injected |

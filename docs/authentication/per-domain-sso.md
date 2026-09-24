@@ -630,7 +630,7 @@ options, as platform SAML — the gates and refusal codes in
 |-------|----------|-------|
 | `idp_sso_service_url` | yes | `https://` URL with no userinfo, no fragment (ruby-saml appends `?SAMLRequest=` by concatenation, so a `#…` would swallow it), no trailing dot on the host, whose origin is CSP-safe (a plain hostname — no spaces, quotes or punctuation in the host). The server never fetches it (the browser is redirected to it), so unlike an OIDC issuer it gets no SSRF host check and an IdP on a private network is accepted; its origin is admitted into this domain's CSP `form-action` and `HttpOrigin` allowances |
 | `idp_entity_id` | yes | The IdP's EntityID exactly as it sends it in `<Issuer>`. Surrounding whitespace is stripped on input; the stored value is compared byte for byte at every sign-in. Identities from this domain are keyed on it **scoped to the domain** (`"<domain_id>\|<EntityID>"`), never on the bare EntityID — see below |
-| `idp_cert` | yes | Exactly one PEM `-----BEGIN CERTIFICATE-----` block that parses as X.509 and has not expired when saved. CRLF and the literal-`\n` single-line form are accepted |
+| `idp_cert` | yes | Exactly one PEM `-----BEGIN CERTIFICATE-----` block that parses as X.509 and is inside its validity window when saved (not expired, not yet valid). CRLF and the literal-`\n` single-line form are accepted |
 
 `client_id`, `client_secret`, `issuer` and `tenant_id` are neither required
 nor stored for `saml` — a `PUT` or `PATCH` clears whichever side the provider
@@ -703,7 +703,10 @@ provider) whatever the cookie.
   certificate subject, its `not_after` date and days remaining. Success means
   `PUT`/`PATCH` will accept the same values; a failure carries
   `details.error_code` (`invalid_sso_url`, `invalid_entity_id`,
-  `invalid_certificate`, `certificate_expired`) and `details.field`.
+  `invalid_certificate`, `certificate_expired`, `certificate_not_yet_valid`)
+  and `details.field`; a certificate outside its validity window also carries
+  `details.certificate_not_before` and `details.certificate_not_after` (ISO
+  8601).
 - **Expiry after save** does not invalidate the record: it stays editable and
   can be disabled (the API re-validates the whole record on every `PATCH`, so
   an expiry invariant would make an expired config impossible to turn off).
@@ -822,7 +825,7 @@ previously configured tenant that was pointed at the wrong cloud.
 | SSO configured but login fails | No custom domain with SSO config | Add custom domain and configure SSO |
 | Platform SSO used instead of domain SSO | Accessing via canonical domain | Use domain's custom URL |
 | SAML sign-in lands on `sso_config_unusable` | The domain's SAML record is unusable: expired certificate, or a field that no longer decrypts | Check the `omniauth_tenant_config_unusable` log event; save a current certificate or re-enter the flagged fields |
-| SAML save refused: "SAML sign-in cannot complete on this install: site.session.same_site is …" | The install's session cookie is not `SameSite=None; Secure`, so no SAML callback could ever complete; the rule is enforced where the configuration is created | The operator sets `site.session.same_site: none` with `secure: true` (see [per-install-sso.md](per-install-sso.md#saml-20-1)) and restarts; boot logs the same rule as `[OmniAuth] SAML is enabled … but …` |
+| SAML save refused: "SAML sign-in cannot complete on this install: site.session.same_site is …" | The install's session cookie is not `SameSite=None; Secure`, so no SAML callback could ever complete; the rule is enforced where the configuration is created | The operator sets `site.session.same_site: none` with `secure: true` (see [per-install-sso.md](per-install-sso.md#saml-20-1)) and restarts; boot logs the same rule as `[OmniAuth] SAML is enabled … but …` only for the tenant placeholder (`ORGS_SSO_ENABLED=true`, no platform `SAML_*` vars) — with platform `SAML_*` vars set the boot line is `[OmniAuth] Skipping SAML provider 'saml': …` instead |
 | SAML save refused: "must have a plain hostname (no spaces, quotes or punctuation in the host)", "must not contain a fragment" or "host must not end with a dot" | The SSO URL's host carries characters the CSP `form-action` directive cannot carry, or a trailing dot that the derived origin would strip (the browser would then POST from an origin that was never admitted) | Enter the IdP's SSO URL with a plain hostname. Private-network IdPs are accepted: the server never fetches this URL |
 | SAML callback returns 403 | The POST's `Origin` is not the record's `idp_sso_service_url` origin, or the domain has no available SSO config | See [Custom-Domain POST Returns 403](#custom-domain-post-returns-403-httporigin) |
 
