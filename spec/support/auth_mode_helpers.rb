@@ -31,12 +31,16 @@ module AuthModeHelpers
       @remember_me_enabled = options.fetch(:remember_me_enabled, true)
       @verify_account_enabled = options.fetch(:verify_account_enabled, false)  # Disabled in test by default
       @mfa_enabled = options.fetch(:mfa_enabled, true)
-      # Env-aware like the SSO flags below: the L-5 magic-link rate-limit lane
-      # (apps/web/auth/spec/integration/full/email_auth_rate_limit_spec.rb)
-      # exports AUTH_EMAIL_AUTH_ENABLED=true and needs the email-login-request
-      # route to exist. Unset env preserves the old false.
+      # Magic links and passkeys default OFF, but honor env the same way the
+      # SSO flags below do: this mock is what config.rb reads at the one-shot
+      # boot of a :full_auth_mode process, so the full-mfa lane (which exports
+      # AUTH_EMAIL_AUTH_ENABLED=true and AUTH_WEBAUTHN_ENABLED=true; the passkey
+      # specs also set the latter at load time via support/webauthn_flow_helper.rb)
+      # is the only process that loads the Rodauth email_auth and webauthn
+      # feature sets. Unset env preserves the old false; == 'true' semantics
+      # match etc/defaults/auth.defaults.yaml.
       @email_auth_enabled = options.fetch(:email_auth_enabled) { ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true' }
-      @webauthn_enabled = options.fetch(:webauthn_enabled, false)
+      @webauthn_enabled = options.fetch(:webauthn_enabled) { ENV['AUTH_WEBAUTHN_ENABLED'] == 'true' }
       # SSO flags default OFF in tests, but honor env so the per-mode rake
       # batches (which run integration/full/ with provider env set) can exercise
       # the real omniauth route registration. Unset env preserves the old false.
@@ -94,6 +98,17 @@ module AuthModeHelpers
 
     def webauthn_enabled?
       @webauthn_enabled
+    end
+
+    # The two WebAuthn sub-features config/features/webauthn.rb consults at
+    # configure time. Both are separate opt-ins in production
+    # (AUTH_WEBAUTHN_VERIFY_ACCOUNT / AUTH_WEBAUTHN_AUTOFILL); off here.
+    def webauthn_verify_account_enabled?
+      false
+    end
+
+    def webauthn_autofill_enabled?
+      false
     end
 
     def sso_enabled?

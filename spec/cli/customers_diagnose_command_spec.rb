@@ -37,6 +37,12 @@ RSpec.describe 'customers diagnose', type: :cli do
           email: 'user@example.com',
           status: 'verified',
         },
+        workspace_collision: {
+          available: true,
+          classification: :retained_data,
+          email: 'user@example.com',
+          evidence: { contact_email: 'user@example.com', organization_extid: 'on_old' },
+        },
         audit_log: {
           available: true,
           entries: [
@@ -207,6 +213,8 @@ RSpec.describe 'customers diagnose', type: :cli do
       payload = json_output('42', '--json')
 
       expect(payload.dig('sections', 'auth_account', 'email')).to eq('us***@e***.com')
+      expect(payload.dig('sections', 'workspace_collision', 'evidence', 'contact_email'))
+        .to eq('us***@e***.com')
       # String-keyed, two levels down inside decoded audit-log metadata.
       expect(payload.dig('sections', 'audit_log', 'entries', 0, 'metadata', 'email'))
         .to eq('us***@e***.com')

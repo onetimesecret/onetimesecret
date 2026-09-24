@@ -52,6 +52,30 @@
 #   4. logged-in + connect intent on the PLATFORM surface + TENANT callback
 #        -> REFUSED (surface isolation): a tenant callback must not bind a
 #           tenant-issuer identity onto a platform session. Reason tenant_surface.
+#   5. (#4411) connect=1 on an authenticated session WITHOUT a recent full
+#      re-authentication proof (absent, consumed, stale, other account, other
+#      surface, or a non-local primary such as a magic link)
+#        -> the request phase mints NO intent, logs
+#           :omniauth_connect_reauth_required, and redirects to /reauth with
+#           the Connected Identities panel as the return path. The proof is
+#           single-use: one ceremony admits exactly one initiation.
+#   6. (#4411) the callback refuses an intent whose recorded surface differs
+#      from the callback's, and treats a pre-#4411 bare-id intent as absent.
+#   7. (#3849) on a tenant host, a remember cookie never restores a session
+#      (nothing calls load_memory) and a mailbox-proof primary records no
+#      proof: neither can mint an intent.
+#   8. (#3849) a tenant A session presented to the tenant B callback, and a
+#      live intent whose stashed tenant context disagrees with the callback
+#      host, both consume the intent and bind nothing; with trusted-email
+#      linking ON, every refused tenant gate still creates no identity,
+#      account, membership, or linking challenge.
+#   9. (#3849) a successful tenant Connect on an account still owning an
+#      unarchived personal default workspace adopts the tenant org as
+#      default_org_id and archives that workspace (JoinDomainOrganization's
+#      already_member path), leaving the membership untouched.
+#  10. (#4433) a registered custom-domain callback using platform fallback has
+#      no validated tenant domain and is refused as a surface mismatch, with no
+#      bind or account switch and no replayable intent.
 #
 # REQUIREMENTS:
 # - Valkey running on port 2163: pnpm run test:database:start
@@ -66,6 +90,7 @@
 
 require_relative '../../spec_helper'
 require_relative '../../support/oauth_flow_helper'
+require 'onetime/operations/sessions/store'
 
 RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: :integration do
   include Rack::Test::Methods
@@ -145,6 +170,62 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
     Onetime::SessionSidecar.exists?(sid, 'sso_connect_intent')
   end
 
+  # The recent-full-re-authentication proof (#4410) the request phase consumes
+  # before minting an intent (#4411). A password login records one, so the
+  # happy-path scenarios above pass the gate on the login itself; the #4411
+  # scenarios below remove or replace it to drive each refusal.
+  def reauth_proof_live?(sid)
+    Onetime::SessionSidecar.exists?(sid, 'recent_reauth')
+  end
+
+  def clear_reauth_proof(sid)
+    Onetime::SessionSidecar.delete(sid, 'recent_reauth')
+  end
+
+  # Overwrite the proof with a hand-built payload. Defaults are a fresh,
+  # canonical-surface password ceremony for `account_id`; each scenario varies
+  # exactly one binding.
+  def seed_reauth_proof(sid, account_id, at: Time.now.utc.to_i, surface: Onetime::SessionSurface::CANONICAL,
+                        methods: %w[password])
+    clear_reauth_proof(sid)
+    Onetime::SessionSidecar.write(
+      sid,
+      'recent_reauth',
+      { 'account_id' => Integer(account_id), 'at' => at, 'surface' => surface, 'methods' => methods },
+    )
+  end
+
+  def expect_reauth_required_redirect
+    expect(last_response.status).to eq(302),
+      "Expected the request phase to redirect to re-authentication, got #{last_response.status}: #{last_response.body}"
+    expect(last_response.location.to_s).to include(Auth::Config::Hooks::OmniAuth.connect_reauth_redirect),
+      "Expected a redirect to the re-authentication view, got: #{last_response.location.inspect}"
+  end
+
+  # Read / rewrite the live Rack session blob through the same Store + Codec
+  # the session admin verbs use (the pattern in
+  # spec/integration/full/active_sessions_spec.rb), so the router and Rodauth
+  # read the key back exactly as a request would have left it. Rack's
+  # SessionHash stringifies keys, so callers pass string keys.
+  def session_blob(sid)
+    db    = Familia.dbclient
+    dbkey = Onetime::Operations::Sessions::Store.find_key(db, sid)
+    raise "No session blob stored for sid #{sid.inspect}" unless dbkey
+
+    Onetime::Operations::Sessions::Store.load_data(db, dbkey, codec: Onetime::SessionCodec.from_config)
+  end
+
+  def stash_in_session_blob(sid, key, value)
+    db        = Familia.dbclient
+    dbkey     = Onetime::Operations::Sessions::Store.find_key(db, sid)
+    raise "No session blob stored for sid #{sid.inspect}" unless dbkey
+
+    codec     = Onetime::SessionCodec.from_config
+    data      = Onetime::Operations::Sessions::Store.load_data(db, dbkey, codec: codec)
+    data[key] = value
+    db.set(dbkey, codec.encode(data), keepttl: true)
+  end
+
   # ==========================================================================
   # Scenario 1 — logged-in on the platform surface -> bind to session account
   # ==========================================================================
@@ -173,6 +254,10 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         sid = current_sid
         expect(intent_live?(sid)).to be(true),
           'Connect initiation must set the intent sidecar key'
+        # #4411: the password login recorded a recent-reauth proof, and the
+        # initiation SPENT it — one ceremony, one intent.
+        expect(reauth_proof_live?(sid)).to be(false),
+          'Connect initiation must consume the recent re-authentication proof'
 
         clear_body_headers
         post '/auth/sso/oidc/callback'
@@ -431,6 +516,113 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   end
 
   # ==========================================================================
+  # Scenario 2b' — the fail-closed rescue covers Connect lookups only (#4431)
+  # ==========================================================================
+  #
+  # authorize_omniauth_connect used to rescue StandardError method-wide, so an
+  # error in the intent-absent branch — reached by every ordinary sign-in
+  # callback on a logged-in session — was reported to the user as
+  # identity_connect_conflict although no Connect was requested. The two
+  # examples pin both sides of the boundary: outside it nothing is
+  # reclassified, inside it a lookup failure still refuses before any bind.
+
+  describe 'scope of the Connect lookup rescue (#4431)' do
+    before { enable_platform_fallback }
+
+    it 'keeps a no-intent callback on the ordinary path when the intent-absent log raises' do
+      actor_email = "actor-lograise-#{SecureRandom.hex(6)}@company.example.com"
+      other_email = "other-#{SecureRandom.hex(6)}@company.example.com"
+      uid         = "sub-#{SecureRandom.hex(8)}"
+
+      actor_id = seed_account_with_password(actor_email)
+      seed_existing_account(other_email)
+
+      csrf_login(actor_email)
+      expect(last_response.status).to be_between(200, 302)
+
+      allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      allow(Auth::Logging).to receive(:log_auth_event)
+        .with(:omniauth_connect_intent_absent, anything).and_raise(RuntimeError, 'log sink down')
+      allow(OT).to receive(:le).and_call_original
+
+      setup_mock_auth(email: other_email, uid: uid)
+      begin
+        clear_body_headers
+        post '/auth/sso/oidc/callback'
+
+        skip 'OmniAuth route not registered' if last_response.status == 404
+
+        # Not vacuous: the raising branch was reached.
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:omniauth_connect_intent_absent, anything)
+        expect(OT).to have_received(:le).with(/intent-absent log failed: RuntimeError/)
+
+        # The ordinary path answered: a redirect, and not the Connect refusal.
+        expect(last_response.status).to eq(302)
+        expect(last_response.location.to_s).not_to include('identity_connect_conflict')
+        expect(last_response.location.to_s).not_to include('identity_connect_wrong_domain')
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_identity_connect_refused, anything)
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_connect_lookup_error, anything)
+
+        # And it is still not a Connect: nothing binds onto the session account.
+        expect(identities.where(account_id: actor_id).count).to eq(0)
+        expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
+      ensure
+        teardown_mock_auth
+      end
+    end
+
+    it 'still refuses as lookup_error, binding nothing, when a lookup raises after a valid intent' do
+      email      = "connect-lookupraise-#{SecureRandom.hex(6)}@company.example.com"
+      uid        = "sub-#{SecureRandom.hex(8)}"
+      account_id = seed_account_with_password(email)
+
+      csrf_login(email)
+      expect(last_response.status).to be_between(200, 302)
+
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      setup_mock_auth(email: email, uid: uid)
+      begin
+        skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if initiate_sso_connect == 404
+
+        sid = current_sid
+        expect(intent_live?(sid)).to be(true)
+
+        # The session gate ahead of the /auth router loads the same Customer;
+        # failing it there is a 401 that never reaches the hook. Fail only the
+        # hook's own lookup, which is the one under test.
+        allow(Onetime::Customer).to receive(:find_by_extid).and_wrap_original do |original, *args|
+          from_hook = caller.first(30).any? { |frame| frame.include?('config/hooks/omniauth_connect.rb') }
+          raise 'customer store down' if from_hook
+
+          original.call(*args)
+        end
+
+        clear_body_headers
+        post '/auth/sso/oidc/callback'
+
+        expect(last_response.status).to eq(302)
+        expect(last_response.location.to_s).to include('auth_error=identity_connect_conflict')
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:omniauth_connect_lookup_error, hash_including(error_class: 'RuntimeError'))
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:omniauth_identity_connect_refused, hash_including(reason: 'lookup_error'))
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_identity_connected, anything)
+
+        expect(identities.where(account_id: account_id).count).to eq(0)
+        expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
+        expect(intent_live?(sid)).to be(false), 'a refused Connect still consumes its intent'
+      ensure
+        teardown_mock_auth
+      end
+    end
+  end
+
+  # ==========================================================================
   # Scenario 2c — ABANDONED connect: expired intent must not bind (#3859)
   # ==========================================================================
   #
@@ -647,6 +839,14 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
   # independent of the IdP email: a tenant callback must never bind a
   # tenant-issuer identity onto a PLATFORM session (validated_omniauth_domain_id
   # is set by the tenant hook on tenant callbacks only).
+  #
+  # #4409 moved the first refusal upstream: the auth router destroys a session
+  # whose recorded surface (platform) differs from the request surface (tenant)
+  # before any Rodauth route runs, so the tenant initiation records no connect
+  # intent and the callback arrives ANONYMOUS. The hook-level
+  # `identity_connect_wrong_domain` branch is now defence-in-depth behind that
+  # gate; what the round trip observes is the anonymous existing-account
+  # refusal on the tenant surface.
 
   describe 'logged-in on platform, tenant callback (surface isolation)', :oauth_flow do
     include OAuthFlowHelper
@@ -691,26 +891,1097 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         skip "OmniAuth route not registered for #{host}" if last_response.status == 404
         expect(last_response.status).to eq(302)
 
-        # Callback from the SAME host -> validated_omniauth_domain_id gets set,
-        # so the connect branch sees a NON-platform surface and refuses.
+        # The platform session never reached the tenant initiation: the
+        # router refused it for the surface (#4409) and cleared it.
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:session_surface_mismatch, hash_including(path: '/sso/oidc', outcome: :continued_anonymous))
+
+        # Callback from the SAME host -> validated_omniauth_domain_id gets set.
+        # With no authenticated session and no intent, the hook takes the
+        # unauthenticated email branch: the asserted email matches an existing
+        # account, and on the tenant surface that is refused outright.
         clear_body_headers
         header 'Host', host
         post '/auth/sso/oidc/callback'
 
         expect(last_response.status).to eq(302)
-        expect(last_response.location.to_s).to include('/signin?auth_error=identity_connect_wrong_domain'),
+        expect(last_response.location.to_s).to include('/signin?auth_error=tenant_sso_link_unavailable'),
           "Tenant callback must refuse the bind. Location: #{last_response.location.inspect}"
 
         expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0),
           'Surface isolation must NOT create a tenant identity row'
 
         expect(Auth::Logging).to have_received(:log_auth_event)
-          .with(:omniauth_identity_connect_refused, hash_including(provider: 'oidc', reason: 'tenant_surface'))
+          .with(:omniauth_link_refused_existing_account, hash_including(provider: 'oidc', surface: 'tenant'))
+        # The connect branch was never entered, so neither its refusal nor a
+        # bind can have been recorded.
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_identity_connect_refused, anything)
         expect(Auth::Logging).not_to have_received(:log_auth_event)
           .with(:omniauth_identity_connected, anything)
       ensure
         teardown_mock_auth
       end
+    end
+  end
+
+  # ==========================================================================
+  # Scenario 4b — custom-domain platform fallback callback -> REFUSE (#4433)
+  # ==========================================================================
+  #
+  # enable_platform_fallback below is scoped to the REQUEST phase: it lets
+  # OmniAuthTenant.handle_missing_tenant_config allow the /auth/sso/oidc
+  # kickoff through. The callback refusal asserted here does NOT consult
+  # allow_platform_fallback_for_tenants? — omniauth_connect.rb:113 rejects
+  # any custom-surface Connect without validated_omniauth_domain_id
+  # regardless of fallback policy. Do not read this example as pinning
+  # fallback-specific callback behavior; it pins the surface-mismatch gate.
+
+  describe 'registered custom-domain platform fallback callback (#4433)', :oauth_flow do
+    include OAuthFlowHelper
+
+    let(:host) { "fallback-connect-#{SecureRandom.hex(6)}.tenant.example.com" }
+    let(:actor_email) { unique_test_email('fallback-connect-actor') }
+    let(:other_email) { unique_test_email('fallback-connect-other') }
+    let(:uid) { "fallback-connect-sub-#{SecureRandom.hex(8)}" }
+    let!(:actor_id) { seed_account_with_password(actor_email) }
+
+    before do
+      @fallback_tenant = setup_oauth_test_domain(host)
+      Onetime::CustomDomain::SsoConfig.delete_for_domain!(@fallback_tenant[:domain].identifier)
+      Onetime::CustomDomain::SigninConfig.create!(
+        domain_id: @fallback_tenant[:domain].identifier, enabled: true, signin_enabled: true, sso_enabled: true,
+      )
+      seed_account_with_password(other_email)
+      enable_platform_fallback
+
+      header 'Host', host
+      csrf_login(actor_email)
+      expect(last_request.env['rack.session']['account_id']).to eq(actor_id)
+
+      allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      setup_mock_auth(email: other_email, uid: uid)
+    end
+
+    after do
+      teardown_mock_auth
+      Onetime::CustomDomain::SigninConfig.delete_for_domain!(@fallback_tenant[:domain].identifier) if @fallback_tenant
+    end
+
+    it 'refuses the unvalidated custom surface, preserves the account, and consumes the intent' do
+      expect(Onetime::CustomDomain::SsoConfig.find_by_domain_id(@fallback_tenant[:domain].identifier)).to be_nil
+      expect(initiate_sso_connect(host: host)).to eq(302)
+
+      sid    = current_sid
+      intent = Onetime::SessionSidecar.read(sid, 'sso_connect_intent')
+      expect(intent).to include(
+        'account_id' => actor_id,
+        'surface' => { 'kind' => 'custom', 'id' => @fallback_tenant[:domain].identifier },
+      )
+      expect(session_blob(sid)).not_to include('omniauth_tenant_domain_id', 'validated_omniauth_domain_id')
+      accounts_before = auth_db[:accounts].count
+
+      clear_body_headers
+      header 'Host', host
+      post '/auth/sso/oidc/callback'
+
+      expect_auth_error_redirect('identity_connect_wrong_domain')
+      expect(last_request.env['rack.session']['account_id']).to eq(actor_id),
+        'A refused fallback callback must not switch the authenticated account'
+      expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0)
+      expect(auth_db[:accounts].count).to eq(accounts_before)
+      expect(intent_live?(sid)).to be(false), 'The refused intent must be consumed'
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_identity_connect_refused, hash_including(provider: 'oidc', reason: 'surface_mismatch'))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
+
+      clear_body_headers
+      header 'Host', host
+      post '/auth/sso/oidc/callback'
+
+      expect(intent_live?(sid)).to be(false)
+      expect(last_request.env['rack.session']['account_id']).to eq(actor_id)
+      expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0),
+        'A second callback must not replay the refused Connect intent'
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_connect_intent_absent, hash_including(provider: 'oidc', had_intent: false))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
+    end
+  end
+
+  # ==========================================================================
+  # Scenario 5 — #4411: connect=1 WITHOUT recent full re-authentication
+  # ==========================================================================
+  #
+  # An authenticated session plus connect=1 is intent, not proof. Attaching a
+  # login identity changes the account's authenticators, so the request phase
+  # mints an intent ONLY after Onetime::RecentReauth.satisfied? consumes a
+  # fresh proof for this account on this surface. Each example below removes
+  # or replaces the proof the password login recorded, and asserts the same
+  # fail-closed outcome: no intent, a warn event, a redirect to /reauth that
+  # returns to the Connected Identities panel — and, for the callback that
+  # follows, no bind.
+
+  describe 'connect initiation without recent full re-authentication (#4411)' do
+    let(:actor_email) { "actor-reauth-#{SecureRandom.hex(6)}@company.example.com" }
+    let(:other_email) { "other-#{SecureRandom.hex(6)}@company.example.com" }
+    let!(:actor_id) { seed_account_with_password(actor_email) }
+    let!(:other_id) { seed_existing_account(other_email) }
+
+    before do
+      enable_platform_fallback
+      csrf_login(actor_email)
+      unless (200..302).cover?(last_response.status)
+        raise "Precondition failed: password login did not succeed (#{last_response.status}: #{last_response.body})"
+      end
+      # A completed password login records the proof; every example starts
+      # from that known-good state and then breaks exactly one binding.
+      raise 'Precondition failed: a password login must record a recent-reauth proof' unless reauth_proof_live?(current_sid)
+
+      allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      setup_mock_auth(email: other_email, uid: "sub-#{SecureRandom.hex(8)}")
+    end
+
+    after { teardown_mock_auth }
+
+    # Drive connect=1 and assert the request phase refused: no intent minted,
+    # the proof (whatever state it was in) is gone, the event fired, and the
+    # user was sent to re-authenticate.
+    def expect_initiation_refused(sid)
+      skip 'OmniAuth route not registered' if initiate_sso_connect == 404
+
+      expect_reauth_required_redirect
+      expect(intent_live?(sid)).to be(false),
+        'A refused initiation must NOT leave a connect intent live'
+      expect(reauth_proof_live?(sid)).to be(false),
+        'The gate consumes the proof whether or not it satisfied'
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_connect_reauth_required, hash_including(provider: 'oidc', account_id: actor_id))
+    end
+
+    it 'refuses when the session carries no proof (the ordinary authenticated session)' do
+      sid = current_sid
+      clear_reauth_proof(sid)
+
+      expect_initiation_refused(sid)
+
+      # The callback that follows an abandoned refusal finds nothing to bind on.
+      clear_body_headers
+      post '/auth/sso/oidc/callback'
+
+      expect(last_response.status).to eq(302)
+      expect(identities.where(account_id: actor_id).count).to eq(0),
+        'A connect refused at initiation must NOT bind at the callback'
+      expect(identities.where(provider: 'oidc').count).to eq(0)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_connect_intent_absent, hash_including(provider: 'oidc', had_intent: false))
+    end
+
+    it 'refuses a second initiation on the same proof (single-use, replay)' do
+      sid = current_sid
+
+      # First initiation spends the login's proof and mints an intent.
+      skip 'OmniAuth route not registered' if initiate_sso_connect == 404
+      expect(last_response.status).to eq(302)
+      expect(last_response.location.to_s).not_to include(Auth::Config::Hooks::OmniAuth::REAUTH_PATH),
+        "First initiation must pass the gate. Location: #{last_response.location.inspect}"
+      expect(intent_live?(sid)).to be(true)
+      expect(reauth_proof_live?(sid)).to be(false)
+
+      # Abandon it (model the IdP round-trip never completing), then try again
+      # without re-authenticating: the spent proof admits nothing.
+      Onetime::SessionSidecar.delete(sid, 'sso_connect_intent')
+
+      expect_initiation_refused(sid)
+    end
+
+    it 'refuses a proof older than CONNECT_MAX_AGE (stale)' do
+      sid = current_sid
+      seed_reauth_proof(sid, actor_id, at: Time.now.utc.to_i - Onetime::RecentReauth::CONNECT_MAX_AGE - 1)
+
+      expect_initiation_refused(sid)
+    end
+
+    it 'refuses a proof recorded for a different account' do
+      sid = current_sid
+      seed_reauth_proof(sid, other_id)
+
+      expect_initiation_refused(sid)
+    end
+
+    it 'refuses a proof recorded on a different surface' do
+      sid = current_sid
+      seed_reauth_proof(sid, actor_id, surface: { 'kind' => 'custom', 'id' => "cd-#{SecureRandom.hex(4)}" })
+
+      expect_initiation_refused(sid)
+    end
+
+    it 'refuses mailbox proof (a magic-link primary is not a local credential)' do
+      sid = current_sid
+      seed_reauth_proof(sid, actor_id, methods: %w[email_auth])
+
+      expect_initiation_refused(sid)
+    end
+
+    it 'admits a fresh proof for this account on this surface' do
+      sid = current_sid
+      seed_reauth_proof(sid, actor_id)
+
+      skip 'OmniAuth route not registered' if initiate_sso_connect == 404
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.location.to_s).not_to include(Auth::Config::Hooks::OmniAuth::REAUTH_PATH),
+        "A fresh proof must pass the gate. Location: #{last_response.location.inspect}"
+      expect(intent_live?(sid)).to be(true)
+      expect(reauth_proof_live?(sid)).to be(false)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_connect_reauth_required, anything)
+    end
+  end
+
+  # ==========================================================================
+  # Scenario 5b — custom-host local re-authentication -> initiation -> callback
+  # ==========================================================================
+
+  describe 'custom-host password re-authentication and Connect callback', :oauth_flow do
+    include OAuthFlowHelper
+
+    it 'records an exact-surface proof through POST /auth/reauth and completes Connect' do
+      host       = "reauth-connect-#{SecureRandom.hex(6)}.tenant.example.com"
+      email      = unique_test_email('tenant-reauth')
+      uid        = "reauth-sub-#{SecureRandom.hex(8)}"
+      account_id = seed_account_with_password(email)
+      tenant     = setup_oauth_test_domain(host)
+      customer   = Onetime::Customer.find_by_extid(auth_db[:accounts].where(id: account_id).get(:external_id))
+      membership = Onetime::OrganizationMembership.ensure_membership(
+        tenant[:org], customer, role: 'member', domain_scope_id: tenant[:domain].objid, provisioning_source: 'sso',
+      )
+      Onetime::CustomDomain::SigninConfig.create!(
+        domain_id: tenant[:domain].identifier, enabled: true, signin_enabled: true, sso_enabled: true,
+      )
+
+      header 'Host', host
+      csrf_login(email)
+      sid = current_sid
+      clear_reauth_proof(sid)
+
+      set_cookie = last_response.headers['set-cookie'].to_s
+      expect(set_cookie).to include('onetime.session=')
+      expect(set_cookie).not_to match(/(?:^|;)\s*Domain=/i),
+        "Tenant session cookie must be host-only, got: #{set_cookie.inspect}"
+
+      clear_body_headers
+      header 'Accept', 'application/json'
+      get '/auth/reauth-offer'
+      expect(last_response.status).to eq(200)
+      expect(json_body['surface']).to eq('kind' => 'custom', 'id' => tenant[:domain].identifier)
+      expect(json_body['methods']).to include('password')
+
+      csrf_json_post(
+        '/auth/reauth', method: 'password', password: AuthTestConstants::TEST_PASSWORD,
+      )
+      expect(last_response.status).to eq(200)
+      expect(json_body).to include('success' => 'Re-authentication complete')
+      expect(Onetime::SessionSidecar.read(sid, Onetime::RecentReauth::KEY)).to include(
+        'account_id' => account_id,
+        'surface' => { 'kind' => 'custom', 'id' => tenant[:domain].identifier },
+        'methods' => %w[password],
+      )
+
+      allow(Auth::Operations::JoinDomainOrganization).to receive(:new).and_call_original
+      setup_mock_auth(email: unique_test_email('asserted-victim'), uid: uid)
+      begin
+        expect(initiate_sso_connect(host: host)).to eq(302)
+        expect(intent_live?(sid)).to be(true)
+        expect(reauth_proof_live?(sid)).to be(false)
+
+        clear_body_headers
+        header 'Host', host
+        post '/auth/sso/oidc/callback'
+
+        expect(last_response.status).to eq(302)
+        expect(identities.where(provider: 'oidc', uid: uid).all)
+          .to contain_exactly(hash_including(account_id: account_id))
+        expect(Auth::Operations::JoinDomainOrganization).to have_received(:new)
+          .with(customer: an_object_having_attributes(objid: customer.objid), domain_id: tenant[:domain].identifier)
+        persisted = Onetime::OrganizationMembership.find_by_org_customer(tenant[:org].objid, customer.objid)
+        expect(persisted.objid).to eq(membership.objid)
+        expect(persisted.domain_scope_id).to eq(tenant[:domain].objid)
+        expect(intent_live?(sid)).to be(false)
+      ensure
+        teardown_mock_auth
+      end
+    end
+  end
+
+  # ==========================================================================
+  # Scenario 5c — #3849: tenant-host sessions that cannot mint an intent
+  # ==========================================================================
+  #
+  # The matrix row "remembered and email-authenticated sessions cannot mint
+  # an intent", pinned against what the mounted stack does rather than a
+  # seeded proof (Scenario 5 covers the gate's own method check).
+  #
+  # REMEMBER: the feature is enabled (config/features/remember_me.rb) and
+  # POST /auth/remember issues a real cookie, but nothing in the app calls
+  # rodauth.load_memory, so a browser presenting only the remember cookie is
+  # ANONYMOUS on the auth router. The initiation therefore takes the plain
+  # non-connect path: no session, no proof consulted, no intent, no reauth
+  # redirect. (If load_memory is ever wired up, this example must move to the
+  # reauth-refusal assertion: a restored session records no proof either.)
+  #
+  # MAILBOX PROOF: a magic-link login is not mountable in this lane
+  # (spec/auth.test.yaml pins email_auth: false, and Auth::Config configures
+  # once per process — lib/tasks/spec.rake 'full:mfa' runs its own process
+  # for the same reason), so the example completes the REAL login route with
+  # the primary Rodauth would report after login('email_auth'): only the
+  # authenticated_by reader is stubbed, on the one Rodauth instance serving
+  # the login POST, so login_session, the surface stamp, the active-session
+  # join and after_login (hooks/login.rb) all run unchanged. after_login's
+  # LOCAL_PRIMARIES guard then skips the proof, and RecentReauth.record
+  # itself refuses the same primary — both guards are pinned.
+
+  describe 'tenant-host sessions that cannot mint an intent (#3849)', :oauth_flow do
+    include OAuthFlowHelper
+
+    let(:host) { "nomint-#{SecureRandom.hex(6)}.tenant.example.com" }
+    let(:email) { unique_test_email('tenant-nomint') }
+    let!(:account_id) { seed_account_with_password(email) }
+
+    before do
+      @tenant = setup_oauth_test_domain(host)
+      Onetime::CustomDomain::SigninConfig.create!(
+        domain_id: @tenant[:domain].identifier, enabled: true, signin_enabled: true, sso_enabled: true,
+      )
+      header 'Host', host
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      setup_mock_auth(email: email, uid: "sub-#{SecureRandom.hex(8)}")
+    end
+
+    after { teardown_mock_auth }
+
+    def login_as_mailbox_primary(email)
+      allow(Auth::Config).to receive(:new).and_wrap_original do |original, *args|
+        instance = original.call(*args)
+        allow(instance).to receive(:authenticated_by).and_return(%w[email_auth])
+        instance
+      end
+      csrf_login(email)
+    ensure
+      allow(Auth::Config).to receive(:new).and_call_original
+    end
+
+    it 'never restores a remember-cookie session, so a remembered browser cannot mint an intent' do
+      expect(Auth::Config.method_defined?(:load_memory)).to be(true), 'remember feature must be enabled'
+      csrf_login(email)
+      login_sid       = current_sid
+      csrf_json_post('/auth/remember', remember: 'remember')
+      expect(last_response.status).to eq(200), "POST /auth/remember: #{last_response.status} #{last_response.body}"
+      # "<obfuscated account id>_<key>" (account_id_obfuscation is wired, so
+      # the prefix is not the raw integer id).
+      remember_cookie = rack_mock_session.cookie_jar['_remember']
+      expect(remember_cookie).to match(/\A[^_]+_\S+\z/)
+      expect(auth_db[:account_remember_keys].where(id: account_id).count).to eq(1)
+
+      # A new browser session: the session cookie is gone, the remember
+      # cookie is presented. The request that could call load_memory does not.
+      rack_mock_session.cookie_jar.delete('onetime.session')
+      clear_body_headers
+      header 'Accept', 'application/json'
+      get '/auth'
+      expect(last_request.env['rack.session']['account_id']).to be_nil,
+        'A remember cookie alone must not restore an authenticated session'
+      expect(rack_mock_session.cookie_jar['_remember']).to eq(remember_cookie)
+
+      expect(initiate_sso_connect(host: host)).to eq(302)
+      expect(last_request.env['rack.session']['account_id']).to be_nil
+      expect(last_response.location.to_s).not_to include(Auth::Config::Hooks::OmniAuth::REAUTH_PATH),
+        "An anonymous initiation takes the plain sign-in path. Location: #{last_response.location.inspect}"
+      expect(intent_live?(login_sid)).to be(false)
+      expect(intent_live?(current_sid)).to be(false)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_connect_reauth_required, anything)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:session_surface_mismatch, anything)
+    end
+
+    it 'records no proof for a mailbox-proof primary, so the connect initiation is refused' do
+      login_as_mailbox_primary(email)
+      sid     = current_sid
+      expect(session_blob(sid)['auth_method']).to eq('email_auth'),
+        'Precondition failed: after_login must have seen the mailbox primary'
+      expect(reauth_proof_live?(sid)).to be(false),
+        'after_login must not record a proof for a non-local primary'
+      # The recorder refuses the same primary on its own, against this
+      # request's real session and surface.
+      session = last_request.env['rack.session']
+      expect(Onetime::SessionSurface.for_env(last_request.env))
+        .to eq('kind' => 'custom', 'id' => @tenant[:domain].identifier)
+      expect(Onetime::RecentReauth.record(session, last_request.env, account_id: account_id, methods: %w[email_auth]))
+        .to be_nil
+      expect(Onetime::SessionSidecar.read(sid, Onetime::RecentReauth::KEY)).to be_nil
+
+      expect(initiate_sso_connect(host: host)).to eq(302)
+      expect_reauth_required_redirect
+      expect(intent_live?(sid)).to be(false)
+      expect(Onetime::SessionSidecar.read(sid, Onetime::RecentReauth::KEY)).to be_nil
+      expect(last_request.env['rack.session']['account_id']).to eq(account_id)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_connect_reauth_required, hash_including(provider: 'oidc', account_id: account_id))
+    end
+  end
+
+  # ==========================================================================
+  # Scenario 6 — #4411: the callback's own intent checks
+  # ==========================================================================
+  #
+  # The intent carries the surface the gate verified. A callback arriving on
+  # any other surface refuses (defence in depth behind the router's session-
+  # surface gate), and an intent that is not the { account_id, surface, at }
+  # shape — including the pre-#4411 bare account id — is treated as absent.
+
+  describe 'tenant connect callback pipeline (#3849)', :oauth_flow do
+    include OAuthFlowHelper
+
+    let(:host) { "connect-#{SecureRandom.hex(6)}.tenant.example.com" }
+    let(:actor_email) { unique_test_email('tenant-connect') }
+    let(:other_email) { unique_test_email('asserted-email') }
+    let!(:actor_id) { seed_account_with_password(actor_email) }
+    let!(:other_id) { seed_account_with_password(other_email) }
+    let(:customer) { Onetime::Customer.find_by_extid(auth_db[:accounts].where(id: actor_id).get(:external_id)) }
+    let(:uid) { "connect-sub-#{SecureRandom.hex(8)}" }
+    let(:tuple) { { provider: 'oidc', issuer: OmniAuthTestHelper::MOCK_ISSUER, uid: uid } }
+
+    before do
+      @tenant = setup_oauth_test_domain(host)
+      Onetime::CustomDomain::SigninConfig.create!(
+        domain_id: @tenant[:domain].identifier, enabled: true, signin_enabled: true, sso_enabled: true,
+      )
+      @membership = Onetime::OrganizationMembership.ensure_membership(
+        @tenant[:org], customer, role: 'member',
+        domain_scope_id: @tenant[:domain].objid, provisioning_source: 'sso',
+      )
+      header 'Host', host
+      csrf_login(actor_email)
+      expect(last_request.env['rack.session']['account_id']).to eq(actor_id)
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      allow(Auth::Operations::JoinDomainOrganization).to receive(:new).and_call_original
+      allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
+      setup_mock_auth(email: other_email, uid: uid)
+      expect(initiate_sso_connect(host: host)).to eq(302)
+      @connect_sid = last_request.env['rack.session'].id.public_id
+      expect(intent_live?(@connect_sid)).to be(true), "Connect initiation redirected to #{last_response.location.inspect}"
+      expect(reauth_proof_live?(@connect_sid)).to be(false)
+      @accounts_before = auth_db[:accounts].count
+    end
+
+    after { teardown_mock_auth }
+
+    def tenant_connect_callback
+      clear_body_headers
+      post '/auth/sso/oidc/callback'
+      expect(last_response.status).to eq(302)
+      expect(intent_live?(@connect_sid)).to be(false)
+      expect(auth_db[:accounts].count).to eq(@accounts_before)
+    end
+
+    def expect_connect_refused(reason, code: 'identity_connect_wrong_domain')
+      expect_auth_error_redirect(code)
+      expect(last_request.env['rack.session']['account_id']).to eq(actor_id)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_identity_connect_refused, hash_including(reason: reason))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_link_challenge_issued, anything)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:sso_link_verification_issued, anything)
+      expect(Auth::Operations::JoinDomainOrganization).not_to have_received(:new)
+    end
+
+    # A suspended Customer never reaches the Connect hook from a live
+    # session: the auth router's customer-session gate destroys the Rack
+    # session ahead of Rodauth (:account_suspended is a definitive
+    # rejection), which purges the Connect intent with it. The callback then
+    # runs as the anonymous request it now is, exactly as it does after the
+    # router's surface-mismatch and revocation destroys. In production that
+    # callback fails OmniAuth's state check, the state having gone with the
+    # session; mock mode skips the check, so what the anonymous callback does
+    # next is not asserted here. What is asserted: the session is gone, the
+    # intent is gone, and nothing was bound to the suspended account.
+    def expect_suspended_session_rejected(sid, account_id)
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :customer_session_rejected,
+        hash_including(
+          path: '/sso/oidc/callback',
+          reason: :account_suspended,
+          outcome: :continued_anonymous,
+          account_id: account_id,
+          sidecar_fields: ['sso_connect_intent'],
+        ),
+      )
+      expect(intent_live?(sid)).to be(false)
+      expect(Onetime::Operations::Sessions::Store.find_key(Familia.dbclient, sid)).to be_nil
+      expect(identities.where(account_id: account_id).count).to eq(0)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:tenant_connect_membership_authorized, anything)
+    end
+
+    it 'binds an unclaimed exact tuple to the session account, ignoring another account email' do
+      identities.insert(tuple.merge(uid: "other-#{uid}", account_id: other_id))
+      expect(customer.signup_domain_id.to_s).to be_empty
+      membership_id    = @membership.objid
+      membership_scope = @membership.domain_scope_id
+      tenant_connect_callback
+
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: actor_id))
+      expect(identities.where(account_id: other_id).all)
+        .to contain_exactly(hash_including(uid: "other-#{uid}", issuer: tuple[:issuer]))
+      expect(last_request.env['rack.session']['account_id']).to eq(actor_id)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:tenant_connect_membership_authorized, hash_including(domain_id: @tenant[:domain].identifier))
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, hash_including(account_id: actor_id, issuer: tuple[:issuer]))
+      persisted = Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, customer.objid)
+      expect(persisted.objid).to eq(membership_id)
+      expect(persisted.domain_scope_id).to eq(membership_scope)
+      expect(Auth::Operations::JoinDomainOrganization).to have_received(:new)
+        .with(customer: an_object_having_attributes(objid: customer.objid), domain_id: @tenant[:domain].identifier)
+    end
+
+    it 'binds for an organization-scoped membership through the callback and preserves that scope' do
+      @membership.domain_scope_id = nil
+      @membership.save
+
+      tenant_connect_callback
+
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: actor_id))
+      persisted = Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, customer.objid)
+      expect(persisted.objid).to eq(@membership.objid)
+      expect(persisted.domain_scope_id).to be_nil
+      expect(persisted.org_scoped?).to be(true)
+    end
+
+    it 'binds for the organization owner through the callback' do
+      owner = @oauth_test_fixtures.last[:owner]
+      @membership.destroy!
+      auth_db[:accounts].where(id: actor_id).update(external_id: owner.extid)
+
+      tenant_connect_callback
+
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: actor_id))
+      owner_membership = Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, owner.objid)
+      expect(owner_membership).to be_owner
+    end
+
+    it 'accepts a known same-account tuple idempotently and consumes intent before the gem shortcut' do
+      identity_id = identities.insert(tuple.merge(account_id: actor_id))
+      tenant_connect_callback
+
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(id: identity_id, account_id: actor_id))
+      expect(last_request.env['rack.session']['account_id']).to eq(actor_id)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:tenant_connect_membership_authorized, anything)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, hash_including(account_id: actor_id))
+    end
+
+    it 'refuses a known other-account tuple without switching the authenticated account' do
+      identity_id = identities.insert(tuple.merge(account_id: other_id))
+      tenant_connect_callback
+
+      expect_connect_refused('identity_owned_elsewhere', code: 'identity_connect_conflict')
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(id: identity_id, account_id: other_id))
+      expect(identities.where(account_id: actor_id).count).to eq(0)
+    end
+
+    # The tenant Connect kill switch (#4427) is not stubbed open anywhere in
+    # this file: every tenant example runs against its production value.
+    it 'is open in production' do
+      allow(Auth::Operations::AuthorizeTenantConnect).to receive(:call).and_call_original
+      expect(Auth::Config::Hooks::OmniAuthConnect.tenant_connect_enabled?).to be(true)
+      identity_id = identities.insert(tuple.merge(account_id: actor_id))
+      tenant_connect_callback
+
+      expect(Auth::Operations::AuthorizeTenantConnect).to have_received(:call)
+        .with(hash_including(domain_id: @tenant[:domain].identifier))
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:tenant_connect_membership_authorized, anything)
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(id: identity_id, account_id: actor_id))
+    end
+
+    it 'when closed, refuses ahead of the membership gate' do
+      allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_return(false)
+      allow(Auth::Operations::AuthorizeTenantConnect).to receive(:call).and_call_original
+      identities.insert(tuple.merge(account_id: actor_id))
+      tenant_connect_callback
+
+      expect_connect_refused('tenant_connect_prerequisites_incomplete')
+      expect(Auth::Operations::AuthorizeTenantConnect).not_to have_received(:call)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:tenant_connect_membership_authorized, anything)
+      expect(identities.where(tuple).count).to eq(1)
+    end
+
+    it 'refuses as lookup_error when a gate raises before the bind, writing nothing' do
+      allow(Auth::Operations::AuthorizeTenantConnect).to receive(:call).and_raise(RuntimeError, 'membership store down')
+      tenant_connect_callback
+
+      expect_connect_refused('lookup_error', code: 'identity_connect_conflict')
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_connect_lookup_error, hash_including(error_class: 'RuntimeError'))
+      expect(identities.where(tuple).count).to eq(0)
+    end
+
+    it 'does not report a bound identity as refused when a post-bind step fails' do
+      allow(Auth::Logging).to receive(:log_auth_event)
+        .with(:omniauth_identity_connected, anything).and_raise(RuntimeError, 'audit sink down')
+      clear_body_headers
+      post '/auth/sso/oidc/callback'
+
+      expect(last_response.status).to eq(500)
+      expect(intent_live?(@connect_sid)).to be(false)
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: actor_id))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connect_refused, anything)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_connect_lookup_error, anything)
+    end
+
+    %w[missing inactive sibling wrong_organization].each do |state|
+      it "refuses #{state} membership before a known identity can bypass authorization" do
+        identities.insert(tuple.merge(account_id: other_id))
+        other_membership = nil
+        case state
+        when 'missing'
+          @membership.destroy!
+        when 'inactive'
+          @membership.status = 'pending'
+          @membership.save
+        when 'sibling'
+          sibling = Onetime::CustomDomain.new(
+            display_domain: "sibling-#{SecureRandom.hex(6)}.tenant.example.com", org_id: @tenant[:org].org_id,
+          )
+          sibling.save
+          @membership.domain_scope_id = sibling.objid
+          @membership.save
+        when 'wrong_organization'
+          @membership.destroy!
+          other_tenant = setup_oauth_test_domain("other-org-#{SecureRandom.hex(6)}.tenant.example.com")
+          other_membership = Onetime::OrganizationMembership.ensure_membership(
+            other_tenant[:org], customer, role: 'member', domain_scope_id: other_tenant[:domain].objid,
+            provisioning_source: 'sso',
+          )
+        end
+        tenant_connect_callback
+
+        expect_connect_refused('tenant_membership_refused')
+        expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: other_id))
+        membership = Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, customer.objid)
+        if %w[missing wrong_organization].include?(state)
+          expect(membership).to be_nil
+          expect(other_membership&.active?).to be(true) if state == 'wrong_organization'
+        else
+          expect(membership.status).to eq(@membership.status)
+          expect(membership.domain_scope_id).to eq(@membership.domain_scope_id)
+        end
+      end
+    end
+
+    it 'refuses an intent for a different exact domain even within the same organization' do
+      sibling = Onetime::CustomDomain.new(
+        display_domain: "intent-sibling-#{SecureRandom.hex(6)}.tenant.example.com", org_id: @tenant[:org].org_id,
+      )
+      sibling.save
+      identities.insert(tuple.merge(account_id: other_id))
+      Onetime::SessionSidecar.write(@connect_sid, 'sso_connect_intent', {
+        'account_id' => actor_id, 'at' => Time.now.utc.to_i,
+        'surface' => { 'kind' => 'custom', 'id' => sibling.identifier },
+      })
+      tenant_connect_callback
+
+      expect_connect_refused('surface_mismatch')
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: other_id))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:tenant_connect_membership_authorized, anything)
+    end
+
+    it 'refuses a session account closed during the IdP round trip, even for a known tuple' do
+      identities.insert(tuple.merge(account_id: other_id))
+      auth_db[:accounts].where(id: actor_id).update(status_id: Auth::AccountStatuses::CLOSED)
+      tenant_connect_callback
+
+      expect_connect_refused('session_account_missing', code: 'identity_connect_conflict')
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: other_id))
+    end
+
+    it 'consumes intent even when tenant email policy rejects before account resolution' do
+      @tenant[:sso_config].allowed_domains = ['allowed.example.com']
+      @tenant[:sso_config].save
+      identities.insert(tuple.merge(account_id: other_id))
+      tenant_connect_callback
+
+      expect_auth_error_redirect('domain_not_allowed')
+      expect(last_request.env['rack.session']['account_id']).to eq(actor_id)
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: other_id))
+      expect(Auth::Operations::JoinDomainOrganization).not_to have_received(:new)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
+    end
+
+    # Break exactly one tenant gate so the callback refuses with `reason`.
+    # The IdP asserts other_email (the victim) throughout, per the describe's
+    # setup_mock_auth.
+    def break_tenant_gate(reason)
+      case reason
+      when 'surface_mismatch'
+        sibling       = Onetime::CustomDomain.new(
+          display_domain: "nofallback-#{SecureRandom.hex(6)}.tenant.example.com", org_id: @tenant[:org].org_id,
+        )
+        sibling.save
+        forged_intent = {
+          'account_id' => actor_id,
+          'at' => Time.now.utc.to_i,
+          'surface' => { 'kind' => 'custom', 'id' => sibling.identifier },
+        }
+        Onetime::SessionSidecar.write(@connect_sid, 'sso_connect_intent', forged_intent)
+      when 'tenant_connect_prerequisites_incomplete'
+        # The kill switch is open in production; close it for this row only.
+        allow(Auth::Config::Hooks::OmniAuthConnect).to receive(:tenant_connect_enabled?).and_return(false)
+      when 'tenant_membership_refused'
+        @membership.status = 'pending'
+        @membership.save
+      when 'identity_owned_elsewhere'
+        identities.insert(tuple.merge(account_id: other_id))
+      else
+        raise ArgumentError, "unknown tenant gate #{reason.inspect}"
+      end
+    end
+
+    # The "No fallback" row: with trusted-email linking ON and the victim's
+    # email asserted, a refusal at any tenant gate must not divert into the
+    # unauthenticated email branches (direct trust bind, password challenge,
+    # mailbox proof) or the JIT create path.
+    {
+      'surface_mismatch' => 'identity_connect_wrong_domain',
+      'tenant_connect_prerequisites_incomplete' => 'identity_connect_wrong_domain',
+      'tenant_membership_refused' => 'identity_connect_wrong_domain',
+      'identity_owned_elsewhere' => 'identity_connect_conflict',
+    }.each do |reason, code|
+      it "does not fall back to trusted-email linking after the #{reason} gate" do
+        allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(true)
+        allow(Onetime::SsoLinkChallenge).to receive(:issue).and_call_original
+        allow(Onetime::SsoLinkVerification).to receive(:issue).and_call_original
+        victim = Onetime::Customer.find_by_extid(auth_db[:accounts].where(id: other_id).get(:external_id))
+        break_tenant_gate(reason)
+
+        tenant_connect_callback
+
+        expect_connect_refused(reason, code: code)
+        expect(identities.where(account_id: actor_id).count).to eq(0)
+        expect(identities.where(tuple).count).to eq(reason == 'identity_owned_elsewhere' ? 1 : 0)
+        expect(Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, victim.objid)).to be_nil
+        persisted = Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, customer.objid)
+        expect(persisted.objid).to eq(@membership.objid)
+        expect(persisted.status).to eq(@membership.status)
+        expect(persisted.domain_scope_id).to eq(@membership.domain_scope_id)
+        expect(Onetime::SsoLinkChallenge).not_to have_received(:issue)
+        expect(Onetime::SsoLinkVerification).not_to have_received(:issue)
+      end
+    end
+
+    it 'consumes a live intent before the tenant-context mismatch refusal and binds nothing' do
+      # The router's surface gate (#4409) destroys an authenticated session
+      # that arrives on any other host before Rodauth runs, so the tenant
+      # hook's own mismatch (omniauth_tenant.rb, the 403 that
+      # callback_validation_spec.rb reaches ANONYMOUSLY) cannot be reached
+      # from a live session by changing Host — that path is the tenant A ->
+      # tenant B example below. To reach the 403 with a live, matching intent,
+      # rewrite the tenant context the request phase stashed in the session
+      # blob so the callback on THIS host disagrees with it. The intent's
+      # consumption is the property under test: the Connect wrapper runs
+      # ahead of the tenant hook, so the refusal must not leave it replayable.
+      other_tenant = setup_oauth_test_domain("mismatch-#{SecureRandom.hex(6)}.tenant.example.com")
+      stash_in_session_blob(@connect_sid, 'omniauth_tenant_domain_id', other_tenant[:domain].identifier)
+      victim       = Onetime::Customer.find_by_extid(auth_db[:accounts].where(id: other_id).get(:external_id))
+
+      clear_body_headers
+      post '/auth/sso/oidc/callback'
+
+      expect(last_response.status).to eq(403), "Expected tenant_mismatch 403, got #{last_response.status}: #{last_response.body}"
+      expect(last_response.body).to include('tenant_mismatch')
+      expect(intent_live?(@connect_sid)).to be(false)
+      expect(auth_db[:accounts].count).to eq(@accounts_before)
+      expect(identities.where(tuple).count).to eq(0)
+      expect(identities.where(account_id: actor_id).count).to eq(0)
+      expect(Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, victim.objid)).to be_nil
+      expect(Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, customer.objid).objid)
+        .to eq(@membership.objid)
+      expect(Auth::Operations::JoinDomainOrganization).not_to have_received(:new)
+      mismatch = { expected_domain_id: other_tenant[:domain].identifier, actual_domain_id: @tenant[:domain].identifier }
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_tenant_mismatch, hash_including(mismatch))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:tenant_connect_membership_authorized, anything)
+    end
+
+    it 'refuses a tenant A session presented to the tenant B callback and consumes its intent' do
+      other_tenant = setup_oauth_test_domain("tenant-b-#{SecureRandom.hex(6)}.tenant.example.com")
+      Onetime::CustomDomain::SigninConfig.create!(
+        domain_id: other_tenant[:domain].identifier, enabled: true, signin_enabled: true, sso_enabled: true,
+      )
+      clear_body_headers
+      header 'Host', other_tenant[:domain].display_domain
+      header 'Cookie', "onetime.session=#{@connect_sid}"
+      post '/auth/sso/oidc/callback'
+
+      expect(last_response.status).to eq(302)
+      expect(intent_live?(@connect_sid)).to be(false)
+      expect(auth_db[:accounts].count).to eq(@accounts_before)
+      expect(identities.where(tuple).count).to eq(0)
+      expect(identities.where(account_id: actor_id).count).to eq(0)
+      mismatch = {
+        path: '/sso/oidc/callback',
+        outcome: :continued_anonymous,
+        recorded_surface: { 'kind' => 'custom', 'id' => @tenant[:domain].identifier },
+        request_surface: { 'kind' => 'custom', 'id' => other_tenant[:domain].identifier },
+      }
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:session_surface_mismatch, hash_including(mismatch))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:tenant_connect_membership_authorized, anything)
+    end
+
+    it 'post-login: a successful Connect adopts the tenant org as default and archives the personal workspace' do
+      # The Post-login row's "asserted separately" evidence. The account still
+      # owns an unarchived personal default workspace (a legacy platform
+      # signup); JoinDomainOrganization's already_member path repoints
+      # default_org_id and archives it, without touching the membership.
+      personal = Onetime::Organization.create!("Personal #{SecureRandom.hex(4)}", customer, customer.email)
+      personal.is_default! true
+      expect(personal.owner?(customer)).to be(true)
+      expect(personal.archived?).to be(false)
+
+      customer.default_org_id = personal.objid
+      customer.save
+      tenant_connect_callback
+
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: actor_id))
+      expect(Auth::Operations::JoinDomainOrganization).to have_received(:new)
+        .with(customer: an_object_having_attributes(objid: customer.objid), domain_id: @tenant[:domain].identifier)
+      persisted = Onetime::OrganizationMembership.find_by_org_customer(@tenant[:org].objid, customer.objid)
+      expect(persisted.objid).to eq(@membership.objid)
+      expect(persisted.domain_scope_id).to eq(@membership.domain_scope_id)
+      expect(Onetime::Customer.load(customer.objid).default_org_id).to eq(@tenant[:org].objid)
+      expect(Onetime::Organization.load(personal.objid).archived?).to be(true)
+    end
+
+    it 'refuses a tenant session presented to the platform callback and consumes its intent' do
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      clear_body_headers
+      header 'Host', canonical_host
+      header 'Cookie', "onetime.session=#{@connect_sid}"
+      post '/auth/sso/oidc/callback'
+
+      expect(last_response.status).to eq(302)
+      expect(intent_live?(@connect_sid)).to be(false)
+      expect(identities.where(tuple).count).to eq(0)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:session_surface_mismatch, hash_including(path: '/sso/oidc/callback', outcome: :continued_anonymous))
+    end
+
+    it 'does not reuse a refused intent on a second callback' do
+      @membership.status = 'pending'
+      @membership.save
+      tenant_connect_callback
+      expect_connect_refused('tenant_membership_refused')
+
+      @membership.status = 'active'
+      @membership.save
+      tenant_connect_callback
+      expect(identities.where(tuple).count).to eq(0)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_connect_intent_absent, hash_including(had_intent: false))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
+    end
+
+    %w[absent mismatched].each do |state|
+      it "takes the ordinary tenant sign-in path for #{state} intent" do
+        Onetime::SessionSidecar.delete(@connect_sid, 'sso_connect_intent')
+        if state == 'mismatched'
+          Onetime::SessionSidecar.write(@connect_sid, 'sso_connect_intent', {
+            'account_id' => other_id, 'at' => Time.now.utc.to_i,
+            'surface' => { 'kind' => 'custom', 'id' => @tenant[:domain].identifier },
+          })
+        end
+        tenant_connect_callback
+
+        expect_auth_error_redirect('tenant_sso_link_unavailable')
+        expect(identities.where(tuple).count).to eq(0)
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:omniauth_connect_intent_absent, hash_including(had_intent: state == 'mismatched'))
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:omniauth_identity_connect_refused, anything)
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+          .with(:tenant_connect_membership_authorized, anything)
+      end
+    end
+
+    it 'refuses a missing session Customer before resolving a known tuple' do
+      identities.insert(tuple.merge(account_id: other_id))
+      auth_db[:accounts].where(id: actor_id).update(external_id: "ur#{SecureRandom.hex(8)}")
+      tenant_connect_callback
+
+      expect_connect_refused('session_customer_missing', code: 'identity_connect_conflict')
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: other_id))
+    end
+
+    it 'destroys a suspended session at the router, so its Connect intent binds nothing' do
+      identities.insert(tuple.merge(account_id: other_id))
+      customer.suspended = 'true'
+      customer.save
+      tenant_connect_callback
+
+      expect_suspended_session_rejected(@connect_sid, actor_id)
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: other_id))
+    end
+  end
+
+  describe 'platform connect principal gate (#3849)' do
+    %w[missing suspended].each do |state|
+      it "binds nothing for a #{state} Customer on a live platform session and consumes intent" do
+        enable_platform_fallback
+        email = unique_test_email('platform-principal')
+        account_id = seed_account_with_password(email)
+        csrf_login(email)
+        setup_mock_auth(email: email)
+        begin
+          expect(initiate_sso_connect).to eq(302)
+          sid = current_sid
+          expect(intent_live?(sid)).to be(true)
+          if state == 'missing'
+            auth_db[:accounts].where(id: account_id).update(external_id: "ur#{SecureRandom.hex(8)}")
+          else
+            customer = Onetime::Customer.find_by_extid(auth_db[:accounts].where(id: account_id).get(:external_id))
+            customer.suspended = 'true'
+            customer.save
+          end
+          allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+          clear_body_headers
+          post '/auth/sso/oidc/callback'
+
+          expect(intent_live?(sid)).to be(false)
+          expect(identities.where(account_id: account_id).count).to eq(0)
+          if state == 'missing'
+            expect_auth_error_redirect('identity_connect_conflict')
+            expect(last_request.env['rack.session']['account_id']).to eq(account_id)
+            expect(Auth::Logging).to have_received(:log_auth_event)
+              .with(:omniauth_identity_connect_refused, hash_including(reason: 'session_customer_missing'))
+          else
+            # The router's customer-session gate destroys a suspended session
+            # ahead of Rodauth, so the Connect hook's own suspension refusal
+            # is not reached; the intent is purged with the session and the
+            # callback continues anonymous (in production it then fails
+            # OmniAuth's state check, which mock mode skips).
+            expect(Onetime::Operations::Sessions::Store.find_key(Familia.dbclient, sid)).to be_nil
+            expect(Auth::Logging).to have_received(:log_auth_event).with(
+              :customer_session_rejected,
+              hash_including(
+                path: '/sso/oidc/callback',
+                reason: :account_suspended,
+                outcome: :continued_anonymous,
+                account_id: account_id,
+                sidecar_fields: ['sso_connect_intent'],
+              ),
+            )
+            expect(Auth::Logging).not_to have_received(:log_auth_event)
+              .with(:omniauth_identity_connected, anything)
+          end
+        ensure
+          teardown_mock_auth
+        end
+      end
+    end
+  end
+
+  describe 'callback intent binding (#4411)' do
+    let(:actor_email) { "actor-intent-#{SecureRandom.hex(6)}@company.example.com" }
+    let(:uid) { "sub-#{SecureRandom.hex(8)}" }
+    let!(:actor_id) { seed_account_with_password(actor_email) }
+
+    before do
+      enable_platform_fallback
+      csrf_login(actor_email)
+      unless (200..302).cover?(last_response.status)
+        raise "Precondition failed: password login did not succeed (#{last_response.status}: #{last_response.body})"
+      end
+
+      allow(Onetime.auth_config).to receive(:trust_email_for_linking?).and_return(false)
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+      setup_mock_auth(email: actor_email, uid: uid)
+    end
+
+    after { teardown_mock_auth }
+
+    it 'refuses an intent whose recorded surface differs from the callback surface' do
+      sid = current_sid
+      Onetime::SessionSidecar.write(
+        sid,
+        'sso_connect_intent',
+        {
+          'account_id' => actor_id,
+          'surface' => { 'kind' => 'custom', 'id' => "cd-#{SecureRandom.hex(4)}" },
+          'at' => Time.now.utc.to_i,
+        },
+      )
+
+      clear_body_headers
+      post '/auth/sso/oidc/callback'
+
+      skip 'OmniAuth route not registered' if last_response.status == 404
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.location.to_s).to include('/signin?auth_error=identity_connect_wrong_domain'),
+        "A surface-mismatched intent must refuse. Location: #{last_response.location.inspect}"
+      expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0),
+        'A surface-mismatched intent must NOT bind'
+      expect(intent_live?(sid)).to be(false), 'The refused intent is consumed, never replayable'
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_identity_connect_refused, hash_including(provider: 'oidc', reason: 'surface_mismatch'))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
+    end
+
+    it 'treats a pre-#4411 bare account-id intent as absent (never binds)' do
+      sid = current_sid
+      Onetime::SessionSidecar.write(sid, 'sso_connect_intent', actor_id)
+
+      clear_body_headers
+      post '/auth/sso/oidc/callback'
+
+      skip 'OmniAuth route not registered' if last_response.status == 404
+
+      expect(last_response.status).to eq(302)
+      expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0),
+        'A malformed intent must NOT bind'
+      expect(intent_live?(sid)).to be(false)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_connect_intent_absent, hash_including(provider: 'oidc', had_intent: true))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_identity_connected, anything)
     end
   end
 end

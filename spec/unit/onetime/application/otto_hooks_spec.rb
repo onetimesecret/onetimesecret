@@ -124,6 +124,29 @@ RSpec.describe Onetime::Application::OttoHooks do
       end
     end
 
+    describe 'Onetime::AccountProvisioningUnavailable (retryable provisioning)' do
+      let(:entry) { registered[Onetime::AccountProvisioningUnavailable] }
+
+      it 'maps to 503 at log_level :warn, distinct from the 409 latch' do
+        expect(entry).not_to be_nil
+        expect(entry[:status]).to eq(503)
+        expect(entry[:log_level]).to eq(:warn)
+        expect(registered[Onetime::AccountProvisioningFailed][:status]).to eq(409)
+      end
+
+      it 'returns the error shape with retry_after so the middleware can set Retry-After' do
+        error = Onetime::AccountProvisioningUnavailable.new(reason: :provisioning_in_progress)
+
+        body = entry[:handler].call(error, nil)
+
+        expect(body).to include(
+          error_type: 'AccountProvisioningUnavailable',
+          reason: :provisioning_in_progress,
+          retry_after: Onetime::AccountProvisioningUnavailable::RETRY_AFTER,
+        )
+      end
+    end
+
     describe 'Billing::CircuitOpenError (Stripe breaker open)' do
       let(:entry) { registered['Billing::CircuitOpenError'] }
 

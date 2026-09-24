@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../auth/operations/create_default_workspace'
+require_relative '../../auth/operations/ensure_default_workspace'
 
 module Billing
   # Resolves the organization a completed checkout belongs to.
@@ -130,14 +130,14 @@ module Billing
     #
     # This is step 4 for BOTH completion surfaces — the
     # checkout.session.completed webhook and the browser redirect. They used
-    # to disagree: the webhook ran Auth::Operations::CreateDefaultWorkspace
+    # to disagree: the webhook ran Auth::Operations::EnsureDefaultWorkspace
     # first and the redirect went straight to {.create_billing_workspace}, so
     # the same checkout produced a differently-named workspace and a different
     # federation outcome depending on which surface won the race (#4212).
     #
     # Two creates, in this order, because they fail on opposite inputs:
     #
-    # 1. CreateDefaultWorkspace, the canonical create — orphan adoption,
+    # 1. EnsureDefaultWorkspace, the canonical create — orphan adoption,
     #    is_default, the whole signup policy. It returns nil when the customer
     #    already has ANY organization, archived ones included.
     # 2. {.create_billing_workspace} for exactly that nil: the caller who
@@ -166,7 +166,7 @@ module Billing
         stripe_customer_id: stripe_customer_id,
       )
     rescue Familia::RecordExistsError => ex
-      # Lost the stripe_customer_id claim inside CreateDefaultWorkspace
+      # Lost the stripe_customer_id claim inside EnsureDefaultWorkspace
       # (create_billing_workspace adopts on its own).
       adopt_claimed_workspace(ex, logger: logger, label: label)
     end
@@ -207,7 +207,7 @@ module Billing
     # that takes the stripe_customer_id claim, so when the two completion
     # surfaces create for the same customer at the same moment, the loser
     # raises Onetime::OrganizationExists — not Familia::RecordExistsError.
-    # CreateDefaultWorkspace converts the reservation failure into that error
+    # EnsureDefaultWorkspace converts the reservation failure into that error
     # and re-raises it whenever the reserving org already has members, which is
     # the normal outcome. Unrescued it is a 500 on the webhook; Stripe's retry
     # recovers, so the symptom is noise rather than a lost subscription.
@@ -216,7 +216,7 @@ module Billing
     #   billing-workspace create, which survives a reserved contact_email by
     #   creating without one.
     def canonical_workspace(customer, stripe_customer_id, logger, label)
-      result = Auth::Operations::CreateDefaultWorkspace.new(
+      result = Auth::Operations::EnsureDefaultWorkspace.new(
         customer: customer,
         stripe_customer_id: stripe_customer_id,
         claim_pending_federation: false,

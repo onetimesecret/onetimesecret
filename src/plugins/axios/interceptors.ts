@@ -4,7 +4,13 @@ import {
   scrubSensitiveStrings,
   scrubUrlWithPatterns,
 } from '@/plugins/core/diagnostics/scrubbers';
+import { parseSessionFailure } from '@/schemas/contracts/session-failure';
 import { useLanguageStore } from '@/shared/stores';
+import {
+  COORDINATOR_DISPOSITION_KEY,
+  useAuthStore,
+  type RejectionDisposition,
+} from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { addBreadcrumb } from '@sentry/vue';
@@ -44,6 +50,27 @@ const DOMAIN_CONTEXT_HEADER = 'O-Domain-Context';
 const DOMAIN_CONTEXT_STORAGE_KEY = 'domainContext';
 
 /**
+ * Passive-request declaration (ADR-048, RISK-2026-09-19-04).
+ *
+ * A request made with `{ passive: true }` carries `X-Session-Activity:
+ * passive`. The server (`Onetime::SessionActivity`) still verifies the session
+ * in full but does not move the inactivity clock, so the background refreshes
+ * of an unattended tab cannot keep its session alive. It reads the header on
+ * GET and HEAD only and it is never an input to authorization; the same
+ * allowlist is applied here so the option cannot appear to work on a write.
+ *
+ * This is the only place the wire name is spelled. Callers pass the `passive`
+ * request option (see src/types/declarations/axios.d.ts).
+ */
+export const SESSION_ACTIVITY_HEADER = 'X-Session-Activity';
+export const SESSION_ACTIVITY_PASSIVE = 'passive';
+const PASSIVE_DECLARABLE_METHODS = new Set(['get', 'head']);
+
+const declaresPassive = (config: InternalAxiosRequestConfig): boolean =>
+  config.passive === true &&
+  PASSIVE_DECLARABLE_METHODS.has((config.method ?? 'get').toLowerCase());
+
+/**
  * Gets the domain context override from sessionStorage.
  * @returns The domain context value or null if not set
  */
@@ -81,6 +108,12 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
     }
   } catch {
     // Pinia not yet active during app bootstrap — request proceeds without store headers
+  }
+
+  // Timer- and visibility-driven reads declare themselves passive. Set per
+  // request, from the request's own option; never an instance default.
+  if (declaresPassive(config)) {
+    config.headers[SESSION_ACTIVITY_HEADER] = SESSION_ACTIVITY_PASSIVE;
   }
 
   // Add domain context override header if set (development feature)
@@ -149,8 +182,39 @@ export const errorInterceptor = (error: AxiosError) => {
     csrfStore.updateShrimp(responseShrimp);
   }
 
+  noteRejection(error);
+
   return Promise.reject(error); // no gate keeping, just pass the error along
 };
+
+/**
+ * Tells the refresh coordinator that a request was refused with 401 (#4460).
+ *
+ * This is the ONE place a rejected API call touches authentication, and all
+ * it does is report: `noteApiRejection` requests a reconciliation against
+ * GET /bootstrap/me, and only a snapshot the coordinator accepts can change
+ * the status. No error handler writes authentication state. What to do with
+ * each `code_scope` (#4462) is the coordinator's policy, not the
+ * interceptor's; an uncoded 401 is passed as null.
+ *
+ * Nothing else is reported: a network error, a timeout or a 5xx on an API
+ * call says nothing about the session, and the coordinator's own request is
+ * what counts verification failures.
+ */
+function noteRejection(error: AxiosError): void {
+  if (error.response?.status !== 401) return;
+  try {
+    const disposition: RejectionDisposition = useAuthStore().noteApiRejection(
+      parseSessionFailure(error)
+    );
+    // Attach the disposition to the error so useAsyncHandler.coordinatorOwnsMessage
+    // reads it verbatim instead of re-deriving carve-outs (ADR-046#rejection-disposition).
+    (error as unknown as Record<string | symbol, unknown>)[COORDINATOR_DISPOSITION_KEY] =
+      disposition;
+  } catch {
+    // Pinia not yet active during app bootstrap: nothing to reconcile yet.
+  }
+}
 
 /**
  * Creates a truncated version of the shrimp token for safe logging

@@ -1,13 +1,12 @@
 // src/shared/stores/receiptListStore.ts
 
-import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import type { ReceiptList, ReceiptListDetails } from '@/schemas/shapes/v3/receipt';
-import { loggingService } from '@/services/logging.service';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { useApi } from '@/shared/composables/useApi';
+import type { AxiosRequestConfig } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { ref, type Ref } from 'vue';
+import { computed, ref, type Ref } from 'vue';
 
 /**
  * Options for filtering receipt list queries.
@@ -22,6 +21,12 @@ export interface FetchListOptions {
   domainExtid?: string;
   /** If true, errors will not trigger user notifications (for background refreshes) */
   silent?: boolean;
+  /**
+   * True when no person caused this fetch (a timer or a tab-visibility
+   * refresh). The request is then declared passive and does not count as
+   * session activity. Never set it for navigation or a user action.
+   */
+  passive?: boolean;
 }
 
 /**
@@ -38,7 +43,7 @@ export type ReceiptListStore = {
 
   // Getters
   recordCount: number;
-  initialized: boolean;
+  isLoaded: boolean;
 
   // Actions
   fetchList: (options?: FetchListOptions) => Promise<void>;
@@ -65,18 +70,17 @@ export const useReceiptListStore = defineStore('receiptList', () => {
   const scopeLabel = ref<string | null>(null);
 
   // Getters
-  const initialized = () => _initialized.value;
+  // Whether the list has been fetched. Not "init() has run": the auto-init
+  // plugin runs init() at store creation, before anything is loaded.
+  const isLoaded = computed(() => records.value !== null);
   const recordCount = () => count.value ?? 0;
 
-  interface StoreOptions extends PiniaPluginOptions {}
 
-  function init(options?: StoreOptions) {
-    if (_initialized.value) return { initialized };
-
-    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
+  function init() {
+    if (_initialized.value) return { isLoaded };
 
     _initialized.value = true;
-    return { initialized };
+    return { isLoaded };
   }
 
   async function fetchList(options: FetchListOptions = {}) {
@@ -85,7 +89,10 @@ export const useReceiptListStore = defineStore('receiptList', () => {
     if (options.scope) params.scope = options.scope;
     if (options.domainExtid) params.domain_extid = options.domainExtid;
 
-    const response = await $api.get('/api/v3/receipt/recent', { params });
+    const config: AxiosRequestConfig = { params };
+    if (options.passive === true) config.passive = true;
+
+    const response = await $api.get('/api/v3/receipt/recent', config);
 
     const result = gracefulParse(
       responseSchemas.receiptList,
@@ -110,11 +117,16 @@ export const useReceiptListStore = defineStore('receiptList', () => {
     return validated;
   }
 
+  /**
+   * Load the list unless it is already loaded; `force` reloads it.
+   *
+   * Gated on `isLoaded`, never on "init() has run": gating on that made this
+   * a no-op in the running app (a direct visit to /recent showed an empty list).
+   */
   async function refreshRecords(force = false, options: FetchListOptions = {}) {
-    if (!force && _initialized.value) return;
+    if (!force && isLoaded.value) return;
 
     await fetchList(options);
-    _initialized.value = true;
   }
 
   async function updateMemo(id: string, memo: string) {
@@ -147,7 +159,6 @@ export const useReceiptListStore = defineStore('receiptList', () => {
     count.value = null;
     currentScope.value = undefined;
     scopeLabel.value = null;
-    _initialized.value = false;
   }
 
   return {
@@ -162,7 +173,7 @@ export const useReceiptListStore = defineStore('receiptList', () => {
 
     // Getters
     recordCount,
-    initialized,
+    isLoaded,
 
     // Actions
     fetchList,

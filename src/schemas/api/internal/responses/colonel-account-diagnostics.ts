@@ -33,11 +33,16 @@ import { z } from 'zod';
 // Findings — the triage summary the panel renders as callouts
 // ============================================================================
 
-export const accountDiagnosisFindingSchema = z.object({
-  severity: z.enum(['critical', 'warning', 'info']),
-  code: z.string(),
-  message: z.string(),
-});
+export const accountDiagnosisFindingSchema = z
+  .object({
+    severity: z.enum(['critical', 'warning', 'info']),
+    code: z.string(),
+    message: z.string(),
+    /** Optional operator guidance supplied by workspace-aware diagnostics. */
+    remediation: z.union([z.string(), z.array(z.string())]).optional(),
+    org_id: z.string().nullable().optional(),
+  })
+  .passthrough();
 
 // ============================================================================
 // Sections — raw per-source evidence
@@ -75,6 +80,9 @@ export const diagnosisCustomerSectionSchema = z.object({
   last_login: z.number().nullable().optional(),
   locale: z.string().nullable().optional(),
   planid: z.string().nullable().optional(),
+  provisioning_failure_code: z.string().nullable().optional(),
+  provisioning_failure_classification: z.string().nullable().optional(),
+  provisioning_failed_at: z.number().nullable().optional(),
   error: z.string().nullable().optional(),
 });
 
@@ -156,6 +164,49 @@ export const diagnosisRateLimitsSectionSchema = z.object({
   entries: z.array(diagnosisRateLimitEntrySchema).optional(),
 });
 
+/**
+ * Whether the account can establish a usable workspace context.
+ *
+ * This section is optional so a frontend deployed ahead of the diagnostics
+ * backend still accepts the existing auth-only payload. Its evidence fields are
+ * deliberately tolerant: the diagnostics operation is evolving from a single
+ * collision flag toward richer indexed-organization evidence. The panel treats
+ * any explicit blocked/incomplete/unavailable signal as non-healthy.
+ */
+export const diagnosisOrganizationContextSectionSchema = z
+  .object({
+    available: z.boolean().optional(),
+    reason: z.string().nullable().optional(),
+    reason_code: z.string().nullable().optional(),
+    /** Current backend classification for the contact-email claim. */
+    classification: z
+      .enum([
+        'clear',
+        'phantom_index',
+        'index_mismatch',
+        'current_valid_workspace',
+        'empty_orphan',
+        'stale_members',
+        'live_members',
+        'retained_data',
+        'unreadable',
+      ])
+      .optional(),
+    email: z.string().nullable().optional(),
+    repairable: z.boolean().optional(),
+    evidence: z.record(z.string(), z.unknown()).optional(),
+    /** Transitional fields accepted from alternate/newer adapters. */
+    status: z.string().nullable().optional(),
+    blocked: z.boolean().optional(),
+    complete: z.boolean().optional(),
+    collision: z.boolean().optional(),
+    can_provision: z.boolean().optional(),
+    contact_email: z.string().nullable().optional(),
+    indexed_organization: z.record(z.string(), z.unknown()).nullable().optional(),
+    findings: z.array(accountDiagnosisFindingSchema).optional(),
+  })
+  .passthrough();
+
 export const accountDiagnosisSectionsSchema = z.object({
   customer: diagnosisCustomerSectionSchema,
   auth_account: diagnosisAuthAccountSectionSchema,
@@ -166,6 +217,10 @@ export const accountDiagnosisSectionsSchema = z.object({
   sessions: diagnosisSessionsSectionSchema,
   audit_log: diagnosisAuditLogSectionSchema,
   rate_limits: diagnosisRateLimitsSectionSchema,
+  workspace_collision: diagnosisOrganizationContextSectionSchema.optional(),
+  /** Transitional aliases accepted while diagnostics adapters converge. */
+  organization_context: diagnosisOrganizationContextSectionSchema.optional(),
+  workspace: diagnosisOrganizationContextSectionSchema.optional(),
 });
 
 // ============================================================================

@@ -36,6 +36,7 @@
   import { type Customer } from '@/schemas/shapes/v3';
   import { ENTITLEMENTS } from '@/types/organization';
   import { isOrgsAuditLogsEnabled } from '@/utils/features';
+  import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -87,6 +88,12 @@
 
   const bootstrapStore = useBootstrapStore();
   const { billing_enabled } = storeToRefs(bootstrapStore);
+
+  // Mutation controls in the chrome are gated while the coordinator cannot
+  // vouch for the session (ADR-046#authority-action-gating). Escape actions (logout) stay
+  // enabled: retained-identity states must still let the user leave.
+  const authStore = useAuthStore();
+  const { protectedActionsAvailable } = storeToRefs(authStore);
 
   // Custom domain filtering: non-owners on custom domains see limited menu
   const { isCustom } = storeToRefs(useProductIdentity());
@@ -176,9 +183,15 @@
     variant?: 'default' | 'caution' | 'danger' | 'cta';
     condition?: () => boolean;
     onClick?: () => void | Promise<void>;
+    /** Item stays visible but is aria-disabled and non-actionable (#4497). */
+    disabled?: () => boolean;
   }
 
   const openPlanPreviewModal = () => {
+    // Do not open a mutation modal while authority is not established
+    // (ADR-046#authority-action-gating). The menu item is aria-disabled in that state; this
+    // is a belt-and-braces guard.
+    if (!protectedActionsAvailable.value) return;
     isPlanPreviewModalOpen.value = true;
     closeMenu();
   };
@@ -248,6 +261,9 @@
       icon: { collection: 'heroicons', name: 'beaker' },
       variant: isPreviewModeActive.value ? 'caution' : 'default',
       condition: () => !props.awaitingMfa && props.colonel && !isCustomDomainMember.value,
+      // Mutation-issuing (ADR-046#authority-action-gating): opens a modal whose confirm posts
+      // /api/colonel/entitlement-preview. Gated on verified authority.
+      disabled: () => !protectedActionsAvailable.value,
       onClick: openPlanPreviewModal,
     },
     {
@@ -588,8 +604,14 @@
             <button
               v-else-if="item.onClick"
               :data-testid="item.id === 'test-plan' ? 'user-menu-test-plan' : undefined"
-              :class="[getMenuItemClasses(item.variant), 'w-full']"
-              @click="item.onClick"
+              :class="[
+                getMenuItemClasses(item.variant),
+                'w-full',
+                item.disabled?.() ? 'cursor-not-allowed opacity-50' : '',
+              ]"
+              :disabled="item.disabled?.() ?? false"
+              :aria-disabled="item.disabled?.() ?? false"
+              @click="item.disabled?.() ? undefined : item.onClick?.()"
               role="menuitem">
               <OIcon
                 :collection="item.icon.collection"

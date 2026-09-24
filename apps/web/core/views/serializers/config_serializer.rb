@@ -521,8 +521,11 @@ module Core
             return { 'enabled' => false, 'providers' => [] }
           end
 
-          # Fall back to platform SSO config (from env vars)
-          build_platform_sso_config
+          # Fall back to platform SSO config (from env vars). It remains a
+          # sign-in provider on an allowed custom host, but is not a Connect
+          # provider: a Connect callback there is intentionally rejected as a
+          # cross-surface intent after consuming the user's re-auth proof.
+          build_platform_sso_config(connectable: !tenant_domain?(view_vars))
         end
 
         # Resolve tenant SSO configuration from request context
@@ -644,15 +647,16 @@ module Core
         # @param config [Onetime::CustomDomain::SsoConfig] Tenant SSO config
         # @return [Hash] SSO config hash for frontend
         def build_tenant_sso_response(config)
+          provider = {
+            'route_name' => config.platform_route_name,
+            'display_name' => config.display_name.to_s,
+          }
+
           {
             'enabled' => true,
             'enforce_sso_only' => config.enforce_sso_only?,
-            'providers' => [
-              {
-                'route_name' => config.platform_route_name,
-                'display_name' => config.display_name.to_s,
-              },
-            ],
+            'providers' => [provider],
+            'connect_providers' => [provider],
           }
         end
 
@@ -717,24 +721,26 @@ module Core
         # providers on its own if it gains another caller — so it re-checks
         # rather than relying on the caller's guard.
         #
+        # @param connectable [Boolean] whether this host may initiate Connect
         # @return [Boolean, Hash] false if disabled, otherwise config hash
-        def build_platform_sso_config
+        def build_platform_sso_config(connectable: true)
           unless Onetime::CustomDomain::SigninConfig.global_auth_enabled
             return { 'enabled' => false, 'providers' => [] }
           end
 
           return false unless Onetime.auth_config.sso_enabled?
 
-          providers = Onetime.auth_config.sso_providers
+          providers = Onetime.auth_config.sso_providers.map do |provider|
+            {
+              'route_name' => provider['route_name'].to_s,
+              'display_name' => provider['display_name'].to_s,
+            }
+          end
 
           {
             'enabled' => true,
-            'providers' => providers.map do |p|
-              {
-                'route_name' => p['route_name'].to_s,
-                'display_name' => p['display_name'].to_s,
-              }
-            end,
+            'providers' => providers,
+            'connect_providers' => connectable ? providers : [],
           }
         end
       end

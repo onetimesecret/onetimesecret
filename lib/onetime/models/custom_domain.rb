@@ -324,13 +324,17 @@ module Onetime
     # Get the primary organization for this domain based on org_id field
     # This works even if the participation has been removed
     #
-    # @return [Onetime::Organization, nil] The organization or nil if org_id is not set
+    # Familia's load returns nil for a missing key; it does not raise. A
+    # datastore error propagates on purpose — callers gate authorization on
+    # the answer (OrganizationLoader, the tenant connect membership gate), so
+    # a swallowed outage must not read as "no organization".
+    #
+    # @return [Onetime::Organization, nil] The organization, or nil if org_id
+    #   is not set or names no stored organization
     def primary_organization
       return nil if org_id.to_s.empty?
 
       Onetime::Organization.load(org_id)
-    rescue Familia::RecordNotFound
-      nil
     end
 
     # Forward navigation to config models
@@ -702,7 +706,7 @@ module Onetime
 
         # Use Familia's find_by_identifier method
         find_by_identifier(domainid)
-      rescue Onetime::RecordNotFound, Redis::BaseError => ex
+      rescue Redis::BaseError => ex
         OT.ld "[CustomDomain.load_by_display_domain] Failed to load domain #{normalized} with id #{domainid}: #{ex.message}"
         nil
       rescue StandardError => ex
@@ -1313,11 +1317,7 @@ module Onetime
         return nil unless domain_id
 
         # Load the record using the domain ID
-        begin
-          find_by_identifier(domain_id)
-        rescue Onetime::RecordNotFound
-          nil
-        end
+        find_by_identifier(domain_id)
       end
 
       # Generate a cryptographically secure short identifier using
@@ -1338,8 +1338,6 @@ module Onetime
 
         # org.domains is the auto-generated SortedSet from participates_in
         org.domains.to_a
-      rescue Familia::RecordNotFound
-        []
       end
     end
 

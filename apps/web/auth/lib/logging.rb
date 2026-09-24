@@ -71,6 +71,13 @@ module Auth
       # Obscure email if present
       log_payload[:email] = OT::Utils.obscure_email(log_payload[:email]) if log_payload[:email]
 
+      # Never the session id (#4461): it is the bearer credential, and a
+      # logged one can be replayed as the cookie. Callers keep passing
+      # `session_id:`; the line carries `session_handle`, the keyed digest the
+      # session-store lines and the colonel session view use. Done here, like
+      # the email above, so a new call site cannot forget.
+      redact_session_id!(log_payload)
+
       # Ensure correlation_id is present in payload for visibility
       log_payload[:correlation_id] ||= 'none'
 
@@ -110,6 +117,7 @@ module Auth
     def log_operation(operation, level: :info, **payload)
       # Obscure email if present
       payload[:email] = OT::Utils.obscure_email(payload[:email]) if payload[:email]
+      redact_session_id!(payload)
 
       # Ensure correlation_id is present
       payload[:correlation_id] ||= 'none'
@@ -126,6 +134,7 @@ module Auth
     def log_error(event, exception: nil, **payload)
       # Obscure email if present
       payload[:email] = OT::Utils.obscure_email(payload[:email]) if payload[:email]
+      redact_session_id!(payload)
 
       # Ensure correlation_id is present
       payload[:correlation_id] ||= 'none'
@@ -182,6 +191,20 @@ module Auth
     end
 
     private
+
+    # Replace `session_id` with `session_handle` in a log payload, in place.
+    # A blank or unreadable id yields a nil handle, never the id.
+    def redact_session_id!(payload)
+      return unless payload.key?(:session_id)
+
+      sid                      = payload.delete(:session_id)
+      sid                      = sid.public_id if sid.respond_to?(:public_id)
+      payload[:session_handle] = begin
+        Onetime::SessionMetadata.handle_for(sid.to_s)
+      rescue StandardError
+        nil
+      end
+    end
 
     # Returns the Auth logger instance
     # @return [SemanticLogger] Logger for Auth category

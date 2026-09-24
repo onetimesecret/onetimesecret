@@ -104,6 +104,24 @@ module Onetime
           with_error_correlation(error.to_h, req, error)
         end
 
+        # Persisted signup provisioning failures are account-state conflicts.
+        # The stable code/classification lets clients and support distinguish
+        # them from transient entitlement-context failures.
+        router.register_error_handler(Onetime::AccountProvisioningFailed, status: 409, log_level: :warn) do |error, req|
+          with_error_correlation(error.to_h, req, error)
+        end
+
+        # Provisioning that persisted nothing and will be retried by the next
+        # request (unreadable collision evidence, or another request holds the
+        # per-customer creation lock). 503 and NOT the 409 above: that one tells
+        # the user to contact support, which is wrong for a state that clears
+        # itself. log_level :warn — transient, like the billing breaker. The
+        # body's retry_after becomes a Retry-After header one frame up
+        # (Middleware::RetryAfterHeader). Mirrored in Auth::ErrorTranslator.
+        router.register_error_handler(Onetime::AccountProvisioningUnavailable, status: 503, log_level: :warn) do |error, req|
+          with_error_correlation(error.to_h, req, error)
+        end
+
         # Rate limit exceeded errors return 429 with retry info
         router.register_error_handler(Onetime::LimitExceeded, status: 429, log_level: :warn) do |error, req|
           Onetime::Application::ErrorResolver.resolve!(error, req)
@@ -226,13 +244,13 @@ module Onetime
         # Core::Controllers::Base#signup_enabled? (POST /auth/create-account)
         # and from CreateAccount's autoverify resolution.
         #
-        # Registered separately from the sign-in handler above because Otto
-        # dispatches on the EXACT class name (Otto::Core::ErrorHandler looks up
-        # error.class.name), so the shared Onetime::AuthPolicyUnavailable
-        # parent buys the shape but not the routing. Identical status, level
-        # and body construction to its sibling: same failure, and the only
-        # thing that should differ between the two responses is the error_type
-        # and the sentence a user reads.
+        # Registered separately from the sign-in handler above: Otto walks
+        # error.class.ancestors, but the shared Onetime::AuthPolicyUnavailable
+        # parent is deliberately unregistered so each gate's error_type stays
+        # distinct — the parent buys the shape, not the routing. Identical
+        # status, level and body construction to its sibling: same failure,
+        # and the only thing that should differ between the two responses is
+        # the error_type and the sentence a user reads.
         router.register_error_handler(Onetime::SignupPolicyUnavailable, status: 503, log_level: :error) do |error, req|
           with_error_correlation(error.to_h, req, error)
         end

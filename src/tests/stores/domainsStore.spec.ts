@@ -212,8 +212,10 @@ describe('domainsStore', () => {
       // refreshRecords catches errors internally (does not throw)
       await expect(store.refreshRecords()).resolves.toBeUndefined();
 
-      // Store should not be marked as initialized after a failed fetch
-      expect(store.initialized).toBe(false);
+      // A failed fetch does not count as loaded, so the next refresh retries.
+      expect(store.isLoaded).toBe(false);
+      await store.refreshRecords();
+      expect(axiosMock.history.get).toHaveLength(2);
     });
 
     it('should handle validation errors gracefully', async () => {
@@ -339,11 +341,28 @@ describe('domainsStore', () => {
 
       // Verify state is cleared
       expect(store._currentOrgId).toBeNull();
-      expect(store.records).toEqual([]);
+      expect(store.records).toBeNull();
+      expect(store.isLoaded).toBe(false);
 
       // Next refreshRecords should fetch fresh data
       await store.refreshRecords({ orgId: 'on_org1' });
       expect(axiosMock.history.get).toHaveLength(2); // New fetch after reset
+    });
+
+    it('fetches again after $reset when no orgId is given', async () => {
+      // $reset used to leave `records = []`, which reads as "loaded, no
+      // domains": with no org change to force it, the next refresh was skipped.
+      axiosMock.onGet('/api/domains').reply(200, {
+        records: Object.values(mockDomainsRaw),
+        count: Object.keys(mockDomainsRaw).length,
+      });
+
+      await store.refreshRecords();
+      store.$reset();
+      await store.refreshRecords();
+
+      expect(axiosMock.history.get).toHaveLength(2);
+      expect(store.isLoaded).toBe(true);
     });
 
     /**

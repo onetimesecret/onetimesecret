@@ -55,6 +55,8 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     # and validates X-CSRF-Token header against it (supports both masked and unmasked)
     env 'rack.session', {
       'authenticated' => true,
+      # #4409: hand-seeded sessions need the surface marker the login hooks record.
+      Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
       'external_id' => customer.extid,
       :csrf => csrf_token,
     }
@@ -195,6 +197,23 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(data['subscription']['active']).to be true
     end
 
+    it 'serializes period_end as a string whatever type the model holds' do
+      # `period_end` is declared on the wire as epoch seconds in a STRING and
+      # the frontend parses it as one. New records hold an Integer on the
+      # model, so pin the boundary with the type most likely to leak.
+      organization.stripe_subscription_id  = 'sub_test_mock_period_end'
+      organization.subscription_status     = 'active'
+      organization.subscription_period_end = 1_772_940_425
+      organization.save
+
+      get "/billing/api/org/#{organization.extid}"
+
+      expect(last_response.status).to eq(200)
+
+      data = JSON.parse(last_response.body)
+      expect(data['subscription']['period_end']).to eq('1772940425')
+    end
+
     it 'returns nil subscription when organization has no subscription', :vcr do
       get "/billing/api/org/#{organization.extid}"
 
@@ -212,6 +231,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       # Switch session to other customer
       env 'rack.session', {
         'authenticated' => true,
+        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
         'external_id' => other_customer.extid,
       }
 
@@ -441,6 +461,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       # Switch session to member customer (preserve CSRF token)
       env 'rack.session', {
         'authenticated' => true,
+        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
         'external_id' => member_customer.extid,
         :csrf => csrf_token,
       }
@@ -655,6 +676,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       env 'rack.session', {
         'authenticated' => true,
+        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
         'external_id' => other_customer.extid,
       }
 
@@ -679,6 +701,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       env 'rack.session', {
         'authenticated' => true,
+        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
         'external_id' => member_customer.extid,
       }
 
@@ -766,6 +789,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       env 'rack.session', {
         'authenticated' => true,
+        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
         'external_id' => other_customer.extid,
       }
 
@@ -819,6 +843,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
         env 'rack.session', {
           'authenticated' => true,
+          Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
           'external_id' => other_customer.extid,
         }
 
@@ -1016,6 +1041,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       env 'rack.session', {
         'authenticated' => true,
+        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
         'external_id' => other_customer.extid,
         :csrf => csrf_token,
       }
@@ -1161,6 +1187,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
         env 'rack.session', {
           'authenticated' => true,
+          Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
           'external_id' => member_customer.extid,
           :csrf => csrf_token,
         }
@@ -1246,6 +1273,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       env 'rack.session', {
         'authenticated' => true,
+        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
         'external_id' => other_customer.extid,
         :csrf => csrf_token,
       }

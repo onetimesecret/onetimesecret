@@ -14,7 +14,7 @@ This is the inverse role of the OmniAuth feature documented in [per-install-sso.
 
 **Requirements:**
 - `AUTHENTICATION_MODE=full`
-- SQL database with migrations applied through `011_oauth_grants_pkce_check.rb`
+- SQL database with migrations applied through `013_oauth_grants_pkce_check.rb`
 - RSA private key in `OAUTH_JWT_RSA_PRIVATE_KEY`
 
 ## Enabling
@@ -73,7 +73,7 @@ curl -s http://localhost:3000/auth/jwks | jq
 
 ## Registering an OAuth Client
 
-Clients are rows in the `oauth_applications` table (see `apps/web/auth/migrations/009_oauth_applications.rb`). v1 does not ship a dynamic client registration endpoint — operators seed rows manually or via tooling.
+Clients are rows in the `oauth_applications` table (see `apps/web/auth/migrations/011_oauth_applications.rb`). v1 does not ship a dynamic client registration endpoint — operators seed rows manually or via tooling.
 
 **Required columns** when seeding:
 
@@ -136,7 +136,7 @@ Enabling `:oidc` transitively pulls in `:oauth_implicit_grant`. The DSL setter `
 Two layers enforce PKCE `S256`-only:
 
 1. **Gem behavior at `/authorize`**: once `:oauth_pkce` is enabled, `oauth_require_pkce` defaults to `true` and `oauth_pkce_challenge_method` defaults to `S256`. The gem rejects `plain` at `/authorize`. (See exploration notes in `apps/web/auth/docs/rodauth-oauth-exploration.md`.)
-2. **DB CHECK constraint** (`apps/web/auth/migrations/011_oauth_grants_pkce_check.rb`, shipped in [#3232](https://github.com/onetimesecret/onetimesecret/issues/3232)): rejects any `oauth_grants` insert with `code_challenge_method='plain'`. NULL is permitted so non-PKCE flows can still insert.
+2. **DB CHECK constraint** (`apps/web/auth/migrations/013_oauth_grants_pkce_check.rb`, shipped in [#3232](https://github.com/onetimesecret/onetimesecret/issues/3232)): rejects any `oauth_grants` insert with `code_challenge_method='plain'`. NULL is permitted so non-PKCE flows can still insert.
 
 The DB constraint exists because the gem's `/token` redemption path (`oauth_pkce.rb:75-77`) accepted `plain` if a row with that method ever appeared. The constraint makes the data layer the source of truth.
 
@@ -273,9 +273,9 @@ PKCE is mandatory (`oauth_require_pkce true`): every client must send a `code_ch
 
 The CSRF exemption for these endpoints is gated on `AUTH_OAUTH_ENABLED`. If you see a `403` from the Rack CSRF layer, confirm the flag is actually `true` in the running process — when it is off the bypass is intentionally inactive.
 
-### Migrations `008`/`009`/`010` fail to apply
+### Migrations `011`/`012`/`013` fail to apply
 
-They must run in order against the auth database (`010` adds a CHECK constraint to the table `009` creates). Confirm the auth DB URL is reachable and that earlier auth migrations (`001`+) already applied. See the migration files under `apps/web/auth/migrations/`.
+They must run in order against the auth database (`012` creates `oauth_grants` with an FK to the `oauth_applications` table `011` creates; `013` adds a CHECK constraint to `oauth_grants`). Confirm the auth DB URL is reachable and that earlier auth migrations (`001`+) already applied. See the migration files under `apps/web/auth/migrations/`.
 
 ## Local Development
 
@@ -289,9 +289,9 @@ For the loopback flow that lets OTS act as both SP and IdP in a single process (
 | `apps/web/auth/config/hooks/oauth.rb`                             | Claim mapping (`get_oidc_param`), `OAUTH_EXEMPT_PATHS` |
 | `apps/web/auth/config/json_mode.rb`                               | Single owner of `only_json?` (composes OAuth + OmniAuth exemptions) |
 | `apps/web/auth/initializers/seed_dev_oauth_client.rb`             | Dev SP client seeder (gated to dev/test)   |
-| `apps/web/auth/migrations/009_oauth_applications.rb`              | Client registry table                      |
-| `apps/web/auth/migrations/010_oauth_grants.rb`                    | Auth-code + token storage                  |
-| `apps/web/auth/migrations/011_oauth_grants_pkce_check.rb`         | PKCE `plain` rejection (CHECK constraint)  |
+| `apps/web/auth/migrations/011_oauth_applications.rb`              | Client registry table                      |
+| `apps/web/auth/migrations/012_oauth_grants.rb`                    | Auth-code + token storage                  |
+| `apps/web/auth/migrations/013_oauth_grants_pkce_check.rb`         | PKCE `plain` rejection (CHECK constraint)  |
 | `bin/generate_oauth_keys`                                         | RSA keypair + dev SP secret generator      |
 | `apps/web/auth/docs/rodauth-oauth-exploration.md`                 | Gem reconnaissance, feature inventory      |
 | `apps/web/auth/docs/rodauth-prefix-mismatch.md`                   | URLMap prefix mismatch ADR                 |

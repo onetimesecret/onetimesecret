@@ -55,6 +55,25 @@ module DomainsAPI
       def valid_extid?(extid)
         extid.match?(/\A[a-z0-9]+\z/)
       end
+
+      # Resolve an explicit org_id param to an organization the caller belongs to.
+      #
+      # Accepts an objid or extid. Both lookups return nil for an unknown or
+      # blank identifier rather than raising; a datastore error propagates as
+      # it would anywhere else in a logic class, so a caller that gates
+      # authorization on the answer never sees an outage as "not found".
+      #
+      # @param org_id [String] Organization ID (objid or extid)
+      # @return [Onetime::Organization, nil] nil when not found or @cust is not a member
+      def resolve_target_organization(org_id)
+        org   = Onetime::Organization.load(org_id)
+        org ||= Onetime::Organization.find_by_extid(org_id)
+
+        return nil unless org
+        return nil unless org.member?(@cust)
+
+        org
+      end
     end
   end
 end

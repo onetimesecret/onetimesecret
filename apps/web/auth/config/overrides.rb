@@ -21,4 +21,5 @@ module Auth::Config::Overrides
   require_relative 'overrides/public_base_url'
   require_relative 'overrides/reset_password_enumeration'
   require_relative 'overrides/account_enumeration'
+  require_relative 'overrides/surface_binding'
 end

@@ -238,23 +238,7 @@ module Onetime
       def enqueue_billing_event(event, payload)
         # Fallback to synchronous processing if jobs are disabled
         # This ensures billing webhooks work without RabbitMQ for dev/testing
-        unless jobs_enabled?
-          logger.info 'Jobs disabled, processing billing event synchronously',
-            event_id: event.id,
-            event_type: event.type
-
-          require 'apps/web/billing/operations/process_webhook_event'
-          result = Billing::Operations::ProcessWebhookEvent.new(
-            event: event,
-            context: { source: :sync_fallback },
-          ).call
-
-          logger.info 'Billing event processed synchronously',
-            event_id: event.id,
-            event_type: event.type,
-            result: result
-          return true
-        end
+        return process_billing_event_synchronously(event, payload) unless jobs_enabled?
 
         message = {
           event_id: event.id,
@@ -528,6 +512,63 @@ module Onetime
       # @return [Boolean] true if RabbitMQ channel pool is available
       def jobs_enabled?
         !$rmq_channel_pool.nil?
+      end
+
+      # Process a billing webhook event inline when the job system is disabled.
+      # Mirrors the async worker's bookkeeping (mark_event_failed on error,
+      # mark_event_success on success). Re-raises processing errors so the
+      # controller returns 500 and Stripe retries.
+      #
+      # @param event [Stripe::Event] The validated Stripe event
+      # @param _payload [String] Raw JSON payload; unused in the sync path,
+      #   accepted for signature symmetry with enqueue_billing_event
+      # @return [Boolean] true when processing completes
+      def process_billing_event_synchronously(event, _payload)
+        logger.info 'Jobs disabled, processing billing event synchronously',
+          event_id: event.id,
+          event_type: event.type
+
+        require 'apps/web/billing/operations/process_webhook_event'
+        begin
+          result = Billing::Operations::ProcessWebhookEvent.new(
+            event: event,
+            context: { source: :sync_fallback },
+          ).call
+        rescue StandardError => ex
+          # Processing failed — bookkeeping matches the async worker's
+          # mark_event_failed. Re-raise so the controller returns 500 and
+          # Stripe retries; side effects haven't been applied.
+          begin
+            Billing::StripeWebhookEvent.find_by_identifier(event.id)&.mark_failed!(ex)
+          rescue StandardError => bookkeeping_ex
+            logger.error 'Sync-fallback bookkeeping failed after processing error',
+              event_id: event.id,
+              original_error: ex.message,
+              bookkeeping_error: bookkeeping_ex.message
+          end
+          raise
+        end
+
+        # Processing succeeded — transition the record to `success` (the
+        # async worker does the same via mark_event_success). The rescue is
+        # critical: a bookkeeping failure AFTER side effects have been
+        # applied must NOT cause a 500 and a Stripe redelivery of
+        # already-applied work. See billing_worker.rb:187-198 for the same
+        # pattern in the async path.
+        begin
+          Billing::StripeWebhookEvent.find_by_identifier(event.id)
+            &.mark_success!(outcome: result)
+        rescue StandardError => ex
+          logger.error 'Failed to mark sync-fallback event success',
+            event_id: event.id,
+            error: ex.message
+        end
+
+        logger.info 'Billing event processed synchronously',
+          event_id: event.id,
+          event_type: event.type,
+          result: result
+        true
       end
 
       # Wrap publish operation with fallback logic (no retries, no sleeps)

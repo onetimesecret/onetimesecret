@@ -5,7 +5,7 @@
 require 'rack/request'
 require 'otto'
 
-require_relative '../../session/impersonation'
+require_relative '../../session/customer_session_evaluator'
 
 #
 # Shared helper methods for authentication strategies.
@@ -60,72 +60,17 @@ module Onetime
           failure(reason, terminal: true)
         end
 
-        # Loads customer from session if authenticated
-        #
-        # @param session [Hash] Rack session
-        # @param env [Hash, nil] Rack env, for the per-request impersonation
-        #   target memo (Onetime::SessionImpersonation::TARGET_ENV_KEY)
-        # @return [Onetime::Customer, nil] Customer if found, nil otherwise
-        def load_user_from_session(session, env = nil)
-          return nil unless session
-          return nil unless session['authenticated'] == true
-
-          external_id = session['external_id']
-          return nil if external_id.to_s.empty?
-
-          cust = Onetime::Customer.find_by_extid(external_id)
-
-          # Credential watermark (#3810): a session established before the
-          # customer's last password change/reset must not resolve an identity.
-          # This is the anonymous-capable path (NoAuthStrategy), so a stale
-          # session degrades to nil/anonymous — never a 401 here; the
-          # session-requiring strategies reject with SESSION_STALE_CREDENTIALS
-          # in BaseSessionAuthStrategy instead.
-          #
-          # Judged on the PRINCIPAL, before the impersonation overlay: the
-          # watermark belongs to the session owner's credentials, not to the
-          # customer being presented.
-          return nil if session_predates_credential_change?(session, cust)
-
-          # Colonel impersonation overlay (see Onetime::SessionImpersonation).
-          # Anonymous-capable routes must see the same effective customer as
-          # the session-requiring ones, or a noauth route would render the
-          # operator's own data mid-impersonation.
-          effective, = Onetime::SessionImpersonation.resolve(session, cust, env: env)
-          effective
-        rescue StandardError => ex
-          OT.le "[auth_strategy] Failed to load customer: #{ex.message}"
-          OT.ld ex.backtrace.first(3).join("\n")
-          nil
+        # The shared customer-session verdict for this request. Compatibility
+        # callers may project it to nil/boolean, but may never promote a refused
+        # or unavailable verdict to an identity.
+        def customer_session_verdict(session, env = nil)
+          Onetime::CustomerSessionEvaluator.evaluate(session, env: env)
         end
 
-        # Whether a session blob was authenticated BEFORE the customer's last
-        # credential change (#3810). This predicate — not the enumerative blob
-        # deletion in the password hooks, which is hygiene — is the authoritative
-        # session-revocation boundary: a blob the hooks never found still dies
-        # here on its next request. Strict integer comparison of epoch seconds:
-        #
-        #   - No customer or no watermark (nil/0) => false. Deploying this check
-        #     can never mass-logout customers who never changed a password.
-        #   - Watermark set + missing authenticated_at (coerces to 0) => true.
-        #     Fail-secure: an identity-bearing blob with no login timestamp
-        #     cannot be proven to postdate the credential change.
-        #   - authenticated_at == watermark => TRUE (rejected, treated as
-        #     pre-change). The current session survives NOT via equality but
-        #     because after_change_password re-stamps it to a value STRICTLY
-        #     GREATER than the watermark, so it clears the `<=` boundary.
-        #
-        # @param session_data [Hash, #[], nil] Rack session (string keys)
-        # @param cust [Onetime::Customer, nil] customer resolved from the session
-        # @return [Boolean]
-        def session_predates_credential_change?(session_data, cust)
-          return false unless cust
-
-          watermark = cust.last_password_update.to_i
-          return false unless watermark.positive?
-
-          authenticated_at = session_data ? session_data['authenticated_at'].to_i : 0
-          authenticated_at <= watermark
+        # Compatibility projection retained for credentialed strategies and
+        # older callers. Identity is present only on an authenticated verdict.
+        def load_user_from_session(session, env = nil)
+          customer_session_verdict(session, env).customer
         end
 
         # Builds standard metadata hash from env
@@ -140,20 +85,19 @@ module Onetime
             country: env['otto.privacy.geo_country'],
             domain_strategy: env['onetime.domain_strategy'],
             display_domain: env['onetime.display_domain'],
+            # CustomDomain#identifier for :custom (DomainStrategy stash). The
+            # logic layer needs it to rebuild the surface descriptor when it
+            # mints a session itself (invite signup autologin, #4409).
+            custom_domain_id: env['onetime.custom_domain_id'],
           }.merge(additional)
         end
 
         private
 
-        # Whether THIS request already resolves a valid (non-stale) session
+        # Whether THIS request already resolves a valid customer-session
         # identity. Used only by #credentialed_failure to decide whether a
-        # rejected Authorization header should fail the chain closed or defer to
-        # the session. A nil/non-Hash env (bare unit-level strategy invocations)
-        # or an anonymous/stale session yields false, preserving the strict
-        # terminal default. Reuses #load_user_from_session so the credential
-        # watermark staleness check (#3810) applies identically here — a session
-        # that predates the customer's last credential change does NOT count as a
-        # valid identity and cannot rescue a rejected Authorization header.
+        # rejected Authorization header should defer to the session. A
+        # refused, MFA-pending, or unavailable verdict can only withhold.
         #
         # @param env [Hash, nil] Rack environment
         # @return [Boolean]

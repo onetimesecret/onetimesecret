@@ -3,43 +3,51 @@
 # frozen_string_literal: true
 
 #
-# Session-based authentication helpers that minimize database/Redis lookups.
-#
-# Performance Pattern:
-# - Authentication checks use session data only (no DB/Redis hit)
-# - Customer object is lazy-loaded only when actually needed
-# - Role checks use session data for common permission checks
+# Session-based authentication helpers. Identity and role answers come from
+# Onetime::CustomerSessionEvaluator, whose verdict is memoized per request, so
+# repeated calls in one request cost one evaluation.
 #
 # Session Data Stored:
 # - external_id: Links to Customer.extid (Redis primary key)
 # - email: User's email address
-# - role: User's role (customer, colonel, etc.) for quick permission checks
+# - role: User's role (customer, colonel, etc.). DISPLAY ONLY: read by the
+#   colonel Sessions console and `bin/ots session` (Operations::Sessions::Store,
+#   Colonel::GetSessionDetail). Never an authorization input; role checks load
+#   the Customer through the evaluator.
 # - authenticated: Boolean flag
 # - authenticated_at: Unix timestamp
 #
 # Usage:
-#   authenticated?      # Fast - checks session only
-#   has_role?(:colonel) # Fast - checks session only
-#   current_customer    # Slow - loads from Redis (use sparingly)
+#   authenticated?      # Shared evaluator verdict (memoized per request)
+#   has_role?(:colonel) # Role of the ACTING PRINCIPAL — never the impersonation
+#                       # target. Role gates answer about the operator; whether a
+#                       # privileged action is allowed on an impersonated surface
+#                       # is a decision for the impersonation policy, not for the
+#                       # role check.
+#   colonel?            # Convenience alias for has_role?(:colonel); same principal-only semantics.
+#   current_customer    # EFFECTIVE customer from the same verdict (the
+#                       # impersonation target mid-overlay, otherwise the principal).
 
-require_relative '../session/active_session_gate'
+require_relative '../session/customer_session_evaluator'
 require_relative '../session/impersonation'
 
 module Onetime
   module Helpers
     module SessionHelpers
       def authenticated?
-        session['authenticated'] == true &&
-          !session['external_id'].to_s.empty? &&
-          session_auth_enforced? &&
-          !active_session_revoked?
+        session_auth_enforced? && customer_session_verdict.authenticated?
       end
 
-      # Check user role without loading Customer (uses session data)
+      # Role checks answer about the ACTING PRINCIPAL, not the effective
+      # customer. The principal-role invariant is what keeps `colonel?` true
+      # for the operator throughout an impersonation session, so the admin UI
+      # remains visible and the operator can end the overlay. Whether a
+      # privileged action is allowed on an impersonated surface is a decision
+      # for the impersonation policy — never for `has_role?`.
       def has_role?(role_name)
-        return false unless authenticated?
+        return false unless session_auth_enforced?
 
-        session['role'].to_s == role_name.to_s
+        customer_session_verdict.principal&.role?(role_name) || false
       end
 
       def colonel?
@@ -59,7 +67,10 @@ module Onetime
       # exempts from revocation forever.
 
       def logout!
-        session_id = session.id&.private_id if session.respond_to?(:id)
+        # The handle, not an id: it is the identifier every other session log
+        # line and the colonel session view carry, and it cannot be replayed
+        # as the cookie (#4461). Taken before the clear below.
+        handle = Onetime::SessionMetadata.handle_for(session.id&.public_id) if session.respond_to?(:id)
 
         # Close the impersonation FIRST. session.clear would take the marker
         # with it and leave the audit trail holding a start with no end.
@@ -68,54 +79,56 @@ module Onetime
           ended_by: Onetime::SessionImpersonation::ENDED_BY_LOGOUT,
         )
 
+        # The row before the blob: a concurrent request can write the blob
+        # back, and only the missing row makes that copy refusable.
+        Onetime::ActiveSessionGate.end_session(session, env: rack_env_for_impersonation)
+
         session.clear
-        forget_active_session_verdict
-        OT.info "[logout] Session #{session_id} destroyed" if session_id
+
+        # Renew the id, as Web Core's #logout does. The store then deletes the
+        # old blob and sets its ended-marker (Onetime::SessionEnded), so a
+        # request still in flight under the old id cannot write the session
+        # back (RISK-2026-09-19-01). Clearing alone leaves the id live, and a
+        # live id cannot carry a marker: its own next write would be refused.
+        options         = rack_env_for_impersonation&.[]('rack.session.options')
+        options[:renew] = true if options.respond_to?(:[]=)
+
+        forget_customer_session_verdict
+        OT.info "[logout] Session destroyed (session_handle=#{handle})" if handle
       end
 
       private
 
-      # Full-mode active-session enforcement (Onetime::ActiveSessionGate, terms
-      # defined there): the controller-side twin of the check in
-      # BaseSessionAuthStrategy, so a page render and an API call answer the
-      # same way once the Rack session's active-session row is revoked or
-      # cannot be checked. Memoized per request through the Rack env when there
-      # is one (the strategy shares the memo), else per helper instance, so
-      # the many `authenticated?` calls in one request cost one SELECT.
-      def active_session_revoked?
-        return @active_session_revoked unless @active_session_revoked.nil?
-
-        @active_session_revoked = Onetime::ActiveSessionGate.revoked?(session, env: rack_env_for_impersonation)
+      def customer_session_verdict
+        env                         = rack_env_for_impersonation
+        @customer_session_verdict ||= Onetime::CustomerSessionEvaluator.evaluate(session, env: env)
       end
 
-      # The session identity just changed inside this request (login or
-      # logout): a verdict reached for the previous identity must not outlive
-      # it, in this helper or in the shared env memo.
-      def forget_active_session_verdict
-        @active_session_revoked = nil
-        env                     = rack_env_for_impersonation
-        env&.delete(Onetime::ActiveSessionGate::ENV_KEY)
+      # The session identity just changed inside this request (login or logout):
+      # neither the common verdict nor the active-session sub-verdict may outlive it.
+      def forget_customer_session_verdict
+        @customer_session_verdict = nil
+        env                       = rack_env_for_impersonation
+        Onetime::CustomerSessionEvaluator.forget(env)
+        Onetime::ActiveSessionGate.forget(env)
       end
 
       def load_current_customer
-        return nil unless authenticated?
+        return nil unless session_auth_enforced?
 
-        # The PRINCIPAL — always the session owner, never the impersonation
-        # target. session['external_id'] stays the colonel's extid for the
-        # whole impersonation (overlay, not swap).
-        principal = Onetime::Customer.find_by_extid(session['external_id'])
-        return nil unless principal
+        verdict = customer_session_verdict
+        return nil unless verdict.authenticated?
 
-        customer, impersonating = Onetime::SessionImpersonation.resolve(
-          session, principal, env: rack_env_for_impersonation
-        )
+        principal = verdict.principal
+        customer  = verdict.customer
 
-        # Refresh the cached role from the PRINCIPAL only. Writing the target's
-        # role here would stamp a customer role into the colonel's own session
-        # blob, and `has_role?`/`colonel?` read that cache without loading a
-        # Customer — so a single impersonation would silently demote the
-        # operator for the rest of the session, surviving the stop.
-        session['role']      = principal.role if !impersonating && session['role'] != principal.role
+        # Refresh the session's role from the PRINCIPAL only. It is display data
+        # for the colonel Sessions console, which lists the session under its
+        # owner; an overlay must never stamp the target's role into the
+        # operator's session.
+        if verdict.impersonation.nil? && session['role'] != principal.role
+          session['role'] = principal.role
+        end
         session['last_seen'] = Familia.now.to_i
 
         customer

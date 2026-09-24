@@ -11,7 +11,7 @@
 #
 # Operations tested:
 #   - Auth::Operations::EnsureCustomerForAccount
-#   - Auth::Operations::CreateDefaultWorkspace
+#   - Auth::Operations::EnsureDefaultWorkspace
 #
 # REQUIREMENTS:
 # - Valkey running on port 2163: pnpm run test:database:start
@@ -30,7 +30,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
     require 'onetime' unless defined?(Onetime)
     Onetime.boot! :test unless Onetime.ready?
     require_relative '../../../operations/ensure_customer_for_account'
-    require_relative '../../../operations/create_default_workspace'
+    require_relative '../../../operations/ensure_default_workspace'
   end
 
   # Track created resources for cleanup
@@ -310,6 +310,75 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
         expect(customer.verified_by.to_s).to eq('')
       end
 
+      # verification_hold records WHY the SSO/JIT caller withheld the verified
+      # stamp, so the customers doctor can refuse to auto-repair it later. It is
+      # a persisted field, not an in-memory flag.
+      it 'threads verification_hold: through to the new Customer' do
+        email = unique_test_email('verification-hold')
+        account = create_test_account(email: email, status_id: AuthTestConstants::STATUS_VERIFIED)
+
+        customer = Auth::Operations::EnsureCustomerForAccount.new(
+          account_id: account[:id],
+          account: account,
+          provisioning_origin: 'sso_jit',
+          verified: false,
+          verification_hold: 'idp_unverified',
+        ).call
+        created_customers << customer
+
+        expect(customer.verified?).to be false
+        expect(customer.verification_hold).to eq('idp_unverified')
+        expect(customer.verification_held?).to be true
+
+        reloaded = Onetime::Customer.load(customer.custid)
+        expect(reloaded.verification_hold).to eq('idp_unverified')
+        expect(reloaded.verification_held?).to be true
+      end
+
+      it 'records no verification_hold by default' do
+        email = unique_test_email('verification-hold-default')
+        account = create_test_account(email: email)
+
+        customer = Auth::Operations::EnsureCustomerForAccount.new(
+          account_id: account[:id],
+          account: account,
+        ).call
+        created_customers << customer
+
+        expect(customer.verification_hold.to_s).to eq('')
+        expect(customer.verification_held?).to be false
+      end
+
+      # The hold vocabulary is enforced (Onetime::Customer::VERIFICATION_HOLDS),
+      # and a hold on a verified record is a contradiction. Both are refused in
+      # the initializer, before the email index is consulted or anything is
+      # written, so no such record can be created through this operation.
+      it 'refuses an unknown or contradictory verification_hold before creating anything' do
+        email = unique_test_email('verification-hold-bad')
+        account = create_test_account(email: email, status_id: AuthTestConstants::STATUS_VERIFIED)
+
+        expect do
+          Auth::Operations::EnsureCustomerForAccount.new(
+            account_id: account[:id],
+            account: account,
+            verification_hold: 'made_up',
+          )
+        end.to raise_error(ArgumentError, /made_up/)
+
+        expect do
+          Auth::Operations::EnsureCustomerForAccount.new(
+            account_id: account[:id],
+            account: account,
+            verified: true,
+            verified_by: 'sso',
+            verification_hold: 'idp_unverified',
+          )
+        end.to raise_error(ArgumentError, /contradicts verified: true/)
+
+        expect(Onetime::Customer.email_exists?(email)).to be false
+        expect(Auth::Database.connection[:accounts].where(id: account[:id]).get(:external_id)).to be_nil
+      end
+
       # Same "don't rewrite history" rule as provisioning_origin and
       # signup_domain_id: the existing-customer branch is a no-op, so this
       # operation can never upgrade an already-unverified record.
@@ -341,7 +410,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
     end
   end
 
-  describe 'CreateDefaultWorkspace operation' do
+  describe 'EnsureDefaultWorkspace operation' do
     it 'creates Organization with is_default true' do
       email = unique_test_email('workspace-default')
       customer = Onetime::Customer.create!(
@@ -355,7 +424,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       expect(customer.organization_instances.count).to eq(0)
 
       # Call the operation
-      operation = Auth::Operations::CreateDefaultWorkspace.new(customer: customer)
+      operation = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer)
       result = operation.call
       org = result[:organization]
       created_organizations << org
@@ -374,14 +443,14 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       created_customers << customer
 
       # First call - creates organization
-      operation1 = Auth::Operations::CreateDefaultWorkspace.new(customer: customer)
+      operation1 = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer)
       result1 = operation1.call
       created_organizations << result1[:organization]
 
       expect(customer.organization_instances.count).to eq(1)
 
       # Second call - should be no-op
-      operation2 = Auth::Operations::CreateDefaultWorkspace.new(customer: customer)
+      operation2 = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer)
       result2 = operation2.call
 
       expect(result2).to be_nil # Returns nil when workspace exists
@@ -389,7 +458,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
     end
 
     it 'returns nil when customer is nil' do
-      operation = Auth::Operations::CreateDefaultWorkspace.new(customer: nil)
+      operation = Auth::Operations::EnsureDefaultWorkspace.new(customer: nil)
       result = operation.call
 
       expect(result).to be_nil
@@ -406,7 +475,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
 
       expect(customer.organization_instances).to be_empty
 
-      operation = Auth::Operations::CreateDefaultWorkspace.new(customer: customer)
+      operation = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer)
       result = operation.call
       org = result[:organization]
       created_organizations << org
@@ -418,7 +487,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
   end
 
   describe 'full account creation flow' do
-    it 'EnsureCustomerForAccount followed by CreateDefaultWorkspace creates linked records' do
+    it 'EnsureCustomerForAccount followed by EnsureDefaultWorkspace creates linked records' do
       email = unique_test_email('full-flow')
       account = create_test_account(email: email)
 
@@ -431,7 +500,7 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       created_customers << customer
 
       # Step 2: Create Workspace
-      workspace_op = Auth::Operations::CreateDefaultWorkspace.new(customer: customer)
+      workspace_op = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer)
       result = workspace_op.call
       org = result[:organization]
       created_organizations << org

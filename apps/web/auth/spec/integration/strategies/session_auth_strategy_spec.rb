@@ -55,6 +55,7 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
       let(:env_no_session) do
         {
           'REMOTE_ADDR' => '127.0.0.1',
+          'onetime.domain_strategy' => :canonical,
           'HTTP_USER_AGENT' => 'Test/1.0',
         }
       end
@@ -89,6 +90,7 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
             'email' => test_customer.email,
           },
           'REMOTE_ADDR' => '127.0.0.1',
+          'onetime.domain_strategy' => :canonical,
           'HTTP_USER_AGENT' => 'Test/1.0',
         }
       end
@@ -121,11 +123,14 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
         {
           'rack.session' => {
             'authenticated' => true,
+            # #4409: hand-seeded sessions need the surface marker the login hooks record.
+            Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
             'awaiting_mfa' => true,
             'external_id' => test_customer.extid,
             'email' => test_customer.email,
           },
           'REMOTE_ADDR' => '127.0.0.1',
+          'onetime.domain_strategy' => :canonical,
           'HTTP_USER_AGENT' => 'Test/1.0',
         }
       end
@@ -146,6 +151,7 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
             'email' => test_customer.email,
           },
           'REMOTE_ADDR' => '127.0.0.1',
+          'onetime.domain_strategy' => :canonical,
           'HTTP_USER_AGENT' => 'Test/1.0',
         }
       end
@@ -165,8 +171,10 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
         {
           'rack.session' => {
             'authenticated' => true,
+            Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
           },
           'REMOTE_ADDR' => '127.0.0.1',
+          'onetime.domain_strategy' => :canonical,
           'HTTP_USER_AGENT' => 'Test/1.0',
         }
       end
@@ -186,10 +194,12 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
         {
           'rack.session' => {
             'authenticated' => true,
+            Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
             'external_id' => "nonexistent_#{SecureRandom.uuid}",
             'email' => 'nobody@example.com',
           },
           'REMOTE_ADDR' => '127.0.0.1',
+          'onetime.domain_strategy' => :canonical,
           'HTTP_USER_AGENT' => 'Test/1.0',
         }
       end
@@ -216,6 +226,7 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
       def env_with_authenticated_at(value)
         session = {
           'authenticated' => true,
+          Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
           'external_id' => test_customer.extid,
           'email' => test_customer.email,
         }
@@ -223,6 +234,7 @@ RSpec.describe Onetime::Application::AuthStrategies::SessionAuthStrategy, type: 
         {
           'rack.session' => session,
           'REMOTE_ADDR' => '127.0.0.1',
+          'onetime.domain_strategy' => :canonical,
           'HTTP_USER_AGENT' => 'Test/1.0',
         }
       end

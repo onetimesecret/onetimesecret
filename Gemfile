@@ -69,10 +69,27 @@ gem 'rodauth-tools', '~> 0.4.0'
 # openid_connect → activemodel, rack-oauth2, json-jwt, swd, webfinger). No
 # ActiveSupport APIs are used by application code. validate_url is also a
 # passenger from this chain.
+#
+# Every strategy gem here is required LAZILY, per provider, by
+# Auth::Config::Features::OmniAuth.configure_provider — a deployment that
+# configures none of them never loads them. The cost of an entry is the
+# bundle, not the boot.
+#
+# omniauth-apple declares NO direct `omniauth` dependency (only
+# omniauth-oauth2 and json-jwt, both unversioned), so it would happily
+# resolve against OmniAuth 1.x. The floor is held by the other entries in
+# this block, all of which require `omniauth ~> 2.0`.
+gem 'omniauth-apple', '~> 1.4'
 gem 'omniauth-entra-id', '~> 3.1'
 gem 'omniauth-github', '~> 2.0'
 gem 'omniauth-google-oauth2', '~> 1.2'
 gem 'omniauth_openid_connect', '~> 0.8'
+# jwt is transitive (oauth2, omniauth-entra-id, omniauth-google-oauth2,
+# safety_net_attestation) and every consumer allows < 4.0. The floor is
+# declared here so a provider gem that still pins jwt ~> 2 (omniauth-auth0
+# 3.2 did, and moved the lock from 3.2.0 to 2.10.3) fails resolution instead
+# of silently downgrading a crypto library on the auth path.
+gem 'jwt', '~> 3.2'
 
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'

@@ -12,8 +12,8 @@
 # comments, and formatting.
 #
 # Usage:
-#   bin/ots migrate 20250727_01_convert_symbol_keys           # Preview changes
-#   bin/ots migrate --run 20250727_01_convert_symbol_keys     # Execute migration
+#   bin/ots migrate migrations/2025-07-27/20250727_01_convert_symbol_keys.rb        # Preview changes
+#   bin/ots migrate migrations/2025-07-27/20250727_01_convert_symbol_keys.rb --run  # Execute migration
 #
 # What it does:
 #   1. Creates a timestamped backup of etc/config.yaml

@@ -12,7 +12,7 @@ module Onetime
         minimal: [:method, :path, :status, :duration_ms],
         standard: [:method, :path, :status, :duration_ms, :request_id, :ip],
         debug: [:method, :path, :status, :duration_ms, :request_id, :ip,
-                :params, :headers, :session_id],
+                :params, :headers, :session_handle],
       }.freeze
 
       def initialize(app, config)
@@ -90,11 +90,14 @@ module Onetime
         payload[:request_id] = request.env['HTTP_X_REQUEST_ID'] if capture?(:request_id)
         payload[:ip]         = request.ip if capture?(:ip)
         payload[:params]     = allowlisted_params(request.params) if capture?(:params)
-        # Rack::Session::SessionId is not JSON-serializable under strict mode;
-        # prefer public_id (hex digest safe to log) and fall back to to_s.
-        if capture?(:session_id) && request.session.respond_to?(:id)
-          sid                  = request.session.id
-          payload[:session_id] = sid.respond_to?(:public_id) ? sid.public_id : sid.to_s
+        # The session id IS the bearer cookie, so no capture mode logs it.
+        # The handle (Onetime::SessionMetadata.handle_for) is a keyed,
+        # non-reversible digest: the same value every other session log line
+        # carries, so a request still joins to them. (RISK-2026-08-14-L09)
+        if capture?(:session_handle) && request.session.respond_to?(:id)
+          sid                      = request.session.id
+          plain                    = sid.respond_to?(:public_id) ? sid.public_id : sid.to_s
+          payload[:session_handle] = Onetime::SessionMetadata.handle_for(plain)
         end
 
         payload[:headers] = allowlisted_headers(request.env) if capture?(:headers)

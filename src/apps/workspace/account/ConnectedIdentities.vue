@@ -9,12 +9,13 @@
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useCsrfStore } from '@/shared/stores/csrfStore';
   import { submitSsoLogin } from '@/shared/utils/sso';
+  import { connectSurfaceFor, connectableSsoProviders } from '@/shared/utils/sso-link-evidence';
   // Two label helpers on purpose: linked rows name the provider canonically
   // (providerLabel), connect buttons prefer the operator's display_name
   // (configuredProviderLabel). See the docblocks in utils/features.ts.
   import {
     configuredProviderLabel,
-    getSsoProviders,
+    getSsoConnectProviders,
     isActiveSessionsEnabledOf,
     providerLabel,
     type SsoProvider,
@@ -33,16 +34,18 @@
   const { identities, isLoading, error, errorCode, fetchIdentities, removeIdentity, clearError } =
     useConnectedIdentities();
 
-  // Providers the account can still link. A provider is "already linked" when
-  // its route_name matches the `provider` of any existing identity row (both are
-  // the omniauth route name, e.g. 'oidc'). Exclude-by-route is correct here: on
-  // the platform / self-host surface a route maps to a single issuer.
+  // The server supplies the routes permitted for Connect on this host. On the
+  // platform surface a linked identity with the same route name hides the
+  // button; on a tenant surface Connect stays available and the callback
+  // resolves whether the returned tuple is already owned. See
+  // sso-link-evidence.ts.
   const CONNECT_REDIRECT = '/account/settings/security/connections';
 
-  const connectableProviders = computed<SsoProvider[]>(() => {
-    const linked = new Set(identities.value.map((identity) => identity.provider));
-    return getSsoProviders().filter((provider) => !linked.has(provider.route_name));
-  });
+  const connectSurface = computed(() => connectSurfaceFor(bootstrapStore.domain_strategy));
+
+  const connectableProviders = computed<SsoProvider[]>(() =>
+    connectableSsoProviders(getSsoConnectProviders(), identities.value, connectSurface.value)
+  );
 
   // Connecting reuses the sign-in form POST (see submitSsoLogin) but marks it
   // with connect: true so the backend hook binds the returned identity to the

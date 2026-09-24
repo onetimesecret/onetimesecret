@@ -1,0 +1,27 @@
+# apps/web/core/spec/templates/templates_parse_spec.rb
+#
+# frozen_string_literal: true
+
+# Every Rhales template in Web Core parses.
+#
+# A template is only parsed when it is rendered or when the hydration schemas
+# are generated, and the generator skips a template it cannot parse with a
+# warning. A template with a Mustache section (`{{#name}}…{{/name}}`), which
+# Rhales' Handlebars parser rejects, went unnoticed that way.
+
+require 'spec_helper'
+require 'rhales'
+
+RSpec.describe 'Web Core .rue templates' do
+  templates = Dir[File.expand_path('../../templates/**/*.rue', __dir__)]
+
+  it 'finds the templates' do
+    expect(templates.map { |path| File.basename(path) }).to include('index.rue', 'admin.rue', 'robots.rue')
+  end
+
+  templates.each do |path|
+    it "parses #{path.split('/templates/').last}" do
+      expect { Rhales::RueDocument.new(File.read(path), path).parse! }.not_to raise_error
+    end
+  end
+end

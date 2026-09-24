@@ -1,6 +1,5 @@
 // src/shared/stores/localReceiptStore.ts
 
-import { PiniaPluginOptions } from '@/plugins/pinia';
 import {
   guestReceiptsResponseSchema,
   localReceiptsArraySchema,
@@ -11,7 +10,6 @@ import { useApi } from '@/shared/composables/useApi';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, ref, watch } from 'vue';
 
-interface StoreOptions extends PiniaPluginOptions {}
 
 /**
  * Type definition for LocalReceiptStore.
@@ -28,7 +26,7 @@ export type LocalReceiptStore = {
   hasReceipts: boolean;
 
   // Actions
-  init: (options?: StoreOptions) => { isInitialized: boolean };
+  init: () => { isInitialized: boolean };
   addReceipt: (receipt: LocalReceipt) => void;
   updateMemo: (id: string, memo: string) => void;
   markAsPreviewed: (secretExtid: string) => void;
@@ -172,10 +170,9 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
    * @param options Optional store options
    * @returns Object containing initialization status
    */
-  function init(options?: StoreOptions) {
+  function init() {
     if (_initialized.value) return { isInitialized };
 
-    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
 
     _initialized.value = true;
     return { isInitialized };

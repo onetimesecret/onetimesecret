@@ -76,39 +76,6 @@ module DomainsAPI::Logic
           },
         }
       end
-
-      private
-
-      # Resolve target organization from ID param
-      # Returns nil if not found or user is not a member
-      #
-      # @param org_id [String] Organization ID (objid or extid)
-      # @return [Onetime::Organization, nil]
-      def resolve_target_organization(org_id)
-        # Try loading by objid first, then extid
-        # Try loading by objid first, then extid
-        # Only rescue expected "not found" errors, let connection/system errors propagate
-        org = begin
-          Onetime::Organization.load(org_id)
-        rescue Familia::NotConnected, Familia::Problem
-          raise # Re-raise connection/system errors
-        rescue StandardError
-          nil # Record not found
-        end
-
-        org ||= begin
-          Onetime::Organization.find_by_extid(org_id)
-        rescue Familia::NotConnected, Familia::Problem
-          raise # Re-raise connection/system errors
-        rescue StandardError
-          nil # Record not found
-        end
-
-        return nil unless org
-        return nil unless org.member?(@cust)
-
-        org
-      end
     end
   end
 end

@@ -18,12 +18,19 @@ happens, and the steps to resolve or verify.
   Resolving duplicate plan entries surfaced on the plans page.
 - [feedback-rate-limit-verification.md](./feedback-rate-limit-verification.md) —
   Verifying the feedback rate limit behaves correctly end-to-end.
+- [ownerless-workspace-email-index-collision.md](./ownerless-workspace-email-index-collision.md) —
+  Diagnosing and safely resolving ownerless default workspaces and contact-email
+  index collisions after account purge or recreation.
 - [raw-email-field-serialization.md](./raw-email-field-serialization.md) —
   Handling raw email field serialization issues.
 - [secret-rotation.md](./secret-rotation.md) — Backing up and rotating the
   root SECRET; diagnosing and recovering from a SECRET mismatch.
 - [sentry-retention-policy.md](./sentry-retention-policy.md) — Sentry data
   retention policy and its operational implications.
+- [sso-accounts-unverified.md](./sso-accounts-unverified.md) — Repairing
+  SSO-provisioned customers left unverified before v0.26.5, so their colonel /
+  admin / staff role takes effect (`bin/ots customers doctor --all --repair`);
+  what a `verification_hold` means and why the doctor will not repair it.
 - [tenant-sso-csp-form-action.md](./tenant-sso-csp-form-action.md) — Diagnosing a
   custom-domain SSO button that does nothing because CSP `form-action` blocked
   the redirect to the tenant's IdP; the `TenantCspExtras` log signals and what

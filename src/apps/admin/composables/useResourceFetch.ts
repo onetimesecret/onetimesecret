@@ -87,11 +87,21 @@ export function useResourceFetch<TResponse>(
   // Remember the last params so `refresh()` re-issues an identical request.
   let lastParams: ResourceFetchParams | undefined;
 
+  /**
+   * Monotonic id of the newest load call. When an operator flips the id in the
+   * URL faster than a slow GET settles, only the newest request may touch the
+   * refs above — otherwise a stale payload can overwrite `data` while the
+   * drawer subtitle already labels the newer record. The RETURN VALUE is not
+   * gated: each caller still receives (or throws) its own result.
+   */
+  let requestSeq = 0;
+
   function resolveUrl(): string {
     return typeof config.url === 'function' ? config.url() : config.url;
   }
 
   async function load(params?: ResourceFetchParams): Promise<TResponse | null> {
+    const requestId = ++requestSeq;
     lastParams = params;
     loading.value = true;
     error.value = null;
@@ -103,23 +113,33 @@ export function useResourceFetch<TResponse>(
       const result = gracefulParse(config.schema, response.data, config.context);
       if (!result.ok) {
         // Contract mismatch: degrade quietly. gracefulParse already reported it.
-        validationError.value = config.context;
-        data.value = null;
+        if (requestId === requestSeq) {
+          validationError.value = config.context;
+          data.value = null;
+        }
         return null;
       }
 
-      data.value = result.data;
+      if (requestId === requestSeq) {
+        data.value = result.data;
+      }
       return result.data;
     } catch (err) {
-      // An expired admin window (#4331) ends the console session; the banner
-      // reads the shared flag while this view still renders its own error.
+      // Raised even for a superseded request: an expired admin window (#4331)
+      // is a property of the session, not of this one fetch, and every later
+      // request would fail the same way.
       noteAdminSessionExpiry(err);
-      notFound.value = httpStatusOf(err) === 404;
-      error.value = err instanceof Error ? err : new Error(String(err));
-      data.value = null;
-      throw error.value;
+      const wrapped = err instanceof Error ? err : new Error(String(err));
+      if (requestId === requestSeq) {
+        notFound.value = httpStatusOf(err) === 404;
+        error.value = wrapped;
+        data.value = null;
+      }
+      throw wrapped;
     } finally {
-      loading.value = false;
+      // A stale settle must not flip loading off while the newer request is
+      // still in flight — only the newest request releases the flag.
+      if (requestId === requestSeq) loading.value = false;
     }
   }
 
@@ -128,6 +148,9 @@ export function useResourceFetch<TResponse>(
   }
 
   function reset(): void {
+    // Invalidate any in-flight request so its late settle cannot reconcile
+    // state over the freshly-reset values.
+    requestSeq++;
     data.value = null;
     loading.value = false;
     error.value = null;

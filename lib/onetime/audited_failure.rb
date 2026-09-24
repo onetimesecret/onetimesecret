@@ -283,6 +283,15 @@ module Onetime
         UNKNOWN
       end
 
+      # Resolve an operation-owned audit control without allowing bookkeeping
+      # failure to mask the original exception. Bulk orchestration uses this to
+      # suppress nested per-record events and write one bounded summary instead.
+      def resolve_enabled(receiver, spec)
+        spec.is_a?(Proc) ? receiver.instance_exec(&spec) == true : spec == true
+      rescue StandardError
+        false
+      end
+
       # Resolve the actor WITHOUT stringifying: `@actor` is sometimes a
       # Customer-like object, and `to_s` on one can yield an internal objid.
       # ColonelAuditEvent.normalize_actor owns the extid/email extraction — hand
@@ -316,18 +325,21 @@ module Onetime
       #   without `dry_run` in the detail an operator cannot tell a blown-up
       #   preview from a blown-up mutation. Same rules as any audit detail:
       #   PUBLIC ids only, never secret content.
-      def audit_failures(method_name = :call, verb:, target:, actor: -> { @actor }, detail: nil)
+      def audit_failures(method_name = :call, verb:, target:, actor: -> { @actor }, detail: nil,
+                         enabled: true)
         wrapper = Module.new do
           define_method(method_name) do |*args, **kwargs, &block|
             super(*args, **kwargs, &block)
           rescue StandardError => ex
-            Onetime::AuditedFailure.record(
-              actor: Onetime::AuditedFailure.resolve_actor(self, actor),
-              verb: Onetime::AuditedFailure.resolve(self, verb),
-              target: Onetime::AuditedFailure.resolve(self, target),
-              error: ex,
-              extra: Onetime::AuditedFailure.resolve_detail(self, detail),
-            )
+            if Onetime::AuditedFailure.resolve_enabled(self, enabled)
+              Onetime::AuditedFailure.record(
+                actor: Onetime::AuditedFailure.resolve_actor(self, actor),
+                verb: Onetime::AuditedFailure.resolve(self, verb),
+                target: Onetime::AuditedFailure.resolve(self, target),
+                error: ex,
+                extra: Onetime::AuditedFailure.resolve_detail(self, detail),
+              )
+            end
             raise
           end
         end

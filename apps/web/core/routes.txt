@@ -51,8 +51,11 @@ GET   /mfa-verify                                Core::Controllers::Page#index
 GET   /link-sso/*                                Core::Controllers::Page#index
 GET   /sso-link-confirm/*                        Core::Controllers::Page#index
 
-# Bootstrap endpoint - returns initialization data for the current session
-GET   /bootstrap/me                              Core::Controllers::Page#bootstrap_me auth=noauth
+# Bootstrap endpoint - returns initialization data for the current session.
+# activity=passive (#4455): the client polls this on a timer, so it verifies
+# the session in full but never moves an inactivity clock. See
+# Onetime::SessionActivity. A page load is a user action and stays activity.
+GET   /bootstrap/me                              Core::Controllers::Page#bootstrap_me auth=noauth activity=passive
 
 # Configuration Generator API - public JSON endpoints (no auth, no DB).
 # The interactive UI lives in the docs site (docs.onetimesecret.com), driven
@@ -82,6 +85,7 @@ GET   /account/email/confirm/:token              Core::Controllers::Page#index a
 # Authenticated routes - require valid session
 GET   /dashboard                                 Core::Controllers::Page#index auth=sessionauth
 GET   /recent                                    Core::Controllers::Page#index auth=sessionauth
+GET   /reauth                                    Core::Controllers::Page#index auth=sessionauth
 GET   /domains/*                                 Core::Controllers::Page#index auth=sessionauth
 GET   /domains                                   Core::Controllers::Page#index auth=sessionauth
 GET   /account/*                                 Core::Controllers::Page#index auth=sessionauth

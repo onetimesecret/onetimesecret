@@ -114,6 +114,10 @@ if Onetime.billing_config.enabled?
                   retry_count: event_record.circuit_retry_count,
                 }
 
+              # A prior circuit retry may have recorded :queued. Clear it before
+              # attempting the next processing pass so an exception remains null.
+              event_record.record_processing_outcome!(nil)
+
               # Reprocess the event
               operation = Billing::Operations::ProcessWebhookEvent.new(
                 event: stripe_event,
@@ -127,6 +131,8 @@ if Onetime.billing_config.enabled?
               result = operation.call
 
               if result == :queued
+                event_record.record_processing_outcome!(result)
+
                 # Handler scheduled another retry (circuit still blocked or rate limited)
                 scheduler_logger.info '[CatalogRetryJob] Event requeued for later retry',
                   {
@@ -136,7 +142,7 @@ if Onetime.billing_config.enabled?
               else
                 # Success - clear retry scheduling
                 event_record.clear_circuit_retry
-                event_record.mark_success!
+                event_record.mark_success!(outcome: result)
 
                 scheduler_logger.info '[CatalogRetryJob] Event processed successfully',
                   {
