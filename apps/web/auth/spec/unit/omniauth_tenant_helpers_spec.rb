@@ -813,6 +813,36 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
         allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return('tenant.example')
       end
 
+      # Fallback DENIED (the default policy): the refusal drops the pending
+      # flow on both phases, the same as the fallback arm does. A binding that
+      # outlived a refusal is what the tenant_context_missing belt catches;
+      # not leaving one behind is the first line.
+      context 'when platform fallback is denied' do
+        before do
+          allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+        end
+
+        it 'drops the whole pending context with the refusal on the request path' do
+          catch(:halt) do
+            helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+          end
+
+          expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+          expect(session).to eq(account_id: 42)
+        end
+
+        it 'drops the whole pending context with the refusal on the callback path' do
+          allow(strategy).to receive(:on_request_path?).and_return(false)
+
+          catch(:halt) do
+            helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+          end
+
+          expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+          expect(session).to eq(account_id: 42)
+        end
+      end
+
       it 'supersedes the pending SAML request id and OAuth state along with the markers on the request path' do
         result = catch(:halt) do
           helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)

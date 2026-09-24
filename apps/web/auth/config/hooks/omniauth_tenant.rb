@@ -726,6 +726,17 @@ module Auth::Config::Hooks
         end
       end
 
+      # Refused. The same rule as the fallback arm: whatever tenant flow was
+      # pending is dropped with the refusal, on every phase. Nothing of a
+      # request being started has been written yet (setup_phase precedes
+      # request_phase), and a pending binding has no legitimate use after a
+      # refusal — the response the browser was carrying is gone with the
+      # redirect, and a binding left behind is exactly what the
+      # tenant_context_missing belt exists to catch. Only the strategy
+      # callers pass a request; the policy-only contract (request: nil) has
+      # no session to drop.
+      clear_pending_tenant_context(rodauth.session) unless request.nil?
+
       Auth::Logging.log_auth_event(
         :omniauth_tenant_no_config,
         level: :warn,
@@ -763,6 +774,8 @@ module Auth::Config::Hooks
     #     mid-flow; it is dropped and refused. Without markers the callback
     #     is the platform-fallback flow this helper itself started, and its
     #     binding is retained so it can complete.
+    #   - handle_missing_tenant_config, fallback DENIED, every phase: the
+    #     refusal drops whatever was pending, so no binding outlives it.
     #   - refuse_unusable_tenant_config, every phase: a record that cannot
     #     produce options refuses the flow outright.
     #
