@@ -1932,6 +1932,63 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
             expect(config.enabled?).to be false
             expect(config.display_name).to eq('Awaiting certificate rotation')
           end
+
+          # The body is JSON with types kept and there is no schema, so
+          # `enabled` may arrive as a string or as null. What PERSISTS is
+          # parse_boolean(enabled) when the key is non-null, else the stored
+          # flag. The expiry skip must follow that same persisted value —
+          # not the literal-false rule disable_only_request? uses for the
+          # credential-blind recovery path, which is deliberately stricter.
+          context 'when enabled is a string or JSON null' do
+            it 'disables an enabled config with a string "false" without re-validating the expired certificate' do
+              expired = store_expired_cert(enabled: true)
+
+              csrf_patch api_path(test_custom_domain.extid), { enabled: 'false' }
+
+              expect(last_response.status).to eq(200), last_response.body
+              config = stored_config
+              expect(config.enabled?).to be false
+              expect(config.reveal_saml_field(:idp_cert)).to eq(expired)
+            end
+
+            it 'edits a disabled config with a string "false" and stays disabled' do
+              store_expired_cert(enabled: false)
+
+              csrf_patch api_path(test_custom_domain.extid),
+                { enabled: 'false', display_name: 'Awaiting certificate rotation' }
+
+              expect(last_response.status).to eq(200), last_response.body
+              config = stored_config
+              expect(config.enabled?).to be false
+              expect(config.display_name).to eq('Awaiting certificate rotation')
+            end
+
+            # null is "not provided": the same outcome as omitting the key.
+            it 'edits a disabled config with enabled: null exactly as with the key omitted' do
+              expired = store_expired_cert(enabled: false)
+
+              csrf_patch api_path(test_custom_domain.extid),
+                { enabled: nil, display_name: 'Awaiting certificate rotation' }
+
+              expect(last_response.status).to eq(200), last_response.body
+              config = stored_config
+              expect(config.enabled?).to be false
+              expect(config.display_name).to eq('Awaiting certificate rotation')
+              expect(config.reveal_saml_field(:idp_cert)).to eq(expired)
+            end
+
+            ['true', 1].each do |truthy|
+              it "refuses enabled: #{truthy.inspect} on a disabled config whose stored certificate is expired" do
+                store_expired_cert(enabled: false)
+
+                csrf_patch api_path(test_custom_domain.extid), { enabled: truthy }
+
+                expect(last_response.status).to eq(422)
+                expect(json_body).to include('error_type' => 'invalid', 'field' => 'idp_cert')
+                expect(stored_config.enabled?).to be false
+              end
+            end
+          end
         end
 
         it 'requires a client_id when switching away to oidc' do

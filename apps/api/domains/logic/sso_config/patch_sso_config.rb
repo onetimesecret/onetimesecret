@@ -96,6 +96,12 @@ module DomainsAPI
           # Never accepted, whatever the provider type (see SamlFields)
           reject_forbidden_saml_params!
 
+          # The flags the persisted result will carry (PATCH semantics: the
+          # parsed request value when the key is present and non-null, else
+          # the stored one). update_existing_config writes exactly these.
+          @effective_enabled = @enabled_provided ? @enabled : @existing_config&.enabled?
+          effective_enforce  = @enforce_sso_only_provided ? @enforce_sso_only : @existing_config&.enforce_sso_only?
+
           @disable_only = disable_only_request?
           unless @disable_only
             validate_client_credentials
@@ -103,9 +109,7 @@ module DomainsAPI
           end
 
           # Validate enforce_sso_only requires enabled (using effective values for PATCH semantics)
-          effective_enabled = @enabled_provided ? @enabled : @existing_config&.enabled?
-          effective_enforce = @enforce_sso_only_provided ? @enforce_sso_only : @existing_config&.enforce_sso_only?
-          validate_enforce_sso_requires_enabled(effective_enabled, effective_enforce)
+          validate_enforce_sso_requires_enabled(@effective_enabled, effective_enforce)
         end
 
         def process
@@ -307,7 +311,7 @@ module DomainsAPI
             # the stored record IS a saml record. On a switch to saml the
             # whole trio must arrive with the request.
             stored = @existing_config&.provider_type == 'saml' ? @existing_config : nil
-            validate_saml_fields!(stored: stored)
+            validate_saml_fields!(stored: stored, enabled: @effective_enabled)
           end
         end
 

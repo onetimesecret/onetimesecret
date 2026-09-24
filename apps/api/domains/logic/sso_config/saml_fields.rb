@@ -97,11 +97,19 @@ module DomainsAPI
         #   to be re-enabled by any request shape (a bare enabled=true with
         #   the trio omitted included). nil — PUT, test_connection, or a
         #   create — makes every field required and validates every one.
-        def validate_saml_fields!(stored: nil)
+        # @param enabled [Boolean] the enabled flag the persisted result will
+        #   carry, as the caller computes it (for PATCH: the parsed request
+        #   value when the key is present and non-null, else the stored
+        #   flag). Ignored when stored is nil. It must be the value that is
+        #   actually written, not a reading of the raw param: the body is
+        #   typed JSON with no schema, so "false" and null are legal
+        #   spellings of enabled, and a disable that PERSISTS must not be
+        #   refused for a certificate the result will never run on.
+        def validate_saml_fields!(stored: nil, enabled: true)
           reject_forbidden_saml_params!
           reject_incompatible_session_cookie! if stored.nil?
 
-          remains_disabled = saml_config_remains_disabled?(stored)
+          remains_disabled = saml_config_remains_disabled?(stored, enabled)
 
           saml_submitted.each do |field, value|
             stored_value = stored_saml_value(stored, field)
@@ -139,17 +147,13 @@ module DomainsAPI
 
         # An unchanged or omitted, formerly valid value may bypass
         # re-validation only while the persisted result remains disabled. In
-        # particular, an explicit enabled=true must re-check a stored
-        # certificate that may have expired since it was accepted, whether
-        # the request resends that certificate or leaves it out.
-        def saml_config_remains_disabled?(stored)
-          return false if stored.nil?
-
-          if params.key?('enabled')
-            params['enabled'].equal?(false)
-          else
-            !stored.enabled?
-          end
+        # particular, any request that persists as enabled (true, "true", 1)
+        # must re-check a stored certificate that may have expired since it
+        # was accepted, whether the request resends that certificate or
+        # leaves it out. `enabled` is the caller's effective persisted flag
+        # (see validate_saml_fields!), never re-derived from the raw param.
+        def saml_config_remains_disabled?(stored, enabled)
+          !stored.nil? && !enabled
         end
 
         # @return [String, nil] the first problem with a submitted value
