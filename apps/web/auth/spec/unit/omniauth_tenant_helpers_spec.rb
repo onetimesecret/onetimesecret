@@ -588,6 +588,18 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
     # write them; the markers are symbols. Both forms are exercised on a plain
     # Hash so a key-form drift in the hook fails here rather than only on the
     # stringifying live session.
+    #
+    # UNIT COVERAGE ONLY, on purpose. No full_saml_platform spec replays the
+    # abandoned tenant SAMLResponse end to end, and the obvious one would not
+    # test this: a platform SAML fallback start that completes its request
+    # phase overwrites the pending AuthnRequest id (RequestBoundSAML
+    # #request_phase), so the abandoned response is refused as an
+    # InResponseTo mismatch with or without this delete. The delete only
+    # changes the outcome (to saml_no_pending_request) when the superseding
+    # platform start is another strategy, such as platform OIDC, or a SAML
+    # start refused before it writes a new id. The full_saml_platform lane
+    # registers no platform OIDC provider, so an end-to-end spec needs that
+    # lane widened first.
     context 'with an abandoned tenant request binding in the session' do
       let(:session) do
         {
