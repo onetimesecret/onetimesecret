@@ -99,8 +99,11 @@ module Auth::Config::Features
     # sentinel issuer '' (migration 008 backfills unconditionally; the real
     # issuer is unreconstructable per #3838). The read path resolves it:
     #   1. Exact lookup (provider, resolved_issuer, uid).
-    #   2. PLATFORM path only: fall back to the legacy (provider, '', uid) row
-    #      and lazily upgrade its issuer to resolved_issuer (self-heal).
+    #   2. PLATFORM path only, and never for a SAML strategy: fall back to the
+    #      legacy (provider, '', uid) row and lazily upgrade its issuer to
+    #      resolved_issuer (self-heal). No SAML identity was ever written
+    #      under the sentinel, so for SAML the grace could only claim another
+    #      protocol's row — see lookup_identity.
     #   3. TENANT path: issuer-exact ONLY — NEVER the '' fallback. The legacy
     #      fallback on the tenant path IS the item-5 takeover.
     #
@@ -298,12 +301,17 @@ module Auth::Config::Features
 
     # Issuer-scoped identity lookup (Approach A). Returns the identity row hash
     # or nil. SECURITY-CRITICAL: the legacy '' fallback + lazy upgrade is gated
-    # on platform_path — it must NEVER run on a tenant callback.
+    # on platform_path — it must NEVER run on a tenant callback — and on the
+    # strategy NOT being SAML — it must never run for a SAML callback on ANY
+    # surface.
     #
     # @param ds [Sequel::Dataset] omniauth_identities dataset
+    # @param saml_strategy [Boolean] the active strategy is an
+    #   OmniAuth::Strategies::SAML (omniauth_saml_strategy?)
     # @return [Hash, nil]
     def self.lookup_identity(ds:, id_col:, provider_col:, uid_col:, issuer_col:,
-                             provider:, uid:, resolved_issuer:, platform_path:)
+                             provider:, uid:, resolved_issuer:, platform_path:,
+                             saml_strategy: false)
       provider_s = provider.to_s
 
       # 1. Exact lookup — (provider, resolved_issuer, uid).
@@ -316,6 +324,20 @@ module Auth::Config::Features
       #    (also avoids a pointless '' -> '' write).
       return nil unless platform_path
       return nil if resolved_issuer == ISSUER_SENTINEL
+
+      # SECURITY-CRITICAL (#4450): never for SAML. No SAML identity was ever
+      # stored under the '' sentinel — resolve_issuer RAISES rather than
+      # return it for a SAML strategy, and tenant SAML postdates migration
+      # 008 — so a (route, '', uid) row under the SAML route can only be
+      # another protocol's: the OIDC / GitHub / Google `sub`s that route name
+      # served before an operator pointed SAML_ROUTE_NAME at it. A NameID is a
+      # different namespace from a `sub`; gracing the row would let the IdP's
+      # NameID that happens to equal an old `sub` sign in as, and permanently
+      # rebind, someone else's account. The backfill CLI refuses SAML domains
+      # for exactly this reason (lib/onetime/cli/sso/backfill_issuer_command.rb);
+      # the live lookup refuses the same way. A switch to SAML needs an
+      # explicit per-account mapping, never a lazy one.
+      return nil if saml_strategy
 
       legacy = ds.first(provider_col => provider_s, issuer_col => ISSUER_SENTINEL, uid_col => uid)
       return nil unless legacy
@@ -397,7 +419,10 @@ module Auth::Config::Features
         #   3. ENV OIDC_ISSUER — another protocol's issuer; reachable when an
         #      operator names the SAML route the same as OIDC_ROUTE_NAME.
         #   4. '' sentinel — accepted on the platform surface, where it also
-        #      enables the legacy-row grace + lazy upgrade in lookup_identity.
+        #      enables the legacy-row grace + lazy upgrade in lookup_identity
+        #      (from which a SAML strategy is barred separately, by class: no
+        #      SAML row ever held the sentinel, so the grace could only hand
+        #      a NameID another protocol's legacy row).
         #
         # Gem internals this relies on (verified: omniauth-saml 2.2.5 saml.rb,
         # ruby-saml 1.18.1 response.rb / settings.rb):
@@ -551,6 +576,7 @@ module Auth::Config::Features
           uid: uid,
           resolved_issuer: issuer,
           platform_path: platform_path,
+          saml_strategy: omniauth_saml_strategy?,
         )
       end
 

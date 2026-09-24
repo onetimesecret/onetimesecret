@@ -1183,6 +1183,48 @@ RSpec.describe 'OmniAuth hooks' do
           expect(ds.first(account_id: 50)[:issuer]).to eq('')
         end
       end
+
+      # SECURITY (#4450): SAML never wrote a sentinel row (resolve_issuer
+      # raises rather than return '' for it), so a legacy '' row under the
+      # SAML route is another protocol's — the `sub` that route name served
+      # before SAML_ROUTE_NAME was pointed at it. Gracing it would let an
+      # IdP-asserted NameID equal to that old `sub` sign in as, and rebind,
+      # that account. The platform path is the ONLY place the grace runs, so
+      # it is the path that must refuse SAML. Mirrors the backfill CLI's
+      # refusal of saml domains (backfill_issuer_command.rb).
+      context 'SAML strategy with a legacy "" row on the platform path' do
+        let(:entity_id) { 'https://idp.example.com/saml/metadata' }
+
+        before { ds.insert(account_id: 60, provider: 'saml', issuer: '', uid: 'old-oidc-sub') }
+
+        it 'does NOT grace the row and leaves it untouched' do
+          result = feature.lookup_identity(ds: ds, **cols, provider: 'saml', uid: 'old-oidc-sub',
+                                                           resolved_issuer: entity_id, platform_path: true,
+                                                           saml_strategy: true)
+          expect(result).to be_nil
+          expect(ds.first(account_id: 60)[:issuer]).to eq('')
+        end
+
+        it 'still resolves an exact (provider, EntityID, uid) row' do
+          ds.insert(account_id: 61, provider: 'saml', issuer: entity_id, uid: 'old-oidc-sub')
+
+          result = feature.lookup_identity(ds: ds, **cols, provider: 'saml', uid: 'old-oidc-sub',
+                                                           resolved_issuer: entity_id, platform_path: true,
+                                                           saml_strategy: true)
+          expect(result[:account_id]).to eq(61)
+          expect(ds.first(account_id: 60)[:issuer]).to eq('')
+        end
+
+        # The same row IS graced for the protocol that wrote it: the gate is
+        # the strategy class, not the route name.
+        it 'is graced by a non-SAML strategy on the same route name' do
+          result = feature.lookup_identity(ds: ds, **cols, provider: 'saml', uid: 'old-oidc-sub',
+                                                           resolved_issuer: 'https://old-oidc-idp', platform_path: true,
+                                                           saml_strategy: false)
+          expect(result[:account_id]).to eq(60)
+          expect(ds.first(account_id: 60)[:issuer]).to eq('https://old-oidc-idp')
+        end
+      end
     end
 
     # ======================================================================
@@ -1273,6 +1315,18 @@ RSpec.describe 'OmniAuth hooks' do
         expect(retrieve(host)[:account_id]).to eq(70)
         expect(host.insert_hash).to include(issuer: entity_id, provider: 'saml', uid: 'name-id-1')
         expect(host.update_hash).to eq(issuer: entity_id)
+        expect(events).to be_empty
+      end
+
+      # The wired block must hand the strategy class through to
+      # lookup_identity: on the platform surface a SAML callback resolves a
+      # real EntityID, which is exactly the shape the legacy '' grace runs
+      # for. The rule itself is pinned under '.lookup_identity'.
+      it 'never graces a legacy "" row on the platform surface' do
+        ds.insert(account_id: 74, provider: 'saml', issuer: '', uid: 'name-id-1')
+
+        expect(retrieve(host)).to be_nil
+        expect(ds.first(account_id: 74)[:issuer]).to eq('')
         expect(events).to be_empty
       end
 
