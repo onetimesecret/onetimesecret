@@ -120,6 +120,29 @@ RSpec.describe Onetime::TenantSsoResolution do
       stub_domain(instance_double(Onetime::CustomDomain, identifier: domain_id, verified: false))
       expect(described_class.new(display_domain, :custom)).not_to be_verified_custom_domain
     end
+
+    # The same host test Auth::PublicHost.served_custom_host? opens with: a
+    # verified record keyed on a canonical-set host (site.host moved onto a
+    # host a tenant had registered) still narrows via #custom_domain, but is
+    # never a served custom host — runtime refuses to rebind the ACS there.
+    it 'is not verified on a canonical-set host, even with a verified record' do
+      stub_domain
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+        .with(display_domain).and_return(true)
+
+      resolution = described_class.new(display_domain, :custom)
+
+      expect(resolution).not_to be_verified_custom_domain
+      expect(resolution.custom_domain).to equal(custom_domain)
+    end
+
+    it 'fails closed when the canonical-set test itself errors' do
+      stub_domain
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+        .and_raise(StandardError, 'boom')
+
+      expect(described_class.new(display_domain, :custom)).not_to be_verified_custom_domain
+    end
   end
 
   describe '#sso_config' do

@@ -381,6 +381,24 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
           expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(['oidc'])
         end
 
+        # A verified record keyed on a canonical-set host (site.host moved
+        # onto a host a tenant had registered) is refused by
+        # Auth::PublicHost.served_custom_host? at runtime, so the SAML start
+        # would fail there. The invite page must not advertise it.
+        it 'omits platform SAML when the verified record is keyed on a canonical-set host' do
+          allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+            .with(display_domain).and_return(true)
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+            .with('domain-acme-123')
+            .and_return(true)
+          allow(Onetime.auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+            { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+          ])
+
+          expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(['oidc'])
+        end
+
         # A provider with no route name is unroutable: advertising it would
         # render a button with nowhere to send the invitee.
         it 'drops a provider with a blank route_name' do

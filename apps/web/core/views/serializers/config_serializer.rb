@@ -549,9 +549,10 @@ module Core
           # classification, so a display gate keyed on :custom would hide a
           # button whose POST completes — the half of the parity rule that
           # says "never hidden when it works". verified_custom_domain? is
-          # already the narrow answer: canonical-set hosts have no record,
-          # unknown and unverified hosts read false, and a failed read is
-          # answered false as well, so nothing widens here.
+          # already the narrow answer: canonical-set hosts read false even
+          # when a verified record is keyed on them (PublicHost refuses those
+          # at runtime), unknown and unverified hosts read false, and a
+          # failed read is answered false as well, so nothing widens here.
           resolution = tenant_sso_resolution(view_vars)
 
           build_platform_sso_config(

@@ -131,7 +131,15 @@ module Onetime
     end
 
     # @return [Boolean] true only for a positively resolved, verified domain
+    #   on a host OUTSIDE the canonical set. A verified record keyed on a
+    #   canonical-set host (site.host moved onto a host a tenant had already
+    #   registered) still narrows the sign-in surfaces through #custom_domain,
+    #   but it is not a served custom host: Auth::PublicHost.served_custom_host?
+    #   refuses it at runtime, so a request-bound platform ACS (SAML) would
+    #   never be rebound there and the button must not be shown.
     def verified_custom_domain?
+      return false if canonical_set_host?
+
       custom_domain&.verified == true
     end
 
@@ -170,6 +178,18 @@ module Onetime
     # cannot disagree about it.
     def operator_host?
       Onetime::CustomDomain::SigninConfig.operator_host?(@domain_strategy)
+    end
+
+    # Whether display_domain is one of the operator's canonical-set hosts
+    # (features.domains.default, site.host, link_domains), port- and
+    # case-insensitively — the same test Auth::PublicHost.served_custom_host?
+    # opens with, keyed on the HOST rather than the classification so the two
+    # cannot disagree when DomainStrategy degraded to :invalid. Fails closed:
+    # an error answers "canonical", and the caller never widens.
+    def canonical_set_host?
+      Onetime::Middleware::DomainStrategy.canonical_host?(@display_domain)
+    rescue StandardError
+      true
     end
 
     def read_domain_id

@@ -191,16 +191,21 @@ module InviteAPI::Logic
         # that is the field to route and branch on.
         #
         # Platform SAML is visible only for this positively resolved custom
-        # domain when its ownership verification has passed. The fallback/runtime
-        # predicate above remains authoritative for whether platform SSO is
-        # usable at all; verification only narrows SAML advertisement.
+        # domain when its ownership verification has passed AND the request
+        # host is outside the canonical set — the display half of
+        # Auth::PublicHost.served_custom_host?, which is what runtime binds
+        # the fallback ACS on. The fallback/runtime predicate above remains
+        # authoritative for whether platform SSO is usable at all; the served
+        # check only narrows SAML advertisement.
+        verified_custom_domain = served_custom_domain?(domain)
+
         Onetime.auth_config.sso_providers.filter_map do |provider|
           route_name = provider['route_name'].to_s
           next if route_name.empty?
           next unless Onetime::SsoProvider::Registry.platform_route_available_on_host?(
             route_name,
             platform_host: false,
-            verified_custom_domain: !!domain.verified, # boolean_field native
+            verified_custom_domain: verified_custom_domain,
           )
 
           {
@@ -210,6 +215,23 @@ module InviteAPI::Logic
             display_name: provider['display_name'].to_s,
           }
         end
+      end
+
+      # A TXT-verified record whose request host is NOT one of the canonical
+      # hosts (features.domains.default, site.host, link_domains). Mirrors
+      # Auth::PublicHost.served_custom_host? on the record already in hand:
+      # a verified record keyed on a canonical-set host is refused there, so
+      # the platform SAML button is not offered where its start would fail.
+      # Fails closed on any error.
+      #
+      # @param domain [Onetime::CustomDomain] the resolved record
+      # @return [Boolean]
+      def served_custom_domain?(domain)
+        return false if Onetime::Middleware::DomainStrategy.canonical_host?(display_domain)
+
+        !!domain.verified # boolean_field native
+      rescue StandardError
+        false
       end
 
       def email_auth_enabled?

@@ -787,6 +787,19 @@ RSpec.describe Core::Views::ConfigSerializer do
 
           expect(result['providers'].map { |provider| provider['route_name'] }).to eq(['oidc'])
         end
+
+        # site.host moved onto a host a tenant had already registered: the
+        # record is verified, but the host is in the canonical set, and
+        # Auth::PublicHost.served_custom_host? refuses it at runtime — so the
+        # start would be refused as saml_acs_host_mismatch. Same answer here.
+        it 'omits platform SAML when the verified record is keyed on a canonical-set host' do
+          allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+            .and_wrap_original { |m, host| host.to_s == custom_display_domain || m.call(host) }
+
+          result = described_class.build_sso_config(invalid_strategy_view_vars)
+
+          expect(result['providers'].map { |provider| provider['route_name'] }).to eq(['oidc'])
+        end
       end
 
       context 'when platform SSO is enabled but AUTH_ENABLED is off' do
