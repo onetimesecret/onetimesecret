@@ -659,6 +659,65 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
       end
 
+      # DomainStrategy degrades to :invalid whenever Chooserator raises (an
+      # unparseable canonical host is enough) while display_domain still names
+      # the real customer domain. The runtime gate (omniauth_tenant.rb
+      # bind_platform_fallback_acs -> Auth::PublicHost.resolve) reads the
+      # record and ignores the classification, so the display gate must too:
+      # a verified domain under :invalid shows platform SAML exactly as it
+      # does under :custom, or the button is hidden while the POST completes.
+      context 'when platform fallback is allowed, strategy is :invalid and display_domain is a verified custom domain' do
+        let(:invalid_strategy_view_vars) do
+          base_view_vars.merge(
+            'domain_strategy' => :invalid,
+            'display_domain' => custom_display_domain
+          )
+        end
+        let(:resolved_domain) do
+          instance_double(Onetime::CustomDomain, identifier: domain_id, verified: true)
+        end
+
+        before do
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
+            .with(custom_display_domain)
+            .and_return(resolved_domain)
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+            .with(domain_id)
+            .and_return(nil)
+          allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+          allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+          allow(mock_auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+            { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+          ])
+        end
+
+        it 'offers platform SAML for sign-in exactly as on :custom' do
+          result = described_class.build_sso_config(invalid_strategy_view_vars)
+
+          expect(result['enabled']).to be true
+          expect(result['providers'].map { |provider| provider['route_name'] }).to eq(%w[saml oidc])
+        end
+
+        # Connect is a different decision: it keys on the classification and
+        # stays open for :invalid (the callback itself fails closed), so the
+        # provider set is the same as the :custom verified case only for
+        # sign-in visibility.
+        it 'keeps the connectable answer that :invalid already had' do
+          result = described_class.build_sso_config(invalid_strategy_view_vars)
+
+          expect(result['connect_providers']).to eq(result['providers'])
+        end
+
+        it 'still omits platform SAML when that domain is unverified' do
+          allow(resolved_domain).to receive(:verified).and_return(false)
+
+          result = described_class.build_sso_config(invalid_strategy_view_vars)
+
+          expect(result['providers'].map { |provider| provider['route_name'] }).to eq(['oidc'])
+        end
+      end
+
       context 'when platform SSO is enabled but AUTH_ENABLED is off' do
         before do
           allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)

@@ -525,15 +525,28 @@ module Core
           # sign-in provider on an allowed custom host, but is not a Connect
           # provider: a Connect callback there is intentionally rejected as a
           # cross-surface intent after consuming the user's re-auth proof.
-          # Platform SAML is visible only when this request positively resolves
-          # to a verified custom domain. Unknown/unverified hosts and failed
-          # reads therefore keep the narrower provider set.
-          resolution             = tenant_sso_resolution(view_vars)
-          verified_custom_domain = tenant_domain?(view_vars) && resolution.verified_custom_domain?
+          #
+          # Platform SAML is visible on operator hosts and wherever this
+          # request positively resolves to a VERIFIED custom domain. That
+          # second arm deliberately reads the record rather than also
+          # requiring tenant_domain? (strategy == :custom), for the same
+          # reason Auth::PublicHost.resolve does not: DomainStrategy degrades
+          # to :invalid whenever Chooserator raises (an unparseable canonical
+          # host is enough), while display_domain still names the real
+          # customer domain. The runtime half of this gate
+          # (omniauth_tenant.rb bind_platform_fallback_acs -> PublicHost)
+          # binds the ACS to that verified domain regardless of the
+          # classification, so a display gate keyed on :custom would hide a
+          # button whose POST completes — the half of the parity rule that
+          # says "never hidden when it works". verified_custom_domain? is
+          # already the narrow answer: canonical-set hosts have no record,
+          # unknown and unverified hosts read false, and a failed read is
+          # answered false as well, so nothing widens here.
+          resolution = tenant_sso_resolution(view_vars)
 
           build_platform_sso_config(
             connectable: !tenant_domain?(view_vars),
-            saml_visible: operator_domain?(view_vars) || verified_custom_domain,
+            saml_visible: operator_domain?(view_vars) || resolution.verified_custom_domain?,
           )
         end
 
