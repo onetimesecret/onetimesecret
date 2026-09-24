@@ -416,7 +416,7 @@ RSpec.describe 'Auth Router ADR-013 error shape' do
     # The stub above mirrors the production handler; this keeps the mirror
     # honest about where the logging decision lives.
     it 'production router takes its log level and message from the translator', :aggregate_failures do
-      source = File.read(File.expand_path('../router.rb', __dir__))
+      source = File.read(File.expand_path('../../../router.rb', __dir__))
 
       expect(source).to include('Auth::ErrorTranslator.log_entry(e)')
       expect(source).not_to match(/if status >= 500/)
