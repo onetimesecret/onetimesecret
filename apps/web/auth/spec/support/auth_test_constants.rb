@@ -42,7 +42,7 @@ module AuthTestConstants
   # CAVEAT (PostgreSQL): exclusion here is not a guarantee. The PG branch of
   # clear_auth_database uses TRUNCATE ... CASCADE, which also truncates any
   # table holding an FK to a truncated table — oauth_applications.account_id
-  # references accounts (migration 009), so its rows do NOT survive on PG.
+  # references accounts (migration 011), so its rows do NOT survive on PG.
   # SQLite (per-table DELETE) honours the exclusion literally. Specs must
   # therefore re-seed such rows per example, not in before(:all); see
   # spec_helper.rb#ensure_dev_oauth_client!.

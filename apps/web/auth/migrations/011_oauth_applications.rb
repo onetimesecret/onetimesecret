@@ -1,4 +1,4 @@
-# apps/web/auth/migrations/009_oauth_applications.rb
+# apps/web/auth/migrations/011_oauth_applications.rb
 #
 # frozen_string_literal: true
 
@@ -16,10 +16,10 @@
 #
 # Usage:
 #   # Up
-#   $ sequel -m apps/web/auth/migrations -M 8 $AUTH_DATABASE_URL_MIGRATIONS
+#   $ sequel -m apps/web/auth/migrations -M 11 $AUTH_DATABASE_URL_MIGRATIONS
 #
 #   # Down
-#   $ sequel -m apps/web/auth/migrations -M 7 $AUTH_DATABASE_URL_MIGRATIONS
+#   $ sequel -m apps/web/auth/migrations -M 10 $AUTH_DATABASE_URL_MIGRATIONS
 #
 # @see https://github.com/onetimesecret/onetimesecret/issues/3104
 # @see lib/generators/rodauth/oauth/templates/db/migrate/create_rodauth_oauth.rb (rodauth-oauth 1.6.4)

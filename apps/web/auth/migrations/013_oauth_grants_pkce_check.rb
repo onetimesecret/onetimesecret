@@ -1,4 +1,4 @@
-# apps/web/auth/migrations/011_oauth_grants_pkce_check.rb
+# apps/web/auth/migrations/013_oauth_grants_pkce_check.rb
 #
 # frozen_string_literal: true
 
@@ -15,10 +15,10 @@
 #
 # Usage:
 #   # Up
-#   $ sequel -m apps/web/auth/migrations -M 10 $AUTH_DATABASE_URL_MIGRATIONS
+#   $ sequel -m apps/web/auth/migrations -M 13 $AUTH_DATABASE_URL_MIGRATIONS
 #
 #   # Down
-#   $ sequel -m apps/web/auth/migrations -M 9 $AUTH_DATABASE_URL_MIGRATIONS
+#   $ sequel -m apps/web/auth/migrations -M 12 $AUTH_DATABASE_URL_MIGRATIONS
 
 MIGRATION_ROOT = __dir__ unless defined?(MIGRATION_ROOT)
 
