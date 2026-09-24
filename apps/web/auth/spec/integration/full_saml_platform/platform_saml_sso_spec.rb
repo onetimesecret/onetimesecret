@@ -249,44 +249,78 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
       expect_refused_before_the_idp
     end
 
-    it 'completes platform fallback on a verified custom domain without tenant context or organization join' do
-      tenant_host = "fallback-#{run_id}.saml-platform.example.com"
-      tenant_base = "https://#{tenant_host}"
-      owner        = Onetime::Customer.new(email: "fallback-owner-#{run_id}@saml-platform.example.com")
-      owner.save
-      org          = Onetime::Organization.create!("Fallback Org #{run_id}", owner, "fallback-contact-#{run_id}@saml-platform.example.com")
-      domain       = Onetime::CustomDomain.new(display_domain: tenant_host, org_id: org.org_id)
-      domain.verified = true
-      domain.save
-      Onetime::CustomDomain.display_domain_index.put(tenant_host, domain.domainid)
-      allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
-      allow(Auth::Operations::JoinDomainOrganization).to receive(:new).and_call_original
+    [false, true].each do |without_strategy|
+      context(without_strategy ? 'when the tenant host has no classification strategy' : 'with normal custom-domain classification') do
+        it 'persists the custom surface after platform fallback and accepts the next authenticated request without an organization join' do
+          tenant_host = "fallback-#{run_id}.saml-platform.example.com"
+          tenant_base = "https://#{tenant_host}"
+          owner        = Onetime::Customer.new(email: "fallback-owner-#{run_id}@saml-platform.example.com")
+          owner.save
+          org          = Onetime::Organization.create!("Fallback Org #{run_id}", owner, "fallback-contact-#{run_id}@saml-platform.example.com")
+          domain       = Onetime::CustomDomain.new(display_domain: tenant_host, org_id: org.org_id)
+          domain.verified = true
+          domain.save
+          Onetime::CustomDomain.display_domain_index.put(tenant_host, domain.domainid)
+          allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+          allow(Auth::Operations::JoinDomainOrganization).to receive(:new).and_call_original
+          if without_strategy
+            chooser = Onetime::Middleware::DomainStrategy::Chooserator
+            allow(chooser).to receive(:classify).and_call_original
+            allow(chooser).to receive(:classify)
+              .with(tenant_host, anything, anchor_domains: anything)
+              .and_return(chooser::Classification.new(strategy: nil, custom_domain: nil))
+          end
 
-      begin
-        expect(Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain.identifier)).to be_nil
+          begin
+            expect(Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain.identifier)).to be_nil
 
-        request = start_login(tenant_base)
-        session = last_request.env['rack.session'].to_h
-        expect(request.acs_url).to eq("#{tenant_base}/auth/sso/saml/callback")
-        expect(request.sp_entity_id).to eq(platform_entity_id)
-        expect(session['omniauth_tenant_domain_id'] || session[:omniauth_tenant_domain_id]).to be_nil
+            request = start_login(tenant_base)
+            session = last_request.env['rack.session'].to_h
+            expect(request.acs_url).to eq("#{tenant_base}/auth/sso/saml/callback")
+            expect(request.sp_entity_id).to eq(platform_entity_id)
+            expect(session['omniauth_tenant_domain_id'] || session[:omniauth_tenant_domain_id]).to be_nil
 
-        created_emails << email
-        post_callback(answer(request), request.acs_url)
+            created_emails << email
+            post_callback(answer(request), request.acs_url)
 
-        expect(last_response.status).to eq(302), last_response.body[0, 300]
-        expect(last_response.headers['Location'].to_s).not_to include('auth_error')
-        expect(identity_rows).to contain_exactly(include(provider: 'saml', issuer: entity_id, uid: name_id))
-        expect(last_request.env['rack.session'].to_h['validated_omniauth_domain_id']).to be_nil
-        expect(Auth::Operations::JoinDomainOrganization).not_to have_received(:new)
-        customer = Onetime::Customer.find_by_email(email)
-        expect(customer).not_to be_nil
-        expect(Onetime::OrganizationMembership.find_by_org_customer(org.objid, customer.objid)).to be_nil
-      ensure
-        Onetime::CustomDomain.display_domain_index.remove(tenant_host) rescue nil
-        domain.destroy! rescue nil
-        org.destroy! rescue nil
-        owner.destroy! rescue nil
+            expect(last_response.status).to eq(302), last_response.body[0, 300]
+            expect(last_response.headers['Location'].to_s).not_to include('auth_error')
+            expect(identity_rows).to contain_exactly(include(provider: 'saml', issuer: entity_id, uid: name_id))
+            expect(last_request.env['rack.session'].to_h['validated_omniauth_domain_id']).to be_nil
+            expect(Auth::Operations::JoinDomainOrganization).not_to have_received(:new)
+            customer = Onetime::Customer.find_by_email(email)
+            expect(customer).not_to be_nil
+            expect(Onetime::OrganizationMembership.find_by_org_customer(org.objid, customer.objid)).to be_nil
+
+            expected_strategy = without_strategy ? :invalid : :custom
+            surface = { 'kind' => 'custom', 'id' => domain.identifier }
+            account_id = db[:accounts].where(email: email).get(:id)
+            expect(account_id).not_to be_nil
+            expect(last_request.env['onetime.domain_strategy']).to eq(expected_strategy)
+            session = last_request.env['rack.session']
+            expect(session.to_h).to include('account_id' => account_id, 'authenticated_surface' => surface)
+
+            store = Onetime::Operations::Sessions::Store
+            session_key = store.find_key(Familia.dbclient, session.id.public_id)
+            persisted = store.load_data(Familia.dbclient, session_key, codec: Onetime::SessionCodec.from_config)
+            expect(persisted).to include('account_id' => account_id, 'authenticated_surface' => surface)
+
+            get "#{tenant_base}/auth/account", {}, { 'HTTP_ACCEPT' => 'application/json' }
+
+            expect(last_request.env['onetime.domain_strategy']).to eq(expected_strategy)
+            expect(last_response.status).to eq(200), last_response.body[0, 300]
+            expect(JSON.parse(last_response.body)).to include('id' => account_id, 'email' => email)
+            expect(last_request.env['rack.session'].to_h).to include(
+              'account_id' => account_id, 'authenticated_surface' => surface,
+            )
+          ensure
+            Onetime::CustomDomain.display_domain_index.remove(tenant_host) rescue nil
+            domain.destroy! rescue nil
+            org.destroy! rescue nil
+            owner.destroy! rescue nil
+          end
+        end
+
       end
     end
 
