@@ -25,7 +25,10 @@ module DomainsAPI
       #   empty). Not used by saml (no client credential).
       # - client_secret: Required for create (except OIDC public clients and
       #   saml), optional for update (preserves existing if empty). Switching to
-      #   entra_id requires a secret — from the request or already stored.
+      #   entra_id requires a secret — from the request or already stored. A
+      #   stored secret that cannot be decrypted (GET names it in
+      #   unreadable_fields) must be replaced before any update is accepted,
+      #   oidc included: corrupt ciphertext is never carried forward.
       # - idp_sso_service_url, idp_entity_id, idp_cert: Required for saml on
       #   create (#4450; see SamlFields); each preserves its existing value if
       #   empty. idp_cert_fingerprint (and its ruby-saml siblings) is refused
@@ -218,40 +221,44 @@ module DomainsAPI
             # A record switching AWAY from saml has no stored client_id to
             # fall back on; name the field instead of letting the model's
             # catch-all report it after the fact.
-            if @existing_config && stored_client_id?
+            if @existing_config && stored_credential(:client_id) == :present
               @client_id = @existing_config.client_id
             else
               raise_form_error('Client ID is required', field: :client_id, error_type: :missing)
             end
           end
 
-          # client_secret is required for non-OIDC configs; OIDC supports
-          # public clients (PKCE flow) without one. An omitted secret on
-          # update falls back to the stored one — so a provider switch from
-          # a secretless OIDC config to entra_id has nothing to fall back to
-          # and must supply a secret, or token exchange fails at the IdP.
-          return if @provider_type == 'oidc' || !@client_secret.to_s.empty?
+          return unless @client_secret.to_s.empty?
 
-          if @existing_config.nil? || !stored_client_secret?
-            raise_form_error('Client secret is required', field: :client_secret, error_type: :missing)
-          end
+          # An omitted secret on update falls back to the stored one — so a
+          # provider switch from a secretless OIDC config to entra_id has
+          # nothing to fall back to and must supply a secret, or token
+          # exchange fails at the IdP. OIDC supports public clients (PKCE)
+          # without one, but that exemption covers an ABSENT secret only: a
+          # stored secret that will not decrypt (the one GET names in
+          # unreadable_fields) is corrupt ciphertext, and preserving it would
+          # report success on a record whose strategy cannot be built. Fail
+          # closed for every provider type until it is replaced.
+          stored = @existing_config ? stored_credential(:client_secret) : :absent
+          return if stored == :present
+          return if stored == :absent && @provider_type == 'oidc'
+
+          raise_form_error('Client secret is required', field: :client_secret, error_type: :missing)
         end
 
-        # Whether the stored record has a non-empty client_id to preserve.
-        # An undecryptable value counts as absent — fail closed.
-        def stored_client_id?
-          !@existing_config.client_id&.reveal { it }.to_s.empty?
-        rescue StandardError
-          false
-        end
+        # State of one stored client credential, as the GET serializer sees
+        # it (Serializers#reveal_field): :absent (unset / empty), :present, or
+        # :unreadable (a value exists but cannot be decrypted — never to be
+        # carried forward as if it were set).
+        #
+        # @param name [Symbol] :client_id or :client_secret
+        # @return [Symbol]
+        def stored_credential(name)
+          unreadable = []
+          value      = reveal_field(@existing_config, name, unreadable)
+          return :unreadable if unreadable.any?
 
-        # Whether the stored record has a non-empty client_secret to preserve.
-        # An undecryptable secret counts as absent — fail closed.
-        def stored_client_secret?
-          secret = @existing_config.client_secret&.reveal { it }
-          !secret.to_s.empty?
-        rescue StandardError
-          false
+          value.to_s.empty? ? :absent : :present
         end
 
         def validate_provider_specific_fields

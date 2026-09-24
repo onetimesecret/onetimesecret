@@ -715,6 +715,17 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         login_as(test_owner)
       end
 
+      # The public-client exemption: an ABSENT stored secret (as opposed to
+      # one that will not decrypt, below) stays optional on update.
+      it 'accepts a PATCH that omits the secret and keeps the record secretless' do
+        csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed PKCE' }
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_body['record']).to include(
+          'display_name' => 'Renamed PKCE', 'client_secret_masked' => nil, 'unreadable_fields' => [],
+        )
+      end
+
       it 'returns 422 when switching to entra_id without a client_secret' do
         # Neither the request nor the stored record has a secret — allowing
         # this through would produce an entra_id config whose token exchange
@@ -761,6 +772,87 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
         expect(last_response.status).to eq(200)
         expect(json_body['record']['provider_type']).to eq('entra_id')
+      end
+    end
+
+    # A stored credential that will not decrypt (GET names it in
+    # unreadable_fields) is corrupt ciphertext, not "unset". PATCH preserves
+    # an omitted client_secret, so the OIDC public-client exemption must
+    # cover an ABSENT secret only — otherwise a blank save reports success
+    # on a record whose strategy can never be built.
+    context 'with a stored client_secret that cannot be decrypted' do
+      def current_config
+        Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+      end
+
+      # Ciphertext bound (AAD) to another domain: present, undecryptable here.
+      def swap_in_foreign(field, value)
+        other = Onetime::CustomDomain::SsoConfig.new(domain_id: "other-#{test_run_id}")
+        other.public_send(:"#{field}=", value)
+        Familia.dbclient.hset(current_config.dbkey, field.to_s, other.public_send(field).encrypted_value)
+      end
+
+      before { login_as(test_owner) }
+
+      context 'with an oidc record' do
+        before do
+          Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_custom_domain.identifier)
+          Onetime::CustomDomain::SsoConfig.create!(
+            domain_id: test_custom_domain.identifier,
+            provider_type: 'oidc',
+            display_name: 'Original OIDC',
+            client_id: 'oidc-client-id',
+            client_secret: 'oidc-stored-secret',
+            issuer: 'https://auth.example.com',
+            enabled: true,
+          )
+          swap_in_foreign(:client_secret, 'foreign-secret')
+        end
+
+        it 'is reported by GET as unreadable (the precondition)' do
+          json_get api_path(test_custom_domain.extid)
+
+          expect(last_response.status).to eq(200)
+          expect(json_body['record']).to include('unreadable_fields' => ['client_secret'], 'client_secret_masked' => nil)
+        end
+
+        it 'refuses a PATCH that omits the secret, although oidc allows public clients' do
+          csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed' }
+
+          expect(last_response.status).to eq(422)
+          expect(json_body).to include('error_type' => 'missing', 'field' => 'client_secret')
+          expect(json_body['error']).to include('Client secret is required')
+          # Fail closed: nothing was written
+          expect(current_config.display_name).to eq('Original OIDC')
+        end
+
+        it 'refuses a bare disable too (DELETE and PUT remain the escape hatches)' do
+          csrf_patch api_path(test_custom_domain.extid), { enabled: false }
+
+          expect(last_response.status).to eq(422)
+          expect(json_body['field']).to eq('client_secret')
+          expect(current_config.enabled?).to be true
+        end
+
+        it 'accepts a PATCH that supplies a replacement secret, which then decrypts' do
+          csrf_patch api_path(test_custom_domain.extid), { client_secret: 'replacement-secret-value' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(json_body['record']).to include('unreadable_fields' => [], 'client_secret_masked' => '••••••••alue')
+          expect(current_config.client_secret.reveal { it }).to eq('replacement-secret-value')
+        end
+      end
+
+      context 'with an entra_id record' do
+        before { swap_in_foreign(:client_secret, 'foreign-secret') }
+
+        it 'refuses a PATCH that omits the secret' do
+          csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed' }
+
+          expect(last_response.status).to eq(422)
+          expect(json_body).to include('error_type' => 'missing', 'field' => 'client_secret')
+          expect(current_config.display_name).to eq('Original Name')
+        end
       end
     end
 
