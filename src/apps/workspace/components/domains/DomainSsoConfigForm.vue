@@ -51,6 +51,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'save'): void;
+  (e: 'disable'): void;
   (e: 'delete'): void;
   (e: 'test'): void;
   (e: 'discard'): void;
@@ -104,6 +105,16 @@ const UNREADABLE_FIELD_LABELS: Record<string, string> = {
 // ---------------------------------------------------------------------------
 
 const showDeleteConfirm = ref(false);
+const showDisableConfirm = ref(false);
+const actionPending = computed(
+  () => props.isLoading || props.isSaving || props.isDeleting || props.isTesting
+);
+watch(
+  () => props.domainExtId,
+  () => {
+    showDisableConfirm.value = false;
+  }
+);
 const showClientSecret = ref(false);
 const newDomain = ref('');
 const domainInputError = ref('');
@@ -345,6 +356,13 @@ const certificateExpiry = computed(() => {
 const handleSave = () => {
   if (!isFormValid.value || props.isSaving) return;
   emit('save');
+};
+
+const handleDisable = () => {
+  // Saved state controls recovery; repair-form validity and drafts do not.
+  if (!props.ssoConfig?.enabled || actionPending.value) return;
+  emit('disable');
+  showDisableConfirm.value = false;
 };
 
 const handleDelete = () => {
@@ -1217,6 +1235,47 @@ aria-hidden="true">*</span>
       </div>
 
       <!-- Action Buttons -->
+      <div
+        v-if="ssoConfig?.enabled"
+        class="space-y-3 border-t border-gray-200 pt-6 dark:border-gray-700">
+        <button
+          v-if="!showDisableConfirm"
+          type="button"
+          data-testid="disable-sso"
+          :disabled="actionPending"
+          class="rounded-md px-3 py-2 text-sm font-semibold text-red-600 ring-1 ring-red-300 disabled:opacity-50 dark:text-red-400"
+          @click="showDisableConfirm = true">
+          {{ t('web.organizations.sso.disable_action') }}
+        </button>
+        <div
+          v-else
+          class="space-y-3">
+          <p
+            class="text-sm text-gray-600 dark:text-gray-400"
+            data-testid="disable-sso-confirmation">
+            {{ t('web.organizations.sso.disable_confirm') }}
+            <span v-if="ssoConfig.enforce_sso_only">{{
+              t('web.organizations.sso.disable_enforcement_warning')
+            }}</span>
+          </p>
+          <button
+            type="button"
+            data-testid="confirm-disable-sso"
+            :disabled="actionPending"
+            class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            @click="handleDisable">
+            {{ t('web.organizations.sso.disable_action') }}
+          </button>
+          <button
+            type="button"
+            :disabled="actionPending"
+            class="px-3 py-2 text-sm text-gray-700 dark:text-gray-200"
+            @click="showDisableConfirm = false">
+            {{ t('web.COMMON.word_cancel') }}
+          </button>
+        </div>
+      </div>
+
       <div class="flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">
         <!-- Left: Delete + Discard -->
         <div class="flex items-center gap-3">

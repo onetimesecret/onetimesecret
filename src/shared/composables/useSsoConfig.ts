@@ -14,11 +14,11 @@
  * @param domainExtId - Domain external ID for API calls
  */
 
-import type { ApplicationError } from '@/schemas/errors';
 import type {
-  PutSsoConfigRequest,
   PatchSsoConfigRequest,
+  PutSsoConfigRequest,
 } from '@/schemas/api/domains/requests/sso-config';
+import type { ApplicationError } from '@/schemas/errors';
 import {
   ssoProviderUsesClientCredentials,
   type CustomDomainSsoConfig,
@@ -33,7 +33,7 @@ import { useNotificationsStore } from '@/shared/stores';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { type AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
+import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
 
 /**
  * Form state for SSO configuration.
@@ -343,6 +343,42 @@ export function useSsoConfig(domainExtId: string) {
     }
   };
 
+  const disableConfig = async () => {
+    if (
+      !ssoConfig.value?.enabled ||
+      isLoading.value ||
+      isSaving.value ||
+      isDeleting.value ||
+      isTesting.value
+    )
+      return;
+    isSaving.value = true;
+    error.value = null;
+    try {
+      // Recovery contract: existing record, exactly these two flags; never form edits.
+      const result = await wrapAction(() =>
+        SsoService.patchConfigForDomain(domainExtId, {
+          enabled: false,
+          enforce_sso_only: false,
+        })
+      );
+      if (result?.record) {
+        ssoConfig.value = result.record;
+        savedFormState.value = configToFormState(result.record);
+        formState.value = {
+          ...formState.value,
+          enabled: result.record.enabled,
+          enforce_sso_only: result.record.enforce_sso_only,
+        };
+        testResult.value = null;
+        testError.value = '';
+        notifications.show(t('web.domains.sso.update_success'), 'success', 'top');
+      }
+    } finally {
+      isSaving.value = false;
+    }
+  };
+
   /**
    * Delete the SSO config for this domain.
    */
@@ -434,6 +470,7 @@ export function useSsoConfig(domainExtId: string) {
     // Actions
     initialize,
     saveConfig,
+    disableConfig,
     deleteConfig,
     testConnection,
     discardChanges,

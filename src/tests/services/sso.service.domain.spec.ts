@@ -12,7 +12,7 @@
  *   pnpm test src/tests/services/sso.service.domain.spec.ts
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi, type MockInstance } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 import { ZodError } from 'zod';
 
 // Use vi.hoisted to properly hoist mock functions before vi.mock
@@ -62,7 +62,7 @@ describe('SsoService domain methods', () => {
       client_id: 'test-client-id',
       client_secret_masked: '********',
       tenant_id: 'test-tenant-id',
-      issuer: null,  // Required nullable field
+      issuer: null, // Required nullable field
       enabled: true,
       enforce_sso_only: false,
       allowed_domains: ['example.com'],
@@ -199,6 +199,21 @@ describe('SsoService domain methods', () => {
       enabled: false,
       // Note: client_secret intentionally omitted to test preservation
     };
+
+    it('sends the exact recovery PATCH without credentials or other edits', async () => {
+      const payload = { enabled: false, enforce_sso_only: false };
+      mockPatch.mockResolvedValueOnce({
+        data: {
+          ...mockSsoConfig,
+          record: { ...mockSsoConfig.record, ...payload, unreadable_fields: ['client_secret'] },
+        },
+      });
+      const result = await SsoService.patchConfigForDomain(domainExtId, payload);
+      expect(mockPatch).toHaveBeenCalledExactlyOnceWith(baseUrl, payload);
+      expect(mockPut).not.toHaveBeenCalled();
+      expect(result.record?.enabled).toBe(false);
+      expect(result.record?.unreadable_fields).toEqual(['client_secret']);
+    });
 
     it('updates domain SSO config with PATCH', async () => {
       const updatedConfig = {
@@ -398,7 +413,8 @@ describe('SsoService domain methods', () => {
       message: 'Connection successful',
       details: {
         issuer: 'https://login.microsoftonline.com/test-tenant-id/v2.0',
-        authorization_endpoint: 'https://login.microsoftonline.com/test-tenant-id/oauth2/v2.0/authorize',
+        authorization_endpoint:
+          'https://login.microsoftonline.com/test-tenant-id/oauth2/v2.0/authorize',
         token_endpoint: 'https://login.microsoftonline.com/test-tenant-id/oauth2/v2.0/token',
       },
     };
@@ -623,9 +639,9 @@ describe('SsoService domain methods', () => {
         mockPut.mockResolvedValueOnce({ data: malformedResponse });
 
         // PUT uses strictParse which throws ZodError on validation failure
-        await expect(
-          SsoService.putConfigForDomain(domainExtId, createPayload)
-        ).rejects.toThrow(ZodError);
+        await expect(SsoService.putConfigForDomain(domainExtId, createPayload)).rejects.toThrow(
+          ZodError
+        );
       });
 
       it('propagates ZodError to caller for handling', async () => {
@@ -644,9 +660,9 @@ describe('SsoService domain methods', () => {
         mockPut.mockResolvedValueOnce({ data: responseWithWrongTypes });
 
         // strictParse throws on type mismatches - caller can catch and handle
-        await expect(
-          SsoService.putConfigForDomain(domainExtId, createPayload)
-        ).rejects.toThrow(ZodError);
+        await expect(SsoService.putConfigForDomain(domainExtId, createPayload)).rejects.toThrow(
+          ZodError
+        );
       });
     });
 
@@ -683,9 +699,9 @@ describe('SsoService domain methods', () => {
         mockPatch.mockResolvedValueOnce({ data: malformedResponse });
 
         // PATCH uses strictParse which throws on validation failure
-        await expect(
-          SsoService.patchConfigForDomain(domainExtId, updatePayload)
-        ).rejects.toThrow(ZodError);
+        await expect(SsoService.patchConfigForDomain(domainExtId, updatePayload)).rejects.toThrow(
+          ZodError
+        );
       });
     });
 
@@ -709,9 +725,7 @@ describe('SsoService domain methods', () => {
         mockDelete.mockResolvedValueOnce({ data: malformedResponse });
 
         // DELETE uses strictParse which throws on validation failure
-        await expect(
-          SsoService.deleteConfigForDomain(domainExtId)
-        ).rejects.toThrow(ZodError);
+        await expect(SsoService.deleteConfigForDomain(domainExtId)).rejects.toThrow(ZodError);
       });
 
       it('throws ZodError on wrong type for success field', async () => {
@@ -721,9 +735,7 @@ describe('SsoService domain methods', () => {
         mockDelete.mockResolvedValueOnce({ data: wrongTypeResponse });
 
         // strictParse rejects type mismatches
-        await expect(
-          SsoService.deleteConfigForDomain(domainExtId)
-        ).rejects.toThrow(ZodError);
+        await expect(SsoService.deleteConfigForDomain(domainExtId)).rejects.toThrow(ZodError);
       });
     });
 

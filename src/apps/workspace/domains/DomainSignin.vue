@@ -137,6 +137,7 @@ const {
   clientSecretMasked,
   initialize: initializeSsoConfig,
   saveConfig: saveSsoConfig,
+  disableConfig: disableSsoConfig,
   deleteConfig: deleteSsoConfig,
   testConnection,
   discardChanges: discardSsoChanges,
@@ -345,6 +346,7 @@ watch(canFetchSsoConfig, async (allowed) => {
         :test-error="testError"
         @close="handleCloseSsoModal"
         @save="saveSsoConfig"
+        @disable="disableSsoConfig"
         @delete="deleteSsoConfig"
         @test="testConnection"
         @discard="discardSsoChanges" />

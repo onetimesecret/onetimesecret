@@ -10,14 +10,14 @@
 // Note: This is a presentational component. It receives state via props
 // and emits events for actions. Parent manages state via useSsoConfig.
 
-import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createTestingPinia } from '@pinia/testing';
-import { createTestI18n } from '@tests/setup';
 import DomainSsoConfigForm from '@/apps/workspace/components/domains/DomainSsoConfigForm.vue';
-import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
 import type { CustomDomainSsoConfig } from '@/schemas/shapes/domains/sso-config';
 import type { TestSsoConnectionResponse } from '@/services/sso.service';
+import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
+import { createTestingPinia } from '@pinia/testing';
+import { createTestI18n } from '@tests/setup';
+import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mocks
@@ -53,7 +53,8 @@ vi.mock('@/shared/components/common/ToggleWithIcon.vue', () => ({
 vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
   default: {
     name: 'BasicFormAlerts',
-    template: '<div class="form-alerts" data-testid="form-alerts" :data-error="error" :data-success="success" />',
+    template:
+      '<div class="form-alerts" data-testid="form-alerts" :data-error="error" :data-success="success" />',
     props: ['error', 'success'],
   },
 }));
@@ -283,35 +284,45 @@ describe('DomainSsoConfigForm', () => {
 
   describe('Provider-specific field visibility', () => {
     it('shows tenant_id field when Entra ID is selected', async () => {
-      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'entra_id' } });
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), provider_type: 'entra_id' },
+      });
 
       const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
       expect(tenantIdInput.exists()).toBe(true);
     });
 
     it('hides tenant_id field when OIDC is selected', async () => {
-      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'oidc' } });
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), provider_type: 'oidc' },
+      });
 
       const tenantIdInput = wrapper.find('#domain-sso-tenant-id');
       expect(tenantIdInput.exists()).toBe(false);
     });
 
     it('shows issuer field when OIDC is selected', async () => {
-      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'oidc' } });
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), provider_type: 'oidc' },
+      });
 
       const issuerInput = wrapper.find('#domain-sso-issuer');
       expect(issuerInput.exists()).toBe(true);
     });
 
     it('hides issuer field when Entra ID is selected', async () => {
-      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'entra_id' } });
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), provider_type: 'entra_id' },
+      });
 
       const issuerInput = wrapper.find('#domain-sso-issuer');
       expect(issuerInput.exists()).toBe(false);
     });
 
     it('does not show domain filter field (feature not yet enabled)', async () => {
-      wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'oidc' } });
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), provider_type: 'oidc' },
+      });
 
       const domainInput = wrapper.find('#domain-sso-domain-input');
       expect(domainInput.exists()).toBe(false);
@@ -386,7 +397,9 @@ describe('DomainSsoConfigForm', () => {
 
       // Find discard button (look for button that triggers discard)
       const buttons = wrapper.findAll('button[type="button"]');
-      const discardButton = buttons.find((b) => b.text().includes('Discard') || b.text().includes('Cancel'));
+      const discardButton = buttons.find(
+        (b) => b.text().includes('Discard') || b.text().includes('Cancel')
+      );
 
       if (discardButton) {
         await discardButton.trigger('click');
@@ -549,6 +562,76 @@ describe('DomainSsoConfigForm', () => {
   // ─────────────────────────────────────────────────────────────────────────────
   // Delete functionality
   // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('Disable SSO recovery', () => {
+    it.each(['client_secret', 'idp_cert'])(
+      'can disable with unreadable %s while ordinary saves remain blocked',
+      async (field) => {
+        const saml = field === 'idp_cert';
+        const config = saml ? mockSamlConfig : mockExistingConfig;
+        const form = saml ? mockSamlFormState : mockExistingFormState;
+        wrapper = await mountComponent({
+          formState: { ...form, [field]: '', display_name: 'Unsaved edit', enabled: false },
+          ssoConfig: {
+            ...config,
+            enabled: true,
+            enforce_sso_only: true,
+            unreadable_fields: [field],
+          },
+          isConfigured: true,
+        });
+        expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeDefined();
+        await wrapper.get('form').trigger('submit');
+        expect(wrapper.emitted('save')).toBeUndefined();
+        await wrapper.get('[data-testid="disable-sso"]').trigger('click');
+        expect(wrapper.get('[data-testid="disable-sso-confirmation"]').text()).toContain(
+          'disable_enforcement_warning'
+        );
+        expect(wrapper.emitted('disable')).toBeUndefined();
+        await wrapper.get('[data-testid="confirm-disable-sso"]').trigger('click');
+        expect(wrapper.emitted('disable')).toEqual([[]]);
+        expect(wrapper.emitted('update:formState')).toBeUndefined();
+
+        await wrapper.setProps({
+          ssoConfig: { ...config, enabled: false, unreadable_fields: [field] },
+          formState: { ...form, [field]: '', enabled: true },
+        });
+        expect(wrapper.find('[data-testid="disable-sso"]').exists()).toBe(false);
+        expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeDefined();
+        await wrapper.get('form').trigger('submit');
+        expect(wrapper.emitted('save')).toBeUndefined();
+      }
+    );
+
+    it.each(['isSaving', 'isDeleting', 'isTesting'] as const)(
+      'disables recovery and confirmation while %s',
+      async (flag) => {
+        wrapper = await mountComponent({ ssoConfig: mockExistingConfig, isConfigured: true });
+        await wrapper.setProps({ [flag]: true });
+        expect(wrapper.get('[data-testid="disable-sso"]').attributes('disabled')).toBeDefined();
+        await wrapper.setProps({ [flag]: false });
+        await wrapper.get('[data-testid="disable-sso"]').trigger('click');
+        await wrapper.setProps({ [flag]: true });
+        expect(
+          wrapper.get('[data-testid="confirm-disable-sso"]').attributes('disabled')
+        ).toBeDefined();
+        await wrapper.get('[data-testid="confirm-disable-sso"]').trigger('click');
+        expect(wrapper.emitted('disable')).toBeUndefined();
+      }
+    );
+
+    it('does not offer recovery for an unsaved enable or carry confirmation to another domain', async () => {
+      wrapper = await mountComponent({ ssoConfig: mockExistingConfig, isConfigured: true });
+      await wrapper.get('[data-testid="disable-sso"]').trigger('click');
+      await wrapper.setProps({ domainExtId: 'dm_other' });
+      expect(wrapper.find('[data-testid="confirm-disable-sso"]').exists()).toBe(false);
+      await wrapper.setProps({
+        ssoConfig: { ...mockExistingConfig, enabled: false },
+        formState: { ...mockExistingFormState, enabled: true },
+      });
+      expect(wrapper.find('[data-testid="disable-sso"]').exists()).toBe(false);
+    });
+  });
 
   describe('Delete functionality', () => {
     const findDeleteButton = (w: VueWrapper) => {
@@ -936,7 +1019,9 @@ describe('DomainSsoConfigForm', () => {
 
     describe('field visibility', () => {
       it('shows the IdP trio and hides the client credential inputs', async () => {
-        wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'saml' } });
+        wrapper = await mountComponent({
+          formState: { ...createDefaultFormState(), provider_type: 'saml' },
+        });
 
         expect(wrapper.find('#domain-sso-idp-sso-service-url').exists()).toBe(true);
         expect(wrapper.find('#domain-sso-idp-entity-id').exists()).toBe(true);
@@ -949,7 +1034,9 @@ describe('DomainSsoConfigForm', () => {
 
       it('keeps the client credential inputs for oidc and entra_id', async () => {
         for (const provider_type of ['oidc', 'entra_id'] as const) {
-          wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type } });
+          wrapper = await mountComponent({
+            formState: { ...createDefaultFormState(), provider_type },
+          });
           expect(wrapper.find('#domain-sso-client-id').exists()).toBe(true);
           expect(wrapper.find('#domain-sso-client-secret').exists()).toBe(true);
           expect(wrapper.find('#domain-sso-idp-cert').exists()).toBe(false);
@@ -958,7 +1045,9 @@ describe('DomainSsoConfigForm', () => {
       });
 
       it('the certificate input is a textarea with a hint, and the SSO URL input is type=url', async () => {
-        wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'saml' } });
+        wrapper = await mountComponent({
+          formState: { ...createDefaultFormState(), provider_type: 'saml' },
+        });
 
         const cert = wrapper.find('#domain-sso-idp-cert');
         expect(cert.element.tagName).toBe('TEXTAREA');
@@ -974,7 +1063,9 @@ describe('DomainSsoConfigForm', () => {
         ['idp_entity_id', '#domain-sso-idp-entity-id', 'https://idp.example.com/entity'],
         ['idp_cert', '#domain-sso-idp-cert', SAML_CERT],
       ] as const)('emits update:formState when %s changes', async (field, selector, value) => {
-        wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'saml' } });
+        wrapper = await mountComponent({
+          formState: { ...createDefaultFormState(), provider_type: 'saml' },
+        });
 
         await wrapper.find(selector).setValue(value);
         await flushPromises();
@@ -1045,7 +1136,10 @@ describe('DomainSsoConfigForm', () => {
 
     describe('service-provider identifiers', () => {
       it('previews SP Entity ID and ACS URL from the host before a record exists', async () => {
-        wrapper = await mountComponent({ formState: mockSamlFormState, domainHost: 'secrets.example.com' });
+        wrapper = await mountComponent({
+          formState: mockSamlFormState,
+          domainHost: 'secrets.example.com',
+        });
 
         expect(wrapper.find('[data-testid="sso-saml-sp-entity-id"]').text()).toBe(
           'https://secrets.example.com/auth/sso/saml/metadata'
@@ -1062,8 +1156,12 @@ describe('DomainSsoConfigForm', () => {
           isConfigured: true,
         });
 
-        expect(wrapper.find('[data-testid="sso-saml-sp-entity-id"]').text()).toBe(mockSamlConfig.sp_entity_id);
-        expect(wrapper.find('[data-testid="sso-saml-acs-url"]').text()).toBe(mockSamlConfig.acs_url);
+        expect(wrapper.find('[data-testid="sso-saml-sp-entity-id"]').text()).toBe(
+          mockSamlConfig.sp_entity_id
+        );
+        expect(wrapper.find('[data-testid="sso-saml-acs-url"]').text()).toBe(
+          mockSamlConfig.acs_url
+        );
       });
 
       it('falls back to the host preview when the API could not derive them', async () => {
@@ -1089,7 +1187,9 @@ describe('DomainSsoConfigForm', () => {
       });
 
       it('shows the generic callback block, not the SP block, for oidc', async () => {
-        wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'oidc' } });
+        wrapper = await mountComponent({
+          formState: { ...createDefaultFormState(), provider_type: 'oidc' },
+        });
 
         expect(wrapper.text()).toContain('web.organizations.sso.callback_url_hint');
         expect(wrapper.find('[data-testid="sso-saml-sp-details"]').exists()).toBe(false);
@@ -1156,7 +1256,11 @@ describe('DomainSsoConfigForm', () => {
       });
 
       it('renders nothing when the payload predates the fields', async () => {
-        wrapper = await mountComponent({ formState: mockSamlFormState, ssoConfig: mockSamlConfig, isConfigured: true });
+        wrapper = await mountComponent({
+          formState: mockSamlFormState,
+          ssoConfig: mockSamlConfig,
+          isConfigured: true,
+        });
 
         expect(wrapper.find('[data-testid="sso-idp-cert-expired-alert"]').exists()).toBe(false);
         expect(wrapper.find('[data-testid="sso-idp-cert-expiring-notice"]').exists()).toBe(false);
@@ -1178,17 +1282,25 @@ describe('DomainSsoConfigForm', () => {
 
         const cert = wrapper.find('#domain-sso-idp-cert');
         expect(cert.attributes('aria-invalid')).toBe('true');
-        expect(cert.attributes('aria-describedby')).toBe('domain-sso-idp-cert-hint domain-sso-idp-cert-error');
+        expect(cert.attributes('aria-describedby')).toBe(
+          'domain-sso-idp-cert-hint domain-sso-idp-cert-error'
+        );
         expect(wrapper.find('#domain-sso-idp-cert-error').exists()).toBe(true);
         // Untouched siblings stay clean.
-        expect(wrapper.find('#domain-sso-idp-entity-id').attributes('aria-invalid')).toBeUndefined();
+        expect(
+          wrapper.find('#domain-sso-idp-entity-id').attributes('aria-invalid')
+        ).toBeUndefined();
         expect(wrapper.find('#domain-sso-idp-entity-id-error').exists()).toBe(false);
         // And the save is blocked until the value is re-entered.
         expect(submitButton(wrapper).attributes('disabled')).toBeDefined();
       });
 
       it('renders nothing for a healthy record', async () => {
-        wrapper = await mountComponent({ formState: mockSamlFormState, ssoConfig: mockSamlConfig, isConfigured: true });
+        wrapper = await mountComponent({
+          formState: mockSamlFormState,
+          ssoConfig: mockSamlConfig,
+          isConfigured: true,
+        });
 
         expect(wrapper.find('[data-testid="sso-unreadable-fields-alert"]').exists()).toBe(false);
         expect(wrapper.find('#domain-sso-idp-cert').attributes('aria-invalid')).toBeUndefined();
@@ -1197,7 +1309,11 @@ describe('DomainSsoConfigForm', () => {
       it('covers the client credential fields too (entra_id secret must be re-entered)', async () => {
         wrapper = await mountComponent({
           formState: mockExistingFormState,
-          ssoConfig: { ...mockExistingConfig, client_secret_masked: null, unreadable_fields: ['client_secret'] },
+          ssoConfig: {
+            ...mockExistingConfig,
+            client_secret_masked: null,
+            unreadable_fields: ['client_secret'],
+          },
           isConfigured: true,
         });
 
@@ -1229,7 +1345,11 @@ describe('DomainSsoConfigForm', () => {
         it('is required and blocks the save when the stored secret is unreadable', async () => {
           wrapper = await mountComponent({
             formState: oidcFormState,
-            ssoConfig: { ...oidcConfig, client_secret_masked: null, unreadable_fields: ['client_secret'] },
+            ssoConfig: {
+              ...oidcConfig,
+              client_secret_masked: null,
+              unreadable_fields: ['client_secret'],
+            },
             isConfigured: true,
             clientSecretMasked: null,
           });
@@ -1245,7 +1365,11 @@ describe('DomainSsoConfigForm', () => {
         it('unblocks the save once a replacement secret is entered', async () => {
           wrapper = await mountComponent({
             formState: { ...oidcFormState, client_secret: 'replacement-secret' },
-            ssoConfig: { ...oidcConfig, client_secret_masked: null, unreadable_fields: ['client_secret'] },
+            ssoConfig: {
+              ...oidcConfig,
+              client_secret_masked: null,
+              unreadable_fields: ['client_secret'],
+            },
             isConfigured: true,
             clientSecretMasked: null,
           });
@@ -1292,7 +1416,8 @@ describe('DomainSsoConfigForm', () => {
             user_id: 'cust_456',
             success: true,
             provider_type: 'saml',
-            message: 'SAML configuration is valid (checked locally; the identity provider was not contacted)',
+            message:
+              'SAML configuration is valid (checked locally; the identity provider was not contacted)',
             details: {
               idp_entity_id: 'https://idp.example.com/entity',
               idp_sso_service_url: 'https://idp.example.com/sso',
@@ -1367,9 +1492,15 @@ describe('DomainSsoConfigForm', () => {
 
     describe('accessibility', () => {
       it('every IdP input has an associated label, hint and an asterisk', async () => {
-        wrapper = await mountComponent({ formState: { ...createDefaultFormState(), provider_type: 'saml' } });
+        wrapper = await mountComponent({
+          formState: { ...createDefaultFormState(), provider_type: 'saml' },
+        });
 
-        for (const id of ['domain-sso-idp-sso-service-url', 'domain-sso-idp-entity-id', 'domain-sso-idp-cert']) {
+        for (const id of [
+          'domain-sso-idp-sso-service-url',
+          'domain-sso-idp-entity-id',
+          'domain-sso-idp-cert',
+        ]) {
           const label = wrapper.find(`label[for="${id}"]`);
           expect(label.exists()).toBe(true);
           expect(label.text()).toContain('*');
@@ -1381,9 +1512,9 @@ describe('DomainSsoConfigForm', () => {
       it('read-only SP values are labelled', async () => {
         wrapper = await mountComponent({ formState: mockSamlFormState });
 
-        expect(wrapper.find('[data-testid="sso-saml-sp-entity-id"]').attributes('aria-labelledby')).toBe(
-          'domain-sso-sp-entity-id-label'
-        );
+        expect(
+          wrapper.find('[data-testid="sso-saml-sp-entity-id"]').attributes('aria-labelledby')
+        ).toBe('domain-sso-sp-entity-id-label');
         expect(wrapper.find('#domain-sso-sp-entity-id-label').exists()).toBe(true);
         expect(wrapper.find('[data-testid="sso-saml-acs-url"]').attributes('aria-labelledby')).toBe(
           'domain-sso-acs-url-label'
@@ -1416,7 +1547,9 @@ describe('DomainSsoConfigForm', () => {
     it('password toggle button has aria-label', async () => {
       wrapper = await mountComponent();
 
-      const toggleButton = wrapper.find('#domain-sso-client-secret + button, div:has(#domain-sso-client-secret) button');
+      const toggleButton = wrapper.find(
+        '#domain-sso-client-secret + button, div:has(#domain-sso-client-secret) button'
+      );
       // The button should have aria-label for accessibility
       expect(toggleButton.exists()).toBe(true);
     });

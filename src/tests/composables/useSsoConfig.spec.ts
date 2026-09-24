@@ -22,6 +22,7 @@ import type { TestSsoConnectionResponse } from '@/services/sso.service';
 
 const mockGetConfigForDomain = vi.fn();
 const mockSaveConfigForDomain = vi.fn();
+const mockPatchConfigForDomain = vi.fn();
 const mockDeleteConfigForDomain = vi.fn();
 const mockTestConnectionForDomain = vi.fn();
 const mockNotificationsShow = vi.fn();
@@ -31,6 +32,7 @@ vi.mock('@/services/sso.service', () => ({
   SsoService: {
     getConfigForDomain: (...args: unknown[]) => mockGetConfigForDomain(...args),
     saveConfigForDomain: (...args: unknown[]) => mockSaveConfigForDomain(...args),
+    patchConfigForDomain: (...args: unknown[]) => mockPatchConfigForDomain(...args),
     deleteConfigForDomain: (...args: unknown[]) => mockDeleteConfigForDomain(...args),
     testConnectionForDomain: (...args: unknown[]) => mockTestConnectionForDomain(...args),
   },
@@ -64,12 +66,15 @@ vi.mock('vue-i18n', () => ({
 }));
 
 vi.mock('@/shared/composables/useAsyncHandler', () => ({
-  useAsyncHandler: () => ({
+  useAsyncHandler: (options: { setLoading?: (loading: boolean) => void }) => ({
     wrap: vi.fn(async (fn: () => Promise<unknown>) => {
+      options.setLoading?.(true);
       try {
         return await fn();
       } catch {
         return undefined;
+      } finally {
+        options.setLoading?.(false);
       }
     }),
   }),
@@ -850,6 +855,82 @@ describe('useSsoConfig', () => {
   // ---------------------------------------------------------------------------
   // deleteConfig
   // ---------------------------------------------------------------------------
+
+  describe('disableConfig recovery', () => {
+    it('PATCHes only the two flags despite unreadable credentials and unsaved edits', async () => {
+      const record = { ...mockEnforceSsoOnlyConfig, unreadable_fields: ['client_secret'] };
+      mockGetConfigForDomain.mockResolvedValueOnce({ record });
+      const disabled = { ...record, enabled: false, enforce_sso_only: false };
+      mockPatchConfigForDomain.mockResolvedValueOnce({ record: disabled });
+      const composable = useSsoConfig('dm_123');
+      await composable.initialize();
+      composable.formState.value.display_name = 'Unsaved name';
+      composable.formState.value.client_secret = 'unsaved-secret';
+      composable.formState.value.enabled = false;
+
+      await composable.disableConfig();
+
+      expect(mockPatchConfigForDomain).toHaveBeenCalledExactlyOnceWith('dm_123', {
+        enabled: false,
+        enforce_sso_only: false,
+      });
+      expect(mockSaveConfigForDomain).not.toHaveBeenCalled();
+      expect(composable.ssoConfig.value).toEqual(disabled);
+      expect(composable.formState.value.client_secret).toBe('unsaved-secret');
+      expect(composable.formState.value.enforce_sso_only).toBe(false);
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+      composable.discardChanges();
+      expect(composable.formState.value.display_name).toBe(record.display_name);
+      expect(composable.formState.value.enabled).toBe(false);
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
+    it('holds the saving flag and prevents duplicate requests until completion', async () => {
+      mockGetConfigForDomain.mockResolvedValueOnce({ record: mockSsoConfigData });
+      let resolve!: (value: unknown) => void;
+      mockPatchConfigForDomain.mockReturnValueOnce(
+        new Promise((done) => {
+          resolve = done;
+        })
+      );
+      const composable = useSsoConfig('dm_123');
+      await composable.initialize();
+      const pending = composable.disableConfig();
+      expect(composable.isSaving.value).toBe(true);
+      await composable.disableConfig();
+      expect(mockPatchConfigForDomain).toHaveBeenCalledTimes(1);
+      resolve({ record: { ...mockSsoConfigData, enabled: false } });
+      await pending;
+      expect(composable.isSaving.value).toBe(false);
+    });
+
+    it('retains config and drafts on failure and permits retry', async () => {
+      mockGetConfigForDomain.mockResolvedValueOnce({ record: mockSsoConfigData });
+      mockPatchConfigForDomain.mockRejectedValueOnce(new Error('Failed'));
+      const composable = useSsoConfig('dm_123');
+      await composable.initialize();
+      composable.formState.value.display_name = 'Draft';
+      await composable.disableConfig();
+      expect(composable.isSaving.value).toBe(false);
+      expect(composable.ssoConfig.value).toEqual(mockSsoConfigData);
+      expect(composable.formState.value.display_name).toBe('Draft');
+      expect(mockNotificationsShow).not.toHaveBeenCalled();
+      mockPatchConfigForDomain.mockResolvedValueOnce({ record: mockDisabledConfig });
+      await composable.disableConfig();
+      expect(composable.isEnabled.value).toBe(false);
+    });
+
+    it.each([null, mockDisabledConfig])(
+      'does not PATCH an absent or disabled record',
+      async (record) => {
+        mockGetConfigForDomain.mockResolvedValueOnce({ record });
+        const composable = useSsoConfig('dm_123');
+        await composable.initialize();
+        await composable.disableConfig();
+        expect(mockPatchConfigForDomain).not.toHaveBeenCalled();
+      }
+    );
+  });
 
   describe('deleteConfig', () => {
     it('resets ssoConfig to null after deletion', async () => {
