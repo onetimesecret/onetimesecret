@@ -36,6 +36,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       module ::OT
         def self.li(*args); end
         def self.le(*args); end
+        def self.conf; end
       end
     end
 
@@ -693,7 +694,14 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
         }
       end
 
-      it 'registers the request-bound subclass with the trio, hardened options and NO issuer' do
+      # The platform ACS URL derives from site.host / site.ssl
+      # (Saml.platform_acs_url); the registry stays loadable without a
+      # booted config, so it is stubbed here.
+      before do
+        allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => 'ots.example.com', 'ssl' => true } })
+      end
+
+      it 'registers the request-bound subclass with the trio, hardened options, pinned ACS and NO issuer' do
         registered = nil
         allow(auth).to receive(:omniauth_provider) { |strategy, **opts| registered = [strategy, opts] }
 
@@ -706,6 +714,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
           idp_sso_service_url: 'https://idp.example.com/saml/sso',
           idp_entity_id: 'https://idp.example.com/saml/metadata',
           sp_entity_id: 'https://ots.example.com/auth/sso/saml/metadata',
+          assertion_consumer_service_url: 'https://ots.example.com/auth/sso/saml/callback',
           slo_enabled: false,
           security: Onetime::SsoProvider::Saml::SECURITY,
         )

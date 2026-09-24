@@ -256,6 +256,10 @@ module OmniAuth
           return refuse!(:saml_misconfigured, "SAML #{blank} is not configured", option: blank.to_s)
         end
 
+        if (mismatch = acs_host_mismatch)
+          return refuse!(:saml_acs_host_mismatch, 'SAML ACS URL names a different host than this request', **mismatch)
+        end
+
         authn_request = OneLogin::RubySaml::Authrequest.new
 
         # Overwrites any earlier pending id: one login attempt at a time per
@@ -304,18 +308,63 @@ module OmniAuth
           return refuse!(:saml_misconfigured, "SAML #{blank} is not configured", option: blank.to_s)
         end
 
+        if (mismatch = acs_host_mismatch)
+          return refuse!(:saml_acs_host_mismatch, 'SAML ACS URL names a different host than this request', **mismatch)
+        end
+
         super
       end
 
       # omniauth's default appends the current request's query string
-      # (strategy.rb:504-506), and omniauth-saml defaults the ACS URL to this
-      # value (saml.rb:269). The ACS URL is registered verbatim at the IdP and
-      # compared against the response Destination/Recipient, so it must be a
-      # constant: a login link carrying ?domain=... must not change it.
-      # full_host is the application's public-host override (#4224) — never
-      # derive this from request.host.
+      # (strategy.rb:504-506), and omniauth-saml falls back to this value for
+      # an ACS URL that was not set (saml.rb:269 `||=`). Both surfaces set
+      # one explicitly — the platform definition pins the canonical ACS at
+      # boot (Onetime::SsoProvider::Saml.platform_options) and the tenant
+      # hook derives it per request (OmniAuthTenant.inject_saml_sp_identifiers)
+      # — so this is reached only by the un-injected placeholder, which the
+      # blank-trust-anchor refusal above stops first. Kept as the override
+      # anyway: the ACS URL is registered verbatim at the IdP and compared
+      # against the response Destination/Recipient, so it must be a constant
+      # — a login link carrying ?domain=... must not change it. full_host is
+      # the application's public-host override (#4224) — never derive this
+      # from request.host.
       def callback_url
         full_host + callback_path
+      end
+
+      # THE ACS HOST MUST BE THIS REQUEST'S PUBLIC HOST. The pending
+      # AuthnRequest id lives in the session cookie of the host the visitor
+      # started on, and the IdP posts the response to the ACS URL. When the
+      # two hosts differ the response arrives with no session, is refused as
+      # :saml_no_pending_request, and the visitor learns nothing useful. The
+      # platform surface pins its ACS to site.host (saml.rb: PLATFORM SAML
+      # SERVES THE CANONICAL HOST ONLY), so a platform sign-in started on a
+      # custom domain (platform fallback) or on a secondary canonical host is
+      # exactly this case — refused here, at both phases, before an
+      # AuthnRequest the IdP would reject (or that could never complete) is
+      # emitted. The tenant surface derives its ACS from full_host, so it
+      # can never mismatch. No ACS set at all (the placeholder) is not a
+      # mismatch: blank_trust_option refuses that first.
+      #
+      # Host only, not scheme or port: the cookie is host-scoped, and a
+      # scheme/port difference is a site.ssl / site.host configuration slip
+      # the IdP would already have rejected at the AuthnRequest.
+      #
+      # @return [Hash, nil] scalar log fields for the refusal, or nil when
+      #   the hosts agree (or nothing is pinned)
+      def acs_host_mismatch
+        acs = options[:assertion_consumer_service_url].to_s.strip
+        return nil if acs.empty?
+
+        acs_host     = URI.parse(acs).host.to_s.downcase
+        request_host = URI.parse(full_host).host.to_s.downcase
+        return nil if !acs_host.empty? && acs_host == request_host
+
+        { acs_host: loggable(acs_host), request_host: loggable(request_host) }
+      rescue URI::Error
+        # Fail closed: an ACS URL that does not parse cannot be proven to
+        # name this host.
+        { acs_host: loggable(acs), request_host: loggable(full_host) }
       end
 
       # Replaces the gem's `extra` (saml.rb:132) wholesale: the auth hash

@@ -400,6 +400,72 @@ RSpec.describe Onetime::SsoProvider::Registry do
         end
       end
 
+      # The platform IdP registered ONE ACS. Before this was pinned,
+      # omniauth-saml defaulted it to the public host of the CURRENT request,
+      # so a platform-fallback sign-in on a custom domain advertised an ACS
+      # the IdP had never been given.
+      describe 'assertion_consumer_service_url (pinned to the platform base, never request-derived)' do
+        before do
+          allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => 'secrets.example.com', 'ssl' => true } })
+        end
+
+        it 'is the platform base URL + callback path' do
+          expect(saml_options[:assertion_consumer_service_url]).to eq('https://secrets.example.com/auth/sso/saml/callback')
+          expect(Onetime::SsoProvider::Saml.platform_base_url).to eq('https://secrets.example.com')
+        end
+
+        it 'follows SAML_ROUTE_NAME' do
+          expect(saml_options(SAML_ROUTE_NAME: 'okta')[:assertion_consumer_service_url])
+            .to eq('https://secrets.example.com/auth/sso/okta/callback')
+        end
+
+        it 'follows site.ssl' do
+          allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => 'localhost:7143', 'ssl' => false } })
+
+          expect(saml_options[:assertion_consumer_service_url]).to eq('http://localhost:7143/auth/sso/saml/callback')
+        end
+
+        # A URN EntityID has no host to derive anything from; the ACS must
+        # not be string-surgery on it.
+        it 'derives from site.host even when SAML_SP_ENTITY_ID is an explicit URN' do
+          opts = saml_options(SAML_SP_ENTITY_ID: 'urn:example:ots-sp')
+
+          expect(opts[:sp_entity_id]).to eq('urn:example:ots-sp')
+          expect(opts[:assertion_consumer_service_url]).to eq('https://secrets.example.com/auth/sso/saml/callback')
+        end
+
+        it 'refuses, and is not valid, when site.host is unset even with an explicit SP EntityID' do
+          allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => ' ' } })
+
+          expect { saml_options(SAML_SP_ENTITY_ID: 'urn:example:ots-sp') }.to raise_error(ArgumentError, /site\.host/)
+          expect(saml_valid?(SAML_SP_ENTITY_ID: 'urn:example:ots-sp')).to be false
+        end
+      end
+
+      # The serializers' platform-fallback arms drop this provider on a
+      # custom host (its ACS is pinned to site.host).
+      describe '.canonical_host_only_route?' do
+        it 'is true for the SAML route, following SAML_ROUTE_NAME' do
+          expect(saml[:canonical_host_only]).to be true
+          ClimateControl.modify(SAML_ROUTE_NAME: nil) do
+            expect(described_class.canonical_host_only_route?('saml')).to be true
+            expect(described_class.canonical_host_only_route?('okta')).to be false
+          end
+          ClimateControl.modify(SAML_ROUTE_NAME: 'okta') do
+            expect(described_class.canonical_host_only_route?('okta')).to be true
+            expect(described_class.canonical_host_only_route?('saml')).to be false
+          end
+        end
+
+        it 'is false for every other definition, and for a blank or unknown route' do
+          expect(definitions.reject { |defn| defn[:key] == :saml }.map { |defn| defn[:canonical_host_only] }).to all(be_nil)
+          expect(described_class.canonical_host_only_route?('oidc')).to be false
+          expect(described_class.canonical_host_only_route?('')).to be false
+          expect(described_class.canonical_host_only_route?(nil)).to be false
+          expect(described_class.canonical_host_only_route?('nope')).to be false
+        end
+      end
+
       # Blank trust anchors, so RequestBoundSAML refuses (:saml_misconfigured)
       # unless the tenant hook injected a real trio + SP identifiers.
       it 'registers placeholders that fail closed without tenant injection' do

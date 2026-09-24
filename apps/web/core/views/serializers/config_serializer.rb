@@ -154,7 +154,7 @@ module Core
           secret_options = site['secret_options']
           return secret_options unless secret_options.is_a?(Hash)
 
-          ttl_options = Array(secret_options['ttl_options']).select { |value| value.is_a?(Numeric) }
+          ttl_options = Array(secret_options['ttl_options']).grep(Numeric)
           config_max  = ttl_options.max || 2_592_000
           ceiling     = Onetime::SecretLifetimePolicy.guest_ceiling(
             config_max: config_max,
@@ -525,7 +525,12 @@ module Core
           # sign-in provider on an allowed custom host, but is not a Connect
           # provider: a Connect callback there is intentionally rejected as a
           # cross-surface intent after consuming the user's re-auth proof.
-          build_platform_sso_config(connectable: !tenant_domain?(view_vars))
+          # A :canonical_host_only provider (platform SAML, #4450) is not a
+          # sign-in provider there either — see build_platform_sso_config.
+          build_platform_sso_config(
+            connectable: !tenant_domain?(view_vars),
+            operator_host: operator_domain?(view_vars),
+          )
         end
 
         # Resolve tenant SSO configuration from request context
@@ -721,18 +726,31 @@ module Core
         # providers on its own if it gains another caller — so it re-checks
         # rather than relying on the caller's guard.
         #
+        # A :canonical_host_only provider (Onetime::SsoProvider::Registry;
+        # platform SAML, #4450) is offered on OPERATOR hosts only. Its ACS URL
+        # is pinned to site.host, so a sign-in started on a custom host under
+        # platform fallback posts back to a host holding no pending request
+        # and can never complete — the strategy refuses it
+        # (:saml_acs_host_mismatch), and a button whose route refuses is the
+        # display/runtime disagreement this serializer exists to prevent.
+        #
         # @param connectable [Boolean] whether this host may initiate Connect
+        # @param operator_host [Boolean] whether this request is positively
+        #   classified as one of the operator's own hosts (operator_domain?)
         # @return [Boolean, Hash] false if disabled, otherwise config hash
-        def build_platform_sso_config(connectable: true)
+        def build_platform_sso_config(connectable: true, operator_host: true)
           unless Onetime::CustomDomain::SigninConfig.global_auth_enabled
             return { 'enabled' => false, 'providers' => [] }
           end
 
           return false unless Onetime.auth_config.sso_enabled?
 
-          providers = Onetime.auth_config.sso_providers.map do |provider|
+          providers = Onetime.auth_config.sso_providers.filter_map do |provider|
+            route_name = provider['route_name'].to_s
+            next if !operator_host && Onetime::SsoProvider::Registry.canonical_host_only_route?(route_name)
+
             {
-              'route_name' => provider['route_name'].to_s,
+              'route_name' => route_name,
               'display_name' => provider['display_name'].to_s,
             }
           end

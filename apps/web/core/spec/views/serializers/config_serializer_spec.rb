@@ -585,6 +585,20 @@ RSpec.describe Core::Views::ConfigSerializer do
             ],
           })
         end
+
+        # Platform SAML (#4450) is :canonical_host_only in the registry — its
+        # ACS URL is pinned to site.host — and the canonical host IS that host.
+        it 'keeps a canonical-host-only provider (platform SAML) on the canonical host' do
+          allow(mock_auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+          ])
+
+          result = described_class.build_sso_config(base_view_vars)
+
+          expect(result['providers'].map { |p| p['route_name'] }).to eq(%w[oidc saml])
+          expect(result['connect_providers']).to eq(result['providers'])
+        end
       end
 
       context 'when platform SSO is enabled on a subdomain' do
@@ -625,6 +639,22 @@ RSpec.describe Core::Views::ConfigSerializer do
           it 'exposes platform providers as connectable' do
             result = described_class.build_sso_config(base_view_vars.merge('domain_strategy' => strategy))
 
+            expect(result['connect_providers']).to eq(result['providers'])
+          end
+
+          # Not an operator host: a sign-in started here would carry the
+          # canonical ACS and post back to a host holding no pending request
+          # (RequestBoundSAML refuses it as saml_acs_host_mismatch), so the
+          # button is not offered.
+          it 'does not offer a canonical-host-only provider (platform SAML)' do
+            allow(mock_auth_config).to receive(:sso_providers).and_return([
+              { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
+              { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+            ])
+
+            result = described_class.build_sso_config(base_view_vars.merge('domain_strategy' => strategy))
+
+            expect(result['providers'].map { |p| p['route_name'] }).to eq(['oidc'])
             expect(result['connect_providers']).to eq(result['providers'])
           end
         end
@@ -780,6 +810,21 @@ RSpec.describe Core::Views::ConfigSerializer do
             expect(result['enabled']).to be true
             expect(result['providers'][0]['display_name']).to eq('Platform SSO')
             expect(result['connect_providers']).to eq([])
+          end
+
+          # Platform SAML's ACS is pinned to site.host; on a custom host its
+          # route refuses (saml_acs_host_mismatch), so it is not a fallback
+          # provider here (#4450).
+          it 'does not offer a canonical-host-only provider (platform SAML) as fallback' do
+            allow(mock_auth_config).to receive(:sso_providers).and_return([
+              { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+              { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+            ])
+
+            result = described_class.build_sso_config(custom_domain_view_vars)
+
+            expect(result['enabled']).to be true
+            expect(result['providers']).to eq([{ 'route_name' => 'oidc', 'display_name' => 'Platform SSO' }])
           end
         end
       end

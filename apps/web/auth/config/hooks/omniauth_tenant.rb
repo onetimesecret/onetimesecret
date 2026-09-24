@@ -762,10 +762,14 @@ module Auth::Config::Hooks
     # (DomainsAPI::Logic::SsoConfig::Serializers#saml_sp_identifiers); keep
     # the path shapes in step.
     #
-    # Runs ONLY after tenant options were injected: a platform (or
-    # platform-fallback) SAML flow keeps the platform's registered
-    # sp_entity_id, and RequestBoundSAML#callback_url already supplies its
-    # ACS URL.
+    # Runs ONLY after tenant options were injected: a platform SAML flow
+    # keeps the platform's registered sp_entity_id AND
+    # assertion_consumer_service_url, both pinned to site.host at boot
+    # (Onetime::SsoProvider::Saml.platform_options). A platform-FALLBACK
+    # start on a custom host therefore carries an ACS on another host than
+    # the visitor's session cookie, and RequestBoundSAML refuses it
+    # (:saml_acs_host_mismatch) — platform SAML is served on the canonical
+    # host only, and the serializers do not offer it elsewhere.
     #
     # @param strategy [OmniAuth::Strategy] The active strategy
     # @return [void]

@@ -105,6 +105,13 @@
 #   strategy_options: zero-arg callable returning strategy options (minus
 #                     name:) built from the env at boot. Called only after
 #                     required_vars are verified present.
+#   canonical_host_only: OPTIONAL boolean. True for a provider whose platform
+#                     flow can only complete on site.host (SAML: the ACS URL
+#                     is pinned there, see saml.rb), so the platform-fallback
+#                     arms of the login-page and invite serializers must not
+#                     offer it on a custom host. Read through
+#                     .canonical_host_only_route?. Omitted means offered on
+#                     every host platform fallback reaches.
 
 require_relative 'oidc'
 require_relative 'entra'
@@ -149,6 +156,23 @@ module Onetime
       def self.fetch(key)
         find(key) ||
           raise(KeyError, "unknown SSO provider definition: #{key.inspect}")
+      end
+
+      # Does the platform provider registered under +route_name+ carry
+      # :canonical_host_only (field reference above)? Resolves the route the
+      # way configure_provider and AuthConfig#sso_providers do — the route
+      # env var, else the default — so an operator-renamed route still
+      # answers for its definition. False for an unknown route.
+      #
+      # @param route_name [String, nil] the OmniAuth route / provider name
+      # @return [Boolean]
+      def self.canonical_host_only_route?(route_name)
+        route_name = route_name.to_s
+        return false if route_name.empty?
+
+        DEFINITIONS.any? do |defn|
+          defn[:canonical_host_only] == true && ENV.fetch(defn[:route_var], defn[:route_default]) == route_name
+        end
       end
     end
   end

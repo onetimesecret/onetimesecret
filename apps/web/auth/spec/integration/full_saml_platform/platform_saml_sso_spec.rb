@@ -16,23 +16,46 @@
 #   1. configure_provider's real-credential branch registers the route from
 #      SAML_IDP_SSO_SERVICE_URL / SAML_IDP_ENTITY_ID / SAML_IDP_CERT;
 #   2. Saml.platform_sp_entity_id is the AuthnRequest Issuer (and the SP
-#      metadata's entityID), and callback_url is the canonical host's ACS;
+#      metadata's entityID), and the ACS URL is Saml.platform_acs_url — pinned
+#      to site.host at boot, never the request's host — in the AuthnRequest,
+#      the SP metadata and the response validation alike;
 #   3. a platform identity is keyed (route, BARE EntityID, NameID) — never ''
 #      and never a tenant's domain-scoped key, so a tenant row that names the
 #      same EntityID is not matched;
 #   4. the InResponseTo binding, the replay cache, the issuer gate and the
-#      signature-algorithm gate all refuse on this surface too.
+#      signature-algorithm gate all refuse on this surface too;
+#   5. platform SAML serves the canonical host ONLY: a start on a secondary
+#      canonical-set host or on a custom domain under platform fallback is
+#      refused (saml_acs_host_mismatch) before any AuthnRequest is emitted.
 #
 # OWN LANE. Auth::Config configures once per process and reads SAML_* then.
-# The lane (tests/lanes/full-saml-platform) provides the three public strings;
-# the IdP KEYPAIR is minted here at load time and its certificate installed in
-# ENV before the first boot, so no key material is checked in. If the app is
-# already booted when this file loads, the environment cannot take effect —
-# that is a loud failure, not a skip.
+# The lane (tests/lanes/full-saml-platform) provides the three public strings
+# AND the SAML-compatible session cookie (SESSION_COOKIE_SAME_SITE=none,
+# SESSION_COOKIE_SECURE=true — under any other cookie Saml.platform_options
+# raises and the provider is SKIPPED at boot); the IdP KEYPAIR is minted here
+# at load time and its certificate installed in ENV before the first boot, so
+# no key material is checked in. If the app is already booted when this file
+# loads, the environment cannot take effect — that is a loud failure, not a
+# skip.
+#
+# EVERY REQUEST IS https:// ON THE PLATFORM BASE (site.host). The Secure
+# cookie is withheld by Rack::Test on http and dropped by Onetime::Session on
+# a non-SSL request, and the pinned ACS names site.host.
+#
+# The 'domains enabled' context is included ONLY by the off-host describe.
+# With the domains feature on, DomainStrategy.canonical_host? consults the
+# PARSED canonical set, which skips the test config's IP site.host
+# (127.0.0.1:3000) — the tenant hook then treats the platform host itself as
+# an unknown non-canonical host and redirects sso_not_configured before the
+# strategy runs. With the feature off (this lane's default) site.host is
+# canonical through the raw fallback, which is what the platform examples
+# need; the off-host cases need the feature on for a canonical-SET peer
+# (`canonical_host`, features.domains.default) and a custom domain.
 #
 # REQUIREMENTS:
 # - Valkey on 2163, AUTHENTICATION_MODE=full, ORGS_SSO_ENABLED=true,
-#   SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID (lane-provided)
+#   SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID, SESSION_COOKIE_SAME_SITE=none,
+#   SESSION_COOKIE_SECURE=true (lane-provided)
 #
 # RUN:
 #   tests/lanes/run full-saml-platform
@@ -72,8 +95,6 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
   lane_env: { 'ORGS_SSO_ENABLED' => 'true', 'SAML_IDP_ENTITY_ID' => PlatformSamlSsoSpec::ENTITY_ID } do
   include Rack::Test::Methods
 
-  include_context 'domains enabled'
-
   before(:all) { boot_onetime_app }
 
   let(:db) { Auth::Database.connection }
@@ -84,6 +105,9 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
   let(:name_id) { "platform-nameid-#{run_id}" }
   let(:email) { "platform-user-#{run_id}@saml-platform.example.com" }
   let(:created_emails) { [] }
+  # scheme://site.host — the one origin the platform SAML surface is served on.
+  let(:platform_base) { Onetime::SsoProvider::Saml.platform_base_url }
+  let(:platform_acs) { "#{platform_base}/auth/sso/saml/callback" }
 
   after do
     created_emails.each do |address|
@@ -100,8 +124,7 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
   # ── flow helpers ──────────────────────────────────────────────────────────
 
   def start_login
-    header 'Host', canonical_host
-    post '/auth/sso/saml'
+    post "#{platform_base}/auth/sso/saml"
 
     expect(last_response.status).to eq(302), "request phase: #{last_response.status} #{last_response.body[0, 200]}"
     location = last_response.headers['Location'].to_s
@@ -120,11 +143,14 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
   end
 
   def post_callback(saml_response)
-    header 'Host', canonical_host
     header 'Origin', 'https://login.platform-idp.test'
-    post '/auth/sso/saml/callback', { 'SAMLResponse' => saml_response }
+    post platform_acs, { 'SAMLResponse' => saml_response }
   ensure
     header 'Origin', nil
+  end
+
+  def pending_request_id
+    last_request.env['rack.session'].to_h[OmniAuth::Strategies::RequestBoundSAML::REQUEST_ID_KEY]
   end
 
   def answer(request, signer: idp, **overrides)
@@ -159,25 +185,79 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
       request = start_login
       expect(request.id).not_to be_nil
       expect(request.destination).to eq(PlatformSamlSsoSpec::SSO_URL)
+      expect(pending_request_id).to eq(request.id)
     end
 
-    it 'names the canonical host in the ACS URL and the derived platform SP EntityID as Issuer' do
+    it 'names the pinned platform ACS URL and the derived platform SP EntityID as Issuer' do
       request = start_login
 
-      expect(request.acs_url).to eq("http://#{canonical_host}/auth/sso/saml/callback")
+      expect(request.acs_url).to eq(platform_acs)
+      expect(request.acs_url).to eq(Onetime::SsoProvider::Saml.platform_acs_url('saml'))
       expect(request.sp_entity_id).to eq(Onetime::SsoProvider::Saml.platform_sp_entity_id('saml'))
       expect(request.sp_entity_id).to end_with('/auth/sso/saml/metadata')
       expect(request.sp_entity_id).not_to be_empty
+      expect(URI.parse(request.acs_url).host).to eq(URI.parse(request.sp_entity_id).host)
     end
 
-    it 'serves SP metadata naming the platform SP EntityID and the ACS URL' do
-      header 'Host', canonical_host
-      get '/auth/sso/saml/metadata'
+    it 'serves SP metadata naming the platform SP EntityID and the pinned ACS URL' do
+      get "#{platform_base}/auth/sso/saml/metadata"
 
       expect(last_response.status).to eq(200), last_response.body[0, 200]
       expect(last_response.body).to include('EntityDescriptor')
       expect(last_response.body).to match(/entityID=['"]#{Regexp.escape(Onetime::SsoProvider::Saml.platform_sp_entity_id('saml'))}['"]/)
-      expect(last_response.body).to include("http://#{canonical_host}/auth/sso/saml/callback")
+      expect(last_response.body).to include(platform_acs)
+      expect(last_response.body).not_to include(DomainsEnabledContext::CANONICAL_HOST)
+    end
+  end
+
+  # ── canonical host only ───────────────────────────────────────────────────
+
+  # The ACS is pinned to site.host, and the session cookie holding the pending
+  # request id lives on the host the visitor started on. A start anywhere else
+  # could only end as saml_no_pending_request at the canonical ACS, so it is
+  # refused up front (RequestBoundSAML :saml_acs_host_mismatch) and nothing is
+  # left pending.
+  describe 'off the platform host' do
+    include_context 'domains enabled'
+
+    def expect_refused_before_the_idp
+      expect(last_response.status).to eq(302), "#{last_response.status} #{last_response.body[0, 200]}"
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      expect(last_response.headers['Location'].to_s).not_to include('SAMLRequest')
+      expect(pending_request_id).to be_nil
+    end
+
+    it 'refuses a start on a secondary canonical-set host (not site.host)' do
+      expect(Onetime::Middleware::DomainStrategy.canonical_host?(canonical_host)).to be true
+      expect(Onetime::SsoProvider::Saml.platform_host?(canonical_host)).to be false
+
+      post "https://#{canonical_host}/auth/sso/saml"
+
+      expect_refused_before_the_idp
+    end
+
+    it 'refuses a start on a custom domain under platform fallback' do
+      tenant_host  = "fallback-#{run_id}.saml-platform.example.com"
+      owner_email  = "fallback-owner-#{run_id}@saml-platform.example.com"
+      owner        = Onetime::Customer.new(email: owner_email)
+      owner.save
+      org          = Onetime::Organization.create!("Fallback Org #{run_id}", owner, "fallback-contact-#{run_id}@saml-platform.example.com")
+      domain       = Onetime::CustomDomain.new(display_domain: tenant_host, org_id: org.org_id)
+      domain.verified = true
+      domain.save
+      Onetime::CustomDomain.display_domain_index.put(tenant_host, domain.domainid)
+      allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+
+      begin
+        post "https://#{tenant_host}/auth/sso/saml"
+
+        expect_refused_before_the_idp
+      ensure
+        Onetime::CustomDomain.display_domain_index.remove(tenant_host) rescue nil
+        domain.destroy! rescue nil
+        org.destroy! rescue nil
+        owner.destroy! rescue nil
+      end
     end
   end
 
@@ -241,7 +321,7 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
       created_emails << email
       post_callback(idp.response(
         in_response_to: nil,
-        acs_url: "http://#{canonical_host}/auth/sso/saml/callback",
+        acs_url: platform_acs,
         audience: Onetime::SsoProvider::Saml.platform_sp_entity_id('saml'),
         name_id: name_id, attributes: { 'email' => [email] }
       ))
@@ -312,8 +392,7 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
       created_emails << email
       request = start_login
 
-      header 'Host', canonical_host
-      get '/auth/sso/saml/callback'
+      get platform_acs
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
 

@@ -189,9 +189,16 @@ module InviteAPI::Logic
         # enum, so the field stays absent. What identifies a platform-fallback
         # provider is :platform_route_name, which the tenant arm carries too —
         # that is the field to route and branch on.
+        #
+        # This arm is always a CUSTOM host (a domain with no usable tenant
+        # SSO), so a :canonical_host_only provider (platform SAML, #4450:
+        # ACS pinned to site.host, refused by the strategy anywhere else) is
+        # dropped exactly as Core::Views::ConfigSerializer drops it for the
+        # /signin page.
         Onetime.auth_config.sso_providers.filter_map do |provider|
           route_name = provider['route_name'].to_s
           next if route_name.empty?
+          next if Onetime::SsoProvider::Registry.canonical_host_only_route?(route_name)
 
           {
             type: 'sso',

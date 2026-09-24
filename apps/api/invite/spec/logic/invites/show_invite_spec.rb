@@ -355,6 +355,21 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
           expect(record[:auth_methods].first).not_to have_key(:provider_type)
         end
 
+        # Platform SAML (#4450) is :canonical_host_only — its ACS URL is
+        # pinned to site.host and the strategy refuses a start on any other
+        # host — and this arm is always a custom host.
+        it 'drops a canonical-host-only platform provider (saml)' do
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+            .with('domain-acme-123')
+            .and_return(true)
+          allow(Onetime.auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+            { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+          ])
+
+          expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(['oidc'])
+        end
+
         # A provider with no route name is unroutable: advertising it would
         # render a button with nowhere to send the invitee.
         it 'drops a provider with a blank route_name' do

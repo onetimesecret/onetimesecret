@@ -75,6 +75,25 @@
 # callback path — is handled in code from :idp_origin_from below
 # (Onetime::Middleware::HttpOriginOptions).
 #
+# PLATFORM SAML SERVES THE CANONICAL HOST ONLY. The platform IdP registers ONE
+# SP: the EntityID (.platform_sp_entity_id) and the ACS URL (.platform_acs_url)
+# are both boot-time constants derived from site.host / site.ssl, and
+# .platform_options pins BOTH into the strategy. Before the ACS was pinned,
+# omniauth-saml defaulted it to RequestBoundSAML#callback_url — the public
+# host of the CURRENT request — so a platform-fallback sign-in started on a
+# custom domain advertised a custom-domain ACS the IdP had never been given
+# (strict IdPs reject the AuthnRequest). Pinning alone is not a fix: the
+# session cookie holding the pending AuthnRequest id lives on the host the
+# visitor is on, so a response posted to the canonical ACS from a sign-in
+# started elsewhere arrives without it and is refused as
+# :saml_no_pending_request. The flow can only complete on the ACS host, so
+# it is offered nowhere else: the login-page and invite serializers drop a
+# :canonical_host_only provider on a non-operator host, and RequestBoundSAML
+# refuses (:saml_acs_host_mismatch) a request whose public host is not the
+# pinned ACS host. The TENANT surface is untouched — its identifiers are
+# derived per request from the tenant host (OmniAuthTenant
+# .inject_saml_sp_identifiers), so host and ACS always agree there.
+#
 # THE CSP / HttpOrigin ORIGIN COMES FROM THE SSO SERVICE URL, NOT THE ENTITYID.
 # An EntityID is an opaque name — often a URN, often on a different host than
 # the login endpoint. The browser is redirected to, and posts back from, the
@@ -397,16 +416,6 @@ module Onetime
         text.include?('\n') ? text.gsub('\n', "\n") : text
       end
 
-      # Our SP EntityID on the PLATFORM surface: SAML_SP_ENTITY_ID when set,
-      # otherwise the public site URL + the strategy's request path +
-      # '/metadata' — the URL the SP metadata is actually served from, which
-      # is the convention IdP admins expect. NEVER blank: ruby-saml skips
-      # audience validation on a blank sp_entity_id (response.rb
-      # validate_audience), and the subclass refuses one outright.
-      #
-      # A boot-time constant, not derived per request: the IdP registers ONE
-      # audience for the platform, whichever host a request arrives on.
-      #
       # The session-cookie prerequisite (header: OPERATOR PREREQUISITE), as a
       # checkable rule. The HTTP-POST callback is a cross-site POST; a cookie
       # that is not SameSite=None is withheld on it, and a browser refuses a
@@ -442,6 +451,38 @@ module Onetime
       end
       private_class_method :current_session_config
 
+      # The one origin the PLATFORM SAML surface is served on:
+      # `scheme://site.host`, with the scheme from site.ssl. Both platform SP
+      # identifiers derive from it, so the ACS URL the AuthnRequest and the
+      # SP metadata advertise, and the host whose session cookie holds the
+      # pending request id, are the same host by construction (header:
+      # PLATFORM SAML SERVES THE CANONICAL HOST ONLY). Derived from
+      # configuration, never from the request, and never by string-surgery
+      # on the SP EntityID — SAML_SP_ENTITY_ID may be an opaque URN.
+      #
+      # @return [String] scheme://host[:port], no trailing slash
+      # @raise [ArgumentError] when site.host is not configured
+      def self.platform_base_url
+        conf = defined?(OT) && OT.respond_to?(:conf) ? OT.conf : nil
+        host = conf&.dig('site', 'host').to_s.strip
+        if host.empty?
+          raise ArgumentError, 'site.host is not configured, so no platform SAML SP URL can be derived'
+        end
+
+        scheme = conf.dig('site', 'ssl') == false ? 'http' : 'https'
+        "#{scheme}://#{host}"
+      end
+
+      # Our SP EntityID on the PLATFORM surface: SAML_SP_ENTITY_ID when set,
+      # otherwise .platform_base_url + the strategy's request path +
+      # '/metadata' — the URL the SP metadata is actually served from, which
+      # is the convention IdP admins expect. NEVER blank: ruby-saml skips
+      # audience validation on a blank sp_entity_id (response.rb
+      # validate_audience), and the subclass refuses one outright.
+      #
+      # A boot-time constant, not derived per request: the IdP registers ONE
+      # audience for the platform, whichever host a request arrives on.
+      #
       # @param route_name [String] the configured route name (SAML_ROUTE_NAME)
       # @return [String]
       # @raise [ArgumentError] when neither source yields a value
@@ -449,15 +490,58 @@ module Onetime
         explicit = ENV.fetch('SAML_SP_ENTITY_ID', '').to_s.strip
         return explicit unless explicit.empty?
 
-        conf = defined?(OT) && OT.respond_to?(:conf) ? OT.conf : nil
-        host = conf&.dig('site', 'host').to_s.strip
-        if host.empty?
+        base = begin
+          platform_base_url
+        rescue ArgumentError
           raise ArgumentError,
             'SAML_SP_ENTITY_ID is unset and site.host is not configured, so no SP EntityID can be derived'
         end
 
-        scheme = conf.dig('site', 'ssl') == false ? 'http' : 'https'
-        "#{scheme}://#{host}/auth/sso/#{route_name}/metadata"
+        "#{base}/auth/sso/#{route_name}/metadata"
+      end
+
+      # Our ACS URL on the PLATFORM surface: .platform_base_url + the
+      # strategy's callback path. Pinned into the strategy options by
+      # .platform_options so omniauth-saml never falls back to the
+      # request-derived RequestBoundSAML#callback_url for this surface. There
+      # is no env override: the ACS is where the browser POSTs the response,
+      # so it can only ever be a URL this application serves, and the IdP
+      # compares it against the AuthnRequest's AssertionConsumerServiceURL.
+      #
+      # @param route_name [String] the configured route name (SAML_ROUTE_NAME)
+      # @return [String]
+      # @raise [ArgumentError] when site.host is not configured
+      def self.platform_acs_url(route_name)
+        "#{platform_base_url}/auth/sso/#{route_name}/callback"
+      end
+
+      # Is +host+ the platform SAML host — the hostname of .platform_base_url?
+      # Port- and case-insensitive, through the same normalizer
+      # DomainStrategy.canonical_host? admits a candidate with, so a
+      # `site.host` configured as an authority (localhost:7143) matches a
+      # request that arrives as `localhost`. False when site.host is not
+      # configured (there is no platform SAML host to be).
+      #
+      # NARROWER than DomainStrategy.canonical_host? on purpose: that
+      # predicate covers the whole canonical SET (features.domains.default,
+      # link_domains), and a split deployment's secondary canonical host is
+      # NOT the ACS host — a sign-in started there ends as
+      # :saml_no_pending_request like any other off-host start.
+      #
+      # @param host [String, nil] a hostname, with or without a port
+      # @return [Boolean]
+      def self.platform_host?(host)
+        # Resolved lazily, like csp_origin_for: this file stays loadable
+        # without the application's utils.
+        require 'onetime/utils/domain_parser' unless defined?(Onetime::Utils::DomainParser)
+
+        candidate = Onetime::Utils::DomainParser.extract_hostname(host.to_s)
+        return false if candidate.nil?
+
+        platform = Onetime::Utils::DomainParser.extract_hostname(URI.parse(platform_base_url).host.to_s)
+        !platform.nil? && candidate.casecmp?(platform)
+      rescue ArgumentError, URI::Error
+        false
       end
 
       # Platform strategy options from the env. Raises ArgumentError (caught by
@@ -478,14 +562,18 @@ module Onetime
             "#{ex.message} (check SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID, SAML_IDP_CERT)"
         end
 
-        options[:sp_entity_id] = platform_sp_entity_id(ENV.fetch('SAML_ROUTE_NAME', 'saml'))
+        route_name                               = ENV.fetch('SAML_ROUTE_NAME', 'saml')
+        options[:sp_entity_id]                   = platform_sp_entity_id(route_name)
+        options[:assertion_consumer_service_url] = platform_acs_url(route_name)
         options
       end
 
-      # Are the SAML_* vars not just SET but USABLE? The :vars_valid predicate
-      # (see the registry header for why the advertised and registered
-      # provider sets need one shared answer). Runs per request on the
-      # serializer and HttpOrigin paths; one X.509 parse, no I/O.
+      # Is the platform provider not just SET but USABLE — the SAML_* vars
+      # valid, an SP EntityID and ACS URL derivable, and the session cookie
+      # SAML-compatible? The :vars_valid predicate (see the registry header
+      # for why the advertised and registered provider sets need one shared
+      # answer). Runs per request on the serializer and HttpOrigin paths; one
+      # X.509 parse, no I/O.
       #
       # @return [Boolean]
       def self.platform_usable?
@@ -515,6 +603,11 @@ module Onetime
         trust_var: 'SAML_TRUST_EMAIL_FOR_LINKING',
         trust_default: false,
         idp_origin_from: 'SAML_IDP_SSO_SERVICE_URL',
+        # The platform ACS URL is pinned to site.host (header: PLATFORM SAML
+        # SERVES THE CANONICAL HOST ONLY), so the platform-fallback arms of
+        # the login-page and invite serializers must not offer this provider
+        # on a custom host. RequestBoundSAML is the runtime half.
+        canonical_host_only: true,
         # Registered when org-level SSO is on and the platform has no SAML
         # config, so the route exists for the OmniAuthTenant hook to inject a
         # tenant's trio + per-request SP identifiers into. The trust anchors

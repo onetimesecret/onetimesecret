@@ -241,6 +241,70 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
     end
   end
 
+  # The pending AuthnRequest id lives in the session cookie of the host the
+  # visitor started on, and the IdP posts the response to the ACS URL. The
+  # platform surface pins its ACS to site.host (Saml.platform_options), so a
+  # platform sign-in started anywhere else — a custom domain under platform
+  # fallback, a secondary canonical host — could only end as
+  # :saml_no_pending_request. Refused up front, at both phases.
+  describe 'ACS host gate (assertion_consumer_service_url pinned to another host)' do
+    let(:pinned_acs) { 'https://canonical.example.com/auth/saml/callback' }
+    let(:strategy_options) { hardened_options.merge(assertion_consumer_service_url: pinned_acs) }
+
+    it 'refuses the request phase before contacting the IdP and leaves nothing pending' do
+      response = start_login
+
+      expect(response.status).to eq(401)
+      expect(failure_types).to eq([:saml_acs_host_mismatch])
+      expect(session).not_to have_key(request_id_key)
+      expect(auth_logger).to have_received(:warn).with(
+        '[saml_response_refused]',
+        hash_including(reason: 'saml_acs_host_mismatch', phase: 'request',
+                       acs_host: 'canonical.example.com', request_host: 'ots.example.com'),
+      )
+    end
+
+    it 'refuses the callback phase and burns the pending id' do
+      session[request_id_key] = '_pending'
+      response = post_callback(response_for('_pending'))
+
+      expect(response.status).to eq(401)
+      expect(failure_types).to eq([:saml_acs_host_mismatch])
+      expect(session).not_to have_key(request_id_key)
+      expect(reached_app).to be_empty
+    end
+
+    context 'when the pinned ACS names this host on another scheme or port' do
+      let(:pinned_acs) { 'http://OTS.example.com:8080/auth/saml/callback' }
+
+      it 'is not a mismatch (the cookie is host-scoped)' do
+        response = start_login
+
+        expect(response.status).to eq(302)
+        expect(failure_types).to be_empty
+        expect(session[request_id_key]).not_to be_nil
+      end
+    end
+
+    context 'when the pinned ACS does not parse' do
+      let(:pinned_acs) { 'https://canonical.example.com:notaport/auth/saml/callback' }
+
+      it 'fails closed' do
+        expect(start_login.status).to eq(401)
+        expect(failure_types).to eq([:saml_acs_host_mismatch])
+      end
+    end
+
+    context 'when no ACS is pinned (the tenant hook or the gem derives it from this request)' do
+      let(:strategy_options) { hardened_options }
+
+      it 'is not a mismatch' do
+        expect(start_login.status).to eq(302)
+        expect(failure_types).to be_empty
+      end
+    end
+  end
+
   # saml.rb:88-109: other_phase runs setup_phase and serves SP metadata from
   # whatever options the strategy holds.
   describe 'SP metadata sub-path' do

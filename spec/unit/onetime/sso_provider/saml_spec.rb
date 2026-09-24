@@ -8,7 +8,10 @@
 #   .sso_url_problem         one rule for the IdP SSO service URL, including
 #                            the CSP-origin funnel (AuthConfig.origin_from_url)
 #   .session_cookie_problem  the SameSite=None + Secure prerequisite as code,
-#                            shared by the boot warning and the API refusal
+#                            shared by .platform_options (provider skipped),
+#                            the placeholder boot warning and the API refusal
+#   .platform_host?          the one host platform SAML is served on (its ACS
+#                            URL is pinned to site.host)
 #
 # Run: RACK_ENV=test bundle exec rspec spec/unit/onetime/sso_provider/saml_spec.rb
 
@@ -129,6 +132,47 @@ RSpec.describe Onetime::SsoProvider::Saml do
 
     it 'is a problem under the shipped session defaults' do
       expect(described_class.session_cookie_problem(Onetime::Initializers::SESSION_DEFAULTS)).to include("'lax'")
+    end
+  end
+
+  # The platform ACS URL is pinned to site.host, so this is the only host a
+  # platform SAML sign-in can complete on. Narrower than
+  # DomainStrategy.canonical_host? on purpose: a split deployment's secondary
+  # canonical host is not the ACS host.
+  describe '.platform_host?' do
+    before do
+      allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => 'Secrets.Example.com:8443', 'ssl' => true } })
+    end
+
+    it 'matches site.host port- and case-insensitively' do
+      expect(described_class.platform_host?('secrets.example.com')).to be true
+      expect(described_class.platform_host?('SECRETS.example.com:8443')).to be true
+      expect(described_class.platform_host?('secrets.example.com:443')).to be true
+    end
+
+    it 'does not match another host, a subdomain, or a parent' do
+      expect(described_class.platform_host?('eu.secrets.example.com')).to be false
+      expect(described_class.platform_host?('example.com')).to be false
+      expect(described_class.platform_host?('tenant.example.net')).to be false
+    end
+
+    it 'is false for a blank or unparseable candidate' do
+      expect(described_class.platform_host?(nil)).to be false
+      expect(described_class.platform_host?('')).to be false
+      expect(described_class.platform_host?('not a host')).to be false
+    end
+
+    it 'is false when site.host is not configured (there is no platform SAML host)' do
+      allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => '' } })
+
+      expect(described_class.platform_host?('secrets.example.com')).to be false
+    end
+
+    it 'derives the same host the ACS URL is pinned to' do
+      acs = described_class.platform_acs_url('saml')
+
+      expect(acs).to eq('https://Secrets.Example.com:8443/auth/sso/saml/callback')
+      expect(described_class.platform_host?(URI.parse(acs).host)).to be true
     end
   end
 end
