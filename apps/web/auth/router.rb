@@ -324,7 +324,12 @@ module Auth
       # See: apps/web/auth/config/features/oauth.rb
       # See: rodauth-oauth-1.6.4/lib/rodauth/features/oidc.rb:188
       # See: rodauth-oauth-1.6.4/lib/rodauth/features/oauth_base.rb:150
-      if Onetime.auth_config.oauth_enabled?
+      #
+      # Gated on the features Auth::Config was built with, not on live
+      # config: Auth::Config configures once per process, so a later
+      # auth_config.reload! that turns OAuth on (a spec boot, an operator
+      # reload) must not call route methods this Rodauth class never got.
+      if rodauth.features.include?(:oidc)
         rodauth.load_openid_configuration_route
         # Called without an issuer arg: the optional positional is a path
         # suffix appended to base_url (oauth_base.rb:746–748), not a full
