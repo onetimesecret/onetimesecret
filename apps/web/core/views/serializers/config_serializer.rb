@@ -783,7 +783,9 @@ module Core
         # @param connectable [Boolean] whether this host may initiate Connect
         # @param platform_host [Boolean] whether this is the boot-pinned SAML host
         # @param verified_custom_domain [Boolean] whether ownership is verified
-        # @return [Boolean, Hash] false if disabled, otherwise config hash
+        # @return [Boolean, Hash] false if disabled, otherwise config hash whose
+        #   'enabled' is true only when at least one provider survived the
+        #   host gate
         def build_platform_sso_config(connectable: true, platform_host: true, verified_custom_domain: false)
           unless Onetime::CustomDomain::SigninConfig.global_auth_enabled
             return { 'enabled' => false, 'providers' => [] }
@@ -805,8 +807,13 @@ module Core
             }
           end
 
+          # enabled follows the FILTERED list, not sso_enabled?: a host whose
+          # only configured provider was withheld above (SAML on a subdomain,
+          # a secondary canonical-set host, or an unverified custom domain)
+          # has nothing to sign in with, and advertising enabled: true there
+          # keeps /signin up as an SSO surface with no button on it.
           {
-            'enabled' => true,
+            'enabled' => providers.any?,
             'providers' => providers,
             'connect_providers' => connectable ? providers : [],
           }

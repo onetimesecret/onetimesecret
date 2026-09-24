@@ -642,6 +642,21 @@ RSpec.describe Core::Views::ConfigSerializer do
           expect(result['providers'].map { |p| p['route_name'] }).to eq(['oidc'])
           expect(result['connect_providers']).to eq(result['providers'])
         end
+
+        # 'enabled' follows the filtered list: a SAML-only install withheld
+        # on this host has nothing to sign in with, and enabled: true would
+        # keep /signin up as an SSO surface with no button on it.
+        it 'reports SSO disabled when SAML was the only provider' do
+          allow(mock_auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+          ])
+
+          result = described_class.build_sso_config(
+            base_view_vars.merge('domain_strategy' => :subdomain, 'display_domain' => "eu.#{canonical_domain}")
+          )
+
+          expect(result).to eq({ 'enabled' => false, 'providers' => [], 'connect_providers' => [] })
+        end
       end
 
       # A split deployment's secondary canonical-set host classifies as
