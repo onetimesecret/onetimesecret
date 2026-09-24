@@ -732,6 +732,21 @@ RSpec.describe Onetime::AuthConfig do
         }
       end
 
+      # The SAML-compatible session cookie: :vars_valid (Saml.platform_usable?)
+      # checks it first, and the lane config carries the shipped lax cookie.
+      before do
+        allow(Onetime).to receive(:session_config).and_return('same_site' => 'none', 'secure' => true)
+      end
+
+      # The rule is :vars_valid's, so it must gate the advertised set exactly
+      # as it gates registration (registry_spec pins the boot side).
+      it 'does not list SAML under a session cookie SAML cannot use' do
+        allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => false)
+
+        config = config_with_three_providers(**saml_env)
+        expect(config.sso_providers.map { |p| p['route_name'] }).to eq(%w[entra google github])
+      end
+
       it 'lists a configured SAML provider last, with its default label' do
         config = config_with_three_providers(**saml_env)
         expect(config.sso_providers.last).to eq('route_name' => 'saml', 'display_name' => 'SAML SSO')

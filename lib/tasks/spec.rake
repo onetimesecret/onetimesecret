@@ -307,6 +307,10 @@ namespace :spec do
         'AUTH_SSO_ENABLED' => 'true',
         'SAML_IDP_SSO_SERVICE_URL' => 'https://login.platform-idp.test/saml/sso',
         'SAML_IDP_ENTITY_ID' => 'https://platform-idp.test/saml/metadata',
+        # The SAML-compatible session cookie: under any other the platform
+        # provider is skipped at boot (Saml.platform_options).
+        'SESSION_COOKIE_SAME_SITE' => 'none',
+        'SESSION_COOKIE_SECURE' => 'true',
       }
 
       patterns = Dir.glob('apps/*/*/spec/integration/full_saml_platform')

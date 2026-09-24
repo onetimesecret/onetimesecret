@@ -68,12 +68,18 @@
 # AuthnRequest id is absent, and the strategy refuses the response as
 # :saml_no_pending_request. SAML therefore requires
 # `site.session.same_site: none` with `secure: true`. .session_cookie_problem
-# is that rule as code: configure_provider logs it (error level, boot does not
-# abort) whenever the saml route registers under an incompatible cookie, and
-# the tenant API refuses to save a saml config under one (SamlFields). The
-# other half — Rack::Protection::HttpOrigin admitting the IdP's Origin on the
-# callback path — is handled in code from :idp_origin_from below
-# (Onetime::Middleware::HttpOriginOptions).
+# is that rule as code, and it has three consumers. On the PLATFORM surface
+# it is the first check in .platform_options, so an incompatible cookie takes
+# the skip contract above: configure_provider logs the problem (error level,
+# boot does not abort), registers no platform route, and :vars_valid keeps
+# the button off the login page — a provider that is advertised but can
+# never complete a sign-in is exactly what the skip contract exists to
+# prevent. The tenant PLACEHOLDER registration (ORGS_SSO_ENABLED with no
+# platform vars) logs the same problem, because the placeholder still
+# registers, and the tenant API refuses to save a saml config under one
+# (SamlFields). The other half — Rack::Protection::HttpOrigin admitting the
+# IdP's Origin on the callback path — is handled in code from
+# :idp_origin_from below (Onetime::Middleware::HttpOriginOptions).
 #
 # PLATFORM SAML SERVES THE CANONICAL HOST ONLY. The platform IdP registers ONE
 # SP: the EntityID (.platform_sp_entity_id) and the ACS URL (.platform_acs_url)
@@ -423,12 +429,19 @@ module Onetime
       # holding the pending AuthnRequest id is absent at the callback and
       # every sign-in ends as :saml_no_pending_request.
       #
-      # ONE rule for two consumers: the boot warning when the saml route
-      # registers (features/omniauth.rb configure_provider) and the tenant
-      # API's save-time refusal (SamlFields#validate_saml_fields!). It is
+      # ONE rule for three consumers: .platform_options (so the PLATFORM
+      # provider is skipped at boot and not advertised — see the header),
+      # the boot warning when the tenant PLACEHOLDER registers
+      # (features/omniauth.rb configure_provider) and the tenant API's
+      # save-time refusal (SamlFields#validate_saml_fields!). It is
       # deliberately NOT a rung in tenant_sso_unavailable_reason: that ladder
       # feeds sso_available_for_tenant_host? and the restrict_to pin, and a
-      # rung here could re-enable password sign-in on an SSO-only host.
+      # rung here could re-enable password sign-in on an SSO-only host. The
+      # platform placement has no such hazard: the platform advertised set
+      # (AuthConfig#sso_providers) feeds restrict_to only through
+      # restrict_to_unmet_prerequisite, which REFUSES BOOT when 'sso' is
+      # restricted to and no provider is active — fail closed, never a
+      # re-opened password form.
       #
       # @param session [Hash] the resolved session settings (Onetime.session_config)
       # @return [String, nil] problem description, or nil when compatible
@@ -546,10 +559,19 @@ module Onetime
 
       # Platform strategy options from the env. Raises ArgumentError (caught by
       # configure_provider, mirrored by .platform_usable?) with a message that
-      # names the offending variable.
+      # names the offending variable or setting.
+      #
+      # The session cookie is checked FIRST: it is an install-level
+      # prerequisite that no SAML_* value can satisfy, so it is the problem
+      # an operator has to fix before any other one is worth reporting, and
+      # it is a Hash read where the trio costs an X.509 parse (this runs per
+      # request via .platform_usable?).
       #
       # @return [Hash]
       def self.platform_options
+        cookie_problem = session_cookie_problem
+        raise ArgumentError, cookie_problem unless cookie_problem.nil?
+
         options = begin
           strategy_options_for(
             idp_sso_service_url: ENV.fetch('SAML_IDP_SSO_SERVICE_URL', nil),

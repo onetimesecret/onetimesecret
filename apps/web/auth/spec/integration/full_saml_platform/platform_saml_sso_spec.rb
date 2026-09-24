@@ -180,6 +180,8 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
 
   describe 'registration from the environment' do
     it 'registered the saml route with the real trust anchors (not the placeholder)' do
+      # The lane's cookie env is load-bearing: any other cookie skips the provider.
+      expect(Onetime::SsoProvider::Saml.session_cookie_problem).to be_nil
       expect(Onetime::SsoProvider::Saml.platform_usable?).to be true
 
       request = start_login

@@ -9,13 +9,19 @@ site:
   secret: 'SuP0r_53cRU7_t3st_0nly'
   # Session configuration for tests
   # secure: false is required for Rack::Test which uses HTTP (not HTTPS)
+  #
+  # SESSION_COOKIE_SECURE / SESSION_COOKIE_SAME_SITE: a lane whose spec needs
+  # the SAML-compatible cookie (SameSite=None + Secure; #4450, the platform
+  # SAML provider is SKIPPED at boot under any other cookie) sets both. Such
+  # a lane's requests must then be https:// — Rack::Test withholds a Secure
+  # cookie on http, and Onetime::Session drops it on a non-SSL request.
   session:
     secret: 'test-session-secret-do-not-use-in-production-minimum-64-characters-long'
     expire_after: 86400 # 24 hours
     key: 'onetime.session' # Unified cookie name
-    secure: false # Must be false for Rack::Test (uses HTTP, not HTTPS)
+    secure: <%= ENV['SESSION_COOKIE_SECURE'] == 'true' || false %> # Must be false for Rack::Test (uses HTTP, not HTTPS)
     httponly: true
-    same_site: lax
+    same_site: <%= ENV['SESSION_COOKIE_SAME_SITE'] || 'lax' %>
   interface:
     # Controls whether the web user interface is available. When disabled, the
     # homepage becomes a basic, readonly page with the logo and a brief

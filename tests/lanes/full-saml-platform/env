@@ -24,6 +24,13 @@ ORGS_SSO_ENABLED=true
 AUTH_SSO_ENABLED=true
 SAML_IDP_SSO_SERVICE_URL='https://login.platform-idp.test/saml/sso'
 SAML_IDP_ENTITY_ID='https://platform-idp.test/saml/metadata'
+# The SAML-compatible session cookie. Saml.platform_options refuses any other
+# (the HTTP-POST callback is cross-site), so without these two the platform
+# provider is SKIPPED at boot and every example above fails on "is the saml
+# route the placeholder?". spec/config.test.yaml reads them; the spec's
+# requests are https:// so Rack::Test returns the Secure cookie.
+SESSION_COOKIE_SAME_SITE=none
+SESSION_COOKIE_SECURE=true
 
 # Generated prerequisites, produced by tests/lanes/run before the tasks below.
 LANES_CODEGEN='locales'

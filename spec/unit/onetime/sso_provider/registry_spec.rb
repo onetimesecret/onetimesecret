@@ -21,6 +21,13 @@ require_relative '../../../support/saml/test_idp'
 RSpec.describe Onetime::SsoProvider::Registry do
   let(:definitions) { described_class::DEFINITIONS }
 
+  # A SAML-compatible session cookie: Saml.platform_options checks it before
+  # anything else (#4450), and the unit lane's config carries the shipped
+  # same_site: lax. The rule itself is pinned under 'the session cookie'.
+  before do
+    allow(Onetime).to receive(:session_config).and_return('same_site' => 'none', 'secure' => true)
+  end
+
   REQUIRED_FIELDS = [
     :key, :label, :strategy, :gem_require, :issuer_capable, :required_vars, :route_var, :route_default, :display_var, :display_default, :trust_var, :trust_default, :placeholder_options, :strategy_options
   ].freeze
@@ -439,6 +446,35 @@ RSpec.describe Onetime::SsoProvider::Registry do
 
           expect { saml_options(SAML_SP_ENTITY_ID: 'urn:example:ots-sp') }.to raise_error(ArgumentError, /site\.host/)
           expect(saml_valid?(SAML_SP_ENTITY_ID: 'urn:example:ots-sp')).to be false
+        end
+      end
+
+      # The HTTP-POST callback is cross-site. Under any cookie but
+      # SameSite=None + Secure the pending request id is never presented,
+      # so the provider is skipped at boot and not advertised, exactly like
+      # a bad trio — never registered as a button that always fails.
+      describe 'the session cookie (Saml.session_cookie_problem, checked first)' do
+        it 'refuses, and is not valid, under the shipped lax cookie' do
+          allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => true)
+
+          expect { saml_options }.to raise_error(ArgumentError, /same_site is 'lax'.*saml_no_pending_request/)
+          expect(saml_valid?).to be false
+        end
+
+        it 'refuses SameSite=None without Secure' do
+          allow(Onetime).to receive(:session_config).and_return('same_site' => 'none', 'secure' => false)
+
+          expect { saml_options }.to raise_error(ArgumentError, /secure is false/)
+          expect(saml_valid?).to be false
+        end
+
+        # An install-level prerequisite no SAML_* value can satisfy: the
+        # operator must fix it before any trio problem is worth reporting.
+        it 'names the cookie before any trio problem' do
+          allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => false)
+
+          expect { saml_options(SAML_IDP_CERT: 'garbage') }
+            .to raise_error(ArgumentError) { |ex| expect(ex.message).to include('same_site').and(satisfy { |m| !m.include?('IdP certificate') }) }
         end
       end
 

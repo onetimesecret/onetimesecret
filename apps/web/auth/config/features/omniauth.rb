@@ -614,9 +614,8 @@ module Auth::Config::Features
       # the registry itself stays loadable without the omniauth gems.
       require defn[:gem_require]
 
-      warn_saml_session_cookie(defn, tenant_only: missing.any?)
-
       if missing.any?
+        warn_saml_session_cookie(defn)
         register_placeholder(auth, defn, provider_name)
         return
       end
@@ -656,6 +655,13 @@ module Auth::Config::Features
       # config is injected into. The platform side stays unadvertised
       # (:vars_valid) and the placeholder's own options decide what an
       # un-injected request does (SAML's blank trust anchors refuse it).
+      #
+      # SAML's session-cookie prerequisite is one of these raises (#4450):
+      # Saml.platform_options checks it first, so under an incompatible
+      # cookie the skip line below names the cookie settings, and the
+      # placeholder (when org SSO is on) registers without a second cookie
+      # line — the tenant-only warning is reserved for the missing-vars
+      # branch above, where nothing else would have said it.
       begin
         options = defn[:strategy_options].call
       rescue StandardError => ex
@@ -667,21 +673,24 @@ module Auth::Config::Features
       auth.omniauth_provider(defn[:strategy], name: provider_name, **options)
     end
 
-    # The saml route is about to register (platform vars, or the tenant
-    # placeholder under ORGS_SSO_ENABLED) — say so, once, if the install's
-    # session cookie means no SAML callback can ever complete. Error level,
-    # one line, and boot goes on: the tenant API refuses to save a saml
-    # config under the same rule (SamlFields), so an operator reads this
-    # before an org admin hits that error. Logged BEFORE the registration
-    # line so the latter stays the last word on what happened.
-    def self.warn_saml_session_cookie(defn, tenant_only:)
+    # The saml route is about to register as the tenant PLACEHOLDER
+    # (ORGS_SSO_ENABLED with no platform SAML_* vars) — say so, once, if the
+    # install's session cookie means no SAML callback can ever complete.
+    # Error level, one line, and boot goes on: the tenant API refuses to save
+    # a saml config under the same rule (SamlFields), so an operator reads
+    # this before an org admin hits that error. Logged BEFORE the
+    # registration line so the latter stays the last word on what happened.
+    #
+    # The PLATFORM case does not come through here: with SAML_* vars present
+    # the same rule is the first check in Saml.platform_options, and the
+    # provider is skipped with the skip line naming it (configure_provider).
+    def self.warn_saml_session_cookie(defn)
       return unless defn[:key] == :saml
 
       problem = Onetime::SsoProvider::Saml.session_cookie_problem
       return if problem.nil?
 
-      surface = tenant_only ? 'tenant SSO (ORGS_SSO_ENABLED=true)' : 'platform SAML_* configuration'
-      OT.le "[OmniAuth] SAML is enabled (#{surface}) but #{problem}"
+      OT.le "[OmniAuth] SAML is enabled (tenant SSO (ORGS_SSO_ENABLED=true)) but #{problem}"
     end
 
     # Register a definition's route with its placeholder options, for the

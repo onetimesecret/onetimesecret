@@ -162,6 +162,13 @@ RSpec.describe Onetime::AuthConfig do
         }
       end
 
+      # The SAML-compatible session cookie: provider_active? (:vars_valid →
+      # Saml.platform_usable?) checks it first, and the lane config carries
+      # the shipped lax cookie.
+      before do
+        allow(Onetime).to receive(:session_config).and_return('same_site' => 'none', 'secure' => true)
+      end
+
       def callback_env(origin, path: '/auth/sso/saml/callback', method: 'POST')
         Rack::MockRequest.env_for("https://ots.example.com#{path}", method: method, 'HTTP_ORIGIN' => origin)
       end
