@@ -297,9 +297,9 @@ one runner type.
 Ruby test suites enter through lanes and `compose.test.yml`:
 
 - `.github/workflows/ci.yml` uses the `run-test-lane` composite action for Ruby
-  jobs. The composite adds CI-only failure-tail comments and job summaries;
-  `ci.yml` supplies `COVERAGE` through `GITHUB_ENV`. Full-mode matrix rows are
-  lane and overlay combinations.
+  jobs. The composite uploads CI-only RSpec result artifacts and writes job
+  summaries; `ci.yml` supplies `COVERAGE` through `GITHUB_ENV`. Full-mode matrix
+  rows are lane and overlay combinations.
 - `.github/workflows/migration-tests.yml` runs the `migrations-*` lanes through
   the same composite. Its concurrent-boot job is intentionally CI
   orchestration, not a lane, although it uses `compose.test.yml` services.

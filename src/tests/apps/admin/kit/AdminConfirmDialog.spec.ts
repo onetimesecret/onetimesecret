@@ -62,6 +62,7 @@ describe('AdminConfirmDialog (CONTRACT 4 — typed-confirmation gate)', () => {
   const submitBtn = () => wrapper.find('[data-testid="admin-confirm-submit"]');
   const cancelBtn = () => wrapper.find('[data-testid="admin-confirm-cancel"]');
   const typedInput = () => wrapper.find('#admin-confirm-input');
+  const reasonInput = () => wrapper.find('[data-testid="admin-confirm-reason"]');
 
   describe('typed-confirmation mode (confirmToken provided)', () => {
     it('renders the typed input when a confirmToken is set', () => {
@@ -162,6 +163,82 @@ describe('AdminConfirmDialog (CONTRACT 4 — typed-confirmation gate)', () => {
       wrapper = mountDialog();
       await wrapper.find('form').trigger('submit');
       expect(wrapper.emitted('confirm')).toBeTruthy();
+    });
+  });
+
+  // #4338 — the operator's WHY, collected at the moment of the action. The
+  // trail records what was done and to whom, never why; this field is the only
+  // place a reason can be captured, so the tests below pin BOTH halves of its
+  // contract: it reaches the caller when given, and it is INVISIBLE (no prop,
+  // no payload, no gating) everywhere it is not asked for.
+  describe('operator reason (#4338, optional)', () => {
+    it('renders NO reason field by default', () => {
+      wrapper = mountDialog();
+      expect(reasonInput().exists()).toBe(false);
+    });
+
+    it('renders the reason textarea when requestReason is set', () => {
+      wrapper = mountDialog({ requestReason: true });
+      expect(reasonInput().exists()).toBe(true);
+      expect(reasonInput().element.tagName).toBe('TEXTAREA');
+    });
+
+    it('emits the trimmed reason with confirm', async () => {
+      wrapper = mountDialog({ requestReason: true });
+      await reasonInput().setValue('  GDPR erasure request #123  ');
+      await wrapper.find('form').trigger('submit');
+      expect(wrapper.emitted('confirm')![0]).toEqual(['GDPR erasure request #123']);
+    });
+
+    // Blank must be ABSENT, not '': an empty string in the audit detail reads
+    // as "they gave a reason" when they did not.
+    it('emits undefined — never an empty string — when the field is left blank', async () => {
+      wrapper = mountDialog({ requestReason: true });
+      await wrapper.find('form').trigger('submit');
+      expect(wrapper.emitted('confirm')![0]).toEqual([undefined]);
+
+      await reasonInput().setValue('   ');
+      await wrapper.find('form').trigger('submit');
+      expect(wrapper.emitted('confirm')![1]).toEqual([undefined]);
+    });
+
+    // The OPTIONAL half of the rollout: the reason must not become a second
+    // gate on top of the typed confirmation.
+    it('never gates the confirm button', async () => {
+      wrapper = mountDialog({ requestReason: true });
+      expect(submitBtn().attributes('disabled')).toBeUndefined();
+
+      wrapper.unmount();
+      wrapper = mountDialog({ requestReason: true, confirmToken: 'tok-123' });
+      expect(submitBtn().attributes('disabled')).toBeDefined();
+      await typedInput().setValue('tok-123');
+      // Token matched, reason still empty — confirm is available.
+      expect(submitBtn().attributes('disabled')).toBeUndefined();
+    });
+
+    it('bounds the field at the backend truncation length (255)', () => {
+      wrapper = mountDialog({ requestReason: true });
+      expect(reasonInput().attributes('maxlength')).toBe('255');
+    });
+
+    it('clears the reason when the dialog closes and reopens', async () => {
+      wrapper = mountDialog({ requestReason: true });
+      await reasonInput().setValue('spam');
+      await wrapper.setProps({ open: false });
+      await nextTick();
+      await wrapper.setProps({ open: true });
+      await nextTick();
+      expect((reasonInput().element as HTMLTextAreaElement).value).toBe('');
+    });
+
+    it('accepts custom label / placeholder copy', () => {
+      wrapper = mountDialog({
+        requestReason: true,
+        reasonLabel: 'Why revoke?',
+        reasonPlaceholder: 'Ticket number',
+      });
+      expect(wrapper.text()).toContain('Why revoke?');
+      expect(reasonInput().attributes('placeholder')).toBe('Ticket number');
     });
   });
 

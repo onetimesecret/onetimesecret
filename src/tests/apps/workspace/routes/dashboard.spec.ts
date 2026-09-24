@@ -19,6 +19,10 @@ const findRoute = (name: string) =>
 const runGuard = (name: string, params: Record<string, string>) => {
   const guard = findRoute(name)?.beforeEnter;
   if (typeof guard !== 'function') throw new Error(`no beforeEnter on ${name}`);
+  // Invoked via `.call(undefined, ...)` rather than a bare `guard(...)`: the
+  // guard's type declares `this: undefined`, and a bare call would instead
+  // check this enclosing (non-method) function's own inferred `this` type
+  // (`void`) against it, which isn't assignable.
   return guard.call(undefined, { params } as never, {} as never, (() => {}) as never);
 };
 

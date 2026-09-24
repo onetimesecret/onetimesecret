@@ -45,6 +45,9 @@ RSpec.shared_context 'tenant fixtures' do
 
   let!(:test_custom_domain) do
     domain = Onetime::CustomDomain.new(display_domain: tenant_domain, org_id: test_organization.org_id)
+    # TXT-verified: Auth::PublicHost (finding G-01) only roots auth URLs —
+    # SSO redirect_uris, email links — on a domain whose ownership is proven.
+    domain.verified = true
     domain.save
     Onetime::CustomDomain.display_domain_index.put(tenant_domain, domain.domainid)
     domain

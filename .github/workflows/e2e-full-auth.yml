@@ -165,6 +165,13 @@ jobs:
             echo "RACK_ENV=production"
             echo "LANG=en_US.UTF-8"
             echo "SSL=false"
+            # This lane is plain HTTP in production mode (RACK_ENV=production
+            # is load-bearing, see the header). Since G-02, SSL=false alone no
+            # longer disables the cookie Secure flag in production — the app
+            # fails closed and Session then refuses to write the cookie over
+            # http, 403ing every CSRF-checked POST. The explicit override is
+            # the sanctioned escape hatch.
+            echo "SESSION_COOKIE_SECURE=false"
             echo "HOST=localhost:${APP_PORT}"
             # Plain text, not the default ANSI 'color' formatter: these logs
             # are read out of an artifact zip and grepped by the readiness

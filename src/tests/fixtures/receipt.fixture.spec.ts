@@ -1,7 +1,7 @@
 // src/tests/fixtures/receipt.fixture.spec.ts
 
 import { ReceiptState } from '@/schemas/shapes/v2/receipt';
-import { SecretState } from '@/schemas/contracts';
+import { SecretState } from '@/schemas/shapes/v2/secret';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -139,13 +139,13 @@ describe('Receipt Fixtures Integrity', () => {
         name: 'Received Secret Record',
         secretRecord: mockReceivedSecretRecord,
         expectedKey: 'secret-received-key-123',
-        expectedState: SecretState.REVEALED, // V3 canonical (replaces SecretState.RECEIVED)
+        expectedState: SecretState.RECEIVED,
       },
       {
         name: 'Orphaned Secret Record',
         secretRecord: mockOrphanedSecretRecord,
         expectedKey: 'secret-orphaned-key-123',
-        expectedState: SecretState.PREVIEWED, // V3 canonical (replaces SecretState.VIEWED)
+        expectedState: SecretState.VIEWED,
       },
     ];
 

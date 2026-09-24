@@ -76,6 +76,37 @@ TM.new(session_id: @sid, session_data: @auth_session).call
 [@r2.created_at.to_i >= @ts, @r2.last_activity_at.to_i >= @ts]
 #=> [true, true]
 
+# ---- last_activity_at: the value the #4331 idle bound reads -----------
+
+## a subsequent authenticated write ADVANCES last_activity_at (back-dated first,
+## because the field is epoch SECONDS and a same-second re-track cannot show a
+## change). This is the refresh the admin idle bound depends on: it is what makes
+## an in-use admin session stay usable, and it is why nothing under
+## src/apps/admin may poll — a timer would refresh this forever.
+@stale = SM.load(@sid)
+@stale.last_activity_at = @ts - 7_200
+@stale.save
+TM.new(session_id: @sid, session_data: @auth_session).call
+SM.load(@sid).last_activity_at.to_i >= @ts
+#=> true
+
+## a request REFUSED by the admin-surface session bounds (#4331) does NOT stamp
+## activity: the auth strategy flags the env, and the whole upsert is skipped.
+## Without this the very request the idle bound just refused would slide the
+## window forward on its way out and the next one would be allowed through.
+@expired_key = Onetime::Application::AuthStrategies::AdminSessionLifetime::EXPIRED_ENV_KEY
+@refused = SM.load(@sid)
+@refused.last_activity_at = @ts - 7_200
+@refused.save
+TM.new(session_id: @sid, session_data: @auth_session, env: { @expired_key => 'idle' }).call
+SM.load(@sid).last_activity_at.to_i
+#=> @ts - 7_200
+
+## the flag is per-request, not sticky: the next unflagged write stamps normally
+TM.new(session_id: @sid, session_data: @auth_session).call
+SM.load(@sid).last_activity_at.to_i >= @ts
+#=> true
+
 # ---- anonymous / unresolvable -> no-op --------------------------------
 
 ## an anonymous session (no 'authenticated'/'external_id') is a no-op -> nil

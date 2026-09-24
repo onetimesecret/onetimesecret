@@ -9,7 +9,7 @@ Two process types fork workers — Puma (web) and Sneakers (job consumers). Both
 | **Publisher pool** (`$rmq_conn` / `$rmq_channel_pool`) | `SetupRabbitMQ` | Puma workers (enqueue jobs) | `setup_rabbitmq_connection` |
 | **Consumer connections** | Sneakers/Bunny internals | Sneakers workers (process jobs) | Sneakers per-thread |
 
-These must not coexist in a Sneakers worker. A publisher pool created after fork holds channels bound to the parent's TCP connection — stale in the child, leading to hangs or errors. `auto_reload_after_fork: false` on the ConnectionPool disables automatic recovery (intentionally — the registry manages lifecycle explicitly).
+These must not coexist in a Sneakers worker. A publisher pool **inherited across a fork** holds channels bound to the parent's TCP connection — stale in the child, leading to hangs or errors. A pool created after fork uses a fresh child connection. `auto_reload_after_fork: false` on the ConnectionPool disables automatic recovery intentionally; the registry manages lifecycle explicitly.
 
 ## Fork Lifecycle
 
@@ -40,7 +40,10 @@ Puma (no SKIP_RABBITMQ_SETUP):
 
 ## Fork-Sensitive Initializers
 
-Registered via `@phase = :fork_sensitive`. Each must implement both `cleanup` and `reconnect`. Run order is by name (TSort resolves dependencies first):
+Registered via `@phase = :fork_sensitive`. Each must implement both `cleanup` and
+`reconnect`. The registry name-sorts the initializer catalogue, and fork hooks
+iterate that catalogue directly. TSort resolves dependencies during normal boot
+only; it does **not** determine cleanup or reconnect order:
 
 | Initializer | cleanup | reconnect | Env guard? |
 |-------------|---------|-----------|------------|
@@ -54,3 +57,6 @@ Registered via `@phase = :fork_sensitive`. Each must implement both `cleanup` an
 2. Implement `cleanup` (tear down connections/state inherited from parent)
 3. Implement `reconnect` (establish fresh connections in child)
 4. If the initializer should be skipped in certain process types, check an env var in both `execute` and `reconnect`
+5. Keep fork-hook cleanup/reconnect independent of dependency ordering. If a
+   strict hook order is required, change the registry contract and add coverage
+   rather than assuming normal boot's TSort order applies

@@ -24,7 +24,7 @@ import {
   type V3WireReceiptBase,
   type V3WireReceipt,
   type V3WireReceiptDetails,
-  type V3WireReceiptList as V3WireReceiptListRecord,
+  type V3WireReceiptListRecord,
 } from '../helpers/serializers';
 
 // ─────────────────────────────────────────────────────────────────────────────

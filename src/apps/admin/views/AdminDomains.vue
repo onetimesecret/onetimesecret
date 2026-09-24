@@ -307,7 +307,9 @@
       return;
     }
 
-    await store.override(domain.extid, options);
+    // The server requires the domain's HOSTNAME in X-OTS-Confirm (#4326) —
+    // overriding verification bypasses DNS proof of ownership.
+    await store.override(domain.extid, { ...options, confirm: domain.display_domain });
   });
 
   function openOverride(): void {

@@ -96,12 +96,15 @@ RSpec.describe 'Middleware manifest (characterization)' do
     UNIVERSAL_MIDDLEWARE_BASE = [
       'Onetime::Middleware::AssumeHttps',
       'Otto::Security::Middleware::IPPrivacyMiddleware',
-      'Onetime::Middleware::IPBan',
       'Onetime::Middleware::HealthAccessControl',
       'Rack::ContentLength',
       'Onetime::Middleware::StartupReadiness',
       'Rack::DetectHost',
+      # StripForwardedHost must stay BELOW AdminNetworkIsolation: the admin
+      # gate's forwarded-host provenance rule keys on the PRESENCE of the raw
+      # headers, so stripping earlier would blind it to spoofed hosts.
       'Onetime::Middleware::AdminNetworkIsolation',
+      'Onetime::Middleware::StripForwardedHost',
       'Rack::RequestId',
       'Onetime::Middleware::NormalizeContentType',
       'Onetime::Middleware::ValidateMultipart',
@@ -110,6 +113,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Onetime::Middleware::SessionSkip',
       'Onetime::Middleware::IdentityResolution',
       'Onetime::Middleware::EntitlementPreviewContext',
+      'Onetime::Middleware::ImpersonationContext',
       'Otto::Locale::Middleware',
       'Middleware::I18nLocale',
       'Onetime::Middleware::DomainStrategy',

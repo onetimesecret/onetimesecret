@@ -249,4 +249,57 @@ RSpec.describe 'Session deserialization security (issue #3498 item 1)', type: :c
       end
     end
   end
+
+  # --------------------------------------------------------------------------
+  # #4330 — the CLI is the ONE opted-in consumer of the raw session id.
+  #
+  # `Sessions::List` strips `:session_id` / `:key` from its rows by default: the
+  # sid is byte-identical to the user's `onetime.session` cookie, so no HTTP
+  # response may carry it. The local operator shell is the deliberate exception
+  # — `ots session inspect` / `delete` take a sid — and it opts in explicitly.
+  # These examples pin BOTH halves of that: the id survives here, and the
+  # non-bearer handle (what the admin console shows) is printed next to it so an
+  # operator can correlate the two surfaces.
+  # --------------------------------------------------------------------------
+  describe 'bin/ots session list — the raw-sid opt-in (#4330)' do
+    let(:redis) { mock_redis_client }
+    # Short enough to survive the list formatter's 40-char id column.
+    let(:cli_session_id) { 'c0ffeec0ffeec0ff' }
+    let(:session_payload) do
+      JSON.generate(
+        'authenticated' => true,
+        'email' => 'operator@example.com',
+        'external_id' => 'ur_cli_1',
+        'authenticated_at' => 1_700_000_000,
+      )
+    end
+
+    before do
+      allow(redis).to receive(:scan_each).and_return(["session:#{cli_session_id}"].each)
+      allow(redis).to receive(:get).and_return(session_payload)
+    end
+
+    it 'still prints the raw session id — the CLI passes reveal_session_id' do
+      output = run_cli_command_quietly('session', 'list')
+
+      expect(output[:stdout]).to include(cli_session_id)
+    end
+
+    it 'prints the console-facing handle alongside it' do
+      output = run_cli_command_quietly('session', 'list')
+
+      expect(output[:stdout]).to include('Handle')
+      expect(output[:stdout]).to include(
+        Onetime::SessionMetadata.handle_for(cli_session_id),
+      )
+    end
+
+    it 'is the ONLY way to get an id out of the op: the default listing has none' do
+      rows = Onetime::Operations::Sessions::List.new(dbclient: redis).call.sessions
+
+      expect(rows.first).to include(:session_handle)
+      expect(rows.first).not_to include(:session_id)
+      expect(rows.first).not_to include(:key)
+    end
+  end
 end

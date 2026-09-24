@@ -33,6 +33,9 @@ module ColonelAPI
           # Email-tolerant (see AccountIdentifier) — sanitize_identifier strips
           # '@' and '.', which made the resolver's email arm unreachable.
           @member_id = sanitize_account_identifier(params['member_id'])
+          # OPTIONAL operator-supplied why (#4338) — query string, since this is
+          # a DELETE. See ColonelAPI::Logic::Base#operator_reason_param.
+          @reason    = operator_reason_param
         end
 
         def raise_concerns
@@ -46,6 +49,17 @@ module ColonelAPI
 
           @customer = resolve_customer(@member_id)
           raise_not_found('Member not found') unless @customer
+
+          # TIER 1 (#4326). The URL carries the member's extid; the confirmation
+          # is their EMAIL. The sole-owner interlock stays in the op, which runs
+          # in #process — structurally after this guard.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: account_confirm_token(customer),
+            confirm_subject: "the member's email address",
+            field: :member_id,
+          )
+          charge_destructive_budget!
         end
 
         def process
@@ -53,6 +67,7 @@ module ColonelAPI
             org: org,
             customer: customer,
             actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
+            reason: @reason,
           ).call
 
           handle_result_status

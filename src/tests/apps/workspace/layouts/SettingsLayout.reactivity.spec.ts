@@ -114,7 +114,9 @@ describe('SettingsLayout — reactive tab visibility', () => {
 
     expect(visibleTabIds(mounted.wrapper)).not.toContain('/account/settings/security');
 
-    mounted.store.update({ authentication: { ...authenticatedBootstrap.authentication, mode: 'full' } });
+    mounted.store.update({
+      authentication: { ...authenticatedBootstrap.authentication, mode: 'full' },
+    });
     await nextTick();
 
     expect(visibleTabIds(mounted.wrapper)).toContain('/account/settings/security');

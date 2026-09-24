@@ -50,6 +50,9 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
 }));
 
 vi.mock('@/apps/workspace/components/domains/DomainSignupConfigForm.vue', () => ({
+  // defineComponent (rather than a bare object literal) gives `this` inside
+  // `mounted()` the Options API instance typing — including `$emit` — derived
+  // from the declared `emits` list below.
   default: defineComponent({
     name: 'DomainSignupConfigForm',
     template: '<div class="domain-signup-config-form" data-testid="domain-signup-config-form" :data-domain-ext-id="domainExtId" />',

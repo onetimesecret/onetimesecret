@@ -6,8 +6,10 @@
 # Auth::Operations::SyncSession (the FULL-auth-mode session-establishment site).
 #
 # Colonel session establishment was invisible in the audit trail. Nearly all
-# colonel activity is reads, and reads never audit by design (CONTRACT 4), so
-# the audit screen read empty even while operators were in the console daily.
+# colonel activity is reads, and no read writes the OPERATOR trail by design
+# (CONTRACT 4), so the audit screen read empty even while operators were in the
+# console daily. (#4335 later gave a curated set of sensitive reads their own
+# budgeted stream; none of them is this verb, and none of them writes here.)
 #
 # These examples drive #record_colonel_signin directly rather than a full #call:
 # the surrounding op needs the auth database, and what needs pinning here is the

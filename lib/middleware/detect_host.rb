@@ -36,10 +36,14 @@ module Rack
   # 1. `X-Forwarded-Host` - Commonly used by proxies and load balancers.
   # 2. `Apx-Incoming-Host` - Approximated.app custom-domain ingress.
   # 3. `X-Original-Host` - Used by various proxy services.
-  # 4. `Forwarded` - RFC 7239 standard; the first `host=` parameter is
-  #    extracted (via `Rack::Utils.forwarded_values`), with quoted values
-  #    and ports handled per the RFC.
-  # 5. `Host` - Default HTTP host header.
+  # 4. `Host` - Default HTTP host header.
+  #
+  # RFC 7239 `Forwarded` is deliberately excluded. Its `host=` parameter is
+  # not part of this application's proxy-managed host-header contract. It is
+  # still OBSERVED: the first `host=`, validated like any forwarded host, is
+  # published to `env[rfc7239_host_field_name]` (never selected) so that the
+  # admin-surface provenance rule can refuse a Host-rewriting edge that
+  # carries the public host only there. See `.rfc7239_host`.
   #
   # It also includes validation to filter out invalid or local hosts (e.g.,
   # `localhost`, `127.0.0.1`) and IP addresses, ensuring only legitimate
@@ -70,8 +74,8 @@ module Rack
   # ### Security Considerations
   #
   # **Trusted Proxy Validation**: This middleware only trusts forwarded host
-  # headers (X-Forwarded-Host, X-Original-Host, Apx-Incoming-Host, Forwarded)
-  # when the request arrived via a trusted reverse proxy. The otto trust key
+  # headers (X-Forwarded-Host, X-Original-Host, Apx-Incoming-Host) when the
+  # request arrived via a trusted reverse proxy. The otto trust key
   # is TRI-STATE (otto#228) and, when present, authoritative in BOTH
   # directions:
   #
@@ -124,13 +128,14 @@ module Rack
       # is why the IIS originals (X-Original-URL, X-Rewrite-URL) and
       # X-Forwarded-Server (names the proxy itself) are absent — add a
       # header only together with proxy-config guidance that sanitizes it.
-      # Scheme-only headers (X-Forwarded-Proto, CF-Visitor, ...) don't
-      # belong here either: this middleware detects hosts, not schemes.
+      # RFC 7239 Forwarded is deliberately excluded: no proxy deployment
+      # contract manages its host= parameter. Scheme-only headers
+      # (X-Forwarded-Proto, CF-Visitor, ...) don't belong here either: this
+      # middleware detects hosts, not schemes.
       FORWARDED_HEADERS = [
         'X-Forwarded-Host',   # Common proxy header (AWS ALB, nginx)
         'Apx-Incoming-Host',  # Approximated-specific (approximated.app custom-domain ingress); like all forwarded headers, only honored behind trusted infra
         'X-Original-Host',    # Various proxy services
-        'Forwarded',          # RFC 7239 standard (host parameter)
       ].freeze
 
       # List of HTTP headers that might contain the host, in order of precedence.
@@ -158,6 +163,16 @@ module Rack
 
     class << self
       attr_accessor :result_field_name
+
+      # Env key under which the observed RFC 7239 `host=` is published — a
+      # sidecar of result_field_name, so a renamed result field carries its
+      # observation with it. Absent when the request has no readable, valid
+      # `host=`.
+      #
+      # @return [String]
+      def rfc7239_host_field_name
+        "#{result_field_name}.rfc7239_host"
+      end
     end
 
     # Initializes the middleware with the application and logging options.
@@ -243,7 +258,7 @@ module Rack
       # Try headers in order of precedence
       headers_to_check.each do |header|
         header_key = "HTTP_#{header.tr('-', '_').upcase}"
-        host       = self.class.normalize_host(env[header_key], forwarded: header == 'Forwarded')
+        host       = self.class.normalize_host(env[header_key])
         next if host.nil?
 
         if self.class.valid_domain_name?(host)
@@ -266,6 +281,13 @@ module Rack
 
       # e.g. env['rack.detected_host'] = 'example.com'
       env[result_field_name] = detected_host
+
+      # Observation only, never a source (see the class doc): what RFC 7239
+      # Forwarded ASSERTS the host is, published for the admin-surface
+      # provenance rule regardless of peer trust — trust is that rule's
+      # decision, not this one's.
+      rfc7239_host                            = self.class.rfc7239_host(env['HTTP_FORWARDED'])
+      env[self.class.rfc7239_host_field_name] = rfc7239_host if rfc7239_host
 
       @app.call(env)
     end
@@ -316,45 +338,45 @@ module Rack
       # Extracts and normalizes the host from a header value.
       #
       # @param value_unsafe [String, nil] Raw header value from the request
-      # @param forwarded [Boolean] Whether the value uses RFC 7239 Forwarded syntax
       # @return [String, nil] Normalized host without port number, or nil if empty
       #
-      # This method:
-      # - Takes the first host if multiple are provided (comma-separated)
-      # - Extracts the first host parameter from RFC 7239 Forwarded values
-      # - Delegates to DomainParser for port stripping and normalization
-      # - Returns nil for empty values
-      def normalize_host(value_unsafe, forwarded: false)
-        first_host = if forwarded
-          forwarded_host(value_unsafe)
-        else
-          # Handle comma-separated hosts (e.g., X-Forwarded-Host header)
-          value_unsafe.to_s.split(',').first.to_s
-        end
+      # Takes the first host if multiple are provided (comma-separated), then
+      # delegates port stripping and normalization to DomainParser.
+      def normalize_host(value_unsafe)
+        first_host = value_unsafe.to_s.split(',').first.to_s
 
-        # Delegate core normalization to DomainParser
         Onetime::Utils::DomainParser.extract_hostname(first_host)
       end
 
-      # Extracts the first host parameter from an RFC 7239 Forwarded value.
+      # The host an RFC 7239 Forwarded value asserts, or nil.
+      #
+      # @param value_unsafe [String, nil] Raw Forwarded header value
+      # @return [String, nil] The first `host=` parameter, normalized and
+      #   validated exactly as a forwarded host header would be, or nil when
+      #   there is none, Rack's parser rejects the value as malformed, or the
+      #   host would not have been accepted from any forwarded header (an IP
+      #   literal, localhost, a malformed name)
       #
       # Parsing is delegated to Rack::Utils.forwarded_values, which handles
       # quoted strings and escape sequences, bounds parameter and escape
-      # counts against denial of service, and fails closed (nil) on
-      # malformed input or unknown parameter names — letting the next header
-      # in the precedence list be considered. Element boundaries are
-      # flattened: the earliest host parameter anywhere in the header wins,
-      # mirroring the first-value convention used for X-Forwarded-Host.
-      def forwarded_host(value_unsafe)
-        case Rack::Utils.forwarded_values(value_unsafe)
-        in { host: [first_host, *] }
-          first_host
-        else
-          nil
-        end
-      end
+      # counts against denial of service, and returns an empty hash on
+      # malformed input. Element boundaries are flattened: the earliest
+      # `host=` anywhere in the header wins, mirroring the first-value
+      # convention used for X-Forwarded-Host.
+      def rfc7239_host(value_unsafe)
+        return nil if value_unsafe.nil?
 
-      private :forwarded_host
+        first = case Rack::Utils.forwarded_values(value_unsafe)
+                in { host: [first_host, *] }
+                  first_host
+                else
+                  nil
+                end
+        host  = normalize_host(first)
+        return nil if host.nil? || !valid_domain_name?(host)
+
+        host
+      end
 
       # Determines if a string is a valid host for use in this application.
       #

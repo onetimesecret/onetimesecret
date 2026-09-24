@@ -65,6 +65,7 @@ module V1
       def share
         authorized(true) do
           return if check_rate_limit!(:create_secret, V1_RATE_LIMIT_MAX_CREATES) == :limited
+          return if enforce_create_secret_limit! == :limited
 
           logic = V1::Logic::Secrets::ConcealSecret.new(
             sess,
@@ -92,6 +93,7 @@ module V1
       def generate
         authorized(true) do
           return if check_rate_limit!(:create_secret, V1_RATE_LIMIT_MAX_CREATES) == :limited
+          return if enforce_create_secret_limit! == :limited
 
           logic = V1::Logic::Secrets::GenerateSecret.new(
             sess,
@@ -204,6 +206,7 @@ module V1
       def create
         authorized(true) do
           return if check_rate_limit!(:create_secret, V1_RATE_LIMIT_MAX_CREATES) == :limited
+          return if enforce_create_secret_limit! == :limited
 
           logic = V1::Logic::Secrets::ConcealSecret.new(
             sess,

@@ -10,6 +10,10 @@
 #   ots session list [--limit N]
 #   ots session search <email-or-custid>
 #   ots session delete <session-id> [--force]
+#   ots session revoke-all <customer> [--force]
+#
+# `sessions` is an alias of `session`, so every subcommand also resolves under
+# the plural spelling the break-glass runbook uses (`ots sessions revoke-all`).
 #
 
 require 'json'
@@ -23,6 +27,12 @@ require 'onetime/operations/sessions/store'
 require 'onetime/operations/sessions/list_sessions'
 require 'onetime/operations/sessions/inspect_session'
 require 'onetime/operations/sessions/delete_session'
+require 'onetime/operations/sessions/revoke_all_for_customer'
+
+# Customers::Shared must exist before `include Customers::Shared` below (same
+# explicit require as customers/purge_one_command.rb, so this file cannot be
+# loaded in a broken order).
+require_relative 'customers/shared'
 
 module Onetime
   module CLI
@@ -151,14 +161,14 @@ module Onetime
         puts 'Session Inspector'
         puts '=' * 80
         puts
-        puts 'Usage: ots session <subcommand> [options]'
+        puts 'Usage: ots session <subcommand> [options]   (alias: ots sessions ...)'
         puts
         puts 'Available subcommands:'
         puts '  inspect <session-id>              Show detailed session information'
         puts '  list [--limit N]                  List active sessions'
         puts '  search <email-or-custid>          Find sessions for a user'
         puts '  delete <session-id> [--force]     Delete a session'
-        puts '  clean                              Remove expired sessions'
+        puts '  revoke-all <customer> [--force]   Revoke every session for a customer'
         puts
       end
     end
@@ -231,18 +241,26 @@ module Onetime
 
         # Route through the extracted list op (single implementation, bounded
         # scan). `--limit` maps to one page; the op caps a page at its MAX_PER_PAGE.
-        result = Onetime::Operations::Sessions::List.new(page: 1, per_page: limit.to_i).call
+        #
+        # reveal_session_id: the local operator shell is the ONE consumer that
+        # opts in (#4330) — `inspect` and `delete` take a raw sid, so a listing
+        # without one would be useless here. The handle is printed alongside so a
+        # CLI row can be correlated with an admin-console row.
+        result = Onetime::Operations::Sessions::List.new(
+          page: 1, per_page: limit.to_i, reveal_session_id: true,
+        ).call
 
         if result.sessions.empty?
           puts 'No sessions found'
           return
         end
 
-        puts format('%-40s %-25s %-15s', 'Session ID', 'Authenticated As', 'Created')
+        puts format('%-40s %-34s %-25s %-15s', 'Session ID', 'Handle', 'Authenticated As', 'Created')
         puts '-' * 80
 
         result.sessions.each do |session|
           session_id  = session[:session_id]
+          handle      = session[:session_handle] || '<n/a>'
           email       = session[:email] || 'anonymous'
           external_id = session[:external_id] || '<n/a>'
           auth        = session[:authenticated] ? '✓' : '✗'
@@ -255,7 +273,13 @@ module Onetime
           end
 
           display_email = OT::Utils.obscure_email(email)
-          puts format('%-40s %-25s %s', session_id[0..39], "#{auth} #{display_email} #{external_id}", time_str)
+          puts format(
+            '%-40s %-34s %-25s %s',
+            session_id[0..39],
+            handle,
+            "#{auth} #{display_email} #{external_id}",
+            time_str,
+          )
         end
       end
     end
@@ -280,10 +304,13 @@ module Onetime
         puts '-' * 80
 
         # Route through the extracted list op with a search filter (single
-        # implementation, bounded scan).
+        # implementation, bounded scan). reveal_session_id: the operator shell is
+        # the one opted-in consumer of the raw sid (#4330) — the printed id is
+        # what `inspect` / `delete` take next.
         result = Onetime::Operations::Sessions::List.new(
           search: search_term,
           per_page: Onetime::Operations::Sessions::List::MAX_PER_PAGE,
+          reveal_session_id: true,
         ).call
 
         if result.sessions.empty?
@@ -296,6 +323,7 @@ module Onetime
 
         result.sessions.each do |session|
           puts "Session: #{session[:session_id]}"
+          puts "  Handle: #{session[:session_handle]}"
           puts "  Email: #{session[:email]}"
           puts "  External ID: #{session[:external_id]}"
           puts "  Authenticated: #{session[:authenticated]}"
@@ -313,20 +341,27 @@ module Onetime
 
       # Audit actor recorded for CLI-initiated revokes. The shell carries no
       # authenticated colonel identity; a plain, non-secret public sentinel is
-      # used — never an internal objid. Mirrors BannedIpsBanCommand::CLI_ACTOR.
+      # used — never an internal objid.
       CLI_ACTOR = 'cli'
 
       argument :session_id, type: :string, required: false, desc: 'Session ID'
 
+      # OPTIONAL operator-supplied why (#4338), recorded in the audit detail
+      # of the event this command's op writes. Same flag, same wording and same
+      # blank-means-absent handling as every other destructive CLI verb.
+      option :reason,
+        type: :string,
+        default: nil,
+        desc: 'Operator-supplied reason (recorded in the admin audit trail)'
       option :force,
         type: :boolean,
         default: false,
         desc: 'Skip confirmation prompt'
 
-      def call(session_id: nil, force: false, **)
+      def call(session_id: nil, reason: nil, force: false, **)
         unless session_id
           puts 'Error: Session ID required'
-          puts 'Usage: ots session delete <session-id> [--force]'
+          puts 'Usage: ots session delete <session-id> [--reason TEXT] [--force]'
           return
         end
         boot_application!
@@ -363,51 +398,94 @@ module Onetime
         Onetime::Operations::Sessions::Delete.new(
           session_id: session_id,
           actor: CLI_ACTOR,
+          reason: reason,
         ).call
         puts '✓ Session deleted'
       end
     end
 
-    # Clean expired sessions command
-    class SessionCleanCommand < Command
-      desc 'Remove expired sessions'
+    # Revoke every session belonging to one customer.
+    class SessionRevokeAllCommand < Command
+      # Customers::Shared#resolve_customer is the one resolver every
+      # customer-targeting CLI verb uses: it strips, normalizes the email
+      # (NFC + case-fold, matching the unique index) and accepts a numeric
+      # Rodauth account id. Resolving from the RAW argument here made a
+      # mixed-case or padded address report "Customer not found" and revoke
+      # nothing.
+      include Customers::Shared
 
-      def call(**)
+      desc 'Revoke every session for a customer'
+
+      argument :customer,
+        type: :string,
+        required: false,
+        desc: 'Customer email, external ID, Rodauth account ID, or object ID'
+      option :reason,
+        type: :string,
+        default: nil,
+        desc: 'Operator-supplied reason (recorded in the admin audit trail)'
+      option :force,
+        type: :boolean,
+        default: false,
+        desc: 'Skip confirmation prompt'
+
+      def call(customer: nil, reason: nil, force: false, **)
+        # Both error paths exit non-zero: a scripted `--force` run with a typo'd
+        # identifier must not read as a successful revoke. Only the interactive
+        # "Cancelled" below returns 0, matching SessionDeleteCommand.
+        if customer.to_s.strip.empty?
+          puts 'Usage: ots session revoke-all <customer> [--reason TEXT] [--force]'
+          error_exit('Customer required')
+        end
+
         boot_application!
 
-        puts 'Cleaning expired sessions...'
-        dbclient     = Familia.dbclient
-        session_keys = dbclient.scan_each(match: '*session*').to_a
-        expired      = 0
-        active       = 0
+        # objid fallback kept for parity with the op's own resolution.
+        target = resolve_customer(customer) || Onetime::Customer.load(customer.to_s.strip)
+        error_exit("Customer not found: #{customer}") unless target&.exists?
 
-        session_keys.each do |key|
-          ttl = dbclient.ttl(key)
-          if ttl == -2 # Key doesn't exist
-            next
-          elsif ttl == -1 # Key exists but has no expiry
-            active += 1
-          elsif ttl > 0 # Key has TTL
-            active += 1
-          else
-            # Shouldn't happen, but clean it anyway
-            dbclient.del(key)
-            expired += 1
+        unless force
+          print "Revoke every session for #{target.obscure_email} (#{target.extid})? (y/N): "
+          response = $stdin.gets&.chomp
+          unless response&.downcase == 'y'
+            puts 'Cancelled'
+            return
           end
         end
 
-        puts 'Summary:'
-        puts "  Active sessions: #{active}"
-        puts "  Expired sessions removed: #{expired}"
+        # The record just resolved (and confirmed above) is what gets revoked —
+        # never a re-resolution of its extid (see the op's class docs).
+        result = Onetime::Operations::Sessions::RevokeAllForCustomer.new(
+          customer: target,
+          actor: Customers::Shared::CLI_ACTOR,
+          reason: reason,
+        ).call
+
+        puts "Revoked #{result.blobs_deleted} session(s) for #{target.extid}"
+        puts 'Warning: untracked-session scan reached its safety cap' if result.scan_capped
+      end
+
+      private
+
+      # Same per-command shape as lib/onetime/cli/customers/*_command.rb (minus
+      # their --json branch, which this verb does not offer).
+      def error_exit(message)
+        puts "Error: #{message}"
+        exit 1
       end
     end
 
-    # Register session commands
-    register 'session', SessionCommand
+    # Register session commands. `sessions` (the plural the break-glass runbook
+    # names) is an ALIAS of the `session` node, same pattern as customers_command.rb:
+    # dry-cli attaches aliases to the node itself, so every subcommand resolves
+    # under both spellings. A second `register 'sessions', ...` would instead
+    # create a separate node holding only what is registered beneath it, so
+    # `ots sessions list` fell through to the banner.
+    register 'session', SessionCommand, aliases: ['sessions']
     register 'session inspect', SessionInspectCommand
     register 'session list', SessionListCommand
     register 'session search', SessionSearchCommand
     register 'session delete', SessionDeleteCommand
-    register 'session clean', SessionCleanCommand
+    register 'session revoke-all', SessionRevokeAllCommand
   end
 end

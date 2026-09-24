@@ -3,6 +3,7 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ComponentPublicInstance } from 'vue';
+import { ReceiptState } from '@/schemas/shapes/v3/receipt';
 import type { ReceiptList } from '@/schemas/shapes/v3/receipt';
 
 // Mock vue-i18n
@@ -67,7 +68,7 @@ function createMockReceipt(overrides: Partial<ReceiptList> = {}): ReceiptList {
     secret_ttl: 604800,
     receipt_ttl: 604800,
     lifespan: 604800,
-    state: 'new',
+    state: ReceiptState.NEW,
     created: new Date(),
     updated: new Date(),
     shared: null,
@@ -89,8 +90,11 @@ function createMockReceipt(overrides: Partial<ReceiptList> = {}): ReceiptList {
   };
 }
 
+type SecretReceiptTableItemModule =
+  typeof import('@/apps/secret/components/SecretReceiptTableItem.vue');
+
 describe('SecretReceiptTableItem', () => {
-  let SecretReceiptTableItem: typeof import('@/apps/secret/components/SecretReceiptTableItem.vue')['default'];
+  let SecretReceiptTableItem: SecretReceiptTableItemModule['default'];
 
   beforeEach(async () => {
     vi.resetModules();
@@ -338,7 +342,10 @@ describe('SecretReceiptTableItem', () => {
     it('shows recipients when show_recipients is true', () => {
       const wrapper = mountComponent({
         show_recipients: true,
-        recipients: 'user@example.com',
+        // recipients is string[] | null post-parse (V3 normalizes the wire's
+        // comma-joined string server-side; see v3Recipients in the schema).
+        // A single-entry array stringifies identically in the template.
+        recipients: ['user@example.com'],
       });
       expect(wrapper.text()).toContain('to:');
       expect(wrapper.text()).toContain('user@example.com');

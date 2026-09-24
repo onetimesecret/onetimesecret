@@ -11,7 +11,9 @@
 import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 import {
   apiInterfaceSchema,
+  bootstrapSchema,
   featuresSchema,
+  impersonationSchema,
   organizationSchema,
 } from '@/schemas/contracts/bootstrap';
 import { describe, expect, it } from 'vitest';
@@ -482,6 +484,50 @@ describe('Bootstrap Zod schema validation', () => {
       const result = organizationSchema.safeParse(orgWithInvalidRole);
       expect(result.success).toBe(false);
     });
+  });
+});
+
+// ============================================================================
+// TESTS: Impersonation marker (colonel support session overlay)
+// ============================================================================
+
+describe('impersonationSchema', () => {
+  const marker = {
+    impersonation_id: 'imp_9f2c1a',
+    impersonator_extid: 'ur_colonel',
+    target_extid: 'ur_bob',
+    target_email: 'bob@example.com',
+    started_at: 1756700000,
+    expires_at: 1756701800,
+  };
+
+  it('accepts the active marker', () => {
+    expect(impersonationSchema.safeParse(marker).success).toBe(true);
+  });
+
+  it('rejects string timestamps — the Ruby marker carries epoch SECONDS as ints', () => {
+    const result = impersonationSchema.safeParse({ ...marker, expires_at: '1756701800' });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects a partial marker rather than rendering a banner with holes', () => {
+    const { target_email: _dropped, ...incomplete } = marker;
+    expect(impersonationSchema.safeParse(incomplete).success).toBe(false);
+  });
+
+  it('defaults to null on the payload, so absence is the inactive state', () => {
+    const parsed = bootstrapSchema.parse({});
+    expect(parsed.impersonation).toBeNull();
+  });
+
+  it('carries the marker through a full payload parse', () => {
+    const parsed = bootstrapSchema.parse({ impersonation: marker });
+    expect(parsed.impersonation).toEqual(marker);
+  });
+
+  it('accepts an explicit null (what the serializer emits when inactive)', () => {
+    const parsed = bootstrapSchema.parse({ impersonation: null });
+    expect(parsed.impersonation).toBeNull();
   });
 });
 

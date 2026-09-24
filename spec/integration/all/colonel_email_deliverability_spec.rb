@@ -212,7 +212,9 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
   # ---------------------------------------------------------------------------
   # 1b. On-demand sync (SyncEmailDeliverability) — the colonel-UI "Sync now"
   #     trigger. The provider fetcher is stubbed; the pull/ingest wiring itself
-  #     is covered by sync_provider_feedback_spec.rb.
+  #     is covered by sync_provider_feedback_spec.rb. Two audit events per real
+  #     run (#4336): the op's own `email.deliverability_sync` and, only when a
+  #     record is accepted, the transitive `email.deliverability_ingest`.
   # ---------------------------------------------------------------------------
   describe 'SyncEmailDeliverability' do
     let(:fetcher) { double('fetcher') }
@@ -248,14 +250,85 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
       expect(Onetime::EmailSuppression.sync_status['ses']).to include('imported' => 0)
     end
 
-    it 'attributes the audit event to the colonel operator, not the CLI sentinel' do
+    it 'attributes the audit events to the colonel operator, not the CLI sentinel' do
       allow(fetcher).to receive(:fetch).and_return(
         [{ 'email' => 'bounced@example.com', 'kind' => 'suppression', 'reason' => 'bounce' }],
       )
 
       sync
 
-      expect(Onetime::ColonelAuditEvent.recent(1).first['actor']).to eq(colonel.extid)
+      actors = Onetime::ColonelAuditEvent.recent(10).map { |event| event['actor'] }
+      expect(actors).to all(eq(colonel.extid))
+    end
+
+    # ---- Per-run audit event (#4336) ---------------------------------------
+    #
+    # The sync used to audit only TRANSITIVELY, through IngestFeedback's
+    # one-event-per-accepting-batch rule, so a colonel could clear the console's
+    # "never synced" banner — or repeatedly pull a third-party provider — with
+    # no record. The op now writes its own event per real run. The transitive
+    # event is unchanged and still governed by its own invariant (see 'records
+    # EXACTLY ONE audit event per accepting batch' above).
+
+    it 'records BOTH the per-run sync event and the transitive ingest event' do
+      allow(fetcher).to receive(:fetch).and_return(
+        [{ 'email' => 'bounced@example.com', 'kind' => 'suppression', 'reason' => 'bounce' }],
+      )
+
+      sync
+
+      verbs = Onetime::ColonelAuditEvent.recent(10).map { |event| event['verb'] }
+      expect(verbs).to contain_exactly('email.deliverability_sync', 'email.deliverability_ingest')
+    end
+
+    it 'records the per-run sync event with the run tallies' do
+      allow(fetcher).to receive(:fetch).and_return(
+        [
+          { 'email' => 'bounced@example.com', 'kind' => 'suppression', 'reason' => 'bounce' },
+          { 'email' => 'not-an-email', 'kind' => 'suppression' },
+        ],
+      )
+
+      sync
+
+      event = Onetime::ColonelAuditEvent.recent(10)
+        .find { |candidate| candidate['verb'] == 'email.deliverability_sync' }
+      expect(event['actor']).to eq(colonel.extid)
+      expect(event['target']).to eq('email_suppression')
+      expect(event['result']).to eq('success')
+      expect(event['detail']).to include(
+        'provider' => 'ses', 'fetched' => 2, 'accepted' => 1, 'rejected' => 1,
+        'skipped' => 1, 'sync_status_stamped' => true,
+      )
+    end
+
+    # The gap #4336 closed. A run that accepts nothing still stamps
+    # sync_status, so it is a mutation and must leave a record — even though
+    # the ingest half correctly stays silent.
+    it 'records the per-run sync event even when NOTHING was accepted' do
+      allow(fetcher).to receive(:fetch).and_return([])
+
+      sync
+
+      expect(Onetime::ColonelAuditEvent.count).to eq(1)
+      event = Onetime::ColonelAuditEvent.recent(1).first
+      expect(event['verb']).to eq('email.deliverability_sync')
+      expect(event['detail']).to include(
+        'fetched' => 0, 'accepted' => 0, 'sync_status_stamped' => true,
+      )
+      # The transitive ingest event correctly did NOT fire: nothing entered the
+      # suppression list.
+      expect(Onetime::EmailSuppression.sync_status['ses']).to include('imported' => 0)
+    end
+
+    it 'records NO sync event when the transport has no pull API (the run never happened)' do
+      allow(Onetime::Mail::Mailer).to receive(:determine_provider).and_return('smtp')
+
+      logic = ColonelAPI::Logic::Colonel::SyncEmailDeliverability.new(strategy_result_for(colonel), {})
+      logic.raise_concerns
+      expect { logic.process }.to raise_error(Onetime::FormError)
+
+      expect(Onetime::ColonelAuditEvent.count).to eq(0)
     end
 
     it 'rejects an active transport with no pull API as a form error' do

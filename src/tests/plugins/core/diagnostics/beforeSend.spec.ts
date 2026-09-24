@@ -12,6 +12,12 @@
 // would obscure the mock-to-test-pairing for no structural benefit, so the
 // file-level max-classes-per-file rule is disabled here.
 /* eslint-disable max-classes-per-file */
+//
+// Every `ErrorEvent` fixture below carries `type: undefined` even though
+// nothing reads it: @sentry/core types `ErrorEvent` as `Event & { type:
+// undefined }` (required, not optional) so it can be structurally
+// discriminated from `TransactionEvent` (`type: 'transaction'`). Omitting the
+// key fails the type check with "Property 'type' is missing".
 
 import type { RouteMeta } from '@/types/router';
 import type { ErrorEvent, TransactionEvent } from '@sentry/core';
@@ -202,7 +208,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: [{ value: 'Failed for user@example.com' }],
         },
@@ -219,7 +225,7 @@ describe('beforeSend handler', () => {
 
       const handler = getBeforeSend();
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: [{ value: `Error processing ${id62}` }],
         },
@@ -235,7 +241,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: [{ value: 'Not found: /secret/abc123' }],
         },
@@ -251,7 +257,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: [{ value: 'Error for user@example.com' }, { value: 'At path /private/xyz789' }],
         },
@@ -270,7 +276,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         message: 'User user@example.com logged out',
       };
 
@@ -292,7 +298,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: [
             {
@@ -322,7 +328,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: [
             {
@@ -352,7 +358,7 @@ describe('beforeSend handler', () => {
 
       const bundleUrl = 'https://eu.onetimesecret.com/dist/assets/main.BbCc7LVY.js';
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: [
             {
@@ -377,7 +383,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: { values: [{ value: 'no stack' }] },
       };
 
@@ -418,7 +424,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         request: {
           url: 'https://example.com/secret/abc123/view',
         },
@@ -437,7 +443,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         transaction: 'https://example.com/private/xyz789',
       };
 
@@ -454,7 +460,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         breadcrumbs: [
           {
             category: 'navigation',
@@ -486,7 +492,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         request: {
           url: 'https://example.com/colonel/admin123',
         },
@@ -506,7 +512,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: [{ value: 'Error for user@example.com' }],
         },
@@ -531,7 +537,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         request: {
           url: 'https://example.com/user/john/token/secret123',
         },
@@ -550,7 +556,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         request: {
           url: 'https://example.com/about',
         },
@@ -572,7 +578,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         request: { url: 'https://example.com/check-email?email=user@example.com' },
       };
 
@@ -586,7 +592,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         request: { url: 'https://example.com/pricing?email=user@example.com' },
         transaction: '/pricing?email=user@example.com',
       };
@@ -602,7 +608,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         request: { url: 'https://example.com/check-email?product=identity&interval=month' },
       };
 
@@ -623,7 +629,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         request: {
           headers: { Referer: 'https://example.com/secret/abc123def456' },
         },
@@ -639,7 +645,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         request: {
           headers: { referer: 'https://example.com/reveal?token=abc123' },
         },
@@ -658,7 +664,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         request: {
           headers: { Referer: 'https://example.com/page/abc123' },
         },
@@ -677,7 +683,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent & { secret?: string } = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         secret: 'should-be-removed',
         message: 'Test event',
       };
@@ -697,7 +703,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: undefined,
         },
@@ -716,7 +722,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         exception: {
           values: [{ type: 'Error' }],
         },
@@ -735,7 +741,7 @@ describe('beforeSend handler', () => {
       const handler = getBeforeSend();
 
       const event: ErrorEvent = {
-        type: undefined,
+        type: undefined, // see file-header note on ErrorEvent.type
         breadcrumbs: [
           {
             category: 'console',

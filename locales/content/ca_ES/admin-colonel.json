@@ -515,14 +515,6 @@
     "text": "Veure i gestionar tots els secrets",
     "source_hash": "48f8052e"
   },
-  "web.colonel.bannedIps.title": {
-    "text": "IPs prohibides",
-    "source_hash": "0ece5643"
-  },
-  "web.colonel.bannedIps.description": {
-    "text": "Gestionar llista de prohibició d'IP",
-    "source_hash": "dd0d2614"
-  },
   "web.colonel.usageExport.title": {
     "text": "Exportació d'ús",
     "source_hash": "10a0cb94"
@@ -579,10 +571,6 @@
     "text": "Base de dades d'autenticació",
     "source_hash": "c683c9a6"
   },
-  "web.colonel.titles.bannedIps": {
-    "text": "IPs prohibides",
-    "source_hash": "0ece5643"
-  },
   "web.colonel.titles.usage": {
     "text": "Exportació d'ús",
     "source_hash": "10a0cb94"
@@ -614,82 +602,6 @@
   "web.colonel.previewModeActive": {
     "text": "Previsualització activa",
     "source_hash": "a558d603"
-  },
-  "web.colonel.bannedIps.empty": {
-    "text": "No hi ha cap IP bloquejada",
-    "source_hash": "bd101143"
-  },
-  "web.colonel.bannedIps.currentIp": {
-    "text": "La teva adreça IP actual",
-    "source_hash": "72f9fefe"
-  },
-  "web.colonel.bannedIps.confirmUnban": {
-    "text": "Vols desbloquejar {ip}?",
-    "source_hash": "ff009b1c"
-  },
-  "web.colonel.bannedIps.actions.ban": {
-    "text": "Bloqueja la IP",
-    "source_hash": "f91a5285"
-  },
-  "web.colonel.bannedIps.actions.quickBan": {
-    "text": "Bloqueig ràpid",
-    "source_hash": "c32d0943"
-  },
-  "web.colonel.bannedIps.actions.unban": {
-    "text": "Desbloqueja",
-    "source_hash": "25fb5989"
-  },
-  "web.colonel.bannedIps.actions.cancel": {
-    "text": "Cancel·la",
-    "source_hash": "19766ed6"
-  },
-  "web.colonel.bannedIps.columns.ipAddress": {
-    "text": "Adreça IP",
-    "source_hash": "3c3de0c9"
-  },
-  "web.colonel.bannedIps.columns.reason": {
-    "text": "Motiu",
-    "source_hash": "f81ab834"
-  },
-  "web.colonel.bannedIps.columns.bannedAt": {
-    "text": "Bloquejada el",
-    "source_hash": "dfbd120e"
-  },
-  "web.colonel.bannedIps.columns.bannedBy": {
-    "text": "Bloquejada per",
-    "source_hash": "9f47db0e"
-  },
-  "web.colonel.bannedIps.error.banFailed": {
-    "text": "No s'ha pogut bloquejar l'adreça IP",
-    "source_hash": "24e94d9b"
-  },
-  "web.colonel.bannedIps.error.unbanFailed": {
-    "text": "No s'ha pogut desbloquejar l'adreça IP",
-    "source_hash": "66bbac9a"
-  },
-  "web.colonel.bannedIps.form.title": {
-    "text": "Bloqueja l'adreça IP",
-    "source_hash": "3f5b3dfa"
-  },
-  "web.colonel.bannedIps.form.ipLabel": {
-    "text": "Adreça IP",
-    "source_hash": "3c3de0c9"
-  },
-  "web.colonel.bannedIps.form.reasonLabel": {
-    "text": "Motiu",
-    "source_hash": "f81ab834"
-  },
-  "web.colonel.bannedIps.form.reasonPlaceholder": {
-    "text": "Motiu opcional",
-    "source_hash": "956688a5"
-  },
-  "web.colonel.bannedIps.success.banned": {
-    "text": "L'adreça IP {ip} s'ha bloquejat",
-    "source_hash": "b6f861d5"
-  },
-  "web.colonel.bannedIps.success.unbanned": {
-    "text": "L'adreça IP {ip} s'ha desbloquejat",
-    "source_hash": "dbe93550"
   },
   "web.colonel.customDomains.empty": {
     "text": "No hi ha cap domini personalitzat configurat",

@@ -4,6 +4,7 @@
 
 require 'onetime/utils'
 require 'onetime/tenant_sso_resolution'
+require 'onetime/session/impersonation'
 
 module Core
   module Views
@@ -65,6 +66,18 @@ module Core
             end
           end
 
+          # Colonel impersonation banner state. Read from the request-scoped
+          # context published by Middleware::ImpersonationContext — the SAME
+          # marker that decided which customer `cust` above is — so the banner
+          # can never disagree with the session actually being served. Reading
+          # the session again here could show a banner for an overlay the
+          # resolver had already invalidated (or hide one that is live).
+          #
+          # Not gated on cust.role?(:colonel): `cust` is the TARGET during an
+          # impersonation, so a role gate here would suppress the banner in
+          # exactly the case it exists for.
+          output['impersonation'] = Onetime::SessionImpersonation.context
+
         # When awaiting MFA, provide minimal data from session (no customer access yet)
         elsif output['awaiting_mfa']
           output['email'] = view_vars['session_email']  # From session, not customer
@@ -91,6 +104,9 @@ module Core
             'customer_since' => nil,
             'entitlement_preview_planid' => nil,
             'entitlement_preview_plan_name' => nil,
+            # nil unless a colonel impersonation is active on this request.
+            # Absence is the safe state: no block, no banner, ordinary session.
+            'impersonation' => nil,
           }
         end
 

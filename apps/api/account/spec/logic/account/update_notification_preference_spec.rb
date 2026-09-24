@@ -210,5 +210,38 @@ RSpec.describe AccountAPI::Logic::Account::UpdateNotificationPreference do
       expect(described_class::VALID_FIELDS).to be_an(Array)
       expect(described_class::VALID_FIELDS.length).to be >= 1
     end
+
+    it 'derives VALID_FIELDS from the accessor table, so the two cannot drift' do
+      expect(described_class::VALID_FIELDS).to eq(described_class::FIELDS.keys)
+    end
+
+    it 'gives every field a callable reader and writer' do
+      expect(described_class::FIELDS.values).to all(
+        have_attributes(read: respond_to(:call), write: respond_to(:call)),
+      )
+    end
+  end
+
+  # The wire name only ever SELECTS an entry in FIELDS; it is never turned into
+  # a method name. So a real Customer method that is not a preference is as
+  # unreachable as a made-up one: nothing is read from it and nothing is
+  # written through it.
+  describe 'field dispatch' do
+    context 'when field names a Customer method that is not a preference' do
+      let(:params) { { 'field' => 'objid', 'value' => 'true' } }
+
+      it 'reads nothing from the customer' do
+        expect(logic.old_value).to be_nil
+      end
+
+      it 'refuses the field' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /Invalid field/)
+      end
+
+      it 'writes nothing through it' do
+        logic.process
+        expect(customer).not_to have_received(:save)
+      end
+    end
   end
 end

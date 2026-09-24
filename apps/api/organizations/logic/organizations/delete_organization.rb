@@ -91,6 +91,10 @@ module OrganizationAPI::Logic
           actor: cust.extid,
           # Customer-facing: apply immediately (there is no preview flow in the
           # UI), and NEVER pass a force flag — every guardrail is absolute here.
+          # No `reason:` either (#4338): that is an OPERATOR explaining an action
+          # taken on someone else's data. An owner deleting their own workspace
+          # is not accountable to the colonel trail for why, and prompting them
+          # for one would put customer free text into an operator log.
           dry_run: false,
           # Former members have always seen the acting customer's address in the
           # organization_deleted mail; keep that wording unchanged.

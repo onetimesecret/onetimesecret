@@ -515,14 +515,6 @@
     "text": "Προβολή και διαχείριση όλων των μυστικών",
     "source_hash": "48f8052e"
   },
-  "web.colonel.bannedIps.title": {
-    "text": "Αποκλεισμένες IP",
-    "source_hash": "0ece5643"
-  },
-  "web.colonel.bannedIps.description": {
-    "text": "Διαχείριση λίστας αποκλεισμένων IP",
-    "source_hash": "dd0d2614"
-  },
   "web.colonel.usageExport.title": {
     "text": "Εξαγωγή χρήσης",
     "source_hash": "10a0cb94"
@@ -579,10 +571,6 @@
     "text": "Βάση δεδομένων ταυτοποίησης",
     "source_hash": "c683c9a6"
   },
-  "web.colonel.titles.bannedIps": {
-    "text": "Αποκλεισμένες IP",
-    "source_hash": "0ece5643"
-  },
   "web.colonel.titles.usage": {
     "text": "Εξαγωγή χρήσης",
     "source_hash": "10a0cb94"
@@ -614,82 +602,6 @@
   "web.colonel.previewModeActive": {
     "text": "Προεπισκόπηση ενεργή",
     "source_hash": "a558d603"
-  },
-  "web.colonel.bannedIps.empty": {
-    "text": "Δεν υπάρχουν αποκλεισμένες IP",
-    "source_hash": "bd101143"
-  },
-  "web.colonel.bannedIps.currentIp": {
-    "text": "Η τρέχουσα διεύθυνση IP σας",
-    "source_hash": "72f9fefe"
-  },
-  "web.colonel.bannedIps.confirmUnban": {
-    "text": "Άρση αποκλεισμού της {ip};",
-    "source_hash": "ff009b1c"
-  },
-  "web.colonel.bannedIps.actions.ban": {
-    "text": "Αποκλεισμός IP",
-    "source_hash": "f91a5285"
-  },
-  "web.colonel.bannedIps.actions.quickBan": {
-    "text": "Γρήγορος αποκλεισμός",
-    "source_hash": "c32d0943"
-  },
-  "web.colonel.bannedIps.actions.unban": {
-    "text": "Άρση αποκλεισμού",
-    "source_hash": "25fb5989"
-  },
-  "web.colonel.bannedIps.actions.cancel": {
-    "text": "Ακύρωση",
-    "source_hash": "19766ed6"
-  },
-  "web.colonel.bannedIps.columns.ipAddress": {
-    "text": "Διεύθυνση IP",
-    "source_hash": "3c3de0c9"
-  },
-  "web.colonel.bannedIps.columns.reason": {
-    "text": "Αιτία",
-    "source_hash": "f81ab834"
-  },
-  "web.colonel.bannedIps.columns.bannedAt": {
-    "text": "Αποκλεισμός στις",
-    "source_hash": "dfbd120e"
-  },
-  "web.colonel.bannedIps.columns.bannedBy": {
-    "text": "Αποκλεισμός από",
-    "source_hash": "9f47db0e"
-  },
-  "web.colonel.bannedIps.error.banFailed": {
-    "text": "Αποτυχία αποκλεισμού της διεύθυνσης IP",
-    "source_hash": "24e94d9b"
-  },
-  "web.colonel.bannedIps.error.unbanFailed": {
-    "text": "Αποτυχία άρσης αποκλεισμού της διεύθυνσης IP",
-    "source_hash": "66bbac9a"
-  },
-  "web.colonel.bannedIps.form.title": {
-    "text": "Αποκλεισμός διεύθυνσης IP",
-    "source_hash": "3f5b3dfa"
-  },
-  "web.colonel.bannedIps.form.ipLabel": {
-    "text": "Διεύθυνση IP",
-    "source_hash": "3c3de0c9"
-  },
-  "web.colonel.bannedIps.form.reasonLabel": {
-    "text": "Αιτία",
-    "source_hash": "f81ab834"
-  },
-  "web.colonel.bannedIps.form.reasonPlaceholder": {
-    "text": "Προαιρετική αιτία",
-    "source_hash": "956688a5"
-  },
-  "web.colonel.bannedIps.success.banned": {
-    "text": "Η διεύθυνση IP {ip} αποκλείστηκε",
-    "source_hash": "b6f861d5"
-  },
-  "web.colonel.bannedIps.success.unbanned": {
-    "text": "Έγινε άρση αποκλεισμού της διεύθυνσης IP {ip}",
-    "source_hash": "dbe93550"
   },
   "web.colonel.customDomains.empty": {
     "text": "Δεν έχουν διαμορφωθεί προσαρμοσμένοι τομείς",

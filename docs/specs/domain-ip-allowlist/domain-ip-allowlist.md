@@ -557,12 +557,11 @@ login-only enforcement mode, Terraform provider.
 | 6 | Audit events + blocked-request logging/counter | `audit_trail.rb:60` |
 | 7 | Tests: middleware spec (`operator_host?` scope gating incl. both `:invalid` cases — no record passes through, raising read 503s — monitor/enforce, fail-closed incl. missing `otto.ip_match`, exemptions, dev override, /32 precision), model tryouts (validation matrix), logic specs, contract vitest | `spec/unit/onetime/application/middleware_stack_spec.rb` neighborhood |
 | 8 | Docs: scope contract + lockout guidance; locales (`locales:hashes` run) | this file |
-| 9 | Separate fix: `AdminNetworkIsolation` narrow-CIDR latent bug — migrate its matching to `env['otto.ip_match']` once the otto release lands, which makes `/32` admin CIDRs work instead of merely rejecting them | `admin_network_isolation.rb:110-145` |
-| 10 | ~~Upstream Otto~~ **done 2026-07-25** (`ip_in_cidrs?`, privacy profiles, `otto.ip_match`; geo gate pre-existing on main). Remaining: commit/release otto, then bump the gem here | §3; `~/Projects/dev/delano/otto` |
+| 9 | ~~Separate fix: `AdminNetworkIsolation` narrow-CIDR latent bug~~ **done** — matching uses `env['otto.ip_match']`, so `/32`–`/128` admin CIDRs are evaluated against the true client IP | `lib/onetime/middleware/admin_network_isolation.rb:625-648`; `spec/integration/all/colonel_host_allowlist_spec.rb:1110-1158` |
+| 10 | ~~Upstream Otto~~ **released and adopted** — `otto.ip_match` is available; this application requires `otto ~> 2.10` | `Gemfile`; `Gemfile.lock` |
 
-Suggested sequencing: 10 first (otto release is the dependency), then 1–2
-(enforcement path, shippable dark), 3 (API), 4–5 (UI), 6–8 alongside;
-9 after the gem bump.
+The upstream dependency and the separate admin narrow-CIDR migration are
+complete. The remaining work is 1–8.
 
 ## 6. Open questions
 

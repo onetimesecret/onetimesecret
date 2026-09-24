@@ -1,6 +1,7 @@
 // src/tests/composables/useReceipt.spec.ts
 
 import { useReceipt } from '@/shared/composables/useReceipt';
+import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v3/receipt';
 import { AxiosError } from 'axios';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useReceiptStore } from '@/shared/stores/receiptStore';
@@ -49,7 +50,7 @@ const mockRouter: Router = getRouter();
 
 vi.mocked(useRouter).mockReturnValue(mockRouter);
 vi.mocked(useAuthStore).mockReturnValue(authStoreMock as ReturnType<typeof useAuthStore>);
-vi.mocked(useReceiptStore).mockReturnValue(storeMock as unknown as ReturnType<typeof useReceiptStore>);
+vi.mocked(useReceiptStore).mockReturnValue(storeMock as ReturnType<typeof useReceiptStore>);
 vi.mocked(useNotificationsStore).mockReturnValue(
   notificationsMock as ReturnType<typeof useNotificationsStore>
 );
@@ -61,6 +62,12 @@ describe('useReceipt', () => {
   });
 
   describe('lifecycle', () => {
+    // record/details/canBurn are real `ref()`s here (not the unwrapped values
+    // Pinia's Store<> type presents) so storeToRefs(store) - which special-
+    // cases "already a ref" (see Pinia's storeToRefs source) and otherwise
+    // DROPS plain-value keys entirely - actually returns live, mutable refs
+    // for these tests to read/assert against. That intentional shape doesn't
+    // structurally match Store<"receipt", ...>, hence the `unknown` bridge.
     const store = {
       init: vi.fn(),
       fetch: vi.fn().mockResolvedValue(mockReceiptRecord),
@@ -73,7 +80,9 @@ describe('useReceipt', () => {
     };
 
     beforeEach(() => {
-      vi.mocked(useReceiptStore).mockReturnValue(store as unknown as ReturnType<typeof useReceiptStore>);
+      vi.mocked(useReceiptStore).mockReturnValue(
+        store as unknown as ReturnType<typeof useReceiptStore>
+      );
     });
 
     it('should initialize with empty state', () => {
@@ -122,34 +131,40 @@ describe('useReceipt', () => {
   });
 
   describe('router integration', () => {
-    // More idiomatic router mock
+    // Only `push` is exercised by these tests (see assertions below). Cast via
+    // `unknown`, matching the pattern used elsewhere in this file (e.g. the
+    // 'burning secrets' describe block): a real Router has many more required
+    // members (resolve, addRoute, currentRoute as a full RouteLocationNormalizedLoaded,
+    // etc.) that a hand-rolled mock has no need to implement.
     const routerMock = {
       push: vi.fn(),
-      currentRoute: ref({
-        name: 'Test',
-        params: {},
-        query: {},
-      }),
       replace: vi.fn(),
       back: vi.fn(),
       forward: vi.fn(),
       go: vi.fn(),
-      // Cast at the mockReturnValue call site; currentRoute is a plain ref here.
-    };
+    } as unknown as Router;
 
     beforeEach(() => {
-      vi.mocked(useRouter).mockReturnValue(routerMock as unknown as Router);
+      vi.mocked(useRouter).mockReturnValue(routerMock);
+      // Note: `isLoading` is NOT part of ReceiptStore's shape - it's a local
+      // ref inside useReceipt() itself (driven by useAsyncHandler's wrap()),
+      // never read from the store. Omitted here accordingly.
+      //
+      // record/details/canBurn are real `ref()`s (see the 'lifecycle' describe
+      // block above for why), so this bridges through `unknown` rather than
+      // matching Store<"receipt", ...>'s unwrapped shape directly.
       const storeMock = {
         burn: vi.fn().mockResolvedValue(undefined),
         canBurn: ref(true),
         fetch: vi.fn(),
         record: ref(null),
         details: ref(null),
-        isLoading: ref(false),
         setApiMode: vi.fn(),
         $reset: vi.fn(),
       };
-      vi.mocked(useReceiptStore).mockReturnValue(storeMock as unknown as ReturnType<typeof useReceiptStore>);
+      vi.mocked(useReceiptStore).mockReturnValue(
+        storeMock as unknown as ReturnType<typeof useReceiptStore>
+      );
     });
 
     it('should redirect after burn with correct params', async () => {
@@ -184,23 +199,28 @@ describe('useReceipt', () => {
   });
 
   describe('fetching receipt', () => {
+    // record/details are real `ref()`s (see the 'lifecycle' describe block
+    // above for why: storeToRefs(store) needs an actual ref to pass through)
+    // so the fetch mock can write through them like the real store does.
+    // `isLoading` is NOT part of ReceiptStore - it's useReceipt()'s own local
+    // ref (see composable) - so it's intentionally absent here.
     const store = {
       fetch: vi.fn().mockImplementation(async () => {
         store.record.value = mockReceiptRecord;
         store.details.value = mockReceiptDetails;
         return;
       }),
-      record: ref<typeof mockReceiptRecord | null>(null),
-      details: ref<typeof mockReceiptDetails | null>(null),
-      isLoading: ref(false),
+      record: ref<Receipt | null>(null),
+      details: ref<ReceiptDetails | null>(null),
       setApiMode: vi.fn(),
     };
 
     beforeEach(() => {
-      vi.mocked(useReceiptStore).mockReturnValue(store as unknown as ReturnType<typeof useReceiptStore>);
+      vi.mocked(useReceiptStore).mockReturnValue(
+        store as unknown as ReturnType<typeof useReceiptStore>
+      );
       store.record.value = null;
       store.details.value = null;
-      store.isLoading.value = false;
     });
 
     it('should handle successful receipt fetch', async () => {
@@ -220,8 +240,10 @@ describe('useReceipt', () => {
       // Setup
       const networkError = new Error('Network error');
       store.fetch.mockRejectedValueOnce(networkError);
-      const notifications = { show: vi.fn() };
-      vi.mocked(useNotificationsStore).mockReturnValue(notifications as unknown as ReturnType<typeof useNotificationsStore>);
+      const notifications: Partial<ReturnType<typeof useNotificationsStore>> = { show: vi.fn() };
+      vi.mocked(useNotificationsStore).mockReturnValue(
+        notifications as ReturnType<typeof useNotificationsStore>
+      );
 
       // Execute
       const { fetch, isLoading, error } = useReceipt('test-key');
@@ -250,8 +272,10 @@ describe('useReceipt', () => {
       );
 
       store.fetch.mockRejectedValueOnce(notFoundError);
-      const notifications = { show: vi.fn() };
-      vi.mocked(useNotificationsStore).mockReturnValue(notifications as unknown as ReturnType<typeof useNotificationsStore>);
+      const notifications: Partial<ReturnType<typeof useNotificationsStore>> = { show: vi.fn() };
+      vi.mocked(useNotificationsStore).mockReturnValue(
+        notifications as ReturnType<typeof useNotificationsStore>
+      );
 
       // Execute
       const { fetch, isLoading, error } = useReceipt('test-key');
@@ -284,13 +308,18 @@ describe('useReceipt', () => {
         details: ref(mockReceiptDetails),
         setApiMode: vi.fn(),
       };
-      const notifications = { show: vi.fn() };
+      const notifications: Partial<ReturnType<typeof useNotificationsStore>> = { show: vi.fn() };
       const mockRouter = {
         push: vi.fn().mockResolvedValue(undefined), // Router push returns a promise
       } as unknown as Router;
 
-      vi.mocked(useReceiptStore).mockReturnValue(store as unknown as ReturnType<typeof useReceiptStore>);
-      vi.mocked(useNotificationsStore).mockReturnValue(notifications as unknown as ReturnType<typeof useNotificationsStore>);
+      // record/details/canBurn are real `ref()`s (see 'lifecycle' above for why).
+      vi.mocked(useReceiptStore).mockReturnValue(
+        store as unknown as ReturnType<typeof useReceiptStore>
+      );
+      vi.mocked(useNotificationsStore).mockReturnValue(
+        notifications as ReturnType<typeof useNotificationsStore>
+      );
       vi.mocked(useRouter).mockReturnValue(mockRouter);
 
       const { burn, passphrase } = useReceipt('test-key');
@@ -319,12 +348,17 @@ describe('useReceipt', () => {
         record: ref(mockReceiptRecord),
         setApiMode: vi.fn(),
       };
-      const notifications = { show: vi.fn() };
-      const router = { push: vi.fn() };
+      const notifications: Partial<ReturnType<typeof useNotificationsStore>> = { show: vi.fn() };
+      const router = { push: vi.fn() } as unknown as Router;
 
-      vi.mocked(useReceiptStore).mockReturnValue(store as unknown as ReturnType<typeof useReceiptStore>);
-      vi.mocked(useNotificationsStore).mockReturnValue(notifications as unknown as ReturnType<typeof useNotificationsStore>);
-      vi.mocked(useRouter).mockReturnValue(router as unknown as Router);
+      // canBurn/record are real `ref()`s (see 'lifecycle' above for why).
+      vi.mocked(useReceiptStore).mockReturnValue(
+        store as unknown as ReturnType<typeof useReceiptStore>
+      );
+      vi.mocked(useNotificationsStore).mockReturnValue(
+        notifications as ReturnType<typeof useNotificationsStore>
+      );
+      vi.mocked(useRouter).mockReturnValue(router);
 
       // Execute
       const { burn, error } = useReceipt('test-key');
@@ -342,6 +376,7 @@ describe('useReceipt', () => {
   });
 
   describe('API mode selection', () => {
+    // record/details/canBurn are real `ref()`s (see 'lifecycle' above for why).
     const store = {
       fetch: vi.fn().mockResolvedValue(mockReceiptRecord),
       burn: vi.fn(),
@@ -353,7 +388,9 @@ describe('useReceipt', () => {
     };
 
     beforeEach(() => {
-      vi.mocked(useReceiptStore).mockReturnValue(store as unknown as ReturnType<typeof useReceiptStore>);
+      vi.mocked(useReceiptStore).mockReturnValue(
+        store as unknown as ReturnType<typeof useReceiptStore>
+      );
       store.setApiMode.mockClear();
     });
 

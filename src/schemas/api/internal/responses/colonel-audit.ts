@@ -10,8 +10,9 @@
 //
 // Shape verified against the live logic class
 // (apps/api/colonel/logic/colonel/list_colonel_audit_events.rb), a read-only slice of
-// the capped `colonel_audit_event:events` sorted set. Reading the log never
-// writes an audit event (CONTRACT 4).
+// the model's three capped sorted sets, merged. Reading the log mutates
+// nothing and never writes to the OPERATOR trail; since #4335 it does record
+// one observation on the separate `access_events` trail (CONTRACT 4).
 
 import { createApiResponseSchema } from '@/schemas/api/base';
 import { paginationSchema } from './colonel';
@@ -25,6 +26,14 @@ import { z } from 'zod';
  * resource's public id. `detail` is the op's redacted context — free-form
  * (hash / string / null), so it stays `unknown` and is rendered as JSON.
  * `created` arrives as a Unix-second float and is transformed to Date.
+ *
+ * `trail` names which of the model's three separately-capped sorted sets the
+ * row came from (#4335) — `events` (operator mutations), `security_events`
+ * (unauthenticated telemetry) or `access_events` (authenticated observations:
+ * curated sensitive reads and dry-run previews). It is a plain string, not an
+ * enum, on purpose: a client must not start failing validation because the
+ * server grew a fourth trail. It matters to a reader because RETENTION DIFFERS
+ * PER TRAIL, so the absence of old rows means something different in each.
  */
 export const colonelAuditEventSchema = z.object({
   id: z.string(),
@@ -34,6 +43,7 @@ export const colonelAuditEventSchema = z.object({
   result: z.string(),
   detail: z.unknown(),
   created: transforms.fromNumber.toDate,
+  trail: z.string(),
 });
 
 /**
@@ -68,3 +78,19 @@ export const colonelAuditEventsResponseSchema = createApiResponseSchema(
 );
 
 export type ColonelAuditEventsResponse = z.infer<typeof colonelAuditEventsResponseSchema>;
+
+// GET /api/colonel/audit/export → ExportColonelAuditEvents
+//
+// NO schema here, deliberately. That endpoint answers with `text/csv` or
+// `application/x-ndjson` plus a `Content-Disposition: attachment` header — it is
+// a download, navigated to rather than fetched and parsed, so there is no JSON
+// envelope for Zod to describe and nothing in the frontend ever validates it.
+// Declaring one would register a wire contract that no code path exercises.
+// (Same reasoning as the no-SCHEMA note on the ColonelAuditEvent model itself.)
+//
+// The export is still contract-bound where it matters: it serialises exactly
+// the fields `colonelAuditEventSchema` above types, because both surfaces go
+// through the one server-side allowlist (Onetime::ColonelAuditReader::FIELDS).
+// Change the allowlist and BOTH the JSON list response and the download change
+// together — so this schema stays the single description of an audit event's
+// shape, whichever surface it arrives on.

@@ -25,6 +25,8 @@ const baseProps = {
   workspaceName: 'Acme',
   monogramInitial: 'A',
   primaryColor: '#3B82F6',
+  // Unset by default (no domain has chosen a font/corner), matching the
+  // "operator never configured this" case documented on DisabledHomepageProps.
   fontFamilyClass: null as string | null,
   headingFontClass: null as string | null,
   cornerClass: null as string | null,

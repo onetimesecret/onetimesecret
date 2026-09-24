@@ -5,6 +5,7 @@
 require 'onetime/operations/dlq/store'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
 
 module Onetime
   module Operations
@@ -25,18 +26,26 @@ module Onetime
       #
       # A purge that removes ≥ 1 message records EXACTLY ONE
       # {Onetime::ColonelAuditEvent} — verb `queue.dlq.purge`, target the DLQ name,
-      # detail the purged count. Purging an already-empty queue mutates nothing and
-      # records NO event (the "only audit an actual change" rule).
+      # detail the purged count. Purging an already-empty queue mutates nothing
+      # but is STILL recorded, under the same verb with `outcome: 'no_change'`
+      # (#4337): the operator got past the typed-confirmation gate and fired the
+      # destructive verb, and whether the queue happened to be empty when it
+      # landed must not decide whether the trail shows the attempt.
       #
       # ## Dry run
       #
       # `dry_run: true` returns the count that WOULD be purged WITHOUT deleting
-      # anything and WITHOUT recording an audit event — used to render the
-      # count-in-scope in the confirm prompt/dialog before the live purge.
+      # anything — used to render the count-in-scope in the confirm
+      # prompt/dialog before the live purge. It writes nothing to the OPERATOR
+      # trail, but since #4337 it records one OBSERVATION
+      # (`result: 'preview'`) on the budgeted access trail: measuring what a
+      # destructive verb would destroy is reconnaissance, and it is the step an
+      # operator always takes first.
       #
       # Stateless, single `#call`, returns an immutable {Result}.
       class Purge
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
 
         # Audit verb recorded for every purge that removes ≥ 1 message.
         AUDIT_VERB = 'queue.dlq.purge'
@@ -44,9 +53,9 @@ module Onetime
         # Irreversible verb over a broker connection, so a raise mid-purge (or a
         # broker error before it) is exactly what the trail must show. Records
         # one `result: :failure` and re-raises. `dry_run` is in the detail
-        # because the success event is applied-path-only (a dry-run or empty
-        # queue records nothing), so without it a failure has no readable
-        # counterpart.
+        # because a dry run never reaches the operator-trail write (its preview
+        # is an observation), so without it a blown-up preview would be
+        # indistinguishable from a blown-up live purge.
         audit_failures :call,
           verb: AUDIT_VERB,
           target: -> { @queue },
@@ -60,12 +69,20 @@ module Onetime
         # @param connection [Object] an already-open Bunny-like connection.
         # @param queue [String] a fully-resolved DLQ name.
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity.
-        # @param dry_run [Boolean] measure only — delete nothing, audit nothing.
-        def initialize(connection:, queue:, actor:, dry_run: false)
+        # @param dry_run [Boolean] measure only — delete nothing, and write
+        #   nothing to the OPERATOR trail; the preview itself is recorded as an
+        #   observation (#4337, see #record_preview_event).
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the audit detail of the purge AND of the preview that
+        #   preceded it. Blank is treated as absent and both details keep their
+        #   pre-#4338 shape; see {Onetime::AuditReason} for the bound and the
+        #   optional-now / required-later rollout.
+        def initialize(connection:, queue:, actor:, dry_run: false, reason: nil)
           @connection = connection
           @queue      = queue
           @actor      = actor
           @dry_run    = dry_run
+          @reason     = normalize_reason(reason)
         end
 
         # @return [Result]
@@ -74,24 +91,78 @@ module Onetime
           queue   = Store.queue_handle(channel, @queue)
 
           count = queue.message_count
-          return Result.new(status: :dry_run, queue: @queue, count: count, purged: 0) if @dry_run
-          return Result.new(status: :empty, queue: @queue, count: 0, purged: 0) if count.zero?
+
+          # A dry run deletes nothing, so it writes nothing to the OPERATOR
+          # trail — but it IS reconnaissance on the destructive verb (it
+          # measures exactly what a purge would destroy, and it is what the
+          # confirm dialog calls), so it records one OBSERVATION (#4337).
+          if @dry_run
+            record_preview_event(count)
+            return Result.new(status: :dry_run, queue: @queue, count: count, purged: 0)
+          end
+
+          if count.zero?
+            record_no_change_event
+            return Result.new(status: :empty, queue: @queue, count: 0, purged: 0)
+          end
 
           queue.purge
 
           # Exactly one audit event per non-empty purge. The queue name is not
           # secret; never put message contents into detail.
+          #
+          # FAIL-CLOSED (#4333): the messages are gone from the broker and were
+          # never mirrored anywhere, so the count in this event is the only
+          # surviving fact about the purge. The dry-run path above returns
+          # before this and stays unaffected.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @queue,
             result: :success,
-            detail: { purged: count },
+            detail: with_reason(purged: count),
+            fail_closed: true,
           )
 
           Result.new(status: :success, queue: @queue, count: count, purged: count)
         ensure
           channel.close if channel&.open?
+        end
+
+        private
+
+        # One OBSERVATION per dry run (#4337), on the budgeted access trail.
+        # Same verb and target as the applied event, so a preview and the purge
+        # that followed it read as one sequence; `result: 'preview'` and
+        # `dry_run: true` distinguish them. The count is the whole point of the
+        # preview — it is what the confirm dialog shows. The operator's `reason`
+        # (#4338) carries onto the preview too when one was given, so the two
+        # rows still read as one sequence once the console starts sending it.
+        def record_preview_event(count)
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @queue,
+            result: 'preview',
+            detail: with_reason(dry_run: true, count: count),
+          )
+        end
+
+        # A no-change attempt (#4337) — the OPERATOR trail, not the observation
+        # trail. The dry-run path returned before this, so an empty purge is a
+        # LIVE firing of the destructive verb that found nothing to destroy —
+        # raced by a consumer, or double-fired. Same verb and target as the
+        # applied event, `outcome: 'no_change'` marking it. NOT fail-closed: no
+        # message was destroyed, so there is no irrecoverable fact for a hard
+        # failure to protect.
+        def record_no_change_event
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @queue,
+            result: :success,
+            detail: with_reason(outcome: 'no_change', purged: 0),
+          )
         end
       end
     end

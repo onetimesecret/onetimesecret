@@ -10,6 +10,8 @@
   import { useI18n } from 'vue-i18n';
   import { useRoute } from 'vue-router';
 
+  import ElevationBanner from '../components/ElevationBanner.vue';
+  import ElevationPrompt from '../components/ElevationPrompt.vue';
   import { CONSOLE_GROUPS, CONSOLE_SECTIONS } from '../sections';
 
   // App.vue passes the customer chrome layout props via v-bind; this console
@@ -228,9 +230,17 @@
         </div>
       </header>
 
+      <!-- The step-up (sudo) window (#4327). The banner renders only while a
+           window is live; the prompt is mounted ONCE here and opened through the
+           shared elevation state, so every destructive mutation in the console
+           gets a sudo prompt without any view owning one. Neither polls. -->
+      <ElevationBanner />
+
       <main class="flex-1 overflow-x-auto p-5 sm:p-8">
         <slot></slot>
       </main>
+
+      <ElevationPrompt />
     </div>
   </div>
 </template>

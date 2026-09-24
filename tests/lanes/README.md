@@ -70,6 +70,11 @@ Familia/Redis connection and every strategy example fails spuriously
 (#3468). One lane = one process boundary, so a second lane is how that
 gets expressed.
 
+A lane with several legs (`unit`, `simple`, `migrations-pg`) runs every leg
+even when an earlier one fails, then exits non-zero naming the red legs; the
+same holds for the three rspec legs inside `rake spec:fast`. A red leg never
+silently skips the ones after it.
+
 Use `--overlay billing` only with full-mode lanes. Billing requires
 `AUTHENTICATION_MODE=full`; other lanes reject the overlay.
 
@@ -107,9 +112,14 @@ checkouts while sharing the local test service instances:
 - RabbitMQ uses the corresponding `w<index>` vhost. The runner recreates and
   grants the vhost through RabbitMQ's loopback-only management API before a
   lane starts, preventing stale queues/messages from a prior run.
-- CI and direct test commands outside the lane runner use the shared index,
+- CI and direct rspec commands outside the lane runner use the shared index,
   database, and vhost (`0` / `onetime_auth_test` / `/`). Do not rely on that
-  mode for concurrent local worktrees.
+  mode for concurrent local worktrees. Direct TRYOUT commands are the
+  exception on the Valkey axis only: `try/support/test_helpers.rb` derives a
+  per-checkout index of its own (key `try||<root>`, see
+  `try/support/datastore_db.rb`, which `pnpm run test:database:clean` also
+  consults so cleanup reaches that database) — but they still share
+  `onetime_auth_test` and the `/` vhost.
 - A collision between derived Valkey indexes fails loudly rather than allowing
   fixture contamination. Pin `LANES_DATASTORE_DB` in a lane `env` file or an
   overlay if the runner reports a collision; a shell export is intentionally

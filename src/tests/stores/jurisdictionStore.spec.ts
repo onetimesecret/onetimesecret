@@ -11,16 +11,16 @@ import { createApp } from 'vue';
 const mockJurisdictions: Jurisdiction[] = [
   {
     identifier: 'us-east',
-    display_name_i18n_key: 'US East',
+    display_name_i18n_key: 'web.regions.jurisdictions.us-east.name',
     domain: 'us-east.example.com',
-    icon: { collection: 'flags', name: 'us-flag' },
+    icon: { collection: 'fa6-solid', name: 'earth-americas' },
     enabled: true,
   },
   {
     identifier: 'eu-west',
-    display_name_i18n_key: 'EU West',
+    display_name_i18n_key: 'web.regions.jurisdictions.eu-west.name',
     domain: 'eu-west.example.com',
-    icon: { collection: 'flags', name: 'eu-flag' },
+    icon: { collection: 'fa6-solid', name: 'earth-europe' },
     enabled: true,
   },
 ];
@@ -47,13 +47,7 @@ describe('jurisdictionStore', () => {
       store.init({ regions: mockRegionConfig });
 
       // Test full jurisdiction object structure
-      expect(store.currentJurisdiction).toEqual({
-        identifier: 'us-east',
-        display_name_i18n_key: 'US East',
-        domain: 'us-east.example.com',
-        icon: { collection: 'flags', name: 'us-flag' },
-        enabled: true,
-      });
+      expect(store.currentJurisdiction).toEqual(mockJurisdictions[0]);
 
       // Verify array contents explicitly
       expect(store.jurisdictions).toEqual([mockJurisdictions[0], mockJurisdictions[1]]);
@@ -100,13 +94,13 @@ describe('jurisdictionStore', () => {
     it.skip('throws ApiError for non-existent jurisdiction', () => {
       expect(() => {
         store.findJurisdiction('non-existent');
-      }).toThrow();
+      }).toThrow(/Jurisdiction "non-existent" not found/i);
     });
 
     it('finds jurisdiction with case-sensitive match', () => {
       expect(() => {
         store.findJurisdiction('EU-WEST');
-      }).toThrow();
+      }).toThrow(/Jurisdiction "EU-WEST" not found/i);
     });
 
     it('throws descriptive ApplicationError for non-existent jurisdiction', () => {

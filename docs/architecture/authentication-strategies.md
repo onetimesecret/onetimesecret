@@ -6,22 +6,20 @@ contract that logic classes depend on. See also the
 
 ## StrategyResult and the session contract
 
-Each strategy returns a `StrategyResult` — an immutable `Data.define` provided by
-Otto. Its `session` field is a plain `Hash`, accessed only with bracket notation;
-Otto never calls `.id` or other methods on it. `StrategyResult.anonymous`
-defaults to `session: {}`, so an empty hash is a valid session at this layer.
+Each strategy returns an Otto `StrategyResult`. On normal Rack requests, the
+built-in strategies pass `env['rack.session']` through as
+`strategy_result.session`. `Onetime::Logic::Base` assigns that same session object
+to `@sess`, and logic classes read it by key
+(`@sess['authenticated']`, `@sess['domain_context']`).
 
-OTS assigns `@sess = strategy_result.session` in `Onetime::Logic::Base`, and
-logic classes read it by key (`@sess['authenticated']`, `@sess['domain_context']`).
+Controllers reach the same session through `req.session` or
+`env['rack.session']`; logic classes reach it through `@sess`. Treat those as two
+access paths to the Rack session, not as independent stores.
 
-**Two distinct session objects — do not conflate them:**
-
-- `strategy_result.session` → `@sess` in **logic classes**. A plain hash carrying
-  the authenticated identity's state.
-- `req.session` / `env['rack.session']` in **controllers**. The Rack session.
-
-They are different objects reached by different paths; `.id`-style access appears
-only on the Rack session in controllers, never on `@sess`.
+There is one important exception: a stateless Basic-auth request can have no Rack
+session, so `BasicAuthStrategy` returns `session: nil`. Session-only logic must
+therefore continue to require its session state explicitly rather than inferring
+it from the authenticated customer alone.
 
 ## Basic auth credential identity
 

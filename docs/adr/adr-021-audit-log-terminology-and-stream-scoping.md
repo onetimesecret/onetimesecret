@@ -149,6 +149,24 @@ Intentionally unchanged by #3977: the `audit_logs` entitlement label (Decision 1
 retains "audit log" as the feature/entitlement name) and Rodauth's
 `account_authentication_audit_logs` table (upstream schema).
 
+> **Status note (2026-09-01, #4335):** the Operations Ledger row is now backed
+> by **three** separately-capped Familia collections behind one `ColonelAudit`
+> prefix — `events` (operator mutations), `security_events` (telemetry an
+> unauthenticated caller can cause) and `access_events` (authenticated
+> observations: curated sensitive reads and dry-run previews). They are a
+> STORAGE control, not new streams in this ADR's sense: one prefix, one
+> console, one export, merged on read and tagged with a `trail` field. Nothing
+> in Decisions 1–5 changes.
+>
+> Two names deserve an explicit note. `access_events` does **not** claim
+> Decision 1's "access/activity log" label — that stays with Secret Activity;
+> this is an internal sub-collection of the operator stream, never a
+> user-facing surface. `security_events` likewise predates and does not claim
+> the `SecurityEvent` prefix Decision 5 reserves for #2799. Both are named for
+> what they hold inside a stream that already owns its prefix. See
+> `docs/architecture/audit-logging.md` for the budgets and the curation
+> principle.
+
 ## Scope of this record
 
 This ADR settles **terminology, stream scoping, and the Security Events visibility model**.

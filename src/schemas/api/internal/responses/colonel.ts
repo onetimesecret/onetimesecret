@@ -265,26 +265,6 @@ export const redisMetricsDetailsSchema = z.object({
 });
 
 /**
- * Banned IP record
- */
-export const bannedIPSchema = z.object({
-  id: z.string(),
-  ip_address: z.string(),
-  reason: z.string().nullable(),
-  banned_by: z.string().nullable(),
-  banned_at: z.number(),
-});
-
-/**
- * Banned IPs list response details
- */
-export const bannedIPsDetailsSchema = z.object({
-  current_ip: z.string().default('unknown'),
-  banned_ips: z.array(bannedIPSchema),
-  total_count: z.number(),
-});
-
-/**
  * Usage export response details
  */
 export const usageExportDetailsSchema = z.object({
@@ -413,8 +393,6 @@ export type ColonelSecret = z.infer<typeof colonelSecretSchema>;
 export type ColonelSecretsDetails = z.infer<typeof colonelSecretsDetailsSchema>;
 export type DatabaseMetricsDetails = z.infer<typeof databaseMetricsDetailsSchema>;
 export type RedisMetricsDetails = z.infer<typeof redisMetricsDetailsSchema>;
-export type BannedIP = z.infer<typeof bannedIPSchema>;
-export type BannedIPsDetails = z.infer<typeof bannedIPsDetailsSchema>;
 export type UsageExportDetails = z.infer<typeof usageExportDetailsSchema>;
 export type ColonelCustomDomain = z.infer<typeof colonelCustomDomainSchema>;
 export type ColonelCustomDomainsDetails = z.infer<typeof colonelCustomDomainsDetailsSchema>;
@@ -827,6 +805,26 @@ export const colonelCheckoutLinkDetailsSchema = z.object({
   region: z.string(),
 });
 
+/**
+ * Ack for POST /api/colonel/users/:user_id/impersonate.
+ *
+ * NOT a {@link colonelUserMutationRecordSchema} ack: starting an impersonation
+ * hands back the marker the SESSION now carries, plus the path the console
+ * must leave for. `expires_at` is epoch SECONDS (the same unit as the bootstrap
+ * `impersonation` block) and is a server-fixed lifetime — there is no
+ * caller-supplied TTL to echo.
+ *
+ * `redirect` is server-supplied and therefore validated at the point of use
+ * (see hardNavigate / isValidInternalPath) rather than trusted as a URL here.
+ */
+export const colonelImpersonateRecordSchema = z.object({
+  impersonation_id: z.string(),
+  target_extid: z.string(),
+  target_email: z.string(),
+  expires_at: z.number(),
+  redirect: z.string().nullish(),
+});
+
 export type ColonelUserDetailRecord = z.infer<typeof colonelUserDetailRecordSchema>;
 export type ColonelUserDetailSecret = z.infer<typeof colonelUserDetailSecretSchema>;
 export type ColonelUserDetailReceipt = z.infer<typeof colonelUserDetailReceiptSchema>;
@@ -915,10 +913,6 @@ export const redisMetricsResponseSchema = createApiResponseSchema(
   z.object({}),
   redisMetricsDetailsSchema
 );
-export const bannedIPsResponseSchema = createApiResponseSchema(
-  z.object({}),
-  bannedIPsDetailsSchema
-);
 export const usageExportResponseSchema = createApiResponseSchema(
   z.object({}),
   usageExportDetailsSchema
@@ -937,6 +931,9 @@ export const systemSettingsResponseSchema = createApiResponseSchema(
 export const colonelUserDetailResponseSchema = createApiResponseSchema(
   colonelUserDetailRecordSchema,
   colonelUserDetailsSchema
+);
+export const colonelImpersonateResponseSchema = createApiResponseSchema(
+  colonelImpersonateRecordSchema
 );
 export const colonelUserMutationResponseSchema = createApiResponseSchema(
   colonelUserMutationRecordSchema,
@@ -959,7 +956,6 @@ export type BackupStatusRecord = z.infer<typeof backupStatusRecordSchema>;
 export type BackupStatusResponse = z.infer<typeof backupStatusResponseSchema>;
 export type BrandDiagnosticsResponse = z.infer<typeof brandDiagnosticsResponseSchema>;
 export type RedisMetricsResponse = z.infer<typeof redisMetricsResponseSchema>;
-export type BannedIPsResponse = z.infer<typeof bannedIPsResponseSchema>;
 export type UsageExportResponse = z.infer<typeof usageExportResponseSchema>;
 export type QueueMetricsResponse = z.infer<typeof queueMetricsResponseSchema>;
 export type SystemSettingsResponse = z.infer<typeof systemSettingsResponseSchema>;
@@ -968,3 +964,5 @@ export type ColonelUserMutationResponse = z.infer<typeof colonelUserMutationResp
 export type ColonelCheckoutLinkRecord = z.infer<typeof colonelCheckoutLinkRecordSchema>;
 export type ColonelCheckoutLinkDetails = z.infer<typeof colonelCheckoutLinkDetailsSchema>;
 export type ColonelCheckoutLinkResponse = z.infer<typeof colonelCheckoutLinkResponseSchema>;
+export type ColonelImpersonateRecord = z.infer<typeof colonelImpersonateRecordSchema>;
+export type ColonelImpersonateResponse = z.infer<typeof colonelImpersonateResponseSchema>;

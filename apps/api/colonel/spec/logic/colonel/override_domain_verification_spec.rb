@@ -12,10 +12,15 @@ RSpec.describe ColonelAPI::Logic::Colonel::OverrideDomainVerification do
       verified?: true, anonymous?: false)
   end
 
-  let(:strategy_result) do
+  # This verb bypasses DNS proof of ownership, so it requires the domain name in
+  # X-OTS-Confirm (#4326, TIER 2). `confirm_token` is where the colonel session
+  # auth strategy puts the percent-decoded header — never params.
+  def strategy_result_for(confirm_token = 'secrets.example.com')
     double('StrategyResult', session: {}, user: colonel,
-      auth_method: 'sessionauth', metadata: {})
+      auth_method: 'sessionauth', metadata: { confirm_token: confirm_token })
   end
+
+  let(:strategy_result) { strategy_result_for }
 
   # Mutable stand-in for Onetime::CustomDomain so mutation (or the absence
   # of mutation) is directly observable without a datastore.
@@ -60,6 +65,26 @@ RSpec.describe ColonelAPI::Logic::Colonel::OverrideDomainVerification do
     allow(OT).to receive(:li)
     allow(Onetime::CustomDomain).to receive(:find_by_extid).and_return(custom_domain)
     allow(Onetime::ColonelAuditEvent).to receive(:record)
+  end
+
+  # ---- Server-side confirmation (#4326) --------------------------------------
+
+  describe 'confirmation' do
+    let(:expected_confirm_token) { 'secrets.example.com' }
+
+    def confirmed_logic_for(confirm_token)
+      described_class.new(
+        strategy_result_for(confirm_token),
+        { 'extid' => 'cd_target', 'verified' => 'true' },
+      )
+    end
+
+    it_behaves_like 'a confirmed colonel action'
+
+    it 'does not accept the extid the URL already carried' do
+      expect { confirmed_logic_for('cd_target').raise_concerns }
+        .to raise_error(Onetime::ConfirmationRequired)
+    end
   end
 
   describe 'success_data change indicators' do

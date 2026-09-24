@@ -4,6 +4,7 @@ import {
   usePaginatedFetch,
   type PageMeta,
 } from '@/apps/admin/composables/usePaginatedFetch';
+import { reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
 import { createApiResponseSchema } from '@/schemas/api/base';
 import type { ColonelCustomDomain } from '@/schemas/api/internal/responses/colonel';
 import { colonelCustomDomainsResponseSchema } from '@/schemas/api/internal/responses/colonel';
@@ -36,6 +37,7 @@ import {
   type ColonelDomainRepairDetails,
   type ColonelDomainTransferDetails,
 } from '@/schemas/api/internal/responses/colonel-domaintoolbox';
+import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
 import { useApi } from '@/shared/composables/useApi';
 import { gracefulParse } from '@/utils/schemaValidation';
 import type { AxiosInstance } from 'axios';
@@ -115,6 +117,11 @@ export interface DomainRepairOptions {
   /** Target org for the ORPHANED case (objid or extid). Omitted when blank. */
   orgId?: string;
   dryRun: boolean;
+  /**
+   * The domain's hostname, required in X-OTS-Confirm on the APPLY path (#4326).
+   * A preview needs none — it writes nothing.
+   */
+  confirm?: string;
 }
 
 /** Options for the transfer verb. `dryRun` is explicit — never defaulted here. */
@@ -124,6 +131,8 @@ export interface DomainTransferOptions {
   /** Optional ownership assertion; a mismatch is a 4xx on field `from_org`. */
   fromOrg?: string;
   dryRun: boolean;
+  /** The domain's hostname, required in X-OTS-Confirm on the APPLY path (#4326). */
+  confirm?: string;
 }
 
 /** Options for the configs-ensure verb. `dryRun` is explicit — never defaulted here. */
@@ -135,6 +144,11 @@ export interface DomainConfigsEnsureOptions {
 export interface DomainOverrideOptions {
   verified?: boolean;
   resolving?: boolean;
+  /**
+   * The domain's hostname, required in X-OTS-Confirm (#4326): this verb bypasses
+   * DNS proof of ownership and has no preview arm.
+   */
+  confirm?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -154,6 +168,15 @@ export interface DomainOverrideOptions {
 /** Path for a single domain, resolved by PUBLIC id (extid) only. */
 function domainPath(extid: string): string {
   return `/api/colonel/domains/${encodeURIComponent(extid)}`;
+}
+
+/**
+ * Axios config carrying the destructive-action confirmation (#4326), or
+ * undefined when there is nothing to send — a dry-run preview is exempt
+ * server-side, so it must NOT send a token it does not need.
+ */
+function headersFor(confirm?: string) {
+  return confirm ? { headers: confirmHeaders(confirm) } : undefined;
 }
 
 /** Read one domain's full record + the deployment's proxy cluster. READ-ONLY. */
@@ -203,7 +226,7 @@ async function overrideDomain(
   if (options.verified !== undefined) body.verified = options.verified;
   if (options.resolving !== undefined) body.resolving = options.resolving;
 
-  const response = await $api.post(`${domainPath(extid)}/override`, body);
+  const response = await $api.post(`${domainPath(extid)}/override`, body, headersFor(options.confirm));
   const parsed = gracefulParse(
     colonelDomainOverrideResponseSchema,
     response.data,
@@ -245,7 +268,7 @@ async function repairDomain(
   const body: Record<string, unknown> = { dry_run: options.dryRun };
   if (options.orgId) body.org_id = options.orgId;
 
-  const response = await $api.post(`${domainPath(extid)}/repair`, body);
+  const response = await $api.post(`${domainPath(extid)}/repair`, body, headersFor(options.confirm));
   const parsed = gracefulParse(
     colonelDomainRepairResponseSchema,
     response.data,
@@ -269,7 +292,7 @@ async function transferDomain(
   };
   if (options.fromOrg) body.from_org = options.fromOrg;
 
-  const response = await $api.post(`${domainPath(extid)}/transfer`, body);
+  const response = await $api.post(`${domainPath(extid)}/transfer`, body, headersFor(options.confirm));
   const parsed = gracefulParse(
     colonelDomainTransferResponseSchema,
     response.data,
@@ -289,9 +312,19 @@ async function transferDomain(
 async function removeDomain(
   $api: AxiosInstance,
   extid: string,
-  dryRun: boolean
+  opts: { dryRun: boolean; confirm?: string; reason?: string }
 ): Promise<ColonelDomainRemoveDetails | null> {
-  const response = await $api.delete(`${domainPath(extid)}?dry_run=${dryRun}`);
+  // `reason` (#4338) joins dry_run on the query string, for the same reason.
+  // The op carries it onto BOTH the preview observation and the applied event.
+  // The confirmation token (#4326) rides the HEADER beside it — a dry-run
+  // preview is exempt server-side and sends none, hence the optional merge.
+  const [reasonConfig] = reasonQueryArgs(opts.reason);
+  const headerConfig = headersFor(opts.confirm);
+  // With no reason the call keeps its exact pre-#4338 shape: a dry-run preview
+  // is exempt from the confirmation and sends `undefined`, an apply sends the
+  // header alone.
+  const config = reasonConfig ? { ...headerConfig, ...reasonConfig } : headerConfig;
+  const response = await $api.delete(`${domainPath(extid)}?dry_run=${opts.dryRun}`, config);
   const parsed = gracefulParse(
     colonelDomainRemoveResponseSchema,
     response.data,
@@ -340,11 +373,13 @@ async function upsertDomainConfig(
   $api: AxiosInstance,
   extid: string,
   kind: EditableDomainConfigKind,
-  body: Record<string, unknown>
+  body: Record<string, unknown>,
+  confirm?: string
 ): Promise<ColonelDomainConfigUpsertDetails | null> {
   const response = await $api.put(
     `${domainConfigsPath(extid)}/${encodeURIComponent(kind)}`,
-    body
+    body,
+    headersFor(confirm)
   );
   const parsed = gracefulParse(
     colonelDomainConfigUpsertResponseSchema,
@@ -358,10 +393,12 @@ async function upsertDomainConfig(
 async function deleteDomainConfig(
   $api: AxiosInstance,
   extid: string,
-  kind: DomainConfigKind
+  kind: DomainConfigKind,
+  confirm?: string
 ): Promise<ColonelDomainConfigDeleteDetails | null> {
   const response = await $api.delete(
-    `${domainConfigsPath(extid)}/${encodeURIComponent(kind)}`
+    `${domainConfigsPath(extid)}/${encodeURIComponent(kind)}`,
+    headersFor(confirm)
   );
   const parsed = gracefulParse(
     colonelDomainConfigDeleteResponseSchema,
@@ -405,12 +442,17 @@ function bindOperations($api: AxiosInstance) {
       repairDomain($api, extid, options),
     transfer: (extid: string, options: DomainTransferOptions) =>
       transferDomain($api, extid, options),
-    remove: (extid: string, dryRun: boolean) => removeDomain($api, extid, dryRun),
+    remove: (extid: string, dryRun: boolean, confirm?: string, reason?: string) =>
+      removeDomain($api, extid, { dryRun, confirm, reason }),
     fetchConfigs: (extid: string) => fetchDomainConfigs($api, extid),
-    upsertConfig: (extid: string, kind: EditableDomainConfigKind, body: Record<string, unknown>) =>
-      upsertDomainConfig($api, extid, kind, body),
-    deleteConfig: (extid: string, kind: DomainConfigKind) =>
-      deleteDomainConfig($api, extid, kind),
+    upsertConfig: (
+      extid: string,
+      kind: EditableDomainConfigKind,
+      body: Record<string, unknown>,
+      confirm?: string
+    ) => upsertDomainConfig($api, extid, kind, body, confirm),
+    deleteConfig: (extid: string, kind: DomainConfigKind, confirm?: string) =>
+      deleteDomainConfig($api, extid, kind, confirm),
     ensureConfigs: (extid: string, options: DomainConfigsEnsureOptions) =>
       ensureDomainConfigs($api, extid, options),
   };

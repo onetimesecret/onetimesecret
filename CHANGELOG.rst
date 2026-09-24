@@ -10,6 +10,191 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.26.11:
+
+0.26.11 — 2026-09-06
+====================
+
+Added
+-----
+
+- Colonel now provides a confirmed, reason-required **Impersonate** action on
+  the customer detail page. It creates a 30-minute, read-only customer view
+  with a persistent banner and a **Stop impersonating** control.
+
+- Impersonation blocks actions that could change data or create customer-facing
+  artifacts, including secret, account, billing, and Colonel operations.
+
+- Impersonation starts and normal in-process ends, including expiry, are
+  recorded in the operator audit trail.
+
+- Operator audit events are now emitted to the dedicated ``ColonelAudit`` log
+  category before storage. Route this category to persistent log collection when
+  retention beyond the console's configured caps is required (#4334).
+
+- Added optional syslog delivery for the audit category. Set
+  ``LOG_AUDIT_SYSLOG=true`` and configure ``LOG_AUDIT_SYSLOG_URL`` to enable it
+  (#4334).
+
+- The Colonel Audit Log can now export its retained, filtered results as CSV or
+  NDJSON. ``ots audit list`` provides the same formats for shell workflows
+  (#4334).
+
+- Destructive operator actions now accept an optional **reason** for the
+  operator audit trail, through the Colonel console, API, and supported CLI
+  commands (#4338).
+
+- Added ``ots sessions revoke-all <customer>`` for incident response. It
+  revokes tracked customer sessions and Rodauth active-session records, and
+  performs a capped best-effort sweep for legacy untracked sessions. A warning
+  is shown if that sweep reaches its safety cap (#4354).
+
+Changed
+-------
+
+- Reasons remain optional. Blank values are omitted; nonblank values are trimmed
+  and stored up to 255 characters. Audit-log readers and exports can view the
+  stored text (#4338).
+
+- Failed Colonel sign-ins use a separate 7-day telemetry stream, so attempt
+  volume cannot evict destructive-action records from the operator trail
+  (#4339).
+
+- With trusted-proxy protection enabled, ``header: Forwarded`` or ``Both`` now
+  requires ``mode: depth`` and fails boot in filter mode instead of being
+  ignored (#4378).
+
+- In filter mode, ``X-Forwarded-Proto`` from a proxy outside the configured
+  trusted CIDRs is ignored. Add the proxy's address range to ``cidrs`` to retain
+  forwarded TLS scheme detection (#4378).
+
+- Customer purge now revokes tracked sessions and Rodauth active-session
+  records first, with a capped best-effort sweep for legacy untracked sessions
+  (#4352).
+
+Removed
+-------
+
+- Removed the ineffective ``ots session clean`` command. Use
+  ``ots sessions revoke-all`` or ``ots session delete`` instead (#4354).
+
+- Removed the nonfunctional Colonel configuration editor write controls. The
+  console configuration view is read-only (#4355).
+
+Fixed
+-----
+
+- Simple-mode ``Login failed`` events now identify the attempted account rather
+  than the account associated with the request session (#4361).
+
+Security
+--------
+
+- Destructive operator actions now report an audit-write failure instead of a
+  successful response when their audit event cannot be stored (#4333).
+  Because most actions write their audit event after the mutation, operators
+  must reconcile the target after such a failure; it may have completed.
+
+- Audit retention trimming can no longer empty the operator trail through the
+  audit API (#4334).
+
+- Failed sign-ins against existing Colonel accounts are now recorded as
+  ``colonel.signin_failed`` in both authentication modes. The audit event uses
+  an obscured account email and coarse failure details (#4339).
+
+- Simple-mode sign-in now authenticates only the account named in the login
+  field, including on requests that already carry a session.
+
+- Rack now uses the proxy-configured forwarding header family when resolving
+  request authority and scheme, preventing an unmanaged RFC 7239
+  ``Forwarded`` header from overriding proxy-managed ``X-Forwarded-*`` values
+  (#4377).
+
+- Deployments whose edge sends only ``Forwarded`` must also send
+  ``X-Forwarded-*`` headers for TLS scheme detection (#4377).
+
+- With ``site.network.trusted_proxy.enabled: true``, upgraded otto now removes
+  forwarded authority headers supplied by an untrusted peer before Rack resolves
+  the request host, scheme, or port. Configure trusted proxy CIDRs narrowly
+  (#4378).
+
+- RFC 7239 ``Forwarded: host=`` is no longer used to determine the application
+  host. Deployments that depend on it must rewrite ``Host`` or provide
+  ``X-Forwarded-Host``, ``Apx-Incoming-Host``, or ``X-Original-Host`` through a
+  configured trusted proxy (#4121).
+
+AI Assistance
+-------------
+
+- AI assistance was used to design the session overlay and its request-path
+  restrictions, implement the console action, banner, and audit events, and
+  write the accompanying tests.
+
+.. _changelog-0.26.10:
+
+0.26.10 — 2026-08-30
+====================
+
+Changed
+-------
+
+- v1 API form errors now group by endpoint and are reported at warning level.
+
+- Errors from in-app browsers whose injected bridge did not load are ignored.
+
+Fixed
+-----
+
+- Verified signups now retain a validated ``?redirect=`` destination across
+  email confirmation, including when the confirmation link opens in another
+  browser. A valid pending paid-plan selection still takes precedence (#4305).
+
+- Paid-plan selections made before signup now reach the web-app checkout
+  handoff instead of being consumed during email verification (#4305).
+
+- Passkey sign-in now applies the same post-authentication destination rules as
+  password sign-in: a valid pending plan selection, then a validated
+  ``?redirect=`` destination (#4305).
+
+- Frontend diagnostics now apply configured filtering and grouping to manually
+  captured errors.
+
+- Password confirmation flows no longer record a login or run login-session
+  side effects.
+
+- Invalid UTF-8 session-cookie values are rejected instead of causing a server
+  error.
+
+- Custom-domain lists accept proxy ``vhost.keep_host`` values provided as
+  booleans.
+
+- Paid-plan selections made before signup now survive MFA and are consumed only
+  after the signed-in user reaches the billing plans flow. A failed handoff can
+  be retried during its 24-hour window (#4306).
+
+- ``/billing`` and ``/billing/plans`` now preserve plan-selector query
+  parameters when resolving to organization-scoped billing pages (#4306).
+
+Security
+--------
+
+- Redirect destinations now accept internal paths only, preventing malformed
+  or external targets from crossing the authentication boundary (#4305).
+
+- Authentication logs and diagnostic payloads no longer include redirect-borne
+  invitation or email-confirmation credentials (#4305).
+
+- Diagnostic reports no longer include secret or receipt identifiers in event
+  grouping keys or request-context paths.
+
+AI Assistance
+-------------
+
+- AI assistance was used to trace the redirect drop points across the
+  signup, verification, and passwordless sign-in flows, implement the
+  server-side persistence with parity validators, and build the
+  end-to-end browser coverage.
+
 .. _changelog-0.26.9:
 
 0.26.9 — 2026-08-26

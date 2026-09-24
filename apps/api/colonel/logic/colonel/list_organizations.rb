@@ -253,9 +253,6 @@ module ColonelAPI
 
         # Matches the sibling colonel logic classes (repair_domain,
         # transfer_domain, purge_dlq) rather than introducing a shared helper.
-        def truthy?(value)
-          %w[true 1 yes on].include?(value.to_s.strip.downcase)
-        end
 
         def build_org_data(org)
           owner = org.owner

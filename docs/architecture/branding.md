@@ -25,8 +25,10 @@ consumers only ever read the `brand:` block. See
 [Legacy migration](#legacy-migration-3612).
 
 **Step 1 — per-domain (Redis).** Custom domains store their own brand in
-`CustomDomain#branding` (`BrandSettings`, 22 fields, WCAG-AA validated).
-Delivered to the frontend as `domain_branding` in the bootstrap payload.
+`CustomDomain#branding` (`BrandSettings`, currently 25 fields). Write-time
+validation checks supported values and formats, but does **not** reject a
+low-contrast palette; contrast remains an operator responsibility. Delivered to
+the frontend as `domain_branding` in the bootstrap payload.
 
 **Step 2 — site-wide (OT.conf).** `BrandSettingsConstants.global_defaults` reads
 `OT.conf['brand']` at runtime. The `brand:` block in
@@ -64,28 +66,30 @@ the fallback — it is retained only where OTS-orange is specifically intended
 
 ## Config keys
 
-Each `BRAND_*` ENV var populates `OT.conf['brand'][...]` → a `brand_*` bootstrap
-field. No defaults shipped.
+Most identity `BRAND_*` ENV vars populate `OT.conf['brand'][...]`. Only
+the values the Vue app needs are serialized as `brand_*` bootstrap fields;
+head, email, and MFA settings are consumed on their respective server-side
+surfaces. No identity defaults ship in YAML.
 
-| ENV var                      | Purpose                                            |
-| ---------------------------- | -------------------------------------------------- |
-| `BRAND_PRIMARY_COLOR`        | base hue for the generated palette                 |
-| `BRAND_PRODUCT_NAME`         | product name / manifest name                       |
-| `BRAND_PRODUCT_DOMAIN`       |                                                    |
-| `BRAND_SUPPORT_EMAIL`        |                                                    |
-| `BRAND_CORNER_STYLE`         | `rounded` \| `square` \| `pill`                    |
-| `BRAND_FONT_FAMILY`          | `sans` \| `serif` \| `mono`                        |
-| `BRAND_BUTTON_TEXT_LIGHT`    |                                                    |
-| `BRAND_LOGO_URL`             | masthead + email logo, per-domain default          |
-| `BRAND_LOGO_DARK_URL`        | dark-theme masthead logo (web UI only)             |
-| `BRAND_LOGO_ALT`             | logo alt text (falls back to product-name i18n)    |
-| `BRAND_FAVICON_URL`          | `/favicon.ico` 302 redirect                        |
-| `BRAND_APPLE_TOUCH_ICON_URL` | head `apple-touch-icon`                            |
-| `BRAND_OG_IMAGE_URL`         | head `og:image` / `twitter:image` (absolute; `none` disables; never emitted on custom domains) |
-| `BRAND_TOTP_ISSUER`          | MFA issuer label (falls back to product name)      |
-| `BRAND_SIGNATURE_NAME`       | email sign-off (see Special cases)                 |
-| `BRAND_PACK`                 | pack NAME → `etc/branding/` then `public/branding/` (unset ⇒ `default`) |
-| `BRAND_ASSETS_DIR`           | explicit pack PATH (wins over `BRAND_PACK`)        |
+| ENV var                      | Purpose | Delivery surface |
+| ---------------------------- | ------- | ---------------- |
+| `BRAND_PRIMARY_COLOR`        | base hue for the generated palette | bootstrap |
+| `BRAND_PRODUCT_NAME`         | product name / manifest name | bootstrap; server-rendered head |
+| `BRAND_PRODUCT_DOMAIN`       | product domain | bootstrap |
+| `BRAND_SUPPORT_EMAIL`        | support address | bootstrap |
+| `BRAND_CORNER_STYLE`         | `rounded` \| `square` \| `pill` | bootstrap |
+| `BRAND_FONT_FAMILY`          | `sans` \| `serif` \| `mono` | bootstrap |
+| `BRAND_BUTTON_TEXT_LIGHT`    | preferred button-label colour | bootstrap |
+| `BRAND_LOGO_URL`             | masthead + email logo, per-domain default | bootstrap; email |
+| `BRAND_LOGO_DARK_URL`        | dark-theme masthead logo (web UI only) | bootstrap |
+| `BRAND_LOGO_ALT`             | logo alt text (falls back to product-name i18n) | bootstrap |
+| `BRAND_FAVICON_URL`          | `/favicon.ico` 302 redirect | bootstrap; favicon route |
+| `BRAND_APPLE_TOUCH_ICON_URL` | head `apple-touch-icon` | server-rendered head |
+| `BRAND_OG_IMAGE_URL`         | head `og:image` / `twitter:image` (absolute; `none` disables; never emitted on custom domains) | server-rendered head |
+| `BRAND_TOTP_ISSUER`          | MFA issuer label (falls back to product name) | MFA enrollment |
+| `BRAND_SIGNATURE_NAME`       | email sign-off (see Special cases) | email |
+| `BRAND_PACK`                 | pack NAME → `etc/branding/` then `public/branding/` (unset ⇒ `default`) | static asset selection |
+| `BRAND_ASSETS_DIR`           | explicit pack PATH (wins over `BRAND_PACK`) | static asset selection |
 
 `BRAND_PACK` / `BRAND_ASSETS_DIR` are the two exceptions to the "populates
 `OT.conf['brand']`" rule above: they populate `site.brand_pack` /
@@ -282,7 +286,9 @@ in that file.
 
 ## Validation (write-time, API)
 
-- **Colour**: 3/6-digit hex, expanded + uppercased; WCAG-AA ≥3:1 vs white.
+- **Colour**: 3/6-digit hex format. Colour values are normalized where the
+  API/model applies normalization; WCAG contrast is **not** a write-time gate.
+  Operators must check the palette before deployment.
 - **Font**: `sans` \| `serif` \| `mono` (case-insensitive).
 - **Corner**: `rounded` \| `square` \| `pill` → `rounded-md` \| `rounded-none` \| `rounded-xl`.
 - **URLs** (`logo_url`, `favicon_url`): HTTPS or `/`-relative, ≤2048 chars, no

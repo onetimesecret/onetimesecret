@@ -58,6 +58,8 @@ describe('Currency migration service methods', () => {
     });
 
     it('calls correct endpoint with immediate mode', async () => {
+      // Live shape (currency_migration_service.rb): checkout_url/refund_* —
+      // see the migrateCurrency() comment in billing.service.ts.
       const mockResponse = {
         data: {
           success: true,
@@ -138,7 +140,10 @@ describe('Currency migration service methods', () => {
     it('extracts conflict details from 409 response', () => {
       // Build an error-like object matching what axios produces at runtime.
       // The extractCurrencyConflict function checks 'response' in error,
-      // then data.code === 'currency_conflict'.
+      // then data.code === 'currency_conflict'. Shape verified against the
+      // live billing controller (checkout 409 branch): { error, code,
+      // details: { existing_currency, requested_currency, current_plan,
+      // requested_plan, warnings } } — not a flat payload.
       const conflictData = {
         error: true,
         code: 'currency_conflict',
@@ -148,12 +153,12 @@ describe('Currency migration service methods', () => {
           requested_currency: 'cad',
           current_plan: {
             name: 'Identity Plus',
-            price_formatted: 'EUR 9.00',
+            price_formatted: '€9.00',
             current_period_end: 1704067200,
           },
           requested_plan: {
             name: 'Team Plus',
-            price_formatted: 'CAD 99.00',
+            price_formatted: 'CA$99.00',
             price_id: 'price_cad_456',
           },
           warnings: {

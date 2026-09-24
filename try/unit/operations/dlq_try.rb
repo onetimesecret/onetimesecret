@@ -13,9 +13,15 @@
 # - Peek: non-destructive peek — the queue is left exactly as found (read-only, NO audit)
 # - Replay: re-enqueues to the original queue, records EXACTLY ONE audit event
 #   (verb queue.dlq.replay, actor = PUBLIC id, target = queue)
-# - Replay empty / dry-run: no mutation, NO audit
+# - Replay empty: no mutation, but the LIVE attempt still records ONE event with
+#   outcome: 'no_change' (#4337); a dry-run against an empty queue stays off the
+#   operator trail (its preview is an observation on the access trail)
+# - Replay dry-run: no mutation, NO operator-trail audit
 # - Purge: empties the queue, records EXACTLY ONE audit event (verb queue.dlq.purge)
-# - Purge empty / dry-run: no mutation, NO audit
+# - Purge empty: no mutation, but the LIVE attempt still records ONE event with
+#   outcome: 'no_change' (#4337 — the trail must show the firing, not the timing)
+# - Purge dry-run: no mutation, NO operator-trail audit (the preview is an
+#   observation on the access trail)
 #
 # The RabbitMQ broker is stubbed by a duck-typed fake connection (no live broker
 # needed), so the audit-exactly-once contract can be asserted deterministically.
@@ -235,13 +241,24 @@ AE.events.clear
 [@bad.status, @bad.replayed, @bad.failed, AE.count]
 #=> [:success, 0, 1, 1]
 
-# ---- Replay: empty queue is a no-op -----------------------------------
+# ---- Replay: empty queue mutates nothing, still records the attempt ----
 
-## replaying an empty DLQ is a no-op (:empty), records NO audit
+## replaying an empty DLQ is a no-op (:empty) but the LIVE attempt is audited (#4337)
 AE.events.clear
 @empty = Onetime::Operations::Dlq::Replay.new(connection: FakeConnection.new(FakeQueue.new([])), queue: @dlq, actor: @actor).call
 [@empty.status, @empty.replayed, AE.count]
-#=> [:empty, 0, 0]
+#=> [:empty, 0, 1]
+
+## the empty-replay event keeps the replay verb + queue target, marked outcome: no_change
+@eev = AE.recent(1).first
+[@eev['verb'], @eev['target'], @eev['result'], @eev['detail']]
+#=> ["queue.dlq.replay", "dlq.billing.event", "success", { "outcome" => "no_change", "replayed" => 0, "failed" => 0 }]
+
+## a dry-run against an empty DLQ stays off the operator trail (preview observation only)
+AE.events.clear
+@empty_dry = Onetime::Operations::Dlq::Replay.new(connection: FakeConnection.new(FakeQueue.new([])), queue: @dlq, actor: @actor, dry_run: true).call
+[@empty_dry.status, AE.count]
+#=> [:empty, 0]
 
 # ---- Replay: dry-run --------------------------------------------------
 
@@ -313,13 +330,18 @@ AE.count
 [@pev['verb'], @pev['target'], @pev['detail']['purged']]
 #=> ["queue.dlq.purge", "dlq.billing.event", 6]
 
-# ---- Purge: empty queue is a no-op ------------------------------------
+# ---- Purge: empty queue mutates nothing, still records the attempt ----
 
-## purging an empty DLQ is a no-op (:empty), records NO audit
+## purging an empty DLQ is a no-op (:empty) but the LIVE attempt is audited (#4337)
 AE.events.clear
 @pe = Onetime::Operations::Dlq::Purge.new(connection: FakeConnection.new(FakeQueue.new([])), queue: @dlq, actor: @actor).call
 [@pe.status, @pe.purged, AE.count]
-#=> [:empty, 0, 0]
+#=> [:empty, 0, 1]
+
+## the empty-purge event keeps the purge verb + queue target, marked outcome: no_change
+@pev = AE.recent(1).first
+[@pev['verb'], @pev['target'], @pev['result'], @pev['detail']]
+#=> ["queue.dlq.purge", "dlq.billing.event", "success", { "outcome" => "no_change", "purged" => 0 }]
 
 # ---- Purge: dry-run ---------------------------------------------------
 

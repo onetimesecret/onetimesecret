@@ -66,6 +66,10 @@ describe('applyGroupingRules — schema validation (Rule A)', () => {
     // The deploy-fragmentation case: same defect, two deploys, two bundle
     // hashes. Default grouping keys on the frames and splits them; the
     // explicit rule must not.
+    // `culprit` (a server-side Sentry issue field, not part of the outbound
+    // SDK `ErrorEvent` type) is deliberately omitted here — the differing
+    // minified bundle is represented instead by each frame's own
+    // filename/function, which is what the rule must ignore.
     const eventDeployA: ErrorEvent = {
       type: undefined,
       exception: {
@@ -129,7 +133,10 @@ describe('applyGroupingRules — schema validation (Rule A)', () => {
   it('leaves the context-less message family to default grouping', () => {
     // gracefulParse without a context argument emits no "for <SchemaName>"
     // clause — there is no stable name to key on.
-    const event: ErrorEvent = { type: undefined, message: 'Schema validation failed — 1 issue(s) [(root)]: …' };
+    const event: ErrorEvent = {
+      type: undefined,
+      message: 'Schema validation failed — 1 issue(s) [(root)]: …',
+    };
 
     applyGroupingRules(event);
 
@@ -284,7 +291,11 @@ describe('applyGroupingRules — pass-through', () => {
   });
 
   it('respects a grouping array already set upstream', () => {
-    const event: ErrorEvent = { type: undefined, message: SCHEMA_MESSAGE, fingerprint: ['custom-upstream-group'] };
+    const event: ErrorEvent = {
+      type: undefined,
+      message: SCHEMA_MESSAGE,
+      fingerprint: ['custom-upstream-group'],
+    };
 
     applyGroupingRules(event);
 
@@ -393,7 +404,14 @@ describe('beforeSend integration', () => {
     createDiagnostics({
       host: 'example.com',
       config: {
-        sentry: { dsn: 'https://key@sentry.io/123', enabled: true, logErrors: true, trackComponents: true, environment: 'test', release: '1.0.0' },
+        sentry: {
+          dsn: 'https://key@sentry.io/123',
+          enabled: true,
+          logErrors: true,
+          trackComponents: true,
+          environment: 'test',
+          release: '1.0.0',
+        },
       },
       router: createMockRouter(),
     });

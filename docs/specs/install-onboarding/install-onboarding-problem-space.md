@@ -255,10 +255,12 @@ wizard. Phase 1b (optional, later): a generation counter / pub-sub bump for
 hot-reloading keys that are safe to change live without a restart. Do not let
 hot-reload complexity delay 1a.
 
-**R1.4 — Implement `POST /api/colonel/config`.** The route missing from
-`apps/api/colonel/routes.txt`, with per-section schema validation and
-write-only semantics for secrets (masked values round-trip as "unchanged").
-The frontend store's `update()` already targets this endpoint.
+**R1.4 — Implement `POST /api/colonel/config`.** Configuration visibility is
+currently read-only: the backend exposes only `GET /api/colonel/config`, and
+the former frontend `update()` path was removed because it could only 404.
+A runtime-overlay implementation must add both the validated write endpoint
+and a deliberate editing UI, with write-only semantics for secrets (masked
+values round-trip as "unchanged").
 
 ### Phase 2 — First-run web wizard (the Pattern A moment)
 

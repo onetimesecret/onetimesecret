@@ -52,7 +52,7 @@ No code currently calls `is_default! false` post-creation. The immutability is d
 
 The active org for a request is determined by `OrganizationLoader`, a module included in all auth strategies. See the module's header comment for the priority chain and caching behavior.
 
-The result is cached in the session and flows into controller context via `env['otto.auth_result'].metadata[:organization_context]`.
+The result is cached in the Rack session and flows into controller context via `env['otto.strategy_result'].metadata[:organization_context]`.
 
 ## Active Domain Selection
 
@@ -64,20 +64,20 @@ See Onetime::Middleware::DomainStrategy.
 |-------|--------|---------|----------|
 | `signup_domain_id` | `Customer` | CustomDomain identifier at signup | Account creation |
 
-### Purpose
+### Current behavior
 
-`signup_domain_id` captures the custom domain context when a user signs up. Used for:
+`signup_domain_id` captures the custom-domain identifier during new account
+creation, including password sign-up and SSO JIT provisioning. It is provenance
+metadata, not current domain state:
 
-1. **Re-verification** — When re-verification is triggered without request context (background job, admin action), this field determines which domain's validation strategy applies.
-
-2. **Background jobs** — Jobs processing signup-related work can load the associated `SignupConfig` without request context.
-
-### Semantic: "First Meaningful Association"
-
-The field captures provenance, not current state:
-
-- **Set if missing, don't overwrite** — If a user signed up on canonical (no custom domain) then later interacts on a tenant domain, the field is set on that interaction. Once set, it's not overwritten.
-- **Nil is valid** — Users who only interact on canonical domain have no `signup_domain_id`. Global config applies.
+- **Written at account creation only** — Existing accounts are not updated when
+  they later interact with a tenant domain.
+- **Nil is valid** — An account created without a resolved custom domain has no
+  `signup_domain_id`.
+- **No current policy fallback** — The current signup-policy resolver uses the
+  request's `display_domain`; it does not read `signup_domain_id`. Do not rely on
+  this field for re-verification or background-job policy selection unless that
+  reader is implemented.
 
 ### Comparison to Other SaaS
 
@@ -94,16 +94,15 @@ These products don't need a "signup domain" because workspace membership is the 
 
 ### Limitations
 
-**Single-field approach breaks down with multi-tenant users.** If a user is a member of multiple organizations with different custom domains, `signup_domain_id` captures only one. For out-of-band operations, we'd need to either:
-
-- Look up org memberships and find the relevant domain
-- Accept that a "primary" or "most recent" association is used
-
-This is acceptable for MVP. Multi-tenant edge cases are rare and can be addressed by using request context when available (which covers most cases).
+A single provenance field cannot represent all of a multi-organization user's
+custom-domain associations. Any future out-of-band policy reader must define how
+it selects the relevant domain instead of treating `signup_domain_id` as a current
+membership or primary-domain record.
 
 ### When Request Context Is Available
 
-When `display_domain` is in the request (web flows), it takes precedence over `signup_domain_id`. The stored field is only consulted when request context is unavailable.
+Current signup-policy resolution uses `display_domain` from the request. It does
+not fall back to `signup_domain_id` when request context is unavailable.
 
 ## Key Files
 

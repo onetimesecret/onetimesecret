@@ -1,8 +1,13 @@
 # Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
-# (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
-#
-# A try:unit failure aborts the lane before spec:fast ever runs (#4168's
-# secondary issue): say so explicitly, or a red lane silently implies the
-# rspec half was exercised when it wasn't.
-bundle exec rake try:unit || { echo "[lane:unit] try:unit FAILED — spec:fast did NOT run; the rspec half of this lane is unverified" >&2; exit 1; }
-bundle exec rake spec:fast
+# (bash -euo pipefail). Legs are collected, not chained: every leg runs even
+# when an earlier one fails, then the lane exits non-zero naming the red legs.
+# A chain that stops at the first failure silently skips the rest (#4168's
+# secondary issue: a red try:unit implied the rspec half was exercised when it
+# never ran) — same shape rake spec:fast fixes inside itself for its own legs.
+failed=()
+bundle exec rake try:unit || failed+=(try:unit)
+bundle exec rake spec:fast || failed+=(spec:fast)
+if (( ${#failed[@]} > 0 )); then
+  echo "[lane:unit] FAILED leg(s): ${failed[*]} — every leg ran; each leg's results are above" >&2
+  exit 1
+fi

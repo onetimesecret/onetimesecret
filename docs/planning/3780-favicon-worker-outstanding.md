@@ -1,6 +1,9 @@
 # #3780 — Favicon fetch worker: outstanding work & opportunities
 
 **Date:** 2026-08-11
+**Re-verified:** 2026-09-06 — every item in §0–§4 re-checked against the tree. **Nothing has
+been fixed; no item is closed.** #4135 is still OPEN. Line references below were refreshed
+where the code moved; the findings themselves are unchanged.
 **Status of #3780 itself:** Implemented and merged (PR #3782, 2026-07-15). This document
 supersedes `3780-favicon-worker-blueprint.md`, `3780-favicon-worker-decisions.md`, and
 `3780-favicon-worker-phase23-blueprint.md` as the tracker for what's left — those three now
@@ -13,22 +16,22 @@ places as they land, and keep this document in sync with that issue.
 Produced by a code-verified audit (8 independent agents, each finding checked directly against
 the current tree, not against the original adversarial-review comment's claims) run against the
 current codebase on 2026-08-11. Every item below cites file:line evidence; see the audit for the
-full trace if needed.
+full trace if needed. Line numbers re-confirmed 2026-09-06.
 
 ## 0. Read this first: the flag-default contradiction
 
-**`jobs.favicon_fetch.enabled` currently defaults to `true`** (`etc/defaults/config.defaults.yaml:1275`,
+**`jobs.favicon_fetch.enabled` currently defaults to `true`** (`etc/defaults/config.defaults.yaml:1579`,
 comment: *"Feature flag — default ON (see #3780)"*). This directly contradicts:
 - Issue #3780's own Definition of Done: *"Feature flag defaults off"*.
 - PR #3782's description: *"Flag-gated OFF (`jobs.favicon_fetch`) — no runtime behaviour changes
   until enabled."*
 
 `jobs.favicon_backfill.enabled` (the nightly scan) correctly still defaults to `false`
-(`config.defaults.yaml:1296`), so the nightly-scan-specific bugs below (#2, #4, #5) are only live
+(`config.defaults.yaml:1600`), so the nightly-scan-specific bugs below (#2, #4, #5) are only live
 once an operator flips that second flag. But the fetch-on-add, fetch-on-verify, and manual-refresh
 triggers are live **today**, by default, on every deployment that also has `jobs.enabled: true`
 (or run inline-synchronously on the request/verification thread when `jobs.enabled` is `false`,
-which is itself the default — see `config.defaults.yaml:1179`).
+which is itself the default).
 
 This matters because the original adversarial-review comment on the issue graded several findings
 as low/medium severity partly *because* it assumed the feature was dormant ("none of these are
@@ -50,33 +53,37 @@ Findings the review raised that have since been fixed are *not* listed here (see
 1. **Perpetually-timing-out domains bypass the attempt cap.** `favicon_fetch_attempts` is
    incremented only by `record_none_found`/`record_failure`
    (`lib/onetime/operations/fetch_domain_favicon.rb:345-379`); the `SafeFetch::FetchTimeout`
-   rescue (`:152-159`) re-raises without stamping anything. A host that always times out never
+   rescue (`:152`) re-raises without stamping anything. A host that always times out never
    trips `max_attempts` and (once `favicon_backfill` is enabled) is re-enqueued every night
    forever. No regression test exists for the attempts counter on the timeout path either
    (`fetch_domain_favicon_try.rb:248-261` asserts status only, not attempts).
 
 2. **`requeue!` is a dead retry tier.** `claim_for_processing` (`base_worker.rb:250-255`) is never
-   released on the timeout/requeue path in `favicon_fetch_worker.rb` — contrast
+   released on the timeout/requeue path in `favicon_fetch_worker.rb:155` (still a bare `requeue!`,
+   no `release_processing_claim` anywhere in the file) — contrast
    `session_revocation_sweep_worker.rb:110-118`, which calls `release_processing_claim` before
    `reject!` specifically to avoid this trap. A broker redelivery of the same message within the
    1h idempotency TTL is silently ack'd as a "duplicate" and never reprocessed; the domain stalls
    at `PROCESSING` until the next nightly backfill (if enabled) or forever (if not).
 
-3. **No per-domain exception isolation in the nightly scan.** `favicon_backfill_job.rb:85-113`
-   wraps the *entire* scan (all pages) in one `rescue StandardError`. The pagination design itself
+3. **No per-domain exception isolation in the nightly scan.**
+   `lib/onetime/jobs/scheduled/favicon_backfill_job.rb:85-113` wraps the *entire* scan (all pages)
+   in one method-level `rescue StandardError` (`:110`). The pagination design itself
    is correct — it loops through the full domain set in `batch_size` pages (`:92-107`), not just
    the newest page — but one bad domain or a transient publish error mid-scan aborts everything
    after it for that run, undermining the full-coverage design.
 
 4. **`FaviconBackfillJob.enabled?` omits the master `jobs.enabled` gate.** It checks only
-   `favicon_backfill.enabled` and `favicon_fetch.enabled` (`favicon_backfill_job.rb:62-65`). An
+   `favicon_backfill.enabled` and `favicon_fetch.enabled` (`favicon_backfill_job.rb:62-65`, whose
+   own comment "Both gates required" names only those two). An
    operator who flips `favicon_backfill.enabled=true` without also setting the master
    `JOBS_ENABLED=true` gets synchronous, blocking SSRF-guarded fetches run inline on the
    rufus-scheduler thread for up to `batch_size` (500) domains per run.
 
 5. **Wall-clock deadline doesn't cover the header/status-line read.** `check_deadline!` is called
-   only at fetch-entry and per body chunk (`lib/onetime/http/safe_fetch.rb:139,298`); the
-   status-line/header read inside `with_pinned_response` (`:262-265`) has no deadline check. A
+   only at fetch-entry and per body chunk (`lib/onetime/http/safe_fetch.rb:125,290` — the only two
+   call sites; helper defined at `:177`); the status-line/header read inside `with_pinned_response`
+   has no deadline check. A
    server that dribbles response headers one byte at a time can pin a worker thread indefinitely —
    a live worker-starvation surface now that the flag defaults on.
 
@@ -107,7 +114,7 @@ Findings the review raised that have since been fixed are *not* listed here (see
    status.
 
 10. **Deferred, tracked separately:** JPEG/WebP normalization for uploaded (non-fetched) icons
-    remains an explicit TODO (`apps/web/core/logic/page/get_favicon.rb:146`) — non-PNG uploads are
+    remains an explicit TODO (`apps/web/core/logic/page/get_favicon.rb:146`, still present) — non-PNG uploads are
     served at original size instead of resized to the 32×32 favicon dimension. Low priority;
     ICO passthrough (the #3780-specific case) is done.
 
@@ -132,7 +139,8 @@ silently reopen the corresponding bug with the full suite staying green.
 14. **Relative/protocol-relative redirect `Location` absolutization is untested** — every redirect
     test uses a fully-qualified URL; `#absolutize`'s relative-path and `//host/` branches are
     never hit.
-15. **Teredo (`2001:0000::/32`) is missing from `BLOCKED_V6`** — the same class of tunneling
+15. **Teredo (`2001:0000::/32`) is missing from `BLOCKED_V6`** (no `2001:0000` literal appears
+    anywhere in `safe_fetch.rb`) — the same class of tunneling
     prefix as the already-blocked 6to4 (`2002::/16`) and NAT64 (`64:ff9b::/96`) ranges, but
     omitted. Narrow, defense-in-depth gap (requires the fetching host to have Teredo transport
     configured).
@@ -162,7 +170,8 @@ silently reopen the corresponding bug with the full suite staying green.
 
 ## 4. Documentation debt
 
-21. **`docs/runbooks/favicon-fetch-worker.md` says the flag is "disabled by default" / `false`.**
+21. **`docs/runbooks/favicon-fetch-worker.md:6` still says the flag is "disabled by default" —
+    *"so nothing fetches until the feature flag is on"*.**
     This is the primary operational runbook for the feature and its central framing is now wrong
     (see §0). Needs updating regardless of which way the flag-default decision goes.
 22. **Same doc says the refresh endpoint "still returns a queued success" when the flag is off** —
@@ -179,8 +188,8 @@ silently reopen the corresponding bug with the full suite staying green.
 25. **`docs/specs/brand-manager/brand-manager-favicon-support.md` is stale.** It predates the PR
     merge and states *"there are no favicon API endpoints yet"* — no longer true. Should be
     archived or updated to reflect the shipped state.
-26. **No CHANGELOG entry.** `changelog.d/` has active, current fragments (through 2026-08-10 for
-    unrelated issues) but nothing for #3780/#3782, despite this being a behavior change live by
+26. **No CHANGELOG entry.** `changelog.d/` still contains no fragment mentioning #3780/#3782 or
+    favicon fetching, despite this being a behavior change live by
     default for every deployment (outbound fetches to every custom domain).
 
 ## 5. Related work not defined by #3780 but that should be completed
@@ -194,7 +203,8 @@ silently reopen the corresponding bug with the full suite staying green.
   #5 (worker-pinning) first since they're live today regardless of `favicon_backfill`; #1, #3, #4
   matter once the nightly scan is turned on.
 - Get `E2E_CUSTOM_DOMAINS` unblocked in CI (tracked under #3420) so
-  `domain-favicon-refresh.spec.ts` actually runs — it's the only test that would catch a
+  `e2e/full/domain-favicon-refresh.spec.ts` actually runs (the file still carries its "DORMANT in
+  CI" note at `:23`) — it's the only test that would catch a
   regression in the real `DomainBrand.vue` → `useDomain` → `SimpleBrandPanel` derivation chain.
 - Write the CHANGELOG fragment and update the three docs in §4.
 

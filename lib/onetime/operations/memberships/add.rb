@@ -38,7 +38,9 @@ module Onetime
       # {SetRole} op's job; folding a demote/promote into "add" would let an add
       # silently demote the last owner. The Result carries the member's CURRENT
       # role so the adapter can point the operator at set-role. A real add records
-      # EXACTLY ONE {Onetime::ColonelAuditEvent}; a `:no_change` audits nothing.
+      # EXACTLY ONE {Onetime::ColonelAuditEvent}. A repeat-add attempt is STILL
+      # recorded under the same verb with `outcome: 'no_change'` (#4337) — the
+      # mutation is skipped, the attempt is not.
       #
       # ## Refusals audit too
       #
@@ -97,7 +99,9 @@ module Onetime
               OT.le '[Memberships::Add] active membership has blank role ' \
                     "org=#{@org.extid} member=#{@customer.extid}"
             end
-            return build(:no_change, current_role.empty? ? @role : current_role)
+            role         = current_role.empty? ? @role : current_role
+            record_no_change_event(role)
+            return build(:no_change, role)
           end
 
           membership = Onetime::OrganizationMembership.ensure_membership(@org, @customer, role: @role)
@@ -132,6 +136,23 @@ module Onetime
             org_id: @org.extid,
             customer_id: @customer.extid,
             role: role,
+          )
+        end
+
+        # A LIVE no-change attempt (#4337) — the OPERATOR trail. Adding a
+        # customer who is already a member mutates nothing, but it is the same
+        # reach as a real add, and the trail should not go quiet for it. Same
+        # verb and target as the applied event; detail mirrors its shape (the
+        # member's CURRENT role — the one the Result echoes — plus org_id) with
+        # the `outcome: 'no_change'` marker. NOT fail-closed: nothing moved.
+        # No local rescue — `record` is best-effort and swallows its own errors.
+        def record_no_change_event(role)
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @customer.extid,
+            result: :success,
+            detail: { outcome: 'no_change', role: role, org_id: @org.extid },
           )
         end
 

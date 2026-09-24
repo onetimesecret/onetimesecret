@@ -87,7 +87,60 @@ const securityTree: AugmentTree = {
   csp: cspTree,
 };
 
+// Step-up (sudo) window for destructive colonel actions (#4327). ON by
+// default, mirroring config.defaults.yaml: a colonel session alone is not
+// sufficient for a tier-1 verb.
+//
+// reauth_grace defaults to 0, and 0 is a MEANINGFUL value here (the grace is
+// off) rather than the "typo'd env var" case every other numeric guards
+// against — hence .min(0) and not .positive().
+const adminElevationTree: AugmentTree = {
+  enabled: (b) => b.default(true),
+  window: (n) => n.int().positive().default(600),
+  reauth_grace: (n) => n.int().min(0).default(0),
+};
+
+// One colonel rate-limit bucket. Every bucket has the same four fields but its
+// OWN shipped sizing, so this is a factory rather than a shared constant — a
+// single tree would have to pick one bucket's numbers and silently misreport
+// the other three in the generated JSON Schema. The values must stay in step
+// with config.defaults.yaml and with the DEFAULT_* constants in
+// lib/onetime/security/colonel_rate_limiter.rb.
+const colonelRateLimitBucketTree = (
+  maxAttempts: number,
+  window: number,
+  lockout: number
+): AugmentTree => ({
+  enabled: (b) => b.default(true),
+  max_attempts: (n) => n.int().positive().default(maxAttempts),
+  window: (n) => n.int().positive().default(window),
+  lockout: (n) => n.int().positive().default(lockout),
+});
+
+const adminRateLimitTree: AugmentTree = {
+  enabled: (b) => b.default(true),
+  // Step-up attempts (#4327); the mutation / destructive / handle-resolve
+  // buckets (#4329). Sizing rationale is in config.defaults.yaml.
+  elevation: colonelRateLimitBucketTree(5, 900, 900),
+  mutation: colonelRateLimitBucketTree(120, 300, 300),
+  destructive: colonelRateLimitBucketTree(10, 300, 900),
+  handle_resolve: colonelRateLimitBucketTree(60, 300, 300),
+};
+
+// Idle + absolute bounds on the ADMIN API SURFACE only (#4331), mirroring
+// config.defaults.yaml. Both numbers use .min(0) rather than .positive():
+// 0 DISABLES that bound and is a legitimate operator choice, unlike the
+// "typo'd env var collapsed to 0" case the positive() guards elsewhere catch.
+const adminSessionTree: AugmentTree = {
+  enabled: (b) => b.default(true),
+  idle_timeout: (n) => n.int().min(0).default(3600),
+  absolute_timeout: (n) => n.int().min(0).default(43200),
+};
+
 const adminTree: AugmentTree = {
+  elevation: adminElevationTree,
+  rate_limit: adminRateLimitTree,
+  session: adminSessionTree,
   // Empty defaults mirror config.defaults.yaml, but the two gates read empty
   // differently. Host gate: an empty list is still ACTIVE — it anchors on the
   // canonical hosts (DEFAULT_DOMAIN / site.host plus www. siblings) and

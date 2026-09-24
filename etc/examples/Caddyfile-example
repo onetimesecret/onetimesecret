@@ -266,18 +266,17 @@
 			# env['onetime.display_domain'], the value every custom-domain surface
 			# keys on (tenant SSO, sign-in gating, restrict_to, CSP form-action).
 			# Its precedence is X-Forwarded-Host > Apx-Incoming-Host >
-			# X-Original-Host > Forwarded > Host, and it takes the FIRST
-			# syntactically valid hostname -- it does not check whether that domain
-			# is one this install knows.
+			# X-Original-Host > Host, and it takes the FIRST syntactically valid
+			# hostname -- it does not check whether that domain is one this install
+			# knows.
 			#
-			# No host-bearing header may therefore carry a client-supplied value:
-			# X-Forwarded-Host is stripped rather than passed through, as are
-			# Apx-Incoming-Host (above, unless source-gated to Approximated) and
-			# Forwarded (below). The pinned X-Original-Host at precedence 3 only
-			# protects against carriers BELOW it -- anything above it that the
-			# proxy does not overwrite or strip remains a spoofing vector through
-			# trusted infra. Host is preserved above so Rack's request.host stays
-			# correct as well.
+			# No host-bearing header DetectHost considers may therefore carry a
+			# client-supplied value: X-Forwarded-Host is stripped rather than passed
+			# through, as is Apx-Incoming-Host (above, unless source-gated to
+			# Approximated). The pinned X-Original-Host at precedence 3 only protects
+			# against carriers BELOW it -- anything above it that the proxy does not
+			# overwrite or strip remains a spoofing vector through trusted infra.
+			# Host is preserved above so Rack's request.host stays correct as well.
 			# Passing the client's X-Forwarded-Host through instead lets any
 			# visitor shadow the real host: on an Approximated-fronted custom
 			# domain an injected X-Forwarded-Host outranks the Apx-Incoming-Host
@@ -293,10 +292,8 @@
 			# and is the sole setter of X-Forwarded-Host; declare that layer in
 			# `trusted_proxies` at the same time.
 			header_up -X-Forwarded-Host
-			# Forwarded (RFC 7239, precedence 4) is currently masked by the pinned
-			# X-Original-Host one slot above it -- but that is an ordering
-			# accident, not a policy. Strip it so host detection never depends on
-			# that invariant holding.
+			# DetectHost ignores RFC 7239 Forwarded, but Rack can still use it for
+			# request.host. Strip it so clients cannot steer Rack's host resolution.
 			header_up -Forwarded
 			header_up X-Forwarded-Proto {http.request.scheme}
 			header_up X-Geo-Country {http.request.header.X-Geo-Country}

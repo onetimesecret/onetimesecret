@@ -190,9 +190,68 @@ RSpec.describe Core::Views::AuthenticationSerializer do
     end
   end
 
+  # The impersonation block is read from the request-scoped context, NOT from
+  # the session, so the banner is computed from the same marker that decided
+  # which customer the rest of the payload describes.
+  describe '.serialize impersonation block' do
+    let(:cust) do
+      instance_double(Onetime::Customer,
+        custid: 'alice@example.com', email: 'alice@example.com',
+        created: nil, safe_dump: { 'custid' => 'alice@example.com' })
+    end
+
+    let(:view_vars) do
+      { 'authenticated' => true, 'cust' => cust, 'sess' => { 'external_id' => 'ur_colonel' } }
+    end
+
+    let(:context) do
+      {
+        'impersonation_id' => 'imp_deadbeefdeadbeef',
+        'impersonator_extid' => 'ur_colonel',
+        'target_extid' => 'ur_target',
+        'target_email' => 'alice@example.com',
+        'started_at' => 1_756_700_000,
+        'expires_at' => 1_756_701_800,
+      }.freeze
+    end
+
+    before do
+      allow(described_class).to receive(:account_has_password?).and_return(true)
+      allow(described_class).to receive(:password_auth_permitted?).and_return(true)
+      allow(cust).to receive(:role?).with(:colonel).and_return(false)
+      Onetime::SessionImpersonation.clear_context
+    end
+
+    after { Onetime::SessionImpersonation.clear_context }
+
+    it 'is nil when nothing is impersonated' do
+      expect(described_class.serialize(view_vars)['impersonation']).to be_nil
+    end
+
+    it 'emits exactly the six contract fields when active' do
+      Fiber[Onetime::SessionImpersonation::FIBER_KEY] = context
+
+      expect(described_class.serialize(view_vars)['impersonation']).to eq(context)
+    end
+
+    # `cust` is the TARGET during an impersonation, so gating on the role of
+    # the serialized customer would suppress the banner in its only use case.
+    it 'emits the block even though the serialized customer is not a colonel' do
+      Fiber[Onetime::SessionImpersonation::FIBER_KEY] = context
+
+      expect(described_class.serialize(view_vars)['authenticated']).to be(true)
+      expect(described_class.serialize(view_vars)['impersonation']).not_to be_nil
+    end
+  end
+
   describe 'output template' do
     it 'defaults password_auth_permitted to true' do
       expect(described_class.output_template['password_auth_permitted']).to be(true)
+    end
+
+    it 'defaults impersonation to nil — absence is the safe state' do
+      expect(described_class.output_template).to have_key('impersonation')
+      expect(described_class.output_template['impersonation']).to be_nil
     end
   end
 end

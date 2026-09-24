@@ -15,30 +15,41 @@
  * @param {Object} options.tierData - Tier timing data with seconds and targets
  */
 module.exports = async function postPrMetrics({ github, context, core, tierData }) {
+  // Targets are supplied by the check-ci-metrics action (the single source of
+  // truth for tier targets) and arrive as strings via the Actions expression
+  // syntax. Coerce to a number so the arithmetic below adds instead of
+  // concatenating. A missing/blank value yields null and the row renders "N/A"
+  // rather than a hardcoded default — this script intentionally keeps no copy
+  // of the target numbers.
+  function targetSeconds(value) {
+    const n = parseInt(value, 10);
+    return isNaN(n) ? null : n;
+  }
+
   const tiers = [
     {
       name: 'Tier 1',
       jobs: 'Lint & Build',
       seconds: tierData.tier1Seconds,
-      target: tierData.tier1Target || 60,
+      target: targetSeconds(tierData.tier1Target),
     },
     {
       name: 'Tier 2',
       jobs: 'Unit Tests',
       seconds: tierData.tier2Seconds,
-      target: tierData.tier2Target || 120,
+      target: targetSeconds(tierData.tier2Target),
     },
     {
       name: 'Tier 3',
       jobs: 'Integration Tests',
       seconds: tierData.tier3Seconds,
-      target: tierData.tier3Target || 210,
+      target: targetSeconds(tierData.tier3Target),
     },
     {
       name: 'Tier 4',
       jobs: 'Container Validation',
       seconds: tierData.tier4Seconds,
-      target: tierData.tier4Target || 400,
+      target: targetSeconds(tierData.tier4Target),
     },
   ];
 
@@ -67,6 +78,7 @@ module.exports = async function postPrMetrics({ github, context, core, tierData 
    */
   function statusIcon(secs, target) {
     if (!secs || secs === 'N/A') return '❓';
+    if (target == null) return '❓';
     const s = parseInt(secs, 10);
     if (isNaN(s)) return '❓';
     const warning = target + Math.floor(target * 0.2); // 20% buffer
@@ -77,10 +89,10 @@ module.exports = async function postPrMetrics({ github, context, core, tierData 
 
   // Build tier rows for the table
   const tierRows = tiers
-    .map(
-      (t) =>
-        `| ${t.name} | ${t.jobs} | ${formatDuration(t.seconds)} | <${t.target}s | ${statusIcon(t.seconds, t.target)} |`
-    )
+    .map((t) => {
+      const target = t.target == null ? 'N/A' : `<${t.target}s`;
+      return `| ${t.name} | ${t.jobs} | ${formatDuration(t.seconds)} | ${target} | ${statusIcon(t.seconds, t.target)} |`;
+    })
     .join('\n');
 
   const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;

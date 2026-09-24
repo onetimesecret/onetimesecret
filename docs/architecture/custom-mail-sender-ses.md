@@ -18,12 +18,16 @@ design (the three layers, who picks the provider, how credentials flow), see
 
 ## Scope
 
-SES here is the **sender-domain provisioning provider**, selected once per
-installation. It is **not** a per-customer choice and is **not** something an
-end user picks from a dropdown — exactly as with Lettermint, the operator
-configures the provider, and the customer's only decision is "do I want emails
-from my domain to use my from-address/reply-to?" (see the *Customer Decision
-Surface* section of the architecture overview).
+SES here is the **sender-domain provisioning provider** for the normal
+installation-configured flow. It is **not** a per-customer choice and is **not**
+something an end user picks from a dropdown — exactly as with Lettermint, the
+operator configures the provider, and the customer's only decision is "do I
+want emails from my domain to use my from-address/reply-to?" (see the *Customer
+Decision Surface* section of the architecture overview).
+
+Customer-facing endpoints leave `MailerConfig#provider` unset, so it resolves
+through `emailer.sender_provider` and then `EMAILER_MODE`. An explicitly set
+per-domain provider is an operator or legacy override and takes precedence.
 
 The work this provider enables is the **domain-level lifecycle**:
 

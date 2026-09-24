@@ -47,7 +47,6 @@ function createError(overrides: Partial<ApplicationError> = {}): ApplicationErro
   return {
     code: 'entitlement_required',
     message: 'Homepage secrets require Identity Plus plan',
-    status: 403,
     ...overrides,
   } as ApplicationError;
 }

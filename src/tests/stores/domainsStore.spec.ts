@@ -141,8 +141,8 @@ describe('domainsStore', () => {
       const domain = mockDomains['domain-1'];
       const newSettings = {
         primary_color: '#ff0000',
-        font_family: 'sans' as const,
-      };
+        font_family: 'sans',
+      } as const;
 
       // Mock the exact response format expected by the brandSettings schema
       axiosMock.onPut(`/api/domains/${domain.extid}/brand`).reply(200, {
@@ -182,8 +182,8 @@ describe('domainsStore', () => {
       const domain = mockDomains['domain-1'];
       const newSettings = {
         primary_color: '#ff0000',
-        font_family: 'sans' as const,
-      };
+        font_family: 'sans',
+      } as const;
 
       store.records = [domain]; // Set initial state
 

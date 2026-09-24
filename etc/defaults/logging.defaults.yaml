@@ -71,6 +71,47 @@ loggers:
   Session: info   # Session lifecycle (create, update, destroy)
   Workers: info   # RabbitMQ worker message processing and orchestration
 
+# Operator audit sink (#4334)
+#
+# Every ColonelAuditEvent is emitted as a structured log line on its own
+# `ColonelAudit` SemanticLogger category BEFORE it is written to Valkey, so a
+# datastore outage cannot lose the record. That stream is the durability story;
+# the capped sorted sets behind GET /api/colonel/audit are a queryable cache.
+#
+# The category is NOT listed under `loggers:` above and its level is pinned in
+# code (Onetime::ColonelAuditEvent::SINK_LEVEL): the audit stream must not go
+# quiet because someone raised the global level. Turning it off is a routing
+# decision at your collector, not a level.
+#
+# By default the sink rides the console appender — stdout in server modes,
+# stderr under the CLI — which is what container log collectors already read.
+# The optional syslog appender below is for operators who want the audit stream
+# shipped separately from application logs (a SIEM, a write-once host, a
+# different retention policy). It is DEFAULT OFF, and for the default local
+# URL it adds no third-party dependency: SemanticLogger ships the syslog
+# appender in-gem and it speaks through Ruby's own `syslog` library.
+#
+# The appender is FILTERED to the ColonelAudit category, so enabling it sends
+# the audit stream to syslog and nothing else.
+audit:
+  syslog:
+    # LOG_AUDIT_SYSLOG=true to enable.
+    enabled: <%= ENV['LOG_AUDIT_SYSLOG'] == 'true' %>
+    # protocol://host:port — 'syslog://localhost' writes to the LOCAL syslog
+    # daemon and needs nothing extra. 'tcp://loghost:514' / 'udp://loghost:514'
+    # ship to a REMOTE syslog server, which SemanticLogger implements with the
+    # third-party `syslog_protocol` gem (plus `net_tcp_client` for tcp://);
+    # neither is bundled here, so a remote URL needs them added to the Gemfile.
+    # Without them the appender is skipped with one warning at boot and the
+    # audit stream still reaches stdout — it is never silently dropped.
+    url: <%= ENV['LOG_AUDIT_SYSLOG_URL'] || 'syslog://localhost' %>
+    # Appender-level floor. Leave at info: the sink emits at info.
+    level: <%= ENV['LOG_AUDIT_SYSLOG_LEVEL'] || 'info' %>
+    # Syslog facility name (local0..local7, user, daemon, …). Operators
+    # usually give the audit stream its own facility so rsyslog/journald can
+    # route it to a dedicated file or forwarder.
+    facility: <%= ENV['LOG_AUDIT_SYSLOG_FACILITY'] || 'local0' %>
+
 # HTTP request logging configuration
 http:
   # Set LOG_HTTP_REQUESTS=false to disable. Useful when running a reverse proxy

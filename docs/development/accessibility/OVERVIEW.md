@@ -60,8 +60,15 @@ We've implemented fundamental accessibility features and continue to improve the
 ### Automated Testing & Enforcement Policy
 
 Accessibility is checked automatically in CI (engine:
-[axe-core](https://github.com/dequelabs/axe-core), Deque). Four scans run on
-every pull request, with two enforcement tiers:
+[axe-core](https://github.com/dequelabs/axe-core), Deque). The checks run for
+pull requests that match their workflows' branch and path filters, with two
+enforcement tiers.
+
+For local page-level scans, run `pnpm run build` first. Playwright then starts
+a local production server unless `PLAYWRIGHT_BASE_URL` points at another
+server. The authenticated scan also requires signup enabled and
+`AUTH_AUTOVERIFY=true` on its target so its setup project can create a verified
+test account without an email round-trip.
 
 - **Page-level, public — at rest (blocking)** — `e2e/all/accessibility.spec.ts`
   scans the public surfaces in **both light and dark** themes via
@@ -78,8 +85,9 @@ every pull request, with two enforcement tiers:
   in the `full/` CI suite. That suite is mid-remediation and currently runs
   `continue-on-error` (see `.github/workflows/e2e.yml` and
   `e2e/docs/e2e-remediation-plan.md`), so it reports but does not yet gate a
-  merge. It needs a signed-in session, so run it locally with test credentials:
-  `TEST_USER_EMAIL=… TEST_USER_PASSWORD=… pnpm test:a11y:full`.
+  merge. It needs a signed-in session and an auto-verified account, so run it
+  locally with `AUTH_AUTOVERIFY=true TEST_USER_EMAIL=… TEST_USER_PASSWORD=…
+  pnpm test:a11y:full`.
 - **Component-level (shift-left, blocking)** — `src/tests/shared/a11y/*.a11y.spec.ts`
   run axe in jsdom (via `vitest-axe`) against shared UI primitives on every
   `pnpm test`. (Color-contrast is excluded here — jsdom has no layout — and is
@@ -89,20 +97,18 @@ The policy the layers enforce:
 
 - **Target: WCAG 2.1 Level AA.** Rulesets: `wcag2a wcag2aa wcag21a wcag21aa`
   plus axe `best-practice`.
-- **Ratcheting baselines** (`e2e/accessibility-baseline*.json`) hold known,
-  tracked debt. A scan fails on any violation **not** in the baseline (a
-  regression), and **hard-fails on any new `serious`/`critical`** regardless of
-  baseline. Baselines may only **shrink**: fix a violation, then regenerate the
-  baseline for the surface you changed — `pnpm test:a11y:update` for the public
-  at-rest baseline (`e2e/accessibility-baseline.json`),
-  `pnpm test:a11y:interactive:update` for the interactive-state baseline
+- **Baselines** (`e2e/accessibility-baseline*.json`) hold known, tracked
+  violations. A scan fails on any stable violation key not in its baseline,
+  including new `serious` or `critical` violations. Regenerate the baseline for
+  a changed surface with `pnpm test:a11y:update` for public at-rest
+  (`e2e/accessibility-baseline.json`),
+  `pnpm test:a11y:interactive:update` for interactive states
   (`e2e/accessibility-baseline.interactive.json`), or
-  `pnpm test:a11y:full:update` (with test credentials, as above) for the
-  authenticated baseline (`e2e/accessibility-baseline.full.json`). Each script
-  regenerates only its own baseline. This mirrors the `e2e/QUARANTINE.md`
-  convention — tracked, visible, and always shrinking.
-- **Ownership** sits with the author of the changed component: a red a11y check
-  is a blocking defect, not a follow-up.
+  `pnpm test:a11y:full:update` (with the authenticated prerequisites above)
+  for signed-in surfaces (`e2e/accessibility-baseline.full.json`). Each command
+  rewrites only its corresponding baseline; review its resulting changes.
+- **Ownership** sits with the author of the changed component: a failing
+  blocking public or component a11y check is a defect, not a follow-up.
 - **Brand safety.** Operator brand colors are applied by remapping the brand
   scale (`src/utils/brand-palette.ts`); that generator computes an accessible
   text color per primary (`checkBrandContrast`), unit-tested in

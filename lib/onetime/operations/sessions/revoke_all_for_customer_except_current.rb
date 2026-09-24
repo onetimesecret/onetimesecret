@@ -5,6 +5,8 @@
 require 'onetime/operations/sessions/store'
 require 'onetime/session/sidecar'
 require 'onetime/models/session_metadata'
+require 'onetime/models/colonel_audit_event'
+require 'onetime/audit_reason'
 
 module Onetime
   module Operations
@@ -84,7 +86,18 @@ module Onetime
       # Stateless, single `#call`, returns an immutable {Result}. Best-effort by
       # contract: a missing customer degrades to a zero-count revoke rather than
       # raising (callers wrap it in ErrorHandler.safe_execute regardless).
+      #
+      # Construction rule: pass `customer:` whenever you hold the record;
+      # `custid:` is for id-only entry points (see #initialize for why).
       class RevokeAllForCustomerExceptCurrent
+        include Onetime::AuditReason
+
+        # Audit verb for the ADMIN caller only (see +actor:+). Deliberately the
+        # same verb {RevokeAllForCustomer} writes: to an operator reading the
+        # trail this is the same action, distinguished by `except_current` in
+        # the detail rather than by a second verb they would have to know about.
+        AUDIT_VERB = 'session.revoke_all'
+
         # Session-data identity fields matched against the target's extid during the
         # best-effort untracked sweep. Deliberately the same narrow set
         # {RevokeAllForCustomer} uses (extid only) — never account_id/email — so the
@@ -101,7 +114,20 @@ module Onetime
         #   unaffected; they never touch the scan)
         Result = Data.define(:revoked, :blobs_deleted, :untracked_deleted, :scan_capped)
 
-        # @param custid [String] the target customer (extid/email/objid).
+        # Exactly one of `custid:` / `customer:` must be given.
+        #
+        # @param custid [String, nil] the target customer AS ADDRESSED (Rodauth
+        #   account external_id/email, job payload id; extid, email, or objid).
+        #   Resolved in #load_customer via extid → email → objid; an
+        #   unresolvable value degrades to a zero-count revoke (class docs).
+        # @param customer [Onetime::Customer, nil] the target ALREADY RESOLVED.
+        #   Callers that hold the record (the credential-change logic, the
+        #   colonel self-target path) must pass it rather than its extid: a
+        #   re-resolution by extid is not guaranteed to agree with the record in
+        #   hand — the extid index has drifted before (#4205, #4217) — and a
+        #   miss would silently take the nil-customer branch and return a
+        #   `blobs_deleted: 0` success with every pre-change session still
+        #   live. The record is used as given; only `exists?` is still checked.
         # @param except_session_id [String, nil] the bare session id to PRESERVE
         #   (the caller's current session). nil/'' preserves nothing → revoke ALL.
         # @param scan_untracked [Boolean] run the best-effort untracked keyspace
@@ -112,10 +138,37 @@ module Onetime
         #   STRICTLY AFTER `Customer#last_password_update` (see class docs). Default
         #   FALSE. The async sweep worker passes TRUE; with a nil/empty/zero
         #   watermark the flag degrades to the unguarded revoke.
+        # @param actor [String, #extid, nil] acting COLONEL's public identity.
+        #   nil (the default) for every self-service caller, and nil is what
+        #   keeps the colonel trail free of self-service noise — the whole
+        #   reason this op does not audit (see class docs). The colonel
+        #   revoke-all endpoint routes its SELF-TARGET case here (#4328), and
+        #   that IS an admin action, so it passes an actor and one
+        #   {Onetime::ColonelAuditEvent} is written — by the op, never by the
+        #   adapter (CONTRACT 4).
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the admin audit detail. Meaningful only alongside
+        #   `actor:` — self-service callers pass neither and no event is
+        #   written. Blank is treated as absent; see {Onetime::AuditReason}.
         # @param dbclient [Object, nil] Redis-like client; defaults to Familia.dbclient.
-        def initialize(custid:, except_session_id: nil, scan_untracked: true,
-                       honor_credential_watermark: false, dbclient: nil)
-          @custid                     = custid
+        def initialize(custid: nil, customer: nil, except_session_id: nil,
+                       scan_untracked: true, honor_credential_watermark: false,
+                       actor: nil, reason: nil, dbclient: nil)
+          # Same shape as Operations::VerifyDomain's domain:/domains: guard.
+          if custid.nil? && customer.nil?
+            raise ArgumentError, 'Must provide either custid: or customer:'
+          end
+          if custid && customer
+            raise ArgumentError, 'Cannot provide both custid: and customer:'
+          end
+
+          @actor                      = actor
+          @reason                     = normalize_reason(reason)
+          @customer                   = customer
+          # @custid is the admin audit event's target (#record_admin_audit); for
+          # a pre-resolved customer its extid IS the addressed identity, so
+          # capture it now rather than touching the record again later.
+          @custid                     = custid || customer.extid
           # Normalize to a string so the `sid == @except_session_id` guards are
           # type-stable; nil becomes '' which no real sid ever equals → revoke ALL.
           @except_session_id          = except_session_id.to_s
@@ -152,6 +205,12 @@ module Onetime
           #     never the watermark-spared ones — those stay fully tracked).
           tidy_sidecars(customer, tracked, spared)
 
+          record_admin_audit(
+            blobs_deleted: tracked_deleted + untracked_deleted,
+            untracked_deleted: untracked_deleted,
+            scan_capped: scan_capped,
+          )
+
           Result.new(
             revoked: true,
             blobs_deleted: tracked_deleted + untracked_deleted,
@@ -161,6 +220,24 @@ module Onetime
         end
 
         private
+
+        # One admin audit event, and ONLY when an admin actor was named — the
+        # self-service callers pass none and stay out of the colonel trail
+        # (class docs). Best-effort: a broken sink must not fail a containment
+        # revoke that has already happened.
+        def record_admin_audit(**detail)
+          return if @actor.nil?
+
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @custid,
+            result: :success,
+            detail: with_reason(detail.merge(except_current: true)),
+          )
+        rescue StandardError => ex
+          OT.le "[Sessions::RevokeAllForCustomerExceptCurrent] audit failed: #{ex.class}: #{ex.message}"
+        end
 
         def zero_result
           Result.new(revoked: true, blobs_deleted: 0, untracked_deleted: 0, scan_capped: false)
@@ -276,10 +353,14 @@ module Onetime
           data.is_a?(Hash) && data['authenticated_at'].to_i > watermark
         end
 
-        # Same resolution as the sibling ops: extid → email → objid. nil is tolerated
-        # — a missing customer yields a zero-count revoke.
+        # A pre-resolved `customer:` is used as given — NEVER re-resolved (see
+        # #initialize for why an extid-index miss here would be silent and leave
+        # pre-change sessions live). Otherwise the same resolution as the
+        # sibling ops: extid → email → objid. nil is tolerated either way — a
+        # missing customer yields a zero-count revoke.
         def load_customer
-          customer = Onetime::Customer.load_by_extid_or_email(@custid) ||
+          customer = @customer ||
+                     Onetime::Customer.load_by_extid_or_email(@custid) ||
                      Onetime::Customer.load(@custid)
           return nil unless customer&.exists?
 

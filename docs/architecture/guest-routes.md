@@ -14,14 +14,18 @@ Guest routes provide anonymous API access for secret operations via `/api/v3/gue
 
 ## Route Mapping
 
-| Operation | Guest Route                            | Authenticated Route              |
-| --------- | -------------------------------------- | -------------------------------- |
-| Create    | `POST /api/v3/guest/secret/conceal`    | `POST /api/v3/secret/conceal`    |
-| Generate  | `POST /api/v3/guest/secret/generate`   | `POST /api/v3/secret/generate`   |
-| Metadata  | `GET /api/v3/guest/secret/:id`         | `GET /api/v3/secret/:id`         |
-| Reveal    | `POST /api/v3/guest/secret/:id/reveal` | `POST /api/v3/secret/:id/reveal` |
-| Receipt   | `GET /api/v3/guest/receipt/:id`        | `GET /api/v3/receipt/:id`        |
-| Burn      | `POST /api/v3/guest/receipt/:id/burn`  | `POST /api/v3/receipt/:id/burn`  |
+| Operation | Guest Route | Authenticated Route |
+| --------- | ----------- | ------------------- |
+| Create | `POST /api/v3/guest/secret/conceal` | `POST /api/v3/secret/conceal` |
+| Generate | `POST /api/v3/guest/secret/generate` | `POST /api/v3/secret/generate` |
+| Metadata | `GET /api/v3/guest/secret/:identifier` | `GET /api/v3/secret/:identifier` |
+| Reveal | `POST /api/v3/guest/secret/:identifier/reveal` | `POST /api/v3/secret/:identifier/reveal` |
+| Receipt | `GET /api/v3/guest/receipt/:identifier` | `GET /api/v3/receipt/:identifier` |
+| Burn | `POST /api/v3/guest/receipt/:identifier/burn` | `POST /api/v3/receipt/:identifier/burn` |
+| Batch receipt lookup | `POST /api/v3/guest/receipts` | — |
+
+The batch receipt lookup accepts an `identifiers` array (or a comma-separated
+string) and returns at most 25 receipts. It uses the `receipt` guest-route toggle.
 
 ## Configuration
 

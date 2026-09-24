@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
-import { nextTick, ref } from 'vue';
+import { nextTick, reactive, ref } from 'vue';
 
 // Mock composables
 const mockCurrentContext = {
@@ -347,7 +347,7 @@ describe('SecretForm - Domain Context Integration', () => {
       ).useSecretConcealer.mockReturnValue({
         form: { secret: '', passphrase: '', ttl: 300, share_domain: '' },
         validation: {
-          errors: new Map(),
+          errors: reactive(new Map()),
           validate: vi.fn(() => true),
           validateRecipient: vi.fn(() => true),
         },
@@ -388,7 +388,7 @@ describe('SecretForm - Domain Context Integration', () => {
       ).useSecretConcealer.mockReturnValue({
         form: { secret: '', passphrase: '', ttl: 300, share_domain: '' },
         validation: {
-          errors: new Map(),
+          errors: reactive(new Map()),
           validate: vi.fn(() => true),
           validateRecipient: vi.fn(() => true),
         },

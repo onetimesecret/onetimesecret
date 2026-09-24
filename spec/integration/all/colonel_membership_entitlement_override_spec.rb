@@ -22,12 +22,15 @@ require 'colonel/application'
 # colonel_customer_support_spec.rb) so the assertions reach the REAL op, the
 # REAL membership model writes, and the REAL audit trail — no HTTP layer.
 RSpec.describe 'Colonel membership entitlement overrides', type: :integration do
-  def strategy_result_for(user, session: {})
+  # `confirm_token` is where the colonel session auth strategy puts the
+  # percent-decoded X-OTS-Confirm header (#4326) — never params. The gated verbs
+  # exercised below refuse without it.
+  def strategy_result_for(user, session: {}, confirm_token: nil)
     double(
       'StrategyResult',
       session: session,
       user: user,
-      metadata: { ip: '127.0.0.1' },
+      metadata: { ip: '127.0.0.1', confirm_token: confirm_token },
       auth_method: 'sessionauth',
     )
   end
@@ -54,9 +57,11 @@ RSpec.describe 'Colonel membership entitlement overrides', type: :integration do
     Onetime::Organization.create!("Member Override Org #{SecureRandom.hex(4)}", owner, owner.email)
   end
 
-  def run_logic(params, actor: colonel)
+  # Every arm of this endpoint is confirmation-gated (#4326) on the MEMBER's
+  # email, so the token defaults to the member these examples target.
+  def run_logic(params, actor: colonel, confirm: owner.email)
     logic = ColonelAPI::Logic::Colonel::ManageMembershipEntitlementOverride.new(
-      strategy_result_for(actor), params,
+      strategy_result_for(actor, confirm_token: confirm), params,
     )
     logic.raise_concerns
     logic.process
@@ -198,6 +203,7 @@ RSpec.describe 'Colonel membership entitlement overrides', type: :integration do
         run_logic(
           { 'org_id' => org.extid, 'member_id' => outsider.extid,
             'entitlement' => 'custom_branding', 'action' => 'grant' },
+          confirm: outsider.email,
         )
       end.to raise_error(Onetime::RecordNotFound, /membership not found/i)
 

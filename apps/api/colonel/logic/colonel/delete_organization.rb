@@ -76,13 +76,18 @@ module ColonelAPI
       class DeleteOrganization < ColonelAPI::Logic::Base
         include MembershipResolvers
 
-        attr_reader :org, :dry_run, :force_default, :force_subscription, :result
+        attr_reader :org, :dry_run, :force_default, :force_subscription, :reason, :result
 
         def process_params
           @org_id             = sanitize_identifier(params['org_id'])
           @dry_run            = params.key?('dry_run') ? truthy?(params['dry_run']) : true
           @force_default      = truthy?(params['force_default'])
           @force_subscription = truthy?(params['force_subscription'])
+          # OPTIONAL operator-supplied why (#4338) — query string, alongside the
+          # flags above and for the same reason. See
+          # ColonelAPI::Logic::Base#operator_reason_param. Operator surface
+          # only: the customer-facing DeleteOrganization adapter sends none.
+          @reason             = operator_reason_param
         end
 
         def raise_concerns
@@ -92,6 +97,19 @@ module ColonelAPI
 
           @org = resolve_org(@org_id)
           raise_not_found('Organization not found') unless @org&.exists?
+
+          # PREVIEW EXEMPTION (#4326): the preview IS the plan the operator
+          # confirms against, and it writes nothing. dry_run defaults to TRUE.
+          return if dry_run
+
+          # TIER 1. The URL carries the org id; the confirmation is its NAME.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: org_confirm_token(org),
+            confirm_subject: "the organization's name",
+            field: :org_id,
+          )
+          charge_destructive_budget!
         end
 
         def process
@@ -104,6 +122,8 @@ module ColonelAPI
             # The former members' mail says who did this; on the console that is
             # the acting colonel, not the org's own owner.
             deleted_by: cust.email,
+            # Audit trail only — never reaches the members' notification.
+            reason: reason,
           ).call
 
           # Log from the result: on the applied path destroy! empties the org's
@@ -202,10 +222,6 @@ module ColonelAPI
           return '' if result.domains.empty?
 
           ": #{result.domains.join(', ')}"
-        end
-
-        def truthy?(value)
-          %w[true 1 yes on].include?(value.to_s.strip.downcase)
         end
       end
     end

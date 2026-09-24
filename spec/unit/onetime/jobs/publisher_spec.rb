@@ -1040,6 +1040,13 @@ RSpec.describe Onetime::Jobs::Publisher do
         allow(publisher).to receive(:logger).and_return(logger_double)
       end
 
+      # `custid:` — NOT `customer:` — is correct here: this method is the
+      # publish API and receives the same identifier string the queue payload
+      # carries, so the inline fallback must resolve exactly as the worker it
+      # stands in for would. Callers that hold the record hand it to the op
+      # directly as `customer:` (CredentialChangeSessionRevocation does, for
+      # its inline revoke); see the construction rule on
+      # RevokeAllForCustomerExceptCurrent#initialize.
       it 'runs the op inline with the full sweep and watermark enabled' do
         result = publisher.enqueue_session_revocation_sweep(custid, except_session_id: session_id)
 
@@ -1051,6 +1058,8 @@ RSpec.describe Onetime::Jobs::Publisher do
             scan_untracked: true,
             honor_credential_watermark: true,
           )
+        expect(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
+          .not_to have_received(:new).with(hash_including(:customer))
         expect(mock_operation).to have_received(:call)
       end
 

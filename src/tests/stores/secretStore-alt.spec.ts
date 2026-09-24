@@ -17,16 +17,24 @@ import { baseBootstrap } from '@/tests/fixtures/bootstrap.fixture';
 import AxiosMockAdapter from 'axios-mock-adapter';
 
 /**
+ * Loosely-typed state shape for the hand-rolled store double below. The real
+ * `useSecretStore` types its state as `Secret | null` / `SecretDetails | null`
+ * (see src/shared/stores/secretStore.ts), but this test double intentionally
+ * starts from `{}` rather than `null` and gets fed a mix of raw fixture
+ * shapes (mockSecretResponse.record/.details) and ad hoc overrides, so an
+ * index signature is used here instead of the production schema types.
+ */
+type MockState = Record<string, unknown> | null;
+
+/**
  * Create a test implementation of the secrets store
  * This approach bypasses axios mocking complexity by directly
  * implementing the store functionality with mock data
  */
 const createTestStore = () => defineStore('secrets', () => {
     // Internal reactive state - initialize with empty objects to avoid null reference errors
-    // Typed as `any` because this mock store deliberately holds heterogeneous shapes
-    // ({}, secret record fixtures, null on clear) across the test lifecycle.
-    const record = ref<any>({});
-    const details = ref<any>({});
+    const record = ref<MockState>({});
+    const details = ref<MockState>({});
 
     // Mock implementations
     const fetch = vi.fn().mockImplementation(async (id) => {
@@ -105,7 +113,7 @@ describe('secretStore', () => {
   let app;
   let appInstance;
   let useSecretStore: ReturnType<typeof createTestStore>;
-  let store: ReturnType<ReturnType<typeof createTestStore>>;
+  let store: ReturnType<typeof useSecretStore>;
 
   beforeEach(async () => {
     // Setup bootstrap state with modern fixture (minimal state for this test)
@@ -148,7 +156,7 @@ describe('secretStore', () => {
       await store.fetch('abc123');
 
       // Test everything except lifespan
-      const { lifespan: _, ...recordWithoutLifespan } = store.record;
+      const { lifespan: _, ...recordWithoutLifespan } = store.record!;
       const { lifespan: __, ...expectedWithoutLifespan } = mockSecretResponse.record;
 
       expect(recordWithoutLifespan).toEqual(expectedWithoutLifespan);
@@ -173,7 +181,7 @@ describe('secretStore', () => {
       await store.fetch('abc123');
 
       // Check record shape and transformed fields separately
-      const { lifespan: _, ...recordWithoutLifespan } = store.record;
+      const { lifespan: _, ...recordWithoutLifespan } = store.record!;
       const { lifespan: __, ...expectedWithoutLifespan } = mockSecretResponse.record;
 
       expect(recordWithoutLifespan).toEqual(expectedWithoutLifespan);
@@ -244,56 +252,63 @@ describe('secretStore', () => {
   describe('field handling', () => {
     describe('is_owner field', () => {
       beforeEach(async () => {
-        // Mock implementation for this specific test group
+        // Mock implementation for this specific test group.
+        // Note: this override is never actually exercised below -- each
+        // `it()` in this describe builds its own standalone `testStore`
+        // rather than calling `store.fetch()`. Written against `store.record`
+        // / `store.details` (not `.value`) because that's how Pinia
+        // setup-store state is read/written from outside the store; unlike
+        // `createTestStore`'s own closure, there is no local `record`/
+        // `details` ref binding in this outer describe scope.
         store.fetch = vi.fn().mockImplementation(async (id) => {
           if (id === 'owner-true') {
-            store.record.value = mockSecretResponse.record;
-            store.details.value = { ...mockSecretResponse.details, is_owner: true };
+            store.record = mockSecretResponse.record;
+            store.details = { ...mockSecretResponse.details, is_owner: true };
           } else if (id === 'owner-false') {
-            store.record.value = mockSecretResponse.record;
-            store.details.value = { ...mockSecretResponse.details, is_owner: false };
+            store.record = mockSecretResponse.record;
+            store.details = { ...mockSecretResponse.details, is_owner: false };
           } else if (id === 'owner-undefined') {
-            store.record.value = mockSecretResponse.record;
-            store.details.value = { ...mockSecretResponse.details, is_owner: undefined };
+            store.record = mockSecretResponse.record;
+            store.details = { ...mockSecretResponse.details, is_owner: undefined };
           } else {
-            store.record.value = mockSecretResponse.record;
-            store.details.value = mockSecretResponse.details;
+            store.record = mockSecretResponse.record;
+            store.details = mockSecretResponse.details;
           }
-          return { record: store.record.value, details: store.details.value };
+          return { record: store.record, details: store.details };
         });
       });
 
       it('handles is_owner true from API', async () => {
         // Create a dynamic store for this specific test
         const testStore = createTestStore()();
-        testStore.details.value = {
+        testStore.details = {
           ...mockSecretResponse.details,
           is_owner: true,
         };
 
-        expect(testStore.details.value.is_owner).toBe(true);
+        expect(testStore.details!.is_owner).toBe(true);
       });
 
       it('handles is_owner false from API', async () => {
         // Create a dynamic store for this specific test
         const testStore = createTestStore()();
-        testStore.details.value = {
+        testStore.details = {
           ...mockSecretResponse.details,
           is_owner: false,
         };
 
-        expect(testStore.details.value.is_owner).toBe(false);
+        expect(testStore.details!.is_owner).toBe(false);
       });
 
       it('handles missing is_owner field from API', async () => {
         // Create a dynamic store for this specific test
         const testStore = createTestStore()();
-        testStore.details.value = {
+        testStore.details = {
           ...mockSecretResponse.details,
           is_owner: false, // Schema should default undefined to false
         };
 
-        expect(testStore.details.value.is_owner).toBe(false);
+        expect(testStore.details!.is_owner).toBe(false);
       });
     });
 
@@ -301,50 +316,50 @@ describe('secretStore', () => {
       it('makes TTL value available as lifespan', async () => {
         // Create a dynamic store for this specific test
         const testStore = createTestStore()();
-        testStore.record.value = {
+        testStore.record = {
           ...mockSecretResponse.record,
           secret_ttl: 86400, // 24 hours in seconds
           lifespan: 86400,
         };
 
-        expect(testStore.record.value.lifespan).toBeDefined();
-        expect(typeof testStore.record.value.lifespan).toBe('number');
-        expect(testStore.record.value.lifespan).toBe(86400);
+        expect(testStore.record!.lifespan).toBeDefined();
+        expect(typeof testStore.record!.lifespan).toBe('number');
+        expect(testStore.record!.lifespan).toBe(86400);
       });
 
       it('handles zero TTL values', async () => {
         // Create a dynamic store for this specific test
         const testStore = createTestStore()();
-        testStore.record.value = {
+        testStore.record = {
           ...mockSecretResponse.record,
           secret_ttl: 0,
           lifespan: 0,
         };
 
-        expect(testStore.record.value.lifespan).toBe(0);
+        expect(testStore.record!.lifespan).toBe(0);
       });
 
       it('handles numeric lifespan from API', async () => {
         // Create a dynamic store for this specific test
         const testStore = createTestStore()();
-        testStore.record.value = {
+        testStore.record = {
           ...mockSecretResponse.record,
           lifespan: 86400,
         };
 
-        expect(typeof testStore.record.value.lifespan).toBe('number');
-        expect(testStore.record.value.lifespan).toBe(86400);
+        expect(typeof testStore.record!.lifespan).toBe('number');
+        expect(testStore.record!.lifespan).toBe(86400);
       });
 
       it('handles zero lifespan from API', async () => {
         // Create a dynamic store for this specific test
         const testStore = createTestStore()();
-        testStore.record.value = {
+        testStore.record = {
           ...mockSecretResponse.record,
           lifespan: 0,
         };
 
-        expect(testStore.record.value.lifespan).toBe(0);
+        expect(testStore.record!.lifespan).toBe(0);
       });
 
       it('should fail if lifespan is undefined', async () => {
