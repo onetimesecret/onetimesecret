@@ -32,6 +32,7 @@
 #
 
 require 'onetime/models/custom_domain/signin_config'
+require 'onetime/sso_provider/flow_session_keys'
 
 require_relative '../../restrict_to'
 require_relative '../../lib/public_host'
@@ -646,11 +647,38 @@ module Auth::Config::Hooks
     end
 
     # A new platform request supersedes any abandoned tenant request in the
-    # same session. Callback setup must retain the pending markers so a real
-    # tenant callback can validate and consume them.
+    # same session: the tenant markers AND the per-strategy binding the
+    # abandoned request parked (the pending SAML AuthnRequest id, the
+    # OAuth/OIDC state / nonce / PKCE verifier / params) go together.
+    #
+    # The markers alone are not enough. before_omniauth_callback_route reads
+    # a missing :omniauth_tenant_domain_id as "platform-level auth" and skips
+    # the tenant-mismatch check, enforce_tenant_email_domain!, and the
+    # :validated_omniauth_domain_id stamp. If the binding survived, the
+    # abandoned IdP tab could still complete later (InResponseTo naming the
+    # old request id, once the tenant config is available again) and be
+    # processed on the platform path: allowlist never consulted, identity
+    # keyed by the bare EntityID. With the binding gone that response is
+    # refused at the strategy (saml_no_pending_request / state mismatch),
+    # which is the fail-closed outcome the pre-fallback code had.
+    #
+    # Ordering: this runs in omniauth_setup, i.e. OmniAuth::Strategy#setup_phase,
+    # which request_call invokes BEFORE it writes omniauth.params and before
+    # request_phase writes the new state / request id — so nothing of the
+    # request being started is touched. The markers themselves are rewritten
+    # by the next tenant request phase, or stay absent for a platform one.
+    #
+    # Callback setup must retain everything so a real tenant callback can
+    # validate and consume its own markers and binding.
+    #
+    # Key forms match each writer: the tenant markers are written as symbols
+    # here; the binding keys are the strategies' string literals (see
+    # Onetime::SsoProvider::FlowSessionKeys). The live session stringifies
+    # both, but the delete uses the writer's form regardless.
     def self.clear_pending_tenant_context(session)
       session.delete(:omniauth_tenant_domain_id)
       session.delete(:omniauth_tenant_host)
+      Onetime::SsoProvider::FlowSessionKeys::ALL.each { |key| session.delete(key) }
     end
 
     # True only for a registered provider that explicitly supports rebinding

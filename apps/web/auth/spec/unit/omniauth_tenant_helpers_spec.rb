@@ -582,6 +582,62 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       )
     end
 
+    # An abandoned tenant request leaves more than the two markers behind: the
+    # strategy's own request/callback binding (the pending SAML AuthnRequest
+    # id, the OAuth/OIDC state). Those are STRING keys, as the strategies
+    # write them; the markers are symbols. Both forms are exercised on a plain
+    # Hash so a key-form drift in the hook fails here rather than only on the
+    # stringifying live session.
+    context 'with an abandoned tenant request binding in the session' do
+      let(:session) do
+        {
+          omniauth_tenant_domain_id: 'stale-domain-id',
+          omniauth_tenant_host: 'tenant.example',
+          'saml_authn_request_id' => '_stale-authn-request-id',
+          'omniauth.state' => 'stale-oauth-state',
+          account_id: 42,
+        }
+      end
+
+      before do
+        allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return('tenant.example')
+      end
+
+      it 'supersedes the pending SAML request id and OAuth state along with the markers on the request path' do
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).to eq(:allowed)
+        expect(session).not_to include(
+          :omniauth_tenant_domain_id,
+          :omniauth_tenant_host,
+          'saml_authn_request_id',
+          'omniauth.state',
+        )
+        # Only the flow is superseded; unrelated session state is untouched.
+        expect(session).to eq(account_id: 42)
+      end
+
+      it 'retains the pending binding together with the markers during callback setup' do
+        allow(strategy).to receive(:on_request_path?).and_return(false)
+
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).to eq(:allowed)
+        expect(session).to include(
+          omniauth_tenant_domain_id: 'stale-domain-id',
+          omniauth_tenant_host: 'tenant.example',
+          'saml_authn_request_id' => '_stale-authn-request-id',
+          'omniauth.state' => 'stale-oauth-state',
+        )
+      end
+    end
+
     it 'fails closed when PublicHost cannot verify the request host' do
       allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return(nil)
 
