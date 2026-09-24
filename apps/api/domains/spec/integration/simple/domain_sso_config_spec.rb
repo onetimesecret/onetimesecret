@@ -1803,6 +1803,35 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           expect(stored_config.reveal_saml_field(:idp_cert)).to eq(expired.strip)
         end
 
+        it 'refuses to re-enable a disabled config whose unchanged certificate is expired' do
+          expired         = expired_saml_cert_pem
+          config          = stored_config
+          config.idp_cert = expired
+          config.enabled  = false
+          config.commit_fields
+
+          csrf_patch api_path(test_custom_domain.extid), valid_saml_params.merge(idp_cert: expired, enabled: true)
+
+          expect(last_response.status).to eq(422)
+          expect(json_body).to include('error_type' => 'invalid', 'field' => 'idp_cert')
+          expect(stored_config.enabled?).to be false
+        end
+
+        it 'can edit a disabled config whose unchanged certificate is expired' do
+          expired         = expired_saml_cert_pem
+          config          = stored_config
+          config.idp_cert = expired
+          config.enabled  = false
+          config.commit_fields
+
+          csrf_patch api_path(test_custom_domain.extid),
+            valid_saml_params.merge(idp_cert: expired, enabled: false, display_name: 'Awaiting certificate rotation')
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_config.enabled?).to be false
+          expect(stored_config.display_name).to eq('Awaiting certificate rotation')
+        end
+
         it 'still refuses a CHANGED expired certificate on that same save' do
           config          = stored_config
           config.idp_cert = expired_saml_cert_pem

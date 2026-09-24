@@ -90,14 +90,11 @@ module DomainsAPI
         #   a blank submitted field is acceptable when this record already
         #   holds a readable value for it (it will be preserved), and a
         #   submitted value equal to that stored value is accepted WITHOUT
-        #   re-validation: it passed these checks when it was stored, and
-        #   only a change to it is a new value to accept. This is what keeps
-        #   the expiry rule (see the header) true in practice — the form
-        #   re-sends every stored field on save (useSsoConfig.ts
-        #   providerFields), so re-checking an unchanged certificate that has
-        #   since expired would refuse the one save that switches the config
-        #   off. nil — PUT, test_connection, or a create — makes every field
-        #   required and validates every one.
+        #   re-validation only while the config remains disabled. This permits
+        #   repairing or editing a disabled record whose certificate expired,
+        #   without allowing that unusable record to be re-enabled. nil — PUT,
+        #   test_connection, or a create — makes every field required and
+        #   validates every one.
         def validate_saml_fields!(stored: nil)
           reject_forbidden_saml_params!
           reject_incompatible_session_cookie! if stored.nil?
@@ -111,7 +108,7 @@ module DomainsAPI
               raise_form_error("#{saml_label(field)} is required for SAML provider", field: field, error_type: :missing)
             end
 
-            next if value == stored_value
+            next if value == stored_value && saml_config_remains_disabled?(stored)
 
             problem = saml_problem(field, value)
             raise_form_error(problem, field: field, error_type: :invalid) if problem
@@ -131,6 +128,20 @@ module DomainsAPI
             field: :provider_type,
             error_type: :invalid,
           )
+        end
+
+        # An unchanged, formerly valid value may bypass re-validation only
+        # while the persisted result remains disabled. In particular, an
+        # explicit enabled=true must re-check a stored certificate that may
+        # have expired since it was accepted.
+        def saml_config_remains_disabled?(stored)
+          return false if stored.nil?
+
+          if params.key?('enabled')
+            params['enabled'].equal?(false)
+          else
+            !stored.enabled?
+          end
         end
 
         # @return [String, nil] the first problem with a submitted value
