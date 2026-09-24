@@ -175,6 +175,7 @@
 require 'omniauth-saml'
 
 require 'onetime/security/saml_assertion_replay_guard'
+require 'onetime/sso_provider/flow_session_keys'
 require 'onetime/sso_provider/ruby_saml_log_bridge'
 
 # ruby-saml logs the full AuthnRequest XML at DEBUG to a STDOUT logger
@@ -206,8 +207,10 @@ module OmniAuth
       option :idp_sso_service_url_runtime_params, {}
 
       # Session key holding the one pending AuthnRequest id. String key: the
-      # session is a string-keyed store at rest.
-      REQUEST_ID_KEY = 'saml_authn_request_id'
+      # session is a string-keyed store at rest. Shared through
+      # FlowSessionKeys so the tenant hook can supersede a pending request
+      # without loading this strategy.
+      REQUEST_ID_KEY = Onetime::SsoProvider::FlowSessionKeys::SAML_REQUEST_ID
 
       # Written by the gem on every successful callback (saml.rb:179-180) for
       # its SLO endpoints. SLO is disabled, so they are dead weight that
