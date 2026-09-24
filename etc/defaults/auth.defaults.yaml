@@ -115,7 +115,7 @@ full:
     # OAuth authorization-code + PKCE flow.
     # See: apps/web/auth/config/features/oauth.rb for configuration.
     # Override the issuer with OAUTH_ISSUER (defaults to https://<site.host>/auth).
-    oauth: <%= ENV['AUTH_OAUTH_ENABLED'] == 'true' %>
+    oauth: <%= ENV['AUTH_OAUTH_ENABLED'] == 'true' %>  # Since unreleased
 
   # ──────────────────────────────────────────────────────────────────────
   # Restrict login page to a single authentication method

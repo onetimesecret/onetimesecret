@@ -388,18 +388,18 @@ site:
     # Enabled by default (protective); set EMAIL_AUTH_RATE_LIMIT_ENABLED=false
     # to opt out. See lib/onetime/security/email_auth_rate_limiter.rb.
     email_auth_rate_limit:
-      enabled: <%= ENV['EMAIL_AUTH_RATE_LIMIT_ENABLED'] != 'false' %>
+      enabled: <%= ENV['EMAIL_AUTH_RATE_LIMIT_ENABLED'] != 'false' %>  # Since unreleased
       # Magic-link requests permitted per window from a single masked client
       # IP. The bucket is a whole /24 (office, campus NAT), and behind an
       # unconfigured reverse proxy it is the entire deployment — so this is
       # deliberately loose relative to the one link a person needs. Raise it
       # for dense-NAT populations; a too-tight value here is a
       # passwordless-login outage.
-      max_per_ip: <%= ENV['EMAIL_AUTH_RATE_LIMIT_MAX_PER_IP'] || 10 %>
+      max_per_ip: <%= ENV['EMAIL_AUTH_RATE_LIMIT_MAX_PER_IP'] || 10 %>  # Since unreleased
       # Counting window in seconds (1 hour).
-      window: <%= ENV['EMAIL_AUTH_RATE_LIMIT_WINDOW'] || 3600 %>
+      window: <%= ENV['EMAIL_AUTH_RATE_LIMIT_WINDOW'] || 3600 %>  # Since unreleased
       # Lockout duration in seconds once the cap is hit (1 hour).
-      lockout: <%= ENV['EMAIL_AUTH_RATE_LIMIT_LOCKOUT'] || 3600 %>
+      lockout: <%= ENV['EMAIL_AUTH_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since unreleased
     # Rate limiting for reset-password requests (#3872, #3948). Applies in EVERY
     # auth mode — full mode enforces it in the Rodauth route hook, simple mode
     # in AccountAPI::Logic::Authentication::ResetPasswordRequest#raise_concerns.
@@ -559,11 +559,11 @@ site:
     # Emits Referrer-Policy: no-referrer as an HTTP response header so secret
     # URLs can never leak via the Referer header. (audit 2026-08-02 M-3)
     # ENV: MIDDLEWARE_REFERRER_POLICY (default: true)
-    referrer_policy: <%= ENV['MIDDLEWARE_REFERRER_POLICY'] != 'false' %>
+    referrer_policy: <%= ENV['MIDDLEWARE_REFERRER_POLICY'] != 'false' %>  # Since unreleased
     # Emits Permissions-Policy header disabling geolocation/microphone/camera.
     # (audit 2026-08-02 M-3)
     # ENV: MIDDLEWARE_PERMISSIONS_POLICY (default: true)
-    permissions_policy: <%= ENV['MIDDLEWARE_PERMISSIONS_POLICY'] != 'false' %>
+    permissions_policy: <%= ENV['MIDDLEWARE_PERMISSIONS_POLICY'] != 'false' %>  # Since unreleased
     # Per-application middleware profiles.
     # Each profile section gates the components a declared middleware profile
     # mounts (lib/onetime/application/middleware_profile.rb). These toggles
