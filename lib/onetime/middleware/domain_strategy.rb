@@ -114,6 +114,23 @@ module Onetime
     #   DomainSerializer                                  no branding applied
     #   InitializeViewVars / GetFavicon                   default favicon
     #   API v1 Logic::Base#custom_domain?                 false
+    #   -- re-classified (session surface binding) --
+    #   SessionSurface.for_env                            the healthy answer
+    #                                                     (Chooserator.classify!
+    #                                                     again), or nil if that
+    #                                                     read fails too
+    #   SessionSurface.match_status                       :unavailable if the
+    #                                                     read fails again, so
+    #                                                     the session is kept
+    #   CustomerSessionEvaluator / Auth::SessionRecheck   :customer_unavailable
+    #                                                     (refused, session kept)
+    #   RecentReauth, ReauthOffer / ReauthPolicy,         the descriptor above;
+    #   WebAuthn surface_scope, OmniAuth Connect          nil refuses, as before
+    #
+    # The surface binding cannot use either rule. Reading :invalid as "no
+    # surface" destroyed every custom-domain and subdomain session on a
+    # datastore blip. It classifies the host again instead, and reports an
+    # outage that persists as an outage.
     #
     # The auth rows used to read "operator polarity": they chose their branch
     # on `== :custom`, so a case-2 :invalid INVERTED the default — custom

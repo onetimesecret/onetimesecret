@@ -61,7 +61,9 @@ module Onetime
   #
   # ## Fail-closed
   #
-  # A nil surface (:invalid, unresolved :custom) reads as "no path here":
+  # A nil surface (a host we do not serve, an unresolved :custom, or an
+  # :invalid request whose surface could not be read; see
+  # {Onetime::SessionSurface}) reads as "no path here":
   # {eligible_methods} returns []. A caller that gets [] must not offer
   # re-authentication at all — the alternative is a login-page redirect,
   # not a "click here and it will fail" UI.

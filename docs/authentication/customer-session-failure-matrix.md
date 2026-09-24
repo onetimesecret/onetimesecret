@@ -100,6 +100,13 @@ unchanged.
 | `customer_unavailable` | `verification_unavailable` | `[SESSION_UNVERIFIED]` | 401 | 302 | same as above |
 | `admin_session_expired` | `admin_session` | `[ADMIN_SESSION_EXPIRED]` | 401 (`/api/colonel` only) | n/a | not reached: the router supplies no admin boundary to the evaluator |
 
+`customer_unavailable` is also the answer when the request's surface cannot be
+read. A datastore blip makes DomainStrategy classify a custom domain or a
+platform subdomain `:invalid`. `Onetime::SessionSurface.match_status`
+classifies that host again. If the lookup answers, the session is compared as
+usual. If it fails again, the surface is unknown rather than wrong, so the
+session is kept instead of being destroyed as `surface_mismatch`.
+
 Scopes are what a client acts on:
 
 - `customer_session`: the session was examined and is not authenticated.
@@ -357,6 +364,7 @@ valid:
 | Row absent | `active_session_gate.rb:170` → `revoked` `:225-228` | `revoked` | "Sign out everywhere", an operator, or Rodauth's sweep. |
 | Auth database could not answer | `active_session_gate.rb:176-177` → `unavailable` `:252-256`; `customer_session_evaluator.rb:156-157` | `authentication_database_unavailable` | Transient; refuses with the same wire response as a rejection (D1, D3), and the session is valid again on the next request. Best fit for "valid on other requests". |
 | Customer store could not answer | `customer_session_evaluator.rb:184-203` | `customer_storage_unavailable` | Same shape as above. |
+| Request surface could not be read | `Onetime::SessionSurface.match_status` | `customer_storage_unavailable` | Same shape as above. Until #4450, a blip on a custom-domain or subdomain host destroyed the session as `tenant_surface_mismatch`, a real sign-out. |
 | Tenant surface did not match | `customer_session_evaluator.rb:139` | `tenant_surface_mismatch` | A session established on one host presented on another refuses there and only there. |
 | Credential watermark | `customer_session_evaluator.rb:148`, `:205-210` | `credential_stale` | A password change elsewhere invalidates this session. |
 
@@ -382,7 +390,9 @@ a signed-out UI (unchanged since `56a95f8b6`; addressed by #4456, #4458,
 What would single one out: the refusal's request ID joined to the server log.
 Every candidate logs a distinct line (`[active_session_gate] … inactivity
 deadline`, `… no active-session row`, `… authdb unreachable`,
-`[auth_strategy] Failed to load customer`, `:session_surface_mismatch`). From
+`[auth_strategy] Failed to load customer`,
+`[SessionSurface] Could not re-classify an :invalid request`,
+`:session_surface_mismatch`). From
 this release the API response also carries `code`, so a browser capture alone
 is enough.
 
