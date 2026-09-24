@@ -10,8 +10,8 @@
 #
 # Certificates are minted here with OpenSSL; no key material is checked in.
 #
-# RUN:
-#   pnpm run test:rspec apps/api/domains/spec/logic/sso_config/serializers_spec.rb
+# RUN (always via the lane runner — see AGENTS.md):
+#   tests/lanes/run unit --only apps/api/domains/spec/logic/sso_config/serializers_spec.rb
 
 require 'base64'
 require 'openssl'

@@ -8,8 +8,8 @@
 # password) and the multi-host parser's own format check. Both reach rake
 # output and boot error logs.
 #
-# Run:
-#   pnpm run test:rspec apps/web/auth/spec/unit/database_connection_spec.rb
+# RUN (always via the lane runner — see AGENTS.md):
+#   tests/lanes/run unit --only apps/web/auth/spec/unit/database_connection_spec.rb
 
 require_relative '../spec_helper'
 require_relative '../../database_connection'

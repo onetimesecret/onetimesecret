@@ -16,7 +16,8 @@
 #                            ACS per request (OmniAuthTenant.bind_platform_
 #                            fallback_acs)
 #
-# Run: RACK_ENV=test bundle exec rspec spec/unit/onetime/sso_provider/saml_spec.rb
+# RUN (always via the lane runner — see AGENTS.md):
+#   tests/lanes/run unit --only spec/unit/onetime/sso_provider/saml_spec.rb
 
 require 'spec_helper'
 require_relative '../../../../lib/onetime/sso_provider/saml'

@@ -19,7 +19,8 @@
 # 8. lifetime_exceeded? is what the strategy refuses on: a one-hour
 #    assertion passes (with drift), anything longer does not
 #
-# Run: bundle exec try --agent try/unit/security/saml_assertion_replay_guard_try.rb
+# RUN (always via the lane runner — see AGENTS.md):
+#   tests/lanes/run unit --only try/unit/security/saml_assertion_replay_guard_try.rb
 
 require_relative '../../support/test_models'
 require 'onetime/security/saml_assertion_replay_guard'
