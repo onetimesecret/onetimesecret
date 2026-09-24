@@ -94,7 +94,6 @@ export default defineConfig({
       // summary in the CI log. Only emitted when run with --coverage.
       reporter: ['text', 'cobertura'],
       reportsDirectory: 'coverage',
-      all: true, // include untested source files so they report as 0% covered
       // Extension-scoped. A bare `src/**` also handed the v8 provider the
       // non-code files under src/, which it parses as modules: the 13 .md
       // files each printed a `PARSE_ERROR` stack trace before being dropped
@@ -102,14 +101,9 @@ export default defineConfig({
       // entries. Rates are unchanged by the narrowing (line-rate 0.6679,
       // branch-rate 0.5585 either way; lines-valid 22597 -> 22596).
       include: ['src/**/*.{ts,tsx,mts,cts,js,mjs,cjs,vue}'],
-      exclude: [
-        'src/tests/**',
-        'src/**/*.spec.ts',
-        'src/**/*.spec.vue',
-        'src/**/*.d.ts',
-      ],
+      exclude: ['src/tests/**', 'src/**/*.spec.ts', 'src/**/*.spec.vue', 'src/**/*.d.ts'],
     },
-    // ORDER MATTERS. With coverage.all, vitest transforms never-imported source
+    // ORDER MATTERS. With coverage.include, vitest transforms never-imported source
     // files to report them as 0% covered, and it does that through the FIRST
     // project whose root matches the file (BaseCoverageProvider
     // .createUncoveredFileTransformer). That project's environment picks the
