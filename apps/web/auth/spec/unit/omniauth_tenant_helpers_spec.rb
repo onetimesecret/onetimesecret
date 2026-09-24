@@ -1055,7 +1055,17 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       # run this tenant's login through the platform IdP with the tenant
       # context still pending.
       context 'when the record cannot produce usable options' do
-        let(:session) { { omniauth_tenant_domain_id: 'dom_saml_123', omniauth_tenant_host: 'secrets.tenant.example' } }
+        # The markers, the strategy's own binding (string keys, as the
+        # strategies write them), and one unrelated key that must survive.
+        let(:session) do
+          {
+            omniauth_tenant_domain_id: 'dom_saml_123',
+            omniauth_tenant_host: 'secrets.tenant.example',
+            'saml_authn_request_id' => '_pending-request-id',
+            'omniauth.state' => 'pending-state',
+            account_id: 42,
+          }
+        end
         let(:rodauth) do
           double('Rodauth', session: session).tap do |r|
             allow(r).to receive(:redirect) { throw :halt }
@@ -1086,10 +1096,21 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
           expect(helpers).not_to have_received(:handle_missing_tenant_config)
         end
 
-        it 'clears the pending tenant context so no callback can validate against it' do
+        # The whole pending context, not just the markers: a surviving
+        # AuthnRequest id could still be answered once the record is repaired,
+        # and with the markers gone that answer would read as a platform
+        # sign-in in before_omniauth_callback_route.
+        it 'clears the pending tenant markers AND the per-strategy binding so no callback can complete' do
           catch(:halt) { helpers.inject_tenant_credentials(sso_config, request, rodauth) }
 
-          expect(session).to be_empty
+          expect(session).not_to include(
+            :omniauth_tenant_domain_id,
+            :omniauth_tenant_host,
+            'saml_authn_request_id',
+            'omniauth.state',
+          )
+          # Only the flow is dropped; unrelated session state is untouched.
+          expect(session).to eq(account_id: 42)
         end
 
         it 'audits at :error with scalars only' do

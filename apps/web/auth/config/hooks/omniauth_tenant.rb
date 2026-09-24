@@ -306,6 +306,38 @@ module Auth::Config::Hooks
         expected_domain_id = session.delete(:omniauth_tenant_domain_id)
         expected_host      = session.delete(:omniauth_tenant_host)
 
+        # Tenant options were injected by HOST on this very callback
+        # (omniauth_setup caches the record it injected from), yet no tenant
+        # flow is pending in the session. A platform-path outcome is never
+        # legitimate here: the strategy just ran with a tenant's trust
+        # anchors, so treating the result as a platform sign-in would skip
+        # the tenant-mismatch check, the email-domain allowlist and the
+        # tenant identity scope. The only ways to arrive are a refused or
+        # superseded request whose per-strategy binding leaked past the
+        # marker cleanup, or a session that lost its markers — both must
+        # fail closed. Belt to the refusal paths' clear_pending_tenant_context.
+        injected_config = request.env['onetime.tenant_sso_config']
+        if expected_domain_id.nil? && injected_config
+          Auth::Logging.log_auth_event(
+            :omniauth_tenant_context_missing,
+            level: :warn,
+            host: HELPERS.public_host(request),
+            domain_id: injected_config.domain_id,
+            ip: request.ip,
+            session_id_hash: Digest::SHA256.hexdigest(session.id.to_s)[0, 16],
+          )
+
+          response.status          = 403
+          response['Content-Type'] = 'application/json'
+          response.write(
+            JSON.generate(
+              error: 'tenant_context_missing',
+              message: 'Authentication context missing',
+            ),
+          )
+          request.halt
+        end
+
         # If no tenant context was stored, this was a platform-level auth
         # (no tenant credentials were injected). Allow it to proceed.
         next unless expected_domain_id
@@ -818,8 +850,15 @@ module Auth::Config::Hooks
 
     # Refuse a tenant flow whose SsoConfig cannot produce strategy options.
     #
-    # Clears the pending tenant context first, so the refusal leaves nothing
-    # in the session for a later callback to validate against, then redirects
+    # Drops the WHOLE pending context first — the tenant markers AND the
+    # per-strategy binding (clear_pending_tenant_context) — so the refusal
+    # leaves nothing in the session for a later callback to complete. The
+    # markers alone are not enough: a pending SAML AuthnRequest id that
+    # survived a refused request could still be answered once the record is
+    # repaired, and with the markers gone before_omniauth_callback_route
+    # would read that answer as a platform-level sign-in. Fail closed: a
+    # response bound to a request that was refused is refused too, on every
+    # phase this runs on (request, callback, /metadata). Then redirects
     # to /signin with auth_error=sso_config_unusable — NOT the
     # sso_not_configured landing the missing-config path uses. A record
     # exists and is advertised (the availability ladder never checks
@@ -845,8 +884,7 @@ module Auth::Config::Hooks
         error: error.message,
       )
 
-      rodauth.session.delete(:omniauth_tenant_domain_id)
-      rodauth.session.delete(:omniauth_tenant_host)
+      clear_pending_tenant_context(rodauth.session)
 
       rodauth.send(:redirect, '/signin?auth_error=sso_config_unusable')
     end

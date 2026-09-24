@@ -253,6 +253,10 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
     %i[idp_cert idp_entity_id].each do |field|
       it "refuses, with an audit event, when the stored #{field} cannot be decrypted" do
         events = audit_events
+        # A pending flow first, so the session-cleanup assertion below has
+        # something to clear: the refusal must drop the markers AND the
+        # parked AuthnRequest id (see the repaired-record block further down).
+        start_login(tenant_a)
         swap_trust_anchor_from_b_into_a(field)
 
         header 'Host', tenant_a.host
@@ -261,7 +265,8 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
         expect(last_response.status).to eq(302)
         expect(last_response.headers['Location']).to include('auth_error=sso_config_unusable')
         expect(last_response.headers['Location']).not_to include('SAMLRequest')
-        expect(last_request.env['rack.session'].to_h.keys.map(&:to_s)).not_to include('omniauth_tenant_domain_id')
+        expect(last_request.env['rack.session'].to_h.keys.map(&:to_s))
+          .not_to include('omniauth_tenant_domain_id', 'saml_authn_request_id')
 
         unusable = events.find { |event, _| event == :omniauth_tenant_config_unusable }
         expect(unusable).not_to be_nil
@@ -493,6 +498,56 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       post_callback(tenant_a, answer.call(start_login(tenant_a)))
       expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
       expect(identity_rows(name_id).size).to eq(1)
+    end
+  end
+
+  # ── callback: a response bound to a request the record was refused on ─────
+  #
+  # The request phase parks the AuthnRequest id in the session before any
+  # later phase can judge the record. If a refusal on the tenant host dropped
+  # only the tenant markers, an answer to that refused request would — once
+  # the tenant admin repairs the record — still be consumed by the strategy
+  # (the id matches) and then read by before_omniauth_callback_route as a
+  # PLATFORM sign-in (no markers): no tenant-mismatch check, no email-domain
+  # allowlist, no tenant identity scope. The refusal must drop the whole
+  # pending context, binding included, so the response has nothing to answer.
+  describe 'a response answering a request the record was refused on' do
+    let(:name_id) { "refused-#{run_id}" }
+    let(:email)   { "refused-#{run_id}@saml-tenant.example.com" }
+
+    it 'is refused after the record is repaired, and nothing is created, validated or signed in' do
+      created_emails << email
+      events  = audit_events
+      request = start_login(tenant_a)
+
+      # Unusable: the same technique as the request-phase refusal above.
+      config          = Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant_a.domain.identifier)
+      config.idp_cert = SamlSpec::TestIdp.new(cert_not_after: Time.now - 60).cert_pem
+      config.commit_fields
+
+      header 'Host', tenant_a.host
+      post '/auth/sso/saml'
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_config_unusable')
+
+      # Repaired: the admin stores the real certificate again.
+      config.idp_cert = tenant_a.idp.cert_pem
+      config.commit_fields
+
+      post_callback(tenant_a, tenant_a.idp.response(
+        in_response_to: request.id, acs_url: request.acs_url, audience: request.sp_entity_id,
+        name_id: name_id, attributes: { 'email' => [email] }
+      ))
+
+      # Refused at the strategy: the parked id went with the markers, so
+      # there is no pending request for this response to answer
+      # (saml_no_pending_request). Were the id ever to survive, the hook's
+      # tenant_context_missing 403 is the belt (callback_validation_spec).
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      expect(identity_rows(name_id)).to be_empty
+      expect(db[:accounts].where(email: email).count).to eq(0)
+      expect(last_request.env['rack.session'].to_h['account_id']).to be_nil
+      expect(events.map(&:first)).not_to include(:omniauth_tenant_callback_validated, :login_success)
     end
   end
 

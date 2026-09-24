@@ -446,6 +446,51 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
       end
     end
 
+    # Defense in depth behind the refusal paths' clear_pending_tenant_context:
+    # this callback ran with the TENANT's options injected by host (the setup
+    # hook fires on the callback phase too), but the session carries no
+    # pending tenant flow. That is never a platform sign-in — the strategy
+    # just ran with a tenant's credentials — so the hook must refuse rather
+    # than skip the tenant checks. Contrast the canonical-host example below,
+    # where nothing was injected and proceeding is correct.
+    context 'tenant callback with no pending tenant flow in the session' do
+      let(:test_run_id) { "no-ctx-#{SecureRandom.hex(4)}" }
+      let(:domain_host) { "secrets-#{test_run_id}.no-context.example.com" }
+
+      before do
+        @domain_fixtures = setup_oauth_test_domain(domain_host)
+      end
+
+      it 'returns 403 tenant_context_missing instead of proceeding on the platform path' do
+        OmniAuth.config.test_mode = true
+        OmniAuth.config.allowed_request_methods = %i[get post]
+
+        OmniAuth.config.mock_auth[:oidc] = OmniAuth::AuthHash.new({
+          provider: 'oidc',
+          uid: "uid-noctx-#{test_run_id}",
+          info: { email: "user-#{test_run_id}@no-context.example.com", name: 'Test User' },
+        })
+
+        begin
+          # Straight to the tenant callback: no request phase, no markers.
+          header 'Host', domain_host
+          post '/auth/sso/oidc/callback'
+
+          if last_response.status == 404
+            skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
+          end
+
+          expect(last_response.status).to eq(403),
+            "Tenant callback without a pending flow should return 403, got: #{last_response.status}, body: #{last_response.body}"
+          expect(last_response.body).to include('tenant_context_missing')
+          expect(last_request.env['rack.session'].to_h.keys.map(&:to_s)).not_to include('validated_omniauth_domain_id')
+        ensure
+          OmniAuth.config.test_mode = false
+          OmniAuth.config.mock_auth.clear
+        end
+      end
+    end
+
     context 'platform-level callback (no tenant context)' do
       it 'proceeds without 403 when no tenant context in session' do
         OmniAuth.config.test_mode = true
