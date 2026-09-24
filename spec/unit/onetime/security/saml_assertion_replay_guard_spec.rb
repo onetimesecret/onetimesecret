@@ -124,6 +124,12 @@ RSpec.describe Onetime::Security::SamlAssertionReplayGuard do
       expect(described_class.ttl_for(now + 10.2, clock_drift: 0, now: now)).to eq(11)
     end
 
+    it 'treats a negative drift as its magnitude, like lifetime_exceeded? and ruby-saml' do
+      expect(described_class.ttl_for(now + 300, clock_drift: -60, now: now)).to eq(360)
+      expect(described_class.lifetime_exceeded?(now + 3660, clock_drift: -60, now: now)).to be(false)
+      expect(described_class.max_ttl_for(-60)).to eq(described_class.max_ttl_for(60))
+    end
+
     it 'floors at MIN_TTL for an assertion that is already past NotOnOrAfter' do
       expect(described_class.ttl_for(now - 3600, clock_drift: 0, now: now)).to eq(described_class::MIN_TTL)
     end
