@@ -24,7 +24,9 @@
 #      same EntityID is not matched;
 #   5. the InResponseTo binding, replay cache, issuer gate, signature-algorithm
 #      gate, and unknown/unverified host checks still refuse;
-#   6. an active tenant SAML configuration overrides the live platform config.
+#   6. an active tenant SAML configuration overrides the live platform config
+#      on BOTH phases: the callback verifies against the tenant certificate,
+#      keys the identity to the tenant, and refuses the platform key.
 #
 # OWN LANE. Auth::Config configures once per process and reads SAML_* then.
 # The lane (tests/lanes/full-saml-platform) provides the three public strings
@@ -68,7 +70,8 @@ require 'cgi'
 require 'zlib'
 
 module PlatformSamlSsoSpec
-  AuthnRequest = Struct.new(:id, :acs_url, :sp_entity_id, :destination, keyword_init: true)
+  AuthnRequest   = Struct.new(:id, :acs_url, :sp_entity_id, :destination, keyword_init: true)
+  OverrideTenant = Struct.new(:host, :base, :owner, :org, :domain, :idp, :sso_url, :origin, keyword_init: true)
 
   ENTITY_ID = ENV.fetch('SAML_IDP_ENTITY_ID', '').freeze
   SSO_URL   = ENV.fetch('SAML_IDP_SSO_SERVICE_URL', '').freeze
@@ -139,8 +142,8 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
     )
   end
 
-  def post_callback(saml_response, acs_url = platform_acs)
-    header 'Origin', 'https://login.platform-idp.test'
+  def post_callback(saml_response, acs_url = platform_acs, origin: 'https://login.platform-idp.test')
+    header 'Origin', origin
     post acs_url, { 'SAMLResponse' => saml_response }
   ensure
     header 'Origin', nil
@@ -302,7 +305,9 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
       end
     end
 
-    it 'lets an active tenant SAML config override the live platform config' do
+    # A verified custom domain with an ACTIVE tenant SAML config (own IdP
+    # keypair, EntityID and origin) while the platform registration is live.
+    def with_override_tenant
       tenant_host = "override-#{run_id}.saml-platform.example.com"
       owner        = Onetime::Customer.new(email: "override-owner-#{run_id}@saml-platform.example.com")
       owner.save
@@ -319,18 +324,80 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
         idp_cert: tenant_idp.cert_pem, enabled: true
       )
 
-      begin
-        request = start_login("https://#{tenant_host}", expected_sso_url: tenant_sso_url)
+      yield PlatformSamlSsoSpec::OverrideTenant.new(
+        host: tenant_host, base: "https://#{tenant_host}", owner: owner, org: org, domain: domain,
+        idp: tenant_idp, sso_url: tenant_sso_url, origin: 'https://login.override-idp.test',
+      )
+    ensure
+      Onetime::CustomDomain::SsoConfig.delete_for_domain!(domain.identifier) rescue nil
+      Onetime::CustomDomain.display_domain_index.remove(tenant_host) rescue nil
+      domain.destroy! rescue nil
+      org.destroy! rescue nil
+      owner.destroy! rescue nil
+    end
 
-        expect(request.destination).to eq(tenant_sso_url)
+    it 'lets an active tenant SAML config override the live platform config' do
+      with_override_tenant do |tenant|
+        request = start_login(tenant.base, expected_sso_url: tenant.sso_url)
+
+        expect(request.destination).to eq(tenant.sso_url)
         expect(request.destination).not_to eq(PlatformSamlSsoSpec::SSO_URL)
-        expect(request.acs_url).to eq("https://#{tenant_host}/auth/sso/saml/callback")
-      ensure
-        Onetime::CustomDomain::SsoConfig.delete_for_domain!(domain.identifier) rescue nil
-        Onetime::CustomDomain.display_domain_index.remove(tenant_host) rescue nil
-        domain.destroy! rescue nil
-        org.destroy! rescue nil
-        owner.destroy! rescue nil
+        expect(request.acs_url).to eq("#{tenant.base}/auth/sso/saml/callback")
+      end
+    end
+
+    # The setup hook runs again on the callback phase, and that run picks the
+    # trust anchor: a tenant-signed response must verify against the TENANT
+    # certificate and key the identity to the tenant while the platform
+    # certificate is live in the same process.
+    it 'completes a tenant-signed round trip on the override host keyed to the tenant issuer with an organization join' do
+      with_override_tenant do |tenant|
+        allow(Auth::Operations::JoinDomainOrganization).to receive(:new).and_call_original
+        tenant_issuer = Onetime::SsoProvider::Saml.tenant_issuer(tenant.domain.identifier, tenant.idp.entity_id)
+
+        request = start_login(tenant.base, expected_sso_url: tenant.sso_url)
+        expect(last_request.env['rack.session'].to_h['omniauth_tenant_domain_id']).to eq(tenant.domain.identifier)
+
+        created_emails << email
+        post_callback(answer(request, signer: tenant.idp), request.acs_url, origin: tenant.origin)
+
+        expect(last_response.status).to eq(302), last_response.body[0, 300]
+        expect(last_response.headers['Location'].to_s).not_to include('auth_error')
+        expect(identity_rows).to contain_exactly(include(provider: 'saml', issuer: tenant_issuer, uid: name_id))
+        expect(tenant_issuer).to eq("#{tenant.domain.identifier}|#{tenant.idp.entity_id}")
+        expect(identity_rows.first[:issuer]).not_to eq(entity_id)
+        expect(identities.where(uid: name_id, issuer: entity_id).count).to eq(0)
+        expect(Auth::Operations::JoinDomainOrganization).to have_received(:new)
+        customer = Onetime::Customer.find_by_email(email)
+        expect(customer).not_to be_nil
+        expect(Onetime::OrganizationMembership.find_by_org_customer(tenant.org.objid, customer.objid)).not_to be_nil
+      end
+    end
+
+    it 'refuses a platform-signed response on the override host' do
+      with_override_tenant do |tenant|
+        created_emails << email
+        request = start_login(tenant.base, expected_sso_url: tenant.sso_url)
+
+        post_callback(answer(request), request.acs_url)
+
+        expect_refused
+        expect(identities.where(uid: name_id, issuer: entity_id).count).to eq(0)
+      end
+    end
+
+    # The issuer gate refuses the honest platform Issuer above; this one names
+    # the tenant EntityID so only the certificate check is left to refuse it.
+    it 'refuses a response naming the tenant EntityID but signed by the live platform key' do
+      with_override_tenant do |tenant|
+        forged = SamlSpec::TestIdp.new(entity_id: tenant.idp.entity_id, key: idp.key, cert: idp.cert)
+        created_emails << email
+        request = start_login(tenant.base, expected_sso_url: tenant.sso_url)
+
+        post_callback(answer(request, signer: forged), request.acs_url, origin: tenant.origin)
+
+        expect_refused
+        expect(identities.where(uid: name_id, issuer: entity_id).count).to eq(0)
       end
     end
   end
