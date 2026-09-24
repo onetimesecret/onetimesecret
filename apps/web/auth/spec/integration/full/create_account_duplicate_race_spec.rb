@@ -3,16 +3,18 @@
 # frozen_string_literal: true
 
 # A sign-up that loses a race for its login answers exactly like an ordinary
-# duplicate sign-up.
+# duplicate sign-up, which answers exactly like a fresh one (audit 2026-08-02
+# M-2).
 #
-# POST /auth/create-account checks for an existing account twice before it
-# inserts (verify_account's new_account, then before_create_account). A
-# request that passes both while another sign-up for the same login is between
-# its own checks and its commit reaches the INSERT and gets a unique
-# violation. Stock Rodauth answers that with 422 and a field-error reading
-# "already an account with this login": a different status and body from the
-# ordinary duplicate, saying what the generic error exists not to say.
-# config/overrides/duplicate_signup.rb routes it through the ordinary answer.
+# POST /auth/create-account checks for an existing account before it inserts
+# (before_create_account; verify_account's new_account check is bypassed on
+# this route). A request that passes it while another sign-up for the same
+# login is between its own checks and its commit reaches the INSERT and gets a
+# unique violation. Stock Rodauth answers that with 422 and a field-error
+# reading "already an account with this login": a different status and body
+# from the ordinary duplicate, saying what the generic answer exists not to
+# say. config/overrides/account_enumeration.rb (save_account) routes it
+# through the ordinary answer: the same success a fresh sign-up gets.
 #
 # The race is produced two ways:
 #
@@ -23,7 +25,7 @@
 # - for real: several threads sign up with one login at once. On PostgreSQL
 #   the losers reach the INSERT together; on the in-memory SQLite lane the
 #   single pooled connection serializes them and the hook catches the loser.
-#   Either way: one account, no 500, and every loser gets the ordinary answer.
+#   Either way: one account, no 500, and every sign-up gets the same answer.
 #
 # The 500s that concurrent sign-ups produced on a file-backed SQLite authdb
 # are a connection-settings defect, covered in authdb_sqlite_concurrency_spec.rb.
@@ -123,6 +125,13 @@ RSpec.describe 'A sign-up that loses a race answers like an ordinary duplicate',
     end
   end
 
+  # A sign-up for a login nobody has, answered by creating its account.
+  def fresh_sign_up
+    fresh = "signup-fresh-#{SecureRandom.hex(6)}@example.com"
+    @created_emails << fresh
+    sign_up(fresh)
+  end
+
   { 1 => 'an unverified', 2 => 'a verified' }.each do |status_id, label|
     it "answers the loser exactly like an ordinary duplicate when the winner is #{label} account", :aggregate_failures do
       lose_race_to(status_id)
@@ -130,8 +139,8 @@ RSpec.describe 'A sign-up that loses a race answers like an ordinary duplicate',
       ordinary = sign_up(login) # the row exists now, so the wrapper above stays out of it
 
       expect(lost).to eq(ordinary)
-      expect(lost[:status]).to eq(400)
-      expect(lost[:body]).to eq('error' => 'Unable to create account')
+      expect(lost).to eq(fresh_sign_up)
+      expect(lost[:status]).to eq(200)
       expect(lost[:body].to_s).not_to match(/already|field-error/i)
       expect(db[:accounts].where(email: login).count).to eq(1)
     end
@@ -144,7 +153,8 @@ RSpec.describe 'A sign-up that loses a race answers like an ordinary duplicate',
     db[:accounts].insert(email: verified, status_id: 2)
 
     expect(sign_up(login)).to eq(sign_up(verified))
-    expect(sign_up(login)).to eq(status: 400, body: { 'error' => 'Unable to create account' })
+    expect(sign_up(login)).to eq(fresh_sign_up)
+    expect(sign_up(login)[:status]).to eq(200)
   end
 
   it 'logs an ordinary duplicate at info and keeps the error for an account with no customer record', :aggregate_failures do
@@ -166,7 +176,7 @@ RSpec.describe 'A sign-up that loses a race answers like an ordinary duplicate',
     expect(events).to include([:registration_blocked_auth_db_conflict, :error])
   end
 
-  it 'answers a duplicate with the ordinary refusal when Redis is unreachable', :aggregate_failures do
+  it 'answers a duplicate with the ordinary answer when Redis is unreachable', :aggregate_failures do
     db[:accounts].insert(email: login, status_id: 2)
     ordinary = sign_up(login)
 
@@ -178,20 +188,18 @@ RSpec.describe 'A sign-up that loses a race answers like an ordinary duplicate',
     allow(Onetime::Customer).to receive(:email_exists?).and_raise(Redis::CannotConnectError, 'redis down')
 
     expect(sign_up(login)).to eq(ordinary)
-    expect(ordinary).to eq(status: 400, body: { 'error' => 'Unable to create account' })
+    expect(ordinary[:status]).to eq(200)
     expect(events).to include([:registration_blocked_existing_account, :warn, 'Redis::CannotConnectError'])
     expect(events.map(&:first)).not_to include(:registration_blocked_auth_db_conflict)
   end
 
-  it 'never answers 500, creates one account, and gives every loser the ordinary answer', :aggregate_failures do
-    answers = Array.new(6) { Thread.new { sign_up(login) } }.map(&:value)
-
-    winners, losers = answers.partition { |a| a[:status] == 200 }
-    ordinary        = sign_up(login)
+  it 'never answers 500, creates one account, and gives every sign-up the same answer', :aggregate_failures do
+    answers  = Array.new(6) { Thread.new { sign_up(login) } }.map(&:value)
+    ordinary = sign_up(login)
 
     expect(answers.map { |a| a[:status] }).not_to include(500)
-    expect(winners.size).to eq(1)
-    expect(losers.uniq).to eq([ordinary])
+    expect(answers.uniq).to eq([ordinary])
+    expect(ordinary[:status]).to eq(200)
     expect(db[:accounts].where(email: login).count).to eq(1)
   end
 end

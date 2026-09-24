@@ -97,13 +97,18 @@ and continue unordered.
   at `warn` as `Auth router translated exception` with `error_type` and
   `status`; `Auth router unhandled exception` (`error`) now means only an
   exception `/auth` has no answer for.
-- **Sign-up answers.** In full mode a sign-up for an existing account answers
-  `400` with `{"error": "Unable to create account"}` whether that account is
-  verified, unverified, or was created by a concurrent request a moment
-  earlier. It used to answer `403` for an unverified account and `422` for a
-  lost race. An ordinary duplicate logs `registration_blocked_existing_account`
-  at info; `registration_blocked_auth_db_conflict` (error) now fires only when
-  the auth database has the account and the datastore has no customer for it.
+- **Sign-up answers.** In v0.26.13, full mode answers a sign-up for an
+  existing account with `400` and `{"error": "Unable to create account"}`
+  whether that account is verified, unverified, or was created by a
+  concurrent request a moment earlier. It used to answer `403` for an
+  unverified account and `422` for a lost race. From v0.27 all three get the
+  same `200` success a new sign-up gets, and no second account is written
+  (security audit 2026-08-02, M-2; `apps/web/auth/config/overrides/account_enumeration.rb`),
+  so the status no longer tells a caller that the address is registered. An
+  ordinary duplicate logs `registration_blocked_existing_account` at info;
+  `registration_blocked_auth_db_conflict` (error) fires only when the auth
+  database has the account and the datastore has no customer for it. From
+  v0.27 both carry `response_mode: generic_success`.
 
 ## Developer notes
 
