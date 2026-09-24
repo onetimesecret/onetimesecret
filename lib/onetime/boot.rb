@@ -180,7 +180,7 @@ module Onetime
         unless redis_uri.match?(%r{:2163(?:[/?]|\z)})
           raise Onetime::Problem,
             'Test/tryout boot MUST use the test datastore (Redis port 2163), ' \
-            "got: #{redis_uri.empty? ? '<unset>' : redis_uri}. Enter test mode " \
+            "got: #{redis_uri.empty? ? '<unset>' : OT::Utils.redact_uri_userinfo(redis_uri)}. Enter test mode " \
             '(bin/setup --test / .test-mode) or run via `RACK_ENV=test`.'
         end
       end
@@ -275,7 +275,7 @@ module Onetime
       raise ex unless mode?(:cli) # allows for debugging in the console
     rescue Redis::CannotConnectError => ex
       failed!(ex)
-      OT.le "Cannot connect to the database #{Familia.uri} (#{ex.class})"
+      OT.le "Cannot connect to the database #{OT::Utils.redact_uri_userinfo(Familia.uri)} (#{ex.class})"
       # Database connection failures leave the app unusable. SAFE_BOOT=1 in
       # CLI mode bypasses this so the REPL can come up for diagnosis.
       raise ex unless safe_boot?

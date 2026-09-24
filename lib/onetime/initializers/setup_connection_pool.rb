@@ -32,7 +32,7 @@ module Onetime
       # which runs before this method. We use it here for connection pooling.
       uri = Familia.uri
 
-      OT.ld "[init] Connect database: uri: #{uri}"
+      OT.ld "[init] Connect database: uri: #{OT::Utils.redact_uri_userinfo(uri)}"
       OT.ld "[init] Connect database: models: #{Familia.members.map(&:to_s)}"
 
       # Validate that models have been loaded

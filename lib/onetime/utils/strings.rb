@@ -277,6 +277,25 @@ module Onetime
         end
       end
 
+      # A connection URI with its userinfo replaced by "***", for log lines
+      # and exception messages. Redis/Valkey URIs carry their password in the
+      # userinfo, and a URI interpolated into a message is out of reach of
+      # any by-param-name scrubbing downstream.
+      #
+      #   redact_uri_userinfo('redis://user:s3cret@db:6379/0') #=> "redis://***@db:6379/0"
+      #   redact_uri_userinfo('redis://db:6379/0')             #=> "redis://db:6379/0"
+      #
+      # String-based rather than URI.parse, because the URIs most likely to be
+      # printed are the ones that failed to parse or connect. Everything up to
+      # the LAST "@" counts as userinfo, so an unescaped "@" in a password
+      # redacts too much rather than printing the rest of the password.
+      #
+      # @param uri [String, URI::Generic, nil]
+      # @return [String]
+      def redact_uri_userinfo(uri)
+        utf8_safe(uri.to_s).sub(%r{\A((?:[a-z][a-z0-9+.-]*:)?//)?.*@}im, '\\1***@')
+      end
+
       # Checks whether a value is an explicitly recognized truthy token.
       #
       # This is a recognizer, not a partition: a false return means "not a

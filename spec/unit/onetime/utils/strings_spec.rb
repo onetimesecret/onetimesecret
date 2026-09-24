@@ -262,6 +262,40 @@ RSpec.describe Onetime::Utils::Strings do
     end
   end
 
+  describe '#redact_uri_userinfo' do
+    # Boot and connection-failure messages print the datastore URI. Its
+    # userinfo is where the password lives, and a URI interpolated into a
+    # log line or a raise is out of reach of by-param-name scrubbing.
+    {
+      'redis://user:s3cret@db:6379/0'  => 'redis://***@db:6379/0',
+      'rediss://:s3cret@db:6380/2'     => 'rediss://***@db:6380/2',
+      'valkey://s3cret@db:6379'        => 'valkey://***@db:6379',
+      'redis://db:6379/0'              => 'redis://db:6379/0',
+      'user:s3cret@db:6379'            => '***@db:6379',
+    }.each do |input, expected|
+      it "renders #{input.inspect} as #{expected.inspect}" do
+        expect(utils.redact_uri_userinfo(input)).to eq(expected)
+      end
+    end
+
+    it 'redacts through the last "@" so an unescaped "@" in a password does not leak its tail' do
+      expect(utils.redact_uri_userinfo('redis://:p@ss@db:6379/0')).to eq('redis://***@db:6379/0')
+    end
+
+    it 'accepts a parsed URI, as Familia.uri returns' do
+      expect(utils.redact_uri_userinfo(Familia.normalize_uri('redis://:s3cret@db:6390/0')))
+        .to eq('redis://***@db:6390/0')
+    end
+
+    it 'does not raise on invalid UTF-8' do
+      expect(utils.redact_uri_userinfo("redis://:s3\xFFcret@db:6379/0".b)).to eq('redis://***@db:6379/0')
+    end
+
+    it 'renders nil as an empty string' do
+      expect(utils.redact_uri_userinfo(nil)).to eq('')
+    end
+  end
+
   describe '#glob_case_insensitive' do
     # Redis MATCH is case-sensitive and the customer email_index carries
     # mixed-case keys from pre-normalization writers, so the admin searches
