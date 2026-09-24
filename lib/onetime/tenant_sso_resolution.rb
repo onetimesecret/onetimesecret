@@ -120,6 +120,21 @@ module Onetime
       @domain_id = read_domain_id
     end
 
+    # The CustomDomain record resolved by the same raising, memoized read as
+    # #domain_id. Display callers use this when a capability depends on domain
+    # verification and must not perform a second lookup that could disagree.
+    #
+    # @return [Onetime::CustomDomain, nil]
+    def custom_domain
+      domain_id unless defined?(@custom_domain)
+      @custom_domain
+    end
+
+    # @return [Boolean] true only for a positively resolved, verified domain
+    def verified_custom_domain?
+      custom_domain&.verified == true
+    end
+
     # @return [Boolean] true when the domain read failed (#4157 tri-state)
     def domain_read_failed?
       domain_id == DOMAIN_READ_FAILED
@@ -160,8 +175,10 @@ module Onetime
     def read_domain_id
       return nil if @display_domain.empty?
 
-      Onetime::CustomDomain.from_display_domain(@display_domain)&.identifier
+      @custom_domain = Onetime::CustomDomain.from_display_domain(@display_domain)
+      @custom_domain&.identifier
     rescue Redis::BaseError => ex
+      @custom_domain = nil
       OT.le '[TenantSsoResolution] datastore error resolving domain_id for ' \
             "domain=#{@display_domain} strategy=#{@domain_strategy.inspect}: #{ex.class}"
       operator_host? ? nil : DOMAIN_READ_FAILED

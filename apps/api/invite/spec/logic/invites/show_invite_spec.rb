@@ -255,6 +255,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
         Onetime::CustomDomain,
         identifier: 'domain-acme-123',
         display_domain: display_domain,
+        verified: true,
         sso_config: sso_config,
         brand_settings: nil
       )
@@ -355,10 +356,20 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
           expect(record[:auth_methods].first).not_to have_key(:provider_type)
         end
 
-        # Platform SAML (#4450) is :canonical_host_only — its ACS URL is
-        # pinned to site.host and the strategy refuses a start on any other
-        # host — and this arm is always a custom host.
-        it 'drops a canonical-host-only platform provider (saml)' do
+        it 'offers platform SAML on a verified custom domain when fallback is usable' do
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+            .with('domain-acme-123')
+            .and_return(true)
+          allow(Onetime.auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+            { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+          ])
+
+          expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(%w[saml oidc])
+        end
+
+        it 'omits platform SAML on an unverified custom domain' do
+          allow(custom_domain).to receive(:verified).and_return(false)
           allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
             .with('domain-acme-123')
             .and_return(true)

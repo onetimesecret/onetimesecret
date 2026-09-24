@@ -61,7 +61,7 @@ RSpec.describe 'sign-in/sign-up default polarity by host classification' do
   let(:display_domain) { 'secrets.tenant.example.com' }
   let(:domain_id)      { 'domain_a12_1' }
 
-  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id) }
+  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id, verified: true) }
 
   # Global authentication: enabled for sign-in AND sign-up unless a context
   # overrides it.

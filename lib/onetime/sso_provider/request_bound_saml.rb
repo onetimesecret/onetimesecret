@@ -175,6 +175,7 @@
 require 'omniauth-saml'
 
 require 'onetime/security/saml_assertion_replay_guard'
+require 'onetime/sso_provider/flow_session_keys'
 require 'onetime/sso_provider/ruby_saml_log_bridge'
 
 # ruby-saml logs the full AuthnRequest XML at DEBUG to a STDOUT logger
@@ -206,8 +207,10 @@ module OmniAuth
       option :idp_sso_service_url_runtime_params, {}
 
       # Session key holding the one pending AuthnRequest id. String key: the
-      # session is a string-keyed store at rest.
-      REQUEST_ID_KEY = 'saml_authn_request_id'
+      # session is a string-keyed store at rest. Shared through
+      # FlowSessionKeys so the tenant hook can supersede a pending request
+      # without loading this strategy.
+      REQUEST_ID_KEY = Onetime::SsoProvider::FlowSessionKeys::SAML_REQUEST_ID
 
       # Written by the gem on every successful callback (saml.rb:179-180) for
       # its SLO endpoints. SLO is disabled, so they are dead weight that
@@ -319,8 +322,10 @@ module OmniAuth
       # (strategy.rb:504-506), and omniauth-saml falls back to this value for
       # an ACS URL that was not set (saml.rb:269 `||=`). Both surfaces set
       # one explicitly — the platform definition pins the canonical ACS at
-      # boot (Onetime::SsoProvider::Saml.platform_options) and the tenant
-      # hook derives it per request (OmniAuthTenant.inject_saml_sp_identifiers)
+      # boot (Onetime::SsoProvider::Saml.platform_options), an allowed verified
+      # custom-domain fallback may rebind only that ACS, and the tenant hook
+      # derives both SP identifiers per request
+      # (OmniAuthTenant.inject_saml_sp_identifiers)
       # — so this is reached only by the un-injected placeholder, which the
       # blank-trust-anchor refusal above stops first. Kept as the override
       # anyway: the ACS URL is registered verbatim at the IdP and compared
@@ -337,13 +342,12 @@ module OmniAuth
       # started on, and the IdP posts the response to the ACS URL. When the
       # two hosts differ the response arrives with no session, is refused as
       # :saml_no_pending_request, and the visitor learns nothing useful. The
-      # platform surface pins its ACS to site.host (saml.rb: PLATFORM SAML
-      # SERVES THE CANONICAL HOST ONLY), so a platform sign-in started on a
-      # custom domain (platform fallback) or on a secondary canonical host is
-      # exactly this case — refused here, at both phases, before an
-      # AuthnRequest the IdP would reject (or that could never complete) is
-      # emitted. The tenant surface derives its ACS from full_host, so it
-      # can never mismatch. No ACS set at all (the placeholder) is not a
+      # platform surface pins its ACS to site.host at boot. A verified custom-
+      # domain fallback explicitly allowed by policy rebinds the ACS to
+      # full_host before this guard; unknown and unverified hosts retain the
+      # canonical ACS and are refused here. A secondary canonical host likewise
+      # mismatches. The tenant surface derives its ACS from full_host, so it can
+      # never mismatch. No ACS set at all (the placeholder) is not a
       # mismatch: blank_trust_option refuses that first.
       #
       # Host only, not scheme or port: the cookie is host-scoped, and a
