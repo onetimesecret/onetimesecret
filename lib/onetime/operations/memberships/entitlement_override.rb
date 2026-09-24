@@ -9,6 +9,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/operations/org/entitlement_override'
+require 'onetime/operations/audit_attempt'
 
 module Onetime
   module Operations
@@ -73,6 +74,7 @@ module Onetime
       # stay symmetric.
       class EntitlementOverride
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         ACTIONS = Org::EntitlementOverride::ACTIONS
 
@@ -241,6 +243,11 @@ module Onetime
 
         private
 
+        # The #4337 envelope's target hook: the CUSTOMER's extid, the key every
+        # row on this op has always carried — preview, no-change attempt and
+        # applied event alike. This class's own `audit_verb` supplies the verb.
+        def audit_target = @customer.extid
+
         # "membership.entitlement.<action>" — BYTE-IDENTICAL to what the success
         # path has always emitted for a valid action (a frontend filter
         # prefix-matches these). An INVALID action falls back to the bare prefix
@@ -260,20 +267,13 @@ module Onetime
         # on D15.
         def record_preview_event(outcome: nil)
           detail           = {
-            dry_run: true,
             org_id: @org.extid,
             action: @action,
             entitlement: @entitlement,
           }
           detail[:outcome] = outcome if outcome
 
-          Onetime::ColonelAuditEvent.record_access(
-            actor: @actor,
-            verb: audit_verb,
-            target: @customer.extid,
-            result: 'preview',
-            detail: detail,
-          )
+          record_preview_observation(detail)
         end
 
         # A LIVE no-change attempt (#4337) — the OPERATOR trail, mirroring the
@@ -282,13 +282,7 @@ module Onetime
         # verb carries the action) plus the `outcome: 'no_change'` marker. NOT
         # fail-closed: nothing moved.
         def record_no_change_event
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: audit_verb,
-            target: @customer.extid,
-            result: :success,
-            detail: { outcome: 'no_change', org_id: @org.extid, entitlement: @entitlement },
-          )
+          record_no_change_attempt({ org_id: @org.extid, entitlement: @entitlement })
         end
 
         # Same verb/target/actor as the success event. Best-effort: never break

@@ -173,6 +173,41 @@ module Onetime
         email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
       end
 
+      # Build a Redis glob (SCAN/HSCAN/SSCAN MATCH) that matches `term` as a
+      # literal substring regardless of ASCII letter case.
+      #
+      # MATCH is case-sensitive and has no flag to change that, so the only
+      # way to search an index whose keys were written with mixed case (the
+      # customer email_index carries pre-normalization and migrated entries
+      # as they were entered; the organization contact_email_index stores
+      # addresses verbatim) is to widen every ASCII letter to a `[aA]` class.
+      # Glob metacharacters are escaped FIRST so a user-supplied term can
+      # never inject pattern syntax; the class brackets this method adds are
+      # the only unescaped ones in the result.
+      #
+      # Only ASCII letters are widened. Non-ASCII letters pass through as-is,
+      # so a term with an accented character still matches case-sensitively
+      # on that character; the index writers that normalize (Customer.create!)
+      # also case-fold, so the exact-lookup arms cover those keys.
+      #
+      # @param term [String] Raw search term
+      # @return [String] Escaped, case-insensitive glob fragment (no leading or
+      #   trailing `*`; the caller decides whether it is a substring match)
+      #
+      # @example
+      #   glob_case_insensitive('Gam[m]a')  # => '[gG][aA][mM]\\[[mM]\\][aA]'
+      def glob_case_insensitive(term)
+        term.to_s.each_char.map do |char|
+          if char.match?(/[*?\[\]\\]/)
+            "\\#{char}"
+          elsif char.match?(/[a-zA-Z]/)
+            "[#{char.downcase}#{char.upcase}]"
+          else
+            char
+          end
+        end.join
+      end
+
       # Removes every byte run that is not valid UTF-8 so text of unknown
       # provenance — a datastore field, a request parameter — can be matched,
       # printed and JSON-encoded without raising.

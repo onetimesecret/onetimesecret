@@ -8,6 +8,7 @@
 # (colonel logic + CLI), so require the audit model explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 
 module Onetime
   module Operations
@@ -50,6 +51,7 @@ module Onetime
       # adapters pass the identical string argument.
       class Transfer
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         # Audit verb recorded for every applied transfer.
         AUDIT_VERB = 'domain.transfer'
@@ -166,21 +168,19 @@ module Onetime
 
         private
 
+        # The #4337 envelope's target hook: the domain's public id, same as the
+        # applied event's. `audit_verb` defaults to AUDIT_VERB, `audit_actor`
+        # to @actor.
+        def audit_target = @domain.extid
+
         # One OBSERVATION per preview (#4337), on the budgeted access trail.
         # Same verb and target as the applied event so a preview and the
         # transfer that followed read as one sequence; `result: 'preview'` and
         # `dry_run: true` tell them apart.
         def record_preview_event(from_id)
-          Onetime::ColonelAuditEvent.record_access(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @domain.extid,
-            result: 'preview',
-            detail: {
-              dry_run: true,
-              from_org_id: from_id.to_s,
-              to_org_id: @to_org.org_id.to_s,
-            },
+          record_preview_observation(
+            from_org_id: from_id.to_s,
+            to_org_id: @to_org.org_id.to_s,
           )
         end
 

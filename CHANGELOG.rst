@@ -10,6 +10,97 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.26.12:
+
+0.26.12 — 2026-09-10
+====================
+
+Added
+-----
+
+- ``RODAUTH_ADMIN_URL`` (config ``site.admin.rodauth_admin_url``): the base URL
+  of the standalone Rodauth Admin instance. Optional and credential-free. When
+  set in ``full`` authentication mode, the colonel customer page, the customers
+  list drawer, and each row of the sessions console link to the matching
+  Rodauth account, and the sessions console and per-customer sessions panel
+  link to it as the session authority. Nothing is ever requested from it;
+  unset renders plain text.
+
+- The admin console shows the running app version (linked to its release
+  notes) in the sidebar foot, so operators no longer have to leave the console
+  for a workspace page to check it.
+
+Changed
+-------
+
+- In ``full`` authentication mode the colonel sessions console and the
+  per-customer sessions panel now state that they are not the session
+  authority (they read the Redis session store; Rodauth's session table is
+  authoritative) instead of presenting a partial list as complete.
+
+- In ``full`` authentication mode, authenticated requests now require the
+  authentication database. During an authdb outage, existing browser sessions
+  are refused rather than continuing from Redis alone; they work again once
+  the authdb recovers.
+
+- Tenant SSO refusals now use distinct error codes for an existing-account
+  link that is unavailable on that domain and for a connection started on the
+  wrong domain.
+
+- Audit events produced by operations with ``dry_run: true`` now use the same
+  envelope as applied operations.
+
+- The active-session inactivity deadline is temporarily extended from 24 to 72
+  hours.
+
+Removed
+-------
+
+- The development-only ``GET /auth/admin/stats`` stub. Its numbers are served
+  by the standalone Rodauth Admin behind real authentication.
+
+- The Organizations list's server-side roster cache and its ``refresh=1``
+  bypass. The parameter is still accepted and ignored; the ``details.cache``
+  block is no longer sent.
+
+Fixed
+-----
+
+- Admin Organization searches and filters no longer load every organization
+  and owner. ``pagination.capped`` indicates that a bounded result may be
+  incomplete.
+
+- Admin console searches now run only when submitted, rather than while an
+  operator types.
+
+- Improved admin sessions, customer, and domain search performance.
+
+- Account deletion from Account Settings now completes reliably.
+
+- Customer search now matches email addresses case-insensitively, including
+  legacy mixed-case index entries.
+
+- The Active Sessions card and ``/account/settings/security/sessions`` are
+  available when ``AUTH_ACTIVE_SESSIONS_ENABLED`` is set.
+
+Security
+--------
+
+- In ``full`` authentication mode, revoking an active session or signing out
+  everywhere now blocks the affected browser on its next request.
+
+- Session deadlines in ``full`` mode are now enforced on every request:
+  sessions inactive for 72 hours or older than 30 days require sign-in again.
+
+- Accounts created by accepting an invitation now have a visible, revocable
+  active session.
+
+- After a revoked session, sign-up and sign-in flows, including SSO, proceed
+  as signed-out requests.
+
+- Router fallback ``404`` and ``500`` responses no longer return stale
+  response headers.
+
 .. _changelog-0.26.11:
 
 0.26.11 — 2026-09-06

@@ -9,6 +9,7 @@
     type MembershipRole,
   } from '@/apps/admin/components/organizations/membershipSchemas';
   import { usePaginatedFetch } from '@/apps/admin/composables/usePaginatedFetch';
+  import { useRefocusAfterBusy } from '@/apps/admin/composables/useRefocusAfterBusy';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import type {
     ColonelUser,
@@ -22,7 +23,7 @@
   import type { ColonelOrganizationDetailMember } from '@/schemas/api/internal/responses/colonel-organizations';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { formatDisplayDateTime } from '@/utils/format';
-  import { computed, onBeforeUnmount, ref, watch } from 'vue';
+  import { computed, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   /**
@@ -110,6 +111,10 @@
     validationError: searchValidationError,
   } = pager;
 
+  // The input is disabled while a search runs; give focus back afterwards.
+  const searchInput = ref<HTMLInputElement | null>(null);
+  useRefocusAfterBusy(searchInput, searchLoading);
+
   async function runSearch(): Promise<void> {
     const q = term.value.trim();
     activeTerm.value = q;
@@ -128,20 +133,20 @@
     }
   }
 
-  // One request per pause, not per keystroke. The no-op guard keeps the
-  // programmatic reset below from firing a second, pointless search.
-  let debounceId: ReturnType<typeof setTimeout> | null = null;
-  watch(term, (value) => {
-    if (debounceId) clearTimeout(debounceId);
-    if (value.trim() === activeTerm.value) return;
-    debounceId = setTimeout(runSearch, 300);
-  });
-  onBeforeUnmount(() => {
-    if (debounceId) clearTimeout(debounceId);
-  });
-
+  /**
+   * Search runs ONLY on explicit submit (Enter / the search button). Typing
+   * never fetches: each search is a bounded scan of the email index on the
+   * server, and the per-keystroke debounce this replaced fired a burst of
+   * them. One at a time, and never twice for the same term.
+   */
   function onSearchSubmit(): void {
-    if (debounceId) clearTimeout(debounceId);
+    if (searchLoading.value) return;
+    // Skip a no-op repeat of a term already showing results — UNLESS the last
+    // attempt errored. A transient failure (network blip, 5xx, contract
+    // mismatch) leaves `activeTerm` set, so without this a same-term Enter
+    // would be a permanent no-op and the operator could never retry.
+    const hadError = Boolean(searchError.value || searchValidationError.value);
+    if (!hadError && term.value.trim() === activeTerm.value) return;
     runSearch();
   }
 
@@ -231,7 +236,6 @@
     () => props.open,
     (isOpen) => {
       if (!isOpen) return;
-      if (debounceId) clearTimeout(debounceId);
       term.value = '';
       activeTerm.value = '';
       results.value = [];
@@ -276,6 +280,7 @@
         </span>
         <input
           id="add-member-search"
+          ref="searchInput"
           v-model="term"
           type="search"
           autocomplete="off"
@@ -284,7 +289,9 @@
           spellcheck="false"
           data-testid="add-member-search"
           :placeholder="t('web.admin.organizations.addMember.searchPlaceholder')"
-          class="w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+          :disabled="searchLoading"
+          :aria-busy="searchLoading"
+          class="w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
       </div>
       <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">
         {{ t('web.admin.organizations.addMember.searchHint') }}

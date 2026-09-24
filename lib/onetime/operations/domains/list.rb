@@ -42,8 +42,17 @@ module Onetime
   module Operations
     module Domains
       class List
-        # Per-round-trip COUNT hint for the display_domain_index cursor HSCAN.
-        SCAN_COUNT = 100
+        # Per-round-trip COUNT hint for the MATCH-filtered index cursor HSCANs.
+        # MATCH filters server-side, so only hits cross the wire and a search's
+        # cost is its round-trips: 1k per call covers the index in a few calls.
+        SCAN_COUNT = 1_000
+
+        # COUNT hint for the un-MATCHed owners walk ({scan_owners_index}), which
+        # transfers EVERY field/value pair into Ruby to compare there. Kept at
+        # 100 so the per-request ceiling (COUNT × SEARCH_SCAN_ROUNDS) stays at
+        # ~100k pairs rather than the ~1M a 1k COUNT would allow — the large
+        # SCAN_COUNT above is safe only because MATCH bounds what it returns.
+        OWNERS_SCAN_COUNT = 100
 
         # Cap on how many display_domain_index MATCHES one search collects.
         SEARCH_MATCH_LIMIT = 1_000
@@ -169,11 +178,16 @@ module Onetime
         end
 
         # Non-blocking cursor HSCAN of the display_domain_index hash, matching
-        # `*term*` server-side against the lowercased stored domains.
+        # `*term*` server-side. Display domains are stored lowercase, so the
+        # case-insensitive glob is defensive here rather than load-bearing:
+        # it keeps this scan on the same shared helper as the customer and
+        # organization searches, whose indexes DO carry mixed-case keys, so
+        # a future writer that skips normalization cannot silently make a
+        # domain unsearchable.
         def scan_display_domain_index(term)
           dbkey    = Onetime::CustomDomain.display_domain_index.dbkey
           dbclient = Onetime::CustomDomain.dbclient
-          pattern  = "*#{glob_escape(term.downcase)}*"
+          pattern  = "*#{OT::Utils.glob_case_insensitive(term)}*"
           objids   = []
           cursor   = '0'
           rounds   = 0
@@ -203,11 +217,17 @@ module Onetime
           end
         end
 
+        # Exact extid / domain_id hits — O(1) unique-index reads. Both lookups
+        # existence-check as they load (Familia `load`/`find_by_extid` run with
+        # `check_exists: true` and return nil for a missing record), so
+        # `.compact` alone yields only rows that exist; a second `exists?` per
+        # hit was one more EXISTS round-trip confirming what the load already
+        # had (same shape as the organizations list's identifier_lookups).
         def identifier_lookups(term)
           [
             safe_lookup { Onetime::CustomDomain.find_by_extid(term) },
             safe_lookup { Onetime::CustomDomain.load(term) },
-          ].compact.select(&:exists?)
+          ].compact
         end
 
         def safe_lookup
@@ -216,15 +236,14 @@ module Onetime
           nil
         end
 
-        def glob_escape(term)
-          term.gsub(/[*?\[\]\\]/) { |char| "\\#{char}" }
-        end
-
         # The org's own domains participation set unioned with the org's entries
         # in the `owners` class hashkey. Accepts the org extid or the objid.
         def org_candidates
+          # resolve_org loads with check_exists, so a non-nil org exists; an
+          # `exists?` recheck here would run Familia's inherited check on a
+          # possibly-different pooled connection and could false-negative.
           org = resolve_org(@org_filter)
-          return [] unless org&.exists?
+          return [] unless org
 
           candidates = org.list_domains
           merge_unlisted_owned(candidates, org)
@@ -253,7 +272,7 @@ module Onetime
           rounds   = 0
 
           loop do
-            cursor, entries = dbclient.hscan(dbkey, cursor, count: SCAN_COUNT)
+            cursor, entries = dbclient.hscan(dbkey, cursor, count: OWNERS_SCAN_COUNT)
             entries.each { |domain_id, owner| owned << domain_id if wanted.include?(owner) }
             rounds         += 1
 

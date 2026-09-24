@@ -123,7 +123,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       }.to_json
 
       # Create customer and set intent (simulating hook behavior)
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -146,7 +146,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       email = unique_test_email('no-product')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -170,7 +170,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       email = unique_test_email('no-interval')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -233,7 +233,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       email = unique_test_email('surface')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -256,7 +256,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       email = unique_test_email('peek-retry')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -292,7 +292,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       email = unique_test_email('no-intent')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -313,7 +313,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       email = unique_test_email('corrupted')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -337,7 +337,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       email = unique_test_email('discontinued')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -490,7 +490,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       account = create_test_account(email: email)
 
       # Step 1: Create customer (simulating signup)
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -528,7 +528,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       email = unique_test_email('peek-until-handoff')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -578,7 +578,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       email = unique_test_email('session-precedence')
       account = create_test_account(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -691,7 +691,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       account = create_account_with_password(email: email)
 
       # Create customer with pending_plan_intent
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -738,7 +738,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       email = unique_test_email('http-peek-consume')
       account = create_account_with_password(email: email)
 
-      operation = Auth::Operations::CreateCustomer.new(
+      operation = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection
@@ -797,7 +797,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
   describe 'pending_auth_redirect persistence' do
     def new_customer_for(email)
       account = create_test_account(email: email)
-      customer = Auth::Operations::CreateCustomer.new(
+      customer = Auth::Operations::EnsureCustomerForAccount.new(
         account_id: account[:id],
         account: account,
         db: Auth::Database.connection

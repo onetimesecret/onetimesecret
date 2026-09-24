@@ -6,6 +6,7 @@
 # the auth app's autoloader, so require the dependency explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 require 'onetime/operations/customers/role_support'
 require 'auth/operations/set_customer_verification'
 
@@ -53,6 +54,7 @@ module Auth
       # struct, because three adapters already `case` on the returned symbol.
       class SetVerification
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
         include Onetime::Operations::Customers::RoleSupport
 
         AUDIT_VERB = 'customer.set_verification'
@@ -164,6 +166,11 @@ module Auth
 
         private
 
+        # The #4337 envelope's target hook: the customer's PUBLIC extid, the
+        # same target the applied event carries. `audit_verb` defaults to
+        # AUDIT_VERB and `audit_actor` to @actor.
+        def audit_target = @customer.extid
+
         # @return [Symbol, nil] the refusal status, or nil to proceed
         def unverify_refusal
           return nil if @verified
@@ -223,12 +230,12 @@ module Auth
         # destroys nothing.
         def record_audit_event(result)
           detail = { verified: @verified }
-          detail = { outcome: 'no_change' }.merge(detail) unless result == :success
+          return record_no_change_attempt(detail) unless result == :success
 
           Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @customer.extid,
+            actor: audit_actor,
+            verb: audit_verb,
+            target: audit_target,
             result: :success,
             detail: detail,
           )

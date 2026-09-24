@@ -2,8 +2,9 @@
 //
 // Tests for the per-route beforeEnter guards defined in account.ts.
 // The guards (checkOwnerOrAdminAccess, checkPasswordSecurityAccess,
-// checkSetPasswordAccess, checkSecurityAccess) are not exported, so we test
-// them indirectly by invoking beforeEnter on the route records themselves.
+// checkSetPasswordAccess, checkOwnerWithPasswordAccess, checkSecurityAccess,
+// checkActiveSessionsAccess) are not exported, so we test them indirectly by
+// invoking beforeEnter on the route records themselves.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -13,6 +14,7 @@ vi.mock('@/utils/features', () => ({
   hasPassword: vi.fn(() => false),
   isOwnerOrAdmin: vi.fn(() => false),
   isPasswordAuthPermitted: vi.fn(() => false),
+  isActiveSessionsEnabled: vi.fn(() => false),
 }));
 
 import accountRoutes from '@/apps/workspace/routes/account';
@@ -21,6 +23,7 @@ import {
   hasPassword,
   isOwnerOrAdmin,
   isPasswordAuthPermitted,
+  isActiveSessionsEnabled,
 } from '@/utils/features';
 import type { RouteRecordRaw, NavigationGuardWithThis } from 'vue-router';
 
@@ -28,6 +31,7 @@ const mockedIsFullAuthMode = vi.mocked(isFullAuthMode);
 const mockedHasPassword = vi.mocked(hasPassword);
 const mockedIsOwnerOrAdmin = vi.mocked(isOwnerOrAdmin);
 const mockedIsPasswordAuthPermitted = vi.mocked(isPasswordAuthPermitted);
+const mockedIsActiveSessionsEnabled = vi.mocked(isActiveSessionsEnabled);
 
 /**
  * Extract the beforeEnter guard from a route found by path.
@@ -69,6 +73,7 @@ describe('Account route guards', () => {
     mockedHasPassword.mockReturnValue(false);
     mockedIsOwnerOrAdmin.mockReturnValue(false);
     mockedIsPasswordAuthPermitted.mockReturnValue(false);
+    mockedIsActiveSessionsEnabled.mockReturnValue(false);
   });
 
   // ── Guard wiring verification ─────────────────────────────────────
@@ -322,7 +327,6 @@ describe('Account route guards', () => {
   describe('checkSecurityAccess (auth-mode-only routes)', () => {
     const guardedPaths = [
       '/account/settings/security',
-      '/account/settings/security/sessions',
       '/account/settings/security/passkeys',
       // Connected identities is guarded like passkeys — full-auth mode only,
       // NOT password-dependent (SSO-only accounts must be able to reach it).
@@ -354,6 +358,49 @@ describe('Account route guards', () => {
     }
   });
 
+  // ── checkActiveSessionsAccess ─────────────────────────────────────
+
+  describe('checkActiveSessionsAccess (sessions route, feature-flag gated)', () => {
+    const path = '/account/settings/security/sessions';
+
+    it('allows when full auth mode AND active_sessions flag enabled', () => {
+      mockedIsFullAuthMode.mockReturnValue(true);
+      mockedIsActiveSessionsEnabled.mockReturnValue(true);
+
+      expect(invokeGuard(path)).toBe(true);
+    });
+
+    it('redirects to Account when full auth mode but flag disabled', () => {
+      mockedIsFullAuthMode.mockReturnValue(true);
+      mockedIsActiveSessionsEnabled.mockReturnValue(false);
+
+      expect(invokeGuard(path)).toEqual({ name: 'Account' });
+    });
+
+    it('redirects to Account when flag enabled but not full auth mode', () => {
+      mockedIsFullAuthMode.mockReturnValue(false);
+      mockedIsActiveSessionsEnabled.mockReturnValue(true);
+
+      expect(invokeGuard(path)).toEqual({ name: 'Account' });
+    });
+
+    it('redirects to Account when both gates fail', () => {
+      mockedIsFullAuthMode.mockReturnValue(false);
+      mockedIsActiveSessionsEnabled.mockReturnValue(false);
+
+      expect(invokeGuard(path)).toEqual({ name: 'Account' });
+    });
+
+    it('is independent of password and role (SSO member allowed when both gates pass)', () => {
+      mockedIsFullAuthMode.mockReturnValue(true);
+      mockedIsActiveSessionsEnabled.mockReturnValue(true);
+      mockedHasPassword.mockReturnValue(false);
+      mockedIsOwnerOrAdmin.mockReturnValue(false);
+
+      expect(invokeGuard(path)).toBe(true);
+    });
+  });
+
   // ── Cross-cutting persona scenarios ───────────────────────────────
 
   describe('persona scenarios (end-to-end guard behavior)', () => {
@@ -361,6 +408,8 @@ describe('Account route guards', () => {
       mockedIsFullAuthMode.mockReturnValue(true);
       mockedHasPassword.mockReturnValue(true);
       mockedIsOwnerOrAdmin.mockReturnValue(true);
+      // Sessions is additionally gated on the active_sessions feature flag.
+      mockedIsActiveSessionsEnabled.mockReturnValue(true);
 
       const allGuardedPaths = accountRoutes
         .filter((r: RouteRecordRaw) => r.beforeEnter)
@@ -375,6 +424,7 @@ describe('Account route guards', () => {
       mockedIsFullAuthMode.mockReturnValue(true);
       mockedHasPassword.mockReturnValue(false);
       mockedIsOwnerOrAdmin.mockReturnValue(true);
+      mockedIsActiveSessionsEnabled.mockReturnValue(true);
 
       // Should allow
       expect(invokeGuard('/account/region')).toBe(true);
@@ -394,6 +444,7 @@ describe('Account route guards', () => {
       mockedIsFullAuthMode.mockReturnValue(true);
       mockedHasPassword.mockReturnValue(true);
       mockedIsOwnerOrAdmin.mockReturnValue(false);
+      mockedIsActiveSessionsEnabled.mockReturnValue(true);
 
       // Should allow
       expect(invokeGuard('/account/settings/security')).toBe(true);
@@ -410,6 +461,7 @@ describe('Account route guards', () => {
       mockedIsFullAuthMode.mockReturnValue(true);
       mockedHasPassword.mockReturnValue(false);
       mockedIsOwnerOrAdmin.mockReturnValue(false);
+      mockedIsActiveSessionsEnabled.mockReturnValue(true);
 
       // Should allow
       expect(invokeGuard('/account/settings/security')).toBe(true);

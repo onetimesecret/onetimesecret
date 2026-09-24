@@ -418,6 +418,78 @@ refusal path) and is unchanged. `email/ingest_feedback`'s all-rejected-batch
 path also stays unaudited on purpose: a batch that accepts nothing is an honest
 pipeline outcome, not an operator reaching for a named target.
 
+**One envelope for both families (#4366).** Both row shapes above were
+re-typed by hand in every op, and the correctness of the whole feature rested
+on ~28 hand-written kwarg lists agreeing with one another.
+`Onetime::Operations::AuditAttempt` (`lib/onetime/operations/audit_attempt.rb`)
+now owns the envelope, and an op composes it with `include`.
+`record_no_change_attempt(detail)` writes the operator-trail row
+(`ColonelAuditEvent.record`, `result: :success`);
+`record_preview_observation(detail)` writes the observation-trail row
+(`ColonelAuditEvent.record_access`, `result: 'preview'`).
+
+The three marker fields the feature rests on are structural now rather than
+conventional. `result:` is no longer a kwarg a call site types; it is decided
+by which of the two methods you call. `outcome: 'no_change'` and
+`dry_run: true` are merged into the detail **last**, so a call site cannot
+displace them. And there is no `fail_closed` parameter to pass, so a
+no-change row cannot be fail-closed by construction — a no-change destroyed
+nothing, so there is no irrecoverable fact for a hard failure to protect, and
+hard-failing an idempotent no-op would be a regression rather than a
+safeguard. Ops recording an *applied* effect still call
+`ColonelAuditEvent.record` directly and keep their `fail_closed: true`.
+
+What stays at the call site is the detail hash, and the per-op security
+rationale comment above the branch that decides to emit. Those comments are
+genuinely per-op — why *this* verb's no-change is worth a row, why *these*
+fields and not others — and they are the most valuable text in these files.
+The module replaces none of them; it owns only the parts that must be
+identical everywhere.
+
+It is a **sibling** of `Onetime::AuditReason` rather than part of it. Reason
+policy has real per-op variance the envelope does not:
+`customers/set_suspension` keeps `reason:` present unconditionally on SUSPEND
+but omit-when-absent on UNSUSPEND, so a module that auto-merged the reason
+would break that shape. The two concerns compose at the call site instead —
+`record_no_change_attempt(with_reason(purged: 0))`.
+
+Three hooks carry the per-op parts: `audit_actor` (defaults to `@actor`),
+`audit_verb` (defaults to the class's `AUDIT_VERB`), and `audit_target` (no
+default — it raises `NotImplementedError` rather than let an op record a row
+against nil). `audit_verb` is overridden where the verb is direction- or
+action-dependent: `customers/set_suspension` (suspend vs unsuspend) and both
+`entitlement_override` ops, whose verb is computed from `@action`.
+
+Every op that records a preview or a no-change attempt composes the module —
+`customers/change_email`, `customers/reconcile_role_index`,
+`customers/set_role`, `customers/set_plan`, `customers/set_suspension`,
+`customers/set_verification`, `dlq/purge`, `dlq/replay`,
+`domains/ensure_domain_configs`, `domains/remove`, `domains/repair`,
+`domains/transfer`, `email/send_test`, `email/sync_provider_feedback`,
+`memberships/add`, `memberships/set_role`,
+`memberships/entitlement_override`, `org/delete`, `org/entitlement_override`,
+`org/reconcile`, `org/set_plan`, `org/transfer_ownership`. Nothing builds the
+envelope inline any more, so `result:` and `dry_run:` rest on construction
+rather than on review attention.
+
+Folding in `email/sync_provider_feedback` CHANGED one row's shape, the only
+payload change in the consolidation. Its preview detail never carried
+`dry_run: true` — the applied and preview paths share one `sync_detail`
+builder, and the two were told apart by `sync_status_stamped`, an inverted
+proxy for the marker. Composing the envelope adds the real marker, which is
+the point: `dry_run:` is now merged by construction on every observation row
+without exception. Its unit spec asserts the key explicitly, since
+`hash_including` would not notice it leaving again.
+
+Two of the nine preview-only emitters folded in last carry a target their
+call path threads as an argument rather than holding in an ivar
+(`domains/remove` takes the plan, `org/reconcile` the org extid). Their
+`audit_target` reads the ivar the op's own failure audit already reads —
+`@domain.extid` and `@org.extid`, identical values at emit time, since both
+dry-run paths return before the mutation that could move them — and the
+threaded argument is underscored rather than dropped, so the emitters keep
+signatures parallel to their applied-event siblings.
+
 ### What the security-telemetry stream holds (#4339)
 
 `security_events` started as the home for rate-limiter cap-hits — the three
@@ -645,6 +717,15 @@ rules live, so twelve ops cannot drift:
 - **`MAX_LENGTH` is 255**, one under `MAX_DETAIL_VALUE_LENGTH`, so a reason that
   passes validation is never silently clipped on the way into storage.
   `reason` is deliberately *not* matched by `SENSITIVE_KEY_PATTERN`.
+
+`customers/change_email` was the op that had not adopted the module: it did
+not include `Onetime::AuditReason` and stored `@reason` raw, so a long
+`--reason` from the CLI passed unvalidated and landed truncated by the audit
+model's 256-char per-value bound — the silent clip `MAX_LENGTH` exists to
+prevent. It now includes the module, normalizes both `@reason` and `@ticket`
+through `normalize_reason`, and shares one `with_provenance` helper between
+its no-change and applied events so the two rows carry identical provenance
+(#4366).
 
 It rides **inside `detail`**, not as a new top-level field: `ColonelAuditReader`'s
 allowlist, the `colonelAuditEventSchema` Zod shape and the CSV header are one

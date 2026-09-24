@@ -5,6 +5,7 @@
 require 'onetime/operations/dlq/store'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 
 module Onetime
   module Operations
@@ -47,6 +48,7 @@ module Onetime
       # Stateless, single `#call`, returns an immutable {Result}.
       class Replay
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         # Audit verb recorded for every replay that processes ≥ 1 message.
         AUDIT_VERB = 'queue.dlq.replay'
@@ -157,6 +159,11 @@ module Onetime
 
         private
 
+        # The #4337 envelope's target hook: the DLQ name, the same target the
+        # preview observation, the no-change attempt and the applied event all
+        # carry. `audit_verb` defaults to AUDIT_VERB and `audit_actor` to @actor.
+        def audit_target = @queue
+
         # One OBSERVATION per dry run (#4337), on the budgeted access trail.
         # Same verb and target as the applied event so a preview and the replay
         # that followed read as one sequence; `result: 'preview'` and
@@ -164,16 +171,10 @@ module Onetime
         # counts the preview exists to produce. `outcome` is set (to
         # 'no_change') when the preview found the queue already empty.
         def record_preview_event(would_replay, available, outcome: nil)
-          detail           = { dry_run: true, would_replay: would_replay, available: available }
+          detail           = { would_replay: would_replay, available: available }
           detail[:outcome] = outcome if outcome
 
-          Onetime::ColonelAuditEvent.record_access(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @queue,
-            result: 'preview',
-            detail: detail,
-          )
+          record_preview_observation(detail)
         end
 
         # A no-change attempt (#4337) — the OPERATOR trail, not the observation
@@ -186,13 +187,7 @@ module Onetime
         # fail-closed: nothing was republished or acked, so there is no
         # irrecoverable fact for a hard failure to protect.
         def record_no_change_event
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @queue,
-            result: :success,
-            detail: { outcome: 'no_change', replayed: 0, failed: 0 },
-          )
+          record_no_change_attempt({ replayed: 0, failed: 0 })
         end
 
         def empty_result

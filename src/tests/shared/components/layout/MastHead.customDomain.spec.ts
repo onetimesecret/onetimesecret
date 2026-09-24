@@ -69,7 +69,7 @@ const i18n = createI18n({
           one_time_secret_literal: '{product_name}',
         },
       },
-    },
+    } as never,
   },
 });
 

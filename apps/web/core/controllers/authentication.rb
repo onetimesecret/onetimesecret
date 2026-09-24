@@ -123,6 +123,9 @@ module Core
           session['external_id']      = cust_after.extid
           session['email']            = cust_after.email
           session['role']             = cust_after.role
+          # This is the `sessionauth` marker required by session-only Account
+          # API routes, including /api/account/destroy. It is the authenticated
+          # session contract for Core's simple-auth login flow.
           session['authenticated']    = true
           session['authenticated_at'] = Familia.now.to_i
 

@@ -782,7 +782,7 @@ describe('MastHead', () => {
               header_sign_in: 'Sign In',
             },
           },
-        },
+        } as never,
       },
     });
 
@@ -1245,7 +1245,7 @@ describe('MastHead', () => {
               header_sign_in: 'Sign In',
             },
           },
-        },
+        } as never,
       },
     });
 

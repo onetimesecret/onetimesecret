@@ -188,7 +188,7 @@ AE.events.clear
 [@sv_noop, AE.count, AE.recent(1).first['detail']]
 #=> [:no_change, 2, { "outcome" => "no_change", "verified" => true }]
 
-# ---- Purge (mutation + audit, reuse DeleteCustomer) -------------------
+# ---- Purge (mutation + audit, reuse DestroyCustomerRecord) -------------------
 
 ## Purge revokes sessions before destroy and audits both mutations at the extid
 AE.events.clear

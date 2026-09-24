@@ -97,12 +97,36 @@ describe('useAdminCustomerSessions', () => {
   });
 
   it('exposes details.current_session_handle (the colonel viewing their own detail)', async () => {
-    mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, 'a15e5510000000000000000000000002') });
+    mockApi.get.mockResolvedValue({
+      data: sessionsPayload(undefined, 'a15e5510000000000000000000000002'),
+    });
     const store = useAdminCustomerSessions();
 
     await store.fetchForCustomer(USER_ID);
 
     expect(store.currentSessionHandle).toBe('a15e5510000000000000000000000002');
+  });
+
+  it('exposes details.session_authority and defaults it to null when absent', async () => {
+    const store = useAdminCustomerSessions();
+
+    mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+    await store.fetchForCustomer(USER_ID);
+    expect(store.sessionAuthority).toBeNull();
+
+    const payload = sessionsPayload() as unknown as { details: Record<string, unknown> };
+    payload.details.session_authority = {
+      mode: 'full',
+      authoritative: false,
+      rodauth_admin_url: null,
+    };
+    mockApi.get.mockResolvedValue({ data: payload });
+    await store.fetchForCustomer(USER_ID);
+    expect(store.sessionAuthority).toEqual({
+      mode: 'full',
+      authoritative: false,
+      rodauth_admin_url: null,
+    });
   });
 
   it('defaults currentSessionHandle to null when the field is absent', async () => {
@@ -128,7 +152,9 @@ describe('useAdminCustomerSessions', () => {
   });
 
   it('clears currentSessionHandle on a network failure', async () => {
-    mockApi.get.mockResolvedValueOnce({ data: sessionsPayload(undefined, 'a15e5510000000000000000000000002') });
+    mockApi.get.mockResolvedValueOnce({
+      data: sessionsPayload(undefined, 'a15e5510000000000000000000000002'),
+    });
     const store = useAdminCustomerSessions();
     await store.fetchForCustomer(USER_ID);
     expect(store.currentSessionHandle).toBe('a15e5510000000000000000000000002');
@@ -144,13 +170,13 @@ describe('useAdminCustomerSessions', () => {
 
     await store.fetchForCustomer('ur/weird id');
 
-    expect(mockApi.get).toHaveBeenCalledWith(
-      '/api/colonel/users/ur%2Fweird%20id/sessions'
-    );
+    expect(mockApi.get).toHaveBeenCalledWith('/api/colonel/users/ur%2Fweird%20id/sessions');
   });
 
   it('degrades to empty and sets validationError on a schema mismatch', async () => {
-    mockApi.get.mockResolvedValue({ data: { shrimp: '', record: {}, details: { sessions: 'nope' } } });
+    mockApi.get.mockResolvedValue({
+      data: { shrimp: '', record: {}, details: { sessions: 'nope' } },
+    });
     const store = useAdminCustomerSessions();
 
     const result = await store.fetchForCustomer(USER_ID);
@@ -185,7 +211,9 @@ describe('useAdminCustomerSessions', () => {
       { headers: { 'X-OTS-Confirm': encodeURIComponent(CONFIRM) } }
     );
     expect(store.sessions).toHaveLength(1);
-    expect(store.sessions.map((s) => s.session_handle)).toEqual(['a15e5510000000000000000000000002']);
+    expect(store.sessions.map((s) => s.session_handle)).toEqual([
+      'a15e5510000000000000000000000002',
+    ]);
   });
 
   // #4338 — the operator's WHY, on the two shapes it takes. A revoke DELETEs,
@@ -282,7 +310,9 @@ describe('useAdminCustomerSessions', () => {
 
   it('revokeAll still clears the list on ack drift (schema-mismatch fallback)', async () => {
     mockApi.get.mockResolvedValue({ data: sessionsPayload() });
-    mockApi.post.mockResolvedValue({ data: { shrimp: '', record: { revoked: 'yes' }, details: {} } });
+    mockApi.post.mockResolvedValue({
+      data: { shrimp: '', record: { revoked: 'yes' }, details: {} },
+    });
     const store = useAdminCustomerSessions();
     await store.fetchForCustomer(USER_ID);
 

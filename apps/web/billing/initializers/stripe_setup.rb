@@ -24,8 +24,22 @@ module Billing
 
         # Touching the accessor validates it: an unrecognized
         # STRIPE_AUTOMATIC_TAX token raises here at boot instead of at a
-        # customer's first checkout (apply_tax_policy!).
-        Onetime.billing_config.automatic_tax?
+        # customer's first checkout (apply_tax_policy!). Validation only
+        # catches a *malformed* token; the accessor defaults to false, so an
+        # unset var silently disables tax collection. Surface the resolved
+        # policy at boot — parallel to the skip_paths boot-log (boot.rb) —
+        # so a deployment that isn't collecting VAT/GST is visible instead of
+        # silent (security-audit-2026-08-06 finding #1).
+        automatic_tax_source = if ENV['STRIPE_AUTOMATIC_TAX'].nil?
+                                 "billing.yaml 'automatic_tax'"
+                               else
+                                 'ENV STRIPE_AUTOMATIC_TAX'
+                               end
+        Onetime.billing_logger.info 'Stripe automatic tax policy',
+          {
+            enabled: Onetime.billing_config.automatic_tax?,
+            source: automatic_tax_source,
+          }
 
         # Fail the deploy on a malformed payment method configuration (a
         # set value must be a pmc_... ID); also warn — without failing —

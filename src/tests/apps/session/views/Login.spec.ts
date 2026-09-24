@@ -214,6 +214,30 @@ describe('Login.vue auth_error handling', () => {
       expect(alert.text()).toContain('web.login.errors.identity_connect_conflict');
     });
 
+    // The tenant surface refuses for a different reason than the platform one and
+    // has no self-service way out, so it must NOT collapse onto the platform copy
+    // (which points at Connected Identities) or onto the generic sso_failed
+    // fallback. See #3849 for the real fix.
+    it('displays tenant_sso_link_unavailable error from tenant SSO sign-in', async () => {
+      wrapper = await createWrapper({ auth_error: 'tenant_sso_link_unavailable' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.tenant_sso_link_unavailable');
+      expect(alert.text()).not.toContain('web.login.errors.account_exists_link_required');
+    });
+
+    it('displays identity_connect_wrong_domain error from tenant SSO connect', async () => {
+      wrapper = await createWrapper({ auth_error: 'identity_connect_wrong_domain' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.identity_connect_wrong_domain');
+      expect(alert.text()).not.toContain('web.login.errors.identity_connect_conflict');
+    });
+
     it('displays org_join_failed error from tenant SSO', async () => {
       wrapper = await createWrapper({ auth_error: 'org_join_failed' });
       await flushPromises();

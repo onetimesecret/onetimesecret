@@ -11,6 +11,7 @@
 # (Gemfile pins it require: false).
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 require_relative '../../../../apps/web/billing/operations/apply_subscription_to_org'
 
 module Onetime
@@ -72,6 +73,7 @@ module Onetime
       # via audit_failures and re-raises.
       class SetPlan
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         AUDIT_VERB = 'organization.set_plan'
 
@@ -146,19 +148,18 @@ module Onetime
 
         private
 
+        # The #4337 envelope's target hook: the ORGANIZATION's public extid — the
+        # plan belongs to the org, not to the acting colonel. `audit_verb` defaults
+        # to AUDIT_VERB and `audit_actor` to @actor.
+        def audit_target = @org.extid
+
         # A no-change attempt (#4337) — the OPERATOR trail, not the observation
         # trail. Same verb and target as the applied event, with
         # `outcome: 'no_change'` marking it. `materialization` is omitted
         # rather than sent as nil: no engine ran, so there is no status to
         # report. NOT fail-closed — nothing moved.
         def record_no_change_event(from)
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @org.extid,
-            result: :success,
-            detail: { outcome: 'no_change', from: from, to: @planid },
-          )
+          record_no_change_attempt({ from: from, to: @planid })
         end
 
         # Re-materialize entitlements from the new plan. DEGRADABLE: the

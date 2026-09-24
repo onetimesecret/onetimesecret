@@ -65,6 +65,19 @@ module InviteAuthStubs
       # success; tests that exercise that contract should override this stub.
       12345
     end
+
+    # Real Rodauth internal_request seam used by setup_session (#4391) to run a
+    # login-session and mint the active-session row + join key. Unit tests have
+    # no authdb/booted auth app, so this stub returns a representative Rodauth
+    # session hash; tests that assert on the session override it.
+    def self.internal_request_eval(account_id:, &block)
+      {
+        'account_id' => account_id,
+        :active_session_id => 'raw-active-session-id',
+        'active_session_id_hmac' => 'stamped-join-key',
+        :authenticated_by => ['password'],
+      }
+    end
   end
 
   module Logging

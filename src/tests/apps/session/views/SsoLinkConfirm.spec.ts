@@ -81,7 +81,7 @@ const i18n = createI18n({
           prompt: 'You signed in with {provider}, matching {email}.',
         },
       },
-    },
+    } as never,
   },
 });
 

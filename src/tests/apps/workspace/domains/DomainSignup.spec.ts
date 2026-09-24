@@ -198,7 +198,7 @@ const i18n = createI18n({
           updating: 'Updating...',
         },
       },
-    },
+    } as never,
   },
 });
 

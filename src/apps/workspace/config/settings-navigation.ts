@@ -5,28 +5,38 @@
 //
 // Own = owner, Adm = admin, Mem = member; pw = password account, SSO = SSO-provisioned,
 // inv = invited (has password)
-// ┌──────────────────┬────────────────────┬────────┬────────┬────────┬────────┬────────┬────────┐
-// │ Tab / Section    │ Gate               │ Own pw │ Own SSO│ Adm pw │ Adm SSO│ Mem inv│ Mem SSO│
-// ├──────────────────┼────────────────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-// │ Profile          │ —                  │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │
-// │  └ Change Email  │ isOwnerOrAdmin     │ ✓      │ —      │ ✓      │ —      │ —      │ —      │
-// │                  │ + hasPassword      │        │        │        │        │        │        │
-// │ Security section │ isFullAuthMode     │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │
-// │  ├ Password      │ hasPassword        │ ✓      │ —      │ ✓      │ —      │ ✓      │ —      │
-// │  ├ MFA           │ hasPassword        │ ✓      │ —      │ ✓      │ —      │ ✓      │ —      │
-// │  ├ Sessions      │ —                  │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │
-// │  ├ Recovery      │ hasPassword        │ ✓      │ —      │ ✓      │ —      │ ✓      │ —      │
-// │  ├ Passkeys      │ isWebAuthnEnabled  │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │
-// │  └ Connections   │ isSsoEnabled       │ ✓†     │ ✓†     │ ✓†     │ ✓†     │ ✓†     │ ✓†     │
-// │ API              │ —                  │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │
-// │ Region           │ isOwnerOrAdmin     │ ✓*     │ ✓*     │ ✓*     │ ✓*     │ —      │ —      │
-// │ Caution          │ isOwnerOrAdmin     │ ✓*     │ ✓*     │ ✓*     │ ✓*     │ —      │ —      │
-// │                  │                    │        │        │        │        │        │        │
-// │ * also requires isFullAuthMode        │        │        │        │        │        │        │
-// │ † only when SSO is enabled (isSsoEnabled)                                    │        │
-// └──────────────────┴────────────────────┴────────┴────────┴────────┴────────┴────────┴────────┘
+/* eslint-disable max-len -- box-drawing table; wrapping would break column alignment */
+// ┌──────────────────┬─────────────────────────┬────────┬────────┬────────┬────────┬────────┬────────┐
+// │ Tab / Section    │ Gate                    │ Own pw │ Own SSO│ Adm pw │ Adm SSO│ Mem inv│ Mem SSO│
+// ├──────────────────┼─────────────────────────┼────────┼────────┼────────┼────────┼────────┼────────┤
+// │ Profile          │ —                       │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │
+// │  └ Change Email  │ isOwnerOrAdmin          │ ✓      │ —      │ ✓      │ —      │ —      │ —      │
+// │                  │ + hasPassword           │        │        │        │        │        │        │
+// │ Security section │ isFullAuthMode          │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │
+// │  ├ Password      │ hasPassword             │ ✓      │ —      │ ✓      │ —      │ ✓      │ —      │
+// │  ├ MFA           │ hasPassword             │ ✓      │ —      │ ✓      │ —      │ ✓      │ —      │
+// │  ├ Sessions      │ isActiveSessionsEnabled │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │
+// │  ├ Recovery      │ hasPassword             │ ✓      │ —      │ ✓      │ —      │ ✓      │ —      │
+// │  ├ Passkeys      │ isWebAuthnEnabled       │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │
+// │  └ Connections   │ isSsoEnabled            │ ✓†     │ ✓†     │ ✓†     │ ✓†     │ ✓†     │ ✓†     │
+// │ API              │ —                       │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │ ✓      │
+// │ Region           │ isOwnerOrAdmin          │ ✓*     │ ✓*     │ ✓*     │ ✓*     │ —      │ —      │
+// │ Caution          │ isOwnerOrAdmin          │ ✓*     │ ✓*     │ ✓*     │ ✓*     │ —      │ —      │
+// │                  │                         │        │        │        │        │        │        │
+// │ * also requires isFullAuthMode             │        │        │        │        │        │        │
+// │ † only when SSO is enabled (isSsoEnabled)  │        │        │        │        │        │        │
+// └──────────────────┴─────────────────────────┴────────┴────────┴────────┴────────┴────────┴────────┘
+/* eslint-enable max-len */
 
-import { hasPassword, isFullAuthMode, isSsoEnabled, isSsoOnlyMode, isOwnerOrAdmin, isWebAuthnEnabled } from '@/utils/features';
+import {
+  hasPassword,
+  isActiveSessionsEnabled,
+  isFullAuthMode,
+  isOwnerOrAdmin,
+  isSsoEnabled,
+  isSsoOnlyMode,
+  isWebAuthnEnabled,
+} from '@/utils/features';
 import type { ComposerTranslation } from 'vue-i18n';
 
 /**
@@ -44,6 +54,7 @@ export interface NavigationFeatures {
   isOwnerOrAdmin: boolean;
   isWebAuthnEnabled: boolean;
   isSsoEnabled: boolean;
+  isActiveSessionsEnabled: boolean;
 }
 
 function resolveFeatures(features?: NavigationFeatures): NavigationFeatures {
@@ -55,6 +66,7 @@ function resolveFeatures(features?: NavigationFeatures): NavigationFeatures {
       isOwnerOrAdmin: isOwnerOrAdmin(),
       isWebAuthnEnabled: isWebAuthnEnabled(),
       isSsoEnabled: isSsoEnabled(),
+      isActiveSessionsEnabled: isActiveSessionsEnabled(),
     }
   );
 }
@@ -136,12 +148,9 @@ function getProfileSection(t: ComposerTranslation, f: NavigationFeatures): Setti
  * that regular members can access Sessions. Password-dependent sub-tabs
  * (password, MFA, recovery codes) are gated by hasPassword — visible to
  * any user who set a password (owners, admins, or invited members).
- * Passkeys are gated by the webauthn feature flag independently.
+ * Passkeys and Sessions are gated by their feature flags independently.
  */
-function getSecuritySection(
-  t: ComposerTranslation,
-  f: NavigationFeatures
-): SettingsNavigationItem {
+function getSecuritySection(t: ComposerTranslation, f: NavigationFeatures): SettingsNavigationItem {
   return {
     id: 'security',
     to: '/account/settings/security',
@@ -169,6 +178,9 @@ function getSecuritySection(
         to: '/account/settings/security/sessions',
         icon: { collection: 'heroicons', name: 'computer-desktop-solid' },
         label: t('web.auth.sessions.title'),
+        // Gated on the active_sessions bootstrap flag (AUTH_ACTIVE_SESSIONS_ENABLED),
+        // mirroring the route guard in account.ts; without it the link dead-ends.
+        visible: () => f.isActiveSessionsEnabled,
       },
       {
         id: 'recovery-codes',
@@ -200,10 +212,7 @@ function getSecuritySection(
 }
 
 /** Region section navigation */
-function getRegionSection(
-  t: ComposerTranslation,
-  f: NavigationFeatures
-): SettingsNavigationItem {
+function getRegionSection(t: ComposerTranslation, f: NavigationFeatures): SettingsNavigationItem {
   return {
     id: 'region',
     to: '/account/region',

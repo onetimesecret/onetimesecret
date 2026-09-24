@@ -410,7 +410,7 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
         post '/auth/sso/oidc/callback'
 
         expect(last_response.status).to eq(302)
-        expect(last_response.location.to_s).to include('/signin?auth_error=account_exists_link_required'),
+        expect(last_response.location.to_s).to include('/signin?auth_error=tenant_sso_link_unavailable'),
           "Tenant callback for a password account must keep the H-3 refusal, not mint an interstitial. Location: #{last_response.location.inspect}"
         expect(last_response.location.to_s).not_to match(%r{/link-sso/}),
           'The tenant surface must NEVER be offered the password interstitial'
