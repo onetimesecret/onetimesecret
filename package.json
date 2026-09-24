@@ -215,7 +215,7 @@
     "@vitest/coverage-v8": "^4.1.0",
     "@vitest/ui": "^4.1.0",
     "@vue/compiler-dom": "^3.5.34",
-    "@vue/test-utils": "^2.4.10",
+    "@vue/test-utils": "^2.5.0",
     "axios-mock-adapter": "^2.1.0",
     "esbuild": "^0.28.1",
     "eslint": "^9.39.4",
