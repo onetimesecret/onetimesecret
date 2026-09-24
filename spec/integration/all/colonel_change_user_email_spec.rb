@@ -28,12 +28,16 @@ RSpec.describe 'Colonel ChangeUserEmail adapter contract', type: :integration do
   # Build the StrategyResult double Logic::Base expects (mirrors
   # colonel_customer_support_spec.rb). The colonel is a REAL verified customer
   # so verify_one_of_roles!(colonel: true) exercises the actual policy.
-  def strategy_result_for(user, session: {})
+  #
+  # The apply path requires the account's CURRENT address in X-OTS-Confirm
+  # (#4326); the preview path requires nothing. `confirm_token` is where the
+  # colonel session auth strategy puts the decoded header — never params.
+  def strategy_result_for(user, session: {}, confirm_token: nil)
     double(
       'StrategyResult',
       session: session,
       user: user,
-      metadata: { ip: '127.0.0.1' },
+      metadata: { ip: '127.0.0.1', confirm_token: confirm_token },
       auth_method: 'sessionauth',
     )
   end
@@ -79,9 +83,9 @@ RSpec.describe 'Colonel ChangeUserEmail adapter contract', type: :integration do
     end
   end
 
-  def run_logic(params, actor: colonel)
+  def run_logic(params, actor: colonel, confirm_token: nil)
     logic = ColonelAPI::Logic::Colonel::ChangeUserEmail.new(
-      strategy_result_for(actor), params,
+      strategy_result_for(actor, confirm_token: confirm_token), params,
     )
     logic.raise_concerns
     logic.process
@@ -125,7 +129,7 @@ RSpec.describe 'Colonel ChangeUserEmail adapter contract', type: :integration do
         'revoke_sessions' => 'false',
         'reason'          => 'compromised account',
         'ticket'          => 'SUP-123',
-      })
+      }, confirm_token: target.email)
 
       expect(captured_op_args).to include(
         dry_run: false,
