@@ -111,6 +111,19 @@ RSpec.describe Onetime::TenantSsoResolution do
       expect(described_class.new(display_domain, :custom)).not_to be_verified_custom_domain
     end
 
+    # The blank-host path used to return before assigning @custom_domain, so
+    # the defined? memo never held and every call re-entered read_domain_id.
+    it 'is nil for a blank display_domain and settles the memo on the first call' do
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
+      resolution = described_class.new(nil)
+
+      expect(resolution.custom_domain).to be_nil
+      expect(resolution.custom_domain).to be_nil
+      expect(resolution).not_to be_verified_custom_domain
+      expect(resolution.instance_variable_defined?(:@custom_domain)).to be(true)
+      expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+    end
+
     it 'is not verified when the domain read fails' do
       stub_failing_domain_read
       expect(described_class.new(display_domain, :custom)).not_to be_verified_custom_domain

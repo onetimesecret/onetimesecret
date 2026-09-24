@@ -193,6 +193,10 @@ module Onetime
     end
 
     def read_domain_id
+      # Assigned on every path so #custom_domain's defined? memo holds after
+      # the first read; a blank host otherwise re-entered this method on each
+      # call and read an undefined ivar.
+      @custom_domain = nil
       return nil if @display_domain.empty?
 
       @custom_domain = Onetime::CustomDomain.from_display_domain(@display_domain)
