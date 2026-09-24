@@ -11,8 +11,10 @@
 #      AssumeHttps middleware (#3837/#3843) covers tunnels that don't forward
 #      it — via the upgrade-only Onetime::Session#set_cookie override.
 #
-# L-3: session ids must be truncated (8-char prefix + '...') in ALL log
-#      output; the full id is the bearer credential.
+# L-3: no log line carries the session id; the full id is the bearer
+#      credential. Log lines carry session_handle, the keyed digest of the id
+#      (#4461, Onetime::SessionMetadata.handle_for), which the colonel session
+#      view shows and which cannot be turned back into the id.
 # L-4: the "Session saved successfully" entry must not disclose
 #      account_id/external_id/MFA state/key names.
 
@@ -26,7 +28,7 @@ RSpec.describe Onetime::Session do
 
   # Session middleware with an injected dbclient so no spec here ever needs a
   # live Valkey; the codec and the log/cookie seams under test are pure Ruby.
-  let(:middleware) { described_class.new(app, secret: secret, dbclient: dbclient) }
+  let(:middleware) { described_class.new(app, secret: secret, dbclient: dbclient, expire_after: 3600) }
 
   def request_for(url, opts = {})
     Rack::Request.new(Rack::MockRequest.env_for(url, opts))
@@ -67,20 +69,22 @@ RSpec.describe Onetime::Session do
     end
   end
 
-  describe '#sid_for_log (L-3)' do
-    it 'truncates a 64-char session id to an 8-char prefix' do
-      sid = 'c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655'
-      expect(middleware.send(:sid_for_log, sid)).to eq('c9803eb9...')
+  describe '#log_handle (L-3)' do
+    let(:sid) { 'c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655' }
+
+    it 'is the keyed session handle, sharing no prefix with the id', :aggregate_failures do
+      handle = middleware.send(:log_handle, sid)
+      expect(handle).to eq(Onetime::SessionMetadata.handle_for(sid))
+      expect(handle).not_to include(sid[0, 8])
     end
 
-    it 'unwraps Rack SessionId objects before truncating' do
-      session_id = Rack::Session::SessionId.new('f' * 64)
-      expect(middleware.send(:sid_for_log, session_id)).to eq('ffffffff...')
+    it 'unwraps Rack SessionId objects' do
+      session_id = Rack::Session::SessionId.new(sid)
+      expect(middleware.send(:log_handle, session_id)).to eq(middleware.send(:log_handle, sid))
     end
 
-    it 'passes short/nil values through without fabricating a suffix' do
-      expect(middleware.send(:sid_for_log, 'abc')).to eq('abc')
-      expect(middleware.send(:sid_for_log, nil)).to eq('')
+    it 'is nil, never a fabricated value, when there is no id' do
+      expect(middleware.send(:log_handle, nil)).to be_nil
     end
   end
 
@@ -98,15 +102,16 @@ RSpec.describe Onetime::Session do
       allow(middleware).to receive(:session_logger).and_return(spy_logger)
     end
 
-    it 'never logs a full session id on the invalid-sid read path' do
+    it 'never logs the session id on the invalid-sid read path', :aggregate_failures do
       long_invalid_sid = 'Z' * 64 # invalid format, so no Redis lookup happens
       middleware.send(:find_session, request_for('/'), long_invalid_sid)
 
-      logged_sids = log_entries.map { |_, _, fields| fields[:session_id] }.compact
-      expect(logged_sids).not_to be_empty
-      logged_sids.each do |sid|
-        expect(sid.length).to be <= 11 # 8-char prefix + '...'
-        expect(sid).not_to eq(long_invalid_sid)
+      handles = log_entries.map { |_, _, fields| fields[:session_handle] }.compact
+      expect(handles).not_to be_empty
+      expect(handles).to include(middleware.send(:log_handle, long_invalid_sid))
+      log_entries.each do |_, _, fields|
+        expect(fields).not_to have_key(:session_id)
+        expect(fields.values.map(&:to_s).join(' ')).not_to include(long_invalid_sid)
       end
     end
 
@@ -129,6 +134,7 @@ RSpec.describe Onetime::Session do
         stringkey = double('stringkey', set: true, update_expiration: true, ttl: 3600)
         allow(middleware).to receive(:get_stringkey).and_return(stringkey)
         allow(Onetime::SessionSidecar).to receive(:commit).and_return(session_data)
+        allow(Onetime::SessionEnded).to receive(:ended?).and_return(false)
         allow(Onetime::Operations::Sessions::TrackMetadata)
           .to receive(:new).and_return(double(call: true))
 
@@ -136,9 +142,10 @@ RSpec.describe Onetime::Session do
         log_entries.find { |_, msg, _| msg == 'Session saved successfully' }
       end
 
-      it 'truncates the session id' do
+      it 'carries the session handle, not the session id', :aggregate_failures do
         _, _, fields = saved_entry
-        expect(fields[:session_id]).to eq('c9803eb9...')
+        expect(fields[:session_handle]).to eq(middleware.send(:log_handle, sid))
+        expect(fields).not_to have_key(:session_id)
       end
 
       it 'does not disclose account identity or MFA/auth-state details' do
@@ -169,11 +176,14 @@ RSpec.describe Onetime::Session do
     describe 'delete path' do
       let(:sid) { 'c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655' }
 
-      # Neutralize the Familia StringKey; the sidecar probe and purge are
-      # stubbed per example to drive the warn and error branches, which run
-      # outside the blob-exists branch (v0.26.12) and must still mask the sid.
+      # Neutralize the Familia StringKey, the ended-marker write and the
+      # metadata record; the sidecar probe and purge are stubbed per example to
+      # drive the warn and error branches, which run outside the blob-exists
+      # branch (v0.26.12) and must still keep the sid out of the log.
       def destroy_session
         allow(middleware).to receive(:get_stringkey).and_return(double('stringkey', del: 1))
+        allow(Onetime::SessionEnded).to receive(:mark).and_return(true)
+        allow(Onetime::SessionMetadata).to receive(:load).and_return(nil)
         middleware.send(:delete_session, request_for('/'), sid, {})
       end
 
@@ -181,22 +191,22 @@ RSpec.describe Onetime::Session do
         log_entries.find { |_, msg, _| msg == message }
       end
 
-      it 'truncates the session id on the in-flight sidecar warning' do
+      it 'logs the session handle on the in-flight sidecar warning' do
         allow(Onetime::SessionSidecar).to receive(:inflight_fields).and_return(['awaiting_mfa'])
         allow(Onetime::SessionSidecar).to receive(:purge)
         destroy_session
 
         _, _, fields = entry_for('Session destroyed with in-flight sidecar state')
-        expect(fields[:session_id]).to eq('c9803eb9...')
+        expect(fields[:session_handle]).to eq(middleware.send(:log_handle, sid))
       end
 
-      it 'truncates the session id on the sidecar purge failure' do
+      it 'logs the session handle on the sidecar purge failure' do
         allow(Onetime::SessionSidecar).to receive(:inflight_fields).and_return([])
         allow(Onetime::SessionSidecar).to receive(:purge).and_raise(StandardError, 'boom')
         destroy_session
 
         _, _, fields = entry_for('Sidecar purge failed (orphans are TTL-bounded)')
-        expect(fields[:session_id]).to eq('c9803eb9...')
+        expect(fields[:session_handle]).to eq(middleware.send(:log_handle, sid))
       end
 
       { 'purge succeeds' => false, 'purge raises' => true }.each do |label, purge_raises|

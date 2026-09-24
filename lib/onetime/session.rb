@@ -143,25 +143,6 @@ module Onetime
 
     private
 
-    # Number of leading session-id characters that survive into log output.
-    SID_LOG_PREFIX_LENGTH = 8 unless defined?(SID_LOG_PREFIX_LENGTH)
-
-    # Log-safe session id (2026-08-02 audit, L-3): first 8 hex chars + '...'.
-    #
-    # A full session id in a log line IS the session cookie — the id is the
-    # bearer credential, so anyone with log access could hijack the session if
-    # trace logging were ever enabled in production. Eight hex chars (32 bits)
-    # are plenty to correlate log lines for one session while leaving 224+
-    # bits unrecoverable. Accepts raw strings and Rack SessionId objects; used
-    # by EVERY log site in this class — never interpolate a raw sid into logs.
-    def sid_for_log(sid)
-      str = sid.respond_to?(:public_id) ? sid.public_id : sid
-      str = str.to_s
-      return str if str.length <= SID_LOG_PREFIX_LENGTH
-
-      "#{str[0, SID_LOG_PREFIX_LENGTH]}..."
-    end
-
     # Create a StringKey instance for a session ID
     #
     # This creates a Familia::StringKey that maps to:
