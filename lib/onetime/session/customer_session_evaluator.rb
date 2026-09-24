@@ -142,7 +142,16 @@ module Onetime
       # No Rack env (a bare helper harness) means no resolved surface to match:
       # refuse, as the compatibility helper did before the evaluator.
       return verdict(:rejected, :surface_mismatch) unless @env.is_a?(Hash)
-      return verdict(:rejected, :surface_mismatch) unless SessionSurface.matches_request?(@session, @env)
+
+      case SessionSurface.match_status(@session, @env)
+      when :mismatch
+        return verdict(:rejected, :surface_mismatch)
+      when :unavailable
+        # The request's surface could not be read, which says nothing about
+        # whether the session belongs here. The customer store is the same
+        # datastore, so this is its outage verdict: refuse, keep the session.
+        return verdict(:unavailable, :customer_unavailable)
+      end
 
       principal = resolve_customer(external_id)
       return principal if principal.is_a?(Verdict)
@@ -184,9 +193,11 @@ module Onetime
     # The rescue boundary matches the former anonymous compatibility loader's:
     # customer storage failures and the predicates that immediately verify the
     # loaded record return the typed unavailable verdict, so public routes
-    # remain reachable while protected routes see the refusal. Surface,
-    # caller-owned, active-session, and impersonation errors remain outside
-    # this boundary and retain their existing handling.
+    # remain reachable while protected routes see the refusal. The surface
+    # check reaches the same verdict when it cannot read the request's
+    # surface (Onetime::SessionSurface.match_status). Caller-owned,
+    # active-session, and impersonation errors remain outside this boundary
+    # and retain their existing handling.
     def resolve_customer(external_id)
       Customer.find_by_extid(external_id)
     rescue StandardError => ex

@@ -356,10 +356,11 @@ module Auth
       #                       checks run here too. Without an account_id the
       #                       request is genuinely anonymous and neither check
       #                       applies.
-      #   :customer_unavailable  Already past the surface check; only the
+      #   :customer_unavailable  The customer store, or the request's
+      #                       surface, could not be read; only the
       #                       active-session row is left to examine.
       #                       Revocation is destructive on this surface and
-      #                       must not be hidden by a customer-store outage.
+      #                       must not be hidden by a datastore outage.
       #
       # Invariant: every other rejection is definitive and is never
       # overwritten by a fallback :active_session_unavailable, which would
