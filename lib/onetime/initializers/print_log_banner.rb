@@ -347,16 +347,7 @@ module Onetime
 
         case type
         when :url
-          # For database URLs, show the scheme and host but mask password
-          # Format: scheme://user:password@host:port/database
-          # The password runs to the LAST "@", so an unescaped "@" in it
-          # masks too much rather than printing the rest of it.
-          if value =~ %r{\A([^:]+://[^:/]+):(.+)(@[^@]+)\z}m
-            "#{::Regexp.last_match(1)}:****#{::Regexp.last_match(3)}"
-          else
-            # Fallback: show first few and last few characters
-            show_chars(value, prefix: 8, suffix: 4)
-          end
+          mask_url(value)
         when :stripe_key
           # For Stripe keys, show the prefix and last 4 characters
           # Format: sk_test_xxx or sk_live_xxx
@@ -379,6 +370,33 @@ module Onetime
           # Generic masking
           show_chars(value, prefix: 4, suffix: 4)
         end
+      end
+
+      # Masks a database URL for display. Keeps the scheme, username, host
+      # and path, which tell the app and migrations URLs apart, and masks the
+      # password and the whole query string, where libpq also takes one
+      # (`?password=`). The password runs to the LAST "@", so an unescaped
+      # "@" in it masks too much rather than printing the rest of it.
+      #
+      # Two shapes are masked past the scheme: a "?" before that "@", which
+      # is either in the password or starts a query with an "@" in it, and a
+      # value with no "scheme://", which has no reliable shape to keep.
+      #
+      #   mask_url('postgresql://app:s3cret@db/auth?sslmode=require')
+      #   #=> "postgresql://app:****@db/auth?****"
+      #
+      # @param value [String]
+      # @return [String]
+      def mask_url(value)
+        scheme, rest = value.scrub.match(%r{\A([a-z][a-z0-9+.-]*://)(.*)\z}im)&.captures
+        return '****' unless scheme
+
+        at    = rest.rindex('@')
+        query = rest.index('?')
+        return "#{scheme}****" if at && query && query < at
+
+        rest = rest.sub(/\A([^:]*):.*@/m, '\\1:****@') if at
+        "#{scheme}#{rest.sub(/\?.*\z/m, '?****')}"
       end
 
       # Helper to show only prefix and suffix characters
