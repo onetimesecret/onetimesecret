@@ -1745,7 +1745,14 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       header 'Cookie', "onetime.session=#{@connect_sid}"
       post '/auth/sso/oidc/callback'
 
-      expect(last_response.status).to eq(302)
+      # The router's surface gate destroys the session ahead of Rodauth (the
+      # intent goes with it), so the callback continues anonymous on tenant
+      # B's host — where B's options were injected but no tenant flow is
+      # pending. The tenant hook refuses that as tenant_context_missing
+      # rather than letting it run as a platform sign-in (in production
+      # OmniAuth's own state check, which mock mode skips, refuses it first).
+      expect(last_response.status).to eq(403), "Expected tenant_context_missing 403, got #{last_response.status}: #{last_response.body}"
+      expect(last_response.body).to include('tenant_context_missing')
       expect(intent_live?(@connect_sid)).to be(false)
       expect(auth_db[:accounts].count).to eq(@accounts_before)
       expect(identities.where(tuple).count).to eq(0)
@@ -1810,12 +1817,23 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
 
       @membership.status = 'active'
       @membership.save
-      tenant_connect_callback
+      # The first callback consumed the pending tenant markers along with the
+      # intent, so this second answer arrives on the tenant host with no
+      # tenant flow pending. The Connect wrapper consumes (finds nothing)
+      # ahead of the tenant hook, which then refuses the callback as
+      # tenant_context_missing before any identity can bind — and before the
+      # wrapper's own intent-absent note, which sits downstream of the halt.
+      clear_body_headers
+      post '/auth/sso/oidc/callback'
+      expect(last_response.status).to eq(403), "Expected tenant_context_missing 403, got #{last_response.status}: #{last_response.body}"
+      expect(last_response.body).to include('tenant_context_missing')
+      expect(intent_live?(@connect_sid)).to be(false)
+      expect(auth_db[:accounts].count).to eq(@accounts_before)
       expect(identities.where(tuple).count).to eq(0)
-      expect(Auth::Logging).to have_received(:log_auth_event)
-        .with(:omniauth_connect_intent_absent, hash_including(had_intent: false))
       expect(Auth::Logging).not_to have_received(:log_auth_event)
         .with(:omniauth_identity_connected, anything)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:tenant_connect_membership_authorized, anything)
     end
 
     %w[absent mismatched].each do |state|
@@ -1853,7 +1871,14 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       identities.insert(tuple.merge(account_id: other_id))
       customer.suspended = 'true'
       customer.save
-      tenant_connect_callback
+      # Destroyed at the router, the callback continues anonymous on the
+      # tenant host with no tenant flow pending, and the tenant hook refuses
+      # it (tenant_context_missing). Nothing binds on either side of that.
+      clear_body_headers
+      post '/auth/sso/oidc/callback'
+      expect(last_response.status).to eq(403), "Expected tenant_context_missing 403, got #{last_response.status}: #{last_response.body}"
+      expect(last_response.body).to include('tenant_context_missing')
+      expect(auth_db[:accounts].count).to eq(@accounts_before)
 
       expect_suspended_session_rejected(@connect_sid, actor_id)
       expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: other_id))
