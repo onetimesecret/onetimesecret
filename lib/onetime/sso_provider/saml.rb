@@ -88,6 +88,7 @@
 # is still honoured as a hold (hooks/omniauth.rb email_verification_hold).
 
 require 'openssl'
+require 'time'
 require 'uri'
 
 module Onetime
@@ -164,10 +165,9 @@ module Onetime
       # is the env, one per deployment), so a tenant's rows can never match a
       # platform row in either direction.
       #
-      # Written by resolve_issuer (features/omniauth.rb) at callback time and
-      # by Auth::Operations::BackfillTenantIssuer — the two must byte-match.
-      # The EntityID is NOT stripped or normalized here for the same reason
-      # strategy_options_for does not.
+      # Written by resolve_issuer (features/omniauth.rb) at callback time —
+      # the only writer. The EntityID is NOT stripped or normalized here for
+      # the same reason strategy_options_for does not.
       #
       # @param domain_id [String] the CustomDomain identifier (`domainid`)
       # @param idp_entity_id [String] the validated IdP EntityID
@@ -316,31 +316,44 @@ module Onetime
         nil
       end
 
-      # Exactly one PEM CERTIFICATE block that OpenSSL parses and that has not
-      # expired. PEM is required (not bare base64, not DER): ruby-saml's
-      # format_cert would accept the former and quietly parse only the FIRST
-      # of several blocks, and "which certificate is trusted" must not depend
-      # on that. An expired certificate is refused here because
-      # check_idp_cert_expiration would refuse every login with it anyway —
-      # better a skipped provider and a named variable than a button that
-      # always fails.
+      # Exactly one PEM CERTIFICATE block that OpenSSL parses and whose
+      # validity window contains NOW. PEM is required (not bare base64, not
+      # DER): ruby-saml's format_cert would accept the former and quietly
+      # parse only the FIRST of several blocks, and "which certificate is
+      # trusted" must not depend on that. Both ends of the window are checked
+      # because ruby-saml checks both: settings.rb:221 filters the IdP
+      # certificate through Utils.is_cert_active (not_before <= now AND
+      # not_after >= now), so a certificate that has expired OR is not yet
+      # valid is silently dropped from the trust set and every login is
+      # refused. Better a skipped provider and a named variable than a button
+      # that always fails. RE-VERIFY on a ruby-saml bump.
       #
       # allow_expired: exists for ONE caller — the tenant record's own
-      # validity check (CustomDomain::SsoConfig#validation_errors). A stored
-      # record whose certificate has since expired must stay EDITABLE (a
-      # PATCH that disables SSO re-validates the whole record), so expiry is
-      # not a model invariant there. It is still refused everywhere a
+      # validity check (CustomDomain::SsoConfig#saml_validation_errors). It
+      # skips the WHOLE validity-window check (expired AND not yet valid),
+      # not only expiry, despite its name: the keyword predates the
+      # not_before check and its caller lives in the model, so the name is
+      # kept and the contract widened. A stored record whose certificate has
+      # since expired must stay EDITABLE (a PATCH that disables SSO
+      # re-validates the whole record), so the window is not a model
+      # invariant there — and a not-yet-valid certificate could only be
+      # stored before this check existed, so it needs the same escape for
+      # the same reason. The window is still refused everywhere a
       # certificate is ACCEPTED or USED: the API write path, test_connection,
       # and .strategy_options_for — all of which leave this false.
       #
       # @param pem [String, nil]
-      # @param allow_expired [Boolean] structure-only check (see above)
+      # @param allow_expired [Boolean] structure-only check: skip the whole
+      #   validity window (see above)
       # @return [String, nil] problem description, or nil when usable
       def self.cert_problem(pem, allow_expired: false)
         cert = parse_single_cert(pem)
         return cert if cert.is_a?(String)
         return nil if allow_expired
-        return "IdP certificate expired on #{cert.not_after.utc.strftime('%Y-%m-%d')}" if cert.not_after < Time.now
+
+        now = Time.now
+        return "IdP certificate expired on #{cert.not_after.utc.strftime('%Y-%m-%d')}" if cert.not_after < now
+        return "IdP certificate is not valid until #{cert.not_before.utc.iso8601}" if cert.not_before > now
 
         nil
       end

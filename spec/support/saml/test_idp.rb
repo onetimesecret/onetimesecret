@@ -51,11 +51,16 @@ module SamlSpec
     #   `key` — models an IdP operator who keeps their pinned certificate and
     #   changes only what they assert (e.g. claims another IdP's EntityID)
     # @param cert_not_after [Time] certificate expiry (ignored when cert given)
+    # @param cert_not_before [Time, nil] start of the certificate's validity
+    #   window (ignored when cert given); nil places it an hour before the
+    #   earlier of now and cert_not_after. A FUTURE value models a
+    #   not-yet-valid certificate (ruby-saml drops one from the trust set
+    #   exactly as it drops an expired one).
     def initialize(entity_id: 'https://idp.example.com/saml/metadata', key: self.class.shared_key,
-                   cert: nil, cert_not_after: Time.now + 86_400)
+                   cert: nil, cert_not_after: Time.now + 86_400, cert_not_before: nil)
       @entity_id = entity_id
       @key       = key
-      @cert      = cert || self_signed_cert(key, cert_not_after)
+      @cert      = cert || self_signed_cert(key, cert_not_after, cert_not_before)
     end
 
     def cert_pem
@@ -205,14 +210,14 @@ module SamlSpec
       doc.to_s
     end
 
-    def self_signed_cert(key, not_after)
+    def self_signed_cert(key, not_after, not_before = nil)
       cert            = OpenSSL::X509::Certificate.new
       cert.version    = 2
       cert.serial     = SecureRandom.random_number(2**64)
       cert.subject    = OpenSSL::X509::Name.parse('/CN=spec-idp.example.com')
       cert.issuer     = cert.subject
       cert.public_key = key.public_key
-      cert.not_before = [Time.now, not_after].min - 3600
+      cert.not_before = not_before || ([Time.now, not_after].min - 3600)
       cert.not_after  = not_after
       cert.sign(key, OpenSSL::Digest.new('SHA256'))
       cert

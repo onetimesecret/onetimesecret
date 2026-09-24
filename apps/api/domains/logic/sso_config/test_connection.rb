@@ -285,18 +285,31 @@ module DomainsAPI
             problem = saml_problem(field, value)
             next if problem.nil?
 
-            cert      = field == :idp_cert ? Onetime::SsoProvider::Saml.parse_cert(value) : nil
-            not_after = cert&.not_after
-            expired   = !not_after.nil? && not_after < Time.now
+            # A parseable certificate refused for its validity WINDOW gets a
+            # window-specific code plus both bounds, so the UI can say when
+            # it expired or when it becomes valid (ruby-saml drops a
+            # certificate outside the window either way — Saml.cert_problem).
+            cert       = field == :idp_cert ? Onetime::SsoProvider::Saml.parse_cert(value) : nil
+            now        = Time.now
+            not_after  = cert&.not_after
+            not_before = cert&.not_before
+            error_code = if !not_after.nil? && not_after < now
+                           'certificate_expired'
+                         elsif !not_before.nil? && not_before > now
+                           'certificate_not_yet_valid'
+                         else
+                           SAML_ERROR_CODES.fetch(field)
+                         end
 
             return {
               success: false,
               provider_type: @provider_type,
               message: problem,
               details: {
-                error_code: expired ? 'certificate_expired' : SAML_ERROR_CODES.fetch(field),
+                error_code: error_code,
                 field: field.to_s,
                 description: problem,
+                certificate_not_before: not_before&.utc&.iso8601,
                 certificate_not_after: not_after&.utc&.iso8601,
               }.compact,
             }

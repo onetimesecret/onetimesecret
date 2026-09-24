@@ -444,6 +444,11 @@ RSpec.describe Onetime::SsoProvider::Registry do
           'a SHA1 fingerprint in place of a certificate' => {
             SAML_IDP_CERT: 'AB:CD:EF:01:23:45:67:89:AB:CD:EF:01:23:45:67:89:AB:CD:EF:01',
           },
+          # ruby-saml's Utils.is_cert_active drops a not-yet-valid certificate
+          # from the trust set exactly as it drops an expired one.
+          'a certificate that is not yet valid' => {
+            SAML_IDP_CERT: SamlSpec::TestIdp.new(cert_not_before: Time.now + 3600).cert_pem,
+          },
         }
 
         invalid.each do |label, overrides|
@@ -476,15 +481,38 @@ RSpec.describe Onetime::SsoProvider::Registry do
           expect(saml_valid?(SAML_IDP_CERT: expired)).to be false
         end
 
+        # ruby-saml settings.rb:221 filters the IdP certificate through
+        # Utils.is_cert_active (not_before <= now && not_after >= now), so a
+        # certificate whose window has not opened is dropped from the trust
+        # set and every sign-in fails — a config API that accepted it would
+        # save a record that can never log anyone in.
+        it 'refuses a not-yet-valid certificate, naming when it becomes valid' do
+          not_before = Time.utc(2099, 6, 1, 12, 0, 0)
+          future     = SamlSpec::TestIdp.new(cert_not_before: not_before, cert_not_after: not_before + 86_400).cert_pem
+
+          expect { saml_options(SAML_IDP_CERT: future) }
+            .to raise_error(ArgumentError, /is not valid until 2099-06-01T12:00:00Z/)
+          expect(saml_valid?(SAML_IDP_CERT: future)).to be false
+        end
+
         # allow_expired: exists for the tenant RECORD's validity check only
         # (an expired certificate must not make a stored config uneditable).
-        # It relaxes expiry and nothing else, and the builder never uses it.
+        # It relaxes the WHOLE validity window — expiry and not-yet-valid —
+        # and nothing else, and the builder never uses it.
         describe '.cert_problem(allow_expired: true)' do
           let(:expired) { SamlSpec::TestIdp.new(cert_not_after: Time.utc(2020, 1, 2)).cert_pem }
+          let(:future) do
+            SamlSpec::TestIdp.new(cert_not_before: Time.utc(2099, 1, 1), cert_not_after: Time.utc(2099, 1, 2)).cert_pem
+          end
 
           it 'accepts an expired certificate that is otherwise well-formed' do
             expect(Onetime::SsoProvider::Saml.cert_problem(expired, allow_expired: true)).to be_nil
             expect(Onetime::SsoProvider::Saml.cert_problem(expired)).to match(/expired on 2020-01-02/)
+          end
+
+          it 'accepts a not-yet-valid certificate too (the whole window is skipped)' do
+            expect(Onetime::SsoProvider::Saml.cert_problem(future, allow_expired: true)).to be_nil
+            expect(Onetime::SsoProvider::Saml.cert_problem(future)).to match(/not valid until 2099-01-01T00:00:00Z/)
           end
 
           it 'still refuses every structural problem' do

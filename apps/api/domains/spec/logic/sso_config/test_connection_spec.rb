@@ -344,5 +344,27 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
         expect(result[:message]).to match(/IdP certificate expired on \d{4}-\d{2}-\d{2}/)
       end
     end
+
+    # ruby-saml drops a not-yet-valid certificate from the trust set exactly
+    # as it drops an expired one (Utils.is_cert_active), so a green test here
+    # followed by a saved record that refuses every sign-in is the
+    # disagreement the class comment promises not to produce.
+    context 'with a certificate that is not yet valid' do
+      let(:cert_pem) { not_yet_valid_saml_cert_pem }
+
+      it 'fails with certificate_not_yet_valid and reports when it becomes valid' do
+        expect(result[:success]).to be false
+        expect(result[:details]).to include(error_code: 'certificate_not_yet_valid', field: 'idp_cert')
+        expect(Time.iso8601(result[:details][:certificate_not_before])).to be > Time.now
+        expect(Time.iso8601(result[:details][:certificate_not_after])).to be > Time.now
+        expect(result[:message]).to match(/IdP certificate is not valid until \d{4}-\d{2}-\d{2}T/)
+      end
+
+      it 'never opens a network connection' do
+        result
+
+        expect(Net::HTTP).not_to have_received(:new)
+      end
+    end
   end
 end

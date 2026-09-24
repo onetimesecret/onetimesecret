@@ -234,6 +234,27 @@ module DomainSsoTestFixtures
     cert.to_pem
   end
 
+  # A structurally valid PEM certificate whose validity window has not yet
+  # opened. ruby-saml drops it from the trust set exactly as it drops an
+  # expired one (settings.rb Utils.is_cert_active), so the app refuses it
+  # wherever it refuses expiry (#4450).
+  #
+  # @return [String] PEM
+  def not_yet_valid_saml_cert_pem
+    require 'openssl'
+    key             = OpenSSL::PKey::RSA.new(2048)
+    cert            = OpenSSL::X509::Certificate.new
+    cert.version    = 2
+    cert.serial     = 2
+    cert.subject    = OpenSSL::X509::Name.parse('/CN=future-idp.example.com')
+    cert.issuer     = cert.subject
+    cert.public_key = key.public_key
+    cert.not_before = Time.now + 3600
+    cert.not_after  = Time.now + 86_400
+    cert.sign(key, OpenSSL::Digest.new('SHA256'))
+    cert.to_pem
+  end
+
   # Build a disabled CustomDomain::SsoConfig
   #
   # @param provider [Symbol] provider type
