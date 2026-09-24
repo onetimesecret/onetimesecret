@@ -525,11 +525,15 @@ module Core
           # sign-in provider on an allowed custom host, but is not a Connect
           # provider: a Connect callback there is intentionally rejected as a
           # cross-surface intent after consuming the user's re-auth proof.
-          # A :canonical_host_only provider (platform SAML, #4450) is not a
-          # sign-in provider there either — see build_platform_sso_config.
+          # Platform SAML is visible only when this request positively resolves
+          # to a verified custom domain. Unknown/unverified hosts and failed
+          # reads therefore keep the narrower provider set.
+          resolution             = tenant_sso_resolution(view_vars)
+          verified_custom_domain = tenant_domain?(view_vars) && resolution.verified_custom_domain?
+
           build_platform_sso_config(
             connectable: !tenant_domain?(view_vars),
-            operator_host: operator_domain?(view_vars),
+            saml_visible: operator_domain?(view_vars) || verified_custom_domain,
           )
         end
 
@@ -726,19 +730,15 @@ module Core
         # providers on its own if it gains another caller — so it re-checks
         # rather than relying on the caller's guard.
         #
-        # A :canonical_host_only provider (Onetime::SsoProvider::Registry;
-        # platform SAML, #4450) is offered on OPERATOR hosts only. Its ACS URL
-        # is pinned to site.host, so a sign-in started on a custom host under
-        # platform fallback posts back to a host holding no pending request
-        # and can never complete — the strategy refuses it
-        # (:saml_acs_host_mismatch), and a button whose route refuses is the
-        # display/runtime disagreement this serializer exists to prevent.
+        # Platform SAML is offered on operator hosts and on positively resolved,
+        # verified custom domains. Runtime still owns whether the route can
+        # complete; this display gate prevents unknown, unverified, or unreadable
+        # domain state from widening the surface.
         #
         # @param connectable [Boolean] whether this host may initiate Connect
-        # @param operator_host [Boolean] whether this request is positively
-        #   classified as one of the operator's own hosts (operator_domain?)
+        # @param saml_visible [Boolean] whether platform SAML may be advertised
         # @return [Boolean, Hash] false if disabled, otherwise config hash
-        def build_platform_sso_config(connectable: true, operator_host: true)
+        def build_platform_sso_config(connectable: true, saml_visible: true)
           unless Onetime::CustomDomain::SigninConfig.global_auth_enabled
             return { 'enabled' => false, 'providers' => [] }
           end
@@ -747,7 +747,7 @@ module Core
 
           providers = Onetime.auth_config.sso_providers.filter_map do |provider|
             route_name = provider['route_name'].to_s
-            next if !operator_host && Onetime::SsoProvider::Registry.canonical_host_only_route?(route_name)
+            next if Onetime::SsoProvider::Registry.request_bound_platform_acs_route?(route_name) && !saml_visible
 
             {
               'route_name' => route_name,

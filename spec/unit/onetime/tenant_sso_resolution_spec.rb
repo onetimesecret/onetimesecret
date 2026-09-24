@@ -23,7 +23,7 @@ require 'onetime/tenant_sso_resolution'
 RSpec.describe Onetime::TenantSsoResolution do
   let(:display_domain) { 'tenant.example.net' }
   let(:domain_id) { 'cd_tenant123' }
-  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id) }
+  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id, verified: true) }
   let(:sso_config) { instance_double(Onetime::CustomDomain::SsoConfig) }
 
   def stub_domain(domain = custom_domain)
@@ -93,6 +93,32 @@ RSpec.describe Onetime::TenantSsoResolution do
       resolution = described_class.new(display_domain, :custom)
       expect(resolution.domain_id).to eq(described_class::DOMAIN_READ_FAILED)
       expect(resolution).to be_domain_read_failed
+    end
+  end
+
+  describe '#custom_domain' do
+    it 'returns the record from the memoized domain lookup' do
+      stub_domain
+      resolution = described_class.new(display_domain, :custom)
+
+      expect(resolution.custom_domain).to equal(custom_domain)
+      expect(resolution).to be_verified_custom_domain
+      expect(Onetime::CustomDomain).to have_received(:from_display_domain).once
+    end
+
+    it 'is not verified when the host is unknown' do
+      stub_domain(nil)
+      expect(described_class.new(display_domain, :custom)).not_to be_verified_custom_domain
+    end
+
+    it 'is not verified when the domain read fails' do
+      stub_failing_domain_read
+      expect(described_class.new(display_domain, :custom)).not_to be_verified_custom_domain
+    end
+
+    it 'requires the stored verified flag to be true' do
+      stub_domain(instance_double(Onetime::CustomDomain, identifier: domain_id, verified: false))
+      expect(described_class.new(display_domain, :custom)).not_to be_verified_custom_domain
     end
   end
 

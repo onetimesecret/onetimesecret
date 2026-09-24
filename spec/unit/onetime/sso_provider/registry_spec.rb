@@ -478,28 +478,29 @@ RSpec.describe Onetime::SsoProvider::Registry do
         end
       end
 
-      # The serializers' platform-fallback arms drop this provider on a
-      # custom host (its ACS is pinned to site.host).
-      describe '.canonical_host_only_route?' do
-        it 'is true for the SAML route, following SAML_ROUTE_NAME' do
-          expect(saml[:canonical_host_only]).to be true
+      describe '.request_bound_platform_acs_route?' do
+        it 'identifies the SAML capability and follows SAML_ROUTE_NAME' do
+          expect(saml[:request_bound_platform_acs]).to be true
+          expect(saml).not_to have_key(:canonical_host_only)
+
           ClimateControl.modify(SAML_ROUTE_NAME: nil) do
-            expect(described_class.canonical_host_only_route?('saml')).to be true
-            expect(described_class.canonical_host_only_route?('okta')).to be false
+            expect(described_class.request_bound_platform_acs_route?('saml')).to be true
+            expect(described_class.request_bound_platform_acs_route?('okta')).to be false
           end
           ClimateControl.modify(SAML_ROUTE_NAME: 'okta') do
-            expect(described_class.canonical_host_only_route?('okta')).to be true
-            expect(described_class.canonical_host_only_route?('saml')).to be false
+            expect(described_class.request_bound_platform_acs_route?('okta')).to be true
+            expect(described_class.request_bound_platform_acs_route?('saml')).to be false
           end
         end
 
         it 'is false for every other definition, and for a blank or unknown route' do
-          expect(definitions.reject { |defn| defn[:key] == :saml }.map { |defn| defn[:canonical_host_only] }).to all(be_nil)
-          expect(described_class.canonical_host_only_route?('oidc')).to be false
-          expect(described_class.canonical_host_only_route?('')).to be false
-          expect(described_class.canonical_host_only_route?(nil)).to be false
-          expect(described_class.canonical_host_only_route?('nope')).to be false
+          expect(definitions.reject { |defn| defn[:key] == :saml }.map { |defn| defn[:request_bound_platform_acs] }).to all(be_nil)
+          expect(described_class.request_bound_platform_acs_route?('oidc')).to be false
+          expect(described_class.request_bound_platform_acs_route?('')).to be false
+          expect(described_class.request_bound_platform_acs_route?(nil)).to be false
+          expect(described_class.request_bound_platform_acs_route?('nope')).to be false
         end
+
       end
 
       # Blank trust anchors, so RequestBoundSAML refuses (:saml_misconfigured)

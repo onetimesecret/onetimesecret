@@ -68,7 +68,7 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `AUTH_SSO_ENABLED` | Yes | `true` to enable SSO |
 | `SSO_DISPLAY_NAME` | No | Default button label for generic OIDC (e.g., "Company SSO") |
 | `ALLOWED_SIGNUP_DOMAIN` | No | Comma-separated allowed email domains for SSO signup |
-| `SSO_ALLOW_PLATFORM_FALLBACK` | No | `true` to expose platform providers for sign-in on a custom domain without active tenant SSO. These providers are not available for Connect on that custom-domain surface. |
+| `SSO_ALLOW_PLATFORM_FALLBACK` | No | Explicit opt-in (`true`) to expose platform providers for sign-in on a verified custom domain without active tenant SSO. Platform SAML additionally requires the exact custom-domain ACS URL to be registered at the IdP. Fallback providers are not available for Connect on that custom-domain surface. |
 | `SSO_FORM_ACTION_ORIGINS` | No | Space-separated extra origins added to the CSP `form-action` directive. IdP origins are auto-derived — platform providers at boot, tenant (per-domain) SSO issuers per-request. Use this process-wide override only for split-endpoint OIDC or a tenant discovery-availability fallback (see [Troubleshooting](#sso-login-blocked-on-chromium-family-browsers-csp-form-action)). |
 
 ### Generic OIDC
@@ -153,7 +153,7 @@ cookie does not — see the Apple and SAML sections below for the `same_site`
 prerequisite. SAML's `/slo` and `/spslo` sub-paths answer 501 (single logout
 is disabled).
 
-The callback URL (`https://{host}/auth/sso/{provider}/callback`) is auto-constructed from the request host at runtime. Register this URL with your IdP — no env var needed. For multi-tenant deployments with custom domains, each domain gets its own callback URL automatically. For SAML the same URL is the Assertion Consumer Service (ACS) URL; the strategy fixes it to the public host plus the callback path, so a sign-in link's query string cannot change it.
+The callback URL (`https://{host}/auth/sso/{provider}/callback`) is constructed from the request host. Register the exact URL with the IdP. For platform SAML, the SP EntityID remains the fixed platform value while an opted-in verified custom-domain fallback uses that request host for its ACS URL; the IdP must register each such ACS URL explicitly. The strategy fixes the ACS to the public host plus the callback path, so a sign-in link's query string cannot change it.
 
 ## Authentication Flow
 
@@ -231,7 +231,7 @@ This is the surface the other paths point at: the H-3 refusal flash names it, an
 
 **The panel** lists the account's linked identities — canonical provider label, the `issuer` (hidden for the `''` sentinel on legacy / OAuth2-only rows), and a **masked** `uid` — with a Remove action behind a confirmation dialog, plus eligible Connect providers. On the platform surface, "already linked" is decided by route name (`provider.route_name` vs the row's `provider`), which is correct there because one route maps to one issuer. On a custom-domain surface with active tenant SSO, the panel does not suppress the tenant provider by route-name evidence: the client cannot establish tuple equivalence before the callback (the `uid` is masked, and pairwise subject identifiers differ per client), so the server's full-tuple ownership check decides (`src/shared/utils/sso-link-evidence.ts`).
 
-A registered custom domain without active tenant `SsoConfig` is different. `SSO_ALLOW_PLATFORM_FALLBACK=true` may expose platform providers there for **sign-in**, but the panel omits them from Connected Identities. Their callbacks have no validated tenant context, and a custom-surface callback cannot be authorized as platform Connect. Initiate platform Connect from a canonical/operator surface instead. Suppression is a display heuristic; callback validation remains the control.
+A verified custom domain without active tenant `SsoConfig` is different. `SSO_ALLOW_PLATFORM_FALLBACK=true` may expose platform providers there for **sign-in**, but the panel omits them from Connected Identities. Their callbacks have no validated tenant context, and a custom-surface callback cannot be authorized as platform Connect. Initiate platform Connect from a canonical/operator surface instead. Suppression is a display heuristic; callback validation remains the control.
 
 ```
 Signed-in user clicks "Connect {provider}"
@@ -744,13 +744,32 @@ AuthnRequests, multiple IdP certificates, fingerprint configuration. One
 sign-in attempt is pending per session: a second tab's request supersedes the
 first, whose response is then refused.
 
-Platform SAML now serves the canonical host only. The ACS is always
-`https://{site.host}/auth/sso/{route}/callback`, pinned at boot alongside the
-SP EntityID. Platform SAML is not offered on custom domains under
-`SSO_ALLOW_PLATFORM_FALLBACK`, and a sign-in started there is refused
-(`saml_acs_host_mismatch`, visitor lands on `sso_failed`). Per-domain SAML
-with its own record is the only custom-domain path — see
-[Per-Domain SSO](per-domain-sso.md#saml-20-for-a-custom-domain).
+Platform SAML uses one fixed SP EntityID: `SAML_SP_ENTITY_ID`, or its default
+based on `site.host`. Its ACS normally uses `site.host`. With
+`SSO_ALLOW_PLATFORM_FALLBACK=true`, a verified custom domain without active
+tenant SSO may use the same platform SAML configuration for **sign-in only**.
+That flow keeps the fixed platform EntityID but sets the ACS to the exact
+request host:
+
+`https://{verified-custom-domain}/auth/sso/{route}/callback`
+
+Register that exact ACS URL at the IdP before enabling the fallback for users.
+The sign-in must start and return on the same custom host. The session cookie
+must therefore be host-only (no `Domain` attribute) and configured
+`SameSite=None; Secure`; otherwise the POST callback cannot recover the pending
+request safely.
+
+This is a platform identity path, not tenant SSO. It uses the platform IdP
+certificate, platform EntityID, and platform identity namespace; it does not
+load the domain's `SsoConfig`, create validated tenant context, authorize
+Connected Identities, or confer tenant membership. A domain with active tenant
+SSO uses its tenant configuration instead.
+
+Treat each registered fallback ACS as lifecycle-managed configuration. Remove
+its IdP registration when the custom domain is deleted, becomes unverified,
+stops resolving to this installation, gains active tenant SSO, or platform
+fallback is disabled. Per-domain SAML with its own trust configuration is
+documented in [Per-Domain SSO](per-domain-sso.md#saml-20-for-a-custom-domain).
 
 ## Domain Restrictions
 
@@ -899,17 +918,17 @@ so they never reach a log line unbounded.
 | `reason` | Meaning | Check |
 |----------|---------|-------|
 | `saml_no_pending_request` | The callback arrived in a session with no pending sign-in | `site.session.same_site` must be `none` with `secure: true` (boot logs `[OmniAuth] SAML is enabled … but site.session.same_site is …` for the tenant placeholder only — with platform `SAML_*` vars set the provider is skipped instead and never reaches this row); an IdP-initiated sign-in (started from the IdP's portal) is refused by design; a second sign-in tab supersedes the first |
-| `saml_acs_host_mismatch` | The request's public host is not the pinned platform ACS host (`site.host`) | Platform SAML serves the canonical host only; sign in from the canonical host, or configure per-domain SAML for a custom domain |
+| `saml_acs_host_mismatch` | The callback host does not match the ACS host fixed for this request, or the custom host is not eligible for platform fallback | Start and complete the flow on the same host. For custom-domain platform fallback, verify the domain, enable `SSO_ALLOW_PLATFORM_FALLBACK`, confirm no active tenant SSO configuration supersedes it, and register the exact request-host ACS URL at the IdP |
 | `saml_response_missing` | The callback was not a POST carrying a `SAMLResponse` (the event names the `method`); the pending sign-in is left intact | A cross-site GET (an `<img>` or prefetch) hitting the callback path, or a browser retrying a redirect as GET; harmless unless frequent |
-| `saml_in_response_to_unbound` | The signed assertion's `SubjectConfirmationData/@InResponseTo` is missing, or does not equal the pending AuthnRequest id on every bearer confirmation | The IdP omits `InResponseTo` on SP-initiated responses (refused by design; Okta, Entra ID and AD FS emit it); otherwise a rewrapped assertion — investigate |
-| `saml_misconfigured` | `idp_entity_id` or `sp_entity_id` is blank on the route | On the canonical host the platform vars are unusable and the route is the tenant placeholder; on a custom domain the tenant record was not injected |
+| `saml_in_response_to_unbound` | The signed assertion's `SubjectConfirmationData/@InResponseTo` is missing, or does not equal the pending AuthnRequest id on every bearer confirmation | The IdP response does not satisfy the required request binding, or the assertion may have been rewrapped; investigate |
+| `saml_misconfigured` | `idp_entity_id` or `sp_entity_id` is blank on the route | The platform variables are unusable, or the custom-domain tenant record was not injected |
 | `saml_issuer_unreadable` | The Issuer elements could not be read after validation (defense in depth: a missing or repeated Issuer is refused by ruby-saml first, as `invalid_ticket`) | IdP configuration |
 | `saml_weak_signature_algorithm` | A signature in the response uses a `SignatureMethod` or `DigestMethod` outside the allowlist (RSA/ECDSA-SHA256/384/512, SHA-256/384/512) — typically RSA-SHA1 / SHA1 | Configure SHA-256 signing at the IdP; the log event names the offending `kind` and `algorithm` URI |
 | `saml_issuer_mismatch` | The response's Issuer is not byte-equal to `SAML_IDP_ENTITY_ID` (or the tenant's `idp_entity_id`) | Copy the EntityID exactly as the IdP publishes it — scheme case, port, trailing slash |
 | `saml_transient_name_id` | The IdP sent a transient NameID | Configure a persistent NameID at the IdP, or set `SAML_UID_ATTRIBUTE` (platform only) |
 | `saml_missing_uid` | The NameID (or the uid attribute) is empty | IdP attribute mapping |
 | `saml_assertion_unbounded` | The assertion has no `ID` or no `Conditions/@NotOnOrAfter` | IdP configuration; both are required |
-| `saml_assertion_lifetime_exceeded` | `Conditions/@NotOnOrAfter` is more than one hour (plus 60 s clock drift) in the future; the event carries `lifetime_seconds` | Shorten the assertion lifetime at the IdP (the Entra ID / AD FS default of 60 min is accepted); check the IdP clock |
+| `saml_assertion_lifetime_exceeded` | `Conditions/@NotOnOrAfter` is more than one hour (plus 60 s clock drift) in the future; the event carries `lifetime_seconds` | Shorten the assertion lifetime at the IdP; check the IdP clock |
 | `saml_assertion_replayed` | The same assertion was presented a second time | Browser back/refresh on the callback page; otherwise investigate |
 | `saml_replay_guard_unavailable` | Valkey/Redis was unavailable during the callback | Datastore health; the callback fails closed |
 | `invalid_ticket` | ruby-saml rejected the document: signature, unsigned assertion, audience, destination or recipient, validity window (60 s clock drift allowed), expired IdP certificate, InResponseTo mismatch, non-Success status | The event's `detail` names the check; compare the IdP's SP registration with the values in the SAML setup table |
@@ -919,11 +938,11 @@ so they never reach a log line unbounded.
 `Rack::Protection::HttpOrigin` denies a cross-site POST unless its `Origin`
 is an admitted IdP origin. For platform SAML that origin is derived from
 `SAML_IDP_SSO_SERVICE_URL` (the browser posts back from the IdP's SSO
-endpoint), never from the EntityID; `SSO_FORM_ACTION_ORIGINS` widens this set
-too, so it can cover an IdP whose login page lives on a different origin than
-its SSO service URL. On a custom domain, the tenant record's
-`idp_sso_service_url` origin is admitted for that domain only, with no
-override.
+endpoint), never from the EntityID; the same platform origin applies to an
+eligible custom-domain fallback. `SSO_FORM_ACTION_ORIGINS` widens this set too,
+so it can cover an IdP whose login page lives on a different origin than its
+SSO service URL. Tenant SAML instead admits that domain record's
+`idp_sso_service_url` origin for the domain only, with no override.
 
 ### CSRF error on callback
 
@@ -1014,7 +1033,7 @@ SSO_FORM_ACTION_ORIGINS="https://authorize.example.gov"
 | `apps/web/auth/spec/config/hooks/omniauth_spec.rb` | Email normalization, SAML issuer resolution through the wired hooks |
 | `spec/unit/onetime/sso_provider/request_bound_saml_spec.rb` | SAML gates against real signed responses (`spec/support/saml/test_idp.rb`) |
 | `apps/web/auth/spec/integration/full/tenant_saml_sso_spec.rb` | Tenant SAML sign-in end to end through Rodauth |
-| `apps/web/auth/spec/integration/full_saml_platform/platform_saml_sso_spec.rb` | Platform SAML sign-in end to end (env-configured IdP, canonical host); own lane `full-saml-platform` |
+| `apps/web/auth/spec/integration/full_saml_platform/platform_saml_sso_spec.rb` | Platform SAML sign-in end to end, including eligible custom-domain fallback (env-configured IdP); own lane `full-saml-platform` |
 
 ## Testing
 

@@ -34,6 +34,7 @@
 require 'onetime/models/custom_domain/signin_config'
 
 require_relative '../../restrict_to'
+require_relative '../../lib/public_host'
 
 module Auth::Config::Hooks
   module OmniAuthTenant
@@ -187,7 +188,7 @@ module Auth::Config::Hooks
           end
 
           # Non-canonical domain with no custom domain mapping - apply tenant policy
-          HELPERS.handle_missing_tenant_config(host, self)
+          HELPERS.handle_missing_tenant_config(host, self, request: request)
           next # Continue with platform defaults (if allowed)
         end
 
@@ -230,7 +231,7 @@ module Auth::Config::Hooks
           )
 
           # Check if we should fall back to platform credentials
-          HELPERS.handle_missing_tenant_config(host, self)
+          HELPERS.handle_missing_tenant_config(host, self, request: request)
           next # Continue with platform defaults (if allowed)
         end
 
@@ -607,18 +608,32 @@ module Auth::Config::Hooks
     # (SigninConfig.global_auth_enabled false → every session reads as
     # unauthenticated), so a global kill always takes the reject path.
     #
+    # For platform SAML, an allowed fallback additionally requires positive
+    # host evidence from Auth::PublicHost.resolve. Only then is the boot-time
+    # canonical ACS replaced with the strategy's verified public host. The
+    # platform SP EntityID and IdP trust options are deliberately untouched.
+    #
     # @param host [String] Request hostname for logging
-    # @param rodauth [Rodauth] Rodauth instance (for throw_error_status)
+    # @param rodauth [Rodauth] Rodauth instance (for redirect)
+    # @param request [Rack::Request, nil] current request; nil preserves the
+    #   generic policy helper contract for non-SAML callers
     # @raise [Rodauth::Error] if fallback not allowed
-    def self.handle_missing_tenant_config(host, rodauth)
-      if Onetime.auth_config.allow_platform_fallback_for_tenants? &&
-         Onetime::CustomDomain::SigninConfig.global_auth_enabled
-        Auth::Logging.log_auth_event(
-          :omniauth_tenant_fallback_to_platform,
-          level: :debug,
-          host: host,
-        )
-        return # Continue with platform defaults
+    def self.handle_missing_tenant_config(host, rodauth, request: nil)
+      fallback_allowed = Onetime.auth_config.allow_platform_fallback_for_tenants? &&
+                         Onetime::CustomDomain::SigninConfig.global_auth_enabled
+
+      if fallback_allowed
+        strategy = request&.env&.fetch('omniauth.strategy', nil)
+        if !request_bound_platform_acs_strategy?(strategy) || bind_platform_fallback_acs(strategy, request)
+          clear_pending_tenant_context(rodauth.session) if strategy&.on_request_path?
+
+          Auth::Logging.log_auth_event(
+            :omniauth_tenant_fallback_to_platform,
+            level: :debug,
+            host: host,
+          )
+          return # Continue with platform defaults
+        end
       end
 
       Auth::Logging.log_auth_event(
@@ -628,6 +643,32 @@ module Auth::Config::Hooks
       )
 
       rodauth.send(:redirect, '/signin?auth_error=sso_not_configured')
+    end
+
+    # A new platform request supersedes any abandoned tenant request in the
+    # same session. Callback setup must retain the pending markers so a real
+    # tenant callback can validate and consume them.
+    def self.clear_pending_tenant_context(session)
+      session.delete(:omniauth_tenant_domain_id)
+      session.delete(:omniauth_tenant_host)
+    end
+
+    # True only for a registered provider that explicitly supports rebinding
+    # its platform ACS for verified custom-domain fallback.
+    def self.request_bound_platform_acs_strategy?(strategy)
+      return false unless strategy&.class&.name == SAML_STRATEGY_CLASS
+
+      Onetime::SsoProvider::Registry.request_bound_platform_acs_route?(strategy.options[:name])
+    end
+
+    # Bind only the ACS, and only when PublicHost positively resolves a verified
+    # custom domain. Unknown, unverified, and datastore-error hosts return false
+    # and are rejected by handle_missing_tenant_config.
+    def self.bind_platform_fallback_acs(strategy, request)
+      return false if request.nil? || Auth::PublicHost.resolve(request.env).nil?
+
+      strategy.options[:assertion_consumer_service_url] = strategy.full_host + strategy.callback_path
+      true
     end
 
     # Inject tenant credentials into the OmniAuth strategy.

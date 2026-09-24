@@ -206,9 +206,8 @@ tenant's own IdP EntityID.
     signed-assertion accessor and requires EVERY one to carry
     `InResponseTo` byte-equal to the pending id
     (`saml_in_response_to_unbound`). IdPs that omit the attribute on
-    SP-initiated responses are refused by design; Okta, Entra ID and AD FS
-    always emit it. Requiring the attribute is the SAML 2.0 Profiles
-    baseline (4.1.4.2/4.1.4.3). Requiring it on *every* bearer confirmation
+    SP-initiated responses are refused by design. Requiring the attribute is
+    the SAML 2.0 Profiles baseline (4.1.4.2/4.1.4.3). Requiring it on *every* bearer confirmation
     is stricter than the baseline, which accepts the assertion when any one
     bearer confirmation validates; that is a deliberate hardening choice
     (a mixed bound/unbound assertion is ambiguous about which login it
@@ -282,8 +281,7 @@ tenant's own IdP EntityID.
     `MAX_LIFETIME` (3600s) + clock drift past now is refused
     (`saml_assertion_lifetime_exceeded`) rather than remembered for a
     clamped, shorter time — a marker that expires before the assertion
-    does is no marker. One hour admits the Entra ID / AD FS default (60
-    min) and Okta's (5 min).
+    does is no marker.
   - **Scrubbed `extra`.** The gem's `extra` carries the live
     `response_object` — the settings (IdP cert, SP key if any) and the full
     response XML. The subclass replaces `extra` with scalars:
@@ -294,13 +292,16 @@ tenant's own IdP EntityID.
     RelayState forwarding (`idp_sso_service_url_runtime_params` — as a
     **class** default, because an instance-level `{}` is deep-merged into the
     gem's default and changes nothing), strips every ruby-saml `skip_*`
-    option, and fixes `callback_url` to `full_host + callback_path` as the
-    fallback (omniauth's default appends the request query string and
-    omniauth-saml makes that the ACS URL) — reached only by the un-injected
-    placeholder, since both surfaces now pin the ACS explicitly (platform to
-    `site.host` at boot, tenant per request) and the strategy refuses a
-    request whose public host is not the pinned ACS host
-    (`saml_acs_host_mismatch`).
+    option, and fixes `callback_url` to `full_host + callback_path`
+    (omniauth's default appends the request query string and omniauth-saml
+    makes that the ACS URL). Tenant SAML derives both SP identifiers per
+    request. Platform SAML keeps one fixed EntityID; its ACS uses `site.host`
+    normally, or the request host only for an explicitly enabled, verified
+    custom-domain platform fallback. The IdP must register each exact ACS.
+    The request and callback must remain on that same host, and the strategy
+    refuses an ineligible or mismatched host (`saml_acs_host_mismatch`). This
+    fallback remains in the platform identity and security boundary: it uses
+    platform trust and identity keys, not tenant `SsoConfig` or tenant context.
   - **SLO is off** (`slo_enabled: false`; `/slo` and `/spslo` answer 501).
     The gem's IdP-initiated logout default is `session.clear` on the Rack
     session, which bypasses this application's active-session rows; SLO needs
@@ -314,8 +315,10 @@ tenant's own IdP EntityID.
     is still honoured as a hold — `email_verification_hold` unwraps the
     `Array` values SAML attributes arrive as.
   **Operator prerequisites:** the HTTP-POST binding is a cross-site POST, so
-  SAML needs `site.session.same_site: none` with `secure: true` exactly like
-  Apple, and the callback origin is admitted through `HttpOriginOptions` from
+  SAML needs a host-only session cookie configured `site.session.same_site:
+  none` with `secure: true`. This is also required for custom-domain platform
+  fallback because the pending request and callback must use the same host.
+  The callback origin is admitted through `HttpOriginOptions` from
   the **SSO service URL's** origin (`idp_origin_from`), never the EntityID (an
   opaque name, often a URN on another host). A tenant's SAML IdP origin is
   admitted per request by `sso_callback_from_tenant_idp?`, the counterpart of

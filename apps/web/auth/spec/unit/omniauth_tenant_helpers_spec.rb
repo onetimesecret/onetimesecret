@@ -508,6 +508,105 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
   end
 
   # ==========================================================================
+  # platform SAML fallback
+  # ==========================================================================
+
+  describe '.handle_missing_tenant_config with platform SAML' do
+    let(:options) do
+      {
+        name: 'saml',
+        sp_entity_id: 'urn:example:platform-sp',
+        assertion_consumer_service_url: 'https://canonical.example/auth/sso/saml/callback',
+        idp_entity_id: 'https://platform-idp.example/metadata',
+        idp_cert: 'PLATFORM CERT',
+      }
+    end
+    let(:strategy) do
+      double('OmniAuth::Strategies::RequestBoundSAML').tap do |s|
+        allow(s).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::RequestBoundSAML')
+        allow(s).to receive_messages(
+          options: options,
+          full_host: 'https://tenant.example',
+          callback_path: '/auth/sso/saml/callback',
+          on_request_path?: true,
+        )
+      end
+    end
+    let(:request) { double('Rack::Request', env: { 'omniauth.strategy' => strategy }) }
+    let(:session) do
+      {
+        omniauth_tenant_domain_id: 'stale-domain-id',
+        omniauth_tenant_host: 'tenant.example',
+      }
+    end
+    let(:rodauth) do
+      double('Rodauth', session: session).tap do |r|
+        allow(r).to receive(:redirect) { throw :halt }
+      end
+    end
+
+    before do
+      allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:global_auth_enabled).and_return(true)
+    end
+
+    it 'overrides only ACS for a verified custom-domain fallback' do
+      allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return('tenant.example')
+
+      result = catch(:halt) do
+        helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+        :allowed
+      end
+
+      expect(result).to eq(:allowed)
+      expect(options[:assertion_consumer_service_url]).to eq('https://tenant.example/auth/sso/saml/callback')
+      expect(options[:sp_entity_id]).to eq('urn:example:platform-sp')
+      expect(options[:idp_entity_id]).to eq('https://platform-idp.example/metadata')
+      expect(options[:idp_cert]).to eq('PLATFORM CERT')
+      expect(session).not_to include(:omniauth_tenant_domain_id, :omniauth_tenant_host)
+    end
+
+    it 'retains pending tenant context during callback setup' do
+      allow(strategy).to receive(:on_request_path?).and_return(false)
+      allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return('tenant.example')
+
+      result = catch(:halt) do
+        helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+        :allowed
+      end
+
+      expect(result).to eq(:allowed)
+      expect(session).to include(
+        omniauth_tenant_domain_id: 'stale-domain-id',
+        omniauth_tenant_host: 'tenant.example',
+      )
+    end
+
+    it 'fails closed when PublicHost cannot verify the request host' do
+      allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return(nil)
+
+      catch(:halt) do
+        helpers.handle_missing_tenant_config('unknown.example', rodauth, request: request)
+      end
+
+      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+      expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+    end
+
+    it 'does not override ACS when the explicit fallback policy denies access' do
+      allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+      allow(Auth::PublicHost).to receive(:resolve)
+
+      catch(:halt) do
+        helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+      end
+
+      expect(Auth::PublicHost).not_to have_received(:resolve)
+      expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+    end
+  end
+
+  # ==========================================================================
   # inject_tenant_credentials (integration of the above)
   # ==========================================================================
 

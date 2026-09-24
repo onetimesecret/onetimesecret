@@ -586,9 +586,9 @@ RSpec.describe Core::Views::ConfigSerializer do
           })
         end
 
-        # Platform SAML (#4450) is :canonical_host_only in the registry — its
-        # ACS URL is pinned to site.host — and the canonical host IS that host.
-        it 'keeps a canonical-host-only provider (platform SAML) on the canonical host' do
+        # Platform SAML boots with the site.host ACS and remains available on
+        # the canonical platform surface.
+        it 'keeps platform SAML on the canonical host' do
           allow(mock_auth_config).to receive(:sso_providers).and_return([
             { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
             { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
@@ -642,11 +642,10 @@ RSpec.describe Core::Views::ConfigSerializer do
             expect(result['connect_providers']).to eq(result['providers'])
           end
 
-          # Not an operator host: a sign-in started here would carry the
-          # canonical ACS and post back to a host holding no pending request
-          # (RequestBoundSAML refuses it as saml_acs_host_mismatch), so the
-          # button is not offered.
-          it 'does not offer a canonical-host-only provider (platform SAML)' do
+          # Not an operator host or a positively resolved verified custom
+          # domain: runtime will not bind a request-host ACS, so the button is
+          # not offered.
+          it 'does not offer platform SAML without verified custom-domain context' do
             allow(mock_auth_config).to receive(:sso_providers).and_return([
               { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
               { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
@@ -683,7 +682,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
     describe 'on custom domain with CustomDomain::SsoConfig' do
       let(:custom_domain_obj) do
-        instance_double(Onetime::CustomDomain, identifier: domain_id)
+        instance_double(Onetime::CustomDomain, identifier: domain_id, verified: true)
       end
 
       let(:custom_domain_view_vars) do
@@ -812,10 +811,7 @@ RSpec.describe Core::Views::ConfigSerializer do
             expect(result['connect_providers']).to eq([])
           end
 
-          # Platform SAML's ACS is pinned to site.host; on a custom host its
-          # route refuses (saml_acs_host_mismatch), so it is not a fallback
-          # provider here (#4450).
-          it 'does not offer a canonical-host-only provider (platform SAML) as fallback' do
+          it 'offers platform SAML for sign-in on a verified custom domain but not for Connect' do
             allow(mock_auth_config).to receive(:sso_providers).and_return([
               { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
               { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
@@ -824,7 +820,21 @@ RSpec.describe Core::Views::ConfigSerializer do
             result = described_class.build_sso_config(custom_domain_view_vars)
 
             expect(result['enabled']).to be true
-            expect(result['providers']).to eq([{ 'route_name' => 'oidc', 'display_name' => 'Platform SSO' }])
+            expect(result['providers'].map { |provider| provider['route_name'] }).to eq(%w[saml oidc])
+            expect(result['connect_providers']).to eq([])
+          end
+
+          it 'omits platform SAML when the custom domain is unverified' do
+            allow(custom_domain_obj).to receive(:verified).and_return(false)
+            allow(mock_auth_config).to receive(:sso_providers).and_return([
+              { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+              { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+            ])
+
+            result = described_class.build_sso_config(custom_domain_view_vars)
+
+            expect(result['providers'].map { |provider| provider['route_name'] }).to eq(['oidc'])
+            expect(result['connect_providers']).to eq([])
           end
         end
       end
@@ -945,7 +955,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
     describe 'custom domain resolution from display_domain' do
       let(:custom_domain_obj) do
-        instance_double(Onetime::CustomDomain, identifier: domain_id)
+        instance_double(Onetime::CustomDomain, identifier: domain_id, verified: true)
       end
 
       let(:custom_domain_view_vars) do
@@ -986,6 +996,26 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
       end
 
+      context 'when the custom host is unknown' do
+        before do
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
+            .with(custom_display_domain).and_return(nil)
+          allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+          allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+          allow(mock_auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+            { 'route_name' => 'oidc', 'display_name' => 'Fallback SSO' },
+          ])
+        end
+
+        it 'does not expose platform SAML or Connect' do
+          result = described_class.build_sso_config(custom_domain_view_vars)
+
+          expect(result['providers'].map { |provider| provider['route_name'] }).to eq(['oidc'])
+          expect(result['connect_providers']).to eq([])
+        end
+      end
+
       context 'when CustomDomain lookup fails (Redis error)' do
         before do
           allow(Onetime::CustomDomain).to receive(:from_display_domain)
@@ -993,16 +1023,17 @@ RSpec.describe Core::Views::ConfigSerializer do
           allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
           allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
           allow(mock_auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
             { 'route_name' => 'oidc', 'display_name' => 'Fallback SSO' },
           ])
         end
 
-        it 'gracefully falls back to platform SSO' do
+        it 'falls back without widening platform SAML visibility' do
           result = described_class.build_sso_config(custom_domain_view_vars)
 
-          # Should not raise, should fall back
           expect(result['enabled']).to be true
-          expect(result['providers'][0]['display_name']).to eq('Fallback SSO')
+          expect(result['providers'].map { |provider| provider['route_name'] }).to eq(['oidc'])
+          expect(result['connect_providers']).to eq([])
         end
       end
     end
@@ -1010,7 +1041,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
   describe '.sso_available?' do
     let(:custom_domain_obj) do
-      instance_double(Onetime::CustomDomain, identifier: domain_id)
+      instance_double(Onetime::CustomDomain, identifier: domain_id, verified: true)
     end
 
     let(:custom_domain_view_vars) do
@@ -1060,7 +1091,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
   describe '.resolve_signin' do
     let(:custom_domain_obj) do
-      instance_double(Onetime::CustomDomain, identifier: domain_id)
+      instance_double(Onetime::CustomDomain, identifier: domain_id, verified: true)
     end
 
     let(:custom_domain_view_vars) do
@@ -1108,7 +1139,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
   describe '.resolve_restrict_to' do
     let(:custom_domain_obj) do
-      instance_double(Onetime::CustomDomain, identifier: domain_id)
+      instance_double(Onetime::CustomDomain, identifier: domain_id, verified: true)
     end
 
     let(:custom_domain_view_vars) do
