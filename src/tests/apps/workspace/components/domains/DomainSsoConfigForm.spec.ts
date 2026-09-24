@@ -10,14 +10,14 @@
 // Note: This is a presentational component. It receives state via props
 // and emits events for actions. Parent manages state via useSsoConfig.
 
-import DomainSsoConfigForm from '@/apps/workspace/components/domains/DomainSsoConfigForm.vue';
-import type { CustomDomainSsoConfig } from '@/schemas/shapes/domains/sso-config';
-import type { TestSsoConnectionResponse } from '@/services/sso.service';
-import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
 import { createTestingPinia } from '@pinia/testing';
-import { createTestI18n } from '@tests/setup';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import DomainSsoConfigForm from '../../../../../apps/workspace/components/domains/DomainSsoConfigForm.vue';
+import type { CustomDomainSsoConfig } from '../../../../../schemas/shapes/domains/sso-config';
+import type { TestSsoConnectionResponse } from '../../../../../services/sso.service';
+import type { SsoConfigFormState } from '../../../../../shared/composables/useSsoConfig';
+import { createTestI18n } from '../../../../setup';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mocks

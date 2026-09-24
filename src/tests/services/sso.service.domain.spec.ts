@@ -35,7 +35,7 @@ vi.mock('@/api', () => ({
 }));
 
 // Import after mocking
-import { SsoService } from '@/services/sso.service';
+import { SsoService } from '../../services/sso.service';
 
 describe('SsoService domain methods', () => {
   beforeEach(() => {

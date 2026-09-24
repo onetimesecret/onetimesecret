@@ -9,12 +9,12 @@
 // 6. testConnection(): validates IdP connectivity
 // 7. client_secret NEVER populated from API response (masked value gotcha)
 
-import { useSsoConfig } from '@/shared/composables/useSsoConfig';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useSsoConfig } from '../../shared/composables/useSsoConfig';
 
-import type { CustomDomainSsoConfig } from '@/schemas/shapes/domains/sso-config';
-import type { TestSsoConnectionResponse } from '@/services/sso.service';
+import type { CustomDomainSsoConfig } from '../../schemas/shapes/domains/sso-config';
+import type { TestSsoConnectionResponse } from '../../services/sso.service';
 
 // -----------------------------------------------------------------------------
 // Mock Setup
