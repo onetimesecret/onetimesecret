@@ -1332,6 +1332,36 @@ describe('DomainSsoConfigForm', () => {
         expect(alert.text()).toContain('certificate_expired');
         expect(alert.text()).toContain('web.organizations.sso.idp_cert');
         expect(alert.text()).toContain('web.organizations.sso.certificate_expires');
+        expect(alert.text()).not.toContain('web.organizations.sso.certificate_valid_from');
+      });
+
+      // The API reports both bounds of the validity window on a window
+      // failure; for a certificate that is not valid YET the start is the
+      // fact that matters, not the expiry.
+      it('names the validity start on a not-yet-valid certificate', async () => {
+        wrapper = await mountComponent({
+          formState: mockSamlFormState,
+          testResult: {
+            user_id: 'cust_456',
+            success: false,
+            provider_type: 'saml',
+            message: 'IdP certificate is not valid until 2031-01-01',
+            details: {
+              error_code: 'certificate_not_yet_valid',
+              field: 'idp_cert',
+              description: 'IdP certificate is not valid until 2031-01-01',
+              certificate_not_before: '2031-01-01T00:00:00Z',
+              certificate_not_after: '2033-01-01T00:00:00Z',
+            },
+          },
+        });
+
+        const alert = wrapper.find('[role="alert"]');
+        expect(alert.exists()).toBe(true);
+        expect(alert.text()).toContain('certificate_not_yet_valid');
+        expect(alert.text()).toContain('web.organizations.sso.idp_cert');
+        expect(alert.text()).toContain('web.organizations.sso.certificate_valid_from');
+        expect(alert.text()).toContain(new Date('2031-01-01T00:00:00Z').toLocaleDateString());
       });
     });
 

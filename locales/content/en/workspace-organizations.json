@@ -1092,6 +1092,10 @@
     "text": "in {n} day | in {n} days",
     "content_hash": "df98ca65"
   },
+  "web.organizations.sso.certificate_valid_from": {
+    "text": "Certificate valid from",
+    "content_hash": "b13d3f30"
+  },
   "web.organizations.sso.status_enabled": {
     "text": "Enabled",
     "content_hash": "92c1cdfd"

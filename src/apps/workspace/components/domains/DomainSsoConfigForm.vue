@@ -316,6 +316,18 @@ const canTestConnection = computed(() => providerFieldsFilled.value);
  * the URL and EntityID locally, so its result is the certificate's subject
  * and expiry rather than discovery endpoints. Days are floored by the API.
  */
+/**
+ * Start of the certificate's validity window, reported beside the expiry.
+ * On a `certificate_not_yet_valid` failure it is the fact that matters: the
+ * certificate parses and has not expired, it just cannot be used yet.
+ */
+const certificateValidFrom = computed(() => {
+  const raw = props.testResult?.details?.certificate_not_before;
+  if (!raw) return null;
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? raw : date.toLocaleDateString();
+});
+
 const certificateExpiry = computed(() => {
   const details = props.testResult?.details;
   if (!details?.certificate_not_after) return null;
@@ -956,6 +968,10 @@ aria-hidden="true">*</span>
                     <div v-if="testResult.details.description" class="flex gap-2">
                       <dt class="font-medium">{{ t('web.COMMON.details') }}:</dt>
                       <dd>{{ testResult.details.description }}</dd>
+                    </div>
+                    <div v-if="certificateValidFrom" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.organizations.sso.certificate_valid_from') }}:</dt>
+                      <dd>{{ certificateValidFrom }}</dd>
                     </div>
                     <div v-if="certificateExpiry" class="flex gap-2">
                       <dt class="font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>

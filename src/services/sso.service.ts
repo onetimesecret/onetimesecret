@@ -78,7 +78,12 @@ export interface TestSsoConnectionResponse {
     idp_entity_id?: string;
     idp_sso_service_url?: string;
     certificate_subject?: string;
-    /** ISO 8601. Also present on a `certificate_expired` failure. */
+    /**
+     * ISO 8601 validity window. Both bounds also accompany a
+     * `certificate_expired` / `certificate_not_yet_valid` failure, so the
+     * UI can say when the certificate expired or when it becomes valid.
+     */
+    certificate_not_before?: string;
     certificate_not_after?: string;
     certificate_expires_in_days?: number;
     // Error details
@@ -92,7 +97,7 @@ export interface TestSsoConnectionResponse {
     /**
      * SAML: the offending field (idp_sso_service_url | idp_entity_id |
      * idp_cert) for error_code invalid_sso_url | invalid_entity_id |
-     * invalid_certificate | certificate_expired.
+     * invalid_certificate | certificate_expired | certificate_not_yet_valid.
      */
     field?: string;
   };
