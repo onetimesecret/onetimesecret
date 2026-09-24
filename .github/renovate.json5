@@ -10,9 +10,7 @@
     ':pinDependencies',
   ],
 
-  // Update control and scheduling
-  timezone: 'America/Vancouver',
-  schedule: ['before 5am on Sunday'],
+  // Update control
   minimumReleaseAge: '14 days',
   separateMinorPatch: false,
   separateMultipleMajor: true,
@@ -31,7 +29,7 @@
   dependencyDashboard: true,
   dependencyDashboardAutoclose: true,
   dependencyDashboardLabels: ['auto-update', 'dependencies'],
-  prCreation: 'no-pending',
+  prCreation: 'immediate',
   prConcurrentLimit: 10,
   prHourlyLimit: 4,
   labels: ['auto-update'],

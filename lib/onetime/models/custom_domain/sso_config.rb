@@ -302,8 +302,6 @@ module Onetime
       # @return [CustomDomain, nil] The domain or nil if not found
       def custom_domain
         Onetime::CustomDomain.find_by_identifier(domain_id)
-      rescue Onetime::RecordNotFound
-        nil
       end
 
       # Load the owning Organization via the CustomDomain.
@@ -393,8 +391,6 @@ module Onetime
           return nil if domain_id.to_s.empty?
 
           load(domain_id)
-        rescue Onetime::RecordNotFound
-          nil
         end
 
         # Why tenant SSO is NOT an available sign-in path for a custom domain,
@@ -596,11 +592,7 @@ module Onetime
         #
         # @return [Array<CustomDomain::SsoConfig>] All configs (newest first)
         def all
-          instances.revrangeraw(0, -1).filter_map do |identifier|
-            load(identifier)
-          rescue Onetime::RecordNotFound
-            nil
-          end
+          instances.revrangeraw(0, -1).filter_map { |identifier| load(identifier) }
         end
 
         # Count of domains with SSO configured.

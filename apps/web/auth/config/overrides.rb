@@ -16,9 +16,11 @@
 # overrides, kept at its original path to avoid churn).
 #
 module Auth::Config::Overrides
+  require_relative 'overrides/duplicate_signup'
   require_relative 'overrides/error_handling'
   require_relative 'overrides/password_migration'
   require_relative 'overrides/public_base_url'
   require_relative 'overrides/reset_password_enumeration'
   require_relative 'overrides/account_enumeration'
+  require_relative 'overrides/surface_binding'
 end

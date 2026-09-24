@@ -23,7 +23,6 @@
       :is-last="idx === secrets.length - 1"
       variant="console"
       @copy="handleCopy"
-      @delete="handleDelete"
       @update:memo="handleMemoUpdate"
     />
 -->
@@ -55,7 +54,6 @@
 
   defineEmits<{
     copy: [];
-    delete: [record: RecentSecretRecord];
     'update:memo': [id: string, memo: string];
   }>();
 
@@ -85,6 +83,5 @@
     :index="index"
     :is-last="isLast"
     @copy="$emit('copy')"
-    @delete="$emit('delete', $event)"
     @update:memo="(id: string, memo: string) => $emit('update:memo', id, memo)" />
 </template>

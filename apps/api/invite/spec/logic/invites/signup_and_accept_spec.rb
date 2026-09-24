@@ -52,7 +52,11 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
   let(:valid_password) { 'SecureP@ssw0rd123!' }
   let(:weak_password) { '123' }
 
-  let(:session) { {} }
+  let(:session) do
+    options = session_options
+    {}.tap { |data| data.define_singleton_method(:options) { options } }
+  end
+  let(:session_options) { {} }
   let(:client_ip) { '192.168.1.100' }
 
   let(:strategy_result) do
@@ -410,12 +414,60 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
 
   # NOTE: The historical "#process" describe block tested an obsolete contract
   # where this logic class directly invoked Auth::Operations::EnsureCustomerForAccount /
-  # CreateDefaultWorkspace / AcceptInvitation. The current source (#3221)
+  # EnsureDefaultWorkspace / AcceptInvitation. The current source (#3221)
   # delegates Customer/workspace creation to Rodauth's after_create_account
   # hook (apps/web/auth/config/hooks/account.rb) and reserves invitation
   # acceptance for a separate explicit /accept call. The current contract is
   # covered by "#process invitation reload after signup" below; see also the
   # success_data block.
+
+  # The session minted here is hand-written (no request-scoped Rodauth login
+  # runs), so the surface marker (#4409) must be stamped from the strategy
+  # metadata or the fail-closed gate refuses the invitee's next request — the
+  # frontend's POST /accept.
+  describe '#setup_session' do
+    let(:customer) do
+      build_mock_customer(extid: 'ext-invitee', email: normalized_email, role: 'customer', locale: 'en')
+    end
+
+    def logic_for(metadata)
+      result = build_strategy_result(session: session, user: nil, authenticated: false, metadata: metadata)
+      logic  = described_class.new(result, valid_params)
+      logic.instance_variable_set(:@customer, customer)
+      logic.instance_variable_set(:@invitation, invitation)
+      logic.instance_variable_set(:@token, invite_token)
+      allow(Familia).to receive(:dbclient).and_return(double('dbclient', del: 1))
+      logic
+    end
+
+    it 'stamps the canonical surface from the strategy metadata' do
+      logic = logic_for(ip: client_ip, domain_strategy: :canonical, display_domain: 'onetimesecret.com')
+      logic.send(:setup_session, 123, { id: 123, external_id: 'ext-invitee' })
+
+      expect(session['authenticated']).to be(true)
+      expect(session[Onetime::SessionSurface::KEY]).to eq(Onetime::SessionSurface::CANONICAL)
+    end
+
+    it 'stamps a custom surface keyed by the custom-domain identifier' do
+      logic = logic_for(
+        ip: client_ip,
+        domain_strategy: :custom,
+        display_domain: 'secrets.tenant.example',
+        custom_domain_id: 'cd_abc123',
+      )
+      logic.send(:setup_session, 123, { id: 123, external_id: 'ext-invitee' })
+
+      expect(session[Onetime::SessionSurface::KEY]).to eq({ 'kind' => 'custom', 'id' => 'cd_abc123' })
+    end
+
+    it 'stamps nil (fail closed) when the metadata carries no resolvable surface' do
+      logic = logic_for(ip: client_ip)
+      logic.send(:setup_session, 123, { id: 123, external_id: 'ext-invitee' })
+
+      expect(session).to have_key(Onetime::SessionSurface::KEY)
+      expect(session[Onetime::SessionSurface::KEY]).to be_nil
+    end
+  end
 
   describe '#success_data' do
     let(:new_customer) do
@@ -583,6 +635,7 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
 
       it 'sets up the session for auto-login' do
         logic.process
+        expect(session_options[:renew]).to be true
         expect(session['authenticated']).to be true
         expect(session['external_id']).to eq('ext-new-123')
         expect(session['account_id']).to eq(123)
@@ -633,6 +686,7 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
 
       it 'establishes a working (authenticated) session so POST /accept can proceed' do
         logic.process
+        expect(session_options[:renew]).to be true
         expect(session['authenticated']).to be true
         expect(session['external_id']).to eq('ext-new-123')
         expect(session['account_id']).to eq(123)

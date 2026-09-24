@@ -67,6 +67,7 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `AUTH_SSO_ENABLED` | Yes | `true` to enable SSO |
 | `SSO_DISPLAY_NAME` | No | Default button label for generic OIDC (e.g., "Company SSO") |
 | `ALLOWED_SIGNUP_DOMAIN` | No | Comma-separated allowed email domains for SSO signup |
+| `SSO_ALLOW_PLATFORM_FALLBACK` | No | `true` to expose platform providers for sign-in on a custom domain without active tenant SSO. These providers are not available for Connect on that custom-domain surface. |
 | `SSO_FORM_ACTION_ORIGINS` | No | Space-separated extra origins added to the CSP `form-action` directive. IdP origins are auto-derived — platform providers at boot, tenant (per-domain) SSO issuers per-request. Use this process-wide override only for split-endpoint OIDC or a tenant discovery-availability fallback (see [Troubleshooting](#sso-login-blocked-on-chromium-family-browsers-csp-form-action)). |
 
 ### Generic OIDC
@@ -106,6 +107,17 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `GITHUB_ROUTE_NAME` | No | URL segment (default: `github`) |
 | `GITHUB_DISPLAY_NAME` | No | Button label (default: `GitHub`) |
 
+### Apple
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `APPLE_CLIENT_ID` | Yes | Services ID (e.g. `com.example.web`), not the App ID |
+| `APPLE_TEAM_ID` | Yes | Apple Developer Team ID |
+| `APPLE_KEY_ID` | Yes | Key ID of the Sign in with Apple private key |
+| `APPLE_PRIVATE_KEY` | Yes | Contents of the `.p8` EC key (not a path); the `\n`-escaped single-line form is accepted |
+| `APPLE_ROUTE_NAME` | No | URL segment (default: `apple`) |
+| `APPLE_DISPLAY_NAME` | No | Button label (default: `Apple`) |
+
 ## Routes
 
 Each configured provider registers two routes:
@@ -115,7 +127,12 @@ Each configured provider registers two routes:
 | POST | `/auth/sso/{provider}` | Initiates SSO flow |
 | GET | `/auth/sso/{provider}/callback` | Receives IdP response |
 
-Where `{provider}` is the route name (`oidc`, `entra`, `google`, `github`, or custom).
+Where `{provider}` is the route name (`oidc`, `entra`, `google`, `github`, `apple`, or custom).
+
+Apple is the exception to the GET callback: it uses `response_mode=form_post`,
+so its callback arrives as a cross-site **POST** to the same path. OmniAuth's
+middleware handles either method, but the session cookie does not — see the
+Apple section below for the `same_site` prerequisite.
 
 The callback URL (`https://{host}/auth/sso/{provider}/callback`) is auto-constructed from the request host at runtime. Register this URL with your IdP — no env var needed. For multi-tenant deployments with custom domains, each domain gets its own callback URL automatically.
 
@@ -176,7 +193,7 @@ All hooks (`account_from_omniauth`, `before_omniauth_create_account`, etc.) are 
 
 An email claim may **locate** an account; only a **demonstrated credential** may **bind** an identity to it. Email is metadata, not an identity join key.
 
-Concretely: an SSO login is identified by the `(provider, issuer, uid)` key recorded in `account_identities`; `issuer` is `''` for OAuth2-only rows, while legacy rows begin with that sentinel until a platform callback lazily upgrades them. When that key is already linked, the user is signed into the linked account. When it is *not* linked but the IdP-supplied email happens to match an existing account, the default behavior is to **refuse email-only auto-linking** — because anyone who controls the IdP can mint a token bearing any victim's email address. Auto-linking on email alone would let such a token take over the matching account. On the platform surface, the user can instead prove an existing password or control of the account's on-file mailbox. Tenant callbacks, and platform cases where those proof paths cannot proceed, receive the H-3 refusal: `omniauth_link_refused_existing_account` (level `warn`, carrying `surface: platform|tenant`) and a redirect. The platform redirect is `/signin?auth_error=account_exists_link_required`, telling the user to sign in with their existing method and then link. The tenant redirect is `/signin?auth_error=tenant_sso_link_unavailable`: linking is platform-only until #3849, so there is no self-service path and the copy names an org-owner invite or support instead.
+Concretely: an SSO login is identified by the `(provider, issuer, uid)` key recorded in `account_identities`; `issuer` is `''` for OAuth2-only rows, while legacy rows begin with that sentinel until a platform callback lazily upgrades them. When that key is already linked, the user is signed into the linked account. When it is *not* linked but the IdP-supplied email happens to match an existing account, the default behavior is to **refuse email-only auto-linking** — because anyone who controls the IdP can mint a token bearing any victim's email address. Auto-linking on email alone would let such a token take over the matching account. On the platform surface, the user can instead prove an existing password or control of the account's on-file mailbox. Tenant callbacks, and platform cases where those proof paths cannot proceed, receive the H-3 refusal: `omniauth_link_refused_existing_account` (level `warn`, carrying `surface: platform|tenant`) and a redirect. The platform redirect is `/signin?auth_error=account_exists_link_required`, telling the user to sign in with their existing method and then link. The tenant redirect is `/signin?auth_error=tenant_sso_link_unavailable`: the unauthenticated proof paths are platform-only, so the copy names an org-owner invite or support instead. An account holder with an active membership for that domain can sign in on the tenant host and link from Connected Identities (#3849).
 
 This is the correct default for a multi-tenant platform. It is *not* what a self-hosted single-tenant operator wants when they control both the app and the IdP — for them, email is a trustworthy join key, and the refusal locks legitimate users out. The trusted-IdP flag is the sanctioned, opt-in exception.
 
@@ -186,7 +203,9 @@ The invariant says a *demonstrated credential* is what binds an identity. The cl
 
 This is the surface the other paths point at: the H-3 refusal flash names it, and the interstitial and mailbox-proof flows send `link_expired` / `link_conflict` here rather than re-minting a token.
 
-**The panel** lists the account's linked identities — canonical provider label, the `issuer` (hidden for the `''` sentinel on legacy / OAuth2-only rows), and a **masked** `uid` — with a Remove action behind a confirmation dialog, plus a Connect button for each configured provider **not** already linked. "Already linked" is decided by route name (`provider.route_name` vs the row's `provider`), which is correct on the platform surface where one route maps to one issuer.
+**The panel** lists the account's linked identities — canonical provider label, the `issuer` (hidden for the `''` sentinel on legacy / OAuth2-only rows), and a **masked** `uid` — with a Remove action behind a confirmation dialog, plus eligible Connect providers. On the platform surface, "already linked" is decided by route name (`provider.route_name` vs the row's `provider`), which is correct there because one route maps to one issuer. On a custom-domain surface with active tenant SSO, the panel does not suppress the tenant provider by route-name evidence: the client cannot establish tuple equivalence before the callback (the `uid` is masked, and pairwise subject identifiers differ per client), so the server's full-tuple ownership check decides (`src/shared/utils/sso-link-evidence.ts`).
+
+A registered custom domain without active tenant `SsoConfig` is different. `SSO_ALLOW_PLATFORM_FALLBACK=true` may expose platform providers there for **sign-in**, but the panel omits them from Connected Identities. Their callbacks have no validated tenant context, and a custom-surface callback cannot be authorized as platform Connect. Initiate platform Connect from a canonical/operator surface instead. Suppression is a display heuristic; callback validation remains the control.
 
 ```
 Signed-in user clicks "Connect {provider}"
@@ -195,21 +214,29 @@ Signed-in user clicks "Connect {provider}"
 Form POST /auth/sso/{provider} with connect=1  (submitSsoLogin, src/shared/utils/sso.ts)
     │
     ▼
-omniauth_request_validation_phase → write sidecar:<sid>:sso_connect_intent = <account id>
+omniauth_request_validation_phase → RecentReauth.satisfied? consumes the recent-reauth proof (#4411)
+    ├─ no proof / stale / other account / other surface / non-local primary
+    │     → no intent; redirect /reauth?redirect=/account/settings/security/connections
+    └─ fresh proof → write sidecar:<sid>:sso_connect_intent = { account_id, surface, at }
     │
     ▼
-IdP round-trip → callback → account_from_omniauth
+IdP round-trip → callback wrapper (omniauth_connect.rb)
     │
     ▼
-Consume the intent (atomic GETDEL)
-    ├─ matches the current session account → bind (provider, issuer, uid) to it, re-affirm session
+Consume the intent (atomic GETDEL), run tenant validation, then Connect gates
+    ├─ matching intent + valid principal + same surface (+ exact-domain membership on a tenant) + unclaimed/own tuple → bind or accept existing identity, re-affirm session
     ├─ tenant callback on a platform session → refuse (identity_connect_wrong_domain)
-    ├─ session account no longer open       → refuse (identity_connect_conflict)
-    └─ absent / expired / other account     → fall through to the email branches (never bind)
+    ├─ intent surface ≠ callback surface     → refuse (identity_connect_wrong_domain)
+    ├─ custom-surface callback without validated tenant context → refuse (identity_connect_wrong_domain)
+    ├─ tenant callback: enablement constant closed, no active membership for the exact domain, or no resolvable issuer → refuse (identity_connect_wrong_domain)
+    ├─ session account no longer open, Customer missing/suspended, or tuple owned elsewhere → refuse (identity_connect_conflict)
+    └─ absent / expired / malformed / other account → ordinary non-connect path
     │
     ▼
 Back to /account/settings/security/connections
 ```
+
+A completed Connect returns to the panel path the panel supplied in the form's `redirect` field, validated as an internal path at initiation (the same check signup applies; anything else is dropped and Rodauth's default login redirect applies); refusals keep their sign-in error redirect.
 
 #### Two signals are required to bind, not one
 
@@ -220,14 +247,32 @@ Back to /account/settings/security/connections
 
 The division of labour: OAuth `state`/CSRF proves *"this browser initiated a request"*; the intent nonce proves *"this browser initiated a **connect** for **this account**"*.
 
+#### Recent full re-authentication gates the intent (#4411)
+
+An authenticated session plus `connect=1` is intent, not proof. Attaching a login identity changes the account's authenticators ([OWASP ASVS 5.0.0 requirement 7.5.1](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v75-defenses-against-session-abuse)), so the request phase mints the intent **only** after `Onetime::RecentReauth.satisfied?` (`lib/onetime/session/recent_reauth.rb`, #4410) consumes a proof that is:
+
+| Binding | Requirement |
+|---------|-------------|
+| Account | recorded for the session's account (`session_value`) |
+| Surface | recorded on the surface the initiation arrives on (`Onetime::SessionSurface.for_env`) |
+| Age | no older than `RecentReauth::CONNECT_MAX_AGE` (300s) |
+| Ceremony | first completed method is a local primary (`password` or `webauthn`), with every MFA factor the account requires already completed |
+| Use | single-use — the gate consumes it, so one ceremony admits exactly one initiation; a second initiation (or a concurrent one) is refused |
+
+A proof is recorded only by a completed local ceremony: a password (or WebAuthn-primary) login that satisfied MFA policy, or a completed `POST /auth/reauth` (`apps/web/auth/routes/reauth.rb`, the surface-aware re-authentication endpoint from #4414). A magic-link login, an SSO callback, a remembered session, and a password step that stopped short of required MFA never record one, so none of them can reach the intent write. A user who signed in with a password moments ago passes the gate on that login; otherwise the refusal redirects to `/reauth?redirect=/account/settings/security/connections`, the re-authentication view returns them to the panel, and they click Connect again.
+
+Refusal is fail-closed on every path: nothing is minted, any dangling intent from an earlier initiation is deleted, and `omniauth_connect_reauth_required` (level `warn`) is logged. Platform mailbox-proof linking is a separate recovery policy and does not satisfy this gate.
+
+A proof is also cleared before its window elapses by the events that invalidate it (#4420): logout (`before_logout`), password change (`after_change_password`), WebAuthn credential removal (`after_webauthn_remove`), and a successful Connect bind (`bind_omniauth_connect_identity`, which the gate already consumed for — the clear there is the cheap guarantee that a second bind within the window needs a fresh ceremony).
+
 #### The connect-intent nonce (#3859)
 
 | Property | Behavior |
 |----------|----------|
-| Written | `omniauth_request_validation_phase` (`config/hooks/omniauth.rb`), during `POST /auth/sso/:provider`, only when a logged-in caller submits `connect=1` |
-| Stored as | `sidecar:<sid>:sso_connect_intent` = the **session account id** (not a bare boolean), short TTL (~5 min — one IdP round-trip) |
-| Consumed | Atomic GETDEL in `account_from_omniauth`, before any email-based branch |
-| Binds when | The consumed value equals the *current* session account id |
+| Written | `omniauth_request_validation_phase` (`config/hooks/omniauth.rb`), during `POST /auth/sso/:provider`, only when a logged-in caller submits `connect=1` **and** the recent-reauth gate consumed a fresh proof (#4411) |
+| Stored as | `sidecar:<sid>:sso_connect_intent` = `{ account_id, surface, at }` — the **session account id**, the surface descriptor the gate verified, and the mint time (a pre-#4411 bare account id is refused as malformed), short TTL (~5 min — one IdP round-trip) |
+| Consumed | Atomic GETDEL in the `before_omniauth_callback_route` wrapper, before tenant validation and the gem's cached-account/known-identity shortcuts |
+| Binds when | The intent matches the current session account and surface, the account is open with an existing unsuspended Customer, the recorded session surface matches, and the full tuple is unclaimed or already owned by that account. On a tenant surface, additionally: the enablement constant is open, the session account holds an active membership authorizing the exact custom domain, and the tenant issuer resolves. |
 | Abandoned connect | Needs no cleanup — the key expires. Additionally, any **non**-connect SSO initiation deletes a dangling intent, so a later plain `connect=0` callback can never consume one that is still in TTL |
 | Failure mode | Fail-closed — a failed write or a miss means no intent, and no intent means no bind |
 
@@ -235,22 +280,52 @@ It is a sidecar key rather than a field in the session blob on purpose. A blob-r
 
 #### Email plays no part in the decision
 
-The connect branch is evaluated **first** — ahead of the trusted-provider auto-link and the H-3 refusal — because a proven session credential outranks the email-only heuristics those branches rely on. Within it, the account is loaded **by session id** (`_account_from_session`, which also applies the open-status filter), never by email. The IdP-supplied email appears only in the audit event, obscured.
+The Connect gates run **before account resolution** — ahead of the gem's known-identity shortcut, trusted-provider auto-link, and H-3 refusal. The account is loaded **by session id** (`_account_from_session`, which also applies the open-status filter), never by email. A missing or suspended Customer is refused on both surfaces. The successful Connect audit event records the provider, issuer, and session account ID, not the IdP-supplied email.
 
 That ordering is the point: matching a connect to an email-*located* account would be the pre-account-hijacking anti-pattern — an attacker who controls an IdP that emits a victim's email would be routed to the victim's account. Routing by session leaves the victim untouched no matter what the IdP claims.
 
-"Already linked elsewhere" cannot arise on this path: an existing `(provider, issuer, uid)` row routes the gem to `account_from_omniauth_identity` instead, so this hook is only ever reached for a **new** identity.
+`BindSsoIdentity` resolves ownership by the complete `(provider, issuer, uid)` tuple after authorization. An unclaimed tuple is bound to the session account; a tuple already owned by that account is accepted without a duplicate row. A tuple owned by another account is refused without switching sessions. Connect does not use the ordinary lookup's legacy issuer backfill.
 
 #### Refusals
 
 | Condition | Outcome | Audit event |
 |-----------|---------|-------------|
-| Tenant callback (`validated_omniauth_domain_id` set) on a platform session | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `tenant_surface` |
+| Initiation without recent full re-authentication (no proof, stale, consumed, other account, other surface, non-local primary) | Redirect `/reauth?redirect=/account/settings/security/connections`; **no intent minted** | `omniauth_connect_reauth_required` (level `warn`) |
+| Tenant callback (`validated_omniauth_domain_id` set) on a platform session | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `surface_mismatch` |
+| Intent surface differs from the callback surface (or the callback surface is unresolved) | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `surface_mismatch` |
+| Platform-fallback Connect callback on a custom domain without validated tenant context | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `surface_mismatch` |
 | Session account gone or no longer open (e.g. closed mid-session) | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `session_account_missing` |
-| Logged in, but no valid intent (second tab, shared browser, intent for a different account) | **No bind** — falls through to the email branches exactly as an unauthenticated caller would | `omniauth_connect_intent_absent` (level `info`) |
+| Customer missing | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `session_customer_missing` |
+| Customer suspended | The auth router destroys the session before the Connect hook runs; the intent is purged with it and nothing is bound. See [Sessions ended before the callback](#sessions-ended-before-the-callback). The hook keeps its own `session_customer_suspended` refusal as a backstop | `customer_session_rejected` (level `warn`), reason `account_suspended` |
+| Exact tuple owned by another account | Redirect `/signin?auth_error=identity_connect_conflict`; no account switch | `omniauth_identity_connect_refused`, reason `identity_owned_elsewhere` |
+| Tenant Connect while the enablement constant is closed (`OmniAuthConnect.tenant_connect_enabled?`, an internal kill switch with no operator setting; checked before the membership gate, so no `tenant_connect_membership_authorized` record is written) | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `tenant_connect_prerequisites_incomplete` |
+| Tenant Connect without an active membership that authorizes the exact custom domain (`Auth::Operations::AuthorizeTenantConnect`) | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `tenant_connect_membership_refused`, then `omniauth_identity_connect_refused`, reason `tenant_membership_refused` |
+| Tenant Connect whose issuer cannot be resolved | Redirect `/signin?auth_error=identity_connect_wrong_domain` | `omniauth_identity_connect_refused`, reason `tenant_issuerless` |
+| A gate raises before the bind (nothing written) | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_connect_lookup_error` (level `error`), then `omniauth_identity_connect_refused`, reason `lookup_error` |
+| The bind insert or a step after it raises (ownership re-read, audit log) | Unhandled: generic 500 from the auth router. If the row was written the identity **is** bound; either way a retry is idempotent. Never reported as a refusal | `Auth router unhandled exception` |
+| Logged in, but no valid intent (second tab, shared browser, intent for a different account, malformed or pre-#4411 intent) | **No authenticated Connect** — takes the ordinary existing-identity or email-based sign-in path | `omniauth_connect_intent_absent` (level `info`) |
 | Bind succeeds | `(provider, issuer, uid)` row written for the session account; session re-affirmed | `omniauth_identity_connected` (level `warn`) |
 
-Refusing rather than falling back matters in the first row: a tenant admin controls their own IdP's assertions, so binding a tenant-issuer identity onto a platform-session account would hand them a login into that account.
+Refusing rather than falling back matters in the `surface_mismatch` rows: a tenant admin controls their own IdP's assertions, so binding a tenant-issuer identity onto a platform-session account would hand them a login into that account.
+
+#### Sessions ended before the callback
+
+The auth router (`apps/web/auth/router.rb`) evaluates the customer session ahead of every `/auth/*` route, Rodauth's and OmniAuth's included. Three verdicts destroy the Rack session on the spot: a revoked active-session row, a surface mismatch, and a definitive customer rejection (suspended, stale credentials, customer not found). When the request is an SSO callback, the router then lets it continue as the anonymous request it now is, and logs the event with `outcome: continued_anonymous` and the in-flight state it found (`omniauth_keys`, `sidecar_fields`).
+
+| Verdict | Audit event |
+|---------|-------------|
+| Active-session row revoked | `active_session_revoked`, plus `active_session_revoked_mid_flow` (level `warn`) when a flow was in flight |
+| Surface mismatch | `session_surface_mismatch` (level `warn`) |
+| Suspended, stale credentials, customer not found | `customer_session_rejected` (level `warn`), with `reason` |
+
+Two requirements decide this ordering:
+
+- **The session ends first.** [OWASP ASVS 5.0.0 requirement 7.4.2](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v74-session-termination) requires that all active sessions are terminated when an account is disabled, and 7.4.1 that a terminated session cannot be used further. A suspended account's session is therefore not kept alive so that a later hook can refuse it more specifically.
+- **The callback cannot outlive the session that started it.** [RFC 9700 section 2.1](https://www.rfc-editor.org/rfc/rfc9700.html#section-2.1) requires one-time `state` values "securely bound to the user agent", and [section 4.7.1](https://www.rfc-editor.org/rfc/rfc9700.html#section-4.7.1) describes `state` as linking the redirection request to the user agent session ([RFC 6749 section 10.12](https://www.rfc-editor.org/rfc/rfc6749#section-10.12) is the original requirement). OmniAuth keeps `omniauth.state`, the OIDC nonce and the PKCE verifier in the Rack session, so destroying the session removes them and the callback fails state verification. The Connect intent lives in the session sidecar and is purged by the same destroy, so nothing can be bound to the ended account.
+
+The user sees an SSO failure and signs in again; the provider's one-time authorization code is spent. That is the cost of ending the session first, and the `warn` lines above are what tie the SSO failure to its cause.
+
+**Test-mode caveat.** OmniAuth's mock mode (`OmniAuth.config.test_mode`) short-circuits the strategy's callback phase, so the state check does not run in specs. After a destroy, a mocked callback proceeds as an ordinary anonymous sign-in with the mocked assertion. Specs for these cases assert the router outcome (session destroyed, intent purged, nothing bound to the ended account, event logged) and do not assert what the mocked anonymous callback does next.
 
 #### Managing linked identities (`GET` / `DELETE /auth/identities`)
 
@@ -267,9 +342,9 @@ Refusing rather than falling back matters in the first row: a tenant admin contr
 
 **Issuer column.** Binds on this path go through the same `(provider, issuer, uid)` shape as the callback, with `issuer` coerced to the `''` sentinel rather than `NULL` so it matches the issuer-scoped unique index (see migration `008_issuer_scoped_identities.rb`).
 
-#### Platform-only
+#### Tenant surfaces
 
-The panel connects identities on the **platform** surface only. Authenticated linking on a tenant (custom-domain) surface needs org-membership verification before a tenant-issuer identity may be bound to an account, and is a deliberate follow-up (#3849).
+The panel also connects identities on a custom-domain surface when that domain has active tenant SSO (#3849). Tenant Connect is independent of `SSO_ALLOW_PLATFORM_FALLBACK`: fallback neither enables nor authorizes it. [NIST SP 800-63C-4 section 3.8.1](https://pages.nist.gov/800-63-4/sp800-63c/Federation/#account-linking) requires an authenticated subscriber session for linking, and [OWASP ASVS 5.0.0 requirement 7.5.1](https://github.com/OWASP/ASVS/blob/v5.0.0/5.0/en/0x16-V7-Session-Management.md#v75-defenses-against-session-abuse) requires full re-authentication before changing sensitive authentication attributes — both surfaces enforce the latter through the recent-reauth gate above (#4411). For tenant linking OTS additionally requires validated tenant callback context, an active organization membership that authorizes the exact custom domain (`OrganizationMembership#can_access_domain?`: organization-scoped, or scoped to that domain), a session scoped to the tenant surface, and recent full local re-authentication that completes the account's required MFA factors. Tenant Connect is also release-gated by `OmniAuthConnect.tenant_connect_enabled?`, an internal kill switch for incident response with no operator setting; closing it refuses tenant Connect and relaxes nothing. These tenant-session controls are OTS choices, not an architecture prescribed by those standards. Callback-domain validation (`session[:validated_omniauth_domain_id]`) is necessary but not a substitute for the membership or re-authentication gates. See [Requirements for authenticated tenant linking](per-domain-sso.md#requirements-for-authenticated-tenant-linking-3849).
 
 ### Sign-in interstitial (password-challenge linking)
 
@@ -304,11 +379,17 @@ This path needs no operator configuration. It is on by default and is the platfo
 
 **Session establishment reuses Rodauth's own machinery.** On a correct password the handler binds the `(provider, issuer, uid)` row (same shape as `omniauth_identity_insert_hash`) and then calls `rodauth.login('password')` rather than hand-rolling the session. That runs the normal `after_login` path — the Redis session blob via `SyncSession` (the real app auth gate), `active_sessions` registration, and MFA detection — so a password account that has OTP configured still gets the MFA gate, exactly as a direct `/auth/login` would.
 
-**Platform-only.** The interstitial is only ever offered on the platform callback path. The email branches in `account_from_omniauth` are reached solely when `session[:validated_omniauth_domain_id]` is `nil` (tenant callbacks bind by session or refuse earlier), so a tenant callback can never mint a challenge. Authenticated tenant-surface linking is a separate follow-up.
+**Platform-only.** The interstitial is only ever offered on the platform callback path. The email branches in `account_from_omniauth` are reached solely when `session[:validated_omniauth_domain_id]` is `nil` (tenant callbacks bind by session or refuse earlier), so a tenant callback can never mint a challenge. Authenticated linking on a tenant surface goes through [Connected Identities](#connected-identities-authenticated-linking-from-account-settings).
 
 ### Mailbox-proof linking (passwordless accounts)
 
 The sign-in interstitial above proves ownership with the account's **existing password**. That leaves one case: a **passwordless** account (SSO-only, or migrated without a local password) whose owner now signs in through a *new* SSO identity. There is no password to challenge — but that account can still prove ownership the same way magic-link (email_auth) does: **control of its on-file mailbox.** So instead of dead-ending at the H-3 refusal, the callback **emails a single-use link to the account's on-file address**, and binding the `(provider, issuer, uid)` identity happens only when the user clicks it and confirms. Mailbox control is the demonstrated credential; the invariant holds.
+
+This is an OTS platform-linking and account-recovery policy, not a NIST
+out-of-band authentication method or a substitute for the full
+re-authentication required for tenant Connect. NIST SP 800-63B-4 prohibits
+email for out-of-band authentication; any use of this flow is an explicit OTS
+policy exception rather than NIST AAL conformance.
 
 **The token travels only through the email — never the callback redirect.** The proof is mailbox control, so the callback redirects the browser to a **token-less** notice (`/signin?auth_notice=link_verification_sent`) and delivers the token *solely* to the on-file inbox. A caller who merely completed an SSO round-trip asserting the victim's email therefore never learns the token and cannot self-consume it.
 
@@ -429,8 +510,13 @@ OIDC_CLIENT_SECRET=secret-from-keycloak
 2. Settings → Allowed Callback URLs: `https://{host}/auth/sso/oidc/callback`
 3. Copy **Domain**, **Client ID**, **Client Secret**
 
+Auth0 asserts `iss` with a **trailing slash** (`https://<tenant>/`).
+`OIDC_ISSUER` must match it byte for byte: both the discovery document's
+`issuer` and the id_token's `iss` are compared exactly, so without the slash
+sign-in fails with an issuer mismatch. Custom domains follow the same rule.
+
 ```bash
-OIDC_ISSUER=https://your-tenant.auth0.com
+OIDC_ISSUER=https://your-tenant.auth0.com/
 OIDC_CLIENT_ID=your-client-id
 OIDC_CLIENT_SECRET=your-client-secret
 ```
@@ -495,6 +581,46 @@ GITHUB_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 Note: For GitHub Organizations, use GitHub Apps instead of OAuth Apps for finer-grained permissions.
+
+### Apple
+
+Uses the `omniauth-apple` gem. The gem mints a fresh ES256 client-secret JWT per
+request from your `.p8` key, so there is no client secret to configure.
+
+#### Apple Developer Setup
+
+1. **Apple Developer** → Certificates, Identifiers & Profiles → Identifiers → new **Services ID**
+2. Enable **Sign in with Apple** on it and configure the web domain
+3. **Return URL**: `https://{host}/auth/sso/apple/callback`
+4. Keys → new key with **Sign in with Apple** enabled → download the `.p8` (once only)
+
+Get the values:
+- **Services ID** (e.g. `com.example.web`) → `APPLE_CLIENT_ID`
+- **Team ID** (top right of the developer portal) → `APPLE_TEAM_ID`
+- **Key ID** of the key you created → `APPLE_KEY_ID`
+- The **contents** of the `.p8` file → `APPLE_PRIVATE_KEY`
+
+```bash
+APPLE_CLIENT_ID=com.example.web
+APPLE_TEAM_ID=XXXXXXXXXX
+APPLE_KEY_ID=XXXXXXXXXX
+APPLE_PRIVATE_KEY="<whole .p8 file, newlines written as literal \n>"
+```
+
+`APPLE_PRIVATE_KEY` takes the entire `.p8` file including its PEM header and
+footer lines, with each newline written as a literal `\n`; the provider
+definition un-escapes it before `OpenSSL::PKey::EC` parses it. A real sample
+is not printed here because it trips the `detect-private-key` pre-commit hook.
+
+Prerequisite: Apple's callback is a cross-site POST (`response_mode=form_post`),
+and a `SameSite=Lax` cookie is withheld on it — set `site.session.same_site: none`
+with `secure: true` or the flow fails CSRF validation at the callback.
+
+Note: the user's **name** arrives only on the **first** authorization for a
+given Services ID. The **email** comes from the id_token on every
+authorization, so repeat sign-ins and account creation are unaffected — but it
+may be a private-relay address (`@privaterelay.appleid.com`). Leave
+`APPLE_TRUST_EMAIL_FOR_LINKING` false.
 
 ## Domain Restrictions
 
@@ -615,6 +741,12 @@ curl https://your-issuer/.well-known/openid-configuration
 ### Account not created
 
 Check logs for errors in `after_omniauth_create_account`. Ensure Redis/Valkey is accessible for Customer creation.
+
+### SSO user's colonel/admin role has no effect
+
+Customers provisioned via SSO before v0.26.5 were left unverified in Redis, and system roles require `verified?`. See [runbooks/sso-accounts-unverified.md](../runbooks/sso-accounts-unverified.md) for the `bin/ots customers doctor --all --repair` procedure. (#3973)
+
+A customer provisioned on a current version can also be unverified on purpose: if the IdP asserted `email_verified: false`, or that claim could not be read, the hook records the reason in `verification_hold` and the doctor will not auto-repair it. The same runbook covers what to check before verifying by hand.
 
 ### CSRF error on callback
 

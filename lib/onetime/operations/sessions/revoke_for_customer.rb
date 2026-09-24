@@ -89,10 +89,18 @@ module Onetime
           key = Store.find_key(db, @session_id)
 
           # Invalidate: delete the live encrypted blob. This is the actual logout.
+          # When no live blob is visible today (natural TTL expiry, prior revoke),
+          # the operator still intends the sid dead: an in-flight request that
+          # loaded the blob earlier may commit after this and re-SET it under the
+          # same id. Set the ended-marker unconditionally so the writer's
+          # post-SET {Onetime::SessionEnded.ended?} check takes that copy back out
+          # (RISK-2026-09-19-01).
           blob_deleted = false
           if key
-            db.del(key)
+            Store.destroy_blob(db, key)
             blob_deleted = true
+          else
+            Onetime::SessionEnded.mark(@session_id, dbclient: db)
           end
 
           # Per-value sidecar keys are purged UNCONDITIONALLY (idempotent,

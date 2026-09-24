@@ -683,4 +683,89 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
       end
     end
   end
+
+  # ================================================================
+  # Registry-driven providers (no named wrapper)
+  # ================================================================
+  #
+  # Apple is registered by the configure loop
+  # straight from the registry — see the comment above the named wrappers in
+  # features/omniauth.rb. These exercise configure_provider directly, which is
+  # the path every provider added from here on will take.
+  describe 'registry-driven provider registration' do
+    def configure(key)
+      Auth::Config::Features::OmniAuth.configure_provider(
+        auth, Onetime::SsoProvider::Registry.fetch(key)
+      )
+    end
+
+    it 'registers Apple with the strategy, route and pinned issuer' do
+      expect(auth).to receive(:omniauth_provider).with(
+        :apple,
+        hash_including(
+          name: :apple,
+          client_id: 'com.example.web',
+          team_id: 'TEAM123456',
+          key_id: 'KEY1234567',
+          issuer: 'https://appleid.apple.com',
+        )
+      )
+
+      ClimateControl.modify(
+        APPLE_CLIENT_ID: 'com.example.web',
+        APPLE_TEAM_ID: 'TEAM123456',
+        APPLE_KEY_ID: 'KEY1234567',
+        APPLE_PRIVATE_KEY: 'pem',
+      ) do
+        configure(:apple)
+      end
+
+      expect(log_messages.last[1]).to include('Apple')
+    end
+
+    # BLAST RADIUS. configure_provider runs inside Rodauth configuration, so an
+    # exception escaping strategy_options fails the whole auth app — password,
+    # MFA and magic links included — over one optional SSO provider. A
+    # definition that validates a URL variable raises on a schemeless value,
+    # so this is reachable from a plausible typo, not a contrived input.
+    it 'skips a provider whose strategy_options raises instead of failing boot' do
+      expect(auth).not_to receive(:omniauth_provider)
+
+      raising = Onetime::SsoProvider::Registry.fetch(:apple).merge(
+        strategy_options: -> { raise ArgumentError, 'APPLE_PRIVATE_KEY must be a PEM' },
+      )
+
+      ClimateControl.modify(
+        APPLE_CLIENT_ID: 'com.example.web',
+        APPLE_TEAM_ID: 'TEAM123456',
+        APPLE_KEY_ID: 'KEY1234567',
+        APPLE_PRIVATE_KEY: 'pem',
+      ) do
+        expect { Auth::Config::Features::OmniAuth.configure_provider(auth, raising) }.not_to raise_error
+      end
+
+      expect(log_messages.last[0]).to eq(:error)
+      expect(log_messages.last[1]).to include('Skipping Apple', 'APPLE_PRIVATE_KEY must be a PEM')
+    end
+
+    # The skip path must not require the gem — that is what lets a deployment
+    # carry a registry entry for a provider it never configures.
+    it 'skips an unconfigured provider without registering it' do
+      expect(auth).not_to receive(:omniauth_provider)
+
+      ClimateControl.modify(
+        APPLE_CLIENT_ID: nil,
+        APPLE_TEAM_ID: nil,
+        APPLE_KEY_ID: nil,
+        APPLE_PRIVATE_KEY: nil,
+      ) do
+        configure(:apple)
+      end
+
+      expect(log_messages.last).to eq(
+        [:error, '[OmniAuth] Missing Apple configuration: ' \
+                 'APPLE_CLIENT_ID, APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY']
+      )
+    end
+  end
 end

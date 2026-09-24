@@ -62,6 +62,8 @@ RSpec.describe 'Auth Router ADR-013 error shape' do
       plugin :error_handler do |e|
         status, body = Auth::ErrorTranslator.translate(e)
         body         = Onetime::Application::ErrorCorrelation.apply(body, request.env, e)
+        level, message, payload = Auth::ErrorTranslator.log_entry(e)
+        auth_logger.public_send(level, message, payload)
         response.status           = status
         response['content-type']  = 'application/json'
         body.to_json
@@ -75,6 +77,23 @@ RSpec.describe 'Auth Router ADR-013 error shape' do
         r.get('forbidden')   { raise Onetime::Forbidden, 'denied' }
         r.get('rate-limit')  { raise Onetime::LimitExceeded.new('slow', retry_after: 60) }
         r.get('unknown')     { raise StandardError, 'leaky internal' }
+        r.get('pool-timeout') { raise Sequel::PoolTimeout, 'timeout: 5.0' }
+      end
+
+      # The production router logs through Onetime::LoggerMethods#auth_logger.
+      # Here the calls are recorded on the class so the wiring examples can
+      # read them back.
+      def self.logged
+        @logged ||= []
+      end
+
+      def auth_logger
+        sink = self.class.logged
+        Object.new.tap do |logger|
+          [:debug, :info, :warn, :error].each do |level|
+            logger.define_singleton_method(level) { |message, payload = {}| sink << [level, message, payload] }
+          end
+        end
       end
     end
   end
@@ -130,6 +149,59 @@ RSpec.describe 'Auth Router ADR-013 error shape' do
       status, body = described_class.translate(ex)
       expect(status).to eq(403)
       expect(body).to include(error_type: 'GuestRoutesDisabled', code: 'GUEST_CONCEAL_DISABLED')
+    end
+
+    it 'translates persisted account provisioning failure to an actionable 409' do
+      ex = Onetime::AccountProvisioningFailed.new(
+        code: 'default_workspace_collision',
+        classification: 'retained_data',
+        failed_at: 1_700_000_000,
+      )
+      status, body = described_class.translate(ex)
+
+      expect(status).to eq(409)
+      expect(body).to include(
+        error_type: 'AccountProvisioningFailed',
+        code: 'default_workspace_collision',
+        classification: 'retained_data',
+      )
+    end
+
+    it 'translates retryable provisioning unavailability to a 503 with retry_after, never the 409' do
+      ex = Onetime::AccountProvisioningUnavailable.new(reason: :collision_unreadable)
+      status, body = described_class.translate(ex)
+
+      expect(status).to eq(503)
+      expect(body).to eq(
+        error: Onetime::AccountProvisioningUnavailable::DEFAULT_MESSAGE,
+        error_type: 'AccountProvisioningUnavailable',
+        reason: :collision_unreadable,
+        retry_after: Onetime::AccountProvisioningUnavailable::RETRY_AFTER,
+      )
+      expect(described_class.level_for(ex)).to eq(:warn)
+    end
+
+    it 'translates a SQLite lock wait that outlasted the busy timeout to a 503 with retry_after', :aggregate_failures do
+      require 'sqlite3'
+      ex = Sequel::DatabaseError.new('SQLite3::BusyException: database is locked')
+      ex.wrapped_exception = SQLite3::BusyException.new('database is locked')
+
+      status, body = described_class.translate(ex)
+      expect(status).to eq(503)
+      expect(body).to eq(error: 'The service is busy. Please try again shortly.', error_type: 'AuthDatabaseBusy', retry_after: 1)
+      expect(body.to_s).not_to include('locked')
+      expect(described_class.level_for(ex)).to eq(:warn)
+    end
+
+    it 'translates an exhausted connection pool the same way' do
+      status, body = described_class.translate(Sequel::PoolTimeout.new('timeout: 5.0'))
+      expect([status, body[:error_type], body[:retry_after]]).to eq([503, 'AuthDatabaseBusy', 1])
+    end
+
+    it 'leaves every other database error a generic 500' do
+      ex = Sequel::DatabaseError.new('syntax error')
+      ex.wrapped_exception = StandardError.new('syntax error')
+      expect(described_class.translate(ex).first).to eq(500)
     end
 
     it 'translates Onetime::Unauthorized to 401 using the caller message' do
@@ -203,6 +275,72 @@ RSpec.describe 'Auth Router ADR-013 error shape' do
         expect(described_class.level_for(StandardError.new('x'))).to eq(:error)
       end
     end
+
+    # What the router logs. The split is "translated or not", never the
+    # status: the router used to log every status >= 500 as an unhandled
+    # exception at :error, so the :warn above was never used for the
+    # deliberate, retryable 503s.
+    describe '.log_entry' do
+      let(:busy) do
+        require 'sqlite3'
+        Sequel::DatabaseError.new('SQLite3::BusyException: database is locked').tap do |ex|
+          ex.wrapped_exception = SQLite3::BusyException.new('database is locked')
+        end
+      end
+
+      it 'logs a saturated authdb as a translated :warn, with the exception kept', :aggregate_failures do
+        level, message, payload = described_class.log_entry(busy)
+
+        expect(level).to eq(:warn)
+        expect(message).to eq(described_class::TRANSLATED_LOG_MESSAGE)
+        expect(payload).to eq(
+          exception_class: 'Sequel::DatabaseError',
+          error_type: 'AuthDatabaseBusy',
+          status: 503,
+          exception: busy,
+        )
+      end
+
+      it 'logs an exhausted connection pool the same way' do
+        level, message, payload = described_class.log_entry(Sequel::PoolTimeout.new('timeout: 5.0'))
+        expect([level, message, payload[:error_type]]).to eq([:warn, described_class::TRANSLATED_LOG_MESSAGE, 'AuthDatabaseBusy'])
+      end
+
+      it 'logs retryable provisioning unavailability as a translated :warn', :aggregate_failures do
+        ex                      = Onetime::AccountProvisioningUnavailable.new(reason: :collision_unreadable)
+        level, message, payload = described_class.log_entry(ex)
+
+        expect(level).to eq(:warn)
+        expect(message).to eq(described_class::TRANSLATED_LOG_MESSAGE)
+        expect(payload).to include(error_type: 'AccountProvisioningUnavailable', status: 503, exception: ex)
+      end
+
+      it 'keeps an unreadable auth policy at :error, as a translated exception', :aggregate_failures do
+        ex                      = Onetime::SigninPolicyUnavailable.new
+        level, message, payload = described_class.log_entry(ex)
+
+        expect(level).to eq(:error)
+        expect(message).to eq(described_class::TRANSLATED_LOG_MESSAGE)
+        expect(payload).to include(status: 503, exception: ex)
+      end
+
+      it 'logs a translated 4xx at its own level without the exception object', :aggregate_failures do
+        level, message, payload = described_class.log_entry(Onetime::Forbidden.new('denied'))
+
+        expect(level).to eq(:warn)
+        expect(message).to eq(described_class::TRANSLATED_LOG_MESSAGE)
+        expect(payload).to eq(exception_class: 'Onetime::Forbidden', error_type: 'Forbidden', status: 403)
+      end
+
+      it 'logs anything else as an unhandled exception at :error', :aggregate_failures do
+        ex = StandardError.new('internal detail')
+        expect(described_class.log_entry(ex)).to eq([:error, described_class::UNHANDLED_LOG_MESSAGE, { exception: ex }])
+
+        db = Sequel::DatabaseError.new('syntax error')
+        db.wrapped_exception = StandardError.new('syntax error')
+        expect(described_class.log_entry(db)).to eq([:error, described_class::UNHANDLED_LOG_MESSAGE, { exception: db }])
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -254,6 +392,34 @@ RSpec.describe 'Auth Router ADR-013 error shape' do
       expect(last_response.status).to eq(500)
       body = JSON.parse(last_response.body)
       expect(body).to eq('error' => 'Internal Server Error', 'error_type' => 'ServerError')
+    end
+
+    it 'logs a retryable 503 once at :warn as a translated exception', :aggregate_failures do
+      get '/pool-timeout'
+
+      expect(last_response.status).to eq(503)
+      expect(app.logged.size).to eq(1)
+      level, message, payload = app.logged.first
+      expect([level, message]).to eq([:warn, Auth::ErrorTranslator::TRANSLATED_LOG_MESSAGE])
+      expect(payload).to include(error_type: 'AuthDatabaseBusy', status: 503)
+    end
+
+    it 'logs an unknown exception once at :error as unhandled', :aggregate_failures do
+      get '/unknown'
+
+      expect(app.logged.size).to eq(1)
+      level, message, payload = app.logged.first
+      expect([level, message]).to eq([:error, Auth::ErrorTranslator::UNHANDLED_LOG_MESSAGE])
+      expect(payload[:exception]).to be_a(StandardError)
+    end
+
+    # The stub above mirrors the production handler; this keeps the mirror
+    # honest about where the logging decision lives.
+    it 'production router takes its log level and message from the translator', :aggregate_failures do
+      source = File.read(File.expand_path('../router.rb', __dir__))
+
+      expect(source).to include('Auth::ErrorTranslator.log_entry(e)')
+      expect(source).not_to match(/if status >= 500/)
     end
   end
 

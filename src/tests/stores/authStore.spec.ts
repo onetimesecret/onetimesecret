@@ -1,897 +1,258 @@
 // src/tests/stores/authStore.spec.ts
+//
+// authStore holds no authentication state of its own (#4458): every accessor
+// is derived from bootstrapStore.authStatus. The refresh coordinator is
+// covered in authStore.coordinator.spec.ts; the account-transition rules in
+// bootstrapStore.accountTransition.spec.ts.
 
-import { Customer } from '@/schemas/shapes/v2';
+import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
+import { _resetForTesting, getBootstrapValue } from '@/services/bootstrap.service';
+import { clearDiagnosticsActorContext } from '@/services/diagnostics.service';
 import { AUTH_CHECK_CONFIG, useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { createApi } from '@/api';
-import AxiosMockAdapter from 'axios-mock-adapter';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import {
+  anonymousBootstrap,
+  authenticatedBootstrap,
+  mfaPendingBootstrap,
+  newerSnapshot,
+  unavailableBootstrap,
+} from '@/tests/fixtures/bootstrap.fixture';
+import { toWire } from '@/tests/fixtures/bootstrap-wire';
+import type AxiosMockAdapter from 'axios-mock-adapter';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
-import { mockCustomer as fixtureCustomer } from '@/tests/fixtures/bootstrap.fixture';
-import { clearDiagnosticsActorContext, setDiagnosticsActorContext } from '@/services/diagnostics.service';
-import { getBootstrapValue, updateBootstrapSnapshot } from '@/services/bootstrap.service';
 
-// The soft (SPA) logout path must clear the Sentry user context. Mocked so the
-// assertion is about the store's contract, not about Sentry internals.
 vi.mock('@/services/diagnostics.service', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/services/diagnostics.service')>()),
   clearDiagnosticsActorContext: vi.fn(),
   setDiagnosticsActorContext: vi.fn(),
 }));
 
-// Create a mock Customer object that matches the actual Customer type
-const mockCustomer: Customer = {
-  objid: 'cust-1',
-  extid: 'cust-ext-1',
-  email: 'john@example.com',
-  role: 'customer',
-  verified: true,
-  secrets_burned: 0,
-  secrets_shared: 0,
-  emails_sent: 0,
-  last_login: null,
-  feature_flags: {},
-  updated: new Date(Math.floor(Date.now() / 1000) * 1000),
-  created: new Date(Math.floor(Date.now() / 1000) * 1000),
-  secrets_created: 0,
-  active: true,
-  locale: 'en-US',
-  notify_on_reveal: false,
-};
+const BOOTSTRAP_KEY = '__BOOTSTRAP_ME__';
+const ENDPOINT = AUTH_CHECK_CONFIG.ENDPOINT;
 
 describe('authStore', () => {
   let axiosMock: AxiosMockAdapter;
-  let api: ReturnType<typeof createApi>;
   let store: ReturnType<typeof useAuthStore>;
   let bootstrapStore: ReturnType<typeof useBootstrapStore>;
 
-  beforeEach(async () => {
-    // Initialize the test environment with Pinia
-    const { api: testApi } = await setupTestPinia();
-    api = testApi;
-    axiosMock = new AxiosMockAdapter(api);
+  /** Mounts the stores over a hydrated page, in app order. */
+  async function mountWith(hydration: BootstrapPayload | null) {
+    _resetForTesting();
+    const win = window as unknown as Record<string, unknown>;
+    if (hydration) win[BOOTSTRAP_KEY] = toWire(hydration);
+    else delete win[BOOTSTRAP_KEY];
 
-    // Get store instances
+    const setup = await setupTestPinia();
+    axiosMock = setup.axiosMock as AxiosMockAdapter;
     bootstrapStore = useBootstrapStore();
     store = useAuthStore();
-
-    // Ensure all initialization promises are resolved
-    await vi.dynamicImportSettled();
-  });
+    vi.useFakeTimers();
+    bootstrapStore.init();
+    store.init();
+  }
 
   afterEach(() => {
-    axiosMock.restore();
-    store.$reset();
-    bootstrapStore.$reset();
+    store?.$dispose();
+    axiosMock?.restore();
+    vi.useRealTimers();
     vi.clearAllMocks();
-    vi.unstubAllGlobals();
+    _resetForTesting();
+    delete (window as unknown as Record<string, unknown>)[BOOTSTRAP_KEY];
+    sessionStorage.clear();
   });
 
-  describe('Initialization', () => {
-    beforeEach(() => {
-      // Reset stores to test initialization
-      store.$reset();
-      bootstrapStore.$reset();
+  describe('accessors derive from the one status', () => {
+    it.each([
+      ['checking', null, { auth: false, full: false, mfa: false, present: false }],
+      ['anonymous', anonymousBootstrap, { auth: false, full: false, mfa: false, present: false }],
+      ['mfa_pending', mfaPendingBootstrap, { auth: false, full: false, mfa: true, present: true }],
+      ['unavailable', unavailableBootstrap, { auth: false, full: false, mfa: false, present: false }],
+      ['authenticated', authenticatedBootstrap, { auth: true, full: true, mfa: false, present: true }],
+    ] as const)('%s', async (status, hydration, expected) => {
+      await mountWith(hydration);
+
+      expect(store.authStatus).toBe(status);
+      expect(store.isAuthenticated).toBe(expected.auth);
+      expect(store.isFullyAuthenticated).toBe(expected.full);
+      expect(store.awaitingMfa).toBe(expected.mfa);
+      expect(store.isUserPresent).toBe(expected.present);
     });
 
-    afterEach(() => {
-      axiosMock.restore();
-      store.$reset();
-    });
+    it('follow the bootstrap store reactively', async () => {
+      await mountWith(authenticatedBootstrap);
+      expect(store.isAuthenticated).toBe(true);
 
-    it('initializes with clean state', () => {
-      expect(store.$state).toMatchObject({
-        isAuthenticated: null,
-        authCheckTimer: null,
-        failureCount: null,
-        lastCheckTime: null,
-        _initialized: false,
-      });
-    });
+      bootstrapStore.withholdAuthority('unavailable');
 
-    it('initializes with flag', () => {
-      expect(store.isInitialized).toBe(false);
+      expect(store.authStatus).toBe('unavailable');
+      expect(store.isAuthenticated).toBe(false);
+      expect(store.isFullyAuthenticated).toBe(false);
+    });
+  });
+
+  describe('init', () => {
+    it('is idempotent', async () => {
+      await mountWith(authenticatedBootstrap);
+      const timer = store.authCheckTimer;
+
       store.init();
+
       expect(store.isInitialized).toBe(true);
+      expect(store.authCheckTimer).toBe(timer);
     });
 
-    it('initializes correctly (when undefined)', () => {
-      // bootstrapStore defaults to authenticated: false
-      expect(store.isAuthenticated).toBe(null);
-      store.init();
-      expect(store.isAuthenticated).toBe(false);
-    });
-
-    it('initializes correctly (when null)', () => {
-      // Update bootstrap store with null-ish value (will be treated as false)
-      bootstrapStore.update({ authenticated: false });
-      store.init();
-      expect(store.isAuthenticated).toBe(false);
-    });
-
-    it('initializes correctly (when false)', () => {
-      bootstrapStore.update({ authenticated: false });
-      store.init();
-      expect(store.isAuthenticated).toBe(false);
-    });
-
-    it('initializes correctly (when bad data)', () => {
-      // Non-boolean values should be treated as false
-      bootstrapStore.update({ authenticated: 123 as any });
-      store.init();
-      expect(store.isAuthenticated).toBe(false);
-    });
-
-    it('initializes correctly (when true)', () => {
-      bootstrapStore.update({ authenticated: true });
-      store.init();
-      expect(store.isAuthenticated).toBe(true);
-    });
-
-    it('initializes correctly (when "true")', () => {
-      // String "true" is not boolean true, should be false
-      bootstrapStore.update({ authenticated: 'true' as any });
-      store.init();
-      expect(store.isAuthenticated).toBe(false);
-    });
-
-    it('initializes correctly', () => {
-      bootstrapStore.update({ authenticated: false });
-      store.init();
-      expect(store.isAuthenticated).toBe(false);
-      expect(store.failureCount).toBe(null);
-      expect(store.lastCheckTime).toBeDefined();
-    });
-  });
-
-  describe('Core Functionality', () => {
-    beforeEach(() => {
-      // Reset and update bootstrap store with authenticated state
-      bootstrapStore.$reset();
-      bootstrapStore.update({
-        authenticated: true,
-        cust: fixtureCustomer,
-        email: fixtureCustomer.email,
-      });
-      store.$reset();
-    });
-
-    it('initializes with clean state', () => {
-      expect(store.$state).toMatchObject({
-        isAuthenticated: null,
-        authCheckTimer: null,
-        failureCount: null,
-        lastCheckTime: null,
-        _initialized: false,
-      });
-    });
-
-    it('initializes only once', () => {
-      // First initialization
-      store.init();
-      expect(store.isInitialized).toBe(true);
-
-      const initialAuthState = store.isAuthenticated;
-
-      // Second initialization attempt
-      store.init();
-
-      // Verify critical state hasn't changed
-      expect(store.isAuthenticated).toBe(initialAuthState);
-    });
-
-    it('prevents double initialization', () => {
-      // First init
-      const result1 = store.init();
-      const initializedState = { ...store.$state };
-
-      // Second init
-      const result2 = store.init();
-
-      // Verify behavior we care about
-      expect(store._initialized).toBe(true);
-      expect(store.$state).toEqual(initializedState);
-
-      // Verify the returned values if that's part of the contract
-      expect(result1).toEqual(result2);
-    });
-
-    it('properly disposes resources and listeners', async () => {
-      // Setup
-      store.init();
-      store.$patch({ isAuthenticated: true });
-      store.$scheduleNextCheck(); // Start a timer
-
-      // Verify timer exists before dispose
+    it('schedules the passive interval while authenticated', async () => {
+      await mountWith(authenticatedBootstrap);
       expect(store.authCheckTimer).not.toBeNull();
+    });
 
-      // Act
-      await store.$dispose();
-
-      // Assert timer is cleaned up
+    it('schedules nothing for an anonymous page', async () => {
+      await mountWith(anonymousBootstrap);
       expect(store.authCheckTimer).toBeNull();
     });
 
-    it('cleans up resources on dispose', async () => {
-      store.init();
-      store.$patch({ isAuthenticated: true });
-      store.$scheduleNextCheck(); // Start a timer
-
-      expect(store.authCheckTimer).not.toBeNull();
-
-      await store.$dispose();
-
-      expect(store.authCheckTimer).toBeNull();
-    });
-  });
-
-  describe('Authentication Status Management', () => {
-    beforeEach(() => {
-      // Set up authenticated state via bootstrapStore
-      bootstrapStore.$reset();
-      bootstrapStore.update({
-        authenticated: true,
-        cust: fixtureCustomer,
-        email: fixtureCustomer.email,
-      });
-      store.init();
-      store.$patch({ isAuthenticated: true });
-    });
-
-    afterEach(() => {
-      axiosMock.restore();
-      store.$reset();
-    });
-
-    it('updates auth status correctly', async () => {
-      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
-        authenticated: true,
-        cust: mockCustomer,
-        shrimp: 'tempura',
-      });
-
-      await store.checkWindowStatus();
-
-      expect(store.isAuthenticated).toBe(true);
+    it('counts a hydrated server statement as a check', async () => {
+      await mountWith(anonymousBootstrap);
       expect(store.lastCheckTime).not.toBeNull();
     });
 
-    it('preserves the diagnostics actor context returned by /bootstrap/me when completing login', async () => {
-      const diagnosticsRef = { actor_ref: 'a1b2c3d4e5f60718' } as const;
-      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
-        authenticated: true,
-        awaiting_mfa: false,
-        diagnostics_ref: diagnosticsRef,
-      });
-
-      await store.setAuthenticated(true);
-
-      // setAuthenticated() refreshes first, then applies an auth-only optimistic
-      // patch. That patch must not reinterpret its missing ref as an anonymous
-      // /bootstrap/me response.
-      expect(bootstrapStore.diagnostics_ref).toEqual(diagnosticsRef);
-      expect(setDiagnosticsActorContext).toHaveBeenLastCalledWith(diagnosticsRef);
-      expect(setDiagnosticsActorContext).not.toHaveBeenCalledWith(null);
+    it('does not count `checking` as a check', async () => {
+      await mountWith(null);
+      expect(store.lastCheckTime).toBeNull();
+      expect(store.needsCheck).toBe(true);
     });
 
-    it('tracks failure count accurately', async () => {
-      store.$patch({ isAuthenticated: true });
-
-      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(500);
-
-      await store.checkWindowStatus();
-      expect(store.failureCount).toBe(1);
-    });
-
-    it('resets failure count after successful check', async () => {
-      store.$patch({ isAuthenticated: true });
-      store.failureCount = 2;
-
-      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
-        authenticated: true,
-        cust: mockCustomer,
-        shrimp: 'tempura',
-      });
-
-      await store.checkWindowStatus();
-      expect(store.failureCount).toBe(0);
-    });
-
-    it('forces logout after MAX_FAILURES consecutive failures', async () => {
-      store.$patch({ isAuthenticated: true });
-
-      // Configure mock to fail, with a specific error response
-      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(() => [500, { error: 'Auth check failed' }]);
-
-      // Simulate MAX_FAILURES-1 consecutive failures (no logout yet)
-      for (let i = 0; i < AUTH_CHECK_CONFIG.MAX_FAILURES - 1; i++) {
-        await store.checkWindowStatus();
-        // Re-authenticate between checks for testing
-        store.$patch({ isAuthenticated: true });
-      }
-
-      // Verify we're still authenticated before the final failure
-      expect(store.isAuthenticated).toBe(true);
-      expect(store.failureCount).toBe(AUTH_CHECK_CONFIG.MAX_FAILURES - 1);
-
-      // Final failure should trigger logout (sets isAuthenticated to null via $reset)
-      await store.checkWindowStatus();
-
-      // After logout, isAuthenticated should be null (from $reset)
-      expect(store.isAuthenticated).toBeNull();
-      expect(store.failureCount).toBeNull();
-      expect(store.authCheckTimer).toBeNull();
-    });
-  });
-
-  describe('Schema Validation', () => {
-    beforeEach(() => {
-      // Set up authenticated state via bootstrapStore
-      bootstrapStore.$reset();
-      bootstrapStore.update({
-        authenticated: true,
-        cust: fixtureCustomer,
-        email: fixtureCustomer.email,
-      });
-      store.init();
-      store.$patch({ isAuthenticated: true });
-    });
-
-    it('handles response missing customer field gracefully', async () => {
-      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
-        authenticated: true,
-        // missing customer field - store doesn't validate this
-      });
-
-      const result = await store.checkWindowStatus();
-      expect(result).toBe(true); // authenticated flag is what matters
-      expect(store.failureCount).toBe(0); // No network error
-    });
-
-    it('treats non-boolean authenticated value literally', async () => {
-      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
-        authenticated: 'yes', // Non-boolean value
-        cust: {},
-      });
-
-      const result = await store.checkWindowStatus();
-      // The store does: response.data.authenticated || false
-      // Since 'yes' is truthy, it becomes 'yes' (not coerced to boolean)
-      expect(result).toBe('yes');
-      expect(store.failureCount).toBe(0); // No network error
-    });
-
-    it('handles missing authenticated field gracefully', async () => {
-      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
-        cust: mockCustomer,
-        // missing authenticated field
-      });
-
-      const result = await store.checkWindowStatus();
-      expect(result).toBe(false); // undefined || false -> false
-      expect(store.failureCount).toBe(0); // No network error
-    });
-
-    // Test the happy path for comparison
-    it('succeeds with valid response', async () => {
-      // Set initial authenticated state
-      store.$patch({ isAuthenticated: true });
-
-      const responseData = {
-        authenticated: true,
-        cust: mockCustomer,
-        shrimp: 'tempura',
-      };
-
-      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, responseData);
-
-      const result = await store.checkWindowStatus();
-
-      expect(result).toBe(true);
-      expect(store.failureCount).toBe(0);
-      expect(store.lastCheckTime).not.toBeNull();
-    });
-  });
-
-  describe('Window State Synchronization', () => {
-    beforeEach(() => {
-      // Set up authenticated state via bootstrapStore
-      bootstrapStore.$reset();
-      bootstrapStore.update({
-        authenticated: true,
-        cust: fixtureCustomer,
-        email: fixtureCustomer.email,
-      });
-      store.init();
-      store.$patch({ isAuthenticated: true });
-    });
-
-    afterEach(() => {
-      store.$reset();
-    });
-
-    it('does not sync store authenticated to window state', () => {
-      expect(store.isAuthenticated).toBe(true);
-      // `authenticated` is deliberately NOT part of the Window interface — this
-      // asserts the legacy global-sync anti-pattern hasn't crept back in.
-      expect((window as unknown as Record<string, unknown>).authenticated).toBeUndefined();
-    });
-
-    it('initializes correctly from window state', () => {
-      // Update bootstrapStore with authenticated: true
-      bootstrapStore.update({ authenticated: true });
-
-      store.$reset(); // Reset store to test initialization
-      store.init();
-      expect(store.isAuthenticated).toBe(true);
-    });
-  });
-
-  describe('Timer & Visibility Handling', () => {
-    beforeEach(() => {
-      // Set up authenticated state via bootstrapStore
-      bootstrapStore.$reset();
-      bootstrapStore.update({
-        authenticated: true,
-        cust: fixtureCustomer,
-        email: fixtureCustomer.email,
-      });
-
-      vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-      vi.restoreAllMocks();
-    });
-
-    it.skip('schedules next check with proper jitter range', async () => {
-      vi.useFakeTimers();
-      vi.spyOn(Math, 'random').mockReturnValue(0.5);
-
-      // Mock successful auth check response
-      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
-        authenticated: true,
-        cust: mockCustomer,
-        shrimp: 'tempura',
-      });
-
-      store.$patch({ isAuthenticated: true });
-      store.$scheduleNextCheck();
-
-      const baseInterval = AUTH_CHECK_CONFIG.INTERVAL;
-
-      // Advance time to when timer should fire
-      await vi.advanceTimersByTimeAsync(baseInterval);
-
-      // The timer should have fired and made the auth check
-      expect(store.lastCheckTime).not.toBeNull();
-
-      // Verify API call was made correctly
-      expect(axiosMock.history.get).toHaveLength(1);
-      expect(axiosMock.history.get[0].url).toBe(AUTH_CHECK_CONFIG.ENDPOINT);
-
-      vi.useRealTimers();
-    }, 10000);
-
-    it('does not schedule check when not authenticated', () => {
-      // Setup fake timers
-      vi.useFakeTimers();
-
-      // Ensure store is not authenticated
-      store.$patch({ isAuthenticated: false });
-
-      store.$scheduleNextCheck();
-
-      // Verify no timer was scheduled
-      expect(store.authCheckTimer).toBeNull();
-      expect(vi.getTimerCount()).toBe(0);
-
-      // Cleanup
-      vi.useRealTimers();
-    });
-
-    it('executes check and reschedules when timer fires', async () => {
-      // Setup fresh store instance
-      const store = useAuthStore();
-      store.init();
-
-      // Mock successful auth check response
-      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
-        authenticated: true,
-        cust: mockCustomer,
-        shrimp: 'tempura',
-      });
-
-      // Set authenticated to trigger timer scheduling
-      store.$patch({ isAuthenticated: true });
-
-      // Start the check cycle
-      store.$scheduleNextCheck();
-
-      // Verify timer was set
-      const firstTimer = store.authCheckTimer;
-      expect(firstTimer).not.toBeNull();
-
-      // Fast-forward just past the first timer (with jitter)
-      // Using advanceTimersByTimeAsync to avoid infinite recursion
-      await vi.advanceTimersByTimeAsync(
-        AUTH_CHECK_CONFIG.INTERVAL + AUTH_CHECK_CONFIG.JITTER + 1000
-      );
-
-      // Verify the auth check happened
-      expect(axiosMock.history.get).toHaveLength(1);
-      expect(axiosMock.history.get[0].url).toBe(AUTH_CHECK_CONFIG.ENDPOINT);
-
-      // Verify a new timer was scheduled (different from the first one)
-      expect(store.authCheckTimer).not.toBe(firstTimer);
-      expect(store.authCheckTimer).not.toBeNull();
-    });
-
-    it('clears existing timer before setting new one', () => {
-      // Setup fake timers
-      vi.useFakeTimers();
-
-      store.$patch({ isAuthenticated: true });
-
-      // Schedule initial check
-      store.$scheduleNextCheck();
-      const firstTimer = store.authCheckTimer;
-
-      // Schedule another check
-      store.$scheduleNextCheck();
-
-      // Verify behaviours:
-      // 1. First timer was cleared (different from second timer)
-      // 2. Second timer is active
-      expect(store.authCheckTimer).not.toBe(firstTimer);
-      expect(store.authCheckTimer).not.toBeNull();
-
-      // Cleanup
-      vi.useRealTimers();
-    });
-
-    it('applies jitter within configured bounds', async () => {
-      store.$patch({ isAuthenticated: true });
-
-      const samples = 100;
-      const delays: number[] = [];
-
-      // Capture each scheduled delay by wrapping the global setTimeout by
-      // hand rather than vi.spyOn(globalThis, 'setTimeout'): in this
-      // environment vi.spyOn's restore does not fully undo the wrap, leaving
-      // globalThis.setTimeout broken for every later test in the file (they
-      // then hang on setupTestPinia's own use of it). A plain save/restore of
-      // the reference sidesteps that. Real timers throughout: each loop
-      // iteration is superseded by $scheduleNextCheck()'s own leading
-      // $stopAuthCheck() call, so no scheduled callback ever actually runs,
-      // and the last one is cancelled explicitly below.
-      const originalSetTimeout = globalThis.setTimeout;
-      globalThis.setTimeout = ((handler: TimerHandler, delay?: number, ...args: unknown[]) => {
-        delays.push(delay ?? 0);
-        return originalSetTimeout(handler, delay, ...args);
-      }) as typeof globalThis.setTimeout;
-
-      try {
-        for (let i = 0; i < samples; i++) {
-          store.$scheduleNextCheck();
-        }
-      } finally {
-        globalThis.setTimeout = originalSetTimeout;
-      }
-
-      const minExpected = AUTH_CHECK_CONFIG.INTERVAL - AUTH_CHECK_CONFIG.JITTER; // 810_000
-      const maxExpected = AUTH_CHECK_CONFIG.INTERVAL + AUTH_CHECK_CONFIG.JITTER; // 990_000
-
-      delays.forEach((delay) => {
-        expect(delay).toBeGreaterThanOrEqual(minExpected);
-        expect(delay).toBeLessThanOrEqual(maxExpected);
-      });
-
-      // Cancel the real timer left pending by the final loop iteration.
-      await store.$stopAuthCheck();
-    });
-
-    it('stops existing auth check before scheduling a new one', () => {
-      // Setup isolated store instance
-      const store = useAuthStore();
-      store.init();
-      store.$patch({ isAuthenticated: true });
-
-      // Setup fake timers
-      vi.useFakeTimers();
-
-      // Schedule first check
-      store.$scheduleNextCheck();
-      const firstTimer = store.authCheckTimer;
-      expect(firstTimer).not.toBeNull();
-
-      // Schedule second check
-      store.$scheduleNextCheck();
-      const secondTimer = store.authCheckTimer;
-
-      // Verify behaviors:
-      // 1. First timer was cleared (different from second timer)
-      // 2. Second timer is active
-      expect(secondTimer).not.toBe(firstTimer);
-      expect(secondTimer).not.toBeNull();
-
-      // Cleanup
-      vi.useRealTimers();
-    });
-
-    it('stops auth check timer when logging out', () => {
-      store.$patch({ isAuthenticated: true });
-      store.$scheduleNextCheck();
-
-      store.logout();
-
-      expect(store.authCheckTimer).toBeNull();
-      expect(vi.getTimerCount()).toBe(0);
-    });
-  });
-
-  describe('Error Page Auth State Recovery', () => {
-    beforeEach(() => {
-      // Clear sessionStorage before each test
-      sessionStorage.clear();
-      // Reset stores
-      store.$reset();
-      bootstrapStore.$reset();
-    });
-
-    afterEach(() => {
-      sessionStorage.clear();
-      store.$reset();
-    });
-
-    it('preserves auth state when server returns error page with authenticated=false', () => {
-      // Simulate: user was authenticated and navigated to a page that 500'd
-      // 1. Set up stored auth state (would have been set during previous successful login)
+    it('reads nothing from sessionStorage', async () => {
       sessionStorage.setItem('ots_auth_state', 'true');
+      const getItem = vi.spyOn(Storage.prototype, 'getItem');
 
-      // 2. Server returns error page with:
-      //    - authenticated: false (error page default)
-      //    - had_valid_session: true (server checked session cookie and it was valid)
-      bootstrapStore.update({
-        authenticated: false,
-        had_valid_session: true,
-        cust: null,
-      });
+      await mountWith({ ...anonymousBootstrap, had_valid_session: true });
 
-      // 3. Store initializes
-      store.init();
-
-      // 4. Should preserve auth state because server confirmed valid session
-      expect(store.isAuthenticated).toBe(true);
-    });
-
-    it('respects authenticated=false when no stored auth state exists', () => {
-      // Simulate: first visit or user was never authenticated
-      // No stored auth state
-      sessionStorage.removeItem('ots_auth_state');
-
-      // Server says not authenticated
-      bootstrapStore.update({
-        authenticated: false,
-        cust: null,
-      });
-
-      store.init();
-
-      // Should trust server and set authenticated to false
       expect(store.isAuthenticated).toBe(false);
+      expect(getItem).not.toHaveBeenCalledWith('ots_auth_state');
+      getItem.mockRestore();
     });
 
-    it('respects authenticated=false when server says had_valid_session=false', () => {
-      // Simulate: stored state exists but session actually expired
-      sessionStorage.setItem('ots_auth_state', 'true');
+    it('makes no request', async () => {
+      await mountWith(authenticatedBootstrap);
+      expect(axiosMock.history.get).toHaveLength(0);
+    });
+  });
 
-      // Server says not authenticated AND no valid session
-      bootstrapStore.update({
-        authenticated: false,
-        had_valid_session: false,
-        cust: null,
-      });
+  describe('logout (local, no navigation follows)', () => {
+    it('ends in an explicit anonymous with no customer data', async () => {
+      await mountWith(authenticatedBootstrap);
 
-      store.init();
+      await store.logout();
 
-      // Should trust server since had_valid_session=false
+      expect(store.authStatus).toBe('anonymous');
       expect(store.isAuthenticated).toBe(false);
-      // Should clean up stale stored auth state
-      expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
+      expect(bootstrapStore.cust).toBeNull();
+      expect(bootstrapStore.email).toBe('');
+      expect(getBootstrapValue('cust')).toBeNull();
     });
 
-    it('respects authenticated=true from server regardless of stored state', () => {
-      // Simulate: server correctly says authenticated
-      sessionStorage.removeItem('ots_auth_state');
-
-      bootstrapStore.update({
-        authenticated: true,
-        had_valid_session: true,
-        cust: fixtureCustomer,
-        email: fixtureCustomer.email,
-      });
-
-      store.init();
-
-      // Should trust server
-      expect(store.isAuthenticated).toBe(true);
-      // Should store auth state for future error recovery
-      expect(sessionStorage.getItem('ots_auth_state')).toBe('true');
-    });
-
-    // On logout the Sentry scope must be cleared — scope.setUser(null) on BOTH
-    // scopes — or every subsequent error in the now-anonymous session keeps
-    // reporting the previous session's ref. This is the SOFT logout path; hard
-    // logouts navigate away and discard the scopes.
-    it('clears the Sentry user context on soft logout', async () => {
-      store.$patch({ isAuthenticated: true });
+    it('stops the interval, clears storage and the diagnostics actor', async () => {
+      await mountWith(authenticatedBootstrap);
+      sessionStorage.setItem('anything', 'x');
 
       await store.logout();
 
-      expect(clearDiagnosticsActorContext).toHaveBeenCalledTimes(1);
+      expect(store.authCheckTimer).toBeNull();
+      expect(sessionStorage.length).toBe(0);
+      expect(clearDiagnosticsActorContext).toHaveBeenCalled();
     });
 
-    // REGRESSION: clearing the Sentry scope is only half of it. The ref also
-    // sits in the pre-Pinia bootstrap.service snapshot, which
-    // updateBootstrapSnapshot can never remove (it skips undefined by design).
-    // A soft logout that left it there keeps the previous ref readable via
-    // getBootstrapValue('diagnostics_ref') — the stale reference that any later
-    // re-resolve would pick up and attach to an anonymous session's events.
-    it('evicts the ref from the pre-Pinia bootstrap snapshot on soft logout', async () => {
-      updateBootstrapSnapshot({
-        diagnostics_ref: { actor_ref: 'a1b2c3d4e5f60718' },
-      });
-      expect(getBootstrapValue('diagnostics_ref')).toBeDefined();
+    it('resets the account-scoped stores', async () => {
+      await mountWith(authenticatedBootstrap);
+      const reset = vi.spyOn(useOrganizationStore(), '$reset');
 
-      store.$patch({ isAuthenticated: true });
       await store.logout();
 
-      expect(getBootstrapValue('diagnostics_ref')).toBeUndefined();
+      expect(reset).toHaveBeenCalledTimes(1);
     });
 
-    it('clears stored auth state when logging out', async () => {
-      // Set up authenticated state
-      sessionStorage.setItem('ots_auth_state', 'true');
-      store.$patch({ isAuthenticated: true });
+    it('keeps server configuration', async () => {
+      await mountWith({ ...authenticatedBootstrap, locale: 'de' });
+      const ui = JSON.stringify(bootstrapStore.ui);
 
-      // Logout
       await store.logout();
 
-      // Should clear stored auth state
-      expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
-      expect(store.isAuthenticated).toBeNull();
+      expect(JSON.stringify(bootstrapStore.ui)).toBe(ui);
     });
 
-    it('updates stored auth state when setAuthenticated is called', async () => {
-      // Mock successful window status check
-      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
-        authenticated: true,
-        cust: mockCustomer,
-        shrimp: 'tempura',
-      });
+    it('setAuthenticated(false) is a local sign-out', async () => {
+      await mountWith(authenticatedBootstrap);
 
-      // Set authenticated to true
-      await store.setAuthenticated(true);
-
-      // Should store auth state
-      expect(sessionStorage.getItem('ots_auth_state')).toBe('true');
-
-      // Set authenticated to false
       await store.setAuthenticated(false);
 
-      // Should remove stored auth state
-      expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
-    });
-
-    it('requires both server confirmation AND stored state to preserve auth', () => {
-      // Edge case: Server says had_valid_session=true but user cleared sessionStorage
-      // This could happen if:
-      // - User manually cleared browser storage
-      // - Different browser tab/window
-      // - SessionStorage expired in browser
-
-      // No stored state (user cleared it or never had it in this context)
-      sessionStorage.removeItem('ots_auth_state');
-
-      // Server says there was a valid session (checked httpOnly cookie server-side)
-      bootstrapStore.update({
-        authenticated: false,
-        had_valid_session: true,
-        cust: null,
-      });
-
-      store.init();
-
-      // Should NOT preserve auth - we require BOTH server AND client agreement
-      // This is correct because we can't confirm user's expectation without stored state
-      expect(store.isAuthenticated).toBe(false);
-    });
-
-    it('handles MFA flow correctly - does not interfere with awaiting_mfa state', () => {
-      // MFA scenario: User passed first factor but awaiting second factor
-      // - authenticated: false (not fully authenticated yet)
-      // - awaiting_mfa: true (partial auth state)
-      // - had_valid_session: true (they do have a session)
-      // - storedAuthState: 'false' (we never stored 'true' for partial auth)
-
-      sessionStorage.removeItem('ots_auth_state'); // No stored auth (correct for MFA flow)
-
-      bootstrapStore.update({
-        authenticated: false,
-        awaiting_mfa: true,
-        had_valid_session: true,
-        cust: null,
-      });
-
-      store.init();
-
-      // Should respect authenticated=false because:
-      // 1. authenticated=false from server (MFA not complete)
-      // 2. No stored auth state (we only store on full authentication)
-      // The recovery logic should NOT interfere with MFA flow
-      expect(store.isAuthenticated).toBe(false);
+      expect(store.authStatus).toBe('anonymous');
+      expect(axiosMock.history.get).toHaveLength(0);
     });
   });
 
-  describe('Error Handling', () => {
-    beforeEach(() => {
-      // Set up authenticated state via bootstrapStore
-      bootstrapStore.$reset();
-      bootstrapStore.update({
-        authenticated: true,
-        cust: fixtureCustomer,
-        email: fixtureCustomer.email,
-      });
+  describe('setAuthenticated(true)', () => {
+    it('asks the server and takes its answer', async () => {
+      await mountWith(anonymousBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, toWire(authenticatedBootstrap));
+
+      await store.setAuthenticated(true);
+
+      expect(axiosMock.history.get).toHaveLength(1);
+      expect(store.isAuthenticated).toBe(true);
+      expect(store.authCheckTimer).not.toBeNull();
     });
 
-    afterEach(() => {
-      console.log('failures', store.failureCount);
-      axiosMock.restore();
-      store.$reset();
+    it('grants nothing when the server does not', async () => {
+      await mountWith(anonymousBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, toWire(anonymousBootstrap));
+
+      await store.setAuthenticated(true);
+
+      expect(store.isAuthenticated).toBe(false);
     });
 
-    it('handles errors consistently through error boundary', async () => {
-      store.$patch({ isAuthenticated: true });
+    it('grants nothing when the server cannot be reached', async () => {
+      await mountWith(anonymousBootstrap);
+      axiosMock.onGet(ENDPOINT).networkError();
 
-      // Simulate network error
-      axiosMock.onGet('/auth/validate').networkError();
+      await store.setAuthenticated(true);
 
-      // Test the behavior we care about
-      const result = await store.checkWindowStatus();
+      expect(store.isAuthenticated).toBe(false);
+      expect(store.authStatus).toBe('anonymous');
+    });
+  });
 
-      // Verify expected outcomes:
-      expect(result).toBe(false); // Check failed
-      expect(store.failureCount).toBe(1); // Failure was counted
-      expect(store.isAuthenticated).toBe(true); // Single failure doesn't trigger logout
+  describe('checkWindowStatus (deprecated delegate)', () => {
+    it('does not ask when the status is a definitive anonymous', async () => {
+      await mountWith(anonymousBootstrap);
+
+      expect(await store.checkWindowStatus()).toBe(false);
+      expect(axiosMock.history.get).toHaveLength(0);
     });
 
-    it('handles network timeouts appropriately', async () => {
-      store.$patch({ isAuthenticated: true });
+    it('otherwise goes through the coordinator', async () => {
+      await mountWith(authenticatedBootstrap);
+      // Strictly newer than hydration, or it would be an anomaly (ADR-046).
+      axiosMock.onGet(ENDPOINT).reply(200, toWire(newerSnapshot(authenticatedBootstrap)));
 
-      axiosMock.onGet('/auth/validate').timeoutOnce();
-
-      await store.checkWindowStatus();
-      expect(store.failureCount).toBe(1);
+      expect(await store.checkWindowStatus()).toBe(true);
+      expect(axiosMock.history.get).toHaveLength(1);
     });
+  });
 
-    it('recovers from temporary network failures', async () => {
-      store.$patch({ isAuthenticated: true });
+  describe('$dispose', () => {
+    it('stops timers and the visibility listener', async () => {
+      await mountWith(authenticatedBootstrap);
+      const remove = vi.spyOn(document, 'removeEventListener');
 
-      store.failureCount = 1; // Simulate previous failure
+      await store.$dispose();
 
-      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
-        authenticated: true,
-        cust: mockCustomer,
-        shrimp: 'tempura',
-      });
-
-      expect(store.failureCount).toBe(1);
-
-      await store.checkWindowStatus();
-
-      expect(store.failureCount).toBe(0);
+      expect(store.authCheckTimer).toBeNull();
+      expect(remove).toHaveBeenCalledWith('visibilitychange', expect.any(Function));
+      remove.mockRestore();
     });
   });
 });

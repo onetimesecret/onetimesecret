@@ -48,10 +48,59 @@
 
   const loadFailed = computed(() => error.value !== null || validationError.value !== null);
 
-  const findings = computed<AccountDiagnosisFinding[]>(() => data.value?.details?.findings ?? []);
   const sections = computed(() => data.value?.details?.sections ?? null);
+  const organizationContext = computed(
+    () =>
+      sections.value?.workspace_collision ??
+      sections.value?.organization_context ??
+      sections.value?.workspace ??
+      null
+  );
+  const findings = computed<AccountDiagnosisFinding[]>(() => {
+    const combined = [
+      ...(data.value?.details?.findings ?? []),
+      ...(organizationContext.value?.findings ?? []),
+    ];
+    return combined.filter(
+      (finding, index) =>
+        combined.findIndex(
+          (candidate) => candidate.code === finding.code && candidate.message === finding.message
+        ) === index
+    );
+  });
 
   const authAccount = computed(() => sections.value?.auth_account ?? null);
+
+  /**
+   * A collision can leave authentication healthy while every workspace-gated
+   * request fails. Never let an empty top-level findings list override explicit
+   * blocked/incomplete organization evidence from either rollout section name.
+   */
+  const organizationContextBlocked = computed(() => {
+    const context = organizationContext.value;
+    if (!context) return false;
+    const status = context.status?.toLowerCase();
+    const classification = context.classification;
+    return (
+      context.available === false ||
+      (!!classification && !['clear', 'current_valid_workspace'].includes(classification)) ||
+      context.blocked === true ||
+      context.complete === false ||
+      context.collision === true ||
+      context.can_provision === false ||
+      (!!status && ['blocked', 'incomplete', 'unavailable', 'collision', 'error'].includes(status))
+    );
+  });
+
+  const diagnosisHealthy = computed(
+    () => findings.value.length === 0 && !organizationContextBlocked.value
+  );
+
+  const organizationContextMessage = computed(
+    () =>
+      organizationContext.value?.reason ??
+      t('web.admin.customers.detail.diagnostics.organizationContextBlocked')
+  );
 
   /**
    * Deliberately `=== false`, NOT the fail-closed test `sectionOk` applies.
@@ -292,13 +341,13 @@
       class="space-y-4 px-6 py-4">
       <!-- Findings: the triage summary. Healthy state when the list is empty. -->
       <div
-        v-if="findings.length === 0"
+        v-if="diagnosisHealthy"
         class="rounded-md border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-900/30 dark:text-green-200"
         data-testid="diagnostics-healthy">
         {{ t('web.admin.customers.detail.diagnostics.healthy') }}
       </div>
       <ul
-        v-else
+        v-else-if="findings.length > 0"
         class="space-y-2"
         data-testid="diagnostics-findings">
         <li
@@ -314,9 +363,33 @@
           <span>
             <span class="font-mono text-xs font-semibold uppercase">{{ finding.code }}</span>
             — {{ finding.message }}
+            <span
+              v-if="finding.org_id"
+              class="mt-1 block font-mono text-xs">
+              {{ t('web.admin.customers.detail.diagnostics.organization', { id: finding.org_id }) }}
+            </span>
+            <span
+              v-if="finding.remediation"
+              class="mt-1 block font-medium"
+              data-testid="diagnostics-finding-remediation">
+              {{
+                t('web.admin.customers.detail.diagnostics.remediation', {
+                  action: Array.isArray(finding.remediation)
+                    ? finding.remediation.join('; ')
+                    : finding.remediation,
+                })
+              }}
+            </span>
           </span>
         </li>
       </ul>
+      <div
+        v-else-if="organizationContextBlocked"
+        class="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200"
+        role="alert"
+        data-testid="diagnostics-organization-context-blocked">
+        {{ organizationContextMessage }}
+      </div>
 
       <!-- The SQL-side sections below are skipped, say so once — and say WHICH
            of the two reasons applies (see authUnavailableMessage). -->

@@ -128,6 +128,89 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
     end
   end
 
+  # Sign in with Apple is the first provider whose callback is a POST
+  # (response_mode=form_post). Every earlier provider used a GET callback,
+  # which `safe?` short-circuits, so HttpOrigin never saw one — and an
+  # unhandled Apple callback is a 403 raised before OmniAuth runs, with no
+  # failure redirect and nothing in the auth log to explain it.
+  describe 'form_post SSO callback from a configured IdP' do
+    let(:apple_origin) { 'https://appleid.apple.com' }
+
+    def stub_idp_origins(origins)
+      allow(Onetime).to receive(:auth_config)
+        .and_return(instance_double('AuthConfig', sso_idp_origins: origins))
+    end
+
+    it 'allows a POST callback whose Origin is a configured IdP' do
+      stub_idp_origins([apple_origin])
+      status = post('/auth/sso/apple/callback',
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => apple_origin,
+      )
+      expect(status).to eq(200)
+    end
+
+    it 'denies a POST callback from an IdP this deployment has not configured' do
+      # The allowance is an exact membership test, not "any https origin".
+      stub_idp_origins([apple_origin])
+      status = post('/auth/sso/apple/callback',
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => 'https://appleid.apple.com.evil.example.org',
+      )
+      expect(status).to eq(403)
+    end
+
+    it 'denies a POST callback when no provider is configured' do
+      stub_idp_origins([])
+      status = post('/auth/sso/apple/callback',
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => apple_origin,
+      )
+      expect(status).to eq(403)
+    end
+
+    # THE SCOPE THAT MATTERS. The REQUEST phase mints the account-bound
+    # Connect intent nonce that authorizes attaching an identity to the
+    # signed-in account. Granting it the callback's exemption would let an IdP
+    # origin initiate that flow cross-site.
+    it 'does NOT allow the request phase, only the callback' do
+      stub_idp_origins([apple_origin])
+      status = post('/auth/sso/apple',
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => apple_origin,
+      )
+      expect(status).to eq(403)
+    end
+
+    it 'does not allow a nested path that merely ends in /callback' do
+      stub_idp_origins([apple_origin])
+      status = post('/auth/sso/apple/extra/callback',
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => apple_origin,
+      )
+      expect(status).to eq(403)
+    end
+
+    it 'does not allow a non-SSO path from an IdP origin' do
+      stub_idp_origins([apple_origin])
+      status = post('/auth/login',
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => apple_origin,
+      )
+      expect(status).to eq(403)
+    end
+
+    it 'fails closed when auth_config cannot answer' do
+      allow(Onetime).to receive(:auth_config).and_raise(StandardError, 'boom')
+      allow(OT).to receive(:lw)
+      status = post('/auth/sso/apple/callback',
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => apple_origin,
+      )
+      expect(status).to eq(403)
+    end
+  end
+
   describe 'consumers' do
     it 'is wired into the Security stack HttpOrigin component' do
       require 'onetime/middleware/security'

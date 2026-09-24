@@ -29,6 +29,7 @@
 
 require 'spec_helper'
 require 'onetime/models/colonel_audit_event'
+require 'auth/operations/customers/purge_preflight'
 require 'onetime/operations/org/delete'
 
 RSpec.describe Onetime::Operations::Org::Delete do
@@ -226,6 +227,47 @@ RSpec.describe Onetime::Operations::Org::Delete do
         expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email)
           .with(:organization_deleted, hash_including(deleted_by: 'someone@example.com'), any_args)
           .twice
+      end
+    end
+
+    # Self-service — a user-triggered close-account cannot write to the
+    # count-capped operator trail. The op routes to the security trail
+    # (fail-open); an unhandled raise mid-teardown skips the AuditedFailure
+    # record, so a purge loop cannot flush operator history via failure
+    # events either.
+    describe 'self-service routing' do
+      before { allow(Onetime::ColonelAuditEvent).to receive(:record_security) }
+
+      it 'routes the applied event to the security trail (fail-open, not the operator trail)' do
+        build(dry_run: false, self_service: true).call
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
+          actor: actor,
+          verb: 'organization.delete',
+          target: 'on_org_ext',
+          result: :success,
+          detail: {
+            display_name: 'Acme',
+            planid: 'free_v1',
+            members: 2,
+            members_notified: 2,
+            pending_invitations: 2,
+            default_org_cleared: 1,
+            forced: [],
+          },
+        )
+        # The operator trail is off-limits on this path.
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      end
+
+      it 'suppresses the AuditedFailure record on a raised teardown' do
+        allow(org).to receive(:destroy!).and_raise(Onetime::Problem, 'redis down')
+
+        expect { build(dry_run: false, self_service: true).call }
+          .to raise_error(Onetime::Problem, /redis down/)
+
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record_security)
       end
     end
 
@@ -462,6 +504,73 @@ RSpec.describe Onetime::Operations::Org::Delete do
       end
     end
 
+    describe 'account-purge context' do
+      let(:purge_context) do
+        Auth::Operations::Customers::PurgePreflight::AccountPurgeContext.allocate.tap do |context|
+          allow(context).to receive(:customer_objid).and_return(owner.objid)
+          allow(context).to receive(:authorized_for?).with(org).and_return(true)
+        end
+      end
+
+      before do
+        allow(org).to receive(:is_default).and_return('true')
+        allow(owner).to receive(:organization_instances)
+          .and_return(double('Participation', to_a: [org]))
+      end
+
+      it 'bypasses only the default and last-org guards after strict revalidation' do
+        result = build(dry_run: false, account_purge_context: purge_context).call
+
+        expect(result.status).to eq(:success)
+        expect(org).to have_received(:destroy!)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+          hash_including(detail: hash_including(
+            forced: contain_exactly('account_purge:is_default', 'account_purge:last_org'),
+          )),
+        )
+      end
+
+      it 'reports no member notification in an authorized purge preview' do
+        result = build(account_purge_context: purge_context).call
+
+        expect(result.status).to eq(:planned)
+        expect(result.members_notified).to eq(0)
+        expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+      end
+
+      it 'does not notify the departing sole member during an authorized account purge' do
+        result = build(dry_run: false, account_purge_context: purge_context).call
+
+        expect(result.status).to eq(:success)
+        expect(result.members_notified).to eq(0)
+        expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+          hash_including(detail: hash_including(members_notified: 0)),
+        )
+      end
+
+      it 'does not bypass domain or billing guardrails' do
+        allow(org).to receive(:domain_count).and_return(1)
+        expect(build(dry_run: false, account_purge_context: purge_context).call.status).to eq(:has_domains)
+
+        allow(org).to receive(:domain_count).and_return(0)
+        allow(org).to receive(:billing_live?).and_return(true)
+        expect(build(dry_run: false, account_purge_context: purge_context).call.status)
+          .to eq(:active_subscription)
+      end
+
+      it 'refuses an invalid or mismatched account-purge capability' do
+        invalid_context = Auth::Operations::Customers::PurgePreflight::AccountPurgeContext.allocate
+        allow(invalid_context).to receive(:customer_objid).and_return('cust-other')
+        allow(invalid_context).to receive(:authorized_for?).and_return(false)
+
+        result = build(dry_run: false, account_purge_context: invalid_context).call
+
+        expect(result.status).to eq(:account_purge_invalid)
+        expect(org).not_to have_received(:destroy!)
+      end
+    end
+
     describe 'failure auditing (AuditedFailure)' do
       it 'records one result: failure and re-raises when the teardown blows up' do
         allow(org).to receive(:destroy!).and_raise(Onetime::Problem, 'boom')
@@ -554,6 +663,21 @@ RSpec.describe Onetime::Operations::Org::Delete do
 
       membership = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @owner.objid)
       expect(membership.nil? || !membership.exists?).to be(true)
+    end
+
+    it 'clears materialized membership state with the org' do
+      membership = Onetime::OrganizationMembership.find_by_org_customer(@org.objid, @owner.objid)
+      membership.materialized_entitlements.add('api_access')
+      membership.entitlements_plan.add('api_access')
+      membership.entitlements_grants.add('custom_branding')
+      membership.entitlements_revokes.add('manage_billing')
+
+      delete
+
+      expect(membership.materialized_entitlements.to_a).to be_empty
+      expect(membership.entitlements_plan.to_a).to be_empty
+      expect(membership.entitlements_grants.to_a).to be_empty
+      expect(membership.entitlements_revokes.to_a).to be_empty
     end
 
     it "clears the owner's default_org_id — no customers doctor --repair needed" do

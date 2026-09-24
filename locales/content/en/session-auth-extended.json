@@ -1010,5 +1010,57 @@
   "web.auth.remember.enabled": {
     "text": "Stay signed in",
     "content_hash": "b0a1ca80"
+  },
+  "web.auth.session._guidance": {
+    "skip": true,
+    "context": "Notices about the state of the signed-in session itself: it ended, it was replaced by another sign-in, the page is out of date, or the server could not be reached to verify it. Plain and calm; none of these is an error the user caused."
+  },
+  "web.auth.session.ended": {
+    "text": "Your session has ended. Please sign in again.",
+    "content_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Your sign-in changed in another tab, so this page was reloaded.",
+    "content_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "This page is out of date",
+    "content_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Your session changed since this page loaded. Copy anything you have not saved, then reload the page to continue.",
+    "content_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Reload page",
+    "content_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "We can't verify your session right now",
+    "content_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "You have not been signed out. We could not reach the server to confirm your session, so this page is hidden until we can. We will keep trying.",
+    "content_hash": "bb230c2c"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Your sign-in succeeded, but we could not confirm your session. Please try again in a moment.",
+    "content_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Your password was accepted, but we could not start two-factor verification. Please try again in a moment.",
+    "content_hash": "5fd5e240"
+  },
+  "web.auth.session.retry": {
+    "text": "Try again",
+    "content_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Checking…",
+    "content_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Still unavailable. Please try again in a moment.",
+    "content_hash": "b81c022c"
   }
 }

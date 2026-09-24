@@ -20,6 +20,7 @@
   import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
+  import { useUnsavedInputGuard } from '@/shared/composables/useUnsavedInputGuard';
   import { loggingService } from '@/services/logging.service';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
@@ -196,6 +197,11 @@
   const hasContent = computed(
     () => !!content.value && content.value.trim().length > 0
   );
+
+  // Ask before the page unloads while secret content is unsubmitted (reload,
+  // tab close, hard navigation, or a forced page load, ADR-046). Registered
+  // only while there is content; never persisted to browser storage.
+  useUnsavedInputGuard(hasContent);
 
   // Track selected action from SplitButton
   const selectedAction = ref<'create-link' | 'generate-password'>('create-link');

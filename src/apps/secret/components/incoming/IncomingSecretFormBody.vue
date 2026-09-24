@@ -21,6 +21,7 @@
   import { ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useIncomingSecret } from '@/shared/composables/useIncomingSecret';
+  import { useUnsavedInputGuard } from '@/shared/composables/useUnsavedInputGuard';
   import IncomingMemoInput from '@/apps/secret/components/incoming/IncomingMemoInput.vue';
   import IncomingRecipientDropdown from '@/apps/secret/components/incoming/IncomingRecipientDropdown.vue';
   import SecretContentInputArea from '@/apps/secret/components/form/SecretContentInputArea.vue';
@@ -48,6 +49,11 @@
     validateRecipient,
     submit,
   } = useIncomingSecret();
+
+  // Ask before the page unloads while secret content is unsubmitted (ADR-046
+  // "Forced page load"). Registered only while there is content; a successful
+  // submit navigates in-app and unmounts this component, which removes it.
+  useUnsavedInputGuard(() => form.value.secret.trim().length > 0);
 
   const secretContentRef = ref<InstanceType<typeof SecretContentInputArea> | null>(null);
 

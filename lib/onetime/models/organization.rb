@@ -455,10 +455,17 @@ module Onetime
         raise Onetime::Problem, message
       end
 
-      # Remove all member participations
-      # Use .compact to handle already-destroyed members (stale objids in set)
+      # Remove all member participations through the membership's semantic
+      # cleanup so materialized entitlement subkeys do not survive the org.
+      # Fall back to the relationship primitive only for legacy rows whose
+      # through model is already missing; org deletion still owns that drift.
       list_members.compact.each do |member|
-        remove_members_instance(member)
+        membership = OrganizationMembership.find_by_org_customer(objid, member.objid)
+        if membership
+          membership.destroy_with_index_cleanup!
+        else
+          remove_members_instance(member)
+        end
       end
 
       # Clean up all pending invitations (staged models in pending_invitations set)
@@ -587,6 +594,83 @@ module Onetime
       def contact_email_exists?(email)
         # Use unique_index auto-generated finder for O(1) lookup
         !find_by_contact_email(email).nil?
+      end
+
+      # Number of HSCAN rounds/entries a tolerant contact-email probe will spend
+      # before giving up. A single address can only be carried by a handful of
+      # case variants, so a low ceiling is enough; the cap exists so a pathological
+      # index cannot turn an O(1) lookup into an unbounded scan.
+      CONTACT_EMAIL_SCAN_COUNT  = 500
+      CONTACT_EMAIL_SCAN_ROUNDS = 20
+
+      # Every index entry whose stored key normalizes to `email`.
+      #
+      # `contact_email_index` is keyed VERBATIM: `create!` reserves the address
+      # with `hsetnx(contact_email, ...)` after only `.strip`, `delete!` removes
+      # the same raw value, and the billing-email sync writers assign whatever
+      # Stripe returned. A normalized `get` therefore MISSES any row whose
+      # address was stored with different case or Unicode form — reporting an
+      # address as unclaimed when an organization holds it, or as drifted when
+      # the holder is correct.
+      #
+      # Exact probes first (raw, then normalized) so the common path stays a
+      # single HGET. By default the first exact hit is the answer: provisioning
+      # only needs to know whether the address is held. That fast path cannot
+      # see a SECOND spelling of the same address pointing at a different
+      # organization, so a caller that must treat two claimants as drift (the
+      # purge preflight's `contact_email_index_ambiguous`) passes
+      # `exhaustive: true` and pays for the bounded case-insensitive HSCAN even
+      # after an exact hit. Without an exact hit the scan runs either way.
+      #
+      # @param email [String] address in any spelling
+      # @param exhaustive [Boolean] keep collecting after an exact hit
+      # @return [Hash{String => String}] stored key => organization objid
+      def find_contact_email_claims(email, exhaustive: false)
+        raw        = email.to_s.strip
+        normalized = OT::Utils.normalize_email(raw).to_s
+        return {} if normalized.empty?
+
+        claims = {}
+        [raw, normalized].uniq.reject(&:empty?).each do |candidate|
+          value = contact_email_index.get(candidate)
+          next if value.to_s.empty?
+
+          claims[candidate] = value.to_s
+          return claims unless exhaustive
+        end
+
+        scan_contact_email_index(normalized).merge(claims)
+      end
+
+      # The single organization objid claiming `email`, or nil when the address
+      # is unclaimed. Raises nothing on ambiguity — callers that must treat two
+      # claimants as drift read {.find_contact_email_claims} directly.
+      def find_contact_email_holder_id(email)
+        find_contact_email_claims(email).values.map(&:to_s).reject(&:empty?).uniq.first
+      end
+
+      private
+
+      def scan_contact_email_index(normalized)
+        dbkey    = contact_email_index.dbkey
+        client   = contact_email_index.dbclient
+        pattern  = OT::Utils.glob_case_insensitive(normalized)
+        claims   = {}
+        cursor   = '0'
+        rounds   = 0
+
+        loop do
+          cursor, entries = client.hscan(dbkey, cursor, match: pattern, count: CONTACT_EMAIL_SCAN_COUNT)
+          entries.each do |key, value|
+            claims[key.to_s] = value.to_s if OT::Utils.normalize_email(key).to_s == normalized
+          end
+          rounds         += 1
+
+          break if cursor == '0'
+          break if rounds >= CONTACT_EMAIL_SCAN_ROUNDS
+        end
+
+        claims
       end
     end
   end

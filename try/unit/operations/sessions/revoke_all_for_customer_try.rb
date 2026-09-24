@@ -293,7 +293,57 @@ rescue ArgumentError => e
 end
 #=> ArgumentError
 
+# ---- sweep_untracked: false — the bulk-purge shape -----------------------
+
+## a bulk inactivity purge declines the keyspace walk: the customer has been
+## idle past the cutoff and every blob it could own has expired, so a SCAN per
+## account would only repeat the fleet walk once per candidate. Seed the
+## bulk-shaped customer with one tracked and one untracked blob anyway, to
+## prove which path the flag turns off.
+@bulk = Onetime::Customer.create!(email: "bulk_#{@nonce}@example.com")
+@bulk.verified = 'true'
+@bulk.save
+@bulk_tracked   = SecureRandom.hex(32)
+@bulk_untracked = SecureRandom.hex(32)
+Onetime::Operations::Sessions::TrackMetadata.new(
+  session_id: @bulk_tracked,
+  session_data: { 'authenticated' => true, 'external_id' => @bulk.extid,
+                  'ip_address' => '203.0.113.9', 'user_agent' => 'UA' },
+).call
+DB.set("session:#{@bulk_tracked}", @codec.encode({ 'authenticated' => true,
+                                                   'external_id' => @bulk.extid, 'email' => @bulk.email }))
+DB.set("session:#{@bulk_untracked}", @codec.encode({ 'authenticated' => true,
+                                                     'external_id' => @bulk.extid, 'email' => @bulk.email }))
+AE.events.clear
+@res_bulk = RAFC.new(customer: @bulk, actor: @actor, sweep_untracked: false).call
+[@res_bulk.revoked, @res_bulk.blobs_deleted, @res_bulk.untracked_deleted, @res_bulk.scan_capped]
+#=> [true, 1, 0, false]
+
+## the GUARANTEED tracked kill still ran (blob gone, sidecar destroyed, index
+## cleared); only the best-effort sweep was declined, so the untracked blob is
+## still live
+[
+  Store.find_key(DB, @bulk_tracked),
+  SM.load(@bulk_tracked).nil?,
+  @bulk.active_sessions.revrange(0, -1),
+  Store.find_key(DB, @bulk_untracked).nil?,
+]
+#=> [nil, true, [], false]
+
+## the audit detail says the sweep was skipped, so untracked_deleted: 0 cannot
+## read as "swept, found nothing"
+@bulk_ev = AE.recent(1).first
+[AE.count, @bulk_ev['detail']['untracked_deleted'], @bulk_ev['detail']['untracked_sweep']]
+#=> [1, 0, "skipped"]
+
+## the default keeps the sweep: the same customer, swept, loses the untracked blob
+RAFC.new(customer: @bulk, actor: @actor).call.untracked_deleted
+#=> 1
+
 # Cleanup
+DB.del("session:#{@bulk_tracked}")
+DB.del("session:#{@bulk_untracked}")
+@bulk.destroy!
 @tracked.each { |sid| SM.load(sid)&.destroy!; DB.del("session:#{sid}") }
 SM.load(@drift_tracked)&.destroy!
 DB.del("session:#{@drift_tracked}")

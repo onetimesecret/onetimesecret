@@ -90,17 +90,58 @@ classified:
   available for platform SSO only. Each new issuerless provider re-adds a
   `(provider, '', uid)` platform-collision surface, so add them sparingly.
 
-When a provider supports both modes (GitLab, Auth0, Okta), integrate it
-through OIDC (`omniauth_openid_connect` with the provider's issuer) rather
-than its bespoke OAuth2 strategy — it then inherits issuer scoping for free.
+When a provider supports both modes (GitLab, Okta), integrate it through OIDC
+(`omniauth_openid_connect` with the provider's issuer) rather than its bespoke
+OAuth2 strategy — it then inherits issuer scoping for free. Auth0 is
+configured this way: the bespoke `omniauth-auth0` strategy was tried and
+dropped before release because its claim validation never runs (see the note
+below) and its `jwt ~> 2` pin held the whole bundle off jwt 3.x. Apple is a
+**platform-only** provider, absent from `SsoConfig::PROVIDER_ROUTE_MAP`.
 
 ## Known provider quirks
 
-- **Apple** (`omniauth-apple`): callback is a **POST** (`form_post` response
-  mode) — verify the callback route and any CSRF/CSP assumptions against a
-  POST callback; the email is only present on the **first** authorization;
-  the user's name arrives in the request body, not the id_token. Apple is
-  OIDC-based and issuer-capable (`https://appleid.apple.com`).
+- **Apple** (`omniauth-apple`): issuer-capable, but via a **static strategy
+  option** rather than discovery or a claim read — the gem hard-codes
+  `ISSUER = 'https://appleid.apple.com'` and rejects any id_token whose `iss`
+  differs (after checking the signature against Apple's JWKS), while nesting
+  the decoded JWT under `extra.raw_info.id_info` with symbol keys, a shape
+  `resolve_issuer`'s token-issuer branch does not read. The definition
+  therefore declares `issuer:` itself; precedence #1 returns it.
+  **Operator prerequisite:** Apple sets `response_mode=form_post` whenever a
+  scope is requested, so the callback is a **cross-site POST**. A
+  `SameSite=Lax` cookie (this app's default) is withheld on it, taking the
+  OmniAuth state and nonce with it, so Sign in with Apple requires
+  `site.session.same_site: none` together with `secure: true`. A cross-site
+  POST also hits `Rack::Protection::HttpOrigin`, which guards the auth app and
+  would deny the callback with a 403 before OmniAuth runs — every earlier
+  provider's callback was a GET, which `safe?` short-circuits, so nothing
+  exercised that path. That half is handled in code:
+  `Onetime::Middleware::HttpOriginOptions` allows a POST to an OmniAuth
+  **callback** path when the Origin is one of the configured IdP origins, and
+  deliberately does not extend that to the request phase. **Any future
+  `form_post` provider inherits this; a provider that posts back from an
+  origin outside `AuthConfig#sso_idp_origins` would still 403.** Do not drop the
+  scope to get Apple's GET redirect instead — without `email name` Apple
+  returns no email and account creation cannot complete. The **name** arrives
+  only on the **first** authorization for a given Services ID (in the `user`
+  POST param); the **email** comes from the id_token on every authorization,
+  so repeat sign-ins and JIT account creation are unaffected. The email may be
+  a private-relay address (`@privaterelay.appleid.com`, flagged by
+  `is_private_email`) — which is why `APPLE_TRUST_EMAIL_FOR_LINKING` defaults
+  to false.
+- **Auth0**: use generic OIDC (`OIDC_*`; see `per-install-sso.md`), with
+  `OIDC_ISSUER` carrying the trailing slash Auth0 puts in `iss`
+  (`https://<tenant>/`); the issuer check is exact. The bespoke
+  `omniauth-auth0` gem (3.2) is not integrated: its claim validation
+  (`verify_iss`/`verify_aud`/`verify_nonce`/`verify_expiration`) is gated on
+  `session_authorize_params[:scope]`, but that hash is built as
+  `params.to_hash` on a `Hashie::Mash` and has **string** keys, so the gate
+  never opens and `exp` and `nonce` go unchecked. It also pins `jwt ~> 2`,
+  which moved the lock from jwt 3.2.0 to 2.10.3 for every consumer. Generic
+  OIDC validates all of those claims and keeps Auth0 tenant-capable. Auth0 is
+  a **broker**: one tenant can federate many upstream IdPs into a single
+  issuer, so `OIDC_TRUST_EMAIL_FOR_LINKING` trusts *every* connection the
+  tenant enables, including unverified database and social connections.
 - **Entra ID**: uid is `tid+oid` by default. If you ever set
   `ignore_tid: true`, cross-tenant safety rests entirely on issuer scoping —
   see the security note on the `:entra` registry entry.

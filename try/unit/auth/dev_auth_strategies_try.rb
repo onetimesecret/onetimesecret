@@ -372,8 +372,10 @@ dummy = Onetime::Customer.dummy
 @env_dev_session = {
   'rack.session' => {
     'authenticated' => true,
-    'external_id' => @session_dev_cust.extid
+    'external_id' => @session_dev_cust.extid,
+    Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL
   },
+  'onetime.domain_strategy' => :canonical,
   'REMOTE_ADDR' => '127.0.0.1',
   'HTTP_USER_AGENT' => 'Test/1.0'
 }
@@ -391,8 +393,10 @@ dummy = Onetime::Customer.dummy
 @env_regular_session = {
   'rack.session' => {
     'authenticated' => true,
-    'external_id' => @session_regular_cust.extid
+    'external_id' => @session_regular_cust.extid,
+    Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL
   },
+  'onetime.domain_strategy' => :canonical,
   'REMOTE_ADDR' => '127.0.0.1',
   'HTTP_USER_AGENT' => 'Test/1.0'
 }
@@ -416,6 +420,7 @@ ENV['RACK_ENV'] = original_rack_env
 
 ## DevSessionAuth#authenticate without rack.session returns failure
 @env_no_session = {
+  'onetime.domain_strategy' => :canonical,
   'REMOTE_ADDR' => '127.0.0.1',
   'HTTP_USER_AGENT' => 'Test/1.0'
 }
@@ -432,6 +437,7 @@ ENV['RACK_ENV'] = original_rack_env
     'authenticated' => false,
     'external_id' => 'some_id'
   },
+  'onetime.domain_strategy' => :canonical,
   'REMOTE_ADDR' => '127.0.0.1',
   'HTTP_USER_AGENT' => 'Test/1.0'
 }
@@ -445,8 +451,10 @@ ENV['RACK_ENV'] = original_rack_env
 ## DevSessionAuth#authenticate with missing external_id returns failure
 @env_no_extid = {
   'rack.session' => {
-    'authenticated' => true
+    'authenticated' => true,
+    Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL
   },
+  'onetime.domain_strategy' => :canonical,
   'REMOTE_ADDR' => '127.0.0.1',
   'HTTP_USER_AGENT' => 'Test/1.0'
 }
@@ -461,8 +469,10 @@ ENV['RACK_ENV'] = original_rack_env
 @env_bad_extid = {
   'rack.session' => {
     'authenticated' => true,
-    'external_id' => "nonexistent_#{SecureRandom.hex(8)}"
+    'external_id' => "nonexistent_#{SecureRandom.hex(8)}",
+    Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL
   },
+  'onetime.domain_strategy' => :canonical,
   'REMOTE_ADDR' => '127.0.0.1',
   'HTTP_USER_AGENT' => 'Test/1.0'
 }
@@ -479,8 +489,10 @@ ENV['RACK_ENV'] = original_rack_env
 @env_meta_session = {
   'rack.session' => {
     'authenticated' => true,
-    'external_id' => @meta_dev_cust.extid
+    'external_id' => @meta_dev_cust.extid,
+    Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL
   },
+  'onetime.domain_strategy' => :canonical,
   'REMOTE_ADDR' => '127.0.0.1',
   'HTTP_USER_AGENT' => 'Test/1.0'
 }

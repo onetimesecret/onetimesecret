@@ -28,6 +28,17 @@ module Onetime::Customer::Features
       # for the full list of in-use values and where each is written.
       base.field :verified_by
 
+      # Why an sso_jit customer was left unverified at JIT provisioning; one
+      # of Onetime::Customer::VERIFICATION_HOLDS, nil when nothing was
+      # withheld (every non-SSO record, SSO records that predate the field,
+      # and SSO records that were verified at creation). Set once by the
+      # OmniAuth JIT hook via EnsureCustomerForAccount and never rewritten,
+      # so the customers doctor can tell a record that drifted (auto-
+      # repairable: mirror the Verified accounts row) from one where
+      # verification was withheld on purpose (never auto-repaired; an
+      # operator verifies by hand once the address is confirmed).
+      base.field :verification_hold
+
       # Reversible trust & safety pause (NOT a role, NOT destructive).
       # A suspended customer keeps all of their data but cannot authenticate:
       # login rejects them and BaseSessionAuthStrategy refuses their sessions.
@@ -40,6 +51,21 @@ module Onetime::Customer::Features
     end
 
     module ClassMethods
+      # Refuse an unknown verification_hold before anything is written. nil /
+      # blank is the stored form of "nothing withheld" and is accepted.
+      #
+      # @param value [String, Symbol, nil] candidate hold reason
+      # @raise [ArgumentError] when value is present and not one of
+      #   Onetime::Customer::VERIFICATION_HOLDS
+      # @return [void]
+      def assert_known_verification_hold!(value)
+        return if value.nil? || value.to_s.empty?
+        return if Onetime::Customer::VERIFICATION_HOLDS.include?(value.to_s)
+
+        raise ArgumentError,
+          "Unknown verification_hold #{value.inspect}; " \
+          "expected one of: #{Onetime::Customer::VERIFICATION_HOLDS.keys.join(', ')}"
+      end
     end
 
     module InstanceMethods
@@ -58,6 +84,15 @@ module Onetime::Customer::Features
       # Check if account was created via Stripe payment (not email verified)
       def payment_verified?
         verified? && verified_by.to_s == 'stripe_payment'
+      end
+
+      # Was verification deliberately withheld at SSO JIT provisioning?
+      # True when verification_hold carries a reason (see
+      # Onetime::Customer::VERIFICATION_HOLDS); nil / blank reads as not
+      # held. Independent of verified?: an operator who verifies a held
+      # record by hand leaves the hold in place as history.
+      def verification_held?
+        !verification_hold.to_s.empty?
       end
 
       # Reversible trust & safety pause. Stored form is canonical

@@ -40,9 +40,22 @@ end
   "This is a secret message"
 )
 
-# Helper to create a properly configured mock request
+# Helper to create a properly configured mock request.
+#
+# BaseView derives identity from CustomerSessionEvaluator, not from
+# strategy_result.user, so the session hash must carry the fields the
+# evaluator checks: authenticated, external_id (extid), authenticated_at,
+# and a canonical SessionSurface marker. The request env must supply the
+# matching :canonical domain_strategy so surface_matches_request? holds.
 def create_mock_request(locale: 'en', user: nil, authenticated: true)
   session = { 'test_key' => 'test_value' }
+  if authenticated && user
+    session['authenticated']      = true
+    session['authenticated_at']   = Familia.now.to_i
+    session['external_id']        = user.extid
+    session[Onetime::SessionSurface::KEY] = Onetime::SessionSurface::CANONICAL
+  end
+
   strategy_result = MockStrategyResult.new(
     session: session,
     user: user, # nil for anonymous
@@ -50,10 +63,11 @@ def create_mock_request(locale: 'en', user: nil, authenticated: true)
   )
 
   env = Rack::MockRequest.env_for('http://example.com/')
-  env['otto.strategy_result'] = strategy_result
-  env['otto.locale'] = locale
-  env['onetime.nonce'] = 'test-nonce'
-  env['rack.session'] = session
+  env['otto.strategy_result']    = strategy_result
+  env['otto.locale']             = locale
+  env['onetime.nonce']           = 'test-nonce'
+  env['onetime.domain_strategy'] = :canonical
+  env['rack.session']            = session
 
   Rack::Request.new(env)
 end

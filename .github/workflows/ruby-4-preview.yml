@@ -185,22 +185,28 @@ jobs:
         run: tests/lanes/run simple
 
   ruby-integration-full:
-    name: 'Ruby 4 · Integration (Full, SQLite, billing: ${{ matrix.billing-enabled }})'
+    name: 'Ruby 4 · Integration (Full, ${{ matrix.name }})'
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
     if: always()
 
     # Same lane + overlay pairing as ci.yml's SQLite matrix rows; the
-    # billing rows are the full-sqlite lane with the billing overlay.
+    # billing rows are the full-sqlite lane with the billing overlay, and
+    # the MFA row is the only process that boots with AUTH_MFA_ENABLED.
     strategy:
       fail-fast: false
       matrix:
         include:
-          - billing-enabled: 'false'
+          - name: 'SQLite, billing: off'
+            lane: full-sqlite
             overlay: ''
-          - billing-enabled: 'true'
+          - name: 'SQLite, billing: on'
+            lane: full-sqlite
             overlay: 'billing'
+          - name: 'SQLite, MFA'
+            lane: full-mfa
+            overlay: ''
 
     steps:
       - *checkout-step
@@ -219,13 +225,14 @@ jobs:
 
       - *install-pnpm-step
 
-      - name: Run full-sqlite lane (Ruby 4)
+      - name: Run lane (Ruby 4)
         continue-on-error: true
         env:
           LANES_NO_AUTOSTART: '1'
+          LANE: ${{ matrix.lane }}
           OVERLAY: ${{ matrix.overlay }}
         run: |
-          args=(tests/lanes/run full-sqlite)
+          args=(tests/lanes/run "$LANE")
           if [ -n "$OVERLAY" ]; then
             args+=(--overlay "$OVERLAY")
           fi

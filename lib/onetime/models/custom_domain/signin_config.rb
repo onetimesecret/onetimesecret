@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require 'json'
+require 'uri'
+
 require_relative '../features/boolean_encoding'
 
 #
@@ -51,6 +54,40 @@ module Onetime
 
       # Valid values for restrict_to — matches AuthConfig::RESTRICT_TO_VALUES
       RESTRICT_TO_VALUES = %w[password email_auth webauthn sso].freeze
+
+      # Refusals from {#related_origins=}. Problems like any other setter
+      # refusal, but typed and carrying the offending entries and a locale
+      # key, so an API layer can attach the answer to the `related_origins`
+      # field and localize it instead of matching on the message.
+      class RelatedOriginError < Onetime::Problem
+        attr_reader :origins
+
+        def initialize(origins)
+          @origins = Array(origins).map(&:to_s)
+          super("#{self.class::SUMMARY}: #{@origins.join(', ')}")
+        end
+
+        def error_key
+          self.class::ERROR_KEY
+        end
+
+        # The writable field the refusal belongs to, and the locale arguments
+        # for {#error_key}: what an API layer needs to tag and localize it.
+        def field = 'related_origins'
+        def args  = { origins: origins.join(', ') }
+      end
+
+      # An entry that is not an absolute `http(s)://host[:port]` origin.
+      class InvalidRelatedOrigin < RelatedOriginError
+        SUMMARY   = 'Invalid origin'
+        ERROR_KEY = 'api.domains.errors.related_origins_invalid'
+      end
+
+      # An entry naming a custom domain that another organization owns (#4421).
+      class ForeignRelatedOrigin < RelatedOriginError
+        SUMMARY   = 'Origin belongs to another organization'
+        ERROR_KEY = 'api.domains.errors.related_origins_foreign_organization'
+      end
 
       # DomainStrategy classifications for the operator's OWN surfaces, the
       # only hosts no per-domain config can speak for. Used by
@@ -204,6 +241,20 @@ module Onetime
       # UI to gate on (and seed from) the wrong switch.
       field :sso_enabled
 
+      # WebAuthn Related Origins Requests (WebAuthn L3) — the ORIGIN STRINGS
+      # this tenant publishes at /.well-known/webauthn as sharing its rp_id
+      # (#4414). Stored as a JSON array of absolute origin URLs
+      # ("https://vault.acme.com"). Read through {related_origins} which
+      # decodes; write through {related_origins=} which validates each entry
+      # is a well-formed absolute http(s) origin with no path or query. This
+      # is the ONLY field on this model that widens WebAuthn acceptance
+      # across surfaces, and the empty default (nothing declared) is what
+      # {Onetime::ReauthPolicy} treats as "no related-origins deployment".
+      # The value must agree with what the deployment actually serves at
+      # /.well-known/webauthn — we do not fetch it, and we do not publish
+      # it either; that is an operator concern.
+      field :related_origins_json
+
       # Timestamps (Unix epoch integers)
       field :created
       field :updated
@@ -222,6 +273,10 @@ module Onetime
         'email_auth_enabled' => { type: :boolean, storage: :native },
         'sso_enabled' => { type: :boolean, storage: :native },
         'restrict_to' => { type: :enum, values: RESTRICT_TO_VALUES, nullable: true },
+        # Colonel-writable via the URL-validating setter below; storage is
+        # the {related_origins_json} sibling field, so the registry only
+        # needs to know the shape it hands in (an array of strings).
+        'related_origins' => { type: :string_array },
       }.freeze
 
       # Tolerant predicates + normalizing setters for the boolean fields in
@@ -264,8 +319,6 @@ module Onetime
       # @return [CustomDomain, nil] The domain or nil if not found
       def custom_domain
         Onetime::CustomDomain.find_by_identifier(domain_id)
-      rescue Onetime::RecordNotFound
-        nil
       end
 
       # Load the owning Organization via the CustomDomain.
@@ -278,6 +331,189 @@ module Onetime
         Onetime::Organization.load(domain.org_id)
       end
 
+      # Origins this tenant has declared as sharing its WebAuthn rp_id
+      # (#4414). Read tolerates any historical stored shape — nil, blank,
+      # or a JSON parse error — as "nothing declared", so a caller can
+      # rely on {Array<String>} back.
+      #
+      # @return [Array<String>] absolute origin URLs, never nil
+      def related_origins
+        return [] if related_origins_json.to_s.empty?
+
+        parsed = JSON.parse(related_origins_json)
+        parsed.is_a?(Array) ? parsed.grep(String) : []
+      rescue JSON::ParserError
+        []
+      end
+
+      # Set the declared related origins. Each entry must be an absolute
+      # `http(s)://host[:port]` origin — the same shape a browser
+      # compares to `webauthn_origin`. Duplicates are removed, blanks
+      # dropped, and each entry is normalized to lowercase scheme+host
+      # (the port is preserved verbatim). An empty result clears the
+      # field so {related_origins} reads as `[]`.
+      #
+      # An entry naming a custom domain owned by ANOTHER organization is
+      # refused here (#4421), so the operator learns at write time that the
+      # entry can never take effect. This is feedback, not the control:
+      # {surface_for_origin} re-checks ownership on every read, because a
+      # domain can change hands after it was written and a row can be
+      # written without this setter. Hosts this install does not serve are
+      # still accepted; they resolve to no surface on read.
+      #
+      # @param origins [Array<String>] absolute origin URLs
+      # @return [void]
+      # @raise [InvalidRelatedOrigin] if any entry is not a well-formed origin
+      # @raise [ForeignRelatedOrigin] if any entry names a custom domain owned
+      #   by another organization
+      def related_origins=(origins)
+        normalized = Array(origins).filter_map do |raw|
+          candidate = raw.to_s.strip
+          next nil if candidate.empty?
+
+          normalized_value = normalize_related_origin(candidate)
+          raise InvalidRelatedOrigin.new(raw) if normalized_value.nil?
+
+          normalized_value
+        end.uniq
+
+        foreign = normalized.select { |origin| foreign_custom_origin?(origin) }
+        raise ForeignRelatedOrigin.new(foreign) unless foreign.empty?
+
+        self.related_origins_json = normalized.empty? ? nil : JSON.generate(normalized)
+      end
+
+      # Exact origins and their resolved surfaces for the configured WebAuthn
+      # related-origin set. Scheme and non-default port remain part of each
+      # member so policy cannot authorize a different browser origin merely
+      # because it has the same host.
+      #
+      # @return [Array<Hash>] frozen `{ 'origin' => String, 'surface' => Hash }` entries
+      def related_origin_members(current_domain: nil)
+        related_origins.filter_map do |origin|
+          surface = surface_for_origin(origin, current_domain: current_domain)
+          { 'origin' => origin, 'surface' => surface }.freeze if surface
+        end.uniq.freeze
+      end
+
+      private
+
+      # Normalize one caller-supplied origin string. Returns the canonical
+      # form (lowercase scheme+host, port preserved) or nil when the
+      # string is not a well-formed absolute http(s) origin with no path
+      # or query. Whitespace is stripped; a trailing "/" is tolerated
+      # but not written back.
+      def normalize_related_origin(raw)
+        candidate = raw.to_s.strip
+        return nil if candidate.empty?
+
+        uri = URI.parse(candidate)
+        return nil unless uri.is_a?(URI::HTTP) || uri.is_a?(URI::HTTPS)
+        return nil if uri.host.to_s.empty?
+        return nil unless uri.path.to_s.empty? || uri.path == '/'
+        return nil unless uri.query.nil? && uri.fragment.nil? && uri.userinfo.nil?
+
+        scheme    = uri.scheme.downcase
+        host      = uri.host.downcase
+        default   = scheme == 'https' ? 443 : 80
+        authority = uri.port && uri.port != default ? "#{host}:#{uri.port}" : host
+
+        "#{scheme}://#{authority}"
+      rescue URI::InvalidURIError
+        nil
+      end
+
+      # Resolve one origin URL to a {Onetime::SessionSurface}-shaped
+      # descriptor, or nil when the origin names a host we do not serve.
+      #
+      # A `:custom` member is accepted only when the resolved CustomDomain
+      # belongs to the same organization as this config's own domain
+      # (#4421). Without that check a colonel-written entry naming another
+      # tenant's host would make that tenant's WebAuthn credentials
+      # offerable here (rp_id = theirs, expected_origin = ours), with only
+      # the browser's /.well-known/webauthn lookup — a file we do not
+      # control for the other tenant — standing in the way. This read-side
+      # check is the control: rows written before the rule existed, by a
+      # path that bypasses the setter, or for a domain that has since
+      # changed organization are neutralized here. {related_origins=}
+      # applies the same rule at write time for operator feedback only.
+      # Canonical and platform-subdomain members are not tenant-owned and
+      # are unaffected.
+      def surface_for_origin(origin, current_domain: nil)
+        candidate = normalize_related_origin(origin)
+        return nil if candidate.nil?
+
+        uri  = URI.parse(candidate)
+        host = uri.host.to_s.downcase
+
+        return Onetime::SessionSurface::CANONICAL if canonical_host?(host)
+
+        if current_domain && current_domain.display_domain.to_s.downcase == host
+          return { 'kind' => 'custom', 'id' => current_domain.identifier.to_s }.freeze
+        end
+
+        record = Onetime::CustomDomain.from_display_domain(host)
+        if record&.identifier
+          return nil unless same_organization?(record, current_domain: current_domain, origin: candidate)
+
+          return { 'kind' => 'custom', 'id' => record.identifier.to_s }.freeze
+        end
+
+        classification = Onetime::Middleware::DomainStrategy::Chooserator.classify(
+          host,
+          Onetime::Middleware::DomainStrategy.canonical_domains_parsed,
+          anchor_domains: Onetime::Middleware::DomainStrategy.anchor_domains_parsed,
+        )
+        if classification.strategy == :subdomain
+          { 'kind' => 'subdomain', 'host' => host }.freeze
+        end
+      rescue StandardError
+        nil
+      end
+
+      def canonical_host?(host)
+        Onetime::Middleware::DomainStrategy.canonical_host?(host)
+      rescue StandardError
+        false
+      end
+
+      # Write-side twin of the ownership rule in {surface_for_origin}:
+      # true when `origin` names a custom domain this install serves that
+      # is not owned by this config's organization. Canonical hosts and
+      # hosts we do not serve are never foreign. Lookup errors propagate:
+      # a write that cannot be checked must not be stored.
+      def foreign_custom_origin?(origin)
+        host = URI.parse(origin).host.to_s.downcase
+        return false if canonical_host?(host)
+
+        record = Onetime::CustomDomain.from_display_domain(host)
+        return false unless record&.identifier
+        return false if record.identifier.to_s == domain_id.to_s
+
+        !owned_by_same_organization?(record, custom_domain)
+      end
+
+      # Fails closed: a missing own-domain record or a blank org_id on
+      # either side is "not the same organization".
+      def owned_by_same_organization?(record, own_domain)
+        own_org = own_domain&.org_id.to_s
+        !own_org.empty? && own_org == record.org_id.to_s
+      end
+
+      # Read-side ownership check. A refusal is logged so a stored entry
+      # that no longer qualifies is visible rather than silently inert.
+      def same_organization?(record, current_domain: nil, origin: nil)
+        return true if owned_by_same_organization?(record, current_domain || custom_domain)
+
+        OT.lw(
+          '[SigninConfig] Dropping cross-organization related origin',
+          domain_id: domain_id,
+          origin: origin,
+          related_domain_id: record.identifier.to_s,
+        )
+        false
+      end
+
       class << self
         # Find signin config by domain ID.
         #
@@ -287,8 +523,6 @@ module Onetime
           return nil if domain_id.to_s.empty?
 
           load(domain_id)
-        rescue Onetime::RecordNotFound
-          nil
         end
 
         # Whether the domain's SigninConfig permits SSO as an auth method.
@@ -950,7 +1184,8 @@ module Onetime
         # @param domain_id [String] CustomDomain identifier
         # @param attrs [Hash] Configuration attributes
         # @return [CustomDomain::SigninConfig] The created config
-        # @raise [Onetime::Problem] if config already exists
+        # @raise [Onetime::Problem] if config already exists, or
+        #   related_origins is refused by {#related_origins=}
         def create!(domain_id:, **attrs)
           raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
           raise Onetime::Problem, 'Signin config already exists for this domain' if exists_for_domain?(domain_id)
@@ -959,6 +1194,11 @@ module Onetime
 
           config.enabled            = attrs.key?(:enabled) ? attrs[:enabled] : false
           config.restrict_to        = attrs[:restrict_to] if attrs.key?(:restrict_to)
+
+          # Through the validating setter, before save: a first write is held
+          # to the same shape and ownership rules as an update (#4421), and a
+          # refusal persists nothing.
+          config.related_origins    = attrs[:related_origins] if attrs.key?(:related_origins)
 
           # Convention: all boolean fields use conservative defaults (false).
           # The `enabled` master switch gates runtime consultation — creating

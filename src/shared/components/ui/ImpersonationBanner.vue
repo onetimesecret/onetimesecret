@@ -6,8 +6,10 @@
     stopImpersonation,
   } from '@/services/impersonation.service';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { hardNavigate } from '@/utils/navigation';
+  import { storeToRefs } from 'pinia';
   import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
 
@@ -32,6 +34,11 @@
 
   const { t } = useI18n();
   const bootstrapStore = useBootstrapStore();
+  const authStore = useAuthStore();
+  // Escape actions (stop-impersonation) stay usable across `checking`,
+  // `unavailable`, and `mfa_pending` — but MUST be withheld if there is no
+  // retained identity to leave behind (ADR-046#authority-action-gating).
+  const { escapeActionsAvailable } = storeToRefs(authStore);
 
   const impersonation = computed(() => bootstrapStore.impersonation);
 
@@ -78,6 +85,10 @@
 
   async function handleStop(): Promise<void> {
     if (stopping.value) return;
+    // Belt-and-braces guard (ADR-046#authority-action-gating): the :disabled binding aria-disables
+    // the control while authority is uncertain, but a submit that slips through
+    // (e.g. state flip mid-click) must not reach the protected endpoint.
+    if (!escapeActionsAvailable.value) return;
     stopping.value = true;
     stopFailed.value = false;
 
@@ -145,7 +156,7 @@
         <button
           type="button"
           data-testid="impersonation-stop"
-          :disabled="stopping"
+          :disabled="stopping || !escapeActionsAvailable"
           class="inline-flex items-center gap-2 rounded-md border border-amber-700 px-3 py-1 text-sm font-semibold text-amber-900 transition-colors hover:bg-amber-200 focus:ring-2 focus:ring-amber-600 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-amber-300 dark:text-amber-100 dark:hover:bg-amber-900/60 dark:focus:ring-amber-300"
           @click="handleStop">
           {{

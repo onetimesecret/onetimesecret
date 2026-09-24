@@ -21,8 +21,14 @@ module Auth::Config::Features
 
       # WebAuthn configuration.
       #
-      # rp_id and origin MUST match the host the browser is actually ON, so
-      # host derivation routes through Auth::PublicHost — the one audited place
+      # Ordinary Rodauth registration and login ceremonies use the current
+      # request host as RP ID and the current browser origin. Related-origin
+      # reauthentication is different: Auth::Operations::Reauthenticate selects
+      # a credential cohort by its stored registration RP ID and passes that RP
+      # ID explicitly to challenge generation and verification while retaining
+      # this request origin.
+      #
+      # Host derivation routes through Auth::PublicHost — the one audited place
       # for it (finding G-16). On a registered custom domain the resolver swaps
       # in the display domain (the origin the passkey was registered against);
       # otherwise it declines and we keep the request host, which
@@ -32,12 +38,13 @@ module Auth::Config::Features
       # it does not redirect a link), so the request-host fallback is the safe
       # default here rather than the canonical host.
       auth.webauthn_rp_id do
-        Auth::PublicHost.resolve(request.env) || request.host
+        public_host = Auth::PublicHost.webauthn_host(request.env)
+        Onetime::Utils::DomainParser.extract_hostname(public_host) || request.host
       end
 
       auth.webauthn_origin do
         # Full origin for WebAuthn challenge verification
-        Auth::PublicHost.base_url(request.env) ||
+        Auth::PublicHost.webauthn_base_url(request.env) ||
           "#{request.scheme}://#{request.host_with_port}"
       end
 

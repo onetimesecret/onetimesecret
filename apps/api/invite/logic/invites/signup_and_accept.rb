@@ -418,6 +418,16 @@ module InviteAPI::Logic
             nil
           end
 
+        # Rotate the real Rack session at the anonymous-to-authenticated
+        # transition (#4393). Rodauth's internal request has its own env;
+        # renewing that session does not affect the caller's cookie. Rack's
+        # SessionHash#options exposes the real request's rack.session.options.
+        # Keep this outside the active-session rescue so the fallback rotates too.
+        rotate_session!(
+          security_warning: 'invite signup is establishing authentication state without rotating the anonymous session id',
+          customer_id: @customer.extid,
+        )
+
         # Populate session with authentication state
         sess['authenticated']    = true
         sess['authenticated_at'] = Familia.now.to_i
@@ -425,6 +435,16 @@ module InviteAPI::Logic
         sess['email']            = @customer.email
         sess['role']             = @customer.role
         sess['locale']           = @customer.locale || 'en'
+
+        # Surface marker (#4409). This session is hand-minted here, not by a
+        # request-scoped Rodauth login, so nothing else stamps it: the
+        # internal-request login_session in establish_active_session runs
+        # against an env DomainStrategy never saw and skips the stamp. The
+        # gate fails closed on a missing marker, so without this the
+        # invitee's very next request — the frontend's POST /accept — is
+        # refused. surface_env is rebuilt from the strategy metadata
+        # (Logic::Base), the same classification the request resolved.
+        Onetime::SessionSurface.record(sess, surface_env)
 
         if rodauth_session
           # Carry the Rodauth-produced auth keys onto the Rack session. Keys are

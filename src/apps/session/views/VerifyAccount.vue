@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import ResendVerificationForm from '@/apps/session/components/ResendVerificationForm.vue';
   import { useAuth } from '@/shared/composables/useAuth';
+  import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { isValidInternalPath } from '@/utils/redirect';
   import { computed, onMounted, ref } from 'vue';
@@ -12,6 +13,7 @@
   const route = useRoute();
   const { t } = useI18n();
   const { verifyAccount, isLoading, error } = useAuth();
+  const authStore = useAuthStore();
   const bootstrapStore = useBootstrapStore();
   const { authentication } = bootstrapStore;
   const signupEnabled = computed(
@@ -87,7 +89,7 @@
         // Refresh bootstrap to ensure fresh CSRF token before verification
         // This handles the case where user clicks verification link from email
         // in a new session or after the original session expired
-        await bootstrapStore.refresh();
+        await authStore.refresh({ kind: 'ordinary', reason: 'csrf' });
 
         const success = await verifyAccount(verificationKey.value);
         verificationSuccess.value = success;

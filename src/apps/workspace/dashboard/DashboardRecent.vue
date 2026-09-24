@@ -5,59 +5,34 @@
   import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
   import EmptyState from '@/shared/components/ui/EmptyState.vue';
   import ErrorDisplay from '@/shared/components/ui/ErrorDisplay.vue';
-  import OIcon from '@/shared/components/icons/OIcon.vue';
   import SecretReceiptTable from '@/apps/secret/components/SecretReceiptTable.vue';
-  import { InlineToast } from '@/shared/components/ui/notifications';
+  import { useBackgroundRefresh } from '@/shared/composables/useBackgroundRefresh';
   import { useReceiptList } from '@/shared/composables/useReceiptList';
-  import { onMounted, computed, ref, onBeforeUnmount } from 'vue';
+  import { onMounted, computed, ref } from 'vue';
 
   // Define props
   interface Props {}
   defineProps<Props>();
 
   const { t } = useI18n(); // auto-import
-  const { details, recordCount, isLoading, refreshRecords, error } = useReceiptList();
+  const { details, recordCount, isLoading, refreshRecords, refreshInBackground, error } =
+    useReceiptList();
 
   const sectionId = ref(`dashboard-recent-${Math.random().toString(36).substring(2, 9)}`);
-  const lastRefreshed = ref(new Date());
-  const refreshInterval = ref<number | null>(null);
-
-  // Refresh state
-  const isRefreshing = ref(false);
-
-  // Toast notification state
-  const showToast = ref(false);
-  const toastMessage = ref('');
 
   // Add computed properties for revealed and pending receipts
   const revealedReceipts = computed(() => details.value?.revealed_receipts ?? []);
   const pendingReceipts = computed(() => details.value?.pending_receipts ?? []);
 
-  // Method to force refresh
-  const handleRefresh = async () => {
-    isRefreshing.value = true;
-    await refreshRecords();
-    lastRefreshed.value = new Date();
-    setTimeout(() => {
-      isRefreshing.value = false;
-    }, 1500);
-  };
+  // Statuses refresh every 5 minutes while the tab is visible, and when it
+  // becomes visible again. Those requests are passive: an unattended dashboard
+  // must still reach its inactivity deadline.
+  const backgroundRefresh = useBackgroundRefresh(refreshInBackground);
 
-  // Set up auto-refresh interval
+  // The load on arrival is navigation: an ordinary, active request.
   onMounted(() => {
     refreshRecords();
-    refreshInterval.value = window.setInterval(() => {
-      // Auto-refresh status every 5 minutes
-      refreshRecords();
-      lastRefreshed.value = new Date();
-    }, 300000); // Every 5 minutes
-  });
-
-  // Clean up
-  onBeforeUnmount(() => {
-    if (refreshInterval.value) {
-      clearInterval(refreshInterval.value);
-    }
+    backgroundRefresh.start();
   });
 </script>
 
@@ -76,7 +51,7 @@
       </div>
 
       <div v-else>
-        <!-- Section header with count and refresh button -->
+        <!-- Section header with count -->
         <div
           v-if="recordCount > 0"
           class="mb-4 flex items-center justify-between">
@@ -94,21 +69,6 @@
             <span class="text-sm text-gray-500 dark:text-gray-400">
               {{ t('web.LABELS.items_count', { count: recordCount }) }}
             </span>
-            <!-- prettier-ignore-attribute class -->
-            <button
-              v-if="false"
-              @click="handleRefresh"
-              class="flex items-center gap-1 rounded p-1.5
-                text-gray-500 hover:bg-gray-100 hover:text-gray-700
-                dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-              :aria-label="t('web.LABELS.refresh')"
-              type="button">
-              <OIcon
-                collection="heroicons"
-                name="arrow-path"
-                :class="['size-4', { 'animate-spin': isRefreshing }]" />
-              <span class="sr-only">{{ t('web.LABELS.refresh') }}</span>
-            </button>
           </div>
         </div>
 
@@ -137,12 +97,6 @@
           </EmptyState>
         </div>
       </div>
-
-      <!-- Toast notification for actions -->
-      <InlineToast
-        :show="showToast"
-        :message="toastMessage"
-        aria-live="polite" />
     </section>
   </div>
 </template>

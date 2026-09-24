@@ -11,7 +11,7 @@
 # Workflow:
 #   1. Run dry-run first to review candidates and cache them
 #   2. Run again with --purge to execute (reuses cached candidate set)
-#   3. Each customer.destroy! removes object hash + all indexes + metadata
+#   3. Each candidate runs through the preflighted customer purge lifecycle
 #
 # Design note: Soft-delete via Redis TTL was considered but rejected.
 # Class-level indexes (email_index, extid_lookup, role_index, instances)
@@ -25,7 +25,7 @@
 #   - Run during off-peak hours for large purges (1000+ records)
 #   - Candidates are cached for 30 minutes; --purge reuses the same set
 #   - Process runs in batches of 50 with progress tracking
-#   - Every deletion is logged via OT.info for audit trail
+#   - The core purge lifecycle records final audit outcomes
 #   - Consider exporting affected customer emails before purging
 #
 # Usage:
@@ -33,12 +33,14 @@
 #   bin/ots customers purge --older-than 3y --purge      # Execute
 #   bin/ots customers purge --older-than 5y --refresh    # Force rescan
 
-# Deletion is delegated to the shared Auth::Operations::DestroyCustomerRecord primitive
-# (single implementation): the local path destroys via the model, the remote
-# `--redis-url` path uses DestroyCustomerRecord.delete_customer_keys (folded from this
-# command's former private copy). The CLI runs outside the auth autoloader, so
-# require it explicitly.
-require 'auth/operations/destroy_customer_record'
+# Destructive execution is delegated to the same preflighted, audited lifecycle
+# used by the single-customer CLI and Colonel API. Remote Redis sources remain
+# available for inspection, but cannot be safely mutated without model-backed
+# organization and authentication state.
+require 'json'
+require 'auth/operations/customers/purge'
+require 'onetime/models/colonel_audit_event'
+require 'onetime/operations/bulk_audit_context'
 
 # Customers::Shared must exist before `include Customers::Shared` below.
 # Required here (not only from the lib/onetime/cli.rb manifest) so this file
@@ -52,11 +54,19 @@ module Onetime
 
       desc 'Purge inactive customer records by last activity date'
 
-      ACTIVITY_CACHE = 'tmp:cli:cust_by_activity'
-      CREATED_CACHE  = 'tmp:cli:cust_by_created'
+      ACTIVITY_CACHE     = 'tmp:cli:cust_by_activity'
+      CREATED_CACHE      = 'tmp:cli:cust_by_created'
       # Purge batch size; 50 balances throughput with progress visibility
       # while allowing frequent progress output to the console.
-      BATCH_SIZE     = 50
+      BATCH_SIZE         = 50
+      BULK_AUDIT_VERB    = 'customer.purge.bulk'
+      BULK_AUDIT_TARGET  = 'inactive-customers'
+      BULK_COVERED_VERBS = [
+        'customer.purge',
+        'organization.delete',
+        'membership.remove',
+        'session.revoke_all',
+      ].freeze
 
       option :older_than,
         type: :string,
@@ -153,8 +163,9 @@ module Onetime
             bin/ots customers purge --older-than 5y --redis-url redis://host:6379/6
 
           Dry-run caches candidates for 30 minutes. Running --purge within that
-          window reuses the same set. When --redis-url is used, purge deletes
-          keys directly via DEL (no model loading, no index cleanup).
+          window reuses the same set. Every local candidate is preflighted; blockers
+          are reported without mutation. --redis-url supports preview only because
+          remote raw-key deletion cannot run the complete safe lifecycle.
         USAGE
       end
 
@@ -206,18 +217,24 @@ module Onetime
         puts '  1. Back up Redis: redis-cli BGSAVE'
         puts '  2. Export affected emails if needed for notification'
         puts "  3. Run during off-peak hours for large sets (#{purgeable_count} records)"
-        puts '  4. Each destroy! removes: object hash, indexes, metadata, relationships'
-        puts '  5. This action is NOT reversible without a Redis backup'
+        puts '  4. Each candidate is preflighted for organization and billing blockers'
+        puts '  5. Refused candidates are preserved; partial results require inspection'
+        puts '  6. Successful purge is NOT reversible without a Redis backup'
         puts
-        puts 'NOTE: If running in full auth mode, corresponding SQL accounts'
-        puts '  in the auth database are NOT removed by this command. Clean'
-        puts '  up orphaned accounts separately if needed.'
+        puts 'NOTE: In full auth mode, the safe lifecycle also revokes sessions'
+        puts '  and tears down the linked SQL account before deleting Redis data.'
         puts
         puts 'To execute:'
         puts "  bin/ots customers purge --older-than #{duration} --purge"
       end
 
       def execute_purge(source_redis, cache_redis, candidates, cutoff)
+        if @using_remote
+          puts 'Error: --purge with --redis-url is disabled because raw remote deletion bypasses preflight.'
+          puts 'Run the purge against the configured datastore so the safe lifecycle can load all references.'
+          exit 1
+        end
+
         # Verify cache is still populated before executing destructive operation
         cache_size = cache_redis.zcard(ACTIVITY_CACHE)
         if cache_size.zero?
@@ -235,13 +252,23 @@ module Onetime
         destroyed         = 0
         skipped           = 0
         billing_protected = 0
+        refused           = 0
+        partial           = 0
+        not_found         = 0
         errors            = []
 
+        bulk_audit_context = start_bulk_audit(cutoff: cutoff, candidate_targets: candidates)
+
+        # One registry read for the whole run: every candidate's shallow
+        # preflight unions these rows with the organization's own member set,
+        # so a live membership that fell out of that set cannot make a shared
+        # workspace read as sole-owned. See MembershipSnapshot.
+        membership_snapshot = Auth::Operations::Customers::MembershipSnapshot.capture
+
         puts "PURGING #{total} candidates inactive since #{cutoff.strftime('%Y-%m-%d')}..."
-        puts '(Customers with Stripe billing will be skipped automatically)'
-        if @using_remote
-          puts '(Deleting keys directly from source via DEL)'
-        end
+        puts '(Every customer is preflighted; blocked customers are preserved)'
+        puts "(Membership registry snapshot: #{membership_snapshot.size} rows " \
+             "across #{membership_snapshot.organization_count} organizations)"
         puts
 
         candidates.each_slice(BATCH_SIZE).with_index do |batch, batch_idx|
@@ -267,21 +294,36 @@ module Onetime
             end
 
             begin
-              if @using_remote
-                # Direct key deletion on remote source (no model, no indexes to clean)
-                Auth::Operations::DestroyCustomerRecord.delete_customer_keys(source_redis, objid)
-              else
-                cust = record[:_model]
-                unless cust
-                  skipped += 1
-                  next
-                end
-                Auth::Operations::DestroyCustomerRecord.new(customer: cust).call
+              cust = record[:_model]
+              unless cust
+                skipped += 1
+                next
               end
 
-              destroyed_ids << objid
-              destroyed += 1
-              OT.info "[purge] Destroyed #{objid} #{record[:email]}"
+              result = purge_customer(cust, cutoff, bulk_audit_context, membership_snapshot)
+
+              case result.status
+              when :success
+                destroyed_ids << objid
+                destroyed += 1
+                OT.info "[purge] Destroyed #{objid} #{record[:email]}"
+              when :refused
+                refused += 1
+                errors << lifecycle_error(objid, result)
+                # A bulk refusal writes no operator-trail event (the completion
+                # receipt carries only the count), so the log is where the
+                # blocker codes persist. Codes only, never the email.
+                OT.info "[purge] Refused #{objid} blockers=#{blocker_codes(result)}"
+              when :partial
+                partial += 1
+                errors << lifecycle_error(objid, result)
+                OT.info "[purge] Partial #{objid} stage=#{result.stage} blockers=#{blocker_codes(result)}"
+              when :not_found
+                not_found += 1
+                errors << lifecycle_error(objid, result)
+              else
+                errors << lifecycle_error(objid, result)
+              end
             rescue StandardError => ex
               errors << "#{objid}: #{ex.message}"
               OT.le "[purge] Error destroying #{objid}: #{ex.message}"
@@ -297,7 +339,7 @@ module Onetime
 
           processed = (batch_idx + 1) * BATCH_SIZE
           processed = [processed, total].min
-          print "\r  Progress: #{processed}/#{total} (#{destroyed} destroyed, #{billing_protected} billing-protected, #{skipped} skipped)"
+          print "\r  Progress: #{processed}/#{total} (#{destroyed} destroyed, #{refused} refused, #{partial} partial, #{billing_protected} billing-protected, #{skipped} skipped)"
         end
 
         print "\r" + (' ' * 80) + "\r"
@@ -306,8 +348,24 @@ module Onetime
         puts '-' * 30
         puts "  Destroyed:         #{destroyed}"
         puts "  Billing-protected: #{billing_protected}"
+        puts "  Refused:           #{refused}"
+        puts "  Partial:           #{partial}"
+        puts "  Not found:         #{not_found}"
         puts "  Skipped:           #{skipped}"
         puts "  Errors:            #{errors.size}"
+
+        record_bulk_audit(
+          bulk_audit_context: bulk_audit_context,
+          cutoff: cutoff,
+          candidates: total,
+          destroyed: destroyed,
+          billing_protected: billing_protected,
+          refused: refused,
+          partial: partial,
+          not_found: not_found,
+          skipped: skipped,
+          errors: errors.size,
+        )
 
         return unless errors.any?
 
@@ -315,6 +373,7 @@ module Onetime
         puts '  Error details:'
         errors.first(20).each { |e| puts "    #{e}" }
         puts "    ... and #{errors.size - 20} more" if errors.size > 20
+        exit 1
       end
 
       def build_cache(source_redis, cache_redis)
@@ -445,6 +504,70 @@ module Onetime
         when 'm' then num * SECONDS_IN_MONTH
         when 'y' then num * SECONDS_IN_YEAR
         end
+      end
+
+      # Candidates have been idle past the cutoff, so every session blob they
+      # could own has expired: the per-account keyspace walk for untracked
+      # sessions is declined (the tracked revocation still runs). See
+      # Purge#initialize.
+      def purge_customer(customer, cutoff, bulk_audit_context, membership_snapshot)
+        Auth::Operations::Customers::Purge.new(
+          customer: customer,
+          actor: Customers::Shared::CLI_ACTOR,
+          reason: "bulk inactivity purge before #{cutoff.strftime('%Y-%m-%d')}",
+          bulk_audit_context: bulk_audit_context,
+          membership_snapshot: membership_snapshot,
+          sweep_untracked_sessions: false,
+        ).call
+      end
+
+      def start_bulk_audit(cutoff:, candidate_targets:)
+        Onetime::Operations::BulkAuditContext.start!(
+          actor: Customers::Shared::CLI_ACTOR,
+          verb: BULK_AUDIT_VERB,
+          target: BULK_AUDIT_TARGET,
+          covered_verbs: BULK_COVERED_VERBS,
+          candidate_targets: candidate_targets,
+          detail: {
+            cutoff: cutoff.utc.strftime('%Y-%m-%d'),
+            candidates: candidate_targets.size,
+            batch_size: BATCH_SIZE,
+          },
+        )
+      end
+
+      def record_bulk_audit(bulk_audit_context:, cutoff:, candidates:, destroyed:,
+                            billing_protected:, refused:, partial:, not_found:, skipped:, errors:)
+        result = errors.positive? || partial.positive? ? :failure : :success
+        bulk_audit_context.complete!(
+          result: result,
+          detail: {
+            cutoff: cutoff.utc.strftime('%Y-%m-%d'),
+            candidates: candidates,
+            destroyed: destroyed,
+            billing_protected: billing_protected,
+            refused: refused,
+            partial: partial,
+            not_found: not_found,
+            skipped: skipped,
+            errors: errors,
+          },
+        )
+      end
+
+      def blocker_codes(result)
+        result.blockers.map { |b| b[:code] }.uniq.join(',')
+      end
+
+      def lifecycle_error(objid, result)
+        JSON.generate(
+          objid: objid,
+          status: result.status,
+          stage: result.stage,
+          completed_stages: result.completed_stages,
+          actions: result.actions,
+          blockers: result.blockers,
+        )
       end
 
       # parse_ts, parse_json_field, redis_client_from_url, redact_url,

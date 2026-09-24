@@ -8,9 +8,9 @@
   } from '@/schemas/api/auth/responses/auth';
   import { loggingService } from '@/services/logging.service';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { ensureAuthenticated, ensureMfaPending } from '@/shared/composables/authCompletion';
   import { useSsoLinkConfirm } from '@/shared/composables/useSsoLinkConfirm';
   import { useAuthStore } from '@/shared/stores/authStore';
-  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { providerLabel } from '@/utils/features';
   import { isValidInternalPath } from '@/utils/redirect';
   import { ref, onMounted, computed, nextTick, watch } from 'vue';
@@ -21,7 +21,6 @@
   const route = useRoute();
   const router = useRouter();
   const authStore = useAuthStore();
-  const bootstrapStore = useBootstrapStore();
 
   const { pendingLink, confirmLink, fetchPendingLink, isLoading, error, clearError } =
     useSsoLinkConfirm();
@@ -112,9 +111,23 @@
   const handleConfirmSuccess = async (result: SsoLinkConfirmSuccess) => {
     if (ssoLinkConfirmRequiresMfa(result)) {
       loggingService.debug('[SsoLinkConfirm] MFA required, routing to /mfa-verify');
-      // Mark awaiting_mfa (NOT authenticated) so the MFA route guard permits
-      // /mfa-verify; preserve any ?redirect for the post-verify hop.
-      bootstrapStore.update({ awaiting_mfa: true, authenticated: false });
+      // MFA-pending is the server's statement, not a local patch (#4458). The
+      // /mfa-verify guard admits `mfa_pending` only, so await the snapshot;
+      // preserve any ?redirect for the post-verify hop.
+      //
+      // ADR-046#auth-completion-caller-contract: refresh() may return
+      // 'failed'/'superseded'/'refused' without throwing. Do NOT push to /mfa-verify when the
+      // snapshot did not land. Retry verification (never re-POST the single-use
+      // confirm) then fall through to the terminal panel if still stuck.
+      const outcome = await ensureMfaPending(authStore, 'sso-link-confirm');
+      if (outcome === 'superseded') return; // Newer coordinator run owns this.
+      if (outcome !== 'applied') {
+        // TODO(#4501): confirm error UX with design — reusing the
+        // terminal panel since the single-use token is already consumed on
+        // the server side; the caller cannot retry the POST.
+        linkUnavailable.value = true;
+        return;
+      }
       router.push({
         path: '/mfa-verify',
         query: redirectPath.value ? { redirect: redirectPath.value } : undefined,
@@ -123,7 +136,17 @@
     }
 
     loggingService.debug('[SsoLinkConfirm] Link confirmed, completing sign-in');
-    await authStore.setAuthenticated(true);
+    // ADR-046#auth-completion-caller-contract: gate the post-link navigation on an `applied`
+    // snapshot that lands `authenticated`. Otherwise the user would arrive on a
+    // protected route with the coordinator still unaware of the completed
+    // link.
+    const outcome = await ensureAuthenticated(authStore, 'sso-link-confirm');
+    if (outcome === 'superseded') return;
+    if (outcome !== 'applied') {
+      // TODO(#4501): confirm error UX with design.
+      linkUnavailable.value = true;
+      return;
+    }
 
     // Prefer the backend's redirect target when it is a safe internal path;
     // otherwise the ?redirect query param; otherwise the dashboard.

@@ -7,8 +7,8 @@
 # The method must fail-open (return nil) on any error to allow callers
 # to fall back gracefully. This includes:
 #   - Redis connectivity errors during display_domain_index.get()
-#   - RecordNotFound when the domain_id exists in index but record is gone
-#   - Any unexpected StandardError
+#   - a stale index whose domain record no longer exists
+#   - any unexpected StandardError
 #
 # Security note: Fail-open here means "treat as no custom domain" which
 # falls back to global config. This is acceptable because:
