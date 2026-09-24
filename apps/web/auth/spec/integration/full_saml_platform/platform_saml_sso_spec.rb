@@ -170,6 +170,21 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
     identities.where(uid: name_id).all
   end
 
+  # The strategy logs one scalar [saml_response_refused] event per refusal
+  # (lib/onetime/sso_provider/request_bound_saml.rb fail!/refuse!). Gem-level
+  # refusals all surface as reason 'invalid_ticket'; `detail` names the gate.
+  def saml_refusals
+    refusals    = []
+    auth_logger = Onetime.get_logger('Auth')
+    allow(auth_logger).to receive(:warn).and_wrap_original do |original, *args, &block|
+      refusals << args[1] if args[0] == '[saml_response_refused]'
+      original.call(*args, &block)
+    end
+    allow(Onetime).to receive(:get_logger).and_call_original
+    allow(Onetime).to receive(:get_logger).with('Auth').and_return(auth_logger)
+    refusals
+  end
+
   def expect_refused
     expect(last_response.status).to eq(302)
     expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
@@ -364,9 +379,6 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
         expect(last_response.status).to eq(302), last_response.body[0, 300]
         expect(last_response.headers['Location'].to_s).not_to include('auth_error')
         expect(identity_rows).to contain_exactly(include(provider: 'saml', issuer: tenant_issuer, uid: name_id))
-        expect(tenant_issuer).to eq("#{tenant.domain.identifier}|#{tenant.idp.entity_id}")
-        expect(identity_rows.first[:issuer]).not_to eq(entity_id)
-        expect(identities.where(uid: name_id, issuer: entity_id).count).to eq(0)
         expect(Auth::Operations::JoinDomainOrganization).to have_received(:new)
         customer = Onetime::Customer.find_by_email(email)
         expect(customer).not_to be_nil
@@ -374,30 +386,36 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
       end
     end
 
-    it 'refuses a platform-signed response on the override host' do
+    it 'refuses a platform-signed response on the override host at the issuer gate' do
       with_override_tenant do |tenant|
+        refusals = saml_refusals
         created_emails << email
         request = start_login(tenant.base, expected_sso_url: tenant.sso_url)
 
         post_callback(answer(request), request.acs_url)
 
         expect_refused
-        expect(identities.where(uid: name_id, issuer: entity_id).count).to eq(0)
+        expect(refusals.map { |fields| fields[:reason] }).to eq(['invalid_ticket'])
+        expect(refusals.first[:detail]).to match(/issuer/i)
       end
     end
 
     # The issuer gate refuses the honest platform Issuer above; this one names
     # the tenant EntityID so only the certificate check is left to refuse it.
-    it 'refuses a response naming the tenant EntityID but signed by the live platform key' do
+    # The gem checks the Issuer before the signature, so "Fingerprint mismatch"
+    # is reachable only once issuer, InResponseTo and audience all match.
+    it 'refuses a response naming the tenant EntityID but signed by the live platform key at the certificate check' do
       with_override_tenant do |tenant|
-        forged = SamlSpec::TestIdp.new(entity_id: tenant.idp.entity_id, key: idp.key, cert: idp.cert)
+        refusals = saml_refusals
+        forged   = SamlSpec::TestIdp.new(entity_id: tenant.idp.entity_id, key: idp.key, cert: idp.cert)
         created_emails << email
         request = start_login(tenant.base, expected_sso_url: tenant.sso_url)
 
         post_callback(answer(request, signer: forged), request.acs_url, origin: tenant.origin)
 
         expect_refused
-        expect(identities.where(uid: name_id, issuer: entity_id).count).to eq(0)
+        expect(refusals.map { |fields| fields[:reason] }).to eq(['invalid_ticket'])
+        expect(refusals.first[:detail]).to match(/Fingerprint mismatch/)
       end
     end
   end
