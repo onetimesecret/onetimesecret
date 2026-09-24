@@ -553,6 +553,15 @@ RSpec.describe Core::Views::ConfigSerializer do
   end
 
   describe '.build_sso_config' do
+    # The platform SAML ACS is pinned to site.host at boot
+    # (Onetime::SsoProvider::Saml.platform_acs_url), and the display gate
+    # asks the same predicate the runtime refuses on (Saml.platform_host?).
+    # base_view_vars names the canonical host as the request host, so pin
+    # site.host to it here rather than to whatever the test config carries.
+    before do
+      allow(Onetime::SsoProvider::Saml).to receive(:platform_base_url).and_return("https://#{canonical_domain}")
+    end
+
     describe 'on canonical domain (no tenant)' do
       context 'when platform SSO is disabled' do
         before do
@@ -615,6 +624,53 @@ RSpec.describe Core::Views::ConfigSerializer do
           expect(result['connect_providers']).to eq([
             { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
           ])
+        end
+
+        # A subdomain is an operator host (operator_domain? is true) but not
+        # the ACS host: RequestBoundSAML refuses the start there as
+        # saml_acs_host_mismatch, so the button must not be offered.
+        it 'omits platform SAML (the ACS is pinned to site.host, not the subdomain)' do
+          allow(mock_auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+          ])
+
+          result = described_class.build_sso_config(
+            base_view_vars.merge('domain_strategy' => :subdomain, 'display_domain' => "eu.#{canonical_domain}")
+          )
+
+          expect(result['providers'].map { |p| p['route_name'] }).to eq(['oidc'])
+          expect(result['connect_providers']).to eq(result['providers'])
+        end
+      end
+
+      # A split deployment's secondary canonical-set host classifies as
+      # :canonical (DomainStrategy.canonical_host? admits the whole set) but
+      # the platform ACS names site.host alone. Same refusal, same gate.
+      context 'when platform SSO is enabled on a secondary canonical-set host' do
+        before do
+          allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+          allow(mock_auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+          ])
+        end
+
+        it 'omits platform SAML but keeps the host-independent providers' do
+          result = described_class.build_sso_config(
+            base_view_vars.merge('domain_strategy' => :canonical, 'display_domain' => 'secrets.example.net')
+          )
+
+          expect(result['providers']).to eq([{ 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' }])
+          expect(result['connect_providers']).to eq(result['providers'])
+        end
+
+        it 'matches site.host port- and case-insensitively' do
+          result = described_class.build_sso_config(
+            base_view_vars.merge('domain_strategy' => :canonical, 'display_domain' => "#{canonical_domain.upcase}:443")
+          )
+
+          expect(result['providers'].map { |p| p['route_name'] }).to eq(%w[oidc saml])
         end
       end
 

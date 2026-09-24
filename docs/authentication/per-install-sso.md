@@ -745,7 +745,10 @@ sign-in attempt is pending per session: a second tab's request supersedes the
 first, whose response is then refused.
 
 Platform SAML uses one fixed SP EntityID: `SAML_SP_ENTITY_ID`, or its default
-based on `site.host`. Its ACS normally uses `site.host`. With
+based on `site.host`. Its ACS normally uses `site.host`, and `site.host` is the
+only operator host the sign-in button is offered on: a secondary canonical-set
+host, a link host or a subdomain cannot complete the POST callback (the start
+is refused as `saml_acs_host_mismatch`), so the button is not shown there. With
 `SSO_ALLOW_PLATFORM_FALLBACK=true`, a verified custom domain without active
 tenant SSO may use the same platform SAML configuration for **sign-in only**.
 That flow keeps the fixed platform EntityID but sets the ACS to the exact

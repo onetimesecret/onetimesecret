@@ -526,9 +526,19 @@ module Core
           # provider: a Connect callback there is intentionally rejected as a
           # cross-surface intent after consuming the user's re-auth proof.
           #
-          # Platform SAML is visible on operator hosts and wherever this
-          # request positively resolves to a VERIFIED custom domain. That
-          # second arm deliberately reads the record rather than also
+          # Platform SAML is visible on the platform host itself and wherever
+          # this request positively resolves to a VERIFIED custom domain.
+          #
+          # The first arm is operator_domain? narrowed by Saml.platform_host?
+          # — site.host, the one host the boot-pinned platform ACS names —
+          # not operator_domain? alone: the strategy refuses a start on any
+          # other host as saml_acs_host_mismatch, and a secondary
+          # canonical-set host, a link host or a subdomain is "any other
+          # host" to it even though operator_domain? admits all of them. The
+          # other half of the parity rule: "never shown where the POST cannot
+          # complete".
+          #
+          # The second arm deliberately reads the record rather than also
           # requiring tenant_domain? (strategy == :custom), for the same
           # reason Auth::PublicHost.resolve does not: DomainStrategy degrades
           # to :invalid whenever Chooserator raises (an unparseable canonical
@@ -546,8 +556,27 @@ module Core
 
           build_platform_sso_config(
             connectable: !tenant_domain?(view_vars),
-            saml_visible: operator_domain?(view_vars) || resolution.verified_custom_domain?,
+            saml_visible: platform_saml_host?(view_vars) || resolution.verified_custom_domain?,
           )
+        end
+
+        # Whether this request is positively an operator host AND that host is
+        # the one the platform SAML ACS is pinned to at boot (site.host).
+        # Narrower than operator_domain? on purpose — see build_sso_config —
+        # while keeping its positive classification: a :default / :invalid
+        # request whose display_domain was sanitized back to the canonical
+        # host is not thereby ON the canonical host
+        # (ADR-024#operator-defaults-require-positive-classification).
+        # display_domain is the detected request host whenever domains are
+        # enabled (DomainStrategy), which is the only deployment shape with
+        # more than one operator host. Fails closed: a blank, unparseable or
+        # unconfigured site.host answers false.
+        #
+        # @param view_vars [Hash] View variables
+        # @return [Boolean]
+        def platform_saml_host?(view_vars)
+          operator_domain?(view_vars) &&
+            Onetime::SsoProvider::Saml.platform_host?(view_vars['display_domain'])
         end
 
         # Resolve tenant SSO configuration from request context
@@ -743,10 +772,12 @@ module Core
         # providers on its own if it gains another caller — so it re-checks
         # rather than relying on the caller's guard.
         #
-        # Platform SAML is offered on operator hosts and on positively resolved,
-        # verified custom domains. Runtime still owns whether the route can
-        # complete; this display gate prevents unknown, unverified, or unreadable
-        # domain state from widening the surface.
+        # Platform SAML is offered on the platform host (site.host, where its
+        # ACS is pinned) and on positively resolved, verified custom domains.
+        # Runtime still owns whether the route can complete; this display gate
+        # prevents unknown, unverified, or unreadable domain state — and the
+        # operator's OTHER hosts, where the POST cannot complete — from
+        # widening the surface.
         #
         # @param connectable [Boolean] whether this host may initiate Connect
         # @param saml_visible [Boolean] whether platform SAML may be advertised
