@@ -757,7 +757,6 @@ jobs:
     runs-on: *runs-on
     needs: [changes, ruby-lint, build-assets]
     if: *if-ruby-integration
-    permissions: *perms-pr-comment
 
     steps:
       - *checkout-step
