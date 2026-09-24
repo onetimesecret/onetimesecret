@@ -376,9 +376,9 @@ GEM
       json_schemer (~> 2)
       logger
       tilt (~> 2)
-    roda (3.106.0)
+    roda (3.108.0)
       rack
-    rodauth (2.45.0)
+    rodauth (2.48.0)
       roda (>= 2.6.0)
       sequel (>= 4)
     rodauth-omniauth (0.6.2)
@@ -457,7 +457,7 @@ GEM
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
       logger
-    sequel (5.106.0)
+    sequel (5.108.0)
       bigdecimal
     serverengine (2.4.0)
       base64 (~> 0.1)
