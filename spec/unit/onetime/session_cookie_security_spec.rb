@@ -165,6 +165,55 @@ RSpec.describe Onetime::Session do
         end
       end
     end
+
+    describe 'delete path' do
+      let(:sid) { 'c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655' }
+
+      # Neutralize the Familia StringKey; the sidecar probe and purge are
+      # stubbed per example to drive the warn and error branches, which run
+      # outside the blob-exists branch (v0.26.12) and must still mask the sid.
+      def destroy_session
+        allow(middleware).to receive(:get_stringkey).and_return(double('stringkey', del: 1))
+        middleware.send(:delete_session, request_for('/'), sid, {})
+      end
+
+      def entry_for(message)
+        log_entries.find { |_, msg, _| msg == message }
+      end
+
+      it 'truncates the session id on the in-flight sidecar warning' do
+        allow(Onetime::SessionSidecar).to receive(:inflight_fields).and_return(['awaiting_mfa'])
+        allow(Onetime::SessionSidecar).to receive(:purge)
+        destroy_session
+
+        _, _, fields = entry_for('Session destroyed with in-flight sidecar state')
+        expect(fields[:session_id]).to eq('c9803eb9...')
+      end
+
+      it 'truncates the session id on the sidecar purge failure' do
+        allow(Onetime::SessionSidecar).to receive(:inflight_fields).and_return([])
+        allow(Onetime::SessionSidecar).to receive(:purge).and_raise(StandardError, 'boom')
+        destroy_session
+
+        _, _, fields = entry_for('Sidecar purge failed (orphans are TTL-bounded)')
+        expect(fields[:session_id]).to eq('c9803eb9...')
+      end
+
+      { 'purge succeeds' => false, 'purge raises' => true }.each do |label, purge_raises|
+        it "never emits the raw sid or the redis key in any delete-path entry (#{label})" do
+          allow(Onetime::SessionSidecar).to receive(:inflight_fields).and_return(['awaiting_mfa'])
+          purge = allow(Onetime::SessionSidecar).to receive(:purge)
+          purge.and_raise(StandardError, 'boom') if purge_raises
+          destroy_session
+
+          expect(log_entries).not_to be_empty
+          log_entries.each do |_, _, fields|
+            expect(fields.values.map(&:to_s).join(' ')).not_to include(sid)
+            expect(fields).not_to have_key(:redis_key)
+          end
+        end
+      end
+    end
   end
 end
 
