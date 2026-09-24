@@ -826,12 +826,15 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           expect(current_config.display_name).to eq('Original OIDC')
         end
 
-        it 'refuses a bare disable too (DELETE and PUT remain the escape hatches)' do
+        it 'accepts a bare disable without rewriting ciphertext' do
+          before = Familia.dbclient.hgetall(current_config.dbkey)
           csrf_patch api_path(test_custom_domain.extid), { enabled: false }
 
-          expect(last_response.status).to eq(422)
-          expect(json_body['field']).to eq('client_secret')
-          expect(current_config.enabled?).to be true
+          expect(last_response.status).to eq(200), last_response.body
+          expect(json_body['record']).to include('enabled' => false, 'unreadable_fields' => ['client_secret'])
+          after = Familia.dbclient.hgetall(current_config.dbkey)
+          expect(after.except('enabled', 'updated')).to eq(before.except('enabled', 'updated'))
+          expect(current_config.enabled?).to be false
         end
 
         it 'accepts a PATCH that supplies a replacement secret, which then decrypts' do
@@ -852,6 +855,139 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           expect(last_response.status).to eq(422)
           expect(json_body).to include('error_type' => 'missing', 'field' => 'client_secret')
           expect(current_config.display_name).to eq('Original Name')
+        end
+      end
+    end
+
+    context 'narrow disable recovery' do
+      def recovery_config
+        Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+      end
+
+      def recovery_snapshot
+        Familia.dbclient.hgetall(recovery_config.dbkey)
+      end
+
+      %w[oidc entra_id saml].each do |provider|
+        context "with unreadable #{provider} credentials" do
+          let(:unreadable_fields) do
+            provider == 'saml' ? %w[idp_sso_service_url idp_entity_id idp_cert] : %w[client_id client_secret]
+          end
+
+          before do
+            Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_custom_domain.identifier)
+            attributes = if provider == 'saml'
+              {
+                idp_sso_service_url: 'https://idp.example.com/sso',
+                idp_entity_id: 'https://idp.example.com/metadata',
+                idp_cert: DomainSsoTestFixtures.saml_cert_pem,
+              }
+            else
+              { client_id: 'client', client_secret: 'secret', issuer: 'https://auth.example.com', tenant_id: 'tenant' }
+            end
+            config = Onetime::CustomDomain::SsoConfig.create!(
+              **attributes, domain_id: test_custom_domain.identifier, provider_type: provider,
+              enabled: true, enforce_sso_only: true,
+            )
+            foreign = Onetime::CustomDomain::SsoConfig.new(domain_id: "foreign-#{test_run_id}")
+            unreadable_fields.each do |field|
+              foreign.public_send(:"#{field}=", 'foreign-value')
+              Familia.dbclient.hset(config.dbkey, field, foreign.public_send(field).encrypted_value)
+            end
+            login_as(test_owner)
+          end
+
+          it 'clears both flags, retains unreadable fields and all other stored values, and audits the disable' do
+            before = recovery_snapshot
+            expect_any_instance_of(DomainsAPI::Logic::SsoConfig::PatchSsoConfig)
+              .to receive(:log_sso_change_event).with(hash_including(event: :domain_sso_config_updated)).and_call_original
+            expect_any_instance_of(DomainsAPI::Logic::SsoConfig::PatchSsoConfig)
+              .to receive(:log_sso_change_event).with(hash_including(event: :domain_sso_config_disabled)).and_call_original
+
+            csrf_patch api_path(test_custom_domain.extid), { enabled: false, enforce_sso_only: false }
+
+            expect(last_response.status).to eq(200), last_response.body
+            expect(json_body['record']).to include('enabled' => false, 'enforce_sso_only' => false)
+            expect(json_body['record']['unreadable_fields']).to match_array(unreadable_fields)
+            expect(recovery_config.enabled?).to be false
+            expect(recovery_config.enforce_sso_only?).to be false
+            expect(recovery_snapshot.except('enabled', 'enforce_sso_only', 'updated'))
+              .to eq(before.except('enabled', 'enforce_sso_only', 'updated'))
+          end
+
+          it 'accepts a bare disable when enforcement is already off' do
+            config = recovery_config
+            config.enforce_sso_only = 'false'
+            config.commit_fields
+            before = recovery_snapshot
+
+            csrf_patch api_path(test_custom_domain.extid), { enabled: false }
+
+            expect(last_response.status).to eq(200), last_response.body
+            expect(json_body['record']['unreadable_fields']).to match_array(unreadable_fields)
+            expect(recovery_config.enabled?).to be false
+            expect(recovery_snapshot.except('enabled', 'updated')).to eq(before.except('enabled', 'updated'))
+          end
+
+          [
+            { enabled: false },
+            { enabled: true, enforce_sso_only: false },
+            { enabled: 'false', enforce_sso_only: false },
+            { enabled: false, enforce_sso_only: 'false' },
+            { enabled: false, enforce_sso_only: true },
+            { enabled: false, enforce_sso_only: false, display_name: 'Renamed' },
+            { enabled: false, enforce_sso_only: false, client_secret: '' },
+            { enabled: false, enforce_sso_only: false, grant_org_scope: false },
+            { enabled: false, enforce_sso_only: false, unexpected: false },
+            { enabled: false, enforce_sso_only: false, idp_cert_fingerprint: 'fingerprint' },
+          ].each do |payload|
+            it "rejects #{payload.inspect} without writing" do
+              before = recovery_snapshot
+              csrf_patch api_path(test_custom_domain.extid), payload
+
+              expect(last_response.status).to eq(422), last_response.body
+              expect(recovery_snapshot).to eq(before)
+            end
+          end
+
+          it 'still requires authentication' do
+            clear_cookies
+            before = recovery_snapshot
+            csrf_patch api_path(test_custom_domain.extid), { enabled: false, enforce_sso_only: false }
+
+            expect(last_response.status).to eq(401)
+            expect(recovery_snapshot).to eq(before)
+          end
+
+          it 'still requires the SSO feature flag' do
+            disable_sso_feature_flag
+            before = recovery_snapshot
+            csrf_patch api_path(test_custom_domain.extid), { enabled: false, enforce_sso_only: false }
+
+            expect(last_response.status).to eq(422)
+            expect(json_body['error']).to include('Organization SSO is not enabled')
+            expect(recovery_snapshot).to eq(before)
+          end
+
+          it 'still requires ownership' do
+            clear_cookies
+            login_as(test_non_owner)
+            before = recovery_snapshot
+            csrf_patch api_path(test_custom_domain.extid), { enabled: false, enforce_sso_only: false }
+
+            expect(last_response.status).to eq(403)
+            expect(recovery_snapshot).to eq(before)
+          end
+
+          it 'still requires the manage_sso entitlement' do
+            allow_any_instance_of(Onetime::Organization).to receive(:can?).with('manage_sso').and_return(false)
+            before = recovery_snapshot
+            csrf_patch api_path(test_custom_domain.extid), { enabled: false, enforce_sso_only: false }
+
+            expect(last_response.status).to eq(422)
+            expect(json_body['error']).to include('manage_sso')
+            expect(recovery_snapshot).to eq(before)
+          end
         end
       end
     end

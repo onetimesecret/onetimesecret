@@ -27,8 +27,8 @@ module DomainsAPI
       #   saml), optional for update (preserves existing if empty). Switching to
       #   entra_id requires a secret — from the request or already stored. A
       #   stored secret that cannot be decrypted (GET names it in
-      #   unreadable_fields) must be replaced before any update is accepted,
-      #   oidc included: corrupt ciphertext is never carried forward.
+      #   unreadable_fields) must be replaced before ordinary edits are accepted,
+      #   oidc included. A flag-only disable preserves unreadable ciphertext.
       # - idp_sso_service_url, idp_entity_id, idp_cert: Required for saml on
       #   create (#4450; see SamlFields); each preserves its existing value if
       #   empty. idp_cert_fingerprint (and its ruby-saml siblings) is refused
@@ -96,11 +96,11 @@ module DomainsAPI
           # Never accepted, whatever the provider type (see SamlFields)
           reject_forbidden_saml_params!
 
-          # Validate client credentials
-          validate_client_credentials
-
-          # Validate provider-specific fields
-          validate_provider_specific_fields
+          @disable_only = disable_only_request?
+          unless @disable_only
+            validate_client_credentials
+            validate_provider_specific_fields
+          end
 
           # Validate enforce_sso_only requires enabled (using effective values for PATCH semantics)
           effective_enabled = @enabled_provided ? @enabled : @existing_config&.enabled?
@@ -169,6 +169,14 @@ module DomainsAPI
         end
 
         private
+
+        # Recovery is existing-record, literal-false, flag-only; metadata is not an edit.
+        # Enforcement must be explicitly cleared if set. Never rewrite encrypted fields.
+        def disable_only_request?
+          @existing_config && params['enabled'].equal?(false) &&
+            (!params.key?('enforce_sso_only') || params['enforce_sso_only'].equal?(false)) &&
+            (params.keys - %w[enabled enforce_sso_only extid shrimp]).empty?
+        end
 
         # Validates and resolves provider_type with PATCH semantics.
         #
@@ -351,7 +359,16 @@ module DomainsAPI
         # config could be deleted between existence check and update.
         #
         def update_existing_config
-          @sso_config       = @existing_config
+          @sso_config = @existing_config
+          if @disable_only
+            @sso_config.enabled          = 'false'
+            @sso_config.enforce_sso_only = 'false' if @enforce_sso_only_provided
+            @sso_config.updated          = Familia.now.to_i
+            # Credential validation cannot gate recovery; retain atomic persistence.
+            @sso_config.commit_fields
+            return
+          end
+
           provider_switched = @provider_type != @existing_config.provider_type
 
           # PATCH semantics: only update fields that are provided (non-empty)
