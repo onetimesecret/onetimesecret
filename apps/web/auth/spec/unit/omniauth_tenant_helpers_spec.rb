@@ -741,20 +741,43 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       expect(session).not_to include(:omniauth_tenant_domain_id, :omniauth_tenant_host)
     end
 
-    it 'retains pending tenant context during callback setup' do
+    # Callback setup with the tenant markers still pending: the response
+    # answers a TENANT flow whose config went away between request and
+    # callback (record disabled mid-flow). Continuing with platform defaults
+    # would let the retained markers stamp the platform IdP's assertion as a
+    # validated tenant callback (and join the tenant org). Refused instead.
+    it 'refuses a callback that still carries pending tenant markers and drops them' do
       allow(strategy).to receive(:on_request_path?).and_return(false)
       allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return('tenant.example')
 
-      result = catch(:halt) do
+      catch(:halt) do
         helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
-        :allowed
       end
 
-      expect(result).to eq(:allowed)
-      expect(session).to include(
-        omniauth_tenant_domain_id: 'stale-domain-id',
-        omniauth_tenant_host: 'tenant.example',
+      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+      expect(session).not_to include(:omniauth_tenant_domain_id, :omniauth_tenant_host)
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :omniauth_tenant_no_config,
+        level: :warn,
+        host: 'tenant.example',
+        pending_tenant_flow_dropped: true,
       )
+    end
+
+    # The live session stringifies the marker keys; the check must see them
+    # in that form too, or a real callback would slip through as fallback.
+    it 'sees stringified markers the way the live session hands them back' do
+      session.clear
+      session['omniauth_tenant_domain_id'] = 'stale-domain-id'
+      session['omniauth_tenant_host']      = 'tenant.example'
+      allow(strategy).to receive(:on_request_path?).and_return(false)
+      allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return('tenant.example')
+
+      catch(:halt) do
+        helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+      end
+
+      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
     end
 
     # An abandoned tenant request leaves more than the two markers behind: the
@@ -807,7 +830,27 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
         expect(session).to eq(account_id: 42)
       end
 
-      it 'retains the pending binding together with the markers during callback setup' do
+      # THE RULE, callback half (see clear_pending_tenant_context): a tenant
+      # flow whose config is gone at the callback drops the whole pending
+      # context — markers and binding — and is refused, never run on the
+      # platform defaults.
+      it 'drops the binding with the stale markers during callback setup and refuses' do
+        allow(strategy).to receive(:on_request_path?).and_return(false)
+
+        catch(:halt) do
+          helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+        end
+
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+        expect(session).to eq(account_id: 42)
+      end
+
+      # The other half: a callback WITHOUT markers is the platform-fallback
+      # flow this same helper started on its request phase. Its binding is
+      # what lets that callback complete, so it must be left alone.
+      it 'retains a platform-fallback binding during callback setup when no tenant markers are pending' do
+        session.delete(:omniauth_tenant_domain_id)
+        session.delete(:omniauth_tenant_host)
         allow(strategy).to receive(:on_request_path?).and_return(false)
 
         result = catch(:halt) do
@@ -816,11 +859,11 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
         end
 
         expect(result).to eq(:allowed)
+        expect(rodauth).not_to have_received(:redirect)
         expect(session).to include(
-          omniauth_tenant_domain_id: 'stale-domain-id',
-          omniauth_tenant_host: 'tenant.example',
           'saml_authn_request_id' => '_stale-authn-request-id',
           'omniauth.state' => 'stale-oauth-state',
+          account_id: 42,
         )
       end
     end

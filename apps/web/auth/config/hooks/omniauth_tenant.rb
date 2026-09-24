@@ -635,6 +635,11 @@ module Auth::Config::Hooks
     # Handle requests where no tenant SSO config is available.
     # Either allows fallback to platform credentials or rejects.
     #
+    # Even when fallback is allowed, a CALLBACK that still carries pending
+    # tenant markers is refused: it answers a tenant flow whose config went
+    # away mid-flow, not a platform-fallback flow (see the rule on
+    # clear_pending_tenant_context).
+    #
     # Configured via auth_config.allow_platform_fallback_for_tenants?, but
     # fallback also requires the AUTH_ENABLED master switch: platform
     # credentials must not process sign-ins the app would ignore anyway
@@ -674,7 +679,30 @@ module Auth::Config::Hooks
         strategy = request&.env&.fetch('omniauth.strategy', nil)
         if !request_bound_platform_acs_strategy?(strategy) ||
            bind_platform_fallback_acs(strategy, request, host: host)
-          clear_pending_tenant_context(rodauth.session) if strategy&.on_request_path?
+          if strategy&.on_request_path?
+            # A new platform start supersedes whatever tenant flow was pending.
+            clear_pending_tenant_context(rodauth.session)
+          elsif strategy && pending_tenant_flow?(rodauth.session)
+            # Callback setup with tenant markers still pending: this response
+            # belongs to a TENANT flow whose config is gone (record disabled
+            # or deleted between request and callback). Running it with the
+            # platform defaults would let the retained markers stamp it as a
+            # validated tenant callback and join the tenant organization on
+            # the strength of the platform IdP's assertion. Drop the whole
+            # flow and refuse; without markers the callback is the legitimate
+            # platform-fallback flow this helper started, and its own
+            # binding is left alone.
+            clear_pending_tenant_context(rodauth.session)
+
+            Auth::Logging.log_auth_event(
+              :omniauth_tenant_no_config,
+              level: :warn,
+              host: host,
+              pending_tenant_flow_dropped: true,
+            )
+
+            rodauth.send(:redirect, '/signin?auth_error=sso_not_configured')
+          end
 
           Auth::Logging.log_auth_event(
             operator_host ? :omniauth_canonical_domain_stale_record : :omniauth_tenant_fallback_to_platform,
@@ -694,10 +722,35 @@ module Auth::Config::Hooks
       rodauth.send(:redirect, '/signin?auth_error=sso_not_configured')
     end
 
-    # A new platform request supersedes any abandoned tenant request in the
-    # same session: the tenant markers AND the per-strategy binding the
-    # abandoned request parked (the pending SAML AuthnRequest id, the
-    # OAuth/OIDC state / nonce / PKCE verifier / params) go together.
+    # Are tenant markers pending in this session (a tenant request phase ran
+    # and no callback has consumed them yet)? Both key forms: the markers are
+    # written as symbols, the live Rack session stringifies them, and a plain
+    # Hash standing in for the session (unit specs) does not.
+    #
+    # @param session [#[]] the Rack session (or a Hash standing in for it)
+    # @return [Boolean]
+    def self.pending_tenant_flow?(session)
+      !(session[:omniauth_tenant_domain_id] || session['omniauth_tenant_domain_id']).nil?
+    end
+
+    # Drop the whole pending tenant context: the tenant markers AND the
+    # per-strategy binding the request phase parked (the pending SAML
+    # AuthnRequest id, the OAuth/OIDC state / nonce / PKCE verifier / params).
+    # They go together, always.
+    #
+    # THE RULE. A tenant flow whose config is refused or gone at ANY phase
+    # drops the whole pending context; a platform-fallback flow's own binding
+    # is never touched. Three callers apply it:
+    #
+    #   - handle_missing_tenant_config, request path: a new platform start
+    #     supersedes any abandoned tenant request in the same session.
+    #   - handle_missing_tenant_config, callback path WITH pending markers:
+    #     the response belongs to a tenant flow whose config disappeared
+    #     mid-flow; it is dropped and refused. Without markers the callback
+    #     is the platform-fallback flow this helper itself started, and its
+    #     binding is retained so it can complete.
+    #   - refuse_unusable_tenant_config, every phase: a record that cannot
+    #     produce options refuses the flow outright.
     #
     # The markers alone are not enough. before_omniauth_callback_route reads
     # a missing :omniauth_tenant_domain_id as "platform-level auth" and skips
@@ -708,16 +761,15 @@ module Auth::Config::Hooks
     # processed on the platform path: allowlist never consulted, identity
     # keyed by the bare EntityID. With the binding gone that response is
     # refused at the strategy (saml_no_pending_request / state mismatch),
-    # which is the fail-closed outcome the pre-fallback code had.
+    # which is the fail-closed outcome the pre-fallback code had — and the
+    # tenant_context_missing refusal in before_omniauth_callback_route is
+    # the belt should a binding ever outlive its markers regardless.
     #
     # Ordering: this runs in omniauth_setup, i.e. OmniAuth::Strategy#setup_phase,
     # which request_call invokes BEFORE it writes omniauth.params and before
     # request_phase writes the new state / request id — so nothing of the
     # request being started is touched. The markers themselves are rewritten
     # by the next tenant request phase, or stay absent for a platform one.
-    #
-    # Callback setup must retain everything so a real tenant callback can
-    # validate and consume its own markers and binding.
     #
     # Key forms match each writer: the tenant markers are written as symbols
     # here; the binding keys are the strategies' string literals (see
@@ -791,9 +843,9 @@ module Auth::Config::Hooks
 
       # A record that cannot produce usable options is REFUSED — never handed
       # to handle_missing_tenant_config, whose platform-fallback arm would run
-      # this tenant's login through the PLATFORM's IdP while the tenant
-      # context stored above still stamps the callback as validated for this
-      # domain (and joins its organization). Today only the SAML arm raises
+      # this tenant's login through the PLATFORM's IdP: a broken record must
+      # be reported as broken (sso_config_unusable), never silently downgraded
+      # to a platform sign-in on the tenant's host. Today only the SAML arm raises
       # here: an unreadable (AAD-bound) or unusable trio — blank field,
       # non-https URL, unparseable or EXPIRED certificate (#4450). A SAML
       # strategy with a half-known trust anchor must not run at all; ruby-saml
