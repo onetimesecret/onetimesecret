@@ -551,6 +551,52 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
     end
   end
 
+  # ── callback: the record went away mid-flow, platform fallback allowed ────
+  #
+  # The other half of the rule on clear_pending_tenant_context. The request
+  # phase parked the markers and the AuthnRequest id; the record is then
+  # disabled before the IdP answers. With platform fallback ALLOWED for
+  # tenants, handle_missing_tenant_config used to clear the pending context
+  # only on the request path and let this callback run on the platform
+  # defaults — while the retained markers stamped it as a validated TENANT
+  # callback and joined the tenant org. A callback that still carries the
+  # markers is a tenant flow whose config is gone: dropped and refused.
+  describe 'a response to a tenant flow whose record was disabled mid-flow, with platform fallback allowed' do
+    let(:name_id) { "gone-#{run_id}" }
+    let(:email)   { "gone-#{run_id}@saml-tenant.example.com" }
+
+    it 'drops the whole pending context and refuses as sso_not_configured' do
+      allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      created_emails << email
+      events  = audit_events
+      request = start_login(tenant_a)
+      expect(last_request.env['rack.session'].to_h.keys.map(&:to_s))
+        .to include('omniauth_tenant_domain_id', 'saml_authn_request_id')
+
+      Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant_a.domain.identifier).disable!
+
+      # No Origin: a disabled record is no longer admitted by HttpOriginOptions
+      # (pinned below), and the property under test sits behind that gate.
+      post_callback(tenant_a, tenant_a.idp.response(
+        in_response_to: request.id, acs_url: request.acs_url, audience: request.sp_entity_id,
+        name_id: name_id, attributes: { 'email' => [email] }
+      ), origin: nil)
+
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_not_configured')
+      expect(last_request.env['rack.session'].to_h.keys.map(&:to_s))
+        .not_to include('omniauth_tenant_domain_id', 'omniauth_tenant_host', 'saml_authn_request_id')
+      expect(last_request.env['rack.session'].to_h['account_id']).to be_nil
+      expect(identity_rows(name_id)).to be_empty
+      expect(db[:accounts].where(email: email).count).to eq(0)
+      expect(Onetime::Customer.find_by_email(email)).to be_nil
+      expect(events.map(&:first)).not_to include(:omniauth_tenant_callback_validated, :login_success)
+      no_config = events.find { |event, _| event == :omniauth_tenant_no_config }
+      expect(no_config).not_to be_nil
+      expect(no_config.last).to include(level: :warn, host: tenant_a.host, pending_tenant_flow_dropped: true)
+    end
+  end
+
   # ── HttpOrigin admission of the tenant IdP ────────────────────────────────
   #
   # Rack::Protection::HttpOrigin IS mounted on the auth app in every
