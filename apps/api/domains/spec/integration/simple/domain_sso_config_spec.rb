@@ -1649,6 +1649,37 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           expect(stored_config.enabled?).to be false
         end
 
+        # The form does not send a bare { enabled: false }: it re-sends every
+        # stored field on save (useSsoConfig.ts providerFields), and GET hands
+        # it the stored PEM to re-send. A value equal to the stored one was
+        # accepted when it was stored, so it is not re-validated — otherwise
+        # the expiry rule above holds only for a hand-written PATCH.
+        it 'can disable via a form save that re-sends the stored, now-expired certificate' do
+          expired         = expired_saml_cert_pem
+          config          = stored_config
+          config.idp_cert = expired
+          config.commit_fields
+
+          csrf_patch api_path(test_custom_domain.extid), valid_saml_params.merge(idp_cert: expired, enabled: false)
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_config.enabled?).to be false
+          expect(stored_config.reveal_saml_field(:idp_cert)).to eq(expired.strip)
+        end
+
+        it 'still refuses a CHANGED expired certificate on that same save' do
+          config          = stored_config
+          config.idp_cert = expired_saml_cert_pem
+          config.commit_fields
+
+          csrf_patch api_path(test_custom_domain.extid),
+            valid_saml_params.merge(idp_cert: expired_saml_cert_pem, enabled: false)
+
+          expect(last_response.status).to eq(422)
+          expect(json_body).to include('error_type' => 'invalid', 'field' => 'idp_cert')
+          expect(stored_config.enabled?).to be true
+        end
+
         it 'requires a client_id when switching away to oidc' do
           csrf_patch api_path(test_custom_domain.extid), { provider_type: 'oidc', issuer: 'https://auth.example.com' }
 
@@ -1706,7 +1737,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           expect(json_body['field']).to eq('idp_cert_fingerprint')
         end
 
-        # SamlFields#stored_saml_value?: a stored value that will not decrypt
+        # SamlFields#stored_saml_value: a stored value that will not decrypt
         # (swapped in from another domain, corrupted, foreign key) counts as
         # ABSENT, so a partial update cannot quietly preserve a trust anchor
         # nobody can read; the admin must re-enter it. Fail closed — a

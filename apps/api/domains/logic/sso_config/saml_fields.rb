@@ -88,18 +88,30 @@ module DomainsAPI
         #
         # @param stored [Onetime::CustomDomain::SsoConfig, nil] PATCH semantics:
         #   a blank submitted field is acceptable when this record already
-        #   holds a readable value for it (it will be preserved). nil — PUT,
-        #   test_connection, or a create — makes every field required.
+        #   holds a readable value for it (it will be preserved), and a
+        #   submitted value equal to that stored value is accepted WITHOUT
+        #   re-validation: it passed these checks when it was stored, and
+        #   only a change to it is a new value to accept. This is what keeps
+        #   the expiry rule (see the header) true in practice — the form
+        #   re-sends every stored field on save (useSsoConfig.ts
+        #   providerFields), so re-checking an unchanged certificate that has
+        #   since expired would refuse the one save that switches the config
+        #   off. nil — PUT, test_connection, or a create — makes every field
+        #   required and validates every one.
         def validate_saml_fields!(stored: nil)
           reject_forbidden_saml_params!
           reject_incompatible_session_cookie! if stored.nil?
 
           saml_submitted.each do |field, value|
+            stored_value = stored_saml_value(stored, field)
+
             if value.empty?
-              next if stored_saml_value?(stored, field)
+              next unless stored_value.nil?
 
               raise_form_error("#{saml_label(field)} is required for SAML provider", field: field, error_type: :missing)
             end
+
+            next if value == stored_value
 
             problem = saml_problem(field, value)
             raise_form_error(problem, field: field, error_type: :invalid) if problem
@@ -144,15 +156,20 @@ module DomainsAPI
           }
         end
 
-        # Whether the stored record holds a readable, non-blank value for the
-        # field. An undecryptable value counts as absent — fail closed: the
-        # caller must then supply a fresh one.
-        def stored_saml_value?(stored, field)
-          return false if stored.nil?
+        # The stored record's readable, non-blank value for the field,
+        # stripped the way process_saml_params strips a submitted one. nil
+        # when there is no record, the value is blank, or it cannot be
+        # revealed — an undecryptable value counts as absent, fail closed:
+        # the caller must then supply a fresh one, which IS validated.
+        #
+        # @return [String, nil]
+        def stored_saml_value(stored, field)
+          return nil if stored.nil?
 
-          !stored.reveal_saml_field(field).strip.empty?
+          value = stored.reveal_saml_field(field).strip
+          value.empty? ? nil : value
         rescue StandardError
-          false
+          nil
         end
 
         def saml_label(field)
