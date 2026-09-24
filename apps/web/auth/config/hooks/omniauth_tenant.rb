@@ -832,13 +832,15 @@ module Auth::Config::Hooks
     # the path shapes in step.
     #
     # Runs ONLY after tenant options were injected: a platform SAML flow
-    # keeps the platform's registered sp_entity_id AND
-    # assertion_consumer_service_url, both pinned to site.host at boot
-    # (Onetime::SsoProvider::Saml.platform_options). A platform-FALLBACK
-    # start on a custom host therefore carries an ACS on another host than
-    # the visitor's session cookie, and RequestBoundSAML refuses it
-    # (:saml_acs_host_mismatch) — platform SAML is served on the canonical
-    # host only, and the serializers do not offer it elsewhere.
+    # keeps the platform's registered sp_entity_id, pinned to site.host at
+    # boot (Onetime::SsoProvider::Saml.platform_options), and its ACS stays
+    # boot-pinned on the canonical host. The one exception is a platform
+    # FALLBACK start on a VERIFIED custom domain: handle_missing_tenant_config
+    # rebinds ONLY the ACS to that host (bind_platform_fallback_acs, keyed on
+    # Auth::PublicHost.resolve) so the cookie host and the ACS host agree;
+    # the platform SP EntityID is never rebound. On any other host the
+    # boot-pinned ACS names a host other than the visitor's session cookie,
+    # and RequestBoundSAML refuses the start (:saml_acs_host_mismatch).
     #
     # @param strategy [OmniAuth::Strategy] The active strategy
     # @return [void]

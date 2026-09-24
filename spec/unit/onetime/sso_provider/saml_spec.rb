@@ -10,8 +10,11 @@
 #   .session_cookie_problem  the SameSite=None + Secure prerequisite as code,
 #                            shared by .platform_options (provider skipped),
 #                            the placeholder boot warning and the API refusal
-#   .platform_host?          the one host platform SAML is served on (its ACS
-#                            URL is pinned to site.host)
+#   .platform_host?          the host the platform ACS is pinned to at boot
+#                            (site.host); descriptive only, since platform
+#                            fallback on a verified custom domain rebinds the
+#                            ACS per request (OmniAuthTenant.bind_platform_
+#                            fallback_acs)
 #
 # Run: RACK_ENV=test bundle exec rspec spec/unit/onetime/sso_provider/saml_spec.rb
 

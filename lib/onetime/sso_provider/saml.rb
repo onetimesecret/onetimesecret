@@ -518,18 +518,25 @@ module Onetime
         "#{platform_base_url}/auth/sso/#{route_name}/callback"
       end
 
-      # Is +host+ the platform SAML host — the hostname of .platform_base_url?
-      # Port- and case-insensitive, through the same normalizer
+      # Is +host+ the boot-pinned platform SAML host — the hostname of
+      # .platform_base_url, where .platform_acs_url lands? Port- and
+      # case-insensitive, through the same normalizer
       # DomainStrategy.canonical_host? admits a candidate with, so a
       # `site.host` configured as an authority (localhost:7143) matches a
       # request that arrives as `localhost`. False when site.host is not
       # configured (there is no platform SAML host to be).
       #
+      # Descriptive, not a serving gate: platform SAML is ALSO served on a
+      # verified custom domain under platform fallback, where
+      # Auth::Config::Hooks::OmniAuthTenant.bind_platform_fallback_acs
+      # rebinds the ACS per request (keyed on Auth::PublicHost.resolve). This
+      # predicate names only the host the ACS is pinned to at boot.
+      #
       # NARROWER than DomainStrategy.canonical_host? on purpose: that
       # predicate covers the whole canonical SET (features.domains.default,
       # link_domains), and a split deployment's secondary canonical host is
       # NOT the ACS host — a sign-in started there ends as
-      # :saml_no_pending_request like any other off-host start.
+      # :saml_acs_host_mismatch like any other off-host start.
       #
       # @param host [String, nil] a hostname, with or without a port
       # @return [Boolean]
