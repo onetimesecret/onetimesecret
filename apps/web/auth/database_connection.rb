@@ -88,8 +88,9 @@ module Auth
 
     # A connection URL with its userinfo and query string replaced by "***",
     # for exception messages. libpq takes a password in either place
-    # (`?password=`). The userinfo rule is Onetime::Utils.redact_uri_userinfo's,
-    # repeated here because this file loads without the application:
+    # (`?password=`). Same rule as Onetime::Utils.redact_uri_userinfo, repeated
+    # here rather than delegated because this file loads without the
+    # application:
     # everything up to the LAST "@" counts as userinfo, so an unescaped "@" in
     # a password redacts too much rather than printing the rest of it. A "?"
     # before that "@" is either in the password or starts a query with an "@"

@@ -277,23 +277,41 @@ module Onetime
         end
       end
 
-      # A connection URI with its userinfo replaced by "***", for log lines
-      # and exception messages. Redis/Valkey URIs carry their password in the
-      # userinfo, and a URI interpolated into a message is out of reach of
-      # any by-param-name scrubbing downstream.
+      # A connection URI with its userinfo and query string replaced by "***",
+      # for log lines and exception messages. Redis/Valkey URIs carry their
+      # password in the userinfo, but also in the query: setup_connection_pool
+      # builds the client options from `parsed_uri.conf`, and uri-valkey's
+      # `conf` merges every query param into Redis.new, so `?password=s3cret`
+      # is a working credential. A URI interpolated into a message is out of
+      # reach of any by-param-name scrubbing downstream. There is no allowlist
+      # of benign params; the whole query goes.
       #
-      #   redact_uri_userinfo('redis://user:s3cret@db:6379/0') #=> "redis://***@db:6379/0"
-      #   redact_uri_userinfo('redis://db:6379/0')             #=> "redis://db:6379/0"
+      #   redact_uri_userinfo('redis://user:s3cret@db:6379/0')      #=> "redis://***@db:6379/0"
+      #   redact_uri_userinfo('redis://db:6379/0?password=s3cret')  #=> "redis://db:6379/0?***"
+      #   redact_uri_userinfo('redis://db:6379/0?password=p@ss')    #=> "redis://***"
+      #   redact_uri_userinfo('redis://db:6379/0')                  #=> "redis://db:6379/0"
       #
       # String-based rather than URI.parse, because the URIs most likely to be
       # printed are the ones that failed to parse or connect. Everything up to
       # the LAST "@" counts as userinfo, so an unescaped "@" in a password
-      # redacts too much rather than printing the rest of the password.
+      # redacts too much rather than printing the rest of the password. A "?"
+      # before that "@" is either in the password or starts a query with an
+      # "@" in it (`?password=p@ss`); neither split is safe, so everything
+      # after the scheme is redacted. Same rule as
+      # Auth::DatabaseConnection.redact_url, which repeats it because that
+      # file loads without the application.
       #
       # @param uri [String, URI::Generic, nil]
       # @return [String]
       def redact_uri_userinfo(uri)
-        utf8_safe(uri.to_s).sub(%r{\A((?:[a-z][a-z0-9+.-]*:)?//)?.*@}im, '\\1***@')
+        text  = utf8_safe(uri.to_s)
+        at    = text.rindex('@')
+        query = text.index('?')
+        return text.sub(%r{\A((?:[a-z][a-z0-9+.-]*:)?//)?.*}im, '\\1***') if at && query && query < at
+
+        text
+          .sub(%r{\A((?:[a-z][a-z0-9+.-]*:)?//)?.*@}im, '\\1***@')
+          .sub(/\?.*\z/m, '?***')
       end
 
       # Checks whether a value is an explicitly recognized truthy token.
