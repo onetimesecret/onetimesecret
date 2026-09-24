@@ -14,6 +14,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { reactive } from 'vue';
 import type { ScopesAvailable } from '@/types/router';
+import type { Organization } from '@/types/organization';
 
 // Mock router
 const mockPush = vi.fn();
@@ -21,12 +22,7 @@ const mockRoute = reactive<{
   path: string;
   matched: Array<{ path: string }>;
   meta: {
-    scopesAvailable?: {
-      organization?: 'show' | 'locked' | 'hide';
-      domain?: 'show' | 'locked' | 'hide';
-      onOrgSwitch?: string;
-      onDomainSwitch?: string;
-    };
+    scopesAvailable?: ScopesAvailable;
   };
 }>({
   path: '/org/abc123',
@@ -41,8 +37,8 @@ vi.mock('vue-router', () => ({
 
 // Mock organization store
 const mockOrganizationStore = {
-  organizations: [],
-  currentOrganization: null as { extid?: string; objid?: string } | null,
+  organizations: [] as Organization[],
+  currentOrganization: null as Organization | null,
   hasOrganizations: true,
   setCurrentOrganization: vi.fn(),
   fetchOrganizations: vi.fn(),
@@ -237,7 +233,19 @@ describe('ScopeSwitcher Navigation', () => {
       // Regression test: switching domains on /org/:orgid/domains/:extid/brand
       // previously left :orgid as a literal string in the navigated URL,
       // causing downstream API calls to request /api/organizations/:orgid (404).
-      mockOrganizationStore.currentOrganization = { extid: 'org-abc', objid: 'org-obj-1' } as any;
+      mockOrganizationStore.currentOrganization = {
+        objid: 'org-obj-1',
+        extid: 'org-abc',
+        display_name: 'Test Org',
+        description: null,
+        owner_id: 'cust-1',
+        contact_email: null,
+        is_default: false,
+        planid: 'free',
+        active_subscription: false,
+        created: new Date('2024-01-01'),
+        updated: new Date('2024-01-01'),
+      };
       mockRoute.matched = [{ path: '/org/:orgid/domains/:extid/brand' }];
 
       simulateDomainSwitch('test.example.com', 'same');
@@ -430,9 +438,9 @@ describe('ScopeSwitcher Navigation', () => {
   describe('real route configurations', () => {
     it('domain detail pages have correct scope config for domain switching', () => {
       // Simulating /domains/:extid/brand route config
-      const domainBrandConfig = {
-        organization: 'show' as const,
-        domain: 'show' as const,
+      const domainBrandConfig: ScopesAvailable = {
+        organization: 'show',
+        domain: 'show',
         onOrgSwitch: '/dashboard',
         onDomainSwitch: 'same',
       };
@@ -444,8 +452,8 @@ describe('ScopeSwitcher Navigation', () => {
     it('org settings page has correct scope config for org switching', () => {
       // Simulating /org/:extid route config
       const orgSettingsConfig: ScopesAvailable = {
-        organization: 'show' as const,
-        domain: 'hide' as const,
+        organization: 'show',
+        domain: 'hide',
         onOrgSwitch: 'same',
       };
 
@@ -456,8 +464,8 @@ describe('ScopeSwitcher Navigation', () => {
     it('dashboard page has no navigation config (backwards compatible)', () => {
       // Simulating /dashboard route config using SCOPE_PRESETS.showBoth
       const dashboardConfig: ScopesAvailable = {
-        organization: 'show' as const,
-        domain: 'show' as const,
+        organization: 'show',
+        domain: 'show',
       };
 
       expect(dashboardConfig.onOrgSwitch).toBeUndefined();

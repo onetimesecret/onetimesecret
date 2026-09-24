@@ -108,6 +108,8 @@ RSpec.describe Onetime::Operations::Domains::Remove do
           target: 'cd_ext1',
           result: :success,
           detail: hash_including(reasserted: false),
+          # #4333: destroy! has committed by now, so the write is fail-closed.
+          fail_closed: true,
         )
       end
 

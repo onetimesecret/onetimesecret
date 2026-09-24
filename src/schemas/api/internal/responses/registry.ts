@@ -11,7 +11,6 @@ import { z } from 'zod';
 // Colonel (admin) schemas — internal-only
 import {
   backupStatusResponseSchema,
-  bannedIPsResponseSchema,
   brandDiagnosticsResponseSchema,
   colonelCheckoutLinkResponseSchema,
   colonelCustomDomainsResponseSchema,
@@ -31,7 +30,6 @@ import {
 } from './colonel';
 
 // Colonel (admin) per-resource ack schemas — Phase-2 screens (tickets #30-33)
-import { colonelBanIpResponseSchema, colonelUnbanIpResponseSchema } from './colonel-bannedips';
 import {
   colonelDomainConfigDeleteResponseSchema,
   colonelDomainConfigsEnsureResponseSchema,
@@ -192,9 +190,6 @@ export const responseSchemas = {
   backupStatus: backupStatusResponseSchema,
   brandDiagnostics: brandDiagnosticsResponseSchema,
   redisMetrics: redisMetricsResponseSchema,
-  bannedIPs: bannedIPsResponseSchema,
-  colonelBanIp: colonelBanIpResponseSchema,
-  colonelUnbanIp: colonelUnbanIpResponseSchema,
   usageExport: usageExportResponseSchema,
   queueMetrics: queueMetricsResponseSchema,
   systemSettings: systemSettingsResponseSchema,

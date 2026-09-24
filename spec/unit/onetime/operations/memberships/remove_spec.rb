@@ -54,6 +54,9 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
         target: 'ur_member',
         result: :success,
         detail: { org_id: 'on_org_ext' },
+        # #4333: the membership row is destroyed, so the write is fail-closed.
+        # #record_refusal (below) deliberately stays fail-open.
+        fail_closed: true,
       )
     end
   end

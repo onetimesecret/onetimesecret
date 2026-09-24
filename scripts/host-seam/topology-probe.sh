@@ -25,7 +25,8 @@
 # host from an UNTRUSTED source. Rack 3.2.7's `request.host` prefers
 # `X-Forwarded-Host`/`Forwarded` from any client, ungated by proxy trust, so a
 # release that lets an attacker-supplied host reach `O-Display-Domain` is a
-# finding in its own right.
+# finding in its own right. T7 doubles as the exclusion pin for RFC 7239
+# `Forwarded`, which DetectHost no longer reads at all (#4121).
 #
 # This probe is state-dependent for the SSO column only: it needs a
 # CustomDomain + enabled SsoConfig for --custom-host. Seed it with
@@ -66,7 +67,7 @@ TSV=0
 TENANT_ID="host-seam-tenant"
 EVIL="evil.attacker.example"
 
-usage() { sed -n '2,56p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 2; }
+usage() { sed -n '2,57p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 2; }
 # NOTE: usage() prints the header comment block; keep its sed range in sync
 # when the block above grows or shrinks.
 
@@ -111,14 +112,17 @@ ORIGIN="${ORIGIN:-origin-target.internal}"
 # "-" means the header is not sent. Expected strategy is what DomainStrategy
 # SHOULD resolve when the probe source is inside the trusted-proxy set.
 #
-# All four forwarded carriers are covered because production demonstrably uses
-# more than one: the 2026-08-20 capture shows DetectHost resolving one host
-# `via HTTP_APX_INCOMING_HOST` and another `via HTTP_X_ORIGINAL_HOST` in the
-# same window. A harness that only exercised Apx-Incoming-Host would miss half
-# the live ingress paths.
+# All three managed forwarded carriers are covered because production
+# demonstrably uses more than one: the 2026-08-20 capture shows DetectHost
+# resolving one host `via HTTP_APX_INCOMING_HOST` and another
+# `via HTTP_X_ORIGINAL_HOST` in the same window. A harness that only exercised
+# Apx-Incoming-Host would miss half the live ingress paths. RFC 7239
+# `Forwarded` is sent too (T7), as the control that it is IGNORED.
 #
 # DetectHost precedence (detect_host.rb HEADER_PRECEDENCE) is:
-#   X-Forwarded-Host > Apx-Incoming-Host > X-Original-Host > Forwarded > Host
+#   X-Forwarded-Host > Apx-Incoming-Host > X-Original-Host > Host
+# `Forwarded` (RFC 7239) is not in the list: its host= parameter is never a
+# host source (#4121).
 # ---------------------------------------------------------------------------
 TOPOLOGIES=(
   "T1-direct-canonical|${CANONICAL}|-|-|-|-|canonical"
@@ -129,7 +133,11 @@ TOPOLOGIES=(
   "T4-apx-rewrite-xfh|${ORIGIN}|${CUSTOM}|${CUSTOM}|-|-|custom"
   "T5-xfh-only|${ORIGIN}|-|${CUSTOM}|-|-|custom"
   "T6-xoh-only|${ORIGIN}|-|-|${CUSTOM}|-|custom"
-  "T7-forwarded-only|${ORIGIN}|-|-|-|${CUSTOM}|custom"
+  # T7: RFC 7239 `Forwarded: host=` is NOT a host source since #4121. The
+  # request resolves on `Host:` alone — the unknown inbound target — and
+  # DomainStrategy falls back to canonical. `custom` here would mean the
+  # Forwarded host= parameter is being honored again.
+  "T7-forwarded-only|${ORIGIN}|-|-|-|${CUSTOM}|canonical"
   # T8: the inbound target IS the canonical host. A consumer reading the raw
   # Host header lands in the `canonical_domain?` branch of the omniauth setup
   # hook (platform-level request) instead of the tenant-fallback branch, so it

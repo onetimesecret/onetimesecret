@@ -81,9 +81,27 @@ module SpecSelection
     invocations
   end
 
+  # The legs spec:fast runs are FAST_LEGS (lib/tasks/spec.rake); this guard
+  # models a selection for each of them. The names cannot be derived — each
+  # descriptor's pattern is handwritten — so agreement is asserted instead:
+  # a leg added to FAST_LEGS without a descriptor here would run unverified,
+  # and every check below would silently under-count what spec:fast covers.
+  def assert_legs_modeled!
+    modeled = fast_invocations.map { |inv| "spec:#{inv[:name]}" }
+    return if modeled == FAST_LEGS
+
+    abort <<~MSG
+      spec:verify_selection models the legs #{modeled.inspect}
+      but spec:fast runs FAST_LEGS #{FAST_LEGS.inspect}
+      (lib/tasks/spec.rake). Add a descriptor to SpecSelection.fast_invocations
+      for the new leg — or remove the stale one — in the same commit, so the
+      selection guard covers exactly what the lane runs.
+    MSG
+  end
+
   # The invocations spec:fast spawns today. Patterns come from the constants
   # the rake tasks themselves use, so the guard can never verify a pattern the
-  # lane does not run.
+  # lane does not run. Names must mirror FAST_LEGS — see assert_legs_modeled!.
   #
   # @return [Array<Hash>] invocation descriptors
   def fast_invocations
@@ -189,6 +207,8 @@ end
 namespace :spec do
   desc 'Verify spec:fast selects exactly what the legacy 13-invocation fan-out did'
   task :verify_selection do
+    SpecSelection.assert_legs_modeled!
+
     legacy  = SpecSelection.legacy_invocations
       .flat_map { |inv| SpecSelection.files(**inv.except(:name, :tags)) }
       .sort.uniq
@@ -267,6 +287,8 @@ namespace :spec do
     desc 'Verify spec:fast runs the same EXAMPLE IDs as the legacy fan-out (slow: 17 dry-runs)'
     task :deep do
       require 'json'
+
+      SpecSelection.assert_legs_modeled!
 
       outdir = 'tmp/spec_selection'
       mkdir_p outdir

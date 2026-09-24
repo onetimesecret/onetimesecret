@@ -502,7 +502,9 @@ describe('secretStore', () => {
         store.setApiMode('public');
         axiosMock?.onPost('/api/v3/guest/secret/generate').reply(403, guestRoutesDisabledResponse);
 
-        await expect(store.generate({ ttl: 3600, kind: 'generate', share_domain: '' })).rejects.toThrow();
+        await expect(
+          store.generate({ ttl: 3600, kind: 'generate', share_domain: '' })
+        ).rejects.toThrow();
       });
 
       it('fetch() rejects with 403 when guest routes globally disabled', async () => {
@@ -559,7 +561,9 @@ describe('secretStore', () => {
           code: 'GUEST_GENERATE_DISABLED',
         });
 
-        await expect(store.generate({ ttl: 3600, kind: 'generate', share_domain: '' })).rejects.toThrow();
+        await expect(
+          store.generate({ ttl: 3600, kind: 'generate', share_domain: '' })
+        ).rejects.toThrow();
       });
 
       it('reveal() rejects with GUEST_REVEAL_DISABLED code', async () => {
@@ -600,7 +604,12 @@ describe('secretStore', () => {
 
         axiosMock?.onPost('/api/v3/secret/conceal').reply(200, mockConcealResponse);
 
-        const result = await store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal', share_domain: '' });
+        const result = await store.conceal({
+          secret: 'test',
+          ttl: 3600,
+          kind: 'conceal',
+          share_domain: '',
+        });
 
         expect(result).toBeDefined();
         expect(axiosMock?.history.post[0].url).toBe('/api/v3/secret/conceal');

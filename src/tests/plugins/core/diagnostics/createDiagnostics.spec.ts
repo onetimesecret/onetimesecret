@@ -8,6 +8,7 @@
 /* eslint-disable max-classes-per-file */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { App, Plugin } from 'vue';
 import type { Router } from 'vue-router';
 
 // ---------------------------------------------------------------------------
@@ -130,6 +131,18 @@ function createMockRouter(): Router {
     // that so the plugin's captured `unregisterAfterEach` is callable on unmount.
     afterEach: vi.fn(() => vi.fn()),
   } as unknown as Router;
+}
+
+/**
+ * `createDiagnostics()` is typed to return Vue's `Plugin` union
+ * (`ObjectPlugin | FunctionPlugin`), under which `.install` types as possibly
+ * undefined because the callable `FunctionPlugin` variant makes it optional.
+ * The production implementation always returns an object plugin
+ * (`{ install(app) { ... } }`), so this narrows to the shape it actually
+ * produces instead of asserting `!` at the call site.
+ */
+function installPlugin(plugin: Plugin, app: App): void {
+  (plugin as { install: (app: App) => void }).install(app);
 }
 
 const baseConfig = {
@@ -416,9 +429,9 @@ describe('createDiagnostics jurisdiction tagging', () => {
     const app = {
       provide: vi.fn(),
       unmount: originalUnmount,
-    } as unknown as import('vue').App;
+    } as unknown as App;
 
-    plugin.install!(app);
+    installPlugin(plugin, app);
 
     expect(unregisterAfterEach).not.toHaveBeenCalled();
 

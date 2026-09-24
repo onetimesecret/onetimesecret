@@ -12,6 +12,7 @@ require 'familia'
 require_relative 'logger_methods'
 require_relative 'session/codec'
 require_relative 'session/sidecar'
+require_relative 'session/impersonation'
 require_relative 'operations/sessions/track_metadata'
 
 module Onetime
@@ -78,6 +79,12 @@ module Onetime
     unless defined?(SECURE_COOKIE_WARN_INTERVAL)
       SECURE_COOKIE_WARN_INTERVAL = 300 # ~5 minutes
     end
+
+    # Env key Onetime::Middleware::StripForwardedHost leaves the names of the
+    # forwarded carriers it deleted in (see #scheme_evidence). A literal
+    # rather than the middleware's constant so this file does not load it;
+    # the colonel auth_strategies spec asserts the two agree.
+    STRIPPED_FORWARDED_HEADERS = 'onetime.stripped_forwarded_headers' unless defined?(STRIPPED_FORWARDED_HEADERS)
 
     # Class-level, process-wide guard for the throttled warning below. Holds the
     # monotonic timestamp (Process::CLOCK_MONOTONIC) of the last emission, nil
@@ -327,15 +334,31 @@ module Onetime
     # HTTPS=off (Rack only treats 'on' as ssl, so `https: "off"` is the honest
     # evidence). HTTP_FORWARDED (RFC 7239) can carry the forwarded client IP in
     # its `for=` parameter, so it stays presence-only to keep PII out of the log.
+    #
+    # Onetime::Middleware::StripForwardedHost is mounted ABOVE this session
+    # middleware and deletes HTTP_FORWARDED outright, leaving the names of
+    # what it removed in env['onetime.stripped_forwarded_headers']. Presence
+    # is read from both, or the `forwarded:` field would be permanently
+    # false — for exactly the "edge speaks only Forwarded" topology it exists
+    # to diagnose.
     def scheme_evidence(request)
       env = request.env
       {
         rack_url_scheme: env['rack.url_scheme'],
         x_forwarded_proto: env['HTTP_X_FORWARDED_PROTO'],
-        forwarded: env.key?('HTTP_FORWARDED'),
+        forwarded: forwarded_header_received?(env),
         x_forwarded_ssl: env['HTTP_X_FORWARDED_SSL'],
         https: env['HTTPS'],
       }
+    end
+
+    # Presence of RFC 7239 `Forwarded` on the request as the edge sent it,
+    # whether it is still in the env or StripForwardedHost already deleted
+    # it (and recorded the deletion by name). See #scheme_evidence.
+    def forwarded_header_received?(env)
+      return true if env.key?('HTTP_FORWARDED')
+
+      Array(env[STRIPPED_FORWARDED_HEADERS]).include?('HTTP_FORWARDED')
     end
 
     # Validates session ID format

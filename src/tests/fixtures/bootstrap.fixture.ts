@@ -124,9 +124,14 @@ export const baseBootstrap: BootstrapPayload = {
 
   // Explicitly include optional fields for test key enumeration
   // These are undefined but need to be present for Object.keys() in tests
+  //
+  // `development` is NOT listed here (unlike below): the schema always
+  // emits it via `.default(...)`, so BootstrapPayload['development'] is a
+  // required `{ enabled; domain_context_enabled }` object, never undefined.
+  // It's already present with its real default value via the schemaDefaults
+  // spread above — this list is only for genuinely `.optional()`/`.nullish()`
+  // fields (see the matching `DEFAULTS` comment in bootstrapStore.ts).
   customer_since: undefined,
-  // `development` is non-optional (schema default) and already provided by
-  // schemaDefaults; do not override it with undefined.
   organization: undefined,
   entitlement_preview_planid: undefined,
   entitlement_preview_plan_name: undefined,

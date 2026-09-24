@@ -3,9 +3,8 @@
 # frozen_string_literal: true
 
 # Setup - Load the real application
+# (datastore URLs come from test_helpers, which derives the per-worktree DB)
 ENV['AUTHENTICATION_MODE'] = 'simple'
-ENV['VALKEY_URL'] = 'valkey://127.0.0.1:2163/0'
-ENV['REDIS_URL'] = 'redis://127.0.0.1:2163/0'
 
 require 'rack'
 require_relative '../../support/test_helpers'

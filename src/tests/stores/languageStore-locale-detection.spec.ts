@@ -18,10 +18,10 @@
 
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { DEFAULT_LOCALE, useLanguageStore } from '@/shared/stores/languageStore';
+import { mockCustomer } from '@/tests/fixtures/bootstrap.fixture';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
-import { mockCustomer } from '@/tests/fixtures/bootstrap.fixture';
 
 describe('Language Store - Browser Locale Detection (#2668)', () => {
   let axiosMock: AxiosMockAdapter | null;

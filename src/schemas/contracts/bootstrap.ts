@@ -522,6 +522,42 @@ export const organizationSchema = z
 export const domainStrategySchema = z.enum(['canonical', 'subdomain', 'custom', 'invalid']);
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// IMPERSONATION (colonel support session overlay)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * The active impersonation marker, mirroring the Ruby session overlay
+ * (`Onetime::SessionImpersonation`) as re-read per request by the context
+ * middleware — NOT a client-side derivation.
+ *
+ * Present (non-null) ONLY while a colonel is presenting as another customer.
+ * `cust`/`custid`/`email` in the same payload already describe the TARGET, so
+ * this block is what tells the UI that the identity it is rendering is
+ * borrowed, who borrowed it, and when the loan ends.
+ *
+ * Timestamps are Unix epoch SECONDS (integers), matching the Ruby marker;
+ * consumers multiply by 1000 before constructing a Date.
+ *
+ * Absence is the safe state: a payload without the block renders as an
+ * ordinary session, which is exactly what the server serves once the marker
+ * is stopped or has expired.
+ */
+export const impersonationSchema = z.object({
+  /** Non-secret correlation id shared with the audit trail (e.g. "imp_…"). */
+  impersonation_id: z.string(),
+  /** The colonel's extid — the principal the session reverts to on stop. */
+  impersonator_extid: z.string(),
+  /** The impersonated customer's extid. */
+  target_extid: z.string(),
+  /** Display-only address for the banner. */
+  target_email: z.string(),
+  /** Epoch seconds the overlay began. */
+  started_at: z.number(),
+  /** Epoch seconds the overlay lapses server-side, with or without a stop. */
+  expires_at: z.number(),
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // EXPORTED TYPES (derived from sub-schemas defined in this file)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -547,6 +583,7 @@ export type Features = z.infer<typeof featuresSchema>;
 export type DevelopmentConfig = z.infer<typeof developmentConfigSchema>;
 export type Organization = z.infer<typeof organizationSchema>;
 export type DomainStrategy = z.infer<typeof domainStrategySchema>;
+export type ImpersonationState = z.infer<typeof impersonationSchema>;
 
 // Re-export types from contracts
 export type { RegionsConfig } from '@/schemas/contracts/config/section/jurisdiction';
@@ -770,6 +807,13 @@ export const bootstrapSchema = z.object({
   email: z.string().default(''),
   // customer_since: formatted date string (e.g., "Mar 21, 2026") from Ruby epochdom()
   customer_since: z.string().optional(),
+
+  // Active impersonation overlay, or null. `.nullable().default(null)` rather
+  // than `.optional()`: the serializer emits the key on every response (null
+  // when inactive), and a always-present key is what lets a stop or an expiry
+  // CLEAR the banner — bootstrapStore.update() filters undefined out of the
+  // merge, so an omitted key would leave a stale marker on screen.
+  impersonation: impersonationSchema.nullable().default(null),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // DomainSerializer fields

@@ -7,6 +7,7 @@
 # audit model explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
 # The member notification is enqueued from here, and the CLI reaches this file
 # without the app's job wiring loaded (precedent:
 # lib/onetime/logic/credential_change_session_revocation.rb).
@@ -131,6 +132,7 @@ module Onetime
       # (precedent: memberships/set_role.rb:64).
       class Delete
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
 
         # Full-noun subject, matching the rest of the admin trail
         # (`organization.create`, `organization.reconcile`).
@@ -242,14 +244,25 @@ module Onetime
         #   `organization_deleted` mail. Defaults to the actor's public identity;
         #   the customer-facing adapter passes the acting customer's email so the
         #   notification reads the way it always has.
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the audit detail of the applied delete AND of the
+        #   preview that preceded it. OPERATOR SURFACES ONLY, like the force
+        #   flags: the customer-facing adapter never passes it (an org owner
+        #   deleting their own workspace is not an operator explaining an
+        #   action on someone else's data), and the reason NEVER reaches the
+        #   `organization_deleted` mail — it is written for the audit trail, not
+        #   for the former members. Blank is treated as absent and both details
+        #   keep their pre-#4338 shape; see {Onetime::AuditReason} for the bound
+        #   and the optional-now / required-later rollout.
         def initialize(org:, actor:, dry_run: true, force_default: false,
-                       force_subscription: false, deleted_by: nil)
+                       force_subscription: false, deleted_by: nil, reason: nil)
           @org                = org
           @actor              = actor
           @dry_run            = dry_run
           @force_default      = force_default
           @force_subscription = force_subscription
           @deleted_by         = deleted_by
+          @reason             = normalize_reason(reason)
 
           # Snapshotted at construction so the AuditedFailure target survives a
           # raise anywhere in #call, including after destroy! has emptied the
@@ -304,7 +317,15 @@ module Onetime
           refusal = first_guardrail_trip
           return refuse(refusal) if refusal
 
-          return build(:planned) if @dry_run
+          # A preview destroys nothing, so it writes nothing to the OPERATOR
+          # trail — but it enumerates exactly what a delete would take with it
+          # (members, invitations, domains, the owner's other orgs), and
+          # `dry_run` defaults to TRUE, so this is the path a console operator
+          # takes first. Recorded as an OBSERVATION (#4337).
+          if @dry_run
+            record_preview_event
+            return build(:planned)
+          end
 
           apply!
 
@@ -375,12 +396,19 @@ module Onetime
           # --- EXACTLY ONE audit event, applied path only ---
           # PUBLIC ids and counts only: member emails are operator-facing plan
           # output, not audit content.
+          #
+          # FAIL-CLOSED (#4333): the org, its memberships and its invitations
+          # are gone by now, so there is nothing left to reconstruct the action
+          # from. An unwritable event raises Onetime::AuditWriteFailure — the
+          # adapter reports a failed delete instead of :success with no trail.
+          # The teardown is NOT rolled back (see the model's fail-closed note);
+          # the refusal statuses above still return normally and audit nothing.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @extid,
             result: :success,
-            detail: {
+            detail: with_reason(
               display_name: @display_name.to_s,
               planid: @planid,
               members: @members.size,
@@ -388,7 +416,8 @@ module Onetime
               pending_invitations: @pending,
               default_org_cleared: @cleared.size,
               forced: forced_guards,
-            },
+            ),
+            fail_closed: true,
           )
         end
 
@@ -517,6 +546,30 @@ module Onetime
         # snapshot. `members_notified` / `default_org_cleared` report the applied
         # counts when there are any and the WOULD-BE counts otherwise, so a plan
         # and its receipt read alike.
+        # One OBSERVATION per preview (#4337), on the budgeted access trail —
+        # never the operator trail, which stays a record of orgs that were
+        # actually deleted. Same verb and target as the applied event so a
+        # preview lines up with the delete that followed it; `result: 'preview'`
+        # is what tells them apart. The counts mirror the applied event's, so
+        # the two read the same way; member emails stay out of both (they are
+        # operator-facing plan output, not audit content).
+        def record_preview_event
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @extid,
+            result: 'preview',
+            detail: with_reason(
+              dry_run: true,
+              display_name: @display_name.to_s,
+              planid: @planid,
+              members: @members.size,
+              pending_invitations: @pending,
+              domain_count: @domain_count,
+            ),
+          )
+        end
+
         def build(status)
           Result.new(
             status: status,

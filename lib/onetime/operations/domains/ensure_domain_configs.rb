@@ -86,7 +86,9 @@ module Onetime
             end
 
             if @dry_run
-              # Plan only — no mutation, no audit.
+              # Plan only — no mutation, and nothing on the OPERATOR trail.
+              # The run's single OBSERVATION is recorded once below, not per
+              # slug.
               created << slug
               next
             end
@@ -103,6 +105,9 @@ module Onetime
           end
 
           if @dry_run
+            # ONE observation per run (#4337), not one per slug — a preview is
+            # a single operator action however many configs it enumerates.
+            record_preview_event(created, existing, skipped)
             return Result.new(status: :planned, dry_run: true, created: created, existing: existing, skipped: skipped)
           end
 
@@ -122,6 +127,26 @@ module Onetime
         end
 
         private
+
+        # One OBSERVATION per dry run (#4337), on the budgeted access trail.
+        # Same verb and target as the applied event; `result: 'preview'` and
+        # `dry_run: true` distinguish them. Counts rather than the applied
+        # event's `created` list, because on a preview that list is what WOULD
+        # be created — a projection, not a fact.
+        def record_preview_event(created, existing, skipped)
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @domain.extid,
+            result: 'preview',
+            detail: {
+              dry_run: true,
+              would_create: created.size,
+              existing: existing.size,
+              skipped: skipped.size,
+            },
+          )
+        end
 
         # Race-safe creation with model defaults (everything disabled).
         # HomepageConfig/ApiConfig provide WATCH-backed find_or_create_for_domain;

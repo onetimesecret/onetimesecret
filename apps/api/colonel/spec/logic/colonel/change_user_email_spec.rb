@@ -23,14 +23,19 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
 
   let(:target) do
     instance_double(Onetime::Customer,
-      objid: 'cust_target', extid: 'ur_target',
+      objid: 'cust_target', extid: 'ur_target', role: 'customer',
       email: 'old@example.com', exists?: true, anonymous?: false)
   end
 
-  let(:strategy_result) do
-    double('StrategyResult', session: {}, user: colonel,
-      auth_method: 'sessionauth', metadata: {})
+  # The apply path requires the account's CURRENT address in X-OTS-Confirm
+  # (#4326); the preview path requires nothing. `confirm_token` is where the
+  # colonel session auth strategy puts the percent-decoded header — never params.
+  def strategy_result_for(confirm_token = 'old@example.com', session = {})
+    double('StrategyResult', session: session, user: colonel,
+      auth_method: 'sessionauth', metadata: { confirm_token: confirm_token })
   end
+
+  let(:strategy_result) { strategy_result_for }
 
   # Defaults mirror the op's reporting under this adapter's flags
   # (require_verification: true, revoke_sessions: true): the swap-landed
@@ -78,6 +83,73 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
     allow(OT).to receive(:li)
     allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(target)
     allow(Auth::Operations::Customers::ChangeEmail).to receive(:new).and_return(op)
+  end
+
+  # ---- Server-side confirmation (#4326) --------------------------------------
+  #
+  # The token is the account's CURRENT address, not the new one: it names what
+  # the operator is changing away from, and the URL (an extid) never carries it.
+  # The preview is EXEMPT — it writes nothing.
+  describe 'confirmation' do
+    let(:expected_confirm_token) { 'old@example.com' }
+
+    def confirmed_logic_for(confirm_token)
+      allow(op).to receive(:call).and_return(build_result(status: :success))
+      described_class.new(
+        strategy_result_for(confirm_token),
+        { 'user_id' => 'ur_target', 'new_email' => 'new@example.com', 'dry_run' => 'false' },
+      )
+    end
+
+    it_behaves_like 'a confirmed colonel action'
+
+    it 'requires no confirmation for a dry-run preview' do
+      allow(op).to receive(:call).and_return(build_result(status: :planned))
+      logic = described_class.new(
+        strategy_result_for(nil),
+        { 'user_id' => 'ur_target', 'new_email' => 'new@example.com' },
+      )
+
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+
+    it 'does not accept the NEW address as confirmation' do
+      expect { confirmed_logic_for('new@example.com').raise_concerns }
+        .to raise_error(Onetime::ConfirmationRequired)
+    end
+
+    # An account with no email address has no "current address" to confirm with,
+    # so the token falls back to the extid (account_confirm_token) — the same
+    # fallback PurgeUser uses. A bare `user.email` would blank the token and turn
+    # the confirmation guard into a GuardMisconfigured 500 rather than a refusal.
+    it 'falls back to the extid for an account with no email address' do
+      emailless = instance_double(Onetime::Customer,
+        objid: 'cust_target', extid: 'ur_target', role: 'customer',
+        email: '', exists?: true, anonymous?: false)
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(emailless)
+      allow(op).to receive(:call).and_return(build_result(status: :success))
+      logic = described_class.new(
+        strategy_result_for('ur_target'),
+        { 'user_id' => 'ur_target', 'new_email' => 'new@example.com', 'dry_run' => 'false' },
+      )
+
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+  end
+
+  # ---- Step-up (sudo) window (#4327) -----------------------------------------
+  describe 'elevation' do
+    let(:expected_confirm_token) { 'old@example.com' }
+
+    def elevated_logic_for(session, confirm_token = expected_confirm_token)
+      allow(op).to receive(:call).and_return(build_result(status: :success))
+      described_class.new(
+        strategy_result_for(confirm_token, session),
+        { 'user_id' => 'ur_target', 'new_email' => 'new@example.com', 'dry_run' => 'false' },
+      )
+    end
+
+    it_behaves_like 'an elevated colonel action'
   end
 
   describe 'dry_run defaults to preview' do
@@ -133,6 +205,60 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
 
       expect(Auth::Operations::Customers::ChangeEmail).to have_received(:new)
         .with(hash_including(require_verification: false))
+    end
+  end
+
+  # ---- Last active colonel lockout interlock (#4328 review) ------------------
+  #
+  # ChangeEmail clears verification with enforce_interlocks:false, so changing the
+  # last active colonel's email would unverify them, and has_system_role? refuses
+  # every unverified account — locking the install out of /colonel entirely. The
+  # apply path refuses that; keep_verified is the escape hatch.
+  describe 'last active colonel lockout' do
+    let(:colonel_target) do
+      instance_double(Onetime::Customer,
+        objid: 'cust_last', extid: 'ur_last', email: 'boss@example.com',
+        role: 'colonel', verified?: true, exists?: true, anonymous?: false)
+    end
+
+    def change_email_logic(params = {})
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(colonel_target)
+      allow(op).to receive(:call).and_return(build_result(status: :success))
+      described_class.new(
+        double('StrategyResult', session: {}, user: colonel,
+          auth_method: 'sessionauth', metadata: { confirm_token: 'boss@example.com' }),
+        { 'user_id' => 'ur_last', 'new_email' => 'new@example.com', 'dry_run' => 'false' }.merge(params),
+      )
+    end
+
+    it 'refuses when the change would clear the last active colonel verification' do
+      allow(Onetime::Customer).to receive(:find_all_by_role).with('colonel').and_return([colonel_target])
+
+      expect { change_email_logic.raise_concerns }
+        .to raise_error(Onetime::FormError, /last active colonel/i)
+      expect(op).not_to have_received(:call)
+    end
+
+    it 'allows it when keep_verified=true preserves verification (the escape hatch)' do
+      allow(Onetime::Customer).to receive(:find_all_by_role).with('colonel').and_return([colonel_target])
+
+      expect { change_email_logic('keep_verified' => 'true').raise_concerns }.not_to raise_error
+    end
+
+    it 'allows it when a second verified colonel exists (roster stays populated)' do
+      second = instance_double(Onetime::Customer,
+        objid: 'cust_second', role: 'colonel', verified?: true, exists?: true)
+      allow(Onetime::Customer).to receive(:find_all_by_role).with('colonel')
+        .and_return([colonel_target, second])
+
+      expect { change_email_logic.raise_concerns }.not_to raise_error
+    end
+
+    it 'does not fire on a plain (non-colonel) target' do
+      # target is role: customer; the default apply-path examples already exercise
+      # this, but pin it: no roster read, no refusal.
+      expect { logic_for({ 'dry_run' => 'false' }, status: :success).raise_concerns }
+        .not_to raise_error
     end
   end
 

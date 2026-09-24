@@ -36,6 +36,7 @@ import {
   configuredProviderLabel,
   getSsoProviders,
 } from '@/utils/features';
+import { authenticationSettingsSchema } from '@/schemas/contracts/bootstrap';
 import { _resetForTesting } from '@/services/bootstrap.service';
 
 // Mock the bootstrap service
@@ -1374,31 +1375,19 @@ describe('features utility', () => {
 
   describe('isFullAuthModeOf', () => {
     it('returns true when authentication mode is full', () => {
+      // isFullAuthModeOf only reads .mode, but its state param requires a full
+      // AuthenticationSettings object — derive one from the schema (rather
+      // than hand-rolling the enabled/signup/signin/etc. defaults) so this
+      // stays in sync with the real contract.
       expect(
-        isFullAuthModeOf({
-          authentication: {
-            enabled: true,
-            signup: true,
-            signin: true,
-            autoverify: false,
-            required: false,
-            mode: 'full',
-          },
-        })
+        isFullAuthModeOf({ authentication: authenticationSettingsSchema.parse({ mode: 'full' }) })
       ).toBe(true);
     });
 
     it('returns false when authentication mode is simple', () => {
       expect(
         isFullAuthModeOf({
-          authentication: {
-            enabled: true,
-            signup: true,
-            signin: true,
-            autoverify: false,
-            required: false,
-            mode: 'simple',
-          },
+          authentication: authenticationSettingsSchema.parse({ mode: 'simple' }),
         })
       ).toBe(false);
     });
@@ -1569,6 +1558,9 @@ describe('features utility', () => {
     const originalWindow = globalThis.window;
 
     beforeEach(() => {
+      // Cast through Record<string, unknown> (rather than @ts-expect-error) to
+      // simulate SSR: deleting via an index signature doesn't need suppression,
+      // unlike `delete globalThis.window` against the DOM lib's typed property.
       delete (globalThis as Record<string, unknown>).window;
     });
 

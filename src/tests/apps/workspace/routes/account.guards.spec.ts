@@ -50,6 +50,10 @@ function invokeGuard(path: string): ReturnType<NavigationGuardWithThis<undefined
   // Account route guards are synchronous (no async/await needed).
   // They take (to, from, next) but use the return-value form, not next().
   // We can call with minimal args since the guards only read feature flags.
+  // Invoked via `.call(undefined, ...)` rather than a bare `guard(...)`: the
+  // guard's type declares `this: undefined`, and a bare call would instead
+  // check this enclosing (non-method) function's own inferred `this` type
+  // (`void`) against it, which isn't assignable.
   return guard.call(
     undefined,
     {} as any, // to (unused by these guards)

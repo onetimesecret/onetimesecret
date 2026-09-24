@@ -100,6 +100,14 @@ Generalises `PasswordConfirmModal` into a **typed-confirmation** dialog.
   until the typed input EXACTLY equals the token** (case-sensitive, no trim). When
   omitted/empty it degrades to a simple one-click confirm for low-risk actions.
 - Emits: `update:open`, `confirm`, `cancel`. Slots: `icon`, `description`, `prompt`.
+- `requestReason` (#4338, optional, default `false`) adds a free-text textarea
+  and emits its value as the `confirm` payload — `confirm: [reason?: string]` —
+  so the caller can send it to the endpoint and the server-side operation can
+  record *why* in the audit trail. It **never gates confirm**, a blank field
+  emits `undefined` (never `''`), and with the prop off no payload is emitted at
+  all, so every incumbent call site is unchanged. `reasonLabel` /
+  `reasonPlaceholder` override the shared kit copy. `maxlength` is 255, matching
+  `Onetime::AuditReason::MAX_LENGTH`.
 
 ```vue
 <AdminConfirmDialog

@@ -5,6 +5,7 @@
 require_relative '../base'
 require_relative 'account_identifier'
 require 'auth/operations/customers/set_verification'
+require 'onetime/operations/customers/role_support'
 
 module ColonelAPI
   module Logic
@@ -52,15 +53,34 @@ module ColonelAPI
           raise_not_found('User not found') unless user&.exists?
 
           raise_form_error('Cannot modify anonymous user', field: :user_id) if user.anonymous?
+
+          # Only the UNVERIFY arm is gated (#4326, TIER 2): has_system_role?
+          # refuses every elevated role to an unverified account, so unverifying
+          # strips colonel eligibility. VerifyUser is the restorative arm and
+          # stays un-gated — this one `return` guards the gate AND the interlocks
+          # below, so a refactor that hoists either above it would gate recovery.
+          return if verified_target
+
+          guard_destructive_action!(
+            tier: :sensitive,
+            confirm_with: account_confirm_token(user),
+            confirm_subject: "the target account's email address",
+            field: :user_id,
+          )
+
+          enforce_unverify_interlocks!
         end
 
         def process
           @change_result = Auth::Operations::Customers::SetVerification.new(
             customer: user,
             verified: verified_target,
-            actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
+            actor: cust.extid,       # acting colonel's PUBLIC id (never an objid)
+            actor_objid: cust.objid, # INTERNAL id, for the self-unverify check only
             verified_by: verified_by_tag,
           ).call
+
+          handle_change_result
 
           success_data
         rescue Auth::Operations::SetCustomerVerification::NoAuthDatabase => ex
@@ -85,6 +105,51 @@ module ColonelAPI
               message: verified_target ? 'User verified' : 'User unverified',
             },
           }
+        end
+
+        private
+
+        # STEP 4 of the guard-order contract (logic/destructive_action.rb), and
+        # unverify-only by construction (the caller returns on the verify arm).
+        #
+        # Unverifying a colonel is a demotion by another name: has_system_role?
+        # refuses every elevated role to an unverified account. Without these,
+        # an attacker refused a demotion by RoleSupport.last_colonel? would
+        # simply call unverify instead. After proof, so the 422s cannot be used
+        # as a "who is the last colonel" oracle. The op enforces both again for
+        # `bin/ots customers unverify`.
+        def enforce_unverify_interlocks!
+          if user.objid == cust.objid
+            raise_form_error(
+              'Cannot unverify your own account: verification is required to hold the ' \
+              'colonel role. Have another colonel do it, or use the CLI.',
+              field: :user_id,
+            )
+          end
+
+          return unless Onetime::Operations::Customers::RoleSupport.last_colonel_by_verification?(user)
+
+          raise_form_error(
+            'Cannot unverify the last remaining colonel — the install would have no ' \
+            'administrator. Promote and verify another account first.',
+            field: :user_id,
+          )
+        end
+
+        # The op's symbol contract. The two interlock statuses are reachable only
+        # if the roster changed between raise_concerns and the write; they answer
+        # the same 422s rather than reporting a change that did not happen. The
+        # `else` arm makes a status added to the op fail loudly here.
+        def handle_change_result
+          case change_result
+          when :success, :no_change then nil
+          when :self_unverify
+            raise_form_error('Cannot unverify your own account.', field: :user_id)
+          when :last_colonel
+            raise_form_error('Cannot unverify the last remaining colonel.', field: :user_id)
+          else
+            raise_form_error("Verification change did not complete (#{change_result})", field: :user_id)
+          end
         end
       end
 

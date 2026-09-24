@@ -515,14 +515,6 @@
     "text": "Просмотр и управление всеми секретами",
     "source_hash": "48f8052e"
   },
-  "web.colonel.bannedIps.title": {
-    "text": "Заблокированные IP",
-    "source_hash": "0ece5643"
-  },
-  "web.colonel.bannedIps.description": {
-    "text": "Управление списком заблокированных IP-адресов",
-    "source_hash": "dd0d2614"
-  },
   "web.colonel.usageExport.title": {
     "text": "Экспорт использования",
     "source_hash": "10a0cb94"
@@ -579,10 +571,6 @@
     "text": "База данных аутентификации",
     "source_hash": "c683c9a6"
   },
-  "web.colonel.titles.bannedIps": {
-    "text": "Заблокированные IP",
-    "source_hash": "0ece5643"
-  },
   "web.colonel.titles.usage": {
     "text": "Экспорт использования",
     "source_hash": "10a0cb94"
@@ -614,82 +602,6 @@
   "web.colonel.previewModeActive": {
     "text": "Предпросмотр активен",
     "source_hash": "a558d603"
-  },
-  "web.colonel.bannedIps.empty": {
-    "text": "Нет заблокированных IP-адресов",
-    "source_hash": "bd101143"
-  },
-  "web.colonel.bannedIps.currentIp": {
-    "text": "Ваш текущий IP-адрес",
-    "source_hash": "72f9fefe"
-  },
-  "web.colonel.bannedIps.confirmUnban": {
-    "text": "Разблокировать {ip}?",
-    "source_hash": "ff009b1c"
-  },
-  "web.colonel.bannedIps.actions.ban": {
-    "text": "Заблокировать IP",
-    "source_hash": "f91a5285"
-  },
-  "web.colonel.bannedIps.actions.quickBan": {
-    "text": "Быстрая блокировка",
-    "source_hash": "c32d0943"
-  },
-  "web.colonel.bannedIps.actions.unban": {
-    "text": "Разблокировать",
-    "source_hash": "25fb5989"
-  },
-  "web.colonel.bannedIps.actions.cancel": {
-    "text": "Отмена",
-    "source_hash": "19766ed6"
-  },
-  "web.colonel.bannedIps.columns.ipAddress": {
-    "text": "IP-адрес",
-    "source_hash": "3c3de0c9"
-  },
-  "web.colonel.bannedIps.columns.reason": {
-    "text": "Причина",
-    "source_hash": "f81ab834"
-  },
-  "web.colonel.bannedIps.columns.bannedAt": {
-    "text": "Заблокирован",
-    "source_hash": "dfbd120e"
-  },
-  "web.colonel.bannedIps.columns.bannedBy": {
-    "text": "Кем заблокирован",
-    "source_hash": "9f47db0e"
-  },
-  "web.colonel.bannedIps.error.banFailed": {
-    "text": "Не удалось заблокировать IP-адрес",
-    "source_hash": "24e94d9b"
-  },
-  "web.colonel.bannedIps.error.unbanFailed": {
-    "text": "Не удалось разблокировать IP-адрес",
-    "source_hash": "66bbac9a"
-  },
-  "web.colonel.bannedIps.form.title": {
-    "text": "Заблокировать IP-адрес",
-    "source_hash": "3f5b3dfa"
-  },
-  "web.colonel.bannedIps.form.ipLabel": {
-    "text": "IP-адрес",
-    "source_hash": "3c3de0c9"
-  },
-  "web.colonel.bannedIps.form.reasonLabel": {
-    "text": "Причина",
-    "source_hash": "f81ab834"
-  },
-  "web.colonel.bannedIps.form.reasonPlaceholder": {
-    "text": "Необязательная причина",
-    "source_hash": "956688a5"
-  },
-  "web.colonel.bannedIps.success.banned": {
-    "text": "IP-адрес {ip} заблокирован",
-    "source_hash": "b6f861d5"
-  },
-  "web.colonel.bannedIps.success.unbanned": {
-    "text": "IP-адрес {ip} разблокирован",
-    "source_hash": "dbe93550"
   },
   "web.colonel.customDomains.empty": {
     "text": "Пользовательские домены не настроены",

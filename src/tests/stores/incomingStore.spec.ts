@@ -4,9 +4,6 @@ import {
   incomingConfigSchema,
   incomingSecretResponseSchema,
 } from '@/schemas/api/incoming';
-// memo is `.optional().default('')`, so the inferred payload type marks memo
-// required; these tests exercise the memo-omitted path, so cast at the call.
-import type { IncomingSecretPayload } from '@/schemas/api/incoming/requests/incoming-secret';
 import { useIncomingStore } from '@/shared/stores/incomingStore';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -405,7 +402,7 @@ describe('incomingStore', () => {
         memo: 'Test memo',
       };
 
-      const result = await store.createIncomingSecret(payload as IncomingSecretPayload);
+      const result = await store.createIncomingSecret(payload);
 
       expect(result.success).toBe(true);
       expect(result.record).toBeDefined();
@@ -422,7 +419,7 @@ describe('incomingStore', () => {
         memo: 'Test memo',
       };
 
-      await store.createIncomingSecret(payload as IncomingSecretPayload);
+      await store.createIncomingSecret(payload);
 
       expect(axiosMock.history.post).toHaveLength(1);
       expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({
@@ -436,9 +433,10 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
-      const result = await store.createIncomingSecret(payload as IncomingSecretPayload);
+      const result = await store.createIncomingSecret(payload);
 
       expect(() => incomingSecretResponseSchema.parse(result)).not.toThrow();
     });
@@ -449,9 +447,10 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
-      const result = await store.createIncomingSecret(payload as IncomingSecretPayload);
+      const result = await store.createIncomingSecret(payload);
 
       expect(result.success).toBe(true);
     });
@@ -465,9 +464,10 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
-      await expect(store.createIncomingSecret(payload as IncomingSecretPayload)).rejects.toThrow(
+      await expect(store.createIncomingSecret(payload)).rejects.toThrow(
         'Incoming secrets feature is not enabled'
       );
     });
@@ -481,9 +481,10 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
-      await expect(store.createIncomingSecret(payload as IncomingSecretPayload)).rejects.toThrow(
+      await expect(store.createIncomingSecret(payload)).rejects.toThrow(
         'Incoming secrets feature is not enabled'
       );
     });
@@ -492,10 +493,11 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
       try {
-        await store.createIncomingSecret(payload as IncomingSecretPayload);
+        await store.createIncomingSecret(payload);
       } catch {
         // Expected to throw
       }
@@ -519,9 +521,10 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
-      await expect(store.createIncomingSecret(payload as IncomingSecretPayload)).rejects.toThrow();
+      await expect(store.createIncomingSecret(payload)).rejects.toThrow();
     });
 
     it('throws on 400 bad request', async () => {
@@ -532,9 +535,10 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'invalid-hash',
+        memo: '',
       };
 
-      await expect(store.createIncomingSecret(payload as IncomingSecretPayload)).rejects.toThrow();
+      await expect(store.createIncomingSecret(payload)).rejects.toThrow();
     });
 
     it('throws on Zod validation failure', async () => {
@@ -545,9 +549,10 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
-      await expect(store.createIncomingSecret(payload as IncomingSecretPayload)).rejects.toThrow();
+      await expect(store.createIncomingSecret(payload)).rejects.toThrow();
     });
 
     it('throws on 403 entitlement error from POST endpoint', async () => {
@@ -559,11 +564,12 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
       // Unlike loadConfig, createIncomingSecret does not capture entitlement errors
       // It throws on all 403 responses since the pre-flight config check should catch this
-      await expect(store.createIncomingSecret(payload as IncomingSecretPayload)).rejects.toThrow();
+      await expect(store.createIncomingSecret(payload)).rejects.toThrow();
     });
 
     it('throws on 403 with plan upgrade info from POST endpoint', async () => {
@@ -577,9 +583,10 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
-      await expect(store.createIncomingSecret(payload as IncomingSecretPayload)).rejects.toThrow();
+      await expect(store.createIncomingSecret(payload)).rejects.toThrow();
     });
 
     it('throws on 403 non-entitlement error from POST endpoint', async () => {
@@ -590,9 +597,10 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
-      await expect(store.createIncomingSecret(payload as IncomingSecretPayload)).rejects.toThrow();
+      await expect(store.createIncomingSecret(payload)).rejects.toThrow();
     });
 
     it('does not set entitlementError on POST 403 (only loadConfig captures it)', async () => {
@@ -608,9 +616,10 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
-      await expect(store.createIncomingSecret(payload as IncomingSecretPayload)).rejects.toThrow();
+      await expect(store.createIncomingSecret(payload)).rejects.toThrow();
 
       // entitlementError should remain null - POST path doesn't set it
       expect(store.entitlementError).toBeNull();
@@ -914,7 +923,7 @@ describe('incomingStore', () => {
         memo: 'Test for domain context',
       };
 
-      const result = await store.createIncomingSecret(payload as IncomingSecretPayload);
+      const result = await store.createIncomingSecret(payload);
 
       expect(result.success).toBe(true);
       // Verify the request was made (server applies domain config server-side)
@@ -966,9 +975,10 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'test-hash',
+        memo: '',
       };
 
-      await expect(store.createIncomingSecret(payload as IncomingSecretPayload)).rejects.toThrow(
+      await expect(store.createIncomingSecret(payload)).rejects.toThrow(
         'Incoming secrets feature is not enabled'
       );
     });

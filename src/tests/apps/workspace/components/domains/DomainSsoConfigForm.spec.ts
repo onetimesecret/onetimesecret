@@ -168,8 +168,8 @@ describe('DomainSsoConfigForm', () => {
 
   const defaultMountOptions: Required<MountOptions> = {
     domainExtId: 'dm_123',
-    domainHost: 'sso.example.com',
-    orgId: 'org_123',
+    domainHost: 'secrets.example.com',
+    orgId: 'org_ext_123',
     formState: createDefaultFormState(),
     ssoConfig: null,
     isLoading: false,
@@ -468,7 +468,7 @@ describe('DomainSsoConfigForm', () => {
       wrapper = await mountComponent({
         formState: mockExistingFormState,
         testResult: {
-          user_id: 'user-123',
+          user_id: 'cust_456',
           success: true,
           message: 'Connection successful',
           provider_type: 'entra_id',
@@ -485,7 +485,7 @@ describe('DomainSsoConfigForm', () => {
       wrapper = await mountComponent({
         formState: mockExistingFormState,
         testResult: {
-          user_id: 'user-123',
+          user_id: 'cust_456',
           success: false,
           message: 'Invalid tenant ID',
           provider_type: 'entra_id',

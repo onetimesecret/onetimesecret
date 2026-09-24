@@ -75,6 +75,17 @@ module Onetime
           puts "#{obscured} is already unverified"
         when :success
           puts "Unverified: #{obscured}"
+        when :last_colonel
+          # #4328: unverifying strips colonel eligibility (has_system_role?
+          # requires a verified email), so this would leave the install with no
+          # administrator. Exit non-zero — a script must not read this as done.
+          puts "Error: refusing to unverify #{obscured}: they are the last remaining verified " \
+               'colonel, and an unverified account cannot hold the colonel role. ' \
+               'Promote and verify another account first.'
+          exit 1
+        else
+          puts "Error: verification change did not complete for #{obscured} (#{result})"
+          exit 1
         end
       rescue Auth::Operations::SetCustomerVerification::NoAuthDatabase => ex
         puts "Error: #{ex.message}. Check AUTH_DATABASE_URL."

@@ -45,11 +45,12 @@ RACK_ENV=production bundle exec puma -C etc/examples/puma.example.rb
 ## Testing
 
 ```bash
-bin/setup --test               # containerized test services (compose.test.yml), .test-mode marker
-tests/lanes/run unit           # Tryouts + RSpec fast suite (see: tests/lanes/run --list)
-pnpm test                      # Vitest (frontend; no services needed)
-scripts/tests/run.sh           # shell tests for the CI scripts (no services needed)
-scripts/check-shell-lint.sh    # shellcheck + actionlint against the recorded baseline
+docker compose -f compose.test.yml up --wait -d  # test services (or: podman compose)
+pnpm run build                                  # required before the Ruby unit lane
+tests/lanes/run unit                            # Tryouts + RSpec fast suite (see: tests/lanes/run --list)
+pnpm test                                       # Vitest (frontend; no services needed)
+scripts/tests/run.sh                            # shell tests for the CI scripts (no services needed)
+scripts/check-shell-lint.sh                     # shellcheck + actionlint against the recorded baseline
 ```
 
 Ruby tests run through the lane runner, which scrubs ambient dev env vars

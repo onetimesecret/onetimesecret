@@ -1,7 +1,7 @@
 // src/tests/composables/useSecretConcealer.spec.ts
 
 import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
-import { useSecretStore } from '@/shared/stores/secretStore';
+import { useSecretStore, type ApiMode } from '@/shared/stores/secretStore';
 import { Router, useRouter } from 'vue-router';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,8 +21,10 @@ const mockRouter = {
 } as unknown as Router; // Use `unknown` as an intermediate type to bypass
 vi.mocked(useRouter).mockReturnValue(mockRouter);
 
-// Mock authStore to control authentication state
-const mockAuthStore = {
+// Mock authStore to control authentication state. Typed boolean | null to
+// match the real authStore.isAuthenticated (see authStore.ts) - null is the
+// genuine "uncertain/initial" state, exercised below.
+const mockAuthStore: { isAuthenticated: boolean | null } = {
   isAuthenticated: true,
 };
 vi.mock('@/shared/stores/authStore', () => ({
@@ -39,14 +41,17 @@ describe('useSecretConcealer', () => {
 
   describe('lifecycle', () => {
     beforeEach(() => {
-      const store = {
+      // Partial<ReturnType<...>>, not a bare literal: useSecretStore is a
+      // Pinia setup store, so its real return type carries every state ref,
+      // getter and action plus Pinia's own instance methods. Typing the mock
+      // this way lets the object literal include just what each test needs
+      // while still keeping the mockReturnValue() call itself checked below.
+      const store: Partial<ReturnType<typeof useSecretStore>> = {
         conceal: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
         generate: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
         setApiMode: vi.fn(),
       };
-      vi.mocked(useSecretStore).mockReturnValue(
-        store as unknown as ReturnType<typeof useSecretStore>
-      );
+      vi.mocked(useSecretStore).mockReturnValue(store as ReturnType<typeof useSecretStore>);
     });
 
     it('initializes with empty state', () => {
@@ -67,14 +72,12 @@ describe('useSecretConcealer', () => {
     };
 
     beforeEach(() => {
-      const store = {
+      const store: Partial<ReturnType<typeof useSecretStore>> = {
         conceal: vi.fn().mockResolvedValue(mockResponse),
         generate: vi.fn().mockResolvedValue(mockResponse),
         setApiMode: vi.fn(),
       };
-      vi.mocked(useSecretStore).mockReturnValue(
-        store as unknown as ReturnType<typeof useSecretStore>
-      );
+      vi.mocked(useSecretStore).mockReturnValue(store as ReturnType<typeof useSecretStore>);
     });
 
     it.skip('handles successful secret sharing', async () => {
@@ -99,14 +102,12 @@ describe('useSecretConcealer', () => {
     });
 
     it('handles validation errors', async () => {
-      const store = {
+      const store: Partial<ReturnType<typeof useSecretStore>> = {
         conceal: vi.fn().mockRejectedValue(new Error('Validation failed')),
         generate: vi.fn().mockRejectedValue(new Error('Validation failed')),
         setApiMode: vi.fn(),
       };
-      vi.mocked(useSecretStore).mockReturnValue(
-        store as unknown as ReturnType<typeof useSecretStore>
-      );
+      vi.mocked(useSecretStore).mockReturnValue(store as ReturnType<typeof useSecretStore>);
 
       const { submit, isSubmitting } = useSecretConcealer();
 
@@ -119,14 +120,12 @@ describe('useSecretConcealer', () => {
 
   describe('form mode handling', () => {
     beforeEach(() => {
-      const store = {
+      const store: Partial<ReturnType<typeof useSecretStore>> = {
         conceal: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
         generate: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
         setApiMode: vi.fn(),
       };
-      vi.mocked(useSecretStore).mockReturnValue(
-        store as unknown as ReturnType<typeof useSecretStore>
-      );
+      vi.mocked(useSecretStore).mockReturnValue(store as ReturnType<typeof useSecretStore>);
     });
 
     it('can submit in generate mode', async () => {
@@ -146,14 +145,12 @@ describe('useSecretConcealer', () => {
     });
 
     it('rejects generate submission with a malformed recipient email', async () => {
-      const store = {
+      const store: Partial<ReturnType<typeof useSecretStore>> = {
         conceal: vi.fn(),
         generate: vi.fn(),
         setApiMode: vi.fn(),
       };
-      vi.mocked(useSecretStore).mockReturnValue(
-        store as unknown as ReturnType<typeof useSecretStore>
-      );
+      vi.mocked(useSecretStore).mockReturnValue(store as ReturnType<typeof useSecretStore>);
 
       const { form, operations, submit } = useSecretConcealer();
       operations.updateField('recipient', 'not-an-email');
@@ -166,18 +163,16 @@ describe('useSecretConcealer', () => {
   });
 
   describe('API mode selection', () => {
-    let mockSetApiMode: ReturnType<typeof vi.fn>;
+    let mockSetApiMode: ReturnType<typeof vi.fn<(mode: ApiMode) => void>>;
 
     beforeEach(() => {
-      mockSetApiMode = vi.fn();
-      const store = {
+      mockSetApiMode = vi.fn<(mode: ApiMode) => void>();
+      const store: Partial<ReturnType<typeof useSecretStore>> = {
         conceal: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
         generate: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
         setApiMode: mockSetApiMode,
       };
-      vi.mocked(useSecretStore).mockReturnValue(
-        store as unknown as ReturnType<typeof useSecretStore>
-      );
+      vi.mocked(useSecretStore).mockReturnValue(store as ReturnType<typeof useSecretStore>);
     });
 
     describe('default behavior (usePublicApi not specified)', () => {
@@ -200,8 +195,7 @@ describe('useSecretConcealer', () => {
       });
 
       it('uses public mode when authentication state is null', async () => {
-        // Deliberately exercise the null (indeterminate) auth state.
-        mockAuthStore.isAuthenticated = null as unknown as boolean;
+        mockAuthStore.isAuthenticated = null;
         const { submit } = useSecretConcealer();
 
         await submit('conceal');

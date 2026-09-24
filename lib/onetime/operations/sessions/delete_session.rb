@@ -4,8 +4,10 @@
 
 require 'onetime/operations/sessions/store'
 require 'onetime/session/sidecar'
+require 'onetime/models/session_metadata'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
 
 module Onetime
   module Operations
@@ -14,11 +16,11 @@ module Onetime
       # implementation of the session-delete verb (epic #40 / D3 / CONTRACT 4).
       #
       # This is the one mutating session verb. The colonel endpoint
-      # (`DELETE /api/colonel/sessions/:session_id`) and the `bin/ots session delete`
+      # (`DELETE /api/colonel/sessions/:session_handle`, which resolves the handle
+      # back to this sid server-side) and the `bin/ots session delete`
       # CLI are thin adapters over it. The model mutation is IDENTICAL to the prior
       # inline CLI call (`dbclient.del(session_key)`); the op adds exactly one thing
-      # the inline call lacked: one {Onetime::ColonelAuditEvent} per successful delete,
-      # mirroring the Slice-4 {Onetime::Operations::BanIP} / `UnbanIP` precedent.
+      # the inline call lacked: one {Onetime::ColonelAuditEvent} per successful delete.
       #
       # Deleting a session logs that user out mid-flight, so the HTTP path gates it
       # behind AdminConfirmDialog typed-confirmation and the CLI behind a y/N prompt
@@ -29,13 +31,20 @@ module Onetime
       # event (nothing mutated) — the "only audit an actual change" rule.
       class Delete
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
 
         # Audit verb recorded for every successful revoke.
         AUDIT_VERB = 'session.delete'
 
         # Destructive verb: record the attempt when the delete raises (the
         # success-path record below is unreachable in that case) and re-raise.
-        audit_failures :call, verb: AUDIT_VERB, target: -> { @session_id }
+        #
+        # target is the non-reversible handle, never the sid: the sid IS the
+        # bearer cookie and the operator trail is count-capped with no TTL, so a
+        # sid recorded here is a replayable credential persisted forever (#4330).
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { Onetime::SessionMetadata.handle_for(@session_id) }
 
         # @!attribute status [r] Symbol :deleted (removed) or :not_found (no-op)
         Result = Data.define(:status, :session_id, :key)
@@ -43,10 +52,16 @@ module Onetime
         # @param session_id [String] the bare session id to revoke.
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity
         #   (colonel extid/email, or a CLI sentinel). Never an internal objid.
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the audit detail. Blank is treated as absent, and with
+        #   no reason this op records NO detail at all — its pre-#4338 shape.
+        #   See {Onetime::AuditReason} for the bound and the optional-now /
+        #   required-later rollout.
         # @param dbclient [Object, nil] Redis-like client; defaults to Familia.dbclient.
-        def initialize(session_id:, actor:, dbclient: nil)
+        def initialize(session_id:, actor:, reason: nil, dbclient: nil)
           @session_id = session_id
           @actor      = actor
+          @reason     = normalize_reason(reason)
           @dbclient   = dbclient
         end
 
@@ -69,13 +84,22 @@ module Onetime
           # (find_key resolves several), which would fail purge's sid guard.
           Onetime::SessionSidecar.purge(Store.extract_id(key), dbclient: db)
 
-          # One audit event per successful mutation. The session id is a public
-          # identifier; never put session contents (tokens, etc.) into detail.
+          # One audit event per successful mutation. Never put session contents
+          # (tokens, etc.) into detail — and never the sid itself (see the
+          # audit_failures note above): the trail carries the handle.
+          #
+          # FAIL-CLOSED (#4333): the blob and its sidecars are already deleted,
+          # so nothing else survives to say the session was killed or by whom.
+          # `detail` stays nil — the model's own default — unless the operator
+          # supplied a reason (#4338); this verb has no other context worth
+          # recording, since the handle is already the target.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
-            target: @session_id,
+            target: Onetime::SessionMetadata.handle_for(@session_id),
             result: :success,
+            detail: with_reason,
+            fail_closed: true,
           )
 
           Result.new(status: :deleted, session_id: @session_id, key: key)

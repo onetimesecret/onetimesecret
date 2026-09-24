@@ -166,15 +166,20 @@ describe('useAdminDomains', () => {
       });
       const store = useAdminDomains();
 
-      const details = await store.upsertConfig(EXTID, 'signin', {
-        enabled: true,
-        restrict_to: null,
-      });
+      const details = await store.upsertConfig(
+        EXTID,
+        'signin',
+        { enabled: true, restrict_to: null },
+        'example.com:signin'
+      );
 
-      expect(mockApi.put).toHaveBeenCalledWith(`${CONFIGS_URL}/signin`, {
-        enabled: true,
-        restrict_to: null,
-      });
+      // The composed confirmation token rides X-OTS-Confirm (#4326), never the
+      // URL: the hostname half is what a scraped-URL replay does not have.
+      expect(mockApi.put).toHaveBeenCalledWith(
+        `${CONFIGS_URL}/signin`,
+        { enabled: true, restrict_to: null },
+        { headers: { 'X-OTS-Confirm': encodeURIComponent('example.com:signin') } }
+      );
       expect(details?.outcome).toBe('updated');
       expect(details?.kind).toBe('signin');
     });
@@ -189,9 +194,11 @@ describe('useAdminDomains', () => {
       });
       const store = useAdminDomains();
 
-      const details = await store.deleteConfig(EXTID, 'mailer');
+      const details = await store.deleteConfig(EXTID, 'mailer', 'example.com:mailer');
 
-      expect(mockApi.delete).toHaveBeenCalledWith(`${CONFIGS_URL}/mailer`);
+      expect(mockApi.delete).toHaveBeenCalledWith(`${CONFIGS_URL}/mailer`, {
+        headers: { 'X-OTS-Confirm': encodeURIComponent('example.com:mailer') },
+      });
       expect(details?.deleted).toBe(true);
     });
 

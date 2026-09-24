@@ -1,178 +1,108 @@
 # Error Handling
 
-## Core Concepts
+This page describes the frontend error-handling paths that are implemented in
+this repository. It is not a general Result-pattern guide.
 
-### Vue Error Boundaries
-Handle component errors (template, render, lifecycle):
+## Error paths at a glance
 
-```typescript
-// Component level
-errorCaptured(error, instance, info) {
-  logError(error, { component: instance?.$options?.name })
-  return false // Stop propagation
-}
+1. `createApi()` creates the Axios client and installs request, response, and
+   error interceptors.
+2. Axios rejects failed HTTP requests. The error interceptor preserves CSRF-token
+   updates and records a scrubbed diagnostic breadcrumb; it does not convert an
+   error into a Result value.
+3. Components and composables that need loading state and user feedback use
+   `useAsyncHandler().wrap()`.
+4. Stores validate response bodies with their Zod schemas. A contract mismatch
+   either throws a user-safe error or degrades to an explicitly empty state,
+   according to that operation's contract.
+5. `RouteErrorBoundary` handles synchronous route setup/render failures with a
+   visible recovery panel. The global Vue handler logs and reports errors that
+   reach it.
 
-// Global level
-app.config.errorHandler = (error) => {
-  logError(error)
-}
+Relevant implementation paths:
+
+- Axios client: `src/api/index.ts`
+- Axios interceptors: `src/plugins/axios/interceptors.ts`
+- Async wrapper and error classification: `src/shared/composables/useAsyncHandler.ts`
+- Route render boundary: `src/shared/components/errors/RouteErrorBoundary.vue`
+- Global Vue handler: `src/plugins/core/globalErrorBoundary.ts`
+
+## API and asynchronous operations
+
+Use the injected project client through `useApi()`. Do not create an unrelated
+`fetch` client for ordinary application requests: it would bypass the configured
+CSRF, locale, organization-context, and diagnostic behavior.
+
+`useAsyncHandler().wrap()` catches, classifies, reports, and returns `undefined`
+on failure. Callers must handle that return value before using the result.
+
+```ts
+import { useApi } from '@/shared/composables/useApi';
+import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
+
+const $api = useApi();
+const { wrap } = useAsyncHandler({
+  setLoading: (loading) => {
+    isLoading.value = loading;
+  },
+  onError: (error) => {
+    formError.value = error.message;
+  },
+});
+
+const data = await wrap(async () => {
+  const response = await $api.get('/api/v3/secret/example');
+  return response.data;
+});
+
+if (!data) return;
 ```
 
-### Async Operations
-Vue error boundaries don't catch async errors. Handle explicitly:
+Use `notify: false` when the caller renders an inline error, as the authentication
+forms do. Otherwise, supply a notification callback when a transient error should
+be announced outside the form.
 
-```typescript
-// ❌ Uncaught error
-onMounted(async () => {
-  await api.getData()
-})
+## Response contracts
 
-// ✅ Proper handling
-onMounted(async () => {
-  try {
-    await api.getData()
-  } catch (error) {
-    handleError(error)
-  }
-})
-```
+TypeScript annotations do not validate a server response. Validate response
+bodies at the API boundary with the endpoint's Zod schema.
 
-## Error Types
+The expected behavior differs by operation:
 
-### Result Pattern for Expected Failures
-```typescript
-type Result<T, E> =
-  | { status: 'success', data: T }
-  | { status: 'error', error: E }
+- Secret fetch/reveal operations use `gracefulParse()` and throw a safe error if
+  the response does not satisfy the required contract.
+- Admin resource fetchers use `gracefulParse()`, record `validationError`, and
+  return `null` so views can render an explicit degraded state.
+- A response field that controls behavior, such as an idempotency status, may
+  require strict parsing even when the rest of an acknowledgement is advisory.
 
-async function createSecret(data: SecretInput): Promise<Result<Secret, ValidationError>> {
-  const result = await api.createSecret(data)
+Follow the existing store or shared fetch-composable contract for the endpoint;
+do not introduce an unshared `{ status: 'success' | 'error' }` Result convention.
 
-  if (result.status === 'error') {
-    return failure(mapToValidationError(result.error))
-  }
+## Render and programming errors
 
-  return success(result.data)
-}
-```
+`RouteErrorBoundary` wraps the active route in `App.vue`. It uses
+`onErrorCaptured` to show a recovery panel, reports the error once, and returns
+`false` only after it has supplied that fallback. Its recovery actions reload the
+page or navigate home; changing a local error ref alone does not reliably rebuild
+the failed route subtree.
 
-### Exception for Programming Errors
-```typescript
-function requireUser(user: User | undefined): User {
-  if (!user) throw new Error('User required but not found')
-  return user
-}
-```
+The global `app.config.errorHandler` is installed after Pinia. It classifies and
+logs errors, and sends technical errors to diagnostics when configured. It only
+notifies users when the plugin receives a `notify` callback; the normal app
+initializer does not currently supply one. Do not treat it as a visible UI
+fallback.
 
-## Layer Responsibilities
+Unexpected programming errors should throw and reach one of these boundaries.
+Expected HTTP and validation outcomes should instead use the async and
+response-contract paths above.
 
-### API Layer
-Convert HTTP errors to domain types:
+## Adding a new error path
 
-```typescript
-export class ApiClient {
-  async request<T>(endpoint: string): Promise<Result<T, ApiError>> {
-    try {
-      const response = await fetch(endpoint)
-      if (!response.ok) {
-        return failure(this.mapHttpError(await response.json()))
-      }
-      return success(await response.json())
-    } catch (error) {
-      return failure(this.mapNetworkError(error))
-    }
-  }
-}
-```
-
-### Store Layer
-Manage state errors, propagate with context:
-
-```typescript
-export const useSecretStore = defineStore('secret', () => {
-  const error = ref<ApiError | null>(null)
-
-  async function fetchSecret(id: string) {
-    const result = await api.getSecret(id)
-
-    if (result.status === 'error') {
-      error.value = result.error
-      return failure(result.error)
-    }
-
-    return success(result.data)
-  }
-})
-```
-
-### Composable Layer
-Transform to domain errors:
-
-```typescript
-export function useSecretManagement() {
-  async function createSecret(input: SecretInput): Promise<Result<Secret, DomainError>> {
-    const result = await store.createSecret(input)
-
-    if (result.status === 'error') {
-      return failure(mapToDomainError(result.error))
-    }
-
-    return success(result.data)
-  }
-}
-```
-
-### Component Layer
-Display errors to users:
-
-```vue
-<template>
-  <div v-if="error" class="error">
-    {{ getErrorMessage(error) }}
-  </div>
-</template>
-```
-
-## Global Handlers
-
-### Unhandled Rejections
-```typescript
-window.addEventListener('unhandledrejection', (event) => {
-  console.error('Unhandled async error:', event.reason)
-  logError(event.reason)
-  event.preventDefault()
-})
-```
-
-### Error Boundary Component
-```vue
-<script setup lang="ts">
-const error = ref<Error | null>(null)
-
-onErrorCaptured((err, instance, info) => {
-  error.value = err
-  logError(err, { component: instance?.$options?.name, info })
-  return false
-})
-</script>
-
-<template>
-  <div v-if="error" class="error-boundary">
-    <h2>Something went wrong</h2>
-    <button @click="error = null">Try Again</button>
-  </div>
-  <slot v-else></slot>
-</template>
-```
-
-## Decision Framework
-
-**Use Result types when:**
-- Failure is expected business logic
-- Different error types need different handling
-- Type safety is critical
-
-**Use exceptions when:**
-- Programming error that needs immediate attention
-- Working at framework boundaries
-- Unrecoverable states
+1. Use `useApi()` for application HTTP requests.
+2. Define or reuse the endpoint's request and response schemas.
+3. Choose the existing failure contract: throw a safe error, or return a typed
+   degraded result with visible state.
+4. Wrap user-triggered asynchronous work with `useAsyncHandler()` when it needs
+   common loading, classification, reporting, or notification behavior.
+5. Test both the HTTP-failure and malformed-success-response paths.

@@ -24,7 +24,7 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class ReplayDlq < ColonelAPI::Logic::Base
-        attr_reader :dlq_name, :result
+        attr_reader :queue, :dlq_name, :result
 
         def process_params
           @queue    = sanitize_queue_name(params['queue'])
@@ -43,6 +43,18 @@ module ColonelAPI
           unless $rmq_conn&.open?
             raise_form_error('Message queue is not connected')
           end
+
+          # PREVIEW EXEMPTION (#4326): a dry run counts, it does not republish.
+          return if @dry_run
+
+          # TIER 2: replay re-injects side-effecting messages (emails, webhooks).
+          # A queue has no second identifier, so the token IS the URL parameter.
+          guard_destructive_action!(
+            tier: :sensitive,
+            confirm_with: queue,
+            confirm_subject: 'the queue name',
+            field: :queue,
+          )
         end
 
         def process
@@ -63,10 +75,6 @@ module ColonelAPI
 
         def sanitize_queue_name(value)
           value.to_s.downcase.gsub(/[^a-z0-9._-]/, '')
-        end
-
-        def truthy?(value)
-          %w[1 true yes].include?(value.to_s.downcase)
         end
 
         def success_data

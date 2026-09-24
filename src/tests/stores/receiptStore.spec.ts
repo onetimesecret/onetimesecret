@@ -148,8 +148,8 @@ describe('receiptStore', () => {
       store.record = record;
       store.details = details;
 
-      axiosMock!
-        .onPost(`/api/v3/receipt/${testKey}/burn`, {
+      axiosMock
+        ?.onPost(`/api/v3/receipt/${testKey}/burn`, {
           passphrase,
           continue: true,
         })

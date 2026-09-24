@@ -2,6 +2,10 @@
 #
 # frozen_string_literal: true
 
+# Public-host resolution shared with the Rodauth base_url override (#4221) and
+# host-allowlisted for finding G-01. Defines Auth::PublicHost.
+require_relative '../../lib/public_host'
+
 module Auth::Config::Features
   module WebAuthn
     def self.configure(auth)
@@ -15,15 +19,26 @@ module Auth::Config::Features
       auth.enable :webauthn_verify_account if Onetime.auth_config.webauthn_verify_account_enabled?
       auth.enable :webauthn_autofill if Onetime.auth_config.webauthn_autofill_enabled?
 
-      # WebAuthn configuration
+      # WebAuthn configuration.
+      #
+      # rp_id and origin MUST match the host the browser is actually ON, so
+      # host derivation routes through Auth::PublicHost — the one audited place
+      # for it (finding G-16). On a registered custom domain the resolver swaps
+      # in the display domain (the origin the passkey was registered against);
+      # otherwise it declines and we keep the request host, which
+      # StripForwardedHost has already cleansed of any client-supplied
+      # forwarded authority, so dev/staging/prod on the canonical host keep
+      # working. These are verify-only values (a mismatch fails the ceremony,
+      # it does not redirect a link), so the request-host fallback is the safe
+      # default here rather than the canonical host.
       auth.webauthn_rp_id do
-        # Use the current request host (supports dev/staging/prod)
-        request.host
+        Auth::PublicHost.resolve(request.env) || request.host
       end
 
       auth.webauthn_origin do
         # Full origin for WebAuthn challenge verification
-        "#{request.scheme}://#{request.host_with_port}"
+        Auth::PublicHost.base_url(request.env) ||
+          "#{request.scheme}://#{request.host_with_port}"
       end
 
       auth.webauthn_rp_name 'OnetimeSecret'

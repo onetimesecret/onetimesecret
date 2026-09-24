@@ -115,7 +115,7 @@ RSpec.describe 'SetupConnectionPool (integration)', type: :integration do
     # URI, and SetupConnectionPool has already installed a ConnectionPool +
     # connection_provider targeting that closed port, before Redis.ping
     # fails. Without restoration, subsequent specs (anything going through
-    # Familia, e.g. Onetime::BannedIP in the IPBan middleware) route through
+    # Familia) route through
     # the leaked provider and hit ECONNREFUSED against the now-reused
     # ephemeral port. FullModeSuiteDatabase.setup! uses an idempotent
     # before(:context) Onetime.boot!, so if it already ran before this

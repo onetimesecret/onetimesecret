@@ -55,6 +55,11 @@ module Onetime
         def call(provider: nil, limit: nil, dry_run: false, format: 'text', **)
           boot_application!
 
+          # A negative --limit reaches Array#first in every provider fetcher,
+          # which raises on a negative size; a zero limit pulls nothing. The
+          # rescue below turns this into `Error: ...` with a non-zero exit.
+          raise ArgumentError, '--limit must be a positive integer' if limit && limit.to_i < 1
+
           result = Onetime::Operations::Email::SyncProviderFeedback.new(
             provider: provider,
             actor: CLI_ACTOR,

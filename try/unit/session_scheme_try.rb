@@ -104,6 +104,16 @@ reset_warn_guard!
 CAPTURED_PAYLOADS.first
 #=> { rack_url_scheme: nil, x_forwarded_proto: nil, forwarded: false, x_forwarded_ssl: nil, https: nil }
 
+## (a4b) ...and `forwarded:` still reports the edge's RFC 7239 header after
+## StripForwardedHost (mounted above Session) has deleted it: the middleware
+## leaves the deleted carrier's NAME in the env, and only the name is read, so
+## the `for=` client IP the header carried never reaches the log.
+reset_warn_guard!
+stripped = request_for({ 'onetime.stripped_forwarded_headers' => ['HTTP_FORWARDED'].freeze })
+@session.send(:security_matches?, stripped, { secure: true })
+[stripped.env.key?('HTTP_FORWARDED'), CAPTURED_PAYLOADS.first[:forwarded]]
+#=> [false, true]
+
 ## (a5) ...and a present-but-non-https X-Forwarded-Proto is recorded by VALUE in
 ## the evidence ('http' reached Rack but did not carry https) => pinpoints the hop
 ## AND the scheme it claimed, without us reconstructing it. Rack still resolves

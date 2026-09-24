@@ -213,6 +213,17 @@ export const useBootstrapStore = defineStore('bootstrap', {
     uiCapabilities: (state): UiCapabilities | undefined => state.ui.capabilities,
 
     /**
+     * True while this session is a colonel presenting as another customer.
+     *
+     * `impersonation` is a `.nullable().default(null)` schema field, so it is
+     * present in SCHEMA_DEFAULTS and needs no entry in the DEFAULTS block below
+     * the way `.optional()` fields (entitlement_preview_planid et al) do —
+     * Pinia tracks it from the first state() call and $reset()/resetForLogout()
+     * restore it to null.
+     */
+    isImpersonating: (state): boolean => state.impersonation !== null,
+
+    /**
      * API configuration from bootstrap payload.
      * Contains enabled flag and guest route permissions.
      */

@@ -6,6 +6,8 @@ import { ref, type Ref } from 'vue';
 import { useApi } from '@/shared/composables/useApi';
 import { gracefulParse } from '@/utils/schemaValidation';
 
+import { noteAdminSessionExpiry } from '../utils/adminSessionExpiry';
+
 /**
  * Canonical pagination envelope every admin list endpoint returns.
  *
@@ -168,6 +170,10 @@ export function usePaginatedFetch<TResponse, TItem>(
       return selected;
     } catch (err) {
       const wrapped = err instanceof Error ? err : new Error(String(err));
+      // Raised even for a superseded request: an expired admin window (#4331)
+      // is a property of the session, not of this one fetch, and every later
+      // request would fail the same way.
+      noteAdminSessionExpiry(err);
       if (requestId === requestSeq) error.value = wrapped;
       throw wrapped;
     } finally {

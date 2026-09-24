@@ -94,7 +94,8 @@ describe('V2 Wire → V3 Schema (Forward Compatibility)', () => {
       });
       const v2Wire = createV2WireReceiptBase(canonical);
 
-      // V2 sends booleans as strings ("true"/"false")
+      // V2 sends booleans as strings ("true"/"false"), including the
+      // deprecated is_viewed alias mirrored from is_previewed.
       expect(typeof v2Wire.is_viewed).toBe('string');
       expect(typeof v2Wire.is_burned).toBe('string');
 
@@ -104,7 +105,7 @@ describe('V2 Wire → V3 Schema (Forward Compatibility)', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         const boolError = result.error.issues.find(
-          (i) => i.path.includes('is_viewed') || i.path.includes('is_burned')
+          (i) => i.path.includes('is_previewed') || i.path.includes('is_burned')
         );
         expect(boolError).toBeDefined();
       }
@@ -179,6 +180,7 @@ describe('V3 Wire → V2 Schema (Backward Compatibility)', () => {
       });
       const v3Wire = createV3WireReceiptBase(canonical);
 
+      // V3 drops the deprecated is_viewed alias entirely — only is_previewed exists.
       expect(typeof v3Wire.is_previewed).toBe('boolean');
       expect(typeof v3Wire.is_burned).toBe('boolean');
 
@@ -285,8 +287,10 @@ describe('Edge Case Compatibility', () => {
       const v2Wire = createV2WireReceiptBase(canonical);
       const v3Wire = createV3WireReceiptBase(canonical);
 
+      // V3 drops custid from the wire entirely (2026-07-29 API audit, item 5;
+      // see shapes/v3/receipt.ts v3DroppedFields) — only V2 still carries it.
       expect(v2Wire.custid).toBeUndefined();
-      // V3 drops `custid` from the wire entirely; `memo` is the optional field to check here.
+      expect(v2Wire.memo).toBeUndefined();
       expect(v3Wire.memo).toBeUndefined();
     });
   });

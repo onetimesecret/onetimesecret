@@ -29,6 +29,8 @@ function auditPayload() {
           result: 'success',
           detail: { from: 'customer', to: 'admin' },
           created: 1700000000.25,
+          // Stream discriminator (#4335). Required by colonelAuditEventSchema.
+          trail: 'events',
         },
       ],
       pagination: {
@@ -113,6 +115,42 @@ describe('useColonelAuditLog', () => {
     await expect(store.fetchPage(1)).rejects.toThrow('Network Error');
     expect(store.events).toEqual([]);
     expect(store.pagination).toBeNull();
+  });
+
+  // The export endpoint is a download, not a fetch: the store only has to
+  // build the URL (with the active filters) for the view to link to.
+  describe('exportUrl', () => {
+    it('targets the export endpoint with the requested format', () => {
+      expect(useColonelAuditLog().exportUrl('csv')).toBe(
+        '/api/colonel/audit/export?format=csv'
+      );
+      expect(useColonelAuditLog().exportUrl('ndjson')).toBe(
+        '/api/colonel/audit/export?format=ndjson'
+      );
+    });
+
+    it('carries the active filters so the file matches the table', () => {
+      const url = useColonelAuditLog().exportUrl('csv', {
+        actor: 'colonel@example.com',
+        verb: 'customer',
+      });
+
+      expect(url).toBe(
+        '/api/colonel/audit/export?format=csv&actor=colonel%40example.com&verb=customer'
+      );
+    });
+
+    it('omits empty filters rather than sending blanks', () => {
+      expect(useColonelAuditLog().exportUrl('csv', { actor: '', verb: undefined })).toBe(
+        '/api/colonel/audit/export?format=csv'
+      );
+    });
+
+    it('never issues a request of its own', () => {
+      useColonelAuditLog().exportUrl('csv');
+
+      expect(mockApi.get).not.toHaveBeenCalled();
+    });
   });
 
   it('$reset restores initial state', async () => {

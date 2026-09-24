@@ -71,6 +71,14 @@ import { createTestI18n } from '@tests/setup';
 const i18n = createTestI18n();
 
 const EXTID = 'cd_abc123';
+/**
+ * The hostname the server gates every applying domain verb on (#4326) — an
+ * identifier the URL (an extid) does not carry. The typed-confirm dialog still
+ * asks for the extid; the header is what the server checks.
+ */
+const CONFIRM_HEADERS = {
+  headers: { 'X-OTS-Confirm': encodeURIComponent('secrets.example.com') },
+};
 const DETAIL_URL = `/api/colonel/domains/${EXTID}`;
 
 function detailPayload(overrides: Record<string, unknown> = {}) {
@@ -346,7 +354,8 @@ describe('AdminDomainDetail', () => {
       await wrapper.find('[data-testid="remove-preview"]').trigger('click');
       await flushPromises();
 
-      expect(mockApi.delete).toHaveBeenCalledWith(`${DETAIL_URL}?dry_run=true`);
+      // A preview is EXEMPT server-side, so it sends no confirmation header.
+      expect(mockApi.delete).toHaveBeenCalledWith(`${DETAIL_URL}?dry_run=true`, undefined);
       const plan = wrapper.find('[data-testid="remove-plan"]');
       expect(plan.exists()).toBe(true);
       expect(plan.text()).toContain('Acme');
@@ -400,7 +409,10 @@ describe('AdminDomainDetail', () => {
       await flushPromises();
 
       // The apply MUST say dry_run=false — the endpoint defaults it to true.
-      expect(mockApi.delete).toHaveBeenCalledWith(`${DETAIL_URL}?dry_run=false`);
+      expect(mockApi.delete).toHaveBeenCalledWith(
+        `${DETAIL_URL}?dry_run=false`,
+        CONFIRM_HEADERS
+      );
       expect(showMock).toHaveBeenCalledWith('web.admin.domains.actions.remove.success', 'success');
       expect(pushMock).toHaveBeenCalledWith({ name: 'AdminDomains' });
     });
@@ -418,10 +430,11 @@ describe('AdminDomainDetail', () => {
       await wrapper.find('[data-testid="transfer-preview"]').trigger('click');
       await flushPromises();
 
-      expect(mockApi.post).toHaveBeenCalledWith(`${DETAIL_URL}/transfer`, {
-        dry_run: true,
-        to_org: 'org_new',
-      });
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `${DETAIL_URL}/transfer`,
+        { dry_run: true, to_org: 'org_new' },
+        undefined
+      );
       expect(wrapper.find('[data-testid="transfer-plan"]').text()).toContain('Globex');
 
       await wrapper.find('[data-testid="transfer-apply"]').trigger('click');
@@ -430,10 +443,11 @@ describe('AdminDomainDetail', () => {
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.post).toHaveBeenCalledWith(`${DETAIL_URL}/transfer`, {
-        dry_run: false,
-        to_org: 'org_new',
-      });
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `${DETAIL_URL}/transfer`,
+        { dry_run: false, to_org: 'org_new' },
+        CONFIRM_HEADERS
+      );
       expect(showMock).toHaveBeenCalledWith(
         'web.admin.domains.actions.transfer.success',
         'success'
@@ -454,7 +468,11 @@ describe('AdminDomainDetail', () => {
       await wrapper.find('[data-testid="repair-preview"]').trigger('click');
       await flushPromises();
 
-      expect(mockApi.post).toHaveBeenCalledWith(`${DETAIL_URL}/repair`, { dry_run: true });
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `${DETAIL_URL}/repair`,
+        { dry_run: true },
+        undefined
+      );
       expect(wrapper.find('[data-testid="repair-status"]').text()).toBe('planned');
 
       await wrapper.find('[data-testid="repair-apply"]').trigger('click');
@@ -463,7 +481,11 @@ describe('AdminDomainDetail', () => {
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.post).toHaveBeenCalledWith(`${DETAIL_URL}/repair`, { dry_run: false });
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `${DETAIL_URL}/repair`,
+        { dry_run: false },
+        CONFIRM_HEADERS
+      );
       expect(showMock).toHaveBeenCalledWith('web.admin.domains.actions.repair.success', 'success');
     });
 
@@ -476,10 +498,11 @@ describe('AdminDomainDetail', () => {
       await wrapper.find('[data-testid="repair-preview"]').trigger('click');
       await flushPromises();
 
-      expect(mockApi.post).toHaveBeenCalledWith(`${DETAIL_URL}/repair`, {
-        dry_run: true,
-        org_id: 'org_rescue',
-      });
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `${DETAIL_URL}/repair`,
+        { dry_run: true, org_id: 'org_rescue' },
+        undefined
+      );
     });
   });
 });

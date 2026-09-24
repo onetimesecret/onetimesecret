@@ -31,6 +31,22 @@ module Onetime
     #   Onetime::Runtime.infrastructure.cached_loggers
     #
     class SetupLoggers < Onetime::Boot::Initializer
+      # SemanticLogger category the operator audit sink emits on (#4334).
+      #
+      # A literal, not Onetime::ColonelAuditEvent::SINK_LOGGER_NAME, because
+      # this initializer runs in the :fork_sensitive boot phase — before the
+      # models are loaded — and referencing the constant there would raise
+      # NameError into the appender's rescue and silently disable the operator's
+      # configured audit destination. The two MUST agree; a spec pins that
+      # (spec/unit/onetime/models/colonel_audit_event_spec.rb).
+      AUDIT_SINK_LOGGER_NAME = 'ColonelAudit'
+
+      # Exact-name filter for the audit syslog appender. SemanticLogger matches
+      # `filter` against the logger NAME, and a loose pattern would quietly
+      # start copying unrelated categories into the operator's audit
+      # destination.
+      AUDIT_SINK_FILTER = /\A#{Regexp.escape(AUDIT_SINK_LOGGER_NAME)}\z/
+
       @provides           = [:logging].freeze
       @phase              = :fork_sensitive
       @logger_definitions = {
@@ -66,6 +82,7 @@ module Onetime
 
         configure_default_level(config)
         configure_appender(config)
+        configure_audit_syslog_appender(config)
 
         cached_loggers = create_cached_loggers(config)
         apply_env_overrides(cached_loggers)
@@ -154,6 +171,96 @@ module Onetime
           io: log_device,
           formatter: formatter,
         )
+      end
+
+      # OPTIONAL syslog appender for the operator audit sink (#4334).
+      #
+      # Onetime::ColonelAuditEvent emits every audit event as a structured log
+      # line on the dedicated `ColonelAudit` category BEFORE writing it to
+      # Valkey — that stream, not the capped sorted set, is the durability
+      # story. By default it rides the console appender above (stdout, which
+      # container log collectors already read). Operators who need the audit
+      # stream shipped SEPARATELY from application logs — a SIEM, a write-once
+      # host, its own retention — enable this.
+      #
+      # DEFAULT OFF, and no third-party dependency for the default URL:
+      # SemanticLogger ships the syslog appender in-gem, and `syslog://` (the
+      # local daemon) speaks through Ruby's own `syslog` library — declared in
+      # the Gemfile's stdlib section because Ruby 3.4 made it a bundled gem.
+      # A `tcp://` / `udp://` URL ships to a REMOTE syslog server and needs the
+      # third-party `syslog_protocol` gem, which this repo does not bundle; the
+      # rescue below turns that into one warning at boot rather than a failed
+      # start.
+      #
+      # FILTERED to the audit category ({AUDIT_SINK_FILTER}), so enabling it
+      # ships the audit stream and nothing else.
+      #
+      # Idempotent for the same reason configure_appender is: test reruns and
+      # re-executed initializers must not stack duplicate appenders. Matched by
+      # class NAME because the constant is only defined once add_appender has
+      # loaded the appender file.
+      def configure_audit_syslog_appender(config)
+        settings = config.dig('audit', 'syslog') || {}
+        return unless OT::Utils.yes?(settings['enabled'])
+        return if SemanticLogger.appenders.any? { |appender| appender.class.name.to_s.end_with?('Appender::Syslog') }
+
+        require 'syslog'
+
+        SemanticLogger.add_appender(
+          appender: :syslog,
+          url: settings['url'].to_s.empty? ? 'syslog://localhost' : settings['url'].to_s,
+          level: (settings['level'] || 'info').to_sym,
+          facility: syslog_facility(settings['facility']),
+          level_map: syslog_level_map,
+          filter: AUDIT_SINK_FILTER,
+        )
+      rescue StandardError, LoadError => ex
+        # Never fail boot over an optional log destination. The sink still
+        # reaches stdout via the console appender, so the audit stream is not
+        # lost — only its second copy is.
+        warn "[SetupLoggers] audit syslog appender not enabled: #{ex.class}: #{ex.message}"
+      end
+
+      # Resolve a syslog facility NAME (local0, daemon, authpriv, …) to the
+      # ::Syslog integer constant the appender wants. Config carries the name
+      # because an operator writes `facility: local0`, not a bitmask.
+      #
+      # Anything unrecognised falls back to LOG_USER rather than raising: a
+      # typo in a logging config must not cost the audit sink its second
+      # destination. const_get is bounded to LOG_-prefixed names on ::Syslog,
+      # so a config value can never reach an arbitrary constant.
+      def syslog_facility(name)
+        candidate = "LOG_#{name.to_s.strip.upcase}"
+        return ::Syslog::LOG_USER unless candidate.match?(/\ALOG_[A-Z0-9]+\z/) && ::Syslog.const_defined?(candidate)
+
+        ::Syslog.const_get(candidate)
+      end
+
+      # SemanticLogger level → syslog severity, supplied EXPLICITLY.
+      #
+      # Not a nicety: the appender's `level_map:` default value is
+      # `SemanticLogger::Formatters::Syslog::LevelMap.new`, and merely
+      # evaluating that default autoloads a formatter file whose first line is
+      # `require "syslog_protocol"` — so omitting this argument makes even the
+      # LOCAL `syslog://` case demand a remote-logging gem we do not bundle.
+      # Passing a plain Hash (which the appender indexes with `[]`, same as a
+      # LevelMap) keeps the local path dependency-free.
+      #
+      # The values mirror the gem's documented defaults; syslog severities are
+      # fixed by RFC 5424, so there is nothing here that drifts.
+      #
+      # A method rather than a constant: ::Syslog is only required when the
+      # appender is actually being enabled, so a constant would have to resolve
+      # those values at class-definition time.
+      def syslog_level_map
+        {
+          trace: ::Syslog::LOG_DEBUG,
+          debug: ::Syslog::LOG_INFO,
+          info: ::Syslog::LOG_NOTICE,
+          warn: ::Syslog::LOG_WARNING,
+          error: ::Syslog::LOG_ERR,
+          fatal: ::Syslog::LOG_CRIT,
+        }.freeze
       end
 
       # Where console logs go.

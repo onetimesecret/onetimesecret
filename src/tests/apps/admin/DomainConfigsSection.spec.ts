@@ -68,6 +68,16 @@ const i18n = createTestI18n();
 
 const EXTID = 'cd_abc123';
 const CONFIGS_URL = `/api/colonel/domains/${EXTID}/configs`;
+
+/**
+ * The composed token the server requires for the per-config verbs (#4326):
+ * "<display_domain>:<kind>". The URL carries the extid and the kind, so the
+ * hostname is the half a scraped-URL replay does not have. `ensure` is un-gated.
+ */
+function confirmHeadersFor(kind: string) {
+  return { headers: { 'X-OTS-Confirm': encodeURIComponent(`secrets.example.com:${kind}`) } };
+}
+
 const ALL_KINDS = ['signin', 'signup', 'homepage', 'api', 'incoming', 'sso', 'mailer'] as const;
 
 function envelopeRecord() {
@@ -520,9 +530,11 @@ describe('DomainConfigsSection', () => {
 
       // Audit fidelity: only the diff ships, so the server's `changed:[...]`
       // audit detail lists real changes.
-      expect(mockApi.put).toHaveBeenCalledWith(`${CONFIGS_URL}/signin`, {
-        email_auth_enabled: true,
-      });
+      expect(mockApi.put).toHaveBeenCalledWith(
+        `${CONFIGS_URL}/signin`,
+        { email_auth_enabled: true },
+        confirmHeadersFor('signin')
+      );
       expect(showMock).toHaveBeenCalledWith('web.admin.domains.configs.edit.success', 'success');
       expect(mockApi.get).toHaveBeenCalledTimes(2);
       expect(wrapper.find('[data-testid="config-edit-modal"]').exists()).toBe(false);
@@ -558,13 +570,17 @@ describe('DomainConfigsSection', () => {
       await wrapper.find('[data-testid="config-edit-submit"]').trigger('click');
       await flushPromises();
 
-      expect(mockApi.put).toHaveBeenCalledWith(`${CONFIGS_URL}/signup`, {
-        enabled: false,
-        signup_enabled: false,
-        autoverify: false,
-        validation_strategy: 'passthrough',
-        allowed_signup_domains: [],
-      });
+      expect(mockApi.put).toHaveBeenCalledWith(
+        `${CONFIGS_URL}/signup`,
+        {
+          enabled: false,
+          signup_enabled: false,
+          autoverify: false,
+          validation_strategy: 'passthrough',
+          allowed_signup_domains: [],
+        },
+        confirmHeadersFor('signup')
+      );
     });
 
     it('falls back to passthrough when a legacy record hydrates a null strategy', async () => {
@@ -589,9 +605,11 @@ describe('DomainConfigsSection', () => {
 
       await wrapper.find('[data-testid="config-edit-submit"]').trigger('click');
       await flushPromises();
-      expect(mockApi.put).toHaveBeenCalledWith(`${CONFIGS_URL}/signup`, {
-        validation_strategy: 'passthrough',
-      });
+      expect(mockApi.put).toHaveBeenCalledWith(
+        `${CONFIGS_URL}/signup`,
+        { validation_strategy: 'passthrough' },
+        confirmHeadersFor('signup')
+      );
     });
 
     it('still succeeds on an upsert ack that fails the contract, but warns', async () => {
@@ -656,7 +674,10 @@ describe('DomainConfigsSection', () => {
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.delete).toHaveBeenCalledWith(`${CONFIGS_URL}/sso`);
+      expect(mockApi.delete).toHaveBeenCalledWith(
+        `${CONFIGS_URL}/sso`,
+        confirmHeadersFor('sso')
+      );
       expect(showMock).toHaveBeenCalledWith(
         'web.admin.domains.configs.delete.success',
         'success'

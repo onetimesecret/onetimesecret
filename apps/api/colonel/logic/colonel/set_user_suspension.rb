@@ -29,7 +29,9 @@ module ColonelAPI
 
         def process_params
           @user_id = sanitize_identifier(params['user_id'])
-          @reason  = sanitize_plain_text(params['reason'], max_length: 255) if params['reason']
+          # Predates #4338; now uses the shared reader so the param name, the
+          # sanitizer and the 255-char bound match every other destructive verb.
+          @reason  = operator_reason_param
           raise_form_error('User ID is required', field: :user_id) if user_id.to_s.empty?
         end
 
@@ -46,9 +48,21 @@ module ColonelAPI
 
           raise_form_error('Cannot modify anonymous user', field: :user_id) if user.anonymous?
 
-          # Privilege guard (UX-level; the op enforces it again as a backstop):
-          # colonel accounts cannot be suspended — demote the role first.
-          return unless suspended_target && user.role?('colonel')
+          # Only the SUSPEND arm is gated (#4326, TIER 2): it denies a user
+          # service. UnsuspendUser is the restorative arm and stays un-gated.
+          return unless suspended_target
+
+          guard_destructive_action!(
+            tier: :sensitive,
+            confirm_with: account_confirm_token(user),
+            confirm_subject: "the target account's email address",
+            field: :user_id,
+          )
+
+          # INTERLOCK — after proof (guard order §0.2). Privilege guard
+          # (UX-level; the op enforces it again as a backstop): colonel accounts
+          # cannot be suspended — demote the role first.
+          return unless user.role?('colonel')
 
           raise_form_error('Colonel accounts cannot be suspended. Demote the role first.', field: :user_id)
         end

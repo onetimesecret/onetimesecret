@@ -22,6 +22,7 @@
 #
 # Usage:
 #   bin/ots customers purge-one user@example.com          # confirm, then purge
+#   bin/ots customers purge-one user@example.com --reason "GDPR erasure #123"
 #   bin/ots customers purge-one ur1234567890abcdef --yes
 #   bin/ots customers purge-one 123 --yes --json          # Rodauth account ID
 
@@ -45,6 +46,13 @@ module Onetime
         required: true,
         desc: 'Email, extid, or Rodauth account ID of the customer'
 
+      # OPTIONAL operator-supplied why (#4338), recorded in the audit detail
+      # of the event this command's op writes. Same flag, same wording and same
+      # blank-means-absent handling as every other destructive CLI verb.
+      option :reason,
+        type: :string,
+        default: nil,
+        desc: 'Operator-supplied reason (recorded in the admin audit trail)'
       option :yes,
         type: :boolean,
         default: false,
@@ -55,7 +63,7 @@ module Onetime
         default: false,
         desc: 'Output as JSON'
 
-      def call(identifier:, yes: false, json: false, **)
+      def call(identifier:, reason: nil, yes: false, json: false, **)
         boot_application!
 
         if identifier.to_s.strip.empty?
@@ -77,7 +85,8 @@ module Onetime
           puts 'This permanently destroys the customer record, its indexes and'
           puts 'its metadata. It is NOT reversible without a Redis backup.'
           puts
-          print "Purge #{obscured} (#{extid})? [y/N] "
+          note     = reason.to_s.strip.empty? ? '' : " (reason: #{reason})"
+          print "Purge #{obscured} (#{extid})#{note}? [y/N] "
           response = $stdin.gets&.strip&.downcase
           unless response == 'y'
             puts 'Aborted.'
@@ -88,6 +97,7 @@ module Onetime
         result = Auth::Operations::Customers::Purge.new(
           customer: customer,
           actor: Customers::Shared::CLI_ACTOR,
+          reason: reason,
         ).call
 
         OT.info "[cli-customers-purge-one] extid=#{extid} status=#{result.status}"

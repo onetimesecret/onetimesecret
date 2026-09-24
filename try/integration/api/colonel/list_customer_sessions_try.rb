@@ -15,6 +15,8 @@
 # - 200 with both seeded sessions, NEWEST-FIRST (active_sessions score desc)
 # - each row is the safe_dump allow-list shape: user_id present, and NO
 #   email / token / decrypted-payload key (the allow-list is the security boundary)
+# - F-01: rows identify a session by session_handle (a non-bearer digest), and the
+#   raw sid (== live cookie / blob key) appears NOWHERE in the response
 # - an unknown user_id returns 200 with an empty list + count 0 (no raise)
 #
 # Sessions are seeded through the REAL write path (TrackMetadata) with a REAL
@@ -113,18 +115,24 @@ last_response.status
 
 # --- List newest-first via safe_dump -------------------------------------
 
-## 200 with both sessions, newest (highest score) first, count 2
+## 200 with both sessions, newest (highest score) first, count 2. Rows are keyed
+## by session_handle (non-bearer digest), NOT the raw sid (F-01).
 get URL, {}, colonel_headers
 @resp = JSON.parse(last_response.body)
 @d    = @resp['details']
-[last_response.status, @d['count'], @d['sessions'].map { |s| s['session_id'] }]
-#=> [200, 2, ["#{@sid_new}", "#{@sid_old}"]]
+[last_response.status, @d['count'], @d['sessions'].map { |s| s['session_handle'] }]
+#=> [200, 2, [Onetime::SessionMetadata.handle_for(@sid_new), Onetime::SessionMetadata.handle_for(@sid_old)]]
 
-## details carries current_session_id — the acting colonel's OWN request sid so
-## the UI can badge their own row. It's the colonel's session (not @target's), so
-## it won't match a listed row here; the contract just guarantees the key + a sid.
-@csid = @d['current_session_id']
-[@d.key?('current_session_id'), @csid.is_a?(String), @csid.match?(/\A[a-f0-9]{64,}\z/)]
+## F-01: the raw sid (== live cookie value / `session:<sid>` blob key) appears
+## NOWHERE in the response body — only the non-reversible handle crosses the wire
+[last_response.body.include?(@sid_new), last_response.body.include?(@sid_old)]
+#=> [false, false]
+
+## details carries current_session_handle — the digest of the acting colonel's OWN
+## request sid so the UI can badge their own row WITHOUT the response exposing the
+## colonel's own live cookie either. It's a 32-hex handle, never the 64-hex sid.
+@chandle = @d['current_session_handle']
+[@d.key?('current_session_handle'), @chandle.is_a?(String), @chandle.match?(/\A[a-f0-9]{32}\z/) ? true : false]
 #=> [true, true, true]
 
 ## each row is the safe_dump allow-list shape: user_id == target extid
@@ -133,12 +141,13 @@ get URL, {}, colonel_headers
 #=> ["#{@extid}", '203.0.113.1', 'UA']
 
 ## the row carries NO email, NO token, NO decrypted-payload key (security boundary)
-[@row.key?('email'), @row.key?('token'), @row.key?('authenticated'), @row.key?('external_id')]
-#=> [false, false, false, false]
+## and NO raw session_id — the bearer sid is replaced by session_handle (F-01)
+[@row.key?('email'), @row.key?('token'), @row.key?('authenticated'), @row.key?('external_id'), @row.key?('session_id')]
+#=> [false, false, false, false, false]
 
 ## the row exposes exactly the safe_dump keys and nothing more
 @row.keys.sort
-#=> ["auth_method", "created_at", "geo_country", "ip_address", "last_activity_at", "mfa_used", "org_id", "session_id", "user_agent", "user_id"]
+#=> ["auth_method", "created_at", "geo_country", "ip_address", "last_activity_at", "mfa_used", "org_id", "session_handle", "user_agent", "user_id"]
 
 # --- Unknown user_id -----------------------------------------------------
 

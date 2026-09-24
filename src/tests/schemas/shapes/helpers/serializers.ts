@@ -42,7 +42,7 @@ export type V2WireReceiptDetails = z.input<typeof receiptDetailsSchema>;
 export type V3WireReceiptBase = z.input<typeof v3ReceiptBaseSchema>;
 export type V3WireReceipt = z.input<typeof v3ReceiptSchema>;
 export type V3WireReceiptDetails = z.input<typeof v3ReceiptDetailsSchema>;
-export type V3WireReceiptList = z.input<typeof v3ReceiptListSchema>;
+export type V3WireReceiptListRecord = z.input<typeof v3ReceiptListSchema>;
 
 // Secret wire format types
 export type V2WireSecretBase = z.input<typeof secretResponsesSchema>;
@@ -54,15 +54,13 @@ export type V3WireSecret = z.input<typeof v3SecretSchema>;
 export type V3WireSecretDetails = z.input<typeof v3SecretDetailsSchema>;
 
 // Feedback wire format types
-// V2 has no dedicated feedback shape schema; the V2 wire format encodes stamp as
-// an ISO string and received as a "true"/"false" string.
-export type V2WireFeedback = {
-  msg: string;
-  stamp: string;
-};
-export type V2WireFeedbackDetails = {
-  received?: string;
-};
+//
+// There is no production `@/schemas/shapes/v2/feedback` module — V2 feedback
+// support was removed (see feedback.compat.spec.ts). These types are defined
+// directly to describe the historical V2 wire shape that the serializer
+// functions below still produce, for test coverage of that legacy format.
+export type V2WireFeedback = { msg: string; stamp: string };
+export type V2WireFeedbackDetails = { received?: string };
 
 export type V3WireFeedback = z.input<typeof v3FeedbackSchema>;
 export type V3WireFeedbackDetails = z.input<typeof v3FeedbackDetailsSchema>;
@@ -154,8 +152,10 @@ export function toV2WireReceiptBase(canonical: ReceiptBaseCanonical): V2WireRece
     created: dateToEpochSeconds(canonical.created)!,
     updated: dateToEpochSeconds(canonical.updated)!,
     shared: dateToISOString(canonical.shared),
-    // Deprecated V2 timestamp aliases derived from canonical fields:
-    //   received -> revealed, viewed -> previewed
+    // Deprecated V2 aliases: the canonical contract dropped 'received'/'viewed'
+    // in favor of 'revealed'/'previewed' (see contracts/receipt.ts state
+    // migration notes), but the V2 wire schema still accepts both old and new
+    // field names for backward compatibility, so mirror the current fields.
     received: dateToISOString(canonical.revealed),
     viewed: dateToISOString(canonical.previewed),
     previewed: dateToISOString(canonical.previewed),
@@ -177,8 +177,8 @@ export function toV2WireReceiptBase(canonical: ReceiptBaseCanonical): V2WireRece
 
     // Boolean status flags: string
     has_passphrase: canonical.has_passphrase,
-    // Deprecated V2 boolean aliases derived from canonical fields:
-    //   is_viewed -> is_previewed, is_received -> is_revealed
+    // Deprecated V2 aliases: mirror the current is_previewed/is_revealed
+    // fields (see the timestamp aliases above).
     is_viewed: booleanToString(canonical.is_previewed),
     is_received: booleanToString(canonical.is_revealed),
     is_previewed: canonical.is_previewed !== undefined ? booleanToString(canonical.is_previewed) : undefined,
@@ -224,7 +224,7 @@ export function toV2WireReceiptDetails(canonical: ReceiptDetailsCanonical): V2Wi
     no_cache: booleanToString(canonical.no_cache),
     // secret_realttl is NOT transformed in V2 schema — keeps native number
     secret_realttl: canonical.secret_realttl,
-    view_count: canonical.view_count != null ? numberToString(canonical.view_count) : canonical.view_count,
+    view_count: canonical.view_count == null ? canonical.view_count : numberToString(canonical.view_count),
     has_passphrase: canonical.has_passphrase !== null ? booleanToString(canonical.has_passphrase) : null,
     can_decrypt: canonical.can_decrypt !== null ? booleanToString(canonical.can_decrypt) : null,
     secret_value: canonical.secret_value,
@@ -266,10 +266,11 @@ export function toV3WireReceiptBase(canonical: ReceiptBaseCanonical): V3WireRece
     owner_id: canonical.owner_id,
 
     // Timestamps: ALL are numbers
+    // Note: no 'received'/'viewed' aliases here — V3 is the clean API and
+    // drops the deprecated field names entirely (see shapes/v3/receipt.ts).
     created: dateToEpochSeconds(canonical.created)!,
     updated: dateToEpochSeconds(canonical.updated)!,
     shared: dateToEpochSeconds(canonical.shared),
-    // V3 is the clean API — no deprecated received/viewed aliases.
     previewed: dateToEpochSeconds(canonical.previewed),
     revealed: dateToEpochSeconds(canonical.revealed),
     burned: dateToEpochSeconds(canonical.burned),
@@ -288,8 +289,9 @@ export function toV3WireReceiptBase(canonical: ReceiptBaseCanonical): V3WireRece
     share_domain: canonical.share_domain,
 
     // Boolean status flags: native booleans
+    // Note: no 'is_viewed'/'is_received' aliases — V3 drops the deprecated
+    // field names entirely (see shapes/v3/receipt.ts).
     has_passphrase: canonical.has_passphrase,
-    // V3 is the clean API — no deprecated is_viewed/is_received aliases.
     is_previewed: canonical.is_previewed,
     is_revealed: canonical.is_revealed,
     is_burned: canonical.is_burned,
@@ -327,12 +329,12 @@ export function toV3WireReceipt(canonical: ReceiptCanonical): V3WireReceipt {
  * Converts canonical receipt list record to V3 wire format.
  * Extends base with show_recipients field required for list display.
  */
-export function toV3WireReceiptListRecord(canonical: ReceiptListCanonical): V3WireReceiptList {
+export function toV3WireReceiptListRecord(canonical: ReceiptListCanonical): V3WireReceiptListRecord {
   const base = toV3WireReceiptBase(canonical);
   return {
     ...base,
     show_recipients: canonical.show_recipients,
-  } as V3WireReceiptList;
+  } as V3WireReceiptListRecord;
 }
 
 /**
@@ -697,7 +699,7 @@ export type V2WireOrganization = {
   extid: string;
   display_name: string;
   description: string | null;
-  owner_id: string | null | undefined;
+  owner_id?: string | null;
   contact_email: string | null;
   is_default: string;
   planid: string;
@@ -718,7 +720,7 @@ export type V3WireOrganization = {
   extid: string;
   display_name: string;
   description: string | null;
-  owner_id: string | null | undefined;
+  owner_id?: string | null;
   contact_email: string | null;
   is_default: boolean;
   planid: string;
@@ -754,7 +756,9 @@ export function toV2WireOrganization(
     // Plan
     planid: canonical.planid,
 
-    // Timestamps: strings (canonical already carries Unix epoch seconds)
+    // Timestamps: strings. Unlike receipts/secrets/customers, the
+    // organization CONTRACT already stores Unix epoch seconds as a plain
+    // number (see contracts/organization.ts) — no Date round-trip needed.
     created: numberToString(canonical.created),
     updated: numberToString(canonical.updated),
   };
@@ -788,7 +792,9 @@ export function toV3WireOrganization(
     // Plan
     planid: canonical.planid,
 
-    // Timestamps: numbers (canonical already carries Unix epoch seconds)
+    // Timestamps: numbers. The organization CONTRACT already stores Unix
+    // epoch seconds as a plain number (see contracts/organization.ts) —
+    // no Date round-trip needed, unlike receipts/secrets/customers.
     created: canonical.created,
     updated: canonical.updated,
   };
@@ -945,7 +951,8 @@ export type V2WireVHost = {
   is_resolving?: string;
   status_message?: string;
   created_at?: string;
-  // V2 schema uses fromNumber.secondsToDate — wire value is a number, not a string.
+  // V2 schema uses fromNumber.secondsToDate for this one field — number,
+  // not string, despite the rest of V2 VHost being string-encoded.
   last_monitored_unix?: number;
   ssl_active_from?: string | null;
   ssl_active_until?: string | null;

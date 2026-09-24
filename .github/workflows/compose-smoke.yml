@@ -326,7 +326,7 @@ jobs:
       # The README quick start, run verbatim (the two `docker run` commands and
       # the secret-file step from README §Quick start).
       - name: Start Redis (README step 1)
-        run: docker run -p 6379:6379 -d redis:bookworm
+        run: docker run -p 6379:6379 -d redis:trixie
 
       - name: Generate persistent secret key (README step 2)
         run: |

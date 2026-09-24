@@ -10,13 +10,16 @@
 #
 # @see Onetime::Application::AuthStrategies
 
+require_relative '../../session/impersonation'
 require_relative 'helpers'
+require_relative 'admin_session_lifetime'
 
 module Onetime
   module Application
     module AuthStrategies
       class BaseSessionAuthStrategy < Otto::Security::AuthStrategy
         include Helpers
+        include AdminSessionLifetime
         include Onetime::Application::OrganizationLoader
 
         @auth_method_name = nil
@@ -66,6 +69,37 @@ module Onetime
           if session_predates_credential_change?(session, cust)
             return failure('[SESSION_STALE_CREDENTIALS] Session predates last credential change')
           end
+
+          # Admin-surface session bounds (#4331). Runs here because this is the
+          # one per-request chokepoint that already has the loaded customer
+          # (hence cust.role) and the raw session. Deliberately AFTER the
+          # watermark and BEFORE additional_checks.
+          #
+          # The session is NOT mutated: an auth strategy runs on read paths and
+          # must stay side-effect-free, and clearing `authenticated` here would
+          # risk a write on a request that should not commit one. Failing is
+          # sufficient — the SPA sees the 401 and routes to sign-in, which
+          # replaces the session. The env flag is not a session write; it tells
+          # TrackMetadata that a REFUSED request is not activity, so the request
+          # we are rejecting cannot slide the idle window forward on its way out.
+          if (reason = admin_session_expiry_reason(session, cust, env))
+            env[AdminSessionLifetime::EXPIRED_ENV_KEY] = reason.to_s
+            return failure(
+              "[ADMIN_SESSION_EXPIRED] Admin session #{reason} timeout exceeded; sign in again",
+            )
+          end
+
+          # Colonel impersonation overlay. THE authoritative resolution: this
+          # strategy_result.user is what Onetime::Logic::Base#cust returns and
+          # what additional_metadata builds user_roles from, so from here down
+          # the request IS the target customer — including the role checks
+          # that make /api/colonel 403 while impersonating.
+          #
+          # Deliberately AFTER the suspension and credential-watermark checks
+          # above: those judge the PRINCIPAL (the operator), and a suspended or
+          # credential-revoked colonel must lose the whole session, not just
+          # the overlay.
+          cust, = Onetime::SessionImpersonation.resolve(session, cust, env: env)
 
           # Perform additional checks (role, permissions, etc.)
           check_result = additional_checks(cust, env)

@@ -49,6 +49,16 @@ module ColonelAPI
 
           @customer = resolve_customer(@customer_id)
           raise_not_found('Customer not found') unless @customer
+
+          # TIER 2 (#4326): privilege-granting — it hands an account access to
+          # that org's data. The URL carries the org id; the confirmation is its
+          # NAME.
+          guard_destructive_action!(
+            tier: :sensitive,
+            confirm_with: org_confirm_token(org),
+            confirm_subject: "the organization's name",
+            field: :org_id,
+          )
         end
 
         def process

@@ -208,7 +208,15 @@ module Onetime
           end
 
           planned = outgoing.filter_map { |membership| membership.customer&.extid }
-          return build(:planned, demoted: planned) if @dry_run
+
+          # A preview transfers nothing, so it writes nothing to the OPERATOR
+          # trail — but it names the incoming owner and everyone who would be
+          # demoted, and `dry_run` defaults to TRUE, so this is the path an
+          # operator takes first. Recorded as an OBSERVATION (#4337).
+          if @dry_run
+            record_preview_event(planned)
+            return build(:planned, demoted: planned)
+          end
 
           demoted = apply!(target, outgoing, original_owner_id)
 
@@ -347,6 +355,28 @@ module Onetime
           )
         rescue StandardError => ex
           OT.le "[Org::TransferOwnership] refusal audit failed: #{ex.class}: #{ex.message}"
+        end
+
+        # One OBSERVATION per preview (#4337), on the budgeted access trail.
+        # Same verb and target as the applied event so a preview and the
+        # transfer that followed read as one sequence; `result: 'preview'` and
+        # `dry_run: true` tell them apart. PUBLIC ids only, and a COUNT rather
+        # than the demotion list — the list is plan output for the operator,
+        # not audit content.
+        def record_preview_event(planned)
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @org.extid,
+            result: 'preview',
+            detail: {
+              dry_run: true,
+              from: @from_owner_id,
+              to: @new_owner.extid,
+              demoted_to: @demote_to,
+              demoted_count: planned.size,
+            },
+          )
         end
 
         # Single exit point for every non-applied status, so the refusal audit

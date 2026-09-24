@@ -1,6 +1,11 @@
 # Design System Readiness — Audit & Rolling-Wave Plan
 
 **Date:** 2026-07-23
+**Counts last verified:** 2026-09-06 — every number in §2–§3 re-measured against the tree on
+that date. **Plan status: Wave 1 not started** (no `src/shared/components/base/BaseButton.vue`
+or `BaseInput.vue`; no `--color-surface-*`/`--color-ink-*`/`--color-edge-*` tokens in
+`src/assets/style.css`; `pnpm-workspace.yaml` still has no `packages:` field). The raw-neutral
+surface has grown ~8% since the audit, so the case for Wave 1 is stronger, not weaker.
 **Scope:** All four frontend apps (`src/apps/{secret,workspace,session,admin}`), the shared
 layer (`src/shared/`), tokens (`src/assets/style.css`), and packaging.
 **Planning style:** Rolling wave / progressive elaboration — Wave 1 is specified to
@@ -25,7 +30,7 @@ narrower than it looks:
 - **The seed exists:** `src/apps/admin/components/kit/` is a deliberate,
   documented proto-design-system with library-grade typed props/slot APIs.
   `OIcon` is the one primitive that already behaves like a design system
-  (universally adopted, 469 uses in workspace alone).
+  (universally adopted, 497 uses in workspace alone).
 
 **Verdict:** build tokens-for-neutrals and the atomic primitives *inside*
 `src/shared` first; only then draw a package boundary. Extracting a package today
@@ -37,20 +42,20 @@ would ship the duplication as a library.
 
 | App | Overall | Strengths | Weaknesses |
 |---|---|---|---|
-| `admin` | **3.5/5** | Documented UI kit (`components/kit/`: DataTable, AdminModal, StatCard, FilterBar, KitPagination) with typed generic props, slots, `v-model` contracts; zero hardcoded hex; disciplined shared-component reuse | ~1,650 raw `gray-*` utilities; 96 raw `<button>` / 24 raw `<input>` because no atom exists beneath the kit's molecules; thinner per-surface aria coverage (~38 `aria-*`) |
-| `secret` | **2.7/5** | Heaviest brand-token consumer (~190 `brand-*` utility uses across 101 lines); strong a11y (`aria-live`, `sr-only` status, focus rings); 82% of files have `dark:` coverage | `canonical/` vs `branded/` component forks are copy-and-diverge duplication; 4 `SecretLinksTableRow*` visual variants (Console/Ledger/Timeline/SlotMachine — 6 files incl. base loader + Actions); no variant API — raw `cornerClass` string props (`ConcealButton.vue`) |
-| `session` | **2.0/5** | Best a11y craft in the repo (~189 `aria-*` refs; full `aria-invalid`/`aria-describedby` wiring; sr-only announcements); consistent dark mode | Zero abstraction: the same `bg-brand-600` submit-button block appears in 14 files; the ~8-line input class string is duplicated in every form (`SignInForm.vue:101-109`); a dead `--brand-primary` mechanism (`AcceptInvite.vue` sets it via `:style` at 7 sites but nothing reads `var(--brand-primary)`), whose `#d45a2a` fallback is a third stray brand default alongside `#3b82f6` and `#dc4a22` |
-| `workspace` | **2.0/5** | Heavy healthy reliance on shared logic (`OIcon` ×469, shared stores/composables ×324 imports); near 1:1 light/dark utility pairing | Worst duplication: 159 raw buttons, 51 raw inputs, 3 hand-rolled `<table>`s (`DomainsTable`, `MembersTable`, `billing/InvoiceList`); a dialog-a11y gap where 6 of 7 `*Modal*.vue` sit on HeadlessUI `Dialog` but 4 hand-rolled dialogs (`account/MfaSettings`/`RecoveryCodes`/`ActiveSessions`/`AccountDeleteButtonWithModalForm`) ship no focus-trap or Escape handler; ~5:1 hardcoded-vs-brand color ratio; split folder roots (`billing/` vs `components/billing/`, three `account` locations); focus styles on <50% of interactive files |
+| `admin` | **3.5/5** | Documented UI kit (`components/kit/`: DataTable, AdminModal, StatCard, FilterBar, KitPagination) with typed generic props, slots, `v-model` contracts; zero hardcoded hex; disciplined shared-component reuse | ~2,372 raw `gray-*`/`slate-*` utilities; 144 raw `<button>` / 39 raw `<input>` because no atom exists beneath the kit's molecules; thinner per-surface aria coverage (62 `aria-*`) |
+| `secret` | **2.7/5** | Heaviest brand-token consumer (198 `brand-*` utility uses); strong a11y (`aria-live`, `sr-only` status, focus rings); 82% of files have `dark:` coverage (55/67) | `canonical/` vs `branded/` component forks are copy-and-diverge duplication; 4 `SecretLinksTableRow*` visual variants (Console/Ledger/Timeline/SlotMachine — 6 files incl. base loader + Actions); no variant API — raw `cornerClass` string props (`components/form/ConcealButton.vue`, plus 11 other files) |
+| `session` | **2.0/5** | Best a11y craft in the repo (221 `aria-*` refs; full `aria-invalid`/`aria-describedby` wiring; sr-only announcements); consistent dark mode | Zero abstraction: the same `bg-brand-600` submit-button block appears in 16 files; the ~8-line input class string is duplicated in every form (`SignInForm.vue:101-109`); a dead `--brand-primary` mechanism (`AcceptInvite.vue` sets it via `:style` at 9 sites but nothing anywhere reads `var(--brand-primary)` — re-confirmed 2026-09-06), whose `#d45a2a` fallback is a third stray brand default alongside `#3b82f6` and `#dc4a22` |
+| `workspace` | **2.0/5** | Heavy healthy reliance on shared logic (`OIcon` ×497, shared stores/composables ×324 imports); near 1:1 light/dark utility pairing | Worst duplication: 170 raw buttons, 51 raw inputs, 4 hand-rolled `<table>`s (`DomainsTable`, `MembersTable`, `billing/InvoiceList`, and now `organizations/SecretActivityTable`); a dialog-a11y gap where 6 of 7 `*Modal*.vue` sit on HeadlessUI `Dialog` but 4 hand-rolled dialogs (`account/MfaSettings`/`RecoveryCodes`/`ActiveSessions`/`AccountDeleteButtonWithModalForm`) ship no focus-trap or Escape handler; ~5:1 hardcoded-vs-brand color ratio; split folder roots (`billing/` vs `components/billing/`, three `account` locations); focus styles on 52/109 files (48%) |
 
 ### 2.2 Foundation
 
 | Area | Rating | Notes |
 |---|---|---|
 | Runtime domain branding | **5/5** | `src/shared/composables/useBrandTheme.ts` + `src/utils/brand-palette.ts`: 44-key primary brand-palette injection (plus a 14-key extended #3646 token set), memoization, WCAG `contrastRatio()`, clean fallback to compiled `@theme static` defaults; 3-step fallback chain in `src/shared/constants/brand.ts` |
-| Design tokens | **4/5** | Tailwind v4 CSS-first (`src/assets/style.css:38` `@theme static`): six 11-shade brand scales (`brand`, `branddim`, `brandcomp`, `brandcompdim`, `brand2`), `--font-brand-*` stacks, `--radius-brand`. **Gap: neutrals are not tokenized** — ~6,650 raw `gray-*`/`slate-*` utility occurrences in `src/apps` (~7,540 incl. `src/shared`; `rg -o '(gray|slate)-[0-9]{2,3}'`), no semantic `surface`/`ink`/`muted` layer |
+| Design tokens | **4/5** | Tailwind v4 CSS-first (`src/assets/style.css:38` `@theme static`): six 11-shade brand scales (`brand`, `branddim`, `brandcomp`, `brandcompdim`, `brand2`), `--font-brand-*` stacks, `--radius-brand`. **Gap: neutrals are not tokenized** — 7,195 raw `gray-*`/`slate-*` utility occurrences in `src/apps` (7,954 incl. `src/shared`; `rg -o '(gray|slate)-[0-9]{2,3}'`) (up from ~6,650 at the 2026-07-23 audit); no semantic `surface`/`ink`/`muted` layer |
 | Icon system | **4/5** | `OIcon` sprite system, 9 collections, lazy registry, a11y-conscious. Universally adopted |
-| Shared components | **3/5** | 94 components in coherent families (modals on headlessui + focus-trap, split global/inline notification system, skeletons) — but no atoms |
-| Docs / Storybook / tests | **2/5** | No Storybook; ~10% component spec coverage; `.interface-design/system.md` has drifted from code (documents flame-orange `#dc4a22` brand vs the neutral-blue default in `brand.ts`) |
+| Shared components | **3/5** | 97 components in coherent families (modals on headlessui + focus-trap, split global/inline notification system, skeletons) — but no atoms |
+| Docs / Storybook / tests | **2/5** | No Storybook; 150 of 356 `.vue` files are imported by a spec under `src/tests` (42%), but the untested remainder is concentrated in exactly the raw-`<button>`/`<input>` surfaces Wave 1 targets; `.interface-design/system.md` has drifted from code (documents flame-orange `#dc4a22` brand vs the neutral-blue default in `brand.ts`) |
 | Library packaging | **2/5** | `pnpm-workspace.yaml` has no `packages:` field (no real workspaces); no Vite lib build, no `exports` map; `@/shared/*` alias would need rewiring |
 
 ## 3. Key evidence (for future reference)
@@ -59,7 +64,7 @@ would ship the duplication as a library.
 - Library-grade API precedent: `src/apps/admin/components/kit/DataTable.vue:29-65` (generic `<T>`, typed columns, controlled sort, cell/header slots); `AdminModal.vue:30-57` (`v-model:open`, `dismissable`, typed emits).
 - Kit intent & isolation: `src/apps/admin/components/kit/index.ts:1-25`.
 - Copy-and-diverge fork: `src/apps/secret/components/canonical/SecretDisplayCase.vue` (263 lines) vs `branded/SecretDisplayCase.vue` (195 lines).
-- Token system: `src/assets/style.css:31-152` (incl. the documented `@theme static` rationale); the extended tokens `brand2-*`/`brandbg`/`brandtext` are injected but not yet consumed by any view (declared `style.css:112-129`). `rounded-brand` is the exception — already consumed via `SecretPreview.vue:68` and `BaseUnknownSecret.vue:29`, backed by the injected `--radius-brand`.
+- Token system: `src/assets/style.css:31-152` (incl. the documented `@theme static` rationale); the extended tokens `brand2-*`/`brandbg`/`brandtext` are injected but still not consumed by any view (declared `style.css:112-129`; the only non-doc references are `useBrandTheme.ts`'s own injection keys — re-confirmed 2026-09-06). `rounded-brand` is the exception — already consumed via `workspace/components/dashboard/SecretPreview.vue:68`, `shared/components/base/BaseUnknownSecret.vue:29`, and `shared/stores/identityStore.ts:335`, backed by the injected `--radius-brand`.
 - Missing atoms: `src/shared/components/ui/` holds many higher-level components (`EmptyState`, `ThemeToggle`, notifications) plus specialized buttons (`CopyButton`, `SplitButton`, `ButtonGroup`, `CopyToClipboardButton`) — but no generic `Button`/`Input` atom.
 
 ---
@@ -105,7 +110,7 @@ each primitive is proven in one pilot surface per app.
    HeadlessUI `Dialog`); keep `ConfirmDialog`/`SimpleModal` as compositions of it).
 5. **Pilot adoption, one surface per app** (proof, not migration):
    session `SignInForm`, workspace `DomainSsoConfigForm`, secret
-   `ConcealButton`/`GenerateButton`, admin one kit view. Each pilot deletes its
+   `components/form/ConcealButton`/`GenerateButton`, admin one kit view. Each pilot deletes its
    local copies of the duplicated class strings.
 6. **Tests + doc truth:** component specs for each new atom (pattern:
    `src/tests/shared/components/`); reconcile `.interface-design/system.md`
@@ -168,5 +173,5 @@ Exit criteria: atoms exist with typed variant APIs, pilots merged, zero new raw
 This is a living planning document, elaborated by the team beginning each wave.
 At each wave boundary: mark the completed wave with outcomes and deviations,
 elaborate the next wave to numbered task-level detail, and re-check the numbers
-and the file/line references in §2–§3 (they are point-in-time as of 2026-07-23
+and the file/line references in §2–§3 (they are point-in-time; last refreshed 2026-09-06
 and will drift).

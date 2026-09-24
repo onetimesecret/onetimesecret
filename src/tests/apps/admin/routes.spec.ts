@@ -130,7 +130,7 @@ describe('Admin Routes Configuration', () => {
 
     it('every console section is now wired to a route (Phase 2 complete)', () => {
       // Phase 2 (tickets #30-33) wires the last placeholder sections: secrets,
-      // organizations, domains, system, bannedIps, usage. Every section now
+      // organizations, domains, system, usage. Every section now
       // points at a live route, and each `to` resolves to a defined route.
       const routePaths = new Set(adminRoutes.map((r: RouteRecordRaw) => r.path));
       CONSOLE_SECTIONS.forEach((s) => {
@@ -145,7 +145,6 @@ describe('Admin Routes Configuration', () => {
         organizations: '/colonel/organizations',
         domains: '/colonel/domains',
         system: '/colonel/system',
-        bannedIps: '/colonel/banned-ips',
         usage: '/colonel/usage',
       };
       Object.entries(expected).forEach(([key, path]) => {
@@ -164,7 +163,6 @@ describe('Admin Routes Configuration', () => {
         title: 'web.colonel.titles.organizations',
       },
       { path: '/colonel/system', name: 'AdminSystem', title: 'web.admin.system.title' },
-      { path: '/colonel/banned-ips', name: 'AdminBannedIps', title: 'web.admin.bannedIps.title' },
       { path: '/colonel/usage', name: 'AdminUsage', title: 'web.admin.usage.title' },
     ];
 

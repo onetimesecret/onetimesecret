@@ -2,6 +2,12 @@
 #
 # frozen_string_literal: true
 
+# The shared emit-if-colonel guard behind the colonel.signin_failed security
+# event (#4339), used by after_login_failure below. Required explicitly
+# (mirroring account.rb) so the constant is loaded when the hook fires rather
+# than relying on ambient load order.
+require 'onetime/colonel_signin_failure'
+
 module Auth::Config::Hooks
   module Login
     # Pick the completion ROUTE (no mount prefix) for an MFA-required JSON
@@ -418,7 +424,13 @@ module Auth::Config::Hooks
       # Hook: After Login Failure
       #
       # This hook is triggered after a login attempt fails. Rodauth handles
-      # rate limiting via the lockout feature, so we just log the failure.
+      # rate limiting via the lockout feature, so we log the failure — and,
+      # when the account that was tried is a COLONEL, also record one
+      # `colonel.signin_failed` security event (#4339). See the note above that
+      # emit for why an audit write belongs on a failure path at all.
+      #
+      # SCOPE: the Rodauth SQL audit log (account_authentication_audit_logs) is
+      # a separate stream with its own writer and is untouched here.
       #
       auth.after_login_failure do
         email          = param_or_nil('login') || param_or_nil('email')
@@ -459,6 +471,25 @@ module Auth::Config::Hooks
             correlation_id: correlation_id,
           )
         end
+
+        # The queryable counterpart of that log line, for the one case worth
+        # querying: a failed attempt against an account that actually holds the
+        # colonel role (#4339). Emitted ONCE per failed attempt, outside the
+        # branch above, because both branches are the same event — Rodauth's
+        # login_failure cannot tell "no such account" from "wrong password", so
+        # there is one coarse failure_reason and nothing to vary here.
+        #
+        # Only `login` is on hand at this point (Rodauth has no account for a
+        # failed attempt), so the helper resolves it; it records nothing unless
+        # that resolves to a real colonel Customer, and it never raises — which
+        # is why this is not wrapped in ErrorHandler.safe_execute like the
+        # best-effort side effects in after_login.
+        #
+        # No throttle: the event lands in `security_events`, whose budget is
+        # trimmed independently of the operator trail, so a flood evicts only
+        # other anonymous telemetry. Budget separation is the control here —
+        # see the WRITE-FREQUENCY INVARIANT on Onetime::ColonelAuditEvent.
+        Onetime::ColonelSigninFailure.record(auth_mode: 'full', login: email)
       end
     end
   end

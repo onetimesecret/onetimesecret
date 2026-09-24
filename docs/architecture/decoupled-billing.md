@@ -1,10 +1,16 @@
 # Kinde Billing Concepts: Decoupling the Paying Party from the Organization
 
-Status: Reference · 2026-07-01
+Status: Proposed design reference · 2026-07-01
 
-A reference for the design decision behind "one subscription per organization, payer decoupled." Standalone; no prior context required.
+A reference model for a future "one subscription per organization, payer decoupled" design. It compares OTS with Kinde's concepts; it does **not** describe the current OTS billing data model.
 
-## Three parties, not one
+## Current OTS implementation
+
+Current OTS billing is organization-owned: each `Organization` stores its Stripe customer ID, subscription ID, plan, and billing status. The Stripe customer ID is uniquely indexed, so one Stripe Customer cannot currently pay for multiple organizations. There is no separate OTS billing-account or agreement record.
+
+Billing screens also require organization ownership. `manage_billing` is an owner-tier entitlement, but the current checkout and customer-portal guards use ownership directly.
+
+## Target model: three parties, not one
 
 Every SaaS billing arrangement involves three distinct parties that small systems tend to collapse into a single record:
 
@@ -24,9 +30,9 @@ Users ──memberships──► Organizations (roles, entitlements)
 Billing Account ──agreements──► Organizations (money)
 ```
 
-One billing account can hold many agreements. Each agreement covers exactly one organization. Users reach organizations through memberships; money reaches organizations through agreements. The two graphs never need to share an edge.
+In the target model, one billing account can hold many agreements. Each agreement covers exactly one organization. Users reach organizations through memberships; money reaches organizations through agreements. The two graphs never need to share an edge.
 
-## Why the card holder need not be a member
+## Why the card holder need not be a member in the target model
 
 It looks surprising at first: someone who cannot even sign in to the organization is paying for it. The reasons it must be allowed:
 
@@ -40,7 +46,7 @@ It looks surprising at first: someone who cannot even sign in to the organizatio
 
 **The payment processor already thinks this way.** A Stripe Customer is nothing but a payment relationship: name, email, payment methods, tax IDs, invoice history. It has no concept of application membership. Kinde makes the same separation explicit: its `customer_id` and `customer_agreement_id` are deliberately distinct from user and organization IDs ([billing concepts and terms](https://docs.kinde.com/billing/about-billing/billing-concepts-terms/)). Merging payer identity into the tenant means fighting the processor's model instead of mapping onto it.
 
-## What the decoupling enables
+## What the target decoupling enables
 
 **The contractor case.** One billing account, five client organizations, five agreements, one card, optionally one consolidated invoice. Each client's organization is cleanly separate (its own members, domains, SSO, data), while the money flows through one relationship.
 
@@ -50,11 +56,11 @@ It looks surprising at first: someone who cannot even sign in to the organizatio
 
 **Sane delinquency handling.** Dunning targets the agreement. The organization suspends or degrades according to its agreement's status, and one payer's card failure across five organizations is one problem with one owner, not five support tickets.
 
-## What keeps it honest
+## Target-model constraints
 
 The unit of purchase is the organization: one agreement covers one organization, and every organization that wants paid features carries its own agreement. Under that rule, owning many organizations cannot reduce anyone's bill, so multi-org ownership needs no policing. The only remaining abuse is stuffing several distinct companies into a single paid organization to buy once and serve many, and that is bounded by per-organization limits (members, domains, SSO connections) plus a plain prohibited-use clause. Pricing structure does the enforcement; the terms of service only mop up.
 
-Two supporting roles complete the picture. Inside the organization, a `manage_billing` entitlement governs which members may change plans or view invoices. On the billing account, ownership governs the payment method itself. These are frequently the same human. Nothing anywhere requires it.
+In the target model, two supporting roles complete the picture. Inside the organization, a `manage_billing` entitlement would govern which members may change plans or view invoices. On the billing account, ownership would govern the payment method itself. These are frequently the same human; the target design would not require that.
 
 ## Reference points
 

@@ -1,19 +1,33 @@
 # Architecture Overview
 
+Onetime Secret is a Ruby application with a Vue 3 frontend. This page is an
+entry point to the architecture notes below.
+
+## Architecture Map
+
+| Topic | Use this document when you need to understand… |
+| --- | --- |
+| [Accounts and Workspaces](./accounts-and-workspaces.md) | account origin, organization membership, and workspace behavior |
+| [Authentication Strategies](./authentication-strategies.md) | route authentication and the session contract |
+| [Audit Logging](./audit-logging.md) | Secret Activity, Security Events, and the colonel operator trail |
+| [Guest Routes](./guest-routes.md) | anonymous V3 secret API routes and their configuration |
+| [Organization Authorization Discriminators](./org-authorization-discriminators.md) | default organizations, domain-scoped memberships, and organization selection |
+| [Terminology](./terminology.md) | project-specific framework and deployment terms |
+
 ## System Components
 
-Onetime Secret consists of two primary components working together:
+**Ruby backend**
+- Shared logic and authorization helpers live in `lib/onetime/logic/`.
+- API applications keep endpoint-specific logic under `apps/api/<version>/logic/`
+  and declare routes in the corresponding `apps/api/<version>/routes.txt`.
+- Logic classes commonly validate in `raise_concerns`, transform or perform work
+  in `process`, and return response data through `success_data`.
 
-**Ruby Backend** (`lib/onetime/logic/`)
-- Consistent `success_data` methods for API responses
-- Logic classes inherit from Base with helpers
-- Validation in `raise_concerns` methods
-- Data transformation in `process` methods
-
-**Vue 3 Frontend** (`src/schemas/`, `src/types/api/`)
-- TypeScript with Zod for runtime validation
-- Layered architecture: Schemas → Services → Stores → Composables → Components
-- Type-safe API integration
+**Vue 3 frontend** (`src/`)
+- TypeScript and Zod validate API data at the frontend boundary.
+- Schemas, services, stores, composables, and components form the main layers.
+- `src/schemas/README.md` describes the schema and wire-format boundary in more
+  detail.
 
 ## Architecture Principles
 

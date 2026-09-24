@@ -21,7 +21,7 @@ end
 
 ### Sender Identity Layer
 
-When a customer enables custom sender on their domain, the system uses their `from_address` and `reply_to` in the email envelope, but the email still flows through the platform's global backend. The `provider` field on `MailerConfig` matches the platform's mailer -- it is not a customer choice, it is inherited context.
+When a customer enables custom sender on their domain, the system uses their `from_address` and `reply_to` in the email envelope, but the email still flows through the platform's global backend. Customer-facing endpoints configure sender identity only and normally leave `MailerConfig#provider` blank. In that case, `effective_provider` uses the installation's `emailer.sender_provider`, then falls back to `EMAILER_MODE`. An operator or legacy record can set an explicit per-domain provider; this is not a customer choice.
 
 ```ruby
 # lib/onetime/mail/mailer.rb
@@ -39,7 +39,7 @@ end
 
 ### Provisioning Layer
 
-`ProvisionSenderDomain` reads `mailer_config.provider` to select the right sender strategy, then loads *platform* credentials via `Mailer.provider_credentials(provider)`. The customer never sees or provides API keys for the mail provider. They flip "use custom sender" on, provide a from-address, and the system provisions DNS records through whatever provider the platform runs.
+`ProvisionSenderDomain` resolves `mailer_config.effective_provider` to select the sender strategy, then loads *platform* credentials via `Mailer.provider_credentials(provider)`. The customer never sees or provides API keys for the mail provider. They flip "use custom sender" on, provide a from-address, and the system provisions DNS records through the installation-selected provider unless an operator has explicitly set a per-domain provider.
 
 ## Customer Decision Surface
 
@@ -49,7 +49,7 @@ The plumbing underneath -- which provider's API to call, what DNS record shapes 
 
 ## Environment Congruence
 
-Different deployments can run different global mailers (e.g. one environment uses SES, another uses Lettermint). Whatever the global mailer is, that same provider is automatically used for customer sender domain provisioning and verification. The sender strategy selection flows from the platform config, not from any per-customer setting.
+Different deployments can run different delivery transports and sender-domain providers (for example, SMTP delivery with SES provisioning). The normal customer flow resolves sender provisioning and verification from platform config, not from a per-customer setting. An explicit `MailerConfig#provider` is an operator or legacy override and takes precedence.
 
 ## Provider Comparison
 
@@ -66,7 +66,7 @@ Every provisioning provider produces the same outcome — DKIM **and** SPF align
 
 The one mechanism difference worth internalizing: **SES's custom MAIL FROM and Lettermint's Return-Path CNAME are equivalent** — both set the envelope sender to a subdomain of the sender domain so SPF aligns under DMARC's relaxed rules. Lettermint delegates SPF via a single CNAME (it publishes the SPF record itself); SES has no CNAME-delegated SPF, so the customer publishes an MX (to the regional `feedback-smtp.<region>.amazonses.com` endpoint) plus an SPF TXT directly. SendGrid (`automatic_security`) is CNAME-based like Lettermint. SMTP2GO uses the same delegated model — the customer publishes a `<returnpath_subdomain>.<domain>` CNAME instead of an SPF TXT — but adds a tracking CNAME the others don't require, keys its domain endpoints by domain name rather than a provider-side ID, and authenticates every call with the `X-Smtp2go-Api-Key` header. See the [SES guide](./custom-mail-sender-ses.md#dmarc-alignment-why-custom-mail-from) for the full DMARC alignment table.
 
-Validation is identical across providers: each reads the provisioned `dns_records` and runs live DNS lookups — no provider API call (see `ValidateSenderDomain`). Region is purely a provisioning concern (it selects SES's DKIM region and MAIL FROM endpoint); it plays no part in validation.
+`ValidateSenderDomain` performs the common DNS-record checks from provisioned `dns_records` without a provider API call. The product's user-requested revalidation flow also enqueues `DomainValidationWorker`; for providers that support provisioning, it makes a provider-status API call using platform credentials. Region is purely a provisioning and SES-API concern: it selects SES's DKIM region and MAIL FROM endpoint, while DNS checks read the records already stored on `MailerConfig`.
 
 ## Key Files
 
