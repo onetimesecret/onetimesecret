@@ -290,6 +290,39 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
       end
     end
 
+    it 'refuses the callback when the custom domain loses verification after the request starts' do
+      tenant_host = "revoked-#{run_id}.saml-platform.example.com"
+      tenant_base = "https://#{tenant_host}"
+      owner        = Onetime::Customer.new(email: "revoked-owner-#{run_id}@saml-platform.example.com")
+      owner.save
+      org          = Onetime::Organization.create!("Revoked Org #{run_id}", owner, "revoked-contact-#{run_id}@saml-platform.example.com")
+      domain       = Onetime::CustomDomain.new(display_domain: tenant_host, org_id: org.org_id)
+      domain.verified = true
+      domain.save
+      Onetime::CustomDomain.display_domain_index.put(tenant_host, domain.domainid)
+      allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+
+      begin
+        request = start_login(tenant_base)
+        expect(request.acs_url).to eq("#{tenant_base}/auth/sso/saml/callback")
+
+        domain.verified = false
+        domain.save
+        created_emails << email
+        post_callback(answer(request), request.acs_url)
+
+        expect(last_response.status).to eq(302)
+        expect(last_response.headers['Location'].to_s).to include('auth_error=sso_not_configured')
+        expect(identity_rows).to be_empty
+        expect(db[:accounts].where(email: email).count).to eq(0)
+      ensure
+        Onetime::CustomDomain.display_domain_index.remove(tenant_host) rescue nil
+        domain.destroy! rescue nil
+        org.destroy! rescue nil
+        owner.destroy! rescue nil
+      end
+    end
+
     it 'refuses an unknown host even when platform fallback is enabled' do
       allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
 
