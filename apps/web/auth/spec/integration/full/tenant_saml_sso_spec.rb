@@ -643,6 +643,33 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       expect(last_response.status).to eq(404)
     end
 
+    # Per-request isolation of strategy.options. The tenant hook writes the
+    # tenant's trust anchors and rebinds the ACS / SP EntityID INTO
+    # strategy.options, and the strategy object registered at boot is shared
+    # by every request. What keeps one tenant's injection out of the next
+    # request is OmniAuth::Strategy#call — `dup.call!(env)` — together with
+    # OmniAuth::Strategy#initialize_copy, which gives the dup its own copy of
+    # the options Mash (`@options = @options.dup`; omniauth 2.1.4
+    # strategy.rb:560). Every request therefore starts from the boot-pinned
+    # (blank) values, never from what the previous request injected. That is
+    # a gem contract, not ours, so it is pinned here: after tenant A's request phase
+    # has injected everything, the canonical host's metadata is exactly what
+    # it is when no tenant request ever ran — refused as 404, with none of
+    # A's EntityID, host or ACS in the body.
+    it 'does not leak tenant A injected options into the next request on the canonical host' do
+      request = start_login(tenant_a)
+      expect(request.sp_entity_id).to eq("http://#{tenant_a.host}/auth/sso/saml/metadata")
+
+      header 'Host', canonical_host
+      get '/auth/sso/saml/metadata'
+
+      expect(last_response.status).to eq(404)
+      expect(last_response.body).not_to include('EntityDescriptor')
+      expect(last_response.body).not_to include(tenant_a.idp.entity_id)
+      expect(last_response.body).not_to include(tenant_a.host)
+      expect(last_response.body).not_to include(request.acs_url)
+    end
+
     it 'emits no metadata for a tenant whose SSO config is disabled' do
       config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant_a.domain.identifier)
       config.disable!
