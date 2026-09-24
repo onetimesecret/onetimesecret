@@ -673,6 +673,17 @@ the value of `site.host` and `saml` the route name:
 | AuthnRequest signing | off (requests are not signed; no SP key is configured) |
 | Attributes | the user's email as an attribute named `email` or `mail` (the NameID is the user id, not the email); optionally `name`, `first_name`, `last_name`, and the attribute named in `SAML_UID_ATTRIBUTE` |
 
+If platform SAML will also be offered on custom domains, complete this checklist
+before setting `SSO_ALLOW_PLATFORM_FALLBACK=true`:
+
+- Verify ownership of every custom domain in Onetime Secret.
+- Register each exact custom-domain ACS URL at the IdP:
+  `https://{custom-domain}/auth/sso/{route}/callback`.
+- Keep the platform SP EntityID/Audience unchanged; only the ACS varies by host.
+- Confirm the session cookie is host-only and `SameSite=None; Secure`.
+- Remove the IdP callback when a domain is deleted, becomes unverified, gains its
+  own tenant SSO configuration, or stops using platform fallback.
+
 Then take from the IdP:
 
 - its **SSO service URL** (HTTP-Redirect binding) → `SAML_IDP_SSO_SERVICE_URL`
