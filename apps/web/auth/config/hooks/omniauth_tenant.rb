@@ -643,10 +643,14 @@ module Auth::Config::Hooks
     # Handle requests where no tenant SSO config is available.
     # Either allows fallback to platform credentials or rejects.
     #
-    # Even when fallback is allowed, a CALLBACK that still carries pending
-    # tenant markers is refused: it answers a tenant flow whose config went
-    # away mid-flow, not a platform-fallback flow (see the rule on
-    # clear_pending_tenant_context).
+    # Even when fallback is allowed, any NON-REQUEST phase (the callback,
+    # and the SAML /metadata and /slo sub-paths) that still carries pending
+    # tenant markers is refused: it belongs to a tenant flow whose config
+    # went away mid-flow, not to a platform-fallback flow (see the rule on
+    # clear_pending_tenant_context). Keyed on "not the request path" on
+    # purpose: a pending tenant flow has nothing to gain from platform
+    # metadata either, and one rule for every non-request phase is simpler
+    # than enumerating sub-paths.
     #
     # Configured via auth_config.allow_platform_fallback_for_tenants?, but
     # fallback also requires the AUTH_ENABLED master switch: platform
@@ -691,8 +695,9 @@ module Auth::Config::Hooks
             # A new platform start supersedes whatever tenant flow was pending.
             clear_pending_tenant_context(rodauth.session)
           elsif strategy && pending_tenant_flow?(rodauth.session)
-            # Callback setup with tenant markers still pending: this response
-            # belongs to a TENANT flow whose config is gone (record disabled
+            # Non-request phase (callback, /metadata, /slo) with tenant markers
+            # still pending: this response belongs to a TENANT flow whose
+            # config is gone (record disabled
             # or deleted between request and callback). Running it with the
             # platform defaults would let the retained markers stamp it as a
             # validated tenant callback and join the tenant organization on
@@ -752,7 +757,8 @@ module Auth::Config::Hooks
     #
     #   - handle_missing_tenant_config, request path: a new platform start
     #     supersedes any abandoned tenant request in the same session.
-    #   - handle_missing_tenant_config, callback path WITH pending markers:
+    #   - handle_missing_tenant_config, any non-request phase WITH pending
+    #     markers (callback, /metadata, /slo):
     #     the response belongs to a tenant flow whose config disappeared
     #     mid-flow; it is dropped and refused. Without markers the callback
     #     is the platform-fallback flow this helper itself started, and its
