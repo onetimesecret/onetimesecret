@@ -158,7 +158,7 @@ module Onetime
       def ttl_for(not_on_or_after, clock_drift: 0, now: Time.now)
         raise ArgumentError, 'not_on_or_after must be a Time' unless not_on_or_after.is_a?(Time)
 
-        remaining = (not_on_or_after - now).ceil + clock_drift.to_f.ceil
+        remaining = (not_on_or_after - now).ceil + clock_drift.to_f.abs.ceil
         remaining.clamp(MIN_TTL, max_ttl_for(clock_drift))
       end
 
