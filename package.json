@@ -230,7 +230,7 @@
     "git-json-merge": "^1.0.0",
     "glob": "^13.0.6",
     "globals": "^17.4.0",
-    "happy-dom": "^20.11.2",
+    "happy-dom": "^20.14.3",
     "jiti": "^2.7.0",
     "jsdom": "^30.0.0",
     "lint-staged": "^16.4.0",
