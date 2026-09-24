@@ -269,11 +269,15 @@ const providerFieldsFilled = computed(() => {
   return true;
 });
 
-// A secret must be entered for a new config, or when the stored one could
-// not be read (PATCH would otherwise fall back to a value that does not
-// decrypt, and the API refuses that as missing).
+// A secret must be entered for a new config of a provider that requires
+// one, or — for EVERY credential-bearing provider, oidc included — when the
+// stored one could not be read: PATCH would otherwise carry forward a value
+// that does not decrypt, and the API refuses that as missing. The oidc
+// public-client exemption covers an absent secret, not corrupt ciphertext.
 const clientSecretMustBeEntered = computed(
-  () => requiresClientSecret.value && (!isEditing.value || isUnreadable('client_secret'))
+  () =>
+    requiresClientCredentials.value &&
+    (isUnreadable('client_secret') || (requiresClientSecret.value && !isEditing.value))
 );
 
 const isFormValid = computed(() => {

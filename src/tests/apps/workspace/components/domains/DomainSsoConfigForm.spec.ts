@@ -1208,6 +1208,73 @@ describe('DomainSsoConfigForm', () => {
         // Editing normally lets the secret stay blank; not when it is unreadable.
         expect(submitButton(wrapper).attributes('disabled')).toBeDefined();
       });
+
+      // oidc permits public clients, so its secret is normally optional. The
+      // exemption covers an ABSENT secret: a stored one that will not decrypt
+      // must be replaced, or the API refuses the save as missing.
+      describe('oidc client_secret', () => {
+        const oidcFormState: SsoConfigFormState = {
+          ...mockExistingFormState,
+          provider_type: 'oidc',
+          tenant_id: '',
+          issuer: 'https://idp.example.com',
+        };
+        const oidcConfig: CustomDomainSsoConfig = {
+          ...mockExistingConfig,
+          provider_type: 'oidc',
+          tenant_id: null,
+          issuer: 'https://idp.example.com',
+        };
+
+        it('is required and blocks the save when the stored secret is unreadable', async () => {
+          wrapper = await mountComponent({
+            formState: oidcFormState,
+            ssoConfig: { ...oidcConfig, client_secret_masked: null, unreadable_fields: ['client_secret'] },
+            isConfigured: true,
+            clientSecretMasked: null,
+          });
+
+          expect(wrapper.find('[data-testid="sso-unreadable-fields-alert"]').exists()).toBe(true);
+          const secret = wrapper.find('#domain-sso-client-secret');
+          expect(secret.attributes('required')).toBeDefined();
+          expect(secret.attributes('aria-invalid')).toBe('true');
+          expect(wrapper.find('label[for="domain-sso-client-secret"]').text()).toContain('*');
+          expect(submitButton(wrapper).attributes('disabled')).toBeDefined();
+        });
+
+        it('unblocks the save once a replacement secret is entered', async () => {
+          wrapper = await mountComponent({
+            formState: { ...oidcFormState, client_secret: 'replacement-secret' },
+            ssoConfig: { ...oidcConfig, client_secret_masked: null, unreadable_fields: ['client_secret'] },
+            isConfigured: true,
+            clientSecretMasked: null,
+          });
+
+          expect(submitButton(wrapper).attributes('disabled')).toBeUndefined();
+        });
+
+        it('stays optional for a healthy secretless oidc record (public client)', async () => {
+          wrapper = await mountComponent({
+            formState: oidcFormState,
+            ssoConfig: { ...oidcConfig, client_secret_masked: null, unreadable_fields: [] },
+            isConfigured: true,
+            clientSecretMasked: null,
+          });
+
+          const secret = wrapper.find('#domain-sso-client-secret');
+          expect(secret.attributes('required')).toBeUndefined();
+          expect(secret.attributes('aria-invalid')).toBeUndefined();
+          expect(wrapper.find('label[for="domain-sso-client-secret"]').text()).not.toContain('*');
+          expect(submitButton(wrapper).attributes('disabled')).toBeUndefined();
+        });
+
+        it('stays optional on a new oidc form', async () => {
+          wrapper = await mountComponent({ formState: { ...oidcFormState, client_secret: '' } });
+
+          expect(wrapper.find('#domain-sso-client-secret').attributes('required')).toBeUndefined();
+          expect(submitButton(wrapper).attributes('disabled')).toBeUndefined();
+        });
+      });
     });
 
     describe('test connection', () => {
