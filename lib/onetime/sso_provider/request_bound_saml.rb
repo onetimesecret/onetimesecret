@@ -658,8 +658,10 @@ module OmniAuth
         [:saml_assertion_replayed, 'SAML assertion was already presented', {}]
       rescue StandardError => ex
         # FAIL CLOSED: a datastore outage (or any surprise from the guard)
-        # must never become an unguarded login. Class name only — a Redis
-        # error message can carry the connection URL.
+        # must never become an unguarded login. Class name only, as at this
+        # file's other rescues: RedisClient::Error#message appends the
+        # server's host:port/db (never the password), and that address does
+        # not belong in a login refusal.
         [:saml_replay_guard_unavailable, 'SAML replay guard is unavailable', { error_class: ex.class.name }]
       end
 
