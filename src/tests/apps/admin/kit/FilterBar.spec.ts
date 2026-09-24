@@ -2,6 +2,7 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { nextTick } from 'vue';
 
 import FilterBar from '@/apps/admin/components/kit/FilterBar.vue';
 import type { FilterConfig } from '@/apps/admin/components/kit/types';
@@ -130,6 +131,70 @@ describe('FilterBar (config-driven filters)', () => {
     await submitBtn!.trigger('click');
     expect(wrapper.emitted('submit')).toBeTruthy();
     expect(wrapper.emitted('submit')!.length).toBe(1);
+  });
+
+  it('never emits submit on input alone (typing must not trigger a search)', async () => {
+    wrapper = mountBar();
+    const search = wrapper.find('#kit-filter-search');
+    await search.setValue('a');
+    await search.setValue('al');
+    await search.setValue('ali');
+    expect(wrapper.emitted('update:search')!.length).toBe(3);
+    expect(wrapper.emitted('submit')).toBeFalsy();
+  });
+
+  it('disables the search button and swallows Enter while busy', async () => {
+    wrapper = mountBar({ busy: true });
+    const submitBtn = wrapper.findAll('button').find((b) => b.text().includes('searchSubmit'));
+    expect(submitBtn!.attributes('disabled')).toBeDefined();
+    expect(submitBtn!.attributes('aria-busy')).toBe('true');
+
+    // The input is disabled too, so the term cannot change mid-flight and the
+    // landing results can never sit under a different visible query.
+    const input = wrapper.find('#kit-filter-search');
+    expect(input.attributes('disabled')).toBeDefined();
+    expect(input.attributes('aria-busy')).toBe('true');
+
+    await input.trigger('keydown', { key: 'Enter' });
+    await submitBtn!.trigger('click');
+    expect(wrapper.emitted('submit')).toBeFalsy();
+
+    await wrapper.setProps({ busy: false });
+    expect(wrapper.find('#kit-filter-search').attributes('disabled')).toBeUndefined();
+    await wrapper.find('#kit-filter-search').trigger('keydown', { key: 'Enter' });
+    expect(wrapper.emitted('submit')!.length).toBe(1);
+  });
+
+  it('returns focus to the search box after a busy cycle that disabled it', async () => {
+    wrapper = mount(FilterBar, {
+      attachTo: document.body,
+      slots: { default: '<button class="bespoke">Extra</button>' },
+      global: { plugins: [i18n] },
+    });
+    const input = wrapper.find('#kit-filter-search').element as HTMLInputElement;
+    input.focus();
+    expect(document.activeElement).toBe(input);
+
+    // Disabling a focused element drops focus in a real browser; the DOM
+    // shim does not model that, so move focus off the input explicitly.
+    await wrapper.setProps({ busy: true });
+    (wrapper.find('.bespoke').element as HTMLButtonElement).focus();
+    expect(document.activeElement).not.toBe(input);
+
+    await wrapper.setProps({ busy: false });
+    await nextTick();
+    expect(document.activeElement).toBe(input);
+  });
+
+  it('does not steal focus after busy when the search box was not focused', async () => {
+    wrapper = mount(FilterBar, { attachTo: document.body, global: { plugins: [i18n] } });
+    const input = wrapper.find('#kit-filter-search').element as HTMLInputElement;
+    expect(document.activeElement).not.toBe(input);
+
+    await wrapper.setProps({ busy: true });
+    await wrapper.setProps({ busy: false });
+    await nextTick();
+    expect(document.activeElement).not.toBe(input);
   });
 
   it('hides the search submit button when showSearch is false', () => {

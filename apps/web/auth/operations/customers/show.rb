@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/rodauth_admin'
+
 module Auth
   module Operations
     module Customers
@@ -20,7 +22,13 @@ module Auth
       # belong in a Redis-only domain op.
       class Show
         # Immutable result. `customer` is nil when nothing resolved (found? false).
-        Result = Data.define(:customer, :organizations) do
+        #
+        # `rodauth_admin_url` is the outbound deep link to this customer's
+        # Rodauth account in the standalone admin (Onetime::RodauthAdmin) —
+        # the read-only use of the `accounts.external_id == Customer.extid`
+        # join. nil when the admin URL is unset or auth mode is not full; the
+        # admin surfaces then render the extid as plain text.
+        Result = Data.define(:customer, :organizations, :rodauth_admin_url) do
           def found?
             !customer.nil?
           end
@@ -39,10 +47,14 @@ module Auth
           customer = @customer || resolve(@identifier)
 
           unless customer && customer.exists?
-            return Result.new(customer: nil, organizations: [])
+            return Result.new(customer: nil, organizations: [], rodauth_admin_url: nil)
           end
 
-          Result.new(customer: customer, organizations: gather_organizations(customer))
+          Result.new(
+            customer: customer,
+            organizations: gather_organizations(customer),
+            rodauth_admin_url: Onetime::RodauthAdmin.account_url(customer.extid),
+          )
         end
 
         private

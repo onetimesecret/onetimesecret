@@ -10,7 +10,7 @@
 #
 # THE BUG
 # -------
-# Auth::Operations::CreateCustomer hard-coded `verified: false` with the
+# Auth::Operations::EnsureCustomerForAccount hard-coded `verified: false` with the
 # comment "needs to be updated in after_verify_account". after_verify_account
 # fires only in Rodauth's EMAIL verify_account flow, which a JIT SSO user never
 # traverses — so the Customer stayed unverified forever while its Rodauth
@@ -27,8 +27,8 @@
 #   1. POSITIVE — a brand-new platform SSO sign-in (JIT provisioning) yields a
 #      Customer with verified? == true and verified_by == 'sso', and an
 #      accounts row at STATUS_VERIFIED. If the hook stops passing the new
-#      CreateCustomer parameters, this fails.
-#   2. NEGATIVE — a customer NOT provisioned via SSO (the plain CreateCustomer
+#      EnsureCustomerForAccount parameters, this fails.
+#   2. NEGATIVE — a customer NOT provisioned via SSO (the plain EnsureCustomerForAccount
 #      call every password signup makes) is NOT verified. This is the guard
 #      against the rejected first attempt at this fix, which verified almost
 #      anyone by checking status_id on the shared login path.
@@ -36,7 +36,7 @@
 #      get the verified stamp, even though Rodauth opened its account.
 #
 # Layer note: apps/web/auth/spec/integration/full/omniauth_account_creation_spec.rb
-# pins the CreateCustomer PARAMETER contract in isolation. This file pins the
+# pins the EnsureCustomerForAccount PARAMETER contract in isolation. This file pins the
 # WIRING — that the production hook actually passes them, and on what gate.
 #
 # REQUIREMENTS:
@@ -152,7 +152,7 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
   # only on status_id == Verified. With verify_account disabled that is true for
   # ordinary password accounts too, so it verified almost everyone. The fix is
   # scoped to the SSO JIT provisioning hook, which means the ordinary
-  # CreateCustomer call — the one every password signup makes — must still
+  # EnsureCustomerForAccount call — the one every password signup makes — must still
   # produce an unverified customer even when its accounts row is Verified.
 
   describe 'a customer not provisioned via SSO' do
@@ -165,7 +165,7 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
       )
 
       begin
-        customer = Auth::Operations::CreateCustomer.new(
+        customer = Auth::Operations::EnsureCustomerForAccount.new(
           account_id: account_id,
           account: { id: account_id, email: normalized },
           provisioning_origin: 'canonical_signup',

@@ -6,6 +6,7 @@
 # autoloaders — require the audit model explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 
 module Onetime
   module Operations
@@ -52,6 +53,7 @@ module Onetime
       # state.
       class Add
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         AUDIT_VERB = 'membership.add'
 
@@ -126,6 +128,11 @@ module Onetime
 
         private
 
+        # The #4337 envelope's target hook: the customer's public extid, the same
+        # target the applied event carries. `audit_verb` defaults to AUDIT_VERB
+        # and `audit_actor` to @actor.
+        def audit_target = @customer.extid
+
         # Single exit point for every non-success status, so the refusal audit
         # cannot be forgotten at an early return.
         def build(status, role)
@@ -147,13 +154,7 @@ module Onetime
         # the `outcome: 'no_change'` marker. NOT fail-closed: nothing moved.
         # No local rescue — `record` is best-effort and swallows its own errors.
         def record_no_change_event(role)
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @customer.extid,
-            result: :success,
-            detail: { outcome: 'no_change', role: role, org_id: @org.extid },
-          )
+          record_no_change_attempt({ role: role, org_id: @org.extid })
         end
 
         # Same verb/target/actor as the success event. Best-effort: never break

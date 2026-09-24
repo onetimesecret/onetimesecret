@@ -71,16 +71,19 @@ module Onetime
         # nil in full mode when the Customer has no linked accounts row.
         account_id = lookup_account_id(customer)
 
-        if json
-          output_json(customer, full: full, account_id: account_id, organizations: result.organizations)
-        else
-          output_text(customer, full: full, account_id: account_id, organizations: result.organizations)
-        end
+        render = json ? method(:output_json) : method(:output_text)
+        render.call(
+          customer,
+          full: full,
+          account_id: account_id,
+          organizations: result.organizations,
+          rodauth_admin_url: result.rodauth_admin_url,
+        )
       end
 
       private
 
-      def output_text(customer, full:, account_id:, organizations:)
+      def output_text(customer, full:, account_id:, organizations:, rodauth_admin_url: nil)
         email_display = full ? customer.email : customer.obscure_email
         orgs          = organizations
 
@@ -100,6 +103,9 @@ module Onetime
         # otherwise); useful for cross-referencing against the Rodauth
         # accounts table in admin queries.
         puts format('  %-18s %s', 'rodauth_account_id:', account_id) if account_id
+        # Deep link into the standalone Rodauth Admin (RODAUTH_ADMIN_URL);
+        # absent when unset or not in full auth mode.
+        puts format('  %-18s %s', 'rodauth_admin:', rodauth_admin_url) if rodauth_admin_url
 
         puts
         puts 'Organizations'
@@ -115,7 +121,7 @@ module Onetime
         end
       end
 
-      def output_json(customer, full:, account_id:, organizations:)
+      def output_json(customer, full:, account_id:, organizations:, rodauth_admin_url: nil)
         orgs = organizations
 
         data = {
@@ -131,6 +137,7 @@ module Onetime
           created_formatted: format_timestamp(customer.created),
           default_org_id: customer.default_org_id,
           rodauth_account_id: account_id,
+          rodauth_admin_url: rodauth_admin_url,
           organizations: orgs,
         }
 

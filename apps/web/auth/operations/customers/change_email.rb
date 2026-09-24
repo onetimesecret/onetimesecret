@@ -6,6 +6,8 @@
 # autoloader), so every dependency is required explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
+require 'onetime/operations/audit_attempt'
 require 'onetime/jobs/publisher'
 require 'onetime/operations/sessions/revoke_all_for_customer'
 require 'auth/account_statuses'
@@ -145,6 +147,8 @@ module Auth
       class ChangeEmail
         include Onetime::LoggerMethods
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
+        include Onetime::Operations::AuditAttempt
 
         AUDIT_VERB = 'customer.change_email'
 
@@ -263,8 +267,15 @@ module Auth
           @require_verification       = require_verification
           @revoke_sessions            = revoke_sessions
           @notify                     = notify
-          @reason                     = reason
-          @ticket                     = ticket
+          # NORMALIZED, not stored raw (#4338). {Onetime::AuditReason::MAX_LENGTH}
+          # is 255 precisely so a provenance string is never silently clipped by
+          # the audit model's 256-char per-value bound: what the operator typed
+          # is what a reviewer reads. The colonel HTTP adapter sanitizes on the
+          # way in, but `bin/ots customers change-email --reason` passes its flag
+          # straight through, and this is the highest-value verb in the trail —
+          # the one place a truncated reason costs the most.
+          @reason                     = normalize_reason(reason)
+          @ticket                     = normalize_reason(ticket)
           @allow_closed_account_reuse = allow_closed_account_reuse
           @db                         = db
           @warnings                   = []
@@ -921,22 +932,38 @@ module Auth
           extid.empty? ? Onetime::AuditedFailure::UNKNOWN : extid
         end
 
+        # The #4337 envelope's target hook, and `failure_target` rather than a
+        # bare `@customer.extid` because that is what both emitters already
+        # used: it degrades to the UNKNOWN sentinel instead of an empty string.
+        # The `usable_customer?` guard means an extid is present by the time
+        # either fires, so the two agree in practice; the sentinel is the
+        # defensive floor, not a path anything relies on. `record_audit` keeps
+        # `@customer.extid` directly — by then the swap has landed. `audit_verb`
+        # defaults to AUDIT_VERB and `audit_actor` to @actor.
+        def audit_target = failure_target
+
+        # D41 operator provenance, for the events that carry it: the reason (via
+        # {Onetime::AuditReason#with_reason}) plus the support ticket. Both are
+        # OMITTED when absent, so a detail hash without them is byte-for-byte
+        # what it was before D41 existed — a `reason: nil` key would change every
+        # existing event's shape to record nothing. Both were normalized in the
+        # constructor, so neither can arrive blank-but-present or over-length.
+        def with_provenance(detail)
+          detail = with_reason(detail)
+          return detail if @ticket.nil?
+
+          detail.merge(ticket: @ticket)
+        end
+
         # One OBSERVATION per preview (#4337), on the budgeted access trail.
         # Same verb and target as the applied event, and — like every other
         # event this op writes — OBSCURED addresses only; `result: 'preview'`
         # and `dry_run: true` distinguish it from the apply that may follow.
         def record_preview_event(old_email, org_count)
-          Onetime::ColonelAuditEvent.record_access(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: failure_target,
-            result: 'preview',
-            detail: {
-              dry_run: true,
-              from: OT::Utils.obscure_email(old_email.to_s),
-              to: OT::Utils.obscure_email(@new_email.to_s),
-              orgs: org_count,
-            },
+          record_preview_observation(
+            from: OT::Utils.obscure_email(old_email.to_s),
+            to: OT::Utils.obscure_email(@new_email.to_s),
+            orgs: org_count,
           )
         rescue StandardError => ex
           auth_logger.error '[customer.change_email] preview audit failed', exception: ex
@@ -957,32 +984,20 @@ module Auth
         # moved.
         def record_no_change_event(old_email)
           detail = {
-            outcome: 'no_change',
             from: OT::Utils.obscure_email(old_email.to_s),
             to: OT::Utils.obscure_email(@new_email.to_s),
           }
 
+          # The dry-run half keeps BOTH markers: `dry_run: true` from the
+          # envelope says it was a preview, `outcome: 'no_change'` says the
+          # preview found nothing to do. It is the one preview in the cohort
+          # that carries the no-change marker onto the observation trail.
           if @dry_run
-            Onetime::ColonelAuditEvent.record_access(
-              actor: @actor,
-              verb: AUDIT_VERB,
-              target: failure_target,
-              result: 'preview',
-              detail: detail.merge(dry_run: true),
-            )
+            record_preview_observation(detail.merge(outcome: 'no_change'))
             return
           end
 
-          detail[:reason] = @reason.to_s unless @reason.to_s.strip.empty?
-          detail[:ticket] = @ticket.to_s unless @ticket.to_s.strip.empty?
-
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: failure_target,
-            result: :success,
-            detail: detail,
-          )
+          record_no_change_attempt(with_provenance(detail))
         end
 
         # Same verb/target/actor as the success event; obscured addresses only,
@@ -1149,8 +1164,7 @@ module Auth
           # D41: optional operator provenance — this is the highest-value
           # account-takeover primitive an operator has, and without these the
           # trail records only actor='cli'.
-          detail[:reason] = @reason.to_s unless @reason.to_s.strip.empty?
-          detail[:ticket] = @ticket.to_s unless @ticket.to_s.strip.empty?
+          detail          = with_provenance(detail)
 
           Onetime::ColonelAuditEvent.record(
             actor: @actor,

@@ -5,6 +5,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
+require 'onetime/operations/audit_attempt'
 require 'onetime/operations/customers/role_support'
 
 module Auth
@@ -40,6 +41,7 @@ module Auth
         include Onetime::LoggerMethods
         include Onetime::AuditedFailure
         include Onetime::AuditReason
+        include Onetime::Operations::AuditAttempt
         include Onetime::Operations::Customers::RoleSupport
 
         AUDIT_VERB = 'customer.set_role'
@@ -154,6 +156,11 @@ module Auth
 
         private
 
+        # The #4337 envelope's target hook: the customer's PUBLIC extid, the
+        # same target the applied event carries. `audit_verb` defaults to
+        # AUDIT_VERB and `audit_actor` to @actor.
+        def audit_target = @customer.extid
+
         # Only a DEMOTION of one's own account is refused: a colonel raising
         # their own role is not a lockout risk, and the CLI (actor_objid nil)
         # never self-refuses.
@@ -227,13 +234,7 @@ module Auth
         # action still has a why, and a probe at a privileged account is exactly
         # the row a reviewer wants the operator's own words on.
         def record_no_change_event
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @customer.extid,
-            result: :success,
-            detail: with_reason(outcome: 'no_change', from: @from, to: @role),
-          )
+          record_no_change_attempt(with_reason(from: @from, to: @role))
         end
 
         # Loggable, non-secret actor label (mirrors the audit actor normalization).

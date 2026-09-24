@@ -166,43 +166,59 @@ describe('AdminDomains (card grid + verify — ticket #31)', () => {
     expect(wrapper.find('[data-testid="domains-capped-caveat"]').exists()).toBe(true);
   });
 
-  it('fetches immediately when the search button is clicked (debounce cancelled)', async () => {
-    vi.useFakeTimers();
-    try {
-      mockApi.get.mockResolvedValue({ data: domainsPayload() });
-      wrapper = mountView();
-      await flushPromises();
+  it('never fetches on typing alone — search is submit-only', async () => {
+    mockApi.get.mockResolvedValue({ data: domainsPayload() });
+    wrapper = mountView();
+    await flushPromises();
+    const before = mockApi.get.mock.calls.length;
 
-      await wrapper
-        .find('[data-testid="domains-filterbar"] input[type="search"]')
-        .setValue('secrets');
-      const before = mockApi.get.mock.calls.length;
+    const input = wrapper.find('[data-testid="domains-filterbar"] input[type="search"]');
+    await input.setValue('s');
+    await input.setValue('sec');
+    await input.setValue('secrets');
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    await flushPromises();
 
-      const submitBtn = wrapper
-        .findAll('[data-testid="domains-filterbar"] button')
-        .find((b) => b.text().includes('searchSubmit'));
-      await submitBtn!.trigger('click');
-      await flushPromises();
+    expect(mockApi.get.mock.calls.length).toBe(before);
+  });
 
-      // Immediate fetch with the term…
-      expect(mockApi.get.mock.calls.length).toBe(before + 1);
-      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/domains', {
-        params: { page: 1, per_page: 50, search: 'secrets' },
-      });
+  it('fetches once with the term when the search button is clicked', async () => {
+    mockApi.get.mockResolvedValue({ data: domainsPayload() });
+    wrapper = mountView();
+    await flushPromises();
 
-      // …and the pending debounce was cancelled — no second, late request.
-      vi.advanceTimersByTime(300);
-      await flushPromises();
-      expect(mockApi.get.mock.calls.length).toBe(before + 1);
-    } finally {
-      vi.runOnlyPendingTimers();
-      vi.useRealTimers();
-    }
+    await wrapper
+      .find('[data-testid="domains-filterbar"] input[type="search"]')
+      .setValue('secrets');
+    const before = mockApi.get.mock.calls.length;
+
+    const submitBtn = wrapper
+      .findAll('[data-testid="domains-filterbar"] button')
+      .find((b) => b.text().includes('searchSubmit'));
+    await submitBtn!.trigger('click');
+    await flushPromises();
+
+    expect(mockApi.get.mock.calls.length).toBe(before + 1);
+    expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/domains', {
+      params: { page: 1, per_page: 50, search: 'secrets' },
+    });
+
+    // Submitting the same term again is a no-op.
+    await submitBtn!.trigger('click');
+    await flushPromises();
+    expect(mockApi.get.mock.calls.length).toBe(before + 1);
   });
 
   it('renders the empty state when there are no domains', async () => {
     mockApi.get.mockResolvedValue({
-      data: { shrimp: '', record: {}, details: { domains: [], pagination: { page: 1, per_page: 50, total_count: 0, total_pages: 0 } } },
+      data: {
+        shrimp: '',
+        record: {},
+        details: {
+          domains: [],
+          pagination: { page: 1, per_page: 50, total_count: 0, total_pages: 0 },
+        },
+      },
     });
     wrapper = mountView();
     await flushPromises();
@@ -427,11 +443,12 @@ describe('AdminDomains — attach domain to organization', () => {
   async function openPickerAndSelect(w: VueWrapper) {
     await w.find('[data-testid="attach-domain-cta"]').trigger('click');
     await flushPromises();
-    // Bypass the search debounce by submitting the picker form directly.
+    // The picker searches on submit only; submit the form directly.
     const input = w.find('[data-testid="org-search-input"]');
     await input.setValue('acme');
-    await w.find('[data-testid="org-search-input"]').element
-      .closest('form')!
+    await w
+      .find('[data-testid="org-search-input"]')
+      .element.closest('form')!
       .dispatchEvent(new Event('submit'));
     await flushPromises();
     await w.find('[data-testid="org-select-org_acme"]').trigger('click');

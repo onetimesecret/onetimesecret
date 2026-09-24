@@ -759,10 +759,6 @@
     "text": "Frissítés",
     "source_hash": "0e916101"
   },
-  "web.colonel.organizations.updatedAgo": {
-    "text": "Frissítve {ago}",
-    "source_hash": "cda30b9c"
-  },
   "web.colonel.organizations.columns.name": {
     "text": "Név",
     "source_hash": "dcd1d522"

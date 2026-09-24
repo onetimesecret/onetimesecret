@@ -2,7 +2,13 @@
 
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import { SCOPE_PRESETS } from '@/types/router';
-import { hasPassword, isFullAuthMode, isOwnerOrAdmin, isPasswordAuthPermitted } from '@/utils/features';
+import {
+  hasPassword,
+  isActiveSessionsEnabled,
+  isFullAuthMode,
+  isOwnerOrAdmin,
+  isPasswordAuthPermitted,
+} from '@/utils/features';
 import type { RouteRecordRaw } from 'vue-router';
 
 /**
@@ -58,10 +64,27 @@ function checkSetPasswordAccess() {
 
 /**
  * Route guard for security routes accessible to all authenticated
- * users (Security Overview, Active Sessions).
+ * users (Security Overview, Passkeys, Connected Identities).
  */
 function checkSecurityAccess() {
   if (!isFullAuthMode()) {
+    return { name: 'Account' };
+  }
+  return true;
+}
+
+/**
+ * Route guard for the Active Sessions page: everything checkSecurityAccess
+ * requires AND the active_sessions feature flag
+ * (AUTH_ACTIVE_SESSIONS_ENABLED). Delegates so the auth-mode rule lives in
+ * one place.
+ */
+function checkActiveSessionsAccess() {
+  const securityAccess = checkSecurityAccess();
+  if (securityAccess !== true) {
+    return securityAccess;
+  }
+  if (!isActiveSessionsEnabled()) {
     return { name: 'Account' };
   }
   return true;
@@ -283,7 +306,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/settings/security/sessions',
     name: 'Active Sessions',
-    beforeEnter: checkSecurityAccess,
+    beforeEnter: checkActiveSessionsAccess,
     component: () => import('@/apps/workspace/account/ActiveSessions.vue'),
     meta: {
       title: 'web.TITLES.active_sessions',

@@ -7,6 +7,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
+require 'onetime/operations/audit_attempt'
 require 'onetime/domain_validation/strategy'
 require 'onetime/operations/delete_sender_domain'
 
@@ -44,6 +45,7 @@ module Onetime
       class Remove
         include Onetime::AuditedFailure
         include Onetime::AuditReason
+        include Onetime::Operations::AuditAttempt
 
         AUDIT_VERB = 'domain.remove'
 
@@ -173,20 +175,22 @@ module Onetime
 
         private
 
+        # The #4337 envelope's target hook: the domain's public id, read the
+        # same lazy way the failure audit above reads it. Identical to the
+        # `plan.extid` this emitter used to pass — the plan copies it from
+        # @domain, and the dry-run path returns before the destroy. The plan
+        # itself is still threaded in so the emitter's signature stays parallel
+        # to the applied-event call site's.
+        def audit_target = @domain.extid
+
         # One OBSERVATION per preview (#4337), on the budgeted access trail —
         # never the operator trail, which stays a record of domains that were
         # actually removed. Same verb and target as the applied event so a
         # preview lines up with the removal that followed it; `result: 'preview'`
         # is what tells them apart, and the detail mirrors the applied event's —
         # including the operator's `reason` (#4338) when one was given.
-        def record_preview_event(plan, org_id, reasserts)
-          Onetime::ColonelAuditEvent.record_access(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: plan.extid,
-            result: 'preview',
-            detail: with_reason(dry_run: true, org_id: org_id.to_s, reasserted: reasserts),
-          )
+        def record_preview_event(_plan, org_id, reasserts)
+          record_preview_observation(with_reason(org_id: org_id.to_s, reasserted: reasserts))
         end
 
         # Mirrors RemoveDomain#delete_vhost: no-op for non-Approximated strategies,

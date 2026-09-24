@@ -196,6 +196,123 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     wrapper?.unmount();
   });
 
+  // ---- Session authority notice (rodauth-admin CHARTER §4 seam 2) ----------
+
+  describe('session authority notice', () => {
+    function payloadWithAuthority(authority: Record<string, unknown> | undefined) {
+      const payload = sessionsPayload() as unknown as { details: Record<string, unknown> };
+      if (authority) payload.details.session_authority = authority;
+      return payload;
+    }
+
+    it('renders nothing when the store is authoritative (simple mode)', async () => {
+      mockApi.get.mockResolvedValue({
+        data: payloadWithAuthority({
+          mode: 'simple',
+          authoritative: true,
+          rodauth_admin_url: null,
+        }),
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="session-authority-notice"]').exists()).toBe(false);
+    });
+
+    it('renders nothing when the backend sends no block (deploy skew)', async () => {
+      mockApi.get.mockResolvedValue({ data: payloadWithAuthority(undefined) });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="session-authority-notice"]').exists()).toBe(false);
+    });
+
+    it('says it is non-authoritative in full mode and links out when configured', async () => {
+      mockApi.get.mockResolvedValue({
+        data: payloadWithAuthority({
+          mode: 'full',
+          authoritative: false,
+          rodauth_admin_url: 'http://127.0.0.1:9292',
+        }),
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="session-authority-notice"]').exists()).toBe(true);
+      const link = wrapper.find('[data-testid="session-authority-link"]');
+      expect(link.exists()).toBe(true);
+      expect(link.attributes('href')).toBe('http://127.0.0.1:9292');
+      expect(link.attributes('target')).toBe('_blank');
+      expect(link.attributes('rel')).toContain('noopener');
+      expect(wrapper.find('[data-testid="session-authority-unlinked"]').exists()).toBe(false);
+    });
+
+    it('renders the notice without a link when RODAUTH_ADMIN_URL is unset', async () => {
+      mockApi.get.mockResolvedValue({
+        data: payloadWithAuthority({ mode: 'full', authoritative: false, rodauth_admin_url: null }),
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="session-authority-notice"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="session-authority-link"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="session-authority-unlinked"]').exists()).toBe(true);
+    });
+  });
+
+  // ---- Per-row Rodauth Admin link (rodauth-admin CHARTER §4 seam 1) --------
+
+  describe('per-row Rodauth Admin link', () => {
+    const ROW_LINK = 'http://127.0.0.1:9292/account?q=ext_1';
+
+    it('renders the external id as a new-tab link when the server built one', async () => {
+      mockApi.get.mockResolvedValue({
+        data: sessionsPayload([sessionRow({ rodauth_admin_account_url: ROW_LINK })]),
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      const link = wrapper.find(`[data-testid="session-rodauth-admin-${HANDLE}"]`);
+      expect(link.exists()).toBe(true);
+      expect(link.attributes('href')).toBe(ROW_LINK);
+      expect(link.attributes('target')).toBe('_blank');
+      expect(link.attributes('rel')).toContain('noopener');
+      expect(link.text()).toContain(OWNER);
+    });
+
+    it('renders plain text when the link is null or absent', async () => {
+      mockApi.get.mockResolvedValue({
+        data: sessionsPayload([
+          sessionRow({ rodauth_admin_account_url: null }),
+          sessionRow({ session_handle: 'a15e5510000000000000000000000009' }),
+        ]),
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      expect(wrapper.findAll('[data-testid^="session-rodauth-admin-"]')).toHaveLength(0);
+      expect(wrapper.find('[data-testid="sessions-table"]').text()).toContain(OWNER);
+    });
+
+    it('shows the link in the drawer when the detail record carries one', async () => {
+      mockApi.get.mockImplementation((url: string) => {
+        if (url === LIST_URL) return Promise.resolve({ data: sessionsPayload() });
+        const payload = detailPayload() as unknown as { record: Record<string, unknown> };
+        payload.record.rodauth_admin_account_url = ROW_LINK;
+        return Promise.resolve({ data: payload });
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      await wrapper.find('[data-testid="sessions-table"] tbody tr').trigger('click');
+      await flushPromises();
+
+      const link = wrapper.find('[data-testid="session-drawer-rodauth-admin"]');
+      expect(link.exists()).toBe(true);
+      expect(link.attributes('href')).toBe(ROW_LINK);
+    });
+  });
+
   // ---- List -----------------------------------------------------------------
 
   it('fetches the sessions page on mount and renders a row per session', async () => {
@@ -235,26 +352,23 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     expect(wrapper.html()).not.toContain(RAW_SID);
   });
 
-  it('debounces the search box into a single filtered fetch', async () => {
+  it('never fetches on typing alone — search is submit-only', async () => {
     mockApi.get.mockResolvedValue({ data: sessionsPayload() });
     wrapper = mountView(pinia);
     await flushPromises();
     const before = listGetCount();
 
-    await wrapper.find('[data-testid="sessions-filterbar"] input').setValue('alice');
-    // Debounced — no request yet.
-    expect(listGetCount()).toBe(before);
-
-    vi.advanceTimersByTime(300);
+    const input = wrapper.find('[data-testid="sessions-filterbar"] input');
+    await input.setValue('a');
+    await input.setValue('ali');
+    await input.setValue('alice');
+    vi.advanceTimersByTime(1000);
     await flushPromises();
 
-    expect(listGetCount()).toBe(before + 1);
-    expect(mockApi.get).toHaveBeenLastCalledWith(LIST_URL, {
-      params: { page: 1, per_page: 50, search: 'alice' },
-    });
+    expect(listGetCount()).toBe(before);
   });
 
-  it('fetches immediately when the search button is clicked (debounce cancelled)', async () => {
+  it('fetches once with the term when the search button is clicked', async () => {
     mockApi.get.mockResolvedValue({ data: sessionsPayload() });
     wrapper = mountView(pinia);
     await flushPromises();
@@ -268,14 +382,14 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     await submitBtn!.trigger('click');
     await flushPromises();
 
-    // Immediate fetch with the term…
     expect(listGetCount()).toBe(before + 1);
     expect(mockApi.get).toHaveBeenLastCalledWith(LIST_URL, {
       params: { page: 1, per_page: 50, search: 'alice' },
     });
 
-    // …and the pending debounce was cancelled — no second, late request.
-    vi.advanceTimersByTime(300);
+    // Nothing else fires later, and the same term is a no-op.
+    vi.advanceTimersByTime(1000);
+    await submitBtn!.trigger('click');
     await flushPromises();
     expect(listGetCount()).toBe(before + 1);
   });
@@ -468,9 +582,7 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     it('disables the revoke button on the row matching current_session_handle', async () => {
       await mountWithCurrent(HANDLE);
 
-      expect(
-        wrapper.find(`[data-testid="revoke-${HANDLE}"]`).attributes('disabled')
-      ).toBeDefined();
+      expect(wrapper.find(`[data-testid="revoke-${HANDLE}"]`).attributes('disabled')).toBeDefined();
       expect(wrapper.find(`[data-testid="revoke-${HANDLE}"]`).attributes('title')).toBe(
         'web.admin.sessions.revoke.ownSession'
       );

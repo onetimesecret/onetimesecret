@@ -9,6 +9,7 @@
 # AdminVerifyDomain.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 
 module Onetime
   module Operations
@@ -46,6 +47,7 @@ module Onetime
       # intended, correct behaviour. See wiringInstructions / blockers.
       class Repair
         include Onetime::AuditedFailure
+        include Onetime::Operations::AuditAttempt
 
         # Audit verb recorded for every applied repair.
         AUDIT_VERB = 'domain.repair'
@@ -152,21 +154,19 @@ module Onetime
 
         private
 
+        # The #4337 envelope's target hook: the domain's public id, same as the
+        # applied event's. `audit_verb` defaults to AUDIT_VERB, `audit_actor`
+        # to @actor.
+        def audit_target = @domain.extid
+
         # One OBSERVATION per preview (#4337), on the budgeted access trail.
         # Same verb, target and `issues` detail as the applied event, so a
         # preview and the repair that followed read as one sequence;
         # `result: 'preview'` is what tells them apart.
         def record_preview_event(issues)
-          Onetime::ColonelAuditEvent.record_access(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @domain.extid,
-            result: 'preview',
-            detail: {
-              dry_run: true,
-              issues: issues,
-              org_id: @domain.org_id.to_s,
-            },
+          record_preview_observation(
+            issues: issues,
+            org_id: @domain.org_id.to_s,
           )
         end
 

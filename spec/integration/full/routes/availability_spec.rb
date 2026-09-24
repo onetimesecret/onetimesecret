@@ -181,25 +181,16 @@ RSpec.describe 'Auth Route Availability', type: :integration do
   end
 
   describe 'admin routes' do
-    # Admin routes are conditionally defined at class load time based on
-    # Onetime.development?. This means:
-    #   - In development mode: routes are available and return stats
-    #   - In test/production mode: routes are not defined, return 404
-    #
-    # These tests verify the behavior for the current RACK_ENV.
-    # To test development mode behavior, run: RACK_ENV=development pnpm run test:rspec ...
+    # The auth service exposes no admin routes. The former development-only
+    # stats stub (apps/web/auth/routes/admin.rb) was deleted in favour of the
+    # standalone Rodauth Admin; this pins that the path stays unrouted.
 
-    describe 'GET /auth/admin/stats' do
-      it 'returns expected status for current environment' do
+    describe 'GET /auth/admin/stats (retired dev stub)' do
+      # Deleted once the standalone Rodauth Admin superseded it; no environment
+      # routes it any more, so the router's JSON catch-all answers.
+      it 'returns 404 in every environment' do
         json_get '/auth/admin/stats'
-
-        if Onetime.development?
-          # In development: route exists, returns stats or requires auth
-          expect([200, 401, 403]).to include(last_response.status)
-        else
-          # In test/production: route is not defined
-          expect(last_response.status).to eq(404)
-        end
+        expect(last_response.status).to eq(404)
       end
 
       it 'returns JSON content type' do

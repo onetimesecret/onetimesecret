@@ -31,6 +31,38 @@
     "text": "Results are capped: the count shown is a floor, not the total. Narrow the search or filter to see everything.",
     "content_hash": "27537844"
   },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Auth database account with no customer record",
+    "content_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "The auth database holds an account for this address, but no customer record maps to it. The person can still sign in; the customer index has nothing for them. Open the address for diagnostics.",
+    "content_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Open account diagnostics",
+    "content_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Account #{id}",
+    "content_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Unverified",
+    "content_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Verified",
+    "content_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Closed",
+    "content_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Unknown",
+    "content_hash": "b764cdc0"
+  },
   "web.admin.customers.roles.colonel": {
     "text": "Colonel",
     "content_hash": "02577777"
@@ -754,5 +786,9 @@
   "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
     "text": "This signs you out of every other device and browser, including sessions not shown in this list. The session you are working in right now is kept.",
     "content_hash": "ae350040"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Open in Rodauth Admin",
+    "content_hash": "467173c8"
   }
 }

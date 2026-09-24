@@ -261,4 +261,33 @@ RSpec.describe Onetime::Utils::Strings do
       expect(described_class).to respond_to(:strict_bool!)
     end
   end
+
+  describe '#glob_case_insensitive' do
+    # Redis MATCH is case-sensitive and the customer email_index carries
+    # mixed-case keys from pre-normalization writers, so the admin searches
+    # widen every ASCII letter to a class. The escaping runs first so user
+    # input can never inject pattern syntax; the only unescaped brackets in
+    # the result are the classes this helper adds.
+    it 'widens ASCII letters and escapes glob metacharacters' do
+      expect(utils.glob_case_insensitive('Gam[m]a')).to eq('[gG][aA][mM]\\[[mM]\\][aA]')
+    end
+
+    it 'escapes every Redis glob metacharacter, including a trailing backslash' do
+      expect(utils.glob_case_insensitive('a*b?c\\')).to eq('[aA]\\*[bB]\\?[cC]\\\\')
+    end
+
+    it 'passes digits and punctuation through unchanged' do
+      expect(utils.glob_case_insensitive('bob@example.com')).to eq(
+        '[bB][oO][bB]@[eE][xX][aA][mM][pP][lL][eE].[cC][oO][mM]',
+      )
+    end
+
+    it 'leaves non-ASCII letters case-sensitive' do
+      expect(utils.glob_case_insensitive("jos\u00e9-1")).to eq("[jJ][oO][sS]\u00e9-1")
+    end
+
+    it 'treats nil as an empty term' do
+      expect(utils.glob_case_insensitive(nil)).to eq('')
+    end
+  end
 end

@@ -107,6 +107,49 @@ module Onetime
           rescue Redis::CommandError
             nil
           end
+          decode_data(raw_data, codec: codec)
+        end
+
+        # Keys per MGET in {load_data_multi}. Session blobs are a few KB each,
+        # so 500 keeps one reply comfortably small while cutting the list's
+        # read path from one round-trip per key to one per batch.
+        LOAD_BATCH = 500
+
+        # Batched form of {load_data} for the list path: reads the values for
+        # `keys` with one MGET per LOAD_BATCH keys and decodes each exactly as
+        # {load_data} would. MGET yields nil for a missing or non-string key,
+        # so a key that changed type between the SCAN and the read simply
+        # decodes to nil (the same outcome as load_data's rescued GET). A batch
+        # whose MGET itself fails falls back to per-key GETs so one bad reply
+        # cannot blank a whole page.
+        #
+        # @param dbclient [Object]
+        # @param keys [Array<String>]
+        # @param codec [Onetime::SessionCodec, nil]
+        # @return [Array<Array(String, Hash|nil)>] `[key, data]` pairs in input order
+        def load_data_multi(dbclient, keys, codec: nil)
+          keys.each_slice(LOAD_BATCH).flat_map do |batch|
+            raws = begin
+              dbclient.mget(*batch)
+            rescue Redis::CommandError
+              batch.map do |key|
+                dbclient.get(key)
+              rescue Redis::CommandError
+                nil
+              end
+            end
+            batch.zip(raws).map { |key, raw| [key, decode_data(raw, codec: codec)] }
+          end
+        end
+
+        # Decode one raw session value the way {load_data} does: authentic
+        # encrypted blob first, then the legacy plaintext-JSON fallback, then a
+        # bounded `_raw` preview. NEVER Marshal.load (see the security note above).
+        #
+        # @param raw_data [String, nil]
+        # @param codec [Onetime::SessionCodec, nil]
+        # @return [Hash, nil]
+        def decode_data(raw_data, codec: nil)
           return nil unless raw_data
 
           # Primary: decrypt an authentic session blob to its data hash.
@@ -116,8 +159,7 @@ module Onetime
           end
 
           # Fallback: legacy plaintext-JSON values and anything that is not an
-          # authentic session blob. NEVER Marshal.load (see the security note
-          # above); non-JSON degrades to a bounded `_raw` preview.
+          # authentic session blob; non-JSON degrades to a bounded `_raw` preview.
           begin
             JSON.parse(raw_data)
           rescue StandardError

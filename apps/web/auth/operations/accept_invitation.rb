@@ -13,7 +13,7 @@ module Auth
     # Flow:
     # 1. User receives invitation email with token
     # 2. User clicks signup link containing invite_token
-    # 3. Account creation completes (CreateCustomer, CreateDefaultWorkspace)
+    # 3. Account creation completes (EnsureCustomerForAccount, CreateDefaultWorkspace)
     # 4. This operation accepts the invitation, adding user to org
     #
     # Strict email binding: The email used for signup MUST match the

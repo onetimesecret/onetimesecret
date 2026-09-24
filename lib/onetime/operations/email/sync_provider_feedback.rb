@@ -8,6 +8,7 @@
 # operations home. Dependencies are required at the call site.
 require 'onetime/operations/email/ingest_feedback'
 require 'onetime/models/colonel_audit_event'
+require 'onetime/operations/audit_attempt'
 require 'onetime/models/email_suppression'
 require 'onetime/mail/provider_registry'
 require 'onetime/mail/feedback/ses'
@@ -73,6 +74,8 @@ module Onetime
       # on the budgeted access trail instead (#4337) — a preview still walks a
       # third party's suppression list on the operator's behalf.
       class SyncProviderFeedback
+        include Onetime::Operations::AuditAttempt
+
         # Providers with a pollable feedback API (a fetcher under
         # Onetime::Mail::Feedback). Other transports (SMTP, sendgrid, logger,
         # disabled) have no pull API and are rejected.
@@ -128,6 +131,11 @@ module Onetime
         end
 
         private
+
+        # The #4337 envelope's target hook: the fixed suppression-list sentinel,
+        # the same target the operator-trail half of #record_sync_event uses.
+        # `audit_verb` defaults to AUDIT_VERB, `audit_actor` to @actor.
+        def audit_target = AUDIT_TARGET
 
         # The pull/ingest work. Split from {#call} so the audit write has ONE
         # place to sit: the three exits below (dry run, empty list, ingested
@@ -189,20 +197,20 @@ module Onetime
         # (#4337). Same verb and target either way, so a preview and the sync
         # that followed read as one sequence.
         #
+        # The preview detail also carries `dry_run: true`, merged in by the
+        # shared envelope. It did NOT before #4366: this op was the one preview
+        # emitter whose row lacked the marker, leaving `sync_status_stamped`
+        # (shared with the applied path, and an INVERTED proxy) as the only way
+        # to tell a preview's detail from an applied one. The addition is the
+        # point of composing the envelope — the marker is now structural rather
+        # than something this method has to remember.
+        #
         # NOT fail-closed: a sync destroys nothing (it only ever ADDS
         # suppressions), so per the model's fail-closed contract this stays in
         # the additive family and must not trade a working sync for a hard
         # failure. The observation half is fail-open by construction.
         def record_sync_event(result)
-          if result.dry_run
-            return Onetime::ColonelAuditEvent.record_access(
-              actor: @actor,
-              verb: AUDIT_VERB,
-              target: AUDIT_TARGET,
-              result: 'preview',
-              detail: sync_detail(result),
-            )
-          end
+          return record_preview_observation(sync_detail(result)) if result.dry_run
 
           Onetime::ColonelAuditEvent.record(
             actor: @actor,

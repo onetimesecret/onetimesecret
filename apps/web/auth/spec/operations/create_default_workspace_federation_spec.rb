@@ -186,7 +186,7 @@ RSpec.describe 'CreateDefaultWorkspace: federated subscription claim gate', type
     it 'claims at creation on the default (require_verification: false) path even ' \
        'when the Redis customer.verified flag is not yet set (SSO/omniauth caller)' do
       # The SSO caller (after_omniauth_create_account) invokes CreateDefaultWorkspace
-      # with the default require_verification: false, while CreateCustomer leaves the
+      # with the default require_verification: false, while EnsureCustomerForAccount leaves the
       # Redis customer.verified flag false (the Rodauth account is IdP-verified). This
       # asserts SSO still claims immediately and is not blocked by the new gate.
       email = unique_email('sso-immediate')

@@ -6,6 +6,7 @@ require 'rack'
 require 'familia/json_serializer'
 require_relative '../logger_methods'
 require_relative 'middleware_profile'
+require_relative '../middleware/isolate_response_headers'
 
 module Onetime
   module Application
@@ -193,6 +194,14 @@ module Onetime
               Onetime.log_box([message], logger_method: :app_logger, level: :debug) # reduce noise at 'info'
             end
           end
+
+          # Innermost, directly around the router: Otto returns its static
+          # `not_found` / `server_error` triples by reference, so every header
+          # writer above (the session commit first among them) must get a
+          # per-request copy or it writes into a process-lifetime hash. See
+          # the class doc; not part of MiddlewareStack because it must sit
+          # below every per-app `use` as well.
+          builder.use Onetime::Middleware::IsolateResponseHeaders
 
           builder.run router_instance
         end.to_app

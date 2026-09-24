@@ -759,10 +759,6 @@
     "text": "새로고침",
     "source_hash": "0e916101"
   },
-  "web.colonel.organizations.updatedAgo": {
-    "text": "{ago} 전에 업데이트됨",
-    "source_hash": "cda30b9c"
-  },
   "web.colonel.organizations.columns.name": {
     "text": "이름",
     "source_hash": "dcd1d522"

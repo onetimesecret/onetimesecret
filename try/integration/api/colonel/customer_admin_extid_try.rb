@@ -77,7 +77,7 @@ def last_response; @test.last_response; end
 
 # Purge::Result carries a CLOSED status contract (:success | :not_found), but
 # through the HTTP adapter the op is always handed a resolved, existing
-# customer, so DeleteCustomer never returns false and :not_found is
+# customer, so DestroyCustomerRecord never returns false and :not_found is
 # unreachable end-to-end. Force the status at that seam — the adapter's
 # contract boundary — so the cases below exercise PurgeUser#handle_result_status
 # rather than the earlier `raise_concerns` existence guard.
@@ -129,6 +129,13 @@ get "/api/colonel/users/#{@detail_extid}", {}, @colonel_get_headers
 ## The detail payload carries the support-view sections keyed by extid
 [@detail_resp['details']['secrets']['count'], @detail_resp['details']['receipts'].is_a?(Hash)]
 #=> [0, true]
+
+## The detail payload carries the outbound Rodauth Admin deep link slot (the
+## read-only external_id join, rodauth-admin CHARTER §4 seam 1). It is present
+## but null here: the test lane runs simple auth mode and sets no
+## RODAUTH_ADMIN_URL, so the page renders the extid as plain text.
+[@detail_resp['details'].key?('rodauth_admin_account_url'), @detail_resp['details']['rodauth_admin_account_url']]
+#=> [true, nil]
 
 # ---- Role change by extid -----------------------------------------------
 

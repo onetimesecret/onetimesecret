@@ -4,6 +4,7 @@
 
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/audit_attempt'
 
 module Auth
   module Operations
@@ -69,6 +70,7 @@ module Auth
       # a failed read-only pass).
       class ReconcileRoleIndex
         include Onetime::LoggerMethods
+        include Onetime::Operations::AuditAttempt
 
         AUDIT_VERB = 'customer.role_index_reconcile'
 
@@ -362,20 +364,19 @@ module Auth
         def record_preview_event(status, scanned, additions, removals)
           return if @actor.nil?
 
-          Onetime::ColonelAuditEvent.record_access(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: 'customer:role_index',
-            result: 'preview',
-            detail: {
-              dry_run: true,
-              status: status.to_s,
-              scanned: scanned,
-              additions: additions.size,
-              removals: removals.size,
-            },
+          record_preview_observation(
+            status: status.to_s,
+            scanned: scanned,
+            additions: additions.size,
+            removals: removals.size,
           )
         end
+
+        # The #4337 envelope's target hook: the index itself, the same fixed
+        # target the applied and failure events carry. `audit_verb` defaults to
+        # AUDIT_VERB, `audit_actor` to @actor — the nil-actor gate stays in the
+        # emitter above, since a hook cannot decline to emit.
+        def audit_target = 'customer:role_index'
 
         # Shared failure-record path (drops authorization rejections, never
         # double-records, best-effort write) — same helper Doctor uses.

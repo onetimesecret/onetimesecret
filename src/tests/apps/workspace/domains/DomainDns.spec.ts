@@ -70,6 +70,7 @@ vi.mock('pinia', async (importOriginal) => {
 });
 
 const i18n = createTestI18n();
+const t = (key: string): string => i18n.global.t(key);
 
 const createMockDomain = (overrides = {}) => ({
   extid: 'dm-test-extid',
@@ -114,16 +115,16 @@ describe('DomainDns', () => {
     const wrapper = await mountComponent();
 
     // Type: CNAME
-    const type = findFieldByLabel(wrapper, i18n.global.t('web.COMMON.type'));
+    const type = findFieldByLabel(wrapper, t('web.COMMON.type'));
     expect(type?.attributes('data-value')).toBe('CNAME');
 
     // Host: subdomain + base-domain appendix
-    const host = findFieldByLabel(wrapper, i18n.global.t('web.COMMON.host'));
+    const host = findFieldByLabel(wrapper, t('web.COMMON.host'));
     expect(host?.attributes('data-value')).toBe('test');
     expect(host?.attributes('data-appendix')).toBe('.example.com');
 
     // Value: the canonical domain the record must point at
-    const value = findFieldByLabel(wrapper, i18n.global.t('web.COMMON.value'));
+    const value = findFieldByLabel(wrapper, t('web.COMMON.value'));
     expect(value?.attributes('data-value')).toBe('secrets.example.com');
   });
 
@@ -133,7 +134,7 @@ describe('DomainDns', () => {
 
     const wrapper = await mountComponent();
 
-    const value = findFieldByLabel(wrapper, i18n.global.t('web.COMMON.value'));
+    const value = findFieldByLabel(wrapper, t('web.COMMON.value'));
     expect(value?.attributes('data-value')).toBe('fallback.example.com');
   });
 
@@ -143,16 +144,16 @@ describe('DomainDns', () => {
     const wrapper = await mountComponent();
 
     // Apex zones can't CNAME — type must not say "CNAME".
-    const type = findFieldByLabel(wrapper, i18n.global.t('web.COMMON.type'));
+    const type = findFieldByLabel(wrapper, t('web.COMMON.type'));
     expect(type?.attributes('data-value')).toBe('ALIAS / ANAME');
 
-    const host = findFieldByLabel(wrapper, i18n.global.t('web.COMMON.host'));
+    const host = findFieldByLabel(wrapper, t('web.COMMON.host'));
     expect(host?.attributes('data-value')).toBe('@');
     // No leading dot at the apex: "@" + "example.com", matching VerifyDomainDetails.
     expect(host?.attributes('data-appendix')).toBe('example.com');
 
-    expect(wrapper.text()).toContain(i18n.global.t('web.domains.dns.apex_heading'));
-    expect(wrapper.text()).toContain(i18n.global.t('web.domains.dns.apex_notice'));
+    expect(wrapper.text()).toContain(t('web.domains.dns.apex_heading'));
+    expect(wrapper.text()).toContain(t('web.domains.dns.apex_notice'));
   });
 
   it('keeps host "@" for apex even when trd is unexpectedly populated', async () => {
@@ -160,18 +161,18 @@ describe('DomainDns', () => {
 
     const wrapper = await mountComponent();
 
-    const host = findFieldByLabel(wrapper, i18n.global.t('web.COMMON.host'));
+    const host = findFieldByLabel(wrapper, t('web.COMMON.host'));
     expect(host?.attributes('data-value')).toBe('@');
   });
 
   it('does not show the apex notice for non-apex domains', async () => {
     const wrapper = await mountComponent();
-    expect(wrapper.text()).not.toContain(i18n.global.t('web.domains.dns.apex_notice'));
+    expect(wrapper.text()).not.toContain(t('web.domains.dns.apex_notice'));
   });
 
   it('shows a loading message when the domain has not loaded', async () => {
     mockDomain.value = null;
     const wrapper = await mountComponent();
-    expect(wrapper.text()).toContain(i18n.global.t('web.domains.loading_domain_information'));
+    expect(wrapper.text()).toContain(t('web.domains.loading_domain_information'));
   });
 });

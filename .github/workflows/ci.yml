@@ -88,6 +88,12 @@ jobs:
     name: T0 · Detect Changes
     runs-on: &runs-on ubuntu-24.04
     timeout-minutes: 2
+    permissions:
+      contents: read
+      # dorny/paths-filter lists changed files via the pulls API on
+      # pull_request events; without this it fails before any filter runs and
+      # every downstream job is skipped or blocked.
+      pull-requests: read
     outputs:
       ruby: ${{ steps.compute.outputs.ruby }}
       typescript: ${{ steps.compute.outputs.typescript }}

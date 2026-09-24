@@ -271,11 +271,12 @@ describe('AdminOrganizationDetail — add an existing account to the organizatio
       global: { plugins: [pinia, i18n] },
     });
 
-  /** Open the modal, search for `term`, and let the debounce + request settle. */
+  /** Open the modal, type `term`, submit the search form, and let the request settle. */
   async function search(w: VueWrapper, term: string): Promise<void> {
     await w.find('[data-testid="org-add-member-button"]').trigger('click');
-    await w.find('[data-testid="add-member-search"]').setValue(term);
-    vi.advanceTimersByTime(300);
+    const input = w.find('[data-testid="add-member-search"]');
+    await input.setValue(term);
+    input.element.closest('form')!.dispatchEvent(new Event('submit'));
     await flushPromises();
   }
 
@@ -302,7 +303,7 @@ describe('AdminOrganizationDetail — add an existing account to the organizatio
     expect(results.text()).toContain(CANDIDATE_EXTID);
   });
 
-  it('debounces the search so it issues one request per pause, not per keystroke', async () => {
+  it('never searches on typing alone — the request goes out on submit only', async () => {
     routeGets();
     wrapper = mountView();
     await flushPromises();
@@ -312,11 +313,18 @@ describe('AdminOrganizationDetail — add an existing account to the organizatio
     await input.setValue('new');
     await input.setValue('newper');
     await input.setValue('newperson@acme.test');
-    vi.advanceTimersByTime(300);
+    vi.advanceTimersByTime(1000);
     await flushPromises();
 
-    const userSearches = mockApi.get.mock.calls.filter(([url]) => url === USERS_URL);
-    expect(userSearches).toHaveLength(1);
+    expect(mockApi.get.mock.calls.filter(([url]) => url === USERS_URL)).toHaveLength(0);
+
+    input.element.closest('form')!.dispatchEvent(new Event('submit'));
+    await flushPromises();
+    // Re-submitting the same term is a no-op.
+    input.element.closest('form')!.dispatchEvent(new Event('submit'));
+    await flushPromises();
+
+    expect(mockApi.get.mock.calls.filter(([url]) => url === USERS_URL)).toHaveLength(1);
   });
 
   it('shows an explicit not-found state when no account matches', async () => {

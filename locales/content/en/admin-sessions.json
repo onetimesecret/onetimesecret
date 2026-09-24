@@ -214,5 +214,29 @@
   "web.admin.sessions.revoke.ownSession": {
     "text": "This is your own session. Revoking it would sign you out — use sign-out instead.",
     "content_hash": "a6762292"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Not the session authority in full authentication mode",
+    "content_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "This list is the Redis session store. With the authentication mode set to full, the authoritative session state lives in the Rodauth accounts database, which this console does not read. Accounts signed in through Rodauth may not appear here, and revoking a session here does not end a Rodauth session.",
+    "content_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "This list is the Redis session store. With the authentication mode set to full, the authoritative session state lives in the Rodauth accounts database, which this console does not read. Accounts signed in through Rodauth may not appear here, and revoking a single session here does not end its Rodauth session. Revoke all also ends the account's Rodauth sessions.",
+    "content_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Open Rodauth Admin",
+    "content_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Set RODAUTH_ADMIN_URL to link to Rodauth Admin from here.",
+    "content_hash": "c070dbfb"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Open in Rodauth Admin",
+    "content_hash": "467173c8"
   }
 }

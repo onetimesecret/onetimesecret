@@ -109,41 +109,16 @@ rescue => e
 end
 #=> [Onetime::FormError, "We have concerns about that request."]
 
-## Process the request and destroy the account
+## Process the request and permanently destroy the account
 cust = Onetime::Customer.new email: generate_random_email
 strategy_result = MockStrategyResult.new(session: @session, user: cust)
 obj = AccountAPI::Logic::Account::DestroyAccount.new strategy_result, @params
 cust.update_passphrase @params['confirmation'] # set the passphrase
+extid = cust.extid
 obj.raise_concerns
 obj.process
 
-# NOTE: When running in debug mode, we intentionally don't call
-# Onetime::Customer#destroy_requested! so the passphrase doesn't get
-# cleared out, causing this test to fail.
-# See DestroyAccount for more details.
-post_destroy_passphrase = if Onetime.debug
-  ''
-else
-  cust.passphrase
-end
-[cust.role, cust.verified, post_destroy_passphrase]
-#=> ['user_deleted_self', 'false', '']
-
-## Destroyed account gets a new api key
-cust = Onetime::Customer.new email: generate_random_email
-first_token = cust.regenerate_apitoken  # first we need to set an api key
-strategy_result = MockStrategyResult.new(session: @session, user: cust)
-obj = AccountAPI::Logic::Account::DestroyAccount.new strategy_result, @params
-cust.update_passphrase @params['confirmation']
-obj.raise_concerns
-obj.process
-
-# NOTE: See note above for `post_destroy_passphrase`
-post_destroy_apitoken = if Onetime.debug
-  ''
-else
-  cust.apitoken
-end
-
-first_token.eql?(post_destroy_apitoken)
-#=> false
+# Debug mode simulates the action without modifying storage.
+deleted = Onetime.debug? || Onetime::Customer.find_by_extid(extid).nil?
+deleted
+#=> true

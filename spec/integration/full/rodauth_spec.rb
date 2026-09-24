@@ -85,11 +85,12 @@ RSpec.describe 'Rodauth Integration', type: :integration do
     end
   end
 
-  describe 'GET /auth/admin/stats' do
-    it 'returns expected status (endpoint may or may not exist)' do
+  describe 'GET /auth/admin/stats (retired dev stub)' do
+    it 'is not routed' do
       get '/auth/admin/stats'
-      # 200=success, 401/403=auth required, 404=not implemented
-      expect([200, 401, 403, 404]).to include(last_response.status)
+      # Deleted in favour of the standalone Rodauth Admin; falls through to
+      # the router's catch-all 404.
+      expect(last_response.status).to eq(404)
     end
   end
 
