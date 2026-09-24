@@ -693,7 +693,15 @@ module Auth::Config::Hooks
     # custom domain. Unknown, unverified, and datastore-error hosts return false
     # and are rejected by handle_missing_tenant_config.
     def self.bind_platform_fallback_acs(strategy, request)
-      return false if request.nil? || Auth::PublicHost.resolve(request.env).nil?
+      return false if request.nil?
+
+      verified_custom_domain = !Auth::PublicHost.resolve(request.env).nil?
+      route_available        = Onetime::SsoProvider::Registry.platform_route_available_on_host?(
+        strategy.options[:name],
+        platform_host: false,
+        verified_custom_domain: verified_custom_domain,
+      )
+      return false unless route_available
 
       strategy.options[:assertion_consumer_service_url] = strategy.full_host + strategy.callback_path
       true

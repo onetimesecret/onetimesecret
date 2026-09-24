@@ -170,6 +170,23 @@ module Onetime
             ENV.fetch(defn[:route_var], defn[:route_default]) == route_name
         end
       end
+
+      # Whether a platform provider may be used on the resolved request host.
+      # Most providers are host-independent. A request-bound ACS provider is
+      # available only on its boot-pinned platform host or on a positively
+      # resolved, verified custom domain where runtime may safely rebind it.
+      # Callers supply resolved facts so this policy stays pure and does not
+      # duplicate domain lookups across Rack hooks and serializers.
+      #
+      # @param route_name [String, nil] the registered platform route
+      # @param platform_host [Boolean] whether this is the provider's pinned host
+      # @param verified_custom_domain [Boolean] whether ownership is verified
+      # @return [Boolean]
+      def self.platform_route_available_on_host?(route_name, platform_host:, verified_custom_domain:)
+        return true unless request_bound_platform_acs_route?(route_name)
+
+        platform_host || verified_custom_domain
+      end
     end
   end
 end

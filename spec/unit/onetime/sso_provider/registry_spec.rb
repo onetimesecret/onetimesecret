@@ -142,6 +142,32 @@ RSpec.describe Onetime::SsoProvider::Registry do
     end
   end
 
+  describe '.platform_route_available_on_host?' do
+    it 'allows host-independent providers on every host' do
+      expect(described_class.platform_route_available_on_host?(
+        'oidc', platform_host: false, verified_custom_domain: false
+      )).to be true
+    end
+
+    it 'allows a request-bound ACS provider on its pinned platform host' do
+      expect(described_class.platform_route_available_on_host?(
+        'saml', platform_host: true, verified_custom_domain: false
+      )).to be true
+    end
+
+    it 'allows a request-bound ACS provider on a verified custom domain' do
+      expect(described_class.platform_route_available_on_host?(
+        'saml', platform_host: false, verified_custom_domain: true
+      )).to be true
+    end
+
+    it 'rejects a request-bound ACS provider on any other host' do
+      expect(described_class.platform_route_available_on_host?(
+        'saml', platform_host: false, verified_custom_domain: false
+      )).to be false
+    end
+  end
+
   describe 'strategy_options' do
     it 'builds options from the env without raising when vars are present' do
       ClimateControl.modify(

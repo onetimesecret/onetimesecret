@@ -197,7 +197,11 @@ module InviteAPI::Logic
         Onetime.auth_config.sso_providers.filter_map do |provider|
           route_name = provider['route_name'].to_s
           next if route_name.empty?
-          next if Onetime::SsoProvider::Registry.request_bound_platform_acs_route?(route_name) && !domain.verified # boolean_field native
+          next unless Onetime::SsoProvider::Registry.platform_route_available_on_host?(
+            route_name,
+            platform_host: false,
+            verified_custom_domain: !!domain.verified, # boolean_field native
+          )
 
           {
             type: 'sso',

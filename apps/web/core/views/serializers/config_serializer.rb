@@ -556,7 +556,8 @@ module Core
 
           build_platform_sso_config(
             connectable: !tenant_domain?(view_vars),
-            saml_visible: platform_saml_host?(view_vars) || resolution.verified_custom_domain?,
+            platform_host: platform_saml_host?(view_vars),
+            verified_custom_domain: resolution.verified_custom_domain?,
           )
         end
 
@@ -780,9 +781,10 @@ module Core
         # widening the surface.
         #
         # @param connectable [Boolean] whether this host may initiate Connect
-        # @param saml_visible [Boolean] whether platform SAML may be advertised
+        # @param platform_host [Boolean] whether this is the boot-pinned SAML host
+        # @param verified_custom_domain [Boolean] whether ownership is verified
         # @return [Boolean, Hash] false if disabled, otherwise config hash
-        def build_platform_sso_config(connectable: true, saml_visible: true)
+        def build_platform_sso_config(connectable: true, platform_host: true, verified_custom_domain: false)
           unless Onetime::CustomDomain::SigninConfig.global_auth_enabled
             return { 'enabled' => false, 'providers' => [] }
           end
@@ -791,7 +793,11 @@ module Core
 
           providers = Onetime.auth_config.sso_providers.filter_map do |provider|
             route_name = provider['route_name'].to_s
-            next if Onetime::SsoProvider::Registry.request_bound_platform_acs_route?(route_name) && !saml_visible
+            next unless Onetime::SsoProvider::Registry.platform_route_available_on_host?(
+              route_name,
+              platform_host: platform_host,
+              verified_custom_domain: verified_custom_domain,
+            )
 
             {
               'route_name' => route_name,
