@@ -47,7 +47,32 @@ RSpec.describe Onetime::SessionSurface do
       expect(described_class.for_env(env)).to be_nil
     end
 
-    it 'returns nil for :invalid' do
+    it 'recovers a custom surface for an :invalid classification on a verified custom domain' do
+      domain = instance_double(Onetime::CustomDomain, verified: true, identifier: 'domain-abc')
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?).with('secrets.acme.com').and_return(false)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain).with('secrets.acme.com').and_return(domain)
+
+      surface = described_class.for_env(env_for(strategy: :invalid, display_domain: 'secrets.acme.com'))
+
+      expect(surface).to eq({ 'kind' => 'custom', 'id' => 'domain-abc' })
+    end
+
+    it 'returns nil for an :invalid classification on an unverified custom domain' do
+      domain = instance_double(Onetime::CustomDomain, verified: false)
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?).with('pending.acme.com').and_return(false)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain).with('pending.acme.com').and_return(domain)
+
+      expect(described_class.for_env(env_for(strategy: :invalid, display_domain: 'pending.acme.com'))).to be_nil
+    end
+
+    it 'returns nil when recovery of an :invalid classification raises' do
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?).with('secrets.acme.com').and_return(false)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain).and_raise(StandardError, 'redis unavailable')
+
+      expect(described_class.for_env(env_for(strategy: :invalid, display_domain: 'secrets.acme.com'))).to be_nil
+    end
+
+    it 'returns nil for :invalid without a display domain' do
       expect(described_class.for_env(env_for(strategy: :invalid))).to be_nil
     end
 
@@ -84,6 +109,19 @@ RSpec.describe Onetime::SessionSurface do
     it 'matches when the stored canonical surface equals the request surface' do
       session = { described_class::KEY => { 'kind' => 'canonical' } }
       expect(described_class.matches_request?(session, env_for(strategy: :canonical))).to be true
+    end
+
+    it 'records and matches a verified custom domain whose classification degraded to :invalid' do
+      domain = instance_double(Onetime::CustomDomain, verified: true, identifier: 'domain-abc')
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?).with('secrets.acme.com').and_return(false)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain).with('secrets.acme.com').and_return(domain)
+      env     = env_for(strategy: :invalid, display_domain: 'secrets.acme.com')
+      session = {}
+
+      described_class.record(session, env)
+
+      expect(session[described_class::KEY]).to eq({ 'kind' => 'custom', 'id' => 'domain-abc' })
+      expect(described_class.matches_request?(session, env)).to be true
     end
 
     it 'matches after the session marker is encoded and decoded' do

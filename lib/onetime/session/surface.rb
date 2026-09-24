@@ -23,7 +23,7 @@ module Onetime
   #     { 'kind' => 'canonical' }
   #     { 'kind' => 'subdomain', 'host' => 'eu.example.com' }
   #     { 'kind' => 'custom', 'id' => '<CustomDomain#identifier>' }
-  #     nil     # :invalid, unresolved, or a :custom whose id could not be read
+  #     nil     # unresolved, unverified, or a :custom whose id could not be read
   #
   # `:canonical` and `:subdomain` are distinct surface classes, not aliases.
   # A session established on the canonical host is not valid on a canonical
@@ -33,10 +33,13 @@ module Onetime
   #
   # ## Fail-closed handling
   #
-  # `for_env` returns `nil` when the request's domain_strategy is `:invalid`,
-  # missing, or when a `:custom` strategy resolved to no identifier (blip in
-  # the CustomDomain lookup). `matches_request?` treats a `nil` request
-  # surface as mismatch — enforcement callers must refuse.
+  # `for_env` returns `nil` when the request is unresolved or when a `:custom`
+  # strategy resolved to no identifier. An `:invalid` classification gets one
+  # narrow recovery path: if the sanitized display host independently resolves
+  # to a TXT-verified CustomDomain, its stable identifier is used. This matches
+  # the positive-evidence gate that permits platform SSO fallback when host
+  # classification degrades, so the resulting login remains usable. Unknown,
+  # unverified, canonical, and failed lookups still return nil.
   #
   # A session with no stored marker (a session established before this
   # feature shipped, or one whose marker was cleared) is treated as
@@ -68,10 +71,26 @@ module Onetime
         in :custom
           id = env['onetime.custom_domain_id']
           id.to_s.empty? ? nil : { 'kind' => 'custom', 'id' => id }.freeze
+        in :invalid
+          verified_custom_surface(env)
         else
-          # :invalid, nil, or any future symbol we have not yet mapped.
+          # nil or any future symbol we have not yet mapped.
           nil
         end
+      end
+
+      def verified_custom_surface(env)
+        host = env['onetime.display_domain'].to_s
+        return nil if host.empty?
+        return nil if Onetime::Middleware::DomainStrategy.canonical_host?(host)
+
+        domain = Onetime::CustomDomain.from_display_domain(host)
+        return nil unless domain&.verified
+
+        id = domain.identifier
+        id.to_s.empty? ? nil : { 'kind' => 'custom', 'id' => id }.freeze
+      rescue StandardError
+        nil
       end
 
       # Stamp the request's surface onto the session. Called from every
