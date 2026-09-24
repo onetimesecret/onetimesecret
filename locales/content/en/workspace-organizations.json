@@ -1,12 +1,15 @@
 {
   "web.organizations.sso.disable_action": {
-    "text": "Disable SSO"
+    "text": "Disable SSO",
+    "content_hash": "2f072272"
   },
   "web.organizations.sso.disable_confirm": {
-    "text": "Disable this SSO connection? Unsaved form edits will not be saved. Stored credentials will be kept."
+    "text": "Disable this SSO connection? Unsaved form edits will not be saved. Stored credentials will be kept.",
+    "content_hash": "608b142a"
   },
   "web.organizations.sso.disable_enforcement_warning": {
-    "text": "SSO-only enforcement will also be turned off, allowing other configured sign-in methods."
+    "text": "SSO-only enforcement will also be turned off, allowing other configured sign-in methods.",
+    "content_hash": "58abd552"
   },
   "web.organizations.title": {
     "text": "Organizations",
