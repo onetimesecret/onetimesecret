@@ -68,7 +68,7 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `AUTH_SSO_ENABLED` | Yes | `true` to enable SSO |
 | `SSO_DISPLAY_NAME` | No | Default button label for generic OIDC (e.g., "Company SSO") |
 | `ALLOWED_SIGNUP_DOMAIN` | No | Comma-separated allowed email domains for SSO signup |
-| `SSO_ALLOW_PLATFORM_FALLBACK` | No | Explicit opt-in (`true`) to expose platform providers for sign-in on a verified custom domain without active tenant SSO. Platform SAML additionally requires the exact custom-domain ACS URL to be registered at the IdP. Fallback providers are not available for Connect on that custom-domain surface. |
+| `SSO_ALLOW_PLATFORM_FALLBACK` | No | Explicit opt-in (`true`) to expose platform providers for sign-in on a custom domain without active tenant SSO. Platform OIDC/OAuth providers appear on any registered custom domain; platform SAML appears only when the domain is verified, and additionally requires the exact custom-domain ACS URL to be registered at the IdP. Fallback providers are not available for Connect on that custom-domain surface. |
 | `SSO_FORM_ACTION_ORIGINS` | No | Space-separated extra origins added to the CSP `form-action` directive. IdP origins are auto-derived — platform providers at boot, tenant (per-domain) SSO issuers per-request. Use this process-wide override only for split-endpoint OIDC or a tenant discovery-availability fallback (see [Troubleshooting](#sso-login-blocked-on-chromium-family-browsers-csp-form-action)). |
 
 ### Generic OIDC
@@ -231,7 +231,7 @@ This is the surface the other paths point at: the H-3 refusal flash names it, an
 
 **The panel** lists the account's linked identities — canonical provider label, the `issuer` (hidden for the `''` sentinel on legacy / OAuth2-only rows), and a **masked** `uid` — with a Remove action behind a confirmation dialog, plus eligible Connect providers. On the platform surface, "already linked" is decided by route name (`provider.route_name` vs the row's `provider`), which is correct there because one route maps to one issuer. On a custom-domain surface with active tenant SSO, the panel does not suppress the tenant provider by route-name evidence: the client cannot establish tuple equivalence before the callback (the `uid` is masked, and pairwise subject identifiers differ per client), so the server's full-tuple ownership check decides (`src/shared/utils/sso-link-evidence.ts`).
 
-A verified custom domain without active tenant `SsoConfig` is different. `SSO_ALLOW_PLATFORM_FALLBACK=true` may expose platform providers there for **sign-in**, but the panel omits them from Connected Identities. Their callbacks have no validated tenant context, and a custom-surface callback cannot be authorized as platform Connect. Initiate platform Connect from a canonical/operator surface instead. Suppression is a display heuristic; callback validation remains the control.
+A custom domain without active tenant `SsoConfig` is different. `SSO_ALLOW_PLATFORM_FALLBACK=true` may expose platform providers there for **sign-in** (platform SAML only once the domain is verified), but the panel omits them from Connected Identities. Their callbacks have no validated tenant context, and a custom-surface callback cannot be authorized as platform Connect. Initiate platform Connect from a canonical/operator surface instead. Suppression is a display heuristic; callback validation remains the control.
 
 ```
 Signed-in user clicks "Connect {provider}"
