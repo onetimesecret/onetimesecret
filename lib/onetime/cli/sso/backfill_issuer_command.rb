@@ -34,7 +34,7 @@ module Onetime
         type: :string,
         default: nil,
         desc: 'Operator override for the issuer to stamp (required/recommended for Entra; ' \
-              'for saml must be the domain-scoped "<domain_id>|<EntityID>")'
+              'does not make a saml domain eligible)'
 
       option :confirm,
         type: :boolean,
@@ -249,12 +249,15 @@ module Onetime
             issuer onto legacy rows whose account belongs to the domain organization,
             so the exact tenant lookup matches again.
 
-            Only oidc, entra_id and saml domains are eligible — the only configurable
-            tenant provider types since #3902. For saml (#4450) the issuer is the
-            IdP EntityID scoped to the domain, "<domain_id>|<EntityID>" — never
-            the bare EntityID. Pre-#3902 issuerless records (google/github)
-            resolved to the '' sentinel at callback time, so their legacy rows
-            already match and are refused.
+            Only oidc and entra_id domains are eligible. Pre-#3902 issuerless
+            records (google/github) resolved to the '' sentinel at callback time,
+            so their legacy rows already match and are refused. saml domains are
+            refused too, --issuer or not: the legacy '' rows hold OAuth/OIDC `sub`
+            values from the domain's previous provider, and a SAML uid is a NameID
+            (a different namespace), so relabelling them with the SAML issuer
+            would let a NameID that equals an old `sub` sign in as that account.
+            Tenant SAML postdates migration 008, so no legitimate saml '' rows
+            exist; a switch to saml needs an explicit per-account mapping.
 
             Scoping is per-row and fail-closed: a row is stamped ONLY when it passes
             BOTH gates —
@@ -273,9 +276,7 @@ module Onetime
             --issuer ISSUER         Override the issuer to stamp. REQUIRED/recommended
                                     for Entra, whose live `iss` is
                                     https://login.microsoftonline.com/{tenant_id}/v2.0.
-                                    For saml it must be the domain-scoped form
-                                    "<domain_id>|<EntityID>"; a bare EntityID is
-                                    refused (no tenant sign-in could match it)
+                                    Does not make a saml domain eligible
             --confirm               Execute changes (default is dry-run)
             --json                  JSON output (for scripting)
             --help, -h              Show this help message

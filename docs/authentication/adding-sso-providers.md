@@ -259,7 +259,11 @@ tenant's own IdP EntityID.
     `omniauth_identity_scope_domain_id`, a copy the tenant hook stamps and
     nothing consumes — rodauth-omniauth builds the identity insert hash
     *after* `after_omniauth_create_account` has consumed the session copy.
-    `bin/ots sso backfill-issuer` stamps the same scoped value. The platform
+    `bin/ots sso backfill-issuer` refuses `saml` domains outright, with or
+    without `--issuer`: the legacy `''` rows hold OAuth/OIDC `sub` values
+    from the domain's previous provider, and a NameID is a different
+    namespace, so stamping the SAML issuer onto them would let a NameID that
+    collides with an old `sub` resolve to that account. The platform
     surface keeps the bare EntityID, so tenant and platform rows can never
     match each other. `tenant_saml_sso_spec` drives the attack end to end.
   - **Stable uid.** The uid is the NameID; the persistent format is requested

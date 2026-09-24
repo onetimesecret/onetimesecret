@@ -656,14 +656,20 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
     # BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES is an intentionally
     # decoupled local constant (it must keep refusing pre-#3902 stored
-    # google/github rows even if PROVIDER_TYPES changes later), so this only
-    # guards the direction that would silently break the backfill: a new
-    # provider added to PROVIDER_TYPES without a matching update there. It
-    # deliberately does NOT assert equality — ISSUER_BEARING_PROVIDER_TYPES
-    # retaining historical entries beyond PROVIDER_TYPES is expected.
-    it 'BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES covers every current PROVIDER_TYPES value' do
-      expect(described_class::PROVIDER_TYPES - Auth::Operations::BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES)
-        .to eq([]), "PROVIDER_TYPES gained a value BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES doesn't know about"
+    # google/github rows even if PROVIDER_TYPES changes later). The intended
+    # relationship is PROVIDER_TYPES minus saml: saml (#4450) is EXCLUDED on
+    # purpose, because the legacy '' rows the backfill relabels hold OAuth/OIDC
+    # `sub` values and a SAML uid is a NameID — a different namespace, so
+    # stamping the SAML issuer onto them would let a colliding NameID sign in
+    # as an old account. Asserting exact equality with PROVIDER_TYPES - ['saml']
+    # trips in BOTH directions: a new provider type added to PROVIDER_TYPES
+    # must be classified there (stampable or refused), and saml must never
+    # quietly become stampable again.
+    it 'BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES is PROVIDER_TYPES minus saml' do
+      message = 'PROVIDER_TYPES changed; classify the new type in ' \
+                'BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES (saml stays excluded: NameID is not an OAuth sub)'
+      expect(Auth::Operations::BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES)
+        .to match_array(described_class::PROVIDER_TYPES - ['saml']), message
     end
   end
 

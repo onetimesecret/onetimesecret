@@ -640,41 +640,55 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
       expect(op.provider).to eq('entra')
     end
 
-    # #4450. The stamped issuer must byte-match what resolve_issuer's SAML
-    # branch returns on a TENANT callback: the configured IdP EntityID (an
-    # AAD-bound encrypted_field, so it is REVEALED) scoped to this domain —
-    # "<domain_id>|<EntityID>" (Onetime::SsoProvider::Saml.tenant_issuer).
-    # The EntityID half is not stripped, not normalized, and a URN is as good
-    # as a URL. Never the bare EntityID: that is the platform key, and a
-    # tenant row must not be matchable through it.
-    it 'saml uses the revealed idp_entity_id verbatim, scoped to the domain' do
-      tenant = build_tenant(provider_type: 'saml', issuer: nil, idp_entity_id: 'urn:example:IdP/Tenant-A')
-      op = new_operation(tenant)
-      expect(op.issuer).to eq("#{tenant.domain.identifier}|urn:example:IdP/Tenant-A")
-      expect(op.issuer).to eq(
-        Onetime::SsoProvider::Saml.tenant_issuer(tenant.domain.identifier, 'urn:example:IdP/Tenant-A'),
-      )
-      expect(op.provider).to eq('saml')
-    end
+    # #4450. saml is refused outright, not backfilled. The legacy '' rows this
+    # operation relabels hold OAuth/OIDC `sub` values from whatever provider
+    # the domain ran before; a SAML identity's uid is a NameID, a namespace
+    # the IdP assigns independently. Stamping the SAML issuer onto those rows
+    # would let a NameID that happens to equal an old `sub` resolve to that
+    # account — an ops-command-minted takeover. Tenant SAML postdates
+    # migration 008, so there are no legitimate saml '' rows to repair.
+    describe 'saml is refused' do
+      let(:tenant) { build_tenant(provider_type: 'saml', issuer: nil, idp_entity_id: 'urn:example:IdP/Tenant-A') }
 
-    it 'saml ignores a stale issuer field on the record' do
-      tenant = build_tenant(provider_type: 'saml', issuer: 'https://stale-oidc.example.com',
-        idp_entity_id: 'https://idp.example.com/saml/metadata')
-      expect(new_operation(tenant).issuer)
-        .to eq("#{tenant.domain.identifier}|https://idp.example.com/saml/metadata")
-    end
+      it 'refuses a configured saml domain with the namespace explanation' do
+        expect { new_operation(tenant) }.to raise_error(Onetime::Problem) { |ex|
+          expect(ex.message).to include("provider_type 'saml' is not eligible")
+          expect(ex.message).to include('NameID')
+          expect(ex.message).to include('different subject namespace')
+          expect(ex.message).to include('explicit per-account subject -> NameID mapping')
+          expect(ex.message).to include(tenant.domain.display_domain)
+        }
+      end
 
-    it 'raises for saml with no idp_entity_id and no override (never stamps the sentinel)' do
-      tenant = build_tenant(provider_type: 'saml', issuer: nil)
-      expect { new_operation(tenant) }.to raise_error(Onetime::Problem, /idp_entity_id/)
-    end
+      it 'refuses even when --issuer is passed in the domain-scoped form' do
+        scoped = "#{tenant.domain.identifier}|urn:example:IdP/Tenant-A"
+        expect { new_operation(tenant, issuer: scoped) }
+          .to raise_error(Onetime::Problem, /not eligible for this backfill \(--issuer does not change that\)/)
+      end
 
-    it 'raises for saml when idp_entity_id cannot be decrypted' do
-      tenant = build_tenant(provider_type: 'saml', issuer: nil, idp_entity_id: 'https://idp.example.com/saml/metadata')
-      allow_any_instance_of(Onetime::CustomDomain::SsoConfig)
-        .to receive(:reveal_saml_field).and_raise(Familia::EncryptionError, 'auth tag')
+      it 'refuses even when --issuer is a bare EntityID' do
+        expect { new_operation(tenant, issuer: 'urn:example:IdP/Tenant-A') }
+          .to raise_error(Onetime::Problem, /provider_type 'saml' is not eligible/)
+      end
 
-      expect { new_operation(tenant) }.to raise_error(Onetime::Problem, /unreadable idp_entity_id \(Familia::EncryptionError\)/)
+      it 'refuses before reading idp_entity_id (no reveal, no field-shape guidance)' do
+        bare = build_tenant(provider_type: 'saml', issuer: nil)
+        expect_any_instance_of(Onetime::CustomDomain::SsoConfig).not_to receive(:reveal_saml_field)
+        expect { new_operation(bare) }.to raise_error(Onetime::Problem) { |ex|
+          expect(ex.message).to include("provider_type 'saml' is not eligible")
+          expect(ex.message).not_to include('idp_entity_id')
+        }
+      end
+
+      it 'refuses a saml domain whose legacy rows exist, writing nothing (dry-run and live)' do
+        cust       = create_member(tenant, membership: :domain_scoped, signup: :match)
+        account_id = insert_account(cust)
+        row        = insert_identity(account_id: account_id, tenant: tenant, issuer: '', uid: 'old-oidc-sub')
+
+        expect { new_operation(tenant, dry_run: true) }.to raise_error(Onetime::Problem, /saml/)
+        expect { new_operation(tenant, dry_run: false) }.to raise_error(Onetime::Problem, /saml/)
+        expect(issuer_of(row[:identity_id])).to eq('')
+      end
     end
 
     it 'refuses google/github (they resolve to the sentinel; nothing to backfill)' do
@@ -700,56 +714,6 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
       expect(new_operation(oidc, issuer: override).issuer).to eq(override)
       google = build_tenant(provider_type: 'google', issuer: nil)
       expect(new_operation(google, issuer: override).issuer).to eq(override)
-    end
-
-    # #4450. The tenant callback only ever keys a SAML identity on
-    # "<domain_id>|<EntityID>", so an override in any other shape would
-    # stamp rows no sign-in can match. It is refused, not auto-scoped.
-    describe 'saml --issuer override' do
-      let(:tenant) { build_tenant(provider_type: 'saml', issuer: nil, idp_entity_id: 'urn:example:IdP/Tenant-A') }
-      let(:scoped) { "#{tenant.domain.identifier}|https://idp.example.com/saml/metadata" }
-
-      it 'accepts the domain-scoped form verbatim (not double-prefixed)' do
-        expect(new_operation(tenant, issuer: scoped).issuer).to eq(scoped)
-        expect(new_operation(tenant, issuer: " #{scoped} ").issuer).to eq(scoped)
-      end
-
-      it 'refuses a bare EntityID, naming the scoped form with this domain id' do
-        expect { new_operation(tenant, issuer: 'https://idp.example.com/saml/metadata') }
-          .to raise_error(Onetime::Problem) { |ex|
-            expect(ex.message).to include('never the bare EntityID')
-            expect(ex.message).to include(%("#{tenant.domain.identifier}|<EntityID>"))
-          }
-      end
-
-      it 'refuses a scoped form for a different domain' do
-        expect { new_operation(tenant, issuer: 'otherdomainid|https://idp.example.com/saml/metadata') }
-          .to raise_error(Onetime::Problem, /never the bare EntityID/)
-      end
-
-      it 'refuses the prefix with nothing after it' do
-        expect { new_operation(tenant, issuer: "#{tenant.domain.identifier}| ") }
-          .to raise_error(Onetime::Problem, /empty EntityID/)
-      end
-
-      # resolve_issuer strips only the OUTER edges of the override, so the
-      # EntityID half is held to Saml.entity_id_problem: it is stamped
-      # verbatim and must byte-match the configured EntityID.
-      it 'refuses a leading space after the separator' do
-        expect { new_operation(tenant, issuer: "#{tenant.domain.identifier}| https://idp.example.com/saml/metadata") }
-          .to raise_error(Onetime::Problem, /unusable EntityID.*leading or trailing whitespace/)
-      end
-
-      it 'refuses control characters in the EntityID' do
-        expect { new_operation(tenant, issuer: "#{tenant.domain.identifier}|https://idp.example.com/saml\u0001metadata") }
-          .to raise_error(Onetime::Problem, /unusable EntityID.*control characters/)
-      end
-
-      it 'names the scoped form when the record has no idp_entity_id' do
-        bare = build_tenant(provider_type: 'saml', issuer: nil)
-        expect { new_operation(bare) }
-          .to raise_error(Onetime::Problem, /#{Regexp.escape(bare.domain.identifier)}\|<EntityID>/)
-      end
     end
 
     it 'exposes sso_enabled? and constructs (non-fatally) for a disabled config' do

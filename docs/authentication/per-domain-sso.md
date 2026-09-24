@@ -657,8 +657,8 @@ domain whose record pinned the certificate — rather than on the bare
 EntityID, which platform rows and other domains' rows would share. Two domains
 that name the same IdP therefore get separate identities and accounts, and a
 domain that configures another IdP's EntityID with its own certificate can
-match nothing but its own rows. `bin/ots sso backfill-issuer` stamps the same
-scoped value.
+match nothing but its own rows. `bin/ots sso backfill-issuer` refuses `saml`
+domains outright, with or without `--issuer` (see below).
 
 ### What to register at the IdP
 
@@ -715,10 +715,14 @@ provider) whatever the cookie.
   EntityID scoped to this domain, never the bare EntityID (see the identity
   key discussion at the top of this section). Changing
   `idp_entity_id` changes the key for this domain only and orphans the
-  domain's existing identities. `bin/ots sso backfill-issuer` accepts `saml`
-  domains and stamps the same scoped value derived from the revealed
-  `idp_entity_id`; it refuses when the field is unset or unreadable, and a
-  `--issuer` override must itself be in the `"<domain_id>|<EntityID>"` form.
+  domain's existing identities. `bin/ots sso backfill-issuer` refuses `saml`
+  domains outright, with or without `--issuer`: the legacy `''` rows on a
+  shared route hold OAuth/OIDC `sub` values from the domain's previous
+  provider, and a SAML uid is a NameID — a different namespace, so stamping
+  the SAML issuer onto those rows would let a NameID that collides with an
+  old `sub` resolve to that account. Tenant SAML postdates migration 008, so
+  no legitimate saml `''` rows exist; a switch to `saml` needs an explicit
+  per-account subject → NameID mapping, which the tool does not provide.
 - **Provider metadata** is `requires_domain_filter: true`,
   `idp_controls_access: false`, the same posture as generic OIDC: "SAML"
   names a protocol, not an IdP, so an email-domain allowlist is recommended
