@@ -399,6 +399,26 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
           expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(['oidc'])
         end
 
+        # The canonical-set test is exact membership, not a suffix sweep: a
+        # verified record on a SUBDOMAIN of a canonical-set host is a served
+        # custom host (Auth::PublicHost rebinds the ACS there), so SAML stays.
+        # Pinned here so a future "sweep the anchor's subdomains" change to
+        # served_custom_domain? cannot silently hide a working button.
+        it 'keeps platform SAML on a verified subdomain of a canonical-set host' do
+          allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+            .and_wrap_original { |m, host| host.to_s == 'acme.example' || m.call(host) }
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+            .with('domain-acme-123')
+            .and_return(true)
+          allow(Onetime.auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+            { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+          ])
+
+          expect(Onetime::Middleware::DomainStrategy.canonical_host?(display_domain)).to be false
+          expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(%w[saml oidc])
+        end
+
         # A provider with no route name is unroutable: advertising it would
         # render a button with nowhere to send the invitee.
         it 'drops a provider with a blank route_name' do

@@ -689,6 +689,135 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
       end
 
+      # A verified CustomDomain record keyed on one of the operator's OWN
+      # hosts (site.host or a link host moved onto a host a tenant had
+      # already registered; the creation guard blocks only NEW registrations)
+      # sends omniauth_setup down the tenant path, where an absent SsoConfig
+      # lands in handle_missing_tenant_config. That runtime gate admits the
+      # pinned platform host as-is and refuses every other canonical-set
+      # host, so the display gate must answer the same way host by host —
+      # the stale record must neither hide SAML on site.host nor reveal it
+      # on a secondary canonical-set host.
+      context 'when a verified CustomDomain record is keyed on an operator host' do
+        let(:stale_domain) do
+          instance_double(Onetime::CustomDomain, identifier: domain_id, verified: true)
+        end
+
+        before do
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+            .with(domain_id)
+            .and_return(nil)
+          allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+          allow(mock_auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+          ])
+        end
+
+        context 'on site.host itself' do
+          before do
+            allow(Onetime::CustomDomain).to receive(:from_display_domain)
+              .with(canonical_domain)
+              .and_return(stale_domain)
+            # The record is on a canonical-set host, so verified_custom_domain?
+            # reads false; only the platform_saml_host? arm can carry SAML.
+            allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+              .and_wrap_original { |m, host| host.to_s == canonical_domain || m.call(host) }
+          end
+
+          it 'keeps platform SAML through the pinned-host arm, with the default fallback policy' do
+            result = described_class.build_sso_config(base_view_vars)
+
+            expect(result['enabled']).to be true
+            expect(result['providers'].map { |p| p['route_name'] }).to eq(%w[oidc saml])
+            expect(result['connect_providers']).to eq(result['providers'])
+            expect(Onetime::CustomDomain).to have_received(:from_display_domain).with(canonical_domain)
+          end
+
+          it 'reports SSO enabled when SAML is the only provider' do
+            allow(mock_auth_config).to receive(:sso_providers).and_return([
+              { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+            ])
+
+            result = described_class.build_sso_config(base_view_vars)
+
+            expect(result['enabled']).to be true
+            expect(result['providers'].map { |p| p['route_name'] }).to eq(['saml'])
+          end
+        end
+
+        context 'on a secondary canonical-set host (link_domains / domains.default)' do
+          let(:secondary_host) { 'secrets.example.net' }
+          let(:secondary_view_vars) do
+            base_view_vars.merge('domain_strategy' => :canonical, 'display_domain' => secondary_host)
+          end
+
+          before do
+            allow(Onetime::CustomDomain).to receive(:from_display_domain)
+              .with(secondary_host)
+              .and_return(stale_domain)
+            allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+              .and_wrap_original { |m, host| host.to_s == secondary_host || m.call(host) }
+          end
+
+          it 'omits platform SAML and lets enabled follow the host-independent providers' do
+            result = described_class.build_sso_config(secondary_view_vars)
+
+            expect(result['enabled']).to be true
+            expect(result['providers'].map { |p| p['route_name'] }).to eq(['oidc'])
+            expect(result['connect_providers']).to eq(result['providers'])
+          end
+
+          it 'reports SSO disabled when SAML was the only provider' do
+            allow(mock_auth_config).to receive(:sso_providers).and_return([
+              { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+            ])
+
+            result = described_class.build_sso_config(secondary_view_vars)
+
+            expect(result).to eq({ 'enabled' => false, 'providers' => [], 'connect_providers' => [] })
+          end
+        end
+
+        # A subdomain of the anchor is an operator host (:subdomain) but NOT
+        # a canonical-set member: DomainStrategy.canonical_host? is an exact
+        # membership test. A verified record keyed on it is therefore a
+        # served custom host — Auth::PublicHost resolves it and the runtime
+        # rebinds the ACS to it — so SAML is offered through the
+        # verified_custom_domain? arm, not withheld as it is without a record.
+        context 'on a subdomain of the anchor' do
+          let(:subdomain_host) { "eu.#{canonical_domain}" }
+          let(:subdomain_view_vars) do
+            base_view_vars.merge('domain_strategy' => :subdomain, 'display_domain' => subdomain_host)
+          end
+
+          before do
+            allow(Onetime::CustomDomain).to receive(:from_display_domain)
+              .with(subdomain_host)
+              .and_return(stale_domain)
+          end
+
+          it 'offers platform SAML for the verified record, unlike the record-less subdomain' do
+            # Precondition, through the REAL predicate: the subdomain is not
+            # swept into the canonical set by its anchor.
+            expect(Onetime::Middleware::DomainStrategy.canonical_host?(subdomain_host)).to be false
+
+            result = described_class.build_sso_config(subdomain_view_vars)
+
+            expect(result['enabled']).to be true
+            expect(result['providers'].map { |p| p['route_name'] }).to eq(%w[oidc saml])
+          end
+
+          it 'omits platform SAML when that record is unverified' do
+            allow(stale_domain).to receive(:verified).and_return(false)
+
+            result = described_class.build_sso_config(subdomain_view_vars)
+
+            expect(result['providers'].map { |p| p['route_name'] }).to eq(['oidc'])
+          end
+        end
+      end
+
       # Non-operator, non-custom strategies (:default sentinel from
       # InitializeViewVars, :invalid from a datastore read failure) reach the
       # platform-fallback branch only when allow_platform_fallback_for_tenants?
@@ -1059,6 +1188,34 @@ RSpec.describe Core::Views::ConfigSerializer do
             expect(result['enabled']).to be true
             expect(result['providers'][0]['route_name']).to eq('google')
             expect(result['connect_providers']).to eq([])
+          end
+
+          # The runtime half (omniauth_tenant.rb bind_platform_fallback_acs)
+          # rebinds the platform ACS to this verified host and proceeds.
+          it 'offers platform SAML for sign-in on the verified domain' do
+            allow(mock_auth_config).to receive(:sso_providers).and_return([
+              { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+            ])
+
+            result = described_class.build_sso_config(custom_domain_view_vars)
+
+            expect(result['enabled']).to be true
+            expect(result['providers'].map { |provider| provider['route_name'] }).to eq(['saml'])
+            expect(result['connect_providers']).to eq([])
+          end
+
+          # Runtime refuses the start on an unverified host (PublicHost
+          # answers nil), and a SAML-only install then has nothing to sign
+          # in with: enabled must follow the empty list.
+          it 'reports SSO disabled on an unverified domain when SAML is the only provider' do
+            allow(custom_domain_obj).to receive(:verified).and_return(false)
+            allow(mock_auth_config).to receive(:sso_providers).and_return([
+              { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+            ])
+
+            result = described_class.build_sso_config(custom_domain_view_vars)
+
+            expect(result).to eq({ 'enabled' => false, 'providers' => [], 'connect_providers' => [] })
           end
         end
 
