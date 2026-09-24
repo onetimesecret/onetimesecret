@@ -128,8 +128,8 @@ module Auth
 
         if using_elevated_url && adapter_mismatch?(Onetime.auth_config.database_url, migrations_url)
           sequel_logger.warn 'Adapter mismatch between database_url and database_url_migrations',
-            database_url: OT::Utils.redact_uri_userinfo(Onetime.auth_config.database_url),
-            migrations_url: OT::Utils.redact_uri_userinfo(migrations_url),
+            database_url: Auth::DatabaseConnection.redact_url(Onetime.auth_config.database_url),
+            migrations_url: Auth::DatabaseConnection.redact_url(migrations_url),
             action: 'using database_url for migrations'
           using_elevated_url = false
         end
