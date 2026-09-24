@@ -779,9 +779,9 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
 
       # The HTTP-POST callback is a cross-site POST: under the shipped
       # SameSite=Lax cookie every sign-in ends as saml_no_pending_request.
-      # PLATFORM vars present: the provider takes the skip contract (one
-      # error line naming the settings, no route, unadvertised via
-      # :vars_valid). Tenant PLACEHOLDER: one warning line, the route still
+      # PLATFORM vars present: the provider is skipped as for a missing
+      # variable (one error line naming the settings, no platform route,
+      # unadvertised via :vars_valid). Tenant PLACEHOLDER: one warning line, the route still
       # registers. Boot goes on either way.
       describe 'the session-cookie prerequisite' do
         before { allow(auth).to receive(:omniauth_provider) }

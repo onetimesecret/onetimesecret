@@ -710,7 +710,7 @@ The app checks this for you. With the platform `SAML_*` variables set under an
 incompatible cookie, the provider is skipped outright — no route, no login
 button — and boot logs `[OmniAuth] Skipping SAML provider 'saml':
 site.session.same_site is 'lax' and secure is …; SAML needs same_site: none
-with secure: true, …` (the same skip contract as missing vars, below). With
+with secure: true, …` (handled the same way as missing variables, below). With
 `ORGS_SSO_ENABLED=true` and no platform vars, the route still registers as the
 tenant placeholder, and boot instead logs `[OmniAuth] SAML is enabled (tenant
 SSO (ORGS_SSO_ENABLED=true)) but site.session.same_site is 'lax' and secure is
@@ -727,8 +727,8 @@ Missing or unusable configuration skips the provider (`[OmniAuth] Skipping
 SAML provider 'saml': …` in the boot log, naming the variable) and hides the
 button; it does not fail boot. Issue #4450 asked for a boot failure; the
 provider registration path is designed never to take password, MFA and
-magic-link sign-in down with it, so SAML follows the same skip contract as
-every other provider. The usability check runs again per request when the button is
+magic-link sign-in down with it, so SAML is skipped the same way as any other
+misconfigured provider. The usability check runs again per request when the button is
 rendered: a certificate that expires while the process is running hides the
 button and ruby-saml refuses every login with it (`check_idp_cert_expiration`),
 but nothing alerts on it — watch the certificate's expiry.

@@ -327,11 +327,12 @@ tenant's own IdP EntityID.
   **Skip, not fail-boot.** Issue #4450 asked for a boot failure when
   `SAML_IDP_ENTITY_ID` is missing. `configure_provider` is built never to
   kill boot (an exception inside Rodauth configuration takes password, MFA
-  and magic-link sign-in down with it), so SAML follows the skip contract:
-  `strategy_options` raises naming the variable, the provider is skipped
-  with an error in the boot log, and `vars_valid` (https SSO URL, non-blank
-  EntityID, exactly one PEM certificate inside its validity window —
-  fingerprints are never accepted) keeps the button hidden. With org-level SSO on, the placeholder
+  and magic-link sign-in down with it), so the provider is skipped instead:
+  `strategy_options` raises naming the variable, `configure_provider`
+  rescues it, logs one error line and registers no platform route, and
+  `vars_valid` (https SSO URL, non-blank EntityID, exactly one PEM
+  certificate inside its validity window — fingerprints are never accepted)
+  keeps the button hidden. With org-level SSO on, the placeholder
   route (blank trust anchors) is registered anyway so the tenant hook has a
   route to inject into; the subclass refuses every un-injected request on
   it.

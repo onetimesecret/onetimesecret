@@ -57,9 +57,10 @@
 # issue text asks for a boot failure. configure_provider is deliberately built
 # never to kill boot (features/omniauth.rb: an exception inside Rodauth
 # configuration takes password, MFA and magic-link sign-in down with it), so
-# SAML follows the skip contract instead: strategy_options raises with a
-# message naming the variable, configure_provider logs it and registers no
-# route, and :vars_valid keeps the login button from being advertised.
+# SAML is skipped instead: strategy_options raises with a message naming the
+# variable, configure_provider rescues it, logs one error line and registers
+# no platform route, and :vars_valid keeps the login button from being
+# advertised.
 #
 # ⚠️  OPERATOR PREREQUISITE — SameSite=None session cookie. The HTTP-POST
 # binding delivers the response as a CROSS-SITE POST from the IdP, exactly like
@@ -69,17 +70,17 @@
 # :saml_no_pending_request. SAML therefore requires
 # `site.session.same_site: none` with `secure: true`. .session_cookie_problem
 # is that rule as code, and it has three consumers. On the PLATFORM surface
-# it is the first check in .platform_options, so an incompatible cookie takes
-# the skip contract above: configure_provider logs the problem (error level,
-# boot does not abort), registers no platform route, and :vars_valid keeps
-# the button off the login page — a provider that is advertised but can
-# never complete a sign-in is exactly what the skip contract exists to
-# prevent. The tenant PLACEHOLDER registration (ORGS_SSO_ENABLED with no
-# platform vars) logs the same problem, because the placeholder still
-# registers, and the tenant API refuses to save a saml config under one
-# (SamlFields). The other half — Rack::Protection::HttpOrigin admitting the
-# IdP's Origin on the callback path — is handled in code from
-# :idp_origin_from below (Onetime::Middleware::HttpOriginOptions).
+# it is the first check in .platform_options, so an incompatible cookie is
+# handled like a missing variable (above): configure_provider logs the
+# problem (error level, boot does not abort), registers no platform route,
+# and :vars_valid keeps the button off the login page, rather than
+# advertising a provider that can never complete a sign-in. The tenant
+# PLACEHOLDER registration (ORGS_SSO_ENABLED with no platform vars) logs the
+# same problem, because the placeholder still registers, and the tenant API
+# refuses to save a saml config under one (SamlFields). The other half —
+# Rack::Protection::HttpOrigin admitting the IdP's Origin on the callback
+# path — is handled in code from :idp_origin_from below
+# (Onetime::Middleware::HttpOriginOptions).
 #
 # PLATFORM SAML BOOTS WITH CANONICAL IDENTIFIERS. The platform IdP registers
 # one SP EntityID and may register ACS URLs for verified custom domains.
