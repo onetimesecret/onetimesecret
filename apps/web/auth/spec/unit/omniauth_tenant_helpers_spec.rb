@@ -548,6 +548,181 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
     before do
       allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
       allow(Onetime::CustomDomain::SigninConfig).to receive(:global_auth_enabled).and_return(true)
+      # No host in this group is site.host or canonical unless a case says so.
+      # DomainStrategy's canonical set is nil until the middleware serves a
+      # request, so canonical_domain? is pinned explicitly rather than left
+      # to that accident.
+      allow(Onetime::SsoProvider::Saml).to receive(:platform_host?).and_return(false)
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?).and_return(false)
+    end
+
+    # A CustomDomain record keyed on site.host itself (the host moved onto one
+    # a tenant had registered) sends the request down the tenant path, and an
+    # absent SsoConfig lands it here. /signin advertises platform SAML on that
+    # host (ConfigSerializer#platform_saml_host?), and the boot-time ACS
+    # already names it, so the start must proceed with the ACS untouched.
+    # PublicHost refuses the whole canonical set, so it must not be the gate.
+    context 'when on the pinned platform host with a stale CustomDomain record' do
+      before do
+        allow(Onetime::SsoProvider::Saml).to receive(:platform_host?).with('canonical.example').and_return(true)
+        # Both are canonical-set hosts; only canonical.example is site.host.
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+          .with('canonical.example').and_return(true)
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+          .with('secrets.example').and_return(true)
+        allow(Auth::PublicHost).to receive(:resolve).and_return(nil)
+      end
+
+      it 'proceeds with platform defaults without rebinding the ACS' do
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('canonical.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).to eq(:allowed)
+        expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+        expect(Auth::PublicHost).not_to have_received(:resolve)
+        expect(rodauth).not_to have_received(:redirect)
+        expect(session).not_to include(:omniauth_tenant_domain_id, :omniauth_tenant_host)
+      end
+
+      it 'compares the host the tenant record was resolved by, not the strategy host' do
+        # A secondary canonical-set host (link_domains) is not site.host: the
+        # pinned ACS does not name it and PublicHost refuses it, so the start
+        # is refused exactly as it is without a record.
+        catch(:halt) do
+          helpers.handle_missing_tenant_config('secrets.example', rodauth, request: request)
+        end
+
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+        expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+      end
+
+      # The pinned-host answer is keyed on the host the tenant record was
+      # resolved by, so the caller must hand it over: a future caller that
+      # drops `host:` would silently fall back to the PublicHost gate and
+      # refuse this start again.
+      it 'hands the resolved host to bind_platform_fallback_acs' do
+        allow(helpers).to receive(:bind_platform_fallback_acs).and_call_original
+
+        catch(:halt) do
+          helpers.handle_missing_tenant_config('canonical.example', rodauth, request: request)
+        end
+
+        expect(helpers).to have_received(:bind_platform_fallback_acs)
+          .with(strategy, request, host: 'canonical.example')
+      end
+
+      # /signin on site.host is an operator host, so ConfigSerializer
+      # #build_sso_config advertises platform SAML there WITHOUT consulting
+      # allow_platform_fallback_for_tenants? (the policy governs tenant hosts
+      # only). The runtime path reaches this helper because omniauth_setup
+      # reads the stale record before it asks HELPERS.canonical_domain?, so
+      # the helper must not let the tenant policy refuse an operator host.
+      it 'proceeds on the pinned platform host even when tenant fallback is denied' do
+        allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('canonical.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).to eq(:allowed)
+        expect(rodauth).not_to have_received(:redirect)
+        expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+      end
+
+      # The same operator-host exemption for a host-independent provider: a
+      # secondary canonical-set host with a stale record advertises platform
+      # OIDC (operator host, no policy consulted), and the request-bound ACS
+      # gate does not apply, so the start proceeds under the denied policy.
+      it 'proceeds with a host-independent provider on a secondary canonical-set host under the denied policy' do
+        allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+        allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::OpenIDConnect')
+
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('secrets.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).to eq(:allowed)
+        expect(rodauth).not_to have_received(:redirect)
+      end
+
+      it 'still refuses when the AUTH_ENABLED master switch is off' do
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:global_auth_enabled).and_return(false)
+
+        catch(:halt) do
+          helpers.handle_missing_tenant_config('canonical.example', rodauth, request: request)
+        end
+
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+      end
+    end
+
+    # Through the REAL Saml.platform_host? (site.host pinned to
+    # canonical.example, as ConfigSerializer's spec pins it): a subdomain of
+    # the anchor and a secondary canonical-set host are "any other host" to
+    # the pinned ACS, exactly as they are to the display gate.
+    context 'with the real platform_host? predicate' do
+      before do
+        allow(Onetime::SsoProvider::Saml).to receive(:platform_host?).and_call_original
+        allow(Onetime::SsoProvider::Saml).to receive(:platform_base_url).and_return('https://canonical.example')
+      end
+
+      it 'admits site.host itself without a rebind' do
+        allow(Auth::PublicHost).to receive(:resolve).and_return(nil)
+
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('canonical.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).to eq(:allowed)
+        expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+      end
+
+      it 'refuses a secondary canonical-set host that carries a stale record' do
+        # PublicHost refuses the whole canonical set, so it answers nil here.
+        allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return(nil)
+
+        catch(:halt) do
+          helpers.handle_missing_tenant_config('secrets.example', rodauth, request: request)
+        end
+
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+        expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+      end
+
+      # A subdomain of the anchor is NOT in the canonical set
+      # (DomainStrategy.canonical_host? is an exact-membership test), so a
+      # verified record keyed on it is a served custom host: PublicHost
+      # resolves it and the ACS is rebound there, matching the display gate
+      # (TenantSsoResolution#verified_custom_domain? reads true for it).
+      it 'rebinds the ACS to a verified record keyed on a subdomain of the anchor' do
+        allow(strategy).to receive(:full_host).and_return('https://eu.canonical.example')
+        allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return('eu.canonical.example')
+
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('eu.canonical.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).to eq(:allowed)
+        expect(options[:assertion_consumer_service_url]).to eq('https://eu.canonical.example/auth/sso/saml/callback')
+        expect(options[:sp_entity_id]).to eq('urn:example:platform-sp')
+      end
+
+      it 'refuses a subdomain of the anchor whose record is unverified' do
+        allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return(nil)
+
+        catch(:halt) do
+          helpers.handle_missing_tenant_config('eu.canonical.example', rodauth, request: request)
+        end
+
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+        expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+      end
     end
 
     it 'overrides only ACS for a verified custom-domain fallback' do

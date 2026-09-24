@@ -609,10 +609,24 @@ module Auth::Config::Hooks
     # (SigninConfig.global_auth_enabled false → every session reads as
     # unauthenticated), so a global kill always takes the reject path.
     #
-    # For platform SAML, an allowed fallback additionally requires positive
-    # host evidence from Auth::PublicHost.resolve. Only then is the boot-time
-    # canonical ACS replaced with the strategy's verified public host. The
-    # platform SP EntityID and IdP trust options are deliberately untouched.
+    # The fallback policy governs TENANT hosts only. A canonical-set host
+    # (see canonical_domain?) reaches this helper when a CustomDomain record
+    # is keyed on it (site.host or a link host moved onto a host a tenant had
+    # already registered): omniauth_setup reads the record before it asks
+    # whether the host is canonical, so the stale record routes an operator
+    # host down the tenant path. The platform providers are that host's OWN,
+    # and the display gate (ConfigSerializer#build_sso_config) advertises
+    # them on an operator host without consulting the policy, so the policy
+    # must not refuse them here either. The master switch still applies.
+    #
+    # For platform SAML, proceeding additionally requires positive host
+    # evidence: either the request is on the pinned platform host itself
+    # (site.host, whose boot-time ACS needs no rebinding) or
+    # Auth::PublicHost.resolve names a verified custom domain, and only then
+    # is the boot-time canonical ACS replaced with the strategy's verified
+    # public host. A secondary canonical-set host is neither, so a SAML start
+    # there is refused as it is without a record. The platform SP EntityID
+    # and IdP trust options are deliberately untouched.
     #
     # @param host [String] Request hostname for logging
     # @param rodauth [Rodauth] Rodauth instance (for redirect)
@@ -620,16 +634,18 @@ module Auth::Config::Hooks
     #   generic policy helper contract for non-SAML callers
     # @raise [Rodauth::Error] if fallback not allowed
     def self.handle_missing_tenant_config(host, rodauth, request: nil)
-      fallback_allowed = Onetime.auth_config.allow_platform_fallback_for_tenants? &&
-                         Onetime::CustomDomain::SigninConfig.global_auth_enabled
+      operator_host    = canonical_domain?(host)
+      fallback_allowed = Onetime::CustomDomain::SigninConfig.global_auth_enabled &&
+                         (operator_host || Onetime.auth_config.allow_platform_fallback_for_tenants?)
 
       if fallback_allowed
         strategy = request&.env&.fetch('omniauth.strategy', nil)
-        if !request_bound_platform_acs_strategy?(strategy) || bind_platform_fallback_acs(strategy, request)
+        if !request_bound_platform_acs_strategy?(strategy) ||
+           bind_platform_fallback_acs(strategy, request, host: host)
           clear_pending_tenant_context(rodauth.session) if strategy&.on_request_path?
 
           Auth::Logging.log_auth_event(
-            :omniauth_tenant_fallback_to_platform,
+            operator_host ? :omniauth_canonical_domain_stale_record : :omniauth_tenant_fallback_to_platform,
             level: :debug,
             host: host,
           )
@@ -692,16 +708,37 @@ module Auth::Config::Hooks
     # Bind only the ACS, and only when PublicHost positively resolves a verified
     # custom domain. Unknown, unverified, and datastore-error hosts return false
     # and are rejected by handle_missing_tenant_config.
-    def self.bind_platform_fallback_acs(strategy, request)
+    #
+    # The pinned platform host (site.host) is admitted WITHOUT a rebind. A
+    # request reaches this helper on that host only when a CustomDomain
+    # record is keyed on it (site.host moved onto a host a tenant had already
+    # registered — the same state TenantSsoResolution#verified_custom_domain?
+    # and Auth::PublicHost.served_custom_host? refuse as a served custom
+    # host). The boot-time ACS already names site.host, so the platform SAML
+    # start that /signin advertises there (ConfigSerializer#platform_saml_host?)
+    # must proceed exactly as it does when no record is keyed on the host.
+    # Before this, `platform_host: false` was hard-coded and PublicHost
+    # excludes the whole canonical set, so that start was refused as
+    # sso_not_configured: advertised, then refused.
+    #
+    # @param strategy [OmniAuth::Strategy] the request-bound SAML strategy
+    # @param request [Rack::Request, nil] current request
+    # @param host [String, nil] the public host the hook resolved the tenant
+    #   record by (HELPERS.public_host), compared against site.host
+    # @return [Boolean] true when the start may proceed with platform defaults
+    def self.bind_platform_fallback_acs(strategy, request, host: nil)
       return false if request.nil?
 
-      verified_custom_domain = !Auth::PublicHost.resolve(request.env).nil?
+      platform_host          = Onetime::SsoProvider::Saml.platform_host?(host)
+      verified_custom_domain = !platform_host && !Auth::PublicHost.resolve(request.env).nil?
       route_available        = Onetime::SsoProvider::Registry.platform_route_available_on_host?(
         strategy.options[:name],
-        platform_host: false,
+        platform_host: platform_host,
         verified_custom_domain: verified_custom_domain,
       )
       return false unless route_available
+      # Nothing to rebind: the boot-pinned ACS already names this host.
+      return true if platform_host
 
       strategy.options[:assertion_consumer_service_url] = strategy.full_host + strategy.callback_path
       true

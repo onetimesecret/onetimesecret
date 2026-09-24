@@ -228,6 +228,75 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
     end
   end
 
+  # ── stale CustomDomain record on the platform host ────────────────────────
+  #
+  # site.host moved onto a host a tenant had already registered (the creation
+  # guard blocks only NEW registrations, so the record is written the way the
+  # off-host fixtures write theirs: new + save + index put). omniauth_setup
+  # reads the record BEFORE it asks whether the host is canonical, finds no
+  # SsoConfig and lands in handle_missing_tenant_config — which must admit
+  # the pinned platform host WITHOUT rebinding the ACS, because /signin
+  # advertises platform SAML there (ConfigSerializer#platform_saml_host?).
+  # Domains stay OFF here, as for the platform examples above: with the
+  # feature on the IP site.host drops out of the parsed canonical set.
+  #
+  # The test config's site.host is an IP literal, which CustomDomain#init
+  # refuses (PublicSuffix), so the record carries a parseable display_domain
+  # and only the display_domain_index entry — the seam the hook's
+  # resolve_custom_domain -> load_by_display_domain reads — is keyed on the
+  # platform host. The hook consumes nothing but the record's identifier.
+  describe 'on the platform host with a stale CustomDomain record' do
+    let(:platform_host) { URI.parse(platform_base).host }
+
+    it 'starts and completes a platform SAML round trip with the pinned ACS when fallback is allowed' do
+      record_host = "stale-#{run_id}.saml-platform.example.com"
+      owner       = Onetime::Customer.new(email: "stale-owner-#{run_id}@saml-platform.example.com")
+      owner.save
+      org         = Onetime::Organization.create!("Stale Org #{run_id}", owner, "stale-contact-#{run_id}@saml-platform.example.com")
+      domain      = Onetime::CustomDomain.new(display_domain: record_host, org_id: org.org_id)
+      domain.verified = true
+      domain.save
+      Onetime::CustomDomain.display_domain_index.put(platform_host, domain.domainid)
+      allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      allow(Auth::Config::Hooks::OmniAuthTenant).to receive(:handle_missing_tenant_config).and_call_original
+
+      begin
+        # Preconditions: the hook resolves this record for the platform host,
+        # which is the pinned platform host.
+        expect(Onetime::CustomDomain.load_by_display_domain(platform_host)&.identifier).to eq(domain.identifier)
+        expect(Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain.identifier)).to be_nil
+        expect(Onetime::SsoProvider::Saml.platform_host?(platform_host)).to be true
+
+        request = start_login
+        session = last_request.env['rack.session'].to_h
+
+        # The host IS canonical (raw fallback; the class state exists once the
+        # middleware has served a request), yet the tenant path was taken —
+        # the record is read before the canonical check — and admitted.
+        expect(Auth::Config::Hooks::OmniAuthTenant.canonical_domain?(platform_host)).to be true
+        expect(Auth::Config::Hooks::OmniAuthTenant).to have_received(:handle_missing_tenant_config)
+          .with(platform_host, anything, request: anything)
+        expect(request.acs_url).to eq(platform_acs)
+        expect(request.sp_entity_id).to eq(platform_entity_id)
+        expect(session['omniauth_tenant_domain_id'] || session[:omniauth_tenant_domain_id]).to be_nil
+
+        created_emails << email
+        post_callback(answer(request), request.acs_url)
+
+        expect(last_response.status).to eq(302), last_response.body[0, 300]
+        expect(last_response.headers['Location'].to_s).not_to include('auth_error')
+        expect(identity_rows).to contain_exactly(include(provider: 'saml', issuer: entity_id, uid: name_id))
+        expect(last_request.env['rack.session'].to_h['validated_omniauth_domain_id']).to be_nil
+      ensure
+        Onetime::CustomDomain.display_domain_index.remove(platform_host) rescue nil
+        Onetime::CustomDomain.display_domain_index.remove(record_host) rescue nil
+        domain.destroy! rescue nil
+        org.destroy! rescue nil
+        owner.destroy! rescue nil
+      end
+    end
+  end
+
   # ── custom-domain platform fallback ───────────────────────────────────────
 
   describe 'off the platform host' do
