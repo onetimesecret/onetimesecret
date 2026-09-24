@@ -91,7 +91,10 @@ module Auth
     # (`?password=`). The userinfo rule is Onetime::Utils.redact_uri_userinfo's,
     # repeated here because this file loads without the application:
     # everything up to the LAST "@" counts as userinfo, so an unescaped "@" in
-    # a password redacts too much rather than printing the rest of it.
+    # a password redacts too much rather than printing the rest of it. A "?"
+    # before that "@" is either in the password or starts a query with an "@"
+    # in it (`?password=p@ss`); neither split is safe, so everything after the
+    # scheme is redacted.
     #
     #   redact_url('postgresql://u:s3cret@h1,h2/db?sslmode=require')
     #   #=> "postgresql://***@h1,h2/db?***"
@@ -99,7 +102,12 @@ module Auth
     # @param url [String]
     # @return [String]
     def self.redact_url(url)
-      url.to_s.scrub
+      url   = url.to_s.scrub
+      at    = url.rindex('@')
+      query = url.index('?')
+      return url.sub(%r{\A((?:[a-z][a-z0-9+.-]*:)?//)?.*}im, '\\1***') if at && query && query < at
+
+      url
         .sub(%r{\A((?:[a-z][a-z0-9+.-]*:)?//)?.*@}im, '\\1***@')
         .sub(/\?.*\z/m, '?***')
     end

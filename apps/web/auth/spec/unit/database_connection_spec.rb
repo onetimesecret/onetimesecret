@@ -22,6 +22,8 @@ RSpec.describe Auth::DatabaseConnection do
       'postgresql://db/auth?password=s3cret' => 'postgresql://db/auth?***',
       'postgresql://u:s3cret@db/auth?sslmode=require' => 'postgresql://***@db/auth?***',
       'postgresql://u:p@ss:s3cret@db/auth' => 'postgresql://***@db/auth',
+      'postgresql://db/auth?password=p@ss' => 'postgresql://***',
+      'postgresql://u:pa?ss@db/auth' => 'postgresql://***',
       'sqlite://data/auth.db' => 'sqlite://data/auth.db',
     }.each do |input, expected|
       it "renders #{input.inspect} as #{expected.inspect}" do
