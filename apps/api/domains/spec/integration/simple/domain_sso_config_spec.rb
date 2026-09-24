@@ -1845,6 +1845,95 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           expect(stored_config.enabled?).to be true
         end
 
+        # The examples above all RESEND the trio, the way the form does. The
+        # trio may equally be left out of a PATCH (the stored values are
+        # preserved), and the enable/expiry rule must be a property of the
+        # EFFECTIVE values the result runs on, not of the request shape:
+        # an omitted field is validated exactly as a resent one whenever the
+        # persisted result is enabled. Before this was pinned a bare
+        # { enabled: true } re-enabled a record whose stored certificate had
+        # expired, because an omitted field skipped validation outright.
+        context 'when the trio is omitted from the PATCH' do
+          # expired_saml_cert_pem mints a new keypair per call, so the PEM
+          # is captured once here and returned for assertions.
+          def store_expired_cert(enabled:)
+            expired         = expired_saml_cert_pem
+            config          = stored_config
+            config.idp_cert = expired
+            config.enabled  = enabled
+            config.commit_fields
+            expired
+          end
+
+          it 'refuses a bare enabled=true on a disabled config whose stored certificate is expired' do
+            store_expired_cert(enabled: false)
+
+            csrf_patch api_path(test_custom_domain.extid), { enabled: true }
+
+            expect(last_response.status).to eq(422)
+            expect(json_body).to include('error_type' => 'invalid', 'field' => 'idp_cert')
+            expect(stored_config.enabled?).to be false
+          end
+
+          # Repair-and-enable in one request: the fresh certificate is the
+          # effective value, the omitted URL and EntityID are the stored,
+          # still-valid ones.
+          it 'enables a disabled config when the same PATCH supplies a fresh certificate' do
+            store_expired_cert(enabled: false)
+
+            csrf_patch api_path(test_custom_domain.extid), { enabled: true, idp_cert: saml_cert }
+
+            expect(last_response.status).to eq(200), last_response.body
+            config = stored_config
+            expect(config.enabled?).to be true
+            expect(config.reveal_saml_field(:idp_cert)).to eq(saml_cert.strip)
+            expect(config.saml_trio).to include(
+              idp_sso_service_url: 'https://idp.example.com/saml/sso',
+              idp_entity_id: 'https://idp.example.com/saml/metadata',
+            )
+          end
+
+          # No enabled param on an ENABLED record: the result stays enabled,
+          # so the stored certificate it would keep running on is re-checked.
+          it 'refuses an unrelated edit on an enabled config whose stored certificate is expired' do
+            store_expired_cert(enabled: true)
+
+            csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed' }
+
+            expect(last_response.status).to eq(422)
+            expect(json_body).to include('error_type' => 'invalid', 'field' => 'idp_cert')
+            expect(stored_config.display_name).to eq('Corp SAML')
+            expect(stored_config.enabled?).to be true
+          end
+
+          # No enabled param on a DISABLED record: the result stays disabled,
+          # so the expired stored certificate is left alone.
+          it 'allows an unrelated edit on a disabled config whose stored certificate is expired' do
+            expired = store_expired_cert(enabled: false)
+
+            csrf_patch api_path(test_custom_domain.extid), { display_name: 'Awaiting certificate rotation' }
+
+            expect(last_response.status).to eq(200), last_response.body
+            config = stored_config
+            expect(config.enabled?).to be false
+            expect(config.display_name).to eq('Awaiting certificate rotation')
+            # Preserved verbatim (no request value to normalize), hence no strip.
+            expect(config.reveal_saml_field(:idp_cert)).to eq(expired)
+          end
+
+          it 'allows disabling an enabled config with an expired stored certificate alongside an edit' do
+            store_expired_cert(enabled: true)
+
+            csrf_patch api_path(test_custom_domain.extid),
+              { enabled: false, display_name: 'Awaiting certificate rotation' }
+
+            expect(last_response.status).to eq(200), last_response.body
+            config = stored_config
+            expect(config.enabled?).to be false
+            expect(config.display_name).to eq('Awaiting certificate rotation')
+          end
+        end
+
         it 'requires a client_id when switching away to oidc' do
           csrf_patch api_path(test_custom_domain.extid), { provider_type: 'oidc', issuer: 'https://auth.example.com' }
 

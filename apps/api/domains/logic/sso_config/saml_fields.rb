@@ -88,27 +88,34 @@ module DomainsAPI
         #
         # @param stored [Onetime::CustomDomain::SsoConfig, nil] PATCH semantics:
         #   a blank submitted field is acceptable when this record already
-        #   holds a readable value for it (it will be preserved), and a
-        #   submitted value equal to that stored value is accepted WITHOUT
-        #   re-validation only while the config remains disabled. This permits
-        #   repairing or editing a disabled record whose certificate expired,
-        #   without allowing that unusable record to be re-enabled. nil — PUT,
-        #   test_connection, or a create — makes every field required and
-        #   validates every one.
+        #   holds a readable value for it (it will be preserved). The EFFECTIVE
+        #   value of every field — submitted, else stored — is validated
+        #   whenever the persisted result is enabled; only while the config
+        #   remains disabled may an unchanged or omitted stored value skip
+        #   re-validation. This permits repairing or editing a disabled record
+        #   whose certificate expired, without allowing that unusable record
+        #   to be re-enabled by any request shape (a bare enabled=true with
+        #   the trio omitted included). nil — PUT, test_connection, or a
+        #   create — makes every field required and validates every one.
         def validate_saml_fields!(stored: nil)
           reject_forbidden_saml_params!
           reject_incompatible_session_cookie! if stored.nil?
+
+          remains_disabled = saml_config_remains_disabled?(stored)
 
           saml_submitted.each do |field, value|
             stored_value = stored_saml_value(stored, field)
 
             if value.empty?
-              next unless stored_value.nil?
+              if stored_value.nil?
+                raise_form_error("#{saml_label(field)} is required for SAML provider", field: field, error_type: :missing)
+              end
 
-              raise_form_error("#{saml_label(field)} is required for SAML provider", field: field, error_type: :missing)
+              # Preserved as-is; the stored value is what the result runs on.
+              value = stored_value
             end
 
-            next if value == stored_value && saml_config_remains_disabled?(stored)
+            next if value == stored_value && remains_disabled
 
             problem = saml_problem(field, value)
             raise_form_error(problem, field: field, error_type: :invalid) if problem
@@ -130,10 +137,11 @@ module DomainsAPI
           )
         end
 
-        # An unchanged, formerly valid value may bypass re-validation only
-        # while the persisted result remains disabled. In particular, an
-        # explicit enabled=true must re-check a stored certificate that may
-        # have expired since it was accepted.
+        # An unchanged or omitted, formerly valid value may bypass
+        # re-validation only while the persisted result remains disabled. In
+        # particular, an explicit enabled=true must re-check a stored
+        # certificate that may have expired since it was accepted, whether
+        # the request resends that certificate or leaves it out.
         def saml_config_remains_disabled?(stored)
           return false if stored.nil?
 
