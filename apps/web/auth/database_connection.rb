@@ -70,10 +70,38 @@ module Auth
         options[:after_connect] = ->(conn) { conn.busy_handler_timeout = SQLITE_BUSY_TIMEOUT_MS if conn.respond_to?(:busy_handler_timeout=) }
       end
 
-      Sequel.connect(connection_opts, **options).tap do |db|
-        db.extension :date_arithmetic
-        db.transaction_mode = :immediate if sqlite
+      begin
+        db = Sequel.connect(connection_opts, **options)
+      rescue URI::InvalidURIError
+        raise unless connection_opts.is_a?(String)
+
+        # URI.parse quotes the whole URL, password included. A password with
+        # an unescaped "#", "@" or "%" is enough to land here. cause: nil,
+        # or the original message still travels with the new one.
+        raise URI::InvalidURIError, "bad URI (is not URI?): #{redact_url(connection_opts)}", cause: nil
       end
+
+      db.extension :date_arithmetic
+      db.transaction_mode = :immediate if sqlite
+      db
+    end
+
+    # A connection URL with its userinfo and query string replaced by "***",
+    # for exception messages. libpq takes a password in either place
+    # (`?password=`). The userinfo rule is Onetime::Utils.redact_uri_userinfo's,
+    # repeated here because this file loads without the application:
+    # everything up to the LAST "@" counts as userinfo, so an unescaped "@" in
+    # a password redacts too much rather than printing the rest of it.
+    #
+    #   redact_url('postgresql://u:s3cret@h1,h2/db?sslmode=require')
+    #   #=> "postgresql://***@h1,h2/db?***"
+    #
+    # @param url [String]
+    # @return [String]
+    def self.redact_url(url)
+      url.to_s.scrub
+        .sub(%r{\A((?:[a-z][a-z0-9+.-]*:)?//)?.*@}im, '\\1***@')
+        .sub(/\?.*\z/m, '?***')
     end
 
     # PostgreSQL multi-host URLs (host1:port1,host2:port2) are not valid URIs.
@@ -112,7 +140,7 @@ module Auth
               }x,
       )
 
-      raise ArgumentError, "Invalid PostgreSQL URL format: #{url}" unless match
+      raise ArgumentError, "Invalid PostgreSQL URL format: #{redact_url(url)}" unless match
 
       user, password, host_port, database, query_string = match.captures
 

@@ -349,7 +349,9 @@ module Onetime
         when :url
           # For database URLs, show the scheme and host but mask password
           # Format: scheme://user:password@host:port/database
-          if value =~ %r{^([^:]+://[^:]+):([^@]+)(@.+)$}
+          # The password runs to the LAST "@", so an unescaped "@" in it
+          # masks too much rather than printing the rest of it.
+          if value =~ %r{\A([^:]+://[^:/]+):(.+)(@[^@]+)\z}m
             "#{::Regexp.last_match(1)}:****#{::Regexp.last_match(3)}"
           else
             # Fallback: show first few and last few characters
