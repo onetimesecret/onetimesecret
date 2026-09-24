@@ -50,9 +50,9 @@ RSpec.describe Onetime::SsoProvider::Saml do
       end
     end
 
-    # ruby-saml's Authrequest#create string-concatenates "?SAMLRequest=..."
-    # onto the URL, so a fragment swallows the query and the IdP gets no
-    # request at all.
+    # ruby-saml's Authrequest#create string-concatenates "SAMLRequest=..."
+    # onto the URL ("&" after an existing query, "?" otherwise), so a
+    # fragment swallows the query and the IdP gets no request at all.
     it 'refuses a fragment' do
       expect(described_class.sso_url_problem('https://idp.example.com/sso#login'))
         .to eq('IdP SSO service URL must not contain a fragment')

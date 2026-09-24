@@ -273,10 +273,14 @@ module Onetime
       # POSTs from. Accepting such a URL produces a record that can never
       # complete a login; refuse it where the URL is accepted instead.
       #
-      # No fragment. ruby-saml's Authrequest#create appends "?SAMLRequest=..."
-      # to idp_sso_service_url by string concatenation, so a "#frag" already
-      # on the URL swallows the whole query: the browser is sent to the IdP
-      # with no SAMLRequest at all.
+      # No fragment. ruby-saml's Authrequest#create appends "SAMLRequest=..."
+      # to idp_sso_service_url by string concatenation, joined with "&" when
+      # the URL already carries a query and "?" otherwise (authrequest.rb,
+      # params_prefix), so a query string is FINE — Google Workspace's IdP
+      # URL is "https://accounts.google.com/o/saml2/idp?idpid=..." and must
+      # be accepted. A "#frag" already on the URL is not: it swallows the
+      # whole appended query, and the browser is sent to the IdP with no
+      # SAMLRequest at all.
       #
       # The host must yield a CSP-safe ORIGIN. URI.parse keeps a trailing ';'
       # (or quote, comma, bracket) on the host, so "https://idp.example.com;/sso"
