@@ -31,7 +31,7 @@
   dependencyDashboardLabels: ['auto-update', 'dependencies'],
   prCreation: 'immediate',
   prConcurrentLimit: 10,
-  prHourlyLimit: 4,
+  prHourlyLimit: 10,
   labels: ['auto-update'],
   assignees: ['delano'],
   reviewers: [],
