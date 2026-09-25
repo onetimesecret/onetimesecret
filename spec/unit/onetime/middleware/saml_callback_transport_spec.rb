@@ -4,6 +4,8 @@ require 'spec_helper'
 require 'rack/mock'
 require 'rack/session/cookie'
 require 'rack/protection'
+require 'climate_control'
+require 'onetime/middleware/http_origin_options'
 require 'zlib'
 require 'sentry-ruby'
 require 'onetime/application/request_logger'
@@ -86,6 +88,71 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
 
   def complete(location, cookie)
     Rack::MockRequest.new(app).get("#{host}#{location}", 'HTTP_COOKIE' => cookie)
+  end
+
+  context 'with the operator null-origin policy and real HttpOrigin options' do
+    let(:http_origin_options) { Onetime::Middleware::HttpOriginOptions.options }
+    let(:app) do
+      stack = super()
+      ->(env) { env['onetime.display_domain'] = 'ots.example.com'; stack.call(env) }
+    end
+
+    around do |example|
+      ClimateControl.modify(
+        SAML_ALLOW_NULL_ORIGIN: 'true', SAML_ROUTE_NAME: 'saml',
+        SAML_IDP_SSO_SERVICE_URL: 'https://idp.example.com/sso',
+        SAML_IDP_ENTITY_ID: idp.entity_id, SAML_IDP_CERT: idp.cert_pem,
+        SAML_NAME_ID_FORMAT: nil, SAML_SP_ENTITY_ID: nil,
+      ) { example.run }
+    end
+
+    before do
+      allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => true)
+      allow(Onetime).to receive(:auth_config).and_return(instance_double(Onetime::AuthConfig, sso_enabled?: true))
+      allow(Onetime::SsoProvider::Saml).to receive(:platform_base_url).and_return(host)
+    end
+
+    it 'stages literal null but authenticates only after signed, session-bound completion' do
+      cookie, request_id = start
+      response = stage(assertion(request_id), 'HTTP_ORIGIN' => 'null')
+      expect(response.status).to eq(303)
+      expect(response['set-cookie']).to be_nil
+      expect(reached).to be_empty
+      expect(complete(response['location'], cookie).status).to eq(200)
+      expect(reached.size).to eq(1)
+      expect(complete(response['location'], cookie).status).to eq(401)
+    end
+
+    it 'denies literal null before staging when the operator has not opted in' do
+      cookie, request_id = start
+      ClimateControl.modify(SAML_ALLOW_NULL_ORIGIN: nil) do
+        expect(store).not_to receive(:stage)
+        response = stage(assertion(request_id), 'HTTP_ORIGIN' => 'null', 'HTTP_COOKIE' => cookie)
+        expect(response.status).to eq(403)
+        expect(response['set-cookie']).to be_nil
+        expect(reached).to be_empty
+      end
+    end
+
+    it 'does not authenticate null-origin assertions without the initiating session' do
+      cookie, request_id = start
+      other_cookie, = start
+      response = stage(assertion(request_id), 'HTTP_ORIGIN' => 'null')
+      expect(response.status).to eq(303)
+      expect(complete(response['location'], '').status).to eq(401)
+      expect(complete(response['location'], other_cookie).status).to eq(401)
+      expect(reached).to be_empty
+      expect(complete(response['location'], cookie).status).to eq(200)
+    end
+
+    it 'refuses unsigned assertions even after the null-origin POST was admitted' do
+      cookie, request_id = start
+      unsigned = idp.response(in_response_to: request_id, acs_url: "#{host}#{path}", audience: "#{host}/metadata", sign: false)
+      response = stage(unsigned, 'HTTP_ORIGIN' => 'null')
+      expect(response.status).to eq(303)
+      expect(complete(response['location'], cookie).status).to eq(401)
+      expect(reached).to be_empty
+    end
   end
 
   it 'preserves a Lax cookie on a cookieless POST and authenticates only on the recovered-session GET' do

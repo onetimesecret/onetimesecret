@@ -178,6 +178,50 @@ module Onetime
         false
       end
 
+      # An explicit operator-approved exception, not an IdP-origin match:
+      # opaque origins do not identify their sender. Authentication still
+      # requires the staged callback's signed assertion and pending session.
+      def self.saml_callback_with_null_origin?(env)
+        return false unless env['HTTP_ORIGIN'] == 'null' && env['REQUEST_METHOD'] == 'POST'
+
+        saml = Onetime::SsoProvider::Saml
+        return false unless saml.allow_null_origin?
+
+        path = Rack::Request.new(env).path
+        return false unless path.match?(SSO_CALLBACK_PATH)
+
+        route_name = path.split('/')[3]
+        return false unless Onetime::SsoProvider::Registry.request_bound_platform_acs_route?(route_name)
+        return false if env['onetime.display_domain'].to_s.empty?
+
+        if platform_saml_callback_host?(env)
+          return Onetime.auth_config.sso_enabled? && saml.platform_usable?
+        end
+
+        detected_host = env[Rack::DetectHost.result_field_name].to_s
+        unless detected_host.empty?
+          parser   = Onetime::Utils::DomainParser
+          detected = parser.extract_hostname(detected_host)
+          display  = parser.extract_hostname(env['onetime.display_domain'].to_s)
+          return false unless detected && display && detected.casecmp?(display)
+        end
+
+        resolution = Onetime::TenantSsoResolution.for(env)
+        return false unless resolution.verified_custom_domain?
+
+        config = resolution.sso_config
+        return false unless config && config.provider_type == 'saml' && config.enabled?
+        return false unless path == "/auth/sso/#{config.platform_route_name}/callback"
+
+        # Availability alone deliberately ignores certificate expiry. Check
+        # runtime configuration too before granting the weaker Origin policy.
+        config.to_omniauth_options
+        true
+      rescue StandardError => ex
+        OT.lw "[http_origin] SAML null-origin check failed: #{ex.class}"
+        false
+      end
+
       # Shared with normal platform-origin admission; retain the existing
       # pinned-host and sanitized-display handling unchanged.
       def self.platform_saml_callback_host?(env)
@@ -208,7 +252,7 @@ module Onetime
         return nil unless env['REQUEST_METHOD'] == 'POST'
 
         origin = env['HTTP_ORIGIN'].to_s
-        return nil if origin.empty?
+        return nil if origin.empty? || origin == 'null'
 
         # Rack::Request#path is SCRIPT_NAME + PATH_INFO, so this matches the
         # externally visible path even though the middleware runs inside the
@@ -224,6 +268,8 @@ module Onetime
       # domains are only served over TLS, and a laxer scheme would let a
       # network attacker on a plaintext leg mint a matching Origin.
       ALLOW_IF = ->(env) do
+        next HttpOriginOptions.saml_callback_with_null_origin?(env) if env['HTTP_ORIGIN'] == 'null'
+
         next true if HttpOriginOptions.sso_callback_from_configured_idp?(env)
         next true if HttpOriginOptions.sso_callback_from_tenant_idp?(env)
 

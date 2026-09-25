@@ -242,6 +242,149 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
     end
   end
 
+  describe 'operator-only SAML null Origin policy' do
+    let(:saml) { Onetime::SsoProvider::Saml }
+    let(:auth_config) { instance_double(Onetime::AuthConfig, sso_enabled?: true) }
+    let(:tenant_config) do
+      double('native SAML', provider_type: 'saml', platform_route_name: 'saml',
+        enabled?: true, to_omniauth_options: {})
+    end
+    let(:resolution) do
+      instance_double(Onetime::TenantSsoResolution, verified_custom_domain?: false, sso_config: nil)
+    end
+
+    around do |example|
+      ClimateControl.modify(SAML_ALLOW_NULL_ORIGIN: 'true', SAML_ROUTE_NAME: nil) { example.run }
+    end
+
+    before do
+      allow(Onetime).to receive(:auth_config).and_return(auth_config)
+      allow(saml).to receive(:platform_base_url).and_return("https://#{canonical_host}")
+      allow(saml).to receive(:platform_usable?).and_return(true)
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?) do |host|
+        [canonical_host, 'links.example.com'].include?(host)
+      end
+      allow(Onetime::TenantSsoResolution).to receive(:for).and_return(resolution)
+    end
+
+    def null_env(host: canonical_host, path: '/auth/sso/saml/callback', method: 'POST', **extra)
+      Rack::MockRequest.env_for(path, method: method,
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => 'null',
+        'onetime.display_domain' => host,
+        **extra)
+    end
+
+    def enable_native_tenant
+      allow(resolution).to receive(:verified_custom_domain?).and_return(true)
+      allow(resolution).to receive(:sso_config).and_return(tenant_config)
+    end
+
+    it 'admits an opted-in platform POST on the pinned host' do
+      expect(app.call(null_env).first).to eq(200)
+    end
+
+    it 'admits an opted-in native tenant POST without requiring platform SAML' do
+      enable_native_tenant
+      allow(auth_config).to receive(:sso_enabled?).and_return(false)
+      allow(saml).to receive(:platform_usable?).and_return(false)
+      expect(app.call(null_env(host: custom_domain)).first).to eq(200)
+    end
+
+    [nil, 'false', '', 'TRUE', '1', 'yes', ' true ', 'garbage'].each do |flag|
+      it "denies platform and tenant callbacks with flag #{flag.inspect}" do
+        enable_native_tenant
+        ClimateControl.modify(SAML_ALLOW_NULL_ORIGIN: flag) do
+          [canonical_host, custom_domain].each do |host|
+            expect(app.call(null_env(host: host)).first).to eq(403)
+          end
+        end
+      end
+    end
+
+    it 'requires the resolved SAML route on both surfaces, including renamed routes' do
+      enable_native_tenant
+      allow(tenant_config).to receive(:platform_route_name).and_return('corporate')
+      ClimateControl.modify(SAML_ROUTE_NAME: 'corporate') do
+        [canonical_host, custom_domain].each do |host|
+          expect(app.call(null_env(host: host, path: '/auth/sso/corporate/callback')).first).to eq(200)
+          %w[/auth/sso/saml/callback /auth/sso/apple/callback /auth/sso/oidc/callback
+             /auth/sso/corporate /auth/sso/corporate/metadata /auth/sso/corporate/slo
+             /auth/sso/corporate/extra/callback /auth/sso/corporate/callback/ /signin].each do |path|
+            expect(app.call(null_env(host: host, path: path)).first).to eq(403), path
+          end
+        end
+      end
+    end
+
+    it 'never grants a non-POST exception (safe methods retain Rack defaults)' do
+      enable_native_tenant
+      [canonical_host, custom_domain].each do |host|
+        %w[GET HEAD OPTIONS PUT PATCH DELETE].each do |method|
+          env = null_env(host: host, method: method)
+          expect(described_class::ALLOW_IF.call(env)).to be(false), method
+          expect(app.call(env).first).to eq(403) if %w[PUT PATCH DELETE].include?(method)
+        end
+      end
+    end
+
+    it 'does not admit arbitrary origins or near-matches to literal null' do
+      %w[NULL Null null,https://evil.example https://evil.example].each do |origin|
+        expect(described_class.saml_callback_with_null_origin?(null_env('HTTP_ORIGIN' => origin))).to be(false)
+      end
+    end
+
+    it 'denies platform SAML when disabled, absent or unusable' do
+      allow(auth_config).to receive(:sso_enabled?).and_return(false)
+      expect(app.call(null_env).first).to eq(403)
+      allow(auth_config).to receive(:sso_enabled?).and_return(true)
+      allow(saml).to receive(:platform_usable?).and_return(false)
+      expect(app.call(null_env).first).to eq(403)
+    end
+
+    it 'denies missing, unverified, disabled, non-SAML and unusable tenant configurations' do
+      env = -> { null_env(host: custom_domain) }
+      expect(app.call(env.call).first).to eq(403)
+      allow(resolution).to receive(:sso_config).and_return(tenant_config)
+      expect(app.call(env.call).first).to eq(403)
+      enable_native_tenant
+      allow(tenant_config).to receive(:enabled?).and_return(false)
+      expect(app.call(env.call).first).to eq(403)
+      allow(tenant_config).to receive(:enabled?).and_return(true)
+      allow(tenant_config).to receive(:provider_type).and_return('oidc')
+      expect(app.call(env.call).first).to eq(403)
+      allow(tenant_config).to receive(:provider_type).and_return('saml')
+      allow(tenant_config).to receive(:to_omniauth_options).and_raise(ArgumentError, 'invalid certificate')
+      expect(app.call(env.call).first).to eq(403)
+    end
+
+    it 'does not use platform fallback on custom or secondary canonical hosts' do
+      [custom_domain, 'links.example.com', "eu.#{canonical_host}", nil, ''].each do |host|
+        expect(app.call(null_env(host: host)).first).to eq(403)
+      end
+      # Even an available tenant record must not turn a secondary canonical
+      # host into a native tenant; verified_custom_domain? excludes that set.
+      allow(resolution).to receive(:sso_config).and_return(tenant_config)
+      expect(app.call(null_env(host: 'links.example.com')).first).to eq(403)
+    end
+
+    it 'refuses conflicting detected hosts and sanitized canonical defaults' do
+      expect(app.call(null_env(Rack::DetectHost.result_field_name => custom_domain)).first).to eq(403)
+      expect(app.call(null_env('onetime.domain_strategy' => :invalid,
+        'HTTP_HOST' => custom_domain)).first).to eq(403)
+      enable_native_tenant
+      expect(app.call(null_env(host: custom_domain,
+        Rack::DetectHost.result_field_name => 'other-tenant.example')).first).to eq(403)
+    end
+
+    it 'fails closed on configuration and tenant-resolution errors' do
+      allow(saml).to receive(:platform_usable?).and_raise(StandardError, 'unavailable')
+      expect(app.call(null_env).first).to eq(403)
+      allow(Onetime::TenantSsoResolution).to receive(:for).and_raise(Redis::CannotConnectError)
+      expect(app.call(null_env(host: custom_domain)).first).to eq(403)
+    end
+  end
+
   describe 'platform SAML callback host restriction' do
     let(:platform_origin) { 'https://platform-idp.example.com' }
     let(:auth_config) do

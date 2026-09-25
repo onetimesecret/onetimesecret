@@ -49,6 +49,7 @@ require_relative '../../../../../../spec/support/saml/test_idp'
 require 'base64'
 require 'cgi'
 require 'zlib'
+require 'climate_control'
 
 # Namespaced: a constant assigned inside an RSpec.describe block lands on
 # Object, and other specs in this lane already define a top-level `Tenant`.
@@ -289,6 +290,30 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
     let(:name_id) { "nameid-#{run_id}" }
     let(:email_a) { "user-a-#{run_id}@saml-tenant.example.com" }
     let(:email_b) { "user-b-#{run_id}@saml-tenant.example.com" }
+
+    [nil, 'true'].each do |flag|
+      it "handles a real native-tenant null-origin callback with operator flag #{flag.inspect}" do
+        ClimateControl.modify(SAML_ALLOW_NULL_ORIGIN: flag) do
+          created_emails << email_a
+          request = start_login(tenant_a)
+          response = tenant_a.idp.response(
+            in_response_to: request.id, acs_url: request.acs_url, audience: request.sp_entity_id,
+            name_id: name_id, attributes: { 'email' => [email_a] },
+          )
+          post_callback(tenant_a, response, origin: 'null')
+
+          if flag == 'true'
+            expect(last_response.status).to eq(302), last_response.body[0, 300]
+            expect(last_response.headers['Location'].to_s).not_to include('auth_error')
+            expect(identity_rows(name_id).size).to eq(1)
+          else
+            expect(last_response.status).to eq(403)
+            expect(identity_rows(name_id)).to be_empty
+            expect(db[:accounts].where(email: email_a).count).to eq(0)
+          end
+        end
+      end
+    end
 
     it 'keys the identity on (route, domain-scoped IdP EntityID, NameID)' do
       sign_in(tenant_a, name_id: name_id, email: email_a)

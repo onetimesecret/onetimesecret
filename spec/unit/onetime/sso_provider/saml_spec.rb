@@ -33,6 +33,22 @@ RSpec.describe Onetime::SsoProvider::Saml do
   ensure
     described_class.instance_variable_set(:@registered_platform_base_url, original)
   end
+  describe '.allow_null_origin?' do
+    [nil, '', 'false', 'TRUE', ' true ', '1', 'yes', 'null', 'typo'].each do |value|
+      it "denies an unset, disabled or malformed flag #{value.inspect}" do
+        ClimateControl.modify(SAML_ALLOW_NULL_ORIGIN: value) do
+          expect(described_class.allow_null_origin?).to be(false)
+        end
+      end
+    end
+
+    it 'allows only explicit operator true' do
+      ClimateControl.modify(SAML_ALLOW_NULL_ORIGIN: 'true') do
+        expect(described_class.allow_null_origin?).to be(true)
+      end
+    end
+  end
+
   describe '.sso_url_problem' do
     it 'accepts a plain https URL' do
       expect(described_class.sso_url_problem('https://idp.example.com/saml/sso')).to be_nil

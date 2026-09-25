@@ -482,6 +482,13 @@ module Onetime
         text.include?('\n') ? text.gsub('\n', "\n") : text
       end
 
+      # Operator-only exception for IdPs whose POST has an opaque Origin.
+      # Exact boolean spelling: unset, false and malformed values all deny.
+      # Tenant records and callback_origins cannot enable this policy.
+      def self.allow_null_origin?
+        ENV.fetch('SAML_ALLOW_NULL_ORIGIN', 'false') == 'true'
+      end
+
       # The session-cookie prerequisite (header: OPERATOR PREREQUISITE), as a
       # checkable rule. SamlCallbackTransport stages the cookieless cross-site
       # POST and redirects to a GET that recovers the initiating session.
