@@ -40,7 +40,11 @@
 #     (saml.rb:273-282); nested under `security` they are silently inert.
 #   - `idp_cert_fingerprint` is never set and never accepted: fingerprint-only
 #     config trusts whatever certificate the RESPONSE embeds (SHA1 by
-#     default). Trust is a pinned PEM certificate or nothing.
+#     default). Trust is a pinned PEM certificate or nothing. That
+#     certificate is ONE PEM CERTIFICATE block and nothing else (no key, no
+#     bundle, no surrounding text): the stored value is served back as
+#     public data by the SSO config API, so .cert_problem refuses anything
+#     that is not exactly the block.
 #   - `idp_sso_service_url_runtime_params` is not in this hash on purpose.
 #     OmniAuth deep-merges instance options over class defaults, so `{}` here
 #     could not clear the gem's RelayState-forwarding default; the subclass
@@ -231,7 +235,8 @@ module Onetime
       #
       # @param idp_sso_service_url [String] https URL of the IdP SSO endpoint
       # @param idp_entity_id [String] the IdP's EntityID — the identity issuer
-      # @param idp_cert [String] one PEM X.509 signing certificate
+      # @param idp_cert [String] one PEM X.509 signing certificate and nothing
+      #   else (the stored value is public data — see .cert_problem)
       # @param uid_attribute [String, nil] attribute to use as uid instead of NameID
       # @return [Hash] strategy options (minus name:)
       # @raise [ArgumentError] naming the first invalid field
@@ -337,11 +342,16 @@ module Onetime
         nil
       end
 
-      # Exactly one PEM CERTIFICATE block that OpenSSL parses and whose
-      # validity window contains NOW. PEM is required (not bare base64, not
-      # DER): ruby-saml's format_cert would accept the former and quietly
-      # parse only the FIRST of several blocks, and "which certificate is
-      # trusted" must not depend on that. Both ends of the window are checked
+      # Exactly one PEM CERTIFICATE block, with NOTHING around it, that
+      # OpenSSL parses and whose validity window contains NOW. PEM is required
+      # (not bare base64, not DER): ruby-saml's format_cert would accept the
+      # former and quietly parse only the FIRST of several blocks, and "which
+      # certificate is trusted" must not depend on that. Nothing besides the
+      # one block is accepted because the value is stored whole and returned
+      # as PUBLIC data by the SSO config API (serializers.rb does not mask
+      # idp_cert): a pasted bundle that carries the IdP's private key after
+      # the certificate would parse, be saved, and be disclosed to every org
+      # admin (parse_single_cert). Both ends of the window are checked
       # because ruby-saml checks both: settings.rb:221 filters the IdP
       # certificate through Utils.is_cert_active (not_before <= now AND
       # not_after >= now), so a certificate that has expired OR is not yet
@@ -389,17 +399,39 @@ module Onetime
         cert.is_a?(String) ? nil : cert
       end
 
+      PEM_CERT_BEGIN = '-----BEGIN CERTIFICATE-----'
+      PEM_CERT_BLOCK = /-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----/m
+
+      # The value must consist of ONE CERTIFICATE block and NOTHING ELSE
+      # (surrounding whitespace tolerated). Counting BEGIN markers is not
+      # enough: OpenSSL::X509::Certificate.new picks the first CERTIFICATE
+      # block out of whatever surrounds it, so "cert + private key", "private
+      # key + cert" and "junk + cert + junk" all parse. The value is stored
+      # WHOLE as the record's idp_cert and served back in plaintext by the
+      # SSO config API to every org admin (it is a public certificate, so the
+      # serializer does not mask it) — a pasted bundle with the IdP's private
+      # key after the certificate would be disclosed there. Only the exact
+      # block is handed to OpenSSL, and only when it IS the whole value.
+      #
       # @return [OpenSSL::X509::Certificate, String] the certificate, or the
       #   structural problem as a String
       def self.parse_single_cert(pem)
         text = normalize_pem(pem).to_s
         return 'IdP certificate is blank' if text.strip.empty?
+        return 'IdP certificate must be a PEM X.509 certificate (-----BEGIN CERTIFICATE-----)' unless text.include?(PEM_CERT_BEGIN)
 
-        blocks = text.scan('-----BEGIN CERTIFICATE-----').length
-        return 'IdP certificate must be a PEM X.509 certificate (-----BEGIN CERTIFICATE-----)' if blocks.zero?
-        return 'IdP certificate must contain exactly one PEM certificate' if blocks > 1
+        # A BEGIN with no END (a truncated paste) is a parse failure, not a
+        # count problem: OpenSSL refuses it too ("bad end line").
+        blocks = text.scan(PEM_CERT_BLOCK)
+        return 'IdP certificate does not parse as X.509' if blocks.empty?
 
-        OpenSSL::X509::Certificate.new(text)
+        # One block, no second BEGIN inside it (a truncated block followed by
+        # a complete one still parses in OpenSSL), and nothing around it.
+        unless blocks.one? && text.scan(PEM_CERT_BEGIN).one? && text.strip == blocks.first.strip
+          return 'IdP certificate must contain exactly one PEM certificate'
+        end
+
+        OpenSSL::X509::Certificate.new(blocks.first)
       rescue OpenSSL::X509::CertificateError
         'IdP certificate does not parse as X.509'
       end

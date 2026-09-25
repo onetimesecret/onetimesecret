@@ -15,12 +15,17 @@
 #                            fallback on a verified custom domain rebinds the
 #                            ACS per request (OmniAuthTenant.bind_platform_
 #                            fallback_acs)
+#   .cert_problem            the STRUCTURAL half of the IdP certificate rule:
+#                            exactly one PEM CERTIFICATE block and nothing
+#                            else (the validity-window half, allow_expired
+#                            and the builder are covered in registry_spec)
 #
 # RUN (always via the lane runner — see AGENTS.md):
 #   tests/lanes/run unit --only spec/unit/onetime/sso_provider/saml_spec.rb
 
 require 'spec_helper'
 require_relative '../../../../lib/onetime/sso_provider/saml'
+require_relative '../../../support/saml/test_idp'
 
 RSpec.describe Onetime::SsoProvider::Saml do
   describe '.sso_url_problem' do
@@ -136,6 +141,84 @@ RSpec.describe Onetime::SsoProvider::Saml do
 
     it 'is a problem under the shipped session defaults' do
       expect(described_class.session_cookie_problem(Onetime::Initializers::SESSION_DEFAULTS)).to include("'lax'")
+    end
+  end
+
+  # OpenSSL::X509::Certificate.new picks the FIRST CERTIFICATE block out of
+  # whatever surrounds it, so a check that only counts BEGIN markers accepts
+  # "cert + private key". The value is stored whole and served back as
+  # public data by the SSO config API, so anything besides the one block is
+  # refused here. The expiry / not-yet-valid half lives in registry_spec.
+  describe '.cert_problem (structure)' do
+    let(:cert) { SamlSpec::TestIdp.new.cert_pem }
+    let(:private_key) { SamlSpec::TestIdp.shared_key.to_pem }
+    let(:exactly_one) { 'IdP certificate must contain exactly one PEM certificate' }
+
+    it 'accepts one certificate with surrounding whitespace and CRLF line endings' do
+      expect(described_class.cert_problem("  \r\n#{cert.gsub("\n", "\r\n")}\r\n  ")).to be_nil
+    end
+
+    it 'accepts the deployment one-line form (literal \\n)' do
+      expect(described_class.cert_problem(cert.gsub("\n", '\n'))).to be_nil
+    end
+
+    it 'refuses a certificate followed by a private key' do
+      expect(described_class.cert_problem(cert + private_key)).to eq(exactly_one)
+    end
+
+    it 'refuses a private key followed by a certificate' do
+      expect(described_class.cert_problem(private_key + cert)).to eq(exactly_one)
+    end
+
+    it 'refuses text before and after the certificate' do
+      ["Bag Attributes\n    friendlyName: idp\n#{cert}trailing note\n", "junk\n#{cert}", "#{cert}junk"].each do |value|
+        expect(described_class.cert_problem(value)).to eq(exactly_one)
+      end
+    end
+
+    it 'refuses two certificates' do
+      expect(described_class.cert_problem(cert + SamlSpec::TestIdp.new.cert_pem)).to eq(exactly_one)
+    end
+
+    # OpenSSL parses a truncated block that is immediately followed by a
+    # complete one, so the marker count is checked, not only the block count.
+    it 'refuses a truncated block followed by a complete certificate' do
+      truncated = cert.lines[0..-2].join
+
+      expect(described_class.cert_problem(truncated + cert)).to eq(exactly_one)
+    end
+
+    it 'refuses a BEGIN with no END as unparseable' do
+      truncated = cert.lines[0..-2].join
+
+      expect(described_class.cert_problem(truncated)).to eq('IdP certificate does not parse as X.509')
+    end
+
+    it 'keeps the blank message for nil and whitespace' do
+      [nil, "  \n"].each do |value|
+        expect(described_class.cert_problem(value)).to eq('IdP certificate is blank')
+      end
+    end
+
+    it 'keeps the non-PEM message for a value with no CERTIFICATE block at all' do
+      expect(described_class.cert_problem(private_key))
+        .to eq('IdP certificate must be a PEM X.509 certificate (-----BEGIN CERTIFICATE-----)')
+    end
+
+    it 'never puts the value in the message' do
+      [cert + private_key, private_key + cert, "SENSITIVE #{cert}"].each do |value|
+        expect(described_class.cert_problem(value)).not_to include('PRIVATE KEY', 'SENSITIVE')
+      end
+    end
+
+    it 'parses the one clean block through .parse_cert' do
+      expect(described_class.parse_cert(cert)).to be_a(OpenSSL::X509::Certificate)
+    end
+
+    it 'is the same rule for .parse_cert' do
+      [cert + private_key, private_key + cert, "junk\n#{cert}", cert.lines[0..-2].join].each do |value|
+        expect(described_class.parse_cert(value)).to be_nil
+      end
     end
   end
 
