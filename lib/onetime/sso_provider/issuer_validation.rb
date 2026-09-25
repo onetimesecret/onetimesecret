@@ -17,7 +17,7 @@ module Onetime
     # `sso_failed`, the operator sees "Issuer mismatch" with neither value, and
     # the login page keeps advertising a provider that can never work. This
     # module records the verdict so the omniauth_setup hook can fail fast with
-    # a specific error and AuthConfig#provider_active? can stop advertising the
+    # a specific error and AuthConfig#sso_providers can stop advertising the
     # provider.
     #
     # LAZY, NOT AT BOOT. The first sign-in attempt for the issuer performs the
@@ -25,11 +25,14 @@ module Onetime
     # cached per process (Puma workers each learn independently):
     #
     #   :verified  exact match               cached VERIFIED_TTL (1 hour)
-    #   :rejected  mismatch, missing issuer  cached REJECTED_TTL (2 minutes)
-    #   :unknown   fetch failed / not JSON   cached UNKNOWN_TTL  (30 seconds)
+    #   :rejected  a different issuer        cached REJECTED_TTL (2 minutes)
+    #   :unknown   fetch failed, not JSON,   cached UNKNOWN_TTL  (30 seconds)
+    #              or no string issuer
     #
-    # An :unknown verdict is NEVER treated as a mismatch: a timeout or an IdP
-    # outage is not evidence of misconfiguration. The sign-in proceeds and the
+    # An :unknown verdict is NEVER treated as a mismatch: a timeout, an IdP
+    # outage, or a 200 carrying some other JSON (an error object from an edge
+    # proxy) is not evidence that OIDC_ISSUER is wrong. Only a discovery
+    # document that names a DIFFERENT issuer is. The sign-in proceeds and the
     # gem's own discovery succeeds or fails exactly as it did before this
     # module existed. Caching :unknown briefly bounds the extra egress during an
     # outage to one probe per issuer per UNKNOWN_TTL instead of one per attempt.
@@ -64,10 +67,10 @@ module Onetime
       private_constant :UNPARSEABLE
 
       # state:      :verified, :rejected or :unknown
-      # detail:     DiscoveryIssuer reason (:match, :mismatch,
-      #             :missing_discovered, :invalid_discovered) for
-      #             verified/rejected; the DiscoveryFetcher status or
-      #             :invalid_json for unknown
+      # detail:     DiscoveryIssuer reason (:match, :mismatch) for
+      #             verified/rejected; for unknown, the DiscoveryFetcher
+      #             status, :invalid_json, or the DiscoveryIssuer reason
+      #             (:missing_discovered, :invalid_discovered)
       # discovered: the discovered issuer String, or nil when absent/non-string
       # expires_at: monotonic clock deadline
       Verdict = Data.define(:state, :configured, :discovered, :detail, :expires_at) do
@@ -140,13 +143,15 @@ module Onetime
           return build(:unknown, configured, nil, :invalid_json) if document.equal?(UNPARSEABLE)
 
           check = DiscoveryIssuer.check_document(configured: configured, document: document)
-          build(check.ok? ? :verified : :rejected, configured, check.discovered_string, check.reason)
+          state = { match: :verified, mismatch: :rejected }.fetch(check.reason, :unknown)
+          build(state, configured, check.discovered_string, check.reason)
         end
 
         # A body that is not JSON at all (an HTML maintenance page, a captive
         # portal) says nothing about the issuer, so it maps to :unknown. A
-        # parsed non-Hash document flows on to DiscoveryIssuer, which rejects
-        # it as :missing_discovered.
+        # parsed document without a string issuer (including a non-Hash one)
+        # is not a discovery document either; #evaluate maps DiscoveryIssuer's
+        # :missing_discovered / :invalid_discovered to :unknown too.
         def parse_document(body)
           JSON.parse(body.to_s)
         rescue JSON::ParserError

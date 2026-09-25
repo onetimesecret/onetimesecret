@@ -748,7 +748,7 @@ curl https://your-issuer/.well-known/openid-configuration
 [omniauth_install_issuer_mismatch] {provider: "oidc", configured_issuer: "https://your-tenant.auth0.com", discovered_issuer: "https://your-tenant.auth0.com/", reason: :mismatch, hint: "OIDC_ISSUER must equal the discovery document issuer exactly, including any trailing slash", ...}
 ```
 
-`reason` is `:mismatch` when the values differ and `:missing_discovered` or `:invalid_discovered` when the document has no string `issuer`. The client secret is never logged.
+`reason` is always `:mismatch`: a document without a string `issuer` is not treated as a mismatch (see Timing). The client secret is never logged.
 
 **Cause:** `OIDC_ISSUER` is not exactly the `issuer` value in the IdP's discovery document. The comparison is an exact string match with no normalization: a trailing slash, letter case, an explicit `:443`, or a different path all count as a mismatch.
 
@@ -764,7 +764,7 @@ curl -s https://your-issuer/.well-known/openid-configuration | jq -r .issuer
 - Each process keeps its own result. After a mismatch is detected, the provider is removed from the sign-in page's provider list in that process, unless `full.restrict_to` is `sso`: there the button stays and a click shows the error, because the page has no other sign-in method. The result only affects that list. The `form-action` CSP directive, the origins accepted for SSO callbacks, and whether `restrict_to` can be honored do not change.
 - A mismatch result expires after 2 minutes, then the next attempt checks again. A fix on the IdP side therefore takes effect within 2 minutes without a restart. A change to `OIDC_ISSUER` needs a restart, because strategies are registered at boot.
 - A match is cached for 1 hour. If the IdP changes its issuer within that hour, sign-in is still refused, but with the generic `sso_failed` until the cached match expires.
-- Timeouts, network errors, HTTP errors and non-JSON responses are never reported as a mismatch. Sign-in proceeds and fails or succeeds as it would without the check. These results are cached for 30 seconds.
+- Timeouts, network errors, HTTP errors, non-JSON responses, and JSON without a string `issuer` are never reported as a mismatch. Sign-in proceeds and fails or succeeds as it would without the check. These results are cached for 30 seconds.
 
 **Unaffected:** other sign-in methods, other SSO providers, and per-domain (tenant) OIDC, which shares the `oidc` route but uses its own issuer. Tenant issuers are checked by Test Connection (see [per-domain-sso.md](per-domain-sso.md#common-issues)).
 

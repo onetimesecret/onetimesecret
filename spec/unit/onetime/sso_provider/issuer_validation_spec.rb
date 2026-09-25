@@ -74,24 +74,24 @@ RSpec.describe Onetime::SsoProvider::IssuerValidation do
       expect(verdict.discovered).to eq("#{configured}/")
     end
 
-    it 'rejects a document with no issuer' do
-      allow(fetcher).to receive(:fetch).and_return(fetch_result(:ok, body: '{"authorization_endpoint":"x"}'))
+    # A 200 whose JSON is not a discovery document (an edge proxy's error
+    # object) says nothing about OIDC_ISSUER, so it must not be cached as a
+    # mismatch for REJECTED_TTL past the outage.
+    {
+      'a document with no issuer' => ['{"error":"temporarily unavailable"}', :missing_discovered],
+      'a non-Hash document' => ['[]', :missing_discovered],
+      'a non-string issuer' => ['{"issuer":{"a":1}}', :invalid_discovered],
+    }.each do |label, (body, reason)|
+      it "reports #{label} as unknown, never as a mismatch" do
+        allow(fetcher).to receive(:fetch).and_return(fetch_result(:ok, body: body))
 
-      verdict = described_class.verify(configured, fetcher: fetcher)
+        verdict = described_class.verify(configured, fetcher: fetcher)
 
-      expect(verdict).to be_rejected
-      expect(verdict.detail).to eq(:missing_discovered)
-      expect(verdict.discovered).to be_nil
-    end
-
-    it 'rejects a non-string issuer without exposing it' do
-      allow(fetcher).to receive(:fetch).and_return(fetch_result(:ok, body: '{"issuer":{"a":1}}'))
-
-      verdict = described_class.verify(configured, fetcher: fetcher)
-
-      expect(verdict).to be_rejected
-      expect(verdict.detail).to eq(:invalid_discovered)
-      expect(verdict.discovered).to be_nil
+        expect(verdict).to be_unknown
+        expect(verdict.detail).to eq(reason)
+        expect(verdict.discovered).to be_nil
+        expect(described_class.rejected?(configured)).to be(false)
+      end
     end
 
     [:timeout, :connection_failed, :ssl_error, :blocked, :http_error, :not_found, :too_large, :error].each do |status|

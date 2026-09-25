@@ -188,14 +188,18 @@ RSpec.describe 'Install-wide OIDC discovery issuer mismatch', type: :integration
       expect(logged.inspect).not_to include(client_secret)
     end
 
-    it 'treats a missing discovery issuer as a mismatch' do
+    it 'does not treat a 200 JSON body without an issuer as a mismatch' do
       stub_request(:get, discovery_url).to_return(
         status: 200,
-        body: { authorization_endpoint: "https://#{idp_host}/authorize" }.to_json,
+        body: { error: 'temporarily unavailable' }.to_json,
         headers: { 'Content-Type' => 'application/json' },
       )
 
-      expect(start_sso).to end_with('/signin?auth_error=sso_issuer_mismatch')
+      location = start_sso
+
+      expect(location).not_to include('sso_issuer_mismatch')
+      expect(location).to include('/signin?auth_error=') # the gem's own failure path
+      expect(Onetime::SsoProvider::IssuerValidation.rejected?(configured_issuer)).to be(false)
     end
 
     it 'stops advertising the provider once the mismatch is known' do

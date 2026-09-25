@@ -600,9 +600,9 @@ module Auth::Config::Hooks
     #     issuers are validated by Test Connection and the gem).
     #
     # Verdicts come from SsoProvider::IssuerValidation (per-process cache:
-    # match 1h, mismatch 2min). An :unknown verdict (timeout, network, non-JSON)
-    # is not a mismatch: the request proceeds and the gem succeeds or fails as
-    # before. The client secret is never logged.
+    # match 1h, mismatch 2min). An :unknown verdict (timeout, network, non-JSON,
+    # no string issuer) is not a mismatch: the request proceeds and the gem
+    # succeeds or fails as before. The client secret is never logged.
     #
     # @param strategy [OmniAuth::Strategy, nil]
     # @param rodauth [Rodauth::Auth] redirect target
