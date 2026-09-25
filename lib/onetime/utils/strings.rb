@@ -10,6 +10,7 @@ require 'public_suffix'
 # lib/onetime.rb, hundreds of lines before the main errors require, so pull
 # it in here rather than relying on load order (errors.rb is dependency-free).
 require_relative '../errors'
+require_relative 'uri_redaction'
 
 module Onetime
   module Utils
@@ -297,21 +298,13 @@ module Onetime
       # redacts too much rather than printing the rest of the password. A "?"
       # before that "@" is either in the password or starts a query with an
       # "@" in it (`?password=p@ss`); neither split is safe, so everything
-      # after the scheme is redacted. Same rule as
-      # Auth::DatabaseConnection.redact_url, which repeats it because that
-      # file loads without the application.
+      # after the scheme is redacted. The dependency-free implementation is
+      # shared with Auth::DatabaseConnection and the boot banner.
       #
       # @param uri [String, URI::Generic, nil]
       # @return [String]
-      def redact_uri_userinfo(uri)
-        text  = utf8_safe(uri.to_s)
-        at    = text.rindex('@')
-        query = text.index('?')
-        return text.sub(%r{\A((?:[a-z][a-z0-9+.-]*:)?//)?.*}im, '\\1***') if at && query && query < at
-
-        text
-          .sub(%r{\A((?:[a-z][a-z0-9+.-]*:)?//)?.*@}im, '\\1***@')
-          .sub(/\?.*\z/m, '?***')
+      def redact_uri_userinfo(uri, keep_username: false, require_scheme: false, mask: '***')
+        ::OnetimeUriRedaction.redact(uri, keep_username: keep_username, require_scheme: require_scheme, mask: mask)
       end
 
       # Checks whether a value is an explicitly recognized truthy token.

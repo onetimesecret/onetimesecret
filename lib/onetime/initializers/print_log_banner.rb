@@ -388,15 +388,7 @@ module Onetime
       # @param value [String]
       # @return [String]
       def mask_url(value)
-        scheme, rest = value.scrub.match(%r{\A([a-z][a-z0-9+.-]*://)(.*)\z}im)&.captures
-        return '****' unless scheme
-
-        at    = rest.rindex('@')
-        query = rest.index('?')
-        return "#{scheme}****" if at && query && query < at
-
-        rest = rest.sub(/\A([^:]*):.*@/m, '\\1:****@') if at
-        "#{scheme}#{rest.sub(/\?.*\z/m, '?****')}"
+        Onetime::Utils.redact_uri_userinfo(value, keep_username: true, require_scheme: true, mask: '****')
       end
 
       # Helper to show only prefix and suffix characters

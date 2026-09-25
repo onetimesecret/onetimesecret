@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'sequel'
+require_relative '../../../lib/onetime/utils/uri_redaction'
 
 module Auth
   # Opens authdb connections. Depends on Sequel alone, so the standalone
@@ -88,9 +89,7 @@ module Auth
 
     # A connection URL with its userinfo and query string replaced by "***",
     # for exception messages. libpq takes a password in either place
-    # (`?password=`). Same rule as Onetime::Utils.redact_uri_userinfo, repeated
-    # here rather than delegated because this file loads without the
-    # application:
+    # (`?password=`). Shares a dependency-free primitive with the application:
     # everything up to the LAST "@" counts as userinfo, so an unescaped "@" in
     # a password redacts too much rather than printing the rest of it. A "?"
     # before that "@" is either in the password or starts a query with an "@"
@@ -103,14 +102,7 @@ module Auth
     # @param url [String]
     # @return [String]
     def self.redact_url(url)
-      url   = url.to_s.scrub
-      at    = url.rindex('@')
-      query = url.index('?')
-      return url.sub(%r{\A((?:[a-z][a-z0-9+.-]*:)?//)?.*}im, '\\1***') if at && query && query < at
-
-      url
-        .sub(%r{\A((?:[a-z][a-z0-9+.-]*:)?//)?.*@}im, '\\1***@')
-        .sub(/\?.*\z/m, '?***')
+      ::OnetimeUriRedaction.redact(url)
     end
 
     # PostgreSQL multi-host URLs (host1:port1,host2:port2) are not valid URIs.
