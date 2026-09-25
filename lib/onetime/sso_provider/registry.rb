@@ -99,9 +99,10 @@
 #                     that uses discovery. The omniauth_setup hook compares it
 #                     to the discovery document's `issuer` on the first
 #                     platform sign-in attempt (exact String ==, #4513), and
-#                     AuthConfig#provider_active? reports the provider
-#                     unavailable while a mismatch is cached
-#                     (SsoProvider::IssuerValidation). Route registration is
+#                     AuthConfig#sso_providers withholds the button while a
+#                     mismatch is cached (SsoProvider::IssuerValidation),
+#                     except under restrict_to 'sso'. Route registration,
+#                     HttpOrigin origins and restrict_to availability are
 #                     unaffected, so tenant OIDC on the same route keeps
 #                     working.
 #   placeholder_options: strategy options (minus name:) used when platform

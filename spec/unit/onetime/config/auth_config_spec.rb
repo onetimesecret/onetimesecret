@@ -773,6 +773,28 @@ RSpec.describe Onetime::AuthConfig do
         expect(config.sso_providers.map { |p| p['route_name'] }).to eq(%w[github])
       end
 
+      # The verdict is per-process display state. It must not reach the
+      # restriction's availability, which also gates custom domains whose own
+      # tenant OIDC is unaffected by the install-wide issuer.
+      def sso_only_config
+        fresh_config(AUTH_SSO_ENABLED: 'true', AUTH_SSO_ONLY: 'true', OIDC_ISSUER: issuer, OIDC_CLIENT_ID: 'cid')
+      end
+
+      it 'keeps restrict_to sso available while a mismatch is cached' do
+        config = sso_only_config
+        cache_verdict("#{issuer}/")
+
+        expect(config.restrict_to).to eq('sso')
+        expect(config.restrict_to_available?).to be(true)
+      end
+
+      it 'keeps the OIDC button under restrict_to sso (an empty list renders the standard form)' do
+        config = sso_only_config
+        cache_verdict("#{issuer}/")
+
+        expect(config.sso_providers.map { |p| p['route_name'] }).to eq(%w[oidc])
+      end
+
       it 'reports the install-wide issuer for the OIDC route only' do
         config = oidc_config
 

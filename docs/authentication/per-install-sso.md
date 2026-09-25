@@ -761,7 +761,7 @@ curl -s https://your-issuer/.well-known/openid-configuration | jq -r .issuer
 **Timing:**
 
 - The check is lazy. It runs on the first install-wide OIDC sign-in attempt after boot, not at boot, so the OIDC button is shown until that first attempt fails.
-- Each process keeps its own result. After a mismatch is detected, the provider is removed from the sign-in page's provider list in that process. The `form-action` CSP directive is built at boot and does not change.
+- Each process keeps its own result. After a mismatch is detected, the provider is removed from the sign-in page's provider list in that process, unless `full.restrict_to` is `sso`: there the button stays and a click shows the error, because the page has no other sign-in method. The result only affects that list. The `form-action` CSP directive, the origins accepted for SSO callbacks, and whether `restrict_to` can be honored do not change.
 - A mismatch result expires after 2 minutes, then the next attempt checks again. A fix on the IdP side therefore takes effect within 2 minutes without a restart. A change to `OIDC_ISSUER` needs a restart, because strategies are registered at boot.
 - A match is cached for 1 hour. If the IdP changes its issuer within that hour, sign-in is still refused, but with the generic `sso_failed` until the cached match expires.
 - Timeouts, network errors, HTTP errors and non-JSON responses are never reported as a mismatch. Sign-in proceeds and fails or succeeds as it would without the check. These results are cached for 30 seconds.

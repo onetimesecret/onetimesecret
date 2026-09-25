@@ -586,7 +586,7 @@ module Auth::Config::Hooks
     # and redirects to the IdP. The gem would refuse the mismatch there too
     # (OpenIDConnect::Discovery raises DiscoveryFailed -> generic sso_failed);
     # checking first lets the user see a specific error, the operator see
-    # both issuers in one log line, and AuthConfig#provider_active? stop
+    # both issuers in one log line, and AuthConfig#sso_providers stop
     # advertising the provider while the verdict is cached.
     #
     # Scope, all of which must hold (#install_discovery_issuer_to_check):

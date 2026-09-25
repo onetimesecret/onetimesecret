@@ -115,8 +115,9 @@ RSpec.describe Onetime::AuthConfig do
     end
   end
 
-  # #4513: while a mismatch verdict is cached the provider is unavailable, so
-  # neither the CSP form-action set nor HttpOrigin may keep trusting its IdP.
+  # #4513: the cached issuer verdict only withholds the login button. It is
+  # per-process state, so the origins HttpOrigin trusts for callbacks (and the
+  # boot-built CSP form-action set) must not depend on it.
   describe 'with a cached install-wide OIDC issuer mismatch' do
     let(:issuer) { 'https://idp.example.com' }
 
@@ -137,11 +138,11 @@ RSpec.describe Onetime::AuthConfig do
 
     after { Onetime::SsoProvider::IssuerValidation.reset! }
 
-    it 'drops the OIDC origin from #sso_idp_origins and #sso_form_action_origins' do
+    it 'keeps the OIDC origin in #sso_idp_origins and #sso_form_action_origins' do
       config = fresh_config(OIDC_ISSUER: issuer, OIDC_CLIENT_ID: 'cid', GOOGLE_CLIENT_ID: 'g', GOOGLE_CLIENT_SECRET: 's')
 
-      expect(config.sso_idp_origins).to eq(['https://accounts.google.com'])
-      expect(config.sso_form_action_origins).to eq(['https://accounts.google.com'])
+      expect(config.sso_idp_origins).to contain_exactly(issuer, 'https://accounts.google.com')
+      expect(config.sso_form_action_origins).to contain_exactly(issuer, 'https://accounts.google.com')
     end
   end
 

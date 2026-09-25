@@ -99,9 +99,11 @@ attempt in each process, the `omniauth_setup` hook fetches the discovery
 document and compares its `issuer` to the env value with exact string equality
 (`Onetime::SsoProvider::IssuerValidation`). On a mismatch the attempt is
 redirected to `/signin?auth_error=sso_issuer_mismatch` without reaching the
-IdP, and `AuthConfig#provider_active?` reports the provider unavailable while
-the result is cached. Route registration does not change, so tenant OIDC on
-the same route keeps working. See
+IdP, and `AuthConfig#sso_providers` leaves the provider's button off the
+sign-in page while the result is cached (unless `restrict_to` is `sso`).
+`AuthConfig#provider_active?` ignores the result, so route registration,
+HttpOrigin callback origins and `restrict_to` availability do not change, and
+tenant OIDC on the same route keeps working. See
 [Issuer mismatch](per-install-sso.md#issuer-mismatch) for timing and log
 fields.
 

@@ -204,7 +204,8 @@ RSpec.describe 'Install-wide OIDC discovery issuer mismatch', type: :integration
       expect(advertised_routes).to include('oidc') # lazy: unknown until the first attempt
       start_sso
       expect(advertised_routes).not_to include('oidc')
-      expect(real_auth_config.sso_idp_origins).not_to include(configured_issuer)
+      # Display only: the HttpOrigin callback origins ignore the verdict.
+      expect(real_auth_config.sso_idp_origins).to include(configured_issuer)
     end
 
     it 'answers repeat attempts from the cached verdict without refetching' do
