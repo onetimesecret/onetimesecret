@@ -1531,6 +1531,42 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           expect(stored_config.reveal_saml_field(:idp_entity_id)).to eq('urn:example:rotated')
         end
 
+        it 'still accepts a PATCH that leaves an enabled record enabled' do
+          csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_config.enabled?).to be true
+          expect(stored_config.display_name).to eq('Renamed')
+        end
+
+        it 'still accepts editing a record that stays disabled' do
+          csrf_patch api_path(test_custom_domain.extid), { enabled: false }
+          expect(last_response.status).to eq(200), last_response.body
+
+          csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_config.enabled?).to be false
+          expect(stored_config.display_name).to eq('Renamed')
+        end
+
+        # Re-enabling is an activation, not a repair: the persisted result
+        # would run under a cookie it cannot work with, every sign-in would
+        # fail, and (with enforce_sso_only) the tenant would be locked out
+        # while SSO stays advertised — the cookie rule is deliberately not a
+        # rung in tenant_sso_unavailable_reason.
+        it 'refuses to re-enable a disabled record via PATCH' do
+          csrf_patch api_path(test_custom_domain.extid), { enabled: false }
+          expect(last_response.status).to eq(200), last_response.body
+
+          csrf_patch api_path(test_custom_domain.extid), { enabled: true }
+
+          expect(last_response.status).to eq(422)
+          expect(json_body).to include('error_type' => 'invalid', 'field' => 'provider_type')
+          expect(json_body['error']).to include("same_site is 'lax'")
+          expect(stored_config.enabled?).to be false
+        end
+
         it 'is refused on a full PUT replace (PUT re-introduces the config)' do
           csrf_put api_path(test_custom_domain.extid), valid_saml_params.merge(display_name: 'Replaced')
 

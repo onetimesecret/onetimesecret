@@ -37,11 +37,18 @@ module DomainsAPI
       #   - the install's SESSION COOKIE. A saml config under a cookie that
       #     is not SameSite=None + Secure can never complete a sign-in
       #     (Saml.session_cookie_problem), and an org admin cannot change the
-      #     install's cookie. Refused when a request INTRODUCES a saml config
-      #     (PUT, or a PATCH creating / switching to saml); a PATCH editing an
-      #     existing saml record — rotating a field, renaming, disabling — is
+      #     install's cookie. Refused when a request ACTIVATES a saml config:
+      #     one that introduces it (PUT, or a PATCH creating / switching to
+      #     saml) or one that (re-)enables a disabled saml record. Re-enabling
+      #     counts as activation because the persisted result would run under
+      #     a cookie it cannot work with — every sign-in fails, and with
+      #     enforce_sso_only that locks the tenant out, while the cookie rule
+      #     is deliberately not a rung in tenant_sso_unavailable_reason so
+      #     SSO stays advertised. A PATCH editing a record that STAYS disabled
+      #     — rotating a field, renaming — or one that is already enabled is
       #     not blocked, so a record saved before the cookie changed can
-      #     always be repaired or switched off.
+      #     always be repaired or switched off, and a live one is never
+      #     stranded mid-edit.
       #
       # Includers must respond to `params` and `raise_form_error`.
       module SamlFields
@@ -104,10 +111,17 @@ module DomainsAPI
         #   actually written, not a reading of the raw param: the body is
         #   typed JSON with no schema, so "false" and null are legal
         #   spellings of enabled, and a disable that PERSISTS must not be
-        #   refused for a certificate the result will never run on.
+        #   refused for a certificate the result will never run on. The same
+        #   flag decides the session-cookie rule (see the header): a request
+        #   that introduces a saml config (stored nil) or flips a disabled
+        #   record to enabled is an activation and is refused under a cookie
+        #   SAML cannot use; one that leaves the record disabled, or edits a
+        #   record that is already enabled, is not.
         def validate_saml_fields!(stored: nil, enabled: true)
           reject_forbidden_saml_params!
-          reject_incompatible_session_cookie! if stored.nil?
+
+          activating = stored.nil? || (enabled && !stored.enabled?)
+          reject_incompatible_session_cookie! if activating
 
           remains_disabled = saml_config_remains_disabled?(stored, enabled)
 

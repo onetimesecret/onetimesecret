@@ -732,7 +732,9 @@ rule is enforced at save time: the domain SSO API refuses to create a
 cannot complete on this install: …") while the cookie is incompatible, since an
 organization admin cannot change the install's cookie. An existing SAML record
 stays editable — it can be disabled, rotated or switched to another provider —
-so nothing gets stuck.
+so nothing gets stuck. Re-enabling a disabled SAML record is refused under an
+incompatible cookie for the same reason a new one is: the result would run
+under a cookie it cannot work with.
 
 Missing or unusable configuration skips the provider (`[OmniAuth] Skipping
 SAML provider 'saml': …` in the boot log, naming the variable) and hides the
