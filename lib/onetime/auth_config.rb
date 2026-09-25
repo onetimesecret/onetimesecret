@@ -589,7 +589,18 @@ module Onetime
     # @param sso_config [Onetime::CustomDomain::SsoConfig] the tenant's record
     # @return [String, nil] scheme://host[:port], or nil when the provider
     #   type is unknown or the issuer does not resolve to a clean origin
-    def tenant_idp_origin(sso_config)
+    def tenant_idp_origin(sso_config, env: nil)
+      if env
+        cache = (env['onetime.tenant_idp_origins'] ||= {})
+        return cache[sso_config] if cache.key?(sso_config)
+
+        return cache[sso_config] = tenant_idp_origin_uncached(sso_config, env: env)
+      end
+
+      tenant_idp_origin_uncached(sso_config)
+    end
+
+    def tenant_idp_origin_uncached(sso_config, env: nil)
       provider_type = sso_config&.provider_type
       return nil if provider_type.nil?
 
@@ -598,7 +609,7 @@ module Onetime
       # would be the wrong tenant's (or no) IdP here. #tenant_origin_source
       # owns that dispatch so callers who need to reason about the SOURCE
       # (rather than the derived origin) cannot drift out of step with it.
-      source = tenant_origin_source(sso_config)
+      source = tenant_origin_source(sso_config, env: env)
       return origin_from_url(source) unless source.nil?
 
       # :default only — the entry's :env_var route-name override is NOT
@@ -646,7 +657,14 @@ module Onetime
     # about it: the login itself refuses the same record loudly
     # (:omniauth_tenant_config_unusable) and the config API flags it
     # (unreadable_fields).
-    def tenant_origin_source(sso_config)
+    def tenant_origin_source(sso_config, env: nil)
+      if env
+        cache = (env['onetime.tenant_origin_sources'] ||= {})
+        return cache[sso_config] if cache.key?(sso_config)
+
+        return cache[sso_config] = tenant_origin_source(sso_config)
+      end
+
       field = TENANT_ORIGIN_SOURCE_FIELDS[sso_config&.provider_type.to_s]
       return nil if field.nil?
 

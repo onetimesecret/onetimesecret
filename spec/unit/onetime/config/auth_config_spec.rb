@@ -120,6 +120,37 @@ RSpec.describe Onetime::AuthConfig do
     described_class.instance
   end
 
+  describe 'request-scoped tenant origin cache' do
+    let(:config) { fresh_config }
+    let(:concealed_url) { double('concealed SSO URL') }
+    let(:tenant) { double('SAML config', provider_type: 'saml', idp_sso_service_url: concealed_url) }
+
+    it 'caches decryption failure as no origin without falling back to the platform' do
+      env = {}
+      expect(concealed_url).to receive(:reveal).once.and_raise(Familia::EncryptionError, 'tag')
+      expect(config).not_to receive(:provider_origin)
+
+      2.times { expect(config.tenant_idp_origin(tenant, env: env)).to be_nil }
+      expect(config.tenant_origin_source(tenant, env: env)).to eq('')
+    end
+
+    it 'does not reuse an admitted origin across requests after ciphertext becomes unreadable' do
+      expect(concealed_url).to receive(:reveal).ordered.and_yield('https://idp.example/sso')
+      expect(concealed_url).to receive(:reveal).ordered.and_raise(Familia::EncryptionError, 'tag')
+
+      expect(config.tenant_idp_origin(tenant, env: {})).to eq('https://idp.example')
+      expect(config.tenant_idp_origin(tenant, env: {})).to be_nil
+    end
+
+    it 'does not keep a failed reveal cached after a new request can read the repaired field' do
+      expect(concealed_url).to receive(:reveal).ordered.and_raise(Familia::EncryptionError, 'tag')
+      expect(concealed_url).to receive(:reveal).ordered.and_yield('https://repaired.example/sso')
+
+      expect(config.tenant_idp_origin(tenant, env: {})).to be_nil
+      expect(config.tenant_idp_origin(tenant, env: {})).to eq('https://repaired.example')
+    end
+  end
+
   # ── Mode tests ─────────────────────────────────────────────────────
 
   describe '#mode' do

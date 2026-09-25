@@ -297,6 +297,15 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
       expect(tenant_callback(origin: nil)).to eq(200)
     end
 
+    it 'reuses decrypted source and derived origin only within the same request' do
+      config = saml_config
+      expect(config.idp_sso_service_url).to receive(:reveal).twice.and_call_original
+      env = {}
+      2.times { expect(auth_config.tenant_idp_origin(config, env: env)).to eq(tenant_idp_origin) }
+      expect(auth_config.tenant_origin_source(config, env: env)).to include('/app/sso/saml')
+      expect(auth_config.tenant_idp_origin(config, env: {})).to eq(tenant_idp_origin)
+    end
+
     it 'allows the callback POST from the tenant IdP\'s SSO service origin' do
       stub_resolution(saml_config)
 

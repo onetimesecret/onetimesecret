@@ -162,7 +162,7 @@ module Onetime
           return true if sso_config.callback_origins.include?(origin)
         end
 
-        tenant_origin = auth_config.tenant_idp_origin(sso_config)
+        tenant_origin = auth_config.tenant_idp_origin(sso_config, env: env)
         !tenant_origin.nil? && tenant_origin == origin
       rescue StandardError => ex
         # Includes Redis::BaseError from the SsoConfig read. Denying is the

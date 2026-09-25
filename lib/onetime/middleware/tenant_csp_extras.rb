@@ -202,8 +202,8 @@ module Onetime
         # Mandatory funnel: origin_from_url inside — strips path, http(s)
         # only, rejects CSP-hostile hosts, nil on garbage (issuer is
         # tenant-supplied and therefore attacker-influenced).
-        origin = Onetime.auth_config.tenant_idp_origin(config)
-        warn_rejected_origin_source(display_domain, config) if origin.nil?
+        origin = Onetime.auth_config.tenant_idp_origin(config, env: env)
+        warn_rejected_origin_source(display_domain, config, env: env) if origin.nil?
 
         origin
       end
@@ -235,8 +235,8 @@ module Onetime
       # It retains one entry per encountered custom domain rather than one per
       # request, and the mutex keeps concurrent HTML requests from logging the
       # same misconfiguration more than once.
-      def warn_rejected_origin_source(display_domain, config)
-        source = Onetime.auth_config.tenant_origin_source(config)
+      def warn_rejected_origin_source(display_domain, config, env: nil)
+        source = Onetime.auth_config.tenant_origin_source(config, env: env)
         return if source.nil? || source.empty?
         return unless first_rejected_origin_warning_for?(display_domain)
 

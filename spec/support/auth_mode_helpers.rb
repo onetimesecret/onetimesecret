@@ -325,8 +325,8 @@ module AuthModeHelpers
     # touch loaded config, so an allocated (uninitialized) AuthConfig gives
     # the production behavior without booting the auth config singleton —
     # the same allocate technique tenant_csp_extras_spec uses.
-    def tenant_idp_origin(sso_config)
-      tenant_origin_delegate.tenant_idp_origin(sso_config)
+    def tenant_idp_origin(sso_config, env: nil)
+      tenant_origin_delegate.tenant_idp_origin(sso_config, env: env)
     end
 
     # Onetime::AuthConfig#tenant_origin_source (#4173) — the dispatch
@@ -334,8 +334,8 @@ module AuthModeHelpers
     # middleware asks which provider types read the tenant issuer, and a
     # second copy of that answer here would be exactly the drift the shared
     # method exists to prevent.
-    def tenant_origin_source(sso_config)
-      tenant_origin_delegate.tenant_origin_source(sso_config)
+    def tenant_origin_source(sso_config, env: nil)
+      tenant_origin_delegate.tenant_origin_source(sso_config, env: env)
     end
 
     def tenant_origin_delegate
