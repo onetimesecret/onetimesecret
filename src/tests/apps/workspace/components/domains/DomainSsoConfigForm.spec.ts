@@ -1149,6 +1149,20 @@ describe('DomainSsoConfigForm', () => {
         );
       });
 
+      // The host preview assumes https and the default route; an operator
+      // SAML_ROUTE_NAME override or site.ssl=false makes it wrong (#3932), so
+      // it is labelled a preview instead of "register these values".
+      it('labels host-derived values as a preview before a record exists', async () => {
+        wrapper = await mountComponent({
+          formState: mockSamlFormState,
+          domainHost: 'secrets.example.com',
+        });
+
+        const hint = wrapper.find('[data-testid="sso-saml-sp-details-hint"]');
+        expect(hint.text()).toBe('web.organizations.sso.sp_details_preview_hint');
+        expect(wrapper.text()).not.toContain('web.organizations.sso.sp_details_hint');
+      });
+
       it('prefers the API-composed sp_entity_id / acs_url of a saved saml record', async () => {
         wrapper = await mountComponent({
           formState: mockSamlFormState,
@@ -1162,6 +1176,10 @@ describe('DomainSsoConfigForm', () => {
         expect(wrapper.find('[data-testid="sso-saml-acs-url"]').text()).toBe(
           mockSamlConfig.acs_url
         );
+        // API-composed values are the real ones: generic "register these" hint.
+        const hint = wrapper.find('[data-testid="sso-saml-sp-details-hint"]');
+        expect(hint.text()).toBe('web.organizations.sso.sp_details_hint');
+        expect(wrapper.text()).not.toContain('web.organizations.sso.sp_details_preview_hint');
       });
 
       it('falls back to the host preview when the API could not derive them', async () => {
@@ -1174,6 +1192,10 @@ describe('DomainSsoConfigForm', () => {
 
         expect(wrapper.find('[data-testid="sso-saml-sp-entity-id"]').text()).toBe(
           'https://secrets.example.com/auth/sso/saml/metadata'
+        );
+        // Still host-derived, so still labelled a preview.
+        expect(wrapper.find('[data-testid="sso-saml-sp-details-hint"]').text()).toBe(
+          'web.organizations.sso.sp_details_preview_hint'
         );
       });
 

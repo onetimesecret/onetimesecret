@@ -171,10 +171,15 @@ const unreadableFieldNames = computed(() =>
 );
 
 /**
- * The public origin + route for this domain's SSO URLs. The route default
- * comes from the contract (pinned to the Ruby PROVIDER_ROUTE_MAP by
- * sso-config-metadata-contract.spec.ts); see SSO_PROVIDER_ROUTE_NAMES for why
- * an operator route override is not reflected here.
+ * The public origin + route for this domain's SSO URLs, PREVIEWED from the
+ * domain host: always https and the default route from the contract (pinned
+ * to the Ruby PROVIDER_ROUTE_MAP by sso-config-metadata-contract.spec.ts).
+ * An operator route override (SAML_ROUTE_NAME etc.) or site.ssl=false is
+ * invisible here, so the preview can differ from the real path; plumbing the
+ * configured route through bootstrap config is tracked in #3932. Until then
+ * the SP block labels host-derived values as a preview (spDetailsArePreview)
+ * rather than hiding them — IdPs such as Okta and Entra demand the ACS URL
+ * and Audience at app creation, before any record can exist here.
  */
 const ssoRouteBase = computed(() => {
   if (!props.domainHost) return null;
@@ -192,8 +197,26 @@ const savedSamlRecord = computed(() =>
   isEditing.value && props.ssoConfig?.provider_type === 'saml' ? props.ssoConfig : null
 );
 
+/**
+ * ACS URL shown in the SP block: the API's acs_url for a saved record,
+ * otherwise the host preview (see ssoRouteBase for why that is labelled a
+ * preview and #3932 for the real-route plumbing).
+ */
 const callbackUrl = computed(
   () => savedSamlRecord.value?.acs_url ?? (ssoRouteBase.value ? `${ssoRouteBase.value}/callback` : null)
+);
+
+/**
+ * True when either SP identifier shown is host-derived rather than
+ * API-composed: no saml record has been saved yet, or the API could not
+ * derive the value. The block then swaps the "register these" hint for one
+ * that says the values are a preview of the default route and asks the admin
+ * to save and confirm them here first (#3932 — an operator route override
+ * would make the preview wrong, and a wrong ACS URL at the IdP fails every
+ * login with an opaque IdP-side error).
+ */
+const spDetailsArePreview = computed(
+  () => !savedSamlRecord.value?.sp_entity_id || !savedSamlRecord.value?.acs_url
 );
 
 /** Days before expiry at which the softer "expiring soon" notice appears. */
@@ -221,6 +244,10 @@ const storedCertExpiry = computed(() => {
   };
 });
 
+/**
+ * SP Entity ID (doubles as the SP metadata URL): the API's sp_entity_id for
+ * a saved record, otherwise the host preview (see ssoRouteBase; #3932).
+ */
 const spEntityId = computed(
   () => savedSamlRecord.value?.sp_entity_id ?? (ssoRouteBase.value ? `${ssoRouteBase.value}/metadata` : null)
 );
@@ -1047,7 +1074,9 @@ aria-hidden="true">*</span>
       </div>
 
       <!-- SAML service-provider identifiers (#4450), read-only: what the admin
-           registers at the IdP. SP Entity ID doubles as the SP metadata URL. -->
+           registers at the IdP. SP Entity ID doubles as the SP metadata URL.
+           Host-derived values are labelled a preview (spDetailsArePreview)
+           because the static default route may not be the deployed one (#3932). -->
       <div
         v-if="isSaml && (spEntityId || callbackUrl)"
         data-testid="sso-saml-sp-details"
@@ -1055,8 +1084,14 @@ aria-hidden="true">*</span>
         <p class="text-sm font-medium text-gray-900 dark:text-white">
           {{ t('web.organizations.sso.sp_details') }}
         </p>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.organizations.sso.sp_details_hint') }}
+        <p
+          data-testid="sso-saml-sp-details-hint"
+          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{
+            spDetailsArePreview
+              ? t('web.organizations.sso.sp_details_preview_hint')
+              : t('web.organizations.sso.sp_details_hint')
+          }}
         </p>
         <dl class="mt-3 space-y-3">
           <div v-if="spEntityId">

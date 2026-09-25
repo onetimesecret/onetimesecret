@@ -945,6 +945,10 @@
     "text": "Register these values with your identity provider",
     "content_hash": "784e9410"
   },
+  "web.organizations.sso.sp_details_preview_hint": {
+    "text": "Preview based on the default sign-in route. Save this configuration, then confirm these values here before registering them with your identity provider.",
+    "content_hash": "fd9d3001"
+  },
   "web.organizations.sso.sp_entity_id": {
     "text": "SP Entity ID (metadata URL)",
     "content_hash": "59bc544c"
