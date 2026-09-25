@@ -163,7 +163,13 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
   def post_callback(tenant, saml_response, origin: URI.join(tenant.sso_url, '/').to_s.chomp('/'))
     header 'Host', tenant.host
     header 'Origin', origin
-    post '/auth/sso/saml/callback', { 'SAMLResponse' => saml_response }
+    post '/auth/sso/saml/callback', { 'SAMLResponse' => saml_response }, { 'REMOTE_ADDR' => "2001:db8:#{run_id.scan(/.{4}/).join(':')}::1" }
+    if last_response.status == 303
+      header 'Origin', nil
+      # This suite supplies Host separately from Rack::Test's request URI.
+      # Keep that convention on the staged GET so its cookie jar is unchanged.
+      get last_response.headers['Location']
+    end
   ensure
     header 'Origin', nil
   end

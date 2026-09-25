@@ -35,7 +35,7 @@ module DomainsAPI
       #     point where a certificate is ACCEPTED is here.
       #   - refusing fingerprint parameters outright (see FORBIDDEN_PARAMS).
       #   - the install's SESSION COOKIE. A saml config under a cookie that
-      #     is not SameSite=None + Secure can never complete a sign-in
+      #     is not SameSite=None or Lax with Secure cannot complete a sign-in
       #     (Saml.session_cookie_problem), and an org admin cannot change the
       #     install's cookie. Refused when a request ACTIVATES a saml config:
       #     one that introduces it (PUT, or a PATCH creating / switching to

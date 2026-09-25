@@ -144,7 +144,13 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
 
   def post_callback(saml_response, acs_url = platform_acs, origin: 'https://login.platform-idp.test')
     header 'Origin', origin
-    post acs_url, { 'SAMLResponse' => saml_response }
+    # Each example represents a different browser source; do not exhaust the
+    # transport's per-source quota across this shared-datastore suite.
+    post acs_url, { 'SAMLResponse' => saml_response }, { 'REMOTE_ADDR' => "2001:db8:#{run_id.scan(/.{4}/).join(':')}::1" }
+    if last_response.status == 303
+      header 'Origin', nil
+      follow_redirect!
+    end
   ensure
     header 'Origin', nil
   end

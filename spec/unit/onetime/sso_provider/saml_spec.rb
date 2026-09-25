@@ -7,7 +7,7 @@
 #
 #   .sso_url_problem         one rule for the IdP SSO service URL, including
 #                            the CSP-origin funnel (AuthConfig.origin_from_url)
-#   .session_cookie_problem  the SameSite=None + Secure prerequisite as code,
+#   .session_cookie_problem  the SameSite=None/Lax + Secure prerequisite as code,
 #                            shared by .platform_options (provider skipped),
 #                            the placeholder boot warning and the API refusal
 #   .platform_host?          the host the platform ACS is pinned to at boot
@@ -108,11 +108,9 @@ RSpec.describe Onetime::SsoProvider::Saml do
       expect(described_class.session_cookie_problem('same_site' => ' None ', 'secure' => true)).to be_nil
     end
 
-    it 'names both settings and the consequence for the shipped default (lax)' do
-      problem = described_class.session_cookie_problem('same_site' => 'lax', 'secure' => true)
-
-      expect(problem).to include("same_site is 'lax'", 'secure is true', 'same_site: none with secure: true',
-        'saml_no_pending_request')
+    it 'accepts Lax with Secure for the staged callback' do
+      expect(described_class.session_cookie_problem('same_site' => 'lax', 'secure' => true)).to be_nil
+      expect(described_class.session_cookie_problem('same_site' => 'lax', 'secure' => false)).to include('secure is false')
     end
 
     it 'refuses SameSite=None without Secure (a browser drops such a cookie)' do
@@ -140,7 +138,7 @@ RSpec.describe Onetime::SsoProvider::Saml do
     end
 
     it 'is a problem under the shipped session defaults' do
-      expect(described_class.session_cookie_problem(Onetime::Initializers::SESSION_DEFAULTS)).to include("'lax'")
+      expect(described_class.session_cookie_problem(Onetime::Initializers::SESSION_DEFAULTS)).to include('secure is false')
     end
   end
 

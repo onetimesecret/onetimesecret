@@ -161,12 +161,11 @@
 #   - omniauth strategy.rb callback_call runs callback_phase for ANY HTTP
 #                     method (allowed_request_methods gates the request phase
 #                     only), and saml.rb:63 raises "SAML response missing"
-#                     only after our callback_phase has run. The HTTP-POST
-#                     binding needs a SameSite=None session cookie, so a
-#                     cross-site <img> GET to the callback path arrives WITH
-#                     the session — callback_phase must not consume the
-#                     pending id for anything but a POST carrying a
-#                     SAMLResponse.
+#                     only after our callback_phase has run. Production POSTs
+#                     are staged before OmniAuth; a GET recovers the Lax
+#                     session and reads the staged assertion. Bare GETs and
+#                     invalid/wrong-session handles must not consume pending
+#                     transactions or the rightful session's staged assertion.
 #   - omniauth strategy.rb:138 instance options are DEEP-MERGED over class
 #                     defaults, so an empty Hash option cannot clear a
 #                     Hash-valued gem default (see
@@ -175,6 +174,7 @@
 require 'omniauth-saml'
 
 require 'onetime/security/saml_assertion_replay_guard'
+require 'onetime/middleware/saml_callback_transport'
 require 'onetime/sso_provider/flow_session_keys'
 require 'onetime/sso_provider/ruby_saml_log_bridge'
 
@@ -274,15 +274,32 @@ module OmniAuth
       end
 
       def callback_phase
-        # Only a POST carrying a SAMLResponse is a callback at all. Anything
-        # else (a cross-site <img> GET, a HEAD, a bare POST) is refused
-        # WITHOUT touching the pending id: with the SameSite=None cookie the
-        # POST binding requires, such a request arrives with the victim's
-        # session, and consuming the id here would let any page the user
-        # visits mid-login cancel their sign-in (the IdP's real POST would
-        # then be refused as saml_no_pending_request).
-        posted = request.params['SAMLResponse']
-        unless request.post? && posted.is_a?(String) && !posted.empty?
+        # OmniAuth dispatches GET callbacks regardless of allowed_request_methods.
+        # Only a staged handle may supply a GET assertion; never SAMLResponse
+        # from the URL. Reads do not consume it: a different session must not
+        # steal the original session's completion by visiting the handle first.
+        if request.get?
+          @staged_handle = request.GET[Onetime::Middleware::SamlCallbackTransport::HANDLE_PARAM]
+          unless @staged_handle
+            posted = request.GET['SAMLResponse']
+            return refuse!(:saml_response_missing, 'SAML callback handle missing', method: 'GET', has_saml_response: posted.is_a?(String) && !posted.empty?)
+          end
+
+          begin
+            staged = Onetime::Security::SamlCallbackStore.read(
+              @staged_handle, scope: Onetime::Security::SamlCallbackStore.scope(env)
+            )
+          rescue StandardError
+            return refuse!(:saml_callback_unavailable, 'SAML callback transport unavailable')
+          end
+          return refuse!(:saml_callback_missing, 'SAML callback handle missing or expired') unless staged
+
+          posted, @staged_raw            = staged
+          request.params['SAMLResponse'] = posted
+        else
+          posted = request.params['SAMLResponse']
+        end
+        unless (request.post? || @staged_raw) && posted.is_a?(String) && !posted.empty? && posted.bytesize <= Onetime::Security::SamlCallbackStore::MAX_RESPONSE_BYTES
           return refuse!(
             :saml_response_missing,
             'SAML callback is not a POST carrying a SAMLResponse',
@@ -291,11 +308,10 @@ module OmniAuth
           )
         end
 
-        # One-shot: consumed BEFORE anything is validated, so a response that
-        # fails any later check still burns the pending id. `.to_s` because a
-        # session store may hand back nil or (after a serializer round trip)
-        # something that is not a String.
-        @expected_request_id = session.delete(REQUEST_ID_KEY).to_s.strip
+        # Legacy direct POSTs consume before validation. Staged GETs retain
+        # both pending id and handle until validation succeeds; the global
+        # replay claim and atomic handle consume serialize successful callbacks.
+        @expected_request_id = (@staged_raw ? session[REQUEST_ID_KEY] : session.delete(REQUEST_ID_KEY)).to_s.strip
 
         # ruby-saml treats a nil :matches_request_id as "do not check"
         # (response.rb:628), so an empty pending id MUST be refused here.
@@ -447,7 +463,20 @@ module OmniAuth
           request_binding_refusal(response) ||
           issuer_refusal(response) ||
           name_id_refusal(response) ||
-          replay_refusal(response, opts)
+          replay_refusal(response, opts) ||
+          staged_callback_refusal
+      end
+
+      def staged_callback_refusal
+        return unless @staged_raw
+
+        claimed = Onetime::Security::SamlCallbackStore.consume(@staged_handle, @staged_raw)
+        return [:saml_callback_missing, 'SAML callback handle missing or expired', {}] unless claimed
+
+        session.delete(REQUEST_ID_KEY)
+        nil
+      rescue StandardError
+        [:saml_callback_unavailable, 'SAML callback transport unavailable', {}]
       end
 
       # Every ds:Signature in the document(s) ruby-saml validated must name

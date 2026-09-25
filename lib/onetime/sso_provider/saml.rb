@@ -66,14 +66,10 @@
 # no platform route, and :vars_valid keeps the login button from being
 # advertised.
 #
-# ⚠️  OPERATOR PREREQUISITE — SameSite=None session cookie. The HTTP-POST
-# binding delivers the response as a CROSS-SITE POST from the IdP, exactly like
-# Sign in with Apple's form_post (see apple.rb for the full account). A
-# SameSite=Lax cookie is withheld, the session holding the pending
-# AuthnRequest id is absent, and the strategy refuses the response as
-# :saml_no_pending_request. SAML therefore requires
-# `site.session.same_site: none` with `secure: true`. .session_cookie_problem
-# is that rule as code, and it has three consumers. On the PLATFORM surface
+# OPERATOR PREREQUISITE — a Secure session cookie with SameSite=None or Lax.
+# SamlCallbackTransport stages the cross-site POST without a session cookie,
+# then redirects to a GET that recovers the initiating session. Strict is not
+# supported. .session_cookie_problem is that rule as code. On the PLATFORM surface
 # it is the first check in .platform_options, so an incompatible cookie is
 # handled like a missing variable (above): configure_provider logs the
 # problem (error level, boot does not abort), registers no platform route,
@@ -493,11 +489,9 @@ module Onetime
       end
 
       # The session-cookie prerequisite (header: OPERATOR PREREQUISITE), as a
-      # checkable rule. The HTTP-POST callback is a cross-site POST; a cookie
-      # that is not SameSite=None is withheld on it, and a browser refuses a
-      # SameSite=None cookie that is not also Secure. Either way the session
-      # holding the pending AuthnRequest id is absent at the callback and
-      # every sign-in ends as :saml_no_pending_request.
+      # checkable rule. SamlCallbackTransport stages the cookieless cross-site
+      # POST and redirects to a GET that recovers the initiating session.
+      # None and Lax work with this flow; Strict cannot recover the cookie.
       #
       # ONE rule for three consumers: .platform_options (so the PLATFORM
       # provider is skipped at boot and not advertised — see the header),
@@ -518,12 +512,11 @@ module Onetime
       def self.session_cookie_problem(session = current_session_config)
         same_site = session['same_site'].to_s.strip.downcase
         secure    = session['secure'] == true
-        return nil if same_site == 'none' && secure
+        return nil if %w[none lax].include?(same_site) && secure
 
         "site.session.same_site is #{same_site.empty? ? 'unset' : "'#{same_site}'"} " \
-          "and secure is #{secure}; SAML needs same_site: none with secure: true, " \
-          'or the session cookie is withheld on the cross-site HTTP-POST callback ' \
-          'and every SAML sign-in is refused as saml_no_pending_request'
+          "and secure is #{secure}; SAML needs same_site: none or lax with secure: true " \
+          'for the staged POST-to-GET callback; Strict cannot recover the initiating session'
       end
 
       # @return [Hash] Onetime.session_config, or {} before boot has defined it

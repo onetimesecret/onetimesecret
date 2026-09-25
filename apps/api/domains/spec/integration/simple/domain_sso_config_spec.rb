@@ -1450,9 +1450,10 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
     end
 
     # The install's session cookie, as the save path reads it. The test
-    # config ships the default (same_site: lax), under which a saml config
-    # can never complete a sign-in and the API refuses to save one
-    # (SamlFields#reject_incompatible_session_cookie!). Stubbed to the
+    # config ships same_site: lax with secure: false (Rack::Test speaks
+    # plain HTTP), and without Secure a saml config can never complete a
+    # sign-in, so the API refuses to save one
+    # (SamlFields#reject_incompatible_session_cookie!). Stubbed to a
     # compatible pair here so the contract below is exercised; the refusal
     # itself is pinned in 'under an incompatible session cookie'.
     def stub_session_cookie(same_site:, secure:)
@@ -1560,14 +1561,14 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
     end
 
     describe 'under an incompatible session cookie' do
-      before { stub_session_cookie(same_site: 'lax', secure: true) }
+      before { stub_session_cookie(same_site: 'strict', secure: true) }
 
       it 'refuses to create a saml config via PUT, on provider_type, naming the settings' do
         csrf_put api_path(test_custom_domain.extid), valid_saml_params
 
         expect(last_response.status).to eq(422)
         expect(json_body).to include('error_type' => 'invalid', 'field' => 'provider_type')
-        expect(json_body['error']).to include("same_site is 'lax'", 'same_site: none with secure: true', 'site.session')
+        expect(json_body['error']).to include("same_site is 'strict'", 'same_site: none or lax with secure: true', 'site.session')
         expect(stored_config).to be_nil
       end
 
@@ -1584,7 +1585,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         stub_session_cookie(same_site: 'none', secure: true)
         csrf_put api_path(test_custom_domain.extid), valid_oidc_params
         expect(last_response.status).to eq(200), last_response.body
-        stub_session_cookie(same_site: 'lax', secure: true)
+        stub_session_cookie(same_site: 'strict', secure: true)
 
         csrf_patch api_path(test_custom_domain.extid), valid_saml_params
 
@@ -1604,7 +1605,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           stub_session_cookie(same_site: 'none', secure: true)
           csrf_put api_path(test_custom_domain.extid), valid_saml_params
           expect(last_response.status).to eq(200), last_response.body
-          stub_session_cookie(same_site: 'lax', secure: true)
+          stub_session_cookie(same_site: 'strict', secure: true)
         end
 
         # An existing record must stay editable: the admin can disable it,
@@ -1655,7 +1656,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
           expect(last_response.status).to eq(422)
           expect(json_body).to include('error_type' => 'invalid', 'field' => 'provider_type')
-          expect(json_body['error']).to include("same_site is 'lax'")
+          expect(json_body['error']).to include("same_site is 'strict'")
           expect(stored_config.enabled?).to be false
         end
 

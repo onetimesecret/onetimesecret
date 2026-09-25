@@ -794,16 +794,16 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
           log_messages.select { |_level, msg| msg.include?('same_site') }
         end
 
-        it 'skips the platform provider, naming both settings and the consequence, under a lax cookie' do
-          allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => true)
+        it 'skips the platform provider, naming both settings and the consequence, under a strict cookie' do
+          allow(Onetime).to receive(:session_config).and_return('same_site' => 'strict', 'secure' => true)
           expect(auth).not_to receive(:omniauth_provider)
 
           ClimateControl.modify(saml_env) { configure(:saml) }
 
           expect(log_messages.last[0]).to eq(:error)
           expect(log_messages.last[1]).to include(
-            "Skipping SAML provider 'saml'", "same_site is 'lax'", 'secure is true',
-            'same_site: none with secure: true', 'saml_no_pending_request'
+            "Skipping SAML provider 'saml'", "same_site is 'strict'", 'secure is true',
+            'same_site: none or lax with secure: true', 'Strict cannot recover the initiating session'
           )
           # One line, not a warning plus a skip.
           expect(cookie_mentions.size).to eq(1)
@@ -819,6 +819,13 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
 
           expect(log_messages.last[1]).to include('Skipping SAML', "same_site is 'none'", 'secure is false')
           expect(cookie_mentions.size).to eq(1)
+        end
+
+        it 'registers under SameSite=Lax with Secure for the staged callback' do
+          allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => true)
+          expect(auth).to receive(:omniauth_provider).with(:request_bound_saml, hash_including(name: :saml))
+          ClimateControl.modify(saml_env) { configure(:saml) }
+          expect(cookie_mentions).to be_empty
         end
 
         it 'registers, silently, under SameSite=None with Secure' do
@@ -853,7 +860,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
           let(:orgs_sso_enabled) { true }
 
           it 'warns, naming ORGS_SSO_ENABLED, before the placeholder registration line' do
-            allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => true)
+            allow(Onetime).to receive(:session_config).and_return('same_site' => 'strict', 'secure' => true)
 
             ClimateControl.modify(saml_env.transform_values { nil }) { configure(:saml) }
 
@@ -867,11 +874,11 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
         # Platform vars present AND org SSO on: the skip line names the
         # cookie, the placeholder registers for tenants, and the cookie is
         # mentioned exactly once (no tenant-only warning on top of the skip).
-        context 'with orgs_sso_enabled and platform vars under a lax cookie' do
+        context 'with orgs_sso_enabled and platform vars under a strict cookie' do
           let(:orgs_sso_enabled) { true }
 
           it 'skips the platform provider naming the cookie, then registers the placeholder' do
-            allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => true)
+            allow(Onetime).to receive(:session_config).and_return('same_site' => 'strict', 'secure' => true)
             registered = nil
             allow(auth).to receive(:omniauth_provider) { |strategy, **opts| registered = [strategy, opts] }
 
@@ -880,7 +887,7 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
             expect(registered[0]).to eq(:request_bound_saml)
             expect(registered[1]).to include(name: :saml, idp_entity_id: '', sp_entity_id: '')
             expect(log_messages.map(&:first)).to eq([:info, :error, :info])
-            expect(log_messages[1][1]).to include("Skipping SAML provider 'saml'", "same_site is 'lax'")
+            expect(log_messages[1][1]).to include("Skipping SAML provider 'saml'", "same_site is 'strict'")
             expect(cookie_mentions.size).to eq(1)
             expect(cookie_warnings).to be_empty
           end

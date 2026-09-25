@@ -60,7 +60,8 @@ require 'spec_helper'
 # tests (it triggers the full boot chain: database.rb, production config,
 # database connections). The Auth app is therefore NOT loaded or manifested
 # here; its stack is characterized INDIRECTLY instead: the class declares
-# `middleware_profile :authenticated_web` plus `use Rack::JSONBodyParser`,
+# `middleware_profile :authenticated_web`, SamlCallbackTransport::Stage,
+# and Rack::JSONBodyParser,
 # the profile's contents and resolution are covered by
 # middleware_profile_spec.rb, and the profile's config defaults (all seven
 # components ON) live in etc/defaults/config.defaults.yaml.
@@ -116,6 +117,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Onetime::Middleware::StripForwardedHost',
       'Rack::RequestId',
       'Onetime::Middleware::NormalizeContentType',
+      'Onetime::Middleware::SamlCallbackTransport::Boundary',
       'Onetime::Middleware::ValidateMultipart',
       'Rack::Parser',
       'Onetime::Session',
