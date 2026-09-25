@@ -321,19 +321,11 @@ module DomainsAPI
         # issuer must not sit dormant on the record for a later provider_type
         # flip to make live (see validate_provider_specific_fields).
         def create_new_config
-          saml = @provider_type == 'saml'
-
           @sso_config = Onetime::CustomDomain::SsoConfig.create!(
             domain_id: @custom_domain.identifier,
             provider_type: @provider_type,
             display_name: @display_name,
-            client_id: saml ? '' : @client_id,
-            client_secret: saml ? '' : @client_secret,
-            tenant_id: saml ? '' : @tenant_id,
-            issuer: saml ? '' : @issuer,
-            idp_sso_service_url: saml ? @idp_sso_service_url : '',
-            idp_entity_id: saml ? @idp_entity_id : '',
-            idp_cert: saml ? @idp_cert : '',
+            **provider_attributes,
             allowed_domains: @allowed_domains,
             enabled: @enabled,
             enforce_sso_only: @enforce_sso_only,
@@ -417,14 +409,9 @@ module DomainsAPI
 
         # See the PATCH-semantics note on update_existing_config. Runs last so
         # it wins over the field-by-field assignments above.
-        def apply_saml_exclusivity
-          if @provider_type == 'saml'
-            saml_submitted.each do |field, value|
-              @sso_config.public_send(:"#{field}=", value) unless value.empty?
-            end
-            [:client_id, :client_secret, :issuer, :tenant_id].each { |name| @sso_config.public_send(:"#{name}=", '') }
-          else
-            Onetime::CustomDomain::SsoConfig::SAML_FIELDS.each { |name| @sso_config.public_send(:"#{name}=", '') }
+        def apply_saml_exclusivity(partial: true)
+          provider_attributes(partial: partial).each do |name, value|
+            @sso_config.public_send(:"#{name}=", value)
           end
         end
 

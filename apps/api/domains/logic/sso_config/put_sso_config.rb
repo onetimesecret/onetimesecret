@@ -209,17 +209,7 @@ module DomainsAPI
         # record likewise drops issuer / tenant_id. For the OAuth-family types
         # issuer and tenant_id are stored as sent, as before.
         def replacement_attributes
-          saml = @provider_type == 'saml'
-
-          {
-            client_id: saml ? '' : @client_id,
-            client_secret: saml ? '' : @client_secret,
-            tenant_id: saml ? '' : @tenant_id,
-            issuer: saml ? '' : @issuer,
-            idp_sso_service_url: saml ? @idp_sso_service_url : '',
-            idp_entity_id: saml ? @idp_entity_id : '',
-            idp_cert: saml ? @idp_cert : '',
-          }
+          provider_attributes
         end
 
         def create_new_config

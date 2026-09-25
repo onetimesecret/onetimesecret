@@ -144,6 +144,21 @@ module DomainsAPI
           end
         end
 
+        # One exclusivity rule for replacement, creation and partial updates.
+        # Partial writes omit active blank trio values, but always clear the
+        # inactive provider's fields, regardless of submitted values.
+        def provider_attributes(partial: false)
+          oauth       = [:client_id, :client_secret, :tenant_id, :issuer]
+          saml_fields = Onetime::CustomDomain::SsoConfig::SAML_FIELDS
+          if @provider_type == 'saml'
+            values = saml_submitted.reject { |_key, value| partial && value.empty? }
+            oauth.to_h { |key| [key, ''] }.merge(values)
+          else
+            values = partial ? {} : oauth.to_h { |key| [key, instance_variable_get(:"@#{key}")] }
+            values.merge(saml_fields.to_h { |key| [key, ''] })
+          end
+        end
+
         # See the header: one rule (Saml.session_cookie_problem) shared with
         # the boot warning, surfaced on provider_type because no field of the
         # trio is at fault.
