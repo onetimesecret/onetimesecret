@@ -43,6 +43,20 @@ module Onetime
     # deny each other's logins. The caller passes the CONFIGURED entity id,
     # which the strategy has already proven equal to the response Issuer.
     #
+    # NOT SCOPED BY TENANT OR CERTIFICATE (WONT-FIX): a coarser key can only
+    # REFUSE more presentations, never admit a replay, so the scope is an
+    # availability question, not a security one. A cross-tenant false refusal
+    # needs two independent IdPs sharing an EntityID AND minting the same
+    # assertion ID; SAML Core requires assertion IDs to be unique and
+    # unpredictable (xs:ID, 128+ bits of randomness recommended), so neither
+    # accidental collision nor "pre-claiming" another IdP's future ID is
+    # feasible — an attacker cannot name an ID the victim's IdP has not issued
+    # yet. The one legitimate shared-EntityID shape, a single IdP serving
+    # several custom domains, uses one certificate, so a trust-anchor scope
+    # would yield the same key anyway, and the assertion SHOULD be one-shot
+    # across those domains. Revisit only if an IdP is found to issue
+    # non-random IDs.
+    #
     # LIFETIME BOUND: ruby-saml's validate_conditions has no maximum — it
     # accepts any NotOnOrAfter in the future — and NotOnOrAfter is
     # IdP-controlled. A key that must outlive a day-long (or year-9999)
