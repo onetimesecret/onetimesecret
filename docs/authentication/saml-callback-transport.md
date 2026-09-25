@@ -1,0 +1,78 @@
+# SAML callback transport
+
+SAML uses the IdP's HTTP-POST binding, followed by a same-origin `303` redirect to a GET completion request. A secure, host-only `SameSite=Lax` session cookie is sufficient. `SameSite=None; Secure` remains compatible with the same transport. `Strict` is not supported: the completion depends on the browser sending the original cookie on a cross-site top-level safe navigation. Apple callbacks are unchanged.
+
+## Request sequence
+
+1. The normal, CSRF-protected sign-in or Connect request stores an AuthnRequest ID in the original session. Tenant context and Connect intent remain in their existing session/sidecar locations.
+2. The IdP POSTs `SAMLResponse` to the configured ACS. Before any parser or session middleware, `SamlCallbackTransport::Boundary` bounds the form body and removes incoming cookies. It also removes every `Set-Cookie` response header, including on rejected POSTs. The original browser cookie is neither replaced nor renewed.
+3. Normal host resolution and the existing security layers, including HttpOrigin, run. `SamlCallbackTransport::Stage` runs inside the auth application's security profile, before Rodauth/OmniAuth. It suppresses anonymous session persistence, stores the untrusted assertion server-side, and returns `303` to the same callback path with only `saml_handle=<random value>` in the query.
+4. On the GET, the browser sends its original Lax cookie. OmniAuth dispatches callback GETs without enabling GET on the sign-in request route. The strategy reads the staged assertion non-destructively; a raw `SAMLResponse` in the GET URL is never accepted.
+5. Normal setup, tenant, active-session and Connect processing use the recovered original session. The strategy requires its pending request ID, validates the signature and document, and checks the signed bearer confirmation's request binding and recipient. Only after the validation and replay claim succeed may it atomically consume the staged handle and pending request, then release an auth hash.
+
+The handle is not an authentication credential on its own. A different session cannot redeem or consume a valid staged assertion by visiting its handle first. Invalid signatures, request mismatches, missing sessions and cross-host handles do not consume the staged value. Successful completion is single-use even with simultaneous GETs. Failed storage operations refuse authentication; there is no fallback to an unguarded login. A failure after the replay claim can require restarting sign-in.
+
+The POST never enters Rodauth or tenant/Connect hooks. This avoids running them with the temporary cookieless session. GET retains the existing tenant and Connect authorization checks; staging does not authorize platform SAML on a custom domain.
+
+## Bounds and operational constraints
+
+- Staged values expire after **120 seconds**, without refresh on reads.
+- A form body is limited to **500,000 bytes**, including when Content-Length is absent or understated. Only URL-encoded POST forms are accepted.
+- The decoded form's SAMLResponse value is limited to **350,000 bytes**. XML parsing and signature validation occur on GET, not staging POST.
+- Each fixed 120-second bucket admits at most **256** staged values globally and **20** per privacy-filtered client source. Adjacent buckets can have at most 512 live values, approximately 171 MiB of unescaped assertion payload at the size limit, plus scope and datastore overhead. These are untrusted strings, not validated Base64: JSON escaping can expand a stored value up to sixfold (a conservative payload-only ceiling of about 1 GiB). Do not size the datastore using 171 MiB alone. Rate counters occupy one bounded hash per bucket and also expire.
+- Only successful admissions increment counters. Repeated requests rejected by the source limit cannot spend the remaining global quota. Consumption does not refund admission quota. This bounds writes, not just live entries.
+- The limits are not a distributed-denial defense: 256 small junk submissions from 13 distinct masked source groups can exhaust a bucket, affecting every tenant sharing the datastore. Origin checks do not authenticate non-browser clients. A source group can also deny its own NAT peers after 20 admissions. Raising limits increases storage exposure; no capacity increase is made here.
+- Source limits use `otto.client_ip` (or the direct peer address when that middleware is absent), never a client-supplied forwarding header. Privacy masking and NAT can group legitimate users; a 429 may require waiting two minutes and restarting sign-in. Keep normal ingress request/concurrency limits in place.
+- Lua scripts require datastore scripting permissions. Stage is an atomic rate check plus expiring write; consume is an atomic compare-and-delete. All application workers must share the same datastore. No new dependency is required.
+- Staged assertions contain identity data in server-side storage for their TTL. Protect datastore access and transport as for session data. Expiry does not erase backups or server snapshots; account for this in retention policy.
+- Responses use `Cache-Control: no-store` and `Referrer-Policy: no-referrer`. Do not configure application, proxy, tracing or access logs to record SAMLResponse, callback query strings/handles, or response Location headers. A handle is session-bound but is still short-lived sensitive transport data.
+- Keep the Boundary before parsers/session and Stage after the auth security profile and before Rodauth. Moving Stage outside HttpOrigin would bypass the callback-origin policy; removing Boundary would risk cookie replacement. Stage refuses if Boundary did not prepare the request.
+
+### Admission decision
+
+Retain the existing **256 global / 20 per masked source / 120 seconds** admission limits. The global cap is an aggregate storage safety bound, not a claim that 256 matches every deployment's traffic. The accepted trade-off for this transport is temporary, fail-closed SAML unavailability under saturation rather than unbounded storage of unauthenticated assertions. Other authentication methods do not use this quota. Already staged callbacks remain readable and redeemable when admission is full; only new staging is refused. The next fixed bucket permits admission again, unless it too is saturated.
+
+Partitioning solely by resolved host would remove the deployment-wide storage bound: each additional host would get another allocation. Keeping a global cap plus per-host ceilings would reduce one host's share but still permit multi-host exhaustion, while adding a new limit for legitimate single-tenant bursts. Request-derived host/scope variants must not create new independent capacity. This implementation therefore retains one bounded counter hash and does not introduce host partitions or additional quota configuration.
+
+Cheap syntax checks cannot establish whether an assertion belongs to a pending browser transaction. The POST intentionally lacks the original Lax session; Origin can be forged by a non-browser client, and unsigned issuer, InResponseTo, Destination or RelayState values are attacker-controlled. Parsing them for admission would not establish trust and would add work before the protected GET validation. A server-issued admission capability or reserved per-tenant allocation would require a separate protocol/capacity design, not a transport-only fix. The real-datastore regression fills the unchanged 256-entry cap across distinct scopes using 13 source groups, verifies that rejection creates no extra counter fields, and verifies admission in the next bucket. The fixed-capacity denial risk above is an explicit limitation of the new staging resource, not a pre-existing behavior or a claim of tenant availability isolation. No further admission change is planned in this patch.
+
+## Assertion lifetime and algorithms
+
+Replay retention comes from the **latest eligible signed bearer SubjectConfirmationData expiry**, capped by Conditions expiry when present. Eligible confirmations must name the pending request and exact ACS recipient. Retention includes later confirmation windows even before their NotBefore time; otherwise the replay marker could expire before the assertion becomes usable again. Missing, malformed or expired confirmation expiry cannot supply a replay lifetime. Conditions expiry is optional. Clock-drift allowance and the existing maximum accepted lifetime remain in force; long windows are refused rather than remembered for less time than they remain usable.
+
+The runtime signature allowlist is RSA-SHA256/384/512, with SHA-256/384/512 digests. ECDSA is not supported by the installed ruby-saml 1.18.1 verifier: XMLDSig uses raw `r||s`, while OpenSSL expects DER. Do not enable ECDSA without a dependency fix and realistic signature regression coverage.
+
+## Logging boundary and proxy review
+
+The callback Boundary clears query strings, raw body, Rack parse caches, common raw-URI fields and Referer before RequestLogger and Sentry run. Stage temporarily exposes the handle to the strategy and clears request data on return or exception. HTTP debug logging and Sentry request serialization are regression-tested with sensitive fields explicitly allowlisted and PII enabled. Response Location still contains the handle by design; do not record it.
+
+Sentry Redis instrumentation is a separate capture path: it includes keys without PII and Lua arguments with PII. Store stage/read/consume run inside a temporary cleared Sentry scope. Their spans and breadcrumbs do not propagate to the request scope; surrounding request tracing remains enabled. This does not disable datastore-side MONITOR, slow logs or external instrumentation.
+
+`etc/examples/Caddyfile-example` applies matching encoder filters to runtime/error logs, JSON access logs and the formatted timeline output. The access formats share `onetime-log-redaction`; the global runtime logger declares the same fields inline because Caddy imports cannot reference a later snippet. It removes the **entire query** from logged request URIs on every route, deletes Referer and response Location fields (including the reverse-proxy debug header field), and preserves method, query-free path, status and duration. Whole-query removal avoids dependence on parameter spelling, percent encoding, duplicate keys or valid query parsing. This intentionally removes ordinary query parameters and redirect targets from these logs too. The forwarded request body/query and the Location delivered to the browser are unchanged.
+
+Caddy's documented [filter encoder](https://caddyserver.com/docs/caddyfile/directives/log#filter) performs filtering at encoding time; it does not rewrite live HTTP traffic. The example does not enable body logging. Additional custom log fields, request-body capture or third-party instrumentation are not covered by these field filters. Equivalent nginx formats must omit `$request`, `$request_uri`, `$args`, request bodies and `$sent_http_location` for callbacks; log method, query-free path, status and duration instead.
+
+## Validation coverage
+
+`python3 scripts/tests/test_caddy_log_redaction.py` validates the **complete Caddy example** with `caddy adapt --validate`, then runs a bounded loopback Caddy/backend harness using its actual logging snippets. It checks normal and renamed callbacks, encoded/duplicate parameter names, malformed and unrelated queries, POST bodies, 303 Location delivery, verbose reverse-proxy debug logs, and 502 proxy-error logs. Marker values must reach the upstream/client unchanged and be absent from all captured logs. This passed with locally installed Caddy **2.11.4** including transform-encoder; no Docker build or deployed ingress is involved. The test requires that Caddy build and Python 3, but no Ruby lane or datastore.
+
+Run from the repository root with `.test-mode` already present, dependencies installed and lane services available:
+
+```sh
+tests/lanes/run unit --only tests/browser/saml_callback_spec.rb --only spec/unit/onetime/middleware/saml_callback_transport_spec.rb --only spec/unit/onetime/application/middleware_manifest_spec.rb
+tests/lanes/run full-sqlite --only apps/web/auth/spec/integration/full/saml_callback_transport_spec.rb --only apps/web/auth/spec/integration/full/tenant_saml_sso_spec.rb
+```
+
+`tests/browser/saml_callback_spec.rb` owns an ephemeral Puma TLS server and a bounded Playwright child (`saml_callback.mjs`). It uses genuinely cross-site `https://localhost` and `https://127.0.0.1`, the actual Ruby Boundary/Stage, Rack cookie session and HttpOrigin middleware, the request-bound strategy, signed test-IdP assertions and the lane datastore. It does not mock browser cookie transmission. Harness initiation disables OmniAuth's request-validation hook; it does not test production initiation CSRF handling.
+
+Observed on 2026-09-25 with Chromium **151.0.7922.34**:
+
+| Cookie policy | Cookie on cross-site POST | Original session on completion GET | Outcome |
+| --- | --- | --- | --- |
+| Lax | Withheld | Recovered | Authenticated |
+| None | Sent, then ignored by Boundary | Recovered | Authenticated |
+| Strict | Withheld | Absent | Refused |
+
+All three controls passed. POST returned 303 without Set-Cookie and never authenticated; completion sent no-store/no-referrer, subsequent navigation sent no Referer, and replay after success was refused. Firefox and WebKit were not installed, so neither was run. The browser harness tests the transport stack, not the complete Rodauth/tenant/proxy deployment.
+
+`spec/unit/onetime/middleware/saml_callback_transport_spec.rb` covers wrong-session rejection, Origin isolation, single-use, expiry, storage failures, bounds, source-rejected flooding, HTTP debug capture, Sentry request capture and Redis tracing. `apps/web/auth/spec/integration/full/saml_callback_transport_spec.rb` covers recovered-session Connect with the actual auth application; Connect and tenant cases are Rack integration tests, not browser runs. Deployed proxy logs, external APM and remote Sentry ingestion were not validated.

@@ -184,17 +184,14 @@ tenant's own IdP EntityID.
   scalar-only `[saml_response_refused]` log event naming the `reason`:
   - **No IdP-initiated SSO.** The request phase stores the AuthnRequest id in
     the session (`saml_authn_request_id` — one per session, so a second
-    sign-in tab supersedes the first) and the callback consumes it before a
-    byte is parsed, passing it as `matches_request_id`. A callback with no
-    pending id is refused (`saml_no_pending_request`). ruby-saml treats a
-    nil `matches_request_id` as "do not check", so this binding is the whole
-    of the login-CSRF control — SAML has no `state` parameter.
-    Only a POST carrying a `SAMLResponse` consumes the id: anything else
-    (a cross-site `<img>` GET, a HEAD, a bare POST) is refused
-    (`saml_response_missing`) with the pending id left in place, because
-    the SameSite=None cookie the POST binding needs means such a request
-    arrives with the user's session and would otherwise cancel their
-    in-flight sign-in.
+    sign-in tab supersedes the first). The cookieless POST stages the response
+    and redirects to a GET that recovers the initiating session. The strategy
+    passes its pending id as `matches_request_id`; it consumes the pending id
+    and staged handle only after document validation and the replay claim.
+    A missing pending id is refused (`saml_no_pending_request`). Bare GETs,
+    raw assertions in a query, and invalid or wrong-session handles cannot
+    consume the original pending transaction. See
+    [SAML callback transport](saml-callback-transport.md).
   - **Binding read from the signed assertion.** `matches_request_id` is
     compared by ruby-saml against the UNSIGNED `Response/@InResponseTo`;
     the signed assertion's `SubjectConfirmationData/@InResponseTo` is
@@ -219,12 +216,13 @@ tenant's own IdP EntityID.
     validation the strategy reads every `ds:Signature` in the validated
     REXML document(s) (`response.document`, `decrypted_document`) — the same
     parser and objects the verifier read — and refuses anything outside
-    `ALLOWED_SIGNATURE_METHODS` / `ALLOWED_DIGEST_METHODS` (RSA/ECDSA
+    `ALLOWED_SIGNATURE_METHODS` / `ALLOWED_DIGEST_METHODS` (RSA
     SHA-256/384/512, digests SHA-256/384/512) as
     `saml_weak_signature_algorithm`. `idp_cert_fingerprint_algorithm` is
     pinned to SHA-256 for the same reason: the gem matches a certificate
     embedded in the response against the pinned one by fingerprint (SHA-1 by
-    default) and then verifies with the embedded one.
+    default) and then verifies with the embedded one. Configuration accepts
+    only RSA public keys; ECDSA is not supported by the installed verifier.
   - **Issuer byte-equality.** After ruby-saml validates the document, the
     response must carry exactly one Issuer value (Response and signed
     Assertion, uniq'd) that is `==` the configured `idp_entity_id`
@@ -265,15 +263,19 @@ tenant's own IdP EntityID.
     collides with an old `sub` resolve to that account. The platform
     surface keeps the bare EntityID, so tenant and platform rows can never
     match each other. `tenant_saml_sso_spec` drives the attack end to end.
-  - **Stable uid.** The uid is the NameID; the persistent format is requested
-    in every AuthnRequest. A transient NameID is refused unless
+  - **Stable uid.** The uid is the NameID; persistent is the default request
+    policy. `SAML_NAME_ID_FORMAT` and tenant `name_id_format` can select another
+    supported format or omit the policy (see [SAML policy settings](saml-policy.md)).
+    A transient NameID is refused unless
     `uid_attribute` is configured (`saml_transient_name_id`); a blank uid is
     refused (`saml_missing_uid`). Tenants have no `uid_attribute` setting —
     the tenant arm resets it to nil so a platform `SAML_UID_ATTRIBUTE` cannot
     leak into tenant logins.
   - **Assertion replay and lifetime.** `Onetime::Security::SamlAssertionReplayGuard`
     claims `SET NX EX` on a digest of (EntityID, assertion id) with
-    TTL = `NotOnOrAfter` − now + clock drift, floored at 1s
+    TTL = replay expiry − now + clock drift, floored at 1s. Replay expiry is
+    the latest eligible signed bearer confirmation's `NotOnOrAfter`, including
+    later confirmation windows, capped by Conditions expiry when present
     (`saml_assertion_replayed`; `saml_assertion_unbounded` when the assertion
     has no ID or no `NotOnOrAfter`; `saml_replay_guard_unavailable` on any
     datastore error). ruby-saml imposes no maximum `NotOnOrAfter`, so the
@@ -295,13 +297,11 @@ tenant's own IdP EntityID.
     option, and fixes `callback_url` to `full_host + callback_path`
     (omniauth's default appends the request query string and omniauth-saml
     makes that the ACS URL). Tenant SAML derives both SP identifiers per
-    request. Platform SAML keeps one fixed EntityID; its ACS uses `site.host`
-    normally, or the request host only for an explicitly enabled, verified
-    custom-domain platform fallback. The IdP must register each exact ACS.
-    The request and callback must remain on that same host, and the strategy
-    refuses an ineligible or mismatched host (`saml_acs_host_mismatch`). This
-    fallback remains in the platform identity and security boundary: it uses
-    platform trust and identity keys, not tenant `SsoConfig` or tenant context.
+    request. Platform SAML keeps one fixed EntityID and a canonical ACS
+    pinned at boot. It never rebinds that ACS for custom-domain fallback,
+    even when the domain is verified. Platform starts, callbacks and metadata
+    are restricted to the pinned host. Native tenant SAML uses its own
+    `SsoConfig`, SP identifiers and domain-scoped identity keys.
   - **SLO is off** (`slo_enabled: false`; `/slo` and `/spslo` answer 501).
     The gem's IdP-initiated logout default is `session.clear` on the Rack
     session, which bypasses this application's active-session rows; SLO needs
@@ -314,16 +314,21 @@ tenant's own IdP EntityID.
     attribute the IdP happens to name `email_verified` with a `false` value
     is still honoured as a hold — `email_verification_hold` unwraps the
     `Array` values SAML attributes arrive as.
-  **Operator prerequisites:** the HTTP-POST binding is a cross-site POST, so
-  SAML needs a host-only session cookie configured `site.session.same_site:
-  none` with `secure: true`. This is also required for custom-domain platform
-  fallback because the pending request and callback must use the same host.
+  **Operator prerequisites:** SAML needs a host-only session cookie configured
+  `site.session.same_site: lax` or `none` with `secure: true`. The staged
+  POST → 303 → GET flow recovers the initiating session; `strict` is not
+  supported. Platform SAML is never offered as custom-domain fallback.
   The callback origin is admitted through `HttpOriginOptions` from
   the **SSO service URL's** origin (`idp_origin_from`), never the EntityID (an
   opaque name, often a URN on another host). A tenant's SAML IdP origin is
   admitted per request by `sso_callback_from_tenant_idp?`, the counterpart of
   the platform set, sourced from the same record field as CSP `form-action`
-  (`AuthConfig::TENANT_ORIGIN_SOURCE_FIELDS`).
+  (`AuthConfig::TENANT_ORIGIN_SOURCE_FIELDS`). Tenant `callback_origins` can
+  admit additional exact HTTPS origins on that tenant's SAML POST callback
+  only, without changing CSP. Literal `Origin: null` is denied by default;
+    operators may enable the separate, SAML-callback-only
+    [null-origin policy](saml-policy.md#operator-opt-in-for-literal-origin-null)
+    with `SAML_ALLOW_NULL_ORIGIN=true`. Tenants cannot enable it.
   **Skip, not fail-boot.** Issue #4450 asked for a boot failure when
   `SAML_IDP_ENTITY_ID` is missing. `configure_provider` is built never to
   kill boot (an exception inside Rodauth configuration takes password, MFA

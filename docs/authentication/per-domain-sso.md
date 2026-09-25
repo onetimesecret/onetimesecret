@@ -151,9 +151,9 @@ still stamp the callback as validated for the domain.
 For `saml`, step 5 is followed by per-request injection of the tenant SP
 identifiers derived from the request's public host (`strategy.full_host`):
 the ACS URL and the SP EntityID (see
-[SAML 2.0 for a custom domain](#saml-20-for-a-custom-domain)). This differs
-from platform SAML fallback, which keeps the fixed platform EntityID and
-changes only the ACS to the verified request host. The tenant context is
+[SAML 2.0 for a custom domain](#saml-20-for-a-custom-domain)). Platform SAML,
+by contrast, keeps both identifiers pinned and is never offered as a custom-domain
+fallback, even on verified domains. The tenant context is
 stored in the session only on the request phase; the strategy's `/metadata`
 sub-path resolves the tenant's options but does not start a sign-in.
 
@@ -681,19 +681,22 @@ for a verified custom domain served on the default port. For an unverified
 domain the public-host resolution falls back to the request's own authority,
 so verify the domain before configuring the IdP.
 
-The IdP-side requirements are the platform ones: a persistent NameID (a
-transient NameID is refused, and there is no per-domain uid attribute), signed
-assertions with SHA-256 or stronger (SHA-1 signatures and digests are refused
-as `saml_weak_signature_algorithm`), the email as an attribute named
-`email` or `mail`, no IdP-initiated sign-in, and no single logout. The session cookie prerequisite
-applies too: `site.session.same_site: none` with `secure: true`, or every
-callback is refused as `saml_no_pending_request`. Because an organization
-admin cannot change the install's cookie, the API refuses to create a `saml`
-configuration while it is incompatible (422 on `provider_type`: "SAML sign-in
-cannot complete on this install: site.session.same_site is 'lax' …"); the
-operator sees the same rule as a boot error line when `ORGS_SSO_ENABLED=true`.
-An existing `saml` record stays editable (disable, rotate a field, switch
-provider) whatever the cookie.
+The default requested NameID format is persistent. Tenant `name_id_format`
+can request another supported format or omit the policy; a transient response
+is still refused because there is no per-domain stable UID attribute override.
+See [SAML policy settings](saml-policy.md) for the API fields and supported values.
+Assertions must use RSA-SHA256/384/512 signatures and SHA-256/384/512 digests;
+ECDSA is unsupported. Supply the email as an attribute named `email` or `mail`.
+IdP-initiated sign-in and single logout are not supported.
+
+The install must use a host-only session cookie with
+`site.session.same_site: lax` or `none` and `secure: true`; `strict` is
+unsupported. The callback stages the cookieless POST and redirects to a GET
+that recovers the initiating session. See [SAML callback transport](saml-callback-transport.md).
+Because an organization admin cannot change the install's cookie, the API
+refuses SAML creation or re-enablement while it is incompatible (422 on
+`provider_type`). Existing records retain disable, repair, replacement, and
+delete recovery paths.
 
 ### Validation, test and expiry
 
@@ -822,11 +825,11 @@ previously configured tenant that was pointed at the wrong cloud.
 | SSO tab missing | `manage_sso` is not materialized for the organization | Add it to `billing.yaml`, then run `bin/ots billing catalog sync` |
 | Mismatch between YAML key and plan | Root uses `sso`, plan uses `manage_sso` | Use consistent naming (`manage_sso`) |
 | SSO configured but login fails | No custom domain with SSO config | Add custom domain and configure SSO |
-| Platform SSO used instead of domain SSO | The custom domain has no active tenant SSO configuration and `SSO_ALLOW_PLATFORM_FALLBACK=true` | Configure and enable tenant SSO for the domain, or disable platform fallback. For platform SAML fallback, also remove the custom-domain ACS registration from the IdP |
+| Platform SSO used instead of domain SSO | The custom domain has no active tenant SSO configuration and `SSO_ALLOW_PLATFORM_FALLBACK=true` | Configure and enable tenant SSO for the domain, or disable platform fallback. Platform SAML is excluded from this fallback |
 | SAML sign-in lands on `sso_config_unusable` | The domain's SAML record is unusable: expired certificate, or a field that no longer decrypts | Check the `omniauth_tenant_config_unusable` log event; save a current certificate or re-enter the flagged fields |
-| SAML save refused: "SAML sign-in cannot complete on this install: site.session.same_site is …" | The install's session cookie is not `SameSite=None; Secure`, so no SAML callback could ever complete; the rule is enforced where the configuration is created | The operator sets `site.session.same_site: none` with `secure: true` (see [per-install-sso.md](per-install-sso.md#saml-20-1)) and restarts; boot logs the same rule as `[OmniAuth] SAML is enabled … but …` only for the tenant placeholder (`ORGS_SSO_ENABLED=true`, no platform `SAML_*` vars) — with platform `SAML_*` vars set the boot line is `[OmniAuth] Skipping SAML provider 'saml': …` instead |
+| SAML save refused: "SAML sign-in cannot complete on this install: site.session.same_site is …" | The install's session cookie is not Secure with SameSite=Lax or None; creation and re-enablement are refused | The operator sets `site.session.same_site: lax` or `none` with `secure: true` (see [per-install-sso.md](per-install-sso.md#saml-20-1)) and restarts; boot logs the same rule as `[OmniAuth] SAML is enabled … but …` only for the tenant placeholder (`ORGS_SSO_ENABLED=true`, no platform `SAML_*` vars) — with platform `SAML_*` vars set the boot line is `[OmniAuth] Skipping SAML provider 'saml': …` instead |
 | SAML save refused: "must have a plain hostname (no spaces, quotes or punctuation in the host)", "must not contain a fragment" or "host must not end with a dot" | The SSO URL's host carries characters the CSP `form-action` directive cannot carry, or a trailing dot that the derived origin would strip (the browser would then POST from an origin that was never admitted) | Enter the IdP's SSO URL with a plain hostname. Private-network IdPs are accepted: the server never fetches this URL |
-| SAML callback returns 403 | The POST's `Origin` is not the applicable SSO-service origin, or the domain is eligible for neither tenant SAML nor platform fallback | See [Custom-Domain POST Returns 403](#custom-domain-post-returns-403-httporigin) |
+| SAML callback returns 403 | The POST's `Origin` is neither the applicable SSO-service origin nor an explicit tenant `callback_origins` entry, or the domain has no active tenant SAML configuration | See [Custom-Domain POST Returns 403](#custom-domain-post-returns-403-httporigin) |
 
 ### SSO Login Blocked on Chromium-Family Browsers (CSP `form-action`)
 
@@ -858,10 +861,15 @@ With proxies that rewrite `Host` to the canonical host while forwarding the publ
 
 A SAML **callback** is a second case: the IdP posts the response cross-site,
 so its `Origin` is the IdP's, not the domain's. `HttpOrigin` admits a POST to
-`/auth/sso/{provider}/callback` only when the `Origin` equals the applicable
-IdP SSO-service origin. Tenant SAML derives it from that domain's
-`idp_sso_service_url`; an eligible platform SAML fallback derives it from the
-platform `SAML_IDP_SSO_SERVICE_URL`. It denies on uncertainty, including an
+the tenant's resolved SAML callback route when the `Origin` equals the
+origin derived from its `idp_sso_service_url`, or an explicit
+`callback_origins` entry. Additional origins are callback-only; they do not
+widen CSP or other routes. Literal `Origin: null` is denied by default;
+only the deployment operator can enable the
+[scoped null-origin exception](saml-policy.md#operator-opt-in-for-literal-origin-null)
+with `SAML_ALLOW_NULL_ORIGIN=true`. The tenant API cannot enable it. A missing
+Origin retains the middleware's existing behavior. Platform SAML is not
+available as a custom-domain fallback. The tenant allowance denies on uncertainty, including an
 unverified custom domain, an unreadable tenant record, or a datastore error.
 
 ## Related Configuration

@@ -3,24 +3,12 @@
 Added
 -----
 
-- SAML 2.0 single sign-on, on both surfaces. Platform: set
-  ``SAML_IDP_SSO_SERVICE_URL``, ``SAML_IDP_ENTITY_ID`` and ``SAML_IDP_CERT``
-  (the IdP's PEM signing certificate; fingerprints are not accepted) and
-  register ``https://<host>/auth/sso/saml/metadata`` as the SP EntityID and
-  ``https://<host>/auth/sso/saml/callback`` as the ACS URL at the IdP.
-  Per-domain: a custom domain's SSO configuration accepts provider type
-  ``saml`` with the same three fields, shows the SP identifiers to register,
-  and validates them locally through "Test connection" without contacting the
-  IdP. Every response must answer the sign-in request this site issued
-  (IdP-initiated sign-in and single logout are not supported), assertions are
-  single-use, the response Issuer must equal the configured EntityID
-  exactly, and a response signed or digested with SHA-1 (or any algorithm
-  outside RSA/ECDSA-SHA256/384/512) is refused. Per-domain identities are keyed on the EntityID scoped to the
-  domain that pinned the certificate, so a domain cannot reach another
-  domain's (or the platform's) identities by configuring their EntityID with
-  its own certificate. Requires ``site.session.same_site: none`` with ``secure: true``,
-  like Sign in with Apple. Missing or unusable ``SAML_*`` values skip the
-  provider with an error in the boot log rather than failing boot. (#4450)
+- SAML 2.0 single sign-on for the platform and custom domains, with an RSA
+  signing certificate, configurable NameID policy, and per-domain callback
+  origins. Secure session cookies may use ``SameSite=Lax`` or ``None``;
+  IdP-initiated sign-in and single logout are not supported. See
+  ``docs/authentication/per-install-sso.md`` and ``per-domain-sso.md`` for
+  setup, and ``saml-policy.md`` for interoperability options. (#4450)
 
 Changed
 -------
@@ -38,6 +26,15 @@ Changed
 
 Security
 --------
+
+- Platform SAML is restricted to its configured platform host, even when
+  platform SSO fallback is enabled. Custom domains must configure their own
+  SAML provider; remove their ACS registrations from the platform IdP. See
+  ``docs/authentication/per-install-sso.md``. (#4450)
+
+- The example Caddy configuration removes query strings and redirect locations
+  from logs. Apply equivalent filtering to deployed ingress logs when enabling
+  SAML; see ``docs/authentication/saml-callback-transport.md``. (#4450)
 
 - ``ruby-saml`` is pinned exactly in the Gemfile with its advisory history,
   and a ``bundler-audit`` job runs against ``Gemfile.lock`` on every pull
