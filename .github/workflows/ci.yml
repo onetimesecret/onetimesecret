@@ -413,6 +413,12 @@ jobs:
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
 
+      - name: Install Playwright browsers for SAML callback coverage
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+
+      - name: Run SAML callback browser matrix
+        run: tests/lanes/run unit --only tests/browser/saml_callback_spec.rb
+
       # Diagnostic probe for CI-only hash mismatch (issue being investigated).
       # A CI-layer concern, not part of the lane contract — env mirrors the
       # unit lane (tests/lanes/base.env + unit/env). Non-blocking (|| true).

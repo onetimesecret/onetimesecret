@@ -9,14 +9,20 @@ const watchdog = setTimeout(() => {
   process.exit(1);
 }, 90_000);
 const results = [];
+const engines = { chromium, firefox, webkit };
+const missingBrowsers = Object.entries(engines)
+  .filter(([, engine]) => !existsSync(engine.executablePath()))
+  .map(([name]) => name);
+
+if (missingBrowsers.length > 0) {
+  throw new Error(
+    `Required Playwright browsers are not installed: ${missingBrowsers.join(', ')}. ` +
+      'Run pnpm playwright:install.'
+  );
+}
+
 try {
-  for (const [name, engine] of Object.entries({ chromium, firefox, webkit })) {
-    if (!existsSync(engine.executablePath())) {
-      if (name === 'chromium')
-        throw new Error('Chromium is required: install the pinned Playwright browser');
-      results.push({ browser: name, status: 'not installed' });
-      continue;
-    }
+  for (const [name, engine] of Object.entries(engines)) {
     const browser = await engine.launch({ headless: true, timeout: 15_000 });
     try {
       for (const sameSite of ['Lax', 'None', 'Strict']) {
