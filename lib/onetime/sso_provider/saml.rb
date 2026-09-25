@@ -401,7 +401,7 @@ module Onetime
       #   validity window (see above)
       # @return [String, nil] problem description, or nil when usable
       def self.cert_problem(pem, allow_expired: false)
-        cert = parse_single_cert(pem)
+        cert = cached_certificate(pem)
         return cert if cert.is_a?(String)
         return nil if allow_expired
 
@@ -418,9 +418,25 @@ module Onetime
       #
       # @return [OpenSSL::X509::Certificate, nil]
       def self.parse_cert(pem)
-        cert = parse_single_cert(pem)
-        cert.is_a?(String) ? nil : cert
+        cert = cached_certificate(pem)
+        cert.is_a?(String) ? nil : cert.dup
       end
+
+      CERTIFICATE_CACHE_LOCK = Mutex.new
+      CERTIFICATE_CACHE      = {}
+
+      # Cache only parsing, never availability. Every caller still checks both
+      # ends of the validity window and every other configuration input live.
+      def self.cached_certificate(pem)
+        key = normalize_pem(pem).to_s.dup.freeze
+        CERTIFICATE_CACHE_LOCK.synchronize do
+          return CERTIFICATE_CACHE[key] if CERTIFICATE_CACHE.key?(key)
+
+          CERTIFICATE_CACHE.shift if CERTIFICATE_CACHE.size >= 32
+          CERTIFICATE_CACHE[key] = parse_single_cert(key)
+        end
+      end
+      private_class_method :cached_certificate
 
       PEM_CERT_BEGIN = '-----BEGIN CERTIFICATE-----'
       PEM_CERT_BLOCK = /-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----/m

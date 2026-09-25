@@ -248,6 +248,61 @@ RSpec.describe Onetime::SsoProvider::Saml do
       expect { described_class.strategy_options_for(**trio, name_id_format: 'invalid') }.to raise_error(ArgumentError, /NameID/)
     end
 
+    it 'caches parsing but rechecks both validity bounds on every call' do
+      pem  = idp.cert_pem
+      cert = OpenSSL::X509::Certificate.new(pem)
+      described_class::CERTIFICATE_CACHE_LOCK.synchronize { described_class::CERTIFICATE_CACHE.clear }
+      expect(OpenSSL::X509::Certificate).to receive(:new).with(pem.strip).once.and_call_original
+      allow(Time).to receive(:now).and_return(cert.not_before - 1)
+      expect(described_class.cert_problem(pem)).to include('not valid until')
+      allow(Time).to receive(:now).and_return(cert.not_before + 1)
+      expect(described_class.cert_problem(pem)).to be_nil
+      allow(Time).to receive(:now).and_return(cert.not_after + 1)
+      expect(described_class.cert_problem(pem)).to include('expired')
+    end
+
+    it 'keeps every platform option input live across certificate-cache hits' do
+      env = {
+        'SAML_IDP_SSO_SERVICE_URL' => trio[:idp_sso_service_url],
+        'SAML_IDP_ENTITY_ID' => trio[:idp_entity_id],
+        'SAML_IDP_CERT' => trio[:idp_cert],
+        'SAML_UID_ATTRIBUTE' => 'subject',
+        'SAML_ROUTE_NAME' => 'saml',
+        'SAML_SP_ENTITY_ID' => '',
+        'SAML_NAME_ID_FORMAT' => described_class::PERSISTENT_NAME_ID_FORMAT,
+      }
+      site = { 'site' => { 'host' => 'platform.example', 'ssl' => true } }
+      session = { 'same_site' => 'none', 'secure' => true }
+      allow(ENV).to receive(:fetch).and_wrap_original do |original, key, *args|
+        env.key?(key) ? env[key] : original.call(key, *args)
+      end
+      allow(OT).to receive(:conf).and_return(site)
+      allow(Onetime).to receive(:session_config).and_return(session)
+      expect(described_class.platform_usable?).to be true
+      env['SAML_UID_ATTRIBUTE'] = 'employee'
+      env['SAML_ROUTE_NAME'] = 'company'
+      env['SAML_NAME_ID_FORMAT'] = 'omit'
+      site['site']['host'] = 'new.example'
+      site['site']['ssl'] = false
+      expect(described_class.platform_options).to include(uid_attribute: 'employee', name_identifier_format: nil,
+        sp_entity_id: 'http://new.example/auth/sso/company/metadata', assertion_consumer_service_url: 'http://new.example/auth/sso/company/callback')
+      env['SAML_SP_ENTITY_ID'] = 'urn:custom:sp'
+      expect(described_class.platform_options[:sp_entity_id]).to eq('urn:custom:sp')
+      env['SAML_IDP_ENTITY_ID'] = ''
+      expect(described_class.platform_usable?).to be false
+      env['SAML_IDP_ENTITY_ID'] = 'urn:new:idp'
+      env['SAML_IDP_SSO_SERVICE_URL'] = 'http://insecure.example'
+      expect(described_class.platform_usable?).to be false
+      env['SAML_IDP_SSO_SERVICE_URL'] = 'https://new.idp.example/sso'
+      expect(described_class.platform_options).to include(idp_entity_id: 'urn:new:idp', idp_sso_service_url: 'https://new.idp.example/sso')
+      env['SAML_IDP_CERT'] = 'bad cert'
+      expect(described_class.platform_usable?).to be false
+      env['SAML_IDP_CERT'] = SamlSpec::TestIdp.new.cert_pem
+      expect(described_class.platform_usable?).to be true
+      session['same_site'] = 'strict'
+      expect(described_class.platform_usable?).to be false
+    end
+
     it 'rejects malformed callback policy including literal null and URL paths' do
       [nil, 'https://idp.example', ['null'], ['https://idp.example/'], ['http://idp.example'], ['https://*.example'], ['https://idp.example:443']].each do |value|
         expect(described_class.callback_origins_problem(value)).not_to be_nil
