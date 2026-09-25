@@ -130,6 +130,9 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `SAML_UID_ATTRIBUTE` | No | SAML attribute to use as the stable user id instead of the NameID. Required when the IdP can only send a transient NameID |
 | `SAML_ROUTE_NAME` | No | URL segment (default: `saml`) |
 | `SAML_DISPLAY_NAME` | No | Button label (default: `SAML SSO`) |
+| `SAML_NAME_ID_FORMAT` | No | NameID format requested from the IdP. Default: persistent. Also accepted: the SAML 1.1 `emailAddress` and `unspecified` formats, the 2.0 `transient` format (requires `SAML_UID_ATTRIBUTE`), or `omit` to send no NameIDPolicy. See [SAML policy settings](saml-policy.md) |
+| `SAML_ALLOW_NULL_ORIGIN` | No | Admit a literal `Origin: null` header on POSTs to a configured SAML callback route, for IdP flows that submit an opaque origin. Only the exact string `true` enables it; no tenant setting can. Default: `false`. See [SAML policy settings](saml-policy.md#operator-opt-in-for-literal-origin-null) |
+| `SAML_TRUST_EMAIL_FOR_LINKING` | No | Opt in to email-based account linking for this provider (default: `false`). SAML carries no `email_verified` claim, so the email is whatever the IdP asserts. See [The flag](#the-flag) |
 
 A missing **or unusable** value (non-https URL, a URL with a fragment or a host the CSP layer cannot carry, blank EntityID, a certificate that does not parse, has more than one block, has expired, or is not yet valid) skips the provider with an error in the boot log and hides the button; boot never fails. See [SAML 2.0](#saml-20-1) under Provider Configuration.
 
@@ -469,6 +472,8 @@ Per-provider environment variables, plus a global fallback. Default is **false**
 | `ENTRA_TRUST_EMAIL_FOR_LINKING` | Microsoft Entra ID |
 | `GOOGLE_TRUST_EMAIL_FOR_LINKING` | Google |
 | `GITHUB_TRUST_EMAIL_FOR_LINKING` | GitHub |
+| `APPLE_TRUST_EMAIL_FOR_LINKING` | Apple |
+| `SAML_TRUST_EMAIL_FOR_LINKING` | SAML 2.0 |
 | `SSO_TRUST_EMAIL_FOR_LINKING` | Global fallback (deprecated single-OIDC default) |
 
 Set the value to the string `true` to enable; anything else (or unset) is disabled. Precedence: a per-provider variable, **when present**, wins for that provider (`true` enables, any other value disables); otherwise the global `SSO_TRUST_EMAIL_FOR_LINKING=true` enables linking for every platform provider that has no per-provider override; otherwise the default of `false` applies.
