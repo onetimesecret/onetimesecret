@@ -1536,6 +1536,27 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         expect(stored_config).to be_nil
       end
 
+      it 'rejects EC keys while permitting recovery of a legacy disabled record' do
+        key             = OpenSSL::PKey::EC.generate('prime256v1')
+        cert            = OpenSSL::X509::Certificate.new(saml_cert)
+        cert.public_key = key
+        cert.sign(key, OpenSSL::Digest.new('SHA256'))
+        csrf_put api_path(test_custom_domain.extid), valid_saml_params.merge(idp_cert: cert.to_pem)
+        expect(last_response.status).to eq(422), last_response.body
+        expect(json_body['error']).to include('RSA public key')
+        csrf_put api_path(test_custom_domain.extid), valid_saml_params
+        config          = stored_config
+        config.idp_cert = cert.to_pem
+        config.commit_fields
+        csrf_patch api_path(test_custom_domain.extid), { enabled: false }
+        expect(last_response.status).to eq(200), last_response.body
+        csrf_patch api_path(test_custom_domain.extid), { display_name: 'Repairing' }
+        expect(last_response.status).to eq(200), last_response.body
+        csrf_patch api_path(test_custom_domain.extid), { enabled: true }
+        expect(last_response.status).to eq(422), last_response.body
+        csrf_patch api_path(test_custom_domain.extid), { idp_cert: saml_cert, enabled: true }
+        expect(last_response.status).to eq(200), last_response.body
+      end
     end
 
     describe 'under an incompatible session cookie' do

@@ -785,8 +785,8 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         expect(fake_dbclient.writes).to be_empty
       end
 
-      it 'keeps the allowlists to SHA-2 RSA / ECDSA methods and SHA-2 digests' do
-        expect(described_class::ALLOWED_SIGNATURE_METHODS).to all(match(%r{#(rsa|ecdsa)-sha(256|384|512)\z}))
+      it 'keeps the allowlists to SHA-2 RSA methods and SHA-2 digests' do
+        expect(described_class::ALLOWED_SIGNATURE_METHODS).to all(match(%r{#rsa-sha(256|384|512)\z}))
         expect(described_class::ALLOWED_DIGEST_METHODS).to all(match(/#sha(256|384|512)\z/))
         expect(described_class::ALLOWED_SIGNATURE_METHODS).not_to include(rsa_sha1)
         expect(described_class::ALLOWED_DIGEST_METHODS).not_to include(sha1)

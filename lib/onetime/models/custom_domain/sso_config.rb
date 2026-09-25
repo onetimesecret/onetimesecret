@@ -888,7 +888,7 @@ module Onetime
           case name
           when :idp_sso_service_url then saml.sso_url_problem(value)
           when :idp_entity_id       then saml.entity_id_problem(value)
-          when :idp_cert            then saml.cert_problem(value, allow_expired: true)
+          when :idp_cert            then saml.cert_problem(value, allow_expired: true, allow_unsupported_key: true)
           end
         end
       end

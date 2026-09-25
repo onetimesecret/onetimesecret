@@ -143,8 +143,8 @@ module Onetime
       # (xml_security.rb:341, :415) and maps any URI it does not recognise to
       # SHA1, so a SHA1-signed response verifies under this hash. The
       # minimum-algorithm gate is therefore a RequestBoundSAML check
-      # (signature_algorithm_refusal: an allowlist of SHA-256/384/512 RSA and
-      # ECDSA methods and SHA-256/384/512 digests, refusal
+      # (signature_algorithm_refusal: an allowlist of SHA-256/384/512 RSA
+      # methods and SHA-256/384/512 digests, refusal
       # :saml_weak_signature_algorithm), not a value here. RE-VERIFY on a
       # ruby-saml bump. (#4450)
       SECURITY = {
@@ -400,9 +400,12 @@ module Onetime
       # @param allow_expired [Boolean] structure-only check: skip the whole
       #   validity window (see above)
       # @return [String, nil] problem description, or nil when usable
-      def self.cert_problem(pem, allow_expired: false)
+      def self.cert_problem(pem, allow_expired: false, allow_unsupported_key: false)
         cert = cached_certificate(pem)
         return cert if cert.is_a?(String)
+        unless allow_unsupported_key || cert.public_key.is_a?(OpenSSL::PKey::RSA)
+          return 'IdP certificate must contain an RSA public key; other public-key types are not supported'
+        end
         return nil if allow_expired
 
         now = Time.now

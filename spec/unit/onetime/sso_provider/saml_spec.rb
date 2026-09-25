@@ -248,6 +248,15 @@ RSpec.describe Onetime::SsoProvider::Saml do
       expect { described_class.strategy_options_for(**trio, name_id_format: 'invalid') }.to raise_error(ArgumentError, /NameID/)
     end
 
+    it 'rejects EC public keys regardless of the certificate signature algorithm' do
+      key             = OpenSSL::PKey::EC.generate('prime256v1')
+      cert            = OpenSSL::X509::Certificate.new(idp.cert_pem)
+      cert.public_key = key
+      cert.sign(OpenSSL::PKey::RSA.new(2048), OpenSSL::Digest.new('SHA256'))
+      expect(described_class.cert_problem(cert.to_pem)).to include('RSA public key')
+      expect(described_class.cert_problem(cert.to_pem, allow_expired: true, allow_unsupported_key: true)).to be_nil
+    end
+
     it 'caches parsing but rechecks both validity bounds on every call' do
       pem  = idp.cert_pem
       cert = OpenSSL::X509::Certificate.new(pem)

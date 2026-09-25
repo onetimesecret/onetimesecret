@@ -232,15 +232,13 @@ module OmniAuth
       # "not in this list" is the only safe reading of "unknown". RSA-PSS
       # (xmldsig-more#sha256-rsa-MGF1 etc.) is deliberately absent: the gem
       # resolves it to a plain SHA-256 PKCS#1 v1.5 verify and it would fail
-      # anyway. ECDSA is included because the same `verify` call works for an
-      # EC public key. RE-VERIFY on a ruby-saml bump.
+      # anyway. ECDSA is unsupported: ruby-saml 1.18.1 does not convert the
+      # XMLDSig raw r||s signature to the DER OpenSSL expects. RE-VERIFY on bump.
       ALLOWED_SIGNATURE_METHODS = %w[
         http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
         http://www.w3.org/2001/04/xmldsig-more#rsa-sha384
         http://www.w3.org/2001/04/xmldsig-more#rsa-sha512
-        http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256
-        http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha384
-        http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha512
+
       ].freeze
 
       ALLOWED_DIGEST_METHODS = %w[
