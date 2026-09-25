@@ -526,39 +526,12 @@ module Core
           # provider: a Connect callback there is intentionally rejected as a
           # cross-surface intent after consuming the user's re-auth proof.
           #
-          # Platform SAML is visible on the platform host itself and wherever
-          # this request positively resolves to a VERIFIED custom domain.
-          #
-          # The first arm is operator_domain? narrowed by Saml.platform_host?
-          # — site.host, the one host the boot-pinned platform ACS names —
-          # not operator_domain? alone: the strategy refuses a start on any
-          # other host as saml_acs_host_mismatch, and a secondary
-          # canonical-set host, a link host or a subdomain is "any other
-          # host" to it even though operator_domain? admits all of them. The
-          # other half of the parity rule: "never shown where the POST cannot
-          # complete".
-          #
-          # The second arm deliberately reads the record rather than also
-          # requiring tenant_domain? (strategy == :custom), for the same
-          # reason Auth::PublicHost.resolve does not: DomainStrategy degrades
-          # to :invalid whenever Chooserator raises (an unparseable canonical
-          # host is enough), while display_domain still names the real
-          # customer domain. The runtime half of this gate
-          # (omniauth_tenant.rb bind_platform_fallback_acs -> PublicHost)
-          # binds the ACS to that verified domain regardless of the
-          # classification, so a display gate keyed on :custom would hide a
-          # button whose POST completes — the half of the parity rule that
-          # says "never hidden when it works". verified_custom_domain? is
-          # already the narrow answer: canonical-set hosts read false even
-          # when a verified record is keyed on them (PublicHost refuses those
-          # at runtime), unknown and unverified hosts read false, and a
-          # failed read is answered false as well, so nothing widens here.
-          resolution = tenant_sso_resolution(view_vars)
+          # Platform SAML is visible only on its pinned platform host, not
+          # every operator host and never through custom-domain fallback.
 
           build_platform_sso_config(
             connectable: !tenant_domain?(view_vars),
             platform_host: platform_saml_host?(view_vars),
-            verified_custom_domain: resolution.verified_custom_domain?,
           )
         end
 
@@ -774,20 +747,16 @@ module Core
         # providers on its own if it gains another caller — so it re-checks
         # rather than relying on the caller's guard.
         #
-        # Platform SAML is offered on the platform host (site.host, where its
-        # ACS is pinned) and on positively resolved, verified custom domains.
-        # Runtime still owns whether the route can complete; this display gate
-        # prevents unknown, unverified, or unreadable domain state — and the
-        # operator's OTHER hosts, where the POST cannot complete — from
-        # widening the surface.
+        # Platform SAML is offered only on its pinned platform host, never
+        # on a custom domain, even if ownership is verified.
         #
         # @param connectable [Boolean] whether this host may initiate Connect
         # @param platform_host [Boolean] whether this is the boot-pinned SAML host
-        # @param verified_custom_domain [Boolean] whether ownership is verified
+
         # @return [Boolean, Hash] false if disabled, otherwise config hash whose
         #   'enabled' is true only when at least one provider survived the
         #   host gate
-        def build_platform_sso_config(connectable: true, platform_host: true, verified_custom_domain: false)
+        def build_platform_sso_config(connectable: true, platform_host: true)
           unless Onetime::CustomDomain::SigninConfig.global_auth_enabled
             return { 'enabled' => false, 'providers' => [] }
           end
@@ -799,7 +768,6 @@ module Core
             next unless Onetime::SsoProvider::Registry.platform_route_available_on_host?(
               route_name,
               platform_host: platform_host,
-              verified_custom_domain: verified_custom_domain,
             )
 
             {
@@ -810,7 +778,7 @@ module Core
 
           # enabled follows the FILTERED list, not sso_enabled?: a host whose
           # only configured provider was withheld above (SAML on a subdomain,
-          # a secondary canonical-set host, or an unverified custom domain)
+          # a secondary canonical-set host, or any custom domain)
           # has nothing to sign in with, and advertising enabled: true there
           # keeps /signin up as an SSO surface with no button on it.
           {

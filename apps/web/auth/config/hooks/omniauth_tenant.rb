@@ -23,8 +23,8 @@
 # Security Model:
 #   - Tenant context (domain_id) stored in session during request phase
 #   - Callback validates tenant context matches (prevents redirect attacks)
-#   - Missing tenant config can either fall back to platform credentials
-#     or reject the request based on `allow_platform_fallback_for_tenants`
+#   - Missing tenant config may fall back to platform OAuth credentials under
+#     `allow_platform_fallback_for_tenants`; platform SAML stays on its pinned host
 #
 # See: docs/authentication/omniauth-sso.md (full configuration guide)
 # See: lib/onetime/models/custom_domain/sso_config.rb (per-domain SSO config)
@@ -179,7 +179,9 @@ module Auth::Config::Hooks
           # Check if this is the platform's canonical domain.
           # Canonical domain requests are platform-level, not tenant requests,
           # so tenant fallback policy should not apply.
-          if HELPERS.canonical_domain?(host)
+          if HELPERS.canonical_domain?(host) &&
+             (!HELPERS.request_bound_platform_acs_strategy?(strategy) ||
+              Onetime::SsoProvider::Saml.platform_host?(host))
             Auth::Logging.log_auth_event(
               :omniauth_canonical_domain_request,
               level: :debug,
@@ -346,8 +348,16 @@ module Auth::Config::Hooks
           request.halt
         end
 
-        # If no tenant context was stored, this was a platform-level auth
-        # (no tenant credentials were injected). Allow it to proceed.
+        # Refuse platform SAML off its pinned host even if a strategy bypassed
+        # setup. This runs before linked-identity lookup, not only JIT creation.
+        if !injected_config &&
+           Onetime::SsoProvider::Registry.request_bound_platform_acs_route?(omniauth_provider) &&
+           !Onetime::SsoProvider::Saml.platform_host?(HELPERS.public_host(request))
+          HELPERS.clear_pending_tenant_context(session)
+          redirect '/signin?auth_error=sso_not_configured'
+        end
+
+        # No tenant context means platform-level auth.
         next unless expected_domain_id
 
         # Resolve current request's tenant context
@@ -668,14 +678,9 @@ module Auth::Config::Hooks
     # them on an operator host without consulting the policy, so the policy
     # must not refuse them here either. The master switch still applies.
     #
-    # For platform SAML, proceeding additionally requires positive host
-    # evidence: either the request is on the pinned platform host itself
-    # (site.host, whose boot-time ACS needs no rebinding) or
-    # Auth::PublicHost.resolve names a verified custom domain, and only then
-    # is the boot-time canonical ACS replaced with the strategy's verified
-    # public host. A secondary canonical-set host is neither, so a SAML start
-    # there is refused as it is without a record. The platform SP EntityID
-    # and IdP trust options are deliberately untouched.
+    # Platform SAML is restricted to its pinned platform host on EVERY phase.
+    # Domain ownership verification does not authorize a tenant to receive
+    # platform assertions. Neither the ACS nor the platform EntityID is rebound.
     #
     # @param host [String] Request hostname for logging
     # @param rodauth [Rodauth] Rodauth instance (for redirect)
@@ -690,7 +695,7 @@ module Auth::Config::Hooks
       if fallback_allowed
         strategy = request&.env&.fetch('omniauth.strategy', nil)
         if !request_bound_platform_acs_strategy?(strategy) ||
-           bind_platform_fallback_acs(strategy, request, host: host)
+           Onetime::SsoProvider::Saml.platform_host?(host)
           if strategy&.on_request_path?
             # A new platform start supersedes whatever tenant flow was pending.
             clear_pending_tenant_context(rodauth.session)
@@ -735,12 +740,14 @@ module Auth::Config::Hooks
       # tenant_context_missing belt exists to catch. Only the strategy
       # callers pass a request; the policy-only contract (request: nil) has
       # no session to drop.
+      pending_tenant_flow_dropped = !request.nil? && pending_tenant_flow?(rodauth.session)
       clear_pending_tenant_context(rodauth.session) unless request.nil?
 
       Auth::Logging.log_auth_event(
         :omniauth_tenant_no_config,
         level: :warn,
         host: host,
+        pending_tenant_flow_dropped: pending_tenant_flow_dropped,
       )
 
       rodauth.send(:redirect, '/signin?auth_error=sso_not_configured')
@@ -808,51 +815,11 @@ module Auth::Config::Hooks
       Onetime::SsoProvider::FlowSessionKeys::ALL.each { |key| session.delete(key) }
     end
 
-    # True only for a registered provider that explicitly supports rebinding
-    # its platform ACS for verified custom-domain fallback.
+    # True for a registered SAML provider whose platform ACS is host-pinned.
     def self.request_bound_platform_acs_strategy?(strategy)
       return false unless strategy&.class&.name == SAML_STRATEGY_CLASS
 
       Onetime::SsoProvider::Registry.request_bound_platform_acs_route?(strategy.options[:name])
-    end
-
-    # Bind only the ACS, and only when PublicHost positively resolves a verified
-    # custom domain. Unknown, unverified, and datastore-error hosts return false
-    # and are rejected by handle_missing_tenant_config.
-    #
-    # The pinned platform host (site.host) is admitted WITHOUT a rebind. A
-    # request reaches this helper on that host only when a CustomDomain
-    # record is keyed on it (site.host moved onto a host a tenant had already
-    # registered — the same state TenantSsoResolution#verified_custom_domain?
-    # and Auth::PublicHost.served_custom_host? refuse as a served custom
-    # host). The boot-time ACS already names site.host, so the platform SAML
-    # start that /signin advertises there (ConfigSerializer#platform_saml_host?)
-    # must proceed exactly as it does when no record is keyed on the host.
-    # Before this, `platform_host: false` was hard-coded and PublicHost
-    # excludes the whole canonical set, so that start was refused as
-    # sso_not_configured: advertised, then refused.
-    #
-    # @param strategy [OmniAuth::Strategy] the request-bound SAML strategy
-    # @param request [Rack::Request, nil] current request
-    # @param host [String, nil] the public host the hook resolved the tenant
-    #   record by (HELPERS.public_host), compared against site.host
-    # @return [Boolean] true when the start may proceed with platform defaults
-    def self.bind_platform_fallback_acs(strategy, request, host: nil)
-      return false if request.nil?
-
-      platform_host          = Onetime::SsoProvider::Saml.platform_host?(host)
-      verified_custom_domain = !platform_host && !Auth::PublicHost.resolve(request.env).nil?
-      route_available        = Onetime::SsoProvider::Registry.platform_route_available_on_host?(
-        strategy.options[:name],
-        platform_host: platform_host,
-        verified_custom_domain: verified_custom_domain,
-      )
-      return false unless route_available
-      # Nothing to rebind: the boot-pinned ACS already names this host.
-      return true if platform_host
-
-      strategy.options[:assertion_consumer_service_url] = strategy.full_host + strategy.callback_path
-      true
     end
 
     # Inject tenant credentials into the OmniAuth strategy.
@@ -996,13 +963,8 @@ module Auth::Config::Hooks
     # Runs ONLY after tenant options were injected: a platform SAML flow
     # keeps the platform's registered sp_entity_id, pinned to site.host at
     # boot (Onetime::SsoProvider::Saml.platform_options), and its ACS stays
-    # boot-pinned on the canonical host. The one exception is a platform
-    # FALLBACK start on a VERIFIED custom domain: handle_missing_tenant_config
-    # rebinds ONLY the ACS to that host (bind_platform_fallback_acs, keyed on
-    # Auth::PublicHost.resolve) so the cookie host and the ACS host agree;
-    # the platform SP EntityID is never rebound. On any other host the
-    # boot-pinned ACS names a host other than the visitor's session cookie,
-    # and RequestBoundSAML refuses the start (:saml_acs_host_mismatch).
+    # boot-pinned on the canonical host. Platform SAML on any other host is
+    # refused by handle_missing_tenant_config, even for verified custom domains.
     #
     # @param strategy [OmniAuth::Strategy] The active strategy
     # @return [void]

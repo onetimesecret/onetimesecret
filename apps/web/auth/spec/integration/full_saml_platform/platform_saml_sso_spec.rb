@@ -16,9 +16,9 @@
 #   1. configure_provider's real-credential branch registers the route from
 #      SAML_IDP_SSO_SERVICE_URL / SAML_IDP_ENTITY_ID / SAML_IDP_CERT;
 #   2. Saml.platform_sp_entity_id remains the fixed AuthnRequest Issuer (and SP
-#      metadata entityID), while the ACS URL follows the verified public host;
-#   3. platform fallback on a verified custom domain completes a real signed
-#      round trip without tenant config, tenant context, or an organization join;
+#      metadata entityID) and ACS URL remain pinned to the platform host;
+#   3. platform fallback on a verified custom domain is refused, including
+#      first redemption of an assertion captured under the old fallback behavior;
 #   4. a platform identity is keyed (route, BARE EntityID, NameID) — never ''
 #      and never a tenant's domain-scoped key, so a tenant row that names the
 #      same EntityID is not matched;
@@ -223,6 +223,20 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
       expect(URI.parse(request.acs_url).host).to eq(URI.parse(request.sp_entity_id).host)
     end
 
+    it 'keeps the actual boot ACS host when live site settings change' do
+      request = start_login
+      original_host = URI.parse(request.acs_url).host
+      original_conf = OT.conf
+      allow(OT).to receive(:conf).and_return(original_conf.merge(
+        'site' => original_conf.fetch('site').merge('host' => 'changed.example.net', 'ssl' => false)
+      ))
+
+      expect(Onetime::SsoProvider::Saml.platform_usable?).to be true
+      expect(Onetime::SsoProvider::Saml.platform_host?(original_host)).to be true
+      expect(Onetime::SsoProvider::Saml.platform_host?('changed.example.net')).to be false
+      expect(Onetime::SsoProvider::Saml.platform_acs_url('saml')).to eq(request.acs_url)
+    end
+
     it 'serves SP metadata naming the platform SP EntityID and the pinned ACS URL' do
       get "#{platform_base}/auth/sso/saml/metadata"
 
@@ -321,12 +335,22 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
 
       post "https://#{canonical_host}/auth/sso/saml"
 
-      expect_refused_before_the_idp
+      expect_refused_before_the_idp(error: 'sso_not_configured')
+    end
+
+    it 'refuses platform-origin callbacks on a secondary canonical host regardless of fallback' do
+      expect(Onetime::Middleware::DomainStrategy.canonical_host?(canonical_host)).to be true
+      [false, true].each do |fallback|
+        allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(fallback)
+        post_callback('untrusted-response', "https://#{canonical_host}/auth/sso/saml/callback")
+        expect(last_response.status).to eq(403)
+        expect(last_response.headers['Location']).to be_nil
+      end
     end
 
     [false, true].each do |without_strategy|
       context(without_strategy ? 'when the tenant host has no classification strategy' : 'with normal custom-domain classification') do
-        it 'persists the custom surface after platform fallback and accepts the next authenticated request without an organization join' do
+        it 'refuses platform SAML starts and metadata on a verified custom host, despite fallback opt-in' do
           tenant_host = "fallback-#{run_id}.saml-platform.example.com"
           tenant_base = "https://#{tenant_host}"
           owner        = Onetime::Customer.new(email: "fallback-owner-#{run_id}@saml-platform.example.com")
@@ -349,45 +373,21 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
           begin
             expect(Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain.identifier)).to be_nil
 
-            request = start_login(tenant_base)
-            session = last_request.env['rack.session'].to_h
-            expect(request.acs_url).to eq("#{tenant_base}/auth/sso/saml/callback")
-            expect(request.sp_entity_id).to eq(platform_entity_id)
-            expect(session['omniauth_tenant_domain_id'] || session[:omniauth_tenant_domain_id]).to be_nil
+            [false, true].each do |fallback|
+              allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(fallback)
+              post_callback('untrusted-response', "#{tenant_base}/auth/sso/saml/callback")
+              expect(last_response.status).to eq(403)
+              expect(last_response.headers['Location']).to be_nil
+            end
 
-            created_emails << email
-            post_callback(answer(request), request.acs_url)
+            post "#{tenant_base}/auth/sso/saml"
+            expect_refused_before_the_idp(error: 'sso_not_configured')
 
-            expect(last_response.status).to eq(302), last_response.body[0, 300]
-            expect(last_response.headers['Location'].to_s).not_to include('auth_error')
-            expect(identity_rows).to contain_exactly(include(provider: 'saml', issuer: entity_id, uid: name_id))
-            expect(last_request.env['rack.session'].to_h['validated_omniauth_domain_id']).to be_nil
+            get "#{tenant_base}/auth/sso/saml/metadata"
+            expect_refused_before_the_idp(error: 'sso_not_configured')
+            expect(last_response.body).not_to include('EntityDescriptor')
+            expect(identity_rows).to be_empty
             expect(Auth::Operations::JoinDomainOrganization).not_to have_received(:new)
-            customer = Onetime::Customer.find_by_email(email)
-            expect(customer).not_to be_nil
-            expect(Onetime::OrganizationMembership.find_by_org_customer(org.objid, customer.objid)).to be_nil
-
-            expected_strategy = without_strategy ? :invalid : :custom
-            surface = { 'kind' => 'custom', 'id' => domain.identifier }
-            account_id = db[:accounts].where(email: email).get(:id)
-            expect(account_id).not_to be_nil
-            expect(last_request.env['onetime.domain_strategy']).to eq(expected_strategy)
-            session = last_request.env['rack.session']
-            expect(session.to_h).to include('account_id' => account_id, 'authenticated_surface' => surface)
-
-            store = Onetime::Operations::Sessions::Store
-            session_key = store.find_key(Familia.dbclient, session.id.public_id)
-            persisted = store.load_data(Familia.dbclient, session_key, codec: Onetime::SessionCodec.from_config)
-            expect(persisted).to include('account_id' => account_id, 'authenticated_surface' => surface)
-
-            get "#{tenant_base}/auth/account", {}, { 'HTTP_ACCEPT' => 'application/json' }
-
-            expect(last_request.env['onetime.domain_strategy']).to eq(expected_strategy)
-            expect(last_response.status).to eq(200), last_response.body[0, 300]
-            expect(JSON.parse(last_response.body)).to include('id' => account_id, 'email' => email)
-            expect(last_request.env['rack.session'].to_h).to include(
-              'account_id' => account_id, 'authenticated_surface' => surface,
-            )
           ensure
             Onetime::CustomDomain.display_domain_index.remove(tenant_host) rescue nil
             domain.destroy! rescue nil
@@ -399,7 +399,7 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
       end
     end
 
-    it 'refuses the callback when the custom domain loses verification after the request starts' do
+    it 'refuses first redemption of a captured legacy custom-host assertion for an existing platform identity' do
       tenant_host = "revoked-#{run_id}.saml-platform.example.com"
       tenant_base = "https://#{tenant_host}"
       owner        = Onetime::Customer.new(email: "revoked-owner-#{run_id}@saml-platform.example.com")
@@ -412,18 +412,44 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
       allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
 
       begin
+        # A victim already has a linked platform identity; no JIT or email
+        # linking gate can protect the subsequent attacker-session callback.
+        sign_in
+        expect(last_response.status).to eq(302), "victim sign-in: #{last_response.body[0, 200]}; host=#{last_request.host}, display=#{last_request.env['onetime.display_domain']}, detected=#{last_request.env[Rack::DetectHost.result_field_name]}"
+        expect(identity_rows).to contain_exactly(include(provider: 'saml', issuer: entity_id, uid: name_id))
+        victim_identity = identity_rows.first
+        clear_cookies
+
+        # Reconstruct a request issued by the old fallback behavior (including
+        # its server-side pending id), then restore the real hook before the
+        # FIRST presentation of the signed response. Replay rejection alone
+        # must not be what protects the existing victim account.
+        helpers = Auth::Config::Hooks::OmniAuthTenant
+        allow(helpers).to receive(:handle_missing_tenant_config).and_wrap_original do |original, host, rodauth, request:|
+          if host == tenant_host && request.env['omniauth.strategy'].on_request_path?
+            request.env['omniauth.strategy'].options[:assertion_consumer_service_url] = "#{tenant_base}/auth/sso/saml/callback"
+          else
+            original.call(host, rodauth, request: request)
+          end
+        end
         request = start_login(tenant_base)
         expect(request.acs_url).to eq("#{tenant_base}/auth/sso/saml/callback")
+        expect(request.sp_entity_id).to eq(platform_entity_id)
+        expect(pending_request_id).to eq(request.id)
+        captured_response = answer(request)
+        allow(helpers).to receive(:handle_missing_tenant_config).and_call_original
 
-        domain.verified = false
-        domain.save
-        created_emails << email
-        post_callback(answer(request), request.acs_url)
+        # An attacker can submit from their own host, regardless of whether
+        # the platform IdP origin is admitted by HttpOrigin.
+        post_callback(captured_response, request.acs_url, origin: tenant_base)
 
         expect(last_response.status).to eq(302)
         expect(last_response.headers['Location'].to_s).to include('auth_error=sso_not_configured')
-        expect(identity_rows).to be_empty
-        expect(db[:accounts].where(email: email).count).to eq(0)
+        expect(pending_request_id).to be_nil
+        expect(last_request.env['rack.session'].to_h['account_id']).to be_nil
+        expect(last_request.env['rack.session'].to_h['validated_omniauth_domain_id']).to be_nil
+        expect(identity_rows).to eq([victim_identity])
+        expect(db[:accounts].where(email: email).count).to eq(1)
       ensure
         Onetime::CustomDomain.display_domain_index.remove(tenant_host) rescue nil
         domain.destroy! rescue nil
@@ -503,6 +529,30 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
       end
     end
 
+    it 'refuses a tenant callback after its config is disabled rather than falling back to the live platform IdP' do
+      allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      with_override_tenant do |tenant|
+        request = start_login(tenant.base, expected_sso_url: tenant.sso_url)
+        expect(pending_request_id).to eq(request.id)
+        Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant.domain.identifier).disable!
+
+        [false, true].each do |fallback|
+          allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(fallback)
+          post_callback(answer(request), request.acs_url)
+          expect(last_response.status).to eq(403)
+          expect(last_response.headers['Location']).to be_nil
+        end
+
+        post_callback(answer(request, signer: tenant.idp), request.acs_url, origin: tenant.base)
+
+        expect(last_response.status).to eq(302)
+        expect(last_response.headers['Location']).to include('auth_error=sso_not_configured')
+        expect(last_request.env['rack.session'].to_h.keys.map(&:to_s))
+          .not_to include('omniauth_tenant_domain_id', 'omniauth_tenant_host', 'saml_authn_request_id', 'account_id')
+        expect(identity_rows).to be_empty
+      end
+    end
+
     # The setup hook runs again on the callback phase, and that run picks the
     # trust anchor: a tenant-signed response must verify against the TENANT
     # certificate and key the identity to the tenant while the platform
@@ -534,7 +584,9 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
         created_emails << email
         request = start_login(tenant.base, expected_sso_url: tenant.sso_url)
 
-        post_callback(answer(request), request.acs_url)
+        # Use an admitted tenant origin to exercise the issuer check behind
+        # HttpOrigin; the platform origin itself is now refused on this host.
+        post_callback(answer(request), request.acs_url, origin: tenant.origin)
 
         expect_refused
         expect(refusals.map { |fields| fields[:reason] }).to eq(['invalid_ticket'])

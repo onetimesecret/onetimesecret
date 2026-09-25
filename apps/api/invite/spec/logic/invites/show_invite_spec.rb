@@ -356,7 +356,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
           expect(record[:auth_methods].first).not_to have_key(:provider_type)
         end
 
-        it 'offers platform SAML on a verified custom domain when fallback is usable' do
+        it 'omits platform SAML on a verified custom domain while retaining OAuth fallback' do
           allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
             .with('domain-acme-123')
             .and_return(true)
@@ -365,7 +365,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
             { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
           ])
 
-          expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(%w[saml oidc])
+          expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(['oidc'])
         end
 
         it 'omits platform SAML on an unverified custom domain' do
@@ -399,12 +399,8 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
           expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(['oidc'])
         end
 
-        # The canonical-set test is exact membership, not a suffix sweep: a
-        # verified record on a SUBDOMAIN of a canonical-set host is a served
-        # custom host (Auth::PublicHost rebinds the ACS there), so SAML stays.
-        # Pinned here so a future "sweep the anchor's subdomains" change to
-        # served_custom_domain? cannot silently hide a working button.
-        it 'keeps platform SAML on a verified subdomain of a canonical-set host' do
+        # Verified subdomains are not the pinned platform ACS host either.
+        it 'omits platform SAML on a verified subdomain of a canonical-set host' do
           allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
             .and_wrap_original { |m, host| host.to_s == 'acme.example' || m.call(host) }
           allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
@@ -416,7 +412,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
           ])
 
           expect(Onetime::Middleware::DomainStrategy.canonical_host?(display_domain)).to be false
-          expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(%w[saml oidc])
+          expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(['oidc'])
         end
 
         # A provider with no route name is unroutable: advertising it would

@@ -982,10 +982,19 @@ module Onetime
             return InheritedRestriction.new(value: Onetime.auth_config.restrict_to, pin_established: false)
           end
 
-          if custom_host == true && domain_id &&
-             Onetime::CustomDomain::SsoConfig.sso_available_for_tenant_host?(domain_id)
-            # Host pin: availability was just proven by sso_available_for_tenant_host?
-            return InheritedRestriction.new(value: 'sso', pin_established: true)
+          if custom_host == true && domain_id
+            if Onetime::CustomDomain::SsoConfig.sso_available_for_tenant_host?(domain_id)
+              # Host pin: availability was just proven by sso_available_for_tenant_host?
+              return InheritedRestriction.new(value: 'sso', pin_established: true)
+            end
+
+            # Platform SAML can be enabled but unavailable on this host. Keep
+            # the fallback-only restriction without claiming availability;
+            # removing it would reopen password routes the tenant never enabled.
+            if global_auth_enabled && Onetime.auth_config.allow_platform_fallback_for_tenants? &&
+               Onetime.auth_config.sso_enabled?
+              return InheritedRestriction.new(value: 'sso', pin_established: false)
+            end
           end
 
           InheritedRestriction.new(value: Onetime.auth_config.restrict_to, pin_established: false)

@@ -5,6 +5,7 @@
 require 'spec_helper'
 require 'rack'
 require 'rack/protection'
+require 'climate_control'
 require 'onetime/middleware/http_origin_options'
 
 # Regression coverage: the HttpOrigin protection resolves the
@@ -206,11 +207,15 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
     # (SAML_ROUTE_NAME), which the path pattern must not care about.
     it 'allows a SAML HTTP-POST binding callback on an operator-named route' do
       stub_idp_origins(['https://login.idp.example.com'])
-      status = post('/auth/sso/okta/callback',
-        'HTTP_HOST' => canonical_host,
-        'HTTP_ORIGIN' => 'https://login.idp.example.com',
-      )
-      expect(status).to eq(200)
+      allow(Onetime::SsoProvider::Saml).to receive(:platform_base_url).and_return("https://#{canonical_host}")
+      ClimateControl.modify(SAML_ROUTE_NAME: 'okta') do
+        status = post('/auth/sso/okta/callback',
+          'HTTP_HOST' => canonical_host,
+          'HTTP_ORIGIN' => 'https://login.idp.example.com',
+          'onetime.display_domain' => canonical_host,
+        )
+        expect(status).to eq(200)
+      end
     end
 
     # /metadata, /slo and /spslo are omniauth-saml sub-paths under the same
@@ -234,6 +239,85 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
         'HTTP_ORIGIN' => apple_origin,
       )
       expect(status).to eq(403)
+    end
+  end
+
+  describe 'platform SAML callback host restriction' do
+    let(:platform_origin) { 'https://platform-idp.example.com' }
+    let(:auth_config) do
+      instance_double(Onetime::AuthConfig, sso_idp_origins: [platform_origin],
+        allow_platform_fallback_for_tenants?: true)
+    end
+
+    before do
+      allow(Onetime).to receive(:auth_config).and_return(auth_config)
+      allow(Onetime::SsoProvider::Saml).to receive(:platform_base_url).and_return("https://#{canonical_host}")
+      allow(Onetime::TenantSsoResolution).to receive(:for)
+        .and_return(instance_double(Onetime::TenantSsoResolution, sso_config: nil))
+    end
+
+    def platform_callback(host, detected: nil, route: 'saml', strategy: nil, authority: canonical_host)
+      post("/auth/sso/#{route}/callback",
+        'HTTP_HOST' => authority,
+        'HTTP_ORIGIN' => platform_origin,
+        'onetime.display_domain' => host,
+        'onetime.domain_strategy' => strategy,
+        Rack::DetectHost.result_field_name => detected,
+      )
+    end
+
+    it 'admits the pinned platform host' do
+      expect(platform_callback(canonical_host)).to eq(200)
+    end
+
+    [false, true].each do |fallback|
+      it "rejects a custom public host behind a canonical Host header with fallback=#{fallback}" do
+        allow(auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(fallback)
+        expect(platform_callback(custom_domain)).to eq(403)
+      end
+    end
+
+    it 'rejects secondary canonical hosts, subdomains, missing and invalid public hosts' do
+      ['links.example.com', "eu.#{canonical_host}", nil, '', 'not a host'].each do |host|
+        expect(platform_callback(host)).to eq(403), host.inspect
+      end
+    end
+
+    it 'rejects a detected custom host even when display_domain was sanitized to canonical' do
+      expect(platform_callback(canonical_host, detected: custom_domain)).to eq(403)
+    end
+
+    it 'uses the direct authority for a failed classification with no detected host, not its canonical default' do
+      sanitized = 'default.example.com'
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?).with(sanitized).and_return(true)
+      expect(platform_callback(sanitized, strategy: :invalid)).to eq(200)
+      expect(platform_callback(sanitized, strategy: :invalid, authority: custom_domain)).to eq(403)
+      expect(platform_callback(sanitized, strategy: :invalid, detected: custom_domain)).to eq(403)
+      expect(platform_callback(sanitized, strategy: :canonical)).to eq(403)
+    end
+
+    it 'admits a matching detected canonical host' do
+      expect(platform_callback(canonical_host, detected: canonical_host)).to eq(200)
+    end
+
+    it 'restricts the operator-renamed SAML route too' do
+      ClimateControl.modify(SAML_ROUTE_NAME: 'corporate') do
+        expect(platform_callback(custom_domain, route: 'corporate')).to eq(403)
+        expect(platform_callback(canonical_host, route: 'corporate')).to eq(200)
+      end
+    end
+
+    it 'does not alter the platform allowance on OAuth callbacks' do
+      expect(platform_callback(custom_domain, route: 'apple')).to eq(200)
+      expect(platform_callback(nil, route: 'oidc')).to eq(200)
+    end
+
+    it 'still admits a tenant-owned SAML origin even if it is also in the platform set' do
+      config = double('tenant SAML', provider_type: 'saml', platform_route_name: 'saml', callback_origins: [])
+      allow(auth_config).to receive(:tenant_idp_origin).with(config, env: anything).and_return(platform_origin)
+      allow(Onetime::TenantSsoResolution).to receive(:for)
+        .and_return(instance_double(Onetime::TenantSsoResolution, sso_config: config))
+      expect(platform_callback(custom_domain)).to eq(200)
     end
   end
 

@@ -66,7 +66,9 @@ module Onetime
       # id it answers. This method covers PLATFORM providers only: a TENANT's
       # SAML IdP origin lives in a per-domain record, is unknown at boot, and
       # is not in AuthConfig#sso_idp_origins — .sso_callback_from_tenant_idp?
-      # below is its counterpart.
+      # below is its counterpart. On the SAML callback route this platform
+      # allowance applies only to the boot-pinned ACS host, never to custom
+      # hosts. Tenant-origin admission remains a separate decision.
       #
       # THIS IS PARITY, NOT A NEW HOLE. A GET callback bypasses HttpOrigin
       # entirely today via `safe?` — no Origin check at all, from any origin.
@@ -93,6 +95,11 @@ module Onetime
       def self.sso_callback_from_configured_idp?(env)
         origin = sso_callback_post_origin(env)
         return false if origin.nil?
+
+        route_name = Rack::Request.new(env).path.split('/')[3]
+        if Onetime::SsoProvider::Registry.request_bound_platform_acs_route?(route_name) && !platform_saml_callback_host?(env)
+          return false
+        end
 
         auth_config = Onetime.auth_config
         return false unless auth_config.respond_to?(:sso_idp_origins)
@@ -170,6 +177,26 @@ module Onetime
         OT.lw "[http_origin] tenant SSO callback origin check failed: #{ex.class}: #{ex.message}"
         false
       end
+
+      # Shared with normal platform-origin admission; retain the existing
+      # pinned-host and sanitized-display handling unchanged.
+      def self.platform_saml_callback_host?(env)
+        saml        = Onetime::SsoProvider::Saml
+        public_host = env['onetime.display_domain'].to_s
+        return false if public_host.empty?
+
+        detected_host = env[Rack::DetectHost.result_field_name].to_s
+        if env['onetime.domain_strategy'].to_s == 'invalid' &&
+           Onetime::Middleware::DomainStrategy.canonical_host?(public_host)
+          # Failed classification can replace the host with a canonical
+          # default. Recover the detected host, or the direct authority
+          # when DetectHost rejects it (e.g. a local IP install). Never
+          # consult Rack's unconditionally trusted forwarded headers.
+          public_host = detected_host.empty? ? (env['HTTP_HOST'] || env['SERVER_NAME']) : detected_host
+        end
+        saml.platform_host?(public_host) && (detected_host.empty? || saml.platform_host?(detected_host))
+      end
+      private_class_method :platform_saml_callback_host?
 
       # The Origin of a POST to an OmniAuth callback path, or nil when the
       # request is anything else. The shared precondition of both SSO

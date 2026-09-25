@@ -336,9 +336,8 @@ module OmniAuth
       # (strategy.rb:504-506), and omniauth-saml falls back to this value for
       # an ACS URL that was not set (saml.rb:269 `||=`). Both surfaces set
       # one explicitly — the platform definition pins the canonical ACS at
-      # boot (Onetime::SsoProvider::Saml.platform_options), an allowed verified
-      # custom-domain fallback may rebind only that ACS, and the tenant hook
-      # derives both SP identifiers per request
+      # boot (Onetime::SsoProvider::Saml.platform_options), and the tenant hook
+      # derives both SP identifiers for native tenant SAML per request
       # (OmniAuthTenant.inject_saml_sp_identifiers)
       # — so this is reached only by the un-injected placeholder, which the
       # blank-trust-anchor refusal above stops first. Kept as the override
@@ -356,11 +355,9 @@ module OmniAuth
       # started on, and the IdP posts the response to the ACS URL. When the
       # two hosts differ the response arrives with no session, is refused as
       # :saml_no_pending_request, and the visitor learns nothing useful. The
-      # platform surface pins its ACS to site.host at boot. A verified custom-
-      # domain fallback explicitly allowed by policy rebinds the ACS to
-      # full_host before this guard; unknown and unverified hosts retain the
-      # canonical ACS and are refused here. A secondary canonical host likewise
-      # mismatches. The tenant surface derives its ACS from full_host, so it can
+      # platform surface pins its ACS to site.host at boot and is not offered
+      # on custom hosts. A secondary canonical host likewise mismatches.
+      # The native tenant surface derives its ACS from full_host, so it can
       # never mismatch. No ACS set at all (the placeholder) is not a
       # mismatch: blank_trust_option refuses that first.
       #

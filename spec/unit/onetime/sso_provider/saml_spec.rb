@@ -11,10 +11,7 @@
 #                            shared by .platform_options (provider skipped),
 #                            the placeholder boot warning and the API refusal
 #   .platform_host?          the host the platform ACS is pinned to at boot
-#                            (site.host); descriptive only, since platform
-#                            fallback on a verified custom domain rebinds the
-#                            ACS per request (OmniAuthTenant.bind_platform_
-#                            fallback_acs)
+#                            (site.host); custom-domain fallback never rebinds it
 #   .cert_problem            the STRUCTURAL half of the IdP certificate rule:
 #                            exactly one PEM CERTIFICATE block and nothing
 #                            else (the validity-window half, allow_expired
@@ -24,10 +21,18 @@
 #   tests/lanes/run unit --only spec/unit/onetime/sso_provider/saml_spec.rb
 
 require 'spec_helper'
+require 'climate_control'
 require_relative '../../../../lib/onetime/sso_provider/saml'
 require_relative '../../../support/saml/test_idp'
 
 RSpec.describe Onetime::SsoProvider::Saml do
+  around do |example|
+    original = described_class.instance_variable_get(:@registered_platform_base_url)
+    described_class.instance_variable_set(:@registered_platform_base_url, nil)
+    example.run
+  ensure
+    described_class.instance_variable_set(:@registered_platform_base_url, original)
+  end
   describe '.sso_url_problem' do
     it 'accepts a plain https URL' do
       expect(described_class.sso_url_problem('https://idp.example.com/saml/sso')).to be_nil
@@ -325,6 +330,37 @@ RSpec.describe Onetime::SsoProvider::Saml do
   describe '.platform_host?' do
     before do
       allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => 'Secrets.Example.com:8443', 'ssl' => true } })
+    end
+
+    it 'keeps the registered ACS host after site.host changes and availability is rechecked' do
+      allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => true)
+      ClimateControl.modify(
+        SAML_IDP_SSO_SERVICE_URL: 'https://idp.example.com/sso',
+        SAML_IDP_ENTITY_ID: 'urn:example:idp',
+        SAML_IDP_CERT: SamlSpec::TestIdp.new.cert_pem,
+        SAML_SP_ENTITY_ID: nil,
+        SAML_ROUTE_NAME: 'corporate',
+      ) do
+        # A pre-boot probe must not establish the pin.
+        expect(described_class.platform_usable?).to be true
+        allow(OT).to receive(:conf).and_return('site' => { 'host' => 'boot.example.com:8443', 'ssl' => true })
+        registered = described_class::DEFINITION[:strategy_options].call
+        expect(registered[:assertion_consumer_service_url]).to eq('https://boot.example.com:8443/auth/sso/corporate/callback')
+
+        allow(OT).to receive(:conf).and_return('site' => { 'host' => 'tenant.example.net', 'ssl' => false })
+        expect(described_class.platform_usable?).to be true
+        expect(described_class.platform_host?('boot.example.com')).to be true
+        expect(described_class.platform_host?('tenant.example.net')).to be false
+        expect(described_class.platform_host?('secrets.example.com')).to be false
+        expect(described_class.platform_options[:assertion_consumer_service_url]).to eq(registered[:assertion_consumer_service_url])
+        expect(described_class.platform_base_url).to eq('https://boot.example.com:8443')
+      end
+    end
+
+    it 'does not pin an unsuccessful registration' do
+      allow(Onetime).to receive(:session_config).and_return('same_site' => 'strict', 'secure' => true)
+      expect { described_class::DEFINITION[:strategy_options].call }.to raise_error(ArgumentError)
+      expect(described_class.instance_variable_get(:@registered_platform_base_url)).to be_nil
     end
 
     it 'matches site.host port- and case-insensitively' do

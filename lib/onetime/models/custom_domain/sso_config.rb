@@ -664,8 +664,14 @@ module Onetime
           return true if domain_id && tenant_sso_available_for?(domain_id, auth: auth)
           return false unless Onetime.auth_config.allow_platform_fallback_for_tenants?
           return false unless Onetime::CustomDomain::SigninConfig.global_auth_enabled(auth)
+          return false unless Onetime.auth_config.sso_enabled?
 
-          Onetime.auth_config.sso_enabled?
+          Onetime.auth_config.sso_providers.any? do |provider|
+            route_name = provider['route_name'].to_s
+            !route_name.empty? && Onetime::SsoProvider::Registry.platform_route_available_on_host?(
+              route_name, platform_host: false
+            )
+          end
         end
 
         # Check if a domain has SSO configured.

@@ -21,6 +21,15 @@ require_relative '../../../support/saml/test_idp'
 RSpec.describe Onetime::SsoProvider::Registry do
   let(:definitions) { described_class::DEFINITIONS }
 
+  around do |example|
+    saml = Onetime::SsoProvider::Saml
+    original = saml.instance_variable_get(:@registered_platform_base_url)
+    saml.instance_variable_set(:@registered_platform_base_url, nil)
+    example.run
+  ensure
+    saml.instance_variable_set(:@registered_platform_base_url, original)
+  end
+
   # A SAML-compatible session cookie: Saml.platform_options checks it before
   # anything else (#4450), and the unit lane's config carries the shipped
   # same_site: lax. The rule itself is pinned under 'the session cookie'.
@@ -145,25 +154,20 @@ RSpec.describe Onetime::SsoProvider::Registry do
   describe '.platform_route_available_on_host?' do
     it 'allows host-independent providers on every host' do
       expect(described_class.platform_route_available_on_host?(
-        'oidc', platform_host: false, verified_custom_domain: false
+        'oidc', platform_host: false
       )).to be true
     end
 
     it 'allows a request-bound ACS provider on its pinned platform host' do
       expect(described_class.platform_route_available_on_host?(
-        'saml', platform_host: true, verified_custom_domain: false
+        'saml', platform_host: true
       )).to be true
     end
 
-    it 'allows a request-bound ACS provider on a verified custom domain' do
-      expect(described_class.platform_route_available_on_host?(
-        'saml', platform_host: false, verified_custom_domain: true
-      )).to be true
-    end
 
     it 'rejects a request-bound ACS provider on any other host' do
       expect(described_class.platform_route_available_on_host?(
-        'saml', platform_host: false, verified_custom_domain: false
+        'saml', platform_host: false
       )).to be false
     end
   end
@@ -475,15 +479,17 @@ RSpec.describe Onetime::SsoProvider::Registry do
         end
       end
 
-      # The HTTP-POST callback is cross-site. Under any cookie but
-      # SameSite=None + Secure the pending request id is never presented,
-      # so the provider is skipped at boot and not advertised, exactly like
-      # a bad trio — never registered as a button that always fails.
+      # The HTTP-POST callback is cross-site. SamlCallbackTransport stages it
+      # and redirects to a same-site GET, which a SameSite=None or Lax cookie
+      # accompanies but a Strict one never does. Under Strict, or without
+      # Secure, the pending request id is never presented, so the provider is
+      # skipped at boot and not advertised, exactly like a bad trio — never
+      # registered as a button that always fails.
       describe 'the session cookie (Saml.session_cookie_problem, checked first)' do
-        it 'refuses, and is not valid, under the shipped lax cookie' do
-          allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => true)
+        it 'refuses, and is not valid, under a strict cookie' do
+          allow(Onetime).to receive(:session_config).and_return('same_site' => 'strict', 'secure' => true)
 
-          expect { saml_options }.to raise_error(ArgumentError, /same_site is 'lax'.*saml_no_pending_request/)
+          expect { saml_options }.to raise_error(ArgumentError, /same_site is 'strict'.*Strict cannot recover/)
           expect(saml_valid?).to be false
         end
 
@@ -505,9 +511,7 @@ RSpec.describe Onetime::SsoProvider::Registry do
       end
 
       describe '.request_bound_platform_acs_route?' do
-        it 'identifies the SAML capability and follows SAML_ROUTE_NAME' do
-          expect(saml[:request_bound_platform_acs]).to be true
-          expect(saml).not_to have_key(:canonical_host_only)
+        it 'identifies the pinned SAML route and follows SAML_ROUTE_NAME' do
 
           ClimateControl.modify(SAML_ROUTE_NAME: nil) do
             expect(described_class.request_bound_platform_acs_route?('saml')).to be true
@@ -520,7 +524,7 @@ RSpec.describe Onetime::SsoProvider::Registry do
         end
 
         it 'is false for every other definition, and for a blank or unknown route' do
-          expect(definitions.reject { |defn| defn[:key] == :saml }.map { |defn| defn[:request_bound_platform_acs] }).to all(be_nil)
+
           expect(described_class.request_bound_platform_acs_route?('oidc')).to be false
           expect(described_class.request_bound_platform_acs_route?('')).to be false
           expect(described_class.request_bound_platform_acs_route?(nil)).to be false

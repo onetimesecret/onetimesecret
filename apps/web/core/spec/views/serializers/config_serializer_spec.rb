@@ -779,12 +779,8 @@ RSpec.describe Core::Views::ConfigSerializer do
           end
         end
 
-        # A subdomain of the anchor is an operator host (:subdomain) but NOT
-        # a canonical-set member: DomainStrategy.canonical_host? is an exact
-        # membership test. A verified record keyed on it is therefore a
-        # served custom host — Auth::PublicHost resolves it and the runtime
-        # rebinds the ACS to it — so SAML is offered through the
-        # verified_custom_domain? arm, not withheld as it is without a record.
+        # A verified record does not make an operator subdomain the pinned
+        # platform ACS host.
         context 'on a subdomain of the anchor' do
           let(:subdomain_host) { "eu.#{canonical_domain}" }
           let(:subdomain_view_vars) do
@@ -797,7 +793,7 @@ RSpec.describe Core::Views::ConfigSerializer do
               .and_return(stale_domain)
           end
 
-          it 'offers platform SAML for the verified record, unlike the record-less subdomain' do
+          it 'omits platform SAML even for the verified record' do
             # Precondition, through the REAL predicate: the subdomain is not
             # swept into the canonical set by its anchor.
             expect(Onetime::Middleware::DomainStrategy.canonical_host?(subdomain_host)).to be false
@@ -805,7 +801,7 @@ RSpec.describe Core::Views::ConfigSerializer do
             result = described_class.build_sso_config(subdomain_view_vars)
 
             expect(result['enabled']).to be true
-            expect(result['providers'].map { |p| p['route_name'] }).to eq(%w[oidc saml])
+            expect(result['providers'].map { |p| p['route_name'] }).to eq(['oidc'])
           end
 
           it 'omits platform SAML when that record is unverified' do
@@ -842,10 +838,8 @@ RSpec.describe Core::Views::ConfigSerializer do
             expect(result['connect_providers']).to eq(result['providers'])
           end
 
-          # Not an operator host or a positively resolved verified custom
-          # domain: runtime will not bind a request-host ACS, so the button is
-          # not offered.
-          it 'does not offer platform SAML without verified custom-domain context' do
+          # Unknown surfaces cannot establish the pinned platform ACS host.
+          it 'does not offer platform SAML without a known platform surface' do
             allow(mock_auth_config).to receive(:sso_providers).and_return([
               { 'route_name' => 'oidc', 'display_name' => 'Corporate SSO' },
               { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
@@ -859,13 +853,8 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
       end
 
-      # DomainStrategy degrades to :invalid whenever Chooserator raises (an
-      # unparseable canonical host is enough) while display_domain still names
-      # the real customer domain. The runtime gate (omniauth_tenant.rb
-      # bind_platform_fallback_acs -> Auth::PublicHost.resolve) reads the
-      # record and ignores the classification, so the display gate must too:
-      # a verified domain under :invalid shows platform SAML exactly as it
-      # does under :custom, or the button is hidden while the POST completes.
+      # A failed classification must not expose platform SAML on a custom
+      # host, even when the domain record still resolves and is verified.
       context 'when platform fallback is allowed, strategy is :invalid and display_domain is a verified custom domain' do
         let(:invalid_strategy_view_vars) do
           base_view_vars.merge(
@@ -892,11 +881,11 @@ RSpec.describe Core::Views::ConfigSerializer do
           ])
         end
 
-        it 'offers platform SAML for sign-in exactly as on :custom' do
+        it 'omits platform SAML for sign-in exactly as on :custom' do
           result = described_class.build_sso_config(invalid_strategy_view_vars)
 
           expect(result['enabled']).to be true
-          expect(result['providers'].map { |provider| provider['route_name'] }).to eq(%w[saml oidc])
+          expect(result['providers'].map { |provider| provider['route_name'] }).to eq(['oidc'])
         end
 
         # Connect is a different decision: it keys on the classification and
@@ -1083,7 +1072,7 @@ RSpec.describe Core::Views::ConfigSerializer do
             expect(result['connect_providers']).to eq([])
           end
 
-          it 'offers platform SAML for sign-in on a verified custom domain but not for Connect' do
+          it 'omits platform SAML for both sign-in and Connect on a verified custom domain' do
             allow(mock_auth_config).to receive(:sso_providers).and_return([
               { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
               { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
@@ -1092,7 +1081,7 @@ RSpec.describe Core::Views::ConfigSerializer do
             result = described_class.build_sso_config(custom_domain_view_vars)
 
             expect(result['enabled']).to be true
-            expect(result['providers'].map { |provider| provider['route_name'] }).to eq(%w[saml oidc])
+            expect(result['providers'].map { |provider| provider['route_name'] }).to eq(['oidc'])
             expect(result['connect_providers']).to eq([])
           end
 
@@ -1190,23 +1179,17 @@ RSpec.describe Core::Views::ConfigSerializer do
             expect(result['connect_providers']).to eq([])
           end
 
-          # The runtime half (omniauth_tenant.rb bind_platform_fallback_acs)
-          # rebinds the platform ACS to this verified host and proceeds.
-          it 'offers platform SAML for sign-in on the verified domain' do
+          it 'reports SSO disabled on a verified domain when SAML is the only platform provider' do
             allow(mock_auth_config).to receive(:sso_providers).and_return([
               { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
             ])
 
             result = described_class.build_sso_config(custom_domain_view_vars)
 
-            expect(result['enabled']).to be true
-            expect(result['providers'].map { |provider| provider['route_name'] }).to eq(['saml'])
-            expect(result['connect_providers']).to eq([])
+            expect(result).to eq({ 'enabled' => false, 'providers' => [], 'connect_providers' => [] })
           end
 
-          # Runtime refuses the start on an unverified host (PublicHost
-          # answers nil), and a SAML-only install then has nothing to sign
-          # in with: enabled must follow the empty list.
+          # SAML-only platform fallback is unavailable on every custom host.
           it 'reports SSO disabled on an unverified domain when SAML is the only provider' do
             allow(custom_domain_obj).to receive(:verified).and_return(false)
             allow(mock_auth_config).to receive(:sso_providers).and_return([

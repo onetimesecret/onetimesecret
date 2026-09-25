@@ -169,8 +169,13 @@ RSpec.describe Onetime::AuthConfig do
         allow(Onetime).to receive(:session_config).and_return('same_site' => 'none', 'secure' => true)
       end
 
-      def callback_env(origin, path: '/auth/sso/saml/callback', method: 'POST')
-        Rack::MockRequest.env_for("https://ots.example.com#{path}", method: method, 'HTTP_ORIGIN' => origin)
+      def callback_env(origin, path: '/auth/sso/saml/callback', method: 'POST', base_url: Onetime::SsoProvider::Saml.platform_base_url)
+        # MockRequest skips DetectHost/DomainStrategy, which supply this host
+        # in the real stack. Use the registered ACS base, not the SP EntityID.
+        Rack::MockRequest.env_for("#{base_url}#{path}",
+          method: method,
+          'HTTP_ORIGIN' => origin,
+          'onetime.display_domain' => URI.parse(base_url).host)
       end
 
       def admitted?(config, env)
@@ -191,6 +196,17 @@ RSpec.describe Onetime::AuthConfig do
         expect(admitted?(config, callback_env('https://login.idp.example.com:8443'))).to be true
         expect(admitted?(config, callback_env('https://entity.idp.example.com'))).to be false
         expect(admitted?(config, callback_env('https://login.idp.example.com'))).to be false
+      end
+
+      it 'refuses the configured platform IdP origin off the pinned host or without a resolved host' do
+        config = fresh_config(**saml_env)
+        origin = 'https://login.idp.example.com:8443'
+        offhost = "https://tenant.#{URI.parse(Onetime::SsoProvider::Saml.platform_base_url).host}"
+
+        expect(admitted?(config, callback_env(origin, base_url: offhost))).to be false
+        env = callback_env(origin)
+        env.delete('onetime.display_domain')
+        expect(admitted?(config, env)).to be false
       end
 
       it 'keeps Origin protection on the SAML request phase and the other sub-paths' do

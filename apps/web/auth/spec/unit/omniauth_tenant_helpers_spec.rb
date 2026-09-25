@@ -598,19 +598,12 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
         expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
       end
 
-      # The pinned-host answer is keyed on the host the tenant record was
-      # resolved by, so the caller must hand it over: a future caller that
-      # drops `host:` would silently fall back to the PublicHost gate and
-      # refuse this start again.
-      it 'hands the resolved host to bind_platform_fallback_acs' do
-        allow(helpers).to receive(:bind_platform_fallback_acs).and_call_original
-
+      it 'checks the resolved public host against the pinned platform host' do
         catch(:halt) do
           helpers.handle_missing_tenant_config('canonical.example', rodauth, request: request)
         end
 
-        expect(helpers).to have_received(:bind_platform_fallback_acs)
-          .with(strategy, request, host: 'canonical.example')
+        expect(Onetime::SsoProvider::Saml).to have_received(:platform_host?).with('canonical.example')
       end
 
       # /signin on site.host is an operator host, so ConfigSerializer
@@ -694,12 +687,7 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
         expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
       end
 
-      # A subdomain of the anchor is NOT in the canonical set
-      # (DomainStrategy.canonical_host? is an exact-membership test), so a
-      # verified record keyed on it is a served custom host: PublicHost
-      # resolves it and the ACS is rebound there, matching the display gate
-      # (TenantSsoResolution#verified_custom_domain? reads true for it).
-      it 'rebinds the ACS to a verified record keyed on a subdomain of the anchor' do
+      it 'refuses a verified record keyed on a subdomain without rebinding the ACS' do
         allow(strategy).to receive(:full_host).and_return('https://eu.canonical.example')
         allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return('eu.canonical.example')
 
@@ -708,8 +696,9 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
           :allowed
         end
 
-        expect(result).to eq(:allowed)
-        expect(options[:assertion_consumer_service_url]).to eq('https://eu.canonical.example/auth/sso/saml/callback')
+        expect(result).not_to eq(:allowed)
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+        expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
         expect(options[:sp_entity_id]).to eq('urn:example:platform-sp')
       end
 
@@ -725,7 +714,7 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       end
     end
 
-    it 'overrides only ACS for a verified custom-domain fallback' do
+    it 'refuses verified custom-domain fallback without changing platform options' do
       allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return('tenant.example')
 
       result = catch(:halt) do
@@ -733,8 +722,9 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
         :allowed
       end
 
-      expect(result).to eq(:allowed)
-      expect(options[:assertion_consumer_service_url]).to eq('https://tenant.example/auth/sso/saml/callback')
+      expect(result).not_to eq(:allowed)
+      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+      expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
       expect(options[:sp_entity_id]).to eq('urn:example:platform-sp')
       expect(options[:idp_entity_id]).to eq('https://platform-idp.example/metadata')
       expect(options[:idp_cert]).to eq('PLATFORM CERT')
@@ -843,13 +833,14 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
         end
       end
 
-      it 'supersedes the pending SAML request id and OAuth state along with the markers on the request path' do
+      it 'drops the pending SAML request id and OAuth state with the refused request' do
         result = catch(:halt) do
           helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
           :allowed
         end
 
-        expect(result).to eq(:allowed)
+        expect(result).not_to eq(:allowed)
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
         expect(session).not_to include(
           :omniauth_tenant_domain_id,
           :omniauth_tenant_host,
@@ -875,12 +866,10 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
         expect(session).to eq(account_id: 42)
       end
 
-      # The other half: a callback WITHOUT markers is the platform-fallback
-      # flow this same helper started on its request phase. Its binding is
-      # what lets that callback complete, so it must be left alone.
-      it 'retains a platform-fallback binding during callback setup when no tenant markers are pending' do
+      it 'preserves an OAuth fallback callback binding on the same custom host' do
         session.delete(:omniauth_tenant_domain_id)
         session.delete(:omniauth_tenant_host)
+        allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::OpenIDConnect')
         allow(strategy).to receive(:on_request_path?).and_return(false)
 
         result = catch(:halt) do
@@ -890,15 +879,27 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
 
         expect(result).to eq(:allowed)
         expect(rodauth).not_to have_received(:redirect)
-        expect(session).to include(
-          'saml_authn_request_id' => '_stale-authn-request-id',
-          'omniauth.state' => 'stale-oauth-state',
-          account_id: 42,
-        )
+        expect(session['omniauth.state']).to eq('stale-oauth-state')
+      end
+
+      # Old platform-fallback sessions remain invalid even without tenant markers.
+      it 'drops a legacy platform SAML fallback binding on a custom-host callback' do
+        session.delete(:omniauth_tenant_domain_id)
+        session.delete(:omniauth_tenant_host)
+        allow(strategy).to receive(:on_request_path?).and_return(false)
+
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).not_to eq(:allowed)
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+        expect(session).to eq(account_id: 42)
       end
     end
 
-    it 'fails closed when PublicHost cannot verify the request host' do
+    it 'refuses an unknown host' do
       allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return(nil)
 
       catch(:halt) do

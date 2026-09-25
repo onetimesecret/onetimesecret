@@ -105,10 +105,6 @@
 #   strategy_options: zero-arg callable returning strategy options (minus
 #                     name:) built from the env at boot. Called only after
 #                     required_vars are verified present.
-#   request_bound_platform_acs: OPTIONAL boolean. True when an allowed platform
-#                     fallback may replace only the strategy's boot-time ACS
-#                     with the verified request host. The platform SP EntityID
-#                     and IdP trust configuration remain boot-time constants.
 
 require_relative 'oidc'
 require_relative 'entra'
@@ -155,8 +151,8 @@ module Onetime
           raise(KeyError, "unknown SSO provider definition: #{key.inspect}")
       end
 
-      # Does the platform provider registered under +route_name+ support
-      # binding its ACS to a verified custom-domain fallback request? Resolves
+      # Does the platform provider registered under +route_name+ require
+      # its boot-pinned ACS host? Resolves
       # operator-renamed routes the same way provider registration does.
       #
       # @param route_name [String, nil] the OmniAuth route / provider name
@@ -166,26 +162,26 @@ module Onetime
         return false if route_name.empty?
 
         DEFINITIONS.any? do |defn|
-          defn[:request_bound_platform_acs] == true &&
+          defn[:key] == :saml &&
             ENV.fetch(defn[:route_var], defn[:route_default]) == route_name
         end
       end
 
       # Whether a platform provider may be used on the resolved request host.
       # Most providers are host-independent. A request-bound ACS provider is
-      # available only on its boot-pinned platform host or on a positively
-      # resolved, verified custom domain where runtime may safely rebind it.
+      # available only on its boot-pinned platform host. Verified domain
+      # ownership does not authorize receiving platform assertions.
       # Callers supply resolved facts so this policy stays pure and does not
       # duplicate domain lookups across Rack hooks and serializers.
       #
       # @param route_name [String, nil] the registered platform route
       # @param platform_host [Boolean] whether this is the provider's pinned host
-      # @param verified_custom_domain [Boolean] whether ownership is verified
+
       # @return [Boolean]
-      def self.platform_route_available_on_host?(route_name, platform_host:, verified_custom_domain:)
+      def self.platform_route_available_on_host?(route_name, platform_host:)
         return true unless request_bound_platform_acs_route?(route_name)
 
-        platform_host || verified_custom_domain
+        platform_host
       end
     end
   end

@@ -82,15 +82,9 @@
 # path — is handled in code from :idp_origin_from below
 # (Onetime::Middleware::HttpOriginOptions).
 #
-# PLATFORM SAML BOOTS WITH CANONICAL IDENTIFIERS. The platform IdP registers
-# one SP EntityID and may register ACS URLs for verified custom domains.
-# .platform_options always pins the canonical ACS as the safe default. During
-# an explicitly allowed platform fallback, OmniAuthTenant may replace ONLY the
-# ACS with strategy.full_host + callback_path after Auth::PublicHost.resolve
-# proves the request host is an existing verified custom domain. The platform
-# SP EntityID and IdP trust anchors remain unchanged. Unknown, unverified, and
-# datastore-indeterminate hosts retain no fallback path and fail closed. Native
-# tenant SAML still derives both SP identifiers from the tenant request host.
+# PLATFORM SAML USES CANONICAL IDENTIFIERS ONLY. The platform IdP's ACS is
+# pinned to the configured platform host, never rebound to a tenant domain.
+# Native tenant SAML derives its own SP identifiers from the tenant request host.
 #
 # THE CSP / HttpOrigin ORIGIN COMES FROM THE SSO SERVICE URL, NOT THE ENTITYID.
 # An EntityID is an opaque name — often a URN, often on a different host than
@@ -531,13 +525,17 @@ module Onetime
       # `scheme://site.host`, with the scheme from site.ssl. Both platform SP
       # identifiers derive from it, so the ACS URL the AuthnRequest and the
       # SP metadata advertise, and the host whose session cookie holds the
-      # pending request id, are the same host by construction at boot. Derived from
-      # configuration, never from the request, and never by string-surgery
+      # pending request id, are the same host by construction at boot. Before
+      # registration this reads configuration; afterwards it uses the origin
+      # captured from the registered ACS, even if site settings change. Never
+      # derived from the request, and never by string-surgery
       # on the SP EntityID — SAML_SP_ENTITY_ID may be an opaque URN.
       #
       # @return [String] scheme://host[:port], no trailing slash
       # @raise [ArgumentError] when site.host is not configured
       def self.platform_base_url
+        return @registered_platform_base_url if @registered_platform_base_url
+
         conf = defined?(OT) && OT.respond_to?(:conf) ? OT.conf : nil
         host = conf&.dig('site', 'host').to_s.strip
         if host.empty?
@@ -546,6 +544,14 @@ module Onetime
 
         scheme = conf.dig('site', 'ssl') == false ? 'http' : 'https'
         "#{scheme}://#{host}"
+      end
+
+      # Only the registration callable pins this value. Availability probes
+      # must neither establish nor move the host used by the live strategy.
+      def self.platform_registration_options
+        options                       = platform_options
+        @registered_platform_base_url = URI.join(options.fetch(:assertion_consumer_service_url), '/').to_s.chomp('/').freeze
+        options
       end
 
       # Our SP EntityID on the PLATFORM surface: SAML_SP_ENTITY_ID when set,
@@ -598,11 +604,8 @@ module Onetime
       # request that arrives as `localhost`. False when site.host is not
       # configured (there is no platform SAML host to be).
       #
-      # Descriptive, not a serving gate: platform SAML is ALSO served on a
-      # verified custom domain under platform fallback, where
-      # Auth::Config::Hooks::OmniAuthTenant.bind_platform_fallback_acs
-      # rebinds the ACS per request (keyed on Auth::PublicHost.resolve). This
-      # predicate names only the host the ACS is pinned to at boot.
+      # Platform SAML is served only on this host. Tenant domain verification
+      # never authorizes receiving assertions from the platform IdP.
       #
       # NARROWER than DomainStrategy.canonical_host? on purpose: that
       # predicate covers the whole canonical SET (features.domains.default,
@@ -695,9 +698,7 @@ module Onetime
         trust_var: 'SAML_TRUST_EMAIL_FOR_LINKING',
         trust_default: false,
         idp_origin_from: 'SAML_IDP_SSO_SERVICE_URL',
-        # Platform fallback may rebind only the ACS after Auth::PublicHost
-        # verifies the custom request host. EntityID and IdP trust stay pinned.
-        request_bound_platform_acs: true,
+
         # Registered when org-level SSO is on and the platform has no SAML
         # config, so the route exists for the OmniAuthTenant hook to inject a
         # tenant's trio + per-request SP identifiers into. The trust anchors
@@ -713,7 +714,7 @@ module Onetime
           idp_cert: '',
           sp_entity_id: '',
         ).freeze,
-        strategy_options: -> { platform_options },
+        strategy_options: -> { platform_registration_options },
       }.freeze
     end
   end

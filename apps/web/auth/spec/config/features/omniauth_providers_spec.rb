@@ -50,6 +50,15 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
     require File.expand_path('../../../config/features/omniauth.rb', __dir__)
   end
 
+  around do |example|
+    saml = Onetime::SsoProvider::Saml
+    original = saml.instance_variable_get(:@registered_platform_base_url)
+    saml.instance_variable_set(:@registered_platform_base_url, nil)
+    example.run
+  ensure
+    saml.instance_variable_set(:@registered_platform_base_url, original)
+  end
+
   let(:auth) { double('auth') }
   let(:log_messages) { [] }
   let(:orgs_sso_enabled) { false }

@@ -692,7 +692,8 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       get '/auth/sso/saml/metadata'
 
       expect(last_response.body).not_to include('EntityDescriptor')
-      expect(last_response.status).to eq(404)
+      expect(last_response.status).to eq(302)
+      expect(last_response.headers['Location']).to include('auth_error=sso_not_configured')
     end
 
     # Per-request isolation of strategy.options. The tenant hook writes the
@@ -706,7 +707,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
     # (blank) values, never from what the previous request injected. That is
     # a gem contract, not ours, so it is pinned here: after tenant A's request phase
     # has injected everything, the canonical host's metadata is exactly what
-    # it is when no tenant request ever ran — refused as 404, with none of
+    # it is when no tenant request ever ran — refused off the pinned host, with none of
     # A's EntityID, host or ACS in the body.
     it 'does not leak tenant A injected options into the next request on the canonical host' do
       request = start_login(tenant_a)
@@ -715,7 +716,8 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       header 'Host', canonical_host
       get '/auth/sso/saml/metadata'
 
-      expect(last_response.status).to eq(404)
+      expect(last_response.status).to eq(302)
+      expect(last_response.headers['Location']).to include('auth_error=sso_not_configured')
       expect(last_response.body).not_to include('EntityDescriptor')
       expect(last_response.body).not_to include(tenant_a.idp.entity_id)
       expect(last_response.body).not_to include(tenant_a.host)
