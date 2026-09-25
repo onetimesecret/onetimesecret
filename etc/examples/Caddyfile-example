@@ -24,7 +24,17 @@
 
 	log {
 		output stdout
-		format json
+		format filter {
+			# Match onetime-log-redaction below; global options cannot import
+			# a snippet declared later in the Caddyfile.
+			fields {
+				request>uri regexp "[?].*" ""
+				request>headers>Referer delete
+				resp_headers>Location delete
+				headers>Location delete
+			}
+			wrap json
+		}
 		level INFO
 	}
 
@@ -68,6 +78,18 @@
 	#  # @see allowed-domains
 	#  ask http://localhost:3001/ask
 	#}
+}
+# Strip the whole query rather than selected names: malformed, encoded and
+# duplicate query keys must not expose SAML assertions or transport handles.
+# Filters affect log encoding only, not forwarded requests or client redirects.
+(onetime-log-redaction) {
+	fields {
+		request>uri regexp "[?].*" ""
+		request>headers>Referer delete
+		resp_headers>Location delete
+		# reverse_proxy debug records response headers under this field.
+		headers>Location delete
+	}
 }
 
 (onetime-root) {
@@ -410,9 +432,12 @@
 	# https://github.com/caddyserver/transform-encoder
 	log {
 		output stdout
-		format json {
-			time_format unix_milli_float
-			duration_format string
+		format filter {
+			import onetime-log-redaction
+			wrap json {
+				time_format unix_milli_float
+				duration_format string
+			}
 		}
 		level INFO
 	}
@@ -424,9 +449,12 @@
 	# Timeline of events affecting secrets
 	log @secrets_timeline {
 		output stdout
-		format transform "{ts} {method} {uri} {status} {duration}" {
-			time_format "2006-01-02 15:04:05"
-			time_local
+		format filter {
+			import onetime-log-redaction
+			wrap transform "{ts} {request>method} {request>uri} {status} {duration}" {
+				time_format "2006-01-02 15:04:05"
+				time_local
+			}
 		}
 		level INFO
 	}
