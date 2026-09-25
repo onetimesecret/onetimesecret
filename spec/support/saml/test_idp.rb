@@ -96,7 +96,7 @@ module SamlSpec
                  attributes: { 'email' => ['user@example.com'] },
                  assertion_id: "_#{SecureRandom.uuid}",
                  response_issuer: entity_id, assertion_issuer: entity_id,
-                 now: Time.now.utc, not_on_or_after: nil,
+                 now: Time.now.utc, not_on_or_after: nil, conditions_expiry: :default,
                  session_index: "_#{SecureRandom.hex(8)}", sign: true,
                  signature_method: XMLSecurity::Document::RSA_SHA256,
                  digest_method: XMLSecurity::Document::SHA256)
@@ -113,6 +113,7 @@ module SamlSpec
         attributes: attributes,
         now: now,
         not_on_or_after: not_on_or_after,
+        conditions_expiry: conditions_expiry == :default ? not_on_or_after : conditions_expiry,
         session_index: session_index
       )
       assertion = sign_xml(assertion, signature_method, digest_method) if sign
@@ -159,13 +160,23 @@ module SamlSpec
 
     # rubocop:disable Metrics/ParameterLists -- mirrors the SAML assertion's own shape
     def assertion_xml(id:, issuer:, name_id:, name_id_format:, subject_confirmations:, acs_url:, audience:,
-                      attributes:, now:, not_on_or_after:, session_index:)
-      confirmations = subject_confirmations.map do |in_response_to|
-        irt = in_response_to ? %( InResponseTo="#{esc(in_response_to)}") : ''
+                      attributes:, now:, not_on_or_after:, conditions_expiry:, session_index:)
+      confirmations = subject_confirmations.map do |confirmation|
+        data = if confirmation.is_a?(Hash)
+                 confirmation
+               else
+                 { 'InResponseTo' => confirmation, 'NotOnOrAfter' => not_on_or_after, 'Recipient' => acs_url }
+               end
+        attrs = data.filter_map do |name, value|
+          next if value.nil?
+
+          %( #{name}="#{esc(value.is_a?(Time) ? ts(value) : value)}")
+        end.join
         '<saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">' +
-          %(<saml:SubjectConfirmationData NotOnOrAfter="#{ts(not_on_or_after)}" Recipient="#{esc(acs_url)}"#{irt}/>) +
+          %(<saml:SubjectConfirmationData#{attrs}/>) +
           '</saml:SubjectConfirmation>'
       end.join
+      conditions_end = conditions_expiry ? %( NotOnOrAfter="#{ts(conditions_expiry)}") : ''
 
       # xmlns:samlp is declared although the Assertion never uses it: ruby-saml
       # signs with an InclusiveNamespaces PrefixList that names `samlp`
@@ -179,7 +190,7 @@ module SamlSpec
         %(<saml:NameID Format="#{esc(name_id_format)}">#{esc(name_id)}</saml:NameID>) +
         confirmations +
         '</saml:Subject>' +
-        %(<saml:Conditions NotBefore="#{ts(now - 5)}" NotOnOrAfter="#{ts(not_on_or_after)}">) +
+        %(<saml:Conditions NotBefore="#{ts(now - 5)}"#{conditions_end}>) +
         %(<saml:AudienceRestriction><saml:Audience>#{esc(audience)}</saml:Audience></saml:AudienceRestriction>) +
         '</saml:Conditions>' +
         %(<saml:AuthnStatement AuthnInstant="#{ts(now)}" SessionIndex="#{esc(session_index)}">) +

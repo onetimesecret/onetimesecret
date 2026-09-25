@@ -37,11 +37,12 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         @writes = []
       end
 
-      def set(key, value, nx: false, ex: nil)
+      def set(key, _value, nx: false, ex: nil)
         @writes << { key: key, ex: ex }
+        @store.delete(key) if @store[key] && @store[key] <= Time.now
         return false if nx && @store.key?(key)
 
-        @store[key] = value
+        @store[key] = Time.now + ex
         true
       end
     end.new
@@ -947,6 +948,93 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
     end
 
     describe 'replay gate' do
+      it 'accepts a signed confirmation-only expiry and retains through its drift window' do
+        start_login
+        post_callback(response_for(session[request_id_key], conditions_expiry: nil))
+        expect(failures).to be_empty
+        expect(reached_app.size).to eq(1)
+        expect(fake_dbclient.writes.first[:ex]).to be_between(355, 361)
+      end
+
+      it 'uses the latest eligible confirmation, capped by Conditions when present' do
+        [nil, Time.now.utc + 200].each do |cap|
+          start_login
+          now = Time.now.utc
+          confirmations = [100, 300].map do |seconds|
+            { 'InResponseTo' => session[request_id_key], 'Recipient' => acs_url, 'NotOnOrAfter' => now + seconds }
+          end
+          post_callback(response_for(session[request_id_key], subject_confirmations: confirmations, conditions_expiry: cap))
+          expect(failures).to be_empty
+          expected = cap ? 260 : 360
+          expect(fake_dbclient.writes.last[:ex]).to be_between(expected - 5, expected + 1)
+        end
+      end
+
+      it 'does not extend retention for expired or wrong-recipient confirmations' do
+        start_login
+        now = Time.now.utc
+        base = { 'InResponseTo' => session[request_id_key], 'Recipient' => acs_url }
+        confirmations = [
+          base.merge('NotOnOrAfter' => now + 100),
+          base.merge('NotOnOrAfter' => now - 120),
+          base.merge('NotOnOrAfter' => now + 7200, 'Recipient' => 'https://other.example/callback'),
+
+        ]
+        post_callback(response_for(session[request_id_key], subject_confirmations: confirmations, conditions_expiry: nil))
+        expect(failures).to be_empty
+        expect(fake_dbclient.writes.first[:ex]).to be_between(155, 161)
+      end
+
+      it 'retains through a later confirmation window even before that window opens' do
+        start_login
+        now = Time.now.utc
+        base = { 'InResponseTo' => session[request_id_key], 'Recipient' => acs_url }
+        confirmations = [
+          base.merge('NotOnOrAfter' => now + 100),
+          base.merge('NotOnOrAfter' => now + 900, 'NotBefore' => now + 600),
+        ]
+        request_id = session[request_id_key]
+        saml_response = response_for(request_id, subject_confirmations: confirmations, conditions_expiry: nil)
+        post_callback(saml_response)
+
+        expect(failures).to be_empty
+        expect(reached_app.size).to eq(1)
+        # Model a replay with the original pending session after the first
+        # window and its marker would have expired, but the next is valid.
+        allow(Time).to receive(:now).and_return(now + 650)
+        session[request_id_key] = request_id
+        post_callback(saml_response)
+
+        expect(reached_app.size).to eq(1)
+        expect(failure_types).to eq([:saml_assertion_replayed])
+        expect(fake_dbclient.writes.first[:ex]).to be_between(955, 961)
+      end
+
+      it 'refuses a future confirmation window exceeding the maximum replay lifetime' do
+        start_login
+        now = Time.now.utc
+        base = { 'InResponseTo' => session[request_id_key], 'Recipient' => acs_url }
+        confirmations = [
+          base.merge('NotOnOrAfter' => now + 100),
+          base.merge('NotOnOrAfter' => now + 7200, 'NotBefore' => now + 600),
+        ]
+        post_callback(response_for(session[request_id_key], subject_confirmations: confirmations, conditions_expiry: nil))
+
+        expect(failure_types).to eq([:saml_assertion_lifetime_exceeded])
+        expect(reached_app).to be_empty
+        expect(fake_dbclient.writes).to be_empty
+      end
+
+      [nil, 'not-a-time', Time.now.utc - 7200].each do |expiry|
+        it "rejects a signed confirmation with invalid expiry #{expiry.inspect}" do
+          start_login
+          data = { 'InResponseTo' => session[request_id_key], 'Recipient' => acs_url, 'NotOnOrAfter' => expiry }
+          post_callback(response_for(session[request_id_key], subject_confirmations: [data], conditions_expiry: nil))
+          expect(reached_app).to be_empty
+          expect(fake_dbclient.writes).to be_empty
+          expect(failure_types.size).to eq(1)
+        end
+      end
       it 'refuses the same assertion presented twice, even with a matching pending id' do
         start_login
         request_id    = session[request_id_key]
@@ -1030,13 +1118,10 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         )
       end
 
-      # The other operand of the same gate. Without it a nil NotOnOrAfter
-      # would reach the guard's ArgumentError and be refused under the
-      # OUTAGE symbol, which an operator reads as a datastore incident.
-      it 'refuses an assertion with no NotOnOrAfter under the unbounded symbol, not the outage one' do
-        allow_any_instance_of(OneLogin::RubySaml::Response).to receive(:not_on_or_after).and_return(nil) # rubocop:disable RSpec/AnyInstance
+      it 'refuses a signed assertion with no confirmation expiry, even when Conditions expires' do
         start_login
-        post_callback(response_for(session[request_id_key]))
+        data = { 'InResponseTo' => session[request_id_key], 'Recipient' => acs_url }
+        post_callback(response_for(session[request_id_key], subject_confirmations: [data]))
 
         expect(failure_types).to eq([:saml_assertion_unbounded])
         expect(fake_dbclient.writes).to be_empty

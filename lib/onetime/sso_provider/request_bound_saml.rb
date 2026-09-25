@@ -624,8 +624,9 @@ module OmniAuth
       def replay_refusal(response, opts)
         guard           = Onetime::Security::SamlAssertionReplayGuard
         assertion_id    = response.assertion_id.to_s
-        not_on_or_after = response.not_on_or_after
-        clock_drift     = opts[:allowed_clock_drift].to_f
+        clock_drift     = opts[:allowed_clock_drift].to_f.abs
+        now             = Time.now
+        not_on_or_after = bearer_expiry(response, clock_drift: clock_drift, now: now)
 
         if assertion_id.strip.empty? || !not_on_or_after.is_a?(Time)
           return [
@@ -635,7 +636,6 @@ module OmniAuth
           ]
         end
 
-        now = Time.now
         if guard.lifetime_exceeded?(not_on_or_after, clock_drift: clock_drift, now: now)
           return [
             :saml_assertion_lifetime_exceeded,
@@ -661,6 +661,39 @@ module OmniAuth
         # server's host:port/db (never the password), and that address does
         # not belong in a login refusal.
         [:saml_replay_guard_unavailable, 'SAML replay guard is unavailable', { error_class: ex.class.name }]
+      end
+
+      # Read only the verified signed assertion. A confirmation is eligible
+      # only for this ACS and pending transaction. Include future confirmation
+      # windows: otherwise the marker can expire before that window opens and
+      # the same signed assertion becomes redeemable again.
+      # Remember the LATEST eligible expiry (not the gem's first match), capped
+      # by Conditions when present. Missing Conditions expiry is valid SAML.
+      def bearer_expiry(response, clock_drift:, now:)
+        expiries = response.send(:xpath_from_signed_assertion, '/a:Subject/a:SubjectConfirmation').filter_map do |confirmation|
+          next unless confirmation.attributes['Method'] == BEARER_METHOD
+
+          data = REXML::XPath.first(confirmation, 'a:SubjectConfirmationData', 'a' => SAML_ASSERTION_NS)
+          next unless data && data.attributes['InResponseTo'] == @expected_request_id
+          next unless data.attributes['Recipient'] == (options[:assertion_consumer_service_url] || callback_url)
+
+          begin
+            expiry     = Time.iso8601(data.attributes['NotOnOrAfter'].to_s)
+            next unless expiry.to_f.finite? && now < expiry + clock_drift
+
+            not_before = data.attributes['NotBefore']
+            Time.iso8601(not_before) if not_before
+
+            expiry
+          rescue ArgumentError
+            nil
+          end
+        end
+        expiry   = expiries.max
+        return unless expiry
+
+        conditions_expiry = response.not_on_or_after
+        conditions_expiry ? [expiry, conditions_expiry].min : expiry
       end
 
       # @return [Symbol, nil] the first blank trust-anchor option, if any

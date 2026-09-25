@@ -96,7 +96,7 @@ module Onetime
     #   claimed = Onetime::Security::SamlAssertionReplayGuard.claim(
     #     idp_entity_id: 'https://idp.example.com/metadata',
     #     assertion_id: response.assertion_id,
-    #     not_on_or_after: response.not_on_or_after,
+    #     not_on_or_after: replay_expiry, # latest bound confirmation, capped by Conditions
     #     clock_drift: 60,
     #   )
     #   refuse! unless claimed
@@ -118,7 +118,8 @@ module Onetime
       #
       # @param idp_entity_id [String] the CONFIGURED IdP EntityID
       # @param assertion_id [String] Assertion/@ID from the validated response
-      # @param not_on_or_after [Time] Conditions/@NotOnOrAfter
+      # @param not_on_or_after [Time] latest eligible signed confirmation expiry,
+      #   capped by Conditions/@NotOnOrAfter when present
       # @param clock_drift [Numeric] the allowed_clock_drift the response was
       #   validated with (seconds)
       # @param now [Time] injectable clock for tests
@@ -155,7 +156,7 @@ module Onetime
       # not check it (so the refusal carries its own reason, not the guard's
       # error class).
       #
-      # @param not_on_or_after [Time] Conditions/@NotOnOrAfter
+      # @param not_on_or_after [Time] effective replay expiry from the signed assertion
       # @param clock_drift [Numeric] tolerated IdP clock skew (seconds)
       # @param now [Time] injectable clock for tests
       # @return [Boolean] true when NotOnOrAfter is beyond
