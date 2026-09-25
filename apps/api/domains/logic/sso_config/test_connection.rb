@@ -315,6 +315,7 @@ module DomainsAPI
             }
           end
 
+          validate_saml_policy!
           cert = Onetime::SsoProvider::Saml.parse_cert(@idp_cert)
 
           {

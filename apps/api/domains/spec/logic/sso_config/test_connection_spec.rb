@@ -213,6 +213,8 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
         instance.instance_variable_set(:@idp_sso_service_url, sso_url)
         instance.instance_variable_set(:@idp_entity_id, entity_id)
         instance.instance_variable_set(:@idp_cert, cert_pem)
+        instance.instance_variable_set(:@name_id_format, Onetime::SsoProvider::Saml::PERSISTENT_NAME_ID_FORMAT)
+        instance.instance_variable_set(:@callback_origins, [])
       end
     end
 

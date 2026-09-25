@@ -62,6 +62,8 @@ module DomainsAPI
             idp_sso_service_url: reveal.call(:idp_sso_service_url),
             idp_entity_id: reveal.call(:idp_entity_id),
             idp_cert: reveal.call(:idp_cert),
+            name_id_format: serialize_saml_policy(config, :name_id_format, unreadable) { config.saml_name_id_format },
+            callback_origins: serialize_saml_policy(config, :callback_origins, unreadable) { config.callback_origins },
             sp_entity_id: sp[:sp_entity_id],
             acs_url: sp[:acs_url],
             cert_expires_at: not_after&.utc&.iso8601,
@@ -73,6 +75,15 @@ module DomainsAPI
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,
           }
+        end
+
+        def serialize_saml_policy(config, field, unreadable)
+          return nil unless config.provider_type == 'saml'
+
+          yield
+        rescue StandardError
+          unreadable << field.to_s
+          nil
         end
 
         # Our SAML SP identifiers for this domain, as the tenant hook derives

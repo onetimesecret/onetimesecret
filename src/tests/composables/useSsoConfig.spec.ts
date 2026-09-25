@@ -771,6 +771,30 @@ describe('useSsoConfig', () => {
       expect(payload.issuer).toBeUndefined();
     });
 
+    it('leaves API-managed NameID and callback-origin policies untouched on form save', async () => {
+      const record = {
+        ...mockSamlConfigData,
+        name_id_format: 'omit',
+        callback_origins: ['https://login.corp.example'],
+      };
+      mockGetConfigForDomain.mockResolvedValue({ record });
+      mockSaveConfigForDomain.mockResolvedValue({ record });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+      composable.formState.value.display_name = 'Renamed SAML';
+
+      await composable.saveConfig();
+
+      expect(mockSaveConfigForDomain).toHaveBeenCalledTimes(1);
+      const [, payload] = mockSaveConfigForDomain.mock.calls[0];
+      // The service selects PATCH when no client_secret is submitted.
+      expect(payload).not.toHaveProperty('client_secret');
+      expect(payload).not.toHaveProperty('name_id_format');
+      expect(payload).not.toHaveProperty('callback_origins');
+      expect(composable.ssoConfig.value?.name_id_format).toBe('omit');
+      expect(composable.ssoConfig.value?.callback_origins).toEqual(record.callback_origins);
+    });
+
     it('save omits a blank trio field (PATCH preserves the stored value) rather than sending ""', async () => {
       mockGetConfigForDomain.mockResolvedValue({ record: mockSamlConfigData });
       mockSaveConfigForDomain.mockResolvedValue({ record: mockSamlConfigData });

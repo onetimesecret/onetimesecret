@@ -33,7 +33,7 @@ module DomainsAPI
         # has no business in a log line) and the only shape available for an
         # encrypted_field — the safe-field path reads the old value straight
         # off the record, where it is a ConcealedString.
-        SENSITIVE_FIELDS = %w[client_id client_secret idp_sso_service_url idp_entity_id idp_cert].freeze
+        SENSITIVE_FIELDS = %w[client_id client_secret idp_sso_service_url idp_entity_id idp_cert name_id_format callback_origins].freeze
 
         # Fields safe to log with their actual values
         SAFE_FIELDS = %w[provider_type display_name enabled enforce_sso_only grant_org_scope tenant_id issuer allowed_domains].freeze

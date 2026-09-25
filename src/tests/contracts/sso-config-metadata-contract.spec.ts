@@ -31,6 +31,36 @@ import {
   type SsoProviderType,
 } from '@/schemas/contracts/custom-domain/sso-config';
 
+describe('SAML policy payloads', () => {
+  it('preserves explicit policy values and PATCH omissions', () => {
+    expect(
+      patchSsoConfigPayloadSchema.parse({ name_id_format: 'omit', callback_origins: [] })
+    ).toEqual({ name_id_format: 'omit', callback_origins: [] });
+    expect(patchSsoConfigPayloadSchema.parse({})).not.toHaveProperty('callback_origins');
+    expect(patchSsoConfigPayloadSchema.parse({})).not.toHaveProperty('name_id_format');
+  });
+
+  it('refuses null, wildcard and non-origin callback entries', () => {
+    for (const origin of [
+      'null',
+      'http://idp.example',
+      'https://idp.example/',
+      'https://idp.example:443',
+    ]) {
+      expect(patchSsoConfigPayloadSchema.safeParse({ callback_origins: [origin] }).success).toBe(
+        false
+      );
+    }
+    expect(patchSsoConfigPayloadSchema.safeParse({ name_id_format: 'bad' }).success).toBe(false);
+    expect(patchSsoConfigPayloadSchema.safeParse({ name_id_format: null }).success).toBe(false);
+    expect(
+      patchSsoConfigPayloadSchema.safeParse({
+        callback_origins: ['https://login.corp.example:8443'],
+      }).success
+    ).toBe(true);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Backend source extraction
 // ---------------------------------------------------------------------------

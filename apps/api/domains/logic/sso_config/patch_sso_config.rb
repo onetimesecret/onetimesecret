@@ -389,7 +389,7 @@ module DomainsAPI
           # Only update client_secret if provided (preserves existing otherwise)
           @sso_config.client_secret = @client_secret unless @client_secret.to_s.empty?
 
-          apply_saml_exclusivity
+          apply_saml_exclusivity(partial: !(provider_switched && @provider_type == 'saml'))
 
           # Only update allowed_domains if explicitly provided in the request.
           @sso_config.allowed_domains = @allowed_domains if @allowed_domains_provided

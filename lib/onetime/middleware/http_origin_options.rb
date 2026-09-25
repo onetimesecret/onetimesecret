@@ -114,24 +114,22 @@ module Onetime
       # is denied with 403 before OmniAuth runs, and tenant SAML can start a
       # login but never finish one.
       #
-      # THE ADMITTED SET IS ONE ORIGIN, AND IT IS THE CSP form-action ORIGIN.
-      # Both consumers ask the same two questions of the same objects:
+      # The default is the CSP form-action origin; SAML tenants may add
+      # explicit callback-only origins through their authorized config API.
+      # Both default-origin consumers ask the same questions of the same objects:
       # Onetime::TenantSsoResolution (which record, if any, is this host's
       # AVAILABLE tenant SSO config — the ladder that also decides whether the
       # SSO button renders) and AuthConfig#tenant_idp_origin (that record's IdP
       # origin, through the origin_from_url funnel).
       # Onetime::Middleware::TenantCspExtras admits the result into
-      # form-action; this admits it as a callback Origin. They cannot drift:
-      # an origin the browser may be SENT to is exactly the origin it may POST
-      # BACK from (auth_config.rb #sso_idp_origins states the same rule for
-      # the platform set).
+      # form-action; this admits it as a callback Origin. Additional callback
+      # origins never enter CSP form-action or the global platform set.
       #
       # SCOPED TO THE REQUEST'S DOMAIN, not to "any tenant's IdP": the
       # resolution is keyed on env['onetime.display_domain'] (DetectHost +
       # DomainStrategy; never the raw Host header), so tenant A's IdP origin
-      # is admitted on tenant A's host only. It is not provider-type-gated
-      # either — the platform set is not — but only a form_post/HTTP-POST
-      # callback ever sends a cross-site POST here.
+      # is admitted on tenant A's host only. SAML also requires its resolved
+      # callback route; exceptions do not apply to other provider routes.
       #
       # Same parity argument and the same residual control as the platform
       # method: a matching Origin proves which document the POST came from,
@@ -155,6 +153,14 @@ module Onetime
 
         sso_config = Onetime::TenantSsoResolution.for(env).sso_config
         return false if sso_config.nil?
+
+        if sso_config.provider_type == 'saml'
+          return false unless Rack::Request.new(env).path == "/auth/sso/#{sso_config.platform_route_name}/callback"
+
+          # A separate POST-only policy; never add these origins to global
+          # HttpOrigin or CSP allowances. An unreadable policy fails closed.
+          return true if sso_config.callback_origins.include?(origin)
+        end
 
         tenant_origin = auth_config.tenant_idp_origin(sso_config)
         !tenant_origin.nil? && tenant_origin == origin

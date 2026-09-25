@@ -163,6 +163,29 @@ module Onetime
       encrypted_field :idp_sso_service_url, aad_fields: [:domain_id]
       encrypted_field :idp_entity_id, aad_fields: [:domain_id]
       encrypted_field :idp_cert, aad_fields: [:domain_id]
+      encrypted_field :name_id_format, aad_fields: [:domain_id]
+      encrypted_field :callback_origins_json, aad_fields: [:domain_id]
+
+      def saml_name_id_format
+        value = name_id_format&.reveal { it }.to_s
+        value.empty? ? Onetime::SsoProvider::Saml::PERSISTENT_NAME_ID_FORMAT : value
+      end
+
+      def callback_origins
+        value   = callback_origins_json&.reveal { it }.to_s
+        origins = value.empty? ? [] : JSON.parse(value)
+        problem = Onetime::SsoProvider::Saml.callback_origins_problem(origins)
+        raise ArgumentError, problem if problem
+
+        origins
+      end
+
+      def callback_origins=(origins)
+        problem = Onetime::SsoProvider::Saml.callback_origins_problem(origins)
+        raise ArgumentError, problem if problem
+
+        self.callback_origins_json = JSON.generate(origins)
+      end
 
       # Domain allowlist (JSON array string)
       field :allowed_domains_json
@@ -692,6 +715,9 @@ module Onetime
             config.public_send(:"#{name}=", attrs[name]) if attrs.key?(name)
           end
 
+          config.name_id_format   = attrs[:name_id_format] if attrs.key?(:name_id_format)
+          config.callback_origins = attrs[:callback_origins] if attrs.key?(:callback_origins)
+
           # Set allowed domains
           config.allowed_domains = attrs[:allowed_domains] if attrs.key?(:allowed_domains)
 
@@ -808,6 +834,7 @@ module Onetime
       # setting: the uid is the NameID, and a transient NameID is refused.
       def build_saml_options
         trio = begin
+          policy_format = saml_name_id_format
           saml_trio
         rescue StandardError => ex
           # Class name only: a decryption error message is not ours to vouch for.
@@ -815,7 +842,7 @@ module Onetime
         end
 
         options = begin
-          Onetime::SsoProvider::Saml.strategy_options_for(**trio)
+          Onetime::SsoProvider::Saml.strategy_options_for(**trio, name_id_format: policy_format)
         rescue ArgumentError => ex
           # The builder's messages are fixed strings naming the field (plus a
           # certificate expiry date); they never carry field content.
@@ -844,7 +871,13 @@ module Onetime
       def saml_validation_errors
         saml = Onetime::SsoProvider::Saml
 
-        SAML_FIELDS.filter_map do |name|
+        policy_errors = begin
+          [saml.name_id_format_problem(saml_name_id_format), saml.callback_origins_problem(callback_origins)].compact
+        rescue StandardError
+          ['SAML policy cannot be read (re-enter the value)']
+        end
+
+        policy_errors + SAML_FIELDS.filter_map do |name|
           value = begin
             reveal_saml_field(name)
           rescue StandardError

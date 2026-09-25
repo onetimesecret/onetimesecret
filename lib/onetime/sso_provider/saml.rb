@@ -240,20 +240,43 @@ module Onetime
       # @param uid_attribute [String, nil] attribute to use as uid instead of NameID
       # @return [Hash] strategy options (minus name:)
       # @raise [ArgumentError] naming the first invalid field
-      def self.strategy_options_for(idp_sso_service_url:, idp_entity_id:, idp_cert:, uid_attribute: nil)
+      NAME_ID_FORMATS = [
+        PERSISTENT_NAME_ID_FORMAT,
+        'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+        'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
+        'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+        'omit',
+      ].freeze
+
+      def self.name_id_format_problem(value)
+        return nil if NAME_ID_FORMATS.include?(value)
+
+        'NameID policy must be a supported NameID format URI or omit'
+      end
+
+      def self.callback_origins_problem(value)
+        return 'Callback origins must be an array of at most 16 HTTPS origins' unless value.is_a?(Array) && value.size <= 16
+
+        return nil if value.all? { |origin| origin.is_a?(String) && sso_url_problem(origin).nil? && csp_origin_for(origin) == origin }
+
+        'Callback origins must be exact HTTPS origins without paths, wildcards, credentials, or null'
+      end
+
+      def self.strategy_options_for(idp_sso_service_url:, idp_entity_id:, idp_cert:, uid_attribute: nil, name_id_format: PERSISTENT_NAME_ID_FORMAT)
         problem = sso_url_problem(idp_sso_service_url) ||
                   entity_id_problem(idp_entity_id) ||
-                  cert_problem(idp_cert)
+                  cert_problem(idp_cert) || name_id_format_problem(name_id_format)
         raise ArgumentError, problem if problem
 
-        options                       = hardened_options
-        options[:idp_sso_service_url] = idp_sso_service_url.to_s.strip
+        options                          = hardened_options
+        options[:name_identifier_format] = name_id_format == 'omit' ? nil : name_id_format
+        options[:idp_sso_service_url]    = idp_sso_service_url.to_s.strip
         # NOT stripped, NOT normalized: the subclass requires byte equality
         # with the response Issuer, and this exact string is the issuer half
         # of the (provider, issuer, uid) identity key. entity_id_problem has
         # already refused a value with surrounding whitespace.
-        options[:idp_entity_id]       = idp_entity_id.to_s
-        options[:idp_cert]            = normalize_pem(idp_cert)
+        options[:idp_entity_id]          = idp_entity_id.to_s
+        options[:idp_cert]               = normalize_pem(idp_cert)
 
         attribute               = uid_attribute.to_s.strip
         options[:uid_attribute] = attribute unless attribute.empty?
@@ -612,10 +635,11 @@ module Onetime
             idp_entity_id: ENV.fetch('SAML_IDP_ENTITY_ID', nil),
             idp_cert: ENV.fetch('SAML_IDP_CERT', nil),
             uid_attribute: ENV.fetch('SAML_UID_ATTRIBUTE', nil),
+            name_id_format: ENV.fetch('SAML_NAME_ID_FORMAT', PERSISTENT_NAME_ID_FORMAT),
           )
         rescue ArgumentError => ex
           raise ArgumentError,
-            "#{ex.message} (check SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID, SAML_IDP_CERT)"
+            "#{ex.message} (check SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID, SAML_IDP_CERT, SAML_NAME_ID_FORMAT)"
         end
 
         route_name                               = ENV.fetch('SAML_ROUTE_NAME', 'saml')

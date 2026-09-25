@@ -222,6 +222,40 @@ RSpec.describe Onetime::SsoProvider::Saml do
     end
   end
 
+  describe 'NameID policy and certificate setup' do
+    require_relative '../../../support/saml/test_idp'
+    let(:idp) { SamlSpec::TestIdp.new }
+    let(:trio) { { idp_sso_service_url: 'https://idp.example/sso', idp_entity_id: 'urn:idp', idp_cert: idp.cert_pem } }
+
+    it 'generates persistent by default, explicit formats, and no policy when omitted' do
+      require 'onelogin/ruby-saml'
+      [described_class::PERSISTENT_NAME_ID_FORMAT, 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress', 'omit'].each do |format|
+        options  = described_class.strategy_options_for(**trio, name_id_format: format)
+        settings = OneLogin::RubySaml::Settings.new(options.merge(sp_entity_id: 'urn:sp', assertion_consumer_service_url: 'https://sp.example/callback'))
+        request  = OneLogin::RubySaml::Authrequest.new.create(settings)
+        encoded  = URI.decode_www_form(URI(request).query).to_h.fetch('SAMLRequest')
+        inflater = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+        xml      = inflater.inflate(Base64.decode64(encoded))
+        inflater.close
+        node     = Nokogiri::XML(xml).at_xpath('//*[local-name()="NameIDPolicy"]')
+        if format == 'omit'
+          expect(node).to be_nil
+        else
+          expect(node['Format']).to eq(format)
+        end
+      end
+      expect(described_class.strategy_options_for(**trio)[:name_identifier_format]).to eq(described_class::PERSISTENT_NAME_ID_FORMAT)
+      expect { described_class.strategy_options_for(**trio, name_id_format: 'invalid') }.to raise_error(ArgumentError, /NameID/)
+    end
+
+    it 'rejects malformed callback policy including literal null and URL paths' do
+      [nil, 'https://idp.example', ['null'], ['https://idp.example/'], ['http://idp.example'], ['https://*.example'], ['https://idp.example:443']].each do |value|
+        expect(described_class.callback_origins_problem(value)).not_to be_nil
+      end
+      expect(described_class.callback_origins_problem(['https://idp.example:8443'])).to be_nil
+    end
+  end
+
   # The platform ACS URL is pinned to site.host, so this is the only host a
   # platform SAML sign-in can complete on. Narrower than
   # DomainStrategy.canonical_host? on purpose: a split deployment's secondary

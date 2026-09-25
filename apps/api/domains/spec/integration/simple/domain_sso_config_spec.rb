@@ -1467,6 +1467,77 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       stub_session_cookie(same_site: 'none', secure: true)
     end
 
+    describe 'SAML policy fields' do
+      let(:policy) { { name_id_format: 'omit', callback_origins: ['https://login.corp.example'] } }
+
+      it 'round trips encrypted policies, preserves PATCH omissions, and clears explicit empty origins' do
+        csrf_put api_path(test_custom_domain.extid), valid_saml_params.merge(policy)
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_body['record']).to include(policy.transform_keys(&:to_s))
+        expect(stored_config.to_omniauth_options[:name_identifier_format]).to be_nil
+        expect(Familia.dbclient.hget(stored_config.dbkey, 'callback_origins_json')).not_to include('login.corp.example')
+        csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed' }
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_body['record']).to include(policy.transform_keys(&:to_s))
+        csrf_patch api_path(test_custom_domain.extid), { callback_origins: [] }
+        expect(last_response.status).to eq(200), last_response.body
+        expect(stored_config.callback_origins).to eq([])
+        csrf_put api_path(test_custom_domain.extid), valid_saml_params
+        expect(last_response.status).to eq(200), last_response.body
+        expect(stored_config.saml_name_id_format).to eq(Onetime::SsoProvider::Saml::PERSISTENT_NAME_ID_FORMAT)
+      end
+
+      it 'reports corrupted policy ciphertext and allows explicit repair or disable' do
+        csrf_put api_path(test_custom_domain.extid), valid_saml_params.merge(policy)
+        expect(last_response.status).to eq(200), last_response.body
+        config = stored_config
+        # Field-bound AAD prevents even a ciphertext from this same domain
+        # from being repurposed as another policy field.
+        encrypted_origins = Familia.dbclient.hget(config.dbkey, 'callback_origins_json')
+        Familia.dbclient.hset(config.dbkey, 'name_id_format', encrypted_origins)
+        json_get api_path(test_custom_domain.extid)
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_body['record']['unreadable_fields']).to include('name_id_format')
+        expect { stored_config.to_omniauth_options }.to raise_error(Onetime::Problem, /unreadable/)
+        csrf_patch api_path(test_custom_domain.extid), { display_name: 'Edit' }
+        expect(last_response.status).to eq(422), last_response.body
+        csrf_patch api_path(test_custom_domain.extid), { enabled: false }
+        expect(last_response.status).to eq(200), last_response.body
+        csrf_patch api_path(test_custom_domain.extid), { name_id_format: 'omit' }
+        expect(last_response.status).to eq(200), last_response.body
+        expect(stored_config.saml_name_id_format).to eq('omit')
+      end
+
+      it 'supports PATCH creation and clears policies on a provider switch' do
+        csrf_patch api_path(test_custom_domain.extid), valid_saml_params.merge(policy)
+        expect(last_response.status).to eq(200), last_response.body
+        expect(stored_config.callback_origins).to eq(policy[:callback_origins])
+        csrf_patch api_path(test_custom_domain.extid), valid_oidc_params
+        expect(last_response.status).to eq(200), last_response.body
+        expect(stored_config.callback_origins).to eq([])
+        csrf_patch api_path(test_custom_domain.extid), valid_saml_params
+        expect(last_response.status).to eq(200), last_response.body
+        expect(stored_config.saml_name_id_format).to eq(Onetime::SsoProvider::Saml::PERSISTENT_NAME_ID_FORMAT)
+      end
+
+      it 'rejects invalid policies rather than ignoring or normalizing them' do
+        [{ name_id_format: nil }, { name_id_format: 'bad' }, { callback_origins: ['null'] }, { callback_origins: ['https://idp.example/path'] }].each do |invalid|
+          csrf_put api_path(test_custom_domain.extid), valid_saml_params.merge(invalid)
+          expect(last_response.status).to eq(422), last_response.body
+          expect(json_body['field']).to eq(invalid.keys.first.to_s)
+        end
+      end
+
+      it 'requires owner authorization to add callback exceptions' do
+        clear_cookies
+        login_as(test_non_owner)
+        csrf_put api_path(test_custom_domain.extid), valid_saml_params.merge(policy)
+        expect(last_response.status).to eq(403)
+        expect(stored_config).to be_nil
+      end
+
+    end
+
     describe 'under an incompatible session cookie' do
       before { stub_session_cookie(same_site: 'lax', secure: true) }
 

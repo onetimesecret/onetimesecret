@@ -257,7 +257,7 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
     end
 
     def saml_config(url = 'https://login.tenant-idp.example/app/sso/saml')
-      double('CustomDomain::SsoConfig', provider_type: 'saml', idp_sso_service_url: concealed(url))
+      double('CustomDomain::SsoConfig', provider_type: 'saml', idp_sso_service_url: concealed(url), platform_route_name: 'saml', callback_origins: [])
     end
 
     # @param sso_config [Object, nil] what the availability ladder resolved
@@ -276,6 +276,25 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
         'HTTP_ORIGIN' => origin,
         'onetime.display_domain' => display_domain,
       )
+    end
+
+    it 'admits an explicit alternate origin only for this tenant and resolved callback' do
+      config = saml_config
+      allow(config).to receive(:callback_origins).and_return(['https://login.corp.example'])
+      allow(config).to receive(:platform_route_name).and_return('corporate')
+      stub_resolution(config)
+
+      expect(tenant_callback(origin: 'https://login.corp.example', path: '/auth/sso/corporate/callback')).to eq(200)
+      expect(tenant_callback(origin: 'https://unlisted.example', path: '/auth/sso/corporate/callback')).to eq(403)
+      expect(tenant_callback(origin: 'https://login.corp.example')).to eq(403)
+      expect(tenant_callback(origin: 'https://login.corp.example', path: '/auth/sso/corporate')).to eq(403)
+      expect(tenant_callback(origin: 'https://login.corp.example', path: '/auth/sso/corporate/callback', display_domain: 'other.example')).to eq(403)
+    end
+
+    it 'denies literal null but leaves missing Origin to the middleware default' do
+      stub_resolution(saml_config)
+      expect(tenant_callback(origin: 'null')).to eq(403)
+      expect(tenant_callback(origin: nil)).to eq(200)
     end
 
     it 'allows the callback POST from the tenant IdP\'s SSO service origin' do
@@ -327,7 +346,7 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
 
     it 'denies an unreadable (undecryptable) SSO service URL' do
       unreadable = Class.new { def reveal = raise(Familia::EncryptionError, 'tag') }.new
-      stub_resolution(double('CustomDomain::SsoConfig', provider_type: 'saml', idp_sso_service_url: unreadable))
+      stub_resolution(double('CustomDomain::SsoConfig', provider_type: 'saml', idp_sso_service_url: unreadable, platform_route_name: 'saml', callback_origins: []))
 
       expect(tenant_callback(origin: tenant_idp_origin)).to eq(403)
     end

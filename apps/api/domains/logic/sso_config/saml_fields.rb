@@ -74,6 +74,8 @@ module DomainsAPI
         # any. The certificate is normalized the way the platform env value is
         # (literal "\n" → newline) plus CRLF → LF.
         def process_saml_params
+          @name_id_format      = params.fetch('name_id_format', Onetime::SsoProvider::Saml::PERSISTENT_NAME_ID_FORMAT)
+          @callback_origins    = params.fetch('callback_origins', [])
           @idp_sso_service_url = params['idp_sso_service_url'].to_s.strip
           @idp_entity_id       = params['idp_entity_id'].to_s.strip
           @idp_cert            = Onetime::SsoProvider::Saml
@@ -123,6 +125,7 @@ module DomainsAPI
           activating = stored.nil? || (enabled && !stored.enabled?)
           reject_incompatible_session_cookie! if activating
 
+          validate_saml_policy!(stored: stored)
           remains_disabled = saml_config_remains_disabled?(stored, enabled)
 
           saml_submitted.each do |field, value|
@@ -144,18 +147,35 @@ module DomainsAPI
           end
         end
 
+        def validate_saml_policy!(stored: nil)
+          saml = Onetime::SsoProvider::Saml
+          {
+            name_id_format: -> { stored && !params.key?('name_id_format') ? stored.saml_name_id_format : @name_id_format },
+            callback_origins: -> { stored && !params.key?('callback_origins') ? stored.callback_origins : @callback_origins },
+          }.each do |field, resolve|
+            problem = begin
+              saml.public_send(:"#{field}_problem", resolve.call)
+            rescue StandardError
+              'Stored SAML policy cannot be read; re-enter the value'
+            end
+            raise_form_error(problem, field: field, error_type: :invalid) if problem
+          end
+        end
+
         # One exclusivity rule for replacement, creation and partial updates.
         # Partial writes omit active blank trio values, but always clear the
-        # inactive provider's fields, regardless of submitted values.
+        # inactive provider's fields, including policy left by older records.
         def provider_attributes(partial: false)
           oauth       = [:client_id, :client_secret, :tenant_id, :issuer]
           saml_fields = Onetime::CustomDomain::SsoConfig::SAML_FIELDS
           if @provider_type == 'saml'
-            values = saml_submitted.reject { |_key, value| partial && value.empty? }
+            values                    = saml_submitted.reject { |_key, value| partial && value.empty? }
+            values[:name_id_format]   = @name_id_format unless partial && !params.key?('name_id_format')
+            values[:callback_origins] = @callback_origins unless partial && !params.key?('callback_origins')
             oauth.to_h { |key| [key, ''] }.merge(values)
           else
             values = partial ? {} : oauth.to_h { |key| [key, instance_variable_get(:"@#{key}")] }
-            values.merge(saml_fields.to_h { |key| [key, ''] })
+            values.merge(saml_fields.to_h { |key| [key, ''] }).merge(name_id_format: '', callback_origins: [])
           end
         end
 

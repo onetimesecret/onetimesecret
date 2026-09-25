@@ -240,6 +240,8 @@ export const customDomainSsoConfigCanonical = z.object({
    * `unreadable_fields`.
    */
   idp_cert: z.string().nullable(),
+  name_id_format: z.string().nullish(),
+  callback_origins: z.array(z.string()).nullish(),
 
   /**
    * Our SP EntityID for this domain, read-only, for the admin to register at
@@ -347,7 +349,35 @@ export type CustomDomainSsoConfigCanonical = z.infer<typeof customDomainSsoConfi
  * ruby-saml siblings) are refused by the API for every provider type and
  * are deliberately absent here.
  */
+export const samlNameIdFormatSchema = z.enum([
+  'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
+  'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+  'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
+  'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+  'omit',
+]);
+
+export const samlCallbackOriginsSchema = z
+  .array(
+    z.string().refine((value) => {
+      try {
+        const url = new URL(value);
+        return (
+          url.protocol === 'https:' &&
+          url.origin === value &&
+          /^[a-z0-9.-]+$/i.test(url.hostname) &&
+          !url.hostname.endsWith('.')
+        );
+      } catch {
+        return false;
+      }
+    }, 'Expected an exact HTTPS origin')
+  )
+  .max(16);
+
 const samlPayloadFields = {
+  name_id_format: samlNameIdFormatSchema.optional(),
+  callback_origins: samlCallbackOriginsSchema.optional(),
   idp_sso_service_url: z
     .string()
     .url('IdP SSO service URL must be a valid URL')
