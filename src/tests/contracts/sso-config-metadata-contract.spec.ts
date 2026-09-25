@@ -14,22 +14,22 @@
 //
 // Note: SSO config is per-domain. Model is CustomDomain::SsoConfig (#2786, #2801).
 
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
 import {
+  customDomainSsoConfigCanonical,
+  patchSsoConfigPayloadSchema,
+  putSsoConfigPayloadSchema,
+  putSsoConfigPayloadStrictSchema,
   SSO_CLIENT_CREDENTIAL_PROVIDER_TYPES,
   SSO_PROVIDER_METADATA,
   SSO_PROVIDER_ROUTE_NAMES,
   SSO_SAML_FIELDS,
   ssoProviderTypeSchema,
   ssoProviderUsesClientCredentials,
-  customDomainSsoConfigCanonical,
-  patchSsoConfigPayloadSchema,
-  putSsoConfigPayloadSchema,
-  putSsoConfigPayloadStrictSchema,
   type SsoProviderType,
 } from '@/schemas/contracts/custom-domain/sso-config';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { describe, expect, it } from 'vitest';
 
 describe('SAML policy payloads', () => {
   it('preserves explicit policy values and PATCH omissions', () => {
@@ -121,7 +121,10 @@ function rubyRouteDefaults(): Record<string, string> {
  * (the frontend uses typographic dashes); the two booleans drive UI
  * behaviour and must agree exactly.
  */
-function rubyMetadataBooleans(): Record<string, { requiresDomainFilter: boolean; idpControlsAccess: boolean }> {
+function rubyMetadataBooleans(): Record<
+  string,
+  { requiresDomainFilter: boolean; idpControlsAccess: boolean }
+> {
   const block = rubySource.match(/PROVIDER_METADATA\s*=\s*\{([\s\S]*?)\n\s*\}\.freeze/);
   if (!block) {
     throw new Error(`Could not extract PROVIDER_METADATA from ${SSO_CONFIG_SOURCE_PATH}.`);
@@ -144,7 +147,9 @@ function rubyMetadataBooleans(): Record<string, { requiresDomainFilter: boolean;
 
 describe('Backend constant sync (read from sso_config.rb)', () => {
   it('ssoProviderTypeSchema equals PROVIDER_TYPES', () => {
-    expect([...ssoProviderTypeSchema.options].sort()).toEqual(rubyWordList('PROVIDER_TYPES').sort());
+    expect([...ssoProviderTypeSchema.options].sort()).toEqual(
+      rubyWordList('PROVIDER_TYPES').sort()
+    );
   });
 
   it('SSO_CLIENT_CREDENTIAL_PROVIDER_TYPES equals CLIENT_CREDENTIAL_PROVIDER_TYPES', () => {
@@ -164,8 +169,12 @@ describe('Backend constant sync (read from sso_config.rb)', () => {
     expect(Object.keys(backend).sort()).toEqual([...ssoProviderTypeSchema.options].sort());
     for (const [type, booleans] of Object.entries(backend)) {
       const frontend = SSO_PROVIDER_METADATA[type as SsoProviderType];
-      expect(frontend.requiresDomainFilter, `${type}.requiresDomainFilter`).toBe(booleans.requiresDomainFilter);
-      expect(frontend.idpControlsAccess, `${type}.idpControlsAccess`).toBe(booleans.idpControlsAccess);
+      expect(frontend.requiresDomainFilter, `${type}.requiresDomainFilter`).toBe(
+        booleans.requiresDomainFilter
+      );
+      expect(frontend.idpControlsAccess, `${type}.idpControlsAccess`).toBe(
+        booleans.idpControlsAccess
+      );
     }
   });
 
@@ -283,7 +292,8 @@ describe('customDomainSsoConfigCanonical schema', () => {
       const result = customDomainSsoConfigCanonical.shape.requires_domain_filter.safeParse(true);
       expect(result.success).toBe(true);
 
-      const invalidResult = customDomainSsoConfigCanonical.shape.requires_domain_filter.safeParse('true');
+      const invalidResult =
+        customDomainSsoConfigCanonical.shape.requires_domain_filter.safeParse('true');
       expect(invalidResult.success).toBe(false);
     });
 
@@ -291,7 +301,8 @@ describe('customDomainSsoConfigCanonical schema', () => {
       const result = customDomainSsoConfigCanonical.shape.idp_controls_access.safeParse(false);
       expect(result.success).toBe(true);
 
-      const invalidResult = customDomainSsoConfigCanonical.shape.idp_controls_access.safeParse('false');
+      const invalidResult =
+        customDomainSsoConfigCanonical.shape.idp_controls_access.safeParse('false');
       expect(invalidResult.success).toBe(false);
     });
   });

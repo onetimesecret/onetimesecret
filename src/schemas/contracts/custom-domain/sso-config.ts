@@ -82,11 +82,14 @@ export type SsoProviderType = z.infer<typeof ssoProviderTypeSchema>;
  * Mirrors PROVIDER_METADATA in lib/onetime/models/custom_domain/sso_config.rb.
  * Used by forms to determine when domain filter field should be shown/required.
  */
-export const SSO_PROVIDER_METADATA: Record<SsoProviderType, {
-  requiresDomainFilter: boolean;
-  idpControlsAccess: boolean;
-  description: string;
-}> = {
+export const SSO_PROVIDER_METADATA: Record<
+  SsoProviderType,
+  {
+    requiresDomainFilter: boolean;
+    idpControlsAccess: boolean;
+    description: string;
+  }
+> = {
   oidc: {
     requiresDomainFilter: true,
     idpControlsAccess: false,
@@ -117,7 +120,10 @@ export const SSO_PROVIDER_METADATA: Record<SsoProviderType, {
  * lib/onetime/models/custom_domain/sso_config.rb (pinned by the contract
  * spec against the Ruby source).
  */
-export const SSO_CLIENT_CREDENTIAL_PROVIDER_TYPES: readonly SsoProviderType[] = ['oidc', 'entra_id'];
+export const SSO_CLIENT_CREDENTIAL_PROVIDER_TYPES: readonly SsoProviderType[] = [
+  'oidc',
+  'entra_id',
+];
 
 export function ssoProviderUsesClientCredentials(providerType: SsoProviderType): boolean {
   return SSO_CLIENT_CREDENTIAL_PROVIDER_TYPES.includes(providerType);
@@ -409,7 +415,11 @@ export const patchSsoConfigPayloadSchema = z.object({
   provider_type: ssoProviderTypeSchema.optional(),
 
   /** Human-readable name for UI display. */
-  display_name: z.string().min(1, 'Display name is required').max(100, 'Display name is too long').optional(),
+  display_name: z
+    .string()
+    .min(1, 'Display name is required')
+    .max(100, 'Display name is too long')
+    .optional(),
 
   /** OAuth client ID (oidc / entra_id; not used by saml). */
   client_id: z.string().min(1, 'Client ID is required').optional(),
