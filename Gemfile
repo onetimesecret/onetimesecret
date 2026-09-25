@@ -34,7 +34,13 @@ source 'https://rubygems.org/'
 # unconditionally in MiddlewareStack.ip_privacy_security_config so Rack never
 # reads RFC 7239 Forwarded for host/port/proto. rack-parser stopped being an
 # otto runtime dependency in 2.10; it is declared below.
-gem 'otto', '~> 2.10'
+# 2.11 floor: static not_found / server_error triples are copied per request
+# (Otto::Static.copy_response, delano/otto#272), so session-cookie writes can
+# no longer accumulate on the shared fallback headers. Replaces the former
+# Onetime::Middleware::IsolateResponseHeaders; regression guard is
+# spec/integration/all/router_fallback_response_headers_spec.rb. 2.11 also
+# rejects fallback triples whose body does not respond to #each or #call.
+gem 'otto', '~> 2.11'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
