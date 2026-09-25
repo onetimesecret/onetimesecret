@@ -210,12 +210,34 @@ RSpec.describe Onetime::SsoProvider::DiscoveryFetcher do
       expect(fetcher.fetch(url).status).to eq(:timeout)
     end
 
-    it 'maps a slow drip past the total deadline to :timeout' do
-      fast = described_class.new(open_timeout: 0, read_timeout: 0)
-      respond_with(http_response(Net::HTTPOK, '200', 'OK', chunks: ['{', '}']))
-      allow(fast).to receive(:monotonic_now).and_return(0.0, 5.0)
+    # The total deadline is open + read timeout (0.1s here) over the whole
+    # exchange; each stub stalls well past it.
+    context 'with the total deadline' do
+      subject(:fetcher) { described_class.new(open_timeout: 0.05, read_timeout: 0.05) }
 
-      expect(fast.fetch(url).status).to eq(:timeout)
+      it 'maps a slow drip in the body to :timeout' do
+        response = Net::HTTPOK.new('1.1', '200', 'OK')
+        allow(response).to receive(:read_body) do |&blk|
+          blk.call('{')
+          sleep 2
+          blk.call('}')
+        end
+        respond_with(response)
+
+        expect(fetcher.fetch(url).status).to eq(:timeout)
+      end
+
+      it 'maps slow response headers to :timeout' do
+        allow(http_instance).to receive(:request) do
+          sleep 2
+          raise 'unreachable: the deadline fires before the headers arrive'
+        end
+
+        result = fetcher.fetch(url)
+
+        expect(result.status).to eq(:timeout)
+        expect(result.error).to be_a(described_class::DeadlineExceeded)
+      end
     end
 
     it 'maps TLS failures to :ssl_error' do

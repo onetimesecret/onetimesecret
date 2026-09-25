@@ -29,8 +29,9 @@ module Onetime
     #     from http_proxy would re-resolve the hostname and void the pin.
     #   - VERIFY_PEER.
     #   - No redirect following.
-    #   - Open/read timeouts plus a total deadline over the body read, so a slow
-    #     drip cannot pin the calling thread past roughly open + read timeout.
+    #   - Open/read timeouts plus a total deadline (open + read timeout) over
+    #     the whole exchange — connect, status line, headers and body — so a
+    #     slow drip anywhere cannot pin the calling thread past it.
     #   - Body size cap enforced on the declared Content-Length AND during the
     #     streamed read.
     #
@@ -132,22 +133,28 @@ module Onetime
       # Net::HTTP closes the socket on an exception, whereas a block that
       # returns normally makes Net::HTTP read the REST of the body itself,
       # unbounded.
+      #
+      # The deadline wraps the whole exchange, not just the body read.
+      # Net::HTTP reads the status line and headers before it yields, each
+      # read bounded only by read_timeout, so a check between body chunks
+      # cannot stop a server that drips header bytes.
       def request_once(http, request, url)
-        status   = nil
-        fields   = nil
-        body     = nil
-        deadline = monotonic_now + open_timeout + read_timeout
+        status = nil
+        fields = nil
+        body   = nil
 
-        http.request(request) do |response|
-          status = status_for(response)
-          fields = {
-            http_status: response.code.to_i,
-            http_message: response.message,
-            content_type: response['Content-Type'],
-          }
-          # Error bodies are read (and discarded) under the same cap so
-          # Net::HTTP never buffers them unbounded.
-          body   = read_capped_body(response, deadline)
+        Timeout.timeout(open_timeout + read_timeout, DeadlineExceeded, 'discovery fetch exceeded total deadline') do
+          http.request(request) do |response|
+            status = status_for(response)
+            fields = {
+              http_status: response.code.to_i,
+              http_message: response.message,
+              content_type: response['Content-Type'],
+            }
+            # Error bodies are read (and discarded) under the same cap so
+            # Net::HTTP never buffers them unbounded.
+            body   = read_capped_body(response)
+          end
         end
 
         # Real Net::HTTP always yields; guard against a response-less return.
@@ -168,14 +175,12 @@ module Onetime
         end
       end
 
-      def read_capped_body(response, deadline)
+      def read_capped_body(response)
         declared = response.content_length
         raise BodyTooLarge if declared && declared > max_bytes
 
         buffer = String.new(encoding: Encoding::BINARY)
         response.read_body do |chunk|
-          raise DeadlineExceeded, 'discovery fetch exceeded total deadline' if monotonic_now > deadline
-
           buffer << chunk
           raise BodyTooLarge if buffer.bytesize > max_bytes
         end
@@ -201,10 +206,6 @@ module Onetime
           body: body,
           error: error,
         )
-      end
-
-      def monotonic_now
-        Process.clock_gettime(Process::CLOCK_MONOTONIC)
       end
     end
   end
