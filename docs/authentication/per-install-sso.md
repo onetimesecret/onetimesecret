@@ -15,7 +15,7 @@ Two integration patterns are available:
 | Pattern | When to use | Env var prefix |
 |---------|------------|----------------|
 | **Generic OIDC** | Customer runs their own IdP (Zitadel, Keycloak, Auth0, Okta) | `OIDC_*` |
-| **Provider-specific** | Direct integration with a specific service | `ENTRA_*`, `GOOGLE_*`, `GITHUB_*`, `APPLE_*`, `AUTH0_*` |
+| **Provider-specific** | Direct integration with a specific service | `ENTRA_*`, `GOOGLE_*`, `GITHUB_*`, `APPLE_*` |
 | **SAML 2.0** | The IdP has no OIDC login flow | `SAML_*` |
 
 Generic OIDC uses the `/.well-known/openid-configuration` discovery document. Provider-specific gems handle OAuth quirks (tenant models, non-standard scopes, token formats) so the operator doesn't have to. SAML has no client credential: trust is the IdP's signing certificate, pinned in configuration.
@@ -981,7 +981,6 @@ If you see `encoded token is not a string`: the CSRF bypass for SSO routes is mi
   | GitHub | `https://github.com` |
   | Generic OIDC | Origin of `OIDC_ISSUER` |
   | Apple | `https://appleid.apple.com` |
-  | Auth0 | Origin of `AUTH0_DOMAIN` |
   | SAML 2.0 | Origin of `SAML_IDP_SSO_SERVICE_URL` (not the EntityID) |
 
 - **Tenant (per-domain) SSO (per-request):** on a custom domain whose per-domain SSO config is enabled and permitted, the domain's IdP origin (the SSO config's issuer origin for OIDC, its `idp_sso_service_url` origin for SAML, `https://login.microsoftonline.com` for Entra ID) is added to `form-action` for that request only — on that domain and nowhere else. No env var is involved; the origin follows the domain's stored SSO config automatically.
