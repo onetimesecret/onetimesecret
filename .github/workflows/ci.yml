@@ -1006,4 +1006,7 @@ jobs:
                 tier3Target: '${{ steps.metrics.outputs.tier3-target }}',
                 tier4Target: '${{ steps.metrics.outputs.tier4-target }}',
               },
+              // Completion state and per-test-step time against main, as
+              // markdown from scripts/ci/ci-metrics-breakdown.sh.
+              breakdownFile: '${{ steps.metrics.outputs.breakdown-file }}',
             });

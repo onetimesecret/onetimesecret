@@ -33,6 +33,15 @@ turn; ask only when irreversible.
 | Error after 3 attempts     | Document in BLOCKED.md, switch to next available task     |
 | Ambiguous requirement      | Apply most reasonable interpretation, document assumption |
 
+### Delegated findings
+
+When delegated research or review produces findings used to drive edits,
+assign stable IDs and explicitly disposition every item. Reconcile the complete
+ledger against the final diff before reporting completion. Reuse the original
+agent session when practical; otherwise give the ledger and final diff to a
+fresh reviewer. Unresolved correctness, security, data-loss, and destructive-
+operation findings block completion.
+
 ### Large Tasks
 
 When context gets large: write current state to tasks/mission.md. Include: what's done, what's next, what's blocked, any open questions. The next session should be able to continue from tasks/mission.md without reading the full history.
