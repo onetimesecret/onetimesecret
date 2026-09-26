@@ -95,7 +95,7 @@ derives each lane's selection from the rake tasks themselves (invoked with
 `--which` against it, so the table cannot drift from `lib/tasks/spec.rake`
 unnoticed. Support files (`spec/support`, an app's `spec/support`, `spec/spec_helper.rb`,
 `try/support`) and application code (`lib/`, `apps/*` outside test trees,
-`config/`, `etc/`, `locales/`, `Gemfile.lock`, `tests/lanes/`) are *shared*:
+`config/`, `etc/`, `locales/`, `Gemfile.lock`, `tests/lanes/`) are _shared_:
 every lane but `smoke` runs them. The `selftest` lane checks the table
 against every lane's tasks file and every `spec/` and `try/` directory on
 disk, so a directory no lane claims fails there rather than running nowhere.
@@ -230,22 +230,22 @@ does, so while a run of that lane and overlay set is live it exits 69
 
 ## Lanes
 
-| Lane                | Services                   | Runs                                                       | CI job                                   |
-| ------------------- | -------------------------- | ---------------------------------------------------------- | ---------------------------------------- |
-| `unit`              | valkey, rabbitmq           | `try:unit`, `spec:fast`                                    | ruby-unit (T2)                           |
-| `browser`           | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-unit (T2) — browser lane step    |
-| `simple`            | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`        | ruby-integration-simple (T3)             |
-| `full-sqlite`       | valkey, rabbitmq           | `spec:integration:full`                                    | ruby-integration-full — SQLite rows      |
-| `full-mfa`          | valkey, rabbitmq           | `spec:integration:full:mfa`                                | ruby-integration-full — SQLite MFA row   |
-| `full-saml-platform` | valkey, rabbitmq          | `spec:integration:full:saml_platform`                      | ruby-integration-full — SQLite platform SAML row |
-| `full-pg`           | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                           | ruby-integration-full — PG rows          |
-| `full-pg-agnostic`  | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                     | ruby-integration-full — PG agnostic rows |
-| `disabled`          | valkey, rabbitmq           | `spec:integration:disabled`                                | ruby-integration-disabled (T3)           |
-| `api`               | valkey, rabbitmq           | `spec:api`                                                 | blocking step, T3 simple job             |
-| `smoke`             | valkey, rabbitmq           | `pnpm test:smoke`                                          | local-only                               |
-| `migrations-sqlite` | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                       | migration-tests.yml — SQLite job         |
-| `migrations-pg`     | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check | migration-tests.yml — PostgreSQL job     |
-| `selftest`          | none                       | boundary fixture                                           | none — driven by `spec/unit/lanes/`      |
+| Lane                 | Services                   | Runs                                                          | CI job                                           |
+| -------------------- | -------------------------- | ------------------------------------------------------------- | ------------------------------------------------ |
+| `unit`               | valkey, rabbitmq           | `try:unit`, `spec:fast`                                       | ruby-unit (T2)                                   |
+| `browser`            | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-unit (T2) — browser lane step               |
+| `simple`             | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`           | ruby-integration-simple (T3)                     |
+| `full-sqlite`        | valkey, rabbitmq           | `spec:integration:full`                                       | ruby-integration-full — SQLite rows              |
+| `full-mfa`           | valkey, rabbitmq           | `spec:integration:full:mfa`                                   | ruby-integration-full — SQLite MFA row           |
+| `full-saml-platform` | valkey, rabbitmq           | `spec:integration:full:saml_platform`                         | ruby-integration-full — SQLite platform SAML row |
+| `full-pg`            | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                              | ruby-integration-full — PG rows                  |
+| `full-pg-agnostic`   | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                        | ruby-integration-full — PG agnostic rows         |
+| `disabled`           | valkey, rabbitmq           | `spec:integration:disabled`                                   | ruby-integration-disabled (T3)                   |
+| `api`                | valkey, rabbitmq           | `spec:api`                                                    | blocking step, T3 simple job                     |
+| `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | local-only                                       |
+| `migrations-sqlite`  | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                          | migration-tests.yml — SQLite job                 |
+| `migrations-pg`      | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check    | migration-tests.yml — PostgreSQL job             |
+| `selftest`           | none                       | boundary fixture                                              | none — driven by `spec/unit/lanes/`              |
 
 Start every service named for a lane. This includes RabbitMQ for `api`,
 `browser` and `smoke`, whose lane environment still declares its endpoint.
@@ -419,7 +419,15 @@ lanes, never `--only`: a suite that CI needs is a lane (the `browser` lane
 exists for that reason), so the command CI runs is the command a contributor
 runs. Toolchain prerequisites a lane cannot generate — built frontend assets,
 Playwright browsers — are installed by the CI job and by `bin/setup --test`;
-the lane preflights them rather than installing them. The supported CI
-exceptions are constrained environments that cannot run the compose topology:
+the lane preflights them rather than installing them.
+
+What CI sees of a run is what a local default run prints: the task's stderr
+merged into its stdout through the `tee` into
+`tmp/lanes/<lane>/<overlays>/last.log` (written in CI too, with the rspec status
+file beside it), then the runner's timing line and its `log: ... (exit N)` line
+on stderr. A reader of the runner's stdout alone (`2>/dev/null`,
+`Open3.capture2`) therefore sees the task's stderr as well. Neither `--quiet`
+nor the tty-only color flags apply there. The supported CI exceptions are
+constrained environments that cannot run the compose topology:
 `devcontainer-ci.yml` and macOS `installer.yml` run the fast suite directly.
 They validate installation paths, not lane behavior.
