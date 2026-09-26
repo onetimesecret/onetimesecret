@@ -463,14 +463,7 @@
     if (!r) return;
 
     const options: { verified?: boolean; resolving?: boolean } = {};
-    // Asserting verified=true on an already-verified domain is still a change
-    // when no override marker is set: it makes the flag sticky against a
-    // failed TXT check (verified_by_override).
-    const assertsOverride = overrideVerified.value === true && !r.verified_by_override;
-    if (
-      overrideVerified.value !== null &&
-      (overrideVerified.value !== r.verified || assertsOverride)
-    ) {
+    if (overrideVerified.value !== null && overrideVerified.value !== r.verified) {
       options.verified = overrideVerified.value;
     }
     if (overrideResolving.value !== null && overrideResolving.value !== r.resolving) {
