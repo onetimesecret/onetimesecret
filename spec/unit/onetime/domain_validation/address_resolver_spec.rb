@@ -122,6 +122,27 @@ RSpec.describe Onetime::DomainValidation::AddressResolver do
         .to raise_error(described_class::NoReplyError, /Incomplete DNS reply/)
     end
 
+    it 'does not treat an AAAA NXDOMAIN after no A reply as definitive' do
+      resolver = resolver_for
+      reply    = Resolv::DNS::Message.new.tap { |message| message.rcode = rcode::NXDomain }
+      allow(resolver).to receive(:query_family).and_return(nil, reply)
+
+      expect { resolver.lookup(hostname) }
+        .to raise_error(described_class::NoReplyError, /Incomplete DNS reply/)
+    end
+
+    it 'keeps an AAAA address when the A lookup gets no reply' do
+      resolver = resolver_for
+      name     = Resolv::DNS::Name.create("#{hostname}.")
+      reply    = Resolv::DNS::Message.new.tap do |message|
+        message.rcode = rcode::NoError
+        message.add_answer(name, 60, aaaa.new('2606:2800:220:1::1'))
+      end
+      allow(resolver).to receive(:query_family).and_return(nil, reply)
+
+      expect(resolver.lookup(hostname).addresses).to eq(['2606:2800:220:1::1'])
+    end
+
     it 'raises when nothing replies, within the shared budget' do
       server  = start_family_server(a => :silent, aaaa => :silent)
       started = Process.clock_gettime(Process::CLOCK_MONOTONIC)

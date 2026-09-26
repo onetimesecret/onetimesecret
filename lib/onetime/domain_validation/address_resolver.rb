@@ -81,14 +81,15 @@ module Onetime
         answered = replies.filter_map { |_rtype, reply| reply }
         raise NoReplyError, "No DNS reply for #{name} within #{timeout}s" if answered.empty?
 
-        nxdomain = Resolv::DNS::RCode::NXDomain
-        return Answer.new(rcode: nxdomain, addresses: []) if answered.any? { |reply| reply.rcode == nxdomain }
-
-        # One family answering "no data" while the other failed is not a
-        # definitive "no address": report the failure.
+        # One family answering while the other failed is not a definitive
+        # "no address", even when the later reply is NXDOMAIN. An A-first
+        # NXDOMAIN remains definitive because lookup stops after that reply.
         unsettled = answered.find { |reply| !DEFINITIVE_RCODES.include?(reply.rcode) }
         return Answer.new(rcode: unsettled.rcode, addresses: []) if unsettled
         raise NoReplyError, "Incomplete DNS reply for #{name} within #{timeout}s" if answered.size < replies.size
+
+        nxdomain = Resolv::DNS::RCode::NXDomain
+        return Answer.new(rcode: nxdomain, addresses: []) if answered.any? { |reply| reply.rcode == nxdomain }
 
         Answer.new(rcode: Resolv::DNS::RCode::NoError, addresses: [])
       end
