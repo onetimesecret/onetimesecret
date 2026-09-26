@@ -1,8 +1,10 @@
 # shellcheck shell=bash
-# scripts/setup/lib.sh
+# tools/setup/lib.sh
 #
-# Shared spine for bin/setup. Sourced, not executed. Callers run under
-# `set -euo pipefail`.
+# Shared spine for tools/setup/setup.sh (the lanes behind bin/setup) and
+# tools/setup/new-worktree.sh. Sourced, not executed. setup.sh runs under
+# `set -euo pipefail`; new-worktree.sh leaves out -e because it must always
+# exit 0.
 #
 # Bash 3.2 compatible on purpose: macOS ships 3.2, and the old
 # install-dev.sh hard-failed there over a single associative array (DX-15).
@@ -403,6 +405,38 @@ else
 fi
 ENVRC
   echo "Created: .envrc (rev $ENVRC_REV)"
+}
+
+# --- New-worktree setup (opt-in) ----------------------------------------
+#
+# tools/setup/new-worktree.sh runs from the post-checkout hook and sets
+# up each worktree `git worktree add` creates, once a clone opts in with
+# `git config ots.worktreeSetup true`.
+
+worktree_setup_enabled() {
+  [[ "$(git config --type=bool --get ots.worktreeSetup 2>/dev/null)" == "true" ]]
+}
+
+# worktree_name DIR — the directory's name, or its parent's when the
+# directory is named after the main checkout (worktrees/onetimesecret/
+# dev-api/onetimesecret is "dev-api").
+worktree_name() {
+  local dir="$1" main
+  main="$(dirname "$(git -C "$dir" rev-parse --path-format=absolute --git-common-dir)")"
+  if [[ "$(basename "$dir")" == "$(basename "$main")" ]]; then
+    basename "$(dirname "$dir")"
+  else
+    basename "$dir"
+  fi
+}
+
+# worktree_setup_lane DIR — the bin/setup lane for a new worktree:
+# --dev when its name starts with "dev", --test otherwise.
+worktree_setup_lane() {
+  case "$(worktree_name "$1")" in
+    dev*) echo "--dev" ;;
+    *)    echo "--test" ;;
+  esac
 }
 
 # --- Misc shared state --------------------------------------------------

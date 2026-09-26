@@ -2,7 +2,8 @@
 #
 # scripts/tests/run.sh
 #
-# Runs the executable shell tests in this directory — every scripts/tests/*-test.sh.
+# Runs the executable shell tests in this directory — every scripts/tests/*-test.sh —
+# and the ones tool packages own (ADR-042): every tools/*/tests/*-test.sh.
 #
 # Usage:
 #   scripts/tests/run.sh                  # everything
@@ -23,6 +24,7 @@
 set -uo pipefail
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${TEST_DIR}/../.." && pwd)"
 
 # md_code() in sentry-status.sh uses printf -v and C-style for loops; the tests
 # use mapfile. macOS ships bash 3.2, which has none of them, and the failure
@@ -37,7 +39,7 @@ fi
 filter="${1:-}"
 
 declare -a SUITES=()
-for suite in "${TEST_DIR}"/*-test.sh; do
+for suite in "${TEST_DIR}"/*-test.sh "${REPO_ROOT}"/tools/*/tests/*-test.sh; do
   [ -f "$suite" ] || continue
   if [ -n "$filter" ]; then
     case "$(basename "$suite")" in
@@ -49,7 +51,7 @@ for suite in "${TEST_DIR}"/*-test.sh; do
 done
 
 if [ "${#SUITES[@]}" -eq 0 ]; then
-  printf 'No test files matched %s in %s\n' "${filter:-*}" "$TEST_DIR" >&2
+  printf 'No test files matched %s in %s or tools/*/tests\n' "${filter:-*}" "$TEST_DIR" >&2
   exit 1
 fi
 

@@ -19,7 +19,7 @@ on:
     paths:
       - '.devcontainer/**'
       - 'bin/setup'
-      - 'scripts/setup/**'
+      - 'tools/setup/**'
       - 'Gemfile'
       - 'Gemfile.lock'
       - 'package.json'
