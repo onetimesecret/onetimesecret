@@ -5,8 +5,10 @@
 #   bin/setup             Dev environment (contributor default): deps, config,
 #                         secrets, generated artifacts, git hooks, next steps.
 #   bin/setup --test      Test lane: containerized test services via
-#                         compose.test.yml, .test-mode marker, config smoke
-#                         test. tests/lanes/run just works.
+#                         compose.test.yml, frozen deps (same as CI),
+#                         Playwright browsers for tests/browser, .test-mode
+#                         marker, config smoke test. tests/lanes/run just
+#                         works.
 #   bin/setup --init      Self-hosting init: secrets, env, install mark.
 #                         Auto-detects an existing environment and reconciles
 #                         instead (never regenerates a live SECRET).
@@ -409,6 +411,7 @@ cmd_test() {
   fi
 
   check_version_exact "Ruby" ruby .ruby-version 'ruby -e "puts RUBY_VERSION"'
+  check_version_major "Node" node .node-version 'node -v'
 
   echo "---"
   echo "Seeding etc/ config from defaults..."
@@ -417,11 +420,16 @@ cmd_test() {
   echo "---"
   install_gems
 
-  if [[ -d node_modules ]]; then
-    echo "OK:   node_modules present"
-  else
-    install_node
-  fi
+  # Always frozen, never "node_modules present": CI runs
+  # `pnpm install --frozen-lockfile` on every job, and an existing
+  # node_modules says nothing about whether it matches pnpm-lock.yaml.
+  # pnpm makes this a no-op when the lockfile is unchanged.
+  echo "---"
+  install_node
+
+  # Real browsers for tests/browser (ci.yml installs the same trio).
+  echo "---"
+  install_playwright_browsers
 
   echo "---"
   generate_artifacts
@@ -547,8 +555,9 @@ cmd_test() {
 
   echo "---"
   echo "Test environment ready."
-  echo "  Ruby:   tests/lanes/run unit   (all lanes: tests/lanes/run --list)"
-  echo "  Vitest: pnpm test"
+  echo "  Ruby:    tests/lanes/run unit   (all lanes: tests/lanes/run --list)"
+  echo "  Vitest:  pnpm test"
+  echo "  Browser: tests/lanes/run browser"
   echo "  Stop services:           docker compose -f compose.test.yml down"
   echo "  Switch back to dev mode: bin/setup"
 }
@@ -1100,6 +1109,26 @@ doctor_dev_tooling() {
     doc_warn "generated/schemas missing — schema-dependent specs will fail" \
       "pnpm run schemas:json:generate (bin/setup does this)"
   fi
+
+  # Playwright browser binaries: only tests/browser needs them and only the
+  # test lane installs them, so missing is a warning in test mode
+  # (.test-mode) and a note otherwise. Presence is what @playwright/test
+  # resolves, never a path literal here. Doctor reports; it never installs.
+  local missing_browsers
+  if [[ ! -d node_modules/@playwright/test ]]; then
+    doc_info "Playwright browsers not checked (node_modules/@playwright/test missing)"
+  elif missing_browsers=$(playwright_missing_browsers); then
+    if [[ -z "$missing_browsers" ]]; then
+      doc_ok "Playwright browsers present ($PLAYWRIGHT_BROWSERS — tests/browser)"
+    elif [[ -f .test-mode ]]; then
+      doc_warn "Playwright browsers missing: $missing_browsers — tests/browser/saml_callback_spec.rb cannot run" \
+        "bin/setup --test (or: pnpm playwright:install)"
+    else
+      doc_info "Playwright browsers missing: $missing_browsers (test lane only; bin/setup --test installs them)"
+    fi
+  else
+    doc_warn "Playwright browser probe failed (node could not load @playwright/test)" "bin/setup --test"
+  fi
 }
 
 doctor_operator_assets() {
@@ -1373,8 +1402,11 @@ Every lane is idempotent — safe to re-run at any time.
 Lanes:
   --dev        Dev environment: deps, config, secrets, generated artifacts,
                git hooks. Removes .test-mode (returns to dev mode). [default]
-  --test       Test lane: containerized test services, .test-mode marker,
-               config smoke test. Then: tests/lanes/run unit / pnpm test
+  --test       Test lane: frozen deps (pnpm install --frozen-lockfile, as
+               CI), Playwright browsers for tests/browser (skip with
+               OTS_SETUP_SKIP_BROWSERS=1), containerized test services,
+               .test-mode marker, config smoke test.
+               Then: tests/lanes/run unit / tests/lanes/run browser / pnpm test
   --init       Self-hosting init: env file, secrets, install mark.
                Auto-reconciles when an environment already exists.
                (Operator front door: bin/install)

@@ -1,0 +1,26 @@
+# Lane: browser — real-browser specs under tests/browser (the SAML callback
+# transport matrix: chromium, firefox and webkit driven by Playwright).
+# CI job: ruby-unit (T2), as its own lane step ahead of the unit lane.
+#
+# Services: valkey and rabbitmq, the same pair the unit lane starts.
+# Valkey is used — Onetime::Security::SamlCallbackStore stages the
+# cross-site POST in the datastore and the spec only re-prefixes its keys.
+# RabbitMQ is not used by the spec but base.env declares its endpoint, and
+# the runner preflights every declared endpoint (api and smoke are in the
+# same position; selftest is the one service-free lane). No PostgreSQL:
+# the harness is a bare Rack stack with an in-process IdP, not the app,
+# so the mode below is nominal and matches the lane this spec ran in
+# before it had its own.
+AUTHENTICATION_MODE=simple
+
+# Generated prerequisites, produced by tests/lanes/run before the tasks
+# below (see the codegen phase there). spec/spec_helper.rb refuses to boot
+# with an empty generated/locales, so every lane that runs Ruby specs
+# declares it. No schemas: nothing under tests/browser reads them.
+LANES_CODEGEN='locales'
+
+# Not declared here because the runner has no token for it: the Playwright
+# browser binaries (chromium, firefox, webkit). bin/setup --test installs
+# them, and the tasks file preflights them so a missing engine exits 69
+# (tooling, not a test failure) before Ruby boots, instead of surfacing as
+# the harness's own refusal inside a red RSpec example.

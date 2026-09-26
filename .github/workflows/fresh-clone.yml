@@ -9,15 +9,17 @@
 #     -> bin/setup                              # the documented setup command
 #     -> bin/setup --test                       # the documented test lane
 #     -> tests/lanes/run unit && pnpm test      # the documented suites
+#     -> tests/lanes/run browser                # browsers from --test, OS deps CI-only
 #     -> bin/setup --test                       # second run = idempotency (Zulip)
 #     -> git status --porcelain == empty        # litter check (Zulip)
 #
 # Deliberate design choices:
 #   - Toolchain comes from the pinned version FILES (.ruby-version = 3.4.10,
-#     .node-version = 24), NOT hardcoded versions — this lane exists to prove
-#     the *documented* floors work (the Node-24 gate is the whole point of
-#     the onboarding branch; the reusable setup-node-env action defaults to 25
-#     and force-installs deps, so it is intentionally NOT used here).
+#     .node-version = 26), NOT hardcoded versions — this lane exists to prove
+#     the *documented* floors work (the Node-major gate is the whole point of
+#     the onboarding branch; the reusable setup-node-env action also reads
+#     .node-version but force-installs deps, so it is intentionally NOT used
+#     here).
 #   - No config-seeding composite actions and no Valkey service container:
 #     bin/setup does all app-level setup itself (seeds etc/ from
 #     defaults, installs deps, generates locales + schemas; the --test lane
@@ -105,7 +107,7 @@ jobs:
 
       # --- The documented contributor path, from zero -------------------------
       # CONTRIBUTING.md's 5-minute path is `bin/setup`; its "run what CI runs"
-      # section is `bin/setup --test` + the two suites. This job runs exactly
+      # section is `bin/setup --test` + the three suites. This job runs exactly
       # those commands, in that order — the C6 proof (work-chunks: "C7's
       # fresh-clone job runs bin/setup itself").
       - name: Run bin/setup (documented contributor setup, first run)
@@ -124,6 +126,16 @@ jobs:
 
       - name: 'Unit lane (TR-01: no build ever run)'
         run: tests/lanes/run unit
+
+      # The browser lane proves bin/setup --test left tests/browser runnable:
+      # the browsers themselves came from that step. The OS packages they link
+      # against are the one CI-only piece — bin/setup never runs sudo/apt, and
+      # says so on Linux — so the workflow installs them here, explicitly.
+      - name: Install Playwright OS dependencies (CI-only; bin/setup never runs apt)
+        run: pnpm exec playwright install-deps chromium firefox webkit
+
+      - name: 'Browser lane (browsers installed by bin/setup --test)'
+        run: tests/lanes/run browser
 
       - name: Vitest suite
         run: pnpm test

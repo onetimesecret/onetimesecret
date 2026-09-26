@@ -3,25 +3,36 @@
 # ==============================================================================
 # Setup Node.js Environment - Composite Action
 # ==============================================================================
-# Version: 1.0.0
+# Version: 1.1.0
 # Repository: onetimesecret/onetimesecret
 #
 # Prepares a Node.js environment with pnpm and caching for CI jobs.
 # Consolidates common frontend setup steps.
 #
+# Toolchain pins live in the repo, not here: Node comes from .node-version
+# (actions/setup-node's node-version-file) and pnpm from package.json's
+# "packageManager" field (pnpm/action-setup with no version literal). The
+# node-version input is an explicit override only; when empty (the default)
+# actions/setup-node falls back to node-version-file.
+#
 # Setup Steps:
-#   1. Install Node.js (default: v25)
-#   2. Install pnpm package manager
+#   1. Install Node.js (from .node-version unless node-version overrides it)
+#   2. Install pnpm package manager (version from package.json packageManager)
 #   3. Configure pnpm store caching
 #   4. Install dependencies with frozen lockfile (optional)
 #
 # Usage:
 #   - uses: ./.github/actions/setup-node-env
 #     with:
-#       node-version: '25'
 #       install-dependencies: 'true'
 #
+#   # Explicit override (e.g. a preview lane testing a newer major):
+#   - uses: ./.github/actions/setup-node-env
+#     with:
+#       node-version: '27'
+#
 # Changelog:
+#   1.1.0 - Read Node major from .node-version; node-version is override-only
 #   1.0.0 - Initial release consolidating Node setup from ci.yml
 # ==============================================================================
 
@@ -33,9 +44,9 @@ description: |
 
 inputs:
   node-version:
-    description: 'Node.js version to use'
+    description: 'Explicit Node.js version override. Empty (default) reads .node-version.'
     required: false
-    default: '25'
+    default: ''
   install-dependencies:
     description: 'Whether to run pnpm install'
     required: false
@@ -44,11 +55,15 @@ inputs:
 runs:
   using: composite
   steps:
+    # actions/setup-node uses node-version when set and otherwise reads
+    # node-version-file, so an empty override input yields the repo pin.
     - name: Setup Node.js
       uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
       with:
         node-version: ${{ inputs.node-version }}
+        node-version-file: '.node-version'
 
+    # No version input: pnpm/action-setup reads package.json "packageManager".
     - name: Setup pnpm
       uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
