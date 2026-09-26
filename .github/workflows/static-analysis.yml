@@ -114,9 +114,14 @@ jobs:
       # lane table behind --which, lane inference and run-all --changed.
       # Bash only — no Ruby, no services — so it belongs with the shell
       # tests rather than in the unit lane, where its ~50 process trees
-      # would be paid for by every T2 run.
+      # would be paid for by every T2 run. Through the same composite action
+      # as every other lane job (README "CI contract"): the lane owns the
+      # workload, the action owns reporting; no results-file, since the lane
+      # runs no rspec.
       - name: Run the lane runner's own checks
-        run: tests/lanes/run runner
+        uses: ./.github/actions/run-test-lane
+        with:
+          lane: runner
 
   lint:
     name: shellcheck + actionlint
