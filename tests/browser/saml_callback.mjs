@@ -27,6 +27,8 @@ try {
     try {
       for (const sameSite of ['Lax', 'None', 'Strict']) {
         const context = await browser.newContext({ ignoreHTTPSErrors: true });
+        // A failed case is reported by name rather than aborting the whole
+        // matrix, so the Ruby spec can say which engine and policy failed.
         try {
           // Only these two loopback TLS origins are allowed. No external IdP,
           // telemetry, trace recording, saved cookies or assertion artifacts.
@@ -67,9 +69,9 @@ try {
           const postHeaders = await post.allHeaders();
           expect(postHeaders['set-cookie']).toBeUndefined();
           expect(postHeaders['referrer-policy']).toBe('no-referrer');
-          const postRequestHeaders = await post.request().allHeaders();
-          const sentOnPost = (postRequestHeaders.cookie || '').includes('saml.browser.session=');
-          expect(sentOnPost).toBe(sameSite === 'None');
+          // Whether the cookie travelled on the cross-site POST is taken from
+          // the server's observation (evidence.postCookie below): WebKit does
+          // not expose the Cookie request header through Playwright.
           const location = postHeaders.location;
           expect(location).toMatch(/^\/auth\/sso\/saml\/callback\?saml_handle=[0-9a-f]{64}$/);
           await expect(page.getByRole('heading')).toHaveText(
@@ -98,6 +100,18 @@ try {
             sameSite,
             status: 'passed',
             ...observed,
+          });
+        } catch (error) {
+          results.push({
+            browser: name,
+            version: browser.version(),
+            sameSite,
+            status: 'failed',
+            error: String(error && error.message ? error.message : error).split('\n')[0],
+            at:
+              ((error && error.stack) || '')
+                .split('\n')
+                .find((line) => line.includes('saml_callback.mjs')) || null,
           });
         } finally {
           await context.close();
