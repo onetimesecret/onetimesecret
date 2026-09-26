@@ -5,7 +5,7 @@
 require 'openssl'
 require 'socket'
 
-require 'onetime/http/guard'
+require_relative '../http/guard'
 require_relative 'address_resolver'
 
 module Onetime

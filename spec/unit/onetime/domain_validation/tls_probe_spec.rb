@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'open3'
 require 'openssl'
 require 'socket'
 require 'onetime/domain_validation/tls_probe'
@@ -14,6 +15,22 @@ require 'onetime/domain_validation/tls_probe'
 RSpec.describe Onetime::DomainValidation::TlsProbe do
   answer_class = Onetime::DomainValidation::AddressResolver::Answer
   rcode        = Resolv::DNS::RCode
+
+  describe 'loading' do
+    it 'loads by absolute path without lib on the load path' do
+      root    = File.expand_path('../../../..', __dir__)
+      harness = <<~RUBY
+        module Onetime
+          class Problem < StandardError; end
+        end
+        require File.expand_path('lib/onetime/domain_validation/tls_probe.rb', Dir.pwd)
+      RUBY
+
+      _stdout, stderr, status = Open3.capture3(RbConfig.ruby, '-e', harness, chdir: root)
+
+      expect(status).to be_success, stderr
+    end
+  end
 
   # Test PKI, built once for the file.
   pki = Module.new do
