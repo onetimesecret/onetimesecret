@@ -417,6 +417,12 @@ jobs:
       - name: Install Playwright browsers for SAML callback coverage
         run: pnpm exec playwright install --with-deps chromium firefox webkit
 
+      # `--only` bypasses the lane's codegen phase, and spec_helper refuses to
+      # boot without generated/locales, so generate it here. The full unit
+      # lane below regenerates it as part of its own codegen.
+      - name: Generate locale files for the browser matrix
+        run: pnpm run locales:sync
+
       - name: Run SAML callback browser matrix
         run: tests/lanes/run unit --only tests/browser/saml_callback_spec.rb
 
