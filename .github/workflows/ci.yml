@@ -212,6 +212,8 @@ jobs:
           bundler-cache: false # DEBUG: disabled to rule out stale cache
 
       - name: Install dependencies
+        env:
+          BUNDLE_FROZEN: 'true' # same contract as scripts/setup/lib.sh
         run: bundle install --jobs 4 --retry 3
 
       - name: Run Rubocop
@@ -593,8 +595,8 @@ jobs:
         with:
           node-version-file: '.node-version'
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
       - name: Run simple lane
         uses: ./.github/actions/run-test-lane
@@ -627,8 +629,8 @@ jobs:
         with:
           node-version-file: '.node-version'
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
       # API contract specs (spec/api/) are a different axis than auth mode.
       # This was continue-on-error while the #3225 / ADR-012 Stage 3
@@ -719,8 +721,8 @@ jobs:
         with:
           node-version-file: '.node-version'
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
       - name: Run lane
         uses: ./.github/actions/run-test-lane
@@ -754,8 +756,8 @@ jobs:
         with:
           node-version-file: '.node-version'
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
       - name: Run disabled lane
         uses: ./.github/actions/run-test-lane
