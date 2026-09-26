@@ -173,3 +173,8 @@ __pycache__/
 # release is tagged — committing it would create a second answer to "when did
 # this key ship" that nothing checks.
 env-versions.tsv
+
+# Agent session scratch (AGENTS.md "Large Tasks"): per-session handoff notes,
+# never part of a change set.
+tasks/mission.md
+BLOCKED.md
