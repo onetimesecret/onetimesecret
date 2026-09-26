@@ -155,6 +155,8 @@ while read -r lanes pattern; do
   own_lanes+=("${lanes}")
 done <<'ROWS'
 api                                              spec/api
+browser                                          tests/browser
+browser                                          tests/browser/*
 unit                                             spec/cli
 unit                                             spec/lib
 unit                                             spec/unit
@@ -202,7 +204,8 @@ none                                             try/web
 ROWS
 all_lanes="$(lanes_all | tr '\n' ',')"
 all_lanes="${all_lanes%,}"
-for path in spec/*/ spec/integration/*/ spec/integration/full/database_triggers/*_spec.rb spec/integration/full/postgres_*_spec.rb \
+for path in tests/browser/ tests/browser/* \
+            spec/*/ spec/integration/*/ spec/integration/full/database_triggers/*_spec.rb spec/integration/full/postgres_*_spec.rb \
             apps/*/*/spec/ apps/*/*/spec/integration/*/ apps/*/*/spec/integration/*_spec.rb \
             apps/*/*/spec/integration/full/migrations/*_spec.rb \
             try/*/ try/integration/*/ try/integration/*_try.rb; do
@@ -259,11 +262,13 @@ while read -r want args; do
   fi
 done <<'ROWS'
 0  --which spec/api
+0  --which tests/browser/saml_callback_spec.rb
 0  --which lib/onetime.rb
 64 --which docs
 64 --which
 64 --which spec/api lib
 0  --only spec/unit/lanes/hermetic_boundary_spec.rb --print-key
+0  --only tests/browser/saml_callback_spec.rb --print-key
 0  --quiet --only spec/unit/lanes/hermetic_boundary_spec.rb --only spec/unit/lanes/run_all_spec.rb --print-key
 64 --only spec/integration/full --print-key
 64 --only spec/unit/lanes/hermetic_boundary_spec.rb --only spec/api --print-key
@@ -308,6 +313,7 @@ while read -r stub want; do
   fi
 done <<ROWS
 spec/api/v2/x_spec.rb api
+tests/browser/saml_callback.mjs browser
 spec/api/v2/x_spec.rb|apps/api/v1/spec/integration/simple/x_spec.rb|docs/x.md|try/web/x_try.rb api simple
 spec/integration/all/x_spec.rb disabled full-pg-agnostic full-sqlite simple
 spec/api/v2/x_spec.rb|lib/onetime.rb ${all_lanes//,/ }

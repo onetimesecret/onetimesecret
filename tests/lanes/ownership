@@ -40,6 +40,7 @@ LANES_OWNERSHIP_ROOT="$(cd "${LANES_OWNERSHIP_DIR}/../.." && pwd)"
 
 declare -A LANES_OWNER_TASKS=(
   [unit]='try:unit spec:fast'
+  [browser]=''
   [simple]='try:integration:simple spec:integration:simple'
   [disabled]='spec:integration:disabled'
   [full-sqlite]='spec:integration:full'
@@ -50,8 +51,9 @@ declare -A LANES_OWNER_TASKS=(
   [migrations-sqlite]='spec:integration:migrations:sqlite'
   [migrations-pg]='spec:integration:migrations:postgres spec:integration:migrations:verify_dual_url'
   [api]='spec:api'
-  # smoke runs `pnpm test:smoke` (vitest plus rake smoke:*) and owns no path
-  # here; selftest runs no application code. Neither is a rake lane.
+  # browser invokes rspec directly and is mapped explicitly below. Smoke runs
+  # `pnpm test:smoke` and owns no path here; selftest runs no application code.
+  # None of the three is a rake lane.
   [smoke]=''
   [selftest]=''
 )
@@ -144,6 +146,10 @@ lanes_for_path() {  # <path>
     return
   fi
   case "${p}" in
+    # The browser lane invokes rspec directly rather than through a rake task.
+    # Its JavaScript harness is lane-owned too, so --changed selects the lane.
+    tests/browser|tests/browser/*)
+      echo browser ;;
     # spec:integration:migrations:* name these three files. The SQLite and
     # postgres full lanes load them through their directory too (the
     # postgres_database tag then decides what runs); agnostic_on_pg

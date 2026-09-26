@@ -108,7 +108,10 @@ module LaneOwnershipProbe
     lanes = {}
     Dir.glob('tests/lanes/*/tasks').sort.each do |tasks|
       lane = tasks.split('/')[-2]
-      lanes[lane] = File.read(tasks).scan(/^\s*bundle exec rake ([a-z_:]+)/).flatten.flat_map do |name|
+      task_names = File.read(tasks).scan(/^\s*bundle exec rake ([a-z_:]+)/).flatten
+      next if task_names.empty?
+
+      lanes[lane] = task_names.flat_map do |name|
         if name == 'spec:fast'
           SpecSelection.lane_claims.fetch('spec:fast')
         else
@@ -186,7 +189,7 @@ RSpec.describe 'tests/lanes/ownership against lib/tasks/spec.rake' do
     # The oracle is only worth trusting if it saw something: a lane whose
     # tasks all parsed to nothing would make every `--which` below pass
     # against an empty expectation.
-    rake_lanes = probe.selection.reject { |lane, _| %w[smoke selftest].include?(lane) }
+    rake_lanes = probe.selection
     expect(rake_lanes.keys).to include('unit', 'simple', 'full-sqlite', 'full-pg', 'api')
     empty = rake_lanes.select { |_, files| files.empty? }.keys
     expect(empty).to be_empty, "no files derived for lane(s) #{empty.join(', ')}"
