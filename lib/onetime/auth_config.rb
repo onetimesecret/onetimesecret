@@ -882,7 +882,9 @@ module Onetime
     # also carry :vars_valid — a zero-arg callable for a constraint presence
     # cannot express, such as a URL variable that must include the scheme
     # because the CSP form-action origin is derived from it. SAML does
-    # (#4450): a SAML-compatible session cookie (SameSite=None + Secure), an
+    # (#4450): a SAML-compatible session cookie (Secure with SameSite=Lax or
+    # None; Strict cannot recover the initiating session on the staged
+    # POST-to-GET callback, Saml.session_cookie_problem), an
     # https SSO service URL, a non-blank EntityID, and exactly one PEM
     # certificate inside its validity window — a SAML route that cannot
     # complete a sign-in is never registered, so it must never be advertised

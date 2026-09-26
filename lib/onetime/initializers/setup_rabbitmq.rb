@@ -203,11 +203,15 @@ module Onetime
         raise
       end
 
+      # Hide credentials in logs. "user:pass@host" keeps the username; a bare
+      # "key@host" userinfo (Northflank style) is a secret, so it is masked
+      # whole. The shared redactor also masks any query string and redacts
+      # wider rather than leaking when a password contains "/", ":" or "@".
       def sanitize_url(url)
-        # Hide credentials in logs
-        # Handles both user:pass@host and key@host formats
-        url.gsub(%r{://([^:@]+):([^@]+)@}, '://\1:***@')  # user:pass@host
-          .gsub(%r{://([^/:@]+)@}, '://***@')             # key@host (no colon)
+        kept = Onetime::Utils.redact_uri_userinfo(url, keep_username: true)
+        # ":***@" is present exactly when the redactor found a password to
+        # mask; otherwise whatever precedes "@" was a bare key.
+        kept.include?(':***@') ? kept : Onetime::Utils.redact_uri_userinfo(url)
       end
     end
     # rubocop:enable Style/GlobalVars

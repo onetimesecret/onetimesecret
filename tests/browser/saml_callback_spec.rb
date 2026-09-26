@@ -27,6 +27,10 @@ RSpec.describe 'Real-browser staged SAML callback' do
     config.request_validation_phase = nil # Harness initiation only, not production configuration.
     config.logger = Logger.new(File::NULL)
     stub_const('Onetime::Security::SamlCallbackStore::PREFIX', "spec:browser:saml:#{SecureRandom.hex(8)}")
+    # Stage stages only for a host with an active SAML route (platform or
+    # tenant resolution, neither of which this bare stack has). The
+    # predicate is pinned in its own specs; this harness is about cookies.
+    allow(Onetime::Middleware::HttpOriginOptions).to receive(:saml_callback_route_active?).and_return(true)
     idp = SamlSpec::TestIdp.new
     observations = {}
     evidence = lambda do |env|
@@ -112,9 +116,12 @@ RSpec.describe 'Real-browser staged SAML callback' do
             expect(status.success?).to be(true), "Browser harness failed:\n#{err.value}\n#{out.value}"
             results = JSON.parse(out.value)
             puts "Browser evidence: #{JSON.generate(results)}"
-            chromium = results.select { |result| result['browser'] == 'chromium' }
-            expect(chromium.map { |result| result['sameSite'] }).to eq(%w[Lax None Strict])
-            expect(chromium.map { |result| result['status'] }).to all(eq('passed'))
+            expected_results = %w[chromium firefox webkit].product(%w[Lax None Strict])
+            actual_results = results.map do |result|
+              [result['browser'], result['sameSite']]
+            end
+            expect(actual_results).to eq(expected_results)
+            expect(results.map { |result| result['status'] }).to all(eq('passed'))
           ensure
             if child.alive?
               Process.kill('KILL', -child.pid)

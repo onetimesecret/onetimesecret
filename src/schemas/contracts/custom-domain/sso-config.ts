@@ -355,11 +355,17 @@ export type CustomDomainSsoConfigCanonical = z.infer<typeof customDomainSsoConfi
  * ruby-saml siblings) are refused by the API for every provider type and
  * are deliberately absent here.
  */
+/**
+ * Tenant NameID policies. The transient format is deliberately absent: a
+ * tenant record has no uid attribute, so the API refuses it at save time
+ * (every sign-in through it would be refused as saml_transient_name_id).
+ * Changing the policy re-keys existing identities; see
+ * docs/authentication/saml-policy.md.
+ */
 export const samlNameIdFormatSchema = z.enum([
   'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
   'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
   'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
-  'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
   'omit',
 ]);
 

@@ -307,9 +307,12 @@ namespace :spec do
         'AUTH_SSO_ENABLED' => 'true',
         'SAML_IDP_SSO_SERVICE_URL' => 'https://login.platform-idp.test/saml/sso',
         'SAML_IDP_ENTITY_ID' => 'https://platform-idp.test/saml/metadata',
-        # The SAML-compatible session cookie: under any other the platform
-        # provider is skipped at boot (Saml.platform_options).
-        'SESSION_COOKIE_SAME_SITE' => 'none',
+        # The SAML-compatible session cookie: Secure with same_site lax or
+        # none. lax is the default-compatible policy the staged POST-to-GET
+        # callback transport is designed for; none remains supported. Under
+        # strict or a non-Secure cookie the platform provider is skipped at
+        # boot (Saml.platform_options).
+        'SESSION_COOKIE_SAME_SITE' => 'lax',
         'SESSION_COOKIE_SECURE' => 'true',
       }
 

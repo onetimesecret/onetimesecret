@@ -85,4 +85,19 @@ RSpec.describe Onetime::CLI::StatusCommand do
       expect(command.send(:check_auth_database)).to eq(status: 'error', enabled: true, error: 'connection refused')
     end
   end
+
+  describe '#sanitize_db_url' do
+    {
+      'postgresql://app:s3cret@db:5432/auth' => 'postgresql://app:***@db:5432/auth',
+      'postgresql://app:pa/ss@db:5432/auth' => 'postgresql://app:***@db:5432/auth',
+      'postgresql://app:pa:ss@db:5432/auth' => 'postgresql://app:***@db:5432/auth',
+      'postgresql://db:5432/auth?password=s3cret' => 'postgresql://db:5432/auth?***',
+      'postgresql://app:s3cret@db/auth?sslmode=require' => 'postgresql://app:***@db/auth?***',
+      'sqlite://data/auth.db?mode=rwc' => 'sqlite://data/auth.db?mode=rwc',
+    }.each do |input, expected|
+      it "renders #{input.inspect} as #{expected.inspect}" do
+        expect(command.send(:sanitize_db_url, input)).to eq(expected)
+      end
+    end
+  end
 end

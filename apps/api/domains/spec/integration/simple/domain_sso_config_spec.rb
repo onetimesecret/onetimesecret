@@ -1529,6 +1529,72 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         end
       end
 
+      # Tenant records have no uid attribute, so a transient NameID would be
+      # refused on every sign-in (saml_transient_name_id); the policy is
+      # refused at save time instead, on PUT, PATCH-create and PATCH-update.
+      it 'rejects the transient NameID format on every write path' do
+        transient = { name_id_format: Onetime::SsoProvider::Saml::TRANSIENT_NAME_ID_FORMAT }
+
+        csrf_put api_path(test_custom_domain.extid), valid_saml_params.merge(transient)
+        expect(last_response.status).to eq(422), last_response.body
+        expect(json_body).to include('field' => 'name_id_format', 'error_type' => 'invalid')
+        expect(json_body['error']).to match(/transient/i)
+        expect(stored_config).to be_nil
+
+        csrf_patch api_path(test_custom_domain.extid), valid_saml_params.merge(transient)
+        expect(last_response.status).to eq(422), last_response.body
+        expect(json_body['field']).to eq('name_id_format')
+        expect(stored_config).to be_nil
+
+        csrf_put api_path(test_custom_domain.extid), valid_saml_params
+        expect(last_response.status).to eq(200), last_response.body
+        csrf_patch api_path(test_custom_domain.extid), transient
+        expect(last_response.status).to eq(422), last_response.body
+        expect(json_body['field']).to eq('name_id_format')
+        expect(stored_config.saml_name_id_format).to eq(Onetime::SsoProvider::Saml::PERSISTENT_NAME_ID_FORMAT)
+      end
+
+      # The NameID is the identity key for a tenant, so a format change
+      # makes every existing identity a stranger. The API has no warning
+      # channel in its response shape; the change is recorded at WARN.
+      describe 'changing the NameID format of an existing saml record' do
+        let(:email_format) { 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress' }
+        let(:warning) { '[DOMAIN_SSO_CHANGE] domain_sso_name_id_format_changed' }
+
+        before do
+          csrf_put api_path(test_custom_domain.extid), valid_saml_params
+          expect(last_response.status).to eq(200), last_response.body
+          allow(OT).to receive(:lw).and_call_original
+        end
+
+        it 'warns on a PATCH that changes the effective format, naming whether the record was live' do
+          csrf_patch api_path(test_custom_domain.extid), { name_id_format: email_format }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_config.saml_name_id_format).to eq(email_format)
+          expect(OT).to have_received(:lw).with(warning, a_string_matching(/"was_enabled":true.*"identities_rekeyed":true/)).once
+        end
+
+        it 'warns on a PUT that omits the field and so restores persistent' do
+          csrf_patch api_path(test_custom_domain.extid), { name_id_format: email_format, enabled: false }
+          expect(last_response.status).to eq(200), last_response.body
+          csrf_put api_path(test_custom_domain.extid), valid_saml_params
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_config.saml_name_id_format).to eq(Onetime::SsoProvider::Saml::PERSISTENT_NAME_ID_FORMAT)
+          expect(OT).to have_received(:lw).with(warning, a_string_matching(/"was_enabled":false/)).once
+        end
+
+        it 'stays quiet when the format is unchanged, resent, or omitted on PATCH' do
+          csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed' }
+          csrf_patch api_path(test_custom_domain.extid), { name_id_format: Onetime::SsoProvider::Saml::PERSISTENT_NAME_ID_FORMAT }
+          csrf_put api_path(test_custom_domain.extid), valid_saml_params
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(OT).not_to have_received(:lw).with(warning, anything)
+        end
+      end
+
       it 'requires owner authorization to add callback exceptions' do
         clear_cookies
         login_as(test_non_owner)

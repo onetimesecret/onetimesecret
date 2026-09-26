@@ -531,6 +531,21 @@ RSpec.describe Onetime::SsoProvider::Registry do
           expect(described_class.request_bound_platform_acs_route?('nope')).to be false
         end
 
+        # OmniAuth matches request/callback paths case-insensitively and so
+        # does the staging transport; a route name lifted from a request path
+        # must not escape the host restriction by case.
+        it 'ignores case, in the route name and in SAML_ROUTE_NAME' do
+          ClimateControl.modify(SAML_ROUTE_NAME: nil) do
+            expect(described_class.request_bound_platform_acs_route?('SAML')).to be true
+            expect(described_class.request_bound_platform_acs_route?('Saml')).to be true
+          end
+          ClimateControl.modify(SAML_ROUTE_NAME: 'Okta') do
+            expect(described_class.request_bound_platform_acs_route?('okta')).to be true
+            expect(described_class.request_bound_platform_acs_route?('OKTA')).to be true
+            expect(described_class.request_bound_platform_acs_route?('saml')).to be false
+          end
+        end
+
       end
 
       # Blank trust anchors, so RequestBoundSAML refuses (:saml_misconfigured)
@@ -596,6 +611,27 @@ RSpec.describe Onetime::SsoProvider::Registry do
 
           expect { saml_options(SAML_IDP_CERT: bare) }.to raise_error(ArgumentError, /PEM X\.509/)
           expect(saml_valid?(SAML_IDP_CERT: bare)).to be false
+        end
+
+        # A transient NameID with nothing else to key identities on would
+        # refuse every sign-in (:saml_transient_name_id); the provider is
+        # skipped at boot instead, naming the variable that would fix it.
+        describe 'SAML_NAME_ID_FORMAT transient' do
+          let(:transient) { Onetime::SsoProvider::Saml::TRANSIENT_NAME_ID_FORMAT }
+
+          it 'is refused without SAML_UID_ATTRIBUTE, naming both variables' do
+            expect { saml_options(SAML_NAME_ID_FORMAT: transient) }
+              .to raise_error(ArgumentError, /transient.*SAML_UID_ATTRIBUTE.*check .*SAML_NAME_ID_FORMAT, SAML_UID_ATTRIBUTE/)
+            expect(saml_valid?(SAML_NAME_ID_FORMAT: transient)).to be false
+            expect(saml_valid?(SAML_NAME_ID_FORMAT: transient, SAML_UID_ATTRIBUTE: '  ')).to be false
+          end
+
+          it 'is accepted with SAML_UID_ATTRIBUTE, and the attribute keys the uid' do
+            opts = saml_options(SAML_NAME_ID_FORMAT: transient, SAML_UID_ATTRIBUTE: 'employee_id')
+
+            expect(opts).to include(name_identifier_format: transient, uid_attribute: 'employee_id')
+            expect(saml_valid?(SAML_NAME_ID_FORMAT: transient, SAML_UID_ATTRIBUTE: 'employee_id')).to be true
+          end
         end
 
         # ruby-saml's format_cert would parse only the FIRST block.

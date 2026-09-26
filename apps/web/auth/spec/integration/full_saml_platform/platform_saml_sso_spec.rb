@@ -30,9 +30,10 @@
 #
 # OWN LANE. Auth::Config configures once per process and reads SAML_* then.
 # The lane (tests/lanes/full-saml-platform) provides the three public strings
-# AND the SAML-compatible session cookie (SESSION_COOKIE_SAME_SITE=none,
-# SESSION_COOKIE_SECURE=true — under any other cookie Saml.platform_options
-# raises and the provider is SKIPPED at boot); the IdP KEYPAIR is minted here
+# AND the SAML-compatible session cookie (SESSION_COOKIE_SAME_SITE=lax,
+# SESSION_COOKIE_SECURE=true — lax or none is accepted; under strict or a
+# non-Secure cookie Saml.platform_options raises and the provider is SKIPPED
+# at boot); the IdP KEYPAIR is minted here
 # at load time and its certificate installed in ENV before the first boot, so
 # no key material is checked in. If the app is already booted when this file
 # loads, the environment cannot take effect — that is a loud failure, not a
@@ -53,7 +54,7 @@
 #
 # REQUIREMENTS:
 # - Valkey on 2163, AUTHENTICATION_MODE=full, ORGS_SSO_ENABLED=true,
-#   SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID, SESSION_COOKIE_SAME_SITE=none,
+#   SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID, SESSION_COOKIE_SAME_SITE=lax,
 #   SESSION_COOKIE_SECURE=true (lane-provided)
 #
 # RUN:
@@ -142,15 +143,27 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
     )
   end
 
-  def post_callback(saml_response, acs_url = platform_acs, origin: 'https://login.platform-idp.test')
+  # On the successful path the transport MUST stage the IdP's POST — 303 to
+  # the handle, no cookie written — before the browser completes with a GET;
+  # asserted here so this suite cannot pass without the staging middleware.
+  # Examples that send a POST the stack is expected to refuse pass
+  # expect_staged: false and assert on the POST themselves. follow: false
+  # stops after staging so an example can act between staging and
+  # completion.
+  def post_callback(saml_response, acs_url = platform_acs, origin: 'https://login.platform-idp.test', expect_staged: true, follow: true)
     header 'Origin', origin
     # Each example represents a different browser source; do not exhaust the
     # transport's per-source quota across this shared-datastore suite.
     post acs_url, { 'SAMLResponse' => saml_response }, { 'REMOTE_ADDR' => "2001:db8:#{run_id.scan(/.{4}/).join(':')}::1" }
-    if last_response.status == 303
-      header 'Origin', nil
-      follow_redirect!
-    end
+    return unless expect_staged
+
+    expect(last_response.status).to eq(303), "staging: #{last_response.status} #{last_response.body[0, 200]}"
+    expect(last_response.headers['Location'].to_s).to include('saml_handle=')
+    expect(last_response.headers['Set-Cookie']).to be_nil
+    return unless follow
+
+    header 'Origin', nil
+    follow_redirect!
   ensure
     header 'Origin', nil
   end
@@ -342,7 +355,7 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
       expect(Onetime::Middleware::DomainStrategy.canonical_host?(canonical_host)).to be true
       [false, true].each do |fallback|
         allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(fallback)
-        post_callback('untrusted-response', "https://#{canonical_host}/auth/sso/saml/callback")
+        post_callback('untrusted-response', "https://#{canonical_host}/auth/sso/saml/callback", expect_staged: false)
         expect(last_response.status).to eq(403)
         expect(last_response.headers['Location']).to be_nil
       end
@@ -375,7 +388,7 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
 
             [false, true].each do |fallback|
               allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(fallback)
-              post_callback('untrusted-response', "#{tenant_base}/auth/sso/saml/callback")
+              post_callback('untrusted-response', "#{tenant_base}/auth/sso/saml/callback", expect_staged: false)
               expect(last_response.status).to eq(403)
               expect(last_response.headers['Location']).to be_nil
             end
@@ -440,12 +453,15 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
         allow(helpers).to receive(:handle_missing_tenant_config).and_call_original
 
         # An attacker can submit from their own host, regardless of whether
-        # the platform IdP origin is admitted by HttpOrigin.
-        post_callback(captured_response, request.acs_url, origin: tenant_base)
+        # the platform IdP origin is admitted by HttpOrigin. A verified custom
+        # host with no SAML record of its own has no active SAML route, so
+        # the transport refuses to stage the captured response at all: it is
+        # never stored, never read, never validated.
+        post_callback(captured_response, request.acs_url, origin: tenant_base, expect_staged: false)
 
-        expect(last_response.status).to eq(302)
-        expect(last_response.headers['Location'].to_s).to include('auth_error=sso_not_configured')
-        expect(pending_request_id).to be_nil
+        expect(last_response.status).to eq(404)
+        expect(last_response.headers['Location']).to be_nil
+        expect(last_response.headers['Set-Cookie']).to be_nil
         expect(last_request.env['rack.session'].to_h['account_id']).to be_nil
         expect(last_request.env['rack.session'].to_h['validated_omniauth_domain_id']).to be_nil
         expect(identity_rows).to eq([victim_identity])
@@ -534,16 +550,24 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
       with_override_tenant do |tenant|
         request = start_login(tenant.base, expected_sso_url: tenant.sso_url)
         expect(pending_request_id).to eq(request.id)
+        # Staged while the record is still active; a disabled record has no
+        # active SAML route and a later POST is refused before staging.
+        post_callback(answer(request, signer: tenant.idp), request.acs_url, origin: tenant.origin, follow: false)
+        completion = URI.join(request.acs_url, last_response.headers['Location']).to_s
         Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant.domain.identifier).disable!
 
         [false, true].each do |fallback|
           allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(fallback)
-          post_callback(answer(request), request.acs_url)
+          post_callback(answer(request), request.acs_url, expect_staged: false)
           expect(last_response.status).to eq(403)
           expect(last_response.headers['Location']).to be_nil
         end
 
-        post_callback(answer(request, signer: tenant.idp), request.acs_url, origin: tenant.base)
+        post_callback(answer(request, signer: tenant.idp), request.acs_url, origin: tenant.base, expect_staged: false)
+        expect(last_response.status).to eq(404)
+        expect(last_response.headers['Location']).to be_nil
+
+        get completion
 
         expect(last_response.status).to eq(302)
         expect(last_response.headers['Location']).to include('auth_error=sso_not_configured')

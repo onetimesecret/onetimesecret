@@ -162,7 +162,9 @@ module Onetime
         return false if sso_config.nil?
 
         if sso_config.provider_type == 'saml'
-          return false unless Rack::Request.new(env).path == "/auth/sso/#{sso_config.platform_route_name}/callback"
+          # Case-insensitive like OmniAuth's own path match and the staging
+          # transport's callback? check, so the three cannot disagree.
+          return false unless Rack::Request.new(env).path.casecmp?("/auth/sso/#{sso_config.platform_route_name}/callback")
 
           # A separate POST-only policy; never add these origins to global
           # HttpOrigin or CSP allowances. An unreadable policy fails closed.
@@ -183,10 +185,35 @@ module Onetime
       # requires the staged callback's signed assertion and pending session.
       def self.saml_callback_with_null_origin?(env)
         return false unless env['HTTP_ORIGIN'] == 'null' && env['REQUEST_METHOD'] == 'POST'
+        return false unless Onetime::SsoProvider::Saml.allow_null_origin?
 
+        saml_callback_route_active?(env)
+      end
+
+      # Does the resolved host have an ACTIVE SAML route at this exact
+      # callback path? On the platform surface: platform SSO on, the platform
+      # SAML provider configured and usable, and the request host its
+      # boot-pinned ACS host. On a custom domain: a verified domain whose own
+      # AVAILABLE SsoConfig (TenantSsoResolution's ladder) is an enabled,
+      # usable SAML record naming this route.
+      #
+      # The one answer two admission decisions share: the null-origin
+      # allowance above, and SamlCallbackTransport::Stage, which refuses to
+      # stage a POST for a host that cannot complete a SAML sign-in (an
+      # Origin-less non-browser POST passes HttpOrigin, so staging capacity
+      # needs its own gate). Nothing here authorizes a login: the GET-side
+      # gates — tenant hook, ACS host, pending request id — still run.
+      #
+      # Fails closed on every uncertainty: a non-callback or trailing-slash
+      # path, no display_domain, a detected host that disagrees with it, a
+      # canonical-set host that is not the platform ACS host, an unverified
+      # domain, a missing, disabled or non-SAML record, a record whose
+      # options cannot be built, a datastore error.
+      #
+      # @param env [Hash] Rack environment
+      # @return [Boolean]
+      def self.saml_callback_route_active?(env)
         saml = Onetime::SsoProvider::Saml
-        return false unless saml.allow_null_origin?
-
         path = Rack::Request.new(env).path
         return false unless path.match?(SSO_CALLBACK_PATH)
 
@@ -211,14 +238,14 @@ module Onetime
 
         config = resolution.sso_config
         return false unless config && config.provider_type == 'saml' && config.enabled?
-        return false unless path == "/auth/sso/#{config.platform_route_name}/callback"
+        return false unless path.casecmp?("/auth/sso/#{config.platform_route_name}/callback")
 
         # Availability alone deliberately ignores certificate expiry. Check
         # runtime configuration too before granting the weaker Origin policy.
         config.to_omniauth_options
         true
       rescue StandardError => ex
-        OT.lw "[http_origin] SAML null-origin check failed: #{ex.class}"
+        OT.lw "[http_origin] SAML callback route check failed: #{ex.class}"
         false
       end
 

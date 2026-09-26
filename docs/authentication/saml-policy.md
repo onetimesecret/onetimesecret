@@ -9,10 +9,14 @@ The platform environment variable `SAML_NAME_ID_FORMAT` and tenant API field `na
 - `urn:oasis:names:tc:SAML:2.0:nameid-format:persistent` (default)
 - `urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress`
 - `urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified`
-- `urn:oasis:names:tc:SAML:2.0:nameid-format:transient`
+- `urn:oasis:names:tc:SAML:2.0:nameid-format:transient` — platform only, and only with `SAML_UID_ATTRIBUTE` set; the tenant API rejects it (422 on `name_id_format`) because tenant records have no UID attribute and every sign-in through it would be refused as `saml_transient_name_id`. A platform that sets the transient format without `SAML_UID_ATTRIBUTE` is not usable: the provider is skipped at boot with a message naming both variables.
 - `omit` — sends no NameIDPolicy element; the strategy receives `nil`.
 
 This setting controls the outgoing request, not identity-stability checks. A transient response without a configured stable UID attribute remains refused. The platform can configure `SAML_UID_ATTRIBUTE`; this change does not introduce a tenant UID override. JSON `null`, empty strings, and unknown formats are rejected.
+
+### Changing the NameID format
+
+Every SAML identity is keyed on the NameID the IdP sent (the platform can key on `SAML_UID_ATTRIBUTE` instead; tenants cannot). Changing the format changes that key, so existing identities will not match after the switch — each user's next sign-in provisions or links a new identity instead of resuming the old one, and does so under the linking and JIT rules in force at that time. A tenant PATCH or PUT that changes the effective `name_id_format` of an existing SAML record is accepted; it is recorded in the audit log at WARN level as `domain_sso_name_id_format_changed` (with `was_enabled` and `identities_rekeyed: true`, never the formats themselves). A PUT that omits `name_id_format` restores persistent and counts as a change when the record had another format. Platform installs get no warning: `SAML_NAME_ID_FORMAT` is read at boot, so treat a change to it as an identity migration unless `SAML_UID_ATTRIBUTE` supplies the key.
 
 ## Tenant callback origins
 

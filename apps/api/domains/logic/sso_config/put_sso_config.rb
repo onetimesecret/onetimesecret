@@ -98,10 +98,14 @@ module DomainsAPI
           OT.ld "[PutSsoConfig] Replacing SSO config for domain #{@domain_id} by user #{cust.extid}"
 
           # Track enabled state change for audit
-          was_enabled = @existing_config&.enabled?
+          was_enabled             = @existing_config&.enabled?
+          # Read BEFORE the replacement; a PUT that omits name_id_format
+          # restores persistent, which re-keys a record that had another.
+          previous_name_id_format = stored_name_id_format(@existing_config)
 
           if @existing_config
             replace_existing_config
+            log_name_id_format_change_if_rekeyed(previous_name_id_format, was_enabled)
             log_sso_change_event(
               event: :domain_sso_config_replaced,
               domain: @custom_domain,

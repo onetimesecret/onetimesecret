@@ -52,6 +52,12 @@ describe('SAML policy payloads', () => {
       );
     }
     expect(patchSsoConfigPayloadSchema.safeParse({ name_id_format: 'bad' }).success).toBe(false);
+    // Tenant records have no uid attribute; the API refuses transient at save time.
+    expect(
+      patchSsoConfigPayloadSchema.safeParse({
+        name_id_format: 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+      }).success
+    ).toBe(false);
     expect(patchSsoConfigPayloadSchema.safeParse({ name_id_format: null }).success).toBe(false);
     expect(
       patchSsoConfigPayloadSchema.safeParse({

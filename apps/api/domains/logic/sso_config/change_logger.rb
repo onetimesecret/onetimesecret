@@ -21,6 +21,8 @@ module DomainsAPI
       #   - domain_sso_config_deleted: SSO configuration removed
       #   - domain_sso_config_enabled: SSO enabled for domain
       #   - domain_sso_config_disabled: SSO disabled for domain
+      #   - domain_sso_name_id_format_changed: a saml record's NameID policy
+      #     changed (WARN level — see #log_name_id_format_change)
       #
       module ChangeLogger
         include DomainsAPI::Logic::ConfigChangeLogger
@@ -50,8 +52,9 @@ module DomainsAPI
         # @param provider_type [String] SSO provider type
         # @param changes [Hash, nil] Field changes for update events
         # @param details [Hash, nil] Additional event-specific details
+        # @param level [Symbol] :info (default) or :warn
         # @return [void]
-        def log_sso_change_event(event:, domain:, org:, actor:, provider_type:, changes: nil, details: nil)
+        def log_sso_change_event(event:, domain:, org:, actor:, provider_type:, changes: nil, details: nil, level: :info)
           log_config_change_event(
             tag: 'DOMAIN_SSO_CHANGE',
             event: event,
@@ -61,6 +64,39 @@ module DomainsAPI
             extra: { provider_type: provider_type },
             changes: changes,
             details: details,
+            level: level,
+          )
+        end
+
+        # A saml record's NameID policy changed. Every SAML identity from a
+        # tenant is keyed on (provider, issuer, NameID) — tenant records have
+        # no uid attribute — so a persistent → emailAddress switch (or the
+        # reverse, or a PUT that omits the field and so restores persistent)
+        # makes every existing identity a stranger: the next sign-in from
+        # each user provisions or links afresh instead of resuming. The
+        # domain SSO API has no warning channel in its response shape, so
+        # this is recorded at WARN with the audit payload (formats
+        # deliberately not logged: name_id_format is a SENSITIVE_FIELDS
+        # entry, and the fact of the change is what matters).
+        #
+        # Caller decides whether the change happened (the stored value is
+        # encrypted and may be unreadable; SamlFields#stored_name_id_format).
+        #
+        # @param domain [Onetime::CustomDomain]
+        # @param org [Onetime::Organization]
+        # @param actor [Onetime::Customer]
+        # @param was_enabled [Boolean] whether the record was live before
+        #   the change (a live record is the one with identities behind it)
+        # @return [void]
+        def log_name_id_format_change(domain:, org:, actor:, was_enabled:)
+          log_sso_change_event(
+            event: :domain_sso_name_id_format_changed,
+            domain: domain,
+            org: org,
+            actor: actor,
+            provider_type: 'saml',
+            details: { was_enabled: was_enabled == true, identities_rekeyed: true },
+            level: :warn,
           )
         end
 

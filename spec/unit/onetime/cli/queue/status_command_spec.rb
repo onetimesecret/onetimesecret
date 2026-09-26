@@ -5,6 +5,7 @@
 require 'spec_helper'
 require 'onetime/cli'
 require 'onetime/cli/queue/status_command'
+require 'onetime/cli/queue/ping_command'
 
 RSpec.describe Onetime::CLI::Queue::StatusCommand do
   subject(:command) { described_class.new }
@@ -109,6 +110,28 @@ RSpec.describe Onetime::CLI::Queue::StatusCommand do
         expect(req).to be_a(Net::HTTP::Get)
         expect(req.path).to eq("/api/policies/#{expected_vhost}")
       end
+    end
+  end
+
+  describe '#mask_amqp_credentials' do
+    {
+      'amqp://guest:guest@localhost:5672/dev' => 'amqp://***@localhost:5672/dev',
+      'amqp://guest:pa/ss@localhost:5672/dev' => 'amqp://***@localhost:5672/dev',
+      'amqp://guest:pa:ss@localhost:5672/dev' => 'amqp://***@localhost:5672/dev',
+      'amqps://localhost:5671/dev?password=s3cret' => 'amqps://localhost:5671/dev?***',
+      'amqp://guest:guest@localhost:5672/dev?heartbeat=10' => 'amqp://***@localhost:5672/dev?***',
+      'amqp://localhost:5672/dev' => 'amqp://localhost:5672/dev',
+    }.each do |input, expected|
+      it "renders #{input.inspect} as #{expected.inspect}" do
+        expect(command.send(:mask_amqp_credentials, input)).to eq(expected)
+      end
+    end
+
+    it 'is the same helper the ping command displays' do
+      ping = Onetime::CLI::Queue::PingCommand.new
+
+      expect(ping.send(:mask_amqp_credentials, 'amqp://guest:pa/ss@localhost:5672/dev?password=x'))
+        .to eq('amqp://***@localhost:5672/dev?***')
     end
   end
 

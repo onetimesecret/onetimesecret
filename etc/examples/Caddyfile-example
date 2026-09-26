@@ -82,6 +82,11 @@
 # Strip the whole query rather than selected names: malformed, encoded and
 # duplicate query keys must not expose SAML assertions or transport handles.
 # Filters affect log encoding only, not forwarded requests or client redirects.
+# These filters cover only the configured Caddy log fields. They do not configure
+# upstream ingress, custom request-body capture, APM agents or hosted Sentry.
+# Apply equivalent filtering there: do not record SAMLResponse, callback query
+# strings/handles, Referer or response Location headers. Updating this example
+# does not update an existing deployment's ingress or monitoring configuration.
 (onetime-log-redaction) {
 	fields {
 		request>uri regexp "[?].*" ""
@@ -245,6 +250,14 @@
 	}
 }
 
+# SAML callbacks require both the IdP's POST and the redirected completion GET.
+# Allow both through ingress; preserve the POST body, callback query string and
+# browser-facing Location header. Remove sensitive values from logs, not traffic.
+# Use a secure, host-only SameSite=Lax session cookie; SameSite=None; Secure is
+# also compatible. Do not rewrite session cookies to SameSite=Strict: completion
+# requires the original session cookie on the redirected GET.
+# See docs/authentication/saml-callback-transport.md for the callback flow, cookie
+# requirements and staging-capacity limits (including 429 admission responses).
 (onetime-proxy) {
 	handle {
 		# Forward all other requests to backend

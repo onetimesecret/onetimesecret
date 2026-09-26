@@ -160,17 +160,29 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
   end
 
   # Callback phase: the HTTP-POST binding, as the IdP's auto-submitting form
-  # delivers it — a cross-site POST carrying the IdP's Origin.
-  def post_callback(tenant, saml_response, origin: URI.join(tenant.sso_url, '/').to_s.chomp('/'))
+  # delivers it — a cross-site POST carrying the IdP's Origin. On the
+  # successful path the transport MUST stage it — 303 to the handle, no
+  # cookie written — before the browser completes with a GET; that contract
+  # is asserted here so this suite cannot pass without the staging
+  # middleware. Examples that send a POST the stack is expected to refuse
+  # pass expect_staged: false and assert on the POST themselves. follow:
+  # false stops after staging so an example can act between staging and
+  # completion.
+  def post_callback(tenant, saml_response, origin: URI.join(tenant.sso_url, '/').to_s.chomp('/'), expect_staged: true, follow: true)
     header 'Host', tenant.host
     header 'Origin', origin
     post '/auth/sso/saml/callback', { 'SAMLResponse' => saml_response }, { 'REMOTE_ADDR' => "2001:db8:#{run_id.scan(/.{4}/).join(':')}::1" }
-    if last_response.status == 303
-      header 'Origin', nil
-      # This suite supplies Host separately from Rack::Test's request URI.
-      # Keep that convention on the staged GET so its cookie jar is unchanged.
-      get last_response.headers['Location']
-    end
+    return unless expect_staged
+
+    expect(last_response.status).to eq(303), "staging: #{last_response.status} #{last_response.body[0, 200]}"
+    expect(last_response.headers['Location'].to_s).to include('saml_handle=')
+    expect(last_response.headers['Set-Cookie']).to be_nil
+    return unless follow
+
+    header 'Origin', nil
+    # This suite supplies Host separately from Rack::Test's request URI.
+    # Keep that convention on the staged GET so its cookie jar is unchanged.
+    get last_response.headers['Location']
   ensure
     header 'Origin', nil
   end
@@ -300,7 +312,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
             in_response_to: request.id, acs_url: request.acs_url, audience: request.sp_entity_id,
             name_id: name_id, attributes: { 'email' => [email_a] },
           )
-          post_callback(tenant_a, response, origin: 'null')
+          post_callback(tenant_a, response, origin: 'null', expect_staged: flag == 'true')
 
           if flag == 'true'
             expect(last_response.status).to eq(302), last_response.body[0, 300]
@@ -491,7 +503,10 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
     # unbounded: the strategy swaps the gem exception for a fixed-message
     # Refusal, and the failure hook bounds what it logs.
     it 'logs a bounded, single-line failure for an unsigned StatusMessage flood' do
-      flood = "x\n[login_success] forged=true\r\n" + ('A' * 100_000)
+      # Sized so the base64 response still fits the transport's 128,000-byte
+      # value bound: the strategy's bounded logging, not the size limit, is
+      # what this example pins (the gem caps its own message at 250,000).
+      flood = "x\n[login_success] forged=true\r\n" + ('A' * 60_000)
       events = []
       allow(Auth::Logging).to receive(:log_auth_event).and_wrap_original do |original, event, **fields|
         events << [event, fields]
@@ -604,14 +619,31 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       expect(last_request.env['rack.session'].to_h.keys.map(&:to_s))
         .to include('omniauth_tenant_domain_id', 'saml_authn_request_id')
 
-      Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant_a.domain.identifier).disable!
-
-      # No Origin: a disabled record is no longer admitted by HttpOriginOptions
-      # (pinned below), and the property under test sits behind that gate.
+      # Staged while the record is still active: a disabled record has no
+      # active SAML route, so a later POST is refused before staging (below)
+      # and could never reach the hook whose behaviour this example pins.
       post_callback(tenant_a, tenant_a.idp.response(
         in_response_to: request.id, acs_url: request.acs_url, audience: request.sp_entity_id,
         name_id: name_id, attributes: { 'email' => [email] }
-      ), origin: nil)
+      ), follow: false)
+      completion = last_response.headers['Location']
+
+      Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant_a.domain.identifier).disable!
+
+      # No Origin: HttpOrigin admits an Origin-less non-browser POST (the IdP
+      # origin itself is no longer admitted for a disabled record, pinned
+      # below), which is exactly the client the transport's own gate exists
+      # for. A disabled record has no active SAML route: refused, not staged.
+      post_callback(tenant_a, tenant_a.idp.response(
+        in_response_to: request.id, acs_url: request.acs_url, audience: request.sp_entity_id,
+        name_id: name_id, attributes: { 'email' => [email] }
+      ), origin: nil, expect_staged: false)
+      expect(last_response.status).to eq(404), last_response.body[0, 300]
+      expect(last_response.headers['Location']).to be_nil
+      expect(last_response.headers['Set-Cookie']).to be_nil
+
+      header 'Host', tenant_a.host
+      get completion
 
       expect(last_response.status).to eq(302), last_response.body[0, 300]
       expect(last_response.headers['Location'].to_s).to include('auth_error=sso_not_configured')

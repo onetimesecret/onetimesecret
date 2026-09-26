@@ -291,6 +291,41 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
       expect(app.call(null_env(host: custom_domain)).first).to eq(200)
     end
 
+    # The predicate the null-origin allowance and SamlCallbackTransport::Stage
+    # share: "is there an active SAML route at this exact path for this host?"
+    describe '.saml_callback_route_active?' do
+      def active?(**extra)
+        described_class.saml_callback_route_active?(null_env(**extra))
+      end
+
+      it 'answers for the platform host, the tenant host, and neither' do
+        expect(active?).to be true
+        expect(active?(host: custom_domain)).to be false
+        enable_native_tenant
+        expect(active?(host: custom_domain)).to be true
+        expect(active?(host: '')).to be false
+      end
+
+      it 'is independent of Origin and method: it decides route activity, not admission' do
+        expect(active?('HTTP_ORIGIN' => 'https://anything.example', method: 'POST')).to be true
+        expect(active?(method: 'GET')).to be true
+      end
+
+      it 'requires the exact registered path: no trailing slash, no sub-path, but any case' do
+        expect(active?(path: '/auth/sso/saml/callback/')).to be false
+        expect(active?(path: '/auth/sso/saml/metadata')).to be false
+        expect(active?(path: '/auth/sso/SAML/callback')).to be true
+        enable_native_tenant
+        expect(active?(host: custom_domain, path: '/auth/sso/Saml/callback')).to be true
+        expect(active?(host: custom_domain, path: '/auth/sso/saml/callback/')).to be false
+      end
+
+      it 'fails closed when the tenant record cannot be read' do
+        allow(resolution).to receive(:verified_custom_domain?).and_raise(Redis::BaseError, 'down')
+        expect(active?(host: custom_domain)).to be false
+      end
+    end
+
     [nil, 'false', '', 'TRUE', '1', 'yes', ' true ', 'garbage'].each do |flag|
       it "denies platform and tenant callbacks with flag #{flag.inspect}" do
         enable_native_tenant
@@ -447,6 +482,19 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
       ClimateControl.modify(SAML_ROUTE_NAME: 'corporate') do
         expect(platform_callback(custom_domain, route: 'corporate')).to eq(403)
         expect(platform_callback(canonical_host, route: 'corporate')).to eq(200)
+      end
+    end
+
+    # OmniAuth dispatches /auth/sso/SAML/callback to the saml strategy (its
+    # path match is case-insensitive), so the host restriction must see the
+    # same route whatever the case of the path segment.
+    it 'restricts a mixed-case spelling of the SAML route path the same way' do
+      expect(platform_callback(custom_domain, route: 'SAML')).to eq(403)
+      expect(platform_callback(custom_domain, route: 'Saml')).to eq(403)
+      expect(platform_callback(canonical_host, route: 'SAML')).to eq(200)
+      ClimateControl.modify(SAML_ROUTE_NAME: 'Corporate') do
+        expect(platform_callback(custom_domain, route: 'corporate')).to eq(403)
+        expect(platform_callback(canonical_host, route: 'CORPORATE')).to eq(200)
       end
     end
 

@@ -682,9 +682,12 @@ domain the public-host resolution falls back to the request's own authority,
 so verify the domain before configuring the IdP.
 
 The default requested NameID format is persistent. Tenant `name_id_format`
-can request another supported format or omit the policy; a transient response
-is still refused because there is no per-domain stable UID attribute override.
-See [SAML policy settings](saml-policy.md) for the API fields and supported values.
+can request another supported format or omit the policy; the transient format
+is rejected at save time, and a transient response is refused at login, because
+there is no per-domain stable UID attribute override. Changing the format
+re-keys existing identities (the NameID is the identity key); the change is
+recorded at WARN in the audit log. See [SAML policy settings](saml-policy.md)
+for the API fields, supported values, and the re-keying note.
 Assertions must use RSA-SHA256/384/512 signatures and SHA-256/384/512 digests;
 ECDSA is unsupported. Supply the email as an attribute named `email` or `mail`.
 IdP-initiated sign-in and single logout are not supported.

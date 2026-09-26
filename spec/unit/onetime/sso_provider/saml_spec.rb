@@ -267,6 +267,42 @@ RSpec.describe Onetime::SsoProvider::Saml do
       expect { described_class.strategy_options_for(**trio, name_id_format: 'invalid') }.to raise_error(ArgumentError, /NameID/)
     end
 
+    # A transient NameID is a fresh value per login; without a uid attribute
+    # to key on, every sign-in would be refused (:saml_transient_name_id), so
+    # the POLICY is refused where it is configured. The tenant surface never
+    # passes a uid attribute (sso_config.rb build_saml_options), so the
+    # no-attribute arm is the tenant rule.
+    describe '.name_id_format_problem with the transient format' do
+      let(:transient) { described_class::TRANSIENT_NAME_ID_FORMAT }
+
+      it 'refuses it without a uid attribute, naming the platform variable' do
+        expect(described_class.name_id_format_problem(transient)).to match(/transient.*SAML_UID_ATTRIBUTE/)
+        expect(described_class.name_id_format_problem(transient, uid_attribute: '  ')).to match(/SAML_UID_ATTRIBUTE/)
+      end
+
+      it 'accepts it with a uid attribute' do
+        expect(described_class.name_id_format_problem(transient, uid_attribute: 'employee_id')).to be_nil
+      end
+
+      it 'leaves every other format unaffected by the uid attribute' do
+        (described_class::NAME_ID_FORMATS - [transient]).each do |format|
+          expect(described_class.name_id_format_problem(format)).to be_nil
+          expect(described_class.name_id_format_problem(format, uid_attribute: 'employee_id')).to be_nil
+        end
+        expect(described_class.name_id_format_problem('bad', uid_attribute: 'employee_id')).to match(/supported NameID format/)
+      end
+
+      it 'is enforced by the builder both surfaces use' do
+        expect { described_class.strategy_options_for(**trio, name_id_format: transient) }
+          .to raise_error(ArgumentError, /SAML_UID_ATTRIBUTE/)
+        expect { described_class.strategy_options_for(**trio, name_id_format: transient, uid_attribute: '') }
+          .to raise_error(ArgumentError, /SAML_UID_ATTRIBUTE/)
+
+        options = described_class.strategy_options_for(**trio, name_id_format: transient, uid_attribute: 'employee_id')
+        expect(options).to include(name_identifier_format: transient, uid_attribute: 'employee_id')
+      end
+    end
+
     it 'rejects EC public keys regardless of the certificate signature algorithm' do
       key             = OpenSSL::PKey::EC.generate('prime256v1')
       cert            = OpenSSL::X509::Certificate.new(idp.cert_pem)

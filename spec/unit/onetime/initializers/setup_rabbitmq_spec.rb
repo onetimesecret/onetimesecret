@@ -669,6 +669,26 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
       result = instance.send(:sanitize_url, 'amqps://abc123def:secretkey456@rabbit.service.com:5671/abc123def')
       expect(result).to eq('amqps://abc123def:***@rabbit.service.com:5671/abc123def')
     end
+
+    it 'masks a password containing a slash' do
+      result = instance.send(:sanitize_url, 'amqps://user:pa/ss@host:5671/production')
+      expect(result).to eq('amqps://user:***@host:5671/production')
+    end
+
+    it 'masks a password containing a colon' do
+      result = instance.send(:sanitize_url, 'amqps://user:pa:ss@host:5671/production')
+      expect(result).to eq('amqps://user:***@host:5671/production')
+    end
+
+    it 'masks the query string, which can carry ?password=' do
+      result = instance.send(:sanitize_url, 'amqps://host:5671/production?password=s3cret')
+      expect(result).to eq('amqps://host:5671/production?***')
+    end
+
+    it 'masks a bare key even when a query string follows' do
+      result = instance.send(:sanitize_url, 'amqps://4ef062f27f30f2ec@host:5671/vhost?heartbeat=10')
+      expect(result).to eq('amqps://***@host:5671/vhost?***')
+    end
   end
 
   # ==========================================================================
