@@ -47,6 +47,10 @@
 name: Static analysis
 
 on:
+  # push to main, like ci.yml: the gem-audit job then notices an advisory
+  # that lands between pull requests rather than on the next one, and the
+  # runner lane (shell-tests job) covers a merge the way the T2/T3 lanes do.
+  # Every job here costs seconds, so the extra runs are cheap.
   push:
     branches:
       - main
