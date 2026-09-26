@@ -20,7 +20,12 @@ $ docker compose -f compose.test.yml down
 Prerequisites: bash 5+, `bundle install`, `pnpm install`, and `python3`.
 macOS's system bash is 3.2; install a newer version with `brew install bash`.
 `unit` and `smoke` also require built frontend assets in `public/web/dist/`
-(`pnpm run build` locally; CI supplies them).
+(`pnpm run build` locally; CI supplies them). `browser` also requires the
+Playwright browser binaries (`pnpm exec playwright install chromium firefox
+webkit`; `bin/setup --test` installs them) and, on Linux, their OS packages
+(`pnpm exec playwright install-deps`, which uses sudo/apt and is therefore
+left to the contributor and to CI). The lane's tasks preflight the binaries
+and fail with that command when one is missing.
 
 ### Iterating on one file: `--only`
 
@@ -47,6 +52,7 @@ $ tests/lanes/run unit --only try/logic/sso_config/ssrf_protection_transition_tr
 | Lane                | Services                   | Runs                                                       | CI job                                   |
 | ------------------- | -------------------------- | ---------------------------------------------------------- | ---------------------------------------- |
 | `unit`              | valkey, rabbitmq           | `try:unit`, `spec:fast`                                    | ruby-unit (T2)                           |
+| `browser`           | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-unit (T2) — browser lane step    |
 | `simple`            | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`        | ruby-integration-simple (T3)             |
 | `full-sqlite`       | valkey, rabbitmq           | `spec:integration:full`                                    | ruby-integration-full — SQLite rows      |
 | `full-mfa`          | valkey, rabbitmq           | `spec:integration:full:mfa`                                | ruby-integration-full — SQLite MFA row   |
@@ -60,9 +66,9 @@ $ tests/lanes/run unit --only try/logic/sso_config/ssrf_protection_transition_tr
 | `migrations-pg`     | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check | migration-tests.yml — PostgreSQL job     |
 | `selftest`          | none                       | boundary fixture                                           | none — driven by `spec/unit/lanes/`      |
 
-Start every service named for a lane. This includes RabbitMQ for `api` and
-`smoke`, whose lane environment still declares its endpoint. `selftest` is the
-only service-free exception.
+Start every service named for a lane. This includes RabbitMQ for `api`,
+`browser` and `smoke`, whose lane environment still declares its endpoint.
+`selftest` is the only service-free exception.
 
 A lane with several legs (`unit`, `simple`, `migrations-pg`) runs every leg
 even when an earlier one fails, then exits non-zero naming the red legs; the
@@ -200,7 +206,12 @@ and can race with other lanes. Run it alone (normally
 ## CI contract
 
 Ruby suites in CI use the lane runner and `compose.test.yml`; local lane runs
-therefore exercise the same service and environment contract. The supported CI
+therefore exercise the same service and environment contract. CI runs whole
+lanes, never `--only`: a suite that CI needs is a lane (the `browser` lane
+exists for that reason), so the command CI runs is the command a contributor
+runs. Toolchain prerequisites a lane cannot generate — built frontend assets,
+Playwright browsers — are installed by the CI job and by `bin/setup --test`;
+the lane preflights them rather than installing them. The supported CI
 exceptions are constrained environments that cannot run the compose topology:
 `devcontainer-ci.yml` and macOS `installer.yml` run the fast suite directly.
 They validate installation paths, not lane behavior.

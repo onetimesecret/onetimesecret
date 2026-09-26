@@ -1,0 +1,30 @@
+# Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
+# (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
+#
+# Preflight: the three Playwright engines tests/browser/saml_callback.mjs
+# launches. Presence is what @playwright/test resolves (the same probe
+# bin/setup --doctor runs), never a path literal here. Exit 69 like the
+# runner's own service preflight: missing tooling, not a failing test.
+missing="$(node --input-type=module -e '
+  import { chromium, firefox, webkit } from "@playwright/test";
+  import { existsSync } from "node:fs";
+  const engines = { chromium, firefox, webkit };
+  console.log(Object.keys(engines).filter((n) => !existsSync(engines[n].executablePath())).join(" "));
+')" || { echo "[lane:browser] error: node could not load @playwright/test (run: pnpm install)" >&2; exit 69; }
+if [[ -n "${missing}" ]]; then
+  echo "[lane:browser] error: Playwright browser(s) not installed: ${missing}" >&2
+  echo "  install them with: pnpm exec playwright install chromium firefox webkit" >&2
+  echo "  (bin/setup --test does this; on Linux the OS packages come from" >&2
+  echo "  pnpm exec playwright install-deps, which uses sudo/apt)" >&2
+  exit 69
+fi
+
+# The same invocation shape as `tests/lanes/run browser --only <file>`, so
+# iterating on one file and running the lane agree. The JSON formatter is
+# added only when CI asks for results (RSPEC_OUTPUT_FILE is on the runner's
+# keep-list), mirroring rspec_format_options in lib/tasks/spec.rake.
+rspec_args=(tests/browser --format progress)
+if [[ -n "${RSPEC_OUTPUT_FILE:-}" ]]; then
+  rspec_args+=(--format json --out "${RSPEC_OUTPUT_FILE}")
+fi
+bundle exec rspec "${rspec_args[@]}"

@@ -62,6 +62,9 @@ RUNNER="${LANES_DIR}/run"
 #   - full-pg, full-pg-agnostic, api, migrations-* — real lanes, just
 #     slower and (for the PG ones) dependent on the postgres service. Pass
 #     them by name when you want them.
+#   - browser — a real lane, skip-safe and parallel-safe, but it needs the
+#     Playwright browser binaries (bin/setup --test installs them) that the
+#     default set must not assume. Pass it by name.
 #   - smoke — NOT skip-safe and NOT parallel-safe. `pnpm test:smoke` runs
 #     `pnpm test`, which regenerates locales itself (package.json:
 #     test:smoke -> test -> locales:sync) no matter what --skip-codegen

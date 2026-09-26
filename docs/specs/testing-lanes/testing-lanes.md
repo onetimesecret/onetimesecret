@@ -45,6 +45,7 @@ specs.
 | Lane | Services | Runs | CI job |
 | --- | --- | --- | --- |
 | `unit` | valkey, rabbitmq | `try:unit`, `spec:fast` | ruby-unit (T2) |
+| `browser` | valkey, rabbitmq | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-unit (T2) — browser lane step |
 | `simple` | valkey, rabbitmq | `try:integration:simple`, `spec:integration:simple` | ruby-integration-simple (T3) |
 | `full-sqlite` | valkey, rabbitmq | `spec:integration:full` | ruby-integration-full — SQLite rows |
 | `full-pg` | valkey, rabbitmq, postgres | `spec:integration:full:postgres` | ruby-integration-full — PG rows |
@@ -57,9 +58,17 @@ specs.
 | `selftest` | none | boundary fixture | none — driven by `spec/unit/lanes/` |
 
 Every endpoint declared by a lane is preflighted, even when the resulting test
-workload does not directly use that service. Therefore `api` and `smoke` still
-require RabbitMQ: `base.env` declares `RABBITMQ_URL` for all lanes. `selftest`
-clears all service URLs and is the deliberate exception.
+workload does not directly use that service. Therefore `api`, `browser` and
+`smoke` still require RabbitMQ: `base.env` declares `RABBITMQ_URL` for all
+lanes. `selftest` clears all service URLs and is the deliberate exception.
+
+A lane may have a toolchain prerequisite the runner has no codegen token for.
+`browser` needs the Playwright browser binaries (chromium, firefox, webkit),
+which `bin/setup --test` and the CI job install; the lane's `tasks` preflights
+them and fails naming the install command, because a missing engine would
+otherwise surface as a launch timeout inside the matrix. On Linux the
+browsers' OS packages (`playwright install-deps`, sudo/apt) are installed by
+CI and by the contributor, never by `bin/setup` or a lane.
 
 Billing is an overlay on full-mode lanes only. It requires
 `AUTHENTICATION_MODE=full`; the runner rejects it elsewhere. Frontend Vitest,
@@ -299,14 +308,18 @@ Ruby test suites enter through lanes and `compose.test.yml`:
 - `.github/workflows/ci.yml` uses the `run-test-lane` composite action for Ruby
   jobs. The composite uploads CI-only RSpec result artifacts and writes job
   summaries; `ci.yml` supplies `COVERAGE` through `GITHUB_ENV`. Full-mode matrix
-  rows are lane and overlay combinations.
+  rows are lane and overlay combinations. The `ruby-unit` job runs the
+  `browser` lane as a step before the `unit` lane, through the same composite;
+  CI never runs `--only` — a suite CI needs is a lane.
 - `.github/workflows/migration-tests.yml` runs the `migrations-*` lanes through
   the same composite. Its concurrent-boot job is intentionally CI
   orchestration, not a lane, although it uses `compose.test.yml` services.
 - `.github/workflows/ruby-4-preview.yml` invokes lanes directly because it is
   advisory and does not need the composite's result plumbing.
-- `.github/workflows/fresh-clone.yml` invokes `unit` directly after
-  `bin/setup --test`, validating the documented contributor path.
+- `.github/workflows/fresh-clone.yml` invokes `unit` and then `browser`
+  directly after `bin/setup --test`, validating the documented contributor
+  path — including that `bin/setup --test` leaves the browser workload
+  runnable. Only the browsers' OS packages are installed by the workflow.
 
 Lane CI jobs run on Ubuntu 24.04, which satisfies the Bash 5 requirement.
 The macOS installer workflow does not enter a lane.
