@@ -34,7 +34,14 @@ source 'https://rubygems.org/'
 # unconditionally in MiddlewareStack.ip_privacy_security_config so Rack never
 # reads RFC 7239 Forwarded for host/port/proto. rack-parser stopped being an
 # otto runtime dependency in 2.10; it is declared below.
-gem 'otto', '~> 2.10'
+# 2.11 floor: router fallback triples are copied per request (delano/otto#272),
+# which retired Onetime::Middleware::IsolateResponseHeaders (#4401).
+# 2.12 floor: referrer_policy is a validated Otto setting applied to every
+# Otto response (delano/otto#281); Onetime::Application::Base sets it from
+# Onetime::Middleware::Registry::REFERRER_POLICY (#4542). JSON bodies no
+# longer override path captures in Logic classes, and a Logic class can take
+# the router's captures as `route_params:` (delano/otto#285).
+gem 'otto', '~> 2.12'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
