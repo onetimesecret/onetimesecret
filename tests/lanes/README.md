@@ -142,6 +142,20 @@ whole formatter list, including `--format json --out $RSPEC_OUTPUT_FILE`.
 A run with `RSPEC_OUTPUT_FILE` set (CI plumbing) therefore rejects `--quiet`
 with exit 64 rather than silently writing no results file.
 
+`--quiet` quiets rspec, not the application under test. The app's own log
+lines (`2026-09-26 01:23:45.678901 W [pid:tid] HTTP -- ...`) still print at
+the levels `spec/logging.test.yaml` pins per category, and on a full lane
+they are most of the output: a `simple` run is ~55k lines with or without
+the flag, ~50k of them the seven `HTTP -- [Security] ... DISABLED` warnings
+each app boot logs. The runner has no knob for that (`LOG_LEVEL` only moves
+the default level; a category listed in the yaml keeps its own), so it is a
+logging-config question, not a runner flag. To read the rspec part of a run
+back out of `last.log`, drop the timestamped lines:
+
+```console
+$ grep -vE '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:.]+ [A-Z] \[' tmp/lanes/simple/base/last.log
+```
+
 ### Last run output: `tmp/lanes/<lane>/<overlays>/last.log`
 
 Every run, full lane or `--only`, is also written to
