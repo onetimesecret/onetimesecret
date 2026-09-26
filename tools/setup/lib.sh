@@ -412,21 +412,29 @@ ENVRC
 # tools/setup/new-worktree.sh runs from the post-checkout hook and sets
 # up each worktree `git worktree add` creates, once a clone opts in with
 # `git config ots.worktreeSetup true`.
+#
+# Only the clone's own config counts. A global or system setting would
+# turn the hook on in every clone that installs it, including one kept for
+# reviewing untrusted branches. The setting lives in the common git dir,
+# so every worktree of the clone sees it.
 
 worktree_setup_enabled() {
-  [[ "$(git config --type=bool --get ots.worktreeSetup 2>/dev/null)" == "true" ]]
+  [[ "$(git config --local --type=bool --get ots.worktreeSetup 2>/dev/null)" == "true" ]]
 }
 
 # worktree_name DIR — the directory's name, or its parent's when the
-# directory is named after the main checkout (worktrees/onetimesecret/
-# dev-api/onetimesecret is "dev-api").
+# directory is a nested worktree: one named after the main checkout, or
+# after its own grandparent, which is how the worktrees/<repo>/<name>/<repo>
+# layout looks whatever the main checkout is called
+# (worktrees/onetimesecret/dev-api/onetimesecret is "dev-api").
 worktree_name() {
-  local dir="$1" main
+  local dir="$1" name main
+  name="$(basename "$dir")"
   main="$(dirname "$(git -C "$dir" rev-parse --path-format=absolute --git-common-dir)")"
-  if [[ "$(basename "$dir")" == "$(basename "$main")" ]]; then
+  if [[ "$name" == "$(basename "$main")" || "$name" == "$(basename "$(dirname "$(dirname "$dir")")")" ]]; then
     basename "$(dirname "$dir")"
   else
-    basename "$dir"
+    echo "$name"
   fi
 }
 

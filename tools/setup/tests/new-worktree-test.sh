@@ -15,9 +15,13 @@
 #   - The lane follows the worktree's name, not its path: a checkout under
 #     ~/Projects/dev/ is not a dev worktree.
 #
+#   - Only the clone's own config opts in. A global ots.worktreeSetup must
+#     not turn the hook on in a clone that never asked for it.
+#
 # Runs against throwaway repositories in a temp dir, with a stub bin/setup
-# that records its lane. Global and system git config are ignored, so a
-# developer's own ots.worktreeSetup cannot decide the result.
+# that records its lane. Global git config points at a file the test owns
+# and system config is off, so a developer's own ots.worktreeSetup cannot
+# decide the result.
 #
 set -uo pipefail
 
@@ -27,11 +31,12 @@ REPO_ROOT="$(cd "${PKG_DIR}/../.." && pwd)"
 # shellcheck source=scripts/tests/lib/assert.sh
 source "${REPO_ROOT}/scripts/tests/lib/assert.sh"
 
-export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
 ZERO_REF=0000000000000000000000000000000000000000
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
+export GIT_CONFIG_GLOBAL="${WORK}/gitconfig-global" GIT_CONFIG_NOSYSTEM=1
+: >"$GIT_CONFIG_GLOBAL"
 
 # The main checkout sits under a directory named "dev", like
 # ~/Projects/dev/onetimesecret, and commits the package plus a stub
@@ -52,7 +57,11 @@ git -C "$MAIN" -c user.name=test -c user.email=test@example.com commit -q -m ini
 WT_NESTED_TEST="${WORK}/dev/worktrees/feature-x/onetimesecret"
 WT_NESTED_DEV="${WORK}/dev/worktrees/dev-api/onetimesecret"
 WT_FLAT_DEV="${WORK}/dev/onetimesecret-worktrees/dev-flat"
-for wt in "$WT_NESTED_TEST" "$WT_NESTED_DEV" "$WT_FLAT_DEV"; do
+# The documented layout, worktrees/<repo>/<name>/<repo>, with a directory
+# name that matches neither the main checkout nor the worktree.
+WT_LAYOUT_TEST="${WORK}/dev/worktrees/ots/feature-y/ots"
+WT_LAYOUT_DEV="${WORK}/dev/worktrees/ots/dev-web/ots"
+for wt in "$WT_NESTED_TEST" "$WT_NESTED_DEV" "$WT_FLAT_DEV" "$WT_LAYOUT_TEST" "$WT_LAYOUT_DEV"; do
   git -C "$MAIN" worktree add -q --detach "$wt" 2>/dev/null
 done
 
@@ -81,10 +90,30 @@ assert_eq "nested dev-* worktree gets the dev lane" \
 assert_eq "flat dev-* worktree gets the dev lane" \
   "--dev" "$(lib worktree_setup_lane "$WT_FLAT_DEV")"
 
+protects "the worktrees/<repo>/<name>/<repo> layout works whatever the main checkout is called"
+assert_eq "layout: name is the parent of the dir named after its grandparent" \
+  "feature-y" "$(lib worktree_name "$WT_LAYOUT_TEST")"
+assert_eq "layout: test lane" "--test" "$(lib worktree_setup_lane "$WT_LAYOUT_TEST")"
+assert_eq "layout: dev lane" "--dev" "$(lib worktree_setup_lane "$WT_LAYOUT_DEV")"
+
 protects "clones that have not opted in are never set up"
 run_hook "$WT_NESTED_TEST" "$ZERO_REF"
 assert_eq "not opted in: exit status" "0" "$rc"
 assert_eq "not opted in: bin/setup not run" "none" "$lane"
+
+protects "only the clone's own config opts in"
+git config --global ots.worktreeSetup true
+run_hook "$WT_NESTED_TEST" "$ZERO_REF"
+assert_eq "global true, no local: bin/setup not run" "none" "$lane"
+assert_eq "global true, no local: worktree_setup_enabled fails" \
+  "1" "$(cd "$WT_NESTED_TEST" && lib worktree_setup_enabled; echo $?)"
+git -C "$MAIN" config ots.worktreeSetup false
+run_hook "$WT_NESTED_TEST" "$ZERO_REF"
+assert_eq "global true, local false: bin/setup not run" "none" "$lane"
+git -C "$MAIN" config ots.worktreeSetup maybe
+run_hook "$WT_NESTED_TEST" "$ZERO_REF"
+assert_eq "local invalid value: bin/setup not run" "none" "$lane"
+git config --global --unset ots.worktreeSetup
 
 git -C "$MAIN" config ots.worktreeSetup true
 
