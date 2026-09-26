@@ -1199,8 +1199,14 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
       context 'with an Approximated vhost blob stored' do
         let(:stored_vhost) { { 'id' => 123, 'status' => 'ACTIVE_SSL' } }
 
-        it 'leaves the blob for the cleanup chore' do
-          expect(result).not_to have_key(:data)
+        it 'replaces stale UI state while preserving the cleanup obligation' do
+          expect(result[:data]).to include(
+            'status' => 'PENDING_SSL',
+            'is_resolving' => true,
+            'source' => 'tls_probe',
+            'approximated_vhost_pending_cleanup' => true,
+          )
+          expect(result[:data]).not_to have_key('has_ssl')
         end
       end
     end
