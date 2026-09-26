@@ -3,13 +3,15 @@
 # frozen_string_literal: true
 
 require_relative 'cli_spec_helper'
+require 'timeout'
 
 # Tests for migrate_command.rb and MigrateRunner.
 #
 # One invariant covers every modifying path (batch, single ID, rollback):
-# a run is dependency-checked, runs the full lifecycle, and is recorded in
-# the registry exactly once, only after it succeeds. Nothing is recorded
-# without --run.
+# each migration state transition is serialized, its preconditions are checked
+# under that lock, and its registry state is updated before the lock is
+# released. A clean not-needed result is already satisfied and is recorded by
+# --run. Nothing is recorded without --run.
 #
 # The registry is backed by an in-memory stand-in for the sorted set and
 # hash it keeps in Redis, so the specs assert on recorded state directly.
@@ -18,12 +20,45 @@ RSpec.describe 'Migrate Command', type: :cli do
   # uses: the applied sorted set and the metadata hash.
   class FakeMigrationStore
     # Keys a Model migration's SCAN will find (see #scan).
-    attr_accessor :scan_keys
+    attr_accessor :fail_next_zadd, :scan_keys
+    attr_reader :lock_attempts
 
     def initialize
-      @zsets     = Hash.new { |h, k| h[k] = {} }
-      @hashes    = Hash.new { |h, k| h[k] = {} }
-      @scan_keys = []
+      @zsets          = Hash.new { |h, k| h[k] = {} }
+      @hashes         = Hash.new { |h, k| h[k] = {} }
+      @strings        = {}
+      @scan_keys      = []
+      @lock_attempts  = []
+      @fail_next_zadd = false
+      @mutex           = Mutex.new
+    end
+
+    def setnx(key, value)
+      @mutex.synchronize do
+        @lock_attempts << key
+        return 0 if @strings.key?(key)
+
+        @strings[key] = value
+        1
+      end
+    end
+
+    def get(key)
+      @mutex.synchronize { @strings[key] }
+    end
+
+    def del(key)
+      @mutex.synchronize { @strings.delete(key) ? 1 : 0 }
+    end
+
+    def eval(_script, keys, argv)
+      @mutex.synchronize do
+        key, token = keys.first, argv.first
+        return 0 unless @strings[key] == token
+
+        @strings.delete(key)
+        1
+      end
     end
 
     def ping
@@ -40,8 +75,15 @@ RSpec.describe 'Migrate Command', type: :cli do
     end
 
     def zadd(key, score, member)
-      @zsets[key][member] = score.to_f
-      true
+      @mutex.synchronize do
+        if fail_next_zadd
+          self.fail_next_zadd = false
+          raise 'registry write failed intentionally'
+        end
+
+        @zsets[key][member] = score.to_f
+        true
+      end
     end
 
     def zrem(key, member)
@@ -148,6 +190,14 @@ RSpec.describe 'Migrate Command', type: :cli do
     RUBY
   end
 
+  let(:depends_on_skipping_migration) do
+    migration_source('DependsOnSkipping', 'depends_on_skipping', <<~RUBY, deps: "['skipping_migration']")
+      def migrate
+        true
+      end
+    RUBY
+  end
+
   # Reversible migration whose #down needs #prepare and guards its write
   # with the run mode, like a real migration would.
   let(:reversible_migration) do
@@ -218,6 +268,77 @@ RSpec.describe 'Migrate Command', type: :cli do
     RUBY
   end
 
+  let(:stateful_migration) do
+    migration_source('StatefulMigration', 'stateful_migration', <<~RUBY)
+      def migration_needed?
+        !File.exist?('#{probe_path}')
+      end
+
+      def migrate
+        File.open('#{probe_path}', 'a') { |file| file.puts('migrated') }
+        true
+      end
+    RUBY
+  end
+
+  let(:blocking_migration) do
+    migration_source('BlockingMigration', 'blocking_migration', <<~RUBY)
+      class << self
+        attr_accessor :calls, :calls_mutex, :entered_gate, :release_gate
+      end
+
+      self.calls        = 0
+      self.calls_mutex  = Mutex.new
+      self.entered_gate = Queue.new
+      self.release_gate = Queue.new
+
+      def migrate
+        call_number = self.class.calls_mutex.synchronize do
+          self.class.calls += 1
+        end
+
+        if call_number == 1
+          self.class.entered_gate << true
+          self.class.release_gate.pop
+        end
+
+        File.open('#{probe_path}', 'a') { |file| file.puts('up') }
+        true
+      end
+    RUBY
+  end
+
+  let(:blocking_rollback_migration) do
+    migration_source('BlockingRollbackMigration', 'blocking_rollback', <<~RUBY)
+      class << self
+        attr_accessor :down_calls, :down_calls_mutex, :entered_gate, :release_gate
+      end
+
+      self.down_calls       = 0
+      self.down_calls_mutex = Mutex.new
+      self.entered_gate     = Queue.new
+      self.release_gate     = Queue.new
+
+      def migrate
+        true
+      end
+
+      def down
+        call_number = self.class.down_calls_mutex.synchronize do
+          self.class.down_calls += 1
+        end
+
+        if call_number == 1
+          self.class.entered_gate << true
+          self.class.release_gate.pop
+        end
+
+        File.open('#{probe_path}', 'a') { |file| file.puts('down') }
+        true
+      end
+    RUBY
+  end
+
   let(:prepare_raising_migration) do
     migration_source('PrepareRaising', 'prepare_raising', <<~RUBY)
       def prepare
@@ -279,6 +400,11 @@ RSpec.describe 'Migrate Command', type: :cli do
   def write_migration(name, content)
     create_temp_migration(name, content)
     temp_migrations_dir
+  end
+
+  def load_migration(name, content, migration_id)
+    require create_temp_migration(name, content)
+    Familia::Migration.migrations.find { |migration| migration.migration_id == migration_id }
   end
 
   def migrate(*args)
@@ -452,7 +578,7 @@ RSpec.describe 'Migrate Command', type: :cli do
       expect(store.applied_ids).to eq([])
     end
 
-    it 'continues past a skipped migration and records only the applied one' do
+    it 'records a skipped migration as already satisfied and continues' do
       write_migration('01_skipping.rb', skipping_migration)
       dir    = write_migration('02_success.rb', success_migration)
       output = migrate('--dir', dir, '--run')
@@ -460,7 +586,29 @@ RSpec.describe 'Migrate Command', type: :cli do
       expect(output[:stdout]).to include('✓ success_migration success')
       expect(output[:stdout]).to include('Completed: 2 ok, 0 not ok')
       expect(last_exit_code).to eq(0)
-      expect(store.applied_ids).to eq(['success_migration'])
+      expect(store.applied_ids).to eq(%w[skipping_migration success_migration])
+    end
+
+    it 'previews a dependent after its skipped dependency without recording either' do
+      write_migration('01_dependent.rb', depends_on_skipping_migration)
+      dir    = write_migration('02_skipping.rb', skipping_migration)
+      output = migrate('--dir', dir, '--dry-run')
+      expect(output[:stdout]).to include('○ skipping_migration skipped (dry run)')
+      expect(output[:stdout]).to include('✓ depends_on_skipping success (dry run)')
+      expect(output[:stdout]).not_to include('DependencyNotMet')
+      expect(last_exit_code).to eq(0)
+      expect(store.applied_ids).to eq([])
+    end
+
+    it 'records a skipped dependency before applying its dependent' do
+      write_migration('01_dependent.rb', depends_on_skipping_migration)
+      dir    = write_migration('02_skipping.rb', skipping_migration)
+      output = migrate('--dir', dir, '--run')
+      expect(output[:stdout]).to include('○ skipping_migration skipped')
+      expect(output[:stdout]).to include('✓ depends_on_skipping success')
+      expect(output[:stdout]).not_to include('DependencyNotMet')
+      expect(last_exit_code).to eq(0)
+      expect(store.applied_ids).to eq(%w[depends_on_skipping skipping_migration])
     end
 
     it 'reports a failing outcome on --dry-run but records nothing' do
@@ -571,12 +719,30 @@ RSpec.describe 'Migrate Command', type: :cli do
       expect(store.applied_ids).to eq(['nil_returning'])
     end
 
-    it 'skips a migration that is not needed, exits 0, and records nothing' do
+    it 'skips and records a migration whose target state is already satisfied' do
       dir    = write_migration('01_skipping.rb', skipping_migration)
       output = migrate('skipping_migration', '--dir', dir, '--run')
       expect(output[:stdout]).to include('○ skipping_migration skipped')
       expect(last_exit_code).to eq(0)
+      expect(store.applied_ids).to eq(['skipping_migration'])
+    end
+
+    it 'recovers registry state after data was written but record_applied failed' do
+      dir = write_migration('01_stateful.rb', stateful_migration)
+      store.fail_next_zadd = true
+
+      output = migrate('stateful_migration', '--dir', dir, '--run')
+      expect(output[:stdout]).to include('✗ stateful_migration failed')
+      expect(output[:stdout]).to include('registry write failed intentionally')
+      expect(last_exit_code).to eq(1)
+      expect(File.readlines(probe_path)).to eq(["migrated\n"])
       expect(store.applied_ids).to eq([])
+
+      output = migrate('stateful_migration', '--dir', dir, '--run')
+      expect(output[:stdout]).to include('○ stateful_migration skipped')
+      expect(last_exit_code).to eq(0)
+      expect(File.readlines(probe_path)).to eq(["migrated\n"])
+      expect(store.applied_ids).to eq(['stateful_migration'])
     end
 
     it 'treats a raising prepare as failed and records nothing' do
@@ -611,6 +777,80 @@ RSpec.describe 'Migrate Command', type: :cli do
       expect(output[:stdout]).to include('- failing_migration')
       expect(last_exit_code).to eq(1)
       expect(store.applied_ids).to eq([])
+    end
+  end
+
+  describe 'modifying-run serialization' do
+    def release_blocked_migration(klass, thread)
+      klass.release_gate << true if thread&.alive?
+    end
+
+    it 'does not acquire the modifying lock for apply or rollback previews' do
+      klass  = load_migration('01_reversible.rb', reversible_migration, 'reversible_migration')
+      runner = Onetime::CLI::MigrateRunner.new
+      expect(runner.run_one(klass, dry_run: false)[:status]).to eq(:success)
+
+      expect(Familia::Lock).not_to receive(:new)
+      expect(runner.run_one(klass, dry_run: true)[:status]).to eq(:success)
+      expect(runner.rollback('reversible_migration', dry_run: true)[:status]).to eq(:rolled_back)
+    end
+
+    it 'does not evaluate modifying preconditions when the lock is unavailable' do
+      klass    = load_migration('01_reversible.rb', reversible_migration, 'reversible_migration')
+      registry = Familia::Migration::Registry.new(redis: store)
+      runner   = Onetime::CLI::MigrateRunner.new(registry: registry)
+      lock     = instance_double(Familia::Lock, acquire: false)
+      allow(Familia::Lock).to receive(:new).and_return(lock)
+
+      expect(registry).not_to receive(:applied_at)
+      expect(registry).not_to receive(:applied?)
+      expect(registry).not_to receive(:all_applied)
+
+      expect(runner.run_one(klass, dry_run: false)[:status]).to eq(:failed)
+      expect(runner.rollback('reversible_migration', dry_run: false)[:status]).to eq(:failed)
+    end
+
+    it 'allows only one concurrent apply to execute migration side effects' do
+      klass   = load_migration('01_blocking.rb', blocking_migration, 'blocking_migration')
+      runners = Array.new(2) { Onetime::CLI::MigrateRunner.new }
+      winner  = Thread.new { runners.first.run_one(klass, dry_run: false) }
+
+      begin
+        Timeout.timeout(2) { klass.entered_gate.pop }
+        contender = runners.last.run_one(klass, dry_run: false)
+      ensure
+        release_blocked_migration(klass, winner)
+      end
+      winner_result = winner.value
+
+      expect(winner_result[:status]).to eq(:success)
+      expect(contender[:status]).to eq(:failed)
+      expect(contender[:error]).to include('is held by another modifying process')
+      expect(File.readlines(probe_path)).to eq(["up\n"])
+      expect(store.applied_ids).to eq(['blocking_migration'])
+      expect(store.lock_attempts).to all(eq('familia:migrations:lock:blocking_migration'))
+    end
+
+    it 'allows only one concurrent rollback to execute down side effects' do
+      klass   = load_migration('01_blocking_rollback.rb', blocking_rollback_migration, 'blocking_rollback')
+      runners = Array.new(2) { Onetime::CLI::MigrateRunner.new }
+      expect(runners.first.run_one(klass, dry_run: false)[:status]).to eq(:success)
+      winner = Thread.new { runners.first.rollback('blocking_rollback', dry_run: false) }
+
+      begin
+        Timeout.timeout(2) { klass.entered_gate.pop }
+        contender = runners.last.rollback('blocking_rollback', dry_run: false)
+      ensure
+        release_blocked_migration(klass, winner)
+      end
+      winner_result = winner.value
+
+      expect(winner_result[:status]).to eq(:rolled_back)
+      expect(contender[:status]).to eq(:failed)
+      expect(contender[:error]).to include('is held by another modifying process')
+      expect(File.readlines(probe_path)).to eq(["down\n"])
+      expect(store.applied_ids).to eq([])
+      expect(store.lock_attempts).to all(eq('familia:migrations:lock:blocking_rollback'))
     end
   end
 

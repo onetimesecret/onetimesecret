@@ -13,9 +13,10 @@ module Onetime
     # owns the outcome policy so that batch execution, single-migration
     # execution, and rollback all follow one invariant:
     #
-    #   A modifying run is dependency-checked, runs the full lifecycle
-    #   (prepare, migration_needed?, migrate / prepare, down), and is
-    #   recorded in the registry exactly once, only after it succeeds.
+    #   A modifying state transition is serialized per migration, checked
+    #   under that lock, runs the full lifecycle (prepare,
+    #   migration_needed?, migrate / prepare, down), and updates the registry
+    #   before releasing the lock.
     #
     # Compared with the parent class:
     #
@@ -27,11 +28,17 @@ module Onetime
     # - Isolated record errors (tracked via `track_stat(:errors)` or a Model
     #   or Pipeline `error_count`) make the outcome :partial. A partial run
     #   is not recorded, so it can be re-run once the errors are addressed.
+    # - A clean `migration_needed? == false` means the migration's target
+    #   state is already satisfied. It remains a :skipped result; modifying
+    #   runs record it, while dry-run batches treat it as a satisfied
+    #   dependency without recording anything.
     # - A batch stops at the first outcome that is not :success or :skipped.
-    #   A batch dry run treats the migrations it has already previewed
-    #   successfully as satisfied dependencies, since it records nothing.
+    #   Both outcomes satisfy later dependencies in that batch.
     # - A migration that is already recorded as applied is refused for a
     #   modifying single run (:already_applied); a dry run still previews it.
+    # - Modifying apply and rollback paths share a token-checked,
+    #   per-migration Redis lock. Dry runs never acquire it. Applied-state and
+    #   dependency preconditions are checked under the lock.
     # - Rollback instantiates the migration with the run mode, calls #prepare
     #   before #down, and removes applied state only after #down succeeds
     #   on an actual run.
@@ -61,7 +68,7 @@ module Onetime
             { migration_id: klass.migration_id, dry_run: dry_run, stats: {}, status: :failed, error: ex.message }
           end
           results << result
-          satisfied << klass.migration_id if result[:status] == :success
+          satisfied << klass.migration_id if OK_STATUSES.include?(result[:status])
           break unless OK_STATUSES.include?(result[:status])
         end
         results
@@ -81,6 +88,37 @@ module Onetime
       def run_one(migration_class_or_id, dry_run: true, satisfied: [])
         klass = resolve_migration(migration_class_or_id)
         id    = klass.migration_id
+
+        return execute_forward(klass, dry_run: true, satisfied: satisfied) if dry_run
+
+        with_modification_lock(id) do
+          execute_forward(klass, dry_run: false, satisfied: satisfied)
+        end
+      end
+
+      # Roll back an applied, reversible migration with no applied dependents.
+      #
+      # @param migration_id [String] exact migration ID
+      # @param dry_run [Boolean] preview only (default)
+      # @return [Hash] result with :status in :rolled_back, :partial, :failed
+      # @raise [Familia::Migration::Errors::NotFound]
+      # @raise [Familia::Migration::Errors::NotApplied]
+      # @raise [Familia::Migration::Errors::HasDependents]
+      # @raise [Familia::Migration::Errors::NotReversible]
+      def rollback(migration_id, dry_run: true)
+        klass = resolve_migration(migration_id)
+
+        return execute_rollback(klass, migration_id, dry_run: true) if dry_run
+
+        with_modification_lock(migration_id) do
+          execute_rollback(klass, migration_id, dry_run: false)
+        end
+      end
+
+      private
+
+      def execute_forward(klass, dry_run:, satisfied:)
+        id = klass.migration_id
 
         (klass.dependencies || []).each do |dep_id|
           next if satisfied.include?(dep_id) || @registry.applied?(dep_id)
@@ -108,7 +146,10 @@ module Onetime
           instance.prepare
 
           unless instance.migration_needed?
-            result[:status] = :skipped
+            finish_modifying_result(result, instance, nil, started, success: :skipped)
+            if result[:status] == :skipped && !dry_run
+              @registry.record_applied(instance, registry_stats(instance, result))
+            end
             return result
           end
 
@@ -128,30 +169,19 @@ module Onetime
         result
       end
 
-      # Roll back an applied, reversible migration with no applied dependents.
-      #
-      # @param migration_id [String] exact migration ID
-      # @param dry_run [Boolean] preview only (default)
-      # @return [Hash] result with :status in :rolled_back, :partial, :failed
-      # @raise [Familia::Migration::Errors::NotFound]
-      # @raise [Familia::Migration::Errors::NotApplied]
-      # @raise [Familia::Migration::Errors::HasDependents]
-      # @raise [Familia::Migration::Errors::NotReversible]
-      def rollback(migration_id, dry_run: true)
-        klass = resolve_migration(migration_id)
-
+      def execute_rollback(klass, migration_id, dry_run:)
         unless @registry.applied?(migration_id)
           raise Familia::Migration::Errors::NotApplied,
             "Migration #{migration_id} is not applied"
         end
 
         applied_ids = @registry.all_applied.to_set { |entry| entry[:migration_id] }
-        @migrations.each do |m|
-          next unless (m.dependencies || []).include?(migration_id)
-          next unless applied_ids.include?(m.migration_id)
+        @migrations.each do |migration|
+          next unless (migration.dependencies || []).include?(migration_id)
+          next unless applied_ids.include?(migration.migration_id)
 
           raise Familia::Migration::Errors::HasDependents,
-            "Cannot rollback: #{m.migration_id} depends on #{migration_id}"
+            "Cannot rollback: #{migration.migration_id} depends on #{migration_id}"
         end
 
         instance = klass.new(run: !dry_run)
@@ -180,12 +210,74 @@ module Onetime
         result
       end
 
-      private
+      # Migrations have no bounded runtime, so an expiring lease could admit a
+      # second writer while the first still owns the operation. A token-checked,
+      # non-expiring lock fails closed instead: normal exits release it in
+      # `ensure`; a killed process leaves a key for operator inspection before
+      # any retry of an indeterminate migration state.
+      def with_modification_lock(migration_id)
+        lock_key = "#{@registry.prefix}:lock:#{migration_id}"
 
-      # Classify a completed #migrate or #down call that did not raise. The
-      # false-return rule applies to #migrate only (Base documents a Boolean
-      # return and cli_run exits 1 on false); #down has no return convention,
-      # so callers pass nil for it.
+        begin
+          lock  = Familia::Lock.new(lock_key, dbclient: @registry.client, no_expiration: true)
+          token = lock.acquire(ttl: nil)
+        rescue StandardError => ex
+          return lock_failure_result(
+            migration_id,
+            "could not acquire migration lock #{lock_key}: #{ex.message}",
+          )
+        end
+
+        unless token
+          return lock_failure_result(
+            migration_id,
+            "migration lock #{lock_key} is held by another modifying process; no changes made by this process",
+          )
+        end
+
+        result = nil
+        begin
+          result = yield
+        ensure
+          release_modification_lock(lock, token, lock_key, migration_id, result)
+        end
+        result
+      end
+
+      def release_modification_lock(lock, token, lock_key, migration_id, result)
+        released = lock.release(token)
+        return if released
+
+        mark_lock_release_failure(
+          result,
+          migration_id,
+          "migration lock #{lock_key} was not released; inspect it before retrying",
+        )
+      rescue StandardError => ex
+        mark_lock_release_failure(
+          result,
+          migration_id,
+          "could not release migration lock #{lock_key}: #{ex.message}; inspect it before retrying",
+        )
+      end
+
+      def mark_lock_release_failure(result, migration_id, message)
+        @logger.error { "Migration #{migration_id} lock failure: #{message}" }
+        return unless result
+
+        result[:status] = :failed
+        result[:error]  = [result[:error], message].compact.join('; ')
+      end
+
+      def lock_failure_result(migration_id, error)
+        @logger.error { "Migration #{migration_id} lock failure: #{error}" }
+        { migration_id: migration_id, dry_run: false, stats: {}, status: :failed, error: error }
+      end
+
+      # Classify a completed lifecycle step that did not raise, including a
+      # clean not-needed check. The false-return rule applies to #migrate only
+      # (Base documents a Boolean return and cli_run exits 1 on false); #down
+      # and the not-needed path have no return convention, so callers pass nil.
       def finish_modifying_result(result, instance, returned, started, success: :success)
         elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
         errors  = record_error_count(instance)
