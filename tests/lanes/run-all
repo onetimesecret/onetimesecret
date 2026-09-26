@@ -171,11 +171,11 @@ done
 # reporting on something nobody changed.
 #
 # LANES_CHANGED_STUB replaces the git query with a newline-separated path
-# list. It exists for tests/lanes/runner/tasks, which has no branch of its
-# own to diff. This script has no scrub, so a stale export in a dev shell
+# list. It exists for spec/unit/lanes/run_all_spec.rb, which has no branch
+# of its own to diff. This script has no scrub, so a stale export in a dev shell
 # would reach it like any other variable: it is honored only when non-empty
 # (an empty one would silently select nothing and exit 0 as "nothing to
-# run") and only with --dry-run, which is the only way the runner lane uses
+# run") and only with --dry-run, which is the only way that spec uses
 # it; without --dry-run a set stub is an error, never a substituted diff.
 if [[ ${CHANGED} -eq 1 ]]; then
   if [[ ${#LANES[@]} -gt 0 ]]; then

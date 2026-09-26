@@ -56,12 +56,11 @@ specs.
 | `migrations-sqlite` | valkey, rabbitmq | `spec:integration:migrations:sqlite` | migration-tests.yml — SQLite job |
 | `migrations-pg` | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check | migration-tests.yml — PostgreSQL job |
 | `selftest` | none | boundary fixture | none — driven by `spec/unit/lanes/` |
-| `runner` | none | the runner's own checks (flags, `--which`, `--changed`) | static-analysis.yml — shell tests job |
 
 Every endpoint declared by a lane is preflighted, even when the resulting test
 workload does not directly use that service. Therefore `api`, `browser` and
 `smoke` still require RabbitMQ: `base.env` declares `RABBITMQ_URL` for all
-lanes. `selftest` and `runner` clear all service URLs and are the deliberate exceptions.
+lanes. `selftest` clears all service URLs and is the deliberate exception.
 
 A lane may have a toolchain prerequisite the runner has no codegen token for.
 `browser` needs the Playwright browser binaries (chromium, firefox, webkit),

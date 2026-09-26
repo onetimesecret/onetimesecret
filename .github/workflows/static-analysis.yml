@@ -10,9 +10,7 @@
 # run at all. Those files are not covered by any lane — tests/lanes/ boots
 # datastores for Ruby, and ci.yml's tier structure reports per-tier timing
 # metrics that an unrelated lint job would distort. This lane is deliberately
-# outside both: no services, no matrix, ~30 seconds. The one tests/lanes/
-# lane that runs here, `runner`, is the exception that proves it: it starts
-# no datastore and no Ruby, only the runner itself (see the shell-tests job).
+# outside both: no services, no matrix, ~30 seconds.
 #
 # No path filter, for the same reason drift-guards.yml has none: the job costs
 # seconds, and a path filter would have to enumerate every directory that can
@@ -49,8 +47,8 @@ name: Static analysis
 on:
   # push to main, like ci.yml: the gem-audit job then notices an advisory
   # that lands between pull requests rather than on the next one, and the
-  # runner lane (shell-tests job) covers a merge the way the T2/T3 lanes do.
-  # Every job here costs seconds, so the extra runs are cheap.
+  # shell tests cover a merge the way the T2/T3 lanes do. Every job here
+  # costs seconds, so the extra runs are cheap.
   push:
     branches:
       - main
@@ -112,20 +110,6 @@ jobs:
       # assertions over scripts/ci/*.sh and the workflows that call them.
       - name: Run scripts/tests
         run: bash scripts/tests/run.sh
-
-      # The lane runner's own checks (tests/lanes/runner/tasks): flag
-      # parsing, the env the runner sets below its scrub, and the path ->
-      # lane table behind --which, lane inference and run-all --changed.
-      # Bash only — no Ruby, no services — so it belongs with the shell
-      # tests rather than in the unit lane, where its ~50 process trees
-      # would be paid for by every T2 run. Through the same composite action
-      # as every other lane job (README "CI contract"): the lane owns the
-      # workload, the action owns reporting; no results-file, since the lane
-      # runs no rspec.
-      - name: Run the lane runner's own checks
-        uses: ./.github/actions/run-test-lane
-        with:
-          lane: runner
 
   lint:
     name: shellcheck + actionlint
