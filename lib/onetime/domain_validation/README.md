@@ -31,7 +31,7 @@ Under `approximated` the API's answer is used when it has one. When its own DNS 
 An indeterminate check may not hold `verified` indefinitely. `VerifyDomain::ConfirmationWindow` (`lib/onetime/operations/verify_domain/confirmation_window.rb`) keeps two timestamps on `CustomDomain`:
 
 - `verified_confirmed_at`: the last passing check.
-- `verified_unconfirmed_since`: the first indeterminate check of a verified domain since then. Any definitive answer clears it.
+- `verified_unconfirmed_since`: the first indeterminate check of a verified domain since then. A definitive outcome clears it when stored. While an explicit override holds, the timestamp is retained and the domain is exempt from expiry.
 
 When a check is indeterminate and `verified_unconfirmed_since` is more than 7 days old (`ConfirmationWindow::MAX_AGE`), `verified` is withdrawn. The result reports `dns_outcome: confirmation_expired`, bulk results count it in `confirmation_expired_count`, and VerifyDomain logs a warning.
 

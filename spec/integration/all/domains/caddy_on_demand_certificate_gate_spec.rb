@@ -35,8 +35,10 @@ require_relative '../../../../apps/internal/acme/application'
 RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :integration do
   include Rack::Test::Methods
 
-  # Scripted stand-in for DomainValidation::TxtResolver, keyed by hostname so
-  # any other domain the page walk picks up reads as "no record".
+  # Scripted stand-in for DomainValidation::TxtResolver, keyed by hostname.
+  # An indeterminate check can still update confirmation state, so rows other
+  # specs left in the shared datastore never reach this seam: see the
+  # VerifyDomain wrap below.
   let(:resolver_class) do
     Class.new do
       attr_reader :records, :failures, :lookups
@@ -50,6 +52,9 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
       def lookup(hostname)
         @lookups << hostname
         raise failures[hostname] if failures[hostname].is_a?(Exception)
+        unless records.key?(hostname) || failures.key?(hostname)
+          raise Onetime::DomainValidation::TxtResolver::NoReplyError, "unscripted hostname #{hostname}"
+        end
 
         values = records.fetch(hostname, [])
         rcode  = failures[hostname] || (values.empty? ? Resolv::DNS::RCode::NXDomain : Resolv::DNS::RCode::NoError)
@@ -62,18 +67,23 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
 
   # Scripted stand-in for DomainValidation::TlsProbe. The default is a name
   # that resolves and has no certificate yet: the state every domain is in
-  # when Caddy asks for the first time.
+  # when Caddy asks for the first time. Any other hostname is unscripted; like
+  # the resolver, it is only ever asked about this spec's domain.
   let(:probe_class) do
     Class.new do
       attr_accessor :is_resolving, :has_ssl
 
-      def initialize
+      def initialize(hostname)
+        @hostname     = hostname
         @is_resolving = true
         @has_ssl      = false
       end
 
-      def probe(_hostname)
-        Onetime::DomainValidation::TlsProbe::Result.new(
+      def probe(hostname)
+        result = Onetime::DomainValidation::TlsProbe::Result
+        return result.new(is_resolving: nil, has_ssl: nil, message: 'unscripted') unless hostname == @hostname
+
+        result.new(
           is_resolving: is_resolving, has_ssl: has_ssl, addresses: ['93.184.216.34'], message: 'scripted',
         )
       end
@@ -81,7 +91,7 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
   end
 
   let(:resolver) { resolver_class.new }
-  let(:probe) { probe_class.new }
+  let(:probe) { probe_class.new(hostname) }
   let(:app) { Internal::ACME::Application.new }
 
   let(:suffix) { "#{Familia.now.to_i}-#{SecureRandom.hex(3)}" }
@@ -99,13 +109,16 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
   end
 
   before do
-    @saved_conf = YAML.load(YAML.dump(OT.conf))
-    conf        = YAML.load(YAML.dump(OT.conf))
-    ((conf['features'] ||= {})['domains'] ||= {})['validation_strategy'] = 'caddy_on_demand'
-    (conf['jobs'] ||= {})['domain_refresh']                               = { 'enabled' => true }
+    @saved_conf                   = YAML.load(YAML.dump(OT.conf))
+    conf                          = YAML.load(YAML.dump(OT.conf))
+    ((conf['features']          ||= {})['domains'] ||= {})['validation_strategy'] = 'caddy_on_demand'
+    # Keep every domain on one page. Once this spec's domain is verified and
+    # resolving, it leaves the warm-up set; the default page would then select
+    # it only on some wall-clock ticks when the shared datastore has >200 rows.
+    (conf['jobs']               ||= {})['domain_refresh'] = { 'enabled' => true, 'batch_size' => 100_000 }
     # Promotion into :verified would otherwise fetch the domain's favicon,
     # which is an outbound request to the hostname.
-    conf['jobs']['favicon_fetch']                                         = { 'enabled' => false }
+    conf['jobs']['favicon_fetch'] = { 'enabled' => false }
     OT.send(:conf=, conf)
 
     # The ACME app's own concern is the ask route; the universal stack needs
@@ -116,6 +129,20 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
     allow(Onetime::DomainValidation::TlsProbe).to receive(:new).and_return(probe)
     expect(Onetime::DomainValidation::DnsStubResolver).not_to receive(:new)
     expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_favicon_fetch)
+
+    # Keep the real page walk, but hand VerifyDomain only the row this spec
+    # created. Shared or parallel test data must not be read through these
+    # scripted network seams or mutated by this example group.
+    @walked = []
+    allow(Onetime::Operations::VerifyDomain).to receive(:new).and_wrap_original do |original, **kwargs|
+      if kwargs[:domains]
+        @walked          = kwargs[:domains].map(&:identifier)
+        kwargs[:domains] = kwargs[:domains].select { |candidate| candidate.identifier == domain.identifier }
+      end
+      original.call(**kwargs)
+    end
+
+    resolver.records[domain.validation_record] = []
   end
 
   after do
@@ -126,7 +153,11 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
   end
 
   def refresh!
+    resolver.lookups.clear
+    @walked.clear
     Onetime::Jobs::Scheduled::DomainRefreshJob.send(:refresh_domains)
+    expect(@walked).to include(domain.identifier)
+    expect(resolver.lookups).to eq([domain.validation_record])
   end
 
   def stored
@@ -201,7 +232,7 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
     context 'when the record is later removed' do
       before do
         refresh!
-        resolver.records.clear
+        resolver.records[domain.validation_record] = []
       end
 
       it 'is demoted, and the ask endpoint refuses again' do
