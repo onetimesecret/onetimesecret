@@ -261,13 +261,16 @@ RSpec.describe 'Domains Command', type: :cli do
   end
 
   describe 'verify subcommand' do
-    def verify_result
+    def verify_result(ssl_ready: true, is_resolving: true)
       double('VerifyResult',
         domain: domain, success?: true, dns_validated: true, dns_indeterminate: false, dns_outcome: :validated,
-        dns_message: 'TXT record validated', ssl_ready: true,
-        is_resolving: true, previous_state: :pending, current_state: :verified,
+        dns_message: 'TXT record validated', ssl_ready: ssl_ready,
+        is_resolving: is_resolving, previous_state: :pending, current_state: :verified,
         changed?: true, persisted: true, error: nil,
-        to_h: { current_state: :verified, dns_validated: true })
+        to_h: {
+          current_state: :verified, dns_validated: true,
+          ssl_ready: ssl_ready, is_resolving: is_resolving,
+        })
     end
 
     it 'errors without a domain or --all' do
@@ -285,6 +288,19 @@ RSpec.describe 'Domains Command', type: :cli do
       output = run_cli_command_quietly('domains', 'verify', 'example.com')
       expect(output[:stdout]).to include('Domain Verification: example.com')
       expect(output[:stdout]).to include('DNS Validated:    yes')
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'renders unknown SSL and resolving results without reporting failures' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      op = double('AdminVerify', call: verify_result(ssl_ready: nil, is_resolving: nil))
+      allow(Onetime::Operations::AdminVerifyDomain).to receive(:new).and_return(op)
+
+      output = run_cli_command_quietly('domains', 'verify', 'example.com')
+
+      expect(output[:stdout]).to include('SSL Ready:        unknown')
+      expect(output[:stdout]).to include('Is Resolving:     unknown')
+      expect(output[:stdout].scan('Status: UNKNOWN').size).to eq(2)
       expect(last_exit_code).to eq(0)
     end
 

@@ -11,7 +11,7 @@ module Onetime
     # Single domain usage:
     #   result = VerifyDomain.new(domain: custom_domain).call
     #   result.dns_validated  # => true/false
-    #   result.ssl_ready      # => true/false
+    #   result.ssl_ready      # => true/false/nil
     #
     # Bulk domain usage:
     #   result = VerifyDomain.new(domains: domain_list, rate_limit: 0.5).call
@@ -35,8 +35,8 @@ module Onetime
         :dns_indeterminate, # Boolean: the TXT check produced no answer; verified left untouched
         :dns_message,     # String or nil: strategy's description of the TXT outcome
         :override_held,   # Boolean: TXT check failed but an operator override kept verified
-        :ssl_ready,       # Boolean: has valid SSL certificate
-        :is_resolving,    # Boolean: DNS resolving to correct target
+        :ssl_ready,       # Boolean or nil: has valid SSL certificate; nil means unknown
+        :is_resolving,    # Boolean or nil: DNS resolving to correct target; nil means unknown
         :persisted,       # Boolean: changes were saved
         :error,           # String or nil: error message if failed
       ) do
@@ -204,8 +204,8 @@ module Onetime
           dns_indeterminate: dns_result[:indeterminate] == true,
           dns_message: dns_result[:message],
           override_held: override_held?(domain, dns_result),
-          ssl_ready: status_result[:has_ssl] || false,
-          is_resolving: status_result[:is_resolving] || false,
+          ssl_ready: status_result[:has_ssl],
+          is_resolving: status_result[:is_resolving],
           persisted: persisted,
           error: nil,
         )
@@ -223,8 +223,8 @@ module Onetime
           previous_state: domain&.verification_state,
           current_state: domain&.verification_state,
           dns_validated: false,
-          ssl_ready: false,
-          is_resolving: false,
+          ssl_ready: nil,
+          is_resolving: nil,
           persisted: false,
           error: ex.message,
         )
@@ -313,7 +313,7 @@ module Onetime
       # Check SSL and resolution status
       #
       # @param domain [Onetime::CustomDomain]
-      # @return [Hash] { ready: Boolean, has_ssl: Boolean, is_resolving: Boolean, ... }
+      # @return [Hash] { ready: Boolean, has_ssl: Boolean/nil, is_resolving: Boolean/nil, ... }
       def check_status(domain)
         result = strategy.check_status(domain)
 
@@ -335,7 +335,7 @@ module Onetime
         logger.error 'Status check error',
           domain: domain.display_domain,
           error: ex.message
-        { ready: false, has_ssl: false, is_resolving: false, message: ex.message }
+        { ready: false, has_ssl: nil, is_resolving: nil, message: ex.message }
       end
 
       # Check if the result indicates vhost was not found (404 from Approximated)

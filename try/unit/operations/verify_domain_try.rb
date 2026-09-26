@@ -117,6 +117,26 @@ Onetime::Operations::VerifyDomain::BulkResult.ancestors.include?(Data)
 @result1.success?
 #=> true
 
+## Unknown status remains tri-state in the Result instead of becoming false
+@unknown_status_strategy = MockValidationStrategy.new
+@unknown_status_strategy.status_result = {
+  ready: false,
+  has_ssl: nil,
+  is_resolving: nil,
+  mode: 'caddy_on_demand',
+}
+@unknown_status_result = Onetime::Operations::VerifyDomain.new(
+  domain: @domain1,
+  strategy: @unknown_status_strategy,
+  persist: false,
+).call
+[@unknown_status_result.ssl_ready, @unknown_status_result.is_resolving]
+#=> [nil, nil]
+
+## Result to_h preserves unknown SSL and resolving values
+@unknown_status_result.to_h.values_at(:ssl_ready, :is_resolving)
+#=> [nil, nil]
+
 ## Single domain verification - persisted is true
 @result1.persisted
 #=> true
@@ -209,9 +229,9 @@ end
   strategy: @broken_strategy,
   persist: false,
 ).call
-# check_status exception also gets caught and returns default values
-@result_broken.is_resolving
-#=> false
+# check_status exception also gets caught and reports status as unknown
+[@result_broken.ssl_ready, @result_broken.is_resolving]
+#=> [nil, nil]
 
 ## Bulk verification - processes multiple domains
 @strategy.ownership_result = { validated: true, message: 'OK', data: [] }

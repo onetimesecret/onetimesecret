@@ -645,8 +645,9 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
           }))
       end
 
-      it 'reports is_resolving nil so the stored flag is left alone' do
+      it 'reports SSL and resolving as unknown so stored flags are left alone' do
         result = strategy.check_status(custom_domain)
+        expect(result[:has_ssl]).to be_nil
         expect(result[:is_resolving]).to be_nil
         expect(result[:ready]).to be false
         expect(result[:status]).to eq('UNKNOWN')

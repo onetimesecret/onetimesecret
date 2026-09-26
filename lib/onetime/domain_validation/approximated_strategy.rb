@@ -170,7 +170,7 @@ module Onetime
 
           {
             ready: ACTIVE_SSL_STATUSES.include?(data['status']),
-            has_ssl: data['has_ssl'],
+            has_ssl: indeterminate ? nil : data['has_ssl'],
             is_resolving: indeterminate ? nil : data['is_resolving'],
             status: data['status'],
             status_message: data['status_message'],

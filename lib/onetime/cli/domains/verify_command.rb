@@ -333,7 +333,7 @@ module Onetime
         end
 
         puts '2. DNS Resolution (CNAME/A record):'
-        puts "   Status: #{result.is_resolving ? 'PASS' : 'FAIL'}"
+        puts "   Status: #{format_diagnostic_status(result.is_resolving, false_label: 'FAIL')}"
         puts '   Domain should resolve to the proxy server'
         puts
         puts '   # Check CNAME record:'
@@ -344,7 +344,7 @@ module Onetime
         puts
 
         puts '3. SSL Certificate:'
-        puts "   Status: #{result.ssl_ready ? 'PASS' : 'PENDING'}"
+        puts "   Status: #{format_diagnostic_status(result.ssl_ready, false_label: 'PENDING')}"
         puts
         puts '   # Check SSL certificate:'
         puts "   echo | openssl s_client -connect #{domain.display_domain}:443 -servername #{domain.display_domain} 2>/dev/null | openssl x509 -noout -dates"
@@ -445,7 +445,7 @@ module Onetime
           end
           issues[:dns_failed] << domain.display_domain if r.dns_outcome == :failed
           issues[:dns_indeterminate] << domain.display_domain if r.dns_indeterminate
-          issues[:ssl_failed] << domain.display_domain unless r.ssl_ready
+          issues[:ssl_failed] << domain.display_domain if r.ssl_ready == false
         end
 
         output = result.to_h.merge(
@@ -477,6 +477,14 @@ module Onetime
         when true then 'yes'
         when false then 'no'
         else 'unknown'
+        end
+      end
+
+      def format_diagnostic_status(value, false_label:)
+        case value
+        when true then 'PASS'
+        when false then false_label
+        else 'UNKNOWN'
         end
       end
     end
