@@ -30,9 +30,10 @@
 #
 # OWN LANE. Auth::Config configures once per process and reads SAML_* then.
 # The lane (tests/lanes/full-saml-platform) provides the three public strings
-# AND the SAML-compatible session cookie (SESSION_COOKIE_SAME_SITE=none,
-# SESSION_COOKIE_SECURE=true — under any other cookie Saml.platform_options
-# raises and the provider is SKIPPED at boot); the IdP KEYPAIR is minted here
+# AND the SAML-compatible session cookie (SESSION_COOKIE_SAME_SITE=lax,
+# SESSION_COOKIE_SECURE=true — lax or none is accepted; under strict or a
+# non-Secure cookie Saml.platform_options raises and the provider is SKIPPED
+# at boot); the IdP KEYPAIR is minted here
 # at load time and its certificate installed in ENV before the first boot, so
 # no key material is checked in. If the app is already booted when this file
 # loads, the environment cannot take effect — that is a loud failure, not a
@@ -53,7 +54,7 @@
 #
 # REQUIREMENTS:
 # - Valkey on 2163, AUTHENTICATION_MODE=full, ORGS_SSO_ENABLED=true,
-#   SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID, SESSION_COOKIE_SAME_SITE=none,
+#   SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID, SESSION_COOKIE_SAME_SITE=lax,
 #   SESSION_COOKIE_SECURE=true (lane-provided)
 #
 # RUN:
