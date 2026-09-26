@@ -7,10 +7,9 @@
 # The job used to take the newest batch_size domains on every run, so any
 # domain past the first batch never refreshed. It now derives one page per run
 # from the clock (whole intervals since the epoch, modulo the page count), so
-# the walk covers the full set with no persisted position. On top of that, any
-# domain created inside `dns_propagation_window` that is still not fully
-# verified gets re-checked every cycle so early DNS propagation is caught
-# without waiting for the walk.
+# the walk covers the full set with no persisted position. Recent domains that
+# are still not fully verified fill spare page capacity, shortening propagation
+# feedback without displacing the regular walk or exceeding batch_size.
 #
 # CustomDomain.instances / load_multi, Operations::VerifyDomain and Familia.now
 # are swapped for in-memory stand-ins (restored at the end) so the walk is
@@ -26,12 +25,20 @@ require_relative '../../../lib/onetime/jobs/scheduled/domain_refresh_job'
 RefreshJob = Onetime::Jobs::Scheduled::DomainRefreshJob
 
 @orig_conf = OT.instance_variable_get(:@conf)
-OT.instance_variable_set(:@conf, @orig_conf.merge(
-  'jobs' => { 'domain_refresh' => {
-    'enabled' => true, 'batch_size' => 2, 'rate_limit' => 0,
-    'check_interval' => '30m', 'dns_propagation_window' => '24h'
-  } },
-))
+OT.instance_variable_set(
+  :@conf,
+  @orig_conf.merge(
+    'jobs' => {
+      'domain_refresh' => {
+        'enabled' => true,
+        'batch_size' => 2,
+        'rate_limit' => 0,
+        'check_interval' => '30m',
+        'dns_propagation_window' => '24h',
+      },
+    },
+  ),
+)
 
 # Newest-first id list, as revrangeraw would return it.
 IDS = %w[d5 d4 d3 d2 d1].freeze
@@ -43,6 +50,10 @@ FakeDomain = Struct.new(:identifier, :verified, :resolving)
 FAKE_DOMAINS = IDS.each_with_object({}) { |id, h| h[id] = FakeDomain.new(id, false, false) }
 
 class FakeInstances
+  class << self
+    attr_accessor :warmup_ids, :last_limit
+  end
+
   # Scores are epoch-second creation times. Newest (d5) at BASE; each older
   # domain 6h earlier so the 24h warm-up window catches exactly d5..d2.
   SCORES = {
@@ -52,8 +63,15 @@ class FakeInstances
   def initialize(base) = @base = base
   def element_count    = IDS.size
   def revrangeraw(start, stop) = IDS[start..stop] || []
-  def rangebyscoreraw(min, max)
-    IDS.select { |id| s = @base + SCORES[id]; s >= min && s <= max }.reverse
+
+  def rangebyscoreraw(min, max, opts = {})
+    matching              = self.class.warmup_ids || IDS.select do |id|
+        score = @base + SCORES[id]
+        score >= min && score <= max
+    end.reverse
+    self.class.last_limit = opts[:limit]
+    offset, count         = opts.fetch(:limit, [0, matching.size])
+    matching.slice(offset, count) || []
   end
 end
 
@@ -68,8 +86,12 @@ class FakeVerify
   def call
     self.class.seen << @domains.map(&:identifier)
     Onetime::Operations::VerifyDomain::BulkResult.new(
-      total: @domains.size, verified_count: 0, failed_count: 0,
-      skipped_count: 0, results: [], duration_seconds: 0.0
+      total: @domains.size,
+      verified_count: 0,
+      failed_count: 0,
+      skipped_count: 0,
+      results: [],
+      duration_seconds: 0.0,
     )
   end
 end
@@ -131,24 +153,32 @@ RefreshJob.send(:page_offset, 0, BASE)
 RefreshJob.send(:dns_propagation_window_seconds)
 #=> 86_400
 
-## Warm-up adds unverified domains inside the window that the page missed
+## Warm-up fills capacity left by a short final page
 FakeVerify.seen.clear
-run_refresh(BASE)
-#=> %w[d5 d4 d2 d3]
+run_refresh(BASE + 3600)
+#=> %w[d1 d2]
 
 ## Warm-up excludes fully-verified domains even if they are inside the window
-FAKE_DOMAINS['d3'] = FakeDomain.new('d3', true, true)
+FAKE_DOMAINS['d2'] = FakeDomain.new('d2', true, true)
 FakeVerify.seen.clear
-run_refresh(BASE)
-FAKE_DOMAINS['d3'] = FakeDomain.new('d3', false, false)
+run_refresh(BASE + 3600)
+FAKE_DOMAINS['d2'] = FakeDomain.new('d2', false, false)
 FakeVerify.seen.last
-#=> %w[d5 d4 d2]
+#=> %w[d1 d3]
 
-## Warm-up de-dupes against the page so a domain is never checked twice per run
+## Warm-up de-dupes against page domains
+RefreshJob.send(:warmup_domains, BASE, [FAKE_DOMAINS['d2']], limit: 1).map(&:identifier)
+#=> %w[d3]
+
+## A high-volume warm-up cohort cannot push a tick past batch_size
+@high_volume_ids                              = 500.times.map { |index| "warm#{index}" }
+@high_volume_ids.each { |id| FAKE_DOMAINS[id] = FakeDomain.new(id, false, false) }
+FakeInstances.warmup_ids                      = @high_volume_ids
 FakeVerify.seen.clear
-run_refresh(BASE + 1800)
-FakeVerify.seen.last
-#=> %w[d3 d2 d4 d5]
+@high_volume_seen                             = run_refresh(BASE + 3600)
+FakeInstances.warmup_ids                      = nil
+[@high_volume_seen.size, @high_volume_seen.first, FakeInstances.last_limit]
+#=> [2, "d1", [0, 2]]
 
 ## dns_propagation_window: '0' disables the warm-up entirely
 FakeVerify.seen.clear
@@ -156,11 +186,11 @@ with_config('dns_propagation_window' => '0') { run_refresh(BASE) }
 FakeVerify.seen.last
 #=> %w[d5 d4]
 
-## Three consecutive ticks refresh every domain (page + warm-up combined)
+## Three consecutive ticks preserve regular page-walk progress
 FakeVerify.seen.clear
 (0..2).each { |tick| run_refresh(BASE + (tick * 1800)) }
 FakeVerify.seen
-#=> [%w[d5 d4 d2 d3], %w[d3 d2 d4 d5], %w[d1 d2 d3 d4 d5]]
+#=> [%w[d5 d4], %w[d3 d2], %w[d1 d2]]
 
 # Teardown
 @familia.send(:alias_method, :now, :__orig_now)

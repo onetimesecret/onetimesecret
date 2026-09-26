@@ -11,14 +11,14 @@ module Onetime
       # custom domains so the domains-list page shows current state without
       # depending on a user visiting the verify page. See issue #3080.
       #
-      # Disabled by default. Configuration (config.yaml):
+      # Enabled by default. Configuration (config.yaml):
       #   jobs:
       #     domain_refresh:
       #       enabled: true
       #       check_interval: '30m'
-      #       batch_size: 200                # max domains processed per run (clock-derived page walks the full set)
+      #       batch_size: 200                # max domains processed per run, including warm-up checks
       #       rate_limit: 0.5                # seconds between Approximated API calls
-      #       dns_propagation_window: '24h'  # re-check unverified/unresolving domains every cycle for this long after creation ('0' disables)
+      #       dns_propagation_window: '24h'  # let recent unverified/unresolving domains fill spare capacity ('0' disables)
       #
       # The Approximated rate limit (0.5s) caps a 200-domain run at ~100s.
       class DomainRefreshJob < ScheduledJob
@@ -78,7 +78,11 @@ module Onetime
 
             # load_multi pipelines the batch fetch; .all would HGETALL every domain.
             page_domains = Onetime::CustomDomain.load_multi(identifiers).compact
-            warmup       = warmup_domains(now, page_domains)
+            warmup       = warmup_domains(
+              now,
+              page_domains,
+              limit: batch_size - page_domains.size,
+            )
 
             domains = page_domains + warmup
             if domains.empty?
@@ -104,16 +108,19 @@ module Onetime
           end
 
           # Domains created within dns_propagation_window that are still not
-          # fully verified (verified=false OR resolving=false) get re-checked
-          # every cycle regardless of where the page walk sits. This shortens
-          # the "just added, DNS still propagating" feedback loop from up to
-          # one full walk to one check_interval. Domains already picked up by
-          # the page walk are excluded so VerifyDomain never sees duplicates.
-          def warmup_domains(now, page_domains)
+          # fully verified (verified=false OR resolving=false) fill any capacity
+          # left by the regular page. Page domains keep priority so the full-set
+          # walk always advances, while the combined verification cohort remains
+          # bounded by batch_size. Page domains are excluded to avoid duplicates.
+          def warmup_domains(now, page_domains, limit:)
             window = dns_propagation_window_seconds
-            return [] if window <= 0
+            return [] if window <= 0 || limit <= 0
 
-            identifiers = Onetime::CustomDomain.instances.rangebyscoreraw(now - window, now)
+            identifiers = Onetime::CustomDomain.instances.rangebyscoreraw(
+              now - window,
+              now,
+              limit: [0, limit + page_domains.size],
+            )
             return [] if identifiers.empty?
 
             already = page_domains.to_h { |d| [d.identifier, true] }
@@ -122,7 +129,8 @@ module Onetime
 
             Onetime::CustomDomain.load_multi(identifiers)
               .compact
-              .reject { |d| d.verified && d.resolving }
+              .reject { |d| d.verified && d.resolving } # boolean_field native
+              .take(limit)
           end
 
           # The page is derived from the clock, so there is no position to
