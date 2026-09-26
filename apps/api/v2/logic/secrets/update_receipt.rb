@@ -19,7 +19,7 @@ module V2::Logic
       attr_reader :identifier, :receipt, :memo
 
       def process_params
-        @identifier = sanitize_identifier(params['identifier'])
+        @identifier = sanitize_identifier(route_param('identifier'))
         @memo       = sanitize_plain_text(params['memo'], max_length: MEMO_MAX_LENGTH) if params['memo']
         @receipt    = Onetime::Receipt.load(identifier)
       end

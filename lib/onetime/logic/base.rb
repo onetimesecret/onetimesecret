@@ -39,6 +39,7 @@ module Onetime
         :params,
         :locale,
         :processed_params,
+        :route_params,
         :site,
         :features,
         :authentication,
@@ -47,9 +48,35 @@ module Onetime
 
       attr_accessor :domain_strategy, :display_domain, :custom_domain_id
 
-      def initialize(strategy_result, params, locale = nil)
+      # The value the router captured from the request path for +name+.
+      #
+      # +params+ is a shared namespace: path captures, query string, form
+      # fields and JSON body all land in it, and a Logic class reading
+      # params['identifier'] cannot tell which one it got. When Otto routed
+      # the request, +route_params+ holds the path captures alone, so this
+      # returns the path value by name whatever else the caller sent. A Logic
+      # class built without the router (specs, scripts) has no captures and
+      # falls back to +params+.
+      #
+      # @param name [String, Symbol] the route placeholder name (":identifier")
+      # @return [String, nil]
+      def route_param(name)
+        key = name.to_s
+        return route_params[key] if route_params.key?(key)
+        return route_params[key.to_sym] if route_params.key?(key.to_sym)
+
+        params && params[key]
+      end
+
+      # @param route_params [Hash] the router's path captures, keyed by the
+      #   route's placeholder names. Otto (>= 2.12, delano/otto#285) passes
+      #   them separately from +params+ for any Logic class whose initialize
+      #   declares the keyword, which this one does on behalf of every
+      #   subclass. Callers that build a Logic class by hand may leave it out.
+      def initialize(strategy_result, params, locale = nil, route_params: {})
         @strategy_result = strategy_result
         @params          = params
+        @route_params    = route_params || {}
 
         # Extract session and user from StrategyResult
         @sess   = strategy_result.session

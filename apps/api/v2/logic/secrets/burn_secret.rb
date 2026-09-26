@@ -38,7 +38,7 @@ module V2::Logic
       attr_reader :identifier, :passphrase, :continue, :receipt, :secret, :correct_passphrase, :greenlighted
 
       def process_params
-        @identifier = sanitize_identifier(params['identifier'])
+        @identifier = sanitize_identifier(route_param('identifier'))
         @receipt    = Onetime::Receipt.load identifier
         @passphrase = params['passphrase'].to_s
         @continue   = [true, 'true'].include?(params['continue'])

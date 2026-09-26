@@ -61,7 +61,7 @@ module V2::Logic
         :display_lines
 
       def process_params
-        @identifier = sanitize_identifier(params['identifier'])
+        @identifier = sanitize_identifier(route_param('identifier'))
         @receipt    = Onetime::Receipt.load identifier
       end
 
