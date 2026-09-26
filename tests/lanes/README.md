@@ -146,15 +146,23 @@ whole formatter list, including `--format json --out $RSPEC_OUTPUT_FILE`.
 A run with `RSPEC_OUTPUT_FILE` set (CI plumbing) therefore rejects `--quiet`
 with exit 64 rather than silently writing no results file.
 
-`--quiet` quiets rspec, not the application under test. The app's own log
-lines (`2026-09-26 01:23:45.678901 W [pid:tid] HTTP -- ...`) still print at
-the levels `spec/logging.test.yaml` pins per category, and on a full lane
-they are most of the output: a `simple` run is ~55k lines with or without
-the flag, ~50k of them the seven `HTTP -- [Security] ... DISABLED` warnings
-each app boot logs. The runner has no knob for that (`LOG_LEVEL` only moves
-the default level; a category listed in the yaml keeps its own), so it is a
-logging-config question, not a runner flag. To read the rspec part of a run
-back out of `last.log`, drop the timestamped lines:
+`--quiet` also floors the application's own log at `error`. The app's log
+lines (`2026-09-26 01:23:45.678901 W [pid:tid] HTTP -- ...`) are most of a
+full lane's output — a default `simple` run is ~55k lines, ~50k of them the
+seven `HTTP -- [Security] ... DISABLED` warnings each app boot logs — and
+the rspec formatter cannot touch them. Under the flag the runner exports
+`LOG_LEVEL=error` and `DEBUG_LOGGERS=App:error,Auth:error,...` (every
+category in `setup_loggers.rb`'s logger table), the two knobs
+`lib/onetime/initializers/setup_loggers.rb` already reads on every boot.
+Both are needed: the per-category levels `spec/logging.test.yaml` pins
+(`HTTP: warn`, `Auth: info`, ...) override `LOG_LEVEL` alone, and
+`DEBUG_LOGGERS` is applied after them and accepts any level despite its
+name. Errors and fatals still print, so a real failure's log line stays
+beside its rspec failure, and so does the `ColonelAudit` stream, which
+`Onetime::ColonelAuditEvent` pins at `info` on purpose (the audit sink must
+not be silenceable by a level change); a `simple --quiet` run is ~2.5k
+lines. Without the flag the app logs exactly as before. To read the rspec
+part of a default run back out of `last.log`, drop the timestamped lines:
 
 ```console
 $ grep -vE '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:.]+ [A-Z] \[' tmp/lanes/simple/base/last.log

@@ -90,6 +90,18 @@ if ! tests/lanes/run selftest --print-key 2>/dev/null | grep -q 'spec_opts=none$
   echo '[lane:selftest] FAILED: SPEC_OPTS set without --quiet' >&2
   exit 1
 fi
+# Same shape for the app-log floor: LOG_LEVEL and a DEBUG_LOGGERS list with
+# every entry at error under the flag, neither without it. Which names the
+# list carries is pinned against the initializer's own logger table by
+# spec/unit/lanes/quiet_log_floor_spec.rb (this lane runs no app code).
+if ! env -u RSPEC_OUTPUT_FILE tests/lanes/run selftest --quiet --print-key 2>/dev/null | grep -qE '^log_level=error debug_loggers=([A-Za-z]+:error,)*[A-Za-z]+:error$'; then
+  echo '[lane:selftest] FAILED: --quiet did not set LOG_LEVEL=error and DEBUG_LOGGERS=<name>:error,...' >&2
+  exit 1
+fi
+if ! tests/lanes/run selftest --print-key 2>/dev/null | grep -q '^log_level=none debug_loggers=none$'; then
+  echo '[lane:selftest] FAILED: LOG_LEVEL or DEBUG_LOGGERS set without --quiet' >&2
+  exit 1
+fi
 got=0
 RSPEC_OUTPUT_FILE=tmp/selftest-results.json tests/lanes/run selftest --quiet --print-key >/dev/null 2>&1 || got=$?
 if [[ "${got}" != 64 ]]; then

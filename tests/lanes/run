@@ -344,7 +344,9 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "                 tryouts). Needs --only. e.g. -- --only-failures,"
   echo "                 -- --next-failure, -- -e 'description'."
   echo "  --quiet        rspec prints failures and the summary only (SPEC_OPTS"
-  echo "                 selects tests/lanes/support/quiet_formatter.rb); the"
+  echo "                 selects tests/lanes/support/quiet_formatter.rb) and"
+  echo "                 the app logs at error and above only (LOG_LEVEL and"
+  echo "                 DEBUG_LOGGERS, both read by setup_loggers.rb); the"
   echo "                 tryouts legs already run --agent outside CI. Default"
   echo "                 output is unchanged without it."
   echo "  --console      start the app console (bin/ots console) in the lane's"
@@ -826,6 +828,34 @@ if [[ ${QUIET} -eq 1 ]]; then
   # the task process runs from the repo root (the cd below) where ./ resolves.
   SPEC_OPTS="--require ./tests/lanes/support/quiet_formatter --format Lanes::QuietFormatter"
   export SPEC_OPTS
+
+  # The application's own log lines are the other, larger half of a lane's
+  # output — on a full `simple` run ~50k of ~55k lines are the seven
+  # `HTTP -- [Security] ... DISABLED` warnings each app boot logs — and the
+  # formatter cannot touch them. Two existing knobs can, both read by
+  # lib/onetime/initializers/setup_loggers.rb on every boot the run makes:
+  # LOG_LEVEL sets SemanticLogger.default_level, which every category listed
+  # under `loggers:` in spec/logging.test.yaml then overrides with its own
+  # pinned level (HTTP: warn, Auth: info, ...), so LOG_LEVEL alone moves
+  # nothing that prints; DEBUG_LOGGERS=<name>:<level>,... is applied after
+  # those and wins per category — at any level, the name notwithstanding.
+  # So: the default to error for every category the yaml does not name, and
+  # every category the initializer defines (its logger_definitions, which
+  # spec/unit/lanes/quiet_log_floor_spec.rb pins this list to) to error
+  # explicitly. Errors and fatals still print, so a real failure's log line
+  # stays beside its rspec failure — and so does the ColonelAudit stream,
+  # whose logger Onetime::ColonelAuditEvent pins at info itself, on purpose
+  # (the audit sink must not be silenceable by a level change). Measured on
+  # a full `simple` run: ~55k lines -> ~2.5k. Assigned here, below the
+  # scrub and only under the flag: a default run's app log is what it was.
+  LOG_LEVEL=error
+  DEBUG_LOGGERS=''
+  for _lanes_name in App Auth Billing Boot Bunny Ents Familia HTTP Jobs Org \
+                     Otto Rhales Scheduler Secret Sequel Session Workers; do
+    DEBUG_LOGGERS+="${DEBUG_LOGGERS:+,}${_lanes_name}:error"
+  done
+  builtin unset _lanes_name
+  export LOG_LEVEL DEBUG_LOGGERS
 fi
 
 # ── --print-key ──────────────────────────────────────────────────────────
@@ -842,6 +872,7 @@ if [[ ${PRINT_KEY} -eq 1 ]]; then
        "key=${LANES_ISOLATION_KEY}"
   echo "run_dir=${LANES_RUN_DIR} status_file=${LANES_RSPEC_STATUS_FILE}" \
        "spec_opts=${SPEC_OPTS:-none}"
+  echo "log_level=${LOG_LEVEL:-none} debug_loggers=${DEBUG_LOGGERS:-none}"
   exit 0
 fi
 
