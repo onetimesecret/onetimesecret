@@ -90,6 +90,10 @@ module Onetime
     feature :custom_domain_migration_fields
 
     class_hashkey :owners
+    # Creation-only uniqueness gate keyed by the DNS wire form. Kept separate
+    # from display_domain_index so legacy Unicode/A-label duplicates retain
+    # exact-key-first lookup semantics.
+    class_hashkey :canonical_display_domain_index, class: self, reference: true
 
     identifier_field :domainid
 
@@ -217,33 +221,47 @@ module Onetime
         raise Onetime::Problem, 'This domain overlaps with the default site domain'
       end
 
-      # Verify the new domain is not already taken in either index
-      existing = self.class.display_domain_index.get(new_domain)
+      # Verify the new domain is not already taken, preserving the exact-key
+      # precedence used for legacy Unicode/A-label duplicate records.
+      existing = self.class.display_domain_id_for(new_domain)
       if existing && existing != identifier
         raise Onetime::Problem, 'Domain already registered'
       end
 
-      # Remove old entries from both indexes while field still has old value
-      self.class.display_domain_index.remove(old_domain)
-      remove_from_class_display_domain_index
-
-      # Update field and re-parse derived domain parts (base_domain, trd,
-      # sld, tld) so that generate_txt_validation_record produces correct
-      # values for the new domain.
-      self.display_domain = new_domain
-      self.updated        = OT.now.to_i
-
-      # Re-parse derived fields from the normalized display_domain
-      ps_domain    = PublicSuffix.parse(new_domain, default_rule: nil)
-      @base_domain = ps_domain.domain.to_s
-      @subdomain   = ps_domain.subdomain.to_s
-      @trd         = ps_domain.trd.to_s
-      @tld         = ps_domain.tld.to_s
-      @sld         = ps_domain.sld.to_s
+      old_canonical_domain                  = begin
+        self.class.canonical_display_domain(old_domain)
+      rescue Onetime::DomainValidation::AsciiHostname::ConversionError
+        nil
+      end
+      new_canonical_domain, canonical_claim = self.class.claim_canonical_display_domain(new_domain, identifier)
+      unless [:created, :owned].include?(canonical_claim)
+        raise Onetime::Problem, 'Domain already registered'
+      end
 
       begin
+        # Remove old entries from both indexes while field still has old value
+        self.class.display_domain_index.remove(old_domain)
+        remove_from_class_display_domain_index
+
+        # Update field and re-parse derived domain parts (base_domain, trd,
+        # sld, tld) so that generate_txt_validation_record produces correct
+        # values for the new domain.
+        self.display_domain = new_domain
+        self.updated        = OT.now.to_i
+
+        # Re-parse derived fields from the normalized display_domain
+        ps_domain    = PublicSuffix.parse(new_domain, default_rule: nil)
+        @base_domain = ps_domain.domain.to_s
+        @subdomain   = ps_domain.subdomain.to_s
+        @trd         = ps_domain.trd.to_s
+        @tld         = ps_domain.tld.to_s
+        @sld         = ps_domain.sld.to_s
+
         save
         self.class.display_domain_index.put(new_domain, identifier)
+        if old_canonical_domain && old_canonical_domain != new_canonical_domain
+          self.class.canonical_display_domain_index.release_field(old_canonical_domain, identifier)
+        end
       rescue StandardError => ex
         # Rollback: restore field, derived parts, and re-add old entries
         self.display_domain = old_domain
@@ -259,6 +277,9 @@ module Onetime
           save
         rescue StandardError => rollback_ex
           OT.le "[CustomDomain.update_display_domain] Rollback save failed: #{rollback_ex.message}"
+        end
+        if canonical_claim == :created
+          self.class.canonical_display_domain_index.release_field(new_canonical_domain, identifier)
         end
         raise ex
       end
@@ -509,12 +530,20 @@ module Onetime
       # the entry manually to keep it in sync with the `instances` registry.
       self.class.owners.remove(to_s)
 
-      # Familia 2.9.1's destroy! handles:
-      # - Main object key deletion
-      # - Related fields cleanup (brand, logo, icon hashkeys)
-      # - Auto-managed class indexes (display_domain_index, instances registry)
-      # - Transaction management
-      super
+      # Familia handles the main object, related fields, and declared indexes.
+      # The canonical gate is app-managed because it indexes a normalized value
+      # rather than a model field. Release it only after the record is gone, and
+      # only if it still names this object.
+      canonical_domain  = begin
+        self.class.canonical_display_domain(display_domain)
+      rescue Onetime::DomainValidation::AsciiHostname::ConversionError
+        nil
+      end
+      domain_identifier = identifier
+
+      result = super
+      self.class.canonical_display_domain_index.release_field(canonical_domain, domain_identifier) if canonical_domain
+      result
     end
 
     # Checks if the domain is an apex domain.
@@ -775,6 +804,28 @@ module Onetime
         nil
       end
 
+      # Canonical DNS wire form used only by the atomic creation gate. Lookup
+      # continues to use display_domain_lookup_keys so exact legacy keys win.
+      #
+      # @param domain_name [String, #to_s]
+      # @return [String] lower-case A-label form
+      # @raise [Onetime::DomainValidation::AsciiHostname::ConversionError]
+      def canonical_display_domain(domain_name)
+        Onetime::DomainValidation::AsciiHostname.call(domain_name)
+      end
+
+      # Atomically claim the canonical form for an object identifier. This is
+      # the app-layer counterpart to Familia's exact unique_index claim: both
+      # use HashKey#claim_field, but this gate folds Unicode and A-label input
+      # onto one field while leaving the exact display index unchanged.
+      #
+      # @return [Array(String, Symbol, String)] canonical key and :created,
+      #   :owned, or the conflicting identifier
+      def claim_canonical_display_domain(domain_name, identifier)
+        canonical = canonical_display_domain(domain_name)
+        [canonical, canonical_display_domain_index.claim_field(canonical, identifier)]
+      end
+
       # Index keys to try for a name, in order: the name as given
       # (lower-case), then its A-label form, then its Unicode (NFC) form.
       #
@@ -883,21 +934,24 @@ module Onetime
           return claim_result if claim_result
         end
 
-        # No existing domain - create new one with atomic uniqueness check
-        # Use HSETNX on display_domain_index as the atomic gate for uniqueness
-        was_set = display_domain_index.hsetnx(normalized_domain, obj.identifier)
+        # No existing domain: atomically claim one A-label key shared by the
+        # Unicode and A-label forms. Familia's save takes the lower-layer exact
+        # display_domain_index claim; this app-layer gate closes the cross-form
+        # race without changing exact-key lookup precedence for legacy data.
+        canonical_domain, canonical_claim = claim_canonical_display_domain(normalized_domain, obj.identifier)
 
-        if was_set == 0
-          # Another process created this domain between our check and creation attempt
-          # Re-check to provide accurate error message
-          concurrent_domain = load_by_display_domain(normalized_domain)
+        unless [:created, :owned].include?(canonical_claim)
+          # Another process claimed this name between our lookup and write.
+          # Prefer its record when it has already landed; it may still be
+          # between its own claim and save, in which case the generic
+          # cross-organization refusal remains fail-closed.
+          concurrent_domain = find_by_identifier(canonical_claim) || load_by_display_domain(normalized_domain)
           raise Onetime::Problem, 'Domain already registered in your organization' if concurrent_domain&.org_id.to_s == org_id.to_s
 
           raise Onetime::Problem, 'Domain is registered to another organization'
-
         end
 
-        # We own the display_domain_index entry - now create the full record
+        # We own the canonical claim - now create the full record.
         begin
           obj.generate_txt_validation_record
           obj.save
@@ -926,9 +980,7 @@ module Onetime
           # one step's failure can't block another's cleanup. Original
           # exception is always re-raised at the end.
           rollback_steps = [
-            # Pre-save claim (the hsetnx)
-            -> { display_domain_index.remove(normalized_domain) },
-            # Familia auto-index added by obj.save
+            # Familia's ownership-checked exact index claim from obj.save.
             -> { obj.remove_from_class_display_domain_index },
             # Manual class-index writes inside the begin block
             -> { instances.remove(obj.to_s) },
@@ -947,6 +999,9 @@ module Onetime
                 obj.remove_from_organization_domains(o)
               end
             },
+            # Release the canonical gate last, after every record/index cleanup
+            # attempt, and only while it still names this object.
+            -> { canonical_display_domain_index.release_field(canonical_domain, obj.identifier) },
           ]
           rollback_steps.each do |step|
             step.call
