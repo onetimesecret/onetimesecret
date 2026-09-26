@@ -297,7 +297,7 @@ list_lanes() {
 
 if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "usage: tests/lanes/run <lane> [--overlay <name>]... [--only <path>]..."
-  echo "                            [--skip-codegen] [--print-key]"
+  echo "                            [--skip-codegen] [--print-key] [--quiet]"
   echo "                            [-- <rspec args>]"
   echo
   echo "  --only <path>  run just these test files in the lane's environment,"
