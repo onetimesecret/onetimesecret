@@ -17,10 +17,15 @@
 # tier table cannot:
 #
 #   1. Did the tiers complete, and with which jobs failed or skipped?
-#   2. How long did each test step run — the step's own start to finish, so
+#   2. How long did each test job wait for a runner, and how long did it run?
+#      The jobs API carries created_at (queued: the moment its `needs`
+#      finished), started_at (a runner picked it up) and completed_at, so
+#      queue wait and runtime are separable — and a slow tier is then either
+#      the code or the fleet, which call for different fixes.
+#   3. How long did each test step run — the step's own start to finish, so
 #      the unit lane is separated from the browser lane and from the setup
 #      steps around them?
-#   3. Is any test step slower than it was on main?
+#   4. Is any test job or step slower than it was on main?
 #
 # INPUT
 #
@@ -40,11 +45,13 @@
 #
 # BASELINE AND FLAGS
 #
-# Baseline is the per-step median across the baseline runs (a single run is
-# too noisy: runner variance on a 3-minute step is easily ±15%). A step is
-# flagged when it is both CI_METRICS_FLAG_PCT percent and CI_METRICS_FLAG_MIN
-# seconds slower than its baseline — the second guard keeps 4s→6s from
-# reading as +50%. Faster is reported, never flagged.
+# Baseline is the per-job and per-step median across the baseline runs (a
+# single run is too noisy: runner variance on a 3-minute step is easily
+# ±15%). A job's runtime or a step is flagged when it is both
+# CI_METRICS_FLAG_PCT percent and CI_METRICS_FLAG_MIN seconds slower than its
+# baseline — the second guard keeps 4s→6s from reading as +50%. Faster is
+# reported, never flagged. Queue time is shown against its main median but
+# never flagged: it is runner availability, not the change under test.
 #
 # USAGE
 #
@@ -96,8 +103,40 @@ jq -s -r --argjson flag_pct "$FLAG_PCT" --argjson flag_min "$FLAG_MIN" '
           secs: seconds(.started_at; .completed_at) }
     ];
 
+  # The test-tier jobs of one listing: [{key, job, conclusion, queued, ran,
+  # released}], released being seconds after the first job of the run was
+  # created (the run start, as the jobs listing sees it). No apostrophes in
+  # here: this whole program sits inside single quotes.
+  def test_jobs:
+    ([ .jobs[].created_at | select(. != null) ] | min) as $run_start
+    | [ .jobs[]
+        | select(tier(.) as $t | $t == "T2" or $t == "T3" or $t == "T4")
+        | { key: .name,
+            job: (.name | sub("^T[0-9] · "; "")),
+            tier: tier(.),
+            conclusion: (.conclusion // "in_progress"),
+            queued: seconds(.created_at; .started_at),
+            ran: seconds(.started_at; .completed_at),
+            released: seconds($run_start; .created_at) }
+      ];
+
+  def pct($now; $then):
+    if $now == null or $then == null or $then == 0 then ""
+    else ((($now - $then) * 100 / $then) | round) end;
+
+  def delta($p): if $p == "" then "" elif $p > 0 then "+\($p)%" else "\($p)%" end;
+
+  def slower($now; $then; $p):
+    $p != "" and $p >= $flag_pct and ($now - $then) >= $flag_min;
+
   .[0] as $cur
   | .[1:] as $bases
+  | ($cur | test_jobs | sort_by(.key)) as $jobs
+  | ([ $bases[] | test_jobs[] | select(.conclusion == "success") ]
+     | group_by(.key)
+     | map({ (.[0].key): { ran: (map(.ran | select(. != null)) | median),
+                            queued: (map(.queued | select(. != null)) | median) } })
+     | add // {}) as $base_jobs
   | ($cur | test_steps | sort_by(.key)) as $steps
   | ([ $bases[] | test_steps[] | select(.conclusion == "success" and .secs != null) ]
      | group_by(.key)
@@ -128,6 +167,36 @@ jq -s -r --argjson flag_pct "$FLAG_PCT" --argjson flag_min "$FLAG_MIN" '
       | "| \($t) | \($state) | \($detail) |" ),
     "",
 
+  # ── Jobs: queue wait and runtime, this run against the baseline ─────
+    "### Jobs",
+    "",
+    "| Job | Result | Queued | Ran | Ran on main | Δ | |",
+    "|-----|--------|-------:|----:|------------:|--:|---|",
+    ( $jobs[]
+      | $base_jobs[.key] as $b
+      | ( if .conclusion != "success" then "" else pct(.ran; $b.ran) end ) as $p
+      | ( if $b == null then (if ($bases | length) == 0 then "" else "🆕 new" end)
+          elif .conclusion == "skipped" then "⏭️ skipped"
+          elif .conclusion != "success" then "❌"
+          elif slower(.ran; $b.ran; $p) then "⚠️ slower"
+          else "" end ) as $flag
+      | "| \(.job) | \(.conclusion) | \(if .conclusion == "skipped" then "—" else fmt(.queued) end) | " +
+        "\(if .conclusion == "skipped" then "—" else fmt(.ran) end) | \(if $b == null then "—" else fmt($b.ran) end) | " +
+        "\(delta($p)) | \($flag) |" ),
+    "",
+    ( [ $jobs[] | select(.tier != "T4" and .conclusion != "skipped" and .queued != null) ] as $tj
+      | if ($tj | length) == 0 then "_No T2/T3 job ran, so nothing queued._"
+        else
+          ($tj | min_by(.released)) as $first
+          | ($tj | max_by(.queued)) as $longest
+          | ([ $base_jobs | to_entries[] | .value.queued | select(. != null) ] | median) as $main_q
+          | "Queue: the T2/T3 jobs were released \(fmt($first.released)) after the workflow started (T0/T1 done) " +
+            "and waited up to \(fmt($longest.queued)) for a runner (longest: \($longest.job)" +
+            (if $main_q == null then "" else "; median wait on main \(fmt($main_q))" end) + "). " +
+            "Queue time is runner availability, not the change under test, and is never flagged."
+        end ),
+    "",
+
   # ── Test steps, this run against the baseline ────────────────────────
     "### Test steps",
     "",
@@ -138,17 +207,12 @@ jq -s -r --argjson flag_pct "$FLAG_PCT" --argjson flag_min "$FLAG_MIN" '
       | ( if .conclusion != "success" then "\(.conclusion)"
           else fmt(.secs) end ) as $this
       | ( if $b == null then "—" else fmt($b.secs) end ) as $baseline
-      | ( if $b == null or .secs == null or .conclusion != "success" then ""
-          elif $b.secs == 0 then ""
-          else (((.secs - $b.secs) * 100 / $b.secs) | round) end ) as $pct
-      | ( if $pct == "" then ""
-          elif $pct > 0 then "+\($pct)%"
-          else "\($pct)%" end ) as $delta
-      | ( if $b == null then "🆕 new"
+      | ( if $b == null or .conclusion != "success" then "" else pct(.secs; $b.secs) end ) as $pct
+      | ( if $b == null then (if ($bases | length) == 0 then "" else "🆕 new" end)
           elif .conclusion != "success" then "❌"
-          elif $pct != "" and $pct >= $flag_pct and (.secs - $b.secs) >= $flag_min then "⚠️ slower"
+          elif slower(.secs; $b.secs; $pct) then "⚠️ slower"
           else "" end ) as $flag
-      | "| \(.job) · \(.step) | \($this) | \($baseline) | \($delta) | \($flag) |" ),
+      | "| \(.job) · \(.step) | \($this) | \($baseline) | \(delta($pct)) | \($flag) |" ),
     ( $base | to_entries[]
       | select(.key as $k | ($steps | map(.key) | index($k)) == null)
       | "| \(.value.job) · \(.value.step) | not run | \(fmt(.value.secs)) |  | ⏭️ not in this run |" ),
@@ -162,6 +226,7 @@ jq -s -r --argjson flag_pct "$FLAG_PCT" --argjson flag_min "$FLAG_MIN" '
           | join(", ") ) + "."
       end ),
     "",
-    "Step time is the step'"'"'s own start to finish — test execution, not queue or setup. " +
-    "⚠️ marks a step at least \($flag_pct)% and \($flag_min)s slower than its baseline."
+    "Job time is the job'"'"'s own start to finish (setup, tests, uploads); step time is the step'"'"'s " +
+    "own start to finish — test execution alone. Neither includes queue. " +
+    "⚠️ marks a job or step at least \($flag_pct)% and \($flag_min)s slower than its main median."
 ' "$@"

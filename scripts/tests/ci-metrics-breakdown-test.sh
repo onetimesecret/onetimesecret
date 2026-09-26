@@ -31,11 +31,13 @@ printf '%s\n' "$ASSERT_SUITE"
 
 # --- with a two-run baseline -------------------------------------------------
 #
-# current.json: Ruby Unit passed (browser lane 20s, unit lane 200s), TypeScript
-# Unit FAILED, Simple Mode SKIPPED, a Full/MFA row that neither baseline has.
-# baseline-a/b: unit lane 150s and 160s (median 155), browser lane 18s and 22s
-# (median 20), Simple lane 120s in both, and baseline-b's TypeScript step
-# failed — so it must not count toward that step's median.
+# current.json: Ruby Unit passed (queued 40s, ran 300s; browser lane 20s, unit
+# lane 200s), TypeScript Unit FAILED, Simple Mode SKIPPED, a Full/MFA job that
+# neither baseline has (queued 30s), Container Validation queued 50s.
+# baseline-a/b: every job queued 5s; Ruby Unit ran 240s in both; unit lane
+# 150s and 160s (median 155), browser lane 18s and 22s (median 20), Simple
+# lane 120s in both, and baseline-b's TypeScript step failed — so it must not
+# count toward that step's median.
 
 printf '\nwith baseline\n'
 out="$(bash "$SCRIPT" "$CURRENT" "$BASELINE_A" "$BASELINE_B")"
@@ -51,6 +53,24 @@ assert_contains "T2 partial, naming the failure" "| T2 | ⚠️ partial | 1 succ
 
 protects "a skipped job is reported as skipped, not silently absent from the tier"
 assert_contains "T3 partial with a skip" "| T3 | ⚠️ partial | 1 succeeded, 1 skipped |" "$out"
+
+protects "a job's queue wait and runtime are reported separately, and a runtime 25%/15s over the main median is flagged"
+assert_contains "Ruby Unit job: queued 40s, ran 300s against 240s, flagged" \
+  "| Ruby Unit Tests | success | 40s | 5m 0s | 4m 0s | +25% | ⚠️ slower |" "$out"
+assert_contains "Container job: at baseline, unflagged" \
+  "| Container Validation | success | 50s | 3m 0s | 3m 0s | 0% |  |" "$out"
+
+protects "a failed or skipped job is marked as such on its own row"
+assert_contains "TypeScript job failed: runtime shown, no delta" "| TypeScript Unit Tests | failure | 10s | 2m 0s | 2m 0s |  | ❌ |" "$out"
+assert_contains "Simple job skipped" "| Ruby Integration (Simple Mode) | skipped | — | — | 3m 0s |  | ⏭️ skipped |" "$out"
+
+protects "a job with no baseline is marked new"
+assert_contains "MFA job new" "| Ruby Integration (Full, SQLite, MFA) | success | 30s | 1m 0s | — |  | 🆕 new |" "$out"
+
+protects "queue wait is summarized — when the test jobs were released and the longest wait — and never flagged"
+assert_contains "queue line" \
+  "Queue: the T2/T3 jobs were released 20s after the workflow started (T0/T1 done) and waited up to 40s for a runner (longest: Ruby Unit Tests; median wait on main 5s)." "$out"
+assert_contains "queue disclaimer" "Queue time is runner availability, not the change under test, and is never flagged." "$out"
 
 protects "a step that is both 25% and 15s slower than the main median is flagged"
 assert_contains "unit lane flagged: 200s against a median of 155s" \
@@ -83,7 +103,7 @@ assert_contains "baseline run link a" "[801](https://github.com/o/r/actions/runs
 assert_contains "baseline run link b" "[802](https://github.com/o/r/actions/runs/802) \`bbbbbbbb\`" "$out"
 
 protects "the footer says what the numbers are and what the flag means"
-assert_contains "step-time definition" "Step time is the step's own start to finish" "$out"
+assert_contains "time definitions" "Job time is the job's own start to finish (setup, tests, uploads); step time is the step's own start to finish" "$out"
 assert_contains "flag definition" "at least 25% and 15s slower" "$out"
 
 # --- flag guard --------------------------------------------------------------
@@ -93,6 +113,8 @@ protects "a small step's percentage jump alone must not flag; the seconds floor 
 out="$(CI_METRICS_FLAG_MIN=60 bash "$SCRIPT" "$CURRENT" "$BASELINE_A" "$BASELINE_B")"
 assert_contains "unit lane +45s is under a 60s floor: reported, not flagged" \
   "| Ruby Unit Tests · unit lane | 3m 20s | 2m 35s | +29% |  |" "$out"
+assert_contains "Ruby Unit job +60s is not under a 60s floor: still flagged" \
+  "| Ruby Unit Tests | success | 40s | 5m 0s | 4m 0s | +25% | ⚠️ slower |" "$out"
 assert_contains "footer reflects the configured floor" "at least 25% and 60s slower" "$out"
 
 # --- without a baseline ------------------------------------------------------
@@ -103,8 +125,11 @@ out="$(bash "$SCRIPT" "$CURRENT")"
 status=$?
 assert_eq "exit status is 0 without a baseline" "0" "$status"
 assert_contains "no-baseline note" "_No baseline: no successful \`main\` run" "$out"
-assert_contains "steps still listed, unflagged" "| Ruby Unit Tests · unit lane | 3m 20s | — |  | 🆕 new |" "$out"
+assert_contains "steps still listed, unflagged" "| Ruby Unit Tests · unit lane | 3m 20s | — |  |  |" "$out"
+assert_contains "jobs still listed with queue and runtime, unflagged" "| Ruby Unit Tests | success | 40s | 5m 0s | — |  |  |" "$out"
+assert_contains "queue line without a main median" "waited up to 40s for a runner (longest: Ruby Unit Tests)." "$out"
 assert_not_contains "nothing flagged" "⚠️ slower" "$out"
+assert_not_contains "nothing marked new when there is no baseline to be new against" "🆕 new" "$out"
 assert_not_contains "no not-in-this-run rows" "not in this run" "$out"
 
 # --- usage -------------------------------------------------------------------
