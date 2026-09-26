@@ -8,13 +8,18 @@
 # The strategy is mounted in a bare Rack stack (no Rodauth, no app boot) and
 # driven with REAL signed SAML Responses minted by SamlSpec::TestIdp, so
 # ruby-saml's validate path (XSD, signature, audience, destination,
-# conditions, InResponseTo, issuer) runs for real. Only three seams are
+# conditions, InResponseTo, issuer) runs for real. Only four seams are
 # replaced:
 #   - env['rack.session'] is a plain Hash the example can read and seed
 #   - Familia.dbclient is an in-memory SET NX fake, so the REAL replay guard
 #     runs without a datastore (the datastore behaviour itself is pinned in
 #     try/unit/security/saml_assertion_replay_guard_try.rb)
 #   - the Auth logger is a spy
+#   - SamlCallbackStore.read/.consume answer from an in-memory Hash, so every
+#     callback is the staged GET the transport produces in production (the
+#     store's real Valkey semantics are pinned in
+#     spec/unit/onetime/middleware/saml_callback_transport_spec.rb). The
+#     strategy accepts nothing else: a direct POST is refused.
 #
 # OmniAuth.config is process-global; every example snapshots and restores the
 # fields it touches.
@@ -122,17 +127,39 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
     saved.each { |key, value| config.public_send(:"#{key}=", value) }
   end
 
+  # handle => staged SAMLResponse. The real store answers nil for anything
+  # but a non-empty String (and for a wrong scope, which no example varies).
+  let(:staged) { {} }
+  let(:store) { Onetime::Security::SamlCallbackStore }
+
   before do
     allow(Familia).to receive(:dbclient).and_return(fake_dbclient)
     allow(Onetime).to receive(:get_logger).and_call_original
     allow(Onetime).to receive(:get_logger).with('Auth').and_return(auth_logger)
+    values = staged
+    allow(store).to receive(:read) do |handle, scope:| # rubocop:disable Lint/UnusedBlockArgument
+      value = values[handle]
+      value.is_a?(String) && !value.empty? ? [value, value] : nil
+    end
+    allow(store).to receive(:consume) { |handle, raw| values.key?(handle) && values.delete(handle) == raw }
   end
 
   def start_login(path = '/auth/saml')
     Rack::MockRequest.new(app).post("#{host}#{path}")
   end
 
+  # The callback as the transport delivers it: the IdP's POST was staged
+  # before OmniAuth, and the browser follows the 303 to a GET carrying only
+  # the handle.
   def post_callback(saml_response)
+    handle         = SecureRandom.hex(32)
+    staged[handle] = saml_response
+    Rack::MockRequest.new(app).get("#{acs_url}?#{Onetime::Middleware::SamlCallbackTransport::HANDLE_PARAM}=#{handle}")
+  end
+
+  # The IdP's POST delivered straight to the strategy — what reaches it only
+  # when the transport did not stage the request. Always refused.
+  def direct_post(saml_response)
     Rack::MockRequest.new(app).post(acs_url, params: { 'SAMLResponse' => saml_response })
   end
 
@@ -265,13 +292,14 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
       )
     end
 
-    it 'refuses the callback phase and burns the pending id' do
+    it 'refuses the callback phase and retains the pending id (nothing is consumed before validation)' do
       session[request_id_key] = '_pending'
       response = post_callback(response_for('_pending'))
 
       expect(response.status).to eq(401)
       expect(failure_types).to eq([:saml_acs_host_mismatch])
-      expect(session).not_to have_key(request_id_key)
+      expect(session[request_id_key]).to eq('_pending')
+      expect(staged.size).to eq(1)
       expect(reached_app).to be_empty
     end
 
@@ -359,7 +387,7 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
 
   describe 'callback phase' do
     context 'with a valid response to the pending request' do
-      it 'reaches the app with the NameID as uid and consumes the pending id' do
+      it 'reaches the app with the NameID as uid and consumes the pending id and the staged handle' do
         start_login
         response = post_callback(response_for(session[request_id_key], name_id: 'persistent-abc'))
 
@@ -369,6 +397,7 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         expect(reached_app.first.uid).to eq('persistent-abc')
         expect(reached_app.first.provider).to eq('saml')
         expect(session).not_to have_key(request_id_key)
+        expect(staged).to be_empty
       end
 
       it 'maps the email attribute into info' do
@@ -432,8 +461,9 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
     end
 
     context 'when InResponseTo does not match the pending id' do
-      it "refuses through the gem's own validation and burns the pending id" do
+      it "refuses through the gem's own validation and retains the pending id" do
         start_login
+        pending_id = session[request_id_key]
         post_callback(response_for('_some-other-request'))
 
         expect(failure_types).to eq([:invalid_ticket])
@@ -443,7 +473,7 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         expect(auth_logger).to have_received(:warn)
           .with('[saml_response_refused]', hash_including(reason: 'invalid_ticket', detail: /InResponseTo/))
         expect(reached_app).to be_empty
-        expect(session).not_to have_key(request_id_key)
+        expect(session[request_id_key]).to eq(pending_id)
       end
 
       it 'refuses a response with no InResponseTo at all while a request is pending' do
@@ -467,14 +497,19 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         expect(failure_types).to eq([:saml_no_pending_request])
       end
 
-      it 'burns the pending id even when the first response is refused' do
+      # Staged callbacks consume nothing before validation, so a refused
+      # response leaves the sign-in retryable: the IdP's real answer to the
+      # same request still completes. Once it has, the id is gone.
+      it 'retains the pending id when a response is refused, and consumes it only on success' do
         start_login
         request_id = session[request_id_key]
 
         post_callback(response_for(request_id, sign: false))
+        expect(session[request_id_key]).to eq(request_id)
+        post_callback(response_for(request_id))
         post_callback(response_for(request_id))
 
-        expect(reached_app).to be_empty
+        expect(reached_app.size).to eq(1)
         expect(failure_types).to eq(%i[invalid_ticket saml_no_pending_request])
       end
     end
@@ -519,10 +554,53 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
       end
     end
 
+    # The transport stages the IdP's POST and the browser completes with a
+    # GET carrying the handle. A POST reaching the strategy was not staged
+    # (a stack without the transport, or a path spelling it does not stage)
+    # and is refused whatever it carries — there is no direct-POST path.
+    describe 'unstaged callbacks' do
+      before { start_login }
+
+      it 'refuses a direct POST carrying a valid SAMLResponse, leaving the pending id in place' do
+        pending_id = session[request_id_key]
+        response   = direct_post(response_for(pending_id))
+
+        expect(response.status).to eq(401)
+        expect(failure_types).to eq([:saml_response_missing])
+        expect(session[request_id_key]).to eq(pending_id)
+        expect(reached_app).to be_empty
+        expect(fake_dbclient.writes).to be_empty
+        expect(auth_logger).to have_received(:warn).with(
+          '[saml_response_refused]',
+          hash_including(reason: 'saml_response_missing', method: 'POST', has_saml_response: true, phase: 'callback'),
+        )
+      end
+
+      it 'refuses a direct POST even when the pending id is absent, without consulting the store' do
+        session.delete(request_id_key)
+        expect(store).not_to receive(:read)
+        direct_post(response_for('_anything'))
+
+        expect(failure_types).to eq([:saml_response_missing])
+        expect(reached_app).to be_empty
+      end
+
+      it 'refuses a handle the store does not know, and a staged value that is blank' do
+        pending_id = session[request_id_key]
+        Rack::MockRequest.new(app).get("#{acs_url}?saml_handle=#{'0' * 64}")
+        post_callback('')
+
+        expect(failure_types).to eq(%i[saml_callback_missing saml_callback_missing])
+        expect(session[request_id_key]).to eq(pending_id)
+        expect(reached_app).to be_empty
+      end
+    end
+
     # omniauth's callback_call runs callback_phase for ANY method, and the
-    # POST binding needs a SameSite=None cookie — so a cross-site <img> GET
-    # to the callback path arrives with the victim's session. Consuming the
-    # pending id there would let any page cancel an in-flight sign-in.
+    # session cookie may be SameSite=None or Lax (both supported) — so a
+    # cross-site <img> GET to the callback path arrives with the victim's
+    # session. Consuming the pending id there would let any page cancel an
+    # in-flight sign-in.
     describe 'callback method gate' do
       before { start_login }
 
@@ -562,14 +640,14 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
 
       it 'refuses a POST whose SAMLResponse is blank or not a string, leaving the pending id' do
         pending_id = session[request_id_key]
-        Rack::MockRequest.new(app).post(acs_url, params: { 'SAMLResponse' => '' })
-        Rack::MockRequest.new(app).post(acs_url, params: { 'SAMLResponse' => %w[a b] })
+        direct_post('')
+        direct_post(%w[a b])
 
         expect(failure_types).to eq([:saml_response_missing, :saml_response_missing])
         expect(session[request_id_key]).to eq(pending_id)
       end
 
-      it 'still completes the real IdP POST after a cross-site GET tried to burn the id' do
+      it 'still completes the staged callback after a cross-site GET tried to burn the id' do
         pending_id = session[request_id_key]
         Rack::MockRequest.new(app).get(acs_url)
         post_callback(response_for(pending_id))
@@ -887,13 +965,13 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         context "when #{option} is #{blank.inspect} at callback time" do
           let(:strategy_options) { hardened_options.merge(option => blank) }
 
-          it 'refuses a validly signed response and still burns the pending id' do
+          it 'refuses a validly signed response before the gem parses it' do
             session[request_id_key] = '_pending'
             post_callback(response_for('_pending'))
 
             expect(failure_types).to eq([:saml_misconfigured])
             expect(reached_app).to be_empty
-            expect(session).not_to have_key(request_id_key)
+            expect(session[request_id_key]).to eq('_pending')
             expect(fake_dbclient.writes).to be_empty
           end
         end
@@ -1136,10 +1214,14 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
     describe 'refusal hygiene' do
       it "deletes the gem's SLO session keys when a post-validation gate refuses" do
         start_login
+        pending_id = session[request_id_key]
         post_callback(response_for(session[request_id_key], name_id_format: SamlSpec::TestIdp::TRANSIENT))
 
         expect(failure_types).to eq([:saml_transient_name_id])
-        expect(session).to be_empty
+        # Only the pending id survives a refusal (staged callbacks consume
+        # nothing before validation); the gem's saml_uid / saml_session_index
+        # written by handle_response are gone.
+        expect(session).to eq(request_id_key => pending_id)
       end
 
       it 'refuses when the gem reports errors without raising (soft-mode regression guard)' do

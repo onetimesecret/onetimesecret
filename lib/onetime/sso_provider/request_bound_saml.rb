@@ -161,10 +161,13 @@
 #   - omniauth strategy.rb callback_call runs callback_phase for ANY HTTP
 #                     method (allowed_request_methods gates the request phase
 #                     only), and saml.rb:63 raises "SAML response missing"
-#                     only after our callback_phase has run. Production POSTs
-#                     are staged before OmniAuth; a GET recovers the Lax
-#                     session and reads the staged assertion. Bare GETs and
-#                     invalid/wrong-session handles must not consume pending
+#                     only after our callback_phase has run. The IdP's POST
+#                     is staged before OmniAuth (SamlCallbackTransport); a
+#                     GET recovers the Lax session and reads the staged
+#                     assertion. ONLY a staged GET is accepted: a POST that
+#                     reaches callback_phase was not staged and is refused
+#                     outright. Bare GETs and invalid or
+#                     wrong-session handles must not consume pending
 #                     transactions or the rightful session's staged assertion.
 #   - omniauth strategy.rb:138 instance options are DEEP-MERGED over class
 #                     defaults, so an empty Hash option cannot clear a
@@ -274,44 +277,52 @@ module OmniAuth
       end
 
       def callback_phase
-        # OmniAuth dispatches GET callbacks regardless of allowed_request_methods.
-        # Only a staged handle may supply a GET assertion; never SAMLResponse
-        # from the URL. Reads do not consume it: a different session must not
-        # steal the original session's completion by visiting the handle first.
-        if request.get?
-          @staged_handle = request.GET[Onetime::Middleware::SamlCallbackTransport::HANDLE_PARAM]
-          unless @staged_handle
-            posted = request.GET['SAMLResponse']
-            return refuse!(:saml_response_missing, 'SAML callback handle missing', method: 'GET', has_saml_response: posted.is_a?(String) && !posted.empty?)
-          end
-
-          begin
-            staged = Onetime::Security::SamlCallbackStore.read(
-              @staged_handle, scope: Onetime::Security::SamlCallbackStore.scope(env)
-            )
-          rescue StandardError
-            return refuse!(:saml_callback_unavailable, 'SAML callback transport unavailable')
-          end
-          return refuse!(:saml_callback_missing, 'SAML callback handle missing or expired') unless staged
-
-          posted, @staged_raw            = staged
-          request.params['SAMLResponse'] = posted
-        else
-          posted = request.params['SAMLResponse']
-        end
-        unless (request.post? || @staged_raw) && posted.is_a?(String) && !posted.empty? && posted.bytesize <= Onetime::Security::SamlCallbackStore::MAX_RESPONSE_BYTES
+        # OmniAuth dispatches callbacks for ANY method regardless of
+        # allowed_request_methods. Only a staged GET is accepted: the
+        # transport stages the IdP's POST before OmniAuth and redirects to a
+        # GET carrying the handle. A POST (or HEAD) that reaches this method
+        # was not staged — a path spelling the transport does not stage, or a
+        # stack without it — and is refused; its body is read only to report
+        # whether a SAMLResponse was present. A SAMLResponse in the GET URL
+        # is never accepted either.
+        unless request.get?
+          posted = request.post? ? request.params['SAMLResponse'] : nil
           return refuse!(
             :saml_response_missing,
-            'SAML callback is not a POST carrying a SAMLResponse',
+            'SAML callback is not a staged GET',
             method: loggable(request.request_method),
             has_saml_response: posted.is_a?(String) && !posted.empty?,
           )
         end
 
-        # Legacy direct POSTs consume before validation. Staged GETs retain
-        # both pending id and handle until validation succeeds; the global
-        # replay claim and atomic handle consume serialize successful callbacks.
-        @expected_request_id = (@staged_raw ? session[REQUEST_ID_KEY] : session.delete(REQUEST_ID_KEY)).to_s.strip
+        # Only a staged handle may supply the assertion. Reads do not consume
+        # it: a different session must not steal the original session's
+        # completion by visiting the handle first.
+        @staged_handle = request.GET[Onetime::Middleware::SamlCallbackTransport::HANDLE_PARAM]
+        unless @staged_handle
+          posted = request.GET['SAMLResponse']
+          return refuse!(:saml_response_missing, 'SAML callback handle missing', method: 'GET', has_saml_response: posted.is_a?(String) && !posted.empty?)
+        end
+
+        begin
+          staged = Onetime::Security::SamlCallbackStore.read(
+            @staged_handle, scope: Onetime::Security::SamlCallbackStore.scope(env)
+          )
+        rescue StandardError
+          return refuse!(:saml_callback_unavailable, 'SAML callback transport unavailable')
+        end
+        return refuse!(:saml_callback_missing, 'SAML callback handle missing or expired') unless staged
+
+        # SamlCallbackStore.read answers only a non-empty String within
+        # MAX_RESPONSE_BYTES, or nil.
+        posted, @staged_raw            = staged
+        request.params['SAMLResponse'] = posted
+
+        # A staged GET retains both the pending id and the handle until
+        # validation succeeds; the global replay claim and the atomic handle
+        # consume (staged_callback_refusal) serialize successful callbacks.
+        # Nothing is consumed before validation.
+        @expected_request_id = session[REQUEST_ID_KEY].to_s.strip
 
         # ruby-saml treats a nil :matches_request_id as "do not check"
         # (response.rb:628), so an empty pending id MUST be refused here.
