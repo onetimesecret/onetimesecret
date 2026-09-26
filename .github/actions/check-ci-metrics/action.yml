@@ -251,7 +251,6 @@ runs:
         TIER2_COMPLETE="${{ steps.timing.outputs.tier2 }}"
         TIER3_COMPLETE="${{ steps.timing.outputs.tier3 }}"
         TIER4_COMPLETE="${{ steps.timing.outputs.tier4 }}"
-        NOW_EPOCH=$(date +%s)
 
         echo "::debug::Workflow start: $WORKFLOW_START"
         echo "::debug::Tier 1 complete: $TIER1_COMPLETE"
@@ -289,10 +288,8 @@ runs:
         TIER3_DURATION=$(calc_duration "$TIER3_COMPLETE")
         TIER4_DURATION=$(calc_duration "$TIER4_COMPLETE")
 
-        # If Tier 4 not provided, use current time (for full pipeline)
-        if [ -z "$TIER4_DURATION" ] && [ -n "$START_EPOCH" ]; then
-          TIER4_DURATION=$((NOW_EPOCH - START_EPOCH))
-        fi
+        # No fallback for a missing Tier 4: substituting "now" reported the
+        # metrics job's own clock as container-validation time. N/A is honest.
 
         echo "tier1=${TIER1_DURATION:-N/A}" >> $GITHUB_OUTPUT
         echo "tier2=${TIER2_DURATION:-N/A}" >> $GITHUB_OUTPUT
@@ -347,7 +344,12 @@ runs:
               STATUS="warning"
             fi
           elif [ "$actual" -gt "$target" ]; then
-            echo "::notice::$name: ${actual}s slightly over target (${target}s)"
+            # Over target IS the warning state: the row's icon turns to a
+            # warning at this point, and the headline must agree with it.
+            echo "::warning::$name: ${actual}s over target (${target}s)"
+            if [ "$STATUS" != "fail" ]; then
+              STATUS="warning"
+            fi
           else
             echo "::notice::$name: ${actual}s within target (${target}s)"
           fi
@@ -406,10 +408,11 @@ runs:
             echo ":grey_question:"
             return
           fi
-          local warning=$((target + target * BUFFER / 100))
+          # Same bands as the evaluator: warning above target, x above the
+          # critical threshold (2x target).
           if [ "$actual" -le "$target" ]; then
             echo ":white_check_mark:"
-          elif [ "$actual" -le "$warning" ]; then
+          elif [ "$actual" -le $((target * 2)) ]; then
             echo ":warning:"
           else
             echo ":x:"
@@ -448,7 +451,7 @@ runs:
             echo "> **Status**: Partial data - available tiers within targets :white_check_mark:" >> $GITHUB_STEP_SUMMARY
             ;;
           warning)
-            echo "> **Status**: Some tiers near threshold :warning:" >> $GITHUB_STEP_SUMMARY
+            echo "> **Status**: Some tiers over target :warning:" >> $GITHUB_STEP_SUMMARY
             ;;
           fail)
             echo "> **Status**: Critical thresholds exceeded :x:" >> $GITHUB_STEP_SUMMARY
@@ -466,13 +469,14 @@ runs:
         <details>
         <summary>Tier Details</summary>
 
-        **Tier 1 - Lint & Build**: Ruby Lint, TypeScript Lint, Build Frontend Assets
+        **Tier 1 - Lint & Build**: Ruby Lint, TypeScript Lint, i18n Validation, Hygiene, Build Frontend Assets
         **Tier 2 - Unit Tests**: Ruby Unit Tests, TypeScript Unit Tests
-        **Tier 3 - Integration Tests**: Ruby Integration (Simple, Full, Disabled modes)
+        **Tier 3 - Integration Tests**: Ruby Integration (Simple, API contract, Full matrix, Disabled modes)
         **Tier 4 - Container Validation**: Docker build and health check
         **Tier 5 - CI Metrics**: Performance validation and reporting
 
-        Times are cumulative from workflow start.
+        Tier times are the critical path: seconds from workflow start until the
+        tier's last job finished, queue and setup included.
 
         </details>
 
