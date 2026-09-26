@@ -108,6 +108,10 @@ Use `--only <path>` (repeatable) while iterating: it runs just that file
 in the lane's environment — seconds instead of minutes — with the same
 env scrub. `*_try.rb` routes to tryouts, everything else to rspec. It
 skips the lane's other tasks, so run the whole lane before pushing.
+On a CI failure the first command is `tests/lanes/run --only <path>:<LINE>`
+with the path and line from the CI log (the lane is inferred;
+`tests/lanes/run --which <path>` prints it), and the full lane runs once
+before the push.
 
 The runner needs bash 5+ (macOS ships 3.2: `brew install bash`) and
 starts the backing services itself if they aren't up

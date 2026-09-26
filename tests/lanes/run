@@ -5,10 +5,14 @@
 # Usage:
 #   tests/lanes/run --list
 #   tests/lanes/run <lane> [--overlay <name>]...
+#   tests/lanes/run [<lane>] --only <path>[:LINE]...   (lane inferred if omitted)
+#   tests/lanes/run --which <path>
 #
 # Examples:
 #   tests/lanes/run unit
 #   tests/lanes/run full-pg --overlay billing
+#   tests/lanes/run --only spec/api/v2/secret_ttl_entitlement_spec.rb:20
+#   tests/lanes/run --which apps/web/auth/spec/integration/full
 #
 # Runs a lane's tasks (tests/lanes/<lane>/tasks) with exactly the lane's
 # environment, regardless of what the calling shell exported. CI and local
@@ -286,6 +290,13 @@ export LC_ALL=C.UTF-8
 LANES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${LANES_DIR}/../.." && pwd)"
 
+# The path -> lane table behind --which, the lane inference for a lane-less
+# --only, and run-all's --changed. Sourced here, below the scrub, so the
+# functions and arrays it defines are as unexported as everything else the
+# runner assigns; run-all sources the same file.
+# shellcheck source=tests/lanes/ownership
+source "${LANES_DIR}/ownership"
+
 list_lanes() {
   local dir
   for dir in "${LANES_DIR}"/*/; do
@@ -296,14 +307,19 @@ list_lanes() {
 }
 
 if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
-  echo "usage: tests/lanes/run <lane> [--overlay <name>]... [--only <path>]..."
+  echo "usage: tests/lanes/run [<lane>] [--overlay <name>]... [--only <path>]..."
   echo "                            [--skip-codegen] [--print-key] [--quiet]"
   echo "                            [-- <rspec args>]"
+  echo "       tests/lanes/run --which <path>"
   echo
   echo "  --only <path>  run just these test files in the lane's environment,"
   echo "                 instead of the lane's tasks file. Repeatable. Skips"
   echo "                 the codegen phase too — the tasks file is bypassed"
-  echo "                 wholesale, which is what it has always done."
+  echo "                 wholesale, which is what it has always done. With no"
+  echo "                 lane named, the lane is inferred from the path; a"
+  echo "                 path several lanes run needs the lane spelled out."
+  echo "  --which <path> print the lane(s) whose tasks run that file or"
+  echo "                 directory (tests/lanes/ownership), then exit."
   echo "  -- <args>      everything after it goes to rspec verbatim (never to"
   echo "                 tryouts). Needs --only. e.g. -- --only-failures,"
   echo "                 -- --next-failure, -- -e 'description'."
@@ -331,12 +347,41 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   exit 0
 fi
 
-LANE="$1"
-shift
-LANE_DIR="${LANES_DIR}/${LANE}"
-if [[ ! -f "${LANE_DIR}/env" || ! -f "${LANE_DIR}/tasks" ]]; then
-  echo "error: unknown lane '${LANE}' (see: tests/lanes/run --list)" >&2
-  exit 64
+# ── --which ──────────────────────────────────────────────────────────────
+# A question about the table, not a run: which lane's tasks load this path?
+# Answered from tests/lanes/ownership and nothing else, so it needs no lane,
+# touches no service and exits before any environment is assembled. One
+# lane per line; several lines where several lanes run the directory. A
+# path no lane runs is an error, not an empty answer — the empty answer
+# reads as "run it anywhere", which is exactly wrong.
+if [[ "${1:-}" == "--which" ]]; then
+  [[ $# -eq 2 ]] || { echo "error: --which takes exactly one path" >&2; exit 64; }
+  _lanes_owners="$(lanes_for_path "$2")"
+  if [[ -z "${_lanes_owners}" ]]; then
+    echo "error: no lane runs '$(lanes_path_normalize "$2")' (see tests/lanes/ownership)" >&2
+    exit 64
+  fi
+  if lanes_path_shared "$(lanes_path_normalize "$2")"; then
+    echo "note: '$(lanes_path_normalize "$2")' is shared by every lane" >&2
+  fi
+  printf '%s\n' "${_lanes_owners}"
+  exit 0
+fi
+
+# The lane is the first argument — unless the first argument is a flag, in
+# which case no lane was named and --only's paths choose it below (after
+# the flags are parsed; any other lane-less invocation is an error there).
+# The runner-internal control state is assigned first for the reason spelled
+# out at OVERLAYS below: below the scrub, never from the environment.
+LANE=''
+if [[ "${1:-}" != --* ]]; then
+  LANE="$1"
+  shift
+  LANE_DIR="${LANES_DIR}/${LANE}"
+  if [[ ! -f "${LANE_DIR}/env" || ! -f "${LANE_DIR}/tasks" ]]; then
+    echo "error: unknown lane '${LANE}' (see: tests/lanes/run --list)" >&2
+    exit 64
+  fi
 fi
 
 OVERLAYS=()
@@ -379,9 +424,10 @@ while [[ $# -gt 0 ]]; do
       [[ $# -ge 2 ]] || { echo "error: --only requires a path" >&2; exit 64; }
       # The command runs from the repo root, so a path is checked there (and
       # as given, so an absolute path or one typed from the repo root while
-      # standing elsewhere both work). Catching a typo here beats a runner
+      # standing elsewhere both work). A directory is a path too — rspec
+      # loads every spec under it. Catching a typo here beats a runner
       # that boots the whole app and then reports "0 examples".
-      [[ -f "${REPO_ROOT}/${2%%:*}" || -f "${2%%:*}" ]] || { echo "error: --only path '${2%%:*}' not found (relative to the repo root)" >&2; exit 64; }
+      [[ -e "${REPO_ROOT}/${2%%:*}" || -e "${2%%:*}" ]] || { echo "error: --only path '${2%%:*}' not found (relative to the repo root)" >&2; exit 64; }
       ONLY+=("$2")
       shift 2
       ;;
@@ -434,6 +480,54 @@ fi
 if [[ ${_only_try} -eq 1 && ${PASSTHROUGH} -eq 1 ]]; then
   echo "error: arguments after '--' go to rspec; --only targets tryouts files" >&2
   exit 64
+fi
+
+# ── Lane inference ───────────────────────────────────────────────────────
+# No lane named: the --only paths choose it, through the same table --which
+# reads. Every path has to resolve to the SAME single lane — the run boots
+# one environment, and a path two lanes run (spec/integration/full, say) is
+# a question the runner refuses to answer by picking one, since the pick
+# would decide which auth database and which tag filter the file boots
+# under. Refuse with the candidates listed; naming the lane is one token.
+# Below the flag parsing so `--only` is known, above the isolation key,
+# which is the first thing that needs the lane.
+if [[ -z "${LANE}" ]]; then
+  if [[ ${#ONLY[@]} -eq 0 ]]; then
+    echo "error: no lane named (see: tests/lanes/run --list); --only <path> infers one" >&2
+    exit 64
+  fi
+  _lanes_candidates=''
+  for _p in "${ONLY[@]}"; do
+    _lanes_owners="$(lanes_for_path "${_p}")"
+    if [[ -z "${_lanes_owners}" ]]; then
+      echo "error: no lane runs '$(lanes_path_normalize "${_p}")'; name the lane to run it anyway" >&2
+      exit 64
+    fi
+    if [[ -z "${_lanes_candidates}" ]]; then
+      _lanes_candidates="${_lanes_owners}"
+    else
+      # Intersection: the lanes every path so far agrees on.
+      _lanes_candidates="$(grep -Fx -f <(printf '%s\n' "${_lanes_owners}") <<< "${_lanes_candidates}" || true)"
+    fi
+  done
+  case "$(printf '%s\n' "${_lanes_candidates}" | grep -c .)" in
+    1)
+      LANE="${_lanes_candidates}"
+      ;;
+    0)
+      echo "error: the --only paths belong to different lanes; run them separately" >&2
+      exit 64
+      ;;
+    *)
+      echo "error: several lanes run the --only path(s); name one:" >&2
+      # shellcheck disable=SC2086  # one lane name per line, split on purpose
+      printf '  %s\n' ${_lanes_candidates} >&2
+      exit 64
+      ;;
+  esac
+  builtin unset _lanes_candidates _lanes_owners _p
+  echo "[lane:${LANE}] inferred from --only" >&2
+  LANE_DIR="${LANES_DIR}/${LANE}"
 fi
 
 # ── Isolation key ────────────────────────────────────────────────────────

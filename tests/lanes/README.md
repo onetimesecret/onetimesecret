@@ -13,7 +13,10 @@ $ docker compose -f compose.test.yml up --wait -d   # or: podman compose
 $ tests/lanes/run --list
 $ tests/lanes/run unit
 $ tests/lanes/run full-pg --overlay billing
+$ tests/lanes/run --which spec/api/v2                # which lane runs a path
+$ tests/lanes/run --only spec/api/v2/secret_ttl_entitlement_spec.rb:20   # one example, lane inferred
 $ tests/lanes/run-all --parallel
+$ tests/lanes/run-all --parallel --changed           # lanes owning the diff since origin/main
 $ docker compose -f compose.test.yml down
 ```
 
@@ -36,16 +39,57 @@ running that lane's `tasks` file:
 $ tests/lanes/run simple --only apps/api/domains/spec/integration/simple/domain_sso_config_spec.rb
 $ tests/lanes/run full-sqlite --only apps/web/auth/spec/integration/full/omniauth_csrf_spec.rb:145
 $ tests/lanes/run unit --only try/logic/sso_config/ssrf_protection_transition_try.rb
+$ tests/lanes/run --only spec/api/v2/secret_ttl_entitlement_spec.rb:20          # lane inferred: api
 ```
 
-- Choose the lane expected by the file. For example, a full-integration spec
-  requires a full lane's authentication configuration.
+- The lane is the one whose tasks run the file (`--which`, below). Leave the
+  lane out and the runner infers it from the path; when several lanes run the
+  path (`spec/integration/full` is run by `full-sqlite`, `full-pg` and
+  `full-pg-agnostic`, split by tag) it exits 64 listing them, and when no
+  lane runs it (`try/web`, a docs file) it exits 64 saying so — name the lane
+  to run the file there anyway. Several `--only` paths must agree on one lane.
 - `*_try.rb` files use `try --agent`; other files use `rspec`. Do not mix both
-  kinds in one invocation.
+  kinds in one invocation. A directory is a valid path (rspec loads it).
 - `path:LINE` selects an RSpec example.
 - `--only` preserves the lane's isolation and environment guarantees, but skips
   generated prerequisites and every other task. Run the complete lane before
   pushing; CI validates lanes, not individual files.
+
+For agents and humans alike: the first command on a CI failure is
+`tests/lanes/run --only <path>:<LINE>` with the path and line from the CI
+log (the lane is inferred); the full lane runs once, before the push.
+
+#### Which lane runs a file: `--which`
+
+```console
+$ tests/lanes/run --which spec/api/v2
+api
+$ tests/lanes/run --which apps/web/auth/spec/integration/full/omniauth_csrf_spec.rb
+full-sqlite
+full-pg
+full-pg-agnostic
+$ tests/lanes/run --which lib/onetime/session.rb
+note: 'lib/onetime/session.rb' is shared by every lane
+api
+disabled
+...
+$ tests/lanes/run --which try/web/core/x_try.rb
+error: no lane runs 'try/web/core/x_try.rb' (see tests/lanes/ownership)
+```
+
+One lane per line, exit 64 when no lane runs the path. The answer comes from
+`tests/lanes/ownership`, a sourced bash table that transcribes the directory
+conventions the lanes' rake tasks dispatch on (`lib/tasks/spec.rake`), per
+lane — the same table lane inference and `run-all --changed` read, so the
+three cannot disagree. Ownership is directory-level, as the tasks are:
+inside `spec/integration/full` the `postgres_database` tag decides which of
+the three full lanes runs an example, and the table names all three.
+Support files (`spec/support`, an app's `spec/support`, `spec/spec_helper.rb`,
+`try/support`) and application code (`lib/`, `apps/*` outside test trees,
+`config/`, `etc/`, `locales/`, `Gemfile.lock`, `tests/lanes/`) are *shared*:
+every lane but `smoke` runs them. The `selftest` lane checks the table
+against every lane's tasks file and every `spec/` and `try/` directory on
+disk, so a directory no lane claims fails there rather than running nowhere.
 
 #### rspec passthrough: `-- <args>`
 
@@ -252,6 +296,32 @@ isolation key and would share a datastore. The `smoke` lane is local-only and
 cannot be used with `--parallel`, because its task regenerates locales itself
 and can race with other lanes. Run it alone (normally
 `tests/lanes/run smoke`).
+
+### Only the lanes a change touches: `--changed`
+
+```console
+$ tests/lanes/run-all --parallel --changed
+[run-all] changed: since origin/main (merge-base), plus uncommitted changes
+[run-all] changed: api <- spec/api/v2/secret_ttl_entitlement_spec.rb (+2 more)
+[run-all] changed: simple <- apps/api/v1/spec/integration/simple/x_spec.rb
+[run-all] changed: 3 path(s) no lane runs, e.g. docs/x.md
+[run-all] parallel: api simple
+$ tests/lanes/run-all --parallel --changed origin/develop
+$ tests/lanes/run-all --dry-run --changed         # selection only, nothing runs
+```
+
+`--changed [<base>]` replaces the lane list with the lanes that run the paths
+changed since `<base>` — `git diff --name-only <base>...HEAD` (merge-base)
+plus staged, unstaged and untracked files — resolved through
+`tests/lanes/ownership` (see `--which`). The default base is `origin/main`,
+or `main` when there is no remote. Every selection is printed with the first
+path that caused it. One shared path (`lib/`, `Gemfile.lock`,
+`tests/lanes/`, ...) selects every lane except `smoke`, and the plan says
+which path did it. When no lane runs any changed path there is nothing to
+run and the command exits 0 saying so — it never falls back to the default
+set. Lane names cannot be combined with `--changed`. The `selftest` lane
+exercises the selection with a stubbed diff (`LANES_CHANGED_STUB`, set by
+that lane only).
 
 ## Rules
 
