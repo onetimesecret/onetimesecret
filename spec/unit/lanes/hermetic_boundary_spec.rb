@@ -217,6 +217,9 @@ module LaneHermeticProbe
         env: pairs.to_h,
         env_lines: env_lines,
         functions: section(output, 'functions', 'end').map { |line| line.split.last },
+        # The first line of last.log as the task saw it: the runner's banner
+        # if the file was seeded before the exec, something else if not.
+        last_log_head: section(output, 'last.log', 'env').first.to_s.chomp,
       }
     end
   end
@@ -235,6 +238,22 @@ RSpec.describe 'tests/lanes/run hermetic boundary' do
 
   it 'runs the selftest lane without services' do
     expect(result[:status]).to be_success, "tests/lanes/run selftest failed:\n#{result[:output]}"
+  end
+
+  it 'exports the rspec status file path, keyed by lane and overlay set, below the scrub' do
+    # The one runner-assigned name the app side reads (spec_helper sets
+    # example_status_persistence_file_path from it). Exported after the
+    # scrub, so a keep-list or ordering slip would show up here, not in a
+    # real lane. Absolute, so a spec that chdirs cannot move it.
+    expect(env['LANES_RSPEC_STATUS_FILE']).to start_with('/')
+    expect(env['LANES_RSPEC_STATUS_FILE']).to end_with('/tmp/lanes/selftest/base/rspec-status.txt')
+  end
+
+  it 'seeds last.log with the banner before the task process starts' do
+    # Read by the task itself (see tests/lanes/selftest/tasks): the epilogue
+    # appends the task's output to the same file, so only a read from
+    # inside the task proves the banner came first.
+    expect(result[:last_log_head]).to match(/\A\[lane:selftest\] mode=simple /)
   end
 
   it 'does not let a dev-shell service URL reach the task process' do
