@@ -143,7 +143,7 @@ approx_unavailable_set(@domain)
 
 ## No API key, native NXDOMAIN - the message explains why verification is held
 @keyless_gone.dns_message
-#=> 'TXT record not found (native lookup negative; upstream checker indeterminate; previously verified domain left unchanged)'},{
+#=> 'TXT record not found (native lookup negative; upstream checker indeterminate; previously verified domain left unchanged)'
 
 ## No API key, native SERVFAIL - indeterminate, not failed; verified held and the clock started
 approx_unavailable_native(Resolv::DNS::RCode::ServFail)
