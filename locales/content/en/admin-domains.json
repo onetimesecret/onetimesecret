@@ -147,6 +147,18 @@
     "text": "2. Add a CNAME record pointing the subdomain at the proxy.",
     "content_hash": "5c626f53"
   },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Add a CNAME record pointing the subdomain at this install.",
+    "content_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Add an ALIAS or ANAME record pointing the apex at this install.",
+    "content_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "An apex domain cannot hold a CNAME record. Where the DNS provider has no ALIAS or ANAME record, an A record to this server's IP address does the same job.",
+    "content_hash": "f69e3032"
+  },
   "web.admin.domains.dns.propagationNote": {
     "text": "DNS changes can take a few minutes to propagate before verification succeeds.",
     "content_hash": "7caf70a7"

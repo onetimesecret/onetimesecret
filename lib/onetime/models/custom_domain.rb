@@ -221,8 +221,10 @@ module Onetime
         raise Onetime::Problem, 'This domain overlaps with the default site domain'
       end
 
-      # Verify the new domain is not already taken, preserving the exact-key
-      # precedence used for legacy Unicode/A-label duplicate records.
+      # Verify the new domain is not already taken under either form of an
+      # internationalised name, while preserving exact-key precedence for legacy
+      # Unicode/A-label duplicate records. A record may still rename between its
+      # own two forms.
       existing = self.class.display_domain_id_for(new_domain)
       if existing && existing != identifier
         raise Onetime::Problem, 'Domain already registered'
@@ -827,7 +829,8 @@ module Onetime
       end
 
       # Index keys to try for a name, in order: the name as given
-      # (lower-case), then its A-label form, then its Unicode (NFC) form.
+      # (lower-case), then its A-label form, then its Unicode (NFC) form when
+      # that form encodes back to the same A-label (see idn_forms).
       #
       # A plain ASCII name has one key, so the common lookup costs one read
       # and no conversion. A name that cannot be converted (overlong label,
@@ -850,11 +853,20 @@ module Onetime
         [typed, *idn_forms(typed)].uniq
       end
 
+      # The Unicode form is kept only when it encodes back to the same
+      # A-label. Punycode will decode an A-label that is not the encoding of
+      # any NFC name ("xn--bucher-xyd", the decomposed spelling of "bücher"),
+      # and normalising the result would land on the key of a different DNS
+      # name ("xn--bcher-kva"). Such a name is looked up by its A-label only.
+      #
       # @return [Array<String>] A-label form, then Unicode form; fewer when a
-      #   conversion fails
+      #   conversion fails or the Unicode form does not round-trip
       def idn_forms(name)
-        ascii = Onetime::DomainValidation::AsciiHostname.call(name)
-        [ascii, SimpleIDN.to_unicode(ascii).unicode_normalize(:nfc)]
+        ascii   = Onetime::DomainValidation::AsciiHostname.call(name)
+        unicode = SimpleIDN.to_unicode(ascii).unicode_normalize(:nfc)
+        return [ascii] unless Onetime::DomainValidation::AsciiHostname.call(unicode) == ascii
+
+        [ascii, unicode]
       rescue StandardError => ex
         OT.ld "[CustomDomain] No alternate form for #{name.inspect}: #{ex.class}: #{ex.message}"
         [ascii].compact
