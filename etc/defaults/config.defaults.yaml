@@ -1566,6 +1566,11 @@ jobs:
     batch_size: 200  # Since v0.25.2
     # Seconds between Approximated API calls within a run
     rate_limit: 0.5  # Since v0.25.2
+    # DNS-propagation warm-up: domains created within this window that are
+    # still not fully verified (verified=false OR resolving=false) fill any
+    # capacity left after the paged walk, without exceeding batch_size.
+    # Set to '0' to disable.
+    dns_propagation_window: '24h'  # Since v0.27.0
 
   # Expiration warning emails
   # Send email notifications before secrets expire to warn recipients

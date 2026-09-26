@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'resolv'
+
 require_relative 'features'
 require_relative 'approximated_client'
 
@@ -31,6 +33,12 @@ module Onetime
     #   }
     #
     class ApproximatedStrategy < BaseStrategy
+      # Vhost statuses that mean "serving over SSL with no known issues".
+      # ACTIVE_SSL_PROXIED is the normal state for a host fronted by another
+      # proxy (e.g. a Cloudflare CNAME setup): DNS points elsewhere but
+      # requests reach the cluster and the certificate is active.
+      ACTIVE_SSL_STATUSES = %w[ACTIVE_SSL ACTIVE_SSL_PROXIED].freeze
+
       attr_reader :client, :config
 
       # @param config [Hash] Application configuration (typically OT.conf)
@@ -63,14 +71,9 @@ module Onetime
 
         if res.code == 200
           payload       = res.parsed_response
-          match_records = payload['records']
-          found_match   = match_records.any? { |record| record['match'] == true }
+          match_records = Array(payload['records'])
 
-          {
-            validated: found_match,
-            message: found_match ? 'TXT record validated' : 'TXT record not found or mismatch',
-            data: match_records,
-          }
+          classify_ownership(custom_domain, match_records)
         else
           {
             validated: false,
@@ -158,10 +161,16 @@ module Onetime
           payload = res.parsed_response
           data    = payload['data']
 
+          # UNKNOWN is Approximated's "cannot determine a reliable status right
+          # now" — not evidence that DNS stopped resolving. Report nil so
+          # VerifyDomain leaves the stored resolving flag alone, the same
+          # discipline as an indeterminate TXT check.
+          indeterminate = data['status'] == 'UNKNOWN'
+
           {
-            ready: data['status'] == 'ACTIVE_SSL',
-            has_ssl: data['has_ssl'],
-            is_resolving: data['is_resolving'],
+            ready: ACTIVE_SSL_STATUSES.include?(data['status']),
+            has_ssl: indeterminate ? nil : data['has_ssl'],
+            is_resolving: indeterminate ? nil : data['is_resolving'],
             status: data['status'],
             status_message: data['status_message'],
             data: data,
@@ -249,6 +258,83 @@ module Onetime
       # @return [Boolean] true - Approximated actively manages certificates
       def manages_certificates?
         true
+      end
+
+      private
+
+      # Classifies a check-records-match-exactly response into three outcomes.
+      #
+      # Approximated's contract for 'actual_values' is an Array of the values
+      # it saw, or the literal `false` "when DNS resolution or the record-type
+      # lookup failed". Only an Array is evidence about the customer's DNS:
+      #
+      #   match == true            -> validated: true
+      #   actual_values is Array   -> validated: false (not found / mismatch)
+      #   anything else            -> validated: nil   (indeterminate)
+      #
+      # Callers must treat nil as "no answer" and leave the stored verified
+      # flag untouched (VerifyDomain#persist_changes does). Collapsing a failed
+      # upstream lookup into `false` demoted correctly-configured domains on
+      # every refresh run.
+      #
+      # An indeterminate upstream result gets one native TXT lookup. If that
+      # cannot promote the domain, the caller stays indeterminate. A second
+      # Approximated diagnostic request would not change that behavior and would
+      # bypass VerifyDomain's per-domain bulk pacing, so no probe is issued.
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @param match_records [Array<Hash>] 'records' from the API response
+      # @return [Hash] See BaseStrategy#validate_ownership
+      #
+      def classify_ownership(custom_domain, match_records)
+        if match_records.any? { |record| record['match'] == true }
+          return { validated: true, message: 'TXT record validated', data: match_records }
+        end
+
+        looked_up = !match_records.empty? &&
+                    match_records.all? { |record| record['actual_values'].is_a?(Array) }
+
+        if looked_up
+          seen    = match_records.flat_map { |record| record['actual_values'] }
+          message = if seen.empty?
+            'TXT record not found'
+          else
+            "TXT record mismatch (#{seen.size} value(s) found, exactly one matching value required)"
+          end
+          return { validated: false, message: message, data: match_records }
+        end
+
+        OT.lw "[ApproximatedStrategy] Indeterminate TXT check for #{custom_domain.display_domain}: " \
+              "#{match_records.inspect}"
+
+        if native_txt_values(custom_domain.validation_record) == [custom_domain.txt_validation_value.to_s]
+          return {
+            validated: true,
+            message: 'TXT record validated (native lookup; upstream checker indeterminate)',
+            data: match_records,
+            source: 'native',
+          }
+        end
+
+        {
+          validated: nil,
+          indeterminate: true,
+          message: 'Upstream DNS checker returned no result (indeterminate)',
+          data: match_records,
+        }
+      end
+
+      # @param hostname [String]
+      # @return [Array<String>] TXT values; empty on NXDOMAIN or any failure
+      def native_txt_values(hostname)
+        resolver          = Resolv::DNS.new
+        resolver.timeouts = 5
+        resolver.getresources(hostname, Resolv::DNS::Resource::IN::TXT).map { |r| r.strings.join.strip }
+      rescue StandardError => ex
+        OT.lw "[ApproximatedStrategy] Native TXT lookup failed for #{hostname}: #{ex.message}"
+        []
+      ensure
+        resolver&.close
       end
     end
   end

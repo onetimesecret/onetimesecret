@@ -53,7 +53,7 @@ end
 
 ## domain_refresh block matches inlined defaults (enabled by default)
 @jobs['domain_refresh']
-#=> {"enabled"=>true, "check_interval"=>"30m", "batch_size"=>200, "rate_limit"=>0.5}
+#=> {"enabled"=>true, "check_interval"=>"30m", "batch_size"=>200, "rate_limit"=>0.5, "dns_propagation_window"=>"24h"}
 
 ## expiration_warnings block matches inlined defaults
 @jobs['expiration_warnings']
