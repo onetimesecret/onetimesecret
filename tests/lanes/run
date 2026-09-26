@@ -1228,8 +1228,12 @@ cd "${REPO_ROOT}"
 # epilogue below, so a failure that scrolled past costs a read, not a rerun.
 # One file per lane+overlay set (the same keying as the status file above),
 # truncated here at the start of each run, seeded with the banner so the log
-# says which datastore it was about. The epilogue appends from there and
-# prints the path on its way out, success or failure.
+# says which datastore it was about. The epilogue appends from there, ends
+# the file with its own `log: ... (exit N)` line so the log is
+# self-describing, and prints that line on its way out, success or failure.
+# Absolute, like the status file: the path is printed for the caller, and a
+# --only run may be started from a subdirectory (its paths are checked
+# against the repo root as well as the cwd).
 #
 # tee costs the task process its terminal: rspec and tryouts see a pipe on
 # stdout and drop colors. When the runner itself is on a terminal, say so
@@ -1241,7 +1245,7 @@ cd "${REPO_ROOT}"
 # Not for --console: a console is not a run, and the log it would truncate
 # is the last run's output — the thing a developer opened the console to
 # investigate.
-LANES_LAST_LOG="${LANES_RUN_DIR}/last.log"
+LANES_LAST_LOG="${REPO_ROOT}/${LANES_RUN_DIR}/last.log"
 if [[ ${CONSOLE} -eq 0 ]]; then
   mkdir -p "${LANES_RUN_DIR}"
   printf '%s\n' "${_lanes_banner}" > "${LANES_LAST_LOG}"
@@ -1440,7 +1444,10 @@ fi
 # The task's status is read from PIPESTATUS[0], never `$?`: through a
 # pipeline `$?` is tee's, which is 0 whenever it could write, and a red
 # run would report green. tee closes only after the task's last byte, so
-# the log line printed after it is the last thing on the terminal.
+# the log line printed after it is the last thing on the terminal — and
+# the last thing in the log: the service-loss verdict and the exit line
+# are appended there too, so last.log records how the run ended. The
+# timing line is the runner's, not the task's, and stays on stderr only.
 #
 # Probing only on nonzero exit is deliberate: a service that dies after the
 # last spec passed did not invalidate anything.
@@ -1479,13 +1486,14 @@ _lanes_epilogue='
       (exec 3<>"/dev/tcp/127.0.0.1/${_p}") 2>/dev/null || _lost="${_lost} ${_p}"
     done
     if [[ -n "${_lost}" ]]; then
-      echo "[lane:${_lane}] error: test service(s) on 127.0.0.1 port(s)${_lost} lost mid-run" >&2
-      echo "  (up at preflight); results are invalid — exit 69, not a test failure" >&2
+      { echo "[lane:${_lane}] error: test service(s) on 127.0.0.1 port(s)${_lost} lost mid-run"
+        echo "  (up at preflight); results are invalid — exit 69, not a test failure"
+      } | tee -a "${_log}" >&2
       _rc=69
     fi
   fi
   echo "[lane:${_lane}] time: preflight ${_t_preflight} codegen ${_t_codegen} ${_phase} ${_t_phase} (total ${_t_total})" >&2
-  echo "[lane:${_lane}] log: ${_log} (exit ${_rc})" >&2
+  echo "[lane:${_lane}] log: ${_log} (exit ${_rc})" | tee -a "${_log}" >&2
   exit "${_rc}"
 '
 

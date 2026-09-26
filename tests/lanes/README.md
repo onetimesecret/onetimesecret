@@ -140,11 +140,12 @@ Every run, full lane or `--only`, is also written to
 `tmp/lanes/<lane>/<overlays>/last.log` (`base` when no overlay is set; the
 same directory as the rspec status file, gitignored). The file is truncated
 at the start of each run, seeded with the run's banner line, and the runner
-prints the path with the exit code as its last line, on success and on
-failure:
+prints the absolute path with the exit code as its last line, on success and
+on failure — the same line also ends the log itself, after the mid-run
+service-loss verdict when there is one, so the file says how the run ended:
 
 ```text
-[lane:simple] log: tmp/lanes/simple/base/last.log (exit 1)
+[lane:simple] log: /path/to/checkout/tmp/lanes/simple/base/last.log (exit 1)
 ```
 
 The task's stderr joins its stdout in the log, so the two streams arrive in
