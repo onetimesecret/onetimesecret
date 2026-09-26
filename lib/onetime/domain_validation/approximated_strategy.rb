@@ -2,8 +2,6 @@
 #
 # frozen_string_literal: true
 
-require 'securerandom'
-
 require_relative 'features'
 require_relative 'approximated_client'
 require_relative 'txt_verifier'
@@ -289,9 +287,10 @@ module Onetime
       # this strategy owns the extra corroboration rule because it alone has an
       # upstream result to compare with the native answer.
       #
-      # The NXDOMAIN sentinel probe runs only when the native lookup is itself
-      # indeterminate. It records whether Approximated distinguishes missing
-      # records from lookup failures, but never changes the outcome.
+      # An indeterminate upstream result gets one native TXT lookup. If that
+      # cannot settle the result, the caller stays indeterminate. A second
+      # diagnostic request would not change behavior and would bypass
+      # VerifyDomain's per-domain bulk pacing, so no probe is issued.
       #
       # @param custom_domain [Onetime::CustomDomain]
       # @param match_records [Array<Hash>] 'records' from the API response
@@ -359,66 +358,12 @@ module Onetime
           }
         end
 
-        nxdomain_probe = probe_nxdomain_semantics(custom_domain)
-        message        = case nxdomain_probe
-                         when :distinguishes
-                           'Upstream DNS checker returned no result (indeterminate; ' \
-                           'NXDOMAIN probe shows the checker distinguishes missing records — ' \
-                           'this false is a transient upstream fault)'
-                         when :conflates
-                           'Upstream DNS checker returned no result (indeterminate; ' \
-                           'NXDOMAIN probe shows the checker conflates NXDOMAIN with lookup ' \
-                           'failure — only the native lookup can report a deleted TXT record)'
-                         else
-                           'Upstream DNS checker returned no result (indeterminate)'
-                         end
-
         {
           validated: nil,
           indeterminate: true,
-          nxdomain_probe: nxdomain_probe,
-          message: "#{message}; native lookup: #{native[:message]}",
+          message: "Upstream DNS checker returned no result (indeterminate); native lookup: #{native[:message]}",
           data: data,
         }
-      end
-
-      # Probes Approximated's NXDOMAIN semantics with a single call against a
-      # random subdomain of the customer's zone that cannot resolve.
-      #
-      # Approximated's contract for 'actual_values' is either an Array of
-      # values it saw or the literal `false` "when DNS resolution or the
-      # record-type lookup failed." The probe reveals which of those two
-      # states covers NXDOMAIN for this deployment.
-      #
-      # @param custom_domain [Onetime::CustomDomain]
-      # @return [Symbol] :distinguishes, :conflates, :unknown
-      #
-      def probe_nxdomain_semantics(custom_domain)
-        api_key = Features.api_key
-        return :unknown if api_key.to_s.empty?
-
-        sentinel = "_nxdomain-probe-#{SecureRandom.uuid}.#{custom_domain.display_domain}"
-        records  = [{ type: 'TXT', address: sentinel, match_against: 'probe-should-not-match' }]
-
-        res = client.check_records_match_exactly(api_key, records)
-        return :unknown unless res.code == 200
-
-        record = Array(res.parsed_response['records']).first
-        return :unknown if record.nil?
-
-        case record['actual_values']
-        when Array
-          # A non-empty array means a wildcard or misconfigured zone answered
-          # the probe. That is not evidence about NXDOMAIN handling.
-          record['actual_values'].empty? ? :distinguishes : :unknown
-        when false
-          :conflates
-        else
-          :unknown
-        end
-      rescue StandardError => ex
-        OT.lw "[ApproximatedStrategy] NXDOMAIN probe failed for #{custom_domain.display_domain}: #{ex.message}"
-        :unknown
       end
     end
   end

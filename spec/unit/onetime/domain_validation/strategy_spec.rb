@@ -291,26 +291,13 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
                  ]
                })
       end
-      let(:probe_actual_values) { [] }
-      let(:probe_response) do
-        double('Response',
-               code: 200,
-               parsed_response: {
-                 'records' => [
-                   { 'actual_values' => probe_actual_values, 'match' => false, 'type' => 'TXT' }
-                 ]
-               })
-      end
       # Upstream gave no answer, so the native lookup decides. SERVFAIL keeps
       # it indeterminate for the examples below unless a context overrides.
       let(:native_rcode) { Resolv::DNS::RCode::ServFail }
 
       before do
-        call_count = 0
-        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly) do
-          call_count += 1
-          call_count == 1 ? primary_response : probe_response
-        end
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
+          .and_return(primary_response)
         allow(OT).to receive(:lw)
       end
 
@@ -330,61 +317,17 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
           expect(result[:message]).to include('native lookup:').and include('SERVFAIL')
         end
 
-        it 'reports the NXDOMAIN probe outcome (:distinguishes when the sentinel returns [])' do
-          result = strategy.validate_ownership(custom_domain)
-          expect(result[:nxdomain_probe]).to eq(:distinguishes)
-          expect(result[:message]).to include('distinguishes')
-        end
-
-        context 'and the NXDOMAIN probe returns actual_values: false (checker conflates)' do
-          let(:probe_response) do
-            double('Response',
-                   code: 200,
-                   parsed_response: {
-                     'records' => [
-                       { 'actual_values' => false, 'match' => false, 'type' => 'TXT' }
-                     ]
-                   })
+        it 'makes one Approximated request per indeterminate domain' do
+          domains = 3.times.map do |index|
+            double('CustomDomain',
+              display_domain: "example#{index}.com",
+              txt_validation_value: custom_domain.txt_validation_value,
+              validation_record: custom_domain.validation_record)
           end
+          expect(Onetime::DomainValidation::ApproximatedClient)
+            .to receive(:check_records_match_exactly).exactly(domains.size).times.and_return(primary_response)
 
-          it 'stays indeterminate and flags that only the native lookup reports deletions' do
-            result = strategy.validate_ownership(custom_domain)
-            expect(result[:validated]).to be_nil
-            expect(result[:indeterminate]).to be true
-            expect(result[:nxdomain_probe]).to eq(:conflates)
-            expect(result[:message]).to include('conflates')
-          end
-        end
-
-        context 'and the NXDOMAIN probe itself is inconclusive' do
-          before do
-            allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
-              .and_return(primary_response, double('Response', code: 500, parsed_response: {}))
-          end
-
-          it 'stays indeterminate with :unknown probe outcome' do
-            result = strategy.validate_ownership(custom_domain)
-            expect(result[:validated]).to be_nil
-            expect(result[:nxdomain_probe]).to eq(:unknown)
-          end
-        end
-
-        context 'and the NXDOMAIN probe raises' do
-          before do
-            call_count = 0
-            allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly) do
-              call_count += 1
-              raise StandardError, 'probe boom' if call_count == 2
-
-              primary_response
-            end
-          end
-
-          it 'swallows the probe error and stays indeterminate' do
-            result = strategy.validate_ownership(custom_domain)
-            expect(result[:validated]).to be_nil
-            expect(result[:nxdomain_probe]).to eq(:unknown)
-          end
+          domains.each { |domain| strategy.validate_ownership(domain) }
         end
       end
 
