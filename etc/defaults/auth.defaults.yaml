@@ -107,6 +107,7 @@ full:
     #   Google: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
     #   GitHub: GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
     #   Apple: APPLE_CLIENT_ID, APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY
+    #   SAML: SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID, SAML_IDP_CERT
     sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>  # Since v0.24.5
 
   # ──────────────────────────────────────────────────────────────────────

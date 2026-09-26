@@ -1527,6 +1527,7 @@ describe('features utility', () => {
         expect(providerLabel('github')).toBe('GitHub');
         expect(providerLabel('google')).toBe('Google');
         expect(providerLabel('apple')).toBe('Apple');
+        expect(providerLabel('saml')).toBe('SAML');
       });
 
       it('capitalizes an unknown route name', () => {

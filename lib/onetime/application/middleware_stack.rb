@@ -22,6 +22,7 @@ require_relative '../middleware/validate_multipart'
 require_relative '../middleware/entitlement_preview_context'
 require_relative '../middleware/impersonation_context'
 require_relative '../middleware/session_skip'
+require_relative '../middleware/saml_callback_transport'
 require 'otto'
 
 module Onetime
@@ -659,6 +660,8 @@ module Onetime
           # parsed and memoized here so no later consumer re-reads the
           # stream. Must stay after NormalizeContentType (Content-Type
           # repair) and before Rack::Parser/session/locale.
+          # Bound SAML bodies before any parser and isolate POST from cookies.
+          builder.use Onetime::Middleware::SamlCallbackTransport::Boundary
           builder.use Onetime::Middleware::ValidateMultipart
           builder.use Rack::Parser, parsers: @parsers
           # Add session middleware early in the stack (before other middleware)

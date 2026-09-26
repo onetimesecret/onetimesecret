@@ -177,19 +177,29 @@ module InviteAPI::Logic
         # sso_config.provider_type). AuthConfig#sso_providers yields only
         # 'route_name' and 'display_name', and the platform registry's own
         # identity (SsoProvider::Registry keys: oidc, entra, google, github,
-        # apple) is a different vocabulary from tenant PROVIDER_TYPES
-        # (oidc, entra_id) — 'entra' vs 'entra_id' collide, and every other
-        # platform key (google, github, apple) has no tenant counterpart
-        # at all. Those three are platform-only by design: the issuerless ones
-        # are refused on the tenant surface, and apple is simply absent
-        # from PROVIDER_ROUTE_MAP. Emitting a registry key as :provider_type
-        # would put a third vocabulary on a field whose values consumers read
-        # as the tenant enum, so the field stays absent. What identifies a
-        # platform-fallback provider is :platform_route_name, which the tenant
-        # arm carries too — that is the field to route and branch on.
+        # apple, saml) is a different vocabulary from tenant PROVIDER_TYPES
+        # — 'entra' vs 'entra_id' collide, and google, github and apple have
+        # no tenant counterpart at all. Those three are platform-only by
+        # design: the issuerless ones are refused on the tenant surface, and
+        # apple is simply absent from PROVIDER_ROUTE_MAP. ('oidc' and 'saml'
+        # (#4450) happen to be spelled the same in both vocabularies; that is
+        # a coincidence of naming, not a mapping this arm may rely on.)
+        # Emitting a registry key as :provider_type would put a third
+        # vocabulary on a field whose values consumers read as the tenant
+        # enum, so the field stays absent. What identifies a platform-fallback
+        # provider is :platform_route_name, which the tenant arm carries too —
+        # that is the field to route and branch on.
+        #
+        # Custom-domain fallback never includes platform SAML, even when
+        # domain ownership is verified. Other platform providers are unchanged.
+
         Onetime.auth_config.sso_providers.filter_map do |provider|
           route_name = provider['route_name'].to_s
           next if route_name.empty?
+          next unless Onetime::SsoProvider::Registry.platform_route_available_on_host?(
+            route_name,
+            platform_host: false,
+          )
 
           {
             type: 'sso',

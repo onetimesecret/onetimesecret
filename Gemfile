@@ -34,7 +34,13 @@ source 'https://rubygems.org/'
 # unconditionally in MiddlewareStack.ip_privacy_security_config so Rack never
 # reads RFC 7239 Forwarded for host/port/proto. rack-parser stopped being an
 # otto runtime dependency in 2.10; it is declared below.
-gem 'otto', '~> 2.10'
+# 2.11 floor: static not_found / server_error triples are copied per request
+# (Otto::Static.copy_response, delano/otto#272), so session-cookie writes can
+# no longer accumulate on the shared fallback headers. Replaces the former
+# Onetime::Middleware::IsolateResponseHeaders; regression guard is
+# spec/integration/all/router_fallback_response_headers_spec.rb. 2.11 also
+# rejects fallback triples whose body does not respond to #each or #call.
+gem 'otto', '~> 2.11'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
@@ -67,6 +73,40 @@ gem 'omniauth_openid_connect', '~> 0.8'
 # 3.2 did, and moved the lock from 3.2.0 to 2.10.3) fails resolution instead
 # of silently downgrading a crypto library on the auth path.
 gem 'jwt', '~> 3.2'
+
+# SAML 2.0 SSO (#4450). ruby-saml is pinned EXACTLY, not pessimistically: it is
+# the XML-signature verifier the whole SAML trust decision rests on, and its
+# history is a run of signature-wrapping / parser-differential auth bypasses:
+#   1.17.0  CVE-2024-45409 (signature wrapping, unauthenticated login as anyone)
+#   1.18.0  CVE-2025-25291 / -25292 (REXML vs Nokogiri parser differential),
+#           CVE-2025-25293 (compressed-response DoS), plus CVE-2025-66567 /
+#           CVE-2025-66568 fixed in the same line
+#   1.18.1  CVE-2025-54572 (DoS via oversized response)
+# None are open against 1.18.1. The 1.x line still verifies with TWO parsers
+# (REXML for the document walk, Nokogiri for canonicalization) — the design the
+# 2025 CVEs exploited — so nokogiri and rexml currency is part of this gem's
+# security posture, not an independent concern. ruby-saml 2.x (single-parser
+# rewrite) is unreleased and omniauth-saml has no 2.x support; `~> 2.2` on
+# omniauth-saml cannot pull it in (it requires ruby-saml ~> 1.18).
+#
+# Every bump is a deliberate review, never a Renovate automerge. RE-VERIFY on
+# bump — OmniAuth::Strategies::RequestBoundSAML
+# (lib/onetime/sso_provider/request_bound_saml.rb) depends on these gem
+# internals and documents each at its use site:
+#   - omniauth-saml request_phase keeps the AuthnRequest local (we copy its body
+#     to capture the uuid) and callback_phase builds the Response through the
+#     private options_for_response_object (we merge :matches_request_id there)
+#   - ruby-saml validate_in_response_to passes when :matches_request_id is nil
+#   - Response#issuers raises on missing/multiple Issuer elements
+#   - Settings.new(options) REPLACES the `security` defaults wholesale
+#   - omniauth-saml `extra` carries the live Response object (SP key + raw XML)
+#   - omniauth-saml writes session['saml_uid'] / session['saml_session_index']
+#   - omniauth deep-merges instance options over class defaults, so `{}` cannot
+#     clear omniauth-saml's RelayState-forwarding default
+# Advisories: .github/workflows/static-analysis.yml runs bundler-audit on every
+# PR; Renovate vulnerabilityAlerts (.github/renovate.json5) opens the bump PR.
+gem 'omniauth-saml', '~> 2.2'
+gem 'ruby-saml', '= 1.18.1'
 
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'

@@ -1,4 +1,16 @@
 {
+  "web.organizations.sso.disable_action": {
+    "text": "Disable SSO",
+    "content_hash": "2f072272"
+  },
+  "web.organizations.sso.disable_confirm": {
+    "text": "Disable this SSO connection? Unsaved form edits will not be saved. Stored credentials will be kept.",
+    "content_hash": "608b142a"
+  },
+  "web.organizations.sso.disable_enforcement_warning": {
+    "text": "SSO-only enforcement will also be turned off, allowing other configured sign-in methods.",
+    "content_hash": "58abd552"
+  },
   "web.organizations.title": {
     "text": "Organizations",
     "content_hash": "2730183d"
@@ -889,6 +901,80 @@
     "text": "Add this URL to your identity provider's allowed redirect URIs",
     "content_hash": "65d55683"
   },
+  "web.organizations.sso.idp_sso_service_url": {
+    "text": "IdP SSO service URL",
+    "content_hash": "0b33b1ac"
+  },
+  "web.organizations.sso.idp_sso_service_url_hint": {
+    "text": "The HTTPS endpoint your identity provider publishes for SAML single sign-on",
+    "content_hash": "bc6fdfd9"
+  },
+  "web.organizations.sso.idp_sso_service_url_placeholder": {
+    "text": "https://idp.example.com/sso/saml",
+    "content_hash": "513d0586"
+  },
+  "web.organizations.sso.idp_entity_id": {
+    "text": "IdP Entity ID",
+    "content_hash": "14a4ab8b"
+  },
+  "web.organizations.sso.idp_entity_id_hint": {
+    "text": "The issuer identifier from your identity provider's metadata, exactly as published",
+    "content_hash": "c3d8320b"
+  },
+  "web.organizations.sso.idp_entity_id_placeholder": {
+    "text": "https://idp.example.com/metadata",
+    "content_hash": "0c46d14d"
+  },
+  "web.organizations.sso.idp_cert": {
+    "text": "IdP signing certificate",
+    "content_hash": "c84000cd"
+  },
+  "web.organizations.sso.idp_cert_hint": {
+    "text": "The X.509 certificate (PEM) your identity provider signs assertions with. One certificate only; fingerprints are not accepted.",
+    "content_hash": "b5e157f5"
+  },
+  "web.organizations.sso.idp_cert_placeholder": {
+    "text": "-----BEGIN CERTIFICATE-----",
+    "content_hash": "ddddb6cb"
+  },
+  "web.organizations.sso.sp_details": {
+    "text": "Service provider details",
+    "content_hash": "4b6617d2"
+  },
+  "web.organizations.sso.sp_details_hint": {
+    "text": "Register these values with your identity provider",
+    "content_hash": "784e9410"
+  },
+  "web.organizations.sso.sp_details_preview_hint": {
+    "text": "Preview based on the default sign-in route. Save this configuration, then confirm these values here before registering them with your identity provider.",
+    "content_hash": "fd9d3001"
+  },
+  "web.organizations.sso.sp_entity_id": {
+    "text": "SP Entity ID (metadata URL)",
+    "content_hash": "59bc544c"
+  },
+  "web.organizations.sso.acs_url": {
+    "text": "Assertion Consumer Service URL",
+    "content_hash": "5dacfb65"
+  },
+  "web.organizations.sso.unreadable_field": {
+    "text": "The stored value could not be read. Enter it again to continue.",
+    "content_hash": "ca3b5fcc"
+  },
+  "web.organizations.sso.unreadable_fields_alert": {
+    "text": "Some stored values could not be read and must be entered again: {fields}",
+    "content_hash": "e9fa9d16"
+  },
+  "web.organizations.sso.idp_cert_expired_alert": {
+    "text": "The identity provider certificate expired on {date}. Sign-in through this connection will fail until a current certificate is saved.",
+    "context": "Error callout at the top of the SSO form for a saved SAML connection whose stored IdP certificate has already expired. {date} is the localized expiry date.",
+    "content_hash": "527fb721"
+  },
+  "web.organizations.sso.idp_cert_expiring_notice": {
+    "text": "The identity provider certificate expires on {date}. Replace it before then so sign-in keeps working.",
+    "context": "Advisory notice at the top of the SSO form for a saved SAML connection whose stored IdP certificate expires within 30 days. {date} is the localized expiry date.",
+    "content_hash": "ccaf6ca7"
+  },
   "web.organizations.sso.allowed_domains": {
     "text": "Allowed Email Domains",
     "content_hash": "0295ad71"
@@ -986,6 +1072,10 @@
     "text": "Verify the identity provider is reachable (does not validate credentials)",
     "content_hash": "22a23b68"
   },
+  "web.organizations.sso.test_connection_hint_saml": {
+    "text": "Checks the SSO URL, Entity ID and certificate locally; the identity provider is not contacted",
+    "content_hash": "1dad3945"
+  },
   "web.organizations.sso.test_button": {
     "text": "Test Connection",
     "content_hash": "c02977b0"
@@ -1017,6 +1107,22 @@
   "web.organizations.sso.issuer_mismatch_hint": {
     "text": "OIDC issuer identifiers must match exactly, including any trailing slash. Set the Issuer URL to the discovered value shown above.",
     "content_hash": "ec144c88"
+  },
+  "web.organizations.sso.certificate_subject": {
+    "text": "Certificate subject",
+    "content_hash": "d7816b16"
+  },
+  "web.organizations.sso.certificate_expires": {
+    "text": "Certificate expires",
+    "content_hash": "1e73119d"
+  },
+  "web.organizations.sso.certificate_expires_in_days": {
+    "text": "in {n} day | in {n} days",
+    "content_hash": "df98ca65"
+  },
+  "web.organizations.sso.certificate_valid_from": {
+    "text": "Certificate valid from",
+    "content_hash": "b13d3f30"
   },
   "web.organizations.sso.status_enabled": {
     "text": "Enabled",

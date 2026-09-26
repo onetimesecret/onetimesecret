@@ -185,6 +185,25 @@ RSpec.describe Auth::RestrictTo do
       expect(described_class.resolution_for(env)).to be_unavailable
     end
 
+    [nil, 'sso'].each do |restriction|
+      it "does not reopen password routes for SAML-only fallback with global restriction #{restriction.inspect}" do
+        allow(Onetime.auth_config).to receive(:restrict_to).and_return(restriction)
+        allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+        allow(Onetime.auth_config).to receive(:sso_enabled?).and_return(true)
+        allow(Onetime.auth_config).to receive(:sso_providers).and_return([{ 'route_name' => 'saml' }])
+        allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id).with(domain_id).and_return(nil)
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:global_auth_enabled).and_return(true)
+
+        resolution = described_class.resolution_for(env)
+        expect(resolution).to be_unavailable
+        expect(resolution.allows?('password')).to be false
+        expect(resolution.allows?('email_auth')).to be false
+        rodauth = rodauth_double(:login)
+        allow(rodauth.request).to receive(:env).and_return(env)
+        expect(catch(:halted) { described_class.enforce_route!(rodauth) }.first).to eq(404)
+      end
+    end
+
     it 'keeps an inherited SSO restriction when the host predicate finds tenant or platform-fallback SSO' do
       allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
         .with(domain_id).and_return(true)

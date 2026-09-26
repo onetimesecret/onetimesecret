@@ -15,9 +15,10 @@ Two integration patterns are available:
 | Pattern | When to use | Env var prefix |
 |---------|------------|----------------|
 | **Generic OIDC** | Customer runs their own IdP (Zitadel, Keycloak, Auth0, Okta) | `OIDC_*` |
-| **Provider-specific** | Direct integration with a specific service | `ENTRA_*`, `GOOGLE_*`, `GITHUB_*` |
+| **Provider-specific** | Direct integration with a specific service | `ENTRA_*`, `GOOGLE_*`, `GITHUB_*`, `APPLE_*` |
+| **SAML 2.0** | The IdP has no OIDC login flow | `SAML_*` |
 
-Generic OIDC uses the `/.well-known/openid-configuration` discovery document. Provider-specific gems handle OAuth quirks (tenant models, non-standard scopes, token formats) so the operator doesn't have to.
+Generic OIDC uses the `/.well-known/openid-configuration` discovery document. Provider-specific gems handle OAuth quirks (tenant models, non-standard scopes, token formats) so the operator doesn't have to. SAML has no client credential: trust is the IdP's signing certificate, pinned in configuration.
 
 Multiple providers can be active simultaneously. Each provider that has its required env vars set will register automatically at boot. The frontend renders one button per configured provider.
 
@@ -67,7 +68,7 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `AUTH_SSO_ENABLED` | Yes | `true` to enable SSO |
 | `SSO_DISPLAY_NAME` | No | Default button label for generic OIDC (e.g., "Company SSO") |
 | `ALLOWED_SIGNUP_DOMAIN` | No | Comma-separated allowed email domains for SSO signup |
-| `SSO_ALLOW_PLATFORM_FALLBACK` | No | `true` to expose platform providers for sign-in on a custom domain without active tenant SSO. These providers are not available for Connect on that custom-domain surface. |
+| `SSO_ALLOW_PLATFORM_FALLBACK` | No | Explicit opt-in (`true`) to expose platform providers for sign-in on a custom domain without active tenant SSO. Platform OIDC/OAuth providers appear on any registered custom domain. Platform SAML is excluded: its ACS stays pinned to the canonical platform host, even for verified domains. Fallback providers are not available for Connect on that custom-domain surface. |
 | `SSO_FORM_ACTION_ORIGINS` | No | Space-separated extra origins added to the CSP `form-action` directive. IdP origins are auto-derived — platform providers at boot, tenant (per-domain) SSO issuers per-request. Use this process-wide override only for split-endpoint OIDC or a tenant discovery-availability fallback (see [Troubleshooting](#sso-login-blocked-on-chromium-family-browsers-csp-form-action)). |
 
 ### Generic OIDC
@@ -118,6 +119,25 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `APPLE_ROUTE_NAME` | No | URL segment (default: `apple`) |
 | `APPLE_DISPLAY_NAME` | No | Button label (default: `Apple`) |
 
+### SAML 2.0
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SAML_IDP_SSO_SERVICE_URL` | Yes | The IdP's SSO endpoint (HTTP-Redirect binding). `https://` only; no credentials in the URL |
+| `SAML_IDP_ENTITY_ID` | Yes | The IdP's EntityID exactly as it sends it in `<Issuer>`; compared byte for byte and stored as the issuer of every SAML identity |
+| `SAML_IDP_CERT` | Yes | The IdP's X.509 signing certificate in PEM form: exactly one certificate, inside its validity window (not expired, not yet valid); the `\n`-escaped single-line form is accepted. Fingerprints are not accepted |
+| `SAML_SP_ENTITY_ID` | No | Our SP EntityID (the Audience the IdP must send). Default: `https://{site.host}/auth/sso/{route}/metadata` |
+| `SAML_UID_ATTRIBUTE` | No | SAML attribute to use as the stable user id instead of the NameID. Required when the IdP can only send a transient NameID |
+| `SAML_ROUTE_NAME` | No | URL segment (default: `saml`) |
+| `SAML_DISPLAY_NAME` | No | Button label (default: `SAML SSO`) |
+| `SAML_NAME_ID_FORMAT` | No | NameID format requested from the IdP. Default: persistent. Also accepted: the SAML 1.1 `emailAddress` and `unspecified` formats, the 2.0 `transient` format (requires `SAML_UID_ATTRIBUTE`), or `omit` to send no NameIDPolicy. See [SAML policy settings](saml-policy.md) |
+| `SAML_ALLOW_NULL_ORIGIN` | No | Admit a literal `Origin: null` header on POSTs to a configured SAML callback route, for IdP flows that submit an opaque origin. Only the exact string `true` enables it; no tenant setting can. Default: `false`. See [SAML policy settings](saml-policy.md#operator-opt-in-for-literal-origin-null) |
+| `SAML_CALLBACK_SOURCE_LIMIT` | No | Staged callbacks one privacy-masked client source may take per 120-second bucket (default: `64`). Positive integer, clamped to the global limit; an invalid value logs a warning and uses the default. Raise it for an office behind one egress address that exceeds 64 sign-ins in two minutes. See [SAML callback transport](saml-callback-transport.md#bounds-and-operational-constraints) |
+| `SAML_CALLBACK_GLOBAL_LIMIT` | No | Staged callbacks admitted per 120-second bucket across every host (default: `256`) — the deployment-wide storage bound. Positive integer; an invalid value logs a warning and uses the default. Raising it increases datastore exposure proportionally. See [SAML callback transport](saml-callback-transport.md#admission-decision) |
+| `SAML_TRUST_EMAIL_FOR_LINKING` | No | Opt in to email-based account linking for this provider (default: `false`). SAML carries no `email_verified` claim, so the email is whatever the IdP asserts. See [The flag](#the-flag) |
+
+A missing **or unusable** value (non-https URL, a URL with a fragment or a host the CSP layer cannot carry, blank EntityID, a certificate that does not parse, has more than one block, has expired, or is not yet valid) skips the provider with an error in the boot log and hides the button; boot never fails. See [SAML 2.0](#saml-20-1) under Provider Configuration.
+
 ## Routes
 
 Each configured provider registers two routes:
@@ -126,15 +146,19 @@ Each configured provider registers two routes:
 |--------|------|-------------|
 | POST | `/auth/sso/{provider}` | Initiates SSO flow |
 | GET | `/auth/sso/{provider}/callback` | Receives IdP response |
+| GET | `/auth/sso/{provider}/metadata` | SAML only: SP metadata XML (404 while the route has no trust anchors) |
 
-Where `{provider}` is the route name (`oidc`, `entra`, `google`, `github`, `apple`, or custom).
+Where `{provider}` is the route name (`oidc`, `entra`, `google`, `github`, `apple`, `saml`, or custom).
 
-Apple is the exception to the GET callback: it uses `response_mode=form_post`,
-so its callback arrives as a cross-site **POST** to the same path. OmniAuth's
-middleware handles either method, but the session cookie does not — see the
-Apple section below for the `same_site` prerequisite.
+Apple and SAML are the exceptions to the GET callback: Apple uses
+`response_mode=form_post`, and SAML's HTTP-POST binding delivers the
+`SAMLResponse` the same way, so their callbacks arrive as a cross-site **POST**
+to the same path. SAML stages that POST and redirects to a GET to recover the
+initiating session; Apple still completes on POST. See their sections below
+for the different `same_site` prerequisites. SAML's `/slo` and `/spslo` sub-paths answer 501 (single logout
+is disabled).
 
-The callback URL (`https://{host}/auth/sso/{provider}/callback`) is auto-constructed from the request host at runtime. Register this URL with your IdP — no env var needed. For multi-tenant deployments with custom domains, each domain gets its own callback URL automatically.
+OAuth callback URLs (`https://{host}/auth/sso/{provider}/callback`) are constructed from the request host. Register the exact URL with the IdP. Platform SAML uses only its boot-pinned canonical ACS and fixed SP EntityID; it is not available through custom-domain fallback. Native tenant SAML derives its ACS from the tenant's public host plus the callback path. A sign-in link's query string cannot change the ACS.
 
 ## Authentication Flow
 
@@ -175,15 +199,22 @@ Redirect to dashboard (authenticated)
 
 All hooks (`account_from_omniauth`, `before_omniauth_create_account`, etc.) are provider-agnostic. Adding a new provider does not require hook changes.
 
+SAML differs in the middle of that diagram: the redirect to the IdP carries an
+AuthnRequest (HTTP-Redirect binding), the IdP returns a signed Response to the
+callback by HTTP-POST, and there is no token exchange — the signed assertion
+is the identity. The callback is accepted only if it answers the AuthnRequest
+this session started; everything from that point on (account lookup, linking,
+creation) is the same.
+
 ## Behavior
 
-**Account Matching:** By linked identity first — the `(provider, issuer, uid)` key in `account_identities`. The `issuer` is `''` for OAuth2-only identities; legacy rows start with that sentinel and a platform callback lazily upgrades them to its resolved issuer. If that identity is already linked, the user is signed into its account. If the identity is *not* linked but the IdP email matches an existing account, the default is to **refuse email-only auto-linking** (email may locate an account, but only a demonstrated credential may bind an identity to it). On the platform surface, a password-holding account is offered a **sign-in interstitial** to prove its existing password (on by default — see [Sign-in interstitial](#sign-in-interstitial-password-challenge-linking)), and a **passwordless** account is offered **mailbox-proof linking** — a single-use link emailed to its on-file address (on by default — see [Mailbox-proof linking](#mailbox-proof-linking-passwordless-accounts)). An operator can also opt a trusted IdP into email auto-linking (see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag)). A signed-in user can link an identity deliberately, without any email involvement, from [Connected Identities](#connected-identities-authenticated-linking-from-account-settings) in account settings.
+**Account Matching:** By linked identity first — the `(provider, issuer, uid)` key in `account_identities`. The `issuer` is `''` for OAuth2-only identities; legacy rows start with that sentinel and a platform OAuth2/OIDC callback lazily upgrades them to its resolved issuer (a SAML callback never does: no SAML identity was ever stored under the sentinel, so a sentinel row under the SAML route belongs to whatever protocol that route name served before, and a NameID is not a `sub`). If that identity is already linked, the user is signed into its account. If the identity is *not* linked but the IdP email matches an existing account, the default is to **refuse email-only auto-linking** (email may locate an account, but only a demonstrated credential may bind an identity to it). On the platform surface, a password-holding account is offered a **sign-in interstitial** to prove its existing password (on by default — see [Sign-in interstitial](#sign-in-interstitial-password-challenge-linking)), and a **passwordless** account is offered **mailbox-proof linking** — a single-use link emailed to its on-file address (on by default — see [Mailbox-proof linking](#mailbox-proof-linking-passwordless-accounts)). An operator can also opt a trusted IdP into email auto-linking (see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag)). A signed-in user can link an identity deliberately, without any email involvement, from [Connected Identities](#connected-identities-authenticated-linking-from-account-settings) in account settings.
 
 **Account Creation:** Automatic for unrecognized emails. Creates Customer record and default workspace.
 
 **Multi-Provider:** One account can have multiple linked identities (e.g., OIDC + Entra). The `account_identities` table stores `(provider, issuer, uid)` keys per account.
 
-**Email Verification:** SSO accounts are auto-verified. The IdP handles verification.
+**Email Verification:** SSO accounts are auto-verified. The IdP handles verification. SAML carries no `email_verified` claim, so a SAML account is verified on IdP trust alone; an attribute the IdP names `email_verified` with the value `false` is still honoured as a hold.
 
 **MFA:** Not enforced for SSO logins. The IdP is responsible for MFA.
 
@@ -205,7 +236,7 @@ This is the surface the other paths point at: the H-3 refusal flash names it, an
 
 **The panel** lists the account's linked identities — canonical provider label, the `issuer` (hidden for the `''` sentinel on legacy / OAuth2-only rows), and a **masked** `uid` — with a Remove action behind a confirmation dialog, plus eligible Connect providers. On the platform surface, "already linked" is decided by route name (`provider.route_name` vs the row's `provider`), which is correct there because one route maps to one issuer. On a custom-domain surface with active tenant SSO, the panel does not suppress the tenant provider by route-name evidence: the client cannot establish tuple equivalence before the callback (the `uid` is masked, and pairwise subject identifiers differ per client), so the server's full-tuple ownership check decides (`src/shared/utils/sso-link-evidence.ts`).
 
-A registered custom domain without active tenant `SsoConfig` is different. `SSO_ALLOW_PLATFORM_FALLBACK=true` may expose platform providers there for **sign-in**, but the panel omits them from Connected Identities. Their callbacks have no validated tenant context, and a custom-surface callback cannot be authorized as platform Connect. Initiate platform Connect from a canonical/operator surface instead. Suppression is a display heuristic; callback validation remains the control.
+A custom domain without active tenant `SsoConfig` is different. `SSO_ALLOW_PLATFORM_FALLBACK=true` may expose platform providers there for **sign-in** (excluding platform SAML, even for verified domains), but the panel omits them from Connected Identities. Their callbacks have no validated tenant context, and a custom-surface callback cannot be authorized as platform Connect. Initiate platform Connect from a canonical/operator surface instead. Suppression is a display heuristic; callback validation remains the control.
 
 ```
 Signed-in user clicks "Connect {provider}"
@@ -443,6 +474,8 @@ Per-provider environment variables, plus a global fallback. Default is **false**
 | `ENTRA_TRUST_EMAIL_FOR_LINKING` | Microsoft Entra ID |
 | `GOOGLE_TRUST_EMAIL_FOR_LINKING` | Google |
 | `GITHUB_TRUST_EMAIL_FOR_LINKING` | GitHub |
+| `APPLE_TRUST_EMAIL_FOR_LINKING` | Apple |
+| `SAML_TRUST_EMAIL_FOR_LINKING` | SAML 2.0 |
 | `SSO_TRUST_EMAIL_FOR_LINKING` | Global fallback (deprecated single-OIDC default) |
 
 Set the value to the string `true` to enable; anything else (or unset) is disabled. Precedence: a per-provider variable, **when present**, wins for that provider (`true` enables, any other value disables); otherwise the global `SSO_TRUST_EMAIL_FOR_LINKING=true` enables linking for every platform provider that has no per-provider override; otherwise the default of `false` applies.
@@ -623,6 +656,116 @@ authorization, so repeat sign-ins and account creation are unaffected — but it
 may be a private-relay address (`@privaterelay.appleid.com`). Leave
 `APPLE_TRUST_EMAIL_FOR_LINKING` false.
 
+### SAML 2.0
+
+Uses the `omniauth-saml` gem (ruby-saml underneath) through this application's
+own subclass, `OmniAuth::Strategies::RequestBoundSAML`, which binds every
+response to the sign-in request this session started and refuses everything
+else. There is no client ID or secret: trust is the IdP's signing certificate,
+pinned in `SAML_IDP_CERT`. What the subclass enforces, and why, is in
+[Adding an SSO Provider](adding-sso-providers.md#known-provider-quirks).
+
+#### Identity Provider Setup
+
+Register Onetime Secret as a service provider (SP) at your IdP. With `{host}`
+the value of `site.host` and `saml` the route name:
+
+| IdP setting | Value |
+|-------------|-------|
+| SP EntityID / Audience | `https://{host}/auth/sso/saml/metadata` (or `SAML_SP_ENTITY_ID`, if you set it) |
+| Assertion Consumer Service (ACS) URL | `https://{host}/auth/sso/saml/callback`, HTTP-POST binding |
+| SP metadata | `https://{host}/auth/sso/saml/metadata` (served once the provider is configured) |
+| NameID format | persistent by default; `SAML_NAME_ID_FORMAT` selects another supported format or `omit` (see [SAML policy settings](saml-policy.md)). A transient NameID is refused unless `SAML_UID_ATTRIBUTE` is set |
+| Assertion signing | required (`want_assertions_signed`), RSA-SHA256 or stronger. A response signed or digested with SHA-1 (or any algorithm outside RSA-SHA256/384/512 and SHA-256/384/512) is refused as `saml_weak_signature_algorithm`: ruby-saml 1.18.1 itself verifies whichever algorithm the response declares, so the strategy enforces the allowlist |
+| Assertion encryption | off (not supported) |
+| AuthnRequest signing | off (requests are not signed; no SP key is configured) |
+| Attributes | the user's email as an attribute named `email` or `mail` (the NameID is the user id, not the email); optionally `name`, `first_name`, `last_name`, and the attribute named in `SAML_UID_ATTRIBUTE` |
+
+Register only the canonical platform ACS for platform SAML. Custom-domain
+verification does not authorize a domain to receive platform assertions, and
+`SSO_ALLOW_PLATFORM_FALLBACK=true` does not enable platform SAML there.
+Remove any custom-domain ACS registrations previously added to the platform
+IdP for fallback. Configure native tenant SAML separately when needed.
+
+Then take from the IdP:
+
+- its **SSO service URL** (HTTP-Redirect binding) → `SAML_IDP_SSO_SERVICE_URL`
+- its **EntityID** (the value it sends in `<Issuer>`) → `SAML_IDP_ENTITY_ID`
+- its **signing certificate** (PEM) → `SAML_IDP_CERT`
+
+```bash
+SAML_IDP_SSO_SERVICE_URL=https://idp.example.com/sso/saml
+SAML_IDP_ENTITY_ID=https://idp.example.com/metadata
+SAML_IDP_CERT="-----BEGIN CERTIFICATE-----\nMIID...\n-----END CERTIFICATE-----"
+```
+
+`SAML_IDP_CERT` takes the whole PEM file, header and footer lines included,
+with each newline written as a literal `\n` (the same convention as
+`APPLE_PRIVATE_KEY`); a value that already contains newlines is accepted as
+is. Exactly one certificate: a bundle is refused rather than trusting only its
+first block. The certificate must contain an RSA public key; EC and other key
+types are unsupported, regardless of the certificate's own signing algorithm.
+Certificate fingerprints are not supported — fingerprint-only
+trust accepts whatever certificate the response embeds.
+
+`SAML_IDP_ENTITY_ID` is compared byte for byte with the response's Issuer
+(scheme case, trailing slash and all), and it is the issuer half of every SAML
+identity key `(saml, EntityID, NameID)`. Changing it later orphans existing
+SAML sign-ins.
+
+The default `SAML_SP_ENTITY_ID` is derived at boot from `site.host` and
+`site.ssl`; if both `SAML_SP_ENTITY_ID` and `site.host` are blank the provider
+is skipped. It is a boot-time constant: the IdP registers one audience for the
+platform, whichever host a request arrives on.
+
+Prerequisite: configure a host-only session cookie with
+`site.session.same_site: lax` or `none` and `secure: true`. SAML stages the
+cross-site POST without cookies, then issues a `303` to a GET that recovers
+the initiating session. `Strict` is unsupported. Apple still requires `None`.
+See [SAML callback transport](saml-callback-transport.md) for the request
+sequence, storage limits, logging precautions, and browser rollout checks.
+
+With an incompatible cookie, platform SAML is skipped and boot logs
+`[OmniAuth] Skipping SAML provider 'saml': …`. With `ORGS_SSO_ENABLED=true`
+and no platform variables, the tenant placeholder still registers and boot
+logs a cookie warning instead; boot does not abort. The domain SSO API
+refuses creation or re-enablement of SAML under an incompatible cookie
+(422 on `provider_type`). Existing configurations can still be disabled,
+repaired, replaced, or deleted.
+
+Missing or unusable configuration skips the provider (`[OmniAuth] Skipping
+SAML provider 'saml': …` in the boot log, naming the variable) and hides the
+button; it does not fail boot. Issue #4450 asked for a boot failure; the
+provider registration path is designed never to take password, MFA and
+magic-link sign-in down with it, so SAML is skipped the same way as any other
+misconfigured provider. The usability check runs again per request when the button is
+rendered: a certificate that expires while the process is running hides the
+button and ruby-saml refuses every login with it (`check_idp_cert_expiration`),
+but nothing alerts on it — watch the certificate's expiry.
+
+Certificate rotation: only one IdP certificate is trusted at a time
+(`idp_cert_multi` is not supported), so there is no overlap window. Update
+`SAML_IDP_CERT` and restart when the IdP switches to its new certificate.
+
+Not supported, by design: IdP-initiated sign-in (users must start from this
+site's sign-in page; a response that answers no pending request is refused),
+Single Logout (`/slo` and `/spslo` answer 501), encrypted assertions, signed
+AuthnRequests, multiple IdP certificates, fingerprint configuration. One
+sign-in attempt is pending per session: a second tab's request supersedes the
+first, whose response is then refused.
+
+Platform SAML uses one fixed SP EntityID (`SAML_SP_ENTITY_ID`, or its default
+based on `site.host`) and a canonical ACS pinned at boot. Start and complete
+platform SAML sign-in on that host. Secondary canonical hosts, link hosts,
+subdomains and verified custom domains do not receive a platform SAML button;
+platform SAML starts, callbacks and metadata requests there are refused.
+`SSO_ALLOW_PLATFORM_FALLBACK` continues to govern other OAuth/OIDC providers.
+
+Native tenant SAML is separate: it uses the domain's `SsoConfig`, tenant SP
+identifiers and domain-scoped identities. Its configuration and behavior are
+unchanged by the platform restriction. See
+[Per-Domain SSO](per-domain-sso.md#saml-20-for-a-custom-domain).
+
 ## Domain Restrictions
 
 Restrict which email domains can create accounts via SSO.
@@ -717,6 +860,13 @@ OmniAuth failure → omniauth_on_failure hook (logs to stderr + Auth::Logging)
 |-------------------|----------|---------|
 | `sso_failed` | `web.login.errors.sso_failed` | General SSO failure |
 | `sso_issuer_mismatch` | `web.login.errors.sso_issuer_mismatch` | `OIDC_ISSUER` differs from the discovery document's `issuer` (see [Issuer mismatch](#issuer-mismatch)) |
+| `sso_cancelled` | `web.login.errors.sso_cancelled` | The user declined at the IdP |
+| `sso_not_configured` | `web.login.errors.sso_not_configured` | Custom domain with no tenant SSO configuration at all |
+| `sso_config_unusable` | `web.login.errors.sso_config_unusable` | Tenant SSO exists but cannot produce usable options: expired or not-yet-valid certificate, or a field that no longer decrypts |
+
+SAML refusals made by `RequestBoundSAML` land on `sso_failed` with the reason
+in a `[saml_response_refused]` log event; ruby-saml document-validation
+failures land there as `invalid_ticket`. See [SAML sign-in refused](#saml-sign-in-refused).
 
 ## Troubleshooting
 
@@ -778,6 +928,54 @@ Customers provisioned via SSO before v0.26.5 were left unverified in Redis, and 
 
 A customer provisioned on a current version can also be unverified on purpose: if the IdP asserted `email_verified: false`, or that claim could not be read, the hook records the reason in `verification_hold` and the doctor will not auto-repair it. The same runbook covers what to check before verifying by hand.
 
+### SAML sign-in refused
+
+Every refusal lands on `/signin?auth_error=sso_failed`. The reason is in the
+auth log as `[saml_response_refused] reason=<code>` — a gate in
+`RequestBoundSAML`, or `reason=invalid_ticket` for ruby-saml document
+validation, where `detail` carries the gem's check name (bounded to 200
+characters, one line). The `[OmniAuth FAILURE]` line and the
+`omniauth_failure` audit event carry a fixed message for SAML: ruby-saml's
+messages embed response text (Issuer, Audience, the unsigned StatusMessage),
+so they never reach a log line unbounded.
+
+| `reason` | Meaning | Check |
+|----------|---------|-------|
+| `saml_no_pending_request` | The callback arrived in a session with no pending sign-in | `site.session.same_site` must be `lax` or `none` with `secure: true`; verify the staged POST → 303 → GET flow returns the initiating cookie (boot logs `[OmniAuth] SAML is enabled … but site.session.same_site is …` for the tenant placeholder only — with platform `SAML_*` vars set the provider is skipped instead and never reaches this row); an IdP-initiated sign-in (started from the IdP's portal) is refused by design; a second sign-in tab supersedes the first |
+| `saml_acs_host_mismatch` | The request or callback host does not match the pinned ACS host | Start and complete platform SAML on its canonical host. Custom-domain platform fallback is not supported, even for verified domains; use native tenant SAML for a custom-domain sign-in |
+| `saml_response_missing` | The callback is not a staged GET carrying a handle: a GET without one, a HEAD, or a POST that reached the strategy without being staged by the transport; the pending sign-in is left intact | The IdP must POST its assertion to the exact ACS path (no trailing slash), where the transport stages it; completion uses the server-issued handle, never assertion XML in the query and never a direct POST |
+| `saml_callback_missing` | The staged handle is absent, expired, already consumed, or scoped to another callback | Restart sign-in; staged values expire after 120 seconds |
+| `saml_callback_unavailable` | The staged assertion could not be read or consumed | Check datastore health; authentication is refused |
+| `saml_in_response_to_unbound` | The signed assertion's `SubjectConfirmationData/@InResponseTo` is missing, or does not equal the pending AuthnRequest id on every bearer confirmation | The IdP response does not satisfy the required request binding, or the assertion may have been rewrapped; investigate |
+| `saml_misconfigured` | `idp_entity_id` or `sp_entity_id` is blank on the route | The platform variables are unusable, or the custom-domain tenant record was not injected |
+| `saml_issuer_unreadable` | The Issuer elements could not be read after validation (defense in depth: a missing or repeated Issuer is refused by ruby-saml first, as `invalid_ticket`) | IdP configuration |
+| `saml_weak_signature_algorithm` | A signature in the response uses a `SignatureMethod` or `DigestMethod` outside the allowlist (RSA-SHA256/384/512, SHA-256/384/512) — typically RSA-SHA1 / SHA1 | Configure SHA-256 signing at the IdP; the log event names the offending `kind` and `algorithm` URI |
+| `saml_issuer_mismatch` | The response's Issuer is not byte-equal to `SAML_IDP_ENTITY_ID` (or the tenant's `idp_entity_id`) | Copy the EntityID exactly as the IdP publishes it — scheme case, port, trailing slash |
+| `saml_transient_name_id` | The IdP sent a transient NameID | Configure a persistent NameID at the IdP, or set `SAML_UID_ATTRIBUTE` (platform only) |
+| `saml_missing_uid` | The NameID (or the uid attribute) is empty | IdP attribute mapping |
+| `saml_assertion_unbounded` | The assertion has no `ID` or no eligible signed bearer confirmation expiry | Supply `SubjectConfirmationData/@NotOnOrAfter`, request binding and the exact ACS recipient. Conditions expiry is optional |
+| `saml_assertion_lifetime_exceeded` | The latest eligible signed confirmation expiry, capped by Conditions when present, is more than one hour (plus 60 s clock drift) in the future; the event carries `lifetime_seconds` | Shorten the assertion lifetime at the IdP; check the IdP clock |
+| `saml_assertion_replayed` | The same assertion was presented a second time | Browser back/refresh on the callback page; otherwise investigate |
+| `saml_replay_guard_unavailable` | Valkey/Redis was unavailable during the callback | Datastore health; the callback fails closed |
+| `invalid_ticket` | ruby-saml rejected the document: signature, unsigned assertion, audience, destination or recipient, validity window (60 s clock drift allowed), expired IdP certificate, InResponseTo mismatch, non-Success status | The event's `detail` names the check; compare the IdP's SP registration with the values in the SAML setup table |
+
+### SAML callback returns 403
+
+`Rack::Protection::HttpOrigin` denies a cross-site POST unless its `Origin`
+is an admitted IdP origin. For platform SAML that origin is derived from
+`SAML_IDP_SSO_SERVICE_URL` (the browser posts back from the IdP's SSO
+endpoint), never from the EntityID. Platform SAML is restricted to the
+canonical ACS host; there is no custom-domain fallback. `SSO_FORM_ACTION_ORIGINS` widens this set too,
+so it can cover an IdP whose login page lives on a different origin than its
+SSO service URL. Tenant SAML instead admits that domain record's
+`idp_sso_service_url` origin and explicit `callback_origins` entries for that
+domain's SAML POST callback only. See [SAML policy settings](saml-policy.md).
+Literal `Origin: null` is denied by default. If an IdP flow sends it, the
+operator can explicitly set `SAML_ALLOW_NULL_ORIGIN=true`; see the
+[scoped policy and security trade-off](saml-policy.md#operator-opt-in-for-literal-origin-null).
+This admits only eligible SAML POST callbacks, not arbitrary routes or
+custom-domain platform fallback, and does not replace assertion validation.
+
 ### CSRF error on callback
 
 If you see `encoded token is not a string`: the CSRF bypass for SSO routes is misconfigured. Check that `lib/onetime/middleware/security.rb` skips `/auth/sso/*` and that the `omniauth_request_validation_phase` hook is empty in `hooks/omniauth.rb`.
@@ -798,8 +996,10 @@ If you see `encoded token is not a string`: the CSRF bypass for SSO routes is mi
   | Google | `https://accounts.google.com` |
   | GitHub | `https://github.com` |
   | Generic OIDC | Origin of `OIDC_ISSUER` |
+  | Apple | `https://appleid.apple.com` |
+  | SAML 2.0 | Origin of `SAML_IDP_SSO_SERVICE_URL` (not the EntityID) |
 
-- **Tenant (per-domain) SSO (per-request):** on a custom domain whose per-domain SSO config is enabled and permitted, the domain's IdP origin (the SSO config's issuer origin for OIDC, `https://login.microsoftonline.com` for Entra ID) is added to `form-action` for that request only — on that domain and nowhere else. No env var is involved; the origin follows the domain's stored SSO config automatically.
+- **Tenant (per-domain) SSO (per-request):** on a custom domain whose per-domain SSO config is enabled and permitted, the domain's IdP origin (the SSO config's issuer origin for OIDC, its `idp_sso_service_url` origin for SAML, `https://login.microsoftonline.com` for Entra ID) is added to `form-action` for that request only — on that domain and nowhere else. No env var is involved; the origin follows the domain's stored SSO config automatically.
 
 No configuration is required for the common case. The boot-time set is exposed as `Onetime.auth_config.sso_form_action_origins`; the per-request widening is `Onetime::Middleware::TenantCspExtras`.
 
@@ -824,6 +1024,8 @@ SSO_FORM_ACTION_ORIGINS="https://authorize.example.gov"
 - Sessions use same security settings as password auth
 - Domain restrictions validated before account creation
 - Client secrets should be rotated per provider's recommendations
+- SAML: every response must answer the AuthnRequest this session issued (`InResponseTo` on the signed assertion's `SubjectConfirmationData`, one-shot; the staged GET consumes the pending id only after assertion validation and the replay claim) — IdP-initiated sign-in is refused; the response Issuer must equal the configured EntityID byte for byte; assertions must be signed with SHA-256 or stronger (ruby-saml verifies whichever algorithm the response declares, so the strategy refuses SHA-1 and unknown algorithms itself; a certificate embedded in the response is matched against the pinned one by SHA-256 fingerprint) and are single-use (a Valkey replay cache keyed on the assertion ID, TTL bounded by `NotOnOrAfter`; assertions valid for more than one hour are refused); trust is one pinned PEM certificate with expiry checked, never a fingerprint; the auth hash never carries the raw response
+- `ruby-saml` is pinned exactly in the `Gemfile` with its advisory history; `bundler-audit` runs on every PR
 
 ## Codebase Reference
 
@@ -839,6 +1041,11 @@ SSO_FORM_ACTION_ORIGINS="https://authorize.example.gov"
 | `etc/defaults/auth.defaults.yaml` | Feature flag defaults |
 | `apps/web/core/views/serializers/config_serializer.rb` | `build_omniauth_config` → frontend bootstrap |
 | `lib/onetime/middleware/security.rb` | CSRF bypass for `/auth/sso/*` |
+| `lib/onetime/sso_provider/registry.rb` | Provider definitions (one file per provider under `lib/onetime/sso_provider/`) |
+| `lib/onetime/sso_provider/saml.rb` | SAML definition, validators and the single hardened-options builder shared with tenant SAML |
+| `lib/onetime/sso_provider/request_bound_saml.rb` | `OmniAuth::Strategies::RequestBoundSAML` — the SAML gates |
+| `lib/onetime/security/saml_assertion_replay_guard.rb` | Single-use assertion cache |
+| `lib/onetime/middleware/http_origin_options.rb` | Cross-site POST callback allowance (Apple, SAML) |
 
 ### Frontend
 
@@ -854,7 +1061,10 @@ SSO_FORM_ACTION_ORIGINS="https://authorize.example.gov"
 |------|----------|
 | `apps/web/auth/spec/integration/omniauth_csrf_spec.rb` | CSRF configuration |
 | `apps/web/auth/spec/unit/omniauth_domain_validation_spec.rb` | Domain restriction logic |
-| `apps/web/auth/spec/config/hooks/omniauth_spec.rb` | Email normalization |
+| `apps/web/auth/spec/config/hooks/omniauth_spec.rb` | Email normalization, SAML issuer resolution through the wired hooks |
+| `spec/unit/onetime/sso_provider/request_bound_saml_spec.rb` | SAML gates against real signed responses (`spec/support/saml/test_idp.rb`) |
+| `apps/web/auth/spec/integration/full/tenant_saml_sso_spec.rb` | Tenant SAML sign-in end to end through Rodauth |
+| `apps/web/auth/spec/integration/full_saml_platform/platform_saml_sso_spec.rb` | Platform SAML sign-in end to end, including rejection of verified-custom-domain fallback (env-configured IdP); own lane `full-saml-platform` |
 
 ## Testing
 
@@ -876,3 +1086,4 @@ pnpm test src/tests/apps/session/components/SsoButton.spec.ts
 - [rodauth-omniauth](https://github.com/janko/rodauth-omniauth)
 - [omniauth-entra-id](https://github.com/pond/omniauth-entra-id)
 - [omniauth_openid_connect](https://github.com/omniauth/omniauth_openid_connect)
+- [omniauth-saml](https://github.com/omniauth/omniauth-saml) and [ruby-saml](https://github.com/SAML-Toolkits/ruby-saml)

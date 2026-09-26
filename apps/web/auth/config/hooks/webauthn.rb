@@ -135,9 +135,13 @@ module Auth::Config::Hooks
         # {Onetime::SessionSurface} classifier the login-side surface binding
         # (#4409) uses, so the two markers agree at ceremony time. Stored as
         # JSON so a NULL is distinguishable from a legitimate descriptor and
-        # so read-side parsing can be tolerant. A nil descriptor (:invalid,
-        # unresolved :custom) is stored as NULL — the same value legacy rows
-        # carry — which {Onetime::ReauthPolicy} treats as :platform. That is
+        # so read-side parsing can be tolerant. An :invalid request is
+        # classified again, so a datastore blip still stamps the real
+        # surface. A nil descriptor (a host we do not serve, an unresolved
+        # :custom) is stored as NULL — the same value legacy rows carry —
+        # which {Onetime::ReauthPolicy} treats as :platform. An outage that
+        # leaves the surface unreadable does not get here: the session
+        # evaluator refuses the registration request first. That is
         # the right refusal shape here too: if we cannot classify the
         # registration surface, we must not later widen offer rules based on
         # a guess.

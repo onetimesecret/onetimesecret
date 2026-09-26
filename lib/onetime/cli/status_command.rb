@@ -420,7 +420,7 @@ module Onetime
       def sanitize_db_url(url)
         return url if url.start_with?('sqlite')
 
-        url.gsub(%r{://([^:@]+):([^@]+)@}, '://\1:***@')
+        OT::Utils.redact_uri_userinfo(url, keep_username: true)
       end
 
       # ─────────────────────────────────────────────────────────────────────

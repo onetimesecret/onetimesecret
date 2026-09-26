@@ -114,6 +114,23 @@ module Onetime
     #   DomainSerializer                                  no branding applied
     #   InitializeViewVars / GetFavicon                   default favicon
     #   API v1 Logic::Base#custom_domain?                 false
+    #   -- re-classified (session surface binding) --
+    #   SessionSurface.for_env                            the healthy answer
+    #                                                     (Chooserator.classify!
+    #                                                     again), or nil if that
+    #                                                     read fails too
+    #   SessionSurface.match_status                       :unavailable if the
+    #                                                     read fails again, so
+    #                                                     the session is kept
+    #   CustomerSessionEvaluator / Auth::SessionRecheck   :customer_unavailable
+    #                                                     (refused, session kept)
+    #   RecentReauth, ReauthOffer / ReauthPolicy,         the descriptor above;
+    #   WebAuthn surface_scope, OmniAuth Connect          nil refuses, as before
+    #
+    # The surface binding cannot use either rule. Reading :invalid as "no
+    # surface" destroyed every custom-domain and subdomain session on a
+    # datastore blip. It classifies the host again instead, and reports an
+    # outage that persists as an outage.
     #
     # The auth rows used to read "operator polarity": they chose their branch
     # on `== :custom`, so a case-2 :invalid INVERTED the default — custom
@@ -427,6 +444,33 @@ module Onetime
           #
           # @return [Classification]
           def classify(request_domain, canonical_domains, anchor_domains: nil)
+            classify!(request_domain, canonical_domains, anchor_domains: anchor_domains)
+          rescue StandardError => ex
+            # Names, not objects: a PublicSuffix::Domain inspects to its ivars
+            # and reads as noise in the log line.
+            hosts = canonical_domains.is_a?(Array) ? canonical_domains : [canonical_domains]
+            Onetime.http_logger.error 'Unhandled error in domain strategy',
+              {
+                exception: ex,
+                request_domain: host_label(request_domain),
+                canonical_domains: hosts.compact.map { |host| host_label(host) },
+              }
+            Classification.new(strategy: nil, custom_domain: nil)
+          end
+
+          # {classify} without its fail-closed rescue: a failed datastore read
+          # raises instead of classifying the host nil (→ :invalid). An
+          # unparseable host still answers nil, since that is a property of
+          # the host and not a failure.
+          #
+          # For a caller that must tell the two kinds of :invalid apart
+          # (Onetime::SessionSurface, re-classifying an :invalid request so a
+          # datastore outage does not read as "this session is on the wrong
+          # host"). The middleware keeps {classify}.
+          #
+          # @return [Classification]
+          # @raise [StandardError] when the custom-domain lookup fails
+          def classify!(request_domain, canonical_domains, anchor_domains: nil)
             canonical_domains = [canonical_domains] unless canonical_domains.is_a?(Array)
             canonical_domains = canonical_domains.compact
             # Guard against empty canonical set (can happen if class init ran before Runtime.features was set)
@@ -469,16 +513,6 @@ module Onetime
               {
                 exception: ex,
                 request_domain: host_label(request_domain),
-              }
-            Classification.new(strategy: nil, custom_domain: nil)
-          rescue StandardError => ex
-            # Names, not objects: a PublicSuffix::Domain inspects to its ivars
-            # and reads as noise in the log line.
-            Onetime.http_logger.error 'Unhandled error in domain strategy',
-              {
-                exception: ex,
-                request_domain: host_label(request_domain),
-                canonical_domains: canonical_domains.map { |host| host_label(host) },
               }
             Classification.new(strategy: nil, custom_domain: nil)
           end

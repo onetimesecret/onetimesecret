@@ -20,13 +20,6 @@ require 'spec_helper'
 #      in the class body, read back via `.resolved_middleware`, which walks
 #      the ancestor chain), plus each class's declared middleware profile.
 #
-# Not snapshotted here: the one unconditional mount Base#build_rack_app adds
-# itself, Onetime::Middleware::IsolateResponseHeaders, innermost directly
-# around the router (per-request copy of the response headers, so the
-# session commit cannot write into Otto's shared static fallback triples).
-# It is app-independent and config-independent; its behaviour is covered by
-# spec/integration/all/router_fallback_response_headers_spec.rb.
-#
 # ============================================================================
 # PROMINENT BLIND-SPOT WARNING
 # ============================================================================
@@ -60,7 +53,8 @@ require 'spec_helper'
 # tests (it triggers the full boot chain: database.rb, production config,
 # database connections). The Auth app is therefore NOT loaded or manifested
 # here; its stack is characterized INDIRECTLY instead: the class declares
-# `middleware_profile :authenticated_web` plus `use Rack::JSONBodyParser`,
+# `middleware_profile :authenticated_web`, SamlCallbackTransport::Stage,
+# and Rack::JSONBodyParser,
 # the profile's contents and resolution are covered by
 # middleware_profile_spec.rb, and the profile's config defaults (all seven
 # components ON) live in etc/defaults/config.defaults.yaml.
@@ -116,6 +110,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Onetime::Middleware::StripForwardedHost',
       'Rack::RequestId',
       'Onetime::Middleware::NormalizeContentType',
+      'Onetime::Middleware::SamlCallbackTransport::Boundary',
       'Onetime::Middleware::ValidateMultipart',
       'Rack::Parser',
       'Onetime::Session',

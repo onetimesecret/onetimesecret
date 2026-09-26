@@ -23,8 +23,8 @@
 # Security Model:
 #   - Tenant context (domain_id) stored in session during request phase
 #   - Callback validates tenant context matches (prevents redirect attacks)
-#   - Missing tenant config can either fall back to platform credentials
-#     or reject the request based on `allow_platform_fallback_for_tenants`
+#   - Missing tenant config may fall back to platform OAuth credentials under
+#     `allow_platform_fallback_for_tenants`; platform SAML stays on its pinned host
 #
 # See: docs/authentication/omniauth-sso.md (full configuration guide)
 # See: lib/onetime/models/custom_domain/sso_config.rb (per-domain SSO config)
@@ -32,8 +32,10 @@
 #
 
 require 'onetime/models/custom_domain/signin_config'
+require 'onetime/sso_provider/flow_session_keys'
 
 require_relative '../../restrict_to'
+require_relative '../../lib/public_host'
 
 module Auth::Config::Hooks
   module OmniAuthTenant
@@ -47,7 +49,18 @@ module Auth::Config::Hooks
       entra_id: %w[OmniAuth::Strategies::EntraId OmniAuth::Strategies::AzureActivedirectoryV2],
       google_oauth2: %w[OmniAuth::Strategies::GoogleOauth2],
       github: %w[OmniAuth::Strategies::GitHub],
+      # #4450. The SUBCLASS only — never the gem's OmniAuth::Strategies::SAML.
+      # Every SAML-specific gate (InResponseTo binding, issuer equality,
+      # replay cache, the scrubbed `extra`) lives in RequestBoundSAML, so
+      # injecting a tenant's trust anchors into a plain omniauth-saml strategy
+      # would run a tenant login with none of them. Compared by class NAME so
+      # this file never has to load omniauth-saml.
+      request_bound_saml: %w[OmniAuth::Strategies::RequestBoundSAML],
     }.freeze
+
+    # The strategy class whose tenant flow needs per-request SP identifiers
+    # (see .inject_saml_sp_identifiers). A name, for the same reason as above.
+    SAML_STRATEGY_CLASS = 'OmniAuth::Strategies::RequestBoundSAML'
 
     def self.configure(auth)
       # Single consumer for the validated tenant domain id. Reads the session
@@ -120,6 +133,16 @@ module Auth::Config::Hooks
         strategy          = request.env['omniauth.strategy']
         is_callback_phase = strategy&.on_callback_path?
 
+        # Neither phase: a strategy SUB-PATH. Only SAML has them — omniauth-saml
+        # runs setup_phase (and therefore this hook) from other_phase for
+        # /metadata, /slo and /spslo (saml.rb:88-109), so that the SP metadata
+        # it serves is the resolved TENANT's. Such a request must get the
+        # tenant's options but must NOT start a login: storing the tenant
+        # context below from a bare GET /auth/sso/saml/metadata would plant
+        # "a tenant flow is pending" in the session of anyone who can be made
+        # to load that URL. RE-VERIFY on an omniauth-saml bump.
+        is_request_phase = strategy.nil? || strategy.on_request_path?
+
         # OIDC strategies require an explicit redirect_uri in both the
         # authorize request and token exchange. Unlike OAuth2-based strategies,
         # omniauth_openid_connect reads client_options.redirect_uri verbatim
@@ -156,7 +179,9 @@ module Auth::Config::Hooks
           # Check if this is the platform's canonical domain.
           # Canonical domain requests are platform-level, not tenant requests,
           # so tenant fallback policy should not apply.
-          if HELPERS.canonical_domain?(host)
+          if HELPERS.canonical_domain?(host) &&
+             (!HELPERS.request_bound_platform_acs_strategy?(strategy) ||
+              Onetime::SsoProvider::Saml.platform_host?(host))
             Auth::Logging.log_auth_event(
               :omniauth_canonical_domain_request,
               level: :debug,
@@ -167,7 +192,7 @@ module Auth::Config::Hooks
           end
 
           # Non-canonical domain with no custom domain mapping - apply tenant policy
-          HELPERS.handle_missing_tenant_config(host, self)
+          HELPERS.handle_missing_tenant_config(host, self, request: request)
           HELPERS.enforce_install_discovery_issuer!(strategy, self, is_callback_phase)
           next # Continue with platform defaults (if allowed)
         end
@@ -211,7 +236,7 @@ module Auth::Config::Hooks
           )
 
           # Check if we should fall back to platform credentials
-          HELPERS.handle_missing_tenant_config(host, self)
+          HELPERS.handle_missing_tenant_config(host, self, request: request)
           HELPERS.enforce_install_discovery_issuer!(strategy, self, is_callback_phase)
           next # Continue with platform defaults (if allowed)
         end
@@ -225,7 +250,7 @@ module Auth::Config::Hooks
         # Store tenant context in session for callback validation.
         # Only during request phase — callback phase must NOT overwrite the
         # stored context, otherwise the mismatch check is defeated.
-        unless is_callback_phase
+        if is_request_phase && !is_callback_phase
           session[:omniauth_tenant_domain_id] = custom_domain.identifier
           session[:omniauth_tenant_host]      = host
         end
@@ -286,8 +311,56 @@ module Auth::Config::Hooks
         expected_domain_id = session.delete(:omniauth_tenant_domain_id)
         expected_host      = session.delete(:omniauth_tenant_host)
 
-        # If no tenant context was stored, this was a platform-level auth
-        # (no tenant credentials were injected). Allow it to proceed.
+        # Tenant options were injected by HOST on this very callback
+        # (omniauth_setup caches the record it injected from), yet no tenant
+        # flow is pending in the session. A platform-path outcome is never
+        # legitimate here: the strategy just ran with a tenant's trust
+        # anchors, so treating the result as a platform sign-in would skip
+        # the tenant-mismatch check, the email-domain allowlist and the
+        # tenant identity scope. The only ways to arrive are a refused or
+        # superseded request whose per-strategy binding leaked past the
+        # marker cleanup, or a session that lost its markers — both must
+        # fail closed. Belt to the refusal paths' clear_pending_tenant_context.
+        #
+        # No carve-out for anonymous sessions or for Connect. A tenant Connect
+        # callback whose session the router already destroyed lands here too
+        # and is refused with the same 403 (omniauth_connect_link_spec.rb,
+        # "tenant connect callback pipeline"); in production OmniAuth's state
+        # check refuses it first, and only mock mode reaches this branch.
+        # Exempting the anonymous case would reopen the platform path in the
+        # one state this belt exists to close.
+        injected_config = request.env['onetime.tenant_sso_config']
+        if expected_domain_id.nil? && injected_config
+          Auth::Logging.log_auth_event(
+            :omniauth_tenant_context_missing,
+            level: :warn,
+            host: HELPERS.public_host(request),
+            domain_id: injected_config.domain_id,
+            ip: request.ip,
+            session_id_hash: Digest::SHA256.hexdigest(session.id.to_s)[0, 16],
+          )
+
+          response.status          = 403
+          response['Content-Type'] = 'application/json'
+          response.write(
+            JSON.generate(
+              error: 'tenant_context_missing',
+              message: 'Authentication context missing',
+            ),
+          )
+          request.halt
+        end
+
+        # Refuse platform SAML off its pinned host even if a strategy bypassed
+        # setup. This runs before linked-identity lookup, not only JIT creation.
+        if !injected_config &&
+           Onetime::SsoProvider::Registry.request_bound_platform_acs_route?(omniauth_provider) &&
+           !Onetime::SsoProvider::Saml.platform_host?(HELPERS.public_host(request))
+          HELPERS.clear_pending_tenant_context(session)
+          redirect '/signin?auth_error=sso_not_configured'
+        end
+
+        # No tenant context means platform-level auth.
         next unless expected_domain_id
 
         # Resolve current request's tenant context
@@ -374,8 +447,15 @@ module Auth::Config::Hooks
         # session never reaches the existing-account join in hooks/login.rb.
         # The instance variable is the copy that survives that reset; both are
         # read and cleared together by consume_validated_omniauth_domain_id.
+        #
+        # @omniauth_identity_scope_domain_id is a THIRD copy that nothing
+        # consumes (#4450): the identity-key scope for a tenant SAML callback,
+        # read by omniauth_identity_scope_domain_id (features/omniauth.rb) when
+        # the insert/update hashes are built — which rodauth-omniauth does
+        # AFTER after_omniauth_create_account has consumed the two above.
         session[:validated_omniauth_domain_id] = expected_domain_id
         @validated_omniauth_domain_id          = expected_domain_id
+        @omniauth_identity_scope_domain_id     = expected_domain_id
 
         Auth::Logging.log_auth_event(
           :omniauth_tenant_callback_validated,
@@ -668,33 +748,173 @@ module Auth::Config::Hooks
     # Handle requests where no tenant SSO config is available.
     # Either allows fallback to platform credentials or rejects.
     #
+    # Even when fallback is allowed, any NON-REQUEST phase (the callback,
+    # and the SAML /metadata and /slo sub-paths) that still carries pending
+    # tenant markers is refused: it belongs to a tenant flow whose config
+    # went away mid-flow, not to a platform-fallback flow (see the rule on
+    # clear_pending_tenant_context). Keyed on "not the request path" on
+    # purpose: a pending tenant flow has nothing to gain from platform
+    # metadata either, and one rule for every non-request phase is simpler
+    # than enumerating sub-paths.
+    #
     # Configured via auth_config.allow_platform_fallback_for_tenants?, but
     # fallback also requires the AUTH_ENABLED master switch: platform
     # credentials must not process sign-ins the app would ignore anyway
     # (SigninConfig.global_auth_enabled false → every session reads as
     # unauthenticated), so a global kill always takes the reject path.
     #
+    # The fallback policy governs TENANT hosts only. A canonical-set host
+    # (see canonical_domain?) reaches this helper when a CustomDomain record
+    # is keyed on it (site.host or a link host moved onto a host a tenant had
+    # already registered): omniauth_setup reads the record before it asks
+    # whether the host is canonical, so the stale record routes an operator
+    # host down the tenant path. The platform providers are that host's OWN,
+    # and the display gate (ConfigSerializer#build_sso_config) advertises
+    # them on an operator host without consulting the policy, so the policy
+    # must not refuse them here either. The master switch still applies.
+    #
+    # Platform SAML is restricted to its pinned platform host on EVERY phase.
+    # Domain ownership verification does not authorize a tenant to receive
+    # platform assertions. Neither the ACS nor the platform EntityID is rebound.
+    #
     # @param host [String] Request hostname for logging
-    # @param rodauth [Rodauth] Rodauth instance (for throw_error_status)
+    # @param rodauth [Rodauth] Rodauth instance (for redirect)
+    # @param request [Rack::Request, nil] current request; nil preserves the
+    #   generic policy helper contract for non-SAML callers
     # @raise [Rodauth::Error] if fallback not allowed
-    def self.handle_missing_tenant_config(host, rodauth)
-      if Onetime.auth_config.allow_platform_fallback_for_tenants? &&
-         Onetime::CustomDomain::SigninConfig.global_auth_enabled
-        Auth::Logging.log_auth_event(
-          :omniauth_tenant_fallback_to_platform,
-          level: :debug,
-          host: host,
-        )
-        return # Continue with platform defaults
+    def self.handle_missing_tenant_config(host, rodauth, request: nil)
+      operator_host    = canonical_domain?(host)
+      fallback_allowed = Onetime::CustomDomain::SigninConfig.global_auth_enabled &&
+                         (operator_host || Onetime.auth_config.allow_platform_fallback_for_tenants?)
+
+      if fallback_allowed
+        strategy = request&.env&.fetch('omniauth.strategy', nil)
+        if !request_bound_platform_acs_strategy?(strategy) ||
+           Onetime::SsoProvider::Saml.platform_host?(host)
+          if strategy&.on_request_path?
+            # A new platform start supersedes whatever tenant flow was pending.
+            clear_pending_tenant_context(rodauth.session)
+          elsif strategy && pending_tenant_flow?(rodauth.session)
+            # Non-request phase (callback, /metadata, /slo) with tenant markers
+            # still pending: this response belongs to a TENANT flow whose
+            # config is gone (record disabled
+            # or deleted between request and callback). Running it with the
+            # platform defaults would let the retained markers stamp it as a
+            # validated tenant callback and join the tenant organization on
+            # the strength of the platform IdP's assertion. Drop the whole
+            # flow and refuse; without markers the callback is the legitimate
+            # platform-fallback flow this helper started, and its own
+            # binding is left alone.
+            clear_pending_tenant_context(rodauth.session)
+
+            Auth::Logging.log_auth_event(
+              :omniauth_tenant_no_config,
+              level: :warn,
+              host: host,
+              pending_tenant_flow_dropped: true,
+            )
+
+            rodauth.send(:redirect, '/signin?auth_error=sso_not_configured')
+          end
+
+          Auth::Logging.log_auth_event(
+            operator_host ? :omniauth_canonical_domain_stale_record : :omniauth_tenant_fallback_to_platform,
+            level: :debug,
+            host: host,
+          )
+          return # Continue with platform defaults
+        end
       end
+
+      # Refused. The same rule as the fallback arm: whatever tenant flow was
+      # pending is dropped with the refusal, on every phase. Nothing of a
+      # request being started has been written yet (setup_phase precedes
+      # request_phase), and a pending binding has no legitimate use after a
+      # refusal — the response the browser was carrying is gone with the
+      # redirect, and a binding left behind is exactly what the
+      # tenant_context_missing belt exists to catch. Only the strategy
+      # callers pass a request; the policy-only contract (request: nil) has
+      # no session to drop.
+      pending_tenant_flow_dropped = !request.nil? && pending_tenant_flow?(rodauth.session)
+      clear_pending_tenant_context(rodauth.session) unless request.nil?
 
       Auth::Logging.log_auth_event(
         :omniauth_tenant_no_config,
         level: :warn,
         host: host,
+        pending_tenant_flow_dropped: pending_tenant_flow_dropped,
       )
 
       rodauth.send(:redirect, '/signin?auth_error=sso_not_configured')
+    end
+
+    # Are tenant markers pending in this session (a tenant request phase ran
+    # and no callback has consumed them yet)? Both key forms: the markers are
+    # written as symbols, the live Rack session stringifies them, and a plain
+    # Hash standing in for the session (unit specs) does not.
+    #
+    # @param session [#[]] the Rack session (or a Hash standing in for it)
+    # @return [Boolean]
+    def self.pending_tenant_flow?(session)
+      !(session[:omniauth_tenant_domain_id] || session['omniauth_tenant_domain_id']).nil?
+    end
+
+    # Drop the whole pending tenant context: the tenant markers AND the
+    # per-strategy binding the request phase parked (the pending SAML
+    # AuthnRequest id, the OAuth/OIDC state / nonce / PKCE verifier / params).
+    # They go together, always.
+    #
+    # THE RULE. A tenant flow whose config is refused or gone at ANY phase
+    # drops the whole pending context; a platform-fallback flow's own binding
+    # is never touched. Three callers apply it:
+    #
+    #   - handle_missing_tenant_config, request path: a new platform start
+    #     supersedes any abandoned tenant request in the same session.
+    #   - handle_missing_tenant_config, any non-request phase WITH pending
+    #     markers (callback, /metadata, /slo):
+    #     the response belongs to a tenant flow whose config disappeared
+    #     mid-flow; it is dropped and refused. Without markers the callback
+    #     is the platform-fallback flow this helper itself started, and its
+    #     binding is retained so it can complete.
+    #   - handle_missing_tenant_config, fallback DENIED, every phase: the
+    #     refusal drops whatever was pending, so no binding outlives it.
+    #   - refuse_unusable_tenant_config, every phase: a record that cannot
+    #     produce options refuses the flow outright.
+    #
+    # The markers alone are not enough. before_omniauth_callback_route reads
+    # a missing :omniauth_tenant_domain_id as "platform-level auth" and skips
+    # the tenant-mismatch check, enforce_tenant_email_domain!, and the
+    # :validated_omniauth_domain_id stamp. If the binding survived, the
+    # abandoned IdP tab could still complete later (InResponseTo naming the
+    # old request id, once the tenant config is available again) and be
+    # processed on the platform path: allowlist never consulted, identity
+    # keyed by the bare EntityID. With the binding gone that response is
+    # refused at the strategy (saml_no_pending_request / state mismatch),
+    # which is the fail-closed outcome the pre-fallback code had — and the
+    # tenant_context_missing refusal in before_omniauth_callback_route is
+    # the belt should a binding ever outlive its markers regardless.
+    #
+    # Ordering: this runs in omniauth_setup, i.e. OmniAuth::Strategy#setup_phase,
+    # which request_call invokes BEFORE it writes omniauth.params and before
+    # request_phase writes the new state / request id — so nothing of the
+    # request being started is touched. The markers themselves are rewritten
+    # by the next tenant request phase, or stay absent for a platform one.
+    #
+    # Key forms match each writer: the tenant markers are written as symbols
+    # here; the binding keys are the strategies' string literals (see
+    # Onetime::SsoProvider::FlowSessionKeys). The live session stringifies
+    # both, but the delete uses the writer's form regardless.
+    def self.clear_pending_tenant_context(session)
+      session.delete(:omniauth_tenant_domain_id)
+      session.delete(:omniauth_tenant_host)
+      Onetime::SsoProvider::FlowSessionKeys::ALL.each { |key| session.delete(key) }
+    end
+
+    # True for a registered SAML provider whose platform ACS is host-pinned.
+    def self.request_bound_platform_acs_strategy?(strategy)
+      return false unless strategy&.class&.name == SAML_STRATEGY_CLASS
+
+      Onetime::SsoProvider::Registry.request_bound_platform_acs_route?(strategy.options[:name])
     end
 
     # Inject tenant credentials into the OmniAuth strategy.
@@ -710,7 +930,20 @@ module Auth::Config::Hooks
       strategy = request.env['omniauth.strategy']
       return unless strategy
 
-      options = sso_config.to_omniauth_options
+      # A record that cannot produce usable options is REFUSED — never handed
+      # to handle_missing_tenant_config, whose platform-fallback arm would run
+      # this tenant's login through the PLATFORM's IdP: a broken record must
+      # be reported as broken (sso_config_unusable), never silently downgraded
+      # to a platform sign-in on the tenant's host. Today only the SAML arm raises
+      # here: an unreadable (AAD-bound) or unusable trio — blank field,
+      # non-https URL, unparseable or EXPIRED certificate (#4450). A SAML
+      # strategy with a half-known trust anchor must not run at all; ruby-saml
+      # answers a blank EntityID by SKIPPING issuer validation.
+      options = begin
+        sso_config.to_omniauth_options
+      rescue Onetime::Problem => ex
+        refuse_unusable_tenant_config(sso_config, ex, rodauth)
+      end
 
       # Extract the strategy-specific options (excluding :strategy and :name keys
       # which are used for provider registration, not runtime configuration)
@@ -747,10 +980,97 @@ module Auth::Config::Hooks
       # This modifies the strategy's options hash in place
       merge_strategy_options(strategy, options)
 
+      # SAML: our SP identifiers for THIS public host (#4450)
+      inject_saml_sp_identifiers(strategy)
+
       # For OIDC strategies, clear memoized discovery data
       # The strategy may have cached the discovery document and client
       # from boot-time configuration; we need fresh instances.
       clear_oidc_memoization(strategy)
+    end
+
+    # Refuse a tenant flow whose SsoConfig cannot produce strategy options.
+    #
+    # Drops the WHOLE pending context first — the tenant markers AND the
+    # per-strategy binding (clear_pending_tenant_context) — so the refusal
+    # leaves nothing in the session for a later callback to complete. The
+    # markers alone are not enough: a pending SAML AuthnRequest id that
+    # survived a refused request could still be answered once the record is
+    # repaired, and with the markers gone before_omniauth_callback_route
+    # would read that answer as a platform-level sign-in. Fail closed: a
+    # response bound to a request that was refused is refused too, on every
+    # phase this runs on (request, callback, /metadata). Then redirects
+    # to /signin with auth_error=sso_config_unusable — NOT the
+    # sso_not_configured landing the missing-config path uses. A record
+    # exists and is advertised (the availability ladder never checks
+    # certificate expiry, on purpose: an expiry rung would feed the
+    # restrict_to pin and could re-open password sign-in on an SSO-only
+    # host), so "not configured" would send the visitor to the wrong fix.
+    # The audit event is distinct and at :error: this is a broken record an
+    # operator must fix, not a policy outcome. Scalars only; the Problem
+    # message is built from fixed strings in the model (field names, a
+    # certificate expiry date, an exception class name) and never carries
+    # field content.
+    #
+    # @param sso_config [Onetime::CustomDomain::SsoConfig]
+    # @param error [Onetime::Problem]
+    # @param rodauth [Rodauth] Rodauth instance (for session + redirect)
+    # @return [void] never returns normally — redirect halts the request
+    def self.refuse_unusable_tenant_config(sso_config, error, rodauth)
+      Auth::Logging.log_auth_event(
+        :omniauth_tenant_config_unusable,
+        level: :error,
+        domain_id: sso_config.domain_id,
+        provider_type: sso_config.provider_type,
+        error: error.message,
+      )
+
+      clear_pending_tenant_context(rodauth.session)
+
+      rodauth.send(:redirect, '/signin?auth_error=sso_config_unusable')
+    end
+
+    # Derive the SAML SP identifiers for a TENANT flow from the request's
+    # public host (#4450).
+    #
+    #   assertion_consumer_service_url = full_host + callback_path
+    #   sp_entity_id                   = full_host + request_path + '/metadata'
+    #
+    # The platform definition's sp_entity_id is a boot-time constant naming
+    # the canonical host. A tenant's IdP is configured against the TENANT's
+    # domain, so both values must name the host the visitor is actually on —
+    # and must be identical on the request phase (written into the
+    # AuthnRequest), the callback phase (ruby-saml validates the response's
+    # Audience against sp_entity_id and its Destination/Recipient against the
+    # ACS URL), and the /metadata sub-path (what the tenant's IdP admin
+    # imports). This hook runs on all three and derives them the same way
+    # each time. sp_entity_id is the URL the metadata is served from — the
+    # convention IdP admins expect, and the same shape as the platform
+    # default (Onetime::SsoProvider::Saml.platform_sp_entity_id).
+    #
+    # `strategy.full_host` is the PUBLIC host (the override installed in
+    # features/omniauth.rb, #4224) — never request.host, which behind a
+    # Host-rewriting proxy is the origin target, a host the tenant's IdP has
+    # never heard of. The API serializer shows the admin the same two values
+    # (DomainsAPI::Logic::SsoConfig::Serializers#saml_sp_identifiers); keep
+    # the path shapes in step.
+    #
+    # Runs ONLY after tenant options were injected: a platform SAML flow
+    # keeps the platform's registered sp_entity_id, pinned to site.host at
+    # boot (Onetime::SsoProvider::Saml.platform_options), and its ACS stays
+    # boot-pinned on the canonical host. Platform SAML on any other host is
+    # refused by handle_missing_tenant_config, even for verified custom domains.
+    #
+    # @param strategy [OmniAuth::Strategy] The active strategy
+    # @return [void]
+    def self.inject_saml_sp_identifiers(strategy)
+      # By NAME on purpose (see SAML_STRATEGY_CLASS): instance_of? would need
+      # the constant, and with it omniauth-saml, loaded in every process.
+      return unless strategy.class.name == SAML_STRATEGY_CLASS # rubocop:disable Style/ClassEqualityComparison
+
+      base                                              = strategy.full_host
+      strategy.options[:assertion_consumer_service_url] = base + strategy.callback_path
+      strategy.options[:sp_entity_id]                   = "#{base}#{strategy.request_path}/metadata"
     end
 
     # Check if the active OmniAuth strategy matches the expected type.
@@ -768,6 +1088,16 @@ module Auth::Config::Hooks
     end
 
     # Merge options into the strategy, handling nested client_options.
+    #
+    # Only :client_options is merged key-by-key (the OIDC redirect_uri set
+    # earlier in omniauth_setup must survive). Every other value — including
+    # SAML's nested :security hash (#4450) — REPLACES what the strategy was
+    # registered with, and for :security that is the required behaviour, not
+    # an accident: the tenant arm always supplies the FULL hardened hash from
+    # the shared builder, so replacement can only ever install the complete
+    # set, whereas a key-by-key merge would let a future registered key the
+    # tenant hash lacks survive into a tenant flow. Pinned in
+    # omniauth_tenant_helpers_spec.
     #
     # @param strategy [OmniAuth::Strategy] The active strategy
     # @param options [Hash] Options to merge

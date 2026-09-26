@@ -140,6 +140,23 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 | 4 | `CustomDomain::SsoConfig.find_by_domain_id(domain_id)` | SSO credentials |
 | 5 | `domain_config.to_omniauth_options` | OmniAuth strategy injection |
 
+A record that cannot produce usable options — today only a `saml` record with
+an unreadable or unusable trio, including an expired certificate — is refused
+at step 5: the hook logs `omniauth_tenant_config_unusable` at error level,
+clears the pending tenant context and redirects to
+`/signin?auth_error=sso_config_unusable`. It never falls back to platform SSO
+for that request, because the tenant context stored a moment earlier would
+still stamp the callback as validated for the domain.
+
+For `saml`, step 5 is followed by per-request injection of the tenant SP
+identifiers derived from the request's public host (`strategy.full_host`):
+the ACS URL and the SP EntityID (see
+[SAML 2.0 for a custom domain](#saml-20-for-a-custom-domain)). Platform SAML,
+by contrast, keeps both identifiers pinned and is never offered as a custom-domain
+fallback, even on verified domains. The tenant context is
+stored in the session only on the request phase; the strategy's `/metadata`
+sub-path resolves the tenant's options but does not start a sign-in.
+
 ### Tenant callback validation
 
 During the request phase, `omniauth_setup` stores the initiating custom-domain ID
@@ -602,6 +619,132 @@ regression matrix above stays green. A pipeline whose controls are not
 demonstrated together could allow a tenant-controlled IdP to become a login
 method for an account outside the tenant authorization boundary.
 
+## SAML 2.0 for a Custom Domain
+
+Provider type `saml` (#4450). The domain's SSO configuration holds the IdP
+trio instead of an OAuth client credential. The runtime strategy is the same
+`OmniAuth::Strategies::RequestBoundSAML` subclass, with the same hardened
+options, as platform SAML — the gates and refusal codes in
+[per-install-sso.md](per-install-sso.md#saml-20-1) apply unchanged.
+
+| Field | Required | Rules |
+|-------|----------|-------|
+| `idp_sso_service_url` | yes | `https://` URL with no userinfo, no fragment (ruby-saml appends `?SAMLRequest=` by concatenation, so a `#…` would swallow it), no trailing dot on the host, whose origin is CSP-safe (a plain hostname — no spaces, quotes or punctuation in the host). The server never fetches it (the browser is redirected to it), so unlike an OIDC issuer it gets no SSRF host check and an IdP on a private network is accepted; its origin is admitted into this domain's CSP `form-action` and `HttpOrigin` allowances |
+| `idp_entity_id` | yes | The IdP's EntityID exactly as it sends it in `<Issuer>`. Surrounding whitespace is stripped on input; the stored value is compared byte for byte at every sign-in. Identities from this domain are keyed on it **scoped to the domain** (`"<domain_id>\|<EntityID>"`), never on the bare EntityID — see below |
+| `idp_cert` | yes | Exactly one PEM `-----BEGIN CERTIFICATE-----` block that parses as X.509 and is inside its validity window when saved (not expired, not yet valid). CRLF and the literal-`\n` single-line form are accepted |
+
+`client_id`, `client_secret`, `issuer` and `tenant_id` are neither required
+nor stored for `saml` — a `PUT` or `PATCH` clears whichever side the provider
+type does not use, so an unvalidated credential never waits on the record for
+a later type switch. Switching *to* `saml` needs the full trio; switching away
+needs `client_id` again. `idp_cert_fingerprint`,
+`idp_cert_fingerprint_algorithm` and `idp_cert_multi` are refused with `422`
+for every provider type.
+
+The three fields are `encrypted_field`s bound to the domain id (AAD). They
+are not secrets — the API returns them in plaintext — but together they are
+the domain's trust anchor, and the binding means a value copied from another
+domain's record fails to decrypt instead of silently pointing this domain's
+sign-ins at another IdP. A reveal failure is an error state, never "unset":
+the serializer lists such fields in `unreadable_fields`, the SSO form shows
+them as needing re-entry, and a sign-in through the record is refused.
+
+The identity key follows the same boundary. An EntityID is an unauthenticated
+name: the domain admin asserts it alongside their own signing certificate, and
+nothing outside the record vouches for the pair (an OIDC issuer, by contrast,
+is tied to an origin by discovery). So a tenant SAML identity is keyed
+`(route, "<domain_id>|<EntityID>", NameID)` — the EntityID scoped to the
+domain whose record pinned the certificate — rather than on the bare
+EntityID, which platform rows and other domains' rows would share. Two domains
+that name the same IdP therefore get separate identities and accounts, and a
+domain that configures another IdP's EntityID with its own certificate can
+match nothing but its own rows. `bin/ots sso backfill-issuer` refuses `saml`
+domains outright, with or without `--issuer` (see below).
+
+### What to register at the IdP
+
+The SP identifiers are derived per request from the domain's public host, and
+the API returns them read-only as `sp_entity_id` and `acs_url` (the SSO form
+shows them under "Service provider details"):
+
+| IdP setting | Value |
+|-------------|-------|
+| SP EntityID / Audience ("SP Entity ID (metadata URL)" in the form) | `https://{custom-domain}/auth/sso/saml/metadata` |
+| Assertion Consumer Service URL, HTTP-POST binding | `https://{custom-domain}/auth/sso/saml/callback` |
+| SP metadata | `https://{custom-domain}/auth/sso/saml/metadata` |
+
+`saml` here is the platform route name (`SAML_ROUTE_NAME`); the API's values
+already reflect an override. The metadata URL is authoritative: the API
+composes the two values from the domain's `display_domain` and `site.ssl`,
+while the sign-in hook uses the public host of the actual request. They agree
+for a verified custom domain served on the default port. For an unverified
+domain the public-host resolution falls back to the request's own authority,
+so verify the domain before configuring the IdP.
+
+The default requested NameID format is persistent. Tenant `name_id_format`
+can request another supported format or omit the policy; the transient format
+is rejected at save time, and a transient response is refused at login, because
+there is no per-domain stable UID attribute override. Changing the format
+re-keys existing identities (the NameID is the identity key); the change is
+recorded at WARN in the audit log. See [SAML policy settings](saml-policy.md)
+for the API fields, supported values, and the re-keying note.
+Assertions must use RSA-SHA256/384/512 signatures and SHA-256/384/512 digests;
+ECDSA is unsupported. Supply the email as an attribute named `email` or `mail`.
+IdP-initiated sign-in and single logout are not supported.
+
+The install must use a host-only session cookie with
+`site.session.same_site: lax` or `none` and `secure: true`; `strict` is
+unsupported. The callback stages the cookieless POST and redirects to a GET
+that recovers the initiating session. See [SAML callback transport](saml-callback-transport.md).
+Because an organization admin cannot change the install's cookie, the API
+refuses SAML creation or re-enablement while it is incompatible (422 on
+`provider_type`). Existing records retain disable, repair, replacement, and
+delete recovery paths.
+
+### Validation, test and expiry
+
+- **Test connection** for `saml` is local. The URL, EntityID and certificate
+  are checked without contacting the IdP, and a success reports the
+  certificate subject, its `not_after` date and days remaining. Success means
+  `PUT`/`PATCH` will accept the same values; a failure carries
+  `details.error_code` (`invalid_sso_url`, `invalid_entity_id`,
+  `invalid_certificate`, `certificate_expired`, `certificate_not_yet_valid`)
+  and `details.field`; a certificate outside its validity window also carries
+  `details.certificate_not_before` and `details.certificate_not_after` (ISO
+  8601).
+- **Expiry after save** does not invalidate the record: it stays editable and
+  can be disabled (the API re-validates the whole record on every `PATCH`, so
+  an expiry invariant would make an expired config impossible to turn off).
+  Every sign-in through it is refused with `sso_config_unusable` and the
+  `omniauth_tenant_config_unusable` audit event until a current certificate
+  is saved. Only one certificate is trusted at a time; there is no overlap
+  window for rotation.
+- **Identity key** is `(route, "<domain_id>|<idp_entity_id>", NameID)` — the
+  EntityID scoped to this domain, never the bare EntityID (see the identity
+  key discussion at the top of this section). Changing
+  `idp_entity_id` changes the key for this domain only and orphans the
+  domain's existing identities. `bin/ots sso backfill-issuer` refuses `saml`
+  domains outright, with or without `--issuer`: the legacy `''` rows on a
+  shared route hold OAuth/OIDC `sub` values from the domain's previous
+  provider, and a SAML uid is a NameID — a different namespace, so stamping
+  the SAML issuer onto those rows would let a NameID that collides with an
+  old `sub` resolve to that account. Tenant SAML postdates migration 008, so
+  no legitimate saml `''` rows exist; a switch to `saml` needs an explicit
+  per-account subject → NameID mapping, which the tool does not provide.
+- **Provider metadata** is `requires_domain_filter: true`,
+  `idp_controls_access: false`, the same posture as generic OIDC: "SAML"
+  names a protocol, not an IdP, so an email-domain allowlist is recommended
+  unless the IdP itself restricts which users may reach the application.
+
+### Origins
+
+CSP `form-action` and the `HttpOrigin` allowance for the cross-site POST
+callback are both derived from the record's `idp_sso_service_url` origin
+(`Onetime::AuthConfig::TENANT_ORIGIN_SOURCE_FIELDS`, `oidc` → `issuer`,
+`saml` → `idp_sso_service_url`), never from the EntityID, and only on that
+domain's host. There is no per-domain override; an IdP whose login page posts
+back from a different origin than its SSO service URL cannot be used.
+
 ## OIDC for sovereign Microsoft Entra tenants
 
 Per-domain `entra_id` uses the commercial Microsoft authority and cannot be
@@ -685,9 +828,13 @@ previously configured tenant that was pointed at the wrong cloud.
 | SSO tab missing | `manage_sso` is not materialized for the organization | Add it to `billing.yaml`, then run `bin/ots billing catalog sync` |
 | Mismatch between YAML key and plan | Root uses `sso`, plan uses `manage_sso` | Use consistent naming (`manage_sso`) |
 | SSO configured but login fails | No custom domain with SSO config | Add custom domain and configure SSO |
-| Platform SSO used instead of domain SSO | Accessing via canonical domain | Use domain's custom URL |
 | Test Connection fails with `issuer_mismatch` (OIDC only) | The configured issuer is not exactly the discovery document's `issuer`. The comparison is exact, including any trailing slash (Auth0 uses one) | Set the Issuer URL to the **Discovered Issuer** value shown in the result, character for character, and test again |
 | Test Connection fails with `discovery_too_large` | The discovery document is larger than the 256 KiB limit | Check that the issuer URL points at the IdP, not at a page that returns a large document |
+| Platform SSO used instead of domain SSO | The custom domain has no active tenant SSO configuration and `SSO_ALLOW_PLATFORM_FALLBACK=true` | Configure and enable tenant SSO for the domain, or disable platform fallback. Platform SAML is excluded from this fallback |
+| SAML sign-in lands on `sso_config_unusable` | The domain's SAML record is unusable: expired certificate, or a field that no longer decrypts | Check the `omniauth_tenant_config_unusable` log event; save a current certificate or re-enter the flagged fields |
+| SAML save refused: "SAML sign-in cannot complete on this install: site.session.same_site is …" | The install's session cookie is not Secure with SameSite=Lax or None; creation and re-enablement are refused | The operator sets `site.session.same_site: lax` or `none` with `secure: true` (see [per-install-sso.md](per-install-sso.md#saml-20-1)) and restarts; boot logs the same rule as `[OmniAuth] SAML is enabled … but …` only for the tenant placeholder (`ORGS_SSO_ENABLED=true`, no platform `SAML_*` vars) — with platform `SAML_*` vars set the boot line is `[OmniAuth] Skipping SAML provider 'saml': …` instead |
+| SAML save refused: "must have a plain hostname (no spaces, quotes or punctuation in the host)", "must not contain a fragment" or "host must not end with a dot" | The SSO URL's host carries characters the CSP `form-action` directive cannot carry, or a trailing dot that the derived origin would strip (the browser would then POST from an origin that was never admitted) | Enter the IdP's SSO URL with a plain hostname. Private-network IdPs are accepted: the server never fetches this URL |
+| SAML callback returns 403 | The POST's `Origin` is neither the applicable SSO-service origin nor an explicit tenant `callback_origins` entry, or the domain has no active tenant SAML configuration | See [Custom-Domain POST Returns 403](#custom-domain-post-returns-403-httporigin) |
 
 ### SSO Login Blocked on Chromium-Family Browsers (CSP `form-action`)
 
@@ -695,7 +842,7 @@ previously configured tenant that was pointed at the wrong cloud.
 
 **Cause:** The sign-in page posts to `/auth/sso/{provider}`, which redirects to the domain's IdP authorization endpoint. CSP must permit that IdP destination as well as the initial same-origin form target.
 
-**Normal behavior:** The application resolves the domain's enabled SSO configuration per request and adds its IdP origin to `form-action` only for that domain's response. Standard tenant OIDC configurations whose issuer and authorization endpoint share an origin, and commercial-cloud tenant Entra configurations, require no environment configuration.
+**Normal behavior:** The application resolves the domain's enabled SSO configuration per request and adds its IdP origin to `form-action` only for that domain's response. Standard tenant OIDC configurations whose issuer and authorization endpoint share an origin, tenant SAML configurations (origin of `idp_sso_service_url`), and commercial-cloud tenant Entra configurations, require no environment configuration.
 
 **Exceptions:**
 
@@ -716,6 +863,19 @@ Operational triage — the `TenantCspExtras` log signals, how to read the emitte
 This is separate from CSP. `HttpOrigin` validates the **source** of `POST /auth/sso/{provider}`; CSP `form-action` validates the IdP **destination** after the redirect.
 
 With proxies that rewrite `Host` to the canonical host while forwarding the public custom domain in a trusted header, older installations can reject custom-domain SSO requests with `403` and `attack prevented by Rack::Protection::HttpOrigin`. Upgrade to the release containing #4170. The fix compares `Origin` with the request's resolved `env['onetime.display_domain']`; do not work around this by maintaining a custom-domain origin allowlist in environment configuration.
+
+A SAML **callback** is a second case: the IdP posts the response cross-site,
+so its `Origin` is the IdP's, not the domain's. `HttpOrigin` admits a POST to
+the tenant's resolved SAML callback route when the `Origin` equals the
+origin derived from its `idp_sso_service_url`, or an explicit
+`callback_origins` entry. Additional origins are callback-only; they do not
+widen CSP or other routes. Literal `Origin: null` is denied by default;
+only the deployment operator can enable the
+[scoped null-origin exception](saml-policy.md#operator-opt-in-for-literal-origin-null)
+with `SAML_ALLOW_NULL_ORIGIN=true`. The tenant API cannot enable it. A missing
+Origin retains the middleware's existing behavior. Platform SAML is not
+available as a custom-domain fallback. The tenant allowance denies on uncertainty, including an
+unverified custom domain, an unreadable tenant record, or a datastore error.
 
 ## Related Configuration
 
@@ -783,6 +943,7 @@ When billing is enabled, the organization must have the `manage_sso` entitlement
 - [Issue #3849](https://github.com/onetimesecret/onetimesecret/issues/3849) - authenticated tenant-surface identity linking requirements; enabled by #4427
 - [OmniAuth Tenant Resolution](../../apps/web/auth/config/hooks/omniauth_tenant.rb) - runtime credential injection
 - [CustomDomain::SsoConfig Model](../../lib/onetime/models/custom_domain/sso_config.rb) - per-domain SSO storage
+- [RequestBoundSAML](../../lib/onetime/sso_provider/request_bound_saml.rb) - the SAML strategy and its gates (#4450)
 - [Billing Catalog Management](../../apps/web/billing/docs/catalog-api-design.md)
 - [Entitlements System](../authorizations/membership-entitlements.md)
 - [STANDALONE_ENTITLEMENTS](../../lib/onetime/models/features/with_entitlements.rb)

@@ -33,6 +33,7 @@ module LaneEnv
   LANES = {
     'ORGS_SSO_ENABLED' => 'spec:integration:full',
     'AUTH_MFA_ENABLED' => 'spec:integration:full:mfa',
+    'SAML_IDP_ENTITY_ID' => 'spec:integration:full:saml_platform',
   }.freeze
 
   class MissingLaneEnv < StandardError; end

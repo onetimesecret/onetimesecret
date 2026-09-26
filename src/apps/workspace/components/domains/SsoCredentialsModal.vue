@@ -38,6 +38,7 @@
   const emit = defineEmits<{
     (e: 'close'): void;
     (e: 'save'): void;
+    (e: 'disable'): void;
     (e: 'delete'): void;
     (e: 'test'): void;
     (e: 'discard'): void;
@@ -128,6 +129,7 @@
                 :test-result="testResult"
                 :test-error="testError"
                 @save="emit('save')"
+                @disable="emit('disable')"
                 @delete="emit('delete')"
                 @test="emit('test')"
                 @discard="emit('discard')" />

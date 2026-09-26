@@ -13,6 +13,7 @@ require 'onetime/application/error_correlation'
 require 'onetime/models/custom_domain/signin_config'
 require 'onetime/session/customer_session_evaluator'
 require 'onetime/session/failure_code'
+require 'onetime/sso_provider/flow_session_keys'
 
 require_relative 'config'
 require_relative 'error_translator'
@@ -229,11 +230,13 @@ module Auth
       :refused
     end
 
-    # The Rack-session keys OmniAuth parks during the request phase of an
-    # SSO flow and consumes in the callback (omniauth-oauth2 and
-    # omniauth_openid_connect). Clearing the Rack session between the two
-    # phases drops them, and the callback then fails state verification.
-    OMNIAUTH_FLOW_KEYS = ['omniauth.state', 'omniauth.nonce', 'omniauth.pkce.verifier', 'omniauth.params'].freeze
+    # The Rack-session keys a strategy parks during the request phase of an
+    # SSO flow and consumes in the callback (omniauth-oauth2,
+    # omniauth_openid_connect, RequestBoundSAML). Clearing the Rack session
+    # between the two phases drops them, and the callback then fails state /
+    # InResponseTo verification. One list, shared with the tenant hook that
+    # deletes them on supersession: Onetime::SsoProvider::FlowSessionKeys.
+    OMNIAUTH_FLOW_KEYS = Onetime::SsoProvider::FlowSessionKeys::ALL
 
     # What the current Rack session is carrying mid-flow, for the gate's
     # log lines: the OmniAuth keys above (in the session blob, dropped by
@@ -353,10 +356,11 @@ module Auth
       #                       checks run here too. Without an account_id the
       #                       request is genuinely anonymous and neither check
       #                       applies.
-      #   :customer_unavailable  Already past the surface check; only the
+      #   :customer_unavailable  The customer store, or the request's
+      #                       surface, could not be read; only the
       #                       active-session row is left to examine.
       #                       Revocation is destructive on this surface and
-      #                       must not be hidden by a customer-store outage.
+      #                       must not be hidden by a datastore outage.
       #
       # Invariant: every other rejection is definitive and is never
       # overwritten by a fallback :active_session_unavailable, which would

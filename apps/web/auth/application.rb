@@ -39,6 +39,7 @@ module Auth
     middleware_profile :authenticated_web
 
     # Auth app specific middleware (common middleware is in MiddlewareStack)
+    use Onetime::Middleware::SamlCallbackTransport::Stage
     use Rack::JSONBodyParser  # Parse JSON request bodies for Rodauth
 
     warmup do

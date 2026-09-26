@@ -255,6 +255,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
         Onetime::CustomDomain,
         identifier: 'domain-acme-123',
         display_domain: display_domain,
+        verified: true,
         sso_config: sso_config,
         brand_settings: nil
       )
@@ -353,6 +354,65 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
             { type: 'sso', enabled: true, platform_route_name: 'entra', display_name: 'Microsoft' },
           ])
           expect(record[:auth_methods].first).not_to have_key(:provider_type)
+        end
+
+        it 'omits platform SAML on a verified custom domain while retaining OAuth fallback' do
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+            .with('domain-acme-123')
+            .and_return(true)
+          allow(Onetime.auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+            { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+          ])
+
+          expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(['oidc'])
+        end
+
+        it 'omits platform SAML on an unverified custom domain' do
+          allow(custom_domain).to receive(:verified).and_return(false)
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+            .with('domain-acme-123')
+            .and_return(true)
+          allow(Onetime.auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+            { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+          ])
+
+          expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(['oidc'])
+        end
+
+        # A verified record keyed on a canonical-set host (site.host moved
+        # onto a host a tenant had registered) is refused by
+        # Auth::PublicHost.served_custom_host? at runtime, so the SAML start
+        # would fail there. The invite page must not advertise it.
+        it 'omits platform SAML when the verified record is keyed on a canonical-set host' do
+          allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+            .with(display_domain).and_return(true)
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+            .with('domain-acme-123')
+            .and_return(true)
+          allow(Onetime.auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+            { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+          ])
+
+          expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(['oidc'])
+        end
+
+        # Verified subdomains are not the pinned platform ACS host either.
+        it 'omits platform SAML on a verified subdomain of a canonical-set host' do
+          allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+            .and_wrap_original { |m, host| host.to_s == 'acme.example' || m.call(host) }
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+            .with('domain-acme-123')
+            .and_return(true)
+          allow(Onetime.auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'saml', 'display_name' => 'SAML SSO' },
+            { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+          ])
+
+          expect(Onetime::Middleware::DomainStrategy.canonical_host?(display_domain)).to be false
+          expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(['oidc'])
         end
 
         # A provider with no route name is unroutable: advertising it would

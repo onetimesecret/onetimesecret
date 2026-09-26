@@ -7,6 +7,7 @@ require_relative 'base'
 require_relative 'serializers'
 require_relative 'change_logger'
 require_relative 'ssrf_protection'
+require_relative 'saml_fields'
 
 module DomainsAPI
   module Logic
@@ -20,10 +21,18 @@ module DomainsAPI
       #
       # Request body:
       # - provider_type: Required for create, optional for update (uses existing if empty)
-      # - client_id: Required for create, optional for update (uses existing if empty)
-      # - client_secret: Required for create (except OIDC public clients),
-      #   optional for update (preserves existing if empty). Switching to a
-      #   non-OIDC provider requires a secret — from the request or already stored.
+      # - client_id: Required for create, optional for update (uses existing if
+      #   empty). Not used by saml (no client credential).
+      # - client_secret: Required for create (except OIDC public clients and
+      #   saml), optional for update (preserves existing if empty). Switching to
+      #   entra_id requires a secret — from the request or already stored. A
+      #   stored secret that cannot be decrypted (GET names it in
+      #   unreadable_fields) must be replaced before ordinary edits are accepted,
+      #   oidc included. A flag-only disable preserves unreadable ciphertext.
+      # - idp_sso_service_url, idp_entity_id, idp_cert: Required for saml on
+      #   create (#4450; see SamlFields); each preserves its existing value if
+      #   empty. idp_cert_fingerprint (and its ruby-saml siblings) is refused
+      #   for every provider type.
       # - tenant_id: Required for entra_id provider on create (preserves existing if empty)
       # - issuer: Required for oidc provider on create (preserves existing if empty)
       # - display_name: Optional. Human-readable name (preserves existing if empty)
@@ -36,6 +45,7 @@ module DomainsAPI
         include Serializers
         include ChangeLogger
         include SsrfProtection
+        include SamlFields
 
         VALID_PROVIDER_TYPES = Onetime::CustomDomain::SsoConfig::PROVIDER_TYPES.freeze
 
@@ -49,6 +59,7 @@ module DomainsAPI
           @client_secret            = params['client_secret'].to_s.strip
           @tenant_id                = sanitize_plain_text(params['tenant_id'])
           @issuer                   = sanitize_url(params['issuer'])
+          process_saml_params
           # Track whether allowed_domains was explicitly provided (for PATCH semantics)
           @allowed_domains_provided = params.key?('allowed_domains')
           @allowed_domains          = parse_allowed_domains(params['allowed_domains'])
@@ -82,28 +93,39 @@ module DomainsAPI
           # Validate provider_type
           validate_provider_type
 
-          # Validate client credentials
-          validate_client_credentials
+          # Never accepted, whatever the provider type (see SamlFields)
+          reject_forbidden_saml_params!
 
-          # Validate provider-specific fields
-          validate_provider_specific_fields
+          # The flags the persisted result will carry (PATCH semantics: the
+          # parsed request value when the key is present and non-null, else
+          # the stored one). update_existing_config writes exactly these.
+          @effective_enabled = @enabled_provided ? @enabled : @existing_config&.enabled?
+          effective_enforce  = @enforce_sso_only_provided ? @enforce_sso_only : @existing_config&.enforce_sso_only?
+
+          @disable_only = disable_only_request?
+          unless @disable_only
+            validate_client_credentials
+            validate_provider_specific_fields
+          end
 
           # Validate enforce_sso_only requires enabled (using effective values for PATCH semantics)
-          effective_enabled = @enabled_provided ? @enabled : @existing_config&.enabled?
-          effective_enforce = @enforce_sso_only_provided ? @enforce_sso_only : @existing_config&.enforce_sso_only?
-          validate_enforce_sso_requires_enabled(effective_enabled, effective_enforce)
+          validate_enforce_sso_requires_enabled(@effective_enabled, effective_enforce)
         end
 
         def process
           OT.ld "[PatchSsoConfig] Patching SSO config for domain #{@domain_id} by user #{cust.extid}"
 
           # Track enabled state change for audit
-          was_enabled = @existing_config&.enabled?
+          was_enabled             = @existing_config&.enabled?
+          # Read BEFORE the update: update_existing_config mutates the same
+          # object (@sso_config = @existing_config).
+          previous_name_id_format = stored_name_id_format(@existing_config)
 
           if @existing_config
             # Compute changes before updating
             changes = compute_sso_changes(@existing_config, params)
             update_existing_config
+            log_name_id_format_change_if_rekeyed(previous_name_id_format, was_enabled)
             log_sso_change_event(
               event: :domain_sso_config_updated,
               domain: @custom_domain,
@@ -145,6 +167,8 @@ module DomainsAPI
             display_name: @display_name,
             tenant_id: @tenant_id,
             issuer: @issuer,
+            idp_sso_service_url: @idp_sso_service_url,
+            idp_entity_id: @idp_entity_id,
             allowed_domains: @allowed_domains,
             enabled: @enabled,
             enforce_sso_only: @enforce_sso_only,
@@ -153,6 +177,14 @@ module DomainsAPI
         end
 
         private
+
+        # Recovery is existing-record, literal-false, flag-only; metadata is not an edit.
+        # Enforcement must be explicitly cleared if set. Never rewrite encrypted fields.
+        def disable_only_request?
+          @existing_config && params['enabled'].equal?(false) &&
+            (!params.key?('enforce_sso_only') || params['enforce_sso_only'].equal?(false)) &&
+            (params.keys - %w[enabled enforce_sso_only extid shrimp]).empty?
+        end
 
         # Validates and resolves provider_type with PATCH semantics.
         #
@@ -197,48 +229,74 @@ module DomainsAPI
         # For new configs: client_id and client_secret are required
         # For updates: falls back to existing values when not provided
         def validate_client_credentials
+          # SAML has no client credential (#4450); update_existing_config
+          # clears any stored one on a switch to saml.
+          return unless Onetime::CustomDomain::SsoConfig.client_credentials?(@provider_type)
+
           if @client_id.to_s.empty?
-            if @existing_config
+            # A record switching AWAY from saml has no stored client_id to
+            # fall back on; name the field instead of letting the model's
+            # catch-all report it after the fact.
+            if @existing_config && stored_credential(:client_id) == :present
               @client_id = @existing_config.client_id
             else
               raise_form_error('Client ID is required', field: :client_id, error_type: :missing)
             end
           end
 
-          # client_secret is required for non-OIDC configs; OIDC supports
-          # public clients (PKCE flow) without one. An omitted secret on
-          # update falls back to the stored one — so a provider switch from
-          # a secretless OIDC config to entra_id has nothing to fall back to
-          # and must supply a secret, or token exchange fails at the IdP.
-          return if @provider_type == 'oidc' || !@client_secret.to_s.empty?
+          return unless @client_secret.to_s.empty?
 
-          if @existing_config.nil? || !stored_client_secret?
-            raise_form_error('Client secret is required', field: :client_secret, error_type: :missing)
-          end
+          # An omitted secret on update falls back to the stored one — so a
+          # provider switch from a secretless OIDC config to entra_id has
+          # nothing to fall back to and must supply a secret, or token
+          # exchange fails at the IdP. OIDC supports public clients (PKCE)
+          # without one, but that exemption covers an ABSENT secret only: a
+          # stored secret that will not decrypt (the one GET names in
+          # unreadable_fields) is corrupt ciphertext, and preserving it would
+          # report success on a record whose strategy cannot be built. Fail
+          # closed for every provider type until it is replaced.
+          stored = @existing_config ? stored_credential(:client_secret) : :absent
+          return if stored == :present
+          return if stored == :absent && @provider_type == 'oidc'
+
+          raise_form_error('Client secret is required', field: :client_secret, error_type: :missing)
         end
 
-        # Whether the stored record has a non-empty client_secret to preserve.
-        # An undecryptable secret counts as absent — fail closed.
-        def stored_client_secret?
-          secret = @existing_config.client_secret&.reveal { it }
-          !secret.to_s.empty?
-        rescue StandardError
-          false
+        # State of one stored client credential, as the GET serializer sees
+        # it (Serializers#reveal_field): :absent (unset / empty), :present, or
+        # :unreadable (a value exists but cannot be decrypted — never to be
+        # carried forward as if it were set).
+        #
+        # @param name [Symbol] :client_id or :client_secret
+        # @return [Symbol]
+        def stored_credential(name)
+          unreadable = []
+          value      = reveal_field(@existing_config, name, unreadable)
+          return :unreadable if unreadable.any?
+
+          value.to_s.empty? ? :absent : :present
         end
 
         def validate_provider_specific_fields
           case @provider_type
           when 'oidc'
             # For PATCH: require issuer if creating new config or if existing config has no issuer
-            missing_issuer = @issuer.to_s.empty? &&
-                             (@existing_config.nil? || @existing_config.issuer.to_s.empty?)
+            stored_issuer  = @existing_config&.issuer.to_s
+            missing_issuer = @issuer.to_s.empty? && stored_issuer.empty?
             if missing_issuer
               raise_form_error('Issuer URL is required for OIDC provider', field: :issuer, error_type: :missing)
             end
 
-            # SSRF prevention: validate issuer URL host is not internal/private
-            # Only validate if a new issuer is being provided (not empty)
-            if !@issuer.to_s.empty? && !valid_issuer_host?(@issuer)
+            # SSRF prevention: validate issuer URL host is not internal/private.
+            # Runs on a submitted issuer, and on the STORED one when the
+            # record is switching into oidc: only an oidc record's issuer was
+            # validated at save time, so a value left dormant on a saml /
+            # entra_id record (pre-#4450 create path) must not go live
+            # unchecked. An oidc-to-oidc PATCH that omits issuer keeps the
+            # already-validated value without re-resolving it.
+            switching_to_oidc = !@existing_config.nil? && @existing_config.provider_type != 'oidc'
+            effective_issuer  = @issuer.to_s.empty? ? stored_issuer : @issuer
+            if (!@issuer.to_s.empty? || switching_to_oidc) && !valid_issuer_host?(effective_issuer)
               raise_form_error(
                 'Issuer URL must be a valid HTTPS URL pointing to a public host',
                 field: :issuer,
@@ -252,18 +310,26 @@ module DomainsAPI
             if missing_tenant
               raise_form_error('Tenant ID is required for Entra ID provider', field: :tenant_id, error_type: :missing)
             end
+          when 'saml'
+            # Each blank field falls back to the stored value — but only when
+            # the stored record IS a saml record. On a switch to saml the
+            # whole trio must arrive with the request.
+            stored = @existing_config&.provider_type == 'saml' ? @existing_config : nil
+            validate_saml_fields!(stored: stored, enabled: @effective_enabled)
           end
         end
 
+        # Mirrors PutSsoConfig#replacement_attributes: a saml record stores
+        # NONE of the OAuth-family fields, however the request arrived. Only
+        # the side the provider type uses was validated, and an unvalidated
+        # issuer must not sit dormant on the record for a later provider_type
+        # flip to make live (see validate_provider_specific_fields).
         def create_new_config
           @sso_config = Onetime::CustomDomain::SsoConfig.create!(
             domain_id: @custom_domain.identifier,
             provider_type: @provider_type,
             display_name: @display_name,
-            client_id: @client_id,
-            client_secret: @client_secret,
-            tenant_id: @tenant_id,
-            issuer: @issuer,
+            **provider_attributes,
             allowed_domains: @allowed_domains,
             enabled: @enabled,
             enforce_sso_only: @enforce_sso_only,
@@ -278,6 +344,11 @@ module DomainsAPI
         # - A provider switch clears the outgoing provider's field (issuer for
         #   oidc, tenant_id for entra_id) unless the request supplies it,
         #   matching the end state a full PUT would produce.
+        # - The SAML trio and the client credentials are mutually exclusive by
+        #   provider type (#4450): a saml record never keeps client_id /
+        #   client_secret / issuer / tenant_id, and a non-saml record never
+        #   keeps the trio — whatever the request carried. Only the side the
+        #   type uses was validated.
         #
         # allowed_domains behavior:
         # - When omitted: preserves existing domains (true PATCH semantics)
@@ -288,13 +359,22 @@ module DomainsAPI
         # config could be deleted between existence check and update.
         #
         def update_existing_config
-          @sso_config       = @existing_config
+          @sso_config = @existing_config
+          if @disable_only
+            @sso_config.enabled          = 'false'
+            @sso_config.enforce_sso_only = 'false' if @enforce_sso_only_provided
+            @sso_config.updated          = Familia.now.to_i
+            # Credential validation cannot gate recovery; retain atomic persistence.
+            @sso_config.commit_fields
+            return
+          end
+
           provider_switched = @provider_type != @existing_config.provider_type
 
           # PATCH semantics: only update fields that are provided (non-empty)
           @sso_config.provider_type    = @provider_type
           @sso_config.display_name     = @display_name unless @display_name.to_s.empty?
-          @sso_config.client_id        = @client_id
+          @sso_config.client_id        = @client_id unless @provider_type == 'saml'
           @sso_config.tenant_id        = @tenant_id unless @tenant_id.to_s.empty?
           @sso_config.issuer           = @issuer unless @issuer.to_s.empty?
           @sso_config.enabled          = @enabled.to_s if @enabled_provided
@@ -313,6 +393,8 @@ module DomainsAPI
           # Only update client_secret if provided (preserves existing otherwise)
           @sso_config.client_secret = @client_secret unless @client_secret.to_s.empty?
 
+          apply_saml_exclusivity(partial: !(provider_switched && @provider_type == 'saml'))
+
           # Only update allowed_domains if explicitly provided in the request.
           @sso_config.allowed_domains = @allowed_domains if @allowed_domains_provided
 
@@ -327,6 +409,14 @@ module DomainsAPI
 
           # commit_fields runs its own transaction internally for atomicity
           @sso_config.commit_fields
+        end
+
+        # See the PATCH-semantics note on update_existing_config. Runs last so
+        # it wins over the field-by-field assignments above.
+        def apply_saml_exclusivity(partial: true)
+          provider_attributes(partial: partial).each do |name, value|
+            @sso_config.public_send(:"#{name}=", value)
+          end
         end
 
         # Log enabled/disabled state change if it occurred.
