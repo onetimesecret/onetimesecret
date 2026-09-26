@@ -13,8 +13,13 @@
  * @param {Object} options.context - Action context from actions/github-script
  * @param {Object} options.core - Core utilities from actions/github-script
  * @param {Object} options.tierData - Tier timing data with seconds and targets
+ * @param {string} [options.breakdownFile] - Markdown from
+ *   scripts/ci/ci-metrics-breakdown.sh (completion state and per-test-step
+ *   time against the main baseline); embedded verbatim when present.
  */
-module.exports = async function postPrMetrics({ github, context, core, tierData }) {
+module.exports = async function postPrMetrics({ github, context, core, tierData, breakdownFile }) {
+  const fs = require('fs');
+
   // Targets are supplied by the check-ci-metrics action (the single source of
   // truth for tier targets) and arrive as strings via the Actions expression
   // syntax. Coerce to a number so the arithmetic below adds instead of
@@ -97,6 +102,15 @@ module.exports = async function postPrMetrics({ github, context, core, tierData 
 
   const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
+  // The breakdown is produced by the check-ci-metrics action and read here as
+  // finished markdown: this script renders, it does not compute.
+  let breakdown = '';
+  if (breakdownFile && fs.existsSync(breakdownFile)) {
+    breakdown = fs.readFileSync(breakdownFile, 'utf8').trim();
+  } else {
+    breakdown = '_Test-step breakdown unavailable for this run._';
+  }
+
   const comment = `## 📊 CI Performance Metrics
 
 | Tier | Jobs | From start | Target | Status |
@@ -112,8 +126,10 @@ ${tierRows}
 - **Tier 4 - Container Validation**: Docker build and health check
 - **Tier 5 - CI Metrics**: Performance validation and reporting
 
-Tier times are the critical path: seconds from workflow start until the tier's last job finished, queue and setup included.
+Tier times are the critical path: seconds from workflow start until the tier's last job finished, queue and setup included. Test execution itself is in the breakdown below.
 </details>
+
+${breakdown}
 
 🔗 [View full workflow run](${runUrl})
 `;
