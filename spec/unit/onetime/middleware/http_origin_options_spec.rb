@@ -117,6 +117,43 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
     end
   end
 
+  # A document whose referrer policy is no-referrer serializes the Origin of a
+  # native form-navigation POST as the literal string "null" (WHATWG Fetch,
+  # "append a request Origin header"). That is how develop's M-3 meta tag
+  # broke every SSO initiation (#4542). The fix is the document policy, not
+  # an allowance here: "null" names no origin and must stay refused.
+  describe 'literal Origin: null on SSO initiation' do
+    it 'is refused on the canonical host' do
+      status = post('/auth/sso/oidc',
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => 'null',
+        'onetime.display_domain' => canonical_host,
+      )
+      expect(status).to eq(403)
+    end
+
+    it 'is refused on a custom host' do
+      status = post('/auth/sso/oidc',
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => 'null',
+        'onetime.display_domain' => custom_domain,
+      )
+      expect(status).to eq(403)
+    end
+
+    it 'is refused on the callback path too, even with an IdP configured' do
+      auth_config = double('AuthConfig', sso_idp_origins: ['https://idp.example.com'])
+      allow(Onetime).to receive(:auth_config).and_return(auth_config)
+
+      status = post('/auth/sso/oidc/callback',
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => 'null',
+        'onetime.display_domain' => canonical_host,
+      )
+      expect(status).to eq(403)
+    end
+  end
+
   describe 'GET requests' do
     it 'are never blocked (safe method)' do
       env = Rack::MockRequest.env_for('/auth/sso/entra',

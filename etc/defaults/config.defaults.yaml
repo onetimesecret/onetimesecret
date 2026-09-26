@@ -556,8 +556,11 @@ site:
     # Disable only for development or when behind a secure proxy
     # ENV: MIDDLEWARE_STRICT_TRANSPORT (default: true)
     strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] != 'false' %>  # Since v0.24.0
-    # Emits Referrer-Policy: no-referrer as an HTTP response header so secret
-    # URLs can never leak via the Referer header. (audit 2026-08-02 M-3)
+    # Emits Referrer-Policy: strict-origin as an HTTP response header so the
+    # path and query of secret URLs can never leak via the Referer header
+    # (audit 2026-08-02 M-3; strict-origin rather than no-referrer so native
+    # SSO form POSTs keep a real Origin, #4542). Otto responses carry the same
+    # value regardless of this toggle; it governs the Roda auth app.
     # ENV: MIDDLEWARE_REFERRER_POLICY (default: true)
     referrer_policy: <%= ENV['MIDDLEWARE_REFERRER_POLICY'] != 'false' %>  # Since unreleased
     # Emits Permissions-Policy header disabling geolocation/microphone/camera.

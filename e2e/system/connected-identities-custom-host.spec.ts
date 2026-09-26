@@ -21,6 +21,7 @@ const uid = required('E2E_TENANT_CONNECT_UID');
 const password = required('E2E_TENANT_CONNECT_PASSWORD');
 const ownerEmail = required('E2E_TENANT_CONNECT_OWNER_EMAIL');
 const secondEmail = required('E2E_TENANT_CONNECT_SECOND_EMAIL');
+const initiationPath = `/auth/sso/${provider}`;
 
 // GET /auth/identities never echoes the full IdP subject: the route masks it
 // to first4 + U+2026 + last4 (apps/web/auth/routes/identities.rb mask_uid),
@@ -54,7 +55,6 @@ async function loginOnTenant(page: Page, email: string): Promise<void> {
 // on the network event, which is the evidence that the login proof was accepted
 // (a refused initiation redirects to /reauth instead).
 async function spendLoginProofWithoutFollowingTheIdp(page: Page): Promise<void> {
-  const initiationPath = `/auth/sso/${provider}`;
   const [response] = await Promise.all([
     page.waitForResponse(
       (candidate) =>
@@ -81,8 +81,40 @@ async function openConnections(page: Page): Promise<void> {
   await expect(page.getByTestId('connections-connect')).toBeVisible();
 }
 
+// The Connect button submits a native POST form (submitSsoLogin), a
+// document navigation, not a fetch(). What Origin the browser puts on that
+// navigation is decided by the document's referrer policy: under
+// `no-referrer` it is the literal `null`, which HttpOrigin refuses with 403
+// before OmniAuth runs (#4542). The document policy is `strict-origin`, so
+// the exact tenant origin, port included, must arrive, and the initiation
+// must be answered with a redirect (to /reauth or to the IdP), never 403.
+// The Referer, when the browser sends one, may be the origin and nothing
+// more: no path, no query.
+async function clickConnectAsNativeForm(page: Page): Promise<void> {
+  const [request] = await Promise.all([
+    page.waitForRequest(
+      (candidate) =>
+        candidate.method() === 'POST' &&
+        new URL(candidate.url()).pathname === initiationPath &&
+        candidate.isNavigationRequest()
+    ),
+    page.getByTestId(`connections-connect-${provider}`).click(),
+  ]);
+
+  const headers = await request.allHeaders();
+  expect(headers['origin'], 'native SSO initiation must carry the tenant origin').toBe(origin);
+  expect(headers['referer'] ?? `${origin}/`, 'Referer on the initiation must be origin-only').toBe(
+    `${origin}/`
+  );
+
+  const response = await request.response();
+  expect(response?.status(), 'initiation must be redirected, not refused by HttpOrigin (403)').toBe(
+    302
+  );
+}
+
 async function reauthenticateFromPanel(page: Page): Promise<void> {
-  await page.getByTestId(`connections-connect-${provider}`).click();
+  await clickConnectAsNativeForm(page);
   await waitForPathname(page, '/reauth');
   await expect(page.getByTestId('reauth-password-form')).toBeVisible();
   await page.getByLabel('Password').fill(password);
@@ -105,7 +137,7 @@ test.describe.serial('custom-host Connected Identities journey', () => {
     // A completed Connect returns to the panel by itself: the callback honours
     // the `redirect` field submitSsoLogin posts (a refusal goes to
     // /signin?auth_error=… instead).
-    await page.getByTestId(`connections-connect-${provider}`).click();
+    await clickConnectAsNativeForm(page);
     await waitForPathname(page, CONNECTIONS_PATH);
     await waitForAppReady(page);
     await expect(page.getByTestId('connections-list')).toContainText(maskedUid);

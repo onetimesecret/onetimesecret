@@ -58,9 +58,7 @@ test.describe('SSO CSP form-action (#3848)', () => {
     page.setDefaultTimeout(15000);
   });
 
-  test('SSO form POST -> IdP redirect is not blocked by CSP form-action', async ({
-    page,
-  }) => {
+  test('SSO form POST -> IdP redirect is not blocked by CSP form-action', async ({ page }) => {
     // Install the violation recorder BEFORE any document loads, so it survives
     // the reload below and is present on the signin document that owns the form.
     // The event fires on the initiating (OTS) document when the redirect is
@@ -99,7 +97,34 @@ test.describe('SSO CSP form-action (#3848)', () => {
     // Real click — NO submit stub. This triggers submitSsoLogin(), which builds
     // and submits a POST form to /auth/sso/:provider and lets the browser follow
     // the server's 302 to the IdP.
-    await ssoButton.click();
+    //
+    // That form submission is a document navigation, and the Origin the
+    // browser attaches to it follows the document's referrer policy: under
+    // `no-referrer` it is the literal `null`, which HttpOrigin refuses (#4542).
+    // The policy is `strict-origin`, so the exact OTS origin must arrive and
+    // the Referer, if any, may carry the origin and nothing else.
+    const [initiation] = await Promise.all([
+      page.waitForRequest(
+        (candidate) =>
+          candidate.method() === 'POST' &&
+          new URL(candidate.url()).pathname.startsWith('/auth/sso/') &&
+          candidate.isNavigationRequest()
+      ),
+      ssoButton.click(),
+    ]);
+    const initiationHeaders = await initiation.allHeaders();
+    expect(
+      initiationHeaders['origin'],
+      'native SSO initiation must carry the OTS origin, never null'
+    ).toBe(otsOrigin);
+    expect(
+      initiationHeaders['referer'] ?? `${otsOrigin}/`,
+      'Referer on the initiation must be origin-only'
+    ).toBe(`${otsOrigin}/`);
+    expect(
+      (await initiation.response())?.status(),
+      'initiation must be redirected to the IdP, not refused by HttpOrigin (403)'
+    ).toBe(302);
 
     // Wait for the redirect chain to resolve one way or the other:
     //  - fix present  -> the browser follows the 302 off the OTS origin (resolves)
@@ -140,9 +165,7 @@ test.describe('SSO CSP form-action (#3848)', () => {
     ).toBe(true);
   });
 
-  test('CSP form-action directive advertises an IdP origin beyond \'self\'', async ({
-    page,
-  }) => {
+  test("CSP form-action directive advertises an IdP origin beyond 'self'", async ({ page }) => {
     // Non-navigational corroboration of the same fix at the header level.
     // Pre-fix the directive was exactly `form-action 'self'`; the #3848 fix
     // appends the active SSO IdP origin(s), so it must carry at least one

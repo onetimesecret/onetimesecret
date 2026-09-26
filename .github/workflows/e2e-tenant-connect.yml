@@ -71,6 +71,16 @@ on:
       # The panel and the availability rule the spec drives.
       - 'src/apps/workspace/account/**'
       - 'src/shared/utils/sso-link-evidence.ts'
+      # The native initiation POST and the document policy it runs under: the
+      # form helper, the head template with the referrer meta, the Registry
+      # that owns the policy value, the Base that hands it to Otto, and the
+      # HttpOrigin rule that judges the Origin it produces (#4542).
+      - 'src/shared/utils/sso.ts'
+      - 'apps/web/core/templates/partials/head-base.rue'
+      - 'lib/onetime/middleware/registry.rb'
+      - 'lib/onetime/middleware/http_origin_options.rb'
+      - 'lib/onetime/application/base.rb'
+      - 'etc/defaults/config.defaults.yaml'
 
 permissions:
   contents: read

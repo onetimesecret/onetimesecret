@@ -46,7 +46,11 @@ This directory contains modernized HTML `<head>` templates for the Onetime Secre
 - Added `X-Frame-Options: SAMEORIGIN`
 - Added `X-Content-Type-Options: nosniff`
 - Added `Permissions-Policy` to disable unnecessary features
-- Upgraded referrer policy from `no-referrer` to `strict-origin-when-cross-origin`
+- Referrer policy is `strict-origin` (the value of
+  `Onetime::Middleware::Registry::REFERRER_POLICY`, which the HTTP header also
+  carries). It withholds the path and query of secret URLs from every Referer
+  while keeping a usable `Origin` on the native form POSTs that start SSO
+  (#4542); `no-referrer` made those arrive as `Origin: null`.
 
 ### Icon Strategy
 - Removed versioning query params (`?v=3`)

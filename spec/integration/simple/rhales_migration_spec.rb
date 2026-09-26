@@ -243,6 +243,16 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
         expect(doc.css('title').text).not_to be_empty
       end
 
+      # The meta tag is a literal in head-base.rue; the HTTP header comes from
+      # Registry::REFERRER_POLICY (Otto and Rack::Protection::ReferrerPolicy).
+      # They must be one value: the meta is what governs the document's own
+      # navigations, the header everything else (#4542).
+      it 'sets the document referrer policy to the one the HTTP header carries' do
+        meta = doc.css('meta[name="referrer"]')
+        expect(meta.size).to eq(1)
+        expect(meta.first['content']).to eq(Onetime::Middleware::Registry::REFERRER_POLICY)
+      end
+
       it 'includes favicon links' do
         expect(doc.css('link[rel="icon"]')).not_to be_empty
       end
