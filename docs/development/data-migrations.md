@@ -11,7 +11,7 @@ mean that a tool automatically backs up data.
 
 | Need | Tool | Tracked? | Where |
 |------|------|----------|-------|
-| One-shot, versioned transform of Redis data tied to a release | [Familia migration + `bin/ots migrate`](#familia-migrations-binots-migrate) | Yes, through the Runner; not single-ID/file runs | `migrations/` |
+| One-shot, versioned transform of Redis data tied to a release | [Familia migration + `bin/ots migrate`](#familia-migrations-binots-migrate) | Yes, on every `--run` | `migrations/` |
 | Backfill or dedupe that needs app services (Stripe, billing ops) | `bin/ots migrations <name>` command | No | `lib/onetime/cli/migrations/` |
 | Short-lived nightly convergence of drifted field values | Housekeeping chore + `bin/ots housekeeping` | No | `lib/onetime/models/*/chores/` |
 | Ongoing detection and repair of index/collection drift | Scheduled maintenance jobs, `domains doctor`, `customers doctor` | No | `lib/onetime/jobs/scheduled/maintenance/` |
@@ -32,10 +32,11 @@ Stripe backfills also require billing configuration and Stripe credentials,
 and can make API reads even in dry-run mode.
 
 Review the release-specific instructions and take a recoverable backup before
-changing data. Dry-run behavior differs by tool: Familia single-migration
-runs and operational backfills default to dry-run, but housekeeping runs
-write immediately. Auth migrations can run during application boot. A
-migration dry-run is not a guarantee that boot itself is read-only.
+changing data. Dry-run behavior differs by tool: Familia migrations and
+operational backfills default to dry-run and need `--run` to write, but
+housekeeping runs write immediately. Auth migrations can run during
+application boot. A migration dry-run is not a guarantee that boot itself
+is read-only.
 
 ## Familia migrations (`bin/ots migrate`)
 
@@ -85,15 +86,33 @@ Schema digests and field backups are framework facilities, not automatic
 Runner output. Each field backup refreshes the backup hash's expiry.
 
 `Familia::Migration::Runner` orders pending migrations by a topological
-sort of `dependencies` and records applied state on a real run when
-`migration_needed?` is true and `migrate` completes without raising. A
-migration skipped because `migration_needed?` is false is not recorded.
-`Runner#run` defaults to real execution when called directly; the CLI passes
-its dry-run choice explicitly. The Runner stops on a failed result, but
-isolated record errors do not necessarily produce one: inspect error counts
-as well as the final status. Rollback
-requires an applied migration with `down` and no applied dependents among
-the loaded migration classes.
+sort of `dependencies`. The CLI drives it through
+`Onetime::CLI::MigrateRunner`, which owns the outcome policy for every
+modifying path (batch, single migration, rollback) under one invariant:
+
+> A modifying run is dependency-checked, runs the full lifecycle
+> (`prepare`, `migration_needed?`, `migrate`, or `prepare`, `down`), and is
+> recorded in the registry exactly once, only after it succeeds.
+
+Outcomes and their effect on the registry:
+
+| Outcome | Meaning | Recorded? | Exit |
+|---------|---------|-----------|------|
+| `success` | `migrate` completed with no record errors | Yes, on `--run` | 0 |
+| `skipped` | `migration_needed?` returned false | No | 0 |
+| `partial` | isolated record errors (`track_stat(:errors)` or a Model/Pipeline `error_count`) | No; re-run after investigating | 1 |
+| `failed` | `migrate` raised, or returned `false` (a refused apply) | No | 1 |
+| `already_applied` | single `--run` of a migration the registry already lists | No change | 1 |
+
+A batch stops at the first outcome other than `success` or `skipped`. A
+batch dry run records nothing, so it treats the migrations it has already
+previewed successfully as satisfied dependencies for the rest of the batch.
+If `record_applied` itself fails after `migrate` wrote data, the row is
+`failed` and nothing is recorded; a re-run whose `migration_needed?` is now
+false is `skipped`, which is also never recorded.
+`Familia::Migration::Runner#run` called directly defaults to a real run;
+`MigrateRunner` defaults every entry point to dry-run and the CLI passes
+`--run` explicitly.
 `Familia::Migration::Script` registers Lua scripts for atomic field
 rename/copy/delete, TTL-preserving key rename, and backup-then-modify.
 
@@ -114,41 +133,41 @@ migrations/
 in the repository. Use `--dir` to select an older batch; loading the parent
 `migrations/` directory does not recursively load its dated subdirectories.
 
-Inspect a batch and preview a specific migration:
+Inspect a batch, then preview it or one migration:
 
 ```bash
-bin/ots migrate --dir migrations/2026-07-27
-bin/ots migrate --dir migrations/2026-07-27 --validate
+bin/ots migrate --dir migrations/2026-07-27                 # status
+bin/ots migrate --dir migrations/2026-07-27 --validate      # dependency check
+bin/ots migrate --dir migrations/2026-07-27 --dry-run       # preview all pending
 bin/ots migrate migrations/2026-07-27/20260727_01_backfill_signin_config.rb
 ```
 
-The first command lists applied and pending migrations; the second checks
-dependencies. The third runs that migration without enabling its guarded
-writes. The CLI does not declare a `--dry-run` option or expose an
-all-pending preview. Inspect each migration's summary before applying it.
+Without `--run`, every action is a dry run: the migration runs its
+lifecycle with guarded writes disabled and nothing is recorded. Inspect each
+migration's summary before applying it.
 
-Apply the selected batch through the Runner, then check its status:
+Apply the batch, or one migration, with `--run`, then check status:
 
 ```bash
 bin/ots migrate --dir migrations/2026-07-27 --run
+bin/ots migrate migrations/2026-07-27/20260727_01_backfill_signin_config.rb --run
 bin/ots migrate --dir migrations/2026-07-27
 ```
 
-**Single-migration execution differs from batch execution.** Passing an ID
-or file with `--run` calls the migration directly, bypassing the Runner's
-dependency checks and applied-state recording. A successful run can still
-appear pending. A later batch run does not necessarily repair that state: if
-`migration_needed?` then returns false, the Runner skips the migration without
-recording it. Use batch execution when you need registry tracking. ID lookup
-allows partial matches; a full file path avoids ambiguous selection
-and loads only that file, avoiding class-name collisions between batches.
+Single-migration and batch execution follow the same path: dependencies must
+be recorded as applied, and a successful `--run` is recorded once. A
+migration the registry already lists is refused for a modifying single run;
+roll it back first if it must run again. A bare ID matches exactly or by a
+unique partial match; an ambiguous match is refused. A full file path loads
+only that file, avoiding class-name collisions between batches, and selects
+its migration regardless of the basename.
 
 Rollback is not a general recovery procedure. None of the current migrations
-defines `down`. Although the CLI exposes `--rollback MIGRATION_ID`, Familia
-2.12.0 calls `down` without `prepare` or enabling guarded writes, then removes
-applied state if no exception occurs. Writes inside `for_realsies_this_time?`
-are skipped, while unguarded writes execute. Verify a migration's rollback
-behavior before relying on it; adding `--run` does not change this path.
+defines `down`. `--rollback MIGRATION_ID` requires an applied, reversible
+migration with no applied dependents among the loaded classes. It is a dry
+run without `--run`. With `--run` it instantiates the migration in actual-run
+mode, calls `prepare` then `down`, and removes applied state only when
+`down` completes without raising or counting record errors.
 
 Familia's `familia:migrate` rake tasks are not loaded in this repo; use
 `bin/ots migrate`. The command dispatch is implemented in
