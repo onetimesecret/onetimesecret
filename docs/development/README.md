@@ -79,6 +79,15 @@ self-hosted Sentry does not change the result. `scripts/check-shell-lint.sh`
 runs shellcheck and actionlint over the repo and fails on anything above the
 baseline in `.github/lint-baseline/`; both run in CI as `Static analysis`.
 
+## Changing stored data
+
+Five different mechanisms change data after the fact: Familia migrations
+under `bin/ots migrate`, the `bin/ots migrations` backfill commands,
+housekeeping chores, the scheduled audit/repair jobs, and the Sequel
+auth-database migrations. [data-migrations.md](./data-migrations.md) says
+which to use when, where each lives, and which legacy tolerances in the
+models are waiting on one of them.
+
 ## Debugging
 
 To enable debug logging, set the `ONETIME_DEBUG` environment variable to

@@ -88,6 +88,12 @@ inputs:
     default: '400'
 
   # Behavior
+  baseline-runs:
+    description: >-
+      How many recent successful main runs of this workflow to fetch as the
+      test-step baseline (median per step). 0 disables the comparison.
+    required: false
+    default: '5'
   fail-on-violation:
     description: 'Fail the job if critical thresholds exceeded'
     required: false
@@ -113,6 +119,12 @@ outputs:
   status:
     description: 'Overall status: pass, incomplete, warning, fail, or unknown'
     value: ${{ steps.evaluate.outputs.status }}
+  breakdown-file:
+    description: >-
+      Path of the markdown produced by scripts/ci/ci-metrics-breakdown.sh:
+      per-tier completion state and per-test-step time against the main
+      baseline. Empty when the jobs listing could not be fetched.
+    value: ${{ steps.breakdown.outputs.file }}
   # Echo the targets this action evaluated against, so downstream consumers
   # (e.g. the PR-comment step in ci.yml) render the same numbers as the step
   # summary instead of hardcoding a second, drift-prone copy. This action's
@@ -152,8 +164,13 @@ runs:
         fi
         echo "workflow_start=$WORKFLOW_START" >> $GITHUB_OUTPUT
 
-        # Fetch job data for current workflow run
-        if ! JOBS_JSON=$(gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}/jobs" --jq '.jobs' 2>/dev/null); then
+        # Fetch job data for current workflow run. per_page: the default
+        # page is 30 and the T3 matrix already puts this run past 20 jobs.
+        # The full listing is kept on disk for the breakdown step below.
+        mkdir -p "${RUNNER_TEMP}/ci-metrics"
+        if ! gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}/jobs?per_page=100" > "${RUNNER_TEMP}/ci-metrics/current.json" 2>/dev/null \
+           || ! JOBS_JSON=$(jq '.jobs' "${RUNNER_TEMP}/ci-metrics/current.json" 2>/dev/null); then
+          rm -f "${RUNNER_TEMP}/ci-metrics/current.json"
           echo "::warning::Failed to fetch job data from API, metrics will show N/A"
           echo "tier1=" >> $GITHUB_OUTPUT
           echo "tier2=" >> $GITHUB_OUTPUT
@@ -225,6 +242,61 @@ runs:
         echo "tier3=$TIER3_COMPLETE" >> $GITHUB_OUTPUT
         echo "tier4=$TIER4_COMPLETE" >> $GITHUB_OUTPUT
 
+    # ── Test-step breakdown ─────────────────────────────────────────────
+    # The tier figures above are critical path, not test time. The breakdown
+    # (scripts/ci/ci-metrics-breakdown.sh) reports per-tier completion state
+    # and each test step's own duration against the median of recent
+    # successful main runs. Baseline runs are fetched here; the script itself
+    # is offline and covered by scripts/tests/ci-metrics-breakdown-test.sh.
+    - name: Fetch baseline runs from main
+      id: baseline
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        REPOSITORY: ${{ inputs.repository }}
+        RUN_ID: ${{ inputs.run-id }}
+        BASELINE_RUNS: ${{ inputs.baseline-runs }}
+      run: |
+        set -uo pipefail
+        dir="${RUNNER_TEMP}/ci-metrics"
+        [ -f "${dir}/current.json" ] || exit 0
+        [ "${BASELINE_RUNS}" -gt 0 ] 2>/dev/null || exit 0
+        # The workflow is looked up by file name; only pushes to main count,
+        # and never this run itself (a push to main is also a candidate).
+        ids=$(gh api "repos/${REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=success&event=push&per_page=$((BASELINE_RUNS + 1))" \
+                --jq ".workflow_runs[] | select(.id != ${RUN_ID}) | .id" 2>/dev/null | head -n "${BASELINE_RUNS}") || true
+        if [ -z "${ids}" ]; then
+          echo "::notice::No successful main runs found for the test-step baseline"
+          exit 0
+        fi
+        for id in ${ids}; do
+          if ! gh api "repos/${REPOSITORY}/actions/runs/${id}/jobs?per_page=100" > "${dir}/base-${id}.json" 2>/dev/null; then
+            echo "::warning::Could not fetch jobs for baseline run ${id}; skipping it"
+            rm -f "${dir}/base-${id}.json"
+          fi
+        done
+
+    - name: Break down test-step time against the baseline
+      id: breakdown
+      shell: bash
+      run: |
+        set -uo pipefail
+        dir="${RUNNER_TEMP}/ci-metrics"
+        if [ ! -f "${dir}/current.json" ]; then
+          echo "file=" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        baselines=()
+        for f in "${dir}"/base-*.json; do
+          [ -f "$f" ] && baselines+=("$f")
+        done
+        if scripts/ci/ci-metrics-breakdown.sh "${dir}/current.json" "${baselines[@]}" > "${dir}/breakdown.md"; then
+          echo "file=${dir}/breakdown.md" >> "$GITHUB_OUTPUT"
+        else
+          echo "::warning::ci-metrics-breakdown.sh failed; the test-step breakdown is omitted"
+          echo "file=" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Calculate timing metrics
       id: calculate
       shell: bash
@@ -251,7 +323,6 @@ runs:
         TIER2_COMPLETE="${{ steps.timing.outputs.tier2 }}"
         TIER3_COMPLETE="${{ steps.timing.outputs.tier3 }}"
         TIER4_COMPLETE="${{ steps.timing.outputs.tier4 }}"
-        NOW_EPOCH=$(date +%s)
 
         echo "::debug::Workflow start: $WORKFLOW_START"
         echo "::debug::Tier 1 complete: $TIER1_COMPLETE"
@@ -289,10 +360,8 @@ runs:
         TIER3_DURATION=$(calc_duration "$TIER3_COMPLETE")
         TIER4_DURATION=$(calc_duration "$TIER4_COMPLETE")
 
-        # If Tier 4 not provided, use current time (for full pipeline)
-        if [ -z "$TIER4_DURATION" ] && [ -n "$START_EPOCH" ]; then
-          TIER4_DURATION=$((NOW_EPOCH - START_EPOCH))
-        fi
+        # No fallback for a missing Tier 4: substituting "now" reported the
+        # metrics job's own clock as container-validation time. N/A is honest.
 
         echo "tier1=${TIER1_DURATION:-N/A}" >> $GITHUB_OUTPUT
         echo "tier2=${TIER2_DURATION:-N/A}" >> $GITHUB_OUTPUT
@@ -347,7 +416,12 @@ runs:
               STATUS="warning"
             fi
           elif [ "$actual" -gt "$target" ]; then
-            echo "::notice::$name: ${actual}s slightly over target (${target}s)"
+            # Over target IS the warning state: the row's icon turns to a
+            # warning at this point, and the headline must agree with it.
+            echo "::warning::$name: ${actual}s over target (${target}s)"
+            if [ "$STATUS" != "fail" ]; then
+              STATUS="warning"
+            fi
           else
             echo "::notice::$name: ${actual}s within target (${target}s)"
           fi
@@ -406,10 +480,11 @@ runs:
             echo ":grey_question:"
             return
           fi
-          local warning=$((target + target * BUFFER / 100))
+          # Same bands as the evaluator: warning above target, x above the
+          # critical threshold (2x target).
           if [ "$actual" -le "$target" ]; then
             echo ":white_check_mark:"
-          elif [ "$actual" -le "$warning" ]; then
+          elif [ "$actual" -le $((target * 2)) ]; then
             echo ":warning:"
           else
             echo ":x:"
@@ -448,7 +523,7 @@ runs:
             echo "> **Status**: Partial data - available tiers within targets :white_check_mark:" >> $GITHUB_STEP_SUMMARY
             ;;
           warning)
-            echo "> **Status**: Some tiers near threshold :warning:" >> $GITHUB_STEP_SUMMARY
+            echo "> **Status**: Some tiers over target :warning:" >> $GITHUB_STEP_SUMMARY
             ;;
           fail)
             echo "> **Status**: Critical thresholds exceeded :x:" >> $GITHUB_STEP_SUMMARY
@@ -466,16 +541,24 @@ runs:
         <details>
         <summary>Tier Details</summary>
 
-        **Tier 1 - Lint & Build**: Ruby Lint, TypeScript Lint, Build Frontend Assets
+        **Tier 1 - Lint & Build**: Ruby Lint, TypeScript Lint, i18n Validation, Hygiene, Build Frontend Assets
         **Tier 2 - Unit Tests**: Ruby Unit Tests, TypeScript Unit Tests
-        **Tier 3 - Integration Tests**: Ruby Integration (Simple, Full, Disabled modes)
+        **Tier 3 - Integration Tests**: Ruby Integration (Simple, API contract, Full matrix, Disabled modes)
         **Tier 4 - Container Validation**: Docker build and health check
         **Tier 5 - CI Metrics**: Performance validation and reporting
 
-        Times are cumulative from workflow start.
+        Tier times are the critical path: seconds from workflow start until the
+        tier's last job finished, queue and setup included. Test execution
+        itself is in the breakdown below.
 
         </details>
 
+        EOF
+        if [ -f "${{ steps.breakdown.outputs.file }}" ]; then
+          cat "${{ steps.breakdown.outputs.file }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+        cat >> $GITHUB_STEP_SUMMARY << 'EOF'
         <details>
         <summary>Re-evaluation Instructions</summary>
 
