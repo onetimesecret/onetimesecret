@@ -9,6 +9,7 @@
 #     -> bin/setup                              # the documented setup command
 #     -> bin/setup --test                       # the documented test lane
 #     -> tests/lanes/run unit && pnpm test      # the documented suites
+#     -> tests/lanes/run browser                # browsers from --test, OS deps CI-only
 #     -> bin/setup --test                       # second run = idempotency (Zulip)
 #     -> git status --porcelain == empty        # litter check (Zulip)
 #
@@ -125,6 +126,16 @@ jobs:
 
       - name: 'Unit lane (TR-01: no build ever run)'
         run: tests/lanes/run unit
+
+      # The browser lane proves bin/setup --test left tests/browser runnable:
+      # the browsers themselves came from that step. The OS packages they link
+      # against are the one CI-only piece — bin/setup never runs sudo/apt, and
+      # says so on Linux — so the workflow installs them here, explicitly.
+      - name: Install Playwright OS dependencies (CI-only; bin/setup never runs apt)
+        run: pnpm exec playwright install-deps chromium firefox webkit
+
+      - name: 'Browser lane (browsers installed by bin/setup --test)'
+        run: tests/lanes/run browser
 
       - name: Vitest suite
         run: pnpm test
