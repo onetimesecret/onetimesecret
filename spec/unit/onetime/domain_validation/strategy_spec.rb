@@ -158,11 +158,13 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
   let(:resolver) { instance_double(Onetime::DomainValidation::TxtResolver, close: nil) }
   let(:txt_verifier) { Onetime::DomainValidation::TxtVerifier.new(resolver_factory: -> { resolver }) }
   let(:strategy) { described_class.new(config, txt_verifier: txt_verifier) }
+  let(:verified) { false }
   let(:custom_domain) do
     double('CustomDomain',
            display_domain: 'example.com',
            txt_validation_value: 'validation123',
-           validation_record: '_onetime-challenge-abc123.example.com')
+           validation_record: '_onetime-challenge-abc123.example.com',
+           verified: verified)
   end
 
   before do
@@ -261,6 +263,16 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
       it 'never falls back to a native lookup' do
         expect(resolver).not_to receive(:lookup)
         strategy.validate_ownership(custom_domain)
+      end
+
+      context 'when the domain is already verified' do
+        let(:verified) { true }
+
+        it 'still fails definitively on the upstream answer' do
+          result = strategy.validate_ownership(custom_domain)
+          expect(result).to include(validated: false)
+          expect(result).not_to have_key(:indeterminate)
+        end
       end
     end
 
@@ -415,23 +427,38 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
         end
       end
 
-      # A definitive negative from our own resolver is evidence about the
-      # customer's DNS, the same evidence a healthy upstream would have
-      # reported as []. It demotes; VerifyDomain still honours an override.
       context 'and the native lookup answers NXDOMAIN' do
         let(:native_rcode) { Resolv::DNS::RCode::NXDomain }
 
-        it 'fails definitively from the native answer' do
-          result = strategy.validate_ownership(custom_domain)
-          expect(result).to include(validated: false, source: 'native')
-          expect(result).not_to have_key(:indeterminate)
-          expect(result[:message]).to eq('TXT record not found (native lookup; upstream checker indeterminate)')
+        context 'when the domain has never been confirmed' do
+          it 'fails closed from the native answer' do
+            result = strategy.validate_ownership(custom_domain)
+            expect(result).to include(validated: false, source: 'native')
+            expect(result).not_to have_key(:indeterminate)
+            expect(result[:message]).to eq('TXT record not found (native lookup; upstream checker indeterminate)')
+          end
+
+          it 'carries :data so VerifyDomain persists the failed check' do
+            result = strategy.validate_ownership(custom_domain)
+            expect(result[:data].first['actual_values']).to be false
+            expect(result[:data].last).to include('actual_values' => [], 'rcode' => 'NXDOMAIN')
+          end
         end
 
-        it 'carries :data so VerifyDomain persists the demotion' do
-          result = strategy.validate_ownership(custom_domain)
-          expect(result[:data].first['actual_values']).to be false
-          expect(result[:data].last).to include('actual_values' => [], 'rcode' => 'NXDOMAIN')
+        context 'when the domain is already verified' do
+          let(:verified) { true }
+
+          it 'stays indeterminate rather than demoting on one local negative' do
+            result = strategy.validate_ownership(custom_domain)
+            expect(result).to include(validated: nil, indeterminate: true, source: 'native')
+            expect(result[:message]).to include('previously verified domain left unchanged')
+          end
+
+          it 'keeps both answers in :data for diagnosis' do
+            result = strategy.validate_ownership(custom_domain)
+            expect(result[:data].first['actual_values']).to be false
+            expect(result[:data].last).to include('actual_values' => [], 'rcode' => 'NXDOMAIN')
+          end
         end
 
         it 'does not issue a NXDOMAIN probe' do

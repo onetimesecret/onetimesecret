@@ -122,7 +122,9 @@ SERVFAIL and a timeout alike, so it cannot separate `false` from `nil`.
 response code; it uses only the stdlib message codec.
 
 `ApproximatedStrategy` uses the same verifier when Approximated's own lookup
-fails (`actual_values: false`), including its definitive negatives.
+fails (`actual_values: false`). A native negative fails a first-time check
+closed, but does not revoke an existing verification without upstream
+corroboration; a definitive negative from Approximated still demotes.
 
 Order of work matters for the "ask gate is unsatisfiable" note below. The
 OTS-side resolving check makes `ready?` reachable under `caddy_on_demand`;

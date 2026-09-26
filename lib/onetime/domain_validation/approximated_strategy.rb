@@ -277,53 +277,21 @@ module Onetime
       #   actual_values is Array   -> validated: false (not found / mismatch)
       #   anything else            -> upstream indeterminate; ask TxtVerifier
       #
-      # Callers must treat nil as "no answer" and leave the stored verified
-      # flag untouched (VerifyDomain#persist_changes does). Collapsing a failed
-      # upstream lookup into `false` demoted correctly-configured domains on
-      # every refresh run.
+      # The native lookup can establish ownership and can fail closed for a
+      # domain that has never been verified. It cannot, by itself, revoke an
+      # existing verification while the independent upstream checker has no
+      # answer: split-horizon DNS, filtering, or a stale negative cache could
+      # make one local resolver return NXDOMAIN for a valid public record. Such
+      # disagreement stays indeterminate and leaves stored state unchanged.
       #
-      # When upstream is indeterminate, our own lookup (TxtVerifier) decides,
-      # and its three outcomes pass through with their meaning intact:
+      # A definitive negative from Approximated still demotes through the Array
+      # branch above. TxtVerifier also keeps its normal three-outcome contract;
+      # this strategy owns the extra corroboration rule because it alone has an
+      # upstream result to compare with the native answer.
       #
-      #   native true   -> validated: true
-      #   native false  -> validated: false. The resolver stated NXDOMAIN, or
-      #                    NOERROR without TXT data, or values that are not
-      #                    "exactly one, matching". This demotes a verified
-      #                    domain (an operator override still holds it, in
-      #                    VerifyDomain).
-      #   native nil    -> validated: nil. SERVFAIL, REFUSED, a timeout or an
-      #                    exception is no answer, from either checker.
-      #
-      # Why a native false demotes even though upstream gave no answer:
-      #
-      #   - `verified` asserts that the customer controls the domain now. When
-      #     the proof is gone (record removed, zone lapsed, domain changed
-      #     hands) the assertion has to go with it.
-      #   - A healthy upstream would have reported the same empty or different
-      #     values and demoted through the Array branch above. The native path
-      #     reaches the same result, it does not add a new way to lose
-      #     `verified`.
-      #   - TxtVerifier's false has to mean one thing under both strategies.
-      #   - It cannot bring back the false demotions: those came from reading
-      #     a failed lookup as a mismatch, and TxtVerifier keeps every failed
-      #     lookup in nil. A false needs a definitive response code.
-      #
-      # The NXDOMAIN sentinel probe therefore only runs when the native lookup
-      # is indeterminate too. It reveals which upstream state covers "record
-      # does not exist":
-      #
-      #   sentinel actual_values is []     -> Approximated distinguishes NXDOMAIN
-      #                                       from lookup failure; a `false` on
-      #                                       the real check is an upstream
-      #                                       fault, not a deletion.
-      #   sentinel actual_values is false  -> Approximated conflates NXDOMAIN
-      #                                       and SERVFAIL, so a deleted TXT
-      #                                       record is only ever demoted by
-      #                                       the native lookup.
-      #
-      # The probe never changes the outcome; it is recorded so operators can
-      # tell "upstream checker is broken today" apart from "upstream checker
-      # never reports a deleted TXT record."
+      # The NXDOMAIN sentinel probe runs only when the native lookup is itself
+      # indeterminate. It records whether Approximated distinguishes missing
+      # records from lookup failures, but never changes the outcome.
       #
       # @param custom_domain [Onetime::CustomDomain]
       # @param match_records [Array<Hash>] 'records' from the API response
@@ -357,7 +325,7 @@ module Onetime
       # See classify_ownership for the reasoning.
       #
       # :data keeps the upstream records first and appends the native record,
-      # so the log line for a demotion shows what both checkers saw.
+      # so the outcome log shows what both checkers saw.
       #
       # @param custom_domain [Onetime::CustomDomain]
       # @param match_records [Array<Hash>] upstream 'records' (indeterminate)
@@ -370,6 +338,17 @@ module Onetime
         # A false without :data is TxtVerifier declining to look (no challenge
         # configured). That is not an answer from DNS, so it does not demote.
         definitive = native[:validated] == true || (native[:validated] == false && native[:data])
+
+        if definitive && native[:validated] == false && custom_domain.verified == true
+          return {
+            validated: nil,
+            indeterminate: true,
+            message: "#{native[:message]} (native lookup negative; upstream checker indeterminate; " \
+                     'previously verified domain left unchanged)',
+            data: data,
+            source: native[:source],
+          }
+        end
 
         if definitive
           return {

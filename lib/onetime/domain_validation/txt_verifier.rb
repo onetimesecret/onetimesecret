@@ -18,11 +18,12 @@ module Onetime
     #                                                      indeterminate: true
     #
     # The split between false and nil is the point of this class. A failed
-    # lookup says nothing about the customer's DNS, so it must not demote a
-    # verified domain (callers leave stored state alone on nil). NXDOMAIN and
-    # an empty NOERROR answer are the resolver stating that the record is not
-    # there, so they must demote — otherwise a deleted TXT record would hold
-    # `verified` forever.
+    # lookup says nothing about the customer's DNS, so callers leave stored
+    # state alone on nil. NXDOMAIN and an empty NOERROR answer are definitive
+    # negatives from this resolver. The caller decides whether that one answer
+    # is sufficient to demote: Caddy has no second checker, while Approximated
+    # requires corroboration before revoking an existing verification when its
+    # independent checker is indeterminate.
     #
     # "Exactly one" mirrors Approximated's check-records-match-exactly, so
     # both strategies accept and reject the same zones.

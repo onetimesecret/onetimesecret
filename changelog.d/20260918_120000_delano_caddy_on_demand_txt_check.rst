@@ -29,13 +29,11 @@ Changed
 Fixed
 -----
 
-- Under the ``approximated`` strategy, a TXT record that has been removed now
-  loses verified status even while Approximated's DNS checker returns no
-  result. When the upstream check is indeterminate the application does its
-  own lookup; a definitive answer from it (record found and matching, or
-  NXDOMAIN / no TXT data / different values) is now used in both directions,
-  where before it could only promote. A failed native lookup still leaves the
-  domain as it was, and a Colonel override still holds verified.
+- Under the ``approximated`` strategy, an indeterminate provider TXT check now
+  falls back to the application's DNS resolver. A matching local answer can
+  verify the domain, and a negative local answer keeps a never-verified domain
+  unverified. One local negative no longer revokes an existing verification by
+  itself; a definitive negative from Approximated still does.
 
 Documentation
 -------------
