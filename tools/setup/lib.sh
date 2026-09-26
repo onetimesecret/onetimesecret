@@ -1,8 +1,10 @@
 # shellcheck shell=bash
 # tools/setup/lib.sh
 #
-# Shared spine for bin/setup. Sourced, not executed. Callers run under
-# `set -euo pipefail`.
+# Shared spine for tools/setup/setup.sh (the lanes behind bin/setup) and
+# tools/setup/new-worktree.sh. Sourced, not executed. setup.sh runs under
+# `set -euo pipefail`; new-worktree.sh leaves out -e because it must always
+# exit 0.
 #
 # Bash 3.2 compatible on purpose: macOS ships 3.2, and the old
 # install-dev.sh hard-failed there over a single associative array (DX-15).

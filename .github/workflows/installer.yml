@@ -119,7 +119,7 @@ jobs:
       # to test: execution under stock bash 3.2.
       #
       # That same 3.2 is why this job's log carries one bash-5 FAIL line.
-      # The dev lane of bin/setup ends in `cmd_doctor --dev || true`, and
+      # The dev lane (tools/setup/setup.sh) ends in `cmd_doctor --dev || true`, and
       # doctor's contributor context checks the PATH bash against the
       # bash 5+ floor that tests/lanes/run requires — which this runner
       # genuinely does not meet. Expected and non-blocking: the call is
@@ -166,8 +166,8 @@ jobs:
         run: |
           docker run --rm -i -v "$PWD:/src" -w /src bash:3.2 sh -c '
             set -e
-            for f in bin/setup bin/install bin/doctor tools/setup/lib.sh \
-                     tools/setup/new-worktree.sh \
+            for f in bin/setup bin/install bin/doctor tools/setup/setup.sh \
+                     tools/setup/lib.sh tools/setup/new-worktree.sh \
                      scripts/install-tests/run.sh \
                      scripts/install-tests/proof-of-life.sh \
                      scripts/install-tests/secret-rotation.sh \

@@ -286,7 +286,7 @@ COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
 COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
-COPY --chown=appuser:appuser tools/setup/lib.sh ./tools/setup/lib.sh
+COPY --chown=appuser:appuser tools/setup/setup.sh tools/setup/lib.sh ./tools/setup/
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/package.json ./
 COPY --chown=appuser:appuser config.ru .ruby-version Gemfile Gemfile.lock ./
@@ -420,7 +420,7 @@ COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
 COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
-COPY --chown=appuser:appuser tools/setup/lib.sh ./tools/setup/lib.sh
+COPY --chown=appuser:appuser tools/setup/setup.sh tools/setup/lib.sh ./tools/setup/
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/package.json ./
 COPY --chown=appuser:appuser config.ru .ruby-version Gemfile Gemfile.lock ./
