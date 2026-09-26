@@ -43,10 +43,18 @@ fi
 # does not already have. A parsing error (exit 64) fires before --print-key
 # is honored, which is what makes the nonzero rows meaningful. The --only
 # paths only have to exist; --print-key never opens them.
+#
+# `env -u RSPEC_OUTPUT_FILE`: the name is keep-listed, so a CI unit lane
+# (results-file set by run-test-lane/action.yml) hands it to this process,
+# and the boundary spec that drives this lane merges ENV rather than
+# replacing it. The --quiet rows would then hit the runner's --quiet /
+# RSPEC_OUTPUT_FILE refusal and read as a parsing regression. Unset, not
+# emptied: the refusal tests -n. The one check that WANTS the pairing sets
+# the name itself, below.
 while read -r want args; do
   got=0
   # shellcheck disable=SC2086  # rows are split into argv on purpose
-  tests/lanes/run selftest ${args} >/dev/null 2>&1 || got=$?
+  env -u RSPEC_OUTPUT_FILE tests/lanes/run selftest ${args} >/dev/null 2>&1 || got=$?
   if [[ "${got}" != "${want}" ]]; then
     echo "[lane:selftest] FAILED: tests/lanes/run selftest ${args} exited ${got}, expected ${want}" >&2
     exit 1
@@ -71,8 +79,10 @@ ROWS
 
 # --quiet is an env effect, not an exit code: SPEC_OPTS must carry the quiet
 # formatter under the flag and must be absent without it (default output is
-# CI's output). RSPEC_OUTPUT_FILE is keep-listed, so the inner run sees it.
-if ! tests/lanes/run selftest --quiet --print-key 2>/dev/null | grep -q 'spec_opts=--require .*quiet_formatter --format Lanes::QuietFormatter'; then
+# CI's output). RSPEC_OUTPUT_FILE is keep-listed, so the inner run sees it:
+# unset for the first check (see the loop above), set on purpose for the
+# third, which is the refusal itself.
+if ! env -u RSPEC_OUTPUT_FILE tests/lanes/run selftest --quiet --print-key 2>/dev/null | grep -q 'spec_opts=--require .*quiet_formatter --format Lanes::QuietFormatter'; then
   echo '[lane:selftest] FAILED: --quiet did not set SPEC_OPTS to the quiet formatter' >&2
   exit 1
 fi
@@ -224,10 +234,11 @@ fi
 #    run-all --changed selects through it, with the diff stubbed by
 #    LANES_CHANGED_STUB and --dry-run so nothing is started. Rows are
 #    `<expected exit> <argv>` for the runner, then checked outputs.
+#    RSPEC_OUTPUT_FILE is unset for the same reason as in the flag rows.
 while read -r want args; do
   got=0
   # shellcheck disable=SC2086  # rows are split into argv on purpose
-  tests/lanes/run ${args} >/dev/null 2>&1 || got=$?
+  env -u RSPEC_OUTPUT_FILE tests/lanes/run ${args} >/dev/null 2>&1 || got=$?
   if [[ "${got}" != "${want}" ]]; then
     echo "[lane:selftest] FAILED: tests/lanes/run ${args} exited ${got}, expected ${want}" >&2
     exit 1
