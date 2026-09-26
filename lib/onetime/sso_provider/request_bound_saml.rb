@@ -80,6 +80,16 @@
 # and an unbound bearer confirmation is ambiguous about which login it
 # answers, and no supported IdP emits one.
 #
+# THE SAME EVERY-BEARER RULE COVERS Recipient AND NotOnOrAfter. Each bearer
+# SubjectConfirmationData of the signed assertion must name this ACS as its
+# Recipient and carry a NotOnOrAfter that parses
+# (:saml_bearer_confirmation_unbounded otherwise). The gem treats both
+# attributes as optional and relies on the first confirmation that passes,
+# so a confirmation with no expiry would keep the assertion acceptable
+# after the replay marker — written from the LATEST readable expiry —
+# has lapsed. Requiring the attributes everywhere is what lets the replay
+# guard's retention be a bound on acceptance rather than a hope.
+#
 # EVERY GATE FAILS CLOSED. A blank option, an unreadable issuer, a missing
 # assertion id, a datastore error in the replay cache — each is a refusal,
 # never a fall-through to the gem's permissive default.
@@ -116,11 +126,13 @@
 #                     covers when only the assertion is signed.
 #   - response.rb:791-826 validate_subject_confirmation accepts the FIRST
 #                     bearer SubjectConfirmation whose SubjectConfirmationData
-#                     passes, and treats an absent @InResponseTo as passing.
-#                     request_binding_refusal below re-reads the same nodes
-#                     through the PRIVATE xpath_from_signed_assertion
+#                     passes, and treats an absent @InResponseTo, an absent
+#                     @Recipient and an absent @NotOnOrAfter as passing.
+#                     request_binding_refusal and
+#                     bearer_confirmation_refusal below re-read the same
+#                     nodes through the PRIVATE xpath_from_signed_assertion
 #                     (:1018-1026, the exact helper the gem uses there) and
-#                     requires the attribute on every bearer confirmation.
+#                     require the attributes on every bearer confirmation.
 #   - response.rb:968-996 get_cached_signed_assertion returns the Assertion
 #                     from the referenced_xml of the validated signature
 #                     (ID-matched), or an EMPTY document when nothing signed
@@ -469,6 +481,7 @@ module OmniAuth
 
         signature_algorithm_refusal(response) ||
           request_binding_refusal(response) ||
+          bearer_confirmation_refusal(response) ||
           issuer_refusal(response) ||
           name_id_refusal(response) ||
           replay_refusal(response, opts) ||
@@ -598,6 +611,59 @@ module OmniAuth
         [:saml_in_response_to_unbound, 'SAML SubjectConfirmation could not be read', { error_class: ex.class.name }]
       end
 
+      # Every bearer SubjectConfirmation of the signed assertion must carry a
+      # Recipient byte-equal to this ACS and a NotOnOrAfter that parses. The
+      # gem's validate_subject_confirmation treats an ABSENT Recipient and an
+      # ABSENT NotOnOrAfter as passing, and accepts the first confirmation
+      # that passes — so an assertion carrying one well-formed confirmation
+      # and one with no expiry stays acceptable to the gem for as long as
+      # Conditions allows (forever, when Conditions has no NotOnOrAfter),
+      # while the replay marker written from the well-formed one has long
+      # expired. replay_refusal remembers only what it can read; this gate
+      # makes sure there is nothing it cannot.
+      #
+      # Same signed-assertion accessor and bearer/Method filter as
+      # request_binding_refusal. The every-bearer rule is again a hardening
+      # choice beyond the SAML Profiles baseline (4.1.4.3 requires Recipient
+      # and NotOnOrAfter on the confirmation the SP relies on, not on all of
+      # them): a confirmation this SP would never rely on has no business in
+      # an assertion addressed to it, and no supported IdP emits one. Byte
+      # equality on Recipient rather than the gem's uri_match?, as for the
+      # issuer. An expired window is NOT a refusal here — it is well-formed,
+      # and bearer_expiry simply does not extend retention for it.
+      def bearer_confirmation_refusal(response)
+        acs                  = (options[:assertion_consumer_service_url] || callback_url).to_s
+        recipient_mismatches = 0
+        invalid_expiries     = 0
+        response.send(:xpath_from_signed_assertion, '/a:Subject/a:SubjectConfirmation').each do |confirmation|
+          method = confirmation.attributes['Method']
+          next if !method.nil? && method != BEARER_METHOD
+
+          data = REXML::XPath.first(confirmation, 'a:SubjectConfirmationData', 'a' => SAML_ASSERTION_NS)
+
+          recipient_mismatches += 1 unless data&.attributes&.[]('Recipient') == acs
+          invalid_expiries     += 1 unless parseable_expiry?(data&.attributes&.[]('NotOnOrAfter'))
+        end
+
+        return nil if recipient_mismatches.zero? && invalid_expiries.zero?
+
+        [
+          :saml_bearer_confirmation_unbounded,
+          'SAML assertion bearer SubjectConfirmationData lacks the ACS Recipient or a valid NotOnOrAfter',
+          { recipient_mismatches: recipient_mismatches, invalid_expiries: invalid_expiries },
+        ]
+      rescue StandardError => ex
+        [:saml_bearer_confirmation_unbounded, 'SAML SubjectConfirmation could not be read', { error_class: ex.class.name }]
+      end
+
+      def parseable_expiry?(value)
+        return false unless value.is_a?(String)
+
+        Time.iso8601(value).to_f.finite?
+      rescue ArgumentError
+        false
+      end
+
       # Exactly one Issuer value across Response and Assertion, byte-equal to
       # the configured EntityID. Stricter than the gem's uri_match?, because
       # the configured string is what the identity row is keyed on: an IdP
@@ -706,6 +772,12 @@ module OmniAuth
       # the same signed assertion becomes redeemable again.
       # Remember the LATEST eligible expiry (not the gem's first match), capped
       # by Conditions when present. Missing Conditions expiry is valid SAML.
+      #
+      # request_binding_refusal and bearer_confirmation_refusal have already
+      # refused any bearer confirmation that is unbound, addressed elsewhere
+      # or without a parseable NotOnOrAfter, so the only confirmation this
+      # skips is one whose window has already closed — which the gem would
+      # not accept either, and which must not extend retention.
       def bearer_expiry(response, clock_drift:, now:)
         expiries = response.send(:xpath_from_signed_assertion, '/a:Subject/a:SubjectConfirmation').filter_map do |confirmation|
           next unless confirmation.attributes['Method'] == BEARER_METHOD

@@ -738,6 +738,125 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         expect(failures).to be_empty
         expect(reached_app.size).to eq(1)
       end
+    end
+
+    # The gem treats an absent Recipient and an absent NotOnOrAfter as
+    # passing and relies on the first bearer confirmation that passes, so a
+    # well-formed confirmation next to one with no expiry would leave the
+    # assertion acceptable after the replay marker (written from the
+    # well-formed one) lapsed. Every bearer confirmation must carry both.
+    describe 'bearer confirmation gate (signed SubjectConfirmationData/@Recipient and @NotOnOrAfter)' do
+      before { start_login }
+
+      let(:well_formed) do
+        { 'InResponseTo' => session[request_id_key], 'Recipient' => acs_url, 'NotOnOrAfter' => Time.now.utc + 100 }
+      end
+
+      def expect_bearer_refusal(recipient_mismatches:, invalid_expiries:)
+        expect(failure_types).to eq([:saml_bearer_confirmation_unbounded])
+        expect(reached_app).to be_empty
+        expect(fake_dbclient.writes).to be_empty
+        expect(auth_logger).to have_received(:warn).with(
+          '[saml_response_refused]',
+          hash_including(
+            reason: 'saml_bearer_confirmation_unbounded',
+            recipient_mismatches: recipient_mismatches,
+            invalid_expiries: invalid_expiries,
+          ),
+        )
+      end
+
+      it 'refuses a second bearer confirmation without a Recipient' do
+        no_recipient = well_formed.merge('Recipient' => nil, 'NotOnOrAfter' => Time.now.utc + 7200)
+        post_callback(response_for(session[request_id_key], subject_confirmations: [well_formed, no_recipient]))
+
+        expect_bearer_refusal(recipient_mismatches: 1, invalid_expiries: 0)
+      end
+
+      it 'refuses a second bearer confirmation addressed to another ACS' do
+        elsewhere = well_formed.merge('Recipient' => 'https://other.example/callback')
+        post_callback(response_for(session[request_id_key], subject_confirmations: [well_formed, elsewhere]))
+
+        expect_bearer_refusal(recipient_mismatches: 1, invalid_expiries: 0)
+      end
+
+      it 'refuses a second bearer confirmation without a NotOnOrAfter, even when Conditions expires' do
+        no_expiry = well_formed.merge('NotOnOrAfter' => nil)
+        post_callback(response_for(session[request_id_key], subject_confirmations: [well_formed, no_expiry]))
+
+        expect_bearer_refusal(recipient_mismatches: 0, invalid_expiries: 1)
+      end
+
+      # A NotOnOrAfter that is not an xs:dateTime never reaches the gate:
+      # ruby-saml's schema validation (validate_structure) refuses the
+      # document first. Still closed, pinned so a gem bump that relaxes the
+      # schema check would show up here.
+      it 'refuses a second bearer confirmation whose NotOnOrAfter does not parse (gem refusal)' do
+        malformed = well_formed.merge('NotOnOrAfter' => 'not-a-time')
+        post_callback(response_for(session[request_id_key], subject_confirmations: [well_formed, malformed]))
+
+        expect(failure_types).to eq([:invalid_ticket])
+        expect(auth_logger).to have_received(:warn)
+          .with('[saml_response_refused]', hash_including(reason: 'invalid_ticket', detail: /NotOnOrAfter.*xs:dateTime/))
+        expect(reached_app).to be_empty
+        expect(fake_dbclient.writes).to be_empty
+      end
+
+      # The gate's own malformed-expiry arm, armed once validation has
+      # returned (the gem reads the same nodes during validation and would
+      # refuse first otherwise) — belt and braces for a schema-passing value
+      # Time.iso8601 still rejects.
+      it 'refuses a NotOnOrAfter the gate itself cannot parse' do
+        ns   = OmniAuth::Strategies::RequestBoundSAML::SAML_ASSERTION_NS
+        pend = session[request_id_key]
+        doc  = REXML::Document.new(
+          %(<saml:Subject xmlns:saml="#{ns}">) +
+            %(<saml:SubjectConfirmation Method="#{described_class::BEARER_METHOD}">) +
+            %(<saml:SubjectConfirmationData InResponseTo="#{pend}" Recipient="#{acs_url}" NotOnOrAfter="2099-01-01T00:00:00Z"/>) +
+            '</saml:SubjectConfirmation>' +
+            %(<saml:SubjectConfirmation Method="#{described_class::BEARER_METHOD}">) +
+            %(<saml:SubjectConfirmationData InResponseTo="#{pend}" Recipient="#{acs_url}" NotOnOrAfter="2099-13-45T99:99:99Z"/>) +
+            '</saml:SubjectConfirmation>' +
+            '</saml:Subject>',
+        )
+        nodes     = REXML::XPath.match(doc, '/saml:Subject/saml:SubjectConfirmation', 'saml' => ns)
+        validated = false
+        allow_any_instance_of(OneLogin::RubySaml::Response).to receive(:is_valid?).and_wrap_original do |original, *args| # rubocop:disable RSpec/AnyInstance
+          original.call(*args).tap { validated = true }
+        end
+        allow_any_instance_of(OneLogin::RubySaml::Response).to receive(:xpath_from_signed_assertion).and_wrap_original do |original, *args| # rubocop:disable RSpec/AnyInstance
+          validated && args.first == '/a:Subject/a:SubjectConfirmation' ? nodes : original.call(*args)
+        end
+        post_callback(response_for(pend))
+
+        expect_bearer_refusal(recipient_mismatches: 0, invalid_expiries: 1)
+      end
+
+      it 'counts every defect across every bearer confirmation' do
+        bare = { 'InResponseTo' => session[request_id_key] }
+        post_callback(response_for(session[request_id_key], subject_confirmations: [well_formed, bare, bare]))
+
+        expect_bearer_refusal(recipient_mismatches: 2, invalid_expiries: 2)
+      end
+
+      # Pinned against the gem so the gate's reason for existing is visible:
+      # ruby-saml alone accepts an assertion whose only bearer confirmation
+      # carries neither attribute.
+      it 'documents that ruby-saml alone accepts a bearer confirmation with neither attribute' do
+        settings = OneLogin::RubySaml::Settings.new(
+          hardened_options.merge(assertion_consumer_service_url: acs_url),
+        )
+        bare     = { 'InResponseTo' => session[request_id_key] }
+        response = OneLogin::RubySaml::Response.new(
+          response_for(session[request_id_key], subject_confirmations: [bare]),
+          settings: settings,
+          matches_request_id: session[request_id_key],
+          allowed_clock_drift: 60,
+          check_duplicated_attributes: true,
+        )
+
+        expect(response.is_valid?).to be(true), response.errors.inspect
+      end
 
       # The gem calls the same helper inside validate_subject_confirmation,
       # so an unconditional stub would be refused by the gem first; it is
@@ -1048,15 +1167,16 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         end
       end
 
-      it 'does not extend retention for expired or wrong-recipient confirmations' do
+      # An already-closed window is well-formed (the bearer confirmation gate
+      # lets it through) but cannot extend retention. A wrong-recipient
+      # confirmation is refused outright by that gate, pinned there.
+      it 'does not extend retention for an expired confirmation' do
         start_login
         now = Time.now.utc
         base = { 'InResponseTo' => session[request_id_key], 'Recipient' => acs_url }
         confirmations = [
           base.merge('NotOnOrAfter' => now + 100),
           base.merge('NotOnOrAfter' => now - 120),
-          base.merge('NotOnOrAfter' => now + 7200, 'Recipient' => 'https://other.example/callback'),
-
         ]
         post_callback(response_for(session[request_id_key], subject_confirmations: confirmations, conditions_expiry: nil))
         expect(failures).to be_empty
@@ -1103,14 +1223,22 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         expect(fake_dbclient.writes).to be_empty
       end
 
-      [nil, 'not-a-time', Time.now.utc - 7200].each do |expiry|
-        it "rejects a signed confirmation with invalid expiry #{expiry.inspect}" do
+      # A missing expiry is refused by the bearer confirmation gate; a
+      # non-dateTime one by the gem's schema validation; an already-closed
+      # one is well-formed, and with no other bearer confirmation to rely on
+      # the gem itself refuses the document.
+      {
+        nil => :saml_bearer_confirmation_unbounded,
+        'not-a-time' => :invalid_ticket,
+        Time.now.utc - 7200 => :invalid_ticket,
+      }.each do |expiry, reason|
+        it "rejects a signed confirmation with invalid expiry #{expiry.inspect} as #{reason}" do
           start_login
           data = { 'InResponseTo' => session[request_id_key], 'Recipient' => acs_url, 'NotOnOrAfter' => expiry }
           post_callback(response_for(session[request_id_key], subject_confirmations: [data], conditions_expiry: nil))
           expect(reached_app).to be_empty
           expect(fake_dbclient.writes).to be_empty
-          expect(failure_types.size).to eq(1)
+          expect(failure_types).to eq([reason])
         end
       end
       it 'refuses the same assertion presented twice, even with a matching pending id' do
@@ -1196,17 +1324,20 @@ RSpec.describe OmniAuth::Strategies::RequestBoundSAML do
         )
       end
 
+      # Refused before the replay gate: the bearer confirmation gate owns a
+      # missing NotOnOrAfter. The replay gate's has_not_on_or_after: false
+      # arm stays as belt and braces for a gate that reads nothing.
       it 'refuses a signed assertion with no confirmation expiry, even when Conditions expires' do
         start_login
         data = { 'InResponseTo' => session[request_id_key], 'Recipient' => acs_url }
         post_callback(response_for(session[request_id_key], subject_confirmations: [data]))
 
-        expect(failure_types).to eq([:saml_assertion_unbounded])
+        expect(failure_types).to eq([:saml_bearer_confirmation_unbounded])
         expect(fake_dbclient.writes).to be_empty
         expect(reached_app).to be_empty
         expect(auth_logger).to have_received(:warn).with(
           '[saml_response_refused]',
-          hash_including(reason: 'saml_assertion_unbounded', has_assertion_id: true, has_not_on_or_after: false),
+          hash_including(reason: 'saml_bearer_confirmation_unbounded', recipient_mismatches: 0, invalid_expiries: 1),
         )
       end
     end

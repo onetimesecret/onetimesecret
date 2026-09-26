@@ -80,7 +80,11 @@ module SamlSpec
     #   real IdP would, mirroring `in_response_to`. Lets a spec build an
     #   assertion whose SIGNED binding disagrees with the unsigned
     #   Response/@InResponseTo — e.g. `[nil]` is an unclaimed assertion
-    #   rewrapped in a Response naming the victim's pending request.
+    #   rewrapped in a Response naming the victim's pending request. A Hash
+    #   element is emitted as the SubjectConfirmationData attributes VERBATIM
+    #   (nil values omitted, Time values formatted), so a spec can mint a
+    #   confirmation with no Recipient, no NotOnOrAfter, a malformed expiry,
+    #   or its own NotBefore window.
     # @param acs_url [String] Destination + SubjectConfirmationData Recipient
     # @param audience [String] the SP EntityID
     # @param response_issuer [String, nil] nil omits the Response Issuer
