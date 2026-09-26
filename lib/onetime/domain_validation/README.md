@@ -26,6 +26,8 @@ A reply only counts as definitive when it is an answer about the name (`DnsStubR
 
 Internationalised hostnames are queried, and probed, in their A-label form (`AsciiHostname`). `CustomDomain` stores the hostname as typed; sent as typed it would come back NXDOMAIN, which is our encoding speaking and not the customer's DNS.
 
+The reverse direction is handled in the `CustomDomain` lookup. Names that arrive over the wire are A-labels: the SNI name Caddy passes to the ACME ask endpoint, and the Host header. `CustomDomain.display_domain_id_for` (behind `load_by_display_domain`, `from_display_domain` and `resolve_domain_id`) tries the name as given, then its A-label form, then its Unicode (NFC) form, so a domain stored as `bücher.example` is found when asked for as `xn--bcher-kva.example` and the other way round. Stored data is not rewritten, a plain ASCII name still costs one index read, and a name that cannot be converted is a miss (403 from the ask endpoint), not an error. The same lookup keeps the second form of an already registered name from being registered as a separate domain.
+
 Under `caddy_on_demand` the TXT check is the ownership proof. Caddy completing an ACME challenge shows that the name resolves to this deployment; it does not show which account, if any, controls the domain. The internal ACME endpoint (`apps/internal/acme`) only authorises a certificate for a domain that is `ready?`, which requires `verified`.
 
 `caddy_on_demand` makes one exception to "nil leaves `verified` unchanged": a domain that is verified with no `verified_confirmed_at`. The hold exists to protect a verification a TXT check once established, and `verified_confirmed_at` is the record of that check; without one there is nothing on record for the hold to protect, and with the status probe now filling in `resolving`, holding the flag would make the domain `ready?`. The strategy returns `false` for it instead of `nil`. A Colonel override holds the domain as for any other `false`, and the next check that finds the record verifies it.
@@ -40,7 +42,7 @@ The third kind matters for a cutover from `approximated` to `caddy_on_demand`. C
 
 Existing domains are only re-checked when something runs the check. Installs that do not run the scheduler with `jobs.domain_refresh` enabled (both are off by default) must run `bin/ots domains verify --all` once after upgrading for the TXT check to take effect on existing domains, and periodically after that.
 
-Under `approximated` the API's answer is used when it has one. When its own DNS lookup failed (`actual_values: false`), `TxtVerifier` decides instead, with the same three outcomes.
+Under `approximated` the API's answer is used when it has one. When it has none, `TxtVerifier` decides instead, with the same three outcomes. "None" covers a 200 whose own DNS lookup failed (`actual_values: false`) and every case where the checker could not be asked: no API key configured, a non-200 response, a client exception. None of those is evidence about the customer's DNS, so none is reported as a failed check. A deployment whose API key is missing or revoked therefore keeps confirming its domains through the native lookup, and only a domain whose native lookup is indeterminate as well runs into the confirmation window below. An exception raised by a strategy is handled the same way in `VerifyDomain`: indeterminate, never failed.
 
 ### Confirmation window
 

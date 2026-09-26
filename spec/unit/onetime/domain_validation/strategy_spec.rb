@@ -191,16 +191,68 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
   end
 
   describe '#validate_ownership' do
+    # No API key, a non-200 and a client exception all mean the upstream
+    # checker said nothing about the customer's DNS. The native lookup decides,
+    # exactly as for an indeterminate upstream answer.
+    shared_examples 'an unavailable upstream checker settled natively' do |reason|
+      before { allow(OT).to receive_messages(lw: nil, le: nil) }
+
+      context 'and the native lookup returns exactly the challenge value' do
+        let(:native_rcode) { Resolv::DNS::RCode::NoError }
+        let(:native_values) { ['validation123'] }
+
+        it 'validates on the native answer' do
+          result = strategy.validate_ownership(custom_domain)
+          expect(result).to include(validated: true, source: 'native')
+          expect(result[:message]).to include('native lookup; upstream checker unavailable').and match(reason)
+          expect(result[:data]).to contain_exactly(hash_including('match' => true))
+        end
+      end
+
+      context 'and the native lookup answers NXDOMAIN' do
+        it 'fails on the native answer, with :data so the result is stored' do
+          result = strategy.validate_ownership(custom_domain)
+          expect(result).to include(validated: false, source: 'native')
+          expect(result).not_to have_key(:indeterminate)
+          expect(result[:data]).to contain_exactly(hash_including('rcode' => 'NXDOMAIN'))
+        end
+      end
+
+      context 'and the native lookup is indeterminate too (SERVFAIL)' do
+        let(:native_rcode) { Resolv::DNS::RCode::ServFail }
+
+        it 'is indeterminate, not failed' do
+          result = strategy.validate_ownership(custom_domain)
+          expect(result).to include(validated: nil, indeterminate: true)
+          expect(result).not_to have_key(:nxdomain_probe)
+          expect(result[:message]).to include('Upstream DNS checker unavailable').and match(reason)
+          expect(result[:data]).to contain_exactly(hash_including('actual_values' => false))
+        end
+      end
+
+      context 'and the domain cannot produce its validation record' do
+        before { allow(custom_domain).to receive(:validation_record).and_raise(StandardError, 'no record') }
+
+        it 'is indeterminate without :data' do
+          result = strategy.validate_ownership(custom_domain)
+          expect(result).to include(validated: nil, indeterminate: true)
+          expect(result).not_to have_key(:data)
+        end
+      end
+    end
+
     context 'when API key is not configured' do
       before do
         allow(Onetime::DomainValidation::Features).to receive(:api_key).and_return(nil)
       end
 
-      it 'returns not validated with error message' do
-        result = strategy.validate_ownership(custom_domain)
-        expect(result[:validated]).to be false
-        expect(result[:message]).to include('API key not configured')
+      it 'never calls the upstream checker, not even for the NXDOMAIN probe' do
+        allow(OT).to receive(:lw)
+        expect(Onetime::DomainValidation::ApproximatedClient).not_to receive(:check_records_match_exactly)
+        strategy.validate_ownership(custom_domain)
       end
+
+      it_behaves_like 'an unavailable upstream checker settled natively', /API key not configured/
     end
 
     context 'when API call succeeds with match' do
@@ -489,15 +541,18 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
           .and_return(api_response)
       end
 
-      it 'returns validated false' do
-        result = strategy.validate_ownership(custom_domain)
-        expect(result[:validated]).to be false
+      it 'keeps the upstream error body on the result' do
+        allow(OT).to receive(:lw)
+        expect(strategy.validate_ownership(custom_domain)[:error]).to eq('error' => 'Server error')
       end
 
-      it 'includes error code in message' do
-        result = strategy.validate_ownership(custom_domain)
-        expect(result[:message]).to include('500')
+      it 'does not spend a second upstream call on the NXDOMAIN probe' do
+        allow(OT).to receive(:lw)
+        expect(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly).once
+        strategy.validate_ownership(custom_domain)
       end
+
+      it_behaves_like 'an unavailable upstream checker settled natively', /Validation check failed: 500/
     end
 
     context 'when exception occurs' do
@@ -507,15 +562,12 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
       end
 
       it 'logs error' do
+        allow(OT).to receive(:lw)
         expect(OT).to receive(:le).with(/Error validating/)
         strategy.validate_ownership(custom_domain)
       end
 
-      it 'returns validated false' do
-        allow(OT).to receive(:le)
-        result = strategy.validate_ownership(custom_domain)
-        expect(result[:validated]).to be false
-      end
+      it_behaves_like 'an unavailable upstream checker settled natively', /Network error/
     end
   end
 

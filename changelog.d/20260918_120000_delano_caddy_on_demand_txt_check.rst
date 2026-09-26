@@ -1,5 +1,31 @@
 .. A new scriv changelog fragment.
 
+Added
+-----
+
+- ``remove_orphaned_approximated_vhosts`` housekeeping chore, for installs
+  that moved from the ``approximated`` validation strategy to another one.
+  Changing the strategy deletes nothing on Approximated, so each domain keeps
+  a billable virtual host there and the old vhost data on its record; the
+  chore removes both. It is a dry run by default: it lists the deletion
+  candidates and makes no Approximated API call. The nightly housekeeping job
+  also runs it as a dry run. To delete, run it with the variable set::
+
+      # Dry run (default)
+      bin/ots housekeeping run Onetime::CustomDomain remove_orphaned_approximated_vhosts
+
+      # Apply
+      APPROXIMATED_VHOST_CLEANUP=apply bin/ots housekeeping run Onetime::CustomDomain remove_orphaned_approximated_vhosts
+
+  Only the literal value ``apply`` deletes. Keep ``approximated.api_key`` and
+  ``proxy_ip`` / ``proxy_host`` configured after the cutover: the chore needs
+  the key to delete and the proxy address to tell which domains still point
+  at the Approximated cluster. A virtual host is deleted only when the domain
+  resolves to addresses outside the cluster and Approximated reports it as
+  not resolving and not receiving traffic; everything else is skipped and
+  picked up on a later run. ``verified``, ``resolving`` and the TXT fields
+  are never changed. Details are in ``lib/onetime/domain_validation/README.md``.
+
 Changed
 -------
 
@@ -87,23 +113,32 @@ Changed
     longer overlap: a tick that fires while the previous run is still working
     is skipped, and its page is picked up on the next walk. Lower
     ``batch_size`` if runs routinely take longer than ``check_interval``.
+    The skip works inside one scheduler process. Scheduled jobs assume a
+    single ``bin/ots scheduler`` per datastore, which is how the shipped
+    compose file and S6 image run it; a second scheduler would repeat every
+    refresh.
   - **Cutover from** ``approximated``: removing a domain under
     ``caddy_on_demand`` does not delete anything on Approximated
     (``delete_vhost`` is a no-op for this strategy), and neither does changing
     the strategy. Virtual hosts created while ``approximated`` was active stay
     there, billable and able to serve the hostname, until they are removed on
     the Approximated side: run the ``remove_orphaned_approximated_vhosts``
-    chore with the Approximated API key still configured, or delete them in
-    the Approximated dashboard.
+    chore (see Added above; a dry run unless
+    ``APPROXIMATED_VHOST_CLEANUP=apply`` is set) with the Approximated API
+    key still configured, or delete them in the Approximated dashboard.
 
     Sequence the switch so that proven domains keep verified.
     ``verified_confirmed_at`` is new in this version and is only written by a
     passing check on this version, so immediately after upgrading every
     domain has none, including domains Approximated had proven. Before
-    changing the strategy: (1) upgrade while still on ``approximated`` and
-    run a full ``bin/ots domains verify --all`` pass (or let the domain
-    refresh job complete a walk of every page), which records the
-    confirmation for each domain whose TXT record is in place; (2) confirm
+    changing the strategy: (1) upgrade while still on ``approximated`` and,
+    still on ``approximated``, let one full refresh cycle complete on this
+    version: either run ``bin/ots domains verify --all`` to the end (without
+    ``--dry-run``, which records nothing), or let
+    the domain refresh job walk every page (number of domains divided by
+    ``batch_size``, times ``check_interval``). Every passing check, whether
+    Approximated or the native lookup answered it, stamps
+    ``verified_confirmed_at`` for that domain; (2) confirm
     the application host has a working resolver (nameservers in
     ``resolv.conf``, outbound DNS allowed), because ``caddy_on_demand`` is
     the first time the application does the TXT lookup itself on every
@@ -147,6 +182,28 @@ Fixed
   verify the domain, and a negative local answer keeps a never-verified domain
   unverified. One local negative no longer revokes an existing verification by
   itself; a definitive negative from Approximated still does.
+
+- Under the ``approximated`` strategy, a TXT check that could not reach
+  Approximated at all (no API key configured, a non-200 response, a network
+  error) is no longer reported as a failed check. The application does its
+  own lookup in those cases too, so a domain whose record is in place is
+  confirmed, a removed record is noticed, and only a domain whose native
+  lookup also produces no answer is reported as indeterminate and falls under
+  the 7-day confirmation window. An install whose Approximated API key is
+  missing or revoked keeps its domains verified through the native lookup. An
+  unexpected error during a verify is likewise reported as indeterminate
+  rather than failed.
+
+- An internationalised custom domain that was entered in Unicode (for example
+  ``bücher.example``) is now found when it is looked up by its punycode form
+  (``xn--bcher-kva.example``), and the other way round. Caddy asks the
+  internal ACME endpoint about the punycode name and browsers send it in the
+  Host header, so such a domain was refused a certificate under
+  ``caddy_on_demand`` and was not recognised as a custom domain on incoming
+  requests. Stored domains are not changed. The second form of a name that is
+  already registered can no longer be added as a separate domain. A name that
+  cannot be converted (an overlong label, malformed punycode) is answered with
+  403 by the ACME endpoint.
 
 Documentation
 -------------
