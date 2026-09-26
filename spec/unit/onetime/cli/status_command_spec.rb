@@ -93,7 +93,9 @@ RSpec.describe Onetime::CLI::StatusCommand do
       'postgresql://app:pa:ss@db:5432/auth' => 'postgresql://app:***@db:5432/auth',
       'postgresql://db:5432/auth?password=s3cret' => 'postgresql://db:5432/auth?***',
       'postgresql://app:s3cret@db/auth?sslmode=require' => 'postgresql://app:***@db/auth?***',
-      'sqlite://data/auth.db?mode=rwc' => 'sqlite://data/auth.db?mode=rwc',
+      'sqlite://data/auth.db' => 'sqlite://data/auth.db',
+      'sqlite://data/auth.db?mode=rwc' => 'sqlite://data/auth.db?***',
+      'sqlite://data/auth.db?password=s3cret' => 'sqlite://data/auth.db?***',
     }.each do |input, expected|
       it "renders #{input.inspect} as #{expected.inspect}" do
         expect(command.send(:sanitize_db_url, input)).to eq(expected)
