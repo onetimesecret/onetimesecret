@@ -311,6 +311,9 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "                 selects tests/lanes/support/quiet_formatter.rb); the"
   echo "                 tryouts legs already run --agent outside CI. Default"
   echo "                 output is unchanged without it."
+  echo
+  echo "Every run (tasks or --only) is also written to tmp/lanes/<lane>/<overlays>/"
+  echo "last.log; the path is printed at exit. --print-key shows the directory."
   echo "  --skip-codegen skip the lane's declared codegen (LANES_CODEGEN in"
   echo "                 its env file). A direct run ALWAYS generates; this is"
   echo "                 for a caller that generated once before fanning out."
@@ -1056,14 +1059,35 @@ if [[ -n "${_lanes_active:-}" ]]; then
   ) </dev/null >/dev/null 2>&1 &
 fi
 
-echo "[lane:${LANE}] mode=${AUTHENTICATION_MODE:-?}" \
-     "overlays=${OVERLAY_KEY:-none}" \
-     "billing=${BILLING_ENABLED:-false}" \
-     "redis=${REDIS_URL:-?}" \
-     "db=${LANES_DATASTORE_DB}" \
-     "auth_db=${AUTH_DATABASE_URL:-n/a}"
+printf -v _lanes_banner '[lane:%s] mode=%s overlays=%s billing=%s redis=%s db=%s auth_db=%s' \
+  "${LANE}" "${AUTHENTICATION_MODE:-?}" "${OVERLAY_KEY:-none}" "${BILLING_ENABLED:-false}" \
+  "${REDIS_URL:-?}" "${LANES_DATASTORE_DB}" "${AUTH_DATABASE_URL:-n/a}"
+echo "${_lanes_banner}"
 
 cd "${REPO_ROOT}"
+
+# ── Last run output ──────────────────────────────────────────────────────
+# Everything the task process prints is tee'd to <run dir>/last.log by the
+# epilogue below, so a failure that scrolled past costs a read, not a rerun.
+# One file per lane+overlay set (the same keying as the status file above),
+# truncated here at the start of each run, seeded with the banner so the log
+# says which datastore it was about. The epilogue appends from there and
+# prints the path on its way out, success or failure.
+#
+# tee costs the task process its terminal: rspec and tryouts see a pipe on
+# stdout and drop colors. When the runner itself is on a terminal, say so
+# explicitly — `--force-color` for rspec through SPEC_OPTS (appended, so
+# --quiet's formatter stays), FORCE_COLOR for tryouts (lib/tryouts/console.rb)
+# — so an interactive run looks as it did. CI and run-all pipe the runner's
+# stdout, so neither is set there and their output is untouched.
+LANES_LAST_LOG="${LANES_RUN_DIR}/last.log"
+mkdir -p "${LANES_RUN_DIR}"
+printf '%s\n' "${_lanes_banner}" > "${LANES_LAST_LOG}"
+if [[ -t 1 ]]; then
+  SPEC_OPTS="${SPEC_OPTS:+${SPEC_OPTS} }--force-color"
+  export SPEC_OPTS
+  export FORCE_COLOR=1
+fi
 
 # The per-worktree PG database has to exist before the lane's specs open a
 # connection to it, and unlike a valkey DB index it is not conjured by
@@ -1207,24 +1231,31 @@ fi
 # that closed since preflight converts the whole result to one line and the
 # infra exit code (69), matching every other services-unavailable exit here.
 #
-# The epilogue is builtins only — echo, and the /dev/tcp probe port_open
-# uses — so it adds no PATH dependence, defines no functions (nothing for
-# spec/unit/lanes/hermetic_boundary_spec.rb's function-table assertion to
-# see: an unexported function would not reach the task child anyway), and
-# prints nothing on the success path. The task command runs with the exact
-# argv and `env -u`-stripped environment it received before; the only
-# behavioral delta is one shell level between env and the task.
+# The epilogue is builtins plus tee(1) — echo, the /dev/tcp probe port_open
+# uses, and the copy into last.log — so its one PATH dependence is a
+# coreutil every CI image and every dev box has. It defines no functions
+# (nothing for spec/unit/lanes/hermetic_boundary_spec.rb's function-table
+# assertion to see: an unexported function would not reach the task child
+# anyway). The task command runs with the exact argv and `env -u`-stripped
+# environment it received before; the behavioral deltas are one shell
+# level between env and the task, and the task's stderr joining its stdout
+# in the pipe to tee (one log, in order, instead of two streams).
+#
+# The task's status is read from PIPESTATUS[0], never `$?`: through a
+# pipeline `$?` is tee's, which is 0 whenever it could write, and a red
+# run would report green. tee closes only after the task's last byte, so
+# the log line printed after it is the last thing on the terminal.
 #
 # Probing only on nonzero exit is deliberate: a service that dies after the
-# last spec passed did not invalidate anything, and a green run must stay
-# byte-identical to what it was.
+# last spec passed did not invalidate anything.
 _lanes_epilogue='
   _lane="$1"; shift
+  _log="$1"; shift
   _ports=()
   while [[ $# -gt 0 && "$1" != "--" ]]; do _ports+=("$1"); shift; done
   shift
-  "$@"
-  _rc=$?
+  "$@" 2>&1 | tee -a "${_log}"
+  _rc=${PIPESTATUS[0]}
   if [[ ${_rc} -ne 0 ]]; then
     _lost=""
     for _p in ${_ports[@]+"${_ports[@]}"}; do
@@ -1233,15 +1264,16 @@ _lanes_epilogue='
     if [[ -n "${_lost}" ]]; then
       echo "[lane:${_lane}] error: test service(s) on 127.0.0.1 port(s)${_lost} lost mid-run" >&2
       echo "  (up at preflight); results are invalid — exit 69, not a test failure" >&2
-      exit 69
+      _rc=69
     fi
   fi
+  echo "[lane:${_lane}] log: ${_log} (exit ${_rc})" >&2
   exit "${_rc}"
 '
 
 if [[ ${#ONLY[@]} -eq 0 ]]; then
   exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
-    lanes-epilogue "${LANE}" ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
+    lanes-epilogue "${LANE}" "${LANES_LAST_LOG}" ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
     bash -euo pipefail "${LANE_DIR}/tasks"
 fi
 
@@ -1260,9 +1292,9 @@ else
   _only_cmd=(bundle exec rspec "${ONLY[@]}" ${RSPEC_ARGS[@]+"${RSPEC_ARGS[@]}"})
 fi
 
-echo "[lane:${LANE}] --only: ${_only_cmd[*]}"
-# Same mid-run service-loss epilogue as the tasks exec above: a VM crash
-# does not care whether the run was a full lane or one file.
+echo "[lane:${LANE}] --only: ${_only_cmd[*]}" | tee -a "${LANES_LAST_LOG}"
+# Same mid-run service-loss epilogue (and last.log) as the tasks exec above:
+# a VM crash does not care whether the run was a full lane or one file.
 exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
-  lanes-epilogue "${LANE}" ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
+  lanes-epilogue "${LANE}" "${LANES_LAST_LOG}" ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
   "${_only_cmd[@]}"

@@ -28,6 +28,12 @@ case "${LANES_RSPEC_STATUS_FILE:-}" in
     exit 1
     ;;
 esac
+# last.log lives next to it, created and seeded with the banner before this
+# process was exec'd; the epilogue is appending this very output to it.
+if ! grep -q '^\[lane:selftest\] mode=simple ' tmp/lanes/selftest/base/last.log; then
+  echo '[lane:selftest] FAILED: tmp/lanes/selftest/base/last.log missing or unseeded' >&2
+  exit 1
+fi
 
 # ── Flag parsing (#4492) ────────────────────────────────────────────────
 # Each row is `<expected exit> <argv>`, run as `tests/lanes/run selftest

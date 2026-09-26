@@ -89,6 +89,27 @@ whole formatter list, including `--format json --out $RSPEC_OUTPUT_FILE`.
 A run with `RSPEC_OUTPUT_FILE` set (CI plumbing) therefore rejects `--quiet`
 with exit 64 rather than silently writing no results file.
 
+### Last run output: `tmp/lanes/<lane>/<overlays>/last.log`
+
+Every run, full lane or `--only`, is also written to
+`tmp/lanes/<lane>/<overlays>/last.log` (`base` when no overlay is set; the
+same directory as the rspec status file, gitignored). The file is truncated
+at the start of each run, seeded with the run's banner line, and the runner
+prints the path with the exit code as its last line, on success and on
+failure:
+
+```text
+[lane:simple] log: tmp/lanes/simple/base/last.log (exit 1)
+```
+
+The task's stderr joins its stdout in the log, so the two streams arrive in
+order rather than as separate outputs. The exit code is the task's, read
+through the tee, so a red run stays red. When the runner's own stdout is a
+terminal it sets `--force-color` (rspec) and `FORCE_COLOR` (tryouts) so
+colors survive the pipe; the log then contains the escape codes too
+(`less -R`). CI and `run-all` pipe the runner and get plain output as
+before.
+
 ## Lanes
 
 | Lane                | Services                   | Runs                                                       | CI job                                   |
