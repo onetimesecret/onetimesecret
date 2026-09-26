@@ -10,12 +10,21 @@ module Onetime
     # non-destructive; only the strategy, after validating the signed transaction,
     # may atomically consume the exact value it read.
     module SamlCallbackStore
-      TTL                = 120
-      MAX_RESPONSE_BYTES = 350_000
-      GLOBAL_LIMIT       = 256
-      SOURCE_LIMIT       = 20
-      HANDLE_PATTERN     = /\A[0-9a-f]{64}\z/
-      PREFIX             = 'saml:callback'
+      TTL                  = 120
+      # Real SAML responses — encrypted assertions and large attribute
+      # statements included — are well under 100 KB of base64. Anything
+      # bigger is not an assertion this SP could accept, only storage.
+      MAX_RESPONSE_BYTES   = 128_000
+      # Admission per fixed TTL bucket: the global cap is the deployment-wide
+      # storage bound shared by every host; the source limit is the share one
+      # privacy-masked client address may take of it. Operators size both
+      # from the environment (see .limits); these are the defaults.
+      DEFAULT_GLOBAL_LIMIT = 256
+      DEFAULT_SOURCE_LIMIT = 64
+      GLOBAL_LIMIT_VAR     = 'SAML_CALLBACK_GLOBAL_LIMIT'
+      SOURCE_LIMIT_VAR     = 'SAML_CALLBACK_SOURCE_LIMIT'
+      HANDLE_PATTERN       = /\A[0-9a-f]{64}\z/
+      PREFIX               = 'saml:callback'
 
       class CapacityExceeded < StandardError; end
 
@@ -52,7 +61,7 @@ module Onetime
             STAGE,
             keys: [bucket, key(handle)],
             argv: [
-              TTL, GLOBAL_LIMIT, SOURCE_LIMIT, Digest::SHA256.hexdigest(source.to_s), payload
+              TTL, global_limit, source_limit, Digest::SHA256.hexdigest(source.to_s), payload
             ],
           )
         end
@@ -78,6 +87,48 @@ module Onetime
 
         without_datastore_capture { dbclient.eval(CONSUME, keys: [key(handle)], argv: [raw]) } == 1
       end
+
+      # @return [Integer] staged values admitted per bucket across all hosts
+      def global_limit
+        limits.fetch(:global)
+      end
+
+      # @return [Integer] staged values admitted per bucket per masked source
+      def source_limit
+        limits.fetch(:source)
+      end
+
+      # Forget the memoized environment read (specs).
+      def reset_limits!
+        @limits = nil
+      end
+
+      # Read once, on first use, the way Onetime::SsoProvider::Saml reads its
+      # SAML_* variables — never per request. Positive integers only; the
+      # source share can never exceed the global cap; an invalid value logs a
+      # warning and falls back to the default rather than failing a callback.
+      def limits
+        @limits ||= begin
+          global = positive_integer_setting(GLOBAL_LIMIT_VAR, DEFAULT_GLOBAL_LIMIT)
+          source = positive_integer_setting(SOURCE_LIMIT_VAR, DEFAULT_SOURCE_LIMIT)
+          if source > global
+            OT.lw "[saml_callback_store] #{SOURCE_LIMIT_VAR}=#{source} exceeds #{GLOBAL_LIMIT_VAR}=#{global}; using #{global}"
+            source = global
+          end
+          { global: global, source: source }.freeze
+        end
+      end
+      private :limits
+
+      def positive_integer_setting(name, default)
+        raw = ENV.fetch(name, '').to_s.strip
+        return default if raw.empty?
+        return raw.to_i if /\A[1-9]\d*\z/.match?(raw)
+
+        OT.lw "[saml_callback_store] #{name}=#{raw[0, 32].inspect} is not a positive integer; using #{default}"
+        default
+      end
+      private :positive_integer_setting
 
       # Include the resolved public host as well as the Rack authority. Behind
       # a rewriting proxy multiple tenants can share the latter. No input here

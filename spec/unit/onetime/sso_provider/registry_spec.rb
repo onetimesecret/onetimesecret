@@ -531,6 +531,21 @@ RSpec.describe Onetime::SsoProvider::Registry do
           expect(described_class.request_bound_platform_acs_route?('nope')).to be false
         end
 
+        # OmniAuth matches request/callback paths case-insensitively and so
+        # does the staging transport; a route name lifted from a request path
+        # must not escape the host restriction by case.
+        it 'ignores case, in the route name and in SAML_ROUTE_NAME' do
+          ClimateControl.modify(SAML_ROUTE_NAME: nil) do
+            expect(described_class.request_bound_platform_acs_route?('SAML')).to be true
+            expect(described_class.request_bound_platform_acs_route?('Saml')).to be true
+          end
+          ClimateControl.modify(SAML_ROUTE_NAME: 'Okta') do
+            expect(described_class.request_bound_platform_acs_route?('okta')).to be true
+            expect(described_class.request_bound_platform_acs_route?('OKTA')).to be true
+            expect(described_class.request_bound_platform_acs_route?('saml')).to be false
+          end
+        end
+
       end
 
       # Blank trust anchors, so RequestBoundSAML refuses (:saml_misconfigured)

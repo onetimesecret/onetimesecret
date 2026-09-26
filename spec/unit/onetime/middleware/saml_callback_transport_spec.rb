@@ -32,11 +32,15 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
   let(:http_origin_options) do
     { allow_if: ->(env) { env['HTTP_ORIGIN'] == 'https://idp.example.com' && env['PATH_INFO'] == '/auth/sso/saml/callback' } }
   end
+  # The resolved public host (DetectHost + DomainStrategy in production).
+  # Stage stages only for a host with an active SAML route; the top-level
+  # stubs below make ots.example.com the usable platform ACS host.
+  let(:display_domain) { 'ots.example.com' }
   let(:app) do
     opts = options
     origin_options = http_origin_options
     authenticated = reached
-    Rack::Builder.new do
+    stack = Rack::Builder.new do
       use Onetime::Middleware::SamlCallbackTransport::Boundary
       use Rack::Session::Cookie, secret: 'x' * 64, same_site: :lax, secure: true
       use Rack::Protection::HttpOrigin, **origin_options
@@ -47,6 +51,8 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
         [200, { 'content-type' => 'text/plain' }, ['app']]
       }
     end.to_app
+    resolved = display_domain
+    ->(env) { env['onetime.display_domain'] = resolved; stack.call(env) }
   end
 
   around do |example|
@@ -63,10 +69,28 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
     saved.each { |key, value| config.public_send(:"#{key}=", value) }
   end
 
+  around do |example|
+    ClimateControl.modify(
+      SAML_ROUTE_NAME: 'saml', SAML_ALLOW_NULL_ORIGIN: nil,
+      SAML_IDP_SSO_SERVICE_URL: 'https://idp.example.com/sso',
+      SAML_IDP_ENTITY_ID: idp.entity_id, SAML_IDP_CERT: idp.cert_pem,
+      SAML_NAME_ID_FORMAT: nil, SAML_SP_ENTITY_ID: nil,
+      SAML_CALLBACK_GLOBAL_LIMIT: nil, SAML_CALLBACK_SOURCE_LIMIT: nil,
+    ) { example.run }
+  end
+
   before do
     stub_const('Onetime::Security::SamlCallbackStore::PREFIX', "spec:saml:callback:#{SecureRandom.hex(8)}")
     allow(Onetime).to receive(:get_logger).and_return(double(warn: nil, debug: nil))
+    # Platform SAML is configured (env above), usable, and pinned to `host`,
+    # so HttpOriginOptions.saml_callback_route_active? admits staging.
+    allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => true)
+    allow(Onetime).to receive(:auth_config).and_return(instance_double(Onetime::AuthConfig, sso_enabled?: true))
+    allow(Onetime::SsoProvider::Saml).to receive(:platform_base_url).and_return(host)
+    store.reset_limits!
   end
+
+  after { store.reset_limits! }
 
   def start
     response = Rack::MockRequest.new(app).post("#{host}/auth/sso/saml")
@@ -92,24 +116,9 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
 
   context 'with the operator null-origin policy and real HttpOrigin options' do
     let(:http_origin_options) { Onetime::Middleware::HttpOriginOptions.options }
-    let(:app) do
-      stack = super()
-      ->(env) { env['onetime.display_domain'] = 'ots.example.com'; stack.call(env) }
-    end
 
     around do |example|
-      ClimateControl.modify(
-        SAML_ALLOW_NULL_ORIGIN: 'true', SAML_ROUTE_NAME: 'saml',
-        SAML_IDP_SSO_SERVICE_URL: 'https://idp.example.com/sso',
-        SAML_IDP_ENTITY_ID: idp.entity_id, SAML_IDP_CERT: idp.cert_pem,
-        SAML_NAME_ID_FORMAT: nil, SAML_SP_ENTITY_ID: nil,
-      ) { example.run }
-    end
-
-    before do
-      allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => true)
-      allow(Onetime).to receive(:auth_config).and_return(instance_double(Onetime::AuthConfig, sso_enabled?: true))
-      allow(Onetime::SsoProvider::Saml).to receive(:platform_base_url).and_return(host)
+      ClimateControl.modify(SAML_ALLOW_NULL_ORIGIN: 'true') { example.run }
     end
 
     it 'stages literal null but authenticates only after signed, session-bound completion' do
@@ -248,8 +257,47 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
     Familia.dbclient.pexpire(store.key(expired), 1)
     sleep 0.01
     expect(store.read(expired, scope: scope)).to be_nil
-    (store::SOURCE_LIMIT - 1).times { store.stage(response: 'a', scope: scope, source: 'one') }
+    (store.source_limit - 1).times { store.stage(response: 'a', scope: scope, source: 'one') }
     expect { store.stage(response: 'a', scope: scope, source: 'one') }.to raise_error(store::CapacityExceeded)
+  end
+
+  it 'reads the admission limits from the environment once, validated and clamped, warning on bad values' do
+    expect([store.global_limit, store.source_limit]).to eq([store::DEFAULT_GLOBAL_LIMIT, store::DEFAULT_SOURCE_LIMIT])
+    expect(store::DEFAULT_GLOBAL_LIMIT).to eq(256)
+    expect(store::DEFAULT_SOURCE_LIMIT).to eq(64)
+    allow(OT).to receive(:lw)
+
+    ClimateControl.modify(SAML_CALLBACK_GLOBAL_LIMIT: '10', SAML_CALLBACK_SOURCE_LIMIT: '3') do
+      store.reset_limits!
+      expect([store.global_limit, store.source_limit]).to eq([10, 3])
+    end
+    # Memoized: a later environment change is not observed until reset.
+    expect([store.global_limit, store.source_limit]).to eq([10, 3])
+    expect(OT).not_to have_received(:lw)
+
+    ClimateControl.modify(SAML_CALLBACK_GLOBAL_LIMIT: '10', SAML_CALLBACK_SOURCE_LIMIT: '500') do
+      store.reset_limits!
+      expect([store.global_limit, store.source_limit]).to eq([10, 10])
+      expect(OT).to have_received(:lw).with(/SAML_CALLBACK_SOURCE_LIMIT=500 exceeds SAML_CALLBACK_GLOBAL_LIMIT=10/)
+    end
+
+    ['0', '-5', 'abc', '1.5', ' ', '0x10'].each do |bad|
+      ClimateControl.modify(SAML_CALLBACK_GLOBAL_LIMIT: bad, SAML_CALLBACK_SOURCE_LIMIT: bad) do
+        store.reset_limits!
+        expect([store.global_limit, store.source_limit]).to eq([256, 64]), bad.inspect
+      end
+    end
+    expect(OT).to have_received(:lw).with(/SAML_CALLBACK_GLOBAL_LIMIT=.* is not a positive integer; using 256/).at_least(:once)
+    expect(OT).to have_received(:lw).with(/SAML_CALLBACK_SOURCE_LIMIT=.* is not a positive integer; using 64/).at_least(:once)
+
+    ClimateControl.modify(SAML_CALLBACK_GLOBAL_LIMIT: '2', SAML_CALLBACK_SOURCE_LIMIT: '1') do
+      store.reset_limits!
+      # The Lua reads the configured values, not the defaults.
+      store.stage(response: 'a', scope: [], source: 'one')
+      expect { store.stage(response: 'a', scope: [], source: 'one') }.to raise_error(store::CapacityExceeded)
+      store.stage(response: 'a', scope: [], source: 'two')
+      expect { store.stage(response: 'a', scope: [], source: 'three') }.to raise_error(store::CapacityExceeded)
+    end
   end
 
   it 'fails closed when atomic consumption fails after validation' do
@@ -281,7 +329,7 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
   end
 
   it 'returns a bounded 429 without a cookie when staging is full' do
-    stub_const('Onetime::Security::SamlCallbackStore::GLOBAL_LIMIT', 1)
+    allow(store).to receive(:global_limit).and_return(1)
     expect(stage('untrusted').status).to eq(303)
     response = stage('untrusted')
     expect(response.status).to eq(429)
@@ -290,11 +338,29 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
   end
 
   it 'refuses invalid form types and oversized values without authenticating' do
+    expect(store::MAX_RESPONSE_BYTES).to eq(128_000)
+    expect(described_class::MAX_BODY_BYTES).to eq(200_000)
     expect(stage('a' * (store::MAX_RESPONSE_BYTES + 1)).status).to eq(400)
     expect(stage(['array']).status).to eq(400)
     response = Rack::MockRequest.new(app).post("#{host}#{path}", input: '{}', 'CONTENT_TYPE' => 'application/json')
     expect(response.status).to eq(415)
     expect(reached).to be_empty
+  end
+
+  it 'stages only base64 text (whitespace tolerated) and never stores anything else' do
+    expect(store).not_to receive(:stage)
+    ['<samlp:Response/>', 'PHNhbWw+#', "YWJj\u0000", 'YWJj-ZGVm_', '%PDF', 'a b*c'].each do |junk|
+      response = stage(junk)
+      expect(response.status).to eq(400), junk.inspect
+      expect(response['set-cookie']).to be_nil
+    end
+    expect(reached).to be_empty
+  end
+
+  it 'tolerates line-wrapped and space-decoded base64 the way IdPs and form decoders produce it' do
+    wrapped = "PHNhbWxwOlJlc3BvbnNlPg==\r\nPHNhbWxwOlJlc3BvbnNlPg==\n YWJj ZGVm\t"
+    expect(stage(wrapped).status).to eq(303)
+    expect(stage("#{'QUJD' * 20}=\n").status).to eq(303)
   end
 
   it 'matches only the configured callback route, including mounted and renamed routes' do
@@ -303,23 +369,131 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
     env = Rack::MockRequest.env_for('https://ots.example.com/sso/corp-saml/callback', method: 'POST')
     env['SCRIPT_NAME'] = '/auth'
     expect(described_class.callback_post?(env)).to be(true)
+    env['PATH_INFO'] = '/sso/corp-saml/callback/'
+    expect(described_class.callback_post?(env)).to be(true)
+    env['PATH_INFO'] = '/sso/CORP-SAML/callback/'
+    expect(described_class.callback_post?(env)).to be(true)
+    env['PATH_INFO'] = '/sso/corp-saml/callback//'
+    expect(described_class.callback_post?(env)).to be(false)
     env['PATH_INFO'] = '/sso/saml/callback'
     expect(described_class.callback_post?(env)).to be(false)
     env['PATH_INFO'] = '/sso/corp-saml'
     expect(described_class.callback_post?(env)).to be(false)
   end
 
+  # The registered ACS has no trailing slash. HttpOrigin's callback allowance
+  # is anchored to it, so through the full stack the spelling is refused
+  # there; the Boundary still covers it (no cookie in, no Set-Cookie out,
+  # body bounded), and Stage on its own refuses it rather than forwarding a
+  # raw POST to the strategy. It is never staged.
+  it 'covers the trailing-slash spelling without staging it' do
+    cookie, request_id = start
+    expect(store).not_to receive(:stage)
+    response = Rack::MockRequest.new(app).post("#{host}#{path}/", params: { 'SAMLResponse' => assertion(request_id) },
+      'HTTP_ORIGIN' => 'https://idp.example.com', 'HTTP_COOKIE' => cookie)
+    expect(response.status).to eq(403)
+    expect(response['set-cookie']).to be_nil
+    expect(response['cache-control']).to eq('no-store')
+    expect(reached).to be_empty
+
+    inner = double('strategy')
+    expect(inner).not_to receive(:call)
+    bare = described_class::Boundary.new(described_class::Stage.new(inner))
+    env = Rack::MockRequest.env_for("#{host}#{path}/", method: 'POST', params: { 'SAMLResponse' => assertion(request_id) },
+      'HTTP_COOKIE' => cookie, 'onetime.display_domain' => 'ots.example.com')
+    status, headers, = bare.call(env)
+    expect(status).to eq(404)
+    expect(headers['cache-control']).to eq('no-store')
+    expect(env['HTTP_COOKIE']).to eq('')
+    expect(complete("#{path}/?saml_handle=#{'a' * 64}", cookie).status).to eq(401)
+  end
+
+  describe 'staging admission by active SAML route' do
+    let(:saml) { Onetime::SsoProvider::Saml }
+    let(:tenant_config) do
+      double('native SAML', provider_type: 'saml', platform_route_name: 'saml', enabled?: true, to_omniauth_options: {})
+    end
+    let(:resolution) { instance_double(Onetime::TenantSsoResolution, verified_custom_domain?: false, sso_config: nil) }
+
+    before { allow(Onetime::TenantSsoResolution).to receive(:for).and_return(resolution) }
+
+    it 'refuses with 404 and stores nothing when platform SAML is off, unusable or on another host' do
+      expect(store).not_to receive(:stage)
+      allow(saml).to receive(:platform_usable?).and_return(false)
+      response = stage('untrusted')
+      expect(response.status).to eq(404)
+      expect(response['set-cookie']).to be_nil
+      expect(response['cache-control']).to eq('no-store')
+
+      allow(saml).to receive(:platform_usable?).and_call_original
+      allow(Onetime).to receive(:auth_config).and_return(instance_double(Onetime::AuthConfig, sso_enabled?: false))
+      expect(stage('untrusted').status).to eq(404)
+
+      allow(Onetime).to receive(:auth_config).and_return(instance_double(Onetime::AuthConfig, sso_enabled?: true))
+      allow(saml).to receive(:platform_base_url).and_return('https://elsewhere.example.com')
+      expect(stage('untrusted').status).to eq(404)
+      expect(reached).to be_empty
+    end
+
+    context 'on a custom domain' do
+      let(:display_domain) { 'tenant.example.net' }
+
+      it 'stages only for a verified domain whose own enabled SAML record names this route' do
+        expect(stage('untrusted').status).to eq(404)
+
+        allow(resolution).to receive(:verified_custom_domain?).and_return(true)
+        expect(stage('untrusted').status).to eq(404)
+
+        allow(resolution).to receive(:sso_config).and_return(tenant_config)
+        expect(stage('untrusted').status).to eq(303)
+
+        allow(tenant_config).to receive(:enabled?).and_return(false)
+        expect(stage('untrusted').status).to eq(404)
+
+        allow(tenant_config).to receive(:enabled?).and_return(true)
+        allow(tenant_config).to receive(:to_omniauth_options).and_raise(Onetime::Problem, 'unusable')
+        expect(stage('untrusted').status).to eq(404)
+
+        allow(tenant_config).to receive(:to_omniauth_options).and_return({})
+        allow(tenant_config).to receive(:platform_route_name).and_return('corporate')
+        expect(stage('untrusted').status).to eq(404)
+      end
+
+      it 'does not stage without a resolved display domain' do
+        allow(Onetime::TenantSsoResolution).to receive(:for).and_call_original
+        stack = described_class::Stage.new(->(_env) { [200, {}, ['app']] })
+        env = Rack::MockRequest.env_for("#{host}#{path}", method: 'POST', params: { 'SAMLResponse' => 'untrusted' })
+        boundary = described_class::Boundary.new(stack)
+        expect(store).not_to receive(:stage)
+        expect(boundary.call(env).first).to eq(404)
+      end
+    end
+
+    it 'fails closed when the route check raises' do
+      allow(Onetime::Middleware::HttpOriginOptions).to receive(:saml_callback_route_active?).and_raise(RuntimeError, 'boom')
+      expect(store).not_to receive(:stage)
+      expect(stage('untrusted').status).to eq(404)
+    end
+
+    it 'does not gate the GET side: an unknown handle is still refused by the strategy, not the transport' do
+      cookie, = start
+      allow(saml).to receive(:platform_usable?).and_return(false)
+      expect(complete("#{path}?saml_handle=#{'b' * 64}", cookie).status).to eq(401)
+      expect(failures).to include(:saml_callback_missing)
+    end
+  end
+
   it 'does not let source-rejected requests exhaust the global quota' do
     now = Time.at(1_800_000_000)
-    store::SOURCE_LIMIT.times { store.stage(response: 'a', scope: [], source: 'attacker', now: now) }
-    (store::GLOBAL_LIMIT * 2).times do
+    store.source_limit.times { store.stage(response: 'a', scope: [], source: 'attacker', now: now) }
+    (store.global_limit * 2).times do
       expect { store.stage(response: 'a', scope: [], source: 'attacker', now: now) }.to raise_error(store::CapacityExceeded)
     end
     bucket = "#{store::PREFIX}:rate:#{now.to_i / store::TTL}"
-    expect(Familia.dbclient.hget(bucket, 'total').to_i).to eq(store::SOURCE_LIMIT)
+    expect(Familia.dbclient.hget(bucket, 'total').to_i).to eq(store.source_limit)
     expect(Familia.dbclient.hlen(bucket)).to eq(2)
     expect(store.stage(response: 'legitimate', scope: [], source: 'other-source', now: now)).to match(store::HANDLE_PATTERN)
-    expect(Familia.dbclient.hget(bucket, 'total').to_i).to eq(store::SOURCE_LIMIT + 1)
+    expect(Familia.dbclient.hget(bucket, 'total').to_i).to eq(store.source_limit + 1)
   end
 
   it 'keeps callback credentials out of real HTTP debug logging and Sentry request capture even with PII enabled' do
@@ -331,7 +505,7 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
     allow(Onetime).to receive(:get_logger).with('HTTP').and_return(logger)
     allow(Onetime::ErrorHandler).to receive(:allowed_error_fields).and_return(%w[saml_handle SAMLResponse Referer])
     handle = 'd' * 64
-    assertion = 'private-assertion-marker'
+    assertion = 'privateAssertionMarker0' # base64 alphabet: it has to be stageable
     capture = lambda do |env|
       request = Sentry::RequestInterface.new(env: env, send_default_pii: true, rack_env_whitelist: ['REQUEST_URI'])
       captured << JSON.generate(url: request.url, query: request.query_string, body: request.data, headers: request.headers, env: request.env)
@@ -357,7 +531,8 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
     expect(response[1]['referrer-policy']).to eq('no-referrer')
     expect(response[1]['cache-control']).to eq('no-store')
     expect(get_env).not_to have_key(described_class::PREPARED)
-    post_env = Rack::MockRequest.env_for("#{host}#{path}", method: 'POST', params: { 'SAMLResponse' => assertion })
+    post_env = Rack::MockRequest.env_for("#{host}#{path}", method: 'POST', params: { 'SAMLResponse' => assertion },
+      'onetime.display_domain' => 'ots.example.com')
     expect(boundary.call(post_env).first).to eq(303)
     expect(captured.join + messages.join).not_to include(handle, assertion)
     expect(messages.size).to eq(2)
@@ -427,23 +602,23 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
 
   it 'keeps the aggregate cap across host scopes and recovers admission in the next bucket' do
     now = Time.at(1_800_000_000)
-    store::GLOBAL_LIMIT.times do |index|
+    store.global_limit.times do |index|
       store.stage(response: 'untrusted', scope: ["host-#{index}.example"],
-        source: "source-#{index / store::SOURCE_LIMIT}", now: now)
+        source: "source-#{index / store.source_limit}", now: now)
     end
     expect do
       store.stage(response: 'legitimate', scope: ['unrelated.example'], source: 'unrelated', now: now)
     end.to raise_error(store::CapacityExceeded)
     bucket = "#{store::PREFIX}:rate:#{now.to_i / store::TTL}"
-    expect(Familia.dbclient.hget(bucket, 'total').to_i).to eq(store::GLOBAL_LIMIT)
-    expect(Familia.dbclient.hlen(bucket)).to eq(1 + (store::GLOBAL_LIMIT.to_f / store::SOURCE_LIMIT).ceil)
+    expect(Familia.dbclient.hget(bucket, 'total').to_i).to eq(store.global_limit)
+    expect(Familia.dbclient.hlen(bucket)).to eq(1 + (store.global_limit.to_f / store.source_limit).ceil)
     expect(Familia.dbclient.ttl(bucket)).to be_between(1, store::TTL)
     expect(store.stage(response: 'legitimate', scope: ['unrelated.example'], source: 'unrelated',
       now: now + store::TTL)).to match(store::HANDLE_PATTERN)
   end
 
   it 'bounds total staging even with distinct source addresses' do
-    stub_const('Onetime::Security::SamlCallbackStore::GLOBAL_LIMIT', 3)
+    allow(store).to receive(:global_limit).and_return(3)
     3.times { |i| store.stage(response: 'a', scope: [], source: i.to_s) }
     expect { store.stage(response: 'a', scope: [], source: 'new') }.to raise_error(store::CapacityExceeded)
   end

@@ -27,6 +27,10 @@ RSpec.describe 'Real-browser staged SAML callback' do
     config.request_validation_phase = nil # Harness initiation only, not production configuration.
     config.logger = Logger.new(File::NULL)
     stub_const('Onetime::Security::SamlCallbackStore::PREFIX', "spec:browser:saml:#{SecureRandom.hex(8)}")
+    # Stage stages only for a host with an active SAML route (platform or
+    # tenant resolution, neither of which this bare stack has). The
+    # predicate is pinned in its own specs; this harness is about cookies.
+    allow(Onetime::Middleware::HttpOriginOptions).to receive(:saml_callback_route_active?).and_return(true)
     idp = SamlSpec::TestIdp.new
     observations = {}
     evidence = lambda do |env|

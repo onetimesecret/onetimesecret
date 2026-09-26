@@ -155,6 +155,13 @@ module Onetime
       # its boot-pinned ACS host? Resolves
       # operator-renamed routes the same way provider registration does.
       #
+      # Case-insensitive: OmniAuth matches its request and callback paths
+      # with casecmp (strategy.rb on_path?), as does the staging transport
+      # (SamlCallbackTransport.callback?), so a caller that derives the route
+      # name from a request path must reach the same answer for
+      # /auth/sso/SAML/callback as for /auth/sso/saml/callback. Otherwise the
+      # host restriction this predicate keys could be sidestepped by case.
+      #
       # @param route_name [String, nil] the OmniAuth route / provider name
       # @return [Boolean]
       def self.request_bound_platform_acs_route?(route_name)
@@ -163,7 +170,7 @@ module Onetime
 
         DEFINITIONS.any? do |defn|
           defn[:key] == :saml &&
-            ENV.fetch(defn[:route_var], defn[:route_default]) == route_name
+            ENV.fetch(defn[:route_var], defn[:route_default]).casecmp?(route_name)
         end
       end
 

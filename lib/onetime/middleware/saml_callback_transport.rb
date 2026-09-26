@@ -3,14 +3,24 @@
 require 'rack'
 require 'stringio'
 require_relative '../security/saml_callback_store'
+require_relative 'http_origin_options'
 
 module Onetime
   module Middleware
     module SamlCallbackTransport
-      HANDLE_PARAM   = 'saml_handle'
-      PREPARED       = 'onetime.saml_callback_prepared'
-      MAX_BODY_BYTES = 500_000
-      HEADERS        = {
+      HANDLE_PARAM     = 'saml_handle'
+      PREPARED         = 'onetime.saml_callback_prepared'
+      # The SAMLResponse value (SamlCallbackStore::MAX_RESPONSE_BYTES) plus
+      # RelayState and URL-encoding overhead.
+      MAX_BODY_BYTES   = 200_000
+      # Standard base64 (RFC 4648 section 4: A-Z a-z 0-9 + / =) plus
+      # whitespace. The HTTP-POST binding carries the response base64-encoded;
+      # IdPs wrap it in lines (CR/LF), and a form decoder turns an unencoded
+      # '+' into a space, so whitespace has to be tolerated (the decoder on
+      # the GET side ignores it). Anything outside that alphabet is not a
+      # SAML response and is refused before it can occupy storage.
+      RESPONSE_PATTERN = %r{\A[A-Za-z0-9+/=\s]+\z}
+      HEADERS          = {
         'content-type' => 'text/plain',
         'cache-control' => 'no-store',
         'referrer-policy' => 'no-referrer',
@@ -32,8 +42,13 @@ module Onetime
         alias to_s inspect
       end
 
+      # One trailing slash is stripped before comparing, so the Boundary's
+      # cookie stripping and body bound, and Stage's refusal of a raw POST,
+      # cover that spelling too. Staging itself still requires the exact
+      # registered ACS path (HttpOriginOptions.saml_callback_route_active?).
       def self.callback?(env)
-        Rack::Request.new(env).path.casecmp?("/auth/sso/#{ENV.fetch('SAML_ROUTE_NAME', 'saml')}/callback")
+        path = Rack::Request.new(env).path.delete_suffix('/')
+        path.casecmp?("/auth/sso/#{ENV.fetch('SAML_ROUTE_NAME', 'saml')}/callback")
       end
 
       def self.callback_post?(env)
@@ -144,10 +159,24 @@ module Onetime
           payload                            = env[PREPARED]
           return [503, HEADERS.dup, ['SAML callback transport unavailable']] unless payload.is_a?(Payload)
 
+          # Only a host with an ACTIVE SAML route at this path may occupy
+          # staging capacity. HttpOrigin admits an Origin-less non-browser
+          # POST, so without this any client could fill the global bucket
+          # (denying every tenant's sign-in) and push oversized junk into the
+          # datastore that also holds secrets. 404, not 403: an unregistered
+          # provider route and the placeholder's /metadata answer 404 too, so
+          # an inactive route looks the same to a prober whether or not SAML
+          # exists elsewhere on the install. This authorizes nothing on the
+          # GET side; every GET gate (tenant hook, ACS host, pending request)
+          # still runs. The predicate fails closed on any error.
+          return [404, HEADERS.dup, ['Not Found']] unless active_route?(env)
+
           request  = Rack::Request.new(env)
           response = payload.response
           store    = Onetime::Security::SamlCallbackStore
-          return [400, HEADERS.dup, ['Invalid SAML callback']] unless response.is_a?(String) && response.bytesize.between?(1, store::MAX_RESPONSE_BYTES)
+          unless response.is_a?(String) && response.bytesize.between?(1, store::MAX_RESPONSE_BYTES) && RESPONSE_PATTERN.match?(response)
+            return [400, HEADERS.dup, ['Invalid SAML callback']]
+          end
 
           handle = store.stage(
             response: response,
@@ -159,6 +188,12 @@ module Onetime
           [429, HEADERS.merge('retry-after' => Onetime::Security::SamlCallbackStore::TTL.to_s), ['SAML callback capacity exceeded']]
         rescue StandardError
           [503, HEADERS.dup, ['SAML callback transport unavailable']]
+        end
+
+        def active_route?(env)
+          HttpOriginOptions.saml_callback_route_active?(env) == true
+        rescue StandardError
+          false
         end
       end
     end
