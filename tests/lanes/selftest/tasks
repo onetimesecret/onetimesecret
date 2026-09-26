@@ -47,6 +47,7 @@ while read -r want args; do
   fi
 done <<'ROWS'
 0  --print-key
+0  --quiet --print-key
 64 --bogus --print-key
 64 --print-key --bogus
 64 --print-key -- --only-failures
@@ -55,4 +56,22 @@ done <<'ROWS'
 64 --print-key --only try/unit/base_view_try.rb -- --only-failures
 64 --print-key --only try/unit/base_view_try.rb --only spec/unit/lanes/hermetic_boundary_spec.rb
 ROWS
+
+# --quiet is an env effect, not an exit code: SPEC_OPTS must carry the quiet
+# formatter under the flag and must be absent without it (default output is
+# CI's output). RSPEC_OUTPUT_FILE is keep-listed, so the inner run sees it.
+if ! tests/lanes/run selftest --quiet --print-key 2>/dev/null | grep -q 'spec_opts=--require .*quiet_formatter --format Lanes::QuietFormatter'; then
+  echo '[lane:selftest] FAILED: --quiet did not set SPEC_OPTS to the quiet formatter' >&2
+  exit 1
+fi
+if ! tests/lanes/run selftest --print-key 2>/dev/null | grep -q 'spec_opts=none$'; then
+  echo '[lane:selftest] FAILED: SPEC_OPTS set without --quiet' >&2
+  exit 1
+fi
+got=0
+RSPEC_OUTPUT_FILE=tmp/selftest-results.json tests/lanes/run selftest --quiet --print-key >/dev/null 2>&1 || got=$?
+if [[ "${got}" != 64 ]]; then
+  echo "[lane:selftest] FAILED: --quiet with RSPEC_OUTPUT_FILE exited ${got}, expected 64" >&2
+  exit 1
+fi
 echo '--- lane:selftest flags ok ---'

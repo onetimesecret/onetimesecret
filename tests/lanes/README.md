@@ -66,6 +66,29 @@ lane run followed by `--only <dir> -- --only-failures` reruns exactly the
 failures the lane recorded. Plain rspec outside the runner leaves
 `LANES_RSPEC_STATUS_FILE` unset and records nothing.
 
+### Quiet output: `--quiet`
+
+```console
+$ tests/lanes/run full-sqlite --quiet
+$ tests/lanes/run simple --quiet --only apps/api/domains/spec/integration/simple
+```
+
+`--quiet` makes every rspec invocation in the run print failures (with their
+diffs and rerun lines), pending examples and the summary — nothing per
+passing example. It works by exporting `SPEC_OPTS` to select
+`tests/lanes/support/quiet_formatter.rb`; rspec reads `SPEC_OPTS` after
+`.rspec` and after the command line, so one variable covers the rake tasks
+and `--only` alike. Without the flag `SPEC_OPTS` is not set and the output
+is exactly what it was, which is what CI logs.
+
+Tryouts legs need no switch: `try:unit`, `try:integration:simple` and
+`--only` on a `*_try.rb` file already pass `--agent` outside CI.
+
+The one trade-off: the `--format` in `SPEC_OPTS` replaces the rake tasks'
+whole formatter list, including `--format json --out $RSPEC_OUTPUT_FILE`.
+A run with `RSPEC_OUTPUT_FILE` set (CI plumbing) therefore rejects `--quiet`
+with exit 64 rather than silently writing no results file.
+
 ## Lanes
 
 | Lane                | Services                   | Runs                                                       | CI job                                   |

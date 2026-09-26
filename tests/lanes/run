@@ -307,6 +307,10 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "  -- <args>      everything after it goes to rspec verbatim (never to"
   echo "                 tryouts). Needs --only. e.g. -- --only-failures,"
   echo "                 -- --next-failure, -- -e 'description'."
+  echo "  --quiet        rspec prints failures and the summary only (SPEC_OPTS"
+  echo "                 selects tests/lanes/support/quiet_formatter.rb); the"
+  echo "                 tryouts legs already run --agent outside CI. Default"
+  echo "                 output is unchanged without it."
   echo "  --skip-codegen skip the lane's declared codegen (LANES_CODEGEN in"
   echo "                 its env file). A direct run ALWAYS generates; this is"
   echo "                 for a caller that generated once before fanning out."
@@ -344,6 +348,7 @@ ONLY=()
 # exists to take away from the caller.
 SKIP_CODEGEN=0
 PRINT_KEY=0
+QUIET=0
 # `--` ends the runner's own parsing; the rest of argv is rspec's. Kept as
 # an array (never re-split) so a quoted `-e 'two words'` arrives intact.
 PASSTHROUGH=0
@@ -383,6 +388,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --print-key)
       PRINT_KEY=1
+      shift
+      ;;
+    --quiet)
+      QUIET=1
       shift
       ;;
     *)
@@ -630,6 +639,35 @@ LANES_RUN_DIR="tmp/lanes/${LANE}/${OVERLAY_KEY:-base}"
 LANES_RSPEC_STATUS_FILE="${REPO_ROOT}/${LANES_RUN_DIR}/rspec-status.txt"
 export LANES_RSPEC_STATUS_FILE
 
+# ── --quiet ──────────────────────────────────────────────────────────────
+# rspec reads SPEC_OPTS last, after .rspec and after the command line, and a
+# `--format` there REPLACES the formatter list the other two built — which is
+# what makes one exported name enough to quiet every rspec invocation a
+# lane makes, whether a rake task assembled it or --only did. Set here,
+# below the scrub (a caller's SPEC_OPTS was cleared with everything else,
+# so this is the only one the task process can see) and only under the
+# flag, so a default run's output — CI's logs — is byte-for-byte what it
+# was.
+#
+# The replacement is also the one cost: the rake tasks' `--format json --out
+# $RSPEC_OUTPUT_FILE` goes with the progress formatter, so a run that was
+# asked for a results file cannot also be quiet. That is a CI-only pairing
+# (RSPEC_OUTPUT_FILE is CI plumbing, keep-listed for that reason); refuse it
+# rather than silently write no results.
+#
+# Tryouts needs nothing here: try:unit and try:integration:simple already
+# pass --agent outside CI (lib/tasks/spec.rake), as does --only for a
+# *_try.rb file.
+if [[ ${QUIET} -eq 1 ]]; then
+  if [[ -n "${RSPEC_OUTPUT_FILE:-}" ]]; then
+    echo "error: --quiet replaces rspec's formatters, so RSPEC_OUTPUT_FILE cannot be honored" >&2
+    echo "  unset RSPEC_OUTPUT_FILE (CI plumbing) or drop --quiet" >&2
+    exit 64
+  fi
+  SPEC_OPTS="--require ${REPO_ROOT}/tests/lanes/support/quiet_formatter --format Lanes::QuietFormatter"
+  export SPEC_OPTS
+fi
+
 # ── --print-key ──────────────────────────────────────────────────────────
 # Everything above is pure derivation: the addressing this lane+overlay set
 # resolves to, computed without touching a service. Report it and stop.
@@ -642,7 +680,8 @@ if [[ ${PRINT_KEY} -eq 1 ]]; then
   echo "lane=${LANE} overlays=${OVERLAY_KEY:-none} db=${LANES_DATASTORE_DB}" \
        "redis=${REDIS_URL:-n/a} auth_db=${AUTH_DATABASE_URL:-n/a}" \
        "key=${LANES_ISOLATION_KEY}"
-  echo "run_dir=${LANES_RUN_DIR} status_file=${LANES_RSPEC_STATUS_FILE}"
+  echo "run_dir=${LANES_RUN_DIR} status_file=${LANES_RSPEC_STATUS_FILE}" \
+       "spec_opts=${SPEC_OPTS:-none}"
   exit 0
 fi
 
