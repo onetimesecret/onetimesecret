@@ -55,6 +55,10 @@ $ tests/lanes/run --only spec/api/v2/secret_ttl_entitlement_spec.rb:20          
 - `--only` preserves the lane's isolation and environment guarantees, but skips
   generated prerequisites and every other task. Run the complete lane before
   pushing; CI validates lanes, not individual files.
+- A fresh worktree needs one full lane run (without `--skip-codegen`) before
+  `--only` works: `spec/spec_helper.rb` exits 1 while `generated/locales` is
+  empty, and the `unit` lane's schemas codegen additionally needs
+  `node_modules` (`pnpm install`).
 
 For agents and humans alike: the first command on a CI failure is
 `tests/lanes/run --only <path>:<LINE>` with the path and line from the CI
