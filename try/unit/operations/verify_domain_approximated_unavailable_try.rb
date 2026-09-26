@@ -11,7 +11,8 @@
 #     unconfirmed clock cleared). A deployment whose API key is missing or
 #     revoked keeps confirming natively and is not demoted once the
 #     confirmation window runs out.
-#   - native definitive negative: a verified domain is demoted.
+#   - native definitive negative: a never-confirmed domain fails closed, while
+#     an existing verification is held until the upstream checker corroborates.
 #   - native indeterminate: reported :indeterminate (not :failed) and bounded
 #     by the confirmation window.
 #   - a strategy that raises is :indeterminate too.
@@ -113,7 +114,7 @@ end
 Onetime::DomainValidation::Features.api_key = nil
 approx_unavailable_native(Resolv::DNS::RCode::NoError, [@domain.txt_validation_value])
 approx_unavailable_set(@domain, since_age: APPROX_UNAVAILABLE_MAX_AGE + 3600)
-@keyless = approx_unavailable_verify(@domain)
+@keyless                                    = approx_unavailable_verify(@domain)
 [@keyless.dns_outcome, @keyless.demoted?, @keyless.confirmation_expired, @keyless.current_state]
 #=> [:validated, false, false, :verified]
 
@@ -129,25 +130,25 @@ ApproxUnavailableTryClient.txt_calls
 ## No API key, native match - an unverified domain is promoted
 @domain.verified = false
 @domain.save
-@promoted = approx_unavailable_verify(@domain)
+@promoted        = approx_unavailable_verify(@domain)
 [@promoted.previous_state, @promoted.current_state, @promoted.dns_outcome]
 #=> [:resolving, :verified, :validated]
 
-## No API key, native NXDOMAIN - a verified domain is demoted
+## No API key, native NXDOMAIN - one local negative does not demote a verified domain
 approx_unavailable_native(Resolv::DNS::RCode::NXDomain)
 approx_unavailable_set(@domain)
 @keyless_gone = approx_unavailable_verify(@domain)
 [@keyless_gone.dns_outcome, @keyless_gone.demoted?, approx_unavailable_reload(@domain).verified]
-#=> [:failed, true, false]
+#=> [:indeterminate, false, true]
 
-## No API key, native NXDOMAIN - the message names both checkers
+## No API key, native NXDOMAIN - the message explains why verification is held
 @keyless_gone.dns_message
-#=> 'TXT record not found (native lookup; upstream checker unavailable: Approximated API key not configured)'
+#=> 'TXT record not found (native lookup negative; upstream checker indeterminate; previously verified domain left unchanged)'},{
 
 ## No API key, native SERVFAIL - indeterminate, not failed; verified held and the clock started
 approx_unavailable_native(Resolv::DNS::RCode::ServFail)
 approx_unavailable_set(@domain)
-@keyless_servfail = approx_unavailable_verify(@domain)
+@keyless_servfail        = approx_unavailable_verify(@domain)
 @keyless_servfail_stored = approx_unavailable_reload(@domain)
 [@keyless_servfail.dns_outcome, @keyless_servfail.demoted?, @keyless_servfail_stored.verified, @keyless_servfail_stored.verified_unconfirmed_since.nil?]
 #=> [:indeterminate, false, true, false]
@@ -162,7 +163,7 @@ approx_unavailable_set(@domain, since_age: APPROX_UNAVAILABLE_MAX_AGE + 60)
 Onetime::DomainValidation::Features.api_key = 'approx-unavail-try-key'
 ApproxUnavailableTryClient.mode             = :status
 approx_unavailable_set(@domain)
-@non200 = approx_unavailable_verify(@domain)
+@non200                                     = approx_unavailable_verify(@domain)
 [@non200.dns_outcome, @non200.demoted?, approx_unavailable_reload(@domain).verified]
 #=> [:indeterminate, false, true]
 
@@ -179,19 +180,19 @@ approx_unavailable_verify(@domain).dns_outcome
 ApproxUnavailableTryClient.mode = :raise
 approx_unavailable_native(Resolv::DNS::RCode::ServFail)
 approx_unavailable_set(@domain)
-@raised = approx_unavailable_verify(@domain)
+@raised                         = approx_unavailable_verify(@domain)
 [@raised.dns_outcome, @raised.demoted?, approx_unavailable_reload(@domain).verified]
 #=> [:indeterminate, false, true]
 
-## Client exception, native NXDOMAIN - demoted on the native answer
+## Client exception, native NXDOMAIN - one local negative still holds verification
 approx_unavailable_native(Resolv::DNS::RCode::NXDomain)
 @raised_gone = approx_unavailable_verify(@domain)
 [@raised_gone.dns_outcome, @raised_gone.demoted?]
-#=> [:failed, true]
+#=> [:indeterminate, false]
 
 ## A strategy that raises - indeterminate, verified held and the clock started
 approx_unavailable_set(@domain)
-@strategy_raised = approx_unavailable_verify(@domain, strategy: ApproxUnavailableTryRaisingStrategy.new)
+@strategy_raised        = approx_unavailable_verify(@domain, strategy: ApproxUnavailableTryRaisingStrategy.new)
 @strategy_raised_stored = approx_unavailable_reload(@domain)
 [@strategy_raised.dns_outcome, @strategy_raised.success?, @strategy_raised_stored.verified, @strategy_raised_stored.verified_unconfirmed_since.nil?]
 #=> [:indeterminate, true, true, false]
