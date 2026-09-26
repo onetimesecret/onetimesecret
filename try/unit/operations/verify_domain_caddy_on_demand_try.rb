@@ -11,10 +11,13 @@
 #
 #   1. No TXT record: the domain does not become verified; ready? stays false.
 #   2. A matching TXT record promotes.
-#   3. An indeterminate lookup leaves a verified domain verified.
+#   3. An indeterminate lookup leaves a verified domain verified, provided a
+#      TXT check has confirmed it before (verified_confirmed_at).
 #   4. A definitive negative demotes a verified domain ...
 #   5. ... unless an operator override holds it.
 #   6. A newly created domain starts unverified.
+#   6a. A domain the Passthrough strategy verified has no confirmation on
+#       record, so after a move to this strategy case 3 does not apply to it.
 #
 # The status half (check_status) runs over a scripted TlsProbe:
 #
@@ -22,7 +25,7 @@
 #   8. A probe that could not tell leaves `resolving` and vhost as they were
 #      and marks the check as failed (vhost_fetch_failed_at).
 #   9. A probe that knows only that the name resolves stores `resolving` and
-#      leaves vhost (has_ssl) alone.
+#      refreshes the vhost blob, carrying stored Caddy probe SSL state forward.
 #  10. Stale Approximated UI state is replaced while its cleanup marker remains.
 #
 # The scripted probe reports resolving + valid certificate until case 7, so
@@ -105,9 +108,9 @@ end
 ## No TXT record (NXDOMAIN) - the check fails definitively
 @domain.resolving = true
 @domain.save
-@resolver.rcode  = Resolv::DNS::RCode::NXDomain
-@resolver.values = []
-@missing         = caddy_try_verify(@domain)
+@resolver.rcode   = Resolv::DNS::RCode::NXDomain
+@resolver.values  = []
+@missing          = caddy_try_verify(@domain)
 [@missing.dns_validated, @missing.dns_indeterminate, @missing.dns_outcome, @missing.dns_message]
 #=> [false, false, :failed, 'TXT record not found']
 
@@ -133,8 +136,8 @@ caddy_try_reload(@domain).ready?
 #=> [false, false]
 
 ## An indeterminate lookup does not promote an unverified domain
-@resolver.rcode  = Resolv::DNS::RCode::ServFail
-@resolver.values = []
+@resolver.rcode           = Resolv::DNS::RCode::ServFail
+@resolver.values          = []
 @unverified_indeterminate = caddy_try_verify(@domain)
 [@unverified_indeterminate.dns_outcome, caddy_try_reload(@domain).ready?]
 #=> [:indeterminate, false]
@@ -185,13 +188,13 @@ caddy_try_reload(@domain).ready?
 @domain.verified             = true
 @domain.verified_by_override = true
 @domain.save
-@held = caddy_try_verify(@domain)
+@held                        = caddy_try_verify(@domain)
 [@held.dns_outcome, @held.override_held, @held.demoted?, caddy_try_reload(@domain).ready?]
 #=> [:override_held, true, false, true]
 
 ## A passing check clears the override marker; the next negative demotes
-@resolver.rcode  = Resolv::DNS::RCode::NoError
-@resolver.values = [@domain.txt_validation_value]
+@resolver.rcode    = Resolv::DNS::RCode::NoError
+@resolver.values   = [@domain.txt_validation_value]
 caddy_try_verify(@domain)
 @marker_after_pass = caddy_try_reload(@domain).verified_by_override == true
 @resolver.rcode    = Resolv::DNS::RCode::NXDomain
@@ -199,6 +202,40 @@ caddy_try_verify(@domain)
 @after_clear       = caddy_try_verify(@domain)
 [@marker_after_pass, @after_clear.demoted?, caddy_try_reload(@domain).ready?]
 #=> [false, true, false]
+
+## Verified with no confirmation on record (the flag as stored before this strategy checked TXT) - an indeterminate lookup does not hold it
+@legacy           = Onetime::CustomDomain.create!("caddy-legacy-#{@suffix}.example.com", @org.objid)
+@legacy.verified  = true
+@legacy.resolving = true
+@legacy.save
+@resolver.rcode   = Resolv::DNS::RCode::ServFail
+@resolver.values  = []
+@legacy_result    = caddy_try_verify(@legacy)
+@stored           = caddy_try_reload(@legacy)
+[@stored.verified_confirmed_at, @legacy_result.dns_outcome, @legacy_result.demoted?, @stored.verified == true, @stored.ready?]
+#=> [nil, :failed, true, false, false]
+
+## Verified with no confirmation on record - an operator override still holds it
+@legacy.verified             = true
+@legacy.verified_by_override = true
+@legacy.save
+@legacy_held                 = caddy_try_verify(@legacy)
+[@legacy_held.dns_outcome, @legacy_held.demoted?, caddy_try_reload(@legacy).ready?]
+#=> [:override_held, false, true]
+
+## Verified under Passthrough, then checked here - the passthrough pass is no confirmation, so an indeterminate lookup does not hold it
+@cutover         = Onetime::CustomDomain.create!("caddy-cutover-#{@suffix}.example.com", @org.objid)
+Onetime::Operations::VerifyDomain.new(
+  domain: @cutover, strategy: Onetime::DomainValidation::PassthroughStrategy.new({}), persist: true,
+).call
+@before_cutover  = caddy_try_reload(@cutover)
+@before_state    = [@before_cutover.ready?, @before_cutover.verified_confirmed_at]
+@resolver.rcode  = Resolv::DNS::RCode::ServFail
+@resolver.values = []
+@cutover_result  = caddy_try_verify(@before_cutover)
+@stored          = caddy_try_reload(@cutover)
+[*@before_state, @cutover_result.dns_outcome, @cutover_result.demoted?, @stored.ready?]
+#=> [true, nil, :failed, true, false]
 
 ## Status: a definite probe answer is stored (resolving, and has_ssl inside vhost)
 @probe.is_resolving = true
@@ -217,7 +254,7 @@ caddy_try_verify(@domain)
 @probe.is_resolving = nil
 @probe.has_ssl      = nil
 caddy_try_verify(@domain)
-@stored = caddy_try_reload(@domain)
+@stored             = caddy_try_reload(@domain)
 [@stored.resolving == true, @stored.vhost == @vhost_before, @stored.parse_vhost['has_ssl']]
 #=> [true, true, true]
 
@@ -225,19 +262,19 @@ caddy_try_verify(@domain)
 caddy_try_reload(@domain).vhost_fetch_failed_at.to_i.positive?
 #=> true
 
-## Status: resolving known, certificate unknown - resolving stored, vhost (has_ssl) untouched
+## Status: resolving known, certificate unknown - resolving stored, stored has_ssl carried forward
 @probe.is_resolving = true
 @probe.has_ssl      = nil
 caddy_try_verify(@domain)
-@stored = caddy_try_reload(@domain)
-[@stored.resolving == true, @stored.vhost == @vhost_before, @stored.vhost_fetch_failed_at.to_s.empty?]
-#=> [true, true, true]
+@stored             = caddy_try_reload(@domain)
+[@stored.resolving == true, @stored.parse_vhost.values_at('has_ssl', 'status'), @stored.vhost_fetch_failed_at.to_s.empty?]
+#=> [true, [true, 'ACTIVE_SSL'], true]
 
 ## Status: resolves without a valid certificate - has_ssl false is stored
 @probe.is_resolving = true
 @probe.has_ssl      = false
 caddy_try_verify(@domain)
-@stored = caddy_try_reload(@domain)
+@stored             = caddy_try_reload(@domain)
 [@stored.resolving == true, @stored.parse_vhost.values_at('has_ssl', 'status')]
 #=> [true, [false, 'PENDING_SSL']]
 
@@ -247,7 +284,7 @@ caddy_try_verify(@domain)
 @probe.is_resolving = false
 @probe.has_ssl      = false
 caddy_try_verify(@domain)
-@stored = caddy_try_reload(@domain)
+@stored             = caddy_try_reload(@domain)
 [@stored.verified, @stored.resolving == true, @stored.ready?, @stored.parse_vhost.values_at('is_resolving', 'status')]
 #=> [true, false, false, [false, 'DNS_INCORRECT']]
 
@@ -255,9 +292,17 @@ caddy_try_verify(@domain)
 @probe.is_resolving = nil
 @probe.has_ssl      = nil
 caddy_try_verify(@domain)
-@stored = caddy_try_reload(@domain)
+@stored             = caddy_try_reload(@domain)
 [@stored.resolving == true, @stored.parse_vhost['status']]
 #=> [false, 'DNS_INCORRECT']
+
+## Status: the name resolves again but port 443 cannot be reached - the blob follows `resolving`, has_ssl stays as stored
+@probe.is_resolving = true
+@probe.has_ssl      = nil
+caddy_try_verify(@domain)
+@stored             = caddy_try_reload(@domain)
+[@stored.resolving == true, @stored.parse_vhost.values_at('is_resolving', 'status', 'has_ssl')]
+#=> [true, [true, 'PENDING_SSL', false]]
 
 ## Status: stale Approximated UI state is replaced while cleanup remains discoverable
 @domain.vhost       = { 'id' => 42, 'incoming_address' => @domain.display_domain, 'status' => 'ACTIVE_SSL' }.to_json
@@ -265,8 +310,8 @@ caddy_try_verify(@domain)
 @probe.is_resolving = true
 @probe.has_ssl      = false
 caddy_try_verify(@domain)
-@stored = caddy_try_reload(@domain)
-@vhost_data = @stored.parse_vhost
+@stored             = caddy_try_reload(@domain)
+@vhost_data         = @stored.parse_vhost
 [@stored.resolving == true,
  @vhost_data.values_at('id', 'status', 'source', 'approximated_vhost_pending_cleanup'),
  @stored.vhost_fetch_failed_at.to_s.empty?]
@@ -274,5 +319,7 @@ caddy_try_verify(@domain)
 
 # Teardown
 @domain.destroy! if @domain&.exists?
+@legacy.destroy! if @legacy&.exists?
+@cutover.destroy! if @cutover&.exists?
 @org.destroy! if @org&.exists?
 @owner.destroy! if @owner&.exists?

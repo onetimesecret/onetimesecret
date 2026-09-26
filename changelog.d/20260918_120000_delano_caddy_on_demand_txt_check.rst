@@ -9,22 +9,52 @@ Changed
   DNS check. The rule is the same one the ``approximated`` strategy applies:
   exactly one TXT value at the validation record, equal to the challenge. The
   application performs the lookup itself, so it needs a working system
-  resolver. Caddy obtaining a certificate is not treated as proof of
+  resolver. An internationalised hostname is looked up in its punycode form.
+  Caddy obtaining a certificate is not treated as proof of
   ownership; the internal ACME endpoint continues to authorise certificates
   only for verified domains.
 
   **Upgrade note for self-hosted installs using** ``caddy_on_demand``: a
   domain that was marked verified without its TXT record loses verified status
-  on the first domain refresh (or manual verify) after upgrading. While
-  unverified, the ACME endpoint refuses new certificates for it, and
-  features that require a verified domain (link creation under
+  the first time it is checked after upgrading. While unverified, the ACME
+  endpoint refuses new certificates for it, and features that require a
+  verified domain (link creation under
   ``features.domains.require_verified``, domain sign-in and SSO) stop working
-  for it. To keep a domain verified, either have its owner
-  publish the TXT record shown on the domain's verification page, or set the
+  for it. To keep a domain verified, either publish its TXT record or set the
   verification override for that domain in the Colonel admin; an override
   holds verified through failed checks until it is removed or a check passes.
+  The record's host and value are shown on the Colonel domain detail page, in
+  the output of ``bin/ots domains verify <domain>``, and as
+  ``txt_validation_host`` / ``txt_validation_value`` in the domains API
+  payload. The customer-facing domain pages do not show the TXT record or a
+  verify button under this strategy yet (they do under ``approximated``), so
+  the operator has to pass the record on to the domain's owner and run the
+  verify.
+
+  Existing domains are only re-checked when something runs the check. The
+  scheduler is off by default (``JOBS_ENABLED``), and without it and
+  ``jobs.domain_refresh`` no refresh ever runs: domains marked verified
+  without a TXT record then stay verified, and verified on its own still
+  gates link creation under ``require_verified``, domain sign-in and SSO.
+  Installs that do not run the domain refresh job must run
+  ``bin/ots domains verify --all`` once after upgrading for the TXT check to
+  take effect on existing domains, and periodically after that (for example
+  from cron) so that a removed record is noticed.
+
   A lookup that produces no answer (SERVFAIL, REFUSED, timeout) leaves stored
-  state alone, within the confirmation window described below.
+  state alone, within the confirmation window described below. The exception
+  is a verified domain that no TXT check has ever confirmed, which is every
+  verified domain on this strategy at upgrade: it has no earlier proof to
+  protect, so an unanswered lookup also withdraws verified. It becomes
+  verified on the next check that finds the record. A Colonel override holds
+  it here as well.
+
+  The same applies to a domain verified under ``passthrough``. That strategy
+  passes every domain without a DNS check, so its passes are stored in
+  verified but are not recorded as a TXT confirmation
+  (``verified_confirmed_at`` stays empty). After a move from ``passthrough``
+  to ``caddy_on_demand`` such a domain stays verified only once a check finds
+  its TXT record, or under a Colonel override.
 
 - The ``caddy_on_demand`` strategy now reports real resolving and SSL status
   for custom domains. Previously both were always unknown, so the domain
@@ -66,19 +96,38 @@ Changed
     chore with the Approximated API key still configured, or delete them in
     the Approximated dashboard.
 
+    Sequence the switch so that proven domains keep verified.
+    ``verified_confirmed_at`` is new in this version and is only written by a
+    passing check on this version, so immediately after upgrading every
+    domain has none, including domains Approximated had proven. Before
+    changing the strategy: (1) upgrade while still on ``approximated`` and
+    run a full ``bin/ots domains verify --all`` pass (or let the domain
+    refresh job complete a walk of every page), which records the
+    confirmation for each domain whose TXT record is in place; (2) confirm
+    the application host has a working resolver (nameservers in
+    ``resolv.conf``, outbound DNS allowed), because ``caddy_on_demand`` is
+    the first time the application does the TXT lookup itself on every
+    check. If the strategy is switched without this, a first lookup under
+    ``caddy_on_demand`` that gets no answer (no nameserver configured, DNS
+    egress blocked, SERVFAIL, timeout) withdraws verified from a domain that
+    Approximated had proven, and link creation under ``require_verified``,
+    domain sign-in and SSO stop working for it until the next passing check
+    or a Colonel override.
+
 - A verified domain whose TXT checks stop producing an answer is no longer
   held verified indefinitely. The first indeterminate check of a verified
   domain starts a 7-day confirmation window; any definitive answer ends it. If
   a check is still indeterminate once the window has run out, the domain loses
   verified status. The outcome is reported as ``confirmation_expired`` in the
-  Colonel verify response and notice, in ``bin/ots domains verify`` output
+  Colonel verify response, notice and audit event, in ``bin/ots domains verify`` output
   (``Expired`` in the bulk summary, ``confirmation_expired_count`` and
   ``issue_details.dns_expired`` in JSON), in the domain refresh summary line,
   and in a warning log line. The window runs from the first indeterminate
   check, not from the last passing one, so a single failed lookup never
-  demotes a domain however long ago it was last checked. Nothing is demoted at
-  upgrade: existing domains have no window until their first indeterminate
-  check. A Colonel override exempts a domain, and a demoted domain becomes
+  demotes a domain however long ago it was last checked. The window demotes
+  nothing at upgrade: existing domains have no window until their first
+  indeterminate check (for ``caddy_on_demand`` see the upgrade note above). A
+  Colonel override exempts a domain, and a demoted domain becomes
   verified again on its next passing check. ``CustomDomain`` gains two fields,
   ``verified_confirmed_at`` and ``verified_unconfirmed_since``.
 

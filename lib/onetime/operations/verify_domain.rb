@@ -35,7 +35,9 @@ module Onetime
         :previous_state,  # Symbol: :unverified, :pending, :resolving, :verified
         :current_state,   # Symbol: :unverified, :pending, :resolving, :verified
         :dns_validated,   # Boolean: TXT record matches
-        :dns_indeterminate, # Boolean: the TXT check produced no answer; verified left untouched
+        # Boolean: the TXT check produced no answer; verified left unchanged
+        # unless confirmation_expired is also true (see ConfirmationWindow)
+        :dns_indeterminate,
         :dns_message,     # String or nil: strategy's description of the TXT outcome
         :override_held,   # Boolean: TXT check failed but an operator override kept verified
         :confirmation_expired, # Boolean: indeterminate for longer than the confirmation window; verified withdrawn
@@ -411,13 +413,14 @@ module Onetime
       #
       # Fresh-data indicators:
       #   :data present — active strategy returned a payload (Approximated 200,
-      #                   or the Caddy on-demand probe with a known has_ssl)
+      #                   or the Caddy on-demand probe with a known is_resolving)
       #   :mode present — the strategy's own answer, no provider call to fail
       #
       # Status has two nil-guards. `resolving` is skipped here when
       # :is_resolving is nil. has_ssl has no field of its own: it is stored
       # inside the `vhost` blob, so a strategy that does not know it must
-      # leave :data out (CaddyOnDemandStrategy#check_status does). A status
+      # leave :data out or carry the stored value into it
+      # (CaddyOnDemandStrategy#check_status does the latter). A status
       # result with neither :data nor :mode changes nothing and records the
       # failed check in vhost_fetch_failed_at.
       #
@@ -440,7 +443,7 @@ module Onetime
           # DNS has now proven ownership itself; the operator's assertion is
           # no longer what holds the flag, so later failures demote normally.
           domain.verified_by_override = false if dns_result[:validated]
-          window.record_settled(dns_result[:validated])
+          window.record_settled(dns_result[:validated], proven: strategy.proves_ownership?)
         else
           window.record_unsettled
         end

@@ -27,7 +27,7 @@ override exists anywhere, not even as a TODO.
 | Strategy | Ownership proof | Cert/serving | DNS check | File |
 |---|---|---|---|---|
 | `approximated` | TXT, exact-match via Approximated API | Approximated-managed | TXT only; CNAME/A trusted from provider's `is_resolving` | `approximated_strategy.rb:33-255` |
-| `caddy_on_demand` | At the time of this review: none (Caddy ACME challenge ≠ ownership proof). Since 2026-09-18: TXT, exact-match via OTS's own lookup (`txt_verifier.rb`; ADR-016 implementation note) | Caddy on-demand TLS | TXT only; no CNAME/A check by OTS | `caddy_on_demand_strategy.rb` |
+| `caddy_on_demand` | At the time of this review: none (Caddy ACME challenge ≠ ownership proof). Since 2026-09-18: TXT, exact-match via OTS's own lookup (`txt_verifier.rb`; ADR-016 implementation note) | Caddy on-demand TLS. Since 2026-09-18 OTS also completes a verified TLS handshake on port 443 (`tls_probe.rb`) to report `has_ssl`; it sends no request | At the time of this review: none performed by OTS. Since 2026-09-18: TXT via OTS's own lookup, plus an A/AAAA existence lookup (`address_resolver.rb`, via `tls_probe.rb`) that sets `resolving`. What the name points at is not checked | `caddy_on_demand_strategy.rb` |
 | `passthrough` | None — always returns true | External/operator-managed | None | `passthrough_strategy.rb:16-92` |
 
 `CustomDomain` (`lib/onetime/models/custom_domain.rb`) verification state

@@ -132,8 +132,32 @@ the TXT check had to land first so that `verified` carries proof by the time
 the gate can open. `passthrough` still performs no ownership check (ADR-017).
 
 Operator impact: domains that were marked verified under `caddy_on_demand`
-without a TXT record lose `verified` on the first refresh after upgrade,
-unless the record exists or a Colonel override holds the flag.
+without a TXT record lose `verified` on the first check after upgrade,
+unless the record exists or a Colonel override holds the flag. That includes
+a first check that is indeterminate: the strategy returns `false` rather than
+`nil` for a verified domain with no `verified_confirmed_at`, because such a
+flag was never backed by a TXT check and the serving axis below would
+otherwise make the domain `ready?`. Installs that do not run
+`DomainRefreshJob` (the scheduler is off by default) need
+`bin/ots domains verify --all` for any of this to reach existing domains.
+
+`verified_confirmed_at` is written only for a pass from a strategy that
+checks the record (`BaseStrategy#proves_ownership?`: `approximated` and
+`caddy_on_demand`). A `passthrough` pass sets `verified` and records no
+confirmation, so a domain verified under `passthrough` is treated as never
+confirmed after a move to `caddy_on_demand`.
+
+The never-confirmed rule also reaches an install that cuts over from
+`approximated` to `caddy_on_demand` at or soon after this upgrade. The field
+is new, so every domain starts without it, including those Approximated had
+proven; and cutover is the first time the app needs its own working resolver
+on every check. The operator sequence is: upgrade while still on
+`approximated`; run a full `bin/ots domains verify --all` pass (or a complete
+`DomainRefreshJob` walk) so the confirmation is recorded for every proven
+domain; confirm the app host has a working resolver; then switch strategy.
+Without that, a first lookup under `caddy_on_demand` that gets no answer
+withdraws `verified` from a domain Approximated had proven, until the next
+passing check or a Colonel override.
 
 ### Serving axis implemented for `caddy_on_demand` (2026-09-18)
 
@@ -160,16 +184,37 @@ compare the address with this deployment's. The Decision section's
 no configured expected address to compare against. Ownership rests on the TXT
 check alone, as the non-conflation rule requires.
 
-`has_ssl` is persisted inside the `vhost` blob, so the strategy returns
-`:data` only when `has_ssl` is known, and returns neither `:data` nor `:mode`
-when the probe learned nothing; `VerifyDomain#persist_changes` then stores
+`has_ssl` is persisted inside the `vhost` blob. The strategy rewrites the
+blob whenever `is_resolving` is known, so the blob's `status` and
+`is_resolving` never disagree with the `resolving` field; when `has_ssl` is
+unknown (port 443 unreachable, or the egress guard refused the address) the
+stored `has_ssl` and certificate dates are carried into the new blob only
+while the stored `ssl_active_until` is in the future. At or after expiry they
+no longer establish an active certificate, so the blob omits the claim and
+reports `PENDING_SSL` until a probe sees the current certificate. It returns
+neither `:data` nor `:mode` when the probe learned nothing;
+`VerifyDomain#persist_changes` then stores
 nothing and sets `vhost_fetch_failed_at`. A `vhost` blob left by
 `approximated` is not replaced (it is the orphaned-vhost chore's evidence).
 
 The frontend part of the Decision (`useDomainStatus.ts` keyed on
 `validation_strategy`) is not done. The probe blob reuses Approximated's
 `status` values (`ACTIVE_SSL`, `DNS_INCORRECT`) plus `PENDING_SSL`, so the
-existing single badge renders correctly without it.
+single badge has correct data to render wherever it is shown. Today that is
+the Colonel domain pages only. The customer workspace hides the badge and
+the verification screen on every non-`approximated` install
+(`isApproximatedDomainValidation()` gates `showVerificationStatus` in
+`DomainHeader`, `DomainsTableDomainCell` and `DomainsTableActionsCell`, and
+the `DomainVerify` route guard redirects to `DomainDns`, which shows only
+the CNAME/ALIAS record). So under `caddy_on_demand` a customer cannot see the
+TXT challenge, the status, or a verify button; the operator reads the record
+from the Colonel domain detail page, the domains API payload or
+`bin/ots domains verify <domain>` and runs the verify. Closing that gap needs
+a predicate for "strategies that check ownership" (`approximated`,
+`caddy_on_demand`) separate from "uses Approximated", because the same flag
+currently also selects the Approximated proxy targets (`cluster.proxy_ip` /
+`proxy_host`) that `VerifyDomainDetails` renders and that are empty under
+`caddy_on_demand`.
 
 ### Caddy `ask` deprecation — confirmed in the app itself, not just the example file (2026-06-30)
 
