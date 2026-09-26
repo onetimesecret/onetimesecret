@@ -98,6 +98,16 @@
 #                     a DIFFERENT definition — e.g. per-cloud definitions keyed
 #                     off the route env — breaks that assumption and has to
 #                     teach #tenant_idp_origin to resolve :env_var first.
+#   discovery_issuer_var: OPTIONAL env var naming an install-wide OIDC issuer
+#                     that uses discovery. The omniauth_setup hook compares it
+#                     to the discovery document's `issuer` on the first
+#                     platform sign-in attempt (exact String ==, #4513), and
+#                     AuthConfig#sso_providers withholds the button while a
+#                     mismatch is cached (SsoProvider::IssuerValidation),
+#                     except under restrict_to 'sso'. Route registration,
+#                     HttpOrigin origins and restrict_to availability are
+#                     unaffected, so tenant OIDC on the same route keeps
+#                     working.
 #   placeholder_options: strategy options (minus name:) used when platform
 #                     credentials are absent but org-level SSO is enabled —
 #                     the OmniAuthTenant hook injects real tenant credentials

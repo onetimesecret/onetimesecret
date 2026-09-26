@@ -459,6 +459,28 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
         end
       end
 
+      # #4513: a cached issuer-mismatch verdict makes the install-wide
+      # provider UNAVAILABLE (AuthConfig#provider_active?), never
+      # unregistered. Tenant OIDC is served on the same route, so registration
+      # must not consult the verdict.
+      it 'registers even while an issuer mismatch is cached for OIDC_ISSUER' do
+        require File.expand_path('../../../../../../lib/onetime/sso_provider/issuer_validation', __dir__)
+        validation = Onetime::SsoProvider::IssuerValidation
+        allow(validation).to receive(:rejected?).and_return(true)
+        allow(validation).to receive(:cached_verdict)
+        allow(validation).to receive(:verify)
+
+        expect(auth).to receive(:omniauth_provider).with(:openid_connect, hash_including(name: :oidc))
+
+        ClimateControl.modify(OIDC_ISSUER: 'https://idp.example.com', OIDC_CLIENT_ID: 'oidc-client-id') do
+          Auth::Config::Features::OmniAuth.configure_oidc_provider(auth)
+        end
+
+        expect(validation).not_to have_received(:rejected?)
+        expect(validation).not_to have_received(:cached_verdict)
+        expect(validation).not_to have_received(:verify)
+      end
+
       it 'omits secret from client_options when OIDC_CLIENT_SECRET is empty (PKCE-only)' do
         expect(auth).to receive(:omniauth_provider).with(
           :openid_connect,

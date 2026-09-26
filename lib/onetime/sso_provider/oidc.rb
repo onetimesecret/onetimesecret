@@ -26,6 +26,9 @@ module Onetime
         trust_var: 'OIDC_TRUST_EMAIL_FOR_LINKING',
         trust_default: false,
         idp_origin_from: 'OIDC_ISSUER',
+        # Install-wide issuer checked against its discovery document on the
+        # first sign-in attempt (#4513, SsoProvider::IssuerValidation).
+        discovery_issuer_var: 'OIDC_ISSUER',
         placeholder_options: {
           scope: [:openid, :email, :profile],
           response_type: :code,

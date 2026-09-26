@@ -94,6 +94,11 @@ export interface TestSsoConnectionResponse {
     missing_fields?: string[];
     content_type?: string;
     timeout_seconds?: number;
+    max_bytes?: number;
+    // issuer_mismatch (generic OIDC only): exact values, never normalized.
+    // discovery_issuer is null when the document's issuer is not a string.
+    configured_issuer?: string;
+    discovery_issuer?: string | null;
     /**
      * SAML: the offending field (idp_sso_service_url | idp_entity_id |
      * idp_cert) for error_code invalid_sso_url | invalid_entity_id |

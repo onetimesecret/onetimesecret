@@ -338,7 +338,16 @@ module AuthModeHelpers
       tenant_origin_delegate.tenant_origin_source(sso_config, env: env)
     end
 
+    # Onetime::AuthConfig#install_discovery_issuer_for_route (#4513),
+    # delegated to the real method for the same no-drift reason: the
+    # omniauth_setup issuer check reads it on every platform-path request,
+    # and it depends only on the registry and ENV, not on loaded config.
+    def install_discovery_issuer_for_route(route_name)
+      tenant_origin_delegate.install_discovery_issuer_for_route(route_name)
+    end
+
     def tenant_origin_delegate
+      # AuthConfig includes Singleton, which makes .allocate private.
       @tenant_origin_delegate ||= Onetime::AuthConfig.send(:allocate)
     end
   end

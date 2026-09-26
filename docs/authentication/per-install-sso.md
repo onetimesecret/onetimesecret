@@ -547,6 +547,7 @@ Auth0 asserts `iss` with a **trailing slash** (`https://<tenant>/`).
 `OIDC_ISSUER` must match it byte for byte: both the discovery document's
 `issuer` and the id_token's `iss` are compared exactly, so without the slash
 sign-in fails with an issuer mismatch. Custom domains follow the same rule.
+See [Issuer mismatch](#issuer-mismatch) under Troubleshooting.
 
 ```bash
 OIDC_ISSUER=https://your-tenant.auth0.com/
@@ -858,6 +859,7 @@ OmniAuth failure → omniauth_on_failure hook (logs to stderr + Auth::Logging)
 | `auth_error` Code | i18n Key | Meaning |
 |-------------------|----------|---------|
 | `sso_failed` | `web.login.errors.sso_failed` | General SSO failure |
+| `sso_issuer_mismatch` | `web.login.errors.sso_issuer_mismatch` | `OIDC_ISSUER` differs from the discovery document's `issuer` (see [Issuer mismatch](#issuer-mismatch)) |
 | `sso_cancelled` | `web.login.errors.sso_cancelled` | The user declined at the IdP |
 | `sso_not_configured` | `web.login.errors.sso_not_configured` | Custom domain with no tenant SSO configuration at all |
 | `sso_config_unusable` | `web.login.errors.sso_config_unusable` | Tenant SSO exists but cannot produce usable options: expired or not-yet-valid certificate, or a field that no longer decrypts |
@@ -887,6 +889,34 @@ echo $ENTRA_TENANT_ID $ENTRA_CLIENT_ID $ENTRA_CLIENT_SECRET  # for Entra
 ```bash
 curl https://your-issuer/.well-known/openid-configuration
 ```
+
+### Issuer mismatch
+
+**Symptom:** Generic OIDC sign-in lands on `/signin?auth_error=sso_issuer_mismatch`, which shows "Sign-in with this provider is misconfigured. Please contact your administrator." The browser never reaches the IdP. The auth log has an error-level event with these fields (layout depends on the log formatter):
+
+```
+[omniauth_install_issuer_mismatch] {provider: "oidc", configured_issuer: "https://your-tenant.auth0.com", discovered_issuer: "https://your-tenant.auth0.com/", reason: :mismatch, hint: "OIDC_ISSUER must equal the discovery document issuer exactly, including any trailing slash", ...}
+```
+
+`reason` is always `:mismatch`: a document without a string `issuer` is not treated as a mismatch (see Timing). The client secret is never logged.
+
+**Cause:** `OIDC_ISSUER` is not exactly the `issuer` value in the IdP's discovery document. The comparison is an exact string match with no normalization: a trailing slash, letter case, an explicit `:443`, or a different path all count as a mismatch.
+
+**Fix:** Copy the `issuer` value from the discovery document into `OIDC_ISSUER` unchanged, then restart:
+
+```bash
+curl -s https://your-issuer/.well-known/openid-configuration | jq -r .issuer
+```
+
+**Timing:**
+
+- The check is lazy. It runs on the first install-wide OIDC sign-in attempt after boot, not at boot, so the OIDC button is shown until that first attempt fails.
+- Each process keeps its own result. After a mismatch is detected, the provider is removed from the sign-in page's provider list in that process, unless `full.restrict_to` is `sso`: there the button stays and a click shows the error, because the page has no other sign-in method. The result only affects that list. The `form-action` CSP directive, the origins accepted for SSO callbacks, and whether `restrict_to` can be honored do not change.
+- A mismatch result expires after 2 minutes, then the next attempt checks again. A fix on the IdP side therefore takes effect within 2 minutes without a restart. A change to `OIDC_ISSUER` needs a restart, because strategies are registered at boot.
+- A match is cached for 1 hour. If the IdP changes its issuer within that hour, sign-in is still refused, but with the generic `sso_failed` until the cached match expires.
+- Timeouts, network errors, HTTP errors, non-JSON responses, and JSON without a string `issuer` are never reported as a mismatch. Sign-in proceeds and fails or succeeds as it would without the check. These results are cached for 30 seconds.
+
+**Unaffected:** other sign-in methods, other SSO providers, and per-domain (tenant) OIDC, which shares the `oidc` route but uses its own issuer. Tenant issuers are checked by Test Connection (see [per-domain-sso.md](per-domain-sso.md#common-issues)).
 
 ### Account not created
 

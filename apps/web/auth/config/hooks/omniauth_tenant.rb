@@ -187,11 +187,13 @@ module Auth::Config::Hooks
               level: :debug,
               host: host,
             )
+            HELPERS.enforce_install_discovery_issuer!(strategy, self, is_callback_phase)
             next # Continue with platform defaults
           end
 
           # Non-canonical domain with no custom domain mapping - apply tenant policy
           HELPERS.handle_missing_tenant_config(host, self, request: request)
+          HELPERS.enforce_install_discovery_issuer!(strategy, self, is_callback_phase)
           next # Continue with platform defaults (if allowed)
         end
 
@@ -235,6 +237,7 @@ module Auth::Config::Hooks
 
           # Check if we should fall back to platform credentials
           HELPERS.handle_missing_tenant_config(host, self, request: request)
+          HELPERS.enforce_install_discovery_issuer!(strategy, self, is_callback_phase)
           next # Continue with platform defaults (if allowed)
         end
 
@@ -648,6 +651,98 @@ module Auth::Config::Hooks
       )
 
       rodauth.send(:redirect, '/signin?auth_error=domain_not_allowed')
+    end
+
+    # Where a platform-path request lands when the install-wide OIDC issuer
+    # does not match its discovery document (#4513).
+    INSTALL_ISSUER_MISMATCH_REDIRECT = '/signin?auth_error=sso_issuer_mismatch'
+
+    # Fail fast when the INSTALL-WIDE OIDC issuer (OIDC_ISSUER) differs from
+    # the `issuer` its discovery document declares (#4513).
+    #
+    # Called on every platform path of omniauth_setup (canonical domain and
+    # platform fallback), after tenant resolution has decided no tenant
+    # credentials apply, and BEFORE the OmniAuth request phase runs discovery
+    # and redirects to the IdP. The gem would refuse the mismatch there too
+    # (OpenIDConnect::Discovery raises DiscoveryFailed -> generic sso_failed);
+    # checking first lets the user see a specific error, the operator see
+    # both issuers in one log line, and AuthConfig#sso_providers stop
+    # advertising the provider while the verdict is cached.
+    #
+    # Scope, all of which must hold (#install_discovery_issuer_to_check):
+    #   - request phase only — the callback of a flow that got this far has
+    #     already passed the gem's own discovery check;
+    #   - a discovery strategy whose route declares a :discovery_issuer_var
+    #     (the registry's OIDC definition) with that env var set;
+    #   - the strategy still carries that exact issuer, i.e. the boot-time
+    #     install-wide options: placeholder registrations and tenant-injected
+    #     options carry a different issuer and are never checked here (tenant
+    #     issuers are validated by Test Connection and the gem).
+    #
+    # Verdicts come from SsoProvider::IssuerValidation (per-process cache:
+    # match 1h, mismatch 2min). An :unknown verdict (timeout, network, non-JSON,
+    # no string issuer) is not a mismatch: the request proceeds and the gem
+    # succeeds or fails as before. The client secret is never logged.
+    #
+    # @param strategy [OmniAuth::Strategy, nil]
+    # @param rodauth [Rodauth::Auth] redirect target
+    # @param is_callback_phase [Boolean]
+    def self.enforce_install_discovery_issuer!(strategy, rodauth, is_callback_phase)
+      return if is_callback_phase
+
+      verdict = install_discovery_issuer_verdict(strategy)
+      return unless verdict&.rejected?
+
+      Auth::Logging.log_auth_event(
+        :omniauth_install_issuer_mismatch,
+        level: :error,
+        provider: strategy.name.to_s,
+        configured_issuer: verdict.configured,
+        discovered_issuer: verdict.discovered,
+        reason: verdict.detail,
+        hint: 'OIDC_ISSUER must equal the discovery document issuer exactly, including any trailing slash',
+      )
+
+      rodauth.send(:redirect, INSTALL_ISSUER_MISMATCH_REDIRECT)
+    end
+
+    # The IssuerValidation verdict for this strategy's install-wide issuer,
+    # or nil when the strategy is out of scope. An unexpected error FAILS OPEN
+    # to the gem's own discovery check (which still refuses a mismatch):
+    # this is a diagnosis layer, and an exception escaping omniauth_setup
+    # would turn every platform sign-in into a generic sso_failed.
+    #
+    # @param strategy [OmniAuth::Strategy, nil]
+    # @return [Onetime::SsoProvider::IssuerValidation::Verdict, nil]
+    def self.install_discovery_issuer_verdict(strategy)
+      configured = install_discovery_issuer_to_check(strategy)
+      return nil unless configured
+
+      Onetime::SsoProvider::IssuerValidation.verify(configured)
+    rescue StandardError => ex
+      Auth::Logging.log_auth_event(
+        :omniauth_install_issuer_check_error,
+        level: :warn,
+        error_class: ex.class.name,
+        error_message: ex.message,
+      )
+      nil
+    end
+
+    # The install-wide issuer to check for this strategy, or nil when the
+    # strategy is out of scope (see .enforce_install_discovery_issuer!).
+    #
+    # @param strategy [OmniAuth::Strategy, nil]
+    # @return [String, nil]
+    def self.install_discovery_issuer_to_check(strategy)
+      return nil unless strategy.respond_to?(:options) && strategy.options[:discovery] == true
+
+      configured = Onetime.auth_config.install_discovery_issuer_for_route(strategy.name)
+      return nil unless configured
+      return nil if configured == Onetime::SsoProvider::Oidc::DEFINITION.dig(:placeholder_options, :issuer)
+      return nil unless strategy.options[:issuer] == configured
+
+      configured
     end
 
     # Handle requests where no tenant SSO config is available.

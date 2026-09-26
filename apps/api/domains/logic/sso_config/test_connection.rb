@@ -2,12 +2,11 @@
 #
 # frozen_string_literal: true
 
-require 'net/http'
-require 'uri'
 require 'json'
 require 'time'
-require 'timeout'
 require_relative 'base'
+require_relative '../../../../../lib/onetime/sso_provider/discovery_fetcher'
+require_relative '../../../../../lib/onetime/sso_provider/discovery_issuer'
 require_relative 'ssrf_protection'
 require_relative 'saml_fields'
 
@@ -20,6 +19,13 @@ module DomainsAPI
       #   discovery document availability. This does NOT perform an actual
       #   OAuth flow or validate client credentials - it only confirms
       #   the IdP endpoint is accessible and properly configured.
+      #
+      #   For generic OIDC, the discovery document's `issuer` must equal the
+      #   configured issuer exactly (OIDC Discovery 1.0 section 4.3; no
+      #   trailing-slash or case normalization). A difference is reported as
+      #   error_code 'issuer_mismatch' with details.configured_issuer and
+      #   details.discovery_issuer. Entra ID has no operator-supplied issuer
+      #   and is not compared.
       #
       #   Uses credentials from request body (not stored config) to allow
       #   testing before saving. Does not persist anything.
@@ -68,6 +74,8 @@ module DomainsAPI
 
         # Read timeout in seconds
         READ_TIMEOUT = 10
+
+        USER_AGENT = 'OneTimeSecret-SSO-Test/1.0'
 
         # Required fields in OIDC discovery document
         REQUIRED_OIDC_FIELDS = %w[
@@ -337,132 +345,116 @@ module DomainsAPI
         # ──────────────────────────────────────────────────────────────────────────
 
         def build_discovery_url(issuer)
-          # Normalize issuer URL
-          base = issuer.to_s.chomp('/')
-          "#{base}/.well-known/openid-configuration"
+          Onetime::SsoProvider::DiscoveryFetcher.discovery_url_for(issuer)
         end
 
+        # Fetches through the shared SSRF-safe discovery fetcher and maps its
+        # Result onto this endpoint's error_code vocabulary.
+        #
+        # The fetcher is the SSRF enforcement point: it resolves + validates
+        # the host once via Onetime::Http::Guard and pins every dial to a
+        # validated IP. That covers every caller — including
+        # test_entra_id_connection, which never passes through
+        # valid_issuer_host? (that check remains upstream as a cheap early
+        # rejection with a friendly message).
         def fetch_and_validate_discovery(url, provider_name)
-          response = fetch_url(url)
+          fetched = discovery_fetcher.fetch(url)
 
-          case response
-          when Net::HTTPSuccess
-            validate_discovery_response(response, provider_name)
-          when Net::HTTPNotFound
-            {
-              success: false,
-              provider_type: @provider_type,
-              message: "#{provider_name} discovery document not found",
-              details: {
-                error_code: 'discovery_not_found',
-                http_status: response.code.to_i,
-                url: url,
-              },
-            }
-          else
-            {
-              success: false,
-              provider_type: @provider_type,
-              message: "#{provider_name} discovery request failed",
-              details: {
-                error_code: 'http_error',
-                http_status: response.code.to_i,
-                description: response.message,
-              },
-            }
-          end
-        rescue Timeout::Error
-          {
-            success: false,
-            provider_type: @provider_type,
-            message: "#{provider_name} connection timed out",
-            details: {
+          case fetched.status
+          when :ok
+            validate_discovery_response(fetched, provider_name)
+          when :not_found
+            failure(
+              "#{provider_name} discovery document not found",
+              error_code: 'discovery_not_found',
+              http_status: fetched.http_status,
+              url: url,
+            )
+          when :http_error
+            failure(
+              "#{provider_name} discovery request failed",
+              error_code: 'http_error',
+              http_status: fetched.http_status,
+              description: fetched.http_message,
+            )
+          when :too_large
+            failure(
+              "#{provider_name} discovery document is too large",
+              error_code: 'discovery_too_large',
+              max_bytes: discovery_fetcher.max_bytes,
+              url: url,
+            )
+          when :timeout
+            failure(
+              "#{provider_name} connection timed out",
               error_code: 'timeout',
               timeout_seconds: CONNECTION_TIMEOUT,
               url: url,
-            },
-          }
-        rescue OpenSSL::SSL::SSLError => ex
-          {
-            success: false,
-            provider_type: @provider_type,
-            message: "#{provider_name} SSL/TLS error",
-            details: {
+            )
+          when :ssl_error
+            failure(
+              "#{provider_name} SSL/TLS error",
               error_code: 'ssl_error',
-              description: sanitize_error_message(ex.message),
-            },
-          }
-        rescue SocketError => ex
-          {
-            success: false,
-            provider_type: @provider_type,
-            message: "#{provider_name} connection failed",
-            details: {
+              description: sanitize_error_message(fetched.error&.message),
+            )
+          when :connection_failed
+            failure(
+              "#{provider_name} connection failed",
               error_code: 'connection_failed',
-              description: sanitize_error_message(ex.message),
-            },
-          }
-        rescue Onetime::Http::Guard::Blocked
-          # Deliberately generic: Blocked#message carries the resolved IP,
-          # which must not be echoed back to the caller (information
-          # disclosure about internal address space).
-          {
-            success: false,
-            provider_type: @provider_type,
-            message: "#{provider_name} issuer resolves to a blocked address",
-            details: {
+              description: sanitize_error_message(fetched.error&.message),
+            )
+          when :blocked
+            # Deliberately generic: Blocked#message carries the resolved IP,
+            # which must not be echoed back to the caller (information
+            # disclosure about internal address space).
+            failure(
+              "#{provider_name} issuer resolves to a blocked address",
               error_code: 'blocked_target',
               description: 'The issuer host resolves to an address that is not allowed.',
-            },
-          }
+            )
+          when :invalid_url
+            failure(
+              'Invalid issuer URL',
+              error_code: 'invalid_issuer',
+              description: 'The issuer URL is not valid or uses an unsupported protocol',
+            )
+          else
+            unexpected_failure(provider_name, fetched.error)
+          end
         rescue StandardError => ex
-          OT.le "[TestConnection] Unexpected error testing #{provider_name}: #{ex.class.name} - #{ex.message}"
+          unexpected_failure(provider_name, ex)
+        end
+
+        def discovery_fetcher
+          @discovery_fetcher ||= Onetime::SsoProvider::DiscoveryFetcher.new(
+            open_timeout: CONNECTION_TIMEOUT,
+            read_timeout: READ_TIMEOUT,
+            user_agent: USER_AGENT,
+          )
+        end
+
+        def failure(message, **details)
           {
             success: false,
             provider_type: @provider_type,
-            message: "#{provider_name} connection error",
-            details: {
-              error_code: 'unexpected_error',
-              description: 'An unexpected error occurred. Please try again.',
-            },
+            message: message,
+            details: details,
           }
         end
 
-        def fetch_url(url)
-          uri = URI.parse(url)
-
-          request               = Net::HTTP::Get.new(uri.request_uri)
-          request['Accept']     = 'application/json'
-          request['User-Agent'] = 'OneTimeSecret-SSO-Test/1.0'
-
-          # SSRF enforcement point: resolve + validate the host once, then
-          # dial each validated IP pinned via Net::HTTP#ipaddr= while the
-          # Host header, SNI, and certificate verification keep using the
-          # hostname. Closes the validate-then-reresolve DNS-rebinding
-          # window (the fallback walk only spans already-validated
-          # addresses), and covers every caller — including
-          # test_entra_id_connection, which never passes through
-          # valid_issuer_host? (that check remains upstream as a cheap early
-          # rejection with a friendly message). Raises
-          # Onetime::Http::Guard::Blocked for forbidden targets.
-          Onetime::Http::Guard.try_each_address!(uri.host) do |pinned_ip|
-            # The explicit nil p_addr disables environment-proxy pickup
-            # (http_proxy env var), which would otherwise route the request
-            # through a proxy and silently bypass the IP pinning below.
-            http              = Net::HTTP.new(uri.host, uri.port, nil)
-            http.ipaddr       = pinned_ip
-            http.use_ssl      = (uri.scheme == 'https')
-            http.open_timeout = CONNECTION_TIMEOUT
-            http.read_timeout = READ_TIMEOUT
-            http.verify_mode  = OpenSSL::SSL::VERIFY_PEER
-
-            http.request(request)
-          end
+        def unexpected_failure(provider_name, error)
+          OT.le "[TestConnection] Unexpected error testing #{provider_name}: #{error&.class&.name} - #{error&.message}"
+          failure(
+            "#{provider_name} connection error",
+            error_code: 'unexpected_error',
+            description: 'An unexpected error occurred. Please try again.',
+          )
         end
 
-        def validate_discovery_response(response, provider_name)
+        # @param fetched [Onetime::SsoProvider::DiscoveryFetcher::Result]
+        def validate_discovery_response(fetched, provider_name)
           # Parse JSON
-          discovery = JSON.parse(response.body)
+          discovery = JSON.parse(fetched.body)
 
           # Check required fields
           missing_fields = REQUIRED_OIDC_FIELDS.reject { |field| discovery.key?(field) && !discovery[field].to_s.empty? }
@@ -477,6 +469,18 @@ module DomainsAPI
                 missing_fields: missing_fields,
               },
             }
+          end
+
+          # Generic OIDC only: the operator-supplied issuer must equal the
+          # discovered one exactly, or the IdP's ID tokens will never
+          # validate. Entra's discovery URL is built from the tenant ID and
+          # there is no operator-supplied issuer to compare against.
+          if @provider_type == 'oidc'
+            issuer_check = Onetime::SsoProvider::DiscoveryIssuer.check(
+              configured: @issuer,
+              discovered: discovery['issuer'],
+            )
+            return issuer_mismatch_failure(issuer_check, provider_name) unless issuer_check.ok?
           end
 
           # Success - return key endpoints
@@ -500,9 +504,21 @@ module DomainsAPI
             message: "#{provider_name} returned invalid JSON",
             details: {
               error_code: 'invalid_json',
-              content_type: response['Content-Type'],
+              content_type: fetched.content_type,
             },
           }
+        end
+
+        def issuer_mismatch_failure(issuer_check, provider_name)
+          failure(
+            "#{provider_name} issuer mismatch: the discovery document declares a different " \
+            'issuer than the one configured. Issuer identifiers are compared exactly, ' \
+            'including any trailing slash (Auth0, for example, uses a trailing slash). ' \
+            'Set the issuer to the exact value the discovery document declares.',
+            error_code: 'issuer_mismatch',
+            configured_issuer: issuer_check.configured,
+            discovery_issuer: issuer_check.discovered_string,
+          )
         end
 
         def sanitize_error_message(message)

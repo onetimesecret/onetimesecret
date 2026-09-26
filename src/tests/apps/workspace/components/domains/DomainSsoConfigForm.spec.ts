@@ -548,6 +548,71 @@ describe('DomainSsoConfigForm', () => {
       expect(errorResult.exists()).toBe(true);
     });
 
+    it('renders both issuers exactly on issuer_mismatch', async () => {
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), provider_type: 'oidc' },
+        testResult: {
+          user_id: 'cust_456',
+          success: false,
+          message: 'OIDC issuer mismatch',
+          provider_type: 'oidc',
+          details: {
+            error_code: 'issuer_mismatch',
+            configured_issuer: 'https://tenant.auth0.com',
+            discovery_issuer: 'https://tenant.auth0.com/',
+          },
+        },
+      });
+
+      expect(wrapper.find('[data-testid="sso-configured-issuer"]').text()).toBe(
+        'https://tenant.auth0.com'
+      );
+      expect(wrapper.find('[data-testid="sso-discovery-issuer"]').text()).toBe(
+        'https://tenant.auth0.com/'
+      );
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.text()).toContain('web.organizations.sso.configured_issuer');
+      expect(alert.text()).toContain('web.organizations.sso.discovery_issuer');
+      expect(wrapper.find('[data-testid="sso-issuer-mismatch-hint"]').text()).toBe(
+        'web.organizations.sso.issuer_mismatch_hint'
+      );
+    });
+
+    it('shows a placeholder when the discovered issuer is null', async () => {
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), provider_type: 'oidc' },
+        testResult: {
+          user_id: 'cust_456',
+          success: false,
+          message: 'OIDC issuer mismatch',
+          provider_type: 'oidc',
+          details: {
+            error_code: 'issuer_mismatch',
+            configured_issuer: 'https://idp.example.com',
+            discovery_issuer: null,
+          },
+        },
+      });
+
+      expect(wrapper.find('[data-testid="sso-discovery-issuer"]').text()).toBe('—');
+    });
+
+    it('does not render issuer rows for other failures', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        testResult: {
+          user_id: 'cust_456',
+          success: false,
+          message: 'OIDC discovery document not found',
+          provider_type: 'oidc',
+          details: { error_code: 'discovery_not_found', http_status: 404 },
+        },
+      });
+
+      expect(wrapper.find('[data-testid="sso-configured-issuer"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-issuer-mismatch-hint"]').exists()).toBe(false);
+    });
+
     it('shows testing indicator when isTesting is true', async () => {
       wrapper = await mountComponent({
         formState: mockExistingFormState,

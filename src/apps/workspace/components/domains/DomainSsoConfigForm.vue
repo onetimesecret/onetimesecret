@@ -1026,7 +1026,39 @@ aria-hidden="true">*</span>
                       <dt class="font-medium">{{ t('web.organizations.sso.missing_fields') }}:</dt>
                       <dd>{{ testResult.details.missing_fields.join(', ') }}</dd>
                     </div>
+                    <template v-if="testResult.details.error_code === 'issuer_mismatch'">
+                      <div class="flex gap-2">
+                        <dt class="shrink-0 font-medium">
+                          {{ t('web.organizations.sso.configured_issuer') }}:
+                        </dt>
+                        <dd>
+                          <code
+                            class="font-mono break-all"
+                            data-testid="sso-configured-issuer">{{
+                              testResult.details.configured_issuer
+                            }}</code>
+                        </dd>
+                      </div>
+                      <div class="flex gap-2">
+                        <dt class="shrink-0 font-medium">
+                          {{ t('web.organizations.sso.discovery_issuer') }}:
+                        </dt>
+                        <dd>
+                          <code
+                            class="font-mono break-all"
+                            data-testid="sso-discovery-issuer">{{
+                              testResult.details.discovery_issuer ?? '—'
+                            }}</code>
+                        </dd>
+                      </div>
+                    </template>
                   </dl>
+                  <p
+                    v-if="testResult.details.error_code === 'issuer_mismatch'"
+                    class="mt-2"
+                    data-testid="sso-issuer-mismatch-hint">
+                    {{ t('web.organizations.sso.issuer_mismatch_hint') }}
+                  </p>
                 </div>
               </div>
             </div>

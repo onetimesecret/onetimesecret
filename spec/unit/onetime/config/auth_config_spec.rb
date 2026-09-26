@@ -419,14 +419,14 @@ RSpec.describe Onetime::AuthConfig do
       end
 
       it 'raises on an unrecognised restriction value' do
-        config = fresh_config
+        config                                                        = fresh_config
         config.instance_variable_get(:@config)['full']['restrict_to'] = 'carrier_pigeon'
         expect { config.validate_restrict_to! }
           .to raise_error(Onetime::ConfigError, /not a valid restriction/)
       end
 
       it 'memoizes so a second call does not re-raise' do
-        config = fresh_config('AUTH_PASSWORD_ONLY' => 'true')
+        config                                                        = fresh_config('AUTH_PASSWORD_ONLY' => 'true')
         expect(config.validate_restrict_to!).to eq('password')
         config.instance_variable_get(:@config)['full']['restrict_to'] = 'carrier_pigeon'
         expect(config.validate_restrict_to!).to eq('password')
@@ -545,7 +545,7 @@ RSpec.describe Onetime::AuthConfig do
         it "is unaffected by another provider's trust var" do
           prefixes = %w[OIDC ENTRA GOOGLE GITHUB APPLE SAML]
           other    = (prefixes - [trust_var.delete_suffix('_TRUST_EMAIL_FOR_LINKING')]).first
-          config = fresh_config("#{other}_TRUST_EMAIL_FOR_LINKING" => 'true')
+          config   = fresh_config("#{other}_TRUST_EMAIL_FOR_LINKING" => 'true')
           expect(config.trust_email_for_linking?(route_name)).to be false
         end
       end
@@ -632,7 +632,7 @@ RSpec.describe Onetime::AuthConfig do
       all_opted_out = Onetime::SsoProvider::Registry::DEFINITIONS.to_h do |defn|
         [defn[:trust_var], 'false']
       end
-      config = fresh_config(**{ 'SSO_TRUST_EMAIL_FOR_LINKING' => 'true' }.merge(all_opted_out))
+      config        = fresh_config(**{ 'SSO_TRUST_EMAIL_FOR_LINKING' => 'true' }, **all_opted_out)
       expect(config.trust_email_for_linking_enabled?).to be false
     end
 
@@ -747,6 +747,96 @@ RSpec.describe Onetime::AuthConfig do
       it 'omits a provider whose predicate raises, without raising' do
         defn = base.merge(vars_valid: -> { raise ArgumentError, 'bad value' })
         expect(advertised_with(defn, **env)).to be_empty
+      end
+    end
+
+    # #4513: an install-wide OIDC issuer known to mismatch its discovery
+    # document cannot sign anyone in (the gem refuses it in the request
+    # phase), so the button must not be offered while that verdict is cached.
+    describe 'a cached install-wide OIDC issuer verdict' do
+      let(:issuer) { 'https://idp.example.com' }
+
+      def oidc_config
+        fresh_config(AUTH_SSO_ENABLED: 'true', OIDC_ISSUER: issuer, OIDC_CLIENT_ID: 'cid')
+      end
+
+      def cache_verdict(discovered)
+        body    = { issuer: discovered }.to_json
+        result  = Onetime::SsoProvider::DiscoveryFetcher::Result.new(
+          status: :ok,
+          url: nil,
+          http_status: 200,
+          http_message: 'OK',
+          content_type: 'application/json',
+          body: body,
+          error: nil,
+        )
+        fetcher = instance_double(Onetime::SsoProvider::DiscoveryFetcher, fetch: result)
+        Onetime::SsoProvider::IssuerValidation.verify(issuer, fetcher: fetcher)
+      end
+
+      before { Onetime::SsoProvider::IssuerValidation.reset! }
+      after { Onetime::SsoProvider::IssuerValidation.reset! }
+
+      it 'advertises OIDC before any verdict exists (lazy check)' do
+        expect(oidc_config.sso_providers.map { |p| p['route_name'] }).to eq(%w[oidc])
+      end
+
+      it 'omits OIDC while a mismatch is cached' do
+        config = oidc_config
+        cache_verdict("#{issuer}/")
+
+        expect(config.sso_providers).to be_empty
+      end
+
+      it 'advertises OIDC when the cached verdict is a match' do
+        config = oidc_config
+        cache_verdict(issuer)
+
+        expect(config.sso_providers.map { |p| p['route_name'] }).to eq(%w[oidc])
+      end
+
+      it 'leaves other providers advertised' do
+        config = fresh_config(
+          AUTH_SSO_ENABLED: 'true',
+          OIDC_ISSUER: issuer,
+          OIDC_CLIENT_ID: 'cid',
+          GITHUB_CLIENT_ID: 'hid',
+          GITHUB_CLIENT_SECRET: 'hs',
+        )
+        cache_verdict("#{issuer}/")
+
+        expect(config.sso_providers.map { |p| p['route_name'] }).to eq(%w[github])
+      end
+
+      # The verdict is per-process display state. It must not reach the
+      # restriction's availability, which also gates custom domains whose own
+      # tenant OIDC is unaffected by the install-wide issuer.
+      def sso_only_config
+        fresh_config(AUTH_SSO_ENABLED: 'true', AUTH_SSO_ONLY: 'true', OIDC_ISSUER: issuer, OIDC_CLIENT_ID: 'cid')
+      end
+
+      it 'keeps restrict_to sso available while a mismatch is cached' do
+        config = sso_only_config
+        cache_verdict("#{issuer}/")
+
+        expect(config.restrict_to).to eq('sso')
+        expect(config.restrict_to_available?).to be(true)
+      end
+
+      it 'keeps the OIDC button under restrict_to sso (an empty list renders the standard form)' do
+        config = sso_only_config
+        cache_verdict("#{issuer}/")
+
+        expect(config.sso_providers.map { |p| p['route_name'] }).to eq(%w[oidc])
+      end
+
+      it 'reports the install-wide issuer for the OIDC route only' do
+        config = oidc_config
+
+        expect(config.install_discovery_issuer_for_route('oidc')).to eq(issuer)
+        expect(config.install_discovery_issuer_for_route('entra')).to be_nil
+        expect(config.install_discovery_issuer_for_route('nope')).to be_nil
       end
     end
 

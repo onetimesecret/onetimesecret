@@ -123,6 +123,11 @@
     "context": "Shown on signin page when SSO is attempted on a domain that has no SSO configuration and platform fallback is disabled.",
     "content_hash": "b39ef93e"
   },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "Sign-in with this provider is misconfigured. Please contact your administrator.",
+    "context": "Shown on signin page when the install-wide OIDC issuer does not match the issuer in the provider's discovery document. Users cannot fix this; the operator detail (both issuer values) is in the server logs, not shown here.",
+    "content_hash": "44df5918"
+  },
   "web.login.errors.sso_config_unusable": {
     "text": "Single sign-on for this domain is configured but not currently usable. Contact your organization's administrator.",
     "context": "Shown on signin page when a domain's SSO record exists and is advertised but cannot produce a working login (for example, the identity provider certificate has expired). Distinct from sso_not_configured: the fix is on the administrator's side, not a missing setup.",

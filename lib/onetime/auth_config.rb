@@ -11,6 +11,7 @@ require 'singleton'
 require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
 require_relative 'sso_provider/registry'
+require_relative 'sso_provider/issuer_validation'
 
 # The origin validator otto applies to the request-scoped CSP extras channel;
 # #origin_from_url funnels through it so the two cannot drift (see there).
@@ -415,6 +416,19 @@ module Onetime
       ENV.fetch('OIDC_ROUTE_NAME', 'oidc')
     end
 
+    # The install-wide OIDC discovery issuer for a registered route, verbatim,
+    # or nil when the route's definition declares no :discovery_issuer_var or
+    # the env var is blank (#4513). The omniauth_setup hook uses it to decide
+    # whether a platform-path request runs the request-phase issuer check;
+    # tenant OIDC never reaches that check.
+    #
+    # @param route_name [String, Symbol] the OmniAuth provider/route name
+    # @return [String, nil]
+    def install_discovery_issuer_for_route(route_name)
+      defn = provider_definition_for_route(route_name)
+      defn ? install_discovery_issuer(defn) : nil
+    end
+
     # All configured SSO providers, built dynamically from the env.
     # Returns an array of hashes: [{ 'route_name' => 'oidc', 'display_name' => 'SSO' }, ...]
     # Each entry corresponds to a provider that passes #provider_active?.
@@ -426,12 +440,14 @@ module Onetime
     #
     # THIS IS WHAT THE LOGIN AND INVITE PAGES RENDER BUTTONS FROM, so a
     # provider listed here and not registered at boot is a button that leads
-    # nowhere. #provider_active? is the gate both sides share.
+    # nowhere. #provider_active? is the gate both sides share. On top of it,
+    # #withheld_by_issuer_verdict? drops a button that can only fail (#4513).
     def sso_providers
       return [] unless sso_enabled?
 
       providers = provider_definitions.filter_map do |defn|
         next unless provider_active?(defn)
+        next if withheld_by_issuer_verdict?(defn)
 
         display = ENV.fetch(defn[:display_var], nil) || defn[:display_default]
         {
@@ -764,7 +780,10 @@ module Onetime
       case value
       when 'sso'
         return 'SSO is disabled (full.features.sso / AUTH_SSO_ENABLED)' unless sso_enabled?
-        if sso_providers.empty?
+        # #provider_active?, not #sso_providers: a configured provider is the
+        # prerequisite. The button list also reflects the per-process issuer
+        # verdict (#4513), which must not decide whether the restriction holds.
+        if provider_definitions.none? { |defn| provider_active?(defn) }
           return 'SSO is enabled but no provider is configured (no provider has its ' \
                  'required env vars set, e.g. OIDC_ISSUER + OIDC_CLIENT_ID)'
         end
@@ -897,6 +916,11 @@ module Onetime
     # for a provider whose route does not exist, so the two sides have to
     # agree on one predicate, which is this one.
     #
+    # NOT RUNTIME STATE. The cached install-wide issuer verdict (#4513) stays
+    # out of this predicate: it is per-process, and this one also decides
+    # HttpOrigin origins and #restrict_to_available?. It only withholds a
+    # button (#withheld_by_issuer_verdict?).
+    #
     # Fails closed. This runs per request (the serializer) and inside the
     # HttpOrigin middleware via #sso_idp_origins, so a :vars_valid that raises
     # drops the provider rather than the response.
@@ -914,6 +938,60 @@ module Onetime
               "treating provider as inactive: #{ex.class}: #{ex.message}"
         false
       end
+    end
+
+    # The install-wide discovery issuer for a definition that declares
+    # :discovery_issuer_var (OIDC's OIDC_ISSUER), verbatim, or nil when the
+    # definition has none or the env var is blank.
+    #
+    # @param defn [Hash] a provider definition from the registry
+    # @return [String, nil]
+    def install_discovery_issuer(defn)
+      var = defn[:discovery_issuer_var]
+      return nil unless var
+
+      value = ENV.fetch(var, nil)
+      value.nil? || value.empty? ? nil : value
+    end
+
+    # Whether #sso_providers leaves this provider's button off the sign-in
+    # and invite pages because its install-wide issuer is known to mismatch
+    # its discovery document (#4513). The gem refuses that issuer in the
+    # request phase, so the button could only lead to an error.
+    #
+    # DISPLAY ONLY. The verdict is per-process runtime state, so nothing that
+    # decides access reads it: #provider_active? (route registration, the
+    # HttpOrigin callback origins, #restrict_to_available?) ignores it.
+    # Otherwise one worker's cached rejection would flip restrict_to 'sso' to
+    # unavailable, which also takes down custom domains whose own tenant OIDC
+    # still works.
+    #
+    # NEVER UNDER restrict_to 'sso'. There the provider list is the page's
+    # only sign-in method, and the login page renders an SSO restriction with
+    # no providers as the standard multi-method form. The button stays; a
+    # click lands on sso_issuer_mismatch.
+    #
+    # @param defn [Hash] a provider definition from the registry
+    # @return [Boolean]
+    def withheld_by_issuer_verdict?(defn)
+      return false if sso_only_enabled?
+
+      install_issuer_rejected?(defn)
+    end
+
+    # Whether this process has a cached, unexpired verdict that the
+    # definition's install-wide issuer does NOT match its discovery document
+    # (#4513). Reads the SsoProvider::IssuerValidation cache only — no I/O,
+    # so it is safe on per-request paths. The verdict is set lazily by the
+    # omniauth_setup hook on the first sign-in attempt.
+    #
+    # @param defn [Hash] a provider definition from the registry
+    # @return [Boolean]
+    def install_issuer_rejected?(defn)
+      issuer = install_discovery_issuer(defn)
+      return false unless issuer
+
+      SsoProvider::IssuerValidation.rejected?(issuer)
     end
 
     # Origins for the providers that pass #sso_providers' gate (SSO enabled
