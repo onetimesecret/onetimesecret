@@ -126,6 +126,7 @@ jobs:
               - '.rspec'
               - 'spec/**'
               - 'try/**'
+              - 'tests/**'
               - 'apps/**'
               - 'lib/**'
               - 'bin/**'
