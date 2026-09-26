@@ -1,0 +1,37 @@
+{
+  "total_count": 4,
+  "jobs": [
+    {
+      "run_id": 801, "run_url": "https://api.github.com/repos/o/r/actions/runs/801", "head_sha": "aaaaaaaa1111",
+      "name": "T2 · Ruby Unit Tests", "conclusion": "success",
+      "started_at": "2026-09-25T10:01:00Z", "completed_at": "2026-09-25T10:05:00Z",
+      "steps": [
+        { "name": "Run browser lane", "conclusion": "success", "started_at": "2026-09-25T10:01:40Z", "completed_at": "2026-09-25T10:01:58Z" },
+        { "name": "Run hash-mismatch diagnostic probe", "conclusion": "success", "started_at": "2026-09-25T10:01:58Z", "completed_at": "2026-09-25T10:02:00Z" },
+        { "name": "Run unit lane", "conclusion": "success", "started_at": "2026-09-25T10:02:00Z", "completed_at": "2026-09-25T10:04:30Z" }
+      ]
+    },
+    {
+      "run_id": 801, "run_url": "https://api.github.com/repos/o/r/actions/runs/801", "head_sha": "aaaaaaaa1111",
+      "name": "T2 · TypeScript Unit Tests", "conclusion": "success",
+      "started_at": "2026-09-25T10:01:00Z", "completed_at": "2026-09-25T10:03:00Z",
+      "steps": [
+        { "name": "Run TypeScript tests with coverage", "conclusion": "success", "started_at": "2026-09-25T10:01:10Z", "completed_at": "2026-09-25T10:02:50Z" }
+      ]
+    },
+    {
+      "run_id": 801, "run_url": "https://api.github.com/repos/o/r/actions/runs/801", "head_sha": "aaaaaaaa1111",
+      "name": "T3 · Ruby Integration (Simple Mode)", "conclusion": "success",
+      "started_at": "2026-09-25T10:01:00Z", "completed_at": "2026-09-25T10:04:00Z",
+      "steps": [
+        { "name": "Run simple lane", "conclusion": "success", "started_at": "2026-09-25T10:01:30Z", "completed_at": "2026-09-25T10:03:30Z" }
+      ]
+    },
+    {
+      "run_id": 801, "run_url": "https://api.github.com/repos/o/r/actions/runs/801", "head_sha": "aaaaaaaa1111",
+      "name": "T4 · Container Validation", "conclusion": "success",
+      "started_at": "2026-09-25T10:01:00Z", "completed_at": "2026-09-25T10:04:00Z",
+      "steps": []
+    }
+  ]
+}

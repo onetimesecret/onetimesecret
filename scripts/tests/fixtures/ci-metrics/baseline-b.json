@@ -1,0 +1,30 @@
+{
+  "total_count": 3,
+  "jobs": [
+    {
+      "run_id": 802, "run_url": "https://api.github.com/repos/o/r/actions/runs/802", "head_sha": "bbbbbbbb2222",
+      "name": "T2 · Ruby Unit Tests", "conclusion": "success",
+      "started_at": "2026-09-25T12:01:00Z", "completed_at": "2026-09-25T12:05:00Z",
+      "steps": [
+        { "name": "Run browser lane", "conclusion": "success", "started_at": "2026-09-25T12:01:40Z", "completed_at": "2026-09-25T12:02:02Z" },
+        { "name": "Run unit lane", "conclusion": "success", "started_at": "2026-09-25T12:02:02Z", "completed_at": "2026-09-25T12:04:42Z" }
+      ]
+    },
+    {
+      "run_id": 802, "run_url": "https://api.github.com/repos/o/r/actions/runs/802", "head_sha": "bbbbbbbb2222",
+      "name": "T2 · TypeScript Unit Tests", "conclusion": "success",
+      "started_at": "2026-09-25T12:01:00Z", "completed_at": "2026-09-25T12:03:00Z",
+      "steps": [
+        { "name": "Run TypeScript tests with coverage", "conclusion": "failure", "started_at": "2026-09-25T12:01:10Z", "completed_at": "2026-09-25T12:01:20Z" }
+      ]
+    },
+    {
+      "run_id": 802, "run_url": "https://api.github.com/repos/o/r/actions/runs/802", "head_sha": "bbbbbbbb2222",
+      "name": "T3 · Ruby Integration (Simple Mode)", "conclusion": "success",
+      "started_at": "2026-09-25T12:01:00Z", "completed_at": "2026-09-25T12:04:00Z",
+      "steps": [
+        { "name": "Run simple lane", "conclusion": "success", "started_at": "2026-09-25T12:01:30Z", "completed_at": "2026-09-25T12:03:30Z" }
+      ]
+    }
+  ]
+}
