@@ -1274,8 +1274,16 @@ fi
 # self-skip, so a failure here has to be loud or it shows up as silently
 # reduced coverage rather than a red lane; the script exits nonzero and this
 # propagates it.
+#
+# Every run, --only included, and not skipped when the vhost already exists:
+# the script deletes and recreates it on purpose, so queues and messages an
+# interrupted run left behind cannot reach the next one (see its header) —
+# "exists" is not "clean". Plain `ruby`, not `bundle exec`: the script is
+# stdlib only (json, net/http, uri), and Bundler's setup was half of its
+# wall clock (0.51s -> 0.26s measured). PATH is keep-listed, so this is the
+# same interpreter `bundle exec` would have resolved.
 if [[ "${LANES_DATASTORE_DB}" != 0 && "${RABBITMQ_URL:-}" =~ 127\.0\.0\.1:2156 ]]; then
-  bundle exec ruby tests/lanes/support/provision_rabbitmq_vhost.rb || exit $?
+  ruby tests/lanes/support/provision_rabbitmq_vhost.rb || exit $?
 fi
 # `env -u` finishes what the scrub could not: readonly exported vars and
 # readonly exported functions survive `unset` in this shell, but env(1)
