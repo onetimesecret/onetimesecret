@@ -298,11 +298,15 @@ list_lanes() {
 if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "usage: tests/lanes/run <lane> [--overlay <name>]... [--only <path>]..."
   echo "                            [--skip-codegen] [--print-key]"
+  echo "                            [-- <rspec args>]"
   echo
   echo "  --only <path>  run just these test files in the lane's environment,"
   echo "                 instead of the lane's tasks file. Repeatable. Skips"
   echo "                 the codegen phase too — the tasks file is bypassed"
   echo "                 wholesale, which is what it has always done."
+  echo "  -- <args>      everything after it goes to rspec verbatim (never to"
+  echo "                 tryouts). Needs --only. e.g. -- --only-failures,"
+  echo "                 -- --next-failure, -- -e 'description'."
   echo "  --skip-codegen skip the lane's declared codegen (LANES_CODEGEN in"
   echo "                 its env file). A direct run ALWAYS generates; this is"
   echo "                 for a caller that generated once before fanning out."
@@ -340,8 +344,18 @@ ONLY=()
 # exists to take away from the caller.
 SKIP_CODEGEN=0
 PRINT_KEY=0
+# `--` ends the runner's own parsing; the rest of argv is rspec's. Kept as
+# an array (never re-split) so a quoted `-e 'two words'` arrives intact.
+PASSTHROUGH=0
+RSPEC_ARGS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --)
+      shift
+      PASSTHROUGH=1
+      RSPEC_ARGS=("$@")
+      break
+      ;;
     --overlay)
       [[ $# -ge 2 ]] || { echo "error: --overlay requires a name" >&2; exit 64; }
       [[ "$2" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "error: overlay name '$2' contains invalid characters" >&2; exit 64; }
@@ -377,6 +391,38 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+# A lane's tasks file drives rspec through rake, where argv is the rake
+# task's to assemble; there is nowhere for trailing arguments to go but
+# --only's own rspec command. Reject the combination up front rather than
+# silently running the whole lane without them.
+if [[ ${PASSTHROUGH} -eq 1 && ${#ONLY[@]} -eq 0 ]]; then
+  echo "error: '--' (rspec passthrough) requires --only" >&2
+  exit 64
+fi
+# --only's runner is chosen by filename: tryouts own `*_try.rb`, rspec owns
+# the rest. Mixing the two in one invocation would need two commands and an
+# ordering rule nobody asked for; ask for two runs instead. Classified here,
+# with the rest of argv, so --print-key reports the same verdict a run gets.
+_only_try=0
+_only_spec=0
+for _p in ${ONLY[@]+"${ONLY[@]}"}; do
+  case "${_p%%:*}" in
+    *_try.rb) _only_try=1 ;;
+    *)        _only_spec=1 ;;
+  esac
+done
+builtin unset _p
+if [[ ${_only_try} -eq 1 && ${_only_spec} -eq 1 ]]; then
+  echo "error: --only cannot mix tryouts (*_try.rb) and rspec files in one run" >&2
+  exit 64
+fi
+# Trailing arguments are rspec's by contract, and tryouts has its own flag
+# set: `try --only-failures` would fail on the flag, or worse, mean
+# something else. Refuse rather than guess.
+if [[ ${_only_try} -eq 1 && ${PASSTHROUGH} -eq 1 ]]; then
+  echo "error: arguments after '--' go to rspec; --only targets tryouts files" >&2
+  exit 64
+fi
 
 # ── Isolation key ────────────────────────────────────────────────────────
 # What "one run" means for datastore isolation: the lane, the overlays it
@@ -566,17 +612,37 @@ if [[ "${LANES_DATASTORE_DB}" != 0 &&
   export RABBITMQ_URL
 fi
 
+# ── Per-run files ────────────────────────────────────────────────────────
+# Runner-owned files a run reads back on the next run live under a
+# directory keyed the way the datastore index is: the lane and its
+# normalized overlay set are path components, and the third component of
+# the isolation key — the checkout — is implied, because tmp/ sits inside
+# it. Two lanes in one worktree get two directories, two worktrees get two
+# tmp/ trees, and nothing clobbers a sibling's files. tmp/ is gitignored.
+#
+# LANES_RSPEC_STATUS_FILE is the one the app side reads:
+# spec/spec_helper.rb sets example_status_persistence_file_path from it
+# when — and only when — it is present, so plain rspec outside the runner
+# is unchanged and `--only <path> -- --only-failures` / `--next-failure`
+# work in here. Exported below the scrub, so it survives it, and absolute,
+# so a spec that chdirs cannot move it.
+LANES_RUN_DIR="tmp/lanes/${LANE}/${OVERLAY_KEY:-base}"
+LANES_RSPEC_STATUS_FILE="${REPO_ROOT}/${LANES_RUN_DIR}/rspec-status.txt"
+export LANES_RSPEC_STATUS_FILE
+
 # ── --print-key ──────────────────────────────────────────────────────────
 # Everything above is pure derivation: the addressing this lane+overlay set
 # resolves to, computed without touching a service. Report it and stop.
 # This is the answer to "which datastore is this lane on?", which is what a
 # developer needs when the collision guard below tells them to pin an index
 # — and what a spec needs to assert that two lanes derive two indexes,
-# without paying for a lane run to find out.
+# without paying for a lane run to find out. The second line is the file
+# side of the same derivation.
 if [[ ${PRINT_KEY} -eq 1 ]]; then
   echo "lane=${LANE} overlays=${OVERLAY_KEY:-none} db=${LANES_DATASTORE_DB}" \
        "redis=${REDIS_URL:-n/a} auth_db=${AUTH_DATABASE_URL:-n/a}" \
        "key=${LANES_ISOLATION_KEY}"
+  echo "run_dir=${LANES_RUN_DIR} status_file=${LANES_RSPEC_STATUS_FILE}"
   exit 0
 fi
 
@@ -1147,26 +1213,12 @@ fi
 # spec and wrong for a final check — the full lane is still the thing CI
 # runs and the thing that must be green before pushing.
 #
-# Runner is chosen by filename: tryouts own `*_try.rb`, rspec owns the rest.
-# Mixing the two in one invocation would need two commands and an ordering
-# rule nobody asked for; ask for two runs instead.
-_only_try=0
-_only_spec=0
-for _p in "${ONLY[@]}"; do
-  case "${_p%%:*}" in
-    *_try.rb) _only_try=1 ;;
-    *)        _only_spec=1 ;;
-  esac
-done
-if [[ ${_only_try} -eq 1 && ${_only_spec} -eq 1 ]]; then
-  echo "error: --only cannot mix tryouts (*_try.rb) and rspec files in one run" >&2
-  exit 64
-fi
-
+# The runner was chosen by filename up in the argument section (tryouts own
+# `*_try.rb`, rspec owns the rest; mixing them was rejected there).
 if [[ ${_only_try} -eq 1 ]]; then
   _only_cmd=(bundle exec try --agent "${ONLY[@]}")
 else
-  _only_cmd=(bundle exec rspec "${ONLY[@]}")
+  _only_cmd=(bundle exec rspec "${ONLY[@]}" ${RSPEC_ARGS[@]+"${RSPEC_ARGS[@]}"})
 fi
 
 echo "[lane:${LANE}] --only: ${_only_cmd[*]}"

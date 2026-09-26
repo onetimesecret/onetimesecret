@@ -47,6 +47,25 @@ $ tests/lanes/run unit --only try/logic/sso_config/ssrf_protection_transition_tr
   generated prerequisites and every other task. Run the complete lane before
   pushing; CI validates lanes, not individual files.
 
+#### rspec passthrough: `-- <args>`
+
+Everything after `--` is forwarded to rspec verbatim, never to tryouts. It
+requires `--only`; a tryouts target combined with `--` exits 64.
+
+```console
+$ tests/lanes/run simple --only apps/api/domains/spec/integration/simple -- --only-failures
+$ tests/lanes/run simple --only apps/api/domains/spec/integration/simple -- --next-failure
+$ tests/lanes/run full-sqlite --only spec/integration/full -- -e 'rejects a stale token'
+```
+
+`--only-failures` and `--next-failure` work because the runner points rspec's
+example-status file at `tmp/lanes/<lane>/<overlays>/rspec-status.txt`
+(`base` when no overlay is set; gitignored; `--print-key` prints the path).
+Every rspec run in that lane, full or `--only`, updates the file, so a full
+lane run followed by `--only <dir> -- --only-failures` reruns exactly the
+failures the lane recorded. Plain rspec outside the runner leaves
+`LANES_RSPEC_STATUS_FILE` unset and records nothing.
+
 ## Lanes
 
 | Lane                | Services                   | Runs                                                       | CI job                                   |

@@ -16,3 +16,43 @@ env
 echo '--- lane:selftest functions ---'
 declare -F
 echo '--- lane:selftest end ---'
+
+# ── Runner-set env (#4492) ──────────────────────────────────────────────
+# The runner exports the rspec status-file path below its scrub, keyed by
+# lane and overlay set under tmp/lanes/. A keep-list or ordering slip that
+# scrubbed the runner's own export would show up here, not in a real lane.
+case "${LANES_RSPEC_STATUS_FILE:-}" in
+  */tmp/lanes/selftest/base/rspec-status.txt) ;;
+  *)
+    echo "[lane:selftest] FAILED: LANES_RSPEC_STATUS_FILE='${LANES_RSPEC_STATUS_FILE:-}'" >&2
+    exit 1
+    ;;
+esac
+
+# ── Flag parsing (#4492) ────────────────────────────────────────────────
+# Each row is `<expected exit> <argv>`, run as `tests/lanes/run selftest
+# <argv>`. Every row carries --print-key, which returns right after the
+# derivation and before any service, codegen or task — so the inner run
+# never reaches this file again (no recursion) and needs nothing this lane
+# does not already have. A parsing error (exit 64) fires before --print-key
+# is honored, which is what makes the nonzero rows meaningful. The --only
+# paths only have to exist; --print-key never opens them.
+while read -r want args; do
+  got=0
+  # shellcheck disable=SC2086  # rows are split into argv on purpose
+  tests/lanes/run selftest ${args} >/dev/null 2>&1 || got=$?
+  if [[ "${got}" != "${want}" ]]; then
+    echo "[lane:selftest] FAILED: tests/lanes/run selftest ${args} exited ${got}, expected ${want}" >&2
+    exit 1
+  fi
+done <<'ROWS'
+0  --print-key
+64 --bogus --print-key
+64 --print-key --bogus
+64 --print-key -- --only-failures
+0  --print-key --only spec/unit/lanes/hermetic_boundary_spec.rb -- --only-failures
+0  --print-key --only spec/unit/lanes/hermetic_boundary_spec.rb --
+64 --print-key --only try/unit/base_view_try.rb -- --only-failures
+64 --print-key --only try/unit/base_view_try.rb --only spec/unit/lanes/hermetic_boundary_spec.rb
+ROWS
+echo '--- lane:selftest flags ok ---'
