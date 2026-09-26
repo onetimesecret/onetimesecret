@@ -1,8 +1,10 @@
 # shellcheck shell=bash
-# scripts/setup/lib.sh
+# tools/setup/lib.sh
 #
-# Shared spine for bin/setup. Sourced, not executed. Callers run under
-# `set -euo pipefail`.
+# Shared spine for tools/setup/setup.sh (the lanes behind bin/setup) and
+# tools/setup/new-worktree.sh. Sourced, not executed. setup.sh runs under
+# `set -euo pipefail`; new-worktree.sh leaves out -e because it must always
+# exit 0.
 #
 # Bash 3.2 compatible on purpose: macOS ships 3.2, and the old
 # install-dev.sh hard-failed there over a single associative array (DX-15).
@@ -403,6 +405,46 @@ else
 fi
 ENVRC
   echo "Created: .envrc (rev $ENVRC_REV)"
+}
+
+# --- New-worktree setup (opt-in) ----------------------------------------
+#
+# tools/setup/new-worktree.sh runs from the post-checkout hook and sets
+# up each worktree `git worktree add` creates, once a clone opts in with
+# `git config ots.worktreeSetup true`.
+#
+# Only the clone's own config counts. A global or system setting would
+# turn the hook on in every clone that installs it, including one kept for
+# reviewing untrusted branches. The setting lives in the common git dir,
+# so every worktree of the clone sees it.
+
+worktree_setup_enabled() {
+  [[ "$(git config --local --type=bool --get ots.worktreeSetup 2>/dev/null)" == "true" ]]
+}
+
+# worktree_name DIR — the directory's name, or its parent's when the
+# directory is a nested worktree: one named after the main checkout, or
+# after its own grandparent, which is how the worktrees/<repo>/<name>/<repo>
+# layout looks whatever the main checkout is called
+# (worktrees/onetimesecret/dev-api/onetimesecret is "dev-api").
+worktree_name() {
+  local dir="$1" name main
+  name="$(basename "$dir")"
+  main="$(dirname "$(git -C "$dir" rev-parse --path-format=absolute --git-common-dir)")"
+  if [[ "$name" == "$(basename "$main")" || "$name" == "$(basename "$(dirname "$(dirname "$dir")")")" ]]; then
+    basename "$(dirname "$dir")"
+  else
+    echo "$name"
+  fi
+}
+
+# worktree_setup_lane DIR — the bin/setup lane for a new worktree:
+# --dev when its name starts with "dev", --test otherwise.
+worktree_setup_lane() {
+  case "$(worktree_name "$1")" in
+    dev*) echo "--dev" ;;
+    *)    echo "--test" ;;
+  esac
 }
 
 # --- Misc shared state --------------------------------------------------
