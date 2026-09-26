@@ -2,10 +2,9 @@
 #
 # frozen_string_literal: true
 
-require 'resolv'
-
 require_relative 'features'
 require_relative 'approximated_client'
+require_relative 'txt_verifier'
 
 module Onetime
   module DomainValidation
@@ -39,14 +38,18 @@ module Onetime
       # requests reach the cluster and the certificate is active.
       ACTIVE_SSL_STATUSES = %w[ACTIVE_SSL ACTIVE_SSL_PROXIED].freeze
 
-      attr_reader :client, :config
+      attr_reader :client, :config, :txt_verifier
 
       # @param config [Hash] Application configuration (typically OT.conf)
       # @param client [Module] HTTP client module (default: ApproximatedClient)
+      # @param txt_verifier [#verify] Native TXT check used when the upstream
+      #   checker is indeterminate (default: TxtVerifier). Injected so specs
+      #   never touch the network.
       #
-      def initialize(config, client: ApproximatedClient)
-        @config = config
-        @client = client
+      def initialize(config, client: ApproximatedClient, txt_verifier: TxtVerifier.new)
+        @config       = config
+        @client       = client
+        @txt_verifier = txt_verifier
       end
 
       # Validates domain ownership via TXT record.
@@ -169,7 +172,7 @@ module Onetime
 
           {
             ready: ACTIVE_SSL_STATUSES.include?(data['status']),
-            has_ssl: indeterminate ? nil : data['has_ssl'],
+            has_ssl: data['has_ssl'],
             is_resolving: indeterminate ? nil : data['is_resolving'],
             status: data['status'],
             status_message: data['status_message'],
@@ -270,17 +273,24 @@ module Onetime
       #
       #   match == true            -> validated: true
       #   actual_values is Array   -> validated: false (not found / mismatch)
-      #   anything else            -> validated: nil   (indeterminate)
+      #   anything else            -> upstream indeterminate; ask TxtVerifier
       #
-      # Callers must treat nil as "no answer" and leave the stored verified
-      # flag untouched (VerifyDomain#persist_changes does). Collapsing a failed
-      # upstream lookup into `false` demoted correctly-configured domains on
-      # every refresh run.
+      # The native lookup can establish ownership and can fail closed for a
+      # domain that has never been verified. It cannot, by itself, revoke an
+      # existing verification while the independent upstream checker has no
+      # answer: split-horizon DNS, filtering, or a stale negative cache could
+      # make one local resolver return NXDOMAIN for a valid public record. Such
+      # disagreement stays indeterminate and leaves stored state unchanged.
+      #
+      # A definitive negative from Approximated still demotes through the Array
+      # branch above. TxtVerifier also keeps its normal three-outcome contract;
+      # this strategy owns the extra corroboration rule because it alone has an
+      # upstream result to compare with the native answer.
       #
       # An indeterminate upstream result gets one native TXT lookup. If that
-      # cannot promote the domain, the caller stays indeterminate. A second
-      # Approximated diagnostic request would not change that behavior and would
-      # bypass VerifyDomain's per-domain bulk pacing, so no probe is issued.
+      # cannot settle the result, the caller stays indeterminate. A second
+      # diagnostic request would not change behavior and would bypass
+      # VerifyDomain's per-domain bulk pacing, so no probe is issued.
       #
       # @param custom_domain [Onetime::CustomDomain]
       # @param match_records [Array<Hash>] 'records' from the API response
@@ -307,34 +317,53 @@ module Onetime
         OT.lw "[ApproximatedStrategy] Indeterminate TXT check for #{custom_domain.display_domain}: " \
               "#{match_records.inspect}"
 
-        if native_txt_values(custom_domain.validation_record) == [custom_domain.txt_validation_value.to_s]
+        classify_native(custom_domain, match_records)
+      end
+
+      # Settles an indeterminate upstream result with our own TXT lookup.
+      # See classify_ownership for the reasoning.
+      #
+      # :data keeps the upstream records first and appends the native record,
+      # so the outcome log shows what both checkers saw.
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @param match_records [Array<Hash>] upstream 'records' (indeterminate)
+      # @return [Hash] See BaseStrategy#validate_ownership
+      #
+      def classify_native(custom_domain, match_records)
+        native = txt_verifier.verify(custom_domain.validation_record, custom_domain.txt_validation_value)
+        data   = match_records + Array(native[:data])
+
+        # A false without :data is TxtVerifier declining to look (no challenge
+        # configured). That is not an answer from DNS, so it does not demote.
+        definitive = native[:validated] == true || (native[:validated] == false && native[:data])
+
+        if definitive && native[:validated] == false && custom_domain.verified == true
           return {
-            validated: true,
-            message: 'TXT record validated (native lookup; upstream checker indeterminate)',
-            data: match_records,
-            source: 'native',
+            validated: nil,
+            indeterminate: true,
+            message: "#{native[:message]} (native lookup negative; upstream checker indeterminate; " \
+                     'previously verified domain left unchanged)',
+            data: data,
+            source: native[:source],
+          }
+        end
+
+        if definitive
+          return {
+            validated: native[:validated],
+            message: "#{native[:message]} (native lookup; upstream checker indeterminate)",
+            data: data,
+            source: native[:source],
           }
         end
 
         {
           validated: nil,
           indeterminate: true,
-          message: 'Upstream DNS checker returned no result (indeterminate)',
-          data: match_records,
+          message: "Upstream DNS checker returned no result (indeterminate); native lookup: #{native[:message]}",
+          data: data,
         }
-      end
-
-      # @param hostname [String]
-      # @return [Array<String>] TXT values; empty on NXDOMAIN or any failure
-      def native_txt_values(hostname)
-        resolver          = Resolv::DNS.new
-        resolver.timeouts = 5
-        resolver.getresources(hostname, Resolv::DNS::Resource::IN::TXT).map { |r| r.strings.join.strip }
-      rescue StandardError => ex
-        OT.lw "[ApproximatedStrategy] Native TXT lookup failed for #{hostname}: #{ex.message}"
-        []
-      ensure
-        resolver&.close
       end
     end
   end

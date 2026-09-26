@@ -20,6 +20,7 @@
 
 require_relative 'features'
 require_relative 'approximated_client'
+require_relative 'txt_verifier'
 require_relative 'base_strategy'
 require_relative 'approximated_strategy'
 require_relative 'passthrough_strategy'
