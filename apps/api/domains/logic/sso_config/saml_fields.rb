@@ -33,6 +33,14 @@ module DomainsAPI
       #   - certificate EXPIRY. The model deliberately does not treat expiry
       #     as a record invariant (SsoConfig#saml_validation_errors); the
       #     point where a certificate is ACCEPTED is here.
+      #   - the NameID policy, through Saml.name_id_format_problem with no
+      #     uid attribute (tenant records have none): the transient format
+      #     is refused at save time, since every sign-in through it would
+      #     be refused at login (:saml_transient_name_id). A CHANGE of
+      #     policy on an existing saml record is accepted but recorded at
+      #     WARN (ChangeLogger#log_name_id_format_change): the NameID is
+      #     what identities are keyed on, so existing identities stop
+      #     matching.
       #   - refusing fingerprint parameters outright (see FORBIDDEN_PARAMS).
       #   - the install's SESSION COOKIE. A saml config under a cookie that
       #     is not SameSite=None or Lax with Secure cannot complete a sign-in
@@ -226,6 +234,38 @@ module DomainsAPI
             idp_entity_id: @idp_entity_id.to_s,
             idp_cert: @idp_cert.to_s,
           }
+        end
+
+        # The stored record's effective NameID policy, for the re-key warning
+        # (ChangeLogger#log_name_id_format_change): nil for a non-saml record
+        # or one whose policy cannot be read — no warning is better than a
+        # warning about a change that may not have happened.
+        #
+        # @param stored [Onetime::CustomDomain::SsoConfig, nil]
+        # @return [String, nil]
+        def stored_name_id_format(stored)
+          return nil unless stored&.provider_type == 'saml'
+
+          stored.saml_name_id_format
+        rescue StandardError
+          nil
+        end
+
+        # After the write: warn when a saml record's effective NameID policy
+        # differs from the one it had. A switch away from saml is not a
+        # policy change (the whole identity key changes with the provider).
+        #
+        # @param previous_format [String, nil] #stored_name_id_format before
+        #   the write; nil (non-saml, unreadable) never warns
+        # @param was_enabled [Boolean, nil]
+        # @return [void]
+        def log_name_id_format_change_if_rekeyed(previous_format, was_enabled)
+          return if previous_format.nil?
+
+          current = stored_name_id_format(@sso_config)
+          return if current.nil? || current == previous_format
+
+          log_name_id_format_change(domain: @custom_domain, org: @organization, actor: cust, was_enabled: was_enabled)
         end
 
         # The stored record's readable, non-blank value for the field,

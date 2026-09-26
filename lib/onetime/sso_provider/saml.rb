@@ -238,10 +238,28 @@ module Onetime
         'omit',
       ].freeze
 
-      def self.name_id_format_problem(value)
-        return nil if NAME_ID_FORMATS.include?(value)
+      TRANSIENT_NAME_ID_FORMAT = 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient'
 
-        'NameID policy must be a supported NameID format URI or omit'
+      # The one NameID policy check for both surfaces. A transient NameID is
+      # a fresh value per login, so an identity keyed on it is a new account
+      # every time; the strategy refuses such a response at login
+      # (:saml_transient_name_id) unless a uid attribute supplies the key.
+      # Refusing the POLICY here, at configuration time, is what keeps a
+      # config from being saved that can never complete a sign-in: the
+      # platform may pair the transient format with SAML_UID_ATTRIBUTE, a
+      # tenant record has no uid attribute setting and so cannot request it
+      # at all (sso_config.rb build_saml_options).
+      #
+      # @param value [String, nil] the requested NameID policy
+      # @param uid_attribute [String, nil] the surface's uid attribute, if any
+      # @return [String, nil] the problem, or nil when the policy is usable
+      def self.name_id_format_problem(value, uid_attribute: nil)
+        return 'NameID policy must be a supported NameID format URI or omit' unless NAME_ID_FORMATS.include?(value)
+        return nil unless value == TRANSIENT_NAME_ID_FORMAT
+        return nil unless uid_attribute.to_s.strip.empty?
+
+        'A transient NameID format needs a stable uid attribute ' \
+          '(SAML_UID_ATTRIBUTE on the platform; tenant configurations have none)'
       end
 
       def self.callback_origins_problem(value)
@@ -255,7 +273,8 @@ module Onetime
       def self.strategy_options_for(idp_sso_service_url:, idp_entity_id:, idp_cert:, uid_attribute: nil, name_id_format: PERSISTENT_NAME_ID_FORMAT)
         problem = sso_url_problem(idp_sso_service_url) ||
                   entity_id_problem(idp_entity_id) ||
-                  cert_problem(idp_cert) || name_id_format_problem(name_id_format)
+                  cert_problem(idp_cert) ||
+                  name_id_format_problem(name_id_format, uid_attribute: uid_attribute)
         raise ArgumentError, problem if problem
 
         options                          = hardened_options
@@ -661,7 +680,8 @@ module Onetime
           )
         rescue ArgumentError => ex
           raise ArgumentError,
-            "#{ex.message} (check SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID, SAML_IDP_CERT, SAML_NAME_ID_FORMAT)"
+            "#{ex.message} (check SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID, SAML_IDP_CERT, " \
+            'SAML_NAME_ID_FORMAT, SAML_UID_ATTRIBUTE)'
         end
 
         route_name                               = ENV.fetch('SAML_ROUTE_NAME', 'saml')

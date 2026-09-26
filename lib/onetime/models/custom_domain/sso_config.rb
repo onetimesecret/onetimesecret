@@ -837,7 +837,10 @@ module Onetime
       # (merge_strategy_options), so an omitted key would let a platform
       # SAML_UID_ATTRIBUTE leak into every tenant's login and change which
       # value their identities are keyed on. Tenants have no uid_attribute
-      # setting: the uid is the NameID, and a transient NameID is refused.
+      # setting: the uid is the NameID, and a transient NameID is refused —
+      # as a POLICY at save time (name_id_format_problem with no uid
+      # attribute, in #saml_validation_errors and the API), and here for a
+      # record that predates that rule (strategy_options_for raises).
       def build_saml_options
         trio = begin
           policy_format = saml_name_id_format

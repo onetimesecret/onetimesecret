@@ -613,6 +613,27 @@ RSpec.describe Onetime::SsoProvider::Registry do
           expect(saml_valid?(SAML_IDP_CERT: bare)).to be false
         end
 
+        # A transient NameID with nothing else to key identities on would
+        # refuse every sign-in (:saml_transient_name_id); the provider is
+        # skipped at boot instead, naming the variable that would fix it.
+        describe 'SAML_NAME_ID_FORMAT transient' do
+          let(:transient) { Onetime::SsoProvider::Saml::TRANSIENT_NAME_ID_FORMAT }
+
+          it 'is refused without SAML_UID_ATTRIBUTE, naming both variables' do
+            expect { saml_options(SAML_NAME_ID_FORMAT: transient) }
+              .to raise_error(ArgumentError, /transient.*SAML_UID_ATTRIBUTE.*check .*SAML_NAME_ID_FORMAT, SAML_UID_ATTRIBUTE/)
+            expect(saml_valid?(SAML_NAME_ID_FORMAT: transient)).to be false
+            expect(saml_valid?(SAML_NAME_ID_FORMAT: transient, SAML_UID_ATTRIBUTE: '  ')).to be false
+          end
+
+          it 'is accepted with SAML_UID_ATTRIBUTE, and the attribute keys the uid' do
+            opts = saml_options(SAML_NAME_ID_FORMAT: transient, SAML_UID_ATTRIBUTE: 'employee_id')
+
+            expect(opts).to include(name_identifier_format: transient, uid_attribute: 'employee_id')
+            expect(saml_valid?(SAML_NAME_ID_FORMAT: transient, SAML_UID_ATTRIBUTE: 'employee_id')).to be true
+          end
+        end
+
         # ruby-saml's format_cert would parse only the FIRST block.
         it 'refuses more than one certificate' do
           two = idp.cert_pem + SamlSpec::TestIdp.new.cert_pem
