@@ -190,6 +190,7 @@ module LaneHermeticProbe
 
       runner = File.join(repo_root, 'tests', 'lanes', 'run')
       output, status = Open3.capture2e(poisoned_env(rc), runner, 'selftest', chdir: repo_root)
+      last_log = File.read(File.join(repo_root, 'tmp', 'lanes', 'selftest', 'base', 'last.log'))
 
       env_lines = section(output, 'env', 'functions')
       # Values can span lines — a leaked function arrives as a multi-line
@@ -220,6 +221,7 @@ module LaneHermeticProbe
         # The first line of last.log as the task saw it: the runner's banner
         # if the file was seeded before the exec, something else if not.
         last_log_head: section(output, 'last.log', 'env').first.to_s.chomp,
+        last_log: last_log,
       }
     end
   end
@@ -254,6 +256,13 @@ RSpec.describe 'tests/lanes/run hermetic boundary' do
     # appends the task's output to the same file, so only a read from
     # inside the task proves the banner came first.
     expect(result[:last_log_head]).to match(/\A\[lane:selftest\] mode=simple /)
+  end
+
+  it 'ends a successful run log with exactly one exit record' do
+    records = result[:last_log].lines.grep(/^\[lane:selftest\] log: .* \(exit 0\)$/)
+
+    expect(records.length).to eq(1)
+    expect(result[:last_log]).to end_with(records.first)
   end
 
   it 'does not let a dev-shell service URL reach the task process' do

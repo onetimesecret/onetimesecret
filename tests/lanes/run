@@ -1274,13 +1274,13 @@ echo "${_lanes_banner}"
 cd "${REPO_ROOT}"
 
 # ── Last run output ──────────────────────────────────────────────────────
-# Everything the task process prints is tee'd to <run dir>/last.log by the
-# epilogue below, so a failure that scrolled past costs a read, not a rerun.
-# One file per lane+overlay set (the same keying as the status file above),
-# truncated here at the start of each run, seeded with the banner so the log
-# says which datastore it was about. The epilogue appends from there, ends
-# the file with its own `log: ... (exit N)` line so the log is
-# self-describing, and prints that line on its way out, success or failure.
+# Setup and task output are tee'd to <run dir>/last.log, so a failure that
+# scrolled past costs a read, not a rerun. One file per lane+overlay set (the
+# same keying as the status file above), truncated here at the start of each
+# run, seeded with the banner so the log says which datastore it was about.
+# Setup commands run through a foreground tee below. If one fails before the
+# task epilogue takes over, an EXIT trap appends the same `log: ... (exit N)`
+# record the epilogue owns for a completed task.
 # Absolute, like the status file: the path is printed for the caller, and a
 # --only run may be started from a subdirectory (its paths are checked
 # against the repo root as well as the cwd).
@@ -1306,6 +1306,75 @@ if [[ ${CONSOLE} -eq 0 ]]; then
   fi
 fi
 
+# A failure after log initialization but before the task epilogue would
+# otherwise leave a banner-only log. Preserve its status, report the timing
+# available at that point, and append exactly one final record. A successful
+# exec replaces this shell and drops the trap; the task epilogue then owns the
+# record as before. Console sessions install no trap and touch no log.
+_lanes_setup_phase=preflight
+_lanes_finish_setup_exit() {
+  local _rc="$1" _now _total_us _preflight_us _codegen_us _run_phase
+  local _t_preflight _t_codegen _t_total _record
+  trap - EXIT
+
+  _now="${EPOCHREALTIME/./}"
+  _total_us=$(( _now - _lanes_t0 ))
+  case "${_lanes_setup_phase}" in
+    preflight)
+      _preflight_us=${_total_us}
+      _t_codegen=not-started
+      ;;
+    codegen)
+      _preflight_us=${_lanes_us_preflight}
+      _codegen_us=$(( _now - _lanes_t_codegen ))
+      printf -v _t_codegen '%d.%ds' $(( _codegen_us / 1000000 )) $(( _codegen_us % 1000000 / 100000 ))
+      ;;
+    *)
+      _preflight_us=${_lanes_us_preflight}
+      if [[ -n "${_lanes_us_codegen:-}" ]]; then
+        printf -v _t_codegen '%d.%ds' $(( _lanes_us_codegen / 1000000 )) $(( _lanes_us_codegen % 1000000 / 100000 ))
+      else
+        _t_codegen=skipped
+      fi
+      ;;
+  esac
+  _run_phase=tasks
+  if [[ ${#ONLY[@]} -gt 0 ]]; then _run_phase=only; fi
+  printf -v _t_preflight '%d.%ds' $(( _preflight_us / 1000000 )) $(( _preflight_us % 1000000 / 100000 ))
+  printf -v _t_total '%d.%ds' $(( _total_us / 1000000 )) $(( _total_us % 1000000 / 100000 ))
+  echo "[lane:${LANE}] time: preflight ${_t_preflight} codegen ${_t_codegen} ${_run_phase} not-started (total ${_t_total})" >&2 || true
+
+  printf -v _record '[lane:%s] log: %s (exit %s)' "${LANE}" "${LANES_LAST_LOG}" "${_rc}"
+  printf '%s\n' "${_record}" >> "${LANES_LAST_LOG}" || true
+  printf '%s\n' "${_record}" >&2 || true
+  exit "${_rc}"
+}
+
+# Keep setup capture synchronous: process substitution or a background tee can
+# retain the caller's pipe and make Open3/CI wait after the runner has exited.
+# The setup command's status wins when both it and tee fail; a tee-only failure
+# is still fatal because the runner promised a complete last.log.
+_lanes_run_setup() {
+  local -a _statuses
+  if [[ ${CONSOLE} -eq 1 ]]; then
+    "$@"
+    return
+  fi
+  if "$@" 2>&1 | tee -a "${LANES_LAST_LOG}"; then
+    _statuses=("${PIPESTATUS[@]}")
+  else
+    _statuses=("${PIPESTATUS[@]}")
+  fi
+  if (( _statuses[0] != 0 )); then
+    return "${_statuses[0]}"
+  fi
+  return "${_statuses[1]}"
+}
+
+if [[ ${CONSOLE} -eq 0 ]]; then
+  trap '_lanes_finish_setup_exit "$?"' EXIT
+fi
+
 # The per-worktree PG database has to exist before the lane's specs open a
 # connection to it, and unlike a valkey DB index it is not conjured by
 # addressing it. Provision here: after the port preflight (so a refused
@@ -1316,7 +1385,7 @@ fi
 # pays Ruby startup for it. The script itself no-ops after one catalog
 # lookup once the database exists, which is every run after the first.
 if [[ "${LANES_DATASTORE_DB}" != 0 && "${AUTH_DATABASE_URL:-}" =~ 127\.0\.0\.1:2154 ]]; then
-  bundle exec ruby tests/lanes/support/provision_pg_database.rb || exit $?
+  _lanes_run_setup bundle exec ruby tests/lanes/support/provision_pg_database.rb || exit $?
 fi
 
 # Same for the per-worktree RabbitMQ vhost, which is likewise not conjured by
@@ -1333,7 +1402,7 @@ fi
 # wall clock (0.51s -> 0.26s measured). PATH is keep-listed, so this is the
 # same interpreter `bundle exec` would have resolved.
 if [[ "${LANES_DATASTORE_DB}" != 0 && "${RABBITMQ_URL:-}" =~ 127\.0\.0\.1:2156 ]]; then
-  ruby tests/lanes/support/provision_rabbitmq_vhost.rb || exit $?
+  _lanes_run_setup ruby tests/lanes/support/provision_rabbitmq_vhost.rb || exit $?
 fi
 # `env -u` finishes what the scrub could not: readonly exported vars and
 # readonly exported functions survive `unset` in this shell, but env(1)
@@ -1424,36 +1493,46 @@ _lanes_codegen_run() {
   builtin command env ${_lanes_strip[@]+"${_lanes_strip[@]}"} "$@"
 }
 
+# One function lets the setup logger capture the whole phase, including token
+# announcements and validation errors. Explicit returns are load-bearing:
+# functions invoked from an if-condition inherit its errexit suppression, so
+# relying on `set -e` here could let a failed generator continue.
+_lanes_codegen_phase() {
+  local _lanes_gen
+  for _lanes_gen in ${LANES_CODEGEN}; do
+    echo "[lane:${LANE}] codegen: ${_lanes_gen}"
+    case "${_lanes_gen}" in
+      locales)
+        _lanes_codegen_run pnpm run locales:sync || return $?
+        ;;
+      locales-python)
+        # The stdlib-only script `pnpm run locales:sync` wraps, invoked
+        # directly so the paths-filtered migration workflow needs no Node.
+        _lanes_codegen_run python3 locales/scripts/i18n content compile --all || return $?
+        ;;
+      schemas)
+        _lanes_codegen_run pnpm run schemas:json:generate || return $?
+        ;;
+      *)
+        echo "error: lane '${LANE}' declares unknown codegen token '${_lanes_gen}'" >&2
+        echo "  known tokens: locales locales-python schemas" >&2
+        return 64
+        ;;
+    esac
+  done
+}
+
 # Preflight ends here. The codegen phase is timed only when it runs; an
 # empty value tells the epilogue to print "skipped" rather than a zero
 # that would read as "ran, instantly".
 _lanes_us_preflight=$(( ${EPOCHREALTIME/./} - _lanes_t0 ))
 _lanes_us_codegen=''
 if [[ ${SKIP_CODEGEN} -eq 0 && ${#ONLY[@]} -eq 0 && ${CONSOLE} -eq 0 && -n "${LANES_CODEGEN:-}" ]]; then
+  _lanes_setup_phase=codegen
   _lanes_t_codegen="${EPOCHREALTIME/./}"
-  for _lanes_gen in ${LANES_CODEGEN}; do
-    echo "[lane:${LANE}] codegen: ${_lanes_gen}"
-    case "${_lanes_gen}" in
-      locales)
-        _lanes_codegen_run pnpm run locales:sync
-        ;;
-      locales-python)
-        # The stdlib-only script `pnpm run locales:sync` wraps, invoked
-        # directly so the paths-filtered migration workflow needs no Node.
-        _lanes_codegen_run python3 locales/scripts/i18n content compile --all
-        ;;
-      schemas)
-        _lanes_codegen_run pnpm run schemas:json:generate
-        ;;
-      *)
-        echo "error: lane '${LANE}' declares unknown codegen token '${_lanes_gen}'" >&2
-        echo "  known tokens: locales locales-python schemas" >&2
-        exit 64
-        ;;
-    esac
-  done
+  _lanes_run_setup _lanes_codegen_phase || exit $?
   _lanes_us_codegen=$(( ${EPOCHREALTIME/./} - _lanes_t_codegen ))
-  builtin unset _lanes_gen _lanes_t_codegen
+  builtin unset _lanes_t_codegen
 fi
 
 # ── --console: the app console inside the lane's environment ─────────────
@@ -1527,7 +1606,11 @@ _lanes_epilogue='
   shift
   _t_run="${EPOCHREALTIME/./}"
   "$@" 2>&1 | tee -a "${_log}"
-  _rc=${PIPESTATUS[0]}
+  _statuses=("${PIPESTATUS[@]}")
+  _task_rc=${_statuses[0]}
+  _tee_rc=${_statuses[1]}
+  _rc=${_task_rc}
+  if [[ ${_task_rc} -eq 0 && ${_tee_rc} -ne 0 ]]; then _rc=${_tee_rc}; fi
   _us_run=$(( ${EPOCHREALTIME/./} - _t_run ))
   _us_total=$(( _us_preflight + ${_us_codegen:-0} + _us_run ))
   printf -v _t_preflight "%d.%ds" $(( _us_preflight / 1000000 )) $(( _us_preflight % 1000000 / 100000 ))
@@ -1538,7 +1621,7 @@ _lanes_epilogue='
   fi
   printf -v _t_phase "%d.%ds" $(( _us_run / 1000000 )) $(( _us_run % 1000000 / 100000 ))
   printf -v _t_total "%d.%ds" $(( _us_total / 1000000 )) $(( _us_total % 1000000 / 100000 ))
-  if [[ ${_rc} -ne 0 ]]; then
+  if [[ ${_task_rc} -ne 0 ]]; then
     _lost=""
     for _p in ${_ports[@]+"${_ports[@]}"}; do
       (exec 3<>"/dev/tcp/127.0.0.1/${_p}") 2>/dev/null || _lost="${_lost} ${_p}"
@@ -1556,6 +1639,7 @@ _lanes_epilogue='
 '
 
 if [[ ${#ONLY[@]} -eq 0 ]]; then
+  _lanes_setup_phase=tasks
   exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
     lanes-epilogue "${LANE}" "${LANES_LAST_LOG}" "${_lanes_us_preflight}" "${_lanes_us_codegen}" tasks \
     ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
@@ -1578,6 +1662,7 @@ else
 fi
 
 echo "[lane:${LANE}] --only: ${_only_cmd[*]}" | tee -a "${LANES_LAST_LOG}"
+_lanes_setup_phase=only
 # Same mid-run service-loss epilogue (and last.log) as the tasks exec above:
 # a VM crash does not care whether the run was a full lane or one file.
 exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
