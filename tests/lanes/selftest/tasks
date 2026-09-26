@@ -80,13 +80,20 @@ ROWS
 # --quiet is an env effect, not an exit code: SPEC_OPTS must carry the quiet
 # formatter under the flag and must be absent without it (default output is
 # CI's output). RSPEC_OUTPUT_FILE is keep-listed, so the inner run sees it:
-# unset for the first check (see the loop above), set on purpose for the
-# third, which is the refusal itself.
-if ! env -u RSPEC_OUTPUT_FILE tests/lanes/run selftest --quiet --print-key 2>/dev/null | grep -q 'spec_opts=--require .*quiet_formatter --format Lanes::QuietFormatter'; then
+# unset for the quiet run (see the loop above), set on purpose for the
+# last check, which is the refusal itself.
+#
+# Captured once per variant, then matched with here-strings — never piped
+# into `grep -q`: a grep that exits on its first match leaves the runner's
+# remaining --print-key lines to a closed pipe, and under pipefail that
+# SIGPIPE reads as a failed check, intermittently (about one run in eight).
+quiet_key="$(env -u RSPEC_OUTPUT_FILE tests/lanes/run selftest --quiet --print-key 2>/dev/null)"
+plain_key="$(tests/lanes/run selftest --print-key 2>/dev/null)"
+if ! grep -q 'spec_opts=--require .*quiet_formatter --format Lanes::QuietFormatter' <<< "${quiet_key}"; then
   echo '[lane:selftest] FAILED: --quiet did not set SPEC_OPTS to the quiet formatter' >&2
   exit 1
 fi
-if ! tests/lanes/run selftest --print-key 2>/dev/null | grep -q 'spec_opts=none$'; then
+if ! grep -q 'spec_opts=none$' <<< "${plain_key}"; then
   echo '[lane:selftest] FAILED: SPEC_OPTS set without --quiet' >&2
   exit 1
 fi
@@ -94,11 +101,11 @@ fi
 # every entry at error under the flag, neither without it. Which names the
 # list carries is pinned against the initializer's own logger table by
 # spec/unit/lanes/quiet_log_floor_spec.rb (this lane runs no app code).
-if ! env -u RSPEC_OUTPUT_FILE tests/lanes/run selftest --quiet --print-key 2>/dev/null | grep -qE '^log_level=error debug_loggers=([A-Za-z]+:error,)*[A-Za-z]+:error$'; then
+if ! grep -qE '^log_level=error debug_loggers=([A-Za-z]+:error,)*[A-Za-z]+:error$' <<< "${quiet_key}"; then
   echo '[lane:selftest] FAILED: --quiet did not set LOG_LEVEL=error and DEBUG_LOGGERS=<name>:error,...' >&2
   exit 1
 fi
-if ! tests/lanes/run selftest --print-key 2>/dev/null | grep -q '^log_level=none debug_loggers=none$'; then
+if ! grep -q '^log_level=none debug_loggers=none$' <<< "${plain_key}"; then
   echo '[lane:selftest] FAILED: LOG_LEVEL or DEBUG_LOGGERS set without --quiet' >&2
   exit 1
 fi
