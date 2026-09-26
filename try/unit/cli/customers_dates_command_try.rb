@@ -181,6 +181,18 @@ Onetime::CLI::CustomersDatesCommand::ACTIVITY_CACHE.start_with?('tmp:cli:')
 @cmd.send(:redact_url, 'redis://user:longpassword123@host:6379/0')
 #=> "redis://user:***@host:6379/0"
 
+## redact_url masks a password containing a slash
+@cmd.send(:redact_url, 'redis://user:pa/ss@host:6379/0')
+#=> "redis://user:***@host:6379/0"
+
+## redact_url masks a password containing a colon
+@cmd.send(:redact_url, 'redis://user:pa:ss@host:6379/0')
+#=> "redis://user:***@host:6379/0"
+
+## redact_url masks the query string (which can carry ?password=)
+@cmd.send(:redact_url, 'redis://host:6379/0?password=secret')
+#=> "redis://host:6379/0?***"
+
 # -------------------------------------------------------------------
 # Email validation filter logic (used during cache building)
 # -------------------------------------------------------------------
