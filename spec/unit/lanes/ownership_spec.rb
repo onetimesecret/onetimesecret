@@ -9,7 +9,7 @@ require 'open3'
 # tests/lanes/ownership — the path -> lane table behind `tests/lanes/run
 # --which`, lane inference for a lane-less `--only` and `run-all --changed`
 # — is a hand transcription of the paths the lanes' rake tasks pass to
-# rspec and tryouts (lib/tasks/spec.rake). The selftest lane checks it
+# rspec and tryouts (lib/tasks/spec.rake). The runner lane checks it
 # against the tasks files and the directories on disk, but both of those
 # are lists too: nothing there proves the transcription matches what the
 # tasks SELECT, so a task that gained a subtree or an exclude pattern left
@@ -17,7 +17,7 @@ require 'open3'
 # gap, and needs Ruby to do it, which is why it lives in the unit lane.
 #
 # Method: read each lane's tasks file for the rake tasks it runs (the same
-# regex the selftest uses), invoke every one of them in a subprocess with
+# regex the runner lane uses), invoke every one of them in a subprocess with
 # `sh` captured — nothing runs; the captured argv is the task's whole
 # effect — and model each captured rspec command's file selection through
 # rspec's own Configuration, so `--exclude-pattern` resolves exactly as it
@@ -215,7 +215,7 @@ RSpec.describe 'tests/lanes/ownership against lib/tasks/spec.rake' do
       #{mismatches.map { |m| "  #{m}" }.join("\n")}
 
       Fix the table (tests/lanes/ownership), or — if a task's paths changed on
-      purpose — the row the selftest lane keeps for that directory too.
+      purpose — the row the runner lane keeps for that directory too.
     MSG
   end
 end

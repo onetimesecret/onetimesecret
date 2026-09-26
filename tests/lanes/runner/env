@@ -1,0 +1,22 @@
+# Lane: runner — the runner's own checks (tests/lanes/runner/tasks).
+#
+# Not a CI matrix row and not an application test. Its `tasks` file runs
+# no Ruby, no Node, and no application code: it drives tests/lanes/run
+# and run-all through --print-key, --which and --dry-run and checks their
+# exit codes and derived environment, and it walks tests/lanes/ownership
+# against the tasks files and the test directories on disk. Same shape as
+# the `selftest` lane, which stays a millisecond env-dump fixture for the
+# unit specs so that they do not pay for the fifty process trees this
+# lane starts.
+#
+# The three service URLs are blanked on purpose. tests/lanes/run builds
+# REQUIRED_PORTS by matching 127.0.0.1:<port> in exactly these three
+# values, so emptying them leaves the array empty — preflight passes,
+# autostart never fires, and no containers are needed.
+AUTHENTICATION_MODE=simple
+REDIS_URL=''
+RABBITMQ_URL=''
+AUTH_DATABASE_URL=''
+
+# No LANES_CODEGEN: this lane runs no Ruby and no Node, so nothing under
+# generated/ is a prerequisite.

@@ -9,6 +9,11 @@
 # `-ftx` functions through) was caught by human review rather than by a
 # test; this lane is what makes the next one fail loudly instead.
 #
+# It stays a millisecond lane on purpose: two unit specs run it end to end
+# and only read its output. The runner's own checks (flag parsing, the
+# ownership table, run-all --changed) start some fifty processes and live
+# in the `runner` lane instead.
+#
 # The three service URLs are blanked on purpose. tests/lanes/run builds
 # REQUIRED_PORTS by matching 127.0.0.1:<port> in exactly these three
 # values, so emptying them leaves the array empty — preflight passes,

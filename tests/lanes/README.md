@@ -100,7 +100,7 @@ derives each lane's selection from the rake tasks themselves (invoked with
 unnoticed. Support files (`spec/support`, an app's `spec/support`, `spec/spec_helper.rb`,
 `try/support`) and application code (`lib/`, `apps/*` outside test trees,
 `config/`, `etc/`, `locales/`, `Gemfile.lock`, `tests/lanes/`) are _shared_:
-every lane but `smoke` runs them. The `selftest` lane checks the table
+every lane but `smoke` runs them. The `runner` lane checks the table
 against every lane's tasks file and every `spec/` and `try/` directory on
 disk, so a directory no lane claims fails there rather than running nowhere.
 
@@ -258,10 +258,11 @@ does, so while a run of that lane and overlay set is live it exits 69
 | `migrations-sqlite`  | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                          | migration-tests.yml — SQLite job                 |
 | `migrations-pg`      | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check    | migration-tests.yml — PostgreSQL job             |
 | `selftest`           | none                       | boundary fixture                                              | none — driven by `spec/unit/lanes/`              |
+| `runner`             | none                       | the runner's own checks (flags, `--which`, `--changed`)       | static-analysis.yml — shell tests job            |
 
 Start every service named for a lane. This includes RabbitMQ for `api`,
 `browser` and `smoke`, whose lane environment still declares its endpoint.
-`selftest` is the only service-free exception.
+`selftest` and `runner` are the service-free exceptions.
 
 A lane with several legs (`unit`, `simple`, `migrations-pg`) runs every leg
 even when an earlier one fails, then exits non-zero naming the red legs; the
@@ -405,7 +406,7 @@ path that caused it. One shared path (`lib/`, `Gemfile.lock`,
 `tests/lanes/`, ...) selects every lane except `smoke`, and the plan says
 which path did it. When no lane runs any changed path there is nothing to
 run and the command exits 0 saying so — it never falls back to the default
-set. Lane names cannot be combined with `--changed`. The `selftest` lane
+set. Lane names cannot be combined with `--changed`. The `runner` lane
 exercises the selection with a stubbed diff (`LANES_CHANGED_STUB`, honored
 only together with `--dry-run`; set without it, the command exits 64 rather
 than run a substituted diff).

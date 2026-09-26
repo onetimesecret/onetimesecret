@@ -21,9 +21,9 @@
 # The three files spec.rake names individually get their own rows.
 #
 # LANES_OWNER_TASKS records, per lane, the rake tasks its tasks file runs —
-# the tasks whose patterns this table transcribes. The selftest lane diffs
+# the tasks whose patterns this table transcribes. The runner lane diffs
 # it against the tasks files, so a lane that starts running a different task
-# fails the selftest until this file is revisited; the selftest also walks
+# fails that lane until this file is revisited; the runner lane also walks
 # every spec/ and try/ directory on disk against this table, so a directory
 # nothing here claims fails loudly too instead of quietly running nowhere.
 # spec/unit/lanes/ownership_spec.rb (unit lane) closes the remaining gap:
@@ -52,10 +52,11 @@ declare -A LANES_OWNER_TASKS=(
   [migrations-pg]='spec:integration:migrations:postgres spec:integration:migrations:verify_dual_url'
   [api]='spec:api'
   # browser invokes rspec directly and is mapped explicitly below. Smoke runs
-  # `pnpm test:smoke` and owns no path here; selftest runs no application code.
-  # None of the three is a rake lane.
+  # `pnpm test:smoke` and owns no path here; selftest and runner run no
+  # application code. None of the four is a rake lane.
   [smoke]=''
   [selftest]=''
+  [runner]=''
 )
 
 # Every lane a shared path fans out to: each lane directory except smoke,
