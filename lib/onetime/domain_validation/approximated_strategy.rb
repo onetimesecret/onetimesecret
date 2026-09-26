@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require 'resolv'
-require 'securerandom'
 
 require_relative 'features'
 require_relative 'approximated_client'
@@ -278,26 +277,10 @@ module Onetime
       # upstream lookup into `false` demoted correctly-configured domains on
       # every refresh run.
       #
-      # An indeterminate upstream result gets one native TXT lookup and, when
-      # that cannot promote, one NXDOMAIN sentinel probe against Approximated
-      # itself. The sentinel reveals which state covers "record does not
-      # exist" upstream:
-      #
-      #   sentinel actual_values is []     -> Approximated distinguishes NXDOMAIN
-      #                                       from lookup failure; a `false` on
-      #                                       the real check is a genuine
-      #                                       upstream fault, not a deletion.
-      #   sentinel actual_values is false  -> Approximated conflates NXDOMAIN
-      #                                       and SERVFAIL. A deleted TXT
-      #                                       record cannot be demoted through
-      #                                       this checker, because native
-      #                                       resolution cannot settle it
-      #                                       either (Resolv reports NXDOMAIN
-      #                                       and SERVFAIL as "no resources").
-      #
-      # Either way the caller stays indeterminate; the probe outcome is
-      # recorded so operators can tell "checker is broken today" apart from
-      # "checker will never demote a deleted TXT record."
+      # An indeterminate upstream result gets one native TXT lookup. If that
+      # cannot promote the domain, the caller stays indeterminate. A second
+      # Approximated diagnostic request would not change that behavior and would
+      # bypass VerifyDomain's per-domain bulk pacing, so no probe is issued.
       #
       # @param custom_domain [Onetime::CustomDomain]
       # @param match_records [Array<Hash>] 'records' from the API response
@@ -333,66 +316,12 @@ module Onetime
           }
         end
 
-        nxdomain_probe = probe_nxdomain_semantics(custom_domain)
-        message        = case nxdomain_probe
-                         when :distinguishes
-                           'Upstream DNS checker returned no result (indeterminate; ' \
-                           'NXDOMAIN probe shows the checker distinguishes missing records — ' \
-                           'this false is a transient upstream fault)'
-                         when :conflates
-                           'Upstream DNS checker returned no result (indeterminate; ' \
-                           'NXDOMAIN probe shows the checker conflates NXDOMAIN with lookup ' \
-                           'failure — a deleted TXT record cannot be demoted through this checker)'
-                         else
-                           'Upstream DNS checker returned no result (indeterminate)'
-                         end
-
         {
           validated: nil,
           indeterminate: true,
-          nxdomain_probe: nxdomain_probe,
-          message: message,
+          message: 'Upstream DNS checker returned no result (indeterminate)',
           data: match_records,
         }
-      end
-
-      # Probes Approximated's NXDOMAIN semantics with a single call against a
-      # random subdomain of the customer's zone that cannot resolve.
-      #
-      # Approximated's contract for 'actual_values' is either an Array of
-      # values it saw or the literal `false` "when DNS resolution or the
-      # record-type lookup failed." The probe reveals which of those two
-      # states covers NXDOMAIN for this deployment.
-      #
-      # @param custom_domain [Onetime::CustomDomain]
-      # @return [Symbol] :distinguishes, :conflates, :unknown
-      #
-      def probe_nxdomain_semantics(custom_domain)
-        api_key = Features.api_key
-        return :unknown if api_key.to_s.empty?
-
-        sentinel = "_nxdomain-probe-#{SecureRandom.uuid}.#{custom_domain.display_domain}"
-        records  = [{ type: 'TXT', address: sentinel, match_against: 'probe-should-not-match' }]
-
-        res = client.check_records_match_exactly(api_key, records)
-        return :unknown unless res.code == 200
-
-        record = Array(res.parsed_response['records']).first
-        return :unknown if record.nil?
-
-        case record['actual_values']
-        when Array
-          # A non-empty array means a wildcard or misconfigured zone answered
-          # the probe. That is not evidence about NXDOMAIN handling.
-          record['actual_values'].empty? ? :distinguishes : :unknown
-        when false
-          :conflates
-        else
-          :unknown
-        end
-      rescue StandardError => ex
-        OT.lw "[ApproximatedStrategy] NXDOMAIN probe failed for #{custom_domain.display_domain}: #{ex.message}"
-        :unknown
       end
 
       # @param hostname [String]
