@@ -62,7 +62,13 @@ migrations).
 
 `bin/setup --test` puts the checkout in test mode: with direnv installed,
 every shell in the checkout loads `.env.test` and runs `RACK_ENV=test` until
-you switch back with plain `bin/setup`.
+you switch back with plain `bin/setup`. It also mirrors CI's dependency
+contract — `pnpm install --frozen-lockfile` on every run, plus the Playwright
+browsers (chromium, firefox, webkit) that `tests/browser/` drives through
+`@playwright/test`. Set `OTS_SETUP_SKIP_BROWSERS=1` to skip the browser
+download; on Linux the browsers may additionally need OS packages
+(`pnpm exec playwright install-deps`, which setup never runs for you).
+`bin/setup --doctor` reports whether the browser binaries are present.
 
 `scripts/tests/run.sh` covers the shell scripts that CI itself runs — the
 Sentry sourcemap delivery reporters in `scripts/ci/`, whose failure mode is
