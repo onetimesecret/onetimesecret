@@ -66,7 +66,8 @@ lanes_all() {
   local dir
   for dir in "${LANES_OWNERSHIP_DIR}"/*/; do
     if [[ -f "${dir}tasks" && -f "${dir}env" && "${dir}" != */smoke/ ]]; then
-      basename "${dir}"
+      dir="${dir%/}"
+      printf '%s\n' "${dir##*/}"
     fi
   done | LC_ALL=C sort
 }
