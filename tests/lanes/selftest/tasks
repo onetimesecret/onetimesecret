@@ -61,6 +61,12 @@ done <<'ROWS'
 0  --print-key --only spec/unit/lanes/hermetic_boundary_spec.rb --
 64 --print-key --only try/unit/base_view_try.rb -- --only-failures
 64 --print-key --only try/unit/base_view_try.rb --only spec/unit/lanes/hermetic_boundary_spec.rb
+0  --console --print-key
+0  --console --overlay billing --print-key
+64 --console --only spec/unit/lanes/hermetic_boundary_spec.rb --print-key
+64 --console --quiet --print-key
+64 --console --skip-codegen --print-key
+64 --console -- --only-failures
 ROWS
 
 # --quiet is an env effect, not an exit code: SPEC_OPTS must carry the quiet
@@ -239,6 +245,7 @@ done <<'ROWS'
 64 --only README.md --print-key
 64 --print-key
 64 --quiet
+64 --console --print-key
 64 selftest --which spec/api
 ROWS
 if [[ "$(tests/lanes/run --which spec/api 2>/dev/null)" != api ]]; then

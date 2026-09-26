@@ -6,12 +6,14 @@
 #   tests/lanes/run --list
 #   tests/lanes/run <lane> [--overlay <name>]...
 #   tests/lanes/run [<lane>] --only <path>[:LINE]...   (lane inferred if omitted)
+#   tests/lanes/run <lane> [--overlay <name>]... --console
 #   tests/lanes/run --which <path>
 #
 # Examples:
 #   tests/lanes/run unit
 #   tests/lanes/run full-pg --overlay billing
 #   tests/lanes/run --only spec/api/v2/secret_ttl_entitlement_spec.rb:20
+#   tests/lanes/run full-sqlite --console
 #   tests/lanes/run --which apps/web/auth/spec/integration/full
 #
 # Runs a lane's tasks (tests/lanes/<lane>/tasks) with exactly the lane's
@@ -310,6 +312,7 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "usage: tests/lanes/run [<lane>] [--overlay <name>]... [--only <path>]..."
   echo "                            [--skip-codegen] [--print-key] [--quiet]"
   echo "                            [-- <rspec args>]"
+  echo "       tests/lanes/run <lane> [--overlay <name>]... --console"
   echo "       tests/lanes/run --which <path>"
   echo
   echo "  --only <path>  run just these test files in the lane's environment,"
@@ -327,6 +330,10 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "                 selects tests/lanes/support/quiet_formatter.rb); the"
   echo "                 tryouts legs already run --agent outside CI. Default"
   echo "                 output is unchanged without it."
+  echo "  --console      start the app console (bin/ots console) in the lane's"
+  echo "                 environment — same scrub, overlays, datastore index"
+  echo "                 and exec boundary as a run — instead of its tasks."
+  echo "                 Runs no tests: not with --only, --quiet or --."
   echo
   echo "Every run (tasks or --only) is also written to tmp/lanes/<lane>/<overlays>/"
   echo "last.log; the path is printed at exit. --print-key shows the directory."
@@ -397,6 +404,7 @@ ONLY=()
 SKIP_CODEGEN=0
 PRINT_KEY=0
 QUIET=0
+CONSOLE=0
 # `--` ends the runner's own parsing; the rest of argv is rspec's. Kept as
 # an array (never re-split) so a quoted `-e 'two words'` arrives intact.
 PASSTHROUGH=0
@@ -443,12 +451,40 @@ while [[ $# -gt 0 ]]; do
       QUIET=1
       shift
       ;;
+    --console)
+      CONSOLE=1
+      shift
+      ;;
     *)
       echo "error: unknown argument '$1'" >&2
       exit 64
       ;;
   esac
 done
+# --console replaces the tasks file with the app console, so every flag
+# that shapes a test run is a contradiction with it: --only names files to
+# run, `--` carries rspec arguments, --quiet chooses an rspec formatter and
+# --skip-codegen skips a phase the console (like --only) never enters.
+# Refuse each rather than ignore it; a flag that did nothing would be read
+# as having worked.
+if [[ ${CONSOLE} -eq 1 ]]; then
+  if [[ ${#ONLY[@]} -gt 0 ]]; then
+    echo "error: --console starts the app console, not test files; drop --only" >&2
+    exit 64
+  fi
+  if [[ ${PASSTHROUGH} -eq 1 ]]; then
+    echo "error: arguments after '--' go to rspec; --console runs none" >&2
+    exit 64
+  fi
+  if [[ ${QUIET} -eq 1 ]]; then
+    echo "error: --quiet selects an rspec formatter; --console runs no rspec" >&2
+    exit 64
+  fi
+  if [[ ${SKIP_CODEGEN} -eq 1 ]]; then
+    echo "error: --console never runs the codegen phase; --skip-codegen has nothing to skip" >&2
+    exit 64
+  fi
+fi
 # A lane's tasks file drives rspec through rake, where argv is the rake
 # task's to assemble; there is nowhere for trailing arguments to go but
 # --only's own rspec command. Reject the combination up front rather than
@@ -1174,13 +1210,19 @@ cd "${REPO_ROOT}"
 # --quiet's formatter stays), FORCE_COLOR for tryouts (lib/tryouts/console.rb)
 # — so an interactive run looks as it did. CI and run-all pipe the runner's
 # stdout, so neither is set there and their output is untouched.
+#
+# Not for --console: a console is not a run, and the log it would truncate
+# is the last run's output — the thing a developer opened the console to
+# investigate.
 LANES_LAST_LOG="${LANES_RUN_DIR}/last.log"
-mkdir -p "${LANES_RUN_DIR}"
-printf '%s\n' "${_lanes_banner}" > "${LANES_LAST_LOG}"
-if [[ -t 1 ]]; then
-  SPEC_OPTS="${SPEC_OPTS:+${SPEC_OPTS} }--force-color"
-  export SPEC_OPTS
-  export FORCE_COLOR=1
+if [[ ${CONSOLE} -eq 0 ]]; then
+  mkdir -p "${LANES_RUN_DIR}"
+  printf '%s\n' "${_lanes_banner}" > "${LANES_LAST_LOG}"
+  if [[ -t 1 ]]; then
+    SPEC_OPTS="${SPEC_OPTS:+${SPEC_OPTS} }--force-color"
+    export SPEC_OPTS
+    export FORCE_COLOR=1
+  fi
 fi
 
 # The per-worktree PG database has to exist before the lane's specs open a
@@ -1280,6 +1322,10 @@ fi
 #                   above for why it is never read from the environment.
 #   --only          bypasses the tasks file wholesale and always has. The
 #                   documented iteration semantics do not change here.
+#   --console       bypasses it the same way: the generated files are the
+#                   tasks' prerequisites, and a missing locale at console
+#                   boot is a logged line (initializers/load_locales.rb),
+#                   not a failure.
 _lanes_codegen_run() {
   # Through the same `env -u` strip the exec below applies, so a generator
   # sees the environment the tasks see rather than the runner's (readonly
@@ -1289,7 +1335,7 @@ _lanes_codegen_run() {
   builtin command env ${_lanes_strip[@]+"${_lanes_strip[@]}"} "$@"
 }
 
-if [[ ${SKIP_CODEGEN} -eq 0 && ${#ONLY[@]} -eq 0 && -n "${LANES_CODEGEN:-}" ]]; then
+if [[ ${SKIP_CODEGEN} -eq 0 && ${#ONLY[@]} -eq 0 && ${CONSOLE} -eq 0 && -n "${LANES_CODEGEN:-}" ]]; then
   for _lanes_gen in ${LANES_CODEGEN}; do
     echo "[lane:${LANE}] codegen: ${_lanes_gen}"
     case "${_lanes_gen}" in
@@ -1312,6 +1358,28 @@ if [[ ${SKIP_CODEGEN} -eq 0 && ${#ONLY[@]} -eq 0 && -n "${LANES_CODEGEN:-}" ]]; 
     esac
   done
   builtin unset _lanes_gen
+fi
+
+# ── --console: the app console inside the lane's environment ─────────────
+# bin/console is `bundle exec bin/ots console` with whatever the shell has
+# exported, direnv state included — which is how test-mode settings have
+# leaked into a console before. This is the same command behind the same
+# boundary a lane's tasks get: the scrub above, base.env -> lane env ->
+# overlays, the derived datastore index (REDIS_URL, AUTH_DATABASE_URL and
+# RABBITMQ_URL rewritten to it, the PG database and vhost provisioned), the
+# liveness token, and the `env -u` strip at this exec. So an auth-chain
+# question gets asked of the exact datastore the lane's specs wrote, and of
+# nothing else.
+#
+# A plain exec, not the tee epilogue below: irb needs the terminal on its
+# stdout, and a console is not a run — no last.log, no timing line. The
+# process is still the runner's PID, so the refresher keeps the token for
+# as long as the console is open. Non-interactive use works as irb's own
+# stdin handling allows: `echo 'puts ENV["REDIS_URL"]' | tests/lanes/run
+# <lane> --console`.
+if [[ ${CONSOLE} -eq 1 ]]; then
+  echo "[lane:${LANE}] console: bundle exec bin/ots console" >&2
+  exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bundle exec bin/ots console
 fi
 
 # ── Mid-run service-loss epilogue ────────────────────────────────────────

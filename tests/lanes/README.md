@@ -17,6 +17,7 @@ $ tests/lanes/run --which spec/api/v2                # which lane runs a path
 $ tests/lanes/run --only spec/api/v2/secret_ttl_entitlement_spec.rb:20   # one example, lane inferred
 $ tests/lanes/run-all --parallel
 $ tests/lanes/run-all --parallel --changed           # lanes owning the diff since origin/main
+$ tests/lanes/run full-sqlite --console              # app console on the lane's datastore
 $ docker compose -f compose.test.yml down
 ```
 
@@ -153,6 +154,34 @@ terminal it sets `--force-color` (rspec) and `FORCE_COLOR` (tryouts) so
 colors survive the pipe; the log then contains the escape codes too
 (`less -R`). CI and `run-all` pipe the runner and get plain output as
 before.
+
+### Lane console: `--console`
+
+```console
+$ tests/lanes/run full-sqlite --console
+$ tests/lanes/run full-pg --overlay billing --console
+$ echo 'puts Familia.uri' | tests/lanes/run simple --console     # non-interactive
+```
+
+`--console` starts the app console (`bin/ots console`, the command behind
+`bin/console`) in the lane's environment instead of running its tasks: the
+same scrub, `base.env` -> lane `env` -> overlays, the same derived datastore
+index (`REDIS_URL`, `AUTH_DATABASE_URL` and `RABBITMQ_URL` rewritten to it,
+the PostgreSQL database and vhost provisioned), the same liveness token and
+the same `env -u` strip at the exec. `--print-key` for the same lane and
+overlays reports the addressing the console will see, so a question about
+what a lane's specs left in the datastore is asked of that datastore and
+nothing else. A plain `bin/console` inherits the shell, direnv included,
+which is how test-mode settings have leaked before.
+
+A console is not a run: it skips the codegen phase like `--only` (a missing
+generated locale is a logged line at boot, not a failure), leaves
+`last.log` untouched, and prints no timing line. It takes the lane name and
+overlays only; `--only`, `--quiet`, `--skip-codegen` and `--` exit 64 with
+it. Under `sqlite::memory:` (`full-sqlite`, `full-mfa`,
+`full-saml-platform`) the auth database is empty and unmigrated in a fresh
+process, so the console logs `no such table: accounts` at boot; the
+PostgreSQL lanes address the per-worktree database the lane's runs use.
 
 ## Lanes
 
