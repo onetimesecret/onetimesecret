@@ -50,11 +50,13 @@ rollback separately.
 
 - `Familia::Migration::Base` for key-level work with raw `redis` access.
   Subclasses set `migration_id`, `description`, and `dependencies`.
-- `Familia::Migration::Model` SCANs `{prefix}:*:object` and hands each
-  loaded Familia model object (`Horreum`) to `process_record(obj, key)`.
-  It provides per-record error isolation and progress logging. Set
-  `@interactive = true` to open Pry on errors, or override `load_from_key`
-  to handle orphan keys.
+- `Familia::Migration::Model` defaults to scanning `{prefix}:*:object`; a
+  subclass can replace `@scan_pattern`. Its `prepare` method must set
+  `@model_class`. By default, it hands each loaded Familia model object
+  (`Horreum`) to `process_record(obj, key)`. It provides per-record error
+  isolation and progress logging. Set `@interactive = true` to open Pry on
+  errors. Override `load_from_key` when a different object is needed, such
+  as a `Familia::SortedSet` for an orphan key.
 - `Familia::Migration::Pipeline` batches SCAN results and issues HMSETs
   through a Redis pipeline. Subclasses implement `should_process?` and
   `build_update_fields`, or override `execute_update` for anything other
@@ -70,23 +72,26 @@ migrations bypass these per-record hooks; their dry runs scan records but
 do not execute the transformation callbacks.
 
 Applied state lives in Redis under the `familia:migrations` prefix (the
-Familia default; this app does not override it):`
+Familia default; this app does not override it):
 
 | Key | Type | Content |
 |-----|------|---------|
 | `familia:migrations:applied` | sorted set | migration_id scored by timestamp |
 | `familia:migrations:metadata` | hash | migration_id to JSON (duration, keys scanned/modified, reversible) |
 | `familia:migrations:schema` | hash | model name to SHA256 of field names and types, for drift detection |
-| `familia:migrations:backup:{id}` | hash, default 24h TTL | field-level rollback data, when explicitly backed up |
+| `familia:migrations:backup:{id}` | hash, configurable TTL (24h by default) | field-level rollback data, when explicitly backed up |
 
 Schema digests and field backups are framework facilities, not automatic
 Runner output. Each field backup refreshes the backup hash's expiry.
 
 `Familia::Migration::Runner` orders pending migrations by a topological
 sort of `dependencies` and records applied state on a real run when
-`migration_needed?` is true and `migrate` completes without raising. It stops
-on a failed Runner result, but isolated record errors do not necessarily
-produce one: inspect error counts as well as the final status. Rollback
+`migration_needed?` is true and `migrate` completes without raising. A
+migration skipped because `migration_needed?` is false is not recorded.
+`Runner#run` defaults to real execution when called directly; the CLI passes
+its dry-run choice explicitly. The Runner stops on a failed result, but
+isolated record errors do not necessarily produce one: inspect error counts
+as well as the final status. Rollback
 requires an applied migration with `down` and no applied dependents among
 the loaded migration classes.
 `Familia::Migration::Script` registers Lua scripts for atomic field
@@ -98,7 +103,6 @@ Migrations live in dated folders, one folder per release-day batch:
 
 ```
 migrations/
-
   2026-04-17/20260417_01_backfill_homepage_config.rb
   2026-06-06/20260606_01_unique_index_json_to_raw.rb
   2026-07-03/20260703_01_disable_homepage_auth_links.rb
@@ -133,15 +137,18 @@ bin/ots migrate --dir migrations/2026-07-27
 **Single-migration execution differs from batch execution.** Passing an ID
 or file with `--run` calls the migration directly, bypassing the Runner's
 dependency checks and applied-state recording. A successful run can still
-appear pending. Use batch execution when you need registry tracking. ID
-lookup allows partial matches; a full file path avoids ambiguous selection
+appear pending. A later batch run does not necessarily repair that state: if
+`migration_needed?` then returns false, the Runner skips the migration without
+recording it. Use batch execution when you need registry tracking. ID lookup
+allows partial matches; a full file path avoids ambiguous selection
 and loads only that file, avoiding class-name collisions between batches.
 
 Rollback is not a general recovery procedure. None of the current migrations
 defines `down`. Although the CLI exposes `--rollback MIGRATION_ID`, Familia
 2.12.0 calls `down` without `prepare` or enabling guarded writes, then removes
-applied state if no exception occurs. Verify a migration's rollback behavior
-before relying on it; adding `--run` does not change this path.
+applied state if no exception occurs. Writes inside `for_realsies_this_time?`
+are skipped, while unguarded writes execute. Verify a migration's rollback
+behavior before relying on it; adding `--run` does not change this path.
 
 Familia's `familia:migrate` rake tasks are not loaded in this repo; use
 `bin/ots migrate`. The command dispatch is implemented in
@@ -407,8 +414,8 @@ selected strategy and options.
 - A single record or a handful: console, narrowest write primitive,
   `refresh!` to confirm.
 
-For framework details, see the [Familia repository](https://github.com/delano/familia):
-`docs/guides/feature-migrations.md`, `docs/guides/feature-housekeeping.md`,
-`docs/guides/schema-validation.md`, and `docs/migrating/v2.10.md`.
-The behavior described here was checked against Familia 2.12.0, the version
-in this repository's lockfile.
+For framework details, see `docs/guides/feature-migrations.md`,
+`docs/guides/feature-housekeeping.md`, and `docs/migrating/v2.10.md` in the
+[Familia repository](https://github.com/delano/familia). These files and the
+behavior described here were checked against Familia 2.12.0, the version in
+this repository's lockfile.
