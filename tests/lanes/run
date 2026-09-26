@@ -30,6 +30,12 @@
 # cleared too (`export -f`) — bash re-materializes those in the exec'd
 # task process via BASH_FUNC_*%%, so an unset function is just as capable
 # of shadowing `git`/`bundle`/`docker`/etc. as a leaked variable.
+#
+# Two runner-assigned names depend on the terminal: when the runner's own
+# stdout is a tty, SPEC_OPTS gains --force-color and FORCE_COLOR=1 is
+# exported (see "Last run output" below), so an interactive run's task
+# environment differs from a piped one's (CI, run-all) by those two names
+# and nothing else.
 
 # ── bash major-version floor ────────────────────────────────────────────
 # The scrub below needs `mapfile` (bash 4) and expands the arrays it fills
@@ -345,16 +351,16 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "                 environment — same scrub, overlays, datastore index"
   echo "                 and exec boundary as a run — instead of its tasks."
   echo "                 Runs no tests: not with --only, --quiet or --."
-  echo
-  echo "Every run (tasks or --only) is also written to tmp/lanes/<lane>/<overlays>/"
-  echo "last.log; the path is printed at exit, after one line of wall-clock per"
-  echo "phase (preflight, codegen, tasks/only). --print-key shows the directory."
   echo "  --skip-codegen skip the lane's declared codegen (LANES_CODEGEN in"
   echo "                 its env file). A direct run ALWAYS generates; this is"
   echo "                 for a caller that generated once before fanning out."
   echo "  --print-key    print the isolation key and datastore index this"
   echo "                 lane+overlay set derives, then exit. Touches no"
   echo "                 services and runs nothing."
+  echo
+  echo "Every run (tasks or --only) is also written to tmp/lanes/<lane>/<overlays>/"
+  echo "last.log; the path is printed at exit, after one line of wall-clock per"
+  echo "phase (preflight, codegen, tasks/only). --print-key shows the directory."
   echo
   echo "Lanes:"
   list_lanes | sed 's/^/  /'
