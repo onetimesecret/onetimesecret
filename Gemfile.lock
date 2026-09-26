@@ -690,6 +690,7 @@ DEPENDENCIES
   sequel (~> 5.0)
   simplecov
   simplecov-cobertura (~> 3.2)
+  simpleidn (~> 0.2)
   solargraph
   sqlite3 (~> 2.0)
   stackprof

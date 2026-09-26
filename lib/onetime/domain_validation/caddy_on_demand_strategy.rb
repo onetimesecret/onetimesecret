@@ -35,7 +35,8 @@ module Onetime
 
       # Marks a stored `vhost` blob as written by this strategy's probe rather
       # than copied from an Approximated API response.
-      VHOST_SOURCE = 'tls_probe'
+      VHOST_SOURCE                 = 'tls_probe'
+      APPROXIMATED_CLEANUP_PENDING = 'approximated_vhost_pending_cleanup'
 
       attr_reader :config, :txt_verifier, :tls_probe
 
@@ -101,12 +102,11 @@ module Onetime
       #
       #   is_resolving  true/false is stored in `resolving`; nil is skipped.
       #   has_ssl       lives only inside the `vhost` blob (:data). :data is
-      #                 returned only when has_ssl is known, so an unknown
-      #                 never overwrites the stored value. A blob left by
-      #                 the Approximated strategy is not overwritten either:
-      #                 after a cutover it is the only record that a remote
-      #                 vhost exists, and the RemoveOrphanedApproximatedVhosts
-      #                 chore clears it once that vhost is dealt with.
+      #                 normally returned only when has_ssl is known. After an
+      #                 Approximated cutover, a known resolution result also
+      #                 replaces stale UI state and carries an internal marker
+      #                 so RemoveOrphanedApproximatedVhosts can still clean up
+      #                 the remote vhost.
       #   both nil      no :mode and no :data, the same shape Approximated
       #                 returns when its API call fails: nothing stored
       #                 changes and vhost_fetch_failed_at is set, which the UI
@@ -123,14 +123,19 @@ module Onetime
         result = tls_probe.probe(custom_domain.display_domain)
         return { ready: false, has_ssl: nil, is_resolving: nil, message: result.message } if result.indeterminate?
 
-        status        = {
+        status          = {
           ready: result.is_resolving == true && result.has_ssl == true,
           has_ssl: result.has_ssl,
           is_resolving: result.is_resolving,
           message: result.message,
           mode: MODE,
         }
-        status[:data] = vhost_data(custom_domain, result) if !result.has_ssl.nil? && owns_vhost?(custom_domain)
+        owns_vhost      = owns_vhost?(custom_domain)
+        cleanup_pending = approximated_cleanup_pending?(custom_domain) || !owns_vhost
+
+        if !result.has_ssl.nil? || (!owns_vhost && !result.is_resolving.nil?)
+          status[:data] = vhost_data(custom_domain, result, cleanup_pending: cleanup_pending)
+        end
         status
       rescue StandardError => ex
         # TlsProbe rescues its own work; this is a failure of ours and says
@@ -183,10 +188,15 @@ module Onetime
         !stored.is_a?(Hash) || stored.empty? || stored['source'] == VHOST_SOURCE
       end
 
+      def approximated_cleanup_pending?(custom_domain)
+        stored = custom_domain.parse_vhost
+        stored.is_a?(Hash) && stored[APPROXIMATED_CLEANUP_PENDING] == true
+      end
+
       # The subset of Approximated's vhost payload the domain pages read,
       # filled from the probe. `status` reuses Approximated's values where the
       # UI keys off them (ACTIVE_SSL -> active, DNS_INCORRECT -> warning).
-      def vhost_data(custom_domain, result)
+      def vhost_data(custom_domain, result, cleanup_pending: false)
         certificate = result.certificate
         status      = if result.has_ssl then 'ACTIVE_SSL'
                       elsif result.is_resolving then 'PENDING_SSL'
@@ -205,6 +215,7 @@ module Onetime
           'ssl_active_until' => iso8601(certificate&.not_after),
           'last_monitored_unix' => OT.now.to_i,
           'source' => VHOST_SOURCE,
+          APPROXIMATED_CLEANUP_PENDING => (true if cleanup_pending),
         }.compact
       end
 

@@ -962,9 +962,29 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
 
       before { stub_probe(is_resolving: true, has_ssl: false, addresses: ['93.184.216.34']) }
 
-      it 'reports the probe result but leaves the blob for the cleanup chore' do
+      it 'replaces stale UI state while retaining the cleanup obligation' do
         expect(result).to include(is_resolving: true, has_ssl: false, mode: 'caddy_on_demand')
-        expect(result).not_to have_key(:data)
+        expect(result[:data]).to include(
+          'status' => 'PENDING_SSL',
+          'has_ssl' => false,
+          'source' => 'tls_probe',
+          'approximated_vhost_pending_cleanup' => true,
+        )
+        expect(result[:data]).not_to have_key('id')
+      end
+
+      context 'when certificate status is unknown but resolving is known' do
+        before { stub_probe(is_resolving: true, has_ssl: nil, addresses: ['10.0.0.5']) }
+
+        it 'does not present the stale active status as a successful probe' do
+          expect(result).to include(is_resolving: true, has_ssl: nil, mode: 'caddy_on_demand')
+          expect(result[:data]).to include(
+            'status' => 'PENDING_SSL',
+            'source' => 'tls_probe',
+            'approximated_vhost_pending_cleanup' => true,
+          )
+          expect(result[:data]).not_to have_key('has_ssl')
+        end
       end
     end
 
@@ -975,6 +995,18 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
 
       it 'replaces it' do
         expect(result[:data]).to include('source' => 'tls_probe', 'status' => 'PENDING_SSL')
+      end
+    end
+
+    context 'when an earlier probe retained an Approximated cleanup marker' do
+      let(:stored_vhost) do
+        { 'source' => 'tls_probe', 'has_ssl' => false, 'approximated_vhost_pending_cleanup' => true }
+      end
+
+      before { stub_probe(is_resolving: true, has_ssl: false, addresses: ['93.184.216.34']) }
+
+      it 'keeps the marker on the refreshed probe payload' do
+        expect(result[:data]['approximated_vhost_pending_cleanup']).to be true
       end
     end
 

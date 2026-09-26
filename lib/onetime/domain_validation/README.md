@@ -46,9 +46,9 @@ Caddy has no per-domain status API, so `caddy_on_demand` uses `TlsProbe`:
 How the result is stored (`VerifyDomain#persist_changes`):
 
 - `is_resolving` `true`/`false` is written to `resolving`; `nil` is skipped.
-- `has_ssl` exists only inside the `vhost` blob, so the strategy returns `:data` only when `has_ssl` is known. The blob uses the keys the domain pages already read (`status`, `status_message`, `has_ssl`, `is_resolving`, `dns_pointed_at`, `ssl_active_from`, `ssl_active_until`, `last_monitored_unix`) plus `source: tls_probe`. `status` is `ACTIVE_SSL`, `PENDING_SSL` (resolves, no valid certificate yet) or `DNS_INCORRECT` (does not resolve).
+- `has_ssl` exists only inside the `vhost` blob. The strategy normally returns `:data` only when `has_ssl` is known. The blob uses the keys the domain pages already read (`status`, `status_message`, `has_ssl`, `is_resolving`, `dns_pointed_at`, `ssl_active_from`, `ssl_active_until`, `last_monitored_unix`) plus `source: tls_probe`. `status` is `ACTIVE_SSL`, `PENDING_SSL` (resolves, no valid certificate yet) or `DNS_INCORRECT` (does not resolve).
 - When the probe could not tell anything, the strategy returns neither `:data` nor `:mode`. Nothing stored changes and `vhost_fetch_failed_at` is set, which the UI shows as a failed check.
-- A `vhost` blob written under `approximated` is never replaced by the probe. After a strategy cutover it is the only record of the remote vhost; see the cleanup chore below. Once that blob is cleared the probe's blob takes its place.
+- After an `approximated` cutover, a known probe result replaces the stale UI-facing blob. The replacement carries `approximated_vhost_pending_cleanup: true`, preserving the cleanup obligation without presenting old Approximated status as current Caddy status.
 
 Time budget per domain: address lookup 3s, connect plus handshake 5s, each spent only on a timeout. `DomainRefreshJob` runs the TXT check and this probe for every domain on its page; the job's header comment works out the per-page ceiling.
 
@@ -72,7 +72,7 @@ features:
 
 ## Moving off `approximated`
 
-Changing `validation_strategy` away from `approximated` does not delete anything on Approximated. Each domain provisioned before the change keeps its vhost there (billable, and able to serve the hostname for as long as DNS points at the cluster) and keeps the old `vhost` JSON on its `CustomDomain` record. The `remove_orphaned_approximated_vhosts` housekeeping chore cleans both up.
+Changing `validation_strategy` away from `approximated` does not delete anything on Approximated. Each domain provisioned before the change keeps its remote vhost there (billable, and able to serve the hostname for as long as DNS points at the cluster). Under `caddy_on_demand`, the next known probe result replaces the old UI-facing `vhost` JSON with current status and a cleanup marker. The `remove_orphaned_approximated_vhosts` housekeeping chore uses either the old blob or that marker to clean up the remote vhost and local state.
 
 Keep `approximated.api_key` and `proxy_ip` / `proxy_host` configured after the cutover. The chore needs the key to delete and the proxy address to tell which domains still point at the cluster. The chore reads `proxy_ip` as one or more entries separated by commas or spaces, each a single address or a CIDR range such as `203.0.113.0/24`. The same value is shown to customers as the A record target in the domain setup screens, so only widen it once no domain is still being set up against Approximated.
 
@@ -86,7 +86,7 @@ APPROXIMATED_VHOST_CLEANUP=apply bin/ots housekeeping run Onetime::CustomDomain 
 
 A vhost is deleted only when the domain resolves, from this host, to addresses outside the Approximated cluster, and Approximated itself reports the vhost as not resolving and not receiving traffic. A domain that still points at the cluster, has no DNS answer, or is served through another proxy (`ACTIVE_SSL_PROXIED`) is skipped and picked up again on the next run. The nightly HousekeepingJob runs the chore as a dry run unless the variable is set in its environment. `verified`, `resolving` and the TXT fields are never changed.
 
-Under `caddy_on_demand` a domain's SSL status on the domain pages keeps showing the old Approximated data until the chore has cleared its `vhost` JSON; the status probe fills the field from then on (see Status check). `resolving` is updated by the probe regardless. The chore ignores `vhost` JSON the probe wrote (`source: tls_probe`).
+Under `caddy_on_demand`, a known status probe replaces old Approximated UI data immediately and retains `approximated_vhost_pending_cleanup: true`. The chore processes probe blobs with that marker and ignores ordinary probe blobs that only have `source: tls_probe`.
 
 Re-run until the dry run reports no candidates. Domains that are skipped every time (no DNS answer, proxied, renamed, or a stored `vhost` value that is not valid JSON, which is logged as a warning) need a manual decision in the Approximated dashboard.
 

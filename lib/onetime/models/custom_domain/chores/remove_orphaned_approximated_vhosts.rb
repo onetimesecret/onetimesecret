@@ -9,13 +9,12 @@
 # Background:
 #   Under the `approximated` strategy every custom domain gets a vhost on
 #   Approximated's cluster (VerifyDomain / Domains::Create store the API's
-#   `data` object verbatim in the `vhost` field). CaddyOnDemandStrategy and
-#   PassthroughStrategy implement #delete_vhost as a no-op and never replace
-#   an Approximated `vhost` blob, so after a cutover the remote vhost keeps
-#   existing (billable, and still able to terminate TLS for the hostname if
-#   DNS points there) and the record keeps advertising stale vhost data.
-#   CaddyOnDemandStrategy does write its own status blob once the field is
-#   empty; that blob is marked `source: tls_probe` and is not vhost state.
+#   `data` object verbatim in the `vhost` field). After a cutover the remote
+#   vhost keeps existing (billable, and still able to terminate TLS for the
+#   hostname if DNS points there). CaddyOnDemandStrategy replaces stale UI
+#   fields with its current probe data and marks that blob as still requiring
+#   Approximated cleanup. An ordinary `source: tls_probe` blob is not vhost
+#   state; one carrying the cleanup marker is.
 #
 # Deleting a vhost that still serves traffic is a customer outage that we
 # cannot undo without re-provisioning and a new certificate. Every guard
@@ -87,6 +86,7 @@ require 'resolv'
 
 require_relative '../../../domain_validation/features'
 require_relative '../../../domain_validation/approximated_client'
+require_relative '../../../domain_validation/ascii_hostname'
 
 module Onetime
   module Chores
@@ -217,7 +217,8 @@ module Onetime
       # `source` value CaddyOnDemandStrategy::VHOST_SOURCE puts on the status
       # blob it writes from its own probe. Approximated's payload has no
       # `source` key.
-      PROBE_SOURCE = 'tls_probe'
+      PROBE_SOURCE                 = 'tls_probe'
+      APPROXIMATED_CLEANUP_PENDING = 'approximated_vhost_pending_cleanup'
 
       # 1c. Apart from that probe blob, `vhost` is only ever written from an
       # Approximated API response, so any other content is Approximated-era
@@ -238,11 +239,15 @@ module Onetime
       #
       # @return [Boolean]
       def probe_blob?(domain, raw)
-        return raw['source'] == PROBE_SOURCE if raw.is_a?(Hash)
+        if raw.is_a?(Hash)
+          return raw['source'] == PROBE_SOURCE && raw[APPROXIMATED_CLEANUP_PENDING] != true
+        end
         return false unless raw.to_s.include?(PROBE_SOURCE)
 
         stored = stored_vhost(domain)
-        !stored.nil? && stored['source'] == PROBE_SOURCE
+        !stored.nil? &&
+          stored['source'] == PROBE_SOURCE &&
+          stored[APPROXIMATED_CLEANUP_PENDING] != true
       end
 
       # Content that is not a JSON object (garbage, a JSON array or scalar)
@@ -279,8 +284,9 @@ module Onetime
       # @param name [String] display domain
       # @return [Symbol] :moved, :on_approximated, :indeterminate
       def dns_evidence(name)
-        proxy_host = features.proxy_host.to_s.strip.downcase.chomp('.')
-        cluster    = parse_networks(features.proxy_ip.to_s.split(/[\s,]+/))
+        lookup_name = Onetime::DomainValidation::AsciiHostname.call(name)
+        proxy_host  = features.proxy_host.to_s.strip.downcase.chomp('.')
+        cluster     = parse_networks(features.proxy_ip.to_s.split(/[\s,]+/))
 
         unless proxy_host.empty?
           host_addresses = parse_networks(resolver.lookup(proxy_host).addresses)
@@ -290,7 +296,10 @@ module Onetime
           cluster |= host_addresses
         end
 
-        classify_dns(resolver.lookup(name), cluster, proxy_host)
+        classify_dns(resolver.lookup(lookup_name), cluster, proxy_host)
+      rescue Onetime::DomainValidation::AsciiHostname::ConversionError => ex
+        OT.ld "[#{self.class.name.split('::').last}] Cannot resolve #{name.inspect}: #{ex.message}"
+        :indeterminate
       end
 
       # Pure comparison of a lookup against the cluster's addresses.

@@ -456,6 +456,30 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
       end
     end
 
+    context 'when a probe blob retains an Approximated cleanup marker' do
+      let(:stored_vhost) do
+        {
+          'incoming_address' => display_domain,
+          'source' => 'tls_probe',
+          'status' => 'PENDING_SSL',
+          'approximated_vhost_pending_cleanup' => true,
+        }
+      end
+
+      it 'remains cleanup state and is deleted' do
+        expect(chore.vhost_state?(domain)).to be true
+        expect(chore.call(domain)).to be true
+      end
+
+      context 'when stored as a Hash' do
+        let(:vhost) { stored_vhost }
+
+        it 'remains cleanup state' do
+          expect(chore.vhost_state?(domain)).to be true
+        end
+      end
+    end
+
     context 'when an Approximated blob merely mentions tls_probe' do
       let(:stored_vhost) { { 'incoming_address' => display_domain, 'source' => 'other', 'note' => 'tls_probe' } }
 
@@ -586,6 +610,21 @@ RSpec.describe Onetime::Chores::RemoveOrphanedApproximatedVhosts do
       expect(resolver).to have_received(:lookup).with(display_domain)
       expect(client).to have_received(:get_vhost_by_incoming_address).with(api_key, display_domain)
       expect(client).to have_received(:delete_vhost).with(api_key, display_domain)
+    end
+
+    context 'with a Unicode display domain' do
+      let(:display_domain) { 'bücher.example' }
+      let(:a_label) { 'xn--bcher-kva.example' }
+      let(:domain) { build_domain(display_domain, vhost) }
+      let(:dns_answers) { { a_label => snapshot([elsewhere_ip]) } }
+
+      it 'uses the A-label for DNS and the display name for the provider API' do
+        expect(chore.call(domain)).to be true
+
+        expect(resolver).to have_received(:lookup).with(a_label)
+        expect(client).to have_received(:get_vhost_by_incoming_address).with(api_key, display_domain)
+        expect(client).to have_received(:delete_vhost).with(api_key, display_domain)
+      end
     end
   end
 

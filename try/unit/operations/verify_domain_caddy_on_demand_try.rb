@@ -23,7 +23,7 @@
 #      and marks the check as failed (vhost_fetch_failed_at).
 #   9. A probe that knows only that the name resolves stores `resolving` and
 #      leaves vhost (has_ssl) alone.
-#  10. A vhost blob written under the Approximated strategy is not replaced.
+#  10. Stale Approximated UI state is replaced while its cleanup marker remains.
 #
 # The scripted probe reports resolving + valid certificate until case 7, so
 # `verified` is the only thing between the domain and ready? in cases 1-6.
@@ -259,15 +259,18 @@ caddy_try_verify(@domain)
 [@stored.resolving == true, @stored.parse_vhost['status']]
 #=> [false, 'DNS_INCORRECT']
 
-## Status: an Approximated-era vhost blob is left for the cleanup chore; resolving is still stored
+## Status: stale Approximated UI state is replaced while cleanup remains discoverable
 @domain.vhost       = { 'id' => 42, 'incoming_address' => @domain.display_domain, 'status' => 'ACTIVE_SSL' }.to_json
 @domain.save
 @probe.is_resolving = true
 @probe.has_ssl      = false
 caddy_try_verify(@domain)
 @stored = caddy_try_reload(@domain)
-[@stored.resolving == true, @stored.parse_vhost['id'], @stored.parse_vhost.key?('source')]
-#=> [true, 42, false]
+@vhost_data = @stored.parse_vhost
+[@stored.resolving == true,
+ @vhost_data.values_at('id', 'status', 'source', 'approximated_vhost_pending_cleanup'),
+ @stored.vhost_fetch_failed_at.to_s.empty?]
+#=> [true, [nil, 'PENDING_SSL', 'tls_probe', true], true]
 
 # Teardown
 @domain.destroy! if @domain&.exists?
