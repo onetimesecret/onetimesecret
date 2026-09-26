@@ -79,6 +79,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
 
   let(:worker) { test_worker_class.new }
   let(:message_id) { 'test-msg-123' }
+  let(:retry_delays) { [] }
 
   # Mock Sneakers delivery_info (envelope info)
   let(:delivery_info) do
@@ -105,8 +106,13 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
     allow(Onetime::Mail).to receive(:deliver)
     allow(Onetime::Mail).to receive(:deliver_raw)
 
-    # Mock sleep to speed up retry tests
-    allow(worker).to receive(:sleep)
+    # Collapse the retry backoff. The sleep is RetryHelper's, not the
+    # worker's: BaseWorker#with_retry delegates to
+    # Onetime::Utils::RetryHelper.with_retry, which calls sleep on itself
+    # (`extend self`), so a stub on the worker never fires and every example
+    # that exhausts the retries pays the real 2s + 4s + 8s (+jitter). Record
+    # the delays requested instead, so those examples can assert the schedule.
+    allow(Onetime::Utils::RetryHelper).to receive(:sleep) { |delay| retry_delays << delay }
   end
 
   describe '#work_with_params' do
@@ -347,6 +353,9 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
         # with_retry raises after max retries, outer rescue catches and calls reject!
         expect(worker.rejected?).to be true
         expect(Onetime::Mail).to have_received(:deliver).exactly(4).times # initial + 3 retries
+        # Backoff requested (base_delay 2.0, doubling, up to 30% jitter), not slept
+        expect(retry_delays.size).to eq(3)
+        expect(retry_delays.zip([2.0, 4.0, 8.0])).to all(satisfy { |delay, base| delay.between?(base, base * 1.3) })
       end
 
       it 'calls reject! without retrying when Mail.deliver raises non-transient DeliveryError' do
@@ -358,6 +367,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
         # Non-transient DeliveryError skips retries and goes straight to DLQ
         expect(worker.rejected?).to be true
         expect(Onetime::Mail).to have_received(:deliver).exactly(1).times
+        expect(retry_delays).to be_empty
       end
 
       it 'keeps idempotency key even when delivery fails after retries' do
