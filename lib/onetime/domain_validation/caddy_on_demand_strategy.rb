@@ -44,11 +44,13 @@ module Onetime
       # @param txt_verifier [#verify] Ownership checker (default: TxtVerifier).
       # @param tls_probe [#probe] Status checker (default: TlsProbe).
       #   Both are injected so specs never touch the network.
+      # @param clock [#call] Returns a Time or Unix epoch value (default: Familia.now).
       #
-      def initialize(config, txt_verifier: TxtVerifier.new, tls_probe: TlsProbe.new)
+      def initialize(config, txt_verifier: TxtVerifier.new, tls_probe: TlsProbe.new, clock: -> { Familia.now })
         @config       = config
         @txt_verifier = txt_verifier
         @tls_probe    = tls_probe
+        @clock        = clock
       end
 
       # Validates domain ownership via the TXT challenge record.
@@ -99,9 +101,10 @@ module Onetime
       #                 is rewritten on every check that knows is_resolving,
       #                 so its status and is_resolving never disagree with
       #                 `resolving`. When has_ssl is unknown, a blob already
-      #                 owned by this strategy carries its stored SSL fields.
-      #                 After an Approximated cutover, stale UI state is not
-      #                 carried; it is replaced with current probe state plus
+      #                 owned by this strategy carries its stored SSL fields
+      #                 only while its certificate remains valid (see
+      #                 #carried_ssl_fields). After an Approximated cutover,
+      #                 stale UI state is replaced with current probe state plus
       #                 an internal marker for orphaned-vhost cleanup.
       #   both nil      no :mode and no :data, the same shape Approximated
       #                 returns when its API call fails: nothing stored
@@ -250,8 +253,9 @@ module Onetime
       # filled from the probe. `status` reuses Approximated's values where the
       # UI keys off them (ACTIVE_SSL -> active, DNS_INCORRECT -> warning).
       def vhost_data(custom_domain, result, carry_stored_ssl:, cleanup_pending: false)
-        ssl    = ssl_fields(custom_domain, result, carry_stored: carry_stored_ssl)
-        status = if ssl['has_ssl'] == true then 'ACTIVE_SSL'
+        checked_at = @clock.call
+        ssl        = ssl_fields(custom_domain, result, checked_at, carry_stored: carry_stored_ssl)
+        status     = if ssl['has_ssl'] == true then 'ACTIVE_SSL'
                  elsif result.is_resolving then 'PENDING_SSL'
                  else
                    'DNS_INCORRECT'
@@ -263,21 +267,20 @@ module Onetime
           'status_message' => result.message,
           'is_resolving' => result.is_resolving,
           'dns_pointed_at' => result.connected_to || result.addresses.first,
-          'last_monitored_unix' => OT.now.to_i,
+          'last_monitored_unix' => checked_at.to_i,
           'source' => VHOST_SOURCE,
           APPROXIMATED_CLEANUP_PENDING => (true if cleanup_pending),
         }.merge(ssl).compact
       end
 
       # has_ssl and certificate dates come from the probe when it knows. An
-      # unknown result carries fields only from a blob this strategy owns;
-      # Approximated-era values would otherwise keep stale active UI state.
-      def ssl_fields(custom_domain, result, carry_stored:)
+      # unknown result carries unexpired fields only from a blob this strategy
+      # owns; Approximated-era values would otherwise keep stale active UI state.
+      def ssl_fields(custom_domain, result, checked_at, carry_stored:)
         if result.has_ssl.nil?
           return {} unless carry_stored
 
-          stored = custom_domain.parse_vhost
-          return stored.is_a?(Hash) ? stored.slice('has_ssl', 'ssl_active_from', 'ssl_active_until') : {}
+          return carried_ssl_fields(custom_domain, checked_at)
         end
 
         {
@@ -285,6 +288,26 @@ module Onetime
           'ssl_active_from' => iso8601(result.certificate&.not_before),
           'ssl_active_until' => iso8601(result.certificate&.not_after),
         }
+      end
+
+      # Once the certificate seen by an earlier probe expires, has_ssl is no
+      # longer known. Drop its claim and dates until a probe sees the current
+      # certificate. Numeric and Time clocks are compared as Unix epochs.
+      def carried_ssl_fields(custom_domain, checked_at)
+        stored = custom_domain.parse_vhost
+        return {} unless stored.is_a?(Hash)
+
+        carried = stored.slice('has_ssl', 'ssl_active_from', 'ssl_active_until')
+        return carried unless carried.key?('ssl_active_until')
+
+        active_until = parse_time(carried['ssl_active_until'])
+        active_until && active_until.to_f > checked_at.to_f ? carried : {}
+      end
+
+      def parse_time(value)
+        Time.iso8601(value.to_s)
+      rescue ArgumentError
+        nil
       end
 
       def iso8601(time)

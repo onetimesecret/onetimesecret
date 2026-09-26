@@ -980,7 +980,10 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
 
     let(:probe_result_class) { Onetime::DomainValidation::TlsProbe::Result }
     let(:tls_probe) { instance_double(Onetime::DomainValidation::TlsProbe) }
-    let(:strategy) { described_class.new(config, txt_verifier: txt_verifier, tls_probe: tls_probe) }
+    let(:now) { Time.utc(2026, 9, 18, 12, 0, 0) }
+    let(:strategy) do
+      described_class.new(config, txt_verifier: txt_verifier, tls_probe: tls_probe, clock: -> { now })
+    end
 
     def stub_probe(**attrs)
       allow(tls_probe).to receive(:probe)
@@ -1129,13 +1132,67 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
             'ssl_active_from' => '2026-09-01T00:00:00Z', 'ssl_active_until' => '2026-11-30T00:00:00Z' }
         end
 
-        it 'carries has_ssl and the certificate dates forward' do
+        it 'carries has_ssl and the certificate dates forward while the expiry is in the future' do
           expect(result[:data]).to include(
             'status' => 'ACTIVE_SSL',
             'has_ssl' => true,
             'ssl_active_from' => '2026-09-01T00:00:00Z',
             'ssl_active_until' => '2026-11-30T00:00:00Z',
           )
+        end
+      end
+
+      context 'with a stored certificate that expired before this check' do
+        let(:stored_vhost) do
+          { 'source' => 'tls_probe', 'status' => 'ACTIVE_SSL', 'is_resolving' => true, 'has_ssl' => true,
+            'ssl_active_from' => '2026-06-01T00:00:00Z', 'ssl_active_until' => '2026-09-18T11:59:59Z' }
+        end
+
+        it 'does not stamp the carried certificate as freshly active' do
+          expect(result).to include(has_ssl: nil, is_resolving: true)
+          expect(result[:data]).to include('status' => 'PENDING_SSL', 'is_resolving' => true)
+          expect(result[:data].keys).not_to include('has_ssl', 'ssl_active_from', 'ssl_active_until')
+        end
+      end
+
+      context 'with a stored certificate that expires exactly at this check' do
+        let(:stored_vhost) do
+          { 'source' => 'tls_probe', 'status' => 'ACTIVE_SSL', 'is_resolving' => true, 'has_ssl' => true,
+            'ssl_active_from' => '2026-06-01T00:00:00Z', 'ssl_active_until' => '2026-09-18T12:00:00Z' }
+        end
+
+        it 'treats the certificate as expired' do
+          expect(result[:data]).to include('status' => 'PENDING_SSL')
+          expect(result[:data].keys).not_to include('has_ssl', 'ssl_active_from', 'ssl_active_until')
+        end
+      end
+
+      context 'with the default Familia clock returning an epoch Float' do
+        let(:strategy) { described_class.new(config, txt_verifier: txt_verifier, tls_probe: tls_probe) }
+        let(:stored_vhost) do
+          { 'source' => 'tls_probe', 'status' => 'ACTIVE_SSL', 'is_resolving' => true, 'has_ssl' => true,
+            'ssl_active_from' => '2026-09-01T00:00:00Z', 'ssl_active_until' => '2026-11-30T00:00:00Z' }
+        end
+
+        before { allow(Familia).to receive(:now).and_return(now.to_f) }
+
+        it 'compares epoch-compatible values and carries a future certificate' do
+          expect(result[:data]).to include(
+            'status' => 'ACTIVE_SSL',
+            'has_ssl' => true,
+            'ssl_active_until' => '2026-11-30T00:00:00Z',
+            'last_monitored_unix' => now.to_i,
+          )
+        end
+      end
+
+      context 'with a stored ssl_active_until that cannot be read' do
+        let(:stored_vhost) do
+          { 'source' => 'tls_probe', 'status' => 'ACTIVE_SSL', 'has_ssl' => true, 'ssl_active_until' => 'soon' }
+        end
+
+        it 'drops it with the has_ssl claim it belonged to' do
+          expect(result[:data].keys).not_to include('has_ssl', 'ssl_active_until')
         end
       end
 
