@@ -67,6 +67,7 @@ clean runner — if they work there, they work here:
 ```bash
 bin/setup --test           # test lane: frozen deps, browsers, datastore on :2163
 tests/lanes/run unit       # Ruby: unit tryouts + RSpec fast suite
+tests/lanes/run browser    # Ruby: real-browser SAML callback matrix
 pnpm test                  # Vitest (frontend)
 ```
 

@@ -107,7 +107,7 @@ jobs:
 
       # --- The documented contributor path, from zero -------------------------
       # CONTRIBUTING.md's 5-minute path is `bin/setup`; its "run what CI runs"
-      # section is `bin/setup --test` + the two suites. This job runs exactly
+      # section is `bin/setup --test` + the three suites. This job runs exactly
       # those commands, in that order — the C6 proof (work-chunks: "C7's
       # fresh-clone job runs bin/setup itself").
       - name: Run bin/setup (documented contributor setup, first run)

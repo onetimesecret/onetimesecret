@@ -21,5 +21,6 @@ LANES_CODEGEN='locales'
 
 # Not declared here because the runner has no token for it: the Playwright
 # browser binaries (chromium, firefox, webkit). bin/setup --test installs
-# them, and the tasks file preflights them so a missing engine fails in
-# one line instead of as a 15-second launch timeout inside the matrix.
+# them, and the tasks file preflights them so a missing engine exits 69
+# (tooling, not a test failure) before Ruby boots, instead of surfacing as
+# the harness's own refusal inside a red RSpec example.

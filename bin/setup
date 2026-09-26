@@ -557,7 +557,7 @@ cmd_test() {
   echo "Test environment ready."
   echo "  Ruby:    tests/lanes/run unit   (all lanes: tests/lanes/run --list)"
   echo "  Vitest:  pnpm test"
-  echo "  Browser: tests/lanes/run unit --only tests/browser/saml_callback_spec.rb"
+  echo "  Browser: tests/lanes/run browser"
   echo "  Stop services:           docker compose -f compose.test.yml down"
   echo "  Switch back to dev mode: bin/setup"
 }
@@ -1406,7 +1406,7 @@ Lanes:
                CI), Playwright browsers for tests/browser (skip with
                OTS_SETUP_SKIP_BROWSERS=1), containerized test services,
                .test-mode marker, config smoke test.
-               Then: tests/lanes/run unit / pnpm test
+               Then: tests/lanes/run unit / tests/lanes/run browser / pnpm test
   --init       Self-hosting init: env file, secrets, install mark.
                Auto-reconciles when an environment already exists.
                (Operator front door: bin/install)

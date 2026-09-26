@@ -3,8 +3,10 @@
 #
 # Preflight: the three Playwright engines tests/browser/saml_callback.mjs
 # launches. Presence is what @playwright/test resolves (the same probe
-# bin/setup --doctor runs), never a path literal here. Exit 69 like the
-# runner's own service preflight: missing tooling, not a failing test.
+# bin/setup --doctor and the harness itself run), never a path literal here.
+# The harness already refuses to launch with a missing engine; the point of
+# probing here is exit 69 before Ruby boots, like the runner's own service
+# preflight: missing tooling, not a red RSpec example.
 missing="$(node --input-type=module -e '
   import { chromium, firefox, webkit } from "@playwright/test";
   import { existsSync } from "node:fs";

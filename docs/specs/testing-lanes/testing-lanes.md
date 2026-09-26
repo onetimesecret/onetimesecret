@@ -65,10 +65,11 @@ lanes. `selftest` clears all service URLs and is the deliberate exception.
 A lane may have a toolchain prerequisite the runner has no codegen token for.
 `browser` needs the Playwright browser binaries (chromium, firefox, webkit),
 which `bin/setup --test` and the CI job install; the lane's `tasks` preflights
-them and fails naming the install command, because a missing engine would
-otherwise surface as a launch timeout inside the matrix. On Linux the
-browsers' OS packages (`playwright install-deps`, sudo/apt) are installed by
-CI and by the contributor, never by `bin/setup` or a lane.
+them and exits 69 naming the install command: the harness itself refuses to
+launch with a missing engine, but only after Ruby has booted and as a red
+RSpec example rather than a tooling signal. On Linux the browsers' OS
+packages (`playwright install-deps`, sudo/apt) are installed by CI and by the
+contributor, never by `bin/setup` or a lane.
 
 Billing is an overlay on full-mode lanes only. It requires
 `AUTHENTICATION_MODE=full`; the runner rejects it elsewhere. Frontend Vitest,
