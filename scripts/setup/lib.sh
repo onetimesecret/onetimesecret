@@ -228,6 +228,58 @@ install_node() {
   fi
 }
 
+# --- Playwright browsers (test lane only) --------------------------------
+#
+# tests/browser/saml_callback.mjs drives real chromium/firefox/webkit via
+# @playwright/test, and CI installs that trio before running it (ci.yml).
+# The dev lane never does this: the binaries are hundreds of MB and only
+# the browser spec needs them. Skip with OTS_SETUP_SKIP_BROWSERS=1.
+#
+# Only the engine list is ours; where the binaries live and which revision
+# each engine expects is the package's manifest, so the presence probe asks
+# @playwright/test for executablePath() exactly as the harness does.
+PLAYWRIGHT_BROWSERS="chromium firefox webkit"
+
+# Prints the engines whose binary is absent (empty = all present). Exit 1
+# when the probe itself cannot run (no node, no node_modules).
+playwright_missing_browsers() {
+  has node || return 1
+  [[ -d node_modules/@playwright/test ]] || return 1
+  node --input-type=module -e '
+    import { chromium, firefox, webkit } from "@playwright/test";
+    import { existsSync } from "node:fs";
+    const engines = { chromium, firefox, webkit };
+    console.log(Object.keys(engines).filter((n) => !existsSync(engines[n].executablePath())).join(" "));
+  ' 2>/dev/null
+}
+
+install_playwright_browsers() {
+  if [[ -n "${OTS_SETUP_SKIP_BROWSERS:-}" ]]; then
+    echo "Skip: OTS_SETUP_SKIP_BROWSERS set — Playwright browsers not installed (tests/browser will not run)"
+    return 0
+  fi
+
+  local missing
+  if missing=$(playwright_missing_browsers) && [[ -z "$missing" ]]; then
+    echo "OK:   Playwright browsers present ($PLAYWRIGHT_BROWSERS)"
+    return 0
+  fi
+
+  # No --with-deps: that path runs sudo/apt, which setup never does.
+  info "Installing Playwright browsers (pnpm exec playwright install $PLAYWRIGHT_BROWSERS)..."
+  # shellcheck disable=SC2086  # deliberate word-split of the engine list
+  if pnpm exec playwright install $PLAYWRIGHT_BROWSERS; then
+    echo "OK:   Playwright browsers installed"
+  else
+    warn "Playwright browser install failed — tests/browser/saml_callback_spec.rb will not run."
+    warn "  Retry: pnpm playwright:install   (or skip: OTS_SETUP_SKIP_BROWSERS=1)"
+  fi
+  if [[ "$(uname -s)" == "Linux" ]]; then
+    echo "Note: the browsers may need OS packages on Linux. Run it yourself if launches fail:"
+    echo "      pnpm exec playwright install-deps   (uses sudo/apt; setup never does)"
+  fi
+}
+
 # --- Generated artifacts ------------------------------------------------
 #
 # Schemas and locales are backend inputs, not frontend build output: the
