@@ -9,15 +9,15 @@ require 'open3'
 # tests/lanes/ownership — the path -> lane table behind `tests/lanes/run
 # --which`, lane inference for a lane-less `--only` and `run-all --changed`
 # — is a hand transcription of the paths the lanes' rake tasks pass to
-# rspec and tryouts (lib/tasks/spec.rake). The runner lane checks it
-# against the tasks files and the directories on disk, but both of those
-# are lists too: nothing there proves the transcription matches what the
-# tasks SELECT, so a task that gained a subtree or an exclude pattern left
+# rspec and tryouts (lib/tasks/spec.rake). The second describe below
+# checks it against the tasks files and the directories on disk, but both
+# of those are lists too: nothing there proves the transcription matches
+# what the tasks SELECT, so a task that gained a subtree or an exclude pattern left
 # the table answering wrong with every check green. This spec closes that
 # gap, and needs Ruby to do it, which is why it lives in the unit lane.
 #
 # Method: read each lane's tasks file for the rake tasks it runs (the same
-# regex the runner lane uses), invoke every one of them in a subprocess with
+# regex the tasks-file check below uses), invoke every one of them in a subprocess with
 # `sh` captured — nothing runs; the captured argv is the task's whole
 # effect — and model each captured rspec command's file selection through
 # rspec's own Configuration, so `--exclude-pattern` resolves exactly as it
@@ -175,6 +175,71 @@ module LaneOwnershipProbe
     [status.exitstatus, out.split("\n").sort, err]
   end
 
+  # `<lanes> <pattern>`: bash-style globs (`*` spans `/`), first match
+  # wins, `shared` means every lane (lanes_all), `none` means no lane runs
+  # it — the tolerated ones are listed by name so a new one cannot hide
+  # among them.
+  OWNERSHIP_EXPECTED = [
+    %w[api                                          spec/api],
+    %w[browser                                      tests/browser],
+    %w[browser                                      tests/browser/*],
+    %w[unit                                         spec/cli],
+    %w[unit                                         spec/lib],
+    %w[unit                                         spec/unit],
+    %w[shared                                       spec/support],
+    %w[simple,disabled,full-sqlite,full-pg-agnostic spec/integration/all],
+    %w[disabled                                     spec/integration/disabled],
+    %w[full-sqlite,full-pg,full-pg-agnostic         spec/integration/full],
+    %w[simple                                       spec/integration/simple],
+    %w[full-sqlite,full-pg,migrations-sqlite        spec/integration/full/database_triggers/sqlite_spec.rb],
+    %w[full-sqlite,full-pg,migrations-pg            spec/integration/full/database_triggers/postgres_spec.rb],
+    %w[full-sqlite,full-pg,migrations-pg            spec/integration/full/postgres_infrastructure_spec.rb],
+    %w[unit                                         apps/*/*/spec],
+    %w[full-sqlite,full-pg                          apps/*/*/spec/integration/full/migrations/*_spec.rb],
+    %w[full-sqlite,full-pg,full-pg-agnostic         apps/*/*/spec/integration/full],
+    %w[full-mfa                                     apps/*/*/spec/integration/full_mfa],
+    %w[full-saml-platform                           apps/*/*/spec/integration/full_saml_platform],
+    %w[simple                                       apps/*/*/spec/integration/simple],
+    %w[none                                         apps/web/billing/spec/integration/*_spec.rb],
+    %w[unit                                         try/features],
+    %w[unit                                         try/jobs],
+    %w[unit                                         try/security],
+    %w[unit                                         try/system],
+    %w[unit                                         try/unit],
+    %w[shared                                       try/support],
+    %w[simple                                       try/integration/api],
+    %w[simple                                       try/integration/billing],
+    %w[simple                                       try/integration/boot],
+    %w[simple                                       try/integration/email],
+    %w[simple                                       try/integration/middleware],
+    %w[simple                                       try/integration/web],
+    %w[simple                                       try/integration/check_jobqueue_live_try.rb],
+    %w[simple                                       try/integration/homepage_bypass_header_integration_try.rb],
+    %w[simple                                       try/integration/homepage_mode_integration_try.rb],
+    %w[none                                         try/integration/auth],
+    %w[none                                         try/integration/authentication],
+    %w[none                                         try/integration/colonel_role_auth_try.rb],
+    %w[none                                         try/integration/domain_auth_enforcement_try.rb],
+    %w[none                                         try/api],
+    %w[none                                         try/disabled],
+    %w[none                                         try/docker],
+    %w[none                                         try/migrations],
+    %w[none                                         try/scripts],
+    %w[none                                         try/tasks],
+    %w[none                                         try/web],
+  ].freeze
+
+  # Every test directory (and the individually named files) on disk. Each
+  # glob has to match something: a glob that matched nothing would silently
+  # drop a whole tree from the walk.
+  OWNERSHIP_WALK = %w[
+    tests/browser/ tests/browser/*
+    spec/*/ spec/integration/*/ spec/integration/full/database_triggers/*_spec.rb spec/integration/full/postgres_*_spec.rb
+    apps/*/*/spec/ apps/*/*/spec/integration/*/ apps/*/*/spec/integration/*_spec.rb
+    apps/*/*/spec/integration/full/migrations/*_spec.rb
+    try/*/ try/integration/*/ try/integration/*_try.rb
+  ].freeze
+
   # The table's own functions, run by the shell that defines them: one bash
   # process sourcing tests/lanes/ownership, then the given script, with the
   # paths as positional arguments. The runner scrubs its environment before
@@ -192,9 +257,15 @@ module LaneOwnershipProbe
 
   # lane => rake tasks, as tests/lanes/ownership records them.
   def owner_tasks
-    @owner_tasks ||= ownership_shell(<<~'BASH').lines.to_h { |l| k, v = l.chomp.split("\t", 2); [k, v.to_s.split.sort.uniq] }
+    return @owner_tasks if defined?(@owner_tasks)
+
+    out = ownership_shell(<<~'BASH')
       for lane in "${!LANES_OWNER_TASKS[@]}"; do printf '%s\t%s\n' "${lane}" "${LANES_OWNER_TASKS[${lane}]}"; done
     BASH
+    @owner_tasks = out.lines.to_h do |line|
+      lane, tasks = line.chomp.split("\t", 2)
+      [lane, tasks.to_s.split.sort.uniq]
+    end
   end
 
   # lane => rake tasks, as each lane's tasks file actually runs them — the
@@ -216,7 +287,10 @@ module LaneOwnershipProbe
     out = ownership_shell(<<~'BASH', *paths)
       for p in "$@"; do printf '%s\t' "${p}"; lanes_for_path "${p}" | tr '\n' ','; printf '\n'; done
     BASH
-    out.lines.to_h { |l| k, v = l.chomp.split("\t", 2); [k, v.to_s.split(',')] }
+    out.lines.to_h do |line|
+      path, lanes = line.chomp.split("\t", 2)
+      [path, lanes.to_s.split(',')]
+    end
   end
 end
 
@@ -298,74 +372,9 @@ RSpec.describe 'tests/lanes/ownership against the lane directories' do
     expect(probe.lanes_all).to eq((on_disk - ['smoke']).sort)
   end
 
-  # `<lanes> <pattern>`: bash-style globs (`*` spans `/`), first match
-  # wins, `shared` means every lane (lanes_all), `none` means no lane runs
-  # it — the tolerated ones are listed by name so a new one cannot hide
-  # among them.
-  EXPECTED = [
-    %w[api                                          spec/api],
-    %w[browser                                      tests/browser],
-    %w[browser                                      tests/browser/*],
-    %w[unit                                         spec/cli],
-    %w[unit                                         spec/lib],
-    %w[unit                                         spec/unit],
-    %w[shared                                       spec/support],
-    %w[simple,disabled,full-sqlite,full-pg-agnostic spec/integration/all],
-    %w[disabled                                     spec/integration/disabled],
-    %w[full-sqlite,full-pg,full-pg-agnostic         spec/integration/full],
-    %w[simple                                       spec/integration/simple],
-    %w[full-sqlite,full-pg,migrations-sqlite        spec/integration/full/database_triggers/sqlite_spec.rb],
-    %w[full-sqlite,full-pg,migrations-pg            spec/integration/full/database_triggers/postgres_spec.rb],
-    %w[full-sqlite,full-pg,migrations-pg            spec/integration/full/postgres_infrastructure_spec.rb],
-    %w[unit                                         apps/*/*/spec],
-    %w[full-sqlite,full-pg                          apps/*/*/spec/integration/full/migrations/*_spec.rb],
-    %w[full-sqlite,full-pg,full-pg-agnostic         apps/*/*/spec/integration/full],
-    %w[full-mfa                                     apps/*/*/spec/integration/full_mfa],
-    %w[full-saml-platform                           apps/*/*/spec/integration/full_saml_platform],
-    %w[simple                                       apps/*/*/spec/integration/simple],
-    %w[none                                         apps/web/billing/spec/integration/*_spec.rb],
-    %w[unit                                         try/features],
-    %w[unit                                         try/jobs],
-    %w[unit                                         try/security],
-    %w[unit                                         try/system],
-    %w[unit                                         try/unit],
-    %w[shared                                       try/support],
-    %w[simple                                       try/integration/api],
-    %w[simple                                       try/integration/billing],
-    %w[simple                                       try/integration/boot],
-    %w[simple                                       try/integration/email],
-    %w[simple                                       try/integration/middleware],
-    %w[simple                                       try/integration/web],
-    %w[simple                                       try/integration/check_jobqueue_live_try.rb],
-    %w[simple                                       try/integration/homepage_bypass_header_integration_try.rb],
-    %w[simple                                       try/integration/homepage_mode_integration_try.rb],
-    %w[none                                         try/integration/auth],
-    %w[none                                         try/integration/authentication],
-    %w[none                                         try/integration/colonel_role_auth_try.rb],
-    %w[none                                         try/integration/domain_auth_enforcement_try.rb],
-    %w[none                                         try/api],
-    %w[none                                         try/disabled],
-    %w[none                                         try/docker],
-    %w[none                                         try/migrations],
-    %w[none                                         try/scripts],
-    %w[none                                         try/tasks],
-    %w[none                                         try/web],
-  ].freeze
-
-  # Every test directory (and the individually named files) on disk. Each
-  # glob has to match something: a glob that matched nothing would silently
-  # drop a whole tree from the walk.
-  WALK = %w[
-    tests/browser/ tests/browser/*
-    spec/*/ spec/integration/*/ spec/integration/full/database_triggers/*_spec.rb spec/integration/full/postgres_*_spec.rb
-    apps/*/*/spec/ apps/*/*/spec/integration/*/ apps/*/*/spec/integration/*_spec.rb
-    apps/*/*/spec/integration/full/migrations/*_spec.rb
-    try/*/ try/integration/*/ try/integration/*_try.rb
-  ].freeze
-
   it 'resolves every spec/ and try/ directory on disk to the lanes expected of it' do
     paths = Dir.chdir(probe.repo_root) do
-      WALK.flat_map do |glob|
+      LaneOwnershipProbe::OWNERSHIP_WALK.flat_map do |glob|
         found = Dir.glob(glob).map { |p| p.chomp('/') }
         expect(found).not_to be_empty, "walk glob '#{glob}' matched nothing"
         found
@@ -377,7 +386,7 @@ RSpec.describe 'tests/lanes/ownership against the lane directories' do
     problems = paths.filter_map do |path|
       # `*` spans `/` in a bash `[[ == ]]` glob; File.fnmatch without
       # FNM_PATHNAME matches the same way.
-      row = EXPECTED.find { |_, pattern| File.fnmatch(pattern, path) }
+      row = LaneOwnershipProbe::OWNERSHIP_EXPECTED.find { |_, pattern| File.fnmatch(pattern, path) }
       next "no ownership expectation for '#{path}': add a row here and, if a lane runs it, to tests/lanes/ownership" unless row
 
       want = case row.first
