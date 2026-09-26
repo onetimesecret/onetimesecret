@@ -295,8 +295,8 @@ builtin unset _lanes_all_exported_funcs _lanes_func _lanes_debug
 export LANG=C.UTF-8
 export LC_ALL=C.UTF-8
 
-LANES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${LANES_DIR}/../.." && pwd)"
+LANES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+REPO_ROOT="$(cd "${LANES_DIR}/../.." && pwd -P)"
 
 # ── Phase clock ──────────────────────────────────────────────────────────
 # The epilogue at the bottom prints one line of wall-clock per phase —
@@ -338,6 +338,7 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "                 wholesale, which is what it has always done. With no"
   echo "                 lane named, the lane is inferred from the path; a"
   echo "                 path several lanes run needs the lane spelled out."
+  echo "                 RSpec directories work; try/ directories are refused."
   echo "  --which <path> print the lane(s) whose tasks run that file or"
   echo "                 directory (tests/lanes/ownership), then exit."
   echo "  -- <args>      everything after it goes to rspec verbatim (never to"
@@ -520,18 +521,36 @@ if [[ ${PASSTHROUGH} -eq 1 && ${#ONLY[@]} -eq 0 ]]; then
   exit 64
 fi
 # --only's runner is chosen by filename: tryouts own `*_try.rb`, rspec owns
-# the rest. Mixing the two in one invocation would need two commands and an
-# ordering rule nobody asked for; ask for two runs instead. Classified here,
-# with the rest of argv, so --print-key reports the same verdict a run gets.
+# the rest. A directory under try/ cannot be classified by its suffix, and
+# handing it to rspec produces a false-green zero-example run, so reject it
+# rather than expanding it into an unbounded argv or inventing mixed-runner
+# ordering. RSpec directories remain valid. Classified here, with the rest of
+# argv, so --print-key reports the same verdict a run gets.
 _only_try=0
 _only_spec=0
 for _p in ${ONLY[@]+"${ONLY[@]}"}; do
-  case "${_p%%:*}" in
+  _only_target="${_p%%:*}"
+  _only_directory=''
+  if [[ -d "${REPO_ROOT}/${_only_target}" ]]; then
+    _only_directory="$(cd "${REPO_ROOT}/${_only_target}" && pwd -P)"
+  elif [[ -d "${_only_target}" ]]; then
+    _only_directory="$(cd "${_only_target}" && pwd -P)"
+  fi
+  if [[ "${_only_directory}" == "${REPO_ROOT}/"* ]]; then
+    _only_relative="${_only_directory#"${REPO_ROOT}/"}"
+    case "/${_only_relative}/" in
+      */try/*)
+        echo "error: --only cannot target tryouts directory '${_only_target}'; pass individual *_try.rb files or run the full lane" >&2
+        exit 64
+        ;;
+    esac
+  fi
+  case "${_only_target}" in
     *_try.rb) _only_try=1 ;;
     *)        _only_spec=1 ;;
   esac
 done
-builtin unset _p
+builtin unset _p _only_target _only_directory _only_relative
 if [[ ${_only_try} -eq 1 && ${_only_spec} -eq 1 ]]; then
   echo "error: --only cannot mix tryouts (*_try.rb) and rspec files in one run" >&2
   exit 64

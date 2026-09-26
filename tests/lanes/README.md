@@ -50,7 +50,10 @@ $ tests/lanes/run --only spec/api/v2/secret_ttl_entitlement_spec.rb:20          
   lane runs it (`try/web`, a docs file) it exits 64 saying so — name the lane
   to run the file there anyway. Several `--only` paths must agree on one lane.
 - `*_try.rb` files use `try --agent`; other files use `rspec`. Do not mix both
-  kinds in one invocation. A directory is a valid path (rspec loads it).
+  kinds in one invocation. RSpec directories are valid paths; Tryouts
+  directories (any `try/` tree) are rejected because RSpec would otherwise
+  report a false-green zero-example run. Pass individual `_try.rb` files or
+  run the complete lane.
 - `path:LINE` selects an RSpec example.
 - `--only` preserves the lane's isolation and environment guarantees, but skips
   generated prerequisites and every other task. Run the complete lane before

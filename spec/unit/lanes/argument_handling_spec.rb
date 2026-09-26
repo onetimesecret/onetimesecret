@@ -4,6 +4,7 @@
 
 require 'spec_helper'
 require 'open3'
+require 'tmpdir'
 
 # The argument surface of tests/lanes/run (#4492): which flag combinations
 # the runner accepts, which it refuses with exit 64, what --quiet exports,
@@ -48,10 +49,10 @@ module LaneArgumentProbe
 
   # Merged stdout+stderr and the status. The runner prints its --print-key
   # lines on stdout and its refusals on stderr; both matter to the examples.
-  def run(*args, env: {})
+  def run(*args, env: {}, runner_path: runner, working_directory: repo_root)
     Open3.capture2e(
       { 'RSPEC_OUTPUT_FILE' => nil, 'LANES_NO_AUTOSTART' => '1' }.merge(env),
-      runner, *args, chdir: repo_root
+      runner_path, *args, chdir: working_directory
     )
   end
 
@@ -81,6 +82,10 @@ RSpec.describe 'tests/lanes/run argument handling' do
       [64, %w[--print-key -- --only-failures]],
       [0,  %w[--print-key --only spec/unit/lanes/hermetic_boundary_spec.rb -- --only-failures]],
       [0,  %w[--print-key --only spec/unit/lanes/hermetic_boundary_spec.rb --]],
+      [0,  %w[--print-key --only spec/unit/lanes]],
+      [64, %w[--print-key --only try/unit]],
+      [64, %w[--print-key --only apps/web/auth/try]],
+      [64, %w[--print-key --only apps/api/domains/try]],
       [64, %w[--print-key --only try/unit/base_view_try.rb -- --only-failures]],
       [64, %w[--print-key --only try/unit/base_view_try.rb --only spec/unit/lanes/hermetic_boundary_spec.rb]],
       [0,  %w[--console --print-key]],
@@ -93,6 +98,30 @@ RSpec.describe 'tests/lanes/run argument handling' do
       it "exits #{want} for: selftest #{args.join(' ')}" do
         output, status = probe.run('selftest', *args)
         expect(status.exitstatus).to eq(want), "exited #{status.exitstatus}:\n#{output}"
+      end
+    end
+  end
+
+  describe '--only directories' do
+    it 'rejects a tryouts directory with an actionable error' do
+      output, status = probe.run('unit', '--only', 'try/unit/', '--print-key')
+
+      expect(status.exitstatus).to eq(64), output
+      expect(output).to include('pass individual *_try.rb files or run the full lane')
+    end
+
+    it 'rejects a tryouts directory through a symlinked checkout path' do
+      Dir.mktmpdir('ots-lane-symlink') do |dir|
+        checkout = File.join(dir, 'checkout')
+        File.symlink(probe.repo_root, checkout)
+        output, status = probe.run(
+          'unit', '--only', 'apps/web/auth/try', '--print-key',
+          runner_path: File.join(checkout, 'tests', 'lanes', 'run'),
+          working_directory: checkout,
+        )
+
+        expect(status.exitstatus).to eq(64), output
+        expect(output).to include('pass individual *_try.rb files or run the full lane')
       end
     end
   end
@@ -135,6 +164,9 @@ RSpec.describe 'tests/lanes/run argument handling' do
       [64, %w[--which spec/api lib]],
       [0,  %w[--only spec/unit/lanes/hermetic_boundary_spec.rb --print-key]],
       [0,  %w[--only tests/browser/saml_callback_spec.rb --print-key]],
+      [0,  %w[--only spec/unit/lanes --print-key]],
+      [64, %w[--only try/unit --print-key]],
+      [64, %w[--only apps/web/billing/try --print-key]],
       [0,  %w[--quiet --only spec/unit/lanes/hermetic_boundary_spec.rb --only spec/unit/lanes/run_all_spec.rb --print-key]],
       [64, %w[--only spec/integration/full --print-key]],
       [64, %w[--only spec/unit/lanes/hermetic_boundary_spec.rb --only spec/api --print-key]],
