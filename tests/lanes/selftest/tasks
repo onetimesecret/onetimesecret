@@ -258,6 +258,9 @@ done <<'ROWS'
 64 --quiet
 64 --console --print-key
 64 selftest --which spec/api
+64 ../selftest --print-key
+64 selftest/ --print-key
+64 ../../tests/lanes/selftest --print-key
 ROWS
 if [[ "$(tests/lanes/run --which spec/api 2>/dev/null)" != api ]]; then
   echo '[lane:selftest] FAILED: --which spec/api did not print exactly "api"' >&2

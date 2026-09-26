@@ -396,6 +396,12 @@ LANE=''
 if [[ "${1:-}" != --* ]]; then
   LANE="$1"
   shift
+  # Same character set as an overlay name, checked before the name reaches
+  # a path: the lane names the per-run directory under tmp/lanes/ and is a
+  # field of the isolation key, so `../x` would mkdir and tee outside tmp/
+  # and `unit/` would derive a different index than `unit` for the same
+  # lane — one the same-lane liveness check could not see.
+  [[ "${LANE}" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "error: lane name '${LANE}' contains invalid characters" >&2; exit 64; }
   LANE_DIR="${LANES_DIR}/${LANE}"
   if [[ ! -f "${LANE_DIR}/env" || ! -f "${LANE_DIR}/tasks" ]]; then
     echo "error: unknown lane '${LANE}' (see: tests/lanes/run --list)" >&2
