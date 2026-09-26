@@ -315,4 +315,12 @@ if [[ "${got}" != 64 ]]; then
   echo "[lane:selftest] FAILED: run-all --changed with a lane name exited ${got}, expected 64" >&2
   exit 1
 fi
+# The stub is honored only with --dry-run: without it a set stub is an
+# error, so a stale shell export can never stand in for the git diff.
+got=0
+LANES_CHANGED_STUB='spec/api/v2/x_spec.rb' tests/lanes/run-all --changed >/dev/null 2>&1 || got=$?
+if [[ "${got}" != 64 ]]; then
+  echo "[lane:selftest] FAILED: run-all --changed with LANES_CHANGED_STUB and no --dry-run exited ${got}, expected 64" >&2
+  exit 1
+fi
 echo '--- lane:selftest ownership ok ---'

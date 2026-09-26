@@ -369,8 +369,9 @@ path that caused it. One shared path (`lib/`, `Gemfile.lock`,
 which path did it. When no lane runs any changed path there is nothing to
 run and the command exits 0 saying so — it never falls back to the default
 set. Lane names cannot be combined with `--changed`. The `selftest` lane
-exercises the selection with a stubbed diff (`LANES_CHANGED_STUB`, set by
-that lane only).
+exercises the selection with a stubbed diff (`LANES_CHANGED_STUB`, honored
+only together with `--dry-run`; set without it, the command exits 64 rather
+than run a substituted diff).
 
 ## Rules
 

@@ -172,15 +172,24 @@ done
 #
 # LANES_CHANGED_STUB replaces the git query with a newline-separated path
 # list. It exists for tests/lanes/selftest/tasks, which has no branch of its
-# own to diff; nothing else sets it.
+# own to diff. This script has no scrub, so a stale export in a dev shell
+# would reach it like any other variable: it is honored only when non-empty
+# (an empty one would silently select nothing and exit 0 as "nothing to
+# run") and only with --dry-run, which is the only way the selftest uses
+# it; without --dry-run a set stub is an error, never a substituted diff.
 if [[ ${CHANGED} -eq 1 ]]; then
   if [[ ${#LANES[@]} -gt 0 ]]; then
     echo "error: --changed selects the lanes itself; lane names cannot be given with it" >&2
     exit 64
   fi
-  if [[ -n "${LANES_CHANGED_STUB+set}" ]]; then
+  if [[ -n "${LANES_CHANGED_STUB:-}" ]]; then
+    if [[ ${DRY_RUN} -eq 0 ]]; then
+      echo "error: LANES_CHANGED_STUB is set; it replaces the git diff and is honored only with --dry-run" >&2
+      echo "  unset it (a stale shell export?) or add --dry-run" >&2
+      exit 64
+    fi
     CHANGED_LIST="${LANES_CHANGED_STUB}"
-    echo "[run-all] changed: paths from LANES_CHANGED_STUB"
+    echo "[run-all] changed: $(grep -c . <<< "${CHANGED_LIST}" || true) path(s) from LANES_CHANGED_STUB, not git"
   else
     base="${CHANGED_BASE}"
     if [[ -z "${base}" ]]; then
