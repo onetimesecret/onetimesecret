@@ -27,7 +27,7 @@ on:
       - 'bin/setup'
       - 'bin/install'
       - 'bin/doctor'
-      - 'scripts/setup/**'
+      - 'tools/setup/**'
       - 'Gemfile'
       - 'Gemfile.lock'
       - 'package.json'
@@ -166,7 +166,8 @@ jobs:
         run: |
           docker run --rm -i -v "$PWD:/src" -w /src bash:3.2 sh -c '
             set -e
-            for f in bin/setup bin/install bin/doctor scripts/setup/lib.sh \
+            for f in bin/setup bin/install bin/doctor tools/setup/lib.sh \
+                     tools/setup/new-worktree.sh \
                      scripts/install-tests/run.sh \
                      scripts/install-tests/proof-of-life.sh \
                      scripts/install-tests/secret-rotation.sh \

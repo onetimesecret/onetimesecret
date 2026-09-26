@@ -170,7 +170,33 @@ pnpm run test:database:clean   # Flush the test databases (asks first)
 ## Git hooks and merge drivers
 
 `bin/setup` installs the [pre-commit](https://pre-commit.com)-managed hooks
-(pre-commit, prepare-commit-msg, pre-push) when `pre-commit` is on your PATH.
+(pre-commit, prepare-commit-msg, post-commit, post-checkout, post-merge,
+pre-push) when `pre-commit` is on your PATH.
+
+### New worktrees (opt-in)
+
+A new worktree has no dependencies, config or generated files. To have
+`git worktree add` run `bin/setup` in it, opt in once per clone:
+
+```bash
+git config ots.worktreeSetup true
+```
+
+The post-checkout hook ([`tools/setup/new-worktree.sh`](../../tools/setup/new-worktree.sh))
+then runs `bin/setup --dev` when the worktree's name starts with `dev`, and
+`bin/setup --test` otherwise. The name is the worktree's directory, or its
+parent directory when the worktree directory is named after the main
+checkout (`worktrees/onetimesecret/dev-api/onetimesecret` is `dev-api`).
+
+- Output goes to `tmp/worktree-setup.log` in the new worktree. A failed
+  setup does not fail `git worktree add`; check the log.
+- It applies to anything that runs `git worktree add`, including Zed. Tools
+  that create worktrees without running git hooks are not covered; run
+  `bin/setup` there yourself.
+- The worktree's own commit must include this hook, so worktrees of older
+  branches are not set up.
+- To skip it once: `git -c core.hooksPath=/dev/null worktree add ...` (this
+  skips every hook). To opt out: `git config --unset ots.worktreeSetup`.
 
 ### Git JSON merge driver (recommended)
 

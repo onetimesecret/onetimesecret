@@ -185,3 +185,15 @@ repos:
         language: system
         always_run: true
         pass_filenames: false
+
+  # New-worktree setup, opt-in: git config ots.worktreeSetup true
+  - repo: local
+    hooks:
+      - id: new-worktree-setup
+        stages: [post-checkout]
+        name: New worktree setup (opt-in)
+        description: Run bin/setup in a worktree git just created (docs/development/README.md)
+        entry: tools/setup/new-worktree.sh
+        language: system
+        always_run: true
+        pass_filenames: false

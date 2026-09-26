@@ -31,8 +31,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-# shellcheck source=scripts/setup/lib.sh
-source "$ROOT/scripts/setup/lib.sh"
+# shellcheck source=tools/setup/lib.sh
+source "$ROOT/tools/setup/lib.sh"
 
 OTS_DEV_CONFIG="${OTS_DEV_CONFIG:-$HOME/.config/onetimesecret-dev}"
 
@@ -238,6 +238,16 @@ install_git_hooks() {
     || { echo "Warning: pre-push hook install failed"; return; }
 }
 
+# Closing note for the opt-in new-worktree setup (tools/setup/
+# new-worktree.sh). Silent once this clone has opted in.
+worktree_setup_hint() {
+  git rev-parse --git-dir &>/dev/null || return 0
+  worktree_setup_enabled && return 0
+  echo ""
+  echo "Optional: run bin/setup in every new worktree (--dev when its name starts with dev, else --test):"
+  echo "  git config ots.worktreeSetup true   # docs/development/README.md#new-worktrees-opt-in"
+}
+
 # =======================================================================
 # Lane: dev (default)
 # =======================================================================
@@ -353,6 +363,7 @@ cmd_dev() {
   echo "To run the test suites: bin/setup --test, then:"
   echo "  tests/lanes/run unit       # Ruby (see: tests/lanes/run --list)"
   echo "  pnpm test                  # Vitest"
+  worktree_setup_hint
 }
 
 # =======================================================================
@@ -560,6 +571,7 @@ cmd_test() {
   echo "  Browser: tests/lanes/run browser"
   echo "  Stop services:           docker compose -f compose.test.yml down"
   echo "  Switch back to dev mode: bin/setup"
+  worktree_setup_hint
 }
 
 # =======================================================================
