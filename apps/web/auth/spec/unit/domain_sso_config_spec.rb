@@ -246,7 +246,72 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
       end
     end
 
-    # Tenant SSO is OIDC/Entra-only (#3902): issuerless providers resolve to
+    # #4450. The tenant arm is the platform definition's builder plus the
+    # record's trio — never a second copy of the hardened hash.
+    describe 'for SAML provider' do
+      let(:config) { build_domain_sso_config(:saml) }
+
+      it 'names the request-bound subclass, not the gem strategy' do
+        expect(config.to_omniauth_options[:strategy]).to eq(:request_bound_saml)
+      end
+
+      it 'is exactly the shared hardened options plus the record trio' do
+        expect(config.to_omniauth_options).to eq(expected_domain_omniauth_options(:saml))
+      end
+
+      it 'carries the FULL security hash (a partial one would null ruby-saml defaults)' do
+        expect(config.to_omniauth_options[:security]).to eq(Onetime::SsoProvider::Saml::SECURITY)
+      end
+
+      # ruby-saml treats `issuer` as OUR SP EntityID and resolve_issuer reads
+      # strategy option :issuer first — either would mis-key every identity.
+      # SP identifiers are per-request (omniauth_tenant.rb); a fingerprint
+      # trusts whatever certificate the response embeds.
+      it 'never carries :issuer, SP identifiers, a fingerprint or a skip_* option' do
+        keys = config.to_omniauth_options.keys.map(&:to_s)
+
+        expect(keys).not_to include('issuer', 'sp_entity_id', 'assertion_consumer_service_url',
+          'idp_cert_fingerprint', 'idp_cert_multi')
+        expect(keys.grep(/\Askip_/)).to be_empty
+      end
+
+      # Tenant options are merged OVER the platform-registered strategy, so an
+      # omitted key would inherit the platform's SAML_UID_ATTRIBUTE.
+      it 'resets uid_attribute explicitly' do
+        options = config.to_omniauth_options
+
+        expect(options).to have_key(:uid_attribute)
+        expect(options[:uid_attribute]).to be_nil
+      end
+
+      it 'ignores a stored issuer field (a record cannot move the identity key)' do
+        config.issuer = 'https://sp-or-anything.example.com'
+
+        expect(config.to_omniauth_options).not_to have_key(:issuer)
+      end
+
+      it 'raises Onetime::Problem when a trio field is blank' do
+        config.idp_entity_id = nil
+
+        expect { config.to_omniauth_options }
+          .to raise_error(Onetime::Problem, /unusable: IdP EntityID is blank/)
+      end
+
+      it 'raises Onetime::Problem when the certificate has expired' do
+        config.idp_cert = expired_saml_cert_pem
+
+        expect { config.to_omniauth_options }.to raise_error(Onetime::Problem, /unusable: IdP certificate expired/)
+      end
+
+      it 'raises Onetime::Problem, not a decryption error, when a field cannot be revealed' do
+        allow(config).to receive(:reveal_saml_field).and_raise(Familia::EncryptionError, 'boom with detail')
+
+        expect { config.to_omniauth_options }
+          .to raise_error(Onetime::Problem, /unreadable \(Familia::EncryptionError\)\z/)
+      end
+    end
+
+    # Tenant SSO is OIDC/Entra/SAML-only (#3902): issuerless providers resolve to
     # the '' issuer sentinel and cannot satisfy (provider, issuer, uid)
     # partitioning, so they are no longer dispatchable provider types.
     describe 'for removed issuerless providers' do
@@ -495,7 +560,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
   describe 'PROVIDER_METADATA constant' do
     it 'defines metadata for all provider types' do
       expect(described_class::PROVIDER_METADATA).to be_a(Hash)
-      expect(described_class::PROVIDER_METADATA.keys).to include('oidc', 'entra_id')
+      expect(described_class::PROVIDER_METADATA.keys).to include('oidc', 'entra_id', 'saml')
     end
 
     it 'excludes removed issuerless providers (#3902)' do
@@ -560,15 +625,28 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
         'adding it here.'
     end
 
+    # Built from the FULL fixture, not the minimal one: the SAML arm refuses
+    # to build options without a usable trio (Onetime::Problem), which a
+    # minimal record cannot supply. "Has a dispatch branch" is still what is
+    # being guarded — a missing branch raises "Unsupported" for any record.
     it 'to_omniauth_options dispatches every PROVIDER_TYPES value' do
       fake_domain = instance_double(Onetime::CustomDomain, extid: 'cd_guard_extid')
       allow_any_instance_of(described_class).to receive(:custom_domain).and_return(fake_domain)
 
       described_class::PROVIDER_TYPES.each do |provider_type|
-        config = build_minimal_domain_sso_config(domain_id: 'guard-domain', provider_type: provider_type)
+        config = build_domain_sso_config(provider_type.to_sym, domain_id: 'guard-domain')
         expect { config.to_omniauth_options }
           .not_to raise_error, "to_omniauth_options has no dispatch branch for '#{provider_type}'"
       end
+    end
+
+    # #4450: "is client_id required?" has ONE answer per type, read by the
+    # model, the API logic and the frontend contract test. Every type must be
+    # classified — an unclassified type would silently demand a credential.
+    it 'CLIENT_CREDENTIAL_PROVIDER_TYPES is a subset of PROVIDER_TYPES and excludes saml' do
+      expect(described_class::CLIENT_CREDENTIAL_PROVIDER_TYPES - described_class::PROVIDER_TYPES).to eq([])
+      expect(described_class::CLIENT_CREDENTIAL_PROVIDER_TYPES).to contain_exactly('oidc', 'entra_id')
+      expect(described_class.client_credentials?('saml')).to be false
     end
 
     it 'test fixtures enumerate the same providers as the model' do
@@ -578,14 +656,20 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
     # BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES is an intentionally
     # decoupled local constant (it must keep refusing pre-#3902 stored
-    # google/github rows even if PROVIDER_TYPES changes later), so this only
-    # guards the direction that would silently break the backfill: a new
-    # provider added to PROVIDER_TYPES without a matching update there. It
-    # deliberately does NOT assert equality — ISSUER_BEARING_PROVIDER_TYPES
-    # retaining historical entries beyond PROVIDER_TYPES is expected.
-    it 'BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES covers every current PROVIDER_TYPES value' do
-      expect(described_class::PROVIDER_TYPES - Auth::Operations::BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES)
-        .to eq([]), "PROVIDER_TYPES gained a value BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES doesn't know about"
+    # google/github rows even if PROVIDER_TYPES changes later). The intended
+    # relationship is PROVIDER_TYPES minus saml: saml (#4450) is EXCLUDED on
+    # purpose, because the legacy '' rows the backfill relabels hold OAuth/OIDC
+    # `sub` values and a SAML uid is a NameID — a different namespace, so
+    # stamping the SAML issuer onto them would let a colliding NameID sign in
+    # as an old account. Asserting exact equality with PROVIDER_TYPES - ['saml']
+    # trips in BOTH directions: a new provider type added to PROVIDER_TYPES
+    # must be classified there (stampable or refused), and saml must never
+    # quietly become stampable again.
+    it 'BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES is PROVIDER_TYPES minus saml' do
+      message = 'PROVIDER_TYPES changed; classify the new type in ' \
+                'BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES (saml stays excluded: NameID is not an OAuth sub)'
+      expect(Auth::Operations::BackfillTenantIssuer::ISSUER_BEARING_PROVIDER_TYPES)
+        .to match_array(described_class::PROVIDER_TYPES - ['saml']), message
     end
   end
 
@@ -806,6 +890,78 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
       it 'returns an empty errors array' do
         expect(config.validation_errors).to eq([])
+      end
+    end
+
+    # #4450
+    context 'with a fully valid SAML config' do
+      let(:config) { build_domain_sso_config(:saml) }
+
+      it 'returns an empty errors array without any client credential' do
+        expect(config.client_id).to be_nil
+        expect(config.client_secret).to be_nil
+        expect(config.validation_errors).to eq([])
+      end
+    end
+
+    context 'when a SAML config is missing a trio field' do
+      Onetime::CustomDomain::SsoConfig::SAML_FIELDS.each do |field|
+        it "returns an error naming #{field}" do
+          config = build_domain_sso_config(:saml)
+          config.public_send(:"#{field}=", '')
+
+          expect(config.validation_errors).to eq(["#{field} is required for SAML provider"])
+        end
+      end
+    end
+
+    context 'when a SAML trio field is structurally invalid' do
+      it 'refuses an http SSO service URL' do
+        config = build_domain_sso_config(:saml, idp_sso_service_url: 'http://idp.example.com/sso')
+
+        expect(config.validation_errors).to eq(['IdP SSO service URL must be an https:// URL'])
+      end
+
+      it 'refuses an EntityID with surrounding whitespace (it is compared byte-for-byte)' do
+        config = build_domain_sso_config(:saml, idp_entity_id: ' https://idp.example.com/metadata')
+
+        expect(config.validation_errors).to eq(['IdP EntityID has leading or trailing whitespace'])
+      end
+
+      it 'refuses a fingerprint in place of a certificate' do
+        config = build_domain_sso_config(:saml, idp_cert: 'AB:CD:EF:01:23:45:67:89')
+
+        expect(config.validation_errors)
+          .to eq(['IdP certificate must be a PEM X.509 certificate (-----BEGIN CERTIFICATE-----)'])
+      end
+
+      it 'refuses two certificates in one value (ruby-saml would trust only the first)' do
+        pem    = DomainSsoTestFixtures.saml_cert_pem
+        config = build_domain_sso_config(:saml, idp_cert: "#{pem}#{pem}")
+
+        expect(config.validation_errors).to eq(['IdP certificate must contain exactly one PEM certificate'])
+      end
+    end
+
+    # An expired certificate must not make the RECORD invalid: the API
+    # re-validates the whole record on every PATCH, so it would become
+    # impossible to disable or edit. Expiry is enforced where the certificate
+    # is accepted (API) and used (to_omniauth_options, ruby-saml).
+    context 'when a SAML certificate has expired' do
+      it 'stays valid at the model level' do
+        config = build_domain_sso_config(:saml, idp_cert: expired_saml_cert_pem)
+
+        expect(config.validation_errors).to eq([])
+      end
+    end
+
+    context 'when a SAML trio field cannot be decrypted' do
+      it 'reports it as unreadable rather than missing' do
+        config = build_domain_sso_config(:saml)
+        allow(config).to receive(:reveal_saml_field).and_call_original
+        allow(config).to receive(:reveal_saml_field).with(:idp_cert).and_raise(Familia::EncryptionError, 'tag')
+
+        expect(config.validation_errors).to eq(['idp_cert cannot be read (re-enter the value)'])
       end
     end
 

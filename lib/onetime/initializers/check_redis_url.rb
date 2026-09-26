@@ -22,13 +22,13 @@ module Onetime
 
       if redis_uri.to_s.include?('CHANGEME')
         raise OT::Problem, <<~MSG
-          Redis/Valkey URI contains placeholder 'CHANGEME': #{redis_uri}
+          Redis/Valkey URI contains placeholder 'CHANGEME': #{OT::Utils.redact_uri_userinfo(redis_uri)}
           Set REDIS_URL or VALKEY_URL environment variable to the actual Redis/Valkey service URL.
           Example: redis://localhost:6379/0 or redis://password@redis-host:6379/0
         MSG
       end
 
-      OT.ld "[check_redis_url] Redis URI validated: #{redis_uri.sub(/:[^:@]+@/, ':***@')}"
+      OT.ld "[check_redis_url] Redis URI validated: #{OT::Utils.redact_uri_userinfo(redis_uri)}"
     end
   end
 end

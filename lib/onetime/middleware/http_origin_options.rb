@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../tenant_sso_resolution'
+
 module Onetime
   module Middleware
     # Shared options for Rack::Protection::HttpOrigin.
@@ -54,6 +56,20 @@ module Onetime
       # runs. Every provider before Apple had a GET callback, which `safe?`
       # short-circuits, so the gap only appears now.
       #
+      # SAML (#4450) IS THE SECOND SUCH PROVIDER. The HTTP-POST binding
+      # delivers the SAMLResponse as a cross-site POST from the origin of the
+      # IdP's SSO service URL — which is what the SAML definition's
+      # :idp_origin_from names (not the EntityID, an opaque name that is often
+      # on another host). Its CSRF control is not `state` but the one-shot
+      # InResponseTo binding in OmniAuth::Strategies::RequestBoundSAML: a
+      # response is refused unless this session holds the pending AuthnRequest
+      # id it answers. This method covers PLATFORM providers only: a TENANT's
+      # SAML IdP origin lives in a per-domain record, is unknown at boot, and
+      # is not in AuthConfig#sso_idp_origins — .sso_callback_from_tenant_idp?
+      # below is its counterpart. On the SAML callback route this platform
+      # allowance applies only to the boot-pinned ACS host, never to custom
+      # hosts. Tenant-origin admission remains a separate decision.
+      #
       # THIS IS PARITY, NOT A NEW HOLE. A GET callback bypasses HttpOrigin
       # entirely today via `safe?` — no Origin check at all, from any origin.
       # This grants a POST callback the same treatment and strictly less: the
@@ -77,15 +93,13 @@ module Onetime
       # @param env [Hash] Rack environment
       # @return [Boolean]
       def self.sso_callback_from_configured_idp?(env)
-        return false unless env['REQUEST_METHOD'] == 'POST'
+        origin = sso_callback_post_origin(env)
+        return false if origin.nil?
 
-        origin = env['HTTP_ORIGIN'].to_s
-        return false if origin.empty?
-
-        # Rack::Request#path is SCRIPT_NAME + PATH_INFO, so this matches the
-        # externally visible path even though the middleware runs inside the
-        # auth app's mount — the same idiom the AuthenticityToken allow_if uses.
-        return false unless Rack::Request.new(env).path.match?(SSO_CALLBACK_PATH)
+        route_name = Rack::Request.new(env).path.split('/')[3]
+        if Onetime::SsoProvider::Registry.request_bound_platform_acs_route?(route_name) && !platform_saml_callback_host?(env)
+          return false
+        end
 
         auth_config = Onetime.auth_config
         return false unless auth_config.respond_to?(:sso_idp_origins)
@@ -98,12 +112,193 @@ module Onetime
         false
       end
 
+      # Is this a form_post SSO callback arriving from the IdP that the
+      # request's OWN custom domain configured (#4450)?
+      #
+      # The tenant half of .sso_callback_from_configured_idp?. A tenant's SAML
+      # IdP posts the SAMLResponse to https://<custom domain>/auth/sso/<route>/callback
+      # with `Origin: <the IdP's SSO service origin>`; without this the POST
+      # is denied with 403 before OmniAuth runs, and tenant SAML can start a
+      # login but never finish one.
+      #
+      # The default is the CSP form-action origin; SAML tenants may add
+      # explicit callback-only origins through their authorized config API.
+      # Both default-origin consumers ask the same questions of the same objects:
+      # Onetime::TenantSsoResolution (which record, if any, is this host's
+      # AVAILABLE tenant SSO config — the ladder that also decides whether the
+      # SSO button renders) and AuthConfig#tenant_idp_origin (that record's IdP
+      # origin, through the origin_from_url funnel).
+      # Onetime::Middleware::TenantCspExtras admits the result into
+      # form-action; this admits it as a callback Origin. Additional callback
+      # origins never enter CSP form-action or the global platform set.
+      #
+      # SCOPED TO THE REQUEST'S DOMAIN, not to "any tenant's IdP": the
+      # resolution is keyed on env['onetime.display_domain'] (DetectHost +
+      # DomainStrategy; never the raw Host header), so tenant A's IdP origin
+      # is admitted on tenant A's host only. SAML also requires its resolved
+      # callback route; exceptions do not apply to other provider routes.
+      #
+      # Same parity argument and the same residual control as the platform
+      # method: a matching Origin proves which document the POST came from,
+      # and the callback must still answer a pending AuthnRequest id (SAML) or
+      # `state` (OAuth) held by THIS session.
+      #
+      # Fails closed on every uncertainty: a non-POST method, any path but a
+      # callback, a blank Origin, no display_domain, a canonical host, a
+      # domain without AVAILABLE tenant SSO, an unreadable or invalid source
+      # URL, a datastore error.
+      #
+      # @param env [Hash] Rack environment
+      # @return [Boolean]
+      def self.sso_callback_from_tenant_idp?(env)
+        origin = sso_callback_post_origin(env)
+        return false if origin.nil?
+        return false if env['onetime.display_domain'].to_s.empty?
+
+        auth_config = Onetime.auth_config
+        return false unless auth_config.respond_to?(:tenant_idp_origin)
+
+        sso_config = Onetime::TenantSsoResolution.for(env).sso_config
+        return false if sso_config.nil?
+
+        if sso_config.provider_type == 'saml'
+          # Case-insensitive like OmniAuth's own path match and the staging
+          # transport's callback? check, so the three cannot disagree.
+          return false unless Rack::Request.new(env).path.casecmp?("/auth/sso/#{sso_config.platform_route_name}/callback")
+
+          # A separate POST-only policy; never add these origins to global
+          # HttpOrigin or CSP allowances. An unreadable policy fails closed.
+          return true if sso_config.callback_origins.include?(origin)
+        end
+
+        tenant_origin = auth_config.tenant_idp_origin(sso_config, env: env)
+        !tenant_origin.nil? && tenant_origin == origin
+      rescue StandardError => ex
+        # Includes Redis::BaseError from the SsoConfig read. Denying is the
+        # safe answer: HttpOrigin's own check still runs.
+        OT.lw "[http_origin] tenant SSO callback origin check failed: #{ex.class}: #{ex.message}"
+        false
+      end
+
+      # An explicit operator-approved exception, not an IdP-origin match:
+      # opaque origins do not identify their sender. Authentication still
+      # requires the staged callback's signed assertion and pending session.
+      def self.saml_callback_with_null_origin?(env)
+        return false unless env['HTTP_ORIGIN'] == 'null' && env['REQUEST_METHOD'] == 'POST'
+        return false unless Onetime::SsoProvider::Saml.allow_null_origin?
+
+        saml_callback_route_active?(env)
+      end
+
+      # Does the resolved host have an ACTIVE SAML route at this exact
+      # callback path? On the platform surface: platform SSO on, the platform
+      # SAML provider configured and usable, and the request host its
+      # boot-pinned ACS host. On a custom domain: a verified domain whose own
+      # AVAILABLE SsoConfig (TenantSsoResolution's ladder) is an enabled,
+      # usable SAML record naming this route.
+      #
+      # The one answer two admission decisions share: the null-origin
+      # allowance above, and SamlCallbackTransport::Stage, which refuses to
+      # stage a POST for a host that cannot complete a SAML sign-in (an
+      # Origin-less non-browser POST passes HttpOrigin, so staging capacity
+      # needs its own gate). Nothing here authorizes a login: the GET-side
+      # gates — tenant hook, ACS host, pending request id — still run.
+      #
+      # Fails closed on every uncertainty: a non-callback or trailing-slash
+      # path, no display_domain, a detected host that disagrees with it, a
+      # canonical-set host that is not the platform ACS host, an unverified
+      # domain, a missing, disabled or non-SAML record, a record whose
+      # options cannot be built, a datastore error.
+      #
+      # @param env [Hash] Rack environment
+      # @return [Boolean]
+      def self.saml_callback_route_active?(env)
+        saml = Onetime::SsoProvider::Saml
+        path = Rack::Request.new(env).path
+        return false unless path.match?(SSO_CALLBACK_PATH)
+
+        route_name = path.split('/')[3]
+        return false unless Onetime::SsoProvider::Registry.request_bound_platform_acs_route?(route_name)
+        return false if env['onetime.display_domain'].to_s.empty?
+
+        if platform_saml_callback_host?(env)
+          return Onetime.auth_config.sso_enabled? && saml.platform_usable?
+        end
+
+        detected_host = env[Rack::DetectHost.result_field_name].to_s
+        unless detected_host.empty?
+          parser   = Onetime::Utils::DomainParser
+          detected = parser.extract_hostname(detected_host)
+          display  = parser.extract_hostname(env['onetime.display_domain'].to_s)
+          return false unless detected && display && detected.casecmp?(display)
+        end
+
+        resolution = Onetime::TenantSsoResolution.for(env)
+        return false unless resolution.verified_custom_domain?
+
+        config = resolution.sso_config
+        return false unless config && config.provider_type == 'saml' && config.enabled?
+        return false unless path.casecmp?("/auth/sso/#{config.platform_route_name}/callback")
+
+        # Availability alone deliberately ignores certificate expiry. Check
+        # runtime configuration too before granting the weaker Origin policy.
+        config.to_omniauth_options
+        true
+      rescue StandardError => ex
+        OT.lw "[http_origin] SAML callback route check failed: #{ex.class}"
+        false
+      end
+
+      # Shared with normal platform-origin admission; retain the existing
+      # pinned-host and sanitized-display handling unchanged.
+      def self.platform_saml_callback_host?(env)
+        saml        = Onetime::SsoProvider::Saml
+        public_host = env['onetime.display_domain'].to_s
+        return false if public_host.empty?
+
+        detected_host = env[Rack::DetectHost.result_field_name].to_s
+        if env['onetime.domain_strategy'].to_s == 'invalid' &&
+           Onetime::Middleware::DomainStrategy.canonical_host?(public_host)
+          # Failed classification can replace the host with a canonical
+          # default. Recover the detected host, or the direct authority
+          # when DetectHost rejects it (e.g. a local IP install). Never
+          # consult Rack's unconditionally trusted forwarded headers.
+          public_host = detected_host.empty? ? (env['HTTP_HOST'] || env['SERVER_NAME']) : detected_host
+        end
+        saml.platform_host?(public_host) && (detected_host.empty? || saml.platform_host?(detected_host))
+      end
+      private_class_method :platform_saml_callback_host?
+
+      # The Origin of a POST to an OmniAuth callback path, or nil when the
+      # request is anything else. The shared precondition of both SSO
+      # allowances: POST-only, callback-path-only, Origin present.
+      #
+      # @param env [Hash] Rack environment
+      # @return [String, nil]
+      def self.sso_callback_post_origin(env)
+        return nil unless env['REQUEST_METHOD'] == 'POST'
+
+        origin = env['HTTP_ORIGIN'].to_s
+        return nil if origin.empty? || origin == 'null'
+
+        # Rack::Request#path is SCRIPT_NAME + PATH_INFO, so this matches the
+        # externally visible path even though the middleware runs inside the
+        # auth app's mount — the same idiom the AuthenticityToken allow_if uses.
+        return nil unless Rack::Request.new(env).path.match?(SSO_CALLBACK_PATH)
+
+        origin
+      end
+      private_class_method :sso_callback_post_origin
+
       # Accept an Origin that matches the host the application already
       # resolved for this request. The scheme is hardcoded https: custom
       # domains are only served over TLS, and a laxer scheme would let a
       # network attacker on a plaintext leg mint a matching Origin.
       ALLOW_IF = ->(env) do
+        next HttpOriginOptions.saml_callback_with_null_origin?(env) if env['HTTP_ORIGIN'] == 'null'
+
         next true if HttpOriginOptions.sso_callback_from_configured_idp?(env)
+        next true if HttpOriginOptions.sso_callback_from_tenant_idp?(env)
 
         display = env['onetime.display_domain'].to_s
         next false if display.empty?

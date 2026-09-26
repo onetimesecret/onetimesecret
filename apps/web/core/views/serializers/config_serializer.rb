@@ -154,7 +154,7 @@ module Core
           secret_options = site['secret_options']
           return secret_options unless secret_options.is_a?(Hash)
 
-          ttl_options = Array(secret_options['ttl_options']).select { |value| value.is_a?(Numeric) }
+          ttl_options = Array(secret_options['ttl_options']).grep(Numeric)
           config_max  = ttl_options.max || 2_592_000
           ceiling     = Onetime::SecretLifetimePolicy.guest_ceiling(
             config_max: config_max,
@@ -525,7 +525,33 @@ module Core
           # sign-in provider on an allowed custom host, but is not a Connect
           # provider: a Connect callback there is intentionally rejected as a
           # cross-surface intent after consuming the user's re-auth proof.
-          build_platform_sso_config(connectable: !tenant_domain?(view_vars))
+          #
+          # Platform SAML is visible only on its pinned platform host, not
+          # every operator host and never through custom-domain fallback.
+
+          build_platform_sso_config(
+            connectable: !tenant_domain?(view_vars),
+            platform_host: platform_saml_host?(view_vars),
+          )
+        end
+
+        # Whether this request is positively an operator host AND that host is
+        # the one the platform SAML ACS is pinned to at boot (site.host).
+        # Narrower than operator_domain? on purpose — see build_sso_config —
+        # while keeping its positive classification: a :default / :invalid
+        # request whose display_domain was sanitized back to the canonical
+        # host is not thereby ON the canonical host
+        # (ADR-024#operator-defaults-require-positive-classification).
+        # display_domain is the detected request host whenever domains are
+        # enabled (DomainStrategy), which is the only deployment shape with
+        # more than one operator host. Fails closed: a blank, unparseable or
+        # unconfigured site.host answers false.
+        #
+        # @param view_vars [Hash] View variables
+        # @return [Boolean]
+        def platform_saml_host?(view_vars)
+          operator_domain?(view_vars) &&
+            Onetime::SsoProvider::Saml.platform_host?(view_vars['display_domain'])
         end
 
         # Resolve tenant SSO configuration from request context
@@ -721,24 +747,42 @@ module Core
         # providers on its own if it gains another caller — so it re-checks
         # rather than relying on the caller's guard.
         #
+        # Platform SAML is offered only on its pinned platform host, never
+        # on a custom domain, even if ownership is verified.
+        #
         # @param connectable [Boolean] whether this host may initiate Connect
-        # @return [Boolean, Hash] false if disabled, otherwise config hash
-        def build_platform_sso_config(connectable: true)
+        # @param platform_host [Boolean] whether this is the boot-pinned SAML host
+
+        # @return [Boolean, Hash] false if disabled, otherwise config hash whose
+        #   'enabled' is true only when at least one provider survived the
+        #   host gate
+        def build_platform_sso_config(connectable: true, platform_host: true)
           unless Onetime::CustomDomain::SigninConfig.global_auth_enabled
             return { 'enabled' => false, 'providers' => [] }
           end
 
           return false unless Onetime.auth_config.sso_enabled?
 
-          providers = Onetime.auth_config.sso_providers.map do |provider|
+          providers = Onetime.auth_config.sso_providers.filter_map do |provider|
+            route_name = provider['route_name'].to_s
+            next unless Onetime::SsoProvider::Registry.platform_route_available_on_host?(
+              route_name,
+              platform_host: platform_host,
+            )
+
             {
-              'route_name' => provider['route_name'].to_s,
+              'route_name' => route_name,
               'display_name' => provider['display_name'].to_s,
             }
           end
 
+          # enabled follows the FILTERED list, not sso_enabled?: a host whose
+          # only configured provider was withheld above (SAML on a subdomain,
+          # a secondary canonical-set host, or any custom domain)
+          # has nothing to sign in with, and advertising enabled: true there
+          # keeps /signin up as an SSO surface with no button on it.
           {
-            'enabled' => true,
+            'enabled' => providers.any?,
             'providers' => providers,
             'connect_providers' => connectable ? providers : [],
           }

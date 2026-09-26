@@ -1,3 +1,5 @@
+> **Status (2026-09-25):** The SAML motivation below is resolved. #4450 replaced the global `SameSite=None; Secure` prerequisite with a staged POST → 303 → GET callback transport that recovers the ordinary `SameSite=Lax` cookie (`Strict` unsupported, `None` still works); see [docs/authentication/saml-callback-transport.md](../../authentication/saml-callback-transport.md). Apple still requires `None`. The per-session SameSite design below is unimplemented and kept as written.
+
 The likely implementation scope, constraints, and test coverage needed for per-session SameSite.
 
 The code confirms that `rack-session` can choose `SameSite` dynamically at cookie commit time, but the timing and concurrency details matter. I’m now checking GitHub directly and verifying the exact middleware/API points before recommending an approach.

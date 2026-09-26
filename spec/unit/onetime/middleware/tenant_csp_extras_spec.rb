@@ -343,6 +343,65 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
       expect(env[extras_key]).to eq('form-action' => ['https://login.microsoftonline.com'])
     end
 
+    # #4450. SAML's source field is an AAD-bound encrypted_field, and the
+    # origin is the SSO service URL's — where the form POST's redirect lands —
+    # not the EntityID's.
+    context 'with a saml config' do
+      def concealed(plaintext)
+        Class.new { define_method(:reveal) { |&block| block.call(plaintext) } }.new
+      end
+
+      def saml_config_double(url)
+        instance_double(
+          Onetime::CustomDomain::SsoConfig,
+          domain_id: domain_id,
+          provider_type: 'saml',
+          idp_sso_service_url: url,
+          enabled?: true,
+        )
+      end
+
+      it 'emits the origin of the revealed SSO service URL' do
+        stub_tenant(saml_config_double(concealed('https://login.tenant-idp.example/app/sso/saml')))
+        env = build_env
+
+        middleware.call(env)
+        expect(env[extras_key]).to eq('form-action' => ['https://login.tenant-idp.example'])
+      end
+
+      it 'never widens to the PLATFORM SAML IdP through the registry' do
+        ENV['SAML_IDP_SSO_SERVICE_URL'] = 'https://platform-idp.example/sso'
+        stub_tenant(saml_config_double(nil))
+        env = build_env
+
+        middleware.call(env)
+        expect(env).not_to have_key(extras_key)
+      ensure
+        ENV.delete('SAML_IDP_SSO_SERVICE_URL')
+      end
+
+      it 'writes no extras, silently, when the URL cannot be decrypted' do
+        unreadable = Class.new { def reveal = raise(Familia::EncryptionError, 'tag') }.new
+        stub_tenant(saml_config_double(unreadable))
+        allow(OT).to receive(:lw)
+        env = build_env
+
+        middleware.call(env)
+        expect(env).not_to have_key(extras_key)
+        expect(OT).not_to have_received(:lw)
+      end
+
+      it 'warns, naming the source, when the funnel rejects a hostile SSO URL' do
+        stub_tenant(saml_config_double(concealed('https://idp.example.com; script-src https://evil.example')))
+        allow(OT).to receive(:lw)
+
+        middleware.call(build_env)
+
+        expect(OT).to have_received(:lw)
+          .with(/TenantCspExtras.*provider_type="saml".*source="https:\/\/idp\.example\.com; script-src.*not widened/m)
+      end
+    end
+
     it 'does not consult platform SSO state (tenant SSO stands on its own)' do
       # Acceptance intent (b): platform SSO disabled + tenant SSO configured
       # still widens. The allocated auth_config has no loaded config at all,

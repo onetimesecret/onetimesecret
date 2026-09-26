@@ -123,6 +123,11 @@
     "context": "Shown on signin page when SSO is attempted on a domain that has no SSO configuration and platform fallback is disabled.",
     "content_hash": "b39ef93e"
   },
+  "web.login.errors.sso_config_unusable": {
+    "text": "Single sign-on for this domain is configured but not currently usable. Contact your organization's administrator.",
+    "context": "Shown on signin page when a domain's SSO record exists and is advertised but cannot produce a working login (for example, the identity provider certificate has expired). Distinct from sso_not_configured: the fix is on the administrator's side, not a missing setup.",
+    "content_hash": "f704b391"
+  },
   "web.login.errors.invalid_email": {
     "text": "The email address from your identity provider is invalid. Please contact your administrator.",
     "context": "Shown on signin page when SSO callback returns a malformed email (missing @, empty domain, multiple @).",

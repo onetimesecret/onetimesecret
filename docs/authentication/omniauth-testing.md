@@ -19,6 +19,12 @@ Create a Web Application project:
 
 ### Keycloak (alternative)
 
+Keycloak and Zitadel both act as SAML 2.0 IdPs as well: create a SAML client
+(Keycloak) or SAML application (Zitadel) with the SP EntityID and ACS URL from
+the [SAML section](per-install-sso.md#saml-20-1) of the SSO guide, download
+the realm/instance signing certificate, and fill `SAML_IDP_*` instead of
+`OIDC_*`.
+
 ```bash
 docker run -d --name keycloak \
   -p 8080:8080 \
@@ -66,6 +72,11 @@ curl -s $OIDC_ISSUER/.well-known/openid-configuration | jq '.authorization_endpo
 | OAuth state mismatch | OmniAuth rejects callback (CSRF protection) |
 | IdP denies access | Redirected to `/signin?auth_error=sso_cancelled` |
 | Other IdP failure | Redirected to `/signin?auth_error=sso_failed` |
+| SAML response with no pending sign-in (IdP-initiated, or the session cookie was withheld) | Redirected to `/signin?auth_error=sso_failed`; log shows `[saml_response_refused] reason=saml_no_pending_request` |
+| SAML response presented twice | Second presentation refused, `reason=saml_assertion_replayed` |
+| SAML assertion whose signed `SubjectConfirmationData` carries no `InResponseTo`, wrapped in a Response naming the pending request | Refused, `reason=saml_in_response_to_unbound` |
+| GET without a handle, HEAD, or any POST that reaches the strategy unstaged, to the SAML callback while a sign-in is pending | Refused, `reason=saml_response_missing`; the pending sign-in survives and the IdP's real (staged) POST still completes |
+| SAML assertion with `NotOnOrAfter` more than an hour out | Refused, `reason=saml_assertion_lifetime_exceeded` |
 
 ## Automated Tests
 
@@ -76,7 +87,24 @@ pnpm test src/tests/apps/session/components/AuthMethodSelector.spec.ts
 
 # Backend (mocks OmniAuth callback)
 tests/lanes/run full-sqlite
+
+# SAML: real signed responses from a throwaway IdP (spec/support/saml/test_idp.rb),
+# no mocks of ruby-saml
+tests/lanes/run unit --only spec/unit/onetime/sso_provider/request_bound_saml_spec.rb
+tests/lanes/run full-pg --only apps/web/auth/spec/integration/full/tenant_saml_sso_spec.rb
+# Platform surface: its own lane. The shared full lanes boot the saml route
+# as the tenant placeholder; this one boots with SAML_* set (the IdP keypair
+# is minted by the spec at load time — no key material is checked in).
+tests/lanes/run full-saml-platform
+try --agent try/unit/security/saml_assertion_replay_guard_try.rb
 ```
+
+`SamlSpec::TestIdp` generates its own keypair per process and signs
+assertions with ruby-saml's own `XMLSecurity::Document`, so the specs run the
+gem's full validate path (signature, audience, destination, conditions,
+InResponseTo). No key material is checked in. It is not auto-loaded; require
+it explicitly, because the application only loads ruby-saml when a SAML
+provider is configured.
 
 ## Debugging
 
@@ -89,6 +117,10 @@ tests/lanes/run full-sqlite
 # - "Discovery failed" → OIDC_ISSUER URL incorrect or unreachable
 # - "Callback mismatch" → callback URL doesn't match IdP's allowed redirect URIs
 # - "Errors.App.NotFound" → Client ID doesn't match IdP configuration
+# - "[saml_response_refused] reason=..." → a RequestBoundSAML gate; the reason
+#   table is in per-install-sso.md under "SAML sign-in refused"
+# - "type=invalid_ticket" on a SAML route → ruby-saml rejected the document
+#   (signature, audience, destination, validity window, cert expiry)
 ```
 
 ## Manual Testing Checklist

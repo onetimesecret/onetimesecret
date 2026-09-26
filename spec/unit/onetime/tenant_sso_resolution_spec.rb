@@ -23,7 +23,7 @@ require 'onetime/tenant_sso_resolution'
 RSpec.describe Onetime::TenantSsoResolution do
   let(:display_domain) { 'tenant.example.net' }
   let(:domain_id) { 'cd_tenant123' }
-  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id) }
+  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id, verified: true) }
   let(:sso_config) { instance_double(Onetime::CustomDomain::SsoConfig) }
 
   def stub_domain(domain = custom_domain)
@@ -93,6 +93,68 @@ RSpec.describe Onetime::TenantSsoResolution do
       resolution = described_class.new(display_domain, :custom)
       expect(resolution.domain_id).to eq(described_class::DOMAIN_READ_FAILED)
       expect(resolution).to be_domain_read_failed
+    end
+  end
+
+  describe '#custom_domain' do
+    it 'returns the record from the memoized domain lookup' do
+      stub_domain
+      resolution = described_class.new(display_domain, :custom)
+
+      expect(resolution.custom_domain).to equal(custom_domain)
+      expect(resolution).to be_verified_custom_domain
+      expect(Onetime::CustomDomain).to have_received(:from_display_domain).once
+    end
+
+    it 'is not verified when the host is unknown' do
+      stub_domain(nil)
+      expect(described_class.new(display_domain, :custom)).not_to be_verified_custom_domain
+    end
+
+    # The blank-host path used to return before assigning @custom_domain, so
+    # the defined? memo never held and every call re-entered read_domain_id.
+    it 'is nil for a blank display_domain and settles the memo on the first call' do
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
+      resolution = described_class.new(nil)
+
+      expect(resolution.custom_domain).to be_nil
+      expect(resolution.custom_domain).to be_nil
+      expect(resolution).not_to be_verified_custom_domain
+      expect(resolution.instance_variable_defined?(:@custom_domain)).to be(true)
+      expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+    end
+
+    it 'is not verified when the domain read fails' do
+      stub_failing_domain_read
+      expect(described_class.new(display_domain, :custom)).not_to be_verified_custom_domain
+    end
+
+    it 'requires the stored verified flag to be true' do
+      stub_domain(instance_double(Onetime::CustomDomain, identifier: domain_id, verified: false))
+      expect(described_class.new(display_domain, :custom)).not_to be_verified_custom_domain
+    end
+
+    # The same host test Auth::PublicHost.served_custom_host? opens with: a
+    # verified record keyed on a canonical-set host (site.host moved onto a
+    # host a tenant had registered) still narrows via #custom_domain, but is
+    # never a served custom host — runtime refuses to rebind the ACS there.
+    it 'is not verified on a canonical-set host, even with a verified record' do
+      stub_domain
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+        .with(display_domain).and_return(true)
+
+      resolution = described_class.new(display_domain, :custom)
+
+      expect(resolution).not_to be_verified_custom_domain
+      expect(resolution.custom_domain).to equal(custom_domain)
+    end
+
+    it 'fails closed when the canonical-set test itself errors' do
+      stub_domain
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+        .and_raise(StandardError, 'boom')
+
+      expect(described_class.new(display_domain, :custom)).not_to be_verified_custom_domain
     end
   end
 

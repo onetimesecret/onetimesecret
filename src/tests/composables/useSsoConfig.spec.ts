@@ -9,12 +9,12 @@
 // 6. testConnection(): validates IdP connectivity
 // 7. client_secret NEVER populated from API response (masked value gotcha)
 
-import { useSsoConfig } from '@/shared/composables/useSsoConfig';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useSsoConfig } from '../../shared/composables/useSsoConfig';
 
-import type { CustomDomainSsoConfig } from '@/schemas/shapes/domains/sso-config';
-import type { TestSsoConnectionResponse } from '@/services/sso.service';
+import type { CustomDomainSsoConfig } from '../../schemas/shapes/domains/sso-config';
+import type { TestSsoConnectionResponse } from '../../services/sso.service';
 
 // -----------------------------------------------------------------------------
 // Mock Setup
@@ -22,6 +22,7 @@ import type { TestSsoConnectionResponse } from '@/services/sso.service';
 
 const mockGetConfigForDomain = vi.fn();
 const mockSaveConfigForDomain = vi.fn();
+const mockPatchConfigForDomain = vi.fn();
 const mockDeleteConfigForDomain = vi.fn();
 const mockTestConnectionForDomain = vi.fn();
 const mockNotificationsShow = vi.fn();
@@ -31,6 +32,7 @@ vi.mock('@/services/sso.service', () => ({
   SsoService: {
     getConfigForDomain: (...args: unknown[]) => mockGetConfigForDomain(...args),
     saveConfigForDomain: (...args: unknown[]) => mockSaveConfigForDomain(...args),
+    patchConfigForDomain: (...args: unknown[]) => mockPatchConfigForDomain(...args),
     deleteConfigForDomain: (...args: unknown[]) => mockDeleteConfigForDomain(...args),
     testConnectionForDomain: (...args: unknown[]) => mockTestConnectionForDomain(...args),
   },
@@ -64,12 +66,15 @@ vi.mock('vue-i18n', () => ({
 }));
 
 vi.mock('@/shared/composables/useAsyncHandler', () => ({
-  useAsyncHandler: () => ({
+  useAsyncHandler: (options: { setLoading?: (loading: boolean) => void }) => ({
     wrap: vi.fn(async (fn: () => Promise<unknown>) => {
+      options.setLoading?.(true);
       try {
         return await fn();
       } catch {
         return undefined;
+      } finally {
+        options.setLoading?.(false);
       }
     }),
   }),
@@ -89,6 +94,12 @@ const mockSsoConfigData: CustomDomainSsoConfig = {
   client_secret_masked: '****5678',
   tenant_id: 'tenant-id-abcdef',
   issuer: null,
+  idp_sso_service_url: null,
+  idp_entity_id: null,
+  idp_cert: null,
+  sp_entity_id: null,
+  acs_url: null,
+  unreadable_fields: [],
   allowed_domains: ['acme.com', 'acme.org'],
   requires_domain_filter: false,
   idp_controls_access: true,
@@ -96,6 +107,24 @@ const mockSsoConfigData: CustomDomainSsoConfig = {
   grant_org_scope: false,
   created_at: new Date('2025-01-01T00:00:00Z'),
   updated_at: new Date('2025-01-15T10:00:00Z'),
+};
+
+// SAML (#4450): no client credential; the IdP trio is plaintext on the wire.
+const SAML_CERT = '-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----';
+
+const mockSamlConfigData: CustomDomainSsoConfig = {
+  ...mockSsoConfigData,
+  provider_type: 'saml',
+  client_id: '',
+  client_secret_masked: null,
+  tenant_id: null,
+  idp_sso_service_url: 'https://idp.example.com/sso',
+  idp_entity_id: 'https://idp.example.com/entity',
+  idp_cert: SAML_CERT,
+  sp_entity_id: 'https://secrets.example.com/auth/sso/saml/metadata',
+  acs_url: 'https://secrets.example.com/auth/sso/saml/callback',
+  requires_domain_filter: true,
+  idp_controls_access: false,
 };
 
 const mockOidcConfigData: CustomDomainSsoConfig = {
@@ -187,6 +216,9 @@ describe('useSsoConfig', () => {
         client_secret: '', // NEVER populated from API response
         tenant_id: 'tenant-id-abcdef',
         issuer: '',
+        idp_sso_service_url: '',
+        idp_entity_id: '',
+        idp_cert: '',
         allowed_domains: ['acme.com', 'acme.org'],
         enabled: true,
         enforce_sso_only: false,
@@ -226,6 +258,9 @@ describe('useSsoConfig', () => {
         client_secret: '',
         tenant_id: '',
         issuer: '',
+        idp_sso_service_url: '',
+        idp_entity_id: '',
+        idp_cert: '',
         allowed_domains: [],
         enabled: false,
         enforce_sso_only: false,
@@ -338,6 +373,9 @@ describe('useSsoConfig', () => {
         client_secret: 'new-secret-value',
         tenant_id: 'new-tenant-id',
         issuer: '',
+        idp_sso_service_url: '',
+        idp_entity_id: '',
+        idp_cert: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: false,
@@ -372,6 +410,9 @@ describe('useSsoConfig', () => {
         client_secret: 'secret-value',
         tenant_id: 'tenant-id-abcdef',
         issuer: '',
+        idp_sso_service_url: '',
+        idp_entity_id: '',
+        idp_cert: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: false,
@@ -397,6 +438,9 @@ describe('useSsoConfig', () => {
         client_secret: 'test-secret',
         tenant_id: 'test-tenant',
         issuer: '',
+        idp_sso_service_url: '',
+        idp_entity_id: '',
+        idp_cert: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: false,
@@ -422,6 +466,9 @@ describe('useSsoConfig', () => {
         client_secret: '  secret-value  ',
         tenant_id: '  tenant-id  ',
         issuer: '',
+        idp_sso_service_url: '',
+        idp_entity_id: '',
+        idp_cert: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: false,
@@ -455,6 +502,9 @@ describe('useSsoConfig', () => {
         client_secret: 'test-secret',
         tenant_id: 'test-tenant',
         issuer: '',
+        idp_sso_service_url: '',
+        idp_entity_id: '',
+        idp_cert: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: false,
@@ -487,6 +537,9 @@ describe('useSsoConfig', () => {
         client_secret: 'test-secret',
         tenant_id: 'test-tenant',
         issuer: '',
+        idp_sso_service_url: '',
+        idp_entity_id: '',
+        idp_cert: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: false,
@@ -514,6 +567,9 @@ describe('useSsoConfig', () => {
         client_secret: 'test-secret',
         tenant_id: 'test-tenant',
         issuer: '',
+        idp_sso_service_url: '',
+        idp_entity_id: '',
+        idp_cert: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: false,
@@ -541,6 +597,9 @@ describe('useSsoConfig', () => {
         client_secret: 'test-secret',
         tenant_id: 'test-tenant',
         issuer: '',
+        idp_sso_service_url: '',
+        idp_entity_id: '',
+        idp_cert: '',
         allowed_domains: [],
         enabled: true,
         enforce_sso_only: true,
@@ -629,8 +688,273 @@ describe('useSsoConfig', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // SAML (#4450)
+  // ---------------------------------------------------------------------------
+
+  describe('SAML provider (#4450)', () => {
+    it('seeds the IdP trio from the record (plaintext on the wire, not write-only)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSamlConfigData });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value).toMatchObject({
+        provider_type: 'saml',
+        idp_sso_service_url: 'https://idp.example.com/sso',
+        idp_entity_id: 'https://idp.example.com/entity',
+        idp_cert: SAML_CERT,
+        client_id: '',
+        client_secret: '',
+      });
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
+    it('seeds an unreadable trio field EMPTY and exposes it via unreadableFields', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockSamlConfigData, idp_cert: null, unreadable_fields: ['idp_cert'] },
+      });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value.idp_cert).toBe('');
+      expect(composable.unreadableFields.value).toEqual(['idp_cert']);
+    });
+
+    it('unreadableFields is empty for a healthy record and when unconfigured', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSamlConfigData });
+      const configured = useSsoConfig('dm-ext-123');
+      await configured.initialize();
+      expect(configured.unreadableFields.value).toEqual([]);
+
+      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      const unconfigured = useSsoConfig('dm-ext-456');
+      await unconfigured.initialize();
+      expect(unconfigured.unreadableFields.value).toEqual([]);
+    });
+
+    it('save sends the trimmed trio and NO client credential fields', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      mockSaveConfigForDomain.mockResolvedValue({ record: mockSamlConfigData });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        provider_type: 'saml',
+        display_name: 'Acme SAML',
+        // Stale values from a provider switch must not travel with a saml save.
+        client_id: 'stale-client-id',
+        client_secret: 'stale-secret',
+        tenant_id: 'stale-tenant',
+        issuer: 'https://stale.example.com',
+        idp_sso_service_url: '  https://idp.example.com/sso  ',
+        idp_entity_id: '  https://idp.example.com/entity  ',
+        idp_cert: `  ${SAML_CERT}  `,
+      };
+
+      await composable.saveConfig();
+
+      expect(mockSaveConfigForDomain).toHaveBeenCalledTimes(1);
+      const [, payload] = mockSaveConfigForDomain.mock.calls[0] as [
+        string,
+        Record<string, unknown>,
+      ];
+      expect(payload).toMatchObject({
+        provider_type: 'saml',
+        display_name: 'Acme SAML',
+        idp_sso_service_url: 'https://idp.example.com/sso',
+        idp_entity_id: 'https://idp.example.com/entity',
+        idp_cert: SAML_CERT,
+      });
+      expect(payload).not.toHaveProperty('client_secret');
+      expect(payload.client_id).toBeUndefined();
+      expect(payload.tenant_id).toBeUndefined();
+      expect(payload.issuer).toBeUndefined();
+    });
+
+    it('leaves API-managed NameID and callback-origin policies untouched on form save', async () => {
+      const record = {
+        ...mockSamlConfigData,
+        name_id_format: 'omit',
+        callback_origins: ['https://login.corp.example'],
+      };
+      mockGetConfigForDomain.mockResolvedValue({ record });
+      mockSaveConfigForDomain.mockResolvedValue({ record });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+      composable.formState.value.display_name = 'Renamed SAML';
+
+      await composable.saveConfig();
+
+      expect(mockSaveConfigForDomain).toHaveBeenCalledTimes(1);
+      const [, payload] = mockSaveConfigForDomain.mock.calls[0];
+      // The service selects PATCH when no client_secret is submitted.
+      expect(payload).not.toHaveProperty('client_secret');
+      expect(payload).not.toHaveProperty('name_id_format');
+      expect(payload).not.toHaveProperty('callback_origins');
+      expect(composable.ssoConfig.value?.name_id_format).toBe('omit');
+      expect(composable.ssoConfig.value?.callback_origins).toEqual(record.callback_origins);
+    });
+
+    it('save omits a blank trio field (PATCH preserves the stored value) rather than sending ""', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSamlConfigData });
+      mockSaveConfigForDomain.mockResolvedValue({ record: mockSamlConfigData });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = { ...composable.formState.value, idp_cert: '   ' };
+
+      await composable.saveConfig();
+
+      const [, payload] = mockSaveConfigForDomain.mock.calls[0] as [
+        string,
+        Record<string, unknown>,
+      ];
+      expect(payload.idp_cert).toBeUndefined();
+      expect(payload).toMatchObject({ idp_entity_id: 'https://idp.example.com/entity' });
+    });
+
+    it('a non-saml save sends NO trio fields', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSamlConfigData });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      // Switching away from saml: the trio still sits in form state.
+      composable.formState.value = {
+        ...composable.formState.value,
+        provider_type: 'oidc',
+        client_id: 'new-client',
+        issuer: 'https://idp.example.com',
+      };
+
+      await composable.saveConfig();
+
+      const [, payload] = mockSaveConfigForDomain.mock.calls[0] as [
+        string,
+        Record<string, unknown>,
+      ];
+      expect(payload).toMatchObject({ provider_type: 'oidc', client_id: 'new-client' });
+      expect(payload.idp_sso_service_url).toBeUndefined();
+      expect(payload.idp_entity_id).toBeUndefined();
+      expect(payload.idp_cert).toBeUndefined();
+    });
+
+    it('testConnection sends the trio and no client_id for saml', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSamlConfigData });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.testConnection();
+
+      const [extid, payload] = mockTestConnectionForDomain.mock.calls[0] as [
+        string,
+        Record<string, unknown>,
+      ];
+      expect(extid).toBe('dm-ext-123');
+      expect(payload).toMatchObject({
+        provider_type: 'saml',
+        idp_sso_service_url: 'https://idp.example.com/sso',
+        idp_entity_id: 'https://idp.example.com/entity',
+        idp_cert: SAML_CERT,
+      });
+      expect(payload.client_id).toBeUndefined();
+    });
+
+    it.each(['idp_sso_service_url', 'idp_entity_id', 'idp_cert'] as const)(
+      'hasUnsavedChanges tracks %s',
+      async (field) => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockSamlConfigData });
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+        expect(composable.hasUnsavedChanges.value).toBe(false);
+
+        composable.formState.value = { ...composable.formState.value, [field]: 'changed' };
+        expect(composable.hasUnsavedChanges.value).toBe(true);
+
+        composable.discardChanges();
+        expect(composable.hasUnsavedChanges.value).toBe(false);
+      }
+    );
+  });
+
+  // ---------------------------------------------------------------------------
   // deleteConfig
   // ---------------------------------------------------------------------------
+
+  describe('disableConfig recovery', () => {
+    it('PATCHes only the two flags despite unreadable credentials and unsaved edits', async () => {
+      const record = { ...mockEnforceSsoOnlyConfig, unreadable_fields: ['client_secret'] };
+      mockGetConfigForDomain.mockResolvedValueOnce({ record });
+      const disabled = { ...record, enabled: false, enforce_sso_only: false };
+      mockPatchConfigForDomain.mockResolvedValueOnce({ record: disabled });
+      const composable = useSsoConfig('dm_123');
+      await composable.initialize();
+      composable.formState.value.display_name = 'Unsaved name';
+      composable.formState.value.client_secret = 'unsaved-secret';
+      composable.formState.value.enabled = false;
+
+      await composable.disableConfig();
+
+      expect(mockPatchConfigForDomain).toHaveBeenCalledExactlyOnceWith('dm_123', {
+        enabled: false,
+        enforce_sso_only: false,
+      });
+      expect(mockSaveConfigForDomain).not.toHaveBeenCalled();
+      expect(composable.ssoConfig.value).toEqual(disabled);
+      expect(composable.formState.value.client_secret).toBe('unsaved-secret');
+      expect(composable.formState.value.enforce_sso_only).toBe(false);
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+      composable.discardChanges();
+      expect(composable.formState.value.display_name).toBe(record.display_name);
+      expect(composable.formState.value.enabled).toBe(false);
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
+    it('holds the saving flag and prevents duplicate requests until completion', async () => {
+      mockGetConfigForDomain.mockResolvedValueOnce({ record: mockSsoConfigData });
+      let resolve!: (value: unknown) => void;
+      mockPatchConfigForDomain.mockReturnValueOnce(
+        new Promise((done) => {
+          resolve = done;
+        })
+      );
+      const composable = useSsoConfig('dm_123');
+      await composable.initialize();
+      const pending = composable.disableConfig();
+      expect(composable.isSaving.value).toBe(true);
+      await composable.disableConfig();
+      expect(mockPatchConfigForDomain).toHaveBeenCalledTimes(1);
+      resolve({ record: { ...mockSsoConfigData, enabled: false } });
+      await pending;
+      expect(composable.isSaving.value).toBe(false);
+    });
+
+    it('retains config and drafts on failure and permits retry', async () => {
+      mockGetConfigForDomain.mockResolvedValueOnce({ record: mockSsoConfigData });
+      mockPatchConfigForDomain.mockRejectedValueOnce(new Error('Failed'));
+      const composable = useSsoConfig('dm_123');
+      await composable.initialize();
+      composable.formState.value.display_name = 'Draft';
+      await composable.disableConfig();
+      expect(composable.isSaving.value).toBe(false);
+      expect(composable.ssoConfig.value).toEqual(mockSsoConfigData);
+      expect(composable.formState.value.display_name).toBe('Draft');
+      expect(mockNotificationsShow).not.toHaveBeenCalled();
+      mockPatchConfigForDomain.mockResolvedValueOnce({ record: mockDisabledConfig });
+      await composable.disableConfig();
+      expect(composable.isEnabled.value).toBe(false);
+    });
+
+    it.each([null, mockDisabledConfig])(
+      'does not PATCH an absent or disabled record',
+      async (record) => {
+        mockGetConfigForDomain.mockResolvedValueOnce({ record });
+        const composable = useSsoConfig('dm_123');
+        await composable.initialize();
+        await composable.disableConfig();
+        expect(mockPatchConfigForDomain).not.toHaveBeenCalled();
+      }
+    );
+  });
 
   describe('deleteConfig', () => {
     it('resets ssoConfig to null after deletion', async () => {
@@ -660,6 +984,9 @@ describe('useSsoConfig', () => {
         client_secret: '',
         tenant_id: '',
         issuer: '',
+        idp_sso_service_url: '',
+        idp_entity_id: '',
+        idp_cert: '',
         allowed_domains: [],
         enabled: false,
         enforce_sso_only: false,
@@ -944,6 +1271,9 @@ describe('useSsoConfig', () => {
         client_secret: 'new-secret',
         tenant_id: '',
         issuer: 'https://changed.example.com',
+        idp_sso_service_url: '',
+        idp_entity_id: '',
+        idp_cert: '',
         allowed_domains: ['changed.com'],
         enabled: false,
         enforce_sso_only: false,
@@ -972,6 +1302,9 @@ describe('useSsoConfig', () => {
         client_secret: '',
         tenant_id: '',
         issuer: '',
+        idp_sso_service_url: '',
+        idp_entity_id: '',
+        idp_cert: '',
         allowed_domains: [],
         enabled: false,
         enforce_sso_only: false,

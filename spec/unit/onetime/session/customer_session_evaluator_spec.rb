@@ -45,9 +45,9 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
   let(:effective_customer) { principal }
 
   before do
-    allow(Onetime::SessionSurface).to receive(:matches_request?) do
+    allow(Onetime::SessionSurface).to receive(:match_status) do
       events << :surface
-      true
+      :match
     end
     allow(Onetime::Customer).to receive(:find_by_extid) do
       events << :customer_load
@@ -159,8 +159,34 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
     expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
   end
 
+  it 'refuses a session on another surface as a surface mismatch' do
+    allow(Onetime::SessionSurface).to receive(:match_status).and_return(:mismatch)
+
+    verdict = described_class.evaluate(session, env: env)
+
+    expect(verdict.status).to eq(:rejected)
+    expect(verdict.reason).to eq(:surface_mismatch)
+    expect(Onetime::Customer).not_to have_received(:find_by_extid)
+  end
+
+  # A datastore outage that leaves the request's surface unreadable says
+  # nothing about whether the session belongs here. It gets the outage
+  # verdict, which refuses the request and keeps the session, not the
+  # mismatch verdict, which destroys it.
+  it 'returns unavailable, not a surface mismatch, when the request surface cannot be read' do
+    allow(Onetime::SessionSurface).to receive(:match_status).and_return(:unavailable)
+
+    verdict = described_class.evaluate(session, env: env)
+
+    expect(verdict.status).to eq(:unavailable)
+    expect(verdict.reason).to eq(:customer_unavailable)
+    expect(verdict.principal).to be_nil
+    expect(Onetime::Customer).not_to have_received(:find_by_extid)
+    expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
+  end
+
   it 'does not broaden compatibility handling to surface predicate programmer errors' do
-    allow(Onetime::SessionSurface).to receive(:matches_request?).and_raise(NoMethodError, 'surface bug')
+    allow(Onetime::SessionSurface).to receive(:match_status).and_raise(NoMethodError, 'surface bug')
 
     expect { described_class.evaluate(session, env: env) }
       .to raise_error(NoMethodError, 'surface bug')
@@ -260,7 +286,7 @@ RSpec.describe Onetime::CustomerSessionEvaluator do
   end
 
   it 'refuses an authenticated session as a surface mismatch when there is no Rack env' do
-    allow(Onetime::SessionSurface).to receive(:matches_request?).and_call_original
+    allow(Onetime::SessionSurface).to receive(:match_status).and_call_original
 
     verdict = described_class.evaluate(session, env: nil)
 

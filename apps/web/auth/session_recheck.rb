@@ -68,9 +68,9 @@ module Auth
     # nor its active-session row examined.
     BEFORE_SURFACE = [:awaiting_mfa, :not_authenticated].freeze
 
-    # Reasons the evaluator returns AFTER its surface check but before its
-    # active-session check, and which are not definitive: the customer store
-    # could not answer, so only the row is left to examine.
+    # Reasons the evaluator returns before its active-session check which are
+    # not definitive: the customer store, or the request's surface, could not
+    # be read, so only the row is left to examine.
     BEFORE_ACTIVE_SESSION = [:customer_unavailable].freeze
 
     # The reason the /auth router acts on: the evaluator's own, or the result
@@ -98,7 +98,12 @@ module Auth
       return reason unless rodauth_logged_in?(session)
 
       if BEFORE_SURFACE.include?(reason)
-        return :surface_mismatch unless Onetime::SessionSurface.matches_request?(session, env)
+        # The evaluator's own mapping: an unreadable surface is its outage
+        # verdict, which keeps the session, never a mismatch, which destroys it.
+        case Onetime::SessionSurface.match_status(session, env)
+        when :mismatch then return :surface_mismatch
+        when :unavailable then reason = :customer_unavailable
+        end
       elsif !BEFORE_ACTIVE_SESSION.include?(reason)
         return reason
       end

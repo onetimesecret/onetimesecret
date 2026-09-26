@@ -16,6 +16,8 @@ import CopyToClipboardButton from '@/shared/components/ui/CopyToClipboardButton.
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import { useClipboard } from '@/shared/composables/useClipboard';
 import {
+  SSO_PROVIDER_ROUTE_NAMES,
+  ssoProviderUsesClientCredentials,
   type CustomDomainSsoConfig,
   type SsoProviderType,
 } from '@/schemas/shapes/domains/sso-config';
@@ -49,6 +51,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'save'): void;
+  (e: 'disable'): void;
   (e: 'delete'): void;
   (e: 'test'): void;
   (e: 'discard'): void;
@@ -61,9 +64,10 @@ const { t } = useI18n();
 // Provider options
 // ---------------------------------------------------------------------------
 
-// Tenant SSO is OIDC/Entra-only: issuerless providers (GitHub, Google) cannot
-// satisfy per-tenant identity partitioning keyed (provider, issuer, uid) and
-// are refused on tenant surfaces (#3902, PR #3900).
+// Every tenant provider must carry a tenant-distinguishing issuer: issuerless
+// providers (GitHub, Google) cannot satisfy per-tenant identity partitioning
+// keyed (provider, issuer, uid) and are refused on tenant surfaces (#3902,
+// PR #3900). SAML qualifies — its issuer is the IdP's own EntityID (#4450).
 const providerOptions: { value: SsoProviderType; label: string; description: string }[] = [
   {
     value: 'entra_id',
@@ -75,13 +79,42 @@ const providerOptions: { value: SsoProviderType; label: string; description: str
     label: 'Generic OIDC',
     description: 'Any OpenID Connect provider',
   },
+  {
+    value: 'saml',
+    label: 'SAML 2.0',
+    description: 'Any SAML 2.0 identity provider (Okta, ADFS, Keycloak, …)',
+  },
 ];
+
+/**
+ * Encrypted record fields the API may name in `unreadable_fields` (#4450),
+ * with the label key used to name each in the alert. A listed field's stored
+ * value could not be decrypted — the form seeds it blank, marks the input
+ * invalid and demands re-entry; it must never read as "unset".
+ */
+const UNREADABLE_FIELD_LABELS: Record<string, string> = {
+  client_id: 'web.organizations.sso.client_id',
+  client_secret: 'web.organizations.sso.client_secret',
+  idp_sso_service_url: 'web.organizations.sso.idp_sso_service_url',
+  idp_entity_id: 'web.organizations.sso.idp_entity_id',
+  idp_cert: 'web.organizations.sso.idp_cert',
+};
 
 // ---------------------------------------------------------------------------
 // Local UI state
 // ---------------------------------------------------------------------------
 
 const showDeleteConfirm = ref(false);
+const showDisableConfirm = ref(false);
+const actionPending = computed(
+  () => props.isLoading || props.isSaving || props.isDeleting || props.isTesting
+);
+watch(
+  () => props.domainExtId,
+  () => {
+    showDisableConfirm.value = false;
+  }
+);
 const showClientSecret = ref(false);
 const newDomain = ref('');
 const domainInputError = ref('');
@@ -106,29 +139,118 @@ function updateField<K extends keyof SsoConfigFormState>(
 
 const isEditing = computed(() => props.isConfigured);
 
+const isSaml = computed(() => props.formState.provider_type === 'saml');
+
 const requiresTenantId = computed(() => props.formState.provider_type === 'entra_id');
 
 const requiresIssuer = computed(() => props.formState.provider_type === 'oidc');
 
-const requiresClientSecret = computed(() => props.formState.provider_type !== 'oidc');
+// OAuth-family providers only; SAML's trust anchor is the IdP certificate.
+const requiresClientCredentials = computed(() =>
+  ssoProviderUsesClientCredentials(props.formState.provider_type)
+);
 
-// Mirrors the defaults in CustomDomain::SsoConfig::PROVIDER_ROUTE_MAP
-// (lib/onetime/models/custom_domain/sso_config.rb). That map lets an operator
-// override the registered route per provider via OIDC_ROUTE_NAME/
-// ENTRA_ROUTE_NAME; this static preview has no way to see that override, so
-// it drifts from the real callback path in a deployment that sets either.
-// Not plumbed through the API yet — tracked in #3932 (bootstrap-config
-// carrier, since the preview must work before any record exists).
-const PROVIDER_ROUTE_NAMES: Record<SsoProviderType, string> = {
-  oidc: 'oidc',
-  entra_id: 'entra',
-};
+// OIDC supports public clients (PKCE); SAML has no secret at all.
+const requiresClientSecret = computed(
+  () => requiresClientCredentials.value && props.formState.provider_type !== 'oidc'
+);
 
-const callbackUrl = computed(() => {
+/**
+ * Encrypted fields whose stored value the API could not reveal (#4450). The
+ * composable seeds each blank, so the required guards below already block
+ * the save until it is re-entered; this drives the alert and aria-invalid.
+ */
+const unreadableFields = computed(() => props.ssoConfig?.unreadable_fields ?? []);
+
+const isUnreadable = (field: string) => unreadableFields.value.includes(field);
+
+const unreadableFieldNames = computed(() =>
+  unreadableFields.value
+    .map((field) => t(UNREADABLE_FIELD_LABELS[field] ?? field))
+    .join(', ')
+);
+
+/**
+ * The public origin + route for this domain's SSO URLs, PREVIEWED from the
+ * domain host: always https and the default route from the contract (pinned
+ * to the Ruby PROVIDER_ROUTE_MAP by sso-config-metadata-contract.spec.ts).
+ * An operator route override (SAML_ROUTE_NAME etc.) or site.ssl=false is
+ * invisible here, so the preview can differ from the real path; plumbing the
+ * configured route through bootstrap config is tracked in #3932. Until then
+ * the SP block labels host-derived values as a preview (spDetailsArePreview)
+ * rather than hiding them — IdPs such as Okta and Entra demand the ACS URL
+ * and Audience at app creation, before any record can exist here.
+ */
+const ssoRouteBase = computed(() => {
   if (!props.domainHost) return null;
-  const route = PROVIDER_ROUTE_NAMES[props.formState.provider_type];
-  return `https://${props.domainHost}/auth/sso/${route}/callback`;
+  const route = SSO_PROVIDER_ROUTE_NAMES[props.formState.provider_type];
+  return `https://${props.domainHost}/auth/sso/${route}`;
 });
+
+/**
+ * For a saved saml record the API composes the SP identifiers itself
+ * (sp_entity_id / acs_url); the provider type is locked while editing, so
+ * the record's values are for the type shown. Before a record exists (or
+ * when the API could not derive them) they are previewed from the host.
+ */
+const savedSamlRecord = computed(() =>
+  isEditing.value && props.ssoConfig?.provider_type === 'saml' ? props.ssoConfig : null
+);
+
+/**
+ * ACS URL shown in the SP block: the API's acs_url for a saved record,
+ * otherwise the host preview (see ssoRouteBase for why that is labelled a
+ * preview and #3932 for the real-route plumbing).
+ */
+const callbackUrl = computed(
+  () => savedSamlRecord.value?.acs_url ?? (ssoRouteBase.value ? `${ssoRouteBase.value}/callback` : null)
+);
+
+/**
+ * True when either SP identifier shown is host-derived rather than
+ * API-composed: no saml record has been saved yet, or the API could not
+ * derive the value. The block then swaps the "register these" hint for one
+ * that says the values are a preview of the default route and asks the admin
+ * to save and confirm them here first (#3932 — an operator route override
+ * would make the preview wrong, and a wrong ACS URL at the IdP fails every
+ * login with an opaque IdP-side error).
+ */
+const spDetailsArePreview = computed(
+  () => !savedSamlRecord.value?.sp_entity_id || !savedSamlRecord.value?.acs_url
+);
+
+/** Days before expiry at which the softer "expiring soon" notice appears. */
+const CERT_EXPIRY_NOTICE_DAYS = 30;
+
+/**
+ * Validity of the SAVED SAML record's IdP certificate (#4450). The API
+ * reports cert_expires_at / cert_expired; an expired certificate stays
+ * advertised on the sign-in page while every login through it is refused,
+ * so this form is where the admin learns why. Null once the admin has
+ * pasted a different certificate — the warning is about the stored one.
+ */
+const storedCertExpiry = computed(() => {
+  const record = savedSamlRecord.value;
+  if (!record?.cert_expires_at) return null;
+  if (props.formState.idp_cert.trim() !== (record.idp_cert ?? '').trim()) return null;
+  const date = new Date(record.cert_expires_at);
+  if (Number.isNaN(date.getTime())) return null;
+  const msLeft = date.getTime() - Date.now();
+  const expired = record.cert_expired === true || msLeft <= 0;
+  return {
+    date: date.toLocaleDateString(),
+    expired,
+    expiringSoon: !expired && msLeft <= CERT_EXPIRY_NOTICE_DAYS * 86_400_000,
+  };
+});
+
+/**
+ * SP Entity ID (doubles as the SP metadata URL): the API's sp_entity_id for
+ * a saved record, otherwise the host preview (see ssoRouteBase; #3932).
+ */
+const spEntityId = computed(
+  () => savedSamlRecord.value?.sp_entity_id ?? (ssoRouteBase.value ? `${ssoRouteBase.value}/metadata` : null)
+);
 
 const showDomainFilter = computed(() => false);
 
@@ -169,17 +291,37 @@ const currentProviderOption = computed(() =>
   providerOptions.find((o) => o.value === props.formState.provider_type)
 );
 
+/**
+ * Provider-scoped fields that must be filled before a save or a test. Mirrors
+ * the API's per-provider `missing` checks (put/patch/test_connection) so the
+ * buttons never offer a request the API would refuse as 422.
+ */
+const providerFieldsFilled = computed(() => {
+  const f = props.formState;
+  if (requiresClientCredentials.value && !f.client_id.trim()) return false;
+  if (requiresTenantId.value && !f.tenant_id?.trim()) return false;
+  if (requiresIssuer.value && !f.issuer?.trim()) return false;
+  if (isSaml.value) {
+    if (!f.idp_sso_service_url.trim() || !f.idp_entity_id.trim() || !f.idp_cert.trim()) return false;
+  }
+  return true;
+});
+
+// A secret must be entered for a new config of a provider that requires
+// one, or — for EVERY credential-bearing provider, oidc included — when the
+// stored one could not be read: PATCH would otherwise carry forward a value
+// that does not decrypt, and the API refuses that as missing. The oidc
+// public-client exemption covers an absent secret, not corrupt ciphertext.
+const clientSecretMustBeEntered = computed(
+  () =>
+    requiresClientCredentials.value &&
+    (isUnreadable('client_secret') || (requiresClientSecret.value && !isEditing.value))
+);
+
 const isFormValid = computed(() => {
   if (!props.formState.display_name.trim()) return false;
-  if (!props.formState.client_id.trim()) return false;
-
-  // client_secret required for new configs (except OIDC which supports public clients)
-  if (requiresClientSecret.value && !isEditing.value && !props.formState.client_secret?.trim()) return false;
-
-  // Provider-specific requirements
-  if (requiresTenantId.value && !props.formState.tenant_id?.trim()) return false;
-  if (requiresIssuer.value && !props.formState.issuer?.trim()) return false;
-
+  if (!providerFieldsFilled.value) return false;
+  if (clientSecretMustBeEntered.value && !props.formState.client_secret?.trim()) return false;
   return true;
 });
 
@@ -203,15 +345,35 @@ const discoveryUrl = computed(() => {
 });
 
 const { isCopied: isCallbackCopied, copyToClipboard } = useClipboard();
+const { isCopied: isSpEntityIdCopied, copyToClipboard: copySpEntityId } = useClipboard();
 
-const canTestConnection = computed(() => {
-  if (!props.formState.client_id.trim()) return false;
+const canTestConnection = computed(() => providerFieldsFilled.value);
 
-  // Provider-specific requirements for testing
-  if (requiresTenantId.value && !props.formState.tenant_id?.trim()) return false;
-  if (requiresIssuer.value && !props.formState.issuer?.trim()) return false;
+/**
+ * The SAML test never contacts the IdP: it parses the certificate and checks
+ * the URL and EntityID locally, so its result is the certificate's subject
+ * and expiry rather than discovery endpoints. Days are floored by the API.
+ */
+/**
+ * Start of the certificate's validity window, reported beside the expiry.
+ * On a `certificate_not_yet_valid` failure it is the fact that matters: the
+ * certificate parses and has not expired, it just cannot be used yet.
+ */
+const certificateValidFrom = computed(() => {
+  const raw = props.testResult?.details?.certificate_not_before;
+  if (!raw) return null;
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? raw : date.toLocaleDateString();
+});
 
-  return true;
+const certificateExpiry = computed(() => {
+  const details = props.testResult?.details;
+  if (!details?.certificate_not_after) return null;
+  const date = new Date(details.certificate_not_after);
+  return {
+    date: Number.isNaN(date.getTime()) ? details.certificate_not_after : date.toLocaleDateString(),
+    days: details.certificate_expires_in_days,
+  };
 });
 
 // ---------------------------------------------------------------------------
@@ -221,6 +383,13 @@ const canTestConnection = computed(() => {
 const handleSave = () => {
   if (!isFormValid.value || props.isSaving) return;
   emit('save');
+};
+
+const handleDisable = () => {
+  // Saved state controls recovery; repair-form validity and drafts do not.
+  if (!props.ssoConfig?.enabled || actionPending.value) return;
+  emit('disable');
+  showDisableConfirm.value = false;
 };
 
 const handleDelete = () => {
@@ -318,6 +487,58 @@ watch(newDomain, () => {
     <form v-else
 @submit.prevent="handleSave"
 class="space-y-6">
+      <!-- Reveal failure (#4450): a stored encrypted value that will not
+           decrypt is served as null AND named in unreadable_fields. It is an
+           error state, not "unset" — the inputs below are blank, marked
+           invalid, and the save stays disabled until each is re-entered. -->
+      <div
+        v-if="unreadableFields.length > 0"
+        data-testid="sso-unreadable-fields-alert"
+        role="alert"
+        class="flex items-start gap-2 rounded-md bg-red-50 px-3 py-2 dark:bg-red-900/20">
+        <OIcon
+          collection="heroicons"
+          name="exclamation-triangle"
+          class="mt-0.5 size-4 flex-shrink-0 text-red-600 dark:text-red-400"
+          aria-hidden="true" />
+        <p class="text-sm text-red-700 dark:text-red-300">
+          {{ t('web.organizations.sso.unreadable_fields_alert', { fields: unreadableFieldNames }) }}
+        </p>
+      </div>
+
+      <!-- Stored IdP certificate validity (#4450): expired is an error — the
+           connection is advertised but every sign-in through it is refused —
+           and expiring soon is an advisory. Both hide once a different
+           certificate is pasted. Amber is the fixed warning hue (#4132). -->
+      <div
+        v-if="storedCertExpiry?.expired"
+        data-testid="sso-idp-cert-expired-alert"
+        role="alert"
+        class="flex items-start gap-2 rounded-md bg-red-50 px-3 py-2 dark:bg-red-900/20">
+        <OIcon
+          collection="heroicons"
+          name="exclamation-triangle"
+          class="mt-0.5 size-4 flex-shrink-0 text-red-600 dark:text-red-400"
+          aria-hidden="true" />
+        <p class="text-sm text-red-700 dark:text-red-300">
+          {{ t('web.organizations.sso.idp_cert_expired_alert', { date: storedCertExpiry.date }) }}
+        </p>
+      </div>
+      <div
+        v-else-if="storedCertExpiry?.expiringSoon"
+        data-testid="sso-idp-cert-expiring-notice"
+        role="status"
+        class="flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-900/20">
+        <OIcon
+          collection="heroicons"
+          name="exclamation-triangle"
+          class="mt-0.5 size-4 flex-shrink-0 text-amber-600 dark:text-amber-400"
+          aria-hidden="true" />
+        <p class="text-sm text-amber-700 dark:text-amber-300">
+          {{ t('web.organizations.sso.idp_cert_expiring_notice', { date: storedCertExpiry.date }) }}
+        </p>
+      </div>
+
       <!-- Provider Selection (locked when editing, selectable when creating) -->
       <fieldset>
         <legend class="text-sm font-medium text-gray-900 dark:text-white">
@@ -424,8 +645,8 @@ class="space-y-6">
           class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
       </div>
 
-      <!-- Client ID -->
-      <div>
+      <!-- Client ID (OAuth-family providers; SAML has no client credential) -->
+      <div v-if="requiresClientCredentials">
         <label
           for="domain-sso-client-id"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -440,21 +661,35 @@ class="space-y-6">
           required
           autocomplete="off"
           :placeholder="t('web.organizations.sso.client_id_placeholder')"
+          :aria-invalid="isUnreadable('client_id') || undefined"
+          :aria-describedby="isUnreadable('client_id') ? 'domain-sso-client-id-error' : undefined"
           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+        <p
+          v-if="isUnreadable('client_id')"
+          id="domain-sso-client-id-error"
+          class="mt-1 text-sm text-red-600 dark:text-red-400">
+          {{ t('web.organizations.sso.unreadable_field') }}
+        </p>
       </div>
 
       <!-- Client Secret -->
-      <div>
+      <div v-if="requiresClientCredentials">
         <label
           for="domain-sso-client-secret"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.client_secret') }}
-          <span v-if="requiresClientSecret && !isEditing"
+          <span v-if="clientSecretMustBeEntered"
 class="text-red-500"
 aria-hidden="true">*</span>
         </label>
         <p
-          v-if="isEditing"
+          v-if="isUnreadable('client_secret')"
+          id="domain-client-secret-hint"
+          class="mt-1 text-sm text-red-600 dark:text-red-400">
+          {{ t('web.organizations.sso.unreadable_field') }}
+        </p>
+        <p
+          v-else-if="isEditing"
           id="domain-client-secret-hint"
           class="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.sso.client_secret_update_hint') }}
@@ -465,9 +700,10 @@ aria-hidden="true">*</span>
             :value="formState.client_secret"
             @input="updateField('client_secret', ($event.target as HTMLInputElement).value)"
             :type="showClientSecret ? 'text' : 'password'"
-            :required="requiresClientSecret && !isEditing"
+            :required="clientSecretMustBeEntered"
             autocomplete="new-password"
             :placeholder="clientSecretPlaceholder"
+            :aria-invalid="isUnreadable('client_secret') || undefined"
             :aria-describedby="isEditing ? 'domain-client-secret-hint' : undefined"
             class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
           <button
@@ -542,6 +778,124 @@ aria-hidden="true">*</span>
         </a>
       </div>
 
+      <!-- SAML IdP trust anchor (#4450): SSO URL, EntityID, signing cert.
+           None is a secret (the IdP publishes all three), so the stored values
+           are shown and re-sent as-is; the API stores them AAD-bound to the
+           domain for integrity, hence the unreadable_fields error state. -->
+      <template v-if="isSaml">
+        <!-- IdP SSO service URL -->
+        <div>
+          <label
+            for="domain-sso-idp-sso-service-url"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ t('web.organizations.sso.idp_sso_service_url') }}
+            <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <p
+            id="domain-sso-idp-sso-service-url-hint"
+            class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.organizations.sso.idp_sso_service_url_hint') }}
+          </p>
+          <input
+            id="domain-sso-idp-sso-service-url"
+            :value="formState.idp_sso_service_url"
+            @input="updateField('idp_sso_service_url', ($event.target as HTMLInputElement).value)"
+            type="url"
+            required
+            autocomplete="off"
+            pattern="https://.*"
+            :placeholder="t('web.organizations.sso.idp_sso_service_url_placeholder')"
+            :aria-invalid="isUnreadable('idp_sso_service_url') || undefined"
+            :aria-describedby="
+              isUnreadable('idp_sso_service_url')
+                ? 'domain-sso-idp-sso-service-url-hint domain-sso-idp-sso-service-url-error'
+                : 'domain-sso-idp-sso-service-url-hint'
+            "
+            class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+          <p
+            v-if="isUnreadable('idp_sso_service_url')"
+            id="domain-sso-idp-sso-service-url-error"
+            class="mt-1 text-sm text-red-600 dark:text-red-400">
+            {{ t('web.organizations.sso.unreadable_field') }}
+          </p>
+        </div>
+
+        <!-- IdP EntityID -->
+        <div>
+          <label
+            for="domain-sso-idp-entity-id"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ t('web.organizations.sso.idp_entity_id') }}
+            <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <p
+            id="domain-sso-idp-entity-id-hint"
+            class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.organizations.sso.idp_entity_id_hint') }}
+          </p>
+          <input
+            id="domain-sso-idp-entity-id"
+            :value="formState.idp_entity_id"
+            @input="updateField('idp_entity_id', ($event.target as HTMLInputElement).value)"
+            type="text"
+            required
+            autocomplete="off"
+            spellcheck="false"
+            :placeholder="t('web.organizations.sso.idp_entity_id_placeholder')"
+            :aria-invalid="isUnreadable('idp_entity_id') || undefined"
+            :aria-describedby="
+              isUnreadable('idp_entity_id')
+                ? 'domain-sso-idp-entity-id-hint domain-sso-idp-entity-id-error'
+                : 'domain-sso-idp-entity-id-hint'
+            "
+            class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+          <p
+            v-if="isUnreadable('idp_entity_id')"
+            id="domain-sso-idp-entity-id-error"
+            class="mt-1 text-sm text-red-600 dark:text-red-400">
+            {{ t('web.organizations.sso.unreadable_field') }}
+          </p>
+        </div>
+
+        <!-- IdP signing certificate (one PEM block; fingerprints refused) -->
+        <div>
+          <label
+            for="domain-sso-idp-cert"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ t('web.organizations.sso.idp_cert') }}
+            <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <p
+            id="domain-sso-idp-cert-hint"
+            class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.organizations.sso.idp_cert_hint') }}
+          </p>
+          <textarea
+            id="domain-sso-idp-cert"
+            :value="formState.idp_cert"
+            @input="updateField('idp_cert', ($event.target as HTMLTextAreaElement).value)"
+            rows="6"
+            required
+            autocomplete="off"
+            spellcheck="false"
+            wrap="off"
+            :placeholder="t('web.organizations.sso.idp_cert_placeholder')"
+            :aria-invalid="isUnreadable('idp_cert') || undefined"
+            :aria-describedby="
+              isUnreadable('idp_cert')
+                ? 'domain-sso-idp-cert-hint domain-sso-idp-cert-error'
+                : 'domain-sso-idp-cert-hint'
+            "
+            class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 font-mono text-xs"></textarea>
+          <p
+            v-if="isUnreadable('idp_cert')"
+            id="domain-sso-idp-cert-error"
+            class="mt-1 text-sm text-red-600 dark:text-red-400">
+            {{ t('web.organizations.sso.unreadable_field') }}
+          </p>
+        </div>
+      </template>
+
       <!-- Test Connection -->
       <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
         <div class="flex items-start justify-between">
@@ -550,7 +904,7 @@ aria-hidden="true">*</span>
               {{ t('web.organizations.sso.test_connection') }}
             </h4>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {{ t('web.organizations.sso.test_connection_hint') }}
+              {{ isSaml ? t('web.organizations.sso.test_connection_hint_saml') : t('web.organizations.sso.test_connection_hint') }}
             </p>
           </div>
           <button
@@ -600,6 +954,26 @@ aria-hidden="true">*</span>
                   class="mt-1 text-sm text-green-700 dark:text-green-300">
                   {{ testResult.details.note }}
                 </p>
+                <!-- SAML (#4450): the test is local, so it reports what it
+                     parsed — the certificate's subject and expiry. -->
+                <dl
+                  v-if="testResult.details?.certificate_subject || certificateExpiry"
+                  data-testid="sso-test-saml-details"
+                  class="mt-2 space-y-1 text-sm text-green-700 dark:text-green-300">
+                  <div v-if="testResult.details.certificate_subject" class="flex gap-2">
+                    <dt class="font-medium">{{ t('web.organizations.sso.certificate_subject') }}:</dt>
+                    <dd class="break-all">{{ testResult.details.certificate_subject }}</dd>
+                  </div>
+                  <div v-if="certificateExpiry" class="flex gap-2">
+                    <dt class="font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
+                    <dd>
+                      {{ certificateExpiry.date }}
+                      <span v-if="certificateExpiry.days !== undefined">
+                        ({{ t('web.organizations.sso.certificate_expires_in_days', certificateExpiry.days) }})
+                      </span>
+                    </dd>
+                  </div>
+                </dl>
               </div>
             </div>
           </div>
@@ -632,9 +1006,21 @@ aria-hidden="true">*</span>
                       <dt class="font-medium">{{ t('web.COMMON.http_status') }}:</dt>
                       <dd>{{ testResult.details.http_status }}</dd>
                     </div>
+                    <div v-if="testResult.details.field" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.COMMON.field') }}:</dt>
+                      <dd>{{ t(UNREADABLE_FIELD_LABELS[testResult.details.field] ?? testResult.details.field) }}</dd>
+                    </div>
                     <div v-if="testResult.details.description" class="flex gap-2">
                       <dt class="font-medium">{{ t('web.COMMON.details') }}:</dt>
                       <dd>{{ testResult.details.description }}</dd>
+                    </div>
+                    <div v-if="certificateValidFrom" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.organizations.sso.certificate_valid_from') }}:</dt>
+                      <dd>{{ certificateValidFrom }}</dd>
+                    </div>
+                    <div v-if="certificateExpiry" class="flex gap-2">
+                      <dt class="font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
+                      <dd>{{ certificateExpiry.date }}</dd>
                     </div>
                     <div v-if="testResult.details.missing_fields?.length" class="flex gap-2">
                       <dt class="font-medium">{{ t('web.organizations.sso.missing_fields') }}:</dt>
@@ -666,9 +1052,9 @@ aria-hidden="true">*</span>
         </div>
       </div>
 
-      <!-- Callback URL (all providers) -->
+      <!-- Callback URL (OAuth-family providers) -->
       <div
-        v-if="callbackUrl"
+        v-if="callbackUrl && !isSaml"
         class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
         <label class="block text-sm font-medium text-gray-900 dark:text-white">
           {{ t('web.organizations.sso.callback_url') }}
@@ -685,6 +1071,66 @@ aria-hidden="true">*</span>
             :is-copied="isCallbackCopied"
             @click="copyToClipboard(callbackUrl ?? '')" />
         </div>
+      </div>
+
+      <!-- SAML service-provider identifiers (#4450), read-only: what the admin
+           registers at the IdP. SP Entity ID doubles as the SP metadata URL.
+           Host-derived values are labelled a preview (spDetailsArePreview)
+           because the static default route may not be the deployed one (#3932). -->
+      <div
+        v-if="isSaml && (spEntityId || callbackUrl)"
+        data-testid="sso-saml-sp-details"
+        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        <p class="text-sm font-medium text-gray-900 dark:text-white">
+          {{ t('web.organizations.sso.sp_details') }}
+        </p>
+        <p
+          data-testid="sso-saml-sp-details-hint"
+          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{
+            spDetailsArePreview
+              ? t('web.organizations.sso.sp_details_preview_hint')
+              : t('web.organizations.sso.sp_details_hint')
+          }}
+        </p>
+        <dl class="mt-3 space-y-3">
+          <div v-if="spEntityId">
+            <dt
+              id="domain-sso-sp-entity-id-label"
+              class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              {{ t('web.organizations.sso.sp_entity_id') }}
+            </dt>
+            <dd class="mt-1 flex items-center gap-2">
+              <code
+                data-testid="sso-saml-sp-entity-id"
+                aria-labelledby="domain-sso-sp-entity-id-label"
+                class="block flex-1 overflow-x-auto rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                {{ spEntityId }}
+              </code>
+              <CopyToClipboardButton
+                :is-copied="isSpEntityIdCopied"
+                @click="copySpEntityId(spEntityId ?? '')" />
+            </dd>
+          </div>
+          <div v-if="callbackUrl">
+            <dt
+              id="domain-sso-acs-url-label"
+              class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              {{ t('web.organizations.sso.acs_url') }}
+            </dt>
+            <dd class="mt-1 flex items-center gap-2">
+              <code
+                data-testid="sso-saml-acs-url"
+                aria-labelledby="domain-sso-acs-url-label"
+                class="block flex-1 overflow-x-auto rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                {{ callbackUrl }}
+              </code>
+              <CopyToClipboardButton
+                :is-copied="isCallbackCopied"
+                @click="copyToClipboard(callbackUrl ?? '')" />
+            </dd>
+          </div>
+        </dl>
       </div>
 
       <!-- Domain Allowlist (only for providers without IdP-side access control) -->
@@ -824,6 +1270,47 @@ aria-hidden="true">*</span>
       </div>
 
       <!-- Action Buttons -->
+      <div
+        v-if="ssoConfig?.enabled"
+        class="space-y-3 border-t border-gray-200 pt-6 dark:border-gray-700">
+        <button
+          v-if="!showDisableConfirm"
+          type="button"
+          data-testid="disable-sso"
+          :disabled="actionPending"
+          class="rounded-md px-3 py-2 text-sm font-semibold text-red-600 ring-1 ring-red-300 disabled:opacity-50 dark:text-red-400"
+          @click="showDisableConfirm = true">
+          {{ t('web.organizations.sso.disable_action') }}
+        </button>
+        <div
+          v-else
+          class="space-y-3">
+          <p
+            class="text-sm text-gray-600 dark:text-gray-400"
+            data-testid="disable-sso-confirmation">
+            {{ t('web.organizations.sso.disable_confirm') }}
+            <span v-if="ssoConfig.enforce_sso_only">{{
+              t('web.organizations.sso.disable_enforcement_warning')
+            }}</span>
+          </p>
+          <button
+            type="button"
+            data-testid="confirm-disable-sso"
+            :disabled="actionPending"
+            class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            @click="handleDisable">
+            {{ t('web.organizations.sso.disable_action') }}
+          </button>
+          <button
+            type="button"
+            :disabled="actionPending"
+            class="px-3 py-2 text-sm text-gray-700 dark:text-gray-200"
+            @click="showDisableConfirm = false">
+            {{ t('web.COMMON.word_cancel') }}
+          </button>
+        </div>
+      </div>
+
       <div class="flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">
         <!-- Left: Delete + Discard -->
         <div class="flex items-center gap-3">

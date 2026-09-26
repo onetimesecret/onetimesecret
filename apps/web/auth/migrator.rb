@@ -128,8 +128,8 @@ module Auth
 
         if using_elevated_url && adapter_mismatch?(Onetime.auth_config.database_url, migrations_url)
           sequel_logger.warn 'Adapter mismatch between database_url and database_url_migrations',
-            database_url: Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
-            migrations_url: migrations_url&.sub(/:[^:@]+@/, ':***@'),
+            database_url: Auth::DatabaseConnection.redact_url(Onetime.auth_config.database_url),
+            migrations_url: Auth::DatabaseConnection.redact_url(migrations_url),
             action: 'using database_url for migrations'
           using_elevated_url = false
         end
@@ -139,8 +139,8 @@ module Auth
 
       def log_migration_start(using_elevated_url, migrations_url)
         sequel_logger.info 'Auth migrations initializer running',
-          database_url: Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
-          migrations_url: using_elevated_url ? migrations_url&.sub(/:[^:@]+@/, ':***@') : nil,
+          database_url: redacted_url_for_log(Onetime.auth_config.database_url),
+          migrations_url: using_elevated_url ? redacted_url_for_log(migrations_url) : nil,
           using_elevated_credentials: using_elevated_url
       end
 
@@ -151,7 +151,7 @@ module Auth
         sequel_logger.error 'Failed to connect to auth database',
           error: ex.message,
           error_class: ex.class.name,
-          database_url: using_elevated_url ? migrations_url&.sub(/:[^:@]+@/, ':***@') : Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
+          database_url: redacted_url_for_log(using_elevated_url ? migrations_url : Onetime.auth_config.database_url),
           using_elevated_url: using_elevated_url
         raise
       ensure
@@ -287,6 +287,16 @@ module Auth
 
       # Detect if two database URLs use different adapters (e.g., sqlite vs postgres)
       # Returns true if there's a mismatch, false if they match or can't be determined
+      # Connection URL for a log payload. The username stays visible because
+      # it is what tells the elevated migrations credential apart from the
+      # application one; the password and any query string are masked by the
+      # shared redactor. nil stays nil so an unset URL still reads as absent.
+      def redacted_url_for_log(url)
+        return nil if url.nil?
+
+        ::OnetimeUriRedaction.redact(url, keep_username: true)
+      end
+
       def adapter_mismatch?(url1, url2)
         return false if url1.nil? || url2.nil?
 

@@ -24,7 +24,17 @@
 
 	log {
 		output stdout
-		format json
+		format filter {
+			# Match onetime-log-redaction below; global options cannot import
+			# a snippet declared later in the Caddyfile.
+			fields {
+				request>uri regexp "[?].*" ""
+				request>headers>Referer delete
+				resp_headers>Location delete
+				headers>Location delete
+			}
+			wrap json
+		}
 		level INFO
 	}
 
@@ -68,6 +78,23 @@
 	#  # @see allowed-domains
 	#  ask http://localhost:3001/ask
 	#}
+}
+# Strip the whole query rather than selected names: malformed, encoded and
+# duplicate query keys must not expose SAML assertions or transport handles.
+# Filters affect log encoding only, not forwarded requests or client redirects.
+# These filters cover only the configured Caddy log fields. They do not configure
+# upstream ingress, custom request-body capture, APM agents or hosted Sentry.
+# Apply equivalent filtering there: do not record SAMLResponse, callback query
+# strings/handles, Referer or response Location headers. Updating this example
+# does not update an existing deployment's ingress or monitoring configuration.
+(onetime-log-redaction) {
+	fields {
+		request>uri regexp "[?].*" ""
+		request>headers>Referer delete
+		resp_headers>Location delete
+		# reverse_proxy debug records response headers under this field.
+		headers>Location delete
+	}
 }
 
 (onetime-root) {
@@ -223,6 +250,14 @@
 	}
 }
 
+# SAML callbacks require both the IdP's POST and the redirected completion GET.
+# Allow both through ingress; preserve the POST body, callback query string and
+# browser-facing Location header. Remove sensitive values from logs, not traffic.
+# Use a secure, host-only SameSite=Lax session cookie; SameSite=None; Secure is
+# also compatible. Do not rewrite session cookies to SameSite=Strict: completion
+# requires the original session cookie on the redirected GET.
+# See docs/authentication/saml-callback-transport.md for the callback flow, cookie
+# requirements and staging-capacity limits (including 429 admission responses).
 (onetime-proxy) {
 	handle {
 		# Forward all other requests to backend
@@ -410,9 +445,12 @@
 	# https://github.com/caddyserver/transform-encoder
 	log {
 		output stdout
-		format json {
-			time_format unix_milli_float
-			duration_format string
+		format filter {
+			import onetime-log-redaction
+			wrap json {
+				time_format unix_milli_float
+				duration_format string
+			}
 		}
 		level INFO
 	}
@@ -424,9 +462,12 @@
 	# Timeline of events affecting secrets
 	log @secrets_timeline {
 		output stdout
-		format transform "{ts} {method} {uri} {status} {duration}" {
-			time_format "2006-01-02 15:04:05"
-			time_local
+		format filter {
+			import onetime-log-redaction
+			wrap transform "{ts} {request>method} {request>uri} {status} {duration}" {
+				time_format "2006-01-02 15:04:05"
+				time_local
+			}
 		}
 		level INFO
 	}

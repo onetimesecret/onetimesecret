@@ -54,7 +54,8 @@
 #                     definition whose strategy_options can RAISE, since
 #                     configure_provider skips such a provider and the
 #                     advertised set must not then disagree with the
-#                     registered one. Omitted means always valid.
+#                     registered one. SAML's checks the IdP URL, EntityID and
+#                     certificate the same way. Omitted means always valid.
 #   route_var/route_default:     env var and default for the route name — the
 #                     URL segment, auth-hash provider value, and
 #                     account_identities.provider value
@@ -70,7 +71,9 @@
 #                     #4173). Either a static origin for providers whose IdP
 #                     host is fixed, or the name of an env var whose URL the
 #                     origin is derived from (OIDC's issuer; tenant OIDC uses
-#                     the SsoConfig record's issuer instead). ENTRA is static
+#                     the SsoConfig record's issuer instead; SAML's SSO
+#                     service URL — never its EntityID, which is an opaque
+#                     name and often not the login host). ENTRA is static
 #                     because the OmniAuth strategy hard-pins the commercial
 #                     cloud (login.microsoftonline.com); there is no
 #                     sovereign-cloud authority env in this app. This applies
@@ -108,6 +111,7 @@ require_relative 'entra'
 require_relative 'google'
 require_relative 'github'
 require_relative 'apple'
+require_relative 'saml'
 
 module Onetime
   module SsoProvider
@@ -122,6 +126,11 @@ module Onetime
         # per deployment; only definitions whose required_vars are all present
         # reach the login page at all, so an unconfigured entry costs nothing.
         Apple::DEFINITION,
+        # SAML 2.0 (#4450). The one definition whose strategy is an in-repo
+        # subclass rather than a gem's own class — see saml.rb and
+        # request_bound_saml.rb — and the one issuer-capable definition that
+        # must NOT declare an `issuer:` strategy option.
+        Saml::DEFINITION,
       ].freeze
 
       # Definition lookup by :key that answers nil on a miss — the per-request
@@ -140,6 +149,46 @@ module Onetime
       def self.fetch(key)
         find(key) ||
           raise(KeyError, "unknown SSO provider definition: #{key.inspect}")
+      end
+
+      # Does the platform provider registered under +route_name+ require
+      # its boot-pinned ACS host? Resolves
+      # operator-renamed routes the same way provider registration does.
+      #
+      # Case-insensitive: OmniAuth matches its request and callback paths
+      # with casecmp (strategy.rb on_path?), as does the staging transport
+      # (SamlCallbackTransport.callback?), so a caller that derives the route
+      # name from a request path must reach the same answer for
+      # /auth/sso/SAML/callback as for /auth/sso/saml/callback. Otherwise the
+      # host restriction this predicate keys could be sidestepped by case.
+      #
+      # @param route_name [String, nil] the OmniAuth route / provider name
+      # @return [Boolean]
+      def self.request_bound_platform_acs_route?(route_name)
+        route_name = route_name.to_s
+        return false if route_name.empty?
+
+        DEFINITIONS.any? do |defn|
+          defn[:key] == :saml &&
+            ENV.fetch(defn[:route_var], defn[:route_default]).casecmp?(route_name)
+        end
+      end
+
+      # Whether a platform provider may be used on the resolved request host.
+      # Most providers are host-independent. A request-bound ACS provider is
+      # available only on its boot-pinned platform host. Verified domain
+      # ownership does not authorize receiving platform assertions.
+      # Callers supply resolved facts so this policy stays pure and does not
+      # duplicate domain lookups across Rack hooks and serializers.
+      #
+      # @param route_name [String, nil] the registered platform route
+      # @param platform_host [Boolean] whether this is the provider's pinned host
+
+      # @return [Boolean]
+      def self.platform_route_available_on_host?(route_name, platform_host:)
+        return true unless request_bound_platform_acs_route?(route_name)
+
+        platform_host
       end
     end
   end

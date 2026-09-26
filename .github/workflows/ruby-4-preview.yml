@@ -207,6 +207,9 @@ jobs:
           - name: 'SQLite, MFA'
             lane: full-mfa
             overlay: ''
+          - name: 'SQLite, platform SAML'
+            lane: full-saml-platform
+            overlay: ''
 
     steps:
       - *checkout-step

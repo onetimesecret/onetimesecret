@@ -43,6 +43,10 @@ require_relative '../../lib/logging'
 # Require the hook module under test
 require_relative '../../config/hooks/omniauth_tenant'
 
+# The model + fixtures, for the provider-type tripwire and the SAML arm (#4450)
+require 'onetime/models/custom_domain/sso_config'
+require_relative '../support/domain_sso_test_fixtures'
+
 RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
   let(:helpers) { described_class }
 
@@ -94,6 +98,49 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
         allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::GitHub')
 
         expect(helpers.strategy_matches?(strategy, :github)).to be true
+      end
+    end
+
+    # #4450. Compared by class NAME, so neither this spec nor the hook loads
+    # omniauth-saml.
+    context 'with SAML' do
+      def strategy_named(name)
+        double(name).tap { |s| allow(s).to receive_message_chain(:class, :name).and_return(name) }
+      end
+
+      it 'returns true for the request-bound subclass' do
+        strategy = strategy_named('OmniAuth::Strategies::RequestBoundSAML')
+
+        expect(helpers.strategy_matches?(strategy, :request_bound_saml)).to be true
+      end
+
+      # Every SAML-specific gate lives in the subclass. Tenant trust anchors
+      # injected into the gem's own strategy would run with none of them.
+      it 'returns false for the plain omniauth-saml strategy' do
+        strategy = strategy_named('OmniAuth::Strategies::SAML')
+
+        expect(helpers.strategy_matches?(strategy, :request_bound_saml)).to be false
+      end
+    end
+
+    # Drift tripwire. A provider type whose :strategy has no entry here
+    # validates, saves, renders its button — and then 400s provider_mismatch
+    # on every login.
+    context 'with every configurable tenant provider type' do
+      it 'has a STRATEGY_CLASS_MAP entry for the strategy the model dispatches' do
+        trio = {
+          idp_sso_service_url: 'https://idp.example.com/saml/sso',
+          idp_entity_id: 'https://idp.example.com/saml/metadata',
+          idp_cert: DomainSsoTestFixtures.saml_cert_pem,
+        }
+
+        strategies = Onetime::CustomDomain::SsoConfig::PROVIDER_TYPES.map do |provider_type|
+          config = Onetime::CustomDomain::SsoConfig.new(domain_id: 'dom_tripwire', provider_type: provider_type)
+          allow(config).to receive_messages(custom_domain: double(extid: 'cd_tripwire'), saml_trio: trio)
+          config.to_omniauth_options[:strategy]
+        end
+
+        expect(strategies - described_class::STRATEGY_CLASS_MAP.keys).to eq([])
       end
     end
 
@@ -286,6 +333,35 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       end
     end
 
+    # #4450. omniauth-saml builds ruby-saml Settings WITHOUT
+    # keep_security_attributes, so whatever :security hash the strategy holds
+    # REPLACES ruby-saml's defaults and every absent key reads as nil. The
+    # tenant arm always supplies the FULL hash; replacement (not a key-by-key
+    # merge) is what guarantees the strategy ends up with exactly that set.
+    context 'with a nested SAML security hash' do
+      let(:registered_security) do
+        { want_assertions_signed: false, digest_method: 'sha1', registered_only_key: true }
+      end
+      let(:options_hash) { { security: registered_security } }
+
+      it 'replaces the registered hash wholesale with the full tenant hash' do
+        full = Onetime::SsoProvider::Saml::SECURITY.dup
+
+        helpers.merge_strategy_options(strategy, { security: full })
+
+        expect(options_hash[:security]).to eq(full)
+        expect(options_hash[:security]).not_to have_key(:registered_only_key)
+        expect(options_hash[:security][:want_assertions_signed]).to be true
+      end
+
+      it 'does not mutate the shared frozen constant' do
+        helpers.merge_strategy_options(strategy, Onetime::SsoProvider::Saml.hardened_options)
+
+        expect(options_hash[:security]).not_to be(Onetime::SsoProvider::Saml::SECURITY)
+        expect(Onetime::SsoProvider::Saml::SECURITY).to be_frozen
+      end
+    end
+
     context 'with nested client_options' do
       it 'deep-merges client_options into strategy.options[:client_options]' do
         helpers.merge_strategy_options(
@@ -432,6 +508,422 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
   end
 
   # ==========================================================================
+  # platform SAML fallback
+  # ==========================================================================
+
+  describe '.handle_missing_tenant_config with platform SAML' do
+    let(:options) do
+      {
+        name: 'saml',
+        sp_entity_id: 'urn:example:platform-sp',
+        assertion_consumer_service_url: 'https://canonical.example/auth/sso/saml/callback',
+        idp_entity_id: 'https://platform-idp.example/metadata',
+        idp_cert: 'PLATFORM CERT',
+      }
+    end
+    let(:strategy) do
+      double('OmniAuth::Strategies::RequestBoundSAML').tap do |s|
+        allow(s).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::RequestBoundSAML')
+        allow(s).to receive_messages(
+          options: options,
+          full_host: 'https://tenant.example',
+          callback_path: '/auth/sso/saml/callback',
+          on_request_path?: true,
+        )
+      end
+    end
+    let(:request) { double('Rack::Request', env: { 'omniauth.strategy' => strategy }) }
+    let(:session) do
+      {
+        omniauth_tenant_domain_id: 'stale-domain-id',
+        omniauth_tenant_host: 'tenant.example',
+      }
+    end
+    let(:rodauth) do
+      double('Rodauth', session: session).tap do |r|
+        allow(r).to receive(:redirect) { throw :halt }
+      end
+    end
+
+    before do
+      allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:global_auth_enabled).and_return(true)
+      # No host in this group is site.host or canonical unless a case says so.
+      # DomainStrategy's canonical set is nil until the middleware serves a
+      # request, so canonical_domain? is pinned explicitly rather than left
+      # to that accident.
+      allow(Onetime::SsoProvider::Saml).to receive(:platform_host?).and_return(false)
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?).and_return(false)
+    end
+
+    # A CustomDomain record keyed on site.host itself (the host moved onto one
+    # a tenant had registered) sends the request down the tenant path, and an
+    # absent SsoConfig lands it here. /signin advertises platform SAML on that
+    # host (ConfigSerializer#platform_saml_host?), and the boot-time ACS
+    # already names it, so the start must proceed with the ACS untouched.
+    # PublicHost refuses the whole canonical set, so it must not be the gate.
+    context 'when on the pinned platform host with a stale CustomDomain record' do
+      before do
+        allow(Onetime::SsoProvider::Saml).to receive(:platform_host?).with('canonical.example').and_return(true)
+        # Both are canonical-set hosts; only canonical.example is site.host.
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+          .with('canonical.example').and_return(true)
+        allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+          .with('secrets.example').and_return(true)
+        allow(Auth::PublicHost).to receive(:resolve).and_return(nil)
+      end
+
+      it 'proceeds with platform defaults without rebinding the ACS' do
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('canonical.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).to eq(:allowed)
+        expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+        expect(Auth::PublicHost).not_to have_received(:resolve)
+        expect(rodauth).not_to have_received(:redirect)
+        expect(session).not_to include(:omniauth_tenant_domain_id, :omniauth_tenant_host)
+      end
+
+      it 'compares the host the tenant record was resolved by, not the strategy host' do
+        # A secondary canonical-set host (link_domains) is not site.host: the
+        # pinned ACS does not name it and PublicHost refuses it, so the start
+        # is refused exactly as it is without a record.
+        catch(:halt) do
+          helpers.handle_missing_tenant_config('secrets.example', rodauth, request: request)
+        end
+
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+        expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+      end
+
+      it 'checks the resolved public host against the pinned platform host' do
+        catch(:halt) do
+          helpers.handle_missing_tenant_config('canonical.example', rodauth, request: request)
+        end
+
+        expect(Onetime::SsoProvider::Saml).to have_received(:platform_host?).with('canonical.example')
+      end
+
+      # /signin on site.host is an operator host, so ConfigSerializer
+      # #build_sso_config advertises platform SAML there WITHOUT consulting
+      # allow_platform_fallback_for_tenants? (the policy governs tenant hosts
+      # only). The runtime path reaches this helper because omniauth_setup
+      # reads the stale record before it asks HELPERS.canonical_domain?, so
+      # the helper must not let the tenant policy refuse an operator host.
+      it 'proceeds on the pinned platform host even when tenant fallback is denied' do
+        allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('canonical.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).to eq(:allowed)
+        expect(rodauth).not_to have_received(:redirect)
+        expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+      end
+
+      # The same operator-host exemption for a host-independent provider: a
+      # secondary canonical-set host with a stale record advertises platform
+      # OIDC (operator host, no policy consulted), and the request-bound ACS
+      # gate does not apply, so the start proceeds under the denied policy.
+      it 'proceeds with a host-independent provider on a secondary canonical-set host under the denied policy' do
+        allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+        allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::OpenIDConnect')
+
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('secrets.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).to eq(:allowed)
+        expect(rodauth).not_to have_received(:redirect)
+      end
+
+      it 'still refuses when the AUTH_ENABLED master switch is off' do
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:global_auth_enabled).and_return(false)
+
+        catch(:halt) do
+          helpers.handle_missing_tenant_config('canonical.example', rodauth, request: request)
+        end
+
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+      end
+    end
+
+    # Through the REAL Saml.platform_host? (site.host pinned to
+    # canonical.example, as ConfigSerializer's spec pins it): a subdomain of
+    # the anchor and a secondary canonical-set host are "any other host" to
+    # the pinned ACS, exactly as they are to the display gate.
+    context 'with the real platform_host? predicate' do
+      before do
+        allow(Onetime::SsoProvider::Saml).to receive(:platform_host?).and_call_original
+        allow(Onetime::SsoProvider::Saml).to receive(:platform_base_url).and_return('https://canonical.example')
+      end
+
+      it 'admits site.host itself without a rebind' do
+        allow(Auth::PublicHost).to receive(:resolve).and_return(nil)
+
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('canonical.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).to eq(:allowed)
+        expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+      end
+
+      it 'refuses a secondary canonical-set host that carries a stale record' do
+        # PublicHost refuses the whole canonical set, so it answers nil here.
+        allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return(nil)
+
+        catch(:halt) do
+          helpers.handle_missing_tenant_config('secrets.example', rodauth, request: request)
+        end
+
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+        expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+      end
+
+      it 'refuses a verified record keyed on a subdomain without rebinding the ACS' do
+        allow(strategy).to receive(:full_host).and_return('https://eu.canonical.example')
+        allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return('eu.canonical.example')
+
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('eu.canonical.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).not_to eq(:allowed)
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+        expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+        expect(options[:sp_entity_id]).to eq('urn:example:platform-sp')
+      end
+
+      it 'refuses a subdomain of the anchor whose record is unverified' do
+        allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return(nil)
+
+        catch(:halt) do
+          helpers.handle_missing_tenant_config('eu.canonical.example', rodauth, request: request)
+        end
+
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+        expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+      end
+    end
+
+    it 'refuses verified custom-domain fallback without changing platform options' do
+      allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return('tenant.example')
+
+      result = catch(:halt) do
+        helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+        :allowed
+      end
+
+      expect(result).not_to eq(:allowed)
+      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+      expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+      expect(options[:sp_entity_id]).to eq('urn:example:platform-sp')
+      expect(options[:idp_entity_id]).to eq('https://platform-idp.example/metadata')
+      expect(options[:idp_cert]).to eq('PLATFORM CERT')
+      expect(session).not_to include(:omniauth_tenant_domain_id, :omniauth_tenant_host)
+    end
+
+    # Callback setup with the tenant markers still pending: the response
+    # answers a TENANT flow whose config went away between request and
+    # callback (record disabled mid-flow). Continuing with platform defaults
+    # would let the retained markers stamp the platform IdP's assertion as a
+    # validated tenant callback (and join the tenant org). Refused instead.
+    it 'refuses a callback that still carries pending tenant markers and drops them' do
+      allow(strategy).to receive(:on_request_path?).and_return(false)
+      allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return('tenant.example')
+
+      catch(:halt) do
+        helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+      end
+
+      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+      expect(session).not_to include(:omniauth_tenant_domain_id, :omniauth_tenant_host)
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :omniauth_tenant_no_config,
+        level: :warn,
+        host: 'tenant.example',
+        pending_tenant_flow_dropped: true,
+      )
+    end
+
+    # The live session stringifies the marker keys; the check must see them
+    # in that form too, or a real callback would slip through as fallback.
+    it 'sees stringified markers the way the live session hands them back' do
+      session.clear
+      session['omniauth_tenant_domain_id'] = 'stale-domain-id'
+      session['omniauth_tenant_host']      = 'tenant.example'
+      allow(strategy).to receive(:on_request_path?).and_return(false)
+      allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return('tenant.example')
+
+      catch(:halt) do
+        helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+      end
+
+      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+    end
+
+    # An abandoned tenant request leaves more than the two markers behind: the
+    # strategy's own request/callback binding (the pending SAML AuthnRequest
+    # id, the OAuth/OIDC state). Those are STRING keys, as the strategies
+    # write them; the markers are symbols. Both forms are exercised on a plain
+    # Hash so a key-form drift in the hook fails here rather than only on the
+    # stringifying live session.
+    #
+    # UNIT COVERAGE ONLY, on purpose. No full_saml_platform spec replays the
+    # abandoned tenant SAMLResponse end to end, and the obvious one would not
+    # test this: a platform SAML fallback start that completes its request
+    # phase overwrites the pending AuthnRequest id (RequestBoundSAML
+    # #request_phase), so the abandoned response is refused as an
+    # InResponseTo mismatch with or without this delete. The delete only
+    # changes the outcome (to saml_no_pending_request) when the superseding
+    # platform start is another strategy, such as platform OIDC, or a SAML
+    # start refused before it writes a new id. The full_saml_platform lane
+    # registers no platform OIDC provider, so an end-to-end spec needs that
+    # lane widened first.
+    context 'with an abandoned tenant request binding in the session' do
+      let(:session) do
+        {
+          omniauth_tenant_domain_id: 'stale-domain-id',
+          omniauth_tenant_host: 'tenant.example',
+          'saml_authn_request_id' => '_stale-authn-request-id',
+          'omniauth.state' => 'stale-oauth-state',
+          account_id: 42,
+        }
+      end
+
+      before do
+        allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return('tenant.example')
+      end
+
+      # Fallback DENIED (the default policy): the refusal drops the pending
+      # flow on both phases, the same as the fallback arm does. A binding that
+      # outlived a refusal is what the tenant_context_missing belt catches;
+      # not leaving one behind is the first line.
+      context 'when platform fallback is denied' do
+        before do
+          allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+        end
+
+        it 'drops the whole pending context with the refusal on the request path' do
+          catch(:halt) do
+            helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+          end
+
+          expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+          expect(session).to eq(account_id: 42)
+        end
+
+        it 'drops the whole pending context with the refusal on the callback path' do
+          allow(strategy).to receive(:on_request_path?).and_return(false)
+
+          catch(:halt) do
+            helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+          end
+
+          expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+          expect(session).to eq(account_id: 42)
+        end
+      end
+
+      it 'drops the pending SAML request id and OAuth state with the refused request' do
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).not_to eq(:allowed)
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+        expect(session).not_to include(
+          :omniauth_tenant_domain_id,
+          :omniauth_tenant_host,
+          'saml_authn_request_id',
+          'omniauth.state',
+        )
+        # Only the flow is superseded; unrelated session state is untouched.
+        expect(session).to eq(account_id: 42)
+      end
+
+      # THE RULE, callback half (see clear_pending_tenant_context): a tenant
+      # flow whose config is gone at the callback drops the whole pending
+      # context — markers and binding — and is refused, never run on the
+      # platform defaults.
+      it 'drops the binding with the stale markers during callback setup and refuses' do
+        allow(strategy).to receive(:on_request_path?).and_return(false)
+
+        catch(:halt) do
+          helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+        end
+
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+        expect(session).to eq(account_id: 42)
+      end
+
+      it 'preserves an OAuth fallback callback binding on the same custom host' do
+        session.delete(:omniauth_tenant_domain_id)
+        session.delete(:omniauth_tenant_host)
+        allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::OpenIDConnect')
+        allow(strategy).to receive(:on_request_path?).and_return(false)
+
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).to eq(:allowed)
+        expect(rodauth).not_to have_received(:redirect)
+        expect(session['omniauth.state']).to eq('stale-oauth-state')
+      end
+
+      # Old platform-fallback sessions remain invalid even without tenant markers.
+      it 'drops a legacy platform SAML fallback binding on a custom-host callback' do
+        session.delete(:omniauth_tenant_domain_id)
+        session.delete(:omniauth_tenant_host)
+        allow(strategy).to receive(:on_request_path?).and_return(false)
+
+        result = catch(:halt) do
+          helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+          :allowed
+        end
+
+        expect(result).not_to eq(:allowed)
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+        expect(session).to eq(account_id: 42)
+      end
+    end
+
+    it 'refuses an unknown host' do
+      allow(Auth::PublicHost).to receive(:resolve).with(request.env).and_return(nil)
+
+      catch(:halt) do
+        helpers.handle_missing_tenant_config('unknown.example', rodauth, request: request)
+      end
+
+      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_not_configured')
+      expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+    end
+
+    it 'does not override ACS when the explicit fallback policy denies access' do
+      allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+      allow(Auth::PublicHost).to receive(:resolve)
+
+      catch(:halt) do
+        helpers.handle_missing_tenant_config('tenant.example', rodauth, request: request)
+      end
+
+      expect(Auth::PublicHost).not_to have_received(:resolve)
+      expect(options[:assertion_consumer_service_url]).to eq('https://canonical.example/auth/sso/saml/callback')
+    end
+  end
+
+  # ==========================================================================
   # inject_tenant_credentials (integration of the above)
   # ==========================================================================
 
@@ -535,6 +1027,194 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
 
         expect(rodauth).not_to have_received(:throw_error_status)
       end
+    end
+
+    it 'derives no SAML SP identifiers for a non-SAML strategy' do
+      helpers.inject_tenant_credentials(sso_config, request, rodauth)
+
+      expect(options_hash).not_to have_key(:sp_entity_id)
+      expect(options_hash).not_to have_key(:assertion_consumer_service_url)
+    end
+
+    # ────────────────────────────────────────────────────────────────────
+    # SAML (#4450)
+    # ────────────────────────────────────────────────────────────────────
+    context 'with a SAML tenant config' do
+      # What the platform registered: a real platform SAML config, including
+      # values a tenant flow must NOT inherit.
+      let(:options_hash) do
+        {
+          idp_entity_id: 'https://platform-idp.example/metadata',
+          idp_cert: 'PLATFORM CERT',
+          sp_entity_id: 'https://app.example.com/auth/sso/saml/metadata',
+          uid_attribute: 'platformEmployeeId',
+          security: { want_assertions_signed: false },
+        }
+      end
+
+      let(:strategy) do
+        double('OmniAuth::Strategies::RequestBoundSAML').tap do |s|
+          allow(s).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::RequestBoundSAML')
+          allow(s).to receive_messages(
+            options: options_hash,
+            full_host: 'https://secrets.tenant.example',
+            request_path: '/auth/sso/saml',
+            callback_path: '/auth/sso/saml/callback',
+          )
+          allow(s).to receive(:respond_to?).with(:options).and_return(true)
+        end
+      end
+
+      let(:sso_config) do
+        config = Onetime::CustomDomain::SsoConfig.new(domain_id: 'dom_saml_123', provider_type: 'saml')
+        allow(config).to receive_messages(
+          custom_domain: double(extid: 'cd_saml_123'),
+          saml_trio: {
+            idp_sso_service_url: 'https://idp.tenant.example/saml/sso',
+            idp_entity_id: 'https://idp.tenant.example/saml/metadata',
+            idp_cert: DomainSsoTestFixtures.saml_cert_pem,
+          },
+        )
+        config
+      end
+
+      it 'replaces every platform trust anchor with the tenant trio' do
+        helpers.inject_tenant_credentials(sso_config, request, rodauth)
+
+        expect(options_hash[:idp_entity_id]).to eq('https://idp.tenant.example/saml/metadata')
+        expect(options_hash[:idp_sso_service_url]).to eq('https://idp.tenant.example/saml/sso')
+        expect(options_hash[:idp_cert]).to eq(DomainSsoTestFixtures.saml_cert_pem)
+      end
+
+      it 'installs the full hardened security hash over the registered one' do
+        helpers.inject_tenant_credentials(sso_config, request, rodauth)
+
+        expect(options_hash[:security]).to eq(Onetime::SsoProvider::Saml::SECURITY)
+      end
+
+      it 'does not let the platform uid_attribute leak into the tenant flow' do
+        helpers.inject_tenant_credentials(sso_config, request, rodauth)
+
+        expect(options_hash[:uid_attribute]).to be_nil
+      end
+
+      # The platform sp_entity_id names the canonical host. The tenant's IdP
+      # is configured against the tenant's domain.
+      it 'derives the SP identifiers from full_host (the PUBLIC host), not the registered value' do
+        helpers.inject_tenant_credentials(sso_config, request, rodauth)
+
+        expect(options_hash[:sp_entity_id]).to eq('https://secrets.tenant.example/auth/sso/saml/metadata')
+        expect(options_hash[:assertion_consumer_service_url])
+          .to eq('https://secrets.tenant.example/auth/sso/saml/callback')
+      end
+
+      it 'follows an operator-renamed route' do
+        allow(strategy).to receive_messages(request_path: '/auth/sso/okta', callback_path: '/auth/sso/okta/callback')
+
+        helpers.inject_tenant_credentials(sso_config, request, rodauth)
+
+        expect(options_hash[:sp_entity_id]).to eq('https://secrets.tenant.example/auth/sso/okta/metadata')
+        expect(options_hash[:assertion_consumer_service_url])
+          .to eq('https://secrets.tenant.example/auth/sso/okta/callback')
+      end
+
+      it 'never sets :issuer (ruby-saml reads it as OUR SP EntityID)' do
+        helpers.inject_tenant_credentials(sso_config, request, rodauth)
+
+        expect(options_hash).not_to have_key(:issuer)
+      end
+
+      # A record that cannot produce a usable trio is REFUSED. It must not
+      # reach handle_missing_tenant_config, whose platform-fallback arm would
+      # run this tenant's login through the platform IdP with the tenant
+      # context still pending.
+      context 'when the record cannot produce usable options' do
+        # The markers, the strategy's own binding (string keys, as the
+        # strategies write them), and one unrelated key that must survive.
+        let(:session) do
+          {
+            omniauth_tenant_domain_id: 'dom_saml_123',
+            omniauth_tenant_host: 'secrets.tenant.example',
+            'saml_authn_request_id' => '_pending-request-id',
+            'omniauth.state' => 'pending-state',
+            account_id: 42,
+          }
+        end
+        let(:rodauth) do
+          double('Rodauth', session: session).tap do |r|
+            allow(r).to receive(:redirect) { throw :halt }
+            allow(r).to receive(:throw_error_status)
+          end
+        end
+
+        before do
+          allow(sso_config).to receive(:to_omniauth_options)
+            .and_raise(Onetime::Problem, 'SAML SSO config for domain dom_saml_123 is unusable: IdP certificate expired on 2020-01-01')
+          allow(helpers).to receive(:handle_missing_tenant_config)
+        end
+
+        # sso_config_unusable, not sso_not_configured: a record exists and is
+        # advertised, so the visitor must be told it is broken, not absent.
+        it 'redirects to sso_config_unusable and injects nothing' do
+          before_options = options_hash.dup
+
+          catch(:halt) { helpers.inject_tenant_credentials(sso_config, request, rodauth) }
+
+          expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_config_unusable')
+          expect(options_hash).to eq(before_options)
+        end
+
+        it 'never consults the platform-fallback policy' do
+          catch(:halt) { helpers.inject_tenant_credentials(sso_config, request, rodauth) }
+
+          expect(helpers).not_to have_received(:handle_missing_tenant_config)
+        end
+
+        # The whole pending context, not just the markers: a surviving
+        # AuthnRequest id could still be answered once the record is repaired,
+        # and with the markers gone that answer would read as a platform
+        # sign-in in before_omniauth_callback_route.
+        it 'clears the pending tenant markers AND the per-strategy binding so no callback can complete' do
+          catch(:halt) { helpers.inject_tenant_credentials(sso_config, request, rodauth) }
+
+          expect(session).not_to include(
+            :omniauth_tenant_domain_id,
+            :omniauth_tenant_host,
+            'saml_authn_request_id',
+            'omniauth.state',
+          )
+          # Only the flow is dropped; unrelated session state is untouched.
+          expect(session).to eq(account_id: 42)
+        end
+
+        it 'audits at :error with scalars only' do
+          catch(:halt) { helpers.inject_tenant_credentials(sso_config, request, rodauth) }
+
+          expect(Auth::Logging).to have_received(:log_auth_event).with(
+            :omniauth_tenant_config_unusable,
+            level: :error,
+            domain_id: 'dom_saml_123',
+            provider_type: 'saml',
+            error: a_string_matching(/unusable: IdP certificate expired/),
+          )
+        end
+      end
+    end
+  end
+
+  # ==========================================================================
+  # inject_saml_sp_identifiers (#4450)
+  # ==========================================================================
+
+  describe '.inject_saml_sp_identifiers' do
+    it 'leaves a platform (non-injected) strategy of another class untouched' do
+      options  = {}
+      strategy = double('OmniAuth::Strategies::OpenIDConnect', options: options)
+      allow(strategy).to receive_message_chain(:class, :name).and_return('OmniAuth::Strategies::OpenIDConnect')
+
+      helpers.inject_saml_sp_identifiers(strategy)
+
+      expect(options).to be_empty
     end
   end
 end

@@ -10,6 +10,7 @@ require 'public_suffix'
 # lib/onetime.rb, hundreds of lines before the main errors require, so pull
 # it in here rather than relying on load order (errors.rb is dependency-free).
 require_relative '../errors'
+require_relative 'uri_redaction'
 
 module Onetime
   module Utils
@@ -275,6 +276,35 @@ module Onetime
         utf8_safe(text).delete(UNICODE_REPLACEMENT_CHAR).gsub(EMAIL_PATTERN) do |raw|
           mask_email_address(raw)
         end
+      end
+
+      # A connection URI with its userinfo and query string replaced by "***",
+      # for log lines and exception messages. Redis/Valkey URIs carry their
+      # password in the userinfo, but also in the query: setup_connection_pool
+      # builds the client options from `parsed_uri.conf`, and uri-valkey's
+      # `conf` merges every query param into Redis.new, so `?password=s3cret`
+      # is a working credential. A URI interpolated into a message is out of
+      # reach of any by-param-name scrubbing downstream. There is no allowlist
+      # of benign params; the whole query goes.
+      #
+      #   redact_uri_userinfo('redis://user:s3cret@db:6379/0')      #=> "redis://***@db:6379/0"
+      #   redact_uri_userinfo('redis://db:6379/0?password=s3cret')  #=> "redis://db:6379/0?***"
+      #   redact_uri_userinfo('redis://db:6379/0?password=p@ss')    #=> "redis://***"
+      #   redact_uri_userinfo('redis://db:6379/0')                  #=> "redis://db:6379/0"
+      #
+      # String-based rather than URI.parse, because the URIs most likely to be
+      # printed are the ones that failed to parse or connect. Everything up to
+      # the LAST "@" counts as userinfo, so an unescaped "@" in a password
+      # redacts too much rather than printing the rest of the password. A "?"
+      # before that "@" is either in the password or starts a query with an
+      # "@" in it (`?password=p@ss`); neither split is safe, so everything
+      # after the scheme is redacted. The dependency-free implementation is
+      # shared with Auth::DatabaseConnection and the boot banner.
+      #
+      # @param uri [String, URI::Generic, nil]
+      # @return [String]
+      def redact_uri_userinfo(uri, keep_username: false, require_scheme: false, mask: '***')
+        ::OnetimeUriRedaction.redact(uri, keep_username: keep_username, require_scheme: require_scheme, mask: mask)
       end
 
       # Checks whether a value is an explicitly recognized truthy token.

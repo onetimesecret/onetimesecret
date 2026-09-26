@@ -34,8 +34,10 @@ module DomainsAPI
       # @param details [Hash, nil] Additional event-specific details
       # @param timestamp [Integer] Unix timestamp; pass explicitly when
       #   multiple audit events in one request must share the same value
+      # @param level [Symbol] :info (the audit default) or :warn, for an
+      #   event that records a consequence the actor may not have intended
       # @return [void]
-      def log_config_change_event(tag:, event:, domain:, org:, actor:, extra: {}, changes: nil, details: nil, timestamp: Time.now.to_i)
+      def log_config_change_event(tag:, event:, domain:, org:, actor:, extra: {}, changes: nil, details: nil, timestamp: Time.now.to_i, level: :info)
         payload              = {
           event: event.to_s,
           domain_id: domain.identifier,
@@ -52,7 +54,7 @@ module DomainsAPI
         payload[:changes] = changes if changes && !changes.empty?
         payload[:details] = details if details && !details.empty?
 
-        OT.info "[#{tag}] #{event}", payload.to_json
+        OT.public_send(level == :warn ? :lw : :info, "[#{tag}] #{event}", payload.to_json)
       end
 
       # Compute changes between old config state and new parameters.

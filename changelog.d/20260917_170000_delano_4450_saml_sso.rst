@@ -1,0 +1,57 @@
+.. A new scriv changelog fragment.
+
+Added
+-----
+
+- SAML 2.0 single sign-on for the platform and custom domains, with an RSA
+  signing certificate, configurable NameID policy, and per-domain callback
+  origins. Secure session cookies may use ``SameSite=Lax`` or ``None``;
+  IdP-initiated sign-in and single logout are not supported. See
+  ``docs/authentication/per-install-sso.md`` and ``per-domain-sso.md`` for
+  setup, and ``saml-policy.md`` for interoperability options. (#4450)
+
+Changed
+-------
+
+- When org-level SSO is enabled and a platform provider's environment
+  variables are present but unusable (Apple, SAML), the tenant
+  placeholder route is now registered as if the variables were absent,
+  instead of no route at all; the platform button stays hidden. A
+  platform-side typo can no longer remove the route that per-domain SSO
+  injects into. (#4450)
+
+- The SSO ``email_verified`` hold now recognises an array-valued claim, which
+  is how SAML attributes arrive: any ``false`` among the values leaves the
+  account unverified with an ``idp_unverified`` hold. (#4450)
+
+Security
+--------
+
+- Platform SAML is restricted to its configured platform host, even when
+  platform SSO fallback is enabled. Custom domains must configure their own
+  SAML provider; remove their ACS registrations from the platform IdP. See
+  ``docs/authentication/per-install-sso.md``. (#4450)
+
+- The example Caddy configuration removes query strings and redirect locations
+  from logs. Apply equivalent filtering to deployed ingress logs when enabling
+  SAML; see ``docs/authentication/saml-callback-transport.md``. (#4450)
+
+- ``ruby-saml`` is pinned exactly in the Gemfile with its advisory history,
+  and a ``bundler-audit`` job runs against ``Gemfile.lock`` on every pull
+  request. (#4450)
+
+- The SSO failure log line and ``omniauth_failure`` audit event now carry
+  the strategy gem's error message bounded to 500 characters on one line,
+  for every provider; for SAML the message is a fixed string and ruby-saml's
+  check name is logged separately, bounded, so response text (Issuer,
+  Audience, an unsigned StatusMessage) can no longer forge or flood auth log
+  lines. (#4450)
+
+Documentation
+-------------
+
+- Operator guides for platform and per-domain SAML
+  (``docs/authentication/per-install-sso.md``, ``per-domain-sso.md``), the
+  SAML entry in the provider-registration checklist, and ADR-044 recording
+  SAML as the reference case for its "OIDC is unavailable" criterion.
+  (#4450)

@@ -76,6 +76,13 @@ OT.conf['mail'] = {
   'verifier_api_key' => 'truemail-api-key-wxyz',
 }
 
+# The diagnostics section echoes the Redis URI; password and query must be masked
+# while the username stays visible.
+@orig_redis      = OT.conf['redis']
+OT.conf['redis'] = (@orig_redis || {}).merge(
+  'uri' => 'redis://ops:pa/ss@cache.example.com:6379/0?password=query-secret',
+)
+
 URL = '/api/colonel/config'
 
 # ----------------------------------------------------------------
@@ -138,9 +145,19 @@ m = @resp['details']['mail']
 #=> ['verify@example.com', true]
 
 # ----------------------------------------------------------------
+# Diagnostics redis_uri masking
+# ----------------------------------------------------------------
+
+## diagnostics.redis_uri keeps the username, masks the password and the query
+@resp = JSON.parse(last_response.body)
+@resp['details']['diagnostics']['redis_uri']
+#=> 'redis://ops:****@cache.example.com:6379/0?****'
+
+# ----------------------------------------------------------------
 # Teardown
 # ----------------------------------------------------------------
 OT.conf['emailer'] = @orig_emailer
 OT.conf['mail']    = @orig_mail
+OT.conf['redis']   = @orig_redis
 @colonel.destroy!  rescue nil
 @regular.destroy!  rescue nil

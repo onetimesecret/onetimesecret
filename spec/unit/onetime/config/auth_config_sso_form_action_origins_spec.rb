@@ -3,6 +3,9 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'rack/mock'
+require 'onetime/middleware/http_origin_options'
+require_relative '../../../support/saml/test_idp'
 require 'tempfile'
 require 'fileutils'
 
@@ -47,6 +50,7 @@ RSpec.describe Onetime::AuthConfig do
       GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
       GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET
       APPLE_CLIENT_ID APPLE_TEAM_ID APPLE_KEY_ID APPLE_PRIVATE_KEY
+      SAML_IDP_SSO_SERVICE_URL SAML_IDP_ENTITY_ID SAML_IDP_CERT SAML_SP_ENTITY_ID
       SSO_FORM_ACTION_ORIGINS
     ]
   end
@@ -140,6 +144,94 @@ RSpec.describe Onetime::AuthConfig do
         'APPLE_PRIVATE_KEY' => 'pem',
       )
       expect(config.sso_form_action_origins).to contain_exactly('https://appleid.apple.com')
+    end
+
+    # SAML (#4450). The HTTP-POST binding makes SAML the second provider,
+    # after Apple, whose callback is a CROSS-SITE POST — so the IdP origin has
+    # to be in BOTH sets: form-action (to receive the redirect) and the
+    # HttpOrigin allowance (to post the response back).
+    describe 'SAML' do
+      let(:saml_env) do
+        {
+          'SAML_IDP_SSO_SERVICE_URL' => 'https://login.idp.example.com:8443/saml/sso?tenant=x',
+          # A different host on purpose: an EntityID is a name, not the login
+          # endpoint, and must contribute nothing.
+          'SAML_IDP_ENTITY_ID' => 'https://entity.idp.example.com/saml/metadata',
+          'SAML_IDP_CERT' => SamlSpec::TestIdp.new.cert_pem,
+          'SAML_SP_ENTITY_ID' => 'https://ots.example.com/auth/sso/saml/metadata',
+        }
+      end
+
+      # The SAML-compatible session cookie: provider_active? (:vars_valid →
+      # Saml.platform_usable?) checks it first, and the lane config carries
+      # the shipped lax cookie.
+      before do
+        allow(Onetime).to receive(:session_config).and_return('same_site' => 'none', 'secure' => true)
+      end
+
+      def callback_env(origin, path: '/auth/sso/saml/callback', method: 'POST', base_url: Onetime::SsoProvider::Saml.platform_base_url)
+        # MockRequest skips DetectHost/DomainStrategy, which supply this host
+        # in the real stack. Use the registered ACS base, not the SP EntityID.
+        Rack::MockRequest.env_for("#{base_url}#{path}",
+          method: method,
+          'HTTP_ORIGIN' => origin,
+          'onetime.display_domain' => URI.parse(base_url).host)
+      end
+
+      def admitted?(config, env)
+        allow(Onetime).to receive(:auth_config).and_return(config)
+        Onetime::Middleware::HttpOriginOptions.sso_callback_from_configured_idp?(env)
+      end
+
+      it 'derives the origin from the SSO service URL, never the EntityID' do
+        config = fresh_config(**saml_env)
+
+        expect(config.sso_form_action_origins).to contain_exactly('https://login.idp.example.com:8443')
+        expect(config.sso_idp_origins).to match_array(config.sso_form_action_origins)
+      end
+
+      it 'admits the cross-site POST callback from that origin, and only that origin' do
+        config = fresh_config(**saml_env)
+
+        expect(admitted?(config, callback_env('https://login.idp.example.com:8443'))).to be true
+        expect(admitted?(config, callback_env('https://entity.idp.example.com'))).to be false
+        expect(admitted?(config, callback_env('https://login.idp.example.com'))).to be false
+      end
+
+      it 'refuses the configured platform IdP origin off the pinned host or without a resolved host' do
+        config = fresh_config(**saml_env)
+        origin = 'https://login.idp.example.com:8443'
+        offhost = "https://tenant.#{URI.parse(Onetime::SsoProvider::Saml.platform_base_url).host}"
+
+        expect(admitted?(config, callback_env(origin, base_url: offhost))).to be false
+        env = callback_env(origin)
+        env.delete('onetime.display_domain')
+        expect(admitted?(config, env)).to be false
+      end
+
+      it 'keeps Origin protection on the SAML request phase and the other sub-paths' do
+        config = fresh_config(**saml_env)
+        origin = 'https://login.idp.example.com:8443'
+
+        expect(admitted?(config, callback_env(origin, path: '/auth/sso/saml'))).to be false
+        expect(admitted?(config, callback_env(origin, path: '/auth/sso/saml/metadata'))).to be false
+        expect(admitted?(config, callback_env(origin, path: '/auth/sso/saml/slo'))).to be false
+      end
+
+      # configure_provider skips an unusable SAML config, so nothing may be
+      # widened for it either: no form-action origin, no POST allowance.
+      it 'contributes nothing when the config is present but unusable' do
+        config = fresh_config(**saml_env, 'SAML_IDP_CERT' => 'not a certificate')
+
+        expect(config.sso_form_action_origins).to eq([])
+        expect(admitted?(config, callback_env('https://login.idp.example.com:8443'))).to be false
+      end
+
+      it 'contributes nothing when SSO is disabled' do
+        config = fresh_config(sso_enabled: false, **saml_env)
+
+        expect(config.sso_idp_origins).to eq([])
+      end
     end
 
     it 'includes the (commercial-cloud) Entra origin when Entra is active' do
@@ -488,7 +580,7 @@ RSpec.describe Onetime::AuthConfig do
       double('CustomDomain::SsoConfig', provider_type: provider_type, issuer: issuer)
     end
 
-    it 'returns the stripped issuer for an issuer-derived provider type' do
+    it 'returns the stripped issuer for a record-derived provider type' do
       config = tenant_sso_config(provider_type: 'oidc', issuer: '  https://idp.example.com/x  ')
       expect(fresh_config.tenant_origin_source(config)).to eq('https://idp.example.com/x')
     end
@@ -500,7 +592,7 @@ RSpec.describe Onetime::AuthConfig do
       expect(instance.tenant_idp_origin(config)).to be_nil
     end
 
-    it "returns '' for an issuer-derived type whose issuer is unset" do
+    it "returns '' for a record-derived type whose source field is unset" do
       config = tenant_sso_config(provider_type: 'oidc', issuer: nil)
       expect(fresh_config.tenant_origin_source(config)).to eq('')
     end
@@ -516,12 +608,114 @@ RSpec.describe Onetime::AuthConfig do
       expect(instance.tenant_origin_source(nil)).to be_nil
     end
 
-    it 'covers every issuer-derived type declared in the constant' do
+    it 'reads, for every record-derived type, exactly the field the map names' do
       # Guards the drift this method exists to prevent: a type added to
-      # ISSUER_DERIVED_PROVIDER_TYPES must actually read the record's issuer.
-      described_class::ISSUER_DERIVED_PROVIDER_TYPES.each do |provider_type|
-        config = tenant_sso_config(provider_type: provider_type, issuer: 'https://idp.example.com')
+      # TENANT_ORIGIN_SOURCE_FIELDS must actually read THAT field of the
+      # record, and no other. A strict double answers only the named field,
+      # so reading any other one fails the example.
+      described_class::TENANT_ORIGIN_SOURCE_FIELDS.each do |provider_type, field|
+        config = double('CustomDomain::SsoConfig', provider_type: provider_type, field => 'https://idp.example.com')
         expect(fresh_config.tenant_origin_source(config)).to eq('https://idp.example.com')
+      end
+    end
+
+    it 'maps oidc to the issuer and saml to the SSO service URL — never the EntityID' do
+      expect(described_class::TENANT_ORIGIN_SOURCE_FIELDS)
+        .to eq('oidc' => :issuer, 'saml' => :idp_sso_service_url)
+    end
+
+    # Every record-derived type is a configurable tenant type. (The reverse is
+    # not required: entra_id resolves through the static registry.)
+    it 'names only configurable tenant provider types' do
+      expect(described_class::TENANT_ORIGIN_SOURCE_FIELDS.keys - Onetime::CustomDomain::SsoConfig::PROVIDER_TYPES)
+        .to eq([])
+    end
+
+    # ── saml (#4450): an AAD-bound encrypted source field ────────────
+    context 'with a saml config' do
+      # Stands in for Familia::ConcealedString: the value is only reachable
+      # through reveal { }.
+      def concealed(plaintext)
+        Class.new do
+          define_method(:reveal) { |&block| block.call(plaintext) }
+          define_method(:to_s) { '[CONCEALED]' }
+        end.new
+      end
+
+      def saml_config(url)
+        double('CustomDomain::SsoConfig', provider_type: 'saml', idp_sso_service_url: url)
+      end
+
+      it 'reveals the SSO service URL and derives its origin' do
+        config   = saml_config(concealed('  https://login.idp.example/app/saml/sso  '))
+        instance = fresh_config
+
+        expect(instance.tenant_origin_source(config)).to eq('https://login.idp.example/app/saml/sso')
+        expect(instance.tenant_idp_origin(config)).to eq('https://login.idp.example')
+      end
+
+      it 'never reads the platform SAML_IDP_SSO_SERVICE_URL through the registry' do
+        ENV['SAML_IDP_SSO_SERVICE_URL'] = 'https://platform-idp.example/sso'
+        config                          = saml_config(concealed('https://tenant-idp.example/sso'))
+
+        expect(fresh_config.tenant_idp_origin(config)).to eq('https://tenant-idp.example')
+      ensure
+        ENV.delete('SAML_IDP_SSO_SERVICE_URL')
+      end
+
+      it "answers '' and no origin for an unset field — not the registry fallback" do
+        ENV['SAML_IDP_SSO_SERVICE_URL'] = 'https://platform-idp.example/sso'
+        instance                        = fresh_config
+
+        expect(instance.tenant_origin_source(saml_config(nil))).to eq('')
+        expect(instance.tenant_idp_origin(saml_config(nil))).to be_nil
+      ensure
+        ENV.delete('SAML_IDP_SSO_SERVICE_URL')
+      end
+
+      it "fails closed to '' when the field cannot be decrypted" do
+        unreadable = Class.new { def reveal = raise(Familia::EncryptionError, 'auth tag') }.new
+        instance   = fresh_config
+
+        expect(instance.tenant_origin_source(saml_config(unreadable))).to eq('')
+        expect(instance.tenant_idp_origin(saml_config(unreadable))).to be_nil
+      end
+
+      it 'rejects a hostile SSO URL in the funnel' do
+        config = saml_config(concealed('https://a.example; script-src *'))
+
+        expect(fresh_config.tenant_idp_origin(config)).to be_nil
+      end
+    end
+  end
+
+  # The funnel as a CLASS method (#4450): the domains API accepts a tenant's
+  # SAML SSO URL only if this derives an origin from it, and reaches it as
+  # Onetime::AuthConfig.origin_from_url so the rule does not depend on which
+  # auth_config instance (or test mock) a process installed. The instance
+  # method must stay a pure delegate so both consumers see one rule.
+  describe '.origin_from_url' do
+    {
+      'https://idp.example.com/saml/sso' => 'https://idp.example.com',
+      'https://IDP.example.com:8443/x' => 'https://idp.example.com:8443',
+      'http://internal-idp.corp/sso' => 'http://internal-idp.corp',
+      'https://10.0.0.5/sso' => 'https://10.0.0.5',
+      'https://idp.example.com;/sso' => nil,
+      %(https://idp.example.com'/sso) => nil,
+      'https://a b.example/sso' => nil,
+      'ftp://idp.example.com/sso' => nil,
+      '' => nil,
+      nil => nil,
+    }.each do |url, origin|
+      it "derives #{origin.inspect} from #{url.inspect}" do
+        expect(described_class.origin_from_url(url)).to eq(origin)
+      end
+    end
+
+    it 'is what the instance method answers' do
+      instance = fresh_config
+      ['https://idp.example.com/saml/sso', 'https://idp.example.com;/sso'].each do |url|
+        expect(instance.origin_from_url(url)).to eq(described_class.origin_from_url(url))
       end
     end
   end

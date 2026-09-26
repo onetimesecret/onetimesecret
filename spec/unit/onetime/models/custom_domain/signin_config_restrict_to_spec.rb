@@ -275,7 +275,8 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
     let(:domain_id_arg) { 'domain-4139' }
     let(:custom_host)   { true }
     let(:auth_config) do
-      instance_double(Onetime::AuthConfig, email_auth_enabled?: true, restrict_to: nil)
+      instance_double(Onetime::AuthConfig, email_auth_enabled?: true, restrict_to: nil,
+        allow_platform_fallback_for_tenants?: false, sso_enabled?: false)
     end
 
     context 'on an SSO-only custom host with no SigninConfig' do
@@ -293,6 +294,15 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
 
       it 'inherits the operator restriction (here: none)' do
         expect(inherited.value).to be_nil
+        expect(inherited.pin_established).to be(false)
+      end
+
+      it 'retains the fallback restriction without an availability proof when platform SSO is host-excluded' do
+        allow(auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+        allow(auth_config).to receive(:sso_enabled?).and_return(true)
+        allow(described_class).to receive(:global_auth_enabled).and_return(true)
+
+        expect(inherited.value).to eq('sso')
         expect(inherited.pin_established).to be(false)
       end
     end

@@ -5,6 +5,7 @@
 require 'spec_helper'
 require 'rack'
 require 'rack/protection'
+require 'climate_control'
 require 'onetime/middleware/http_origin_options'
 
 # Regression coverage: the HttpOrigin protection resolves the
@@ -200,6 +201,36 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
       expect(status).to eq(403)
     end
 
+    # SAML's HTTP-POST binding (#4450) is the same shape as Apple's
+    # form_post: a cross-site POST to the callback, from the origin of the
+    # IdP's SSO service URL. The route segment is operator-chosen
+    # (SAML_ROUTE_NAME), which the path pattern must not care about.
+    it 'allows a SAML HTTP-POST binding callback on an operator-named route' do
+      stub_idp_origins(['https://login.idp.example.com'])
+      allow(Onetime::SsoProvider::Saml).to receive(:platform_base_url).and_return("https://#{canonical_host}")
+      ClimateControl.modify(SAML_ROUTE_NAME: 'okta') do
+        status = post('/auth/sso/okta/callback',
+          'HTTP_HOST' => canonical_host,
+          'HTTP_ORIGIN' => 'https://login.idp.example.com',
+          'onetime.display_domain' => canonical_host,
+        )
+        expect(status).to eq(200)
+      end
+    end
+
+    # /metadata, /slo and /spslo are omniauth-saml sub-paths under the same
+    # prefix. None of them is a callback; none gets the exemption.
+    %w[metadata slo spslo].each do |subpath|
+      it "does not allow a cross-site POST to the SAML /#{subpath} sub-path" do
+        stub_idp_origins(['https://login.idp.example.com'])
+        status = post("/auth/sso/saml/#{subpath}",
+          'HTTP_HOST' => canonical_host,
+          'HTTP_ORIGIN' => 'https://login.idp.example.com',
+        )
+        expect(status).to eq(403)
+      end
+    end
+
     it 'fails closed when auth_config cannot answer' do
       allow(Onetime).to receive(:auth_config).and_raise(StandardError, 'boom')
       allow(OT).to receive(:lw)
@@ -208,6 +239,419 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
         'HTTP_ORIGIN' => apple_origin,
       )
       expect(status).to eq(403)
+    end
+  end
+
+  describe 'operator-only SAML null Origin policy' do
+    let(:saml) { Onetime::SsoProvider::Saml }
+    let(:auth_config) { instance_double(Onetime::AuthConfig, sso_enabled?: true) }
+    let(:tenant_config) do
+      double('native SAML', provider_type: 'saml', platform_route_name: 'saml',
+        enabled?: true, to_omniauth_options: {})
+    end
+    let(:resolution) do
+      instance_double(Onetime::TenantSsoResolution, verified_custom_domain?: false, sso_config: nil)
+    end
+
+    around do |example|
+      ClimateControl.modify(SAML_ALLOW_NULL_ORIGIN: 'true', SAML_ROUTE_NAME: nil) { example.run }
+    end
+
+    before do
+      allow(Onetime).to receive(:auth_config).and_return(auth_config)
+      allow(saml).to receive(:platform_base_url).and_return("https://#{canonical_host}")
+      allow(saml).to receive(:platform_usable?).and_return(true)
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?) do |host|
+        [canonical_host, 'links.example.com'].include?(host)
+      end
+      allow(Onetime::TenantSsoResolution).to receive(:for).and_return(resolution)
+    end
+
+    def null_env(host: canonical_host, path: '/auth/sso/saml/callback', method: 'POST', **extra)
+      Rack::MockRequest.env_for(path, method: method,
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => 'null',
+        'onetime.display_domain' => host,
+        **extra)
+    end
+
+    def enable_native_tenant
+      allow(resolution).to receive(:verified_custom_domain?).and_return(true)
+      allow(resolution).to receive(:sso_config).and_return(tenant_config)
+    end
+
+    it 'admits an opted-in platform POST on the pinned host' do
+      expect(app.call(null_env).first).to eq(200)
+    end
+
+    it 'admits an opted-in native tenant POST without requiring platform SAML' do
+      enable_native_tenant
+      allow(auth_config).to receive(:sso_enabled?).and_return(false)
+      allow(saml).to receive(:platform_usable?).and_return(false)
+      expect(app.call(null_env(host: custom_domain)).first).to eq(200)
+    end
+
+    # The predicate the null-origin allowance and SamlCallbackTransport::Stage
+    # share: "is there an active SAML route at this exact path for this host?"
+    describe '.saml_callback_route_active?' do
+      def active?(**extra)
+        described_class.saml_callback_route_active?(null_env(**extra))
+      end
+
+      it 'answers for the platform host, the tenant host, and neither' do
+        expect(active?).to be true
+        expect(active?(host: custom_domain)).to be false
+        enable_native_tenant
+        expect(active?(host: custom_domain)).to be true
+        expect(active?(host: '')).to be false
+      end
+
+      it 'is independent of Origin and method: it decides route activity, not admission' do
+        expect(active?('HTTP_ORIGIN' => 'https://anything.example', method: 'POST')).to be true
+        expect(active?(method: 'GET')).to be true
+      end
+
+      it 'requires the exact registered path: no trailing slash, no sub-path, but any case' do
+        expect(active?(path: '/auth/sso/saml/callback/')).to be false
+        expect(active?(path: '/auth/sso/saml/metadata')).to be false
+        expect(active?(path: '/auth/sso/SAML/callback')).to be true
+        enable_native_tenant
+        expect(active?(host: custom_domain, path: '/auth/sso/Saml/callback')).to be true
+        expect(active?(host: custom_domain, path: '/auth/sso/saml/callback/')).to be false
+      end
+
+      it 'fails closed when the tenant record cannot be read' do
+        allow(resolution).to receive(:verified_custom_domain?).and_raise(Redis::BaseError, 'down')
+        expect(active?(host: custom_domain)).to be false
+      end
+    end
+
+    [nil, 'false', '', 'TRUE', '1', 'yes', ' true ', 'garbage'].each do |flag|
+      it "denies platform and tenant callbacks with flag #{flag.inspect}" do
+        enable_native_tenant
+        ClimateControl.modify(SAML_ALLOW_NULL_ORIGIN: flag) do
+          [canonical_host, custom_domain].each do |host|
+            expect(app.call(null_env(host: host)).first).to eq(403)
+          end
+        end
+      end
+    end
+
+    it 'requires the resolved SAML route on both surfaces, including renamed routes' do
+      enable_native_tenant
+      allow(tenant_config).to receive(:platform_route_name).and_return('corporate')
+      ClimateControl.modify(SAML_ROUTE_NAME: 'corporate') do
+        [canonical_host, custom_domain].each do |host|
+          expect(app.call(null_env(host: host, path: '/auth/sso/corporate/callback')).first).to eq(200)
+          %w[/auth/sso/saml/callback /auth/sso/apple/callback /auth/sso/oidc/callback
+             /auth/sso/corporate /auth/sso/corporate/metadata /auth/sso/corporate/slo
+             /auth/sso/corporate/extra/callback /auth/sso/corporate/callback/ /signin].each do |path|
+            expect(app.call(null_env(host: host, path: path)).first).to eq(403), path
+          end
+        end
+      end
+    end
+
+    it 'never grants a non-POST exception (safe methods retain Rack defaults)' do
+      enable_native_tenant
+      [canonical_host, custom_domain].each do |host|
+        %w[GET HEAD OPTIONS PUT PATCH DELETE].each do |method|
+          env = null_env(host: host, method: method)
+          expect(described_class::ALLOW_IF.call(env)).to be(false), method
+          expect(app.call(env).first).to eq(403) if %w[PUT PATCH DELETE].include?(method)
+        end
+      end
+    end
+
+    it 'does not admit arbitrary origins or near-matches to literal null' do
+      %w[NULL Null null,https://evil.example https://evil.example].each do |origin|
+        expect(described_class.saml_callback_with_null_origin?(null_env('HTTP_ORIGIN' => origin))).to be(false)
+      end
+    end
+
+    it 'denies platform SAML when disabled, absent or unusable' do
+      allow(auth_config).to receive(:sso_enabled?).and_return(false)
+      expect(app.call(null_env).first).to eq(403)
+      allow(auth_config).to receive(:sso_enabled?).and_return(true)
+      allow(saml).to receive(:platform_usable?).and_return(false)
+      expect(app.call(null_env).first).to eq(403)
+    end
+
+    it 'denies missing, unverified, disabled, non-SAML and unusable tenant configurations' do
+      env = -> { null_env(host: custom_domain) }
+      expect(app.call(env.call).first).to eq(403)
+      allow(resolution).to receive(:sso_config).and_return(tenant_config)
+      expect(app.call(env.call).first).to eq(403)
+      enable_native_tenant
+      allow(tenant_config).to receive(:enabled?).and_return(false)
+      expect(app.call(env.call).first).to eq(403)
+      allow(tenant_config).to receive(:enabled?).and_return(true)
+      allow(tenant_config).to receive(:provider_type).and_return('oidc')
+      expect(app.call(env.call).first).to eq(403)
+      allow(tenant_config).to receive(:provider_type).and_return('saml')
+      allow(tenant_config).to receive(:to_omniauth_options).and_raise(ArgumentError, 'invalid certificate')
+      expect(app.call(env.call).first).to eq(403)
+    end
+
+    it 'does not use platform fallback on custom or secondary canonical hosts' do
+      [custom_domain, 'links.example.com', "eu.#{canonical_host}", nil, ''].each do |host|
+        expect(app.call(null_env(host: host)).first).to eq(403)
+      end
+      # Even an available tenant record must not turn a secondary canonical
+      # host into a native tenant; verified_custom_domain? excludes that set.
+      allow(resolution).to receive(:sso_config).and_return(tenant_config)
+      expect(app.call(null_env(host: 'links.example.com')).first).to eq(403)
+    end
+
+    it 'refuses conflicting detected hosts and sanitized canonical defaults' do
+      expect(app.call(null_env(Rack::DetectHost.result_field_name => custom_domain)).first).to eq(403)
+      expect(app.call(null_env('onetime.domain_strategy' => :invalid,
+        'HTTP_HOST' => custom_domain)).first).to eq(403)
+      enable_native_tenant
+      expect(app.call(null_env(host: custom_domain,
+        Rack::DetectHost.result_field_name => 'other-tenant.example')).first).to eq(403)
+    end
+
+    it 'fails closed on configuration and tenant-resolution errors' do
+      allow(saml).to receive(:platform_usable?).and_raise(StandardError, 'unavailable')
+      expect(app.call(null_env).first).to eq(403)
+      allow(Onetime::TenantSsoResolution).to receive(:for).and_raise(Redis::CannotConnectError)
+      expect(app.call(null_env(host: custom_domain)).first).to eq(403)
+    end
+  end
+
+  describe 'platform SAML callback host restriction' do
+    let(:platform_origin) { 'https://platform-idp.example.com' }
+    let(:auth_config) do
+      instance_double(Onetime::AuthConfig, sso_idp_origins: [platform_origin],
+        allow_platform_fallback_for_tenants?: true)
+    end
+
+    before do
+      allow(Onetime).to receive(:auth_config).and_return(auth_config)
+      allow(Onetime::SsoProvider::Saml).to receive(:platform_base_url).and_return("https://#{canonical_host}")
+      allow(Onetime::TenantSsoResolution).to receive(:for)
+        .and_return(instance_double(Onetime::TenantSsoResolution, sso_config: nil))
+    end
+
+    def platform_callback(host, detected: nil, route: 'saml', strategy: nil, authority: canonical_host)
+      post("/auth/sso/#{route}/callback",
+        'HTTP_HOST' => authority,
+        'HTTP_ORIGIN' => platform_origin,
+        'onetime.display_domain' => host,
+        'onetime.domain_strategy' => strategy,
+        Rack::DetectHost.result_field_name => detected,
+      )
+    end
+
+    it 'admits the pinned platform host' do
+      expect(platform_callback(canonical_host)).to eq(200)
+    end
+
+    [false, true].each do |fallback|
+      it "rejects a custom public host behind a canonical Host header with fallback=#{fallback}" do
+        allow(auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(fallback)
+        expect(platform_callback(custom_domain)).to eq(403)
+      end
+    end
+
+    it 'rejects secondary canonical hosts, subdomains, missing and invalid public hosts' do
+      ['links.example.com', "eu.#{canonical_host}", nil, '', 'not a host'].each do |host|
+        expect(platform_callback(host)).to eq(403), host.inspect
+      end
+    end
+
+    it 'rejects a detected custom host even when display_domain was sanitized to canonical' do
+      expect(platform_callback(canonical_host, detected: custom_domain)).to eq(403)
+    end
+
+    it 'uses the direct authority for a failed classification with no detected host, not its canonical default' do
+      sanitized = 'default.example.com'
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?).with(sanitized).and_return(true)
+      expect(platform_callback(sanitized, strategy: :invalid)).to eq(200)
+      expect(platform_callback(sanitized, strategy: :invalid, authority: custom_domain)).to eq(403)
+      expect(platform_callback(sanitized, strategy: :invalid, detected: custom_domain)).to eq(403)
+      expect(platform_callback(sanitized, strategy: :canonical)).to eq(403)
+    end
+
+    it 'admits a matching detected canonical host' do
+      expect(platform_callback(canonical_host, detected: canonical_host)).to eq(200)
+    end
+
+    it 'restricts the operator-renamed SAML route too' do
+      ClimateControl.modify(SAML_ROUTE_NAME: 'corporate') do
+        expect(platform_callback(custom_domain, route: 'corporate')).to eq(403)
+        expect(platform_callback(canonical_host, route: 'corporate')).to eq(200)
+      end
+    end
+
+    # OmniAuth dispatches /auth/sso/SAML/callback to the saml strategy (its
+    # path match is case-insensitive), so the host restriction must see the
+    # same route whatever the case of the path segment.
+    it 'restricts a mixed-case spelling of the SAML route path the same way' do
+      expect(platform_callback(custom_domain, route: 'SAML')).to eq(403)
+      expect(platform_callback(custom_domain, route: 'Saml')).to eq(403)
+      expect(platform_callback(canonical_host, route: 'SAML')).to eq(200)
+      ClimateControl.modify(SAML_ROUTE_NAME: 'Corporate') do
+        expect(platform_callback(custom_domain, route: 'corporate')).to eq(403)
+        expect(platform_callback(canonical_host, route: 'CORPORATE')).to eq(200)
+      end
+    end
+
+    it 'does not alter the platform allowance on OAuth callbacks' do
+      expect(platform_callback(custom_domain, route: 'apple')).to eq(200)
+      expect(platform_callback(nil, route: 'oidc')).to eq(200)
+    end
+
+    it 'still admits a tenant-owned SAML origin even if it is also in the platform set' do
+      config = double('tenant SAML', provider_type: 'saml', platform_route_name: 'saml', callback_origins: [])
+      allow(auth_config).to receive(:tenant_idp_origin).with(config, env: anything).and_return(platform_origin)
+      allow(Onetime::TenantSsoResolution).to receive(:for)
+        .and_return(instance_double(Onetime::TenantSsoResolution, sso_config: config))
+      expect(platform_callback(custom_domain)).to eq(200)
+    end
+  end
+
+  # #4450. A TENANT's SAML IdP posts the SAMLResponse to the tenant's own
+  # custom domain. Its origin lives in a per-domain record, so it is not in
+  # AuthConfig#sso_idp_origins; it is admitted per request, for the request's
+  # own domain only, from the SAME resolution + origin derivation that
+  # TenantCspExtras uses for form-action.
+  describe 'form_post SSO callback from the request domain\'s own tenant IdP' do
+    let(:tenant_idp_origin) { 'https://login.tenant-idp.example' }
+
+    # The REAL origin derivation (tenant_origin_source -> origin_from_url),
+    # with only the platform set stubbed empty: what is pinned here is that
+    # HttpOrigin admits exactly what AuthConfig#tenant_idp_origin answers.
+    let(:auth_config) do
+      Onetime::AuthConfig.send(:allocate).tap { |config| allow(config).to receive(:sso_idp_origins).and_return([]) }
+    end
+
+    def concealed(plaintext)
+      Class.new { define_method(:reveal) { |&block| block.call(plaintext) } }.new
+    end
+
+    def saml_config(url = 'https://login.tenant-idp.example/app/sso/saml')
+      double('CustomDomain::SsoConfig', provider_type: 'saml', idp_sso_service_url: concealed(url), platform_route_name: 'saml', callback_origins: [])
+    end
+
+    # @param sso_config [Object, nil] what the availability ladder resolved
+    def stub_resolution(sso_config, for_domain: custom_domain)
+      allow(Onetime::TenantSsoResolution).to receive(:for) do |env|
+        resolved = env['onetime.display_domain'] == for_domain ? sso_config : nil
+        instance_double(Onetime::TenantSsoResolution, sso_config: resolved)
+      end
+    end
+
+    before { allow(Onetime).to receive(:auth_config).and_return(auth_config) }
+
+    def tenant_callback(origin:, path: '/auth/sso/saml/callback', display_domain: custom_domain)
+      post(path,
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => origin,
+        'onetime.display_domain' => display_domain,
+      )
+    end
+
+    it 'admits an explicit alternate origin only for this tenant and resolved callback' do
+      config = saml_config
+      allow(config).to receive(:callback_origins).and_return(['https://login.corp.example'])
+      allow(config).to receive(:platform_route_name).and_return('corporate')
+      stub_resolution(config)
+
+      expect(tenant_callback(origin: 'https://login.corp.example', path: '/auth/sso/corporate/callback')).to eq(200)
+      expect(tenant_callback(origin: 'https://unlisted.example', path: '/auth/sso/corporate/callback')).to eq(403)
+      expect(tenant_callback(origin: 'https://login.corp.example')).to eq(403)
+      expect(tenant_callback(origin: 'https://login.corp.example', path: '/auth/sso/corporate')).to eq(403)
+      expect(tenant_callback(origin: 'https://login.corp.example', path: '/auth/sso/corporate/callback', display_domain: 'other.example')).to eq(403)
+    end
+
+    it 'denies literal null but leaves missing Origin to the middleware default' do
+      stub_resolution(saml_config)
+      expect(tenant_callback(origin: 'null')).to eq(403)
+      expect(tenant_callback(origin: nil)).to eq(200)
+    end
+
+    it 'reuses decrypted source and derived origin only within the same request' do
+      config = saml_config
+      expect(config.idp_sso_service_url).to receive(:reveal).twice.and_call_original
+      env = {}
+      2.times { expect(auth_config.tenant_idp_origin(config, env: env)).to eq(tenant_idp_origin) }
+      expect(auth_config.tenant_origin_source(config, env: env)).to include('/app/sso/saml')
+      expect(auth_config.tenant_idp_origin(config, env: {})).to eq(tenant_idp_origin)
+    end
+
+    it 'allows the callback POST from the tenant IdP\'s SSO service origin' do
+      stub_resolution(saml_config)
+
+      expect(tenant_callback(origin: tenant_idp_origin)).to eq(200)
+    end
+
+    it 'admits the origin of the SSO service URL, not of the EntityID' do
+      stub_resolution(saml_config)
+
+      expect(tenant_callback(origin: 'https://entity.tenant-idp.example')).to eq(403)
+    end
+
+    it 'denies another tenant\'s IdP origin on this domain' do
+      stub_resolution(saml_config, for_domain: 'other-tenant.example.net')
+
+      expect(tenant_callback(origin: tenant_idp_origin)).to eq(403)
+    end
+
+    it 'denies when the domain has no AVAILABLE tenant SSO config' do
+      stub_resolution(nil)
+
+      expect(tenant_callback(origin: tenant_idp_origin)).to eq(403)
+    end
+
+    it 'denies without a display domain (never falls back to the Host header)' do
+      stub_resolution(saml_config, for_domain: '')
+
+      expect(tenant_callback(origin: tenant_idp_origin, display_domain: '')).to eq(403)
+      expect(Onetime::TenantSsoResolution).not_to have_received(:for)
+    end
+
+    it 'does NOT allow the request phase or a SAML sub-path' do
+      stub_resolution(saml_config)
+
+      %w[/auth/sso/saml /auth/sso/saml/metadata /auth/sso/saml/slo].each do |path|
+        expect(tenant_callback(origin: tenant_idp_origin, path: path)).to eq(403), path
+      end
+    end
+
+    it 'does not resolve the tenant at all for a same-origin POST' do
+      stub_resolution(saml_config)
+
+      post('/api/v3/anything', 'HTTP_HOST' => canonical_host, 'HTTP_ORIGIN' => "https://#{canonical_host}")
+
+      expect(Onetime::TenantSsoResolution).not_to have_received(:for)
+    end
+
+    it 'denies an unreadable (undecryptable) SSO service URL' do
+      unreadable = Class.new { def reveal = raise(Familia::EncryptionError, 'tag') }.new
+      stub_resolution(double('CustomDomain::SsoConfig', provider_type: 'saml', idp_sso_service_url: unreadable, platform_route_name: 'saml', callback_origins: []))
+
+      expect(tenant_callback(origin: tenant_idp_origin)).to eq(403)
+    end
+
+    it 'fails closed when the tenant resolution raises' do
+      allow(Onetime::TenantSsoResolution).to receive(:for).and_raise(Redis::CannotConnectError)
+      allow(OT).to receive(:lw)
+
+      expect(tenant_callback(origin: tenant_idp_origin)).to eq(403)
+      expect(OT).to have_received(:lw).with(/tenant SSO callback origin check failed: Redis::CannotConnectError/)
+    end
+
+    # Parity: the two tenant consumers cannot disagree, because this one asks
+    # the question TenantCspExtras asks. An OIDC tenant's issuer origin is
+    # therefore admitted too — harmless (its callback is a GET) and the price
+    # of having ONE answer.
+    it 'admits exactly AuthConfig#tenant_idp_origin for any record-derived type' do
+      oidc = double('CustomDomain::SsoConfig', provider_type: 'oidc', issuer: 'https://idp.tenant.example/realms/x')
+      stub_resolution(oidc)
+
+      expect(tenant_callback(origin: auth_config.tenant_idp_origin(oidc), path: '/auth/sso/oidc/callback')).to eq(200)
     end
   end
 

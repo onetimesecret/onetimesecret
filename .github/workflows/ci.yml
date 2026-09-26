@@ -126,6 +126,7 @@ jobs:
               - '.rspec'
               - 'spec/**'
               - 'try/**'
+              - 'tests/**'
               - 'apps/**'
               - 'lib/**'
               - 'bin/**'
@@ -413,6 +414,18 @@ jobs:
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
 
+      - name: Install Playwright browsers for SAML callback coverage
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+
+      # `--only` bypasses the lane's codegen phase, and spec_helper refuses to
+      # boot without generated/locales, so generate it here. The full unit
+      # lane below regenerates it as part of its own codegen.
+      - name: Generate locale files for the browser matrix
+        run: pnpm run locales:sync
+
+      - name: Run SAML callback browser matrix
+        run: tests/lanes/run unit --only tests/browser/saml_callback_spec.rb
+
       # Diagnostic probe for CI-only hash mismatch (issue being investigated).
       # A CI-layer concern, not part of the lane contract — env mirrors the
       # unit lane (tests/lanes/base.env + unit/env). Non-blocking (|| true).
@@ -658,6 +671,11 @@ jobs:
             overlay: ''
             services: 'valkey rabbitmq'
             results-file: 'rspec_full_mfa_results.json'
+          - name: 'SQLite, platform SAML'
+            lane: full-saml-platform
+            overlay: ''
+            services: 'valkey rabbitmq'
+            results-file: 'rspec_full_saml_platform_results.json'
           - name: 'PG, billing: off'
             lane: full-pg
             overlay: ''
