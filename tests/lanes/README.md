@@ -155,6 +155,25 @@ colors survive the pipe; the log then contains the escape codes too
 (`less -R`). CI and `run-all` pipe the runner and get plain output as
 before.
 
+### Wall-clock per phase
+
+Every run (full lane or `--only`, in every output mode) ends with one line
+on stderr, just above the log line, giving the wall-clock of each phase:
+
+```text
+[lane:simple] time: preflight 1.2s codegen 4.6s tasks 198.2s (total 204.0s)
+[lane:unit] time: preflight 0.5s codegen skipped only 7.2s (total 7.8s)
+```
+
+`preflight` is everything before the codegen phase: argument handling, the
+service probes and autostart, the owner marker and liveness token, and the
+PostgreSQL database and RabbitMQ vhost provisioning. `codegen` is the
+lane's `LANES_CODEGEN` phase, `skipped` when it did not run (`--only`,
+`--skip-codegen`, or a lane that declares none). The third phase is the
+lane's `tasks` file or the `--only` command, measured around the process
+through the `tee` into `last.log`. Tenths of a second, from `EPOCHREALTIME`.
+The line is not in `last.log` (it is the runner's, not the task's output).
+
 ### Lane console: `--console`
 
 ```console

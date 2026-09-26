@@ -292,6 +292,17 @@ export LC_ALL=C.UTF-8
 LANES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${LANES_DIR}/../.." && pwd)"
 
+# ── Phase clock ──────────────────────────────────────────────────────────
+# The epilogue at the bottom prints one line of wall-clock per phase —
+# preflight (everything from here to the codegen phase: argument handling,
+# service probes, the owner marker, PG/vhost provisioning), codegen, and
+# the tasks or --only command — so "the lane is slow" can be answered from
+# the run that was slow rather than a stopwatch. Microseconds as an
+# integer, because bash arithmetic has no floats: EPOCHREALTIME is
+# `<secs>.<6 digits>`, and dropping the dot is the multiplication.
+# EPOCHREALTIME is bash 5.0; the .bash-version floor above covers it.
+_lanes_t0="${EPOCHREALTIME/./}"
+
 # The path -> lane table behind --which, the lane inference for a lane-less
 # --only, and run-all's --changed. Sourced here, below the scrub, so the
 # functions and arrays it defines are as unexported as everything else the
@@ -336,7 +347,8 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "                 Runs no tests: not with --only, --quiet or --."
   echo
   echo "Every run (tasks or --only) is also written to tmp/lanes/<lane>/<overlays>/"
-  echo "last.log; the path is printed at exit. --print-key shows the directory."
+  echo "last.log; the path is printed at exit, after one line of wall-clock per"
+  echo "phase (preflight, codegen, tasks/only). --print-key shows the directory."
   echo "  --skip-codegen skip the lane's declared codegen (LANES_CODEGEN in"
   echo "                 its env file). A direct run ALWAYS generates; this is"
   echo "                 for a caller that generated once before fanning out."
@@ -1335,7 +1347,13 @@ _lanes_codegen_run() {
   builtin command env ${_lanes_strip[@]+"${_lanes_strip[@]}"} "$@"
 }
 
+# Preflight ends here. The codegen phase is timed only when it runs; an
+# empty value tells the epilogue to print "skipped" rather than a zero
+# that would read as "ran, instantly".
+_lanes_us_preflight=$(( ${EPOCHREALTIME/./} - _lanes_t0 ))
+_lanes_us_codegen=''
 if [[ ${SKIP_CODEGEN} -eq 0 && ${#ONLY[@]} -eq 0 && ${CONSOLE} -eq 0 && -n "${LANES_CODEGEN:-}" ]]; then
+  _lanes_t_codegen="${EPOCHREALTIME/./}"
   for _lanes_gen in ${LANES_CODEGEN}; do
     echo "[lane:${LANE}] codegen: ${_lanes_gen}"
     case "${_lanes_gen}" in
@@ -1357,7 +1375,8 @@ if [[ ${SKIP_CODEGEN} -eq 0 && ${#ONLY[@]} -eq 0 && ${CONSOLE} -eq 0 && -n "${LA
         ;;
     esac
   done
-  builtin unset _lanes_gen
+  _lanes_us_codegen=$(( ${EPOCHREALTIME/./} - _lanes_t_codegen ))
+  builtin unset _lanes_gen _lanes_t_codegen
 fi
 
 # ── --console: the app console inside the lane's environment ─────────────
@@ -1410,14 +1429,35 @@ fi
 #
 # Probing only on nonzero exit is deliberate: a service that dies after the
 # last spec passed did not invalidate anything.
+#
+# The timing line comes second to last, in every mode (--quiet included:
+# it is one line, and the run it describes is the one that needs it). The
+# preflight and codegen microseconds arrive as arguments — they were
+# measured in the runner, before this shell existed — and the task's own
+# phase is clocked around the pipeline here. Tenths of a second, from
+# integer microseconds, the same way the runner counts them.
 _lanes_epilogue='
   _lane="$1"; shift
   _log="$1"; shift
+  _us_preflight="$1"; shift
+  _us_codegen="$1"; shift
+  _phase="$1"; shift
   _ports=()
   while [[ $# -gt 0 && "$1" != "--" ]]; do _ports+=("$1"); shift; done
   shift
+  _t_run="${EPOCHREALTIME/./}"
   "$@" 2>&1 | tee -a "${_log}"
   _rc=${PIPESTATUS[0]}
+  _us_run=$(( ${EPOCHREALTIME/./} - _t_run ))
+  _us_total=$(( _us_preflight + ${_us_codegen:-0} + _us_run ))
+  printf -v _t_preflight "%d.%ds" $(( _us_preflight / 1000000 )) $(( _us_preflight % 1000000 / 100000 ))
+  if [[ -n "${_us_codegen}" ]]; then
+    printf -v _t_codegen "%d.%ds" $(( _us_codegen / 1000000 )) $(( _us_codegen % 1000000 / 100000 ))
+  else
+    _t_codegen=skipped
+  fi
+  printf -v _t_phase "%d.%ds" $(( _us_run / 1000000 )) $(( _us_run % 1000000 / 100000 ))
+  printf -v _t_total "%d.%ds" $(( _us_total / 1000000 )) $(( _us_total % 1000000 / 100000 ))
   if [[ ${_rc} -ne 0 ]]; then
     _lost=""
     for _p in ${_ports[@]+"${_ports[@]}"}; do
@@ -1429,13 +1469,15 @@ _lanes_epilogue='
       _rc=69
     fi
   fi
+  echo "[lane:${_lane}] time: preflight ${_t_preflight} codegen ${_t_codegen} ${_phase} ${_t_phase} (total ${_t_total})" >&2
   echo "[lane:${_lane}] log: ${_log} (exit ${_rc})" >&2
   exit "${_rc}"
 '
 
 if [[ ${#ONLY[@]} -eq 0 ]]; then
   exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
-    lanes-epilogue "${LANE}" "${LANES_LAST_LOG}" ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
+    lanes-epilogue "${LANE}" "${LANES_LAST_LOG}" "${_lanes_us_preflight}" "${_lanes_us_codegen}" tasks \
+    ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
     bash -euo pipefail "${LANE_DIR}/tasks"
 fi
 
@@ -1458,5 +1500,6 @@ echo "[lane:${LANE}] --only: ${_only_cmd[*]}" | tee -a "${LANES_LAST_LOG}"
 # Same mid-run service-loss epilogue (and last.log) as the tasks exec above:
 # a VM crash does not care whether the run was a full lane or one file.
 exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
-  lanes-epilogue "${LANE}" "${LANES_LAST_LOG}" ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
+  lanes-epilogue "${LANE}" "${LANES_LAST_LOG}" "${_lanes_us_preflight}" "${_lanes_us_codegen}" only \
+  ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
   "${_only_cmd[@]}"
