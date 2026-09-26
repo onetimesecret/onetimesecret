@@ -13,7 +13,11 @@ $ docker compose -f compose.test.yml up --wait -d   # or: podman compose
 $ tests/lanes/run --list
 $ tests/lanes/run unit
 $ tests/lanes/run full-pg --overlay billing
+$ tests/lanes/run --which spec/api/v2                # which lane runs a path
+$ tests/lanes/run --only spec/api/v2/secret_ttl_entitlement_spec.rb:20   # one example, lane inferred
 $ tests/lanes/run-all --parallel
+$ tests/lanes/run-all --parallel --changed           # lanes owning the diff since origin/main
+$ tests/lanes/run full-sqlite --console              # app console on the lane's datastore
 $ docker compose -f compose.test.yml down
 ```
 
@@ -36,35 +40,224 @@ running that lane's `tasks` file:
 $ tests/lanes/run simple --only apps/api/domains/spec/integration/simple/domain_sso_config_spec.rb
 $ tests/lanes/run full-sqlite --only apps/web/auth/spec/integration/full/omniauth_csrf_spec.rb:145
 $ tests/lanes/run unit --only try/logic/sso_config/ssrf_protection_transition_try.rb
+$ tests/lanes/run --only spec/api/v2/secret_ttl_entitlement_spec.rb:20          # lane inferred: api
 ```
 
-- Choose the lane expected by the file. For example, a full-integration spec
-  requires a full lane's authentication configuration.
+- The lane is the one whose tasks run the file (`--which`, below). Leave the
+  lane out and the runner infers it from the path; when several lanes run the
+  path (`spec/integration/full` is run by `full-sqlite`, `full-pg` and
+  `full-pg-agnostic`, split by tag) it exits 64 listing them, and when no
+  lane runs it (`try/web`, a docs file) it exits 64 saying so — name the lane
+  to run the file there anyway. Several `--only` paths must agree on one lane.
 - `*_try.rb` files use `try --agent`; other files use `rspec`. Do not mix both
-  kinds in one invocation.
+  kinds in one invocation. A directory is a valid path (rspec loads it).
 - `path:LINE` selects an RSpec example.
 - `--only` preserves the lane's isolation and environment guarantees, but skips
   generated prerequisites and every other task. Run the complete lane before
   pushing; CI validates lanes, not individual files.
+- A fresh worktree needs one full lane run (without `--skip-codegen`) before
+  `--only` works: `spec/spec_helper.rb` exits 1 while `generated/locales` is
+  empty, and the `unit` lane's schemas codegen additionally needs
+  `node_modules` (`pnpm install`).
+
+For agents and humans alike: the first command on a CI failure is
+`tests/lanes/run --only <path>:<LINE>` with the path and line from the CI
+log (the lane is inferred); the full lane runs once, before the push.
+
+#### Which lane runs a file: `--which`
+
+```console
+$ tests/lanes/run --which spec/api/v2
+api
+$ tests/lanes/run --which apps/web/auth/spec/integration/full/omniauth_csrf_spec.rb
+full-sqlite
+full-pg
+full-pg-agnostic
+$ tests/lanes/run --which lib/onetime/session.rb
+note: 'lib/onetime/session.rb' is shared by every lane
+api
+disabled
+...
+$ tests/lanes/run --which try/web/core/x_try.rb
+error: no lane runs 'try/web/core/x_try.rb' (see tests/lanes/ownership)
+```
+
+One lane per line, exit 64 when no lane runs the path. The answer comes from
+`tests/lanes/ownership`, a sourced bash table that transcribes the directory
+conventions the lanes' rake tasks dispatch on (`lib/tasks/spec.rake`), per
+lane — the same table lane inference and `run-all --changed` read, so the
+three cannot disagree. Ownership means "this lane's task loads the file", as
+the tasks are path lists: inside `spec/integration/full` the
+`postgres_database` tag decides which of the three full lanes runs an
+example, and the table names every lane that loads the file — `full-pg` for
+`database_triggers/sqlite_spec.rb` too, though its tag filter then runs
+none of it. A task's `--exclude-pattern` is a path rule and is modelled
+(`full-pg-agnostic` drops `**/{postgres,sqlite}*_spec.rb` and
+`**/migrations/*_{postgres,sqlite}_spec.rb`). `spec/unit/lanes/ownership_spec.rb`
+derives each lane's selection from the rake tasks themselves (invoked with
+`sh` captured, resolved through rspec's own configuration) and checks
+`--which` against it, so the table cannot drift from `lib/tasks/spec.rake`
+unnoticed. Support files (`spec/support`, an app's `spec/support`, `spec/spec_helper.rb`,
+`try/support`) and application code (`lib/`, `apps/*` outside test trees,
+`config/`, `etc/`, `locales/`, `Gemfile.lock`, `tests/lanes/`) are _shared_:
+every lane but `smoke` runs them. The same spec checks the table against
+every lane's tasks file and every `spec/` and `try/` directory on disk, so
+a directory no lane claims fails there rather than running nowhere.
+
+#### rspec passthrough: `-- <args>`
+
+Everything after `--` is forwarded to rspec verbatim, never to tryouts. It
+requires `--only`; a tryouts target combined with `--` exits 64.
+
+```console
+$ tests/lanes/run simple --only apps/api/domains/spec/integration/simple -- --only-failures
+$ tests/lanes/run simple --only apps/api/domains/spec/integration/simple -- --next-failure
+$ tests/lanes/run full-sqlite --only spec/integration/full -- -e 'rejects a stale token'
+```
+
+`--only-failures` and `--next-failure` work because the runner points rspec's
+example-status file at `tmp/lanes/<lane>/<overlays>/rspec-status.txt`
+(`base` when no overlay is set; gitignored; `--print-key` prints the path).
+Every rspec run in that lane, full or `--only`, updates the file, so a full
+lane run followed by `--only <dir> -- --only-failures` reruns exactly the
+failures the lane recorded. Plain rspec outside the runner leaves
+`LANES_RSPEC_STATUS_FILE` unset and records nothing.
+
+### Quiet output: `--quiet`
+
+```console
+$ tests/lanes/run full-sqlite --quiet
+$ tests/lanes/run simple --quiet --only apps/api/domains/spec/integration/simple
+```
+
+`--quiet` makes every rspec invocation in the run print failures (with their
+diffs and rerun lines), pending examples and the summary — nothing per
+passing example. It works by exporting `SPEC_OPTS` to select
+`tests/lanes/support/quiet_formatter.rb`; rspec reads `SPEC_OPTS` after
+`.rspec` and after the command line, so one variable covers the rake tasks
+and `--only` alike. Without the flag `SPEC_OPTS` is not set and the output
+is exactly what it was, which is what CI logs.
+
+Tryouts legs need no switch: `try:unit`, `try:integration:simple` and
+`--only` on a `*_try.rb` file already pass `--agent` outside CI.
+
+The one trade-off: the `--format` in `SPEC_OPTS` replaces the rake tasks'
+whole formatter list, including `--format json --out $RSPEC_OUTPUT_FILE`.
+A run with `RSPEC_OUTPUT_FILE` set (CI plumbing) therefore rejects `--quiet`
+with exit 64 rather than silently writing no results file.
+
+`--quiet` also floors the application's own log at `error`. The app's log
+lines (`2026-09-26 01:23:45.678901 W [pid:tid] HTTP -- ...`) are most of a
+full lane's output — a default `simple` run is ~55k lines, ~50k of them the
+seven `HTTP -- [Security] ... DISABLED` warnings each app boot logs — and
+the rspec formatter cannot touch them. Under the flag the runner exports
+`LOG_LEVEL=error` and `DEBUG_LOGGERS=App:error,Auth:error,...` (every
+category in `setup_loggers.rb`'s logger table), the two knobs
+`lib/onetime/initializers/setup_loggers.rb` already reads on every boot.
+Both are needed: the per-category levels `spec/logging.test.yaml` pins
+(`HTTP: warn`, `Auth: info`, ...) override `LOG_LEVEL` alone, and
+`DEBUG_LOGGERS` is applied after them and accepts any level despite its
+name. Errors and fatals still print, so a real failure's log line stays
+beside its rspec failure, and so does the `ColonelAudit` stream, which
+`Onetime::ColonelAuditEvent` pins at `info` on purpose (the audit sink must
+not be silenceable by a level change); a `simple --quiet` run is ~2.5k
+lines. Without the flag the app logs exactly as before. To read the rspec
+part of a default run back out of `last.log`, drop the timestamped lines:
+
+```console
+$ grep -vE '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:.]+ [A-Z] \[' tmp/lanes/simple/base/last.log
+```
+
+### Last run output: `tmp/lanes/<lane>/<overlays>/last.log`
+
+Every run, full lane or `--only`, is also written to
+`tmp/lanes/<lane>/<overlays>/last.log` (`base` when no overlay is set; the
+same directory as the rspec status file, gitignored). The file is truncated
+at the start of each run, seeded with the run's banner line, and the runner
+prints the absolute path with the exit code as its last line, on success and
+on failure — the same line also ends the log itself, after the mid-run
+service-loss verdict when there is one, so the file says how the run ended:
+
+```text
+[lane:simple] log: /path/to/checkout/tmp/lanes/simple/base/last.log (exit 1)
+```
+
+The task's stderr joins its stdout in the log, so the two streams arrive in
+order rather than as separate outputs. The exit code is the task's, read
+through the tee, so a red run stays red. When the runner's own stdout is a
+terminal it sets `--force-color` (rspec) and `FORCE_COLOR` (tryouts) so
+colors survive the pipe; the log then contains the escape codes too
+(`less -R`). CI and `run-all` pipe the runner and get plain output as
+before.
+
+### Wall-clock per phase
+
+Every run (full lane or `--only`, in every output mode) ends with one line
+on stderr, just above the log line, giving the wall-clock of each phase:
+
+```text
+[lane:simple] time: preflight 1.2s codegen 4.6s tasks 198.2s (total 204.0s)
+[lane:unit] time: preflight 0.5s codegen skipped only 7.2s (total 7.8s)
+```
+
+`preflight` is everything before the codegen phase: argument handling, the
+service probes and autostart, the owner marker and liveness token, and the
+PostgreSQL database and RabbitMQ vhost provisioning. `codegen` is the
+lane's `LANES_CODEGEN` phase, `skipped` when it did not run (`--only`,
+`--skip-codegen`, or a lane that declares none). The third phase is the
+lane's `tasks` file or the `--only` command, measured around the process
+through the `tee` into `last.log`. Tenths of a second, from `EPOCHREALTIME`.
+The line is not in `last.log` (it is the runner's, not the task's output).
+
+### Lane console: `--console`
+
+```console
+$ tests/lanes/run full-sqlite --console
+$ tests/lanes/run full-pg --overlay billing --console
+$ echo 'puts Familia.uri' | tests/lanes/run simple --console     # non-interactive
+```
+
+`--console` starts the app console (`bin/ots console`, the command behind
+`bin/console`) in the lane's environment instead of running its tasks: the
+same scrub, `base.env` -> lane `env` -> overlays, the same derived datastore
+index (`REDIS_URL`, `AUTH_DATABASE_URL` and `RABBITMQ_URL` rewritten to it,
+the PostgreSQL database and vhost provisioned), the same liveness token and
+the same `env -u` strip at the exec. `--print-key` for the same lane and
+overlays reports the addressing the console will see, so a question about
+what a lane's specs left in the datastore is asked of that datastore and
+nothing else. A plain `bin/console` inherits the shell, direnv included,
+which is how test-mode settings have leaked before.
+
+A console is not a run: it skips the codegen phase like `--only` (a missing
+generated locale is a logged line at boot, not a failure), leaves
+`last.log` untouched, and prints no timing line. It takes the lane name and
+overlays only; `--only`, `--quiet`, `--skip-codegen` and `--` exit 64 with
+it. Under `sqlite::memory:` (`full-sqlite`, `full-mfa`,
+`full-saml-platform`) the auth database is empty and unmigrated in a fresh
+process, so the console logs `no such table: accounts` at boot; the
+PostgreSQL lanes address the per-worktree database the lane's runs use.
+The console claims the lane's same-lane liveness token exactly as a run
+does, so while a run of that lane and overlay set is live it exits 69
+(`another lane run already holds valkey DB ...`); open it after the run.
 
 ## Lanes
 
-| Lane                | Services                   | Runs                                                       | CI job                                   |
-| ------------------- | -------------------------- | ---------------------------------------------------------- | ---------------------------------------- |
-| `unit`              | valkey, rabbitmq           | `try:unit`, `spec:fast`                                    | ruby-unit (T2)                           |
-| `browser`           | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-unit (T2) — browser lane step    |
-| `simple`            | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`        | ruby-integration-simple (T3)             |
-| `full-sqlite`       | valkey, rabbitmq           | `spec:integration:full`                                    | ruby-integration-full — SQLite rows      |
-| `full-mfa`          | valkey, rabbitmq           | `spec:integration:full:mfa`                                | ruby-integration-full — SQLite MFA row   |
-| `full-saml-platform` | valkey, rabbitmq          | `spec:integration:full:saml_platform`                      | ruby-integration-full — SQLite platform SAML row |
-| `full-pg`           | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                           | ruby-integration-full — PG rows          |
-| `full-pg-agnostic`  | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                     | ruby-integration-full — PG agnostic rows |
-| `disabled`          | valkey, rabbitmq           | `spec:integration:disabled`                                | ruby-integration-disabled (T3)           |
-| `api`               | valkey, rabbitmq           | `spec:api`                                                 | blocking step, T3 simple job             |
-| `smoke`             | valkey, rabbitmq           | `pnpm test:smoke`                                          | local-only                               |
-| `migrations-sqlite` | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                       | migration-tests.yml — SQLite job         |
-| `migrations-pg`     | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check | migration-tests.yml — PostgreSQL job     |
-| `selftest`          | none                       | boundary fixture                                           | none — driven by `spec/unit/lanes/`      |
+| Lane                 | Services                   | Runs                                                          | CI job                                           |
+| -------------------- | -------------------------- | ------------------------------------------------------------- | ------------------------------------------------ |
+| `unit`               | valkey, rabbitmq           | `try:unit`, `spec:fast`                                       | ruby-unit (T2)                                   |
+| `browser`            | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-unit (T2) — browser lane step               |
+| `simple`             | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`           | ruby-integration-simple (T3)                     |
+| `full-sqlite`        | valkey, rabbitmq           | `spec:integration:full`                                       | ruby-integration-full — SQLite rows              |
+| `full-mfa`           | valkey, rabbitmq           | `spec:integration:full:mfa`                                   | ruby-integration-full — SQLite MFA row           |
+| `full-saml-platform` | valkey, rabbitmq           | `spec:integration:full:saml_platform`                         | ruby-integration-full — SQLite platform SAML row |
+| `full-pg`            | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                              | ruby-integration-full — PG rows                  |
+| `full-pg-agnostic`   | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                        | ruby-integration-full — PG agnostic rows         |
+| `disabled`           | valkey, rabbitmq           | `spec:integration:disabled`                                   | ruby-integration-disabled (T3)                   |
+| `api`                | valkey, rabbitmq           | `spec:api`                                                    | blocking step, T3 simple job                     |
+| `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | local-only                                       |
+| `migrations-sqlite`  | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                          | migration-tests.yml — SQLite job                 |
+| `migrations-pg`      | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check    | migration-tests.yml — PostgreSQL job             |
+| `selftest`           | none                       | boundary fixture                                              | none — driven by `spec/unit/lanes/`              |
 
 Start every service named for a lane. This includes RabbitMQ for `api`,
 `browser` and `smoke`, whose lane environment still declares its endpoint.
@@ -190,6 +383,33 @@ cannot be used with `--parallel`, because its task regenerates locales itself
 and can race with other lanes. Run it alone (normally
 `tests/lanes/run smoke`).
 
+### Only the lanes a change touches: `--changed`
+
+```console
+$ tests/lanes/run-all --parallel --changed
+[run-all] changed: since origin/main (merge-base), plus uncommitted changes
+[run-all] changed: api <- spec/api/v2/secret_ttl_entitlement_spec.rb (+2 more)
+[run-all] changed: simple <- apps/api/v1/spec/integration/simple/x_spec.rb
+[run-all] changed: 3 path(s) no lane runs, e.g. docs/x.md
+[run-all] parallel: api simple
+$ tests/lanes/run-all --parallel --changed origin/develop
+$ tests/lanes/run-all --dry-run --changed         # selection only, nothing runs
+```
+
+`--changed [<base>]` replaces the lane list with the lanes that run the paths
+changed since `<base>` — `git diff --name-only <base>...HEAD` (merge-base)
+plus staged, unstaged and untracked files — resolved through
+`tests/lanes/ownership` (see `--which`). The default base is `origin/main`,
+or `main` when there is no remote. Every selection is printed with the first
+path that caused it. One shared path (`lib/`, `Gemfile.lock`,
+`tests/lanes/`, ...) selects every lane except `smoke`, and the plan says
+which path did it. When no lane runs any changed path there is nothing to
+run and the command exits 0 saying so — it never falls back to the default
+set. Lane names cannot be combined with `--changed`. `spec/unit/lanes/run_all_spec.rb`
+exercises the selection with a stubbed diff (`LANES_CHANGED_STUB`, honored
+only together with `--dry-run`; set without it, the command exits 64 rather
+than run a substituted diff).
+
 ## Rules
 
 1. Endpoints in this tree target only loopback test ports: application services
@@ -211,7 +431,15 @@ lanes, never `--only`: a suite that CI needs is a lane (the `browser` lane
 exists for that reason), so the command CI runs is the command a contributor
 runs. Toolchain prerequisites a lane cannot generate — built frontend assets,
 Playwright browsers — are installed by the CI job and by `bin/setup --test`;
-the lane preflights them rather than installing them. The supported CI
-exceptions are constrained environments that cannot run the compose topology:
+the lane preflights them rather than installing them.
+
+What CI sees of a run is what a local default run prints: the task's stderr
+merged into its stdout through the `tee` into
+`tmp/lanes/<lane>/<overlays>/last.log` (written in CI too, with the rspec status
+file beside it), then the runner's timing line and its `log: ... (exit N)` line
+on stderr. A reader of the runner's stdout alone (`2>/dev/null`,
+`Open3.capture2`) therefore sees the task's stderr as well. Neither `--quiet`
+nor the tty-only color flags apply there. The supported CI exceptions are
+constrained environments that cannot run the compose topology:
 `devcontainer-ci.yml` and macOS `installer.yml` run the fast suite directly.
 They validate installation paths, not lane behavior.

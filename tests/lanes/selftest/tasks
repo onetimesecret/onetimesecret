@@ -11,6 +11,13 @@
 #   - `declare -F` — the same functions after bash re-materialized them
 #                    in this process, which is what would shadow `git`,
 #                    `bundle`, `docker`, or `rake` for a real lane.
+#
+# One line first, for the runner-set env the same spec asserts: last.log
+# lives next to LANES_RSPEC_STATUS_FILE and must carry the banner BEFORE
+# this process was exec'd. Read here, inside the task, because a read
+# after the run could not tell "seeded first" from "appended later".
+echo '--- lane:selftest last.log ---'
+head -n 1 "${LANES_RSPEC_STATUS_FILE%/*}/last.log"
 echo '--- lane:selftest env ---'
 env
 echo '--- lane:selftest functions ---'

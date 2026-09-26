@@ -3,11 +3,14 @@
 #
 # Usage:
 #   tests/lanes/run-all [--parallel] [--dry-run] [<lane>...]
+#   tests/lanes/run-all [--parallel] [--dry-run] --changed [<base>]
 #
 # Examples:
 #   tests/lanes/run-all
 #   tests/lanes/run-all --parallel
 #   tests/lanes/run-all --parallel unit full-sqlite
+#   tests/lanes/run-all --parallel --changed
+#   tests/lanes/run-all --parallel --changed origin/develop
 #
 # Composition, not a second runner: every lane is started by
 # tests/lanes/run, so the environment a lane gets, the hermetic scrub, the
@@ -53,6 +56,11 @@ LANES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${LANES_DIR}/../.." && pwd)"
 RUNNER="${LANES_DIR}/run"
 
+# The path -> lane table --changed selects from: the same file the runner's
+# --which and lane inference read, so the three cannot disagree.
+# shellcheck source=tests/lanes/ownership
+source "${LANES_DIR}/ownership"
+
 # ── Default lane set ─────────────────────────────────────────────────────
 # The four lanes that cover the auth-mode boundary a local change is most
 # likely to break: unit (no boundary), simple, disabled, full (SQLite).
@@ -76,11 +84,17 @@ DEFAULT_LANES=(unit simple disabled full-sqlite)
 
 usage() {
   echo "usage: tests/lanes/run-all [--parallel] [--dry-run] [<lane>...]"
+  echo "       tests/lanes/run-all [--parallel] [--dry-run] --changed [<base>]"
   echo
   echo "  --parallel     start every lane at once instead of one after another."
   echo "                 Opt-in: serial is the default because a failing serial"
   echo "                 run is the one that is easy to read."
   echo "  --dry-run      print the plan (lanes, codegen, result files) and exit."
+  echo "  --changed      select the lanes that run the paths changed since"
+  echo "                 <base> (default: origin/main, else main), committed or"
+  echo "                 not, through tests/lanes/ownership. A shared path (lib/,"
+  echo "                 Gemfile.lock, tests/lanes/, ...) selects every lane but"
+  echo "                 smoke. Prints each selection and why. Not with <lane>."
   echo
   echo "Default lanes: ${DEFAULT_LANES[*]}"
   echo
@@ -100,6 +114,8 @@ usage() {
 # ── Argument parsing ─────────────────────────────────────────────────────
 PARALLEL=0
 DRY_RUN=0
+CHANGED=0
+CHANGED_BASE=''
 LANES=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -110,6 +126,17 @@ while [[ $# -gt 0 ]]; do
     --dry-run)
       DRY_RUN=1
       shift
+      ;;
+    --changed)
+      # The optional base is the next argument when there is one and it is
+      # not a flag. Lane names cannot follow --changed (rejected below), so
+      # there is nothing else that argument could be.
+      CHANGED=1
+      shift
+      if [[ $# -gt 0 && "$1" != -* ]]; then
+        CHANGED_BASE="$1"
+        shift
+      fi
       ;;
     -h|--help|--list|-l)
       usage
@@ -126,11 +153,130 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+# ── --changed: lanes from the diff ───────────────────────────────────────
+# The changed paths are the branch's diff against its base (merge-base, so a
+# base that moved on does not count its own commits) plus whatever is not
+# committed yet — staged, unstaged and untracked — since a local run is
+# about the tree as it is, not as it was last committed. Each path goes
+# through lanes_for_path (tests/lanes/ownership); the union of owners is
+# the lane set, in lanes_all order so the plan is stable across runs.
+#
+# One shared path ends the search: it selects every lane (lanes_all, which
+# leaves smoke out — not parallel-safe, run it alone) and nothing a further
+# path could add or remove changes that. Paths no lane runs (docs, the
+# frontend, workflow files) are counted and reported, not guessed at; when
+# they are all there is, there is nothing to run and that is a clean exit —
+# a lane fan-out that ran the default set on a docs-only branch would be
+# reporting on something nobody changed.
+#
+# LANES_CHANGED_STUB replaces the git query with a newline-separated path
+# list. It exists for spec/unit/lanes/run_all_spec.rb, which has no branch
+# of its own to diff. This script has no scrub, so a stale export in a dev shell
+# would reach it like any other variable: it is honored only when non-empty
+# (an empty one would silently select nothing and exit 0 as "nothing to
+# run") and only with --dry-run, which is the only way that spec uses
+# it; without --dry-run a set stub is an error, never a substituted diff.
+if [[ ${CHANGED} -eq 1 ]]; then
+  if [[ ${#LANES[@]} -gt 0 ]]; then
+    echo "error: --changed selects the lanes itself; lane names cannot be given with it" >&2
+    exit 64
+  fi
+  if [[ -n "${LANES_CHANGED_STUB:-}" ]]; then
+    if [[ ${DRY_RUN} -eq 0 ]]; then
+      echo "error: LANES_CHANGED_STUB is set; it replaces the git diff and is honored only with --dry-run" >&2
+      echo "  unset it (a stale shell export?) or add --dry-run" >&2
+      exit 64
+    fi
+    CHANGED_LIST="${LANES_CHANGED_STUB}"
+    echo "[run-all] changed: $(grep -c . <<< "${CHANGED_LIST}" || true) path(s) from LANES_CHANGED_STUB, not git"
+  else
+    base="${CHANGED_BASE}"
+    if [[ -z "${base}" ]]; then
+      if git -C "${REPO_ROOT}" rev-parse --verify -q origin/main >/dev/null; then
+        base=origin/main
+      else
+        base=main
+      fi
+    fi
+    if ! git -C "${REPO_ROOT}" rev-parse --verify -q "${base}^{commit}" >/dev/null; then
+      echo "error: --changed base '${base}' is not a commit" >&2
+      echo "  (--changed selects the lanes itself; a lane name cannot follow it)" >&2
+      exit 64
+    fi
+    # pipefail carries a failing git (no merge-base, say) through sort -u.
+    CHANGED_LIST="$( {
+      git -C "${REPO_ROOT}" diff --name-only "${base}...HEAD"
+      git -C "${REPO_ROOT}" diff --name-only HEAD
+      git -C "${REPO_ROOT}" ls-files --others --exclude-standard
+    } | LC_ALL=C sort -u )" || {
+      echo "error: git could not list the changes since '${base}'" >&2
+      exit 64
+    }
+    echo "[run-all] changed: since ${base} (merge-base), plus uncommitted changes"
+  fi
+
+  declare -A SELECTED_BY=()   # lane -> first path that selected it
+  declare -A SELECTED_MORE=() # lane -> how many further paths did
+  shared_path=''
+  unowned=0
+  unowned_first=''
+  while IFS= read -r path; do
+    [[ -n "${path}" ]] || continue
+    npath="$(lanes_path_normalize "${path}")"
+    if lanes_path_shared "${npath}"; then
+      shared_path="${npath}"
+      break
+    fi
+    owners="$(lanes_for_path "${npath}")"
+    if [[ -z "${owners}" ]]; then
+      unowned=$(( unowned + 1 ))
+      unowned_first="${unowned_first:-${npath}}"
+      continue
+    fi
+    for lane in ${owners}; do
+      if [[ -n "${SELECTED_BY[${lane}]+set}" ]]; then
+        SELECTED_MORE["${lane}"]=$(( SELECTED_MORE["${lane}"] + 1 ))
+      else
+        SELECTED_BY["${lane}"]="${npath}"
+        SELECTED_MORE["${lane}"]=0
+      fi
+    done
+  done <<< "${CHANGED_LIST}"
+
+  if [[ -n "${shared_path}" ]]; then
+    mapfile -t LANES < <(lanes_all)
+    echo "[run-all] changed: ${shared_path} is a shared path -> every lane (except smoke)"
+  else
+    while read -r lane; do
+      if [[ -n "${SELECTED_BY[${lane}]+set}" ]]; then
+        LANES+=("${lane}")
+        more=''
+        [[ ${SELECTED_MORE[${lane}]} -gt 0 ]] && more=" (+${SELECTED_MORE[${lane}]} more)"
+        echo "[run-all] changed: ${lane} <- ${SELECTED_BY[${lane}]}${more}"
+      fi
+    done < <(lanes_all)
+    if [[ ${unowned} -gt 0 ]]; then
+      echo "[run-all] changed: ${unowned} path(s) no lane runs, e.g. ${unowned_first}"
+    fi
+    if [[ ${#LANES[@]} -eq 0 ]]; then
+      echo "[run-all] changed: no lane runs any changed path; nothing to run"
+      exit 0
+    fi
+  fi
+  unset -v path npath owners lane more shared_path unowned unowned_first base
+fi
+
 if [[ ${#LANES[@]} -eq 0 ]]; then
   LANES=("${DEFAULT_LANES[@]}")
 fi
 
 for lane in "${LANES[@]}"; do
+  # The runner's own check, applied before the name is used in a path here.
+  if [[ ! "${lane}" =~ ^[A-Za-z0-9_-]+$ ]]; then
+    echo "error: lane name '${lane}' contains invalid characters" >&2
+    exit 64
+  fi
   if [[ ! -f "${LANES_DIR}/${lane}/env" || ! -f "${LANES_DIR}/${lane}/tasks" ]]; then
     echo "error: unknown lane '${lane}' (see: tests/lanes/run --list)" >&2
     exit 64

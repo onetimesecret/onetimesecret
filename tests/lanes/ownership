@@ -1,0 +1,203 @@
+# shellcheck shell=bash
+# tests/lanes/ownership — which lane runs a path. Sourced, never executed.
+#
+# ONE table, three readers: `tests/lanes/run --which <path>`, the lane
+# inference behind a lane-less `tests/lanes/run --only <path>`, and
+# `tests/lanes/run-all --changed`. Nothing else may transcribe it.
+#
+# It encodes the directory conventions the lanes' rake tasks dispatch on
+# (lib/tasks/spec.rake: the spec: and try: namespaces; the paths a task
+# passes to rspec or tryouts), per lane, so a path resolves to the lane(s)
+# whose tasks would LOAD it. Load-level, like the tasks themselves: where
+# several lanes share a directory (spec/integration/full is loaded by
+# full-sqlite, full-pg and full-pg-agnostic) every one of them is an owner,
+# and the caller decides what to do with more than one. A task's --tag
+# filter is example metadata — a whole file may carry the tag at its top
+# describe, or one example in twenty may — and is deliberately NOT modelled:
+# full-pg owns database_triggers/sqlite_spec.rb because its task loads the
+# file, even though `--tag postgres_database` then runs nothing in it. A
+# task's --exclude-pattern IS a path rule and is modelled (full:agnostic_on_pg
+# drops two engine-specific basename shapes, lanes_agnostic_excluded below).
+# The three files spec.rake names individually get their own rows.
+#
+# LANES_OWNER_TASKS records, per lane, the rake tasks its tasks file runs —
+# the tasks whose patterns this table transcribes. spec/unit/lanes/
+# ownership_spec.rb (unit lane) diffs it against the tasks files, so a lane
+# that starts running a different task fails there until this file is
+# revisited; it also walks every spec/ and try/ directory on disk against
+# this table, so a directory nothing here claims fails loudly instead of
+# quietly running nowhere; and it invokes the rake tasks with `sh` captured,
+# models each command's file selection through rspec's own Configuration,
+# and asserts `--which` agrees. All three run this file's own functions.
+#
+# Sourced below the runner's env scrub. Defines shell functions and plain
+# (unexported) arrays only: a plain function does not survive the exec into
+# the task process, and spec/unit/lanes/hermetic_boundary_spec.rb asserts
+# that process's function table is empty.
+
+LANES_OWNERSHIP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LANES_OWNERSHIP_ROOT="$(cd "${LANES_OWNERSHIP_DIR}/../.." && pwd)"
+
+declare -A LANES_OWNER_TASKS=(
+  [unit]='try:unit spec:fast'
+  [browser]=''
+  [simple]='try:integration:simple spec:integration:simple'
+  [disabled]='spec:integration:disabled'
+  [full-sqlite]='spec:integration:full'
+  [full-pg]='spec:integration:full:postgres'
+  [full-pg-agnostic]='spec:integration:full:agnostic_on_pg'
+  [full-mfa]='spec:integration:full:mfa'
+  [full-saml-platform]='spec:integration:full:saml_platform'
+  [migrations-sqlite]='spec:integration:migrations:sqlite'
+  [migrations-pg]='spec:integration:migrations:postgres spec:integration:migrations:verify_dual_url'
+  [api]='spec:api'
+  # browser invokes rspec directly and is mapped explicitly below. Smoke runs
+  # `pnpm test:smoke` and owns no path here; selftest runs no application code.
+  # None of the three is a rake lane.
+  [smoke]=''
+  [selftest]=''
+)
+
+# Every lane a shared path fans out to: each lane directory except smoke,
+# which is not parallel-safe (run-all refuses it under --parallel) and is
+# run on its own. C byte order, so the list is the same under every LANG.
+lanes_all() {
+  local dir
+  for dir in "${LANES_OWNERSHIP_DIR}"/*/; do
+    if [[ -f "${dir}tasks" && -f "${dir}env" && "${dir}" != */smoke/ ]]; then
+      dir="${dir%/}"
+      printf '%s\n' "${dir##*/}"
+    fi
+  done | LC_ALL=C sort
+}
+
+# One spelling for a path however it was given: repo-relative, no leading
+# `./`, no `:LINE` suffix (which --only accepts and forwards to rspec), an
+# absolute path under the checkout reduced to its relative form.
+lanes_path_normalize() {  # <path>
+  local p="$1"
+  p="${p%%:*}"
+  p="${p#"${LANES_OWNERSHIP_ROOT}/"}"
+  p="${p#./}"
+  p="${p%/}"
+  printf '%s' "${p}"
+}
+
+# A shared path is one every lane depends on: application code, the
+# configuration and support files every spec process loads, the lane
+# definitions themselves, and the inputs of the codegen phase. A change
+# there is a change to every lane, so --changed falls back to all of them.
+#
+# The test trees are carved out in the middle row, ahead of `apps/*`, so
+# that pattern means app SOURCE: a spec or tryout is owned by the lane(s)
+# whose task loads it, or by nobody, never by everybody. The support files
+# inside those trees (loaded by every process that runs the tree) come
+# first, so the carve-out does not take them with it. Exact-name rows are
+# files, not prefixes.
+# shellcheck disable=SC2254  # ${app} is a glob, expanded unquoted on purpose
+lanes_path_shared() {  # <normalized path>
+  local app='apps/[!/]*/[!/]*'
+  case "$1" in
+    spec/support|spec/support/*|spec/spec_helper.rb|spec/integration/integration_spec_helper.rb|spec/*.yaml|\
+    ${app}/spec/support|${app}/spec/support/*|${app}/spec/spec_helper.rb|try/support|try/support/*)
+      return 0
+      ;;
+    spec|spec/*|try|try/*|${app}/spec|${app}/spec/*|apps/*/try|apps/*/try/*)
+      return 1
+      ;;
+    lib|lib/*|config|config/*|etc|etc/*|locales|locales/*|tests/lanes|tests/lanes/*|apps|apps/*|\
+    Gemfile|Gemfile.lock|Rakefile|config.ru|.rspec|.ruby-version|.bash-version|compose.test.yml)
+      return 0
+      ;;
+  esac
+  return 1
+}
+
+# The two basename shapes spec:integration:full:agnostic_on_pg excludes
+# (`--exclude-pattern '**/migrations/*_{postgres,sqlite}_spec.rb,
+# **/{postgres,sqlite}*_spec.rb'` in lib/tasks/spec.rake): engine-specific
+# files under its trees that the other full lanes still load. Anchored on
+# the basename and, for the second shape, on the parent directory, the way
+# fnmatch resolves `**/`.
+lanes_agnostic_excluded() {  # <normalized path>
+  case "${1##*/}" in
+    postgres*_spec.rb|sqlite*_spec.rb) return 0 ;;
+    *_postgres_spec.rb|*_sqlite_spec.rb) [[ "${1%/*}" == */migrations ]] && return 0 ;;
+  esac
+  return 1
+}
+
+# Owning lanes for a path, one per line; nothing when no lane runs it. A
+# shared path prints every lane (lanes_all). Patterns are bash `case`
+# globs, where `*` also matches `/`, so `<dir>|<dir>/*` claims a directory
+# and everything under it; `[!/]*` pins one path segment where rake's own
+# glob does (apps/*/*/spec is exactly two segments deep).
+#
+# Row order is precedence: the file-level rows first, then the integration
+# trees (which sit inside an app's spec tree and would otherwise fall to
+# unit), then the trees. A path that matches no row is a test no lane runs
+# (try/web, a mode-less apps/*/*/spec/integration file) or a path outside
+# the test trees, and prints nothing — saying so is the point.
+# shellcheck disable=SC2254  # ${app} is a glob, expanded unquoted on purpose
+lanes_for_path() {  # <path>
+  local p app='apps/[!/]*/[!/]*'
+  p="$(lanes_path_normalize "$1")"
+  if lanes_path_shared "${p}"; then
+    lanes_all
+    return
+  fi
+  case "${p}" in
+    # The browser lane invokes rspec directly rather than through a rake task.
+    # Its JavaScript harness is lane-owned too, so --changed selects the lane.
+    tests/browser|tests/browser/*)
+      echo browser ;;
+    # spec:integration:migrations:* name these three files. The SQLite and
+    # postgres full lanes load them through their directory too (the
+    # postgres_database tag then decides what runs); agnostic_on_pg
+    # excludes all three by name.
+    spec/integration/full/database_triggers/sqlite_spec.rb)
+      printf '%s\n' full-sqlite full-pg migrations-sqlite ;;
+    spec/integration/full/database_triggers/postgres_spec.rb|spec/integration/full/postgres_infrastructure_spec.rb)
+      printf '%s\n' full-sqlite full-pg migrations-pg ;;
+    # spec:integration:full, full:postgres, and full:agnostic_on_pg minus
+    # the name shapes its --exclude-pattern drops.
+    spec/integration/full|spec/integration/full/*|${app}/spec/integration/full|${app}/spec/integration/full/*)
+      printf '%s\n' full-sqlite full-pg
+      lanes_agnostic_excluded "${p}" || echo full-pg-agnostic ;;
+    # spec/integration/all runs once per mode: simple, disabled, full (the
+    # SQLite task and agnostic_on_pg, the latter again minus its excluded
+    # name shapes; full:postgres does not include it).
+    spec/integration/all|spec/integration/all/*)
+      printf '%s\n' simple disabled full-sqlite
+      lanes_agnostic_excluded "${p}" || echo full-pg-agnostic ;;
+    spec/integration/simple|spec/integration/simple/*|${app}/spec/integration/simple|${app}/spec/integration/simple/*)
+      echo simple ;;
+    spec/integration/disabled|spec/integration/disabled/*|${app}/spec/integration/disabled|${app}/spec/integration/disabled/*)
+      echo disabled ;;
+    ${app}/spec/integration/full_mfa|${app}/spec/integration/full_mfa/*)
+      echo full-mfa ;;
+    ${app}/spec/integration/full_saml_platform|${app}/spec/integration/full_saml_platform/*)
+      echo full-saml-platform ;;
+    # A mode-less file directly under an app's integration/ is dispatched by
+    # no task (UNRUN_SPECS in lib/tasks/spec_selection.rake): no owner.
+    ${app}/spec/integration|${app}/spec/integration/*)
+      ;;
+    # spec:fast — spec/unit, spec/cli, spec/lib and every apps/*/*/spec tree
+    # minus its integration/ subtree (already dispatched above).
+    spec/unit|spec/unit/*|spec/cli|spec/cli/*|spec/lib|spec/lib/*|${app}/spec|${app}/spec/*)
+      echo unit ;;
+    spec/api|spec/api/*)
+      echo api ;;
+    # try:unit — five try/ trees plus apps/**/try at any depth.
+    try/unit|try/unit/*|try/system|try/system/*|try/security|try/security/*|\
+    try/features|try/features/*|try/jobs|try/jobs/*|apps/*/try|apps/*/try/*)
+      echo unit ;;
+    # try:integration:simple — six subtrees and three files, by name.
+    try/integration/middleware|try/integration/middleware/*|try/integration/boot|try/integration/boot/*|\
+    try/integration/web|try/integration/web/*|try/integration/api|try/integration/api/*|\
+    try/integration/email|try/integration/email/*|try/integration/billing|try/integration/billing/*|\
+    try/integration/homepage_bypass_header_integration_try.rb|try/integration/homepage_mode_integration_try.rb|\
+    try/integration/check_jobqueue_live_try.rb)
+      echo simple ;;
+  esac
+}

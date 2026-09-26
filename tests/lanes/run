@@ -5,10 +5,16 @@
 # Usage:
 #   tests/lanes/run --list
 #   tests/lanes/run <lane> [--overlay <name>]...
+#   tests/lanes/run [<lane>] --only <path>[:LINE]...   (lane inferred if omitted)
+#   tests/lanes/run <lane> [--overlay <name>]... --console
+#   tests/lanes/run --which <path>
 #
 # Examples:
 #   tests/lanes/run unit
 #   tests/lanes/run full-pg --overlay billing
+#   tests/lanes/run --only spec/api/v2/secret_ttl_entitlement_spec.rb:20
+#   tests/lanes/run full-sqlite --console
+#   tests/lanes/run --which apps/web/auth/spec/integration/full
 #
 # Runs a lane's tasks (tests/lanes/<lane>/tasks) with exactly the lane's
 # environment, regardless of what the calling shell exported. CI and local
@@ -24,6 +30,12 @@
 # cleared too (`export -f`) — bash re-materializes those in the exec'd
 # task process via BASH_FUNC_*%%, so an unset function is just as capable
 # of shadowing `git`/`bundle`/`docker`/etc. as a leaked variable.
+#
+# Two runner-assigned names depend on the terminal: when the runner's own
+# stdout is a tty, SPEC_OPTS gains --force-color and FORCE_COLOR=1 is
+# exported (see "Last run output" below), so an interactive run's task
+# environment differs from a piped one's (CI, run-all) by those two names
+# and nothing else.
 
 # ── bash major-version floor ────────────────────────────────────────────
 # The scrub below needs `mapfile` (bash 4) and expands the arrays it fills
@@ -286,6 +298,24 @@ export LC_ALL=C.UTF-8
 LANES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${LANES_DIR}/../.." && pwd)"
 
+# ── Phase clock ──────────────────────────────────────────────────────────
+# The epilogue at the bottom prints one line of wall-clock per phase —
+# preflight (everything from here to the codegen phase: argument handling,
+# service probes, the owner marker, PG/vhost provisioning), codegen, and
+# the tasks or --only command — so "the lane is slow" can be answered from
+# the run that was slow rather than a stopwatch. Microseconds as an
+# integer, because bash arithmetic has no floats: EPOCHREALTIME is
+# `<secs>.<6 digits>`, and dropping the dot is the multiplication.
+# EPOCHREALTIME is bash 5.0; the .bash-version floor above covers it.
+_lanes_t0="${EPOCHREALTIME/./}"
+
+# The path -> lane table behind --which, the lane inference for a lane-less
+# --only, and run-all's --changed. Sourced here, below the scrub, so the
+# functions and arrays it defines are as unexported as everything else the
+# runner assigns; run-all sources the same file.
+# shellcheck source=tests/lanes/ownership
+source "${LANES_DIR}/ownership"
+
 list_lanes() {
   local dir
   for dir in "${LANES_DIR}"/*/; do
@@ -296,19 +326,43 @@ list_lanes() {
 }
 
 if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
-  echo "usage: tests/lanes/run <lane> [--overlay <name>]... [--only <path>]..."
-  echo "                            [--skip-codegen] [--print-key]"
+  echo "usage: tests/lanes/run [<lane>] [--overlay <name>]... [--only <path>]..."
+  echo "                            [--skip-codegen] [--print-key] [--quiet]"
+  echo "                            [-- <rspec args>]"
+  echo "       tests/lanes/run <lane> [--overlay <name>]... --console"
+  echo "       tests/lanes/run --which <path>"
   echo
   echo "  --only <path>  run just these test files in the lane's environment,"
   echo "                 instead of the lane's tasks file. Repeatable. Skips"
   echo "                 the codegen phase too — the tasks file is bypassed"
-  echo "                 wholesale, which is what it has always done."
+  echo "                 wholesale, which is what it has always done. With no"
+  echo "                 lane named, the lane is inferred from the path; a"
+  echo "                 path several lanes run needs the lane spelled out."
+  echo "  --which <path> print the lane(s) whose tasks run that file or"
+  echo "                 directory (tests/lanes/ownership), then exit."
+  echo "  -- <args>      everything after it goes to rspec verbatim (never to"
+  echo "                 tryouts). Needs --only. e.g. -- --only-failures,"
+  echo "                 -- --next-failure, -- -e 'description'."
+  echo "  --quiet        rspec prints failures and the summary only (SPEC_OPTS"
+  echo "                 selects tests/lanes/support/quiet_formatter.rb) and"
+  echo "                 the app logs at error and above only (LOG_LEVEL and"
+  echo "                 DEBUG_LOGGERS, both read by setup_loggers.rb); the"
+  echo "                 tryouts legs already run --agent outside CI. Default"
+  echo "                 output is unchanged without it."
+  echo "  --console      start the app console (bin/ots console) in the lane's"
+  echo "                 environment — same scrub, overlays, datastore index"
+  echo "                 and exec boundary as a run — instead of its tasks."
+  echo "                 Runs no tests: not with --only, --quiet or --."
   echo "  --skip-codegen skip the lane's declared codegen (LANES_CODEGEN in"
   echo "                 its env file). A direct run ALWAYS generates; this is"
   echo "                 for a caller that generated once before fanning out."
   echo "  --print-key    print the isolation key and datastore index this"
   echo "                 lane+overlay set derives, then exit. Touches no"
   echo "                 services and runs nothing."
+  echo
+  echo "Every run (tasks or --only) is also written to tmp/lanes/<lane>/<overlays>/"
+  echo "last.log; the path is printed at exit, after one line of wall-clock per"
+  echo "phase (preflight, codegen, tasks/only). --print-key shows the directory."
   echo
   echo "Lanes:"
   list_lanes | sed 's/^/  /'
@@ -320,12 +374,47 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   exit 0
 fi
 
-LANE="$1"
-shift
-LANE_DIR="${LANES_DIR}/${LANE}"
-if [[ ! -f "${LANE_DIR}/env" || ! -f "${LANE_DIR}/tasks" ]]; then
-  echo "error: unknown lane '${LANE}' (see: tests/lanes/run --list)" >&2
-  exit 64
+# ── --which ──────────────────────────────────────────────────────────────
+# A question about the table, not a run: which lane's tasks load this path?
+# Answered from tests/lanes/ownership and nothing else, so it needs no lane,
+# touches no service and exits before any environment is assembled. One
+# lane per line; several lines where several lanes run the directory. A
+# path no lane runs is an error, not an empty answer — the empty answer
+# reads as "run it anywhere", which is exactly wrong.
+if [[ "${1:-}" == "--which" ]]; then
+  [[ $# -eq 2 ]] || { echo "error: --which takes exactly one path" >&2; exit 64; }
+  _lanes_owners="$(lanes_for_path "$2")"
+  if [[ -z "${_lanes_owners}" ]]; then
+    echo "error: no lane runs '$(lanes_path_normalize "$2")' (see tests/lanes/ownership)" >&2
+    exit 64
+  fi
+  if lanes_path_shared "$(lanes_path_normalize "$2")"; then
+    echo "note: '$(lanes_path_normalize "$2")' is shared by every lane" >&2
+  fi
+  printf '%s\n' "${_lanes_owners}"
+  exit 0
+fi
+
+# The lane is the first argument — unless the first argument is a flag, in
+# which case no lane was named and --only's paths choose it below (after
+# the flags are parsed; any other lane-less invocation is an error there).
+# The runner-internal control state is assigned first for the reason spelled
+# out at OVERLAYS below: below the scrub, never from the environment.
+LANE=''
+if [[ "${1:-}" != --* ]]; then
+  LANE="$1"
+  shift
+  # Same character set as an overlay name, checked before the name reaches
+  # a path: the lane names the per-run directory under tmp/lanes/ and is a
+  # field of the isolation key, so `../x` would mkdir and tee outside tmp/
+  # and `unit/` would derive a different index than `unit` for the same
+  # lane — one the same-lane liveness check could not see.
+  [[ "${LANE}" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "error: lane name '${LANE}' contains invalid characters" >&2; exit 64; }
+  LANE_DIR="${LANES_DIR}/${LANE}"
+  if [[ ! -f "${LANE_DIR}/env" || ! -f "${LANE_DIR}/tasks" ]]; then
+    echo "error: unknown lane '${LANE}' (see: tests/lanes/run --list)" >&2
+    exit 64
+  fi
 fi
 
 OVERLAYS=()
@@ -340,8 +429,20 @@ ONLY=()
 # exists to take away from the caller.
 SKIP_CODEGEN=0
 PRINT_KEY=0
+QUIET=0
+CONSOLE=0
+# `--` ends the runner's own parsing; the rest of argv is rspec's. Kept as
+# an array (never re-split) so a quoted `-e 'two words'` arrives intact.
+PASSTHROUGH=0
+RSPEC_ARGS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --)
+      shift
+      PASSTHROUGH=1
+      RSPEC_ARGS=("$@")
+      break
+      ;;
     --overlay)
       [[ $# -ge 2 ]] || { echo "error: --overlay requires a name" >&2; exit 64; }
       [[ "$2" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "error: overlay name '$2' contains invalid characters" >&2; exit 64; }
@@ -357,9 +458,10 @@ while [[ $# -gt 0 ]]; do
       [[ $# -ge 2 ]] || { echo "error: --only requires a path" >&2; exit 64; }
       # The command runs from the repo root, so a path is checked there (and
       # as given, so an absolute path or one typed from the repo root while
-      # standing elsewhere both work). Catching a typo here beats a runner
+      # standing elsewhere both work). A directory is a path too — rspec
+      # loads every spec under it. Catching a typo here beats a runner
       # that boots the whole app and then reports "0 examples".
-      [[ -f "${REPO_ROOT}/${2%%:*}" || -f "${2%%:*}" ]] || { echo "error: --only path '${2%%:*}' not found (relative to the repo root)" >&2; exit 64; }
+      [[ -e "${REPO_ROOT}/${2%%:*}" || -e "${2%%:*}" ]] || { echo "error: --only path '${2%%:*}' not found (relative to the repo root)" >&2; exit 64; }
       ONLY+=("$2")
       shift 2
       ;;
@@ -371,12 +473,124 @@ while [[ $# -gt 0 ]]; do
       PRINT_KEY=1
       shift
       ;;
+    --quiet)
+      QUIET=1
+      shift
+      ;;
+    --console)
+      CONSOLE=1
+      shift
+      ;;
     *)
       echo "error: unknown argument '$1'" >&2
       exit 64
       ;;
   esac
 done
+# --console replaces the tasks file with the app console, so every flag
+# that shapes a test run is a contradiction with it: --only names files to
+# run, `--` carries rspec arguments, --quiet chooses an rspec formatter and
+# --skip-codegen skips a phase the console (like --only) never enters.
+# Refuse each rather than ignore it; a flag that did nothing would be read
+# as having worked.
+if [[ ${CONSOLE} -eq 1 ]]; then
+  if [[ ${#ONLY[@]} -gt 0 ]]; then
+    echo "error: --console starts the app console, not test files; drop --only" >&2
+    exit 64
+  fi
+  if [[ ${PASSTHROUGH} -eq 1 ]]; then
+    echo "error: arguments after '--' go to rspec; --console runs none" >&2
+    exit 64
+  fi
+  if [[ ${QUIET} -eq 1 ]]; then
+    echo "error: --quiet selects an rspec formatter; --console runs no rspec" >&2
+    exit 64
+  fi
+  if [[ ${SKIP_CODEGEN} -eq 1 ]]; then
+    echo "error: --console never runs the codegen phase; --skip-codegen has nothing to skip" >&2
+    exit 64
+  fi
+fi
+# A lane's tasks file drives rspec through rake, where argv is the rake
+# task's to assemble; there is nowhere for trailing arguments to go but
+# --only's own rspec command. Reject the combination up front rather than
+# silently running the whole lane without them.
+if [[ ${PASSTHROUGH} -eq 1 && ${#ONLY[@]} -eq 0 ]]; then
+  echo "error: '--' (rspec passthrough) requires --only" >&2
+  exit 64
+fi
+# --only's runner is chosen by filename: tryouts own `*_try.rb`, rspec owns
+# the rest. Mixing the two in one invocation would need two commands and an
+# ordering rule nobody asked for; ask for two runs instead. Classified here,
+# with the rest of argv, so --print-key reports the same verdict a run gets.
+_only_try=0
+_only_spec=0
+for _p in ${ONLY[@]+"${ONLY[@]}"}; do
+  case "${_p%%:*}" in
+    *_try.rb) _only_try=1 ;;
+    *)        _only_spec=1 ;;
+  esac
+done
+builtin unset _p
+if [[ ${_only_try} -eq 1 && ${_only_spec} -eq 1 ]]; then
+  echo "error: --only cannot mix tryouts (*_try.rb) and rspec files in one run" >&2
+  exit 64
+fi
+# Trailing arguments are rspec's by contract, and tryouts has its own flag
+# set: `try --only-failures` would fail on the flag, or worse, mean
+# something else. Refuse rather than guess.
+if [[ ${_only_try} -eq 1 && ${PASSTHROUGH} -eq 1 ]]; then
+  echo "error: arguments after '--' go to rspec; --only targets tryouts files" >&2
+  exit 64
+fi
+
+# ── Lane inference ───────────────────────────────────────────────────────
+# No lane named: the --only paths choose it, through the same table --which
+# reads. Every path has to resolve to the SAME single lane — the run boots
+# one environment, and a path two lanes run (spec/integration/full, say) is
+# a question the runner refuses to answer by picking one, since the pick
+# would decide which auth database and which tag filter the file boots
+# under. Refuse with the candidates listed; naming the lane is one token.
+# Below the flag parsing so `--only` is known, above the isolation key,
+# which is the first thing that needs the lane.
+if [[ -z "${LANE}" ]]; then
+  if [[ ${#ONLY[@]} -eq 0 ]]; then
+    echo "error: no lane named (see: tests/lanes/run --list); --only <path> infers one" >&2
+    exit 64
+  fi
+  _lanes_candidates=''
+  for _p in "${ONLY[@]}"; do
+    _lanes_owners="$(lanes_for_path "${_p}")"
+    if [[ -z "${_lanes_owners}" ]]; then
+      echo "error: no lane runs '$(lanes_path_normalize "${_p}")'; name the lane to run it anyway" >&2
+      exit 64
+    fi
+    if [[ -z "${_lanes_candidates}" ]]; then
+      _lanes_candidates="${_lanes_owners}"
+    else
+      # Intersection: the lanes every path so far agrees on.
+      _lanes_candidates="$(grep -Fx -f <(printf '%s\n' "${_lanes_owners}") <<< "${_lanes_candidates}" || true)"
+    fi
+  done
+  case "$(printf '%s\n' "${_lanes_candidates}" | grep -c .)" in
+    1)
+      LANE="${_lanes_candidates}"
+      ;;
+    0)
+      echo "error: the --only paths belong to different lanes; run them separately" >&2
+      exit 64
+      ;;
+    *)
+      echo "error: several lanes run the --only path(s); name one:" >&2
+      # shellcheck disable=SC2086  # one lane name per line, split on purpose
+      printf '  %s\n' ${_lanes_candidates} >&2
+      exit 64
+      ;;
+  esac
+  builtin unset _lanes_candidates _lanes_owners _p
+  echo "[lane:${LANE}] inferred from --only" >&2
+  LANE_DIR="${LANES_DIR}/${LANE}"
+fi
 
 # ── Isolation key ────────────────────────────────────────────────────────
 # What "one run" means for datastore isolation: the lane, the overlays it
@@ -566,17 +780,99 @@ if [[ "${LANES_DATASTORE_DB}" != 0 &&
   export RABBITMQ_URL
 fi
 
+# ── Per-run files ────────────────────────────────────────────────────────
+# Runner-owned files a run reads back on the next run live under a
+# directory keyed the way the datastore index is: the lane and its
+# normalized overlay set are path components, and the third component of
+# the isolation key — the checkout — is implied, because tmp/ sits inside
+# it. Two lanes in one worktree get two directories, two worktrees get two
+# tmp/ trees, and nothing clobbers a sibling's files. tmp/ is gitignored.
+#
+# LANES_RSPEC_STATUS_FILE is the one the app side reads:
+# spec/spec_helper.rb sets example_status_persistence_file_path from it
+# when — and only when — it is present, so plain rspec outside the runner
+# is unchanged and `--only <path> -- --only-failures` / `--next-failure`
+# work in here. Exported below the scrub, so it survives it, and absolute,
+# so a spec that chdirs cannot move it.
+LANES_RUN_DIR="tmp/lanes/${LANE}/${OVERLAY_KEY:-base}"
+LANES_RSPEC_STATUS_FILE="${REPO_ROOT}/${LANES_RUN_DIR}/rspec-status.txt"
+export LANES_RSPEC_STATUS_FILE
+
+# ── --quiet ──────────────────────────────────────────────────────────────
+# rspec reads SPEC_OPTS last, after .rspec and after the command line, and a
+# `--format` there REPLACES the formatter list the other two built — which is
+# what makes one exported name enough to quiet every rspec invocation a
+# lane makes, whether a rake task assembled it or --only did. Set here,
+# below the scrub (a caller's SPEC_OPTS was cleared with everything else,
+# so this is the only one the task process can see) and only under the
+# flag, so a default run's output — CI's logs — is byte-for-byte what it
+# was.
+#
+# The replacement is also the one cost: the rake tasks' `--format json --out
+# $RSPEC_OUTPUT_FILE` goes with the progress formatter, so a run that was
+# asked for a results file cannot also be quiet. That is a CI-only pairing
+# (RSPEC_OUTPUT_FILE is CI plumbing, keep-listed for that reason); refuse it
+# rather than silently write no results.
+#
+# Tryouts needs nothing here: try:unit and try:integration:simple already
+# pass --agent outside CI (lib/tasks/spec.rake), as does --only for a
+# *_try.rb file.
+if [[ ${QUIET} -eq 1 ]]; then
+  if [[ -n "${RSPEC_OUTPUT_FILE:-}" ]]; then
+    echo "error: --quiet replaces rspec's formatters, so RSPEC_OUTPUT_FILE cannot be honored" >&2
+    echo "  unset RSPEC_OUTPUT_FILE (CI plumbing) or drop --quiet" >&2
+    exit 64
+  fi
+  # Repo-relative `./` path, not ${REPO_ROOT}: rspec Shellwords-splits
+  # SPEC_OPTS, so a checkout path with a space would break the --require, and
+  # the task process runs from the repo root (the cd below) where ./ resolves.
+  SPEC_OPTS="--require ./tests/lanes/support/quiet_formatter --format Lanes::QuietFormatter"
+  export SPEC_OPTS
+
+  # The application's own log lines are the other, larger half of a lane's
+  # output — on a full `simple` run ~50k of ~55k lines are the seven
+  # `HTTP -- [Security] ... DISABLED` warnings each app boot logs — and the
+  # formatter cannot touch them. Two existing knobs can, both read by
+  # lib/onetime/initializers/setup_loggers.rb on every boot the run makes:
+  # LOG_LEVEL sets SemanticLogger.default_level, which every category listed
+  # under `loggers:` in spec/logging.test.yaml then overrides with its own
+  # pinned level (HTTP: warn, Auth: info, ...), so LOG_LEVEL alone moves
+  # nothing that prints; DEBUG_LOGGERS=<name>:<level>,... is applied after
+  # those and wins per category — at any level, the name notwithstanding.
+  # So: the default to error for every category the yaml does not name, and
+  # every category the initializer defines (its logger_definitions, which
+  # spec/unit/lanes/quiet_log_floor_spec.rb pins this list to) to error
+  # explicitly. Errors and fatals still print, so a real failure's log line
+  # stays beside its rspec failure — and so does the ColonelAudit stream,
+  # whose logger Onetime::ColonelAuditEvent pins at info itself, on purpose
+  # (the audit sink must not be silenceable by a level change). Measured on
+  # a full `simple` run: ~55k lines -> ~2.5k. Assigned here, below the
+  # scrub and only under the flag: a default run's app log is what it was.
+  LOG_LEVEL=error
+  DEBUG_LOGGERS=''
+  for _lanes_name in App Auth Billing Boot Bunny Ents Familia HTTP Jobs Org \
+                     Otto Rhales Scheduler Secret Sequel Session Workers; do
+    DEBUG_LOGGERS+="${DEBUG_LOGGERS:+,}${_lanes_name}:error"
+  done
+  builtin unset _lanes_name
+  export LOG_LEVEL DEBUG_LOGGERS
+fi
+
 # ── --print-key ──────────────────────────────────────────────────────────
 # Everything above is pure derivation: the addressing this lane+overlay set
 # resolves to, computed without touching a service. Report it and stop.
 # This is the answer to "which datastore is this lane on?", which is what a
 # developer needs when the collision guard below tells them to pin an index
 # — and what a spec needs to assert that two lanes derive two indexes,
-# without paying for a lane run to find out.
+# without paying for a lane run to find out. The second line is the file
+# side of the same derivation.
 if [[ ${PRINT_KEY} -eq 1 ]]; then
   echo "lane=${LANE} overlays=${OVERLAY_KEY:-none} db=${LANES_DATASTORE_DB}" \
        "redis=${REDIS_URL:-n/a} auth_db=${AUTH_DATABASE_URL:-n/a}" \
        "key=${LANES_ISOLATION_KEY}"
+  echo "run_dir=${LANES_RUN_DIR} status_file=${LANES_RSPEC_STATUS_FILE}" \
+       "spec_opts=${SPEC_OPTS:-none}"
+  echo "log_level=${LOG_LEVEL:-none} debug_loggers=${DEBUG_LOGGERS:-none}"
   exit 0
 fi
 
@@ -951,14 +1247,45 @@ if [[ -n "${_lanes_active:-}" ]]; then
   ) </dev/null >/dev/null 2>&1 &
 fi
 
-echo "[lane:${LANE}] mode=${AUTHENTICATION_MODE:-?}" \
-     "overlays=${OVERLAY_KEY:-none}" \
-     "billing=${BILLING_ENABLED:-false}" \
-     "redis=${REDIS_URL:-?}" \
-     "db=${LANES_DATASTORE_DB}" \
-     "auth_db=${AUTH_DATABASE_URL:-n/a}"
+printf -v _lanes_banner '[lane:%s] mode=%s overlays=%s billing=%s redis=%s db=%s auth_db=%s' \
+  "${LANE}" "${AUTHENTICATION_MODE:-?}" "${OVERLAY_KEY:-none}" "${BILLING_ENABLED:-false}" \
+  "${REDIS_URL:-?}" "${LANES_DATASTORE_DB}" "${AUTH_DATABASE_URL:-n/a}"
+echo "${_lanes_banner}"
 
 cd "${REPO_ROOT}"
+
+# ── Last run output ──────────────────────────────────────────────────────
+# Everything the task process prints is tee'd to <run dir>/last.log by the
+# epilogue below, so a failure that scrolled past costs a read, not a rerun.
+# One file per lane+overlay set (the same keying as the status file above),
+# truncated here at the start of each run, seeded with the banner so the log
+# says which datastore it was about. The epilogue appends from there, ends
+# the file with its own `log: ... (exit N)` line so the log is
+# self-describing, and prints that line on its way out, success or failure.
+# Absolute, like the status file: the path is printed for the caller, and a
+# --only run may be started from a subdirectory (its paths are checked
+# against the repo root as well as the cwd).
+#
+# tee costs the task process its terminal: rspec and tryouts see a pipe on
+# stdout and drop colors. When the runner itself is on a terminal, say so
+# explicitly — `--force-color` for rspec through SPEC_OPTS (appended, so
+# --quiet's formatter stays), FORCE_COLOR for tryouts (lib/tryouts/console.rb)
+# — so an interactive run looks as it did. CI and run-all pipe the runner's
+# stdout, so neither is set there and their output is untouched.
+#
+# Not for --console: a console is not a run, and the log it would truncate
+# is the last run's output — the thing a developer opened the console to
+# investigate.
+LANES_LAST_LOG="${REPO_ROOT}/${LANES_RUN_DIR}/last.log"
+if [[ ${CONSOLE} -eq 0 ]]; then
+  mkdir -p "${LANES_RUN_DIR}"
+  printf '%s\n' "${_lanes_banner}" > "${LANES_LAST_LOG}"
+  if [[ -t 1 ]]; then
+    SPEC_OPTS="${SPEC_OPTS:+${SPEC_OPTS} }--force-color"
+    export SPEC_OPTS
+    export FORCE_COLOR=1
+  fi
+fi
 
 # The per-worktree PG database has to exist before the lane's specs open a
 # connection to it, and unlike a valkey DB index it is not conjured by
@@ -978,8 +1305,16 @@ fi
 # self-skip, so a failure here has to be loud or it shows up as silently
 # reduced coverage rather than a red lane; the script exits nonzero and this
 # propagates it.
+#
+# Every run, --only included, and not skipped when the vhost already exists:
+# the script deletes and recreates it on purpose, so queues and messages an
+# interrupted run left behind cannot reach the next one (see its header) —
+# "exists" is not "clean". Plain `ruby`, not `bundle exec`: the script is
+# stdlib only (json, net/http, uri), and Bundler's setup was half of its
+# wall clock (0.51s -> 0.26s measured). PATH is keep-listed, so this is the
+# same interpreter `bundle exec` would have resolved.
 if [[ "${LANES_DATASTORE_DB}" != 0 && "${RABBITMQ_URL:-}" =~ 127\.0\.0\.1:2156 ]]; then
-  bundle exec ruby tests/lanes/support/provision_rabbitmq_vhost.rb || exit $?
+  ruby tests/lanes/support/provision_rabbitmq_vhost.rb || exit $?
 fi
 # `env -u` finishes what the scrub could not: readonly exported vars and
 # readonly exported functions survive `unset` in this shell, but env(1)
@@ -1057,6 +1392,10 @@ fi
 #                   above for why it is never read from the environment.
 #   --only          bypasses the tasks file wholesale and always has. The
 #                   documented iteration semantics do not change here.
+#   --console       bypasses it the same way: the generated files are the
+#                   tasks' prerequisites, and a missing locale at console
+#                   boot is a logged line (initializers/load_locales.rb),
+#                   not a failure.
 _lanes_codegen_run() {
   # Through the same `env -u` strip the exec below applies, so a generator
   # sees the environment the tasks see rather than the runner's (readonly
@@ -1066,7 +1405,13 @@ _lanes_codegen_run() {
   builtin command env ${_lanes_strip[@]+"${_lanes_strip[@]}"} "$@"
 }
 
-if [[ ${SKIP_CODEGEN} -eq 0 && ${#ONLY[@]} -eq 0 && -n "${LANES_CODEGEN:-}" ]]; then
+# Preflight ends here. The codegen phase is timed only when it runs; an
+# empty value tells the epilogue to print "skipped" rather than a zero
+# that would read as "ran, instantly".
+_lanes_us_preflight=$(( ${EPOCHREALTIME/./} - _lanes_t0 ))
+_lanes_us_codegen=''
+if [[ ${SKIP_CODEGEN} -eq 0 && ${#ONLY[@]} -eq 0 && ${CONSOLE} -eq 0 && -n "${LANES_CODEGEN:-}" ]]; then
+  _lanes_t_codegen="${EPOCHREALTIME/./}"
   for _lanes_gen in ${LANES_CODEGEN}; do
     echo "[lane:${LANE}] codegen: ${_lanes_gen}"
     case "${_lanes_gen}" in
@@ -1088,7 +1433,30 @@ if [[ ${SKIP_CODEGEN} -eq 0 && ${#ONLY[@]} -eq 0 && -n "${LANES_CODEGEN:-}" ]]; 
         ;;
     esac
   done
-  builtin unset _lanes_gen
+  _lanes_us_codegen=$(( ${EPOCHREALTIME/./} - _lanes_t_codegen ))
+  builtin unset _lanes_gen _lanes_t_codegen
+fi
+
+# ── --console: the app console inside the lane's environment ─────────────
+# bin/console is `bundle exec bin/ots console` with whatever the shell has
+# exported, direnv state included — which is how test-mode settings have
+# leaked into a console before. This is the same command behind the same
+# boundary a lane's tasks get: the scrub above, base.env -> lane env ->
+# overlays, the derived datastore index (REDIS_URL, AUTH_DATABASE_URL and
+# RABBITMQ_URL rewritten to it, the PG database and vhost provisioned), the
+# liveness token, and the `env -u` strip at this exec. So an auth-chain
+# question gets asked of the exact datastore the lane's specs wrote, and of
+# nothing else.
+#
+# A plain exec, not the tee epilogue below: irb needs the terminal on its
+# stdout, and a console is not a run — no last.log, no timing line. The
+# process is still the runner's PID, so the refresher keeps the token for
+# as long as the console is open. Non-interactive use works as irb's own
+# stdin handling allows: `echo 'puts ENV["REDIS_URL"]' | tests/lanes/run
+# <lane> --console`.
+if [[ ${CONSOLE} -eq 1 ]]; then
+  echo "[lane:${LANE}] console: bundle exec bin/ots console" >&2
+  exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bundle exec bin/ots console
 fi
 
 # ── Mid-run service-loss epilogue ────────────────────────────────────────
@@ -1102,41 +1470,76 @@ fi
 # that closed since preflight converts the whole result to one line and the
 # infra exit code (69), matching every other services-unavailable exit here.
 #
-# The epilogue is builtins only — echo, and the /dev/tcp probe port_open
-# uses — so it adds no PATH dependence, defines no functions (nothing for
-# spec/unit/lanes/hermetic_boundary_spec.rb's function-table assertion to
-# see: an unexported function would not reach the task child anyway), and
-# prints nothing on the success path. The task command runs with the exact
-# argv and `env -u`-stripped environment it received before; the only
-# behavioral delta is one shell level between env and the task.
+# The epilogue is builtins plus tee(1) — echo, the /dev/tcp probe port_open
+# uses, and the copy into last.log — so its one PATH dependence is a
+# coreutil every CI image and every dev box has. It defines no functions
+# (nothing for spec/unit/lanes/hermetic_boundary_spec.rb's function-table
+# assertion to see: an unexported function would not reach the task child
+# anyway). The task command runs with the exact argv and `env -u`-stripped
+# environment it received before; the behavioral deltas are one shell
+# level between env and the task, and the task's stderr joining its stdout
+# in the pipe to tee (one log, in order, instead of two streams).
+#
+# The task's status is read from PIPESTATUS[0], never `$?`: through a
+# pipeline `$?` is tee's, which is 0 whenever it could write, and a red
+# run would report green. tee closes only after the task's last byte, so
+# the log line printed after it is the last thing on the terminal — and
+# the last thing in the log: the service-loss verdict and the exit line
+# are appended there too, so last.log records how the run ended. The
+# timing line is the runner's, not the task's, and stays on stderr only.
 #
 # Probing only on nonzero exit is deliberate: a service that dies after the
-# last spec passed did not invalidate anything, and a green run must stay
-# byte-identical to what it was.
+# last spec passed did not invalidate anything.
+#
+# The timing line comes second to last, in every mode (--quiet included:
+# it is one line, and the run it describes is the one that needs it). The
+# preflight and codegen microseconds arrive as arguments — they were
+# measured in the runner, before this shell existed — and the task's own
+# phase is clocked around the pipeline here. Tenths of a second, from
+# integer microseconds, the same way the runner counts them.
 _lanes_epilogue='
   _lane="$1"; shift
+  _log="$1"; shift
+  _us_preflight="$1"; shift
+  _us_codegen="$1"; shift
+  _phase="$1"; shift
   _ports=()
   while [[ $# -gt 0 && "$1" != "--" ]]; do _ports+=("$1"); shift; done
   shift
-  "$@"
-  _rc=$?
+  _t_run="${EPOCHREALTIME/./}"
+  "$@" 2>&1 | tee -a "${_log}"
+  _rc=${PIPESTATUS[0]}
+  _us_run=$(( ${EPOCHREALTIME/./} - _t_run ))
+  _us_total=$(( _us_preflight + ${_us_codegen:-0} + _us_run ))
+  printf -v _t_preflight "%d.%ds" $(( _us_preflight / 1000000 )) $(( _us_preflight % 1000000 / 100000 ))
+  if [[ -n "${_us_codegen}" ]]; then
+    printf -v _t_codegen "%d.%ds" $(( _us_codegen / 1000000 )) $(( _us_codegen % 1000000 / 100000 ))
+  else
+    _t_codegen=skipped
+  fi
+  printf -v _t_phase "%d.%ds" $(( _us_run / 1000000 )) $(( _us_run % 1000000 / 100000 ))
+  printf -v _t_total "%d.%ds" $(( _us_total / 1000000 )) $(( _us_total % 1000000 / 100000 ))
   if [[ ${_rc} -ne 0 ]]; then
     _lost=""
     for _p in ${_ports[@]+"${_ports[@]}"}; do
       (exec 3<>"/dev/tcp/127.0.0.1/${_p}") 2>/dev/null || _lost="${_lost} ${_p}"
     done
     if [[ -n "${_lost}" ]]; then
-      echo "[lane:${_lane}] error: test service(s) on 127.0.0.1 port(s)${_lost} lost mid-run" >&2
-      echo "  (up at preflight); results are invalid — exit 69, not a test failure" >&2
-      exit 69
+      { echo "[lane:${_lane}] error: test service(s) on 127.0.0.1 port(s)${_lost} lost mid-run"
+        echo "  (up at preflight); results are invalid — exit 69, not a test failure"
+      } | tee -a "${_log}" >&2
+      _rc=69
     fi
   fi
+  echo "[lane:${_lane}] time: preflight ${_t_preflight} codegen ${_t_codegen} ${_phase} ${_t_phase} (total ${_t_total})" >&2
+  echo "[lane:${_lane}] log: ${_log} (exit ${_rc})" | tee -a "${_log}" >&2
   exit "${_rc}"
 '
 
 if [[ ${#ONLY[@]} -eq 0 ]]; then
   exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
-    lanes-epilogue "${LANE}" ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
+    lanes-epilogue "${LANE}" "${LANES_LAST_LOG}" "${_lanes_us_preflight}" "${_lanes_us_codegen}" tasks \
+    ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
     bash -euo pipefail "${LANE_DIR}/tasks"
 fi
 
@@ -1147,31 +1550,18 @@ fi
 # spec and wrong for a final check — the full lane is still the thing CI
 # runs and the thing that must be green before pushing.
 #
-# Runner is chosen by filename: tryouts own `*_try.rb`, rspec owns the rest.
-# Mixing the two in one invocation would need two commands and an ordering
-# rule nobody asked for; ask for two runs instead.
-_only_try=0
-_only_spec=0
-for _p in "${ONLY[@]}"; do
-  case "${_p%%:*}" in
-    *_try.rb) _only_try=1 ;;
-    *)        _only_spec=1 ;;
-  esac
-done
-if [[ ${_only_try} -eq 1 && ${_only_spec} -eq 1 ]]; then
-  echo "error: --only cannot mix tryouts (*_try.rb) and rspec files in one run" >&2
-  exit 64
-fi
-
+# The runner was chosen by filename up in the argument section (tryouts own
+# `*_try.rb`, rspec owns the rest; mixing them was rejected there).
 if [[ ${_only_try} -eq 1 ]]; then
   _only_cmd=(bundle exec try --agent "${ONLY[@]}")
 else
-  _only_cmd=(bundle exec rspec "${ONLY[@]}")
+  _only_cmd=(bundle exec rspec "${ONLY[@]}" ${RSPEC_ARGS[@]+"${RSPEC_ARGS[@]}"})
 fi
 
-echo "[lane:${LANE}] --only: ${_only_cmd[*]}"
-# Same mid-run service-loss epilogue as the tasks exec above: a VM crash
-# does not care whether the run was a full lane or one file.
+echo "[lane:${LANE}] --only: ${_only_cmd[*]}" | tee -a "${LANES_LAST_LOG}"
+# Same mid-run service-loss epilogue (and last.log) as the tasks exec above:
+# a VM crash does not care whether the run was a full lane or one file.
 exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
-  lanes-epilogue "${LANE}" ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
+  lanes-epilogue "${LANE}" "${LANES_LAST_LOG}" "${_lanes_us_preflight}" "${_lanes_us_codegen}" only \
+  ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
   "${_only_cmd[@]}"
