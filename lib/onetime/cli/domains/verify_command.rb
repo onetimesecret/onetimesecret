@@ -57,8 +57,8 @@ module Onetime
       # defaults into the parsed options before `call` runs
       # (dry-cli-1.4.1/lib/dry/cli/parser.rb), so true presence is not
       # recoverable here. A flag explicitly given its own default
-      # (`--rate-limit 0.5`) still reads as omitted and is accepted silently.
-      # That residue is confined to the two options with a meaningful default;
+      # (`--no-orphaned`) still reads as omitted and is accepted silently.
+      # That residue is confined to the boolean filters; `--rate-limit`,
       # `--limit` and `--org-id` default to nil, so ANY value is caught,
       # including the `--limit 0` / `--limit -1` the bulk guard rejects.
       def self.bulk_only_supplied(supplied)
@@ -86,8 +86,8 @@ module Onetime
         desc: 'Output results as JSON'
       option :rate_limit,
         type: :float,
-        default: 0.5,
-        desc: 'Delay between API calls in bulk mode (seconds)'
+        default: nil,
+        desc: "Delay between domains in bulk mode (seconds); default: the validation strategy's own pacing"
       option :orphaned,
         type: :boolean,
         default: false,
@@ -110,7 +110,7 @@ module Onetime
         desc: 'Bulk mode: maximum number of domains to process'
 
       def call(domain: nil, all: false, dry_run: false, json: false,
-               rate_limit: 0.5, orphaned: false, verified: false,
+               rate_limit: nil, orphaned: false, verified: false,
                unverified: false, org_id: nil, limit: nil, **)
         boot_application!
 

@@ -178,6 +178,12 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
     expect(described_class.new(config).txt_verifier).to be_a(Onetime::DomainValidation::TxtVerifier)
   end
 
+  describe '#bulk_rate_limit' do
+    it 'paces bulk runs for the API rate cap' do
+      expect(strategy.bulk_rate_limit).to eq(0.5)
+    end
+  end
+
   describe '#validate_ownership' do
     context 'when API key is not configured' do
       before do
@@ -707,6 +713,12 @@ RSpec.describe Onetime::DomainValidation::PassthroughStrategy do
   let(:strategy) { described_class.new(config) }
   let(:custom_domain) { double('CustomDomain', display_domain: 'example.com') }
 
+  describe '#bulk_rate_limit' do
+    it 'declares no pacing' do
+      expect(strategy.bulk_rate_limit).to eq(0)
+    end
+  end
+
   describe '#validate_ownership' do
     it 'always returns validated true' do
       result = strategy.validate_ownership(custom_domain)
@@ -766,8 +778,10 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
     double('CustomDomain',
            display_domain: 'example.com',
            txt_validation_value: 'validation123',
-           validation_record: '_onetime-challenge-abc123.example.com')
+           validation_record: '_onetime-challenge-abc123.example.com',
+           parse_vhost: stored_vhost)
   end
+  let(:stored_vhost) { {} }
 
   def stub_lookup(rcode, values = [])
     allow(resolver).to receive(:lookup)
@@ -776,6 +790,12 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
   end
 
   before { allow(OT).to receive(:lw) }
+
+  describe '#bulk_rate_limit' do
+    it 'declares no pacing for its own lookups' do
+      expect(strategy.bulk_rate_limit).to eq(0)
+    end
+  end
 
   describe '#validate_ownership' do
     subject(:result) { strategy.validate_ownership(custom_domain) }
@@ -890,19 +910,155 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
   end
 
   describe '#check_status' do
-    it 'returns ready true' do
-      result = strategy.check_status(custom_domain)
-      expect(result[:ready]).to be true
+    subject(:result) { strategy.check_status(custom_domain) }
+
+    let(:probe_result_class) { Onetime::DomainValidation::TlsProbe::Result }
+    let(:tls_probe) { instance_double(Onetime::DomainValidation::TlsProbe) }
+    let(:strategy) { described_class.new(config, txt_verifier: txt_verifier, tls_probe: tls_probe) }
+
+    def stub_probe(**attrs)
+      allow(tls_probe).to receive(:probe)
+        .with('example.com')
+        .and_return(probe_result_class.new(message: 'probe message', **attrs))
     end
 
-    it 'returns nil for has_ssl (unknown)' do
-      result = strategy.check_status(custom_domain)
-      expect(result[:has_ssl]).to be_nil
+    it 'defaults to a TlsProbe' do
+      expect(described_class.new(config).tls_probe).to be_a(Onetime::DomainValidation::TlsProbe)
     end
 
-    it 'returns nil for is_resolving (unknown)' do
-      result = strategy.check_status(custom_domain)
-      expect(result[:is_resolving]).to be_nil
+    context 'when the domain resolves and presents a valid certificate' do
+      let(:certificate) do
+        instance_double(OpenSSL::X509::Certificate,
+                        not_before: Time.utc(2026, 9, 1), not_after: Time.utc(2026, 11, 30))
+      end
+
+      before do
+        stub_probe(is_resolving: true, has_ssl: true, addresses: ['93.184.216.34'],
+                   connected_to: '93.184.216.34', certificate: certificate)
+      end
+
+      it 'is ready, resolving and has SSL' do
+        expect(result).to include(ready: true, is_resolving: true, has_ssl: true, mode: 'caddy_on_demand')
+      end
+
+      it 'returns a string-keyed vhost payload for the domain pages' do
+        expect(result[:data]).to include(
+          'incoming_address' => 'example.com',
+          'status' => 'ACTIVE_SSL',
+          'has_ssl' => true,
+          'is_resolving' => true,
+          'dns_pointed_at' => '93.184.216.34',
+          'ssl_active_from' => '2026-09-01T00:00:00Z',
+          'ssl_active_until' => '2026-11-30T00:00:00Z',
+          'source' => 'tls_probe',
+        )
+        expect(result[:data]['last_monitored_unix']).to be_a(Integer)
+        expect { result[:data].to_json }.not_to raise_error
+      end
+    end
+
+    context 'when the record still holds an Approximated vhost blob' do
+      let(:stored_vhost) { { 'id' => 123, 'incoming_address' => 'example.com', 'status' => 'ACTIVE_SSL' } }
+
+      before { stub_probe(is_resolving: true, has_ssl: false, addresses: ['93.184.216.34']) }
+
+      it 'replaces stale UI state while retaining the cleanup obligation' do
+        expect(result).to include(is_resolving: true, has_ssl: false, mode: 'caddy_on_demand')
+        expect(result[:data]).to include(
+          'status' => 'PENDING_SSL',
+          'has_ssl' => false,
+          'source' => 'tls_probe',
+          'approximated_vhost_pending_cleanup' => true,
+        )
+        expect(result[:data]).not_to have_key('id')
+      end
+
+      context 'when certificate status is unknown but resolving is known' do
+        before { stub_probe(is_resolving: true, has_ssl: nil, addresses: ['10.0.0.5']) }
+
+        it 'does not present the stale active status as a successful probe' do
+          expect(result).to include(is_resolving: true, has_ssl: nil, mode: 'caddy_on_demand')
+          expect(result[:data]).to include(
+            'status' => 'PENDING_SSL',
+            'source' => 'tls_probe',
+            'approximated_vhost_pending_cleanup' => true,
+          )
+          expect(result[:data]).not_to have_key('has_ssl')
+        end
+      end
+    end
+
+    context 'when the stored blob is an earlier probe result' do
+      let(:stored_vhost) { { 'source' => 'tls_probe', 'has_ssl' => false } }
+
+      before { stub_probe(is_resolving: true, has_ssl: false, addresses: ['93.184.216.34']) }
+
+      it 'replaces it' do
+        expect(result[:data]).to include('source' => 'tls_probe', 'status' => 'PENDING_SSL')
+      end
+    end
+
+    context 'when an earlier probe retained an Approximated cleanup marker' do
+      let(:stored_vhost) do
+        { 'source' => 'tls_probe', 'has_ssl' => false, 'approximated_vhost_pending_cleanup' => true }
+      end
+
+      before { stub_probe(is_resolving: true, has_ssl: false, addresses: ['93.184.216.34']) }
+
+      it 'keeps the marker on the refreshed probe payload' do
+        expect(result[:data]['approximated_vhost_pending_cleanup']).to be true
+      end
+    end
+
+    context 'when the domain resolves without a valid certificate' do
+      before { stub_probe(is_resolving: true, has_ssl: false, addresses: ['93.184.216.34']) }
+
+      it 'is resolving but not ready' do
+        expect(result).to include(ready: false, is_resolving: true, has_ssl: false, mode: 'caddy_on_demand')
+        expect(result[:data]).to include('status' => 'PENDING_SSL', 'has_ssl' => false)
+        expect(result[:data]).not_to have_key('ssl_active_until')
+      end
+    end
+
+    context 'when the domain does not resolve' do
+      before { stub_probe(is_resolving: false, has_ssl: false) }
+
+      it 'reports both as false' do
+        expect(result).to include(ready: false, is_resolving: false, has_ssl: false, mode: 'caddy_on_demand')
+        expect(result[:data]).to include('status' => 'DNS_INCORRECT', 'is_resolving' => false)
+      end
+    end
+
+    context 'when the domain resolves but the certificate could not be checked' do
+      before { stub_probe(is_resolving: true, has_ssl: nil, addresses: ['10.0.0.5']) }
+
+      it 'reports resolving and leaves the vhost payload out so has_ssl is not overwritten' do
+        expect(result).to include(ready: false, is_resolving: true, has_ssl: nil, mode: 'caddy_on_demand')
+        expect(result).not_to have_key(:data)
+      end
+    end
+
+    context 'when the probe could not tell anything' do
+      before { stub_probe(is_resolving: nil, has_ssl: nil) }
+
+      it 'returns neither :mode nor :data, so VerifyDomain stores nothing' do
+        expect(result).to include(ready: false, is_resolving: nil, has_ssl: nil, message: 'probe message')
+        expect(result).not_to have_key(:mode)
+        expect(result).not_to have_key(:data)
+      end
+    end
+
+    context 'when the probe raises' do
+      before do
+        allow(tls_probe).to receive(:probe).and_raise(RuntimeError, 'boom')
+        allow(OT).to receive(:le)
+      end
+
+      it 'is indeterminate and logged' do
+        expect(result).to include(ready: false, is_resolving: nil, has_ssl: nil)
+        expect(result).not_to have_key(:mode)
+        expect(OT).to have_received(:le).with(/Error checking status for example\.com: RuntimeError: boom/)
+      end
     end
   end
 end

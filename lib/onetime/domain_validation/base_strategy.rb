@@ -71,12 +71,18 @@ module Onetime
       # @param custom_domain [Onetime::CustomDomain] The domain to check
       # @return [Hash] Status information:
       #   - :ready [Boolean] Whether domain is fully operational
-      #   - :has_ssl [Boolean, nil] SSL certificate status
-      #   - :is_resolving [Boolean, nil] DNS resolution status
+      #   - :has_ssl [Boolean, nil] SSL certificate status; nil = could not tell
+      #   - :is_resolving [Boolean, nil] DNS resolution status; nil = could not
+      #     tell, and the stored `resolving` flag is left alone
       #   - :status [String, nil] Provider-specific status code
       #   - :status_message [String, nil] Human-readable status
-      #   - :data [Hash, nil] Full provider response (strategy-specific)
+      #   - :data [Hash, nil] Payload stored as the domain's `vhost` blob, which
+      #     is where has_ssl is kept. Leave it out when has_ssl is nil so the
+      #     stored value is not overwritten.
       #   - :mode [String, nil] Strategy mode identifier
+      #
+      # Returning neither :data nor :mode means the check itself failed:
+      # VerifyDomain stores nothing and sets vhost_fetch_failed_at.
       #
       def check_status(custom_domain)
         raise NotImplementedError, "#{self.class} must implement #check_status"
@@ -136,6 +142,19 @@ module Onetime
       #
       def manages_certificates?
         false
+      end
+
+      # Seconds a bulk run should pause between domains for this strategy.
+      #
+      # Pacing belongs to whatever the strategy talks to: a provider API with
+      # a request cap needs a pause, our own DNS and TLS lookups do not.
+      # VerifyDomain's bulk mode uses this unless the caller passes an
+      # explicit rate_limit.
+      #
+      # @return [Numeric] seconds; 0 means no pause
+      #
+      def bulk_rate_limit
+        0
       end
     end
   end
