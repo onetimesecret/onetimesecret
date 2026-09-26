@@ -142,4 +142,32 @@ RSpec.describe 'tests/lanes/run last.log coverage' do
       end
     end
   end
+
+  it 'preserves RabbitMQ state mode and the previous log for a console' do
+    fake_ruby = <<~SH
+      echo "fake-rabbitmq:$*"
+      exit 0
+    SH
+    fake_bundle = <<~SH
+      echo "fake-bundle:$*"
+      exit 0
+    SH
+    overlay = "RABBITMQ_URL='amqp://guest:guest@127.0.0.1:2156'\n"
+
+    probe.with_probe_log(overlay) do |overlay_name, path|
+      File.binwrite(path, 'previous-run-log')
+      probe.with_fake_commands('ruby' => fake_ruby, 'bundle' => fake_bundle) do |fake_path|
+        output, status = probe.run(
+          'selftest', '--overlay', overlay_name, '--console',
+          env: { 'PATH' => fake_path },
+        )
+
+        expect(status).to be_success, output
+        expect(output).to include('fake-rabbitmq:tests/lanes/support/provision_rabbitmq_vhost.rb --preserve-existing')
+        expect(output).to include('fake-bundle:exec bin/ots console')
+        expect(File.binread(path)).to eq('previous-run-log')
+        expect(output).not_to include('[lane:selftest] log:')
+      end
+    end
+  end
 end

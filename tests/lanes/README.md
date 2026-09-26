@@ -230,7 +230,10 @@ the PostgreSQL database and vhost provisioned), the same liveness token and
 the same `env -u` strip at the exec. `--print-key` for the same lane and
 overlays reports the addressing the console will see, so a question about
 what a lane's specs left in the datastore is asked of that datastore and
-nothing else. A plain `bin/console` inherits the shell, direnv included,
+nothing else. RabbitMQ provisioning creates a missing vhost and reapplies its
+permissions without deleting an existing vhost's queues, exchanges, or
+messages; test runs retain their destructive reset. A plain `bin/console`
+inherits the shell, direnv included,
 which is how test-mode settings have leaked before.
 
 A console is not a run: it skips the codegen phase like `--only` (a missing
@@ -307,9 +310,11 @@ checkouts while sharing the local test service instances:
   normalized overlay set, and checkout root, exposed as `LANES_DATASTORE_DB`.
   Its host and port remain the test service.
 - PostgreSQL uses the corresponding `onetime_auth_test_w<index>` database.
-- RabbitMQ uses the corresponding `w<index>` vhost. The runner recreates and
-  grants the vhost through RabbitMQ's loopback-only management API before a
-  lane starts, preventing stale queues/messages from a prior run.
+- RabbitMQ uses the corresponding `w<index>` vhost. Before a test run, the
+  runner recreates and grants the vhost through RabbitMQ's loopback-only
+  management API, preventing stale queues/messages from a prior run. Before a
+  console, it creates the vhost if absent and reapplies permissions without
+  deleting existing state.
 - CI and direct rspec commands outside the lane runner use the shared index,
   database, and vhost (`0` / `onetime_auth_test` / `/`). Do not rely on that
   mode for concurrent local worktrees. Direct TRYOUT commands are the

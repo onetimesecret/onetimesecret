@@ -353,6 +353,7 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "  --console      start the app console (bin/ots console) in the lane's"
   echo "                 environment — same scrub, overlays, datastore index"
   echo "                 and exec boundary as a run — instead of its tasks."
+  echo "                 Preserves an existing RabbitMQ vhost for inspection."
   echo "                 Runs no tests: not with --only, --quiet or --."
   echo "  --skip-codegen skip the lane's declared codegen (LANES_CODEGEN in"
   echo "                 its env file). A direct run ALWAYS generates; this is"
@@ -1394,15 +1395,22 @@ fi
 # reduced coverage rather than a red lane; the script exits nonzero and this
 # propagates it.
 #
-# Every run, --only included, and not skipped when the vhost already exists:
-# the script deletes and recreates it on purpose, so queues and messages an
+# Every test run, --only included, resets the vhost so queues and messages an
 # interrupted run left behind cannot reach the next one (see its header) —
-# "exists" is not "clean". Plain `ruby`, not `bundle exec`: the script is
-# stdlib only (json, net/http, uri), and Bundler's setup was half of its
-# wall clock (0.51s -> 0.26s measured). PATH is keep-listed, so this is the
-# same interpreter `bundle exec` would have resolved.
+# "exists" is not "clean". A console instead creates the vhost if absent and
+# reapplies permissions without deleting the state it was opened to inspect.
+# Plain `ruby`, not `bundle exec`: the script is stdlib only (json, net/http,
+# uri), and Bundler's setup was half of its wall clock (0.51s -> 0.26s
+# measured). PATH is keep-listed, so this is the same interpreter `bundle
+# exec` would have resolved.
 if [[ "${LANES_DATASTORE_DB}" != 0 && "${RABBITMQ_URL:-}" =~ 127\.0\.0\.1:2156 ]]; then
-  _lanes_run_setup ruby tests/lanes/support/provision_rabbitmq_vhost.rb || exit $?
+  _lanes_rabbitmq_args=()
+  if [[ ${CONSOLE} -eq 1 ]]; then
+    _lanes_rabbitmq_args+=(--preserve-existing)
+  fi
+  _lanes_run_setup ruby tests/lanes/support/provision_rabbitmq_vhost.rb \
+    ${_lanes_rabbitmq_args[@]+"${_lanes_rabbitmq_args[@]}"} || exit $?
+  builtin unset _lanes_rabbitmq_args
 fi
 # `env -u` finishes what the scrub could not: readonly exported vars and
 # readonly exported functions survive `unset` in this shell, but env(1)
