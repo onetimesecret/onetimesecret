@@ -815,7 +815,10 @@ if [[ ${QUIET} -eq 1 ]]; then
     echo "  unset RSPEC_OUTPUT_FILE (CI plumbing) or drop --quiet" >&2
     exit 64
   fi
-  SPEC_OPTS="--require ${REPO_ROOT}/tests/lanes/support/quiet_formatter --format Lanes::QuietFormatter"
+  # Repo-relative `./` path, not ${REPO_ROOT}: rspec Shellwords-splits
+  # SPEC_OPTS, so a checkout path with a space would break the --require, and
+  # the task process runs from the repo root (the cd below) where ./ resolves.
+  SPEC_OPTS="--require ./tests/lanes/support/quiet_formatter --format Lanes::QuietFormatter"
   export SPEC_OPTS
 fi
 
