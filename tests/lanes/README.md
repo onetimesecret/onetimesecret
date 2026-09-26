@@ -82,10 +82,18 @@ One lane per line, exit 64 when no lane runs the path. The answer comes from
 `tests/lanes/ownership`, a sourced bash table that transcribes the directory
 conventions the lanes' rake tasks dispatch on (`lib/tasks/spec.rake`), per
 lane — the same table lane inference and `run-all --changed` read, so the
-three cannot disagree. Ownership is directory-level, as the tasks are:
-inside `spec/integration/full` the `postgres_database` tag decides which of
-the three full lanes runs an example, and the table names all three.
-Support files (`spec/support`, an app's `spec/support`, `spec/spec_helper.rb`,
+three cannot disagree. Ownership means "this lane's task loads the file", as
+the tasks are path lists: inside `spec/integration/full` the
+`postgres_database` tag decides which of the three full lanes runs an
+example, and the table names every lane that loads the file — `full-pg` for
+`database_triggers/sqlite_spec.rb` too, though its tag filter then runs
+none of it. A task's `--exclude-pattern` is a path rule and is modelled
+(`full-pg-agnostic` drops `**/{postgres,sqlite}*_spec.rb` and
+`**/migrations/*_{postgres,sqlite}_spec.rb`). `spec/unit/lanes/ownership_spec.rb`
+derives each lane's selection from the rake tasks themselves (invoked with
+`sh` captured, resolved through rspec's own configuration) and checks
+`--which` against it, so the table cannot drift from `lib/tasks/spec.rake`
+unnoticed. Support files (`spec/support`, an app's `spec/support`, `spec/spec_helper.rb`,
 `try/support`) and application code (`lib/`, `apps/*` outside test trees,
 `config/`, `etc/`, `locales/`, `Gemfile.lock`, `tests/lanes/`) are *shared*:
 every lane but `smoke` runs them. The `selftest` lane checks the table

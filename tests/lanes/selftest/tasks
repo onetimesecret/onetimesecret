@@ -151,10 +151,11 @@ simple,disabled,full-sqlite,full-pg-agnostic     spec/integration/all
 disabled                                         spec/integration/disabled
 full-sqlite,full-pg,full-pg-agnostic             spec/integration/full
 simple                                           spec/integration/simple
-full-sqlite,migrations-sqlite                    spec/integration/full/database_triggers/sqlite_spec.rb
-full-pg,migrations-pg                            spec/integration/full/database_triggers/postgres_spec.rb
-full-pg,migrations-pg                            spec/integration/full/postgres_infrastructure_spec.rb
+full-sqlite,full-pg,migrations-sqlite            spec/integration/full/database_triggers/sqlite_spec.rb
+full-sqlite,full-pg,migrations-pg                spec/integration/full/database_triggers/postgres_spec.rb
+full-sqlite,full-pg,migrations-pg                spec/integration/full/postgres_infrastructure_spec.rb
 unit                                             apps/*/*/spec
+full-sqlite,full-pg                              apps/*/*/spec/integration/full/migrations/*_spec.rb
 full-sqlite,full-pg,full-pg-agnostic             apps/*/*/spec/integration/full
 full-mfa                                         apps/*/*/spec/integration/full_mfa
 full-saml-platform                               apps/*/*/spec/integration/full_saml_platform
@@ -191,6 +192,7 @@ all_lanes="$(lanes_all | tr '\n' ',')"
 all_lanes="${all_lanes%,}"
 for path in spec/*/ spec/integration/*/ spec/integration/full/database_triggers/*_spec.rb spec/integration/full/postgres_*_spec.rb \
             apps/*/*/spec/ apps/*/*/spec/integration/*/ apps/*/*/spec/integration/*_spec.rb \
+            apps/*/*/spec/integration/full/migrations/*_spec.rb \
             try/*/ try/integration/*/ try/integration/*_try.rb; do
   path="${path%/}"
   [[ "${path}" == try/integration ]] && continue  # its children have rows
