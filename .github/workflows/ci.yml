@@ -208,7 +208,7 @@ jobs:
 
       - uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         with:
-          ruby-version-file: '.ruby-version'
+          ruby-version: '.ruby-version' # this pin has no ruby-version-file input
           bundler-cache: false # DEBUG: disabled to rule out stale cache
 
       - name: Install dependencies

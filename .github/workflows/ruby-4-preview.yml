@@ -176,7 +176,7 @@ jobs:
 
       - &install-pnpm-step
         name: Install pnpm
-        run: npm install -g pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
       - name: Run simple lane (Ruby 4)
         continue-on-error: true
