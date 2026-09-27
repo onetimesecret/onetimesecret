@@ -4,6 +4,7 @@
 
 require 'onetime/session/impersonation'
 require 'onetime/session/surface'
+require 'onetime/session/remember_me'
 
 require_relative 'base'
 
@@ -146,6 +147,16 @@ module Core
           # account signing in. Elevation is also identity-bound on read, so this
           # is the second of two independent closures.
           session.delete('elevated_until')
+
+          # "Remember me" (Onetime::RememberMe): a fixed 14-day session
+          # instead of the rolling default, carried by the session store
+          # alone; simple mode has no active-session row. Cleared first for
+          # the same reason as elevated_until: this path does not clear the
+          # session, and the previous occupant's choice is not this one's.
+          session.delete(Onetime::RememberMe::SESSION_KEY)
+          if Onetime::RememberMe.enabled? && Onetime::RememberMe.requested?(req.params[Onetime::RememberMe::PARAM])
+            Onetime::RememberMe.stamp(session)
+          end
 
           auth_logger.info 'Session synchronized after authentication',
             {

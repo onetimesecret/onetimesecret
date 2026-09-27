@@ -426,6 +426,14 @@ module Auth::Config::Hooks
           # of whether the user signed up fresh or already had an account.
         end
 
+        # Remember me (features/remember_me.rb): remember this session now,
+        # or, when a second factor is still owed, hold the choice until
+        # after_two_factor_authentication completes the login. Defined only
+        # when AUTH_REMEMBER_ME_ENABLED is on; off, the parameter is ignored.
+        if respond_to?(:remember_me_after_login)
+          remember_me_after_login(second_factor_pending: mfa_decision&.requires_mfa? || false)
+        end
+
         # Billing redirect: add plan selection to JSON response (issue #3275).
         # Billing.configure defines add_billing_redirect_to_response via auth_class_eval,
         # so the method is only available when billing is enabled. Check respond_to?

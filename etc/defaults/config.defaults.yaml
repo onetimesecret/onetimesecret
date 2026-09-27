@@ -432,6 +432,9 @@ site:
     secret: <%= ENV['SESSION_SECRET'] %>  # Since v0.24.0
     # Session lifetime in seconds (default: 24 hours)
     expire_after: 86400  # Since v0.24.0
+    # Absolute session lifetime in seconds since sign-in, however active the
+    # session is (default: 30 days). 0 disables the bound. See config.yaml.
+    absolute_timeout: <%= ENV['SESSION_ABSOLUTE_TIMEOUT'] || 2592000 %>  # Since v0.26.14
     # Cookie name
     key: 'onetime.session'  # Since v0.24.0
     # Require HTTPS for cookies (recommended: true in production)

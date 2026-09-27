@@ -12,8 +12,8 @@ module Auth::Config::Overrides
   # autologins do NOT run it: `create_account` (`create_account_autologin?`,
   # off here), `verify_account` (`verify_account_autologin?`,
   # Rodauth default TRUE, so every fresh signup that verifies by email lands
-  # here), `reset_password` (`reset_password_autologin?`), and the remember
-  # feature's `load_memory` all call `login_session` directly. Stamping in
+  # here) and `reset_password` (`reset_password_autologin?`) all call
+  # `login_session` directly. Stamping in
   # `after_login` alone left those sessions markerless, and the fail-closed
   # gate (auth router, BaseSessionAuthStrategy, SessionHelpers) refused them
   # on the very next request.

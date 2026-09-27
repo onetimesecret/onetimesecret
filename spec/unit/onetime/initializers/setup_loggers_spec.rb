@@ -215,4 +215,122 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
         .to output(/SetupLoggers.*audit syslog appender not enabled.*syslog_protocol missing/).to_stderr
     end
   end
+
+  # The global URI scrub (Onetime::LogScrubber) is an on_log subscriber. It
+  # must be in place before the first appender, and re-running the
+  # initializer must not stack a second copy.
+  describe '#execute log scrubber registration' do
+    let(:scrubber) { Onetime::LogScrubber }
+
+    around do |example|
+      was_registered = scrubber.registered?
+      SemanticLogger::Logger.subscribers&.delete(scrubber)
+      example.run
+    ensure
+      SemanticLogger::Logger.subscribers&.delete(scrubber)
+      scrubber.register! if was_registered
+    end
+
+    before do
+      # Everything with process-wide side effects is stubbed; only the
+      # registration and the order of the steps are real.
+      allow(instance).to receive_messages(load_logging_config: {}, create_cached_loggers: {})
+      %i[configure_default_level configure_appender configure_audit_syslog_appender
+         apply_env_overrides configure_external_loggers].each { |step| allow(instance).to receive(step) }
+      allow(Onetime).to receive(:logging_conf=)
+      allow(Onetime::Runtime).to receive(:update_infrastructure)
+    end
+
+    it 'registers the scrubber before any appender is added' do
+      registered_at = {}
+      %i[configure_appender configure_audit_syslog_appender].each do |step|
+        allow(instance).to receive(step) { registered_at[step] = scrubber.registered? }
+      end
+
+      instance.execute(nil)
+
+      expect(registered_at).to eq(configure_appender: true, configure_audit_syslog_appender: true)
+    end
+
+    it 'registers once when the initializer runs twice' do
+      2.times { instance.execute(nil) }
+
+      expect(SemanticLogger::Logger.subscribers.count { |s| s.equal?(scrubber) }).to eq(1)
+    end
+  end
+
+  # The production console formatter: build_formatter wraps the configured
+  # formatter in a proc that truncates exception backtraces in place.
+  describe 'production formatter output' do
+    let(:secret) { 's3cret' }
+    let(:io) { StringIO.new }
+    let(:appenders) { [] }
+
+    around do |example|
+      was_registered = Onetime::LogScrubber.registered?
+      Onetime::LogScrubber.register!
+      example.run
+    ensure
+      appenders.each { |appender| SemanticLogger.remove_appender(appender) }
+      SemanticLogger::Logger.subscribers&.delete(Onetime::LogScrubber) unless was_registered
+    end
+
+    it 'writes a scrubbed, backtrace-truncated line through the color formatter' do
+      allow(instance).to receive(:backtrace_limit).and_return(1)
+      formatter = instance.send(:build_formatter, { 'formatter' => 'color' })
+      appenders << SemanticLogger.add_appender(io: io, formatter: formatter, level: :trace, filter: /\ASetupLoggersSpec\z/)
+      ex        = begin
+        raise IOError, "down redis://u:#{secret}@db/0?password=#{secret}"
+      rescue IOError => e
+        e
+      end
+
+      SemanticLogger['SetupLoggersSpec'].tap { |l| l.level = :trace }.error("failed at https://u:#{secret}@h.example/x?t=1", exception: ex)
+      SemanticLogger.flush
+
+      expect(formatter).to be_a(Proc)
+      expect(io.string).to include('failed at https://***@h.example/x?***', 'down redis://***@db/0?***', 'more lines)')
+      expect(io.string).not_to include(secret)
+    end
+  end
+
+  # The audit syslog appender exactly as configure_audit_syslog_appender
+  # builds it (real appender, real default formatter, real filter), with the
+  # libc boundary stubbed: ::Syslog.open and ::Syslog.log are the only calls
+  # the appender makes for a syslog:// URL, so capturing ::Syslog.log sees
+  # the finished line without writing to the host's syslog.
+  describe 'audit syslog appender output' do
+    let(:syslog_lines) { [] }
+    let(:secret) { 's3cret' }
+
+    around do |example|
+      was_registered = Onetime::LogScrubber.registered?
+      Onetime::LogScrubber.register!
+      example.run
+    ensure
+      SemanticLogger.appenders.select { |a| a.class.name.to_s.end_with?('Appender::Syslog') }
+        .each { |appender| SemanticLogger.remove_appender(appender) }
+      SemanticLogger::Logger.subscribers&.delete(Onetime::LogScrubber) unless was_registered
+    end
+
+    before do
+      require 'syslog'
+      allow(Syslog).to receive(:opened?).and_return(false)
+      allow(Syslog).to receive(:open)
+      allow(Syslog).to receive(:log) { |_priority, line| syslog_lines << line }
+    end
+
+    it 'ships the scrubbed audit event' do
+      expect(SemanticLogger.appenders.map { |a| a.class.name.to_s }).not_to include(end_with('Appender::Syslog'))
+      instance.send(:configure_audit_syslog_appender, { 'audit' => { 'syslog' => { 'enabled' => true } } })
+
+      audit = SemanticLogger[described_class::AUDIT_SINK_LOGGER_NAME].tap { |l| l.level = :trace }
+      audit.info("operator action via https://ops:#{secret}@admin.example/run?token=#{secret}", target: "redis://u:#{secret}@db/0")
+      SemanticLogger.flush
+
+      expect(syslog_lines.size).to eq(1)
+      expect(syslog_lines.first).to include('https://***@admin.example/run?***', 'redis://***@db/0')
+      expect(syslog_lines.first).not_to include(secret)
+    end
+  end
 end

@@ -7,6 +7,7 @@ require 'date' # ensure Date/Time constants resolve for permitted_classes
 require 'semantic_logger'
 require_relative '../utils/config_resolver'
 require_relative '../utils/enumerables'
+require_relative '../log_scrubber'
 
 module Onetime
   module Initializers
@@ -74,6 +75,12 @@ module Onetime
       end
 
       def execute(_context)
+        # First, before any appender exists: the global URI scrub runs as an
+        # on_log subscriber, ahead of every appender (Onetime::LogScrubber).
+        # boot! registers it earlier; this idempotent call covers the
+        # initializer running outside boot!, as in specs.
+        Onetime::LogScrubber.register!
+
         @debug_boot          = OT::Utils.yes?(ENV.fetch('DEBUG_BOOT', nil))
         config               = load_logging_config
         Onetime.logging_conf = config
