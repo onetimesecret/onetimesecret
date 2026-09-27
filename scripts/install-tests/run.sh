@@ -49,7 +49,8 @@ IMAGE_RUBY_OLD="ruby:3.3-slim"
 
 # Toolchain setup mirrored from docker/base.dockerfile so the container has
 # exactly what a documented bare-metal install needs — no more, no less.
-# (build deps for pg/sqlite3/argon2/bcrypt/puma, Node 24, pnpm, redis, procps.)
+# (build deps for pg/sqlite3/argon2/bcrypt/puma, Node per .node-version, pnpm,
+# redis, procps.)
 read -r -d '' SETUP_TOOLCHAIN <<'SETUP' || true
   set -eux
   export DEBIAN_FRONTEND=noninteractive
@@ -58,8 +59,9 @@ read -r -d '' SETUP_TOOLCHAIN <<'SETUP' || true
     build-essential libssl-dev libffi-dev libyaml-dev libsqlite3-dev \
     libpq-dev libsodium23 pkg-config git curl ca-certificates \
     python3 procps redis-server
-  # Node 24 (matches .node-version) via NodeSource; pnpm pinned to packageManager.
-  curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
+  # Node via NodeSource, major read from .node-version (the archive extracted
+  # into /src carries it) so the pin cannot drift; pnpm pinned to packageManager.
+  curl -fsSL "https://deb.nodesource.com/setup_$(sed 's/[^0-9].*$//' .node-version | tr -d '[:space:]').x" | bash -
   apt-get install -y --no-install-recommends nodejs
   npm install -g pnpm@11.10.0
   redis-server --daemonize yes
