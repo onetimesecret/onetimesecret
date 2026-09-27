@@ -87,6 +87,33 @@ gates, a missing domain, form, toggle or SSO tab now fails the test instead
 of skipping it. Those gated suites have never run in any lane, so the first
 configured run will need fixes.
 
+**Follow-ups filed from this branch.** Found while making the full lane
+green; none of them fails a lane today.
+
+- [#4563](https://github.com/onetimesecret/onetimesecret/issues/4563): the
+  Back button re-shows a consumed `auth_error` or `auth_notice` banner on the
+  sign-in page.
+- [#4564](https://github.com/onetimesecret/onetimesecret/issues/4564): the
+  accessibility items kept in the full-lane baseline (brand-button contrast,
+  dashboard headings) and the scope switcher's settings gear, which cannot
+  take keyboard focus.
+- [#4565](https://github.com/onetimesecret/onetimesecret/issues/4565): a
+  workspace chosen in the switcher resets to the default on page reload; the
+  same issue covers the `OrganizationLoader` session cache that never hits.
+- [#4566](https://github.com/onetimesecret/onetimesecret/issues/4566): the
+  org-role guard redirects to `/dashboard` without a message, so the org
+  empty and not-found states are unreachable and invitees who own no org are
+  sent there after accepting.
+- [#4567](https://github.com/onetimesecret/onetimesecret/issues/4567):
+  nothing type-checks `e2e/`, and the visual projects' `reducedMotion`
+  option is ignored.
+- [#4568](https://github.com/onetimesecret/onetimesecret/issues/4568): member
+  authorization refusals return 422 or 403 depending on how they are raised.
+- [#3420 comment](https://github.com/onetimesecret/onetimesecret/issues/3420#issuecomment-5855493099):
+  assertions in the dormant domain suites that cannot fail, selectors that
+  match nothing in `src/`, and a mock on an API path that does not exist. Fix
+  them when the custom-domain fixture (Phase 3 step 1) lands.
+
 ### Next: Phase 3 — incremental fixtures for the gated suites
 
 Add one fixture at a time, each with a lane (or a lane option) that sets its
@@ -192,7 +219,7 @@ Switching `full/` on (Phase 2.1+2.2) unmasked a stack of **test-side** defects i
 the invitation suites — corrected across successive rounds (#3448, #3490, and the
 `#SLEXY5` series). Catalogued here so a re-failure is matched against a known class
 before it is mistaken for a product regression. What remains *after* these are the
-fixture-dependent cases in [`QUARANTINE.md`](../QUARANTINE.md) (#3419/#3421) — those
+fixture-dependent cases in [`QUARANTINE.md`](../QUARANTINE.md) (#3420/#3421) — those
 are a **coverage gap that never ran in CI, not a regression**.
 
 | Class | Fixed in | What was wrong |
