@@ -116,13 +116,14 @@ module Onetime
     MAX_DEPTH            = 8         # container nesting within one field
     MAX_EXCEPTION_CHAIN  = 5         # = SemanticLogger::Log::MAX_EXCEPTIONS_TO_UNWRAP
 
-    DEPTH_SENTINEL      = '[log scrub: nested too deep]'
-    CYCLE_SENTINEL      = '[log scrub: circular reference]'
-    NODES_SENTINEL      = '[log scrub: too many values]'
-    OVERSIZED_SENTINEL  = '[log scrub: oversized string with URI]'
-    UNREADABLE_SENTINEL = '[log scrub: unreadable encoding with ":"]'
-    BUDGET_SENTINEL     = '[log scrub: event scan budget spent]'
-    FAILURE_MESSAGE     = '[log scrub failed: event withheld]'
+    DEPTH_SENTINEL         = '[log scrub: nested too deep]'
+    CYCLE_SENTINEL         = '[log scrub: circular reference]'
+    NODES_SENTINEL         = '[log scrub: too many values]'
+    OVERSIZED_SENTINEL     = '[log scrub: oversized string with URI]'
+    UNREADABLE_SENTINEL    = '[log scrub: unreadable encoding with ":"]'
+    BUDGET_SENTINEL        = '[log scrub: event scan budget spent]'
+    SET_COLLISION_SENTINEL = '[log scrub: colliding set member]'
+    FAILURE_MESSAGE        = '[log scrub failed: event withheld]'
 
     # Key added to a Hash that the node limit cut short. An Array or Set
     # gets NODES_SENTINEL added instead.
@@ -550,6 +551,26 @@ module Onetime
         "#{key} (#{suffix})"
       end
 
+      # Set equality can collapse distinct caller values after scrubbing. Keep
+      # scrubbed Strings useful by suffixing them like colliding Hash keys; for
+      # other values, insert an explicit safe marker. Numbering also preserves
+      # cardinality across three or more collisions and caller-written markers.
+      def insert_member(set, member)
+        return set << member unless set.include?(member)
+
+        base     = member.is_a?(String) ? member : SET_COLLISION_SENTINEL
+        distinct = set.include?(base) ? distinct_member(set, base) : base
+        set << distinct
+      end
+
+      def distinct_member(set, member)
+        counters         = ((@suffixes ||= {}.compare_by_identity)[set] ||= {})
+        suffix           = counters.fetch(member, 2)
+        suffix          += 1 while set.include?("#{member} (#{suffix})")
+        counters[member] = suffix + 1
+        "#{member} (#{suffix})"
+      end
+
       def scrub_array(array, depth)
         result = nil
         array.each_with_index do |value, index|
@@ -570,13 +591,14 @@ module Onetime
         index  = 0
         set.each do |member|
           if @nodes >= MAX_NODES
-            (result ||= Set.new(set.first(index))) << NODES_SENTINEL
+            result ||= Set.new(set.first(index))
+            insert_member(result, NODES_SENTINEL)
             break
           end
 
           new_member = walk(member, depth + 1)
           result   ||= Set.new(set.first(index)) unless new_member.equal?(member)
-          result << new_member if result
+          insert_member(result, new_member) if result
           index     += 1
         end
         result || set

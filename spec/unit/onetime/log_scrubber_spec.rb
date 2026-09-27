@@ -40,7 +40,7 @@ RSpec.describe Onetime::LogScrubber do
     head = [value.object_id, value.frozen?, value.singleton_methods.sort]
     case value
     when Hash then head + value.map { |k, v| [snapshot(k, seen), snapshot(v, seen)] }
-    when Array then head + value.map { |v| snapshot(v, seen) }
+    when Array, Set then head + value.map { |v| snapshot(v, seen) }
     when String then head + [value.encoding.name, value.b]
     when Exception
       head + [value.message, value.cause&.object_id, value.instance_variables.map { |i| [i, snapshot(value.instance_variable_get(i), seen)] }]
@@ -212,6 +212,31 @@ RSpec.describe Onetime::LogScrubber do
 
       expect(log.payload[:urls]).to eq(Set['a', clean_uri])
       expect(log.payload[:clean]).to equal(clean)
+    end
+
+    it 'keeps every member when several Set strings scrub to the same value' do
+      urls   = Set.new(Array.new(4) { |i| +"redis://user:#{secret}#{i}@db:6379/0?password=#{secret}#{i}" })
+      before = snapshot(urls)
+
+      result = scrubbed(payload: { urls: urls }).payload[:urls]
+
+      expect(result).to eq(Set.new([clean_uri, *2.upto(4).map { |i| "#{clean_uri} (#{i})" }]))
+      expect(result.size).to eq(urls.size)
+      expect(result.inspect).not_to include(secret)
+      expect(snapshot(urls)).to eq(before)
+    end
+
+    it 'marks a collision between scrubbed non-String Set members' do
+      other  = dirty_uri.sub(secret, 'other')
+      lists  = Set[[dirty_uri], [other]]
+      before = snapshot(lists)
+
+      result = scrubbed(payload: { lists: lists }).payload[:lists]
+
+      expect(result).to eq(Set[[clean_uri], described_class::SET_COLLISION_SENTINEL])
+      expect(result.size).to eq(lists.size)
+      expect(result.inspect).not_to include(secret)
+      expect(snapshot(lists)).to eq(before)
     end
 
     it 'never mutates a deep-frozen caller payload' do
