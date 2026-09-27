@@ -281,17 +281,14 @@ test.describe('Brand Customization - Console Error Monitoring', () => {
     const publicPaths = ['/', '/about'];
 
     for (const path of publicPaths) {
-      const response = await page.goto(path);
+      await page.goto(path);
 
-      // Accept 200 or 404 (some paths may not exist)
-      const status = response?.status() ?? 0;
-
-      // goto() already waited for the document load; when the SPA shell was
-      // served, also wait for the app to finish booting so late mount/render
-      // errors are captured before moving to the next path.
-      if (status === 200) {
-        await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-      }
+      // Both paths serve the SPA shell: '/about' has no route and answers
+      // 404 with the shell, which boots and renders its not-found view.
+      // goto() only waited for the document load, so wait for the app to
+      // finish booting too; late mount/render errors on either path are then
+      // captured before the next navigation.
+      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
     }
 
     // Filter out expected/ignorable errors

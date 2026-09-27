@@ -49,7 +49,7 @@
   import { useConfirmDialog, useNow } from '@vueuse/core';
   import { storeToRefs } from 'pinia';
   import { SsoService } from '@/services/sso.service';
-  import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
+  import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute, useRouter } from 'vue-router';
   import { z } from 'zod';
@@ -156,56 +156,79 @@
    * UX Principle: Optimize for frequency of use
    *
    * Tab order and default selection follow the principle that the most frequently
-   * performed actions should require the fewest clicks. When users navigate to an
-   * organization's detail page, their intent hierarchy is typically:
+   * performed actions should require the fewest clicks. The tab bar, in order:
    *
-   *   1. Domains         - Most frequent: managing sender domains for platform operators
-   *   2. Members         - Team management: invite members, manage roles, review team
-   *   3. Subscription    - Occasional: check plan, view usage, upgrade
-   *   4. Settings        - Rare: change org name or billing email (set-and-forget)
-   *   5. SSO             - Rarest: configuration that's set once and rarely touched
+   *   1. Domains    - Most frequent: managing sender domains for platform operators
+   *   2. Members    - Team management: invite members, manage roles, review team
+   *   3. SSO        - Only with ORGS_SSO_ENABLED; configured once, rarely touched
+   *   4. Activity   - Unless ORGS_AUDIT_LOGS_ENABLED=false; the org's secret activity
+   *   5. Settings   - Rare: set-and-forget details, leave or delete. Always last.
    *
-   * By defaulting to the Domains tab, we eliminate one click for the most common
-   * workflow. SSO is placed last since it's configured once during setup and
-   * rarely revisited.
+   * Domains is the default tab (props.initialTab), which saves a click for the
+   * most common workflow. Subscription has no tab: it is a view of this page
+   * reached at /org/:extid/subscription (the header plan chip links there).
    *
    * This aligns with Fitts's Law corollary: reduce interaction cost for frequent
    * actions, accept higher cost for infrequent ones.
    */
   const activeTab = ref<TabType>(resolveInitialTab());
 
-  // Update URL when tab changes (without adding history entries)
+  // Switch tabs and mirror the choice in the URL (no new history entry). The
+  // route lists :tab in meta.keepMountedAcrossParams, so this navigation keeps
+  // this instance: no refetch, and handleTabKeydown's focus() lands on the
+  // live tab. It stays a router navigation so router.currentRoute names the
+  // tab on screen for everything that reads it (the org switcher's 'same'
+  // target, links to a tab, Back/Forward).
+  //
+  // No-op once unmounted: `route` is the app-wide current route, so an
+  // onMounted continuation resuming after the user left (checkInitialTabRedirect
+  // after its awaits) would otherwise navigate the NEXT page.
+  let isUnmounted = false;
+  onBeforeUnmount(() => {
+    isUnmounted = true;
+  });
   const setActiveTab = (tab: TabType) => {
+    if (isUnmounted) return;
     activeTab.value = tab;
-    const urlTab = TAB_TO_URL[tab];
-    router.replace({ params: { ...route.params, tab: urlTab } });
+    router.replace({ params: { ...route.params, tab: TAB_TO_URL[tab] } });
   };
 
-  // Watch for route param changes (e.g., back/forward navigation).
-  // Reject navigation to entitlement-gated tabs the user can't access.
+  // Seat the tab a route's :tab segment names. An absent or unknown segment
+  // gets the default tab, as on mount (resolveInitialTab). Entitlement-gated
+  // tabs the user can't access bounce to 'domains', URL included.
   // NOTE: 'activity' has two distinct gates on different axes:
   //  - instance flag OFF (ORGS_AUDIT_LOGS_ENABLED=false) → tab is absent
   //    entirely, so deep links bounce to the default tab here;
   //  - entitlement missing → tab stays reachable and renders an inline
   //    upgrade notice, so it is deliberately NOT entitlement-gated here.
+  const showRouteTab = (urlTab: string | undefined) => {
+    const resolved = urlTab ? URL_TO_TAB[urlTab] : undefined;
+    if (!resolved) {
+      activeTab.value = props.initialTab;
+      return;
+    }
+    if (
+      (resolved === 'members' && !canManageMembers.value) ||
+      (resolved === 'sso' && !canManageSso.value) ||
+      (resolved === 'activity' && !orgAuditLogsFeatureEnabled.value)
+    ) {
+      setActiveTab('domains');
+      return;
+    }
+    activeTab.value = resolved;
+  };
+
+  // A :tab change on this org keeps this instance mounted: our own
+  // setActiveTab, Back/Forward between tabs, and links to another tab (the
+  // user menu's Activity item). Seat the tab the route now names. Any other
+  // route (another org, another page) remounts or replaces this view, and its
+  // tab must not be gated with this org's permissions.
+  const mountedExtid = route.params.extid;
   watch(
     () => route.params.tab,
     (newTab) => {
-      const urlTab = newTab as string | undefined;
-      if (urlTab && URL_TO_TAB[urlTab]) {
-        const resolved = URL_TO_TAB[urlTab];
-        if (
-          (resolved === 'members' && !canManageMembers.value) ||
-          (resolved === 'sso' && !canManageSso.value) ||
-          (resolved === 'activity' && !orgAuditLogsFeatureEnabled.value)
-        ) {
-          setActiveTab('domains');
-          return;
-        }
-        activeTab.value = resolved;
-      } else if (!urlTab) {
-        activeTab.value = props.initialTab;
-      }
+      if (route.params.extid !== mountedExtid) return;
+      showRouteTab(newTab as string | undefined);
     }
   );
 
@@ -751,9 +774,10 @@
     // 'activity' is entitlement-exempt (deep links land; the panel swaps in an
     // upgrade notice when unentitled). Its instance-flag clause below is
     // unreachable in practice — resolveInitialTab() rejects a flag-off
-    // /activity deep link synchronously during setup, and the route watcher
-    // bounces later navigations — so it stands as defense in depth against a
-    // future path that seats activeTab without passing either gate.
+    // /activity deep link synchronously during setup, and showRouteTab()
+    // bounces navigations that keep this instance — so it stands as defense
+    // in depth against a future path that seats activeTab without passing
+    // either gate.
     if (
       (activeTab.value === 'members' && !canManageMembers.value) ||
       (activeTab.value === 'sso' && !canManageSso.value) ||
@@ -832,9 +856,12 @@
     }
   });
 
-  // Watch for org changes via URL navigation (e.g., /org/A/domains -> /org/B/domains)
-  // Vue Router reuses the component, so onMounted doesn't run again.
-  // This ensures currentOrganization in the store is updated to match the URL.
+  // An org change (/org/A/domains -> /org/B/domains) does not reach this
+  // watcher today: :extid is not in the route's meta.keepMountedAcrossParams,
+  // so App.vue's routeViewKey changes and a fresh instance mounts, whose
+  // onMounted loads org B. This watcher only acts if :extid changes while
+  // this instance stays mounted: it then reloads the org (which updates
+  // currentOrganization in the store) and the active tab's data.
   watch(orgId, async (newOrgId, oldOrgId) => {
     if (newOrgId && newOrgId !== oldOrgId) {
       // Reset SSO status cache when switching orgs — domains differ per org
@@ -865,20 +892,31 @@
     }
   });
 
-  // Keyboard navigation for tabs (WCAG 2.1 AA)
-  const handleTabKeydown = (e: KeyboardEvent) => {
-    // Build navigable tabs array — only tabs the user can actually reach.
-    // 'activity' is included whenever the instance flag is on: even unentitled
-    // users can open it (the panel shows the upgrade prompt), so it must stay
-    // keyboard-reachable. When the flag is off the tab doesn't render at all.
+  // The tabs the user can open, in tab-bar order. 'activity' is included
+  // whenever the instance flag is on: even unentitled users can open it (the
+  // panel shows the upgrade prompt), so it must stay keyboard-reachable. When
+  // the flag is off the tab doesn't render at all.
+  const navigableTabs = computed<TabType[]>(() => {
     const tabs: TabType[] = ['domains'];
     if (canManageMembers.value) tabs.push('members');
     if (canManageSso.value) tabs.push('sso');
     if (orgAuditLogsFeatureEnabled.value) tabs.push('activity');
     tabs.push('general');
+    return tabs;
+  });
 
-    const currentIndex = tabs.indexOf(activeTab.value);
-    if (currentIndex === -1) return;
+  // Roving tabindex: the one tab in the page's Tab sequence, and the tab the
+  // arrow keys move from. It is the active tab, except on the subscription
+  // view, which has no tab: there the first tab stands in, so the tab list
+  // stays reachable by keyboard while no tab is selected.
+  const rovingTab = computed<TabType>(() =>
+    navigableTabs.value.includes(activeTab.value) ? activeTab.value : navigableTabs.value[0]
+  );
+
+  // Keyboard navigation for tabs (WCAG 2.1 AA)
+  const handleTabKeydown = (e: KeyboardEvent) => {
+    const tabs = navigableTabs.value;
+    const currentIndex = tabs.indexOf(rovingTab.value);
 
     switch (e.key) {
       case 'ArrowRight':
@@ -960,7 +998,7 @@
             id="org-tab-domains"
             role="tab"
             :aria-selected="activeTab === 'domains'"
-            :tabindex="activeTab === 'domains' ? 0 : -1"
+            :tabindex="rovingTab === 'domains' ? 0 : -1"
             aria-controls="org-panel-domains"
             data-testid="org-tab-domains"
             @click="setActiveTab('domains')"
@@ -978,7 +1016,7 @@
             role="tab"
             :aria-selected="activeTab === 'members'"
             :aria-disabled="!canManageMembers"
-            :tabindex="activeTab === 'members' ? 0 : -1"
+            :tabindex="rovingTab === 'members' ? 0 : -1"
             aria-controls="org-panel-members"
             data-testid="org-tab-members"
             @click="canManageMembers && setActiveTab('members')"
@@ -999,7 +1037,7 @@
             role="tab"
             :aria-selected="activeTab === 'sso'"
             :aria-disabled="!canManageSso"
-            :tabindex="activeTab === 'sso' ? 0 : -1"
+            :tabindex="rovingTab === 'sso' ? 0 : -1"
             aria-controls="org-panel-sso"
             data-testid="org-tab-sso"
             @click="canManageSso && setActiveTab('sso')"
@@ -1022,7 +1060,7 @@
             id="org-tab-activity"
             role="tab"
             :aria-selected="activeTab === 'activity'"
-            :tabindex="activeTab === 'activity' ? 0 : -1"
+            :tabindex="rovingTab === 'activity' ? 0 : -1"
             aria-controls="org-panel-activity"
             data-testid="org-tab-activity"
             @click="setActiveTab('activity')"
@@ -1039,7 +1077,7 @@
             id="org-tab-general"
             role="tab"
             :aria-selected="activeTab === 'general'"
-            :tabindex="activeTab === 'general' ? 0 : -1"
+            :tabindex="rovingTab === 'general' ? 0 : -1"
             aria-controls="org-panel-general"
             data-testid="org-tab-settings"
             @click="setActiveTab('general')"
@@ -1731,13 +1769,13 @@
           </div>
         </section>
 
-        <!-- Subscription Tab -->
+        <!-- Subscription view. No tab stands for it (the tab left the tab bar
+             in #2929; /org/:extid/subscription and the header plan chip open
+             it), so it is not a tabpanel: a region named by its heading. -->
         <section
           v-if="activeTab === 'subscription'"
           id="org-panel-subscription"
-          role="tabpanel"
-          aria-labelledby="org-tab-subscription"
-          tabindex="0"
+          aria-labelledby="org-subscription-heading"
           data-testid="org-section-subscription"
           class="space-y-6">
           <!-- Billing Disabled Notice -->
@@ -1752,7 +1790,9 @@
                   name="credit-card"
                   class="mx-auto size-12 text-gray-400"
                   aria-hidden="true" />
-                <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+                <h3
+                  id="org-subscription-heading"
+                  class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
                   {{ t('web.organizations.billing_coming_soon') }}
                 </h3>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -1768,7 +1808,9 @@
             <div
               class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
               <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                <h3
+                  id="org-subscription-heading"
+                  class="text-base font-semibold text-gray-900 dark:text-white">
                   {{ t('web.billing.subscription.status') }}
                 </h3>
               </div>

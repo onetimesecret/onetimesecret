@@ -155,11 +155,12 @@ RSpec.describe 'Account-creation rate limiting — full mode (#3948 finding #4)'
   # drives REMOTE_ADDR; IPPrivacyMiddleware resolves and masks it into
   # env['otto.client_ip'], which is what the limiter keys on.
   #
-  # login-confirm and password-confirm are both required by this deploy's
-  # Rodauth config; omitting either turns every under-cap signup into a 422 that
-  # writes no account row, which would make the "nothing is written for a
-  # throttled request" assertions below pass vacuously. Sending them keeps the
-  # allowed path a REAL account creation.
+  # The body must be one Rodauth accepts: an under-cap signup that 422s writes
+  # no account row, which would make the "nothing is written for a throttled
+  # request" assertions below pass vacuously. login-confirm and
+  # password-confirm are not required (account_management.rb turns both
+  # confirmations off); they are sent so the allowed path stays a REAL account
+  # creation if either is turned back on.
   def post_signup(login, from:, password: 'TestPassword123!')
     clear_cookies
     rack_env = { 'REMOTE_ADDR' => from }

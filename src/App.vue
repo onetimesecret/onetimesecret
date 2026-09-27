@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import { routeViewKey } from '@/router/viewKey';
   import StaleSessionNotice from '@/shared/components/auth/StaleSessionNotice.vue';
   import VerificationUnavailable from '@/shared/components/auth/VerificationUnavailable.vue';
   import { iconLibraryComponents } from '@/shared/components/icons/sprites';
@@ -149,12 +150,15 @@
 /**
  * Root application component managing layouts and routing.
  *
- * Security Note: we avoid Vue keep-alive components to force re-creating them
- * and ensure each route receives a fresh component instance.
+ * Security Note: we avoid Vue keep-alive components, so a routed view that is
+ * left is destroyed and a later visit creates a fresh component instance.
  *
  * Routing Strategy Explained:
  * - Dynamically selects layout based on current route metadata
- * - Ensures each navigation creates a fresh component instance
+ * - Keys the routed view with routeViewKey($route), so a navigation creates a
+ *   fresh component instance, except one that changes only params the route
+ *   lists in meta.keepMountedAcrossParams: that keeps the mounted instance
+ *   (e.g. a :tab switch on /org/:extid/:tab?)
  * - Maintains consistent layout while updating page content
  *
  * @see /src/router/index.ts for route definitions
@@ -183,7 +187,9 @@
     <!-- Router view with forced component recreation on route changes.
          RouteErrorBoundary swaps a thrown route subtree for a visible error
          panel so a render/setup failure never leaves a silent blank page
-         (the global errorHandler only logs). Keyed + reset on route change. -->
+         (the global errorHandler only logs). Reset on every route change;
+         keyed by routeViewKey, which is the fullPath unless the route lists
+         params in meta.keepMountedAcrossParams (e.g. a settings :tab). -->
     <router-view
       v-slot="{ Component }"
       class="rounded-md">
@@ -192,7 +198,7 @@
         <component
           v-else
           :is="Component"
-          :key="$route.fullPath" />
+          :key="routeViewKey($route)" />
       </RouteErrorBoundary>
     </router-view>
 

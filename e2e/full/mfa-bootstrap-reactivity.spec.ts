@@ -242,11 +242,6 @@ test.describe('MFA Flow - bootstrapStore Reactivity', () => {
   // ---------------------------------------------------------------------------
   // TC-MFA-004: Successful MFA verification completes authentication
   // ---------------------------------------------------------------------------
-  test.skip(
-    !process.env.TEST_MFA_OTP && !process.env.TEST_MFA_SECRET,
-    'TC-MFA-004: Successful MFA verification clears awaiting_mfa and completes auth'
-  );
-
   test('TC-MFA-004: Successful MFA verification clears awaiting_mfa', async ({ page }) => {
     await loginWithMfaCredentials(page);
     await expect(page).toHaveURL(/\/mfa-verify/);

@@ -38,6 +38,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { env, gateReason } from '../support/env';
+import { getFirstOrganization } from '../support/organizations';
 
 // HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
 // Multi-domain SSO needs several custom domains plus the manage_sso
@@ -56,11 +57,6 @@ test.beforeEach(() => {
 // -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
-
-interface OrgInfo {
-  extid: string;
-  name: string;
-}
 
 interface DomainInfo {
   extid: string;
@@ -86,29 +82,6 @@ interface SsoConfigData {
 // -----------------------------------------------------------------------------
 
 /**
- * Get the first organization the user has access to
- */
-async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
-  await page.goto('/orgs');
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-  const orgLink = page.locator('a[href*="/org/"]').first();
-  if (!(await orgLink.isVisible().catch(() => false))) {
-    return null;
-  }
-
-  const href = await orgLink.getAttribute('href');
-  const match = href?.match(/\/org\/([^/]+)/);
-  if (!match) return null;
-
-  const extid = match[1];
-  const nameElement = orgLink.locator('span.truncate, .font-medium, h3, h4').first();
-  const name = (await nameElement.textContent())?.trim() || extid;
-
-  return { extid, name };
-}
-
-/**
  * Navigate to organization settings SSO tab
  */
 async function navigateToOrgSsoTab(page: Page, orgExtid: string): Promise<void> {
@@ -126,11 +99,15 @@ async function navigateToOrgSsoTab(page: Page, orgExtid: string): Promise<void> 
 }
 
 /**
- * Check if SSO management is available (entitlement check)
+ * Wait for the SSO tab. It renders when org SSO is on (ORGS_SSO_ENABLED) and
+ * the org has the manage_sso entitlement, which the E2E_SSO_UI target must
+ * provide (standalone installs grant every entitlement).
  */
-async function hasSsoEntitlement(page: Page): Promise<boolean> {
-  const ssoTab = page.locator('[data-testid="org-tab-sso"]');
-  return ssoTab.isVisible().catch(() => false);
+async function expectSsoTab(page: Page): Promise<void> {
+  await expect(
+    page.locator('[data-testid="org-tab-sso"]'),
+    'E2E_SSO_UI: org SSO is on and the org has the manage_sso entitlement'
+  ).toBeVisible();
 }
 
 /**
@@ -138,6 +115,10 @@ async function hasSsoEntitlement(page: Page): Promise<boolean> {
  */
 async function getDomainsFromSsoTab(page: Page): Promise<DomainInfo[]> {
   const domainRows = page.locator('[data-testid="org-section-sso"] .rounded-lg.border');
+  await expect(
+    domainRows.first(),
+    'E2E_CUSTOM_DOMAINS: the SSO tab lists the custom domains'
+  ).toBeVisible();
   const count = await domainRows.count();
 
   const domains: DomainInfo[] = [];
@@ -343,14 +324,16 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await navigateToOrgSsoTab(page, org.extid);
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains for multi-provider testing');
+    test.fixme(
+      env.customDomains.length < 2,
+      'Needs two custom domains (list both in E2E_CUSTOM_DOMAINS); no lane provisions them. See #3420.'
+    );
+    expect(domains.length, 'the SSO tab lists both custom domains').toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];
@@ -376,19 +359,19 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     await setupDomainSsoMock(page, domainB.extid, { onSave: oidcConfig, existingConfig: null });
 
     // Step 1: Open SSO modal for domain A and configure Entra ID
-    const modalA = await openDomainSsoModal(page, org!.extid, domainA.extid);
+    const modalA = await openDomainSsoModal(page, org.extid, domainA.extid);
 
     await fillSsoConfigForm(page, modalA, entraConfig);
     await submitSsoForm(modalA);
 
     // Step 2: Open SSO modal for domain B and configure Generic OIDC
-    const modalB = await openDomainSsoModal(page, org!.extid, domainB.extid);
+    const modalB = await openDomainSsoModal(page, org.extid, domainB.extid);
 
     await fillSsoConfigForm(page, modalB, oidcConfig);
     await submitSsoForm(modalB);
 
     // Step 3: Verify both domains appear in org SSO hub
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
 
     // Verify both domain names are visible
     await expect(page.getByText(domainA.displayDomain)).toBeVisible();
@@ -402,11 +385,9 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await navigateToOrgSsoTab(page, org.extid);
+    await expectSsoTab(page);
 
     // Verify SSO section is visible
     const ssoSection = page.locator('[data-testid="org-section-sso"]');
@@ -426,9 +407,18 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
 
       // Should have one of the status badges or configure link
       const hasBadge =
-        (await domainRow.locator('text=/enabled/i').isVisible().catch(() => false)) ||
-        (await domainRow.locator('text=/configured/i').isVisible().catch(() => false)) ||
-        (await domainRow.locator('text=/not configured/i').isVisible().catch(() => false));
+        (await domainRow
+          .locator('text=/enabled/i')
+          .isVisible()
+          .catch(() => false)) ||
+        (await domainRow
+          .locator('text=/configured/i')
+          .isVisible()
+          .catch(() => false)) ||
+        (await domainRow
+          .locator('text=/not configured/i')
+          .isVisible()
+          .catch(() => false));
 
       const hasConfigureLink = await domainRow
         .locator('a[href*="/signin"]')
@@ -443,14 +433,16 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await navigateToOrgSsoTab(page, org.extid);
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains');
+    test.fixme(
+      env.customDomains.length < 2,
+      'Needs two custom domains (list both in E2E_CUSTOM_DOMAINS); no lane provisions them. See #3420.'
+    );
+    expect(domains.length, 'the SSO tab lists both custom domains').toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];
@@ -478,13 +470,13 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     // surface — neither as a selectable radio nor as the locked provider
     // display for an existing config. Assert on each domain's modal while
     // it is the open one.
-    const modalA = await openDomainSsoModal(page, org!.extid, domainA.extid);
+    const modalA = await openDomainSsoModal(page, org.extid, domainA.extid);
     await expect(modalA.locator('input[type="radio"][value="google"]')).toHaveCount(0);
     await expect(modalA.locator('input[type="radio"][value="github"]')).toHaveCount(0);
     await expect(modalA.getByText('Google Workspace')).toHaveCount(0);
     await expect(modalA.getByText('GitHub', { exact: true })).toHaveCount(0);
 
-    const modalB = await openDomainSsoModal(page, org!.extid, domainB.extid);
+    const modalB = await openDomainSsoModal(page, org.extid, domainB.extid);
     await expect(modalB.locator('input[type="radio"][value="google"]')).toHaveCount(0);
     await expect(modalB.locator('input[type="radio"][value="github"]')).toHaveCount(0);
     await expect(modalB.getByText('Google Workspace')).toHaveCount(0);
@@ -495,14 +487,16 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await navigateToOrgSsoTab(page, org.extid);
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains');
+    test.fixme(
+      env.customDomains.length < 2,
+      'Needs two custom domains (list both in E2E_CUSTOM_DOMAINS); no lane provisions them. See #3420.'
+    );
+    expect(domains.length, 'the SSO tab lists both custom domains').toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];
@@ -569,7 +563,7 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     // (Provider type is locked while editing an existing config, and the
     // issuerless providers that the old provider-swap flow relied on are
     // gone from the tenant surface — #3902.)
-    const modal = await openDomainSsoModal(page, org!.extid, domainA.extid);
+    const modal = await openDomainSsoModal(page, org.extid, domainA.extid);
 
     await page.locator('#domain-sso-display-name').fill('Domain A Entra Updated');
     await page.locator('#domain-sso-client-id').fill('new-client-a');
@@ -603,11 +597,9 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
 
   test('TC-MPROV-005: SSO hub displays all organization domains', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await navigateToOrgSsoTab(page, org.extid);
+    await expectSsoTab(page);
 
     const ssoSection = page.locator('[data-testid="org-section-sso"]');
     await expect(ssoSection).toBeVisible();
@@ -626,24 +618,18 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
     }
   });
 
-  test('TC-MPROV-006: configure link is visible for each domain in SSO hub', async ({
-    page,
-  }) => {
+  test('TC-MPROV-006: configure link is visible for each domain in SSO hub', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await navigateToOrgSsoTab(page, org.extid);
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     // Verify the configure link is present in the hub for the first domain.
     // The hub now links to the domain signin page with the SSO modal deep-link.
-    const configureLink = page.locator(
-      `a[href*="/domains/${domains[0].extid}/signin"]`
-    );
+    const configureLink = page.locator(`a[href*="/domains/${domains[0].extid}/signin"]`);
     await expect(configureLink).toBeVisible();
 
     // Verify domain name is shown
@@ -654,11 +640,9 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await navigateToOrgSsoTab(page, org.extid);
+    await expectSsoTab(page);
 
     const ssoSection = page.locator('[data-testid="org-section-sso"]');
     await expect(ssoSection).toBeVisible();
@@ -694,16 +678,14 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
 
   test('TC-MPROV-008: Entra ID requires tenant_id field', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await navigateToOrgSsoTab(page, org.extid);
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
-    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
+    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
     // Select Entra ID
     await selectProvider(modal, 'entra_id');
@@ -719,16 +701,14 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
 
   test('TC-MPROV-009: switching provider swaps tenant_id for issuer field', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await navigateToOrgSsoTab(page, org.extid);
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
-    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
+    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
     // Start on Entra ID: tenant_id visible, issuer hidden
     await selectProvider(modal, 'entra_id');
@@ -743,16 +723,14 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
 
   test('TC-MPROV-010: Generic OIDC requires issuer field', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await navigateToOrgSsoTab(page, org.extid);
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
-    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
+    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
     // Select Generic OIDC
     await selectProvider(modal, 'oidc');
@@ -770,20 +748,18 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await navigateToOrgSsoTab(page, org.extid);
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     // Force new-config mode so the selectable radio group renders (provider
     // type is locked while editing an existing config).
     await setupDomainSsoMock(page, domains[0].extid, { existingConfig: null });
 
-    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
+    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
     // #3902: tenant SSO is OIDC/Entra-only — exactly two provider radios.
     const providerRadios = modal.locator('input[type="radio"][name="provider_type"]');
@@ -810,14 +786,16 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
 
   test('TC-MPROV-012: domain A config is not visible on domain B modal', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await navigateToOrgSsoTab(page, org.extid);
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains');
+    test.fixme(
+      env.customDomains.length < 2,
+      'Needs two custom domains (list both in E2E_CUSTOM_DOMAINS); no lane provisions them. See #3420.'
+    );
+    expect(domains.length, 'the SSO tab lists both custom domains').toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];
@@ -843,7 +821,7 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
     });
 
     // Open SSO modal for domain B
-    const modal = await openDomainSsoModal(page, org!.extid, domainB.extid);
+    const modal = await openDomainSsoModal(page, org.extid, domainB.extid);
 
     // Domain A's unique identifier should NOT appear in the modal
     const domainAUniqueText = modal.getByText('UNIQUE_DOMAIN_A_NAME_12345');
@@ -856,20 +834,22 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
 
   test('TC-MPROV-013: URL routing correctly scopes to domain signin page', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await navigateToOrgSsoTab(page, org.extid);
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains');
+    test.fixme(
+      env.customDomains.length < 2,
+      'Needs two custom domains (list both in E2E_CUSTOM_DOMAINS); no lane provisions them. See #3420.'
+    );
+    expect(domains.length, 'the SSO tab lists both custom domains').toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];
 
     // Navigate directly to domain A signin page via URL
-    await page.goto(`/org/${org!.extid}/domains/${domainA.extid}/signin`);
+    await page.goto(`/org/${org.extid}/domains/${domainA.extid}/signin`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // URL should contain domain A's extid
@@ -880,7 +860,7 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
     await expect(page.getByText(domainA.displayDomain)).toBeVisible();
 
     // Navigate directly to domain B signin page via URL
-    await page.goto(`/org/${org!.extid}/domains/${domainB.extid}/signin`);
+    await page.goto(`/org/${org.extid}/domains/${domainB.extid}/signin`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // URL should contain domain B's extid

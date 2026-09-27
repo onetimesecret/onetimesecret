@@ -27,7 +27,8 @@ import { test, expect } from '@playwright/test';
  *
  * 1. **Option A: Use test fixtures** (recommended for CI)
  *    - Configure test data in your backend test setup
- *    - Mock window.__BOOTSTRAP_ME__ to include custom domains
+ *    - Mocking window.__BOOTSTRAP_ME__ does not work: the SPA reads it once
+ *      at boot and replaces it with `true` (src/services/bootstrap.service.ts)
  *
  * 2. **Option B: Manual setup** (for local development)
  *    ```bash
@@ -68,14 +69,20 @@ import { test, expect } from '@playwright/test';
  * To enable tests:
  * 1. Configure test user with custom domains in backend fixtures
  * 2. Set up test authentication flow
- * 3. Mock window.__BOOTSTRAP_ME__ with custom_domains array
  */
 
 // The seven custom-domain workflow tests below are declarative `test.fixme`
 // placeholders — never implemented, all requiring a custom domain on the test
 // account (E2E remediation plan Phase 2.4 / PR 5, issue #3420; see
-// e2e/QUARANTINE.md). The two tests that assert the *no-custom-domain* path
-// (the CI account's reality) run normally — they must stay able to fail.
+// e2e/QUARANTINE.md). No E2E test covers SecretForm's domain-context
+// indicator without a custom domain. Vitest covers the component's gate, with
+// useDomainContext mocked, in src/tests/components/SecretFormDomainContext.spec.ts:
+// "does not render the indicator when domains are disabled" and "renders the
+// canonical domain when no custom domain is selected". scope-switcher.spec.ts
+// covers the domain switcher, not this indicator: TC-SS-051 asserts that the
+// switcher renders exactly when domains are enabled, and TC-SS-031 asserts the
+// sessionStorage domainContext key after a domain is selected (custom-domain
+// targets only).
 test.describe('Domain Context - Consultant Workflow', () => {
   test.beforeEach(async ({ page }) => {
     // Set reasonable timeout for E2E tests
@@ -197,53 +204,6 @@ test.describe('Domain Context - Consultant Workflow', () => {
     // Adjust based on your actual implementation
     const metadataPage = page.locator('body');
     await expect(metadataPage).toBeVisible();
-  });
-
-  test('domain context indicator hidden for users without custom domains', async ({ page }) => {
-    /**
-     * Validates that users without custom domains don't see the context indicator.
-     * This test can run without special backend setup.
-     */
-
-    // Mock window state to simulate no custom domains
-    await page.goto('/');
-
-    await page.evaluate(() => {
-      if (window.__BOOTSTRAP_ME__) {
-        window.__BOOTSTRAP_ME__.custom_domains = [];
-        window.__BOOTSTRAP_ME__.domains_enabled = false;
-      }
-    });
-
-    // Reload to apply state changes
-    await page.reload();
-
-    // Context indicator should NOT be visible
-    const contextIndicator = page.locator('[role="status"][aria-label*="context"]');
-    await expect(contextIndicator).not.toBeVisible();
-  });
-
-  test('sessionStorage domainContext key is used correctly', async ({ page }) => {
-    /**
-     * Validates that the composable uses sessionStorage with the correct key.
-     */
-
-    await page.goto('/');
-
-    // Check that sessionStorage key exists (if user has custom domains)
-    const hasDomainContext = await page.evaluate(() => {
-      const customDomains = window.__BOOTSTRAP_ME__?.custom_domains || [];
-      const hasCustomDomains = customDomains.length > 0;
-
-      if (hasCustomDomains) {
-        const storedDomain = sessionStorage.getItem('domainContext');
-        return storedDomain !== null;
-      }
-
-      return true; // If no custom domains, this test is not applicable
-    });
-
-    expect(hasDomainContext).toBe(true);
   });
 
   test.fixme('context switcher allows changing between domains', async ({ page }) => {

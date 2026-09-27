@@ -292,6 +292,30 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
         expect(last_response.headers['Content-Type']).to include('application/json')
       end
     end
+
+    # The SPA signup form (src/shared/composables/useAuth.ts#signup) sends one
+    # email field and one password field: no `login-confirm`, no
+    # `password-confirm`. Rodauth requires `login-confirm` by default and only
+    # verify_account turns that off, so a deployment with verify_account
+    # disabled rejected every SPA signup with 422 "logins do not match" until
+    # account_management.rb stated require_login_confirmation? false.
+    context 'with the single email field the SPA sends, verify_account disabled' do
+      let(:spa_email) { "spa-signup-#{SecureRandom.hex(8)}@example.com" }
+
+      it 'creates the account' do
+        # The branch under test. RACK_ENV=test turns verify_account off
+        # (etc/defaults/auth.defaults.yaml); if that changes, this spec no
+        # longer covers the verify-disabled config and must say so.
+        expect(Onetime.auth_config.verify_account_enabled?).to be(false)
+
+        post_json '/auth/create-account', { login: spa_email, password: test_password }
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_response).to include('success')
+        expect(json_response).not_to have_key('field-error')
+        expect(Auth::Database.connection[:accounts].where(email: spa_email).count).to eq(1)
+      end
+    end
   end
 
   describe 'POST /logout (without authentication)' do

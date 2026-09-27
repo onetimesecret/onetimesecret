@@ -4,28 +4,31 @@ import OrganizationSettings from '@/apps/workspace/account/settings/Organization
 import { createTestingPinia } from '@pinia/testing';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { nextTick, ref } from 'vue';
+import { nextTick, reactive, ref } from 'vue';
 import { createTestI18n } from '@tests/setup';
 
 // Mock vue-router.
-// `params` is a shared mutable object so tests can simulate a deep link
-// (e.g. /org/on1abc123/activity) by setting `mockRouteParams.tab` before mount.
-// Reset in beforeEach.
-const mockRouteParams: Record<string, string | undefined> = {
+// `params` is a shared reactive object so tests can simulate a deep link
+// (e.g. /org/on1abc123/activity) by setting `mockRouteParams.tab` before mount,
+// and a later navigation that keeps the view mounted (Back/Forward, a link to
+// another tab) by setting it after mount. Reset in beforeEach.
+const mockRouteParams = reactive<Record<string, string | undefined>>({
   extid: 'on1abc123',
   orgid: 'on1abc123',
+});
+const mockRoute = {
+  path: '/org/on1abc123',
+  params: mockRouteParams,
+  query: {},
+};
+const mockRouter = {
+  push: vi.fn(),
+  replace: vi.fn(),
+  back: vi.fn(),
 };
 vi.mock('vue-router', () => ({
-  useRoute: () => ({
-    path: '/org/on1abc123',
-    params: mockRouteParams,
-    query: {},
-  }),
-  useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    back: vi.fn(),
-  }),
+  useRoute: () => mockRoute,
+  useRouter: () => mockRouter,
   RouterLink: {
     name: 'RouterLink',
     template: '<a :href="to"><slot /></a>',
@@ -250,6 +253,7 @@ describe('OrganizationSettings', () => {
     mockOrgsSsoEnabled.value = false;
     mockOrgsAuditLogsEnabled.value = true;
     delete mockRouteParams.tab;
+    mockRouteParams.extid = 'on1abc123';
   });
 
   afterEach(() => {
@@ -259,17 +263,23 @@ describe('OrganizationSettings', () => {
   // Mounts without awaiting. Use when a test needs the pre-fetch render, i.e.
   // the window before onMounted's awaits (initDefinitions / fetchAllPermissions
   // / loadOrganization) resolve.
-  const mountComponentUnsettled = () => {
+  interface MountOptions {
+    attachTo?: HTMLElement;
+    billingEnabled?: boolean;
+  }
+
+  const mountComponentUnsettled = (options: MountOptions = {}) => {
     const pinia = createTestingPinia({
       createSpy: vi.fn,
       initialState: {
         bootstrap: {
-          billing_enabled: true,
+          billing_enabled: options.billingEnabled ?? true,
         },
       },
     });
 
     wrapper = mount(OrganizationSettings, {
+      attachTo: options.attachTo,
       global: {
         plugins: [i18n, pinia],
         stubs: {
@@ -280,8 +290,8 @@ describe('OrganizationSettings', () => {
     return wrapper;
   };
 
-  const mountComponent = async () => {
-    mountComponentUnsettled();
+  const mountComponent = async (options: MountOptions = {}) => {
+    mountComponentUnsettled(options);
     await flushPromises();
     await nextTick();
     return wrapper;
@@ -938,6 +948,221 @@ describe('OrganizationSettings', () => {
 
       expect(wrapper.find('[data-testid="org-default-delete-notice"]').exists()).toBe(true);
       expect(findDeleteButton(wrapper).exists()).toBe(false);
+    });
+  });
+
+  /**
+   * Tab navigation
+   *
+   * A tab switch is a router.replace() that changes only :tab. The route lists
+   * :tab in meta.keepMountedAcrossParams, so App.vue keeps this instance
+   * mounted (src/tests/router/viewKey.spec.ts covers the key); here the view
+   * must drive the router for its own switches and follow the route for
+   * everyone else's.
+   */
+  describe('Tab navigation', () => {
+    const findTab = (w: VueWrapper, id: string) => w.find(`#org-tab-${id}`);
+
+    const selectedTabId = (w: VueWrapper) =>
+      w
+        .find('nav[aria-label="Organization settings tabs"]')
+        .findAll('button')
+        .find((tab) => tab.attributes('aria-selected') === 'true')
+        ?.attributes('id');
+
+    const settle = async () => {
+      await flushPromises();
+      await nextTick();
+    };
+
+    const tabNavigation = (tab: string) => ({
+      params: { extid: 'on1abc123', orgid: 'on1abc123', tab },
+    });
+
+    it('navigates a clicked tab with router.replace, changing only :tab', async () => {
+      wrapper = await mountComponent();
+
+      await findTab(wrapper, 'members').trigger('click');
+      await settle();
+
+      expect(selectedTabId(wrapper)).toBe('org-tab-members');
+      expect(mockRouter.replace).toHaveBeenCalledTimes(1);
+      expect(mockRouter.replace).toHaveBeenCalledWith(tabNavigation('members'));
+      expect(mockRouter.push).not.toHaveBeenCalled();
+    });
+
+    it('keeps keyboard focus on the tab that ArrowRight / ArrowLeft selects', async () => {
+      wrapper = await mountComponent({ attachTo: document.body });
+
+      const domainsTab = findTab(wrapper, 'domains');
+      (domainsTab.element as HTMLElement).focus();
+
+      await domainsTab.trigger('keydown', { key: 'ArrowRight' });
+      await settle();
+
+      const membersTab = findTab(wrapper, 'members');
+      expect(document.activeElement).toBe(membersTab.element);
+      expect(membersTab.attributes('aria-selected')).toBe('true');
+      expect(membersTab.attributes('tabindex')).toBe('0');
+      expect(domainsTab.attributes('tabindex')).toBe('-1');
+      expect(mockRouter.replace).toHaveBeenLastCalledWith(tabNavigation('members'));
+
+      await membersTab.trigger('keydown', { key: 'ArrowLeft' });
+      await settle();
+
+      expect(document.activeElement).toBe(domainsTab.element);
+      expect(domainsTab.attributes('aria-selected')).toBe('true');
+      expect(mockRouter.replace).toHaveBeenLastCalledWith(tabNavigation('domains'));
+    });
+
+    it('honours a deep link to a tab without navigating', async () => {
+      mockRouteParams.tab = 'members';
+
+      wrapper = await mountComponent();
+
+      expect(selectedTabId(wrapper)).toBe('org-tab-members');
+      expect(mockRouter.replace).not.toHaveBeenCalled();
+    });
+
+    it('bounces a deep link to a tab the user cannot open to Domains', async () => {
+      mockRouteParams.tab = 'members';
+      mockEntitlements.value = [];
+
+      wrapper = await mountComponent();
+
+      expect(selectedTabId(wrapper)).toBe('org-tab-domains');
+      expect(mockRouter.replace).toHaveBeenCalledWith(tabNavigation('domains'));
+    });
+
+    it('follows a :tab change it did not make (Back/Forward, a link to a tab)', async () => {
+      wrapper = await mountComponent();
+
+      mockRouteParams.tab = 'activity';
+      await settle();
+      expect(selectedTabId(wrapper)).toBe('org-tab-activity');
+      expect(wrapper.find('[data-testid="org-section-activity"]').exists()).toBe(true);
+
+      // Back onto the bare org URL: the default tab.
+      delete mockRouteParams.tab;
+      await settle();
+      expect(selectedTabId(wrapper)).toBe('org-tab-domains');
+      expect(mockRouter.replace).not.toHaveBeenCalled();
+    });
+
+    it('bounces a :tab change to a tab the user cannot open to Domains', async () => {
+      mockEntitlements.value = [];
+      wrapper = await mountComponent();
+
+      mockRouteParams.tab = 'members';
+      await settle();
+
+      expect(selectedTabId(wrapper)).toBe('org-tab-domains');
+      expect(mockRouter.replace).toHaveBeenCalledWith(tabNavigation('domains'));
+    });
+
+    it("never gates another org's :tab with this org's permissions", async () => {
+      // A switch to another org remounts the view (its :extid is in the view
+      // key). Until then this instance must not bounce the new route's tab.
+      mockEntitlements.value = [];
+      wrapper = await mountComponent();
+
+      mockRouteParams.extid = 'on1other456';
+      mockRouteParams.tab = 'members';
+      await settle();
+
+      expect(mockRouter.replace).not.toHaveBeenCalled();
+    });
+
+    /**
+     * The subscription view has no tab since #2929: /org/:extid/subscription
+     * (and the header plan chip) open it. No tab is selected there, so the
+     * first tab has to hold the roving tabindex, or the tab list drops out of
+     * the Tab sequence and the arrow keys have no tab to move from.
+     */
+    describe('subscription view (no tab)', () => {
+      beforeEach(() => {
+        mockRouteParams.tab = 'subscription';
+      });
+
+      const tabsInTabSequence = (w: VueWrapper) =>
+        w
+          .find('nav[aria-label="Organization settings tabs"]')
+          .findAll('button[role="tab"][tabindex="0"]')
+          .map((tab) => tab.attributes('id'));
+
+      it.each([
+        { billingEnabled: true, heading: 'web.billing.subscription.status' },
+        { billingEnabled: false, heading: 'web.organizations.billing_coming_soon' },
+      ])(
+        'is a region named by its heading, not a tabpanel (billing on: $billingEnabled)',
+        async ({ billingEnabled, heading }) => {
+          wrapper = await mountComponent({ billingEnabled });
+
+          const section = wrapper.find('[data-testid="org-section-subscription"]');
+          expect(section.exists()).toBe(true);
+          expect(section.element.tagName).toBe('SECTION');
+          expect(section.attributes('role')).toBeUndefined();
+          expect(section.attributes('tabindex')).toBeUndefined();
+
+          const labelledBy = section.attributes('aria-labelledby');
+          expect(labelledBy).toBeTruthy();
+          const label = section.find(`#${labelledBy}`);
+          expect(label.exists()).toBe(true);
+          expect(label.element.tagName).toBe('H3');
+          expect(label.text()).toBe(heading);
+        }
+      );
+
+      it('selects no tab and keeps the first tab in the Tab sequence', async () => {
+        wrapper = await mountComponent();
+
+        expect(selectedTabId(wrapper)).toBeUndefined();
+        expect(tabsInTabSequence(wrapper)).toEqual(['org-tab-domains']);
+        expect(mockRouter.replace).not.toHaveBeenCalled();
+      });
+
+      it('moves on with the arrow keys from the first tab', async () => {
+        wrapper = await mountComponent({ attachTo: document.body });
+
+        const domainsTab = findTab(wrapper, 'domains');
+        (domainsTab.element as HTMLElement).focus();
+        await domainsTab.trigger('keydown', { key: 'ArrowRight' });
+        await settle();
+
+        const membersTab = findTab(wrapper, 'members');
+        expect(document.activeElement).toBe(membersTab.element);
+        expect(selectedTabId(wrapper)).toBe('org-tab-members');
+        expect(tabsInTabSequence(wrapper)).toEqual(['org-tab-members']);
+        expect(mockRouter.replace).toHaveBeenLastCalledWith(tabNavigation('members'));
+      });
+
+      it('wraps to the last tab with ArrowLeft from the first tab', async () => {
+        wrapper = await mountComponent({ attachTo: document.body });
+
+        const domainsTab = findTab(wrapper, 'domains');
+        (domainsTab.element as HTMLElement).focus();
+        await domainsTab.trigger('keydown', { key: 'ArrowLeft' });
+        await settle();
+
+        const settingsTab = findTab(wrapper, 'general');
+        expect(document.activeElement).toBe(settingsTab.element);
+        expect(selectedTabId(wrapper)).toBe('org-tab-general');
+        expect(mockRouter.replace).toHaveBeenLastCalledWith(tabNavigation('settings'));
+      });
+    });
+
+    it('never navigates once unmounted', async () => {
+      // Gated deep link: checkInitialTabRedirect would navigate to /domains
+      // after onMounted's awaits. Unmount before they resolve, as when the
+      // user navigates away mid-load.
+      mockRouteParams.tab = 'members';
+      mockEntitlements.value = [];
+      mountComponentUnsettled();
+
+      wrapper.unmount();
+      await settle();
+
+      expect(mockRouter.replace).not.toHaveBeenCalled();
     });
   });
 });

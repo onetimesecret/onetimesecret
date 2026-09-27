@@ -34,8 +34,8 @@
 import { expect, Page, test } from '@playwright/test';
 
 import { env, gateReason } from '../support/env';
-
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
+import { getFirstDomain } from '../support/domains';
+import { getFirstOrganization } from '../support/organizations';
 
 // HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
 // Every test drives the custom-domain incoming-secrets pages
@@ -48,20 +48,6 @@ const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_US
 test.beforeEach(() => {
   test.skip(!env.hasCustomDomains, gateReason.customDomains);
 });
-
-// -----------------------------------------------------------------------------
-// Types
-// -----------------------------------------------------------------------------
-
-interface OrgInfo {
-  extid: string;
-  name: string;
-}
-
-interface DomainInfo {
-  extid: string;
-  displayDomain: string;
-}
 
 // -----------------------------------------------------------------------------
 // Test Helpers
@@ -104,53 +90,6 @@ async function loginUser(page: Page): Promise<void> {
   }
 
   await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-}
-
-/**
- * Get the first organization the user has access to
- */
-async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
-  await page.goto('/orgs');
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-  const orgLink = page.locator('a[href*="/org/"]').first();
-  if (!(await orgLink.isVisible().catch(() => false))) {
-    return null;
-  }
-
-  const href = await orgLink.getAttribute('href');
-  const match = href?.match(/\/org\/([^/]+)/);
-  if (!match) return null;
-
-  const extid = match[1];
-  const nameElement = orgLink.locator('span.truncate, .font-medium, h3, h4').first();
-  const name = (await nameElement.textContent())?.trim() || extid;
-
-  return { extid, name };
-}
-
-/**
- * Get the first domain in the organization
- */
-async function getFirstDomain(page: Page, orgExtid: string): Promise<DomainInfo | null> {
-  await page.goto(`/org/${orgExtid}/domains`);
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-  const domainLink = page.locator('a[href*="/domains/"]').first();
-  if (!(await domainLink.isVisible().catch(() => false))) {
-    return null;
-  }
-
-  const href = await domainLink.getAttribute('href');
-  const match = href?.match(/\/domains\/([^/]+)/);
-  if (!match) return null;
-
-  const domainText = await domainLink.locator('.font-medium, .truncate').first().textContent();
-
-  return {
-    extid: match[1],
-    displayDomain: domainText?.trim() || match[1],
-  };
 }
 
 /**
@@ -248,8 +187,6 @@ async function mockIncomingConfigDisabled(page: Page, domainExtid: string): Prom
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Incoming - Entitlement Gating (#3479 Fix B)', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
     await loginUser(page);
@@ -259,13 +196,11 @@ test.describe('Domain Incoming - Entitlement Gating (#3479 Fix B)', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    const domain = await getFirstDomain(page, org.extid);
 
     // Navigate to incoming config page (using real entitlements)
-    await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
+    await navigateToDomainIncomingPage(page, org.extid, domain.extid);
 
     // Check what's visible - either form (has entitlements) or access denied (no entitlements)
     const form = page.locator('form');
@@ -304,18 +239,16 @@ test.describe('Domain Incoming - Entitlement Gating (#3479 Fix B)', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    const domain = await getFirstDomain(page, org.extid);
 
     // Mock entitlements: has incoming_secrets but NOT manage_org
-    await mockEntitlements(page, org!.extid, {
+    await mockEntitlements(page, org.extid, {
       manage_org: false,
       incoming_secrets: true,
     });
 
-    await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
+    await navigateToDomainIncomingPage(page, org.extid, domain.extid);
 
     // Access denied banner should be visible
     const accessDenied = page.getByText(/access denied/i);
@@ -337,18 +270,16 @@ test.describe('Domain Incoming - Entitlement Gating (#3479 Fix B)', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    const domain = await getFirstDomain(page, org.extid);
 
     // Mock entitlements: has manage_org but NOT incoming_secrets
-    await mockEntitlements(page, org!.extid, {
+    await mockEntitlements(page, org.extid, {
       manage_org: true,
       incoming_secrets: false,
     });
 
-    await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
+    await navigateToDomainIncomingPage(page, org.extid, domain.extid);
 
     // Upgrade Required banner should be visible (plan-gate fires first)
     const upgradeRequired = page.getByText(/upgrade required/i);
@@ -363,18 +294,16 @@ test.describe('Domain Incoming - Entitlement Gating (#3479 Fix B)', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    const domain = await getFirstDomain(page, org.extid);
 
     // Mock entitlements: has neither
-    await mockEntitlements(page, org!.extid, {
+    await mockEntitlements(page, org.extid, {
       manage_org: false,
       incoming_secrets: false,
     });
 
-    await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
+    await navigateToDomainIncomingPage(page, org.extid, domain.extid);
 
     // Upgrade Required banner should be visible (plan-gate fires first when incoming_secrets missing)
     const upgradeRequired = page.getByText(/upgrade required/i);
@@ -393,25 +322,23 @@ test.describe('Domain Incoming - Entitlement Gating (#3479 Fix B)', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    const domain = await getFirstDomain(page, org.extid);
 
     // Mock entitlements: has manage_org but NOT incoming_secrets (plan upgrade case)
-    await mockEntitlements(page, org!.extid, {
+    await mockEntitlements(page, org.extid, {
       manage_org: true,
       incoming_secrets: false,
     });
 
-    await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
+    await navigateToDomainIncomingPage(page, org.extid, domain.extid);
 
     // Upgrade Required should be visible (plan-gate path)
     const upgradeRequired = page.getByText(/upgrade required/i);
     await expect(upgradeRequired).toBeVisible();
 
     // Upgrade link SHOULD be present for plan upgrade case
-    const upgradeLink = page.locator(`a[href*="/billing/${org!.extid}/plans"]`);
+    const upgradeLink = page.locator(`a[href*="/billing/${org.extid}/plans"]`);
     await expect(upgradeLink).toBeVisible();
   });
 
@@ -419,25 +346,23 @@ test.describe('Domain Incoming - Entitlement Gating (#3479 Fix B)', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    const domain = await getFirstDomain(page, org.extid);
 
     // Mock entitlements: has incoming_secrets but NOT manage_org (role case, not plan)
-    await mockEntitlements(page, org!.extid, {
+    await mockEntitlements(page, org.extid, {
       manage_org: false,
       incoming_secrets: true,
     });
 
-    await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
+    await navigateToDomainIncomingPage(page, org.extid, domain.extid);
 
     // Access denied should be visible
     const accessDenied = page.getByText(/access denied/i);
     await expect(accessDenied).toBeVisible();
 
     // Upgrade link should NOT be present (user needs role, not plan upgrade)
-    const upgradeLink = page.locator(`a[href*="/billing/${org!.extid}/plans"]`);
+    const upgradeLink = page.locator(`a[href*="/billing/${org.extid}/plans"]`);
     await expect(upgradeLink).not.toBeVisible();
   });
 });
@@ -447,8 +372,6 @@ test.describe('Domain Incoming - Entitlement Gating (#3479 Fix B)', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Incoming - Error/Disabled Banner Exclusivity (#3479 Fix A)', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
     await loginUser(page);
@@ -458,21 +381,19 @@ test.describe('Domain Incoming - Error/Disabled Banner Exclusivity (#3479 Fix A)
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    const domain = await getFirstDomain(page, org.extid);
 
     // Mock entitlements to allow access
-    await mockEntitlements(page, org!.extid, {
+    await mockEntitlements(page, org.extid, {
       manage_org: true,
       incoming_secrets: true,
     });
 
     // Mock incoming config to return an error
-    await mockIncomingConfigError(page, domain!.extid);
+    await mockIncomingConfigError(page, domain.extid);
 
-    await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
+    await navigateToDomainIncomingPage(page, org.extid, domain.extid);
 
     // Wait for either error alert or form to appear
     const errorAlert = page.locator('[role="alert"]');
@@ -504,21 +425,19 @@ test.describe('Domain Incoming - Error/Disabled Banner Exclusivity (#3479 Fix A)
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    const domain = await getFirstDomain(page, org.extid);
 
     // Mock entitlements to allow access
-    await mockEntitlements(page, org!.extid, {
+    await mockEntitlements(page, org.extid, {
       manage_org: true,
       incoming_secrets: true,
     });
 
     // Mock incoming config to return disabled state (no error)
-    await mockIncomingConfigDisabled(page, domain!.extid);
+    await mockIncomingConfigDisabled(page, domain.extid);
 
-    await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
+    await navigateToDomainIncomingPage(page, org.extid, domain.extid);
 
     // Wait for form or access-denied state to appear
     const formElement = page.locator('form');
@@ -548,13 +467,11 @@ test.describe('Domain Incoming - Error/Disabled Banner Exclusivity (#3479 Fix A)
 
   test('TC-DIE-008: neither error nor disabled_notice when form is enabled', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    const domain = await getFirstDomain(page, org.extid);
 
     // Navigate without mocking to use real state
-    await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
+    await navigateToDomainIncomingPage(page, org.extid, domain.extid);
 
     // Check if form is visible
     const form = page.locator('form');
@@ -585,8 +502,6 @@ test.describe('Domain Incoming - Error/Disabled Banner Exclusivity (#3479 Fix A)
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Incoming - Toggle State Transitions', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
     await loginUser(page);
@@ -594,16 +509,13 @@ test.describe('Domain Incoming - Toggle State Transitions', () => {
 
   test('TC-DIE-009: disabled_notice appears when toggling feature OFF', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    const domain = await getFirstDomain(page, org.extid);
 
-    await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
+    await navigateToDomainIncomingPage(page, org.extid, domain.extid);
 
     const form = page.locator('form');
-    const formVisible = await form.isVisible().catch(() => false);
-    test.skip(!formVisible, 'Test requires access to incoming config form');
+    await expect(form, 'the incoming config form renders').toBeVisible();
 
     const toggle = page.locator('button[role="switch"]');
     const ariaChecked = await toggle.getAttribute('aria-checked');
@@ -623,16 +535,13 @@ test.describe('Domain Incoming - Toggle State Transitions', () => {
 
   test('TC-DIE-010: disabled_notice disappears when toggling feature ON', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    const domain = await getFirstDomain(page, org.extid);
 
-    await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
+    await navigateToDomainIncomingPage(page, org.extid, domain.extid);
 
     const form = page.locator('form');
-    const formVisible = await form.isVisible().catch(() => false);
-    test.skip(!formVisible, 'Test requires access to incoming config form');
+    await expect(form, 'the incoming config form renders').toBeVisible();
 
     const toggle = page.locator('button[role="switch"]');
     const ariaChecked = await toggle.getAttribute('aria-checked');
@@ -659,8 +568,6 @@ test.describe('Domain Incoming - Toggle State Transitions', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('Domain Incoming - Regression Prevention (#3479)', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
     await loginUser(page);
@@ -668,18 +575,16 @@ test.describe('Domain Incoming - Regression Prevention (#3479)', () => {
 
   test('TC-DIE-011: access denied state never shows "enable below" prompt', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    const domain = await getFirstDomain(page, org.extid);
 
     // Mock to force access denied state
-    await mockEntitlements(page, org!.extid, {
+    await mockEntitlements(page, org.extid, {
       manage_org: false,
       incoming_secrets: true,
     });
 
-    await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
+    await navigateToDomainIncomingPage(page, org.extid, domain.extid);
 
     // Verify access denied is shown
     const accessDenied = page.getByText(/access denied/i);
@@ -712,12 +617,10 @@ test.describe('Domain Incoming - Regression Prevention (#3479)', () => {
 
   test('TC-DIE-012: page states are exhaustive and non-overlapping', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
+    const domain = await getFirstDomain(page, org.extid);
 
-    await navigateToDomainIncomingPage(page, org!.extid, domain!.extid);
+    await navigateToDomainIncomingPage(page, org.extid, domain.extid);
 
     // Define the mutually exclusive states
     const loadingState = page.locator('[class*="skeleton"], [class*="loading"]');
@@ -737,7 +640,10 @@ test.describe('Domain Incoming - Regression Prevention (#3479)', () => {
     // Count visible states
     const visibleStates: string[] = [];
     for (const state of states) {
-      const isVisible = await state.element.first().isVisible().catch(() => false);
+      const isVisible = await state.element
+        .first()
+        .isVisible()
+        .catch(() => false);
       if (isVisible) {
         visibleStates.push(state.name);
       }

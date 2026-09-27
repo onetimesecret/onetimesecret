@@ -6,23 +6,27 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
 import { nextTick, reactive, ref } from 'vue';
 
-// Mock composables
-const mockCurrentContext = {
-  value: {
-    domain: 'acme.example.com',
-    displayName: 'acme.example.com',
-    isCanonical: false,
-  },
-};
+const INDICATOR = '[data-testid="secret-domain-context-indicator"]';
 
-const mockIsContextActive = { value: true };
+// Mock composables. These are real refs because useDomainContext returns
+// computeds: the template unwraps a ref, but not a plain `{ value }` object, so
+// with plain objects every `currentContext.*` binding in the template read
+// undefined.
+const mockCurrentContext = ref({
+  domain: 'acme.example.com',
+  displayName: 'acme.example.com',
+  isCanonical: false,
+});
+
+const mockIsContextActive = ref(true);
+const mockHasMultipleContexts = ref(true);
 const mockSetContext = vi.fn();
 
 vi.mock('@/shared/composables/useDomainContext', () => ({
   useDomainContext: vi.fn(() => ({
     currentContext: mockCurrentContext,
     isContextActive: mockIsContextActive,
-    hasMultipleContexts: { value: true },
+    hasMultipleContexts: mockHasMultipleContexts,
     availableDomains: { value: ['acme.example.com', 'widgets.example.com', 'onetimesecret.com'] },
     setContext: mockSetContext,
     resetContext: vi.fn(),
@@ -103,10 +107,11 @@ describe('SecretForm - Domain Context Integration', () => {
       isCanonical: false,
     };
     mockIsContextActive.value = true;
+    mockHasMultipleContexts.value = true;
   });
 
   describe('Domain Context Indicator', () => {
-    it('displays context indicator when isContextActive is true', () => {
+    it('renders the indicator for a custom domain context', () => {
       mockIsContextActive.value = true;
 
       const wrapper = mount(SecretForm, {
@@ -114,11 +119,13 @@ describe('SecretForm - Domain Context Integration', () => {
         global: { plugins: [createMountPinia()] },
       });
 
-      const indicator = wrapper.find('[role="status"]');
-      expect(indicator.exists()).toBe(true);
+      expect(wrapper.find(INDICATOR).exists()).toBe(true);
     });
 
-    it('hides context indicator when isContextActive is false', () => {
+    // domains_enabled: false makes useDomainContext report isContextActive
+    // false (covered in useDomainContext.spec.ts). The form then has no domain
+    // context to show.
+    it('does not render the indicator when domains are disabled', () => {
       mockIsContextActive.value = false;
 
       const wrapper = mount(SecretForm, {
@@ -126,15 +133,28 @@ describe('SecretForm - Domain Context Integration', () => {
         global: { plugins: [createMountPinia()] },
       });
 
-      // When context is inactive, the v-if should not render the context indicator
-      const contextSection = wrapper.find('[data-testid="domain-context-section"]');
-      if (!contextSection.exists()) {
-        // The v-if prevented rendering - this is correct
-        expect(true).toBe(true);
-      } else {
-        // If it exists, it should not be visible
-        expect(contextSection.isVisible()).toBe(false);
-      }
+      expect(wrapper.find(INDICATOR).exists()).toBe(false);
+      expect(wrapper.text()).not.toContain('web.LABELS.creating_links_for');
+    });
+
+    // Domains enabled with no custom domains: the canonical domain is the only
+    // possible context, so there is no domain choice to indicate.
+    it('does not render the indicator when only the canonical domain exists', () => {
+      mockIsContextActive.value = true;
+      mockHasMultipleContexts.value = false;
+      mockCurrentContext.value = {
+        domain: 'onetimesecret.com',
+        displayName: 'onetimesecret.com',
+        isCanonical: true,
+      };
+
+      const wrapper = mount(SecretForm, {
+        props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
+      });
+
+      expect(wrapper.find(INDICATOR).exists()).toBe(false);
+      expect(wrapper.text()).not.toContain('web.LABELS.creating_links_for');
     });
 
     it('hides context indicator on a custom domain (single fixed domain)', () => {
@@ -165,19 +185,10 @@ describe('SecretForm - Domain Context Integration', () => {
       });
 
       // The "Creating links for" badge is noise when only one domain is possible.
-      const indicator = wrapper.find('[role="status"]');
-      expect(indicator.exists()).toBe(false);
+      expect(wrapper.find(INDICATOR).exists()).toBe(false);
     });
 
-    it.skip('displays correct domain name for custom domain', () => {
-      // SKIP: Reactive mock computed properties don't propagate to template bindings.
-      // The template uses {{ currentContext.displayName }} which evaluates at render time.
-      // Vitest module mocks capture values at import time; changing mockCurrentContext.value
-      // after mount doesn't trigger Vue reactivity.
-      //
-      // E2E COVERAGE: e2e/full/domain-context-consultant.spec.ts
-      //   - "displays domain context indicator for user with custom domains" (line 72)
-      // STATUS: E2E test exists but skipped pending backend test fixtures
+    it('displays correct domain name for custom domain', () => {
       mockCurrentContext.value = {
         domain: 'acme.example.com',
         displayName: 'acme.example.com',
@@ -189,31 +200,7 @@ describe('SecretForm - Domain Context Integration', () => {
         global: { plugins: [createMountPinia()] },
       });
 
-      const indicator = wrapper.find('[role="status"]');
-      // Check that the displayName is bound in the template
-      expect(indicator.html()).toContain('acme.example.com');
-    });
-
-    it.skip('displays "Personal" for canonical domain', () => {
-      // SKIP: Same Vitest mock limitation - values captured at import time.
-      //
-      // E2E COVERAGE: e2e/full/domain-context-consultant.spec.ts
-      //   - "canonical domain shows Personal label" (line 290)
-      // STATUS: E2E test exists but skipped pending DomainContextSwitcher integration
-      mockCurrentContext.value = {
-        domain: 'onetimesecret.com',
-        displayName: 'Personal',
-        isCanonical: true,
-      };
-
-      const wrapper = mount(SecretForm, {
-        props: { enabled: true },
-        global: { plugins: [createMountPinia()] },
-      });
-
-      const indicator = wrapper.find('[role="status"]');
-      // Check HTML since OIcon doesn't render readable text
-      expect(indicator.html()).toContain('Personal');
+      expect(wrapper.find(INDICATOR).text()).toContain('acme.example.com');
     });
   });
 
@@ -230,7 +217,7 @@ describe('SecretForm - Domain Context Integration', () => {
         global: { plugins: [createMountPinia()] },
       });
 
-      const indicator = wrapper.find('[role="status"]');
+      const indicator = wrapper.find(INDICATOR);
       const classes = indicator.classes();
 
       // Custom domain should have brand colors
@@ -238,18 +225,11 @@ describe('SecretForm - Domain Context Integration', () => {
       expect(classes).toContain('text-brand-700');
     });
 
-    it.skip('applies canonical domain styling for canonical context', () => {
-      // SKIP: Vitest mock limitation - :class bindings evaluate at render time with
-      // captured mock values, not reactively updated values.
-      //
-      // E2E COVERAGE: e2e/full/domain-context-consultant.spec.ts
-      //   - "context indicator shows correct styling for custom domain" (line 104)
-      //   - "canonical domain shows Personal label" (line 290) - checks gray styling
-      // STATUS: E2E tests exist but skipped pending backend fixtures
+    it('applies canonical domain styling for canonical context', () => {
       mockIsContextActive.value = true;
       mockCurrentContext.value = {
         domain: 'onetimesecret.com',
-        displayName: 'Personal',
+        displayName: 'onetimesecret.com',
         isCanonical: true,
       };
 
@@ -258,12 +238,12 @@ describe('SecretForm - Domain Context Integration', () => {
         global: { plugins: [createMountPinia()] },
       });
 
-      const indicator = wrapper.find('[role="status"]');
-      const html = indicator.html();
+      const classes = wrapper.find(INDICATOR).classes();
 
-      // Canonical domain should have gray colors in the class list
-      expect(html).toContain('bg-gray-100');
-      expect(html).toContain('text-gray-700');
+      // Canonical domain should have gray colors, not the brand ones
+      expect(classes).toContain('bg-gray-100');
+      expect(classes).toContain('text-gray-700');
+      expect(classes).not.toContain('bg-brand-50');
     });
 
     it('displays correct icon for custom domain', () => {
@@ -278,20 +258,16 @@ describe('SecretForm - Domain Context Integration', () => {
         global: { plugins: [createMountPinia()] },
       });
 
-      const indicator = wrapper.find('[role="status"]');
+      const indicator = wrapper.find(INDICATOR);
       // The icon component uses href with the icon name
       expect(indicator.html()).toContain('building-office');
     });
 
-    it.skip('displays correct icon for canonical domain', () => {
-      // SKIP: Same Vitest mock limitation - template conditionals use captured values.
-      //
-      // E2E COVERAGE: No direct E2E test for icon verification exists.
-      // MISSING: Consider adding icon assertion to "canonical domain shows Personal label"
+    it('displays correct icon for canonical domain', () => {
       mockIsContextActive.value = true;
       mockCurrentContext.value = {
         domain: 'onetimesecret.com',
-        displayName: 'Personal',
+        displayName: 'onetimesecret.com',
         isCanonical: true,
       };
 
@@ -300,7 +276,7 @@ describe('SecretForm - Domain Context Integration', () => {
         global: { plugins: [createMountPinia()] },
       });
 
-      const indicator = wrapper.find('[role="status"]');
+      const indicator = wrapper.find(INDICATOR);
       // The icon component uses href with the icon name
       expect(indicator.html()).toContain('user-circle');
     });
@@ -313,7 +289,7 @@ describe('SecretForm - Domain Context Integration', () => {
         global: { plugins: [createMountPinia()] },
       });
 
-      const indicator = wrapper.find('[role="status"]');
+      const indicator = wrapper.find(INDICATOR);
       expect(indicator.attributes('role')).toBe('status');
       expect(indicator.attributes('aria-label')).toBeTruthy();
     });
@@ -330,7 +306,7 @@ describe('SecretForm - Domain Context Integration', () => {
         global: { plugins: [createMountPinia()] },
       });
 
-      const indicator = wrapper.find('[role="status"]');
+      const indicator = wrapper.find(INDICATOR);
       const ariaLabel = indicator.attributes('aria-label');
       // The aria-label should reference the i18n key with domain parameter
       expect(ariaLabel).toBeTruthy();
@@ -370,17 +346,7 @@ describe('SecretForm - Domain Context Integration', () => {
       expect(mockUpdateField).toHaveBeenCalledWith('share_domain', 'acme.example.com');
     });
 
-    it.skip('reactively updates when currentContext changes', async () => {
-      // SKIP: Vitest module mocks don't participate in Vue's reactivity system.
-      // Reactivity is tested in useDomainContext.spec.ts composable tests.
-      //
-      // E2E COVERAGE: e2e/full/domain-context-consultant.spec.ts
-      //   - "context indicator updates when switching domains" (line 264)
-      //   - "context switcher allows changing between domains" (line 233)
-      // STATUS: E2E tests exist but skipped pending DomainContextSwitcher - component
-      // exists at src/apps/workspace/components/navigation/DomainContextSwitcher.vue, tests
-      // can be enabled once backend fixtures are configured
-
+    it('reactively updates when currentContext changes', async () => {
       const mockUpdateField = vi.fn();
 
       vi.mocked(
@@ -426,7 +392,7 @@ describe('SecretForm - Domain Context Integration', () => {
         global: { plugins: [createMountPinia()] },
       });
 
-      const indicator = wrapper.find('[role="status"]');
+      const indicator = wrapper.find(INDICATOR);
       const parent = indicator.element.parentElement;
 
       // Should be in a flex container
@@ -439,7 +405,7 @@ describe('SecretForm - Domain Context Integration', () => {
         global: { plugins: [createMountPinia()] },
       });
 
-      const indicator = wrapper.find('[role="status"]');
+      const indicator = wrapper.find(INDICATOR);
 
       // Check that order-1 class is applied for proper ordering
       const parentDiv = indicator.element.parentElement;

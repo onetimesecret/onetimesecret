@@ -125,6 +125,20 @@ module Auth::Config::Features
       # UI sends single password field, not password + confirmation
       auth.require_password_confirmation? false
 
+      # Disable login confirmation field requirement, for the same reason: the
+      # SPA signup form sends a single email field, never `login-confirm`.
+      # Rodauth defaults this to true (login_password_requirements_base.rb) and
+      # only verify_account overrides it to false, so with verify_account
+      # disabled (AUTH_VERIFY_ACCOUNT_ENABLED=false) every SPA signup answered
+      # 422 "logins do not match". Stated here so signup does not depend on
+      # which features are enabled. change_login, the only other route that
+      # reads it, is not enabled.
+      #
+      # Not an access control: the field is a typo guard the caller fills in
+      # itself, so any client could always pass it by echoing the login. Who
+      # may create which account is unchanged.
+      auth.require_login_confirmation? false
+
       # SECURITY: Genericize the "same as current password" error.
       #
       # reset_password / change_password run an unconditional

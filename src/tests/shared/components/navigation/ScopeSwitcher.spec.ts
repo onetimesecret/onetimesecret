@@ -71,6 +71,17 @@ describe('ScopeSwitcher engine', () => {
     expect(wrapper.find('[data-testid="scope-item-c"]').exists()).toBe(true);
   });
 
+  it('marks only the current row with aria-current', async () => {
+    wrapper = mount(ScopeSwitcher, { props: baseProps, attachTo: document.body });
+    await openMenu(wrapper);
+
+    // The checkmark is aria-hidden, so aria-current is the only way assistive
+    // tech learns which scope is active.
+    expect(wrapper.get('[data-testid="scope-item-a"]').attributes('aria-current')).toBe('true');
+    expect(wrapper.get('[data-testid="scope-item-b"]').attributes('aria-current')).toBeUndefined();
+    expect(wrapper.get('[data-testid="scope-item-c"]').attributes('aria-current')).toBeUndefined();
+  });
+
   it('emits select and closes the dropdown when a row is clicked', async () => {
     wrapper = mount(ScopeSwitcher, { props: baseProps, attachTo: document.body });
     await openMenu(wrapper);
