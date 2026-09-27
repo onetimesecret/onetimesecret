@@ -137,7 +137,7 @@ RSpec.describe 'Remember me: a fixed 14-day session (full mode)', type: :integra
 
     it 'is still subject to the lifetime deadline' do
       login!('remember-me' => true)
-      active_session_rows.update(created_at: Time.now - (gate::LIFETIME_DEADLINE + 60))
+      active_session_rows.update(created_at: Time.now - (gate::DEFAULT_LIFETIME_DEADLINE + 60))
 
       expect(account_request).to eq(401)
     end

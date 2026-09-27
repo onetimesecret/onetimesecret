@@ -61,7 +61,7 @@ module Onetime
   #
   # Rodauth's two session deadlines are enforced here, in the same SELECT:
   # a row whose `last_use` is older than {INACTIVITY_DEADLINE} or whose
-  # `created_at` is older than {LIFETIME_DEADLINE} is removed, as Rodauth's
+  # `created_at` is older than {lifetime_deadline} is removed, as Rodauth's
   # own sweep (`remove_inactive_sessions`) would remove it, and the Rack
   # session is refused as :revoked. They cannot live anywhere else: the gate
   # keeps `last_use` fresh on every request (below), so a deadline checked
@@ -150,9 +150,12 @@ module Onetime
 
     # Rodauth's session deadlines, in seconds. Owned here and fed to Rodauth
     # (`session_inactivity_deadline`, `session_lifetime_deadline`) so this
-    # gate and the sessions page's sweep apply the same two values.
-    INACTIVITY_DEADLINE = 86_400*3  # 72 hours since `last_use`
-    LIFETIME_DEADLINE   = 2_592_000 # 30 days since `created_at`
+    # gate and the sessions page's sweep apply the same two values. The
+    # lifetime deadline is the operator's `site.session.absolute_timeout`
+    # (SESSION_ABSOLUTE_TIMEOUT), read through {lifetime_deadline}; this is
+    # its shipped default.
+    INACTIVITY_DEADLINE       = 86_400*3  # 72 hours since `last_use`
+    DEFAULT_LIFETIME_DEADLINE = 2_592_000 # 30 days since `created_at`
 
     TABLE = :account_active_session_keys
 
@@ -230,7 +233,7 @@ module Onetime
     # The rows that are past a deadline, as one SQL condition: a row that is
     # not remembered and idle past {INACTIVITY_DEADLINE}, a remembered row
     # whose `remember_until` has passed, or any row older than
-    # {LIFETIME_DEADLINE}. The per-request SELECT below asks the same three
+    # {lifetime_deadline}. The per-request SELECT below asks the same three
     # questions one at a time so the refusal can name the deadline; Rodauth's
     # sweep (`inactive_session_cond`, overridden in
     # apps/web/auth/config/features/active_sessions.rb) deletes on this.
@@ -238,6 +241,37 @@ module Onetime
     # @return [Sequel::SQL::BooleanExpression]
     def expired_condition
       Sequel.|(inactive_condition, remember_lapsed_condition, lifetime_condition)
+    end
+
+    # The absolute session lifetime, in seconds since sign-in, or nil when
+    # the operator has disabled it: `site.session.absolute_timeout`
+    # (SESSION_ABSOLUTE_TIMEOUT), {DEFAULT_LIFETIME_DEADLINE} when unset.
+    # Applied by this gate to the row's `created_at` (and handed to Rodauth
+    # as `session_lifetime_deadline`, where nil means none) and by
+    # Onetime::Session to the blob's `authenticated_at`, so both auth modes
+    # share the one bound.
+    #
+    # Read on every call, never memoised, so a config reload takes effect
+    # without a restart. The value arrives as whatever YAML parsed from
+    # `<%= ENV[...] || N %>`, so it is accepted only as a clean non-negative
+    # integer (an Integer, or an all-digits String); anything else falls
+    # back to the default rather than String#to_i-ing a typo into a
+    # 12-second lifetime ("12h") or a disabled one ("off"). 0 legitimately
+    # disables the bound, so it is kept, as nil. Same rule as the colonel's
+    # AdminSessionLifetime timeouts.
+    #
+    # @return [Integer, nil]
+    def lifetime_deadline
+      raw     = Onetime.session_config['absolute_timeout']
+      seconds =
+        case raw
+        when Integer then raw.negative? ? DEFAULT_LIFETIME_DEADLINE : raw
+        when String  then raw.match?(/\A\d+\z/) ? raw.to_i : DEFAULT_LIFETIME_DEADLINE
+        else DEFAULT_LIFETIME_DEADLINE
+        end
+      seconds.zero? ? nil : seconds
+    rescue StandardError
+      DEFAULT_LIFETIME_DEADLINE
     end
 
     private
@@ -327,8 +361,13 @@ module Onetime
       Sequel.&(Sequel.~(remember_until: nil), Sequel[:remember_until] < Sequel::CURRENT_TIMESTAMP)
     end
 
+    # Older than the absolute lifetime; never true when the operator has
+    # disabled it (absolute_timeout 0).
     def lifetime_condition
-      past_condition(:created_at, LIFETIME_DEADLINE)
+      deadline = lifetime_deadline
+      return Sequel.lit('1 = 0') if deadline.nil?
+
+      past_condition(:created_at, deadline)
     end
 
     # `1` or `0` for a condition, as an integer CASE rather than a bare

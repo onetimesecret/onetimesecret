@@ -1001,11 +1001,13 @@ module Onetime
     #
     # - the remember-me deadline, `remember_until` (Onetime::RememberMe), an
     #   integer epoch stamped at a sign-in with the box ticked;
-    # - the lifetime deadline, {Onetime::ActiveSessionGate::LIFETIME_DEADLINE}
-    #   after `authenticated_at`, the integer epoch every sign-in writes. The
-    #   same 30 days the full-mode active-session row is held to, applied to
-    #   the blob itself so simple mode, which has no row, has an absolute
-    #   bound too, and full mode has it from the read as well as from the gate.
+    # - the lifetime deadline, {Onetime::ActiveSessionGate.lifetime_deadline}
+    #   (`site.session.absolute_timeout`, 30 days unless configured, 0 for
+    #   none) after `authenticated_at`, the integer epoch every sign-in
+    #   writes. The same bound the full-mode active-session row is held to,
+    #   applied to the blob itself so simple mode, which has no row, has an
+    #   absolute bound too, and full mode has it from the read as well as
+    #   from the gate.
     #
     # A value that is not an integer epoch does not count: it is not a
     # deadline this store wrote, and the session falls back to the default
@@ -1021,7 +1023,8 @@ module Onetime
       remember  = session_data[Onetime::RememberMe::SESSION_KEY]
       deadlines << remember if remember.is_a?(Integer)
       signed_in = session_data['authenticated_at']
-      deadlines << (signed_in + Onetime::ActiveSessionGate::LIFETIME_DEADLINE) if signed_in.is_a?(Integer)
+      lifetime  = Onetime::ActiveSessionGate.lifetime_deadline
+      deadlines << (signed_in + lifetime) if signed_in.is_a?(Integer) && lifetime
       return nil if deadlines.empty?
 
       deadlines.min - now.to_i

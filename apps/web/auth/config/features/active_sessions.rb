@@ -21,9 +21,10 @@ module Auth::Config::Features
       # deadlines actually end a session. The gate owns the numbers so the
       # two can never drift apart. The sweep's condition is the gate's too
       # (inactive_session_cond below), because only the gate knows about a
-      # remembered row's remember_until.
+      # remembered row's remember_until. The lifetime deadline is the
+      # operator's site.session.absolute_timeout, nil (none) when set to 0.
       auth.session_inactivity_deadline Onetime::ActiveSessionGate::INACTIVITY_DEADLINE
-      auth.session_lifetime_deadline Onetime::ActiveSessionGate::LIFETIME_DEADLINE
+      auth.session_lifetime_deadline Onetime::ActiveSessionGate.lifetime_deadline
 
       # Stamp the Rodauth-side JOIN KEY into the app session.
       #

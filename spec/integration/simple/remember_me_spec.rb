@@ -118,7 +118,7 @@ RSpec.describe 'Remember me: a fixed 14-day session (simple mode)', type: :integ
     it 'ends a session signed in more than 30 days ago, remembered or not', :aggregate_failures do
       login!
       old_sid, old_key = sid_and_blob_key
-      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::LIFETIME_DEADLINE + 86_400) }
+      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 86_400) }
 
       expect(account_request).to eq(401)
       expect(current_session_id).not_to eq(old_sid)
@@ -127,15 +127,53 @@ RSpec.describe 'Remember me: a fixed 14-day session (simple mode)', type: :integ
 
     it 'keeps a session signed in 29 days ago, on a blob TTL that ends by the 30th', :aggregate_failures do
       login!
-      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::LIFETIME_DEADLINE - 86_400) }
+      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE - 86_400) }
 
       expect(account_request).to eq(200)
       expect(blob_ttl).to be_between(1, 86_400)
     end
 
+    describe 'with site.session.absolute_timeout configured' do
+      def with_absolute_timeout(value)
+        allow(Onetime).to receive(:session_config).and_wrap_original do |original|
+          original.call.merge('absolute_timeout' => value)
+        end
+      end
+
+      it 'ends a session older than the configured value', :aggregate_failures do
+        with_absolute_timeout(3600)
+        login!
+        old_sid, old_key = sid_and_blob_key
+        rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - 3601 }
+
+        expect(account_request).to eq(401)
+        expect(current_session_id).not_to eq(old_sid)
+        expect(Familia.dbclient.exists?(old_key)).to be(false)
+      end
+
+      it 'keeps a session inside the configured value, on a blob that ends by it' do
+        with_absolute_timeout(3600)
+        login!
+        rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - 3000 }
+
+        expect(account_request).to eq(200)
+        expect(blob_ttl).to be_between(1, 600)
+      end
+
+      it 'applies no absolute bound when set to 0', :aggregate_failures do
+        with_absolute_timeout(0)
+        login!
+        rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 86_400) }
+
+        expect(account_request).to eq(200)
+        expect(blob_ttl).to be_between(1, 86_400)
+        expect(session_cookie_header.to_s).not_to match(/max-age/i)
+      end
+    end
+
     it 'sizes the blob and the cookie to the lifetime deadline when that is nearer than the rolling 24 hours', :aggregate_failures do
       login!
-      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::LIFETIME_DEADLINE - 3600) }
+      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE - 3600) }
 
       expect(account_request).to eq(200)
       expect(blob_ttl).to be_between(1, 3600)
@@ -161,7 +199,7 @@ RSpec.describe 'Remember me: a fixed 14-day session (simple mode)', type: :integ
 
     it 'ends a remembered session at the lifetime deadline too' do
       login!('remember-me' => true)
-      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::LIFETIME_DEADLINE + 60) }
+      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 60) }
 
       expect(account_request).to eq(401)
     end

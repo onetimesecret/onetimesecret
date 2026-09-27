@@ -86,6 +86,7 @@ module Onetime
     # the resolved list (#3997).
     SESSION_DEFAULTS = {
       'expire_after' => 86_400,      # 24 hours
+      'absolute_timeout' => 2_592_000, # 30 days since sign-in; 0 disables
       'key' => 'onetime.session',
       'same_site' => 'lax',
       'httponly' => true,
