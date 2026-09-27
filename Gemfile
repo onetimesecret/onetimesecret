@@ -115,7 +115,6 @@ gem 'rack-contrib', '~> 2.5.0'
 # Mounted directly in MiddlewareStack (JSON/form body parsing); was transitive via otto < 2.10.
 gem 'rack-parser', '~> 0.7'
 gem 'rack-protection', '~> 4.1'
-gem 'rack-proxy', '~> 0.7'
 gem 'rack-session', '~> 2.1.2'
 gem 'rack-utf8_sanitizer', '~> 1.11'
 
@@ -246,6 +245,7 @@ group :development do
   # Debugging tools
   gem 'debug', require: false
   gem 'htmlbeautifier', require: false
+  gem 'rack-proxy', '~> 1.0', '>= 1.0.3'
   gem 'rackup'
   gem 'rerun', '~> 0.14'
 
