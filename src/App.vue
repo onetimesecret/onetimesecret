@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import { routeViewKey } from '@/router/viewKey';
   import StaleSessionNotice from '@/shared/components/auth/StaleSessionNotice.vue';
   import VerificationUnavailable from '@/shared/components/auth/VerificationUnavailable.vue';
   import { iconLibraryComponents } from '@/shared/components/icons/sprites';
@@ -183,7 +184,9 @@
     <!-- Router view with forced component recreation on route changes.
          RouteErrorBoundary swaps a thrown route subtree for a visible error
          panel so a render/setup failure never leaves a silent blank page
-         (the global errorHandler only logs). Keyed + reset on route change. -->
+         (the global errorHandler only logs). Reset on every route change;
+         keyed by routeViewKey, which is the fullPath unless the route lists
+         params in meta.keepMountedAcrossParams (e.g. a settings :tab). -->
     <router-view
       v-slot="{ Component }"
       class="rounded-md">
@@ -192,7 +195,7 @@
         <component
           v-else
           :is="Component"
-          :key="$route.fullPath" />
+          :key="routeViewKey($route)" />
       </RouteErrorBoundary>
     </router-view>
 

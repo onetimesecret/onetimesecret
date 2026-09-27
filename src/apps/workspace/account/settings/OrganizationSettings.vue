@@ -51,13 +51,7 @@
   import { SsoService } from '@/services/sso.service';
   import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import {
-    isNavigationFailure,
-    NavigationFailureType,
-    useRoute,
-    useRouter,
-    type RouteLocationRaw,
-  } from 'vue-router';
+  import { useRoute, useRouter } from 'vue-router';
   import { z } from 'zod';
 
   type TabType = 'general' | 'members' | 'domains' | 'subscription' | 'sso' | 'activity';
@@ -180,32 +174,24 @@
    */
   const activeTab = ref<TabType>(resolveInitialTab());
 
-  // Rewrite the address bar in place, without a router navigation. App.vue
-  // keys the routed view by $route.fullPath, so a router.replace() to another
-  // :tab would REMOUNT this view: every tab switch would refetch permissions,
-  // the organization, members and invitations behind the loading skeleton,
-  // and handleTabKeydown's focus() would reach the destroyed instance's tab,
-  // dropping keyboard focus. Same fullPath-remount trap as Login.vue's
-  // stripConsumedQueryParam.
-  //
-  // `current` is Vue Router's record of this history entry's location. Its
-  // next push re-writes the entry from history.state.current, so leaving that
-  // stale would put the old tab back into the entry that Back returns to.
+  // Switch tabs and mirror the choice in the URL (no new history entry). The
+  // route lists :tab in meta.keepMountedAcrossParams, so this navigation keeps
+  // this instance: no refetch, and handleTabKeydown's focus() lands on the
+  // live tab. It stays a router navigation so router.currentRoute names the
+  // tab on screen for everything that reads it (the org switcher's 'same'
+  // target, links to a tab, Back/Forward).
   //
   // No-op once unmounted: `route` is the app-wide current route, so an
   // onMounted continuation resuming after the user left (checkInitialTabRedirect
-  // after its awaits) would otherwise rewrite the NEXT page's URL.
+  // after its awaits) would otherwise navigate the NEXT page.
   let isUnmounted = false;
-  const replaceUrlInPlace = (location: RouteLocationRaw) => {
-    if (isUnmounted) return;
-    const { fullPath, href } = router.resolve(location);
-    window.history.replaceState({ ...window.history.state, current: fullPath }, '', href);
-  };
-
-  // Switch tabs and mirror the choice in the URL (no new history entry).
+  onBeforeUnmount(() => {
+    isUnmounted = true;
+  });
   const setActiveTab = (tab: TabType) => {
+    if (isUnmounted) return;
     activeTab.value = tab;
-    replaceUrlInPlace({ params: { ...route.params, tab: TAB_TO_URL[tab] } });
+    router.replace({ params: { ...route.params, tab: TAB_TO_URL[tab] } });
   };
 
   // Seat the tab a route's :tab segment names. An absent or unknown segment
@@ -233,33 +219,19 @@
     activeTab.value = resolved;
   };
 
-  // A :tab change that keeps this instance mounted. Today App.vue's fullPath
-  // key remounts the view on every such change (Back/Forward and links
-  // included), so this only matters if that keying ever narrows.
+  // A :tab change on this org keeps this instance mounted: our own
+  // setActiveTab, Back/Forward between tabs, and links to another tab (the
+  // user menu's Activity item). Seat the tab the route now names. Any other
+  // route (another org, another page) remounts or replaces this view, and its
+  // tab must not be gated with this org's permissions.
+  const mountedExtid = route.params.extid;
   watch(
     () => route.params.tab,
-    (newTab) => showRouteTab(newTab as string | undefined)
+    (newTab) => {
+      if (route.params.extid !== mountedExtid) return;
+      showRouteTab(newTab as string | undefined);
+    }
   );
-
-  // Tab switches bypass the router, so router.currentRoute keeps the location
-  // this view mounted with. Two navigations land on exactly that location,
-  // leave fullPath unchanged and therefore keep this instance, while the page
-  // may be showing another tab:
-  //  - a link to it (e.g. the user menu's Activity item after the user moved
-  //    off the Activity tab), which Vue Router drops as a duplicate: no
-  //    guards, no URL change, no remount;
-  //  - Back/Forward onto a history entry whose URL equals it.
-  // Apply that location's URL and tab so the link or entry does what it says.
-  const removeSameLocationSync = router.afterEach((to, from, failure) => {
-    if (failure && !isNavigationFailure(failure, NavigationFailureType.duplicated)) return;
-    if (to.fullPath !== from.fullPath) return;
-    replaceUrlInPlace(to.fullPath);
-    showRouteTab(to.params.tab as string | undefined);
-  });
-  onBeforeUnmount(() => {
-    isUnmounted = true;
-    removeSameLocationSync();
-  });
 
   // Domains management
   const {
