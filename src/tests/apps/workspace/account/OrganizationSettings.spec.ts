@@ -263,12 +263,17 @@ describe('OrganizationSettings', () => {
   // Mounts without awaiting. Use when a test needs the pre-fetch render, i.e.
   // the window before onMounted's awaits (initDefinitions / fetchAllPermissions
   // / loadOrganization) resolve.
-  const mountComponentUnsettled = (options: { attachTo?: HTMLElement } = {}) => {
+  interface MountOptions {
+    attachTo?: HTMLElement;
+    billingEnabled?: boolean;
+  }
+
+  const mountComponentUnsettled = (options: MountOptions = {}) => {
     const pinia = createTestingPinia({
       createSpy: vi.fn,
       initialState: {
         bootstrap: {
-          billing_enabled: true,
+          billing_enabled: options.billingEnabled ?? true,
         },
       },
     });
@@ -285,7 +290,7 @@ describe('OrganizationSettings', () => {
     return wrapper;
   };
 
-  const mountComponent = async (options: { attachTo?: HTMLElement } = {}) => {
+  const mountComponent = async (options: MountOptions = {}) => {
     mountComponentUnsettled(options);
     await flushPromises();
     await nextTick();
@@ -1066,6 +1071,84 @@ describe('OrganizationSettings', () => {
       await settle();
 
       expect(mockRouter.replace).not.toHaveBeenCalled();
+    });
+
+    /**
+     * The subscription view has no tab since #2929: /org/:extid/subscription
+     * (and the header plan chip) open it. No tab is selected there, so the
+     * first tab has to hold the roving tabindex, or the tab list drops out of
+     * the Tab sequence and the arrow keys have no tab to move from.
+     */
+    describe('subscription view (no tab)', () => {
+      beforeEach(() => {
+        mockRouteParams.tab = 'subscription';
+      });
+
+      const tabsInTabSequence = (w: VueWrapper) =>
+        w
+          .find('nav[aria-label="Organization settings tabs"]')
+          .findAll('button[role="tab"][tabindex="0"]')
+          .map((tab) => tab.attributes('id'));
+
+      it.each([
+        { billingEnabled: true, heading: 'web.billing.subscription.status' },
+        { billingEnabled: false, heading: 'web.organizations.billing_coming_soon' },
+      ])(
+        'is a region named by its heading, not a tabpanel (billing on: $billingEnabled)',
+        async ({ billingEnabled, heading }) => {
+          wrapper = await mountComponent({ billingEnabled });
+
+          const section = wrapper.find('[data-testid="org-section-subscription"]');
+          expect(section.exists()).toBe(true);
+          expect(section.element.tagName).toBe('SECTION');
+          expect(section.attributes('role')).toBeUndefined();
+          expect(section.attributes('tabindex')).toBeUndefined();
+
+          const labelledBy = section.attributes('aria-labelledby');
+          expect(labelledBy).toBeTruthy();
+          const label = section.find(`#${labelledBy}`);
+          expect(label.exists()).toBe(true);
+          expect(label.element.tagName).toBe('H3');
+          expect(label.text()).toBe(heading);
+        }
+      );
+
+      it('selects no tab and keeps the first tab in the Tab sequence', async () => {
+        wrapper = await mountComponent();
+
+        expect(selectedTabId(wrapper)).toBeUndefined();
+        expect(tabsInTabSequence(wrapper)).toEqual(['org-tab-domains']);
+        expect(mockRouter.replace).not.toHaveBeenCalled();
+      });
+
+      it('moves on with the arrow keys from the first tab', async () => {
+        wrapper = await mountComponent({ attachTo: document.body });
+
+        const domainsTab = findTab(wrapper, 'domains');
+        (domainsTab.element as HTMLElement).focus();
+        await domainsTab.trigger('keydown', { key: 'ArrowRight' });
+        await settle();
+
+        const membersTab = findTab(wrapper, 'members');
+        expect(document.activeElement).toBe(membersTab.element);
+        expect(selectedTabId(wrapper)).toBe('org-tab-members');
+        expect(tabsInTabSequence(wrapper)).toEqual(['org-tab-members']);
+        expect(mockRouter.replace).toHaveBeenLastCalledWith(tabNavigation('members'));
+      });
+
+      it('wraps to the last tab with ArrowLeft from the first tab', async () => {
+        wrapper = await mountComponent({ attachTo: document.body });
+
+        const domainsTab = findTab(wrapper, 'domains');
+        (domainsTab.element as HTMLElement).focus();
+        await domainsTab.trigger('keydown', { key: 'ArrowLeft' });
+        await settle();
+
+        const settingsTab = findTab(wrapper, 'general');
+        expect(document.activeElement).toBe(settingsTab.element);
+        expect(selectedTabId(wrapper)).toBe('org-tab-general');
+        expect(mockRouter.replace).toHaveBeenLastCalledWith(tabNavigation('settings'));
+      });
     });
 
     it('never navigates once unmounted', async () => {

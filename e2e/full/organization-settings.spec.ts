@@ -258,12 +258,20 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     await expect(page).toHaveURL(new RegExp(`/org/${org.extid}/subscription$`));
     const subscriptionPanel = page.getByTestId('org-section-subscription');
     await expect(subscriptionPanel).toBeVisible();
-    await expect(subscriptionPanel).toHaveAttribute('role', 'tabpanel');
 
     const heading = flags.billingEnabled
       ? 'Subscription Status'
       : 'Billing Integration Coming Soon';
     await expect(subscriptionPanel.getByRole('heading', { name: heading })).toBeVisible();
+
+    // With no tab to label it, the view is not a tabpanel but a region named
+    // by its heading.
+    await expect(subscriptionPanel).not.toHaveAttribute('role', 'tabpanel');
+    await expect(page.getByRole('tabpanel')).toHaveCount(0);
+    await expect(page.getByRole('region', { name: heading, exact: true })).toHaveAttribute(
+      'data-testid',
+      'org-section-subscription'
+    );
   });
 
   test('ORG-DETAIL-005: Settings tab navigation and panel', async ({ page }) => {
@@ -512,6 +520,31 @@ test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
     await expect(settingsPanel).toHaveAttribute('role', 'tabpanel');
     await expect(settingsPanel).toHaveAttribute('tabindex', '0');
   });
+
+  test('ORG-A11Y-003: The tab list stays keyboard-reachable on the subscription view', async ({
+    page,
+  }) => {
+    // /org/:extid/subscription has no tab, so no tab is selected. The first
+    // tab holds the roving tabindex instead, and the arrow keys move from it.
+    const org = await getFirstOrganization(page);
+    await gotoOrgSettings(page, org.extid, 'subscription');
+    await expect(page.getByTestId('org-section-subscription')).toBeVisible();
+
+    const tablist = orgTablist(page);
+    await expect(tablist.locator('[role="tab"][aria-selected="true"]')).toHaveCount(0);
+    await expect(tablist.locator('[role="tab"][tabindex="0"]')).toHaveCount(1);
+    await expect(page.getByTestId(TABS.domains.testid)).toHaveAttribute('tabindex', '0');
+
+    await page.getByTestId(TABS.domains.testid).focus();
+    await page.keyboard.press('ArrowRight');
+
+    const membersTab = page.getByTestId(TABS.members.testid);
+    await expect(membersTab).toBeFocused();
+    await expect(membersTab).toHaveAttribute('aria-selected', 'true');
+    await expect(page).toHaveURL(tabUrl(org.extid, TABS.members));
+    await expect(page.getByTestId(TABS.members.panel)).toBeVisible();
+    await expect(page.getByTestId('org-section-subscription')).toHaveCount(0);
+  });
 });
 
 /**
@@ -540,4 +573,5 @@ test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
  * | ORG-ERROR-001    | Invalid org extid redirects away from org settings       | High     | Automated  |
  * | ORG-A11Y-001     | Tab navigation with keyboard (Arrow keys)                | Medium   | Automated  |
  * | ORG-A11Y-002     | Tab panels have correct ARIA attributes                  | Medium   | Automated  |
+ * | ORG-A11Y-003     | Tab list keyboard-reachable on the subscription view     | Medium   | Automated  |
  */

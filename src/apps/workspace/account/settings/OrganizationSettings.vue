@@ -892,20 +892,31 @@
     }
   });
 
-  // Keyboard navigation for tabs (WCAG 2.1 AA)
-  const handleTabKeydown = (e: KeyboardEvent) => {
-    // Build navigable tabs array — only tabs the user can actually reach.
-    // 'activity' is included whenever the instance flag is on: even unentitled
-    // users can open it (the panel shows the upgrade prompt), so it must stay
-    // keyboard-reachable. When the flag is off the tab doesn't render at all.
+  // The tabs the user can open, in tab-bar order. 'activity' is included
+  // whenever the instance flag is on: even unentitled users can open it (the
+  // panel shows the upgrade prompt), so it must stay keyboard-reachable. When
+  // the flag is off the tab doesn't render at all.
+  const navigableTabs = computed<TabType[]>(() => {
     const tabs: TabType[] = ['domains'];
     if (canManageMembers.value) tabs.push('members');
     if (canManageSso.value) tabs.push('sso');
     if (orgAuditLogsFeatureEnabled.value) tabs.push('activity');
     tabs.push('general');
+    return tabs;
+  });
 
-    const currentIndex = tabs.indexOf(activeTab.value);
-    if (currentIndex === -1) return;
+  // Roving tabindex: the one tab in the page's Tab sequence, and the tab the
+  // arrow keys move from. It is the active tab, except on the subscription
+  // view, which has no tab: there the first tab stands in, so the tab list
+  // stays reachable by keyboard while no tab is selected.
+  const rovingTab = computed<TabType>(() =>
+    navigableTabs.value.includes(activeTab.value) ? activeTab.value : navigableTabs.value[0]
+  );
+
+  // Keyboard navigation for tabs (WCAG 2.1 AA)
+  const handleTabKeydown = (e: KeyboardEvent) => {
+    const tabs = navigableTabs.value;
+    const currentIndex = tabs.indexOf(rovingTab.value);
 
     switch (e.key) {
       case 'ArrowRight':
@@ -987,7 +998,7 @@
             id="org-tab-domains"
             role="tab"
             :aria-selected="activeTab === 'domains'"
-            :tabindex="activeTab === 'domains' ? 0 : -1"
+            :tabindex="rovingTab === 'domains' ? 0 : -1"
             aria-controls="org-panel-domains"
             data-testid="org-tab-domains"
             @click="setActiveTab('domains')"
@@ -1005,7 +1016,7 @@
             role="tab"
             :aria-selected="activeTab === 'members'"
             :aria-disabled="!canManageMembers"
-            :tabindex="activeTab === 'members' ? 0 : -1"
+            :tabindex="rovingTab === 'members' ? 0 : -1"
             aria-controls="org-panel-members"
             data-testid="org-tab-members"
             @click="canManageMembers && setActiveTab('members')"
@@ -1026,7 +1037,7 @@
             role="tab"
             :aria-selected="activeTab === 'sso'"
             :aria-disabled="!canManageSso"
-            :tabindex="activeTab === 'sso' ? 0 : -1"
+            :tabindex="rovingTab === 'sso' ? 0 : -1"
             aria-controls="org-panel-sso"
             data-testid="org-tab-sso"
             @click="canManageSso && setActiveTab('sso')"
@@ -1049,7 +1060,7 @@
             id="org-tab-activity"
             role="tab"
             :aria-selected="activeTab === 'activity'"
-            :tabindex="activeTab === 'activity' ? 0 : -1"
+            :tabindex="rovingTab === 'activity' ? 0 : -1"
             aria-controls="org-panel-activity"
             data-testid="org-tab-activity"
             @click="setActiveTab('activity')"
@@ -1066,7 +1077,7 @@
             id="org-tab-general"
             role="tab"
             :aria-selected="activeTab === 'general'"
-            :tabindex="activeTab === 'general' ? 0 : -1"
+            :tabindex="rovingTab === 'general' ? 0 : -1"
             aria-controls="org-panel-general"
             data-testid="org-tab-settings"
             @click="setActiveTab('general')"
@@ -1758,13 +1769,13 @@
           </div>
         </section>
 
-        <!-- Subscription Tab -->
+        <!-- Subscription view. No tab stands for it (the tab left the tab bar
+             in #2929; /org/:extid/subscription and the header plan chip open
+             it), so it is not a tabpanel: a region named by its heading. -->
         <section
           v-if="activeTab === 'subscription'"
           id="org-panel-subscription"
-          role="tabpanel"
-          aria-labelledby="org-tab-subscription"
-          tabindex="0"
+          aria-labelledby="org-subscription-heading"
           data-testid="org-section-subscription"
           class="space-y-6">
           <!-- Billing Disabled Notice -->
@@ -1779,7 +1790,9 @@
                   name="credit-card"
                   class="mx-auto size-12 text-gray-400"
                   aria-hidden="true" />
-                <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+                <h3
+                  id="org-subscription-heading"
+                  class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
                   {{ t('web.organizations.billing_coming_soon') }}
                 </h3>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -1795,7 +1808,9 @@
             <div
               class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
               <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                <h3
+                  id="org-subscription-heading"
+                  class="text-base font-semibold text-gray-900 dark:text-white">
                   {{ t('web.billing.subscription.status') }}
                 </h3>
               </div>
