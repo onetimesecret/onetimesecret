@@ -17,8 +17,10 @@
  *
  * Prerequisites:
  * - Authenticated as the org owner via the project storageState
- *   (e2e/global.setup.ts consumes TEST_USER_*); multi-context scenarios sign
- *   in manually inside fresh (unauthenticated) browser contexts
+ *   (e2e/global.setup.ts consumes TEST_USER_* and fails without them);
+ *   multi-context scenarios sign the same owner in again inside fresh
+ *   (unauthenticated) browser contexts. The owner's own email differs from
+ *   every generated invite email, so the owner is the "wrong" user.
  * - Application running locally or PLAYWRIGHT_BASE_URL set
  *
  * Usage:
@@ -27,9 +29,6 @@
  */
 
 import { expect, Page, test } from '@playwright/test';
-
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
 
 // Generate unique email addresses for test isolation
 const generateTestEmail = (prefix: string) =>
@@ -158,13 +157,52 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
   return invitation?.token || null;
 }
 
+/**
+ * Get a CSRF token bound to the page's session.
+ *
+ * Rack::Protection rejects a POST without one (403 text/plain) before any
+ * route logic runs, so a raw API call must send it to reach the endpoint.
+ * Same approach as e2e/full/invite-token-security.spec.ts.
+ */
+async function getCsrfToken(page: Page): Promise<string> {
+  const response = await page.request.get('/');
+  const csrfToken = response.headers()['x-csrf-token'] || '';
+  expect(csrfToken, 'server did not return an X-CSRF-Token header').toBeTruthy();
+  return csrfToken;
+}
+
+/**
+ * POST /api/invite/:token/accept as the page's session, with CSRF, so the
+ * request reaches AcceptInvite and its email-binding check.
+ */
+async function postAcceptInvite(page: Page, token: string, body: Record<string, unknown> = {}) {
+  const csrfToken = await getCsrfToken(page);
+  return page.request.post(`/api/invite/${token}/accept`, {
+    data: { ...body, shrimp: csrfToken },
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'X-CSRF-Token': csrfToken,
+    },
+  });
+}
+
+/**
+ * Assert the invitation is still pending and actionable (nobody accepted it).
+ */
+async function expectInvitationStillPending(page: Page, token: string): Promise<void> {
+  const response = await page.request.get(`/api/invite/${token}`);
+  expect(response.ok()).toBe(true);
+  const data = await response.json();
+  expect(data.record.status).toBe('pending');
+  expect(data.record.actionable).toBe(true);
+}
+
 // -----------------------------------------------------------------------------
 // SECTION 1: Email Mismatch UI Detection
 // -----------------------------------------------------------------------------
 
 test.describe('MISMATCH-001: Email Mismatch Warning Display', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('When logged in with different email, mismatch warning shows Continue As option', async ({
     browser,
   }) => {
@@ -212,8 +250,6 @@ test.describe('MISMATCH-001: Email Mismatch Warning Display', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MISMATCH-002: Accept Button Hidden When Email Mismatch', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Accept button is NOT visible when email mismatch exists (strict binding)', async ({
     browser,
   }) => {
@@ -260,8 +296,6 @@ test.describe('MISMATCH-002: Accept Button Hidden When Email Mismatch', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MISMATCH-003: Continue As Triggers Logout', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Clicking "Continue as" logs out user and redirects to invite page', async ({
     browser,
   }) => {
@@ -283,16 +317,25 @@ test.describe('MISMATCH-003: Continue As Triggers Logout', () => {
       // Wrong user logs in and visits invitation
       await loginUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
-      await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
+      await expect(wrongUserPage.getByTestId('invite-wrong-email')).toBeVisible();
 
-      // Click continue as — logs out and redirects to invite page
-      const continueAsBtn = wrongUserPage.locator('[data-testid="continue-as-btn"]');
-      await continueAsBtn.click();
+      // Click continue as — POSTs /auth/logout, then hard-navigates back to
+      // the same /invite/:token URL. The URL never changes, so waiting on it
+      // proves nothing; wait on the logout response and the reloaded state.
+      const logoutResponse = wrongUserPage.waitForResponse(
+        (res) =>
+          res.request().method() === 'POST' && new URL(res.url()).pathname === '/auth/logout'
+      );
+      await wrongUserPage.getByTestId('continue-as-btn').click();
+      expect((await logoutResponse).ok()).toBe(true);
 
-      // Verify redirected back to invite page (not signin)
-      await wrongUserPage.waitForURL(/\/invite\//, { timeout: 10000 });
+      // Back on the invite page (not signin), now rendered for an anonymous
+      // visitor: the unauthenticated default is signup_required.
+      await expect(wrongUserPage).toHaveURL(new RegExp(`/invite/${token}$`));
+      await expect(wrongUserPage.getByTestId('invite-signup-required')).toBeVisible();
+      await expect(wrongUserPage.getByTestId('invite-wrong-email')).toBeHidden();
 
-      // Verify user is logged out
+      // The server agrees the session is gone
       const response = await wrongUserPage.request.get('/bootstrap/me');
       const data = await response.json();
       expect(data.authenticated).toBeFalsy();
@@ -331,30 +374,17 @@ test.describe('MISMATCH-004: Unauthenticated User Sees Inline Auth Forms', () =>
     await page.goto(`/invite/${token}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // When unauthenticated, no mismatch warning (can't compare emails)
-    const mismatchWarning = page.getByTestId('email-mismatch-warning');
-    await expect(mismatchWarning).not.toBeVisible();
+    // Phase 7: inline forms instead of a redirect to signin. signup_required
+    // is the unauthenticated default (the API never discloses whether an
+    // account exists, AZ7/#3856); signin_required only appears after a
+    // signup attempt comes back signup_unavailable.
+    await expect(page.getByTestId('invite-signup-required')).toBeVisible();
+    await expect(page.getByTestId('invite-signup-form')).toBeVisible();
+    await expect(page.getByTestId('invite-signup-email-input')).toHaveValue(testEmail);
 
-    // Phase 7: Should see either signup_required or signin_required state
-    // with inline forms instead of redirect to signin
-    const signupState = page.getByTestId('invite-signup-required');
-    const signinState = page.getByTestId('invite-signin-required');
-
-    const hasSignupForm = await signupState.isVisible().catch(() => false);
-    const hasSigninForm = await signinState.isVisible().catch(() => false);
-
-    // One of these states should be shown for unauthenticated user
-    expect(hasSignupForm || hasSigninForm).toBe(true);
-
-    if (hasSignupForm) {
-      // Inline signup form should be visible
-      const signupForm = page.getByTestId('invite-signup-form');
-      await expect(signupForm).toBeVisible();
-    } else if (hasSigninForm) {
-      // Inline signin form should be visible
-      const signinForm = page.getByTestId('invite-signin-form');
-      await expect(signinForm).toBeVisible();
-    }
+    // When unauthenticated, no mismatch warning (can't compare emails).
+    // Checked after the state rendered, so it cannot pass during loading.
+    await expect(page.getByTestId('email-mismatch-warning')).toBeHidden();
   });
 });
 
@@ -363,8 +393,6 @@ test.describe('MISMATCH-004: Unauthenticated User Sees Inline Auth Forms', () =>
 // -----------------------------------------------------------------------------
 
 test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Direct API call with mismatched email returns error', async ({ browser }) => {
     const ownerContext = await browser.newContext(unauthenticatedContext);
     const wrongUserContext = await browser.newContext(unauthenticatedContext);
@@ -379,22 +407,25 @@ test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
       await navigateToOrgTeam(ownerPage);
       await createInvitation(ownerPage, invitedEmail);
       const token = await getInvitationToken(ownerPage, invitedEmail);
+      expect(token).toBeTruthy();
 
       // Wrong user logs in
       await loginUser(wrongUserPage);
 
-      // Try to accept directly via API (bypassing UI disabled state)
-      const response = await wrongUserPage.request.post(`/api/invite/${token}/accept`, {
-        data: {},
-        headers: { 'Content-Type': 'application/json' },
-      });
+      // Try to accept directly via API (bypassing the UI, which offers no
+      // accept button in the wrong_email state)
+      const response = await postAcceptInvite(wrongUserPage, token!);
 
-      // Should be rejected with error
-      expect(response.status()).toBeGreaterThanOrEqual(400);
-
+      // Rejected by the email binding, not by CSRF or auth
+      expect(response.status()).toBe(422);
+      expect(response.headers()['content-type']).toContain('application/json');
       const data = await response.json();
       // API returns { error: "...", error_type: "..." } per ADR-013
+      expect(data.error_type).toBe('email_mismatch');
       expect(data.error).toContain('match');
+
+      // And the invitation was not consumed
+      await expectInvitationStillPending(ownerPage, token!);
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
@@ -415,22 +446,25 @@ test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
       await navigateToOrgTeam(ownerPage);
       await createInvitation(ownerPage, invitedEmail);
       const token = await getInvitationToken(ownerPage, invitedEmail);
+      expect(token).toBeTruthy();
 
       // Wrong user logs in
       await loginUser(wrongUserPage);
 
       // Try to bypass by sending the old acknowledgment flag
-      const response = await wrongUserPage.request.post(`/api/invite/${token}/accept`, {
-        data: { acknowledge_email_mismatch: true },
-        headers: { 'Content-Type': 'application/json' },
+      const response = await postAcceptInvite(wrongUserPage, token!, {
+        acknowledge_email_mismatch: true,
       });
 
-      // Should STILL be rejected - flag is now ignored
-      expect(response.status()).toBeGreaterThanOrEqual(400);
-
+      // Should STILL be rejected by the email binding - flag is now ignored
+      expect(response.status()).toBe(422);
+      expect(response.headers()['content-type']).toContain('application/json');
       const data = await response.json();
-      // API returns { error: "...", error_type: "..." } per ADR-013
+      expect(data.error_type).toBe('email_mismatch');
       expect(data.error).toContain('match');
+
+      // And the invitation was not consumed
+      await expectInvitationStillPending(ownerPage, token!);
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
