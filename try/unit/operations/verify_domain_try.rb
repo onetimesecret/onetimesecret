@@ -322,7 +322,12 @@ end
 # ─────────────────────────────────────────────────────────────────────────
 
 ## Issue #3080: FailingStatusStrategy (no :data, no :mode) — operation completes
-class FailingStatusStrategy
+# The doubles below inherit BaseStrategy so they carry the whole strategy
+# contract that VerifyDomain#persist_changes calls (proves_ownership? and
+# any method added later). A bare duck type raised NoMethodError inside
+# persist_changes, which rescues and reports persisted: false, so the
+# vhost_fetch_failed_at path this test exists for never ran.
+class FailingStatusStrategy < Onetime::DomainValidation::BaseStrategy
   def validate_ownership(_d)
     { validated: true, message: 'OK', data: [] }
   end
@@ -348,8 +353,16 @@ end
 @failing_status_result.is_resolving
 #=> false
 
+## Issue #3080: FailingStatusStrategy — changes were persisted
+@failing_status_result.persisted
+#=> true
+
+## Issue #3080: FailingStatusStrategy — the failed status check is recorded for the UI
+Onetime::CustomDomain.find_by_identifier(@domain1.identifier).vhost_fetch_failed_at.to_i.positive?
+#=> true
+
 ## Issue #3080: PassiveStrategy (:mode set, no :data) — operation completes
-class PassiveStrategy
+class PassiveStrategy < Onetime::DomainValidation::BaseStrategy
   def validate_ownership(_d)
     { validated: true, message: 'External validation', mode: 'passthrough' }
   end
@@ -370,6 +383,10 @@ end
   persist: true,
 ).call
 @passive_result.success?
+#=> true
+
+## Issue #3080: PassiveStrategy — changes were persisted
+@passive_result.persisted
 #=> true
 
 ## Issue #3080: PassiveStrategy — Result.dns_validated is true
