@@ -108,7 +108,7 @@ module Onetime
       rescue StandardError => ex
         # A middleware that raises here would 500 every SSO callback. Denying
         # is the safe answer: HttpOrigin's own check still runs.
-        OT.lw "[http_origin] SSO callback origin check failed: #{ex.class}: #{ex.message}"
+        log_check_failure('SSO callback origin check', ex)
         false
       end
 
@@ -176,7 +176,7 @@ module Onetime
       rescue StandardError => ex
         # Includes Redis::BaseError from the SsoConfig read. Denying is the
         # safe answer: HttpOrigin's own check still runs.
-        OT.lw "[http_origin] tenant SSO callback origin check failed: #{ex.class}: #{ex.message}"
+        log_check_failure('tenant SSO callback origin check', ex)
         false
       end
 
@@ -245,9 +245,19 @@ module Onetime
         config.to_omniauth_options
         true
       rescue StandardError => ex
-        OT.lw "[http_origin] SAML callback route check failed: #{ex.class}"
+        log_check_failure('SAML callback route check', ex)
         false
       end
+
+      # One warning per denied check. The message stays, because it is what
+      # says WHY (which host refused the connection, which SAML field was
+      # invalid); every URI in it loses its userinfo and query first, since
+      # redis-client quotes its server URL in each ConnectionError and the
+      # logging layer scrubs nothing.
+      def self.log_check_failure(check, ex)
+        OT.lw "[http_origin] #{check} failed: #{ex.class}: #{OT::Utils.redact_uris_in_text(ex.message)}"
+      end
+      private_class_method :log_check_failure
 
       # Shared with normal platform-origin admission; retain the existing
       # pinned-host and sanitized-display handling unchanged.
