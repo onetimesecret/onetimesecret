@@ -40,7 +40,7 @@
 //                                   (on by default; only the exact string
 //                                   'false' turns it off). AUTH_AUTOVERIFY
 //                                   does not decide this in full mode; only
-//                                   simple-mode signup reads it.
+//                                   simple-mode signup and sign-in read it.
 //   RACK_ENV != test                etc/defaults/auth.defaults.yaml turns
 //                                   verify_account off whenever RACK_ENV=test
 //   EMAILER_MODE=smtp + SMTP_HOST/SMTP_PORT → Mailpit
