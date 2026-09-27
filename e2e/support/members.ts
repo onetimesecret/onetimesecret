@@ -16,6 +16,14 @@
 // never gains a member and its account never joins a second org. Suites that
 // assert the lane's solo-owner state (scope switcher visibility, member
 // counts) stay valid.
+//
+// Invitations have a budget the signup limiter setting does not lift. Every
+// invite page load, signup and accept counts against InviteTokenRateLimiter
+// (lib/onetime/security/invite_token_rate_limiter.rb): 100 calls per client
+// IP, in a window that restarts on every call, then a 20 minute lockout. It
+// has no switch outside RACK_ENV=test. One full/ run makes about 60 such
+// calls, and the page then reports "Too many invite requests". Add
+// invitation round trips sparingly; share a fixture where tests only read.
 
 import { expect, type Browser, type BrowserContext, type Page } from '@playwright/test';
 
