@@ -592,7 +592,10 @@ test.describe('MBR-TEAM: Member management with non-owner members', () => {
       await expect(options.nth(1)).toContainText('Member');
       await expect(listbox.getByRole('option', { name: /owner/i })).toHaveCount(0);
 
-      // Close without choosing: the member keeps its role
+      // Close without choosing: the member keeps its role. Headless UI focuses
+      // the options list on the tick after it opens, and only the options list
+      // handles Escape, so wait for that focus before pressing it.
+      await expect(listbox).toBeFocused();
       await page.keyboard.press('Escape');
       await expect(listbox).toBeHidden();
       await expectMember(page, team.orgExtid, team.member.email, 'member');
