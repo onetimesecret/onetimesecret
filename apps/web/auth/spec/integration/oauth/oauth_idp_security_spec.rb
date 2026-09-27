@@ -33,9 +33,9 @@
 # - OAUTH_JWT_RSA_PRIVATE_KEY (generated below if absent)
 # - OAUTH_SP_DEV_CLIENT_SECRET (generated below if absent)
 #
-# RUN:
-#   source .env.test && \
-#     bundle exec rspec apps/web/auth/spec/integration/oauth/oauth_idp_security_spec.rb
+# RUN (full-sqlite lane; see tests/lanes/README.md):
+#   tests/lanes/run full-sqlite --only apps/web/auth/spec/integration/oauth/oauth_idp_security_spec.rb
+#   tests/lanes/run full-sqlite   # whole lane: spec:integration:full, then spec:integration:oauth
 #
 # Lives at integration/oauth/ (not integration/full/) for the same reason the
 # sibling specs do: the path-keyed MockAuthConfig matching /integration/full/
