@@ -24,7 +24,6 @@ suite:
     - "Fixtures" in this schema are DECLARATIVE - you create the state dynamically.
     - To test "expired invitation": create an invitation, then use an invalid/fake token.
     - To test "email mismatch": create account A, send invite to email B, log in as A.
-    - To test "Gmail alias": use user+tag@domain.com format with any valid domain.
     - There are no pre-built fixtures. You create all test data during execution.
     - If a test cannot be run, document the SPECIFIC technical blocker, not "time" or "fixtures".
 
@@ -200,7 +199,6 @@ tests:
     covers:
       - AcceptInvite.vue
       - emailMismatch computed property
-      - normalizeEmail function
 
   - id: INV-004
     intent: Clicking Switch Account logs out and redirects to signin with email prefilled
@@ -431,46 +429,12 @@ tests:
       - DELETE /api/v2/org/:extid/invitations/:token
 
   # ===========================================================================
-  # SECTION 6: Email Normalization
+  # SECTION 6: Email Normalization (removed)
   # ===========================================================================
-
-  - id: INV-012
-    intent: Gmail alias normalization allows user+tag@gmail.com to match user@gmail.com
-    setup:
-      auth: logged_in
-      state:
-        email: user@gmail.com
-      fixtures:
-        - type: organization_invitation
-          props:
-            email: user+invites@gmail.com
-            role: member
-            status: pending
-          capture_as: invitation
-    target: /invite/{{invitation.token}}
-    action:
-      type: click
-      element: "[data-testid='accept-invitation-btn']"
-    verify:
-      - No email mismatch warning visible (emails match after normalization)
-      - Accept button is enabled
-      - User can successfully accept invitation
-      - selector: "[data-testid='email-mismatch-warning']"
-        assertion: hidden
-      - selector: "[data-testid='accept-invitation-btn']"
-        assertion: visible
-      - api: GET /bootstrap/me
-        assert:
-          organization.extid: '{{invitation.organization_extid}}'
-        notes: Verify user's current organization context includes the invited org
-    postconditions:
-      - Invitation is accepted successfully
-      - User becomes organization member (verified via bootstrap API)
-    priority: medium
-    type: edge
-    covers:
-      - AcceptInvite.vue
-      - normalizeEmail function
+  # INV-012 (Gmail alias normalization) was removed with the feature in
+  # 86d6769908. An invitation now matches only the same address, compared
+  # without case, so user+tag@gmail.com does not match user@gmail.com; that is
+  # the email mismatch case (INV-003).
 
   # ===========================================================================
   # SECTION 7: Additional Error Scenarios
