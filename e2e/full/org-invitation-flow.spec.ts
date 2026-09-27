@@ -505,36 +505,42 @@ test.describe('INV-016: Invalid Token', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-SEC-001: Open Redirect Prevention', () => {
-  test('Open redirect attack prevention validates redirect parameter', async ({ context }) => {
+  test('Open redirect attack prevention validates redirect parameter', async ({ browser }) => {
     const maliciousRedirects = [
       'https://evil.com/phishing',
       '//evil.com/path',
       'javascript:alert(1)',
       'data:text/html,<script>alert(1)</script>',
     ];
+    const opened: BrowserContext[] = [];
 
-    for (const maliciousUrl of maliciousRedirects) {
-      // This exercises the *login form's* redirect handling, so every attempt
-      // starts signed out (an authenticated visitor to /signin is redirected
-      // away before the form renders) and on its own page, so navigations the
-      // previous sign-in started cannot abort this one.
-      await context.clearCookies();
-      const page = await context.newPage();
-      await page.goto(`/signin?redirect=${encodeURIComponent(maliciousUrl)}`);
-      const appOrigin = new URL(page.url()).origin;
+    try {
+      for (const maliciousUrl of maliciousRedirects) {
+        // This exercises the *login form's* redirect handling, so every attempt
+        // starts signed out (an authenticated visitor to /signin is redirected
+        // away before the form renders). Each attempt gets its own context:
+        // clearing cookies on a shared one is not enough, because a request the
+        // previous sign-in left in flight can still store its session cookie
+        // after the clear, and the next /signin then renders signed in.
+        const page = await (await openFreshContext(browser, opened)).newPage();
+        await page.goto(`/signin?redirect=${encodeURIComponent(maliciousUrl)}`);
+        const appOrigin = new URL(page.url()).origin;
 
-      // Use the form's test ids — getByLabel(/password/i) also matches the
-      // show-password toggle and the "Forgot your password?" link.
-      const emailInput = page.getByTestId('signin-email-input');
-      await expect(emailInput, `signin form for redirect=${maliciousUrl}`).toBeVisible();
-      await emailInput.fill(process.env.TEST_USER_EMAIL || '');
-      await page.getByTestId('signin-password-input').fill(process.env.TEST_USER_PASSWORD || '');
-      await page.getByTestId('signin-submit').click();
+        // Use the form's test ids — getByLabel(/password/i) also matches the
+        // show-password toggle and the "Forgot your password?" link.
+        const emailInput = page.getByTestId('signin-email-input');
+        await expect(emailInput, `signin form for redirect=${maliciousUrl}`).toBeVisible();
+        await emailInput.fill(process.env.TEST_USER_EMAIL || '');
+        await page.getByTestId('signin-password-input').fill(process.env.TEST_USER_PASSWORD || '');
+        await page.getByTestId('signin-submit').click();
 
-      // Signing in leaves /signin, and must land on this app, not the target
-      await page.waitForURL((url) => url.pathname !== '/signin');
-      expect(new URL(page.url()).origin, `redirect=${maliciousUrl}`).toBe(appOrigin);
-      await page.close();
+        // Signing in leaves /signin, and must land on this app, not the target
+        await page.waitForURL((url) => url.pathname !== '/signin');
+        expect(new URL(page.url()).origin, `redirect=${maliciousUrl}`).toBe(appOrigin);
+        await closeContexts(opened);
+      }
+    } finally {
+      await closeContexts(opened);
     }
   });
 });
