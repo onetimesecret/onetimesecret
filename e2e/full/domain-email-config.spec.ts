@@ -22,9 +22,10 @@
  *     pnpm playwright test domain-email-config.spec.ts
  */
 
-import { expect, Page, test } from '@playwright/test';
+import { expect, type Locator, type Page, test } from '@playwright/test';
 
 import { env, gateReason } from '../support/env';
+import { getFirstDomain } from '../support/domains';
 import { getFirstOrganization } from '../support/organizations';
 
 // HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
@@ -39,41 +40,8 @@ test.beforeEach(() => {
 });
 
 // -----------------------------------------------------------------------------
-// Types
-// -----------------------------------------------------------------------------
-
-interface DomainInfo {
-  extid: string;
-  displayDomain: string;
-}
-
-// -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Get the first domain in the organization
- */
-async function getFirstDomain(page: Page, orgExtid: string): Promise<DomainInfo | null> {
-  await page.goto(`/org/${orgExtid}/domains`);
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-  const domainLink = page.locator('a[href*="/domains/"]').first();
-  if (!(await domainLink.isVisible().catch(() => false))) {
-    return null;
-  }
-
-  const href = await domainLink.getAttribute('href');
-  const match = href?.match(/\/domains\/([^/]+)/);
-  if (!match) return null;
-
-  const domainText = await domainLink.locator('.font-medium, .truncate').first().textContent();
-
-  return {
-    extid: match[1],
-    displayDomain: domainText?.trim() || match[1],
-  };
-}
 
 /**
  * Navigate to domain email config page
@@ -93,26 +61,20 @@ async function navigateToEmailConfig(
 /**
  * Find the enabled toggle
  */
-async function findEnabledToggle(page: Page) {
-  const selectors = [
-    '#email-enabled',
-    '[data-testid="config-enabled-toggle"]',
-    'button[role="switch"]',
-  ];
-
-  for (const selector of selectors) {
-    const toggle = page.locator(selector).first();
-    if (await toggle.isVisible().catch(() => false)) {
-      return toggle;
-    }
-  }
-  return null;
+async function findEnabledToggle(page: Page): Promise<Locator> {
+  const toggle = page
+    .locator('#email-enabled')
+    .or(page.locator('[data-testid="config-enabled-toggle"]'))
+    .or(page.locator('button[role="switch"]'))
+    .first();
+  await expect(toggle, 'the email config form has an Enabled toggle').toBeVisible();
+  return toggle;
 }
 
 /**
  * Check if toggle is enabled
  */
-async function isToggleEnabled(toggle: ReturnType<Page['locator']>): Promise<boolean> {
+async function isToggleEnabled(toggle: Locator): Promise<boolean> {
   const ariaChecked = await toggle.getAttribute('aria-checked');
   return ariaChecked === 'true';
 }
@@ -130,9 +92,8 @@ test.describe('Domain Email Config - Form Loading', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    const formLoaded = await navigateToEmailConfig(page, org.extid, domain!.extid);
+    const formLoaded = await navigateToEmailConfig(page, org.extid, domain.extid);
     expect(formLoaded, 'Email config form should load').toBe(true);
 
     // Verify form elements are present
@@ -144,12 +105,11 @@ test.describe('Domain Email Config - Form Loading', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
     // Domain name should be visible somewhere on page
-    const domainText = page.getByText(domain!.displayDomain);
+    const domainText = page.getByText(domain.displayDomain);
     await expect(domainText.first()).toBeVisible();
   });
 
@@ -157,9 +117,8 @@ test.describe('Domain Email Config - Form Loading', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
     // Find and click back button
     const backButton = page.locator('button').filter({ has: page.locator('[name="arrow-left"]') });
@@ -183,9 +142,8 @@ test.describe('Domain Email Config - Form Fields', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
     const fromNameInput = page.locator('#email-from-name');
     await fromNameInput.fill('Test Sender Name');
@@ -196,9 +154,8 @@ test.describe('Domain Email Config - Form Fields', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
     const fromAddressInput = page.locator('#email-from-address');
 
@@ -214,9 +171,8 @@ test.describe('Domain Email Config - Form Fields', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
     const replyToInput = page.locator('#email-reply-to');
     await expect(replyToInput).toBeVisible();
@@ -230,9 +186,8 @@ test.describe('Domain Email Config - Form Fields', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
     // Check for required field indicators
     const requiredIndicators = page.locator('span.text-red-500');
@@ -254,47 +209,42 @@ test.describe('Domain Email Config - Toggle Behavior', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
-    const toggle = await findEnabledToggle(page);
-    expect(toggle, 'Enabled toggle should be present').not.toBeNull();
+    // findEnabledToggle asserts the toggle is visible
+    await findEnabledToggle(page);
   });
 
   test('TC-DEC-009: toggle can be switched', async ({ page }) => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
     const toggle = await findEnabledToggle(page);
-    test.skip(!toggle, 'Toggle not found');
 
-    const initialState = await isToggleEnabled(toggle!);
+    const initialState = await isToggleEnabled(toggle);
 
     // Click toggle and poll for the reactive state to flip (no sleep)
-    await toggle!.click();
-    await expect.poll(() => isToggleEnabled(toggle!)).toBe(!initialState);
+    await toggle.click();
+    await expect.poll(() => isToggleEnabled(toggle)).toBe(!initialState);
   });
 
   test('TC-DEC-010: toggle has proper ARIA attributes', async ({ page }) => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
     const toggle = await findEnabledToggle(page);
-    test.skip(!toggle, 'Toggle not found');
 
-    const role = await toggle!.getAttribute('role');
+    const role = await toggle.getAttribute('role');
     expect(role).toBe('switch');
 
-    const ariaChecked = await toggle!.getAttribute('aria-checked');
+    const ariaChecked = await toggle.getAttribute('aria-checked');
     expect(['true', 'false']).toContain(ariaChecked);
   });
 });
@@ -312,9 +262,8 @@ test.describe('Domain Email Config - Form Validation', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
     // Clear required fields
     const fromNameInput = page.locator('#email-from-name');
@@ -332,9 +281,8 @@ test.describe('Domain Email Config - Form Validation', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
     // Fill required fields
     const fromNameInput = page.locator('#email-from-name');
@@ -352,9 +300,8 @@ test.describe('Domain Email Config - Form Validation', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
     // Fill with invalid email
     const fromNameInput = page.locator('#email-from-name');
@@ -382,13 +329,12 @@ test.describe('Domain Email Config - Save and Delete', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
     // Mock the save API
     let saveRequestMade = false;
-    await page.route(`**/api/domains/${domain!.extid}/email`, async (route) => {
+    await page.route(`**/api/domains/${domain.extid}/email`, async (route) => {
       if (route.request().method() === 'PUT' || route.request().method() === 'PATCH') {
         saveRequestMade = true;
         await route.fulfill({
@@ -423,9 +369,8 @@ test.describe('Domain Email Config - Save and Delete', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
     // Look for delete button
     const deleteButton = page.locator('button').filter({ hasText: /delete/i });
@@ -452,9 +397,8 @@ test.describe('Domain Email Config - Save and Delete', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
     const fromNameInput = page.locator('#email-from-name');
     const originalValue = await fromNameInput.inputValue();
@@ -491,9 +435,8 @@ test.describe('Domain Email Config - Mobile', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    await navigateToEmailConfig(page, org.extid, domain!.extid);
+    await navigateToEmailConfig(page, org.extid, domain.extid);
 
     // Form should be visible
     const form = page.locator('form');
