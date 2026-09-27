@@ -1,479 +1,268 @@
 // e2e/full/org-switcher-navigation.spec.ts
 
 //
-// E2E Tests for Org Switcher Navigation Fix
+// Regression tests for switching workspace on the organization settings pages.
 //
-// Validates the fix for the bug where using the org switcher dropdown on org-specific
-// pages (like /org/{extid}/domains) would update the header to show the new org name
-// but fail to update the URL and page content, leaving stale data displayed.
+// The bug: on /org/{extid}/{tab}, choosing another workspace in the header
+// switcher updated the header but left the URL and the page content on the
+// old workspace. The fix: the /org/:extid/:tab? route declares
+// `onOrgSwitch: 'same'` (src/apps/workspace/routes/organizations.ts), so a
+// switch navigates to the same tab of the chosen workspace.
 //
-// Fix: Added `onOrgSwitch: 'same'` to the /org/:extid/:tab? route so switching orgs
-// navigates to the equivalent page for the new org.
-//
-// Prerequisites:
-// - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
-// - Test user must have at least 2 organizations
-// - Test user: domaincontext@onetime.dev (has "Default Workspace" and "A Second Organization")
-// - Base URL: https://dev.onetime.dev (or PLAYWRIGHT_BASE_URL)
-//
-// Usage:
-//   PLAYWRIGHT_BASE_URL=https://dev.onetime.dev \
-//   TEST_USER_EMAIL=domaincontext@onetime.dev \
-//   TEST_USER_PASSWORD=secret \
-//   pnpm test:playwright org-switcher-navigation.spec.ts
-//
+// Runs as a throwaway owner of two workspaces (e2e/support/workspaces.ts):
+// the storageState account owns one solo default workspace, for which the
+// switcher is hidden. Needs ENABLE_ORGS=true on the target (full lane).
 
-import { expect, Page, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
-// Known org names for test user domaincontext@onetime.dev
-const ORG_DEFAULT = 'Default Workspace';
-const ORG_SECOND = 'A Second Organization';
-const _DOMAIN_DEV = 'dev.onetime.dev'; // Canonical domain, available for assertions
+import type { CreatedOrganization } from '../support/members';
+import { expect, test } from '../support/workspaces';
 
-// Tab URL mappings (from OrganizationSettings.vue)
-const TABS = {
-  team: 'team',
-  domains: 'domains',
-  billing: 'billing',
-  settings: 'settings',
-} as const;
-
-// -----------------------------------------------------------------------------
-// Test Helpers
-// -----------------------------------------------------------------------------
-
-/**
- * Extract org extid from URL
- */
-function extractOrgExtidFromUrl(url: string): string | null {
-  const match = url.match(/\/org\/([^/]+)/);
-  return match ? match[1] : null;
-}
-
-/**
- * Locators for Organization Scope Switcher
- * Uses data-testid attributes for reliability
- */
 const orgSwitcher = {
   trigger: (page: Page) => page.getByTestId('org-scope-switcher-trigger'),
   dropdown: (page: Page) => page.getByTestId('org-scope-switcher-dropdown'),
-  menuItems: (page: Page) => page.locator('[data-testid^="org-menu-item-"]'),
-  getOrgMenuItem: (page: Page, orgName: string) =>
-    page.locator('[data-testid^="org-menu-item-"]').filter({ hasText: orgName }),
+  row: (page: Page, extid: string) => page.getByTestId(`org-menu-item-${extid}`),
 };
 
-/**
- * Locators for Domain Scope Switcher
- */
-const domainSwitcher = {
-  trigger: (page: Page) =>
-    page.locator('[data-testid="domain-context-switcher-trigger"], button[aria-label*="scope" i]'),
-};
-
-/**
- * Navigate to an org's specific tab page
- * Returns the extid extracted from the URL after navigation
- */
-async function navigateToOrgTab(
-  page: Page,
-  orgName: string,
-  tab: keyof typeof TABS
-): Promise<string> {
-  // First go to orgs list to find the org
-  await page.goto('/orgs');
-
-  // Wait for organizations list to load
-  const orgsList = page.getByTestId('organizations-list');
-  await orgsList.waitFor({ state: 'visible', timeout: 10000 });
-
-  // Find the org card by looking for org-name element with matching text
-  const orgCard = orgsList.locator('[data-testid^="org-card-"]').filter({
-    has: page.getByTestId('org-name').filter({ hasText: orgName }),
-  });
-
-  const hasOrgCard = await orgCard.isVisible().catch(() => false);
-
-  if (!hasOrgCard) {
-    // Debug: list available orgs
-    const orgNames = await orgsList.locator('[data-testid="org-name"]').allTextContents();
-    throw new Error(
-      `Organization "${orgName}" not found in orgs list. Available: ${orgNames.join(', ')}`
-    );
-  }
-
-  // Get extid from the card's data-testid attribute
-  const cardTestId = await orgCard.getAttribute('data-testid');
-  const extid = cardTestId?.replace('org-card-', '') || null;
-
-  if (!extid) {
-    throw new Error(`Could not extract extid from org card for "${orgName}"`);
-  }
-
-  // Navigate directly to the specific tab (more reliable than clicking through)
-  await page.goto(`/org/${extid}/${tab}`);
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-  return extid;
+/** Open a tab of a workspace's settings and wait for the switcher to name it. */
+async function gotoOrgTab(page: Page, workspace: CreatedOrganization, tab: string): Promise<void> {
+  await page.goto(`/org/${workspace.extid}/${tab}`);
+  await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', workspace.name);
 }
 
-/**
- * Switch org using the org switcher dropdown
- */
-async function switchOrgViaSwitcher(page: Page, targetOrgName: string): Promise<void> {
-  const trigger = orgSwitcher.trigger(page);
-
-  // Click to open dropdown
-  await trigger.click();
-
-  // Wait for dropdown to be visible
-  const dropdown = orgSwitcher.dropdown(page);
-  await expect(dropdown).toBeVisible({ timeout: 5000 });
-
-  // Find and click the target org
-  const targetOrgItem = orgSwitcher.getOrgMenuItem(page, targetOrgName);
-  await expect(targetOrgItem).toBeVisible({ timeout: 5000 });
-
-  // Record the pre-switch URL so we can wait for the router to move - every
-  // caller switches to a *different* org, so the URL must change.
-  const urlBefore = page.url();
-  await targetOrgItem.click();
-
-  // Wait for the switch navigation to complete
-  await expect(page).not.toHaveURL(urlBefore);
+/** Choose a workspace in the switcher and wait for the dropdown to close. */
+async function switchTo(page: Page, workspace: CreatedOrganization): Promise<void> {
+  await orgSwitcher.trigger(page).click();
+  await expect(orgSwitcher.dropdown(page)).toBeVisible();
+  await orgSwitcher.row(page, workspace.extid).click();
+  await expect(orgSwitcher.dropdown(page)).toBeHidden();
 }
 
-/**
- * Get the current org extid from the URL
- */
-function getCurrentOrgExtid(page: Page): string | null {
-  return extractOrgExtidFromUrl(page.url());
+/** The settings page names its workspace in the page heading. */
+function workspaceHeading(page: Page, workspace: CreatedOrganization) {
+  return page.getByRole('heading', { level: 1, name: workspace.name });
 }
 
-/**
- * Get the current tab from the URL
- */
-function getCurrentTab(page: Page): string | null {
-  const url = page.url();
-  const match = url.match(/\/org\/[^/]+\/([^/?#]+)/);
-  return match ? match[1] : null;
-}
+test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
+  test('TC-OSN-001: Switching on the Domains tab opens the other workspace Domains tab', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    const from = owner.defaultWorkspace;
+    const to = owner.secondWorkspace;
+    await gotoOrgTab(page, from, 'domains');
+    await expect(workspaceHeading(page, from)).toBeVisible();
 
-// -----------------------------------------------------------------------------
-// Org Switcher Navigation Test Suite
-// -----------------------------------------------------------------------------
+    await switchTo(page, to);
 
-// QUARANTINED — E2E remediation plan Phase 2.4 / PR 5 (issue #3420).
-// The org switcher only renders for accounts with ≥2 organizations; the CI
-// account has a single default workspace, so every test here previously
-// pass-or-skipped on "Org switcher not visible". Quarantined with
-// test.describe.fixme until the second-org fixture lands in PR 6.
-// See e2e/QUARANTINE.md.
-test.describe.fixme('Org Switcher Navigation - Same Tab Navigation', () => {
-  test.beforeEach(async ({ page }) => {
-    page.setDefaultTimeout(15000);
+    await expect(page).toHaveURL(new RegExp(`/org/${to.extid}/domains$`));
+    await expect(workspaceHeading(page, to)).toBeVisible();
+    await expect(page.getByTestId('org-section-domains')).toBeVisible();
   });
 
-  // -------------------------------------------------------------------------
-  // TC-OSN-001: Org switcher navigates to same tab on new org (domains)
-  // -------------------------------------------------------------------------
-  test('TC-OSN-001: Org switcher navigates to same tab on new org (domains)', async ({ page }) => {
-    // Navigate to Default Workspace's domains tab
-    const extid1 = await navigateToOrgTab(page, ORG_DEFAULT, 'domains');
+  test('TC-OSN-002: Switching on the Subscription tab keeps the tab', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    // The Billing tab is now Subscription (/billing still aliases to it)
+    const from = owner.defaultWorkspace;
+    const to = owner.secondWorkspace;
+    await gotoOrgTab(page, from, 'subscription');
+    await expect(page.getByTestId('org-section-subscription')).toBeVisible();
 
-    // Verify we are on the domains tab
-    expect(getCurrentTab(page)).toBe('domains');
-    expect(page.url()).toContain(`/org/${extid1}/domains`);
+    await switchTo(page, to);
 
-    // Verify org switcher shows Default Workspace (may be visible even when "locked")
-    // The fix makes it navigable on org-specific pages
-    const orgTrigger = orgSwitcher.trigger(page);
-    const triggerVisible = await orgTrigger.isVisible().catch(() => false);
-
-    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
-
-    // Store the initial URL for comparison
-    const initialUrl = page.url();
-
-    // Switch to Second Organization using the switcher
-    await switchOrgViaSwitcher(page, ORG_SECOND);
-
-    // Verify URL changed to new org's domains tab
-    const newUrl = page.url();
-    expect(newUrl).not.toBe(initialUrl);
-
-    const extid2 = getCurrentOrgExtid(page);
-    expect(extid2).not.toBe(extid1);
-    expect(getCurrentTab(page)).toBe('domains');
-    expect(newUrl).toContain(`/org/${extid2}/domains`);
-
-    // Verify page content updated - Second Org should show "No domains found"
-    // or different domain list than Default Workspace
-    const noDomains = page.locator('text=/no domains/i, text=/no custom domains/i');
-    const hasDomainList = await page.locator('[data-testid="domains-list"], table').isVisible().catch(() => false);
-
-    // Either shows "no domains" message or a domain list (but different from previous org)
-    const noDomainsVisible = await noDomains.isVisible().catch(() => false);
-    expect(noDomainsVisible || hasDomainList).toBe(true);
-
-    // Verify domain switcher updated (if visible)
-    const domainTrigger = domainSwitcher.trigger(page);
-    const domainVisible = await domainTrigger.isVisible().catch(() => false);
-
-    if (domainVisible) {
-      const domainText = await domainTrigger.textContent();
-      // Should show dev.onetime.dev or canonical domain for Second Org
-      expect(domainText).toBeTruthy();
-    }
+    await expect(page).toHaveURL(new RegExp(`/org/${to.extid}/subscription$`));
+    await expect(workspaceHeading(page, to)).toBeVisible();
+    await expect(page.getByTestId('org-section-subscription')).toBeVisible();
   });
 
-  // -------------------------------------------------------------------------
-  // TC-OSN-002: Org switcher works on billing tab
-  // -------------------------------------------------------------------------
-  test('TC-OSN-002: Org switcher works on billing tab', async ({ page }) => {
-    // Navigate to Default Workspace's billing tab
-    const extid1 = await navigateToOrgTab(page, ORG_DEFAULT, 'billing');
+  test('TC-OSN-003: Switching on the Settings tab shows the other workspace settings', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    const from = owner.defaultWorkspace;
+    const to = owner.secondWorkspace;
+    await gotoOrgTab(page, from, 'settings');
+    const displayName = page.getByTestId('org-section-settings').locator('input#display-name');
+    await expect(displayName).toHaveValue(from.name);
 
-    // Verify we are on the billing tab
-    expect(getCurrentTab(page)).toBe('billing');
-    expect(page.url()).toContain(`/org/${extid1}/billing`);
+    await switchTo(page, to);
 
-    const orgTrigger = orgSwitcher.trigger(page);
-    const triggerVisible = await orgTrigger.isVisible().catch(() => false);
-
-    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
-
-    const initialUrl = page.url();
-
-    // Switch to Second Organization
-    await switchOrgViaSwitcher(page, ORG_SECOND);
-
-    // Verify URL changed to new org's billing tab
-    const newUrl = page.url();
-    expect(newUrl).not.toBe(initialUrl);
-
-    const extid2 = getCurrentOrgExtid(page);
-    expect(extid2).not.toBe(extid1);
-    expect(getCurrentTab(page)).toBe('billing');
-    expect(newUrl).toContain(`/org/${extid2}/billing`);
-
-    // Verify billing content is present (subscription info, plans, etc.)
-    const billingContent = page.locator(
-      'text=/subscription/i, text=/plan/i, text=/billing/i, [data-testid="billing-content"]'
-    );
-    const hasBillingContent = await billingContent.first().isVisible().catch(() => false);
-    expect(hasBillingContent).toBe(true);
+    await expect(page).toHaveURL(new RegExp(`/org/${to.extid}/settings$`));
+    await expect(displayName).toHaveValue(to.name);
   });
 
-  // -------------------------------------------------------------------------
-  // TC-OSN-003: Org switcher works on settings tab
-  // -------------------------------------------------------------------------
-  test('TC-OSN-003: Org switcher works on settings tab', async ({ page }) => {
-    // Navigate to Default Workspace's settings tab
-    const extid1 = await navigateToOrgTab(page, ORG_DEFAULT, 'settings');
+  test('TC-OSN-004: Switching there and back returns to the first workspace', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    const first = owner.defaultWorkspace;
+    const second = owner.secondWorkspace;
+    await gotoOrgTab(page, first, 'domains');
 
-    // Verify we are on the settings tab
-    expect(getCurrentTab(page)).toBe('settings');
-    expect(page.url()).toContain(`/org/${extid1}/settings`);
+    await switchTo(page, second);
+    await expect(page).toHaveURL(new RegExp(`/org/${second.extid}/domains$`));
+    await expect(workspaceHeading(page, second)).toBeVisible();
 
-    const orgTrigger = orgSwitcher.trigger(page);
-    const triggerVisible = await orgTrigger.isVisible().catch(() => false);
-
-    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
-
-    const initialUrl = page.url();
-
-    // Switch to Second Organization
-    await switchOrgViaSwitcher(page, ORG_SECOND);
-
-    // Verify URL changed to new org's settings tab
-    const newUrl = page.url();
-    expect(newUrl).not.toBe(initialUrl);
-
-    const extid2 = getCurrentOrgExtid(page);
-    expect(extid2).not.toBe(extid1);
-    expect(getCurrentTab(page)).toBe('settings');
-    expect(newUrl).toContain(`/org/${extid2}/settings`);
-
-    // Verify settings content shows new org's name
-    // Look for the org name in the settings form or heading
-    const orgNameInContent = page.locator(
-      `text="${ORG_SECOND}", input[value="${ORG_SECOND}"], [data-testid="org-name"]`
-    );
-    const hasNewOrgName = await orgNameInContent.first().isVisible().catch(() => false);
-
-    // Also check for generic settings content as fallback
-    const settingsContent = page.locator(
-      'text=/organization name/i, text=/general settings/i, form'
-    );
-    const hasSettingsContent = await settingsContent.first().isVisible().catch(() => false);
-
-    expect(hasNewOrgName || hasSettingsContent).toBe(true);
+    await switchTo(page, first);
+    await expect(page).toHaveURL(new RegExp(`/org/${first.extid}/domains$`));
+    await expect(workspaceHeading(page, first)).toBeVisible();
+    await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', first.name);
   });
 
-  // -------------------------------------------------------------------------
-  // TC-OSN-004: Bidirectional navigation
-  // -------------------------------------------------------------------------
-  test('TC-OSN-004: Bidirectional navigation', async ({ page }) => {
-    // Start on Default Workspace's domains page
-    const extid1 = await navigateToOrgTab(page, ORG_DEFAULT, 'domains');
+  test('TC-OSN-005: The header, URL and page agree after a switch', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    const from = owner.defaultWorkspace;
+    const to = owner.secondWorkspace;
+    await gotoOrgTab(page, from, 'domains');
 
-    const orgTrigger = orgSwitcher.trigger(page);
-    const triggerVisible = await orgTrigger.isVisible().catch(() => false);
+    await switchTo(page, to);
 
-    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
-
-    // Record initial state
-    const initialExtid = extid1;
-    const initialTab = getCurrentTab(page);
-    expect(initialTab).toBe('domains');
-
-    // Switch to Org B
-    await switchOrgViaSwitcher(page, ORG_SECOND);
-
-    // Verify we are on Org B's domains page
-    const extidB = getCurrentOrgExtid(page);
-    expect(extidB).not.toBe(initialExtid);
-    expect(getCurrentTab(page)).toBe('domains');
-
-    // Verify no stale data - content should be different or show "no domains"
-    // Record some content identifier from Org B
-    const orgBUrl = page.url();
-
-    // Switch back to Org A
-    await switchOrgViaSwitcher(page, ORG_DEFAULT);
-
-    // Verify we are back on Org A's domains page
-    const extidBack = getCurrentOrgExtid(page);
-    expect(extidBack).toBe(initialExtid);
-    expect(getCurrentTab(page)).toBe('domains');
-
-    // URL should be different from Org B's URL
-    const orgAUrl = page.url();
-    expect(orgAUrl).not.toBe(orgBUrl);
-    expect(orgAUrl).toContain(`/org/${initialExtid}/domains`);
-
-    // Verify content is back to Org A's data; switchOrgViaSwitcher already
-    // waited for the navigation, so the extid read below is settled.
-
-    // Content should reflect Org A (no stale Org B data)
-    // This is the core assertion - the page should have updated
-    const currentExtid = getCurrentOrgExtid(page);
-    expect(currentExtid).toBe(initialExtid);
+    // The bug: the header changed while the URL and content stayed behind
+    await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', to.name);
+    await expect(orgSwitcher.trigger(page)).toContainText(to.name);
+    await expect(page).toHaveURL(new RegExp(`/org/${to.extid}/`));
+    await expect(workspaceHeading(page, to)).toBeVisible();
+    await expect(workspaceHeading(page, from)).toHaveCount(0);
   });
 
-  // -------------------------------------------------------------------------
-  // TC-OSN-005: URL and header stay in sync
-  // -------------------------------------------------------------------------
-  test('TC-OSN-005: URL and header stay in sync after switch', async ({ page }) => {
-    // Navigate to Default Workspace's domains tab
-    const extid1 = await navigateToOrgTab(page, ORG_DEFAULT, 'domains');
+  test('TC-OSN-006: Switching after a tab click keeps the tab on screen', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    // The 'same' target is built from the router's current route. A tab click
+    // must move that route to the clicked tab, or the switch lands on the tab
+    // the page was opened with.
+    const from = owner.defaultWorkspace;
+    const to = owner.secondWorkspace;
+    await gotoOrgTab(page, from, 'domains');
+    await page.getByTestId('org-tab-settings').click();
+    await expect(page).toHaveURL(new RegExp(`/org/${from.extid}/settings$`));
+    const displayName = page.getByTestId('org-section-settings').locator('input#display-name');
+    await expect(displayName).toHaveValue(from.name);
 
-    const orgTrigger = orgSwitcher.trigger(page);
-    const triggerVisible = await orgTrigger.isVisible().catch(() => false);
+    await switchTo(page, to);
 
-    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
-
-    // Get initial org name from header/trigger
-    const initialTriggerText = await orgTrigger.textContent();
-
-    // Switch to Second Organization
-    await switchOrgViaSwitcher(page, ORG_SECOND);
-
-    // Wait for trigger text to change (instead of arbitrary timeout)
-    await expect(orgTrigger).not.toHaveText(initialTriggerText!, { timeout: 5000 });
-
-    // Verify header updated
-    const newTriggerText = await orgTrigger.textContent();
-    expect(newTriggerText).not.toBe(initialTriggerText);
-
-    // Verify URL updated to match
-    const extid2 = getCurrentOrgExtid(page);
-    expect(extid2).not.toBe(extid1);
-
-    // The header and URL should be in sync - both showing the new org
-    // This was the bug: header would update but URL would stay stale
-    expect(page.url()).toContain(extid2!);
+    await expect(page).toHaveURL(new RegExp(`/org/${to.extid}/settings$`));
+    await expect(displayName).toHaveValue(to.name);
+    await expect(page.getByTestId('org-tab-settings')).toHaveAttribute('aria-selected', 'true');
   });
 });
 
-// -----------------------------------------------------------------------------
-// Edge Cases and Error Handling
-// -----------------------------------------------------------------------------
-
-// QUARANTINED with the suite above — needs ≥2 orgs (issue #3420).
-test.describe.fixme('Org Switcher Navigation - Edge Cases', () => {
-  test.beforeEach(async ({ page }) => {
-    page.setDefaultTimeout(15000);
-  });
-
-  // -------------------------------------------------------------------------
-  // TC-OSN-010: Switching to same org does not cause navigation
-  // -------------------------------------------------------------------------
-  test('TC-OSN-010: Selecting current org does not trigger unnecessary navigation', async ({
-    page,
+test.describe('Org Switcher Navigation - Edge Cases', () => {
+  test('TC-OSN-010: Selecting the current workspace does not navigate', async ({
+    ownerPage: page,
+    owner,
   }) => {
-    // Navigate to Default Workspace's domains tab
-    const extid = await navigateToOrgTab(page, ORG_DEFAULT, 'domains');
+    const current = owner.defaultWorkspace;
+    const other = owner.secondWorkspace;
+    await gotoOrgTab(page, current, 'domains');
+    const historyLength = await page.evaluate(() => window.history.length);
 
-    const orgTrigger = orgSwitcher.trigger(page);
-    const triggerVisible = await orgTrigger.isVisible().catch(() => false);
+    await switchTo(page, current);
 
-    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
+    await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', current.name);
+    await expect(workspaceHeading(page, current)).toBeVisible();
 
-    const initialUrl = page.url();
-
-    // Open dropdown and select the same org
-    await orgTrigger.click();
-    const dropdown = orgSwitcher.dropdown(page);
-    await expect(dropdown).toBeVisible({ timeout: 5000 });
-
-    // Click the current org (should be highlighted/checked)
-    const currentOrgItem = orgSwitcher.getOrgMenuItem(page, ORG_DEFAULT);
-    await currentOrgItem.click();
-
-    // Wait for dropdown to close (indicates click was processed)
-    await expect(dropdown).not.toBeVisible({ timeout: 5000 });
-
-    // URL should remain the same
-    expect(page.url()).toBe(initialUrl);
-    expect(getCurrentOrgExtid(page)).toBe(extid);
+    // A URL check right after the selection cannot see a navigation that has
+    // not finished yet, so the test makes a later switch and reads what is
+    // left: a push from the selection shows as an extra history entry, a
+    // replace to another tab as the tab the switch keeps. This sees only a
+    // navigation that finished before the later switch started. Vue Router
+    // does not queue navigations: starting one cancels any still pending, so
+    // a selection whose navigation waited on a slow guard would be cancelled
+    // here and the test would still pass. Today the selection pushes the
+    // route already on screen, which Vue Router settles at once as a
+    // duplicate without running guards.
+    await switchTo(page, other);
+    await expect(page).toHaveURL(new RegExp(`/org/${other.extid}/domains$`));
+    expect(await page.evaluate(() => window.history.length)).toBe(historyLength + 1);
   });
 
-  // -------------------------------------------------------------------------
-  // TC-OSN-011: Browser back button works correctly after switch
-  // -------------------------------------------------------------------------
-  test('TC-OSN-011: Browser back button works correctly after org switch', async ({ page }) => {
-    // Navigate to Default Workspace's domains tab
-    const extid1 = await navigateToOrgTab(page, ORG_DEFAULT, 'domains');
-    const originalUrl = page.url();
+  test('TC-OSN-011: Back after a switch returns to the previous workspace', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    const from = owner.defaultWorkspace;
+    const to = owner.secondWorkspace;
+    await gotoOrgTab(page, from, 'domains');
+    await switchTo(page, to);
+    await expect(page).toHaveURL(new RegExp(`/org/${to.extid}/domains$`));
 
-    const orgTrigger = orgSwitcher.trigger(page);
-    const triggerVisible = await orgTrigger.isVisible().catch(() => false);
-
-    expect(triggerVisible, 'org switcher requires ≥2 orgs — second-org fixture (#3420)').toBe(true);
-
-    // Switch to Second Organization
-    await switchOrgViaSwitcher(page, ORG_SECOND);
-
-    // Verify we switched
-    const extid2 = getCurrentOrgExtid(page);
-    expect(extid2).not.toBe(extid1);
-
-    // Go back using browser navigation; the web-first URL assertion waits
-    // for the history navigation to settle on the original org
     await page.goBack();
 
-    // Should be back on original org's page
-    // Note: Behavior may vary based on router.replace vs router.push
-    await expect(page).toHaveURL(new RegExp(extid1));
-    const backUrl = page.url();
-    void originalUrl; // Used for comparison context
-    const backExtid = getCurrentOrgExtid(page);
+    await expect(page).toHaveURL(new RegExp(`/org/${from.extid}/domains$`));
+    await expect(workspaceHeading(page, from)).toBeVisible();
+    await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', from.name);
+  });
 
-    // The URL should correspond to the org displayed
-    if (backExtid === extid1) {
-      expect(backUrl).toContain(extid1);
-    }
+  test('TC-OSN-012: A link to the tab on screen adds no history entry', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    // The user menu's Activity item links /org/<current>/activity. After a
+    // tab click has put Activity on screen, following it is a duplicate
+    // navigation. If the router still held the tab the page was opened with,
+    // the link would push a second /activity entry and remount the page.
+    const current = owner.defaultWorkspace;
+    const other = owner.secondWorkspace;
+    await gotoOrgTab(page, current, 'domains');
+    await page.getByTestId('org-tab-activity').click();
+    await expect(page).toHaveURL(new RegExp(`/org/${current.extid}/activity$`));
+    await expect(page.getByTestId('org-section-activity')).toBeVisible();
+    const historyLength = await page.evaluate(() => window.history.length);
+
+    await page.getByTestId('user-menu-trigger').click();
+    await page
+      .getByTestId('user-menu-dropdown')
+      .getByRole('menuitem', { name: 'Activity', exact: true })
+      .click();
+    await expect(page.getByTestId('user-menu-dropdown')).toBeHidden();
+    await expect(page).toHaveURL(new RegExp(`/org/${current.extid}/activity$`));
+    await expect(page.getByTestId('org-section-activity')).toBeVisible();
+
+    // Leave through the switcher: once that navigation has landed, a push
+    // from the menu item shows as an extra history entry.
+    await switchTo(page, other);
+    await expect(page).toHaveURL(new RegExp(`/org/${other.extid}/activity$`));
+    expect(await page.evaluate(() => window.history.length)).toBe(historyLength + 1);
+  });
+
+  test('TC-OSN-013: The user menu marks its Activity item current only on the Activity tab', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    // RouterLink sets aria-current="page" from the router's current route. A
+    // tab switch must move that route, or the Activity item keeps the mark
+    // after the user leaves the Activity tab (and never gets it back).
+    const current = owner.defaultWorkspace;
+    const menuTrigger = page.getByTestId('user-menu-trigger');
+    const menu = page.getByTestId('user-menu-dropdown');
+    const activityItem = menu.getByRole('menuitem', { name: 'Activity', exact: true });
+    const closeMenu = async () => {
+      await menuTrigger.click();
+      await expect(menu).toBeHidden();
+    };
+
+    await gotoOrgTab(page, current, 'activity');
+    await menuTrigger.click();
+    await expect(activityItem).toHaveAttribute('aria-current', 'page');
+    await closeMenu();
+
+    await page.getByTestId('org-tab-domains').click();
+    await expect(page).toHaveURL(new RegExp(`/org/${current.extid}/domains$`));
+    await menuTrigger.click();
+    await expect(activityItem).toBeVisible();
+    await expect(activityItem).not.toHaveAttribute('aria-current');
+    await closeMenu();
+
+    await page.getByTestId('org-tab-activity').click();
+    await expect(page).toHaveURL(new RegExp(`/org/${current.extid}/activity$`));
+    await menuTrigger.click();
+    await expect(activityItem).toHaveAttribute('aria-current', 'page');
   });
 });
 
@@ -484,13 +273,16 @@ test.describe.fixme('Org Switcher Navigation - Edge Cases', () => {
  *
  * | ID          | Title                                                    | Priority | Automation |
  * |-------------|----------------------------------------------------------|---------:|------------|
- * | TC-OSN-001  | Org switcher navigates to same tab (domains)             | Critical | Automated  |
- * | TC-OSN-002  | Org switcher works on billing tab                        | High     | Automated  |
- * | TC-OSN-003  | Org switcher works on settings tab                       | High     | Automated  |
- * | TC-OSN-004  | Bidirectional navigation works correctly                 | Critical | Automated  |
- * | TC-OSN-005  | URL and header stay in sync after switch                 | Critical | Automated  |
- * | TC-OSN-010  | Selecting current org does not trigger navigation        | Medium   | Automated  |
- * | TC-OSN-011  | Browser back button works correctly                      | Medium   | Automated  |
+ * | TC-OSN-001  | Switching keeps the Domains tab                          | Critical | Automated  |
+ * | TC-OSN-002  | Switching keeps the Subscription (was Billing) tab       | High     | Automated  |
+ * | TC-OSN-003  | Switching keeps the Settings tab                         | High     | Automated  |
+ * | TC-OSN-004  | Switching there and back                                 | Critical | Automated  |
+ * | TC-OSN-005  | Header, URL and page agree after a switch                | Critical | Automated  |
+ * | TC-OSN-006  | Switching after a tab click keeps the tab on screen      | High     | Automated  |
+ * | TC-OSN-010  | Selecting the current workspace does not navigate        | Medium   | Automated  |
+ * | TC-OSN-011  | Back returns to the previous workspace                   | Medium   | Automated  |
+ * | TC-OSN-012  | A link to the tab on screen adds no history entry        | Medium   | Automated  |
+ * | TC-OSN-013  | The user menu marks Activity current only on that tab    | Medium   | Automated  |
  *
  * Bug Reference:
  * - Issue: Org switcher on /org/{extid}/* pages updated header but not URL/content

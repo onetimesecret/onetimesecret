@@ -62,5 +62,21 @@ declare module 'vue-router' {
      * to SPA-redirect to.
      */
     requiresColonel?: boolean;
+
+    /**
+     * Route params whose change keeps the routed view mounted.
+     *
+     * App.vue keys the routed view by fullPath, so any navigation remounts
+     * the page: it refetches its data and drops focus. Params listed here are
+     * left out of that key (routeViewKey in src/router/viewKey.ts). A
+     * navigation that changes only them runs the route guards as usual but
+     * reuses the mounted instance, which must watch route.params for them.
+     * The router also keeps the scroll position for such a navigation.
+     *
+     * Use it for in-page state mirrored into the path, such as a tab
+     * (/org/:extid/:tab?). Never list a param that selects the record the
+     * page shows (:extid): a new record must get a fresh instance.
+     */
+    keepMountedAcrossParams?: readonly string[];
   }
 }

@@ -1,118 +1,123 @@
-// src/tests/e2e/settings-layout.spec.ts
+// e2e/full/settings-layout.spec.ts
 
-import { test, expect } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 
 /**
- * E2E Tests - Settings Layout Refactoring Validation
+ * E2E Tests - Account Settings Layout
  *
- * These tests validate the SettingsLayout component and its extracted children
- * (SettingsNavigation, SettingsSection) work correctly after refactoring.
+ * Validates SettingsLayout (src/apps/workspace/layouts/SettingsLayout.vue):
+ * a page header (h1 "Account" + "Back to Dashboard" link), a horizontal tab
+ * bar (nav "Settings navigation") and the section panel below it. Child
+ * pages (Change Email, Change Password, ...) are reached through links in
+ * the section panels, not through the tab bar.
  *
  * ## Prerequisites
  *
- * 1. User must be authenticated to access settings pages
- * 2. Application must be running (dev server or production build)
+ * Runs in the full-auth lane as the storageState owner (e2e/global.setup.ts):
+ * the account has a password and owns its default org, so the tab bar shows
+ * Profile, Security, API Key, Region and Careful Consideration Zone, and the
+ * Security panel shows the password and active-sessions cards.
  *
  * ## Running Tests
  *
  * ```bash
- * # Against dev server
- * PLAYWRIGHT_BASE_URL=http://localhost:5173 pnpm test:playwright src/tests/e2e/settings-layout.spec.ts
- *
- * # Against production build
- * pnpm test:playwright src/tests/e2e/settings-layout.spec.ts
+ * PLAYWRIGHT_BASE_URL=http://localhost:3000 \
+ *   pnpm test:playwright e2e/full/settings-layout.spec.ts
  * ```
  *
  * ## Test Categories
  *
- * 1. Settings Page Navigation - sidebar links work correctly
- * 2. Settings Sections Rendering - all sections display properly
- * 3. Mobile Responsive Behavior - layout adapts to small screens
- * 4. Route Transitions - navigation between settings pages is smooth
+ * 1. Settings Page Navigation - tab links and panel links route correctly
+ * 2. Settings Sections Rendering - each section panel renders its content
+ * 3. Mobile Responsive Behavior - the tab bar fits small screens
+ * 4. Route Transitions - navigation between settings pages keeps the layout
  */
 
-test.describe('E2E - Settings Layout Refactoring', () => {
-  // Skip all tests if test credentials are not configured
-  // These tests require authentication which needs a seeded test user
+const EXPECTED_TABS = ['Profile', 'Security', 'API Key', 'Region', 'Careful Consideration Zone'];
 
+function settingsNav(page: Page) {
+  return page.getByRole('navigation', { name: 'Settings navigation' });
+}
+
+function tab(page: Page, name: string) {
+  return settingsNav(page).getByRole('link', { name, exact: true });
+}
+
+/** Panel content lives in <main>; the tab bar and header are above it. */
+function panelHeading(page: Page, name: string) {
+  return page.getByRole('main').getByRole('heading', { level: 2, name, exact: true });
+}
+
+test.describe('E2E - Settings Layout', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
 
   test.describe('Settings Page Navigation', () => {
-    test('sidebar navigation renders all main sections', async ({ page }) => {
+    test('tab navigation renders all main sections', async ({ page }) => {
       await page.goto('/account/settings/profile');
 
-      // Wait for settings layout to load
-      await page.waitForSelector('nav[aria-label="Settings navigation"]');
-
-      // Verify main navigation items are present
-      const nav = page.locator('nav[aria-label="Settings navigation"]');
-      await expect(nav).toBeVisible();
-
-      // Check for expected navigation items
-      await expect(nav.getByText('Profile')).toBeVisible();
-      await expect(nav.getByText('Security')).toBeVisible();
-      await expect(nav.getByText('API')).toBeVisible();
+      await expect(settingsNav(page)).toBeVisible();
+      await expect(settingsNav(page).getByRole('link')).toHaveText(EXPECTED_TABS);
     });
 
     test('clicking navigation item navigates to correct route', async ({ page }) => {
       await page.goto('/account/settings/profile');
 
-      // Click on Security link
-      await page.click('nav[aria-label="Settings navigation"] a:has-text("Security")');
+      await tab(page, 'Security').click();
 
-      // Verify URL changed
-      await expect(page).toHaveURL(/\/account\/settings\/security/);
-
-      // Verify content changed (looking for security-specific content)
-      await expect(page.locator('h1, h2').filter({ hasText: /security/i }).first()).toBeVisible();
+      await expect(page).toHaveURL(/\/account\/settings\/security$/);
+      // The Security panel is its card grid; the password card is always
+      // present for a password account.
+      await expect(panelHeading(page, 'Change Password')).toBeVisible();
     });
 
-    test('active navigation item is visually distinguished', async ({ page }) => {
+    test('active navigation item is marked aria-current', async ({ page }) => {
+      // /account/settings/profile redirects to /profile/preferences; the
+      // Profile tab still has to be the current one.
       await page.goto('/account/settings/profile');
+      await expect(page).toHaveURL(/\/account\/settings\/profile\/preferences$/);
 
-      // Find the Profile nav item
-      const profileLink = page.locator('nav[aria-label="Settings navigation"] a:has-text("Profile")');
+      await expect(tab(page, 'Profile')).toHaveAttribute('aria-current', 'page');
+      await expect(settingsNav(page).locator('[aria-current]')).toHaveCount(1);
 
-      // Check it has active styling (brand color background)
-      await expect(profileLink).toHaveClass(/bg-brand|active|selected/);
+      await tab(page, 'Security').click();
+      await expect(page).toHaveURL(/\/account\/settings\/security$/);
 
-      // Navigate to Security and verify active state changes
-      await page.click('nav[aria-label="Settings navigation"] a:has-text("Security")');
-      await page.waitForURL(/\/account\/settings\/security/);
-
-      const securityLink = page.locator('nav[aria-label="Settings navigation"] a:has-text("Security")');
-      await expect(securityLink).toHaveClass(/bg-brand|active|selected/);
-
-      // Profile should no longer be active
-      await expect(profileLink).not.toHaveClass(/bg-brand-50|active/);
+      await expect(tab(page, 'Security')).toHaveAttribute('aria-current', 'page');
+      await expect(tab(page, 'Profile')).not.toHaveAttribute('aria-current');
+      await expect(settingsNav(page).locator('[aria-current]')).toHaveCount(1);
     });
 
-    test('child navigation items appear when parent is active', async ({ page }) => {
+    test('section panels link to their child pages', async ({ page }) => {
       await page.goto('/account/settings/profile');
 
-      // Profile children should be visible
-      const preferencesLink = page.locator('a:has-text("Preferences")');
-      await expect(preferencesLink).toBeVisible();
+      // Profile panel: Change Email (owner with a password)
+      await expect(page.getByRole('main').getByRole('link', { name: 'Change Email' })).toHaveAttribute(
+        'href',
+        '/account/settings/profile/email'
+      );
 
-      // Navigate to Security
-      await page.click('nav[aria-label="Settings navigation"] a:has-text("Security")');
-      await page.waitForURL(/\/account\/settings\/security/);
+      await tab(page, 'Security').click();
+      await expect(page).toHaveURL(/\/account\/settings\/security$/);
 
-      // Security children should now be visible
-      const passwordLink = page.locator('a:has-text("Change Password"), a:has-text("Password")');
-      await expect(passwordLink).toBeVisible();
+      // Security panel: every card action is a child route of the tab
+      await expect(
+        page.getByRole('main').locator('a[href="/account/settings/security/password"]')
+      ).toBeVisible();
+      await expect(
+        page.getByRole('main').locator('a[href="/account/settings/security/sessions"]')
+      ).toBeVisible();
     });
 
-    test('child navigation routes work correctly', async ({ page }) => {
-      await page.goto('/account/settings/profile');
+    test('child routes keep their parent tab current', async ({ page }) => {
+      await page.goto('/account/settings/security');
 
-      // Click on Preferences (child of Profile)
-      await page.click('a:has-text("Preferences")');
+      await page.getByRole('main').locator('a[href="/account/settings/security/password"]').click();
 
-      // Verify URL
-      await expect(page).toHaveURL(/\/account\/settings\/profile\/preferences/);
+      await expect(page).toHaveURL(/\/account\/settings\/security\/password$/);
+      await expect(tab(page, 'Security')).toHaveAttribute('aria-current', 'page');
+      await expect(settingsNav(page).locator('[aria-current]')).toHaveCount(1);
     });
   });
 
@@ -120,79 +125,58 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     test('Profile settings section renders correctly', async ({ page }) => {
       await page.goto('/account/settings/profile');
 
-      // Check for profile-specific content
-      const content = page.locator('main');
-      await expect(content).toBeVisible();
-
-      // Look for typical profile settings elements
-      // Adjust selectors based on actual content
-      const hasProfileContent =
-        (await page.locator('text=/theme|appearance|language/i').count()) > 0 ||
-        (await page.locator('section').count()) > 0;
-
-      expect(hasProfileContent).toBe(true);
+      const main = page.getByRole('main');
+      await expect(panelHeading(page, 'Email Address')).toBeVisible();
+      await expect(panelHeading(page, 'Preferences')).toBeVisible();
+      await expect(main.getByText('Appearance', { exact: true })).toBeVisible();
+      await expect(main.getByRole('button', { name: 'Toggle dark mode' })).toBeVisible();
     });
 
     test('Security settings section renders correctly', async ({ page }) => {
       await page.goto('/account/settings/security');
 
-      const content = page.locator('main');
-      await expect(content).toBeVisible();
-
-      // Look for security-specific content
-      const hasSecurityContent =
-        (await page.locator('text=/password|mfa|two-factor|session/i').count()) > 0;
-
-      expect(hasSecurityContent).toBe(true);
+      // Cards render after the account-info fetch resolves; web-first
+      // assertions wait for them.
+      await expect(panelHeading(page, 'Change Password')).toBeVisible();
+      await expect(panelHeading(page, 'Active Sessions')).toBeVisible();
     });
 
     test('API settings section renders correctly', async ({ page }) => {
       await page.goto('/account/settings/api');
 
-      const content = page.locator('main');
-      await expect(content).toBeVisible();
-
-      // Look for API-specific content
-      const hasApiContent =
-        (await page.locator('text=/api.*key|token|generate/i').count()) > 0;
-
-      expect(hasApiContent).toBe(true);
+      await expect(panelHeading(page, 'API Key')).toBeVisible();
+      await expect(panelHeading(page, 'API Username')).toBeVisible();
+      await expect(page.getByTestId('api-username-field')).toBeVisible();
     });
 
-    test('section cards have proper structure', async ({ page }) => {
+    test('section cards are headed by h2 in order', async ({ page }) => {
       await page.goto('/account/settings/profile');
 
-      // Check for card-style sections
-      const sections = page.locator('section.rounded-lg, div.rounded-lg.border');
-      const sectionCount = await sections.count();
-
-      expect(sectionCount).toBeGreaterThan(0);
-
-      // Verify first section has header (h2 or heading element with font-medium/font-semibold)
-      const firstSection = sections.first();
-      const header = firstSection.locator('h2, [class*="font-medium"], [class*="font-semibold"]');
-      await expect(header.first()).toBeVisible();
+      // The layout owns the only h1; each panel card starts with an h2.
+      await expect(page.getByRole('main').getByRole('heading', { level: 2 })).toHaveText([
+        'Email Address',
+        'Preferences',
+      ]);
     });
   });
 
   test.describe('Mobile Responsive Behavior', () => {
-    test('layout adapts to mobile viewport', async ({ page }) => {
-
-      // Set mobile viewport
+    test('tab bar fits the mobile viewport', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
 
       await page.goto('/account/settings/profile');
 
-      // Sidebar should stack above content on mobile
-      const sidebar = page.locator('aside, nav[aria-label="Settings navigation"]');
-      const main = page.locator('main');
+      await expect(settingsNav(page)).toBeVisible();
+      await expect(panelHeading(page, 'Email Address')).toBeVisible();
 
-      await expect(sidebar).toBeVisible();
-      await expect(main).toBeVisible();
-
-      // Check layout direction (should be column on mobile)
-      const layoutContainer = page.locator('.flex.flex-col');
-      await expect(layoutContainer).toBeVisible();
+      // The tab bar scrolls inside its own box (overflow-x-auto) rather than
+      // widening the page.
+      await expect
+        .poll(async () => {
+          const box = await settingsNav(page).boundingBox();
+          return box ? box.x >= 0 && box.x + box.width <= 375 : false;
+        })
+        .toBe(true);
     });
 
     test('navigation is accessible on mobile', async ({ page }) => {
@@ -200,13 +184,14 @@ test.describe('E2E - Settings Layout Refactoring', () => {
 
       await page.goto('/account/settings/profile');
 
-      // Navigation should still be usable
-      const nav = page.locator('nav[aria-label="Settings navigation"]');
-      await expect(nav).toBeVisible();
+      await expect(settingsNav(page)).toBeVisible();
 
-      // Should be able to click navigation items
-      await page.click('nav a:has-text("Security")');
-      await expect(page).toHaveURL(/\/account\/settings\/security/);
+      // Tabs past the fold are scrolled into view by the click.
+      await tab(page, 'Careful Consideration Zone').click();
+      await expect(page).toHaveURL(/\/account\/settings\/caution$/);
+
+      await tab(page, 'Security').click();
+      await expect(page).toHaveURL(/\/account\/settings\/security$/);
     });
 
     test('content does not overflow horizontally on mobile', async ({ page }) => {
@@ -214,11 +199,9 @@ test.describe('E2E - Settings Layout Refactoring', () => {
 
       await page.goto('/account/settings/profile');
 
-      // Wait for the app to finish booting; the overflow read below forces
-      // a synchronous layout pass itself.
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      // Measure after the panel content (the widest part) has rendered.
+      await expect(panelHeading(page, 'Preferences')).toBeVisible();
 
-      // Check for horizontal overflow
       const { hasOverflow, scrollWidth, viewportWidth } = await page.evaluate(() => {
         const scrollWidth = document.body.scrollWidth;
         const viewportWidth = window.innerWidth;
@@ -234,126 +217,100 @@ test.describe('E2E - Settings Layout Refactoring', () => {
         `Page has horizontal overflow: scrollWidth=${scrollWidth}, viewportWidth=${viewportWidth}`
       ).toBe(false);
     });
-
-    test('sidebar width is correct on desktop', async ({ page }) => {
-      await page.setViewportSize({ width: 1280, height: 800 });
-
-      await page.goto('/account/settings/profile');
-
-      // Sidebar should have fixed width on desktop (md:w-72 = 288px)
-      const sidebar = page.locator('aside').first();
-      const box = await sidebar.boundingBox();
-
-      if (box) {
-        // md:w-72 = 18rem = 288px (approximately)
-        expect(box.width).toBeGreaterThanOrEqual(250);
-        expect(box.width).toBeLessThanOrEqual(320);
-      }
-    });
   });
 
   test.describe('Route Transitions', () => {
     test('navigation between settings pages preserves layout', async ({ page }) => {
       await page.goto('/account/settings/profile');
 
-      // Navigate through multiple pages
       const routes = [
-        { link: 'Security', urlPattern: /security/ },
-        { link: 'API', urlPattern: /api/ },
-        { link: 'Profile', urlPattern: /profile/ },
+        { tab: 'Security', urlPattern: /\/account\/settings\/security$/ },
+        { tab: 'API Key', urlPattern: /\/account\/settings\/api$/ },
+        { tab: 'Profile', urlPattern: /\/account\/settings\/profile\/preferences$/ },
       ];
 
       for (const route of routes) {
-        await page.click(`nav[aria-label="Settings navigation"] a:has-text("${route.link}")`);
+        await tab(page, route.tab).click();
         await expect(page).toHaveURL(route.urlPattern);
 
-        // Verify layout is still intact
-        await expect(page.locator('nav[aria-label="Settings navigation"]')).toBeVisible();
-        await expect(page.locator('main')).toBeVisible();
+        await expect(page.getByRole('heading', { level: 1, name: 'Account' })).toBeVisible();
+        await expect(tab(page, route.tab)).toHaveAttribute('aria-current', 'page');
       }
     });
 
-    test('breadcrumb updates on navigation', async ({ page }) => {
-      await page.goto('/account/settings/profile');
+    test('page header persists across settings tabs', async ({ page }) => {
+      for (const url of ['/account/settings/profile', '/account/settings/security']) {
+        await page.goto(url);
 
-      // Check breadcrumb shows Settings
-      const breadcrumb = page.locator('nav.breadcrumb, nav:has-text("Account")');
-      await expect(breadcrumb).toBeVisible();
-      await expect(breadcrumb.getByText('Settings')).toBeVisible();
-
-      // Account link should be present in breadcrumb
-      const accountLink = breadcrumb.locator('a:has-text("Account")');
-      await expect(accountLink).toBeVisible();
+        await expect(page.getByRole('heading', { level: 1, name: 'Account' })).toBeVisible();
+        await expect(page.getByRole('link', { name: 'Back to Dashboard' })).toHaveAttribute(
+          'href',
+          '/'
+        );
+      }
     });
 
-    test('clicking breadcrumb Account link navigates to account page', async ({ page }) => {
+    test('Back to Dashboard link leaves settings', async ({ page }) => {
       await page.goto('/account/settings/profile');
 
-      // Click Account in breadcrumb
-      await page.click('nav a:has-text("Account")');
+      await page.getByRole('link', { name: 'Back to Dashboard' }).click();
 
-      // Should navigate to account page
-      await expect(page).toHaveURL(/\/account$/);
+      // The link targets '/', which sends a signed-in user on to /dashboard.
+      await expect(page).toHaveURL(/\/dashboard$/);
+      await expect(settingsNav(page)).toHaveCount(0);
     });
 
     test('browser back button works correctly', async ({ page }) => {
       await page.goto('/account/settings/profile');
+      await expect(page).toHaveURL(/\/account\/settings\/profile\/preferences$/);
 
-      // Navigate to Security
-      await page.click('nav[aria-label="Settings navigation"] a:has-text("Security")');
-      await expect(page).toHaveURL(/\/account\/settings\/security/);
+      await tab(page, 'Security').click();
+      await expect(page).toHaveURL(/\/account\/settings\/security$/);
 
-      // Go back
       await page.goBack();
 
-      // Should be back on profile
-      await expect(page).toHaveURL(/\/account\/settings\/profile/);
+      await expect(page).toHaveURL(/\/account\/settings\/profile\/preferences$/);
+      await expect(tab(page, 'Profile')).toHaveAttribute('aria-current', 'page');
     });
 
     test('direct URL navigation works', async ({ page }) => {
-
-      // Navigate directly to various settings pages
       const pages = [
-        '/account/settings/profile',
-        '/account/settings/security',
-        '/account/settings/api',
+        { url: '/account/settings/profile', current: 'Profile', heading: 'Email Address' },
+        { url: '/account/settings/security', current: 'Security', heading: 'Change Password' },
+        { url: '/account/settings/api', current: 'API Key', heading: 'API Key' },
       ];
 
-      for (const url of pages) {
-        await page.goto(url);
-        await expect(page.locator('nav[aria-label="Settings navigation"]')).toBeVisible();
-        await expect(page.locator('main')).toBeVisible();
+      for (const target of pages) {
+        await page.goto(target.url);
+        await expect(tab(page, target.current)).toHaveAttribute('aria-current', 'page');
+        await expect(panelHeading(page, target.heading)).toBeVisible();
       }
     });
   });
 
   test.describe('Accessibility', () => {
-    test('settings navigation has proper ARIA attributes', async ({ page }) => {
+    test('settings navigation is exposed as a named landmark', async ({ page }) => {
       await page.goto('/account/settings/profile');
 
-      const nav = page.locator('nav[aria-label="Settings navigation"]');
-      await expect(nav).toBeVisible();
-      await expect(nav).toHaveAttribute('aria-label', 'Settings navigation');
+      // Resolving by role + accessible name is the assertion.
+      await expect(settingsNav(page)).toBeVisible();
     });
 
     test('page has single h1', async ({ page }) => {
       await page.goto('/account/settings/profile');
 
-      const h1Elements = page.locator('h1');
-      const count = await h1Elements.count();
-
-      expect(count).toBe(1);
+      await expect(page.getByRole('heading', { level: 1, name: 'Account' })).toBeVisible();
+      await expect(page.locator('h1')).toHaveCount(1);
     });
 
     test('navigation links are focusable', async ({ page }) => {
       await page.goto('/account/settings/profile');
+      await expect(settingsNav(page)).toBeVisible();
 
-      // Tab to first nav link
-      await page.keyboard.press('Tab');
-
-      // Eventually should reach a nav link (may need multiple tabs)
+      // Tab from the top of the document until focus lands in the tab bar.
       let foundNavLink = false;
       for (let i = 0; i < 20; i++) {
+        await page.keyboard.press('Tab');
         const focused = await page.evaluate(() => {
           const el = document.activeElement;
           return {
@@ -366,7 +323,6 @@ test.describe('E2E - Settings Layout Refactoring', () => {
           foundNavLink = true;
           break;
         }
-        await page.keyboard.press('Tab');
       }
 
       expect(foundNavLink).toBe(true);
@@ -375,45 +331,32 @@ test.describe('E2E - Settings Layout Refactoring', () => {
     test('Enter key activates navigation links', async ({ page }) => {
       await page.goto('/account/settings/profile');
 
-      // Focus on Security link
-      const securityLink = page.locator('nav[aria-label="Settings navigation"] a:has-text("Security")');
-      await securityLink.focus();
-
-      // Press Enter
+      await tab(page, 'Security').focus();
       await page.keyboard.press('Enter');
 
-      // Should navigate
-      await expect(page).toHaveURL(/\/account\/settings\/security/);
+      await expect(page).toHaveURL(/\/account\/settings\/security$/);
     });
   });
 
   test.describe('Error Handling', () => {
     test('handles missing settings route gracefully', async ({ page }) => {
-
       await page.goto('/account/settings/nonexistent');
 
-      // Should either redirect or show 404
-      // Not crash or show blank page
-      await expect(page.locator('body')).toBeVisible();
-
-      // Should not show stack trace
-      const bodyText = await page.textContent('body');
-      expect(bodyText?.toLowerCase()).not.toContain('stack trace');
+      // The catch-all route renders the 404 view, not a crash or blank page.
+      await expect(page.getByRole('heading', { name: /404/ })).toBeVisible();
+      await expect(page.locator('body')).not.toContainText(/stack trace/i);
     });
 
     test('settings page recovers from failed API calls', async ({ page }) => {
-
       // Block API calls to simulate failure
       await page.route('**/api/**', (route) => route.abort());
 
       await page.goto('/account/settings/profile');
 
-      // Page should still load, possibly with error state
-      await expect(page.locator('body')).toBeVisible();
-
-      // Should show some content, not blank
-      const content = await page.textContent('body');
-      expect(content?.length).toBeGreaterThan(100);
+      // The layout and the panels that need no API data still render.
+      await expect(page.getByRole('heading', { level: 1, name: 'Account' })).toBeVisible();
+      await expect(settingsNav(page).getByRole('link')).toHaveText(EXPECTED_TABS);
+      await expect(panelHeading(page, 'Preferences')).toBeVisible();
     });
   });
 });
@@ -424,9 +367,8 @@ test.describe('E2E - Settings Layout Refactoring', () => {
  * These test cases should be verified manually if automation is not feasible:
  *
  * ## Navigation Testing
- * - [ ] All sidebar navigation items display correctly
- * - [ ] Active state styling is visible on current page
- * - [ ] Child items expand/collapse appropriately
+ * - [ ] All tab bar items display correctly
+ * - [ ] Active state styling is visible on current tab
  * - [ ] Icons render correctly for all items
  * - [ ] Hover states work on all links
  *
@@ -438,9 +380,9 @@ test.describe('E2E - Settings Layout Refactoring', () => {
  * - [ ] Card styling (borders, shadows) is correct
  *
  * ## Responsive Testing
- * - [ ] Mobile (375px): Sidebar stacks above content
+ * - [ ] Mobile (375px): Tab bar scrolls horizontally inside its own box
  * - [ ] Tablet (768px): Layout transitions smoothly
- * - [ ] Desktop (1280px): Side-by-side layout
+ * - [ ] Desktop (1280px): Content column stays at max-w-5xl
  * - [ ] Large (1920px): Content stays centered, max-width honored
  *
  * ## Interaction Testing

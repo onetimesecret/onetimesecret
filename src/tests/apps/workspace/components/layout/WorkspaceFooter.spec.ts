@@ -370,6 +370,22 @@ describe('WorkspaceFooter footerLinks', () => {
       expect(versionLink.text()).toContain('v1.0.0');
     });
 
+    // text-gray-500 on the footer's bg-gray-100 was 4.39:1 (axe
+    // color-contrast); ManagementFooter and TransactionalFooter use gray-600.
+    it('renders version text in a light-mode color with enough contrast', async () => {
+      wrapper = mountComponent({
+        ui: {
+          show_version: true,
+        },
+      });
+
+      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      const textContainer = versionLink.element.closest('.text-xs');
+      expect(textContainer).not.toBeNull();
+      expect(textContainer!.classList.contains('text-gray-600')).toBe(true);
+      expect(textContainer!.classList.contains('text-gray-500')).toBe(false);
+    });
+
     it('shows version when displayVersion=true and ui.show_version is undefined (default)', async () => {
       wrapper = mountComponent({
         ui: {},

@@ -16,11 +16,15 @@
 //
 // Note the deliberate split:
 //   - OPTIONAL CONFIG (a custom domain exists, SSO UI is on, an MFA account
-//     exists) -> env-gated here. It is deployment configuration.
-//   - SEEDED DATA RELATIONSHIPS (a second organization, a second member, a
-//     captured invite email) -> NOT env-gated. Those need fixtures, so the
-//     suites are `test.fixme`'d and tracked in e2e/QUARANTINE.md
-//     (issues #3419 / #3420 / #3421). The fixture work is Phase 3 / PR 6.
+//     exists) -> env-gated here. It is deployment configuration. Inside a
+//     gate, the precondition is asserted, not probed: a gated suite that runs
+//     without its fixture fails.
+//   - DATA RELATIONSHIPS -> NOT env-gated. A second member, an invitee or a
+//     second organization is built during the run from throwaway accounts
+//     (e2e/support/members.ts, e2e/support/workspaces.ts). What the lane
+//     cannot build (a captured magic-link email, two organizations with
+//     custom domains) is `test.fixme`'d and tracked in e2e/QUARANTINE.md
+//     (issues #3420 / #3421).
 
 /** True when an env var is present and not an explicit falsey string. */
 function flag(name: string): boolean {
@@ -29,10 +33,12 @@ function flag(name: string): boolean {
 }
 
 /**
- * Custom domains available on the target account. Set E2E_CUSTOM_DOMAINS to a
- * comma-separated list (or any truthy value) when the target runs with custom
- * domains enabled and at least one provisioned. Suites that navigate
- * `/org/:id/domains/:extid/...` gate on `hasCustomDomains`.
+ * Custom domains available on the target account. Set E2E_CUSTOM_DOMAINS to
+ * the comma-separated domain names when the target runs with custom domains
+ * enabled and at least one provisioned. Suites that navigate
+ * `/org/:id/domains/:extid/...` gate on `hasCustomDomains`; scope-switcher
+ * matches the first name in the UI, and the cases that need two domains read
+ * the list's length.
  */
 export const customDomains: string[] = (process.env.E2E_CUSTOM_DOMAINS ?? '')
   .split(',')

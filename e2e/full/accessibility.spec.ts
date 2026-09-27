@@ -20,8 +20,9 @@
 //     - When A11Y_UPDATE_BASELINE is set, REWRITE the full baseline instead
 //       of asserting.
 //
-// Runs in CI via the `full/` suite step in .github/workflows/e2e.yml
-// (`pnpm test:playwright e2e/full/`), which pulls in `setup` automatically.
+// Runs in CI in the `full` lane of .github/workflows/e2e.yml
+// (`pnpm test:playwright e2e/full/` against the image booted in full auth
+// mode), which pulls in `setup` automatically.
 // Local sandbox runs point Chromium at a pre-installed binary via the
 // A11Y_CHROME_PATH env var (wired in e2e/playwright.config.ts).
 

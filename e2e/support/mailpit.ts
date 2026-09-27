@@ -214,9 +214,10 @@ export async function waitForVerificationUrl(
   if (links.length === 0) {
     throw new Error(
       `Email to ${recipient} ("${message.Subject}") contains no /verify-account link. ` +
-        'The account was probably auto-verified (AUTH_AUTOVERIFY=true) or the ' +
-        'verify_account Rodauth feature is off (etc/auth.yaml disables it when ' +
-        'RACK_ENV=test).'
+        "Check that Rodauth's verify_account feature is on: AUTH_VERIFY_ACCOUNT_ENABLED " +
+        "must not be 'false' and RACK_ENV must not be test " +
+        '(etc/defaults/auth.defaults.yaml). AUTH_AUTOVERIFY does not affect ' +
+        'full-mode signup.'
     );
   }
 

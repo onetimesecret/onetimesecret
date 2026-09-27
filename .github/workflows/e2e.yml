@@ -1,5 +1,47 @@
-# .github/workflows/e2e-integration.yml
+# .github/workflows/e2e.yml
 ---
+# ==============================================================================
+# Container E2E — the production OCI image, one blocking lane per auth mode
+# ==============================================================================
+# Builds the production image (docker/bake.hcl target `main`), boots it with
+# RACK_ENV=production next to a Valkey container, and runs Playwright against
+# it. Each lane is a matrix job with its own runner, image build, Valkey
+# container and (full lane) SQLite authdb, so nothing one lane writes can leak
+# into the other.
+#
+#   lane    AUTHENTICATION_MODE   suite       what it covers
+#   simple  simple (the default)  e2e/all/    credential-free, curated journeys
+#   full    full                  e2e/full/   the signed-in workspace, set up by
+#                                             e2e/global.setup.ts (signup +
+#                                             signin of an ephemeral account)
+#
+# Both lanes are blocking and both run the flaky gate. e2e/full/ runs in full
+# auth mode because that is the mode it asserts: e.g. the Security settings
+# section (src/apps/workspace/config/settings-navigation.ts) is visible only
+# when isFullAuthMode, so e2e/full/settings-layout.spec.ts cannot pass against
+# a simple-mode container. e2e/full-billing/ is not run here (it needs billing
+# enabled, which neither lane configures).
+#
+# e2e-full-auth.yml is a DIFFERENT lane: it runs the app on the runner (not
+# this image) in full mode with email verification required, real SMTP into
+# Mailpit and a job worker, for the signup -> verify email -> signin journeys.
+# Both lanes here create accounts that can sign in without verifying their
+# email (simple: AUTH_AUTOVERIFY=true; full: AUTH_VERIFY_ACCOUNT_ENABLED=false)
+# and log email instead of sending it.
+#
+# Every pull request into develop, main or rel/* gets a run and a
+# `notify-results` verdict, whatever it touches. The lanes run only when the
+# `changes` job finds an E2E-relevant path in the PR (its filter below holds
+# the list), or on workflow_dispatch; otherwise they are skipped and
+# notify-results passes, saying why.
+#
+# `notify-results` is the required E2E check for main (and the one to require
+# on any other branch): when the lanes ran, it fails unless every lane passed
+# (a cancelled run included), and it fails whenever change detection itself
+# did not succeed. Its name does not change when a lane is added (the matrix
+# check names, "container-e2e-tests (simple)" and "container-e2e-tests
+# (full)", do).
+# ==============================================================================
 name: Container E2E Tests
 
 on:
@@ -18,20 +60,13 @@ on:
         required: false
         default: false
         type: boolean
+  # No `paths:` filter here, on purpose. A PR that a trigger-level filter
+  # excludes gets no run at all, so a required notify-results never reports
+  # and the PR cannot merge (GitHub docs, "Troubleshooting required status
+  # checks": a workflow skipped by path filtering leaves its checks pending,
+  # which blocks merging). The `changes` job does the path-based skipping.
   pull_request:
     branches: [develop, main, 'rel/*']
-    paths:
-      - 'Dockerfile'
-      - 'src/**'
-      - 'public/**'
-      - 'templates/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'vite.config.ts'
-      # The suite itself: spec/config changes must run the suite they change
-      - 'e2e/**'
-      - 'eslint.config.ts'
-      - '.github/workflows/**'
 
 permissions:
   contents: read
@@ -41,17 +76,121 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Decides whether the lanes run. Pull requests are narrowed by the path
+  # filter; any other event (workflow_dispatch) runs every lane. A failed or
+  # cancelled detection skips the lanes too, and notify-results fails on it.
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions:
+      contents: read
+      # dorny/paths-filter lists changed files via the pulls API on
+      # pull_request events; without this it fails before any filter runs and
+      # the lanes are skipped (notify-results then fails the run).
+      pull-requests: read
+    outputs:
+      e2e: ${{ steps.compute.outputs.e2e }}
+    steps:
+      # No checkout: on pull_request the filter reads the changed files from
+      # the pulls API, not from git, and it runs on no other event. On other
+      # events it would diff with git against the default branch, which needs
+      # a checkout, and the answer would be discarded anyway.
+      - name: Detect file changes
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            e2e:
+              # Everything the image is built from (Dockerfile +
+              # docker/bake.hcl: the COPY inputs of the dependencies, build
+              # and final stages). The full lane exercises the backend baked
+              # into the image — Rodauth, the authdb migrations, the
+              # workspace/org APIs — so a backend-only change can break it
+              # just as a frontend change can. Same idea as the backend
+              # entries in e2e-full-auth.yml's filter, widened to the whole
+              # image because this lane tests the whole image.
+              - 'Dockerfile'
+              - '.dockerignore'
+              - 'docker/**'
+              - '.ruby-version'
+              - 'Gemfile'
+              - 'Gemfile.lock'
+              - 'config.ru'
+              - 'apps/**'
+              - 'lib/**'
+              - 'etc/**'
+              - 'bin/**'
+              - 'migrations/**'
+              - 'tools/setup/**'
+              - 'locales/**'
+              - 'src/**'
+              - 'public/**'
+              - 'templates/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'tsconfig.json'
+              - 'vite.config.ts'
+              - 'eslint.config.ts'
+              # The suite itself: spec/config changes must run the
+              # suite they change
+              - 'e2e/**'
+              - '.github/workflows/**'
+
+      - name: Compute final outputs
+        id: compute
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          FILTER_E2E: ${{ steps.filter.outputs.e2e }}
+        run: |
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "e2e=true" >> "$GITHUB_OUTPUT"
+            echo "$EVENT_NAME: every lane runs (path filtering applies to pull requests only)."
+            exit 0
+          fi
+
+          # Fail closed: anything but a clean true/false from the filter is a
+          # broken detection, not "nothing to test".
+          case "$FILTER_E2E" in
+            true | false) ;;
+            *)
+              echo "::error::paths-filter returned '${FILTER_E2E}' for e2e; expected true or false."
+              exit 1
+              ;;
+          esac
+
+          echo "e2e=$FILTER_E2E" >> "$GITHUB_OUTPUT"
+          echo "pull_request: E2E-relevant files changed: $FILTER_E2E"
+
   container-e2e-tests:
+    name: container-e2e-tests (${{ matrix.lane }})
+    needs: changes
+    if: needs.changes.outputs.e2e == 'true'
     # Must exceed Playwright's globalTimeout (20 min, e2e/playwright.config.ts)
     # plus ~4-5 min of image build + container startup + artifact upload.
     timeout-minutes: 30
     runs-on: ubuntu-24.04
 
+    strategy:
+      # One lane failing must not cancel the other: each is its own verdict.
+      fail-fast: false
+      matrix:
+        include:
+          # `lane` doubles as the AUTHENTICATION_MODE value.
+          - lane: simple
+            suite: e2e/all/
+          - lane: full
+            suite: e2e/full/
+
     env:
+      LANE: ${{ matrix.lane }}
+      SUITE: ${{ matrix.suite }}
       OCI_IMAGE_NAME: onetimesecret-e2e-test
       CONTAINER_NAME: onetimesecret-e2e
       REDIS_CONTAINER_NAME: redis-e2e
       TEST_BASE_URL: http://localhost:3000
+      CONTAINER_LOG_DIR: ${{ github.workspace }}/tmp/e2e-container-logs
       DEBUG_ENABLED: ${{ github.event.inputs.debug == 'true' }}
 
     steps:
@@ -101,7 +240,7 @@ jobs:
         run: |
           echo "🚀 Starting Redis service..."
           docker run -d \
-            --name ${{ env.REDIS_CONTAINER_NAME }} \
+            --name "$REDIS_CONTAINER_NAME" \
             --health-cmd "redis-cli ping || exit 1" \
             --health-interval 5s \
             --health-timeout 3s \
@@ -111,25 +250,45 @@ jobs:
 
           # Wait for Redis to be healthy
           echo "⏳ Waiting for Redis to be ready..."
-          timeout 60 bash -c 'until docker exec ${{ env.REDIS_CONTAINER_NAME }} redis-cli ping; do sleep 2; done'
+          # The inner bash expands the name from the job env.
+          # shellcheck disable=SC2016
+          timeout 60 bash -c 'until docker exec "$REDIS_CONTAINER_NAME" redis-cli ping; do sleep 2; done'
 
-      - name: Start OneTime Secret application
+      - name: Start OneTime Secret application (${{ matrix.lane }} auth mode)
         run: |
-          echo "🚀 Starting OneTime Secret application..."
+          echo "🚀 Starting OneTime Secret application in $LANE auth mode..."
 
-          # Generate a secure secret for testing
-          TEST_SECRET=$(openssl rand -hex 32)
+          # Ephemeral secrets live only for this container. They are passed as
+          # bare `-e NAME` (value read from this shell's environment) so they
+          # never appear in the docker command line, and masked before use.
+          SECRET=$(openssl rand -hex 32)
+          echo "::add-mask::$SECRET"
+          export SECRET
 
-          # Pin a deterministic brand color so the container is "branded" and
-          # head-base.rue renders the mask-icon/theme-color tags. #3B82F6 is the
-          # neutral default (#3049); the brand-customization E2E asserts the
-          # mask-icon color matches it exactly. Without this the tags are
-          # correctly omitted (unbranded) and that assertion has nothing to test.
+          # Settings shared by both lanes:
           #
-          # AUTH_AUTOVERIFY=true makes accounts created via /signup verified
-          # immediately (no email round-trip), which is what lets the e2e
-          # auth setup project (e2e/global.setup.ts) register + sign in the
-          # ephemeral TEST_USER_* account for the full/ suite.
+          # BRAND_PRIMARY_COLOR pins a deterministic brand color so the
+          # container is "branded" and head-base.rue renders the
+          # mask-icon/theme-color tags. #3B82F6 is the neutral default
+          # (#3049); the brand-customization E2E asserts the mask-icon color
+          # matches it exactly. Without this the tags are correctly omitted
+          # (unbranded) and that assertion has nothing to test.
+          #
+          # SESSION_COOKIE_SECURE=false: CI reaches this RACK_ENV=production
+          # container over plain HTTP. SSL=false alone does not disable the
+          # cookie Secure flag in production, so without the explicit override
+          # the session cookie is never stored and every CSRF-checked POST 403s.
+          #
+          # AUTH_AUTOVERIFY=true makes SIMPLE-mode signups verified
+          # immediately (no email round-trip), so the e2e auth setup project
+          # (e2e/global.setup.ts) can register and sign in its ephemeral
+          # TEST_USER_* account against a simple-mode server. It has no
+          # effect on account verification in full mode: only simple-mode
+          # signup (lib/onetime/logic/signup_config_resolution.rb) and sign-in
+          # (the verification-email resend in AuthenticateSession) read it,
+          # and the full-mode bootstrap payload merely echoes it
+          # (authentication.autoverify). The full lane sets
+          # AUTH_VERIFY_ACCOUNT_ENABLED=false for that job instead (below).
           #
           # EMAILER_MODE=logger routes outbound email to the logging backend
           # instead of SMTP. Without it, emailer.mode defaults to 'smtp' and
@@ -140,36 +299,110 @@ jobs:
           # to connect to that unreachable host and the request 500s. There is
           # no SMTP/Mailpit sidecar here and the suite never reads real emails
           # (invite tokens come from the API), so logging delivery is correct.
-          docker run -d \
-            --name ${{ env.CONTAINER_NAME }} \
-            --link ${{ env.REDIS_CONTAINER_NAME }}:redis \
-            -p 3000:3000 \
-            -e REDIS_URL=redis://redis:6379/0 \
-            -e SECRET="$TEST_SECRET" \
-            -e HOST=localhost:3000 \
-            -e SSL=false \
-            -e RACK_ENV=production \
-            -e SESSION_COOKIE_SECURE=false \
-            -e BRAND_PRIMARY_COLOR='#3B82F6' \
-            -e AUTH_AUTOVERIFY=true \
-            -e EMAILER_MODE=logger \
-            ${{ env.OCI_IMAGE_NAME }}
+          #
+          # AUTHENTICATION_MODE is stated for both lanes, although 'simple' is
+          # the default (etc/defaults/auth.defaults.yaml), so the simple lane
+          # keeps testing simple mode even if that default changes.
+          docker_env=(
+            -e REDIS_URL=redis://redis:6379/0
+            -e SECRET
+            -e HOST=localhost:3000
+            -e SSL=false
+            -e RACK_ENV=production
+            -e SESSION_COOKIE_SECURE=false
+            -e BRAND_PRIMARY_COLOR='#3B82F6'
+            -e AUTH_AUTOVERIFY=true
+            -e EMAILER_MODE=logger
+            -e AUTHENTICATION_MODE="$LANE"
+          )
 
-          if [ "${{ env.DEBUG_ENABLED }}" == "true" ]; then
+          if [ "$LANE" = "full" ]; then
+            # Full auth mode mounts Rodauth, whose secret guards
+            # (apps/web/auth/config/base.rb) raise at boot under
+            # RACK_ENV=production unless both of these are set:
+            #   AUTH_SECRET        HMAC key (hmac_secret_guard)
+            #   ACCOUNT_ID_SECRET  account id obfuscation, >= 32 bytes
+            ACCOUNT_ID_SECRET=$(openssl rand -hex 32)
+            AUTH_SECRET=$(openssl rand -hex 32)
+            echo "::add-mask::$ACCOUNT_ID_SECRET"
+            echo "::add-mask::$AUTH_SECRET"
+            export ACCOUNT_ID_SECRET AUTH_SECRET
+
+            # The authdb is SQLite, created and migrated at boot by the
+            # rodauth_migrations initializer. The relative URL resolves
+            # against the process cwd, which is the image WORKDIR /app (the
+            # entrypoint does not cd), so the file lands in /app/data — the
+            # directory the Dockerfile creates owned by appuser, the USER the
+            # container runs as. No volume: the database lives and dies with
+            # this container, on this lane's runner. Same value as the full
+            # stack in docker/compose/docker-compose.full.yml.
+            #
+            # AUTH_VERIFY_ACCOUNT_ENABLED=false turns off Rodauth's
+            # verify_account feature, which is on by default outside
+            # RACK_ENV=test (etc/defaults/auth.defaults.yaml). Accounts
+            # created via /signup are then open at once, and that, not
+            # AUTH_AUTOVERIFY, is what lets e2e/global.setup.ts sign the new
+            # TEST_USER_* account in. With verify_account on, the account
+            # stays unverified and sign-in answers 403.
+            #
+            # CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false turns off the per-IP
+            # signup limiter (site.authentication.create_account_rate_limit
+            # in etc/defaults/config.defaults.yaml): 10 signups per masked
+            # client IP per hour, then a 1h lockout. Every request here comes
+            # from one IP, and a clean full/ run already signs up more than
+            # that: global.setup.ts, the throwaway owners and invitees of
+            # e2e/support/members.ts and workspaces.ts, and the
+            # invite-token-security signups (18 POST /auth/create-account in
+            # a local run on 2026-09-27, plus 10 signups on invite pages).
+            # With the limiter on, the lane fails at the cap on every run,
+            # not only after retries. Only the exact string 'false' disables
+            # it. e2e-full-auth.yml sets it for its own repeat signups.
+            #
+            # ENABLE_ORGS=true turns on the workspace switcher
+            # (features.organizations.enabled). In the SPA it gates only the
+            # org switcher and the static org chip in the header
+            # (isOrganizationSwitcherEnabled, src/utils/features.ts);
+            # organizations exist either way. With it off, the switcher never
+            # renders and e2e/full/scope-switcher.spec.ts cannot observe the
+            # visibility rules it asserts. The TEST_USER_* account owns only
+            # its default workspace and is its only member, so the switcher
+            # stays hidden for it (the solo-workspace rule in
+            # useScopeSwitcherVisibility.ts) and the pages the other specs
+            # load as that account render as before.
+            docker_env+=(
+              -e AUTH_DATABASE_URL=sqlite://data/auth.db
+              -e ACCOUNT_ID_SECRET
+              -e AUTH_SECRET
+              -e AUTH_VERIFY_ACCOUNT_ENABLED=false
+              -e CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false
+              -e ENABLE_ORGS=true
+            )
+          fi
+
+          docker run -d \
+            --name "$CONTAINER_NAME" \
+            --link "$REDIS_CONTAINER_NAME":redis \
+            -p 3000:3000 \
+            "${docker_env[@]}" \
+            "$OCI_IMAGE_NAME"
+
+          if [ "$DEBUG_ENABLED" == "true" ]; then
             echo "🔍 Container details:"
             docker ps
             echo "🔍 Container environment:"
-            docker exec ${{ env.CONTAINER_NAME }} env | sort
+            docker exec "$CONTAINER_NAME" env | sort
           fi
 
       - name: Wait for application to be ready
         run: |
           echo "⏳ Waiting for application to be ready..."
 
-          # Wait up to 2 minutes for the app to start
+          # Wait up to 2 minutes for the app to start. The inner bash
+          # expands TEST_BASE_URL from the job env.
+          # shellcheck disable=SC2016
           timeout 120 bash -c '
-            until curl -f -s ${{ env.TEST_BASE_URL }}/health > /dev/null 2>&1 || \
-                  curl -f -s ${{ env.TEST_BASE_URL }}/ > /dev/null 2>&1; do
+            until curl -f -s "$TEST_BASE_URL/health" > /dev/null 2>&1 || \
+                  curl -f -s "$TEST_BASE_URL/" > /dev/null 2>&1; do
               echo "Waiting for app to respond..."
               sleep 5
             done
@@ -182,57 +415,63 @@ jobs:
           echo "🔍 Running application health checks..."
 
           # Test homepage
-          response_code=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.TEST_BASE_URL }}/)
+          response_code=$(curl -s -o /dev/null -w "%{http_code}" "$TEST_BASE_URL/")
           if [ "$response_code" != "200" ]; then
             echo "❌ Homepage failed (HTTP $response_code)"
             exit 1
           fi
 
           # Test that page contains expected content (bootstrap state injection)
-          homepage_content=$(curl -s ${{ env.TEST_BASE_URL }}/)
+          homepage_content=$(curl -s "$TEST_BASE_URL/")
           if ! echo "$homepage_content" | grep -q "__BOOTSTRAP_ME__"; then
             echo "❌ Homepage doesn't contain expected content"
             echo "Content preview: $(echo "$homepage_content" | head -c 200)..."
             exit 1
           fi
 
+          # Prove the full lane really booted in full mode: the Rodauth
+          # migrations initializer only runs when full auth is enabled, and
+          # it creates the SQLite authdb at the path configured above. A
+          # missing file means the lane would test simple mode under the
+          # wrong name, or that /app/data is not writable.
+          if [ "$LANE" = "full" ]; then
+            if ! docker exec "$CONTAINER_NAME" test -f /app/data/auth.db; then
+              echo "❌ Full auth mode authdb not found at /app/data/auth.db"
+              docker exec "$CONTAINER_NAME" ls -la /app/data || true
+              exit 1
+            fi
+            echo "✅ Full auth mode authdb present at /app/data/auth.db"
+          fi
+
           echo "✅ Basic health checks passed"
 
-      - name: Run Playwright E2E tests
+      - name: Run Playwright E2E tests (${{ matrix.suite }})
         id: playwright
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ env.TEST_BASE_URL }}
+          CI: 'true'
         run: |
-          echo "🎭 Running Playwright E2E tests against containerized application..."
-
-          # Set environment variables for Playwright
-          export PLAYWRIGHT_BASE_URL=${{ env.TEST_BASE_URL }}
-          export CI=true
+          echo "🎭 Running Playwright $SUITE against the $LANE-mode container..."
 
           # Reporters come from e2e/playwright.config.ts (CI branch: list,
           # github, html, json, blob). Do NOT pass --reporter here - a CLI
           # override replaces the whole array and breaks the report artifacts
           # and the flaky gate below.
 
-          # Ephemeral credentials for the authenticated 'full/' suite.
-          # e2e/global.setup.ts registers this account via the app's own
-          # /signup flow (AUTH_AUTOVERIFY=true on the container makes it
-          # immediately sign-in-able) and saves the session for storageState.
-          # Never hardcode these; they live only for this container's life.
-          export TEST_USER_EMAIL="e2e-$(openssl rand -hex 8)@example.com"
+          # Ephemeral credentials for the authenticated suite. The `full`
+          # Playwright project depends on `setup` (e2e/global.setup.ts), which
+          # registers this account via the app's own /signup flow (the full
+          # lane's AUTH_VERIFY_ACCOUNT_ENABLED=false makes it immediately
+          # sign-in-able), signs in and saves the session for storageState.
+          # The simple lane's projects do not use them. Never hardcode these;
+          # they live only for this container's life.
+          TEST_USER_EMAIL="e2e-$(openssl rand -hex 8)@example.com"
           TEST_USER_PASSWORD="$(openssl rand -base64 24)"
           echo "::add-mask::$TEST_USER_PASSWORD"
-          export TEST_USER_PASSWORD
+          export TEST_USER_EMAIL TEST_USER_PASSWORD
 
-          # BLOCKING GATE = 'all/' only (credential-free, curated, green).
-          # The 'full/' suite is mid-remediation (e2e/docs/e2e-remediation-plan.md,
-          # Phase 2.4/3) and asserts states the CI container does not provision
-          # (>=2 orgs, full-auth-mode settings sections, seeded invitations), so
-          # it runs as a NON-BLOCKING, informational step below until the Phase 3
-          # fixtures + configured lanes land. 'full-billing/' additionally needs
-          # billing enabled, which CI does not configure yet. Trailing slash:
-          # CLI filters are partial-path matches.
-          pnpm test:playwright e2e/all/
-        env:
-          PLAYWRIGHT_BASE_URL: ${{ env.TEST_BASE_URL }}
+          # Trailing slash: CLI filters are partial-path matches.
+          pnpm test:playwright "$SUITE"
 
       - name: Fail on flaky tests (passed only on retry)
         # Run whenever Playwright ran, even if it failed (flake info still useful)
@@ -248,7 +487,7 @@ jobs:
 
           FLAKY=$(jq -r '.stats.flaky // 0' "$REPORT")
           if [ "$FLAKY" -gt 0 ]; then
-            echo "❌ $FLAKY test(s) passed only on retry (flaky outcome)."
+            echo "❌ $FLAKY test(s) in the $LANE lane passed only on retry (flaky outcome)."
             echo "Flake is blocking, not silent - fix or quarantine via e2e/QUARANTINE.md."
             echo "See e2e/docs/e2e-remediation-plan.md (guiding principle 3)."
             echo ""
@@ -258,63 +497,65 @@ jobs:
             exit 1
           fi
 
-          echo "✅ No flaky (retry-only) passes detected."
+          echo "✅ No flaky (retry-only) passes detected in the $LANE lane."
 
-      - name: Run Playwright 'full/' suite (informational, non-blocking)
-        # The full/ suite is mid-remediation and not yet a coverage gate (see
-        # e2e/docs/e2e-remediation-plan.md + e2e/QUARANTINE.md). Run it for
-        # visibility — the whole failure tail, no --max-failures cap — but do
-        # NOT block the promote on it. continue-on-error keeps the job green
-        # while still showing this step red when the tail fails. Make it
-        # blocking again in Phase 3, once the fixtures + configured lanes
-        # (full-auth mode, multi-org seeding) exist.
-        continue-on-error: true
-        if: ${{ !cancelled() }}
-        run: |
-          echo "🎭 Running Playwright 'full/' suite (informational, non-blocking)..."
-          export PLAYWRIGHT_BASE_URL=${{ env.TEST_BASE_URL }}
-          export CI=true
-          export TEST_USER_EMAIL="e2e-$(openssl rand -hex 8)@example.com"
-          TEST_USER_PASSWORD="$(openssl rand -base64 24)"
-          echo "::add-mask::$TEST_USER_PASSWORD"
-          export TEST_USER_PASSWORD
-          pnpm test:playwright e2e/full/
+      # Written to files and uploaded on every run, pass or fail, so the app
+      # and Valkey logs of each lane can be read after the fact instead of
+      # only in debug mode. The secrets in them are ephemeral and die with
+      # the container.
+      - name: Collect container logs
+        if: always()
         env:
-          PLAYWRIGHT_BASE_URL: ${{ env.TEST_BASE_URL }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p "$CONTAINER_LOG_DIR"
+          docker ps -a > "$CONTAINER_LOG_DIR/docker-ps.txt" 2>&1 || true
+          docker logs "$CONTAINER_NAME" > "$CONTAINER_LOG_DIR/app.log" 2>&1 || true
+          docker logs "$REDIS_CONTAINER_NAME" > "$CONTAINER_LOG_DIR/redis.log" 2>&1 || true
+
+          if [ "$JOB_STATUS" != "success" ]; then
+            echo "::group::Application log (last 100 lines; full log in the container-logs artifact)"
+            tail -n 100 "$CONTAINER_LOG_DIR/app.log" || true
+            echo "::endgroup::"
+          fi
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
-          name: playwright-report-e2e-integration
+          name: container-e2e-${{ matrix.lane }}-playwright-report
           path: e2e/playwright-report/
           retention-days: 7
+          if-no-files-found: ignore
 
       - name: Upload Playwright test artifacts (traces, screenshots, videos)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
-          name: playwright-test-results-e2e-integration
+          name: container-e2e-${{ matrix.lane }}-test-results
           path: e2e/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload container logs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: container-e2e-${{ matrix.lane }}-container-logs
+          path: ${{ env.CONTAINER_LOG_DIR }}/
           retention-days: 7
           if-no-files-found: ignore
 
       - name: Debug on failure
         if: failure() && env.DEBUG_ENABLED == 'true'
         run: |
-          echo "🐛 Debug information:"
+          echo "🐛 Debug information (container logs: see the container-logs artifact):"
 
           echo "=== Container status ==="
           docker ps -a
 
-          echo "=== Application logs ==="
-          docker logs ${{ env.CONTAINER_NAME }} --tail 100
-
-          echo "=== Redis logs ==="
-          docker logs ${{ env.REDIS_CONTAINER_NAME }} --tail 50
-
           echo "=== Network connectivity ==="
-          curl -v ${{ env.TEST_BASE_URL }}/ || true
+          curl -v "$TEST_BASE_URL/" || true
 
           echo "=== Docker network info ==="
           docker network ls
@@ -324,21 +565,56 @@ jobs:
         if: always()
         run: |
           echo "🧹 Cleaning up containers..."
-          docker stop ${{ env.CONTAINER_NAME }} ${{ env.REDIS_CONTAINER_NAME }} || true
-          docker rm ${{ env.CONTAINER_NAME }} ${{ env.REDIS_CONTAINER_NAME }} || true
-          docker rmi ${{ env.OCI_IMAGE_NAME }} || true
+          docker stop "$CONTAINER_NAME" "$REDIS_CONTAINER_NAME" || true
+          docker rm "$CONTAINER_NAME" "$REDIS_CONTAINER_NAME" || true
+          docker rmi "$OCI_IMAGE_NAME" || true
 
   notify-results:
+    # One verdict per run, over change detection and every lane; the check to
+    # require (see the header). For a matrix job, needs.<job>.result is
+    # 'success' only when every lane succeeded, so this fails if any lane
+    # failed, timed out or was cancelled. always(), not !cancelled(): when
+    # the whole run is cancelled (by hand, or superseded by a newer push via
+    # the concurrency group) this job must still run and fail. A skipped job
+    # counts as passing for a required check, so skipping it would leave the
+    # SHA mergeable with no E2E verdict.
+    #
+    # Skipped lanes pass only when `changes` succeeded and said no
+    # E2E-relevant file changed. A failed or cancelled `changes` also skips
+    # the lanes, and that must fail here, not read as "nothing to test".
     runs-on: ubuntu-24.04
-    needs: container-e2e-tests
+    needs: [changes, container-e2e-tests]
     if: always()
     steps:
-      - name: Notify Results
+      - name: Require every lane to pass, or no E2E-relevant change
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          E2E_CHANGED: ${{ needs.changes.outputs.e2e }}
+          LANES_RESULT: ${{ needs.container-e2e-tests.result }}
         run: |
-          if [ "${{ needs.container-e2e-tests.result }}" == "success" ]; then
-            echo "✅ E2E integration tests passed!"
-            echo "The production OCI image successfully serves the application and passes E2E tests."
-          else
-            echo "❌ E2E integration tests failed!"
-            echo "There may be issues with the production build, OCI image, or application runtime."
+          if [ "$CHANGES_RESULT" != "success" ]; then
+            echo "❌ Change detection did not succeed (changes: $CHANGES_RESULT), so there is no E2E verdict."
+            echo "See the changes job. A failed or cancelled detection is not a pass."
+            exit 1
           fi
+
+          if [ "$E2E_CHANGED" = "false" ] && [ "$LANES_RESULT" = "skipped" ]; then
+            echo "✅ No E2E-relevant files changed; the container E2E lanes were skipped."
+            exit 0
+          fi
+
+          if [ "$E2E_CHANGED" = "true" ]; then
+            if [ "$LANES_RESULT" = "success" ]; then
+              echo "✅ E2E integration tests passed in every lane (simple, full)!"
+              echo "The production OCI image successfully serves the application and passes E2E tests."
+              exit 0
+            fi
+
+            echo "❌ E2E integration tests did not pass in every lane (result: $LANES_RESULT)."
+            echo "See the failing container-e2e-tests lane for the production build, OCI image, or runtime issue."
+            exit 1
+          fi
+
+          echo "❌ No E2E verdict (changes: $CHANGES_RESULT, e2e: '${E2E_CHANGED}', lanes: $LANES_RESULT)."
+          echo "Expected e2e=false with skipped lanes, or e2e=true with successful lanes."
+          exit 1

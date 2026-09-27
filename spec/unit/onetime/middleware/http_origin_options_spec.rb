@@ -231,7 +231,7 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
       end
     end
 
-    it 'fails closed when auth_config cannot answer' do
+    it 'fails closed when auth_config cannot answer, logging the class and message' do
       allow(Onetime).to receive(:auth_config).and_raise(StandardError, 'boom')
       allow(OT).to receive(:lw)
       status = post('/auth/sso/apple/callback',
@@ -239,6 +239,7 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
         'HTTP_ORIGIN' => apple_origin,
       )
       expect(status).to eq(403)
+      expect(OT).to have_received(:lw).with('[http_origin] SSO callback origin check failed: StandardError: boom')
     end
   end
 
@@ -417,6 +418,17 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
       expect(app.call(null_env).first).to eq(403)
       allow(Onetime::TenantSsoResolution).to receive(:for).and_raise(Redis::CannotConnectError)
       expect(app.call(null_env(host: custom_domain)).first).to eq(403)
+    end
+
+    it 'logs a route-check failure with its message, minus any URI userinfo' do
+      logged = nil
+      allow(OT).to receive(:lw) { |line| logged = line }
+      allow(Onetime::TenantSsoResolution).to receive(:for)
+        .and_raise(Redis::CannotConnectError, 'Connection refused (redis://ots:s3cret@127.0.0.1:6379/0)')
+
+      expect(app.call(null_env(host: custom_domain)).first).to eq(403)
+      expect(logged).to eq('[http_origin] SAML callback route check failed: Redis::CannotConnectError: ' \
+                           'Connection refused (redis://***@127.0.0.1:6379/0)')
     end
   end
 
@@ -635,12 +647,16 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
       expect(tenant_callback(origin: tenant_idp_origin)).to eq(403)
     end
 
-    it 'fails closed when the tenant resolution raises' do
-      allow(Onetime::TenantSsoResolution).to receive(:for).and_raise(Redis::CannotConnectError)
-      allow(OT).to receive(:lw)
+    it 'fails closed when the tenant resolution raises, logging the message minus any URI userinfo' do
+      logged = nil
+      allow(OT).to receive(:lw) { |line| logged = line }
+      allow(Onetime::TenantSsoResolution).to receive(:for)
+        .and_raise(Redis::CannotConnectError, 'Connection refused (redis://ots:s3cret@127.0.0.1:6379/0)')
 
       expect(tenant_callback(origin: tenant_idp_origin)).to eq(403)
-      expect(OT).to have_received(:lw).with(/tenant SSO callback origin check failed: Redis::CannotConnectError/)
+      expect(logged).to eq('[http_origin] tenant SSO callback origin check failed: Redis::CannotConnectError: ' \
+                           'Connection refused (redis://***@127.0.0.1:6379/0)')
+      expect(logged).not_to include('s3cret')
     end
 
     # Parity: the two tenant consumers cannot disagree, because this one asks

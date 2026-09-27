@@ -1,5 +1,6 @@
 // src/tests/composables/usePostAuthRedirect.spec.ts
 
+import { loginResponseSchema } from '@/schemas/api/auth/responses/auth';
 import { loggingService } from '@/services/logging.service';
 import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -94,6 +95,33 @@ describe('usePostAuthRedirect', () => {
 
       expect(useOrganizationStore().fetchOrganizations).not.toHaveBeenCalled();
       expect(routerPushMock).toHaveBeenCalledWith('/');
+    });
+  });
+
+  describe('invalid server verdict', () => {
+    it('blocks checkout for a partial verdict even with a full query pair', async () => {
+      // The server's verdict outranks the query tier: an invalid one must not
+      // fall back to the route's product/interval.
+      seedBillingQuery();
+      useBootstrapStore().billing_enabled = true;
+      const response = loginResponseSchema.parse({
+        success: 'ok',
+        billing_redirect: {
+          product: null,
+          interval: 'monthly',
+          valid: false,
+          error: 'Missing product or interval',
+        },
+      });
+
+      const redirected = await usePostAuthRedirect().handleBillingRedirect(response);
+
+      expect(redirected).toBe(false);
+      expect(useOrganizationStore().fetchOrganizations).not.toHaveBeenCalled();
+      expect(loggingService.warn).toHaveBeenCalledWith(
+        '[postAuthRedirect] Billing redirect skipped - backend marked plan as invalid',
+        { product: null, interval: 'monthly', error: 'Missing product or interval' }
+      );
     });
   });
 

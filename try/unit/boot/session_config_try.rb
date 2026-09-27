@@ -35,7 +35,11 @@ SessionDefaults['same_site']
 ## SESSION_DEFAULTS has expected structure
 keys = SessionDefaults.keys.sort
 keys
-#=> ['expire_after', 'httponly', 'key', 'same_site', 'skip_paths']
+#=> ['absolute_timeout', 'expire_after', 'httponly', 'key', 'same_site', 'skip_paths']
+
+## SESSION_DEFAULTS absolute_timeout is 30 days (site.session.absolute_timeout; 0 disables)
+SessionDefaults['absolute_timeout']
+#=> 2_592_000
 
 ## SESSION_DEFAULTS is frozen (immutable)
 SessionDefaults.frozen?

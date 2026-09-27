@@ -440,10 +440,17 @@ module Onetime
         if (dns_result[:data] || dns_result[:mode]) && !dns_result[:validated].nil? &&
            !override_held?(domain, dns_result)
           domain.verified! dns_result[:validated]
-          # DNS has now proven ownership itself; the operator's assertion is
-          # no longer what holds the flag, so later failures demote normally.
-          domain.verified_by_override = false if dns_result[:validated]
-          window.record_settled(dns_result[:validated], proven: strategy.proves_ownership?)
+          if dns_result[:mode] == 'passthrough'
+            # Passthrough is an operator policy, not a TXT ownership result.
+            # End any stale unconfirmed run without inventing confirmation
+            # metadata or replacing an explicit operator override.
+            window.record_skipped
+          else
+            # DNS has now proven ownership itself; the operator's assertion is
+            # no longer what holds the flag, so later failures demote normally.
+            domain.verified_by_override = false if dns_result[:validated]
+            window.record_settled(dns_result[:validated], proven: strategy.proves_ownership?)
+          end
         else
           window.record_unsettled
         end

@@ -177,6 +177,7 @@ const onSettings = (item: ScopeSwitcherItem, event: MouseEvent, close: () => voi
               item.isCurrent && !item.disabled ? 'bg-brand-50 dark:bg-brand-900/20' : '',
             ]"
             :title="item.disabled ? item.disabledReason : undefined"
+            :aria-current="item.isCurrent ? 'true' : undefined"
             :aria-disabled="item.disabled ? 'true' : undefined">
             <span class="flex items-center gap-2">
               <!-- Leading visual (icon / avatar) -->

@@ -230,7 +230,7 @@
         flex-col items-center
         justify-center
         gap-2 text-center
-        text-xs text-gray-500 dark:text-gray-400">
+        text-xs text-gray-600 dark:text-gray-400">
         <div
           v-if="hasAnchor"
           class="flex items-center gap-x-3">

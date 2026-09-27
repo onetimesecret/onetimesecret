@@ -33,7 +33,7 @@ RSpec.describe 'Rodauth Feature Combinations' do
           # Core features (always enabled)
           :base, :login, :logout,
           # Security features
-          :lockout, :active_sessions, :remember, :login_password_requirements_base,
+          :lockout, :active_sessions, :login_password_requirements_base,
           # MFA features
           :two_factor_base, :otp, :recovery_codes,
           # Passwordless
@@ -67,7 +67,6 @@ RSpec.describe 'Rodauth Feature Combinations' do
       it 'has security features' do
         expect(rodauth_responds_to?(app, :max_invalid_logins)).to be true
         expect(rodauth_responds_to?(app, :session_inactivity_deadline)).to be true
-        expect(rodauth_responds_to?(app, :remember_login)).to be true
       end
 
       it 'has MFA features' do

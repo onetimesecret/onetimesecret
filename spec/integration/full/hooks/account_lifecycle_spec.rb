@@ -62,11 +62,10 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
       it 'creates a Customer record in Redis' do
         response = create_account(email: test_email, password: valid_password)
 
-        # Account creation should succeed (200/201)
-        # Skip if we get client/validation errors - these indicate environment issues
-        unless [200, 201].include?(response.status)
-          skip "Account creation returned #{response.status}: #{response.body[0..500]}"
-        end
+        # verify_account is off under RACK_ENV=test (etc/defaults/auth.defaults.yaml),
+        # so a valid sign-up creates the account in this request and answers 200.
+        expect(response.status).to eq(200),
+          "Account creation returned #{response.status}: #{response.body[0..500]}"
 
         # Verify Customer record was created in Redis
         expect(customer_exists?(test_email)).to be(true),
@@ -76,9 +75,8 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
       # NOTE: external_id links to Customer.extid (NOT custid - that's legacy)
       it 'links Customer to the auth account via extid/external_id' do
         response = create_account(email: test_email, password: valid_password)
-        unless [200, 201].include?(response.status)
-          skip "Account creation returned #{response.status}"
-        end
+        expect(response.status).to eq(200),
+          "Account creation returned #{response.status}: #{response.body[0..500]}"
 
         account  = find_account_by_email(test_email)
         customer = find_customer_by_email(test_email)
@@ -105,8 +103,8 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
       it 'does not create a Customer record for invalid email' do
         create_account(email: 'not-an-email', password: valid_password)
 
-        # Invalid email should be rejected - Rodauth returns 400 for validation errors
-        expect([400, 422]).to include(last_response.status)
+        # Rodauth's login format check rejects it with invalid_field_error_status.
+        expect(last_response.status).to eq(422), last_response.body[0..500]
 
         # No Customer should be created
         expect(customer_exists?('not-an-email')).to be(false)
@@ -115,11 +113,13 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
       it 'does not create a Customer record for duplicate email' do
         # Create first account
         create_account(email: test_email, password: valid_password)
-        expect(last_response.status).to be_between(200, 299)
+        expect(last_response.status).to eq(200), last_response.body[0..500]
 
-        # Attempt to create duplicate - Rodauth returns 400 for validation errors
+        # The before_create_account hook refuses an existing login with the
+        # generic create-account error (config/hooks/account.rb,
+        # overrides/duplicate_signup.rb), which answers 400.
         create_account(email: test_email, password: valid_password)
-        expect([400, 422]).to include(last_response.status)
+        expect(last_response.status).to eq(400), last_response.body[0..500]
 
         # Should still only have one Customer
         customer = find_customer_by_email(test_email)
@@ -134,7 +134,7 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
     before do
       # Create account first
       create_account(email: login_email, password: valid_password)
-      expect(last_response.status).to be_between(200, 299),
+      expect(last_response.status).to eq(200),
         "Account creation failed: #{last_response.body}"
     end
 
@@ -199,27 +199,28 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
 
     before do
       create_account(email: password_email, password: valid_password)
-      expect(last_response.status).to be_between(200, 299)
+      expect(last_response.status).to eq(200), last_response.body[0..500]
     end
 
     it 'allows password reset request for existing account' do
       post_json '/auth/reset-password-request', { login: password_email }
 
-      # Should succeed (or return success-like response to prevent enumeration)
-      expect([200, 422]).to include(last_response.status)
+      # Every request gets the same generic success
+      # (overrides/reset_password_enumeration.rb).
+      expect(last_response.status).to eq(200), last_response.body[0..500]
     end
 
     it 'creates password reset key in database' do
       post_json '/auth/reset-password-request', { login: password_email }
+      expect(last_response.status).to eq(200), last_response.body[0..500]
 
       account   = find_account_by_email(password_email)
       reset_key = test_db[:account_password_reset_keys].where(id: account[:id]).first
 
-      # Reset key should be created if the route succeeded
-      if last_response.status == 200
-        expect(reset_key).not_to be_nil,
-          'Expected password reset key to be created'
-      end
+      # The account is open and has no recent reset email, so the request
+      # mints a key.
+      expect(reset_key).not_to be_nil,
+        'Expected password reset key to be created'
     end
   end
 
@@ -280,7 +281,7 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
     describe 'after_change_password hook' do
       before do
         create_account(email: cred_email, password: valid_password)
-        expect(last_response.status).to be_between(200, 299),
+        expect(last_response.status).to eq(200),
           "Account creation failed: #{last_response.body[0..500]}"
         login(email: cred_email, password: valid_password)
       end
@@ -551,7 +552,7 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
     describe 'after_reset_password hook' do
       before do
         create_account(email: cred_email, password: valid_password)
-        expect(last_response.status).to be_between(200, 299),
+        expect(last_response.status).to eq(200),
           "Account creation failed: #{last_response.body[0..500]}"
       end
 
@@ -576,7 +577,8 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
 
         body  = captured.map { |e| e[:body].to_s }.join("\n")
         match = body.match(/[?&]key=([^"'&\s<>]+)/)
-        skip 'reset key not issued in this environment (email/config gated)' if match.nil?
+        expect(match).not_to be_nil,
+          "No reset key link in the captured email(s): #{body[0..500]}"
 
         token = CGI.unescape(match[1])
         post_json '/auth/reset-password', {
@@ -594,12 +596,10 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
 
         reset_password_with_token
 
-        # If the reset token flow reached the hook, it did so via a committed
-        # reset (2xx/302). Only then is the fail-open-loud assertion meaningful.
-        unless [200, 201, 302].include?(last_response.status)
-          skip "reset did not reach after_reset_password (status #{last_response.status}); " \
-               "token/key hashing likely differs in this environment"
-        end
+        # A 200 means the reset committed, and after_reset_password runs inside
+        # that transaction.
+        expect(last_response.status).to eq(200),
+          "Expected the reset to succeed but got #{last_response.status}: #{last_response.body[0..500]}"
 
         expect(Auth::Logging).to have_received(:log_auth_event)
           .with(:sessions_revoke_FAILED, hash_including(level: :error, hook: :after_reset_password))
@@ -628,10 +628,8 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
         before_reset = Familia.now.to_i
         reset_password_with_token
 
-        unless [200, 201, 302].include?(last_response.status)
-          skip "reset did not reach after_reset_password (status #{last_response.status}); " \
-               "token/key hashing likely differs in this environment"
-        end
+        expect(last_response.status).to eq(200),
+          "Expected the reset to succeed but got #{last_response.status}: #{last_response.body[0..500]}"
 
         # The closed gap: the reset path now stamps the watermark too.
         customer = find_customer_by_email(cred_email)

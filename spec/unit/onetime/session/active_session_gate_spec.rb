@@ -29,6 +29,7 @@ RSpec.describe Onetime::ActiveSessionGate do
         String :session_id
         Time :created_at, null: false, default: Sequel::CURRENT_TIMESTAMP
         Time :last_use, null: false, default: Sequel::CURRENT_TIMESTAMP
+        Time :remember_until # migration 011
         primary_key [:account_id, :session_id]
       end
     end
@@ -44,15 +45,19 @@ RSpec.describe Onetime::ActiveSessionGate do
   before do
     stub_const('Auth::Database', Class.new { def self.connection = nil }) unless defined?(Auth::Database)
     allow(Auth::Database).to receive(:connection).and_return(db)
-    allow(Onetime.auth_config).to receive_messages(full_enabled?: true, active_sessions_enabled?: true)
+    allow(Onetime.auth_config).to receive_messages(
+      full_enabled?: true, active_sessions_enabled?: true, remember_me_sessions_enabled?: true,
+    )
     allow(OT).to receive(:le)
     allow(OT).to receive(:lw)
     allow(OT).to receive(:ld)
     allow(OT).to receive(:info)
   end
 
-  def insert_row(last_use: Time.now, created_at: last_use)
-    db[:account_active_session_keys].insert(account_id: 42, session_id: hmac, last_use: last_use, created_at: created_at)
+  def insert_row(last_use: Time.now, created_at: last_use, remember_until: nil)
+    db[:account_active_session_keys].insert(
+      account_id: 42, session_id: hmac, last_use: last_use, created_at: created_at, remember_until: remember_until,
+    )
   end
 
   def rows
@@ -222,7 +227,7 @@ RSpec.describe Onetime::ActiveSessionGate do
     end
 
     it 'refuses a row past the lifetime deadline however recent its last_use, and removes it' do
-      insert_row(last_use: now, created_at: now - (described_class::LIFETIME_DEADLINE + 60))
+      insert_row(last_use: now, created_at: now - (described_class::DEFAULT_LIFETIME_DEADLINE + 60))
 
       expect(described_class.verdict(session)).to eq(:revoked)
       expect(rows.count).to eq(0)
@@ -232,7 +237,7 @@ RSpec.describe Onetime::ActiveSessionGate do
     it 'keeps a row inside both deadlines active' do
       insert_row(
         last_use: now - (described_class::INACTIVITY_DEADLINE - 3600),
-        created_at: now - (described_class::LIFETIME_DEADLINE - 3600),
+        created_at: now - (described_class::DEFAULT_LIFETIME_DEADLINE - 3600),
       )
 
       expect(described_class.verdict(session)).to eq(:active)
@@ -254,7 +259,7 @@ RSpec.describe Onetime::ActiveSessionGate do
       insert_row(last_use: now - (described_class::INACTIVITY_DEADLINE + 60), created_at: now)
       dataset = instance_double(Sequel::Dataset)
       allow(db).to receive(:[]).with(described_class::TABLE).and_return(dataset)
-      allow(dataset).to receive_messages(where: dataset, select: dataset, first: { inactive: 1, outlived: 0, touch_due: 1 })
+      allow(dataset).to receive_messages(where: dataset, select: dataset, first: { inactive: 1, remember_lapsed: 0, outlived: 0, touch_due: 1 })
       allow(dataset).to receive(:delete).and_raise(Sequel::DatabaseError, 'read-only replica')
 
       expect(described_class.verdict(session)).to eq(:revoked)
@@ -275,6 +280,245 @@ RSpec.describe Onetime::ActiveSessionGate do
 
       expect(described_class.verdict(session)).to eq(:active)
       expect(rows.count).to eq(1)
+    end
+  end
+
+  # "Remember me" (Onetime::RememberMe): a row with remember_until trades the
+  # inactivity deadline for a fixed one.
+  describe 'remembered rows' do
+    let(:now) { Time.now }
+    let(:idle) { now - (described_class::INACTIVITY_DEADLINE + 3600) }
+
+    it 'keeps a remembered row idle past the inactivity deadline active' do
+      insert_row(last_use: idle, created_at: idle, remember_until: now + 86_400)
+
+      expect(described_class.verdict(session)).to eq(:active)
+      expect(rows.count).to eq(1)
+    end
+
+    it 'refuses a remembered row once remember_until has passed, however recent its last_use, and removes it' do
+      insert_row(last_use: now, created_at: now - 86_400, remember_until: now - 60)
+
+      expect(described_class.verdict(session)).to eq(:revoked)
+      expect(rows.count).to eq(0)
+      expect(OT).to have_received(:info).with(/past its remember deadline/)
+    end
+
+    it 'still applies the lifetime deadline to a remembered row' do
+      insert_row(
+        last_use: now, created_at: now - (described_class::DEFAULT_LIFETIME_DEADLINE + 60), remember_until: now + 86_400,
+      )
+
+      expect(described_class.verdict(session)).to eq(:revoked)
+      expect(OT).to have_received(:info).with(/past its lifetime deadline/)
+    end
+
+    it 'leaves a row that is not remembered on the inactivity deadline' do
+      insert_row(last_use: idle, created_at: idle, remember_until: nil)
+
+      expect(described_class.verdict(session)).to eq(:revoked)
+      expect(OT).to have_received(:info).with(/past its inactivity deadline/)
+    end
+
+    # AUTH_REMEMBER_ME_ENABLED=false: a stamp made while it was on no longer
+    # exempts the row, so an operator can return remembered sessions to the
+    # default lifetime by switching it off. The stamp still ends the row when
+    # it lapses: the switch does not revive a deadline that has passed.
+    context 'with remember-me switched off' do
+      before { allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_return(false) }
+
+      it 'holds a remembered row to the inactivity deadline' do
+        insert_row(last_use: idle, created_at: idle, remember_until: now + 86_400)
+
+        expect(described_class.verdict(session)).to eq(:revoked)
+        expect(OT).to have_received(:info).with(/past its inactivity deadline/)
+      end
+
+      it 'still refuses a row whose remember_until has lapsed, however recent its last_use' do
+        insert_row(last_use: now, created_at: now - 86_400, remember_until: now - 60)
+
+        expect(described_class.verdict(session)).to eq(:revoked)
+        expect(OT).to have_received(:info).with(/past its remember deadline/)
+        expect(rows.count).to eq(0)
+      end
+    end
+
+    describe 'a refused remembered Rack session' do
+      let(:session) { super().merge('remember_until' => now.to_i + 86_400) }
+
+      it 'loses its remember deadline when its row is gone' do
+        expect(described_class.verdict(session)).to eq(:revoked)
+        expect(session).not_to have_key('remember_until')
+      end
+
+      it 'loses its remember deadline when its row has expired' do
+        insert_row(last_use: now, created_at: now - (described_class::DEFAULT_LIFETIME_DEADLINE + 60), remember_until: now + 86_400)
+
+        expect(described_class.verdict(session)).to eq(:revoked)
+        expect(session).not_to have_key('remember_until')
+      end
+
+      it 'keeps it when the authdb cannot answer' do
+        allow(Auth::Database).to receive(:connection).and_return(nil)
+
+        expect(described_class.verdict(session)).to eq(:unavailable)
+        expect(session).to have_key('remember_until')
+      end
+
+      it 'keeps it while the row is active' do
+        insert_row(remember_until: now + 86_400)
+
+        expect(described_class.verdict(session)).to eq(:active)
+        expect(session).to have_key('remember_until')
+      end
+    end
+
+    it 'answers all of it in the one SELECT' do
+      insert_row(last_use: idle, created_at: idle, remember_until: now + 86_400)
+      env = {}
+
+      described_class.verdict(session, env: env)
+
+      expect(env[described_class::STATS_ENV_KEY][:queries]).to eq(1)
+    end
+  end
+
+  # The absolute lifetime is the operator's site.session.absolute_timeout,
+  # read on every call; 0 disables it. Same parsing rule as the colonel's
+  # AdminSessionLifetime: a clean non-negative integer or the default.
+  describe '.lifetime_deadline' do
+    def with_setting(value)
+      config = Onetime.session_config.dup
+      if value.nil?
+        config.delete('absolute_timeout')
+      else
+        config['absolute_timeout'] = value
+      end
+      allow(Onetime).to receive(:session_config).and_return(config)
+    end
+
+    it 'defaults to 30 days when unset' do
+      with_setting(nil)
+      expect(described_class.lifetime_deadline).to eq(described_class::DEFAULT_LIFETIME_DEADLINE)
+      expect(described_class::DEFAULT_LIFETIME_DEADLINE).to eq(2_592_000)
+    end
+
+    it 'reads a configured integer, or an all-digits string' do
+      with_setting(3600)
+      expect(described_class.lifetime_deadline).to eq(3600)
+      with_setting('7200')
+      expect(described_class.lifetime_deadline).to eq(7200)
+    end
+
+    it 'is nil (no bound) when set to 0' do
+      with_setting(0)
+      expect(described_class.lifetime_deadline).to be_nil
+      with_setting('0')
+      expect(described_class.lifetime_deadline).to be_nil
+    end
+
+    it 'falls back to the default for a negative, a typo, or a YAML boolean' do
+      [-1, '12h', 'off', false, true, 3600.5].each do |raw|
+        with_setting(raw)
+        expect(described_class.lifetime_deadline).to eq(described_class::DEFAULT_LIFETIME_DEADLINE), raw.inspect
+      end
+    end
+
+    it 'falls back to the default when the config cannot be read' do
+      allow(Onetime).to receive(:session_config).and_raise(RuntimeError, 'not booted')
+      expect(described_class.lifetime_deadline).to eq(described_class::DEFAULT_LIFETIME_DEADLINE)
+    end
+
+    it 'is not memoised: a changed setting applies to the next call' do
+      with_setting(3600)
+      expect(described_class.lifetime_deadline).to eq(3600)
+      with_setting(60)
+      expect(described_class.lifetime_deadline).to eq(60)
+    end
+  end
+
+  describe 'a configured absolute lifetime' do
+    let(:now) { Time.now }
+
+    def with_setting(value)
+      allow(Onetime).to receive(:session_config).and_return(Onetime.session_config.merge('absolute_timeout' => value))
+    end
+
+    it 'refuses a row older than the configured value, however recent its last_use' do
+      with_setting(3600)
+      insert_row(last_use: now, created_at: now - 3660)
+
+      expect(described_class.verdict(session)).to eq(:revoked)
+      expect(rows.count).to eq(0)
+      expect(OT).to have_received(:info).with(/past its lifetime deadline/)
+    end
+
+    it 'keeps a row inside the configured value' do
+      with_setting(3600)
+      insert_row(last_use: now, created_at: now - 3540)
+
+      expect(described_class.verdict(session)).to eq(:active)
+    end
+
+    it 'applies no lifetime deadline at all when set to 0' do
+      with_setting(0)
+      insert_row(last_use: now, created_at: now - (described_class::DEFAULT_LIFETIME_DEADLINE * 2))
+
+      expect(described_class.verdict(session)).to eq(:active)
+      expect(rows.count).to eq(1)
+    end
+
+    it 'still refuses an idle row, and a lapsed remembered row, when set to 0' do
+      with_setting(0)
+      rows.delete
+      insert_row(last_use: now - (described_class::INACTIVITY_DEADLINE + 60), created_at: now)
+      expect(described_class.verdict(session)).to eq(:revoked)
+
+      rows.delete
+      insert_row(last_use: now, created_at: now, remember_until: now - 60)
+      expect(described_class.verdict(session)).to eq(:revoked)
+    end
+
+    it 'leaves outlived rows out of .expired_condition when set to 0' do
+      with_setting(0)
+      outlived_at = now - (described_class::DEFAULT_LIFETIME_DEADLINE + 60)
+      rows.insert(account_id: 42, session_id: 'outlived', last_use: now, created_at: outlived_at)
+      rows.insert(account_id: 42, session_id: 'lapsed', last_use: now, created_at: now, remember_until: now - 60)
+
+      expect(rows.where(described_class.expired_condition).select_map(:session_id)).to contain_exactly('lapsed')
+    end
+  end
+
+  # Rodauth's sweep deletes on this condition (inactive_session_cond,
+  # apps/web/auth/config/features/active_sessions.rb), so it must select
+  # exactly the rows the gate would refuse.
+  describe '.expired_condition' do
+    let(:now) { Time.now }
+    let(:idle) { now - (described_class::INACTIVITY_DEADLINE + 3600) }
+
+    def insert(session_id, **cols)
+      rows.insert(account_id: 42, session_id: session_id, last_use: now, created_at: now, **cols)
+    end
+
+    it 'selects idle unremembered, lapsed remembered and outlived rows, and nothing else' do
+      insert('idle', last_use: idle)
+      insert('idle-remembered', last_use: idle, created_at: idle, remember_until: now + 86_400)
+      insert('lapsed', remember_until: now - 60)
+      insert('outlived', created_at: now - (described_class::DEFAULT_LIFETIME_DEADLINE + 60), remember_until: now + 86_400)
+      insert('fresh')
+
+      expect(rows.where(described_class.expired_condition).select_map(:session_id))
+        .to contain_exactly('idle', 'lapsed', 'outlived')
+    end
+
+    it 'drops the idle exemption, but not the lapsed deadline, with remember-me switched off' do
+      allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_return(false)
+      insert('idle-remembered', last_use: idle, created_at: idle, remember_until: now + 86_400)
+      insert('lapsed', remember_until: now - 60)
+      insert('fresh')
+
+      expect(rows.where(described_class.expired_condition).select_map(:session_id))
+        .to contain_exactly('idle-remembered', 'lapsed')
     end
   end
 
@@ -401,7 +645,7 @@ RSpec.describe Onetime::ActiveSessionGate do
     it 'holds the lifetime deadline against activity and polling alike' do
       [activity_env, passive_env].each do |env|
         rows.delete
-        insert_row(last_use: Time.now, created_at: Time.now - (described_class::LIFETIME_DEADLINE + 60))
+        insert_row(last_use: Time.now, created_at: Time.now - (described_class::DEFAULT_LIFETIME_DEADLINE + 60))
 
         expect(described_class.verdict(session, env: env.dup)).to eq(:revoked)
         expect(rows.count).to eq(0)
