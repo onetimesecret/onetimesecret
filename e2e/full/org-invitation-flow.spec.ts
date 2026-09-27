@@ -689,13 +689,7 @@ test.describe('INV-016: Invalid Token', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-SEC-001: Open Redirect Prevention', () => {
-  test('Open redirect attack prevention validates redirect parameter', async ({ page }) => {
-    // This test exercises the *login form's* redirect handling, so drop the
-    // storageState session first - an authenticated visitor to /signin is
-    // redirected away and the form (with its assertions) never renders.
-    await page.context().clearCookies();
-
-    // Attempt to use malicious redirect URL
+  test('Open redirect attack prevention validates redirect parameter', async ({ context }) => {
     const maliciousRedirects = [
       'https://evil.com/phishing',
       '//evil.com/path',
@@ -704,32 +698,27 @@ test.describe('INV-SEC-001: Open Redirect Prevention', () => {
     ];
 
     for (const maliciousUrl of maliciousRedirects) {
+      // This exercises the *login form's* redirect handling, so every attempt
+      // starts signed out (an authenticated visitor to /signin is redirected
+      // away before the form renders) and on its own page, so navigations the
+      // previous sign-in started cannot abort this one.
+      await context.clearCookies();
+      const page = await context.newPage();
       await page.goto(`/signin?redirect=${encodeURIComponent(maliciousUrl)}`);
+      const appOrigin = new URL(page.url()).origin;
 
-      // Fill login form. Use the form's test ids — getByLabel(/password/i)
-      // also matches the show-password toggle and the "Forgot your password?"
-      // link, a strict-mode violation.
+      // Use the form's test ids — getByLabel(/password/i) also matches the
+      // show-password toggle and the "Forgot your password?" link.
       const emailInput = page.getByTestId('signin-email-input');
-      const passwordInput = page.getByTestId('signin-password-input');
+      await expect(emailInput, `signin form for redirect=${maliciousUrl}`).toBeVisible();
+      await emailInput.fill(process.env.TEST_USER_EMAIL || '');
+      await page.getByTestId('signin-password-input').fill(process.env.TEST_USER_PASSWORD || '');
+      await page.getByTestId('signin-submit').click();
 
-      if (await emailInput.isVisible()) {
-        await emailInput.fill(process.env.TEST_USER_EMAIL || '');
-        await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
-
-        const submitButton = page.getByTestId('signin-submit');
-        await submitButton.click();
-
-        // Should NOT redirect to external URL
-        await page.waitForURL((url) => {
-          const href = url.href;
-          // Verify we're not on an external domain
-          return !href.includes('evil.com') && !href.startsWith('javascript:');
-        });
-
-        // Should be on a safe internal page
-        const currentUrl = page.url();
-        expect(currentUrl).toMatch(/localhost|dev\.onetime|127\.0\.0\.1/);
-      }
+      // Signing in leaves /signin, and must land on this app, not the target
+      await page.waitForURL((url) => url.pathname !== '/signin');
+      expect(new URL(page.url()).origin, `redirect=${maliciousUrl}`).toBe(appOrigin);
+      await page.close();
     }
   });
 });
