@@ -5,7 +5,7 @@
  *
  * Tests the complete organization member invitation journey including:
  * - Sending invitations from organization settings
- * - Accepting invitations via email link
+ * - Accepting invitations through the invitation link
  * - Post-login redirect preservation
  * - Email mismatch detection and handling
  * - Decline flow for both authenticated and unauthenticated users
@@ -35,9 +35,8 @@
  *   TEST_USER_EMAIL=owner@example.com TEST_USER_PASSWORD=secret \
  *     pnpm playwright test org-invitation-flow.spec.ts
  *
- *   # Against external URL with mailpit
+ *   # Against an external URL
  *   PLAYWRIGHT_BASE_URL=https://dev.onetime.dev \
- *   MAILPIT_URL=https://dev.onetime.dev:8025 \
  *     pnpm test:playwright org-invitation-flow.spec.ts
  */
 
@@ -439,20 +438,15 @@ test.describe('INV-011: Revoke Invitation', () => {
 });
 
 // -----------------------------------------------------------------------------
-// SECTION 6: Email Normalization
+// SECTION 6: Email Normalization (removed)
 // -----------------------------------------------------------------------------
-
-test.describe('INV-012: Gmail Alias Normalization', () => {
-  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): needs real
-  // Gmail accounts + captured invite email. Unimplemented placeholder ->
-  // test.fixme. normalizeEmail() in AcceptInvite.vue is unit-tested; see
-  // e2e/QUARANTINE.md.
-  test.fixme('Gmail alias normalization allows user+tag@gmail.com to match user@gmail.com', async () => {
-    // TODO(#3421): create an invite for user+tag@gmail.com, sign in as
-    // user@gmail.com, and assert NO mismatch warning (emails match after
-    // normalization) — once a mail interceptor exists.
-  });
-});
+// INV-012 tested Gmail alias normalization: an invitation for
+// user+tag@gmail.com accepted by user@gmail.com. 86d6769908 removed that
+// feature on purpose. An invitation now matches only the same address,
+// compared without case, so a +tag address is a mismatch. The mismatch UI and
+// API are covered by invitation-email-mismatch-acknowledgment.spec.ts, and
+// the +tag case by
+// try/unit/logic/organizations/invites/accept_invite_email_mismatch_try.rb.
 
 // -----------------------------------------------------------------------------
 // SECTION 7: Additional Error Scenarios
@@ -636,7 +630,6 @@ test.describe('INV-017: Complete Invitation Acceptance Flow', () => {
  * | INV-008      | Expired invitation shows error, no buttons                | High       |
  * | INV-010      | Owner can resend pending invitation                       | Medium     |
  * | INV-011      | Owner can revoke invitation, link becomes invalid         | Medium     |
- * | INV-012      | Gmail alias normalization                                 | Medium     |
  * | INV-014      | Duplicate member shows validation error                   | Medium     |
  * | INV-016      | Invalid token shows clear error                           | Medium     |
  * | INV-017      | Post-accept org appears in user's org list               | High       |
