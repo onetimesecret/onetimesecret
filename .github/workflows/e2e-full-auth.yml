@@ -3,10 +3,12 @@
 # ==============================================================================
 # E2E Full Auth — the browser lane for journeys that need a REAL email
 # ==============================================================================
-# Container E2E (e2e.yml) boots the OCI image with AUTH_AUTOVERIFY=true and
-# EMAILER_MODE=logger: no verification email is ever sent, so the entire
-# "signup → email → verify link → signin" half of the auth surface has no
-# browser coverage there. That is the half issue #4305 lives in, and
+# Container E2E (e2e.yml) boots the OCI image with account verification off
+# (simple lane: AUTH_AUTOVERIFY=true; full lane:
+# AUTH_VERIFY_ACCOUNT_ENABLED=false) and EMAILER_MODE=logger: no verification
+# email is ever sent, so the entire "signup → email → verify link → signin"
+# half of the auth surface has no browser coverage there. That is the half
+# issue #4305 lives in, and
 # e2e/auth/signup-redirect-preservation.spec.ts is the guard for it. This lane
 # exists to run it.
 #
@@ -14,8 +16,12 @@
 # header at e2e/auth/signup-redirect-preservation.spec.ts:34-45):
 #
 #   AUTHENTICATION_MODE=full      Rodauth is mounted; /verify-account exists.
-#   AUTH_AUTOVERIFY=false         accounts are NOT verified on creation, so a
+#   AUTH_VERIFY_ACCOUNT_ENABLED=true
+#                                 Rodauth's verify_account is on, so accounts
+#                                 are NOT verified on creation and a
 #                                 verification email is actually generated.
+#                                 (AUTH_AUTOVERIFY does not decide this in
+#                                 full mode; only simple-mode signup reads it.)
 #   RACK_ENV=production           etc/defaults/auth.defaults.yaml force-disables
 #                                 the verify_account feature whenever
 #                                 RACK_ENV=test. Not a stylistic choice: under
@@ -184,9 +190,13 @@ jobs:
             echo "LOG_FORMATTER=default"
 
             # --- Auth: full mode, verification REQUIRED --------------------
-            # AUTH_AUTOVERIFY=false is the config default; stated anyway
-            # because an autoverified account sends no email at all and the
-            # whole lane would pass vacuously.
+            # AUTH_VERIFY_ACCOUNT_ENABLED=true is what makes signup send a
+            # verification email: with Rodauth's verify_account off, accounts
+            # are open at once, no email is sent, and the whole lane would
+            # pass vacuously. It is the default outside RACK_ENV=test; stated
+            # anyway. AUTH_AUTOVERIFY=false is the config default too; it has
+            # no effect on full-mode signups (only simple-mode signup reads
+            # it) and is stated only to keep this lane's config explicit.
             echo "AUTHENTICATION_MODE=full"
             echo "AUTH_AUTOVERIFY=false"
             echo "AUTH_VERIFY_ACCOUNT_ENABLED=true"
