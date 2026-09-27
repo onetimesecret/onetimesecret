@@ -19,13 +19,14 @@ const mockCurrentContext = ref({
 });
 
 const mockIsContextActive = ref(true);
+const mockHasMultipleContexts = ref(true);
 const mockSetContext = vi.fn();
 
 vi.mock('@/shared/composables/useDomainContext', () => ({
   useDomainContext: vi.fn(() => ({
     currentContext: mockCurrentContext,
     isContextActive: mockIsContextActive,
-    hasMultipleContexts: { value: true },
+    hasMultipleContexts: mockHasMultipleContexts,
     availableDomains: { value: ['acme.example.com', 'widgets.example.com', 'onetimesecret.com'] },
     setContext: mockSetContext,
     resetContext: vi.fn(),
@@ -106,6 +107,7 @@ describe('SecretForm - Domain Context Integration', () => {
       isCanonical: false,
     };
     mockIsContextActive.value = true;
+    mockHasMultipleContexts.value = true;
   });
 
   describe('Domain Context Indicator', () => {
@@ -135,11 +137,11 @@ describe('SecretForm - Domain Context Integration', () => {
       expect(wrapper.text()).not.toContain('web.LABELS.creating_links_for');
     });
 
-    // Domains enabled but no custom domain selected: useDomainContext falls
-    // back to the canonical domain (covered in useDomainContext.spec.ts), and
-    // the indicator names it.
-    it('renders the canonical domain when no custom domain is selected', () => {
+    // Domains enabled with no custom domains: the canonical domain is the only
+    // possible context, so there is no domain choice to indicate.
+    it('does not render the indicator when only the canonical domain exists', () => {
       mockIsContextActive.value = true;
+      mockHasMultipleContexts.value = false;
       mockCurrentContext.value = {
         domain: 'onetimesecret.com',
         displayName: 'onetimesecret.com',
@@ -151,9 +153,8 @@ describe('SecretForm - Domain Context Integration', () => {
         global: { plugins: [createMountPinia()] },
       });
 
-      const indicator = wrapper.find(INDICATOR);
-      expect(indicator.exists()).toBe(true);
-      expect(indicator.text()).toContain('onetimesecret.com');
+      expect(wrapper.find(INDICATOR).exists()).toBe(false);
+      expect(wrapper.text()).not.toContain('web.LABELS.creating_links_for');
     });
 
     it('hides context indicator on a custom domain (single fixed domain)', () => {
