@@ -240,6 +240,64 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
         expect(described_class.canonical_request_base_url(env)).to eq('http://[2001:db8::1]:7143')
       end
     end
+
+    # The one chain both consumers read (#4517): Rodauth's base_url override
+    # and OmniAuth's full_host. Tier order is the contract; the raw authority
+    # is never a tier.
+    describe '.allowlisted_base_url' do
+      it 'tier 1: builds on a verified tenant host with the request scheme and port' do
+        env = env_for(host: 'localhost:7143', display_domain: 'secret.asi.nz', scheme: 'http')
+        expect(described_class.allowlisted_base_url(env)).to eq('http://secret.asi.nz:7143')
+      end
+
+      it 'tier 2: builds on the request own canonical host with the request scheme and port' do
+        canonical_hosts << 'eu.onetimesecret.com'
+        env = env_for(host: 'origin.internal:8443', display_domain: 'eu.onetimesecret.com')
+        expect(described_class.allowlisted_base_url(env)).to eq('https://eu.onetimesecret.com:8443')
+      end
+
+      it 'tier 3: builds on the configured canonical origin when no trusted candidate is allowlisted' do
+        env = env_for(host: 'attacker.evil.example', display_domain: 'attacker.evil.example')
+        expect(described_class.allowlisted_base_url(env)).to eq('https://onetimesecret.com')
+      end
+
+      it 'tier 3: builds on the configured canonical origin when the middleware did not run' do
+        expect(described_class.allowlisted_base_url(env_for(host: 'example.com')))
+          .to eq('https://onetimesecret.com')
+      end
+
+      it 'declines only when site.host is unconfigured too' do
+        allow(described_class).to receive(:canonical_base_url).and_return(nil)
+        expect(described_class.allowlisted_base_url(env_for(host: 'example.com'))).to be_nil
+      end
+
+      # #4517: a doubled Host reaches Rack verbatim once StripForwardedHost has
+      # removed the forwarded header. It is not a source here.
+      it 'never reads the raw authority', :aggregate_failures do
+        env = env_for(host: 'onetimesecret.com', display_domain: 'onetimesecret.com')
+
+        env['HTTP_HOST'] = 'onetimesecret.com, onetimesecret.com'
+        expect(Rack::Request.new(env).base_url).to include(', ')
+        expect(described_class.allowlisted_base_url(env)).to eq('https://onetimesecret.com')
+      end
+    end
+
+    describe '.allowlisted_host' do
+      it 'follows the same tiers as .allowlisted_base_url', :aggregate_failures do
+        tenant    = env_for(host: 'nz.onetime.co', display_domain: 'secret.asi.nz')
+        canonical = env_for(host: 'onetimesecret.com', display_domain: 'onetimesecret.com')
+        unknown   = env_for(host: 'attacker.evil.example', display_domain: 'attacker.evil.example')
+
+        expect(described_class.allowlisted_host(tenant)).to eq('secret.asi.nz')
+        expect(described_class.allowlisted_host(canonical)).to eq('onetimesecret.com')
+        expect(described_class.allowlisted_host(unknown)).to eq('onetimesecret.com')
+      end
+
+      it 'declines only when site.host is unconfigured too' do
+        allow(described_class).to receive(:canonical_host).and_return(nil)
+        expect(described_class.allowlisted_host(env_for(host: 'example.com'))).to be_nil
+      end
+    end
   end
 
   # Exercises the override the way Rodauth does: a real configuration, a real

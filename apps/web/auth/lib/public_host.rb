@@ -68,10 +68,9 @@ module Auth
   # Canonical-set hosts (features.domains.default, site.host, link_domains) are
   # excluded up front — a split deployment's second canonical host must not
   # read as a custom domain, and a canonical host never has a tenant record
-  # anyway. Both tiers are canonical-filtered, and nil keeps the caller's own
-  # derivation, which for the callers below is a CANONICAL host — never the
-  # request authority. DetectHost rejects `localhost`/`127.0.0.1` outright, so
-  # a dev flow never reaches here with a host to swap in.
+  # anyway. Both tiers are canonical-filtered, and nil from `resolve` /
+  # `base_url` means "not a tenant request" — the caller then continues down
+  # the canonical tiers below, never to the request authority.
   #
   # A canonical request still keeps ITS OWN canonical host, though:
   # `canonical_request_host` accepts a trusted candidate exactly when
@@ -82,9 +81,47 @@ module Auth
   # URL can carry is either a TXT-verified tenant or a canonical-set member,
   # and the value never comes from `request.host` / a forwarded header.
   #
+  # ## One chain for every auth URL (#4517)
+  #
+  # `allowlisted_base_url` / `allowlisted_host` compose the tiers in the one
+  # order every auth-URL consumer must share:
+  #
+  #   1. the TXT-verified tenant host the request resolved to (`resolve`)
+  #   2. the request's own host when it is in the canonical set
+  #      (`canonical_request_host`)
+  #   3. the configured canonical host, request-independent (`canonical_host`)
+  #
+  # A consumer may append its own last resort BEHIND tier 3 for the
+  # "site.host unconfigured" misconfiguration, and nothing else. Rodauth's
+  # `base_url` override has read this chain since the G-01 host-allowlist
+  # work (#4319; #4221 introduced only the tenant tier); OmniAuth's
+  # `full_host` had only tier 1 and fell straight to Rack's authority, so an
+  # SSO redirect_uri on the canonical host carried the raw `Host:` header
+  # verbatim — including a doubled `Host: a, a` from a misconfigured
+  # proxy_set_header (#4517) — while the email link for the same request was
+  # built on the canonical host. The two must never disagree about the host,
+  # so both read here.
+  #
+  # Local development is served by tier 2: DomainStrategy pins
+  # `display_domain` to the primary canonical host whenever the domains
+  # feature is off or the detected host fails validation (DetectHost rejects
+  # `localhost` / `127.0.0.1` outright). That host is features.domains.default
+  # when domains are enabled and site.host otherwise — in the dev configs,
+  # site.host, which IS the host the dev browser is on. A dev request whose
+  # browser host differs from site.host builds its SSO URLs on site.host,
+  # exactly as its email links already do — set HOST to the host you browse.
+  #
+  # Tier 2 composes the origin through `origin_for`, which takes the PORT
+  # from the request. A doubled `Host:` is unparseable to Rack, which then
+  # reports the scheme's default port, so a site.host on a non-default port
+  # loses it on exactly that request (`https://secrets.internal`, not
+  # `https://secrets.internal:8443`). The host is right and allowlisted; the
+  # proxy still has to send a single Host (or X-Forwarded-Port).
+  #
   # Consumers: Auth::Config::Features::OmniAuth.full_host_for (SSO
-  # redirect_uri / callback_url) and Auth::Config::Overrides::PublicBaseUrl
-  # (Rodauth `base_url`, hence every `*_email_link`, and the WebAuthn origin).
+  # redirect_uri / callback_url, SAML ACS URL and SP entity ID) and
+  # Auth::Config::Overrides::PublicBaseUrl (Rodauth `base_url`, hence every
+  # `*_email_link`, and the WebAuthn origin).
   #
   module PublicHost
     # @param env [Hash] Rack environment
@@ -203,10 +240,44 @@ module Auth
       origin_for(env, host)
     end
 
+    # The origin every auth URL for this request builds on: the shared
+    # three-tier chain (see "One chain for every auth URL" above).
+    #
+    #   1. #base_url                   — verified tenant host, request scheme/port
+    #   2. #canonical_request_base_url — the request's own canonical host,
+    #                                    request scheme/port
+    #   3. #canonical_base_url         — configured site.host, site.ssl scheme
+    #
+    # Never `request.host` / Rack's `base_url`: the raw authority is what a
+    # client-settable forwarded header or a doubled `Host:` header lands in.
+    # nil only when site.host is unconfigured AND the request resolved to no
+    # allowlisted host; the caller decides its own last resort for that
+    # misconfiguration.
+    #
+    # @param env [Hash] Rack environment
+    # @return [String, nil] origin
+    def self.allowlisted_base_url(env)
+      base_url(env) || canonical_request_base_url(env) || canonical_base_url
+    end
+
+    # Host-only counterpart of #allowlisted_base_url, same tiers, same order.
+    # For consumers that show the host rather than build a URL from it
+    # (transactional email branding), so the host shown and the host linked
+    # can never disagree.
+    #
+    # @param env [Hash] Rack environment
+    # @return [String, nil] host (a canonical candidate may carry its port)
+    def self.allowlisted_host(env)
+      resolve(env) || canonical_request_host(env) || canonical_host
+    end
+
     # `scheme://host[:port]` for an ALREADY-ALLOWLISTED host. Reproduces
     # Rack::Request#base_url with the authority's host swapped: scheme and
     # port still come from the request (both honor the proxy's X-Forwarded-*
-    # the same way they did before), so only the hostname changes.
+    # the same way they did before), so only the hostname changes. The port
+    # therefore depends on a parseable authority or X-Forwarded-Port: for a
+    # doubled `Host: a:8443, a:8443` Rack reports the scheme's default port
+    # and the origin carries none (#4517).
     #
     # ## The host may ALREADY carry a port — strip it before appending one
     #
