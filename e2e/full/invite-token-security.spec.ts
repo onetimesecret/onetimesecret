@@ -45,12 +45,11 @@ import {
   generatePassword,
   invitationToken,
   inviteMember,
+  openFirstOrgMembersTab,
   openFreshContext,
-  openMembersTab,
   submitInviteSignup,
   uniqueTestEmail,
 } from '../support/members';
-import { getFirstOrganization } from '../support/organizations';
 
 // -----------------------------------------------------------------------------
 // Test Helpers
@@ -196,8 +195,7 @@ test.describe('SEC-INV-003: Valid invite_token auto-login works', () => {
     try {
       // The storageState owner sends the invitation. The invitee only signs
       // up and never accepts, so the owner's org gains no member.
-      const { extid } = await getFirstOrganization(page);
-      await openMembersTab(page, extid);
+      const extid = await openFirstOrgMembersTab(page);
       const invitedEmail = uniqueTestEmail('valid-token-autologin');
       await inviteMember(page, invitedEmail);
       const token = await invitationToken(page, extid, invitedEmail);
