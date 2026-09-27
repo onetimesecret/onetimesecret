@@ -26,6 +26,36 @@ Changed
   A lookup that produces no answer (SERVFAIL, REFUSED, timeout) never changes
   stored state.
 
+- The ``caddy_on_demand`` strategy now reports real resolving and SSL status
+  for custom domains. Previously both were always unknown, so the domain
+  pages never updated and a domain could not become ready without an operator
+  setting ``resolving`` by hand. On each verify or domain refresh the
+  application now looks up the domain's A/AAAA records and, if it resolves,
+  completes a TLS handshake on port 443 and verifies the certificate for the
+  hostname. No request is sent. The check refuses to connect to loopback,
+  private, link-local or reserved addresses, and connects only to the address
+  it resolved. A lookup or connection that fails on our side (SERVFAIL,
+  timeout, no route) never changes stored state.
+
+  **Upgrade notes for self-hosted installs using** ``caddy_on_demand``:
+
+  - The application host needs outbound DNS and outbound TCP 443 to the
+    custom domains it serves. Without it, status stays as it was and the
+    domain pages show the last check as failed.
+  - A domain becomes ready (and the internal ACME endpoint starts authorising
+    its certificate) once its TXT record verifies and it has an A or AAAA
+    record. A domain that stops resolving is no longer ready.
+  - A domain whose names resolve only to private addresses is reported as
+    resolving with SSL status unknown. A certificate from a private CA (for
+    example ``tls internal``) is reported as no SSL, because it does not
+    verify against the system trust store.
+  - Domains that still carry vhost data from the ``approximated`` strategy
+    keep showing it until the ``remove_orphaned_approximated_vhosts`` chore
+    clears it; ``resolving`` is updated regardless.
+  - With ``jobs.domain_refresh`` enabled, a page of domains that all time out
+    takes much longer than before (up to 13s per domain). Lower
+    ``batch_size`` if refresh runs overlap.
+
 Fixed
 -----
 

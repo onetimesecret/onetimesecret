@@ -137,6 +137,7 @@ gem 'mail'
 gem 'public_suffix', '~> 7.0'
 gem 'sanitize', '~> 7.0'
 gem 'semantic_logger', '~> 4.17'
+gem 'simpleidn', '~> 0.2'
 gem 'tilt'
 
 # Email validation

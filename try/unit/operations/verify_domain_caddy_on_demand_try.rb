@@ -16,8 +16,17 @@
 #   5. ... unless an operator override holds it.
 #   6. A newly created domain starts unverified.
 #
-# `resolving` is set true on the fixtures so `verified` is the only thing
-# between the domain and ready?.
+# The status half (check_status) runs over a scripted TlsProbe:
+#
+#   7. A definite probe answer is stored: `resolving`, and has_ssl inside vhost.
+#   8. A probe that could not tell leaves `resolving` and vhost as they were
+#      and marks the check as failed (vhost_fetch_failed_at).
+#   9. A probe that knows only that the name resolves stores `resolving` and
+#      leaves vhost (has_ssl) alone.
+#  10. Stale Approximated UI state is replaced while its cleanup marker remains.
+#
+# The scripted probe reports resolving + valid certificate until case 7, so
+# `verified` is the only thing between the domain and ready? in cases 1-6.
 
 require_relative '../../support/test_helpers'
 require 'securerandom'
@@ -50,9 +59,29 @@ class CaddyTryScriptedResolver
   def close; end
 end
 
+# Scripted stand-in for DomainValidation::TlsProbe. Returns the real Result.
+class CaddyTryScriptedProbe
+  Result = Onetime::DomainValidation::TlsProbe::Result
+
+  attr_accessor :is_resolving, :has_ssl
+  attr_reader :probed
+
+  def initialize
+    @is_resolving = true
+    @has_ssl      = true
+    @probed       = []
+  end
+
+  def probe(hostname)
+    @probed << hostname
+    Result.new(is_resolving: is_resolving, has_ssl: has_ssl, addresses: ['93.184.216.34'], message: 'scripted')
+  end
+end
+
 @resolver = CaddyTryScriptedResolver.new
 @verifier = Onetime::DomainValidation::TxtVerifier.new(resolver_factory: -> { @resolver })
-@strategy = Onetime::DomainValidation::CaddyOnDemandStrategy.new({}, txt_verifier: @verifier)
+@probe    = CaddyTryScriptedProbe.new
+@strategy = Onetime::DomainValidation::CaddyOnDemandStrategy.new({}, txt_verifier: @verifier, tls_probe: @probe)
 
 @suffix = "#{Familia.now.to_i}-#{SecureRandom.hex(3)}"
 @owner  = Onetime::Customer.create!(email: "caddy_verify_#{@suffix}@test.com")
@@ -170,6 +199,78 @@ caddy_try_verify(@domain)
 @after_clear       = caddy_try_verify(@domain)
 [@marker_after_pass, @after_clear.demoted?, caddy_try_reload(@domain).ready?]
 #=> [false, true, false]
+
+## Status: a definite probe answer is stored (resolving, and has_ssl inside vhost)
+@probe.is_resolving = true
+@probe.has_ssl      = true
+@status_ok          = caddy_try_verify(@domain)
+@stored             = caddy_try_reload(@domain)
+[@status_ok.is_resolving, @status_ok.ssl_ready, @stored.resolving == true, @stored.parse_vhost.values_at('has_ssl', 'status', 'incoming_address')]
+#=> [true, true, true, [true, 'ACTIVE_SSL', @domain.display_domain]]
+
+## Status: the probe was asked about the display domain
+@probe.probed.last
+#=> @domain.display_domain
+
+## Status: a probe that could not tell leaves resolving and vhost untouched
+@vhost_before       = caddy_try_reload(@domain).vhost
+@probe.is_resolving = nil
+@probe.has_ssl      = nil
+caddy_try_verify(@domain)
+@stored = caddy_try_reload(@domain)
+[@stored.resolving == true, @stored.vhost == @vhost_before, @stored.parse_vhost['has_ssl']]
+#=> [true, true, true]
+
+## Status: a probe that could not tell marks the check as failed for the UI
+caddy_try_reload(@domain).vhost_fetch_failed_at.to_i.positive?
+#=> true
+
+## Status: resolving known, certificate unknown - resolving stored, vhost (has_ssl) untouched
+@probe.is_resolving = true
+@probe.has_ssl      = nil
+caddy_try_verify(@domain)
+@stored = caddy_try_reload(@domain)
+[@stored.resolving == true, @stored.vhost == @vhost_before, @stored.vhost_fetch_failed_at.to_s.empty?]
+#=> [true, true, true]
+
+## Status: resolves without a valid certificate - has_ssl false is stored
+@probe.is_resolving = true
+@probe.has_ssl      = false
+caddy_try_verify(@domain)
+@stored = caddy_try_reload(@domain)
+[@stored.resolving == true, @stored.parse_vhost.values_at('has_ssl', 'status')]
+#=> [true, [false, 'PENDING_SSL']]
+
+## Status: the name stopped resolving - resolving false is stored and the domain is not ready
+@resolver.rcode     = Resolv::DNS::RCode::NoError
+@resolver.values    = [@domain.txt_validation_value]
+@probe.is_resolving = false
+@probe.has_ssl      = false
+caddy_try_verify(@domain)
+@stored = caddy_try_reload(@domain)
+[@stored.verified, @stored.resolving == true, @stored.ready?, @stored.parse_vhost.values_at('is_resolving', 'status')]
+#=> [true, false, false, [false, 'DNS_INCORRECT']]
+
+## Status: a probe that could not tell does not flip resolving back either
+@probe.is_resolving = nil
+@probe.has_ssl      = nil
+caddy_try_verify(@domain)
+@stored = caddy_try_reload(@domain)
+[@stored.resolving == true, @stored.parse_vhost['status']]
+#=> [false, 'DNS_INCORRECT']
+
+## Status: stale Approximated UI state is replaced while cleanup remains discoverable
+@domain.vhost       = { 'id' => 42, 'incoming_address' => @domain.display_domain, 'status' => 'ACTIVE_SSL' }.to_json
+@domain.save
+@probe.is_resolving = true
+@probe.has_ssl      = false
+caddy_try_verify(@domain)
+@stored = caddy_try_reload(@domain)
+@vhost_data = @stored.parse_vhost
+[@stored.resolving == true,
+ @vhost_data.values_at('id', 'status', 'source', 'approximated_vhost_pending_cleanup'),
+ @stored.vhost_fetch_failed_at.to_s.empty?]
+#=> [true, [nil, 'PENDING_SSL', 'tls_probe', true], true]
 
 # Teardown
 @domain.destroy! if @domain&.exists?
