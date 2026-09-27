@@ -87,7 +87,11 @@ export async function signUpAccount(page: Page, email: string, password: string)
  * Only valid on a page without a session: a signed-in visitor to /signin is
  * redirected away before the form renders.
  */
-export async function signInWithPassword(page: Page, email: string, password: string): Promise<void> {
+export async function signInWithPassword(
+  page: Page,
+  email: string,
+  password: string
+): Promise<void> {
   await page.goto('/signin');
   await waitForAppReady(page);
   await signIn(page, email, password);
