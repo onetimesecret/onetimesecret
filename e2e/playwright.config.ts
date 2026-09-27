@@ -343,8 +343,9 @@ export default defineConfig({
    *
    * Container E2E (.github/workflows/e2e.yml) runs each suite as its own
    * matrix lane, one invocation on a single serial worker per lane:
-   * e2e/all/ (~70 tests, simple auth mode) and e2e/full/ (~310 tests incl.
-   * setup, full auth mode). The full lane sizes this budget: the old
+   * e2e/all/ (~70 tests, simple auth mode) and e2e/full/ (~300 tests incl.
+   * setup, full auth mode; about 160 run, the rest are quarantined or
+   * env-gated, ~3 min locally). The full lane sizes this budget: the old
    * 10-minute budget aborted runs at exactly 10.0m with hundreds of tests
    * reported "did not run" (observed on #3414/#3416 CI). Keep this under
    * each lane job's timeout-minutes (30) minus ~4-5 min of image

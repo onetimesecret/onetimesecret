@@ -1,14 +1,23 @@
 # E2E Test Quarantine
 
-> Part of the [E2E remediation plan](./docs/e2e-remediation-plan.md) (Phases 1
-> & 2.4). **Flake is blocking, not silent**: CI fails on any test that passes
-> only on retry (a `flaky` outcome). A flaky test gets fixed, or it gets
-> quarantined here — it never rides green on a retry.
+> Part of the [E2E remediation plan](./docs/e2e-remediation-plan.md).
+> Container E2E (`.github/workflows/e2e.yml`) runs two **blocking** lanes, each
+> with its own image build, Valkey and flaky gate:
 >
-> This file also tracks **deliberately-dormant** suites (Phase 2.4): tests that
-> cannot run in CI yet because they need fixtures or optional deployment config.
-> They are turned off honestly (`test.fixme`, or an env gate) and listed below
-> so **nobody mistakes a green run for full coverage.**
+> | Lane | Auth mode | Suite |
+> |------|-----------|-------|
+> | `container-e2e-tests (simple)` | simple | `e2e/all/` |
+> | `container-e2e-tests (full)` | full | `e2e/full/` (plus the `setup` project) |
+>
+> **Flake is blocking, not silent**: a lane fails on any test that passes only
+> on retry (a `flaky` outcome). A flaky test gets fixed, or it gets
+> quarantined here; it never rides green on a retry.
+>
+> This file also lists every test that is turned off on purpose because it
+> needs a fixture or deployment config the lanes do not provide. They are
+> turned off honestly (`test.fixme`, or an env gate) and listed below so
+> **nobody mistakes a green run for full coverage.** Every `test.fixme` and
+> every env-gated skip in `e2e/full/` has a row here.
 
 ## How to quarantine a test
 
@@ -21,8 +30,10 @@
    ```
 
    `test.fixme` skips the test and signals "this is known-broken / not-yet-
-   runnable" — unlike a bare `test.skip(true, ...)`, which silently reports a
-   non-running test as green and is banned by the remediation plan.
+   runnable" — unlike a bare `test.skip(true, ...)` or a skip on a DOM probe,
+   which silently reports a non-running test as green and is banned by the
+   remediation plan. A `test.fixme` may be conditional only on a documented
+   env flag (`e2e/support/env.ts`).
 
 2. Open (or link) a GitHub issue describing why it can't run: missing fixture,
    missing config, failure mode + trace/HTML-report links if it's a flake.
@@ -36,14 +47,17 @@
 
 ## Quarantined tests (`test.fixme` — missing fixtures / unimplemented)
 
-These need **seeded data** (a second org, a second member, a captured email)
-that does not exist yet; the fixtures are Phase 3 / PR 6 work.
+These need data or accounts the full lane cannot build: a mail interceptor,
+an SSO identity provider, an MFA-enrolled account, or an account with two
+organizations **and** custom domains. Tests that only need more accounts or a
+second organization build them with throwaway accounts instead
+(`e2e/support/members.ts`, `e2e/support/workspaces.ts`).
 
 | Test (file › title) | Owner | Issue | Quarantined | Reason |
 |---------------------|-------|-------|-------------|--------|
 | `full/cross-org-domain-isolation.spec.ts` › whole suite (8 tests) | delano | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) | 2026-06-10 | Needs ≥2 orgs with disjoint custom-domain sets. Was the multi-org failure aborting #3412/#3416 CI (the DOM scraper also needs a rewrite). |
 | `full/domains-store-org-cache.spec.ts` › whole suite (5 tests) | delano | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) | 2026-06-10 | Needs ≥2 orgs ("Default Workspace" + "Second Organization") with per-org domain caches to compare. |
-| `full/org-switcher-navigation.spec.ts` › whole suite | delano | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) | 2026-06-10 | The org switcher only renders for accounts with ≥2 organizations. |
+| `full/scope-switcher.spec.ts` › TC-SS-009 (org switcher on domain detail), TC-SS-054 (workspace switch resets domain scope) | delano | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) | 2026-09-26 | Need an account with two workspaces and custom domains. The lane's two-workspace owner has no custom domain, and the storageState account owns one solo workspace. |
 | `full/domain-context-consultant.spec.ts` › 7 custom-domain placeholders | delano | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) | 2026-06-10 | Unimplemented; each needs a custom domain. The 2 *no-custom-domain* tests in the file still run. |
 | `full/domain-sso-config.spec.ts` › TC-DSSO-019 (access denied without entitlement) | delano | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) | 2026-06-10 | Inverted precondition — asserts the *absence* of `manage_sso`, but the suite is gated on its presence. Needs a no-entitlement lane. |
 | `full/invite-flow-states.spec.ts` › INV-002 new user via magic link | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-10 | Magic link arrives by email; needs a mail interceptor (Mailpit/MailHog). |
@@ -55,43 +69,32 @@ that does not exist yet; the fixtures are Phase 3 / PR 6 work.
 | `full/org-invitation-flow.spec.ts` › INV-007b unauthenticated decline | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-24 | Needs a real pending invitation to decline unauthenticated; CI cannot seed the invitation, so the decline lands on an unexpected URL. |
 | `full/organization-settings.spec.ts` › ORG-DETAIL-006 SSO tab opens the SSO panel | delano | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) | 2026-09-26 | Needs org SSO turned on (`ORGS_SSO_ENABLED`) and the `manage_sso` entitlement; no lane configures either. `test.fixme` unless `E2E_SSO_UI` is set. The lane still checks that the SSO tab is absent and that `/sso` redirects to Domains (ORG-DETAIL-001, ORG-DETAIL-011). |
 
-> **Still owed (deferred to a CI-verified follow-up, not in this PR):** the
-> org-existence `test.skip(true)` conversions in `scope-switcher`. PR 4 showed
-> the org UI does not always render as those tests assert, so converting their
-> guards to assertions can introduce fresh red — it must be done against a real
-> CI run, not blind. `organization-settings`, `organization-members` and
-> `identifier-url-patterns` are converted: their skips came from reading /orgs
-> before the list rendered (now `e2e/support/organizations.ts`) and from stale
-> selectors, not from missing organizations. Verified locally against the
-> full-lane container image.
-> The members tests that need other members (roles, removal, hierarchy,
-> permissions) sign up a throwaway team through the real invitation flow
-> (`e2e/support/members.ts`), so they need no seeded fixture.
-
 ## Dormant-in-CI suites (`env`-gated — optional config, **NOT coverage yet**)
 
 These suites assert behaviour that only exists when the target has **optional
-deployment config** the CI container does not provision. They are gated on env
-flags (`e2e/support/env.ts`) so the skip names a real condition instead of an
-unconditional skip — strictly better than `test.skip(true, ...)`, but **still
-not coverage** until a lane sets the flag.
+deployment config** the lanes do not provision: custom domains, org SSO, an
+MFA-enrolled account. They are gated on env flags (`e2e/support/env.ts`), so
+the skip names a real condition instead of an unconditional skip. Inside the
+gates, missing data fails the test: a gated suite that runs on a target
+without the fixture it needs reports failures, not skips.
 
 > ⚠️ **No CI lane sets any of these flags today**, so every suite below is
 > DORMANT in CI: it does not run, cannot fail, and a green run says nothing
-> about it. Restoring real coverage is **PR 6's job** — it must add a
-> domains/SSO-enabled lane (or local-run docs) that sets these flags and runs
-> these suites, alongside the fixtures. Until then, treat these as a *holding
-> action* that keeps the gate meaningful for everything else, not as tested.
+> about it. Treat these as a *holding action*, not as tested. No lane has run
+> them since they were gated (PR 5), and their runtime skips were turned into
+> assertions on 2026-09-27 with only lint and a type check to verify them, so
+> expect fixes the first time one runs against a configured target.
 
-| Suite | Gate (env var) | Issue |
-|-------|----------------|-------|
-| `full/domain-config-consistency.spec.ts` | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
-| `full/domain-email-config.spec.ts` | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
-| `full/domain-navigation.spec.ts` | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
-| `full/domain-favicon-refresh.spec.ts` | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
-| `full/domain-incoming-entitlement.spec.ts` | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
-| `full/domain-sso-config.spec.ts` | `E2E_CUSTOM_DOMAINS` + `E2E_SSO_UI` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
-| `full/domain-sso-multi-provider.spec.ts` | `E2E_CUSTOM_DOMAINS` + `E2E_SSO_UI` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
-| `full/identifier-url-patterns.spec.ts` › TC-ID-010, -011, -012, -031, -051 (domain URLs) | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
-| `auth/sso-csrf.spec.ts` | `E2E_SSO_UI` | [#2798](https://github.com/onetimesecret/onetimesecret/issues/2798) |
-| `full/mfa-bootstrap-reactivity.spec.ts` | `TEST_MFA_*` | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) |
+| Suite | Tests | Gate (env var) | Issue |
+|-------|-------|----------------|-------|
+| `full/domain-config-consistency.spec.ts` | 11 | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
+| `full/domain-email-config.spec.ts` | 17 | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
+| `full/domain-navigation.spec.ts` | 5 | `E2E_CUSTOM_DOMAINS`; TC-DN-001 and -005 (SSO page) are also `test.fixme` without `E2E_SSO_UI` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
+| `full/domain-favicon-refresh.spec.ts` | 4 | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
+| `full/domain-incoming-entitlement.spec.ts` | 13 | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
+| `full/domain-sso-config.spec.ts` | 20 | `E2E_CUSTOM_DOMAINS` + `E2E_SSO_UI`; the case that needs two domains is `test.fixme` unless `E2E_CUSTOM_DOMAINS` lists two | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
+| `full/domain-sso-multi-provider.spec.ts` | 13 | `E2E_CUSTOM_DOMAINS` + `E2E_SSO_UI`; the five cases that need two domains are `test.fixme` unless `E2E_CUSTOM_DOMAINS` lists two | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
+| `full/identifier-url-patterns.spec.ts` › TC-ID-010, -011, -012, -031, -051 (domain URLs) | 5 | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
+| `full/scope-switcher.spec.ts` › domain switcher with custom domains | 12 | `test.fixme` unless `E2E_CUSTOM_DOMAINS` (must list the domain names; the first is used) | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
+| `full/mfa-bootstrap-reactivity.spec.ts` | 10 | `TEST_MFA_*`; TC-MFA-004 also needs `TEST_MFA_SECRET` | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) |
+| `auth/sso-csrf.spec.ts` (not in either container lane) | 8 | `E2E_SSO_UI` | [#2798](https://github.com/onetimesecret/onetimesecret/issues/2798) |
