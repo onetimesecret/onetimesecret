@@ -679,6 +679,28 @@ RSpec.describe Onetime::LogScrubber do
 
       expect(SemanticLogger::Logger.subscribers.count { |s| s.equal?(described_class) }).to eq(1)
     end
+
+    # Config loading and early initializers log before SetupLoggers runs.
+    # The boot is stopped at its guard, which comes before Config.load, so
+    # nothing past registration runs.
+    it 'is registered at the very start of Onetime.boot!, before the config loads' do
+      registered_at_guard = nil
+      original_env        = OT.env
+      allow(OT::Config).to receive(:load)
+      allow(Onetime).to receive(:boot_guard!) do
+        registered_at_guard = described_class.registered?
+        false
+      end
+
+      begin
+        Onetime.boot!
+      ensure
+        OT.env = original_env
+      end
+
+      expect(registered_at_guard).to be(true)
+      expect(OT::Config).not_to have_received(:load)
+    end
   end
 
   # Real appenders and real formatters, with the scrubber registered as the
