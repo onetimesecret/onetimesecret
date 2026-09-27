@@ -74,10 +74,15 @@ import { test, expect } from '@playwright/test';
 // The seven custom-domain workflow tests below are declarative `test.fixme`
 // placeholders — never implemented, all requiring a custom domain on the test
 // account (E2E remediation plan Phase 2.4 / PR 5, issue #3420; see
-// e2e/QUARANTINE.md). The no-custom-domain path is covered in
-// scope-switcher.spec.ts: TC-SS-051 asserts that the domain switcher renders
-// exactly when domains are enabled. TC-SS-031 asserts the sessionStorage
-// domainContext key after a domain is selected (custom-domain targets only).
+// e2e/QUARANTINE.md). No E2E test covers SecretForm's domain-context
+// indicator without a custom domain. Vitest covers the component's gate, with
+// useDomainContext mocked, in src/tests/components/SecretFormDomainContext.spec.ts:
+// "does not render the indicator when domains are disabled" and "renders the
+// canonical domain when no custom domain is selected". scope-switcher.spec.ts
+// covers the domain switcher, not this indicator: TC-SS-051 asserts that the
+// switcher renders exactly when domains are enabled, and TC-SS-031 asserts the
+// sessionStorage domainContext key after a domain is selected (custom-domain
+// targets only).
 test.describe('Domain Context - Consultant Workflow', () => {
   test.beforeEach(async ({ page }) => {
     // Set reasonable timeout for E2E tests
