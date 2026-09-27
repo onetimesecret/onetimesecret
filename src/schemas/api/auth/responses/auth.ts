@@ -197,6 +197,8 @@ const createAccountSuccessSchema = z.object({
   billing_redirect: billingRedirectSchema.optional(),
 });
 
+export type CreateAccountSuccess = z.infer<typeof createAccountSuccessSchema>;
+
 export const createAccountResponseSchema = z.union([createAccountSuccessSchema, authErrorSchema]);
 export type CreateAccountResponse = z.infer<typeof createAccountResponseSchema>;
 

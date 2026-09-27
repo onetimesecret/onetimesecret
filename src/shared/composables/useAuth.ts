@@ -30,6 +30,7 @@ import {
 } from '@/schemas/api/auth/responses/auth';
 import { loggingService } from '@/services/logging.service';
 import { ensureAuthenticated, ensureMfaPending } from '@/shared/composables/authCompletion';
+import { signupDestination } from '@/shared/composables/helpers/signupHelpers';
 import { useApi } from '@/shared/composables/useApi';
 import {
   createError,
@@ -37,7 +38,6 @@ import {
   type AsyncHandlerOptions,
 } from '@/shared/composables/useAsyncHandler';
 import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
-import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
 import { SIGNIN_VERIFIED_STATE_KEY } from '@/shared/constants/signin';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
@@ -298,46 +298,16 @@ export function useAuth() {
       }
 
       // Account creation does not authenticate a standard signup. The server
-      // names the next usable step because verification may be disabled.
+      // names the next usable step (/signin or /check-email) because
+      // verification may be disabled; signupDestination maps it to a route.
       notificationsStore.show(validated.success, 'success', 'top');
-
-      const query: Record<string, string> = {};
-      const responseBilling = validated.billing_redirect;
-
-      // Prefer the server-validated plan intent. Simple-mode responses do not
-      // carry billing_redirect, so retain the submitted pair as a fallback and
-      // let the login response validate it before checkout.
-      if (responseBilling?.valid) {
-        query.product = responseBilling.product;
-        query.interval = responseBilling.interval;
-      } else if (!responseBilling && billingParams.product && billingParams.interval) {
-        query.product = billingParams.product;
-        query.interval = billingParams.interval;
-      }
-      if (signupRedirect) {
-        query.redirect = signupRedirect;
-      }
-
-      if (validated.next_action === 'sign_in') {
-        // Verification-disabled accounts are open but still signed out. Carry
-        // the plan/redirect context through sign-in; navigateAfterAuth follows
-        // it to checkout or the requested internal destination afterwards.
-        await router.push({
-          path: '/signin',
-          ...(Object.keys(query).length > 0 ? { query } : {}),
-        });
-        return true;
-      }
-
-      // Verification is required, so route to a dedicated confirmation page.
-      // The sign-in form is unusable until the account is verified. The email
-      // travels in router history state, NOT the URL: it is PII, and a query
-      // string would leak it through browser history, Referer headers and logs.
-      await router.push({
-        path: '/check-email',
-        ...(Object.keys(query).length > 0 ? { query } : {}),
-        state: { [CHECK_EMAIL_STATE_KEY]: email },
-      });
+      await router.push(
+        signupDestination(validated, {
+          email,
+          ...billingParams,
+          ...(signupRedirect ? { redirect: signupRedirect } : {}),
+        })
+      );
       return true;
     });
 
