@@ -5,6 +5,7 @@
 require 'sequel'
 require 'logger'
 
+require_relative 'database_connection'
 require_relative 'migrator'
 
 module Auth
@@ -155,69 +156,20 @@ module Auth
       @connection.__connected__?
     end
 
-    # Parses PostgreSQL multi-host connection URLs into Sequel connection hash.
-    #
-    # PostgreSQL libpq supports comma-separated hosts for failover:
-    #   postgresql://user:pass@host1:5432,host2:5432/dbname?sslmode=require
-    #
-    # But this isn't a valid RFC 3986 URI, so Ruby's URI.parse fails.
-    # Sequel needs either a single-host URL or a connection hash.
-    #
-    # This method extracts the first (primary) host and converts the URL
-    # to a Sequel connection hash, which pg gem will handle correctly.
+    # Converts a multi-host PostgreSQL URL to a Sequel connection hash. See
+    # Auth::DatabaseConnection.parse_postgres_multihost_url.
     #
     # @param url [String] PostgreSQL connection URL with comma-separated hosts
     # @return [Hash] Sequel connection parameters
     def self.parse_postgres_multihost_url(url)
-      # Extract components using regex since URI.parse won't work
-      match = url.match(
-        %r{
-                ^postgresql://
-                (?:([^:@]+)(?::([^@]+))?@)?  # user:password (optional)
-                ([^,/]+)                      # first host:port
-                (?:,[^/]+)?                   # additional hosts (ignored - use primary)
-                (?:/([^?]+))?                 # database name
-                (?:\?(.+))?                   # query params
-              }x,
-      )
-
-      raise ArgumentError, "Invalid PostgreSQL URL format: #{url}" unless match
-
-      user, password, host_port, database, query_string = match.captures
-
-      # Parse host and port from first host
-      host, port = host_port.split(':')
-      port     ||= '5432'
-
-      # Parse query parameters
-      params = {}
-      if query_string
-        query_string.split('&').each do |param|
-          key, value         = param.split('=', 2)
-          params[key.to_sym] = value
-        end
-      end
-
-      # Build Sequel connection hash
-      opts = {
-        adapter: 'postgres',
-        host: host,
-        port: port.to_i,
-        database: database || 'postgres',
-      }
-
-      opts[:user]     = user if user
-      opts[:password] = password if password
-
-      # Map PostgreSQL connection params to pg gem options
-      opts[:sslmode] = params[:sslmode] if params[:sslmode]
+      opts = DatabaseConnection.parse_postgres_multihost_url(url)
 
       sequel_logger.info '[Database] Converted multi-host PostgreSQL URL to connection hash',
-        host: host,
-        port: port,
-        database: database,
-        has_user: !user.nil?,
-        sslmode: params[:sslmode]
+        host: opts[:host],
+        port: opts[:port],
+        database: opts[:database],
+        has_user: opts.key?(:user),
+        sslmode: opts[:sslmode]
 
       opts
     end
@@ -229,22 +181,28 @@ module Auth
         # Get database URL from auth config or environment
         database_url = Onetime.auth_config.database_url || 'sqlite://data/auth.db'
 
-        # PostgreSQL multi-host URLs (host1:port1,host2:port2) are not valid URIs
-        # Convert them to Sequel's hash format for proper failover support
-        connection_opts = if database_url.start_with?('postgresql://') && database_url.split('?').first.include?(',')
-          parse_postgres_multihost_url(database_url)
-        else
-          database_url
-        end
-
-        Sequel.connect(
-          connection_opts,
-          logger: Onetime.get_logger('Sequel'),
-          sql_log_level: :trace,  # Log SQL statements at trace level for safety
-        ).tap do |db|
-          db.extension :date_arithmetic
-        end
+        connect(database_url)
       end
+    end
+
+    SQLITE_BUSY_TIMEOUT_MS = DatabaseConnection::SQLITE_BUSY_TIMEOUT_MS
+
+    # Open an authdb connection with the application's SQL logger. Every
+    # authdb connection is made here or, without the application loaded, in
+    # Auth::DatabaseConnection.open, which holds the connection options and
+    # documents the SQLite settings.
+    #
+    # A multi-host PostgreSQL URL is converted here first, for the log line.
+    #
+    # @param connection_opts [String, Hash] a database URL or a Sequel
+    #   connection hash
+    # @param logger [#info, nil] SQL logger; nil for the standalone migration
+    #   path, which runs without the application loaded
+    # @return [Sequel::Database]
+    def self.connect(connection_opts, logger: Onetime.get_logger('Sequel'))
+      connection_opts = parse_postgres_multihost_url(connection_opts) if DatabaseConnection.multihost_postgres_url?(connection_opts)
+
+      DatabaseConnection.open(connection_opts, logger: logger)
     end
 
     # Legacy method for compatibility - creates connection immediately
@@ -254,13 +212,7 @@ module Auth
 
       database_url = Onetime.auth_config.database_url || 'sqlite://data/auth.db'
 
-      Sequel.connect(
-        database_url,
-        logger: Onetime.get_logger('Sequel'),
-        sql_log_level: :trace,
-      ).tap do |db|
-        db.extension :date_arithmetic
-      end
+      connect(database_url)
     end
 
     # Ensure database migrations are up to date.
@@ -297,7 +249,7 @@ module Auth
         migrations_dir = File.join(__dir__, 'migrations')
         raise "Migrations directory not found: #{migrations_dir}" unless Dir.exist?(migrations_dir)
 
-        conn = Sequel.connect(database_url)
+        conn = connect(database_url, logger: nil)
         begin
           # Use advisory locks for PostgreSQL to handle concurrent boots
           use_advisory_lock = conn.adapter_scheme == :postgres

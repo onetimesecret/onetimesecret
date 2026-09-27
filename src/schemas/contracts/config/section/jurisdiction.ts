@@ -44,7 +44,10 @@ const regionSchema = jurisdictionSchema;
  * Canonical regions configuration schema
  */
 const regionsConfigSchema = z.object({
-  identifier: z.string(),
+  // Not a key of `features.regions` in etc/defaults/config.defaults.yaml and
+  // never emitted by ConfigSerializer#transform_regions; nothing reads it.
+  // Required here, it failed every bootstrap payload with regions enabled.
+  identifier: z.string().optional(),
   enabled: z.boolean(),
   current_jurisdiction: z.string(),
   jurisdictions: z.array(jurisdictionSchema),

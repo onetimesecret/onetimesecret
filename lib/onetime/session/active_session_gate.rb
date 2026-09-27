@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative 'activity'
+
 module Onetime
   # Per-request enforcement of Rodauth's active-session table in full auth
   # mode.
@@ -103,11 +105,32 @@ module Onetime
   # would silently break on any host whose process TZ differs from the
   # database session's, in one direction expiring live sessions and never
   # refreshing, in the other never expiring and refreshing on every request.
+  #
+  # ## Passive verification (#4455)
+  #
+  # A request whose route declares `activity=passive`
+  # ({Onetime::SessionActivity}) is verified in full: the same SELECT, the
+  # same two deadlines, the same removal of an expired row. It does not
+  # refresh `last_use`. A tab that only polls therefore reaches the
+  # inactivity deadline exactly when a closed tab would. Passivity is a
+  # property of the request (route options + request header) and does not
+  # change mid-request, so there is nothing to defer: a passive reader
+  # skips the touch outright.
+  #
+  # ## Counts
+  #
+  # Each request's SELECT and write counts against the table are kept under
+  # {STATS_ENV_KEY} so the bootstrap endpoint can report them (#4463 rollout
+  # review) without a SQL logger.
   module ActiveSessionGate
     extend self
 
     # Per-request memo of the verdict, keyed in the Rack env.
     ENV_KEY = 'onetime.active_session_gate'
+
+    # `{ queries: Integer, writes: Integer }` issued against {TABLE} on this
+    # request. Absent when the gate did not apply or never ran.
+    STATS_ENV_KEY = 'onetime.active_session_gate.stats'
 
     # Minimum seconds between `last_use` writes for one active-session row.
     TOUCH_INTERVAL = 300
@@ -145,36 +168,95 @@ module Onetime
     def verdict(session, env: nil)
       return env[ENV_KEY] if env.is_a?(Hash) && env.key?(ENV_KEY)
 
-      result       = compute(session)
+      result       = compute(session, env)
       env[ENV_KEY] = result if env.is_a?(Hash)
       result
     end
 
+    # The session identity changed inside this request (login or logout): the
+    # verdict for the previous identity may not outlive it. The counts stay;
+    # they describe the request, not the session.
+    def forget(env)
+      return unless env.is_a?(Hash)
+
+      env.delete(ENV_KEY)
+    end
+
+    # Logout: remove the active-session row this Rack session joins to, as
+    # Rodauth's own logout does (`remove_current_session`). Call it BEFORE the
+    # Rack session is cleared, while the join key is still readable.
+    #
+    # Clearing the Rack session is not enough. The store is last-writer-wins,
+    # and every response re-sends the session cookie: a request that loaded
+    # the session before the logout and commits after it writes the whole
+    # blob back under the old id AND hands the browser the old cookie again.
+    # Observed in a browser (dashboard fetches in flight during a logout in
+    # another tab): the next GET /bootstrap/me answered `authenticated`. With
+    # the row gone that resurrected blob is refused as revoked on its next
+    # request, exactly like a session revoked from the sessions page.
+    #
+    # Never raises and never blocks the logout: a row this delete cannot
+    # reach is still bounded by the inactivity deadline and the sweep.
+    #
+    # @return [Boolean] true when a row was removed
+    def end_session(session, env: nil)
+      return false unless applicable?(session)
+
+      db = ::Auth::Database.connection
+      return false if db.nil?
+
+      removed = row_dataset(db, session).delete
+      forget(env)
+      removed.positive?
+    rescue StandardError => ex
+      OT.lw "[active_session_gate] active-session row could not be removed at logout #{who(session)}: " \
+            "#{ex.class}: #{ex.message}"
+      false
+    end
+
     private
 
-    def compute(session)
+    def compute(session, env = nil)
       return :skipped unless applicable?(session)
 
       db = ::Auth::Database.connection
       return unavailable(session, 'no auth database connection') if db.nil?
 
-      row_ds = db[TABLE].where(
-        account_id: session['account_id'],
-        session_id: session['active_session_id_hmac'],
-      )
+      row_ds = row_dataset(db, session)
+      count(env, :queries)
       row    = row_ds.select(
         Sequel.as(past_expression(:last_use, INACTIVITY_DEADLINE), :inactive),
         Sequel.as(past_expression(:created_at, LIFETIME_DEADLINE), :outlived),
         Sequel.as(past_expression(:last_use, TOUCH_INTERVAL), :touch_due),
       ).first
       return revoked(session) if row.nil?
-      return expire(row_ds, session, 'inactivity') if row[:inactive].to_i == 1
-      return expire(row_ds, session, 'lifetime') if row[:outlived].to_i == 1
+      return expire(row_ds, session, 'inactivity', env) if row[:inactive].to_i == 1
+      return expire(row_ds, session, 'lifetime', env) if row[:outlived].to_i == 1
 
-      touch(row_ds, session) if row[:touch_due].to_i == 1
+      record_activity(row_ds, session, env) if row[:touch_due].to_i == 1
       :active
     rescue StandardError => ex
       unavailable(session, "#{ex.class}: #{ex.message}")
+    end
+
+    def row_dataset(db, session)
+      db[TABLE].where(
+        account_id: session['account_id'],
+        session_id: session['active_session_id_hmac'],
+      )
+    end
+
+    # `last_use` is due a refresh. An activity request refreshes it; a
+    # passive one leaves it alone (see the class docstring).
+    def record_activity(row_ds, session, env)
+      touch(row_ds, session, env) unless SessionActivity.passive?(env)
+    end
+
+    def count(env, key)
+      return unless env.is_a?(Hash)
+
+      stats       = (env[STATS_ENV_KEY] ||= { queries: 0, writes: 0 })
+      stats[key] += 1
     end
 
     # Full mode with the feature on, a Rack session carrying both halves of
@@ -207,8 +289,9 @@ module Onetime
     # cannot reach is collected by the sessions page's sweep instead.
     # Logged at info because the user sees a sign-out with no action of
     # their own behind it, and support needs to be able to name the deadline.
-    def expire(row_ds, session, deadline)
+    def expire(row_ds, session, deadline, env = nil)
       OT.info "[active_session_gate] active-session row past its #{deadline} deadline; removed, Rack session refused #{who(session)}"
+      count(env, :writes)
       row_ds.delete
       :revoked
     rescue StandardError => ex
@@ -242,7 +325,8 @@ module Onetime
     # debug: the row's `last_use` is what Rodauth's inactivity sweep reads,
     # so a write that keeps failing ends in a live session being revoked a
     # day later, and that logout must be traceable to its cause.
-    def touch(row_ds, session)
+    def touch(row_ds, session, env = nil)
+      count(env, :writes)
       row_ds.update(last_use: Sequel::CURRENT_TIMESTAMP)
     rescue StandardError => ex
       OT.lw '[active_session_gate] last_use refresh on active-session row failed; if this persists the ' \

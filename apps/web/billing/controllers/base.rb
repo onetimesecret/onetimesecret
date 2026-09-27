@@ -182,9 +182,9 @@ module Billing
             user: cust.extid,
           }
 
-        # Call CreateDefaultWorkspace operation
-        require_relative '../../auth/operations/create_default_workspace'
-        result = Auth::Operations::CreateDefaultWorkspace.new(customer: cust).call
+        # Call EnsureDefaultWorkspace operation
+        require_relative '../../auth/operations/ensure_default_workspace'
+        result = Auth::Operations::EnsureDefaultWorkspace.new(customer: cust).call
 
         if result
           billing_logger.info '[self-healing] Successfully created default workspace',

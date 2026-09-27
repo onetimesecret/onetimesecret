@@ -13,7 +13,8 @@ require 'time'
 #   bin/ots diagnostics sentry doctor --send-event
 #
 # Checks:
-#   1. DIAGNOSTICS_ENABLED env var is 'true'
+#   1. DIAGNOSTICS_ENABLED env var is 'true', and under RACK_ENV=test
+#      DIAGNOSTICS_ENABLED_IN_TEST is 'true' too (Config.diagnostics_enabled?)
 #   2. DSN env vars are set (backend / frontend / workers / fallback)
 #   3. DSN format is valid (https://KEY@HOST/PROJECT_ID)
 #   4. Sentry host responds at /api/0/  (unauthenticated)
@@ -80,9 +81,15 @@ module Onetime
           puts '-' * 50
 
           enabled = ENV.fetch('DIAGNOSTICS_ENABLED', nil)
-          fail 'DIAGNOSTICS_ENABLED', "#{enabled.inspect} (must be 'true')" unless enabled == 'true'
+          # `fail` is this command's reporter, not Kernel#fail: it returns, so
+          # the guard clause RuboCop asks for printed [FAIL] and then [OK].
+          if enabled == 'true' # rubocop:disable Style/GuardClause
+            ok 'DIAGNOSTICS_ENABLED', enabled
+          else
+            fail 'DIAGNOSTICS_ENABLED', "#{enabled.inspect} (must be 'true')"
+          end
 
-          ok 'DIAGNOSTICS_ENABLED', enabled
+          check_test_env_gate
 
           DSN_TARGETS.each { |target| check_env_dsn(target) }
 
@@ -90,6 +97,21 @@ module Onetime
 
           log_errors = ENV.fetch('SENTRY_LOG_ERRORS', nil)
           ok 'SENTRY_LOG_ERRORS', log_errors.nil? ? '(default: true)' : log_errors
+        end
+
+        # Under RACK_ENV=test a boot ignores DIAGNOSTICS_ENABLED unless
+        # DIAGNOSTICS_ENABLED_IN_TEST=true is also set. Without this check the
+        # doctor reports HEALTHY for a server that will report nothing.
+        def check_test_env_gate
+          return unless OT.testing?
+
+          in_test = ENV.fetch('DIAGNOSTICS_ENABLED_IN_TEST', nil)
+          if Onetime::Config.diagnostics_permitted_in_env?
+            ok 'DIAGNOSTICS_ENABLED_IN_TEST', in_test
+          else
+            fail 'DIAGNOSTICS_ENABLED_IN_TEST',
+              "#{in_test.inspect} (RACK_ENV=test: must be 'true' or diagnostics stay off)"
+          end
         end
 
         def check_env_dsn(target)

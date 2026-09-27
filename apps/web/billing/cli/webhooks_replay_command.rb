@@ -352,12 +352,12 @@ module Onetime
         begin
           # Use the operation with context for replay/skip_notifications
           context = { replay: true, skip_notifications: skip_notifications }
-          Billing::Operations::ProcessWebhookEvent.new(
+          outcome = Billing::Operations::ProcessWebhookEvent.new(
             event: stripe_event,
             context: context,
           ).call
 
-          event.mark_success!
+          event.mark_success!(outcome: outcome)
           puts "  OK   #{event.stripe_event_id} (#{event.event_type})"
           :success
         rescue StandardError => ex

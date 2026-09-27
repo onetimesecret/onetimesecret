@@ -145,7 +145,7 @@ module Core::Logic
             {
               email: @potential_customer&.obscure_email,
               role: @potential_customer&.role,
-              session_id: safe_session_id,
+              session_handle: session_log_handle,
               ip: @strategy_result.metadata[:ip],
               reason: :invalid_credentials,
             }
@@ -171,7 +171,7 @@ module Core::Logic
             {
               user_id: cust.objid,
               email: cust.obscure_email,
-              session_id: safe_session_id,
+              session_handle: session_log_handle,
               ip: @strategy_result.metadata[:ip],
               reason: :suspended,
             }
@@ -187,7 +187,7 @@ module Core::Logic
               customer_id: cust.objid,
               email: cust.obscure_email,
               role: cust.role,
-              session_id: safe_session_id,
+              session_handle: session_log_handle,
               status: :pending,
             }
 
@@ -235,7 +235,7 @@ module Core::Logic
             user_id: cust.objid,
             email: cust.obscure_email,
             role: cust.role,
-            session_id: safe_session_id,
+            session_handle: session_log_handle,
             ip: @strategy_result.metadata[:ip],
             stay: stay,
             session_ttl: session_ttl,

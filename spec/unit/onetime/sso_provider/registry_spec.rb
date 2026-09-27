@@ -147,11 +147,54 @@ RSpec.describe Onetime::SsoProvider::Registry do
         GOOGLE_CLIENT_SECRET: 'cs',
         GITHUB_CLIENT_ID: 'cid',
         GITHUB_CLIENT_SECRET: 'cs',
+        APPLE_CLIENT_ID: 'com.example.web',
+        APPLE_TEAM_ID: 'TEAM123456',
+        APPLE_KEY_ID: 'KEY1234567',
+        APPLE_PRIVATE_KEY: "-----BEGIN TEST KEY-----\nMHc=\n-----END TEST KEY-----\n",
       ) do
         definitions.each do |defn|
           expect(defn[:strategy_options].call).to be_a(Hash)
         end
       end
+    end
+
+    # :vars_valid is opt-in — a definition without it is presence-only and
+    # always valid once required_vars are present. No current definition
+    # needs one; a definition whose strategy_options can raise must add it
+    # (see the registry header) so the advertised and registered sets agree.
+    it 'carries no :vars_valid predicate on any current definition' do
+      with_predicate = described_class::DEFINITIONS.select { |defn| defn[:vars_valid] }
+      expect(with_predicate.map { |defn| defn[:key] }).to be_empty
+    end
+
+    # Deployments routinely carry multi-line secrets as a single line with
+    # literal backslash-n. OpenSSL::PKey::EC cannot parse that, and the
+    # failure would surface as a per-request client-secret error at the Apple
+    # request phase rather than at boot.
+    it 'un-escapes a backslash-n encoded Apple private key' do
+      ClimateControl.modify(APPLE_PRIVATE_KEY: '-----BEGIN TEST KEY-----\nMHc=\n-----END TEST KEY-----\n') do
+        opts = described_class.fetch(:apple)[:strategy_options].call
+        expect(opts[:pem]).to eq("-----BEGIN TEST KEY-----\nMHc=\n-----END TEST KEY-----\n")
+      end
+    end
+
+    it 'leaves an already multi-line Apple private key untouched' do
+      pem = "-----BEGIN TEST KEY-----\nMHc=\n-----END TEST KEY-----\n"
+      ClimateControl.modify(APPLE_PRIVATE_KEY: pem) do
+        opts = described_class.fetch(:apple)[:strategy_options].call
+        expect(opts[:pem]).to eq(pem)
+      end
+    end
+
+    # resolve_issuer precedence #1 reads this option. Apple's strategy
+    # hard-codes the same constant in verify_iss!, so a row can only exist if
+    # Apple itself asserted it — but the strategy nests the claim under
+    # extra.raw_info.id_info with symbol keys, which the token-issuer branch
+    # does not read. Dropping this option would silently collapse Apple to the
+    # '' sentinel and make it issuerless.
+    it 'declares the Apple issuer so resolve_issuer does not fall through' do
+      opts = described_class.fetch(:apple)[:strategy_options].call
+      expect(opts[:issuer]).to eq('https://appleid.apple.com')
     end
 
     it 'omits the OIDC client secret when blank (PKCE-only flows)' do

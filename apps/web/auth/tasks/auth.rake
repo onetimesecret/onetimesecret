@@ -19,7 +19,7 @@
 namespace :auth do
   desc 'Run Rodauth database migrations (uses AUTH_DATABASE_URL_MIGRATIONS if available)'
   task :migrate do
-    require 'sequel'
+    require_relative '../database_connection'
     Sequel.extension :migration
 
     migrations_url = ENV.fetch('AUTH_DATABASE_URL_MIGRATIONS', nil)
@@ -36,7 +36,9 @@ namespace :auth do
     migrations_dir = File.expand_path('../migrations', __dir__)
     abort "Migrations directory not found: #{migrations_dir}" unless Dir.exist?(migrations_dir)
 
-    conn = Sequel.connect(url)
+    # Same connection options as the app's migration connections: on SQLite,
+    # a migrate that overlaps a running app waits for the write lock.
+    conn = Auth::DatabaseConnection.open(url)
     begin
       use_advisory_lock = conn.adapter_scheme == :postgres
 
@@ -58,12 +60,12 @@ namespace :auth do
 
   desc 'Show current auth database schema version'
   task :version do
-    require 'sequel'
+    require_relative '../database_connection'
 
     database_url = ENV.fetch('AUTH_DATABASE_URL', nil)
     abort 'ERROR: Set AUTH_DATABASE_URL' unless database_url && !database_url.empty?
 
-    conn = Sequel.connect(database_url)
+    conn = Auth::DatabaseConnection.open(database_url)
     begin
       version         = conn[:schema_info].first&.fetch(:version, 0)
       migration_files = Dir.glob(File.join(File.expand_path('../migrations', __dir__), '*.rb'))

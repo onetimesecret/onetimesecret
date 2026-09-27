@@ -88,7 +88,12 @@ describe('receiptListStore', () => {
   });
 
   describe('refreshRecords', () => {
-    it('should fetch records only when not initialized', async () => {
+    it('fetches once on an auto-initialized store, then only when forced', async () => {
+      // The auto-init plugin has already run init(), as it does in the app.
+      // "init() has run" must not be mistaken for "loaded".
+      expect(store.isLoaded).toBe(false);
+      expect(store.records).toBeNull();
+
       const mockResponse = {
         records: mockReceiptRecentRecords,
         details: mockReceiptRecentDetails,
@@ -98,7 +103,7 @@ describe('receiptListStore', () => {
       axiosMock.onGet('/api/v3/receipt/recent').reply(200, mockResponse);
 
       await store.refreshRecords();
-      expect(store.initialized()).toBe(true);
+      expect(store.isLoaded).toBe(true);
 
       // Second call should not fetch
       await store.refreshRecords();
@@ -118,12 +123,12 @@ describe('receiptListStore', () => {
 
       // First call to initialize
       await store.refreshRecords();
-      expect(store.initialized()).toBe(true);
+      expect(store.isLoaded).toBe(true);
       expect(axiosMock.history.get.length).toBe(1);
 
       // Second call with force=true should fetch again
       await store.refreshRecords(true);
-      expect(store.initialized()).toBe(true);
+      expect(store.isLoaded).toBe(true);
       expect(axiosMock.history.get.length).toBe(2);
     });
   });
@@ -200,6 +205,33 @@ describe('receiptListStore', () => {
     });
   });
 
+  describe('passive requests (RISK-2026-09-19-04)', () => {
+    const reply = { records: mockReceiptRecentRecords, details: mockReceiptRecentDetails };
+
+    it('declares the request passive only when the caller says so', async () => {
+      axiosMock.onGet('/api/v3/receipt/recent').reply(200, reply);
+
+      await store.fetchList();
+      await store.fetchList({ passive: true });
+      await store.fetchList({ silent: true });
+
+      expect(axiosMock.history.get.map((request) => request.passive)).toEqual([
+        undefined,
+        true,
+        undefined,
+      ]);
+    });
+
+    it('passes the declaration through refreshRecords()', async () => {
+      axiosMock.onGet('/api/v3/receipt/recent').reply(200, reply);
+
+      await store.refreshRecords(true);
+      await store.refreshRecords(true, { passive: true });
+
+      expect(axiosMock.history.get.map((request) => request.passive)).toEqual([undefined, true]);
+    });
+  });
+
   // Add hydration test if the feature is actually used
   describe('hydration', () => {
     it('refreshes records on store hydration', async () => {
@@ -211,7 +243,7 @@ describe('receiptListStore', () => {
       axiosMock.onGet('/api/v3/receipt/recent').reply(200, mockResponse);
 
       await store.refreshRecords();
-      expect(store.initialized()).toBe(true);
+      expect(store.isLoaded).toBe(true);
 
       // Verify hydration behavior
       await store.refreshRecords();

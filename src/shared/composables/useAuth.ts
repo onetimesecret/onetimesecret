@@ -29,6 +29,7 @@ import {
   type VerifyAccountResponse,
 } from '@/schemas/api/auth/responses/auth';
 import { loggingService } from '@/services/logging.service';
+import { ensureAuthenticated, ensureMfaPending } from '@/shared/composables/authCompletion';
 import { useApi } from '@/shared/composables/useApi';
 import {
   createError,
@@ -39,7 +40,6 @@ import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
 import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
 import { SIGNIN_VERIFIED_STATE_KEY } from '@/shared/constants/signin';
 import { useAuthStore } from '@/shared/stores/authStore';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import type { LockoutStatus } from '@/types/auth';
@@ -65,11 +65,13 @@ import { useRouter } from 'vue-router';
  * 3. Response is validated by loginResponseSchema (Zod)
  *    - CRITICAL: Schema union order matters - MFA schema must be first
  * 4. If requiresMfa(response) is true:
- *    a. checkWindowStatus() refreshes state (gets awaiting_mfa=true)
+ *    a. authStore.refresh({ kind: 'auth-mutation' }) asks the server, which
+ *       answers auth_status 'mfa_pending'. Nothing is patched locally.
  *    b. router.push('/mfa-verify') navigates to OTP form
  *    c. MfaChallenge.vue handles OTP verification via useMfa composable
  * 5. If no MFA required:
- *    a. setAuthenticated(true) updates state and fetches /window
+ *    a. setAuthenticated(true) does the same authentication-mutation refresh
+ *       of GET /bootstrap/me; the accepted snapshot IS the state
  *    b. router.push('/') navigates to dashboard
  *
  * ───────────────────────────────────────────────────────────────────────────────
@@ -94,9 +96,8 @@ import { useRouter } from 'vue-router';
 export function useAuth() {
   const $api = useApi();
   const router = useRouter();
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const authStore = useAuthStore();
-  const bootstrapStore = useBootstrapStore();
   const csrfStore = useCsrfStore();
   const notificationsStore = useNotificationsStore();
 
@@ -199,11 +200,21 @@ export function useAuth() {
           mfa_methods: validated.mfa_methods,
         });
 
-        // Update bootstrap store directly from login response - no round-trip needed.
-        // The login response already tells us MFA is required, so we set awaiting_mfa
-        // to allow route guards to permit access to /mfa-verify.
-        // We also explicitly set authenticated: false to ensure consistent state.
-        bootstrapStore.update({ awaiting_mfa: true, authenticated: false });
+        // MFA-pending is the SERVER's statement, not a local patch (#4458): ask
+        // for a snapshot as an authentication mutation. The /mfa-verify guard
+        // admits `mfa_pending` only, so this must land before we navigate.
+        //
+        // ADR-046#auth-completion-caller-contract: refresh() reports transport/contract failures as
+        // 'failed' without throwing. Do NOT navigate to /mfa-verify when the
+        // snapshot did not land — the guard would redirect to /signin and
+        // lose the challenge. Retry verification (cheap, idempotent) rather
+        // than re-POST the single-use auth mutation.
+        const mfaOutcome = await ensureMfaPending(authStore, 'login');
+        if (mfaOutcome !== 'applied') {
+          if (mfaOutcome === 'superseded') return false; // A newer coordinator run owns this.
+          // TODO(#4501): confirm error UX with design — inline copy pending.
+          throw createError(t('web.auth.mfa.verification_unavailable'), 'human', 'error');
+        }
 
         // Redirect to MFA verification - guard will allow access since awaiting_mfa is set.
         // Preserve the redirect param AND the plan-intent pair (product/interval)
@@ -223,8 +234,18 @@ export function useAuth() {
         return false; // Not fully logged in yet
       }
 
-      // Success - update auth state (this fetches fresh window state)
-      await authStore.setAuthenticated(true);
+      // Success - update auth state (this fetches fresh window state).
+      // ADR-046#auth-completion-caller-contract: setAuthenticated now returns the RefreshOutcome.
+      // Only navigate to a protected destination when the snapshot was applied AND
+      // the resulting status is `authenticated`. Otherwise retry verification
+      // and, if it still won't land, surface a retryable error rather than
+      // routing to Dashboard with no accepted snapshot.
+      const authOutcome = await ensureAuthenticated(authStore, 'login');
+      if (authOutcome !== 'applied') {
+        if (authOutcome === 'superseded') return false;
+        // TODO(#4501): confirm error UX with design — inline copy pending.
+        throw createError(t('web.auth.login.verification_unavailable'), 'human', 'error');
+      }
 
       // Billing intent (validated by backend, else the query pair) wins, then
       // the validated ?redirect, then the dashboard. Shared with the
@@ -527,7 +548,7 @@ export function useAuth() {
       // Refresh bootstrap state so has_password and other auth-related
       // fields reflect the current server state. This matters when an
       // SSO-only user sets a password for the first time.
-      await bootstrapStore.refresh();
+      await authStore.refresh({ kind: 'auth-mutation', reason: 'password-change' });
 
       return true;
     });

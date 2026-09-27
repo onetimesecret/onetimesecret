@@ -22,7 +22,8 @@ module Auth
   # may extract a shared registry consumed by both layers.
   #
   # This module is pure: input is an Exception, output is a [status, body_hash]
-  # pair. It performs no logging, no i18n resolution, and no IO. The caller is
+  # pair (and, from .log_entry, what the caller should log). It performs no
+  # logging, no i18n resolution, and no IO. The caller is
   # responsible for any auth-layer logging and for request/log correlation
   # (apps/web/auth/router.rb runs the translated body through the shared
   # Onetime::Application::ErrorCorrelation, exactly as the Otto hooks do).
@@ -38,6 +39,10 @@ module Auth
       Onetime::GuestRoutesDisabled => 403,
       Onetime::Forbidden => 403,
       Onetime::Unauthorized => 401,
+      Onetime::AccountProvisioningFailed => 409,
+      # Provisioning persisted nothing and the next request retries it; 503,
+      # never the 409 above (see Onetime::AccountProvisioningUnavailable).
+      Onetime::AccountProvisioningUnavailable => 503,
       # An auth gate could not READ this host's policy (#4139/#4157). 503, not
       # the gate's usual 404: see Onetime::AuthPolicyUnavailable. Registered on
       # the FAMILY, not on SigninPolicyUnavailable alone — this table's lookup
@@ -62,13 +67,34 @@ module Auth
       Onetime::GuestRoutesDisabled => :info,
       Onetime::Forbidden => :warn,
       Onetime::Unauthorized => :warn,
+      Onetime::AccountProvisioningFailed => :warn,
+      Onetime::AccountProvisioningUnavailable => :warn,
       Onetime::AuthPolicyUnavailable => :error,
+    }.freeze
+
+    # The authdb could not take the request in time: a SQLite write lock held
+    # longer than Auth::Database::SQLITE_BUSY_TIMEOUT_MS, or no pooled
+    # connection free within Sequel's pool timeout. Both mean more queued
+    # work than the server has capacity for, not a defect in the request, so
+    # they answer 503 with a Retry-After (RFC 9110 15.6.4) instead of the
+    # generic 500. Matched by predicate, not by STATUS_BY_CLASS: Sequel raises
+    # the SQLite case as a plain Sequel::DatabaseError whose only distinguishing
+    # mark is the driver exception it wraps.
+    AUTHDB_BUSY_STATUS = 503
+    AUTHDB_BUSY_BODY   = {
+      error: 'The service is busy. Please try again shortly.',
+      error_type: 'AuthDatabaseBusy',
+      retry_after: 1,
     }.freeze
 
     DEFAULT_STATUS     = 500
     DEFAULT_LOG_LEVEL  = :error
     DEFAULT_ERROR_TYPE = 'ServerError'
     DEFAULT_MESSAGE    = 'Internal Server Error'
+
+    # Log messages for the router's error handler (see .log_entry).
+    TRANSLATED_LOG_MESSAGE = 'Auth router translated exception'
+    UNHANDLED_LOG_MESSAGE  = 'Auth router unhandled exception'
 
     # ADR-013 body for router-level 404 fallbacks (status_handler(404) and
     # the route-block catch-all in apps/web/auth/router.rb). Single source of
@@ -88,18 +114,63 @@ module Auth
     # @param exception [Exception]
     # @return [Integer] HTTP status code
     def self.status_for(exception)
+      return AUTHDB_BUSY_STATUS if authdb_busy?(exception)
+
       STATUS_BY_CLASS[exception.class] || ancestor_status(exception) || DEFAULT_STATUS
     end
 
     # @param exception [Exception]
     # @return [Symbol] Log severity (:info, :warn, :error)
     def self.level_for(exception)
+      return :warn if authdb_busy?(exception)
+
       LOG_LEVEL_BY_CLASS[exception.class] || ancestor_level(exception) || DEFAULT_LOG_LEVEL
+    end
+
+    # Whether this module answers the exception with something other than
+    # the generic 500: a class registered in STATUS_BY_CLASS (or a subclass
+    # of one), or a saturated authdb. Decided by what the exception IS, never
+    # by the status: a deliberate 503 is translated, an unknown 500 is not.
+    #
+    # @param exception [Exception]
+    # @return [Boolean]
+    def self.translated?(exception)
+      authdb_busy?(exception) || known_typed?(exception)
+    end
+
+    # What the router's error handler should log: a level, a message and a
+    # payload. A translated exception logs at its own level (.level_for) under
+    # TRANSLATED_LOG_MESSAGE, so a retryable 503 (AuthDatabaseBusy,
+    # AccountProvisioningUnavailable) is a :warn and not an "unhandled
+    # exception" at :error. Anything else is a genuine unhandled exception:
+    # :error with the exception, so production failures are not silent.
+    #
+    # A translated 5xx keeps the exception in the payload: the client is told
+    # only "busy" or "unavailable", and the message and backtrace (which
+    # statement waited on the lock, which read failed) exist nowhere else.
+    #
+    # @param exception [Exception]
+    # @return [Array(Symbol, String, Hash)] level, message, payload
+    def self.log_entry(exception)
+      unless translated?(exception)
+        return [DEFAULT_LOG_LEVEL, UNHANDLED_LOG_MESSAGE, { exception: exception }]
+      end
+
+      status              = status_for(exception)
+      payload             = {
+        exception_class: exception.class.name,
+        error_type: body_for(exception)[:error_type],
+        status: status,
+      }
+      payload[:exception] = exception if status >= 500
+
+      [level_for(exception), TRANSLATED_LOG_MESSAGE, payload]
     end
 
     # @param exception [Exception]
     # @return [Hash] ADR-013 body hash
     def self.body_for(exception)
+      return AUTHDB_BUSY_BODY.dup if authdb_busy?(exception)
       return generic_body unless known_typed?(exception)
 
       # Typed Onetime exceptions in STATUS_BY_CLASS that define #to_h
@@ -114,6 +185,15 @@ module Auth
       # is caller-supplied and not sensitive at the auth boundary (e.g.
       # 'Invalid credentials').
       { error: exception.message, error_type: short_class_name(exception) }
+    end
+
+    # @param exception [Exception]
+    # @return [Boolean] whether the authdb was saturated (see AUTHDB_BUSY_STATUS)
+    def self.authdb_busy?(exception)
+      return true if defined?(Sequel::PoolTimeout) && exception.is_a?(Sequel::PoolTimeout)
+      return false unless defined?(SQLite3::BusyException)
+
+      exception.respond_to?(:wrapped_exception) && exception.wrapped_exception.is_a?(SQLite3::BusyException)
     end
 
     # Walk the exception's actual inheritance chain (not STATUS_BY_CLASS

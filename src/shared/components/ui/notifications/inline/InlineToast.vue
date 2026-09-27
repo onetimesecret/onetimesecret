@@ -1,4 +1,5 @@
 <!-- src/shared/components/ui/notifications/inline/InlineToast.vue -->
+
 <!--
   Small dark toast positioned relative to a parent container (not the
   viewport). Used for ephemeral confirmations like "Copied!" inside a

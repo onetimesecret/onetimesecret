@@ -164,6 +164,10 @@ module Billing
       event.attempt_count    = '0'
       event.save
 
+      # Read-only admin index (see StripeWebhookEvent.record_recent_index for
+      # why this runs only on first init and swallows its own errors).
+      Billing::StripeWebhookEvent.record_recent_index(event)
+
       billing_logger.debug '[WebhookValidator] Event metadata initialized',
         {
           event_id: stripe_event.id,

@@ -52,7 +52,43 @@ module Core
 
         output['shrimp'] = view_vars['shrimp']
         output['nonce']  = view_vars['nonce']
+
+        serialize_snapshot_ordering(output, view_vars['snapshot_ordering'])
         output
+      end
+
+      # The three keys as declared in output_template, in one place.
+      SNAPSHOT_ORDERING_KEYS = %w[snapshot_epoch snapshot_version snapshot_generated_at].freeze
+
+      # Bootstrap snapshot ordering (ADR-046).
+      #
+      # OMISSION, NOT NULLS — same rule as DiagnosticsSerializer. The schema
+      # validates `snapshot_epoch` and `snapshot_version` as a unit, both
+      # present or both absent, and `.optional()` rejects a JSON null, which
+      # would fail the WHOLE payload. So a session that is not ordered, and a
+      # degraded hydration whose allocation failed, emit none of the keys.
+      #
+      # `snapshot_version` is passed through as the String the allocator
+      # returned. It must never become a JSON number: the client compares it
+      # with BigInt, beyond JavaScript's integer precision.
+      #
+      # `snapshot_generated_at` rides with the pair and orders nothing.
+      #
+      # @param output [Hash] the serializer output, mutated
+      # @param ordering [Hash, nil] Onetime::SnapshotOrdering allocation
+      def self.serialize_snapshot_ordering(output, ordering)
+        epoch   = ordering.is_a?(Hash) ? ordering[:epoch] : nil
+        version = ordering.is_a?(Hash) ? ordering[:version] : nil
+
+        unless epoch.is_a?(String) && version.is_a?(String)
+          SNAPSHOT_ORDERING_KEYS.each { |key| output.delete(key) }
+          return
+        end
+
+        output['snapshot_epoch']        = epoch
+        output['snapshot_version']      = version
+        output['snapshot_generated_at'] = ordering[:generated_at]
+        output.delete('snapshot_generated_at') if output['snapshot_generated_at'].nil?
       end
 
       class << self
@@ -66,6 +102,11 @@ module Core
             'ruby_version' => nil,
             'shrimp' => nil,
             'nonce' => nil,
+            # ADR-046. Declared so SerializerRegistry passes them through;
+            # .serialize deletes them again when the session is not ordered.
+            'snapshot_epoch' => nil,
+            'snapshot_version' => nil,
+            'snapshot_generated_at' => nil,
           }
         end
       end

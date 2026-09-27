@@ -25,10 +25,13 @@
 # on a 404/500 in that app, and any later 404 replayed all of them to whoever
 # asked. Session ids are bearer tokens with no client binding.
 #
-# The fix mounts Onetime::Middleware::IsolateResponseHeaders innermost in
-# Base#build_rack_app (directly around the router), so every middleware above
-# it — the session layer, CsrfResponseHeader, DomainStrategy, RetryAfterHeader
-# — writes into a per-request copy.
+# otto 2.11 (delano/otto#272) copies the configured triple per request
+# (Otto::Static.copy_response: a fresh headers hash with fresh Array values),
+# so every middleware above the router — the session layer,
+# CsrfResponseHeader, DomainStrategy, RetryAfterHeader — writes into its own
+# copy. The app-side stopgap that did the same, IsolateResponseHeaders
+# (#4401), was removed with the otto 2.12 pin; this spec is what proves the
+# gem's copy is enough.
 #
 # Mode-agnostic on purpose: the router fallbacks and the middleware stack are
 # identical in every AUTHENTICATION_MODE.

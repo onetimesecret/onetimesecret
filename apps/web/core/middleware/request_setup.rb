@@ -40,11 +40,18 @@ module Core
       # Locale is handled by Otto::Locale::Middleware
       # Available via env['otto.locale']
 
-      http_logger.debug 'Request setup complete', { nonce: nonce[0, 8] } if OT.debug?
+      return unless OT.debug?
+
+      http_logger.debug 'Request setup complete',
+        {
+          nonce_generated: true,
+          request_id: env['HTTP_X_REQUEST_ID'],
+        }
     end
 
     def finalize_response(status, headers, body, env)
       ensure_content_type(headers)
+      apply_personalized_cache_policy(headers)
       emit_csp_header(headers, env)
 
       [status, headers, body]
@@ -67,6 +74,25 @@ module Core
       return if headers.any? { |key, _value| key.to_s.casecmp?('content-type') }
 
       headers['content-type'] = @default_content_type
+    end
+
+    # Web Core HTML embeds request- and session-scoped bootstrap state, including
+    # a masked CSRF token, so the safe default for HTML is `private, no-store`:
+    # if a route leaves Cache-Control unset, this middleware stamps that value
+    # to prevent browsers and intermediaries from retaining personalized bytes.
+    #
+    # Escape hatch: a route that knows its HTML fragment is not personalized
+    # (e.g. a public marketing snippet with `Cache-Control: public, max-age=300`)
+    # can set its own Cache-Control and this middleware defers — the upstream
+    # header wins. The presence check is case-insensitive to match
+    # #ensure_content_type. Default remains safe (no header → no-store) so the
+    # bootstrap-state protection is not regressed for routes that don't opt in.
+    def apply_personalized_cache_policy(headers)
+      content_type = headers.find { |key, _value| key.to_s.casecmp?('content-type') }&.last
+      return unless content_type.to_s.downcase.start_with?('text/html')
+      return if headers.any? { |key, _value| key.to_s.casecmp?('cache-control') }
+
+      headers['cache-control'] = 'private, no-store'
     end
 
     # Emit the Content-Security-Policy header for HTML responses.

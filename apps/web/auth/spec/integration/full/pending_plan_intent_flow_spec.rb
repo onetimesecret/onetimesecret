@@ -36,7 +36,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
     # Boot the full app and application registry via the shared helper so the
     # REAL Auth::Config (a Rodauth::Auth subclass) loads — along with
     # Auth::Config::Hooks::Billing and Auth::Operations (config.rb requires
-    # operations.rb, which requires create_customer/create_default_workspace).
+    # operations.rb, which requires create_customer/ensure_default_workspace).
     #
     # Do NOT fabricate `module Auth::Config::Hooks` here. Opening Config with the
     # `module` keyword makes Auth::Config a plain Module and poisons the constant

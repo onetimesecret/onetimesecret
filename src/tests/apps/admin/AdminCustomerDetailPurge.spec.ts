@@ -1,7 +1,7 @@
 // src/tests/apps/admin/AdminCustomerDetailPurge.spec.ts
 
-import { AxiosError } from 'axios';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import { AxiosError } from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
@@ -31,6 +31,8 @@ const pushMock = vi.fn();
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: pushMock }),
   useRoute: () => ({ params: { id: 'ur_alice' } }),
+  isNavigationFailure: () => false,
+  NavigationFailureType: {},
 }));
 
 const showMock = vi.fn();
@@ -71,11 +73,11 @@ vi.mock('@headlessui/vue', () => ({
   TransitionChild: { name: 'TransitionChild', template: '<div><slot /></div>', props: ['as'] },
 }));
 
-import AdminCustomerDetail from '@/apps/admin/views/AdminCustomerDetail.vue';
 import {
   __resetColonelElevationState,
   useColonelElevation,
 } from '@/apps/admin/composables/useColonelElevation';
+import AdminCustomerDetail from '@/apps/admin/views/AdminCustomerDetail.vue';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
@@ -125,6 +127,37 @@ function detailPayload(overrides: { verified?: boolean } = {}) {
 
 function mutationAck() {
   return { shrimp: '', record: { user_id: 'objid', extid: PUBLIC_ID }, details: { message: 'ok' } };
+}
+
+function purgeLifecycleAck(status: 'success' | 'refused' | 'partial') {
+  const lifecycle = {
+    status,
+    deleted: status === 'success',
+    extid: PUBLIC_ID,
+    custid: 'objid',
+    blockers:
+      status === 'success'
+        ? []
+        : [
+            {
+              code: 'has_domains',
+              org_id: 'on_blocked',
+              remediation: 'Remove or transfer every custom domain, then retry.',
+            },
+          ],
+    actions:
+      status === 'partial'
+        ? [{ type: 'remove_membership', org_id: 'on_shared', status: 'success' }]
+        : [],
+    planned_actions: [{ type: 'delete_organization', org_id: 'on_blocked' }],
+    stage: status === 'partial' ? 'post_cleanup_revalidation' : 'preflight',
+    completed_stages: status === 'partial' ? ['remove_membership'] : [],
+  };
+  return {
+    shrimp: '',
+    record: { user_id: 'objid', extid: PUBLIC_ID, deleted: status === 'success' },
+    details: { message: `purge ${status}`, ...lifecycle },
+  };
 }
 
 const mountView = () =>
@@ -190,6 +223,19 @@ describe('AdminCustomerDetail — purge gate (typed email) + verification state'
     expect(pushMock).toHaveBeenCalledWith({ name: 'AdminCustomers' });
   });
 
+  it('accepts the lifecycle success payload returned in details', async () => {
+    await mountLoaded();
+    mockApi.delete.mockResolvedValue({ data: purgeLifecycleAck('success') });
+
+    await wrapper.find('[data-testid="purge-button"]').trigger('click');
+    await dialogInput(wrapper).setValue(EMAIL);
+    await wrapper.find('form').trigger('submit');
+    await flushPromises();
+
+    expect(showMock).toHaveBeenCalledWith('web.admin.customers.actions.purge.success', 'success');
+    expect(pushMock).toHaveBeenCalledWith({ name: 'AdminCustomers' });
+  });
+
   it('keeps a failed purge in the dialog: no navigation, no toast', async () => {
     await mountLoaded();
     mockApi.delete.mockRejectedValue(axiosError(422, { error: 'Cannot purge anonymous user' }));
@@ -202,6 +248,64 @@ describe('AdminCustomerDetail — purge gate (typed email) + verification state'
     expect(wrapper.find('[data-testid="admin-confirm-dialog"]').text()).toContain(
       'Cannot purge anonymous user'
     );
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(showMock).not.toHaveBeenCalled();
+  });
+
+  it('treats a 2xx refused lifecycle result as failure and renders remediation', async () => {
+    await mountLoaded();
+    mockApi.delete.mockResolvedValue({ data: purgeLifecycleAck('refused') });
+
+    await wrapper.find('[data-testid="purge-button"]').trigger('click');
+    await dialogInput(wrapper).setValue(EMAIL);
+    await wrapper.find('form').trigger('submit');
+    await flushPromises();
+
+    const dialog = wrapper.find('[data-testid="admin-confirm-dialog"]').text();
+    expect(dialog).toContain('has domains');
+    expect(dialog).toContain('on_blocked');
+    expect(dialog).toContain('Remove or transfer every custom domain');
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(showMock).not.toHaveBeenCalled();
+  });
+
+  it('never reports or navigates on a partial lifecycle result', async () => {
+    await mountLoaded();
+    mockApi.delete.mockResolvedValue({ data: purgeLifecycleAck('partial') });
+
+    await wrapper.find('[data-testid="purge-button"]').trigger('click');
+    await dialogInput(wrapper).setValue(EMAIL);
+    await wrapper.find('form').trigger('submit');
+    await flushPromises();
+
+    const dialog = wrapper.find('[data-testid="admin-confirm-dialog"]').text();
+    expect(dialog).toContain('post_cleanup_revalidation');
+    expect(dialog).toContain('remove membership');
+    expect(dialog).toContain('remove_membership');
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(showMock).not.toHaveBeenCalled();
+  });
+
+  it('renders lifecycle blockers supplied in a structured non-2xx refusal', async () => {
+    await mountLoaded();
+    const refused = purgeLifecycleAck('refused').details;
+    mockApi.delete.mockRejectedValue(
+      axiosError(422, {
+        error: 'Purge refused. Resolve the reported blockers and retry.',
+        error_type: 'conflict',
+        details: refused,
+      })
+    );
+
+    await wrapper.find('[data-testid="purge-button"]').trigger('click');
+    await dialogInput(wrapper).setValue(EMAIL);
+    await wrapper.find('form').trigger('submit');
+    await flushPromises();
+
+    const dialog = wrapper.find('[data-testid="admin-confirm-dialog"]').text();
+    expect(dialog).toContain('has domains');
+    expect(dialog).toContain('on_blocked');
+    expect(dialog).toContain('Remove or transfer every custom domain');
     expect(pushMock).not.toHaveBeenCalled();
     expect(showMock).not.toHaveBeenCalled();
   });
@@ -290,7 +394,10 @@ describe('AdminCustomerDetail — purge gate (typed email) + verification state'
     it('opens the prompt and does NOT retry until the operator acts', async () => {
       await mountLoaded();
       mockApi.delete.mockRejectedValue(
-        axiosError(403, { error: 'Step-up authentication required', error_code: 'elevation_required' })
+        axiosError(403, {
+          error: 'Step-up authentication required',
+          error_code: 'elevation_required',
+        })
       );
 
       await submitPurge();
@@ -313,7 +420,10 @@ describe('AdminCustomerDetail — purge gate (typed email) + verification state'
     it('surfaces the original error and retries nothing when the operator cancels', async () => {
       await mountLoaded();
       mockApi.delete.mockRejectedValue(
-        axiosError(403, { error: 'Step-up authentication required', error_code: 'elevation_required' })
+        axiosError(403, {
+          error: 'Step-up authentication required',
+          error_code: 'elevation_required',
+        })
       );
 
       await submitPurge();

@@ -236,7 +236,9 @@ export const colonelOrganizationDetailRecordSchema = z.object({
   stripe_customer_id: z.string().nullable(),
   stripe_subscription_id: z.string().nullable(),
   subscription_status: z.string().nullable(),
-  subscription_period_end: z.string().nullable(),
+  // Unix epoch seconds. New records are JSON numbers; records written by
+  // earlier versions still carry a string. Both must validate.
+  subscription_period_end: z.union([z.number(), z.string()]).nullable(),
   billing_email_present: z.boolean(),
   sync_status: z.string(),
   sync_status_reason: z.string().nullable(),
@@ -284,7 +286,7 @@ export type ColonelOrganizationDetailResponse = z.infer<
 export const colonelReconcileSnapshotSchema = z.object({
   planid: z.string().nullable(),
   subscription_status: z.string().nullable(),
-  subscription_period_end: z.string().nullable(),
+  subscription_period_end: z.union([z.number(), z.string()]).nullable(),
   materialized_count: z.number(),
 });
 

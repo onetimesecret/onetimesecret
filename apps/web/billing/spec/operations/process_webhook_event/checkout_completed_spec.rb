@@ -126,7 +126,7 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
       before do
         # Archived own workspace: no owned, live org resolves — and it still
         # holds the contact_email index reservation, which step 4's creation
-        # has to survive (CreateDefaultWorkspace also refuses here, because
+        # has to survive (EnsureDefaultWorkspace also refuses here, because
         # the customer does have an organization).
         own = create_test_organization(customer: customer, default: true)
         own.archive!('spec fixture: superseded by tenant org via SSO')
@@ -228,7 +228,7 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
     # Organization.create! reserves contact_email with HSETNX *before* the save
     # that takes the Stripe claim, so the surface that loses this race against
     # ProcessCheckoutSession sees Onetime::OrganizationExists, never
-    # Familia::RecordExistsError — CreateDefaultWorkspace re-raises it once the
+    # Familia::RecordExistsError — EnsureDefaultWorkspace re-raises it once the
     # reserving org has members. Only RecordExistsError was rescued here, so
     # the webhook 500'd. Stripe's retry recovered the subscription, making this
     # noise rather than data loss, but every racing checkout raised an alert.
@@ -239,12 +239,12 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
     # ========================================================================
     context 'when a concurrent surface wins the contact_email reservation' do
       def lose_reservation_to(build_winner)
-        losing_call = instance_double(Auth::Operations::CreateDefaultWorkspace)
+        losing_call = instance_double(Auth::Operations::EnsureDefaultWorkspace)
         allow(losing_call).to receive(:call) do
           build_winner.call
           raise Onetime::OrganizationExists, 'Organization exists for that email address'
         end
-        allow(Auth::Operations::CreateDefaultWorkspace).to receive(:new).and_return(losing_call)
+        allow(Auth::Operations::EnsureDefaultWorkspace).to receive(:new).and_return(losing_call)
       end
 
       context 'and the winner holds this checkout stripe_customer_id' do
@@ -309,7 +309,7 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
 
     # The reservation is global, so a hit on it is not proof of ownership:
     # adopting on the email alone would land a paid subscription on an
-    # unrelated organization. This path runs the REAL CreateDefaultWorkspace,
+    # unrelated organization. This path runs the REAL EnsureDefaultWorkspace,
     # which refuses the adoption itself (the holder has members) and re-raises.
     context 'when another customer organization holds the contact_email reservation' do
       let(:holder) do
@@ -322,21 +322,20 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
         org
       end
 
-      it 'creates the customer their own workspace rather than adopting it' do
-        expect(operation.call).to eq(:success)
+      it 'fails closed rather than adopting it or creating a second workspace' do
+        expect { operation.call }
+          .to raise_error(Auth::Operations::WorkspaceCollision::ProvisioningCollision) do |error|
+            expect(error.collision.classification).to eq(:live_members)
+          end
 
-        target = customer.organization_instances.to_a.find { |org| org.owner?(customer) }
-        created_organizations << target if target
-
-        expect(target).not_to be_nil
-        expect(target.stripe_subscription_id).to eq(stripe_subscription_id)
+        expect(customer.organization_instances.to_a).to be_empty
+        customer.refresh!
+        expect(customer.provisioning_failed?).to be(true)
       end
 
       it 'leaves the reservation holder untouched' do
-        expect { operation.call }.not_to raise_error
-
-        target = customer.organization_instances.to_a.find { |org| org.owner?(customer) }
-        created_organizations << target if target
+        expect { operation.call }
+          .to raise_error(Auth::Operations::WorkspaceCollision::ProvisioningCollision)
 
         foreign_org.refresh!
         expect(foreign_org.stripe_subscription_id).to be_nil

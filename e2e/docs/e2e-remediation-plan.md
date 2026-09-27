@@ -81,7 +81,7 @@
        Gmail-alias flows) + ~19 data-shape guards (`orgs.length < 2` etc.).
    - Triage rule per the plan: (a) **guaranteed precondition → run it.** Key
      fact: every customer gets a default workspace
-     (`apps/web/auth/operations/create_default_workspace.rb`, created lazily
+     (`apps/web/auth/operations/ensure_default_workspace.rb`, created lazily
      via `lib/onetime/logic/organization_context.rb`), so the 66 `!org`
      skips guard a condition the `full` project already guarantees — convert
      them to real assertions. (b) **optional feature → tagged project or

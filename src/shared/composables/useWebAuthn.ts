@@ -6,6 +6,7 @@ import {
   type OtpVerifySuccess,
   type WebAuthnCredential,
 } from '@/schemas/api/auth/responses/auth';
+import { ensureAuthenticated } from '@/shared/composables/authCompletion';
 import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
@@ -275,7 +276,18 @@ export function useWebAuthn() {
       // the same destination precedence as a password login (billing intent >
       // validated ?redirect > '/'). The MFA route below deliberately does not —
       // MfaChallenge.vue owns the redirect once the second factor lands.
-      await authStore.setAuthenticated(true);
+      //
+      // ADR-046#auth-completion-caller-contract: gate navigation on the RefreshOutcome. If the
+      // follow-up snapshot did not land `authenticated`, surface a retryable error
+      // rather than pushing to a protected route. Never re-POST the
+      // webauthn-login assertion — it is single-use.
+      const outcome = await ensureAuthenticated(authStore, 'webauthn-login');
+      if (outcome === 'superseded') return false; // Newer coordinator run owns this.
+      if (outcome !== 'applied') {
+        // TODO(#4501): confirm error UX with design.
+        error.value = t('web.auth.webauthn.authFailed');
+        return false;
+      }
       await navigateAfterAuth();
       return true;
     } catch (err: unknown) {

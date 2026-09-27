@@ -40,9 +40,12 @@ OT.boot! :test, false
 @env_auth = {
   'rack.session' => {
     'authenticated' => true,
+    'authenticated_at' => Familia.now.to_i,
     'external_id' => @test_customer.extid,
-    'email' => @test_customer.email
+    'email' => @test_customer.email,
+    Onetime::SessionSurface::KEY => { 'kind' => 'canonical' }
   },
+  'onetime.domain_strategy' => :canonical,
   'REMOTE_ADDR' => '127.0.0.1',
   'HTTP_USER_AGENT' => 'Test/1.0'
 }
@@ -148,9 +151,12 @@ OT.boot! :test, false
 @env_session_and_header = {
   'rack.session' => {
     'authenticated' => true,
+    'authenticated_at' => Familia.now.to_i,
     'external_id' => @test_customer.extid,
-    'email' => @test_customer.email
+    'email' => @test_customer.email,
+    Onetime::SessionSurface::KEY => { 'kind' => 'canonical' }
   },
+  'onetime.domain_strategy' => :canonical,
   'REMOTE_ADDR' => '127.0.0.1',
   'HTTP_USER_AGENT' => 'Test/1.0',
   'HTTP_AUTHORIZATION' => 'Basic eDp5'

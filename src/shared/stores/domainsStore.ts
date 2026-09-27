@@ -1,6 +1,5 @@
 // src/shared/stores/domainsStore.ts
 
-import { PiniaPluginOptions } from '@/plugins/pinia';
 import {
   UpdateDomainBrandRequest,
   type PutHomepageConfigRequest,
@@ -67,7 +66,7 @@ export type DomainsStore = {
 
   // Getters
   recordCount: number;
-  initialized: boolean;
+  isLoaded: boolean;
 
   // Actions
   addDomain: (
@@ -129,19 +128,18 @@ export const useDomainsStore = defineStore('domains', () => {
   const count = ref<number | null>(null);
 
   // Getters
-  const initialized = computed(() => _initialized.value);
+  // Whether the list has been fetched. Not "init() has run": the auto-init
+  // plugin runs init() at store creation, before anything is loaded.
+  const isLoaded = computed(() => records.value !== null);
   const recordCount = () => count.value ?? 0;
   const domains = computed(() => records.value ?? []);
 
-  interface StoreOptions extends PiniaPluginOptions {}
 
-  function init(options?: StoreOptions) {
-    if (_initialized.value) return { initialized };
-
-    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
+  function init() {
+    if (_initialized.value) return { isLoaded };
 
     _initialized.value = true;
-    return { initialized };
+    return { isLoaded };
   }
 
   /**
@@ -324,12 +322,11 @@ export const useDomainsStore = defineStore('domains', () => {
     const normalizedOrgId = orgId ?? null;
     const orgChanged = normalizedOrgId !== _currentOrgId.value;
 
-    if (!force && _initialized.value && !orgChanged) return;
+    if (!force && isLoaded.value && !orgChanged) return;
 
     try {
       await fetchList(orgId);
       _currentOrgId.value = normalizedOrgId;
-      _initialized.value = true;
     } catch (error) {
       loggingService.warn(`[domainsStore] Failed to refresh domain records: ${error}`);
     }
@@ -579,8 +576,11 @@ export const useDomainsStore = defineStore('domains', () => {
    * SECURITY: Also clears the org context to ensure fresh fetch on next access.
    */
   function $reset() {
-    records.value = [];
-    _initialized.value = false;
+    // null, not []: an empty array reads as "loaded, no domains" and the next
+    // refreshRecords() would skip its fetch.
+    records.value = null;
+    details.value = null;
+    count.value = null;
     _currentOrgId.value = null;
   }
 
@@ -595,7 +595,7 @@ export const useDomainsStore = defineStore('domains', () => {
 
     // Getters
     recordCount,
-    initialized,
+    isLoaded,
     domains,
 
     // Actions

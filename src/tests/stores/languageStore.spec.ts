@@ -13,8 +13,9 @@ describe('Language Store', () => {
   let bootstrapStore: ReturnType<typeof useBootstrapStore>;
 
   beforeEach(async () => {
-    // Setup testing environment with all needed components
-    const setup = await setupTestPinia();
+    // This spec drives init() itself (own options and timing), so the
+    // auto-init plugin is off; see SetupTestPiniaOptions.autoInit.
+    const setup = await setupTestPinia({ autoInit: false });
     axiosMock = setup.axiosMock;
 
     vi.useFakeTimers();

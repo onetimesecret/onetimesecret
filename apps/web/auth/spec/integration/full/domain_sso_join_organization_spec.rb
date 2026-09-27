@@ -259,14 +259,14 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
   # Regression: tenant SSO must NOT create a default workspace (issue #3326)
   # ==========================================================================
   #
-  # Before the fix, after_omniauth_create_account called CreateDefaultWorkspace
+  # Before the fix, after_omniauth_create_account called EnsureDefaultWorkspace
   # BEFORE JoinDomainOrganization, resulting in tenant SSO users getting BOTH
   # a default workspace AND membership in the tenant org. This violated the
   # principle that tenant SSO users should only belong to the tenant org.
   #
   # The fix made the paths mutually exclusive:
   #   - if domain_id present  → JoinDomainOrganization only (tenant SSO)
-  #   - if domain_id absent   → CreateDefaultWorkspace only (canonical SSO)
+  #   - if domain_id absent   → EnsureDefaultWorkspace only (canonical SSO)
   #
   describe 'tenant SSO does not create default workspace (issue #3326)', :shared_db_state do
     # Fresh customer with no organizations
@@ -313,13 +313,13 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
 
     it 'canonical SSO user gets default workspace, not tenant org membership' do
       # Simulate canonical SSO path: no domain_id (SSO on main domain)
-      # CreateDefaultWorkspace should run
+      # EnsureDefaultWorkspace should run
 
       # Precondition: user has no organizations
       expect(fresh_sso_customer.organization_instances.count).to eq(0)
 
       # This is what happens when domain_id is nil in the hook
-      Auth::Operations::CreateDefaultWorkspace.new(customer: fresh_sso_customer).call
+      Auth::Operations::EnsureDefaultWorkspace.new(customer: fresh_sso_customer).call
 
       orgs = fresh_sso_customer.organization_instances.to_a
 
@@ -337,11 +337,11 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
     it 'fallback: creates default workspace when JoinDomainOrganization fails silently' do
       # Mirrors the safety-net branch added to after_omniauth_create_account:
       #   if customer.organization_instances.to_a.empty?
-      #     CreateDefaultWorkspace.new(customer: customer).call
+      #     EnsureDefaultWorkspace.new(customer: customer).call
       #   end
       #
       # A bad domain_id causes JoinDomainOrganization to return {joined: false}
-      # without raising (RecordNotFound is caught internally). The hook wraps
+      # without raising (find_by_identifier returns nil, never raises). The hook wraps
       # the call in safe_execute, so either way the customer ends up with zero
       # orgs -- triggering the fallback.
 
@@ -370,7 +370,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
 
       # Step 2: Fallback triggers because org count is zero
       if fresh_sso_customer.organization_instances.to_a.empty?
-        Auth::Operations::CreateDefaultWorkspace.new(customer: fresh_sso_customer).call
+        Auth::Operations::EnsureDefaultWorkspace.new(customer: fresh_sso_customer).call
       end
 
       # Customer should now have exactly 1 org (the fallback workspace)
@@ -393,12 +393,12 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
         domain_id: tenant_custom_domain.identifier,
       ).call
 
-      # Step 2: CreateDefaultWorkspace should now be a no-op
+      # Step 2: EnsureDefaultWorkspace should now be a no-op
       # because workspace_already_exists? returns true
-      result = Auth::Operations::CreateDefaultWorkspace.new(customer: fresh_sso_customer).call
+      result = Auth::Operations::EnsureDefaultWorkspace.new(customer: fresh_sso_customer).call
 
       expect(result).to be_nil,
-        'CreateDefaultWorkspace should return nil when user already has an org'
+        'EnsureDefaultWorkspace should return nil when user already has an org'
 
       orgs = fresh_sso_customer.organization_instances.to_a
       expect(orgs.count).to eq(1),
@@ -433,7 +433,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
 
     # Create a personal default workspace for the legacy customer
     let!(:personal_workspace) do
-      result = Auth::Operations::CreateDefaultWorkspace.new(customer: legacy_customer).call
+      result = Auth::Operations::EnsureDefaultWorkspace.new(customer: legacy_customer).call
       result[:organization]
     end
 

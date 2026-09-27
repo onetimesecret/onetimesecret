@@ -76,6 +76,9 @@ export const paginationSchema = z.object({
   /** True when a role/search scan hit its request-path cap, so total_count
    *  understates the population — more rows exist beyond what was scanned. */
   capped: z.boolean().optional(),
+  /** Index entries on THIS page whose backing object no longer loads and were
+   *  pruned; the rendered row list can therefore be short of `per_page`. */
+  stale_count: z.number().optional(),
   role_filter: z.string().nullable().optional(),
   /** Server echo of the email search term (users list). */
   search: z.string().nullable().optional(),
@@ -464,7 +467,9 @@ export const colonelOrganizationSchema = z.object({
   stripe_customer_id: z.string().nullable(),
   stripe_subscription_id: z.string().nullable(),
   subscription_status: z.string().nullable(),
-  subscription_period_end: z.string().nullable(),
+  // Unix epoch seconds. New records are JSON numbers; legacy records may
+  // still carry a string.
+  subscription_period_end: z.union([z.number(), z.string()]).nullable(),
   billing_email: z.string().nullable(),
   // Sync health detection
   sync_status: z.enum(['synced', 'potentially_stale', 'unknown']),
@@ -509,7 +514,7 @@ export const investigateLocalStateSchema = z.object({
   stripe_customer_id: z.string().nullable(),
   stripe_subscription_id: z.string().nullable(),
   subscription_status: z.string().nullable(),
-  subscription_period_end: z.string().nullable(),
+  subscription_period_end: z.union([z.number(), z.string()]).nullable(),
 });
 
 /**
@@ -697,8 +702,8 @@ export const colonelUserBillingSchema = z.object({
       display_name: z.string().nullable(),
       planid: z.string().nullable(),
       subscription_status: z.string().nullable(),
-      /** Unix timestamp stored as a string on Organization; may be empty. */
-      subscription_period_end: z.string().nullable(),
+      /** Unix epoch seconds; new records are numbers, legacy records may hold a string. */
+      subscription_period_end: z.union([z.number(), z.string()]).nullable(),
     })
     .nullable(),
   stripe: colonelUserBillingStripeSchema,
@@ -781,6 +786,60 @@ export const colonelUserMutationDetailsSchema = z.object({
   sessions_revoked: z.number().optional(),
   message: z.string(),
 });
+
+/**
+ * One structured customer-purge blocker or cleanup action.
+ *
+ * The lifecycle operation intentionally returns machine-readable hashes whose
+ * detail varies by blocker/action code (organization id, blocked stage,
+ * remediation, operation status, and so on). Keep the known routing fields
+ * typed while preserving additional operator-facing details supplied by newer
+ * backends.
+ */
+export const colonelUserPurgeLifecycleItemSchema = z
+  .object({
+    code: z.string().optional(),
+    type: z.string().optional(),
+    org_id: z.string().optional(),
+    role: z.string().optional(),
+    status: z.string().optional(),
+    message: z.string().optional(),
+    remediation: z.union([z.string(), z.array(z.string())]).optional(),
+    blocked_stage: z.string().optional(),
+    operation_status: z.string().optional(),
+  })
+  .passthrough();
+
+const colonelUserPurgeLifecycleFields = {
+  status: z.string().optional(),
+  deleted: z.boolean().optional(),
+  extid: z.string().optional(),
+  custid: z.string().optional(),
+  blockers: z.array(colonelUserPurgeLifecycleItemSchema).optional(),
+  actions: z.array(colonelUserPurgeLifecycleItemSchema).optional(),
+  planned_actions: z.array(colonelUserPurgeLifecycleItemSchema).optional(),
+  stage: z.string().nullable().optional(),
+  completed_stages: z.array(z.string()).optional(),
+};
+
+/** Standalone lifecycle payload used inside structured purge error details. */
+export const colonelUserPurgeLifecycleResultSchema = z
+  .object(colonelUserPurgeLifecycleFields)
+  .passthrough();
+
+/**
+ * Purge has a richer result than the other customer mutations. Lifecycle fields
+ * are accepted in both `record` (the preferred resource/result location) and
+ * `details` during API-adapter rollout. The UI reads `record` first and falls
+ * back to `details`, while the legacy `{ user_id, extid, deleted? }` success ack
+ * remains valid for version-skew compatibility.
+ */
+export const colonelUserPurgeRecordSchema = colonelUserMutationRecordSchema.extend(
+  colonelUserPurgeLifecycleFields
+);
+export const colonelUserPurgeDetailsSchema = colonelUserMutationDetailsSchema.extend(
+  colonelUserPurgeLifecycleFields
+);
 
 /**
  * Checkout-link ack record (POST /api/colonel/users/:user_id/checkout-link).
@@ -949,6 +1008,12 @@ export const colonelUserMutationResponseSchema = createApiResponseSchema(
   colonelUserMutationRecordSchema,
   colonelUserMutationDetailsSchema
 );
+
+// DELETE /api/colonel/users/:user_id → PurgeUser lifecycle result
+export const colonelUserPurgeResponseSchema = createApiResponseSchema(
+  colonelUserPurgeRecordSchema,
+  colonelUserPurgeDetailsSchema
+);
 export const colonelCheckoutLinkResponseSchema = createApiResponseSchema(
   colonelCheckoutLinkRecordSchema,
   colonelCheckoutLinkDetailsSchema
@@ -971,6 +1036,9 @@ export type QueueMetricsResponse = z.infer<typeof queueMetricsResponseSchema>;
 export type SystemSettingsResponse = z.infer<typeof systemSettingsResponseSchema>;
 export type ColonelUserDetailResponse = z.infer<typeof colonelUserDetailResponseSchema>;
 export type ColonelUserMutationResponse = z.infer<typeof colonelUserMutationResponseSchema>;
+export type ColonelUserPurgeResponse = z.infer<typeof colonelUserPurgeResponseSchema>;
+export type ColonelUserPurgeLifecycleResult = z.infer<typeof colonelUserPurgeLifecycleResultSchema>;
+export type ColonelUserPurgeLifecycleItem = z.infer<typeof colonelUserPurgeLifecycleItemSchema>;
 export type ColonelCheckoutLinkRecord = z.infer<typeof colonelCheckoutLinkRecordSchema>;
 export type ColonelCheckoutLinkDetails = z.infer<typeof colonelCheckoutLinkDetailsSchema>;
 export type ColonelCheckoutLinkResponse = z.infer<typeof colonelCheckoutLinkResponseSchema>;

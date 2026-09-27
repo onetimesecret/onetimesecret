@@ -361,6 +361,45 @@ RSpec.describe Onetime::CLI::BillingWebhooksReplayCommand, type: :billing do
     end
   end
 
+  describe '#replay_single_event' do
+    let(:event) do
+      create_test_event(
+        event_id: event_id_1,
+        event_type: 'customer.subscription.updated',
+        status: 'failed',
+      )
+    end
+    let(:operation_instance) { instance_double(Billing::Operations::ProcessWebhookEvent) }
+
+    after do
+      event.destroy! rescue nil
+    end
+
+    it 'persists the replay semantic outcome' do
+      allow(Billing::Operations::ProcessWebhookEvent).to receive(:new).and_return(operation_instance)
+      allow(operation_instance).to receive(:call).and_return(:federated_only)
+
+      result = command.send(:replay_single_event, event, force: true, skip_notifications: true)
+
+      reloaded = Billing::StripeWebhookEvent.find_by_identifier(event_id_1)
+      expect(result).to eq(:success)
+      expect(reloaded.processing_status).to eq('success')
+      expect(reloaded.processing_outcome).to eq('federated_only')
+    end
+
+    it 'keeps the outcome null when replay processing raises' do
+      allow(Billing::Operations::ProcessWebhookEvent).to receive(:new).and_return(operation_instance)
+      allow(operation_instance).to receive(:call).and_raise(StandardError, 'replay failed')
+
+      result = command.send(:replay_single_event, event, force: true, skip_notifications: true)
+
+      reloaded = Billing::StripeWebhookEvent.find_by_identifier(event_id_1)
+      expect(result).to eq(:failed)
+      expect(reloaded.processing_status).to eq('retrying')
+      expect(reloaded.processing_outcome).to be_nil
+    end
+  end
+
   describe 'dry run mode' do
     before do
       create_test_event(

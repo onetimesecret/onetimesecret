@@ -24,7 +24,7 @@
 
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { mockCustomer } from '@/tests/fixtures/bootstrap.fixture';
+import { applyBootstrap, authenticatedBootstrap } from '@/tests/fixtures/bootstrap.fixture';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -41,10 +41,8 @@ describe('useAuth logout flow — no brand flash', () => {
     authStore = useAuthStore();
 
     // Hydrate with brand-specific state that would visibly flash if reset
-    bootstrapStore.update({
-      authenticated: true,
-      cust: mockCustomer,
-      email: mockCustomer.email,
+    // Authentication is established by a complete snapshot only (#4458).
+    applyBootstrap(bootstrapStore, authenticatedBootstrap, {
       domain_logo: 'https://acme.example.com/logo.png',
       domain_branding: {
         primary_color: '#ff6600',
@@ -197,17 +195,16 @@ describe('useAuth logout flow — no brand flash', () => {
 
     it('logoutMinimal still clears cookies and session storage', async () => {
       document.cookie = 'locale=en; path=/';
-      sessionStorage.setItem('ots_auth_state', 'true');
+      sessionStorage.setItem('some_session_key', 'true');
 
       await authStore.logoutMinimal();
 
       expect(document.cookie).not.toContain('locale=en');
-      expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
+      expect(sessionStorage.getItem('some_session_key')).toBeNull();
     });
 
     it('logoutMinimal stops the auth check timer', async () => {
       vi.useFakeTimers();
-      authStore.$patch({ isAuthenticated: true });
       authStore.$scheduleNextCheck();
       expect(authStore.authCheckTimer).not.toBeNull();
 
@@ -237,12 +234,13 @@ describe('useAuth logout flow — no brand flash', () => {
       expect(bootstrapStore.domain_branding).toBeNull();
     });
 
-    it('full logout resets authenticated to null', async () => {
+    it('full logout ends in an explicit anonymous', async () => {
       expect(authStore.isAuthenticated).toBe(true);
 
       await authStore.logout();
 
-      expect(authStore.isAuthenticated).toBeNull();
+      expect(authStore.isAuthenticated).toBe(false);
+      expect(authStore.authStatus).toBe('anonymous');
     });
   });
 });

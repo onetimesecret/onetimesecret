@@ -299,6 +299,7 @@ module Billing
             email_hash: email_hash,
             subscription: subscription,
             region: region,
+            source_stripe_event_id: @event&.id,
           )
         end
       end

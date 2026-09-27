@@ -38,7 +38,7 @@ The purpose prefix (`ACTOR_INFO` in the HMAC message) namespaces but does not en
 
 ## Implementation requirements (regression traps)
 
-1. **Scrub all extid aliases at the capture boundary.** `ErrorHandler.capture_error` currently removes only `email`/`cust`/`customer`; hooks pass extids raw into Sentry context today under multiple keys — `extid:` (account hooks, e.g. around `create_default_workspace`), `external_id:`, and extid-valued `customer_id:` (e.g. `update_password`). Under B the extid is the sensitive pre-image: consume and remove **`:extid`, `:external_id`, and known extid-valued `:customer_id`** before setting context — or first standardize callers on one explicit key, then scrub that.
+1. **Scrub all extid aliases at the capture boundary.** `ErrorHandler.capture_error` currently removes only `email`/`cust`/`customer`; hooks pass extids raw into Sentry context today under multiple keys — `extid:` (account hooks, e.g. around `ensure_default_workspace`), `external_id:`, and extid-valued `customer_id:` (e.g. `update_password`). Under B the extid is the sensitive pre-image: consume and remove **`:extid`, `:external_id`, and known extid-valued `:customer_id`** before setting context — or first standardize callers on one explicit key, then scrub that.
 2. **Kill the bare-string candidate API.** `diagnostics_actor` treats any string as email; leaving it would let existing `email:` callers silently hash emails under the new key. Require an explicit customer object or explicit `extid:`; reject generic string fallback.
 
 ## Coverage (review correction #7)

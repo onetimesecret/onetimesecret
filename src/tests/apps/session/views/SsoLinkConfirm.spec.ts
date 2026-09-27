@@ -37,16 +37,27 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 }));
 
 // Auth store: controllable auth state + spyable setAuthenticated.
-const mockSetAuthenticated = vi.fn();
-const mockAuthStore = { isFullyAuthenticated: false, setAuthenticated: mockSetAuthenticated };
+// ADR-046#auth-completion-caller-contract: ensureAuthenticated / ensureMfaPending gate navigation
+// on the RefreshOutcome AND on authStore.authStatus matching the destination. The
+// mock returns 'applied' from both entry points and carries an authStatus
+// the sibling `describe` blocks flip to 'mfa_pending' for MFA flows.
+const mockSetAuthenticated = vi.fn(async () => 'applied');
+// The MFA hand-off asks the refresh coordinator for the server's statement
+// (#4458); it patches nothing locally.
+const mockRefresh = vi.fn(async () => 'applied');
+const mockAuthStore: {
+  isFullyAuthenticated: boolean;
+  authStatus: 'authenticated' | 'mfa_pending' | 'anonymous' | 'checking' | 'unavailable';
+  setAuthenticated: typeof mockSetAuthenticated;
+  refresh: typeof mockRefresh;
+} = {
+  isFullyAuthenticated: false,
+  authStatus: 'authenticated',
+  setAuthenticated: mockSetAuthenticated,
+  refresh: mockRefresh,
+};
 vi.mock('@/shared/stores/authStore', () => ({
   useAuthStore: () => mockAuthStore,
-}));
-
-// Bootstrap store: MFA hand-off marks awaiting_mfa via update() (mirrors Login).
-const mockBootstrapUpdate = vi.fn();
-vi.mock('@/shared/stores/bootstrapStore', () => ({
-  useBootstrapStore: () => ({ update: mockBootstrapUpdate }),
 }));
 
 // Composable: controllable reactive state + spies.
@@ -119,6 +130,12 @@ describe('SsoLinkConfirm', () => {
     mockState.fetchPendingLink.mockResolvedValue(makeLink());
     mockState.confirmLink.mockResolvedValue({ success: 'ok' });
     mockAuthStore.isFullyAuthenticated = false;
+    // ADR-046#auth-completion-caller-contract: default the coordinator verdict to authenticated.
+    // MFA describe blocks below flip this to 'mfa_pending' so ensureMfaPending
+    // sees the destination it gates on.
+    mockAuthStore.authStatus = 'authenticated';
+    mockSetAuthenticated.mockResolvedValue('applied');
+    mockRefresh.mockResolvedValue('applied');
   });
 
   afterEach(() => {
@@ -280,6 +297,9 @@ describe('SsoLinkConfirm', () => {
   describe('Confirm success — MFA required', () => {
     beforeEach(() => {
       mockState.pendingLink.value = makeLink();
+      // ADR-046#auth-completion-caller-contract: ensureMfaPending only navigates when authStatus is
+      // 'mfa_pending' after the refresh coordinator lands.
+      mockAuthStore.authStatus = 'mfa_pending';
     });
 
     it('does NOT mark fully authenticated and hands off to /mfa-verify', async () => {
@@ -291,10 +311,11 @@ describe('SsoLinkConfirm', () => {
       await flushPromises();
 
       expect(mockSetAuthenticated).not.toHaveBeenCalled();
-      expect(mockBootstrapUpdate).toHaveBeenCalledWith({
-        awaiting_mfa: true,
-        authenticated: false,
-      });
+      expect(mockRefresh).toHaveBeenCalledWith({ kind: 'auth-mutation', reason: 'login' });
+      // The /mfa-verify guard admits `mfa_pending` only: ask first, then go.
+      expect(mockRefresh.mock.invocationCallOrder[0]).toBeLessThan(
+        mockPush.mock.invocationCallOrder[0]
+      );
       expect(mockPush).toHaveBeenCalledWith({ path: '/mfa-verify', query: undefined });
     });
 

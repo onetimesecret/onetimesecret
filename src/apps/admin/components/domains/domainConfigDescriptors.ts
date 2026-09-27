@@ -14,8 +14,13 @@ import type { EditableDomainConfigKind } from '@/schemas/api/internal/responses/
 export interface DomainConfigFieldDescriptor {
   /** Serialized field name — matches the API's writable field verbatim. */
   name: string;
-  /** Which control the modal renders. `domains` = one-domain-per-line textarea. */
+  /** Which control the modal renders. `domains` = one-entry-per-line textarea. */
   type: 'boolean' | 'select' | 'domains';
+  /**
+   * Locale key for the help text under a `domains` textarea. Defaults to the
+   * "one domain per line" hint; set it when the entries are not bare domains.
+   */
+  hintKey?: string;
   /** Select options (the server-side enum values). */
   options?: readonly string[];
   /** When true the select offers an "unset" choice that maps to null. */
@@ -40,6 +45,13 @@ export const DOMAIN_CONFIG_EDIT_FIELDS: Record<
       options: ['password', 'email_auth', 'webauthn', 'sso'],
       allowUnset: true,
       defaultValue: null,
+    },
+    {
+      name: 'related_origins',
+      type: 'domains',
+      // Entries are origins (scheme + host), not bare domains.
+      hintKey: 'web.admin.domains.configs.edit.originsHint',
+      defaultValue: [],
     },
   ],
   signup: [

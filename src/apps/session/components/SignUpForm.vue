@@ -5,6 +5,7 @@
 import LegalLink from '@/shared/components/common/LegalLink.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { Jurisdiction } from '@/schemas/shapes/config';
 import { computed, ref } from 'vue';
@@ -22,6 +23,7 @@ withDefaults(defineProps<Props>(), {
 })
 
 const route = useRoute();
+const authStore = useAuthStore();
 const bootstrapStore = useBootstrapStore();
 const { signup, isLoading, error, fieldError, clearErrors } = useAuth();
 
@@ -51,14 +53,9 @@ const handleSubmit = async () => {
   isSubmitting.value = true;
   try {
     clearErrors();
-    // Best-effort token refresh: proceed with the existing CSRF token on failure.
-    // Plain try/catch (not useAsyncHandler) because this is intentionally non-fatal —
-    // Sentry reports and user notifications would fire for a non-event.
-    try {
-      await bootstrapStore.refresh();
-    } catch (refreshError) {
-      console.warn('[SignUpForm] Bootstrap refresh failed, proceeding with current token:', refreshError);
-    }
+    // Best-effort CSRF token refresh through the refresh coordinator (#4459),
+    // which never throws: on failure we proceed with the existing token.
+    await authStore.refresh({ kind: 'ordinary', reason: 'csrf' });
     await signup(email.value, password.value, termsAgreed.value);
     // Navigation handled by useAuth composable
   } finally {

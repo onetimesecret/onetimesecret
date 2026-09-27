@@ -25,7 +25,10 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
     double('Customer', objid: 'cust-obj-1', extid: 'ur_member')
   end
 
-  before { allow(Onetime::ColonelAuditEvent).to receive(:record) }
+  before do
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record_security)
+  end
 
   context 'when an active member is removed' do
     let(:membership) do
@@ -114,6 +117,66 @@ RSpec.describe Onetime::Operations::Memberships::Remove do
 
       expect(result.status).to eq(:success)
       expect(owner_membership).to have_received(:destroy_with_index_cleanup!)
+    end
+  end
+
+  # Self-service — a user-triggered close-account cannot write to the
+  # count-capped operator trail. The nested op routes to the security trail
+  # (fail-open) instead; refusals log-only.
+  context 'when the caller is self-service' do
+    let(:membership) do
+      double('OrganizationMembership', role: 'admin', owner?: false, destroy_with_index_cleanup!: true)
+    end
+
+    before do
+      allow(Onetime::OrganizationMembership)
+        .to receive(:find_by_org_customer).with('org-obj-1', 'cust-obj-1').and_return(membership)
+    end
+
+    it 'routes a real removal to the security trail (fail-open, not the operator trail)' do
+      described_class.new(
+        org: org, customer: customer, actor: actor, self_service: true,
+      ).call
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
+        actor: actor,
+        verb: 'membership.remove',
+        target: 'ur_member',
+        result: :success,
+        detail: { org_id: 'on_org_ext' },
+      )
+      # The operator trail is off-limits on this path.
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+    end
+
+    it 'log-only refusals do not write to either trail (:last_owner)' do
+      allow(membership).to receive(:owner?).and_return(true)
+      allow(Onetime::OrganizationMembership).to receive(:active_for_org).with(org).and_return([membership])
+      allow(OT).to receive(:info)
+
+      result = described_class.new(
+        org: org, customer: customer, actor: actor, self_service: true,
+      ).call
+
+      expect(result.status).to eq(:last_owner)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record_security)
+      expect(OT).to have_received(:info).with(
+        '[Memberships::Remove] self-service removal refused',
+        hash_including(status: 'last_owner'),
+      )
+    end
+
+    it 'suppresses the AuditedFailure record on a raised teardown' do
+      allow(membership).to receive(:destroy_with_index_cleanup!)
+        .and_raise(Onetime::Problem, 'redis down')
+
+      expect do
+        described_class.new(org: org, customer: customer, actor: actor, self_service: true).call
+      end.to raise_error(Onetime::Problem, /redis down/)
+
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record_security)
     end
   end
 

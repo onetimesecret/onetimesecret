@@ -6,6 +6,7 @@
   import OtpCodeInput from '@/apps/session/components/OtpCodeInput.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { loggingService } from '@/services/logging.service';
+  import { ensureAuthenticated } from '@/shared/composables/authCompletion';
   import { useAuth } from '@/shared/composables/useAuth';
   import { useMfa } from '@/shared/composables/useMfa';
   import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
@@ -108,7 +109,17 @@
       // MFA not enabled but session has awaiting_mfa=true
       // This is an inconsistent state - clear it by completing auth
       loggingService.debug('[MfaChallenge] MFA not enabled, completing auth');
-      await authStore.setAuthenticated(true);
+      // ADR-046#auth-completion-caller-contract: gate navigation on the RefreshOutcome. If the
+      // follow-up snapshot does not land `authenticated`, do NOT push to Dashboard —
+      // the guard would bounce back. Surface via the composable's existing
+      // error ref so the panel stays retryable.
+      const outcome = await ensureAuthenticated(authStore, 'mfa-not-enabled');
+      if (outcome === 'superseded') return;
+      if (outcome !== 'applied') {
+        // TODO(#4501): confirm error UX with design.
+        error.value = 'Verification unavailable. Please try again.';
+        return;
+      }
       router.push('/');
       return;
     }
@@ -153,7 +164,20 @@
    */
   const completeChallenge = async (response?: OtpVerifySuccess | null) => {
     loggingService.debug('[MfaChallenge] Setting authenticated=true');
-    await authStore.setAuthenticated(true);
+    // ADR-046#auth-completion-caller-contract: gate navigation on the RefreshOutcome. On a failed
+    // follow-up snapshot the /mfa-verify page previously handed off to
+    // navigateAfterAuth which pushes to a protected destination; the guard
+    // would bounce back to /signin, losing the second-factor session. Retry
+    // verification once (never re-POST the OTP/recovery/webauthn), then
+    // surface a retryable error via the same error ref the panel already
+    // shows.
+    const outcome = await ensureAuthenticated(authStore, 'mfa-complete');
+    if (outcome === 'superseded') return; // Newer coordinator run owns this.
+    if (outcome !== 'applied') {
+      // TODO(#4501): confirm error UX with design.
+      error.value = 'Verification unavailable. Please try again.';
+      return;
+    }
     loggingService.debug('[MfaChallenge] After setAuthenticated - auth complete');
     await navigateAfterAuth(response ?? undefined);
   };

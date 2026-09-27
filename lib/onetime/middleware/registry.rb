@@ -36,6 +36,38 @@ require_relative 'xss_header'
 module Onetime
   module Middleware
     module Registry
+      # The one Referrer-Policy value for every response and every document.
+      #
+      # Three emitters read it, and the meta tag in
+      # apps/web/core/templates/partials/head-base.rue repeats it literally
+      # (spec/integration/simple/rhales_migration_spec.rb pins the two
+      # together):
+      #
+      #   1. Otto (routed HTML, JSON, static files, its own 404/500):
+      #      Onetime::Application::Base assigns it to each Otto router's
+      #      security_config.referrer_policy (otto >= 2.12, delano/otto#281).
+      #   2. Rack::Protection::ReferrerPolicy below, for every non-Otto response
+      #      (the Roda auth app). It fills only a missing header, so Otto's
+      #      value is never overwritten.
+      #   3. The <meta name="referrer"> in head-base.rue, which is what sets the
+      #      document's policy for the navigations the SPA starts.
+      #
+      # Why strict-origin (ADR-049, #4542). Secret links carry secret
+      # identifiers in the URL path, so the path and query must never reach a
+      # Referer header (2026-08-02 audit, M-3.2); strict-origin sends
+      # scheme://host[:port] only, and nothing at all on an https -> http
+      # downgrade. no-referrer is not usable here: the Fetch standard
+      # serializes the Origin header of a document-navigation POST as `null`
+      # under no-referrer, so the native form POSTs that start SSO
+      # (src/shared/utils/sso.ts submitSsoLogin) arrived with `Origin: null`
+      # and Rack::Protection::HttpOrigin refused them. The trade is
+      # origin-only disclosure: every destination, same-origin or
+      # cross-origin, learns the scheme, host, and port of the referring page
+      # (for a custom domain, the tenant hostname), never a path or query.
+      # docs/adr/adr-049-referrer-policy-strict-origin.md carries the full
+      # argument and the cited spec text.
+      REFERRER_POLICY = 'strict-origin'
+
       COMPONENTS = {
         # UTF-8 Sanitization: Ensures request parameters use valid UTF-8 encoding.
         'UTF8Sanitizer' => {
@@ -179,14 +211,14 @@ module Onetime
           warn_when_disabled: true,
         },
 
-        # Referrer Policy: Emits Referrer-Policy: no-referrer on every response.
-        # Secret links carry secret identifiers in the URL path, so ANY referrer
-        # leakage is a disclosure vector (2026-08-02 audit, M-3.2). The meta tag
-        # in head-base.rue mirrors this value; keep the two in sync.
+        # Referrer Policy: Emits Referrer-Policy: REFERRER_POLICY on every
+        # response that does not already carry one (2026-08-02 audit, M-3.2).
+        # Otto responses arrive with the same value already set (see
+        # REFERRER_POLICY above), so in practice this covers the Roda auth app.
         'ReferrerPolicy' => {
           key: :referrer_policy,
           klass: Rack::Protection::ReferrerPolicy,
-          options: { referrer_policy: 'no-referrer' },
+          options: { referrer_policy: REFERRER_POLICY },
           warn_when_disabled: true,
         },
 

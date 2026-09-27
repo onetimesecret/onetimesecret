@@ -3,6 +3,9 @@
 # frozen_string_literal: true
 
 require 'onetime/logger_methods'
+require 'onetime/session/customer_session_evaluator'
+require 'onetime/session/auth_status'
+require 'onetime/session/snapshot_ordering'
 require 'onetime/tenant_sso_resolution'
 
 module Core
@@ -33,9 +36,8 @@ module Core
       #
       # @param req [Rack::Request] Current request object
       # @param sess [Hash, nil] Pre-resolved session (optional, extracted from strategy_result if nil)
-      # @param cust [Customer, nil] Pre-resolved customer (optional, extracted from strategy_result if nil)
       # @return [Hash] Collection of initialized variables
-      def initialize_view_vars(req, sess = nil, cust = nil)
+      def initialize_view_vars(req, sess = nil)
         # Extract the top-level keys from the YAML configuration.
         #
         # SECURITY: This implementation follows an opt-in approach for configuration filtering.
@@ -55,32 +57,62 @@ module Core
         safe_site     = build_safe_site_config(site_config)
         safe_features = build_safe_features_config(features_config)
 
-        # Extract values from session
-        #
-        # Use pre-resolved sess/cust if provided (from BaseView#initialize),
-        # otherwise extract from strategy_result or fallback values
-        if sess.nil? || cust.nil?
-          strategy_result = req.env.fetch('otto.strategy_result', nil)
-
-          if strategy_result
-            # Normal flow: Otto ran, strategy_result available
-            sess        ||= strategy_result.session
-            cust        ||= strategy_result.user # nil for anonymous
-            authenticated = strategy_result.authenticated? || false
-          else
-            # Error recovery flow: Otto didn't run, use fallback values
+        # Extract the session, then derive all customer identity fields from the
+        # shared evaluator. Strategy results remain useful for route metadata,
+        # but are not an independent identity predicate for public serialization.
+        strategy_result = req.env.fetch('otto.strategy_result', nil)
+        if sess.nil?
+          sess = strategy_result&.session
+          if sess.nil?
             begin
-              sess ||= req.session
+              sess = req.session
             rescue NoMethodError, RuntimeError
               sess = {}
             end
-            # cust stays nil for anonymous
-            authenticated = false
           end
+        end
+
+        # Identity is projected ONLY when a strategy result is present. Without
+        # one this is the error-recovery path (500-style handler entry): the
+        # evaluator MUST NOT run against the raw session, or serializers would
+        # leak custid/email onto responses that historically answered as
+        # anonymous. See Core::Views::BaseView#initialize for the twin gate.
+        #
+        # `auth_status` is the public projection of the verdict (#4462). On the
+        # error-recovery path it is a statement about the raw session only:
+        # `unavailable` when the session names a customer this response cannot
+        # vouch for, `anonymous` otherwise. It never carries identity.
+        if strategy_result
+          verdict       = Onetime::CustomerSessionEvaluator.evaluate(sess, env: req.env)
+          authenticated = verdict.authenticated?
+          cust          = verdict.customer
+          awaiting_mfa  = verdict.mfa_pending?
+          auth_status   = Onetime::SessionAuthStatus.for_verdict(verdict)
         else
-          # Using pre-resolved values from BaseView#initialize
-          strategy_result = req.env.fetch('otto.strategy_result', nil)
-          authenticated   = strategy_result&.authenticated? || false
+          authenticated = false
+          cust          = nil
+          awaiting_mfa  = false
+          auth_status   = Onetime::SessionAuthStatus.without_verdict(sess)
+        end
+
+        # Bootstrap snapshot ordering (ADR-046), allocated by
+        # Core::Middleware::SnapshotOrdering ahead of the strategy. Passed
+        # through only when the request reports a session: the pair labels a
+        # complete snapshot of an ORDERED session, and a payload that reports
+        # no session (anonymous, rejected, unavailable, error recovery) is
+        # never subjected to ordering by the client. A failed allocation
+        # ({ error: }) carries no pair and is passed as nil — the degraded
+        # hydration payload.
+        allocation        = req.env[Onetime::SnapshotOrdering::ENV_KEY]
+        reports_session   = authenticated || awaiting_mfa
+        snapshot_ordering = allocation if reports_session && allocation.is_a?(Hash) && allocation[:version]
+        if reports_session && snapshot_ordering.nil?
+          Onetime.session_logger.warn 'Bootstrap snapshot serialized without ordering',
+            {
+              module: 'InitializeViewVars',
+              error: allocation.is_a?(Hash) ? allocation[:error] : 'not_allocated',
+              request_id: req.env['HTTP_X_REQUEST_ID'],
+            }
         end
 
         # Generate masked CSRF token from the canonical Rack session, NOT the
@@ -94,22 +126,21 @@ module Core
                    Rack::Protection::AuthenticityToken.token(rack_session)
                  end
 
-        awaiting_mfa = sess&.[]('awaiting_mfa') || false
-
-        # DEBUG: Log session state
         Onetime.session_logger.debug 'Session',
           {
-            account_id: sess&.[]('account_id'),
-            external_id: sess&.[]('external_id'),
             module: 'InitializeViewVars',
+            session_class: sess.class.name,
+            has_account_id: !sess&.[]('account_id').nil?,
+            has_external_id: !sess&.[]('external_id').nil?,
             awaiting_mfa: awaiting_mfa,
             authenticated: authenticated,
+            auth_status: auth_status,
+            request_id: req.env['HTTP_X_REQUEST_ID'],
           }
 
-        # When awaiting_mfa is true, user has NOT completed authentication
-        # Do NOT load customer from Redis - they don't have access yet
-        # The frontend will show minimal MFA prompt using email from session
-        session_email = sess&.[]('email')
+        # MFA-pending and refused sessions expose state only, never customer or
+        # effective-identity fields.
+        session_email = nil
 
         # ====================================================================
         # Bridge Rodauth flash messages to Core app messages
@@ -156,7 +187,7 @@ module Core
         # Extract organization from strategy result metadata
         # This is populated by OrganizationLoader in the auth strategy
         organization = nil
-        if strategy_result&.metadata
+        if authenticated && strategy_result&.metadata
           org_context  = strategy_result.metadata[:organization_context]
           organization = org_context[:organization] if org_context
         end
@@ -265,6 +296,7 @@ module Core
 
         # Return all view variables as a hash
         {
+          'auth_status' => auth_status,
           'authenticated' => authenticated,
           'awaiting_mfa' => awaiting_mfa,
           'baseuri' => baseuri,
@@ -289,6 +321,7 @@ module Core
           'sess' => sess,
           'session_email' => session_email,
           'shrimp' => shrimp,
+          'snapshot_ordering' => snapshot_ordering,
           'site' => safe_site,
           'site_host' => site_host,
           # The request's tenant SSO answer, resolved lazily and ONCE (#4173).

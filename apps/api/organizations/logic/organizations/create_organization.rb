@@ -83,8 +83,10 @@ module OrganizationAPI::Logic
         masked_name = display_name.length > 3 ? "#{display_name[0, 3]}..." : "[#{display_name.length}chars]"
         logger.debug '[CreateOrganization] Creating organization', masked_name: masked_name, extid: cust.extid
 
-        # Acquire distributed lock for organization creation to prevent quota race conditions
-        lock_key   = "customer:#{cust.objid}:org_creation_lock"
+        # Acquire distributed lock for organization creation to prevent quota race conditions.
+        # Shared key with Auth::Operations::EnsureDefaultWorkspace so the two
+        # creators for one customer never interleave (see Customer.org_creation_lock_key).
+        lock_key   = Onetime::Customer.org_creation_lock_key(cust.objid)
         lock       = Familia::Lock.new(lock_key)
         lock_token = nil
 

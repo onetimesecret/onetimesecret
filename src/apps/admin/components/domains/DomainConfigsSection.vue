@@ -324,6 +324,7 @@
   const {
     loading: upsertLoading,
     error: upsertError,
+    lastError: upsertLastError,
     run: runUpsert,
     reset: resetUpsert,
   } = useAdminMutation(async (payload: Record<string, unknown>) => {
@@ -342,6 +343,18 @@
         '[DomainConfigsSection] upsert ack failed schema validation — response not verified'
       );
     }
+  });
+
+  /**
+   * The field a 422 form error names (`field` in the response body), so the
+   * modal can show the message against it: e.g. `related_origins` for an
+   * origin that belongs to another organization (#4421).
+   */
+  const upsertErrorField = computed<string | null>(() => {
+    const body = (upsertLastError.value as { response?: { data?: unknown } } | null)?.response
+      ?.data;
+    const field = (body as { field?: unknown } | null | undefined)?.field;
+    return typeof field === 'string' && field !== '' ? field : null;
   });
 
   function openEdit(kind: DomainConfigKind): void {
@@ -448,6 +461,7 @@
       :display-domain="displayDomain"
       :loading="upsertLoading"
       :error="upsertError"
+      :error-field="upsertErrorField"
       @submit="onEditSubmit" />
 
     <!-- Shared guarded-action dialog (typed-confirm delete, plain-confirm ensure) -->

@@ -1,8 +1,9 @@
 <!-- src/apps/admin/views/AdminBilling.vue -->
 
 <script setup lang="ts">
-
+  import PendingFederatedSubscriptionsSection from '@/apps/admin/components/billing/PendingFederatedSubscriptionsSection.vue';
   import StripeOrganizationsSection from '@/apps/admin/components/billing/StripeOrganizationsSection.vue';
+  import WebhookEventsSection from '@/apps/admin/components/billing/WebhookEventsSection.vue';
   import { DataTable, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
@@ -223,20 +224,25 @@
           testid="stat-live" />
         <StatCard
           :label="t('web.admin.billing.stats.source')"
-          :value="isLocalConfig
-            ? t('web.admin.billing.source.localConfig')
-            : t('web.admin.billing.source.stripe')"
+          :value="
+            isLocalConfig
+              ? t('web.admin.billing.source.localConfig')
+              : t('web.admin.billing.source.stripe')
+          "
           icon="signal"
           testid="stat-source" />
         <StatCard
           :label="t('web.admin.billing.stats.drift')"
-          :value="drift?.in_sync
-            ? t('web.admin.billing.inSync')
-            : t('web.admin.billing.driftCount', {
-              count: (drift?.only_in_config.length ?? 0)
-                + (drift?.only_in_live.length ?? 0)
-                + (drift?.changed.length ?? 0),
-            })"
+          :value="
+            drift?.in_sync
+              ? t('web.admin.billing.inSync')
+              : t('web.admin.billing.driftCount', {
+                  count:
+                    (drift?.only_in_config.length ?? 0) +
+                    (drift?.only_in_live.length ?? 0) +
+                    (drift?.changed.length ?? 0),
+                })
+          "
           icon="rectangle-group"
           testid="stat-drift" />
       </div>
@@ -306,5 +312,10 @@
          loading/error chain: it is an independent read, so a failing catalog
          must not hide the billed-organizations list (and vice versa). -->
     <StripeOrganizationsSection class="mt-8" />
+
+    <!-- These event inventories have their own stores and requests: a catalog or
+         Stripe-customer roster failure must not hide incident evidence. -->
+    <WebhookEventsSection class="mt-8" />
+    <PendingFederatedSubscriptionsSection class="mt-8" />
   </div>
 </template>

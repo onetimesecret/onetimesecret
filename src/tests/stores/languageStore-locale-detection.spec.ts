@@ -36,7 +36,9 @@ describe('Language Store - Browser Locale Detection (#2668)', () => {
   ];
 
   beforeEach(async () => {
-    const setup = await setupTestPinia();
+    // This spec drives init() itself (own options and timing), so the
+    // auto-init plugin is off; see SetupTestPiniaOptions.autoInit.
+    const setup = await setupTestPinia({ autoInit: false });
     axiosMock = setup.axiosMock;
 
     vi.useFakeTimers();

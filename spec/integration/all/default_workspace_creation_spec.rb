@@ -25,22 +25,22 @@ RSpec.describe 'default_workspace_creation_try', type: :integration, order: :def
       puts "SKIP: Requires Redis connection (#{e.class})"
       exit 0
     end
-    require_relative '../../../apps/web/auth/operations/create_default_workspace'
+    require_relative '../../../apps/web/auth/operations/ensure_default_workspace'
 
     # Create first test customer
     @email = generate_unique_test_email("workspace_new")
     @customer = Onetime::Customer.create!(email: @email)
 
     # Create default workspace for first customer
-    @result = Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
+    @result = Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer).call
     @org = @result[:organization]
 
     # Test idempotency
-    @result2 = Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
+    @result2 = Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer).call
 
     # Test skipping for existing customer (using nil to test nil handling)
     @existing_customer = nil
-    @result3 = Auth::Operations::CreateDefaultWorkspace.new(customer: @existing_customer).call
+    @result3 = Auth::Operations::EnsureDefaultWorkspace.new(customer: @existing_customer).call
 
     # Create second customer for registration flow test
     @registration_email = "fullflow_#{SecureRandom.hex(8)}_#{Familia.now.to_i}@example.com"
@@ -50,14 +50,14 @@ RSpec.describe 'default_workspace_creation_try', type: :integration, order: :def
     @new_customer_initial_org_count = @new_customer.organization_instances.count
 
     # Create workspace for new customer
-    @workspace = Auth::Operations::CreateDefaultWorkspace.new(customer: @new_customer).call
+    @workspace = Auth::Operations::EnsureDefaultWorkspace.new(customer: @new_customer).call
   end
 
   it 'Customer created successfully' do
     expect(@customer.class).to eq(Onetime::Customer)
   end
 
-  it 'CreateDefaultWorkspace operation creates org' do
+  it 'EnsureDefaultWorkspace operation creates org' do
     expect(@result.class).to eq(Hash)
     expect(@result.keys.sort).to eq([:organization])
   end
@@ -91,7 +91,7 @@ RSpec.describe 'default_workspace_creation_try', type: :integration, order: :def
     expect(@org.member?(@customer)).to eq(true)
   end
 
-  it 'Running CreateDefaultWorkspace again does nothing (idempotent)' do
+  it 'Running EnsureDefaultWorkspace again does nothing (idempotent)' do
     expect(@result2).to eq(nil)
   end
 
@@ -100,7 +100,7 @@ RSpec.describe 'default_workspace_creation_try', type: :integration, order: :def
     expect(customer_orgs.size).to eq(1)
   end
 
-  it 'CreateDefaultWorkspace skips if customer is nil' do
+  it 'EnsureDefaultWorkspace skips if customer is nil' do
     expect(@result3).to eq(nil)
   end
 

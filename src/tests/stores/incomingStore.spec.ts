@@ -113,9 +113,16 @@ describe('incomingStore', () => {
       expect(store.entitlementError).toBeNull();
     });
 
-    it('is not initialized by default', () => {
-      expect(store._initialized).toBe(false);
-      expect(store.isInitialized).toBe(false);
+    it('is initialized on creation by the auto-init plugin', () => {
+      expect(store._initialized).toBe(true);
+      expect(store.isInitialized).toBe(true);
+    });
+
+    it('is not initialized before init() runs', async () => {
+      await setupTestPinia({ autoInit: false });
+      const bare = useIncomingStore();
+      expect(bare._initialized).toBe(false);
+      expect(bare.isInitialized).toBe(false);
     });
 
     it('reports feature as disabled when config is null', () => {
@@ -154,12 +161,6 @@ describe('incomingStore', () => {
       store.init();
       const result = store.init();
       expect(result).toHaveProperty('isInitialized');
-    });
-
-    it('ignores api option with warning (logged internally)', () => {
-      // This tests that providing api option doesn't throw
-      store.init({ api: {} as any });
-      expect(store._initialized).toBe(true);
     });
   });
 

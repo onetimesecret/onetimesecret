@@ -592,6 +592,76 @@ RSpec.describe 'Active Sessions Management', type: :integration do
 
     let(:invite_email) { "invite-gate-#{SecureRandom.hex(8)}@example.com" }
 
+    describe 'session rotation on HTTP signup (#4393)' do
+      let(:owner) do
+        Onetime::Customer.create!(email: "invite-owner-#{SecureRandom.hex(8)}@example.com", role: 'customer')
+      end
+      let(:organization) do
+        Onetime::Organization.create!('Invite rotation test', owner, owner.email, is_default: true)
+      end
+      let(:invitation) do
+        Onetime::OrganizationMembership.create_invitation!(
+          organization: organization,
+          email: invite_email,
+          inviter: owner,
+          role: 'member',
+        )
+      end
+
+      after do
+        invitation.destroy_with_index_cleanup!
+        organization.destroy!
+        owner.destroy!
+        Onetime::Customer.find_by_email(invite_email)&.destroy!
+      end
+
+      it 'replaces the persisted anonymous session and refuses the old cookie' do
+        token = invitation.token
+        csrf_token = fetch_csrf_token
+        old_sid = rack_mock_session.cookie_jar['onetime.session']
+        expect(old_sid).not_to be_nil
+
+        store = Onetime::Operations::Sessions::Store
+        db = Familia.dbclient
+        codec = Onetime::SessionCodec.from_config
+        old_key = store.find_key(db, old_sid)
+        expect(old_key).not_to be_nil
+        expect(store.load_data(db, old_key, codec: codec)['authenticated']).not_to be(true)
+
+        post "/api/invite/#{token}/signup",
+          { password: test_password, shrimp: csrf_token }.to_json,
+          {
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_ACCEPT' => 'application/json',
+            'HTTP_X_CSRF_TOKEN' => csrf_token,
+          }
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_response.dig('record', 'auto_login')).to be(true)
+        new_sid = rack_mock_session.cookie_jar['onetime.session']
+        expect(new_sid).not_to be_nil
+        expect(new_sid).not_to eq(old_sid)
+        expect(store.find_key(db, old_sid)).to be_nil
+
+        new_key = store.find_key(db, new_sid)
+        expect(new_key).not_to be_nil
+        session = store.load_data(db, new_key, codec: codec)
+        account = test_db[:accounts].where(email: invite_email).first
+        expect(session['authenticated']).to be(true)
+        expect(session['account_id']).to eq(account[:id])
+        expect(session['active_session_id_hmac']).not_to be_nil
+        expect(Onetime::ActiveSessionGate.verdict(session)).to eq(:active)
+
+        get_json '/auth/active-sessions'
+        expect(last_response.status).to eq(200)
+
+        clear_cookies
+        set_cookie "onetime.session=#{old_sid}"
+        get_json '/auth/active-sessions'
+        expect(last_response.status).to eq(401)
+      end
+    end
+
     # #establish_active_session reads no instance state (only its account_id
     # argument and Auth::Config), so allocate + send drives the production
     # method with zero duplication and no drift risk.

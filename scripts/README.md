@@ -20,3 +20,20 @@ Utility and operational scripts for Onetime Secret.
   findings above `.github/lint-baseline/`. `--update` re-records the baseline.
 - `check-version-pins.sh`, `check-env-reference.sh` - manifest drift guards run
   by `.github/workflows/drift-guards.yml`
+
+## Config version annotations
+
+`.env.reference` and `etc/defaults/*.yaml` carry inline `# Since vX.Y.Z`
+markers on each setting's own line. The tooling that writes and enforces them
+is not here: ADR-042 makes it a tool package, `tools/envref/`, reached through
+`bin/envref`.
+
+```bash
+bin/envref --help          # the subcommands
+bin/envref check           # the CI ratchet, also run by drift-guards.yml
+bin/envref resolve v0.26.4 # release step: unreleased -> a real version
+```
+
+See [`docs/development/config-version-annotations.md`](../docs/development/config-version-annotations.md)
+for the marker contract and
+[`tools/envref/README.md`](../tools/envref/README.md) for the package.

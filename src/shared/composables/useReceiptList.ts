@@ -35,6 +35,11 @@ export function useReceiptList() {
   // Composable async handler
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
+  // Background handler: no toast, no loading flag (the list must not flip to
+  // its skeleton every few minutes) and no error state (a failed background
+  // refresh leaves the list the person was looking at in place).
+  const { wrap: wrapBackground } = useAsyncHandler({ notify: false });
+
   /**
    * Fetch receipt list
    */
@@ -47,6 +52,17 @@ export function useReceiptList() {
   const refreshRecords = (force = false) =>
     wrap(async () => {
       await store.refreshRecords(force);
+    });
+
+  /**
+   * Reload the list for a timer or a tab-visibility change: nobody asked for
+   * it, so it is declared passive (it does not count as session activity) and
+   * it fails silently. Never call this from a click or from navigation; use
+   * {@link refreshRecords}.
+   */
+  const refreshInBackground = () =>
+    wrapBackground(async () => {
+      await store.refreshRecords(true, { passive: true, silent: true });
     });
 
   /**
@@ -75,6 +91,7 @@ export function useReceiptList() {
     // Actions
     fetch,
     refreshRecords,
+    refreshInBackground,
     reset,
   };
 }

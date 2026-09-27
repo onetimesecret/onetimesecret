@@ -63,15 +63,15 @@
 # integration process boots with MFA off and can never load the Rodauth OTP
 # feature set afterwards. This directory (integration/full_mfa/) is excluded from
 # the shared spec:integration:full glob and runs in its OWN process with
-# AUTH_MFA_ENABLED=true via `rake spec:integration:full:mfa` (chained from
-# spec:integration:full). The :full_auth_mode tag is set EXPLICITLY below because
-# the path-derived tag only matches /integration/full/.
+# AUTH_MFA_ENABLED=true via `tests/lanes/run full-mfa`. The :full_auth_mode tag
+# is set EXPLICITLY below because the path-derived tag only matches
+# /integration/full/.
 #
 # REQUIREMENTS:
 # - Valkey running on port 2163: pnpm run test:database:start
 #
 # RUN:
-#   bundle exec rake spec:integration:full:mfa
+#   tests/lanes/run full-mfa
 # or directly (fresh process required):
 #   RACK_ENV=test AUTHENTICATION_MODE=full AUTH_DATABASE_URL=sqlite::memory: \
 #     ORGS_SSO_ENABLED=true AUTH_MFA_ENABLED=true LANG=en_US.UTF-8 \

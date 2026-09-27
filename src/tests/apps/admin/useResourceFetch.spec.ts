@@ -170,6 +170,97 @@ describe('useResourceFetch', () => {
     });
   });
 
+  describe('out-of-order responses', () => {
+    /** Manually-settled promise so a test controls response arrival order. */
+    function deferred<T>() {
+      let resolve!: (value: T) => void;
+      let reject!: (reason?: unknown) => void;
+      const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      return { promise, resolve, reject };
+    }
+
+    function otherPayload() {
+      return { record: { id: 'b', name: 'Bob' }, details: { count: 7 } };
+    }
+
+    it('a stale settle does not overwrite data populated by the newer request', async () => {
+      const slow = deferred<{ data: unknown }>();
+      const fast = deferred<{ data: unknown }>();
+      mockApi.get
+        .mockImplementationOnce(() => slow.promise)
+        .mockImplementationOnce(() => fast.promise);
+      const r = makeFetcher();
+
+      // Operator clicks event A (slow), then event B (fast) before A returns.
+      const first = r.load();
+      const second = r.load();
+
+      // B returns first and populates data.
+      fast.resolve({ data: otherPayload() });
+      await second;
+      expect(r.data.value?.record.id).toBe('b');
+      expect(r.loading.value).toBe(false);
+
+      // A's stale response settles later. It must NOT overwrite B's data.
+      slow.resolve({ data: validPayload() });
+      await first;
+      expect(r.data.value?.record.id).toBe('b');
+      expect(r.data.value?.record.name).toBe('Bob');
+      expect(r.loading.value).toBe(false);
+    });
+
+    it('a stale rejection does not plant its error over a newer success', async () => {
+      const slow = deferred<{ data: unknown }>();
+      const fast = deferred<{ data: unknown }>();
+      mockApi.get
+        .mockImplementationOnce(() => slow.promise)
+        .mockImplementationOnce(() => fast.promise);
+      const r = makeFetcher();
+
+      const first = r.load();
+      const second = r.load();
+
+      fast.resolve({ data: otherPayload() });
+      await second;
+
+      slow.reject(
+        Object.assign(new Error('Not Found'), { response: { status: 404 } })
+      );
+      // The stale caller still receives its own rejection…
+      await expect(first).rejects.toThrow('Not Found');
+      // …but the shared refs stay owned by the newer (successful) request.
+      expect(r.error.value).toBeNull();
+      expect(r.notFound.value).toBe(false);
+      expect(r.loading.value).toBe(false);
+      expect(r.data.value?.record.id).toBe('b');
+    });
+
+    it('stale settle does not release loading while the newer request is in flight', async () => {
+      const slow = deferred<{ data: unknown }>();
+      const fast = deferred<{ data: unknown }>();
+      mockApi.get
+        .mockImplementationOnce(() => slow.promise)
+        .mockImplementationOnce(() => fast.promise);
+      const r = makeFetcher();
+
+      const first = r.load();
+      const second = r.load();
+      expect(r.loading.value).toBe(true);
+
+      // Obsolete request settles FIRST; loading must stay true.
+      slow.resolve({ data: validPayload() });
+      await first;
+      expect(r.loading.value).toBe(true);
+
+      fast.resolve({ data: otherPayload() });
+      await second;
+      expect(r.loading.value).toBe(false);
+    });
+  });
+
   describe('reset', () => {
     it('restores data + all flags to initial values', async () => {
       mockApi.get.mockResolvedValue({ data: validPayload() });
@@ -184,6 +275,32 @@ describe('useResourceFetch', () => {
       expect(r.error.value).toBeNull();
       expect(r.validationError.value).toBeNull();
       expect(r.notFound.value).toBe(false);
+    });
+
+    it('invalidates an in-flight request so its late settle cannot repopulate state', async () => {
+      /** Manually-settled promise. */
+      function deferred<T>() {
+        let resolve!: (value: T) => void;
+        const promise = new Promise<T>((res) => {
+          resolve = res;
+        });
+        return { promise, resolve };
+      }
+
+      const slow = deferred<{ data: unknown }>();
+      mockApi.get.mockImplementationOnce(() => slow.promise);
+      const r = makeFetcher();
+
+      const inflight = r.load();
+      r.reset();
+
+      slow.resolve({ data: validPayload() });
+      await inflight;
+
+      expect(r.data.value).toBeNull();
+      expect(r.loading.value).toBe(false);
+      expect(r.error.value).toBeNull();
+      expect(r.validationError.value).toBeNull();
     });
   });
 });

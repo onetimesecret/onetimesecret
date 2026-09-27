@@ -125,6 +125,33 @@ module Auth
       false
     end
 
+    # Trusted browser host for WebAuthn. Unlike auth-link generation, WebAuthn
+    # does not redirect or disclose a credential to this host: a mismatch makes
+    # the browser ceremony fail. DomainStrategy has already sanitized and
+    # classified `onetime.display_domain`, and a custom classification also
+    # carries the exact record loaded during that decision.
+    #
+    # @return [String, nil]
+    def self.webauthn_host(env)
+      strategy = env['onetime.domain_strategy'].to_s
+      return nil unless %w[canonical subdomain custom].include?(strategy)
+      return nil if strategy == 'custom' && env['onetime.custom_domain'].nil?
+
+      host = env['onetime.display_domain'].to_s
+      return nil if host.empty?
+      return nil unless Onetime::Utils::DomainParser.basically_valid?(host)
+
+      host
+    end
+
+    # Exact browser origin for a host admitted by {webauthn_host}.
+    #
+    # @return [String, nil]
+    def self.webauthn_base_url(env)
+      host = webauthn_host(env)
+      host && origin_for(env, host)
+    end
+
     # Absolute origin for the public host: `scheme://host[:port]`.
     #
     # Reproduces Rack::Request#base_url with the authority's host swapped:

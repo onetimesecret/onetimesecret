@@ -5,7 +5,7 @@
 require_relative 'operations/sync_session'
 require_relative 'operations/update_password_metadata'
 require_relative 'operations/ensure_customer_for_account'
-require_relative 'operations/create_default_workspace'
+require_relative 'operations/ensure_default_workspace'
 require_relative 'operations/join_domain_organization'
 require_relative 'operations/accept_invitation'
 require_relative 'operations/remove_authentication_data'
@@ -20,6 +20,7 @@ require_relative 'operations/deferred_sso_bind'
 require_relative 'operations/prepare_mfa_session'
 require_relative 'operations/migrate_password_from_redis'
 require_relative 'operations/resolve_login_location'
+require_relative 'operations/authorize_tenant_connect'
 
 # Customer admin verbs (colonel API + CLI single implementation, epic #20)
 require_relative 'operations/customers'

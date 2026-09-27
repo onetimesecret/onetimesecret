@@ -16,6 +16,7 @@ import type { PaymentMethod } from '@/types/billing';
 import { getPlanLabel, isFreePlan, isLegacyPlan } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
+import { parseDateValue } from '@/utils/parse';
 import { computed, onMounted, ref, watch } from 'vue';
 
 const { t } = useI18n();
@@ -77,9 +78,13 @@ const isLegacyCustomer = computed(() =>
 
 // Extract billing overview state updates to reduce complexity
 const applyBillingOverview = (overview: Awaited<ReturnType<typeof BillingService.getOverview>>) => {
-  nextBillingDate.value = overview.subscription?.period_end
-    ? new Date(overview.subscription.period_end * 1000)
-    : null;
+  // `period_end` is epoch SECONDS as a string, or null. parseDateValue yields
+  // null for an absent or non-numeric value instead of the Invalid Date the
+  // old `* 1000` coercion produced. A non-positive epoch is an unset field
+  // that survived as 0, not a billing date; rendering it would put 1 Jan 1970
+  // on the page, so it is excluded on purpose.
+  const periodEnd = parseDateValue(overview.subscription?.period_end);
+  nextBillingDate.value = periodEnd && periodEnd.getTime() > 0 ? periodEnd : null;
   planFeatures.value = overview.plan?.features || [];
   paymentMethod.value = overview.payment_method || null;
   federationNotification.value = overview.federation_notification || null;

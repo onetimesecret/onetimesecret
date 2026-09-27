@@ -17,7 +17,8 @@ import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
-import { mockCustomer } from '@/tests/fixtures/bootstrap.fixture';
+import { bootstrapSchema } from '@/schemas/contracts/bootstrap';
+import { authenticatedBootstrap } from '@/tests/fixtures/bootstrap.fixture';
 
 describe('authStore.logoutMinimal', () => {
   let store: ReturnType<typeof useAuthStore>;
@@ -29,12 +30,11 @@ describe('authStore.logoutMinimal', () => {
     bootstrapStore = useBootstrapStore();
     store = useAuthStore();
 
-    // Hydrate bootstrapStore with brand-specific values that would
-    // visibly flash if reset during logout
-    bootstrapStore.update({
-      authenticated: true,
-      cust: mockCustomer,
-      email: mockCustomer.email,
+    // An authenticated snapshot carrying brand-specific values that would
+    // visibly flash if reset during logout. Authentication can only be
+    // established by applying a complete snapshot (#4458), never by update().
+    bootstrapStore.applySnapshot(bootstrapSchema.parse({
+      ...authenticatedBootstrap,
       domain_logo: 'https://acme.example.com/logo.png',
       domain_branding: {
         primary_color: '#ff6600',
@@ -48,13 +48,12 @@ describe('authStore.logoutMinimal', () => {
       display_domain: 'acme.example.com',
       site_host: 'acme.example.com',
       shrimp: 'csrf-token-abc',
-    });
+    }));
 
     store.init();
 
     // Set a cookie so we can verify deletion
     document.cookie = 'locale=en; path=/';
-    sessionStorage.setItem('ots_auth_state', 'true');
     sessionStorage.setItem('some_other_key', 'value');
   });
 
@@ -68,12 +67,10 @@ describe('authStore.logoutMinimal', () => {
   });
 
   it('clears session storage', async () => {
-    expect(sessionStorage.getItem('ots_auth_state')).toBe('true');
     expect(sessionStorage.getItem('some_other_key')).toBe('value');
 
     await store.logoutMinimal();
 
-    expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
     expect(sessionStorage.getItem('some_other_key')).toBeNull();
   });
 
@@ -87,7 +84,6 @@ describe('authStore.logoutMinimal', () => {
 
   it('stops the auth check timer', async () => {
     vi.useFakeTimers();
-    store.$patch({ isAuthenticated: true });
     store.$scheduleNextCheck();
 
     expect(store.authCheckTimer).not.toBeNull();
@@ -160,12 +156,13 @@ describe('authStore.logoutMinimal', () => {
       expect(bootstrapStore.domain_logo).toBeNull();
     });
 
-    it('full logout() DOES reset authStore isAuthenticated to null', async () => {
+    it('full logout() DOES end in an explicit anonymous', async () => {
       expect(store.isAuthenticated).toBe(true);
 
       await store.logout();
 
-      expect(store.isAuthenticated).toBeNull();
+      expect(store.isAuthenticated).toBe(false);
+      expect(store.authStatus).toBe('anonymous');
     });
   });
 });

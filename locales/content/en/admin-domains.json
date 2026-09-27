@@ -671,6 +671,10 @@
     "text": "One domain per line.",
     "content_hash": "6c03f4f7"
   },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "One origin per line, including the scheme, for example https://vault.example.com. An origin on another organization's domain is refused.",
+    "content_hash": "4a4e1d33"
+  },
   "web.admin.domains.configs.delete.button": {
     "text": "Delete",
     "content_hash": "e2d0a549"
@@ -750,6 +754,10 @@
   "web.admin.domains.configs.fields.allowed_signup_domains": {
     "text": "Allowed signup domains",
     "content_hash": "9b5bb5b1"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Related passkey origins",
+    "content_hash": "e6160714"
   },
   "web.admin.domains.configs.fields.secrets_mode": {
     "text": "Secrets mode",

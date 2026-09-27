@@ -112,19 +112,16 @@ module AccountAPI::Logic
         # rotation/re-stamp entirely.
         if current_sid.to_s.empty?
           sess.clear if sess.respond_to?(:clear)
-          sess.options[:renew] = true if sess.respond_to?(:options) && sess.options
+          rotate_session!(
+            security_warning: 'all sessions were revoked but the current browser session id was not rotated; the watermark will retire it on its next request',
+          )
           return
         end
 
-        options = sess.respond_to?(:options) ? sess.options : nil
-        if options.nil?
-          auth_logger.error '[update-password] session rotation unavailable',
-            customer_id: cust.extid,
-            security_warning: 'session id not rotated and not re-stamped; the watermark will retire the pre-change session on its next request'
-          return
-        end
-
-        options[:renew] = true
+        rotated = rotate_session!(
+          security_warning: 'session id not rotated and not re-stamped; the watermark will retire the pre-change session on its next request',
+        )
+        return unless rotated
 
         # Strictly postdate the watermark. [now, watermark + 1].max is
         # > watermark under any clock relationship; with no usable watermark

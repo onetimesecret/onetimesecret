@@ -73,7 +73,7 @@ module AccountAPI::Logic
           # Unregistered address: do nothing observable, return the same generic
           # response a real account would get.
           auth_logger.info 'Password reset requested for unregistered email',
-            { session_id: safe_session_id }
+            { session_handle: session_log_handle }
           return success_data
         end
 
@@ -144,7 +144,7 @@ module AccountAPI::Logic
           {
             customer_id: cust.extid,
             email: cust.obscure_email,
-            session_id: safe_session_id,
+            session_handle: session_log_handle,
             secret_identifier: secret.shortid, # truncated: the full identifier is the live token
             queued: queued,
           }

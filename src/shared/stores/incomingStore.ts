@@ -1,6 +1,5 @@
 // src/shared/stores/incomingStore.ts
 
-import { PiniaPluginOptions } from '@/plugins/pinia';
 import {
   EntitlementError,
   entitlementErrorSchema,
@@ -11,14 +10,12 @@ import {
   incomingSecretResponseSchema,
 } from '@/schemas/api/incoming';
 import { ReceiptResponse, responseSchemas } from '@/schemas/api/v3/responses';
-import { loggingService } from '@/services/logging.service';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { useApi } from '@/shared/composables/useApi';
 import axios from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, ref } from 'vue';
 
-interface StoreOptions extends PiniaPluginOptions {}
 
 /**
  * Type definition for IncomingStore.
@@ -73,10 +70,9 @@ export const useIncomingStore = defineStore('incoming', () => {
   const defaultTtl = computed(() => config.value?.default_ttl);
 
   // Actions
-  function init(options?: StoreOptions) {
+  function init() {
     if (_initialized.value) return { isInitialized };
 
-    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
 
     _initialized.value = true;
 

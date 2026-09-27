@@ -47,6 +47,14 @@
 #   required_vars:    env vars that must ALL be present for the provider to
 #                     register with real credentials (and to appear in
 #                     sso_providers / CSP origins)
+#   vars_valid:       OPTIONAL zero-arg callable returning a boolean, checked
+#                     after required_vars by AuthConfig#provider_active?. For
+#                     a constraint presence cannot express — e.g. a URL
+#                     variable that must carry a scheme. Needed only by a
+#                     definition whose strategy_options can RAISE, since
+#                     configure_provider skips such a provider and the
+#                     advertised set must not then disagree with the
+#                     registered one. Omitted means always valid.
 #   route_var/route_default:     env var and default for the route name — the
 #                     URL segment, auth-hash provider value, and
 #                     account_identities.provider value
@@ -99,6 +107,7 @@ require_relative 'oidc'
 require_relative 'entra'
 require_relative 'google'
 require_relative 'github'
+require_relative 'apple'
 
 module Onetime
   module SsoProvider
@@ -108,6 +117,11 @@ module Onetime
         Entra::DEFINITION,
         Google::DEFINITION,
         Github::DEFINITION,
+        # Appended after the four launch providers so the default button order
+        # stays stable for existing deployments. SSO_PROVIDER_ORDER reorders
+        # per deployment; only definitions whose required_vars are all present
+        # reach the login page at all, so an unconfigured entry costs nothing.
+        Apple::DEFINITION,
       ].freeze
 
       # Definition lookup by :key that answers nil on a miss — the per-request

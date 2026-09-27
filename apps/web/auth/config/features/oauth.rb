@@ -16,7 +16,7 @@
 #
 # Issue: https://github.com/onetimesecret/onetimesecret/issues/3104
 #
-# Tables (created by migrations 009/010):
+# Tables (created by migrations 011/012):
 #   - oauth_applications  — registered clients
 #   - oauth_grants        — auth codes, access tokens, refresh tokens (single row)
 #
@@ -48,7 +48,7 @@ module Auth::Config::Features
 
       # ─── Tables ─────────────────────────────────────────────────────────
       # Explicit even though these match the gem defaults. Keeps the wiring
-      # to migrations 009/010 obvious to future readers.
+      # to migrations 011/012 obvious to future readers.
       auth.oauth_applications_table :oauth_applications
       auth.oauth_grants_table :oauth_grants
 
@@ -112,7 +112,7 @@ module Auth::Config::Features
       # ─── PKCE enforcement ──────────────────────────────────────────────
       # :oauth_pkce (enabled above) makes PKCE *available* but not *mandatory*:
       # without this, a client can complete the authorization-code flow with no
-      # code_challenge at all. Migration 010's CHECK constraint only rejects a
+      # code_challenge at all. Migration 013's CHECK constraint only rejects a
       # stored code_challenge_method='plain' — it does NOT force PKCE to be
       # present. oauth_require_pkce closes that gap so the "PKCE-only" posture is
       # enforced server-side for every registered client, not just the seeded SP.

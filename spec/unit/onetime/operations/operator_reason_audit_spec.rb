@@ -114,6 +114,16 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
     let(:customer) do
       double('Customer', extid: 'ur_p', custid: 'cust_p', obscure_email: 'p***@e***.com')
     end
+    let(:empty_plan) do
+      Auth::Operations::Customers::PurgePreflight::Plan.new(actions: [], blockers: [])
+    end
+    let(:preflight) { instance_double(Auth::Operations::Customers::PurgePreflight) }
+
+    def expect_mandatory_preflight
+      expect(Auth::Operations::Customers::PurgePreflight).to receive(:new)
+        .with(customer: customer, deep: false, membership_snapshot: nil).exactly(5).times.and_return(preflight)
+      expect(preflight).to receive(:call).exactly(5).times.and_return(empty_plan)
+    end
 
     before do
       # Purge delegates to TeardownAccount. Pin simple-auth mode so the teardown
@@ -127,6 +137,8 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
     end
 
     it 'records the reason in the purge detail' do
+      expect_mandatory_preflight
+
       described_class.new(customer: customer, actor: actor, reason: reason).call
 
       expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
@@ -142,6 +154,8 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
     # The pre-#4338 shape, unchanged. An op that is never given a reason must
     # look exactly as it did.
     it 'omits the key entirely when no reason is given' do
+      expect_mandatory_preflight
+
       described_class.new(customer: customer, actor: actor).call
 
       expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
@@ -150,6 +164,8 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
     end
 
     it 'treats a whitespace-only reason as no reason' do
+      expect_mandatory_preflight
+
       described_class.new(customer: customer, actor: actor, reason: "  \n ").call
 
       expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
@@ -161,7 +177,9 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
   describe Onetime::Operations::Sessions::Delete do
     # This op records NO detail at all without a reason, so it pins the
     # nil-detail edge of the rule rather than the merge.
-    let(:dbclient) { double('Redis', del: 1) }
+    # `set` is the ended-marker every blob delete writes first
+    # (Onetime::SessionEnded, RISK-2026-09-19-01).
+    let(:dbclient) { double('Redis', del: 1, set: 'OK') }
 
     before do
       allow(Onetime::Operations::Sessions::Store)

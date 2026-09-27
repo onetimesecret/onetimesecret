@@ -58,9 +58,11 @@ module Onetime
           # Authorization header fails the chain closed via the credentialed
           # strategy's terminal AuthFailure (Otto's RouteAuthWrapper), so this
           # strategy never needs to refuse anonymous fallthrough itself.
-          cust = load_user_from_session(session, env)
+          verdict = customer_session_verdict(session, env)
+          cust    = verdict.customer
 
-          # Load organization context if user is authenticated
+          # Load organization context only after the shared evaluator has
+          # produced an authenticated identity.
           org_context = if cust
                           load_organization_context(cust, session, env)
                         else
@@ -71,7 +73,13 @@ module Onetime
             session: session,
             user: cust,  # nil for anonymous users
             auth_method: self.class.auth_method_name,
-            **build_metadata(env, { organization_context: org_context }),
+            **build_metadata(
+              env,
+              {
+                organization_context: org_context,
+                customer_session_verdict: verdict,
+              },
+            ),
           )
         end
       end

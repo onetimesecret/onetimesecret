@@ -45,6 +45,7 @@
   } from '@/types/organization';
   import { isOrgsAuditLogsEnabled, isOrgsSsoEnabled } from '@/utils/features';
   import { formatDisplayDate } from '@/utils/format';
+  import { parseDateValue } from '@/utils/parse';
   import { useConfirmDialog, useNow } from '@vueuse/core';
   import { storeToRefs } from 'pinia';
   import { SsoService } from '@/services/sso.service';
@@ -133,7 +134,22 @@
     return props.initialTab;
   };
   const organization = ref<Organization | null>(null);
-  const subscription = ref<Subscription | null>(null);
+
+  /**
+   * The billing-overview endpoint is not the subscription endpoint, so the
+   * object assembled in loadBilling is a `Subscription` in shape only. The
+   * overview carries a single `period_end` (an epoch-seconds string) and no
+   * period start, and neither period field is read by this component or
+   * handed to a child. They are widened to `Date | null` so the synthesis
+   * does not have to invent one: before, an absent `period_end` produced
+   * `new Date(0)` and a non-numeric one produced an Invalid Date.
+   */
+  type OverviewSubscription = Omit<Subscription, 'current_period_start' | 'current_period_end'> & {
+    current_period_start: Date | null;
+    current_period_end: Date | null;
+  };
+
+  const subscription = ref<OverviewSubscription | null>(null);
   const invitations = ref<OrganizationInvitation[]>([]);
 
   /**
@@ -492,8 +508,9 @@
             teams_used: 0, // Teams removed from usage data for 0.24; will be re-added
             total_members_per_org_limit: overview.plan.limits.total_members_per_org || 0,
             billing_interval: overview.plan.interval as any,
-            current_period_start: new Date(overview.subscription.period_end * 1000), // Placeholder
-            current_period_end: new Date(overview.subscription.period_end * 1000),
+            // See OverviewSubscription above for why both read the same value.
+            current_period_start: parseDateValue(overview.subscription.period_end), // Placeholder
+            current_period_end: parseDateValue(overview.subscription.period_end),
             cancel_at_period_end: overview.subscription.canceled,
             created_at: new Date(),
             updated_at: new Date(),

@@ -16,7 +16,7 @@ module Auth
     #   - Not already a member of the domain organization
     #   - Provisioned via SSO (provisioning_origin: 'sso_jit' or nil for legacy)
     #   - Owns a personal default workspace (structural fingerprint of
-    #     install-level SSO — CreateDefaultWorkspace ran instead of
+    #     install-level SSO — EnsureDefaultWorkspace ran instead of
     #     JoinDomainOrganization)
     #
     # Self-signup users (canonical_signup, domain_signup) and invited users
@@ -232,7 +232,7 @@ module Auth
       end
 
       # Find a customer's personal default workspace (the one created by
-      # CreateDefaultWorkspace during install-level SSO).
+      # EnsureDefaultWorkspace during install-level SSO).
       #
       # Characteristics: is_default=true, customer is owner, no domain_scope_id
       # on the membership.

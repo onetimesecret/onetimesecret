@@ -14,6 +14,10 @@ require_relative 'session/codec'
 require_relative 'session/sidecar'
 require_relative 'session/impersonation'
 require_relative 'session/active_session_gate'
+require_relative 'session/ended'
+require_relative 'session/surface'
+require_relative 'session/recent_reauth'
+require_relative 'session/reauth_policy'
 require_relative 'operations/sessions/track_metadata'
 
 module Onetime
@@ -139,25 +143,6 @@ module Onetime
 
     private
 
-    # Number of leading session-id characters that survive into log output.
-    SID_LOG_PREFIX_LENGTH = 8 unless defined?(SID_LOG_PREFIX_LENGTH)
-
-    # Log-safe session id (2026-08-02 audit, L-3): first 8 hex chars + '...'.
-    #
-    # A full session id in a log line IS the session cookie — the id is the
-    # bearer credential, so anyone with log access could hijack the session if
-    # trace logging were ever enabled in production. Eight hex chars (32 bits)
-    # are plenty to correlate log lines for one session while leaving 224+
-    # bits unrecoverable. Accepts raw strings and Rack SessionId objects; used
-    # by EVERY log site in this class — never interpolate a raw sid into logs.
-    def sid_for_log(sid)
-      str = sid.respond_to?(:public_id) ? sid.public_id : sid
-      str = str.to_s
-      return str if str.length <= SID_LOG_PREFIX_LENGTH
-
-      "#{str[0, SID_LOG_PREFIX_LENGTH]}..."
-    end
-
     # Create a StringKey instance for a session ID
     #
     # This creates a Familia::StringKey that maps to:
@@ -178,27 +163,46 @@ module Onetime
     def delete_session(_request, sid, _options)
       # Extract string ID from SessionId object if needed
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
+      handle     = log_handle(sid_string)
 
       session_logger.info 'Session deletion initiated',
         {
-          session_id: sid_for_log(sid_string),
+          session_handle: handle,
           operation: 'delete',
         }
 
-      if stringkey = get_stringkey(sid_string)
+      # The marker BEFORE the blob (Onetime::SessionEnded): a request that
+      # loaded this session earlier and commits later finds it after its own
+      # SET and takes its copy back out. Set-then-delete here and
+      # set-then-check there is what leaves no order in which the copy stays.
+      #
+      # REFUSE the blob delete when the marker could not be written: the two
+      # operations are one atomic step in the RISK-2026-09-19-01 invariant.
+      # Deleting the blob without a live marker would leave an in-flight
+      # writer's copy behind as a working session — a much worse outcome than
+      # a transient logout failure the caller can retry.
+      marker_ok = Onetime::SessionEnded.mark(sid_string, dbclient: @dbclient)
+
+      if !marker_ok
+        session_logger.error 'Session delete refused: ended-marker write failed',
+          {
+            session_handle: handle,
+            operation: 'delete',
+          }
+      elsif stringkey = get_stringkey(sid_string)
         result = stringkey.del
         # NOTE: no redis_key field — the dbkey embeds the full sid, which must
         # never reach the logs (audit L-3). It is derivable: session:<sid>.
         session_logger.trace 'Session deleted from Redis',
           {
-            session_id: sid_for_log(sid_string),
+            session_handle: handle,
             deleted: result,
             operation: 'delete',
           }
       else
         session_logger.trace 'No session found to delete',
           {
-            session_id: sid_for_log(sid_string),
+            session_handle: handle,
             operation: 'delete',
           }
       end
@@ -236,7 +240,7 @@ module Onetime
         unless doomed.empty?
           session_logger.warn 'Session destroyed with in-flight sidecar state',
             {
-              session_id: sid_for_log(sid_string),
+              session_handle: handle,
               fields: doomed,
               operation: 'delete',
             }
@@ -244,7 +248,25 @@ module Onetime
       rescue StandardError => ex
         session_logger.error 'Sidecar purge failed (orphans are TTL-bounded)',
           {
-            session_id: sid_for_log(sid_string),
+            session_handle: handle,
+            error: ex.message,
+            error_class: ex.class.name,
+            operation: 'delete',
+          }
+      end
+
+      # The metadata record is keyed by the raw sid (`session_metadata:<sid>`),
+      # so leaving it to its TTL keeps the ended session's id readable in the
+      # keyspace after the session is gone. The revoke operations already
+      # destroy it; this is the same step for a logout or an id renewal. The
+      # customer's index entry is pruned by ListForCustomer's liveness check.
+      # Best-effort, like the purge above: it must never disturb the delete.
+      begin
+        Onetime::SessionMetadata.load(sid_string)&.destroy!
+      rescue StandardError => ex
+        session_logger.error 'Session metadata cleanup failed (record is TTL-bounded)',
+          {
+            session_handle: handle,
             error: ex.message,
             error_class: ex.class.name,
             operation: 'delete',
@@ -254,7 +276,7 @@ module Onetime
       new_sid = generate_sid
       session_logger.trace 'New session generated after deletion',
         {
-          session_id: sid_for_log(new_sid),
+          session_handle: log_handle(new_sid),
           operation: 'delete',
         }
 
@@ -463,10 +485,11 @@ module Onetime
       # Parent class already extracts sid from cookies
       # sid may be a SessionId object or nil
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
+      handle     = log_handle(sid_string)
 
       session_logger.trace 'Session lookup initiated',
         {
-          session_id: sid_for_log(sid_string),
+          session_handle: handle,
           sid_type: sid.class.name,
           operation: 'read',
         }
@@ -475,7 +498,7 @@ module Onetime
       unless sid_string && valid_session_id?(sid_string)
         session_logger.trace 'Session ID invalid or missing',
           {
-            session_id: sid_for_log(sid_string),
+            session_handle: handle,
             valid: false,
             operation: 'read',
           }
@@ -483,7 +506,7 @@ module Onetime
         new_sid = generate_sid
         session_logger.trace 'New session created',
           {
-            session_id: sid_for_log(new_sid),
+            session_handle: log_handle(new_sid),
             operation: 'read',
           }
 
@@ -498,7 +521,7 @@ module Onetime
 
         session_logger.trace 'Redis lookup complete',
           {
-            session_id: sid_for_log(sid_string),
+            session_handle: handle,
             has_data: !stored_data.nil?,
             data_size: stored_data&.bytesize,
             ttl: stringkey&.ttl,
@@ -510,11 +533,27 @@ module Onetime
         unless stored_data
           session_logger.trace 'No session data found',
             {
-              session_id: sid_for_log(sid_string),
+              session_handle: handle,
               operation: 'read',
             }
 
-          return [sid, {}]  # Empty session - Rodauth sees this as "not logged in"
+          # A cookie naming a blob that does not exist never keeps its id:
+          # the empty session starts under an id this server generated, as
+          # stock Rack's persisted stores do. Two cases ride on it. An id the
+          # server never issued (planted by a sibling subdomain, or guessed)
+          # is not adopted as a session id. And an id that was ended on
+          # purpose (revoked from another device, a logout whose response
+          # this browser has not applied yet) cannot be written under while
+          # its Onetime::SessionEnded marker lives, so an empty session kept
+          # under it would lose its CSRF token and the next sign-in with it.
+          new_sid = generate_sid
+          session_logger.debug 'Session id without a blob replaced',
+            {
+              session_handle: handle,
+              new_session_handle: log_handle(new_sid),
+              operation: 'read',
+            }
+          return [new_sid, {}]  # Empty session - Rodauth sees this as "not logged in"
         end
 
         # Split stored data into base64 data and HMAC signature
@@ -523,7 +562,7 @@ module Onetime
 
         session_logger.trace 'HMAC verification',
           {
-            session_id: sid_for_log(sid_string),
+            session_handle: handle,
             has_hmac: !hmac.nil?,
             data_length: data&.length,
             hmac_length: hmac&.length,
@@ -535,7 +574,7 @@ module Onetime
         unless hmac && valid_hmac?(data, hmac)
           session_logger.warn 'Session HMAC verification failed',
             {
-              session_id: sid_for_log(sid_string),
+              session_handle: handle,
               has_hmac: !hmac.nil?,
               operation: 'read',
             }
@@ -549,7 +588,7 @@ module Onetime
         encrypted_data = Base64.strict_decode64(data)
         session_logger.trace 'Base64 decode complete',
           {
-            session_id: sid_for_log(sid_string),
+            session_handle: handle,
             encrypted_size: encrypted_data.bytesize,
             operation: 'read',
           }
@@ -559,7 +598,7 @@ module Onetime
         unless decrypted_data
           session_logger.warn 'Session decryption failed',
             {
-              session_id: sid_for_log(sid_string),
+              session_handle: handle,
               operation: 'read',
             }
           new_sid = generate_sid
@@ -568,7 +607,7 @@ module Onetime
 
         session_logger.trace 'AES-256-GCM decryption complete',
           {
-            session_id: sid_for_log(sid_string),
+            session_handle: handle,
             decrypted_size: decrypted_data.bytesize,
             operation: 'read',
           }
@@ -600,7 +639,7 @@ module Onetime
         rescue StandardError => ex
           session_logger.error 'Sidecar merge failed (skipped)',
             {
-              session_id: sid_for_log(sid_string),
+              session_handle: handle,
               error: ex.message,
               error_class: ex.class.name,
               operation: 'read',
@@ -613,7 +652,7 @@ module Onetime
         # full contents are one Redis GET away for someone with access.
         session_logger.trace 'Session loaded successfully',
           {
-            session_id: sid_for_log(sid_string),
+            session_handle: handle,
             key_count: session_data.size,
             authenticated: session_data['authenticated'] == true,
             operation: 'read',
@@ -626,7 +665,7 @@ module Onetime
         # Log error with structured context
         session_logger.error 'Error reading session',
           {
-            session_id: sid_for_log(sid_string),
+            session_handle: handle,
             error: ex.message,
             error_class: ex.class.name,
             backtrace: ex.backtrace&.first(5),
@@ -666,10 +705,22 @@ module Onetime
     def write_session(request, sid, session_data, _options)
       # Extract string ID from SessionId object if needed
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
+      handle     = log_handle(sid_string)
+
+      # Tracks whether the blob SET at line ~783 actually completed. The outer
+      # rescue below uses this to know if a compensating DEL is required: an
+      # exception raised AFTER the SET (notably the SessionEnded.ended? check
+      # at line ~820, which raises on a datastore error by design) would
+      # otherwise leave a freshly-written blob under an already-ended sid and
+      # the browser would keep a working session. False by default so a
+      # pre-SET failure never triggers a spurious cleanup on a key that may
+      # belong to a concurrent writer.
+      blob_written = false
+      stringkey    = nil
 
       session_logger.trace 'Session write initiated',
         {
-          session_id: sid_for_log(sid_string),
+          session_handle: handle,
           key_count: session_data&.size,
           session_data_class: session_data.class.name,
           operation: 'write',
@@ -686,26 +737,32 @@ module Onetime
       # the blob's). This runs before anything reads `authenticated` /
       # `external_id`, and those fields are never externalized, so the
       # TrackMetadata gate below is unaffected.
+      # The TTL this write gives the blob (#4455). Activity resets it to
+      # @expire_after, as always. A request that is not activity (a passive
+      # poll, or one a session gate refused) keeps whatever the blob had left.
+      # Read here, before the SET below replaces the key.
+      write_ttl = expiration_for_write(sid_string, request.respond_to?(:env) ? request.env : nil)
+
       begin
         merged_fields = request.respond_to?(:env) ? request.env['onetime.session.sidecar_merged'] : nil
-        # ceiling: the blob is refreshed to @expire_after immediately below in
-        # this same request, so @expire_after — not the blob's about-to-be-
-        # overwritten remaining TTL — is the authoritative clamp ceiling for the
-        # sidecar keys commit writes (SessionSidecar#ttl_ceiling treats a passed
-        # ceiling as `authoritative:`). This also covers the FIRST commit, where
-        # the blob key does not exist yet so no ceiling could be read off it.
+        # ceiling: the blob is set to write_ttl below in this same request, so
+        # write_ttl — not the blob's about-to-be-overwritten remaining TTL — is
+        # the authoritative clamp ceiling for the sidecar keys commit writes
+        # (SessionSidecar#ttl_ceiling treats a passed ceiling as
+        # `authoritative:`). This also covers the FIRST commit, where the blob
+        # key does not exist yet so no ceiling could be read off it.
         session_data  = Onetime::SessionSidecar.commit(
           sid_string,
           session_data,
           merged: merged_fields,
           dbclient: @dbclient,
           codec: @codec,
-          ceiling: @expire_after,
+          ceiling: write_ttl,
         )
       rescue StandardError => ex
         session_logger.error 'Sidecar commit failed (fields stay in blob)',
           {
-            session_id: sid_for_log(sid_string),
+            session_handle: handle,
             error: ex.message,
             error_class: ex.class.name,
             operation: 'write',
@@ -717,7 +774,7 @@ module Onetime
       json_data = Familia::JsonSerializer.dump(session_data)
       session_logger.trace 'JSON serialization complete',
         {
-          session_id: sid_for_log(sid_string),
+          session_handle: handle,
           json_size: json_data.bytesize,
           operation: 'write',
         }
@@ -727,7 +784,7 @@ module Onetime
       encrypted_data = encrypt_data(json_data)
       session_logger.trace 'AES-256-GCM encryption complete',
         {
-          session_id: sid_for_log(sid_string),
+          session_handle: handle,
           encrypted_size: encrypted_data.bytesize,
           operation: 'write',
         }
@@ -736,7 +793,7 @@ module Onetime
       encoded = Base64.strict_encode64(encrypted_data)
       session_logger.trace 'Base64 encoding complete',
         {
-          session_id: sid_for_log(sid_string),
+          session_handle: handle,
           encoded_size: encoded.bytesize,
           operation: 'write',
         }
@@ -748,7 +805,7 @@ module Onetime
 
       session_logger.trace 'HMAC computation complete',
         {
-          session_id: sid_for_log(sid_string),
+          session_handle: handle,
           hmac_length: hmac.length,
           signed_data_size: signed_data.bytesize,
           operation: 'write',
@@ -761,24 +818,54 @@ module Onetime
       # Key: session:c9803eb969a503006ddcca0b3460b47b9c0f9fafe6a4bb100de20efa1d7d3655
       # Value: eyJhY2NvdW50X2lkIjoxMjN9...--a3f5e8d9c2b1...
       stringkey.set(signed_data)
+      blob_written = true
       # NOTE: no redis_key field — the dbkey embeds the full sid, which must
       # never reach the logs (audit L-3). It is derivable: session:<sid>.
       session_logger.trace 'Redis SET complete',
         {
-          session_id: sid_for_log(sid_string),
+          session_handle: handle,
           operation: 'write',
         }
 
-      # Step 7: Update expiration if configured
-      if @expire_after && @expire_after > 0
-        stringkey.update_expiration(expiration: @expire_after)
+      # Step 7: Update expiration if configured. StringKey#set has already
+      # applied the default (@expire_after); this is what makes write_ttl win
+      # when the request was not activity.
+      if write_ttl && write_ttl > 0
+        stringkey.update_expiration(expiration: write_ttl)
         session_logger.trace 'Expiration updated',
           {
-            session_id: sid_for_log(sid_string),
-            expire_after: @expire_after,
+            session_handle: handle,
+            expire_after: write_ttl,
+            activity: write_ttl == @expire_after,
             operation: 'write',
           }
 
+      end
+
+      # The session was ended while this request held it (a logout or a
+      # revocation that ran between this request's read and this write): take
+      # the copy back out and report the write as not saved, so Rack sends no
+      # cookie either (RISK-2026-09-19-01). AFTER the SET, never before it;
+      # see Onetime::SessionEnded for why only this order closes the race. An
+      # error here reaches the outer rescue: a write that could not be checked
+      # is not reported as saved.
+      #
+      # Asked in both auth modes. In full mode a LOGOUT also removes the
+      # active-session row, which makes a written-back copy refusable
+      # (Onetime::ActiveSessionGate.end_session), but a single-session revoke
+      # (Operations::Sessions::RevokeForCustomer, DeleteSession) deletes only
+      # the blob and leaves the row, so the row does not cover every way a
+      # session ends. The EXISTS costs this method nothing net: it takes the
+      # place of the TTL read that used to feed the trace line at the end.
+      if Onetime::SessionEnded.ended?(sid_string, dbclient: @dbclient)
+        stringkey.del
+        Onetime::SessionSidecar.purge(sid_string, dbclient: @dbclient)
+        session_logger.info 'Session write refused: the session was ended during this request',
+          {
+            session_handle: handle,
+            operation: 'write',
+          }
+        return false
       end
 
       # Best-effort per-customer session sidecar (spec 40; adaptation #2). This
@@ -802,7 +889,7 @@ module Onetime
         rescue StandardError => ex
           session_logger.error 'Session metadata sidecar failed (swallowed)',
             {
-              session_id: sid_for_log(sid_string),
+              session_handle: handle,
               error: ex.message,
               error_class: ex.class.name,
               operation: 'write',
@@ -811,8 +898,9 @@ module Onetime
       end
 
       # Calculate session data metrics for logging
+      # The TTL is the one this method just set, not a second read of it.
       data_size  = signed_data.bytesize
-      ttl_value  = stringkey.ttl
+      ttl_value  = (write_ttl && write_ttl > 0 ? write_ttl : @expire_after).to_i
       expires_at = ttl_value > 0 ? Time.now + ttl_value : nil
 
       # Deliberately sparse (audit L-3/L-4): the old entry logged account_id,
@@ -821,7 +909,7 @@ module Onetime
       # TTL and a single authenticated boolean cover the debugging need.
       session_logger.trace 'Session saved successfully',
         {
-          session_id: sid_for_log(sid_string),
+          session_handle: handle,
           key_count: session_data&.size,
           authenticated: session_data&.[]('authenticated') == true,
           ttl: ttl_value,
@@ -838,7 +926,7 @@ module Onetime
       # Log error with structured context
       session_logger.error 'Error writing session',
         {
-          session_id: sid_for_log(sid_string),
+          session_handle: handle,
           key_count: session_data&.size,
           error: ex.message,
           error_class: ex.class.name,
@@ -846,8 +934,92 @@ module Onetime
           operation: 'write',
         }
 
+      # Compensating delete (RISK-2026-09-19-01): if the blob SET completed
+      # before the exception (e.g. Onetime::SessionEnded.ended? raised on a
+      # datastore error), the freshly-written blob would otherwise survive
+      # under an already-ended sid and the browser would keep a working
+      # session. Mirror the successful ended?-true branch: del + purge the
+      # sidecars. Gated on blob_written so a pre-SET failure never touches a
+      # key that may belong to a concurrent writer.
+      #
+      # Own begin/rescue so a cleanup failure cannot mask the original
+      # exception; the rescue keeps this method's original return value.
+      if blob_written
+        begin
+          stringkey&.del
+          Onetime::SessionSidecar.purge(sid_string, dbclient: @dbclient)
+          session_logger.info 'Session write failed; compensating delete attempted',
+            {
+              session_handle: handle,
+              error: ex.message,
+              error_class: ex.class.name,
+              operation: 'write',
+            }
+        rescue StandardError => cleanup_ex
+          session_logger.error 'Session write compensating delete failed',
+            {
+              session_handle: handle,
+              original_error: ex.message,
+              cleanup_error: cleanup_ex.message,
+              cleanup_error_class: cleanup_ex.class.name,
+              operation: 'write',
+            }
+        end
+      end
+
       # Return false to indicate failure
       false
+    end
+
+    # The TTL to give the blob on this write.
+    #
+    # The blob's TTL is an inactivity clock: the only one in simple auth mode,
+    # and the shorter of two in full mode. Resetting it on every write is what
+    # keeps an active user signed in, and is exactly what a request that is not
+    # activity must not do (Onetime::SessionActivity): a tab that only polls
+    # GET /bootstrap/me would otherwise never expire, and a session refused
+    # during an authdb outage would come back with a fresh deadline.
+    #
+    # Such a request keeps the blob's remaining TTL. Redis reports whole
+    # seconds rounded down, so repeated polls can only shorten it. A key that
+    # does not exist yet (-2: a new or regenerated session) or that has no
+    # expiry (-1) gets @expire_after, as does any failure to read the TTL:
+    # the fallback is today's behaviour, never an immortal key.
+    #
+    # The sidecar's snapshot_version counter is refreshed to @expire_after by
+    # its own allocator on every ordered request, poll included, so it may
+    # outlive the blob by less than @expire_after. It is purged with the
+    # session and TTL-bounded otherwise.
+    def expiration_for_write(sid_string, env)
+      return @expire_after if Onetime::SessionActivity.counts?(env)
+
+      remaining = get_stringkey(sid_string)&.ttl.to_i
+      return @expire_after unless remaining.positive?
+
+      @expire_after.to_i.positive? ? [remaining, @expire_after].min : remaining
+    rescue StandardError => ex
+      session_logger.warn 'Remaining session TTL unreadable; using the default',
+        {
+          session_handle: log_handle(sid_string),
+          error_class: ex.class.name,
+          operation: 'write',
+        }
+      @expire_after
+    end
+
+    # The identifier session log lines carry (#4461). The sid is the bearer
+    # credential: anyone who can read it out of a log can replay it as the
+    # cookie. The handle is a keyed digest of it, the same one the colonel
+    # session view shows, so a log line still joins to a session an operator
+    # can see and revoke, and cannot be turned back into the sid.
+    #
+    # @param sid [String, Rack::Session::SessionId, nil]
+    # @return [String, nil]
+    def log_handle(sid)
+      plain = sid.respond_to?(:public_id) ? sid.public_id : sid
+      Onetime::SessionMetadata.handle_for(plain)
+    rescue StandardError
+      nil
     end
 
     # Clean up expired sessions (optional, can be called periodically)

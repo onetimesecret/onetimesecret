@@ -2,6 +2,8 @@
 
 import { useMagicLink } from '@/shared/composables/useMagicLink';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
+import { authenticatedBootstrap } from '@/tests/fixtures/bootstrap.fixture';
+import { toWire } from '@/tests/fixtures/bootstrap-wire';
 import { setupTestPinia, type TestPiniaSetup } from '@/tests/setup';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -132,7 +134,12 @@ describe('useMagicLink', () => {
     beforeEach(() => {
       mockRoute.query = {};
       mockRouterPush.mockClear();
-      setup.axiosMock?.onGet('/bootstrap/me').reply(200, { authenticated: true });
+      // ADR-046#auth-completion-caller-contract: post-#4464 the coordinator refuses a snapshot
+      // without cust (effectiveAuthStatus → 'unavailable'). ensureAuthenticated then returns
+      // 'status-mismatch' and verifyMagicLink refuses to navigate. Supply the
+      // canonical authenticated fixture (wire encoding) so the classifier
+      // sees a real identity.
+      setup.axiosMock?.onGet('/bootstrap/me').reply(200, toWire(authenticatedBootstrap));
       setup.axiosMock?.onPost('/auth/email-login').reply(200, { success: 'Signed in' });
     });
 

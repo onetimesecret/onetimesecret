@@ -52,6 +52,10 @@ RSpec.describe 'impersonation overlay at the identity call sites' do
       'authenticated_at' => now,
       'external_id' => 'ur_colonel',
       'role' => 'colonel',
+      # #4409: the strategy's surface-bound check runs BEFORE the customer
+      # load and impersonation resolution, so the session needs a matching
+      # marker for that check to pass on the canonical env below.
+      Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
       Onetime::SessionImpersonation::SESSION_KEY => marker,
     }
   end
@@ -69,15 +73,19 @@ RSpec.describe 'impersonation overlay at the identity call sites' do
 
     let(:env) do
       {
-        'rack.session' => session,
-        'REMOTE_ADDR' => '127.0.0.1',
-        'HTTP_USER_AGENT' => 'Test/1.0',
+        'rack.session'            => session,
+        'REMOTE_ADDR'             => '127.0.0.1',
+        'HTTP_USER_AGENT'         => 'Test/1.0',
+        # #4409: request surface must match the session's stored marker
+        # (canonical) or the strategy's surface check refuses before impersonation.
+        'onetime.domain_strategy' => :canonical,
       }
     end
 
     before do
-      # The principal is loaded from external_id; the resolver loads the target.
-      allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+      # The principal is loaded from external_id (extid-only); the impersonation
+      # resolver loads the target through the broader email-tolerant loader.
+      allow(Onetime::Customer).to receive(:find_by_extid)
         .with('ur_colonel').and_return(colonel)
       allow(Onetime::Customer).to receive(:load_by_extid_or_email)
         .with('ur_target').and_return(target)
@@ -142,19 +150,25 @@ RSpec.describe 'impersonation overlay at the identity call sites' do
       Class.new do
         include Onetime::Helpers::SessionHelpers
 
-        attr_reader :session
+        attr_reader :session, :request
 
-        def initialize(session)
+        def initialize(session, request = nil)
           @session = session
+          @request = request
         end
       end
     end
 
-    subject(:helper) { helper_class.new(session) }
+    # #4409: authenticated? consults env for the surface check; the helper
+    # must be given a request so env resolution succeeds.
+    let(:canonical_env) { { 'onetime.domain_strategy' => :canonical } }
+    subject(:helper) { helper_class.new(session, instance_double(Rack::Request, env: canonical_env)) }
 
     before do
       allow(helper).to receive(:session_auth_enforced?).and_return(true)
-      allow(Onetime::Customer).to receive(:find_by_extid).with('ur_colonel').and_return(colonel)
+      allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:active)
+      allow(Onetime::Customer).to receive(:find_by_extid)
+        .with('ur_colonel').and_return(colonel)
       allow(Onetime::Customer).to receive(:load_by_extid_or_email)
         .with('ur_target').and_return(target)
       allow(target).to receive(:exists?).and_return(true)

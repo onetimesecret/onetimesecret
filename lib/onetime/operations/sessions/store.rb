@@ -6,6 +6,7 @@ require 'json'
 require 'redis' # for Redis::CommandError in the defensive load_data rescue
 require 'onetime/session/codec' # canonical decryptor injected into load_data
 require 'onetime/models/session_metadata' # handle_for — the non-bearer session id
+require 'onetime/session/ended' # the marker every blob delete sets first
 
 module Onetime
   module Operations
@@ -182,6 +183,34 @@ module Onetime
           return false unless data.is_a?(Hash)
 
           IDENTITY_FIELDS.any? { |f| !data[f].to_s.empty? }
+        end
+
+        # Delete a session blob: the ONE way the session operations end a
+        # session. The ended-marker goes in first (Onetime::SessionEnded), so
+        # a request that loaded the session before this and commits after it
+        # cannot write the blob back and undo the revocation
+        # (RISK-2026-09-19-01). A bare `del` leaves that race open; do not
+        # call one on a session key.
+        #
+        # ## Refusal contract
+        #
+        # When {Onetime::SessionEnded.mark} returns false (transient datastore
+        # failure), the DEL is REFUSED and this returns nil. The invariant is
+        # "no blob delete without a live marker": deleting the blob after a
+        # failed marker would leave a post-write EXISTS check with nothing to
+        # find, and an in-flight writer's copy would survive as a working
+        # session. Callers observe nil and log the refusal (see
+        # {Onetime::SessionEnded.handle_for} for a sid-safe log identifier).
+        #
+        # @param dbclient [Object] Redis-like client
+        # @param key [String] the resolved session key ({find_key}, {scan_keys})
+        # @return [Integer, nil] the DEL reply, or nil when the marker could
+        #   not be written and the DEL was refused
+        def destroy_blob(dbclient, key)
+          sid = extract_id(key)
+          return nil unless Onetime::SessionEnded.mark(sid, dbclient: dbclient)
+
+          dbclient.del(key)
         end
 
         # Recover the bare session id from a full key. Strips EVERY leading

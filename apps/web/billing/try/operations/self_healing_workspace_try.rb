@@ -15,7 +15,7 @@ require 'onetime'
 
 OT.boot! :test, false
 
-require_relative '../../../auth/operations/create_default_workspace'
+require_relative '../../../auth/operations/ensure_default_workspace'
 require_relative '../../controllers/billing'
 
 # Setup: Create test customer
@@ -27,8 +27,8 @@ require_relative '../../controllers/billing'
 @customer.organization_instances.empty?
 #=> true
 
-## Can check CreateDefaultWorkspace operation directly
-result = Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
+## Can check EnsureDefaultWorkspace operation directly
+result = Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer).call
 @org   = result[:organization]
 @org.class.name
 #=> 'Onetime::Organization'
@@ -43,7 +43,7 @@ result = Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
 
 ## Verifies workspace creation is idempotent (doesn't create duplicates)
 @customer.organization_instances.size
-Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
+Auth::Operations::EnsureDefaultWorkspace.new(customer: @customer).call
 @customer.organization_instances.size
 #=> 1
 

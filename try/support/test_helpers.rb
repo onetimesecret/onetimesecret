@@ -158,6 +158,24 @@ def with_csrf(args)
   args
 end
 
+# Tryouts integration files commonly construct an authenticated Rack session by
+# hand. A real login records the canonical surface before the first protected
+# request; make those hand-seeded sessions equivalent while preserving an
+# explicitly supplied descriptor for tests exercising a non-canonical surface.
+module TryoutsCanonicalSessionSurface
+  def custom_request(verb, uri, params = {}, env = {}, &)
+    session = env['rack.session']
+    if session.is_a?(Hash) && session['authenticated'] == true &&
+        !session.key?(Onetime::SessionSurface::KEY)
+      session[Onetime::SessionSurface::KEY] = Onetime::SessionSurface::CANONICAL
+    end
+
+    super
+  end
+end
+
+Rack::Test::Session.prepend(TryoutsCanonicalSessionSurface) if defined?(Rack::Test::Session)
+
 def generate_random_email
   # Generate a random username
   username = (0...8).map { ('a'..'z').to_a[rand(26)] }.join

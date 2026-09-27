@@ -232,11 +232,7 @@ module Auth
         sequel_logger.debug 'Creating migration database connection',
           url_type: database_url == Onetime.auth_config.database_url ? 'standard' : 'elevated'
 
-        Sequel.connect(
-          database_url,
-          logger: Onetime.get_logger('Sequel'),
-          sql_log_level: :trace,
-        )
+        Auth::Database.connect(database_url)
       end
 
       def run_migrations

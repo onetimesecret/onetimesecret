@@ -451,6 +451,37 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
         .to eq(described_class::PROVIDER_TYPES.sort)
     end
 
+    # Tenant isolation rests on each tenant resolving a DISTINCT issuer.
+    # OIDC and Entra do; the remaining registry providers do not, in two
+    # different ways, and neither is visible from the :issuer_capable flag:
+    #
+    #   issuerless (google, github) resolve to the ''
+    #     sentinel and are refused on the tenant surface by
+    #     refuse_issuerless_on_tenant?.
+    #   issuer-capable but NOT tenant-distinct (apple) carries a
+    #     DEPLOYMENT CONSTANT — the single global
+    #     https://appleid.apple.com. A
+    #     non-empty resolved issuer is exactly what disables that refusal, so
+    #     the second group is held off the tenant surface only by its absence
+    #     from PROVIDER_ROUTE_MAP.
+    #
+    # That makes this map's contents a security boundary, not a convenience.
+    # Adding a route here for a constant-issuer provider would let every
+    # tenant's callback resolve the SAME (provider, issuer, uid) key and
+    # silently inherit the platform's identity rows. This guard fails on that
+    # edit and points at the work it requires first.
+    it 'admits no provider whose issuer is not tenant-distinct' do
+      tenant_routes  = described_class::PROVIDER_ROUTE_MAP.values.map { |entry| entry[:default] }
+      not_distinct   = %w[google github apple]
+      wrongly_tenant = tenant_routes & not_distinct
+
+      expect(wrongly_tenant).to be_empty,
+        "#{wrongly_tenant.inspect} resolve the same issuer for every tenant. Routing them " \
+        'through tenant SSO would collapse all tenants onto one identity key. Give the ' \
+        'provider a tenant-distinct issuer (and teach resolve_issuer to read it) before ' \
+        'adding it here.'
+    end
+
     it 'to_omniauth_options dispatches every PROVIDER_TYPES value' do
       fake_domain = instance_double(Onetime::CustomDomain, extid: 'cd_guard_extid')
       allow_any_instance_of(described_class).to receive(:custom_domain).and_return(fake_domain)

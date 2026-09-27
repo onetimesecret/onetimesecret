@@ -79,6 +79,8 @@ export const colonelSigninConfigSchema = z.object({
   email_auth_enabled: z.boolean(),
   sso_enabled: z.boolean(),
   restrict_to: z.string().nullable(),
+  /** Exact browser origins whose passkeys may be offered here (#4414). */
+  related_origins: z.array(z.string()),
   ...configTimestamps,
 });
 

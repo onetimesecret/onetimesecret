@@ -6,8 +6,9 @@
 #
 # Aggregates every relevant signal for one identifier — customer record,
 # Rodauth account status, lockout/login failures, verification and reset keys,
-# MFA, active sessions, authentication audit log, and the login rate limiter —
-# and prints a triage summary (findings) followed by the evidence (sections).
+# MFA, active sessions, authentication audit log, the login rate limiter, and
+# raw contact-email-index workspace collisions — then prints a triage summary
+# (findings) followed by the evidence (sections).
 #
 # Usage:
 #   bin/ots customers diagnose user@example.com
@@ -29,7 +30,7 @@ module Onetime
     class CustomersDiagnoseCommand < Command
       include Customers::Shared
 
-      desc 'Diagnose why an account cannot log in or sign up'
+      desc 'Diagnose login, signup, and default-workspace provisioning failures'
 
       argument :identifier,
         type: :string,

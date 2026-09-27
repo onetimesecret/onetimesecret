@@ -775,6 +775,105 @@ RSpec.describe Onetime::Jobs::Publisher do
     #
     # See: spec/integration/all/jobs/rabbitmq_publishing_spec.rb for full coverage
 
+    # Sync-fallback bookkeeping semantics (#4347): when jobs are disabled the
+    # publisher must transition the event record the same way the async worker
+    # does — mark_success! on happy path, mark_failed! + re-raise on
+    # processing failure — and MUST swallow any bookkeeping failure that
+    # happens AFTER side effects have been applied so that a Redis blip
+    # doesn't cause Stripe to redeliver an already-applied event.
+    context 'when jobs are disabled (sync fallback)' do
+      let(:webhook_record) { instance_double(Billing::StripeWebhookEvent) }
+      let(:operation) { instance_double(Billing::Operations::ProcessWebhookEvent) }
+      let(:logger_double) { double('logger', info: nil, warn: nil, error: nil) }
+
+      before do
+        $rmq_channel_pool = nil
+        # The publisher does a lazy `require 'apps/web/billing/operations/process_webhook_event'`
+        # inside the sync-fallback branch. The project root is on $LOAD_PATH
+        # at boot in the real app but not for a bare unit spec — add it here
+        # so the require resolves, and preload the model so the constant is
+        # available to stub.
+        project_root = File.expand_path('../../../..', __dir__)
+        $LOAD_PATH.unshift(project_root) unless $LOAD_PATH.include?(project_root)
+        require 'apps/web/billing/models/stripe_webhook_event'
+        require 'apps/web/billing/operations/process_webhook_event'
+        allow(Billing::Operations::ProcessWebhookEvent).to receive(:new).and_return(operation)
+        allow(Billing::StripeWebhookEvent).to receive(:find_by_identifier)
+          .with('evt_123').and_return(webhook_record)
+        allow(webhook_record).to receive(:mark_success!)
+        allow(webhook_record).to receive(:mark_failed!)
+        allow(publisher).to receive(:logger).and_return(logger_double)
+      end
+
+      it 'runs the processing op inline and marks the event success with the outcome' do
+        allow(operation).to receive(:call).and_return(:applied)
+
+        expect(publisher.enqueue_billing_event(mock_event, payload)).to be true
+
+        expect(Billing::Operations::ProcessWebhookEvent).to have_received(:new).with(
+          event: mock_event,
+          context: { source: :sync_fallback },
+        )
+        expect(webhook_record).to have_received(:mark_success!).with(outcome: :applied)
+        expect(webhook_record).not_to have_received(:mark_failed!)
+      end
+
+      it 'marks the event failed and re-raises when processing raises' do
+        boom = StandardError.new('processing exploded')
+        allow(operation).to receive(:call).and_raise(boom)
+
+        expect {
+          publisher.enqueue_billing_event(mock_event, payload)
+        }.to raise_error(StandardError, 'processing exploded')
+
+        expect(webhook_record).to have_received(:mark_failed!).with(boom)
+        expect(webhook_record).not_to have_received(:mark_success!)
+      end
+
+      it 'still re-raises when bookkeeping ALSO fails after processing raises' do
+        boom = StandardError.new('processing exploded')
+        allow(operation).to receive(:call).and_raise(boom)
+        allow(webhook_record).to receive(:mark_failed!)
+          .and_raise(StandardError.new('redis down during mark_failed'))
+
+        expect {
+          publisher.enqueue_billing_event(mock_event, payload)
+        }.to raise_error(StandardError, 'processing exploded')
+
+        expect(logger_double).to have_received(:error).with(
+          'Sync-fallback bookkeeping failed after processing error',
+          hash_including(event_id: 'evt_123'),
+        )
+      end
+
+      # THIS is the core anti-redelivery guarantee. ProcessWebhookEvent has
+      # already applied side effects; a Redis blip in the mark_success!
+      # bookkeeping call MUST NOT surface as a 500, or Stripe will redeliver
+      # the same event and re-apply the side effects.
+      it 'does NOT re-raise when bookkeeping fails AFTER successful processing' do
+        allow(operation).to receive(:call).and_return(:applied)
+        allow(webhook_record).to receive(:mark_success!)
+          .and_raise(StandardError.new('redis down during mark_success'))
+
+        expect {
+          publisher.enqueue_billing_event(mock_event, payload)
+        }.not_to raise_error
+
+        expect(logger_double).to have_received(:error).with(
+          'Failed to mark sync-fallback event success',
+          hash_including(event_id: 'evt_123'),
+        )
+      end
+
+      it 'tolerates a missing webhook record on success (find_by_identifier returns nil)' do
+        allow(operation).to receive(:call).and_return(:noop)
+        allow(Billing::StripeWebhookEvent).to receive(:find_by_identifier)
+          .with('evt_123').and_return(nil)
+
+        expect(publisher.enqueue_billing_event(mock_event, payload)).to be true
+      end
+    end
+
     context 'when RabbitMQ is available' do
       let(:mock_pool) { instance_double(ConnectionPool) }
       let(:mock_channel) { instance_double(Bunny::Channel) }

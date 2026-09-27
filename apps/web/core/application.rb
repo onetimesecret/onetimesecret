@@ -10,6 +10,7 @@ require 'onetime/logger_methods'
 
 require_relative 'middleware/request_setup'
 require_relative 'middleware/error_handling'
+require_relative 'middleware/snapshot_ordering'
 require_relative 'middleware/vite_proxy'
 
 require_relative 'logic'
@@ -99,6 +100,12 @@ module Core
     # (QA 2026-07-07). The middleware claims only its allowlisted paths, so
     # all other requests pass through unchanged.
     use Onetime::Middleware::StaticFiles
+
+    # Bootstrap snapshot ordering (ADR-046). Innermost on purpose: after the
+    # session is loaded, behind StaticFiles so asset requests allocate nothing,
+    # and ahead of the router so the version is stamped before the
+    # authentication strategy reads any state the snapshot will carry.
+    use Core::Middleware::SnapshotOrdering
 
     warmup do
       # Expensive initialization tasks go here

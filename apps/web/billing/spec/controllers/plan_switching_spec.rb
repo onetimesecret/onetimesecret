@@ -57,6 +57,8 @@ RSpec.describe 'Plan Switching Workflow', :integration do
     # and validates X-CSRF-Token header against it (supports both masked and unmasked)
     env 'rack.session', {
       'authenticated' => true,
+      # #4409: hand-seeded sessions need the surface marker the login hooks record.
+      Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
       'external_id' => customer.extid,
       :csrf => csrf_token,
     }
@@ -1679,6 +1681,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
         other_customer.save
         env 'rack.session', {
           'authenticated' => true,
+          Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
           'external_id' => other_customer.extid,
         }
       end

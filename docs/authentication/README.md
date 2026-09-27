@@ -19,5 +19,13 @@ Background on the two modes and how strategies resolve lives in
   domain, including the organization-join flow.
 - [webauthn-credential-types.md](./webauthn-credential-types.md) — Supported
   WebAuthn credential types and their handling.
+- [customer-session-failure-matrix.md](./customer-session-failure-matrix.md) —
+  What every surface answers for each customer-session state, where they
+  diverge, and the `auth_status` / failure-code / snapshot-ordering wire
+  contract. Prose twin of the executable matrix specs.
+- [session-consistency-rollout.md](./session-consistency-rollout.md) —
+  Deployment notes for the v0.26.13 session-consistency package: deploying the
+  backend and frontend together, the unversioned-payload rule, operator-visible
+  changes, and the staging review signals.
 - [omniauth-testing.md](./omniauth-testing.md) — Testing patterns for the
   OmniAuth SSO flows.

@@ -81,6 +81,10 @@ export const baseBootstrap: BootstrapPayload = {
   // Test CSRF token
   shrimp: 'test-csrf-token',
 
+  // The serializer always emits a status (#4462); the base state is anonymous.
+  // `.optional()` in the schema, so it is absent from schemaDefaults.
+  auth_status: 'anonymous',
+
   // Test domain configuration
   canonical_domain: 'test.onetimesecret.com',
   // AC1 shape (#4063): LINK_DOMAINS unset, so the server resolves the pool to
@@ -133,6 +137,10 @@ export const baseBootstrap: BootstrapPayload = {
   // fields (see the matching `DEFAULTS` comment in bootstrapStore.ts).
   customer_since: undefined,
   organization: undefined,
+  // Snapshot ordering (ADR-046): absent unless the session is ordered.
+  snapshot_epoch: undefined,
+  snapshot_version: undefined,
+  snapshot_generated_at: undefined,
   entitlement_preview_planid: undefined,
   entitlement_preview_plan_name: undefined,
   nonce: null,
@@ -161,11 +169,28 @@ export const baseBootstrap: BootstrapPayload = {
 // =============================================================================
 
 /**
+ * A valid ADR-046 ordering pair. The server sends one with EVERY payload that
+ * reports a session (authenticated or MFA-pending), so the session fixtures
+ * below carry it; anonymous and unavailable payloads never do. Use
+ * `newerSnapshot()` to build the next snapshot of the same stream.
+ */
+export const snapshotOrdering = {
+  snapshot_epoch: '0123456789abcdef0123456789abcdef',
+  snapshot_version: '1758236400000001',
+  snapshot_generated_at: '2026-09-17T17:28:59.123456Z',
+} as const;
+
+/** A second session's epoch: what a login elsewhere or an SID renewal produces. */
+export const otherSnapshotEpoch = 'fedcba9876543210fedcba9876543210';
+
+/**
  * Authenticated user bootstrap state.
  * User is fully authenticated with customer data.
  */
 export const authenticatedBootstrap: BootstrapPayload = {
   ...baseBootstrap,
+  ...snapshotOrdering,
+  auth_status: 'authenticated',
   authenticated: true,
   awaiting_mfa: false,
   had_valid_session: true,
@@ -180,6 +205,7 @@ export const authenticatedBootstrap: BootstrapPayload = {
  */
 export const anonymousBootstrap: BootstrapPayload = {
   ...baseBootstrap,
+  auth_status: 'anonymous',
   authenticated: false,
   awaiting_mfa: false,
   had_valid_session: false,
@@ -194,12 +220,27 @@ export const anonymousBootstrap: BootstrapPayload = {
  */
 export const mfaPendingBootstrap: BootstrapPayload = {
   ...baseBootstrap,
+  ...snapshotOrdering,
+  auth_status: 'mfa_pending',
   authenticated: false,
   awaiting_mfa: true,
   had_valid_session: true,
-  cust: mockCustomer,
-  custid: mockCustomer.extid,
-  email: mockCustomer.email,
+  // No cust / custid / email: the server sends no identity until the second
+  // factor is verified (AuthenticationSerializer, #4462).
+};
+
+/**
+ * The session could not be verified (auth-DB outage, or an error-recovery
+ * render that still had a session). NOT a sign-out, and no identity.
+ * The refresh coordinator treats this as a failed refresh; hydration shows it
+ * as `unavailable`.
+ */
+export const unavailableBootstrap: BootstrapPayload = {
+  ...baseBootstrap,
+  auth_status: 'unavailable',
+  authenticated: false,
+  awaiting_mfa: false,
+  had_valid_session: true,
 };
 
 /**
@@ -238,3 +279,44 @@ export const standaloneBootstrap: BootstrapPayload = {
   ...authenticatedBootstrap,
   billing_enabled: false,
 };
+
+/**
+ * The next snapshot of the same stream: same epoch, strictly greater version.
+ * A refresh response must be newer than the snapshot the tab holds, or the
+ * coordinator classifies it as an anomaly (ADR-046 rule 4).
+ *
+ * @param by - How far to advance; use increasing values for a sequence
+ */
+export function newerSnapshot(payload: BootstrapPayload, by: number = 1): BootstrapPayload {
+  const current = BigInt(payload.snapshot_version ?? snapshotOrdering.snapshot_version);
+  return {
+    ...payload,
+    snapshot_epoch: payload.snapshot_epoch ?? snapshotOrdering.snapshot_epoch,
+    snapshot_version: (current + BigInt(by)).toString(),
+  };
+}
+
+/** The same payload as the start of ANOTHER session's stream. */
+export function inOtherEpoch(payload: BootstrapPayload): BootstrapPayload {
+  return { ...payload, snapshot_epoch: otherSnapshotEpoch };
+}
+
+/**
+ * Puts a bootstrap store into a given authentication state the only way
+ * production can (#4458): by applying a complete, contract-valid snapshot.
+ *
+ * `bootstrapStore.update({ authenticated: true })` and
+ * `authStore.$patch({ isAuthenticated: true })` no longer do anything: local
+ * patches cannot state who is signed in, and authStore holds no flag.
+ *
+ * @example
+ *   applyBootstrap(bootstrapStore, authenticatedBootstrap, { email: 'a@b.c' });
+ *   applyBootstrap(bootstrapStore, anonymousBootstrap);
+ */
+export function applyBootstrap(
+  store: { applySnapshot: (snapshot: BootstrapPayload) => void },
+  scenario: BootstrapPayload,
+  overrides: Partial<BootstrapPayload> = {}
+): void {
+  store.applySnapshot(bootstrapSchema.parse({ ...scenario, ...overrides }));
+}

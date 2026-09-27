@@ -67,6 +67,20 @@ module Onetime
     # - sso_jit:          Just-in-time provisioning via OmniAuth/SSO
     PROVISIONING_ORIGINS = %w[canonical_signup domain_signup invite sso_jit].freeze
 
+    # Reasons and operator-facing wording for the verification_hold field: WHY
+    # an sso_jit customer was deliberately left unverified at JIT provisioning,
+    # even though Rodauth opened its accounts row at Verified. nil on every
+    # other record.
+    #
+    # Written once by Auth::Operations::EnsureCustomerForAccount and never
+    # rewritten. The customers doctor reports a held record for manual
+    # verification instead of auto-repairing it (see
+    # Auth::Operations::Customers::Doctor#check_sso_customer_unverified).
+    VERIFICATION_HOLDS = {
+      'idp_unverified' => 'the IdP asserted email_verified: false at sign-in',
+      'claim_unreadable' => "the IdP's email_verified claim could not be read at sign-in",
+    }.freeze
+
     require_relative 'customer/features'
 
     using Familia::Refinements::TimeLiterals
@@ -211,6 +225,37 @@ module Onetime
     # for paths that don't set it (CLI, tests, migrations).
     field :provisioning_origin
 
+    # Persisted, non-sensitive account provisioning failure state. The code is
+    # stable for routing/alerting, classification is the bounded workspace
+    # collision category, and the timestamp records when support should begin
+    # its investigation. No exception message, email, or organization id is
+    # stored here.
+    field :provisioning_failure_code
+    field :provisioning_failure_classification
+    field :provisioning_failed_at
+
+    def provisioning_failed?
+      !provisioning_failure_code.to_s.empty?
+    end
+
+    def mark_provisioning_failed!(code:, classification:, at: Familia.now.to_f)
+      self.provisioning_failure_code           = code.to_s
+      self.provisioning_failure_classification = classification.to_s
+      self.provisioning_failed_at              = at
+      save
+    end
+
+    def clear_provisioning_failure!
+      return false unless provisioning_failed? || !provisioning_failure_classification.to_s.empty? ||
+                          !provisioning_failed_at.to_s.empty?
+
+      self.provisioning_failure_code           = nil
+      self.provisioning_failure_classification = nil
+      self.provisioning_failed_at              = nil
+      save
+      true
+    end
+
     def init
       super
 
@@ -334,6 +379,21 @@ module Onetime
 
     class << self
       attr_reader :values, :dummy
+
+      # The ONE per-customer organization-creation lock key. Every creator
+      # (OrganizationAPI CreateOrganization and Auth EnsureDefaultWorkspace)
+      # takes a Familia::Lock on this same key, so a default-workspace
+      # provision and a user-initiated org create for the same customer
+      # serialize against each other: Organization.create! is not atomic
+      # (index reserve → save → add member), and a second creator classifying
+      # the first one's half-built org is what latched permanent 409s. Defined
+      # once here so the call sites cannot drift onto different keys.
+      #
+      # @param objid [String] the customer's objid
+      # @return [String]
+      def org_creation_lock_key(objid)
+        "customer:#{objid}:org_creation_lock"
+      end
 
       def create!(email = nil, **kwargs)
         # Handle both positional email argument (legacy) and keyword argument

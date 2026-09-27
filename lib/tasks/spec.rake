@@ -252,36 +252,41 @@ namespace :spec do
         ]
 
         sh env, "bundle exec rspec #{patterns.join(' ')} #{tag_filter} #{rspec_format_options}"
-
-        # AUTH_MFA_ENABLED specs need a SEPARATE process: Auth::Config is
-        # one-shot (auth-config-one-shot.md), so the shared full-mode process
-        # above — booted with MFA off — can never load the OTP feature set.
-        Rake::Task['spec:integration:full:mfa'].invoke if mode == 'full'
       end
     end
 
     desc 'Run full-mode specs that require AUTH_MFA_ENABLED=true (own process)'
     task 'full:mfa' do
       # Own process because Auth::Config configures exactly once per process
-      # (auth-config-one-shot.md): the Rodauth OTP feature set can only exist
-      # in a boot where AUTH_MFA_ENABLED was set from the start. SQLite lane
-      # only, mirroring the default full-mode environment above.
+      # (auth-config-one-shot.md): the Rodauth OTP, email_auth (magic link)
+      # and webauthn feature sets can only exist in a boot whose auth config
+      # said so from the start. In :full_auth_mode that config is
+      # AuthModeHelpers::MockAuthConfig (mfa_enabled hardcoded true; the
+      # email_auth and webauthn flags read the env below). AUTH_MFA_ENABLED
+      # here is the separate-process defence against ambient env, not what
+      # loads the feature. SQLite lane only, mirroring the default full-mode
+      # environment above. Keep identical to tests/lanes/full-mfa/env.
       env = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => 'sqlite::memory:',
         'ORGS_SSO_ENABLED' => 'true',
         'AUTH_MFA_ENABLED' => 'true',
+        'AUTH_EMAIL_AUTH_ENABLED' => 'true',
+        # Passkey-as-second-factor coverage (omniauth_connect_reauth_webauthn_spec)
+        # needs the Rodauth webauthn feature set in the same one-shot boot.
+        'AUTH_WEBAUTHN_ENABLED' => 'true',
       }
 
+      # This task is the full-mfa lane's only task, so an empty glob would
+      # otherwise pass the "SQLite, MFA" CI row with zero examples (e.g.
+      # after a directory rename). Fail loudly instead.
       patterns = Dir.glob('apps/*/*/spec/integration/full_mfa')
-      if patterns.empty?
-        warn '[spec:integration:full:mfa] no full_mfa spec directories found; nothing to run'
-        next
-      end
+      abort '[spec:integration:full:mfa] no apps/*/*/spec/integration/full_mfa directories found' if patterns.empty?
 
-      # Distinct results file so this lane never clobbers the main full-mode
-      # JSON output when CI sets RSPEC_OUTPUT_FILE for the parent task.
+      # Distinct results file so this task never clobbers the full-mode JSON
+      # output when both run in one rake process with RSPEC_OUTPUT_FILE set
+      # (spec:integration:all).
       sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database #{rspec_format_options('mfa')}"
     end
 
@@ -416,10 +421,10 @@ namespace :spec do
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'
-    task all: INTEGRATION_MODES + %w[oauth strategies]
+    task all: INTEGRATION_MODES + %w[full:mfa oauth strategies]
 
     desc 'Run all integration tests including Postgres'
-    task 'all:with_postgres': INTEGRATION_MODES + ['full:postgres']
+    task 'all:with_postgres': INTEGRATION_MODES + ['full:mfa', 'full:postgres']
   end
 
   # API contract specs (spec/api/) are organized by API surface and version

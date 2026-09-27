@@ -375,7 +375,7 @@ module Billing
         @org.subscription_status = @subscription.status
 
         period_end                   = @subscription.items.data.first&.current_period_end
-        @org.subscription_period_end = period_end.to_s if period_end
+        @org.subscription_period_end = period_end if period_end
       end
 
       # Resolve plan from catalog (owner) or metadata (federated)

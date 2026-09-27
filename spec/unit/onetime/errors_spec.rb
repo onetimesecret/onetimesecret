@@ -15,6 +15,39 @@ require 'spec_helper'
 # Mirrors the pattern used for EntitlementRequired (see
 # spec/unit/onetime/logic/require_entitlement_spec.rb for context).
 
+RSpec.describe Onetime::AccountProvisioningFailed do
+  it 'serializes only the stable non-sensitive provisioning state' do
+    error = described_class.new(
+      code: 'default_workspace_collision',
+      classification: 'retained_data',
+      failed_at: '1700000000.5',
+    )
+
+    expect(error.to_h).to eq(
+      error: described_class::DEFAULT_MESSAGE,
+      error_type: 'AccountProvisioningFailed',
+      code: 'default_workspace_collision',
+      classification: 'retained_data',
+      failed_at: 1_700_000_000.5,
+    )
+  end
+end
+
+RSpec.describe Onetime::AccountProvisioningUnavailable do
+  it 'serializes a bounded reason and retry_after, never the collision evidence' do
+    collision = double('collision', classification: :unreadable)
+    error     = described_class.new(reason: 'collision_unreadable', collision: collision)
+
+    expect(error.collision).to be(collision)
+    expect(error.to_h).to eq(
+      error: described_class::DEFAULT_MESSAGE,
+      error_type: 'AccountProvisioningUnavailable',
+      reason: :collision_unreadable,
+      retry_after: described_class::RETRY_AFTER,
+    )
+  end
+end
+
 RSpec.describe Onetime::LimitExceeded do
   describe '#initialize' do
     it 'defaults to legacy message when none provided' do
@@ -164,6 +197,14 @@ RSpec.describe 'Onetime error #to_s tracks @message mutation' do
   end
 
   describe Onetime::FormError do
+    it 'serializes optional structured details without changing legacy payloads' do
+      legacy = described_class.new('legacy')
+      error  = described_class.new('blocked', details: { status: :refused, blockers: [{ code: :billing_state }] })
+
+      expect(legacy.to_h).not_to have_key(:details)
+      expect(error.to_h[:details]).to eq(status: :refused, blockers: [{ code: :billing_state }])
+    end
+
     it 'returns the mutated @message via to_s, not the constructor-time string' do
       error = described_class.new('original form error')
       error.message = 'localized form error'

@@ -156,6 +156,29 @@ export function updateBootstrapSnapshot(data: Partial<BootstrapPayload>): void {
 }
 
 /**
+ * Replaces the bootstrap snapshot with a complete one (#4458).
+ *
+ * `updateBootstrapSnapshot` merges, and a merge cannot express omission: a
+ * key the new snapshot leaves out keeps its previous value. That is wrong for
+ * a COMPLETE snapshot — after an account change or a loss of authority the
+ * previous account's fields must not stay readable through
+ * `getBootstrapValue()`. bootstrapStore.applySnapshot() calls this so the
+ * mirror and the store are replaced in the same step.
+ *
+ * Undefined values are dropped so `key in snapshot` stays honest.
+ */
+export function replaceBootstrapSnapshot(data: Partial<BootstrapPayload>): void {
+  const next: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) {
+      next[key] = value;
+    }
+  }
+  bootstrapSnapshot = next as Partial<BootstrapPayload>;
+  consumed = true;
+}
+
+/**
  * Removes a key from the bootstrap snapshot entirely.
  *
  * `updateBootstrapSnapshot` deliberately SKIPS undefined values, so it can
@@ -205,6 +228,7 @@ export const BootstrapService = {
   get: getBootstrapValue,
   getSnapshot: getBootstrapSnapshot,
   updateSnapshot: updateBootstrapSnapshot,
+  replaceSnapshot: replaceBootstrapSnapshot,
   clearSnapshotKey: clearBootstrapSnapshotKey,
   isConsumed: isBootstrapConsumed,
   _resetForTesting,

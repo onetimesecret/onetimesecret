@@ -78,6 +78,8 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
       'external_id' => colonel.extid,
       'role' => 'colonel',
       'authenticated' => true,
+      # #4409: hand-seeded sessions need the surface marker the login hooks record.
+      Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
       'authenticated_at' => Familia.now.to_i,
     }
   end

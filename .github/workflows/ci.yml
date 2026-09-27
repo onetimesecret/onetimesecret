@@ -455,9 +455,23 @@ jobs:
           debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
       # Uploads coverage/coverage.xml (Cobertura) to GitHub Code Quality.
-      # Skipped on forked PRs, which cannot write Code Quality data.
+      #
+      # Runs only where the Code Quality API accepts the upload:
+      # - a pull request from this repository (forks cannot write Code
+      #   Quality data), which carries the PR number the API needs; or
+      # - the default branch (the push baseline, or a dispatch on it).
+      # Anything else is a workflow_dispatch on a feature branch, which has
+      # no PR number, and the API answers 400 "Only default branch is allowed
+      # if no pull_request_number is provided". That failed the job, and in
+      # typescript-unit it skipped the type-check step after it. Skipping is
+      # chosen over fail-on-error: false so a real upload failure on a PR or
+      # on main still fails the job.
       - name: Upload coverage report
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        if: &if-coverage-upload >-
+          (github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository) ||
+          (github.event_name != 'pull_request' &&
+            github.ref == format('refs/heads/{0}', github.event.repository.default_branch))
         uses: actions/upload-code-coverage@d8e329117199404bba6fc81efe8093dc7c015e34 # v1.4.2
         with:
           file: coverage/coverage.xml
@@ -502,16 +516,20 @@ jobs:
         run: pnpm test:base run --coverage --printConsoleTrace
 
       # Uploads coverage/cobertura-coverage.xml (Cobertura) to Code Quality.
-      # Skipped on forked PRs, which cannot write Code Quality data.
+      # Same condition as the Ruby unit job; see the comment there.
       - name: Upload coverage report
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        if: *if-coverage-upload
         uses: actions/upload-code-coverage@d8e329117199404bba6fc81efe8093dc7c015e34 # v1.4.2
         with:
           file: coverage/cobertura-coverage.xml
           language: TypeScript
           label: code-coverage/vitest
 
+      # Independent of the steps above: a failed test run or a failed
+      # coverage upload must not hide a type error in the tests, so this runs
+      # unless the job was cancelled. It still fails the job on its own.
       - name: Run type checking tests
+        if: ${{ !cancelled() }}
         continue-on-error: false
         run: pnpm type-check:tests
 
@@ -670,6 +688,11 @@ jobs:
             overlay: 'billing'
             services: 'valkey rabbitmq'
             results-file: 'rspec_full_sqlite_billing_on_results.json'
+          - name: 'SQLite, MFA'
+            lane: full-mfa
+            overlay: ''
+            services: 'valkey rabbitmq'
+            results-file: 'rspec_full_mfa_results.json'
           - name: 'PG, billing: off'
             lane: full-pg
             overlay: ''

@@ -5,7 +5,8 @@ import { ref, nextTick } from 'vue';
 import { setActivePinia } from 'pinia';
 import { createTestingPinia } from '@pinia/testing';
 import { useSecretContext } from '@/shared/composables/useSecretContext';
-import { useAuthStore } from '@/shared/stores/authStore';
+import type { ClientAuthStatus } from '@/schemas/contracts/bootstrap';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 
 // Mock vue-i18n
@@ -26,6 +27,15 @@ const defaultBootstrapState = {
   domain_branding: {},
 };
 
+/**
+ * Authentication has one source (#4458): the bootstrap store's status, from
+ * which authStore's accessors derive. Actions are stubbed under this testing
+ * pinia, so the status (plain state) is set directly.
+ */
+function setAuthStatus(status: ClientAuthStatus): void {
+  useBootstrapStore().authStatus = status;
+}
+
 describe('useSecretContext', () => {
   beforeEach(() => {
     const pinia = createTestingPinia({
@@ -39,8 +49,7 @@ describe('useSecretContext', () => {
 
   describe('Actor Role Computation', () => {
     it('returns CREATOR when isOwner is true', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = true;
+      setAuthStatus('authenticated');
 
       const { actorRole } = useSecretContext({ isOwner: true });
 
@@ -48,8 +57,7 @@ describe('useSecretContext', () => {
     });
 
     it('returns RECIPIENT_AUTH when authenticated but not owner', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = true;
+      setAuthStatus('authenticated');
 
       const { actorRole } = useSecretContext({ isOwner: false });
 
@@ -57,8 +65,7 @@ describe('useSecretContext', () => {
     });
 
     it('returns RECIPIENT_ANON when not authenticated', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = false;
+      setAuthStatus('anonymous');
 
       const { actorRole } = useSecretContext({ isOwner: false });
 
@@ -66,8 +73,7 @@ describe('useSecretContext', () => {
     });
 
     it('defaults to RECIPIENT_ANON when no isOwner option provided', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = false;
+      setAuthStatus('anonymous');
 
       const { actorRole } = useSecretContext();
 
@@ -75,8 +81,7 @@ describe('useSecretContext', () => {
     });
 
     it('accepts reactive isOwner ref', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = true;
+      setAuthStatus('authenticated');
 
       const isOwnerRef = ref(false);
       const { actorRole } = useSecretContext({ isOwner: isOwnerRef });
@@ -88,8 +93,7 @@ describe('useSecretContext', () => {
     });
 
     it('accepts isOwner getter function', async () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = true;
+      setAuthStatus('authenticated');
 
       const ownerRef = ref(false);
       const { actorRole } = useSecretContext({ isOwner: () => ownerRef.value });
@@ -104,8 +108,7 @@ describe('useSecretContext', () => {
 
   describe('UI Config for CREATOR', () => {
     it('shows burn control for creators', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = true;
+      setAuthStatus('authenticated');
 
       const { uiConfig } = useSecretContext({ isOwner: true });
 
@@ -113,8 +116,7 @@ describe('useSecretContext', () => {
     });
 
     it('does not show entitlements upgrade for creators', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = true;
+      setAuthStatus('authenticated');
 
       const { uiConfig } = useSecretContext({ isOwner: true });
 
@@ -122,8 +124,7 @@ describe('useSecretContext', () => {
     });
 
     it('shows dashboard link for creators', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = true;
+      setAuthStatus('authenticated');
 
       const { uiConfig } = useSecretContext({ isOwner: true });
 
@@ -133,8 +134,7 @@ describe('useSecretContext', () => {
 
   describe('UI Config for RECIPIENT_AUTH', () => {
     it('does not show burn control for authenticated recipients', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = true;
+      setAuthStatus('authenticated');
 
       const { uiConfig } = useSecretContext({ isOwner: false });
 
@@ -142,8 +142,7 @@ describe('useSecretContext', () => {
     });
 
     it('does not show entitlements upgrade for authenticated recipients', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = true;
+      setAuthStatus('authenticated');
 
       const { uiConfig } = useSecretContext({ isOwner: false });
 
@@ -151,8 +150,7 @@ describe('useSecretContext', () => {
     });
 
     it('shows dashboard link for authenticated recipients', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = true;
+      setAuthStatus('authenticated');
 
       const { uiConfig } = useSecretContext({ isOwner: false });
 
@@ -162,8 +160,7 @@ describe('useSecretContext', () => {
 
   describe('UI Config for RECIPIENT_ANON', () => {
     it('does not show burn control for anonymous recipients', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = false;
+      setAuthStatus('anonymous');
 
       const { uiConfig } = useSecretContext({ isOwner: false });
 
@@ -171,8 +168,7 @@ describe('useSecretContext', () => {
     });
 
     it('shows entitlements upgrade for anonymous recipients', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = false;
+      setAuthStatus('anonymous');
 
       const { uiConfig } = useSecretContext({ isOwner: false });
 
@@ -180,8 +176,7 @@ describe('useSecretContext', () => {
     });
 
     it('shows signup CTA for anonymous recipients', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = false;
+      setAuthStatus('anonymous');
 
       const { uiConfig } = useSecretContext({ isOwner: false });
 
@@ -191,8 +186,7 @@ describe('useSecretContext', () => {
 
   describe('Reactive isOwner Changes', () => {
     it('updates uiConfig when isOwner changes from false to true', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = true;
+      setAuthStatus('authenticated');
 
       const isOwnerRef = ref(false);
       const { uiConfig, actorRole } = useSecretContext({ isOwner: isOwnerRef });
@@ -210,8 +204,7 @@ describe('useSecretContext', () => {
     });
 
     it('updates uiConfig when authentication state changes', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = true;
+      setAuthStatus('authenticated');
 
       const { uiConfig, actorRole } = useSecretContext({ isOwner: false });
 
@@ -220,7 +213,7 @@ describe('useSecretContext', () => {
       expect(uiConfig.value.showEntitlementsUpgrade).toBe(false);
 
       // User logs out
-      authStore.isAuthenticated = false;
+      setAuthStatus('anonymous');
       expect(actorRole.value).toBe('RECIPIENT_ANON');
       expect(uiConfig.value.showEntitlementsUpgrade).toBe(true);
       expect(uiConfig.value.headerAction).toBe('SIGNUP_CTA');
@@ -262,14 +255,13 @@ describe('useSecretContext', () => {
 
   describe('Exposed Reactive Properties', () => {
     it('exposes isAuthenticated from authStore', () => {
-      const authStore = useAuthStore();
-      authStore.isAuthenticated = true;
+      setAuthStatus('authenticated');
 
       const { isAuthenticated } = useSecretContext();
 
       expect(isAuthenticated.value).toBe(true);
 
-      authStore.isAuthenticated = false;
+      setAuthStatus('anonymous');
       expect(isAuthenticated.value).toBe(false);
     });
 

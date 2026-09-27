@@ -4,7 +4,7 @@
 import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { createApi } from '@/api';
 import {
@@ -18,9 +18,20 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const bootstrapStore = useBootstrapStore();
+const authStore = useAuthStore();
 const organizationStore = useOrganizationStore();
 const $api = createApi();
+
+/**
+ * Internal guard for the mutation submit paths (ADR-046#authority-action-gating).
+ *
+ * The UserMenu trigger is already aria-disabled while authority is uncertain,
+ * but this modal has a public `isOpen` prop and any other caller (or a state
+ * flip while the modal is already open) could otherwise submit against the
+ * protected `/api/colonel/entitlement-preview` endpoint. Read the computed
+ * imperatively at submit time — the ref reflects the live authStatus.
+ */
+const canSubmitMutation = () => authStore.protectedActionsAvailable;
 
 const props = defineProps<{
   isOpen: boolean;
@@ -107,7 +118,7 @@ const actualPlanName = computed(() => {
  * Sync client state after the preview override changes on the server.
  *
  * The override is applied server-side on every read (ADR-020), so plain
- * refetches return preview-corrected data: bootstrapStore.refresh() picks up
+ * refetches return preview-corrected data: authStore.refresh() picks up
  * the banner fields (`entitlement_preview_planid` / `_plan_name`), and
  * fetchOrganizations() reloads the org records whose entitlements/limits
  * `useEntitlements` gates features on.
@@ -119,7 +130,7 @@ const actualPlanName = computed(() => {
  */
 const syncPreviewState = async () => {
   const [, refreshedOrgs] = await Promise.all([
-    bootstrapStore.refresh(),
+    authStore.refresh({ kind: 'ordinary', reason: 'plan-preview' }),
     organizationStore.fetchOrganizations(),
   ]);
 
@@ -133,6 +144,12 @@ const syncPreviewState = async () => {
 };
 
 const handleActivateTestMode = async (planId: string) => {
+  // ADR-046#authority-action-gating: refuse the submit when authority is not established.
+  // Close the modal so the operator is not left staring at a dead control.
+  if (!canSubmitMutation()) {
+    emit('close');
+    return;
+  }
   isLoading.value = true;
   error.value = null;
 
@@ -152,6 +169,11 @@ const handleActivateTestMode = async (planId: string) => {
 };
 
 const handleResetToActual = async () => {
+  // ADR-046#authority-action-gating: refuse the submit when authority is not established.
+  if (!canSubmitMutation()) {
+    emit('close');
+    return;
+  }
   isLoading.value = true;
   error.value = null;
 

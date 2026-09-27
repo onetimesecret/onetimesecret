@@ -126,6 +126,35 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
       end
     end
 
+    describe '.webauthn_host and .webauthn_base_url' do
+      it 'uses the classified public subdomain instead of a rewritten backend host' do
+        env = env_for(host: 'app.internal', display_domain: 'eu.onetimesecret.com')
+        env['onetime.domain_strategy'] = :subdomain
+
+        expect(described_class.webauthn_host(env)).to eq('eu.onetimesecret.com')
+        expect(described_class.webauthn_base_url(env)).to eq('https://eu.onetimesecret.com')
+      end
+
+      it 'uses the stashed custom-domain classification without another datastore lookup' do
+        env = env_for(host: 'app.internal', display_domain: 'secret.asi.nz')
+        env['onetime.domain_strategy'] = :custom
+        env['onetime.custom_domain'] = double('CustomDomain')
+        expect(Onetime::CustomDomain).not_to receive(:from_display_domain)
+
+        expect(described_class.webauthn_host(env)).to eq('secret.asi.nz')
+      end
+
+      it 'refuses an unresolved custom or invalid classification' do
+        unresolved = env_for(host: 'app.internal', display_domain: 'tenant.example')
+        unresolved['onetime.domain_strategy'] = :custom
+        invalid = env_for(host: 'app.internal', display_domain: 'attacker.example')
+        invalid['onetime.domain_strategy'] = :invalid
+
+        expect(described_class.webauthn_host(unresolved)).to be_nil
+        expect(described_class.webauthn_host(invalid)).to be_nil
+      end
+    end
+
     describe '.canonical_request_host' do
       it 'returns a trusted candidate that is a member of the canonical set' do
         env = env_for(host: 'onetimesecret.com', display_domain: 'onetimesecret.com')

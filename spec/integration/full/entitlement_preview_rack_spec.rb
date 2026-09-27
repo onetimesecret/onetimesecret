@@ -137,6 +137,8 @@ RSpec.describe 'Entitlement preview through the rack stack (ADR-020)', type: :in
     {
       'external_id' => colonel.extid,
       'authenticated' => true,
+      # #4409: hand-seeded sessions need the surface marker the login hooks record.
+      Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
       'session_id' => preview_session_id,
     }
   end

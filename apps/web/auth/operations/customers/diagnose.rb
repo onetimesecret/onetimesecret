@@ -5,6 +5,7 @@
 require 'json'
 
 require 'auth/account_statuses'
+require 'auth/operations/workspace_collision'
 require 'onetime/operations/ratelimit/inspect'
 
 module Auth
@@ -55,7 +56,7 @@ module Auth
         # `auth_account` is deliberately excluded: check_existence already
         # reports every unavailable auth_account as :authdb_unavailable (or, in
         # simple mode, by design), so listing it here would only double-report.
-        EVIDENCE_SECTIONS = ([:customer, *AUTHDB_SECTIONS, :rate_limits] - [:auth_account]).freeze
+        EVIDENCE_SECTIONS = ([:customer, :workspace_collision, *AUTHDB_SECTIONS, :rate_limits] - [:auth_account]).freeze
 
         # Reasons a section is unavailable that are NOT missing evidence, keyed
         # on the section's OWN reason_code so a section that degraded for its own
@@ -63,7 +64,13 @@ module Auth
         # whole-authdb failure check_existence already reports; no accounts row
         # for the sidecars to read; no address to rate-limit (an orphan looked up
         # by extid or account id) — nothing failed in any of them.
-        EXPECTED_UNAVAILABLE_REASONS = [:simple_mode, :authdb_error, :no_account, :no_email].freeze
+        EXPECTED_UNAVAILABLE_REASONS = [
+          :simple_mode,
+          :authdb_error,
+          :no_account,
+          :no_email,
+          :workspace_collision_unreadable,
+        ].freeze
 
         DEFAULT_AUDIT_LOG_LIMIT = 20
         MAX_AUDIT_LOG_LIMIT     = 100
@@ -111,10 +118,11 @@ module Auth
           email = customer&.email.to_s
           email = normalized_email_identifier if email.empty?
 
-          sections               = {}
-          sections[:customer]    = customer_section(customer)
+          sections                       = {}
+          sections[:customer]            = customer_section(customer)
+          sections[:workspace_collision] = workspace_collision_section(customer, email)
           sections.merge!(authdb_sections(customer, email))
-          sections[:rate_limits] = rate_limits_section(email)
+          sections[:rate_limits]         = rate_limits_section(email)
 
           # Result contract: every string in `sections` — and therefore in the
           # `findings` derived from them below — is valid UTF-8. See
@@ -165,6 +173,9 @@ module Auth
             last_login: customer.last_login,
             locale: customer.locale,
             planid: customer.planid,
+            provisioning_failure_code: customer.provisioning_failure_code,
+            provisioning_failure_classification: customer.provisioning_failure_classification,
+            provisioning_failed_at: numeric_epoch(customer.provisioning_failed_at),
           }
         # `error` is the wire contract the colonel panel renders; `available` /
         # `reason` are the same failure in the shape every other section uses, so
@@ -174,6 +185,16 @@ module Auth
         rescue StandardError => ex
           reason = "#{ex.class}: #{ex.message}"
           { found: true, error: reason, available: false, reason: reason }
+        end
+
+        # -- Default-workspace collision section -----------------------------
+
+        def workspace_collision_section(customer, email)
+          if email.to_s.empty?
+            return { available: false, reason: 'no email to inspect', reason_code: :no_email }
+          end
+
+          WorkspaceCollision.new(email: email, customer: customer).call.to_h
         end
 
         # -- Authdb (Rodauth) sections --------------------------------------
@@ -414,9 +435,11 @@ module Auth
           findings = []
           check_existence(sections, findings)
           check_customer_state(sections, findings)
+          check_provisioning_state(sections, findings)
           check_auth_account(sections, findings)
           check_lockout_and_limits(sections, findings)
           check_verification(sections, findings)
+          check_workspace_collision(sections, findings)
           check_evidence(sections, findings)
           findings.sort_by { |finding| SEVERITY_ORDER.fetch(finding[:severity], 99) }
         end
@@ -493,6 +516,21 @@ module Auth
             :critical,
             :suspended,
             "Customer is suspended#{" (#{reason})" unless reason.empty?} — all logins are refused.",
+          )
+        end
+
+        def check_provisioning_state(sections, findings)
+          customer = sections[:customer]
+          code     = customer[:provisioning_failure_code].to_s
+          return if code.empty?
+
+          classification = customer[:provisioning_failure_classification].to_s
+          add(
+            findings,
+            :critical,
+            :account_provisioning_failed,
+            "Account provisioning is blocked (code=#{code}, classification=#{classification}). " \
+            'Resolve the workspace collision, then retry default-workspace provisioning.',
           )
         end
 
@@ -616,6 +654,35 @@ module Auth
           end
         end
 
+        def check_workspace_collision(sections, findings)
+          collision      = sections[:workspace_collision] || {}
+          classification = collision[:classification]
+          return if classification.nil? || [:clear, :current_valid_workspace].include?(classification)
+
+          severity     = classification == :unreadable ? :warning : :critical
+          index_remedy = if collision[:repairable]
+                           'Run `customers doctor --repair` to compare-and-delete the unchanged stale claim.'
+                         else
+                           'Another live organization carries the address, so the index claim requires manual remediation.'
+                         end
+          messages     = {
+            phantom_index: "The organization contact-email index points to no organization. #{index_remedy}",
+            index_mismatch: "The organization contact-email index points to an organization that no longer carries this address. #{index_remedy}",
+            empty_orphan: 'An empty ownerless organization reserves this address. It requires an explicit lifecycle decision; email equality does not authorize adoption.',
+            stale_members: 'An ownerless organization with stale member references reserves this address. Stale-member cleanup does not authorize adoption.',
+            live_members: 'An organization with a live owner or member reserves this address. It must not be attached to the current customer by email.',
+            retained_data: 'An organization with domains, invitations, receipts, billing markers, or other retained data reserves this address. Manual lifecycle remediation is required.',
+            unreadable: "Workspace-collision evidence could not be read (#{collision[:reason] || 'unknown'}). The account must not be considered healthy until the read succeeds.",
+          }
+
+          add(
+            findings,
+            severity,
+            :"workspace_collision_#{classification}",
+            messages.fetch(classification),
+          )
+        end
+
         # Findings are derived from evidence, so evidence that could not be READ
         # is a finding in its own right. Sections degrade INDEPENDENTLY: a
         # dropped or ungranted table, a statement timeout, a connection lost
@@ -717,6 +784,12 @@ module Auth
         end
 
         # Sequel returns Time/DateTime; the wire shape is epoch seconds or nil.
+        def numeric_epoch(value)
+          return nil if value.nil? || value.to_s.empty?
+
+          value.to_f
+        end
+
         def epoch(value)
           return nil if value.nil?
 

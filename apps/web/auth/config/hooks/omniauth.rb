@@ -15,7 +15,10 @@
 # See: features/omniauth.rb (provider registration)
 #
 
+require 'cgi'
+
 require 'auth/account_statuses'
+require_relative 'omniauth_connect'
 
 module Auth::Config::Hooks
   module OmniAuth
@@ -36,12 +39,86 @@ module Auth::Config::Hooks
       value.gsub(SURROUNDING_SPACE, '')
     end
 
+    # The only initiator of a platform Connect is the Connected Identities
+    # panel, so a refused initiation sends the user through the SPA's
+    # re-authentication view and back to that panel (#4411). Both are SPA
+    # routes, root-relative like every other auth redirect in this file.
+    CONNECT_PANEL_PATH = '/account/settings/security/connections'
+    REAUTH_PATH        = '/reauth'
+
+    # @return [String] the redirect target for a Connect initiation that
+    #   lacked recent full re-authentication
+    def self.connect_reauth_redirect
+      "#{REAUTH_PATH}?redirect=#{CGI.escape(CONNECT_PANEL_PATH)}"
+    end
+
+    # The SSO request phase's connect-intent step, called from
+    # omniauth_request_validation_phase with the Rodauth instance (the same
+    # shape as the helpers in hooks/omniauth_tenant.rb). See that hook's
+    # comment for the full security narrative.
+    #
+    # - Not a connect initiation (anonymous, or connect != 1): delete any
+    #   dangling intent and return.
+    # - Connect initiation WITHOUT a fresh recent-reauth proof: delete any
+    #   dangling intent, log, and redirect to re-authentication (throws :halt).
+    # - Connect initiation WITH proof (consumed here): mint the
+    #   { account_id, surface, at } intent, plus 'redirect' when the panel's
+    #   `redirect` param is a safe internal path (the same validator the
+    #   create-account path applies in hooks/account.rb). An absent or
+    #   rejected value omits the key, so the callback falls back to the
+    #   ordinary login redirect. The value is never logged: redirect targets
+    #   are bearer-grade in this codebase (#4305).
+    #
+    # @param rodauth [Rodauth::Auth] the request's Rodauth instance
+    # @return [void]
+    def self.capture_connect_intent!(rodauth)
+      session = rodauth.session
+      sid     = session.id&.public_id
+      env     = rodauth.request.env
+
+      unless rodauth.logged_in? && rodauth.request.params['connect'].to_s == '1'
+        Onetime::SessionSidecar.delete(sid, 'sso_connect_intent')
+        return
+      end
+
+      account_id      = rodauth.session_value
+      reauthenticated = Onetime::RecentReauth.satisfied?(
+        session,
+        env,
+        account_id: account_id,
+        max_age: Onetime::RecentReauth::CONNECT_MAX_AGE,
+      )
+
+      unless reauthenticated
+        Onetime::SessionSidecar.delete(sid, 'sso_connect_intent')
+        Auth::Logging.log_auth_event(
+          :omniauth_connect_reauth_required,
+          level: :warn,
+          provider: env['omniauth.strategy']&.name.to_s,
+          account_id: account_id,
+        )
+        rodauth.send(:redirect, connect_reauth_redirect)
+      end
+
+      intent             = {
+        'account_id' => account_id,
+        'surface' => Onetime::SessionSurface.for_env(env),
+        'at' => Time.now.utc.to_i,
+      }
+      return_path        = OT::Utils.internal_path_or_nil(rodauth.request.params['redirect'])
+      intent['redirect'] = return_path if return_path
+
+      Onetime::SessionSidecar.write(sid, 'sso_connect_intent', intent)
+    end
+
     # rubocop:disable Metrics/PerceivedComplexity
     # A long, linear chain of Rodauth hook registrations (mirrors the same
     # inline disable on Hooks::Account.configure). Splitting it would scatter the
     # callback flow across methods and obscure the account_from_omniauth branch
     # order the security model depends on.
     def self.configure(auth)
+      auth.auth_class_eval { prepend Auth::Config::Hooks::OmniAuthConnect::Callback }
+
       # ========================================================================
       # Resolve the SSO email (#3499 / #3478) — one override, every consumer.
       # ========================================================================
@@ -149,144 +226,8 @@ module Auth::Config::Hooks
         normalized_email = OT::Utils.normalize_email(omniauth_email)
         provider         = omniauth_provider
 
-        # ────────────────────────────────────────────────────────────────
-        # #3840 Phase 2: authenticated identity connect (session BINDS, but only
-        # with an account-bound CONNECT INTENT established at initiation)
-        # ────────────────────────────────────────────────────────────────
-        #
-        # CANONICAL PRACTICE: an active session is the authorization to bind a
-        # new identity — BUT logged_in? alone is NOT proof of connect intent.
-        # Tabs share cookies, so a plain second-tab / shared-browser SSO sign-in
-        # arriving on an already-authenticated session must NOT be treated as a
-        # connect. We therefore require TWO signals to bind:
-        #   1. an authenticated session (session_value), and
-        #   2. an account-bound connect intent set during INITIATION — the
-        #      omniauth_request_validation_phase hook below writes the sidecar
-        #      key sidecar:<sid>:sso_connect_intent = session_value (short TTL,
-        #      see SessionSidecar::FIELDS) only when the logged-in caller POSTed
-        #      connect=1 (the Connected Identities panel). CSRF/state proves
-        #      "this browser initiated a request"; the intent nonce proves
-        #      "this browser initiated a CONNECT for THIS account".
-        # We consume (atomic GETDEL) the nonce here, and bind ONLY when it
-        # matches the CURRENT session account. Absent/expired/mismatched intent
-        # → fall through to the email-based branches exactly as an
-        # unauthenticated caller would (never silently bind onto the session
-        # account — that was the #3840 P1 finding).
-        #
-        # The IdP email still plays NO role in the bind decision. Matching a
-        # connect to an email-LOCATED account is the pre-account-hijacking
-        # anti-pattern: an attacker who controls an IdP that emits a victim's
-        # email must never be routed to the victim's account. We route by
-        # session, so the victim is untouched even if the IdP lies about email.
-        #
-        # "Already linked elsewhere" cannot occur here: an existing
-        # (provider, issuer, uid) row routes the gem to
-        # account_from_omniauth_identity (rodauth-omniauth 0.6.2
-        # _handle_omniauth_callback), so this hook is reached ONLY for a NEW
-        # identity.
-        #
-        # Evaluated FIRST (before the trusted-provider auto-link and the H-3
-        # refusal below): a proven session credential + connect intent outranks
-        # the email-only heuristics those branches rely on.
-        #
-        # Return semantics: the gem sets @account to whatever this block
-        # returns, skips create-account (account is present), and
-        # create_omniauth_identity binds the (provider, issuer, uid) row to
-        # that account's id; login then re-affirms the same session. So we must
-        # return the SESSION account row (loaded by id), never nil (nil would
-        # fall through to omniauth_create_account and 500 on the unique
-        # accounts.email index).
-        #
-        # SURFACE ISOLATION (the one refusal retained on this path): bind ONLY
-        # on the PLATFORM surface (session[:validated_omniauth_domain_id] nil).
-        # A tenant callback must not bind a tenant-issuer identity onto a
-        # platform-session account — a tenant admin controls their IdP's
-        # assertions, so such a binding would hand them a login into the
-        # account. Authenticated tenant-surface linking needs org-membership
-        # verification and is a deliberate follow-up (see docs / open questions).
-
-        # Consume the account-bound connect intent (atomic GETDEL on its
-        # sidecar key), then bind only when the SAME session account that
-        # initiated the connect is still the authenticated one.
-        #
-        # SINGLE-USE, BOUNDED IN TIME (#3859): the nonce lives as a short-TTL
-        # sidecar key (sidecar:<sid>:sso_connect_intent, ~5 min — one IdP
-        # round-trip), NOT as a field in the session blob. A blob-resident
-        # nonce was only ever cleared here, so an ABANDONED connect (user
-        # cancels at the IdP, the IdP errors, the tab is closed) left it live
-        # for the next callback on the session — even a plain connect=0
-        # sign-in — to consume and bind on: exactly the shared-browser bind
-        # this nonce exists to prevent. Now an abandoned intent needs no
-        # cleanup (the key expires), and the request phase below additionally
-        # deletes any dangling intent on the next non-connect SSO initiation,
-        # so a plain sign-in can never reach this consume with a stale nonce
-        # still live. A miss here means "absent or expired" — default-deny.
-        # (Blob copies written by pre-#3859 code are discarded unconsumed.)
-        session.delete(:sso_connect_intent)
-        intent_account_id  = Onetime::SessionSidecar.consume(session.id&.public_id, 'sso_connect_intent')
-        has_connect_intent = logged_in? &&
-                             !intent_account_id.nil? &&
-                             intent_account_id.to_s == session_value.to_s
-
-        if has_connect_intent
-          if session[:validated_omniauth_domain_id]
-            # Tenant callback on a platform session → refuse (surface isolation).
-            Auth::Logging.log_auth_event(
-              :omniauth_identity_connect_refused,
-              level: :warn,
-              provider: provider,
-              reason: 'tenant_surface',
-            )
-            # Distinct code from the session-expired case below: this is a
-            # deliberate, permanent refusal (identity linking is platform-only
-            # until #3849), so the copy must not suggest retrying after a fresh
-            # sign-in — that would loop the user through the same refusal.
-            set_redirect_error_flash 'This identity could not be connected. The connection ' \
-                                     'was started on the wrong domain.'
-            redirect '/signin?auth_error=identity_connect_wrong_domain'
-          end
-
-          # Load the authenticated account by SESSION id (never by email).
-          # _account_from_session applies the open-status filter and returns nil
-          # exactly when the session account is no longer usable (e.g. closed
-          # mid-session) — refuse rather than fall through to a JIT duplicate.
-          session_account = _account_from_session
-          unless session_account
-            Auth::Logging.log_auth_event(
-              :omniauth_identity_connect_refused,
-              level: :warn,
-              provider: provider,
-              reason: 'session_account_missing',
-            )
-            set_redirect_error_flash 'This identity could not be connected to your account.'
-            redirect '/signin?auth_error=identity_connect_conflict'
-          end
-
-          Auth::Logging.log_auth_event(
-            :omniauth_identity_connected,
-            level: :warn,
-            email: OT::Utils.obscure_email(normalized_email),
-            provider: provider,
-            issuer: resolved_issuer,
-            account_id: session_account[account_id_column],
-          )
-          next session_account
-        elsif logged_in?
-          # Logged in but NO valid connect intent: a plain SSO sign-in on an
-          # already-authenticated session (second tab, shared browser), or an
-          # intent that was set for a DIFFERENT account. Do NOT bind onto the
-          # session account — fall through to the email-based branches below and
-          # treat this exactly like an unauthenticated caller. Log it: a callback
-          # reaching an authenticated session without connect intent is the
-          # precise shape of the shared-browser/second-tab hazard the intent
-          # nonce defends against, so it is worth observing.
-          Auth::Logging.log_auth_event(
-            :omniauth_connect_intent_absent,
-            level: :info,
-            provider: provider,
-            had_intent: !intent_account_id.nil?,
-          )
-        end
+        session_account = resolve_omniauth_connect_account
+        next session_account if session_account
 
         # Not authenticated (or logged-in without connect intent): email is the
         # only signal available, so the email-based branches below apply. Locate
@@ -444,8 +385,8 @@ module Auth::Config::Hooks
             # gated on the platform surface, so it is false here for tenants). A
             # tenant admin controls their IdP and could otherwise trigger link emails
             # to arbitrary platform addresses, so tenant callbacks fall through to the
-            # H-3 refusal below (authenticated tenant-surface linking is a follow-up,
-            # #3849).
+            # H-3 refusal below. Tenant linking is authenticated-only: the Connect
+            # callback in hooks/omniauth_connect.rb (#3849).
             #
             # TWO email identities here, deliberately NOT interchangeable — DO NOT
             # UNIFY THEM. Both halves are security-load-bearing:
@@ -606,15 +547,17 @@ module Auth::Config::Hooks
           #   (Connected Identities) — the authenticated connect branch at the
           #   top of this hook binds it.
           #
-          # - TENANT: no recovery, by design. Identity linking is platform-only
-          #   because a tenant admin controls their IdP's assertions, so a
-          #   tenant-issuer identity must never be bound to an account located
-          #   by email (or to whatever platform session happens to be active).
-          #   Connected Identities cannot help here — the connect flow refuses
-          #   on this surface too — so pointing the user at it is a dead end.
-          #   Authenticated tenant-surface linking is deferred to #3849; until
-          #   it ships the way forward is an org-owner invite of the SSO
-          #   identity, or support.
+          # - TENANT: no UNAUTHENTICATED recovery, by design. The proof paths
+          #   that locate an account by email (password interstitial, mailbox
+          #   proof, trusted-IdP email) stay platform-only because a tenant
+          #   admin controls their IdP's assertions, so a tenant-issuer
+          #   identity must never be bound to an account located by email.
+          #   Authenticated linking on a tenant host exists (#3849): sign in
+          #   on this domain, open Connected Identities, re-authenticate, and
+          #   the Connect callback (hooks/omniauth_connect.rb) binds it after
+          #   the surface, membership and ownership gates. That path needs a
+          #   session on this host, which a restrict_to=sso tenant may not
+          #   offer, so the flash keeps the org-owner invite / support route.
           Auth::Logging.log_auth_event(
             :omniauth_link_refused_existing_account,
             level: :warn,
@@ -628,8 +571,11 @@ module Auth::Config::Hooks
             redirect '/signin?auth_error=account_exists_link_required'
           end
 
-          set_redirect_error_flash "This domain's SSO cannot be attached to an existing account yet. " \
-                                   'Ask an organization owner to invite this SSO identity, or contact support.'
+          # Mirrors web.login.errors.tenant_sso_link_unavailable.
+          set_redirect_error_flash 'This identity is not connected to an account on this domain. ' \
+                                   'If you can sign in on this domain with an account that belongs to ' \
+                                   'this organization, connect it from Connected identities. Otherwise, ' \
+                                   'ask an organization owner to invite this SSO identity, or contact support.'
           redirect '/signin?auth_error=tenant_sso_link_unavailable'
         end
 
@@ -647,6 +593,26 @@ module Auth::Config::Hooks
       # the single owner of the only_json? setter because rodauth's
       # def_auth_value_method REPLACES rather than chains, so any per-hook
       # `only_json?` block here would silently clobber others (e.g., OAuth's).
+
+      # ========================================================================
+      # Post-Connect Return Path
+      # ========================================================================
+      #
+      # The gem finishes a callback with `login('omniauth')`, whose
+      # _login_response redirects to `saved_login_redirect || login_redirect`
+      # (rodauth 2.45 features/login.rb). A completed Connect must return to
+      # the Connected Identities panel it started from, not the dashboard, so
+      # this override answers with the intent's validated `redirect` when
+      # bind_omniauth_connect_identity (hooks/omniauth_connect.rb) remembered
+      # one. Every other login — plain SSO sign-in, password, magic link —
+      # falls through to Rodauth's own value via super. Refusals never reach
+      # this method: they redirect to /signin?auth_error=... before login runs.
+      #
+      # Explicit `super()`: Rodauth config blocks become define_method bodies,
+      # where implicit-argument super is not allowed.
+      auth.login_redirect do
+        omniauth_connect_redirect || super()
+      end
 
       # ========================================================================
       # ⚠️  CRITICAL: CSRF Bypass for OmniAuth Routes - DO NOT REMOVE
@@ -726,11 +692,31 @@ module Auth::Config::Hooks
         # deterministically kills a nonce left dangling by an abandoned connect
         # before a plain (connect=0) callback could consume it. A failed write
         # fails closed: no intent → the callback never binds.
-        if logged_in? && request.params['connect'].to_s == '1'
-          Onetime::SessionSidecar.write(session.id&.public_id, 'sso_connect_intent', session_value)
-        else
-          Onetime::SessionSidecar.delete(session.id&.public_id, 'sso_connect_intent')
-        end
+        #
+        # RECENT FULL RE-AUTHENTICATION (#4411, epic #4408): an authenticated
+        # session plus connect=1 is intent, not proof. Attaching a login
+        # identity is a change to the account's authenticators, so the intent
+        # is minted ONLY when the session carries a fresh, single-use
+        # RecentReauth proof for THIS account on THIS surface —
+        # `Onetime::RecentReauth.satisfied?` is the one gate, and it CONSUMES
+        # the proof (one ceremony authorizes one Connect initiation; a
+        # concurrent or later initiation on the same proof is refused). The
+        # proof is only ever recorded by a completed local ceremony (password
+        # or WebAuthn primary plus every MFA factor the account requires):
+        # a magic-link login, an SSO callback, a remembered session, or a
+        # password step that stopped short of required MFA never records one,
+        # so none of them can reach the write below.
+        #
+        # Refusal is a redirect to the re-authentication view, which returns
+        # the user to the Connected Identities panel on success; the user then
+        # re-initiates the connect. Nothing is minted on refusal (a dangling
+        # intent from an earlier initiation is deleted), so the callback that
+        # follows an abandoned refusal can only take the no-intent path.
+        #
+        # The intent carries the account id AND the surface descriptor the
+        # gate verified, so the callback can refuse a surface-mismatched
+        # intent positively instead of relying on the router alone.
+        Auth::Config::Hooks::OmniAuth.capture_connect_intent!(self)
       end
 
       # NOTE: before_omniauth_callback_route is OWNED by omniauth_tenant.rb
@@ -857,7 +843,8 @@ module Auth::Config::Hooks
         #      deployment opens SSO accounts unverified (or skip_status_checks?
         #      is on) the read is not VERIFIED and the Customer stays
         #      unverified — exactly the pre-fix behaviour.
-        #   3. The IdP did not EXPLICITLY assert email_verified: false.
+        #   3. The IdP did not EXPLICITLY assert email_verified: false, and the
+        #      claim could be read at all (email_verification_hold is nil).
         #
         # This only mirrors an auth-store fact onto the Customer record; it
         # grants nothing the accounts row does not already grant. It also
@@ -866,12 +853,28 @@ module Auth::Config::Hooks
         # because with verify_account disabled every ordinary password account
         # is VERIFIED too. Records that already drifted are handled by
         # `bin/ots customers doctor --repair` (:sso_customer_unverified).
-        account_status = db[:accounts].where(id: account_id).get(:status_id)
-        sso_verified   = account_status == Auth::AccountStatuses::VERIFIED &&
-                         !Auth::Config::Hooks::OmniAuth.idp_asserts_unverified_email?(
-                           info: omniauth_info,
-                           extra: omniauth_extra,
-                         )
+        #
+        # When gate 3 withholds the stamp, the REASON is persisted on the
+        # Customer as verification_hold. The doctor has no auth hash to
+        # consult, so without it the :sso_customer_unverified repair would
+        # later "heal" a deliberately-unverified record to verified. With it,
+        # the doctor reports the record for manual verification instead.
+        account_status    = db[:accounts].where(id: account_id).get(:status_id)
+        verification_hold = Auth::Config::Hooks::OmniAuth.email_verification_hold(
+          info: omniauth_info,
+          extra: omniauth_extra,
+        )
+        sso_verified      = account_status == Auth::AccountStatuses::VERIFIED && verification_hold.nil?
+
+        if verification_hold
+          Auth::Logging.log_auth_event(
+            :omniauth_verification_held,
+            level: :info,
+            account_id: account_id,
+            provider: omniauth_provider,
+            hold: verification_hold,
+          )
+        end
 
         # Create Customer record (same as regular signup)
         customer = Onetime::ErrorHandler.safe_execute(
@@ -887,6 +890,7 @@ module Auth::Config::Hooks
             signup_domain_id: signup_domain_id,
             verified: sso_verified,
             verified_by: sso_verified ? 'sso' : nil,
+            verification_hold: verification_hold,
           ).call
         end
 
@@ -895,10 +899,10 @@ module Auth::Config::Hooks
         # MUTUALLY EXCLUSIVE paths — tenant SSO users join the tenant org,
         # canonical SSO users get a default workspace. Never both.
         #
-        # Consuming domain_id via session.delete ensures after_login sees nil
-        # and skips for new accounts — preventing a redundant idempotent call.
+        # Consuming domain_id here ensures after_login sees nil and skips for
+        # new accounts — preventing a redundant idempotent call.
         if customer.is_a?(Onetime::Customer)
-          domain_id = session.delete(:validated_omniauth_domain_id)
+          domain_id = consume_validated_omniauth_domain_id
 
           if domain_id
             # Tenant domain SSO → join the domain's organization only
@@ -932,10 +936,31 @@ module Auth::Config::Hooks
           else
             # Canonical domain SSO → create default workspace
             Onetime::ErrorHandler.safe_execute(
-              'create_default_workspace_omniauth',
+              'ensure_default_workspace_omniauth',
               external_id: customer.extid,
             ) do
-              Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+              Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call
+            # Only the collision is rescued. Onetime::AccountProvisioningUnavailable
+            # deliberately is NOT (same reasoning as hooks/account.rb): it
+            # persists nothing, and at JIT-create time no other request can hold
+            # the creation lock, so it means the datastore failed mid-scan.
+            # safe_execute's error log + tracking is the right visibility for
+            # that; the SSO login completes and OrganizationContext#auth_org
+            # re-runs provisioning on the first authenticated request.
+            rescue Auth::Operations::WorkspaceCollision::ProvisioningCollision => ex
+              # The account remains persisted and diagnosable. Organization and
+              # entitlement access now maps this state to AccountProvisioningFailed
+              # instead of retrying the same collision on every request.
+              Auth::Logging.log_auth_event(
+                :account_provisioning_failed,
+                level: :error,
+                account_id: account_id,
+                external_id: customer.extid,
+                provider: omniauth_provider,
+                code: customer.provisioning_failure_code,
+                classification: ex.collision.classification,
+              )
+              nil
             end
           end
         end
@@ -999,35 +1024,60 @@ module Auth::Config::Hooks
     end
     # rubocop:enable Metrics/PerceivedComplexity
 
-    # Did the IdP EXPLICITLY tell us the address is not verified?
+    # Why (if at all) the IdP's email_verified claim withholds the verified
+    # stamp from a JIT-provisioned Customer.
     #
-    # Only an explicit false is a veto. Absence is NOT: the claim is an OIDC
-    # optional, and several supported providers (Entra ID, plain OAuth2
-    # strategies, GitHub) never emit it at all — treating silence as
-    # "unverified" would leave those deployments in exactly the broken state
-    # the caller is fixing, while treating it as a positive signal would be us
-    # inventing an assertion the IdP never made. So this narrows the
-    # verified stamp and can never widen it.
+    # Two distinct reasons, kept apart because they call for different
+    # operator follow-up (see Onetime::Customer::VERIFICATION_HOLDS):
+    #
+    #   'idp_unverified'   — the IdP EXPLICITLY asserted email_verified: false.
+    #   'claim_unreadable' — a source raised while the claim was being read.
+    #                        FAIL CLOSED: that is not "no claim", it is a claim
+    #                        we could not inspect, and an explicit false may be
+    #                        hiding behind the error. The old blanket rescue in
+    #                        fetch_claim turned this into nil and minted a
+    #                        verified Customer. Logged at WARN.
+    #
+    # Absence is NOT a hold: the claim is an OIDC optional, and several
+    # supported providers (Entra ID, plain OAuth2 strategies, GitHub) never
+    # emit it at all — treating silence as "unverified" would leave those
+    # deployments in exactly the broken state the caller is fixing, while
+    # treating it as a positive signal would be us inventing an assertion the
+    # IdP never made. So this narrows the verified stamp and can never widen it.
     #
     # Looks in `info` first, then `extra.raw_info` (OIDC UserInfo / the decoded
     # id_token). Both may be a plain Hash or an OmniAuth::AuthHash, and may be
-    # string- or symbol-keyed, so every read goes through fetch_claim.
+    # string- or symbol-keyed, so every read goes through fetch_claim. Only the
+    # reads can raise; ordinary Hash access never does, so a StandardError here
+    # is always a misbehaving auth hash.
     #
     # @param info [Hash, OmniAuth::AuthHash, nil] omniauth_info
     # @param extra [Hash, OmniAuth::AuthHash, nil] omniauth_extra
-    # @return [Boolean] true only on an explicit false-y assertion
-    def self.idp_asserts_unverified_email?(info:, extra:)
+    # @return [String, nil] one of Onetime::Customer::VERIFICATION_HOLDS, or
+    #   nil when nothing withholds the stamp (claim absent, nil, or truthy)
+    def self.email_verification_hold(info:, extra:)
       claim = fetch_claim(info, 'email_verified')
       claim = fetch_claim(fetch_claim(extra, 'raw_info'), 'email_verified') if claim.nil?
-      return false if claim.nil?
+      return nil if claim.nil?
 
       # Some providers stringify the claim ("false"); false and "false" are the
-      # same assertion. Anything else (true, "true", 1, garbage) is not a veto.
-      claim.to_s.strip.downcase == 'false'
+      # same assertion. Anything else (true, "true", 1, garbage) is not a hold.
+      claim.to_s.strip.downcase == 'false' ? 'idp_unverified' : nil
+    rescue StandardError => ex
+      Auth::Logging.log_auth_event(
+        :omniauth_email_verified_claim_unreadable,
+        level: :warn,
+        error_class: ex.class.name,
+        error_message: ex.message,
+        info_class: info.class.name,
+        extra_class: extra.class.name,
+      )
+      'claim_unreadable'
     end
 
-    # Key-shape-tolerant single-key read. Returns nil for a missing key, an
-    # unindexable source, or any error — never raises into a callback.
+    # Key-shape-tolerant single-key read. Returns nil for a missing key or an
+    # unindexable source. Deliberately does NOT rescue: a source whose `[]`
+    # raises must surface to email_verification_hold, which fails closed.
     #
     # @param source [#[], nil]
     # @param key [String] string key; the symbol form is tried as a fallback
@@ -1038,8 +1088,6 @@ module Auth::Config::Hooks
       value = source[key]
       value = source[key.to_sym] if value.nil?
       value
-    rescue StandardError
-      nil
     end
 
     # Does the located account have a password the Phase 3 interstitial can

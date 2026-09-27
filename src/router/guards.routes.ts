@@ -4,7 +4,12 @@ import { loggingService } from '@/services/logging.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { usePageTitle } from '@/shared/composables/usePageTitle';
-import { useAuthStore } from '@/shared/stores/authStore';
+import type { ClientAuthStatus } from '@/schemas/contracts/bootstrap';
+import {
+  useAuthStore,
+  type RefreshOutcome,
+  type RefreshRequest,
+} from '@/shared/stores/authStore';
 import { useLanguageStore } from '@/shared/stores/languageStore';
 import { isSsoOnlyMode } from '@/utils/features';
 import { isValidInternalPath } from '@/utils/redirect';
@@ -15,6 +20,10 @@ import { processQueryParams } from './queryParams.handler';
 export async function setupRouterGuards(router: Router): Promise<void> {
   const { setTitle } = usePageTitle();
   let currentTitle: string | null = null;
+
+  // FIRST guard (#4456): resolve `checking` before any guard reads auth state.
+  // See verifyIfChecking. A valid hydrated page never awaits here.
+  router.beforeEach(() => verifyIfChecking(useAuthStore()).then(() => true));
 
   // Apply custom domain layout defaults for guest/public routes only.
   // Prevents the canonical OTS logo/branding from leaking on custom domain
@@ -167,7 +176,6 @@ function handleMfaAccess(
   authStore: {
     awaitingMfa: boolean;
     isFullyAuthenticated: boolean;
-    isAuthenticated: boolean | null;
   }
 ) {
   const { awaitingMfa, isFullyAuthenticated } = authStore;
@@ -439,81 +447,73 @@ function logNavigation(to: RouteLocationNormalized, authStore: AuthValidator) {
     name: to.name,
     requiresAuth: to.meta?.requiresAuth,
     isAuthRoute: to.meta?.isAuthRoute,
-    authStoreState: {
-      isAuthenticated: authStore.isAuthenticated,
-      needsCheck: authStore.needsCheck,
-    },
+    authStatus: authStore.authStatus,
   });
 }
 
 /**
- * Interface Segregation Pattern for Auth Validation
- *
- * Instead of using the full store type (which includes many Pinia internals),
- * we define a minimal interface containing only the properties needed for
- * authentication validation. This follows the Interface Segregation Principle:
- * clients should not depend on methods they don't use.
- *
- * Evolution of this solution:
- * 1. Initially tried defining full AuthStore type with Pinia generics - too complex
- * 2. Attempted using StoreGeneric & partial types - worked but was hard to maintain
- * 3. Settled on this interface approach because:
- *    - Avoids Pinia's complex typing system altogether
- *    - Makes no assumptions about store implementation
- *    - Clearly documents what validation actually needs
- *
- * Benefits:
- * 1. Cleaner type definitions
- * 2. Better testability (can mock just these properties)
- * 3. Decoupled from Pinia implementation details
- * 4. Clearer contract for what validation requires
- *
- * The store automatically satisfies this interface through TypeScript's
- * structural typing, without explicit type casting or declarations.
+ * The slice of authStore that route protection needs: THE client status and
+ * the coordinator's entry point. Kept minimal so tests can supply a plain
+ * object; the store satisfies it structurally.
  */
 interface AuthValidator {
-  needsCheck: boolean;
-  isAuthenticated: boolean | null;
-  checkWindowStatus: () => Promise<boolean | null>;
+  authStatus: ClientAuthStatus;
+  refresh: (request: RefreshRequest) => Promise<RefreshOutcome>;
 }
 
 /**
- * Validates authentication state for protected route access
- * @param store - Auth store interface containing authentication state/methods
- * @param route - Vue Router normalized route object
- * @returns Promise<boolean> indicating if authentication is valid
+ * Decides whether a protected route may be entered (#4456).
  *
- * Code paths:
- * 1. Public route - Returns true without auth check
- * 2. Initial/stale auth - Performs async verification if needsCheck=true
- * 3. Cached auth - Returns existing isAuthenticated state (false if undefined)
+ * Hydration is the canonical initial snapshot, so this decides SYNCHRONOUSLY
+ * from the status in every case but one. Navigation is not a refresh trigger
+ * and the age of the last check is irrelevant here.
+ *
+ * - `authenticated`  allow.
+ * - `anonymous`, `mfa_pending`  refuse; the caller redirects to /signin (the
+ *    MFA guard has already sent `mfa_pending` to /mfa-verify).
+ * - `checking`  hydration was missing or invalid. Refusing would turn "we do
+ *    not know" into "anonymous", so ask the coordinator exactly once and
+ *    decide from the answer.
+ * - `unavailable`  allow the navigation. It is NOT a sign-out, so it must not
+ *    bounce to /signin; the layout withholds protected content (#4460).
  */
+/**
+ * Asks the coordinator once when nothing has been verified yet (#4456).
+ *
+ * A valid hydrated snapshot returns on the first line, so initial navigation
+ * makes no request. `checking` means hydration was missing or invalid, and
+ * deciding anything from it would turn "we do not know" into "anonymous". The
+ * coordinator lands on a server statement or on `unavailable`; either way the
+ * status is no longer `checking`, so later navigations do not ask again
+ * (retries are the coordinator's, on backoff).
+ *
+ * Registered as the first guard and run for EVERY route, not only protected
+ * ones: a public page with broken hydration must not show a signed-in user as
+ * signed out indefinitely, and the guards after it must not decide from an
+ * unverified status.
+ */
+async function verifyIfChecking(store: AuthValidator): Promise<void> {
+  if (store.authStatus !== 'checking') return;
+  loggingService.debug('[RouterGuard] Status is checking, verifying once');
+  await store.refresh({ kind: 'ordinary', reason: 'initial-verification' });
+}
+
 async function validateAuthentication(
-  store: AuthValidator, // tried AuthStore, etc
+  store: AuthValidator,
   route: RouteLocationNormalized
 ): Promise<boolean> {
-  if (!requiresAuthentication(route)) {
-    loggingService.debug('[validateAuthentication] Public route, skipping auth check');
-    return true;
-  }
+  if (!requiresAuthentication(route)) return true;
 
-  loggingService.debug('[validateAuthentication] Checking auth for protected route:', {
+  // Normally already resolved by the first guard; kept so this function is
+  // correct on its own. It joins the request in flight rather than adding one.
+  await verifyIfChecking(store);
+
+  const status = store.authStatus;
+  loggingService.debug('[validateAuthentication] Deciding protected route:', {
     path: route.path,
-    needsCheck: store.needsCheck,
-    isAuthenticated: store.isAuthenticated,
+    status,
   });
-
-  if (store.needsCheck) {
-    loggingService.debug('[validateAuthentication] needsCheck=true, calling checkWindowStatus');
-    const authStatus = await store.checkWindowStatus();
-    loggingService.debug('[validateAuthentication] checkWindowStatus returned:', { authStatus });
-    return authStatus ?? false;
-  }
-
-  loggingService.debug('[validateAuthentication] Using cached auth state:', {
-    isAuthenticated: store.isAuthenticated,
-  });
-  return store.isAuthenticated ?? false;
+  return status === 'authenticated' || status === 'unavailable' || status === 'checking';
 }
 
 /**
@@ -538,4 +538,5 @@ export {
   redirectToSignIn,
   requiresAuthentication,
   validateAuthentication,
+  verifyIfChecking,
 };

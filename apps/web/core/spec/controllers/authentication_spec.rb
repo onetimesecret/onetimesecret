@@ -16,6 +16,7 @@ RSpec.describe Core::Controllers::Authentication do
     allow(session).to receive(:clear) { session_data.clear }
     allow(session).to receive(:[]) { |key| session_data[key] }
     allow(session).to receive(:[]=) { |key, value| session_data[key] = value }
+    allow(session).to receive(:delete) { |key| session_data.delete(key) }
     session
   end
   let(:session_options) { {} }
@@ -44,6 +45,44 @@ RSpec.describe Core::Controllers::Authentication do
   before do
     # Stub logging methods
     allow(controller).to receive(:auth_logger).and_return(double('Logger', debug: nil, info: nil))
+  end
+
+  describe '#authenticate' do
+    it 'records the establishing surface after a successful simple-mode login' do
+      customer = instance_double(
+        Onetime::Customer,
+        extid: 'ur_abc123',
+        email: 'test@example.com',
+        role: 'customer',
+        custid: 'cust_abc123',
+        obscure_email: 't***@example.com',
+      )
+      allow(customer).to receive(:role?).with(:colonel).and_return(false)
+      logic = instance_double(
+        Core::Logic::Authentication::AuthenticateSession,
+        raise_concerns: nil,
+        process: nil,
+        cust: customer,
+      )
+      allow(Core::Logic::Authentication::AuthenticateSession).to receive(:new).and_return(logic)
+      allow(req).to receive_messages(
+        post?: true,
+        params: { 'login' => 'test@example.com', 'password' => 'correct-password' },
+      )
+      env.merge!(
+        'HTTP_ACCEPT' => 'application/json',
+        'onetime.domain_strategy' => :custom,
+        'onetime.display_domain' => 'secrets.acme.com',
+        'onetime.custom_domain_id' => 'domain-abc',
+      )
+
+      controller.send(:perform_authentication)
+
+      expect(session_data['authenticated_surface']).to eq(
+        'kind' => 'custom',
+        'id' => 'domain-abc',
+      )
+    end
   end
 
   describe '#logout' do

@@ -116,5 +116,5 @@ not fall back to `signup_domain_id` when request context is unavailable.
 | `lib/onetime/application/organization_loader.rb` | Active org selection (priority chain, caching) |
 | `lib/onetime/application/auth_strategies/base_session_auth_strategy.rb` | Calls `load_organization_context` |
 | `lib/onetime/application/authorization_policies.rb` | Real auth (no discriminators) |
-| `apps/web/auth/operations/create_default_workspace.rb` | Sets `is_default! true` |
+| `apps/web/auth/operations/ensure_default_workspace.rb` | Sets `is_default! true` |
 | `apps/api/account/logic/account/create_account.rb` | Sets `signup_domain_id` on new accounts |

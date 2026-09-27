@@ -129,7 +129,15 @@ module Auth
       # account_from_login rather than clobbering it; all overrides are
       # route-scoped no-ops elsewhere, so ordering relative to the
       # conditionally-enabled features below (lockout) is immaterial.
+      # It is also the one answer for a sign-up whose login already has an
+      # account, however late that is detected (hooks/account.rb, and its
+      # save_account cover for a concurrent sign-up's unique violation).
       Overrides::AccountEnumeration.configure(self)
+      # Surface-bound sessions (#4409): stamp the establishing surface in
+      # update_session, the seam shared by `login` and every autologin
+      # (create/verify/reset, remember). Prepended, so it chains with the
+      # active-sessions update_session override regardless of order.
+      Overrides::SurfaceBinding.configure(self)
       RodauthOverrides.configure(self)
 
       # Lockout: brute force protection

@@ -50,6 +50,23 @@ module Auth::Config::Hooks
     }.freeze
 
     def self.configure(auth)
+      # Single consumer for the validated tenant domain id. Reads the session
+      # copy (pre-login callers) and the instance copy (after_login, which runs
+      # after Rodauth has cleared the session) and clears both, so whichever
+      # hook consumes first leaves nothing for the next one: the JIT create
+      # hook consumes it and after_login then skips (no duplicate join), and
+      # nothing leaks into a later request.
+      # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
+      auth.auth_class_eval do
+        def consume_validated_omniauth_domain_id
+          from_session                  = session.delete(:validated_omniauth_domain_id)
+          carried                       = @validated_omniauth_domain_id
+          @validated_omniauth_domain_id = nil
+          from_session || carried
+        end
+      end
+      # rubocop:enable Lint/NestedMethodDefinition
+
       # ========================================================================
       # HOOK: OmniAuth Setup - Runtime Credential Injection
       # ========================================================================
@@ -346,7 +363,16 @@ module Auth::Config::Hooks
         # (after_omniauth_create_account, after_login) can join the tenant org.
         # The original :omniauth_tenant_domain_id is intentionally consumed by
         # session.delete above — separating "pending" from "validated" state.
+        #
+        # The session copy serves the PRE-login readers (platform_path?, the
+        # trust-linking guard, the Connect gate, after_omniauth_create_account).
+        # Rodauth's login_session -> update_session -> clear_session destroys the
+        # Rack session before after_login fires, so a key that lives only in the
+        # session never reaches the existing-account join in hooks/login.rb.
+        # The instance variable is the copy that survives that reset; both are
+        # read and cleared together by consume_validated_omniauth_domain_id.
         session[:validated_omniauth_domain_id] = expected_domain_id
+        @validated_omniauth_domain_id          = expected_domain_id
 
         Auth::Logging.log_auth_event(
           :omniauth_tenant_callback_validated,

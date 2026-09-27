@@ -5,6 +5,7 @@
 require 'rhales'
 
 require 'onetime/middleware'
+require 'onetime/session/customer_session_evaluator'
 
 require 'onetime/models'
 
@@ -44,18 +45,27 @@ module Core
         @req             = req
         @strategy_result = req.env['otto.strategy_result']
 
-        # Extract session and customer from strategy_result or use fallback values
+        # Extract the session. Identity is only projected when a strategy
+        # result is present: without one this is the error-recovery path
+        # (500-style handler), and the view is treated as anonymous even if
+        # the raw session carries authenticated=true. Running the evaluator
+        # here would let error pages and serializers leak custid/email on
+        # responses that historically answered as anonymous. The session
+        # itself is still needed downstream (CSRF token, messages).
+        @sess   = if @strategy_result
+                  @strategy_result.session
+                else
+                  begin
+                    req.session
+                  rescue StandardError
+                    {}
+                  end
+                end
         if @strategy_result
-          @sess = @strategy_result.session
-          @cust = @strategy_result.user # nil for anonymous requests
+          verdict = Onetime::CustomerSessionEvaluator.evaluate(@sess, env: req.env)
+          @cust   = verdict.customer
         else
-          # Error recovery: Otto didn't run, use direct session access
-          @sess = begin
-            req.session
-          rescue StandardError
-            {}
-          end
-          @cust = nil # Anonymous - no customer
+          @cust = nil
         end
 
         # Extract locale from request environment
@@ -63,9 +73,9 @@ module Core
 
         @messages = []
 
-        # Initialize view variables, passing pre-resolved sess/cust
-        # to avoid re-extraction (eliminates duplication)
-        @view_vars = self.class.initialize_view_vars(req, @sess, @cust)
+        # Initialize view variables, passing the pre-resolved session. Identity
+        # is re-read from the evaluator's per-request memo, never passed in.
+        @view_vars = self.class.initialize_view_vars(req, @sess)
 
         # Call subclass init hook if defined
         init if respond_to?(:init)

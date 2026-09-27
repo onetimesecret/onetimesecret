@@ -8,6 +8,7 @@ require 'onetime/models/session_metadata'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
+require 'onetime/operations/bulk_audit_context'
 
 module Onetime
   module Operations
@@ -87,7 +88,10 @@ module Onetime
         # unresolved param is still an honest record of what the operator acted on.
         # (For a pre-resolved `customer:` it is that record's extid, captured at
         # construction — see #initialize — so no lookup happens here either.)
-        audit_failures :call, verb: AUDIT_VERB, target: -> { @custid }
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { @custid },
+          enabled: -> { audit_enabled? && !@self_service }
 
         # Session-data identity fields matched against the target's extid.
         IDENTITY_FIELDS = %w[external_id account_external_id].freeze
@@ -127,7 +131,19 @@ module Onetime
         #   {Onetime::AuditReason} for the bound and the optional-now /
         #   required-later rollout.
         # @param dbclient [Object, nil] Redis-like client; defaults to Familia.dbclient.
-        def initialize(actor:, custid: nil, customer: nil, reason: nil, dbclient: nil)
+        # @param sweep_untracked [Boolean] run step (b), the bounded keyspace SCAN
+        #   for pre-sidecar blobs. Every call pays for the whole scan, so a bulk
+        #   purge of accounts idle for months — whose blobs have all expired —
+        #   turns it off rather than walking the keyspace once per account. The
+        #   guaranteed tracked kill (a) and the Rodauth row purge (d) still run.
+        # @param self_service [Boolean] the account itself asked for this via
+        #   Customers::Purge on /auth/close-account (or the simple-mode
+        #   endpoint). Routes the audit write to the security trail via
+        #   {Onetime::ColonelAuditEvent.record_security} (fail-open) instead of
+        #   the count-capped operator trail: a user who can retry a deletion at
+        #   will must not be able to evict operator history from it.
+        def initialize(actor:, custid: nil, customer: nil, reason: nil, dbclient: nil,
+                       bulk_audit_context: nil, sweep_untracked: true, self_service: false)
           # Same shape as Operations::VerifyDomain's domain:/domains: guard.
           if custid.nil? && customer.nil?
             raise ArgumentError, 'Must provide either custid: or customer:'
@@ -136,15 +152,18 @@ module Onetime
             raise ArgumentError, 'Cannot provide both custid: and customer:'
           end
 
-          @customer = customer
+          @customer           = customer
           # @custid is read by the audit_failures target lambda and by the
           # success-event target fallback in #call; for a pre-resolved customer
           # its extid IS the addressed identity, so capture it now rather than
           # touching the record again mid-raise.
-          @custid   = custid || customer.extid
-          @actor    = actor
-          @reason   = normalize_reason(reason)
-          @dbclient = dbclient
+          @custid             = custid || customer.extid
+          @actor              = actor
+          @reason             = normalize_reason(reason)
+          @dbclient           = dbclient
+          @bulk_audit_context = bulk_audit_context
+          @sweep_untracked    = sweep_untracked
+          @self_service       = self_service
         end
 
         # @return [Result]
@@ -159,8 +178,13 @@ module Onetime
 
           # (a) GUARANTEED: delete every tracked blob directly (exact, uncapped).
           tracked_deleted                = purge_tracked(db, tracked)
-          # (b) BEST-EFFORT: sweep the keyspace for untracked (pre-sidecar) blobs.
-          untracked_deleted, scan_capped = purge_untracked(db, customer, tracked_set)
+          # (b) BEST-EFFORT: sweep the keyspace for untracked (pre-sidecar) blobs,
+          #     unless the caller declined the walk (bulk sweeps of idle accounts).
+          untracked_deleted, scan_capped = if @sweep_untracked
+                                             purge_untracked(db, customer, tracked_set)
+                                           else
+                                             [0, false]
+                                           end
           # (c) Tidy metadata now that the blobs are gone.
           tidy_sidecars(customer, tracked)
           # (d) Full mode: clear the Rodauth active-session rows.
@@ -180,19 +204,20 @@ module Onetime
           # that would otherwise evidence it, so this event is the whole record
           # of an offboarding/takeover action. An unwritable event raises
           # Onetime::AuditWriteFailure instead of returning a clean Result.
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: target,
-            result: :success,
-            detail: with_reason(
+          #
+          # Self-service (Customers::Purge on user-triggered close-account)
+          # routes to the security trail (fail-open) instead — the operator
+          # trail is capped and trimmed oldest-first, so a user who can retry
+          # deletion must not be able to write to it.
+          if audit_enabled?
+            counts = audit_counts(
               blobs_deleted: blobs_deleted,
               untracked_deleted: untracked_deleted,
               rodauth_rows_deleted: rodauth_rows_deleted,
               scan_capped: scan_capped,
-            ),
-            fail_closed: true,
-          )
+            )
+            record_success_event(target: target, counts: counts)
+          end
 
           Result.new(
             revoked: true,
@@ -205,6 +230,49 @@ module Onetime
 
         private
 
+        def audit_enabled?
+          !Onetime::Operations::BulkAuditContext.verified?(
+            @bulk_audit_context,
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @custid,
+            operation: self,
+          )
+        end
+
+        # The detail keeps its established shape; a declined sweep is recorded
+        # as one extra key so `untracked_deleted: 0` cannot read as "swept, none
+        # found".
+        def audit_counts(**counts)
+          @sweep_untracked ? counts : counts.merge(untracked_sweep: 'skipped')
+        end
+
+        # Route the success write to the operator trail (fail-closed) or the
+        # security trail (fail-open) based on whether the call is self-service.
+        # See #initialize for the rationale.
+        def record_success_event(target:, counts:)
+          detail = with_reason(counts)
+
+          if @self_service
+            Onetime::ColonelAuditEvent.record_security(
+              actor: @actor,
+              verb: AUDIT_VERB,
+              target: target,
+              result: :success,
+              detail: detail,
+            )
+          else
+            Onetime::ColonelAuditEvent.record(
+              actor: @actor,
+              verb: AUDIT_VERB,
+              target: target,
+              result: :success,
+              detail: detail,
+              fail_closed: true,
+            )
+          end
+        end
+
         # GUARANTEED kill: delete each tracked sid's live blob directly. The sids
         # are, by construction, this customer's (TrackMetadata only ZADDs their own
         # sessions), so no identity check is needed. Exact + UNCAPPED — the same
@@ -215,9 +283,17 @@ module Onetime
         def purge_tracked(db, tracked)
           tracked.count do |sid|
             key = Store.find_key(db, sid)
-            next false unless key
+            unless key
+              # No live blob today, but the operator still intends the sid dead:
+              # an in-flight request that loaded the blob earlier can re-SET it
+              # under the same id. Set the ended-marker so the writer's post-SET
+              # {Onetime::SessionEnded.ended?} check takes that copy back out
+              # (RISK-2026-09-19-01).
+              Onetime::SessionEnded.mark(sid, dbclient: db)
+              next false
+            end
 
-            db.del(key)
+            Store.destroy_blob(db, key)
             # A revoked sid's per-value sidecar keys must die with the blob —
             # exact registry-derived names, format-gated (legacy non-hex ids
             # no-op).
@@ -255,7 +331,7 @@ module Onetime
             next unless data.is_a?(Hash)
             next unless IDENTITY_FIELDS.any? { |f| data[f].to_s == extid }
 
-            db.del(key)
+            Store.destroy_blob(db, key)
             # Untracked (pre-sidecar-index) sessions can still own per-value
             # sidecar keys; those must not survive the blob either.
             Onetime::SessionSidecar.purge(sid, dbclient: db)

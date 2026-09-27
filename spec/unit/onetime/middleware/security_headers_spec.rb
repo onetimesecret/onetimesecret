@@ -8,9 +8,11 @@
 #
 #   1. X-Content-Type-Options: nosniff  (Rack::Protection::XSSHeader,
 #      site.middleware.xss_header — default flipped to true)
-#   2. Referrer-Policy: no-referrer     (Rack::Protection::ReferrerPolicy,
-#      site.middleware.referrer_policy — no-referrer because secret URLs must
-#      never leak via the Referer header)
+#   2. Referrer-Policy: strict-origin   (Rack::Protection::ReferrerPolicy,
+#      site.middleware.referrer_policy — Registry::REFERRER_POLICY; the path
+#      and query of secret URLs must never leak via the Referer header, and
+#      no-referrer is ruled out because it turns the Origin of a native form
+#      POST into `null`, #4542)
 #   3. Permissions-Policy               (Onetime::Middleware::PermissionsPolicy,
 #      site.middleware.permissions_policy)
 #
@@ -18,6 +20,7 @@
 
 require 'spec_helper'
 require 'erb'
+require 'otto'
 require 'onetime/middleware/security'
 
 RSpec.describe 'Security header emission (audit 2026-08-02 M-3)' do
@@ -71,9 +74,18 @@ RSpec.describe 'Security header emission (audit 2026-08-02 M-3)' do
   end
 
   describe 'Referrer-Policy (referrer_policy)' do
-    it 'emits no-referrer — never the rack-protection default — when enabled' do
+    it 'emits Registry::REFERRER_POLICY — never the rack-protection default — when enabled' do
       app = build_security({ 'referrer_policy' => true })
-      expect(headers_for(app)['referrer-policy']).to eq('no-referrer')
+      expect(headers_for(app)['referrer-policy']).to eq(Onetime::Middleware::Registry::REFERRER_POLICY)
+    end
+
+    it 'pins the value to strict-origin (a change here is a posture change, see #4542)' do
+      expect(Onetime::Middleware::Registry::REFERRER_POLICY).to eq('strict-origin')
+    end
+
+    it 'uses a token Otto accepts, so boot cannot raise on it' do
+      expect(Otto::Security::Config::REFERRER_POLICIES)
+        .to include(Onetime::Middleware::Registry::REFERRER_POLICY)
     end
 
     it 'does not clobber a policy a downstream layer already set' do
@@ -113,7 +125,7 @@ RSpec.describe 'Security header emission (audit 2026-08-02 M-3)' do
       headers = headers_for(app)
 
       expect(headers['x-content-type-options']).to eq('nosniff')
-      expect(headers['referrer-policy']).to eq('no-referrer')
+      expect(headers['referrer-policy']).to eq('strict-origin')
       expect(headers['permissions-policy']).to eq('geolocation=(), microphone=(), camera=()')
     end
   end

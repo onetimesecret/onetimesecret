@@ -10,16 +10,18 @@ require 'spec_helper'
 # Onetime::Application::Base, config-gated resolution against the middleware
 # Registry, and the unknown-profile failure mode.
 RSpec.describe Onetime::Application::MiddlewareProfile do
-  # Records `use` calls like the manifest spec's MiddlewareRecorder.
-  class ProfileRecorder
-    attr_reader :used
+  # Records `use` calls like the manifest spec's recorder_class.
+  let(:recorder_class) do
+    Class.new do
+      attr_reader :used
 
-    def initialize
-      @used = []
-    end
+      def initialize
+        @used = []
+      end
 
-    def use(klass, *args, **kwargs, &blk)
-      @used << [klass, kwargs]
+      def use(klass, *_args, **kwargs, &_blk)
+        @used << [klass, kwargs]
+      end
     end
   end
 
@@ -101,7 +103,7 @@ RSpec.describe Onetime::Application::MiddlewareProfile do
   end
 
   describe '.apply (profile-scoped config-gated resolution)' do
-    let(:recorder) { ProfileRecorder.new }
+    let(:recorder) { recorder_class.new }
 
     # Components are gated on site.middleware.profiles.<profile>.<key>, not
     # the shared site.middleware.<key> toggles.

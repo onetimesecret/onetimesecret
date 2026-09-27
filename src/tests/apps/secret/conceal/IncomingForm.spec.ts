@@ -20,6 +20,8 @@ import { createTestI18n } from '@tests/setup';
 vi.mock('@/services/bootstrap.service', () => ({
   getBootstrapSnapshot: vi.fn(() => null),
   updateBootstrapSnapshot: vi.fn(),
+  // applySnapshot()/resetForLogout() replace the pre-Pinia mirror (#4458).
+  replaceBootstrapSnapshot: vi.fn(),
   _resetForTesting: vi.fn(),
 }));
 

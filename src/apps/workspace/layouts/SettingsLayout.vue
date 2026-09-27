@@ -32,7 +32,7 @@ const bootstrapStore = useBootstrapStore();
 // Flatten navigation sections into tab items.
 //
 // Reactivity: deriving feature flags from `bootstrapStore` inside the computed
-// registers each accessed field as a dependency. When checkWindowStatus or
+// registers each accessed field as a dependency. When an accepted refresh or
 // changePassword updates the store (e.g. has_password flips after first
 // password set), this recomputes and tabs appear without a page reload.
 const tabItems = computed(() => {

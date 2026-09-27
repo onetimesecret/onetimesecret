@@ -3,15 +3,15 @@
 # frozen_string_literal: true
 
 require 'onetime/logic/sso_only_gating'
-require 'auth/operations/teardown_account'
+require 'auth/operations/customers/purge'
 
 module AccountAPI::Logic
   module Account
     # Session-authenticated deletion endpoint retained for simple (Redis-only)
     # auth mode. Core's simple login writes the `authenticated` session marker
     # required by this route. The full-auth Settings UI uses Rodauth's
-    # /auth/close-account route. Both endpoints delegate permanent teardown to
-    # Auth::Operations::TeardownAccount.
+    # /auth/close-account route. Both endpoints run the same organization
+    # preflight/cleanup policy before permanent account teardown.
     class DestroyAccount < AccountAPI::Logic::Base
       include Onetime::LoggerMethods
       include Onetime::Logic::SsoOnlyGating
@@ -58,9 +58,18 @@ module AccountAPI::Logic
           # Debug mode simulates the action without modifying either account
           # store.
         else
-          result = Auth::Operations::TeardownAccount.new(customer: cust).call
+          result = Auth::Operations::Customers::Purge.new(customer: cust, self_service: true).call
           unless result.status == :success
-            raise_form_error 'Unable to delete account.', error_type: 'system_error'
+            raise_form_error(
+              'Account deletion was refused because organization data or membership state requires attention.',
+              error_type: 'account_deletion_refused',
+              details: {
+                status: result.status,
+                stage: result.stage,
+                blockers: result.blockers,
+                planned_actions: result.planned_actions,
+              },
+            )
           end
 
           OT.info "[destroy-account] Account destroyed. #{cust.objid} #{cust.role} #{session_sid}"

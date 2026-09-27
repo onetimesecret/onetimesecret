@@ -46,18 +46,21 @@ module Onetime
     #
     # ## Scope: 429 and 503
     #
-    # Two error families stash the value today, and `Retry-After` is legal on
-    # both statuses (RFC 9110 §10.2.3):
+    # Two status families stash the value today, and `Retry-After` is legal on
+    # both (RFC 9110 §10.2.3):
     #
     # - 429, from every limiter raising {Onetime::LimitExceeded}.
-    # - 503, from `Billing::CircuitOpenError` — whose Otto handler
-    #   (`OttoHooks`, `body[:retry_after] = error.retry_after`) says in its own
-    #   comment that it can only put the delay in the body because a handler
-    #   block cannot set a response header. That is precisely the gap this
-    #   middleware closes, so excluding 503 would decline the one case that
-    #   asked for it. Live impact is nil today (the breaker wraps only the
-    #   catalog Pull, off the synchronous HTTP edge), but a future endpoint
-    #   routed through the breaker gets the header for free.
+    # - 503, from every transient-unavailable error whose body carries
+    #   `retry_after`: {Onetime::AccountProvisioningUnavailable} (default
+    #   workspace provisioning persisted nothing and the next request retries;
+    #   the one live synchronous case), {Onetime::AuthPolicyUnavailable}, and
+    #   `Billing::CircuitOpenError` — whose Otto handler (`OttoHooks`,
+    #   `body[:retry_after] = error.retry_after`) says in its own comment that
+    #   it can only put the delay in the body because a handler block cannot
+    #   set a response header. That is precisely the gap this middleware
+    #   closes. The breaker itself wraps only the catalog Pull, off the
+    #   synchronous HTTP edge, but any endpoint routed through it gets the
+    #   header for free.
     #
     # `Retry-After` is also legal on 3xx; nothing here produces one, and a
     # redirect carrying a back-off hint would be surprising, so 3xx is excluded.

@@ -137,7 +137,9 @@
       {
         key: 'periodEnd',
         label: t('web.admin.organizations.fields.periodEnd'),
-        value: r.subscription_period_end || t('web.admin.organizations.detail.none'),
+        value: r.subscription_period_end
+          ? String(r.subscription_period_end)
+          : t('web.admin.organizations.detail.none'),
       },
       {
         key: 'stripeCustomer',
@@ -605,8 +607,8 @@
       {
         key: 'periodEnd',
         label: t('web.admin.organizations.fields.periodEnd'),
-        before: r.before.subscription_period_end || '—',
-        after: r.after.subscription_period_end || '—',
+        before: r.before.subscription_period_end ? String(r.before.subscription_period_end) : '—',
+        after: r.after.subscription_period_end ? String(r.after.subscription_period_end) : '—',
       },
       {
         key: 'materializedCount',

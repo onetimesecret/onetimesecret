@@ -29,8 +29,8 @@ threshold, and both are dry-run-first (see "Safety model").
 The forcing case is not team consolidation. It is that a single human ends up
 with **two accounts** — a native signup plus an SSO-minted one, or two SSO
 identities — and therefore two `is_default` personal workspaces
-(`organization.rb:71`). `CreateDefaultWorkspace` mints one per account. Its
-orphan adoption (`create_default_workspace.rb:213-221`, match by
+(`organization.rb:71`). `EnsureDefaultWorkspace` mints one per account. Its
+orphan adoption (`ensure_default_workspace.rb:213-221`, match by
 `contact_email`, only when the existing org has no members) PREVENTS the
 duplicate for the same-email case — so by construction the two accounts we are
 merging always have DIFFERENT emails (`email_index` is unique), and their two

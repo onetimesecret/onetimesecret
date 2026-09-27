@@ -58,7 +58,19 @@ export interface BillingOverviewResponse {
   subscription: {
     id: string;
     status: string;
-    period_end: number;
+    /**
+     * Unix epoch SECONDS as a decimal string, or null.
+     *
+     * The controller pins this to a string (`build_subscription_data`). The
+     * model field holds an Integer for new records and a String for legacy
+     * ones, so without the pin this endpoint would emit two wire types for
+     * one field. A spec in `billing_controller_spec.rb` assigns an Integer
+     * and asserts the string comes back.
+     *
+     * Parse it with `parseDateValue`; do not do arithmetic on it. Null when
+     * the org has a subscription id but no recorded period end.
+     */
+    period_end: string | null;
     active: boolean;
     past_due: boolean;
     canceled: boolean;

@@ -5,6 +5,7 @@ import { classifyError, createError, errorGuards, wrapError } from '@/schemas/er
 import { captureException, isDiagnosticsEnabled } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
 import type {} from '@/shared/stores/notificationsStore';
+import { readCoordinatorDisposition } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { NotificationSeverity } from '@/types/ui/notifications';
 import { useI18n } from 'vue-i18n';
@@ -143,6 +144,22 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
   }
 
   /**
+   * Whether the refresh coordinator owns the user-visible message for this
+   * error (#4461, ADR-046#rejection-disposition).
+   *
+   * The list of carve-outs (`admin_session`, `awaiting_mfa` on an MFA-pending
+   * tab, an anonymous tab, throttled duplicates) lives in exactly one place:
+   * `authStore.noteApiRejection`. The interceptor stamps that decision on
+   * the error via `COORDINATOR_DISPOSITION_KEY`, and this reads that one
+   * field. If it is absent (a non-401, an error that never touched the
+   * interceptor, or a bootstrap-time rejection where Pinia wasn't ready) we
+   * treat it as not owned — the caller's toast stands.
+   */
+  function coordinatorOwnsMessage(error: unknown): boolean {
+    return readCoordinatorDisposition(error)?.ownedByCoordinator === true;
+  }
+
+  /**
    * Logs technical errors and sends to Sentry with context tags
    */
   function logTechnicalError(error: unknown, classifiedError: ApplicationError): void {
@@ -191,7 +208,7 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
       const classifiedError = classifyError(error as Error);
 
       handleErrorCallback(classifiedError);
-      notifyUser(classifiedError);
+      if (!coordinatorOwnsMessage(error)) notifyUser(classifiedError);
       logTechnicalError(error, classifiedError);
 
       return undefined;

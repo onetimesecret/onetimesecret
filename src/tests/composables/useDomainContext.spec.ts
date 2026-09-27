@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest';
 import { nextTick } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { BulkPermissionsResponse } from '@/schemas/api/account/responses/permissions';
 
@@ -178,6 +179,8 @@ describe('useDomainContext', () => {
     bootstrapStore.link_domains = config.link_domains ?? [];
     bootstrapStore.domain_strategy = config.domain_strategy ?? 'canonical';
     bootstrapStore.domain_context = config.domain_context ?? null;
+    // The server sync is a protected action (ADR-046#authority-action-gating).
+    bootstrapStore.authStatus = 'authenticated';
 
     return { pinia, bootstrapStore };
   }
@@ -1945,6 +1948,55 @@ describe('useDomainContext', () => {
       await setContext('acme.example.com');
 
       expect(mockSessionStorage.getItem('domainContext')).toBe('acme.example.com');
+    });
+
+    // The POST is a protected action (ADR-046#authority-action-gating): after a
+    // session replacement the cookie may belong to another account, so a
+    // stale-session tab must not write domain context to it.
+    it('stale-session mode changes the selection locally without the POST', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+        custom_domains: ['acme.example.com'],
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
+
+      const { useDomainContext } = await importWithMockApi();
+      const { setContext, currentContext } = useDomainContext();
+
+      await waitForInit();
+      mockApiPost.mockClear();
+      useAuthStore().staleSession = true;
+
+      await setContext('acme.example.com');
+
+      expect(currentContext.value.domain).toBe('acme.example.com');
+      expect(mockApiPost).not.toHaveBeenCalled();
+    });
+
+    it('an unverified session changes the selection locally without the POST', async () => {
+      const { bootstrapStore } = setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+        custom_domains: ['acme.example.com'],
+      });
+
+      setMockDomains('org-ext-test-123', ['acme.example.com']);
+
+      const { useDomainContext } = await importWithMockApi();
+      const { setContext, currentContext } = useDomainContext();
+
+      await waitForInit();
+      mockApiPost.mockClear();
+      bootstrapStore.authStatus = 'unavailable';
+
+      await setContext('acme.example.com');
+
+      expect(currentContext.value.domain).toBe('acme.example.com');
+      expect(mockApiPost).not.toHaveBeenCalled();
     });
 
     // Selecting canonical persists like any other pool member. It used to be

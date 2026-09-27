@@ -43,14 +43,19 @@ RSpec.shared_context 'view_test_context' do
     }
   end
 
-  # Session is a Hash (rack session data), not an object with methods.
-  # The authenticated? method lives on strategy_result, not the session.
+  # Session is a Hash (rack session data), not an object with methods. Keep
+  # this authenticated fixture representative of the predicates production
+  # evaluates instead of treating StrategyResult#authenticated? as sufficient.
   let(:session) do
     {
       'csrf' => 'test_shrimp',
       'account_id' => 'test@example.com',
       'email' => 'test@example.com',
-      'awaiting_mfa' => false
+      'external_id' => 'test@example.com',
+      'authenticated' => true,
+      'authenticated_at' => Time.now.to_i,
+      'awaiting_mfa' => false,
+      Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
     }
   end
 
@@ -59,6 +64,8 @@ RSpec.shared_context 'view_test_context' do
       custid: 'test@example.com',
       email: 'test@example.com',
       anonymous?: false,
+      suspended?: false,
+      last_password_update: 0,
       planid: 'basic',
       created: Time.now.to_i,
       safe_dump: {
@@ -99,6 +106,7 @@ RSpec.shared_context 'view_test_context' do
       'rack.session' => session,
       'otto.locale' => 'en',
       'otto.strategy_result' => strategy_result,
+      'onetime.domain_strategy' => :canonical,
       'onetime.nonce' => nil
     }
 
@@ -116,6 +124,12 @@ RSpec.shared_context 'view_test_context' do
     # Use block implementation instead of and_yield to avoid
     # RSpec 4.x arity checking issues on x86_64-linux
     allow(Onetime).to receive(:with_diagnostics) { |&block| block&.call }
+    allow(Onetime::Customer).to receive(:find_by_extid)
+      .with('test@example.com')
+      .and_return(customer)
+    allow(Onetime::ActiveSessionGate).to receive(:verdict)
+      .with(session, env: rack_request.env)
+      .and_return(:skipped)
 
     allow(OT).to receive(:locales).and_return({
       'en' => {

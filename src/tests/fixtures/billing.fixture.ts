@@ -405,7 +405,7 @@ export function createMockOverviewResponse(
     subscription: {
       id: 'sub_123',
       status: 'active',
-      period_end: Math.floor(Date.now() / 1000) + 86400 * 30,
+      period_end: String(Math.floor(Date.now() / 1000) + 86400 * 30),
       active: true,
       past_due: false,
       canceled: false,
@@ -439,7 +439,7 @@ export const mockOverviewResponses = {
     subscription: {
       id: 'sub_123',
       status: 'past_due',
-      period_end: Math.floor(Date.now() / 1000) + 86400 * 30,
+      period_end: String(Math.floor(Date.now() / 1000) + 86400 * 30),
       active: true,
       past_due: true,
       canceled: false,

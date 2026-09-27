@@ -14,6 +14,7 @@
  */
 
 import { loggingService } from '@/services/logging.service';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useResourcePermissions } from '@/shared/composables/useResourcePermissions';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -211,12 +212,20 @@ function findDomainByExtid(
   return found === undefined ? undefined : normalizeDomainHost(found);
 }
 
-/** Sync domain context to backend (fire-and-forget) */
+/**
+ * Sync domain context to backend (fire-and-forget).
+ *
+ * The POST is a protected action (ADR-046#authority-action-gating): it writes
+ * to whichever account the cookie names, and in stale-session mode after a
+ * replacement that may be another account. The local selection still changes;
+ * only the server write is withheld.
+ */
 async function syncDomainContextToServer(
   $api: AxiosInstance | undefined,
   domain: string
 ): Promise<void> {
   if (!$api) return;
+  if (!useAuthStore().protectedActionsAvailable) return;
   try {
     await $api.post('/api/account/update-domain-context', { domain });
   } catch (error) {

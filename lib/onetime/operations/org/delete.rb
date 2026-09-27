@@ -9,6 +9,7 @@ require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/audit_reason'
 require 'onetime/operations/audit_attempt'
+require 'onetime/operations/bulk_audit_context'
 # The member notification is enqueued from here, and the CLI reaches this file
 # without the app's job wiring loaded (precedent:
 # lib/onetime/logic/credential_change_session_revocation.rb).
@@ -151,6 +152,7 @@ module Onetime
           :is_default,
           :active_subscription,
           :last_org,
+          :account_purge_invalid,
         ].freeze
 
         # A destructive verb whose teardown is irreversible from step 3 onward: a
@@ -165,7 +167,8 @@ module Onetime
         audit_failures :call,
           verb: AUDIT_VERB,
           target: -> { @extid },
-          detail: -> { { dry_run: @dry_run } }
+          detail: -> { { dry_run: @dry_run } },
+          enabled: -> { audit_enabled? && !@self_service }
 
         # @!attribute status [r] Symbol — :planned (dry run) | :success | one of
         #   {REFUSAL_STATUSES}.
@@ -246,6 +249,9 @@ module Onetime
         #   `organization_deleted` mail. Defaults to the actor's public identity;
         #   the customer-facing adapter passes the acting customer's email so the
         #   notification reads the way it always has.
+        # @param account_purge_context [Customers::PurgePreflight::AccountPurgeContext, nil]
+        #   internal, self-revalidating capability that may bypass only
+        #   `:is_default` and `:last_org`. Public adapters never pass it.
         # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
         #   recorded in the audit detail of the applied delete AND of the
         #   preview that preceded it. OPERATOR SURFACES ONLY, like the force
@@ -256,15 +262,26 @@ module Onetime
         #   for the former members. Blank is treated as absent and both details
         #   keep their pre-#4338 shape; see {Onetime::AuditReason} for the bound
         #   and the optional-now / required-later rollout.
+        # @param self_service [Boolean] the account that owns this org asked
+        #   for the delete on its own close-account path (via
+        #   Customers::Purge). Routes the audit write to the security trail via
+        #   {Onetime::ColonelAuditEvent.record_security} (fail-open) instead of
+        #   the count-capped operator trail: a user who can retry a deletion at
+        #   will must not be able to evict operator history from it.
         def initialize(org:, actor:, dry_run: true, force_default: false,
-                       force_subscription: false, deleted_by: nil, reason: nil)
-          @org                = org
-          @actor              = actor
-          @dry_run            = dry_run
-          @force_default      = force_default
-          @force_subscription = force_subscription
-          @deleted_by         = deleted_by
-          @reason             = normalize_reason(reason)
+                       force_subscription: false, deleted_by: nil, reason: nil,
+                       account_purge_context: nil, bulk_audit_context: nil,
+                       self_service: false)
+          @org                   = org
+          @actor                 = actor
+          @dry_run               = dry_run
+          @force_default         = force_default
+          @force_subscription    = force_subscription
+          @deleted_by            = deleted_by
+          @reason                = normalize_reason(reason)
+          @account_purge_context = account_purge_context
+          @bulk_audit_context    = bulk_audit_context
+          @self_service          = self_service
 
           # Snapshotted at construction so the AuditedFailure target survives a
           # raise anywhere in #call, including after destroy! has emptied the
@@ -315,6 +332,7 @@ module Onetime
           @default_org_holders = members.select { |member| member.default_org_id.to_s == @objid.to_s }
 
           detect_domain_drift!
+          @account_purge_authorized = authorize_account_purge
 
           refusal = first_guardrail_trip
           return refuse(refusal) if refusal
@@ -325,7 +343,7 @@ module Onetime
           # `dry_run` defaults to TRUE, so this is the path a console operator
           # takes first. Recorded as an OBSERVATION (#4337).
           if @dry_run
-            record_preview_event
+            record_preview_event if audit_enabled?
             return build(:planned)
           end
 
@@ -335,6 +353,16 @@ module Onetime
         end
 
         private
+
+        def audit_enabled?
+          !Onetime::Operations::BulkAuditContext.verified?(
+            @bulk_audit_context,
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @extid,
+            operation: self,
+          )
+        end
 
         # Detect domains that still name this org in `CustomDomain.owners` but
         # have fallen out of its domains collection. Detection ONLY — no path
@@ -363,13 +391,18 @@ module Onetime
           # on them too — a raise that would otherwise land after the
           # instances-zset removal.
           return :drifted_domains if @drifted.any?
-          return :is_default if @is_default && !@force_default
+
+          if @account_purge_context.nil? && @is_default && !@force_default
+            return :is_default
+          end
           return :active_subscription if @active_subscription && !@force_subscription
+          return :account_purge_invalid if @account_purge_context && !@account_purge_authorized
+          return :is_default if @is_default && !@force_default && !@account_purge_authorized
           # Orphaned org (`org doctor` check 1): no owner_id and no owner
           # membership means no one to strand, so the guard has nothing to say.
           # A lookup that RAISED never reaches here — resolve_owner fails the
           # delete closed rather than reading an error as an orphan.
-          return :last_org if @owner && @owner_other_org_count.zero?
+          return :last_org if @owner && @owner_other_org_count.zero? && !@account_purge_authorized
 
           nil
         end
@@ -405,22 +438,14 @@ module Onetime
           # adapter reports a failed delete instead of :success with no trail.
           # The teardown is NOT rolled back (see the model's fail-closed note);
           # the refusal statuses above still return normally and audit nothing.
-          Onetime::ColonelAuditEvent.record(
-            actor: @actor,
-            verb: AUDIT_VERB,
-            target: @extid,
-            result: :success,
-            detail: with_reason(
-              display_name: @display_name.to_s,
-              planid: @planid,
-              members: @members.size,
-              members_notified: @notified,
-              pending_invitations: @pending,
-              default_org_cleared: @cleared.size,
-              forced: forced_guards,
-            ),
-            fail_closed: true,
-          )
+          #
+          # Self-service (Customers::Purge on user-triggered close-account)
+          # routes to the security trail instead — the operator-trail is capped
+          # and trimmed oldest-first, so a user who can retry deletion must not
+          # be able to write to it.
+          return unless audit_enabled?
+
+          record_success_event
         end
 
         # Owner memberships are the live authority (organization.rb:102-107 —
@@ -483,10 +508,14 @@ module Onetime
 
         # Best-effort notification to former members. Each send is isolated so
         # one failure doesn't skip the rest, and no failure may affect the
-        # (already-committed) deletion.
+        # (already-committed) deletion. A verified account-purge capability can
+        # delete only the departing account's sole-member default workspace, so
+        # it deliberately suppresses the otherwise redundant member notice.
         #
         # @return [Integer] messages successfully enqueued.
         def notify_members_deleted
+          return 0 if @account_purge_authorized
+
           @recipients.count do |recipient|
             # Blank ("") locales are truthy and slip past a bare `||`; treat as
             # missing.
@@ -532,7 +561,30 @@ module Onetime
           forced = []
           forced << 'is_default' if @is_default && @force_default
           forced << 'active_subscription' if @active_subscription && @force_subscription
+          if @account_purge_authorized
+            forced << 'account_purge:is_default' if @is_default && !@force_default
+            forced << 'account_purge:last_org' if @owner && @owner_other_org_count.zero?
+          end
           forced
+        end
+
+        # This is deliberately narrower than another force flag. The capability
+        # is issued by Customers::PurgePreflight and performs a fresh complete
+        # preflight for the exact plan immediately before this operation mutates.
+        # Domain and subscription guardrails above remain independent and cannot
+        # be bypassed by this context.
+        def authorize_account_purge
+          return false unless @account_purge_context
+          return false unless @account_purge_context.is_a?(
+            Auth::Operations::Customers::PurgePreflight::AccountPurgeContext,
+          )
+          return false unless @owner
+          return false unless @account_purge_context.customer_objid == @owner.objid.to_s
+
+          @account_purge_context.authorized_for?(@org)
+        rescue StandardError => ex
+          OT.le "[Org::Delete] account-purge revalidation failed for #{@extid}: #{ex.class}: #{ex.message}"
+          false
         end
 
         # Refusals write nothing and audit nothing (see the audit note in the
@@ -572,6 +624,40 @@ module Onetime
         # to @actor.
         def audit_target = @extid
 
+        # Route the applied success write to the operator trail (fail-closed)
+        # or the security trail (fail-open) based on whether the call came from
+        # a user's own close-account path. See #initialize for the rationale.
+        def record_success_event
+          detail = with_reason(
+            display_name: @display_name.to_s,
+            planid: @planid,
+            members: @members.size,
+            members_notified: @notified,
+            pending_invitations: @pending,
+            default_org_cleared: @cleared.size,
+            forced: forced_guards,
+          )
+
+          if @self_service
+            Onetime::ColonelAuditEvent.record_security(
+              actor: @actor,
+              verb: AUDIT_VERB,
+              target: @extid,
+              result: :success,
+              detail: detail,
+            )
+          else
+            Onetime::ColonelAuditEvent.record(
+              actor: @actor,
+              verb: AUDIT_VERB,
+              target: @extid,
+              result: :success,
+              detail: detail,
+              fail_closed: true,
+            )
+          end
+        end
+
         def build(status)
           Result.new(
             status: status,
@@ -579,7 +665,7 @@ module Onetime
             display_name: @display_name,
             planid: @planid,
             members: @members,
-            members_notified: @notified || @recipients.size,
+            members_notified: @notified || (@account_purge_authorized ? 0 : @recipients.size),
             pending_invitations: @pending,
             domain_count: @domain_count,
             domains: @domains,

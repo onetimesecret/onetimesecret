@@ -337,7 +337,7 @@ module Billing
         # step 4 creates twice before giving up.
         #
         # Step 4 used to live here, and the redirect twin had its own — this
-        # path ran Auth::Operations::CreateDefaultWorkspace first and the
+        # path ran Auth::Operations::EnsureDefaultWorkspace first and the
         # redirect never did, so the same checkout got a different workspace
         # name and a different federated-subscription outcome depending on
         # which surface handled it. Both now share

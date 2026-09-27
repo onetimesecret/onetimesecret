@@ -1,6 +1,5 @@
 // src/shared/stores/secretStore.ts
 
-import { PiniaPluginOptions } from '@/plugins/pinia';
 import { ConcealPayload, GeneratePayload } from '@/schemas/api/v3/requests/content';
 import {
   responseSchemas,
@@ -9,7 +8,6 @@ import {
 } from '@/schemas/api/v3/responses';
 import type { SecretState } from '@/schemas/contracts';
 import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
-import { loggingService } from '@/services/logging.service';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
@@ -24,7 +22,6 @@ import { computed, ref } from 'vue';
  */
 export type ApiMode = 'authenticated' | 'public';
 
-interface StoreOptions extends PiniaPluginOptions {}
 
 /**
  * Type definition for SecretStore.
@@ -69,10 +66,9 @@ export const useSecretStore = defineStore('secrets', () => {
 
   // Actions
 
-  function init(options?: StoreOptions) {
+  function init() {
     if (_initialized.value) return { isInitialized };
 
-    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
 
     _initialized.value = true;
 

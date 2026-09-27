@@ -8,7 +8,7 @@
   import { AdminModal } from '@/apps/admin/components/kit';
   import type { EditableDomainConfigKind } from '@/schemas/api/internal/responses/colonel-domain-configs';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { computed, ref, watch } from 'vue';
+  import { computed, nextTick, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   /**
@@ -34,6 +34,12 @@
     loading?: boolean;
     /** Server/action error to surface, or null. */
     error?: string | null;
+    /**
+     * The field the server attached {@link error} to (a 422 form error's
+     * `field`), or null. When it names a field this modal renders, the message
+     * is shown against that field instead of in the general alert.
+     */
+    errorField?: string | null;
   }>();
 
   const emit = defineEmits<{
@@ -148,6 +154,46 @@
     return payload;
   }
 
+  // ---- Field-level errors ----------------------------------------------------
+
+  /** The rendered field the current error belongs to, or null (general alert). */
+  const invalidField = computed<string | null>(() => {
+    if (!props.error || !props.errorField) return null;
+    return fields.value.some((field) => field.name === props.errorField)
+      ? props.errorField
+      : null;
+  });
+
+  const CONTROL_ID_PREFIX: Record<DomainConfigFieldDescriptor['type'], string> = {
+    boolean: 'config-boolean',
+    select: 'config-select',
+    domains: 'config-domains',
+  };
+
+  const controlId = (field: DomainConfigFieldDescriptor): string =>
+    `${CONTROL_ID_PREFIX[field.type]}-${field.name}`;
+
+  const errorId = (name: string): string => `config-error-${name}`;
+  const hintId = (name: string): string => `config-hint-${name}`;
+
+  /** `aria-describedby` for a control: its hint (if any), then its error. */
+  function describedBy(field: DomainConfigFieldDescriptor): string | undefined {
+    const ids: string[] = [];
+    if (field.type === 'domains') ids.push(hintId(field.name));
+    if (invalidField.value === field.name) ids.push(errorId(field.name));
+    return ids.length > 0 ? ids.join(' ') : undefined;
+  }
+
+  // A refused field takes focus, so keyboard and screen-reader users land on
+  // what they have to fix (the message is announced through aria-describedby).
+  watch(invalidField, async (name) => {
+    if (!name) return;
+    const field = fields.value.find((candidate) => candidate.name === name);
+    if (!field) return;
+    await nextTick();
+    document.getElementById(controlId(field))?.focus();
+  });
+
   /** On edit, submitting zero changed fields is a no-op — keep it disabled. */
   const hasChanges = computed(() => Object.keys(buildPayload()).length > 0);
 
@@ -167,7 +213,9 @@
     @update:open="emit('update:open', $event)">
     <form @submit.prevent="onSubmit">
       <div class="space-y-4">
-        <template
+        <!-- One wrapper per field, so its error sits with it inside the
+             container's vertical rhythm -->
+        <div
           v-for="field in fields"
           :key="field.name">
           <!-- Boolean toggle (accessible native checkbox) -->
@@ -175,9 +223,12 @@
             v-if="field.type === 'boolean'"
             class="flex items-center gap-2">
             <input
+              :id="controlId(field)"
               type="checkbox"
               v-model="booleanValues[field.name]"
               :disabled="loading"
+              :aria-invalid="invalidField === field.name || undefined"
+              :aria-describedby="describedBy(field)"
               :data-testid="`config-field-${field.name}`"
               class="size-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800" />
             <span class="text-sm text-gray-900 dark:text-gray-100">
@@ -196,6 +247,8 @@
               :id="`config-select-${field.name}`"
               v-model="selectValues[field.name]"
               :disabled="loading"
+              :aria-invalid="invalidField === field.name || undefined"
+              :aria-describedby="describedBy(field)"
               :data-testid="`config-field-${field.name}`"
               class="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm text-gray-900 focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
               <option
@@ -228,18 +281,33 @@
               autocorrect="off"
               spellcheck="false"
               :disabled="loading"
+              :aria-invalid="invalidField === field.name || undefined"
+              :aria-describedby="describedBy(field)"
               :data-testid="`config-field-${field.name}`"
               class="w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white"></textarea>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              {{ t('web.admin.domains.configs.edit.domainsHint') }}
+            <p
+              :id="hintId(field.name)"
+              class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {{ t(field.hintKey ?? 'web.admin.domains.configs.edit.domainsHint') }}
             </p>
           </div>
-        </template>
+
+          <!-- A server refusal tagged with this field shows here, not below -->
+          <p
+            v-if="invalidField === field.name"
+            :id="errorId(field.name)"
+            role="alert"
+            :data-testid="`config-field-error-${field.name}`"
+            class="mt-1 text-sm text-red-700 dark:text-red-300">
+            {{ error }}
+          </p>
+        </div>
       </div>
 
-      <!-- Error stays IN the modal (useAdminMutation convention) -->
+      <!-- Error stays IN the modal (useAdminMutation convention). A refusal
+           the server attached to a rendered field is shown against it above. -->
       <div
-        v-if="error"
+        v-if="error && !invalidField"
         class="mt-4 rounded-md bg-red-50 p-3 dark:bg-red-900/20"
         role="alert"
         aria-live="assertive">

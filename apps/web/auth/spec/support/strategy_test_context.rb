@@ -48,6 +48,7 @@ RSpec.shared_context 'strategy test' do
     {
       'rack.session' => {},
       'REMOTE_ADDR' => '127.0.0.1',
+      'onetime.domain_strategy' => :canonical,
       'HTTP_USER_AGENT' => 'Test/1.0',
     }
   end
@@ -57,10 +58,13 @@ RSpec.shared_context 'strategy test' do
     {
       'rack.session' => {
         'authenticated' => true,
+        # #4409: hand-seeded sessions need the surface marker the login hooks record.
+        Onetime::SessionSurface::KEY => Onetime::SessionSurface::CANONICAL,
         'external_id' => test_customer.extid,
         'email' => test_customer.email,
       },
       'REMOTE_ADDR' => '127.0.0.1',
+      'onetime.domain_strategy' => :canonical,
       'HTTP_USER_AGENT' => 'Test/1.0',
     }
   end
@@ -71,6 +75,7 @@ RSpec.shared_context 'strategy test' do
     {
       'rack.session' => {},
       'REMOTE_ADDR' => '127.0.0.1',
+      'onetime.domain_strategy' => :canonical,
       'HTTP_USER_AGENT' => 'Test/1.0',
       'HTTP_AUTHORIZATION' => "Basic #{encoded}",
     }
@@ -82,6 +87,7 @@ RSpec.shared_context 'strategy test' do
     {
       'rack.session' => {},
       'REMOTE_ADDR' => '127.0.0.1',
+      'onetime.domain_strategy' => :canonical,
       'HTTP_USER_AGENT' => 'Test/1.0',
       'HTTP_AUTHORIZATION' => "Basic #{encoded}",
     }
@@ -92,6 +98,7 @@ RSpec.shared_context 'strategy test' do
     {
       'rack.session' => {},
       'REMOTE_ADDR' => '127.0.0.1',
+      'onetime.domain_strategy' => :canonical,
       'HTTP_USER_AGENT' => 'Test/1.0',
     }
   end

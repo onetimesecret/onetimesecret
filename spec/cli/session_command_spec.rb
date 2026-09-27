@@ -131,7 +131,10 @@ RSpec.describe 'Session Command', type: :cli do
     it 'deletes session with --force flag' do
       allow(redis).to receive(:exists).and_return(1)
       allow(redis).to receive(:get).and_return(serialized_session)
-      expect(redis).to receive(:del).with("session:#{session_id}")
+      # The ended-marker goes in before the blob comes out, so a request in
+      # flight cannot write the session back (RISK-2026-09-19-01).
+      expect(redis).to receive(:set).with(Onetime::SessionEnded.key_for(session_id), '1', ex: Onetime::SessionEnded::TTL).ordered
+      expect(redis).to receive(:del).with("session:#{session_id}").ordered
 
       output = run_cli_command_quietly('session', 'delete', session_id, '--force')
       expect(output[:stdout]).to include('Session deleted')

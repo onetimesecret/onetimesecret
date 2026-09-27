@@ -1,7 +1,5 @@
 // src/shared/stores/notificationsStore.ts
 
-import { PiniaPluginOptions } from '@/plugins/pinia';
-import { loggingService } from '@/services/logging.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { NotificationSeverity } from '@/types/ui/notifications';
 import { AxiosInstance } from 'axios';
@@ -10,7 +8,6 @@ import { inject, ref } from 'vue';
 
 export type NotificationPosition = 'top' | 'bottom';
 
-interface StoreOptions extends PiniaPluginOptions {}
 
 /**
  * Type definition for NotificationsStore.
@@ -75,12 +72,8 @@ export const useNotificationsStore = defineStore('notifications', () => {
    * Initialize notification store
    * @param options - Optional store configuration
    */
-  function init(options?: StoreOptions) {
+  function init() {
     if (_initialized.value) return;
-
-    if (options?.api) {
-      loggingService.warn('API instance provided in options, ignoring.');
-    }
 
     const serverMessages = bootstrapMessages.value;
     if (!serverMessages?.length) return;

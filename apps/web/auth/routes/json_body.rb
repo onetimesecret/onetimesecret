@@ -32,20 +32,24 @@ module Auth
       # treat a missing field and an empty one identically. Rewinds the input so
       # nothing downstream is surprised by a consumed body.
       def json_body_params(request, *keys)
-        raw = request.body&.read.to_s
-        request.body.rewind if request.body.respond_to?(:rewind)
-
-        parsed = begin
-          raw.empty? ? {} : JSON.parse(raw)
-        rescue JSON::ParserError
-          {}
-        end
-        parsed = {} unless parsed.is_a?(Hash)
+        parsed = json_body_object(request)
 
         keys.to_h do |key|
           value = parsed.key?(key.to_s) ? parsed[key.to_s] : request.params[key.to_s]
           [key.to_sym, value.to_s]
         end
+      end
+
+      # Parse a custom route's JSON body without stringifying nested values.
+      # Re-authentication needs the WebAuthn assertion as a Hash.
+      def json_body_object(request)
+        raw = request.body&.read.to_s
+        request.body.rewind if request.body.respond_to?(:rewind)
+
+        parsed = raw.empty? ? {} : JSON.parse(raw)
+        parsed.is_a?(Hash) ? parsed : {}
+      rescue JSON::ParserError
+        {}
       end
     end
   end

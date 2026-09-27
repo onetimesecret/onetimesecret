@@ -133,10 +133,11 @@ the whole document is the point.
 
 ### CI enforces that references resolve {#ci-enforces-references}
 
-`bin/adr-lint` extracts every `ADR-NNN#slug` in the repository — code, docs,
-and ADRs — and fails if the document or the declared anchor does not exist. It
-runs on every push. When a heading matches but declares no anchor, the error
-says so, because that is the common mistake.
+`scripts/adr-lint.rb` extracts every `ADR-NNN#slug` in the repository — code,
+docs, and ADRs — and fails if the document or the declared anchor does not
+exist. It runs as a pre-commit hook whenever an ADR file is staged. When a
+heading matches but declares no anchor, the error says so, because that is the
+common mistake.
 
 Without this the format degrades into a convention nobody notices breaking.
 With it, breaking a reference fails the build in the commit that broke it,
@@ -218,5 +219,5 @@ Delete this section when the conversion is done.
 ## References
 
 - Nygard, M. "Documenting Architecture Decisions" — the immutable original
-- `bin/adr-lint`
+- `scripts/adr-lint.rb`
 - ADR-000 — template

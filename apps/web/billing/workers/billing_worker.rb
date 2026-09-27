@@ -123,10 +123,11 @@ module Billing
 
           # Handle circuit retry scheduling - don't mark as success if queued for retry
           if result == :queued
+            record_processing_outcome(data[:event_id], result)
             log_info "Billing event queued for circuit retry: #{data[:event_type]}", event_id: data[:event_id]
           else
             # Mark event as successfully processed in tracking record
-            mark_event_success(data[:event_id])
+            mark_event_success(data[:event_id], outcome: result)
             log_info "Billing event processed: #{data[:event_type]}", event_id: data[:event_id]
           end
 
@@ -183,13 +184,27 @@ module Billing
         operation.call
       end
 
-      # Mark the Stripe webhook event as successfully processed
+      # Persist the semantic result returned by ProcessWebhookEvent.
       # @param event_id [String] Stripe event ID
-      def mark_event_success(event_id)
+      # @param outcome [Symbol, String, nil] Semantic processing result
+      def record_processing_outcome(event_id, outcome)
         return unless event_id
 
         event_record = Billing::StripeWebhookEvent.find_by_identifier(event_id)
-        event_record&.mark_success!
+        event_record&.record_processing_outcome!(outcome)
+      rescue StandardError => ex
+        # Don't fail the job if tracking update fails
+        log_error "Failed to record processing outcome: #{ex.message}"
+      end
+
+      # Mark the Stripe webhook event as successfully processed
+      # @param event_id [String] Stripe event ID
+      # @param outcome [Symbol, String, nil] Semantic processing result
+      def mark_event_success(event_id, outcome: nil)
+        return unless event_id
+
+        event_record = Billing::StripeWebhookEvent.find_by_identifier(event_id)
+        event_record&.mark_success!(outcome: outcome)
       rescue StandardError => ex
         # Don't fail the job if tracking update fails
         log_error "Failed to mark event as success: #{ex.message}"

@@ -142,6 +142,22 @@ module Auth::Config::Hooks
           correlation_id: correlation_id,
         )
 
+        # Recent full re-authentication (#4410). The second factor just
+        # completed on top of the primary credential from after_login, so
+        # this is the completion of a full local ceremony — EXCEPT when the
+        # primary was not an explicit local credential. In particular, remember
+        # restoration does not run after_login, so auth_method can be nil here;
+        # a negative denylist would turn remember + OTP into a false full proof.
+        primary_auth = session['auth_method']
+        if Onetime::RecentReauth::LOCAL_PRIMARIES.include?(primary_auth)
+          Onetime::RecentReauth.record(
+            session,
+            request.env,
+            account_id: account_id,
+            methods: (respond_to?(:authenticated_by) ? Array(authenticated_by) : [primary_auth].compact),
+          )
+        end
+
         # Write the healing FALSE over the hand-off flag.
         #
         # STRING key deliberately (#3854): it is the key PrepareMfaSession wrote,

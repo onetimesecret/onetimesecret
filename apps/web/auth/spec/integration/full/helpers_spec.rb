@@ -59,6 +59,18 @@ RSpec.describe Onetime::Application::AuthStrategies::Helpers do
         expect(host.build_metadata(env)[:ip]).to eq('203.0.113.45')
       end
 
+      # The logic layer rebuilds the surface descriptor from this hash
+      # (Logic::Base#surface_env) when it mints a session itself (#4409), so
+      # the :custom identifier must travel with the classification.
+      it 'carries the DomainStrategy classification and custom-domain id' do
+        metadata = host.build_metadata(env.merge('onetime.custom_domain_id' => 'cd_abc123'))
+        expect(metadata).to include(
+          domain_strategy: :canonical,
+          display_domain: 'example.com',
+          custom_domain_id: 'cd_abc123',
+        )
+      end
+
       it 'populates user_agent, domain_strategy, and display_domain' do
         metadata = host.build_metadata(env)
         expect(metadata[:user_agent]).to eq('curl/8.4.0')

@@ -72,6 +72,12 @@ export interface UseRecentSecretsReturn {
   fetch: (options?: FetchListOptions) => Promise<void>;
   /** Refresh receipt statuses from server (local mode only, updates isReceived/isBurned) */
   refreshStatuses: (options?: { silent?: boolean }) => Promise<void>;
+  /**
+   * Refresh for a timer or a tab-visibility change. Silent, and for a signed-in
+   * user the request is declared passive so it does not count as session
+   * activity. Never call it from a click or from navigation.
+   */
+  refreshInBackground: () => Promise<void>;
   /** Clear all records */
   clear: () => void;
   /** Update memo for a record (local mode only for now) */
@@ -409,6 +415,18 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
     }
   };
 
+  // Nobody asked for this refresh (timer, tab became visible). Signed in, it is
+  // a passive GET. A guest's status refresh is an anonymous POST: there is no
+  // signed-in session to keep alive, and the server reads the declaration on
+  // GET and HEAD only.
+  const refreshInBackground = async () => {
+    if (isAuthenticated.value) {
+      await fetch({ silent: true, passive: true });
+    } else {
+      await local.refreshStatuses({ silent: true });
+    }
+  };
+
   // Scope properties (only relevant for authenticated users)
   const currentScope = computed(() =>
     isAuthenticated.value ? api.currentScope.value : undefined
@@ -425,6 +443,7 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
     hasRecords,
     fetch,
     refreshStatuses,
+    refreshInBackground,
     clear,
     updateMemo,
     workspaceMode,

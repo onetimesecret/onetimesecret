@@ -588,7 +588,7 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integr
       # or future SSO bridge that bypasses the gem's /authorize handler —
       # would be redeemable at /token.
       #
-      # Migration 010 (issue #3232) closes that gap at the data layer: a
+      # Migration 013 (issue #3232) closes that gap at the data layer: a
       # CHECK constraint permits only S256 or NULL. This spec proves the
       # constraint is the source of truth — the plain grant can never exist,
       # so /token never sees one. If the constraint is ever dropped, this

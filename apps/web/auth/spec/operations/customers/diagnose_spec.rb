@@ -14,6 +14,7 @@
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/customers/diagnose_spec.rb
 
 require 'spec_helper'
+require 'auth/database'
 require 'auth/operations/customers/diagnose'
 
 RSpec.describe Auth::Operations::Customers::Diagnose do
@@ -34,6 +35,9 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
       last_login: 1_700_100_000.0,
       locale: 'en',
       planid: 'free_v1',
+      provisioning_failure_code: nil,
+      provisioning_failure_classification: nil,
+      provisioning_failed_at: nil,
     )
   end
 
@@ -127,6 +131,16 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
   before do
     allow(Auth::Database).to receive(:connection).and_return(db)
 
+    clear_collision = Auth::Operations::WorkspaceCollision::Result.new(
+      classification: :clear,
+      email: email,
+      organization: nil,
+      raw_index_value: nil,
+      evidence: { normalized_email: email, index_read_independently: true, index_present: false },
+    )
+    collision_op = instance_double(Auth::Operations::WorkspaceCollision, call: clear_collision)
+    allow(Auth::Operations::WorkspaceCollision).to receive(:new).and_return(collision_op)
+
     inspect_op = instance_double(Onetime::Operations::RateLimit::Inspect)
     allow(inspect_op).to receive(:call).and_return(limiter_result([]))
     allow(Onetime::Operations::RateLimit::Inspect).to receive(:new).and_return(inspect_op)
@@ -145,6 +159,45 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
   end
 
   # =========================================================================
+  describe 'persisted provisioning state' do
+    it 'reports a valid current workspace without a provisioning-failure finding after repair' do
+      current_workspace = Auth::Operations::WorkspaceCollision::Result.new(
+        classification: :current_valid_workspace,
+        email: email,
+        organization: double('Organization', extid: 'on_current'),
+        raw_index_value: 'org_current',
+        evidence: { organization_extid: 'on_current' },
+      )
+      collision_op = instance_double(Auth::Operations::WorkspaceCollision, call: current_workspace)
+      allow(Auth::Operations::WorkspaceCollision).to receive(:new).and_return(collision_op)
+      insert_account
+
+      result = diagnose(customer: customer)
+
+      expect(result.sections.dig(:workspace_collision, :classification)).to eq(:current_valid_workspace)
+      expect(codes(result)).not_to include(:account_provisioning_failed)
+      expect(codes(result)).not_to include(:workspace_collision_current_valid_workspace)
+    end
+
+    it 'surfaces the stable code, classification, timestamp, and a critical finding' do
+      allow(customer).to receive_messages(
+        provisioning_failure_code: 'default_workspace_collision',
+        provisioning_failure_classification: 'retained_data',
+        provisioning_failed_at: '1700000000.5',
+      )
+      insert_account
+
+      result = diagnose(customer: customer)
+
+      expect(result.sections[:customer]).to include(
+        provisioning_failure_code: 'default_workspace_collision',
+        provisioning_failure_classification: 'retained_data',
+        provisioning_failed_at: 1_700_000_000.5,
+      )
+      expect(finding(result, :account_provisioning_failed)).to include(severity: :critical)
+    end
+  end
+
   describe 'existence' do
     it 'reports not_found when nothing resolves anywhere' do
       allow(Onetime::Customer).to receive_messages(load_by_extid_or_email: nil, load: nil)
@@ -450,6 +503,54 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
       insert_account
 
       expect(codes(diagnose(customer: customer))).not_to include(:evidence_incomplete)
+    end
+  end
+
+  # =========================================================================
+  describe 'default-workspace collision' do
+    def collision_result(classification, available: true)
+      Auth::Operations::WorkspaceCollision::Result.new(
+        classification: classification,
+        email: email,
+        organization: nil,
+        raw_index_value: 'org_old',
+        evidence: {
+          normalized_email: email,
+          index_read_independently: true,
+          organization_extid: 'on_old',
+          reason: ('NOAUTH' unless available),
+        }.compact,
+      )
+    end
+
+    it 'reports a retained-data collision discovered outside customer participation' do
+      collision_op = instance_double(
+        Auth::Operations::WorkspaceCollision,
+        call: collision_result(:retained_data),
+      )
+      allow(Auth::Operations::WorkspaceCollision).to receive(:new)
+        .with(email: email, customer: customer).and_return(collision_op)
+      insert_account
+
+      result = diagnose(customer: customer)
+
+      expect(result.sections.dig(:workspace_collision, :classification)).to eq(:retained_data)
+      expect(codes(result)).to include(:workspace_collision_retained_data)
+    end
+
+    it 'does not report healthy when collision evidence is unreadable' do
+      collision_op = instance_double(
+        Auth::Operations::WorkspaceCollision,
+        call: collision_result(:unreadable, available: false),
+      )
+      allow(Auth::Operations::WorkspaceCollision).to receive(:new)
+        .with(email: email, customer: customer).and_return(collision_op)
+      insert_account
+
+      result = diagnose(customer: customer)
+
+      expect(codes(result)).to include(:workspace_collision_unreadable)
+      expect(result.sections[:workspace_collision][:available]).to be(false)
     end
   end
 

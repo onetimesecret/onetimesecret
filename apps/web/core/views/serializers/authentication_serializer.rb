@@ -5,6 +5,7 @@
 require 'onetime/utils'
 require 'onetime/tenant_sso_resolution'
 require 'onetime/session/impersonation'
+require 'onetime/session/auth_status'
 
 module Core
   module Views
@@ -20,23 +21,30 @@ module Core
       def self.serialize(view_vars)
         output = output_template
 
-        output['authenticated'] = view_vars['authenticated']
-        output['awaiting_mfa']  = view_vars['awaiting_mfa'] || false
-        cust                    = view_vars['cust']
+        cust = view_vars['cust']
 
-        # For anonymous users (nil cust), return null to match frontend schema.
-        # The customerCanonical schema requires non-null objid string, so we
-        # cannot return an object with nil fields - must be null or valid object.
-        output['cust'] = cust&.safe_dump
+        # `auth_status` is the statement; `authenticated` and `awaiting_mfa`
+        # are compatibility projections computed FROM it, so the three can
+        # never disagree (#4462). A client that reads only the booleans sees
+        # nothing more permissive than the status says.
+        output['auth_status']   = resolve_auth_status(view_vars)
+        output['authenticated'] = output['auth_status'] == Onetime::SessionAuthStatus::AUTHENTICATED
+        output['awaiting_mfa']  = output['auth_status'] == Onetime::SessionAuthStatus::MFA_PENDING
 
-        # Check if there was a valid session at the time of this response
-        # This is crucial for error pages where authenticated=false but the user
-        # had a valid session. The frontend uses this to avoid incorrect logouts.
-        # A valid session has 'external_id' present (customer identifier in session)
+        # The customerCanonical schema requires either a valid object or null.
+        # Never serialize a supplied customer unless the evaluator projection is
+        # also authenticated; this is the final defense against stale view inputs.
+        output['cust'] = cust.safe_dump if output['authenticated']
+
+        # DEPRECATED — remove in v0.27 (#4468). Superseded by `auth_status`:
+        # the error-page case this existed for is now the server statement
+        # `unavailable` (Onetime::SessionAuthStatus.without_verdict). Still
+        # emitted so a frontend that predates `auth_status` keeps working; no
+        # current client code reads it.
         sess                        = view_vars['sess']
         output['had_valid_session'] = !!(sess && !sess.empty? && !sess['external_id'].to_s.empty?)
 
-        # When authenticated, provide full customer data
+        # Only a successful evaluator verdict provides full customer data.
         if output['authenticated']
           output['custid']         = cust.custid
           output['email']          = cust.email
@@ -78,10 +86,6 @@ module Core
           # exactly the case it exists for.
           output['impersonation'] = Onetime::SessionImpersonation.context
 
-        # When awaiting MFA, provide minimal data from session (no customer access yet)
-        elsif output['awaiting_mfa']
-          output['email'] = view_vars['session_email']  # From session, not customer
-          # Do NOT provide custid or customer object - user doesn't have access yet
         end
 
         output
@@ -93,8 +97,10 @@ module Core
         # @return [Hash] Template with all possible authentication output fields
         def output_template
           {
-            'authenticated' => nil,
+            'auth_status' => Onetime::SessionAuthStatus::ANONYMOUS,
+            'authenticated' => false,
             'awaiting_mfa' => false,
+            # DEPRECATED — remove in v0.27 (#4468). See .serialize.
             'had_valid_session' => false,
             'has_password' => false,
             'password_auth_permitted' => true,
@@ -108,6 +114,34 @@ module Core
             # Absence is the safe state: no block, no banner, ordinary session.
             'impersonation' => nil,
           }
+        end
+
+        # The wire `auth_status` for these view vars.
+        #
+        # The status comes from Core::Views::InitializeViewVars (the verdict's
+        # projection). A caller that supplies no valid status gets one derived
+        # from the legacy booleans. Either way `authenticated` is a claim that
+        # must be backed by BOTH the verdict projection and its effective
+        # customer: a claim missing either degrades to `unavailable`, never to
+        # a serialized identity. Compatibility inputs can only withhold.
+        #
+        # @param view_vars [Hash]
+        # @return [String] one of Onetime::SessionAuthStatus::VALUES
+        def resolve_auth_status(view_vars)
+          status = view_vars['auth_status']
+          unless Onetime::SessionAuthStatus::VALUES.include?(status)
+            status = if view_vars['authenticated'] == true
+                       Onetime::SessionAuthStatus::AUTHENTICATED
+                     elsif view_vars['awaiting_mfa'] == true
+                       Onetime::SessionAuthStatus::MFA_PENDING
+                     else
+                       Onetime::SessionAuthStatus::ANONYMOUS
+                     end
+          end
+          return status unless status == Onetime::SessionAuthStatus::AUTHENTICATED
+          return status if view_vars['authenticated'] == true && !view_vars['cust'].nil?
+
+          Onetime::SessionAuthStatus::UNAVAILABLE
         end
 
         # Checks whether the authenticated account has a password hash set.

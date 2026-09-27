@@ -66,11 +66,14 @@ RSpec.describe Onetime::AuthConfig do
       ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET
       GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
       GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET
+      APPLE_CLIENT_ID APPLE_TEAM_ID APPLE_KEY_ID APPLE_PRIVATE_KEY
       SSO_PROVIDER_ORDER
       OIDC_ROUTE_NAME ENTRA_ROUTE_NAME GOOGLE_ROUTE_NAME GITHUB_ROUTE_NAME
+      APPLE_ROUTE_NAME
       SSO_TRUST_EMAIL_FOR_LINKING
       OIDC_TRUST_EMAIL_FOR_LINKING ENTRA_TRUST_EMAIL_FOR_LINKING
       GOOGLE_TRUST_EMAIL_FOR_LINKING GITHUB_TRUST_EMAIL_FOR_LINKING
+      APPLE_TRUST_EMAIL_FOR_LINKING
     ]
   end
 
@@ -478,12 +481,14 @@ RSpec.describe Onetime::AuthConfig do
 
   describe '#trust_email_for_linking?' do
     # Route name -> per-provider trust var. Verifies the reverse-mapping
-    # (entra_id != entra != ENTRA) resolves to the right env var for all four.
+    # (entra_id != entra != ENTRA) resolves to the right env var for every
+    # registered provider.
     {
       'oidc' => 'OIDC_TRUST_EMAIL_FOR_LINKING',
       'entra' => 'ENTRA_TRUST_EMAIL_FOR_LINKING',
       'google' => 'GOOGLE_TRUST_EMAIL_FOR_LINKING',
       'github' => 'GITHUB_TRUST_EMAIL_FOR_LINKING',
+      'apple' => 'APPLE_TRUST_EMAIL_FOR_LINKING',
     }.each do |route_name, trust_var|
       context "for the '#{route_name}' route" do
         it "defaults to false when #{trust_var} is unset" do
@@ -502,7 +507,8 @@ RSpec.describe Onetime::AuthConfig do
         end
 
         it "is unaffected by another provider's trust var" do
-          other  = (%w[OIDC ENTRA GOOGLE GITHUB] - [trust_var.split('_').first]).first
+          prefixes = %w[OIDC ENTRA GOOGLE GITHUB APPLE]
+          other    = (prefixes - [trust_var.delete_suffix('_TRUST_EMAIL_FOR_LINKING')]).first
           config = fresh_config("#{other}_TRUST_EMAIL_FOR_LINKING" => 'true')
           expect(config.trust_email_for_linking?(route_name)).to be false
         end
@@ -578,13 +584,19 @@ RSpec.describe Onetime::AuthConfig do
       # Truth-table (a) — the #3844 fix. A global true with EVERY provider
       # explicitly false means linking is disabled everywhere; the boot guard
       # must NOT warn about a flag that has no effect.
-      config = fresh_config(
-        'SSO_TRUST_EMAIL_FOR_LINKING' => 'true',
-        'OIDC_TRUST_EMAIL_FOR_LINKING' => 'false',
-        'ENTRA_TRUST_EMAIL_FOR_LINKING' => 'false',
-        'GOOGLE_TRUST_EMAIL_FOR_LINKING' => 'false',
-        'GITHUB_TRUST_EMAIL_FOR_LINKING' => 'false',
-      )
+      #
+      # "Every provider" is derived from the registry rather than listed here:
+      # trust_email_for_linking_enabled? iterates provider_definitions, so a
+      # hardcoded list silently stops meaning "every" the moment a provider is
+      # added — the new entry has no explicit var, inherits the global true,
+      # and this example fails for a reason that has nothing to do with the
+      # behaviour under test. (It did, when the roster grew past four.)
+      # Any new trust var must also be added to `env_vars` above so the
+      # before/after hooks restore it.
+      all_opted_out = Onetime::SsoProvider::Registry::DEFINITIONS.to_h do |defn|
+        [defn[:trust_var], 'false']
+      end
+      config = fresh_config(**{ 'SSO_TRUST_EMAIL_FOR_LINKING' => 'true' }.merge(all_opted_out))
       expect(config.trust_email_for_linking_enabled?).to be false
     end
 
@@ -645,6 +657,61 @@ RSpec.describe Onetime::AuthConfig do
       config = config_with_three_providers(SSO_PROVIDER_ORDER: 'okta github')
       expect(config.sso_providers.map { |p| p['route_name'] })
         .to eq(%w[github entra google])
+    end
+
+    # The gate is required_vars, not registry membership: adding a definition
+    # must not put a button on the login page for every deployment.
+    it 'omits registered providers whose credentials are absent' do
+      config = config_with_three_providers
+      expect(config.sso_providers.map { |p| p['route_name'] })
+        .not_to include('apple')
+    end
+
+    it 'lists a configured Apple provider after the launch four' do
+      config = config_with_three_providers(
+        APPLE_CLIENT_ID: 'com.example.web',
+        APPLE_TEAM_ID: 'TEAM123456',
+        APPLE_KEY_ID: 'KEY1234567',
+        APPLE_PRIVATE_KEY: 'pem',
+      )
+      expect(config.sso_providers.map { |p| p['route_name'] })
+        .to eq(%w[entra google github apple])
+    end
+
+    # required_vars is a presence check. A definition may also carry a
+    # :vars_valid predicate for a constraint presence cannot express; the
+    # advertised set must follow it so a provider configure_provider would skip
+    # is never offered as a login button pointing at an unregistered route.
+    # Exercised through #sso_providers, the public gate, with the registry
+    # narrowed to one definition.
+    describe 'the :vars_valid predicate' do
+      def advertised_with(defn, **env)
+        config = fresh_config(AUTH_SSO_ENABLED: 'true', **env)
+        allow(config).to receive(:provider_definitions).and_return([defn])
+        config.sso_providers.map { |p| p['route_name'] }
+      end
+
+      def base = Onetime::SsoProvider::Registry.fetch(:github)
+      def env  = { GITHUB_CLIENT_ID: 'cid', GITHUB_CLIENT_SECRET: 'cs' }
+
+      it 'advertises a provider whose required vars are present and declares no predicate' do
+        expect(advertised_with(base, **env)).to eq(%w[github])
+      end
+
+      it 'omits a provider with a required var absent' do
+        expect(advertised_with(base, GITHUB_CLIENT_ID: 'cid')).to be_empty
+      end
+
+      it 'omits a provider whose predicate answers false' do
+        expect(advertised_with(base.merge(vars_valid: -> { false }), **env)).to be_empty
+      end
+
+      # Runs per request and inside the HttpOrigin middleware, so a raising
+      # predicate drops the provider, not the response.
+      it 'omits a provider whose predicate raises, without raising' do
+        defn = base.merge(vars_valid: -> { raise ArgumentError, 'bad value' })
+        expect(advertised_with(defn, **env)).to be_empty
+      end
     end
 
     it 'derives definitions from the shared SsoProvider::Registry, plus the local IdP' do

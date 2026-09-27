@@ -34,6 +34,25 @@ module Onetime
 
       SCHEMA = 'models/domain-signup-config'
 
+      # Refusal from {#allowed_signup_domains=}. A Problem like any other
+      # setter refusal (the message is unchanged), typed the way
+      # SigninConfig::RelatedOriginError is: it carries the refused entry, its
+      # field and a locale key, so an API layer can show it against the field.
+      class InvalidAllowedSignupDomain < Onetime::Problem
+        ERROR_KEY = 'api.domains.errors.allowed_signup_domains_invalid'
+
+        attr_reader :domains
+
+        def initialize(domain, reason = nil)
+          @domains = Array(domain).map(&:to_s)
+          super(reason ? "Invalid domain: #{@domains.join(', ')} (#{reason})" : "Invalid domain: #{@domains.join(', ')}")
+        end
+
+        def error_key = ERROR_KEY
+        def field     = 'allowed_signup_domains'
+        def args      = { domains: domains.join(', ') }
+      end
+
       # Supported validation strategy types
       STRATEGY_TYPES = %w[passthrough domain_allowlist mx smtp].freeze
 
@@ -168,7 +187,7 @@ module Onetime
       #
       # @param domains [Array<String>] Domain names to allow
       # @return [void]
-      # @raise [Onetime::Problem] if any domain is invalid
+      # @raise [InvalidAllowedSignupDomain] if any domain is invalid
       def allowed_signup_domains=(domains)
         normalized = Array(domains).map { it.to_s.strip.downcase }.uniq.reject(&:empty?)
 
@@ -176,7 +195,7 @@ module Onetime
         normalized.each do |domain|
           Utils::DomainParser.cached_parse(domain)
         rescue PublicSuffix::Error => ex
-          raise Onetime::Problem, "Invalid domain: #{domain} (#{ex.message})"
+          raise InvalidAllowedSignupDomain.new(domain, ex.message)
         end
 
         self.allowed_signup_domains_json = normalized.empty? ? nil : JSON.generate(normalized)
@@ -221,8 +240,6 @@ module Onetime
       # @return [CustomDomain, nil] The domain or nil if not found
       def custom_domain
         Onetime::CustomDomain.find_by_identifier(domain_id)
-      rescue Onetime::RecordNotFound
-        nil
       end
 
       # Load the owning Organization via the CustomDomain.
@@ -284,8 +301,6 @@ module Onetime
           return nil if domain_id.to_s.empty?
 
           load(domain_id)
-        rescue Onetime::RecordNotFound
-          nil
         end
 
         # Resolve effective signup availability, combining the install-level

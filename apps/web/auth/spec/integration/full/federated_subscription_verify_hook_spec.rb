@@ -12,15 +12,15 @@
 #
 # WHY THIS FILE EXISTS
 # --------------------
-# apps/web/auth/spec/operations/create_default_workspace_federation_spec.rb unit-
-# covers the claim gate by calling CreateDefaultWorkspace directly. What it does
+# apps/web/auth/spec/operations/ensure_default_workspace_federation_spec.rb unit-
+# covers the claim gate by calling EnsureDefaultWorkspace directly. What it does
 # NOT exercise is the account.rb wiring:
 #
 #   - after_create_account derives `require_verification` from
 #     `Onetime.auth_config.verify_account_enabled?` (account.rb) and passes it
-#     into CreateDefaultWorkspace, and
+#     into EnsureDefaultWorkspace, and
 #   - after_verify_account (registered ONLY when verify_account is enabled)
-#     re-invokes CreateDefaultWorkspace.claim_pending_federation_for.
+#     re-invokes EnsureDefaultWorkspace.claim_pending_federation_for.
 #
 # The default test config DISABLES verify_account, so the after_verify_account
 # hook block is not even registered under a normal boot. These tests drive the
@@ -30,7 +30,7 @@
 # WHAT IS AND ISN'T EXERCISED
 # ---------------------------
 # EXERCISED end-to-end through Rodauth internal_request:
-#   - after_create_account -> EnsureCustomerForAccount -> CreateDefaultWorkspace with the
+#   - after_create_account -> EnsureCustomerForAccount -> EnsureDefaultWorkspace with the
 #     require_verification value account.rb computes from the config predicate.
 #   - The Deliverable-1 residual: when verify_account is disabled, the immediate
 #     unverified claim happens AND emits the loud security-audit log.
@@ -44,7 +44,7 @@
 #     "after verification" example replays the exact two operations account.rb's
 #     after_verify_account performs, in order:
 #         SetCustomerVerification(verified: true, rodauth_already_synced: true)
-#         CreateDefaultWorkspace.claim_pending_federation_for(verified_customer)
+#         EnsureDefaultWorkspace.claim_pending_federation_for(verified_customer)
 #     A guard example asserts the wiring contract: the after_verify_account hook
 #     is only registered when verify_account is enabled.
 #
@@ -64,7 +64,7 @@ require 'securerandom'
 RSpec.describe 'Federated subscription claim through the real signup/verify hooks',
                type: :integration do
   before(:all) do
-    require 'auth/operations/create_default_workspace'
+    require 'auth/operations/ensure_default_workspace'
     require 'auth/operations/set_customer_verification'
     require 'billing/models/pending_federated_subscription'
   end
@@ -85,7 +85,7 @@ RSpec.describe 'Federated subscription claim through the real signup/verify hook
     ENV['FEDERATION_SECRET'] = original_secret
   end
 
-  # Capture the loud security-audit warnings emitted by CreateDefaultWorkspace
+  # Capture the loud security-audit warnings emitted by EnsureDefaultWorkspace
   # without suppressing real logging.
   let(:auth_warnings) { [] }
 
@@ -195,7 +195,7 @@ RSpec.describe 'Federated subscription claim through the real signup/verify hook
       ).call
 
       verified_customer = Onetime::Customer.find_by_extid(customer.extid)
-      applied = Auth::Operations::CreateDefaultWorkspace.claim_pending_federation_for(verified_customer)
+      applied = Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(verified_customer)
       expect(applied).to be(true)
 
       org.refresh!

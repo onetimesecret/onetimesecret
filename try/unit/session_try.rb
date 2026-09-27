@@ -46,7 +46,7 @@ end
 
 # Helper class for mocking Rack apps
 class MockApp
-  def call(env)
+  def call(_env)
     [200, {}, ["OK"]]
   end
 end
@@ -190,7 +190,7 @@ result.nil?
 plaintext = '{"account_id":123}'
 encrypted = call_private_method(@session, :encrypt_data, plaintext)
 # Tamper with the ciphertext portion (after IV and auth_tag)
-tampered = encrypted[0, 28] + "x" * (encrypted.bytesize - 28)
+tampered = encrypted[0, 28] + ("x" * (encrypted.bytesize - 28))
 result = call_private_method(@session, :decrypt_data, tampered)
 result.nil?
 #=> true
@@ -219,7 +219,7 @@ call_private_method(@session, :valid_hmac?, data, hmac)
 
 ## Invalid HMAC verification fails
 data = "test data"
-bad_hmac = "invalid" + "0" * 58
+bad_hmac = "invalid" + ("0" * 58)
 !call_private_method(@session, :valid_hmac?, data, bad_hmac)
 #=> true
 
@@ -234,7 +234,7 @@ sid = SecureRandom.hex(32)
 key1 = call_private_method(@session, :get_stringkey, sid)
 key2 = call_private_method(@session, :get_stringkey, sid)
 # Each call creates a new instance, but they represent the same Redis key
-key1.object_id != key2.object_id && key1.keystring == key2.keystring
+!key1.equal?(key2) && key1.keystring == key2.keystring
 #=> true
 
 ## Find session returns new session for new request
@@ -395,6 +395,23 @@ call_private_method(@sidecar_session, :delete_session, MockRequestWithEnv.new, @
 [DB.exists("session:#{@sc_sid}"), DB.exists("sidecar:#{@sc_sid}:domain_context")]
 #=> [0, 0]
 
+## delete_session destroys the sid-keyed metadata record too, so an ended
+## session's id does not stay readable in a key name until that record's TTL
+@md_sid = SecureRandom.hex(32)
+Onetime::SessionMetadata.new(session_id: @md_sid, user_id: 'ur_try').save
+@md_before = Onetime::SessionMetadata.load(@md_sid).nil?
+call_private_method(@sidecar_session, :delete_session, MockRequestWithEnv.new, @md_sid, {})
+[@md_before, Onetime::SessionMetadata.load(@md_sid).nil?, DB.keys("session_metadata:#{@md_sid}*")]
+#=> [false, true, []]
+
+## A cookie naming an id with NO blob is never adopted: the empty session
+## starts under a server-generated id (stock Rack behaviour), whether the id
+## was never issued, expired, or ended on purpose
+@unknown_sid = SecureRandom.hex(32)
+unk_sid, unk_data = call_private_method(@sidecar_session, :find_session, MockRequestWithEnv.new, @unknown_sid)
+[unk_sid.public_id == @unknown_sid, unk_sid.public_id.length, unk_data]
+#=> [false, 64, {}]
+
 ## delete_session purges orphaned sidecar keys even when the blob is ALREADY
 ## gone — the purge is unconditional, not gated on the blob still existing (the
 ## pre-#4391 router-level behavior). Seed a sidecar for a fresh sid with NO
@@ -406,8 +423,116 @@ call_private_method(@sidecar_session, :delete_session, MockRequestWithEnv.new, @
 [before, DB.exists("session:#{@orphan_sid}"), DB.exists("sidecar:#{@orphan_sid}:domain_context")]
 #=> [1, 0, 0]
 
+# ---- #4455: only activity resets the blob's TTL -------------------------
+#
+# The blob's TTL is an inactivity clock (the only one in simple auth mode). The
+# controlled clock here is the key's own TTL, moved with EXPIRE: the rule is
+# about what a write does to the time the blob has left, so that is what these
+# cases set and read. expire_after is 3600 for @sidecar_session.
+
+## an ordinary (activity) write resets the blob to expire_after
+@ttl_sid  = SecureRandom.hex(32)
+@ttl_data = { 'authenticated' => true, 'external_id' => "ur_ttl_#{SecureRandom.hex(4)}" }
+@activity_req = MockRequestWithEnv.new({}, { 'otto.route_options' => { auth: 'sessionauth' } })
+call_private_method(@sidecar_session, :write_session, @activity_req, @ttl_sid, @ttl_data, {})
+DB.expire("session:#{@ttl_sid}", 600)
+call_private_method(@sidecar_session, :write_session, @activity_req, @ttl_sid, @ttl_data, {})
+DB.ttl("session:#{@ttl_sid}") > 3590
+#=> true
+
+## a PASSIVE write keeps what the blob had left: polling alone, however often,
+## never extends the session
+DB.expire("session:#{@ttl_sid}", 600)
+@passive_req = MockRequestWithEnv.new({}, { 'otto.route_options' => { activity: 'passive' } })
+5.times { call_private_method(@sidecar_session, :write_session, @passive_req, @ttl_sid, @ttl_data, {}) }
+@after_polls = DB.ttl("session:#{@ttl_sid}")
+[@after_polls <= 600, @after_polls > 590]
+#=> [true, true]
+
+## ...and still stores what the request wrote: passive limits the clock, not
+## the write
+@ttl_data['poll_marker'] = 'kept'
+call_private_method(@sidecar_session, :write_session, @passive_req, @ttl_sid, @ttl_data, {})
+_psid, @polled_data = call_private_method(@sidecar_session, :find_session, MockRequestWithEnv.new, @ttl_sid)
+[@polled_data['poll_marker'], DB.ttl("session:#{@ttl_sid}") <= 600]
+#=> ['kept', true]
+
+## a request a session gate REFUSED keeps the remaining TTL too: a rejected
+## request cannot revive or extend the session it was refused under
+@refused_verdict = Onetime::CustomerSessionEvaluator::Verdict.new(status: :rejected, reason: :account_suspended)
+@refused_req = MockRequestWithEnv.new({}, { Onetime::CustomerSessionEvaluator::ENV_KEY => @refused_verdict })
+DB.expire("session:#{@ttl_sid}", 300)
+call_private_method(@sidecar_session, :write_session, @refused_req, @ttl_sid, @ttl_data, {})
+DB.ttl("session:#{@ttl_sid}") <= 300
+#=> true
+
+## one refused because verification was UNAVAILABLE likewise: an outage cannot
+## hand back a fresh deadline
+@outage_verdict = Onetime::CustomerSessionEvaluator::Verdict.new(status: :unavailable, reason: :active_session_unavailable)
+@outage_req = MockRequestWithEnv.new({}, { Onetime::CustomerSessionEvaluator::ENV_KEY => @outage_verdict })
+call_private_method(@sidecar_session, :write_session, @outage_req, @ttl_sid, @ttl_data, {})
+DB.ttl("session:#{@ttl_sid}") <= 300
+#=> true
+
+## real activity after the polls resets the clock again
+call_private_method(@sidecar_session, :write_session, @activity_req, @ttl_sid, @ttl_data, {})
+DB.ttl("session:#{@ttl_sid}") > 3590
+#=> true
+
+## a passive write of a session that does not exist yet gets the full TTL: the
+## fallback is never a key without an expiry
+@new_sid = SecureRandom.hex(32)
+call_private_method(@sidecar_session, :write_session, @passive_req, @new_sid, { 'csrf' => 'x' }, {})
+DB.ttl("session:#{@new_sid}") > 3590
+#=> true
+
+## ...and so does a blob that somehow lost its expiry (-1)
+DB.persist("session:#{@new_sid}")
+call_private_method(@sidecar_session, :write_session, @passive_req, @new_sid, { 'csrf' => 'x' }, {})
+DB.ttl("session:#{@new_sid}") > 3590
+#=> true
+
+## a request with no env (MockRequest) is activity, as before
+DB.expire("session:#{@ttl_sid}", 600)
+call_private_method(@sidecar_session, :write_session, MockRequest.new, @ttl_sid, @ttl_data, {})
+DB.ttl("session:#{@ttl_sid}") > 3590
+#=> true
+
+# ---- #4461: the sid is a bearer credential and is never logged ----------
+
+## no log line from a write, a read or a delete carries the sid, at any level;
+## each carries the non-reversible handle instead
+class SessionLogCapture
+  attr_reader :lines
+
+  def initialize
+    @lines = []
+  end
+
+  %i[trace debug info warn error fatal].each do |level|
+    define_method(level) { |message, payload = nil| @lines << [level, message, payload] }
+  end
+end
+@capture     = SessionLogCapture.new
+@log_session = Session.new(@app, { secret: @secret, key: 'test.session', expire_after: 3600, namespace: 'session' })
+capture      = @capture
+@log_session.define_singleton_method(:session_logger) { capture }
+@log_sid = SecureRandom.hex(32)
+call_private_method(@log_session, :write_session, MockRequestWithEnv.new, @log_sid, { 'authenticated' => false }, {})
+call_private_method(@log_session, :find_session, MockRequestWithEnv.new, @log_sid)
+call_private_method(@log_session, :find_session, MockRequestWithEnv.new, 'not-a-valid-sid')
+call_private_method(@log_session, :delete_session, MockRequestWithEnv.new, @log_sid, {})
+@logged  = @capture.lines.map(&:inspect).join("\n")
+@handle  = Onetime::SessionMetadata.handle_for(@log_sid)
+[@capture.lines.size > 10, @logged.include?(@log_sid), @logged.include?('not-a-valid-sid'), @logged.include?(@handle)]
+#=> [true, false, false, true]
+
+## the handle is not the sid, nor a prefix or substring of it
+[@handle == @log_sid, @log_sid.include?(@handle), @handle.length]
+#=> [false, false, 32]
+
 # Cleanup: sidecar fixtures (the TTL clamp would reap them anyway)
-[@sc_sid, @sw_sid, @bm_sid, @orphan_sid].compact.each do |sid|
+[@sc_sid, @sw_sid, @bm_sid, @orphan_sid, @ttl_sid, @new_sid, @log_sid].compact.each do |sid|
   DB.del("session:#{sid}")
   Onetime::SessionSidecar.purge(sid)
 end

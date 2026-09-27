@@ -63,10 +63,10 @@ module Onetime
       # - NO `is_default` (D24). `is_default: true` makes the org UNDELETABLE
       #   (`Organization#can_delete?`) and interacts with the domain-SSO archive
       #   path; a one-way undeletable flag behind a plain `--yes` is wrong.
-      #   Signup (`CreateDefaultWorkspace`) owns `is_default`.
+      #   Signup (`EnsureDefaultWorkspace`) owns `is_default`.
       # - NO `default_org_id` write (D23) — that is customer-scoped state, not
       #   org state.
-      # - NO orphan adoption. `CreateDefaultWorkspace` adopts an existing
+      # - NO orphan adoption. `EnsureDefaultWorkspace` adopts an existing
       #   zero-member org found via the contact_email index; that is signup
       #   RECOVERY behaviour. For an operator create verb, adopting a stranger's
       #   org is wrong — a taken email is a rejection here.

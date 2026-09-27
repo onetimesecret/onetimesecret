@@ -6,7 +6,7 @@ require 'rack'
 require 'familia/json_serializer'
 require_relative '../logger_methods'
 require_relative 'middleware_profile'
-require_relative '../middleware/isolate_response_headers'
+require_relative '../middleware/registry'
 
 module Onetime
   module Application
@@ -92,6 +92,7 @@ module Onetime
             application: self.class.name,
           }
         @router   = build_router
+        apply_referrer_policy(@router)
 
         app_logger.debug 'Building rack app',
           {
@@ -151,6 +152,30 @@ module Onetime
         raise NotImplementedError
       end
 
+      # Give every Otto router the application's one Referrer-Policy value.
+      #
+      # Otto stamps referrer-policy on everything it produces — routed HTML
+      # and JSON, its own 404/500 fallbacks, Rack::Files bodies,
+      # authentication failures — and it does so before any middleware sees
+      # the response. Rack::Protection::ReferrerPolicy (mounted in
+      # Onetime::Middleware::Security) fills only a missing header, so the
+      # value Otto writes is the value the client gets. Setting it here,
+      # once for every app, is what keeps that value equal to
+      # Onetime::Middleware::Registry::REFERRER_POLICY on Otto and non-Otto
+      # responses alike (#4542). Roda routers have no security_config and
+      # get the header from the middleware.
+      #
+      # Otto validates the token and raises ArgumentError on an unknown one,
+      # which is the right outcome at boot.
+      #
+      # @param router [Otto, #call]
+      # @return [void]
+      def apply_referrer_policy(router)
+        return unless router.respond_to?(:security_config)
+
+        router.security_config.referrer_policy = Onetime::Middleware::Registry::REFERRER_POLICY
+      end
+
       def build_rack_app
         # Capture router reference in local variable for block access
         # Rack::Builder uses `instance_eval` internally, creating a new context
@@ -194,14 +219,6 @@ module Onetime
               Onetime.log_box([message], logger_method: :app_logger, level: :debug) # reduce noise at 'info'
             end
           end
-
-          # Innermost, directly around the router: Otto returns its static
-          # `not_found` / `server_error` triples by reference, so every header
-          # writer above (the session commit first among them) must get a
-          # per-request copy or it writes into a process-lifetime hash. See
-          # the class doc; not part of MiddlewareStack because it must sit
-          # below every per-app `use` as well.
-          builder.use Onetime::Middleware::IsolateResponseHeaders
 
           builder.run router_instance
         end.to_app

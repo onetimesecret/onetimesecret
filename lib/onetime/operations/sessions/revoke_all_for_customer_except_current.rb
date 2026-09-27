@@ -258,7 +258,15 @@ module Onetime
             next false if sid == @except_session_id # keep the current session
 
             key = Store.find_key(db, sid)
-            next false unless key
+            unless key
+              # No live blob today, but this op is deliberately revoking the sid:
+              # an in-flight request that loaded the blob earlier can re-SET it
+              # under the same id. Set the ended-marker so the writer's post-SET
+              # {Onetime::SessionEnded.ended?} check takes that copy back out
+              # (RISK-2026-09-19-01).
+              Onetime::SessionEnded.mark(sid, dbclient: db)
+              next false
+            end
 
             # Watermark guard (see class docs): a blob authenticated STRICTLY
             # AFTER the credential change is a legitimate post-change session —
@@ -268,7 +276,7 @@ module Onetime
               next false
             end
 
-            db.del(key)
+            Store.destroy_blob(db, key)
             # Sidecar purge runs ONLY on this deleted branch: the preserved
             # current session and any watermark-spared session stay fully
             # alive, per-value keys included (killing e.g. a live
@@ -305,7 +313,7 @@ module Onetime
             # Watermark guard (see class docs): spare post-credential-change blobs.
             next if watermark.positive? && spared_by_watermark?(data, watermark)
 
-            db.del(key)
+            Store.destroy_blob(db, key)
             # Deleted-blob branch only — current/spared sids never reach here,
             # so their per-value sidecar keys survive with them.
             Onetime::SessionSidecar.purge(sid, dbclient: db)
