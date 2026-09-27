@@ -1,4 +1,4 @@
-// src/tests/e2e/identifier-url-patterns.spec.ts
+// e2e/full/identifier-url-patterns.spec.ts
 
 //
 // E2E Tests for Opaque Identifier Pattern (#2312)
@@ -14,25 +14,27 @@
 //   - md: Metadata (e.g., mdx7y4z1)
 //
 // Prerequisites:
-//   - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
+//   - Authenticated via the project storageState (e2e/global.setup.ts consumes
+//     TEST_USER_*). The account owns exactly one organization, its default
+//     workspace, and the org tests wait for it (e2e/support/organizations.ts).
+//   - The domain tests need a custom domain on the account and are gated on
+//     E2E_CUSTOM_DOMAINS (e2e/support/env.ts); no CI lane sets it.
 //   - Application running locally or PLAYWRIGHT_BASE_URL set
-//   - User should have at least one organization and optionally domains
 //
 // Usage:
 //   TEST_USER_EMAIL=test@example.com TEST_USER_PASSWORD=secret \
-//     pnpm test:playwright src/tests/e2e/identifier-url-patterns.spec.ts
+//     pnpm test:playwright e2e/full/identifier-url-patterns.spec.ts
 
-import { expect, Page, test } from '@playwright/test';
+import { expect, type Locator, type Page, test } from '@playwright/test';
+
+import { waitForAppReady, waitForPathname } from '../support/auth-journey';
+import { env, gateReason } from '../support/env';
+import { getFirstOrganization } from '../support/organizations';
 
 // Extend Window interface for test-specific properties
 declare global {
   interface Window {
     captureHistoryEntry?: (url: string) => void;
-    __BOOTSTRAP_ME__?: {
-      authenticated?: boolean;
-      cust?: unknown;
-      [key: string]: unknown;
-    };
   }
 }
 
@@ -139,6 +141,32 @@ function extractIdentifiers(url: string): string[] {
   return identifiers;
 }
 
+/** The org settings tab bar, which renders once the organization loads. */
+function orgTablist(page: Page): Locator {
+  return page.getByRole('tablist', { name: 'Organization settings tabs' });
+}
+
+/**
+ * Open /domains (a legacy redirect to the active org's Domains tab) and
+ * return the first custom domain's link. Only valid when the account has a
+ * custom domain (E2E_CUSTOM_DOMAINS).
+ */
+async function firstDomainLink(page: Page): Promise<Locator> {
+  await page.goto('/domains');
+  await waitForPathname(page, /^\/org\/on[a-zA-Z0-9]+\/domains$/);
+
+  const domainLink = page.locator('a[href*="/domains/cd"]').first();
+  await expect(domainLink, 'the account has a custom domain (E2E_CUSTOM_DOMAINS)').toBeVisible();
+  return domainLink;
+}
+
+/** Every href on the page, read once the caller has waited for its content. */
+async function allHrefs(page: Page): Promise<string[]> {
+  return page
+    .locator('a[href]')
+    .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''));
+}
+
 // -----------------------------------------------------------------------------
 // URL Pattern Validation Test Suite
 // -----------------------------------------------------------------------------
@@ -153,123 +181,67 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
   // -------------------------------------------------------------------------
   test.describe('Organization URL Patterns', () => {
     test('TC-ID-001: Organization settings URL uses ExtId (on prefix)', async ({ page }) => {
-      await page.goto('/dashboard');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      const org = await getFirstOrganization(page);
+      expect(org.extid).toMatch(/^on[a-zA-Z0-9]+$/);
 
-      // Find and click an organization link
-      const orgLink = page.locator('a[href*="/org/"]').first();
-      const hasOrgLink = await orgLink.isVisible().catch(() => false);
+      // The card's domain-count link opens the org settings page
+      await page
+        .getByTestId(`org-card-${org.extid}`)
+        .locator(`a[href="/org/${org.extid}"]`)
+        .click();
+      await waitForPathname(page, `/org/${org.extid}`);
+      await expect(orgTablist(page)).toBeVisible();
 
-      if (hasOrgLink) {
-        await orgLink.click();
-        // Wait for the router to land on the org route
-        await page.waitForURL(/\/org\//);
+      let currentUrl = page.url();
+      expect(
+        containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.organization),
+        `Organization URL should contain ExtId with 'on' prefix. URL: ${currentUrl}`
+      ).toBe(true);
+      expect(
+        containsUUID(currentUrl),
+        `Organization URL should NOT contain UUID. URL: ${currentUrl}, Found IDs: ${extractIdentifiers(currentUrl).join(', ')}`
+      ).toBe(false);
 
-        const currentUrl = page.url();
-
-        // Verify URL contains ExtId with 'on' prefix
-        expect(
-          containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.organization),
-          `Organization URL should contain ExtId with 'on' prefix. URL: ${currentUrl}`
-        ).toBe(true);
-
-        // Verify URL does NOT contain UUID (internal ID)
-        expect(
-          containsUUID(currentUrl),
-          `Organization URL should NOT contain UUID. URL: ${currentUrl}, Found IDs: ${extractIdentifiers(currentUrl).join(', ')}`
-        ).toBe(false);
-      } else {
-        // Navigate to org list and find an org
-        await page.goto('/orgs');
-        await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-        const orgCard = page.locator('a[href*="/org/on"]').first();
-        if (await orgCard.isVisible().catch(() => false)) {
-          await orgCard.click();
-          // Wait for the router to land on the org route
-          await page.waitForURL(/\/org\/on/);
-
-          const currentUrl = page.url();
-          expect(containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.organization)).toBe(true);
-          expect(containsUUID(currentUrl)).toBe(false);
-        } else {
-          test.skip(true, 'No organizations available to test');
-        }
-      }
+      // Switching to the Settings tab rewrites the URL with the same ExtId
+      await page.getByTestId('org-tab-settings').click();
+      await expect(page).toHaveURL(new RegExp(`/org/${org.extid}/settings$`));
+      currentUrl = page.url();
+      expect(containsUUID(currentUrl)).toBe(false);
     });
 
     test('TC-ID-002: Organization members URL uses ExtId', async ({ page }) => {
-      // Navigate to an organization first
-      await page.goto('/orgs');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      const org = await getFirstOrganization(page);
 
-      const orgLink = page.locator('a[href*="/org/on"]').first();
-      const hasOrgLink = await orgLink.isVisible().catch(() => false);
+      // The card's member-count link opens the Members tab
+      await page
+        .getByTestId(`org-card-${org.extid}`)
+        .locator(`a[href="/org/${org.extid}/members"]`)
+        .click();
+      await waitForPathname(page, `/org/${org.extid}/members`);
+      await expect(page.getByTestId('org-section-members')).toBeVisible();
 
-      if (hasOrgLink) {
-        // Get the href to extract the org extid
-        const href = await orgLink.getAttribute('href');
-        if (href) {
-          // Navigate to members page
-          await page.goto(`${href}/members`);
-          await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-          const currentUrl = page.url();
-
-          expect(
-            containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.organization),
-            `Members URL should contain org ExtId. URL: ${currentUrl}`
-          ).toBe(true);
-
-          expect(
-            currentUrl.includes('/members'),
-            `URL should include /members path. URL: ${currentUrl}`
-          ).toBe(true);
-
-          expect(containsUUID(currentUrl)).toBe(false);
-        }
-      } else {
-        test.skip(true, 'No organizations available to test');
-      }
+      const currentUrl = page.url();
+      expect(
+        containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.organization),
+        `Members URL should contain org ExtId. URL: ${currentUrl}`
+      ).toBe(true);
+      expect(containsUUID(currentUrl)).toBe(false);
     });
 
     test('TC-ID-003: Clicking org card navigates to ExtId URL', async ({ page }) => {
-      await page.goto('/dashboard');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      const org = await getFirstOrganization(page);
 
-      // Try to find the org scope switcher or org card
-      const orgSwitcher = page.locator(
-        '[data-testid="org-scope-switcher-trigger"], button[aria-label*="organization" i]'
-      );
-      const hasSwitcher = await orgSwitcher.isVisible().catch(() => false);
+      // The org name on the card is a button that routes to the org settings
+      await page.getByTestId(`org-link-${org.extid}`).click();
+      await waitForPathname(page, `/org/${org.extid}`);
+      await expect(orgTablist(page)).toBeVisible();
 
-      if (hasSwitcher) {
-        await orgSwitcher.click();
-
-        // Look for gear icon in dropdown
-        const menuItem = page.locator('[role="menuitem"]').first();
-        await menuItem.hover();
-
-        const gearIcon = menuItem.locator('button[aria-label*="settings" i]');
-        const hasGear = await gearIcon.isVisible().catch(() => false);
-
-        if (hasGear) {
-          await gearIcon.click();
-          // Wait for the router to land on the org settings route
-          await page.waitForURL(/\/org\//);
-
-          const currentUrl = page.url();
-
-          expect(
-            PATTERNS.orgExtId.test(currentUrl),
-            `After clicking org settings, URL should have /org/on... pattern. URL: ${currentUrl}`
-          ).toBe(true);
-
-          expect(containsUUID(currentUrl)).toBe(false);
-        }
-      } else {
-        test.skip(true, 'Organization switcher not visible');
-      }
+      const currentUrl = page.url();
+      expect(
+        PATTERNS.orgExtId.test(currentUrl),
+        `After clicking the org card, URL should have /org/on... pattern. URL: ${currentUrl}`
+      ).toBe(true);
+      expect(containsUUID(currentUrl)).toBe(false);
     });
   });
 
@@ -277,82 +249,48 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
   // TC-ID-010: Domain URLs use ExtId format
   // -------------------------------------------------------------------------
   test.describe('Domain URL Patterns', () => {
+    test.skip(!env.hasCustomDomains, gateReason.customDomains);
+
     test('TC-ID-010: Domain detail URL uses ExtId (cd prefix)', async ({ page }) => {
-      await page.goto('/domains');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      const domainLink = await firstDomainLink(page);
+      await domainLink.click();
+      await page.waitForURL(/\/domains\/cd/);
 
-      // Find a domain link (not "Add Domain" link)
-      const domainLink = page.locator('a[href*="/domains/cd"]').first();
-      const hasDomainLink = await domainLink.isVisible().catch(() => false);
-
-      if (hasDomainLink) {
-        await domainLink.click();
-        // Wait for the router to land on the domain route
-        await page.waitForURL(/\/domains\/cd/);
-
-        const currentUrl = page.url();
-
-        expect(
-          containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.domain),
-          `Domain URL should contain ExtId with 'cd' prefix. URL: ${currentUrl}`
-        ).toBe(true);
-
-        expect(
-          containsUUID(currentUrl),
-          `Domain URL should NOT contain UUID. URL: ${currentUrl}`
-        ).toBe(false);
-      } else {
-        test.skip(true, 'No custom domains available to test');
-      }
+      const currentUrl = page.url();
+      expect(
+        containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.domain),
+        `Domain URL should contain ExtId with 'cd' prefix. URL: ${currentUrl}`
+      ).toBe(true);
+      expect(
+        containsUUID(currentUrl),
+        `Domain URL should NOT contain UUID. URL: ${currentUrl}`
+      ).toBe(false);
     });
 
     test('TC-ID-011: Domain verify URL uses ExtId', async ({ page }) => {
-      await page.goto('/domains');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      const href = await (await firstDomainLink(page)).getAttribute('href');
+      expect(href).toBeTruthy();
 
-      const domainLink = page.locator('a[href*="/domains/cd"]').first();
-      const hasDomainLink = await domainLink.isVisible().catch(() => false);
+      await page.goto(`${href}/verify`);
+      await waitForAppReady(page);
 
-      if (hasDomainLink) {
-        const href = await domainLink.getAttribute('href');
-        if (href) {
-          // Navigate to verify subpath
-          await page.goto(`${href}/verify`);
-          await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-          const currentUrl = page.url();
-
-          expect(containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.domain)).toBe(true);
-          expect(currentUrl.includes('/verify')).toBe(true);
-          expect(containsUUID(currentUrl)).toBe(false);
-        }
-      } else {
-        test.skip(true, 'No custom domains available to test');
-      }
+      const currentUrl = page.url();
+      expect(containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.domain)).toBe(true);
+      expect(currentUrl).toContain('/verify');
+      expect(containsUUID(currentUrl)).toBe(false);
     });
 
     test('TC-ID-012: Domain branding URL uses ExtId', async ({ page }) => {
-      await page.goto('/domains');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      const href = await (await firstDomainLink(page)).getAttribute('href');
+      expect(href).toBeTruthy();
 
-      const domainLink = page.locator('a[href*="/domains/cd"]').first();
-      const hasDomainLink = await domainLink.isVisible().catch(() => false);
+      await page.goto(`${href}/brand`);
+      await waitForAppReady(page);
 
-      if (hasDomainLink) {
-        const href = await domainLink.getAttribute('href');
-        if (href) {
-          await page.goto(`${href}/brand`);
-          await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-          const currentUrl = page.url();
-
-          expect(containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.domain)).toBe(true);
-          expect(currentUrl.includes('/brand')).toBe(true);
-          expect(containsUUID(currentUrl)).toBe(false);
-        }
-      } else {
-        test.skip(true, 'No custom domains available to test');
-      }
+      const currentUrl = page.url();
+      expect(containsExtIdWithPrefix(currentUrl, EXTID_PREFIXES.domain)).toBe(true);
+      expect(currentUrl).toContain('/brand');
+      expect(containsUUID(currentUrl)).toBe(false);
     });
   });
 
@@ -361,35 +299,27 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
   // -------------------------------------------------------------------------
   test.describe('Secret URL Patterns', () => {
     test('TC-ID-020: Created secret receipt URL uses proper format', async ({ page }) => {
-      await page.goto('/');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      // A signed-in visitor to / lands on the dashboard's workspace form
+      await page.goto('/dashboard');
+      await waitForAppReady(page);
 
-      const secretInput = page.locator('textarea[aria-label*="secret content"]');
-      const createButton = page.locator('button:has-text("Create Link")');
+      const secretInput = page.getByRole('textbox', { name: 'Secret content' });
+      await expect(secretInput).toBeVisible();
+      await secretInput.fill('Test secret for identifier pattern validation');
+      await page.getByTestId('split-button-submit').click();
 
-      if (await secretInput.isVisible()) {
-        await secretInput.fill('Test secret for identifier pattern validation');
-        await createButton.click();
+      // Without "Stay on page" the form navigates to the new receipt
+      await page.waitForURL(/\/receipt\/.+/);
 
-        // Wait for redirect to receipt page
-        await page.waitForURL(/\/receipt\/.+/, { timeout: 15000 });
-
-        const currentUrl = page.url();
-
-        // Receipt URLs should NOT contain UUIDs
-        expect(
-          containsUUID(currentUrl),
-          `Secret receipt URL should NOT contain UUID. URL: ${currentUrl}`
-        ).toBe(false);
-
-        // The identifier in the URL should be the secret key (opaque)
-        expect(
-          /\/receipt\/[a-zA-Z0-9]+/.test(currentUrl),
-          `Receipt URL should have opaque identifier format. URL: ${currentUrl}`
-        ).toBe(true);
-      } else {
-        test.skip(true, 'Secret creation form not available');
-      }
+      const currentUrl = page.url();
+      expect(
+        containsUUID(currentUrl),
+        `Secret receipt URL should NOT contain UUID. URL: ${currentUrl}`
+      ).toBe(false);
+      expect(
+        /\/receipt\/[a-zA-Z0-9]+$/.test(currentUrl),
+        `Receipt URL should have opaque identifier format. URL: ${currentUrl}`
+      ).toBe(true);
     });
   });
 
@@ -399,35 +329,24 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
   test.describe('Navigation Flow URL Validation', () => {
     test('TC-ID-030: Dashboard to org settings maintains ExtId', async ({ page }) => {
       await page.goto('/dashboard');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      await waitForAppReady(page);
 
       // Track all navigation URLs
       const visitedUrls: string[] = [];
-
       page.on('framenavigated', (frame) => {
         if (frame === page.mainFrame()) {
           visitedUrls.push(frame.url());
         }
       });
 
-      // Navigate to organizations page
-      const orgNavLink = page.locator('a[href="/orgs"]');
-      if (await orgNavLink.isVisible().catch(() => false)) {
-        await orgNavLink.click();
-        await page.waitForURL(/\/orgs/);
-      } else {
-        await page.goto('/orgs');
-        await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-      }
+      // User menu > Domains goes through the legacy /domains redirect, which
+      // resolves the active organization's ExtId
+      await page.getByTestId('user-menu-trigger').click();
+      await page.getByRole('menuitem', { name: 'Domains' }).click();
+      await waitForPathname(page, /^\/org\/on[a-zA-Z0-9]+\/domains$/);
+      await expect(orgTablist(page)).toBeVisible();
 
-      // Click on first organization
-      const orgCard = page.locator('a[href*="/org/on"]').first();
-      if (await orgCard.isVisible().catch(() => false)) {
-        await orgCard.click();
-        await page.waitForURL(/\/org\/on/);
-      }
-
-      // Verify no visited URLs contain UUIDs
+      expect(visitedUrls.length, 'navigation events were recorded').toBeGreaterThan(0);
       const urlsWithUUIDs = visitedUrls.filter(containsUUID);
       expect(
         urlsWithUUIDs.length,
@@ -436,8 +355,9 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
     });
 
     test('TC-ID-031: Domains list to domain detail maintains ExtId', async ({ page }) => {
-      await page.goto('/domains');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      test.skip(!env.hasCustomDomains, gateReason.customDomains);
+
+      const domainLink = await firstDomainLink(page);
 
       const visitedUrls: string[] = [];
       page.on('framenavigated', (frame) => {
@@ -446,24 +366,12 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
         }
       });
 
-      const domainCard = page.locator('a[href*="/domains/cd"]').first();
-      if (await domainCard.isVisible().catch(() => false)) {
-        await domainCard.click();
-        await page.waitForURL(/\/domains\/cd/);
+      await domainLink.click();
+      await page.waitForURL(/\/domains\/cd/);
 
-        // Navigate to subpages if available
-        const verifyTab = page.locator('a[href*="/verify"]');
-        if (await verifyTab.isVisible().catch(() => false)) {
-          await verifyTab.click();
-          await page.waitForURL(/\/verify/);
-        }
-
-        // Verify no visited URLs contain UUIDs
-        const urlsWithUUIDs = visitedUrls.filter(containsUUID);
-        expect(urlsWithUUIDs.length).toBe(0);
-      } else {
-        test.skip(true, 'No custom domains available to test');
-      }
+      expect(visitedUrls.length, 'navigation events were recorded').toBeGreaterThan(0);
+      const urlsWithUUIDs = visitedUrls.filter(containsUUID);
+      expect(urlsWithUUIDs.length, `Found: ${urlsWithUUIDs.join(', ')}`).toBe(0);
     });
   });
 });
@@ -478,89 +386,74 @@ test.describe('Opaque Identifier Pattern - Security Validation', () => {
   });
 
   test('TC-ID-040: No internal IDs exposed in network requests', async ({ page }) => {
-    const requestsWithInternalIds: string[] = [];
-
-    // Monitor network requests for internal IDs in URLs
+    const apiPaths: string[] = [];
     page.on('request', (request) => {
-      const url = request.url();
-      // Only check API requests
-      if (url.includes('/api/')) {
-        // Check for UUIDs in the path (not query params which may be different)
-        const urlPath = new URL(url).pathname;
-        if (containsUUID(urlPath)) {
-          requestsWithInternalIds.push(url);
-        }
-      }
+      const url = new URL(request.url());
+      if (url.pathname.startsWith('/api/')) apiPaths.push(url.pathname);
     });
 
     // Navigate through several pages
     await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    await waitForAppReady(page);
 
-    await page.goto('/orgs');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    const orgLink = page.locator('a[href*="/org/on"]').first();
-    if (await orgLink.isVisible().catch(() => false)) {
-      await orgLink.click();
-      await page.waitForURL(/\/org\/on/);
-    }
+    const org = await getFirstOrganization(page);
+    await page.getByTestId(`org-link-${org.extid}`).click();
+    await waitForPathname(page, `/org/${org.extid}`);
+    await expect(orgTablist(page)).toBeVisible();
 
     await page.goto('/domains');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    await waitForPathname(page, `/org/${org.extid}/domains`);
+    await expect(orgTablist(page)).toBeVisible();
 
-    // Filter out known exceptions (if any)
-    const unexpectedInternalIds = requestsWithInternalIds.filter(
-      (_url) =>
-        // Add any known exceptions here
-        true
-    );
-
+    // The org pages addressed the org by its ExtId, so the check saw
+    // identifier-bearing requests
     expect(
-      unexpectedInternalIds.length,
-      `API requests should use ExtIds, not internal IDs. Found: ${unexpectedInternalIds.join(', ')}`
+      apiPaths.some((path) => path.includes(`/${org.extid}`)),
+      `an API request addressed ${org.extid}. Seen: ${apiPaths.join(', ')}`
+    ).toBe(true);
+
+    const pathsWithInternalIds = apiPaths.filter(containsUUID);
+    expect(
+      pathsWithInternalIds.length,
+      `API requests should use ExtIds, not internal IDs. Found: ${pathsWithInternalIds.join(', ')}`
     ).toBe(0);
   });
 
   test('TC-ID-041: Browser history entries use ExtId format', async ({ page }) => {
-    await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
     const historyEntries: string[] = [];
-
-    // Capture history state changes
     await page.exposeFunction('captureHistoryEntry', (url: string) => {
       historyEntries.push(url);
     });
 
-    await page.evaluate(() => {
+    // Patch the History API in every document before the app's router runs,
+    // so full page loads (page.goto) keep the capture in place
+    await page.addInitScript(() => {
       const originalPushState = history.pushState;
       const originalReplaceState = history.replaceState;
 
       history.pushState = function (...args) {
-        window.captureHistoryEntry(args[2] as string);
+        window.captureHistoryEntry?.(String(args[2] ?? ''));
         return originalPushState.apply(this, args);
       };
-
       history.replaceState = function (...args) {
-        window.captureHistoryEntry(args[2] as string);
+        window.captureHistoryEntry?.(String(args[2] ?? ''));
         return originalReplaceState.apply(this, args);
       };
     });
 
-    // Navigate through the app
-    await page.goto('/orgs');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    // Navigate through the app: the org card click is a router push
+    const org = await getFirstOrganization(page);
+    await page.getByTestId(`org-link-${org.extid}`).click();
+    await waitForPathname(page, `/org/${org.extid}`);
+    await expect(orgTablist(page)).toBeVisible();
 
-    const orgLink = page.locator('a[href*="/org/on"]').first();
-    if (await orgLink.isVisible().catch(() => false)) {
-      await orgLink.click();
-      await page.waitForURL(/\/org\/on/);
-    }
+    await expect
+      .poll(() => historyEntries.some((entry) => entry.includes(`/org/${org.extid}`)), {
+        message: `a history entry for /org/${org.extid}. Seen: ${historyEntries.join(', ')}`,
+      })
+      .toBe(true);
 
-    // Check all history entries for internal IDs
-    const entriesWithInternalIds = historyEntries.filter((entry) => entry && containsUUID(entry));
-
+    const entriesWithInternalIds = historyEntries.filter((entry) => containsUUID(entry));
     expect(
       entriesWithInternalIds.length,
       `Browser history should not contain internal IDs. Found: ${entriesWithInternalIds.join(', ')}`
@@ -569,19 +462,22 @@ test.describe('Opaque Identifier Pattern - Security Validation', () => {
 
   test('TC-ID-042: Link href attributes use ExtId format', async ({ page }) => {
     await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    await waitForAppReady(page);
+    const hrefs = await allHrefs(page);
 
-    // Collect all links on the page
-    const links = await page.locator('a[href]').all();
-    const linksWithInternalIds: string[] = [];
+    // The org list and the org settings page carry org-scoped links
+    const org = await getFirstOrganization(page);
+    hrefs.push(...(await allHrefs(page)));
+    await page.goto(`/org/${org.extid}`);
+    await expect(orgTablist(page)).toBeVisible();
+    hrefs.push(...(await allHrefs(page)));
 
-    for (const link of links) {
-      const href = await link.getAttribute('href');
-      if (href && containsUUID(href)) {
-        linksWithInternalIds.push(href);
-      }
-    }
+    expect(
+      hrefs.some((href) => href.startsWith(`/org/${org.extid}`)),
+      `links address the org by its ExtId. Seen: ${hrefs.join(', ')}`
+    ).toBe(true);
 
+    const linksWithInternalIds = hrefs.filter(containsUUID);
     expect(
       linksWithInternalIds.length,
       `Links should use ExtIds, not internal IDs. Found: ${linksWithInternalIds.join(', ')}`
@@ -599,48 +495,38 @@ test.describe('Opaque Identifier Pattern - Format Consistency', () => {
   });
 
   test('TC-ID-050: Organization ExtIds consistently use "on" prefix', async ({ page }) => {
-    await page.goto('/orgs');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    // Waits for the org list, so its links are rendered
+    const org = await getFirstOrganization(page);
 
-    // Find all org-related links
-    const orgLinks = await page.locator('a[href*="/org/"]').all();
+    const identifiers = (await allHrefs(page))
+      .map((href) => href.match(/\/org\/([^/]+)/)?.[1])
+      .filter((identifier): identifier is string => !!identifier);
 
-    for (const link of orgLinks) {
-      const href = await link.getAttribute('href');
-      if (href && href.includes('/org/') && !href.endsWith('/org/')) {
-        // Extract the identifier after /org/
-        const match = href.match(/\/org\/([^/]+)/);
-        if (match) {
-          const identifier = match[1];
-          expect(
-            identifier.startsWith(EXTID_PREFIXES.organization),
-            `Organization identifier "${identifier}" should start with "${EXTID_PREFIXES.organization}"`
-          ).toBe(true);
-        }
-      }
+    expect(identifiers, 'the org card links to its org').toContain(org.extid);
+    for (const identifier of identifiers) {
+      expect(
+        identifier.startsWith(EXTID_PREFIXES.organization),
+        `Organization identifier "${identifier}" should start with "${EXTID_PREFIXES.organization}"`
+      ).toBe(true);
     }
   });
 
   test('TC-ID-051: Domain ExtIds consistently use "cd" prefix', async ({ page }) => {
-    await page.goto('/domains');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    test.skip(!env.hasCustomDomains, gateReason.customDomains);
 
-    // Find all domain-related links (excluding "Add Domain" type links)
-    const domainLinks = await page.locator('a[href*="/domains/"]').all();
+    // Waits for the domain list, so its links are rendered
+    await firstDomainLink(page);
+
     const nonIdentifierPaths = ['add', 'new', 'create'];
+    const identifiers = (await allHrefs(page))
+      .map((href) => href.match(/\/domains\/([^/]+)/)?.[1])
+      .filter(
+        (identifier): identifier is string =>
+          !!identifier && !nonIdentifierPaths.includes(identifier)
+      );
 
-    for (const link of domainLinks) {
-      const href = await link.getAttribute('href');
-      if (!href || !href.includes('/domains/') || href.endsWith('/domains/')) continue;
-
-      // Extract the identifier after /domains/
-      const match = href.match(/\/domains\/([^/]+)/);
-      if (!match) continue;
-
-      const identifier = match[1];
-      // Skip if it's a non-identifier path segment like "add" or "new"
-      if (nonIdentifierPaths.includes(identifier)) continue;
-
+    expect(identifiers.length, 'the domain list links to its domains').toBeGreaterThan(0);
+    for (const identifier of identifiers) {
       expect(
         identifier.startsWith(EXTID_PREFIXES.domain),
         `Domain identifier "${identifier}" should start with "${EXTID_PREFIXES.domain}"`
@@ -668,29 +554,36 @@ test.describe('Opaque Identifier Pattern - Format Consistency', () => {
       }
     };
 
-    // Visit multiple pages and collect identifiers
-    const pagesToVisit = ['/dashboard', '/orgs', '/domains', '/account'];
+    // Visit multiple pages and collect identifiers, each once its content
+    // has rendered
+    await page.goto('/dashboard');
+    await waitForAppReady(page);
+    (await allHrefs(page)).forEach(extractIdentifiersFromHref);
 
-    for (const pagePath of pagesToVisit) {
-      await page.goto(pagePath);
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    const org = await getFirstOrganization(page);
+    (await allHrefs(page)).forEach(extractIdentifiersFromHref);
 
-      const links = await page.locator('a[href]').all();
-      for (const link of links) {
-        const href = await link.getAttribute('href');
-        if (href) extractIdentifiersFromHref(href);
-      }
-    }
+    await page.goto('/domains');
+    await waitForPathname(page, `/org/${org.extid}/domains`);
+    await expect(orgTablist(page)).toBeVisible();
+    (await allHrefs(page)).forEach(extractIdentifiersFromHref);
+
+    await page.goto('/account');
+    await waitForAppReady(page);
+    (await allHrefs(page)).forEach(extractIdentifiersFromHref);
+
+    expect(
+      foundIdentifiers.some(({ identifier }) => identifier === org.extid),
+      'the visited pages link to the org by its ExtId'
+    ).toBe(true);
 
     // Verify all found identifiers use correct prefixes
     for (const { type, identifier, source } of foundIdentifiers) {
       const expectedPrefix = EXTID_PREFIXES[type as keyof typeof EXTID_PREFIXES];
-      if (expectedPrefix) {
-        expect(
-          identifier.startsWith(expectedPrefix),
-          `${type} identifier "${identifier}" from ${source} should start with "${expectedPrefix}"`
-        ).toBe(true);
-      }
+      expect(
+        identifier.startsWith(expectedPrefix),
+        `${type} identifier "${identifier}" from ${source} should start with "${expectedPrefix}"`
+      ).toBe(true);
     }
   });
 });
@@ -704,65 +597,51 @@ test.describe('Opaque Identifier Pattern - Regression Prevention', () => {
     page.setDefaultTimeout(15000);
   });
 
-  test('TC-ID-060: Verify window state uses correct ID fields', async ({ page }) => {
-    await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+  test('TC-ID-060: Bootstrap state separates internal IDs from ExtIds', async ({ page }) => {
+    // window.__BOOTSTRAP_ME__ is replaced with `true` once the app consumes
+    // it (src/services/bootstrap.service.ts). /bootstrap/me serves the same
+    // payload from the same serializers.
+    const response = await page.request.get('/bootstrap/me');
+    expect(response.ok()).toBe(true);
+    const state = await response.json();
 
-    // Check that organizations in window state have both id and extid
-    const stateCheck = await page.evaluate(() => {
-      const state = window.__BOOTSTRAP_ME__;
-      if (!state) return { valid: false, error: 'No state' };
+    // The current organization carries both IDs, and they differ
+    expect(state.organization?.objid).toMatch(PATTERNS.uuid);
+    expect(state.organization?.extid).toMatch(/^on[a-zA-Z0-9]+$/);
+    expect(state.organization.extid).not.toBe(state.organization.objid);
 
-      // Check organization structure if available
-      // This validates that the API returns proper ID separation
-      return {
-        valid: true,
-        hasState: true,
-      };
-    });
+    // So does the customer
+    expect(state.cust?.objid).toMatch(PATTERNS.uuid);
+    expect(state.cust?.extid).toMatch(/^ur[a-zA-Z0-9]+$/);
 
-    expect(stateCheck.valid).toBe(true);
+    // Org URLs use the ExtId, not the objid
+    const org = await getFirstOrganization(page);
+    expect(org.extid).toBe(state.organization.extid);
   });
 
   test('TC-ID-061: Direct URL navigation with ExtId works', async ({ page }) => {
-    // First, find a valid org ExtId
-    await page.goto('/orgs');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    const org = await getFirstOrganization(page);
 
-    const orgLink = page.locator('a[href*="/org/on"]').first();
-    const hasOrg = await orgLink.isVisible().catch(() => false);
-
-    if (hasOrg) {
-      const href = await orgLink.getAttribute('href');
-      if (href) {
-        // Navigate directly to the URL (simulating bookmark or shared link)
-        await page.goto(href);
-        await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-        // Page should load successfully (not 404)
-        const response = await page.evaluate(() => ({
-          title: document.title,
-          has404: document.body.textContent?.includes('404') || false,
-        }));
-
-        expect(response.has404).toBe(false);
-        expect(response.title).not.toBe('');
-      }
-    } else {
-      test.skip(true, 'No organizations available to test');
-    }
+    // Open the org settings URL directly (a bookmark or shared link)
+    await page.goto(`/org/${org.extid}`);
+    await expect(orgTablist(page)).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/org/${org.extid}$`));
   });
 
-  test('TC-ID-062: Invalid ExtId format shows appropriate error', async ({ page }) => {
-    // Try to navigate to an org with UUID format (invalid for ExtId)
-    const fakeUUID = '550e8400-e29b-41d4-a716-446655440000';
-    const response = await page.goto(`/org/${fakeUUID}`);
+  test('TC-ID-062: Internal org ID in the URL does not open the org', async ({ page }) => {
+    // The org's internal objid (a UUID) is not an address for it
+    const response = await page.request.get('/bootstrap/me');
+    const objid: string = (await response.json()).organization?.objid;
+    expect(objid).toMatch(PATTERNS.uuid);
 
-    // Should get 404 or redirect (not crash)
-    expect(response?.status()).toBeLessThan(500);
+    const apiResponse = await page.request.get(`/api/organizations/${objid}`);
+    expect(apiResponse.status()).toBe(404);
 
-    // Page should still be functional
-    await expect(page.locator('body')).toBeVisible();
+    // The org fetch 404s, the role guard fails closed and the app redirects
+    // to /dashboard (src/router/guards.routes.ts, handleOrgRoleRequirement)
+    await page.goto(`/org/${objid}`);
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(orgTablist(page)).toHaveCount(0);
   });
 });
 
@@ -788,9 +667,9 @@ test.describe('Opaque Identifier Pattern - Regression Prevention', () => {
  * | TC-ID-050  | Organization ExtIds use "on" prefix consistently   | Medium   | Automated  |
  * | TC-ID-051  | Domain ExtIds use "cd" prefix consistently         | Medium   | Automated  |
  * | TC-ID-052  | ExtId format consistent across entity types        | Medium   | Automated  |
- * | TC-ID-060  | Window state uses correct ID fields                | Medium   | Automated  |
+ * | TC-ID-060  | Bootstrap state separates internal IDs from ExtIds | Medium   | Automated  |
  * | TC-ID-061  | Direct URL navigation with ExtId works             | High     | Automated  |
- * | TC-ID-062  | Invalid ExtId format shows appropriate error       | Medium   | Automated  |
+ * | TC-ID-062  | Internal org ID in the URL does not open the org   | Medium   | Automated  |
  */
 
 /**
