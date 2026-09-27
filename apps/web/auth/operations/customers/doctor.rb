@@ -75,8 +75,8 @@ module Auth
         #                    (apps/api/account/logic/account/create_account.rb)
         #   sso            - OmniAuth JIT provisioning (apps/web/auth/config/hooks/
         #                    omniauth.rb) and this doctor's :sso_customer_unverified repair
-        #   invite_token   - invitation acceptance (apps/web/auth/operations/
-        #                    accept_invitation.rb, config/hooks/account.rb)
+        #   invite_token   - invite signup auto-verification (apps/web/auth/
+        #                    config/hooks/account.rb after_create_account)
         #   cli_provision  - CLI customer/apitoken commands (lib/onetime/cli/)
         #   colonel_admin  - colonel admin verification (apps/api/colonel/logic/
         #                    colonel/set_user_verification.rb)

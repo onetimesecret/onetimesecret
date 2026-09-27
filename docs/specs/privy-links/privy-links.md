@@ -130,7 +130,7 @@ attach per scope table ──▶ done
 
 | Property | Rule |
 |---|---|
-| Email verification | A shared link proves possession of a URL, not inbox ownership. Privy joiners get **no** `verified_by = 'invite_token'` shortcut (unlike `apps/web/auth/operations/accept_invitation.rb`); normal email verification always runs. |
+| Email verification | A shared link proves possession of a URL, not inbox ownership. Privy joiners get **no** `verified_by = 'invite_token'` shortcut (unlike the invite branch of `after_create_account` in `apps/web/auth/config/hooks/account.rb`); normal email verification always runs. |
 | Privilege | `member` role only; domain scope where applicable. No link grants admin/owner. |
 | Reject shape | Invalid/rotated/expired token → 404 byte-identical to an undefined route (`Auth::RestrictTo.not_found_response`, ADR-034 reject-as-not-found), so responses are no enumeration oracle. |
 | Enumeration | Token lookup behind a sibling of `Onetime::Security::InviteTokenRateLimiter`. |
@@ -181,8 +181,9 @@ link-joins as `status='accepted'` pending admin activation.
   privy grant extends (`resolve_signup_enabled_for_request`)
 - `apps/web/auth/signup_enabled.rb` (signinconfig branch) — full-mode gate and
   `GATED_ROUTES`
-- `apps/web/auth/operations/accept_invitation.rb` — signup-hook pattern reused
-  *minus* the `verified_by` shortcut
+- `apps/web/auth/config/hooks/account.rb` (invite branch of
+  `after_create_account`) — signup-hook pattern reused *minus* the
+  `verified_by` shortcut
 - `lib/onetime/security/invite_token_rate_limiter.rb` — rate-limiter pattern
 - `docs/adr/adr-024-custom-domain-auth-override-resolution.md`,
   `docs/adr/adr-034-restrict-to-enforcement.md` — resolution ownership and

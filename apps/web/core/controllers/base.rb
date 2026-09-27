@@ -141,8 +141,8 @@ module Core
         data
       end
 
-      def json_success(message, status: 200)
-        json_response({ success: message }, status: status)
+      def json_success(message, data: {}, status: 200)
+        json_response(data.merge(success: message), status: status)
       end
 
       def json_error(message, field_error: nil, status: 400)
@@ -453,17 +453,25 @@ module Core
       #
       # @param logic [Object] Logic object to execute
       # @param success_message [String] Success message for JSON responses
+      # @param success_data [Hash] Additional JSON response fields
       # @param success_redirect [String] Path to redirect on success (HTML)
       # @param error_redirect [String, nil] Path to redirect on error (HTML), nil to re-raise
       # @yield Optional block for additional processing after logic.process
       # @return [Hash, nil] JSON response Hash for routes with response=json, nil otherwise
-      def execute_with_error_handling(logic, success_message:, success_redirect: '/', error_redirect: nil, error_status: 400)
+      def execute_with_error_handling(
+        logic,
+        success_message:,
+        success_data: {},
+        success_redirect: '/',
+        error_redirect: nil,
+        error_status: 400
+      )
         logic.raise_concerns
         logic.process
         yield if block_given?
 
         if json_requested?
-          json_success(success_message)
+          json_success(success_message, data: success_data)
         else
           res.redirect success_redirect
           nil

@@ -9,9 +9,14 @@
  * 3. Routes to appropriate destinations based on current subscription state
  */
 
+import { loggingService } from '@/services/logging.service';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { authenticatedBootstrap, mfaPendingBootstrap, newerSnapshot } from '@/tests/fixtures/bootstrap.fixture';
+import {
+  authenticatedBootstrap,
+  mfaPendingBootstrap,
+  newerSnapshot,
+} from '@/tests/fixtures/bootstrap.fixture';
 import { toWire } from '@/tests/fixtures/bootstrap-wire';
 import { createWireOrganization, type OrganizationWire } from '@/tests/fixtures/billing.fixture';
 import type AxiosMockAdapter from 'axios-mock-adapter';
@@ -128,7 +133,11 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
     // as 'applied'.
     axiosMock.onGet('/bootstrap/me').reply(() => [
       200,
-      { ...toWire(nextSnapshot(authenticatedBootstrap)), billing_enabled: true, shrimp: 'new-shrimp-token' },
+      {
+        ...toWire(nextSnapshot(authenticatedBootstrap)),
+        billing_enabled: true,
+        shrimp: 'new-shrimp-token',
+      },
     ]);
   });
 
@@ -223,7 +232,11 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
         void _drop;
         return [
           200,
-          { ...rest, ...(value === undefined ? {} : { billing_enabled: value }), shrimp: 'new-shrimp-token' },
+          {
+            ...rest,
+            ...(value === undefined ? {} : { billing_enabled: value }),
+            shrimp: 'new-shrimp-token',
+          },
         ];
       });
     };
@@ -362,7 +375,9 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       // snapshot lands as `mfa_pending`. The outer beforeEach mocks the
       // authenticated fixture; override it here so the MFA flow's refresh
       // sees an mfa_pending payload.
-      axiosMock.onGet('/bootstrap/me').reply(() => [200, toWire(nextSnapshot(mfaPendingBootstrap))]);
+      axiosMock
+        .onGet('/bootstrap/me')
+        .reply(() => [200, toWire(nextSnapshot(mfaPendingBootstrap))]);
     });
 
     it('should not attempt billing redirect when MFA is required', async () => {
@@ -559,7 +574,11 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
     // authenticated fixture so the refresh coordinator lands the snapshot with cust.
     axiosMock.onGet('/bootstrap/me').reply(() => [
       200,
-      { ...toWire(nextSnapshot(authenticatedBootstrap)), billing_enabled: true, shrimp: 'new-shrimp-token' },
+      {
+        ...toWire(nextSnapshot(authenticatedBootstrap)),
+        billing_enabled: true,
+        shrimp: 'new-shrimp-token',
+      },
     ]);
   });
 
@@ -570,21 +589,22 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
   });
 
   it('should NOT redirect when billing_redirect.valid is false', async () => {
-    // Backend validates plan and returns valid: false - should redirect to dashboard
-    // NOTE: This test passes but for the wrong reason - the billing_redirect object
-    // in the mock is missing required fields (product, interval), so it fails schema
-    // validation and gets stripped. The test should include valid product/interval
-    // with valid: false to truly test the behavior.
+    // The backend resolved the plan and rejected it. The verdict wins over the
+    // query pair, so login goes to the dashboard, not checkout. The payload
+    // has the shape build_billing_redirect_info sends (apps/web/auth/config/
+    // hooks/billing.rb), so it parses as the invalid member rather than being
+    // stripped.
     setRouteQuery({ product: 'invalid_product', interval: 'month' });
 
     const { login } = useAuth();
 
-    // Backend returns billing_redirect with valid: false
     axiosMock.onPost('/auth/login').reply(200, {
       success: 'Logged in successfully',
       billing_redirect: {
+        product: 'invalid_product',
+        interval: 'month',
         valid: false,
-        reason: 'Invalid product identifier',
+        error: 'Invalid product identifier',
       },
     });
 
@@ -596,6 +616,34 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
     await login('test@example.com', 'password123');
 
     // Should redirect to dashboard when plan is invalid
+    expect(router.push).toHaveBeenCalledWith('/');
+  });
+
+  it('parses a partial billing_redirect at login and skips checkout', async () => {
+    // Login from /signin?product=x (no interval): the server answers with the
+    // missing half as null. The body must parse as the invalid verdict (the
+    // warn proves it was not stripped) and yield no checkout.
+    setRouteQuery({ product: 'identity_plus_v1' });
+
+    const { login } = useAuth();
+
+    axiosMock.onPost('/auth/login').reply(200, {
+      success: 'Logged in successfully',
+      billing_redirect: {
+        product: 'identity_plus_v1',
+        interval: null,
+        valid: false,
+        error: 'Missing product or interval',
+      },
+    });
+
+    expect(await login('test@example.com', 'password123')).toBe(true);
+
+    expect(loggingService.warn).toHaveBeenCalledWith(
+      '[postAuthRedirect] Billing redirect skipped - backend marked plan as invalid',
+      { product: 'identity_plus_v1', interval: null, error: 'Missing product or interval' }
+    );
+    expect(axiosMock.history.get.some((req) => req.url === '/api/organizations')).toBe(false);
     expect(router.push).toHaveBeenCalledWith('/');
   });
 
@@ -671,7 +719,11 @@ describe('useAuth - Subscription Status Checks', () => {
     // authenticated fixture so the refresh coordinator lands the snapshot with cust.
     axiosMock.onGet('/bootstrap/me').reply(() => [
       200,
-      { ...toWire(nextSnapshot(authenticatedBootstrap)), billing_enabled: true, shrimp: 'new-shrimp-token' },
+      {
+        ...toWire(nextSnapshot(authenticatedBootstrap)),
+        billing_enabled: true,
+        shrimp: 'new-shrimp-token',
+      },
     ]);
   });
 
@@ -817,7 +869,7 @@ describe('useAuth - Signup Flow Billing Params', () => {
     let signupPayload: Record<string, unknown> | undefined;
     axiosMock.onPost('/auth/create-account').reply((config) => {
       signupPayload = JSON.parse(config.data);
-      return [200, { success: 'Account created successfully' }];
+      return [200, { success: 'Account created successfully', next_action: 'verify_email' }];
     });
 
     await signup('test@example.com', 'password123');
@@ -845,6 +897,7 @@ describe('useAuth - Signup Flow Billing Params', () => {
 
     axiosMock.onPost('/auth/create-account').reply(200, {
       success: 'Account created successfully',
+      next_action: 'verify_email',
     });
 
     await signup('test@example.com', 'password123');

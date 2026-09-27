@@ -34,10 +34,11 @@ require 'onetime/session/customer_session_evaluator'
 #       otp-auth / webauthn-auth / recovery-auth and become fully
 #       authenticated.
 #     - Autologin sessions. The verify_account autologin (Rodauth default:
-#       on) and the invite-signup create_account autologin call
-#       `login_session` directly and never fire after_login, so SyncSession
-#       never runs. (reset_password_autologin? is off, Rodauth's default; it
-#       would take the same path if enabled.) The
+#       on) calls `login_session` directly and never fires after_login, so
+#       SyncSession never runs. (reset_password_autologin? is off, Rodauth's
+#       default, and create_account_autologin? is off in
+#       config/features/account_management.rb; either would take the same
+#       path if enabled.) The
 #       evaluator answers :not_authenticated, yet Rodauth serves
 #       /auth/account, change-password, passkey removal and the rest of its
 #       login-required routes to that session.

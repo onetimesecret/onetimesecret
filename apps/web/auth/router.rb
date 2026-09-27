@@ -350,9 +350,9 @@ module Auth
       #                       to complete otp-auth / webauthn-auth /
       #                       recovery-auth.
       #   :not_authenticated  With an account_id, an autologin session
-      #                       (verify-account, invite create-account)
-      #                       that never went through after_login. Rodauth
-      #                       serves it every login-required route, so both
+      #                       (verify-account) that never went through
+      #                       after_login. Rodauth serves it every
+      #                       login-required route, so both
       #                       checks run here too. Without an account_id the
       #                       request is genuinely anonymous and neither check
       #                       applies.
@@ -490,9 +490,9 @@ module Auth
         #     out; its anonymous routes run and its login-required routes
         #     refuse it.
         #   - A Rodauth login without the app-level flag: an autologin session
-        #     (verify-account, invite create-account). It reaches
-        #     this branch only after Auth::SessionRecheck matched its surface
-        #     and found its active-session row live (or found no join key to
+        #     (verify-account). It reaches this branch only after
+        #     Auth::SessionRecheck matched its surface and found its
+        #     active-session row live (or found no join key to
         #     check, the gate's existing exemption); a mismatch or a revoked
         #     row was turned into :surface_mismatch / :active_session_revoked
         #     above and destroyed there. What is left is a valid Rodauth

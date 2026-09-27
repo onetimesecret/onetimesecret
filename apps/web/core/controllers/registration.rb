@@ -35,8 +35,11 @@ module Core
 
         logic = AccountAPI::Logic::Account::CreateAccount.new(strategy_result, req.params, locale)
 
-        # Same message for new/existing accounts (email enumeration prevention)
-        success_message = if resolve_autoverify
+        # Same message and next action for new/existing accounts (email
+        # enumeration prevention). Autoverified accounts can proceed to sign-in;
+        # otherwise the verification email is the required next step.
+        autoverify      = resolve_autoverify
+        success_message = if autoverify
                             'You can now sign in.'
                           else
                             'Check your email for verification.'
@@ -45,6 +48,7 @@ module Core
         execute_with_error_handling(
           logic,
           success_message: success_message,
+          success_data: { next_action: autoverify ? 'sign_in' : 'verify_email' },
           success_redirect: '/signin',
         )
       end

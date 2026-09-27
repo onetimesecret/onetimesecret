@@ -355,7 +355,7 @@ tests:
     verify:
       - Navigates to /signup with email and redirect params preserved
       - Email field is prefilled with newuser@example.com
-      - After account creation, redirects to signin with params preserved
+      - After account creation, lands on /signin (verification off) or /check-email (verification required) with the redirect preserved
       - After signin, returns to invitation page
     priority: high
     type: integration
