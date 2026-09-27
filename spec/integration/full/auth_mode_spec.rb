@@ -316,6 +316,37 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
         expect(Auth::Database.connection[:accounts].where(email: spa_email).count).to eq(1)
       end
     end
+
+    # An invite signup posted straight to this route. (The SPA's invite form
+    # posts to /api/invite/:token/signup instead.) after_create_account opens
+    # the account and create_account_autologin? logs it in, but only on
+    # Rodauth's side: the autologin skips after_login, so the app-level
+    # `authenticated` flag is never set and the app still sees an anonymous
+    # session. next_action therefore names sign-in, not a signed-in state
+    # (apps/web/auth/config/features/account_management.rb).
+    context 'with a valid invite_token' do
+      let(:invited_email) { "invitee-#{SecureRandom.hex(8)}@example.com" }
+      let(:invite_token) do
+        owner_email  = "invite-owner-#{SecureRandom.hex(8)}@example.com"
+        owner        = Onetime::Customer.create!(email: owner_email, role: 'customer')
+        organization = Onetime::Organization.create!('Invite JSON Org', owner, owner_email, is_default: true)
+        Onetime::OrganizationMembership.create_invitation!(
+          organization: organization, email: invited_email, inviter: owner, role: 'member',
+        ).token
+      end
+
+      it 'opens the account, logs Rodauth in, and still answers sign_in', :aggregate_failures do
+        post_json '/auth/create-account', { login: invited_email, password: test_password, invite_token: invite_token }
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_response).to include('success', 'next_action' => 'sign_in')
+        account_row = Auth::Database.connection[:accounts].where(email: invited_email).first
+        expect(account_row[:status_id]).to eq(AuthTestConstants::STATUS_VERIFIED)
+        expect(last_request.env['rack.session']['account_id']).to eq(account_row[:id])
+        expect(last_request.env['rack.session']['authenticated']).not_to be(true),
+          'create_account autologin now sets the app flag; revisit next_action in account_management.rb'
+      end
+    end
   end
 
   describe 'POST /logout (without authentication)' do

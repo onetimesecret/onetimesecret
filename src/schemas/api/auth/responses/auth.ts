@@ -182,9 +182,14 @@ export type LoginResponse = z.infer<typeof loginResponseSchema>;
 /**
  * Signup success names the next unauthenticated step explicitly: verify_email
  * when the emailed link must be followed before sign-in works, sign_in when
- * the account is usable at once. Both backends derive it from configuration,
- * never from the submitted login. billing_redirect, when present, is the
- * server's verdict on the submitted plan and is followed after sign-in.
+ * the account is usable at once. Simple mode answers from its autoverify
+ * setting; full mode from the status of the account it just created, which is
+ * open when verification is off or an invite signup opened it. Neither answer
+ * depends on an account that existed before the request. A full-mode invite
+ * signup is also logged in on the Rodauth side only, which the app does not
+ * treat as signed in, so it still answers sign_in. billing_redirect, when
+ * present, is the server's verdict on the submitted plan and is followed
+ * after sign-in.
  */
 const createAccountSuccessSchema = z.object({
   success: z.string(),

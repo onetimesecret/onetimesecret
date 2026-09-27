@@ -11,22 +11,7 @@ module Auth::Config::Features
       auth.enable :change_password
       auth.enable :reset_password
 
-      # JSON clients cannot infer whether account creation requires an email
-      # round-trip. Name the usable next step in the success response; any
-      # billing_redirect already added by after_create_account remains the
-      # validated checkout intent to follow after sign-in.
-      #
-      # The answer comes from the features loaded at boot, never from the
-      # account, so it says nothing about the submitted login. It reads
-      # `features` rather than verify_account_enabled?: webauthn_verify_account
-      # depends on verify_account and loads it even when that flag is false,
-      # and then new accounts still need the emailed link.
-      auth.create_account_response do
-        if json_request?
-          json_response[:next_action] = features.include?(:verify_account) ? 'verify_email' : 'sign_in'
-        end
-        super()
-      end
+      configure_create_account_response(auth)
 
       # Only configure verify_account if the feature is enabled
       # (disabled in test mode via YAML config: RACK_ENV != 'test')
@@ -181,6 +166,43 @@ module Auth::Config::Features
       # In JSON mode, this becomes the "error" field in the response
       # Field-specific errors are still returned in "field-error" array
       auth.create_account_error_flash 'Unable to create account'
+    end
+
+    # JSON clients cannot infer whether account creation requires an email
+    # round-trip. Name the usable next step in the success response; any
+    # billing_redirect already added by after_create_account remains the
+    # validated checkout intent to follow after sign-in.
+    #
+    # The answer is the status of the account this request just created. A
+    # login that already has an account never gets this far: every duplicate
+    # gets the generic 400 before or at the INSERT
+    # (overrides/duplicate_signup.rb). The only input that changes the answer
+    # is an invite token the caller sent, and before_create_account already
+    # refuses a token that is not pending for that login with the same
+    # generic error (hooks/account.rb). So the answer reveals nothing about
+    # any existing account.
+    #
+    # With verify_account loaded, a new account starts unverified and needs
+    # the emailed link. That includes webauthn_verify_account, which loads
+    # verify_account even when verify_account_enabled? is false. An invite
+    # signup is the exception: after_create_account opens the account and no
+    # email is sent, so it answers sign_in.
+    #
+    # There is no "signed in" answer, although create_account_autologin? logs
+    # the invite signup in. That autologin is Rodauth's alone: it does not run
+    # after_login, so SyncSession never sets the app's `authenticated` flag,
+    # and /bootstrap/me and every app route treat the caller as anonymous.
+    # Signing in is still the next step that works. The SPA's own invite form
+    # posts to /api/invite/:token/signup, which sets that flag itself.
+    #
+    # Kept apart from configure so a spec can apply it to a Rodauth app with
+    # verify_account loaded, which RACK_ENV=test turns off
+    # (apps/web/auth/spec/config/features/account_management_spec.rb).
+    def self.configure_create_account_response(auth)
+      auth.create_account_response do
+        json_response[:next_action] = open_account? ? 'sign_in' : 'verify_email' if json_request?
+        super()
+      end
     end
   end
 end
