@@ -25,8 +25,13 @@ module Onetime
     #   | Strategy        | validate | cert | status | delete | widget |
     #   |-----------------|----------|------|--------|--------|--------|
     #   | Approximated    | active   | yes  | yes    | yes    | yes    |
-    #   | CaddyOnDemand   | passive  | auto | basic  | no-op  | no     |
+    #   | CaddyOnDemand   | active   | auto | basic  | no-op  | no     |
     #   | Passthrough     | passive  | ext  | basic  | no-op  | no     |
+    #
+    # "active" validate means the strategy checks the TXT challenge record:
+    # Approximated through its API with a native fallback, CaddyOnDemand with
+    # our own DNS lookup (TxtVerifier). Caddy obtaining a certificate is not
+    # an ownership check; it only shows where the name resolves.
     #
     class BaseStrategy
       # Validates domain ownership (typically via DNS TXT record).
@@ -38,7 +43,10 @@ module Onetime
       #     not change stored verification state on nil.
       #   - :indeterminate [Boolean, nil] true alongside validated: nil
       #   - :message [String] Human-readable result
-      #   - :data [Hash, nil] Additional validation data (strategy-specific)
+      #   - :data [Array, Hash, nil] Additional validation data
+      #     (strategy-specific). VerifyDomain only changes stored state for a
+      #     result that carries :data or :mode.
+      #   - :source [String, nil] 'native' when our own DNS lookup decided
       #   - :mode [String, nil] Strategy mode identifier
       #
       def validate_ownership(custom_domain)

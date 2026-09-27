@@ -653,8 +653,9 @@ module Onetime
 
     # The fully qualified domain name for the TXT record.
     #
-    # Used to validate the domain ownership by the customer
-    # via the Approximated check_records API.
+    # Used to validate the domain ownership by the customer: through the
+    # Approximated check_records API, or our own TXT lookup
+    # (DomainValidation::TxtVerifier) depending on the strategy.
     #
     # e.g. `_onetime-challenge-domainid.froogle.com`
     #

@@ -116,12 +116,12 @@
     "content_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — certificates issued automatically on first request.",
-    "content_hash": "deb90ae6"
+    "text": "Caddy on-demand — DNS ownership check (TXT record); certificates issued automatically once verified.",
+    "content_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — certificates issued automatically on first request.",
-    "content_hash": "a0f3c2dc"
+    "text": "Caddy — DNS ownership check (TXT record); certificates issued automatically once verified.",
+    "content_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Deployment-wide validation strategy.",

@@ -1161,7 +1161,9 @@ features:
     # Options:
     #   - passthrough: No validation or cert management
     #   - approximated: Use approximated.app API for SSL certs and validation (requires cluster config)
-    #   - caddy_on_demand: Use Caddy's on-demand TLS (requires internal ACME endpoint)
+    #   - caddy_on_demand: Use Caddy's on-demand TLS (requires internal ACME endpoint).
+    #     Ownership is checked with our own DNS lookup of the domain's TXT
+    #     challenge record; Caddy issuing a certificate does not verify a domain.
     validation_strategy: <%= ENV['DOMAINS_VALIDATION_STRATEGY'] || 'passthrough' %>  # Since v0.24.0
 
     # Approximated proxy configuration (required for 'approximated' strategy)
