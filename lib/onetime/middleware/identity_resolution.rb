@@ -20,7 +20,10 @@ module Onetime
     # ```
     #
     # The middleware sets the following env variables:
-    # - `env['identity.resolved']` - The resolved identity object (Customer instance)
+    # - `env['identity.resolved']` - The resolved identity object (Customer
+    #   instance). Always nil in simple mode, which deliberately skips the
+    #   Customer load; read `env['identity.authenticated']` and
+    #   `env['identity.metadata']` there.
     # - `env['identity.source']` - Source of identity ('full', 'simple', 'anonymous')
     # - `env['identity.authenticated']` - Boolean authentication status
     # - `env['identity.metadata']` - Additional metadata about the identity
@@ -98,15 +101,18 @@ module Onetime
         # Check authentication mode (simple vs full)
         auth_mode = detect_auth_mode
 
+        # Gate on `authenticated`, not `user`: the simple-mode resolver never
+        # sets a user (see resolve_simple_identity), so a user check would
+        # drop every signed-in simple-mode session to anonymous.
         case auth_mode
         when 'full'
           # Try full mode (Rodauth) session first
           full_identity = resolve_full_identity(request, env)
-          return full_identity if full_identity[:user]
+          return full_identity if full_identity[:authenticated]
         when 'simple'
           # Use simple (Valkey/Redis-only) authentication
           simple_identity = resolve_simple_identity(request, env)
-          return simple_identity if simple_identity[:user]
+          return simple_identity if simple_identity[:authenticated]
         end
 
         # Default to anonymous user

@@ -16,6 +16,11 @@ require 'onetime/middleware/identity_resolution'
 RSpec.describe Onetime::Middleware::IdentityResolution do
   let(:now) { Time.now.to_i }
   let(:observed) { {} }
+  let(:session_hash) do
+    # A Rack session hash answers `id` (Rack::Session::Abstract::SessionHash);
+    # a bare Hash does not, and the simple-mode resolver reads it.
+    Class.new(Hash) { def id = nil }
+  end
 
   def lifetime
     Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE
@@ -27,6 +32,7 @@ RSpec.describe Onetime::Middleware::IdentityResolution do
 
   def middleware
     downstream = ->(env) do
+      observed[:resolved]      = env['identity.resolved']
       observed[:authenticated] = env['identity.authenticated']
       observed[:source]        = env['identity.source']
       observed[:metadata]      = env['identity.metadata']
@@ -41,9 +47,10 @@ RSpec.describe Onetime::Middleware::IdentityResolution do
     end
   end
 
-  def call_with(session, mode:)
+  def call_with(session_data, mode:)
     allow(Onetime.auth_config).to receive(:mode).and_return(mode)
-    env = Rack::MockRequest.env_for('/', 'rack.session' => session)
+    session = session_hash.new.update(session_data)
+    env     = Rack::MockRequest.env_for('/', 'rack.session' => session)
     middleware.call(env)
     observed
   end
@@ -74,6 +81,36 @@ RSpec.describe Onetime::Middleware::IdentityResolution do
     it 'still needs the sign-in markers', :aggregate_failures do
       expect(call_with({ 'external_id' => 'ur_full' }, mode: 'full')[:authenticated]).to be(false)
       expect(call_with({ 'authenticated_at' => now }, mode: 'full')[:authenticated]).to be(false)
+    end
+  end
+
+  # Simple mode never loads the Customer (controllers lazy-load it), so its
+  # result carries no user. The mode switch must still surface it: gating on
+  # the user would send every signed-in simple-mode session to anonymous.
+  describe 'simple mode' do
+    it 'resolves a signed-in session without a user', :aggregate_failures do
+      result = call_with({ 'authenticated' => true, 'authenticated_at' => long_ago, 'external_id' => 'ur_simple' }, mode: 'simple')
+      expect(result[:authenticated]).to be(true)
+      expect(result[:source]).to eq('simple')
+      expect(result[:resolved]).to be_nil
+      expect(result[:metadata][:external_id]).to eq('ur_simple')
+    end
+
+    it 'reports the absolute deadline as expires_at' do
+      result = call_with({ 'authenticated' => true, 'authenticated_at' => now }, mode: 'simple')
+      expect(result[:metadata][:expires_at]).to eq(now + lifetime)
+    end
+
+    it 'reports a nearer remember deadline as expires_at' do
+      stamp  = now + 3600
+      result = call_with({ 'authenticated' => true, 'authenticated_at' => now, 'remember_until' => stamp }, mode: 'simple')
+      expect(result[:metadata][:expires_at]).to eq(stamp)
+    end
+
+    it 'falls through to anonymous without the authenticated flag', :aggregate_failures do
+      result = call_with({ 'authenticated_at' => now, 'external_id' => 'ur_simple' }, mode: 'simple')
+      expect(result[:authenticated]).to be(false)
+      expect(result[:source]).to eq('anonymous')
     end
   end
 end
