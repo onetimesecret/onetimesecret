@@ -5,7 +5,7 @@
 The target must be a disposable full-auth test process with:
 
 - domains and organization SSO enabled;
-- one custom domain with password and OIDC sign-in enabled;
+- one TXT-verified custom domain with password and OIDC sign-in enabled;
 - two open accounts with unsuspended Customers and active exact-domain memberships;
 - no identity on either account before the run;
 - one test OIDC tuple that the first account can bind and the second account then conflicts with.
