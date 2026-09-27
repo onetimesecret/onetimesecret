@@ -39,6 +39,7 @@
 // failure. Add invitation round trips sparingly; share a fixture where tests
 // only read.
 
+import { randomBytes } from 'node:crypto';
 import { expect, type Browser, type BrowserContext, type Page } from '@playwright/test';
 
 import { FRESH_CONTEXT, signIn, waitForAppReady } from './auth-journey';
@@ -64,7 +65,7 @@ export function uniqueTestEmail(prefix: string): string {
 
 /** A password that satisfies the signup form's requirements. */
 export function generatePassword(): string {
-  return `Mbr-${Math.random().toString(36).slice(2, 10)}-Pw123!`;
+  return `Mbr-${randomBytes(6).toString('hex')}-Pw123!`;
 }
 
 /**
