@@ -84,9 +84,12 @@ test account without an email round-trip.
   `e2e/full/accessibility.spec.ts` scans the signed-in surfaces the same way,
   in the `full` lane of `.github/workflows/e2e.yml`, which runs `e2e/full/`
   against the image booted in full auth mode and is blocking like the
-  `e2e/all/` gate. It needs a signed-in session and an auto-verified account,
-  so run it locally with `AUTH_AUTOVERIFY=true TEST_USER_EMAIL=… TEST_USER_PASSWORD=…
-  pnpm test:a11y:full`.
+  `e2e/all/` gate. It needs a signed-in session on a full-auth-mode server
+  whose new accounts can sign in without verifying email. Start the server
+  with the full lane's settings (`AUTHENTICATION_MODE=full`,
+  `AUTH_VERIFY_ACCOUNT_ENABLED=false` and the rest of the full lane's env in
+  `.github/workflows/e2e.yml`; `AUTH_AUTOVERIFY` does not verify full-mode signups),
+  then run `TEST_USER_EMAIL=… TEST_USER_PASSWORD=… pnpm test:a11y:full`.
 - **Component-level (shift-left, blocking)** — `src/tests/shared/a11y/*.a11y.spec.ts`
   run axe in jsdom (via `vitest-axe`) against shared UI primitives on every
   `pnpm test`. (Color-contrast is excluded here — jsdom has no layout — and is

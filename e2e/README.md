@@ -7,7 +7,7 @@ Playwright-based end-to-end tests. See `playwright.config.ts` for configuration.
 | Directory | Requires | Description |
 |-----------|----------|-------------|
 | `all/` | Nothing | Public pages, anonymous flows |
-| `full/` | Auth session | Requires `TEST_USER_EMAIL` and `TEST_USER_PASSWORD` |
+| `full/` | Auth session, full auth mode | Signed-in workspace. Needs `TEST_USER_EMAIL` and `TEST_USER_PASSWORD`, and a server in full auth mode whose new accounts can sign in without verifying email (see [CI](#ci) for the server env) |
 | `full-billing/` | Auth + billing | Requires billing.yaml config |
 
 ## Running Tests
@@ -101,6 +101,12 @@ page.locator('[data-testid^="org-card-"]')  // Prefix match
 | `TEST_USER_PASSWORD` | Auth password for `full/` tests |
 | `PLAYWRIGHT_HEADLESS` | Set `false` for headed debugging |
 | `E2E_DIAGNOSTICS_ENABLED` | Set `true` to let the auto-started server report to Sentry (default: off) |
+| `E2E_CUSTOM_DOMAINS` | Comma-separated names of the custom domains on the test account; runs the custom-domain suites (`support/env.ts`) |
+| `E2E_SSO_UI` | The target has SSO configured (sign-in buttons, org SSO); runs the SSO suites |
+| `TEST_MFA_USER_EMAIL`, `TEST_MFA_USER_PASSWORD`, `TEST_MFA_SECRET` or `TEST_MFA_OTP` | An MFA-enrolled account; runs `full/mfa-bootstrap-reactivity.spec.ts` |
+
+No CI lane sets the last three. The suites they gate are listed in
+[QUARANTINE.md](./QUARANTINE.md).
 
 ### Diagnostics are off in test servers
 
@@ -135,6 +141,21 @@ Parallel sign-ups no longer need `--workers=1` against a SQLite authdb
 
 ## CI
 
-Tests run in GitHub Actions. On failure, check:
-- `test-results/` for screenshots and traces
-- `playwright-report/` for HTML report
+`.github/workflows/e2e.yml` builds the production image and runs it in two
+blocking lanes, each on its own runner with its own Valkey container:
+
+| Check | Server | Suite |
+|-------|--------|-------|
+| `container-e2e-tests (simple)` | `AUTHENTICATION_MODE=simple` | `e2e/all/` |
+| `container-e2e-tests (full)` | `AUTHENTICATION_MODE=full`, SQLite authdb, `AUTH_VERIFY_ACCOUNT_ENABLED=false`, `CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false`, `ENABLE_ORGS=true` | `e2e/full/` (the `setup` project signs up an ephemeral `TEST_USER_*` account first) |
+
+Each lane fails on any failed test and on any test that passed only on retry
+(the flaky gate). `notify-results` fails unless both lanes pass. Tests that
+cannot run in a lane are `test.fixme` or env-gated and listed in
+[QUARANTINE.md](./QUARANTINE.md); a runtime `test.skip` on a DOM probe is not
+allowed.
+
+On failure, download the lane's artifacts:
+- `container-e2e-<lane>-test-results` for screenshots and traces
+- `container-e2e-<lane>-playwright-report` for the HTML report
+- `container-e2e-<lane>-container-logs` for the app and Valkey logs
