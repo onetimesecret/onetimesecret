@@ -64,6 +64,15 @@ module LaneLastLogProbe
     server&.close
   end
 
+  # The RabbitMQ overlay makes the runner's preflight require AMQP (2156) and,
+  # off datastore index 0, the management API (12156). Provisioning itself is
+  # faked, so only the ports have to answer: hold them open the way the
+  # PostgreSQL example holds 2154, or a host without the real service (the
+  # macOS installer job runs a bare redis-server) trips the compose autostart.
+  def with_rabbitmq_ports_open(&block)
+    with_open_port(2156) { with_open_port(12_156, &block) }
+  end
+
   def with_probe_log(overlay_contents = '')
     overlay = "last-log-#{Process.pid}-#{SecureRandom.hex(4)}"
     overlay_path = File.join(repo_root, 'tests', 'lanes', 'overlays', "#{overlay}.env")
@@ -131,14 +140,16 @@ RSpec.describe 'tests/lanes/run last.log coverage' do
     overlay = "RABBITMQ_URL='amqp://guest:guest@127.0.0.1:2156'\n"
 
     probe.with_probe_log(overlay) do |overlay_name, path|
-      probe.with_fake_commands('ruby' => fake_ruby) do |fake_path|
-        output, status = probe.run('selftest', '--overlay', overlay_name, env: { 'PATH' => fake_path })
-        log = File.read(path)
+      probe.with_rabbitmq_ports_open do
+        probe.with_fake_commands('ruby' => fake_ruby) do |fake_path|
+          output, status = probe.run('selftest', '--overlay', overlay_name, env: { 'PATH' => fake_path })
+          log = File.read(path)
 
-        expect(status.exitstatus).to eq(42), output
-        expect(log).to include('fake-rabbitmq-stdout:tests/lanes/support/provision_rabbitmq_vhost.rb')
-        expect(log).to include('fake-rabbitmq-stderr:tests/lanes/support/provision_rabbitmq_vhost.rb')
-        expect(log.lines.grep(/^\[lane:selftest\] log: .* \(exit 42\)$/).length).to eq(1)
+          expect(status.exitstatus).to eq(42), output
+          expect(log).to include('fake-rabbitmq-stdout:tests/lanes/support/provision_rabbitmq_vhost.rb')
+          expect(log).to include('fake-rabbitmq-stderr:tests/lanes/support/provision_rabbitmq_vhost.rb')
+          expect(log.lines.grep(/^\[lane:selftest\] log: .* \(exit 42\)$/).length).to eq(1)
+        end
       end
     end
   end
@@ -156,17 +167,19 @@ RSpec.describe 'tests/lanes/run last.log coverage' do
 
     probe.with_probe_log(overlay) do |overlay_name, path|
       File.binwrite(path, 'previous-run-log')
-      probe.with_fake_commands('ruby' => fake_ruby, 'bundle' => fake_bundle) do |fake_path|
-        output, status = probe.run(
-          'selftest', '--overlay', overlay_name, '--console',
-          env: { 'PATH' => fake_path },
-        )
+      probe.with_rabbitmq_ports_open do
+        probe.with_fake_commands('ruby' => fake_ruby, 'bundle' => fake_bundle) do |fake_path|
+          output, status = probe.run(
+            'selftest', '--overlay', overlay_name, '--console',
+            env: { 'PATH' => fake_path },
+          )
 
-        expect(status).to be_success, output
-        expect(output).to include('fake-rabbitmq:tests/lanes/support/provision_rabbitmq_vhost.rb --preserve-existing')
-        expect(output).to include('fake-bundle:exec bin/ots console')
-        expect(File.binread(path)).to eq('previous-run-log')
-        expect(output).not_to include('[lane:selftest] log:')
+          expect(status).to be_success, output
+          expect(output).to include('fake-rabbitmq:tests/lanes/support/provision_rabbitmq_vhost.rb --preserve-existing')
+          expect(output).to include('fake-bundle:exec bin/ots console')
+          expect(File.binread(path)).to eq('previous-run-log')
+          expect(output).not_to include('[lane:selftest] log:')
+        end
       end
     end
   end
