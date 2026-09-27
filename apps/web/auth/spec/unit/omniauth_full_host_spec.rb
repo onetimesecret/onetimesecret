@@ -14,8 +14,11 @@
 # Behind a Host-rewriting proxy the authority is the origin target, so those
 # URLs name a host the tenant's IdP has never seen. This resolver swaps in the
 # public host — but ONLY when it names a TXT-verified custom domain
-# (Auth::PublicHost.served_custom_host?) — and leaves every other request on
-# OmniAuth's own derivation.
+# (Auth::PublicHost.served_custom_host?) — and builds every other request on
+# the canonical tiers Rodauth's `base_url` override already uses (the
+# request's own canonical host, then the configured site.host), never on the
+# raw authority (#4517). Rack's derivation is reached only when site.host is
+# unconfigured.
 #
 # Run:
 #   pnpm run test:rspec apps/web/auth/spec/unit/omniauth_full_host_spec.rb
@@ -52,8 +55,17 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
         double('CustomDomain', verified: false)
       end
     end
+
+    # The configured canonical host (site.host / site.ssl), the
+    # request-independent tier the chain ends on.
+    allow(Auth::PublicHost).to receive_messages(
+      canonical_host: configured_host,
+      canonical_base_url: configured_base_url,
+    )
   end
 
+  let(:configured_host) { 'onetimesecret.com' }
+  let(:configured_base_url) { 'https://onetimesecret.com' }
   let(:canonical_hosts) { ['onetimesecret.com'] }
   let(:verified_custom_hosts) { ['secret.asi.nz', 'local-secrets4.afb.pet'] }
   let(:unverified_custom_hosts) { [] }
@@ -148,11 +160,12 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
   end
 
   context 'when the display domain is a canonical host' do
-    # DomainStrategy pins display_domain to the canonical host on two paths
-    # that say nothing about where the browser is -- the domains feature being
-    # off, and a detected host failing validation. Honoring it there would
-    # bounce the visitor to a different host mid-flow.
-    it 'keeps the request authority on a genuine canonical request' do
+    # DomainStrategy pins display_domain to the canonical host whenever the
+    # domains feature is off or the detected host fails validation. Either
+    # way the request is served AS the canonical host, and that -- not the
+    # raw authority -- is what the URL builds on (the canonical_request tier
+    # Rodauth's base_url override has always used).
+    it 'builds on the canonical host on a genuine canonical request' do
       env = env_for(
         host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -162,9 +175,12 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
       expect(described_class.full_host_for(env)).to eq('https://onetimesecret.com')
     end
 
-    it 'does not redirect a local unrecognized host to the pinned canonical' do
+    it 'builds on the pinned canonical host, with the request port, for a local unrecognized host' do
       # DetectHost rejects localhost, so DomainStrategy substitutes the
-      # canonical host. Local development must keep working on its own port.
+      # canonical host. A browser on a host OTHER than site.host gets its SSO
+      # URLs on site.host -- the same host its email links already build on
+      # -- rather than on the raw authority. Configured local development
+      # (site.host = the host the browser is on) is the next example.
       env = env_for(
         host: 'localhost:3000',
         display_domain: 'onetimesecret.com',
@@ -172,7 +188,22 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
         scheme: 'http',
       )
 
-      expect(described_class.full_host_for(env)).to eq('http://localhost:3000')
+      expect(described_class.full_host_for(env)).to eq('http://onetimesecret.com:3000')
+    end
+
+    it 'keeps a local development host that is itself site.host' do
+      # The full-auth E2E lane and every dev setup: HOST=localhost:7143,
+      # domains off, browser on localhost:7143. display_domain is pinned to
+      # site.host WITH its port; the URL must not double it.
+      canonical_hosts << 'localhost:7143'
+      env = env_for(
+        host: 'localhost:7143',
+        display_domain: 'localhost:7143',
+        strategy: :canonical,
+        scheme: 'http',
+      )
+
+      expect(described_class.full_host_for(env)).to eq('http://localhost:7143')
     end
 
     it 'treats a split deployment second canonical host as canonical' do
@@ -189,10 +220,117 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
       expect(described_class.full_host_for(env)).to eq('https://app.onetimesecret.com')
     end
 
-    it 'keeps the request authority when the middleware did not run' do
+    it 'builds on the configured canonical host when the middleware did not run' do
+      # No trusted candidate at all: the raw authority is still not a source.
+      env = env_for(host: 'example.com')
+
+      expect(described_class.full_host_for(env)).to eq('https://onetimesecret.com')
+    end
+
+    it 'falls to the request authority only when site.host is unconfigured' do
+      # The one place Rack's derivation survives: the "must set site.host"
+      # misconfiguration, the same last resort Rodauth's super() covers.
+      allow(Auth::PublicHost).to receive_messages(canonical_host: nil, canonical_base_url: nil)
       env = env_for(host: 'example.com')
 
       expect(described_class.full_host_for(env)).to eq('https://example.com')
+    end
+  end
+
+  context 'when a proxy sends a doubled Host header (#4517)' do
+    # `proxy_set_header Host $host` layered on a `Host:` the client already
+    # sent, or two proxies each appending one, reaches Rack as
+    # `Host: a, a`. StripForwardedHost (#4319) removes X-Forwarded-Host at
+    # the stack edge, so Rack::Request#base_url returns that value verbatim:
+    # `https://a, a`. DetectHost keeps the FIRST comma-separated element
+    # (lib/middleware/detect_host.rb normalize_host) — or nothing, when
+    # site.host is an IP literal, which DetectHost never accepts — and
+    # DomainStrategy pins display_domain to the canonical host either way:
+    # it copies canonical_domain with the domains feature off and classifies
+    # the kept element :canonical with it on. The redirect_uri must build on
+    # THAT, not on the authority. The fix does not rely on DetectHost
+    # rejecting the doubled value.
+    def doubled_host_env(display_domain:, strategy:, host: 'onetimesecret.com', detected_host: nil, scheme: 'https')
+      env = env_for(
+        host: host,
+        display_domain: display_domain,
+        strategy: strategy,
+        detected_host: detected_host,
+        scheme: scheme,
+      )
+
+      env['HTTP_HOST'] = "#{host}, #{host}"
+      env
+    end
+
+    it 'is the shape Rack hands back verbatim (documents the defect)' do
+      env = doubled_host_env(display_domain: 'onetimesecret.com', strategy: :canonical)
+
+      expect(Rack::Request.new(env).base_url).to eq('https://onetimesecret.com, onetimesecret.com')
+    end
+
+    it 'builds the redirect_uri on the canonical host, never the doubled authority' do
+      # Hostname site.host with the domains feature on: DetectHost kept
+      # 'onetimesecret.com' from the doubled value and DomainStrategy
+      # classified it :canonical.
+      env = doubled_host_env(
+        display_domain: 'onetimesecret.com',
+        strategy: :canonical,
+        detected_host: 'onetimesecret.com',
+      )
+
+      expect(described_class.full_host_for(env)).to eq('https://onetimesecret.com')
+    end
+
+    it 'does the same when the domains feature is off and site.host carries its port' do
+      # The reporter's topology (#4499): domains disabled, platform SSO on
+      # site.host. DomainStrategy copies site.host into display_domain
+      # verbatim, port included, and still writes strategy :canonical. The
+      # port must neither double nor leak through the doubled-Host path.
+      canonical_hosts << 'onetimesecret.com:443'
+      env = doubled_host_env(
+        display_domain: 'onetimesecret.com:443',
+        strategy: :canonical,
+        detected_host: 'onetimesecret.com',
+      )
+
+      expect(described_class.full_host_for(env)).to eq('https://onetimesecret.com')
+    end
+
+    it 'does the same for an IP-literal site.host, which DetectHost never accepts' do
+      # rack.detected_host is nil here; DomainStrategy still pins
+      # display_domain to the canonical host.
+      canonical_hosts << '127.0.0.1'
+      env = doubled_host_env(host: '127.0.0.1', display_domain: '127.0.0.1', strategy: :canonical, scheme: 'http')
+
+      expect(described_class.full_host_for(env)).to eq('http://127.0.0.1')
+    end
+
+    it 'drops a non-default port from site.host, because the doubled authority is unparseable' do
+      # Tier 2 (canonical_request_base_url) wins here and composes the origin
+      # through origin_for, which reads the port from Rack::Request#port.
+      # Rack cannot parse `secrets.internal:8443, secrets.internal:8443`, so
+      # it reports the scheme's default port and the origin omits 8443: an
+      # IdP registered with the ported callback still rejects the login. The
+      # port comes from the request authority (or X-Forwarded-Port), never
+      # from the allowlisted candidate, so a ported site.host behind a
+      # doubling proxy still needs the proxy fixed. Pinned so the gap stays
+      # visible; a fix belongs in origin_for and touches every Rodauth link.
+      canonical_hosts << 'secrets.internal:8443'
+      env = doubled_host_env(
+        host: 'secrets.internal:8443',
+        display_domain: 'secrets.internal:8443',
+        strategy: :canonical,
+        detected_host: 'secrets.internal',
+      )
+
+      expect(described_class.full_host_for(env)).to eq('https://secrets.internal')
+    end
+
+    it 'agrees with the Rodauth email-link origin for the same request' do
+      env = doubled_host_env(display_domain: 'onetimesecret.com', strategy: :canonical)
+
+      expect(described_class.full_host_for(env)).to eq(Auth::PublicHost.allowlisted_base_url(env))
     end
   end
 
@@ -200,7 +338,9 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
     # Finding G-01, vector A: display_domain / the detected host are written
     # for ANY syntactically valid host. Without a CustomDomain record we must
     # NOT root the redirect_uri on it — it would hand the IdP an attacker
-    # origin. full_host_for keeps OmniAuth's own (request) derivation.
+    # origin. Nor on the origin target: the chain falls through to the
+    # configured canonical host, the same way an email link for this request
+    # does.
     it 'does not honor an unregistered display domain' do
       env = env_for(
         host: 'nz.onetime.co',
@@ -208,7 +348,7 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
         strategy: :custom,
       )
 
-      expect(described_class.full_host_for(env)).to eq('https://nz.onetime.co')
+      expect(described_class.full_host_for(env)).to eq('https://onetimesecret.com')
     end
 
     # Registration is not ownership: until the TXT challenge verifies, the
@@ -221,10 +361,10 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
         strategy: :custom,
       )
 
-      expect(described_class.full_host_for(env)).to eq('https://nz.onetime.co')
+      expect(described_class.full_host_for(env)).to eq('https://onetimesecret.com')
     end
 
-    it 'fails closed when the tenant lookup raises' do
+    it 'fails closed to the canonical host when the tenant lookup raises' do
       allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .and_raise(Redis::BaseError.new('boom'))
       env = env_for(
@@ -233,7 +373,7 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
         strategy: :custom,
       )
 
-      expect(described_class.full_host_for(env)).to eq('https://nz.onetime.co')
+      expect(described_class.full_host_for(env)).to eq('https://onetimesecret.com')
     end
   end
 
