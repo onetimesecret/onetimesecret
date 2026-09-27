@@ -218,8 +218,9 @@ jobs:
           # immediately (no email round-trip), so the e2e auth setup project
           # (e2e/global.setup.ts) can register and sign in its ephemeral
           # TEST_USER_* account against a simple-mode server. It has no
-          # effect on account verification in full mode: only the simple-mode
-          # signup code reads it (lib/onetime/logic/signup_config_resolution.rb),
+          # effect on account verification in full mode: only simple-mode
+          # signup (lib/onetime/logic/signup_config_resolution.rb) and sign-in
+          # (the verification-email resend in AuthenticateSession) read it,
           # and the full-mode bootstrap payload merely echoes it
           # (authentication.autoverify). The full lane sets
           # AUTH_VERIFY_ACCOUNT_ENABLED=false for that job instead (below).

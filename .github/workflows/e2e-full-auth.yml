@@ -21,7 +21,8 @@
 #                                 are NOT verified on creation and a
 #                                 verification email is actually generated.
 #                                 (AUTH_AUTOVERIFY does not decide this in
-#                                 full mode; only simple-mode signup reads it.)
+#                                 full mode; only simple-mode signup and
+#                                 sign-in read it.)
 #   RACK_ENV=production           etc/defaults/auth.defaults.yaml force-disables
 #                                 the verify_account feature whenever
 #                                 RACK_ENV=test. Not a stylistic choice: under
@@ -195,8 +196,9 @@ jobs:
             # are open at once, no email is sent, and the whole lane would
             # pass vacuously. It is the default outside RACK_ENV=test; stated
             # anyway. AUTH_AUTOVERIFY=false is the config default too; it has
-            # no effect on full-mode signups (only simple-mode signup reads
-            # it) and is stated only to keep this lane's config explicit.
+            # no effect on full-mode signups (only simple-mode signup and
+            # sign-in read it) and is stated only to keep this lane's config
+            # explicit.
             echo "AUTHENTICATION_MODE=full"
             echo "AUTH_AUTOVERIFY=false"
             echo "AUTH_VERIFY_ACCOUNT_ENABLED=true"
