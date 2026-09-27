@@ -237,8 +237,7 @@ test.describe('Domain Config - Toggle-Form State Coupling', () => {
       if (role === 'switch') continue;
 
       const isDisabled =
-        (await input.isDisabled()) ||
-        (await input.getAttribute('aria-disabled')) === 'true';
+        (await input.isDisabled()) || (await input.getAttribute('aria-disabled')) === 'true';
 
       if (!isDisabled) enabledCount++;
     }
@@ -342,7 +341,7 @@ test.describe('Domain Config - Info Banner Visibility', () => {
     const bannerVisible = await disabledBanner.isVisible().catch(() => false);
 
     // If banner exists with testid, it should be hidden when enabled
-    if (await disabledBanner.count() > 0) {
+    if ((await disabledBanner.count()) > 0) {
       expect(bannerVisible).toBe(false);
     }
   });
@@ -393,7 +392,10 @@ test.describe('Domain Config - Toggle Position and Label', () => {
 
     // Look for label with "Enabled" text near the toggle
     const enabledLabel = page.locator('label:has-text("Enabled"), span:has-text("Enabled")');
-    const labelVisible = await enabledLabel.first().isVisible().catch(() => false);
+    const labelVisible = await enabledLabel
+      .first()
+      .isVisible()
+      .catch(() => false);
 
     expect(labelVisible, 'Toggle should have "Enabled" label').toBe(true);
   });
@@ -444,8 +446,12 @@ test.describe('Domain Config - Cross-Screen Consistency', () => {
     // Check consistency - all screens with toggles should have consistent placement
     const screensWithToggle = togglePositions.filter((p) => p.hasToggle);
     if (screensWithToggle.length > 1) {
-      const allConsistent = screensWithToggle.every((p) => p.isBelow === screensWithToggle[0].isBelow);
-      expect(allConsistent, 'All config screens should have consistent toggle placement').toBe(true);
+      const allConsistent = screensWithToggle.every(
+        (p) => p.isBelow === screensWithToggle[0].isBelow
+      );
+      expect(allConsistent, 'All config screens should have consistent toggle placement').toBe(
+        true
+      );
     }
   });
 
@@ -466,7 +472,10 @@ test.describe('Domain Config - Cross-Screen Consistency', () => {
       }
 
       const enabledLabel = page.locator('label:has-text("Enabled"), span:has-text("Enabled")');
-      const hasLabel = await enabledLabel.first().isVisible().catch(() => false);
+      const hasLabel = await enabledLabel
+        .first()
+        .isVisible()
+        .catch(() => false);
       labelConsistency.push({ screen: screenType, hasEnabledLabel: hasLabel });
     }
 
@@ -475,7 +484,9 @@ test.describe('Domain Config - Cross-Screen Consistency', () => {
 
     // At least the screens that load should have consistent labeling
     const loadedScreens = labelConsistency.filter((l) => l.hasEnabledLabel !== undefined);
-    expect(loadedScreens.length, 'At least one config screen should be testable').toBeGreaterThan(0);
+    expect(loadedScreens.length, 'At least one config screen should be testable').toBeGreaterThan(
+      0
+    );
   });
 });
 
