@@ -40,8 +40,12 @@ module Auth::Config::Overrides
   # only when it is a member of the canonical set, so a split deployment's
   # secondary canonical host keeps its links on itself), then the
   # request-independent configured host (canonical_base_url / canonical_host).
-  # (A Rack middleware, Onetime::Middleware::StripForwardedHost, deletes the
-  # forwarded-host headers at the stack edge too — defense in depth.)
+  # That chain is Auth::PublicHost.allowlisted_base_url / allowlisted_host,
+  # and OmniAuth's `full_host` resolver reads the very same chain (#4517), so
+  # an SSO redirect_uri and an email link for one request can never disagree
+  # about the host. (A Rack middleware, Onetime::Middleware::StripForwardedHost,
+  # deletes the forwarded-host headers at the stack edge too — defense in
+  # depth.)
   #
   # `super()` is kept only as a last resort BEHIND the canonical value: it is
   # reached only when site.host is entirely unconfigured, which is exactly the
@@ -62,10 +66,7 @@ module Auth::Config::Overrides
       # `super()` with explicit parens is required: this block becomes a
       # define_method body, where bare zsuper is a RuntimeError.
       auth.base_url do
-        Auth::PublicHost.base_url(request.env) ||
-          Auth::PublicHost.canonical_request_base_url(request.env) ||
-          Auth::PublicHost.canonical_base_url ||
-          super()
+        Auth::PublicHost.allowlisted_base_url(request.env) || super()
       end
 
       # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
@@ -79,9 +80,7 @@ module Auth::Config::Overrides
         #
         # @return [String]
         def public_display_domain
-          Auth::PublicHost.resolve(request.env) ||
-            Auth::PublicHost.canonical_request_host(request.env) ||
-            Auth::PublicHost.canonical_host
+          Auth::PublicHost.allowlisted_host(request.env)
         end
       end
       # rubocop:enable Lint/NestedMethodDefinition
