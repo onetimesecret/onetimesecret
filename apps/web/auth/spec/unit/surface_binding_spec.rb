@@ -6,7 +6,7 @@
 #
 # Rodauth's `login_session` runs `update_session` on EVERY path that mints an
 # authenticated session — the login route family AND the autologins
-# (create_account / verify_account / reset_password, remember's load_memory)
+# (create_account / verify_account / reset_password)
 # that never fire after_login. The override prepends a module ahead of the
 # auth class so it chains with the active-sessions `def update_session`
 # rather than replacing it. These examples pin the module's contract against

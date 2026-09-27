@@ -420,7 +420,7 @@ module CustomerSessionFailureMatrix
     when :inactive
       active_session_rows.update(last_use: Time.now - (Onetime::ActiveSessionGate::INACTIVITY_DEADLINE + 60))
     when :absolute_expired
-      active_session_rows.update(created_at: Time.now - (Onetime::ActiveSessionGate::LIFETIME_DEADLINE + 60))
+      active_session_rows.update(created_at: Time.now - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 60))
     when :legacy_unstamped
       rewrite_session_blob { |blob| blob.delete('active_session_id_hmac') }
     when :mfa_pending

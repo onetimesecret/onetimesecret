@@ -19,9 +19,12 @@ module Auth::Config::Features
       # currently_active_session? runs; Onetime::ActiveSessionGate applies the
       # same two values on every authenticated request, which is where the
       # deadlines actually end a session. The gate owns the numbers so the
-      # two can never drift apart.
+      # two can never drift apart. The sweep's condition is the gate's too
+      # (inactive_session_cond below), because only the gate knows about a
+      # remembered row's remember_until. The lifetime deadline is the
+      # operator's site.session.absolute_timeout, nil (none) when set to 0.
       auth.session_inactivity_deadline Onetime::ActiveSessionGate::INACTIVITY_DEADLINE
-      auth.session_lifetime_deadline Onetime::ActiveSessionGate::LIFETIME_DEADLINE
+      auth.session_lifetime_deadline Onetime::ActiveSessionGate.lifetime_deadline
 
       # Stamp the Rodauth-side JOIN KEY into the app session.
       #
@@ -44,9 +47,9 @@ module Auth::Config::Features
       # active_session_id passes through. Rodauth's own active_sessions override is
       # `remove_current_session; super; add_active_session`, so by the time `super`
       # returns here the new token is in the session. Hooking after_login instead
-      # would miss the remember-cookie login and the create_account /
-      # reset_password / verify_account autologins, which call login_session
-      # directly and never fire after_login.
+      # would miss the create_account / reset_password / verify_account
+      # autologins, which call login_session directly and never fire
+      # after_login.
       #
       # The RAW token is deliberately NOT carried: the sidecar is not encrypted at
       # rest, and Rodauth itself persists only the digest.
@@ -65,12 +68,11 @@ module Auth::Config::Features
       # on the caller. `login` (password, SSO, email-auth, WebAuthn) and the
       # create_account autologin run login_session inside a transaction, so
       # the row rolls back with the error. The verify_account and
-      # reset_password autologins and the remember-cookie load_memory call
-      # login_session OUTSIDE their transactions (rodauth 2.45:
-      # verify_account.rb, reset_password.rb, remember.rb), so on those paths
-      # the row is left behind. That orphan is inert: no Rack session carries
-      # its join key, so nothing can present it, and Rodauth's inactivity
-      # sweep removes it after session_inactivity_deadline.
+      # reset_password autologins call login_session OUTSIDE their
+      # transactions (rodauth 2.45: verify_account.rb, reset_password.rb), so
+      # on those paths the row is left behind. That orphan is inert: no Rack
+      # session carries its join key, so nothing can present it, and Rodauth's
+      # inactivity sweep removes it after session_inactivity_deadline.
       #
       # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
       auth.auth_class_eval do
@@ -100,6 +102,16 @@ module Auth::Config::Features
 
           compute_hmac(token)
         end
+
+        # The sessions-page sweep (remove_inactive_sessions) deletes on the
+        # gate's rule rather than Rodauth's, which knows nothing of
+        # remember_until: Rodauth's would delete a remembered row left idle
+        # past the inactivity deadline on one device the moment the account
+        # opened its sessions page on another.
+        def inactive_session_cond
+          Onetime::ActiveSessionGate.expired_condition
+        end
+        private :inactive_session_cond
       end
       # rubocop:enable Lint/NestedMethodDefinition
     end

@@ -1277,27 +1277,25 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       allow(Auth::Config).to receive(:new).and_call_original
     end
 
-    it 'never restores a remember-cookie session, so a remembered browser cannot mint an intent' do
-      expect(Auth::Config.method_defined?(:load_memory)).to be(true), 'remember feature must be enabled'
+    # "Remember me" no longer issues a separate credential: it extends the
+    # session itself (lib/onetime/session/remember_me.rb), and Rodauth's
+    # remember feature is not enabled. A browser that has lost its session
+    # cookie therefore has nothing that could restore one.
+    it 'has no remember-cookie session to restore, so a browser without its session cannot mint an intent' do
+      expect(Auth::Config.method_defined?(:load_memory)).to be(false), 'remember feature must not be enabled'
       csrf_login(email)
-      login_sid       = current_sid
+      login_sid = current_sid
       csrf_json_post('/auth/remember', remember: 'remember')
-      expect(last_response.status).to eq(200), "POST /auth/remember: #{last_response.status} #{last_response.body}"
-      # "<obfuscated account id>_<key>" (account_id_obfuscation is wired, so
-      # the prefix is not the raw integer id).
-      remember_cookie = rack_mock_session.cookie_jar['_remember']
-      expect(remember_cookie).to match(/\A[^_]+_\S+\z/)
-      expect(auth_db[:account_remember_keys].where(id: account_id).count).to eq(1)
+      expect(last_response.status).to eq(404), "POST /auth/remember: #{last_response.status} #{last_response.body}"
+      expect(rack_mock_session.cookie_jar['_remember']).to be_nil
+      expect(auth_db[:account_remember_keys].where(id: account_id).count).to eq(0)
 
-      # A new browser session: the session cookie is gone, the remember
-      # cookie is presented. The request that could call load_memory does not.
+      # A new browser session: the session cookie is gone.
       rack_mock_session.cookie_jar.delete('onetime.session')
       clear_body_headers
       header 'Accept', 'application/json'
       get '/auth'
-      expect(last_request.env['rack.session']['account_id']).to be_nil,
-        'A remember cookie alone must not restore an authenticated session'
-      expect(rack_mock_session.cookie_jar['_remember']).to eq(remember_cookie)
+      expect(last_request.env['rack.session']['account_id']).to be_nil
 
       expect(initiate_sso_connect(host: host)).to eq(302)
       expect(last_request.env['rack.session']['account_id']).to be_nil

@@ -164,7 +164,7 @@ RSpec.describe 'Passive verification does not count as session activity (#4455)'
 
   it 'holds the absolute lifetime whatever the activity', :aggregate_failures do
     expect(act[:status]).to eq(200)
-    active_session_rows.update(created_at: Time.now - (gate::LIFETIME_DEADLINE + 60), last_use: Time.now)
+    active_session_rows.update(created_at: Time.now - (gate::DEFAULT_LIFETIME_DEADLINE + 60), last_use: Time.now)
 
     expect(act(request_id: 'passive-lifetime-api')).to include(status: 401, refusal_code: 'active_session_revoked')
     expect(activity_count).to eq(0)

@@ -202,6 +202,24 @@ RSpec.describe Onetime::AuthConfig do
     end
   end
 
+  # Remember-me sessions are honoured in simple mode too (the session store
+  # carries them), so this reads the same switch without the full-mode gate
+  # the Rodauth feature toggles above have.
+  describe '#remember_me_sessions_enabled?' do
+    it 'is true in both modes when AUTH_REMEMBER_ME_ENABLED is unset', :aggregate_failures do
+      ENV.delete('AUTH_REMEMBER_ME_ENABLED')
+      expect(fresh_config('AUTHENTICATION_MODE' => 'simple').remember_me_sessions_enabled?).to be true
+      expect(fresh_config('AUTHENTICATION_MODE' => 'full').remember_me_sessions_enabled?).to be true
+    end
+
+    it 'is false in both modes when AUTH_REMEMBER_ME_ENABLED=false', :aggregate_failures do
+      expect(fresh_config('AUTHENTICATION_MODE' => 'simple', 'AUTH_REMEMBER_ME_ENABLED' => 'false')
+        .remember_me_sessions_enabled?).to be false
+      expect(fresh_config('AUTHENTICATION_MODE' => 'full', 'AUTH_REMEMBER_ME_ENABLED' => 'false')
+        .remember_me_sessions_enabled?).to be false
+    end
+  end
+
   describe 'feature toggles (default-OFF pattern)' do
     {
       'mfa' => 'AUTH_MFA_ENABLED',

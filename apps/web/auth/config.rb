@@ -127,7 +127,7 @@ module Auth
       Overrides::DuplicateSignup.configure(self)
       # Surface-bound sessions (#4409): stamp the establishing surface in
       # update_session, the seam shared by `login` and every autologin
-      # (create/verify/reset, remember). Prepended, so it chains with the
+      # (create/verify/reset). Prepended, so it chains with the
       # active-sessions update_session override regardless of order.
       Overrides::SurfaceBinding.configure(self)
       RodauthOverrides.configure(self)
@@ -147,7 +147,7 @@ module Auth
         Features::ActiveSessions.configure(self)
       end
 
-      # Remember me: persistent login across browser sessions
+      # Remember me: the checkbox makes this session last a fixed 14 days
       if Onetime.auth_config.remember_me_enabled?
         Features::RememberMe.configure(self)
       end

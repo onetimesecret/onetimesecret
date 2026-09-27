@@ -51,8 +51,8 @@ require_relative 'factories/auth_account_factory'
 #
 module PostgresModeSuiteDatabase
   REQUIRED_TABLES = %i[accounts account_statuses account_password_hashes].freeze
-  # Migration 010 records WebAuthn registration RP IDs for reauthentication.
-  EXPECTED_SCHEMA_VERSION = 10
+  # Migration 011 adds remember_until to account_active_session_keys.
+  EXPECTED_SCHEMA_VERSION = 11
 
   class << self
     attr_reader :database, :migration_database
