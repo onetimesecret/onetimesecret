@@ -283,11 +283,14 @@ jobs:
             # signup limiter (site.authentication.create_account_rate_limit
             # in etc/defaults/config.defaults.yaml): 10 signups per masked
             # client IP per hour, then a 1h lockout. Every request here comes
-            # from one IP, and the full/ suite signs up several accounts
-            # (global.setup.ts and the invitation specs), each retried up to
-            # twice, so one real failure could run past the cap and bury
-            # itself under 429s. Only the exact string 'false' disables it.
-            # e2e-full-auth.yml sets it for the same reason.
+            # from one IP, and a clean full/ run already signs up more than
+            # that: global.setup.ts, the throwaway owners and invitees of
+            # e2e/support/members.ts and workspaces.ts, and the
+            # invite-token-security signups (18 POST /auth/create-account in
+            # a local run on 2026-09-27, plus 10 signups on invite pages).
+            # With the limiter on, the lane fails at the cap on every run,
+            # not only after retries. Only the exact string 'false' disables
+            # it. e2e-full-auth.yml sets it for its own repeat signups.
             #
             # ENABLE_ORGS=true turns on the workspace switcher
             # (features.organizations.enabled). In the SPA it gates only the
