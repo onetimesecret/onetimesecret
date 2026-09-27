@@ -356,6 +356,12 @@ _Live status is tracked in the **Progress & how to continue** section near the t
 - **Auth seeding** assumes `/signup` is enabled in the container; if closed,
   seed via `docker exec ... Onetime::Customer.create!`.
 - **Mass lint flip** staged `warn` → sweep → `error` to keep diffs reviewable.
+- **Invite limiter budget.** `InviteTokenRateLimiter` stays on in the lanes:
+  it guards invitation tokens and has no setting of its own. A clean
+  `e2e/full/` run uses about 52 of its 100 calls per client IP; retries of
+  several failing invite tests can use up the rest, and the 429s that follow
+  hide the first failure. The budget is described in
+  `e2e/support/members.ts`.
 
 ## Acceptance criteria (end state)
 
