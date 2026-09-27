@@ -58,8 +58,8 @@ A bespoke strategy is admissible only when at least one of these conditions is
 true:
 
 1. **OIDC is unavailable.** The IdP has no usable OIDC login flow, as with
-   GitHub, or as with an IdP that offers only SAML 2.0. SAML (#4450) is the
-   reference case for this criterion; see Consequences.
+   GitHub, a CAS-only deployment, or an IdP that offers only SAML 2.0. SAML
+   (#4450) is the reference case for this criterion; see Consequences.
 2. **OIDC needs provider-specific protocol behavior that the generic strategy
    cannot safely supply.** The proposal identifies the behavior, why it must
    occur in the adapter, and how it will be tested. Apple's per-request ES256
@@ -71,10 +71,13 @@ true:
    documented generic-OIDC setup. Entra's `tid+oid` uid composition is an
    example of useful provider-specific behavior; Entra and Auth0 are examples
    of providers that may meet this exception despite OIDC being viable.
-4. **The protocol is a distinct product feature.** A non-browser or
-   non-OIDC authentication system may be evaluated on its own product merits,
-   rather than being forced into the OmniAuth-adapter decision. LDAP directory
-   bind is such a feature.
+4. **The protocol is a distinct product feature.** A non-browser or non-OIDC
+   authentication system may be evaluated on its own product merits rather
+   than being forced into the OmniAuth-adapter decision. LDAP directory bind
+   is such a feature: `omniauth-ldap` receives user credentials and performs
+   the bind instead of redirecting to a federated login. Meeting this criterion
+   starts a separate product and security evaluation; it does not approve the
+   gem as an SSO adapter.
 
 Every proposal must state whether the strategy produces a validated issuer. An
 issuerless strategy is an exceptional, platform-only integration: the proposal
@@ -88,9 +91,16 @@ issuerless by construction and moves identity correctness into an arbitrary
 claims mapping. It has the issuerless limitations above without the predictable
 contract of an individually reviewed adapter.
 
-CAS is an illustrative market exception: it is niche, but can be valuable for
-education customers. It must still be evaluated as a separate strategy
-proposal, including its identity and tenant-surface behavior.
+CAS (`omniauth-cas`) is admissible for evaluation under criterion 1 when the
+target deployment offers CAS but no usable OIDC login flow. CAS is a browser
+SSO protocol distinct from OIDC; its use in education can justify evaluating
+an otherwise niche integration, but does not displace generic OIDC when the
+deployment offers it. The stock strategy exposes a CAS uid and attributes but
+no validated issuer. Without an application-owned path that validates a stable
+CAS server identity and carries it into the identity key, it resolves to the
+`''` sentinel and remains platform-only. It must still pass a separate strategy
+review, including the value of another issuerless identity surface and any
+proposed tenant-surface behavior.
 
 This ADR sets admission criteria for future strategies. It does not remove or
 change the behavior of strategies already registered; doing so requires a
@@ -171,8 +181,9 @@ discovery. No protocol quirk requires an adapter. Broad adoption alone
 does not meet the market-experience bar, which this ADR sets against
 strategy sprawl.
 
-**A second generic OIDC gem (e.g. `omniauth_oidc`).** A second generic
-OIDC strategy is config-surface duplication without provider specificity.
+**A second generic OIDC gem (e.g. `omniauth_oidc`).** The existing generic
+integration uses `omniauth_openid_connect`; adding another generic OIDC
+strategy is config-surface duplication without provider specificity.
 It carries the same hazards as the config-driven generic OAuth2 route
 this ADR rejects: arbitrary claims mapping and no reviewable provider
 contract. Generic OIDC is already the default; the way to improve it is
