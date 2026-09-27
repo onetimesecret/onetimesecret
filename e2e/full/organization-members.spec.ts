@@ -31,21 +31,14 @@
 
 import { expect, Page, test } from '@playwright/test';
 
+import { getFirstOrganization } from '../support/organizations';
+
 // Check if test credentials are configured
 const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
 
 // Generate unique email addresses for test isolation
 const generateTestEmail = (prefix: string) =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.onetimesecret.com`;
-
-// -----------------------------------------------------------------------------
-// Types
-// -----------------------------------------------------------------------------
-
-interface OrgInfo {
-  extid: string;
-  name: string;
-}
 
 // -----------------------------------------------------------------------------
 // Test Helpers
@@ -94,55 +87,16 @@ async function loginUser(page: Page, email?: string, password?: string): Promise
 }
 
 /**
- * Get the first organization from the /orgs page
- */
-async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
-  await page.goto('/orgs');
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-  const orgsList = page.getByTestId('organizations-list');
-  const isOrgListVisible = await orgsList.isVisible().catch(() => false);
-
-  if (!isOrgListVisible) {
-    return null;
-  }
-
-  // Get the first org card
-  const orgCard = orgsList.locator('[data-testid^="org-card-"]').first();
-  if (!(await orgCard.isVisible().catch(() => false))) {
-    return null;
-  }
-
-  // Extract extid from data-testid attribute
-  const cardTestId = await orgCard.getAttribute('data-testid');
-  const extid = cardTestId?.replace('org-card-', '') || '';
-
-  // Get org name
-  const orgNameElement = orgCard.getByTestId('org-name');
-  const name = (await orgNameElement.textContent()) || '';
-
-  return { extid, name: name.trim() };
-}
-
-/**
- * Navigate to organization team/members settings page
- * URL uses 'team' but internal tab is 'members'
+ * Open the organization's Members tab through its legacy /team URL (the
+ * internal tab is 'members') and wait for the members panel. Defaults to the
+ * signed-in account's first organization.
  */
 async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string> {
-  if (orgExtid) {
-    await page.goto(`/org/${orgExtid}/team`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-    return orgExtid;
-  }
+  const extid = orgExtid ?? (await getFirstOrganization(page)).extid;
 
-  const org = await getFirstOrganization(page);
-  if (!org) {
-    throw new Error('No organizations available for testing');
-  }
-
-  await page.goto(`/org/${org.extid}/team`);
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-  return org.extid;
+  await page.goto(`/org/${extid}/team`);
+  await expect(page.getByTestId('org-section-members')).toBeVisible();
+  return extid;
 }
 
 /**
@@ -152,6 +106,17 @@ function getCurrentOrgExtid(page: Page): string {
   const url = page.url();
   const match = url.match(/\/org\/([^/]+)/);
   return match?.[1] || '';
+}
+
+/**
+ * The signed-in owner's row in the members table (the lane account is the
+ * org owner). Waits for the row to render.
+ */
+function ownerRow(page: Page) {
+  return page
+    .getByTestId('org-section-members')
+    .locator('tbody tr')
+    .filter({ hasText: process.env.TEST_USER_EMAIL ?? '' });
 }
 
 /**
@@ -205,57 +170,32 @@ test.describe('MBR-LIST: Organization Members List', () => {
 
   test('MBR-LIST-001: Team tab appears in organization settings navigation', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    if (!org) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
-
     await page.goto(`/org/${org.extid}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Check if team tab is visible (feature may be gated)
+    // The tab bar renders once the organization loads. The owner holds
+    // manage_members, so the Members tab is present and enabled.
     const teamTab = page.getByTestId('org-tab-members');
-    const hasTeamTab = await teamTab.isVisible().catch(() => false);
-
-    if (!hasTeamTab) {
-      test.skip(true, 'Team tab not visible - feature may be gated (see issue #2888)');
-      return;
-    }
-
     await expect(teamTab).toBeVisible();
     await expect(teamTab).toHaveAttribute('role', 'tab');
+    await expect(teamTab).not.toHaveAttribute('aria-disabled', 'true');
   });
 
   test('MBR-LIST-002: Navigate to team tab shows members list', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    if (!org) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
 
-    // Navigate directly to team tab
+    // The legacy /team URL opens the Members tab
     await page.goto(`/org/${org.extid}/team`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    await expect(page.getByTestId('org-tab-members')).toHaveAttribute('aria-selected', 'true');
 
-    // Check if we're on team tab or redirected (feature may be gated)
-    const url = page.url();
-    if (!url.includes('/team')) {
-      test.skip(true, 'Team tab route not available - feature may be gated');
-      return;
-    }
-
-    // Members table should be visible
-    const membersTable = page.locator('table').filter({ hasText: /member|role|joined/i });
-    await expect(membersTable).toBeVisible({ timeout: 10000 });
+    const membersTable = page
+      .getByTestId('org-section-members')
+      .locator('table')
+      .filter({ hasText: /member|role|joined/i });
+    await expect(membersTable).toBeVisible();
   });
 
   test('MBR-LIST-003: Members list shows owner with correct role badge', async ({ page }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
     // Owner badge should be visible (amber colored)
     const ownerBadge = page.locator('span').filter({ hasText: /owner/i }).first();
@@ -266,12 +206,7 @@ test.describe('MBR-LIST: Organization Members List', () => {
   });
 
   test('MBR-LIST-004: Members list displays member count', async ({ page }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
     // Member count should be displayed
     const memberCount = page.locator('p').filter({ hasText: /member|members/i });
@@ -289,12 +224,7 @@ test.describe('MBR-INVITE: Invite Member Flow', () => {
   });
 
   test('MBR-INVITE-001: Owner can see and click Invite Member button', async ({ page }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
     const inviteButton = page.getByRole('button', { name: /invite member/i });
     await expect(inviteButton).toBeVisible();
@@ -302,12 +232,7 @@ test.describe('MBR-INVITE: Invite Member Flow', () => {
   });
 
   test('MBR-INVITE-002: Clicking Invite Member shows invitation form', async ({ page }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
     const inviteButton = page.getByRole('button', { name: /invite member/i });
     await inviteButton.click();
@@ -334,12 +259,7 @@ test.describe('MBR-INVITE: Invite Member Flow', () => {
   test('MBR-INVITE-003: Submit valid invitation shows success and pending invitation', async ({
     page,
   }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
     const testEmail = generateTestEmail('invite');
 
@@ -364,12 +284,7 @@ test.describe('MBR-INVITE: Invite Member Flow', () => {
   });
 
   test('MBR-INVITE-004: Invitation form validates email format', async ({ page }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
     const inviteButton = page.getByRole('button', { name: /invite member/i });
     await inviteButton.click();
@@ -387,22 +302,13 @@ test.describe('MBR-INVITE: Invite Member Flow', () => {
   });
 
   test('MBR-INVITE-005: Inviting existing member shows error', async ({ page }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
     // Get the owner's email (who is already a member)
     const bootstrapResponse = await page.request.get('/bootstrap/me');
     const bootstrapData = await bootstrapResponse.json();
     const ownerEmail = bootstrapData.email;
-
-    if (!ownerEmail) {
-      test.skip(true, 'Could not get owner email from bootstrap');
-      return;
-    }
+    expect(ownerEmail, '/bootstrap/me carries the signed-in email').toBeTruthy();
 
     // Try to invite the owner
     const inviteButton = page.getByRole('button', { name: /invite member/i });
@@ -430,49 +336,39 @@ test.describe('MBR-ROLE: Change Member Role', () => {
     page.setDefaultTimeout(15000);
   });
 
-  test('MBR-ROLE-001: Owner sees role selector dropdown for non-owner members', async ({
+  // fixme: needs a non-owner member in the org. The lane account is the only
+  // member of its default workspace, so no row has a role selector or a remove
+  // button. See #3419.
+  test.fixme('MBR-ROLE-001: Owner sees role selector dropdown for non-owner members', async ({
     page,
   }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
-    // Check if there are members with editable roles (non-owners)
-    // Look for a role dropdown (Listbox button)
-    const roleDropdown = page.locator('button').filter({ hasText: /member|admin/i }).first();
-
-    // If no dropdown visible, might be owner-only org or no members
-    const hasDropdown = await roleDropdown.isVisible().catch(() => false);
-    if (!hasDropdown) {
-      test.skip(true, 'No editable member roles found - may be owner-only organization');
-      return;
-    }
-
+    // A role dropdown (Listbox button) in a member row. Scoped to the table
+    // body: page-wide, /member/ also matches the Invite Member button.
+    const roleDropdown = page
+      .getByTestId('org-section-members')
+      .locator('tbody button')
+      .filter({ hasText: /member|admin/i })
+      .first();
     await expect(roleDropdown).toBeVisible();
   });
 
-  test('MBR-ROLE-002: Owner can change member role from member to admin', async ({ page }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+  // fixme: needs a non-owner member in the org. The lane account is the only
+  // member of its default workspace, so no row has a role selector or a remove
+  // button. See #3419.
+  test.fixme('MBR-ROLE-002: Owner can change member role from member to admin', async ({
+    page,
+  }) => {
+    await navigateToOrgTeam(page);
 
     // Find a role dropdown that shows "member"
     const memberRoleButton = page
-      .locator('button')
+      .getByTestId('org-section-members')
+      .locator('tbody button')
       .filter({ hasText: /^member$/i })
       .first();
-
-    const hasMember = await memberRoleButton.isVisible().catch(() => false);
-    if (!hasMember) {
-      test.skip(true, 'No member-role users found to change role');
-      return;
-    }
+    await expect(memberRoleButton).toBeVisible();
 
     // Click to open dropdown
     await memberRoleButton.click();
@@ -489,57 +385,30 @@ test.describe('MBR-ROLE: Change Member Role', () => {
   });
 
   test('MBR-ROLE-003: Owner cannot change owner role', async ({ page }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
-    // Find owner badge - should be a static badge, not a dropdown
-    const ownerBadge = page.locator('span').filter({ hasText: /^owner$/i }).first();
-
-    if (!(await ownerBadge.isVisible().catch(() => false))) {
-      test.skip(true, 'Owner badge not found');
-      return;
-    }
-
-    // Owner role should be displayed as static badge, not dropdown button
-    const parentRow = ownerBadge.locator('..').locator('..');
-    const roleDropdownInRow = parentRow.locator('button').filter({ hasText: /owner|admin|member/i });
-
-    // If there's a dropdown in owner row, it should be for a different column
-    // Or the owner row should not have an editable role dropdown
-    const isOwnerRoleEditable = await roleDropdownInRow
-      .filter({ hasText: /^owner$/i })
-      .isVisible()
-      .catch(() => false);
-
-    expect(isOwnerRoleEditable).toBe(false);
+    // The owner's role renders as a static badge, not a role dropdown
+    const roleCell = ownerRow(page).locator('td').nth(1);
+    await expect(roleCell).toHaveText('Owner');
+    await expect(roleCell.getByRole('button')).toHaveCount(0);
   });
 
-  test('MBR-ROLE-004: Role selector shows only admin and member options (not owner)', async ({
+  // fixme: needs a non-owner member in the org. The lane account is the only
+  // member of its default workspace, so no row has a role selector or a remove
+  // button. See #3419.
+  test.fixme('MBR-ROLE-004: Role selector shows only admin and member options (not owner)', async ({
     page,
   }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
-    // Find any role dropdown
+    // Find any role dropdown in a member row
     const roleDropdown = page
-      .locator('button')
+      .getByTestId('org-section-members')
+      .locator('tbody button')
       .filter({ hasText: /member|admin/i })
       .filter({ hasNotText: /owner/i })
       .first();
-
-    const hasDropdown = await roleDropdown.isVisible().catch(() => false);
-    if (!hasDropdown) {
-      test.skip(true, 'No editable member roles found');
-      return;
-    }
+    await expect(roleDropdown).toBeVisible();
 
     await roleDropdown.click();
 
@@ -570,82 +439,33 @@ test.describe('MBR-REMOVE: Remove Member', () => {
     page.setDefaultTimeout(15000);
   });
 
-  test('MBR-REMOVE-001: Owner sees remove button for non-owner members', async ({ page }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+  // fixme: needs a non-owner member in the org. The lane account is the only
+  // member of its default workspace, so no row has a role selector or a remove
+  // button. See #3419.
+  test.fixme('MBR-REMOVE-001: Owner sees remove button for non-owner members', async ({ page }) => {
+    await navigateToOrgTeam(page);
 
-    // Find trash icon button (remove action)
-    const removeButtons = page.getByRole('button', { name: /remove member/i });
-
-    // Should have at least some remove buttons if there are non-owner members
-    // This may be zero if owner is only member
-    const count = await removeButtons.count();
-
-    // Just verify the test can run - actual removal tested in MBR-REMOVE-003
-    if (count === 0) {
-      // Check if there are any non-owner members
-      const membersInTable = page.locator('tbody tr');
-      const memberCount = await membersInTable.count();
-
-      // If only 1 member (owner), remove buttons won't be visible
-      if (memberCount <= 1) {
-        test.skip(true, 'No non-owner members to remove');
-        return;
-      }
-    }
-
-    expect(count).toBeGreaterThanOrEqual(0);
+    await expect(page.getByRole('button', { name: /remove member/i }).first()).toBeVisible();
   });
 
   test('MBR-REMOVE-002: Remove button not shown for owner row', async ({ page }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
-    // Find owner row
-    const ownerBadge = page.locator('span').filter({ hasText: /^owner$/i }).first();
-    if (!(await ownerBadge.isVisible().catch(() => false))) {
-      test.skip(true, 'Owner badge not found');
-      return;
-    }
-
-    // Navigate to the table row containing owner
-    const ownerRow = ownerBadge.locator('xpath=ancestor::tr');
-
-    // Check actions column (last td)
-    const actionsCell = ownerRow.locator('td').last();
-    const removeButton = actionsCell.locator('button').filter({
-      has: page.locator('svg'),
-    });
-
-    // Owner row should show "--" or empty, not remove button
-    const hasRemoveButton = await removeButton.isVisible().catch(() => false);
-    expect(hasRemoveButton).toBe(false);
+    // The owner row's actions cell shows "--" instead of a remove button
+    const row = ownerRow(page);
+    await expect(row.locator('td').last()).toHaveText('--');
+    await expect(row.getByRole('button', { name: /remove member/i })).toHaveCount(0);
   });
 
-  test('MBR-REMOVE-003: Clicking remove shows confirmation dialog', async ({ page }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+  // fixme: needs a non-owner member in the org. The lane account is the only
+  // member of its default workspace, so no row has a role selector or a remove
+  // button. See #3419.
+  test.fixme('MBR-REMOVE-003: Clicking remove shows confirmation dialog', async ({ page }) => {
+    await navigateToOrgTeam(page);
 
     // Find first remove button
     const removeButton = page.getByRole('button', { name: /remove member/i }).first();
-
-    const hasRemoveButton = await removeButton.isVisible().catch(() => false);
-    if (!hasRemoveButton) {
-      test.skip(true, 'No remove buttons found - may be owner-only organization');
-      return;
-    }
+    await expect(removeButton).toBeVisible();
 
     await removeButton.click();
 
@@ -661,23 +481,14 @@ test.describe('MBR-REMOVE: Remove Member', () => {
     await expect(cancelButton).toBeVisible();
   });
 
-  test('MBR-REMOVE-004: Confirming removal removes member from list', async ({ page }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+  // fixme: needs a non-owner member in the org. The lane account is the only
+  // member of its default workspace, so no row has a role selector or a remove
+  // button. See #3419.
+  test.fixme('MBR-REMOVE-004: Confirming removal removes member from list', async ({ page }) => {
+    await navigateToOrgTeam(page);
 
-    // First create an invitation and have it "accepted" via API
-    // Or find an existing removable member
     const removeButton = page.getByRole('button', { name: /remove member/i }).first();
-
-    const hasRemoveButton = await removeButton.isVisible().catch(() => false);
-    if (!hasRemoveButton) {
-      test.skip(true, 'No removable members found');
-      return;
-    }
+    await expect(removeButton).toBeVisible();
 
     // Get the email of member being removed (for verification)
     const memberRow = removeButton.locator('xpath=ancestor::tr');
@@ -709,66 +520,31 @@ test.describe('MBR-INVMGMT: Invitation Management', () => {
     page.setDefaultTimeout(15000);
   });
 
-  // fixme: needs a seeded pending invitation in the org; CI has no such fixture,
-  // so the invitation row never renders. See #3419.
-  test.fixme('MBR-INVMGMT-001: Owner can resend pending invitation', async ({ page }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+  test('MBR-INVMGMT-001: Owner can resend pending invitation', async ({ page }) => {
+    await navigateToOrgTeam(page);
 
     const testEmail = generateTestEmail('resend');
-
-    // Create invitation first
     await createInvitation(page, testEmail);
 
-    // Find the resend button for this invitation
-    const invitationRow = page.locator('.rounded-md, div').filter({ hasText: testEmail });
-    const resendButton = invitationRow.getByRole('button', { name: /resend/i });
+    const invitationRow = page.getByTestId('org-invitation-row').filter({ hasText: testEmail });
+    await invitationRow.getByRole('button', { name: 'Resend' }).click();
 
-    await expect(resendButton).toBeVisible();
-    await resendButton.click();
-
-    // Success message should appear
-    await expect(page.getByText(/resent|sent/i)).toBeVisible({ timeout: 10000 });
-
-    // Invitation should still be in pending list
-    await expect(page.getByText(testEmail)).toBeVisible();
+    await expect(page.getByText('Invitation resent successfully')).toBeVisible();
+    // Still pending after the resend
+    await expect(invitationRow.getByText('Pending', { exact: true })).toBeVisible();
   });
 
-  // fixme: needs a seeded pending invitation in the org; CI has no such fixture,
-  // so the invitation row never renders. See #3419.
-  test.fixme('MBR-INVMGMT-002: Owner can revoke pending invitation', async ({ page }) => {
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+  test('MBR-INVMGMT-002: Owner can revoke pending invitation', async ({ page }) => {
+    await navigateToOrgTeam(page);
 
     const testEmail = generateTestEmail('revoke');
-
-    // Create invitation first
     await createInvitation(page, testEmail);
 
-    // Get token for later verification
-    const token = await getInvitationToken(page, testEmail);
-    expect(token).toBeTruthy();
+    const invitationRow = page.getByTestId('org-invitation-row').filter({ hasText: testEmail });
+    await invitationRow.getByRole('button', { name: 'Revoke' }).click();
 
-    // Find the revoke button
-    const invitationRow = page.locator('.rounded-md, div').filter({ hasText: testEmail });
-    const revokeButton = invitationRow.getByRole('button', { name: /revoke|cancel/i });
-
-    await expect(revokeButton).toBeVisible();
-    await revokeButton.click();
-
-    // Success message should appear
-    await expect(page.getByText(/revoked/i)).toBeVisible({ timeout: 10000 });
-
-    // Invitation should be removed from pending list
-    await expect(page.getByText(testEmail)).not.toBeVisible();
+    await expect(page.getByText('Invitation revoked successfully')).toBeVisible();
+    await expect(invitationRow).toHaveCount(0);
   });
 });
 
@@ -777,54 +553,49 @@ test.describe('MBR-INVMGMT: Invitation Management', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
-  // fixme: needs a valid seeded invitation token to render the details view;
-  // CI cannot seed the invitation relationship. See #3419.
-  test.fixme('MBR-ACCEPT-001: Valid invitation token shows invitation details', async ({
+  test('MBR-ACCEPT-001: Valid invitation token shows invitation details', async ({
     page,
-    context,
+    browser,
   }) => {
     // Create invitation as owner (storageState session)
-    let orgExtid: string;
-    try {
-      orgExtid = await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    const org = await getFirstOrganization(page);
+    await navigateToOrgTeam(page, org.extid);
 
     const testEmail = generateTestEmail('accept');
     await createInvitation(page, testEmail);
     const token = await getInvitationToken(page, testEmail);
     expect(token).toBeTruthy();
 
-    // Clear cookies to visit as unauthenticated
-    await context.clearCookies();
+    // An unauthenticated visitor lands in the signup_required state: the
+    // invitation context names the organization and the email field is bound
+    // to the invited address. browser.newContext() would inherit the owner
+    // session.
+    const visitorContext = await browser.newContext({
+      storageState: { cookies: [], origins: [] },
+    });
+    try {
+      const visitorPage = await visitorContext.newPage();
+      await visitorPage.goto(`/invite/${token}`);
 
-    // Visit invitation link
-    await page.goto(`/invite/${token}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    // Invitation details should be visible
-    const invitationDetails = page.getByTestId('invitation-details');
-    await expect(invitationDetails).toBeVisible();
-
-    // Organization name should be shown
-    await expect(page.getByText(/invited/i)).toBeVisible();
+      await expect(visitorPage.getByTestId('invite-signup-required')).toBeVisible();
+      await expect(visitorPage.getByTestId('invitation-context')).toContainText(org.name);
+      await expect(visitorPage.getByTestId('invite-signup-email-input')).toHaveValue(testEmail);
+    } finally {
+      await visitorContext.close();
+    }
   });
 
-  // fixme: needs a valid seeded invitation token to reach the signin_required
-  // state; CI cannot seed the invitation relationship. See #3419.
+  // fixme: signin_required only follows a signup attempt for an invited email
+  // that already has an account (AZ7/#3856). This test invites a fresh address
+  // and expects the state on arrival. The lane can create that account (see
+  // INV-004 in invite-flow-states.spec.ts, which covers this state); rewrite it
+  // once those throwaway-account helpers move to e2e/support. See #3419.
   test.fixme('MBR-ACCEPT-002: Unauthenticated user sees sign-in form (signin_required state)', async ({
     page,
     context,
   }) => {
     // Create invitation as owner (storageState session)
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
     const testEmail = generateTestEmail('accept-unauth');
     await createInvitation(page, testEmail);
@@ -851,38 +622,42 @@ test.describe('MBR-ACCEPT: Accept Invitation Flow', () => {
     await expect(declineButton).not.toBeVisible();
   });
 
-  test('MBR-ACCEPT-003: Unauthenticated user cannot decline (signin_required state)', async ({
+  test('MBR-ACCEPT-003: Unauthenticated invitee can decline from the invite page', async ({
     page,
-    context,
+    browser,
   }) => {
     // Create invitation as owner (storageState session)
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    const orgExtid = await navigateToOrgTeam(page);
 
     const testEmail = generateTestEmail('decline');
     await createInvitation(page, testEmail);
     const token = await getInvitationToken(page, testEmail);
     expect(token).toBeTruthy();
 
-    // Clear cookies to become unauthenticated
-    await context.clearCookies();
+    // Without a session the invite page shows the inline signup form, which
+    // carries its own Decline control (POST /api/invite/:token/decline is
+    // auth=noauth). browser.newContext() would inherit the owner session.
+    const inviteeContext = await browser.newContext({
+      storageState: { cookies: [], origins: [] },
+    });
+    try {
+      const inviteePage = await inviteeContext.newPage();
+      await inviteePage.goto(`/invite/${token}`);
 
-    // Visit invitation as unauthenticated user
-    await page.goto(`/invite/${token}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      await expect(inviteePage.getByTestId('invite-signup-required')).toBeVisible();
+      await inviteePage.getByTestId('invite-signup-decline').click();
+      await expect(inviteePage.getByTestId('invite-declined')).toBeVisible();
+    } finally {
+      await inviteeContext.close();
+    }
 
-    // In signin_required state, decline button is NOT shown
-    // User must authenticate first to accept or decline
-    const declineButton = page.getByTestId('decline-invitation-btn');
-    await expect(declineButton).not.toBeVisible();
-
-    // Sign-in notice should be visible instead
-    const signInNotice = page.getByTestId('sign-in-notice');
-    await expect(signInNotice).toBeVisible();
+    // The declined invitation left the org's pending list
+    const response = await page.request.get(`/api/organizations/${orgExtid}/invitations`);
+    expect(response.ok()).toBe(true);
+    const pendingEmails = ((await response.json()).records ?? []).map(
+      (inv: { email: string }) => inv.email
+    );
+    expect(pendingEmails).not.toContain(testEmail);
   });
 });
 
@@ -911,12 +686,7 @@ test.describe('MBR-HIERARCHY: Role Hierarchy Enforcement', () => {
       process.env.TEST_ADMIN_PASSWORD
     );
 
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
     // Admin should see static role badges, not dropdowns for other members
     // Check that no role dropdowns are clickable
@@ -944,12 +714,7 @@ test.describe('MBR-HIERARCHY: Role Hierarchy Enforcement', () => {
       process.env.TEST_ADMIN_PASSWORD
     );
 
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
     // Find all rows in members table
     const rows = page.locator('tbody tr');
@@ -996,12 +761,7 @@ test.describe('MBR-PERM: Permission Denied States', () => {
       process.env.TEST_MEMBER_PASSWORD
     );
 
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
     // Invite button should be disabled or show upgrade prompt
     const inviteButton = page.getByRole('button', { name: /invite member/i });
@@ -1028,12 +788,7 @@ test.describe('MBR-PERM: Permission Denied States', () => {
       process.env.TEST_MEMBER_PASSWORD
     );
 
-    try {
-      await navigateToOrgTeam(page);
-    } catch {
-      test.skip(true, 'Could not navigate to team tab - feature may be gated');
-      return;
-    }
+    await navigateToOrgTeam(page);
 
     // Remove buttons should not be visible for member role
     const removeButtons = page.getByRole('button', { name: /remove member/i });
@@ -1071,7 +826,7 @@ test.describe('MBR-PERM: Permission Denied States', () => {
  * | MBR-INVMGMT-002 | Owner can revoke pending invitation                | Medium     | Automated  |
  * | MBR-ACCEPT-001  | Valid invitation token shows details               | Critical   | Automated  |
  * | MBR-ACCEPT-002  | Unauthenticated Accept redirects to signin         | Critical   | Automated  |
- * | MBR-ACCEPT-003  | Decline button allows declining without auth       | High       | Automated  |
+ * | MBR-ACCEPT-003  | Unauthenticated invitee can decline                | High       | Automated  |
  * | MBR-HIERARCHY-001| Admin cannot change member roles                  | Critical   | Automated  |
  * | MBR-HIERARCHY-002| Admin can remove members but not other admins     | Critical   | Automated  |
  * | MBR-PERM-001    | Member role user cannot invite new members         | High       | Automated  |
