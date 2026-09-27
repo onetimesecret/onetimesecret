@@ -179,7 +179,39 @@ pnpm run test:database:clean   # Flush the test databases (asks first)
 ## Git hooks and merge drivers
 
 `bin/setup` installs the [pre-commit](https://pre-commit.com)-managed hooks
-(pre-commit, prepare-commit-msg, pre-push) when `pre-commit` is on your PATH.
+(pre-commit, prepare-commit-msg, post-commit, post-checkout, post-merge,
+pre-push) when `pre-commit` is on your PATH.
+
+### New worktrees (opt-in)
+
+A new worktree has no dependencies, config or generated files. To have
+`git worktree add` run `bin/setup` in it, opt in once per clone:
+
+```bash
+git config ots.worktreeSetup true
+```
+
+The post-checkout hook ([`tools/setup/new-worktree.sh`](../../tools/setup/new-worktree.sh))
+then runs `bin/setup --dev` when the worktree's name starts with `dev`, and
+`bin/setup --test` otherwise. The name is the worktree's directory, or its
+parent directory for a nested worktree: one whose directory is named after
+the main checkout or after its own grandparent
+(`worktrees/onetimesecret/dev-api/onetimesecret` is `dev-api`).
+
+- Output goes to `tmp/worktree-setup.log` in the new worktree. A failed
+  setup does not fail `git worktree add`; check the log.
+- It applies to anything that runs `git worktree add`, including Zed. Tools
+  that create worktrees without running git hooks are not covered; run
+  `bin/setup` there yourself.
+- The worktree's own commit must include this hook, so worktrees of older
+  branches are not set up.
+- The hook and `bin/setup` are the new worktree's own files, so setup runs
+  whatever code the checked-out branch ships, the same as `bundle install`
+  or `pnpm install` would. Do not opt in a clone you use to check out
+  branches you have not read, and skip the hook for such a checkout as
+  below. Only the clone's own config opts in; a global setting is ignored.
+- To skip it once: `git -c core.hooksPath=/dev/null worktree add ...` (this
+  skips every hook). To opt out: `git config --unset ots.worktreeSetup`.
 
 ### Git JSON merge driver (recommended)
 

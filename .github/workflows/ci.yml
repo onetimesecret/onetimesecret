@@ -213,7 +213,7 @@ jobs:
 
       - name: Install dependencies
         env:
-          BUNDLE_FROZEN: 'true' # same contract as scripts/setup/lib.sh
+          BUNDLE_FROZEN: 'true' # same contract as tools/setup/lib.sh
         run: bundle install --jobs 4 --retry 3
 
       - name: Run Rubocop

@@ -40,7 +40,7 @@ on:
   pull_request:
     paths:
       - 'bin/setup'
-      - 'scripts/setup/**'
+      - 'tools/setup/**'
       - 'Gemfile'
       - 'Gemfile.lock'
       - 'package.json'
