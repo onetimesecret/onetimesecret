@@ -41,6 +41,26 @@ When context gets large: write current state to tasks/mission.md. Include: what'
 
 NEVER AMEND, RESTORE or REBASE unless asked.
 
+Before committing, coordinate with all writers in the same worktree: pause
+other agents, autosave, formatters, and generators; wait for in-flight writes
+to finish; and keep them paused until the entire commit command returns.
+Do not commit while delegated edits are still running, even on different
+files. If writers cannot be paused, defer the commit or use separate Git
+worktrees for independently editing and committing agents.
+
+Two clarifications to “stashes unstaged files on every commit”:
+
+- Pre-commit saves a patch when unstaged tracked changes exist, not an entry
+  in `git stash list`. Ordinary untracked files are not included.
+- The patch and temporary checkout cover unstaged tracked changes across
+  the worktree, not just files staged for commit or selected for linting.
+  Assigning different files to agents does not isolate them from this operation.
+
+Partial staging is supported; concurrent writes during hooks are not safe.
+Review auto-fixes and selectively re-stage only intended changes.
+For restoration failures and bypass limitations, follow
+[Committing with unstaged work](CONTRIBUTING.md#committing-with-unstaged-work).
+
 Use `--no-pager` to avoid hanging on paging. Pipe to head or tail if you suspect a large output. For example:
 
 ```bash

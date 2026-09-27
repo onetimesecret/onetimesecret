@@ -96,6 +96,37 @@ runs both). The sources are `locales/` and the Zod definitions in
   a CI drift guard (`scripts/install-tests/check-docs-commands.sh`) fails
   when docs reference commands that don't exist.
 
+### Committing with unstaged work
+
+Partial staging is supported; concurrent writes during hooks are not safe.
+Before committing, pause other writers in the same Git worktree (agents,
+autosave, formatters, and generators) and wait for in-flight edits to finish.
+Keep them paused until the entire commit command returns, including its
+message and post-commit hooks. Use separate Git worktrees for agents that
+need to edit and commit independently; assigning different files in one
+worktree is not sufficient isolation.
+
+The [upstream pre-commit documentation](https://pre-commit.com/#pre-commit)
+explains: “pre-commit only runs on the staged contents of files by temporarily
+stashing the unstaged changes while running hooks.” This covers unstaged
+tracked changes across the worktree, not just files selected for linting.
+The saved changes are a patch at the path printed by pre-commit, not an entry
+in `git stash list`; ordinary untracked files are not included.
+
+- **After auto-fixes:** review the diff and selectively re-stage the intended
+  changes before retrying. Do not blindly stage unrelated work.
+- **If restoration fails:** stop other writers, preserve the printed patch
+  file and the current worktree contents, and inspect the diff before trying
+  recovery. The patch contains the original snapshot, not necessarily writes
+  made during hooks; do not assume it can recover those later edits. The
+  [upstream restore implementation](https://github.com/pre-commit/pre-commit/blob/main/pre_commit/staged_files_only.py)
+  retries a conflicting patch after checking out indexed contents again,
+  which can overwrite concurrent edits.
+- **Do not bypass hooks to coordinate writers:** `SKIP=...` skips individual
+  hooks, not framework stashing. `git commit --no-verify` does not suppress
+  our `prepare-commit-msg` or `post-commit` hooks. Keep the worktree quiet
+  instead.
+
 ## Where to ask
 
 - Bugs and feature requests: [GitHub issues](https://github.com/onetimesecret/onetimesecret/issues)

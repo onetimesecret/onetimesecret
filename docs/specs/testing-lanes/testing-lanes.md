@@ -46,7 +46,7 @@ specs.
 | --- | --- | --- | --- |
 | `unit` | valkey, rabbitmq | `try:unit`, `spec:fast` | ruby-unit (T2) |
 | `simple` | valkey, rabbitmq | `try:integration:simple`, `spec:integration:simple` | ruby-integration-simple (T3) |
-| `full-sqlite` | valkey, rabbitmq | `spec:integration:full` | ruby-integration-full — SQLite rows |
+| `full-sqlite` | valkey, rabbitmq | `spec:integration:full`, `spec:integration:oauth` | ruby-integration-full — SQLite rows |
 | `full-pg` | valkey, rabbitmq, postgres | `spec:integration:full:postgres` | ruby-integration-full — PG rows |
 | `full-pg-agnostic` | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg` | ruby-integration-full — PG agnostic rows |
 | `disabled` | valkey, rabbitmq | `spec:integration:disabled` | ruby-integration-disabled (T3) |

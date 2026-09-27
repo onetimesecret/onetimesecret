@@ -1,3 +1,8 @@
 # Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
 # (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
 bundle exec rake spec:integration:full
+# Separate line on purpose: spec:integration:oauth needs its own process.
+# The integration/oauth specs write AUTH_OAUTH_ENABLED process-wide, and the
+# path-keyed MockAuthConfig for integration/full/ lacks oauth_enabled?, so
+# the two suites cannot share one rspec invocation (see lib/tasks/spec.rake).
+bundle exec rake spec:integration:oauth

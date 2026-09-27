@@ -38,8 +38,9 @@
 # - OAUTH_JWT_RSA_PRIVATE_KEY (generated below if absent)
 # - OAUTH_SP_DEV_CLIENT_SECRET (generated below if absent)
 #
-# RUN:
-#   bundle exec rspec apps/web/auth/spec/integration/oauth/oauth_idp_lifecycle_spec.rb
+# RUN (full-sqlite lane; see tests/lanes/README.md):
+#   tests/lanes/run full-sqlite --only apps/web/auth/spec/integration/oauth/oauth_idp_lifecycle_spec.rb
+#   tests/lanes/run full-sqlite   # whole lane: spec:integration:full, then spec:integration:oauth
 #
 # This spec lives at integration/oauth/ (not integration/full/) for the same reason
 # the sibling oauth_idp_* specs do — the path-keyed MockAuthConfig matching
@@ -296,32 +297,28 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integr
     # up via valid_oauth_grant_ds, which filters by the DB
     # `expires_in > CURRENT_TIMESTAMP`. Either gate can fail it.
 
-    it 'FINDING: does NOT enforce JWT exp at /userinfo (json-jwt branch + buggy AND-chain)' do
-      # FINDING: rodauth-oauth's json-jwt branch (oauth_jwt_base.rb:217-285)
-      # is the active code path when both gems are loaded. Its
-      # post-decode validation at lines 269-278 is an AND-chain
-      # (`if cond_exp && cond_nbf && cond_iat && cond_iss && cond_aud && cond_jti`),
-      # so it only `return`s nil when EVERY claim is bad simultaneously.
-      # A JWT with past `exp` but valid iss/aud/iat/jti slips through.
-      # Independently, JSON::JWT.decode does NOT enforce exp either.
+    it 'rejects /userinfo when the JWT exp claim is in the past (JWT-level gate)' do
+      # History: this example used to be titled 'FINDING: does NOT enforce JWT
+      # exp at /userinfo' and asserted 200. Upstream rodauth-oauth's json-jwt
+      # branch (oauth_jwt_base.rb) validated claims with an AND-chain of
+      # failure conditions, so it only rejected a token when every claim was
+      # bad at once; a validly signed JWT with a past `exp` slipped through
+      # and only the DB-row gate (next example) stopped it. Issue #3231.
       #
-      # Compounding: /userinfo's DB grant lookup (oidc.rb:142 ->
-      # valid_oauth_grant_ds) still gates by oauth_grants.expires_in. In
-      # practice, the DB row's expires_in is bumped to "now + 3600" every
-      # time /token issues a token, so the DB gate works on the issued
-      # token's lifetime. But a forged-but-validly-signed JWT with future
-      # iat and past exp gets accepted — surface as a gem bug to upstream.
-      #
-      # This assertion documents the current behavior so a future gem
-      # upgrade that fixes the AND-chain will (intentionally) break this
-      # test and prompt revisit.
+      # The fork pinned in the Gemfile (1.6.6.ots1, ref b0e7ceb0) rewrites
+      # that check as PASS conditions:
+      #   claims_valid = (!claims[:exp] || Time.at(claims[:exp]) >= now) && ...
+      #   return unless claims_valid
+      # so an expired JWT is now rejected before the grant lookup. This
+      # example pins the fixed behavior: same forged token, expect 401.
       account           = create_verified_account
       grant             = seed_authorization_code(account_id: account[:id])
       redeemed          = post_token_for_code(grant[:code])
       expect(last_response.status).to eq(200), "Body: #{last_response.body}"
       live_access_token = redeemed.fetch('access_token')
 
-      # Decode without verification to learn the real claims.
+      # Decode (with signature verification) to learn the real claims, then
+      # re-sign the same payload with iat/exp pushed into the past.
       live_payload, live_header = JWT.decode(
         live_access_token,
         rsa_public,
@@ -340,11 +337,9 @@ RSpec.describe 'OAuth/OIDC IdP token lifecycle', :sqlite_database, type: :integr
       )
 
       get_userinfo(past_token)
-      # Documenting current (broken) behavior. If this starts failing with
-      # 401, the gem fixed the AND-chain — update this expectation.
-      expect(last_response.status).to eq(200),
-        'If status is 401, the gem now correctly enforces JWT exp at /userinfo. ' \
-        "Update this test and re-evaluate. Body: #{last_response.body[0, 200]}"
+      expect(last_response.status).to eq(401),
+        'Expected 401: the pinned rodauth-oauth fork enforces JWT exp at /userinfo. ' \
+        "A 200 means the JWT-level gate regressed. Body: #{last_response.body[0, 200]}"
     end
 
     it 'rejects /userinfo when the DB grant row is expired (DB-row gate)' do

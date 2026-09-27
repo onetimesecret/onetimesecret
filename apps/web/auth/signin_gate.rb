@@ -135,7 +135,7 @@ module Auth
     # unclassified route silently defaulting to "allowed" is the exact defect
     # #4163 fixes.
     #
-    # Two reasons appear here:
+    # Three reasons appear here:
     #   - ACCOUNT-SCOPED: reachable only when already authenticated, so keying
     #     them to the REQUEST HOST is the wrong axis. Sign-in opt-in governs
     #     whether a session may be OBTAINED here, never what an existing
@@ -145,6 +145,14 @@ module Auth
     #     presented a first factor this host permitted — same reasoning as
     #     Auth::RestrictTo::SECOND_FACTOR_ROUTES) and logout, which must never
     #     404.
+    #   - IDENTITY-PROVIDER ENDPOINTS (config/features/oauth.rb, mounted only
+    #     with AUTH_OAUTH_ENABLED): this install signs a relying party's user
+    #     in ELSEWHERE; none of the five lets a visitor obtain a session here.
+    #     `authorize` is account-scoped (rodauth-oauth's
+    #     require_authorizable_account → require_account); token, revoke and
+    #     userinfo authenticate by client credentials or bearer token, and
+    #     jwks is public key material. None consult the Rack session, so the
+    #     request host is the wrong axis for all five.
     UNGATED_ROUTES = [
       :logout,
       :remember,
@@ -167,6 +175,12 @@ module Auth
       :webauthn_setup,
       :webauthn_setup_js,
       :webauthn_remove,
+      # identity-provider endpoints (see above)
+      :authorize,
+      :token,
+      :revoke,
+      :userinfo,
+      :jwks,
     ].freeze
 
     class << self
