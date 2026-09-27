@@ -105,6 +105,44 @@ describe('useAdminDomains', () => {
     expect(store.page).toBe(1);
   });
 
+  it('preserves unknown SSL and resolving values from a verify response', async () => {
+    mockApi.post.mockResolvedValue({
+      data: {
+        shrimp: '',
+        record: {
+          domain_id: 'cd1',
+          extid: 'cd_abc123',
+          display_domain: 'secrets.example.com',
+          verification_state: 'verified',
+          verified: true,
+          verified_by_override: false,
+          resolving: true,
+          ready: true,
+          updated: 1700003600,
+        },
+        details: {
+          previous_state: 'verified',
+          current_state: 'verified',
+          changed: false,
+          dns_validated: true,
+          dns_indeterminate: false,
+          dns_message: 'TXT record validated',
+          dns_outcome: 'validated',
+          ssl_ready: null,
+          is_resolving: null,
+          error: null,
+          message: 'Domain verification completed',
+        },
+      },
+    });
+    const store = useAdminDomains();
+
+    const details = await store.verify('cd_abc123');
+
+    expect(details?.ssl_ready).toBeNull();
+    expect(details?.is_resolving).toBeNull();
+  });
+
   describe('per-domain config operations', () => {
     const EXTID = 'cd_abc123';
     const CONFIGS_URL = `/api/colonel/domains/${EXTID}/configs`;

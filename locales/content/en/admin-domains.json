@@ -35,6 +35,14 @@
     "text": "{domain} could not be verified.",
     "content_hash": "630da482"
   },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "The DNS checker returned no result for {domain}. Its verification status was left unchanged.",
+    "content_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "The TXT check failed for {domain}, but it stays verified because of an operator override.",
+    "content_hash": "e754aac8"
+  },
   "web.admin.domains.verify.success.done": {
     "text": "Verification complete for {domain}.",
     "content_hash": "ed67e22d"
@@ -282,6 +290,10 @@
   "web.admin.domains.fields.verified": {
     "text": "Verified",
     "content_hash": "4f783840"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Yes (operator override)",
+    "content_hash": "a1a8644f"
   },
   "web.admin.domains.fields.resolving": {
     "text": "Resolving",

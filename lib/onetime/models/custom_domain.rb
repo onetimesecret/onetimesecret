@@ -101,6 +101,10 @@ module Onetime
     field :vhost
     boolean_field :verified, storage: :native  # the txt record matches?
     boolean_field :resolving, storage: :native # there's a valid A or CNAME record?
+    # An operator asserted ownership via the Colonel override. While set, a
+    # failed TXT check does not demote `verified` (VerifyDomain#persist_changes);
+    # cleared when DNS proves ownership or the operator overrides to false.
+    boolean_field :verified_by_override, storage: :native
     field :vhost_fetch_failed_at # epoch seconds; non-nil while last vhost fetch failed
     field :created
     field :updated
