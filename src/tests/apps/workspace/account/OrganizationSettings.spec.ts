@@ -4,62 +4,37 @@ import OrganizationSettings from '@/apps/workspace/account/settings/Organization
 import { createTestingPinia } from '@pinia/testing';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { nextTick, ref } from 'vue';
+import { nextTick, reactive, ref } from 'vue';
 import { createTestI18n } from '@tests/setup';
 
 // Mock vue-router.
-// `params` is a shared mutable object so tests can simulate a deep link
-// (e.g. /org/on1abc123/activity) by setting `mockRouteParams.tab` before mount.
-// Reset in beforeEach.
-const mockRouteParams: Record<string, string | undefined> = {
+// `params` is a shared reactive object so tests can simulate a deep link
+// (e.g. /org/on1abc123/activity) by setting `mockRouteParams.tab` before mount,
+// and a later navigation that keeps the view mounted (Back/Forward, a link to
+// another tab) by setting it after mount. Reset in beforeEach.
+const mockRouteParams = reactive<Record<string, string | undefined>>({
   extid: 'on1abc123',
   orgid: 'on1abc123',
-};
-// /org/:extid/:tab? for the given params (router.resolve stand-in).
-const orgPath = (params: Record<string, unknown> = {}) =>
-  `/org/${params.extid}${params.tab ? `/${params.tab}` : ''}`;
+});
 const mockRoute = {
-  get path() {
-    return orgPath(mockRouteParams);
-  },
-  get fullPath() {
-    return orgPath(mockRouteParams);
-  },
+  path: '/org/on1abc123',
   params: mockRouteParams,
   query: {},
 };
-// Tab switches rewrite the URL in place (router.resolve + history.replaceState)
-// and must never navigate: `push`/`replace` stay spies so tests can assert
-// that. afterEach hooks are collected so tests can replay a navigation.
-type AfterEachHook = (to: unknown, from: unknown, failure?: unknown) => void;
-const mockAfterEachHooks = new Set<AfterEachHook>();
 const mockRouter = {
   push: vi.fn(),
   replace: vi.fn(),
   back: vi.fn(),
-  resolve: vi.fn((location: string | { params?: Record<string, unknown> }) => {
-    const fullPath = typeof location === 'string' ? location : orgPath(location.params);
-    return { fullPath, href: fullPath };
-  }),
-  afterEach: vi.fn((hook: AfterEachHook) => {
-    mockAfterEachHooks.add(hook);
-    return () => mockAfterEachHooks.delete(hook);
-  }),
 };
-vi.mock('vue-router', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('vue-router')>();
-  return {
-    isNavigationFailure: actual.isNavigationFailure,
-    NavigationFailureType: actual.NavigationFailureType,
-    useRoute: () => mockRoute,
-    useRouter: () => mockRouter,
-    RouterLink: {
-      name: 'RouterLink',
-      template: '<a :href="to"><slot /></a>',
-      props: ['to'],
-    },
-  };
-});
+vi.mock('vue-router', () => ({
+  useRoute: () => mockRoute,
+  useRouter: () => mockRouter,
+  RouterLink: {
+    name: 'RouterLink',
+    template: '<a :href="to"><slot /></a>',
+    props: ['to'],
+  },
+}));
 
 // Mock child components
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
@@ -278,9 +253,7 @@ describe('OrganizationSettings', () => {
     mockOrgsSsoEnabled.value = false;
     mockOrgsAuditLogsEnabled.value = true;
     delete mockRouteParams.tab;
-    mockAfterEachHooks.clear();
-    // Tab switches write window.history directly; start each test clean.
-    window.history.replaceState(null, '', '/');
+    mockRouteParams.extid = 'on1abc123';
   });
 
   afterEach(() => {
@@ -974,33 +947,15 @@ describe('OrganizationSettings', () => {
   });
 
   /**
-   * Tab navigation without remounting
+   * Tab navigation
    *
-   * App.vue keys the routed view by $route.fullPath, so a router navigation
-   * to /org/:extid/<tab> REMOUNTS this view: every tab switch refetched the
-   * page behind the skeleton, and the ArrowRight/ArrowLeft handler's focus()
-   * hit the destroyed instance, dropping keyboard focus. Tab switches now
-   * rewrite the address bar with history.replaceState and never navigate the
-   * router; router.replace/push staying uncalled is what "no remount" means
-   * at this level.
+   * A tab switch is a router.replace() that changes only :tab. The route lists
+   * :tab in meta.keepMountedAcrossParams, so App.vue keeps this instance
+   * mounted (src/tests/router/viewKey.spec.ts covers the key); here the view
+   * must drive the router for its own switches and follow the route for
+   * everyone else's.
    */
-  describe('Tab navigation — URL sync without remount', () => {
-    // Vue Router's own entry bookkeeping, as a real router would have left it.
-    const seatHistoryEntry = () => {
-      window.history.replaceState(
-        {
-          back: '/dashboard',
-          current: mockRoute.fullPath,
-          forward: null,
-          position: 4,
-          replaced: false,
-          scroll: null,
-        },
-        '',
-        mockRoute.fullPath
-      );
-    };
-
+  describe('Tab navigation', () => {
     const findTab = (w: VueWrapper, id: string) => w.find(`#org-tab-${id}`);
 
     const selectedTabId = (w: VueWrapper) =>
@@ -1015,49 +970,19 @@ describe('OrganizationSettings', () => {
       await nextTick();
     };
 
-    // A real NavigationFailure of the given kind, produced by a real router.
-    const navigationFailure = async (kind: 'duplicated' | 'aborted') => {
-      const { createMemoryHistory, createRouter } =
-        await vi.importActual<typeof import('vue-router')>('vue-router');
-      const router = createRouter({
-        history: createMemoryHistory(),
-        routes: [{ path: '/:any(.*)*', component: { render: () => null } }],
-      });
-      await router.push('/somewhere');
-      if (kind === 'aborted') router.beforeEach(() => false);
-      return router.push(kind === 'aborted' ? '/elsewhere' : '/somewhere');
-    };
-
-    // The location this view mounted with, as Vue Router still reports it.
-    const mountedLocation = () => ({
-      fullPath: mockRoute.fullPath,
-      params: { ...mockRouteParams },
+    const tabNavigation = (tab: string) => ({
+      params: { extid: 'on1abc123', orgid: 'on1abc123', tab },
     });
 
-    const replayAfterEach = (to: unknown, from: unknown, failure?: unknown) => {
-      for (const hook of mockAfterEachHooks) hook(to, from, failure);
-    };
-
-    beforeEach(() => {
-      seatHistoryEntry();
-    });
-
-    it('writes a clicked tab to the URL in place, keeping router history state', async () => {
+    it('navigates a clicked tab with router.replace, changing only :tab', async () => {
       wrapper = await mountComponent();
 
       await findTab(wrapper, 'members').trigger('click');
       await settle();
 
       expect(selectedTabId(wrapper)).toBe('org-tab-members');
-      expect(window.location.pathname).toBe('/org/on1abc123/members');
-      // `current` follows the URL so Vue Router's next push does not write the
-      // old tab back into this entry; its other bookkeeping is preserved.
-      expect(window.history.state).toMatchObject({
-        back: '/dashboard',
-        current: '/org/on1abc123/members',
-        position: 4,
-      });
-      expect(mockRouter.replace).not.toHaveBeenCalled();
+      expect(mockRouter.replace).toHaveBeenCalledTimes(1);
+      expect(mockRouter.replace).toHaveBeenCalledWith(tabNavigation('members'));
       expect(mockRouter.push).not.toHaveBeenCalled();
     });
 
@@ -1075,106 +1000,86 @@ describe('OrganizationSettings', () => {
       expect(membersTab.attributes('aria-selected')).toBe('true');
       expect(membersTab.attributes('tabindex')).toBe('0');
       expect(domainsTab.attributes('tabindex')).toBe('-1');
-      expect(window.location.pathname).toBe('/org/on1abc123/members');
+      expect(mockRouter.replace).toHaveBeenLastCalledWith(tabNavigation('members'));
 
       await membersTab.trigger('keydown', { key: 'ArrowLeft' });
       await settle();
 
       expect(document.activeElement).toBe(domainsTab.element);
       expect(domainsTab.attributes('aria-selected')).toBe('true');
-      expect(window.location.pathname).toBe('/org/on1abc123/domains');
-      expect(mockRouter.replace).not.toHaveBeenCalled();
+      expect(mockRouter.replace).toHaveBeenLastCalledWith(tabNavigation('domains'));
     });
 
-    it('honours a deep link to a tab without touching the URL', async () => {
+    it('honours a deep link to a tab without navigating', async () => {
       mockRouteParams.tab = 'members';
-      seatHistoryEntry();
 
       wrapper = await mountComponent();
 
       expect(selectedTabId(wrapper)).toBe('org-tab-members');
-      expect(window.location.pathname).toBe('/org/on1abc123/members');
-      expect(mockRouter.resolve).not.toHaveBeenCalled();
+      expect(mockRouter.replace).not.toHaveBeenCalled();
     });
 
-    it('bounces a deep link to a tab the user cannot open to Domains, rewriting the URL in place', async () => {
+    it('bounces a deep link to a tab the user cannot open to Domains', async () => {
       mockRouteParams.tab = 'members';
       mockEntitlements.value = [];
-      seatHistoryEntry();
 
       wrapper = await mountComponent();
 
       expect(selectedTabId(wrapper)).toBe('org-tab-domains');
-      expect(window.location.pathname).toBe('/org/on1abc123/domains');
-      expect(mockRouter.replace).not.toHaveBeenCalled();
+      expect(mockRouter.replace).toHaveBeenCalledWith(tabNavigation('domains'));
     });
 
-    it('re-applies the mounted location when a link to it is dropped as a duplicate', async () => {
-      // e.g. the user menu's Activity item: the view mounted on /activity, the
-      // user moved to Domains, then followed that item. Vue Router still holds
-      // /activity, so it reports a duplicate and changes nothing itself.
-      mockRouteParams.tab = 'activity';
-      seatHistoryEntry();
+    it('follows a :tab change it did not make (Back/Forward, a link to a tab)', async () => {
       wrapper = await mountComponent();
 
-      await findTab(wrapper, 'domains').trigger('click');
+      mockRouteParams.tab = 'activity';
       await settle();
-      expect(window.location.pathname).toBe('/org/on1abc123/domains');
-
-      replayAfterEach(mountedLocation(), mountedLocation(), await navigationFailure('duplicated'));
-      await settle();
-
       expect(selectedTabId(wrapper)).toBe('org-tab-activity');
       expect(wrapper.find('[data-testid="org-section-activity"]').exists()).toBe(true);
-      expect(window.location.pathname).toBe('/org/on1abc123/activity');
+
+      // Back onto the bare org URL: the default tab.
+      delete mockRouteParams.tab;
+      await settle();
+      expect(selectedTabId(wrapper)).toBe('org-tab-domains');
+      expect(mockRouter.replace).not.toHaveBeenCalled();
     });
 
-    it('re-applies the default tab for Back/Forward onto the bare org URL it mounted with', async () => {
+    it('bounces a :tab change to a tab the user cannot open to Domains', async () => {
+      mockEntitlements.value = [];
       wrapper = await mountComponent();
 
-      await findTab(wrapper, 'general').trigger('click');
-      await settle();
-      expect(window.location.pathname).toBe('/org/on1abc123/settings');
-
-      // A popstate navigation that completes (no failure) on the same fullPath.
-      window.history.replaceState(window.history.state, '', '/org/on1abc123');
-      replayAfterEach(mountedLocation(), mountedLocation());
+      mockRouteParams.tab = 'members';
       await settle();
 
       expect(selectedTabId(wrapper)).toBe('org-tab-domains');
-      expect(window.location.pathname).toBe('/org/on1abc123');
+      expect(mockRouter.replace).toHaveBeenCalledWith(tabNavigation('domains'));
     });
 
-    it('ignores navigations that change location or fail for another reason', async () => {
+    it("never gates another org's :tab with this org's permissions", async () => {
+      // A switch to another org remounts the view (its :extid is in the view
+      // key). Until then this instance must not bounce the new route's tab.
+      mockEntitlements.value = [];
       wrapper = await mountComponent();
 
-      await findTab(wrapper, 'members').trigger('click');
+      mockRouteParams.extid = 'on1other456';
+      mockRouteParams.tab = 'members';
       await settle();
 
-      replayAfterEach({ fullPath: '/dashboard', params: {} }, mountedLocation());
-      replayAfterEach(mountedLocation(), mountedLocation(), await navigationFailure('aborted'));
-      await settle();
-
-      expect(selectedTabId(wrapper)).toBe('org-tab-members');
-      expect(window.location.pathname).toBe('/org/on1abc123/members');
+      expect(mockRouter.replace).not.toHaveBeenCalled();
     });
 
-    it('stops syncing and never rewrites the URL once unmounted', async () => {
-      // Gated deep link: checkInitialTabRedirect would rewrite the URL to
-      // /domains after onMounted's awaits. Unmount before they resolve, as
-      // when the user navigates away mid-load.
+    it('never navigates once unmounted', async () => {
+      // Gated deep link: checkInitialTabRedirect would navigate to /domains
+      // after onMounted's awaits. Unmount before they resolve, as when the
+      // user navigates away mid-load.
       mockRouteParams.tab = 'members';
       mockEntitlements.value = [];
-      seatHistoryEntry();
       mountComponentUnsettled();
-      expect(mockAfterEachHooks.size).toBe(1);
 
       wrapper.unmount();
       await settle();
 
-      expect(mockAfterEachHooks.size).toBe(0);
-      expect(window.location.pathname).toBe('/org/on1abc123/members');
-      expect(mockRouter.resolve).not.toHaveBeenCalled();
+      expect(mockRouter.replace).not.toHaveBeenCalled();
     });
   });
 });
