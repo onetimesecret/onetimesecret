@@ -390,8 +390,10 @@ test.describe('INV-010: Resend Invitation', () => {
 
     await resendButton.click();
 
-    // Verify success message
-    await expect(page.getByText(/resent|sent/i)).toBeVisible({ timeout: 10000 });
+    // Verify success message. Match the resend confirmation itself: the
+    // "Invitation sent successfully" alert from inviteMember is still on the
+    // page until the click replaces it, so /sent/ would pass at once.
+    await expect(page.getByText('Invitation resent successfully')).toBeVisible();
 
     // Invitation should still be in pending list
     await expect(page.getByText(testEmail)).toBeVisible();
