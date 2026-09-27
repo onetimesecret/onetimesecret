@@ -105,7 +105,7 @@ module Onetime
     # On top of it, these caps bound the scrub work per event: everything
     # done on the logging thread, and everything the Semantic Logger
     # formatters call when they render the event (a payload exception's own
-    # inspect is scrubbed up front and memoized). Not covered: exception
+    # inspect and to_s are scrubbed up front and memoized). Not covered: exception
     # copies' detailed_message and full_message, and the inspect of the
     # logged exception's copies and of cause copies, which scrub themselves
     # when called, under MAX_STRING_BYTES per call. No Semantic Logger
@@ -352,21 +352,32 @@ module Onetime
       end
 
       # An Exception inside a payload is rendered through #inspect (text
-      # formatters) or #to_s (JSON). Its inspect is scrubbed here, on the
-      # caller's thread and charged to the event's budget, and a copy
-      # returns that memo, so rendering the payload does no scrub work. When
-      # the budget cannot cover the message chain or the inspect, the value
-      # becomes the sentinel String rather than a copy.
+      # formatters) or #to_s (JSON, Logfmt). Both are scrubbed here, on the
+      # caller's thread and charged to the event's budget (#to_s only when
+      # the class makes it differ from #message, which the chain scan
+      # already covered), and a copy returns those memos, so rendering the
+      # payload does no scrub work. The value becomes the sentinel String
+      # rather than a copy when the budget cannot cover the head link's
+      # message, its inspect or its to_s. A later link the budget cannot
+      # cover still yields a copy: that link's message is the placeholder
+      # and the chain ends there (#scan_chain).
       def payload_exception(exception)
         links, texts, changed = scan_chain(exception)
         return texts.first if [BUDGET_SENTINEL, NODES_SENTINEL].any? { |s| texts.first.equal?(s) }
 
-        rendered = exception.inspect
-        shown    = string(rendered)
-        return shown if shown.equal?(BUDGET_SENTINEL)
-        return exception unless changed || !shown.equal?(rendered)
+        renders = { inspect: exception.inspect, to_s: distinct_to_s(exception) }.compact
+        shown   = renders.transform_values { |text| string(text) }
+        return BUDGET_SENTINEL if shown.any? { |_, text| text.equal?(BUDGET_SENTINEL) }
+        return exception unless changed || shown.any? { |name, text| !text.equal?(renders[name]) }
 
         copy_chain(links, texts, shown)
+      end
+
+      # #to_s when the class makes it differ from #message, else nil.
+      def distinct_to_s(exception)
+        text = exception.to_s
+        text = text.to_s unless text.is_a?(String)
+        text == exception_message(exception) ? nil : text
       end
 
       # @return [Array(Array<Exception>, Array<String>, Boolean)] the links
@@ -427,20 +438,24 @@ module Onetime
         message.is_a?(String) ? message : message.to_s
       end
 
-      # @param head_inspect [String, nil] the head's inspect, scrubbed and
-      #   charged to the budget (payload values); nil scrubs it lazily
-      def copy_chain(links, texts, head_inspect = nil)
+      # @param head_renders [Hash{Symbol => String}] the head's inspect and
+      #   (when it differs from message) to_s, scrubbed and charged to the
+      #   budget (payload values); an absent inspect is scrubbed lazily, an
+      #   absent to_s answers with the scrubbed message
+      def copy_chain(links, texts, head_renders = {})
         (links.size - 1).downto(0).inject(nil) do |cause, i|
-          sanitized_copy(links[i], texts[i], cause, i.zero? ? head_inspect : nil)
+          sanitized_copy(links[i], texts[i], cause, i.zero? ? head_renders : {})
         end
       end
 
-      def sanitized_copy(original, message, cause, inspect_text)
+      def sanitized_copy(original, message, cause, renders)
         copy = original.dup
         raise TypeError, "#{original.class}#dup returned the original" if copy.equal?(original)
 
+        to_s_text    = renders.fetch(:to_s, message)
+        inspect_text = renders[:inspect]
         copy.define_singleton_method(:message) { message }
-        copy.define_singleton_method(:to_s) { message }
+        copy.define_singleton_method(:to_s) { to_s_text }
         copy.define_singleton_method(:cause) { cause }
         # The copy's cause already stands in for whichever link came next.
         copy.define_singleton_method(:continued_exception) { nil } if copy.respond_to?(:continued_exception)
@@ -463,7 +478,8 @@ module Onetime
       # append text. These are scrubbed when called, under the per-string
       # cap only, and fall back to the scrubbed message. No Semantic Logger
       # formatter calls them on the logged exception; a payload value's
-      # inspect is memoized at scrub time instead (#payload_exception).
+      # inspect and to_s are memoized at scrub time instead
+      # (#payload_exception).
       def scrub_lazily(copy, renderer, message)
         copy.define_singleton_method(renderer) do |**opts|
           LogScrubber.scrub_string(super(**opts))

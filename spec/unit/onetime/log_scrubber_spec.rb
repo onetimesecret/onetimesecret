@@ -288,6 +288,25 @@ RSpec.describe Onetime::LogScrubber do
       expect(ex.inspect).to include(secret)
     end
 
+    # JSON and Logfmt render a payload exception through #to_s. A class can
+    # keep #message and #inspect clean while its #to_s shows a URL.
+    it 'scrubs a payload exception whose to_s differs from its message' do
+      klass = Class.new(StandardError) do
+        def initialize(url) = (super('fail'); @url = url)
+        def message = 'fail'
+        def to_s = "fail #{@url}"
+        def inspect = '#<T>'
+      end
+      ex    = klass.new(dirty_uri)
+
+      value = scrubbed(payload: { err: ex }).payload[:err]
+
+      expect(value).not_to equal(ex)
+      expect([value.to_s, value.message, value.inspect]).to eq(["fail #{clean_uri}", 'fail', '#<T>'])
+      expect({ err: value }.to_json).not_to include(secret)
+      expect(ex.to_s).to include(secret)
+    end
+
     # Rendering the payload must not run the redactor again, outside the
     # event's budget: the copy answers inspect from a memo made at scrub
     # time.
