@@ -30,9 +30,12 @@
 # and log email instead of sending it.
 #
 # If a check from this workflow is ever made required, require
-# `notify-results`: it fails unless every lane passed, and its name does not
-# change when a lane is added (the matrix check names, "container-e2e-tests
-# (simple)" and "container-e2e-tests (full)", do).
+# `notify-results`: it fails unless every lane passed (a cancelled run
+# included), and its name does not change when a lane is added (the matrix
+# check names, "container-e2e-tests (simple)" and "container-e2e-tests
+# (full)", do). Mind the pull_request paths filter below: a PR that touches
+# none of those paths gets no run and so no notify-results check, and GitHub
+# keeps a required check that never reports pending, which blocks the merge.
 # ==============================================================================
 name: Container E2E Tests
 
@@ -500,11 +503,14 @@ jobs:
   notify-results:
     # One verdict over every lane. For a matrix job, needs.<job>.result is
     # 'success' only when every lane succeeded, so this fails if any lane
-    # failed, timed out or was cancelled. Skipped when the whole run was
-    # cancelled (e.g. superseded by a newer push).
+    # failed, timed out or was cancelled. always(), not !cancelled(): when
+    # the whole run is cancelled (by hand, or superseded by a newer push via
+    # the concurrency group) this job must still run and fail. A skipped job
+    # counts as passing for a required check, so skipping it would leave the
+    # SHA mergeable with no E2E verdict.
     runs-on: ubuntu-24.04
     needs: container-e2e-tests
-    if: ${{ !cancelled() }}
+    if: always()
     steps:
       - name: Require every lane to pass
         env:
