@@ -22,8 +22,8 @@
 //   - DATA RELATIONSHIPS -> NOT env-gated. A second member, an invitee or a
 //     second organization is built during the run from throwaway accounts
 //     (e2e/support/members.ts, e2e/support/workspaces.ts). What the lane
-//     cannot build (a captured invite email, two organizations with custom
-//     domains) is `test.fixme`'d and tracked in e2e/QUARANTINE.md
+//     cannot build (a captured magic-link email, two organizations with
+//     custom domains) is `test.fixme`'d and tracked in e2e/QUARANTINE.md
 //     (issues #3420 / #3421).
 
 /** True when an env var is present and not an explicit falsey string. */
