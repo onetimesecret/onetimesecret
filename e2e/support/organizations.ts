@@ -1,14 +1,14 @@
 // e2e/support/organizations.ts
 //
 // Shared lookup of the signed-in account's organization for the e2e/full/
-// suites. It replaces eight per-spec copies of getFirstOrganization() that
+// suites. It replaces nine per-spec copies of getFirstOrganization() that
 // read the /orgs page with an isVisible() snapshot taken right after
 // data-app-ready. /orgs renders its list only after GET /api/organizations
 // resolves, so the snapshot often saw the loading skeleton, the copies
-// returned null, and every caller turned that into
-// `test.skip(true, 'No organizations available')`. Whole suites skipped at
-// random even though the account always owns an organization, and a
-// failed-then-skipped retry sequence showed up as flaky.
+// returned null, and every caller turned that into a runtime test.skip
+// ('No organizations available', 'Test requires at least 1 organization').
+// Whole suites skipped at random even though the account always owns an
+// organization, and a failed-then-skipped retry sequence showed up as flaky.
 //
 // The account e2e/global.setup.ts signs up owns its default organization
 // from signup onward, so this helper waits for the list and asserts it
