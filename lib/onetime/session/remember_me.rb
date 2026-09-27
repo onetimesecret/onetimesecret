@@ -44,9 +44,13 @@ module Onetime
   # session whose stamp has passed (the blob TTL only sizes the key), and
   # {Onetime::ActiveSessionGate} refuses a row whose `remember_until` has
   # passed. Neither depends on the switch: a deadline that has passed has
-  # passed. The switch governs only whether a sign-in is stamped and whether
-  # a stamp still exempts the row from the inactivity deadline and sizes the
-  # blob and cookie to it.
+  # passed. The switch governs only whether a sign-in is stamped, whether a
+  # stamp still exempts the row from the inactivity deadline, and whether a
+  # stamp can give the blob and cookie a lifetime beyond the rolling
+  # default. A stamp always bounds them: with the switch off, a write gives
+  # the blob and cookie the rolling default or the time left to the stamp,
+  # whichever is nearer ({Onetime::Session#absolute_remaining}), so the key
+  # and the cookie never claim a life the next read would refuse.
   #
   # ## Two clocks
   #
@@ -83,9 +87,11 @@ module Onetime
     # an unreadable config means not remembered, i.e. the default session.
     #
     # Turning the switch off also ends the remembered lifetime of sessions
-    # already stamped: {remaining} stops honouring the stamp (the next write
-    # gives the blob the default TTL and the cookie the default lifetime),
-    # and the gate stops exempting their rows from the inactivity deadline.
+    # already stamped: {remaining} stops honouring the stamp, so the next
+    # write gives the blob and the cookie the rolling default, bounded by
+    # the stamp when that is nearer (a passed stamp still ends the session
+    # on the read, whatever the switch says), and the gate stops exempting
+    # their rows from the inactivity deadline.
     def enabled?
       Onetime.auth_config.remember_me_sessions_enabled?
     rescue StandardError
