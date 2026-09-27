@@ -28,6 +28,7 @@
 import { expect, Page, test } from '@playwright/test';
 
 import { env, gateReason } from '../support/env';
+import { getFirstOrganization, type OrgInfo } from '../support/organizations';
 
 test.beforeEach(() => {
   test.skip(!env.hasCustomDomains, gateReason.customDomains);
@@ -37,25 +38,9 @@ test.beforeEach(() => {
 // Types + helpers (mirrors e2e/full/domain-navigation.spec.ts)
 // -----------------------------------------------------------------------------
 
-interface OrgInfo {
-  extid: string;
-}
-
 interface DomainInfo {
   extid: string;
   displayDomain: string;
-}
-
-async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
-  await page.goto('/orgs');
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-  const orgLink = page.locator('a[href*="/org/"]').first();
-  if (!(await orgLink.isVisible().catch(() => false))) return null;
-
-  const href = await orgLink.getAttribute('href');
-  const match = href?.match(/\/org\/([^/]+)/);
-  return match ? { extid: match[1] } : null;
 }
 
 async function getFirstDomain(page: Page, orgExtid: string): Promise<DomainInfo | null> {
@@ -109,12 +94,11 @@ test.describe('Domain favicon refresh (#3780)', () => {
 
   test('TC-FAV-001: refresh-favicon control renders on the Brand page', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
-    const button = await gotoBrandRefreshButton(page, org!, domain!);
+    const button = await gotoBrandRefreshButton(page, org, domain!);
     test.skip(!button, 'Brand editor unavailable — requires the custom_branding entitlement');
 
     await expect(button!).toBeVisible();
@@ -128,12 +112,11 @@ test.describe('Domain favicon refresh (#3780)', () => {
     // this domain is in, the button's disabled flag and the hint copy must
     // agree — a user_upload icon disables + explains; otherwise it stays live.
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
-    const button = await gotoBrandRefreshButton(page, org!, domain!);
+    const button = await gotoBrandRefreshButton(page, org, domain!);
     test.skip(!button, 'Brand editor unavailable — requires the custom_branding entitlement');
 
     const isDisabled = await button!.isDisabled();
@@ -150,12 +133,11 @@ test.describe('Domain favicon refresh (#3780)', () => {
 
   test('TC-FAV-003: clicking an enabled refresh queues a fetch (POST + toast)', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
-    const button = await gotoBrandRefreshButton(page, org!, domain!);
+    const button = await gotoBrandRefreshButton(page, org, domain!);
     test.skip(!button, 'Brand editor unavailable — requires the custom_branding entitlement');
 
     // A user_upload icon disables the control (nothing to queue) — that path is
@@ -192,14 +174,13 @@ test.describe('Domain favicon refresh (#3780)', () => {
     // /icon returns the stored record immediately, so the preview flip is
     // deterministic here and does NOT depend on the background worker.
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
     // Reuse the entitlement gate: if the refresh button mounted, the whole
     // Simple panel (including the upload field) did too.
-    const refreshButton = await gotoBrandRefreshButton(page, org!, domain!);
+    const refreshButton = await gotoBrandRefreshButton(page, org, domain!);
     test.skip(!refreshButton, 'Brand editor unavailable — requires the custom_branding entitlement');
 
     const uploadButton = page.getByTestId('domain-favicon-upload');

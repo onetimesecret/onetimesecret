@@ -28,6 +28,7 @@
 import { expect, Page, test } from '@playwright/test';
 
 import { env, gateReason } from '../support/env';
+import { getFirstOrganization } from '../support/organizations';
 
 // HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
 // Every test needs a custom domain on the test account. That is optional
@@ -45,11 +46,6 @@ test.beforeEach(() => {
 // Types
 // -----------------------------------------------------------------------------
 
-interface OrgInfo {
-  extid: string;
-  name: string;
-}
-
 interface DomainInfo {
   extid: string;
   displayDomain: string;
@@ -60,29 +56,6 @@ type ConfigScreenType = 'email' | 'sso' | 'incoming';
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Get the first organization the user has access to
- */
-async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
-  await page.goto('/orgs');
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-  const orgLink = page.locator('a[href*="/org/"]').first();
-  if (!(await orgLink.isVisible().catch(() => false))) {
-    return null;
-  }
-
-  const href = await orgLink.getAttribute('href');
-  const match = href?.match(/\/org\/([^/]+)/);
-  if (!match) return null;
-
-  const extid = match[1];
-  const nameElement = orgLink.locator('span.truncate, .font-medium, h3, h4').first();
-  const name = (await nameElement.textContent())?.trim() || extid;
-
-  return { extid, name };
-}
 
 /**
  * Get the first domain in the organization
@@ -189,12 +162,11 @@ test.describe('Domain Config - Toggle-Form State Coupling', () => {
 
   test('TC-DCC-001: form fields are disabled when toggle is OFF (Incoming)', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
-    const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
+    const formLoaded = await navigateToDomainConfig(page, org.extid, domain!.extid, 'incoming');
     test.skip(!formLoaded, 'Incoming config form not available');
 
     const toggle = await findEnabledToggle(page);
@@ -232,12 +204,11 @@ test.describe('Domain Config - Toggle-Form State Coupling', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
-    const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
+    const formLoaded = await navigateToDomainConfig(page, org.extid, domain!.extid, 'incoming');
     test.skip(!formLoaded, 'Incoming config form not available');
 
     const toggle = await findEnabledToggle(page);
@@ -277,12 +248,11 @@ test.describe('Domain Config - Toggle-Form State Coupling', () => {
 
   test('TC-DCC-003: toggle state persists after page refresh', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
-    const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
+    const formLoaded = await navigateToDomainConfig(page, org.extid, domain!.extid, 'incoming');
     test.skip(!formLoaded, 'Incoming config form not available');
 
     const toggle = await findEnabledToggle(page);
@@ -311,12 +281,11 @@ test.describe('Domain Config - Info Banner Visibility', () => {
 
   test('TC-DCC-004: shows info banner when feature is disabled', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
-    const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
+    const formLoaded = await navigateToDomainConfig(page, org.extid, domain!.extid, 'incoming');
     test.skip(!formLoaded, 'Incoming config form not available');
 
     const toggle = await findEnabledToggle(page);
@@ -352,12 +321,11 @@ test.describe('Domain Config - Info Banner Visibility', () => {
 
   test('TC-DCC-005: info banner content changes or hides when enabled', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
-    const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
+    const formLoaded = await navigateToDomainConfig(page, org.extid, domain!.extid, 'incoming');
     test.skip(!formLoaded, 'Incoming config form not available');
 
     const toggle = await findEnabledToggle(page);
@@ -391,12 +359,11 @@ test.describe('Domain Config - Toggle Position and Label', () => {
 
   test('TC-DCC-006: toggle is positioned after form fields (Incoming)', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
-    const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
+    const formLoaded = await navigateToDomainConfig(page, org.extid, domain!.extid, 'incoming');
     test.skip(!formLoaded, 'Incoming config form not available');
 
     const toggle = await findEnabledToggle(page);
@@ -417,12 +384,11 @@ test.describe('Domain Config - Toggle Position and Label', () => {
 
   test('TC-DCC-007: toggle label contains "Enabled" text', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
-    const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
+    const formLoaded = await navigateToDomainConfig(page, org.extid, domain!.extid, 'incoming');
     test.skip(!formLoaded, 'Incoming config form not available');
 
     // Look for label with "Enabled" text near the toggle
@@ -444,16 +410,15 @@ test.describe('Domain Config - Cross-Screen Consistency', () => {
 
   test('TC-DCC-008: all config screens have consistent toggle placement', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
     const screens: ConfigScreenType[] = ['incoming', 'email'];
     const togglePositions: { screen: string; hasToggle: boolean; isBelow: boolean }[] = [];
 
     for (const screenType of screens) {
-      const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, screenType);
+      const formLoaded = await navigateToDomainConfig(page, org.extid, domain!.extid, screenType);
       if (!formLoaded) {
         togglePositions.push({ screen: screenType, hasToggle: false, isBelow: false });
         continue;
@@ -486,16 +451,15 @@ test.describe('Domain Config - Cross-Screen Consistency', () => {
 
   test('TC-DCC-009: all config screens use "Enabled" label pattern', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
     const screens: ConfigScreenType[] = ['incoming', 'email'];
     const labelConsistency: { screen: string; hasEnabledLabel: boolean }[] = [];
 
     for (const screenType of screens) {
-      const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, screenType);
+      const formLoaded = await navigateToDomainConfig(page, org.extid, domain!.extid, screenType);
       if (!formLoaded) {
         labelConsistency.push({ screen: screenType, hasEnabledLabel: false });
         continue;
@@ -526,12 +490,11 @@ test.describe('Domain Config - Accessibility', () => {
 
   test('TC-DCC-010: toggle has proper ARIA attributes', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
-    const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
+    const formLoaded = await navigateToDomainConfig(page, org.extid, domain!.extid, 'incoming');
     test.skip(!formLoaded, 'Incoming config form not available');
 
     const toggle = await findEnabledToggle(page);
@@ -553,12 +516,11 @@ test.describe('Domain Config - Accessibility', () => {
 
   test('TC-DCC-011: disabled form fields have proper aria-disabled attribute', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
-    const formLoaded = await navigateToDomainConfig(page, org!.extid, domain!.extid, 'incoming');
+    const formLoaded = await navigateToDomainConfig(page, org.extid, domain!.extid, 'incoming');
     test.skip(!formLoaded, 'Incoming config form not available');
 
     const toggle = await findEnabledToggle(page);

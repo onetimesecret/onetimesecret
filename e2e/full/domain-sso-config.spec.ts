@@ -32,6 +32,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { env, gateReason } from '../support/env';
+import { getFirstOrganization } from '../support/organizations';
 
 // HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
 // Per-domain SSO config needs BOTH a custom domain and the manage_sso
@@ -50,11 +51,6 @@ test.beforeEach(() => {
 // Types
 // -----------------------------------------------------------------------------
 
-interface OrgInfo {
-  extid: string;
-  name: string;
-}
-
 interface DomainInfo {
   extid: string;
   displayDomain: string;
@@ -64,29 +60,6 @@ interface DomainInfo {
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Get the first organization the user has access to
- */
-async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
-  await page.goto('/orgs');
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-  const orgLink = page.locator('a[href*="/org/"]').first();
-  if (!(await orgLink.isVisible().catch(() => false))) {
-    return null;
-  }
-
-  const href = await orgLink.getAttribute('href');
-  const match = href?.match(/\/org\/([^/]+)/);
-  if (!match) return null;
-
-  const extid = match[1];
-  const nameElement = orgLink.locator('span.truncate, .font-medium, h3, h4').first();
-  const name = (await nameElement.textContent())?.trim() || extid;
-
-  return { extid, name };
-}
 
 /**
  * Navigate to organization settings SSO tab
@@ -223,9 +196,8 @@ test.describe('Domain SSO Configuration - Navigation', () => {
 
   test('TC-DSSO-001: navigates from signin page to SSO modal via configure button', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
 
     // Check if SSO tab is available (entitlement check)
     const hasSso = await hasSsoEntitlement(page);
@@ -236,7 +208,7 @@ test.describe('Domain SSO Configuration - Navigation', () => {
     test.skip(domains.length === 0, 'Test requires at least 1 domain');
 
     // Open the SSO modal on the signin page
-    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
+    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
     // Verify the SSO form is visible inside the modal
     await expect(modal.locator('form')).toBeVisible();
@@ -244,9 +216,8 @@ test.describe('Domain SSO Configuration - Navigation', () => {
 
   test('TC-DSSO-002: closing SSO modal returns to signin page', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
@@ -254,7 +225,7 @@ test.describe('Domain SSO Configuration - Navigation', () => {
     test.skip(domains.length === 0, 'Test requires at least 1 domain');
 
     // Open the SSO modal
-    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
+    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
     // Close the modal via the close button
     const closeButton = modal.getByRole('button', { name: /close/i });
@@ -264,14 +235,13 @@ test.describe('Domain SSO Configuration - Navigation', () => {
     await expect(page.getByRole('dialog')).not.toBeVisible();
 
     // Should still be on the signin page
-    await expect(page).toHaveURL(new RegExp(`/org/${org!.extid}/domains/${domains[0].extid}/signin`));
+    await expect(page).toHaveURL(new RegExp(`/org/${org.extid}/domains/${domains[0].extid}/signin`));
   });
 
   test('TC-DSSO-003: navigating to signin page and opening SSO modal works', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
@@ -279,7 +249,7 @@ test.describe('Domain SSO Configuration - Navigation', () => {
     test.skip(domains.length === 0, 'Test requires at least 1 domain');
 
     // Navigate directly to signin page
-    await page.goto(`/org/${org!.extid}/domains/${domains[0].extid}/signin`);
+    await page.goto(`/org/${org.extid}/domains/${domains[0].extid}/signin`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Verify signin page loaded correctly (page has no <form>; anchor on heading)
@@ -312,9 +282,8 @@ test.describe('Domain SSO Configuration - Domain List', () => {
 
   test('TC-DSSO-004: displays list of domains with SSO status badges', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
@@ -334,9 +303,8 @@ test.describe('Domain SSO Configuration - Domain List', () => {
 
   test('TC-DSSO-005: shows "Not Configured" badge for domains without SSO', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
@@ -355,9 +323,8 @@ test.describe('Domain SSO Configuration - Domain List', () => {
 
   test('TC-DSSO-006: configure link is visible in SSO hub domain list', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
@@ -376,9 +343,8 @@ test.describe('Domain SSO Configuration - Domain List', () => {
 
   test('TC-DSSO-007: empty domains state shows add domain prompt', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
@@ -406,9 +372,8 @@ test.describe('Domain SSO Configuration - Form', () => {
 
   test('TC-DSSO-008: shows empty form for domain without SSO config', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
@@ -416,7 +381,7 @@ test.describe('Domain SSO Configuration - Form', () => {
     const unconfiguredDomain = domains.find((d) => d.ssoStatus === 'not_configured');
     test.skip(!unconfiguredDomain, 'Test requires a domain without SSO config');
 
-    const modal = await openDomainSsoModal(page, org!.extid, unconfiguredDomain!.extid);
+    const modal = await openDomainSsoModal(page, org.extid, unconfiguredDomain!.extid);
 
     // Form should be visible inside the modal
     await expect(modal.locator('form')).toBeVisible();
@@ -434,9 +399,8 @@ test.describe('Domain SSO Configuration - Form', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
@@ -457,7 +421,7 @@ test.describe('Domain SSO Configuration - Form', () => {
       }
     });
 
-    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
+    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
     // #3902: tenant SSO is OIDC/Entra-only. Issuerless providers
     // (Google/GitHub) live on the platform surface only and must not be
@@ -473,16 +437,15 @@ test.describe('Domain SSO Configuration - Form', () => {
 
   test('TC-DSSO-010: selecting Entra ID shows tenant_id field', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
     const domains = await getDomainsFromSsoTab(page);
     test.skip(domains.length === 0, 'Test requires at least 1 domain');
 
-    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
+    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
     // Select Entra ID (Microsoft Entra ID)
     const entraOption = modal.locator('label').filter({ hasText: 'Microsoft Entra ID' });
@@ -495,16 +458,15 @@ test.describe('Domain SSO Configuration - Form', () => {
 
   test('TC-DSSO-011: selecting OIDC shows issuer field', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
     const domains = await getDomainsFromSsoTab(page);
     test.skip(domains.length === 0, 'Test requires at least 1 domain');
 
-    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
+    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
     // Select Generic OIDC
     const oidcOption = modal.locator('label').filter({ hasText: 'Generic OIDC' });
@@ -517,9 +479,8 @@ test.describe('Domain SSO Configuration - Form', () => {
 
   test('TC-DSSO-012: form validation prevents save without required fields', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
@@ -527,7 +488,7 @@ test.describe('Domain SSO Configuration - Form', () => {
     const unconfiguredDomain = domains.find((d) => d.ssoStatus === 'not_configured');
     test.skip(!unconfiguredDomain, 'Test requires a domain without SSO config');
 
-    const modal = await openDomainSsoModal(page, org!.extid, unconfiguredDomain!.extid);
+    const modal = await openDomainSsoModal(page, org.extid, unconfiguredDomain!.extid);
 
     // Find save button scoped to the modal
     const saveButton = modal.locator('button[type="submit"]');
@@ -578,9 +539,8 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
 
   test('TC-DSSO-013: test connection button sends test request', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
@@ -605,7 +565,7 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
       });
     });
 
-    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
+    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
     // Fill required fields for test
     const displayNameInput = page.locator('#domain-sso-display-name');
@@ -630,9 +590,8 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
 
   test('TC-DSSO-014: shows success message for valid credentials', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
@@ -654,7 +613,7 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
       });
     });
 
-    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
+    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
     // Fill required fields
     await page.locator('#domain-sso-display-name').fill('Test SSO');
@@ -676,9 +635,8 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
 
   test('TC-DSSO-015: shows error details for invalid credentials', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
@@ -701,7 +659,7 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
       });
     });
 
-    const modal = await openDomainSsoModal(page, org!.extid, domains[0].extid);
+    const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
     // Fill required fields
     await page.locator('#domain-sso-display-name').fill('Test SSO');
@@ -734,9 +692,8 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
 
   test('TC-DSSO-016: save button creates new SSO config', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
@@ -770,7 +727,7 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
       }
     });
 
-    const modal = await openDomainSsoModal(page, org!.extid, unconfiguredDomain!.extid);
+    const modal = await openDomainSsoModal(page, org.extid, unconfiguredDomain!.extid);
 
     // Fill all required fields
     await page.locator('#domain-sso-display-name').fill('Test SSO');
@@ -792,9 +749,8 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
 
   test('TC-DSSO-017: delete button removes SSO config with confirmation', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
@@ -817,7 +773,7 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
       }
     });
 
-    const modal = await openDomainSsoModal(page, org!.extid, configuredDomain!.extid);
+    const modal = await openDomainSsoModal(page, org.extid, configuredDomain!.extid);
 
     // Find delete button scoped to the modal
     const deleteButton = modal.locator('button').filter({ hasText: /delete/i });
@@ -854,9 +810,8 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
     test.skip(!hasSso, 'Test requires manage_sso entitlement');
 
@@ -921,7 +876,7 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
     });
 
     // Step 1: Open SSO modal for domain A
-    const modalA = await openDomainSsoModal(page, org!.extid, domainA.extid);
+    const modalA = await openDomainSsoModal(page, org.extid, domainA.extid);
 
     // Step 2: Configure Entra ID for domain A
     const entraOption = modalA.locator('label').filter({ hasText: 'Microsoft Entra ID' });
@@ -941,7 +896,7 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
     await saveResponseA;
 
     // Step 4: Open SSO modal for domain B (navigates to domain B's signin page)
-    const modalB = await openDomainSsoModal(page, org!.extid, domainB.extid);
+    const modalB = await openDomainSsoModal(page, org.extid, domainB.extid);
 
     // Step 5: Configure Generic OIDC for domain B (#3902: tenant SSO is
     // OIDC/Entra-only, so the second provider is OIDC rather than Google)
@@ -963,7 +918,7 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
 
     // Step 7: Return to org settings and verify both show configured status
     // (In real scenario, need to refresh domain list data)
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
 
     // Success - test completed the multi-domain configuration flow
     expect(true).toBe(true);
@@ -987,10 +942,9 @@ test.describe('Domain SSO Configuration - Access Control', () => {
     page,
   }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
     // Navigate to org settings
-    await page.goto(`/org/${org!.extid}`);
+    await page.goto(`/org/${org.extid}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check if SSO tab is NOT visible (no entitlement)
@@ -1008,10 +962,9 @@ test.describe('Domain SSO Configuration - Access Control', () => {
 
   test('TC-DSSO-020: signin page hides SSO configure button without manage_sso entitlement', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
     // Navigate to org settings to discover a domain
-    await navigateToOrgSsoTab(page, org!.extid);
+    await navigateToOrgSsoTab(page, org.extid);
     const hasSso = await hasSsoEntitlement(page);
 
     if (hasSso) {
@@ -1019,7 +972,7 @@ test.describe('Domain SSO Configuration - Access Control', () => {
       const domains = await getDomainsFromSsoTab(page);
       test.skip(domains.length === 0, 'Test requires at least 1 domain');
 
-      await navigateToDomainSigninPage(page, org!.extid, domains[0].extid);
+      await navigateToDomainSigninPage(page, org.extid, domains[0].extid);
 
       // The configure button should be visible (user has entitlement)
       const ssoButton = page.getByRole('button', { name: /configure|edit credentials/i });
@@ -1027,7 +980,7 @@ test.describe('Domain SSO Configuration - Access Control', () => {
     } else {
       // User doesn't have manage_sso - navigate to signin page
       // The "Upgrade to configure" text should appear instead of the configure button
-      await page.goto(`/org/${org!.extid}/domains/test-domain/signin`);
+      await page.goto(`/org/${org.extid}/domains/test-domain/signin`);
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       // Should show either upgrade prompt or access denied

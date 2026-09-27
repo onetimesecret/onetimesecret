@@ -20,6 +20,7 @@
 import { expect, Page, test } from '@playwright/test';
 
 import { env, gateReason } from '../support/env';
+import { getFirstOrganization } from '../support/organizations';
 
 // HOLDING ACTION — not coverage (E2E remediation plan Phase 2.4 / PR 5).
 // Every test needs a custom domain on the test account (optional deployment
@@ -36,11 +37,6 @@ test.beforeEach(() => {
 // Types
 // -----------------------------------------------------------------------------
 
-interface OrgInfo {
-  extid: string;
-  name: string;
-}
-
 interface DomainInfo {
   extid: string;
   displayDomain: string;
@@ -49,29 +45,6 @@ interface DomainInfo {
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Get the first organization the user has access to
- */
-async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
-  await page.goto('/orgs');
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-  const orgLink = page.locator('a[href*="/org/"]').first();
-  if (!(await orgLink.isVisible().catch(() => false))) {
-    return null;
-  }
-
-  const href = await orgLink.getAttribute('href');
-  const match = href?.match(/\/org\/([^/]+)/);
-  if (!match) return null;
-
-  const extid = match[1];
-  const nameElement = orgLink.locator('span.truncate, .font-medium, h3, h4').first();
-  const name = (await nameElement.textContent())?.trim() || extid;
-
-  return { extid, name };
-}
 
 /**
  * Get the first domain in the organization
@@ -118,13 +91,12 @@ test.describe('Domain Sub-page Navigation', () => {
 
   test('TC-DN-001: SSO page back button navigates to DomainDetail', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
     // Navigate to SSO config page
-    const ssoUrl = `/org/${org!.extid}/domains/${domain!.extid}/sso`;
+    const ssoUrl = `/org/${org.extid}/domains/${domain!.extid}/sso`;
     await page.goto(ssoUrl);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -142,7 +114,7 @@ test.describe('Domain Sub-page Navigation', () => {
     await clickBackButton(page);
 
     // Verify navigation to DomainDetail (not domains list)
-    const expectedUrl = `/org/${org!.extid}/domains/${domain!.extid}`;
+    const expectedUrl = `/org/${org.extid}/domains/${domain!.extid}`;
     await page.waitForURL(new RegExp(`${expectedUrl}$`), { timeout: 5000 });
 
     // Should NOT be on domains list (which would end with just /domains)
@@ -153,13 +125,12 @@ test.describe('Domain Sub-page Navigation', () => {
 
   test('TC-DN-002: Incoming page back button navigates to DomainDetail', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
     // Navigate to Incoming config page
-    const incomingUrl = `/org/${org!.extid}/domains/${domain!.extid}/incoming`;
+    const incomingUrl = `/org/${org.extid}/domains/${domain!.extid}/incoming`;
     await page.goto(incomingUrl);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -176,7 +147,7 @@ test.describe('Domain Sub-page Navigation', () => {
     await clickBackButton(page);
 
     // Verify navigation to DomainDetail
-    const expectedUrl = `/org/${org!.extid}/domains/${domain!.extid}`;
+    const expectedUrl = `/org/${org.extid}/domains/${domain!.extid}`;
     await page.waitForURL(new RegExp(`${expectedUrl}$`), { timeout: 5000 });
 
     expect(page.url()).not.toMatch(/\/domains$/);
@@ -185,13 +156,12 @@ test.describe('Domain Sub-page Navigation', () => {
 
   test('TC-DN-003: Verify page back button navigates to DomainDetail', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
     // Navigate to Verify page
-    const verifyUrl = `/org/${org!.extid}/domains/${domain!.extid}/verify`;
+    const verifyUrl = `/org/${org.extid}/domains/${domain!.extid}/verify`;
     await page.goto(verifyUrl);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -203,7 +173,7 @@ test.describe('Domain Sub-page Navigation', () => {
     await clickBackButton(page);
 
     // Verify navigation to DomainDetail
-    const expectedUrl = `/org/${org!.extid}/domains/${domain!.extid}`;
+    const expectedUrl = `/org/${org.extid}/domains/${domain!.extid}`;
     await page.waitForURL(new RegExp(`${expectedUrl}$`), { timeout: 5000 });
 
     expect(page.url()).not.toMatch(/\/domains$/);
@@ -222,13 +192,12 @@ test.describe('DomainHeader External Link', () => {
 
   test('TC-DN-004: DomainIncoming header link includes /incoming path', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
     // Navigate to Incoming config page
-    const incomingUrl = `/org/${org!.extid}/domains/${domain!.extid}/incoming`;
+    const incomingUrl = `/org/${org.extid}/domains/${domain!.extid}/incoming`;
     await page.goto(incomingUrl);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -247,13 +216,12 @@ test.describe('DomainHeader External Link', () => {
 
   test('TC-DN-005: DomainSso header link does not include path suffix', async ({ page }) => {
     const org = await getFirstOrganization(page);
-    test.skip(!org, 'Test requires at least 1 organization');
 
-    const domain = await getFirstDomain(page, org!.extid);
+    const domain = await getFirstDomain(page, org.extid);
     test.skip(!domain, 'Test requires at least 1 domain');
 
     // Navigate to SSO config page
-    const ssoUrl = `/org/${org!.extid}/domains/${domain!.extid}/sso`;
+    const ssoUrl = `/org/${org.extid}/domains/${domain!.extid}/sso`;
     await page.goto(ssoUrl);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
