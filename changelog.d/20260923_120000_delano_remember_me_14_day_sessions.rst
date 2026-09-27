@@ -21,7 +21,8 @@ Fixed
   active-session rows to this bound; simple mode had no absolute bound at
   all, so a session used at least once a day never expired. Remembered
   sessions end at 14 days as above; the 30 days is the ceiling for every
-  other session.
+  other session. The bound is ``site.session.absolute_timeout``
+  (``SESSION_ABSOLUTE_TIMEOUT``), in seconds; ``0`` disables it.
 
 Changed
 -------

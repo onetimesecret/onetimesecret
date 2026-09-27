@@ -17,7 +17,8 @@
 #              (while AUTH_REMEMBER_ME_ENABLED is on), refused after it
 #              whatever the switch says
 #
-# The 30-day lifetime deadline applies to both.
+# The absolute lifetime deadline (site.session.absolute_timeout, 30 days by
+# default) applies to both.
 #
 # NULLABLE with no backfill: no existing session was remembered (the
 # checkbox had no effect before this). No index: the column is only read on

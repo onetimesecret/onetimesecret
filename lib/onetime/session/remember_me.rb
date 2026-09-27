@@ -32,8 +32,9 @@ module Onetime
   # ## What is not extended
   #
   # The deadline is fixed at sign-in, as Rodauth's remember_deadline_interval
-  # is, and never moves with activity. The 30-day lifetime deadline still
-  # applies, on the row and (from `authenticated_at`) on the blob, and so
+  # is, and never moves with activity. The absolute lifetime deadline
+  # (`site.session.absolute_timeout`, 30 days by default) still applies, on
+  # the row and (from `authenticated_at`) on the blob, and so
   # does the colonel's absolute session bound (AdminSessionLifetime), which
   # is shorter.
   #
