@@ -285,12 +285,25 @@ jobs:
             # twice, so one real failure could run past the cap and bury
             # itself under 429s. Only the exact string 'false' disables it.
             # e2e-full-auth.yml sets it for the same reason.
+            #
+            # ENABLE_ORGS=true turns on the workspace switcher
+            # (features.organizations.enabled). In the SPA it gates only the
+            # org switcher and the static org chip in the header
+            # (isOrganizationSwitcherEnabled, src/utils/features.ts);
+            # organizations exist either way. With it off, the switcher never
+            # renders and e2e/full/scope-switcher.spec.ts cannot observe the
+            # visibility rules it asserts. The TEST_USER_* account owns only
+            # its default workspace and is its only member, so the switcher
+            # stays hidden for it (the solo-workspace rule in
+            # useScopeSwitcherVisibility.ts) and the pages the other specs
+            # load as that account render as before.
             docker_env+=(
               -e AUTH_DATABASE_URL=sqlite://data/auth.db
               -e ACCOUNT_ID_SECRET
               -e AUTH_SECRET
               -e AUTH_VERIFY_ACCOUNT_ENABLED=false
               -e CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false
+              -e ENABLE_ORGS=true
             )
           fi
 
