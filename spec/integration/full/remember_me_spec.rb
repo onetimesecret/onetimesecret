@@ -193,6 +193,16 @@ RSpec.describe 'Remember me: a fixed 14-day session (full mode)', type: :integra
       login!
       expect(session_blob).not_to have_key('remember_until')
     end
+
+    it 'does not remember while remember-me is switched off, whatever the parameter says', :aggregate_failures do
+      allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_return(false)
+      login!('remember-me' => true)
+
+      expect(session_blob).not_to have_key('remember_until')
+      expect(current_row[:remember_until]).to be_nil
+      expect(blob_ttl).to be_between(1, 86_400)
+      expect(session_cookie_header.to_s).not_to match(/max-age/i)
+    end
   end
 
   # The sessions page, opened on a second device, runs Rodauth's sweep

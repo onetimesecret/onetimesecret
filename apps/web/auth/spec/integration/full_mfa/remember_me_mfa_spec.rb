@@ -70,4 +70,16 @@ RSpec.describe 'Remember me across the second factor', :full_auth_mode, type: :i
     expect(session_blob).not_to have_key('remember_me_pending')
     expect(current_row[:remember_until]).to be_nil
   end
+
+  it 'drops a held choice when remember-me is switched off before the second factor', :aggregate_failures do
+    password_step('remember-me' => true)
+    expect(session_blob['remember_me_pending']).to be(true)
+
+    allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_return(false)
+    otp_step
+
+    expect(session_blob).not_to have_key('remember_until')
+    expect(session_blob).not_to have_key('remember_me_pending')
+    expect(current_row[:remember_until]).to be_nil
+  end
 end

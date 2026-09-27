@@ -17,6 +17,14 @@ module Auth::Config::Features
   # cookie stop being sized to the stamp and the row loses its inactivity
   # exemption. Its stamp still ends it when the 14 days are up.
   #
+  # The switch is checked twice: at boot, where config.rb configures this
+  # feature only when it is on (off, the hooks below are not defined and the
+  # login hooks skip them), and again in the hooks themselves at request
+  # time, as the simple-mode login does (core/controllers/authentication.rb).
+  # The second check is what the integration specs exercise, and it keeps a
+  # choice held across the second factor from being stamped once the switch
+  # is off.
+  #
   # Rodauth's :remember feature is NOT enabled. Before this, it was, and
   # nothing ever called remember_login or load_memory, so the checkbox did
   # nothing. account_remember_keys stays in the schema, and is still cleared
@@ -65,6 +73,7 @@ module Auth::Config::Features
       auth.auth_class_eval do
         # Called from after_login (config/hooks/login.rb).
         def remember_me_after_login(second_factor_pending:)
+          return unless Onetime::RememberMe.enabled?
           return unless Onetime::RememberMe.requested?(raw_param(Onetime::RememberMe::PARAM))
 
           if second_factor_pending
@@ -76,7 +85,8 @@ module Auth::Config::Features
 
         # Called from after_two_factor_authentication (config/hooks/two_factor.rb).
         def remember_me_after_two_factor
-          return unless session.delete(Auth::Config::Features::RememberMe::PENDING_KEY)
+          pending = session.delete(Auth::Config::Features::RememberMe::PENDING_KEY)
+          return unless pending && Onetime::RememberMe.enabled?
 
           remember_this_session
         end
