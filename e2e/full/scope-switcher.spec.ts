@@ -22,9 +22,8 @@
 //   - The storageState account (e2e/global.setup.ts) owns only its default
 //     workspace and is its only member, so the org switcher is hidden for it
 //     by the solo rule. TC-SS-050 asserts exactly that.
-//   - The visible and interactive cases sign up a throwaway owner and give it
-//     a second workspace through the organizations API
-//     (e2e/support/members.ts createOrganization), once per worker.
+//   - The visible and interactive cases run as a throwaway owner of two
+//     workspaces (e2e/support/workspaces.ts), created once per worker.
 //   - No custom domains. The domain-switcher cases run only when the target
 //     has one (E2E_CUSTOM_DOMAINS, e2e/support/env.ts); otherwise they are
 //     test.fixme and tracked in e2e/QUARANTINE.md (#3420). TC-SS-051 checks
@@ -32,23 +31,12 @@
 //
 // Test IDs follow the Qase table at the end of this file.
 
-import {
-  expect,
-  test as base,
-  type Browser,
-  type BrowserContext,
-  type Locator,
-  type Page,
-} from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 import { env } from '../support/env';
+import type { CreatedOrganization } from '../support/members';
 import { getFirstOrganization } from '../support/organizations';
-import {
-  closeContexts,
-  createOrganization,
-  signUpAndSignIn,
-  type CreatedOrganization,
-} from '../support/members';
+import { expect, otherWorkspace, test, type WorkspaceOwner } from '../support/workspaces';
 
 // -----------------------------------------------------------------------------
 // Locators
@@ -84,81 +72,6 @@ function settingsTab(page: Page, name: string): Locator {
 }
 
 // -----------------------------------------------------------------------------
-// Fixtures
-// -----------------------------------------------------------------------------
-
-type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
-
-interface WorkspaceOwner {
-  storageState: StorageState;
-  defaultWorkspace: CreatedOrganization;
-  secondWorkspace: CreatedOrganization;
-  /** A receipt page of a secret the owner created (a lockBoth route). */
-  receiptPath: string;
-}
-
-/** Created once per worker process; a retry runs in a fresh worker and a fresh owner. */
-let workspaceOwner: WorkspaceOwner | undefined;
-
-/**
- * Sign up a throwaway owner, give it a second workspace, and create one
- * secret so a receipt page exists. Two owned workspaces make the org switcher
- * render (not the solo default context) for every test that uses it.
- */
-async function createWorkspaceOwner(browser: Browser): Promise<WorkspaceOwner> {
-  const opened: BrowserContext[] = [];
-  try {
-    const owner = await signUpAndSignIn(browser, opened, 'scope-owner');
-    const { page } = owner;
-
-    const first = await getFirstOrganization(page);
-    const listResponse = await page.request.get('/api/organizations');
-    expect(listResponse.ok(), 'GET /api/organizations').toBe(true);
-    const { records } = (await listResponse.json()) as {
-      records: { extid: string; objid: string; display_name: string; is_default: boolean }[];
-    };
-    const defaultRecord = records.find((org) => org.extid === first.extid);
-    expect(defaultRecord?.is_default, 'a new account owns its default workspace').toBe(true);
-
-    const secondWorkspace = await createOrganization(page, 'Scope Switcher Second');
-
-    await page.goto('/dashboard');
-    await page.getByRole('textbox', { name: 'Secret content' }).fill('scope switcher receipt');
-    await page.getByTestId('split-button-submit').click();
-    await page.waitForURL(/\/receipt\/[^/]+$/);
-    const receiptPath = new URL(page.url()).pathname;
-
-    return {
-      storageState: await owner.context.storageState(),
-      defaultWorkspace: {
-        extid: first.extid,
-        objid: defaultRecord!.objid,
-        name: defaultRecord!.display_name,
-      },
-      secondWorkspace,
-      receiptPath,
-    };
-  } finally {
-    await closeContexts(opened);
-  }
-}
-
-const test = base.extend<{ owner: WorkspaceOwner; ownerPage: Page }>({
-  owner: async ({ browser }, use) => {
-    workspaceOwner ??= await createWorkspaceOwner(browser);
-    await use(workspaceOwner);
-  },
-  /** A page signed in as the two-workspace owner, in its own context. */
-  ownerPage: async ({ browser, owner }, use) => {
-    const context = await browser.newContext({ storageState: owner.storageState });
-    const page = await context.newPage();
-    page.setDefaultTimeout(15000);
-    await use(page);
-    await context.close();
-  },
-});
-
-// -----------------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------------
 
@@ -184,12 +97,6 @@ async function currentWorkspaceName(page: Page, owner: WorkspaceOwner): Promise<
   const match = [owner.defaultWorkspace, owner.secondWorkspace].find((w) => text.endsWith(w.name));
   expect(match, `the locked switcher names one of the owner's workspaces ("${text}")`).toBeTruthy();
   return match!.name;
-}
-
-function otherWorkspace(owner: WorkspaceOwner, current: CreatedOrganization): CreatedOrganization {
-  return current.extid === owner.defaultWorkspace.extid
-    ? owner.secondWorkspace
-    : owner.defaultWorkspace;
 }
 
 /** Choose a workspace from the open-able switcher and wait for the menu to close. */
