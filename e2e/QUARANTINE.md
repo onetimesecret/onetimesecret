@@ -56,13 +56,14 @@ that does not exist yet; the fixtures are Phase 3 / PR 6 work.
 | `full/organization-settings.spec.ts` › ORG-DETAIL-006 SSO tab opens the SSO panel | delano | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) | 2026-09-26 | Needs org SSO turned on (`ORGS_SSO_ENABLED`) and the `manage_sso` entitlement; no lane configures either. `test.fixme` unless `E2E_SSO_UI` is set. The lane still checks that the SSO tab is absent and that `/sso` redirects to Domains (ORG-DETAIL-001, ORG-DETAIL-011). |
 
 > **Still owed (deferred to a CI-verified follow-up, not in this PR):** the
-> org-existence `test.skip(true)` conversions in `identifier-url-patterns` and
-> `scope-switcher`. PR 4 showed the org UI does not always render as those tests
-> assert, so converting their guards to assertions can introduce fresh red — it
-> must be done against a real CI run, not blind. `organization-settings` and
-> `organization-members` are converted: their skips came from a helper that read
-> /orgs before the list rendered (now `e2e/support/organizations.ts`), not from
-> missing organizations. Verified locally against the full-lane container image.
+> org-existence `test.skip(true)` conversions in `scope-switcher`. PR 4 showed
+> the org UI does not always render as those tests assert, so converting their
+> guards to assertions can introduce fresh red — it must be done against a real
+> CI run, not blind. `organization-settings`, `organization-members` and
+> `identifier-url-patterns` are converted: their skips came from reading /orgs
+> before the list rendered (now `e2e/support/organizations.ts`) and from stale
+> selectors, not from missing organizations. Verified locally against the
+> full-lane container image.
 > The members tests that need other members (roles, removal, hierarchy,
 > permissions) sign up a throwaway team through the real invitation flow
 > (`e2e/support/members.ts`), so they need no seeded fixture.
@@ -91,5 +92,6 @@ not coverage** until a lane sets the flag.
 | `full/domain-incoming-entitlement.spec.ts` | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
 | `full/domain-sso-config.spec.ts` | `E2E_CUSTOM_DOMAINS` + `E2E_SSO_UI` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
 | `full/domain-sso-multi-provider.spec.ts` | `E2E_CUSTOM_DOMAINS` + `E2E_SSO_UI` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
+| `full/identifier-url-patterns.spec.ts` › TC-ID-010, -011, -012, -031, -051 (domain URLs) | `E2E_CUSTOM_DOMAINS` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
 | `auth/sso-csrf.spec.ts` | `E2E_SSO_UI` | [#2798](https://github.com/onetimesecret/onetimesecret/issues/2798) |
 | `full/mfa-bootstrap-reactivity.spec.ts` | `TEST_MFA_*` | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) |
