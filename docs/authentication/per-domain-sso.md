@@ -678,8 +678,8 @@ already reflect an override. The metadata URL is authoritative: the API
 composes the two values from the domain's `display_domain` and `site.ssl`,
 while the sign-in hook uses the public host of the actual request. They agree
 for a verified custom domain served on the default port. For an unverified
-domain the public-host resolution falls back to the request's own authority,
-so verify the domain before configuring the IdP.
+domain the public-host resolution falls back to the canonical host, never to
+the request's own authority, so verify the domain before configuring the IdP.
 
 The default requested NameID format is persistent. Tenant `name_id_format`
 can request another supported format or omit the policy; the transient format

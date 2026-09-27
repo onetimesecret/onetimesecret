@@ -99,9 +99,9 @@ module DomainsAPI
         # verified custom domain served on the default port — the production
         # shape. They can differ for an UNVERIFIED domain (Auth::PublicHost
         # only roots auth URLs on a TXT-verified domain, so full_host falls
-        # back to the request's own authority) or a non-default port; the SP
-        # metadata URL itself is always authoritative, since it is served by
-        # the same hook.
+        # back to the canonical host, never to the request's own authority —
+        # #4517) or a non-default port; the SP metadata URL itself is always
+        # authoritative, since it is served by the same hook.
         #
         # Both nil for a non-saml record, or when the domain cannot be loaded.
         #
