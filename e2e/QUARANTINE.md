@@ -53,6 +53,7 @@ that does not exist yet; the fixtures are Phase 3 / PR 6 work.
 | `full/org-invitation-flow.spec.ts` › INV-017 full invitation acceptance | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-10 | Needs a second account to sign up with the invited email + Mailpit. |
 | `full/invite-token-security.spec.ts` › SEC-INV-003 valid invite_token auto-login | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-24 | Needs a seeded invite_token consumed by a fresh signup (second account + mail); CI cannot seed it, so invite-direct-accept never renders. |
 | `full/org-invitation-flow.spec.ts` › INV-007b unauthenticated decline | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-24 | Needs a real pending invitation to decline unauthenticated; CI cannot seed the invitation, so the decline lands on an unexpected URL. |
+| `full/organization-settings.spec.ts` › ORG-DETAIL-006 SSO tab opens the SSO panel | delano | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) | 2026-09-26 | Needs org SSO turned on (`ORGS_SSO_ENABLED`) and the `manage_sso` entitlement; no lane configures either. `test.fixme` unless `E2E_SSO_UI` is set. The lane still checks that the SSO tab is absent and that `/sso` redirects to Domains (ORG-DETAIL-001, ORG-DETAIL-011). |
 | `full/organization-members.spec.ts` › MBR-INVMGMT-001 resend pending invitation | delano | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) | 2026-06-24 | Needs a seeded pending invitation in the org; no fixture in CI, so the invitation row never renders. |
 | `full/organization-members.spec.ts` › MBR-INVMGMT-002 revoke pending invitation | delano | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) | 2026-06-24 | Needs a seeded pending invitation in the org; no fixture in CI, so the invitation row never renders. |
 | `full/organization-members.spec.ts` › MBR-ACCEPT-001 valid token shows details | delano | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) | 2026-06-24 | Needs a valid seeded invitation token; CI cannot seed the relationship, so invitation-details never renders. |
@@ -61,11 +62,13 @@ that does not exist yet; the fixtures are Phase 3 / PR 6 work.
 > **Still owed (deferred to a CI-verified follow-up, not in this PR):** the
 > `organization-members` role/remove tests (issue
 > [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419)) and the
-> org-existence `test.skip(true)` conversions in `organization-settings`,
-> `identifier-url-patterns`, `scope-switcher`, and `organization-members`. PR 4
-> showed the org UI does not always render as those tests assert, so converting
-> their guards to assertions can introduce fresh red — it must be done against a
-> real CI run, not blind. ~70 `test.skip(true)` remain in those four files.
+> org-existence `test.skip(true)` conversions in `identifier-url-patterns`,
+> `scope-switcher`, and `organization-members`. PR 4 showed the org UI does not
+> always render as those tests assert, so converting their guards to assertions
+> can introduce fresh red — it must be done against a real CI run, not blind.
+> `organization-settings` is converted: its skips came from a helper that read
+> /orgs before the list rendered (now `e2e/support/organizations.ts`), not from
+> missing organizations. Verified locally against the full-lane container image.
 
 ## Dormant-in-CI suites (`env`-gated — optional config, **NOT coverage yet**)
 
