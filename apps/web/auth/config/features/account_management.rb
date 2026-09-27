@@ -103,18 +103,22 @@ module Auth::Config::Features
         end
       end
 
-      # Auto-login after invite signup (flag set in after_create_account hook)
-      auth.create_account_autologin? do
-        should_autologin = @invite_accepted == true
-        Auth::Logging.log_auth_event(
-          :create_account_autologin_decision,
-          level: :debug,
-          email: OT::Utils.obscure_email(param(login_param)),
-          autologin: should_autologin,
-          invite_accepted: @invite_accepted == true,
-        )
-        should_autologin
-      end
+      # No create-account path logs the new account in. Stated here because
+      # Rodauth defaults create_account_autologin? to true and verify_account
+      # turns it off (rodauth 2.45.0 create_account.rb, verify_account.rb), so
+      # with verification off every signup would otherwise be logged in.
+      #
+      # Invite signups included. The SPA's invite form posts to
+      # /api/invite/:token/signup, which calls create_account as an internal
+      # request and then sets up the app session itself
+      # (SignupAndAccept#setup_session). An autologin there would run against
+      # the internal request's own session hash, which is thrown away, and
+      # leave behind an active-session row no session can present. A JSON
+      # POST to /auth/create-account with an invite_token gets no session:
+      # an autologin skips after_login, so the app's `authenticated` flag
+      # would never be set, and the next step is signing in (next_action,
+      # below).
+      auth.create_account_autologin? false
 
       # Have successful login redirect back to originally requested page
       # @see login_return.rdoc
@@ -188,12 +192,9 @@ module Auth::Config::Features
     # signup is the exception: after_create_account opens the account and no
     # email is sent, so it answers sign_in.
     #
-    # There is no "signed in" answer, although create_account_autologin? logs
-    # the invite signup in. That autologin is Rodauth's alone: it does not run
-    # after_login, so SyncSession never sets the app's `authenticated` flag,
-    # and /bootstrap/me and every app route treat the caller as anonymous.
-    # Signing in is still the next step that works. The SPA's own invite form
-    # posts to /api/invite/:token/signup, which sets that flag itself.
+    # There is no "signed in" answer: create_account_autologin? is false, so
+    # this route never establishes a session. The SPA's own invite form posts
+    # to /api/invite/:token/signup, which does.
     #
     # The success text follows the same account status. verify_account
     # replaces create_account's notice with "An email has been sent to you

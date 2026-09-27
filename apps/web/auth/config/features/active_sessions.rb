@@ -62,15 +62,15 @@ module Auth::Config::Features
       # a stamp are the ones minted before it existed.
       #
       # What becomes of the active-session row `super` just INSERTed depends
-      # on the caller. `login` (password, SSO, email-auth, WebAuthn) and the
-      # create_account autologin run login_session inside a transaction, so
-      # the row rolls back with the error. The verify_account and
-      # reset_password autologins and the remember-cookie load_memory call
-      # login_session OUTSIDE their transactions (rodauth 2.45:
-      # verify_account.rb, reset_password.rb, remember.rb), so on those paths
-      # the row is left behind. That orphan is inert: no Rack session carries
-      # its join key, so nothing can present it, and Rodauth's inactivity
-      # sweep removes it after session_inactivity_deadline.
+      # on the caller. `login` (password, SSO, email-auth, WebAuthn) runs
+      # login_session inside a transaction, so the row rolls back with the
+      # error. The verify_account and reset_password autologins and the
+      # remember-cookie load_memory call login_session OUTSIDE their
+      # transactions (rodauth 2.45: verify_account.rb, reset_password.rb,
+      # remember.rb), so on those paths the row is left behind. That orphan
+      # is inert: no Rack session carries its join key, so nothing can
+      # present it, and Rodauth's inactivity sweep removes it after
+      # session_inactivity_deadline.
       #
       # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
       auth.auth_class_eval do

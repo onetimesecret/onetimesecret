@@ -15,7 +15,8 @@
  * account or customer row is written. Unless the token names a pending,
  * unexpired invitation for the signup email, the signup is refused (HTTP
  * 400) and nothing is created, so there is no account to sign in or to
- * verify. A valid token lets the signup through and signs the new account in.
+ * verify. A valid token lets the signup through; the invite page's signup
+ * form (POST /api/invite/:token/signup) also signs the new account in.
  *
  * Test scenarios:
  * - SEC-INV-001: Garbage invite_token is refused and grants no session

@@ -30,14 +30,15 @@ RSpec.describe Auth::Config::Features::AccountManagement, '.configure_create_acc
   let(:email_sent_notice) { 'An email has been sent to you with a link to verify your account' }
   let(:created_notice) { 'Your account has been created' }
 
-  # opens_account stands in for the invite signup: its after_create_account
-  # opens the account, and create_account_autologin? is on exactly then
-  # (config/hooks/account.rb).
+  # opens_account stands in for the invite signup, whose after_create_account
+  # opens the account (config/hooks/account.rb). No signup is logged in, as in
+  # production (config/features/account_management.rb).
   def build_app(extra_features:, opens_account: false)
     app = create_rodauth_app(db: db, features: [:base, :json, :create_account, *extra_features]) do
       only_json? true
       require_login_confirmation? false
       require_password_confirmation? false
+      create_account_autologin? false
 
       if extra_features.include?(:verify_account)
         verify_account_set_password? false
@@ -46,7 +47,6 @@ RSpec.describe Auth::Config::Features::AccountManagement, '.configure_create_acc
 
       if opens_account
         after_create_account { update_account(account_status_column => account_open_status_value) }
-        create_account_autologin? { open_account? }
       end
 
       Auth::Config::Features::AccountManagement.configure_create_account_response(self)

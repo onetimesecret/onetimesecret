@@ -106,9 +106,16 @@ RSpec.describe 'Invite signup via Rodauth internal_request (issue #3221)', type:
     expect(account_row).not_to be_nil
     expect(account_row[:status_id]).to eq(2)
 
+    # create_account does not log the account in (create_account_autologin?
+    # is false), so it leaves no active-session row. The row for the session
+    # the browser gets comes from SignupAndAccept#establish_active_session.
+    expect(Auth::Database.connection[:account_active_session_keys].where(account_id: account_row[:id]).count)
+      .to eq(0)
+
     # The invitation is NOT yet accepted. Token survives in token_lookup so
     # the frontend's explicit POST /api/invite/:token/accept can complete the
-    # join against the session that internal_request established.
+    # join against the session /api/invite/:token/signup sets up after this
+    # internal request (the internal request itself sets up none).
     looked_up_via_token = Onetime::OrganizationMembership.find_by_token(invite_token)
     expect(looked_up_via_token).not_to be_nil
     expect(looked_up_via_token.pending?).to be(true)
