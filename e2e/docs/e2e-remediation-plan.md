@@ -108,6 +108,15 @@ green; none of them fails a lane today.
   option is ignored.
 - [#4568](https://github.com/onetimesecret/onetimesecret/issues/4568): member
   authorization refusals return 422 or 403 depending on how they are raised.
+- [#4569](https://github.com/onetimesecret/onetimesecret/issues/4569): account
+  lockout has no integration test; the four full-mode lockout examples in
+  `spec/integration/full/rodauth_hooks_spec.rb` always skip.
+- [#4570](https://github.com/onetimesecret/onetimesecret/issues/4570):
+  `SettingsNavigation.spec.ts` and `SettingsSection.spec.ts` test stand-ins
+  defined in the spec files, and the real components are not used.
+- [#3421 comment](https://github.com/onetimesecret/onetimesecret/issues/3421#issuecomment-5856207925):
+  what is left under the invite sign-in-method and MFA issue now that INV-012
+  is deleted and INV-017 runs.
 - [#3420 comment](https://github.com/onetimesecret/onetimesecret/issues/3420#issuecomment-5855493099):
   assertions in the dormant domain suites that cannot fail, selectors that
   match nothing in `src/`, and a mock on an API path that does not exist. Fix
