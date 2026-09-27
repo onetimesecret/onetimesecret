@@ -11,82 +11,123 @@
  * - OrganizationsSettings (/orgs):
  *   - organizations-list: Container for org cards
  *   - org-card-{extid}: Individual org card
- *   - org-link-{extid}: Clickable org name link
+ *   - org-link-{extid}: Clickable org name button
  *   - org-name: Display name text
  *
  * - OrganizationSettings (/org/:extid/:tab?):
- *   - org-tab-domains: Domains tab button
- *   - org-tab-members: Members tab button
- *   - org-tab-subscription: Subscription tab button
- *   - org-tab-sso: SSO tab button (entitlement-gated)
- *   - org-tab-settings: Settings tab button
- *   - org-section-domains: Domains panel
- *   - org-section-subscription: Subscription panel
- *   - org-section-sso: SSO panel
- *   - org-section-settings: Settings panel
+ *   - Tabs, in order: org-tab-domains, org-tab-members, org-tab-sso (only when
+ *     ORGS_SSO_ENABLED), org-tab-activity (unless ORGS_AUDIT_LOGS_ENABLED=false),
+ *     org-tab-settings (element id org-tab-general, always last)
+ *   - Panels: org-section-domains, org-section-members, org-section-sso,
+ *     org-section-activity, org-section-settings, and org-section-subscription
+ *     (no tab since #2929; reached by /org/:extid/subscription and, with
+ *     billing on, the header plan chip)
  *
  * Prerequisites:
- * - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
- * - Test user must have at least one organization
+ * - Authenticated via the project storageState (e2e/global.setup.ts consumes
+ *   TEST_USER_*). That account owns its default organization from signup on,
+ *   so every test here asserts the organization instead of skipping without it.
  *
  * Usage:
  *   TEST_USER_EMAIL=user@example.com TEST_USER_PASSWORD=secret \
  *     pnpm test:playwright organization-settings.spec.ts
  */
 
-import { expect, Page, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 
-// -----------------------------------------------------------------------------
-// Types
-// -----------------------------------------------------------------------------
-
-interface OrgInfo {
-  extid: string;
-  name: string;
-}
+import { env } from '../support/env';
+import { getFirstOrganization } from '../support/organizations';
 
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
 
-/**
- * Get the first organization from the /orgs page
- */
-async function getFirstOrganization(page: Page): Promise<OrgInfo | null> {
-  await page.goto('/orgs');
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+interface OrgTab {
+  testid: string;
+  label: string;
+  /** The :tab URL segment that selects it. */
+  urlTab: string;
+  panel: string;
+}
 
-  const orgsList = page.getByTestId('organizations-list');
-  const isOrgListVisible = await orgsList.isVisible().catch(() => false);
+const TABS = {
+  domains: {
+    testid: 'org-tab-domains',
+    label: 'Domains',
+    urlTab: 'domains',
+    panel: 'org-section-domains',
+  },
+  members: {
+    testid: 'org-tab-members',
+    label: 'Members',
+    urlTab: 'members',
+    panel: 'org-section-members',
+  },
+  sso: { testid: 'org-tab-sso', label: 'SSO', urlTab: 'sso', panel: 'org-section-sso' },
+  activity: {
+    testid: 'org-tab-activity',
+    label: 'Activity',
+    urlTab: 'activity',
+    panel: 'org-section-activity',
+  },
+  settings: {
+    testid: 'org-tab-settings',
+    label: 'Settings',
+    urlTab: 'settings',
+    panel: 'org-section-settings',
+  },
+} satisfies Record<string, OrgTab>;
 
-  if (!isOrgListVisible) {
-    return null;
-  }
-
-  // Get the first org card
-  const orgCard = orgsList.locator('[data-testid^="org-card-"]').first();
-  if (!(await orgCard.isVisible().catch(() => false))) {
-    return null;
-  }
-
-  // Extract extid from data-testid attribute
-  const cardTestId = await orgCard.getAttribute('data-testid');
-  const extid = cardTestId?.replace('org-card-', '') || '';
-
-  // Get org name
-  const orgNameElement = orgCard.getByTestId('org-name');
-  const name = (await orgNameElement.textContent()) || '';
-
-  return { extid, name: name.trim() };
+interface OrgFeatureFlags {
+  billingEnabled: boolean;
+  /** features.organizations.sso_enabled (ORGS_SSO_ENABLED). */
+  ssoEnabled: boolean;
+  /** features.organizations.audit_logs_enabled (ORGS_AUDIT_LOGS_ENABLED, default on). */
+  auditLogsEnabled: boolean;
 }
 
 /**
- * Extract current tab from URL
+ * Read the instance flags that decide which org tabs exist, from the same
+ * bootstrap payload the SPA reads (src/utils/features.ts).
  */
-function getCurrentTab(page: Page): string | null {
-  const url = page.url();
-  const match = url.match(/\/org\/[^/]+\/([^/?#]+)/);
-  return match ? match[1] : null;
+async function orgFeatureFlags(page: Page): Promise<OrgFeatureFlags> {
+  const response = await page.request.get('/bootstrap/me');
+  expect(response.ok(), 'GET /bootstrap/me').toBe(true);
+  const bootstrap = await response.json();
+  const orgs = bootstrap.features?.organizations ?? {};
+  return {
+    billingEnabled: bootstrap.billing_enabled === true,
+    ssoEnabled: orgs.sso_enabled === true,
+    auditLogsEnabled: orgs.audit_logs_enabled !== false,
+  };
+}
+
+/** The tab bar the flags call for, in the designed order (Settings last). */
+function designedTabs(flags: OrgFeatureFlags): OrgTab[] {
+  return [
+    TABS.domains,
+    TABS.members,
+    ...(flags.ssoEnabled ? [TABS.sso] : []),
+    ...(flags.auditLogsEnabled ? [TABS.activity] : []),
+    TABS.settings,
+  ];
+}
+
+function orgTablist(page: Page) {
+  return page.getByRole('tablist', { name: 'Organization settings tabs' });
+}
+
+/**
+ * Open an organization's settings page and wait for its tab bar, which renders
+ * only once the organization has loaded.
+ */
+async function gotoOrgSettings(page: Page, extid: string, urlTab?: string): Promise<void> {
+  await page.goto(urlTab ? `/org/${extid}/${urlTab}` : `/org/${extid}`);
+  await expect(orgTablist(page)).toBeVisible();
+}
+
+function tabUrl(extid: string, tab: OrgTab): RegExp {
+  return new RegExp(`/org/${extid}/${tab.urlTab}$`);
 }
 
 // -----------------------------------------------------------------------------
@@ -99,115 +140,52 @@ test.describe('ORG-LIST: Organizations List Page (/orgs)', () => {
   });
 
   test('ORG-LIST-001: Organizations list renders with correct testids', async ({ page }) => {
-    await page.goto('/orgs');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    const org = await getFirstOrganization(page);
 
-    // Verify organizations-list container exists
-    const orgsList = page.getByTestId('organizations-list');
-    const isLoading = page.locator('text=/loading/i');
-
-    // Either we have orgs list or empty state (loading spinner should clear)
-    await expect(isLoading).not.toBeVisible({ timeout: 5000 }).catch(() => {
-      // Loading may have completed before we checked
-    });
-
-    const hasOrgsList = await orgsList.isVisible().catch(() => false);
-    const hasEmptyState = await page.locator('text=/no organizations/i').isVisible().catch(() => false);
-
-    // One of these must be true
-    expect(hasOrgsList || hasEmptyState).toBe(true);
-
-    if (hasOrgsList) {
-      // Verify at least one org card exists
-      const orgCards = orgsList.locator('[data-testid^="org-card-"]');
-      const cardCount = await orgCards.count();
-      expect(cardCount).toBeGreaterThan(0);
-
-      // Verify first card has expected testids
-      const firstCard = orgCards.first();
-      await expect(firstCard).toBeVisible();
-
-      // Check for org-link-{extid}
-      const orgLink = firstCard.locator('[data-testid^="org-link-"]');
-      await expect(orgLink).toBeVisible();
-
-      // Check for org-name
-      const orgName = firstCard.getByTestId('org-name');
-      await expect(orgName).toBeVisible();
-      const nameText = await orgName.textContent();
-      expect(nameText?.trim().length).toBeGreaterThan(0);
-    }
+    const card = page.getByTestId(`org-card-${org.extid}`);
+    await expect(card).toBeVisible();
+    await expect(card.getByTestId(`org-link-${org.extid}`)).toBeVisible();
+    await expect(card.getByTestId('org-name')).toHaveText(org.name);
   });
 
-  test('ORG-LIST-002: Empty state displays when no organizations', async ({ page }) => {
-    // This test verifies the empty state UI exists - it may not trigger for users with orgs
+  test('ORG-LIST-002: Account without an owned organization is redirected from /orgs', async ({
+    page,
+  }) => {
+    // /orgs requires owning an organization (requiresOrgRole: 'owner',
+    // handleOrgRoleRequirement): with none, the guard redirects to
+    // /dashboard before the page mounts, so the list's empty state never
+    // shows. The lane account always owns its default organization, so the
+    // list endpoint is stubbed empty to reach that case.
+    await page.route('**/api/organizations', async (route) => {
+      if (route.request().method() !== 'GET') return route.fallback();
+      return route.fulfill({ json: { records: [], count: 0 } });
+    });
+
     await page.goto('/orgs');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    const orgsList = page.getByTestId('organizations-list');
-    const hasOrgsList = await orgsList.isVisible().catch(() => false);
-
-    if (!hasOrgsList) {
-      // Verify empty state elements
-      const emptyStateIcon = page.locator('[class*="building-office"], svg[class*="text-gray-400"]');
-      const emptyStateText = page.locator('text=/no organizations/i');
-
-      // At least the empty state message should be present
-      await expect(emptyStateText).toBeVisible();
-
-      // Create button should be visible in empty state
-      const createButton = page.locator('button:has-text("Create")');
-      await expect(createButton).toBeVisible();
-    } else {
-      // User has organizations - skip empty state verification
-      test.skip(true, 'User has organizations - empty state not applicable');
-    }
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page.getByTestId('organizations-list')).toHaveCount(0);
   });
 
   test('ORG-LIST-003: Navigation to org detail page works', async ({ page }) => {
     const org = await getFirstOrganization(page);
 
-    if (!org) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
+    await page.getByTestId(`org-link-${org.extid}`).click();
 
-    // Click the org link to navigate to detail page
-    const orgLink = page.getByTestId(`org-link-${org.extid}`);
-    await orgLink.click();
-
-    // Verify navigation to org detail page
-    await page.waitForURL(/\/org\/[^/]+/);
-    expect(page.url()).toContain(`/org/${org.extid}`);
-
-    // Verify org name is displayed on detail page
-    await expect(page.locator(`text="${org.name}"`).first()).toBeVisible({ timeout: 10000 });
+    await expect(page).toHaveURL(new RegExp(`/org/${org.extid}$`));
+    await expect(page.getByRole('heading', { level: 1, name: org.name })).toBeVisible();
+    await expect(orgTablist(page)).toBeVisible();
   });
 
-  test('ORG-LIST-004: Org cards display plan badges correctly', async ({ page }) => {
-    await page.goto('/orgs');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+  test('ORG-LIST-004: Default organization card shows the Default badge', async ({ page }) => {
+    const org = await getFirstOrganization(page);
 
-    const orgsList = page.getByTestId('organizations-list');
-    const hasOrgsList = await orgsList.isVisible().catch(() => false);
-
-    if (!hasOrgsList) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
-
-    // Get first org card
-    const firstCard = orgsList.locator('[data-testid^="org-card-"]').first();
-
-    // Check for badge presence (Pro, Early Supporter, or Default badge)
-    const badges = firstCard.locator('span:has-text("PRO"), span:has-text("Early"), span:has-text("Default")');
-    const badgeCount = await badges.count();
-
-    // Badges are optional - just verify they render correctly if present
-    if (badgeCount > 0) {
-      const firstBadge = badges.first();
-      await expect(firstBadge).toBeVisible();
-    }
+    // The lane account's only organization is the default workspace created
+    // at signup. Paid-plan badges (PRO, Early Supporter) need a billing
+    // lane and are not asserted here.
+    await expect(
+      page.getByTestId(`org-card-${org.extid}`).getByText('Default', { exact: true })
+    ).toBeVisible();
   });
 });
 
@@ -216,365 +194,234 @@ test.describe('ORG-LIST: Organizations List Page (/orgs)', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () => {
-
-  let testOrg: OrgInfo | null = null;
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    testOrg = await getFirstOrganization(page);
   });
 
   test('ORG-DETAIL-001: Tab navigation structure renders correctly', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
+    const flags = await orgFeatureFlags(page);
+    const org = await getFirstOrganization(page);
+    await gotoOrgSettings(page, org.extid);
+
+    const expected = designedTabs(flags);
+    await expect(orgTablist(page).getByRole('tab')).toHaveCount(expected.length);
+
+    for (const tab of expected) {
+      const button = page.getByTestId(tab.testid);
+      await expect(button).toBeVisible();
+      await expect(button).toHaveAttribute('role', 'tab');
     }
 
-    await page.goto(`/org/${testOrg.extid}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    // Roving tabindex: only the selected tab is in the page tab sequence.
+    await expect(orgTablist(page).locator('[role="tab"][tabindex="0"]')).toHaveCount(1);
+    await expect(page.getByTestId(TABS.domains.testid)).toHaveAttribute('tabindex', '0');
 
-    // Verify tab buttons exist with correct testids
-    const domainsTab = page.getByTestId('org-tab-domains');
-    const subscriptionTab = page.getByTestId('org-tab-subscription');
-    const settingsTab = page.getByTestId('org-tab-settings');
-
-    await expect(domainsTab).toBeVisible();
-    await expect(subscriptionTab).toBeVisible();
-    await expect(settingsTab).toBeVisible();
-
-    // SSO tab is entitlement-gated - may or may not be visible
-    const ssoTab = page.getByTestId('org-tab-sso');
-    const hasSsoTab = await ssoTab.isVisible().catch(() => false);
-
-    // Verify tabs have correct ARIA attributes
-    await expect(domainsTab).toHaveAttribute('role', 'tab');
-    await expect(subscriptionTab).toHaveAttribute('role', 'tab');
-    await expect(settingsTab).toHaveAttribute('role', 'tab');
-
-    if (hasSsoTab) {
-      await expect(ssoTab).toHaveAttribute('role', 'tab');
+    if (!flags.ssoEnabled) {
+      await expect(page.getByTestId(TABS.sso.testid)).toHaveCount(0);
     }
   });
 
   test('ORG-DETAIL-002: Default tab is domains', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
+    const org = await getFirstOrganization(page);
+    await gotoOrgSettings(page, org.extid);
 
-    // Navigate without specifying tab
-    await page.goto(`/org/${testOrg.extid}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    // Domains tab should be selected
-    const domainsTab = page.getByTestId('org-tab-domains');
-    await expect(domainsTab).toHaveAttribute('aria-selected', 'true');
-
-    // Domains panel should be visible
-    const domainsPanel = page.getByTestId('org-section-domains');
-    await expect(domainsPanel).toBeVisible();
+    await expect(page.getByTestId(TABS.domains.testid)).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByTestId(TABS.domains.panel)).toBeVisible();
   });
 
   test('ORG-DETAIL-003: Domains tab navigation and panel', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
+    const org = await getFirstOrganization(page);
+    await gotoOrgSettings(page, org.extid, 'domains');
 
-    await page.goto(`/org/${testOrg.extid}/domains`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    await expect(page.getByTestId(TABS.domains.testid)).toHaveAttribute('aria-selected', 'true');
 
-    // Verify tab is selected
-    const domainsTab = page.getByTestId('org-tab-domains');
-    await expect(domainsTab).toHaveAttribute('aria-selected', 'true');
-
-    // Verify panel is visible
-    const domainsPanel = page.getByTestId('org-section-domains');
+    const domainsPanel = page.getByTestId(TABS.domains.panel);
     await expect(domainsPanel).toBeVisible();
-
-    // Panel should have correct ARIA attributes
     await expect(domainsPanel).toHaveAttribute('role', 'tabpanel');
     await expect(domainsPanel).toHaveAttribute('aria-labelledby', 'org-tab-domains');
 
-    // Verify "Add Domain" button is visible
-    const addDomainButton = domainsPanel.locator('a:has-text("Add")');
-    await expect(addDomainButton).toBeVisible();
+    // The owner gets the add-domain action (canCreateDomain).
+    await expect(domainsPanel.getByRole('link', { name: /add domain/i })).toHaveAttribute(
+      'href',
+      `/org/${org.extid}/domains/add`
+    );
   });
 
-  test('ORG-DETAIL-004: Subscription tab navigation and panel', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
+  test('ORG-DETAIL-004: Subscription panel opens from its URL', async ({ page }) => {
+    // The Subscription tab left the tab bar in #2929; the panel is still
+    // reached at /org/:extid/subscription (the header plan chip links there
+    // when billing is on).
+    const flags = await orgFeatureFlags(page);
+    const org = await getFirstOrganization(page);
+    await gotoOrgSettings(page, org.extid, 'subscription');
 
-    await page.goto(`/org/${testOrg.extid}/subscription`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    // Verify tab is selected
-    const subscriptionTab = page.getByTestId('org-tab-subscription');
-    await expect(subscriptionTab).toHaveAttribute('aria-selected', 'true');
-
-    // Verify panel is visible
+    await expect(page).toHaveURL(new RegExp(`/org/${org.extid}/subscription$`));
     const subscriptionPanel = page.getByTestId('org-section-subscription');
     await expect(subscriptionPanel).toBeVisible();
+    await expect(subscriptionPanel).toHaveAttribute('role', 'tabpanel');
 
-    // Panel should have content (billing info or "coming soon")
-    const hasSubscriptionContent =
-      (await page.locator('text=/subscription|plan|billing|coming soon/i').first().isVisible().catch(() => false));
-    expect(hasSubscriptionContent).toBe(true);
+    const heading = flags.billingEnabled
+      ? 'Subscription Status'
+      : 'Billing Integration Coming Soon';
+    await expect(subscriptionPanel.getByRole('heading', { name: heading })).toBeVisible();
   });
 
   test('ORG-DETAIL-005: Settings tab navigation and panel', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
+    const org = await getFirstOrganization(page);
+    await gotoOrgSettings(page, org.extid, 'settings');
 
-    await page.goto(`/org/${testOrg.extid}/settings`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    await expect(page.getByTestId(TABS.settings.testid)).toHaveAttribute('aria-selected', 'true');
 
-    // Verify tab is selected
-    const settingsTab = page.getByTestId('org-tab-settings');
-    await expect(settingsTab).toHaveAttribute('aria-selected', 'true');
-
-    // Verify panel is visible
-    const settingsPanel = page.getByTestId('org-section-settings');
+    const settingsPanel = page.getByTestId(TABS.settings.panel);
     await expect(settingsPanel).toBeVisible();
-
-    // Settings panel should have form elements
-    const displayNameInput = settingsPanel.locator('input#display-name');
-    await expect(displayNameInput).toBeVisible();
-
-    // Verify org name is in the input
-    const inputValue = await displayNameInput.inputValue();
-    expect(inputValue).toBe(testOrg.name);
+    await expect(settingsPanel.locator('input#display-name')).toHaveValue(org.name);
   });
 
-  test('ORG-DETAIL-006: SSO tab (entitlement-gated)', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
+  test('ORG-DETAIL-006: SSO tab opens the SSO panel', async ({ page }) => {
+    test.fixme(
+      !env.hasSsoUi,
+      'Needs org SSO turned on (ORGS_SSO_ENABLED) and the manage_sso entitlement; the ' +
+        'full lane configures neither. Set E2E_SSO_UI on such a target. See issue #3420.'
+    );
 
-    await page.goto(`/org/${testOrg.extid}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    const org = await getFirstOrganization(page);
+    await gotoOrgSettings(page, org.extid);
 
-    const ssoTab = page.getByTestId('org-tab-sso');
-    const hasSsoTab = await ssoTab.isVisible().catch(() => false);
+    const ssoTab = page.getByTestId(TABS.sso.testid);
+    await expect(ssoTab).toBeVisible();
+    await expect(ssoTab).not.toHaveAttribute('aria-disabled', 'true');
 
-    if (!hasSsoTab) {
-      test.skip(true, 'SSO tab not visible - user may not have manage_sso entitlement');
-      return;
-    }
-
-    // Click SSO tab (the aria-selected assertion below waits for the
-    // tab navigation to settle)
     await ssoTab.click();
 
-    // Verify tab is selected
     await expect(ssoTab).toHaveAttribute('aria-selected', 'true');
-
-    // Verify URL updated
-    expect(page.url()).toContain('/sso');
-
-    // Verify SSO panel is visible
-    const ssoPanel = page.getByTestId('org-section-sso');
-    await expect(ssoPanel).toBeVisible();
+    await expect(page).toHaveURL(tabUrl(org.extid, TABS.sso));
+    await expect(page.getByTestId(TABS.sso.panel)).toBeVisible();
   });
 
   test('ORG-DETAIL-007: Tab click updates URL', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
+    const org = await getFirstOrganization(page);
+    await gotoOrgSettings(page, org.extid);
+
+    for (const tab of [TABS.members, TABS.settings, TABS.domains]) {
+      await page.getByTestId(tab.testid).click();
+      await expect(page).toHaveURL(tabUrl(org.extid, tab));
+      await expect(page.getByTestId(tab.testid)).toHaveAttribute('aria-selected', 'true');
+      await expect(page.getByTestId(tab.panel)).toBeVisible();
     }
-
-    await page.goto(`/org/${testOrg.extid}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    // Click subscription tab (waitForURL pins each tab navigation)
-    const subscriptionTab = page.getByTestId('org-tab-subscription');
-    await subscriptionTab.click();
-    await page.waitForURL(/\/subscription/);
-    expect(getCurrentTab(page)).toBe('subscription');
-
-    // Click settings tab
-    const settingsTab = page.getByTestId('org-tab-settings');
-    await settingsTab.click();
-    await page.waitForURL(/\/settings/);
-    expect(getCurrentTab(page)).toBe('settings');
-
-    // Click domains tab
-    const domainsTab = page.getByTestId('org-tab-domains');
-    await domainsTab.click();
-    await page.waitForURL(/\/domains/);
-    expect(getCurrentTab(page)).toBe('domains');
   });
 
   test('ORG-DETAIL-008: Back navigation to /orgs works', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
+    const org = await getFirstOrganization(page);
+    await gotoOrgSettings(page, org.extid);
 
-    await page.goto(`/org/${testOrg.extid}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    // Find the back link (arrow-left icon with org name)
-    const backLink = page.locator('a[href="/orgs"]');
-    await expect(backLink).toBeVisible();
-
-    // Click back link
+    // The header link wraps the page's h1 (the organization name).
+    const backLink = page
+      .locator('a[href="/orgs"]')
+      .filter({ has: page.getByRole('heading', { level: 1 }) });
     await backLink.click();
-    await page.waitForURL('/orgs');
 
-    // Verify we're on the orgs list page
-    expect(page.url()).toContain('/orgs');
+    await expect(page).toHaveURL(/\/orgs$/);
+    await expect(page.getByTestId(`org-card-${org.extid}`)).toBeVisible();
   });
 
   test('ORG-DETAIL-009: Direct URL navigation to specific tabs works', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
+    const org = await getFirstOrganization(page);
+
+    for (const tab of [TABS.domains, TABS.members, TABS.settings]) {
+      await gotoOrgSettings(page, org.extid, tab.urlTab);
+      await expect(page.getByTestId(tab.testid)).toHaveAttribute('aria-selected', 'true');
+      await expect(page.getByTestId(tab.panel)).toBeVisible();
     }
 
-    // Test direct navigation to each tab
-    const tabs = [
-      { url: 'domains', testid: 'org-section-domains' },
-      { url: 'subscription', testid: 'org-section-subscription' },
-      { url: 'settings', testid: 'org-section-settings' },
-    ];
-
-    for (const tab of tabs) {
-      await page.goto(`/org/${testOrg.extid}/${tab.url}`);
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const panel = page.getByTestId(tab.testid);
-      await expect(panel).toBeVisible({ timeout: 10000 });
-    }
+    // The legacy /team segment still opens the Members tab.
+    await gotoOrgSettings(page, org.extid, 'team');
+    await expect(page.getByTestId(TABS.members.testid)).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByTestId(TABS.members.panel)).toBeVisible();
   });
 
-  test('ORG-DETAIL-010: Browser back/forward navigation preserves tab state', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
+  test('ORG-DETAIL-010: Tab switches replace the history entry; Back restores the last tab', async ({
+    page,
+  }) => {
+    // getFirstOrganization leaves /orgs as the entry before this page.
+    const org = await getFirstOrganization(page);
+    await gotoOrgSettings(page, org.extid, 'domains');
 
-    // Start on domains tab
-    await page.goto(`/org/${testOrg.extid}/domains`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    // Tab switches rewrite the current entry instead of pushing new ones.
+    await page.getByTestId(TABS.members.testid).click();
+    await expect(page).toHaveURL(tabUrl(org.extid, TABS.members));
+    await page.getByTestId(TABS.settings.testid).click();
+    await expect(page).toHaveURL(tabUrl(org.extid, TABS.settings));
 
-    // Navigate to subscription tab
-    const subscriptionTab = page.getByTestId('org-tab-subscription');
-    await subscriptionTab.click();
-    await page.waitForURL(/\/subscription/);
+    // Leave through the app (a router push), then come Back: the entry keeps
+    // the tab the user left on rather than the one the page loaded with.
+    await page
+      .locator('a[href="/orgs"]')
+      .filter({ has: page.getByRole('heading', { level: 1 }) })
+      .click();
+    await expect(page).toHaveURL(/\/orgs$/);
 
-    // Navigate to settings tab
-    const settingsTab = page.getByTestId('org-tab-settings');
-    await settingsTab.click();
-    await page.waitForURL(/\/settings/);
-
-    // Go back to subscription (waitForURL pins each history navigation)
     await page.goBack();
-    await page.waitForURL(/\/subscription/);
-    expect(getCurrentTab(page)).toBe('subscription');
+    await expect(page).toHaveURL(tabUrl(org.extid, TABS.settings));
+    await expect(page.getByTestId(TABS.settings.testid)).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByTestId(TABS.settings.panel)).toBeVisible();
 
-    // Go back to domains
+    // One more Back skips straight past the tab switches to /orgs.
     await page.goBack();
-    await page.waitForURL(/\/domains/);
-    expect(getCurrentTab(page)).toBe('domains');
+    await expect(page).toHaveURL(/\/orgs$/);
 
-    // Go forward to subscription
     await page.goForward();
-    await page.waitForURL(/\/subscription/);
-    expect(getCurrentTab(page)).toBe('subscription');
+    await expect(page).toHaveURL(tabUrl(org.extid, TABS.settings));
+    await expect(page.getByTestId(TABS.settings.testid)).toHaveAttribute('aria-selected', 'true');
   });
 
-  test('ORG-DETAIL-011: Back/forward to entitlement-gated tab redirects to domains', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
+  test('ORG-DETAIL-011: Direct and Back/Forward navigation to a gated tab redirect to domains', async ({
+    page,
+  }) => {
+    const org = await getFirstOrganization(page);
+    const gatedTab = TABS.sso;
 
-    await page.goto(`/org/${testOrg.extid}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    // The full lane runs without ORGS_SSO_ENABLED, so SSO is a tab this
+    // account cannot open: it is absent, or present but aria-disabled.
+    await gotoOrgSettings(page, org.extid, 'settings');
+    await expect(
+      orgTablist(page).locator(`[data-testid="${gatedTab.testid}"]:not([aria-disabled="true"])`)
+    ).toHaveCount(0);
 
-    // Check which tabs the user lacks access to
-    const membersTab = page.getByTestId('org-tab-members');
-    const ssoTab = page.getByTestId('org-tab-sso');
-    const hasMembersTab = await membersTab.isVisible().catch(() => false);
-    const hasSsoTab = await ssoTab.isVisible().catch(() => false);
+    // A typed or bookmarked URL lands on domains, URL included.
+    await page.goto(`/org/${org.extid}/${gatedTab.urlTab}`);
+    await expect(page).toHaveURL(tabUrl(org.extid, TABS.domains));
+    await expect(page.getByTestId(TABS.domains.testid)).toHaveAttribute('aria-selected', 'true');
 
-    // If user has access to both members and SSO, we can't test the redirect
-    if (hasMembersTab && hasSsoTab) {
-      test.skip(true, 'User has access to all tabs - cannot test entitlement redirect');
-      return;
-    }
-
-    // Determine which gated tab to test
-    const gatedTab = !hasMembersTab ? 'members' : 'sso';
-
-    // Navigate to domains, then settings to build history
-    await page.goto(`/org/${testOrg.extid}/domains`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    const settingsTab = page.getByTestId('org-tab-settings');
-    await settingsTab.click();
-    await page.waitForURL(/\/settings/);
-
-    // Directly navigate to the gated tab URL (simulating a bookmark or typed URL)
-    await page.goto(`/org/${testOrg.extid}/${gatedTab}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    // Should redirect to domains since user lacks entitlement
-    await page.waitForURL(/\/domains/, { timeout: 5000 });
-    expect(getCurrentTab(page)).toBe('domains');
-
-    // Verify the domains tab is actually selected
-    const domainsTab = page.getByTestId('org-tab-domains');
-    await expect(domainsTab).toHaveAttribute('aria-selected', 'true');
-
-    // Now test back/forward: go to settings first
-    await settingsTab.click();
-    await page.waitForURL(/\/settings/);
-
-    // Manually push the gated URL into history via evaluate
+    // A history entry that names the gated tab (e.g. written while the user
+    // still had access) is corrected when Back/Forward returns to it.
+    await page.getByTestId(TABS.settings.testid).click();
+    await expect(page).toHaveURL(tabUrl(org.extid, TABS.settings));
     await page.evaluate((url) => {
       window.history.pushState({}, '', url);
-    }, `/org/${testOrg.extid}/${gatedTab}`);
+    }, `/org/${org.extid}/${gatedTab.urlTab}`);
 
-    // Go back (should land on the gated URL, then immediately redirect);
-    // the waitForURL below pins the corrected destination
     await page.goBack();
+    await expect(page).toHaveURL(tabUrl(org.extid, TABS.settings));
+    await expect(page.getByTestId(TABS.settings.testid)).toHaveAttribute('aria-selected', 'true');
 
-    // URL should be corrected to domains
-    await page.waitForURL(/\/domains/, { timeout: 5000 });
-    expect(getCurrentTab(page)).toBe('domains');
-
-    // Verify the UI state matches
-    await expect(domainsTab).toHaveAttribute('aria-selected', 'true');
+    await page.goForward();
+    await expect(page).toHaveURL(tabUrl(org.extid, TABS.domains));
+    await expect(page.getByTestId(TABS.domains.testid)).toHaveAttribute('aria-selected', 'true');
   });
 
   test('ORG-TAB-ORDER-001: Tabs render in correct visual order', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
+    const flags = await orgFeatureFlags(page);
+    const org = await getFirstOrganization(page);
+    await gotoOrgSettings(page, org.extid);
 
-    await page.goto(`/org/${testOrg.extid}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    // Get all tab buttons in DOM order
-    const tabList = page.locator('[role="tablist"] button[role="tab"]');
-    const tabTexts = await tabList.allTextContents();
-
-    // Expected order (SSO may or may not be present based on entitlements)
-    const expectedBase = ['Domains', 'Members', 'Subscription', 'Settings'];
-    expect(tabTexts.slice(0, 4)).toEqual(expectedBase);
+    await expect(orgTablist(page).getByRole('tab')).toHaveText(
+      designedTabs(flags).map((tab) => tab.label)
+    );
   });
 });
 
 // -----------------------------------------------------------------------------
-// Organization Not Found Error State
+// Organization Not Found
 // -----------------------------------------------------------------------------
 
 test.describe('ORG-ERROR: Organization Error States', () => {
@@ -582,23 +429,16 @@ test.describe('ORG-ERROR: Organization Error States', () => {
     page.setDefaultTimeout(15000);
   });
 
-  test('ORG-ERROR-001: Invalid org extid shows error state', async ({ page }) => {
-    // Navigate to a non-existent org
+  test('ORG-ERROR-001: Invalid org extid redirects away from org settings', async ({ page }) => {
+    // /org/:extid requires the admin role on that org. For an unknown extid
+    // the org fetch 404s, the role guard fails closed and redirects to
+    // /dashboard (src/router/guards.routes.ts, handleOrgRoleRequirement), so
+    // the page never renders its own not-found state.
     await page.goto('/org/invalid-org-id-12345');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Should show error state, not tabs
-    const domainsTab = page.getByTestId('org-tab-domains');
-    const hasDomainsTab = await domainsTab.isVisible().catch(() => false);
-    expect(hasDomainsTab).toBe(false);
-
-    // Error icon or message should be visible
-    const errorIndicator = page.locator('text=/not found|error|could not/i');
-    await expect(errorIndicator.first()).toBeVisible();
-
-    // Back link to /orgs should be present
-    const backLink = page.locator('a[href="/orgs"]');
-    await expect(backLink).toBeVisible();
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(orgTablist(page)).toHaveCount(0);
+    await expect(page.getByTestId(TABS.domains.testid)).toHaveCount(0);
   });
 });
 
@@ -607,81 +447,68 @@ test.describe('ORG-ERROR: Organization Error States', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
-
-  let testOrg: OrgInfo | null = null;
-
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
-    testOrg = await getFirstOrganization(page);
   });
 
   test('ORG-A11Y-001: Tab navigation with keyboard (Arrow keys)', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
+    const flags = await orgFeatureFlags(page);
+    const org = await getFirstOrganization(page);
+    await gotoOrgSettings(page, org.extid);
+
+    // Arrow keys move through the tabs the user can open (WAI-ARIA tabs,
+    // automatic activation) in tab-bar order, then wrap. A rendered but
+    // aria-disabled tab (SSO without manage_sso) is passed over. The owner
+    // can always manage members.
+    await expect(page.getByTestId(TABS.members.testid)).not.toHaveAttribute(
+      'aria-disabled',
+      'true'
+    );
+    const cycle: OrgTab[] = [];
+    for (const tab of designedTabs(flags)) {
+      if ((await page.getByTestId(tab.testid).getAttribute('aria-disabled')) !== 'true') {
+        cycle.push(tab);
+      }
     }
 
-    await page.goto(`/org/${testOrg.extid}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    const expectActive = async (tab: OrgTab) => {
+      const button = page.getByTestId(tab.testid);
+      await expect(button).toBeFocused();
+      await expect(button).toHaveAttribute('aria-selected', 'true');
+      await expect(button).toHaveAttribute('tabindex', '0');
+      await expect(page).toHaveURL(tabUrl(org.extid, tab));
+      await expect(page.getByTestId(tab.panel)).toBeVisible();
+    };
 
-    // Tab order: Domains -> Members -> Subscription -> Settings (-> SSO if entitled)
-    // Focus the domains tab
-    const domainsTab = page.getByTestId('org-tab-domains');
-    await domainsTab.focus();
+    await page.getByTestId(TABS.domains.testid).focus();
+    await expect(page.getByTestId(TABS.domains.testid)).toBeFocused();
 
-    // Press ArrowRight to move to members tab
-    await page.keyboard.press('ArrowRight');
-
-    // Members tab should now be focused
-    const membersTab = page.getByTestId('org-tab-members');
-    await expect(membersTab).toBeFocused();
-
-    // Press ArrowRight to move to subscription tab
-    await page.keyboard.press('ArrowRight');
-
-    // Subscription tab should now be focused
-    const subscriptionTab = page.getByTestId('org-tab-subscription');
-    await expect(subscriptionTab).toBeFocused();
-
-    // Press ArrowRight to move to settings tab
-    await page.keyboard.press('ArrowRight');
-
-    // Settings tab should now be focused
-    const settingsTab = page.getByTestId('org-tab-settings');
-    await expect(settingsTab).toBeFocused();
-
-    // Press ArrowRight again - should go to SSO if entitled, or wrap to domains
-    await page.keyboard.press('ArrowRight');
-
-    const ssoTab = page.getByTestId('org-tab-sso');
-    const hasSsoTab = await ssoTab.isVisible().catch(() => false);
-
-    if (hasSsoTab) {
-      await expect(ssoTab).toBeFocused();
-    } else {
-      // Wraps back to domains
-      await expect(domainsTab).toBeFocused();
+    // ArrowRight walks forward and wraps from the last tab to the first.
+    for (let step = 1; step <= cycle.length; step++) {
+      await page.keyboard.press('ArrowRight');
+      await expectActive(cycle[step % cycle.length]);
     }
+
+    // ArrowLeft walks backward and wraps from the first tab to the last.
+    for (let step = cycle.length - 1; step >= 0; step--) {
+      await page.keyboard.press('ArrowLeft');
+      await expectActive(cycle[step]);
+    }
+
+    await page.keyboard.press('End');
+    await expectActive(cycle[cycle.length - 1]);
+    await page.keyboard.press('Home');
+    await expectActive(cycle[0]);
   });
 
   test('ORG-A11Y-002: Tab panels have correct ARIA attributes', async ({ page }) => {
-    if (!testOrg) {
-      test.skip(true, 'No organizations available for testing');
-      return;
-    }
+    const org = await getFirstOrganization(page);
 
-    await page.goto(`/org/${testOrg.extid}/domains`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    await gotoOrgSettings(page, org.extid, 'domains');
+    await expect(page.getByTestId(TABS.domains.panel)).toHaveAttribute('role', 'tabpanel');
 
-    // Verify tabpanel role
-    const domainsPanel = page.getByTestId('org-section-domains');
-    await expect(domainsPanel).toHaveAttribute('role', 'tabpanel');
-
-    // Navigate to settings
-    await page.goto(`/org/${testOrg.extid}/settings`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    const settingsPanel = page.getByTestId('org-section-settings');
+    await gotoOrgSettings(page, org.extid, 'settings');
+    const settingsPanel = page.getByTestId(TABS.settings.panel);
     await expect(settingsPanel).toHaveAttribute('role', 'tabpanel');
     await expect(settingsPanel).toHaveAttribute('tabindex', '0');
   });
@@ -692,25 +519,25 @@ test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
  *
  * Suite: Organization Settings Pages
  *
- * | ID              | Title                                          | Priority   | Automation |
- * |-----------------|------------------------------------------------|------------|------------|
- * | ORG-LIST-001    | Organizations list renders with correct testids| Critical   | Automated  |
- * | ORG-LIST-002    | Empty state displays when no organizations     | Medium     | Automated  |
- * | ORG-LIST-003    | Navigation to org detail page works            | Critical   | Automated  |
- * | ORG-LIST-004    | Org cards display plan badges correctly        | Low        | Automated  |
- * | ORG-DETAIL-001  | Tab navigation structure renders correctly     | Critical   | Automated  |
- * | ORG-DETAIL-002  | Default tab is domains                         | High       | Automated  |
- * | ORG-DETAIL-003  | Domains tab navigation and panel               | Critical   | Automated  |
- * | ORG-DETAIL-004  | Subscription tab navigation and panel          | High       | Automated  |
- * | ORG-DETAIL-005  | Settings tab navigation and panel              | High       | Automated  |
- * | ORG-DETAIL-006  | SSO tab (entitlement-gated)                    | Medium     | Automated  |
- * | ORG-DETAIL-007  | Tab click updates URL                          | Critical   | Automated  |
- * | ORG-DETAIL-008  | Back navigation to /orgs works                 | High       | Automated  |
- * | ORG-DETAIL-009  | Direct URL navigation to specific tabs works   | High       | Automated  |
- * | ORG-DETAIL-010  | Browser back/forward preserves tab state       | Medium     | Automated  |
- * | ORG-DETAIL-011  | Back/forward to gated tab redirects to domains | High       | Automated  |
- * | ORG-TAB-ORDER-001| Tabs render in correct visual order           | High       | Automated  |
- * | ORG-ERROR-001   | Invalid org extid shows error state            | High       | Automated  |
- * | ORG-A11Y-001    | Tab navigation with keyboard (Arrow keys)      | Medium     | Automated  |
- * | ORG-A11Y-002    | Tab panels have correct ARIA attributes        | Medium     | Automated  |
+ * | ID               | Title                                                    | Priority | Automation |
+ * |------------------|----------------------------------------------------------|----------|------------|
+ * | ORG-LIST-001     | Organizations list renders with correct testids          | Critical | Automated  |
+ * | ORG-LIST-002     | Account without an owned organization is redirected      | Medium   | Automated  |
+ * | ORG-LIST-003     | Navigation to org detail page works                      | Critical | Automated  |
+ * | ORG-LIST-004     | Default organization card shows the Default badge        | Low      | Automated  |
+ * | ORG-DETAIL-001   | Tab navigation structure renders correctly               | Critical | Automated  |
+ * | ORG-DETAIL-002   | Default tab is domains                                   | High     | Automated  |
+ * | ORG-DETAIL-003   | Domains tab navigation and panel                         | Critical | Automated  |
+ * | ORG-DETAIL-004   | Subscription panel opens from its URL                    | High     | Automated  |
+ * | ORG-DETAIL-005   | Settings tab navigation and panel                        | High     | Automated  |
+ * | ORG-DETAIL-006   | SSO tab opens the SSO panel                              | Medium   | Fixme (#3420, E2E_SSO_UI) |
+ * | ORG-DETAIL-007   | Tab click updates URL                                    | Critical | Automated  |
+ * | ORG-DETAIL-008   | Back navigation to /orgs works                           | High     | Automated  |
+ * | ORG-DETAIL-009   | Direct URL navigation to specific tabs works             | High     | Automated  |
+ * | ORG-DETAIL-010   | Tab switches replace the history entry; Back restores it | Medium   | Automated  |
+ * | ORG-DETAIL-011   | Direct and Back/Forward navigation to gated tab redirect | High     | Automated  |
+ * | ORG-TAB-ORDER-001| Tabs render in correct visual order                      | High     | Automated  |
+ * | ORG-ERROR-001    | Invalid org extid redirects away from org settings       | High     | Automated  |
+ * | ORG-A11Y-001     | Tab navigation with keyboard (Arrow keys)                | Medium   | Automated  |
+ * | ORG-A11Y-002     | Tab panels have correct ARIA attributes                  | Medium   | Automated  |
  */
