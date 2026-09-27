@@ -614,9 +614,32 @@ RSpec.describe Onetime::LogScrubber do
       expect(scrubbed(message: big).message).to eq(described_class::OVERSIZED_SENTINEL)
     end
 
-    it 'returns an oversized string without "://" as the same object' do
-      big = 'a' * (described_class::MAX_STRING_BYTES + 1)
-      expect(scrubbed(message: big).message).to equal(big)
+    it 'applies the string limit before probing or removing ANSI escapes' do
+      escapes = "\e[0m" * ((described_class::MAX_STRING_BYTES / "\e[0m".bytesize) + 1)
+      message = +"redis:#{escapes}//user:#{secret}@db:6379/0"
+      before  = snapshot(message)
+      allow(described_class).to receive(:scan_candidate?).and_call_original
+      allow(Onetime::Utils).to receive(:redact_uris_in_text).and_call_original
+
+      result = scrubbed(message: message).message
+
+      expect(message.gsub(described_class::ANSI_ESCAPE, '').bytesize).to be < described_class::MAX_STRING_BYTES
+      expect(result).to eq(described_class::OVERSIZED_SENTINEL)
+      expect(described_class).not_to have_received(:scan_candidate?)
+      expect(Onetime::Utils).not_to have_received(:redact_uris_in_text)
+      expect(snapshot(message)).to eq(before)
+    end
+
+    it 'fails closed on an oversized clean string before probing its content' do
+      message = +'a' * (described_class::MAX_STRING_BYTES + 1)
+      before  = snapshot(message)
+      allow(described_class).to receive(:scan_candidate?).and_call_original
+
+      result = scrubbed(message: message).message
+
+      expect(result).to eq(described_class::OVERSIZED_SENTINEL)
+      expect(described_class).not_to have_received(:scan_candidate?)
+      expect(snapshot(message)).to eq(before)
     end
 
     it 'replaces strings past the event scan budget with the budget sentinel' do
@@ -629,6 +652,24 @@ RSpec.describe Onetime::LogScrubber do
       expect(result.first).to end_with(clean_uri)
       expect(result.last).to eq(described_class::BUDGET_SENTINEL)
       expect(result.inspect).not_to include(secret)
+    end
+
+    it 'spends the event budget before probing or removing ANSI escapes' do
+      escapes = "\e[0m" * ((described_class::MAX_STRING_BYTES - dirty_uri.bytesize) / "\e[0m".bytesize)
+      chunk   = +"#{dirty_uri}#{escapes}"
+      fits    = described_class::MAX_EVENT_SCAN_BYTES / chunk.bytesize
+      payload = Array.new(fits + 1) { chunk }
+      before  = snapshot(payload)
+      allow(described_class).to receive(:scan_candidate?).and_call_original
+
+      result = scrubbed(payload: payload).payload
+
+      expect(chunk.bytesize).to be <= described_class::MAX_STRING_BYTES
+      expect(chunk.gsub(described_class::ANSI_ESCAPE, '')).to eq(dirty_uri)
+      expect(result.first).to eq(clean_uri)
+      expect(result.last).to eq(described_class::BUDGET_SENTINEL)
+      expect(described_class).to have_received(:scan_candidate?).exactly(fits).times
+      expect(snapshot(payload)).to eq(before)
     end
 
     # The message and the exception are scanned before tags and payload, so

@@ -77,16 +77,16 @@ module Onetime
   #     clean values.
   #
   # Fail closed: a payload branch past a limit (depth, value count, cycle),
-  # a string over MAX_STRING_BYTES that contains "://", and a string that
-  # would overrun the event's MAX_EVENT_SCAN_BYTES are replaced by a fixed
-  # sentinel string, never passed through. If the scrub itself raises, the
-  # event is withheld (see .call).
+  # any string over MAX_STRING_BYTES, and any string whose original bytes would
+  # overrun the event's MAX_EVENT_SCAN_BYTES are replaced by a fixed sentinel
+  # string, never passed through. If the scrub itself raises, the event is
+  # withheld (see .call).
   #
   # Defense in depth: call sites that already redact (e.g. HttpOrigin's
   # log_check_failure) keep doing so.
   module LogScrubber
-    # A string without it holds no URI the policy would change. A plain log
-    # message costs one byte search (see .scan_text).
+    # A string without it holds no URI the policy would change. The byte caps
+    # are reserved before searching for it (see Event#string).
     URI_MARKER = '://'
 
     # ANSI escape sequences, matched the way SemanticLogger::Log
@@ -104,14 +104,17 @@ module Onetime
     # linear time only because of Onigmo's match cache; a spec pins that.
     # On top of it, these caps bound the scrub work per event: everything
     # done on the logging thread, and everything the Semantic Logger
-    # formatters call when they render the event (a payload exception's own
-    # inspect and to_s are scrubbed up front and memoized). Not covered: exception
-    # copies' detailed_message and full_message, and the inspect of the
-    # logged exception's copies and of cause copies, which scrub themselves
+    # formatters call when they render the event. Every String and Symbol name
+    # is charged at its original size before any content or encoding probe,
+    # transcoding or ANSI removal, so those steps cannot shrink their way
+    # around either byte cap. A payload
+    # exception's own inspect and to_s are scrubbed up front and memoized. Not
+    # covered: exception copies' detailed_message and full_message, and the
+    # inspect of the logged exception's copies and of cause copies, which scrub themselves
     # when called, under MAX_STRING_BYTES per call. No Semantic Logger
     # formatter calls them.
-    MAX_STRING_BYTES     = 16 * 1024 # per string that contains "://" (~1.6 ms worst case)
-    MAX_EVENT_SCAN_BYTES = 64 * 1024 # all regex scans in one event together
+    MAX_STRING_BYTES     = 16 * 1024 # every visited string (~1.6 ms worst case)
+    MAX_EVENT_SCAN_BYTES = 64 * 1024 # all visited string bytes in one event
     MAX_NODES            = 1_000     # values and exception links in one event, all fields
     MAX_DEPTH            = 8         # container nesting within one field
     MAX_EXCEPTION_CHAIN  = 5         # = SemanticLogger::Log::MAX_EXCEPTIONS_TO_UNWRAP
@@ -119,7 +122,7 @@ module Onetime
     DEPTH_SENTINEL         = '[log scrub: nested too deep]'
     CYCLE_SENTINEL         = '[log scrub: circular reference]'
     NODES_SENTINEL         = '[log scrub: too many values]'
-    OVERSIZED_SENTINEL     = '[log scrub: oversized string with URI]'
+    OVERSIZED_SENTINEL     = '[log scrub: oversized string]'
     UNREADABLE_SENTINEL    = '[log scrub: unreadable encoding with ":"]'
     BUDGET_SENTINEL        = '[log scrub: event scan budget spent]'
     SET_COLLISION_SENTINEL = '[log scrub: colliding set member]'
@@ -189,15 +192,29 @@ module Onetime
       # joined URI. ASCII-incompatible encodings (UTF-16/32) are transcoded
       # first, since probing them with an ASCII marker raises.
       #
-      # Text in an ASCII-compatible encoding with no ":" byte is rejected
-      # first: neither dropping bytes nor removing escapes can create one.
-      # That keeps the common case (a plain message, Symbol payload keys) to
-      # a single byte search.
+      # After its bytes are reserved, text in an ASCII-compatible encoding
+      # with no ":" byte is rejected: neither dropping bytes nor removing
+      # escapes can create one. That keeps candidate probing for the common
+      # case (a plain message, Symbol payload keys) to a single byte search.
       #
+      # Valid UTF-8 and plain ASCII need work only when their raw bytes hold a
+      # URI marker or ANSI that could split one. Other encodings may reveal a
+      # marker during conversion, so a colon makes them candidates. Event
+      # callers must reserve the input's byte budget before calling this;
+      # #scan_text applies its standalone per-string cap first.
+      def scan_candidate?(str)
+        return false if str.encoding.ascii_compatible? && !str.include?(':')
+        return true unless (str.encoding == Encoding::UTF_8 && str.valid_encoding?) || str.ascii_only?
+
+        str.include?(URI_MARKER) || str.include?("\e")
+      end
+
+      # @param candidate [Boolean] whether #scan_candidate? already passed
       # @return [String, nil] nil when the text holds no URI_MARKER;
-      #   UNREADABLE_SENTINEL for text that cannot be read (see #utf8_copy)
-      def scan_text(str)
-        return if str.encoding.ascii_compatible? && !str.include?(':')
+      #   a sentinel for oversized or unreadable text
+      def scan_text(str, candidate: false)
+        return OVERSIZED_SENTINEL if str.bytesize > MAX_STRING_BYTES
+        return unless candidate || scan_candidate?(str)
 
         text = if (str.encoding == Encoding::UTF_8 && str.valid_encoding?) || str.ascii_only?
                  str
@@ -212,10 +229,9 @@ module Onetime
 
       private
 
-      # Each field is visited only when it holds something to scrub, and the
-      # per-event state is created on first need, so a plain message costs a
-      # probe and nothing else. The message and the exception go first, so
-      # the event's scan budget favors them over tags and payload.
+      # The message and exception go first, so the event's byte budget favors
+      # them over tags and payload. A non-nil message always creates the event
+      # state because its bytes must be reserved before probing its content.
       def scrub_event(log)
         event          = scrub_message(log)
         log.exception  = (event ||= Event.new).exception(log.exception) if log.exception.is_a?(Exception)
@@ -227,10 +243,15 @@ module Onetime
       # @return [Event, nil] the event state, when the message needed one
       def scrub_message(log)
         message = log.message
-        return if message.nil? || (message.is_a?(String) && !scan_text(message))
+        return if message.nil?
 
-        event       = Event.new
-        log.message = message.is_a?(String) ? event.string(message) : event.walk(message)
+        event = Event.new
+        if message.is_a?(String)
+          scrubbed    = event.string(message)
+          log.message = scrubbed unless scrubbed.equal?(message)
+        else
+          log.message = event.walk(message)
+        end
         event
       end
 
@@ -270,8 +291,8 @@ module Onetime
       end
     end
 
-    # The limits of one event: a regex-scan byte budget and a value budget
-    # shared by all its fields. #walk returns its argument itself when
+    # The limits of one event: a string-byte budget and a value budget shared
+    # by all its fields. #walk returns its argument itself when
     # nothing in it changed; otherwise a new plain Hash, Array or Set
     # holding the changed values.
     class Event
@@ -282,15 +303,27 @@ module Onetime
         @suffixes  = nil
       end
 
-      def string(str)
-        text = LogScrubber.scan_text(str)
-        return str unless text
-        return text if text.equal?(UNREADABLE_SENTINEL)
-        return OVERSIZED_SENTINEL if text.bytesize > MAX_STRING_BYTES
-        return BUDGET_SENTINEL if @scanned + text.bytesize > MAX_EVENT_SCAN_BYTES
+      def string(str, unchanged: str)
+        original_bytes = str.bytesize
+        return OVERSIZED_SENTINEL if original_bytes > MAX_STRING_BYTES
+        return BUDGET_SENTINEL if @scanned + original_bytes > MAX_EVENT_SCAN_BYTES
 
-        @scanned += text.bytesize
-        scrubbed  = Onetime::Utils.redact_uris_in_text(text)
+        @scanned += original_bytes
+        return unchanged unless LogScrubber.scan_candidate?(str)
+
+        text = LogScrubber.scan_text(str, candidate: true)
+        return unchanged unless text
+        return text if text.equal?(UNREADABLE_SENTINEL) || text.equal?(OVERSIZED_SENTINEL)
+        return OVERSIZED_SENTINEL if text.bytesize > MAX_STRING_BYTES
+
+        extra_bytes = text.bytesize - original_bytes
+        if extra_bytes.positive?
+          return BUDGET_SENTINEL if @scanned + extra_bytes > MAX_EVENT_SCAN_BYTES
+
+          @scanned += extra_bytes
+        end
+
+        scrubbed = Onetime::Utils.redact_uris_in_text(text)
         scrubbed == str ? str : scrubbed
       end
 
@@ -343,13 +376,10 @@ module Onetime
         end
       end
 
-      # Payload keys are almost always Symbols without a ":", so that case
-      # is decided before anything else.
+      # Symbol names take the same bounded path as Strings. An unchanged name
+      # keeps its Symbol type; a name containing a URI becomes a String.
       def symbol(sym)
-        name = sym.name
-        return sym if name.encoding.ascii_compatible? && !name.include?(':')
-
-        LogScrubber.scan_text(name) ? string(name) : sym
+        string(sym.name, unchanged: sym)
       end
 
       # An Exception inside a payload is rendered through #inspect (text
