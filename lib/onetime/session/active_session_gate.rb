@@ -80,7 +80,9 @@ module Onetime
   # full rule is {expired_condition}, which Rodauth's sweep is configured
   # with as well, so a remembered row left idle on one device is not swept
   # away by the sessions page opened on another. With remember-me switched
-  # off, `remember_until` is ignored and every row is a default one.
+  # off, the exemption ends (every row is held to the inactivity deadline)
+  # but a lapsed `remember_until` still refuses: the switch is about new
+  # sign-ins and idle exemptions, not about reviving a deadline that passed.
   #
   # ## Failure posture: closed
   #
@@ -308,7 +310,8 @@ module Onetime
 
     # Idle past the inactivity deadline, for a row that is not remembered.
     # With remember-me switched off (AUTH_REMEMBER_ME_ENABLED=false) no row
-    # is remembered: a stamp made before the switch no longer exempts it.
+    # is exempt: a stamp made before the switch no longer holds off the
+    # inactivity deadline (it still ends the row when it lapses, below).
     def inactive_condition
       idle = past_condition(:last_use, INACTIVITY_DEADLINE)
       return idle unless RememberMe.enabled?
@@ -316,11 +319,11 @@ module Onetime
       Sequel.&({ remember_until: nil }, idle)
     end
 
-    # Remembered, and the remember deadline has passed. Never true with
-    # remember-me switched off, for the same reason.
+    # Remembered, and the remember deadline has passed. Not subject to the
+    # switch: a deadline that has passed has passed, whatever the operator
+    # has since decided about new sign-ins (the same rule the session store
+    # applies to the blob's stamp, Onetime::Session#find_session).
     def remember_lapsed_condition
-      return Sequel.lit('1 = 0') unless RememberMe.enabled?
-
       Sequel.&(Sequel.~(remember_until: nil), Sequel[:remember_until] < Sequel::CURRENT_TIMESTAMP)
     end
 

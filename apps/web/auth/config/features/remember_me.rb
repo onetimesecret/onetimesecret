@@ -12,8 +12,10 @@ module Auth::Config::Features
   # lib/onetime/session/remember_me.rb.
   #
   # ENV: AUTH_REMEMBER_ME_ENABLED (default: enabled, set to 'false' to disable).
-  # Disabled, the `remember-me` parameter is ignored and every session is a
-  # default one.
+  # Disabled, the `remember-me` parameter is ignored, and a session stamped
+  # while it was on is held to the default lifetime again: the blob and
+  # cookie stop being sized to the stamp and the row loses its inactivity
+  # exemption. Its stamp still ends it when the 14 days are up.
   #
   # Rodauth's :remember feature is NOT enabled. Before this, it was, and
   # nothing ever called remember_login or load_memory, so the checkbox did

@@ -321,7 +321,9 @@ RSpec.describe Onetime::ActiveSessionGate do
     end
 
     # AUTH_REMEMBER_ME_ENABLED=false: a stamp made while it was on no longer
-    # counts, so an operator can end remembered sessions by switching it off.
+    # exempts the row, so an operator can return remembered sessions to the
+    # default lifetime by switching it off. The stamp still ends the row when
+    # it lapses: the switch does not revive a deadline that has passed.
     context 'with remember-me switched off' do
       before { allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_return(false) }
 
@@ -332,10 +334,12 @@ RSpec.describe Onetime::ActiveSessionGate do
         expect(OT).to have_received(:info).with(/past its inactivity deadline/)
       end
 
-      it 'ignores a lapsed remember_until on a row in use' do
+      it 'still refuses a row whose remember_until has lapsed, however recent its last_use' do
         insert_row(last_use: now, created_at: now - 86_400, remember_until: now - 60)
 
-        expect(described_class.verdict(session)).to eq(:active)
+        expect(described_class.verdict(session)).to eq(:revoked)
+        expect(OT).to have_received(:info).with(/past its remember deadline/)
+        expect(rows.count).to eq(0)
       end
     end
 
@@ -401,14 +405,14 @@ RSpec.describe Onetime::ActiveSessionGate do
         .to contain_exactly('idle', 'lapsed', 'outlived')
     end
 
-    it 'treats every row as unremembered with remember-me switched off' do
+    it 'drops the idle exemption, but not the lapsed deadline, with remember-me switched off' do
       allow(Onetime.auth_config).to receive(:remember_me_sessions_enabled?).and_return(false)
       insert('idle-remembered', last_use: idle, created_at: idle, remember_until: now + 86_400)
       insert('lapsed', remember_until: now - 60)
       insert('fresh')
 
       expect(rows.where(described_class.expired_condition).select_map(:session_id))
-        .to contain_exactly('idle-remembered')
+        .to contain_exactly('idle-remembered', 'lapsed')
     end
   end
 

@@ -13,8 +13,9 @@
 #   NULL       the session was not remembered (every row before this ships):
 #              the 72-hour inactivity deadline applies, as today
 #   timestamp  remembered until then, in the database's clock like
-#              created_at and last_use; no inactivity deadline before it,
-#              refused after it
+#              created_at and last_use; no inactivity deadline before it
+#              (while AUTH_REMEMBER_ME_ENABLED is on), refused after it
+#              whatever the switch says
 #
 # The 30-day lifetime deadline applies to both.
 #
