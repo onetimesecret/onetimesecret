@@ -60,6 +60,7 @@
 # =============================================================================
 
 require_relative 'initializers'
+require_relative 'log_scrubber'
 
 module Onetime
   module Initializers
@@ -124,6 +125,11 @@ module Onetime
     # reset_all_boot_state! raises in non-test modes).
     #
     def boot!(mode = nil, connect_to_db = true, force: false) # rubocop:disable Metrics/PerceivedComplexity
+      # First thing: config loading and early initializers log before
+      # SetupLoggers runs, and an event that is still in the async queue when
+      # an appender arrives would otherwise be written unscrubbed.
+      Onetime::LogScrubber.register!
+
       OT.mode = mode unless mode.nil?
       OT.env  = ENV['RACK_ENV'] || 'production'
 
