@@ -129,10 +129,13 @@ RSpec.describe 'per-domain signup_enabled enforcement — full mode (ADR-024 cus
     csrf_json_post(path, params)
   end
 
-  # A WELL-FORMED create-account body. login-confirm matters: without it
-  # Rodauth answers 422 "logins do not match" and a would-be 200 is
-  # indistinguishable from a gate — the false negative that nearly hid the
-  # over-gate regression when it was first probed.
+  # A WELL-FORMED create-account body. A body Rodauth rejects answers 422, and
+  # a would-be 200 is then indistinguishable from a gate — the false negative
+  # that nearly hid the over-gate regression when it was first probed (the
+  # body then lacked login-confirm, which Rodauth required until
+  # account_management.rb turned require_login_confirmation? off). The
+  # confirmations are no longer required; they are sent so the body stays
+  # valid if either is turned back on.
   def signup_params(email)
     {
       login: email,
