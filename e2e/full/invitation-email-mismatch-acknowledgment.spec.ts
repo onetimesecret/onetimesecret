@@ -28,134 +28,21 @@
  *     pnpm playwright test invitation-email-mismatch-acknowledgment.spec.ts
  */
 
-import { expect, Page, test } from '@playwright/test';
+import { type BrowserContext, expect, type Page, test } from '@playwright/test';
 
-// Generate unique email addresses for test isolation
-const generateTestEmail = (prefix: string) =>
-  `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.onetimesecret.com`;
+import {
+  closeContexts,
+  invitationToken,
+  inviteMember,
+  openFirstOrgMembersTab,
+  openFreshContext,
+  signInAsTestUser,
+  uniqueTestEmail,
+} from '../support/members';
 
 // -----------------------------------------------------------------------------
 // Test Helpers
 // -----------------------------------------------------------------------------
-
-/**
- * Context options for a truly unauthenticated browser context.
- *
- * `browser.newContext()` inherits the `full` project's `use` options —
- * including its storageState (the owner session) — so a bare newContext()
- * is NOT unauthenticated. Pass these options to opt out explicitly.
- */
-const unauthenticatedContext = { storageState: { cookies: [], origins: [] } };
-
-/**
- * Authenticate user via login form using password tab.
- *
- * Only valid on pages from an unauthenticated context
- * (`browser.newContext(unauthenticatedContext)`): the default `page` fixture
- * and bare `browser.newContext()` carry the storageState session, and an
- * authenticated visitor to /signin is redirected away from the form.
- */
-async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
-  await page.goto('/signin');
-
-  // Click Password tab - Magic Link is the default, password input is hidden
-  // Handle both signin variants (canonical logic: e2e/global.setup.ts):
-  // default deployments render SignInForm directly (the CI container does);
-  // passwordless-first deployments hide the password panel behind a
-  // "Password" tab with different test ids.
-  const signinEmail = email || process.env.TEST_USER_EMAIL || '';
-  const signinPassword = password || process.env.TEST_USER_PASSWORD || '';
-  const signinForm = page.getByTestId('signin-form');
-  const passwordTab = page.getByRole('tab', { name: /password/i });
-  await expect(signinForm.or(passwordTab).first()).toBeVisible();
-
-  if (await passwordTab.isVisible()) {
-    // Passwordless-first variant (magic links / WebAuthn enabled)
-    await passwordTab.click();
-    await page.getByTestId('password-email-input').fill(signinEmail);
-    await page.getByTestId('password-input').fill(signinPassword);
-    await page.getByTestId('password-submit').click();
-  } else {
-    // Password-only variant (CI container default)
-    await page.getByTestId('signin-email-input').fill(signinEmail);
-    await page.getByTestId('signin-password-input').fill(signinPassword);
-    await page.getByTestId('signin-submit').click();
-  }
-
-  // Wait for redirect to dashboard/account
-  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-}
-
-/**
- * Navigate to organization team settings page
- */
-async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string> {
-  if (orgExtid) {
-    await page.goto(`/org/${orgExtid}/team`);
-    return orgExtid;
-  }
-
-  // Navigate to org list and find first org
-  await page.goto('/orgs');
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-  // Find the first organization link with team tab
-  const orgLink = page.locator('a[href*="/org/"]').first();
-  const href = await orgLink.getAttribute('href');
-  const match = href?.match(/\/org\/([^/]+)/);
-  const extractedOrgExtid = match?.[1] || '';
-
-  await page.goto(`/org/${extractedOrgExtid}/team`);
-  return extractedOrgExtid;
-}
-
-/**
- * Create a new invitation via the UI
- */
-async function createInvitation(
-  page: Page,
-  email: string,
-  role: 'member' | 'admin' = 'member'
-): Promise<void> {
-  // Click invite member button
-  const inviteButton = page.getByRole('button', { name: /invite member/i });
-  await inviteButton.click();
-
-  // Fill invitation form
-  const emailInput = page.locator('#invite-email');
-  await emailInput.fill(email);
-
-  const roleSelect = page.locator('#invite-role');
-  await roleSelect.selectOption(role);
-
-  // Submit
-  const sendButton = page.getByRole('button', { name: /send invit/i });
-  await sendButton.click();
-
-  // Wait for success
-  await expect(page.getByText(/invitation sent/i)).toBeVisible({ timeout: 10000 });
-}
-
-/**
- * Get current organization extid from URL
- */
-function getCurrentOrgExtid(page: Page): string {
-  const url = page.url();
-  const match = url.match(/\/org\/([^/]+)/);
-  return match?.[1] || '';
-}
-
-/**
- * Extract invitation token from pending invitations list via API
- */
-async function getInvitationToken(page: Page, email: string): Promise<string | null> {
-  const orgExtid = getCurrentOrgExtid(page);
-  const response = await page.request.get(`/api/organizations/${orgExtid}/invitations`);
-  const data = await response.json();
-
-  const invitation = data.records?.find((inv: { email: string }) => inv.email === email);
-  return invitation?.token || null;
-}
 
 /**
  * Get a CSRF token bound to the page's session.
@@ -206,23 +93,21 @@ test.describe('MISMATCH-001: Email Mismatch Warning Display', () => {
   test('When logged in with different email, mismatch warning shows Continue As option', async ({
     browser,
   }) => {
-    const ownerContext = await browser.newContext(unauthenticatedContext);
-    const wrongUserContext = await browser.newContext(unauthenticatedContext);
-
-    const ownerPage = await ownerContext.newPage();
-    const wrongUserPage = await wrongUserContext.newPage();
+    const opened: BrowserContext[] = [];
 
     try {
+      const ownerPage = await (await openFreshContext(browser, opened)).newPage();
+      const wrongUserPage = await (await openFreshContext(browser, opened)).newPage();
+
       // Owner creates invitation for a different email
-      await loginUser(ownerPage);
-      const invitedEmail = generateTestEmail('mismatch-strict');
-      await navigateToOrgTeam(ownerPage);
-      await createInvitation(ownerPage, invitedEmail);
-      const token = await getInvitationToken(ownerPage, invitedEmail);
-      expect(token).toBeTruthy();
+      await signInAsTestUser(ownerPage);
+      const invitedEmail = uniqueTestEmail('mismatch-strict');
+      const orgExtid = await openFirstOrgMembersTab(ownerPage);
+      await inviteMember(ownerPage, invitedEmail);
+      const token = await invitationToken(ownerPage, orgExtid, invitedEmail);
 
       // Different user logs in and visits invitation
-      await loginUser(wrongUserPage);
+      await signInAsTestUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
       await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -239,8 +124,7 @@ test.describe('MISMATCH-001: Email Mismatch Warning Display', () => {
       const acceptMismatchButton = wrongUserPage.locator('[data-testid="accept-with-mismatch-btn"]');
       await expect(acceptMismatchButton).not.toBeVisible();
     } finally {
-      await ownerContext.close();
-      await wrongUserContext.close();
+      await closeContexts(opened);
     }
   });
 });
@@ -253,22 +137,21 @@ test.describe('MISMATCH-002: Accept Button Hidden When Email Mismatch', () => {
   test('Accept button is NOT visible when email mismatch exists (strict binding)', async ({
     browser,
   }) => {
-    const ownerContext = await browser.newContext(unauthenticatedContext);
-    const wrongUserContext = await browser.newContext(unauthenticatedContext);
-
-    const ownerPage = await ownerContext.newPage();
-    const wrongUserPage = await wrongUserContext.newPage();
+    const opened: BrowserContext[] = [];
 
     try {
+      const ownerPage = await (await openFreshContext(browser, opened)).newPage();
+      const wrongUserPage = await (await openFreshContext(browser, opened)).newPage();
+
       // Owner creates invitation
-      await loginUser(ownerPage);
-      const invitedEmail = generateTestEmail('mismatch-hidden');
-      await navigateToOrgTeam(ownerPage);
-      await createInvitation(ownerPage, invitedEmail);
-      const token = await getInvitationToken(ownerPage, invitedEmail);
+      await signInAsTestUser(ownerPage);
+      const invitedEmail = uniqueTestEmail('mismatch-hidden');
+      const orgExtid = await openFirstOrgMembersTab(ownerPage);
+      await inviteMember(ownerPage, invitedEmail);
+      const token = await invitationToken(ownerPage, orgExtid, invitedEmail);
 
       // Wrong user visits invitation
-      await loginUser(wrongUserPage);
+      await signInAsTestUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
       await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -285,8 +168,7 @@ test.describe('MISMATCH-002: Accept Button Hidden When Email Mismatch', () => {
       const continueAsBtn = wrongUserPage.getByTestId('continue-as-btn');
       await expect(continueAsBtn).toBeVisible();
     } finally {
-      await ownerContext.close();
-      await wrongUserContext.close();
+      await closeContexts(opened);
     }
   });
 });
@@ -299,23 +181,21 @@ test.describe('MISMATCH-003: Continue As Triggers Logout', () => {
   test('Clicking "Continue as" logs out user and redirects to invite page', async ({
     browser,
   }) => {
-    const ownerContext = await browser.newContext(unauthenticatedContext);
-    const wrongUserContext = await browser.newContext(unauthenticatedContext);
-
-    const ownerPage = await ownerContext.newPage();
-    const wrongUserPage = await wrongUserContext.newPage();
+    const opened: BrowserContext[] = [];
 
     try {
+      const ownerPage = await (await openFreshContext(browser, opened)).newPage();
+      const wrongUserPage = await (await openFreshContext(browser, opened)).newPage();
+
       // Owner creates invitation
-      await loginUser(ownerPage);
-      const invitedEmail = generateTestEmail('mismatch-switch');
-      await navigateToOrgTeam(ownerPage);
-      await createInvitation(ownerPage, invitedEmail);
-      const token = await getInvitationToken(ownerPage, invitedEmail);
-      expect(token).toBeTruthy();
+      await signInAsTestUser(ownerPage);
+      const invitedEmail = uniqueTestEmail('mismatch-switch');
+      const orgExtid = await openFirstOrgMembersTab(ownerPage);
+      await inviteMember(ownerPage, invitedEmail);
+      const token = await invitationToken(ownerPage, orgExtid, invitedEmail);
 
       // Wrong user logs in and visits invitation
-      await loginUser(wrongUserPage);
+      await signInAsTestUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
       await expect(wrongUserPage.getByTestId('invite-wrong-email')).toBeVisible();
 
@@ -340,8 +220,7 @@ test.describe('MISMATCH-003: Continue As Triggers Logout', () => {
       const data = await response.json();
       expect(data.authenticated).toBeFalsy();
     } finally {
-      await ownerContext.close();
-      await wrongUserContext.close();
+      await closeContexts(opened);
     }
   });
 });
@@ -362,10 +241,10 @@ test.describe('MISMATCH-004: Unauthenticated User Sees Inline Auth Forms', () =>
     expect(currentEmail).toBeTruthy();
 
     // Create invitation for a different test email
-    await navigateToOrgTeam(page);
-    const testEmail = generateTestEmail('unauthenticated-test');
-    await createInvitation(page, testEmail);
-    const token = await getInvitationToken(page, testEmail);
+    const orgExtid = await openFirstOrgMembersTab(page);
+    const testEmail = uniqueTestEmail('unauthenticated-test');
+    await inviteMember(page, testEmail);
+    const token = await invitationToken(page, orgExtid, testEmail);
 
     // Clear cookies to visit as unauthenticated
     await context.clearCookies();
@@ -394,27 +273,25 @@ test.describe('MISMATCH-004: Unauthenticated User Sees Inline Auth Forms', () =>
 
 test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
   test('Direct API call with mismatched email returns error', async ({ browser }) => {
-    const ownerContext = await browser.newContext(unauthenticatedContext);
-    const wrongUserContext = await browser.newContext(unauthenticatedContext);
-
-    const ownerPage = await ownerContext.newPage();
-    const wrongUserPage = await wrongUserContext.newPage();
+    const opened: BrowserContext[] = [];
 
     try {
+      const ownerPage = await (await openFreshContext(browser, opened)).newPage();
+      const wrongUserPage = await (await openFreshContext(browser, opened)).newPage();
+
       // Owner creates invitation
-      await loginUser(ownerPage);
-      const invitedEmail = generateTestEmail('mismatch-api');
-      await navigateToOrgTeam(ownerPage);
-      await createInvitation(ownerPage, invitedEmail);
-      const token = await getInvitationToken(ownerPage, invitedEmail);
-      expect(token).toBeTruthy();
+      await signInAsTestUser(ownerPage);
+      const invitedEmail = uniqueTestEmail('mismatch-api');
+      const orgExtid = await openFirstOrgMembersTab(ownerPage);
+      await inviteMember(ownerPage, invitedEmail);
+      const token = await invitationToken(ownerPage, orgExtid, invitedEmail);
 
       // Wrong user logs in
-      await loginUser(wrongUserPage);
+      await signInAsTestUser(wrongUserPage);
 
       // Try to accept directly via API (bypassing the UI, which offers no
       // accept button in the wrong_email state)
-      const response = await postAcceptInvite(wrongUserPage, token!);
+      const response = await postAcceptInvite(wrongUserPage, token);
 
       // Rejected by the email binding, not by CSRF or auth
       expect(response.status()).toBe(422);
@@ -425,34 +302,31 @@ test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
       expect(data.error).toContain('match');
 
       // And the invitation was not consumed
-      await expectInvitationStillPending(ownerPage, token!);
+      await expectInvitationStillPending(ownerPage, token);
     } finally {
-      await ownerContext.close();
-      await wrongUserContext.close();
+      await closeContexts(opened);
     }
   });
 
   test('API rejects even with acknowledge_email_mismatch flag (security change)', async ({ browser }) => {
-    const ownerContext = await browser.newContext(unauthenticatedContext);
-    const wrongUserContext = await browser.newContext(unauthenticatedContext);
-
-    const ownerPage = await ownerContext.newPage();
-    const wrongUserPage = await wrongUserContext.newPage();
+    const opened: BrowserContext[] = [];
 
     try {
+      const ownerPage = await (await openFreshContext(browser, opened)).newPage();
+      const wrongUserPage = await (await openFreshContext(browser, opened)).newPage();
+
       // Owner creates invitation
-      await loginUser(ownerPage);
-      const invitedEmail = generateTestEmail('mismatch-bypass');
-      await navigateToOrgTeam(ownerPage);
-      await createInvitation(ownerPage, invitedEmail);
-      const token = await getInvitationToken(ownerPage, invitedEmail);
-      expect(token).toBeTruthy();
+      await signInAsTestUser(ownerPage);
+      const invitedEmail = uniqueTestEmail('mismatch-bypass');
+      const orgExtid = await openFirstOrgMembersTab(ownerPage);
+      await inviteMember(ownerPage, invitedEmail);
+      const token = await invitationToken(ownerPage, orgExtid, invitedEmail);
 
       // Wrong user logs in
-      await loginUser(wrongUserPage);
+      await signInAsTestUser(wrongUserPage);
 
       // Try to bypass by sending the old acknowledgment flag
-      const response = await postAcceptInvite(wrongUserPage, token!, {
+      const response = await postAcceptInvite(wrongUserPage, token, {
         acknowledge_email_mismatch: true,
       });
 
@@ -464,10 +338,9 @@ test.describe('MISMATCH-005: API Rejects Email Mismatch', () => {
       expect(data.error).toContain('match');
 
       // And the invitation was not consumed
-      await expectInvitationStillPending(ownerPage, token!);
+      await expectInvitationStillPending(ownerPage, token);
     } finally {
-      await ownerContext.close();
-      await wrongUserContext.close();
+      await closeContexts(opened);
     }
   });
 });

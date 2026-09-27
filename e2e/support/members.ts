@@ -109,6 +109,20 @@ export async function signInWithPassword(
 }
 
 /**
+ * Sign the shared lane account in: the TEST_USER_* account that
+ * e2e/global.setup.ts signs up and saves as the full project's storageState.
+ * For a second session of that account in a context from openFreshContext;
+ * the default `page` fixture is already signed in as it.
+ */
+export async function signInAsTestUser(page: Page): Promise<void> {
+  const email = process.env.TEST_USER_EMAIL ?? '';
+  const password = process.env.TEST_USER_PASSWORD ?? '';
+  expect(email, 'TEST_USER_EMAIL is set').not.toBe('');
+  expect(password, 'TEST_USER_PASSWORD is set').not.toBe('');
+  await signInWithPassword(page, email, password);
+}
+
+/**
  * Sign up a throwaway account in its own context and sign it in. The account
  * owns its default workspace, so it can invite members.
  */
@@ -135,6 +149,17 @@ export async function signUpAndSignIn(
 export async function openMembersTab(page: Page, orgExtid: string): Promise<void> {
   await page.goto(`/org/${orgExtid}/members`);
   await expect(page.getByTestId('org-section-members')).toBeVisible();
+}
+
+/**
+ * Open the Members tab of the page account's first organization and return
+ * that organization's extid. The account must own an organization: /orgs,
+ * where getFirstOrganization reads it, is owner-only.
+ */
+export async function openFirstOrgMembersTab(page: Page): Promise<string> {
+  const { extid } = await getFirstOrganization(page);
+  await openMembersTab(page, extid);
+  return extid;
 }
 
 /**
@@ -266,9 +291,8 @@ export async function createOwnerWithOrg(
   prefix: string
 ): Promise<{ owner: SignedInAccount; orgExtid: string }> {
   const owner = await signUpAndSignIn(browser, opened, prefix);
-  const { extid } = await getFirstOrganization(owner.page);
-  await openMembersTab(owner.page, extid);
-  return { owner, orgExtid: extid };
+  const orgExtid = await openFirstOrgMembersTab(owner.page);
+  return { owner, orgExtid };
 }
 
 /**
