@@ -162,13 +162,20 @@ module Auth
     # (ADR-038#classify-exhaustively-or-fail): an unclassified route silently
     # defaulting to "allowed" is how surface #1 rots.
     #
-    # Three reasons appear here:
+    # Four reasons appear here:
     #   - ACCOUNT-SCOPED (ADR-034#reject-as-not-found-not-forbidden "Scope"):
     #     reachable only when authenticated, so keying them to the REQUEST HOST
     #     is the wrong axis. They belong to SsoOnlyGating / ADR-035.
     #   - INSTALL-WIDE SECURITY POSTURE: MFA/lockout are explicitly not
     #     per-domain overridable (ADR-024 scope boundary).
     #   - NOT A SIGN-IN METHOD: logout must never 404.
+    #   - IDENTITY-PROVIDER ENDPOINTS (config/features/oauth.rb, mounted only
+    #     with AUTH_OAUTH_ENABLED): this install is the IdP signing a relying
+    #     party's user in ELSEWHERE; none of the five is a sign-in method this
+    #     host offers. `authorize` is account-scoped (rodauth-oauth's
+    #     require_authorizable_account → require_account); token, revoke and
+    #     userinfo authenticate by client credentials or bearer token, and jwks
+    #     is public key material. Same reasoning as Auth::SigninGate.
     UNGATED_ROUTES = [
       *SECOND_FACTOR_ROUTES.keys, # second-factor ceremony, not a method offer (ADR-034#reject-as-not-found-not-forbidden)
       :logout,
@@ -192,6 +199,12 @@ module Auth
       :webauthn_setup,
       :webauthn_setup_js,
       :webauthn_remove,
+      # identity-provider endpoints (see above)
+      :authorize,
+      :token,
+      :revoke,
+      :userinfo,
+      :jwks,
     ].freeze
 
     class << self
