@@ -150,8 +150,14 @@ module Onetime
       # The chain is followed through a map of the whole answer section, not
       # by reading it top to bottom: RFC 1034 does not fix the order of the
       # answer section, and resolvers have returned the final records ahead
-      # of the CNAMEs that lead to them. The walk is bounded by the number of
-      # records, so a CNAME loop ends it.
+      # of the CNAMEs that lead to them.
+      #
+      # A CNAME that leads back to a name already walked (including the
+      # queried name itself) is a loop: no name in the chain owns the answer,
+      # so nothing is returned. Stopping on a record count instead would end
+      # the walk on whichever name the count happened to land on, and a
+      # malformed reply that also lists +rtype+ data under that name would
+      # have it read as the answer.
       #
       # @return [Array<Resolv::DNS::Resource>] empty unless rcode is NOERROR
       def records(reply, name, rtype)
@@ -161,11 +167,14 @@ module Onetime
           map[rr_name] = data.name if data.is_a?(CNAME)
         end
 
-        owner = name
-        reply.answer.size.times do
+        owner   = name
+        visited = [name]
+        loop do
           target = aliases[owner]
           break if target.nil?
+          return [] if visited.include?(target)
 
+          visited << target
           owner = target
         end
 
