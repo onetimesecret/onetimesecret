@@ -102,11 +102,14 @@ test.describe('INV-001: New User Atomic Signup Flow', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-002: New User Magic Link Flow', () => {
-  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): the magic
-  // link arrives by email, so this needs a mail interceptor the CI container
-  // does not run. Unimplemented placeholder -> test.fixme. See e2e/QUARANTINE.md.
+  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): magic
+  // links are off unless AUTH_EMAIL_AUTH_ENABLED=true, the link arrives by
+  // email (so a mail interceptor must catch it), and the invite page offers
+  // one only on a custom domain or on a host restricted to email auth
+  // (show_invite.rb, AcceptInvite.vue). The full lane has none of these.
+  // Unimplemented placeholder -> test.fixme. See e2e/QUARANTINE.md.
   test.fixme('new user can join via magic link', async () => {
-    // TODO(#3421): drive the magic-link join once a mail interceptor exists.
+    // TODO(#3421): drive the magic-link join once a lane provides all three.
   });
 });
 
@@ -115,11 +118,14 @@ test.describe('INV-002: New User Magic Link Flow', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-003: New User SSO Flow', () => {
-  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): needs an
-  // SSO/IdP configured AND a captured invite email. Unimplemented placeholder
-  // -> test.fixme. See e2e/QUARANTINE.md.
+  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): needs
+  // an SSO identity provider, and the invite page offers SSO only on a custom
+  // domain with SSO available or on a host restricted to SSO
+  // (show_invite.rb, AcceptInvite.vue). Unimplemented placeholder ->
+  // test.fixme. See e2e/QUARANTINE.md.
   test.fixme('new user can join via SSO', async () => {
-    // TODO(#3421): drive the SSO join once an IdP + mail interceptor exist.
+    // TODO(#3421): drive the SSO join once a lane provides an IdP. The token
+    // comes from the invitations API, as in INV-001.
   });
 });
 

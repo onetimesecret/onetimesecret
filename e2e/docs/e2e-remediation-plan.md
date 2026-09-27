@@ -78,7 +78,7 @@ the invite journeys need no mail.
 | Needs two organizations with custom domains | 15 | `test.fixme` (cross-org isolation, domains-store cache, TC-SS-009/-054) | #3420 |
 | Needs a custom domain; unimplemented | 7 | `test.fixme` (domain-context-consultant placeholders) | #3420 |
 | Needs org SSO, or an account without `manage_sso` | 2 | `test.fixme` (ORG-DETAIL-006 unless `E2E_SSO_UI`, TC-DSSO-019) | #3420 |
-| Needs a mail interceptor or an IdP | 2 | `test.fixme` (invite-flow-states INV-002, -003) | #3421 |
+| Needs magic-link sign-in plus mail (INV-002), or an SSO IdP (INV-003) | 2 | `test.fixme` (invite-flow-states INV-002, -003) | #3421 |
 | Needs an MFA-enrolled account | 11 | env gate `TEST_MFA_*` (10), `test.fixme` (invite-flow-states INV-005) | #3421 |
 | **Total** | **136** | 97 env-gated, 39 `test.fixme` | |
 
@@ -107,9 +107,16 @@ flag, and remove the matching `QUARANTINE.md` rows in the same PR:
 3. **Org SSO (#3420).** A lane option with `ORGS_SSO_ENABLED=true` and
    `E2E_SSO_UI`; the per-domain SSO suites also need a custom domain (step 1)
    and, for six cases, two.
-4. **Invitation mail (#3421).** A Mailpit sidecar and `EMAILER_MODE=smtp`, as
-   `e2e-full-auth.yml` already runs, for the magic-link invite (INV-002 in
-   `invite-flow-states`). The SSO invite (INV-003) also needs an IdP.
+4. **Invite sign-in methods (#3421).** The magic-link invite (INV-002 in
+   `invite-flow-states`) needs magic links turned on
+   (`AUTH_EMAIL_AUTH_ENABLED=true`; `email_auth` is off by default in
+   `etc/defaults/auth.defaults.yaml`) and a Mailpit sidecar with
+   `EMAILER_MODE=smtp`, as `e2e-full-auth.yml` runs, to read the link. The
+   SSO invite (INV-003) needs an IdP. The invite page's own forms offer
+   either method only on a custom domain (`show_invite.rb` sends
+   `auth_methods` only there), which needs step 1 and a lane that browses the
+   domain's host. On the canonical host the invitee reaches the method
+   through `/signin` only when sign-in is restricted to it.
 5. **MFA (#3421).** Turn MFA on in the full lane (`AUTH_MFA_ENABLED`; the
    lane's bootstrap reports `mfa: false` today), enroll a throwaway account in
    TOTP during the run (`e2e/support/totp.ts` derives the codes, as
