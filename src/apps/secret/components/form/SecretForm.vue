@@ -184,8 +184,10 @@
   );
 
   // On a custom domain the form can only ever target that one domain, so the
-  // "Creating links for <domain>" badge is noise. Only surface it where the
-  // domain context is an actual choice (the workspace multi-domain case).
+  // "Creating links for <domain>" badge is noise, so hide it there. Everywhere
+  // else it shows whenever domains are enabled, including a canonical-only
+  // account with no choice to make (whether to also require
+  // hasMultipleContexts is open: #4571).
   const showDomainContext = computed(
     () => isContextActive.value && domainStrategy.value !== 'custom'
   );
