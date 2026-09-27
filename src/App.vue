@@ -150,12 +150,15 @@
 /**
  * Root application component managing layouts and routing.
  *
- * Security Note: we avoid Vue keep-alive components to force re-creating them
- * and ensure each route receives a fresh component instance.
+ * Security Note: we avoid Vue keep-alive components, so a routed view that is
+ * left is destroyed and a later visit creates a fresh component instance.
  *
  * Routing Strategy Explained:
  * - Dynamically selects layout based on current route metadata
- * - Ensures each navigation creates a fresh component instance
+ * - Keys the routed view with routeViewKey($route), so a navigation creates a
+ *   fresh component instance, except one that changes only params the route
+ *   lists in meta.keepMountedAcrossParams: that keeps the mounted instance
+ *   (e.g. a :tab switch on /org/:extid/:tab?)
  * - Maintains consistent layout while updating page content
  *
  * @see /src/router/index.ts for route definitions
