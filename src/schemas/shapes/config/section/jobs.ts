@@ -77,7 +77,9 @@ const jobsDomainRefreshShape = augment(jobsDomainRefreshSchema, {
   enabled: (b) => b.default(false),
   check_interval: (s) => s.default('30m'),
   batch_size: (n) => n.int().positive().default(200),
-  rate_limit: (n) => n.nonnegative().default(0.5),
+  // No default: unset leaves pacing to the validation strategy
+  // (BaseStrategy#bulk_rate_limit).
+  rate_limit: (n) => n.nonnegative().optional(),
 });
 
 const jobsExpirationWarningsShape = augment(jobsExpirationWarningsSchema, {
@@ -159,7 +161,7 @@ const jobsShape = augment(jobsSchema, {
     enabled: (b) => b.default(false),
     check_interval: (s) => s.default('30m'),
     batch_size: (n) => n.int().positive().default(200),
-    rate_limit: (n) => n.nonnegative().default(0.5),
+    rate_limit: (n) => n.nonnegative().optional(),
   },
   expiration_warnings: {
     enabled: (b) => b.default(false),

@@ -25,8 +25,13 @@ module Onetime
     #   | Strategy        | validate | cert | status | delete | widget |
     #   |-----------------|----------|------|--------|--------|--------|
     #   | Approximated    | active   | yes  | yes    | yes    | yes    |
-    #   | CaddyOnDemand   | passive  | auto | basic  | no-op  | no     |
+    #   | CaddyOnDemand   | active   | auto | basic  | no-op  | no     |
     #   | Passthrough     | passive  | ext  | basic  | no-op  | no     |
+    #
+    # "active" validate means the strategy checks the TXT challenge record:
+    # Approximated through its API with a native fallback, CaddyOnDemand with
+    # our own DNS lookup (TxtVerifier). Caddy obtaining a certificate is not
+    # an ownership check; it only shows where the name resolves.
     #
     class BaseStrategy
       # Validates domain ownership (typically via DNS TXT record).
@@ -38,7 +43,10 @@ module Onetime
       #     not change stored verification state on nil.
       #   - :indeterminate [Boolean, nil] true alongside validated: nil
       #   - :message [String] Human-readable result
-      #   - :data [Hash, nil] Additional validation data (strategy-specific)
+      #   - :data [Array, Hash, nil] Additional validation data
+      #     (strategy-specific). VerifyDomain only changes stored state for a
+      #     result that carries :data or :mode.
+      #   - :source [String, nil] 'native' when our own DNS lookup decided
       #   - :mode [String, nil] Strategy mode identifier
       #
       def validate_ownership(custom_domain)
@@ -63,12 +71,18 @@ module Onetime
       # @param custom_domain [Onetime::CustomDomain] The domain to check
       # @return [Hash] Status information:
       #   - :ready [Boolean] Whether domain is fully operational
-      #   - :has_ssl [Boolean, nil] SSL certificate status
-      #   - :is_resolving [Boolean, nil] DNS resolution status
+      #   - :has_ssl [Boolean, nil] SSL certificate status; nil = could not tell
+      #   - :is_resolving [Boolean, nil] DNS resolution status; nil = could not
+      #     tell, and the stored `resolving` flag is left alone
       #   - :status [String, nil] Provider-specific status code
       #   - :status_message [String, nil] Human-readable status
-      #   - :data [Hash, nil] Full provider response (strategy-specific)
+      #   - :data [Hash, nil] Payload stored as the domain's `vhost` blob, which
+      #     is where has_ssl is kept. Leave it out when has_ssl is nil so the
+      #     stored value is not overwritten.
       #   - :mode [String, nil] Strategy mode identifier
+      #
+      # Returning neither :data nor :mode means the check itself failed:
+      # VerifyDomain stores nothing and sets vhost_fetch_failed_at.
       #
       def check_status(custom_domain)
         raise NotImplementedError, "#{self.class} must implement #check_status"
@@ -128,6 +142,19 @@ module Onetime
       #
       def manages_certificates?
         false
+      end
+
+      # Seconds a bulk run should pause between domains for this strategy.
+      #
+      # Pacing belongs to whatever the strategy talks to: a provider API with
+      # a request cap needs a pause, our own DNS and TLS lookups do not.
+      # VerifyDomain's bulk mode uses this unless the caller passes an
+      # explicit rate_limit.
+      #
+      # @return [Numeric] seconds; 0 means no pause
+      #
+      def bulk_rate_limit
+        0
       end
     end
   end

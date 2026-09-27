@@ -138,6 +138,21 @@ module Onetime
       def resolve_and_validate!(host)
         addrs = resolve_addresses(host)
         addrs = [host] if addrs.empty? && ip_literal?(host)
+        validate_addresses!(host, addrs)
+      end
+
+      # The validation half of #resolve_and_validate!, for callers that
+      # resolve the host themselves (DomainValidation::TlsProbe needs the DNS
+      # response code, which #resolve_addresses does not report). Same rules:
+      # empty is rejected, one blocked address rejects the whole set, and the
+      # result is uniq'd and ordered IPv4-first. The caller must dial only
+      # the returned addresses, pinned, with no second resolution.
+      #
+      # @param host [String] the name the addresses were resolved from (messages only)
+      # @param addrs [Array<String>] every address the caller resolved
+      # @return [Array<String>] validated addresses, IPv4-first
+      # @raise [Blocked]
+      def validate_addresses!(host, addrs)
         raise Blocked, "no A/AAAA records for #{host}" if addrs.empty?
 
         addrs.each do |addr|

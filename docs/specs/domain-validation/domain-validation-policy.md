@@ -27,7 +27,7 @@ override exists anywhere, not even as a TODO.
 | Strategy | Ownership proof | Cert/serving | DNS check | File |
 |---|---|---|---|---|
 | `approximated` | TXT, exact-match via Approximated API | Approximated-managed | TXT only; CNAME/A trusted from provider's `is_resolving` | `approximated_strategy.rb:33-255` |
-| `caddy_on_demand` | None (Caddy ACME challenge ≠ ownership proof) | Caddy on-demand TLS | None performed by OTS | `caddy_on_demand_strategy.rb:17-99` |
+| `caddy_on_demand` | At the time of this review: none (Caddy ACME challenge ≠ ownership proof). Since 2026-09-18: TXT, exact-match via OTS's own lookup (`txt_verifier.rb`; ADR-016 implementation note) | Caddy on-demand TLS | TXT only; no CNAME/A check by OTS | `caddy_on_demand_strategy.rb` |
 | `passthrough` | None — always returns true | External/operator-managed | None | `passthrough_strategy.rb:16-92` |
 
 `CustomDomain` (`lib/onetime/models/custom_domain.rb`) verification state

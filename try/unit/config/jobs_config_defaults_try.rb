@@ -51,9 +51,9 @@ end
 [@jobs['plan_cache_refresh']['enabled'], @jobs['catalog_retry']['enabled'], @jobs['dlq_consumer']['enabled']]
 #=> [true, true, true]
 
-## domain_refresh block matches inlined defaults (enabled by default)
+## domain_refresh block matches inlined defaults (enabled by default; rate_limit unset so the strategy paces itself)
 @jobs['domain_refresh']
-#=> {"enabled"=>true, "check_interval"=>"30m", "batch_size"=>200, "rate_limit"=>0.5, "dns_propagation_window"=>"24h"}
+#=> {"enabled"=>true, "check_interval"=>"30m", "batch_size"=>200, "dns_propagation_window"=>"24h"}
 
 ## expiration_warnings block matches inlined defaults
 @jobs['expiration_warnings']

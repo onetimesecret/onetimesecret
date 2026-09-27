@@ -2,36 +2,84 @@
 #
 # frozen_string_literal: true
 
+require 'time'
+
+require_relative 'txt_verifier'
+require_relative 'tls_probe'
+
 module Onetime
   module DomainValidation
     # CaddyOnDemandStrategy - Caddy's on_demand_tls certificate management.
     #
-    # Use this when using Caddy's on-demand TLS feature. Caddy will call
-    # the internal ACME endpoint to check if a domain is allowed before
-    # issuing a certificate.
+    # Use this when using Caddy's on-demand TLS feature. Caddy calls the
+    # internal ACME endpoint (apps/internal/acme) to ask whether a domain is
+    # allowed before issuing a certificate, and that endpoint answers from
+    # CustomDomain#ready?, which requires `verified`.
     #
-    # This strategy doesn't perform validation itself - it relies on Caddy
-    # to handle the ACME challenge and certificate issuance. We just track
-    # which domains are registered in our system.
+    # Two separate proofs are involved and only one of them is Caddy's:
+    #
+    #   - Ownership: this strategy checks the TXT challenge record with our
+    #     own DNS lookup (TxtVerifier), the same "exactly one matching value"
+    #     rule the Approximated strategy applies.
+    #   - Certificate issuance: Caddy completes the ACME challenge. That shows
+    #     the name currently resolves to this deployment. It says nothing
+    #     about which account, if any, controls the domain, so it is never
+    #     read as ownership (ADR-016).
+    #
+    # Caddy exposes no per-domain status, so #check_status probes the domain
+    # itself (TlsProbe): does the name resolve, and does port 443 present a
+    # certificate valid for it. That is display and readiness state only.
     #
     class CaddyOnDemandStrategy < BaseStrategy
-      attr_reader :config
+      MODE = 'caddy_on_demand'
 
-      def initialize(config)
-        @config = config
+      # Marks a stored `vhost` blob as written by this strategy's probe rather
+      # than copied from an Approximated API response.
+      VHOST_SOURCE                 = 'tls_probe'
+      APPROXIMATED_CLEANUP_PENDING = 'approximated_vhost_pending_cleanup'
+
+      attr_reader :config, :txt_verifier, :tls_probe
+
+      # @param config [Hash] Application configuration (typically OT.conf)
+      # @param txt_verifier [#verify] Ownership checker (default: TxtVerifier).
+      # @param tls_probe [#probe] Status checker (default: TlsProbe).
+      #   Both are injected so specs never touch the network.
+      #
+      def initialize(config, txt_verifier: TxtVerifier.new, tls_probe: TlsProbe.new)
+        @config       = config
+        @txt_verifier = txt_verifier
+        @tls_probe    = tls_probe
       end
 
-      # Validation delegated to Caddy's ACME challenge.
+      # Validates domain ownership via the TXT challenge record.
       #
-      # @param _custom_domain [Onetime::CustomDomain] Ignored
-      # @return [Hash] Delegated validation response
+      # Three outcomes, passed through from TxtVerifier unchanged:
       #
-      def validate_ownership(_custom_domain)
-        {
-          validated: true,
-          message: 'Validation delegated to Caddy on-demand TLS',
-          mode: 'caddy_on_demand',
-        }
+      #   validated: true   exactly one TXT value, equal to the challenge
+      #   validated: false  the resolver stated the record is missing or
+      #                     different (demotes a verified domain, unless an
+      #                     operator override holds it)
+      #   validated: nil    the lookup produced no answer; stored state is
+      #                     left alone (VerifyDomain#persist_changes)
+      #
+      # A domain with no challenge value also fails. TxtVerifier omits :data
+      # for that case, but the :mode added here means VerifyDomain stores the
+      # false: a domain with nothing to prove ownership is not verified.
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @return [Hash] See BaseStrategy#validate_ownership
+      #
+      def validate_ownership(custom_domain)
+        txt_verifier
+          .verify(custom_domain.validation_record, custom_domain.txt_validation_value)
+          .merge(mode: MODE)
+      rescue StandardError => ex
+        # TxtVerifier rescues its own lookup. Anything reaching here is ours
+        # (e.g. the domain could not produce its validation record), which is
+        # not evidence about the customer's DNS.
+        OT.le "[CaddyOnDemandStrategy] Error validating #{custom_domain.display_domain}: " \
+              "#{ex.class}: #{ex.message}"
+        { validated: nil, indeterminate: true, message: "Error: #{ex.message}", mode: MODE }
       end
 
       # Certificate issuance handled automatically by Caddy.
@@ -43,23 +91,58 @@ module Onetime
         {
           status: 'delegated',
           message: 'Certificate issuance delegated to Caddy',
-          mode: 'caddy_on_demand',
+          mode: MODE,
         }
       end
 
-      # Returns basic status - Caddy manages the actual certificate state.
+      # Reports whether the domain resolves and serves a valid certificate,
+      # from our own probe (TlsProbe): Caddy has no status API to ask.
       #
-      # @param _custom_domain [Onetime::CustomDomain] Ignored
-      # @return [Hash] Basic status (SSL state unknown)
+      # How each answer reaches storage (VerifyDomain#persist_changes):
       #
-      def check_status(_custom_domain)
-        {
-          ready: true,
-          message: 'Domain registered for Caddy on-demand TLS',
-          mode: 'caddy_on_demand',
-          has_ssl: nil, # Unknown - managed by Caddy
-          is_resolving: nil, # Unknown - managed by Caddy
+      #   is_resolving  true/false is stored in `resolving`; nil is skipped.
+      #   has_ssl       lives only inside the `vhost` blob (:data). :data is
+      #                 normally returned only when has_ssl is known. After an
+      #                 Approximated cutover, a known resolution result also
+      #                 replaces stale UI state and carries an internal marker
+      #                 so RemoveOrphanedApproximatedVhosts can still clean up
+      #                 the remote vhost.
+      #   both nil      no :mode and no :data, the same shape Approximated
+      #                 returns when its API call fails: nothing stored
+      #                 changes and vhost_fetch_failed_at is set, which the UI
+      #                 shows as "last check failed".
+      #
+      # `resolving` means only that the name has an address record. It cannot
+      # wait for the certificate: the ACME ask endpoint requires `resolving`
+      # before Caddy is allowed to obtain one.
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @return [Hash] See BaseStrategy#check_status
+      #
+      def check_status(custom_domain)
+        result = tls_probe.probe(custom_domain.display_domain)
+        return { ready: false, has_ssl: nil, is_resolving: nil, message: result.message } if result.indeterminate?
+
+        status          = {
+          ready: result.is_resolving == true && result.has_ssl == true,
+          has_ssl: result.has_ssl,
+          is_resolving: result.is_resolving,
+          message: result.message,
+          mode: MODE,
         }
+        owns_vhost      = owns_vhost?(custom_domain)
+        cleanup_pending = approximated_cleanup_pending?(custom_domain) || !owns_vhost
+
+        if !result.has_ssl.nil? || (!owns_vhost && !result.is_resolving.nil?)
+          status[:data] = vhost_data(custom_domain, result, cleanup_pending: cleanup_pending)
+        end
+        status
+      rescue StandardError => ex
+        # TlsProbe rescues its own work; this is a failure of ours and says
+        # nothing about the domain.
+        OT.le "[CaddyOnDemandStrategy] Error checking status for #{custom_domain.display_domain}: " \
+              "#{ex.class}: #{ex.message}"
+        { ready: false, has_ssl: nil, is_resolving: nil, message: "Error: #{ex.message}" }
       end
 
       # No-op for Caddy - certificate lifecycle managed by Caddy.
@@ -71,7 +154,7 @@ module Onetime
         {
           deleted: false,
           message: 'No-op: certificate lifecycle managed by Caddy',
-          mode: 'caddy_on_demand',
+          mode: MODE,
         }
       end
 
@@ -83,7 +166,7 @@ module Onetime
         {
           available: false,
           message: 'DNS widget not available with Caddy on-demand TLS',
-          mode: 'caddy_on_demand',
+          mode: MODE,
         }
       end
 
@@ -95,6 +178,49 @@ module Onetime
       # @return [Boolean] false - Caddy manages certificates, not this strategy
       def manages_certificates?
         false
+      end
+
+      private
+
+      # True when the stored blob is empty or was written by this strategy.
+      def owns_vhost?(custom_domain)
+        stored = custom_domain.parse_vhost
+        !stored.is_a?(Hash) || stored.empty? || stored['source'] == VHOST_SOURCE
+      end
+
+      def approximated_cleanup_pending?(custom_domain)
+        stored = custom_domain.parse_vhost
+        stored.is_a?(Hash) && stored[APPROXIMATED_CLEANUP_PENDING] == true
+      end
+
+      # The subset of Approximated's vhost payload the domain pages read,
+      # filled from the probe. `status` reuses Approximated's values where the
+      # UI keys off them (ACTIVE_SSL -> active, DNS_INCORRECT -> warning).
+      def vhost_data(custom_domain, result, cleanup_pending: false)
+        certificate = result.certificate
+        status      = if result.has_ssl then 'ACTIVE_SSL'
+                      elsif result.is_resolving then 'PENDING_SSL'
+                      else
+                        'DNS_INCORRECT'
+                      end
+
+        {
+          'incoming_address' => custom_domain.display_domain,
+          'status' => status,
+          'status_message' => result.message,
+          'has_ssl' => result.has_ssl,
+          'is_resolving' => result.is_resolving,
+          'dns_pointed_at' => result.connected_to || result.addresses.first,
+          'ssl_active_from' => iso8601(certificate&.not_before),
+          'ssl_active_until' => iso8601(certificate&.not_after),
+          'last_monitored_unix' => OT.now.to_i,
+          'source' => VHOST_SOURCE,
+          APPROXIMATED_CLEANUP_PENDING => (true if cleanup_pending),
+        }.compact
+      end
+
+      def iso8601(time)
+        time&.utc&.iso8601
       end
     end
   end

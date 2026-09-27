@@ -47,9 +47,13 @@ a matrix of two lanes, each on its own runner with its own Valkey container:
 | `container-e2e-tests (full)` | `AUTHENTICATION_MODE=full`, SQLite authdb, `AUTH_VERIFY_ACCOUNT_ENABLED=false`, `CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false`, `ENABLE_ORGS=true` | `e2e/full/` + `setup` | 303 + 1 |
 
 Both lanes are blocking and both run the flaky gate (a retry-only pass fails
-the lane). `notify-results` fails unless both lanes pass. There is no
-informational or `continue-on-error` step any more: the one that ran
-`e2e/full/` non-blocking (5b0d3c5eab) is gone.
+the lane). `notify-results` fails unless both lanes pass, and it is the
+required E2E check for `main`. It runs on every pull request into `develop`,
+`main` or `rel/*`; the lanes run only when the PR changes an E2E-relevant
+path (the `changes` job in `e2e.yml`), and when they are skipped for that
+reason `notify-results` passes. There is no informational or
+`continue-on-error` step any more: the one that ran `e2e/full/` non-blocking
+(5b0d3c5eab) is gone.
 
 **What the full lane covers.** A local run of `e2e/full/` against the
 full-lane image (podman, same env as the lane) passes 167 tests (plus
