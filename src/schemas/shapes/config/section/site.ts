@@ -61,6 +61,8 @@ const authenticationTree: AugmentTree = {
 
 const sessionTree: AugmentTree = {
   expire_after: (n) => n.int().positive().default(86400),
+  // Absolute lifetime since sign-in, seconds; 0 disables the bound.
+  absolute_timeout: (n) => n.int().nonnegative().default(2592000),
   key: (s) => s.default('onetime.session'),
   secure: (b) => b.default(true),
   same_site: (e) => e.default('lax'),
