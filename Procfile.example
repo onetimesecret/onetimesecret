@@ -1,0 +1,28 @@
+# Procfile.example
+#
+# Example production process definitions for bare-metal / self-hosted installs.
+# Compatible with Foreman, Hivemind, goreman, or any Procfile runner.
+#
+# Simple mode (AUTHENTICATION_MODE=simple):
+#   Only the web process is needed.
+#
+# Full mode (AUTHENTICATION_MODE=full):
+#   Uncomment worker and scheduler lines.
+#
+# Before starting, load the shared environment and then the optional instance
+# overlay. Deployment tooling may provide these logical layers at other paths.
+#   set -a
+#   source .env
+#   [ ! -f .env.local ] || source .env.local
+#   set +a
+#
+# Examples:
+#   foreman start -f Procfile.example
+#   hivemind Procfile.example
+#   goreman -f Procfile.example start
+
+web: bundle exec puma -C etc/puma.rb
+
+# Full auth mode only (requires RabbitMQ):
+#worker: bin/ots worker
+#scheduler: bin/ots scheduler

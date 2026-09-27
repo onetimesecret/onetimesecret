@@ -281,7 +281,7 @@ cmd_dev() {
   fi
   if ! has direnv; then
     has_direnv=false
-    warn "direnv not found — recommended; it auto-loads .env when you cd into the checkout"
+    warn "direnv not found — recommended; it auto-loads .env then .env.local in dev mode"
     warn "  Install: https://direnv.net/docs/installation.html"
   fi
   if ! has pre-commit; then
@@ -347,7 +347,7 @@ cmd_dev() {
   echo ""
   if ! $has_direnv; then
     echo "  Without direnv, export the environment yourself in each shell:"
-    echo "    set -a; source .env; set +a"
+    echo "    set -a; source .env; [ ! -f .env.local ] || source .env.local; set +a"
     echo ""
   fi
   if $has_overmind; then
@@ -502,7 +502,7 @@ cmd_test() {
     echo "      (spec_helper forces RACK_ENV=test and the test config is self-contained)."
     echo ""
     echo "Recommended: install direnv to manage environment variables for everyday"
-    echo "  development. It auto-loads .env when you cd into the checkout (dev mode)"
+    echo "  development. It auto-loads .env then .env.local when you cd into the checkout"
     echo "  and is the intended way to run the app, the console, and bin/ots:"
     echo "    - dev setup:  bin/setup"
     echo "    - dev server: bin/dev   (or bundle exec puma -C etc/puma.rb)"
@@ -676,7 +676,7 @@ cmd_init() {
   info "Next steps:"
   if [[ "$mode" == "full" ]]; then
     info "  1. Start Valkey/Redis and RabbitMQ"
-    info "  2. Source environment:  set -a; source .env; set +a"
+    info "  2. Source environment:  set -a; source .env; [ ! -f .env.local ] || source .env.local; set +a"
     info "  3. Start the app:      bundle exec puma -C etc/puma.rb"
     info "  4. Start workers:      bundle exec bin/ots worker"
     info "  5. Start scheduler:    bundle exec bin/ots scheduler"
@@ -684,13 +684,13 @@ cmd_init() {
     info "     API token (later):  bundle exec bin/ots apitoken you@example.com"
   else
     info "  1. Start Valkey/Redis"
-    info "  2. Source environment:  set -a; source .env; set +a"
+    info "  2. Source environment:  set -a; source .env; [ ! -f .env.local ] || source .env.local; set +a"
     info "  3. Start the app:      bundle exec puma -C etc/puma.rb"
     info "  4. Create an admin:    bundle exec bin/ots customers create you@example.com --role colonel"
     info "     API token (later):  bundle exec bin/ots apitoken you@example.com"
   fi
   echo ""
-  warn "  With a Procfile runner:         foreman start -f Procfile.production"
+  warn "  With a Procfile runner:         foreman start -f Procfile.example"
   warn "  For development with Overmind:  bin/dev"
   warn "  Check environment health:       bin/doctor --operator"
   # --operator is not optional noise here: cmd_bundle collects whatever
@@ -1089,8 +1089,8 @@ doctor_dev_tooling() {
         "add the shell hook (https://direnv.net/docs/hook.html), then: direnv allow"
     fi
   else
-    doc_warn "direnv not found — recommended; auto-loads .env when you cd here" \
-      "https://direnv.net/docs/installation.html (without it: set -a; source .env; set +a)"
+    doc_warn "direnv not found — recommended; auto-loads .env and .env.local when you cd here" \
+      "https://direnv.net/docs/installation.html (without it: set -a; source .env; [ ! -f .env.local ] || source .env.local; set +a)"
   fi
 
   if has pre-commit; then
