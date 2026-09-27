@@ -72,6 +72,12 @@ module Onetime
           @domain.verified_unconfirmed_since = nil
         end
 
+        # Ownership validation is disabled by policy. End any unconfirmed run
+        # without manufacturing a TXT confirmation. The caller saves the domain.
+        def record_skipped
+          @domain.verified_unconfirmed_since = nil
+        end
+
         # No definitive outcome was stored. Withdraws `verified` when the
         # window has expired, starts the clock when there is none, and
         # otherwise changes nothing. The caller saves the domain.
