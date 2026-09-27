@@ -19,13 +19,25 @@
 // assert the lane's solo-owner state (scope switcher visibility, member
 // counts) stay valid.
 //
-// Invitations have a budget the signup limiter setting does not lift. Every
-// invite page load, signup and accept counts against InviteTokenRateLimiter
-// (lib/onetime/security/invite_token_rate_limiter.rb): 100 calls per client
-// IP, in a window that restarts on every call, then a 20 minute lockout. It
-// has no switch outside RACK_ENV=test. One full/ run makes about 65 such
-// calls, and the page then reports "Too many invite requests". Add
-// invitation round trips sparingly; share a fixture where tests only read.
+// Invitations have a budget the signup limiter setting does not lift.
+// InviteTokenRateLimiter (lib/onetime/security/invite_token_rate_limiter.rb)
+// counts the three token endpoints that need no session: GET
+// /api/invite/:token (every invite page load), POST .../signup and POST
+// .../decline (show_invite.rb, signup_and_accept.rb, decline_invite.rb).
+// POST .../accept needs a session and is not counted. The limit is 100 calls
+// per masked client IP (the IPPrivacyMiddleware value; every request in a
+// run comes from one address, so the whole run shares one counter), in a
+// window that restarts on every call. The 100th call sets a 20 minute
+// lockout, and every later call gets 429 "Too many invite requests". The
+// limiter is off only under RACK_ENV=test and has no setting of its own.
+// Both e2e.yml lanes run RACK_ENV=production, so it is on in CI. It guards
+// invitation tokens against guessing, so the lanes leave it on.
+//
+// A clean full/ run makes about 52 counted calls (39 page loads, 10 signups,
+// 3 declines). CI retries a failed test up to twice, so a run with several
+// failing invite tests can reach 100, and the 429s then hide the first
+// failure. Add invitation round trips sparingly; share a fixture where tests
+// only read.
 
 import { expect, type Browser, type BrowserContext, type Page } from '@playwright/test';
 
