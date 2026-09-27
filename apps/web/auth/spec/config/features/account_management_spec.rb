@@ -2,13 +2,14 @@
 #
 # frozen_string_literal: true
 
-# next_action in the create-account JSON response, with the verify_account
-# feature LOADED.
+# next_action and the success text in the create-account JSON response,
+# with the verify_account feature LOADED.
 #
 # The integration lanes only see the verification-off answer:
 # etc/defaults/auth.defaults.yaml turns verify_account off under
-# RACK_ENV=test, so 'verify_email' is unreachable there. This builds a
-# Rodauth app with the feature on and applies the production response block.
+# RACK_ENV=test, so 'verify_email' and verify_account's email-sent notice
+# are unreachable there. This builds a Rodauth app with the feature on and
+# applies the production response block.
 #
 # Reference: apps/web/auth/config/features/account_management.rb
 
@@ -26,6 +27,8 @@ RSpec.describe Auth::Config::Features::AccountManagement, '.configure_create_acc
 
   let(:db) { create_test_database }
   let(:password) { 'Next-Action1234!xyz' }
+  let(:email_sent_notice) { 'An email has been sent to you with a link to verify your account' }
+  let(:created_notice) { 'Your account has been created' }
 
   # opens_account stands in for the invite signup: its after_create_account
   # opens the account, and create_account_autologin? is on exactly then
@@ -66,11 +69,11 @@ RSpec.describe Auth::Config::Features::AccountManagement, '.configure_create_acc
   context 'with verify_account loaded' do
     let(:app) { build_app(extra_features: [:verify_account]) }
 
-    it 'answers verify_email for a new account, which starts unverified', :aggregate_failures do
+    it 'answers verify_email and the email-sent notice for a new account, which starts unverified', :aggregate_failures do
       status, body = sign_up('new@example.com')
 
       expect(status).to eq(200), body.inspect
-      expect(body).to include('success', 'next_action' => 'verify_email')
+      expect(body).to include('success' => email_sent_notice, 'next_action' => 'verify_email')
       expect(status_id_for('new@example.com')).to eq(AuthTestConstants::STATUS_UNVERIFIED)
     end
   end
@@ -78,11 +81,12 @@ RSpec.describe Auth::Config::Features::AccountManagement, '.configure_create_acc
   context 'with verify_account loaded and the account opened at signup (the invite shape)' do
     let(:app) { build_app(extra_features: [:verify_account], opens_account: true) }
 
-    it 'answers sign_in, not verify_email', :aggregate_failures do
+    # No email goes out for this account, so the notice must not say one did.
+    it 'answers sign_in and the account-created notice, not verify_email', :aggregate_failures do
       status, body = sign_up('invitee@example.com')
 
       expect(status).to eq(200), body.inspect
-      expect(body).to include('success', 'next_action' => 'sign_in')
+      expect(body).to include('success' => created_notice, 'next_action' => 'sign_in')
       expect(status_id_for('invitee@example.com')).to eq(AuthTestConstants::STATUS_VERIFIED)
     end
   end
@@ -90,11 +94,11 @@ RSpec.describe Auth::Config::Features::AccountManagement, '.configure_create_acc
   context 'without verify_account' do
     let(:app) { build_app(extra_features: []) }
 
-    it 'answers sign_in', :aggregate_failures do
+    it 'answers sign_in and the account-created notice (Rodauth default)', :aggregate_failures do
       status, body = sign_up('open@example.com')
 
       expect(status).to eq(200), body.inspect
-      expect(body).to include('success', 'next_action' => 'sign_in')
+      expect(body).to include('success' => created_notice, 'next_action' => 'sign_in')
     end
   end
 end

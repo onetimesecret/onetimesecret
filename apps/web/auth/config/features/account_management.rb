@@ -195,10 +195,21 @@ module Auth::Config::Features
     # Signing in is still the next step that works. The SPA's own invite form
     # posts to /api/invite/:token/signup, which sets that flag itself.
     #
+    # The success text follows the same account status. verify_account
+    # replaces create_account's notice with "An email has been sent to you
+    # with a link to verify your account" for every signup (rodauth 2.45.0
+    # verify_account.rb, create_account_notice_flash). An account opened at
+    # signup got no email, so it gets create_account's own "Your account has
+    # been created", the text a signup already gets without verify_account.
+    #
     # Kept apart from configure so a spec can apply it to a Rodauth app with
     # verify_account loaded, which RACK_ENV=test turns off
     # (apps/web/auth/spec/config/features/account_management_spec.rb).
     def self.configure_create_account_response(auth)
+      auth.create_account_notice_flash do
+        open_account? ? 'Your account has been created' : super()
+      end
+
       auth.create_account_response do
         json_response[:next_action] = open_account? ? 'sign_in' : 'verify_email' if json_request?
         super()
