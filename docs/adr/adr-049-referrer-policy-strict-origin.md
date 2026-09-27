@@ -1,7 +1,7 @@
 ---
 id: "049"
 status: proposed
-title: "ADR-049: Referrer-Policy is strict-origin"
+title: "ADR-049: Use strict-origin for Referrer-Policy"
 ---
 
 ## Status
@@ -14,135 +14,95 @@ Proposed
 
 ## Context
 
-Secret links carry the secret identifier in the URL path. The 2026-08-02
-security audit (item M-3.2) requires that the path and query of a secret URL
-never reach a `Referer` header, on same-origin navigations included, because
-a `Referer` lands in access logs, error reports, and third-party servers.
+Secret URLs contain secret identifiers in their paths. The
+[2026-08-02 security audit, finding M-3](../security/audit-2026-08-02/FINDINGS.md#m-3-http-security-headers-not-set-as-response-headers),
+recommended an application-level `Referrer-Policy: no-referrer` header,
+particularly for secret-reveal routes. OTS adopts the broader constraint that
+no request initiated by an OTS document may disclose a URL path or query in a
+`Referer` header, including on same-origin requests. This prevents secret URLs
+from reaching application logs, error reports, or external services.
 
-Before this decision the application emitted `Referrer-Policy: no-referrer`
-and repeated it in the document's `<meta name="referrer">`. That value
-satisfies M-3.2 but breaks SSO sign-in. The browser derives the `Origin`
-header of a non-CORS POST from the referrer policy. The WHATWG Fetch Standard,
-section 3.1 "`Origin` header", algorithm "append a request `Origin` header"
-(living standard, retrieved 2026-09-26,
-<https://fetch.spec.whatwg.org/#append-a-request-origin-header>), reads:
+The initial remediation left two different policies in use. The document meta
+tag and the Rack fallback for non-Otto responses used `no-referrer`, while Otto
+versions before 2.12 emitted `strict-origin-when-cross-origin`. For navigations
+started by a document, the document policy controlled the request.
 
-> Otherwise, if request's method is neither `GET` nor `HEAD`, then:
-> If request's mode is not "cors", then switch on request's referrer policy:
-> "no-referrer": Set serializedOrigin to `null`.
-> "no-referrer-when-downgrade", "strict-origin", "strict-origin-when-cross-origin":
-> If request's origin is a tuple origin, its scheme is "https", and request's
-> current URL's scheme is not "https", then set serializedOrigin to `null`.
-> "same-origin": If request's origin is not same origin with request's current
-> URL's origin, then set serializedOrigin to `null`.
+SSO sign-in starts with a native form POST to `/auth/sso/:provider`. The form
+must navigate the browser so it can follow the authentication redirect. Under
+`no-referrer`, this request reached the application with `Origin: null`, and
+`Rack::Protection::HttpOrigin` rejected it before the SSO flow began.
 
-SSO sign-in starts with a native HTML form POST to `/auth/sso/:provider`
-(`src/shared/utils/sso.ts`), because the endpoint answers with a redirect to
-the identity provider that an XHR cannot follow. A form submission is a
-non-CORS POST, so under `no-referrer` it arrives as `Origin: null`.
-`Rack::Protection::HttpOrigin` refuses a literal `null` Origin, as it should,
-and the sign-in fails. Every other state-changing request in the SPA goes
-through `fetch()`, whose default mode is `cors` and always carries the real
-Origin, which is why the defect only surfaced when the tenant SSO end-to-end
-test drove the form POST on a custom domain (#4542).
+This behavior follows the
+[WHATWG Fetch Standard, “append a request `Origin` header”](https://fetch.spec.whatwg.org/#append-a-request-origin-header)
+(Living Standard updated 2026-09-21, retrieved 2026-09-26). For a non-CORS
+request whose method is neither `GET` nor `HEAD`, the algorithm serializes the
+origin as `null` when the referrer policy is `no-referrer`. For
+`strict-origin`, it preserves the origin except on an HTTPS-to-HTTP downgrade.
 
-External recommendations disagree with each other, so none of them settles
-the choice on its own:
-
-- The OWASP HTTP Headers Cheat Sheet
-  (<https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html>,
-  retrieved 2026-09-26) recommends `Referrer-Policy: strict-origin-when-cross-origin`:
-  "Today, the default behavior in modern browsers is to no longer send all
-  referrer information (origin, path, and query string) to the same site but
-  to only send the origin to other sites."
-- The OWASP Secure Headers Project's best-practice configuration
-  (`ci/headers_add.json`, retrieved 2026-09-26) recommends
-  `Referrer-Policy: no-referrer`, the value that failed here.
-- Browsers default to `strict-origin-when-cross-origin` when no policy is set
-  (MDN, Referrer-Policy reference, retrieved 2026-09-26).
-
-The W3C Referrer Policy specification (Editor's Draft,
-<https://w3c.github.io/webappsec-referrer-policy/>, retrieved 2026-09-26)
-defines the candidate values:
-
-> The `strict-origin` policy sends the ASCII serialization of the origin of
-> the referrerURL for requests whose referrerURL and current URL are both
-> potentially trustworthy URLs, or whose referrerURL is a non-potentially
-> trustworthy URL.
-
-> The `strict-origin-when-cross-origin` policy specifies that a request's
-> full referrerURL is sent as referrer information when making
-> same-origin-referrer requests, and only the ASCII serialization of the
-> origin of the request's referrerURL is sent when making
-> cross-origin-referrer requests.
-
-> The `same-origin` policy specifies that a request's full referrerURL is
-> sent as referrer information when making same-origin-referrer requests.
-> Cross-origin-referrer requests will contain no referrer information.
+The [W3C Referrer Policy specification](https://w3c.github.io/webappsec-referrer-policy/#referrer-policy-strict-origin)
+(Editor's Draft dated 2026-03-20, retrieved 2026-09-26) defines
+`strict-origin` to send only the source origin and to send no referrer on a
+secure-to-insecure downgrade. By contrast, `same-origin` and
+`strict-origin-when-cross-origin` can send the full URL on same-origin
+requests. The standards define these behaviors but do not choose a policy for
+OTS.
 
 ## Decision
 
-The application's one Referrer-Policy value is `strict-origin`. It is the
-value of `Onetime::Middleware::Registry::REFERRER_POLICY`, and every emitter
-reads that constant: Otto's `security_config.referrer_policy` for routed
-responses, `Rack::Protection::ReferrerPolicy` for non-Otto responses, and the
-`<meta name="referrer">` in the HTML head, which is what governs the
-navigations the SPA starts.
+The application Referrer-Policy is `strict-origin`.
 
-Two constraints determine the value, and `strict-origin` is the only one that
-meets both with the least disclosure:
+Two constraints determine this choice:
 
-1. **No path or query in any `Referer`, same-origin included** (audit M-3.2).
-   This rules out the browser default and the OWASP Cheat Sheet
-   recommendation, `strict-origin-when-cross-origin`, and it rules out
-   `same-origin`: both send the full URL on same-origin requests, which
-   would put secret paths into the application's own access logs and error
-   reports. It also rules out `no-referrer-when-downgrade`,
-   `origin-when-cross-origin`, and `unsafe-url`.
-2. **A real `Origin` on the same-origin HTTPS form POST that starts SSO.**
-   Per the Fetch algorithm above, this rules out `no-referrer`. Of the
-   remaining values, `origin` and `strict-origin` both send origin only;
-   `strict-origin` additionally sends nothing on an HTTPS to HTTP downgrade,
-   so it is strictly tighter.
+1. **Never disclose a path or query in `Referer`.** This applies to
+   same-origin and cross-origin requests. It rules out policies that can send a
+   full URL, including `same-origin`, `strict-origin-when-cross-origin`,
+   `origin-when-cross-origin`, `no-referrer-when-downgrade`, and `unsafe-url`.
+2. **Preserve the origin on the same-origin HTTPS form POST that starts SSO.**
+   This rules out `no-referrer`, which changes the request origin to the
+   literal `null` for this navigation.
 
-The alternative that keeps `no-referrer` is exempting `/auth/sso/*` from
-`Rack::Protection::HttpOrigin`. That widens a CSRF gate on the authentication
-surface to fix a header-policy problem, and it is rejected. `HttpOrigin`
-refusing `Origin: null` is correct behavior and is retained.
+Both `origin` and `strict-origin` satisfy these constraints. `strict-origin` is
+narrower because it also suppresses the referrer on an HTTPS-to-HTTP
+downgrade.
 
-Per ADR-048, the sources here do not determine the answer: the two OWASP
-publications recommend different values and neither addresses the `Origin`
-interaction. The choice of `strict-origin` is an OTS judgment derived from the
-normative Fetch and Referrer Policy texts and the M-3.2 constraint.
+We retain `Rack::Protection::HttpOrigin` on `/auth/sso/*`. Exempting the route
+would weaken an Origin-based CSRF control to compensate for a header-policy
+choice. Per [ADR-048](adr-048-evidence-basis-for-security-decisions.md),
+`strict-origin` is an OTS judgment based on the documented constraints and the
+normative browser behavior above.
 
 ## Trade-offs
 
-- **We lose**: Referrer secrecy toward destinations. Under `no-referrer` a
-  destination learned nothing about where the user came from. Under
-  `strict-origin` every destination, same-origin or cross-origin, learns the
-  scheme, host, and port of the referring page. For a custom domain the host
-  is the tenant hostname, so an identity provider, a docs site, a billing
-  provider, or any external link on an OTS page learns which tenant the user
-  came from. This is origin-level disclosure, not a single bit.
-- **We gain**: SSO sign-in works from every surface, on custom domains
-  included, without weakening the Origin-based CSRF check. Secret paths and
-  queries still never appear in a `Referer`, including in OTS's own logs.
-- **Risk**: The policy is a single value for the whole application. A future
-  page that must send no referrer at all cannot get it from this constant;
-  it would need a per-element `referrerpolicy` attribute or a per-response
-  override, and that override must not be applied to any page that starts a
-  native form POST. Any change to the SSO initiation mechanism (for example,
-  replacing the form POST with a fetch-then-navigate flow) removes constraint
-  2 and reopens this decision.
+- **We lose:** Compared with `no-referrer`, destinations learn the source
+  origin except on a secure-to-insecure downgrade. On a custom domain, that
+  origin includes the tenant hostname.
+- **We gain:** Native SSO form POSTs retain the origin required by the CSRF
+  check, while secret paths and queries remain absent from `Referer` headers.
+- **Risk:** One application-wide value cannot satisfy a future page that must
+  disclose no referrer information. Such a page would need a per-element or
+  per-response override, and that override must not cover a page that starts a
+  native form POST. Replacing the SSO initiation mechanism may remove this
+  constraint and should trigger a review of this decision.
 
 ## Related
 
 - [ADR-048: Evidence Basis for Security Decisions](adr-048-evidence-basis-for-security-decisions.md)
-- `lib/onetime/middleware/registry.rb` — `REFERRER_POLICY` and the
-  `ReferrerPolicy` and `HttpOrigin` components
-- `lib/onetime/application/base.rb` — `apply_referrer_policy`, the Otto
-  emitter
-- `apps/web/core/templates/partials/head-base.rue` — the document meta,
-  pinned to the constant by `spec/integration/simple/rhales_migration_spec.rb`
-- `src/shared/utils/sso.ts` — the native form POST that constraint 2 protects
-- Issue #4542 — tenant SSO sign-in refused with `Origin: null`
+- [Security audit 2026-08-02, finding M-3](../security/audit-2026-08-02/FINDINGS.md#m-3-http-security-headers-not-set-as-response-headers)
+
+## Implementation Notes
+
+### Policy emission (2026-09-26)
+
+[`Onetime::Middleware::Registry::REFERRER_POLICY`](../../lib/onetime/middleware/registry.rb)
+is the source for HTTP response headers. The application base assigns it to
+Otto routers, and `Rack::Protection::ReferrerPolicy` uses it as the fallback
+for non-Otto responses. The Rack fallback is config-gated and enabled by
+default; disabling `MIDDLEWARE_REFERRER_POLICY` removes that fallback without
+changing Otto's policy.
+
+The [`<meta name="referrer">`](../../apps/web/core/templates/partials/head-base.rue)
+contains a literal `strict-origin` value because the template cannot read the
+Ruby constant. Integration tests compare the literal with the constant and
+verify the header on Otto responses. The
+[SSO helper](../../src/shared/utils/sso.ts) uses the native form POST described
+above.
