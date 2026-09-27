@@ -94,8 +94,9 @@ bin/ots scheduler
 
 Where it is wired:
 
-- `Procfile.production` — the `scheduler: bin/ots scheduler` line is
-  **commented out** by default; uncomment it in full auth mode.
+- `Procfile.example` — the example production Procfile keeps the
+  `scheduler: bin/ots scheduler` line **commented out** by default; uncomment
+  it in full auth mode.
 - `etc/examples/systemd/onetimesecret-scheduler.service` — systemd unit
   example (`systemctl enable --now onetimesecret-scheduler`).
 - `docker/compose/docker-compose.full.yml` — dedicated `scheduler` service
