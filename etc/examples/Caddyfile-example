@@ -201,7 +201,11 @@
 		X-Content-Type-Options "nosniff"
 		X-Frame-Options "DENY"
 		X-XSS-Protection "1; mode=block"
-		Referrer-Policy "no-referrer"
+		# Referrer-Policy: keep equal to the application value
+		# (Onetime::Middleware::Registry::REFERRER_POLICY; see
+		# docs/adr/adr-049-referrer-policy-strict-origin.md for why
+		# strict-origin and not no-referrer, #4542).
+		Referrer-Policy "strict-origin"
 		Permissions-Policy ""
 
 		# Prevent caching of sensitive content

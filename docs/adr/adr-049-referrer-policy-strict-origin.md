@@ -1,12 +1,12 @@
 ---
 id: "049"
-status: proposed
+status: accepted
 title: "ADR-049: Use strict-origin for Referrer-Policy"
 ---
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
@@ -106,3 +106,15 @@ Ruby constant. Integration tests compare the literal with the constant and
 verify the header on Otto responses. The
 [SSO helper](../../src/shared/utils/sso.ts) uses the native form POST described
 above.
+
+### Edge overrides (2026-09-26)
+
+The policy is one value at every layer OTS ships. The
+[Caddy example](../../etc/examples/Caddyfile-example) sets the same
+`strict-origin` header at the reverse proxy. Operator-deployed proxies and
+CDNs are outside this repository; an override there is not covered by the
+tests and operators must reconcile it with this decision. The
+[Referrer Policy specification's delivery section](https://w3c.github.io/webappsec-referrer-policy/#referrer-policy-delivery)
+has the `<meta name="referrer">` element set the document's policy after the
+header, so for OTS documents a differing proxy header does not by itself change
+the SSO form POST, but it does make the header and the document disagree.
