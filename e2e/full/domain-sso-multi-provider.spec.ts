@@ -397,9 +397,18 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
 
       // Should have one of the status badges or configure link
       const hasBadge =
-        (await domainRow.locator('text=/enabled/i').isVisible().catch(() => false)) ||
-        (await domainRow.locator('text=/configured/i').isVisible().catch(() => false)) ||
-        (await domainRow.locator('text=/not configured/i').isVisible().catch(() => false));
+        (await domainRow
+          .locator('text=/enabled/i')
+          .isVisible()
+          .catch(() => false)) ||
+        (await domainRow
+          .locator('text=/configured/i')
+          .isVisible()
+          .catch(() => false)) ||
+        (await domainRow
+          .locator('text=/not configured/i')
+          .isVisible()
+          .catch(() => false));
 
       const hasConfigureLink = await domainRow
         .locator('a[href*="/signin"]')
@@ -594,9 +603,7 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
     }
   });
 
-  test('TC-MPROV-006: configure link is visible for each domain in SSO hub', async ({
-    page,
-  }) => {
+  test('TC-MPROV-006: configure link is visible for each domain in SSO hub', async ({ page }) => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
@@ -608,9 +615,7 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
 
     // Verify the configure link is present in the hub for the first domain.
     // The hub now links to the domain signin page with the SSO modal deep-link.
-    const configureLink = page.locator(
-      `a[href*="/domains/${domains[0].extid}/signin"]`
-    );
+    const configureLink = page.locator(`a[href*="/domains/${domains[0].extid}/signin"]`);
     await expect(configureLink).toBeVisible();
 
     // Verify domain name is shown
