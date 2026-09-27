@@ -158,14 +158,23 @@ test.describe('Org Switcher Navigation - Edge Cases', () => {
     owner,
   }) => {
     const current = owner.defaultWorkspace;
+    const other = owner.secondWorkspace;
     await gotoOrgTab(page, current, 'domains');
-    const url = page.url();
+    const historyLength = await page.evaluate(() => window.history.length);
 
     await switchTo(page, current);
 
-    expect(page.url()).toBe(url);
     await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', current.name);
     await expect(workspaceHeading(page, current)).toBeVisible();
+
+    // A URL check right after the selection cannot see a navigation that has
+    // not finished yet. Vue Router runs navigations in order, so once a later
+    // switch has landed, any navigation the selection made is visible: a push
+    // as an extra history entry, a replace to another tab as the tab the
+    // switch keeps.
+    await switchTo(page, other);
+    await expect(page).toHaveURL(new RegExp(`/org/${other.extid}/domains$`));
+    expect(await page.evaluate(() => window.history.length)).toBe(historyLength + 1);
   });
 
   test('TC-OSN-011: Back after a switch returns to the previous workspace', async ({
