@@ -12,7 +12,11 @@
 import { loggingService } from '@/services/logging.service';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { authenticatedBootstrap, mfaPendingBootstrap, newerSnapshot } from '@/tests/fixtures/bootstrap.fixture';
+import {
+  authenticatedBootstrap,
+  mfaPendingBootstrap,
+  newerSnapshot,
+} from '@/tests/fixtures/bootstrap.fixture';
 import { toWire } from '@/tests/fixtures/bootstrap-wire';
 import { createWireOrganization, type OrganizationWire } from '@/tests/fixtures/billing.fixture';
 import type AxiosMockAdapter from 'axios-mock-adapter';
@@ -129,7 +133,11 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
     // as 'applied'.
     axiosMock.onGet('/bootstrap/me').reply(() => [
       200,
-      { ...toWire(nextSnapshot(authenticatedBootstrap)), billing_enabled: true, shrimp: 'new-shrimp-token' },
+      {
+        ...toWire(nextSnapshot(authenticatedBootstrap)),
+        billing_enabled: true,
+        shrimp: 'new-shrimp-token',
+      },
     ]);
   });
 
@@ -224,7 +232,11 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
         void _drop;
         return [
           200,
-          { ...rest, ...(value === undefined ? {} : { billing_enabled: value }), shrimp: 'new-shrimp-token' },
+          {
+            ...rest,
+            ...(value === undefined ? {} : { billing_enabled: value }),
+            shrimp: 'new-shrimp-token',
+          },
         ];
       });
     };
@@ -363,7 +375,9 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       // snapshot lands as `mfa_pending`. The outer beforeEach mocks the
       // authenticated fixture; override it here so the MFA flow's refresh
       // sees an mfa_pending payload.
-      axiosMock.onGet('/bootstrap/me').reply(() => [200, toWire(nextSnapshot(mfaPendingBootstrap))]);
+      axiosMock
+        .onGet('/bootstrap/me')
+        .reply(() => [200, toWire(nextSnapshot(mfaPendingBootstrap))]);
     });
 
     it('should not attempt billing redirect when MFA is required', async () => {
@@ -560,7 +574,11 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
     // authenticated fixture so the refresh coordinator lands the snapshot with cust.
     axiosMock.onGet('/bootstrap/me').reply(() => [
       200,
-      { ...toWire(nextSnapshot(authenticatedBootstrap)), billing_enabled: true, shrimp: 'new-shrimp-token' },
+      {
+        ...toWire(nextSnapshot(authenticatedBootstrap)),
+        billing_enabled: true,
+        shrimp: 'new-shrimp-token',
+      },
     ]);
   });
 
@@ -571,21 +589,22 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
   });
 
   it('should NOT redirect when billing_redirect.valid is false', async () => {
-    // Backend validates plan and returns valid: false - should redirect to dashboard
-    // NOTE: This test passes but for the wrong reason - the billing_redirect object
-    // in the mock is missing required fields (product, interval), so it fails schema
-    // validation and gets stripped. The test should include valid product/interval
-    // with valid: false to truly test the behavior.
+    // The backend resolved the plan and rejected it. The verdict wins over the
+    // query pair, so login goes to the dashboard, not checkout. The payload
+    // has the shape build_billing_redirect_info sends (apps/web/auth/config/
+    // hooks/billing.rb), so it parses as the invalid member rather than being
+    // stripped.
     setRouteQuery({ product: 'invalid_product', interval: 'month' });
 
     const { login } = useAuth();
 
-    // Backend returns billing_redirect with valid: false
     axiosMock.onPost('/auth/login').reply(200, {
       success: 'Logged in successfully',
       billing_redirect: {
+        product: 'invalid_product',
+        interval: 'month',
         valid: false,
-        reason: 'Invalid product identifier',
+        error: 'Invalid product identifier',
       },
     });
 
@@ -700,7 +719,11 @@ describe('useAuth - Subscription Status Checks', () => {
     // authenticated fixture so the refresh coordinator lands the snapshot with cust.
     axiosMock.onGet('/bootstrap/me').reply(() => [
       200,
-      { ...toWire(nextSnapshot(authenticatedBootstrap)), billing_enabled: true, shrimp: 'new-shrimp-token' },
+      {
+        ...toWire(nextSnapshot(authenticatedBootstrap)),
+        billing_enabled: true,
+        shrimp: 'new-shrimp-token',
+      },
     ]);
   });
 
