@@ -12,12 +12,27 @@
  * exercising the same product code paths users hit, with no backend seam.
  * Requirements on the target server:
  *  - signup enabled (site.authentication.signup, default on)
- *  - autoverify enabled (AUTH_AUTOVERIFY=true) so the new account is
- *    immediately sign-in-able without an email round-trip. The CI workflow
- *    sets this on the container; see .github/workflows/e2e.yml.
- * Registration is idempotent: the backend intentionally returns the same
- * success response for new and already-existing accounts (email-enumeration
- * prevention), so re-running against the same server is safe.
+ *  - a new account can sign in without an email round-trip. What provides
+ *    that depends on the auth mode:
+ *      simple mode: AUTH_AUTOVERIFY=true (site.authentication.autoverify),
+ *        so the customer is created verified.
+ *      full mode: AUTH_VERIFY_ACCOUNT_ENABLED=false, so Rodauth's
+ *        verify_account feature is off and the account is created open.
+ *        AUTH_AUTOVERIFY has no effect on full-mode signups.
+ *    The CI workflow sets both on the container; see .github/workflows/e2e.yml.
+ *
+ * Registration is safe to repeat (a Playwright retry after the account was
+ * created, or a re-run against the same server), but the two modes answer an
+ * existing login differently:
+ *   simple mode: the same success response as for a new account
+ *     (email-enumeration prevention), so the SPA lands on /check-email.
+ *   full mode: 400 with the generic "Unable to create account" error
+ *     (apps/web/auth/config/overrides/duplicate_signup.rb), so the signup
+ *     form shows its error alert.
+ * The setup accepts either outcome and goes on to sign in. Sign-in is the
+ * guard: it passes only if the account exists and the password matches. A
+ * signup error is recorded as a `signup-error` annotation, so a sign-in
+ * failure that follows it names the signup error that caused it.
  *
  * Fallback (documented in the plan, not currently needed): seed directly via
  *   docker exec <container> ... Onetime::Customer.create!(...)
@@ -45,9 +60,9 @@ setup('register and authenticate test user', async ({ page }) => {
   }
 
   // ---------------------------------------------------------------------
-  // Register via the signup form. With autoverify enabled the account is
-  // created verified; if the account already exists the backend still
-  // responds with success (enumeration prevention) and we proceed to signin.
+  // Register via the signup form. A new account is created sign-in-able
+  // (see the requirements above); an existing one answers success in simple
+  // mode and the generic signup error in full mode. Both continue to signin.
   // ---------------------------------------------------------------------
   await page.goto('/signup');
   await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
@@ -64,16 +79,28 @@ setup('register and authenticate test user', async ({ page }) => {
   // This step waited on /signin for weeks afterwards and timed out every run,
   // which took the whole `full` / `full-billing` dependency chain down with it.
   //
-  // Confirming /check-email first is what keeps that from happening silently
-  // again: if signup starts landing somewhere else, THIS line fails and names
-  // the page, instead of the failure surfacing as an unexplained timeout on
-  // the sign-in form below.
-  await page.waitForURL(/\/check-email/);
-  await expect(page.getByTestId('check-email-view')).toBeVisible();
+  // Waiting for one of the two known outcomes is what keeps that from
+  // happening silently again: if signup starts landing somewhere else, THIS
+  // assertion fails, instead of the failure surfacing as an unexplained
+  // timeout on the sign-in form below. The budget matches the navigation
+  // timeout the old waitForURL used: signup hashes the password server-side.
+  const checkEmailView = page.getByTestId('check-email-view');
+  const signupError = page.getByTestId('signup-error-message');
+  await expect(checkEmailView.or(signupError)).toBeVisible({ timeout: 15_000 });
 
-  // With AUTH_AUTOVERIFY=true (a documented requirement of this setup project,
-  // set by .github/workflows/e2e.yml) the account is already verified, so
-  // there is no email round-trip to wait on — go straight to the sign-in form.
+  // Settled: the error alert only renders on the signup page, and a failed
+  // signup does not navigate, so exactly one of the two is on screen.
+  if (await signupError.isVisible()) {
+    setup.info().annotations.push({
+      type: 'signup-error',
+      description: (await signupError.innerText()).trim(),
+    });
+  } else {
+    await expect(page).toHaveURL(/\/check-email/);
+  }
+
+  // No email round-trip to wait on: the target server creates accounts
+  // sign-in-able (requirements above), so go straight to the sign-in form.
   await page.goto('/signin');
   await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
