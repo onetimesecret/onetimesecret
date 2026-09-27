@@ -22,9 +22,6 @@ require_relative '../../support/test_helpers'
 
 OT.boot! :test
 
-require 'web/auth/lib/logging'
-require 'web/auth/operations'
-
 @test_suffix = "#{Familia.now.to_i}_#{rand(10000)}"
 
 # Create organization owner
@@ -83,7 +80,8 @@ found.nil? == false
 #=> false
 
 ## Simulating the send_verify_account_email gate: valid token, pending, not expired, email match
-# This mirrors the exact conditional in account_management.rb lines 33-38.
+# This mirrors the conditional in the send_verify_account_email block of
+# apps/web/auth/config/features/account_management.rb.
 # When all conditions pass, email should be suppressed (should_suppress = true).
 invitation = Onetime::OrganizationMembership.find_by_token(@valid_token)
 should_suppress = invitation &&
@@ -139,10 +137,7 @@ should_suppress
 # Accept the invitation first to change its status
 @new_customer = Onetime::Customer.create!(email: @invited_email, role: 'customer')
 @customers_to_cleanup << @new_customer
-Auth::Operations::AcceptInvitation.new(
-  customer: @new_customer,
-  token: @valid_token
-).call
+@invitation.accept!(@new_customer)
 # Token is cleared on accept, so find_by_token returns nil
 post_accept = Onetime::OrganizationMembership.find_by_token(@valid_token)
 should_suppress = post_accept &&

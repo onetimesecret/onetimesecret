@@ -19,8 +19,8 @@
 #   3. After the explicit /accept call, the invitation reaches `active` and
 #      the customer appears in org.members.
 #
-# Before the bug fix, the hook auto-accepted via Auth::Operations::AcceptInvitation
-# during after_create_account, wiping token_lookup before the user's Accept
+# Before the bug fix, the hook accepted the invitation itself during
+# after_create_account, wiping token_lookup before the user's Accept
 # click could resolve it (404), and rendering Decline non-functional.
 #
 # REQUIREMENTS:
