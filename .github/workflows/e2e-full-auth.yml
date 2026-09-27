@@ -13,7 +13,7 @@
 # exists to run it.
 #
 # WHAT MAKES THIS LANE DIFFERENT (each item is load-bearing, see the spec
-# header at e2e/auth/signup-redirect-preservation.spec.ts:34-45):
+# header at e2e/auth/signup-redirect-preservation.spec.ts:35-54):
 #
 #   AUTHENTICATION_MODE=full      Rodauth is mounted; /verify-account exists.
 #   AUTH_VERIFY_ACCOUNT_ENABLED=true
