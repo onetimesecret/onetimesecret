@@ -51,7 +51,9 @@ These need data or accounts the full lane cannot build: a mail interceptor,
 an SSO identity provider, an MFA-enrolled account, or an account with two
 organizations **and** custom domains. Tests that only need more accounts or a
 second organization build them with throwaway accounts instead
-(`e2e/support/members.ts`, `e2e/support/workspaces.ts`).
+(`e2e/support/members.ts`, `e2e/support/workspaces.ts`). Tests that need a
+pending invitation send one and read its token through the owner's
+invitations API; no mail is involved.
 
 | Test (file › title) | Owner | Issue | Quarantined | Reason |
 |---------------------|-------|-------|-------------|--------|
@@ -65,7 +67,6 @@ second organization build them with throwaway accounts instead
 | `full/invite-flow-states.spec.ts` › INV-005 existing user with MFA | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-10 | Needs an MFA-enrolled invitee account (`TEST_MFA_*`). |
 | `full/org-invitation-flow.spec.ts` › INV-012 Gmail alias normalization | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-10 | Needs real Gmail accounts + captured invite email. (`normalizeEmail()` is unit-tested.) |
 | `full/org-invitation-flow.spec.ts` › INV-017 full invitation acceptance | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-10 | Needs a second account to sign up with the invited email + Mailpit. |
-| `full/invite-token-security.spec.ts` › SEC-INV-003 valid invite_token auto-login | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-24 | Needs a seeded invite_token consumed by a fresh signup (second account + mail); CI cannot seed it, so invite-direct-accept never renders. |
 | `full/org-invitation-flow.spec.ts` › INV-007b unauthenticated decline | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-24 | Needs a real pending invitation to decline unauthenticated; CI cannot seed the invitation, so the decline lands on an unexpected URL. |
 | `full/organization-settings.spec.ts` › ORG-DETAIL-006 SSO tab opens the SSO panel | delano | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) | 2026-09-26 | Needs org SSO turned on (`ORGS_SSO_ENABLED`) and the `manage_sso` entitlement; no lane configures either. `test.fixme` unless `E2E_SSO_UI` is set. The lane still checks that the SSO tab is absent and that `/sso` redirects to Domains (ORG-DETAIL-001, ORG-DETAIL-011). |
 
