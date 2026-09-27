@@ -92,16 +92,71 @@ RSpec.describe 'Remember me: a fixed 14-day session (simple mode)', type: :integ
     expect(session_blob).not_to have_key('remember_until')
   end
 
-  describe 'a remember_until the store cannot honour falls back to the default' do
-    [['in the past', -> { Time.now.to_i - 60 }], ['not an integer', -> { (Time.now.to_i + 86_400 * 7).to_s }]].each do |label, value|
-      it label, :aggregate_failures do
-        login!
-        rewrite_session_blob { |data| data['remember_until'] = value.call }
+  # The deadlines are decided when the session is READ (Onetime::Session#find_session),
+  # not by the blob's TTL: a session past one is ended like a logout ends it,
+  # whatever TTL the key still had, so no write can hand it a rolling lifetime.
+  describe 'the absolute deadlines' do
+    def sid_and_blob_key
+      [current_session_id, blob_key]
+    end
 
-        expect(account_request).to eq(200)
-        expect(blob_ttl).to be_between(1, 86_400)
-        expect(session_cookie_header.to_s).not_to match(/max-age/i)
-      end
+    it 'ends a session whose remember_until has passed, and never lets it become a rolling one', :aggregate_failures do
+      login!('remember-me' => true)
+      remembered_sid, remembered_key = sid_and_blob_key
+      rewrite_session_blob { |data| data['remember_until'] = Time.now.to_i - 60 }
+
+      expect(account_request).to eq(401)
+      expect(current_session_id).not_to eq(remembered_sid)
+      expect(Familia.dbclient.exists?(remembered_key)).to be(false)
+      expect(session_cookie_header.to_s).not_to match(/max-age/i)
+
+      # And it stays ended: the old cookie does not come back as a default session.
+      rack_mock_session.cookie_jar['onetime.session'] = remembered_sid
+      expect(account_request).to eq(401)
+    end
+
+    it 'ends a session signed in more than 30 days ago, remembered or not', :aggregate_failures do
+      login!
+      old_sid, old_key = sid_and_blob_key
+      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::LIFETIME_DEADLINE + 86_400) }
+
+      expect(account_request).to eq(401)
+      expect(current_session_id).not_to eq(old_sid)
+      expect(Familia.dbclient.exists?(old_key)).to be(false)
+    end
+
+    it 'keeps a session signed in 29 days ago, on a blob TTL that ends by the 30th', :aggregate_failures do
+      login!
+      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::LIFETIME_DEADLINE - 86_400) }
+
+      expect(account_request).to eq(200)
+      expect(blob_ttl).to be_between(1, 86_400)
+    end
+
+    it 'sizes the blob to the lifetime deadline when that is nearer than the rolling 24 hours' do
+      login!
+      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::LIFETIME_DEADLINE - 3600) }
+
+      expect(account_request).to eq(200)
+      expect(blob_ttl).to be_between(1, 3600)
+    end
+
+    it 'ends a remembered session at the lifetime deadline too' do
+      login!('remember-me' => true)
+      rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::LIFETIME_DEADLINE + 60) }
+
+      expect(account_request).to eq(401)
+    end
+  end
+
+  describe 'a remember_until the store cannot honour falls back to the default' do
+    it 'not an integer', :aggregate_failures do
+      login!
+      rewrite_session_blob { |data| data['remember_until'] = (Time.now.to_i + 86_400 * 7).to_s }
+
+      expect(account_request).to eq(200)
+      expect(blob_ttl).to be_between(1, 86_400)
+      expect(session_cookie_header.to_s).not_to match(/max-age/i)
     end
 
     it 'caps a deadline beyond 14 days at 14 days' do

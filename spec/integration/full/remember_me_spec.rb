@@ -122,6 +122,19 @@ RSpec.describe 'Remember me: a fixed 14-day session (full mode)', type: :integra
       expect(activity_count).to eq(0)
     end
 
+    # The blob's own stamp ends the session on the read (Onetime::Session#find_session),
+    # before the gate ever sees it: the same rule as simple mode, so the two
+    # clocks (Ruby's in the blob, the database's in the row) both fail closed.
+    it 'is ended on the read once the blob\'s remember_until has passed, whatever the row says', :aggregate_failures do
+      login!('remember-me' => true)
+      remembered_sid = current_session_id
+      rewrite_session_blob { |data| data['remember_until'] = Time.now.to_i - 60 }
+
+      expect(account_request).to eq(401)
+      expect(current_session_id).not_to eq(remembered_sid)
+      expect(session_cookie_header.to_s).not_to match(/max-age/i)
+    end
+
     it 'is still subject to the lifetime deadline' do
       login!('remember-me' => true)
       active_session_rows.update(created_at: Time.now - (gate::LIFETIME_DEADLINE + 60))

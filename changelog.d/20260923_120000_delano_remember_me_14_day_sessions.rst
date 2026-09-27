@@ -12,7 +12,16 @@ Fixed
   remembered sessions. Two-factor sign-ins are remembered once the second
   factor is completed. Works in both simple and full authentication modes;
   ``AUTH_REMEMBER_ME_ENABLED=false`` still turns it off, and also returns
-  sessions already remembered to the default lifetime.
+  sessions already remembered to the default lifetime (their 14-day
+  deadline still ends them). The deadline is checked when the session is
+  read, so a request that straddles it cannot hand the session a new
+  rolling lifetime.
+- Every signed-in session now ends 30 days after sign-in, however active it
+  is, in both authentication modes. Full mode already held its
+  active-session rows to this bound; simple mode had no absolute bound at
+  all, so a session used at least once a day never expired. Remembered
+  sessions end at 14 days as above; the 30 days is the ceiling for every
+  other session.
 
 Changed
 -------

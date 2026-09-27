@@ -32,9 +32,28 @@ module Onetime
   # ## What is not extended
   #
   # The deadline is fixed at sign-in, as Rodauth's remember_deadline_interval
-  # is, and never moves with activity. The active-session row's 30-day
-  # lifetime deadline still applies, and so does the colonel's absolute
-  # session bound (AdminSessionLifetime), which is shorter.
+  # is, and never moves with activity. The 30-day lifetime deadline still
+  # applies, on the row and (from `authenticated_at`) on the blob, and so
+  # does the colonel's absolute session bound (AdminSessionLifetime), which
+  # is shorter.
+  #
+  # ## Where the deadline is enforced
+  #
+  # On the read, in both modes. {Onetime::Session#find_session} ends a
+  # session whose stamp has passed (the blob TTL only sizes the key), and
+  # {Onetime::ActiveSessionGate} refuses a row whose `remember_until` has
+  # passed. Neither depends on the switch: a deadline that has passed has
+  # passed. The switch governs only whether a sign-in is stamped and whether
+  # a stamp still exempts the row from the inactivity deadline and sizes the
+  # blob and cookie to it.
+  #
+  # ## Two clocks
+  #
+  # The blob's stamp is a Ruby epoch and the row's is the database's
+  # CURRENT_TIMESTAMP, written in the same login. Skew between them is
+  # harmless: in full mode either one lapsing ends the session (the row via
+  # the gate, the blob via the read), so the earlier clock wins and the
+  # failure is closed.
   module RememberMe
     extend self
 
@@ -80,10 +99,16 @@ module Onetime
     end
 
     # Seconds left until the session's remember deadline, or nil when the
-    # session is not remembered: no stamp, a stamp in the past, a value that
-    # is not an integer epoch, or the switch is off. Capped at {DURATION},
-    # so no stored value can give a session a longer life than a fresh
-    # sign-in would.
+    # session is not remembered: no stamp, a value that is not an integer
+    # epoch, or the switch is off. Capped at {DURATION}, so no stored value
+    # can give a session a longer life than a fresh sign-in would.
+    #
+    # A stamp in the past is nil too, but never reaches this in practice:
+    # {Onetime::Session#find_session} ends a session whose integer stamp has
+    # passed before anything reads it (see #absolute_remaining there), and a
+    # write that straddled the deadline gets a blob TTL of one second, not
+    # the rolling default. So a nil here means "not remembered", and the
+    # caller's fallback to the default lifetime is the right one.
     #
     # @param session [Hash, #[], nil] the Rack session or its data hash
     # @return [Integer, nil]
