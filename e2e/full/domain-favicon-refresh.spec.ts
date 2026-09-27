@@ -25,9 +25,10 @@
  *   E2E_CUSTOM_DOMAINS=1 pnpm playwright test domain-favicon-refresh.spec.ts
  */
 
-import { expect, Page, test } from '@playwright/test';
+import { expect, type Locator, type Page, test } from '@playwright/test';
 
 import { env, gateReason } from '../support/env';
+import { getFirstDomain, type DomainInfo } from '../support/domains';
 import { getFirstOrganization, type OrgInfo } from '../support/organizations';
 
 test.beforeEach(() => {
@@ -35,52 +36,33 @@ test.beforeEach(() => {
 });
 
 // -----------------------------------------------------------------------------
-// Types + helpers (mirrors e2e/full/domain-navigation.spec.ts)
+// Helpers
 // -----------------------------------------------------------------------------
 
-interface DomainInfo {
-  extid: string;
-  displayDomain: string;
-}
-
-async function getFirstDomain(page: Page, orgExtid: string): Promise<DomainInfo | null> {
-  await page.goto(`/org/${orgExtid}/domains`);
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-  const domainLink = page.locator('a[href*="/domains/"]').first();
-  if (!(await domainLink.isVisible().catch(() => false))) return null;
-
-  const href = await domainLink.getAttribute('href');
-  const match = href?.match(/\/domains\/([^/]+)/);
-  if (!match) return null;
-
-  const domainText = await domainLink.locator('.font-medium, .truncate').first().textContent();
-  return { extid: match[1], displayDomain: domainText?.trim() || match[1] };
-}
-
 /**
- * Navigate to the Brand page and resolve the refresh-favicon button, or null
- * when the account lacks the custom_branding entitlement (the page renders an
- * access block instead of the editor). Simple is the default brand path, so the
- * button is present without switching tabs.
+ * Navigate to the Brand page and return the refresh-favicon button. Simple is
+ * the default brand path, so the button is present without switching tabs.
+ *
+ * The editor (and this button) mount only after useBranding.initialize()
+ * finishes its awaited fetch chain (fetchList, fetchSettings, fetchLogo),
+ * which resolves after data-app-ready, so the wait retries. An account
+ * without the custom_branding entitlement gets an access block instead; the
+ * E2E_CUSTOM_DOMAINS target must grant it (standalone installs grant every
+ * entitlement).
  */
-async function gotoBrandRefreshButton(page: Page, org: OrgInfo, domain: DomainInfo) {
+async function gotoBrandRefreshButton(
+  page: Page,
+  org: OrgInfo,
+  domain: DomainInfo
+): Promise<Locator> {
   await page.goto(`/org/${org.extid}/domains/${domain.extid}/brand`);
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   const button = page.getByTestId('domain-favicon-refresh');
-  // The editor (and this button) mount only after useBranding.initialize()
-  // finishes its awaited fetch chain (fetchList → fetchSettings → fetchLogo),
-  // which resolves AFTER data-app-ready. Use a RETRYING wait, not a one-shot
-  // isVisible(): the latter races the in-flight fetches and would return null
-  // on a fully-entitled target, skipping every test vacuously with a false
-  // "not entitled" reason. A real timeout here means the button genuinely
-  // never rendered — i.e. the account lacks the custom_branding entitlement.
-  const appeared = await button
-    .waitFor({ state: 'visible', timeout: 12000 })
-    .then(() => true)
-    .catch(() => false);
-  return appeared ? button : null;
+  await expect(
+    button,
+    'the Brand editor renders (the account has the custom_branding entitlement)'
+  ).toBeVisible({ timeout: 12000 });
+  return button;
 }
 
 // -----------------------------------------------------------------------------
@@ -96,12 +78,10 @@ test.describe('Domain favicon refresh (#3780)', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    const button = await gotoBrandRefreshButton(page, org, domain!);
-    test.skip(!button, 'Brand editor unavailable — requires the custom_branding entitlement');
+    const button = await gotoBrandRefreshButton(page, org, domain);
 
-    await expect(button!).toBeVisible();
+    await expect(button).toBeVisible();
     // The hint always renders next to the button (default or user_upload copy).
     await expect(page.getByTestId('domain-favicon-hint')).toBeVisible();
   });
@@ -114,12 +94,10 @@ test.describe('Domain favicon refresh (#3780)', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    const button = await gotoBrandRefreshButton(page, org, domain!);
-    test.skip(!button, 'Brand editor unavailable — requires the custom_branding entitlement');
+    const button = await gotoBrandRefreshButton(page, org, domain);
 
-    const isDisabled = await button!.isDisabled();
+    const isDisabled = await button.isDisabled();
     const hint = (await page.getByTestId('domain-favicon-hint').textContent())?.toLowerCase() ?? '';
 
     if (isDisabled) {
@@ -137,17 +115,16 @@ test.describe('Domain favicon refresh (#3780)', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
-    const button = await gotoBrandRefreshButton(page, org, domain!);
-    test.skip(!button, 'Brand editor unavailable — requires the custom_branding entitlement');
+    const button = await gotoBrandRefreshButton(page, org, domain);
 
     // A user_upload icon disables the control (nothing to queue) — that path is
-    // covered by TC-FAV-002; here we only exercise the queue-able state.
-    test.skip(
-      await button!.isDisabled(),
-      'Icon is user-uploaded — refresh is (correctly) disabled'
-    );
+    // covered by TC-FAV-002; this test needs the queue-able state. TC-FAV-004
+    // uploads an icon, so a target reused across runs must reset it.
+    await expect(
+      button,
+      "the domain's favicon is not user-uploaded (refresh stays enabled)"
+    ).toBeEnabled();
 
     const refreshPost = page.waitForResponse(
       (res) =>
@@ -155,7 +132,7 @@ test.describe('Domain favicon refresh (#3780)', () => {
       { timeout: 15000 }
     );
 
-    await button!.click();
+    await button.click();
 
     const response = await refreshPost;
     expect(response.ok(), `refresh POST should succeed, got ${response.status()}`).toBe(true);
@@ -181,22 +158,17 @@ test.describe('Domain favicon refresh (#3780)', () => {
     const org = await getFirstOrganization(page);
 
     const domain = await getFirstDomain(page, org.extid);
-    test.skip(!domain, 'Test requires at least 1 domain');
 
     // Reuse the entitlement gate: if the refresh button mounted, the whole
     // Simple panel (including the upload field) did too.
-    const refreshButton = await gotoBrandRefreshButton(page, org, domain!);
-    test.skip(
-      !refreshButton,
-      'Brand editor unavailable — requires the custom_branding entitlement'
-    );
+    const refreshButton = await gotoBrandRefreshButton(page, org, domain);
 
     const uploadButton = page.getByTestId('domain-favicon-upload');
 
     // Coexistence: BOTH the new upload field and the existing refresh control
     // are present on the Simple brand path.
     await expect(uploadButton).toBeVisible();
-    await expect(refreshButton!).toBeVisible();
+    await expect(refreshButton).toBeVisible();
 
     // Open the staged-upload modal, pick the PNG, and commit.
     await uploadButton.click();

@@ -99,11 +99,15 @@ async function navigateToOrgSsoTab(page: Page, orgExtid: string): Promise<void> 
 }
 
 /**
- * Check if SSO management is available (entitlement check)
+ * Wait for the SSO tab. It renders when org SSO is on (ORGS_SSO_ENABLED) and
+ * the org has the manage_sso entitlement, which the E2E_SSO_UI target must
+ * provide (standalone installs grant every entitlement).
  */
-async function hasSsoEntitlement(page: Page): Promise<boolean> {
-  const ssoTab = page.locator('[data-testid="org-tab-sso"]');
-  return ssoTab.isVisible().catch(() => false);
+async function expectSsoTab(page: Page): Promise<void> {
+  await expect(
+    page.locator('[data-testid="org-tab-sso"]'),
+    'E2E_SSO_UI: org SSO is on and the org has the manage_sso entitlement'
+  ).toBeVisible();
 }
 
 /**
@@ -111,6 +115,10 @@ async function hasSsoEntitlement(page: Page): Promise<boolean> {
  */
 async function getDomainsFromSsoTab(page: Page): Promise<DomainInfo[]> {
   const domainRows = page.locator('[data-testid="org-section-sso"] .rounded-lg.border');
+  await expect(
+    domainRows.first(),
+    'E2E_CUSTOM_DOMAINS: the SSO tab lists the custom domains'
+  ).toBeVisible();
   const count = await domainRows.count();
 
   const domains: DomainInfo[] = [];
@@ -318,11 +326,14 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains for multi-provider testing');
+    test.fixme(
+      env.customDomains.length < 2,
+      'Needs two custom domains (list both in E2E_CUSTOM_DOMAINS); no lane provisions them. See #3420.'
+    );
+    expect(domains.length, 'the SSO tab lists both custom domains').toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];
@@ -376,8 +387,7 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     // Verify SSO section is visible
     const ssoSection = page.locator('[data-testid="org-section-sso"]');
@@ -425,11 +435,14 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains');
+    test.fixme(
+      env.customDomains.length < 2,
+      'Needs two custom domains (list both in E2E_CUSTOM_DOMAINS); no lane provisions them. See #3420.'
+    );
+    expect(domains.length, 'the SSO tab lists both custom domains').toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];
@@ -476,11 +489,14 @@ test.describe('Multi-Domain SSO - Different Providers per Domain', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains');
+    test.fixme(
+      env.customDomains.length < 2,
+      'Needs two custom domains (list both in E2E_CUSTOM_DOMAINS); no lane provisions them. See #3420.'
+    );
+    expect(domains.length, 'the SSO tab lists both custom domains').toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];
@@ -583,8 +599,7 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const ssoSection = page.locator('[data-testid="org-section-sso"]');
     await expect(ssoSection).toBeVisible();
@@ -607,11 +622,10 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     // Verify the configure link is present in the hub for the first domain.
     // The hub now links to the domain signin page with the SSO modal deep-link.
@@ -628,8 +642,7 @@ test.describe('Multi-Domain SSO - SSO Hub Display', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const ssoSection = page.locator('[data-testid="org-section-sso"]');
     await expect(ssoSection).toBeVisible();
@@ -667,11 +680,10 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
@@ -691,11 +703,10 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
@@ -714,11 +725,10 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
@@ -740,11 +750,10 @@ test.describe('Multi-Domain SSO - Provider-Specific Fields', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     // Force new-config mode so the selectable radio group renders (provider
     // type is locked while editing an existing config).
@@ -779,11 +788,14 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains');
+    test.fixme(
+      env.customDomains.length < 2,
+      'Needs two custom domains (list both in E2E_CUSTOM_DOMAINS); no lane provisions them. See #3420.'
+    );
+    expect(domains.length, 'the SSO tab lists both custom domains').toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];
@@ -824,11 +836,14 @@ test.describe('Multi-Domain SSO - Configuration Isolation', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains');
+    test.fixme(
+      env.customDomains.length < 2,
+      'Needs two custom domains (list both in E2E_CUSTOM_DOMAINS); no lane provisions them. See #3420.'
+    );
+    expect(domains.length, 'the SSO tab lists both custom domains').toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];

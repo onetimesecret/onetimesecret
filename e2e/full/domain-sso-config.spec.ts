@@ -87,10 +87,26 @@ async function hasSsoEntitlement(page: Page): Promise<boolean> {
 }
 
 /**
+ * Wait for the SSO tab. It renders when org SSO is on (ORGS_SSO_ENABLED) and
+ * the org has the manage_sso entitlement, which the E2E_SSO_UI target must
+ * provide (standalone installs grant every entitlement).
+ */
+async function expectSsoTab(page: Page): Promise<void> {
+  await expect(
+    page.locator('[data-testid="org-tab-sso"]'),
+    'E2E_SSO_UI: org SSO is on and the org has the manage_sso entitlement'
+  ).toBeVisible();
+}
+
+/**
  * Get domains from the SSO tab's domain list
  */
 async function getDomainsFromSsoTab(page: Page): Promise<DomainInfo[]> {
   const domainRows = page.locator('[data-testid="org-section-sso"] .rounded-lg.border');
+  await expect(
+    domainRows.first(),
+    'E2E_CUSTOM_DOMAINS: the SSO tab lists the custom domains'
+  ).toBeVisible();
   const count = await domainRows.count();
 
   const domains: DomainInfo[] = [];
@@ -202,12 +218,11 @@ test.describe('Domain SSO Configuration - Navigation', () => {
     await navigateToOrgSsoTab(page, org.extid);
 
     // Check if SSO tab is available (entitlement check)
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     // Get domains from SSO tab
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     // Open the SSO modal on the signin page
     const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
@@ -220,11 +235,10 @@ test.describe('Domain SSO Configuration - Navigation', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     // Open the SSO modal
     const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
@@ -246,11 +260,10 @@ test.describe('Domain SSO Configuration - Navigation', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     // Navigate directly to signin page
     await page.goto(`/org/${org.extid}/domains/${domains[0].extid}/signin`);
@@ -286,8 +299,7 @@ test.describe('Domain SSO Configuration - Domain List', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     // Check SSO section is visible
     const ssoSection = page.locator('[data-testid="org-section-sso"]');
@@ -307,8 +319,7 @@ test.describe('Domain SSO Configuration - Domain List', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
     const unconfiguredDomains = domains.filter((d) => d.ssoStatus === 'not_configured');
@@ -327,11 +338,10 @@ test.describe('Domain SSO Configuration - Domain List', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     // Find configure button in the SSO hub
     const configureButton = page
@@ -347,8 +357,7 @@ test.describe('Domain SSO Configuration - Domain List', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
 
@@ -376,12 +385,14 @@ test.describe('Domain SSO Configuration - Form', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
     const unconfiguredDomain = domains.find((d) => d.ssoStatus === 'not_configured');
-    test.skip(!unconfiguredDomain, 'Test requires a domain without SSO config');
+    expect(
+      unconfiguredDomain,
+      'a custom domain without SSO config (the fixture must leave one unconfigured)'
+    ).toBeTruthy();
 
     const modal = await openDomainSsoModal(page, org.extid, unconfiguredDomain!.extid);
 
@@ -403,11 +414,10 @@ test.describe('Domain SSO Configuration - Form', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     // Force new-config mode so the selectable radio group renders (provider
     // type is locked while editing an existing config).
@@ -439,11 +449,10 @@ test.describe('Domain SSO Configuration - Form', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
@@ -460,11 +469,10 @@ test.describe('Domain SSO Configuration - Form', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     const modal = await openDomainSsoModal(page, org.extid, domains[0].extid);
 
@@ -481,12 +489,14 @@ test.describe('Domain SSO Configuration - Form', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
     const unconfiguredDomain = domains.find((d) => d.ssoStatus === 'not_configured');
-    test.skip(!unconfiguredDomain, 'Test requires a domain without SSO config');
+    expect(
+      unconfiguredDomain,
+      'a custom domain without SSO config (the fixture must leave one unconfigured)'
+    ).toBeTruthy();
 
     const modal = await openDomainSsoModal(page, org.extid, unconfiguredDomain!.extid);
 
@@ -541,11 +551,10 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     // Mock the test connection API before opening the modal
     let testRequestMade = false;
@@ -593,11 +602,10 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     // Mock successful test connection before opening the modal
     await page.route(`**/api/domains/${domains[0].extid}/sso/test`, async (route) => {
@@ -638,11 +646,10 @@ test.describe('Domain SSO Configuration - Test Connection', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length === 0, 'Test requires at least 1 domain');
+    expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
     // Mock failed test connection before opening the modal
     await page.route(`**/api/domains/${domains[0].extid}/sso/test`, async (route) => {
@@ -695,12 +702,14 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
     const unconfiguredDomain = domains.find((d) => d.ssoStatus === 'not_configured');
-    test.skip(!unconfiguredDomain, 'Test requires a domain without SSO config');
+    expect(
+      unconfiguredDomain,
+      'a custom domain without SSO config (the fixture must leave one unconfigured)'
+    ).toBeTruthy();
 
     // Mock the save API before opening the modal
     let saveRequestMade = false;
@@ -752,12 +761,14 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
     const configuredDomain = domains.find((d) => d.ssoStatus !== 'not_configured');
-    test.skip(!configuredDomain, 'Test requires a domain with SSO config');
+    expect(
+      configuredDomain,
+      'a custom domain with SSO configured (the fixture must configure one)'
+    ).toBeTruthy();
 
     // Mock delete API before opening the modal
     let deleteRequestMade = false;
@@ -816,11 +827,14 @@ test.describe('Domain SSO Configuration - Multi-Domain', () => {
     const org = await getFirstOrganization(page);
 
     await navigateToOrgSsoTab(page, org.extid);
-    const hasSso = await hasSsoEntitlement(page);
-    test.skip(!hasSso, 'Test requires manage_sso entitlement');
+    await expectSsoTab(page);
 
     const domains = await getDomainsFromSsoTab(page);
-    test.skip(domains.length < 2, 'Test requires at least 2 domains');
+    test.fixme(
+      env.customDomains.length < 2,
+      'Needs two custom domains (list both in E2E_CUSTOM_DOMAINS); no lane provisions them. See #3420.'
+    );
+    expect(domains.length, 'the SSO tab lists both custom domains').toBeGreaterThanOrEqual(2);
 
     const domainA = domains[0];
     const domainB = domains[1];
@@ -951,17 +965,9 @@ test.describe('Domain SSO Configuration - Access Control', () => {
     await page.goto(`/org/${org.extid}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Check if SSO tab is NOT visible (no entitlement)
-    const ssoTab = page.locator('[data-testid="org-tab-sso"]');
-    const ssoTabVisible = await ssoTab.isVisible().catch(() => false);
-
-    if (!ssoTabVisible) {
-      // User doesn't have manage_sso entitlement - SSO tab is correctly hidden
-      expect(ssoTabVisible).toBe(false);
-    } else {
-      // User has entitlement - this test is not applicable
-      test.skip(true, 'User has manage_sso entitlement');
-    }
+    // Without manage_sso the tab bar renders but has no SSO tab
+    await expect(page.locator('[data-testid="org-tab-domains"]')).toBeVisible();
+    await expect(page.locator('[data-testid="org-tab-sso"]')).toHaveCount(0);
   });
 
   test('TC-DSSO-020: signin page hides SSO configure button without manage_sso entitlement', async ({
@@ -976,7 +982,7 @@ test.describe('Domain SSO Configuration - Access Control', () => {
     if (hasSso) {
       // User has manage_sso - the configure button should be visible
       const domains = await getDomainsFromSsoTab(page);
-      test.skip(domains.length === 0, 'Test requires at least 1 domain');
+      expect(domains.length, 'E2E_CUSTOM_DOMAINS: a custom domain is listed').toBeGreaterThan(0);
 
       await navigateToDomainSigninPage(page, org.extid, domains[0].extid);
 
