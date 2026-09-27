@@ -143,6 +143,7 @@ RSpec.describe 'Duplicate-signup verification resend in simple mode (audit dead-
   def expect_signup_success(response, context)
     expect(response.status).to eq(200),
       "#{context} should succeed, got #{response.status}: #{response.body}"
+    expect(JSON.parse(response.body)).to include('next_action' => 'verify_email')
   end
 
   it 'resends the verification email when an unverified account re-submits signup' do

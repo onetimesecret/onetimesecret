@@ -39,8 +39,8 @@
 // failure. Add invitation round trips sparingly; share a fixture where tests
 // only read.
 
-import { randomBytes } from 'node:crypto';
 import { expect, type Browser, type BrowserContext, type Page } from '@playwright/test';
+import { randomBytes } from 'node:crypto';
 
 import { FRESH_CONTEXT, signIn, waitForAppReady } from './auth-journey';
 import { getFirstOrganization } from './organizations';
@@ -92,7 +92,8 @@ export async function closeContexts(opened: BrowserContext[]): Promise<void> {
 
 /**
  * Register a password account through the signup form. Only valid on a page
- * without a session. Leaves the page on /check-email, signed out.
+ * without a session. The full E2E lane disables verification, so the product
+ * flow must leave the page on /signin, still signed out.
  */
 export async function signUpAccount(page: Page, email: string, password: string): Promise<void> {
   await page.goto('/signup');
@@ -102,7 +103,10 @@ export async function signUpAccount(page: Page, email: string, password: string)
   await page.getByTestId('signup-terms-checkbox').check();
   await page.getByTestId('signup-submit').click();
 
-  await expect(page.getByTestId('check-email-view')).toBeVisible({ timeout: 15_000 });
+  await expect(page).toHaveURL(/\/signin/, { timeout: 15_000 });
+  const signinForm = page.getByTestId('signin-form');
+  const passwordTab = page.getByRole('tab', { name: /password/i });
+  await expect(signinForm.or(passwordTab).first()).toBeVisible();
 }
 
 /**
@@ -150,7 +154,8 @@ export async function signUpAndSignIn(
   const password = generatePassword();
 
   await signUpAccount(page, email, password);
-  await signInWithPassword(page, email, password);
+  await signIn(page, email, password);
+  await page.waitForURL((url) => !url.pathname.startsWith('/signin'), { timeout: 30_000 });
 
   return { email, password, context, page };
 }

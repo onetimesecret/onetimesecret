@@ -4,12 +4,25 @@
 
 module Auth::Config::Features
   module AccountManagement
+    def self.signup_next_action
+      Onetime.auth_config.verify_account_enabled? ? 'verify_email' : 'sign_in'
+    end
+
     def self.configure(auth)
       # Account lifecycle features
       auth.enable :create_account
       auth.enable :close_account
       auth.enable :change_password
       auth.enable :reset_password
+
+      # JSON clients cannot infer whether account creation requires an email
+      # round-trip. Name the usable next step in the success response; any
+      # billing_redirect already added by after_create_account remains the
+      # validated checkout intent to follow after sign-in.
+      auth.create_account_response do
+        json_response[:next_action] = AccountManagement.signup_next_action if json_request?
+        super()
+      end
 
       # Only configure verify_account if the feature is enabled
       # (disabled in test mode via YAML config: RACK_ENV != 'test')

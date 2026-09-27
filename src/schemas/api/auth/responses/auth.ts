@@ -179,14 +179,17 @@ export const loginResponseSchema = z.union([
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
 
 /**
- * Signup response schema - supports billing redirect flow.
- * After account creation, user may be redirected to checkout.
+ * Signup success names the next unauthenticated step explicitly. A valid
+ * billing_redirect accompanies sign_in and is completed after authentication;
+ * verify_email waits for the verification link before sign-in is possible.
  */
-export const createAccountResponseSchema = z.union([
-  authSuccessWithBillingSchema, // Has billing_redirect
-  authSuccessSchema, // Just { success }
-  authErrorSchema,
-]);
+const createAccountSuccessSchema = z.object({
+  success: z.string(),
+  next_action: z.enum(['verify_email', 'sign_in']),
+  billing_redirect: billingRedirectSchema.optional(),
+});
+
+export const createAccountResponseSchema = z.union([createAccountSuccessSchema, authErrorSchema]);
 export type CreateAccountResponse = z.infer<typeof createAccountResponseSchema>;
 
 // Logout response

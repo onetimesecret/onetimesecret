@@ -817,7 +817,7 @@ describe('useAuth - Signup Flow Billing Params', () => {
     let signupPayload: Record<string, unknown> | undefined;
     axiosMock.onPost('/auth/create-account').reply((config) => {
       signupPayload = JSON.parse(config.data);
-      return [200, { success: 'Account created successfully' }];
+      return [200, { success: 'Account created successfully', next_action: 'verify_email' }];
     });
 
     await signup('test@example.com', 'password123');
@@ -845,6 +845,7 @@ describe('useAuth - Signup Flow Billing Params', () => {
 
     axiosMock.onPost('/auth/create-account').reply(200, {
       success: 'Account created successfully',
+      next_action: 'verify_email',
     });
 
     await signup('test@example.com', 'password123');

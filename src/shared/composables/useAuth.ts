@@ -297,26 +297,20 @@ export function useAuth() {
         });
       }
 
-      // Success - account created but NOT authenticated yet. The user must
-      // click the verification link in their email before they can sign in.
+      // Account creation does not authenticate a standard signup. The server
+      // names the next usable step because verification may be disabled.
       notificationsStore.show(validated.success, 'success', 'top');
 
-      // Route to a dedicated "Check your email" confirmation page rather than
-      // the sign-in form. The sign-in form is unusable until the account is
-      // verified, and a transient toast is the only cue the user would get
-      // there. The confirmation page persistently echoes the email address,
-      // explains the next step, and offers a resend action.
-      //
-      // The email travels in router history state, NOT the URL: it is PII, and
-      // a query string would leak it through browser history, the Referer
-      // header, proxy/CDN access logs and Sentry (disclosure F6; see
-      // src/utils/pii.ts and src/router/README.md "Query-string policy"). A
-      // plain reload preserves state, but a fresh entry (shared link, new tab)
-      // does not — so the billing params and redirect path ride in the query,
-      // which survives both, keeping the checkout flow intact.
       const query: Record<string, string> = {};
+      const responseBilling = validated.billing_redirect;
 
-      if (billingParams.product && billingParams.interval) {
+      // Prefer the server-validated plan intent. Simple-mode responses do not
+      // carry billing_redirect, so retain the submitted pair as a fallback and
+      // let the login response validate it before checkout.
+      if (responseBilling?.valid) {
+        query.product = responseBilling.product;
+        query.interval = responseBilling.interval;
+      } else if (!responseBilling && billingParams.product && billingParams.interval) {
         query.product = billingParams.product;
         query.interval = billingParams.interval;
       }
@@ -324,6 +318,21 @@ export function useAuth() {
         query.redirect = signupRedirect;
       }
 
+      if (validated.next_action === 'sign_in') {
+        // Verification-disabled accounts are open but still signed out. Carry
+        // the plan/redirect context through sign-in; navigateAfterAuth follows
+        // it to checkout or the requested internal destination afterwards.
+        await router.push({
+          path: '/signin',
+          ...(Object.keys(query).length > 0 ? { query } : {}),
+        });
+        return true;
+      }
+
+      // Verification is required, so route to a dedicated confirmation page.
+      // The sign-in form is unusable until the account is verified. The email
+      // travels in router history state, NOT the URL: it is PII, and a query
+      // string would leak it through browser history, Referer headers and logs.
       await router.push({
         path: '/check-email',
         ...(Object.keys(query).length > 0 ? { query } : {}),

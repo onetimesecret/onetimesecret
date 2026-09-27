@@ -311,7 +311,7 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
         post_json '/auth/create-account', { login: spa_email, password: test_password }
 
         expect(last_response.status).to eq(200), last_response.body
-        expect(json_response).to include('success')
+        expect(json_response).to include('success', 'next_action' => 'sign_in')
         expect(json_response).not_to have_key('field-error')
         expect(Auth::Database.connection[:accounts].where(email: spa_email).count).to eq(1)
       end

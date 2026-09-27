@@ -25,7 +25,7 @@
  * created, or a re-run against the same server), but the two modes answer an
  * existing login differently:
  *   simple mode: the same success response as for a new account
- *     (email-enumeration prevention), so the SPA lands on /check-email.
+ *     (email-enumeration prevention), so the SPA lands on /signin.
  *   full mode: 400 with the generic "Unable to create account" error
  *     (apps/web/auth/config/overrides/duplicate_signup.rb), so the signup
  *     form shows its error alert.
@@ -73,35 +73,26 @@ setup('register and authenticate test user', async ({ page }) => {
   await page.getByTestId('signup-terms-checkbox').check();
   await page.getByTestId('signup-submit').click();
 
-  // On success the SPA navigates to /check-email — NOT /signin. It changed in
-  // 16c9012c42 (2026-07-03): the sign-in form is unusable until an account is
-  // verified, so signup now lands on a "check your email" confirmation page.
-  // This step waited on /signin for weeks afterwards and timed out every run,
-  // which took the whole `full` / `full-billing` dependency chain down with it.
-  //
-  // Waiting for one of the two known outcomes is what keeps that from
-  // happening silently again: if signup starts landing somewhere else, THIS
-  // assertion fails, instead of the failure surfacing as an unexplained
-  // timeout on the sign-in form below. The budget matches the navigation
-  // timeout the old waitForURL used: signup hashes the password server-side.
-  const checkEmailView = page.getByTestId('check-email-view');
+  // With verification disabled, a successful signup must navigate to sign-in.
+  // A retry may instead hit full mode's generic duplicate-account error; only
+  // that recovery path navigates manually. This keeps setup from masking a
+  // regression that sends a new account to /check-email.
+  const signinForm = page.getByTestId('signin-form');
+  const passwordTab = page.getByRole('tab', { name: /password/i });
   const signupError = page.getByTestId('signup-error-message');
-  await expect(checkEmailView.or(signupError)).toBeVisible({ timeout: 15_000 });
+  await expect(signinForm.or(passwordTab).or(signupError).first()).toBeVisible({
+    timeout: 15_000,
+  });
 
-  // Settled: the error alert only renders on the signup page, and a failed
-  // signup does not navigate, so exactly one of the two is on screen.
   if (await signupError.isVisible()) {
     setup.info().annotations.push({
       type: 'signup-error',
       description: (await signupError.innerText()).trim(),
     });
+    await page.goto('/signin');
   } else {
-    await expect(page).toHaveURL(/\/check-email/);
+    await expect(page).toHaveURL(/\/signin/);
   }
-
-  // No email round-trip to wait on: the target server creates accounts
-  // sign-in-able (requirements above), so go straight to the sign-in form.
-  await page.goto('/signin');
   await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // ---------------------------------------------------------------------
@@ -110,8 +101,6 @@ setup('register and authenticate test user', async ({ page }) => {
   // form (PasswordlessFirstSignIn) where the password panel sits behind a
   // "Password" tab and uses different test ids.
   // ---------------------------------------------------------------------
-  const signinForm = page.getByTestId('signin-form');
-  const passwordTab = page.getByRole('tab', { name: /password/i });
   await expect(signinForm.or(passwordTab).first()).toBeVisible();
 
   if (await passwordTab.isVisible()) {

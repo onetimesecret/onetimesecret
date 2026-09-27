@@ -56,7 +56,10 @@ describe('useAuth - signup sends the redirect to the backend', () => {
     vi.mocked(useRouter).mockReturnValue(router);
     vi.mocked(useRoute).mockReturnValue(mockRoute as never);
 
-    axiosMock.onPost('/auth/create-account').reply(200, { success: 'Account created' });
+    axiosMock.onPost('/auth/create-account').reply(200, {
+      success: 'Account created',
+      next_action: 'verify_email',
+    });
   });
 
   afterEach(() => {
@@ -130,5 +133,48 @@ describe('useAuth - signup sends the redirect to the backend', () => {
         query: { redirect: '/workspace/domains' },
       })
     );
+  });
+
+  it('routes verification-disabled signup to sign-in', async () => {
+    axiosMock.resetHandlers();
+    axiosMock.onPost('/auth/create-account').reply(200, {
+      success: 'Account created',
+      next_action: 'sign_in',
+    });
+
+    const { signup } = useAuth();
+    expect(await signup('user@example.com', 'a-strong-passphrase')).toBe(true);
+
+    expect(router.push).toHaveBeenCalledWith({ path: '/signin' });
+  });
+
+  it('carries validated checkout and redirect context through sign-in', async () => {
+    mockRoute.query = {
+      product: 'untrusted-product',
+      interval: 'untrusted-interval',
+      redirect: '/account/settings/security',
+    };
+    axiosMock.resetHandlers();
+    axiosMock.onPost('/auth/create-account').reply(200, {
+      success: 'Account created',
+      next_action: 'sign_in',
+      billing_redirect: {
+        product: 'identity_plus_v1',
+        interval: 'monthly',
+        valid: true,
+      },
+    });
+
+    const { signup } = useAuth();
+    await signup('user@example.com', 'a-strong-passphrase');
+
+    expect(router.push).toHaveBeenCalledWith({
+      path: '/signin',
+      query: {
+        product: 'identity_plus_v1',
+        interval: 'monthly',
+        redirect: '/account/settings/security',
+      },
+    });
   });
 });
