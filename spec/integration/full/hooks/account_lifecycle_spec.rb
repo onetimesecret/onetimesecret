@@ -205,21 +205,22 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
     it 'allows password reset request for existing account' do
       post_json '/auth/reset-password-request', { login: password_email }
 
-      # Should succeed (or return success-like response to prevent enumeration)
-      expect([200, 422]).to include(last_response.status)
+      # Every request gets the same generic success
+      # (overrides/reset_password_enumeration.rb).
+      expect(last_response.status).to eq(200), last_response.body[0..500]
     end
 
     it 'creates password reset key in database' do
       post_json '/auth/reset-password-request', { login: password_email }
+      expect(last_response.status).to eq(200), last_response.body[0..500]
 
       account   = find_account_by_email(password_email)
       reset_key = test_db[:account_password_reset_keys].where(id: account[:id]).first
 
-      # Reset key should be created if the route succeeded
-      if last_response.status == 200
-        expect(reset_key).not_to be_nil,
-          'Expected password reset key to be created'
-      end
+      # The account is open and has no recent reset email, so the request
+      # mints a key.
+      expect(reset_key).not_to be_nil,
+        'Expected password reset key to be created'
     end
   end
 
@@ -576,7 +577,8 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
 
         body  = captured.map { |e| e[:body].to_s }.join("\n")
         match = body.match(/[?&]key=([^"'&\s<>]+)/)
-        skip 'reset key not issued in this environment (email/config gated)' if match.nil?
+        expect(match).not_to be_nil,
+          "No reset key link in the captured email(s): #{body[0..500]}"
 
         token = CGI.unescape(match[1])
         post_json '/auth/reset-password', {
@@ -594,12 +596,10 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
 
         reset_password_with_token
 
-        # If the reset token flow reached the hook, it did so via a committed
-        # reset (2xx/302). Only then is the fail-open-loud assertion meaningful.
-        unless [200, 201, 302].include?(last_response.status)
-          skip "reset did not reach after_reset_password (status #{last_response.status}); " \
-               "token/key hashing likely differs in this environment"
-        end
+        # A 200 means the reset committed, and after_reset_password runs inside
+        # that transaction.
+        expect(last_response.status).to eq(200),
+          "Expected the reset to succeed but got #{last_response.status}: #{last_response.body[0..500]}"
 
         expect(Auth::Logging).to have_received(:log_auth_event)
           .with(:sessions_revoke_FAILED, hash_including(level: :error, hook: :after_reset_password))
@@ -628,10 +628,8 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
         before_reset = Familia.now.to_i
         reset_password_with_token
 
-        unless [200, 201, 302].include?(last_response.status)
-          skip "reset did not reach after_reset_password (status #{last_response.status}); " \
-               "token/key hashing likely differs in this environment"
-        end
+        expect(last_response.status).to eq(200),
+          "Expected the reset to succeed but got #{last_response.status}: #{last_response.body[0..500]}"
 
         # The closed gap: the reset path now stamps the watermark too.
         customer = find_customer_by_email(cred_email)
