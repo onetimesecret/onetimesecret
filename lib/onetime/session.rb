@@ -749,21 +749,23 @@ module Onetime
       # poll, or one a session gate refused) keeps whatever the blob had left.
       # A remembered session gets the time left to its fixed deadline either
       # way, and no session outlives its absolute deadline (#absolute_remaining):
+      # when that is nearer than the rolling lifetime it bounds the blob, and
       # a write that straddled the deadline (read before, commit after) gets
       # a blob the next read ends anyway (find_session), so it is given the
       # shortest TTL Redis takes rather than a rolling one. Read here, before
       # the SET below replaces the key.
       remembered_ttl = Onetime::RememberMe.remaining(session_data)
-      write_ttl      = remembered_ttl || expiration_for_write(sid_string, request.respond_to?(:env) ? request.env : nil)
+      rolling_ttl    = remembered_ttl || expiration_for_write(sid_string, request.respond_to?(:env) ? request.env : nil)
       absolute       = absolute_remaining(session_data)
-      write_ttl      = [write_ttl, absolute].compact.min if absolute
-      write_ttl      = LAPSED_TTL if write_ttl && write_ttl < LAPSED_TTL
+      bounded_ttl    = [absolute, LAPSED_TTL].max if absolute && (rolling_ttl.nil? || absolute < rolling_ttl)
+      write_ttl      = bounded_ttl || rolling_ttl
 
       # The cookie Rack sets after this returns ends with the blob: at the
-      # remember deadline, or @expire_after from now as always. Set on every
-      # write because the session read may have been remembered and this
-      # write, after a logout or a new sign-in, not.
-      apply_cookie_lifetime(options, remembered_ttl)
+      # remember deadline, at the absolute deadline when that bounded the
+      # blob, or @expire_after from now as always. Set on every write because
+      # the session read may have been remembered and this write, after a
+      # logout or a new sign-in, not.
+      apply_cookie_lifetime(options, bounded_ttl || remembered_ttl)
 
       begin
         merged_fields = request.respond_to?(:env) ? request.env['onetime.session.sidecar_merged'] : nil
@@ -1042,20 +1044,21 @@ module Onetime
     # The cookie lifetime for this request, in the per-request Rack session
     # options Rack builds the cookie from (commit_session: `expires` from
     # :expire_after, and :max_age, which also becomes the Max-Age
-    # attribute). A remembered session's cookie ends at its remember
-    # deadline, with both attributes; any other gets @expire_after and no
-    # Max-Age, which is the default.
+    # attribute). A session with a fixed end in sight (its remember deadline,
+    # or an absolute deadline nearer than the rolling lifetime) gets a cookie
+    # that ends there, with both attributes; any other gets @expire_after and
+    # no Max-Age, which is the default.
     #
     # @param target [Rack::Request, Hash, nil] the request (its env holds the
     #   options) or the options hash itself
-    # @param remembered_ttl [Integer, nil] seconds to the remember deadline
-    def apply_cookie_lifetime(target, remembered_ttl)
+    # @param fixed_ttl [Integer, nil] seconds to the session's fixed end
+    def apply_cookie_lifetime(target, fixed_ttl)
       options = target.respond_to?(:env) ? target.env[Rack::RACK_SESSION_OPTIONS] : target
       return unless options.respond_to?(:[]=)
 
-      if remembered_ttl
-        options[:expire_after] = remembered_ttl
-        options[:max_age]      = remembered_ttl
+      if fixed_ttl
+        options[:expire_after] = fixed_ttl
+        options[:max_age]      = fixed_ttl
       else
         options[:expire_after] = @expire_after
         options.delete(:max_age)

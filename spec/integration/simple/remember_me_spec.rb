@@ -133,12 +133,30 @@ RSpec.describe 'Remember me: a fixed 14-day session (simple mode)', type: :integ
       expect(blob_ttl).to be_between(1, 86_400)
     end
 
-    it 'sizes the blob to the lifetime deadline when that is nearer than the rolling 24 hours' do
+    it 'sizes the blob and the cookie to the lifetime deadline when that is nearer than the rolling 24 hours', :aggregate_failures do
       login!
       rewrite_session_blob { |data| data['authenticated_at'] = Time.now.to_i - (Onetime::ActiveSessionGate::LIFETIME_DEADLINE - 3600) }
 
       expect(account_request).to eq(200)
       expect(blob_ttl).to be_between(1, 3600)
+      expect(session_cookie_header[/max-age=(\d+)/i, 1].to_i).to be_between(1, 3600)
+    end
+
+    it 'gives a write that straddled the deadline a one-second blob and cookie', :aggregate_failures do
+      # Read before the deadline, commit after: the store sees a lapsed
+      # session only on the write. Driven directly, since no request can be
+      # held open across the boundary from here.
+      store   = Onetime::Session.new(->(_env) { [200, {}, []] }, secret: 'x' * 64)
+      sid     = store.send(:generate_sid)
+      options = {}
+      request = Rack::Request.new(Rack::MockRequest.env_for('/'))
+      data    = { 'authenticated' => true, 'remember_until' => Time.now.to_i - 1 }
+
+      store.send(:write_session, request, sid, data, options)
+
+      expect(store.send(:get_stringkey, sid).ttl).to eq(1)
+      expect(options[:max_age]).to eq(1)
+      expect(options[:expire_after]).to eq(1)
     end
 
     it 'ends a remembered session at the lifetime deadline too' do
