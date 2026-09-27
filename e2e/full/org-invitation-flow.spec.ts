@@ -18,8 +18,13 @@
  *   (e2e/global.setup.ts consumes TEST_USER_*); the multi-context scenarios
  *   below additionally sign in manually inside fresh (unauthenticated)
  *   browser contexts
+ * - Full auth mode with accounts that can sign in without verifying their
+ *   email (the full lane sets AUTH_VERIFY_ACCOUNT_ENABLED=false): the journeys
+ *   that accept an invitation (INV-017) sign up throwaway accounts
+ *   (e2e/support/members.ts), so the storageState owner's org never gains a
+ *   member. No mail interceptor is needed: tests read invitation tokens
+ *   through the owner's invitations API.
  * - Application running locally or PLAYWRIGHT_BASE_URL set
- * - Mailpit or similar for email testing (optional for full flow)
  *
  * Multi-context testing:
  * - Email mismatch scenarios require two browser contexts
@@ -36,7 +41,19 @@
  *     pnpm test:playwright org-invitation-flow.spec.ts
  */
 
-import { expect, Page, test } from '@playwright/test';
+import { BrowserContext, expect, Page, test } from '@playwright/test';
+
+import {
+  addMember,
+  closeContexts,
+  createOwnerWithOrg,
+  invitationToken,
+  inviteMember,
+  openFreshContext,
+  openMembersTab,
+  uniqueTestEmail,
+} from '../support/members';
+import { getFirstOrganization } from '../support/organizations';
 
 // Generate unique email addresses for test isolation
 const generateTestEmail = (prefix: string) =>
@@ -484,44 +501,42 @@ test.describe('INV-007a: Authenticated Decline Flow', () => {
 });
 
 test.describe('INV-007b: Unauthenticated Decline Flow', () => {
-  // fixme: needs a real pending invitation seeded for an unauthenticated
-  // decline; CI cannot seed that invitation relationship, so the decline lands
-  // on an unexpected URL. See #3421.
-  test.fixme('Unauthenticated user can decline invitation without signing in', async ({
+  test('Unauthenticated user can decline invitation without signing in', async ({
     page,
-    context,
+    browser,
   }) => {
-    // Create invitation as owner
-    const testEmail = generateTestEmail('decline-unauth');
-    await navigateToOrgTeam(page);
-    await createInvitation(page, testEmail);
-    const token = await getInvitationToken(page, testEmail);
-    expect(token).toBeTruthy();
+    const opened: BrowserContext[] = [];
+    try {
+      // The storageState owner invites; the invitee declines, so the owner's
+      // org gains no member.
+      const { extid } = await getFirstOrganization(page);
+      await openMembersTab(page, extid);
+      const testEmail = uniqueTestEmail('decline-unauth');
+      await inviteMember(page, testEmail);
+      const token = await invitationToken(page, extid, testEmail);
 
-    // Clear cookies to become unauthenticated
-    await context.clearCookies();
+      // The invitee opens the link with no session. The unauthenticated
+      // default state, signup_required, carries its own decline control
+      // (invite-signup-decline), not the signed-in decline-invitation-btn.
+      const visitor = await (await openFreshContext(browser, opened)).newPage();
+      await visitor.goto(`/invite/${token}`);
+      await expect(visitor.getByTestId('invite-signup-required')).toBeVisible();
+      await visitor.getByTestId('invite-signup-decline').click();
 
-    // Visit invitation page
-    await page.goto(`/invite/${token}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      await expect(visitor.getByTestId('invite-declined')).toBeVisible();
+      // After the confirmation the page sends the visitor home. Signed out,
+      // home is the bare origin: nothing redirects "/" to /dashboard.
+      await expect(visitor).toHaveURL((url) => url.pathname === '/', { timeout: 10_000 });
 
-    // Decline button should work without auth. An unauthenticated invitee
-    // lands in the signup_required (or signin_required) state, where the
-    // decline control lives inside InviteSignUpForm / InviteSignInForm with
-    // the testid invite-signup-decline / invite-signin-decline — not the
-    // authenticated-state decline-invitation-btn.
-    const declineButton = page
-      .getByTestId('invite-signup-decline')
-      .or(page.getByTestId('invite-signin-decline'))
-      .first();
-    await expect(declineButton).toBeVisible();
-    await declineButton.click();
-
-    // Verify success message
-    await expect(page.getByText(/declined/i)).toBeVisible({ timeout: 10000 });
-
-    // Verify redirected to home (use toHaveURL to check current state, not waitForURL which races)
-    await expect(page).toHaveURL(/^\/$|\/dashboard/, { timeout: 5000 });
+      // The server recorded the decline: the invitation is no longer pending.
+      const response = await page.request.get(`/api/organizations/${extid}/invitations`);
+      expect(response.ok(), `GET invitations for ${extid}`).toBe(true);
+      const data = await response.json();
+      const pending = data.records?.find((inv: { email: string }) => inv.email === testEmail);
+      expect(pending, `${testEmail} is no longer pending`).toBeUndefined();
+    } finally {
+      await closeContexts(opened);
+    }
   });
 });
 
@@ -766,13 +781,35 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-017: Complete Invitation Acceptance Flow', () => {
-  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): full
-  // multi-account integration — owner invites, a NEW account signs up with the
-  // invited email, accepts, and sees the org. Needs a second account + Mailpit.
-  // Unimplemented placeholder -> test.fixme. See e2e/QUARANTINE.md.
-  test.fixme('After accepting invitation, user can see and access the organization in their org list', async () => {
-    // TODO(#3421): owner creates invite -> new account signs up with the
-    // invited email -> accepts -> asserts the org appears in their list.
+  test('After accepting invitation, user can see and access the organization in their org list', async ({
+    browser,
+  }) => {
+    const opened: BrowserContext[] = [];
+    try {
+      // A throwaway owner invites a new address; the invitee signs up on the
+      // invite page and accepts (addMember), so no storageState account is
+      // touched.
+      const { owner, orgExtid } = await createOwnerWithOrg(browser, opened, 'inv017-owner');
+      const member = await addMember(browser, opened, owner.page, orgExtid, 'member', 'inv017');
+
+      // The member's own organization list names the org, with its role.
+      // (The /orgs page is owner-only, so the list is read from the API it
+      // and the workspace switcher use.)
+      const list = await member.page.request.get('/api/organizations');
+      expect(list.ok(), "GET the member's organizations").toBe(true);
+      const { records } = (await list.json()) as {
+        records?: { extid: string; current_user_role?: string }[];
+      };
+      const joined = records?.find((org) => org.extid === orgExtid);
+      expect(joined, `${orgExtid} in the member's organizations`).toBeTruthy();
+      expect(joined?.current_user_role).toBe('member');
+
+      // And the member can open it: the org read requires membership.
+      const detail = await member.page.request.get(`/api/organizations/${orgExtid}`);
+      expect(detail.ok(), `GET ${orgExtid} as its member`).toBe(true);
+    } finally {
+      await closeContexts(opened);
+    }
   });
 });
 
