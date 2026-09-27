@@ -44,7 +44,7 @@ a matrix of two lanes, each on its own runner with its own Valkey container:
 | Lane (check name) | Server | Suite | Tests |
 |-------------------|--------|-------|-------|
 | `container-e2e-tests (simple)` | `AUTHENTICATION_MODE=simple` | `e2e/all/` | 71 |
-| `container-e2e-tests (full)` | `AUTHENTICATION_MODE=full`, SQLite authdb, `AUTH_VERIFY_ACCOUNT_ENABLED=false`, `CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false`, `ENABLE_ORGS=true` | `e2e/full/` + `setup` | 302 + 1 |
+| `container-e2e-tests (full)` | `AUTHENTICATION_MODE=full`, SQLite authdb, `AUTH_VERIFY_ACCOUNT_ENABLED=false`, `CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false`, `ENABLE_ORGS=true` | `e2e/full/` + `setup` | 304 + 1 |
 
 Both lanes are blocking and both run the flaky gate (a retry-only pass fails
 the lane). `notify-results` fails unless both lanes pass. There is no
@@ -52,19 +52,22 @@ informational or `continue-on-error` step any more: the one that ran
 `e2e/full/` non-blocking (5b0d3c5eab) is gone.
 
 **What the full lane covers.** A local run of `e2e/full/` against the
-full-lane image (podman, same env as the lane) passes 162 tests (plus
-`setup`) and skips 140, with 0 failures and 0 flaky, in about 2.7 minutes on
-one worker. The 162 are the signed-in workspace: settings layout,
-organization settings and members, invitations and invite-token security,
+full-lane image (podman, same env as the lane) passes 167 tests (plus
+`setup`) and skips 137, with 0 failures and 0 flaky, in about 2.9 minutes on
+one worker. The 167 are the signed-in workspace: settings layout,
+organization settings and members, invitations and invite-token security
+(including the invite signup, accept and decline journeys),
 identifier URLs, the workspace switcher (`scope-switcher`,
 `org-switcher-navigation`), the two no-custom-domain domain-context tests and
 the full-mode accessibility scans. The lane account (`e2e/global.setup.ts`) owns one solo
 default workspace; tests that need more people or a second workspace build
 throwaway accounts through the product's own signup, invitation and
 organization APIs (`e2e/support/members.ts`, `e2e/support/workspaces.ts`),
-so none of them needs a seeded fixture.
+so none of them needs a seeded fixture. A pending invitation is sent through
+the owner's Members tab and its token read back from the invitations API, so
+the invite journeys need no mail.
 
-**What remains gated, and why.** The 140 skips are all tracked in
+**What remains gated, and why.** The 137 skips are all tracked in
 [`QUARANTINE.md`](../QUARANTINE.md):
 
 | Why it cannot run in the full lane | Tests | How it is marked | Issue |
@@ -75,9 +78,9 @@ so none of them needs a seeded fixture.
 | Needs two organizations with custom domains | 15 | `test.fixme` (cross-org isolation, domains-store cache, TC-SS-009/-054) | #3420 |
 | Needs a custom domain; unimplemented | 7 | `test.fixme` (domain-context-consultant placeholders) | #3420 |
 | Needs org SSO, or an account without `manage_sso` | 2 | `test.fixme` (ORG-DETAIL-006 unless `E2E_SSO_UI`, TC-DSSO-019) | #3420 |
-| Needs a mail interceptor, an IdP, or a seeded invitation | 6 | `test.fixme` (INV-002, -003, -007b, -012, -017, SEC-INV-003) | #3421 |
-| Needs an MFA-enrolled account | 11 | env gate `TEST_MFA_*` (10), `test.fixme` (INV-005) | #3421 |
-| **Total** | **140** | 97 env-gated, 43 `test.fixme` | |
+| Needs a mail interceptor or an IdP | 3 | `test.fixme` (invite-flow-states INV-002, -003; org-invitation-flow INV-012) | #3421 |
+| Needs an MFA-enrolled account | 11 | env gate `TEST_MFA_*` (10), `test.fixme` (invite-flow-states INV-005) | #3421 |
+| **Total** | **137** | 97 env-gated, 40 `test.fixme` | |
 
 No runtime `test.skip` on a DOM probe is left in `e2e/full/`: inside the env
 gates, a missing domain, form, toggle or SSO tab now fails the test instead
@@ -105,15 +108,14 @@ flag, and remove the matching `QUARANTINE.md` rows in the same PR:
    `E2E_SSO_UI`; the per-domain SSO suites also need a custom domain (step 1)
    and, for six cases, two.
 4. **Invitation mail (#3421).** A Mailpit sidecar and `EMAILER_MODE=smtp`, as
-   `e2e-full-auth.yml` already runs, for INV-002/-012/-017 and SEC-INV-003.
-   INV-007b (unauthenticated decline) needs only a pending invitation, which
-   `inviteMember` in `e2e/support/members.ts` can create; re-check it before
-   adding mail for it.
+   `e2e-full-auth.yml` already runs, for the magic-link invite (INV-002 in
+   `invite-flow-states`) and Gmail alias matching (INV-012, which also needs
+   real Gmail addresses). The SSO invite (INV-003) also needs an IdP.
 5. **MFA (#3421).** Turn MFA on in the full lane (`AUTH_MFA_ENABLED`; the
    lane's bootstrap reports `mfa: false` today), enroll a throwaway account in
    TOTP during the run (`e2e/support/totp.ts` derives the codes, as
    `e2e/auth/session-consistency.spec.ts` does) and point `TEST_MFA_*` at it,
-   for `mfa-bootstrap-reactivity` and INV-005.
+   for `mfa-bootstrap-reactivity` and INV-005 in `invite-flow-states`.
 
 The rest of Phase 3 is unchanged: a shared `e2e/fixtures.ts`, more pinned
 config, then parallel workers and sharding once tests own their data.
