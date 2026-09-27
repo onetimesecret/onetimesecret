@@ -339,7 +339,9 @@ CI **red**.
    Config adds `setup` project; `full`/`full-billing` get
    `dependencies: ['setup']` + `storageState`. The workflow seeds ephemeral
    `TEST_USER_*`; today the full lane runs `e2e/full/` in full auth mode (see
-   "Current state" above).
+   "Current state" above). With verification off the server answers
+   `next_action: 'sign_in'`, so signup lands on `/signin`, and setup fails by
+   name if it lands on `/check-email` instead.
 2. ✅ **Deterministic app-readiness signal** ([#3412](https://github.com/onetimesecret/onetimesecret/pull/3412), signal half).
    Frontend sets `document.documentElement.dataset.appReady = 'true'` in
    `src/main.ts` after mount + brand theme application + `router.isReady()`;

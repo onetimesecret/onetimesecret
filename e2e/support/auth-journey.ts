@@ -63,10 +63,7 @@ export async function waitForAppReady(page: Page): Promise<void> {
  * confusing assertion failure one line later. Comparing the parsed pathname
  * cannot be fooled by the query.
  */
-export async function waitForPathname(
-  page: Page,
-  expected: string | RegExp
-): Promise<void> {
+export async function waitForPathname(page: Page, expected: string | RegExp): Promise<void> {
   await page.waitForURL((url) =>
     typeof expected === 'string' ? url.pathname === expected : expected.test(url.pathname)
   );
