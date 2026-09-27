@@ -143,6 +143,15 @@ module Auth
     # `<name>_route` reader and is skipped. The OmniAuth routes are matched
     # on their prefix because their provider segment is per-install (and,
     # for tenant SSO, per-request).
+    #
+    # The four OAuth IdP machine routes (config/features/oauth.rb) are here
+    # for a different reason: they authenticate by client credentials or
+    # bearer token (jwks: none), never by the Rack session, so a stale cookie
+    # a relying party's server happens to send must not become a 401. Their
+    # `<name>_route` readers exist only with the OAuth feature on, so the
+    # entries are inert otherwise. `authorize` is NOT here: it is
+    # browser-driven and login-required, and a 401 on a revoked cookie there
+    # matches every other login-required route.
     ANONYMOUS_RODAUTH_ROUTES = [
       :login,
       :webauthn_login,
@@ -156,6 +165,10 @@ module Auth
       :reset_password_request,
       :unlock_account,
       :unlock_account_request,
+      :token,
+      :revoke,
+      :userinfo,
+      :jwks,
     ].freeze
 
     MFA_PENDING_RODAUTH_ROUTES = [
