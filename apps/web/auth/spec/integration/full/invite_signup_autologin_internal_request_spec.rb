@@ -134,6 +134,8 @@ RSpec.describe 'Invite signup via Rodauth internal_request (issue #3221)', type:
     # Default workspace is intentionally skipped for invite signups — invitees
     # join an existing org, so a personal default workspace would be dead state.
     expect(invitee_customer.verified?).to be(true)
+    # The invite branch of after_create_account records how it was verified.
+    expect(invitee_customer.verified_by).to eq('invite_token')
 
     looked_up_id = Auth::Config.account_id_for_login(login: invited_email)
     expect(looked_up_id).to eq(account_row[:id])
