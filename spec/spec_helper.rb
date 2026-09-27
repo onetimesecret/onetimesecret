@@ -394,6 +394,16 @@ RSpec.configure do |config|
   config.filter_run_when_matching :focus
   config.order = :random
 
+  # Example status persistence (`--only-failures`, `--next-failure`), but
+  # only under the lane runner: tests/lanes/run exports this path keyed per
+  # lane and overlay set under tmp/lanes/ (gitignored), so two lanes never
+  # read each other's statuses. Plain rspec outside the runner leaves it
+  # unset and behaves exactly as before — a fixed path here would hand
+  # every worktree and every lane one shared file.
+  if (status_file = ENV.fetch('LANES_RSPEC_STATUS_FILE', nil)) && !status_file.empty?
+    config.example_status_persistence_file_path = status_file
+  end
+
   # One of :none, :all, :deprecations_only
   config.warnings = :deprecations_only
 
