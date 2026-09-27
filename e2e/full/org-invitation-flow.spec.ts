@@ -38,9 +38,6 @@
 
 import { expect, Page, test } from '@playwright/test';
 
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
-
 // Generate unique email addresses for test isolation
 const generateTestEmail = (prefix: string) =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.onetimesecret.com`;
@@ -297,8 +294,6 @@ test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
 });
 
 test.describe('INV-003: Email Mismatch Warning', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('User logged in with different email sees clear mismatch warning with continue-as option', async ({
     browser,
   }) => {
@@ -356,8 +351,6 @@ test.describe('INV-003: Email Mismatch Warning', () => {
 });
 
 test.describe('INV-004: Continue As Invited Email Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Clicking Continue As logs out and redirects to invite page', async ({
     browser,
   }) => {
@@ -411,8 +404,6 @@ test.describe('INV-004: Continue As Invited Email Flow', () => {
 });
 
 test.describe('INV-005: Matching Email User Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('User logged in with matching email can immediately accept invitation', async ({
     browser,
   }) => {
@@ -629,8 +620,6 @@ test.describe('INV-011: Revoke Invitation', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-012: Gmail Alias Normalization', () => {
-  test.skip(!hasTestCredentials, 'Skipping: Requires specific email setup for Gmail alias testing');
-
   // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): needs real
   // Gmail accounts + captured invite email. Unimplemented placeholder ->
   // test.fixme. normalizeEmail() in AcceptInvite.vue is unit-tested; see
@@ -746,8 +735,6 @@ test.describe('INV-SEC-001: Open Redirect Prevention', () => {
 });
 
 test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Continue-as flow does not reveal whether invited email has existing account', async ({
     browser,
   }) => {
@@ -793,8 +780,6 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-017: Complete Invitation Acceptance Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): full
   // multi-account integration — owner invites, a NEW account signs up with the
   // invited email, accepts, and sees the org. Needs a second account + Mailpit.
