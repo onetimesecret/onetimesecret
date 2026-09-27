@@ -96,6 +96,11 @@ const isActiveRoute = (item: (typeof tabItems.value)[0]): boolean => {
     </div>
 
     <!-- Tab Navigation -->
+    <!-- aria-current follows isActiveRoute, not RouterLink's exact-active
+         default: the Profile tab links to a redirect (/profile ->
+         /profile/preferences) and Security's pages are children of its
+         tab, so the exact-active match would leave the current tab
+         unmarked. -->
     <nav
       class="-mb-px flex space-x-1 overflow-x-auto border-b border-gray-200 dark:border-gray-700"
       aria-label="Settings navigation">
@@ -103,6 +108,7 @@ const isActiveRoute = (item: (typeof tabItems.value)[0]): boolean => {
         v-for="item in tabItems"
         :key="item.id"
         :to="item.to"
+        :aria-current="isActiveRoute(item) ? 'page' : undefined"
         :class="[
           'flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors',
           isActiveRoute(item)
