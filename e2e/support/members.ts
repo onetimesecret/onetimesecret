@@ -10,7 +10,9 @@
 // (AUTH_VERIFY_ACCOUNT_ENABLED=false) and turns off the per-IP signup limiter
 // (CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false), so a test can sign up as many
 // throwaway accounts as it needs and join them to an org through the real
-// invitation flow, with no mail interceptor.
+// invitation flow, with no mail interceptor. A throwaway owner can also be
+// given more organizations (createOrganization) for tests that need an
+// account with several workspaces.
 //
 // Every account made here is new, so the shared storageState owner's org
 // never gains a member and its account never joins a second org. Suites that
@@ -282,5 +284,43 @@ export async function apiHeaders(page: Page): Promise<Record<string, string>> {
     Accept: 'application/json',
     'Content-Type': 'application/json',
     'X-CSRF-Token': shrimp as string,
+  };
+}
+
+/** An organization as the organizations API returns it. */
+export interface CreatedOrganization {
+  extid: string;
+  objid: string;
+  name: string;
+}
+
+/**
+ * Create another organization (a "workspace" in the UI) owned by the page's
+ * account, through the same API the Workspaces page uses. With billing
+ * disabled the organization quota is not enforced, so any account can own
+ * several. Never call this with the shared storageState owner's page: the
+ * suites that assert its solo default workspace would break.
+ */
+export async function createOrganization(
+  page: Page,
+  displayName: string
+): Promise<CreatedOrganization> {
+  const response = await page.request.post('/api/organizations', {
+    headers: await apiHeaders(page),
+    data: { display_name: displayName },
+  });
+  expect(response.ok(), `create organization "${displayName}": HTTP ${response.status()}`).toBe(
+    true
+  );
+  const { record } = (await response.json()) as {
+    record?: { extid?: string; objid?: string; display_name?: string };
+  };
+  expect(record?.extid, 'the created organization has an extid').toBeTruthy();
+  expect(record?.objid, 'the created organization has an objid').toBeTruthy();
+  expect(record?.display_name).toBe(displayName);
+  return {
+    extid: record!.extid as string,
+    objid: record!.objid as string,
+    name: displayName,
   };
 }
