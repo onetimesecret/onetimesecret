@@ -126,9 +126,16 @@ describe('SettingsLayout — page frame', () => {
     wrapper = await mountAt('/account/settings/profile');
 
     const nav = wrapper.find('nav[aria-label="Settings navigation"]');
-    expect(nav.exists()).toBe(true);
-    expect(nav.findAll('a[data-tab-to]').length).toBe(wrapper.findAll('a[data-tab-to]').length);
-    expect(nav.findAll('a[data-tab-to]').length).toBeGreaterThan(0);
+    const tabLinks = nav.findAll('a[data-tab-to]').map((a) => a.attributes('data-tab-to'));
+    expect(tabLinks).toContain('/account/settings/profile');
+    expect(tabLinks.length).toBeGreaterThan(1);
+
+    // The one link outside it is the back link to the dashboard.
+    const otherLinks = wrapper
+      .findAll('a[data-tab-to]')
+      .filter((a) => !nav.element.contains(a.element))
+      .map((a) => a.attributes('data-tab-to'));
+    expect(otherLinks).toEqual(['/']);
   });
 
   it('titles the page with a single h1 and links back to the dashboard', async () => {
