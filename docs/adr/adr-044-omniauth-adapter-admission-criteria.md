@@ -1,12 +1,12 @@
 ---
 id: "044"
-status: proposed
+status: accepted
 title: "ADR-044: Criteria for Adding Bespoke OmniAuth Strategies"
 ---
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
@@ -152,13 +152,13 @@ future proposal should expect to meet: an exactly pinned verifier gem with its
 advisory history recorded in the `Gemfile` and a `bundler-audit` job on every
 pull request; a subclass that owns every protocol-specific gate (request
 binding read from the signed assertion, issuer byte-equality, stable uid,
-single-use assertions with a bounded lifetime, a scrubbed auth hash); tenant eligibility through `SsoConfig::PROVIDER_ROUTE_MAP` with
-the same hardened options as the platform definition; and operator
-documentation of what is deliberately unsupported (IdP-initiated sign-in,
-single logout). One departure from the proposal: missing or invalid platform
-configuration skips the provider rather than failing boot, because provider
-registration is designed never to take the other sign-in methods down with
-it.
+single-use assertions with a bounded lifetime, a scrubbed auth hash); tenant
+eligibility through `SsoConfig::PROVIDER_ROUTE_MAP` with the same hardened
+options as the platform definition; and operator documentation of what is
+deliberately unsupported (IdP-initiated sign-in, single logout). One
+departure from the proposal: missing or invalid platform configuration skips
+the provider rather than failing boot, because provider registration is
+designed never to take the other sign-in methods down with it.
 
 Implementation work remains governed by the provider-registration checklist,
 including issuer classification, strategy configuration, tests, and operator
