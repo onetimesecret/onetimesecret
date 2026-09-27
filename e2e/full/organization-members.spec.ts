@@ -540,9 +540,7 @@ test.describe('MBR-TEAM: Member management with non-owner members', () => {
       await expect(roleSelector(memberRow(page, team.owner.email))).toHaveCount(0);
     });
 
-    test('MBR-ROLE-002: Owner can change member role from member to admin', async ({
-      browser,
-    }) => {
+    test('MBR-ROLE-002: Owner can change member role from member to admin', async ({ browser }) => {
       const page = await openAs(browser, team.owner);
       await openMembersTab(page, team.orgExtid);
 
@@ -678,9 +676,7 @@ test.describe('MBR-TEAM: Member management with non-owner members', () => {
 
       // Every role renders as a static badge for an admin
       await expect(memberRow(page, team.member.email).locator('td').nth(1)).toHaveText('Member');
-      await expect(memberRow(page, team.otherAdmin.email).locator('td').nth(1)).toHaveText(
-        'Admin'
-      );
+      await expect(memberRow(page, team.otherAdmin.email).locator('td').nth(1)).toHaveText('Admin');
       await expect(memberRow(page, team.owner.email).locator('td').nth(1)).toHaveText('Owner');
       await expect(
         page.getByTestId('org-section-members').locator('button[aria-haspopup="listbox"]')
@@ -728,13 +724,10 @@ test.describe('MBR-TEAM: Member management with non-owner members', () => {
       await expect(page.getByRole('button', { name: /invite member/i })).toHaveCount(0);
 
       // ...and the invitations API refuses a member
-      const response = await page.request.post(
-        `/api/organizations/${team.orgExtid}/invitations`,
-        {
-          headers: await apiHeaders(page),
-          data: { email: uniqueTestEmail('perm-invite'), role: 'member' },
-        }
-      );
+      const response = await page.request.post(`/api/organizations/${team.orgExtid}/invitations`, {
+        headers: await apiHeaders(page),
+        data: { email: uniqueTestEmail('perm-invite'), role: 'member' },
+      });
       expect(response.status()).toBe(403);
     });
 
