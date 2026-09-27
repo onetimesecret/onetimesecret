@@ -47,12 +47,13 @@
 
 ## Quarantined tests (`test.fixme` — missing fixtures / unimplemented)
 
-These need data or accounts the full lane cannot build: a mail interceptor,
-an SSO identity provider, an MFA-enrolled account, or an account with two
-organizations **and** custom domains. Tests that only need more accounts or a
-second organization build them with throwaway accounts instead
-(`e2e/support/members.ts`, `e2e/support/workspaces.ts`). Tests that need a
-pending invitation send one and read its token through the owner's
+These need data or config the full lane does not provide: a custom domain,
+org SSO or an SSO identity provider, magic-link sign-in with a mail
+interceptor, an MFA-enrolled account, an account without `manage_sso`, or an
+account with two organizations **and** custom domains. Tests that only need
+more accounts or a second organization build them with throwaway accounts
+instead (`e2e/support/members.ts`, `e2e/support/workspaces.ts`). Tests that
+need a pending invitation send one and read its token through the owner's
 invitations API; no mail is involved.
 
 | Test (file › title) | Owner | Issue | Quarantined | Reason |
@@ -62,8 +63,8 @@ invitations API; no mail is involved.
 | `full/scope-switcher.spec.ts` › TC-SS-009 (org switcher on domain detail), TC-SS-054 (workspace switch resets domain scope) | delano | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) | 2026-09-26 | Need an account with two workspaces and custom domains. The lane's two-workspace owner has no custom domain, and the storageState account owns one solo workspace. |
 | `full/domain-context-consultant.spec.ts` › 7 custom-domain placeholders | delano | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) | 2026-06-10 | Unimplemented; each needs a custom domain. The 2 *no-custom-domain* tests in the file still run. |
 | `full/domain-sso-config.spec.ts` › TC-DSSO-019 (access denied without entitlement) | delano | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) | 2026-06-10 | Inverted precondition — asserts the *absence* of `manage_sso`, but the suite is gated on its presence. Needs a no-entitlement lane. |
-| `full/invite-flow-states.spec.ts` › INV-002 new user via magic link | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-10 | Magic link arrives by email; needs a mail interceptor (Mailpit/MailHog). |
-| `full/invite-flow-states.spec.ts` › INV-003 new user via SSO | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-10 | Needs an SSO/IdP configured plus a captured invite email. |
+| `full/invite-flow-states.spec.ts` › INV-002 new user via magic link | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-10 | Magic links are off unless `AUTH_EMAIL_AUTH_ENABLED=true` (`email_auth` in `etc/defaults/auth.defaults.yaml`), and the link arrives by email, so this also needs a mail interceptor (Mailpit). The invite page's own forms offer a magic link only on a custom domain (`show_invite.rb` sends `auth_methods` only there); on the canonical host the invitee reaches it through `/signin` only when sign-in is restricted to email auth. |
+| `full/invite-flow-states.spec.ts` › INV-003 new user via SSO | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-10 | Needs an SSO identity provider. The invite page's own forms offer SSO only on a custom domain with SSO available (`show_invite.rb`); on the canonical host the invitee reaches it through `/signin` only when sign-in is restricted to SSO. The invitation token comes from the invitations API, as in the other invite tests. |
 | `full/invite-flow-states.spec.ts` › INV-005 existing user with MFA | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-10 | Needs an MFA-enrolled invitee account (`TEST_MFA_*`). |
 | `full/organization-settings.spec.ts` › ORG-DETAIL-006 SSO tab opens the SSO panel | delano | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) | 2026-09-26 | Needs org SSO turned on (`ORGS_SSO_ENABLED`) and the `manage_sso` entitlement; no lane configures either. `test.fixme` unless `E2E_SSO_UI` is set. The lane still checks that the SSO tab is absent and that `/sso` redirects to Domains (ORG-DETAIL-001, ORG-DETAIL-011). |
 
