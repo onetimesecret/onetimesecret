@@ -311,6 +311,39 @@ RSpec.describe Onetime::Utils::Strings do
     end
   end
 
+  describe '#redact_uris_in_text' do
+    # Exception messages quote connection URIs in prose: redis-client appends
+    # "(redis://host:6379)" to every ConnectionError. The prose is the
+    # diagnosis and stays; each URI is masked like redact_uri_userinfo does.
+    it 'masks the userinfo of a URI quoted inside a redis-client message' do
+      message = 'Connection refused - connect(2) for 127.0.0.1:6379 (redis://ots:s3cret@127.0.0.1:6379/0)'
+      expect(utils.redact_uris_in_text(message))
+        .to eq('Connection refused - connect(2) for 127.0.0.1:6379 (redis://***@127.0.0.1:6379/0)')
+    end
+
+    it 'masks every URI, including query-borne credentials' do
+      message = 'tried redis://a:pw@h1:6379/0 then valkey://h2/0?password=pw2, giving up'
+      expect(utils.redact_uris_in_text(message)).to eq('tried redis://***@h1:6379/0 then valkey://h2/0?*** giving up')
+    end
+
+    it 'keeps a password holding ")" inside the masked span' do
+      expect(utils.redact_uris_in_text('down (redis://u:p)w@db:6379/0)')).to eq('down (redis://***@db:6379/0)')
+    end
+
+    it 'leaves text without a URI byte-identical' do
+      message = 'WRONGPASS invalid username-password pair or user is disabled.'
+      expect(utils.redact_uris_in_text(message)).to eq(message)
+    end
+
+    it 'does not raise on invalid UTF-8' do
+      expect(utils.redact_uris_in_text("down (redis://:s3\xFFcret@db:6379/0)".b)).to eq('down (redis://***@db:6379/0)')
+    end
+
+    it 'renders nil as an empty string' do
+      expect(utils.redact_uris_in_text(nil)).to eq('')
+    end
+  end
+
   describe '#glob_case_insensitive' do
     # Redis MATCH is case-sensitive and the customer email_index carries
     # mixed-case keys from pre-normalization writers, so the admin searches

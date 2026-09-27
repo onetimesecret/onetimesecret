@@ -132,25 +132,44 @@ module Onetime
           # left by the regular page. Page domains keep priority so the full-set
           # walk always advances, while the combined verification cohort remains
           # bounded by batch_size. Page domains are excluded to avoid duplicates.
+          #
+          # The window is scanned in chunks until the spare capacity is filled
+          # or the window is exhausted. Filtering after a single bounded fetch
+          # would skip a still-propagating domain whenever the first identifiers
+          # in the window happened to be healthy, leaving it to the page walk.
+          # Worst case (every recent domain healthy) reads the whole window once
+          # per tick in batch_size chunks; the window bounds that by signup rate.
           def warmup_domains(now, page_domains, limit:)
             window = dns_propagation_window_seconds
             return [] if window <= 0 || limit <= 0
 
-            identifiers = Onetime::CustomDomain.instances.rangebyscoreraw(
-              now - window,
-              now,
-              limit: [0, limit + page_domains.size],
-            )
-            return [] if identifiers.empty?
-
             already = page_domains.to_h { |d| [d.identifier, true] }
-            identifiers.reject! { |id| already[id] }
-            return [] if identifiers.empty?
+            chunk   = limit + page_domains.size
+            picked  = []
+            offset  = 0
 
-            Onetime::CustomDomain.load_multi(identifiers)
-              .compact
-              .reject { |d| d.verified && d.resolving } # boolean_field native
-              .take(limit)
+            loop do
+              identifiers = Onetime::CustomDomain.instances.rangebyscoreraw(
+                now - window,
+                now,
+                limit: [offset, chunk],
+              )
+              break if identifiers.empty? || identifiers.nil?
+
+              offset    += identifiers.size
+              candidates = identifiers.reject { |id| already[id] }
+              unless candidates.empty?
+                picked.concat(
+                  Onetime::CustomDomain.load_multi(candidates)
+                    .compact
+                    .reject { |d| d.verified && d.resolving }, # boolean_field native
+                )
+              end
+
+              break if picked.size >= limit || identifiers.size < chunk
+            end
+
+            picked.take(limit)
           end
 
           # The page is derived from the clock, so there is no position to
