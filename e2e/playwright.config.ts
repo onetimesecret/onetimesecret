@@ -339,13 +339,15 @@ export default defineConfig({
   /* Timeout for entire test suite */
   timeout: 60000,
 
-  /* Global timeout for entire test run.
+  /* Global timeout for one Playwright invocation.
    *
-   * Sized for the post-Phase-2 reality: CI runs all/ + full/ (~330 tests)
-   * on a single serial worker, which cannot finish inside the old 10-minute
-   * budget - runs aborted at exactly 10.0m with hundreds of tests reported
-   * "did not run" (observed on #3414/#3416 CI). Keep this under the
-   * workflow job's timeout-minutes (30) minus ~4-5 min of container
+   * Container E2E (.github/workflows/e2e.yml) runs each suite as its own
+   * matrix lane, one invocation on a single serial worker per lane:
+   * e2e/all/ (~70 tests, simple auth mode) and e2e/full/ (~310 tests incl.
+   * setup, full auth mode). The full lane sizes this budget: the old
+   * 10-minute budget aborted runs at exactly 10.0m with hundreds of tests
+   * reported "did not run" (observed on #3414/#3416 CI). Keep this under
+   * each lane job's timeout-minutes (30) minus ~4-5 min of image
    * build/setup overhead. Shrinking this again is a Phase 3 goal
    * (fullyParallel + more workers), not a budget to win back by hiding
    * tests. */
