@@ -4,10 +4,6 @@
 
 module Auth::Config::Features
   module AccountManagement
-    def self.signup_next_action
-      Onetime.auth_config.verify_account_enabled? ? 'verify_email' : 'sign_in'
-    end
-
     def self.configure(auth)
       # Account lifecycle features
       auth.enable :create_account
@@ -19,8 +15,16 @@ module Auth::Config::Features
       # round-trip. Name the usable next step in the success response; any
       # billing_redirect already added by after_create_account remains the
       # validated checkout intent to follow after sign-in.
+      #
+      # The answer comes from the features loaded at boot, never from the
+      # account, so it says nothing about the submitted login. It reads
+      # `features` rather than verify_account_enabled?: webauthn_verify_account
+      # depends on verify_account and loads it even when that flag is false,
+      # and then new accounts still need the emailed link.
       auth.create_account_response do
-        json_response[:next_action] = AccountManagement.signup_next_action if json_request?
+        if json_request?
+          json_response[:next_action] = features.include?(:verify_account) ? 'verify_email' : 'sign_in'
+        end
         super()
       end
 

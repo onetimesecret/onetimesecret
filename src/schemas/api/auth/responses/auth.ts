@@ -72,8 +72,9 @@ const authSuccessSchema = z.object({
 
 /**
  * Success response with optional billing redirect.
- * Returned by /auth/login or /auth/create-account when user should be
- * redirected to checkout after authentication.
+ * Returned by /auth/login and the two-factor completion routes when user
+ * should be redirected to checkout after authentication. /auth/create-account
+ * has its own schema (createAccountSuccessSchema below).
  */
 const authSuccessWithBillingSchema = z.object({
   success: z.string(),
@@ -179,9 +180,11 @@ export const loginResponseSchema = z.union([
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
 
 /**
- * Signup success names the next unauthenticated step explicitly. A valid
- * billing_redirect accompanies sign_in and is completed after authentication;
- * verify_email waits for the verification link before sign-in is possible.
+ * Signup success names the next unauthenticated step explicitly: verify_email
+ * when the emailed link must be followed before sign-in works, sign_in when
+ * the account is usable at once. Both backends derive it from configuration,
+ * never from the submitted login. billing_redirect, when present, is the
+ * server's verdict on the submitted plan and is followed after sign-in.
  */
 const createAccountSuccessSchema = z.object({
   success: z.string(),
@@ -567,8 +570,8 @@ export type OtpToggleResponse = z.infer<typeof otpToggleResponseSchema>;
 //
 // #4306: for MFA-gated logins the backend replays the signup plan intent on
 // the COMPLETION response, not the primary-factor login response — so this
-// body may carry the same optional billing_redirect shape as login /
-// create-account (authSuccessWithBillingSchema). Union order matters: the
+// body may carry the same optional billing_redirect shape as login
+// (authSuccessWithBillingSchema). Union order matters: the
 // billing-capable success variant must precede authErrorSchema so Zod never
 // strips billing_redirect from a success body.
 export const otpVerifyResponseSchema = z.union([

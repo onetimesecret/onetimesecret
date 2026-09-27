@@ -13,6 +13,7 @@
  */
 
 import { useAuth } from '@/shared/composables/useAuth';
+import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -175,6 +176,66 @@ describe('useAuth - signup sends the redirect to the backend', () => {
         interval: 'monthly',
         redirect: '/account/settings/security',
       },
+    });
+  });
+
+  it('drops the submitted plan pair when the server marks it invalid', async () => {
+    mockRoute.query = {
+      product: 'retired-plan',
+      interval: 'monthly',
+      redirect: '/pricing',
+    };
+    axiosMock.resetHandlers();
+    axiosMock.onPost('/auth/create-account').reply(200, {
+      success: 'Account created',
+      next_action: 'sign_in',
+      billing_redirect: {
+        product: 'retired-plan',
+        interval: 'monthly',
+        valid: false,
+      },
+    });
+
+    const { signup } = useAuth();
+    await signup('user@example.com', 'a-strong-passphrase');
+
+    expect(router.push).toHaveBeenCalledWith({
+      path: '/signin',
+      query: { redirect: '/pricing' },
+    });
+  });
+
+  it('keeps the submitted plan pair when the server sends no billing_redirect', async () => {
+    // Simple mode, and full mode without billing, answer with no verdict on
+    // the plan. The login response validates the pair before checkout.
+    mockRoute.query = { product: 'identity_plus_v1', interval: 'yearly' };
+    axiosMock.resetHandlers();
+    axiosMock.onPost('/auth/create-account').reply(200, {
+      success: 'Account created',
+      next_action: 'sign_in',
+    });
+
+    const { signup } = useAuth();
+    await signup('user@example.com', 'a-strong-passphrase');
+
+    expect(router.push).toHaveBeenCalledWith({
+      path: '/signin',
+      query: { product: 'identity_plus_v1', interval: 'yearly' },
+    });
+  });
+
+  it('routes verify_email to /check-email with the email in history state, not the URL', async () => {
+    // beforeEach answers next_action 'verify_email'.
+    mockRoute.query = { redirect: '/workspace/domains' };
+
+    const { signup } = useAuth();
+    expect(await signup('user@example.com', 'a-strong-passphrase')).toBe(true);
+
+    expect(router.push).toHaveBeenCalledTimes(1);
+    expect(router.push).toHaveBeenCalledWith({
+      path: '/check-email',
+      query: { redirect: '/workspace/domains' },
+      state: { [CHECK_EMAIL_STATE_KEY]: 'user@example.com' },
     });
   });
 });

@@ -75,12 +75,14 @@ setup('register and authenticate test user', async ({ page }) => {
 
   // With verification disabled, a successful signup must navigate to sign-in.
   // A retry may instead hit full mode's generic duplicate-account error; only
-  // that recovery path navigates manually. This keeps setup from masking a
-  // regression that sends a new account to /check-email.
+  // that recovery path navigates manually. The check-email view is in the race
+  // so a regression that sends a new account to /check-email fails on the URL
+  // assertion below, by name, instead of as a timeout on the race.
   const signinForm = page.getByTestId('signin-form');
   const passwordTab = page.getByRole('tab', { name: /password/i });
   const signupError = page.getByTestId('signup-error-message');
-  await expect(signinForm.or(passwordTab).or(signupError).first()).toBeVisible({
+  const checkEmailView = page.getByTestId('check-email-view');
+  await expect(signinForm.or(passwordTab).or(signupError).or(checkEmailView).first()).toBeVisible({
     timeout: 15_000,
   });
 
@@ -91,7 +93,10 @@ setup('register and authenticate test user', async ({ page }) => {
     });
     await page.goto('/signin');
   } else {
-    await expect(page).toHaveURL(/\/signin/);
+    await expect(
+      page,
+      'signup with verification off must continue to /signin, not /check-email'
+    ).toHaveURL(/\/signin/);
   }
   await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 

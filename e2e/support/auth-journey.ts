@@ -150,8 +150,9 @@ export async function submitSignup(
       : `POST /auth/create-account failed: ${await response.text()}`
   ).toBe(200);
 
-  // Since 16c9012c42 signup lands on /check-email, NOT /signin: the sign-in
-  // form is unusable until the account is verified.
+  // With verify_account on (the contract above) the server answers
+  // next_action 'verify_email', so signup lands on /check-email, NOT /signin:
+  // the sign-in form is unusable until the account is verified.
   await page.waitForURL(/\/check-email/);
   await expect(page.getByTestId('check-email-view')).toBeVisible();
 
