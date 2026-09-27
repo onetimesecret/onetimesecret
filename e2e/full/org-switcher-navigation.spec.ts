@@ -168,10 +168,15 @@ test.describe('Org Switcher Navigation - Edge Cases', () => {
     await expect(workspaceHeading(page, current)).toBeVisible();
 
     // A URL check right after the selection cannot see a navigation that has
-    // not finished yet. Vue Router runs navigations in order, so once a later
-    // switch has landed, any navigation the selection made is visible: a push
-    // as an extra history entry, a replace to another tab as the tab the
-    // switch keeps.
+    // not finished yet, so the test makes a later switch and reads what is
+    // left: a push from the selection shows as an extra history entry, a
+    // replace to another tab as the tab the switch keeps. This sees only a
+    // navigation that finished before the later switch started. Vue Router
+    // does not queue navigations: starting one cancels any still pending, so
+    // a selection whose navigation waited on a slow guard would be cancelled
+    // here and the test would still pass. Today the selection pushes the
+    // route already on screen, which Vue Router settles at once as a
+    // duplicate without running guards.
     await switchTo(page, other);
     await expect(page).toHaveURL(new RegExp(`/org/${other.extid}/domains$`));
     expect(await page.evaluate(() => window.history.length)).toBe(historyLength + 1);
