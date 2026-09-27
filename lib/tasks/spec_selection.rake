@@ -163,6 +163,8 @@ module SpecSelection
     end
     integration += Dir.glob('spec/integration/all/**/*_spec.rb')
     integration += Dir.glob('apps/*/*/spec/integration/full_mfa/**/*_spec.rb')
+    # spec:integration:oauth, second tasks line of the full-sqlite lane.
+    integration += Dir.glob('apps/*/*/spec/integration/oauth/**/*_spec.rb')
 
     {
       'spec:fast' => fast_invocations.flat_map { |inv| files(**inv.except(:name, :tags)) }.sort.uniq,

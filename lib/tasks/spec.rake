@@ -311,6 +311,11 @@ namespace :spec do
     # oauth_enabled?, which would turn the IdP feature off at boot. They also
     # write AUTH_OAUTH_ENABLED process-wide, so they get an isolated invocation
     # to avoid leaking the IdP feature into other full-mode specs.
+    #
+    # Runs in the full-sqlite lane as its second tasks line
+    # (tests/lanes/full-sqlite/tasks), after spec:integration:full. It is
+    # not in full-pg: the specs are tagged :sqlite_database and this task
+    # excludes postgres_database.
     desc 'Run OAuth/OIDC IdP integration specs (full mode, isolated process)'
     task :oauth do
       env = {
@@ -319,7 +324,11 @@ namespace :spec do
         'AUTH_OAUTH_ENABLED' => 'true',
         'AUTH_DATABASE_URL' => ENV.fetch('AUTH_DATABASE_URL', 'sqlite::memory:'),
       }
-      sh env, "bundle exec rspec apps/web/auth/spec/integration/oauth --tag ~postgres_database #{rspec_format_options}"
+      # Distinct results file: the full-sqlite lane runs this after
+      # spec:integration:full with the same RSPEC_OUTPUT_FILE, and an
+      # unsuffixed name would overwrite that task's JSON (same reason as
+      # full:mfa). CI's run-test-lane globs the suffixed files.
+      sh env, "bundle exec rspec apps/web/auth/spec/integration/oauth --tag ~postgres_database #{rspec_format_options('oauth')}"
     end
 
     # Redis-only auth strategy specs (NoAuth/BasicAuth/Session) resolve an
