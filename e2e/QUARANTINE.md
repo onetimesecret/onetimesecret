@@ -54,8 +54,6 @@ that does not exist yet; the fixtures are Phase 3 / PR 6 work.
 | `full/invite-token-security.spec.ts` › SEC-INV-003 valid invite_token auto-login | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-24 | Needs a seeded invite_token consumed by a fresh signup (second account + mail); CI cannot seed it, so invite-direct-accept never renders. |
 | `full/org-invitation-flow.spec.ts` › INV-007b unauthenticated decline | delano | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) | 2026-06-24 | Needs a real pending invitation to decline unauthenticated; CI cannot seed the invitation, so the decline lands on an unexpected URL. |
 | `full/organization-settings.spec.ts` › ORG-DETAIL-006 SSO tab opens the SSO panel | delano | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) | 2026-09-26 | Needs org SSO turned on (`ORGS_SSO_ENABLED`) and the `manage_sso` entitlement; no lane configures either. `test.fixme` unless `E2E_SSO_UI` is set. The lane still checks that the SSO tab is absent and that `/sso` redirects to Domains (ORG-DETAIL-001, ORG-DETAIL-011). |
-| `full/organization-members.spec.ts` › MBR-ACCEPT-002 unauthenticated sign-in form | delano | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) | 2026-06-24 | signin_required only follows a signup attempt for an invited email that already has an account (AZ7/#3856); the test invites a fresh address and expects that state on arrival. The lane can create the account (INV-004 in `invite-flow-states.spec.ts` covers this state), so rewrite it once those throwaway-account helpers move to `e2e/support`. |
-| `full/organization-members.spec.ts` › MBR-ROLE-001, -002, -004 and MBR-REMOVE-001, -003, -004 (6 tests) | delano | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) | 2026-09-26 | Need a non-owner member in the org. The lane account is the only member of its default workspace, so no row has a role selector or a remove button. The owner-row checks (MBR-ROLE-003, MBR-REMOVE-002) still run. |
 
 > **Still owed (deferred to a CI-verified follow-up, not in this PR):** the
 > org-existence `test.skip(true)` conversions in `identifier-url-patterns` and
@@ -64,8 +62,10 @@ that does not exist yet; the fixtures are Phase 3 / PR 6 work.
 > must be done against a real CI run, not blind. `organization-settings` and
 > `organization-members` are converted: their skips came from a helper that read
 > /orgs before the list rendered (now `e2e/support/organizations.ts`), not from
-> missing organizations. Verified locally against the full-lane container image;
-> the members tests that need a second member are the `test.fixme` rows above.
+> missing organizations. Verified locally against the full-lane container image.
+> The members tests that need other members (roles, removal, hierarchy,
+> permissions) sign up a throwaway team through the real invitation flow
+> (`e2e/support/members.ts`), so they need no seeded fixture.
 
 ## Dormant-in-CI suites (`env`-gated — optional config, **NOT coverage yet**)
 
@@ -92,6 +92,4 @@ not coverage** until a lane sets the flag.
 | `full/domain-sso-config.spec.ts` | `E2E_CUSTOM_DOMAINS` + `E2E_SSO_UI` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
 | `full/domain-sso-multi-provider.spec.ts` | `E2E_CUSTOM_DOMAINS` + `E2E_SSO_UI` | [#3420](https://github.com/onetimesecret/onetimesecret/issues/3420) |
 | `auth/sso-csrf.spec.ts` | `E2E_SSO_UI` | [#2798](https://github.com/onetimesecret/onetimesecret/issues/2798) |
-| `full/organization-members.spec.ts` › MBR-HIERARCHY (2 tests) | `TEST_ADMIN_EMAIL` + `TEST_ADMIN_PASSWORD` | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) |
-| `full/organization-members.spec.ts` › MBR-PERM (2 tests) | `TEST_MEMBER_EMAIL` + `TEST_MEMBER_PASSWORD` | [#3419](https://github.com/onetimesecret/onetimesecret/issues/3419) |
 | `full/mfa-bootstrap-reactivity.spec.ts` | `TEST_MFA_*` | [#3421](https://github.com/onetimesecret/onetimesecret/issues/3421) |
