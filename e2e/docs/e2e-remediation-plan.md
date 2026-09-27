@@ -44,7 +44,7 @@ a matrix of two lanes, each on its own runner with its own Valkey container:
 | Lane (check name) | Server | Suite | Tests |
 |-------------------|--------|-------|-------|
 | `container-e2e-tests (simple)` | `AUTHENTICATION_MODE=simple` | `e2e/all/` | 71 |
-| `container-e2e-tests (full)` | `AUTHENTICATION_MODE=full`, SQLite authdb, `AUTH_VERIFY_ACCOUNT_ENABLED=false`, `CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false`, `ENABLE_ORGS=true` | `e2e/full/` + `setup` | 305 + 1 |
+| `container-e2e-tests (full)` | `AUTHENTICATION_MODE=full`, SQLite authdb, `AUTH_VERIFY_ACCOUNT_ENABLED=false`, `CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false`, `ENABLE_ORGS=true` | `e2e/full/` + `setup` | 303 + 1 |
 
 Both lanes are blocking and both run the flaky gate (a retry-only pass fails
 the lane). `notify-results` fails unless both lanes pass. There is no
@@ -52,14 +52,13 @@ informational or `continue-on-error` step any more: the one that ran
 `e2e/full/` non-blocking (5b0d3c5eab) is gone.
 
 **What the full lane covers.** A local run of `e2e/full/` against the
-full-lane image (podman, same env as the lane) passes 169 tests (plus
+full-lane image (podman, same env as the lane) passes 167 tests (plus
 `setup`) and skips 136, with 0 failures and 0 flaky, in about 2.9 minutes on
-one worker. The 169 are the signed-in workspace: settings layout,
+one worker. The 167 are the signed-in workspace: settings layout,
 organization settings and members, invitations and invite-token security
 (including the invite signup, accept and decline journeys),
 identifier URLs, the workspace switcher (`scope-switcher`,
-`org-switcher-navigation`), the two no-custom-domain domain-context tests and
-the full-mode accessibility scans. The lane account (`e2e/global.setup.ts`) owns one solo
+`org-switcher-navigation`) and the full-mode accessibility scans. The lane account (`e2e/global.setup.ts`) owns one solo
 default workspace; tests that need more people or a second workspace build
 throwaway accounts through the product's own signup, invitation and
 organization APIs (`e2e/support/members.ts`, `e2e/support/workspaces.ts`),
