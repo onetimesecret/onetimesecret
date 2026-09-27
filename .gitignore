@@ -106,7 +106,6 @@ support/schemas/
 .overmind.sock
 Procfile.*
 !Procfile*.example
-!Procfile.production
 onetimesecret_*
 
 # Auto-generated files
