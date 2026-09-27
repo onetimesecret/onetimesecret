@@ -146,6 +146,46 @@ module Onetime
       @encryption_key_raw = @codec.encryption_key_raw
     end
 
+    # The epoch second at which a session's absolute deadline falls, or nil
+    # when none applies.
+    #
+    # Two deadlines, both fixed at sign-in and never moved by activity, and
+    # the earlier one wins:
+    #
+    # - the remember-me deadline, `remember_until` (Onetime::RememberMe), an
+    #   integer epoch stamped at a sign-in with the box ticked;
+    # - the lifetime deadline, {Onetime::ActiveSessionGate.lifetime_deadline}
+    #   (`site.session.absolute_timeout`, 30 days unless configured, 0 for
+    #   none) after `authenticated_at`, the integer epoch every sign-in
+    #   writes. The same bound the full-mode active-session row is held to,
+    #   applied to the blob itself so simple mode, which has no row, has an
+    #   absolute bound too, and full mode has it from the read as well as
+    #   from the gate.
+    #
+    # A value that is not an integer epoch does not count: it is not a
+    # deadline this store wrote, and the session falls back to the default
+    # rolling lifetime (the failure posture for malformed data, as for the
+    # TTL read in #expiration_for_write).
+    #
+    # Public because it is the one definition of "when this session ends,
+    # whatever it does": the store applies it on the read (#find_session)
+    # and the write (#absolute_remaining), and IdentityResolution reports
+    # it as the identity's `expires_at`.
+    #
+    # @param session_data [Hash, #[], nil] the Rack session or its data hash
+    # @return [Integer, nil]
+    def self.absolute_deadline(session_data)
+      return nil unless session_data.respond_to?(:[])
+
+      deadlines = []
+      remember  = session_data[Onetime::RememberMe::SESSION_KEY]
+      deadlines << remember if remember.is_a?(Integer)
+      signed_in = session_data['authenticated_at']
+      lifetime  = Onetime::ActiveSessionGate.lifetime_deadline
+      deadlines << (signed_in + lifetime) if signed_in.is_a?(Integer) && lifetime
+      deadlines.min
+    end
+
     private
 
     # Create a StringKey instance for a session ID
@@ -994,40 +1034,17 @@ module Onetime
       false
     end
 
-    # Seconds left to the blob's absolute deadline, or nil when none applies.
-    #
-    # Two deadlines, both fixed at sign-in and never moved by activity, and
-    # the earlier one wins:
-    #
-    # - the remember-me deadline, `remember_until` (Onetime::RememberMe), an
-    #   integer epoch stamped at a sign-in with the box ticked;
-    # - the lifetime deadline, {Onetime::ActiveSessionGate.lifetime_deadline}
-    #   (`site.session.absolute_timeout`, 30 days unless configured, 0 for
-    #   none) after `authenticated_at`, the integer epoch every sign-in
-    #   writes. The same bound the full-mode active-session row is held to,
-    #   applied to the blob itself so simple mode, which has no row, has an
-    #   absolute bound too, and full mode has it from the read as well as
-    #   from the gate.
-    #
-    # A value that is not an integer epoch does not count: it is not a
-    # deadline this store wrote, and the session falls back to the default
-    # rolling lifetime (the failure posture for malformed data, as for the
-    # TTL read in #expiration_for_write). Zero or negative means lapsed.
+    # Seconds left to the blob's absolute deadline
+    # ({Onetime::Session.absolute_deadline}), or nil when none applies. Zero
+    # or negative means lapsed.
     #
     # @param session_data [Hash, nil]
     # @return [Integer, nil]
     def absolute_remaining(session_data, now: Time.now)
-      return nil unless session_data.respond_to?(:[])
+      deadline = self.class.absolute_deadline(session_data)
+      return nil unless deadline
 
-      deadlines = []
-      remember  = session_data[Onetime::RememberMe::SESSION_KEY]
-      deadlines << remember if remember.is_a?(Integer)
-      signed_in = session_data['authenticated_at']
-      lifetime  = Onetime::ActiveSessionGate.lifetime_deadline
-      deadlines << (signed_in + lifetime) if signed_in.is_a?(Integer) && lifetime
-      return nil if deadlines.empty?
-
-      deadlines.min - now.to_i
+      deadline - now.to_i
     end
 
     # Which absolute deadline the session is past, for the read-time check
