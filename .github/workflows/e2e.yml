@@ -29,13 +29,18 @@
 # email (simple: AUTH_AUTOVERIFY=true; full: AUTH_VERIFY_ACCOUNT_ENABLED=false)
 # and log email instead of sending it.
 #
-# If a check from this workflow is ever made required, require
-# `notify-results`: it fails unless every lane passed (a cancelled run
-# included), and its name does not change when a lane is added (the matrix
+# Every pull request into develop, main or rel/* gets a run and a
+# `notify-results` verdict, whatever it touches. The lanes run only when the
+# `changes` job finds an E2E-relevant path in the PR (its filter below holds
+# the list), or on workflow_dispatch; otherwise they are skipped and
+# notify-results passes, saying why.
+#
+# `notify-results` is the required E2E check for main (and the one to require
+# on any other branch): when the lanes ran, it fails unless every lane passed
+# (a cancelled run included), and it fails whenever change detection itself
+# did not succeed. Its name does not change when a lane is added (the matrix
 # check names, "container-e2e-tests (simple)" and "container-e2e-tests
-# (full)", do). Mind the pull_request paths filter below: a PR that touches
-# none of those paths gets no run and so no notify-results check, and GitHub
-# keeps a required check that never reports pending, which blocks the merge.
+# (full)", do).
 # ==============================================================================
 name: Container E2E Tests
 
@@ -55,42 +60,13 @@ on:
         required: false
         default: false
         type: boolean
+  # No `paths:` filter here, on purpose. A PR that a trigger-level filter
+  # excludes gets no run at all, so a required notify-results never reports
+  # and the PR cannot merge (GitHub docs, "Troubleshooting required status
+  # checks": a workflow skipped by path filtering leaves its checks pending,
+  # which blocks merging). The `changes` job does the path-based skipping.
   pull_request:
     branches: [develop, main, 'rel/*']
-    paths:
-      # Everything the image is built from (Dockerfile + docker/bake.hcl:
-      # the COPY inputs of the dependencies, build and final stages). The
-      # full lane exercises the backend baked into the image — Rodauth, the
-      # authdb migrations, the workspace/org APIs — so a backend-only change
-      # can break it just as a frontend change can. Same idea as the backend
-      # entries in e2e-full-auth.yml's filter, widened to the whole image
-      # because this lane tests the whole image.
-      - 'Dockerfile'
-      - '.dockerignore'
-      - 'docker/**'
-      - '.ruby-version'
-      - 'Gemfile'
-      - 'Gemfile.lock'
-      - 'config.ru'
-      - 'apps/**'
-      - 'lib/**'
-      - 'etc/**'
-      - 'bin/**'
-      - 'migrations/**'
-      - 'tools/setup/**'
-      - 'locales/**'
-      - 'src/**'
-      - 'public/**'
-      - 'templates/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'tsconfig.json'
-      - 'vite.config.ts'
-      - 'eslint.config.ts'
-      # The suite itself: spec/config changes must run the suite they change
-      - 'e2e/**'
-      - '.github/workflows/**'
 
 permissions:
   contents: read
@@ -100,8 +76,97 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Decides whether the lanes run. Pull requests are narrowed by the path
+  # filter; any other event (workflow_dispatch) runs every lane. A failed or
+  # cancelled detection skips the lanes too, and notify-results fails on it.
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions:
+      contents: read
+      # dorny/paths-filter lists changed files via the pulls API on
+      # pull_request events; without this it fails before any filter runs and
+      # the lanes are skipped (notify-results then fails the run).
+      pull-requests: read
+    outputs:
+      e2e: ${{ steps.compute.outputs.e2e }}
+    steps:
+      # No checkout: on pull_request the filter reads the changed files from
+      # the pulls API, not from git, and it runs on no other event. On other
+      # events it would diff with git against the default branch, which needs
+      # a checkout, and the answer would be discarded anyway.
+      - name: Detect file changes
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            e2e:
+              # Everything the image is built from (Dockerfile +
+              # docker/bake.hcl: the COPY inputs of the dependencies, build
+              # and final stages). The full lane exercises the backend baked
+              # into the image — Rodauth, the authdb migrations, the
+              # workspace/org APIs — so a backend-only change can break it
+              # just as a frontend change can. Same idea as the backend
+              # entries in e2e-full-auth.yml's filter, widened to the whole
+              # image because this lane tests the whole image.
+              - 'Dockerfile'
+              - '.dockerignore'
+              - 'docker/**'
+              - '.ruby-version'
+              - 'Gemfile'
+              - 'Gemfile.lock'
+              - 'config.ru'
+              - 'apps/**'
+              - 'lib/**'
+              - 'etc/**'
+              - 'bin/**'
+              - 'migrations/**'
+              - 'tools/setup/**'
+              - 'locales/**'
+              - 'src/**'
+              - 'public/**'
+              - 'templates/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'tsconfig.json'
+              - 'vite.config.ts'
+              - 'eslint.config.ts'
+              # The suite itself: spec/config changes must run the
+              # suite they change
+              - 'e2e/**'
+              - '.github/workflows/**'
+
+      - name: Compute final outputs
+        id: compute
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          FILTER_E2E: ${{ steps.filter.outputs.e2e }}
+        run: |
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "e2e=true" >> "$GITHUB_OUTPUT"
+            echo "$EVENT_NAME: every lane runs (path filtering applies to pull requests only)."
+            exit 0
+          fi
+
+          # Fail closed: anything but a clean true/false from the filter is a
+          # broken detection, not "nothing to test".
+          case "$FILTER_E2E" in
+            true | false) ;;
+            *)
+              echo "::error::paths-filter returned '${FILTER_E2E}' for e2e; expected true or false."
+              exit 1
+              ;;
+          esac
+
+          echo "e2e=$FILTER_E2E" >> "$GITHUB_OUTPUT"
+          echo "pull_request: E2E-relevant files changed: $FILTER_E2E"
+
   container-e2e-tests:
     name: container-e2e-tests (${{ matrix.lane }})
+    needs: changes
+    if: needs.changes.outputs.e2e == 'true'
     # Must exceed Playwright's globalTimeout (20 min, e2e/playwright.config.ts)
     # plus ~4-5 min of image build + container startup + artifact upload.
     timeout-minutes: 30
@@ -505,27 +570,51 @@ jobs:
           docker rmi "$OCI_IMAGE_NAME" || true
 
   notify-results:
-    # One verdict over every lane. For a matrix job, needs.<job>.result is
+    # One verdict per run, over change detection and every lane; the check to
+    # require (see the header). For a matrix job, needs.<job>.result is
     # 'success' only when every lane succeeded, so this fails if any lane
     # failed, timed out or was cancelled. always(), not !cancelled(): when
     # the whole run is cancelled (by hand, or superseded by a newer push via
     # the concurrency group) this job must still run and fail. A skipped job
     # counts as passing for a required check, so skipping it would leave the
     # SHA mergeable with no E2E verdict.
+    #
+    # Skipped lanes pass only when `changes` succeeded and said no
+    # E2E-relevant file changed. A failed or cancelled `changes` also skips
+    # the lanes, and that must fail here, not read as "nothing to test".
     runs-on: ubuntu-24.04
-    needs: container-e2e-tests
+    needs: [changes, container-e2e-tests]
     if: always()
     steps:
-      - name: Require every lane to pass
+      - name: Require every lane to pass, or no E2E-relevant change
         env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          E2E_CHANGED: ${{ needs.changes.outputs.e2e }}
           LANES_RESULT: ${{ needs.container-e2e-tests.result }}
         run: |
-          if [ "$LANES_RESULT" = "success" ]; then
-            echo "✅ E2E integration tests passed in every lane (simple, full)!"
-            echo "The production OCI image successfully serves the application and passes E2E tests."
+          if [ "$CHANGES_RESULT" != "success" ]; then
+            echo "❌ Change detection did not succeed (changes: $CHANGES_RESULT), so there is no E2E verdict."
+            echo "See the changes job. A failed or cancelled detection is not a pass."
+            exit 1
+          fi
+
+          if [ "$E2E_CHANGED" = "false" ] && [ "$LANES_RESULT" = "skipped" ]; then
+            echo "✅ No E2E-relevant files changed; the container E2E lanes were skipped."
             exit 0
           fi
 
-          echo "❌ E2E integration tests did not pass in every lane (result: $LANES_RESULT)."
-          echo "See the failing container-e2e-tests lane for the production build, OCI image, or runtime issue."
+          if [ "$E2E_CHANGED" = "true" ]; then
+            if [ "$LANES_RESULT" = "success" ]; then
+              echo "✅ E2E integration tests passed in every lane (simple, full)!"
+              echo "The production OCI image successfully serves the application and passes E2E tests."
+              exit 0
+            fi
+
+            echo "❌ E2E integration tests did not pass in every lane (result: $LANES_RESULT)."
+            echo "See the failing container-e2e-tests lane for the production build, OCI image, or runtime issue."
+            exit 1
+          fi
+
+          echo "❌ No E2E verdict (changes: $CHANGES_RESULT, e2e: '${E2E_CHANGED}', lanes: $LANES_RESULT)."
+          echo "Expected e2e=false with skipped lanes, or e2e=true with successful lanes."
           exit 1

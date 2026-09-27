@@ -150,8 +150,16 @@ blocking lanes, each on its own runner with its own Valkey container:
 | `container-e2e-tests (full)` | `AUTHENTICATION_MODE=full`, SQLite authdb, `AUTH_VERIFY_ACCOUNT_ENABLED=false`, `CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false`, `ENABLE_ORGS=true` | `e2e/full/` (the `setup` project signs up an ephemeral `TEST_USER_*` account first) |
 
 Each lane fails on any failed test and on any test that passed only on retry
-(the flaky gate). `notify-results` fails unless both lanes pass. Tests that
-cannot run in a lane are `test.fixme` or env-gated and listed in
+(the flaky gate).
+
+`notify-results` is the required E2E check for `main`. It runs on every pull
+request into `develop`, `main` or `rel/*`, whatever the PR touches. The lanes
+run only when the PR changes an E2E-relevant path (the `changes` job's filter
+in `e2e.yml`); `notify-results` then fails unless both lanes pass. When the
+PR changes none of those paths, the lanes are skipped and `notify-results`
+passes. It also fails if change detection itself fails or is cancelled.
+
+Tests that cannot run in a lane are `test.fixme` or env-gated and listed in
 [QUARANTINE.md](./QUARANTINE.md); a runtime `test.skip` on a DOM probe is not
 allowed.
 
