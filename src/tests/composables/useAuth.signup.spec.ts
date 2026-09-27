@@ -205,6 +205,59 @@ describe('useAuth - signup sends the redirect to the backend', () => {
     });
   });
 
+  // A half-submitted plan (/signup?product=x) comes back invalid with the
+  // missing half as null. The account already exists by then, so the body
+  // must parse: a throw here shows an error, and a retry hits the
+  // duplicate-signup error.
+  it('follows sign_in when the server rejects a plan with no interval', async () => {
+    mockRoute.query = { product: 'identity_plus_v1', redirect: '/pricing' };
+    axiosMock.resetHandlers();
+    axiosMock.onPost('/auth/create-account').reply(200, {
+      success: 'Account created',
+      next_action: 'sign_in',
+      billing_redirect: {
+        product: 'identity_plus_v1',
+        interval: null,
+        valid: false,
+        error: 'Missing product or interval',
+      },
+    });
+
+    const { signup } = useAuth();
+    expect(await signup('user@example.com', 'a-strong-passphrase')).toBe(true);
+
+    expect(router.push).toHaveBeenCalledTimes(1);
+    expect(router.push).toHaveBeenCalledWith({
+      path: '/signin',
+      query: { redirect: '/pricing' },
+    });
+  });
+
+  it('follows verify_email when the server rejects a plan with no product', async () => {
+    mockRoute.query = { interval: 'monthly', redirect: '/pricing' };
+    axiosMock.resetHandlers();
+    axiosMock.onPost('/auth/create-account').reply(200, {
+      success: 'Account created',
+      next_action: 'verify_email',
+      billing_redirect: {
+        product: null,
+        interval: 'monthly',
+        valid: false,
+        error: 'Missing product or interval',
+      },
+    });
+
+    const { signup } = useAuth();
+    expect(await signup('user@example.com', 'a-strong-passphrase')).toBe(true);
+
+    expect(router.push).toHaveBeenCalledTimes(1);
+    expect(router.push).toHaveBeenCalledWith({
+      path: '/check-email',
+      query: { redirect: '/pricing' },
+      state: { [CHECK_EMAIL_STATE_KEY]: 'user@example.com' },
+    });
+  });
+
   it('keeps the submitted plan pair when the server sends no billing_redirect', async () => {
     // Simple mode, and full mode without billing, answer with no verdict on
     // the plan. The login response validates the pair before checkout.

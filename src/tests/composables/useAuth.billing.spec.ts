@@ -9,6 +9,7 @@
  * 3. Routes to appropriate destinations based on current subscription state
  */
 
+import { loggingService } from '@/services/logging.service';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { authenticatedBootstrap, mfaPendingBootstrap, newerSnapshot } from '@/tests/fixtures/bootstrap.fixture';
@@ -596,6 +597,34 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
     await login('test@example.com', 'password123');
 
     // Should redirect to dashboard when plan is invalid
+    expect(router.push).toHaveBeenCalledWith('/');
+  });
+
+  it('parses a partial billing_redirect at login and skips checkout', async () => {
+    // Login from /signin?product=x (no interval): the server answers with the
+    // missing half as null. The body must parse as the invalid verdict (the
+    // warn proves it was not stripped) and yield no checkout.
+    setRouteQuery({ product: 'identity_plus_v1' });
+
+    const { login } = useAuth();
+
+    axiosMock.onPost('/auth/login').reply(200, {
+      success: 'Logged in successfully',
+      billing_redirect: {
+        product: 'identity_plus_v1',
+        interval: null,
+        valid: false,
+        error: 'Missing product or interval',
+      },
+    });
+
+    expect(await login('test@example.com', 'password123')).toBe(true);
+
+    expect(loggingService.warn).toHaveBeenCalledWith(
+      '[postAuthRedirect] Billing redirect skipped - backend marked plan as invalid',
+      { product: 'identity_plus_v1', interval: null, error: 'Missing product or interval' }
+    );
+    expect(axiosMock.history.get.some((req) => req.url === '/api/organizations')).toBe(false);
     expect(router.push).toHaveBeenCalledWith('/');
   });
 
