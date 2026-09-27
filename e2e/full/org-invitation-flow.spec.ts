@@ -20,7 +20,7 @@
  *   browser contexts
  * - Full auth mode with accounts that can sign in without verifying their
  *   email (the full lane sets AUTH_VERIFY_ACCOUNT_ENABLED=false): the journeys
- *   that accept an invitation (INV-017) sign up throwaway accounts
+ *   that accept an invitation (INV-005, INV-017) sign up throwaway accounts
  *   (e2e/support/members.ts), so the storageState owner's org never gains a
  *   member. No mail interceptor is needed: tests read invitation tokens
  *   through the owner's invitations API.
@@ -44,13 +44,16 @@
 import { BrowserContext, expect, Page, test } from '@playwright/test';
 
 import {
+  acceptInvitationDirectly,
   addMember,
   closeContexts,
   createOwnerWithOrg,
+  expectMember,
   invitationToken,
   inviteMember,
   openFreshContext,
   openMembersTab,
+  signUpAndSignIn,
   uniqueTestEmail,
 } from '../support/members';
 import { getFirstOrganization } from '../support/organizations';
@@ -256,7 +259,7 @@ test.describe('INV-001: Organization Invitation Sending', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
-  test('Unauthenticated user sees inline signup/signin form on invitation page', async ({
+  test('Unauthenticated user sees the inline signup form on the invitation page', async ({
     page,
     context,
   }) => {
@@ -276,37 +279,21 @@ test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
     await page.goto(`/invite/${token}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Verify invitation details page loads. The page renders "invitation"
-    // in both the heading and supporting copy, so scope to the first match
-    // to avoid a strict-mode violation.
-    await expect(page.getByText(/invitation/i).first()).toBeVisible();
+    // An unauthenticated visitor always starts in signup_required: the
+    // invite API never says whether the invited email has an account
+    // (AZ7/#3856). signin_required only follows a signup attempt for an
+    // address that already has one.
+    await expect(page.getByTestId('invite-signup-required')).toBeVisible();
+    await expect(page.getByTestId('invite-signin-required')).toBeHidden();
+    await expect(page.getByTestId('invite-signup-form')).toBeVisible();
+    // The invited email is bound into the form (readonly input value)
+    await expect(page.getByTestId('invite-signup-email-input')).toHaveValue(testEmail);
 
-    // With Phase 7 inline forms, unauthenticated users see one of:
-    // - signup_required state (new user, no account) with inline signup form
-    // - signin_required state (existing user) with inline signin form
-    const signupState = page.getByTestId('invite-signup-required');
-    const signinState = page.getByTestId('invite-signin-required');
-
-    const hasSignupForm = await signupState.isVisible().catch(() => false);
-    const hasSigninForm = await signinState.isVisible().catch(() => false);
-
-    // One of these states should be shown for unauthenticated user
-    expect(hasSignupForm || hasSigninForm).toBe(true);
-
-    if (hasSignupForm) {
-      // Inline signup form should be visible
-      const signupForm = page.getByTestId('invite-signup-form');
-      await expect(signupForm).toBeVisible();
-      // Email should be displayed from invitation (readonly input value)
-      await expect(page.getByTestId('invite-signup-email-input')).toHaveValue(testEmail);
-    } else if (hasSigninForm) {
-      // Inline signin form should be visible
-      const signinForm = page.getByTestId('invite-signin-form');
-      await expect(signinForm).toBeVisible();
-      // Sign-in notice should be visible
-      const signInNotice = page.locator('.bg-blue-50, .bg-blue-900\\/20');
-      await expect(signInNotice).toBeVisible();
-    }
+    // The form's "Continue" submit is the accept path; Decline sits beside
+    // it. There is no standalone Accept button in this state.
+    await expect(page.getByTestId('invite-signup-submit')).toBeVisible();
+    await expect(page.getByTestId('invite-signup-decline')).toBeVisible();
+    await expect(page.getByTestId('accept-invitation-btn')).toBeHidden();
   });
 });
 
@@ -422,51 +409,29 @@ test.describe('INV-005: Matching Email User Flow', () => {
   test('User logged in with matching email can immediately accept invitation', async ({
     browser,
   }) => {
-    // This test requires creating a user with the exact email that was invited
-    // We'll simulate by having the org owner invite themselves (edge case) or
-    // by creating a specific user account first
-
-    const ownerContext = await browser.newContext(unauthenticatedContext);
-    const ownerPage = await ownerContext.newPage();
-
+    const opened: BrowserContext[] = [];
     try {
-      await loginUser(ownerPage);
+      // Both sides are throwaway accounts: the invitee must already be
+      // signed in with the invited address, and accepting joins it to the
+      // inviter's org, which must not be the storageState owner's.
+      const { owner, orgExtid } = await createOwnerWithOrg(browser, opened, 'inv005-owner');
+      const invitee = await signUpAndSignIn(browser, opened, 'inv005-invitee');
+      await inviteMember(owner.page, invitee.email);
+      const token = await invitationToken(owner.page, orgExtid, invitee.email);
 
-      // Navigate to org settings and look for a different org to invite to
-      // For this test, we verify the UI state when emails match
-      await navigateToOrgTeam(ownerPage);
+      await invitee.page.goto(`/invite/${token}`);
 
-      // Create invitation for a test email
-      const testEmail = generateTestEmail('matching');
-      await createInvitation(ownerPage, testEmail);
-      const token = await getInvitationToken(ownerPage, testEmail);
+      // Signed in with the invited address: straight to direct_accept, with
+      // no signup or signin form in the way.
+      await expect(invitee.page.getByTestId('invite-direct-accept')).toBeVisible();
+      await expect(invitee.page.getByTestId('invite-signup-form')).toBeHidden();
+      await expect(invitee.page.getByTestId('invite-signin-form')).toBeHidden();
+      await expect(invitee.page.getByTestId('email-mismatch-warning')).toBeHidden();
 
-      // For the "matching email" test, we need to create a new account with that email
-      // and then visit the invitation page
-      // Due to test isolation, we'll verify the UI elements that WOULD be shown
-
-      // Clear cookies and visit as unauthenticated to verify button states
-      await ownerContext.clearCookies();
-      await ownerPage.goto(`/invite/${token}`);
-      await expect(ownerPage.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      // Unauthenticated + unknown email shows the signup_required state with
-      // an inline signup form: a "Continue" submit (the accept path) and a
-      // "Decline" button - there is no standalone Accept button here.
-      const signupState = ownerPage.getByTestId('invite-signup-required');
-      await expect(signupState).toBeVisible();
-
-      const signupSubmit = ownerPage.getByTestId('invite-signup-submit');
-      await expect(signupSubmit).toBeVisible();
-
-      // Decline button should also be visible
-      const declineButton = ownerPage.getByTestId('invite-signup-decline');
-      await expect(declineButton).toBeVisible();
-
-      // Invitation details should show organization and role
-      await expect(ownerPage.getByText(/invited/i)).toBeVisible();
+      await acceptInvitationDirectly(invitee.page);
+      await expectMember(owner.page, orgExtid, invitee.email);
     } finally {
-      await ownerContext.close();
+      await closeContexts(opened);
     }
   });
 });
@@ -819,7 +784,7 @@ test.describe('INV-017: Complete Invitation Acceptance Flow', () => {
  * | ID           | Intent                                                    | Priority   |
  * |--------------|-----------------------------------------------------------|------------|
  * | INV-001      | Owner sends invitation with validation                    | Critical   |
- * | INV-002      | Unauthenticated redirect to signin with redirect param    | Critical   |
+ * | INV-002      | Unauthenticated visitor gets the inline signup form       | Critical   |
  * | INV-003      | Email mismatch warning with continue-as option            | High       |
  * | INV-004      | Continue as logs out and redirects to invite page         | High       |
  * | INV-005      | Matching email user can immediately accept                | High       |
