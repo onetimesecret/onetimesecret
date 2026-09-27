@@ -61,6 +61,10 @@ gem 'rodauth', '~> 2.0'
 #   - the plain OAuth `POST /register` no longer returns
 #     `registration_client_uri`; only the OIDC variant does. Neither dynamic
 #     client registration feature is enabled here.
+#   - the json-jwt branch's post-decode claim validation (oauth_jwt_base.rb)
+#     was rewritten from an AND-chain of failure conditions to PASS
+#     conditions, so /userinfo now rejects an expired JWT before the DB-row
+#     lookup (see apps/web/auth/config/features/oauth.rb, issue #3231).
 # The version constraint stays `~> 1.6`: Gem::Version treats the `.ots1`
 # suffix as a prerelease of 1.6.6, which `~> 1.6` admits but `~> 1.6.6` would
 # not.
