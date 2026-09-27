@@ -105,6 +105,11 @@ module Onetime
     # failed TXT check does not demote `verified` (VerifyDomain#persist_changes);
     # cleared when DNS proves ownership or the operator overrides to false.
     boolean_field :verified_by_override, storage: :native
+    # Bound on how long an indeterminate TXT check may hold `verified`
+    # (Operations::VerifyDomain::ConfirmationWindow). Both nil until the
+    # first check that sets them.
+    integer_field :verified_confirmed_at # epoch seconds of the last passing TXT check
+    integer_field :verified_unconfirmed_since # epoch seconds of the first indeterminate check since; nil when none
     field :vhost_fetch_failed_at # epoch seconds; non-nil while last vhost fetch failed
     field :created
     field :updated

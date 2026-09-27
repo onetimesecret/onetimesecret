@@ -373,6 +373,86 @@ RSpec.describe 'Domains Command', type: :cli do
       expect(last_exit_code).to eq(1)
     end
 
+    context 'when a check is indeterminate past the confirmation window' do
+      def expired_result
+        double('VerifyResult',
+          domain: domain, success?: true, dns_validated: false, dns_indeterminate: true,
+          dns_outcome: :confirmation_expired, confirmation_expired: true,
+          dns_message: 'DNS lookup failed (indeterminate)', ssl_ready: true,
+          is_resolving: true, previous_state: :verified, current_state: :resolving,
+          changed?: true, persisted: true, error: nil,
+          to_h: { current_state: :resolving, dns_outcome: :confirmation_expired })
+      end
+
+      def bulk_result
+        Onetime::Operations::VerifyDomain::BulkResult.new(
+          total: 1, verified_count: 0, failed_count: 0, skipped_count: 0,
+          indeterminate_count: 1, demoted_count: 1, confirmation_expired_count: 1,
+          results: [expired_result], duration_seconds: 0.1
+        )
+      end
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:load_multi).and_return([domain])
+      end
+
+      it 'names the outcome in single mode' do
+        allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+        allow(Onetime::Operations::AdminVerifyDomain).to receive(:new)
+          .and_return(double('AdminVerify', call: expired_result))
+
+        output = run_cli_command_quietly('domains', 'verify', 'example.com')
+        expect(output[:stdout]).to include('DNS Validated:    expired')
+        expect(output[:stdout]).to include('Status: CONFIRMATION_EXPIRED')
+      end
+
+      it 'counts and labels it in the bulk summary' do
+        allow(Onetime::Operations::VerifyDomain).to receive(:new)
+          .and_return(double('Verify', call: bulk_result))
+
+        output = run_cli_command_quietly('domains', 'verify', '--all')
+        expect(output[:stdout]).to match(/Expired:\s+1/)
+        expect(output[:stdout]).to match(/example\.com\s+expired/)
+      end
+
+      it 'lists it under issues in bulk JSON' do
+        allow(Onetime::Operations::VerifyDomain).to receive(:new)
+          .and_return(double('Verify', call: bulk_result))
+
+        payload = JSON.parse(run_cli_command_quietly('domains', 'verify', '--all', '--json')[:stdout])
+        expect(payload['confirmation_expired_count']).to eq(1)
+        expect(payload['issue_details']['dns_expired']).to eq(['example.com'])
+      end
+    end
+
+    context 'with bulk pacing' do
+      let(:empty_bulk) do
+        Onetime::Operations::VerifyDomain::BulkResult.new(
+          total: 0, verified_count: 0, failed_count: 0, skipped_count: 0, results: [], duration_seconds: 0.0
+        )
+      end
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:load_multi).and_return([domain])
+      end
+
+      it 'leaves pacing to the validation strategy when --rate-limit is omitted' do
+        expect(Onetime::Operations::VerifyDomain).to receive(:new)
+          .with(hash_including(rate_limit: nil)).and_return(double('Verify', call: empty_bulk))
+
+        run_cli_command_quietly('domains', 'verify', '--all')
+        expect(last_exit_code).to eq(0)
+      end
+
+      it 'passes an explicit --rate-limit through as a number, including 0' do
+        expect(Onetime::Operations::VerifyDomain).to receive(:new)
+          .with(hash_including(rate_limit: 0.0)).and_return(double('Verify', call: empty_bulk))
+
+        run_cli_command_quietly('domains', 'verify', '--all', '--rate-limit', '0')
+        expect(last_exit_code).to eq(0)
+      end
+    end
+
     it 'still verifies a single domain when only mode-agnostic flags are given' do
       allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
       allow(domain).to receive_messages(primary_organization: organization, identifier: 'example.com')

@@ -221,14 +221,9 @@ module Onetime
 
       def load_filtered_domains(orphaned:, verified:, unverified:, org_id:, limit:)
         filtered = apply_filters(
-          load_all_domains,
-          orphaned: orphaned,
-          org_id: org_id,
-          verified: verified,
-          unverified: unverified,
+          load_all_domains, orphaned: orphaned, org_id: org_id, verified: verified, unverified: unverified
         )
-        filtered = filtered.take(limit) if limit
-        filtered
+        limit ? filtered.take(limit) : filtered
       end
 
       # Inlined from the legacy DomainsHelpers#apply_filters — the new-style
@@ -319,7 +314,7 @@ module Onetime
           full_txt_host = "#{txt_host}.#{domain.base_domain}"
           puts
           puts '1. DNS Ownership (TXT record):'
-          puts "   Status: #{result.dns_outcome.to_s.upcase}" # VALIDATED / FAILED / INDETERMINATE / OVERRIDE_HELD
+          puts "   Status: #{result.dns_outcome.to_s.upcase}" # VALIDATED / FAILED / INDETERMINATE / OVERRIDE_HELD / CONFIRMATION_EXPIRED
           puts "   Expected: TXT record at #{full_txt_host}"
           puts "   Value:    #{txt_value}"
           puts
@@ -363,6 +358,7 @@ module Onetime
         puts format('  Failed:           %d', result.failed_count)
         puts format('  Indeterminate:    %d', result.indeterminate_count)
         puts format('  Demoted:          %d', result.demoted_count)
+        puts format('  Expired:          %d', result.confirmation_expired_count)
         puts format('  Duration:         %.2f seconds', result.duration_seconds)
         puts
 
@@ -388,11 +384,13 @@ module Onetime
         puts
       end
 
-      # Two TXT outcomes are neither pass nor fail and leave `verified` alone:
-      # indeterminate (the upstream checker produced no answer) and a failed
-      # check on a domain held verified by an operator override.
+      # Three TXT outcomes are neither pass nor fail. Two leave `verified`
+      # alone: indeterminate (the check produced no answer) and a failed check
+      # on a domain held verified by an operator override. The third withdraws
+      # it: indeterminate for longer than the confirmation window (counted
+      # under Expired, and under Indeterminate and Demoted, in the summary).
       def format_dns(result)
-        { indeterminate: 'indeterminate', override_held: 'no (override)' }
+        { indeterminate: 'indeterminate', override_held: 'no (override)', confirmation_expired: 'expired' }
           .fetch(result.dns_outcome) { format_bool(result.dns_validated) }
       end
 
@@ -436,7 +434,7 @@ module Onetime
         state_counts                                                  = Hash.new(0)
         result.results.each { |r| state_counts[r.current_state.to_s] += 1 }
 
-        issues = { orphaned: [], org_not_found: [], dns_failed: [], dns_indeterminate: [], ssl_failed: [] }
+        issues = { orphaned: [], org_not_found: [], dns_failed: [], dns_indeterminate: [], dns_expired: [], ssl_failed: [] }
         result.results.each do |r|
           domain = r.domain
           issues[:orphaned] << domain.display_domain if domain.org_id.to_s.empty?
@@ -445,6 +443,7 @@ module Onetime
           end
           issues[:dns_failed] << domain.display_domain if r.dns_outcome == :failed
           issues[:dns_indeterminate] << domain.display_domain if r.dns_indeterminate
+          issues[:dns_expired] << domain.display_domain if r.confirmation_expired
           issues[:ssl_failed] << domain.display_domain if r.ssl_ready == false
         end
 
