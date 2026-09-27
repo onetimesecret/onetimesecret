@@ -156,18 +156,17 @@
    * UX Principle: Optimize for frequency of use
    *
    * Tab order and default selection follow the principle that the most frequently
-   * performed actions should require the fewest clicks. When users navigate to an
-   * organization's detail page, their intent hierarchy is typically:
+   * performed actions should require the fewest clicks. The tab bar, in order:
    *
-   *   1. Domains         - Most frequent: managing sender domains for platform operators
-   *   2. Members         - Team management: invite members, manage roles, review team
-   *   3. Subscription    - Occasional: check plan, view usage, upgrade
-   *   4. Settings        - Rare: change org name or billing email (set-and-forget)
-   *   5. SSO             - Rarest: configuration that's set once and rarely touched
+   *   1. Domains    - Most frequent: managing sender domains for platform operators
+   *   2. Members    - Team management: invite members, manage roles, review team
+   *   3. SSO        - Only with ORGS_SSO_ENABLED; configured once, rarely touched
+   *   4. Activity   - Unless ORGS_AUDIT_LOGS_ENABLED=false; the org's secret activity
+   *   5. Settings   - Rare: set-and-forget details, leave or delete. Always last.
    *
-   * By defaulting to the Domains tab, we eliminate one click for the most common
-   * workflow. SSO is placed last since it's configured once during setup and
-   * rarely revisited.
+   * Domains is the default tab (props.initialTab), which saves a click for the
+   * most common workflow. Subscription has no tab: it is a view of this page
+   * reached at /org/:extid/subscription (the header plan chip links there).
    *
    * This aligns with Fitts's Law corollary: reduce interaction cost for frequent
    * actions, accept higher cost for infrequent ones.
@@ -857,9 +856,12 @@
     }
   });
 
-  // Watch for org changes via URL navigation (e.g., /org/A/domains -> /org/B/domains)
-  // Vue Router reuses the component, so onMounted doesn't run again.
-  // This ensures currentOrganization in the store is updated to match the URL.
+  // An org change (/org/A/domains -> /org/B/domains) does not reach this
+  // watcher today: :extid is not in the route's meta.keepMountedAcrossParams,
+  // so App.vue's routeViewKey changes and a fresh instance mounts, whose
+  // onMounted loads org B. This watcher only acts if :extid changes while
+  // this instance stays mounted: it then reloads the org (which updates
+  // currentOrganization in the store) and the active tab's data.
   watch(orgId, async (newOrgId, oldOrgId) => {
     if (newOrgId && newOrgId !== oldOrgId) {
       // Reset SSO status cache when switching orgs — domains differ per org
