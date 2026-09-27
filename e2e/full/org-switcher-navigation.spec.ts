@@ -225,6 +225,40 @@ test.describe('Org Switcher Navigation - Edge Cases', () => {
     await expect(page).toHaveURL(new RegExp(`/org/${other.extid}/activity$`));
     expect(await page.evaluate(() => window.history.length)).toBe(historyLength + 1);
   });
+
+  test('TC-OSN-013: The user menu marks its Activity item current only on the Activity tab', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    // RouterLink sets aria-current="page" from the router's current route. A
+    // tab switch must move that route, or the Activity item keeps the mark
+    // after the user leaves the Activity tab (and never gets it back).
+    const current = owner.defaultWorkspace;
+    const menuTrigger = page.getByTestId('user-menu-trigger');
+    const menu = page.getByTestId('user-menu-dropdown');
+    const activityItem = menu.getByRole('menuitem', { name: 'Activity', exact: true });
+    const closeMenu = async () => {
+      await menuTrigger.click();
+      await expect(menu).toBeHidden();
+    };
+
+    await gotoOrgTab(page, current, 'activity');
+    await menuTrigger.click();
+    await expect(activityItem).toHaveAttribute('aria-current', 'page');
+    await closeMenu();
+
+    await page.getByTestId('org-tab-domains').click();
+    await expect(page).toHaveURL(new RegExp(`/org/${current.extid}/domains$`));
+    await menuTrigger.click();
+    await expect(activityItem).toBeVisible();
+    await expect(activityItem).not.toHaveAttribute('aria-current');
+    await closeMenu();
+
+    await page.getByTestId('org-tab-activity').click();
+    await expect(page).toHaveURL(new RegExp(`/org/${current.extid}/activity$`));
+    await menuTrigger.click();
+    await expect(activityItem).toHaveAttribute('aria-current', 'page');
+  });
 });
 
 /**
@@ -243,6 +277,7 @@ test.describe('Org Switcher Navigation - Edge Cases', () => {
  * | TC-OSN-010  | Selecting the current workspace does not navigate        | Medium   | Automated  |
  * | TC-OSN-011  | Back returns to the previous workspace                   | Medium   | Automated  |
  * | TC-OSN-012  | A link to the tab on screen adds no history entry        | Medium   | Automated  |
+ * | TC-OSN-013  | The user menu marks Activity current only on that tab    | Medium   | Automated  |
  *
  * Bug Reference:
  * - Issue: Org switcher on /org/{extid}/* pages updated header but not URL/content
