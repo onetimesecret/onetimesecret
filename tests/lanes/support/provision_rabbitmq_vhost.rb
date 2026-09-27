@@ -6,10 +6,10 @@
 # full rights on it, so concurrent lane runs in a worktree forest do not share
 # queues, exchanges, or in-flight messages (#4168).
 #
-# Called by tests/lanes/run, once, before the lane's tasks exec — only for
-# lanes that actually address the test broker, and only when the runner
-# assigned a nonzero worktree index. Reads RABBITMQ_URL, whose vhost segment
-# the runner has already rewritten to w<index>.
+# Called by tests/lanes/run, once, before the lane's tasks or console exec —
+# only for lanes that actually address the test broker, and only when the
+# runner assigned a nonzero worktree index. Reads RABBITMQ_URL, whose vhost
+# segment the runner has already rewritten to w<index>.
 #
 # WHY THE VHOST IS THE ONLY ISOLATION AVAILABLE
 #
@@ -23,11 +23,13 @@
 #
 # WHY THERE IS NO LOCK, UNLIKE THE POSTGRESQL PROVISIONER
 #
-# A vhost is deleted and recreated for each invocation so stale queues and
-# messages from an interrupted run cannot affect a later run. The runner's
+# A vhost is deleted and recreated for each test invocation so stale queues
+# and messages from an interrupted run cannot affect a later run. Console
+# invocations pass --preserve-existing: PUT creates a missing vhost or leaves
+# an existing one intact, then permissions are reapplied. The runner's
 # liveness token rejects overlapping runs with the same isolation key before
 # this script is reached, while distinct lane/overlay keys have distinct
-# vhosts. That makes the reset exclusive without adding a second lock here.
+# vhosts. That makes either operation exclusive without adding a second lock.
 #
 # WHY IT FAILS LOUD
 #
@@ -63,7 +65,7 @@ module ProvisionRabbitmqVhost
   class ProvisioningError < StandardError; end
 
   class << self
-    def run(url)
+    def run(url, preserve_existing: false)
       uri   = URI.parse(url)
       vhost = uri.path.to_s.delete_prefix('/')
       user  = uri.user && URI.decode_www_form_component(uri.user)
@@ -76,9 +78,10 @@ module ProvisionRabbitmqVhost
 
       vhost_path = "/api/vhosts/#{URI.encode_www_form_component(vhost)}"
       # The runner rejects overlapping runs with the same isolation key, so
-      # this vhost belongs exclusively to this lane invocation. Recreate it
-      # to discard queues and messages left by an interrupted earlier run.
-      delete(vhost_path, user, pass, retry_connect: true)
+      # this vhost belongs exclusively to this lane invocation. Test runs
+      # recreate it to discard stale state; consoles preserve that state for
+      # inspection while the idempotent PUT still creates a missing vhost.
+      delete(vhost_path, user, pass, retry_connect: true) unless preserve_existing
       created = put(
         vhost_path,
         '{}',
@@ -94,6 +97,28 @@ module ProvisionRabbitmqVhost
       )
 
       warn "[lane:rabbitmq] provisioned vhost #{vhost}" if created
+    end
+
+    def main(argv = ARGV, env: ENV)
+      preserve_existing = case argv
+                          when [] then false
+                          when ['--preserve-existing'] then true
+                          else
+                            warn '[lane:rabbitmq] usage: provision_rabbitmq_vhost.rb [--preserve-existing]'
+                            return 64
+                          end
+
+      url = env['RABBITMQ_URL'].to_s
+      if url.empty?
+        warn '[lane:rabbitmq] RABBITMQ_URL is unset; cannot provision'
+        return 69
+      end
+
+      run(url, preserve_existing: preserve_existing)
+      0
+    rescue ProvisioningError => ex
+      warn "[lane:rabbitmq] provisioning failed: #{ex.message}"
+      69
     end
 
     private
@@ -160,15 +185,4 @@ module ProvisionRabbitmqVhost
   end
 end
 
-url = ENV['RABBITMQ_URL'].to_s
-if url.empty?
-  warn '[lane:rabbitmq] RABBITMQ_URL is unset; cannot provision'
-  exit 69
-end
-
-begin
-  ProvisionRabbitmqVhost.run(url)
-rescue ProvisionRabbitmqVhost::ProvisioningError => ex
-  warn "[lane:rabbitmq] provisioning failed: #{ex.message}"
-  exit 69
-end
+exit ProvisionRabbitmqVhost.main if $PROGRAM_NAME == __FILE__

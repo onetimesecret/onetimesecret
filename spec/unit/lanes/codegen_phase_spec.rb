@@ -39,6 +39,10 @@ module LaneCodegenProbe
     File.join(repo_root, 'tests', 'lanes', 'run')
   end
 
+  def last_log
+    File.read(File.join(repo_root, 'tmp', 'lanes', 'selftest', 'base', 'last.log'))
+  end
+
   def bash_floor
     @bash_floor ||= Integer(File.read(File.join(repo_root, '.bash-version')).strip)
   end
@@ -92,6 +96,11 @@ RSpec.describe 'tests/lanes/run codegen phase' do
     expect(probe.phase_ran?(output)).to be(true), "codegen phase did not run:\n#{output}"
     expect(status.exitstatus).to eq(64)
     expect(output).to include("unknown codegen token '#{LaneCodegenProbe::BOGUS_TOKEN}'")
+
+    log = probe.last_log
+    expect(log).to include("codegen: #{LaneCodegenProbe::BOGUS_TOKEN}")
+    expect(log).to include("unknown codegen token '#{LaneCodegenProbe::BOGUS_TOKEN}'")
+    expect(log.lines.grep(/^\[lane:selftest\] log: .* \(exit 64\)$/).length).to eq(1)
   end
 
   it 'skips the phase for --skip-codegen' do

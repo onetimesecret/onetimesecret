@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-# Run only through tests/lanes/run unit --only tests/browser/saml_callback_spec.rb.
+# Runs in the browser lane (tests/lanes/run browser); iterate on this file with
+# tests/lanes/run browser --only tests/browser/saml_callback_spec.rb.
 # This owns one ephemeral loopback TLS listener, exposed as two genuinely
 # cross-site origins (localhost and 127.0.0.1), and a bounded Playwright child.
 require 'spec_helper'

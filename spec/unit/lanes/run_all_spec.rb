@@ -163,6 +163,72 @@ RSpec.describe 'tests/lanes/run-all' do
     end
   end
 
+  describe '--changed' do
+    # The selection runs through tests/lanes/ownership with the git diff
+    # replaced by LANES_CHANGED_STUB (a newline-separated path list, honored
+    # only together with --dry-run), so nothing here depends on the branch
+    # the spec happens to run on and nothing is started.
+    def planned_lanes(*paths)
+      output, status = probe.run('--dry-run', '--changed', env: { 'LANES_CHANGED_STUB' => paths.join("\n") })
+      expect(status).to be_success, output
+      output[/^\[run-all\] lanes:   (.*)$/, 1].to_s.split
+    end
+
+    # Every lane directory except smoke, in C byte order: what one shared
+    # path fans out to.
+    let(:all_lanes) do
+      Dir.chdir(probe.repo_root) do
+        Dir.glob('tests/lanes/*/').map { |d| d.split('/').last }
+           .select { |l| File.file?("tests/lanes/#{l}/tasks") && File.file?("tests/lanes/#{l}/env") }
+           .sort - ['smoke']
+      end
+    end
+
+    it 'selects the one lane that runs a changed spec' do
+      expect(planned_lanes('spec/api/v2/x_spec.rb')).to eq(%w[api])
+    end
+
+    it 'selects the browser lane for its JavaScript harness' do
+      expect(planned_lanes('tests/browser/saml_callback.mjs')).to eq(%w[browser])
+    end
+
+    it 'unions the owners of several changed paths and ignores unowned ones' do
+      expect(planned_lanes('spec/api/v2/x_spec.rb', 'apps/api/v1/spec/integration/simple/x_spec.rb', 'docs/x.md', 'try/web/x_try.rb'))
+        .to eq(%w[api simple])
+    end
+
+    it 'selects every mode lane for a spec/integration/all file' do
+      expect(planned_lanes('spec/integration/all/x_spec.rb')).to eq(%w[disabled full-pg-agnostic full-sqlite simple])
+    end
+
+    it 'falls back to every lane for a shared path' do
+      expect(planned_lanes('spec/api/v2/x_spec.rb', 'lib/onetime.rb')).to eq(all_lanes)
+      expect(planned_lanes('Gemfile.lock')).to eq(all_lanes)
+      expect(planned_lanes('tests/lanes/unit/env')).to eq(all_lanes)
+    end
+
+    it 'plans nothing, and exits 0, when no lane runs any changed path' do
+      output, status = probe.run('--dry-run', '--changed', env: { 'LANES_CHANGED_STUB' => "docs/x.md\nsrc/App.vue" })
+      expect(status).to be_success, output
+      expect(output).not_to match(/^\[run-all\] lanes:   \S/)
+    end
+
+    it 'rejects a lane name: the token after --changed is its base argument' do
+      # A lane name after --changed is its base argument; one after
+      # --dry-run is a lane name, and --changed does not take those.
+      _, status = probe.run('--changed', '--dry-run', 'unit', env: { 'LANES_CHANGED_STUB' => 'spec/api/v2/x_spec.rb' })
+      expect(status.exitstatus).to eq(64)
+    end
+
+    it 'honors the stub only with --dry-run' do
+      # Without it a set stub is an error, so a stale shell export can
+      # never stand in for the git diff.
+      output, status = probe.run('--changed', env: { 'LANES_CHANGED_STUB' => 'spec/api/v2/x_spec.rb' })
+      expect(status.exitstatus).to eq(64), output
+      expect(output).to include('LANES_CHANGED_STUB is set')
+    end
+  end
+
   it 'knows exactly the codegen tokens the runner knows' do
     # The wrapper duplicates the runner's token -> command mapping because
     # the runner has no codegen-only entry point to delegate to. This pins

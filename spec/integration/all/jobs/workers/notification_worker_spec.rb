@@ -70,6 +70,7 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
 
   let(:worker) { test_worker_class.new }
   let(:message_id) { 'test-notification-123' }
+  let(:retry_delays) { [] }
   let(:custid) { 'cust:test-user-456' }
 
   # Mock Sneakers delivery_info (envelope info)
@@ -95,8 +96,10 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
     # Store envelope
     worker.store_envelope(delivery_info, metadata)
 
-    # Mock sleep to speed up retry tests
-    allow(worker).to receive(:sleep)
+    # Collapse the retry backoff: the sleep is Onetime::Utils::RetryHelper's
+    # (BaseWorker#with_retry delegates to it, and it sleeps on itself), so a
+    # stub on the worker never fires. Record the requested delays instead.
+    allow(Onetime::Utils::RetryHelper).to receive(:sleep) { |delay| retry_delays << delay }
 
     # Mock operation by default
     allow(Onetime::Operations::DispatchNotification).to receive(:new).and_return(operation_instance)
@@ -179,6 +182,9 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
         expect(worker.rejected?).to be true
         # Initial + 2 retries = 3 calls
         expect(operation_instance).to have_received(:call).exactly(3).times
+        # Backoff requested (base_delay 1.0, doubling, up to 30% jitter), not slept
+        expect(retry_delays.size).to eq(2)
+        expect(retry_delays.zip([1.0, 2.0])).to all(satisfy { |delay, base| delay.between?(base, base * 1.3) })
       end
 
       it 'retries on transient errors' do
@@ -193,6 +199,7 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
 
         expect(worker.acked?).to be true
         expect(call_count).to eq(2)
+        expect(retry_delays.size).to eq(1)
       end
     end
 
