@@ -23,9 +23,11 @@
 # enabled, which neither lane configures).
 #
 # e2e-full-auth.yml is a DIFFERENT lane: it runs the app on the runner (not
-# this image) with AUTH_AUTOVERIFY=false, real SMTP into Mailpit and a job
-# worker, for the signup -> verify email -> signin journeys. Both lanes here
-# autoverify and log email instead of sending it.
+# this image) in full mode with email verification required, real SMTP into
+# Mailpit and a job worker, for the signup -> verify email -> signin journeys.
+# Both lanes here create accounts that can sign in without verifying their
+# email (simple: AUTH_AUTOVERIFY=true; full: AUTH_VERIFY_ACCOUNT_ENABLED=false)
+# and log email instead of sending it.
 #
 # If a check from this workflow is ever made required, require
 # `notify-results`: it fails unless every lane passed, and its name does not
@@ -209,10 +211,15 @@ jobs:
           # cookie Secure flag in production, so without the explicit override
           # the session cookie is never stored and every CSRF-checked POST 403s.
           #
-          # AUTH_AUTOVERIFY=true makes accounts created via /signup verified
-          # immediately (no email round-trip), which is what lets the e2e
-          # auth setup project (e2e/global.setup.ts) register + sign in the
-          # ephemeral TEST_USER_* account for the full/ suite.
+          # AUTH_AUTOVERIFY=true makes SIMPLE-mode signups verified
+          # immediately (no email round-trip), so the e2e auth setup project
+          # (e2e/global.setup.ts) can register and sign in its ephemeral
+          # TEST_USER_* account against a simple-mode server. It has no
+          # effect on account verification in full mode: only the simple-mode
+          # signup code reads it (lib/onetime/logic/signup_config_resolution.rb),
+          # and the full-mode bootstrap payload merely echoes it
+          # (authentication.autoverify). The full lane sets
+          # AUTH_VERIFY_ACCOUNT_ENABLED=false for that job instead (below).
           #
           # EMAILER_MODE=logger routes outbound email to the logging backend
           # instead of SMTP. Without it, emailer.mode defaults to 'smtp' and
@@ -260,10 +267,30 @@ jobs:
             # container runs as. No volume: the database lives and dies with
             # this container, on this lane's runner. Same value as the full
             # stack in docker/compose/docker-compose.full.yml.
+            #
+            # AUTH_VERIFY_ACCOUNT_ENABLED=false turns off Rodauth's
+            # verify_account feature, which is on by default outside
+            # RACK_ENV=test (etc/defaults/auth.defaults.yaml). Accounts
+            # created via /signup are then open at once, and that, not
+            # AUTH_AUTOVERIFY, is what lets e2e/global.setup.ts sign the new
+            # TEST_USER_* account in. With verify_account on, the account
+            # stays unverified and sign-in answers 403.
+            #
+            # CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false turns off the per-IP
+            # signup limiter (site.authentication.create_account_rate_limit
+            # in etc/defaults/config.defaults.yaml): 10 signups per masked
+            # client IP per hour, then a 1h lockout. Every request here comes
+            # from one IP, and the full/ suite signs up several accounts
+            # (global.setup.ts and the invitation specs), each retried up to
+            # twice, so one real failure could run past the cap and bury
+            # itself under 429s. Only the exact string 'false' disables it.
+            # e2e-full-auth.yml sets it for the same reason.
             docker_env+=(
               -e AUTH_DATABASE_URL=sqlite://data/auth.db
               -e ACCOUNT_ID_SECRET
               -e AUTH_SECRET
+              -e AUTH_VERIFY_ACCOUNT_ENABLED=false
+              -e CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false
             )
           fi
 
@@ -348,11 +375,11 @@ jobs:
 
           # Ephemeral credentials for the authenticated suite. The `full`
           # Playwright project depends on `setup` (e2e/global.setup.ts), which
-          # registers this account via the app's own /signup flow
-          # (AUTH_AUTOVERIFY=true makes it immediately sign-in-able) and saves
-          # the session for storageState. The simple lane's projects do not
-          # use them. Never hardcode these; they live only for this
-          # container's life.
+          # registers this account via the app's own /signup flow (the full
+          # lane's AUTH_VERIFY_ACCOUNT_ENABLED=false makes it immediately
+          # sign-in-able), signs in and saves the session for storageState.
+          # The simple lane's projects do not use them. Never hardcode these;
+          # they live only for this container's life.
           TEST_USER_EMAIL="e2e-$(openssl rand -hex 8)@example.com"
           TEST_USER_PASSWORD="$(openssl rand -base64 24)"
           echo "::add-mask::$TEST_USER_PASSWORD"
