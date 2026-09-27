@@ -1024,6 +1024,11 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
         expect(result[:data]['last_monitored_unix']).to be_a(Integer)
         expect { result[:data].to_json }.not_to raise_error
       end
+
+      it 'dates the certificate observation to this check and makes no inconclusive mark' do
+        expect(result[:data]).to include('ssl_checked_unix' => now.to_i, 'last_monitored_unix' => now.to_i)
+        expect(result[:data]).not_to have_key('ssl_inconclusive')
+      end
     end
 
     context 'when the record still holds an Approximated vhost blob' do
@@ -1110,6 +1115,11 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
           expect(result[:data]).to include('status' => 'PENDING_SSL', 'is_resolving' => true, 'source' => 'tls_probe')
           expect(result[:data]).not_to have_key('has_ssl')
         end
+
+        it 'marks the certificate check as inconclusive without a certificate clock' do
+          expect(result[:data]).to include('ssl_inconclusive' => true, 'last_monitored_unix' => now.to_i)
+          expect(result[:data]).not_to have_key('ssl_checked_unix')
+        end
       end
 
       # Checked once before its A record existed, then from a host that cannot
@@ -1122,14 +1132,15 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
 
         it 'refreshes status and is_resolving and leaves has_ssl as stored' do
           expect(result[:data]).to include('status' => 'PENDING_SSL', 'is_resolving' => true, 'has_ssl' => false)
-          expect(result[:data]['last_monitored_unix']).to be_a(Integer)
+          expect(result[:data]).to include('last_monitored_unix' => now.to_i, 'ssl_inconclusive' => true)
         end
       end
 
       context 'with a stored blob that recorded a valid certificate' do
         let(:stored_vhost) do
           { 'source' => 'tls_probe', 'status' => 'ACTIVE_SSL', 'is_resolving' => true, 'has_ssl' => true,
-            'ssl_active_from' => '2026-09-01T00:00:00Z', 'ssl_active_until' => '2026-11-30T00:00:00Z' }
+            'ssl_active_from' => '2026-09-01T00:00:00Z', 'ssl_active_until' => '2026-11-30T00:00:00Z',
+            'ssl_checked_unix' => now.to_i - 86_400, 'last_monitored_unix' => now.to_i - 86_400 }
         end
 
         it 'carries has_ssl and the certificate dates forward while the expiry is in the future' do
@@ -1139,6 +1150,28 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
             'ssl_active_from' => '2026-09-01T00:00:00Z',
             'ssl_active_until' => '2026-11-30T00:00:00Z',
           )
+        end
+
+        # The name was re-observed now; the certificate was not. The blob
+        # keeps the two apart so the UI can say "active, last confirmed X ago".
+        it 'keeps the certificate clock on the probe that saw it and marks this check inconclusive' do
+          expect(result[:data]).to include(
+            'last_monitored_unix' => now.to_i,
+            'ssl_checked_unix' => now.to_i - 86_400,
+            'ssl_inconclusive' => true,
+          )
+        end
+      end
+
+      context 'with a stored blob from before ssl_checked_unix was written' do
+        let(:stored_vhost) do
+          { 'source' => 'tls_probe', 'status' => 'ACTIVE_SSL', 'is_resolving' => true, 'has_ssl' => true,
+            'ssl_active_from' => '2026-09-01T00:00:00Z', 'ssl_active_until' => '2026-11-30T00:00:00Z' }
+        end
+
+        it 'carries the certificate without inventing a certificate clock' do
+          expect(result[:data]).to include('has_ssl' => true, 'ssl_inconclusive' => true)
+          expect(result[:data]).not_to have_key('ssl_checked_unix')
         end
       end
 
@@ -1150,8 +1183,8 @@ RSpec.describe Onetime::DomainValidation::CaddyOnDemandStrategy do
 
         it 'does not stamp the carried certificate as freshly active' do
           expect(result).to include(has_ssl: nil, is_resolving: true)
-          expect(result[:data]).to include('status' => 'PENDING_SSL', 'is_resolving' => true)
-          expect(result[:data].keys).not_to include('has_ssl', 'ssl_active_from', 'ssl_active_until')
+          expect(result[:data]).to include('status' => 'PENDING_SSL', 'is_resolving' => true, 'ssl_inconclusive' => true)
+          expect(result[:data].keys).not_to include('has_ssl', 'ssl_active_from', 'ssl_active_until', 'ssl_checked_unix')
         end
       end
 

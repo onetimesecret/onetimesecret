@@ -191,7 +191,11 @@ unknown (port 443 unreachable, or the egress guard refused the address) the
 stored `has_ssl` and certificate dates are carried into the new blob only
 while the stored `ssl_active_until` is in the future. At or after expiry they
 no longer establish an active certificate, so the blob omits the claim and
-reports `PENDING_SSL` until a probe sees the current certificate. It returns
+reports `PENDING_SSL` until a probe sees the current certificate. A carried
+certificate is not a fresh observation: `ssl_checked_unix` (the probe that saw
+it) is carried with it, `last_monitored_unix` is the check that re-observed
+`is_resolving`, and `ssl_inconclusive: true` marks a blob whose probe did not
+learn `has_ssl`. It returns
 neither `:data` nor `:mode` when the probe learned nothing;
 `VerifyDomain#persist_changes` then stores
 nothing and sets `vhost_fetch_failed_at`. A `vhost` blob left by
