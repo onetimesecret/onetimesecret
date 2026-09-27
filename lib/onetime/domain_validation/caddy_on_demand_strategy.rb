@@ -197,8 +197,10 @@ module Onetime
           .merge(mode: MODE)
       rescue StandardError => ex
         # TxtVerifier rescues its own lookup. Anything reaching here is ours
-        # (e.g. the domain could not produce its validation record), which is
-        # not evidence about the customer's DNS.
+        # (e.g. the domain could not produce its validation record), so it is
+        # reported as indeterminate like a lookup that got no answer. It is
+        # treated the same way too: #never_confirmed? applies to this result
+        # as to any other indeterminate one.
         OT.le "[CaddyOnDemandStrategy] Error validating #{custom_domain.display_domain}: " \
               "#{ex.class}: #{ex.message}"
         { validated: nil, indeterminate: true, message: "Error: #{ex.message}", mode: MODE }
@@ -225,6 +227,12 @@ module Onetime
       # indeterminate: that proof is real but not on record, so a cutover
       # should follow a full verify pass on Approximated (see the README).
       # Either is promoted again by the next check that finds the record.
+      #
+      # What made the result indeterminate does not matter here, so an error
+      # of our own (#txt_check's rescue) counts as well: the rule is no hold
+      # without proof on record, and an internal error is no proof either.
+      # Restricting this to results that carry :data would let such an error
+      # keep a never-confirmed domain ready? and the ACME ask endpoint open.
       def never_confirmed?(custom_domain, result)
         result[:indeterminate] == true &&
           custom_domain.verified == true && # boolean_field native
