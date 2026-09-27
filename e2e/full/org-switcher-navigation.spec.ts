@@ -128,6 +128,28 @@ test.describe('Org Switcher Navigation - Same Tab Navigation', () => {
     await expect(workspaceHeading(page, to)).toBeVisible();
     await expect(workspaceHeading(page, from)).toHaveCount(0);
   });
+
+  test('TC-OSN-006: Switching after a tab click keeps the tab on screen', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    // The 'same' target is built from the router's current route. A tab click
+    // must move that route to the clicked tab, or the switch lands on the tab
+    // the page was opened with.
+    const from = owner.defaultWorkspace;
+    const to = owner.secondWorkspace;
+    await gotoOrgTab(page, from, 'domains');
+    await page.getByTestId('org-tab-settings').click();
+    await expect(page).toHaveURL(new RegExp(`/org/${from.extid}/settings$`));
+    const displayName = page.getByTestId('org-section-settings').locator('input#display-name');
+    await expect(displayName).toHaveValue(from.name);
+
+    await switchTo(page, to);
+
+    await expect(page).toHaveURL(new RegExp(`/org/${to.extid}/settings$`));
+    await expect(displayName).toHaveValue(to.name);
+    await expect(page.getByTestId('org-tab-settings')).toHaveAttribute('aria-selected', 'true');
+  });
 });
 
 test.describe('Org Switcher Navigation - Edge Cases', () => {
@@ -162,6 +184,38 @@ test.describe('Org Switcher Navigation - Edge Cases', () => {
     await expect(workspaceHeading(page, from)).toBeVisible();
     await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', from.name);
   });
+
+  test('TC-OSN-012: A link to the tab on screen adds no history entry', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    // The user menu's Activity item links /org/<current>/activity. After a
+    // tab click has put Activity on screen, following it is a duplicate
+    // navigation. If the router still held the tab the page was opened with,
+    // the link would push a second /activity entry and remount the page.
+    const current = owner.defaultWorkspace;
+    const other = owner.secondWorkspace;
+    await gotoOrgTab(page, current, 'domains');
+    await page.getByTestId('org-tab-activity').click();
+    await expect(page).toHaveURL(new RegExp(`/org/${current.extid}/activity$`));
+    await expect(page.getByTestId('org-section-activity')).toBeVisible();
+    const historyLength = await page.evaluate(() => window.history.length);
+
+    await page.getByTestId('user-menu-trigger').click();
+    await page
+      .getByTestId('user-menu-dropdown')
+      .getByRole('menuitem', { name: 'Activity', exact: true })
+      .click();
+    await expect(page.getByTestId('user-menu-dropdown')).toBeHidden();
+    await expect(page).toHaveURL(new RegExp(`/org/${current.extid}/activity$`));
+    await expect(page.getByTestId('org-section-activity')).toBeVisible();
+
+    // Leave through the switcher: once that navigation has landed, a push
+    // from the menu item shows as an extra history entry.
+    await switchTo(page, other);
+    await expect(page).toHaveURL(new RegExp(`/org/${other.extid}/activity$`));
+    expect(await page.evaluate(() => window.history.length)).toBe(historyLength + 1);
+  });
 });
 
 /**
@@ -176,8 +230,10 @@ test.describe('Org Switcher Navigation - Edge Cases', () => {
  * | TC-OSN-003  | Switching keeps the Settings tab                         | High     | Automated  |
  * | TC-OSN-004  | Switching there and back                                 | Critical | Automated  |
  * | TC-OSN-005  | Header, URL and page agree after a switch                | Critical | Automated  |
+ * | TC-OSN-006  | Switching after a tab click keeps the tab on screen      | High     | Automated  |
  * | TC-OSN-010  | Selecting the current workspace does not navigate        | Medium   | Automated  |
  * | TC-OSN-011  | Back returns to the previous workspace                   | Medium   | Automated  |
+ * | TC-OSN-012  | A link to the tab on screen adds no history entry        | Medium   | Automated  |
  *
  * Bug Reference:
  * - Issue: Org switcher on /org/{extid}/* pages updated header but not URL/content
