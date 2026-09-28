@@ -721,7 +721,13 @@ one `refresh()` joins ordinary requests onto, and returns:
 - `{ ownedByCoordinator: false, reason: 'throttled' }` once no flight is up.
   This keeps the meaning the decision text gives `throttled`.
 
-The owned set in `#rejection-disposition` therefore gains
-`reconciling-duplicate`. No consumer changes: `useAsyncHandler` still reads
-only `ownedByCoordinator`. The request budget is unchanged; one reconciliation
-per window is still the rule.
+This note supersedes the owned-reason list in the Decision section under
+`#rejection-disposition`. The current sets are:
+
+- owned by the coordinator: `reconciling`, `reconciling-duplicate`, or
+  `will-reload`;
+- not owned: `skipped-carve-out`, `throttled`, or `nonauth`.
+
+No consumer changes: `useAsyncHandler` still reads only `ownedByCoordinator`.
+The request budget is unchanged; one reconciliation per window is still the
+rule.
