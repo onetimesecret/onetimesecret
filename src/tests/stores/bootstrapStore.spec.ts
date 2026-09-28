@@ -117,7 +117,6 @@ describe('bootstrapStore', () => {
 
       expect(store.authenticated).toBe(false);
       expect(store.awaiting_mfa).toBe(false);
-      expect(store.had_valid_session).toBe(false);
       expect(store.cust).toBeNull();
       expect(store.custid).toBe('');
       expect(store.email).toBe('');
@@ -130,7 +129,6 @@ describe('bootstrapStore', () => {
 
       expect(store.authenticated).toBe(false);
       expect(store.awaiting_mfa).toBe(true);
-      expect(store.had_valid_session).toBe(true);
       expect(store.authStatus).toBe('mfa_pending');
       // No identity until the second factor is verified.
       expect(store.cust).toBeNull();
@@ -451,7 +449,6 @@ describe('bootstrapStore', () => {
 
       expect(store.authenticated).toBe(false);
       expect(store.awaiting_mfa).toBe(false);
-      expect(store.had_valid_session).toBe(false);
     });
 
     it('resets user identity to defaults', () => {
@@ -630,7 +627,6 @@ describe('bootstrapStore', () => {
 
       expect(store.authenticated).toBe(false);
       expect(store.awaiting_mfa).toBe(false);
-      expect(store.had_valid_session).toBe(false);
     });
 
     it('resets user identity to defaults', () => {
@@ -1040,7 +1036,6 @@ describe('bootstrapStore', () => {
       // authStore would read these values
       expect(store.authenticated).toBe(true);
       expect(store.awaiting_mfa).toBe(false);
-      expect(store.had_valid_session).toBe(true);
       expect(store.cust).not.toBeNull();
     });
 

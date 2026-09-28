@@ -49,7 +49,8 @@ import { useBootstrapStore } from './bootstrapStore';
  * complete, contract-valid snapshot is applied (hydration, or a response this
  * coordinator accepted), on an explicit local sign-out, or when the coordinator
  * withholds authority after repeated failures. Nothing is read from
- * sessionStorage, and `had_valid_session` is not consulted (#4468 removes it).
+ * sessionStorage. The error-page case is the server statement `unavailable`
+ * (#4462); the client infers nothing from the raw session (#4468).
  *
  * ───────────────────────────────────────────────────────────────────────────────
  * ONE COORDINATOR (#4459, ADR-046 "Refresh coordination")
