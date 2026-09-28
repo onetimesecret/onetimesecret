@@ -760,8 +760,12 @@ module Onetime
 
           # Stable `code` / `code_scope` on session-authentication 401s. Otto
           # renders that body inside the gem from the failure string alone, so
-          # the typed evaluator reason is carried across here (#4462). Mounted
-          # beside RetryAfterHeader for the same reason it exists.
+          # the typed evaluator reason is carried across here (#4462). The same
+          # pass adds the `WWW-Authenticate` challenge to every coded 401 and
+          # rewrites a `verification_unavailable` refusal to 503 with its own
+          # `Retry-After` (#4469), so it does not depend on RetryAfterHeader's
+          # stash. Mounted beside RetryAfterHeader for the same reason it
+          # exists.
           logger.debug 'Setting up session failure code middleware'
           builder.use Onetime::Middleware::SessionFailureCode
 

@@ -124,7 +124,7 @@ module Onetime
       RETRY_AFTER      = 'retry-after'
       AUTHORIZATION    = 'HTTP_AUTHORIZATION'
 
-      # The realm names the scope of protection (RFC 9110 §11.4). One fixed
+      # The realm names the scope of protection (RFC 9110 §11.5). One fixed
       # value: the challenge is read by machines, and a per-host value would
       # have to be quoted from the request.
       REALM             = 'onetimesecret'

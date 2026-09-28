@@ -539,7 +539,7 @@ field containing at least one challenge."
 case-insensitive token to identify the authentication scheme" and "Aside from
 the general framework, this document does not specify any authentication
 schemes."
-[§11.4](https://www.rfc-editor.org/rfc/rfc9110.html#section-11.4): "The realm
+[§11.5](https://www.rfc-editor.org/rfc/rfc9110.html#section-11.5): "The "realm"
 authentication parameter is reserved for use by authentication schemes that
 wish to indicate a scope of protection." These three passages were read on
 2026-09-28 in the HTTP Working Group's editors' source for RFC 9110

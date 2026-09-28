@@ -80,6 +80,10 @@ and continue unordered.
   `401` with before, including `code_scope: verification_unavailable`
   ([#4469](https://github.com/onetimesecret/onetimesecret/issues/4469)). The
   session is kept, as before. Update any alert that counted these as `401`s.
+  The browser client's own handlers that key a sign-in message off a `401`
+  (connected identities, the email-config poll, the SSO link confirmation)
+  now show their generic or transient error for an outage instead, which is
+  the right reading; the email-config poll's retry is bounded to 10 attempts.
   The client reads the body, so an intermediary configured to replace an
   origin `503` with its own error page turns the outage into an uncoded
   failure on the client: no sign-out, but no reconciliation either. Confirm
@@ -169,6 +173,12 @@ carries it in the `x-request-id` header, and the `Session refused` and
 session identifier.
 
 ## Known limits in this release
+
+This section tracks the state as of v0.27, which adds the `WWW-Authenticate`
+challenge and the outage `503` from
+[#4469](https://github.com/onetimesecret/onetimesecret/issues/4469) to the
+v0.26.13 package; in v0.26.13 itself those two were the first limits listed
+here.
 
 - Protected HTML still answers a verification outage with a `302` to
   `/signin`, where the API answers `503`. A navigation has no client to read
