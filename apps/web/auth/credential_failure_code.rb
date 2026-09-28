@@ -63,6 +63,9 @@ module Auth
       # an account route asks for (change password, change login, close
       # account, OTP setup and disable, passkey setup and removal).
       invalid_password: :invalid_credentials,
+      # The current password on change-password, which Rodauth names apart
+      # (change_password.rb:39) but answers with the same 401.
+      invalid_previous_password: :invalid_credentials,
       # Second factors during a login or a step-up.
       invalid_otp_auth_code: :invalid_credentials,
       invalid_recovery_code: :invalid_credentials,

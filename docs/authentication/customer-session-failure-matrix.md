@@ -141,10 +141,13 @@ Uncoded on purpose:
   `lib/rodauth/features/base.rb:54,81`); the pair is annotated on 401s only.
 - A missing `Authorization` header on a `basicauth,noauth` route is not a
   rejected credential: the request proceeds as anonymous.
-- `link_expired` on the SSO-linking routes, the `invalid_session` answer of
-  `POST /auth/reauth`, and the orphaned-session `session_expired` in
-  `config/overrides/error_handling.rb` are about neither the session verdict
-  nor a credential.
+- `link_expired` on the SSO-linking routes is withdrawn by those routes and
+  is always uncoded. The `invalid_session` answer of `POST /auth/reauth`, the
+  orphaned-session `session_expired` in `config/overrides/error_handling.rb`,
+  and Rodauth's `inactive_session` 401 (a withdrawn reason) are about
+  neither the session verdict nor a credential, and are uncoded unless the
+  router already stashed a session reason for the request: an autologin
+  session that reached them as `not_authenticated` carries that code.
 
 How the pair gets onto the response (`Onetime::Middleware::SessionFailureCode`,
 mounted once in the universal stack, annotates every surface):
@@ -156,10 +159,15 @@ mounted once in the universal stack, annotates every surface):
   route reached with an `Authorization` header is coded with the session
   reason: the header was never examined.
 - Otto credential refusals: `BasicAuthStrategy` stashes `api_key_invalid` or
-  `suspended_credentials` on the terminal failure that fails the chain
-  closed (`Helpers#credentialed_failure`); on a `sessionauth,basicauth` chain
-  that replaces the session strategy's stash. The simple-mode sign-in
-  controller stashes through `Core::Controllers::Base#handle_form_error`.
+  `suspended_credentials` only on the terminal failure that fails the chain
+  closed (`Helpers#credentialed_failure`); on a `sessionauth,basicauth`
+  chain that terminal stash replaces the session strategy's. On the
+  carve-out branch (the request also resolves a customer identity) nothing
+  is stashed: the chain continues to the session-resolving strategy, and if
+  the evaluator had refused that session the response carries the session
+  reason, the same code that holder gets on a `sessionauth`-only route, not
+  `api_key_invalid`. The simple-mode sign-in controller stashes through
+  `Core::Controllers::Base#handle_form_error`.
 - `/auth` session refusals: `Auth::Router#session_refusal` merges the pair
   into the four refusal bodies, keyed by the reason the router acted on
   (`Auth::SessionRecheck`'s where it differs from the evaluator's). For a
