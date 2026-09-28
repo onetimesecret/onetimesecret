@@ -1004,10 +1004,11 @@ RSpec.describe Core::Views::ConfigSerializer do
           allow(custom_domain_obj).to receive(:verified).and_return(false)
           allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
 
+          # The unverified refusal exits through the fallback-withheld guard,
+          # the same two-key shape as the master-switch-off example above.
           expect(described_class.build_sso_config(custom_domain_view_vars)).to eq(
             'enabled' => false,
             'providers' => [],
-            'connect_providers' => [],
           )
         end
 
