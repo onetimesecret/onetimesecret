@@ -52,39 +52,48 @@ OT.info 'Cleaned Redis for custom-domain default-OFF resolver test run'
 @ts      = Familia.now.to_i
 @entropy = SecureRandom.hex(4)
 
+# CustomDomain#save requires an owning organization, so every persisted
+# domain fixture below hangs off this one org.
+@owner = Onetime::Customer.new(email: "dof-owner-#{@ts}-#{@entropy}@try-test.local")
+@owner.save
+@org = Onetime::Organization.create!(
+  "DOF Try Org #{@entropy}", @owner, "dof-contact-#{@ts}-#{@entropy}@try-test.local"
+)
+
 # SsoConfig.create! validates (client_id + issuer required for the default
 # oidc provider), so even fixtures that only exercise enabled? carry
 # minimal-but-valid credentials. Availability also requires the owning custom
 # domain to be verified, so each fixture persists that side of the relation.
-def sso_config!(domain_id, enabled:)
+# The domain generates its own objid (external identifiers are derived from
+# it, so it cannot be supplied); the returned identifier is the domain_id the
+# SsoConfig and the assertions key on.
+def sso_config!(label, enabled:, verified: true)
   domain = Onetime::CustomDomain.new(
-    domainid: domain_id,
-    display_domain: "#{domain_id}.example.com",
-    verified: true,
+    org_id: @org.objid,
+    display_domain: "#{label}.example.com",
+    verified: verified,
   )
   domain.save
 
   Onetime::CustomDomain::SsoConfig.create!(
-    domain_id: domain_id, enabled: enabled,
-    client_id: "client-#{domain_id}", issuer: 'https://idp.example.com',
+    domain_id: domain.identifier, enabled: enabled,
+    client_id: "client-#{label}", issuer: 'https://idp.example.com',
   )
+  domain.identifier
 end
 
 # SSO-only tenant: enabled SsoConfig, no SigninConfig record at all.
-@sso_only_domain = "dof_sso_only_#{@ts}_#{@entropy}"
-sso_config!(@sso_only_domain, enabled: true)
+@sso_only_domain = sso_config!("dof_sso_only_#{@ts}_#{@entropy}", enabled: true)
 
 # Tenant with a persisted SsoConfig whose master switch is OFF (present but
 # not available).
-@sso_disabled_domain = "dof_sso_off_#{@ts}_#{@entropy}"
-sso_config!(@sso_disabled_domain, enabled: false)
+@sso_disabled_domain = sso_config!("dof_sso_off_#{@ts}_#{@entropy}", enabled: false)
 
 # Tenant with an enabled SsoConfig AND a persisted-but-DISABLED SigninConfig:
 # the record exists but its master switch is off, so the tenant is "not
 # explicitly configured" for password sign-in while SSO remains permitted
 # (sso_permitted_for? defers when the master switch is off).
-@sso_with_disabled_signin = "dof_sso_dis_signin_#{@ts}_#{@entropy}"
-sso_config!(@sso_with_disabled_signin, enabled: true)
+@sso_with_disabled_signin = sso_config!("dof_sso_dis_signin_#{@ts}_#{@entropy}", enabled: true)
 @disabled_signin_cfg = Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @sso_with_disabled_signin, enabled: false, signin_enabled: false
 )
@@ -93,11 +102,15 @@ sso_config!(@sso_with_disabled_signin, enabled: true)
 # SSO (sso_enabled: false): credentials exist and are switched on, but the
 # activation authority says no — the only fixture that reaches the last rung
 # of the availability ladder.
-@sso_not_permitted_domain = "dof_sso_not_perm_#{@ts}_#{@entropy}"
-sso_config!(@sso_not_permitted_domain, enabled: true)
+@sso_not_permitted_domain = sso_config!("dof_sso_not_perm_#{@ts}_#{@entropy}", enabled: true)
 Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @sso_not_permitted_domain, enabled: true, signin_enabled: true, sso_enabled: false
 )
+
+# Tenant with an enabled SsoConfig on a domain whose ownership is NOT
+# verified: credentials are complete and switched on, but the domain rung
+# refuses before the activation authority is consulted.
+@sso_unverified_domain = sso_config!("dof_sso_unverified_#{@ts}_#{@entropy}", enabled: true, verified: false)
 
 # In-memory builders (no persistence) mirroring the killswitch tryout — the
 # resolvers only read enabled?/signin_enabled?/signup_enabled? off the param.
@@ -254,7 +267,17 @@ Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason("dof_absent_#{@ts
 Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_disabled_domain, auth: { 'enabled' => true })
 #=> :sso_config_disabled
 
-## rung 4: enabled credentials, but an enabled SigninConfig withholds SSO
+## rung 4: enabled credentials on a domain whose ownership is not verified —
+## refused before the activation authority is consulted
+Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_unverified_domain, auth: { 'enabled' => true })
+#=> :domain_unverified
+
+## the unverified rung also darkens the display carve-out
+Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(true, nil, domain_id: @sso_unverified_domain)
+#=> false
+
+## rung 5: enabled credentials on a verified domain, but an enabled
+## SigninConfig withholds SSO
 Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(@sso_not_permitted_domain, auth: { 'enabled' => true })
 #=> :sso_not_permitted
 
