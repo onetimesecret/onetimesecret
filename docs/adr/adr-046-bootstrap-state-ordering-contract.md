@@ -699,3 +699,29 @@ Tests will cover:
   Rejected because `reloading` means `reload()` was called, not that the
   navigation happened. A cancelled `beforeunload` prompt would still leave
   the park behind. The time limit covers every cause.
+
+### Throttled rejections split by flight state (2026-09-28)
+
+The `throttled` disposition treated every rejection inside
+`REJECTION_MIN_INTERVAL` the same way: not owned, so each one produced its own
+notice. The rationale held only for the second half of the window. While the
+reconciliation the first rejection requested is still in flight, the snapshot
+it is about to apply answers every 401 that arrived meanwhile, and a notice
+per call duplicates the once-only transition announcement. Once that
+reconciliation has settled and found the session valid, a later 401 inside the
+window has no coordinator message coming, so its notice must stand.
+
+`noteApiRejection` now reads the coordinator's own in-flight record, the same
+one `refresh()` joins ordinary requests onto, and returns:
+
+- `{ ownedByCoordinator: true, reason: 'reconciling-duplicate' }` while a
+  flight is up. A newer flight that superseded the rejection's own request
+  counts the same way: under `#commit-generation-ownership` its snapshot is
+  the coordinator's next verdict.
+- `{ ownedByCoordinator: false, reason: 'throttled' }` once no flight is up.
+  This keeps the meaning the decision text gives `throttled`.
+
+The owned set in `#rejection-disposition` therefore gains
+`reconciling-duplicate`. No consumer changes: `useAsyncHandler` still reads
+only `ownedByCoordinator`. The request budget is unchanged; one reconciliation
+per window is still the rule.
