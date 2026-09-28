@@ -36,16 +36,9 @@ module Core
         # also authenticated; this is the final defense against stale view inputs.
         output['cust'] = cust.safe_dump if output['authenticated']
 
-        # DEPRECATED — remove in v0.27 (#4468). Superseded by `auth_status`:
-        # the error-page case this existed for is now the server statement
-        # `unavailable` (Onetime::SessionAuthStatus.without_verdict). Still
-        # emitted so a frontend that predates `auth_status` keeps working; no
-        # current client code reads it.
-        sess                        = view_vars['sess']
-        output['had_valid_session'] = !!(sess && !sess.empty? && !sess['external_id'].to_s.empty?)
-
         # Only a successful evaluator verdict provides full customer data.
         if output['authenticated']
+          sess                     = view_vars['sess']
           output['custid']         = cust.custid
           output['email']          = cust.email
           # customer_since: Formatted date string (e.g., "Mar 21, 2026") - matches Zod schema z.string()
@@ -100,8 +93,6 @@ module Core
             'auth_status' => Onetime::SessionAuthStatus::ANONYMOUS,
             'authenticated' => false,
             'awaiting_mfa' => false,
-            # DEPRECATED — remove in v0.27 (#4468). See .serialize.
-            'had_valid_session' => false,
             'has_password' => false,
             'password_auth_permitted' => true,
             'custid' => nil,

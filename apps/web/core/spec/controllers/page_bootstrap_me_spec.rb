@@ -177,12 +177,6 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
       expect(data['awaiting_mfa']).to be false
     end
 
-    it 'returns had_valid_session as false for fresh sessions' do
-      get '/bootstrap/me'
-      data = JSON.parse(last_response.body)
-      expect(data['had_valid_session']).to be false
-    end
-
     it 'returns cust as null for anonymous users' do
       get '/bootstrap/me'
       data = JSON.parse(last_response.body)
@@ -413,7 +407,7 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
   describe 'response structure completeness' do
     # These are the keys from all serializers that should be present
     let(:authentication_keys) do
-      %w[authenticated awaiting_mfa had_valid_session custid cust email customer_since]
+      %w[auth_status authenticated awaiting_mfa custid cust email customer_since]
     end
 
     let(:config_keys) do
