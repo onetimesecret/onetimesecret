@@ -40,6 +40,14 @@ require_relative '../../../apps/internal/acme/application'
 @unicode_domain.resolving = true
 @unicode_domain.save
 
+# A decomposed Unicode registration whose exact index key is not NFC.
+@nfd_name   = "bu\u0308cher-nfd-#{@suffix}.com"
+@nfd_ascii  = Onetime::CustomDomain.canonical_display_domain(@nfd_name)
+@nfd_domain = Onetime::CustomDomain.create!(@nfd_name, @org.objid)
+@nfd_domain.verified  = true
+@nfd_domain.resolving = true
+@nfd_domain.save
+
 # A second domain typed in A-label form.
 @typed_ascii_name   = SimpleIDN.to_ascii("café-#{@suffix}.com")
 @typed_unicode_name = "café-#{@suffix}.com"
@@ -80,6 +88,21 @@ Onetime::CustomDomain.from_display_domain(@ascii_name)&.identifier
 ## Stored in Unicode - resolve_domain_id finds it by either form
 [Onetime::CustomDomain.resolve_domain_id(@ascii_name), Onetime::CustomDomain.resolve_domain_id(@unicode_name)]
 #=> [@unicode_domain.identifier, @unicode_domain.identifier]
+
+## Decomposed Unicode is stored unchanged but found by A-label and NFC spellings
+[@nfd_domain.display_domain == @nfd_name,
+ Onetime::CustomDomain.load_by_display_domain(@nfd_ascii)&.identifier,
+ Onetime::CustomDomain.load_by_display_domain(@nfd_name.unicode_normalize(:nfc))&.identifier]
+#=> [true, @nfd_domain.identifier, @nfd_domain.identifier]
+
+## Decomposed Unicode resolves through the Host header and domain ID lookup
+[Onetime::CustomDomain.from_display_domain(@nfd_ascii)&.identifier,
+ Onetime::CustomDomain.resolve_domain_id(@nfd_ascii)]
+#=> [@nfd_domain.identifier, @nfd_domain.identifier]
+
+## The ACME ask check permits the A-label of a verified decomposed registration
+idn_try_acme_allowed?(@nfd_ascii)
+#=> true
 
 ## Stored in A-label form - found by either form
 [@typed_ascii_name, @typed_unicode_name].map { |name| Onetime::CustomDomain.load_by_display_domain(name)&.identifier }
@@ -231,6 +254,6 @@ end
 #=> [[], nil]
 
 # Teardown
-[@unicode_domain, @ascii_domain, @plain_domain, @duplicate, @decomposed_domain].each { |domain| domain.destroy! if domain&.exists? }
+[@unicode_domain, @nfd_domain, @ascii_domain, @plain_domain, @duplicate, @decomposed_domain].each { |domain| domain.destroy! if domain&.exists? }
 @org.destroy! if @org&.exists?
 @owner.destroy! if @owner&.exists?

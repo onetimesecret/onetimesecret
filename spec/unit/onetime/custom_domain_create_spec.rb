@@ -44,6 +44,38 @@ RSpec.describe Onetime::CustomDomain, '.create!' do
     end
   end
 
+  context 'with a decomposed Unicode registration' do
+    let(:unicode_name) { "bu\u0308cher.example.com" }
+    let(:display_index) { instance_double(Familia::HashKey) }
+
+    before do
+      allow(described_class).to receive(:display_domain_index).and_return(display_index)
+      allow(display_index).to receive(:get).and_return(nil)
+      allow(harness.fetch(:canonical_index)).to receive(:get) do |key|
+        harness.fetch(:claims)[key]
+      end
+    end
+
+    it 'resolves the created record by its A-label and NFC spelling' do
+      domain = described_class.create!(unicode_name, org_id)
+
+      expect(described_class.display_domain_id_for(ascii_name)).to eq(domain.identifier)
+      expect(described_class.display_domain_id_for('bücher.example.com')).to eq(domain.identifier)
+    end
+
+    it 'does not resolve a crafted A-label through the normalized Unicode spelling' do
+      described_class.create!(unicode_name, org_id)
+
+      expect(described_class.display_domain_id_for('xn--bucher-xyd.example.com')).to be_nil
+    end
+
+    it 'does not swallow canonical index failures' do
+      allow(harness.fetch(:canonical_index)).to receive(:get).and_raise(Redis::BaseError)
+
+      expect { described_class.display_domain_id_for(ascii_name) }.to raise_error(Redis::BaseError)
+    end
+  end
+
   def build_harness
     save_ids = []
     {

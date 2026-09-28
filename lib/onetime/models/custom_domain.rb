@@ -793,7 +793,7 @@ module Onetime
         nil
       end
 
-      # The one read of display_domain_index that every lookup by name goes
+      # The index lookup that every lookup by name goes
       # through (load_by_display_domain, from_display_domain,
       # resolve_domain_id).
       #
@@ -803,7 +803,9 @@ module Onetime
       # the wire are always A-labels: the SNI name Caddy hands to the ACME
       # ask endpoint, and the Host header. Both forms name the same domain,
       # so a miss on the name as given is retried with its other forms
-      # (see display_domain_lookup_keys). Stored data is not rewritten.
+      # (see display_domain_lookup_keys), then the canonical creation index.
+      # That final fallback also finds decomposed Unicode registrations.
+      # Stored data is not rewritten.
       #
       # When both forms were registered as separate records before this
       # lookup existed, each is still found by its own exact name first.
@@ -817,11 +819,18 @@ module Onetime
           return domain_id if domain_id
         end
 
-        nil
+        canonical = begin
+          canonical_display_domain(domain_name)
+        rescue Onetime::DomainValidation::AsciiHostname::ConversionError
+          nil
+        end
+        return nil unless canonical
+
+        canonical_display_domain_index.get(canonical)
       end
 
-      # Canonical DNS wire form used only by the atomic creation gate. Lookup
-      # continues to use display_domain_lookup_keys so exact legacy keys win.
+      # Canonical DNS wire form used by the atomic creation gate and as a
+      # lookup fallback after display_domain_lookup_keys so legacy keys win.
       #
       # @param domain_name [String, #to_s]
       # @return [String] lower-case A-label form
@@ -850,8 +859,8 @@ module Onetime
       # malformed punycode, invalid bytes) keeps whatever keys could be
       # built; the lookup misses and nothing raises.
       #
-      # Not covered: a Unicode name that was stored in a normalisation form
-      # other than NFC is only found by the exact bytes it was stored with.
+      # Other stored Unicode normalisation forms are found through the
+      # canonical index fallback in display_domain_id_for, not these keys.
       #
       # @param domain_name [String, #to_s]
       # @return [Array<String>] one to three distinct keys; empty for a
