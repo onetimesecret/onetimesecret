@@ -79,11 +79,15 @@ degrades to `unavailable`, never to a serialized identity.
 
 ### `code` and `code_scope` — refusals
 
-A JSON 401 caused by the customer session carries two additive fields
+A JSON refusal caused by the customer session carries two additive fields
 (`lib/onetime/session/failure_code.rb`). The `code` is the evaluator reason
-verbatim; there is no second vocabulary. Statuses, redirects, and the existing
-`error`, `message`, `error_type`, `success` and `timestamp` fields are
-unchanged.
+verbatim; there is no second vocabulary. Redirects and the existing `error`,
+`message`, `error_type`, `success` and `timestamp` fields are unchanged. The
+status is 401 with a `WWW-Authenticate: Session realm="onetimesecret"`
+challenge, except that the two `verification_unavailable` reasons answer 503
+with `Retry-After: 5` and no challenge: an outage is not a request for
+credentials (`Onetime::Middleware::SessionFailureCode`, v0.27, #4469; see
+D3 and "Evidence").
 
 | Evaluator reason = `code` | `code_scope` | Marker in `message` (session-only routes) | API | Protected HTML | `/auth` router |
 |---|---|---|---|---|---|
@@ -96,8 +100,8 @@ unchanged.
 | `account_suspended` | `customer_session` | `[ACCOUNT_SUSPENDED]` | 401 | 302 | destroyed; 401 `session_expired` |
 | `stale_credentials` | `customer_session` | `[SESSION_STALE_CREDENTIALS]` | 401 | 302 | destroyed; 401 `session_expired` |
 | `active_session_revoked` | `customer_session` | `[SESSION_REVOKED]` | 401 | 302 | destroyed; 401 `session_expired` |
-| `active_session_unavailable` | `verification_unavailable` | `[SESSION_UNVERIFIED]` | 401 | 302 | 401 `error_type: "SessionUnverified"`; session kept |
-| `customer_unavailable` | `verification_unavailable` | `[SESSION_UNVERIFIED]` | 401 | 302 | same as above |
+| `active_session_unavailable` | `verification_unavailable` | `[SESSION_UNVERIFIED]` | 503 `Retry-After: 5` | 302 | 503 `error_type: "SessionUnverified"`, `Retry-After: 5`; session kept |
+| `customer_unavailable` | `verification_unavailable` | `[SESSION_UNVERIFIED]` | 503 `Retry-After: 5` | 302 | same as above |
 | `admin_session_expired` | `admin_session` | `[ADMIN_SESSION_EXPIRED]` | 401 (`/api/colonel` only) | n/a | not reached: the router supplies no admin boundary to the evaluator |
 
 `customer_unavailable` is also the answer when the request's surface cannot be
@@ -112,7 +116,8 @@ Scopes are what a client acts on:
 - `customer_session`: the session was examined and is not authenticated.
   Reconcile against the server.
 - `verification_unavailable`: the session could not be verified. Not a verdict
-  and never a sign-out.
+  and never a sign-out. The one scope answered 503 (with `Retry-After`)
+  instead of 401.
 - `admin_session`: the admin-only timeout. The customer session is untouched.
 - `credential`: a credential the request presented was examined and rejected
   (#4469). Not a statement about the customer session, which may be valid;
@@ -133,6 +138,17 @@ distinguishes an unknown account from a wrong password or an unverified one.
 | `invalid_credentials` | `credential` | `POST /auth/login` (Rodauth's `no matching login` and `invalid password` alike), a passkey assertion, a second factor (`otp-auth`, `recovery-auth`, `webauthn-auth`), a password confirmation on an account route (`change-password`, `change-login`, `close-account`, `otp-setup`, `otp-disable`, `webauthn-setup`, `webauthn-remove`, `recovery-codes`), `POST /auth/reauth`, the password on `POST /auth/link-sso`, and the simple-mode `POST /auth/login` | 401 |
 | `api_key_invalid` | `credential` | A rejected `Authorization` header on any `basicauth` route: wrong scheme, malformed payload, unknown account, wrong key (one code, one constant-time path) | 401 |
 | `suspended_credentials` | `credential` | A valid API key, or the simple-mode password, on a suspended account. Only observable to a holder of the valid credential | 401 |
+
+Every credential 401 carries a `WWW-Authenticate` challenge, chosen by the
+credential that was rejected rather than by the route. `api_key_invalid`, and
+`suspended_credentials` on a request that presented an `Authorization`
+header, are challenged with `Basic realm="onetimesecret"`: Basic is the
+scheme the Basic auth strategies accept and the one the client used.
+`invalid_credentials`, and `suspended_credentials` from the simple-mode
+sign-in, are challenged with `Session realm="onetimesecret"`, as a session
+refusal is: a `Basic` challenge on the response to a browser fetch opens the
+browser's native credentials dialog, and the browser client never presents
+an `Authorization` header. See "Evidence".
 
 Uncoded on purpose:
 
@@ -241,11 +257,11 @@ session marker is the one the session strategy failed with.
 | `authentication_database_unavailable` | PH | unavailable | 302 | `/signin` | `SESSION_UNVERIFIED` | – | unchanged | D3 |
 | | HH | unavailable | 200 | `auth_status: unavailable` | – | no | unchanged | |
 | | BM | unavailable | 200 | `auth_status: unavailable` | – | no | unchanged | |
-| | PA | unavailable | 401 | `code: active_session_unavailable`, scope `verification_unavailable` | `SESSION_UNVERIFIED` | – | unchanged | D1, D3 |
+| | PA | unavailable | 503 | `code: active_session_unavailable`, scope `verification_unavailable`, `Retry-After: 5` | `SESSION_UNVERIFIED` | – | unchanged | D1, D3 |
 | `customer_storage_unavailable` | PH | unavailable | 302 | `/signin` | `SESSION_UNVERIFIED` | – | unchanged | D3 |
 | | HH | unavailable | 200 | `auth_status: unavailable` | – | no | unchanged | |
 | | BM | unavailable | 200 | `auth_status: unavailable` | – | no | unchanged | |
-| | PA | unavailable | 401 | `code: customer_unavailable`, scope `verification_unavailable` | `SESSION_UNVERIFIED` | – | unchanged | D1, D3 |
+| | PA | unavailable | 503 | `code: customer_unavailable`, scope `verification_unavailable`, `Retry-After: 5` | `SESSION_UNVERIFIED` | – | unchanged | D1, D3 |
 
 In simple mode there is no auth database and no active-session row, so
 `revoked`, `inactive`, `absolute_expired` and
@@ -285,13 +301,18 @@ then on the state is indistinguishable from `revoked`, and both answer
 `active_session_revoked`. The deadline that fired is named only in the server
 log line.
 
-**D3. An outage answers 401 (API) and 302 to `/signin` (HTML), not 5xx.** The
-evaluator fails closed and the refusal is rendered as an authentication
-failure. #4462 requires the existing HTTP behaviour to be preserved, so this
-release keeps the statuses and adds `code_scope: verification_unavailable` so a
-client can tell an outage from a rejection. See "Evidence" for the standards
-position; moving these to 503 is a follow-up to #4469 in the same middleware.
-The public surfaces already distinguish the case (`auth_status: unavailable`).
+**D3. An outage answers 503 (API) and 302 to `/signin` (HTML), not a
+verdict.** The evaluator fails closed. On the JSON surfaces the refusal is
+rendered as 503 with `Retry-After: 5`, no `WWW-Authenticate`, and the same
+body as before plus `code_scope: verification_unavailable`, so a client tells
+an outage from a rejection by status and by scope and never treats it as a
+sign-out; the session is kept. Until v0.26.13 these answered 401, because
+#4462 required the existing HTTP behaviour to be preserved; #4469 moved them
+in the middleware that annotates the pair (`Onetime::Middleware::SessionFailureCode`).
+Protected HTML keeps its redirect: a navigation has no client to read a code,
+and `/signin` is where a kept session recovers. See "Evidence" for the
+standards position. The public surfaces already distinguish the case
+(`auth_status: unavailable`).
 
 **D4. Public surfaces report a rejected session as `anonymous`, with no
 reason.** This is deliberate: bootstrap states identity, not diagnosis, and a
@@ -483,12 +504,13 @@ is fixed in both authentication modes in this release (`RISK-2026-09-19-01`).
 
 Two observations that are not vulnerabilities are recorded as D1 (loss of the
 refusal reason on the wire, fixed here) and in "Evidence" (no
-`WWW-Authenticate` on the 401).
+`WWW-Authenticate` on the 401, fixed by #4469 in v0.27).
 
 ## Evidence
 
 Per [ADR-048](../adr/adr-048-evidence-basis-for-security-decisions.md). Each
-passage was read in the cited source on 2026-09-18.
+passage was read in the cited source on 2026-09-18 unless the passage says
+otherwise.
 
 **Session refusals answer 401.**
 [RFC 9110 §15.5.2](https://www.rfc-editor.org/rfc/rfc9110.html#section-15.5.2):
@@ -498,24 +520,62 @@ resource. The server generating a 401 response MUST send a WWW-Authenticate
 header field (Section 11.6.1) containing at least one challenge applicable to
 the target resource." A request whose session is missing, rejected or revoked
 lacks valid credentials, so 401 is the matching status.
-*Existing deviation, not introduced here:* the session 401 (rendered by Otto)
-and the `/auth` 401s send no `WWW-Authenticate`. Cookie sessions have no
-registered HTTP authentication scheme to challenge with. #4462 requires
-existing HTTP behaviour to be preserved, so this is recorded; #4469 keeps
-the statuses too, and the header is a follow-up in the same middleware.
 
-**An outage is not a credential failure; the status is kept and the scope says
+**Every annotated 401 carries a challenge.**
+[RFC 9110 §11.6.1](https://www.rfc-editor.org/rfc/rfc9110.html#section-11.6.1):
+"The "WWW-Authenticate" response header field indicates the authentication
+scheme(s) and parameters applicable to the target resource." and "A server
+generating a 401 (Unauthorized) response MUST send a WWW-Authenticate header
+field containing at least one challenge."
+[§11.1](https://www.rfc-editor.org/rfc/rfc9110.html#section-11.1): "It uses a
+case-insensitive token to identify the authentication scheme" and "Aside from
+the general framework, this document does not specify any authentication
+schemes."
+[§11.4](https://www.rfc-editor.org/rfc/rfc9110.html#section-11.4): "The realm
+authentication parameter is reserved for use by authentication schemes that
+wish to indicate a scope of protection." These three passages were read on
+2026-09-28 in the HTTP Working Group's editors' source for RFC 9110
+(`httpwg/http-core`, `draft-ietf-httpbis-semantics-latest.xml`), because
+rfc-editor.org was not reachable from the working environment; the §15.5.2
+and §15.6.4 text in that source matches the passages recorded here from the
+RFC on 2026-09-18. *OTS choice for v0.27 (#4469):* every 401 the middleware
+annotates carries `WWW-Authenticate`
+(`Onetime::Middleware::SessionFailureCode`). A cookie session has no
+registered scheme, so its challenge is the application's own token,
+`Session realm="onetimesecret"`, which the framework's `token` grammar
+permits and which no browser acts on. It is never `Basic` on a session
+refusal, including on a `sessionauth,basicauth` route: a browser opens its
+native credentials dialog on a same-origin fetch response that carries a
+`Basic` challenge, and the header the route would also accept was never
+examined. A rejected `Authorization` header (`api_key_invalid`;
+`suspended_credentials` when a header was presented) is challenged with
+`Basic realm="onetimesecret"`, the scheme the resource accepts and the
+client used. The realm is one fixed value: the header is read by machines,
+and a per-host value would have to be quoted from the request. A challenge
+an app already set is kept. Before v0.27 the session 401 (rendered by Otto)
+and the `/auth` 401s sent no `WWW-Authenticate`; #4462 required the existing
+HTTP behaviour to be preserved, so the deviation was recorded here until
+#4469 closed it.
+
+**An outage is not a credential failure: it answers 503, and the scope says
 so.** [RFC 9110 §15.6.4](https://www.rfc-editor.org/rfc/rfc9110.html#section-15.6.4):
 "The 503 (Service Unavailable) status code indicates that the server is
 currently unable to handle the request due to a temporary overload or
 scheduled maintenance, which will likely be alleviated after some delay." By
 that text 503 describes `active_session_unavailable` and
-`customer_unavailable` better than 401 does. *OTS choice for v0.26.13:* keep
-401 (D3) because #4462 forbids changing statuses in this release, and mark the
+`customer_unavailable`, and 401 does not: the session was not found to lack
+valid credentials, it was not examined. *OTS choice for v0.26.13:* keep 401
+(D3) because #4462 forbade changing statuses in that release, and mark the
 refusals `code_scope: verification_unavailable` so clients do not treat them
-as a sign-out. This is a deliberate, recorded deviation; #4469 (credential
-codes) preserves the statuses as well, and the 503 is a follow-up in the
-same middleware.
+as a sign-out. *OTS choice for v0.27 (#4469):* the JSON surfaces (the
+protected API and `/auth`) answer both reasons 503 with `Retry-After: 5`
+(delay-seconds, §10.2.3 below, the value `GET /bootstrap/me` uses) and the
+same body plus the pair, so a client tells this 503 from any other by
+`code_scope`; no `WWW-Authenticate`, since a 503 is not a request for
+credentials. Protected HTML keeps its 302. Every other scope keeps 401. A
+client that keys the scope off a 401 alone (a frontend from before v0.27)
+sees the 503 as an ordinary failed call and reconciles nothing; it is not
+signed out.
 
 **`GET /bootstrap/me` answers 503 with `Retry-After` when ordering cannot be
 allocated.** RFC 9110 §15.6.4, continuing: "The server MAY send a Retry-After
