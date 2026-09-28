@@ -23,6 +23,35 @@ directory.
 - **Deprecated:** no longer relevant, but retained as history.
 - **Superseded:** replaced by a newer ADR. Link to the replacement record.
 
+## When to Write an ADR
+
+Write an ADR for a decision that:
+
+- is expensive to reverse or constrains future options;
+- affects multiple teams or components;
+- establishes a pattern for later work; or
+- resolves a technical debate.
+
+Do not write an ADR for a decision that is:
+
+- trivial or easy to reverse;
+- an implementation detail within one component; or
+- non-contentious standard practice.
+
+When the lists conflict, the tie-break is whether the decision could
+reasonably have gone another way. An ADR needs a live alternative with a
+trade-off a future reader might reopen. A convention, heuristic, or how-to
+that sets a pattern but had no real competitor is not an ADR, even though it
+guides later work.
+
+### Where it goes instead
+
+- A local choice at one call site: a code comment there.
+- A working convention for a directory (`try/`, `spec/`, `tests/lanes/`):
+  that directory's README.
+- A procedure or recipe: `docs/development/`.
+- A rule that agents and reviewers must apply: `AGENTS.md`.
+
 ## Write a useful record
 
 Keep ADRs concise enough to read in a few minutes. Explain why the decision
@@ -80,18 +109,3 @@ After acceptance, do not rewrite the decision or its rationale. Record
 clarifications and execution details in dated Implementation Notes. When the
 decision itself changes, create a new ADR, mark the earlier one as
 Superseded, and cross-link the records.
-
-## When to Write an ADR
-
-Write an ADR for a decision that:
-
-- is expensive to reverse or constrains future options;
-- affects multiple teams or components;
-- establishes a pattern for later work; or
-- resolves a technical debate.
-
-Do not write an ADR for a decision that is:
-
-- trivial or easy to reverse;
-- an implementation detail within one component; or
-- non-contentious standard practice.
