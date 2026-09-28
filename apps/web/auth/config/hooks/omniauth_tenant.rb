@@ -223,7 +223,9 @@ module Auth::Config::Hooks
         # SigninConfig", and "master switch off".
         sso_config         = Onetime::CustomDomain::SsoConfig.find_by_domain_id(custom_domain.identifier)
         unavailable_reason = Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(
-          custom_domain.identifier, sso_config: sso_config
+          custom_domain.identifier,
+          sso_config: sso_config,
+          custom_domain: custom_domain,
         )
 
         if unavailable_reason
@@ -239,33 +241,6 @@ module Auth::Config::Hooks
           HELPERS.handle_missing_tenant_config(host, self, request: request)
           HELPERS.enforce_install_discovery_issuer!(strategy, self, is_callback_phase)
           next # Continue with platform defaults (if allowed)
-        end
-
-        # TXT VERIFICATION IS NOT A GATE HERE — make its consequence visible.
-        # Registration (resolve_custom_domain) and the availability ladder
-        # never consult `verified`, so the tenant's credentials are injected
-        # below for an unverified domain too. But every absolute URL this
-        # flow hands the IdP builds on `strategy.full_host`, and
-        # Auth::PublicHost roots that on a TXT-VERIFIED tenant host only
-        # (finding G-01); for an unverified one it falls to the canonical
-        # host (#4517), so the OIDC redirect_uri and the SAML ACS / SP entity
-        # ID name site.host while the IdP was registered against the tenant
-        # host. The IdP rejects the login and nothing else in the flow says
-        # why — this warning is that signal. Refusing outright (routing
-        # through handle_missing_tenant_config) is the consistent end state,
-        # but it must land together with the display halves that advertise
-        # SSO on the same domain (they read the ladder, which deliberately
-        # has no verification rung: see Onetime::SsoProvider::Saml
-        # .session_cookie_problem on the restrict_to hazard of adding one),
-        # so it is a follow-up, not folded into #4517.
-        unless custom_domain.verified # boolean_field native
-          Auth::Logging.log_auth_event(
-            :omniauth_tenant_domain_unverified,
-            level: :warn,
-            host: host,
-            domain_id: custom_domain.identifier,
-            provider_type: sso_config.provider_type,
-          )
         end
 
         # Cache the loaded record for the rest of this rack request: on the

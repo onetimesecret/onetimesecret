@@ -54,8 +54,16 @@ OT.info 'Cleaned Redis for custom-domain default-OFF resolver test run'
 
 # SsoConfig.create! validates (client_id + issuer required for the default
 # oidc provider), so even fixtures that only exercise enabled? carry
-# minimal-but-valid credentials.
+# minimal-but-valid credentials. Availability also requires the owning custom
+# domain to be verified, so each fixture persists that side of the relation.
 def sso_config!(domain_id, enabled:)
+  domain = Onetime::CustomDomain.new(
+    domainid: domain_id,
+    display_domain: "#{domain_id}.example.com",
+    verified: true,
+  )
+  domain.save
+
   Onetime::CustomDomain::SsoConfig.create!(
     domain_id: domain_id, enabled: enabled,
     client_id: "client-#{domain_id}", issuer: 'https://idp.example.com',

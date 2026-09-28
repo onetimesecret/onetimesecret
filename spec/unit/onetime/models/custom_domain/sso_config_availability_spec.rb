@@ -7,6 +7,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
   describe '.sso_available_for_tenant_host?' do
     let(:domain_id) { 'tenant-saml-availability' }
     let(:providers) { [{ 'route_name' => 'saml' }] }
+    let(:custom_domain) { instance_double(Onetime::CustomDomain, verified: true) }
     let(:auth_config) do
       instance_double(Onetime::AuthConfig,
         allow_platform_fallback_for_tenants?: true,
@@ -57,7 +58,12 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
     it 'preserves native tenant SAML independently of platform fallback and providers' do
       allow(described_class).to receive(:find_by_domain_id).with(domain_id)
-        .and_return(instance_double(described_class, enabled?: true, provider_type: 'saml'))
+        .and_return(instance_double(
+          described_class,
+          enabled?: true,
+          provider_type: 'saml',
+          custom_domain: custom_domain,
+        ))
       allow(auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
       allow(auth_config).to receive(:sso_enabled?).and_return(false)
       expect(described_class.sso_available_for_tenant_host?(domain_id)).to be true

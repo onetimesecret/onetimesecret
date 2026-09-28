@@ -80,14 +80,15 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
         domain
       end
     end
+    domain
   end
 
   def stub_tenant(config, available: true)
-    stub_domain
+    domain = stub_domain
     allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
       .with(domain_id).and_return(config)
     allow(Onetime::CustomDomain::SsoConfig).to receive(:tenant_sso_available_for?)
-      .with(domain_id, sso_config: config).and_return(available)
+      .with(domain_id, sso_config: config, custom_domain: domain).and_return(available)
   end
 
   describe 'pre-read guards (no datastore work unless the response can carry a CSP)' do
