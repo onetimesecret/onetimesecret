@@ -86,6 +86,9 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
     test_custom_domain.verified = false
     test_custom_domain.save
 
+    # The hook logs other events (e.g. :omniauth_tenant_resolution_start) on
+    # every request; let those through so only the refusal is pinned.
+    allow(Auth::Logging).to receive(:log_auth_event).and_call_original
     expect(Auth::Logging).to receive(:log_auth_event).with(
       :omniauth_tenant_sso_not_enabled,
       level: :info,
