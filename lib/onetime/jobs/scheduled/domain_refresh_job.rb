@@ -40,7 +40,23 @@ module Onetime
       # not queued. Two runs at once would double the outbound lookups and
       # let both write the same domain. The skipped tick's page waits one
       # extra walk, the same cost as any other missed tick (see page_offset).
-      # The guard is per process; run one scheduler process per deployment.
+      #
+      # Single-instance assumption: overlap: false is a guard inside one
+      # scheduler process, and nothing coordinates between processes. The
+      # codebase has no cross-process lock for scheduled jobs (the SET NX
+      # uses in lib/onetime/jobs are per-message idempotency claims), and
+      # every scheduled job relies on the same assumption: one
+      # `bin/ots scheduler` per datastore. The shipped deployments hold to
+      # it: docker-compose.full.yml defines one fixed-name scheduler
+      # container, and the S6 image supervises one scheduler per container.
+      # Replicating the all-in-one S6 container does break it; extra
+      # replicas should run the web server only (docker/s6/README.md).
+      #
+      # With two schedulers on one datastore this job stays correct but
+      # wasteful: the page is derived from the clock, so both processes pick
+      # the same page on the same tick, make the same lookups and write the
+      # same answers. Under approximated that doubles the API calls against
+      # its rate cap. See lib/onetime/jobs/README.md, "Scheduler".
       class DomainRefreshJob < ScheduledJob
         DEFAULT_BATCH_SIZE             = 200
         DEFAULT_INTERVAL               = '30m'

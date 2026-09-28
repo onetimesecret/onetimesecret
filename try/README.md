@@ -85,4 +85,21 @@ code_to_test
 **Tryouts are best for:** Realistic code examples, happy paths, demonstrating how things work.
 **Use RSpec for:** Edge cases, mocks, complex state machines, security validation.
 
+### Tryouts or RSpec
+
+The deciding question is whether the test has to alter process-shared state
+and restore it afterwards. Tryouts run every file of an invocation in one Ruby
+process, teardown is skipped when setup raises, and a `prepend` or reopened
+class can never be undone. So a tryout that patches a library class, a Familia
+model, or a frozen index object to observe a call leaks that patch into every
+later file. RSpec stubs are installed per example and restored on every exit
+path, so instrumentation belongs there: stub the app-level accessor to return
+a delegator over the real object, record what you need, and let RSpec put the
+accessor back (`spec/unit/onetime/models/custom_domain/destroy_canonical_release_spec.rb`).
+
+A linear scenario over real records, with no stubs and no patches, stays a
+tryout. The same real datastore is available in both, so the choice is about
+restoring shared state, not about doubles versus Valkey. This is the
+per-file application of ADR-007: tests that pollute a shared process are debt.
+
 See `pnpm run test:tryouts --help` for full options and expectation types (`#=>`, `#==>`, `#=:>`, etc.)

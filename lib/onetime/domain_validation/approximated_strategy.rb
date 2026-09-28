@@ -57,6 +57,13 @@ module Onetime
 
       # Validates domain ownership via TXT record.
       #
+      # Approximated's checker is asked first. Whenever it gives no answer
+      # about the customer's DNS our own lookup (TxtVerifier) decides, see
+      # #classify_ownership. That covers a 200 whose lookup failed and also
+      # the cases where the checker could not be asked at all: no API key, a
+      # non-200 response, a client exception. None of those says anything
+      # about the TXT record, so none of them is reported as a failed check.
+      #
       # @param custom_domain [Onetime::CustomDomain]
       # @return [Hash] See BaseStrategy#validate_ownership
       #
@@ -64,7 +71,7 @@ module Onetime
         api_key = Features.api_key
 
         if api_key.to_s.empty?
-          return { validated: false, message: 'Approximated API key not configured' }
+          return upstream_unavailable(custom_domain, 'Approximated API key not configured')
         end
 
         records = [{
@@ -81,15 +88,11 @@ module Onetime
 
           classify_ownership(custom_domain, match_records)
         else
-          {
-            validated: false,
-            message: "Validation check failed: #{res.code}",
-            error: res.parsed_response,
-          }
+          upstream_unavailable(custom_domain, "Validation check failed: #{res.code}", error: res.parsed_response)
         end
       rescue StandardError => ex
         OT.le "[ApproximatedStrategy] Error validating #{custom_domain.display_domain}: #{ex.message}"
-        { validated: false, message: "Error: #{ex.message}" }
+        upstream_unavailable(custom_domain, "Error: #{ex.message}")
       end
 
       # Requests SSL certificate by creating a vhost.
@@ -335,6 +338,34 @@ module Onetime
         classify_native(custom_domain, match_records)
       end
 
+      # The upstream checker could not be asked (no API key, non-200, client
+      # exception). Settled by the native lookup exactly like an indeterminate
+      # upstream answer, so the outcome is validated / failed on DNS evidence
+      # or indeterminate, and VerifyDomain's confirmation window bounds how
+      # long an indeterminate run holds `verified`. A deployment whose API key
+      # is missing or revoked therefore keeps confirming its domains natively.
+      #
+      # The NXDOMAIN probe is skipped: it needs the same upstream call.
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @param reason [String] why upstream gave no answer
+      # @param error [Object, nil] upstream response body, when there is one
+      # @return [Hash] See BaseStrategy#validate_ownership
+      #
+      def upstream_unavailable(custom_domain, reason, error: nil)
+        OT.lw "[ApproximatedStrategy] Upstream TXT check unavailable for #{custom_domain.display_domain}: #{reason}"
+
+        result         = classify_native(custom_domain, [], unavailable: reason)
+        result[:error] = error if error
+        result
+      rescue StandardError => ex
+        # Ours, not the customer's DNS (e.g. the domain could not produce its
+        # validation record).
+        OT.le "[ApproximatedStrategy] Native fallback failed for #{custom_domain.display_domain}: " \
+              "#{ex.class}: #{ex.message}"
+        { validated: nil, indeterminate: true, message: "#{reason}; native lookup error: #{ex.message}" }
+      end
+
       # Settles an indeterminate upstream result with our own TXT lookup.
       # See classify_ownership for the reasoning.
       #
@@ -343,9 +374,11 @@ module Onetime
       #
       # @param custom_domain [Onetime::CustomDomain]
       # @param match_records [Array<Hash>] upstream 'records' (indeterminate)
+      # @param unavailable [String, nil] set when upstream was never asked or
+      #   did not answer 200 (see #upstream_unavailable)
       # @return [Hash] See BaseStrategy#validate_ownership
       #
-      def classify_native(custom_domain, match_records)
+      def classify_native(custom_domain, match_records, unavailable: nil)
         native = txt_verifier.verify(custom_domain.validation_record, custom_domain.txt_validation_value)
         data   = match_records + Array(native[:data])
 
@@ -365,18 +398,25 @@ module Onetime
         end
 
         if definitive
+          upstream = unavailable ? "upstream checker unavailable: #{unavailable}" : 'upstream checker indeterminate'
           return {
             validated: native[:validated],
-            message: "#{native[:message]} (native lookup; upstream checker indeterminate)",
+            message: "#{native[:message]} (native lookup; #{upstream})",
             data: data,
             source: native[:source],
           }
         end
 
+        message = if unavailable
+          "Upstream DNS checker unavailable (indeterminate; #{unavailable})"
+        else
+          'Upstream DNS checker returned no result (indeterminate)'
+        end
+
         {
           validated: nil,
           indeterminate: true,
-          message: "Upstream DNS checker returned no result (indeterminate); native lookup: #{native[:message]}",
+          message: "#{message}; native lookup: #{native[:message]}",
           data: data,
         }
       end

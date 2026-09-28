@@ -241,6 +241,7 @@ module Onetime
           previous_state: domain&.verification_state,
           current_state: domain&.verification_state,
           dns_validated: false,
+          dns_indeterminate: true, # nothing was learned about the TXT record
           ssl_ready: nil,
           is_resolving: nil,
           persisted: false,
@@ -282,7 +283,7 @@ module Onetime
       # Validate domain ownership via TXT record
       #
       # @param domain [Onetime::CustomDomain]
-      # @return [Hash] { validated: Boolean, message: String, data: Hash }
+      # @return [Hash] { validated: Boolean or nil, message: String, data: Hash }
       def validate_ownership(domain)
         result = strategy.validate_ownership(domain)
         logger.debug 'DNS validation result',
@@ -293,7 +294,10 @@ module Onetime
         logger.error 'DNS validation error',
           domain: domain.display_domain,
           error: ex.message
-        { validated: false, message: ex.message, data: nil }
+        # An exception is ours or the provider's, never evidence about the
+        # customer's DNS: indeterminate, so the stored flag is left alone and
+        # the confirmation window bounds how long that can last.
+        { validated: nil, indeterminate: true, message: ex.message, data: nil }
       end
 
       # Warn on the outcomes an operator needs to find without a console
