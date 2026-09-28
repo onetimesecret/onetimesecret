@@ -86,12 +86,17 @@ RSpec.describe 'Remember me: a fixed 14-day session (full mode)', type: :integra
       remember_until = session_blob.fetch('remember_until')
       Familia.dbclient.expire(session_store.find_key(Familia.dbclient, current_session_id), duration - 3600)
 
+      # The server computes the TTL and Max-Age from its own clock during the
+      # request. Bound them by the clock reading taken before the request so
+      # a second ticking between the request and the assertion cannot make
+      # the bound one second tighter than what the server saw.
+      before_request = Time.now.to_i
       expect(account_request).to eq(200)
 
       expect(session_blob.fetch('remember_until')).to eq(remember_until)
-      expect(blob_ttl).to be <= (remember_until - Time.now.to_i)
+      expect(blob_ttl).to be <= (remember_until - before_request)
       max_age = session_cookie_header && session_cookie_header[/max-age=(\d+)/i, 1]
-      expect(max_age.to_i).to be <= (remember_until - Time.now.to_i) if max_age
+      expect(max_age.to_i).to be <= (remember_until - before_request) if max_age
     end
 
     it 'survives idling past the inactivity deadline' do
