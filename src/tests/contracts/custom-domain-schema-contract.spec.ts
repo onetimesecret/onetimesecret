@@ -4,8 +4,11 @@
 // all fields the backend sends. Prevents silent field stripping (issue #2685).
 
 import { domainIconMetaCanonical, vhostCanonical } from '@/schemas/contracts/custom-domain';
-import { vhostSchema } from '@/schemas/shapes/v2/custom-domain/vhost';
-import { customDomainSchema } from '@/schemas/shapes/v3/custom-domain';
+import { vhostSchema as v2VhostSchema } from '@/schemas/shapes/v2/custom-domain/vhost';
+import {
+  customDomainSchema,
+  vhostSchema as v3VhostSchema,
+} from '@/schemas/shapes/v3/custom-domain';
 import { describe, expect, it } from 'vitest';
 
 import { CUSTOM_DOMAIN_SAFE_DUMP_FIELDS } from './custom-domain-safe-dump-fields';
@@ -99,6 +102,8 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
         has_ssl: true,
         is_resolving: true,
         apx_hit: true,
+        ssl_checked_unix: 1725148800,
+        ssl_inconclusive: true,
       },
       verified: true,
       created: 1609372800,
@@ -134,13 +139,45 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
       }
       expect(result.success).toBe(true);
     });
+
+    it('retains SSL probe metadata in the parsed domain record', () => {
+      const parsed = customDomainSchema.parse(realisticPayload);
+
+      expect(parsed.vhost?.ssl_checked_unix).toEqual(new Date('2024-09-01T00:00:00.000Z'));
+      expect(parsed.vhost?.ssl_inconclusive).toBe(true);
+    });
+  });
+
+  describe('vhost SSL probe metadata', () => {
+    const sslCheckedUnix = 1725148800;
+    const sslCheckedAt = new Date('2024-09-01T00:00:00.000Z');
+
+    it('retains V2 string booleans and epoch timestamps', () => {
+      const parsed = v2VhostSchema.parse({
+        ssl_checked_unix: sslCheckedUnix,
+        ssl_inconclusive: 'true',
+      });
+
+      expect(parsed.ssl_checked_unix).toEqual(sslCheckedAt);
+      expect(parsed.ssl_inconclusive).toBe(true);
+    });
+
+    it('retains V3 native booleans and epoch timestamps', () => {
+      const parsed = v3VhostSchema.parse({
+        ssl_checked_unix: sslCheckedUnix,
+        ssl_inconclusive: true,
+      });
+
+      expect(parsed.ssl_checked_unix).toEqual(sslCheckedAt);
+      expect(parsed.ssl_inconclusive).toBe(true);
+    });
   });
 
   describe('vhost keep_host compatibility', () => {
     it('accepts the upstream boolean and legacy string encodings', () => {
       for (const keep_host of [true, false, 'true', 'false']) {
         expect(vhostCanonical.safeParse({ keep_host }).success).toBe(true);
-        expect(vhostSchema.safeParse({ keep_host }).success).toBe(true);
+        expect(v2VhostSchema.safeParse({ keep_host }).success).toBe(true);
       }
     });
 
@@ -152,7 +189,7 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
     it('accepts null and an absent key', () => {
       for (const vhost of [{ keep_host: null }, {}]) {
         expect(vhostCanonical.safeParse(vhost).success).toBe(true);
-        expect(vhostSchema.safeParse(vhost).success).toBe(true);
+        expect(v2VhostSchema.safeParse(vhost).success).toBe(true);
       }
     });
   });
