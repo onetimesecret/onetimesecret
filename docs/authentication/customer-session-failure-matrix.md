@@ -114,28 +114,72 @@ Scopes are what a client acts on:
 - `verification_unavailable`: the session could not be verified. Not a verdict
   and never a sign-out.
 - `admin_session`: the admin-only timeout. The customer session is untouched.
-- `credential` is reserved for login, reauthentication and API-key rejections
-  (#4469) and is not emitted. A 401 without a `code` makes no statement about
-  the customer session: that includes a rejected `Authorization` header, a
-  failed login, the route-level `Authentication required` refusals inside
-  `apps/web/auth/routes/*.rb` for a request Rodauth does not consider logged
-  in, and any backend that predates this contract.
+- `credential`: a credential the request presented was examined and rejected
+  (#4469). Not a statement about the customer session, which may be valid;
+  the form or client that sent the credential owns the message. A 401
+  without a `code` still makes no statement about the customer session: a
+  backend that predates this contract, or a 401 that is about neither (an
+  expired SSO-linking token, `link_expired`).
 
-How the pair gets onto the response:
+### Credential codes (#4469)
 
-- Otto surfaces: Otto renders the 401 inside the gem from the failure string
-  alone. `BaseSessionAuthStrategy#failure_for` stashes the typed reason in the
-  Rack env and `Onetime::Middleware::SessionFailureCode` adds the pair to the
-  body. It annotates only a JSON 401 produced by Otto's auth chain after a
-  session strategy refused, and never when the request carried an
-  `Authorization` header.
-- `/auth`: `Auth::Router#session_refusal` merges the pair into the four
-  refusal bodies, keyed by the reason the router acted on
-  (`Auth::SessionRecheck`'s where it differs from the evaluator's).
+The credential vocabulary lives beside the session reasons in
+`lib/onetime/session/failure_code.rb` (`CREDENTIAL_REASON_SCOPES`). Each code
+is no more granular than the message its path already sent, so a code never
+distinguishes an unknown account from a wrong password or an unverified one.
+
+| `code` | `code_scope` | Where | Status |
+|---|---|---|---|
+| `invalid_credentials` | `credential` | `POST /auth/login` (Rodauth's `no matching login` and `invalid password` alike), a passkey assertion, a second factor (`otp-auth`, `recovery-auth`, `webauthn-auth`), a password confirmation on an account route (`change-password`, `change-login`, `close-account`, `otp-setup`, `otp-disable`, `webauthn-setup`, `webauthn-remove`, `recovery-codes`), `POST /auth/reauth`, the password on `POST /auth/link-sso`, and the simple-mode `POST /auth/login` | 401 |
+| `api_key_invalid` | `credential` | A rejected `Authorization` header on any `basicauth` route: wrong scheme, malformed payload, unknown account, wrong key (one code, one constant-time path) | 401 |
+| `suspended_credentials` | `credential` | A valid API key, or the simple-mode password, on a suspended account. Only observable to a holder of the valid credential | 401 |
+
+Uncoded on purpose:
+
+- Rodauth answers a locked-out account and an unverified one with 403
+  (`lockout_error_status`, `unopen_account_error_status`, rodauth 2.45.0
+  `lib/rodauth/features/base.rb:54,81`); the pair is annotated on 401s only.
+- A missing `Authorization` header on a `basicauth,noauth` route is not a
+  rejected credential: the request proceeds as anonymous.
+- `link_expired` on the SSO-linking routes, the `invalid_session` answer of
+  `POST /auth/reauth`, and the orphaned-session `session_expired` in
+  `config/overrides/error_handling.rb` are about neither the session verdict
+  nor a credential.
+
+How the pair gets onto the response (`Onetime::Middleware::SessionFailureCode`,
+mounted once in the universal stack, annotates every surface):
+
+- Otto session refusals: Otto renders the 401 inside the gem from the failure
+  string alone. `BaseSessionAuthStrategy#failure_for` stashes the typed
+  reason in the Rack env before the chain resolves, so the middleware honours
+  it only when Otto's auth chain produced the response. A `sessionauth`-only
+  route reached with an `Authorization` header is coded with the session
+  reason: the header was never examined.
+- Otto credential refusals: `BasicAuthStrategy` stashes `api_key_invalid` or
+  `suspended_credentials` on the terminal failure that fails the chain
+  closed (`Helpers#credentialed_failure`); on a `sessionauth,basicauth` chain
+  that replaces the session strategy's stash. The simple-mode sign-in
+  controller stashes through `Core::Controllers::Base#handle_form_error`.
+- `/auth` session refusals: `Auth::Router#session_refusal` merges the pair
+  into the four refusal bodies, keyed by the reason the router acted on
+  (`Auth::SessionRecheck`'s where it differs from the evaluator's). For a
+  request with no session the router stashes the anonymous reason before
+  `r.rodauth`, so a login-required refusal from Rodauth (`Please login to
+  continue`) or from a custom route (`Authentication required`) carries
+  `session_missing` / `not_authenticated`.
+- `/auth` credential refusals: one seam, Rodauth's `set_error_reason`
+  (`config/overrides/failure_code.rb`, policy in
+  `Auth::CredentialFailureCode`). A rejected credential replaces the router's
+  stash; `login_required` keeps it; every other Rodauth reason withdraws it.
+  `POST /auth/reauth` and `POST /auth/link-sso` stash their own.
 
 The frontend's copy is `src/schemas/contracts/session-failure.ts`;
 `spec/unit/onetime/session/failure_code_spec.rb` fails if the two tables
-differ.
+differ. Every auth and account route's declared requirement and codes are in
+`spec/support/auth_route_failure_codes.rb`;
+`spec/unit/onetime/session/failure_code_route_coverage_spec.rb` and
+`spec/integration/full/auth_route_failure_code_coverage_spec.rb` fail on a
+route that exists without a declaration.
 
 ### Snapshot ordering fields (ADR-046)
 
@@ -246,8 +290,8 @@ evaluator fails closed and the refusal is rendered as an authentication
 failure. #4462 requires the existing HTTP behaviour to be preserved, so this
 release keeps the statuses and adds `code_scope: verification_unavailable` so a
 client can tell an outage from a rejection. See "Evidence" for the standards
-position; moving these to 503 is left to #4469. The public surfaces already
-distinguish the case (`auth_status: unavailable`).
+position; moving these to 503 is a follow-up to #4469 in the same middleware.
+The public surfaces already distinguish the case (`auth_status: unavailable`).
 
 **D4. Public surfaces report a rejected session as `anonymous`, with no
 reason.** This is deliberate: bootstrap states identity, not diagnosis, and a
@@ -457,8 +501,8 @@ lacks valid credentials, so 401 is the matching status.
 *Existing deviation, not introduced here:* the session 401 (rendered by Otto)
 and the `/auth` 401s send no `WWW-Authenticate`. Cookie sessions have no
 registered HTTP authentication scheme to challenge with. #4462 requires
-existing HTTP behaviour to be preserved, so this is recorded and left for
-#4469.
+existing HTTP behaviour to be preserved, so this is recorded; #4469 keeps
+the statuses too, and the header is a follow-up in the same middleware.
 
 **An outage is not a credential failure; the status is kept and the scope says
 so.** [RFC 9110 §15.6.4](https://www.rfc-editor.org/rfc/rfc9110.html#section-15.6.4):
@@ -469,8 +513,9 @@ that text 503 describes `active_session_unavailable` and
 `customer_unavailable` better than 401 does. *OTS choice for v0.26.13:* keep
 401 (D3) because #4462 forbids changing statuses in this release, and mark the
 refusals `code_scope: verification_unavailable` so clients do not treat them
-as a sign-out. This is a deliberate, recorded deviation with #4469 as its
-remedy.
+as a sign-out. This is a deliberate, recorded deviation; #4469 (credential
+codes) preserves the statuses as well, and the 503 is a follow-up in the
+same middleware.
 
 **`GET /bootstrap/me` answers 503 with `Retry-After` when ordering cannot be
 allocated.** RFC 9110 §15.6.4, continuing: "The server MAY send a Retry-After
