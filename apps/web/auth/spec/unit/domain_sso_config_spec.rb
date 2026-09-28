@@ -492,6 +492,9 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
   describe '.tenant_sso_unavailable_reason' do
     let(:domain_id) { 'dom_ladder_test' }
+    let(:custom_domain) do
+      instance_double(Onetime::CustomDomain, identifier: domain_id, verified: true)
+    end
 
     before do
       allow(Onetime::CustomDomain::SigninConfig).to receive_messages(
@@ -502,28 +505,60 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
     it 'returns :unsupported_provider_type for a pre-#3902 legacy provider_type' do
       config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'google')
-      expect(described_class.tenant_sso_unavailable_reason(domain_id, sso_config: config))
-        .to eq(:unsupported_provider_type)
+      expect(described_class.tenant_sso_unavailable_reason(
+        domain_id,
+        sso_config: config,
+        custom_domain: custom_domain,
+      )).to eq(:unsupported_provider_type)
     end
 
     it 'returns :sso_config_disabled before reaching the provider_type check' do
       config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'google')
 
       config.enabled = 'false'
-      expect(described_class.tenant_sso_unavailable_reason(domain_id, sso_config: config))
-        .to eq(:sso_config_disabled)
+      expect(described_class.tenant_sso_unavailable_reason(
+        domain_id,
+        sso_config: config,
+        custom_domain: custom_domain,
+      )).to eq(:sso_config_disabled)
     end
 
     it 'returns :unsupported_provider_type before reaching the sso_permitted_for? check' do
       allow(Onetime::CustomDomain::SigninConfig).to receive(:sso_permitted_for?).and_return(false)
 
       config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'github')
-      expect(described_class.tenant_sso_unavailable_reason(domain_id, sso_config: config))
-        .to eq(:unsupported_provider_type)
+      expect(described_class.tenant_sso_unavailable_reason(
+        domain_id,
+        sso_config: config,
+        custom_domain: custom_domain,
+      )).to eq(:unsupported_provider_type)
     end
 
-    it 'returns nil for a supported, enabled provider_type' do
+    it 'returns :domain_unverified before reaching the SigninConfig gate' do
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:sso_permitted_for?).and_return(false)
+      allow(custom_domain).to receive(:verified).and_return(false)
+
       config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'oidc')
+      expect(described_class.tenant_sso_unavailable_reason(
+        domain_id,
+        sso_config: config,
+        custom_domain: custom_domain,
+      )).to eq(:domain_unverified)
+    end
+
+    it 'returns nil for a supported, enabled provider_type on a verified domain' do
+      config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'oidc')
+      expect(described_class.tenant_sso_unavailable_reason(
+        domain_id,
+        sso_config: config,
+        custom_domain: custom_domain,
+      )).to be_nil
+    end
+
+    it 'resolves verification through the config association when no domain is preloaded' do
+      config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'oidc')
+      allow(config).to receive(:custom_domain).and_return(custom_domain)
+
       expect(described_class.tenant_sso_unavailable_reason(domain_id, sso_config: config)).to be_nil
     end
   end

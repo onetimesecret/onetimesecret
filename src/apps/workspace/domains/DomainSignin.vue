@@ -332,6 +332,7 @@ watch(canFetchSsoConfig, async (allowed) => {
         :is-open="showSsoModal"
         :domain-ext-id="props.extid"
         :domain-host="customDomainRecord?.display_domain ?? ''"
+        :domain-verified="customDomainRecord?.verified === true"
         :org-id="props.orgid"
         v-model:form-state="ssoFormState"
         :sso-config="ssoConfig"

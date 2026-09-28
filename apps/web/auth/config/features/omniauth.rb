@@ -152,13 +152,33 @@ module Auth::Config::Features
     # The scoping rules — which hosts count as "resolved for this request",
     # why the canonical set is excluded, why this is NOT gated on
     # `domain_strategy == :custom` — live with the resolver in
-    # Auth::PublicHost, which Rodauth's `base_url` override reads too so a
-    # redirect_uri and an email link can never disagree about the host.
+    # Auth::PublicHost. This reads the SAME three-tier chain Rodauth's
+    # `base_url` override reads (Auth::PublicHost.allowlisted_base_url:
+    # verified tenant host → the request's own canonical host → configured
+    # site.host), so a redirect_uri and an email link can never disagree
+    # about the host.
+    #
+    # ## Never the raw authority (#4517)
+    #
+    # Until #4517 only the tenant tier lived here and every other request fell
+    # to Rack's `base_url`, i.e. the `Host:` header verbatim. StripForwardedHost
+    # (#4319) removes X-Forwarded-Host at the stack edge, so Rack no longer
+    # had a forwarded value to prefer and a proxy that sends a doubled
+    # `Host: a, a` (a `proxy_set_header Host` layered on a header the client
+    # already sent) produced `redirect_uri=https://a, a/auth/sso/...` for
+    # platform SSO on the canonical host. The canonical tiers make the
+    # authority irrelevant to the HOST: DomainStrategy pins `display_domain`
+    # to the canonical host on exactly those requests, and that is what the
+    # URL builds on (the port still comes from the request, so a doubled Host
+    # on a non-default-port site.host yields the host without its port — see
+    # Auth::PublicHost.origin_for). Rack stays only as the last resort behind
+    # an UNCONFIGURED site.host — the same misconfiguration Rodauth's
+    # `super()` covers.
     #
     # @param env [Hash] Rack environment
     # @return [String] scheme://host[:port] for this request
     def self.full_host_for(env)
-      Auth::PublicHost.base_url(env) || Rack::Request.new(env).base_url
+      Auth::PublicHost.allowlisted_base_url(env) || Rack::Request.new(env).base_url
     end
 
     # The public host when it is one the middleware tier actually resolved for
@@ -175,13 +195,12 @@ module Auth::Config::Features
     # Host-rewriting proxy; DetectHost still ran and still holds the browser's
     # host, gated on proxy trust.
     #
-    # nil keeps OmniAuth's own derivation, which is what the canonical set and
-    # local development want: DetectHost rejects `localhost`/`127.0.0.1`
-    # outright, so a dev flow never reaches here with a host to swap in and
-    # cannot be bounced to the canonical domain mid-authentication.
+    # nil means "not a tenant request": the tenant hook then leaves the
+    # platform credentials in place, and .full_host_for builds the URL on the
+    # canonical tiers instead (never on the raw authority — see there).
     #
     # @param env [Hash] Rack environment
-    # @return [String, nil] public host, or nil to keep OmniAuth's derivation
+    # @return [String, nil] public tenant host, or nil
     def self.public_host_for(env)
       Auth::PublicHost.resolve(env)
     end

@@ -347,4 +347,23 @@ RSpec.describe 'Auth::Migrator SQLite Integration', :sqlite_database do
       expect(ids.where(uid: 'dup-sub').count).to eq(2)
     end
   end
+
+  # 011 adds the nullable remember_until column the gate and the sweep read
+  # (lib/onetime/session/remember_me.rb). Existing rows must come through
+  # as NULL (not remembered), and the column must go away cleanly on rollback.
+  describe 'remember_until migration (011)' do
+    it 'adds a nullable remember_until to account_active_session_keys and removes it on rollback', :aggregate_failures do
+      Sequel::Migrator.run(test_db, migrations_dir, target: 10)
+      acct = insert_account(test_db, 'remember-migration@example.com')
+      test_db[:account_active_session_keys].insert(account_id: acct, session_id: 'pre-011')
+
+      Sequel::Migrator.run(test_db, migrations_dir, target: 11)
+      expect(test_db.schema(:account_active_session_keys).to_h).to include(remember_until: hash_including(allow_null: true))
+      expect(test_db[:account_active_session_keys].where(session_id: 'pre-011').get(:remember_until)).to be_nil
+
+      Sequel::Migrator.run(test_db, migrations_dir, target: 10)
+      expect(test_db.schema(:account_active_session_keys).map(&:first)).not_to include(:remember_until)
+      expect(test_db[:account_active_session_keys].where(session_id: 'pre-011').count).to eq(1)
+    end
+  end
 end

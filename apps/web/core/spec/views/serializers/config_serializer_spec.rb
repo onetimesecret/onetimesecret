@@ -1018,6 +1018,18 @@ RSpec.describe Core::Views::ConfigSerializer do
           described_class.build_sso_config(custom_domain_view_vars)
         end
 
+        it 'does not advertise the tenant provider on an unverified domain' do
+          allow(custom_domain_obj).to receive(:verified).and_return(false)
+          allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+
+          # The unverified refusal exits through the fallback-withheld guard,
+          # the same two-key shape as the master-switch-off example above.
+          expect(described_class.build_sso_config(custom_domain_view_vars)).to eq(
+            'enabled' => false,
+            'providers' => [],
+          )
+        end
+
         # Single-read contract: the availability check and the returned
         # record must come from ONE find_by_domain_id call, so a concurrent
         # disable/delete cannot pass the check on one read and hand back a

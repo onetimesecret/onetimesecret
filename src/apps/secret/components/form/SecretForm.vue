@@ -131,7 +131,7 @@
     togglePassphraseVisibility,
   } = usePrivacyOptions(operations);
 
-  const { currentContext, isContextActive } = useDomainContext();
+  const { currentContext, isContextActive, hasMultipleContexts } = useDomainContext();
 
   // Compute whether the form has content or not
   const hasContent = computed(() => !!form.secret && (form.secret as string).trim().length > 0);
@@ -183,11 +183,14 @@
     { immediate: true }
   );
 
-  // On a custom domain the form can only ever target that one domain, so the
-  // "Creating links for <domain>" badge is noise. Only surface it where the
-  // domain context is an actual choice (the workspace multi-domain case).
+  // Show the "Creating links for <domain>" badge only when the user can choose
+  // between domains. A fixed custom domain and a canonical-only account have no
+  // domain choice, so the badge would only add noise.
   const showDomainContext = computed(
-    () => isContextActive.value && domainStrategy.value !== 'custom'
+    () =>
+      isContextActive.value &&
+      hasMultipleContexts.value &&
+      domainStrategy.value !== 'custom'
   );
 
   // Focus management when switching between Create Link and Generate Password modes

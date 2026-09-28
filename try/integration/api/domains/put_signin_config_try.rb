@@ -390,6 +390,9 @@ Onetime::CustomDomain::SigninConfig.global_signin_enabled
 
 ## GET details: SSO-only tenant (enabled SsoConfig, NO SigninConfig) — effective_enabled true (SSO carve-out)
 @domain_ssoonly = Onetime::CustomDomain.create!("psc-ssoonly-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+# TXT-verified: tenant SSO requires a verified domain (#4517).
+@domain_ssoonly.verified = true
+@domain_ssoonly.save
 Onetime::CustomDomain::SsoConfig.create!(
   domain_id: @domain_ssoonly.identifier,
   provider_type: 'oidc',
@@ -546,6 +549,9 @@ Onetime::CustomDomain::SsoConfig.create!(
 
 ## Enabled tenant credentials — available, no reason
 @domain_sso_on = Onetime::CustomDomain.create!("psc-sso-on-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+# TXT-verified: tenant SSO requires a verified domain (#4517).
+@domain_sso_on.verified = true
+@domain_sso_on.save
 Onetime::CustomDomain::SsoConfig.create!(
   domain_id: @domain_sso_on.identifier,
   provider_type: 'oidc',

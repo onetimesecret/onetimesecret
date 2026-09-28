@@ -97,6 +97,17 @@ if domain && domain.org_id.to_s != org.objid.to_s
 end
 domain ||= Onetime::CustomDomain.create!(TENANT_HOST, org.objid)
 
+# TXT-verified, every run: Auth::PublicHost (finding G-01) roots the OIDC
+# redirect_uri on a tenant host only when its ownership is proven, and since
+# #4517 an unverified domain builds it on the canonical host instead, where
+# the Connect callback would land on another origin and lose the session.
+# The journey models a verified tenant, the same shape the auth app's
+# tenant_test_fixtures seed.
+unless domain.verified # boolean_field native
+  domain.verified = true
+  domain.save
+end
+
 # Recreate the credentials store every run so the issuer always matches the
 # E2E_TENANT_CONNECT_ISSUER the boot shim asserts in the mock auth hash.
 Onetime::CustomDomain::SsoConfig.delete_for_domain!(domain.identifier) if Onetime::CustomDomain::SsoConfig.exists_for_domain?(domain.identifier)

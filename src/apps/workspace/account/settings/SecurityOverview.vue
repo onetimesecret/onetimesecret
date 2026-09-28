@@ -217,6 +217,9 @@
 
 <template>
   <SettingsLayout>
+    <!-- Card and empty-state titles are h2: SettingsLayout renders the page
+         h1, and skipping to h3 fails axe heading-order. Size comes from the
+         classes, not the tag. -->
     <div class="space-y-8">
       <!-- SSO empty state — shown when all cards are filtered out. Gated on
            the policy axis too (#3886): this copy means "SSO-enforced, managed
@@ -242,9 +245,9 @@
               aria-hidden="true" />
           </div>
           <div>
-            <h3 class="text-base font-medium text-gray-900 dark:text-white">
+            <h2 class="text-base font-medium text-gray-900 dark:text-white">
               {{ t('web.settings.security.sso_managed_title') }}
-            </h3>
+            </h2>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
               {{ t('web.settings.security.sso_managed_description') }}
             </p>
@@ -276,9 +279,9 @@
                 aria-hidden="true" />
             </div>
             <div class="flex-1">
-              <h3 class="text-base font-medium text-gray-900 dark:text-white">
+              <h2 class="text-base font-medium text-gray-900 dark:text-white">
                 {{ card.title }}
-              </h3>
+              </h2>
               <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                 {{ card.description }}
               </p>

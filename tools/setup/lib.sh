@@ -1,8 +1,10 @@
 # shellcheck shell=bash
-# scripts/setup/lib.sh
+# tools/setup/lib.sh
 #
-# Shared spine for bin/setup. Sourced, not executed. Callers run under
-# `set -euo pipefail`.
+# Shared spine for tools/setup/setup.sh (the lanes behind bin/setup) and
+# tools/setup/new-worktree.sh. Sourced, not executed. setup.sh runs under
+# `set -euo pipefail`; new-worktree.sh leaves out -e because it must always
+# exit 0.
 #
 # Bash 3.2 compatible on purpose: macOS ships 3.2, and the old
 # install-dev.sh hard-failed there over a single associative array (DX-15).
@@ -228,6 +230,58 @@ install_node() {
   fi
 }
 
+# --- Playwright browsers (test lane only) --------------------------------
+#
+# tests/browser/saml_callback.mjs drives real chromium/firefox/webkit via
+# @playwright/test, and CI installs that trio before running it (ci.yml).
+# The dev lane never does this: the binaries are hundreds of MB and only
+# the browser spec needs them. Skip with OTS_SETUP_SKIP_BROWSERS=1.
+#
+# Only the engine list is ours; where the binaries live and which revision
+# each engine expects is the package's manifest, so the presence probe asks
+# @playwright/test for executablePath() exactly as the harness does.
+PLAYWRIGHT_BROWSERS="chromium firefox webkit"
+
+# Prints the engines whose binary is absent (empty = all present). Exit 1
+# when the probe itself cannot run (no node, no node_modules).
+playwright_missing_browsers() {
+  has node || return 1
+  [[ -d node_modules/@playwright/test ]] || return 1
+  node --input-type=module -e '
+    import { chromium, firefox, webkit } from "@playwright/test";
+    import { existsSync } from "node:fs";
+    const engines = { chromium, firefox, webkit };
+    console.log(Object.keys(engines).filter((n) => !existsSync(engines[n].executablePath())).join(" "));
+  ' 2>/dev/null
+}
+
+install_playwright_browsers() {
+  if [[ -n "${OTS_SETUP_SKIP_BROWSERS:-}" ]]; then
+    echo "Skip: OTS_SETUP_SKIP_BROWSERS set — Playwright browsers not installed (tests/browser will not run)"
+    return 0
+  fi
+
+  local missing
+  if missing=$(playwright_missing_browsers) && [[ -z "$missing" ]]; then
+    echo "OK:   Playwright browsers present ($PLAYWRIGHT_BROWSERS)"
+    return 0
+  fi
+
+  # No --with-deps: that path runs sudo/apt, which setup never does.
+  info "Installing Playwright browsers (pnpm exec playwright install $PLAYWRIGHT_BROWSERS)..."
+  # shellcheck disable=SC2086  # deliberate word-split of the engine list
+  if pnpm exec playwright install $PLAYWRIGHT_BROWSERS; then
+    echo "OK:   Playwright browsers installed"
+  else
+    warn "Playwright browser install failed — tests/browser/saml_callback_spec.rb will not run."
+    warn "  Retry: pnpm playwright:install   (or skip: OTS_SETUP_SKIP_BROWSERS=1)"
+  fi
+  if [[ "$(uname -s)" == "Linux" ]]; then
+    echo "Note: the browsers may need OS packages on Linux. Run it yourself if launches fail:"
+    echo "      pnpm exec playwright install-deps   (uses sudo/apt; setup never does)"
+  fi
+}
+
 # --- Generated artifacts ------------------------------------------------
 #
 # Schemas and locales are backend inputs, not frontend build output: the
@@ -351,6 +405,46 @@ else
 fi
 ENVRC
   echo "Created: .envrc (rev $ENVRC_REV)"
+}
+
+# --- New-worktree setup (opt-in) ----------------------------------------
+#
+# tools/setup/new-worktree.sh runs from the post-checkout hook and sets
+# up each worktree `git worktree add` creates, once a clone opts in with
+# `git config ots.worktreeSetup true`.
+#
+# Only the clone's own config counts. A global or system setting would
+# turn the hook on in every clone that installs it, including one kept for
+# reviewing untrusted branches. The setting lives in the common git dir,
+# so every worktree of the clone sees it.
+
+worktree_setup_enabled() {
+  [[ "$(git config --local --type=bool --get ots.worktreeSetup 2>/dev/null)" == "true" ]]
+}
+
+# worktree_name DIR — the directory's name, or its parent's when the
+# directory is a nested worktree: one named after the main checkout, or
+# after its own grandparent, which is how the worktrees/<repo>/<name>/<repo>
+# layout looks whatever the main checkout is called
+# (worktrees/onetimesecret/dev-api/onetimesecret is "dev-api").
+worktree_name() {
+  local dir="$1" name main
+  name="$(basename "$dir")"
+  main="$(dirname "$(git -C "$dir" rev-parse --path-format=absolute --git-common-dir)")"
+  if [[ "$name" == "$(basename "$main")" || "$name" == "$(basename "$(dirname "$(dirname "$dir")")")" ]]; then
+    basename "$(dirname "$dir")"
+  else
+    echo "$name"
+  fi
+}
+
+# worktree_setup_lane DIR — the bin/setup lane for a new worktree:
+# --dev when its name starts with "dev", --test otherwise.
+worktree_setup_lane() {
+  case "$(worktree_name "$1")" in
+    dev*) echo "--dev" ;;
+    *)    echo "--test" ;;
+  esac
 }
 
 # --- Misc shared state --------------------------------------------------

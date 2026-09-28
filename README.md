@@ -1,8 +1,8 @@
 # Onetime Secret — Secure One-Time Message Sharing
 
-_Keep passwords and other sensitive information out of your inboxes and chat logs._
+_Keep passwords and other sensitive information out of your chat logs and emails._
 
-A **onetime secret** is a link that can be viewed only once — a single-use URL.
+A **one-time secret** is a link that can be viewed only once — a single-use URL.
 When you share sensitive info like a password over email or chat, copies linger
 in many places. Onetime links self-destruct after viewing, so only the intended
 recipient ever sees the contents.

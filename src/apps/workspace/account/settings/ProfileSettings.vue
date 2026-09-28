@@ -108,20 +108,22 @@
                       {{ t('web.auth.account.sso_linked') }}
                     </span>
                   </template>
-                  <!-- Password users: show verification status -->
+                  <!-- Password users: show verification status.
+                       Light mode uses green-700: green-600 small text on
+                       this translucent card is ~3.2:1, below WCAG AA 4.5:1. -->
                   <template v-else>
                     <OIcon
                       v-if="emailVerified"
                       collection="heroicons"
                       name="check-circle-solid"
-                      class="size-4 text-green-600
+                      class="size-4 text-green-700
                         dark:text-green-400"
                       aria-hidden="true" />
                     <span
                       :class="[
                         'text-sm',
                         emailVerified
-                          ? 'text-green-600 dark:text-green-400'
+                          ? 'text-green-700 dark:text-green-400'
                           : 'text-gray-500 dark:text-gray-400',
                       ]">
                       {{

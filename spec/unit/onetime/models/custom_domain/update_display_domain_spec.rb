@@ -29,6 +29,7 @@ RSpec.describe Onetime::CustomDomain, '#update_display_domain' do
     )
     canonical_index_double = instance_double(
       'Familia::HashKey',
+      get: nil,
       claim_field: :created,
       release_field: 1,
     )

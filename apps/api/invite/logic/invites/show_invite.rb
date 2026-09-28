@@ -166,6 +166,7 @@ module InviteAPI::Logic
         if Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(
           domain_id,
           sso_config: sso_config,
+          custom_domain: domain,
         )
           return [serialize_sso_public(sso_config).merge(type: 'sso')]
         end

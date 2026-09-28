@@ -38,6 +38,10 @@ module Onetime
       VHOST_SOURCE                 = 'tls_probe'
       APPROXIMATED_CLEANUP_PENDING = 'approximated_vhost_pending_cleanup'
 
+      # The certificate claim and everything that belongs to it: the probe
+      # that observed it (ssl_checked_unix) travels with has_ssl when carried.
+      SSL_FIELDS = %w[has_ssl ssl_active_from ssl_active_until ssl_checked_unix].freeze
+
       attr_reader :config, :txt_verifier, :tls_probe
 
       # @param config [Hash] Application configuration (typically OT.conf)
@@ -103,9 +107,12 @@ module Onetime
       #                 `resolving`. When has_ssl is unknown, a blob already
       #                 owned by this strategy carries its stored SSL fields
       #                 only while its certificate remains valid (see
-      #                 #carried_ssl_fields). After an Approximated cutover,
-      #                 stale UI state is replaced with current probe state plus
-      #                 an internal marker for orphaned-vhost cleanup.
+      #                 #carried_ssl_fields); the blob then says so with
+      #                 ssl_inconclusive, and ssl_checked_unix still names
+      #                 the probe that observed the certificate (see
+      #                 #vhost_data). After an Approximated cutover, stale UI
+      #                 state is replaced with current probe state plus an
+      #                 internal marker for orphaned-vhost cleanup.
       #   both nil      no :mode and no :data, the same shape Approximated
       #                 returns when its API call fails: nothing stored
       #                 changes and vhost_fetch_failed_at is set, which the UI
@@ -197,8 +204,10 @@ module Onetime
           .merge(mode: MODE)
       rescue StandardError => ex
         # TxtVerifier rescues its own lookup. Anything reaching here is ours
-        # (e.g. the domain could not produce its validation record), which is
-        # not evidence about the customer's DNS.
+        # (e.g. the domain could not produce its validation record), so it is
+        # reported as indeterminate like a lookup that got no answer. It is
+        # treated the same way too: #never_confirmed? applies to this result
+        # as to any other indeterminate one.
         OT.le "[CaddyOnDemandStrategy] Error validating #{custom_domain.display_domain}: " \
               "#{ex.class}: #{ex.message}"
         { validated: nil, indeterminate: true, message: "Error: #{ex.message}", mode: MODE }
@@ -225,6 +234,12 @@ module Onetime
       # indeterminate: that proof is real but not on record, so a cutover
       # should follow a full verify pass on Approximated (see the README).
       # Either is promoted again by the next check that finds the record.
+      #
+      # What made the result indeterminate does not matter here, so an error
+      # of our own (#txt_check's rescue) counts as well: the rule is no hold
+      # without proof on record, and an internal error is no proof either.
+      # Restricting this to results that carry :data would let such an error
+      # keep a never-confirmed domain ready? and the ACME ask endpoint open.
       def never_confirmed?(custom_domain, result)
         result[:indeterminate] == true &&
           custom_domain.verified == true && # boolean_field native
@@ -252,6 +267,13 @@ module Onetime
       # The subset of Approximated's vhost payload the domain pages read,
       # filled from the probe. `status` reuses Approximated's values where the
       # UI keys off them (ACTIVE_SSL -> active, DNS_INCORRECT -> warning).
+      #
+      # last_monitored_unix is this check: is_resolving really was observed
+      # now. The certificate has its own clock, ssl_checked_unix, written by
+      # the probe that observed has_ssl and carried with it, so a carried
+      # certificate cannot pass for a fresh observation. ssl_inconclusive
+      # marks a blob whose probe did not learn has_ssl this time, whatever it
+      # carries.
       def vhost_data(custom_domain, result, carry_stored_ssl:, cleanup_pending: false)
         checked_at = @clock.call
         ssl        = ssl_fields(custom_domain, result, checked_at, carry_stored: carry_stored_ssl)
@@ -278,15 +300,15 @@ module Onetime
       # owns; Approximated-era values would otherwise keep stale active UI state.
       def ssl_fields(custom_domain, result, checked_at, carry_stored:)
         if result.has_ssl.nil?
-          return {} unless carry_stored
-
-          return carried_ssl_fields(custom_domain, checked_at)
+          carried = carry_stored ? carried_ssl_fields(custom_domain, checked_at) : {}
+          return carried.merge('ssl_inconclusive' => true)
         end
 
         {
           'has_ssl' => result.has_ssl,
           'ssl_active_from' => iso8601(result.certificate&.not_before),
           'ssl_active_until' => iso8601(result.certificate&.not_after),
+          'ssl_checked_unix' => checked_at.to_i,
         }
       end
 
@@ -297,7 +319,7 @@ module Onetime
         stored = custom_domain.parse_vhost
         return {} unless stored.is_a?(Hash)
 
-        carried = stored.slice('has_ssl', 'ssl_active_from', 'ssl_active_until')
+        carried = stored.slice(*SSL_FIELDS)
         return carried unless carried.key?('ssl_active_until')
 
         active_until = parse_time(carried['ssl_active_until'])

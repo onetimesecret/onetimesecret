@@ -82,6 +82,29 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
     expect(location).to start_with("https://login.microsoftonline.com/#{test_sso_config.tenant_id}/")
   end
 
+  it 'refuses an unverified tenant before credentials are cached or injected' do
+    test_custom_domain.verified = false
+    test_custom_domain.save
+
+    # The hook logs other events (e.g. :omniauth_tenant_resolution_start) on
+    # every request; let those through so only the refusal is pinned.
+    allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+    expect(Auth::Logging).to receive(:log_auth_event).with(
+      :omniauth_tenant_sso_not_enabled,
+      level: :info,
+      host: tenant_domain,
+      domain_id: test_custom_domain.identifier,
+      reason: :domain_unverified,
+    ).and_call_original
+    expect(Auth::Config::Hooks::OmniAuthTenant).not_to receive(:inject_tenant_credentials)
+
+    header 'Host', origin_host
+    header 'Apx-Incoming-Host', tenant_domain
+    post '/auth/sso/entra'
+
+    expect(last_request.env['onetime.tenant_sso_config']).to be_nil
+  end
+
   it 'sends the IdP a redirect_uri on the tenant domain, not the origin target' do
     # Resolving the tenant's credentials is only half the flow. The authorize
     # URL carries a redirect_uri built from OmniAuth's `full_host`, which

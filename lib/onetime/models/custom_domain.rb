@@ -532,21 +532,37 @@ module Onetime
       # the entry manually to keep it in sync with the `instances` registry.
       self.class.owners.remove(to_s)
 
-      # Familia handles the main object, related fields, and declared indexes.
-      # The canonical gate is app-managed because it indexes a normalized value
-      # rather than a model field. Release it only after the record is gone, and
-      # only if it still names this object.
-      canonical_domain  = begin
+      # Familia handles the main object, related fields, and declared indexes
+      # in one MULTI. The canonical gate is released from inside that
+      # transaction too (see #remove_from_class_indexes!).
+      super
+    end
+
+    private
+
+    # Familia's destroy! calls this inside its MULTI, after delete! and the
+    # declared-index cleanup. The canonical gate is app-managed (it indexes a
+    # normalized value rather than a model field), so it is not a declared
+    # index. Released after EXEC instead, a failed Redis call in between would
+    # leave a claim naming a record that no longer exists, and create! treats
+    # such a claim as another organization's in-flight registration: both
+    # spellings of the name stay blocked until an operator clears it.
+    # release_field is documented safe to queue in a MULTI: it is
+    # ownership-checked Lua and its return value is not consulted.
+    def remove_from_class_indexes!
+      super
+
+      canonical_domain = begin
         self.class.canonical_display_domain(display_domain)
       rescue Onetime::DomainValidation::AsciiHostname::ConversionError
         nil
       end
-      domain_identifier = identifier
+      return unless canonical_domain
 
-      result = super
-      self.class.canonical_display_domain_index.release_field(canonical_domain, domain_identifier) if canonical_domain
-      result
+      self.class.canonical_display_domain_index.release_field(canonical_domain, identifier)
     end
+
+    public
 
     # Checks if the domain is an apex domain.
     # An apex domain is a domain without any subdomains.
@@ -779,7 +795,7 @@ module Onetime
         nil
       end
 
-      # The one read of display_domain_index that every lookup by name goes
+      # The index lookup that every lookup by name goes
       # through (load_by_display_domain, from_display_domain,
       # resolve_domain_id).
       #
@@ -789,7 +805,9 @@ module Onetime
       # the wire are always A-labels: the SNI name Caddy hands to the ACME
       # ask endpoint, and the Host header. Both forms name the same domain,
       # so a miss on the name as given is retried with its other forms
-      # (see display_domain_lookup_keys). Stored data is not rewritten.
+      # (see display_domain_lookup_keys), then the canonical creation index.
+      # That final fallback also finds decomposed Unicode registrations.
+      # Stored data is not rewritten.
       #
       # When both forms were registered as separate records before this
       # lookup existed, each is still found by its own exact name first.
@@ -803,11 +821,18 @@ module Onetime
           return domain_id if domain_id
         end
 
-        nil
+        canonical = begin
+          canonical_display_domain(domain_name)
+        rescue Onetime::DomainValidation::AsciiHostname::ConversionError
+          nil
+        end
+        return nil unless canonical
+
+        canonical_display_domain_index.get(canonical)
       end
 
-      # Canonical DNS wire form used only by the atomic creation gate. Lookup
-      # continues to use display_domain_lookup_keys so exact legacy keys win.
+      # Canonical DNS wire form used by the atomic creation gate and as a
+      # lookup fallback after display_domain_lookup_keys so legacy keys win.
       #
       # @param domain_name [String, #to_s]
       # @return [String] lower-case A-label form
@@ -837,8 +862,8 @@ module Onetime
       # malformed punycode, invalid bytes) keeps whatever keys could be
       # built; the lookup misses and nothing raises.
       #
-      # Not covered: a Unicode name that was stored in a normalisation form
-      # other than NFC is only found by the exact bytes it was stored with.
+      # Other stored Unicode normalisation forms are found through the
+      # canonical index fallback in display_domain_id_for, not these keys.
       #
       # @param domain_name [String, #to_s]
       # @return [Array<String>] one to three distinct keys; empty for a
@@ -853,17 +878,18 @@ module Onetime
         [typed, *idn_forms(typed)].uniq
       end
 
-      # The Unicode form is kept only when it encodes back to the same
-      # A-label. Punycode will decode an A-label that is not the encoding of
-      # any NFC name ("xn--bucher-xyd", the decomposed spelling of "bücher"),
-      # and normalising the result would land on the key of a different DNS
-      # name ("xn--bcher-kva"). Such a name is looked up by its A-label only.
-      #
       # @return [Array<String>] A-label form, then Unicode form; fewer when a
-      #   conversion fails or the Unicode form does not round-trip
+      #   conversion fails or the Unicode form does not encode back to the
+      #   same A-label
       def idn_forms(name)
         ascii   = Onetime::DomainValidation::AsciiHostname.call(name)
         unicode = SimpleIDN.to_unicode(ascii).unicode_normalize(:nfc)
+        # Decoding is lossy in one direction: a crafted A-label can decode to
+        # the Unicode spelling of a different name ("xn--bucher-xyd" carries a
+        # decomposed u + combining diaeresis, which NFC folds into the same
+        # "bücher" that "xn--bcher-kva" stands for; "xn--secrets-" decodes to
+        # plain "secrets"). Only trust the Unicode key when it round-trips,
+        # or a lookup by one DNS name would find another name's record.
         return [ascii] unless Onetime::DomainValidation::AsciiHostname.call(unicode) == ascii
 
         [ascii, unicode]
@@ -1141,6 +1167,12 @@ module Onetime
         raise Onetime::Problem, "Domain too long (max: #{MAX_TOTAL_LENGTH})" if input.length > MAX_TOTAL_LENGTH
 
         display_domain      = self.display_domain(input)
+        # Reject wire-length failures before constructing or claiming a record.
+        begin
+          canonical_display_domain(display_domain)
+        rescue Onetime::DomainValidation::AsciiHostname::ConversionError => ex
+          raise Onetime::Problem, ex.message
+        end
         OT.ld "[CustomDomain.parse] Creating with display_domain=#{display_domain.inspect}, org_id=#{org_id.inspect}"
         obj                 = new(display_domain: display_domain, org_id: org_id)
         obj._original_value = input
@@ -1200,12 +1232,16 @@ module Onetime
         raise Onetime::Problem, ex.message
       end
 
-      # Returns boolean, whether the domain is a valid public suffix
-      # which checks without actually parsing it.
+      # Checks both the public suffix and the DNS wire-format length limits.
       def valid?(input)
         return false if contains_control_chars?(input)
 
-        PublicSuffix.valid?(input, default_rule: nil)
+        return false unless PublicSuffix.valid?(input, default_rule: nil)
+
+        canonical_display_domain(input)
+        true
+      rescue Onetime::DomainValidation::AsciiHostname::ConversionError
+        false
       end
 
       # Whether the input is exactly one of the link-ANCHOR hosts

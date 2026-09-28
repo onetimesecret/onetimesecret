@@ -12,8 +12,9 @@
   /**
    * Post-signup "Check your email" confirmation page.
    *
-   * Reached via useAuth.signup() after an account is created but before it is
-   * verified. It is a single-purpose, low-anxiety screen: confirm the email is
+   * Reached via useAuth.signup() only when the create-account response says
+   * next_action 'verify_email'; with verification off, signup goes to /signin
+   * instead. It is a single-purpose, low-anxiety screen: confirm the email is
    * on its way, echo the address it went to (so a typo is obvious), and give
    * exactly two recovery paths — resend, or start over with a different address.
    *

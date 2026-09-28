@@ -28,8 +28,27 @@ RSpec.shared_context 'with a loopback DNS server' do
         @responder = responder
         @queries   = []
         @questions = []
-        bind_both
+        @udp, @tcp = bind_pair
+        @port      = @udp.addr[1]
         @threads   = [Thread.new { serve_udp }, Thread.new { serve_tcp }]
+      end
+
+      # A nameserver answers on one port over both transports, but UDP and
+      # TCP ports are separate namespaces: the ephemeral port the kernel
+      # hands the UDP socket may already have a TCP listener (another spec,
+      # a lingering TIME_WAIT peer). Retry with a fresh port instead of
+      # failing the example with EADDRINUSE.
+      def bind_pair(attempts: 20)
+        attempts.times do
+          udp = UDPSocket.new
+          udp.bind('127.0.0.1', 0)
+          begin
+            return [udp, TCPServer.new('127.0.0.1', udp.addr[1])]
+          rescue Errno::EADDRINUSE
+            udp.close
+          end
+        end
+        raise Errno::EADDRINUSE, 'no loopback port free on both UDP and TCP'
       end
 
       def stop
@@ -54,19 +73,6 @@ RSpec.shared_context 'with a loopback DNS server' do
       end
 
       private
-
-      # UDP and TCP must share a port number. The kernel picks a free UDP
-      # port; the same number can already be taken on TCP, so try again.
-      def bind_both(attempts = 5)
-        @udp = UDPSocket.new
-        @udp.bind('127.0.0.1', 0)
-        @port = @udp.addr[1]
-        @tcp  = TCPServer.new('127.0.0.1', @port)
-      rescue Errno::EADDRINUSE
-        @udp.close
-        retry if (attempts -= 1).positive?
-        raise
-      end
 
       def handle(bytes, transport)
         query = Resolv::DNS::Message.decode(bytes)

@@ -83,6 +83,10 @@ module AuthModeHelpers
       @remember_me_enabled
     end
 
+    def remember_me_sessions_enabled?
+      (full_enabled? || simple_enabled?) && @remember_me_enabled
+    end
+
     def verify_account_enabled?
       @verify_account_enabled
     end

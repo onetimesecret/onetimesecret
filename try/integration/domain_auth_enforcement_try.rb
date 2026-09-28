@@ -500,14 +500,21 @@ end
 #
 # sso_permitted_for? is the shared activation authority. SsoConfig is the
 # credentials store; resolve_tenant_sso_config returns it only when the
-# credentials are enabled AND sso_permitted_for? is true.
+# credentials are enabled, the custom domain is verified, AND
+# sso_permitted_for? is true.
+def verified_tenant_domain!(display_domain, org_id)
+  Onetime::CustomDomain.create!(display_domain, org_id).tap do |domain|
+    domain.verified = true
+    domain.save
+  end
+end
 
 ## sso_permitted_for? returns true when no SigninConfig exists (defer to credentials)
 Onetime::CustomDomain::SigninConfig.sso_permitted_for?('nonexistent_domain_id')
 #=> true
 
 ## SsoConfig active + no SigninConfig => tenant SSO active (current behavior preserved)
-@domain_sso_a = Onetime::CustomDomain.create!("dae-sso-a-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@domain_sso_a = verified_tenant_domain!("dae-sso-a-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @sso_a = Onetime::CustomDomain::SsoConfig.create!(
   domain_id: @domain_sso_a.identifier,
   provider_type: 'oidc',
@@ -520,7 +527,7 @@ Core::Views::ConfigSerializer.send(:resolve_tenant_sso_config, { 'display_domain
 #=> @domain_sso_a.identifier
 
 ## SsoConfig active + master ON + sso_enabled false => tenant SSO inactive (gate blocks)
-@domain_sso_b = Onetime::CustomDomain.create!("dae-sso-b-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@domain_sso_b = verified_tenant_domain!("dae-sso-b-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @sso_b = Onetime::CustomDomain::SsoConfig.create!(
   domain_id: @domain_sso_b.identifier,
   provider_type: 'oidc',
@@ -538,7 +545,7 @@ Core::Views::ConfigSerializer.send(:resolve_tenant_sso_config, { 'display_domain
 #=> nil
 
 ## SsoConfig active + master ON + sso_enabled true => tenant SSO active
-@domain_sso_c = Onetime::CustomDomain.create!("dae-sso-c-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@domain_sso_c = verified_tenant_domain!("dae-sso-c-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @sso_c = Onetime::CustomDomain::SsoConfig.create!(
   domain_id: @domain_sso_c.identifier,
   provider_type: 'oidc',
@@ -556,7 +563,7 @@ Core::Views::ConfigSerializer.send(:resolve_tenant_sso_config, { 'display_domain
 #=> @domain_sso_c.identifier
 
 ## SsoConfig active + master OFF => SsoConfig behavior preserved (gate defers)
-@domain_sso_d = Onetime::CustomDomain.create!("dae-sso-d-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@domain_sso_d = verified_tenant_domain!("dae-sso-d-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @sso_d = Onetime::CustomDomain::SsoConfig.create!(
   domain_id: @domain_sso_d.identifier,
   provider_type: 'oidc',
@@ -806,7 +813,7 @@ Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(@domain_sso_b.identif
 #=> false
 
 ## SsoConfig present but enabled=false (credentials off) => false even with no SigninConfig
-@domain_tsa_off = Onetime::CustomDomain.create!("dae-tsa-off-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@domain_tsa_off = verified_tenant_domain!("dae-tsa-off-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @sso_tsa_off = Onetime::CustomDomain::SsoConfig.create!(
   domain_id: @domain_tsa_off.identifier,
   provider_type: 'oidc',
@@ -924,7 +931,7 @@ end
 #   explicit signin_enabled=false and hides SSO along with it (#3415). The SSO
 #   operand the OR would fold in IS true here (asserted below), which is exactly
 #   why an OR would flip this to an unreachable-page bug. Both gates must be false.
-@domain_pm_or = Onetime::CustomDomain.create!("dae-pm-or-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@domain_pm_or = verified_tenant_domain!("dae-pm-or-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @config_pm_or = Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @domain_pm_or.identifier,
   enabled: true,

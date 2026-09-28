@@ -611,43 +611,50 @@ describe('SecurityOverview', () => {
   });
 
   describe('Design System Compliance - Typography', () => {
+    // Every card renders a title heading and a description, so these assert
+    // presence rather than guarding on it (a missing heading must fail).
+    const cardHeadings = () => {
+      const cards = wrapper.findAll('.grid > div');
+      expect(cards.length).toBeGreaterThan(0);
+      return cards.map((card) => {
+        const heading = card.find('h2');
+        expect(heading.exists()).toBe(true);
+        return heading;
+      });
+    };
+
+    it('card titles are h2, one level below the SettingsLayout h1 (axe heading-order)', () => {
+      wrapper = mountComponent();
+
+      cardHeadings();
+      expect(wrapper.find('.grid h3').exists()).toBe(false);
+    });
+
     it('card titles use font-medium (not font-semibold)', () => {
       wrapper = mountComponent();
 
-      const cards = wrapper.findAll('.grid > div');
-      cards.forEach((card) => {
-        const heading = card.find('h3');
-        if (heading.exists()) {
-          // Design system requires font-medium for card headings
-          expect(heading.classes()).toContain('font-medium');
-          expect(heading.classes()).not.toContain('font-semibold');
-        }
+      cardHeadings().forEach((heading) => {
+        // Design system requires font-medium for card headings
+        expect(heading.classes()).toContain('font-medium');
+        expect(heading.classes()).not.toContain('font-semibold');
       });
     });
 
     it('card titles have correct text color (text-gray-900)', () => {
       wrapper = mountComponent();
 
-      const cards = wrapper.findAll('.grid > div');
-      cards.forEach((card) => {
-        const heading = card.find('h3');
-        if (heading.exists()) {
-          // Card headings use primary text color (text-gray-900), not section heading color
-          expect(heading.classes()).toContain('text-gray-900');
-        }
+      cardHeadings().forEach((heading) => {
+        // Card headings use primary text color (text-gray-900), not section heading color
+        expect(heading.classes()).toContain('text-gray-900');
       });
     });
 
     it('card titles have dark mode text color (dark:text-white)', () => {
       wrapper = mountComponent();
 
-      const cards = wrapper.findAll('.grid > div');
-      cards.forEach((card) => {
-        const heading = card.find('h3');
-        if (heading.exists()) {
-          // Card headings use primary text color in dark mode (text-white)
-          expect(heading.classes()).toContain('dark:text-white');
-        }
+      cardHeadings().forEach((heading) => {
+        // Card headings use primary text color in dark mode (text-white)
+        expect(heading.classes()).toContain('dark:text-white');
       });
     });
 
@@ -655,12 +662,11 @@ describe('SecurityOverview', () => {
       wrapper = mountComponent();
 
       const cards = wrapper.findAll('.grid > div');
+      expect(cards.length).toBeGreaterThan(0);
       cards.forEach((card) => {
-        const description = card.find('.text-sm.text-gray-600');
-        if (description.exists()) {
-          expect(description.classes()).toContain('text-sm');
-          expect(description.classes()).toContain('text-gray-600');
-        }
+        const description = card.find('p.text-sm.text-gray-600');
+        expect(description.exists()).toBe(true);
+        expect(description.classes()).toContain('dark:text-gray-400');
       });
     });
   });
@@ -765,6 +771,16 @@ describe('SecurityOverview', () => {
 
       expect(wrapper.find('[data-icon="shield-check-solid"]').exists()).toBe(true);
       expect(wrapper.text()).toContain('web.settings.security.sso_managed_title');
+    });
+
+    it('renders the SSO-managed title as h2 under the SettingsLayout h1', () => {
+      mockWebAuthnEnabled.value = false;
+      wrapper = mountComponent();
+
+      const heading = wrapper.find('h2');
+      expect(heading.exists()).toBe(true);
+      expect(heading.text()).toContain('web.settings.security.sso_managed_title');
+      expect(wrapper.find('h3').exists()).toBe(false);
     });
 
     it('does not render the cards grid when all cards are filtered out', () => {

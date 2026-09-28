@@ -267,16 +267,16 @@ caddy_try_reload(@domain).vhost_fetch_failed_at.to_i.positive?
 @probe.has_ssl      = nil
 caddy_try_verify(@domain)
 @stored             = caddy_try_reload(@domain)
-[@stored.resolving == true, @stored.parse_vhost.values_at('has_ssl', 'status'), @stored.vhost_fetch_failed_at.to_s.empty?]
-#=> [true, [true, 'ACTIVE_SSL'], true]
+[@stored.resolving == true, @stored.parse_vhost.values_at('has_ssl', 'status', 'ssl_inconclusive'), @stored.vhost_fetch_failed_at.to_s.empty?]
+#=> [true, [true, 'ACTIVE_SSL', true], true]
 
 ## Status: resolves without a valid certificate - has_ssl false is stored
 @probe.is_resolving = true
 @probe.has_ssl      = false
 caddy_try_verify(@domain)
 @stored             = caddy_try_reload(@domain)
-[@stored.resolving == true, @stored.parse_vhost.values_at('has_ssl', 'status')]
-#=> [true, [false, 'PENDING_SSL']]
+[@stored.resolving == true, @stored.parse_vhost.values_at('has_ssl', 'status', 'ssl_inconclusive')]
+#=> [true, [false, 'PENDING_SSL', nil]]
 
 ## Status: the name stopped resolving - resolving false is stored and the domain is not ready
 @resolver.rcode     = Resolv::DNS::RCode::NoError

@@ -215,7 +215,9 @@ module Onetime
       config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(identifier)
       return nil if config.nil?
       return nil unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(
-        identifier, sso_config: config
+        identifier,
+        sso_config: config,
+        custom_domain: custom_domain,
       )
 
       config

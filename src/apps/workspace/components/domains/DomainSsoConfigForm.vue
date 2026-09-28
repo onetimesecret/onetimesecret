@@ -31,6 +31,7 @@ import type { TestSsoConnectionResponse } from '@/services/sso.service';
 const props = defineProps<{
   domainExtId: string;
   domainHost: string;
+  domainVerified: boolean;
   orgId: string;
   formState: SsoConfigFormState;
   ssoConfig: CustomDomainSsoConfig | null;
@@ -171,9 +172,9 @@ const unreadableFieldNames = computed(() =>
 );
 
 /**
- * The public origin + route for this domain's SSO URLs, PREVIEWED from the
- * domain host: always https and the default route from the contract (pinned
- * to the Ruby PROVIDER_ROUTE_MAP by sso-config-metadata-contract.spec.ts).
+ * The public origin + route for this VERIFIED domain's SSO URLs, PREVIEWED
+ * from the domain host: always https and the default route from the contract
+ * (pinned to the Ruby PROVIDER_ROUTE_MAP by sso-config-metadata-contract.spec.ts).
  * An operator route override (SAML_ROUTE_NAME etc.) or site.ssl=false is
  * invisible here, so the preview can differ from the real path; plumbing the
  * configured route through bootstrap config is tracked in #3932. Until then
@@ -182,7 +183,7 @@ const unreadableFieldNames = computed(() =>
  * and Audience at app creation, before any record can exist here.
  */
 const ssoRouteBase = computed(() => {
-  if (!props.domainHost) return null;
+  if (!props.domainVerified || !props.domainHost) return null;
   const route = SSO_PROVIDER_ROUTE_NAMES[props.formState.provider_type];
   return `https://${props.domainHost}/auth/sso/${route}`;
 });
@@ -190,8 +191,9 @@ const ssoRouteBase = computed(() => {
 /**
  * For a saved saml record the API composes the SP identifiers itself
  * (sp_entity_id / acs_url); the provider type is locked while editing, so
- * the record's values are for the type shown. Before a record exists (or
- * when the API could not derive them) they are previewed from the host.
+ * the record's values are for the type shown. Before a record exists they
+ * are previewed from a verified host. A saved null stays null: the API
+ * withholds identifiers when the tenant auth route cannot use that host.
  */
 const savedSamlRecord = computed(() =>
   isEditing.value && props.ssoConfig?.provider_type === 'saml' ? props.ssoConfig : null
@@ -199,25 +201,24 @@ const savedSamlRecord = computed(() =>
 
 /**
  * ACS URL shown in the SP block: the API's acs_url for a saved record,
- * otherwise the host preview (see ssoRouteBase for why that is labelled a
- * preview and #3932 for the real-route plumbing).
+ * otherwise the verified-host preview (see ssoRouteBase for why that is
+ * labelled a preview and #3932 for the real-route plumbing).
  */
-const callbackUrl = computed(
-  () => savedSamlRecord.value?.acs_url ?? (ssoRouteBase.value ? `${ssoRouteBase.value}/callback` : null)
-);
+const callbackUrl = computed(() => {
+  if (savedSamlRecord.value) return savedSamlRecord.value.acs_url;
+  return ssoRouteBase.value ? `${ssoRouteBase.value}/callback` : null;
+});
 
 /**
- * True when either SP identifier shown is host-derived rather than
- * API-composed: no saml record has been saved yet, or the API could not
- * derive the value. The block then swaps the "register these" hint for one
+ * True when the SP identifiers shown are host-derived rather than
+ * API-composed because no saml record has been saved yet. The block then
+ * swaps the "register these" hint for one
  * that says the values are a preview of the default route and asks the admin
  * to save and confirm them here first (#3932 — an operator route override
  * would make the preview wrong, and a wrong ACS URL at the IdP fails every
  * login with an opaque IdP-side error).
  */
-const spDetailsArePreview = computed(
-  () => !savedSamlRecord.value?.sp_entity_id || !savedSamlRecord.value?.acs_url
-);
+const spDetailsArePreview = computed(() => !savedSamlRecord.value && !!ssoRouteBase.value);
 
 /** Days before expiry at which the softer "expiring soon" notice appears. */
 const CERT_EXPIRY_NOTICE_DAYS = 30;
@@ -246,11 +247,13 @@ const storedCertExpiry = computed(() => {
 
 /**
  * SP Entity ID (doubles as the SP metadata URL): the API's sp_entity_id for
- * a saved record, otherwise the host preview (see ssoRouteBase; #3932).
+ * a saved record, otherwise the verified-host preview (see ssoRouteBase;
+ * #3932).
  */
-const spEntityId = computed(
-  () => savedSamlRecord.value?.sp_entity_id ?? (ssoRouteBase.value ? `${ssoRouteBase.value}/metadata` : null)
-);
+const spEntityId = computed(() => {
+  if (savedSamlRecord.value) return savedSamlRecord.value.sp_entity_id;
+  return ssoRouteBase.value ? `${ssoRouteBase.value}/metadata` : null;
+});
 
 const showDomainFilter = computed(() => false);
 

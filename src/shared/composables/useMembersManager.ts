@@ -87,13 +87,20 @@ export function useMembersManager() {
     });
 
   /**
-   * Check if the current user can modify a specific member
+   * Check if the current user can remove a specific member.
+   *
+   * Mirrors the server's role hierarchy (OrganizationAPI RemoveMember):
+   * owners remove admins and members, admins remove members only, and nobody
+   * removes the owner.
    */
   const canModifyMember = (member: OrganizationMember): boolean => {
     if (!canManageMembers.value) return false;
 
     // Cannot modify owners (except by other owners for non-role changes)
     if (member.role === 'owner') return false;
+
+    // Admins cannot remove other admins; the server refuses it
+    if (member.role === 'admin') return currentUserRole.value === 'owner';
 
     return true;
   };

@@ -89,7 +89,8 @@ RSpec.describe Core::Views::AuthenticationSerializer do
         allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
           .with(domain_id).and_return(sso_config)
         allow(Onetime::CustomDomain::SsoConfig).to receive(:tenant_sso_available_for?)
-          .with(domain_id, sso_config: sso_config).and_return(sso_available)
+          .with(domain_id, sso_config: sso_config, custom_domain: custom_domain)
+          .and_return(sso_available)
       end
 
       context 'SSO configured, available, and ENFORCED' do

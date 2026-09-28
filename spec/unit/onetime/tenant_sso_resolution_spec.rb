@@ -42,7 +42,7 @@ RSpec.describe Onetime::TenantSsoResolution do
     return if config.nil?
 
     allow(Onetime::CustomDomain::SsoConfig).to receive(:tenant_sso_available_for?)
-      .with(domain_id, sso_config: config).and_return(available)
+      .with(domain_id, sso_config: config, custom_domain: custom_domain).and_return(available)
   end
 
   describe '#domain_id' do
@@ -174,10 +174,10 @@ RSpec.describe Onetime::TenantSsoResolution do
       described_class.new(display_domain).sso_config
 
       expect(Onetime::CustomDomain::SsoConfig).to have_received(:tenant_sso_available_for?)
-        .with(domain_id, sso_config: sso_config)
+        .with(domain_id, sso_config: sso_config, custom_domain: custom_domain)
     end
 
-    it 'is nil when the ladder rejects (disabled / not permitted)' do
+    it 'is nil when the ladder rejects (disabled / not permitted / unverified)' do
       stub_domain
       stub_sso(available: false)
       resolution = described_class.new(display_domain)
@@ -185,6 +185,7 @@ RSpec.describe Onetime::TenantSsoResolution do
       expect(resolution.sso_config).to be_nil
       expect(resolution).not_to be_available
     end
+
 
     it 'is nil when the domain has no SsoConfig record' do
       stub_domain

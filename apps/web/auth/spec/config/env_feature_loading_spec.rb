@@ -46,6 +46,7 @@ module Auth; end
 Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
 Auth::Config.const_set(:Features, Module.new) unless Auth::Config.const_defined?(:Features, false)
 require_relative '../../config/features/mfa'
+require_relative '../../config/features/remember_me'
 
 RSpec.describe 'ENV-conditional feature loading' do
   let(:db) { create_test_database }
@@ -95,17 +96,15 @@ RSpec.describe 'ENV-conditional feature loading' do
     end
   end
 
-  # Helper that mirrors config.rb conditional logic for remember me
+  # Helper that mirrors config.rb conditional logic for remember me. The
+  # feature enables no Rodauth feature; it defines the methods the login hooks
+  # call (config/features/remember_me.rb).
   def build_remember_me_app(db)
-    features = [:base, :login, :logout]
+    remember_me = ENV['AUTH_REMEMBER_ME_ENABLED'] != 'false'
 
-    # Same pattern as config.rb: enabled unless explicitly 'false'
-    if ENV['AUTH_REMEMBER_ME_ENABLED'] != 'false'
-      features += [:remember]
-    end
-
-    create_rodauth_app(db: db, features: features) do
-      # No additional configuration needed
+    create_rodauth_app(db: db, features: [:base, :login, :logout]) do
+      # Same pattern as config.rb: enabled unless explicitly 'false'
+      Auth::Config::Features::RememberMe.configure(self) if remember_me
     end
   end
 
@@ -314,9 +313,10 @@ RSpec.describe 'ENV-conditional feature loading' do
         end
       end
 
-      it 'enables remember feature' do
+      it 'honours the remember-me parameter, without Rodauth\'s remember feature' do
         app = build_remember_me_app(db)
-        expect(rodauth_responds_to?(app, :remember_login)).to be true
+        expect(rodauth_responds_to?(app, :remember_me_after_login)).to be true
+        expect(rodauth_responds_to?(app, :remember_login)).to be false
       end
     end
 
@@ -327,9 +327,9 @@ RSpec.describe 'ENV-conditional feature loading' do
         end
       end
 
-      it 'disables remember feature' do
+      it 'ignores the remember-me parameter' do
         app = build_remember_me_app(db)
-        expect(rodauth_responds_to?(app, :remember_login)).to be false
+        expect(rodauth_responds_to?(app, :remember_me_after_login)).to be false
       end
     end
   end
@@ -588,7 +588,7 @@ RSpec.describe 'ENV-conditional feature loading' do
       it 'enables all feature sets without conflicts' do
         # Build app with all features
         features  = [:base, :login, :logout]
-        features += [:lockout, :active_sessions, :login_password_requirements_base, :remember]
+        features += [:lockout, :active_sessions, :login_password_requirements_base]
         features += [:two_factor_base, :otp, :recovery_codes]
         features += [:email_auth]
         features += [:webauthn, :webauthn_login]

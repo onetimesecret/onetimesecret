@@ -191,6 +191,33 @@ RSpec.describe Onetime::DomainValidation::TxtResolver do
       expect(resolver_for(server).lookup(hostname).values).to eq([])
     end
 
+    # A CNAME loop is a broken zone whichever name it lands on, so TXT data
+    # a malformed reply lists under a name in the loop is not the answer.
+    it 'returns no values when a CNAME loop leads back to the queried name that also lists TXT data' do
+      target = Resolv::DNS::Name.create('loop.dns-host.example.')
+      server = start_server do |s, q, _|
+        s.reply_to(
+          q,
+          answers: [
+            [nil, cname.new(target)],
+            [target, cname.new(q.question.first[0])],
+            [nil, txt.new('looped')],
+            [nil, txt.new('looped-too')],
+          ],
+        )
+      end
+
+      expect(resolver_for(server).lookup(hostname).values).to eq([])
+    end
+
+    it 'returns no values when the queried name is a CNAME to itself alongside TXT data' do
+      server = start_server do |s, q, _|
+        s.reply_to(q, answers: [[nil, cname.new(q.question.first[0])], [nil, txt.new('self')]])
+      end
+
+      expect(resolver_for(server).lookup(hostname).values).to eq([])
+    end
+
     it 'ignores TXT records owned by another name' do
       other  = Resolv::DNS::Name.create('unrelated.example.')
       server = start_server do |s, q, _|
@@ -230,6 +257,26 @@ RSpec.describe Onetime::DomainValidation::TxtResolver do
         healthy  = start_server { |s, q, _| s.reply_to(q, answers: [[nil, txt.new('v')]]) }
 
         expect(resolver_for(refusing, healthy).lookup(hostname).values).to eq(['v'])
+      end
+
+      # ra says whether recursion is on offer, not whether the data is good:
+      # a server that recurses for nobody can still answer from its cache.
+      it 'reads TXT data for the name from a reply that is neither recursive nor authoritative' do
+        server = start_server { |s, q, _| s.reply_to(q, ra: 0, answers: [[nil, txt.new('cached')]]) }
+
+        expect(resolver_for(server).lookup(hostname).values).to eq(['cached'])
+      end
+
+      it 'does not read a CNAME whose target it was referred elsewhere for as "no TXT data"' do
+        target = Resolv::DNS::Name.create('challenges.dns-host.example.')
+        root   = Resolv::DNS::Name.create('.')
+        ns     = Resolv::DNS::Resource::IN::NS.new(Resolv::DNS::Name.create('a.root-servers.net.'))
+        server = start_server do |s, q, _|
+          s.reply_to(q, ra: 0, answers: [[nil, cname.new(target)]], authority: [[root, ns]])
+        end
+
+        expect { resolver_for(server, timeout: 0.5).lookup(hostname) }
+          .to raise_error(described_class::NoReplyError, /neither recursive nor authoritative/)
       end
 
       it 'does not read NXDOMAIN without ra or aa as definitive either' do

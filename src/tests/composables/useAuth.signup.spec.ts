@@ -13,6 +13,7 @@
  */
 
 import { useAuth } from '@/shared/composables/useAuth';
+import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -56,7 +57,10 @@ describe('useAuth - signup sends the redirect to the backend', () => {
     vi.mocked(useRouter).mockReturnValue(router);
     vi.mocked(useRoute).mockReturnValue(mockRoute as never);
 
-    axiosMock.onPost('/auth/create-account').reply(200, { success: 'Account created' });
+    axiosMock.onPost('/auth/create-account').reply(200, {
+      success: 'Account created',
+      next_action: 'verify_email',
+    });
   });
 
   afterEach(() => {
@@ -130,5 +134,161 @@ describe('useAuth - signup sends the redirect to the backend', () => {
         query: { redirect: '/workspace/domains' },
       })
     );
+  });
+
+  it('routes verification-disabled signup to sign-in', async () => {
+    axiosMock.resetHandlers();
+    axiosMock.onPost('/auth/create-account').reply(200, {
+      success: 'Account created',
+      next_action: 'sign_in',
+    });
+
+    const { signup } = useAuth();
+    expect(await signup('user@example.com', 'a-strong-passphrase')).toBe(true);
+
+    expect(router.push).toHaveBeenCalledWith({ path: '/signin' });
+  });
+
+  it('carries validated checkout and redirect context through sign-in', async () => {
+    mockRoute.query = {
+      product: 'untrusted-product',
+      interval: 'untrusted-interval',
+      redirect: '/account/settings/security',
+    };
+    axiosMock.resetHandlers();
+    axiosMock.onPost('/auth/create-account').reply(200, {
+      success: 'Account created',
+      next_action: 'sign_in',
+      billing_redirect: {
+        product: 'identity_plus_v1',
+        interval: 'monthly',
+        valid: true,
+      },
+    });
+
+    const { signup } = useAuth();
+    await signup('user@example.com', 'a-strong-passphrase');
+
+    expect(router.push).toHaveBeenCalledWith({
+      path: '/signin',
+      query: {
+        product: 'identity_plus_v1',
+        interval: 'monthly',
+        redirect: '/account/settings/security',
+      },
+    });
+  });
+
+  it('drops the submitted plan pair when the server marks it invalid', async () => {
+    mockRoute.query = {
+      product: 'retired-plan',
+      interval: 'monthly',
+      redirect: '/pricing',
+    };
+    axiosMock.resetHandlers();
+    axiosMock.onPost('/auth/create-account').reply(200, {
+      success: 'Account created',
+      next_action: 'sign_in',
+      billing_redirect: {
+        product: 'retired-plan',
+        interval: 'monthly',
+        valid: false,
+      },
+    });
+
+    const { signup } = useAuth();
+    await signup('user@example.com', 'a-strong-passphrase');
+
+    expect(router.push).toHaveBeenCalledWith({
+      path: '/signin',
+      query: { redirect: '/pricing' },
+    });
+  });
+
+  // A half-submitted plan (/signup?product=x) comes back invalid with the
+  // missing half as null. The account already exists by then, so the body
+  // must parse: a throw here shows an error, and a retry hits the
+  // duplicate-signup error.
+  it('follows sign_in when the server rejects a plan with no interval', async () => {
+    mockRoute.query = { product: 'identity_plus_v1', redirect: '/pricing' };
+    axiosMock.resetHandlers();
+    axiosMock.onPost('/auth/create-account').reply(200, {
+      success: 'Account created',
+      next_action: 'sign_in',
+      billing_redirect: {
+        product: 'identity_plus_v1',
+        interval: null,
+        valid: false,
+        error: 'Missing product or interval',
+      },
+    });
+
+    const { signup } = useAuth();
+    expect(await signup('user@example.com', 'a-strong-passphrase')).toBe(true);
+
+    expect(router.push).toHaveBeenCalledTimes(1);
+    expect(router.push).toHaveBeenCalledWith({
+      path: '/signin',
+      query: { redirect: '/pricing' },
+    });
+  });
+
+  it('follows verify_email when the server rejects a plan with no product', async () => {
+    mockRoute.query = { interval: 'monthly', redirect: '/pricing' };
+    axiosMock.resetHandlers();
+    axiosMock.onPost('/auth/create-account').reply(200, {
+      success: 'Account created',
+      next_action: 'verify_email',
+      billing_redirect: {
+        product: null,
+        interval: 'monthly',
+        valid: false,
+        error: 'Missing product or interval',
+      },
+    });
+
+    const { signup } = useAuth();
+    expect(await signup('user@example.com', 'a-strong-passphrase')).toBe(true);
+
+    expect(router.push).toHaveBeenCalledTimes(1);
+    expect(router.push).toHaveBeenCalledWith({
+      path: '/check-email',
+      query: { redirect: '/pricing' },
+      state: { [CHECK_EMAIL_STATE_KEY]: 'user@example.com' },
+    });
+  });
+
+  it('keeps the submitted plan pair when the server sends no billing_redirect', async () => {
+    // Simple mode, and full mode without billing, answer with no verdict on
+    // the plan. The login response validates the pair before checkout.
+    mockRoute.query = { product: 'identity_plus_v1', interval: 'yearly' };
+    axiosMock.resetHandlers();
+    axiosMock.onPost('/auth/create-account').reply(200, {
+      success: 'Account created',
+      next_action: 'sign_in',
+    });
+
+    const { signup } = useAuth();
+    await signup('user@example.com', 'a-strong-passphrase');
+
+    expect(router.push).toHaveBeenCalledWith({
+      path: '/signin',
+      query: { product: 'identity_plus_v1', interval: 'yearly' },
+    });
+  });
+
+  it('routes verify_email to /check-email with the email in history state, not the URL', async () => {
+    // beforeEach answers next_action 'verify_email'.
+    mockRoute.query = { redirect: '/workspace/domains' };
+
+    const { signup } = useAuth();
+    expect(await signup('user@example.com', 'a-strong-passphrase')).toBe(true);
+
+    expect(router.push).toHaveBeenCalledTimes(1);
+    expect(router.push).toHaveBeenCalledWith({
+      path: '/check-email',
+      query: { redirect: '/workspace/domains' },
+      state: { [CHECK_EMAIL_STATE_KEY]: 'user@example.com' },
+    });
   });
 });

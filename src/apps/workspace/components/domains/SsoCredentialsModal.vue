@@ -21,6 +21,7 @@
     isOpen: boolean;
     domainExtId: string;
     domainHost: string;
+    domainVerified: boolean;
     orgId: string;
     formState: SsoConfigFormState;
     ssoConfig: CustomDomainSsoConfig | null;
@@ -116,6 +117,7 @@
                 :domain-ext-id="domainExtId"
                 :org-id="orgId"
                 :domain-host="domainHost"
+                :domain-verified="domainVerified"
                 :form-state="formState"
                 @update:form-state="emit('update:formState', $event)"
                 :sso-config="ssoConfig"

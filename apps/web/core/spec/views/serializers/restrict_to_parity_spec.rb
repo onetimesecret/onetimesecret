@@ -57,7 +57,10 @@ RSpec.describe 'restrict_to display/gate parity' do
   let(:display_domain) { 'secrets.tenant.example.com' }
   let(:domain_id)      { 'domain_parity_1' }
 
-  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id) }
+  # Tenant SSO availability requires a verified domain since #4517: the display
+  # side reads `verified` off the already-loaded domain, the gate side reloads
+  # it through SsoConfig#custom_domain. Both stubs are needed for parity.
+  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id, verified: true) }
 
   let(:mock_auth_config) do
     instance_double(
@@ -78,7 +81,8 @@ RSpec.describe 'restrict_to display/gate parity' do
       provider_type: 'oidc',
       enforce_sso_only?: false,
       platform_route_name: 'oidc',
-      display_name: 'Tenant SSO'
+      display_name: 'Tenant SSO',
+      custom_domain: custom_domain
     )
   end
 

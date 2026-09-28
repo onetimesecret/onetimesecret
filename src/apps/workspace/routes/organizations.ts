@@ -46,6 +46,10 @@ const routes: Array<RouteRecordRaw> = [
       title: 'web.TITLES.organization_settings',
       requiresAuth: true,
       requiresOrgRole: 'admin', // owner or admin of the org named by :extid
+      // A tab switch is a router navigation, so router.currentRoute (and
+      // everything that reads it, e.g. the org switcher's 'same' target)
+      // names the tab on screen; this keeps it from remounting the page.
+      keepMountedAcrossParams: ['tab'],
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: {

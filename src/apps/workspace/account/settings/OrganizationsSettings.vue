@@ -156,22 +156,29 @@
               <!-- Header row: Name + badges -->
               <div class="flex items-start justify-between">
                 <div class="min-w-0 flex-1">
-                  <button
-                    type="button"
-                    @click="handleManageOrganization(org)"
-                    class="group flex items-center gap-2 text-left"
-                    :data-testid="`org-link-${org.extid}`">
-                    <h3
-                      class="text-base font-medium text-gray-900 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400"
-                      data-testid="org-name">
-                      {{ org.display_name }}
-                    </h3>
-                    <OIcon
-                      collection="heroicons"
-                      name="chevron-right"
-                      class="size-4 text-gray-400 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-500"
-                      aria-hidden="true" />
-                  </button>
+                  <!--
+                    The heading wraps the button, not the reverse: a button's
+                    children are presentational, so a heading inside it is not
+                    exposed as one. h2 sits directly under the page h1.
+                  -->
+                  <h2 class="text-base font-medium">
+                    <button
+                      type="button"
+                      @click="handleManageOrganization(org)"
+                      class="group flex items-center gap-2 text-left"
+                      :data-testid="`org-link-${org.extid}`">
+                      <span
+                        class="text-gray-900 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400"
+                        data-testid="org-name">
+                        {{ org.display_name }}
+                      </span>
+                      <OIcon
+                        collection="heroicons"
+                        name="chevron-right"
+                        class="size-4 text-gray-400 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-500"
+                        aria-hidden="true" />
+                    </button>
+                  </h2>
                   <p
                     v-if="org.description"
                     class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -267,9 +274,9 @@
               name="building-office-bold"
               class="mx-auto size-12 text-gray-400"
               aria-hidden="true" />
-            <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+            <h2 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
               {{ t('web.organizations.no_organizations') }}
-            </h3>
+            </h2>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {{ t('web.organizations.no_organizations_description') }}
             </p>

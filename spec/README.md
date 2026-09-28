@@ -49,6 +49,25 @@ end
 
 No explicit mode tags needed—directory determines the mode.
 
+## RSpec or Tryouts
+
+Model and library behavior is covered by both `spec/unit` and `try/unit`. The
+deciding question is whether the test has to alter process-shared state and
+restore it afterwards. Tryouts run every file in one process and cannot undo a
+`prepend` or a reopened class, so anything that instruments a Familia model, a
+frozen index object, or a library class to observe a call belongs in RSpec,
+where stubs are per example and restored on every exit path. Stub the
+app-level accessor to return a delegator over the real object rather than
+patching the object itself; see
+`spec/unit/onetime/models/custom_domain/destroy_canonical_release_spec.rb`.
+A linear scenario over real records with no stubs stays a tryout. The full
+rule is in `try/README.md`.
+
+Unit specs may hit the real datastore. Tag them `:datastore` so a reader knows
+they do; the tag is descriptive only, `spec_helper` does nothing with it. What
+makes such specs safe is the lane runner's per-run Valkey DB index, not the
+tag, so run them through `tests/lanes/run`, never bare `rspec`.
+
 ## Debugging
 
 ```bash
@@ -63,5 +82,6 @@ RACK_ENV=test AUTHENTICATION_MODE=full AUTH_DATABASE_URL='sqlite::memory:' \
 ## References
 
 - `docs/adr/adr-007-test-process-boundaries.md` — why directory-based separation
+- `try/README.md` — when a test is a tryout and when it is a spec
 - `lib/tasks/spec.rake` — rake task definitions
 - `spec/support/` — test helpers and shared contexts

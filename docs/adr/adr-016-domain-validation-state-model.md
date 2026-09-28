@@ -145,7 +145,10 @@ otherwise make the domain `ready?`. Installs that do not run
 checks the record (`BaseStrategy#proves_ownership?`: `approximated` and
 `caddy_on_demand`). A `passthrough` pass sets `verified` and records no
 confirmation, so a domain verified under `passthrough` is treated as never
-confirmed after a move to `caddy_on_demand`.
+confirmed after a move to `caddy_on_demand`. If passthrough promotes a domain
+after a definitive check demoted it, the older confirmation is cleared because
+it belongs to the ended verified lineage. A domain that stays verified across
+the strategy change keeps its still-current confirmation.
 
 The never-confirmed rule also reaches an install that cuts over from
 `approximated` to `caddy_on_demand` at or soon after this upgrade. The field
@@ -173,7 +176,10 @@ It runs `DomainValidation::TlsProbe`:
 - The hostname is customer-controlled, so the dial goes through
   `Onetime::Http::Guard`: one resolution, the whole address set rejected if
   any address is non-public, and the connection pinned to a vetted IP. A
-  refused probe reports `is_resolving: true, has_ssl: nil`.
+  probe the guard refuses reports `is_resolving: true, has_ssl: nil`, as do
+  a connect timeout and an unreachable route. A connection the server
+  refuses or resets (`ECONNREFUSED`, `ECONNRESET`) reports `has_ssl: false`:
+  the name resolves and nothing there presents a certificate.
 
 This makes the "ask gate is unsatisfiable" note below historical: `resolving`
 is now written under `caddy_on_demand`, so `ready?` is reachable once the TXT
@@ -187,15 +193,23 @@ check alone, as the non-conflation rule requires.
 `has_ssl` is persisted inside the `vhost` blob. The strategy rewrites the
 blob whenever `is_resolving` is known, so the blob's `status` and
 `is_resolving` never disagree with the `resolving` field; when `has_ssl` is
-unknown (port 443 unreachable, or the egress guard refused the address) the
-stored `has_ssl` and certificate dates are carried into the new blob only
-while the stored `ssl_active_until` is in the future. At or after expiry they
-no longer establish an active certificate, so the blob omits the claim and
-reports `PENDING_SSL` until a probe sees the current certificate. It returns
+unknown (a timeout or an unreachable route on port 443, or the egress guard
+refused the address) the stored `has_ssl` and certificate dates are carried
+into the new blob only while the stored `ssl_active_until` is in the future.
+At or after expiry they no longer establish an active certificate, so the
+blob omits the claim and reports `PENDING_SSL` until a probe sees the
+current certificate. A carried
+certificate is not a fresh observation: `ssl_checked_unix` (the probe that saw
+it) is carried with it, `last_monitored_unix` is the check that re-observed
+`is_resolving`, and `ssl_inconclusive: true` marks a blob whose probe did not
+learn `has_ssl`. It returns
 neither `:data` nor `:mode` when the probe learned nothing;
 `VerifyDomain#persist_changes` then stores
 nothing and sets `vhost_fetch_failed_at`. A `vhost` blob left by
-`approximated` is not replaced (it is the orphaned-vhost chore's evidence).
+`approximated` survives only a check that learned nothing. Once a probe knows
+`is_resolving`, the blob is replaced with current probe state carrying
+`approximated_vhost_pending_cleanup: true`, which is the orphaned-vhost
+chore's evidence; stored SSL fields are never carried out of it.
 
 The probe blob reuses Approximated's `status` values (`ACTIVE_SSL`,
 `DNS_INCORRECT`) plus `PENDING_SSL`, so the single badge has correct data to

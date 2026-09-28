@@ -44,10 +44,9 @@ Fixed
   was read as a TXT mismatch and demoted the domain on the next verify or
   refresh run, which in turn disabled domain sign-in and SSO for it. Such an
   answer is now treated as indeterminate: the stored verified flag is left
-  alone, and the application tries its own TXT lookup. The strategy also asks
-  Approximated about a name that cannot exist, to record whether its checker
-  tells a missing record apart from a failed lookup; the result is logged
-  with the indeterminate outcome and does not change it.
+  alone within the confirmation window, and the application tries its own
+  TXT lookup. See ``lib/onetime/domain_validation/README.md`` for fallback
+  behavior and the confirmation window.
 
 - The same applies to resolving status. An Approximated vhost status of
   ``UNKNOWN`` no longer flips a domain's stored ``resolving`` flag to false,

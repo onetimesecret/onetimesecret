@@ -163,7 +163,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
       end
 
       it 'refuses the Rack session once its row is past the lifetime deadline, however active' do
-        account_rows.update(created_at: Time.now - (Onetime::ActiveSessionGate::LIFETIME_DEADLINE + 60), last_use: Time.now)
+        account_rows.update(created_at: Time.now - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 60), last_use: Time.now)
 
         get '/api/account/'
         expect(last_response.status).to eq(401)
@@ -172,7 +172,8 @@ RSpec.describe 'Active Sessions Management', type: :integration do
 
       it 'applies the same two deadlines Rodauth itself is configured with' do
         deadlines = Auth::Config.internal_request_eval { [session_inactivity_deadline, session_lifetime_deadline] }
-        expect(deadlines).to eq([Onetime::ActiveSessionGate::INACTIVITY_DEADLINE, Onetime::ActiveSessionGate::LIFETIME_DEADLINE])
+        expect(deadlines).to eq([Onetime::ActiveSessionGate::INACTIVITY_DEADLINE, Onetime::ActiveSessionGate.lifetime_deadline])
+        expect(deadlines.last).to eq(Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE)
       end
     end
 

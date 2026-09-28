@@ -552,9 +552,10 @@ module Onetime
         # cause on :omniauth_tenant_sso_not_enabled) use this one.
         #
         # Available only when the domain has its OWN enabled SsoConfig
-        # (credentials store) AND SigninConfig.sso_permitted_for? allows SSO —
-        # the identical two conditions ConfigSerializer#resolve_tenant_sso_config
-        # uses to hand back the tenant provider. Domain-id-only (no request
+        # (credentials store), verified ownership, AND
+        # SigninConfig.sso_permitted_for? allows SSO — the same conditions
+        # ConfigSerializer#resolve_tenant_sso_config uses to hand back the
+        # tenant provider. Domain-id-only (no request
         # context), so it is the single source of truth shared by the
         # branded-masthead link gate
         # (Core::Views::DomainSerializer#effective_signin_enabled?) and the
@@ -586,6 +587,7 @@ module Onetime
         #   :unsupported_provider_type - record's provider_type is not in
         #                                PROVIDER_TYPES (pre-#3902 legacy data;
         #                                see BackfillTenantIssuer)
+        #   :domain_unverified         - custom-domain ownership is not verified
         #   :sso_not_permitted         - SigninConfig withholds SSO for the domain
         #
         # @param domain_id [String] CustomDomain identifier (objid)
@@ -596,8 +598,11 @@ module Onetime
         #   injection). A record whose domain_id does not match is ignored and
         #   the lookup runs — the availability verdict must never be computed
         #   from another domain's record.
+        # @param custom_domain [Onetime::CustomDomain, nil] the caller's already-
+        #   loaded domain record. A record whose identifier does not match is
+        #   ignored and resolved through the SsoConfig association instead.
         # @return [Symbol, nil] the failing rung, or nil when tenant SSO is available
-        def tenant_sso_unavailable_reason(domain_id, auth: nil, sso_config: nil)
+        def tenant_sso_unavailable_reason(domain_id, auth: nil, sso_config: nil, custom_domain: nil)
           return :auth_disabled unless Onetime::CustomDomain::SigninConfig.global_auth_enabled(auth)
 
           config = sso_config&.domain_id == domain_id ? sso_config : find_by_domain_id(domain_id)
@@ -610,6 +615,10 @@ module Onetime
           # link and /signin page (both reading this ladder) never advertise
           # a route that would 500.
           return :unsupported_provider_type unless PROVIDER_TYPES.include?(config.provider_type)
+
+          domain   = custom_domain if custom_domain&.identifier == domain_id
+          domain ||= config.custom_domain
+          return :domain_unverified unless domain&.verified
           return :sso_not_permitted unless Onetime::CustomDomain::SigninConfig.sso_permitted_for?(domain_id)
 
           nil
@@ -625,9 +634,11 @@ module Onetime
         # @param auth [Hash, nil] site.authentication settings (injectable for tests)
         # @param sso_config [Onetime::CustomDomain::SsoConfig, nil] caller's
         #   already-loaded record for domain_id (mismatched records ignored)
+        # @param custom_domain [Onetime::CustomDomain, nil] caller's already-
+        #   loaded domain record (mismatched records ignored)
         # @return [Boolean] true if tenant SSO can be used to sign in
-        def tenant_sso_available_for?(domain_id, auth: nil, sso_config: nil)
-          tenant_sso_unavailable_reason(domain_id, auth: auth, sso_config: sso_config).nil?
+        def tenant_sso_available_for?(domain_id, auth: nil, sso_config: nil, custom_domain: nil)
+          tenant_sso_unavailable_reason(domain_id, auth: auth, sso_config: sso_config, custom_domain: custom_domain).nil?
         end
 
         # Whether ANY SSO sign-in path is offered on a CUSTOM DOMAIN host —

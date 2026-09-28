@@ -127,6 +127,13 @@ def run_refresh(now)
   FakeVerify.seen.last
 end
 
+def with_warmup_ids(ids)
+  FakeInstances.warmup_ids = ids
+  yield
+ensure
+  FakeInstances.warmup_ids = nil
+end
+
 def with_config(overrides)
   restore = Marshal.load(Marshal.dump(OT.instance_variable_get(:@conf)))
   merged  = Marshal.load(Marshal.dump(restore))
@@ -224,6 +231,25 @@ FakeVerify.seen.clear
 FakeInstances.warmup_ids                      = nil
 [@high_volume_seen.size, @high_volume_seen.first, FakeInstances.last_limit]
 #=> [2, "d1", [0, 2]]
+
+## Warm-up scans past a healthy leading chunk to reach an eligible domain
+FAKE_DOMAINS.merge!(%w[ok1 ok2 ok3].to_h { |id| [id, FakeDomain.new(id, true, true)] })
+FakeVerify.seen.clear
+@scanned_seen = with_warmup_ids(%w[ok1 ok2 ok3 d3]) { run_refresh(BASE + 3600) }
+[@scanned_seen, FakeInstances.last_limit]
+#=> [%w[d1 d3], [2, 2]]
+
+## Warm-up stops scanning once the window is exhausted with no eligible domain
+FakeVerify.seen.clear
+@exhausted_seen = with_warmup_ids(%w[ok1 ok2 ok3]) { run_refresh(BASE + 3600) }
+[@exhausted_seen, FakeInstances.last_limit]
+#=> [%w[d1], [2, 2]]
+
+## Warm-up accumulates eligible domains across chunks
+with_warmup_ids(%w[ok1 d3 ok2 d4]) do
+  RefreshJob.send(:warmup_domains, BASE, [], limit: 2).map(&:identifier)
+end
+#=> %w[d3 d4]
 
 ## dns_propagation_window: '0' disables the warm-up entirely
 FakeVerify.seen.clear
