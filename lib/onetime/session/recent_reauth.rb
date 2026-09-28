@@ -88,8 +88,8 @@ module Onetime
     KEY = 'recent_reauth'
 
     # A proof is valid only when its first completed method is an explicitly
-    # reviewed local primary. Positive matching keeps unknown, remembered,
-    # mailbox, and federated methods fail-closed.
+    # reviewed local primary. Positive matching keeps unknown, mailbox, and
+    # federated methods fail-closed.
     LOCAL_PRIMARIES = %w[password webauthn].freeze
 
     # Maximum age of a proof that may mint a Connect intent (#4411). The
