@@ -25,13 +25,18 @@ module Onetime
     #   | Strategy        | validate | cert | status | delete | widget |
     #   |-----------------|----------|------|--------|--------|--------|
     #   | Approximated    | active   | yes  | yes    | yes    | yes    |
-    #   | CaddyOnDemand   | active   | auto | basic  | no-op  | no     |
+    #   | CaddyOnDemand   | active   | auto | probe  | no-op  | no     |
     #   | Passthrough     | passive  | ext  | basic  | no-op  | no     |
     #
     # "active" validate means the strategy checks the TXT challenge record:
     # Approximated through its API with a native fallback, CaddyOnDemand with
     # our own DNS lookup (TxtVerifier). Caddy obtaining a certificate is not
     # an ownership check; it only shows where the name resolves.
+    #
+    # "probe" status means CaddyOnDemand works it out on the network itself
+    # (TlsProbe: our own A/AAAA lookup and a verified TLS handshake on port
+    # 443, through the egress guard), with nil for "could not tell".
+    # Passthrough's "basic" is a constant answer with no network activity.
     #
     class BaseStrategy
       # Validates domain ownership (typically via DNS TXT record).
@@ -77,8 +82,9 @@ module Onetime
       #   - :status [String, nil] Provider-specific status code
       #   - :status_message [String, nil] Human-readable status
       #   - :data [Hash, nil] Payload stored as the domain's `vhost` blob, which
-      #     is where has_ssl is kept. Leave it out when has_ssl is nil so the
-      #     stored value is not overwritten.
+      #     is where has_ssl is kept. When has_ssl is nil, either leave :data
+      #     out or carry the stored has_ssl into it, so an unknown never
+      #     overwrites a known value.
       #   - :mode [String, nil] Strategy mode identifier
       #
       # Returning neither :data nor :mode means the check itself failed:
@@ -141,6 +147,20 @@ module Onetime
       # @return [Boolean]
       #
       def manages_certificates?
+        false
+      end
+
+      # Whether validated: true from this strategy means the TXT challenge
+      # record was checked and matched.
+      #
+      # VerifyDomain records verified_confirmed_at only for such a pass, and
+      # that timestamp is later read as evidence that ownership was once
+      # established (CaddyOnDemandStrategy#never_confirmed?). A strategy that
+      # passes every domain without a lookup must leave this false.
+      #
+      # @return [Boolean]
+      #
+      def proves_ownership?
         false
       end
 

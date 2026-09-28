@@ -6,6 +6,8 @@ require 'resolv'
 require 'securerandom'
 require 'socket'
 
+require_relative 'ascii_hostname'
+
 module Onetime
   module DomainValidation
     # DnsStubResolver - Minimal stub resolver that reports the DNS response code.
@@ -24,7 +26,7 @@ module Onetime
     # asks the system's recursive resolvers (/etc/resolv.conf) with RD set, over
     # UDP, retrying over TCP when the reply is truncated.
     #
-    # The query name is always absolute. Resolv applies the resolv.conf search
+    # The query name is always absolute and in A-label form. Resolv applies the resolv.conf search
     # list to relative names, so an NXDOMAIN for "_challenge.example.com" is
     # retried as "_challenge.example.com.<search domain>", where a wildcard in
     # the search domain could answer for the customer's zone.
@@ -106,9 +108,9 @@ module Onetime
       # Asks each nameserver for +rtype+ records at +name+ until +deadline+.
       #
       # Returns as soon as a nameserver gives a definitive reply (NOERROR or
-      # NXDOMAIN). Other response codes move on to the next nameserver; if
-      # none does better, the last such reply is returned so the caller can
-      # see the code.
+      # NXDOMAIN, see #ensure_usable!). Other response codes move on to the
+      # next nameserver; if none does better, the last such reply is returned
+      # so the caller can see the code.
       #
       # @param name [Resolv::DNS::Name] absolute name (see #absolute_name)
       # @param rtype [Class] Resolv::DNS::Resource::IN::*
@@ -119,7 +121,8 @@ module Onetime
       def query(name, rtype, deadline)
         raise ArgumentError, 'No DNS nameservers configured' if nameservers.empty?
 
-        last = nil
+        last          = nil
+        @last_failure = nil
         nameservers.cycle(ROUNDS) do |host, port|
           remaining = deadline - monotonic
           break unless remaining.positive?
@@ -131,25 +134,83 @@ module Onetime
           return last if DEFINITIVE_RCODES.include?(last.rcode)
         end
 
-        last || raise(NoReplyError, "No DNS reply for #{name} within #{timeout}s")
+        last || raise(NoReplyError, no_reply_message(name))
+      end
+
+      # Carries the last failed exchange, so a nameserver that replies but is
+      # never usable (see #ensure_usable!) is named in the caller's log line.
+      def no_reply_message(name, summary = 'No DNS reply')
+        ["#{summary} for #{name} within #{timeout}s", @last_failure].compact.join(': ')
       end
 
       # Resource data of +rtype+ owned by the queried name, following any
-      # CNAME chain in the answer section (recursive resolvers return the
-      # chain in order). Records owned by an unrelated name are ignored.
+      # CNAME chain in the answer section. Records owned by an unrelated name
+      # are ignored.
+      #
+      # The chain is followed through a map of the whole answer section, not
+      # by reading it top to bottom: RFC 1034 does not fix the order of the
+      # answer section, and resolvers have returned the final records ahead
+      # of the CNAMEs that lead to them.
+      #
+      # A CNAME that leads back to a name already walked (including the
+      # queried name itself) is a loop: no name in the chain owns the answer,
+      # so nothing is returned. Stopping on a record count instead would end
+      # the walk on whichever name the count happened to land on, and a
+      # malformed reply that also lists +rtype+ data under that name would
+      # have it read as the answer.
       #
       # @return [Array<Resolv::DNS::Resource>] empty unless rcode is NOERROR
       def records(reply, name, rtype)
         return [] unless reply.rcode == Resolv::DNS::RCode::NoError
 
-        owner = name
-        reply.answer.each do |rr_name, _ttl, data|
-          owner = data.name if data.is_a?(CNAME) && rr_name == owner
+        aliases = reply.answer.each_with_object({}) do |(rr_name, _ttl, data), map|
+          map[rr_name] = data.name if data.is_a?(CNAME)
+        end
+
+        owner   = name
+        visited = [name]
+        loop do
+          target = aliases[owner]
+          break if target.nil?
+          return [] if visited.include?(target)
+
+          visited << target
+          owner = target
         end
 
         reply.answer.filter_map do |rr_name, _ttl, data|
           data if data.is_a?(rtype) && rr_name == owner
         end
+      end
+
+      # A NOERROR or NXDOMAIN reply is read as a statement about the name, so
+      # it has to be one. Two replies carry those codes without saying
+      # anything about the name, and reading either as "no such record" would
+      # turn a resolver-side condition into a definitive negative for every
+      # domain checked through that resolver:
+      #
+      #   - ra=0 and aa=0 with no data in the answer section: the nameserver
+      #     neither recursed for us nor is authoritative. A server that
+      #     refuses recursion this way (rather than with REFUSED) sends
+      #     NOERROR, an empty answer section and an upward referral in the
+      #     authority section; when the name is a CNAME it may add that CNAME
+      #     and refer for the target. Data records are read whatever the
+      #     flags say: ra reports whether recursion is on offer, not whether
+      #     the answer is good, and a server that recurses for nobody can
+      #     still answer from its cache.
+      #   - a non-empty answer section in which nothing is owned by the
+      #     queried name, so none of it can be attributed to the question.
+      #
+      # @raise [AttemptFailed] the next nameserver is tried
+      def ensure_usable!(reply, name)
+        return unless DEFINITIVE_RCODES.include?(reply.rcode)
+
+        if reply.ra.to_i.zero? && reply.aa.to_i.zero? && reply.answer.all? { |_rr_name, _ttl, data| data.is_a?(CNAME) }
+          raise AttemptFailed, "#{RCODE_NAMES[reply.rcode]} reply is neither recursive nor authoritative (ra=0, aa=0)"
+        end
+        return if reply.answer.empty? || reply.answer.any? { |rr_name, _ttl, _data| rr_name == name }
+
+        raise AttemptFailed, 'answer section holds no record for the queried name'
       end
 
       def monotonic
@@ -168,12 +229,16 @@ module Onetime
       end
 
       # The trailing dot makes the name absolute, which keeps resolv.conf's
-      # search list and ndots out of the lookup.
+      # search list and ndots out of the lookup. An internationalised name is
+      # queried in its A-label form (see AsciiHostname for why).
+      #
+      # @raise [ArgumentError] blank hostname, or one with no A-label form
+      #   (AsciiHostname::ConversionError)
       def absolute_name(hostname)
         fqdn = hostname.to_s.strip.chomp('.')
         raise ArgumentError, 'DNS lookup requires a hostname' if fqdn.empty?
 
-        Resolv::DNS::Name.create("#{fqdn}.")
+        Resolv::DNS::Name.create("#{AsciiHostname.call(fqdn)}.")
       end
 
       # One nameserver, UDP first and TCP if the reply was truncated.
@@ -187,8 +252,10 @@ module Onetime
 
         reply = udp_exchange(host, port, packet, id, question, deadline)
         reply = tcp_exchange(host, port, packet, id, question, deadline) if reply.tc == 1
+        ensure_usable!(reply, name)
         reply
       rescue *ATTEMPT_ERRORS => ex
+        @last_failure = "#{host}:#{port} #{ex.message}"
         OT.ld "[#{self.class.name.split('::').last}] No reply from #{host}:#{port} for #{name}: #{ex.class}: #{ex.message}"
         nil
       end

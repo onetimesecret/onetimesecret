@@ -13,8 +13,8 @@ module Onetime
     #   exactly one TXT value, equal to the challenge   -> validated: true
     #   NXDOMAIN, NOERROR without TXT data, or TXT
     #   values that are not "exactly one, matching"     -> validated: false
-    #   SERVFAIL, REFUSED, timeout, network error, or
-    #   any exception                                   -> validated: nil,
+    #   SERVFAIL, REFUSED, timeout, network error, a
+    #   hostname with no A-label form, or any exception -> validated: nil,
     #                                                      indeterminate: true
     #
     # The split between false and nil is the point of this class. A failed
@@ -28,10 +28,15 @@ module Onetime
     # "Exactly one" mirrors Approximated's check-records-match-exactly, so
     # both strategies accept and reject the same zones.
     #
-    # Every result carries source: 'native' and a :data Array shaped like
-    # Approximated's 'records' payload (string keys; 'actual_values' is the
-    # Array of values seen, or false when the lookup produced no answer).
-    # VerifyDomain#persist_changes only acts on a result that has :data.
+    # An internationalised hostname is looked up in its A-label form
+    # (AsciiHostname). Queried as typed it would come back NXDOMAIN, which is
+    # our encoding speaking and not the customer's DNS; a name that cannot be
+    # converted is therefore indeterminate and no lookup is made.
+    #
+    # Every lookup result carries source: 'native' and a :data Array shaped
+    # like Approximated's 'records' payload (string keys; 'actual_values' is
+    # the Array of values seen, or false when the lookup produced no answer;
+    # 'address' is the hostname as stored, not its A-label form).
     #
     # Usage:
     #   TxtVerifier.new.verify(domain.validation_record, domain.txt_validation_value)
@@ -51,17 +56,26 @@ module Onetime
       # @param expected [String] The challenge value (txt_validation_value)
       # @return [Hash] See BaseStrategy#validate_ownership
       def verify(hostname, expected)
-        hostname = hostname.to_s.strip
+        hostname = hostname.to_s
+        hostname = hostname.strip if hostname.valid_encoding? # else left for AsciiHostname to refuse
         expected = expected.to_s.strip
 
-        # Without a challenge there is nothing to prove. No :data, so callers
-        # report the failure without changing stored state.
+        # Without a challenge there is nothing to prove. This is the one result
+        # without :data, and what that means is the caller's decision:
+        # CaddyOnDemandStrategy adds :mode, so VerifyDomain stores the false;
+        # ApproximatedStrategy#classify_native reads a false without :data as
+        # non-definitive and does not demote on it.
         if hostname.empty? || expected.empty?
           return { validated: false, message: 'TXT challenge is not configured for this domain', source: SOURCE }
         end
 
+        query_name = ascii_hostname(hostname)
+        if query_name.nil?
+          return indeterminate(hostname, expected, 'no A-label form', message: 'Hostname cannot be queried as typed (indeterminate)')
+        end
+
         resolver = @resolver_factory.call
-        classify(hostname, expected, resolver.lookup(hostname))
+        classify(hostname, expected, resolver.lookup(query_name))
       rescue StandardError => ex
         OT.lw "[TxtVerifier] TXT lookup failed for #{hostname}: #{ex.class}: #{ex.message}"
         indeterminate(hostname, expected, "#{ex.class}: #{ex.message}")
@@ -95,11 +109,19 @@ module Onetime
         }
       end
 
-      def indeterminate(hostname, expected, reason)
+      # @return [String, nil] nil when the name cannot go on the wire
+      def ascii_hostname(hostname)
+        AsciiHostname.call(hostname)
+      rescue AsciiHostname::ConversionError => ex
+        OT.lw "[TxtVerifier] Not looking up #{hostname.inspect}: #{ex.message}"
+        nil
+      end
+
+      def indeterminate(hostname, expected, reason, message: "DNS lookup returned no result (indeterminate: #{reason})")
         {
           validated: nil,
           indeterminate: true,
-          message: "DNS lookup returned no result (indeterminate: #{reason})",
+          message: message,
           source: SOURCE,
           data: [record(hostname, expected, match: false, actual_values: false, error: reason)],
         }

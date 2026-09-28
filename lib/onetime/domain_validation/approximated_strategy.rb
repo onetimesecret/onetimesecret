@@ -266,6 +266,12 @@ module Onetime
         true
       end
 
+      # @return [Boolean] true - a pass means the TXT record was checked, by
+      #   Approximated's API or our own lookup
+      def proves_ownership?
+        true
+      end
+
       # Approximated caps API requests; each domain in a bulk run costs two
       # calls (check_records + get_vhost_by_incoming_address).
       def bulk_rate_limit

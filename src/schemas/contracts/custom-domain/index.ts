@@ -118,6 +118,12 @@ export const vhostCanonical = z
     /** Last monitoring check timestamp. */
     last_monitored_unix: z.date().optional(),
 
+    /** Timestamp of the probe that most recently observed the SSL state. */
+    ssl_checked_unix: z.date().optional(),
+
+    /** Whether the latest probe could not determine the current SSL state. */
+    ssl_inconclusive: z.boolean().optional(),
+
     /** SSL certificate start date. Optional - external API may omit. */
     ssl_active_from: z.date().nullish(),
 

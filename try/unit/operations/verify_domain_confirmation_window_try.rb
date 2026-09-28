@@ -11,7 +11,8 @@
 #   3. Past the window an indeterminate check withdraws `verified`, reported
 #      as :confirmation_expired (not :indeterminate, not :failed).
 #   4. A passing check records verified_confirmed_at and clears the clock, so
-#      one resolver failure long after the last pass never demotes.
+#      one resolver failure long after the last pass never demotes. A pass
+#      from a strategy that does not check the record records nothing.
 #   5. A definitive failure clears the clock too.
 #   6. Passthrough clears an unconfirmed run without recording TXT evidence or
 #      replacing an operator override.
@@ -38,9 +39,14 @@ class WindowTryStrategy
   FAIL          = { validated: false, message: 'TXT record not found', data: [{ 'actual_values' => [] }] }.freeze
   PASSTHROUGH   = { validated: true, message: 'External validation (passthrough mode)', mode: 'passthrough' }.freeze
 
-  attr_accessor :ownership_result
+  attr_accessor :ownership_result, :proves_ownership
 
-  def initialize                  = @ownership_result = INDETERMINATE
+  def initialize
+    @ownership_result = INDETERMINATE
+    @proves_ownership = true
+  end
+
+  def proves_ownership?           = proves_ownership
   def validate_ownership(_domain) = ownership_result
   def check_status(_domain)       = { ready: true, has_ssl: true, is_resolving: true, mode: 'window_try' }
   def request_certificate(_domain) = { status: 'success' }
@@ -150,6 +156,24 @@ window_try_set(@other, verified: false)
 [@promoted.current_state, window_try_reload(@other).verified_confirmed_at.nil?]
 #=> [:verified, false]
 
+## A pass from a strategy that does not check the record (Passthrough) verifies and clears the clock, but is not a confirmation
+window_try_set(@other, verified: false, since: @inside_since)
+@strategy.proves_ownership = false
+@unproven = window_try_verify(@other)
+@strategy.proves_ownership = true
+@unproven_reloaded = window_try_reload(@other)
+[@unproven.current_state, @unproven_reloaded.verified_unconfirmed_since, @unproven_reloaded.verified_confirmed_at]
+#=> [:verified, nil, nil]
+
+## The real PassthroughStrategy leaves verified_confirmed_at nil
+window_try_set(@other, verified: false)
+@passthrough = Onetime::Operations::VerifyDomain.new(
+  domain: @other, strategy: Onetime::DomainValidation::PassthroughStrategy.new({}), persist: true
+).call
+@passthrough_reloaded = window_try_reload(@other)
+[@passthrough.current_state, @passthrough_reloaded.verified, @passthrough_reloaded.verified_confirmed_at]
+#=> [:verified, true, nil]
+
 ## A definitive failure demotes as before and clears the clock
 window_try_set(@domain, verified: true, since: @inside_since, confirmed_at: @inside_since - 60)
 @strategy.ownership_result = WindowTryStrategy::FAIL
@@ -158,8 +182,7 @@ window_try_set(@domain, verified: true, since: @inside_since, confirmed_at: @ins
 [@failed.dns_outcome, @failed.confirmation_expired, @failed_reloaded.verified, @failed_reloaded.verified_unconfirmed_since, @failed_reloaded.verified_confirmed_at == @inside_since - 60]
 #=> [:failed, false, false, nil, true]
 
-## Passthrough promotes without manufacturing TXT confirmation metadata
-window_try_set(@domain, verified: false, since: @expired_since)
+## Passthrough re-promotes the demoted domain without carrying its invalidated confirmation into the new lineage
 @strategy.ownership_result = WindowTryStrategy::PASSTHROUGH
 @passthrough = window_try_verify(@domain)
 @passthrough_reloaded = window_try_reload(@domain)

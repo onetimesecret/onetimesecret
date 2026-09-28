@@ -228,7 +228,10 @@ RSpec.describe Onetime::DomainValidation::TxtVerifier do
     end
 
     context 'without a challenge to check' do
-      it 'fails without a lookup and without data, so stored state is left alone' do
+      # Only the shape is asserted here. What a false without :data means is
+      # the caller's decision: CaddyOnDemandStrategy adds :mode and the false
+      # is stored; ApproximatedStrategy#classify_native does not demote on it.
+      it 'fails without a lookup and omits :data' do
         allow(resolver).to receive(:lookup)
 
         [[hostname, nil], [hostname, ' '], [nil, challenge], ['', challenge]].each do |host, value|
@@ -244,6 +247,47 @@ RSpec.describe Onetime::DomainValidation::TxtVerifier do
         stub_lookup(Resolv::DNS::RCode::NoError, [''])
 
         expect(verifier.verify(hostname, '')[:validated]).to be(false)
+      end
+    end
+
+    context 'with an internationalised hostname' do
+      let(:typed)   { '_onetime-challenge-abc123.secrets.Bücher.example' }
+      let(:a_label) { '_onetime-challenge-abc123.secrets.xn--bcher-kva.example' }
+
+      before { allow(OT).to receive(:lw) }
+
+      it 'looks up the A-label form and reports the hostname as typed' do
+        allow(resolver).to receive(:lookup).with(a_label).and_return(answer(Resolv::DNS::RCode::NoError, [challenge]))
+
+        result = verifier.verify(typed, challenge)
+
+        expect(result).to include(validated: true, source: 'native')
+        expect(result[:data].first).to include('address' => typed)
+        expect(resolver).to have_received(:lookup).with(a_label).once
+      end
+
+      # Queried as typed, these would come back NXDOMAIN: a definitive
+      # negative produced by our encoding rather than the customer's DNS.
+      {
+        'a label too long once converted' => "_onetime-challenge.#{'ü' * 60}.example",
+        'bytes that are not valid UTF-8' => "_onetime-challenge.b\xFFcher.example",
+        'an empty label' => '_onetime-challenge..bücher.example',
+      }.each do |description, unconvertible|
+        it "is indeterminate, without building a resolver, for #{description}" do
+          built    = 0
+          verifier = described_class.new(resolver_factory: lambda {
+            built += 1
+            resolver
+          })
+
+          result = verifier.verify(unconvertible, challenge)
+
+          expect(built).to eq(0)
+          expect(result).to include(validated: nil, indeterminate: true, source: 'native')
+          expect(result[:message]).to match(/cannot be queried as typed/)
+          expect(result[:data]).to contain_exactly(hash_including('match' => false, 'actual_values' => false))
+          expect(OT).to have_received(:lw).with(/Not looking up/)
+        end
       end
     end
 

@@ -56,15 +56,19 @@ RSpec.shared_context 'with a loopback DNS server' do
         [@udp, @tcp].each { |sock| sock.close unless sock.closed? }
       end
 
-      def reply_to(query, rcode: 0, answers: [], tc: 0, id: query.id)
+      # ra/aa/authority exist for replies that are not a recursive answer,
+      # e.g. an upward referral: reply_to(q, ra: 0, authority: [[root, ns]])
+      def reply_to(query, rcode: 0, answers: [], tc: 0, id: query.id, ra: 1, aa: 0, authority: [])
         reply       = Resolv::DNS::Message.new(id)
         reply.qr    = 1
         reply.rd    = 1
-        reply.ra    = 1
+        reply.ra    = ra
+        reply.aa    = aa
         reply.tc    = tc
         reply.rcode = rcode
         query.question.each { |name, typeclass| reply.add_question(name, typeclass) }
         answers.each { |name, data| reply.add_answer(name || query.question.first[0], 60, data) }
+        authority.each { |name, data| reply.add_authority(name, 60, data) }
         reply
       end
 
