@@ -88,6 +88,8 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       display_domain: tenant_domain,
       org_id: tenant_organization.org_id,
     )
+    # TXT-verified: tenant SSO is unavailable (:domain_unverified) on an unproven domain (#4517).
+    domain.verified = true
     domain.save
     Onetime::CustomDomain.display_domain_index.put(tenant_domain, domain.domainid)
     domain
