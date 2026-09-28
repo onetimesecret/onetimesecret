@@ -190,11 +190,12 @@ check alone, as the non-conflation rule requires.
 `has_ssl` is persisted inside the `vhost` blob. The strategy rewrites the
 blob whenever `is_resolving` is known, so the blob's `status` and
 `is_resolving` never disagree with the `resolving` field; when `has_ssl` is
-unknown (port 443 unreachable, or the egress guard refused the address) the
-stored `has_ssl` and certificate dates are carried into the new blob only
-while the stored `ssl_active_until` is in the future. At or after expiry they
-no longer establish an active certificate, so the blob omits the claim and
-reports `PENDING_SSL` until a probe sees the current certificate. A carried
+unknown (a timeout or an unreachable route on port 443, or the egress guard
+refused the address) the stored `has_ssl` and certificate dates are carried
+into the new blob only while the stored `ssl_active_until` is in the future.
+At or after expiry they no longer establish an active certificate, so the
+blob omits the claim and reports `PENDING_SSL` until a probe sees the
+current certificate. A carried
 certificate is not a fresh observation: `ssl_checked_unix` (the probe that saw
 it) is carried with it, `last_monitored_unix` is the check that re-observed
 `is_resolving`, and `ssl_inconclusive: true` marks a blob whose probe did not

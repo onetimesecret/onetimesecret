@@ -22,7 +22,7 @@ Custom domain SSL and DNS validation strategies.
 
 `TxtVerifier` implements this with `TxtResolver`, a small resolver that reads the DNS response code. `Resolv::DNS#getresources` cannot be used for it: it returns `[]` for NXDOMAIN, SERVFAIL and a timeout alike.
 
-A reply only counts as definitive when it is an answer about the name (`DnsStubResolver#ensure_usable!`). A NOERROR or NXDOMAIN reply with neither `ra` nor `aa` set (a nameserver that does not recurse for us, typically an upward referral) and an answer section with nothing owned by the queried name are skipped like a failed exchange, so they end up indeterminate rather than "not found". CNAME chains are followed whatever order the answer section lists them in.
+A reply only counts as definitive when it is an answer about the name (`DnsStubResolver#ensure_usable!`). Two kinds of NOERROR or NXDOMAIN reply are skipped like a failed exchange, so they end up indeterminate rather than "not found": one with neither `ra` nor `aa` set whose answer section holds no data record (empty, or CNAMEs only; typically a nameserver that does not recurse for us sending an upward referral), and one whose answer section holds nothing owned by the queried name. Data records are read whatever `ra` and `aa` say, because a server that recurses for nobody can still answer from its cache. CNAME chains are followed whatever order the answer section lists them in.
 
 Internationalised hostnames are queried, and probed, in their A-label form (`AsciiHostname`). `CustomDomain` stores the hostname as typed; sent as typed it would come back NXDOMAIN, which is our encoding speaking and not the customer's DNS.
 
@@ -64,7 +64,7 @@ The window runs from the first indeterminate check, not from the last passing on
 
 ## Status check
 
-`check_status` reports two things, each with the same three outcomes (`true`, `false`, `nil` = could not tell). `nil` never changes stored state.
+`check_status` reports two things, each with the same three outcomes (`true`, `false`, `nil` = could not tell). An unknown `is_resolving` changes neither `resolving` nor the `vhost` blob. An unknown `has_ssl` alongside a known `is_resolving` still rewrites the blob, and stored SSL fields are carried into it only as described under how the result is stored, below.
 
 |                | Stored in                         | `approximated`                                             | `caddy_on_demand`     | `passthrough`                  |
 | -------------- | --------------------------------- | ---------------------------------------------------------- | --------------------- | ------------------------------ |
