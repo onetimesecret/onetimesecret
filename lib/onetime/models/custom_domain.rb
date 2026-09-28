@@ -1164,6 +1164,12 @@ module Onetime
         raise Onetime::Problem, "Domain too long (max: #{MAX_TOTAL_LENGTH})" if input.length > MAX_TOTAL_LENGTH
 
         display_domain      = self.display_domain(input)
+        # Reject wire-length failures before constructing or claiming a record.
+        begin
+          canonical_display_domain(display_domain)
+        rescue Onetime::DomainValidation::AsciiHostname::ConversionError => ex
+          raise Onetime::Problem, ex.message
+        end
         OT.ld "[CustomDomain.parse] Creating with display_domain=#{display_domain.inspect}, org_id=#{org_id.inspect}"
         obj                 = new(display_domain: display_domain, org_id: org_id)
         obj._original_value = input
@@ -1223,12 +1229,16 @@ module Onetime
         raise Onetime::Problem, ex.message
       end
 
-      # Returns boolean, whether the domain is a valid public suffix
-      # which checks without actually parsing it.
+      # Checks both the public suffix and the DNS wire-format length limits.
       def valid?(input)
         return false if contains_control_chars?(input)
 
-        PublicSuffix.valid?(input, default_rule: nil)
+        return false unless PublicSuffix.valid?(input, default_rule: nil)
+
+        canonical_display_domain(input)
+        true
+      rescue Onetime::DomainValidation::AsciiHostname::ConversionError
+        false
       end
 
       # Whether the input is exactly one of the link-ANCHOR hosts

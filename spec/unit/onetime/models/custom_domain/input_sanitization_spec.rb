@@ -24,6 +24,27 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
   # them before they reach storage or DNS record instructions.
   # ------------------------------------------------------------------ #
 
+  describe 'DNS wire length limits' do
+    ["#{'ü' * 70}.com", "#{(['ü' * 57] * 4).join('.')}.com"].each do |name|
+      it "rejects an overlong A-label name in validation: #{name}" do
+        expect(described_class.valid?(name)).to be false
+      end
+
+      it "rejects an overlong A-label name before creation: #{name}" do
+        expect(described_class).not_to receive(:claim_canonical_display_domain)
+        expect { described_class.create!(name, 'org-test') }.to raise_error(Onetime::Problem, /DNS name limits/)
+      end
+    end
+
+    it 'accepts a Unicode label that fits exactly in 63 wire bytes' do
+      expect(described_class.valid?("#{'ü' * 57}.com")).to be true
+    end
+
+    it 'accepts decomposed Unicode' do
+      expect(described_class.valid?("bu\u0308cher.com")).to be true
+    end
+  end
+
   describe '.valid?' do
     context 'with null bytes' do
       it 'rejects a domain containing a null byte' do
