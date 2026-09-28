@@ -111,12 +111,10 @@ module Auth
   # browser host differs from site.host builds its SSO URLs on site.host,
   # exactly as its email links already do — set HOST to the host you browse.
   #
-  # Tier 2 composes the origin through `origin_for`, which takes the PORT
-  # from the request. A doubled `Host:` is unparseable to Rack, which then
-  # reports the scheme's default port, so a site.host on a non-default port
-  # loses it on exactly that request (`https://secrets.internal`, not
-  # `https://secrets.internal:8443`). The host is right and allowlisted; the
-  # proxy still has to send a single Host (or X-Forwarded-Port).
+  # Tier 2 resolves the selected host back to its configured canonical
+  # authority. An explicit configured port wins over the request port, so a
+  # doubled, unparseable `Host:` cannot drop it; when config has no port, the
+  # request / forwarded port behavior is unchanged.
   #
   # Consumers: Auth::Config::Features::OmniAuth.full_host_for (SSO
   # redirect_uri / callback_url, SAML ACS URL and SP entity ID) and
@@ -217,19 +215,21 @@ module Auth
     # on that host instead of being rewritten to site.host.
     #
     # @param env [Hash] Rack environment
-    # @return [String, nil] the request's canonical host, or nil when no
-    #   trusted candidate is in the canonical set
+    # @return [String, nil] the matching configured canonical authority, or
+    #   nil when no trusted candidate is in the canonical set
     def self.canonical_request_host(env)
       candidates = [env['onetime.display_domain'], env[Rack::DetectHost.result_field_name]]
-
-      candidates.map(&:to_s).find do |host|
+      selected   = candidates.map(&:to_s).find do |host|
         !host.empty? && Onetime::Middleware::DomainStrategy.canonical_host?(host)
       end
+
+      canonical_authority_for(selected)
     end
 
     # Absolute origin for the request's own canonical host (see
-    # #canonical_request_host). Scheme and port come from the request, the
-    # same way #base_url builds a tenant origin.
+    # #canonical_request_host). Scheme comes from the request. An explicit
+    # port on the trusted configured authority wins; otherwise the request /
+    # forwarded port is retained, as for #base_url.
     #
     # @param env [Hash] Rack environment
     # @return [String, nil] origin, or nil when #canonical_request_host declines
@@ -237,15 +237,15 @@ module Auth
       host = canonical_request_host(env)
       return nil if host.nil?
 
-      origin_for(env, host)
+      origin_for(env, host, preferred_port: explicit_port(host))
     end
 
     # The origin every auth URL for this request builds on: the shared
     # three-tier chain (see "One chain for every auth URL" above).
     #
     #   1. #base_url                   — verified tenant host, request scheme/port
-    #   2. #canonical_request_base_url — the request's own canonical host,
-    #                                    request scheme/port
+    #   2. #canonical_request_base_url — the request's configured canonical
+    #                                    authority and request scheme
     #   3. #canonical_base_url         — configured site.host, site.ssl scheme
     #
     # Never `request.host` / Rack's `base_url`: the raw authority is what a
@@ -271,41 +271,74 @@ module Auth
       resolve(env) || canonical_request_host(env) || canonical_host
     end
 
+    # Resolves an admitted canonical request host back to the configured
+    # authority that granted membership. When multiple configured sources use
+    # the same normalized hostname, site.host wins because it is the app's
+    # configured public authority and the canonical fallback used by this
+    # module. Distinct default and link-domain hosts still resolve from
+    # DomainStrategy's canonical set.
+    #
+    # This retains configured ports and prevents a port attached only to the
+    # request candidate from becoming trusted through the port-insensitive
+    # canonical membership check.
+    #
+    # @param host [String, nil] selected canonical request host
+    # @return [String, nil] matching configured canonical authority
+    def self.canonical_authority_for(host)
+      return nil if host.nil?
+
+      site_authority = canonical_host
+      if Onetime::Utils::DomainParser.hostname_matches?(site_authority, host)
+        return site_authority
+      end
+
+      authorities = Onetime::Middleware::DomainStrategy.canonical_domains
+      if authorities.nil? || authorities.empty?
+        authorities = [Onetime::Middleware::DomainStrategy.canonical_domain].compact
+      end
+
+      exact = authorities.find do |authority|
+        authority.to_s.strip.casecmp?(host.to_s.strip)
+      end
+      return exact unless exact.nil?
+
+      authorities.find do |authority|
+        Onetime::Utils::DomainParser.hostname_matches?(authority, host)
+      end
+    end
+    private_class_method :canonical_authority_for
+
+    # Returns a port only when it is explicit in a configured authority.
+    #
+    # @param authority [String, nil]
+    # @return [Integer, nil]
+    def self.explicit_port(authority)
+      match = authority.to_s.strip.match(/\A(?:[^:\[\]]+|\[[^\]]+\]):(\d+)\z/)
+      match && match[1].to_i
+    end
+    private_class_method :explicit_port
+
     # `scheme://host[:port]` for an ALREADY-ALLOWLISTED host. Reproduces
-    # Rack::Request#base_url with the authority's host swapped: scheme and
-    # port still come from the request (both honor the proxy's X-Forwarded-*
-    # the same way they did before), so only the hostname changes. The port
-    # therefore depends on a parseable authority or X-Forwarded-Port: for a
-    # doubled `Host: a:8443, a:8443` Rack reports the scheme's default port
-    # and the origin carries none (#4517).
+    # Rack::Request#base_url with the authority's hostname swapped. Scheme and,
+    # by default, port still come from the request and honor X-Forwarded-*.
+    # Canonical callers may supply an explicit configured port, which takes
+    # precedence over Rack's parsed request port. Scheme-default ports are
+    # omitted either way.
     #
-    # ## The host may ALREADY carry a port — strip it before appending one
-    #
-    # The port comes from the request, so +host+ must contribute the hostname
-    # and nothing else. A canonical-set candidate routinely arrives with a
-    # port attached: `site.host` is configured as an authority (`localhost:7143`
-    # in the full-auth E2E lane, `secrets.internal:8443` on an on-prem install),
-    # `DomainStrategy#call` copies it verbatim into `display_domain` whenever
-    # domains are disabled, and `canonical_host?` matches it PORT-INSENSITIVELY
-    # — so `canonical_request_host` legitimately hands back `localhost:7143`.
-    # Interpolating that straight into the authority yielded
-    # `http://localhost:7143:7143/verify-account?key=…`: an unparseable URL in
-    # every real verification and reset email the deployment sends.
-    #
-    # Normalizing through `extract_hostname` is what makes the two agree — it
-    # is the same port-stripping normalizer `canonical_host?` admits the
-    # candidate with. IPv6 literals come back bare (`2001:db8::1`), so they are
-    # re-bracketed per RFC 3986 §3.2.2 before a port can be appended.
+    # Normalizing through `extract_hostname` keeps a port already carried by
+    # +host+ from being appended twice. IPv6 literals come back bare
+    # (`2001:db8::1`), so they are re-bracketed per RFC 3986 §3.2.2.
     #
     # @param env [Hash] Rack environment
     # @param host [String] an allowlisted host (verified tenant or canonical),
     #   with or without a port
+    # @param preferred_port [Integer, nil] trusted configured port override
     # @return [String] origin
-    def self.origin_for(env, host)
+    def self.origin_for(env, host, preferred_port: nil)
       request      = Rack::Request.new(env)
       hostname     = Onetime::Utils::DomainParser.extract_hostname(host) || host.to_s
       hostname     = "[#{hostname}]" if hostname.include?(':') # bare IPv6 literal
-      port         = request.port
+      port         = preferred_port || request.port
       scheme       = request.scheme
       default_port = scheme == 'https' ? 443 : 80
       authority    = port && port != default_port ? "#{hostname}:#{port}" : hostname

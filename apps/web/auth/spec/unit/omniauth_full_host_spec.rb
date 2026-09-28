@@ -45,8 +45,13 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
   # G-01 requires a positive, VERIFIED record before a host may root an SSO
   # redirect_uri.
   before do
+    allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?) do |host|
+      canonical_hosts.any? do |authority|
+        Onetime::Utils::DomainParser.hostname_matches?(authority, host)
+      end
+    end
     allow(Onetime::Middleware::DomainStrategy)
-      .to receive(:canonical_host?) { |host| canonical_hosts.include?(host.to_s) }
+      .to receive(:canonical_domains).and_return(canonical_hosts)
 
     allow(Onetime::CustomDomain).to receive(:from_display_domain) do |host|
       if verified_custom_hosts.include?(host.to_s)
@@ -209,13 +214,12 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
     it 'treats a split deployment second canonical host as canonical' do
       # features.domains.default anchors links while site.host serves the app;
       # both are in the canonical set and neither is a tenant.
+      canonical_hosts << 'app.onetimesecret.com'
       env = env_for(
         host: 'app.onetimesecret.com',
         display_domain: 'app.onetimesecret.com',
         strategy: :canonical,
       )
-      allow(Onetime::Middleware::DomainStrategy)
-        .to receive(:canonical_host?).with('app.onetimesecret.com').and_return(true)
 
       expect(described_class.full_host_for(env)).to eq('https://app.onetimesecret.com')
     end
@@ -287,7 +291,8 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
       # site.host. DomainStrategy copies site.host into display_domain
       # verbatim, port included, and still writes strategy :canonical. The
       # port must neither double nor leak through the doubled-Host path.
-      canonical_hosts << 'onetimesecret.com:443'
+      canonical_hosts.replace(['onetimesecret.com:443'])
+      allow(Auth::PublicHost).to receive(:canonical_host).and_return('onetimesecret.com:443')
       env = doubled_host_env(
         display_domain: 'onetimesecret.com:443',
         strategy: :canonical,
@@ -306,25 +311,37 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
       expect(described_class.full_host_for(env)).to eq('http://127.0.0.1')
     end
 
-    it 'drops a non-default port from site.host, because the doubled authority is unparseable' do
-      # Tier 2 (canonical_request_base_url) wins here and composes the origin
-      # through origin_for, which reads the port from Rack::Request#port.
-      # Rack cannot parse `secrets.internal:8443, secrets.internal:8443`, so
-      # it reports the scheme's default port and the origin omits 8443: an
-      # IdP registered with the ported callback still rejects the login. The
-      # port comes from the request authority (or X-Forwarded-Port), never
-      # from the allowlisted candidate, so a ported site.host behind a
-      # doubling proxy still needs the proxy fixed. Pinned so the gap stays
-      # visible; a fix belongs in origin_for and touches every Rodauth link.
+    it 'retains a configured non-default port when the doubled authority is unparseable' do
+      # Tier 2 resolves the selected canonical host back to the configured
+      # authority. Its explicit port wins over Rack's default-port fallback.
       canonical_hosts << 'secrets.internal:8443'
+      allow(Auth::PublicHost).to receive(:canonical_host).and_return('secrets.internal:8443')
       env = doubled_host_env(
         host: 'secrets.internal:8443',
-        display_domain: 'secrets.internal:8443',
+        display_domain: 'secrets.internal',
         strategy: :canonical,
         detected_host: 'secrets.internal',
       )
 
-      expect(described_class.full_host_for(env)).to eq('https://secrets.internal')
+      expect(described_class.full_host_for(env)).to eq('https://secrets.internal:8443')
+    end
+
+    it 'prefers site.host when default and site authorities share a hostname' do
+      # DOMAINS_ENABLED=true leaves the bare DetectHost result in
+      # display_domain. DEFAULT_DOMAIN is the first canonical-set entry, but
+      # HOST is the app's public authority and must retain its configured port.
+      canonical_hosts.replace(['canonical.example.org', 'canonical.example.org:7143'])
+      allow(Auth::PublicHost).to receive(:canonical_host)
+        .and_return('canonical.example.org:7143')
+      env = doubled_host_env(
+        host: 'canonical.example.org:7143',
+        display_domain: 'canonical.example.org',
+        strategy: :canonical,
+        detected_host: 'canonical.example.org',
+        scheme: 'http',
+      )
+
+      expect(described_class.full_host_for(env)).to eq('http://canonical.example.org:7143')
     end
 
     it 'agrees with the Rodauth email-link origin for the same request' do
